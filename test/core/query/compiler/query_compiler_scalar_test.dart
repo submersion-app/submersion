@@ -23,7 +23,7 @@ void main() {
     expect(
       c(
         ConditionNode(
-          const FieldPath(['depth']),
+          FieldPath(['depth']),
           QueryOp.gt,
           const NumberValue(30, null),
         ),
@@ -32,18 +32,18 @@ void main() {
     );
     final b = c(
       ConditionNode(
-        const FieldPath(['depth']),
+        FieldPath(['depth']),
         QueryOp.between,
-        const ListValue([NumberValue(18, null), NumberValue(30, null)]),
+        ListValue([const NumberValue(18, null), const NumberValue(30, null)]),
       ),
     );
     expect(b.where, '(r0.max_depth >= ? AND r0.max_depth <= ?)');
     expect(b.params, [18.0, 30.0]);
     final i = c(
       ConditionNode(
-        const FieldPath(['rating']),
+        FieldPath(['rating']),
         QueryOp.inList,
-        const ListValue([NumberValue(4, null), NumberValue(5, null)]),
+        ListValue([const NumberValue(4, null), const NumberValue(5, null)]),
       ),
     );
     expect(i.where, '(r0.rating IN (?, ?))');
@@ -53,7 +53,7 @@ void main() {
     expect(
       c(
         ConditionNode(
-          const FieldPath(['bottomTime']),
+          FieldPath(['bottomTime']),
           QueryOp.neq,
           const NumberValue(10, null),
         ),
@@ -64,11 +64,11 @@ void main() {
 
   test('presence uses the field emptySql', () {
     expect(
-      c(ConditionNode(const FieldPath(['notes']), QueryOp.isEmpty, null)).where,
+      c(ConditionNode(FieldPath(['notes']), QueryOp.isEmpty, null)).where,
       "((r0.notes IS NULL OR TRIM(r0.notes) = ''))",
     );
     expect(
-      c(ConditionNode(const FieldPath(['notes']), QueryOp.isSet, null)).where,
+      c(ConditionNode(FieldPath(['notes']), QueryOp.isSet, null)).where,
       "(NOT ((r0.notes IS NULL OR TRIM(r0.notes) = '')))",
     );
   });
@@ -76,7 +76,7 @@ void main() {
   test('text eq is case-insensitive, contains escapes LIKE wildcards', () {
     final e = c(
       ConditionNode(
-        const FieldPath(['notes']),
+        FieldPath(['notes']),
         QueryOp.eq,
         const StringValue('Manta'),
       ),
@@ -85,7 +85,7 @@ void main() {
     expect(e.params, ['Manta']);
     final k = c(
       ConditionNode(
-        const FieldPath(['notes']),
+        FieldPath(['notes']),
         QueryOp.contains,
         const StringValue('100%_x'),
       ),
@@ -98,7 +98,7 @@ void main() {
     expect(
       c(
         ConditionNode(
-          const FieldPath(['favorite']),
+          FieldPath(['favorite']),
           QueryOp.eq,
           const BoolValue(true),
         ),
@@ -108,7 +108,7 @@ void main() {
     expect(
       c(
         ConditionNode(
-          const FieldPath(['favorite']),
+          FieldPath(['favorite']),
           QueryOp.neq,
           const BoolValue(true),
         ),
@@ -117,21 +117,13 @@ void main() {
     );
     expect(
       c(
-        ConditionNode(
-          const FieldPath(['deco']),
-          QueryOp.eq,
-          const BoolValue(true),
-        ),
+        ConditionNode(FieldPath(['deco']), QueryOp.eq, const BoolValue(true)),
       ).where,
       '((r0.deco_flag = 1))',
     );
     expect(
       c(
-        ConditionNode(
-          const FieldPath(['deco']),
-          QueryOp.neq,
-          const BoolValue(true),
-        ),
+        ConditionNode(FieldPath(['deco']), QueryOp.neq, const BoolValue(true)),
       ).where,
       '((r0.deco_flag = 0))',
     );
@@ -141,7 +133,7 @@ void main() {
     expect(
       c(
         ConditionNode(
-          const FieldPath(['waterType']),
+          FieldPath(['waterType']),
           QueryOp.eq,
           const EnumValue('salt'),
         ),
@@ -150,27 +142,23 @@ void main() {
     );
     final w = c(
       ConditionNode(
-        const FieldPath(['weekday']),
+        FieldPath(['weekday']),
         QueryOp.inList,
-        const ListValue([EnumValue('sunday'), EnumValue('monday')]),
+        ListValue([const EnumValue('sunday'), const EnumValue('monday')]),
       ),
     );
     expect(w.params, [0, 1]);
   });
 
   test('a relation compared to a ref binds the id inside its hop', () {
-    final q = c(
-      ConditionNode(const FieldPath(['site']), QueryOp.eq, kFixtureSite),
-    );
+    final q = c(ConditionNode(FieldPath(['site']), QueryOp.eq, kFixtureSite));
     expect(
       q.where,
       '(EXISTS (SELECT 1 FROM dive_sites r1 WHERE r1.id = r0.site_id '
       'AND r1.id = ?))',
     );
     expect(q.params, ['site-1']);
-    final n = c(
-      ConditionNode(const FieldPath(['site']), QueryOp.neq, kFixtureSite),
-    );
+    final n = c(ConditionNode(FieldPath(['site']), QueryOp.neq, kFixtureSite));
     // Like scalar `!=`, a relation `!=` needs a related row: a dive with no
     // site is not "a site other than X".
     expect(
@@ -180,9 +168,9 @@ void main() {
     );
     final l = c(
       ConditionNode(
-        const FieldPath(['site']),
+        FieldPath(['site']),
         QueryOp.inList,
-        const ListValue([RefValue('a', 'A'), RefValue('b', 'B')]),
+        ListValue([const RefValue('a', 'A'), const RefValue('b', 'B')]),
       ),
     );
     expect(
@@ -193,9 +181,9 @@ void main() {
     expect(
       c(
         ConditionNode(
-          const FieldPath(['id']),
+          FieldPath(['id']),
           QueryOp.inList,
-          const ListValue([StringValue('a'), StringValue('b')]),
+          ListValue([const StringValue('a'), const StringValue('b')]),
         ),
       ).where,
       '(r0.id IN (?, ?))',
@@ -207,37 +195,29 @@ void main() {
     final day = DateTime(2025, 3, 14);
     final next = DateTime(2025, 3, 15);
     final eq = c(
-      ConditionNode(const FieldPath(['date']), QueryOp.eq, DateValue(day)),
+      ConditionNode(FieldPath(['date']), QueryOp.eq, DateValue(day)),
     );
     expect(eq.where, '(r0.dive_date_time >= ? AND r0.dive_date_time < ?)');
     expect(eq.params, [ms(day), ms(next)]);
     expect(
-      c(
-        ConditionNode(const FieldPath(['date']), QueryOp.gte, DateValue(day)),
-      ).params,
+      c(ConditionNode(FieldPath(['date']), QueryOp.gte, DateValue(day))).params,
       [ms(day)],
     );
     expect(
-      c(
-        ConditionNode(const FieldPath(['date']), QueryOp.gt, DateValue(day)),
-      ).params,
+      c(ConditionNode(FieldPath(['date']), QueryOp.gt, DateValue(day))).params,
       [ms(next)],
     );
     expect(
-      c(
-        ConditionNode(const FieldPath(['date']), QueryOp.lt, DateValue(day)),
-      ).params,
+      c(ConditionNode(FieldPath(['date']), QueryOp.lt, DateValue(day))).params,
       [ms(day)],
     );
     expect(
-      c(
-        ConditionNode(const FieldPath(['date']), QueryOp.lte, DateValue(day)),
-      ).params,
+      c(ConditionNode(FieldPath(['date']), QueryOp.lte, DateValue(day))).params,
       [ms(next)],
     );
     final range = c(
       ConditionNode(
-        const FieldPath(['date']),
+        FieldPath(['date']),
         QueryOp.inList,
         DateRangeValue(DateTime(2025, 1, 1), DateTime(2025, 12, 31)),
       ),
@@ -246,7 +226,7 @@ void main() {
   });
 
   test('text search ORs every template per word and ANDs words', () {
-    final q = c(const TextNode(['night', 'dive']));
+    final q = c(TextNode(['night', 'dive']));
     expect(
       q.where,
       "((r0.notes LIKE ? ESCAPE '\\' OR EXISTS (SELECT 1 FROM dive_sites ts "
@@ -263,20 +243,20 @@ void main() {
       OrNode([
         AndNode([
           ConditionNode(
-            const FieldPath(['depth']),
+            FieldPath(['depth']),
             QueryOp.gt,
             const NumberValue(30, null),
           ),
           NotNode(
             ConditionNode(
-              const FieldPath(['favorite']),
+              FieldPath(['favorite']),
               QueryOp.eq,
               const BoolValue(true),
             ),
           ),
         ]),
         ConditionNode(
-          const FieldPath(['rating']),
+          FieldPath(['rating']),
           QueryOp.gte,
           const NumberValue(4, null),
         ),
@@ -293,18 +273,18 @@ void main() {
   test('the bind count always equals the placeholder count', () {
     for (final n in <QueryNode>[
       ConditionNode(
-        const FieldPath(['depth']),
+        FieldPath(['depth']),
         QueryOp.between,
-        const ListValue([NumberValue(1, null), NumberValue(2, null)]),
+        ListValue([const NumberValue(1, null), const NumberValue(2, null)]),
       ),
-      const TextNode(['a', 'b', 'c']),
+      TextNode(['a', 'b', 'c']),
       ConditionNode(
-        const FieldPath(['waterType']),
+        FieldPath(['waterType']),
         QueryOp.inList,
-        const ListValue([
-          EnumValue('salt'),
-          EnumValue('fresh'),
-          EnumValue('brackish'),
+        ListValue([
+          const EnumValue('salt'),
+          const EnumValue('fresh'),
+          const EnumValue('brackish'),
         ]),
       ),
     ]) {
@@ -317,7 +297,7 @@ void main() {
     expect(
       compileQuery(
         ConditionNode(
-          const FieldPath(['depth']),
+          FieldPath(['depth']),
           QueryOp.gt,
           const NumberValue(1, null),
         ),
@@ -333,7 +313,7 @@ void main() {
     final q = c(
       NotNode(
         ConditionNode(
-          const FieldPath(['notes']),
+          FieldPath(['notes']),
           QueryOp.contains,
           const StringValue('shark'),
         ),
@@ -347,7 +327,7 @@ void main() {
     () {
       final q = compileQuery(
         ConditionNode(
-          const FieldPath(['localDay']),
+          FieldPath(['localDay']),
           QueryOp.eq,
           DateValue(DateTime(2025, 3, 14)),
         ),
@@ -362,18 +342,14 @@ void main() {
   );
 
   test('an empty group or empty text is a compile error, never bad SQL', () {
-    expect(() => c(const AndNode([])), throwsA(isA<Error>()));
-    expect(() => c(const TextNode([])), throwsA(isA<Error>()));
+    expect(() => c(AndNode([])), throwsA(isA<Error>()));
+    expect(() => c(TextNode([])), throwsA(isA<Error>()));
   });
 
   test('scoped nesting past the hop cap is a compile error', () {
     QueryNode nest(int n) => n == 0
-        ? ConditionNode(
-            const FieldPath(['name']),
-            QueryOp.eq,
-            const StringValue('x'),
-          )
-        : ScopedNode(const FieldPath(['buddies']), nest(n - 1));
+        ? ConditionNode(FieldPath(['name']), QueryOp.eq, const StringValue('x'))
+        : ScopedNode(FieldPath(['buddies']), nest(n - 1));
     expect(() => c(nest(5)), throwsA(isA<Error>()));
   });
 }

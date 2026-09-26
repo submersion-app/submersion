@@ -17,26 +17,26 @@ void main() {
       messages(
         AndNode([
           ConditionNode(
-            const FieldPath(['depth']),
+            FieldPath(['depth']),
             QueryOp.gt,
             const NumberValue(30, null),
           ),
           ScopedNode(
-            const FieldPath(['gear']),
+            FieldPath(['gear']),
             ConditionNode(
-              const FieldPath(['type']),
+              FieldPath(['type']),
               QueryOp.eq,
               const EnumValue('wetsuit'),
             ),
           ),
           ConditionNode(
-            const FieldPath(['buddies', 'certifications', 'level']),
+            FieldPath(['buddies', 'certifications', 'level']),
             QueryOp.eq,
             const StringValue('x'),
           ),
-          ConditionNode(const FieldPath(['weights']), QueryOp.isEmpty, null),
-          ConditionNode(const FieldPath(['site']), QueryOp.eq, kFixtureSite),
-          const TextNode(['manta']),
+          ConditionNode(FieldPath(['weights']), QueryOp.isEmpty, null),
+          ConditionNode(FieldPath(['site']), QueryOp.eq, kFixtureSite),
+          TextNode(['manta']),
         ]),
       ),
       isEmpty,
@@ -47,53 +47,49 @@ void main() {
     final errors = validateQuery(
       AndNode([
         ConditionNode(
-          const FieldPath(['depht']),
+          FieldPath(['depht']),
           QueryOp.gt,
           const NumberValue(30, null),
         ),
         ConditionNode(
-          const FieldPath(['favorite']),
+          FieldPath(['favorite']),
           QueryOp.contains,
           const StringValue('x'),
         ),
         ConditionNode(
-          const FieldPath(['rating']),
+          FieldPath(['rating']),
           QueryOp.gt,
           const NumberValue(3, QueryUnit.m),
         ),
         ConditionNode(
-          const FieldPath(['depth']),
+          FieldPath(['depth']),
           QueryOp.gt,
           const NumberValue(900, null),
         ),
+        ConditionNode(FieldPath(['waterType']), QueryOp.inList, ListValue([])),
         ConditionNode(
-          const FieldPath(['waterType']),
-          QueryOp.inList,
-          const ListValue([]),
-        ),
-        ConditionNode(
-          const FieldPath(['waterType']),
+          FieldPath(['waterType']),
           QueryOp.eq,
           const EnumValue('lake'),
         ),
         ConditionNode(
-          const FieldPath(['depth']),
+          FieldPath(['depth']),
           QueryOp.eq,
           const StringValue('deep'),
         ),
         ConditionNode(
-          const FieldPath(['weights']),
+          FieldPath(['weights']),
           QueryOp.gt,
           const NumberValue(1, null),
         ),
-        const ScopedNode(FieldPath(['depth']), TextNode(['x'])),
+        ScopedNode(FieldPath(['depth']), TextNode(['x'])),
         ConditionNode(
-          const FieldPath(['depth']),
+          FieldPath(['depth']),
           QueryOp.between,
-          const ListValue([NumberValue(1, null)]),
+          ListValue([const NumberValue(1, null)]),
         ),
         ConditionNode(
-          const FieldPath(['site']),
+          FieldPath(['site']),
           QueryOp.eq,
           const StringValue('Salt Pier'),
         ),
@@ -114,7 +110,7 @@ void main() {
     expect(m, contains('[...] needs a relation'));
     expect(m, contains('between needs two values'));
     expect(m, contains('site expects a reference'));
-    expect(errors.first.path, const FieldPath(['depht']));
+    expect(errors.first.path, FieldPath(['depht']));
   });
 
   test(
@@ -123,9 +119,9 @@ void main() {
       expect(
         messages(
           ScopedNode(
-            const FieldPath(['gear']),
+            FieldPath(['gear']),
             ConditionNode(
-              const FieldPath(['depth']),
+              FieldPath(['depth']),
               QueryOp.gt,
               const NumberValue(1, null),
             ),
@@ -137,7 +133,7 @@ void main() {
   );
 
   test('free text inside a scope without search columns is an error', () {
-    expect(messages(const ScopedNode(FieldPath(['gear']), TextNode(['x']))), [
+    expect(messages(ScopedNode(FieldPath(['gear']), TextNode(['x']))), [
       contains('free text'),
     ]);
   });
@@ -146,50 +142,45 @@ void main() {
     expect(
       messages(
         ConditionNode(
-          const FieldPath(['depth']),
+          FieldPath(['depth']),
           QueryOp.gt,
           const NumberValue(30, QueryUnit.f),
         ),
       ),
       [contains('unit')],
     );
-    expect(messages(const AndNode([])), [contains('empty')]);
-    expect(messages(const OrNode([])), [contains('empty')]);
-    expect(messages(const TextNode([])), [contains('empty')]);
+    expect(messages(AndNode([])), [contains('empty')]);
+    expect(messages(OrNode([])), [contains('empty')]);
+    expect(messages(TextNode([])), [contains('empty')]);
   });
 
   test('a date range is only valid under in', () {
     final range = DateRangeValue(DateTime(2025, 1, 1), DateTime(2025, 1, 31));
+    expect(messages(ConditionNode(FieldPath(['date']), QueryOp.lt, range)), [
+      contains('day'),
+    ]);
     expect(
-      messages(ConditionNode(const FieldPath(['date']), QueryOp.lt, range)),
-      [contains('day')],
-    );
-    expect(
-      messages(ConditionNode(const FieldPath(['date']), QueryOp.inList, range)),
+      messages(ConditionNode(FieldPath(['date']), QueryOp.inList, range)),
       isEmpty,
     );
   });
 
   test('scoped nesting counts against the hop cap', () {
     QueryNode nest(int n) => n == 0
-        ? ConditionNode(
-            const FieldPath(['name']),
-            QueryOp.eq,
-            const StringValue('x'),
-          )
-        : ScopedNode(const FieldPath(['buddies']), nest(n - 1));
+        ? ConditionNode(FieldPath(['name']), QueryOp.eq, const StringValue('x'))
+        : ScopedNode(FieldPath(['buddies']), nest(n - 1));
     expect(messages(nest(4)), isEmpty);
     expect(messages(nest(5)), [contains('4')]);
     expect(
       messages(
         ScopedNode(
-          const FieldPath(['buddies']),
+          FieldPath(['buddies']),
           ScopedNode(
-            const FieldPath(['buddies']),
+            FieldPath(['buddies']),
             ScopedNode(
-              const FieldPath(['buddies']),
+              FieldPath(['buddies']),
               ConditionNode(
-                const FieldPath(['buddies', 'certifications', 'level']),
+                FieldPath(['buddies', 'certifications', 'level']),
                 QueryOp.eq,
                 const StringValue('x'),
               ),
@@ -203,15 +194,11 @@ void main() {
 
   test(':none on an enum with a stored value named none is ambiguous', () {
     expect(
-      messages(
-        ConditionNode(const FieldPath(['current']), QueryOp.isEmpty, null),
-      ),
+      messages(ConditionNode(FieldPath(['current']), QueryOp.isEmpty, null)),
       [contains('current = none')],
     );
     expect(
-      messages(
-        ConditionNode(const FieldPath(['waterType']), QueryOp.isEmpty, null),
-      ),
+      messages(ConditionNode(FieldPath(['waterType']), QueryOp.isEmpty, null)),
       isEmpty,
     );
   });

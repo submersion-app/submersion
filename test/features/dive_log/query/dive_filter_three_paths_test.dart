@@ -47,16 +47,16 @@ void main() {
     ),
     'deco (SQL-only before)': const DiveFilterState(decoOnly: false),
     'typed presence': DiveFilterState(
-      query: ConditionNode(const FieldPath(['weights']), QueryOp.isEmpty, null),
+      query: ConditionNode(FieldPath(['weights']), QueryOp.isEmpty, null),
     ),
     'typed three hops': DiveFilterState(
       query: ConditionNode(
-        const FieldPath(['buddies', 'certifications', 'level']),
+        FieldPath(['buddies', 'certifications', 'level']),
         QueryOp.eq,
         const StringValue('rescue'),
       ),
     ),
-    'typed text': const DiveFilterState(query: TextNode(['manta'])),
+    'typed text': DiveFilterState(query: TextNode(['manta'])),
   };
 
   for (final e in cases.entries) {

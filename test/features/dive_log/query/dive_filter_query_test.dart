@@ -42,7 +42,7 @@ void main() {
         EquipmentAttrCondition.suitThickness(min: 5, max: 7),
       ],
       query: ConditionNode(
-        const FieldPath(['notes']),
+        FieldPath(['notes']),
         QueryOp.contains,
         const StringValue('manta'),
       ),
@@ -52,138 +52,137 @@ void main() {
       q.children,
       containsAll(<QueryNode>[
         ConditionNode(
-          const FieldPath(['date']),
+          FieldPath(['date']),
           QueryOp.gte,
           DateValue(DateTime(2025, 1, 1)),
         ),
         ConditionNode(
-          const FieldPath(['date']),
+          FieldPath(['date']),
           QueryOp.lte,
           DateValue(DateTime(2025, 12, 31)),
         ),
         ConditionNode(
-          const FieldPath(['weekday']),
+          FieldPath(['weekday']),
           QueryOp.inList,
-          const ListValue([EnumValue('monday'), EnumValue('sunday')]),
+          ListValue([const EnumValue('monday'), const EnumValue('sunday')]),
         ),
         ConditionNode(
-          const FieldPath(['types']),
+          FieldPath(['types']),
           QueryOp.eq,
           const RefValue('dt1', 'dt1'),
         ),
         ConditionNode(
-          const FieldPath(['site']),
+          FieldPath(['site']),
           QueryOp.eq,
           const RefValue('s1', 's1'),
         ),
         ConditionNode(
-          const FieldPath(['trip']),
+          FieldPath(['trip']),
           QueryOp.eq,
           const RefValue('t1', 't1'),
         ),
         ConditionNode(
-          const FieldPath(['center']),
+          FieldPath(['center']),
           QueryOp.eq,
           const RefValue('c1', 'c1'),
         ),
         ConditionNode(
-          const FieldPath(['computer']),
+          FieldPath(['computer']),
           QueryOp.eq,
           const RefValue('pc1', 'pc1'),
         ),
         ConditionNode(
-          const FieldPath(['depth']),
+          FieldPath(['depth']),
           QueryOp.gte,
           const NumberValue(18, null),
         ),
         ConditionNode(
-          const FieldPath(['depth']),
+          FieldPath(['depth']),
           QueryOp.lte,
           const NumberValue(30, null),
         ),
         ScopedNode(
-          const FieldPath(['tanks']),
+          FieldPath(['tanks']),
           AndNode([
             ConditionNode(
-              const FieldPath(['o2']),
+              FieldPath(['o2']),
               QueryOp.gte,
               const NumberValue(30, null),
             ),
             ConditionNode(
-              const FieldPath(['o2']),
+              FieldPath(['o2']),
               QueryOp.lte,
               const NumberValue(36, null),
             ),
           ]),
         ),
         ConditionNode(
-          const FieldPath(['rating']),
+          FieldPath(['rating']),
           QueryOp.gte,
           const NumberValue(4, null),
         ),
         ConditionNode(
-          const FieldPath(['bottomTime']),
+          FieldPath(['bottomTime']),
           QueryOp.gte,
           const NumberValue(20, null),
         ),
         ConditionNode(
-          const FieldPath(['bottomTime']),
+          FieldPath(['bottomTime']),
           QueryOp.lte,
           const NumberValue(60, null),
         ),
         ConditionNode(
-          const FieldPath(['favorite']),
+          FieldPath(['favorite']),
           QueryOp.eq,
           const BoolValue(true),
         ),
         ConditionNode(
-          const FieldPath(['excludedFromStats']),
+          FieldPath(['excludedFromStats']),
           QueryOp.eq,
           const BoolValue(true),
         ),
+        ConditionNode(FieldPath(['deco']), QueryOp.eq, const BoolValue(false)),
+        ConditionNode(FieldPath(['buddies']), QueryOp.isEmpty, null),
         ConditionNode(
-          const FieldPath(['deco']),
-          QueryOp.eq,
-          const BoolValue(false),
-        ),
-        ConditionNode(const FieldPath(['buddies']), QueryOp.isEmpty, null),
-        ConditionNode(
-          const FieldPath(['tags']),
+          FieldPath(['tags']),
           QueryOp.inList,
-          const ListValue([RefValue('tag1', 'tag1'), RefValue('tag2', 'tag2')]),
+          ListValue([
+            const RefValue('tag1', 'tag1'),
+            const RefValue('tag2', 'tag2'),
+          ]),
         ),
         ConditionNode(
-          const FieldPath(['gear']),
+          FieldPath(['gear']),
           QueryOp.inList,
-          const ListValue([RefValue('g1', 'g1')]),
+          ListValue([const RefValue('g1', 'g1')]),
         ),
         ConditionNode(
-          const FieldPath(['id']),
+          FieldPath(['id']),
           QueryOp.inList,
-          const ListValue([StringValue('d1'), StringValue('d2')]),
+          ListValue([const StringValue('d1'), const StringValue('d2')]),
         ),
         ConditionNode(
-          const FieldPath(['buddies']),
+          FieldPath(['buddies']),
           QueryOp.eq,
           const RefValue('b1', 'b1'),
         ),
         ScopedNode(
-          const FieldPath(['customFields']),
+          FieldPath(['customFields']),
           AndNode([
             ConditionNode(
-              const FieldPath(['key']),
+              FieldPath(['key']),
               QueryOp.eq,
               const StringValue('Exposure'),
             ),
             ConditionNode(
-              const FieldPath(['value']),
+              FieldPath(['value']),
               QueryOp.contains,
               const StringValue('dry'),
             ),
           ]),
         ),
         ConditionNode(
-          const FieldPath(['notes']),
+          FieldPath(['notes']),
           QueryOp.contains,
           const StringValue('manta'),
         ),
@@ -196,15 +195,15 @@ void main() {
       contains(
         OrNode([
           ScopedNode(
-            const FieldPath(['buddies']),
+            FieldPath(['buddies']),
             ConditionNode(
-              const FieldPath(['name']),
+              FieldPath(['name']),
               QueryOp.contains,
               const StringValue('ana'),
             ),
           ),
           ConditionNode(
-            const FieldPath(['legacyBuddy']),
+            FieldPath(['legacyBuddy']),
             QueryOp.contains,
             const StringValue('ana'),
           ),
@@ -217,33 +216,36 @@ void main() {
       q.children,
       contains(
         ScopedNode(
-          const FieldPath(['gear']),
+          FieldPath(['gear']),
           AndNode([
             ConditionNode(
-              const FieldPath(['type']),
+              FieldPath(['type']),
               QueryOp.inList,
-              const ListValue([EnumValue('drysuit'), EnumValue('wetsuit')]),
+              ListValue([
+                const EnumValue('drysuit'),
+                const EnumValue('wetsuit'),
+              ]),
             ),
             ScopedNode(
-              const FieldPath(['attributes']),
+              FieldPath(['attributes']),
               AndNode([
                 ConditionNode(
-                  const FieldPath(['key']),
+                  FieldPath(['key']),
                   QueryOp.eq,
                   const StringValue('thickness_mm'),
                 ),
                 ConditionNode(
-                  const FieldPath(['custom']),
+                  FieldPath(['custom']),
                   QueryOp.eq,
                   const BoolValue(false),
                 ),
                 ConditionNode(
-                  const FieldPath(['valueNum']),
+                  FieldPath(['valueNum']),
                   QueryOp.gte,
                   const NumberValue(5, null),
                 ),
                 ConditionNode(
-                  const FieldPath(['valueNum']),
+                  FieldPath(['valueNum']),
                   QueryOp.lte,
                   const NumberValue(7, null),
                 ),
@@ -274,7 +276,7 @@ void main() {
   test('an invalid advanced query never throws out of the tick lookup', () {
     final broken = DiveFilterState(
       query: ConditionNode(
-        const FieldPath(['noSuchField']),
+        FieldPath(['noSuchField']),
         QueryOp.eq,
         const StringValue('x'),
       ),
@@ -287,7 +289,7 @@ void main() {
     // a TypeError, not a QueryCompileError.
     final wrongType = DiveFilterState(
       query: ConditionNode(
-        const FieldPath(['favorite']),
+        FieldPath(['favorite']),
         QueryOp.eq,
         const StringValue('x'),
       ),

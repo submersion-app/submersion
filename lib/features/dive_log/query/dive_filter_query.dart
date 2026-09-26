@@ -64,7 +64,7 @@ extension DiveFilterQuery on DiveFilterState {
     if (minO2Percent != null || maxO2Percent != null) {
       parts.add(
         ScopedNode(
-          const FieldPath(['tanks']),
+          FieldPath(['tanks']),
           AndNode([
             if (minO2Percent != null)
               c('o2', QueryOp.gte, NumberValue(minO2Percent!, null)),
@@ -129,7 +129,7 @@ extension DiveFilterQuery on DiveFilterState {
       parts.add(
         OrNode([
           ScopedNode(
-            const FieldPath(['buddies']),
+            FieldPath(['buddies']),
             c('name', QueryOp.contains, StringValue(name)),
           ),
           c('legacyBuddy', QueryOp.contains, StringValue(name)),
@@ -139,7 +139,7 @@ extension DiveFilterQuery on DiveFilterState {
     if (customFieldKey != null && customFieldKey!.isNotEmpty) {
       parts.add(
         ScopedNode(
-          const FieldPath(['customFields']),
+          FieldPath(['customFields']),
           AndNode([
             c('key', QueryOp.eq, StringValue(customFieldKey!)),
             if (customFieldValue != null && customFieldValue!.isNotEmpty)
@@ -167,7 +167,7 @@ QueryNode _attrCondition(EquipmentAttrCondition cond) {
   final types = cond.types.map((t) => t.name).toList()..sort();
   final choices = cond.choices.toList()..sort();
   return ScopedNode(
-    const FieldPath(['gear']),
+    FieldPath(['gear']),
     AndNode([
       if (types.isNotEmpty)
         c(
@@ -176,7 +176,7 @@ QueryNode _attrCondition(EquipmentAttrCondition cond) {
           ListValue([for (final t in types) EnumValue(t)]),
         ),
       ScopedNode(
-        const FieldPath(['attributes']),
+        FieldPath(['attributes']),
         AndNode([
           c('key', QueryOp.eq, StringValue(cond.key)),
           c('custom', QueryOp.eq, const BoolValue(false)),

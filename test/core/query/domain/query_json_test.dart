@@ -9,12 +9,12 @@ void main() {
   final tree = OrNode([
     AndNode([
       ConditionNode(
-        const FieldPath(['depth']),
+        FieldPath(['depth']),
         QueryOp.gt,
         const NumberValue(30.48, QueryUnit.ft),
       ),
       ConditionNode(
-        const FieldPath(['date']),
+        FieldPath(['date']),
         QueryOp.between,
         ListValue([
           DateValue(DateTime(2025, 1, 1)),
@@ -22,31 +22,27 @@ void main() {
         ]),
       ),
       ConditionNode(
-        const FieldPath(['site']),
+        FieldPath(['site']),
         QueryOp.eq,
         const RefValue('site-1', 'Salt Pier'),
       ),
+      ConditionNode(FieldPath(['favorite']), QueryOp.eq, const BoolValue(true)),
       ConditionNode(
-        const FieldPath(['favorite']),
-        QueryOp.eq,
-        const BoolValue(true),
-      ),
-      ConditionNode(
-        const FieldPath(['date']),
+        FieldPath(['date']),
         QueryOp.inList,
         DateRangeValue(DateTime(2024, 3, 1), DateTime(2024, 3, 31)),
       ),
     ]),
-    NotNode(ConditionNode(const FieldPath(['weights']), QueryOp.isSet, null)),
+    NotNode(ConditionNode(FieldPath(['weights']), QueryOp.isSet, null)),
     ScopedNode(
-      const FieldPath(['gear']),
+      FieldPath(['gear']),
       ConditionNode(
-        const FieldPath(['type']),
+        FieldPath(['type']),
         QueryOp.inList,
-        const ListValue([EnumValue('wetsuit'), EnumValue('drysuit')]),
+        ListValue([const EnumValue('wetsuit'), const EnumValue('drysuit')]),
       ),
     ),
-    const TextNode(['night']),
+    TextNode(['night']),
   ]);
 
   test('round trips through JSON text', () {

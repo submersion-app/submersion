@@ -120,7 +120,7 @@ class DateRangeValue extends QueryValue {
 
 class ListValue extends QueryValue {
   final List<QueryValue> items;
-  const ListValue(this.items);
+  ListValue(List<QueryValue> items) : items = List.unmodifiable(items);
   @override
   bool operator ==(Object other) =>
       other is ListValue && listEqualsShallow(other.items, items);

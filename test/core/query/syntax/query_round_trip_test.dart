@@ -40,72 +40,68 @@ void main() {
     switch (r.nextInt(12)) {
       case 0:
         return ConditionNode(
-          const FieldPath(['depth']),
+          FieldPath(['depth']),
           QueryOp.gt,
           number(r, prefs),
         );
       case 1:
         return ConditionNode(
-          const FieldPath(['depth']),
+          FieldPath(['depth']),
           QueryOp.between,
           ListValue([number(r, prefs), number(r, prefs)]),
         );
       case 2:
-        return ConditionNode(
-          const FieldPath(['weights']),
-          QueryOp.isEmpty,
-          null,
-        );
+        return ConditionNode(FieldPath(['weights']), QueryOp.isEmpty, null);
       case 3:
         return ConditionNode(
-          const FieldPath(['notes']),
+          FieldPath(['notes']),
           QueryOp.contains,
           const StringValue('night dive'),
         );
       case 4:
         return ConditionNode(
-          const FieldPath(['waterType']),
+          FieldPath(['waterType']),
           QueryOp.inList,
-          const ListValue([EnumValue('salt'), EnumValue('fresh')]),
+          ListValue([const EnumValue('salt'), const EnumValue('fresh')]),
         );
       case 5:
         return ConditionNode(
-          const FieldPath(['site']),
+          FieldPath(['site']),
           QueryOp.eq,
           const RefValue('site-2', 'Bob\'s "Reef"'),
         );
       case 6:
         return ConditionNode(
-          const FieldPath(['date']),
+          FieldPath(['date']),
           QueryOp.inList,
           DateRangeValue(DateTime(2025, 1, 1), DateTime(2025, 12, 31)),
         );
       case 7:
         return ConditionNode(
-          const FieldPath(['date']),
+          FieldPath(['date']),
           QueryOp.lt,
           DateValue(DateTime(2025, 6, 3)),
         );
       case 8:
         return ScopedNode(
-          const FieldPath(['gear']),
+          FieldPath(['gear']),
           ConditionNode(
-            const FieldPath(['type']),
+            FieldPath(['type']),
             QueryOp.neq,
             const EnumValue('bcd'),
           ),
         );
       case 9:
         return ConditionNode(
-          const FieldPath(['buddies', 'certifications', 'level']),
+          FieldPath(['buddies', 'certifications', 'level']),
           QueryOp.eq,
           const StringValue('rescue'),
         );
       case 10:
-        return const TextNode(['manta']);
+        return TextNode(['manta']);
       default:
         return ConditionNode(
-          const FieldPath(['favorite']),
+          FieldPath(['favorite']),
           QueryOp.eq,
           const BoolValue(true),
         );

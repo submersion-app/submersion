@@ -5,10 +5,15 @@ import 'package:submersion/core/query/domain/query_value.dart';
 export 'package:submersion/core/query/domain/query_value.dart';
 
 /// A dotted path from the root entity: relations, then optionally a field.
+///
+/// Every list-bearing node and value copies its input into an unmodifiable
+/// list: the tree is hashed (DiveFilterState equality, the id-set family
+/// key), so a caller's later mutation of a list it passed in must not
+/// reach it.
 @immutable
 class FieldPath {
   final List<String> segments;
-  const FieldPath(this.segments);
+  FieldPath(List<String> segments) : segments = List.unmodifiable(segments);
 
   int get length => segments.length;
 
@@ -47,7 +52,7 @@ sealed class QueryNode {
 
 class AndNode extends QueryNode {
   final List<QueryNode> children;
-  const AndNode(this.children);
+  AndNode(List<QueryNode> children) : children = List.unmodifiable(children);
   @override
   bool operator ==(Object other) =>
       other is AndNode && listEqualsShallow(other.children, children);
@@ -59,7 +64,7 @@ class AndNode extends QueryNode {
 
 class OrNode extends QueryNode {
   final List<QueryNode> children;
-  const OrNode(this.children);
+  OrNode(List<QueryNode> children) : children = List.unmodifiable(children);
   @override
   bool operator ==(Object other) =>
       other is OrNode && listEqualsShallow(other.children, children);
@@ -125,7 +130,7 @@ class ScopedNode extends QueryNode {
 /// Free text over the entity's declared search columns.
 class TextNode extends QueryNode {
   final List<String> words;
-  const TextNode(this.words);
+  TextNode(List<String> words) : words = List.unmodifiable(words);
   @override
   bool operator ==(Object other) =>
       other is TextNode && listEqualsShallow(other.words, words);

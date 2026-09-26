@@ -59,7 +59,7 @@ final registry = QueryRegistry([_d, _b, _c]);
 
 void main() {
   test('resolves a field by key or alias', () {
-    final r = resolvePath(registry, _d, const FieldPath(['note']));
+    final r = resolvePath(registry, _d, FieldPath(['note']));
     expect(r.error, isNull);
     expect(r.field!.key, 'notes');
     expect(r.hops, isEmpty);
@@ -69,7 +69,7 @@ void main() {
     final r = resolvePath(
       registry,
       _d,
-      const FieldPath(['buddy', 'certifications', 'level']),
+      FieldPath(['buddy', 'certifications', 'level']),
     );
     expect(r.error, isNull);
     expect(r.hops.map((h) => h.key), ['buddies', 'certifications']);
@@ -77,13 +77,13 @@ void main() {
   });
 
   test('a path ending in a relation has no field', () {
-    final r = resolvePath(registry, _d, const FieldPath(['buddies']));
+    final r = resolvePath(registry, _d, FieldPath(['buddies']));
     expect(r.field, isNull);
     expect(r.terminalRelation!.key, 'buddies');
   });
 
   test('an unknown segment reports where and offers suggestions', () {
-    final r = resolvePath(registry, _d, const FieldPath(['buddies', 'nmae']));
+    final r = resolvePath(registry, _d, FieldPath(['buddies', 'nmae']));
     expect(r.error!.message, contains('nmae'));
     expect(r.error!.suggestions, contains('name'));
     expect(r.errorSegment, 1);
@@ -109,7 +109,7 @@ void main() {
     final r = resolvePath(
       reg,
       deep,
-      const FieldPath(['self', 'self', 'self', 'self', 'self', 'name']),
+      FieldPath(['self', 'self', 'self', 'self', 'self', 'name']),
     );
     expect(r.error!.message, contains('$kMaxPathHops'));
   });

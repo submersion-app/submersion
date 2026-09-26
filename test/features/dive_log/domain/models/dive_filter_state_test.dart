@@ -259,11 +259,7 @@ void main() {
           weekdays: const [1],
           minDepth: 18,
           noBuddyOnly: true,
-          query: ConditionNode(
-            const FieldPath(['weights']),
-            QueryOp.isEmpty,
-            null,
-          ),
+          query: ConditionNode(FieldPath(['weights']), QueryOp.isEmpty, null),
         );
         expect(make(), equals(make()));
         expect(make().hashCode, make().hashCode);
@@ -280,7 +276,7 @@ void main() {
     group('query (#2365)', () {
       test('copyWith sets and clears the advanced query', () {
         final node = ConditionNode(
-          const FieldPath(['weights']),
+          FieldPath(['weights']),
           QueryOp.isEmpty,
           null,
         );

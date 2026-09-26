@@ -477,11 +477,37 @@ class QueryParser {
       final edge = (op == QueryOp.lt || op == QueryOp.gte) ? start : end;
       return ConditionNode(path, op, DateValue(edge));
     }
-    if (start != null) {
-      return ConditionNode(path, QueryOp.gte, DateValue(start));
+    // An open-ended phrase ("since 2024", "before 2024") is one bound.
+    // `in`, `=` take the bound, `!=` its complement; an ordering op has no
+    // single reading, so it names the day to write instead.
+    final bound = start != null
+        ? ConditionNode(path, QueryOp.gte, DateValue(start))
+        : ConditionNode(path, QueryOp.lte, DateValue(end!));
+    switch (op) {
+      case QueryOp.eq:
+      case QueryOp.inList:
+        return bound;
+      case QueryOp.neq:
+        return NotNode(bound);
+      default:
+        final day = _dayText(
+          start ?? DateTime(end!.year, end.month, end.day + 1),
+        );
+        throw _Abort(
+          _err(
+            '"${t.text}" is open-ended; write ${path.segments.last} '
+            '${op == QueryOp.lt || op == QueryOp.lte ? '<' : '>='} $day '
+            'instead',
+            t,
+          ),
+        );
     }
-    return ConditionNode(path, QueryOp.lte, DateValue(end!));
   }
+
+  String _dayText(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-'
+      '${d.month.toString().padLeft(2, '0')}-'
+      '${d.day.toString().padLeft(2, '0')}';
 
   QueryValue _value(QueryField field, QueryOp op) {
     final t = _peek;

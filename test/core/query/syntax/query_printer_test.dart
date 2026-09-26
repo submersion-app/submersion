@@ -26,14 +26,14 @@ void main() {
 
   test('numbers print in the diver unit, or with the typed suffix', () {
     final bare = ConditionNode(
-      const FieldPath(['depth']),
+      FieldPath(['depth']),
       QueryOp.gt,
       const NumberValue(30.48, null),
     );
     expect(metric.print(bare), 'depth > 30.48');
     expect(imperial.print(bare), 'depth > 100');
     final typed = ConditionNode(
-      const FieldPath(['depth']),
+      FieldPath(['depth']),
       QueryOp.gt,
       const NumberValue(30.48, QueryUnit.ft),
     );
@@ -47,7 +47,7 @@ void main() {
     expect(formatQueryNumber(100.12300000000001), '100.123');
     expect(formatQueryNumber(0.1 + 0.2), '0.3');
     final typed = ConditionNode(
-      const FieldPath(['depth']),
+      FieldPath(['depth']),
       QueryOp.gt,
       const NumberValue(100.123 / 3.28084, QueryUnit.ft),
     );
@@ -57,22 +57,20 @@ void main() {
   test('operators, presence, lists, between, scoped, text', () {
     expect(
       metric.print(
-        ConditionNode(const FieldPath(['weights']), QueryOp.isEmpty, null),
+        ConditionNode(FieldPath(['weights']), QueryOp.isEmpty, null),
       ),
       'weights:none',
     );
     expect(
-      metric.print(
-        ConditionNode(const FieldPath(['rating']), QueryOp.isSet, null),
-      ),
+      metric.print(ConditionNode(FieldPath(['rating']), QueryOp.isSet, null)),
       'rating:any',
     );
     expect(
       metric.print(
         ConditionNode(
-          const FieldPath(['waterType']),
+          FieldPath(['waterType']),
           QueryOp.inList,
-          const ListValue([EnumValue('salt'), EnumValue('fresh')]),
+          ListValue([const EnumValue('salt'), const EnumValue('fresh')]),
         ),
       ),
       'waterType in [salt, fresh]',
@@ -80,9 +78,9 @@ void main() {
     expect(
       metric.print(
         ConditionNode(
-          const FieldPath(['depth']),
+          FieldPath(['depth']),
           QueryOp.between,
-          const ListValue([NumberValue(18, null), NumberValue(30, null)]),
+          ListValue([const NumberValue(18, null), const NumberValue(30, null)]),
         ),
       ),
       'depth between 18 and 30',
@@ -90,9 +88,9 @@ void main() {
     expect(
       metric.print(
         ScopedNode(
-          const FieldPath(['gear']),
+          FieldPath(['gear']),
           ConditionNode(
-            const FieldPath(['type']),
+            FieldPath(['type']),
             QueryOp.eq,
             const EnumValue('wetsuit'),
           ),
@@ -100,27 +98,27 @@ void main() {
       ),
       'gear[type = wetsuit]',
     );
-    expect(metric.print(const TextNode(['night', 'dive'])), '"night dive"');
-    expect(metric.print(const TextNode(['manta'])), 'manta');
+    expect(metric.print(TextNode(['night', 'dive'])), '"night dive"');
+    expect(metric.print(TextNode(['manta'])), 'manta');
   });
 
   test('minimal parentheses and explicit AND', () {
     final tree = OrNode([
       AndNode([
         ConditionNode(
-          const FieldPath(['depth']),
+          FieldPath(['depth']),
           QueryOp.gt,
           const NumberValue(30, null),
         ),
         NotNode(
           OrNode([
             ConditionNode(
-              const FieldPath(['favorite']),
+              FieldPath(['favorite']),
               QueryOp.eq,
               const BoolValue(true),
             ),
             ConditionNode(
-              const FieldPath(['rating']),
+              FieldPath(['rating']),
               QueryOp.gte,
               const NumberValue(4, null),
             ),
@@ -128,7 +126,7 @@ void main() {
         ),
       ]),
       ConditionNode(
-        const FieldPath(['notes']),
+        FieldPath(['notes']),
         QueryOp.contains,
         const StringValue('night dive'),
       ),
@@ -142,14 +140,10 @@ void main() {
       metric.print(
         AndNode([
           OrNode([
-            ConditionNode(const FieldPath(['weights']), QueryOp.isEmpty, null),
-            ConditionNode(
-              const FieldPath(['waterTemp']),
-              QueryOp.isEmpty,
-              null,
-            ),
+            ConditionNode(FieldPath(['weights']), QueryOp.isEmpty, null),
+            ConditionNode(FieldPath(['waterTemp']), QueryOp.isEmpty, null),
           ]),
-          ConditionNode(const FieldPath(['rating']), QueryOp.isSet, null),
+          ConditionNode(FieldPath(['rating']), QueryOp.isSet, null),
         ]),
       ),
       '(weights:none OR waterTemp:none) AND rating:any',
@@ -160,7 +154,7 @@ void main() {
     expect(
       metric.print(
         ConditionNode(
-          const FieldPath(['date']),
+          FieldPath(['date']),
           QueryOp.gte,
           DateValue(DateTime(2025, 1, 15)),
         ),
@@ -170,7 +164,7 @@ void main() {
     expect(
       metric.print(
         ConditionNode(
-          const FieldPath(['date']),
+          FieldPath(['date']),
           QueryOp.inList,
           DateRangeValue(DateTime(2025, 1, 1), DateTime(2025, 12, 31)),
         ),
@@ -180,7 +174,7 @@ void main() {
     expect(
       metric.print(
         ConditionNode(
-          const FieldPath(['date']),
+          FieldPath(['date']),
           QueryOp.inList,
           DateRangeValue(DateTime(2025, 3, 1), DateTime(2025, 3, 31)),
         ),
@@ -190,7 +184,7 @@ void main() {
     expect(
       metric.print(
         ConditionNode(
-          const FieldPath(['date']),
+          FieldPath(['date']),
           QueryOp.inList,
           DateRangeValue(DateTime(2025, 3, 1), DateTime(2025, 3, 10)),
         ),
@@ -199,14 +193,14 @@ void main() {
     );
     expect(
       metric.print(
-        ConditionNode(const FieldPath(['site']), QueryOp.eq, kFixtureSite),
+        ConditionNode(FieldPath(['site']), QueryOp.eq, kFixtureSite),
       ),
       'site = "Salt Pier"',
     );
     expect(
       metric.print(
         ConditionNode(
-          const FieldPath(['site']),
+          FieldPath(['site']),
           QueryOp.eq,
           const RefValue('x', 'Bob\'s "Reef" \\ Wall'),
         ),
@@ -221,7 +215,7 @@ void main() {
     expect(
       metric.print(
         ConditionNode(
-          const FieldPath(['notes']),
+          FieldPath(['notes']),
           QueryOp.eq,
           const StringValue('and'),
         ),
@@ -231,7 +225,7 @@ void main() {
     expect(
       metric.print(
         ConditionNode(
-          const FieldPath(['notes']),
+          FieldPath(['notes']),
           QueryOp.eq,
           const StringValue('2025-03-14'),
         ),

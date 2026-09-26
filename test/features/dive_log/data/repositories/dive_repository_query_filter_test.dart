@@ -20,7 +20,7 @@ void main() {
   tearDown(tearDownTestDatabase);
 
   final noWeights = DiveFilterState(
-    query: ConditionNode(const FieldPath(['weights']), QueryOp.isEmpty, null),
+    query: ConditionNode(FieldPath(['weights']), QueryOp.isEmpty, null),
   );
 
   test(

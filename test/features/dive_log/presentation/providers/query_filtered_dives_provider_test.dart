@@ -67,14 +67,14 @@ void main() {
 
   test('a typed query narrows the list', () async {
     container.read(diveFilterProvider.notifier).state = DiveFilterState(
-      query: ConditionNode(const FieldPath(['weights']), QueryOp.isEmpty, null),
+      query: ConditionNode(FieldPath(['weights']), QueryOp.isEmpty, null),
     );
     expect(await filteredIds({'d3', 'd4'}), {'d3', 'd4'});
   });
 
   test('a write to a touched table refreshes the id set', () async {
     container.read(diveFilterProvider.notifier).state = DiveFilterState(
-      query: ConditionNode(const FieldPath(['weights']), QueryOp.isEmpty, null),
+      query: ConditionNode(FieldPath(['weights']), QueryOp.isEmpty, null),
     );
     expect(await filteredIds({'d3', 'd4'}), {'d3', 'd4'});
     await db

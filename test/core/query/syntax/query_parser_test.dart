@@ -63,7 +63,7 @@ void main() {
       expect(
         ok(metric(), 'depth > 30'),
         ConditionNode(
-          const FieldPath(['depth']),
+          FieldPath(['depth']),
           QueryOp.gt,
           const NumberValue(30, null),
         ),
@@ -76,7 +76,7 @@ void main() {
       expect(
         ok(metric(), 'temp < -2'),
         ConditionNode(
-          const FieldPath(['waterTemp']),
+          FieldPath(['waterTemp']),
           QueryOp.lt,
           const NumberValue(-2, null),
         ),
@@ -90,19 +90,19 @@ void main() {
       OrNode([
         AndNode([
           ConditionNode(
-            const FieldPath(['depth']),
+            FieldPath(['depth']),
             QueryOp.gt,
             const NumberValue(30, null),
           ),
           ConditionNode(
-            const FieldPath(['rating']),
+            FieldPath(['rating']),
             QueryOp.gte,
             const NumberValue(4, null),
           ),
         ]),
         NotNode(
           ConditionNode(
-            const FieldPath(['favorite']),
+            FieldPath(['favorite']),
             QueryOp.eq,
             const BoolValue(true),
           ),
@@ -113,10 +113,10 @@ void main() {
       ok(metric(), '(weights:none | temp:none) & rating:any'),
       AndNode([
         OrNode([
-          ConditionNode(const FieldPath(['weights']), QueryOp.isEmpty, null),
-          ConditionNode(const FieldPath(['waterTemp']), QueryOp.isEmpty, null),
+          ConditionNode(FieldPath(['weights']), QueryOp.isEmpty, null),
+          ConditionNode(FieldPath(['waterTemp']), QueryOp.isEmpty, null),
         ]),
-        ConditionNode(const FieldPath(['rating']), QueryOp.isSet, null),
+        ConditionNode(FieldPath(['rating']), QueryOp.isSet, null),
       ]),
     );
   });
@@ -125,7 +125,7 @@ void main() {
     expect(
       ok(metric(), 'waterType:salt'),
       ConditionNode(
-        const FieldPath(['waterType']),
+        FieldPath(['waterType']),
         QueryOp.eq,
         const EnumValue('salt'),
       ),
@@ -133,7 +133,7 @@ void main() {
     expect(
       ok(metric(), 'notes:manta'),
       ConditionNode(
-        const FieldPath(['notes']),
+        FieldPath(['notes']),
         QueryOp.contains,
         const StringValue('manta'),
       ),
@@ -141,7 +141,7 @@ void main() {
     expect(
       ok(metric(), 'depth:30'),
       ConditionNode(
-        const FieldPath(['depth']),
+        FieldPath(['depth']),
         QueryOp.eq,
         const NumberValue(30, null),
       ),
@@ -152,23 +152,23 @@ void main() {
     expect(
       ok(metric(), 'waterType in [salt, Fresh]'),
       ConditionNode(
-        const FieldPath(['waterType']),
+        FieldPath(['waterType']),
         QueryOp.inList,
-        const ListValue([EnumValue('salt'), EnumValue('fresh')]),
+        ListValue([const EnumValue('salt'), const EnumValue('fresh')]),
       ),
     );
     expect(
       ok(metric(), 'depth between 18 and 30'),
       ConditionNode(
-        const FieldPath(['depth']),
+        FieldPath(['depth']),
         QueryOp.between,
-        const ListValue([NumberValue(18, null), NumberValue(30, null)]),
+        ListValue([const NumberValue(18, null), const NumberValue(30, null)]),
       ),
     );
     expect(
       ok(metric(), 'notes ~ "night dive"'),
       ConditionNode(
-        const FieldPath(['notes']),
+        FieldPath(['notes']),
         QueryOp.contains,
         const StringValue('night dive'),
       ),
@@ -177,7 +177,7 @@ void main() {
       ok(metric(), '-favorite = true'),
       NotNode(
         ConditionNode(
-          const FieldPath(['favorite']),
+          FieldPath(['favorite']),
           QueryOp.eq,
           const BoolValue(true),
         ),
@@ -189,7 +189,7 @@ void main() {
     expect(
       ok(metric(), 'date >= 2025-01-15'),
       ConditionNode(
-        const FieldPath(['date']),
+        FieldPath(['date']),
         QueryOp.gte,
         DateValue(DateTime(2025, 1, 15)),
       ),
@@ -197,7 +197,7 @@ void main() {
     expect(
       ok(metric(), 'date in 2025'),
       ConditionNode(
-        const FieldPath(['date']),
+        FieldPath(['date']),
         QueryOp.inList,
         DateRangeValue(DateTime(2025, 1, 1), DateTime(2025, 12, 31)),
       ),
@@ -205,7 +205,7 @@ void main() {
     expect(
       ok(metric(), 'date = 2025-03'),
       ConditionNode(
-        const FieldPath(['date']),
+        FieldPath(['date']),
         QueryOp.inList,
         DateRangeValue(DateTime(2025, 3, 1), DateTime(2025, 3, 31)),
       ),
@@ -213,7 +213,7 @@ void main() {
     expect(
       ok(metric(), 'date in "last 90 days"'),
       ConditionNode(
-        const FieldPath(['date']),
+        FieldPath(['date']),
         QueryOp.inList,
         DateRangeValue(DateTime(2026, 6, 27), DateTime(2026, 9, 25)),
       ),
@@ -221,7 +221,7 @@ void main() {
     expect(
       ok(metric(), 'date between 2025-03-14 and 2025-03-15'),
       ConditionNode(
-        const FieldPath(['date']),
+        FieldPath(['date']),
         QueryOp.between,
         ListValue([
           DateValue(DateTime(2025, 3, 14)),
@@ -236,7 +236,7 @@ void main() {
     expect(
       ok(metric(), 'date in "since 2024"'),
       ConditionNode(
-        const FieldPath(['date']),
+        FieldPath(['date']),
         QueryOp.gte,
         DateValue(DateTime(2024, 1, 1)),
       ),
@@ -247,7 +247,7 @@ void main() {
     expect(
       ok(metric(), 'date:2025'),
       ConditionNode(
-        const FieldPath(['date']),
+        FieldPath(['date']),
         QueryOp.inList,
         DateRangeValue(DateTime(2025, 1, 1), DateTime(2025, 12, 31)),
       ),
@@ -255,7 +255,7 @@ void main() {
     expect(
       ok(metric(), 'date:2025-03-14'),
       ConditionNode(
-        const FieldPath(['date']),
+        FieldPath(['date']),
         QueryOp.eq,
         DateValue(DateTime(2025, 3, 14)),
       ),
@@ -264,12 +264,12 @@ void main() {
       ok(metric(), 'date in [2025-01-05, 2025-03]'),
       OrNode([
         ConditionNode(
-          const FieldPath(['date']),
+          FieldPath(['date']),
           QueryOp.eq,
           DateValue(DateTime(2025, 1, 5)),
         ),
         ConditionNode(
-          const FieldPath(['date']),
+          FieldPath(['date']),
           QueryOp.inList,
           DateRangeValue(DateTime(2025, 3, 1), DateTime(2025, 3, 31)),
         ),
@@ -311,7 +311,7 @@ void main() {
   test('refs resolve by name and report candidates when they do not', () {
     expect(
       ok(metric(), 'site = "Salt Pier"'),
-      ConditionNode(const FieldPath(['site']), QueryOp.eq, kFixtureSite),
+      ConditionNode(FieldPath(['site']), QueryOp.eq, kFixtureSite),
     );
     final f = bad(metric(), 'site = "Salt Peer"');
     expect(f.error.suggestions, contains('Salt Pier'));
@@ -322,7 +322,7 @@ void main() {
     expect(
       ok(metric(), 'site.country = Mexico'),
       ConditionNode(
-        const FieldPath(['site', 'country']),
+        FieldPath(['site', 'country']),
         QueryOp.eq,
         const StringValue('Mexico'),
       ),
@@ -330,7 +330,7 @@ void main() {
     expect(
       ok(metric(), 'buddies.certifications.level = rescue'),
       ConditionNode(
-        const FieldPath(['buddies', 'certifications', 'level']),
+        FieldPath(['buddies', 'certifications', 'level']),
         QueryOp.eq,
         const StringValue('rescue'),
       ),
@@ -338,22 +338,22 @@ void main() {
     expect(
       ok(metric(), 'gear[type in [wetsuit, drysuit]]'),
       ScopedNode(
-        const FieldPath(['gear']),
+        FieldPath(['gear']),
         ConditionNode(
-          const FieldPath(['type']),
+          FieldPath(['type']),
           QueryOp.inList,
-          const ListValue([EnumValue('wetsuit'), EnumValue('drysuit')]),
+          ListValue([const EnumValue('wetsuit'), const EnumValue('drysuit')]),
         ),
       ),
     );
     expect(
       ok(metric(), '"night dive" manta'),
-      const AndNode([
+      AndNode([
         TextNode(['night', 'dive']),
         TextNode(['manta']),
       ]),
     );
-    expect(ok(metric(), 'depth'), const TextNode(['depth']));
+    expect(ok(metric(), 'depth'), TextNode(['depth']));
   });
 
   test('positioned errors', () {
@@ -381,19 +381,19 @@ void main() {
   test('relations take !=, in and the colon shorthand', () {
     expect(
       ok(metric(), 'site != "Salt Pier"'),
-      ConditionNode(const FieldPath(['site']), QueryOp.neq, kFixtureSite),
+      ConditionNode(FieldPath(['site']), QueryOp.neq, kFixtureSite),
     );
     expect(
       ok(metric(), 'site in ["Salt Pier", "Hilma Hooker"]'),
       ConditionNode(
-        const FieldPath(['site']),
+        FieldPath(['site']),
         QueryOp.inList,
-        const ListValue([kFixtureSite, RefValue('site-3', 'Hilma Hooker')]),
+        ListValue([kFixtureSite, const RefValue('site-3', 'Hilma Hooker')]),
       ),
     );
     expect(
       ok(metric(), 'site:"Salt Pier"'),
-      ConditionNode(const FieldPath(['site']), QueryOp.eq, kFixtureSite),
+      ConditionNode(FieldPath(['site']), QueryOp.eq, kFixtureSite),
     );
     expect(bad(metric(), 'site in []').error.message, contains('empty'));
     expect(bad(metric(), 'site ~ x').error.message, contains('relation'));
@@ -428,12 +428,37 @@ void main() {
     expect(
       ok(metric(), 'current = none'),
       ConditionNode(
-        const FieldPath(['current']),
+        FieldPath(['current']),
         QueryOp.eq,
         const EnumValue('none'),
       ),
     );
     expect(ok(metric(), 'current:any'), isA<ConditionNode>());
     expect(ok(metric(), 'waterType:none'), isA<ConditionNode>());
+  });
+
+  test('open-ended date phrases honour the operator or are refused', () {
+    final jan1 = DateValue(DateTime(2024, 1, 1));
+    final dec31 = DateValue(DateTime(2023, 12, 31));
+    expect(
+      ok(metric(), 'date in "since 2024"'),
+      ConditionNode(FieldPath(['date']), QueryOp.gte, jan1),
+    );
+    expect(
+      ok(metric(), 'date = "before 2024"'),
+      ConditionNode(FieldPath(['date']), QueryOp.lte, dec31),
+    );
+    expect(
+      ok(metric(), 'date != "since 2024"'),
+      NotNode(ConditionNode(FieldPath(['date']), QueryOp.gte, jan1)),
+    );
+    for (final text in ['date < "since 2024"', 'date >= "before 2024"']) {
+      final f = bad(metric(), text);
+      expect(f.error.message, contains('2024-01-01'), reason: text);
+    }
+    expect(
+      bad(metric(), 'date between "since 2024" and 2025-01-01').error.message,
+      contains('single day'),
+    );
   });
 }

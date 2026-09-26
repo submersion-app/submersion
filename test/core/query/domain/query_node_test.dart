@@ -5,20 +5,20 @@ void main() {
   test('nodes and values are value-equal', () {
     QueryNode build() => AndNode([
       ConditionNode(
-        const FieldPath(['site', 'country']),
+        FieldPath(['site', 'country']),
         QueryOp.eq,
         const StringValue('Mexico'),
       ),
-      NotNode(ConditionNode(const FieldPath(['weights']), QueryOp.isSet, null)),
+      NotNode(ConditionNode(FieldPath(['weights']), QueryOp.isSet, null)),
       ScopedNode(
-        const FieldPath(['gear']),
+        FieldPath(['gear']),
         ConditionNode(
-          const FieldPath(['type']),
+          FieldPath(['type']),
           QueryOp.inList,
-          const ListValue([EnumValue('wetsuit'), EnumValue('drysuit')]),
+          ListValue([const EnumValue('wetsuit'), const EnumValue('drysuit')]),
         ),
       ),
-      const TextNode(['night', 'dive']),
+      TextNode(['night', 'dive']),
     ]);
     expect(build(), equals(build()));
     expect(build().hashCode, equals(build().hashCode));
@@ -32,7 +32,7 @@ void main() {
   });
 
   test('FieldPath knows its length and prints dotted', () {
-    const path = FieldPath(['buddies', 'certifications', 'level']);
+    final path = FieldPath(['buddies', 'certifications', 'level']);
     expect(path.length, 3);
     expect(path.toString(), 'buddies.certifications.level');
   });
@@ -40,15 +40,60 @@ void main() {
   test('a condition with isEmpty or isSet carries no value', () {
     expect(
       () => ConditionNode(
-        const FieldPath(['notes']),
+        FieldPath(['notes']),
         QueryOp.isEmpty,
         const StringValue('x'),
       ),
       throwsArgumentError,
     );
     expect(
-      () => ConditionNode(const FieldPath(['notes']), QueryOp.eq, null),
+      () => ConditionNode(FieldPath(['notes']), QueryOp.eq, null),
       throwsArgumentError,
     );
+  });
+
+  test('nodes copy their lists, so a caller cannot mutate a built tree', () {
+    final segments = ['depth'];
+    final children = <QueryNode>[
+      ConditionNode(
+        FieldPath(segments),
+        QueryOp.gt,
+        const NumberValue(1, null),
+      ),
+    ];
+    final items = <QueryValue>[const EnumValue('salt')];
+    final words = ['manta'];
+    final and = AndNode(children);
+    final or = OrNode(children);
+    final text = TextNode(words);
+    final list = ListValue(items);
+    final path = FieldPath(segments);
+    final hashes = [
+      and.hashCode,
+      or.hashCode,
+      text.hashCode,
+      list.hashCode,
+      path.hashCode,
+    ];
+
+    children.add(TextNode(['x']));
+    items.add(const EnumValue('fresh'));
+    words.add('ray');
+    segments.add('extra');
+
+    expect(and.children, hasLength(1));
+    expect(or.children, hasLength(1));
+    expect(text.words, ['manta']);
+    expect(list.items, hasLength(1));
+    expect(path.segments, ['depth']);
+    expect([
+      and.hashCode,
+      or.hashCode,
+      text.hashCode,
+      list.hashCode,
+      path.hashCode,
+    ], hashes);
+    expect(() => and.children.add(TextNode(['y'])), throwsUnsupportedError);
+    expect(() => path.segments.add('y'), throwsUnsupportedError);
   });
 }

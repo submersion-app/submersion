@@ -12,7 +12,7 @@ void main() {
   test('an fk hop', () {
     final q = c(
       ConditionNode(
-        const FieldPath(['site', 'country']),
+        FieldPath(['site', 'country']),
         QueryOp.eq,
         const StringValue('Mexico'),
       ),
@@ -29,7 +29,7 @@ void main() {
     expect(
       c(
         ConditionNode(
-          const FieldPath(['weights', 'amount']),
+          FieldPath(['weights', 'amount']),
           QueryOp.gt,
           const NumberValue(2, null),
         ),
@@ -39,7 +39,7 @@ void main() {
     );
     final j = c(
       ConditionNode(
-        const FieldPath(['buddies', 'name']),
+        FieldPath(['buddies', 'name']),
         QueryOp.contains,
         const StringValue('ana'),
       ),
@@ -56,7 +56,7 @@ void main() {
   test('three hops number their aliases by depth', () {
     final q = c(
       ConditionNode(
-        const FieldPath(['buddies', 'certifications', 'level']),
+        FieldPath(['buddies', 'certifications', 'level']),
         QueryOp.eq,
         const StringValue('rescue'),
       ),
@@ -71,26 +71,22 @@ void main() {
 
   test('presence on relations: :any, :none, and the emptySql override', () {
     expect(
-      c(ConditionNode(const FieldPath(['weights']), QueryOp.isSet, null)).where,
+      c(ConditionNode(FieldPath(['weights']), QueryOp.isSet, null)).where,
       '(EXISTS (SELECT 1 FROM dive_weights r1 WHERE r1.dive_id = r0.id))',
     );
     expect(
-      c(
-        ConditionNode(const FieldPath(['weights']), QueryOp.isEmpty, null),
-      ).where,
+      c(ConditionNode(FieldPath(['weights']), QueryOp.isEmpty, null)).where,
       '(NOT EXISTS (SELECT 1 FROM dive_weights r1 WHERE r1.dive_id = r0.id))',
     );
     expect(
-      c(
-        ConditionNode(const FieldPath(['buddies']), QueryOp.isEmpty, null),
-      ).where,
+      c(ConditionNode(FieldPath(['buddies']), QueryOp.isEmpty, null)).where,
       "(((r0.buddy IS NULL OR r0.buddy = '') AND NOT EXISTS "
       '(SELECT 1 FROM dive_buddies j WHERE j.dive_id = r0.id)))',
     );
     expect(
       c(
         ConditionNode(
-          const FieldPath(['buddies', 'certifications']),
+          FieldPath(['buddies', 'certifications']),
           QueryOp.isEmpty,
           null,
         ),
@@ -103,11 +99,11 @@ void main() {
     final q = c(
       NotNode(
         ScopedNode(
-          const FieldPath(['gear']),
+          FieldPath(['gear']),
           ConditionNode(
-            const FieldPath(['type']),
+            FieldPath(['type']),
             QueryOp.inList,
-            const ListValue([EnumValue('wetsuit'), EnumValue('drysuit')]),
+            ListValue([const EnumValue('wetsuit'), const EnumValue('drysuit')]),
           ),
         ),
       ),
@@ -125,15 +121,15 @@ void main() {
   test('a scoped group evaluates its conditions on ONE row', () {
     final q = c(
       ScopedNode(
-        const FieldPath(['weights']),
+        FieldPath(['weights']),
         AndNode([
           ConditionNode(
-            const FieldPath(['amount']),
+            FieldPath(['amount']),
             QueryOp.gte,
             const NumberValue(1, null),
           ),
           ConditionNode(
-            const FieldPath(['amount']),
+            FieldPath(['amount']),
             QueryOp.lte,
             const NumberValue(3, null),
           ),
@@ -150,17 +146,17 @@ void main() {
   test('a nested scoped group re-roots inside the hop', () {
     final q = c(
       ScopedNode(
-        const FieldPath(['buddies']),
+        FieldPath(['buddies']),
         AndNode([
           ConditionNode(
-            const FieldPath(['name']),
+            FieldPath(['name']),
             QueryOp.contains,
             const StringValue('a'),
           ),
           ScopedNode(
-            const FieldPath(['certifications']),
+            FieldPath(['certifications']),
             ConditionNode(
-              const FieldPath(['level']),
+              FieldPath(['level']),
               QueryOp.eq,
               const StringValue('rescue'),
             ),
@@ -180,21 +176,21 @@ void main() {
   test('bind counts hold across every relation shape', () {
     for (final n in <QueryNode>[
       ConditionNode(
-        const FieldPath(['buddies', 'certifications', 'level']),
+        FieldPath(['buddies', 'certifications', 'level']),
         QueryOp.inList,
-        const ListValue([StringValue('a'), StringValue('b')]),
+        ListValue([const StringValue('a'), const StringValue('b')]),
       ),
       NotNode(
         ScopedNode(
-          const FieldPath(['gear']),
+          FieldPath(['gear']),
           ConditionNode(
-            const FieldPath(['type']),
+            FieldPath(['type']),
             QueryOp.eq,
             const EnumValue('bcd'),
           ),
         ),
       ),
-      ConditionNode(const FieldPath(['buddies']), QueryOp.isEmpty, null),
+      ConditionNode(FieldPath(['buddies']), QueryOp.isEmpty, null),
     ]) {
       final q = c(n);
       expect(countPlaceholders(q.where), q.params.length, reason: q.where);
@@ -205,7 +201,7 @@ void main() {
     expect(
       () => c(
         ConditionNode(
-          const FieldPath(['weights']),
+          FieldPath(['weights']),
           QueryOp.gt,
           const NumberValue(1, null),
         ),
