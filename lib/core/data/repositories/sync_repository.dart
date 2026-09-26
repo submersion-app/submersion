@@ -1368,6 +1368,15 @@ class SyncRepository {
     }
   }
 
+  /// A fresh clock for a row written outside [markRecordPending]: a batch
+  /// insert, or an UPDATE that moves many rows at once. Newer than every
+  /// clock this device has issued, a scope tombstone's included, so a row
+  /// stamped with it is never covered by a scope logged before it.
+  Future<String?> issueRowClock() async {
+    await ensureSyncClockConfigured();
+    return SyncClock.instance.issue();
+  }
+
   /// One tombstone for a whole set of events (see [EventScopeTombstone]),
   /// in place of one per row.
   Future<void> logScopedDeletion(EventScopeTombstone scope) => logDeletion(

@@ -1,6 +1,9 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
+import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_merge_repository.dart';
 
@@ -340,6 +343,32 @@ void main() {
   // ---------------------------------------------------------------------------
 
   group('mergeComputers', () {
+    test('re-pointed events carry a fresh clock', () async {
+      // The survivor may already have a scope tombstone on this dive from
+      // a split. An event moved into that scope with its old clock would be
+      // deleted by any relayed copy of it, and skipped by every peer that
+      // holds it (#1926).
+      await insertComputer(id: 'a');
+      await insertComputer(id: 'b', name: 'ssss');
+      await insertDive('d1', computerId: 'b');
+      await insertProfileEvent('e1', diveId: 'd1', computerId: 'b');
+      await SyncRepository().logScopedDeletion(
+        const EventScopeTombstone(diveId: 'd1', computerId: 'a'),
+      );
+      final scope = (await db.select(db.deletionLog).get()).single;
+
+      await repository.mergeComputers(survivorId: 'a', duplicateIds: ['b']);
+
+      final event = await (db.select(
+        db.diveProfileEvents,
+      )..where((t) => t.id.equals('e1'))).getSingle();
+      expect(event.computerId, 'a');
+      expect(
+        Hlc.parse(event.hlc!).compareTo(Hlc.parse(scope.originHlc!)),
+        greaterThan(0),
+      );
+    });
+
     test(
       'moves every reference from the duplicates onto the survivor',
       () async {

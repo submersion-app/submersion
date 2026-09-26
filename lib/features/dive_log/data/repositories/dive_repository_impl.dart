@@ -214,6 +214,9 @@ class DiveRepository {
     'dive_sites',
     'trips',
     'dive_safety_findings',
+    // The badge counts findings only while a review marker exists, and a
+    // recompute that reaches the same findings writes only the marker.
+    'dive_safety_reviews',
     'dive_tags',
     'tags',
     'dive_dive_types',

@@ -91,6 +91,23 @@ void main() {
     expect(results.single.safetyFindingCount, 0);
   });
 
+  test('a review marker written alone refreshes the list', () async {
+    // A recompute that reaches the same findings writes only the marker
+    // (#1926), and the badge depends on it, so the list must hear of it.
+    await insertDive('dive-1');
+    final tick = DiveRepository().watchDiveListChanges().first;
+    await db
+        .into(db.diveSafetyReviews)
+        .insert(
+          DiveSafetyReviewsCompanion.insert(
+            diveId: 'dive-1',
+            engineVersion: 1,
+            reviewedAt: now,
+          ),
+        );
+    await expectLater(tick.timeout(const Duration(seconds: 5)), completes);
+  });
+
   test('search summaries carry safety finding counts too', () async {
     await insertDive('dive-1');
     await insertFinding('f1', 'dive-1');
