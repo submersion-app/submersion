@@ -10353,6 +10353,136 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get divelogsImport_fetch_button => 'Fetch Logbook';
+
+  @override
+  String get divelogsImport_fetch_certificationsUnavailable =>
+      'Certifications could not be fetched and will not be imported.';
+
+  @override
+  String get divelogsImport_fetch_empty =>
+      'Your divelogs.de logbook has nothing to import.';
+
+  @override
+  String get divelogsImport_fetch_failedTitle => 'Could not fetch your logbook';
+
+  @override
+  String get divelogsImport_fetch_fetching => 'Fetching your logbook…';
+
+  @override
+  String divelogsImport_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Found $count dives',
+      one: 'Found $count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divelogsImport_fetch_foundPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos to import',
+      one: '$count photo to import',
+      zero: 'No photos to import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_gearUnavailable =>
+      'Gear could not be fetched; dives will import without gear links.';
+
+  @override
+  String get divelogsImport_fetch_includePhotos => 'Include photos';
+
+  @override
+  String get divelogsImport_fetch_includePhotosHint =>
+      'Photos are downloaded during the import into a folder you choose.';
+
+  @override
+  String divelogsImport_fetch_listingPhotos(int current, int total) {
+    return 'Listing photos for dive $current of $total…';
+  }
+
+  @override
+  String divelogsImport_fetch_photoListingsFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Photos for $count dives could not be listed.',
+      one: 'Photos for $count dive could not be listed.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_retry => 'Try Again';
+
+  @override
+  String get divelogsImport_fetch_sessionExpired =>
+      'Your divelogs.de session expired. Go back and sign in again.';
+
+  @override
+  String divelogsImport_fetch_skippedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives could not be read and will be skipped.',
+      one: '$count dive could not be read and will be skipped.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_signIn_badCredentials =>
+      'divelogs.de rejected the username or password.';
+
+  @override
+  String get divelogsImport_signIn_button => 'Sign In';
+
+  @override
+  String get divelogsImport_signIn_description =>
+      'Sign in with your divelogs.de account to import your logbook. Your password is never stored; only the resulting session is cached.';
+
+  @override
+  String get divelogsImport_signIn_passwordLabel => 'Password';
+
+  @override
+  String get divelogsImport_signIn_passwordRequired => 'Password is required';
+
+  @override
+  String divelogsImport_signIn_signedInAs(String username) {
+    return 'Signed in as $username';
+  }
+
+  @override
+  String get divelogsImport_signIn_signingIn => 'Signing in…';
+
+  @override
+  String get divelogsImport_signIn_signOut => 'Sign out';
+
+  @override
+  String get divelogsImport_signIn_title => 'Sign in to divelogs.de';
+
+  @override
+  String get divelogsImport_signIn_unexpected =>
+      'divelogs.de sent an unexpected response. Try again later.';
+
+  @override
+  String get divelogsImport_signIn_unreachable =>
+      'Could not reach divelogs.de. Check your connection and try again.';
+
+  @override
+  String get divelogsImport_signIn_usernameLabel => 'Username';
+
+  @override
+  String get divelogsImport_signIn_usernameRequired => 'Username is required';
+
+  @override
   String get divers_detail_activeDiver => 'Active Diver';
 
   @override
@@ -16203,7 +16333,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_library_viewMode_grid => 'Grid';
 
   @override
+  String get media_library_viewMode_map => 'Map';
+
+  @override
   String get media_library_viewMode_timeline => 'Timeline';
+
+  @override
+  String get media_map_closeStrip => 'Close';
+
+  @override
+  String media_map_clusterSemantics(int count, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items at $place',
+      one: '$count item at $place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_map_emptyHint =>
+      'Photos and videos are placed by their own GPS, their dive\'s entry point, or their dive\'s site.';
+
+  @override
+  String get media_map_emptyTitle => 'No media with a location';
+
+  @override
+  String media_map_errorLoading(String error) {
+    return 'Error loading media locations: $error';
+  }
+
+  @override
+  String get media_map_markerSemantics => 'Open media';
+
+  @override
+  String media_map_placeItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_map_unlocatedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items without a location',
+      one: '$count item without a location',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get media_viewer_goToDive => 'Go to dive';
@@ -21350,6 +21534,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'That folder can\'t be written to. Choose another one.';
 
   @override
+  String importWizard_photos_downloadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos to download',
+      one: '$count photo to download',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String importWizard_review_olderDivesSkipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -23736,6 +23931,56 @@ class AppLocalizationsEn extends AppLocalizations {
       'These dives referred to a dive site the file does not describe, so they were imported without one. You can set a site by editing the dive.';
 
   @override
+  String get universalImport_summary_noticeGearUnavailableTitle =>
+      'Gear not imported';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableBody =>
+      'The gear list could not be fetched, so no gear was imported and dives were not linked to their gear. Import again later to add it.';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableTitle =>
+      'Certifications not imported';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableBody =>
+      'The certification list could not be fetched, so no certifications were imported. Import again later to add them.';
+
+  @override
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
+      'Some photos not listed';
+
+  @override
+  String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Photos for $count dives could not be listed, so they were not imported.',
+      one:
+          'Photos for $count dive could not be listed, so they were not imported.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosNotDownloadedTitle =>
+      'Some photos not downloaded';
+
+  @override
+  String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count photos could not be downloaded. Import again to retry; photos already saved are not duplicated.',
+      one:
+          '$count photo could not be downloaded. Import again to retry; photos already saved are not duplicated.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'Certifications and service records not in the file';
 
@@ -23806,6 +24051,9 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get universalImport_summary_importAsRoute => 'Import as route';
 
   @override
   String get universalImport_summary_fileNeedsIndividualImport =>
@@ -27685,6 +27933,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dive3d_seascape_overlay_walls => 'Steep walls';
 
   @override
+  String get dive3d_seascape_showRoute => 'Show route';
+
+  @override
   String get dive3d_overlay_water => 'Water surface';
 
   @override
@@ -27966,6 +28217,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dive3d_spatial_estimatedPath => 'Estimated path (dead reckoning)';
+
+  @override
+  String get dive3d_spatial_recordedPath => 'Recorded route';
+
+  @override
+  String dive3d_spatial_recordedPathWithSource(String source) {
+    return 'Recorded route ($source)';
+  }
 
   @override
   String get dive3d_spatial_synthesizedSeafloor => 'Synthesized seafloor';
@@ -28388,6 +28647,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrLabel_speed_mps => 'Top speed';
+
+  @override
+  String get attrLabel_tow_burn_factor => 'Tow burn factor';
+
+  @override
+  String get attrLabel_tow_speed_factor => 'Tow speed factor';
 
   @override
   String get attrLabel_sku => 'SKU';
@@ -40805,6 +41070,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Import dives from your Garmin Connect account';
 
   @override
+  String get transfer_importCloud_divelogsTitle => 'divelogs.de';
+
+  @override
+  String get transfer_importCloud_divelogsSubtitle =>
+      'Import your logbook, sites, gear, certifications and photos from divelogs.de';
+
+  @override
   String get transfer_section_cloudTitle => 'Cloud';
 
   @override
@@ -41457,6 +41729,413 @@ class AppLocalizationsEn extends AppLocalizations {
       'How equipment is grouped and sorted on a dive';
 
   @override
+  String get navTrack_common_loadError => 'Could not load this route.';
+
+  @override
+  String get navTrack_common_notFound => 'Route not found.';
+
+  @override
+  String get navTrack_common_cancel => 'Cancel';
+
+  @override
+  String get navTrack_common_save => 'Save';
+
+  @override
+  String get navTrack_common_delete => 'Delete';
+
+  @override
+  String get navTrack_common_unlink => 'Unlink';
+
+  @override
+  String get navTrack_common_open3dTooltip => 'Open 3D';
+
+  @override
+  String navTrack_common_diveNumber(String number) {
+    return 'Dive #$number';
+  }
+
+  @override
+  String navTrack_common_diveById(String id) {
+    return 'Dive $id';
+  }
+
+  @override
+  String get navTrack_common_unlinked => 'unlinked';
+
+  @override
+  String get navTrack_align_title => 'Align on map';
+
+  @override
+  String get navTrack_align_resetTooltip => 'Reset correction';
+
+  @override
+  String get navTrack_align_setStartHere => 'Set start here';
+
+  @override
+  String get navTrack_align_setEndHere => 'Set end here';
+
+  @override
+  String get navTrack_align_setStartOnMap => 'Set start on map';
+
+  @override
+  String get navTrack_align_fromDiveEntry => 'From dive entry';
+
+  @override
+  String get navTrack_align_fromSite => 'From site';
+
+  @override
+  String get navTrack_align_fromGps => 'From GPS';
+
+  @override
+  String get navTrack_align_startLabel => 'Start: ';
+
+  @override
+  String get navTrack_align_endLabel => 'End: ';
+
+  @override
+  String get navTrack_align_endMode_none => 'None';
+
+  @override
+  String get navTrack_align_endMode_sameAsStart => 'Same as start';
+
+  @override
+  String get navTrack_align_endMode_point => 'Place on map';
+
+  @override
+  String get navTrack_align_endMode_gpsFix => 'From GPS fix';
+
+  @override
+  String navTrack_align_trustSummary(String distance, int minutes) {
+    return 'Trust: trusted up to $distance, $minutes min';
+  }
+
+  @override
+  String get navTrack_align_rotationLabel => 'Rotation:';
+
+  @override
+  String navTrack_align_rotationDegrees(String degrees) {
+    return '$degrees deg';
+  }
+
+  @override
+  String navTrack_terrain_summary(
+    int onLand,
+    int below,
+    int total,
+    int unknown,
+    String maxPart,
+    String coarsePart,
+  ) {
+    return '$onLand points on land, $below of $total below the seafloor$maxPart, $unknown unknown$coarsePart';
+  }
+
+  @override
+  String navTrack_terrain_maxPart(String depth) {
+    return ' (max $depth)';
+  }
+
+  @override
+  String get navTrack_terrain_coarsePart =>
+      ' (coarse bathymetry: only land conflicts checked)';
+
+  @override
+  String get navTrack_detail_renameTitle => 'Rename route';
+
+  @override
+  String get navTrack_detail_deleteTitle => 'Delete route?';
+
+  @override
+  String get navTrack_detail_deleteMessage => 'This cannot be undone.';
+
+  @override
+  String get navTrack_detail_defaultTitle => 'Route';
+
+  @override
+  String get navTrack_detail_menuRename => 'Rename';
+
+  @override
+  String get navTrack_detail_menuChangeSite => 'Change site';
+
+  @override
+  String get navTrack_detail_noMapYet =>
+      'Set the start point to see this on a map.';
+
+  @override
+  String get navTrack_detail_correctionStatus_none =>
+      'No correction applied yet.';
+
+  @override
+  String get navTrack_detail_correctionStatus_sameAsStart =>
+      'End set to same as start.';
+
+  @override
+  String get navTrack_detail_correctionStatus_point =>
+      'End point set on the map.';
+
+  @override
+  String get navTrack_detail_correctionStatus_gpsFix =>
+      'End set from the recording\'s GPS fix.';
+
+  @override
+  String navTrack_detail_device(String name) {
+    return 'Device: $name';
+  }
+
+  @override
+  String navTrack_detail_equipment(String name) {
+    return 'Equipment: $name';
+  }
+
+  @override
+  String navTrack_detail_distance(String value) {
+    return 'Distance: $value';
+  }
+
+  @override
+  String navTrack_detail_maxDepth(String value) {
+    return 'Max depth: $value';
+  }
+
+  @override
+  String navTrack_detail_maxSpeed(String value) {
+    return 'Max speed: $value';
+  }
+
+  @override
+  String navTrack_detail_avgSpeed(String value) {
+    return 'Avg speed: $value';
+  }
+
+  @override
+  String navTrack_detail_duration(int hours, int minutes) {
+    return 'Duration: ${hours}h ${minutes}min';
+  }
+
+  @override
+  String navTrack_detail_battery(String start, String end) {
+    return 'Battery: $start V -> $end V';
+  }
+
+  @override
+  String get navTrack_detail_noDiveLinked => 'No dive linked';
+
+  @override
+  String get navTrack_detail_chooseDive => 'Choose dive';
+
+  @override
+  String get navTrack_detail_noSite => 'No site';
+
+  @override
+  String get navTrack_detail_chooseSite => 'Choose site';
+
+  @override
+  String get navTrack_review_title => 'Import Underwater Route';
+
+  @override
+  String navTrack_review_segmentSummaryNoFix(int underwater) {
+    return '$underwater samples underwater, no GPS fix after the dive.';
+  }
+
+  @override
+  String navTrack_review_segmentSummaryWithFix(
+    int underwater,
+    int surface,
+    String vector,
+  ) {
+    return '$underwater samples underwater, $surface surface samples, GPS fix $vector from the reckoned end.';
+  }
+
+  @override
+  String navTrack_review_saveError(String error) {
+    return 'Could not save this route: $error';
+  }
+
+  @override
+  String navTrack_review_importError(String error) {
+    return 'This file could not be imported: $error';
+  }
+
+  @override
+  String get navTrack_review_sourceLabel => 'Seacraft ENC log';
+
+  @override
+  String get navTrack_review_nameHint => 'Name (optional)';
+
+  @override
+  String get navTrack_review_warningNoMovement =>
+      'No movement recorded: distance and speed stay at zero throughout this file.';
+
+  @override
+  String get navTrack_review_warningDuplicate =>
+      'This looks like a route already imported from the same file.';
+
+  @override
+  String get navTrack_review_replaceLabel => 'Replace';
+
+  @override
+  String get navTrack_review_linkToDive => 'Link to dive';
+
+  @override
+  String get navTrack_review_diveSite => 'Dive site';
+
+  @override
+  String get navTrack_review_equipment => 'Equipment';
+
+  @override
+  String get navTrack_review_noEquipmentChosen => 'No equipment';
+
+  @override
+  String get navTrack_review_noSiteChosen => 'No site chosen';
+
+  @override
+  String get navTrack_review_row_start => 'Start';
+
+  @override
+  String get navTrack_review_row_end => 'End';
+
+  @override
+  String get navTrack_review_row_duration => 'Duration';
+
+  @override
+  String get navTrack_review_row_distance => 'Distance';
+
+  @override
+  String get navTrack_review_row_maxDepth => 'Max depth';
+
+  @override
+  String get navTrack_review_row_maxSpeed => 'Max speed';
+
+  @override
+  String get navTrack_review_leaveUnlinked => 'Leave unlinked';
+
+  @override
+  String navTrack_list_importFailed(String error) {
+    return 'Import failed: $error';
+  }
+
+  @override
+  String get navTrack_list_matchError => 'Could not match routes.';
+
+  @override
+  String get navTrack_list_matchSuccess => 'Routes matched to dives.';
+
+  @override
+  String navTrack_list_deleteMessage(String name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String get navTrack_list_importTooltip => 'Import route file';
+
+  @override
+  String get navTrack_list_matchTooltip => 'Match now';
+
+  @override
+  String get navTrack_list_title => 'Underwater Routes';
+
+  @override
+  String get navTrack_list_noMapRoutes =>
+      'No routes are placed on the map yet.';
+
+  @override
+  String get navTrack_list_empty => 'No underwater routes yet.';
+
+  @override
+  String get navTrack_seascape_title => 'Route seascape';
+
+  @override
+  String get navTrack_seascape_noScene => 'This route has no usable seascape.';
+
+  @override
+  String get navTrack_handoff_recognized =>
+      'Seacraft ENC navigation log recognised';
+
+  @override
+  String get navTrack_handoff_description =>
+      'This is an underwater route, not a dive log. It has its own place in Submersion, separate from your dive import.';
+
+  @override
+  String get navTrack_handoff_reviewButton => 'Review route';
+
+  @override
+  String get navTrack_section_title => 'Underwater Route';
+
+  @override
+  String navTrack_section_routeCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count routes',
+      one: '$count route',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_section_noRouteLinked => 'No route linked';
+
+  @override
+  String get navTrack_section_linkButton => 'Link route';
+
+  @override
+  String get navTrack_section_importButton => 'Import file';
+
+  @override
+  String get navTrack_section_primaryTag => 'primary';
+
+  @override
+  String get navTrack_section_menuOpen => 'Open route';
+
+  @override
+  String get navTrack_section_menuOpen3d => 'Open 3D seascape';
+
+  @override
+  String get navTrack_section_menuMakePrimary => 'Make primary';
+
+  @override
+  String get navTrack_importError_unsupportedFormat =>
+      'This file is not a Seacraft ENC navigation log.';
+
+  @override
+  String get navTrack_importError_unreadable =>
+      'This file could not be read as a Seacraft ENC navigation log.';
+
+  @override
+  String get navTrack_importError_tooShort =>
+      'This recording has too few samples to be a usable route.';
+
+  @override
+  String get navTrack_importError_badData =>
+      'This file has data Submersion could not make sense of.';
+
+  @override
+  String get navTrack_importError_tooLarge =>
+      'This recording has more samples than a route can store.';
+
+  @override
+  String get diveDetailSection_navTrack_name => 'Underwater Route';
+
+  @override
+  String get diveDetailSection_navTrack_description =>
+      'Measured underwater route from a navigation console';
+
+  @override
+  String get dashboard_quickActions_navRoutes => 'Underwater Routes';
+
+  @override
+  String navTrack_list_durationHours(int hours, int minutes) {
+    return '${hours}h ${minutes}min';
+  }
+
+  @override
+  String navTrack_list_durationMinutes(int minutes) {
+    return '${minutes}min';
+  }
+
+  @override
+  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
+
+  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
@@ -41640,4 +42319,418 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveCenters_rental_deleteConfirm => 'Delete this rental note?';
+
+  @override
+  String get query_buddies_certifications => 'Certifications';
+
+  @override
+  String get query_buddies_email => 'Email';
+
+  @override
+  String get query_buddies_favorite => 'Favorite';
+
+  @override
+  String get query_buddies_name => 'Name';
+
+  @override
+  String get query_buddies_notes => 'Notes';
+
+  @override
+  String get query_buddies_phone => 'Phone';
+
+  @override
+  String get query_centers_city => 'City';
+
+  @override
+  String get query_centers_country => 'Country';
+
+  @override
+  String get query_centers_name => 'Name';
+
+  @override
+  String get query_certifications_agency => 'Agency';
+
+  @override
+  String get query_certifications_cardNumber => 'Card number';
+
+  @override
+  String get query_certifications_expiryDate => 'Expiry date';
+
+  @override
+  String get query_certifications_instructorName => 'Instructor name';
+
+  @override
+  String get query_certifications_issueDate => 'Issue date';
+
+  @override
+  String get query_certifications_level => 'Level';
+
+  @override
+  String get query_certifications_name => 'Name';
+
+  @override
+  String get query_computers_manufacturer => 'Manufacturer';
+
+  @override
+  String get query_computers_model => 'Model';
+
+  @override
+  String get query_computers_name => 'Name';
+
+  @override
+  String get query_computers_serialNumber => 'Serial number';
+
+  @override
+  String get query_courses_agency => 'Agency';
+
+  @override
+  String get query_courses_completionDate => 'Completion date';
+
+  @override
+  String get query_courses_name => 'Name';
+
+  @override
+  String get query_courses_startDate => 'Start date';
+
+  @override
+  String get query_customFields_key => 'Key';
+
+  @override
+  String get query_customFields_value => 'Value';
+
+  @override
+  String get query_diveTypes_builtIn => 'Built-in';
+
+  @override
+  String get query_diveTypes_name => 'Name';
+
+  @override
+  String get query_dives_airTemp => 'Air temperature';
+
+  @override
+  String get query_dives_avgDepth => 'Average depth';
+
+  @override
+  String get query_dives_boatName => 'Boat';
+
+  @override
+  String get query_dives_bottomTime => 'Bottom time';
+
+  @override
+  String get query_dives_buddies => 'Buddies';
+
+  @override
+  String get query_dives_center => 'Dive center';
+
+  @override
+  String get query_dives_cnsEnd => 'CNS at end';
+
+  @override
+  String get query_dives_computer => 'Dive computer';
+
+  @override
+  String get query_dives_course => 'Course';
+
+  @override
+  String get query_dives_currentStrength => 'Current';
+
+  @override
+  String get query_dives_customFields => 'Custom fields';
+
+  @override
+  String get query_dives_date => 'Date';
+
+  @override
+  String get query_dives_deco => 'Decompression dive';
+
+  @override
+  String get query_dives_depth => 'Max depth';
+
+  @override
+  String get query_dives_diveMaster => 'Dive master';
+
+  @override
+  String get query_dives_diveMode => 'Dive mode';
+
+  @override
+  String get query_dives_diveNumber => 'Dive number';
+
+  @override
+  String get query_dives_diveOperator => 'Operator';
+
+  @override
+  String get query_dives_entryMethod => 'Entry method';
+
+  @override
+  String get query_dives_excludedFromStats => 'Excluded from statistics';
+
+  @override
+  String get query_dives_exitMethod => 'Exit method';
+
+  @override
+  String get query_dives_favorite => 'Favorite';
+
+  @override
+  String get query_dives_gasCount => 'Number of tanks';
+
+  @override
+  String get query_dives_gear => 'Gear';
+
+  @override
+  String get query_dives_hasProfile => 'Has profile';
+
+  @override
+  String get query_dives_id => 'Dive ID';
+
+  @override
+  String get query_dives_legacyBuddy => 'Buddy (legacy text)';
+
+  @override
+  String get query_dives_media => 'Media';
+
+  @override
+  String get query_dives_name => 'Name';
+
+  @override
+  String get query_dives_notes => 'Notes';
+
+  @override
+  String get query_dives_otu => 'OTU';
+
+  @override
+  String get query_dives_planned => 'Planned';
+
+  @override
+  String get query_dives_rating => 'Rating';
+
+  @override
+  String get query_dives_runtime => 'Runtime';
+
+  @override
+  String get query_dives_sightings => 'Sightings';
+
+  @override
+  String get query_dives_site => 'Site';
+
+  @override
+  String get query_dives_surfaceConditions => 'Surface conditions';
+
+  @override
+  String get query_dives_surfaceInterval => 'Surface interval';
+
+  @override
+  String get query_dives_tags => 'Tags';
+
+  @override
+  String get query_dives_tanks => 'Tanks';
+
+  @override
+  String get query_dives_trip => 'Trip';
+
+  @override
+  String get query_dives_types => 'Dive types';
+
+  @override
+  String get query_dives_visibility => 'Visibility';
+
+  @override
+  String get query_dives_waterTemp => 'Water temperature';
+
+  @override
+  String get query_dives_waterType => 'Water type';
+
+  @override
+  String get query_dives_weekday => 'Weekday';
+
+  @override
+  String get query_dives_weight => 'Weight';
+
+  @override
+  String get query_dives_weights => 'Weights';
+
+  @override
+  String get query_dives_year => 'Year';
+
+  @override
+  String get query_entity_buddies => 'Buddies';
+
+  @override
+  String get query_entity_centers => 'Dive centers';
+
+  @override
+  String get query_entity_certifications => 'Certifications';
+
+  @override
+  String get query_entity_computers => 'Dive computers';
+
+  @override
+  String get query_entity_courses => 'Courses';
+
+  @override
+  String get query_entity_customFields => 'Custom fields';
+
+  @override
+  String get query_entity_diveTypes => 'Dive types';
+
+  @override
+  String get query_entity_dives => 'Dives';
+
+  @override
+  String get query_entity_equipment => 'Equipment';
+
+  @override
+  String get query_entity_equipmentAttributes => 'Equipment attributes';
+
+  @override
+  String get query_entity_media => 'Media';
+
+  @override
+  String get query_entity_sightings => 'Sightings';
+
+  @override
+  String get query_entity_sites => 'Dive sites';
+
+  @override
+  String get query_entity_species => 'Species';
+
+  @override
+  String get query_entity_tags => 'Tags';
+
+  @override
+  String get query_entity_tanks => 'Tanks';
+
+  @override
+  String get query_entity_trips => 'Trips';
+
+  @override
+  String get query_entity_weights => 'Weights';
+
+  @override
+  String get query_equipmentAttributes_custom => 'Custom';
+
+  @override
+  String get query_equipmentAttributes_key => 'Key';
+
+  @override
+  String get query_equipmentAttributes_valueNum => 'Numeric value';
+
+  @override
+  String get query_equipmentAttributes_valueText => 'Text value';
+
+  @override
+  String get query_equipment_active => 'Active';
+
+  @override
+  String get query_equipment_attributes => 'Attributes';
+
+  @override
+  String get query_equipment_brand => 'Brand';
+
+  @override
+  String get query_equipment_model => 'Model';
+
+  @override
+  String get query_equipment_name => 'Name';
+
+  @override
+  String get query_equipment_serialNumber => 'Serial number';
+
+  @override
+  String get query_equipment_status => 'Status';
+
+  @override
+  String get query_equipment_type => 'Type';
+
+  @override
+  String get query_media_caption => 'Caption';
+
+  @override
+  String get query_media_favorite => 'Favorite';
+
+  @override
+  String get query_media_type => 'Type';
+
+  @override
+  String get query_sightings_count => 'Count';
+
+  @override
+  String get query_sightings_notes => 'Notes';
+
+  @override
+  String get query_sightings_species => 'Species';
+
+  @override
+  String get query_sites_city => 'City';
+
+  @override
+  String get query_sites_country => 'Country';
+
+  @override
+  String get query_sites_island => 'Island';
+
+  @override
+  String get query_sites_maxDepth => 'Max depth';
+
+  @override
+  String get query_sites_name => 'Name';
+
+  @override
+  String get query_sites_rating => 'Rating';
+
+  @override
+  String get query_sites_region => 'Region';
+
+  @override
+  String get query_species_category => 'Category';
+
+  @override
+  String get query_species_name => 'Name';
+
+  @override
+  String get query_species_scientificName => 'Scientific name';
+
+  @override
+  String get query_tags_name => 'Name';
+
+  @override
+  String get query_tanks_cylinder => 'Cylinder';
+
+  @override
+  String get query_tanks_endPressure => 'End pressure';
+
+  @override
+  String get query_tanks_he => 'Helium';
+
+  @override
+  String get query_tanks_name => 'Name';
+
+  @override
+  String get query_tanks_o2 => 'Oxygen';
+
+  @override
+  String get query_tanks_startPressure => 'Start pressure';
+
+  @override
+  String get query_tanks_volume => 'Volume';
+
+  @override
+  String get query_trips_endDate => 'End date';
+
+  @override
+  String get query_trips_location => 'Location';
+
+  @override
+  String get query_trips_name => 'Name';
+
+  @override
+  String get query_trips_startDate => 'Start date';
+
+  @override
+  String get query_weights_amount => 'Amount';
+
+  @override
+  String get query_weights_notes => 'Notes';
+
+  @override
+  String get query_weights_type => 'Type';
 }

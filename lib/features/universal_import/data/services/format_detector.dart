@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:csv/csv.dart';
 
 import 'package:submersion/core/services/export/csv/codec/submersion_csv_signatures.dart';
+import 'package:submersion/features/nav_track/data/services/parsers/seacraft_enc_signature.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 
@@ -294,6 +295,23 @@ class FormatDetector {
         .toList();
 
     if (headers.isEmpty || headers.length < 2) return null;
+
+    // A Seacraft ENC navigation console log ahead of every app-scoring
+    // heuristic below: it carries no dive data at all (spec
+    // 2026-09-10-underwater-nav-track-design.md), so it must never be
+    // scored as -- or fall through to -- a generic dive CSV. Checked
+    // against the raw header text (not `headers`, which is already
+    // lower-cased and trimmed by the caller): `looksLikeSeacraftEnc`
+    // normalizes on its own and this keeps that one signature function the
+    // single source of truth for every entry point.
+    final untrimmedHeaders = rows.first.map((e) => e.toString()).toList();
+    if (looksLikeSeacraftEnc(untrimmedHeaders)) {
+      return DetectionResult(
+        format: ImportFormat.navTrack,
+        confidence: 1.0,
+        csvHeaders: rows.first.map((e) => e.toString().trim()).toList(),
+      );
+    }
 
     // Submersion's own exports carry their full column set, so they are
     // recognised exactly and routed to their dedicated parsers (#1813).

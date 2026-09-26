@@ -6284,6 +6284,79 @@
       }
     }
   },
+  "divelogsImport_fetch_button": "Fetch Logbook",
+  "divelogsImport_fetch_certificationsUnavailable": "Certifications could not be fetched and will not be imported.",
+  "divelogsImport_fetch_empty": "Your divelogs.de logbook has nothing to import.",
+  "divelogsImport_fetch_failedTitle": "Could not fetch your logbook",
+  "divelogsImport_fetch_fetching": "Fetching your logbook…",
+  "divelogsImport_fetch_foundDives": "{count, plural, one{Found {count} dive} other{Found {count} dives}}",
+  "@divelogsImport_fetch_foundDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "divelogsImport_fetch_foundPhotos": "{count, plural, =0{No photos to import} one{{count} photo to import} other{{count} photos to import}}",
+  "@divelogsImport_fetch_foundPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "divelogsImport_fetch_gearUnavailable": "Gear could not be fetched; dives will import without gear links.",
+  "divelogsImport_fetch_includePhotos": "Include photos",
+  "divelogsImport_fetch_includePhotosHint": "Photos are downloaded during the import into a folder you choose.",
+  "divelogsImport_fetch_listingPhotos": "Listing photos for dive {current} of {total}…",
+  "@divelogsImport_fetch_listingPhotos": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "divelogsImport_fetch_photoListingsFailed": "{count, plural, one{Photos for {count} dive could not be listed.} other{Photos for {count} dives could not be listed.}}",
+  "@divelogsImport_fetch_photoListingsFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "divelogsImport_fetch_retry": "Try Again",
+  "divelogsImport_fetch_sessionExpired": "Your divelogs.de session expired. Go back and sign in again.",
+  "divelogsImport_fetch_skippedDives": "{count, plural, one{{count} dive could not be read and will be skipped.} other{{count} dives could not be read and will be skipped.}}",
+  "@divelogsImport_fetch_skippedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "divelogsImport_signIn_badCredentials": "divelogs.de rejected the username or password.",
+  "divelogsImport_signIn_button": "Sign In",
+  "divelogsImport_signIn_description": "Sign in with your divelogs.de account to import your logbook. Your password is never stored; only the resulting session is cached.",
+  "divelogsImport_signIn_passwordLabel": "Password",
+  "divelogsImport_signIn_passwordRequired": "Password is required",
+  "divelogsImport_signIn_signedInAs": "Signed in as {username}",
+  "@divelogsImport_signIn_signedInAs": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "divelogsImport_signIn_signingIn": "Signing in…",
+  "divelogsImport_signIn_signOut": "Sign out",
+  "divelogsImport_signIn_title": "Sign in to divelogs.de",
+  "divelogsImport_signIn_unexpected": "divelogs.de sent an unexpected response. Try again later.",
+  "divelogsImport_signIn_unreachable": "Could not reach divelogs.de. Check your connection and try again.",
+  "divelogsImport_signIn_usernameLabel": "Username",
+  "divelogsImport_signIn_usernameRequired": "Username is required",
   "divers_detail_activeDiver": "Active Diver",
   "divers_detail_allergiesLabel": "Allergies",
   "divers_detail_appBarTitle": "Diver",
@@ -10141,9 +10214,68 @@
   "@media_library_viewMode_grid": {
     "description": "Library view mode: flat grid"
   },
+  "media_library_viewMode_map": "Map",
+  "@media_library_viewMode_map": {
+    "description": "Library view mode: thumbnails placed on a map"
+  },
   "media_library_viewMode_timeline": "Timeline",
   "@media_library_viewMode_timeline": {
     "description": "Library view mode: date-grouped timeline"
+  },
+  "media_map_closeStrip": "Close",
+  "@media_map_closeStrip": {
+    "description": "Tooltip on the button that dismisses the media map place strip"
+  },
+  "media_map_clusterSemantics": "{count, plural, one{{count} item at {place}} other{{count} items at {place}}}",
+  "@media_map_clusterSemantics": {
+    "description": "Screen-reader label for a cluster of media on the map",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "media_map_emptyHint": "Photos and videos are placed by their own GPS, their dive's entry point, or their dive's site.",
+  "@media_map_emptyHint": {
+    "description": "Media map empty state: how items get a location"
+  },
+  "media_map_emptyTitle": "No media with a location",
+  "@media_map_emptyTitle": {
+    "description": "Media map empty state title"
+  },
+  "media_map_errorLoading": "Error loading media locations: {error}",
+  "@media_map_errorLoading": {
+    "description": "Media map error state",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "media_map_markerSemantics": "Open media",
+  "@media_map_markerSemantics": {
+    "description": "Screen-reader label for a single media thumbnail on the map"
+  },
+  "media_map_placeItemCount": "{count, plural, one{{count} item} other{{count} items}}",
+  "@media_map_placeItemCount": {
+    "description": "Item count shown in the media map place strip",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_map_unlocatedCount": "{count, plural, one{{count} item without a location} other{{count} items without a location}}",
+  "@media_map_unlocatedCount": {
+    "description": "Label on the media map for in-scope items that could not be placed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "media_viewer_goToDive": "Go to dive",
   "@media_viewer_goToDive": {
@@ -13376,6 +13508,14 @@
   "@importWizard_photos_destinationUnwritable": {
     "description": "Snackbar shown when the folder chosen for bundled archive photos cannot be written to"
   },
+  "importWizard_photos_downloadCount": "{count, plural, one{{count} photo to download} other{{count} photos to download}}",
+  "@importWizard_photos_downloadCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importWizard_review_olderDivesSkipped": "{count, plural, one{1 older dive skipped — already in your log} other{{count} older dives skipped — already in your log}}",
   "@importWizard_review_olderDivesSkipped": {
     "description": "Title for the collapsed ExpansionTile summarizing auto-skipped dives that fall at or before the diver's first-sync cutoff",
@@ -14734,6 +14874,28 @@
   },
   "universalImport_summary_noticeSitesUnresolvedTitle": "Some dives have no dive site",
   "universalImport_summary_noticeSitesUnresolvedBody": "These dives referred to a dive site the file does not describe, so they were imported without one. You can set a site by editing the dive.",
+  "universalImport_summary_noticeGearUnavailableTitle": "Gear not imported",
+  "universalImport_summary_noticeGearUnavailableBody": "The gear list could not be fetched, so no gear was imported and dives were not linked to their gear. Import again later to add it.",
+  "universalImport_summary_noticeCertificationsUnavailableTitle": "Certifications not imported",
+  "universalImport_summary_noticeCertificationsUnavailableBody": "The certification list could not be fetched, so no certifications were imported. Import again later to add them.",
+  "universalImport_summary_noticePhotoListingsUnavailableTitle": "Some photos not listed",
+  "universalImport_summary_noticePhotoListingsUnavailableBody": "{count, plural, one{Photos for {count} dive could not be listed, so they were not imported.} other{Photos for {count} dives could not be listed, so they were not imported.}}",
+  "@universalImport_summary_noticePhotoListingsUnavailableBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "universalImport_summary_noticePhotosNotDownloadedTitle": "Some photos not downloaded",
+  "universalImport_summary_noticePhotosNotDownloadedBody": "{count, plural, one{{count} photo could not be downloaded. Import again to retry; photos already saved are not duplicated.} other{{count} photos could not be downloaded. Import again to retry; photos already saved are not duplicated.}}",
+  "@universalImport_summary_noticePhotosNotDownloadedBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "universalImport_summary_noticeMacdiveXmlCertsTitle": "Certifications and service records not in the file",
   "universalImport_summary_noticeMacdiveXmlCertsBody": "MacDive leaves certifications and equipment service records out of its XML export. To bring them in, import your MacDive.sqlite database.",
   "universalImport_summary_noticeMacdiveLogbooksTitle": "MacDive logbooks not imported",
@@ -14787,6 +14949,7 @@
     }
   },
   "universalImport_summary_fileImported": "{count, plural, =1{1 dive imported} other{{count} dives imported}}",
+  "universalImport_summary_importAsRoute": "Import as route",
   "universalImport_summary_fileNeedsIndividualImport": "Needs individual import",
   "universalImport_summary_fileUnsupported": "Unsupported format",
   "universalImport_summary_fileParseFailed": "Failed to read",
@@ -15077,6 +15240,9 @@
         "type": "num"
       }
     }
+  },
+  "@universalImport_summary_importAsRoute": {
+    "description": "Action on the batch summary row that lets the diver re-open a recognised Seacraft ENC file (excluded from the batch) in the underwater route review page"
   },
   "@universalImport_summary_fileNeedsIndividualImport": {
     "description": "Per-file summary line for CSV files excluded from the batch"
@@ -18304,6 +18470,8 @@
   "@dive3d_seascape_overlay_contours": {},
   "dive3d_seascape_overlay_walls": "Steep walls",
   "@dive3d_seascape_overlay_walls": {},
+  "dive3d_seascape_showRoute": "Show route",
+  "@dive3d_seascape_showRoute": {},
   "dive3d_overlay_water": "Water surface",
   "@dive3d_overlay_water": {},
   "dive3d_seascape_legend_land": "Land",
@@ -18524,6 +18692,16 @@
   "@dive3d_spatial_title": {},
   "dive3d_spatial_estimatedPath": "Estimated path (dead reckoning)",
   "@dive3d_spatial_estimatedPath": {},
+  "dive3d_spatial_recordedPath": "Recorded route",
+  "@dive3d_spatial_recordedPath": {},
+  "dive3d_spatial_recordedPathWithSource": "Recorded route ({source})",
+  "@dive3d_spatial_recordedPathWithSource": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
   "dive3d_spatial_synthesizedSeafloor": "Synthesized seafloor",
   "@dive3d_spatial_synthesizedSeafloor": {},
   "dive3d_spatial_noPath": "Not enough data to reconstruct the dive path",
@@ -18731,6 +18909,8 @@
   "attrLabel_battery_capacity_wh": "Battery capacity (Wh)",
   "attrLabel_motor_type": "Motor",
   "attrLabel_speed_mps": "Top speed",
+  "attrLabel_tow_burn_factor": "Tow burn factor",
+  "attrLabel_tow_speed_factor": "Tow speed factor",
   "attrLabel_sku": "SKU",
   "attrLabel_retailer": "Retailer",
   "attrLabel_product_url": "Web link",
@@ -25568,6 +25748,8 @@
   "transfer_importCloud_suuntoSubtitle": "Import dives from your Suunto app / app.suunto.com account",
   "transfer_importCloud_garminTitle": "Garmin",
   "transfer_importCloud_garminSubtitle": "Import dives from your Garmin Connect account",
+  "transfer_importCloud_divelogsTitle": "divelogs.de",
+  "transfer_importCloud_divelogsSubtitle": "Import your logbook, sites, gear, certifications and photos from divelogs.de",
   "transfer_section_cloudTitle": "Cloud",
   "transfer_section_cloudSubtitle": "Import from cloud",
   "settings_storageUsage_appBar_title": "Storage Usage",
@@ -25882,6 +26064,309 @@
   "equipment_arrange_saveFailed": "Could not save the arrangement",
   "settings_appearance_gearArrangement": "Gear arrangement",
   "settings_appearance_gearArrangementSubtitle": "How equipment is grouped and sorted on a dive",
+  "navTrack_common_loadError": "Could not load this route.",
+  "navTrack_common_notFound": "Route not found.",
+  "navTrack_common_cancel": "Cancel",
+  "navTrack_common_save": "Save",
+  "navTrack_common_delete": "Delete",
+  "navTrack_common_unlink": "Unlink",
+  "navTrack_common_open3dTooltip": "Open 3D",
+  "navTrack_common_diveNumber": "Dive #{number}",
+  "@navTrack_common_diveNumber": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_common_diveById": "Dive {id}",
+  "@navTrack_common_diveById": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_common_unlinked": "unlinked",
+  "navTrack_align_title": "Align on map",
+  "navTrack_align_resetTooltip": "Reset correction",
+  "navTrack_align_setStartHere": "Set start here",
+  "navTrack_align_setEndHere": "Set end here",
+  "navTrack_align_setStartOnMap": "Set start on map",
+  "navTrack_align_fromDiveEntry": "From dive entry",
+  "navTrack_align_fromSite": "From site",
+  "navTrack_align_fromGps": "From GPS",
+  "navTrack_align_startLabel": "Start: ",
+  "navTrack_align_endLabel": "End: ",
+  "navTrack_align_endMode_none": "None",
+  "navTrack_align_endMode_sameAsStart": "Same as start",
+  "navTrack_align_endMode_point": "Place on map",
+  "navTrack_align_endMode_gpsFix": "From GPS fix",
+  "navTrack_align_trustSummary": "Trust: trusted up to {distance}, {minutes} min",
+  "@navTrack_align_trustSummary": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "navTrack_align_rotationLabel": "Rotation:",
+  "navTrack_align_rotationDegrees": "{degrees} deg",
+  "@navTrack_align_rotationDegrees": {
+    "placeholders": {
+      "degrees": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_terrain_summary": "{onLand} points on land, {below} of {total} below the seafloor{maxPart}, {unknown} unknown{coarsePart}",
+  "@navTrack_terrain_summary": {
+    "placeholders": {
+      "onLand": {
+        "type": "int"
+      },
+      "below": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "unknown": {
+        "type": "int"
+      },
+      "maxPart": {
+        "type": "String"
+      },
+      "coarsePart": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_terrain_maxPart": " (max {depth})",
+  "@navTrack_terrain_maxPart": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_terrain_coarsePart": " (coarse bathymetry: only land conflicts checked)",
+  "navTrack_detail_renameTitle": "Rename route",
+  "navTrack_detail_deleteTitle": "Delete route?",
+  "navTrack_detail_deleteMessage": "This cannot be undone.",
+  "navTrack_detail_defaultTitle": "Route",
+  "navTrack_detail_menuRename": "Rename",
+  "navTrack_detail_menuChangeSite": "Change site",
+  "navTrack_detail_noMapYet": "Set the start point to see this on a map.",
+  "navTrack_detail_correctionStatus_none": "No correction applied yet.",
+  "navTrack_detail_correctionStatus_sameAsStart": "End set to same as start.",
+  "navTrack_detail_correctionStatus_point": "End point set on the map.",
+  "navTrack_detail_correctionStatus_gpsFix": "End set from the recording's GPS fix.",
+  "navTrack_detail_device": "Device: {name}",
+  "@navTrack_detail_device": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_detail_equipment": "Equipment: {name}",
+  "@navTrack_detail_equipment": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_detail_distance": "Distance: {value}",
+  "@navTrack_detail_distance": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_detail_maxDepth": "Max depth: {value}",
+  "@navTrack_detail_maxDepth": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_detail_maxSpeed": "Max speed: {value}",
+  "@navTrack_detail_maxSpeed": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_detail_avgSpeed": "Avg speed: {value}",
+  "@navTrack_detail_avgSpeed": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_detail_duration": "Duration: {hours}h {minutes}min",
+  "@navTrack_detail_duration": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "navTrack_detail_battery": "Battery: {start} V -> {end} V",
+  "@navTrack_detail_battery": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_detail_noDiveLinked": "No dive linked",
+  "navTrack_detail_chooseDive": "Choose dive",
+  "navTrack_detail_noSite": "No site",
+  "navTrack_detail_chooseSite": "Choose site",
+  "navTrack_review_title": "Import Underwater Route",
+  "navTrack_review_segmentSummaryNoFix": "{underwater} samples underwater, no GPS fix after the dive.",
+  "@navTrack_review_segmentSummaryNoFix": {
+    "placeholders": {
+      "underwater": {
+        "type": "int"
+      }
+    }
+  },
+  "navTrack_review_segmentSummaryWithFix": "{underwater} samples underwater, {surface} surface samples, GPS fix {vector} from the reckoned end.",
+  "@navTrack_review_segmentSummaryWithFix": {
+    "placeholders": {
+      "underwater": {
+        "type": "int"
+      },
+      "surface": {
+        "type": "int"
+      },
+      "vector": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_review_saveError": "Could not save this route: {error}",
+  "@navTrack_review_saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_review_importError": "This file could not be imported: {error}",
+  "@navTrack_review_importError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_review_sourceLabel": "Seacraft ENC log",
+  "navTrack_review_nameHint": "Name (optional)",
+  "navTrack_review_warningNoMovement": "No movement recorded: distance and speed stay at zero throughout this file.",
+  "navTrack_review_warningDuplicate": "This looks like a route already imported from the same file.",
+  "navTrack_review_replaceLabel": "Replace",
+  "navTrack_review_linkToDive": "Link to dive",
+  "navTrack_review_diveSite": "Dive site",
+  "navTrack_review_equipment": "Equipment",
+  "navTrack_review_noEquipmentChosen": "No equipment",
+  "navTrack_review_noSiteChosen": "No site chosen",
+  "navTrack_review_row_start": "Start",
+  "navTrack_review_row_end": "End",
+  "navTrack_review_row_duration": "Duration",
+  "navTrack_review_row_distance": "Distance",
+  "navTrack_review_row_maxDepth": "Max depth",
+  "navTrack_review_row_maxSpeed": "Max speed",
+  "navTrack_review_leaveUnlinked": "Leave unlinked",
+  "navTrack_list_importFailed": "Import failed: {error}",
+  "@navTrack_list_importFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_list_matchError": "Could not match routes.",
+  "navTrack_list_matchSuccess": "Routes matched to dives.",
+  "navTrack_list_deleteMessage": "Delete \"{name}\"?",
+  "@navTrack_list_deleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_list_importTooltip": "Import route file",
+  "navTrack_list_matchTooltip": "Match now",
+  "navTrack_list_title": "Underwater Routes",
+  "navTrack_list_noMapRoutes": "No routes are placed on the map yet.",
+  "navTrack_list_empty": "No underwater routes yet.",
+  "navTrack_seascape_title": "Route seascape",
+  "navTrack_seascape_noScene": "This route has no usable seascape.",
+  "navTrack_handoff_recognized": "Seacraft ENC navigation log recognised",
+  "navTrack_handoff_description": "This is an underwater route, not a dive log. It has its own place in Submersion, separate from your dive import.",
+  "navTrack_handoff_reviewButton": "Review route",
+  "navTrack_section_title": "Underwater Route",
+  "navTrack_section_routeCount": "{count, plural, one{{count} route} other{{count} routes}}",
+  "@navTrack_section_routeCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "navTrack_section_noRouteLinked": "No route linked",
+  "navTrack_section_linkButton": "Link route",
+  "navTrack_section_importButton": "Import file",
+  "navTrack_section_primaryTag": "primary",
+  "navTrack_section_menuOpen": "Open route",
+  "navTrack_section_menuOpen3d": "Open 3D seascape",
+  "navTrack_section_menuMakePrimary": "Make primary",
+  "navTrack_importError_unsupportedFormat": "This file is not a Seacraft ENC navigation log.",
+  "navTrack_importError_unreadable": "This file could not be read as a Seacraft ENC navigation log.",
+  "navTrack_importError_tooShort": "This recording has too few samples to be a usable route.",
+  "navTrack_importError_badData": "This file has data Submersion could not make sense of.",
+  "navTrack_importError_tooLarge": "This recording has more samples than a route can store.",
+  "diveDetailSection_navTrack_name": "Underwater Route",
+  "diveDetailSection_navTrack_description": "Measured underwater route from a navigation console",
+  "dashboard_quickActions_navRoutes": "Underwater Routes",
+  "navTrack_list_durationHours": "{hours}h {minutes}min",
+  "@navTrack_list_durationHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "navTrack_list_durationMinutes": "{minutes}min",
+  "@navTrack_list_durationMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_detail_tooltip_whatIf": "Replan this dive",
   "diveLog_detail_menu_whatIf": "Replan this dive",
   "plannerCanvas_sourceCompare_title": "vs. original dive",
   "plannerCanvas_issue_repeated": "{message} ({count} legs)",
@@ -25973,5 +26458,281 @@
   "diveCenters_rental_volumeLabel": "Actual capacity ({unit})",
   "@diveCenters_rental_volumeLabel": {"placeholders": {"unit": {"type": "Object"}}},
   "diveCenters_rental_noteLabel": "Note",
-  "diveCenters_rental_deleteConfirm": "Delete this rental note?"
+  "diveCenters_rental_deleteConfirm": "Delete this rental note?",
+  "query_buddies_certifications": "Certifications",
+  "@query_buddies_certifications": {"description": "Field label in the query builder"},
+  "query_buddies_email": "Email",
+  "@query_buddies_email": {"description": "Field label in the query builder"},
+  "query_buddies_favorite": "Favorite",
+  "@query_buddies_favorite": {"description": "Field label in the query builder"},
+  "query_buddies_name": "Name",
+  "@query_buddies_name": {"description": "Field label in the query builder"},
+  "query_buddies_notes": "Notes",
+  "@query_buddies_notes": {"description": "Field label in the query builder"},
+  "query_buddies_phone": "Phone",
+  "@query_buddies_phone": {"description": "Field label in the query builder"},
+  "query_centers_city": "City",
+  "@query_centers_city": {"description": "Field label in the query builder"},
+  "query_centers_country": "Country",
+  "@query_centers_country": {"description": "Field label in the query builder"},
+  "query_centers_name": "Name",
+  "@query_centers_name": {"description": "Field label in the query builder"},
+  "query_certifications_agency": "Agency",
+  "@query_certifications_agency": {"description": "Field label in the query builder"},
+  "query_certifications_cardNumber": "Card number",
+  "@query_certifications_cardNumber": {"description": "Field label in the query builder"},
+  "query_certifications_expiryDate": "Expiry date",
+  "@query_certifications_expiryDate": {"description": "Field label in the query builder"},
+  "query_certifications_instructorName": "Instructor name",
+  "@query_certifications_instructorName": {"description": "Field label in the query builder"},
+  "query_certifications_issueDate": "Issue date",
+  "@query_certifications_issueDate": {"description": "Field label in the query builder"},
+  "query_certifications_level": "Level",
+  "@query_certifications_level": {"description": "Field label in the query builder"},
+  "query_certifications_name": "Name",
+  "@query_certifications_name": {"description": "Field label in the query builder"},
+  "query_computers_manufacturer": "Manufacturer",
+  "@query_computers_manufacturer": {"description": "Field label in the query builder"},
+  "query_computers_model": "Model",
+  "@query_computers_model": {"description": "Field label in the query builder"},
+  "query_computers_name": "Name",
+  "@query_computers_name": {"description": "Field label in the query builder"},
+  "query_computers_serialNumber": "Serial number",
+  "@query_computers_serialNumber": {"description": "Field label in the query builder"},
+  "query_courses_agency": "Agency",
+  "@query_courses_agency": {"description": "Field label in the query builder"},
+  "query_courses_completionDate": "Completion date",
+  "@query_courses_completionDate": {"description": "Field label in the query builder"},
+  "query_courses_name": "Name",
+  "@query_courses_name": {"description": "Field label in the query builder"},
+  "query_courses_startDate": "Start date",
+  "@query_courses_startDate": {"description": "Field label in the query builder"},
+  "query_customFields_key": "Key",
+  "@query_customFields_key": {"description": "Field label in the query builder"},
+  "query_customFields_value": "Value",
+  "@query_customFields_value": {"description": "Field label in the query builder"},
+  "query_diveTypes_builtIn": "Built-in",
+  "@query_diveTypes_builtIn": {"description": "Field label in the query builder"},
+  "query_diveTypes_name": "Name",
+  "@query_diveTypes_name": {"description": "Field label in the query builder"},
+  "query_dives_airTemp": "Air temperature",
+  "@query_dives_airTemp": {"description": "Field label in the query builder"},
+  "query_dives_avgDepth": "Average depth",
+  "@query_dives_avgDepth": {"description": "Field label in the query builder"},
+  "query_dives_boatName": "Boat",
+  "@query_dives_boatName": {"description": "Field label in the query builder"},
+  "query_dives_bottomTime": "Bottom time",
+  "@query_dives_bottomTime": {"description": "Field label in the query builder"},
+  "query_dives_buddies": "Buddies",
+  "@query_dives_buddies": {"description": "Field label in the query builder"},
+  "query_dives_center": "Dive center",
+  "@query_dives_center": {"description": "Field label in the query builder"},
+  "query_dives_cnsEnd": "CNS at end",
+  "@query_dives_cnsEnd": {"description": "Field label in the query builder"},
+  "query_dives_computer": "Dive computer",
+  "@query_dives_computer": {"description": "Field label in the query builder"},
+  "query_dives_course": "Course",
+  "@query_dives_course": {"description": "Field label in the query builder"},
+  "query_dives_currentStrength": "Current",
+  "@query_dives_currentStrength": {"description": "Field label in the query builder"},
+  "query_dives_customFields": "Custom fields",
+  "@query_dives_customFields": {"description": "Field label in the query builder"},
+  "query_dives_date": "Date",
+  "@query_dives_date": {"description": "Field label in the query builder"},
+  "query_dives_deco": "Decompression dive",
+  "@query_dives_deco": {"description": "Field label in the query builder"},
+  "query_dives_depth": "Max depth",
+  "@query_dives_depth": {"description": "Field label in the query builder"},
+  "query_dives_diveMaster": "Dive master",
+  "@query_dives_diveMaster": {"description": "Field label in the query builder"},
+  "query_dives_diveMode": "Dive mode",
+  "@query_dives_diveMode": {"description": "Field label in the query builder"},
+  "query_dives_diveNumber": "Dive number",
+  "@query_dives_diveNumber": {"description": "Field label in the query builder"},
+  "query_dives_diveOperator": "Operator",
+  "@query_dives_diveOperator": {"description": "Field label in the query builder"},
+  "query_dives_entryMethod": "Entry method",
+  "@query_dives_entryMethod": {"description": "Field label in the query builder"},
+  "query_dives_excludedFromStats": "Excluded from statistics",
+  "@query_dives_excludedFromStats": {"description": "Field label in the query builder"},
+  "query_dives_exitMethod": "Exit method",
+  "@query_dives_exitMethod": {"description": "Field label in the query builder"},
+  "query_dives_favorite": "Favorite",
+  "@query_dives_favorite": {"description": "Field label in the query builder"},
+  "query_dives_gasCount": "Number of tanks",
+  "@query_dives_gasCount": {"description": "Field label in the query builder"},
+  "query_dives_gear": "Gear",
+  "@query_dives_gear": {"description": "Field label in the query builder"},
+  "query_dives_hasProfile": "Has profile",
+  "@query_dives_hasProfile": {"description": "Field label in the query builder"},
+  "query_dives_id": "Dive ID",
+  "@query_dives_id": {"description": "Field label in the query builder"},
+  "query_dives_legacyBuddy": "Buddy (legacy text)",
+  "@query_dives_legacyBuddy": {"description": "Field label in the query builder"},
+  "query_dives_media": "Media",
+  "@query_dives_media": {"description": "Field label in the query builder"},
+  "query_dives_name": "Name",
+  "@query_dives_name": {"description": "Field label in the query builder"},
+  "query_dives_notes": "Notes",
+  "@query_dives_notes": {"description": "Field label in the query builder"},
+  "query_dives_otu": "OTU",
+  "@query_dives_otu": {"description": "Field label in the query builder"},
+  "query_dives_planned": "Planned",
+  "@query_dives_planned": {"description": "Field label in the query builder"},
+  "query_dives_rating": "Rating",
+  "@query_dives_rating": {"description": "Field label in the query builder"},
+  "query_dives_runtime": "Runtime",
+  "@query_dives_runtime": {"description": "Field label in the query builder"},
+  "query_dives_sightings": "Sightings",
+  "@query_dives_sightings": {"description": "Field label in the query builder"},
+  "query_dives_site": "Site",
+  "@query_dives_site": {"description": "Field label in the query builder"},
+  "query_dives_surfaceConditions": "Surface conditions",
+  "@query_dives_surfaceConditions": {"description": "Field label in the query builder"},
+  "query_dives_surfaceInterval": "Surface interval",
+  "@query_dives_surfaceInterval": {"description": "Field label in the query builder"},
+  "query_dives_tags": "Tags",
+  "@query_dives_tags": {"description": "Field label in the query builder"},
+  "query_dives_tanks": "Tanks",
+  "@query_dives_tanks": {"description": "Field label in the query builder"},
+  "query_dives_trip": "Trip",
+  "@query_dives_trip": {"description": "Field label in the query builder"},
+  "query_dives_types": "Dive types",
+  "@query_dives_types": {"description": "Field label in the query builder"},
+  "query_dives_visibility": "Visibility",
+  "@query_dives_visibility": {"description": "Field label in the query builder"},
+  "query_dives_waterTemp": "Water temperature",
+  "@query_dives_waterTemp": {"description": "Field label in the query builder"},
+  "query_dives_waterType": "Water type",
+  "@query_dives_waterType": {"description": "Field label in the query builder"},
+  "query_dives_weekday": "Weekday",
+  "@query_dives_weekday": {"description": "Field label in the query builder"},
+  "query_dives_weight": "Weight",
+  "@query_dives_weight": {"description": "Field label in the query builder"},
+  "query_dives_weights": "Weights",
+  "@query_dives_weights": {"description": "Field label in the query builder"},
+  "query_dives_year": "Year",
+  "@query_dives_year": {"description": "Field label in the query builder"},
+  "query_entity_buddies": "Buddies",
+  "@query_entity_buddies": {"description": "Field label in the query builder"},
+  "query_entity_centers": "Dive centers",
+  "@query_entity_centers": {"description": "Field label in the query builder"},
+  "query_entity_certifications": "Certifications",
+  "@query_entity_certifications": {"description": "Field label in the query builder"},
+  "query_entity_computers": "Dive computers",
+  "@query_entity_computers": {"description": "Field label in the query builder"},
+  "query_entity_courses": "Courses",
+  "@query_entity_courses": {"description": "Field label in the query builder"},
+  "query_entity_customFields": "Custom fields",
+  "@query_entity_customFields": {"description": "Field label in the query builder"},
+  "query_entity_diveTypes": "Dive types",
+  "@query_entity_diveTypes": {"description": "Field label in the query builder"},
+  "query_entity_dives": "Dives",
+  "@query_entity_dives": {"description": "Field label in the query builder"},
+  "query_entity_equipment": "Equipment",
+  "@query_entity_equipment": {"description": "Field label in the query builder"},
+  "query_entity_equipmentAttributes": "Equipment attributes",
+  "@query_entity_equipmentAttributes": {"description": "Field label in the query builder"},
+  "query_entity_media": "Media",
+  "@query_entity_media": {"description": "Field label in the query builder"},
+  "query_entity_sightings": "Sightings",
+  "@query_entity_sightings": {"description": "Field label in the query builder"},
+  "query_entity_sites": "Dive sites",
+  "@query_entity_sites": {"description": "Field label in the query builder"},
+  "query_entity_species": "Species",
+  "@query_entity_species": {"description": "Field label in the query builder"},
+  "query_entity_tags": "Tags",
+  "@query_entity_tags": {"description": "Field label in the query builder"},
+  "query_entity_tanks": "Tanks",
+  "@query_entity_tanks": {"description": "Field label in the query builder"},
+  "query_entity_trips": "Trips",
+  "@query_entity_trips": {"description": "Field label in the query builder"},
+  "query_entity_weights": "Weights",
+  "@query_entity_weights": {"description": "Field label in the query builder"},
+  "query_equipmentAttributes_custom": "Custom",
+  "@query_equipmentAttributes_custom": {"description": "Field label in the query builder"},
+  "query_equipmentAttributes_key": "Key",
+  "@query_equipmentAttributes_key": {"description": "Field label in the query builder"},
+  "query_equipmentAttributes_valueNum": "Numeric value",
+  "@query_equipmentAttributes_valueNum": {"description": "Field label in the query builder"},
+  "query_equipmentAttributes_valueText": "Text value",
+  "@query_equipmentAttributes_valueText": {"description": "Field label in the query builder"},
+  "query_equipment_active": "Active",
+  "@query_equipment_active": {"description": "Field label in the query builder"},
+  "query_equipment_attributes": "Attributes",
+  "@query_equipment_attributes": {"description": "Field label in the query builder"},
+  "query_equipment_brand": "Brand",
+  "@query_equipment_brand": {"description": "Field label in the query builder"},
+  "query_equipment_model": "Model",
+  "@query_equipment_model": {"description": "Field label in the query builder"},
+  "query_equipment_name": "Name",
+  "@query_equipment_name": {"description": "Field label in the query builder"},
+  "query_equipment_serialNumber": "Serial number",
+  "@query_equipment_serialNumber": {"description": "Field label in the query builder"},
+  "query_equipment_status": "Status",
+  "@query_equipment_status": {"description": "Field label in the query builder"},
+  "query_equipment_type": "Type",
+  "@query_equipment_type": {"description": "Field label in the query builder"},
+  "query_media_caption": "Caption",
+  "@query_media_caption": {"description": "Field label in the query builder"},
+  "query_media_favorite": "Favorite",
+  "@query_media_favorite": {"description": "Field label in the query builder"},
+  "query_media_type": "Type",
+  "@query_media_type": {"description": "Field label in the query builder"},
+  "query_sightings_count": "Count",
+  "@query_sightings_count": {"description": "Field label in the query builder"},
+  "query_sightings_notes": "Notes",
+  "@query_sightings_notes": {"description": "Field label in the query builder"},
+  "query_sightings_species": "Species",
+  "@query_sightings_species": {"description": "Field label in the query builder"},
+  "query_sites_city": "City",
+  "@query_sites_city": {"description": "Field label in the query builder"},
+  "query_sites_country": "Country",
+  "@query_sites_country": {"description": "Field label in the query builder"},
+  "query_sites_island": "Island",
+  "@query_sites_island": {"description": "Field label in the query builder"},
+  "query_sites_maxDepth": "Max depth",
+  "@query_sites_maxDepth": {"description": "Field label in the query builder"},
+  "query_sites_name": "Name",
+  "@query_sites_name": {"description": "Field label in the query builder"},
+  "query_sites_rating": "Rating",
+  "@query_sites_rating": {"description": "Field label in the query builder"},
+  "query_sites_region": "Region",
+  "@query_sites_region": {"description": "Field label in the query builder"},
+  "query_species_category": "Category",
+  "@query_species_category": {"description": "Field label in the query builder"},
+  "query_species_name": "Name",
+  "@query_species_name": {"description": "Field label in the query builder"},
+  "query_species_scientificName": "Scientific name",
+  "@query_species_scientificName": {"description": "Field label in the query builder"},
+  "query_tags_name": "Name",
+  "@query_tags_name": {"description": "Field label in the query builder"},
+  "query_tanks_cylinder": "Cylinder",
+  "@query_tanks_cylinder": {"description": "Field label in the query builder"},
+  "query_tanks_endPressure": "End pressure",
+  "@query_tanks_endPressure": {"description": "Field label in the query builder"},
+  "query_tanks_he": "Helium",
+  "@query_tanks_he": {"description": "Field label in the query builder"},
+  "query_tanks_name": "Name",
+  "@query_tanks_name": {"description": "Field label in the query builder"},
+  "query_tanks_o2": "Oxygen",
+  "@query_tanks_o2": {"description": "Field label in the query builder"},
+  "query_tanks_startPressure": "Start pressure",
+  "@query_tanks_startPressure": {"description": "Field label in the query builder"},
+  "query_tanks_volume": "Volume",
+  "@query_tanks_volume": {"description": "Field label in the query builder"},
+  "query_trips_endDate": "End date",
+  "@query_trips_endDate": {"description": "Field label in the query builder"},
+  "query_trips_location": "Location",
+  "@query_trips_location": {"description": "Field label in the query builder"},
+  "query_trips_name": "Name",
+  "@query_trips_name": {"description": "Field label in the query builder"},
+  "query_trips_startDate": "Start date",
+  "@query_trips_startDate": {"description": "Field label in the query builder"},
+  "query_weights_amount": "Amount",
+  "@query_weights_amount": {"description": "Field label in the query builder"},
+  "query_weights_notes": "Notes",
+  "@query_weights_notes": {"description": "Field label in the query builder"},
+  "query_weights_type": "Type",
+  "@query_weights_type": {"description": "Field label in the query builder"}
 }
