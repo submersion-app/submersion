@@ -22,7 +22,7 @@ import 'package:submersion/core/services/sync/changeset_log/base_parse_client.da
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/byte_progress_stream.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
-import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_sweep.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_reader.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dart';
@@ -3518,61 +3518,8 @@ class SyncService {
     await resetSyncState();
     await _syncRepository.setLastAcceptedEpochId(null);
     await _epochStore?.clear();
-    await deleteLeftoverBaseTempFiles();
+    await sweepLeftoverSyncTempFiles();
     _log.info('Local sync state repaired');
-  }
-
-  /// How recently a sync temp file must have been touched to be spared as
-  /// "probably still being written" rather than swept as a leftover. Mirrors
-  /// `ResumableBasePublishStore._orphanGrace`, for the same reason.
-  static const Duration _tempFileGrace = Duration(minutes: 5);
-
-  /// Best-effort sweep of leftover streaming-base temp files (base exports
-  /// `ssv1_base_*.json` and assembled `ssv1_*.base` / `ssv1_adopt_*` parts)
-  /// from the app temp dir. Every sync temp file is prefixed `ssv1_`, so
-  /// the sweep matches ONLY that prefix -- never an unrelated app temp file
-  /// (the dir is a shared, general-purpose temp location). Failure is logged
-  /// and ignored; a stale temp file is harmless.
-  ///
-  /// Skips anything touched within [_tempFileGrace]. The prefix keeps the
-  /// sweep off files this app did not write, but NOT off files another
-  /// instance of it is writing right now: under `flutter test`
-  /// [resolveSyncTempDir] falls back to the machine-wide
-  /// `Directory.systemTemp`, so every concurrent test process shares one
-  /// directory and a base export in flight in one of them sits next to this
-  /// sweep running in another. Deleting it fails that publish, which surfaces
-  /// as a sync returning non-success in a test file that touched no sync code
-  /// at all. The uuid in each name prevents collisions but cannot help here,
-  /// because the sweep matches on prefix rather than on a name it chose. A
-  /// leftover worth reaping is by definition from a run that already ended, so
-  /// it is old; a true orphan younger than the grace is simply reclaimed by
-  /// the next sweep.
-  ///
-  /// [tempDir] is injectable so tests can sweep a private directory instead of
-  /// the shared one -- otherwise this test would be the very hazard it covers.
-  Future<void> deleteLeftoverBaseTempFiles({
-    @visibleForTesting Future<Directory> Function()? tempDir,
-  }) async {
-    try {
-      final dir = await (tempDir?.call() ?? resolveSyncTempDir());
-      final cutoff = DateTime.now().subtract(_tempFileGrace);
-      await for (final entity in dir.list(followLinks: false)) {
-        if (entity is! File) continue;
-        final name = entity.uri.pathSegments.last;
-        if (name.startsWith('ssv1_')) {
-          try {
-            // Inside the try: the file can vanish between the listing and the
-            // stat, which is exactly what a concurrent sweep looks like.
-            if ((await entity.lastModified()).isAfter(cutoff)) continue;
-            await entity.delete();
-          } catch (_) {
-            // best effort
-          }
-        }
-      }
-    } catch (e) {
-      _log.warning('Could not sweep leftover base temp files: $e');
-    }
   }
 
   /// Best-effort removal of [deviceId]'s entire changeset log from the cloud
