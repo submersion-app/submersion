@@ -19,6 +19,7 @@ import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_summary.dart';
@@ -724,11 +725,8 @@ class SyncDataSerializer {
     final byId = {for (final track in incoming) track.id: track};
     final ids = byId.keys.toList();
     final reshaped = <String>{};
-    // Chunked to stay under SQLite's bound-variable limit, as in
-    // fetchRecords.
-    const idChunk = 900;
-    for (var i = 0; i < ids.length; i += idChunk) {
-      final chunk = ids.sublist(i, math.min(i + idChunk, ids.length));
+    // Chunked to stay under SQLite's bound-variable limit.
+    for (final chunk in seriesIdChunks(ids)) {
       final stored = await (_db.select(
         _db.gpsTracks,
       )..where((t) => t.id.isIn(chunk))).get();
