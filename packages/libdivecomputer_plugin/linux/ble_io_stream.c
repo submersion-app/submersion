@@ -51,6 +51,13 @@ static const char* TIO_CREDITS_TX_UUID = "00000004-0000-1000-8000-008025000000";
 static const char* UBLOX_DATA_UUID = "2456e1b9-26e2-8f83-e744-f34f01e9d703";
 static const char* UBLOX_CREDITS_UUID = "2456e1b9-26e2-8f83-e744-f34f01e9d704";
 
+// Read-poll service (issue #1454, libdivecomputer 415778c): the Seac Tablet's
+// one Rx/Tx characteristic can be read and written but can neither notify nor
+// indicate. An allowlist: Generic Access's Device Name is read+write on some
+// peripherals and must never be mistaken for a serial channel.
+static const char* SEAC_SERVICE_UUID = "84968ffe-d26d-478a-b953-5010bcf58bca";
+static const char* SEAC_DATA_UUID = "43c620c2-1b09-4951-bc1e-9c75298cddeb";
+
 // Opening credit grant. 0xFF is reserved by the TIO protocol, so 254 is the
 // largest value that means "credits" rather than a control code.
 #define TIO_INITIAL_GRANT 254
@@ -442,6 +449,13 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
     gchar* tio_credits_tx_path = NULL;
     gchar* ublox_data_path = NULL;
     gchar* ublox_credits_path = NULL;
+    // Read-poll candidate and the object path of its service. BlueZ lists
+    // services and characteristics as separate objects, so service UUIDs are
+    // collected by path and the candidate's parent is checked after the walk.
+    gchar* read_poll_path = NULL;
+    gchar* read_poll_service_path = NULL;
+    GHashTable* service_uuids =
+        g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
     GVariantIter obj_iter;
     g_variant_iter_init(&obj_iter, objects);
@@ -454,6 +468,19 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
         if (!g_str_has_prefix(obj_path, device_path)) {
             g_variant_unref(ifaces);
             continue;
+        }
+
+        GVariant* service_props = g_variant_lookup_value(
+            ifaces, "org.bluez.GattService1", G_VARIANT_TYPE_VARDICT);
+        if (service_props) {
+            GVariant* service_uuid = g_variant_lookup_value(
+                service_props, "UUID", G_VARIANT_TYPE_STRING);
+            if (service_uuid) {
+                g_hash_table_insert(service_uuids, g_strdup(obj_path),
+                                    g_variant_dup_string(service_uuid, NULL));
+                g_variant_unref(service_uuid);
+            }
+            g_variant_unref(service_props);
         }
 
         GVariant* char_props = g_variant_lookup_value(
@@ -492,6 +519,15 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
         } else if (g_ascii_strcasecmp(uuid, UBLOX_CREDITS_UUID) == 0) {
             g_free(ublox_credits_path);
             ublox_credits_path = g_strdup(obj_path);
+        } else if (g_ascii_strcasecmp(uuid, SEAC_DATA_UUID) == 0 &&
+                   !read_poll_path) {
+            GVariant* parent = g_variant_lookup_value(
+                char_props, "Service", G_VARIANT_TYPE_OBJECT_PATH);
+            if (parent) {
+                read_poll_path = g_strdup(obj_path);
+                read_poll_service_path = g_variant_dup_string(parent, NULL);
+                g_variant_unref(parent);
+            }
         }
 
         // Score as write candidate.
@@ -546,6 +582,23 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
     }
     g_variant_unref(objects);
 
+    // Keep the read-poll candidate only if it sits under the allowlisted
+    // service and can be both read and written.
+    if (read_poll_path) {
+        const gchar* parent_uuid =
+            g_hash_table_lookup(service_uuids, read_poll_service_path);
+        gboolean usable =
+            parent_uuid &&
+            g_ascii_strcasecmp(parent_uuid, SEAC_SERVICE_UUID) == 0 &&
+            has_flag(stream->connection, read_poll_path, "read") &&
+            (has_flag(stream->connection, read_poll_path, "write") ||
+             has_flag(stream->connection, read_poll_path,
+                      "write-without-response"));
+        if (!usable) g_clear_pointer(&read_poll_path, g_free);
+    }
+    g_free(read_poll_service_path);
+    g_hash_table_unref(service_uuids);
+
     // Only run the handshake on a complete known layout, so every other device
     // keeps today's plain write/notify behaviour. Telit needs all four UART
     // characteristics; u-blox needs its data and credits pair, and uses the
@@ -567,8 +620,24 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
     g_free(ublox_data_path);
     g_free(ublox_credits_path);
 
+    if (!best_notify_path && read_poll_path) {
+        // Read-poll tier (issue #1454): the computer cannot push its replies,
+        // so there is no StartNotify, no PropertiesChanged subscription and no
+        // credit handshake; the poller reads the characteristic whenever
+        // libdivecomputer wants bytes. Commands go to the same characteristic.
+        g_free(best_write_path);
+        stream->write_path = g_steal_pointer(&read_poll_path);
+        stream->read_poller =
+            ble_read_poller_new(stream->connection, stream->write_path);
+        g_message("BleIoStream: read-poll tier selected: service=%s "
+                  "characteristic=%s", SEAC_SERVICE_UUID, stream->write_path);
+        return TRUE;
+    }
+    g_free(read_poll_path);
+
     if (!best_write_path || !best_notify_path) {
-        g_warning("BleIoStream: No suitable GATT characteristics found");
+        g_warning("BleIoStream: No suitable GATT characteristics found, and "
+                  "no known read-poll service matched");
         g_free(best_write_path);
         g_free(best_notify_path);
         return FALSE;
@@ -636,6 +705,11 @@ static int ble_set_timeout(void* userdata, int timeout) {
 static int ble_read(void* userdata, void* data, size_t size,
                     size_t* actual) {
     BleIoStream* stream = (BleIoStream*)userdata;
+
+    if (stream->read_poller) {
+        return ble_read_poller_read(stream->read_poller, data, size, actual,
+                                    stream->timeout_ms);
+    }
 
     g_mutex_lock(&stream->read_mutex);
 
@@ -860,6 +934,9 @@ static int ble_ioctl(void* userdata, unsigned int request,
 
 static int ble_poll(void* userdata, int timeout) {
     BleIoStream* stream = (BleIoStream*)userdata;
+    if (stream->read_poller) {
+        return ble_read_poller_poll(stream->read_poller, timeout);
+    }
     g_mutex_lock(&stream->read_mutex);
 
     if (!g_queue_is_empty(stream->read_chunks)) {
@@ -897,6 +974,7 @@ static int ble_poll(void* userdata, int timeout) {
 static int ble_purge(void* userdata, unsigned int direction) {
     if ((direction & DIRECTION_INPUT) == 0) return LIBDC_STATUS_SUCCESS;
     BleIoStream* stream = (BleIoStream*)userdata;
+    if (stream->read_poller) ble_read_poller_purge(stream->read_poller);
     g_mutex_lock(&stream->read_mutex);
     GByteArray* chunk;
     while ((chunk = g_queue_pop_head(stream->read_chunks)) != NULL) {
@@ -922,6 +1000,9 @@ libdc_io_callbacks_t ble_io_stream_make_callbacks(BleIoStream* stream) {
 
 void ble_io_stream_close(BleIoStream* stream) {
     if (!stream) return;
+
+    // Fail a read-poll reader; the poller itself is freed with the stream.
+    if (stream->read_poller) ble_read_poller_close(stream->read_poller);
 
     // Stop notifications.
     if (stream->connection && stream->notify_path) {
@@ -970,6 +1051,7 @@ void ble_io_stream_free(BleIoStream* stream) {
         }
         g_queue_free(stream->read_chunks);
     }
+    if (stream->read_poller) ble_read_poller_unref(stream->read_poller);
     g_free(stream->device_path);
     g_free(stream->write_path);
     g_free(stream->notify_path);

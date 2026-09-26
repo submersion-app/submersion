@@ -5,6 +5,7 @@
 #include <glib.h>
 
 #include "libdc_wrapper.h"
+#include "ble_read_poll.h"
 
 G_BEGIN_DECLS
 
@@ -41,6 +42,11 @@ typedef struct {
     // from at most one notification; coalescing them into a flat buffer
     // loses packet boundaries.
     GQueue* read_chunks;
+
+    // Non-NULL only when the read-poll tier was selected (issue #1454). Read,
+    // poll and purge go to it instead of read_chunks, and notify_path stays
+    // NULL: there is nothing to subscribe to.
+    BleReadPoller* read_poller;
 
     gint timeout_ms;
     gchar* device_name;
