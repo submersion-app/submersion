@@ -801,7 +801,9 @@ class DiveComputerRepository {
     required double? maxDepth,
     required double? effectiveAvgDepth,
     required double? minWaterTemp,
-    required double? maxCns,
+    required double? cns,
+    required double? otu,
+    required int? surfaceIntervalSeconds,
     required int now,
     required double? entryLatitude,
     required double? entryLongitude,
@@ -836,7 +838,9 @@ class DiveComputerRepository {
       exitLongitude: Value(exitLongitude),
       entryTime: Value(profileStartTime),
       exitTime: Value(profileStartTime.add(Duration(seconds: durationSeconds))),
-      cns: Value(maxCns),
+      cns: Value(cns),
+      otu: Value(otu),
+      surfaceInterval: Value(surfaceIntervalSeconds),
       decoAlgorithm: Value(decoAlgorithm),
       gradientFactorLow: Value(gfLow),
       gradientFactorHigh: Value(gfHigh),
@@ -1320,6 +1324,15 @@ class DiveComputerRepository {
     // the dive header and never as a sample, so it cannot be recovered from
     // the profile points.
     double? minTemperature,
+    // A dive summary the source reported itself rather than one derived from
+    // the profile (Garmin's FIT dive_summary, issue #1798). Like the diluent
+    // above, the dive row only takes them when it is brand new; the
+    // download's own data source row takes them either way.
+    int? bottomTimeSeconds,
+    int? surfaceIntervalSeconds,
+    WaterType? waterType,
+    double? cnsEnd,
+    double? otu,
     // Attach to this dive instead of matching by time (issue #2002). A
     // planned dive being filled may share its minute with a sibling in
     // another profile, so the time match could land on the wrong row.
@@ -1371,13 +1384,21 @@ class DiveComputerRepository {
                 : null);
 
         // durationSeconds from the dive computer is total runtime,
-        // not bottom time. Calculate bottom time from the profile, bounded
-        // by that runtime so a sample stream that outlasts the dive cannot
-        // produce a bottom time longer than the dive (issue #1642).
-        final bottomTimeSeconds = _calculateBottomTimeFromPoints(
-          points,
-          totalDurationSeconds: durationSeconds,
-        );
+        // not bottom time. A bottom time the source reported wins (#1798);
+        // otherwise calculate it from the profile. Either way it is bounded
+        // by that runtime so it cannot come out longer than the dive
+        // (issue #1642).
+        final effectiveBottomTimeSeconds = bottomTimeSeconds != null
+            ? (bottomTimeSeconds < durationSeconds
+                  ? bottomTimeSeconds
+                  : durationSeconds)
+            : _calculateBottomTimeFromPoints(
+                points,
+                totalDurationSeconds: durationSeconds,
+              );
+
+        // The source's own end-of-dive CNS wins over the highest sample.
+        final effectiveCnsEnd = cnsEnd ?? maxCns;
 
         // Downloaded profiles carry no dive type (#1513: no longer inferred
         // from deco indicators either), so every dive lands on the built-in
@@ -1394,11 +1415,14 @@ class DiveComputerRepository {
                 diveDateTime: Value(entryTimeMs),
                 entryTime: Value(entryTimeMs),
                 exitTime: Value(exitTimeMs),
-                bottomTime: Value(bottomTimeSeconds),
+                bottomTime: Value(effectiveBottomTimeSeconds),
                 runtime: Value(durationSeconds),
                 maxDepth: Value(maxDepth),
                 avgDepth: Value(effectiveAvgDepth),
-                cnsEnd: Value(maxCns),
+                cnsEnd: Value(effectiveCnsEnd),
+                otu: Value(otu),
+                surfaceIntervalSeconds: Value(surfaceIntervalSeconds),
+                waterType: Value(waterType?.name),
                 // Populated so DiveConsolidationService (Task 5) can attribute
                 // consolidated children and enforce its same-computer guard;
                 // without this the dives row's own computerId stayed null
@@ -1528,7 +1552,9 @@ class DiveComputerRepository {
                 maxDepth: maxDepth,
                 effectiveAvgDepth: effectiveAvgDepth,
                 minWaterTemp: minWaterTemp,
-                maxCns: maxCns,
+                cns: effectiveCnsEnd,
+                otu: otu,
+                surfaceIntervalSeconds: surfaceIntervalSeconds,
                 now: now,
                 entryLatitude: entryLatitude,
                 entryLongitude: entryLongitude,
@@ -1607,9 +1633,13 @@ class DiveComputerRepository {
                     (existingSampleTemps.isNotEmpty
                         ? existingSampleTemps.reduce((a, b) => a < b ? a : b)
                         : null),
-                maxCns: existingSampleCns.isNotEmpty
-                    ? existingSampleCns.reduce((a, b) => a > b ? a : b)
-                    : null,
+                cns:
+                    cnsEnd ??
+                    (existingSampleCns.isNotEmpty
+                        ? existingSampleCns.reduce((a, b) => a > b ? a : b)
+                        : null),
+                otu: otu,
+                surfaceIntervalSeconds: surfaceIntervalSeconds,
                 now: now,
                 entryLatitude: entryLatitude,
                 entryLongitude: entryLongitude,
