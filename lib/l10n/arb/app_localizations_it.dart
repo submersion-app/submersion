@@ -27900,6 +27900,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile risincronizzare: il file originale non contiene più un\'immersione corrispondente';
 
   @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Impossibile risincronizzare: il file originale contiene un\'immersione corrispondente per più di un subacqueo e questa immersione non registra da quale provenga';
+
+  @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
       'Impossibile risincronizzare: si è verificato un errore imprevisto durante la lettura del file originale';
 

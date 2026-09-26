@@ -7873,6 +7873,7 @@
   "diveLog_detail_resyncFailed_unsupportedFormat": "Não foi possível ressincronizar: este formato de arquivo não é compatível",
   "diveLog_detail_resyncFailed_storedFileMissing": "Não foi possível ressincronizar: o arquivo original não está mais neste dispositivo",
   "diveLog_detail_resyncFailed_noMatchingDive": "Não foi possível ressincronizar: o arquivo original não contém mais um mergulho correspondente",
+  "diveLog_detail_resyncFailed_ambiguousDiver": "Não foi possível ressincronizar: o arquivo original tem um mergulho correspondente para mais de um mergulhador, e este mergulho não registra de qual deles veio",
   "diveLog_detail_resyncFailed_unexpectedError": "Não foi possível ressincronizar: ocorreu um erro inesperado ao ler o arquivo original",
   "universalImport_label_replaceSource": "Substituir Fonte",
   "universalImport_label_replaceSourceSubtitle": "Atualizar a partir do mesmo computador",

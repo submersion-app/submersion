@@ -3458,6 +3458,13 @@ class DiveDataSources extends Table {
   /// one -- which a real constraint would reject at COMMIT, taking the whole
   /// changeset with it.
   TextColumn get importedFileId => text().nullable()();
+
+  /// The diver a multi-diver logbook attributed this source's dive to
+  /// (`SourceDiver.key`, as the file itself emits it), so a resync replays
+  /// that diver's copy of a shared buddy dive and never another diver's
+  /// (issue #1921). Null for every format without diver attribution and for
+  /// every source imported before v233.
+  TextColumn get sourceDiverKey => text().nullable()();
   RealColumn get maxDepth => real().nullable()();
   RealColumn get avgDepth => real().nullable()();
   IntColumn get duration => integer().nullable()();
@@ -4459,7 +4466,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 231;
+  static const int currentSchemaVersion = 233;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -5139,6 +5146,12 @@ class AppDatabase extends _$AppDatabase {
     // (#1772) as 230 while this was open, and 229 is claimed by #2372,
     // #2331 and #2407.
     231,
+    // v233: dive_data_sources.source_diver_key (issue #1921), so a resync
+    // replays the importing diver's copy of a shared MacDive dive. Additive
+    // nullable column, no backfill (only a re-parse of each stored file
+    // could recover it), so the floor stays at 224. 232 is claimed by
+    // #2331, #2407 and #2411.
+    233,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -8555,6 +8568,22 @@ class AppDatabase extends _$AppDatabase {
       'ALTER TABLE diver_settings ADD COLUMN group_trips_in_dive_list '
       'INTEGER NOT NULL DEFAULT 0',
     );
+  }
+
+  /// v233: dive_data_sources.source_diver_key (issue #1921). Idempotent, so
+  /// it is safe from both onUpgrade and the beforeOpen backstop, and a no-op
+  /// when the table does not exist yet.
+  Future<void> _assertSourceDiverKeyColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('dive_data_sources')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('source_diver_key')) {
+      await customStatement(
+        'ALTER TABLE dive_data_sources ADD COLUMN source_diver_key TEXT',
+      );
+    }
   }
 
   /// Idempotent DDL for the diver_settings CCR ppO2 limits (v231, issue
@@ -12843,6 +12872,13 @@ class AppDatabase extends _$AppDatabase {
           await _assertCcrPpO2LimitColumns();
         }
         if (from < 231) await reportProgress();
+        // v233: dive_data_sources.source_diver_key (issue #1921). Column
+        // only, no backfill: null means "not recorded", which resync treats
+        // as "check the file for a second diver's match".
+        if (from < 233) {
+          await _assertSourceDiverKeyColumn();
+        }
+        if (from < 233) await reportProgress();
       },
       beforeOpen: (details) async {
         // v227 backstop: the hidden built-in tank presets.
@@ -13350,6 +13386,11 @@ class AppDatabase extends _$AppDatabase {
         // v228 backstop: the cylinder_fills table (parallel-branch
         // version-collision self-heal; createTable is idempotent).
         await _assertCylinderFillsSchema();
+
+        // v233 backstop: re-assert dive_data_sources.source_diver_key
+        // (parallel-branch version-collision self-heal). Nullable column
+        // only, so it cannot touch diver data.
+        await _assertSourceDiverKeyColumn();
 
         // v231 backstop: re-assert the diver_settings CCR ppO2 limits
         // (parallel-branch version-collision self-heal). Defaulted columns

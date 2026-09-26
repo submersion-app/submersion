@@ -18043,6 +18043,10 @@
   "@diveLog_detail_resyncFailed_noMatchingDive": {
     "description": "Snackbar shown when the re-parsed original file no longer contains a dive matching this one"
   },
+  "diveLog_detail_resyncFailed_ambiguousDiver": "Could not resync: the original file has a matching dive for more than one diver, and this dive does not record which one it came from",
+  "@diveLog_detail_resyncFailed_ambiguousDiver": {
+    "description": "Snackbar shown when the original file holds a matching dive for several divers and this dive, imported before its diver was recorded, cannot say which copy is its own"
+  },
   "diveLog_detail_resyncFailed_unexpectedError": "Could not resync: an unexpected error occurred while reading the original file",
   "@diveLog_detail_resyncFailed_unexpectedError": {
     "description": "Snackbar shown when reading or parsing the stored original file threw"

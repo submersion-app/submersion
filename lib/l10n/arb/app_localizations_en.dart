@@ -27455,6 +27455,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not resync: the original file no longer contains a matching dive';
 
   @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Could not resync: the original file has a matching dive for more than one diver, and this dive does not record which one it came from';
+
+  @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
       'Could not resync: an unexpected error occurred while reading the original file';
 

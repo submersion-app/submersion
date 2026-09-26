@@ -26447,6 +26447,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '无法重新同步：原始文件中已没有匹配的潜水记录';
 
   @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      '无法重新同步：原始文件中有多位潜水员的匹配潜水记录，而此潜水记录未保存它来自哪一位';
+
+  @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
       '无法重新同步：读取原始文件时发生意外错误';
 

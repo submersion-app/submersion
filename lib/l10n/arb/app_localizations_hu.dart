@@ -27811,6 +27811,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült újraszinkronizálni: az eredeti fájl már nem tartalmaz megfelelő merülést';
 
   @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Nem sikerült újraszinkronizálni: az eredeti fájlban több búvárnak is van megfelelő merülése, és ennél a merülésnél nincs rögzítve, melyiktől származik';
+
+  @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
       'Nem sikerült újraszinkronizálni: váratlan hiba történt az eredeti fájl olvasása közben';
 

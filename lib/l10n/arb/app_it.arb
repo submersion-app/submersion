@@ -7873,6 +7873,7 @@
   "diveLog_detail_resyncFailed_unsupportedFormat": "Impossibile risincronizzare: questo formato di file non è supportato",
   "diveLog_detail_resyncFailed_storedFileMissing": "Impossibile risincronizzare: il file originale non è più presente su questo dispositivo",
   "diveLog_detail_resyncFailed_noMatchingDive": "Impossibile risincronizzare: il file originale non contiene più un'immersione corrispondente",
+  "diveLog_detail_resyncFailed_ambiguousDiver": "Impossibile risincronizzare: il file originale contiene un'immersione corrispondente per più di un subacqueo e questa immersione non registra da quale provenga",
   "diveLog_detail_resyncFailed_unexpectedError": "Impossibile risincronizzare: si è verificato un errore imprevisto durante la lettura del file originale",
   "universalImport_label_replaceSource": "Sostituisci sorgente",
   "universalImport_label_replaceSourceSubtitle": "Aggiorna dallo stesso computer",

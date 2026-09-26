@@ -27698,6 +27698,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan niet opnieuw synchroniseren: het originele bestand bevat geen overeenkomende duik meer';
 
   @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Kan niet opnieuw synchroniseren: het originele bestand bevat een overeenkomende duik voor meer dan één duiker, en bij deze duik is niet vastgelegd van welke hij afkomstig is';
+
+  @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
       'Kan niet opnieuw synchroniseren: er is een onverwachte fout opgetreden bij het lezen van het originele bestand';
 

@@ -27228,6 +27228,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן היה לסנכרן מחדש: הקובץ המקורי כבר לא מכיל צלילה תואמת';
 
   @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'לא ניתן היה לסנכרן מחדש: בקובץ המקורי יש צלילה תואמת ליותר מצולל אחד, ובצלילה הזו לא נשמר מאיזו מהן היא הגיעה';
+
+  @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
       'לא ניתן היה לסנכרן מחדש: אירעה שגיאה בלתי צפויה בעת קריאת הקובץ המקורי';
 

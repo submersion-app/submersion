@@ -7873,6 +7873,7 @@
   "diveLog_detail_resyncFailed_unsupportedFormat": "Impossible de resynchroniser : ce format de fichier n'est pas pris en charge",
   "diveLog_detail_resyncFailed_storedFileMissing": "Impossible de resynchroniser : le fichier original est introuvable sur cet appareil",
   "diveLog_detail_resyncFailed_noMatchingDive": "Impossible de resynchroniser : le fichier original ne contient plus de plongée correspondante",
+  "diveLog_detail_resyncFailed_ambiguousDiver": "Impossible de resynchroniser : le fichier original contient une plongée correspondante pour plusieurs plongeurs, et cette plongée n'indique pas de laquelle elle provient",
   "diveLog_detail_resyncFailed_unexpectedError": "Impossible de resynchroniser : une erreur inattendue s'est produite lors de la lecture du fichier original",
   "universalImport_label_replaceSource": "Remplacer la source",
   "universalImport_label_replaceSourceSubtitle": "Mettre à jour depuis le même ordinateur",

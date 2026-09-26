@@ -10,12 +10,12 @@ const _columns = {
 };
 
 void main() {
-  test('v231 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 231);
+  test('v231 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v233 (dive source diver key, #1921) landed on top; the
+    // newest rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(231));
     expect(AppDatabase.migrationVersions, contains(231));
-    expect(AppDatabase.migrationStepCount(230), 1);
+    expect(AppDatabase.migrationStepCount(230), greaterThanOrEqualTo(1));
   });
 
   test('the columns are additive and did not move the sync floor', () {

@@ -7873,6 +7873,7 @@
   "diveLog_detail_resyncFailed_unsupportedFormat": "Nem sikerült újraszinkronizálni: ez a fájlformátum nem támogatott",
   "diveLog_detail_resyncFailed_storedFileMissing": "Nem sikerült újraszinkronizálni: az eredeti fájl nem található ezen az eszközön",
   "diveLog_detail_resyncFailed_noMatchingDive": "Nem sikerült újraszinkronizálni: az eredeti fájl már nem tartalmaz megfelelő merülést",
+  "diveLog_detail_resyncFailed_ambiguousDiver": "Nem sikerült újraszinkronizálni: az eredeti fájlban több búvárnak is van megfelelő merülése, és ennél a merülésnél nincs rögzítve, melyiktől származik",
   "diveLog_detail_resyncFailed_unexpectedError": "Nem sikerült újraszinkronizálni: váratlan hiba történt az eredeti fájl olvasása közben",
   "universalImport_label_replaceSource": "Forrás cseréje",
   "universalImport_label_replaceSourceSubtitle": "Frissítés ugyanarról a számítógépről",

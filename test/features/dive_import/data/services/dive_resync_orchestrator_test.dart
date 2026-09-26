@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_import/data/repositories/imported_file_
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 
 class _FakeImportedFiles extends ImportedFileRepository {
@@ -48,6 +49,7 @@ void main() {
     required String importedFileId,
     String sourceFileFormat = 'uddf',
     int? runtimeSeconds,
+    String? sourceDiverKey,
   }) async {
     const diveId = 'dive-1';
     await db
@@ -74,6 +76,7 @@ void main() {
             createdAt: dateTime,
             sourceFileFormat: Value(sourceFileFormat),
             importedFileId: Value(importedFileId),
+            sourceDiverKey: Value(sourceDiverKey),
           ),
         );
     return diveId;
@@ -455,5 +458,136 @@ void main() {
     );
 
     expect((await orchestrator.resync(diveId)).succeeded, isTrue);
+  });
+
+  group('a logbook shared by several divers (#1921)', () {
+    // Two divers logging the same buddy dive: same start, near-identical
+    // depth and time, so both score as a probable match for either diver's
+    // copy. The depths differ just enough to tell which one was replayed.
+    final dateTime = DateTime(2026, 9, 1, 9);
+    Map<String, dynamic> diveBy(
+      String diverKey, {
+      double maxDepth = 18.0,
+      Duration offset = Duration.zero,
+    }) => {
+      'dateTime': dateTime.add(offset),
+      'maxDepth': maxDepth,
+      'duration': const Duration(minutes: 40),
+      SourceDiver.mapKey: diverKey,
+    };
+
+    Future<Dive> resyncAgainst(
+      List<Map<String, dynamic>> candidates, {
+      String? storedKey,
+      void Function(DiveResyncOutcome)? expectOutcome,
+    }) async {
+      final diveId = await seedDiveWithSource(
+        dateTime: dateTime,
+        maxDepth: 18.0,
+        bottomTimeSeconds: 40 * 60,
+        importedFileId: 'file-macdive',
+        sourceFileFormat: 'macdiveXml',
+        sourceDiverKey: storedKey,
+      );
+      final orchestrator = DiveResyncOrchestrator(
+        db: db,
+        importedFiles: _FakeImportedFiles({'file-macdive': Uint8List(0)}),
+        parserFor: (_) => _FakeParser(
+          ImportPayload(entities: {ImportEntityType.dives: candidates}),
+        ),
+      );
+
+      expectOutcome?.call(await orchestrator.resync(diveId));
+      return (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+    }
+
+    test('replays the stored diver\'s dive even when the buddy\'s copy '
+        'scores higher', () async {
+      final dive = await resyncAgainst(
+        [
+          // The buddy's copy matches this dive exactly, so an unfiltered
+          // scorer picks it.
+          diveBy('name:Bo Ray', maxDepth: 18.0),
+          diveBy('name:Ann Lee', maxDepth: 18.4),
+        ],
+        storedKey: 'name:Ann Lee',
+        expectOutcome: (o) => expect(o.succeeded, isTrue),
+      );
+
+      expect(dive.maxDepth, 18.4);
+    });
+
+    test('fails rather than fall back to the buddy when the stored diver '
+        'has no matching dive left', () async {
+      final dive = await resyncAgainst(
+        [diveBy('name:Bo Ray', maxDepth: 18.2)],
+        storedKey: 'name:Ann Lee',
+        expectOutcome: (o) {
+          expect(o.succeeded, isFalse);
+          expect(o.failureReason, DiveResyncFailure.noMatchingDive);
+        },
+      );
+
+      expect(dive.maxDepth, 18.0);
+    });
+
+    test('treats dives the file attributes to no one as a diver of their '
+        'own', () async {
+      final dive = await resyncAgainst(
+        [
+          diveBy('name:Bo Ray', maxDepth: 18.0),
+          diveBy(SourceDiver.unownedKey, maxDepth: 18.4),
+        ],
+        storedKey: SourceDiver.unownedKey,
+        expectOutcome: (o) => expect(o.succeeded, isTrue),
+      );
+
+      expect(dive.maxDepth, 18.4);
+    });
+
+    group('with no stored key (imported before it was recorded)', () {
+      test('refuses when two divers each have a matching dive', () async {
+        final dive = await resyncAgainst(
+          [
+            diveBy('name:Bo Ray', maxDepth: 18.2),
+            diveBy('name:Ann Lee', maxDepth: 18.4),
+          ],
+          expectOutcome: (o) {
+            expect(o.succeeded, isFalse);
+            expect(o.failureReason, DiveResyncFailure.ambiguousDiver);
+          },
+        );
+
+        expect(dive.maxDepth, 18.0);
+      });
+
+      test('resyncs when only one diver has a matching dive', () async {
+        final dive = await resyncAgainst([
+          diveBy(
+            'name:Bo Ray',
+            maxDepth: 30.0,
+            offset: const Duration(days: 2),
+          ),
+          diveBy('name:Ann Lee', maxDepth: 18.4),
+        ], expectOutcome: (o) => expect(o.succeeded, isTrue));
+
+        expect(dive.maxDepth, 18.4);
+      });
+
+      test('resyncs when every matching dive is the same diver\'s', () async {
+        final dive = await resyncAgainst([
+          diveBy('name:Ann Lee', maxDepth: 18.4),
+          diveBy(
+            'name:Ann Lee',
+            maxDepth: 18.2,
+            offset: const Duration(minutes: 5),
+          ),
+        ], expectOutcome: (o) => expect(o.succeeded, isTrue));
+
+        expect(dive.maxDepth, 18.4);
+      });
+    });
   });
 }
