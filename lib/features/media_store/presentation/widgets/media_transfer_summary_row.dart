@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_transfers_suspended_notice.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -59,6 +60,22 @@ class MediaTransferSummaryRow extends ConsumerWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 l10n.settings_mediaStorage_transfers_queued(summary.queued),
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+          ),
+        // Offline is quiet, not silent (spec 7.1): no suspended notice,
+        // because nothing is wrong with the store, but the outstanding work
+        // says what it is waiting for, due or deferred alike. (Only reached
+        // with outstanding work: an empty summary returned above.)
+        if (summary.hold?.kind == MediaTransferHoldKind.offline)
+          Padding(
+            key: const Key('media-transfer-offline'),
+            padding: const EdgeInsets.only(top: 4, left: 16),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                l10n.settings_mediaStorage_transfers_waitingConnection,
                 style: theme.textTheme.bodySmall,
               ),
             ),

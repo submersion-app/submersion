@@ -34,6 +34,22 @@ class PhotoPickerServiceMobile implements PhotoPickerService {
     return _mapPermissionStatus(status);
   }
 
+  /// The current photo access, read without asking. [checkPermission] is a
+  /// request on this platform and shows the OS prompt when access was never
+  /// decided; background work that must not prompt reads this instead.
+  @override
+  Future<PhotoPermissionStatus> currentPermission() async {
+    final status = await pm.PhotoManager.getPermissionState(
+      requestOption: const pm.PermissionRequestOption(
+        androidPermission: pm.AndroidPermission(
+          type: pm.RequestType.common,
+          mediaLocation: true,
+        ),
+      ),
+    );
+    return _mapPermissionStatus(status);
+  }
+
   @override
   Future<PhotoPermissionStatus> requestPermission() async {
     final status = await pm.PhotoManager.requestPermissionExtend(

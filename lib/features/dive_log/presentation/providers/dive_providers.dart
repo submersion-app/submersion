@@ -663,7 +663,8 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     // If the dive was created without a dive number, renumber all dives
     // chronologically to ensure proper ordering. Scope to this diver so
     // we don't disturb other profiles' per-diver numbering.
-    if (dive.diveNumber == null) {
+    // A planned dive stays unnumbered until it is promoted (issue #2002).
+    if (dive.diveNumber == null && !dive.isPlanned) {
       await _repository.assignMissingDiveNumbers(
         diverId: newDive.diverId ?? _currentDiverId,
       );
@@ -1177,7 +1178,7 @@ class PaginatedDiveListNotifier
   /// Invalidate the dive-level stats provider.
   ///
   /// Every other statistics provider now self-invalidates on
-  /// [StatisticsRepository.watchStatisticsChanges], so there is no version
+  /// [InsightsRepository.watchInsightsChanges], so there is no version
   /// counter to bump (issue #974).
   void _invalidateStatistics() {
     _ref.invalidate(diveStatisticsProvider);
@@ -1194,7 +1195,8 @@ class PaginatedDiveListNotifier
     }
     final newDive = await _repository.createDive(diveWithDiver);
 
-    if (dive.diveNumber == null) {
+    // A planned dive stays unnumbered until it is promoted (issue #2002).
+    if (dive.diveNumber == null && !dive.isPlanned) {
       await _repository.assignMissingDiveNumbers(
         diverId: newDive.diverId ?? _currentDiverId,
       );

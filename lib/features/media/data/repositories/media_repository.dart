@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -204,23 +205,35 @@ class MediaRepository {
   /// dive is excluded too, because the dashboard ribbon links each tile to
   /// its dive and an unattached item would render as a dead tile. Backs the
   /// dashboard media ribbon.
-  Future<List<domain.MediaItem>> getRecentMedia({int limit = 12}) async {
+  ///
+  /// [diverId] limits the result to media on that diver's dives, so a
+  /// secondary diver never sees another profile's photos. Null leaves the
+  /// query unscoped, matching every other diver-scoped repository.
+  Future<List<domain.MediaItem>> getRecentMedia({
+    int limit = 12,
+    String? diverId,
+  }) async {
     try {
       final browsableTypes = [
         mediaTypeToDbString(domain.MediaType.photo),
         mediaTypeToDbString(domain.MediaType.video),
       ];
+      Expression<bool> where =
+          _db.media.fileType.isIn(browsableTypes) &
+          _db.media.diveId.isNotNull();
+      if (diverId != null) {
+        where = where & _db.dives.diverId.equals(diverId);
+      }
       final query =
           _db.select(_db.media).join([
               leftOuterJoin(
                 _db.mediaEnrichment,
                 _db.mediaEnrichment.mediaId.equalsExp(_db.media.id),
               ),
+              if (diverId != null)
+                innerJoin(_db.dives, _db.dives.id.equalsExp(_db.media.diveId)),
             ])
-            ..where(
-              _db.media.fileType.isIn(browsableTypes) &
-                  _db.media.diveId.isNotNull(),
-            )
+            ..where(where)
             ..orderBy([OrderingTerm.desc(_db.media.takenAt)])
             ..limit(limit);
 
@@ -241,16 +254,31 @@ class MediaRepository {
   }
 
   /// Returns the device ID to record on a new MediaItem, or null if the
-  /// source type is device-portable (gallery, URL, manifest, signature).
+  /// source type is device-portable (URL, manifest, signature, store).
+  ///
+  /// Gallery rows record this device: its stored asset id loads only here,
+  /// and the gallery resolver lets only the origin device call a failed
+  /// search notFound (media sync program spec 6.1). Dropping this stamp
+  /// would leave every new gallery row unorphanable, on every device.
   ///
   /// Caller-provided originDeviceId is always preserved.
   Future<String?> _effectiveOriginDeviceId(domain.MediaItem item) async {
     if (item.originDeviceId != null) return item.originDeviceId;
-    switch (item.sourceType) {
+    return _originFor(item.sourceType);
+  }
+
+  /// This device's id for a source only this device can resolve, else null.
+  /// Every write that points a row at such a source (a new link, a repair
+  /// relink) records it, so the origin always names the device that holds
+  /// the address.
+  Future<String?> _originFor(MediaSourceType sourceType) async {
+    switch (sourceType) {
       case MediaSourceType.localFile:
       case MediaSourceType.serviceConnector:
-        return _syncRepository.getDeviceId();
+      // Only the linking device holds the stored asset id, and only its
+      // failed search may call the photo gone (media sync program spec 6.1).
       case MediaSourceType.platformGallery:
+        return _syncRepository.getDeviceId();
       case MediaSourceType.networkUrl:
       case MediaSourceType.manifestEntry:
       case MediaSourceType.signature:
@@ -307,6 +335,7 @@ class MediaRepository {
               connectorAccountId: Value(item.connectorAccountId),
               remoteAssetId: Value(item.remoteAssetId),
               originDeviceId: Value(effectiveDeviceId),
+              cloudAssetId: Value(item.cloudAssetId),
               contentHash: Value(item.contentHash),
               contentSizeBytes: Value(item.contentSizeBytes),
               remoteUploadedAt: Value(
@@ -331,6 +360,8 @@ class MediaRepository {
         entityType: 'media',
         recordId: id,
         localUpdatedAt: now.millisecondsSinceEpoch,
+        // A new row's facts start under its own first clock (spec 5.1).
+        alsoStamp: SyncFactGroups.of('media'),
       );
       SyncEventBus.notifyLocalChange();
 
@@ -386,70 +417,93 @@ class MediaRepository {
     }
   }
 
-  /// Update existing media
+  /// Writes [item]'s user fields over the stored row and takes the row
+  /// clock, which is what a user edit is.
+  ///
+  /// Writes no fact column at all: not the upload stamps, not the
+  /// verification flag or date. Every caller patches a row it read earlier,
+  /// so a stamp or a verdict landing in between would be rolled back by
+  /// this write, and the rollback would then travel under a fresh group
+  /// clock and beat the observation it erased (media sync program spec
+  /// 5.1). Those columns belong to the narrow writers:
+  /// [stampContentIdentity], [stampRemoteUploaded] and friends for the
+  /// upload group, [markOrphaned], [markAsVerified] and [stampVerification]
+  /// for the verification group.
   Future<void> updateMedia(domain.MediaItem item) async {
     try {
       _log.info('Updating media: ${item.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
+      // One transaction over the write and the stamp, so a crash cannot
+      // leave the row written and unpublished. It reads nothing: the fact
+      // columns this used to diff are simply not written here any more,
+      // which is what actually stops a stale caller snapshot rolling back a
+      // concurrent stamp (media sync program spec 5.1).
+      await _db.transaction(() async {
+        await (_db.update(_db.media)..where((t) => t.id.equals(item.id))).write(
+          MediaCompanion(
+            diveId: Value(item.diveId),
+            siteId: Value(item.siteId),
+            equipmentId: Value(item.equipmentId),
+            filePath: Value(item.filePath ?? ''),
+            fileType: Value(mediaTypeToDbString(item.mediaType)),
+            platformAssetId: Value(item.platformAssetId),
+            originalFilename: Value(item.originalFilename),
+            latitude: Value(item.latitude),
+            longitude: Value(item.longitude),
+            takenAt: Value(item.takenAt.millisecondsSinceEpoch),
+            width: Value(item.width),
+            height: Value(item.height),
+            durationSeconds: Value(item.durationSeconds),
+            caption: Value(item.caption),
+            isFavorite: Value(item.isFavorite),
+            thumbnailGeneratedAt: Value(
+              item.thumbnailGeneratedAt?.millisecondsSinceEpoch,
+            ),
+            // The verification facts are absent for the same reason as the
+            // upload facts below: this is a whole-row write from a snapshot
+            // the caller read earlier, so a verifier that ran in between
+            // would be rolled back, and the rollback would then carry a
+            // fresh verification clock and beat a peer's newer observation.
+            // A caller that means to change them uses markOrphaned,
+            // markAsVerified or stampVerification.
+            signerId: Value(item.signerId),
+            signerName: Value(item.signerName),
+            imageData: Value(item.imageData),
+            sourceType: Value(item.sourceType.name),
+            localPath: Value(item.localPath),
+            bookmarkRef: Value(item.bookmarkRef),
+            url: Value(item.url),
+            subscriptionId: Value(item.subscriptionId),
+            entryKey: Value(item.entryKey),
+            connectorAccountId: Value(item.connectorAccountId),
+            remoteAssetId: Value(item.remoteAssetId),
+            originDeviceId: Value(item.originDeviceId),
+            // The upload facts are absent on purpose. They are written only
+            // by the narrow stampers the pipeline and the worker call, and
+            // every caller here patches a row it read earlier: a stamp
+            // landing in between is present in the row but absent from the
+            // caller's snapshot, so writing them back would roll the upload
+            // live back and, worse, hand the rollback a fresh upload clock
+            // that beats the stamp it erased (media sync program spec 5.1).
+            // A caller that really means to change them uses
+            // stampContentIdentity, stampRemoteUploaded and friends, or
+            // convertToCloudBacked. The cloud asset id is absent for the
+            // same reason: the gallery cloud id backfill stamps it narrowly.
+            retainInLibrary: Value(item.retainInLibrary),
+            manualElapsedSeconds: Value(item.manualElapsedSeconds),
+            updatedAt: Value(now),
+          ),
+        );
 
-      await (_db.update(_db.media)..where((t) => t.id.equals(item.id))).write(
-        MediaCompanion(
-          diveId: Value(item.diveId),
-          siteId: Value(item.siteId),
-          equipmentId: Value(item.equipmentId),
-          filePath: Value(item.filePath ?? ''),
-          fileType: Value(mediaTypeToDbString(item.mediaType)),
-          platformAssetId: Value(item.platformAssetId),
-          originalFilename: Value(item.originalFilename),
-          latitude: Value(item.latitude),
-          longitude: Value(item.longitude),
-          takenAt: Value(item.takenAt.millisecondsSinceEpoch),
-          width: Value(item.width),
-          height: Value(item.height),
-          durationSeconds: Value(item.durationSeconds),
-          caption: Value(item.caption),
-          isFavorite: Value(item.isFavorite),
-          thumbnailGeneratedAt: Value(
-            item.thumbnailGeneratedAt?.millisecondsSinceEpoch,
-          ),
-          lastVerifiedAt: Value(item.lastVerifiedAt?.millisecondsSinceEpoch),
-          isOrphaned: Value(item.isOrphaned),
-          signerId: Value(item.signerId),
-          signerName: Value(item.signerName),
-          imageData: Value(item.imageData),
-          sourceType: Value(item.sourceType.name),
-          localPath: Value(item.localPath),
-          bookmarkRef: Value(item.bookmarkRef),
-          url: Value(item.url),
-          subscriptionId: Value(item.subscriptionId),
-          entryKey: Value(item.entryKey),
-          connectorAccountId: Value(item.connectorAccountId),
-          remoteAssetId: Value(item.remoteAssetId),
-          originDeviceId: Value(item.originDeviceId),
-          contentHash: Value(item.contentHash),
-          contentSizeBytes: Value(item.contentSizeBytes),
-          remoteUploadedAt: Value(
-            item.remoteUploadedAt?.millisecondsSinceEpoch,
-          ),
-          remoteThumbUploadedAt: Value(
-            item.remoteThumbUploadedAt?.millisecondsSinceEpoch,
-          ),
-          compressedLevel: Value(item.compressedLevel),
-          compressedSizeBytes: Value(item.compressedSizeBytes),
-          remoteCompressedUploadedAt: Value(
-            item.remoteCompressedUploadedAt?.millisecondsSinceEpoch,
-          ),
-          retainInLibrary: Value(item.retainInLibrary),
-          manualElapsedSeconds: Value(item.manualElapsedSeconds),
-          updatedAt: Value(now),
-        ),
-      );
-
-      await _syncRepository.markRecordPending(
-        entityType: 'media',
-        recordId: item.id,
-        localUpdatedAt: now,
-      );
+        // The row clock alone. This writer touches no fact column now, so
+        // every call is a user edit and no group clock is owed; a caller
+        // that means to change a fact uses the narrow writer for it.
+        await _syncRepository.markRecordPending(
+          entityType: 'media',
+          recordId: item.id,
+          localUpdatedAt: now,
+        );
+      });
       SyncEventBus.notifyLocalChange();
       _log.info('Updated media: ${item.id}');
     } catch (e, stackTrace) {
@@ -485,16 +539,36 @@ class MediaRepository {
 
   /// Delete multiple media items in a single transaction.
   /// Logs each deletion for sync tracking.
-  Future<void> deleteMultipleMedia(List<String> ids) async {
+  ///
+  /// [keepIf], when given, is asked about each row as it stands inside the
+  /// same transaction, and a row it keeps is neither deleted nor
+  /// tombstoned. That makes a caller's "is this row still doomed?" check
+  /// atomic with the delete: one made earlier, outside the transaction, can
+  /// be overtaken by a relink before the delete runs.
+  Future<void> deleteMultipleMedia(
+    List<String> ids, {
+    bool Function(MediaData row)? keepIf,
+  }) async {
     if (ids.isEmpty) return;
     try {
       _log.info('Deleting ${ids.length} media items');
       await _db.transaction(() async {
+        var targets = ids;
+        if (keepIf != null) {
+          final rows = await (_db.select(
+            _db.media,
+          )..where((t) => t.id.isIn(ids))).get();
+          targets = [
+            for (final row in rows)
+              if (!keepIf(row)) row.id,
+          ];
+          if (targets.isEmpty) return;
+        }
         // Before the parents: the enrichment rows would otherwise vanish on
         // the FK cascade, which removes them without logging anything. See
         // [_dropEnrichmentRows] for why the tombstone matters.
-        await _dropEnrichmentRows(ids);
-        for (final id in ids) {
+        await _dropEnrichmentRows(targets);
+        for (final id in targets) {
           await (_db.delete(_db.media)..where((t) => t.id.equals(id))).go();
           await _syncRepository.logDeletion(entityType: 'media', recordId: id);
         }
@@ -517,15 +591,35 @@ class MediaRepository {
       _log.info('Marking media as orphaned: $id');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
-        MediaCompanion(isOrphaned: const Value(true), updatedAt: Value(now)),
-      );
+      // Hoisted: the write below is guarded on the flag actually
+      // moving, and SubscriptionPoller reaches these for every manifest
+      // entry on every poll, so a row that was not written must not
+      // announce a local change and wake the sync check for nothing.
+      var wrote = false;
+      // One transaction: the flag and the clock that orders it must
+      // not be able to come apart (media sync program spec 5.1).
+      await _db.transaction(() async {
+        final rowsWritten =
+            await (_db.update(_db.media)
+                  ..where((t) => t.id.equals(id) & t.isOrphaned.equals(false)))
+                .write(
+                  MediaCompanion(
+                    isOrphaned: const Value(true),
+                    updatedAt: Value(now),
+                  ),
+                );
+        if (rowsWritten == 0) return;
 
-      await _syncRepository.markRecordPending(
-        entityType: 'media',
-        recordId: id,
-        localUpdatedAt: now,
-      );
+        if (rowsWritten == 0) return;
+        wrote = true;
+        await _syncRepository.markFactsPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+          group: SyncFactGroups.mediaVerification,
+        );
+      });
+      if (!wrote) return;
       SyncEventBus.notifyLocalChange();
       _log.info('Marked media as orphaned: $id');
     } catch (e, stackTrace) {
@@ -544,19 +638,45 @@ class MediaRepository {
       _log.info('Marking media as verified: $id');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
-        MediaCompanion(
-          isOrphaned: const Value(false),
-          lastVerifiedAt: Value(now),
-          updatedAt: Value(now),
-        ),
-      );
+      // Hoisted: an early return below leaves the transaction, not the
+      // method, and a row that was not written must not announce a
+      // local change. SubscriptionPoller calls markOrphaned for every
+      // entry on every poll.
+      var wrote = false;
+      // One transaction: the flag and the clock that orders it must
+      // not be able to come apart (media sync program spec 5.1).
+      await _db.transaction(() async {
+        final flagMoved =
+            await (_db.update(
+              _db.media,
+            )..where((t) => t.id.equals(id) & t.isOrphaned.equals(true))).write(
+              MediaCompanion(
+                isOrphaned: const Value(false),
+                lastVerifiedAt: Value(now),
+                updatedAt: Value(now),
+              ),
+            ) >
+            0;
+        if (!flagMoved) {
+          // The check date is a local observation (spec 5.2), so nothing
+          // here becomes publishable and the sync check is left asleep.
+          // The media queries watch the table and see the write itself.
+          await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
+            MediaCompanion(lastVerifiedAt: Value(now), updatedAt: Value(now)),
+          );
+          return;
+        }
 
-      await _syncRepository.markRecordPending(
-        entityType: 'media',
-        recordId: id,
-        localUpdatedAt: now,
-      );
+        // Reached only when the flag moved and is being published.
+        wrote = true;
+        await _syncRepository.markFactsPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+          group: SyncFactGroups.mediaVerification,
+        );
+      });
+      if (!wrote) return;
       SyncEventBus.notifyLocalChange();
       _log.info('Marked media as verified: $id');
     } catch (e, stackTrace) {
@@ -685,20 +805,67 @@ class MediaRepository {
   /// gallery-deletion handler), this accepts an explicit boolean so the
   /// [SubscriptionPoller] can flip rows back to non-orphaned when a
   /// previously-removed manifest entry reappears.
-  Future<void> markOrphaned(String id, bool isOrphaned) async {
+  /// [ifLastVerifiedAt] makes this a compare-and-set on the verification
+  /// stamp: the row is written only while it still carries the date the
+  /// caller saw. Pass it when deciding from a snapshot a verifier could
+  /// have overtaken, because the flag guard below cannot see that. A
+  /// verifier that RE-CONFIRMS the flag leaves it exactly where the
+  /// snapshot found it and moves only the date, so without this the clear
+  /// would reverse a fresher, better-informed verdict. Absent means the
+  /// caller is the only writer and no comparison is wanted.
+  Future<void> markOrphaned(
+    String id,
+    bool isOrphaned, {
+    Value<DateTime?> ifLastVerifiedAt = const Value.absent(),
+  }) async {
     try {
       _log.info('Setting isOrphaned=$isOrphaned for media: $id');
       final now = DateTime.now().millisecondsSinceEpoch;
+      final expected = ifLastVerifiedAt.present
+          ? ifLastVerifiedAt.value?.millisecondsSinceEpoch
+          : null;
 
-      await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
-        MediaCompanion(isOrphaned: Value(isOrphaned), updatedAt: Value(now)),
-      );
+      // Hoisted: an early return below leaves the transaction, not the
+      // method, and a row that was not written must not announce a
+      // local change. SubscriptionPoller calls markOrphaned for every
+      // entry on every poll.
+      var wrote = false;
+      // One transaction: the flag and the clock that orders it must
+      // not be able to come apart (media sync program spec 5.1).
+      await _db.transaction(() async {
+        final rowsWritten =
+            await (_db.update(_db.media)..where((t) {
+                  // Matching on the OPPOSITE flag makes this a no-op when the
+                  // row already agrees. SubscriptionPoller calls this for
+                  // every entry on every poll, so without the guard a healthy
+                  // library would take a fresh verification clock each time
+                  // and re-export its snapshot over a peer's newer
+                  // observation (media sync program spec 5.1).
+                  final match =
+                      t.id.equals(id) & t.isOrphaned.equals(!isOrphaned);
+                  if (!ifLastVerifiedAt.present) return match;
+                  return match &
+                      (expected == null
+                          ? t.lastVerifiedAt.isNull()
+                          : t.lastVerifiedAt.equals(expected));
+                }))
+                .write(
+                  MediaCompanion(
+                    isOrphaned: Value(isOrphaned),
+                    updatedAt: Value(now),
+                  ),
+                );
+        if (rowsWritten == 0) return;
+        wrote = true;
 
-      await _syncRepository.markRecordPending(
-        entityType: 'media',
-        recordId: id,
-        localUpdatedAt: now,
-      );
+        await _syncRepository.markFactsPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+          group: SyncFactGroups.mediaVerification,
+        );
+      });
+      if (!wrote) return;
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
@@ -743,27 +910,39 @@ class MediaRepository {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      final rowsWritten =
-          await (_db.update(_db.media)..where(
-                // Matching on the OPPOSITE flag is what makes this a no-op
-                // when the row already agrees.
-                (t) => t.id.equals(id) & t.isOrphaned.equals(!isOrphaned),
-              ))
-              .write(
-                MediaCompanion(
-                  isOrphaned: Value(isOrphaned),
-                  lastVerifiedAt: Value(verifiedAt.millisecondsSinceEpoch),
-                  updatedAt: Value(now),
-                ),
-              );
-      if (rowsWritten == 0) return;
-      _log.info('Marked media verified: $id (isOrphaned=$isOrphaned)');
+      // Hoisted: an early return below leaves the transaction, not the
+      // method, and a row that was not written must not announce a
+      // local change. SubscriptionPoller calls markOrphaned for every
+      // entry on every poll.
+      var wrote = false;
+      // One transaction: the flag and the clock that orders it must
+      // not be able to come apart (media sync program spec 5.1).
+      await _db.transaction(() async {
+        final rowsWritten =
+            await (_db.update(_db.media)..where(
+                  // Matching on the OPPOSITE flag is what makes this a no-op
+                  // when the row already agrees.
+                  (t) => t.id.equals(id) & t.isOrphaned.equals(!isOrphaned),
+                ))
+                .write(
+                  MediaCompanion(
+                    isOrphaned: Value(isOrphaned),
+                    lastVerifiedAt: Value(verifiedAt.millisecondsSinceEpoch),
+                    updatedAt: Value(now),
+                  ),
+                );
+        if (rowsWritten == 0) return;
+        wrote = true;
+        _log.info('Marked media verified: $id (isOrphaned=$isOrphaned)');
 
-      await _syncRepository.markRecordPending(
-        entityType: 'media',
-        recordId: id,
-        localUpdatedAt: now,
-      );
+        await _syncRepository.markFactsPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+          group: SyncFactGroups.mediaVerification,
+        );
+      });
+      if (!wrote) return;
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
@@ -785,10 +964,17 @@ class MediaRepository {
   /// write from the snapshot ([updateMedia]) would roll that stamp back to
   /// null, and the pending mark would then sync the rollback fleet-wide.
   ///
-  /// Unlike [markVerified] this always writes: the user asked for a check
-  /// and the date of that check is the answer, whether or not the flag moved.
-  /// Like it, a row that is gone by the time the check lands (deleted during
-  /// a Check all media pass) gets no pending record pointing at nothing.
+  /// Always records the date, but publishes only when the flag moves: the
+  /// date is this device's own observation of when it last looked, and it
+  /// stays local until something stamps the verification group, which only
+  /// a real flag change does (spec 5.2). A peer can therefore show an older
+  /// "last checked" indefinitely for a row whose every check confirms what
+  /// it already said. That is the intended trade: the alternative is a
+  /// library-wide publish every time a user presses Check all. The media
+  /// health report shows this device's own value, which is the one a
+  /// support thread needs. Like [markVerified], a row that is
+  /// gone by the time the check lands (deleted during a Check all media
+  /// pass) gets no pending record pointing at nothing.
   Future<void> stampVerification(
     String id, {
     required DateTime verifiedAt,
@@ -796,22 +982,61 @@ class MediaRepository {
   }) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      final rowsWritten =
+      // Two writes, because they mean different things (media sync program
+      // spec 5.2). The flag is a synced fact and is guarded on actually
+      // moving: a Check all pass over a healthy library would otherwise
+      // publish every row it confirmed. The date is this device's own
+      // observation of when it last looked, so it is recorded without a
+      // clock. It does not travel on the row's next edit either: that edit
+      // moves the row clock, and the merge compares each fact group on its
+      // own clock, so a peer with an equal or newer verification clock keeps
+      // its own date. Local until the flag moves, by design.
+      // Hoisted: an early return below leaves the transaction, not the
+      // method, and a row that was not written must not announce a
+      // local change. SubscriptionPoller calls markOrphaned for every
+      // entry on every poll.
+      var wrote = false;
+      // One transaction: the flag and the clock that orders it must
+      // not be able to come apart (media sync program spec 5.1).
+      await _db.transaction(() async {
+        var flagMoved = false;
+        if (isOrphaned != null) {
+          flagMoved =
+              await (_db.update(_db.media)..where(
+                    (t) => t.id.equals(id) & t.isOrphaned.equals(!isOrphaned),
+                  ))
+                  .write(
+                    MediaCompanion(
+                      isOrphaned: Value(isOrphaned),
+                      lastVerifiedAt: Value(verifiedAt.millisecondsSinceEpoch),
+                      updatedAt: Value(now),
+                    ),
+                  ) >
+              0;
+        }
+        if (!flagMoved) {
+          // The check date is a local observation (spec 5.2), so nothing
+          // here becomes publishable and the sync check is left asleep.
+          // A Check all pass reaches this for every healthy row; waking it
+          // each time would schedule a network sync with nothing to send.
           await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
             MediaCompanion(
-              isOrphaned: isOrphaned == null
-                  ? const Value.absent()
-                  : Value(isOrphaned),
               lastVerifiedAt: Value(verifiedAt.millisecondsSinceEpoch),
               updatedAt: Value(now),
             ),
           );
-      if (rowsWritten == 0) return;
-      await _syncRepository.markRecordPending(
-        entityType: 'media',
-        recordId: id,
-        localUpdatedAt: now,
-      );
+          return;
+        }
+        // Reached only when the flag moved and is being published.
+        wrote = true;
+        await _syncRepository.markFactsPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+          group: SyncFactGroups.mediaVerification,
+        );
+      });
+      if (!wrote) return;
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
@@ -877,23 +1102,178 @@ class MediaRepository {
     return [for (final row in rows) row.read(id)!];
   }
 
-  /// Marks [ids] pending for sync without changing a column, so the next
-  /// changeset carries the rows exactly as they are. Returns how many.
+  /// Gallery rows that record no origin device, with the asset id each was
+  /// linked under: the rows the gallery origin backfill checks against this
+  /// device's library (media sync program spec 6.1).
+  Future<List<({String id, String platformAssetId})>>
+  getGalleryMediaWithoutOrigin() async {
+    final rows =
+        await (_db.select(_db.media)..where(
+              (t) =>
+                  t.sourceType.equals(MediaSourceType.platformGallery.name) &
+                  t.originDeviceId.isNull() &
+                  t.platformAssetId.isNotNull() &
+                  t.platformAssetId.equals('').not(),
+            ))
+            .get();
+    return [
+      for (final r in rows) (id: r.id, platformAssetId: r.platformAssetId!),
+    ];
+  }
+
+  /// Records [deviceId] as the origin of each [probed] row that is still
+  /// exactly what was probed: a gallery row, under the same asset id, with
+  /// no origin yet. Marks each row it stamps pending so peers learn it.
+  /// Returns how many it stamped.
   ///
-  /// One transaction: markRecordPending's own per-row transaction nests as a
+  /// The origin belongs to no fact group, so this bumps the row clock and
+  /// republishes the whole row; the gallery origin backfill runs it only
+  /// right after a sync for that reason. The rows are probed before this
+  /// runs, and the probe loop can be long: the null guard keeps an origin a
+  /// sync delivered meanwhile, and the source and asset guards skip a row
+  /// the user converted or relinked meanwhile, which the probe no longer
+  /// speaks for.
+  Future<int> stampOriginDevice(
+    List<({String id, String platformAssetId})> probed,
+    String deviceId,
+  ) async {
+    if (probed.isEmpty) return 0;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    var stamped = 0;
+    await _db.transaction(() async {
+      for (final row in probed) {
+        final id = row.id;
+        final written =
+            await (_db.update(_db.media)..where(
+                  (t) =>
+                      t.id.equals(id) &
+                      t.originDeviceId.isNull() &
+                      t.sourceType.equals(
+                        MediaSourceType.platformGallery.name,
+                      ) &
+                      t.platformAssetId.equals(row.platformAssetId),
+                ))
+                .write(
+                  MediaCompanion(
+                    originDeviceId: Value(deviceId),
+                    updatedAt: Value(now),
+                  ),
+                );
+        if (written == 0) continue;
+        stamped++;
+        await _syncRepository.markRecordPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+    });
+    if (stamped > 0) SyncEventBus.notifyLocalChange();
+    return stamped;
+  }
+
+  /// This device's own gallery rows with no cloud id yet (null, or empty
+  /// after a relink that found none), with the asset id each was linked
+  /// under: the rows the gallery cloud id backfill looks up (spec 6.2).
+  Future<List<({String id, String platformAssetId})>>
+  getOwnGalleryMediaWithoutCloudId(String deviceId) async {
+    final rows =
+        await (_db.select(_db.media)..where(
+              (t) =>
+                  t.sourceType.equals(MediaSourceType.platformGallery.name) &
+                  t.originDeviceId.equals(deviceId) &
+                  t.platformAssetId.isNotNull() &
+                  t.platformAssetId.equals('').not() &
+                  (t.cloudAssetId.isNull() | t.cloudAssetId.equals('')),
+            ))
+            .get();
+    return [
+      for (final r in rows) (id: r.id, platformAssetId: r.platformAssetId!),
+    ];
+  }
+
+  /// Records each of [found]'s cloud id on its row, if the row is still
+  /// exactly what was looked up: a gallery row, under the same asset id,
+  /// with no cloud id yet. Marks each row it stamps pending. Returns the
+  /// ids it stamped.
+  ///
+  /// The cloud id belongs to no fact group, so this bumps the row clock and
+  /// republishes the whole row, which is why the backfill runs only right
+  /// after a sync (as [stampOriginDevice] does). The guards keep a cloud id
+  /// a sync delivered meanwhile, and skip a row relinked meanwhile.
+  Future<List<String>> stampCloudAssetIds(
+    List<({String id, String platformAssetId, String cloudAssetId})> found,
+  ) async {
+    if (found.isEmpty) return const [];
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final stamped = <String>[];
+    await _db.transaction(() async {
+      for (final row in found) {
+        final written =
+            await (_db.update(_db.media)..where(
+                  (t) =>
+                      t.id.equals(row.id) &
+                      t.sourceType.equals(
+                        MediaSourceType.platformGallery.name,
+                      ) &
+                      t.platformAssetId.equals(row.platformAssetId) &
+                      (t.cloudAssetId.isNull() | t.cloudAssetId.equals('')),
+                ))
+                .write(
+                  MediaCompanion(
+                    cloudAssetId: Value(row.cloudAssetId),
+                    updatedAt: Value(now),
+                  ),
+                );
+        if (written == 0) continue;
+        stamped.add(row.id);
+        await _syncRepository.markRecordPending(
+          entityType: 'media',
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+      }
+    });
+    if (stamped.isNotEmpty) SyncEventBus.notifyLocalChange();
+    return stamped;
+  }
+
+  /// Marks [ids] pending for sync without changing a column, so the next
+  /// changeset carries the rows' facts exactly as they are. Returns how many.
+  ///
+  /// Stamps fact clocks, never the row clock: the point is to re-send facts,
+  /// and a row-clock bump would also make this device's copy of every user
+  /// field win on peers (spec 5.1).
+  ///
+  /// [groups] defaults to the upload group alone, because a caller repairing
+  /// lost upload stamps has nothing to say about verification. Handing a
+  /// stale `isOrphaned` or `lastVerifiedAt` a brand-new clock would beat a
+  /// peer's newer observation of the same file. A caller that really means
+  /// to re-send verification facts asks for the group by name.
+  ///
+  /// One transaction: markFactsPending's own per-row transaction nests as a
   /// savepoint, so a library with thousands of stamped rows commits once.
-  Future<int> republishForSync(Iterable<String> ids) async {
+  Future<int> republishForSync(
+    Iterable<String> ids, {
+    List<SyncFactGroup> groups = const [SyncFactGroups.mediaUpload],
+  }) async {
     final list = ids.toList();
-    if (list.isEmpty) return 0;
+    if (list.isEmpty || groups.isEmpty) return 0;
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
       await _db.transaction(() async {
         for (final id in list) {
-          await _syncRepository.markRecordPending(
-            entityType: 'media',
-            recordId: id,
-            localUpdatedAt: now,
-          );
+          // Re-sends the facts without claiming a user edit: moving the
+          // row clock would let this device's copy of every user field
+          // win on peers (media sync program spec 5.1).
+          for (final group in groups) {
+            await _syncRepository.markFactsPending(
+              entityType: 'media',
+              recordId: id,
+              localUpdatedAt: now,
+              group: group,
+            );
+          }
         }
       });
       SyncEventBus.notifyLocalChange();
@@ -1524,18 +1904,26 @@ class MediaRepository {
     required int sizeBytes,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
-      MediaCompanion(
-        contentHash: Value(contentHash),
-        contentSizeBytes: Value(sizeBytes),
-        updatedAt: Value(now),
-      ),
-    );
-    await _syncRepository.markRecordPending(
-      entityType: 'media',
-      recordId: mediaId,
-      localUpdatedAt: now,
-    );
+    // One transaction: a fact column and the clock that orders it must not
+    // be able to come apart. Written separately, a crash between them left
+    // the new value under the PREVIOUS group clock and with no pending
+    // record, so a later row edit exported it under that stale clock and a
+    // peer's older fact beat it (media sync program spec 5.1).
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+        MediaCompanion(
+          contentHash: Value(contentHash),
+          contentSizeBytes: Value(sizeBytes),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markFactsPending(
+        entityType: 'media',
+        recordId: mediaId,
+        localUpdatedAt: now,
+        group: SyncFactGroups.mediaUpload,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 
@@ -1546,17 +1934,25 @@ class MediaRepository {
     required DateTime uploadedAt,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
-      MediaCompanion(
-        remoteUploadedAt: Value(uploadedAt.millisecondsSinceEpoch),
-        updatedAt: Value(now),
-      ),
-    );
-    await _syncRepository.markRecordPending(
-      entityType: 'media',
-      recordId: mediaId,
-      localUpdatedAt: now,
-    );
+    // One transaction: a fact column and the clock that orders it must not
+    // be able to come apart. Written separately, a crash between them left
+    // the new value under the PREVIOUS group clock and with no pending
+    // record, so a later row edit exported it under that stale clock and a
+    // peer's older fact beat it (media sync program spec 5.1).
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+        MediaCompanion(
+          remoteUploadedAt: Value(uploadedAt.millisecondsSinceEpoch),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markFactsPending(
+        entityType: 'media',
+        recordId: mediaId,
+        localUpdatedAt: now,
+        group: SyncFactGroups.mediaUpload,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 
@@ -1606,13 +2002,31 @@ class MediaRepository {
   /// Explicitly unlinks surviving media from deleted dives, with the HLC
   /// stamp the old silent FK SET NULL never produced - so the unlink
   /// propagates to other devices instead of diverging.
-  Future<void> unlinkMediaFromDeletedDives(List<String> mediaIds) async {
-    if (mediaIds.isEmpty) return;
+  /// [diveIds] are the dives being deleted, and every write here is scoped
+  /// to them. [partitionMediaForDiveDeletion] chose [mediaIds] before the
+  /// caller did its other deletion work, so a row can be relinked to a
+  /// surviving dive in between; keyed on the media id alone this would
+  /// clear that new link and delete the enrichment the row gained with it.
+  Future<void> unlinkMediaFromDeletedDives(
+    List<String> mediaIds,
+    List<String> diveIds,
+  ) async {
+    if (mediaIds.isEmpty || diveIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db.transaction(() async {
-      await (_db.update(_db.media)..where((t) => t.id.isIn(mediaIds))).write(
-        MediaCompanion(diveId: const Value(null), updatedAt: Value(now)),
-      );
+      // The enrichment is dive-scoped (depth and elapsed time on THAT dive's
+      // profile) and its FK is NOT NULL with a cascade, so the dive rows
+      // about to be deleted would take it with them silently. Drop it here
+      // instead, with tombstones, or a peer re-adds it on its next publish
+      // (media sync program spec 5.3).
+      await _dropEnrichmentForDives(mediaIds, diveIds);
+      final unlinked =
+          await (_db.update(
+            _db.media,
+          )..where((t) => t.id.isIn(mediaIds) & t.diveId.isIn(diveIds))).write(
+            MediaCompanion(diveId: const Value(null), updatedAt: Value(now)),
+          );
+      if (unlinked == 0) return;
       for (final id in mediaIds) {
         await _syncRepository.markRecordPending(
           entityType: 'media',
@@ -1725,8 +2139,17 @@ class MediaRepository {
   Future<void> applyRepairWrites(List<RepairWrite> writes) async {
     if (writes.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
+    // The origin follows the new address, as at link time: a gallery asset
+    // or a file resolves only here, so this device becomes the origin (kept
+    // foreign or missing, the device that relinked it could never call it
+    // gone, spec 6.1); a shared source records none.
+    final origins = {
+      for (final type in {for (final w in writes) w.newSourceType})
+        type: await _originFor(type),
+    };
     await _db.transaction(() async {
       for (final write in writes) {
+        final origin = origins[write.newSourceType];
         // sourceType is the resolver dispatch key, so a repair must always
         // restate it: relinking a dead gallery row to a file on disk while
         // leaving sourceType alone would keep routing the row through
@@ -1747,7 +2170,17 @@ class MediaRepository {
             // Null for a file repair: the old asset id addresses an asset
             // that no longer exists on this device.
             platformAssetId: Value(write.newPlatformAssetId),
+            // A relink to the gallery replaces the cloud id with the new
+            // asset's ('' when it has none); any other repair leaves it,
+            // since only a gallery row is ever resolved by it.
+            cloudAssetId: toGallery
+                ? Value(write.newCloudAssetId ?? '')
+                : const Value.absent(),
             sourceType: Value(write.newSourceType.name),
+            // Written even when null: a shared source records no origin at
+            // link time, and the old one described an address this row no
+            // longer has.
+            originDeviceId: Value(origin),
             isOrphaned: const Value(false),
             lastVerifiedAt: Value(now),
             updatedAt: Value(now),
@@ -1757,6 +2190,8 @@ class MediaRepository {
           entityType: 'media',
           recordId: write.mediaId,
           localUpdatedAt: now,
+          // The pointer edit restates the verification facts too.
+          alsoStamp: const [SyncFactGroups.mediaVerification],
         );
       }
     });
@@ -1796,6 +2231,8 @@ class MediaRepository {
           entityType: 'media',
           recordId: id,
           localUpdatedAt: now,
+          // The pointer edit restates the verification facts too.
+          alsoStamp: const [SyncFactGroups.mediaVerification],
         );
       }
     });
@@ -1821,6 +2258,29 @@ class MediaRepository {
   /// on foreign keys being enabled at all.
   ///
   /// Caller supplies the transaction; this does no committing of its own.
+  /// As [_dropEnrichmentRows], but only the rows belonging to [diveIds].
+  ///
+  /// The dive-deletion path must not touch enrichment a row gained on
+  /// ANOTHER dive: the partition that chose these ids ran before this call,
+  /// and a row can be relinked in between.
+  Future<void> _dropEnrichmentForDives(
+    List<String> mediaIds,
+    List<String> diveIds,
+  ) async {
+    final stale = await (_db.select(
+      _db.mediaEnrichment,
+    )..where((t) => t.mediaId.isIn(mediaIds) & t.diveId.isIn(diveIds))).get();
+    for (final row in stale) {
+      await (_db.delete(
+        _db.mediaEnrichment,
+      )..where((t) => t.id.equals(row.id))).go();
+      await _syncRepository.logDeletion(
+        entityType: 'mediaEnrichment',
+        recordId: row.id,
+      );
+    }
+  }
+
   Future<void> _dropEnrichmentRows(List<String> mediaIds) async {
     final stale = await (_db.select(
       _db.mediaEnrichment,
@@ -2130,6 +2590,19 @@ class MediaRepository {
     return labels;
   }
 
+  /// The row's sync clock, or null for an unknown id or a row never marked
+  /// pending. A narrow read for diagnostics: the domain entity does not carry
+  /// the column, and a stale-merge investigation needs it.
+  Future<String?> getSyncHlc(String id) async {
+    final hlc = _db.media.hlc;
+    final row =
+        await (_db.selectOnly(_db.media)
+              ..addColumns([hlc])
+              ..where(_db.media.id.equals(id)))
+            .getSingleOrNull();
+    return row?.read(hlc);
+  }
+
   static String? _firstNonBlank(String? first, String? second) {
     if (first != null && first.isNotEmpty) return first;
     if (second != null && second.isNotEmpty) return second;
@@ -2140,17 +2613,25 @@ class MediaRepository {
   /// [clearRemoteUploaded].
   Future<void> clearRemoteThumbUploaded(String mediaId) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
-      MediaCompanion(
-        remoteThumbUploadedAt: const Value<int?>(null),
-        updatedAt: Value(now),
-      ),
-    );
-    await _syncRepository.markRecordPending(
-      entityType: 'media',
-      recordId: mediaId,
-      localUpdatedAt: now,
-    );
+    // One transaction: a fact column and the clock that orders it must not
+    // be able to come apart. Written separately, a crash between them left
+    // the new value under the PREVIOUS group clock and with no pending
+    // record, so a later row edit exported it under that stale clock and a
+    // peer's older fact beat it (media sync program spec 5.1).
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+        MediaCompanion(
+          remoteThumbUploadedAt: const Value<int?>(null),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markFactsPending(
+        entityType: 'media',
+        recordId: mediaId,
+        localUpdatedAt: now,
+        group: SyncFactGroups.mediaUpload,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 
@@ -2215,17 +2696,25 @@ class MediaRepository {
     required DateTime uploadedAt,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
-      MediaCompanion(
-        remoteThumbUploadedAt: Value(uploadedAt.millisecondsSinceEpoch),
-        updatedAt: Value(now),
-      ),
-    );
-    await _syncRepository.markRecordPending(
-      entityType: 'media',
-      recordId: mediaId,
-      localUpdatedAt: now,
-    );
+    // One transaction: a fact column and the clock that orders it must not
+    // be able to come apart. Written separately, a crash between them left
+    // the new value under the PREVIOUS group clock and with no pending
+    // record, so a later row edit exported it under that stale clock and a
+    // peer's older fact beat it (media sync program spec 5.1).
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+        MediaCompanion(
+          remoteThumbUploadedAt: Value(uploadedAt.millisecondsSinceEpoch),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markFactsPending(
+        entityType: 'media',
+        recordId: mediaId,
+        localUpdatedAt: now,
+        group: SyncFactGroups.mediaUpload,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 
@@ -2238,19 +2727,27 @@ class MediaRepository {
     required int sizeBytes,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
-      MediaCompanion(
-        remoteCompressedUploadedAt: Value(uploadedAt.millisecondsSinceEpoch),
-        compressedLevel: Value(level),
-        compressedSizeBytes: Value(sizeBytes),
-        updatedAt: Value(now),
-      ),
-    );
-    await _syncRepository.markRecordPending(
-      entityType: 'media',
-      recordId: mediaId,
-      localUpdatedAt: now,
-    );
+    // One transaction: a fact column and the clock that orders it must not
+    // be able to come apart. Written separately, a crash between them left
+    // the new value under the PREVIOUS group clock and with no pending
+    // record, so a later row edit exported it under that stale clock and a
+    // peer's older fact beat it (media sync program spec 5.1).
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+        MediaCompanion(
+          remoteCompressedUploadedAt: Value(uploadedAt.millisecondsSinceEpoch),
+          compressedLevel: Value(level),
+          compressedSizeBytes: Value(sizeBytes),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markFactsPending(
+        entityType: 'media',
+        recordId: mediaId,
+        localUpdatedAt: now,
+        group: SyncFactGroups.mediaUpload,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 
@@ -2258,36 +2755,52 @@ class MediaRepository {
   /// switches an item from original to compressed).
   Future<void> clearRemoteUploaded(String mediaId) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
-      MediaCompanion(
-        remoteUploadedAt: const Value<int?>(null),
-        updatedAt: Value(now),
-      ),
-    );
-    await _syncRepository.markRecordPending(
-      entityType: 'media',
-      recordId: mediaId,
-      localUpdatedAt: now,
-    );
+    // One transaction: a fact column and the clock that orders it must not
+    // be able to come apart. Written separately, a crash between them left
+    // the new value under the PREVIOUS group clock and with no pending
+    // record, so a later row edit exported it under that stale clock and a
+    // peer's older fact beat it (media sync program spec 5.1).
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+        MediaCompanion(
+          remoteUploadedAt: const Value<int?>(null),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markFactsPending(
+        entityType: 'media',
+        recordId: mediaId,
+        localUpdatedAt: now,
+        group: SyncFactGroups.mediaUpload,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 
   /// Clears the compressed-rendition stamps (override switching to original).
   Future<void> clearRemoteCompressed(String mediaId) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
-      MediaCompanion(
-        remoteCompressedUploadedAt: const Value<int?>(null),
-        compressedLevel: const Value<String?>(null),
-        compressedSizeBytes: const Value<int?>(null),
-        updatedAt: Value(now),
-      ),
-    );
-    await _syncRepository.markRecordPending(
-      entityType: 'media',
-      recordId: mediaId,
-      localUpdatedAt: now,
-    );
+    // One transaction: a fact column and the clock that orders it must not
+    // be able to come apart. Written separately, a crash between them left
+    // the new value under the PREVIOUS group clock and with no pending
+    // record, so a later row edit exported it under that stale clock and a
+    // peer's older fact beat it (media sync program spec 5.1).
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+        MediaCompanion(
+          remoteCompressedUploadedAt: const Value<int?>(null),
+          compressedLevel: const Value<String?>(null),
+          compressedSizeBytes: const Value<int?>(null),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markFactsPending(
+        entityType: 'media',
+        recordId: mediaId,
+        localUpdatedAt: now,
+        group: SyncFactGroups.mediaUpload,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 

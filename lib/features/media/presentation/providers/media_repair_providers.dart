@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_repair_log_repository.dart';
+import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
 import 'package:submersion/features/media/data/services/repair/folder_candidate_source.dart';
 import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
 import 'package:submersion/features/media/data/services/repair/photo_library_candidate_source.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/features/media/presentation/providers/media_library_p
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 /// Which places the wizard searches.
@@ -191,6 +193,8 @@ final mediaRepairServiceProvider = Provider<MediaRepairService>((ref) {
     createBookmark: platform.createBookmark,
     writeBookmark: storage.write,
     log: ref.watch(mediaRepairLogRepositoryProvider),
+    cloudIdentifiers: const PhotoManagerCloudIdentifierSource(),
+    assetCache: ref.watch(localAssetCacheRepositoryProvider),
   );
 });
 

@@ -270,8 +270,8 @@ List<ActiveLegendEntry> activeLegendEntries(
     ProfileMetricColors.ppHe,
   );
   add(
-    config.hasO2CellMvData,
-    state.showO2CellMv,
+    config.hasO2CellData,
+    state.showO2Cells,
     l10n.diveLog_legend_label_o2Cells,
     o2CellColor(0),
   );

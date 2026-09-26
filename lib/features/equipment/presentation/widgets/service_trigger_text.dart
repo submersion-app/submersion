@@ -81,3 +81,51 @@ String formatServiceTriggerText(
   }
   return parts.join(' · ');
 }
+
+/// The single most urgent trigger for [status], in short form, for a
+/// one-line chip or a tooltip where [formatServiceTriggerText]'s joined line
+/// does not fit.
+///
+/// Every result carries its own preposition ("in 12d", "in 3 dives"),
+/// because it composes into `equipment_service_dueRelative`, which supplies
+/// none. That also keeps one idiom per locale rather than two.
+///
+/// A date trigger wins whenever the clock has one, since most clocks are
+/// date-based and a day count is the form divers read fastest. With no date,
+/// the usage unit with the least budget left wins, measured as a fraction of
+/// its interval so units of different magnitudes compare; [ExposureUnit]
+/// order breaks ties. Returns an empty string for a clock with no configured
+/// trigger at all.
+String formatServiceTriggerShort(
+  BuildContext context, {
+  required UnitFormatter units,
+  required DateTime now,
+  required ServiceClockStatus status,
+}) {
+  final l10n = context.l10n;
+  final dueDate = status.dueDate;
+  if (dueDate != null) {
+    final days = dueDate.difference(now).inDays;
+    return l10n.common_relativeTime_inDays(days < 0 ? 0 : days);
+  }
+
+  ExposureUnit? pick;
+  double? bestRatio;
+  for (final unit in ExposureUnit.values) {
+    if (unit == ExposureUnit.days) continue;
+    final usage = status.usageByUnit[unit];
+    if (usage == null || usage.interval <= 0) continue;
+    final ratio = usage.remaining / usage.interval;
+    if (bestRatio == null || ratio < bestRatio) {
+      bestRatio = ratio;
+      pick = unit;
+    }
+  }
+  if (pick == null) return '';
+
+  final usage = status.usageByUnit[pick]!;
+  // A spent clock is overdue, not negatively remaining; the same clamp
+  // formatServiceTriggerText applies to its own usage lines.
+  final remaining = usage.remaining < 0 ? 0.0 : usage.remaining;
+  return pick.shortRemainingText(l10n, remaining);
+}

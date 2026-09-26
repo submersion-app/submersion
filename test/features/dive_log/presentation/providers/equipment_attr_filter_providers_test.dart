@@ -85,7 +85,7 @@ void main() {
       ('bare', 4),
     ]) {
       await diveRepo.createDive(
-        Dive(id: id, diverId: diver.id, dateTime: DateTime(2026, 1, day)),
+        Dive(id: id, diverId: diver.id, dateTime: DateTime.utc(2026, 1, day)),
       );
     }
     await insertItem('hpHose', EquipmentType.hose, 'hose_type', 'hp');

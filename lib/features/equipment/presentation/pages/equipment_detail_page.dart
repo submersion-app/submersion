@@ -6,7 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observations_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -151,23 +153,36 @@ class _EquipmentDetailContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
-    // Any overdue clock lights the header: the item's own, or any part's
-    // through the rollup (issue #1487). Own clocks are read separately so a
-    // retired item, absent from the active rollup, still shows its state.
-    final ownOverdue =
-        ref
-            .watch(serviceClockStatusesProvider(equipmentId))
-            .value
-            ?.any((s) => s.severity == ServiceClockSeverity.overdue) ??
-        false;
-    final rollupOverdue =
-        ref
-            .watch(equipmentRollupClockProvider)
-            .value?[equipmentId]
-            ?.status
-            .severity ==
-        ServiceClockSeverity.overdue;
-    final isServiceOverdue = ownOverdue || rollupOverdue;
+    // The header's one clock: the most urgent of the item's own clocks and
+    // its parts' through the rollup (issue #1487). Own clocks are read
+    // separately so a retired item, absent from the active rollup, still
+    // shows its state. Null when nothing is due, which draws no banner.
+    RollupClock? headerClock;
+    void consider(RollupClock? candidate) {
+      if (candidate == null ||
+          candidate.status.severity == ServiceClockSeverity.ok) {
+        return;
+      }
+      if (headerClock == null ||
+          isMoreUrgentClock(candidate.status, headerClock!.status)) {
+        headerClock = candidate;
+      }
+    }
+
+    consider(ref.watch(equipmentRollupClockProvider).value?[equipmentId]);
+    for (final status
+        in ref.watch(serviceClockStatusesProvider(equipmentId)).value ??
+            const <ServiceClockStatus>[]) {
+      consider((
+        ownerId: equipmentId,
+        ownerName: equipment.name,
+        status: status,
+      ));
+    }
+    // The avatar still reddens for overdue only, as the list tiles do; a
+    // due-soon item keeps the plain avatar and says so in the banner.
+    final isServiceOverdue =
+        headerClock?.status.severity == ServiceClockSeverity.overdue;
 
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
@@ -175,7 +190,12 @@ class _EquipmentDetailContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeaderSection(context, equipment, isServiceOverdue),
+          _buildHeaderSection(
+            context,
+            equipment,
+            isServiceOverdue,
+            headerClock,
+          ),
           const SizedBox(height: 24),
           _buildDetailsSection(context, ref, equipment, units),
           const SizedBox(height: 24),
@@ -238,6 +258,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
     if (embedded) {
       return Column(
         children: [
+          // No status line in this strip: the body below it carries the
+          // page header's banner in embedded mode too, so a line here would
+          // show and announce the same status twice.
           _buildEmbeddedHeader(context, ref, equipment, isServiceOverdue),
           Expanded(child: body),
         ],
@@ -354,6 +377,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
     BuildContext context,
     EquipmentItem equipment,
     bool isServiceOverdue,
+    RollupClock? headerClock,
   ) {
     return Card(
       child: Padding(
@@ -411,36 +435,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 ),
               ],
             ),
-            if (isServiceOverdue) ...[
+            if (headerClock case final clock?) ...[
               const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: StatusColors.of(context).alert.container,
-                  border: Border.all(
-                    color: StatusColors.of(context).alert.outline,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.warning,
-                      color: StatusColors.of(context).alert.onContainer,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        context.l10n.equipment_detail_serviceOverdue,
-                        style: TextStyle(
-                          color: StatusColors.of(context).alert.onContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _ServiceBanner(clock: clock, subjectId: equipment.id),
             ],
           ],
         ),
@@ -932,5 +929,48 @@ class _EquipmentDetailContent extends ConsumerWidget {
         }
         break;
     }
+  }
+}
+
+/// The header's service banner: which service is due, on which part, and
+/// when, in the swatch of its own severity (red overdue, amber due soon).
+/// It used to say only "Service is overdue!", which named neither (#2260).
+///
+/// The text takes the swatch's onContainer rather than the indicator's
+/// accent: the banner fills itself with the container colour, and an accent
+/// laid on its own container does not read.
+class _ServiceBanner extends StatelessWidget {
+  final RollupClock clock;
+  final String subjectId;
+
+  const _ServiceBanner({required this.clock, required this.subjectId});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = StatusColors.of(context);
+    final swatch =
+        serviceSeveritySwatch(colors, clock.status.severity) ?? colors.alert;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: swatch.container,
+        border: Border.all(color: swatch.outline),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.warning, color: swatch.onContainer),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ServiceStatusIndicator(
+              clock: clock,
+              subjectId: subjectId,
+              density: ServiceIndicatorDensity.full,
+              color: swatch.onContainer,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/pages/default_visible_metrics_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/core/constants/o2_cell_unit.dart';
 
 /// Minimal SettingsNotifier stub that mutates in-memory state without touching
 /// the database. Only the setters tapped by this test are implemented; every
@@ -28,6 +29,10 @@ class _StubSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDefaultShowO2CellMv(bool value) async =>
       state = state.copyWith(defaultShowO2CellMv: value);
+
+  @override
+  Future<void> setO2CellUnit(O2CellUnit value) async =>
+      state = state.copyWith(o2CellUnit: value);
 
   @override
   Future<void> setDefaultShowEstimatedTankPressure(bool value) async =>

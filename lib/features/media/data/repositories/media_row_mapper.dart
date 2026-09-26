@@ -62,6 +62,7 @@ domain.MediaItem mediaItemFromRow(
     connectorAccountId: row.connectorAccountId,
     remoteAssetId: row.remoteAssetId,
     originDeviceId: row.originDeviceId,
+    cloudAssetId: row.cloudAssetId,
     contentHash: row.contentHash,
     contentSizeBytes: row.contentSizeBytes,
     remoteUploadedAt: row.remoteUploadedAt != null

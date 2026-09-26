@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -412,7 +413,22 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                     for (final e in candidates)
                       DropdownMenuItem<String?>(
                         value: e.id,
-                        child: Text(e.name),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ServiceStatusIndicatorFor(
+                              equipmentId: e.id,
+                              density: ServiceIndicatorDensity.dot,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                e.name,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                   ],
                   onChanged: (value) => setState(() {

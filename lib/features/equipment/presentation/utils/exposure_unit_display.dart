@@ -60,4 +60,31 @@ extension ExposureUnitDisplay on ExposureUnit {
       total,
     ),
   };
+
+  /// The "in N units" short form, for a one-line chip or a tooltip where
+  /// [usedAndLeftText] does not fit. Each locale writes the whole phrase,
+  /// including its own preposition, because a unit noun cannot be composed
+  /// into a sentence generically: the preposition, article and case all
+  /// vary by language. Composes into `equipment_service_dueRelative`.
+  ///
+  /// [days] has no short form here; the date branch of
+  /// [formatServiceTriggerShort] covers it with a relative day count.
+  String shortRemainingText(AppLocalizations l10n, double remaining) {
+    // Counts select a plural category ("in 1 dive", "in 3 dives"), so they
+    // go in as ints. Hours stay a one-decimal string: a decimal takes the
+    // plural in every locale here ("in 1.0 hours"), and a string cannot
+    // enter a plural selector anyway.
+    final count = remaining.round();
+    final decimal = remaining.toStringAsFixed(1);
+    return switch (this) {
+      ExposureUnit.days => '',
+      ExposureUnit.dives => l10n.equipment_service_shortDives(count),
+      ExposureUnit.hours => l10n.equipment_service_shortHours(decimal),
+      ExposureUnit.saltHours => l10n.equipment_service_shortSaltHours(decimal),
+      ExposureUnit.coldDives => l10n.equipment_service_shortColdDives(count),
+      ExposureUnit.o2Hours => l10n.equipment_service_shortO2Hours(decimal),
+      ExposureUnit.deepCycles => l10n.equipment_service_shortDeepCycles(count),
+      ExposureUnit.cycles => l10n.equipment_service_shortCycles(count),
+    };
+  }
 }

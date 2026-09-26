@@ -15,6 +15,7 @@ import 'package:submersion/features/tides/presentation/widgets/tide_section.dart
 import 'package:submersion/features/tides/presentation/widgets/tide_times_table.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/l10n_test_helpers.dart';
 import '../../../../helpers/mock_providers.dart';
 
 // A diver on DD/MM/YYYY must read "Mon, 10 Aug", not "Mon, Aug 10" (#964).
@@ -240,6 +241,82 @@ void main() {
       await _pumpSection(tester, DateFormatPreference.ddmmyyyy);
 
       expect(find.text('Tue, 10 Mar | 05:45 - 15:00 (20 May)'), findsOneWidget);
+    });
+  });
+
+  // The label is decided by comparing calendar components, and `reference`
+  // is a LOCAL instant in production (`now ?? DateTime.now()`) while tide
+  // times are wall-clock-as-UTC. Offsetting a local instant by an
+  // elapsed-time Duration is what breaks across a transition, so these
+  // fixtures pass a local `now` rather than the UTC one the tests above use.
+  //
+  // Both cases are invisible on a UTC runner, where no transition exists,
+  // which is why this file is on the Timezone Tests list in ci.yaml.
+  group('TideTimesTable "Tomorrow" across a daylight-saving change', () {
+    Future<void> pumpAt(
+      WidgetTester tester, {
+      required DateTime now,
+      required List<DateTime> extremeTimes,
+    }) async {
+      await tester.pumpWidget(
+        // "Tomorrow" is an l10n string, so unlike the date assertions above it
+        // is not covered by the Intl.defaultLocale pin: it resolves through
+        // MaterialApp against the host's locale, which would render "Demain"
+        // or "Morgen" on a host that resolves to one of those. Pin the locale.
+        localizedMaterialApp(
+          locale: const Locale('en'),
+          home: Scaffold(
+            body: TideTimesTable(
+              extremes: [
+                for (final time in extremeTimes)
+                  TideExtreme(
+                    type: TideExtremeType.high,
+                    time: time,
+                    heightMeters: 1.2,
+                  ),
+              ],
+              now: now,
+              showPast: true,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the next day is still Tomorrow on a fall-back day', (
+      tester,
+    ) async {
+      // 2026-11-01 runs 25 hours in a US zone, so 00:30 plus 24 ELAPSED
+      // hours is 23:30 on that same date and the 2nd stops being tomorrow.
+      await pumpAt(
+        tester,
+        now: DateTime(2026, 11, 1, 0, 30),
+        extremeTimes: [DateTime.utc(2026, 11, 2, 10, 30)],
+      );
+
+      expect(find.text('Tomorrow'), findsOneWidget);
+    });
+
+    testWidgets('the day after tomorrow is not labelled Tomorrow on a '
+        'spring-forward day', (tester) async {
+      // The evening BEFORE the transition is what breaks, not the
+      // transition day itself: from 23:30 on the 13th the next 24 elapsed
+      // hours contain the 02:00 jump, so they reach 00:30 on the 15th.
+      // The real tomorrow (the 14th) loses its label and the day after it
+      // wrongly gains one.
+      await pumpAt(
+        tester,
+        now: DateTime(2027, 3, 13, 23, 30),
+        extremeTimes: [
+          DateTime.utc(2027, 3, 14, 10, 30),
+          DateTime.utc(2027, 3, 15, 10, 30),
+        ],
+      );
+
+      expect(find.text('Tomorrow'), findsOneWidget);
+      expect(find.text('Sun, Mar 14'), findsNothing);
+      expect(find.text('Mon, Mar 15'), findsOneWidget);
     });
   });
 }

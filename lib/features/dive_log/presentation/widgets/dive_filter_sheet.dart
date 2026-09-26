@@ -286,7 +286,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                         alignment: AlignmentDirectional.centerStart,
                         child: TextButton.icon(
                           onPressed: () {
-                            // push, not go: this sheet also opens from Statistics, and
+                            // push, not go: this sheet also opens from Insights, and
                             // `go` into the `/dives` child route would rebuild the
                             // stack as [dive list, search] and discard the section --
                             // and its filters -- the user opened the sheet from. It
@@ -967,17 +967,17 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                                     tag.id,
                                   );
                                   return FilterChip(
+                                    // The dot carries the tag's own colour,
+                                    // exactly as the site and equipment
+                                    // filter sheets show it. A tinted chip
+                                    // body would report a different colour on
+                                    // every surface (issue #2254).
+                                    avatar: CircleAvatar(
+                                      backgroundColor: tag.color,
+                                      radius: 6,
+                                    ),
                                     label: Text(tag.name),
                                     selected: isSelected,
-                                    selectedColor: tag.color.withValues(
-                                      alpha: 0.3,
-                                    ),
-                                    checkmarkColor: tag.color,
-                                    side: BorderSide(
-                                      color: isSelected
-                                          ? tag.color
-                                          : Colors.grey.shade300,
-                                    ),
                                     onSelected: (selected) {
                                       setState(() {
                                         if (selected) {

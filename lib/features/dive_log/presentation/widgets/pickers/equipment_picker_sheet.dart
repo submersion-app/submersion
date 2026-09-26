@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_type_
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_picker_filter_sheet.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Equipment picker bottom sheet
@@ -236,6 +237,10 @@ class EquipmentPickerSheet extends ConsumerWidget {
                       labels[item.id]?.subtitleParts ?? const [],
                       item,
                       showTypeLabel: showTypeLabel,
+                    ),
+                    trailing: ServiceStatusIndicatorFor(
+                      equipmentId: item.id,
+                      density: ServiceIndicatorDensity.compact,
                     ),
                     onTap: () => onEquipmentSelected(item),
                   ),

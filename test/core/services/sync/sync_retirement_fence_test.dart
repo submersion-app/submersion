@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
@@ -109,6 +111,48 @@ void main() {
     expect((await svc2.performSync()).status, SyncResultStatus.success);
     expect(await hasDive('mine-offline'), isTrue);
     expect(await hasDive('stale-1'), isFalse);
+  });
+
+  test('a failing name store does not abort the adoption', () async {
+    // The adopt scan has no per-peer catch, so an unguarded write into the
+    // peer name store threw all the way out of the rebuild and the returning
+    // device adopted nothing, over optional metadata.
+    SharedPreferences.setMockInitialValues({});
+    final cloud = FakeCloudStorageProvider();
+    final folder = await cloud.getOrCreateSyncFolder();
+
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'keep-1', diveNumber: 1),
+    );
+    await seedPeerLog(cloud, 'peer-1');
+
+    final failing = _FailingNameStore(await SharedPreferences.getInstance());
+    addTearDown(failing.dispose);
+    final svc = SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: cloud,
+      peerNames: failing,
+    );
+    expect((await svc.performSync()).status, SyncResultStatus.success);
+
+    final deviceId = await SyncRepository().getDeviceId();
+    await svc.deleteDeviceSyncFile(deviceId);
+    await cloud.uploadFile(
+      RetirementMarker(
+        deviceId: deviceId,
+        retiredAt: DateTime.now().millisecondsSinceEpoch,
+      ).toBytes(),
+      ChangesetLogLayout.retiredMarkerName(deviceId),
+      folderId: folder,
+    );
+
+    expect((await svc.performSync()).status, SyncResultStatus.success);
+    expect(
+      await hasDive('keep-1'),
+      isTrue,
+      reason: 'the cloud library is adopted even when no name can be stored',
+    );
   });
 
   test(
@@ -222,4 +266,15 @@ void main() {
       );
     },
   );
+}
+
+/// A store whose write always fails, standing in for a preferences backend
+/// that is full, locked or unavailable.
+class _FailingNameStore extends PeerDeviceNameStore {
+  _FailingNameStore(super.prefs);
+
+  @override
+  Future<void> record(String deviceId, String? name) async {
+    throw StateError('preferences unavailable');
+  }
 }

@@ -1,0 +1,268 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:submersion/core/icons/mdi_icons.dart';
+import 'package:submersion/core/providers/provider.dart';
+
+import 'package:submersion/core/accessibility/semantic_helpers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/insights/presentation/widgets/insights_filter_action.dart';
+import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
+
+/// Insights category data model.
+class InsightsCategory {
+  final String id;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+
+  const InsightsCategory({
+    required this.id,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+  });
+}
+
+/// List of all statistics categories (static structure, titles filled at build time).
+List<InsightsCategory> insightsCategoriesOf(BuildContext context) => [
+  InsightsCategory(
+    id: 'overview',
+    icon: Icons.dashboard_outlined,
+    title: context.l10n.insights_category_overview_title,
+    subtitle: context.l10n.insights_category_overview_subtitle,
+    color: Colors.blueGrey,
+  ),
+  InsightsCategory(
+    id: 'gas',
+    icon: Icons.air,
+    title: context.l10n.insights_category_gas_title,
+    subtitle: context.l10n.insights_category_gas_subtitle,
+    color: Colors.blue,
+  ),
+  InsightsCategory(
+    id: 'progression',
+    icon: Icons.trending_up,
+    title: context.l10n.insights_category_progression_title,
+    subtitle: context.l10n.insights_category_progression_subtitle,
+    color: Colors.green,
+  ),
+  InsightsCategory(
+    id: 'conditions',
+    icon: Icons.thermostat,
+    title: context.l10n.insights_category_conditions_title,
+    subtitle: context.l10n.insights_category_conditions_subtitle,
+    color: Colors.orange,
+  ),
+  InsightsCategory(
+    id: 'social',
+    icon: Icons.people,
+    title: context.l10n.insights_category_social_title,
+    subtitle: context.l10n.insights_category_social_subtitle,
+    color: Colors.purple,
+  ),
+  InsightsCategory(
+    id: 'geographic',
+    icon: Icons.public,
+    title: context.l10n.insights_category_geographic_title,
+    subtitle: context.l10n.insights_category_geographic_subtitle,
+    color: Colors.teal,
+  ),
+  InsightsCategory(
+    id: 'marine-life',
+    icon: MdiIcons.fish,
+    title: context.l10n.insights_category_marineLife_title,
+    subtitle: context.l10n.insights_category_marineLife_subtitle,
+    color: Colors.cyan,
+  ),
+  InsightsCategory(
+    id: 'time-patterns',
+    icon: Icons.schedule,
+    title: context.l10n.insights_category_timePatterns_title,
+    subtitle: context.l10n.insights_category_timePatterns_subtitle,
+    color: Colors.amber,
+  ),
+  InsightsCategory(
+    id: 'equipment',
+    icon: Icons.build,
+    title: context.l10n.insights_category_equipment_title,
+    subtitle: context.l10n.insights_category_equipment_subtitle,
+    color: Colors.brown,
+  ),
+  InsightsCategory(
+    id: 'profile',
+    icon: Icons.show_chart,
+    title: context.l10n.insights_category_profile_title,
+    subtitle: context.l10n.insights_category_profile_subtitle,
+    color: Colors.indigo,
+  ),
+];
+
+/// Content widget for the statistics category list, used in master-detail layout.
+class InsightsListContent extends ConsumerWidget {
+  final void Function(String?)? onItemSelected;
+  final String? selectedId;
+  final bool showAppBar;
+
+  const InsightsListContent({
+    super.key,
+    this.onItemSelected,
+    this.selectedId,
+    this.showAppBar = true,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final listContent = ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: insightsCategoriesOf(context).length,
+      separatorBuilder: (context, index) {
+        if (index == 0) {
+          return const Divider(height: 16, thickness: 1);
+        }
+        return const Divider(height: 1);
+      },
+      itemBuilder: (context, index) {
+        final category = insightsCategoriesOf(context)[index];
+        final isSelected = selectedId == category.id;
+
+        return _InsightsCategoryTile(
+          category: category,
+          isSelected: isSelected,
+          onTap: () {
+            if (onItemSelected != null) {
+              onItemSelected!(category.id);
+            }
+          },
+        );
+      },
+    );
+
+    if (!showAppBar) {
+      return Column(
+        children: [
+          _buildCompactAppBar(context, ref),
+          const InsightsFilterBar(),
+          Expanded(child: listContent),
+        ],
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(context.l10n.insights_appBar_title),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.emoji_events),
+            tooltip: context.l10n.insights_tooltip_diveRecords,
+            onPressed: () {
+              context.push('/records');
+            },
+          ),
+          const InsightsFilterAction(),
+        ],
+      ),
+      body: listContent,
+    );
+  }
+
+  Widget _buildCompactAppBar(BuildContext context, WidgetRef ref) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).colorScheme.outlineVariant,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 8),
+          Text(
+            context.l10n.insights_appBar_title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.emoji_events, size: 20),
+            tooltip: context.l10n.insights_tooltip_diveRecords,
+            onPressed: () {
+              context.push('/records');
+            },
+          ),
+          const InsightsFilterAction(iconSize: 20),
+        ],
+      ),
+    );
+  }
+}
+
+class _InsightsCategoryTile extends StatelessWidget {
+  final InsightsCategory category;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _InsightsCategoryTile({
+    required this.category,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final selectedLabel = isSelected
+        ? context.l10n.insights_listContent_selectedSuffix
+        : '';
+
+    return Semantics(
+      button: true,
+      label: '${category.title}, ${category.subtitle}$selectedLabel',
+      child: Material(
+        color: isSelected
+            ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+            : Colors.transparent,
+        child: ListTile(
+          leading: ExcludeSemantics(
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: category.color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(category.icon, color: category.color, size: 24),
+            ),
+          ),
+          title: Text(
+            category.title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            ),
+          ),
+          subtitle: Text(
+            category.subtitle,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          trailing: Icon(
+            Icons.chevron_right,
+            color: colorScheme.onSurfaceVariant,
+          ).excludeFromSemantics(),
+          onTap: onTap,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 4,
+          ),
+        ),
+      ),
+    );
+  }
+}

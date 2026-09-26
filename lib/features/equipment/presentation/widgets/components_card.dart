@@ -8,7 +8,6 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_reposit
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_departed_status.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
@@ -91,8 +90,11 @@ class ComponentsCard extends ConsumerWidget {
     final partOf = partOfAsync.hasError
         ? const <PartOfEntry>[]
         : partOfAsync.value ?? const <PartOfEntry>[];
+    // The rollup, not the own-clocks map: a part whose own sub-part is
+    // overdue must light up here exactly as it does in the equipment
+    // list, or the two disagree about the same part (#2260).
     final worstClocks =
-        ref.watch(equipmentWorstClockProvider).value ?? const {};
+        ref.watch(equipmentRollupClockProvider).value ?? const {};
     final repository = ref.read(equipmentComponentRepositoryProvider);
 
     return Card(

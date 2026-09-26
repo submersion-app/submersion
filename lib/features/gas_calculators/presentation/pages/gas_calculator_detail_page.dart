@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/best_mix_calculator.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/density_calculator.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_settings_action.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_blender_calculator.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_calculators_summary_widget.dart';
@@ -21,7 +22,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// window pushes when a calculator row is tapped, and carries its own app bar
 /// with the automatic back button.
 ///
-/// Reset lives on the list, not here: it resets all six calculators at once,
+/// Reset lives on the list, not here: it resets all calculators at once,
 /// so putting it on one of them would misdescribe what it does.
 class GasCalculatorDetailPage extends StatelessWidget {
   const GasCalculatorDetailPage({
@@ -95,6 +96,8 @@ class GasCalculatorDetailPage extends StatelessWidget {
         return const RockBottomCalculator();
       case 'mnd':
         return const MndCalculator();
+      case 'density':
+        return const DensityCalculator();
       case 'blender':
         return const GasBlenderCalculator();
       default:

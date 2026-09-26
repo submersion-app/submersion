@@ -434,6 +434,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String trips_story_dockedDay_goToDay(int number) {
+    return 'מעבר ליום $number';
+  }
+
+  @override
   String get trips_story_surfaceDay => 'יום פני השטח';
 
   @override
@@ -1077,7 +1082,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get accessibility_shortcut_goToSites => 'מעבר לאתרים';
 
   @override
-  String get accessibility_shortcut_goToStatistics => 'מעבר לסטטיסטיקות';
+  String get accessibility_shortcut_goToInsights => 'מעבר לתובנות';
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => 'קיצורי מקלדת';
@@ -1456,6 +1461,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_field_emailHint => 'email@example.com';
 
   @override
+  String get buddies_field_linkedProfile => 'פרופיל מקושר';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'הפרופיל המקומי שהוא חבר צוללים זה';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'לא מקושר';
+
+  @override
   String get buddies_field_nameHint => 'הזן שם חבר צוללים';
 
   @override
@@ -1665,6 +1680,39 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'שימוש';
+
+  @override
+  String get buddies_linkedProfile_chip => 'פרופיל';
+
+  @override
+  String get buddies_linkedProfile_link => 'קישור';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'לא עכשיו';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'פתיחת חבר צוללים';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'קישור לפרופיל';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'לא ניתן לקשר חבר צוללים לפרופיל של עצמו.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName כבר מקושר לפרופיל זה.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return 'ל$name יש פרופיל כאן. לקשר אליו את חבר הצוללים הזה?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'חברי צוללים אלה מקושרים לפרופילים שונים. יש למזג את הפרופילים תחילה.';
 
   @override
   String get buddies_message_added => 'חבר צוללים נוסף בהצלחה';
@@ -3669,11 +3717,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dashboard_gauges_addGear => 'הוסף ציוד';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name תקין';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
     return '$name דורש טיפול בעוד $days ימים';
   }
@@ -3684,8 +3727,25 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count נוספים באיחור';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים באיחור בטיפול',
+      one: 'פריט אחד באיחור בטיפול',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים דורשים טיפול בעוד $days ימים',
+      one: 'פריט אחד דורש טיפול בעוד $days ימים',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -3982,11 +4042,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dashboard_quickActions_sectionTitle => 'פעולות מהירות';
 
   @override
-  String get dashboard_quickActions_statistics => 'סטטיסטיקות';
+  String get dashboard_quickActions_insights => 'תובנות';
 
   @override
-  String get dashboard_quickActions_statisticsTooltip =>
-      'הצגת סטטיסטיקות צלילה';
+  String get dashboard_quickActions_insightsTooltip => 'הצגת תובנות צלילה';
 
   @override
   String get dashboard_quickStats_countries => 'מדינות';
@@ -5672,6 +5731,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'מיכלים';
 
   @override
+  String get diveLog_edit_planned_switch => 'צלילה מתוכננת';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'ממתין לנתוני מחשב הצלילה. אין מספר צלילה עד שהיא נרשמת.';
+
+  @override
   String get diveLog_edit_profile_draw => 'שרטוט פרופיל';
 
   @override
@@ -6498,6 +6564,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'שמירת שכבות העל בתצוגה';
 
   @override
+  String get diveLog_chartOption_tooltipFollowsCursor =>
+      'הרמז הצף עוקב אחר הסמן';
+
+  @override
   String get diveLog_pressure_estimatedSuffix => '(משוער)';
 
   @override
@@ -6542,6 +6612,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_listPage_bottomSheet_logManually => 'רישום צלילה ידנית';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => 'תכנון צלילה';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'מלאו את הפרטים עכשיו והוסיפו את נתוני מחשב הצלילה מאוחר יותר';
 
   @override
   String get diveLog_listPage_fab_addDive => 'הוספת צלילה';
@@ -6914,8 +6991,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_finish_feature_sites => 'מיפוי אתרי הצלילה שלכם';
 
   @override
-  String get setup_finish_feature_statistics =>
-      'חקר סטטיסטיקות על הצלילות שלכם';
+  String get setup_finish_feature_insights => 'חקר תובנות על הצלילות שלכם';
 
   @override
   String get setup_finish_start => 'בואו נתחיל';
@@ -7414,9 +7490,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_listPage_searchSuggestion =>
       'חיפוש לפי אתר, שותף או הערות';
-
-  @override
-  String get diveLog_listPage_title => 'יומן צלילה';
 
   @override
   String get diveLog_listPage_tooltip_back => 'חזרה';
@@ -7965,7 +8038,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_summary_action_logDive => 'רשום צלילה';
 
   @override
-  String get diveLog_summary_action_viewStats => 'הצג סטטיסטיקות';
+  String get diveLog_summary_action_viewInsights => 'הצג תובנות';
 
   @override
   String diveLog_summary_diveCount(int count) {
@@ -11469,6 +11542,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_logCategory_database => 'מסד נתונים';
 
   @override
+  String get enum_logCategory_media => 'מדיה';
+
+  @override
   String get enum_visibility_excellent => 'מצוינת (>30m / >100ft)';
 
   @override
@@ -12134,11 +12210,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String equipment_list_worstClock(String kind) {
-    return '$kind באיחור';
-  }
-
-  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -12157,8 +12228,68 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String trips_serviceAlert_overdue(String kind) {
+  String equipment_service_overdue(String kind) {
     return '$kind באיחור';
+  }
+
+  @override
+  String equipment_service_dueRelative(String kind, String relative) {
+    return '$kind לביצוע $relative';
+  }
+
+  @override
+  String equipment_service_shortDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'בעוד $count צלילות',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortHours(String count) {
+    return 'בעוד $count שעות';
+  }
+
+  @override
+  String equipment_service_shortSaltHours(String count) {
+    return 'בעוד $count שעות במים מלוחים';
+  }
+
+  @override
+  String equipment_service_shortColdDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'בעוד $count צלילות במים קרים',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortO2Hours(String count) {
+    return 'בעוד $count שעות בחמצן גבוה';
+  }
+
+  @override
+  String equipment_service_shortDeepCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'בעוד $count צלילות עמוקות',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'בעוד $count מחזורי סוללה',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12177,9 +12308,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String equipment_detail_serviceIntervalValue(Object days) {
     return '$days ימים';
   }
-
-  @override
-  String get equipment_detail_serviceOverdue => 'הטיפול באיחור!';
 
   @override
   String equipment_detail_showEquipmentWith(String name) {
@@ -12441,6 +12569,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'ציוד הדורש טיפול';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'ציוד הדורש טיפול בקרוב';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'ציוד באיחור בטיפול';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return 'ציוד $status';
   }
@@ -12469,6 +12605,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'כל הציוד שלך מעודכן בטיפול!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'שום דבר לא דורש טיפול בקרוב.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'שום דבר לא באיחור בטיפול.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'שגיאה בטעינת ציוד: $error';
   }
@@ -12478,6 +12622,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'טיפול נדרש';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'בקרוב';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'באיחור';
 
   @override
   String get equipment_list_typeFilterAll => 'כל הסוגים';
@@ -13759,8 +13909,51 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_blender_lineAmount => 'סכום';
 
   @override
-  String get gasCalculators_blender_lineNeedsDescription =>
-      'יש להזין תיאור, או מכל ותערובת.';
+  String get gasCalculators_blender_lineNeedsDescription => 'יש להזין תיאור.';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => 'מילוי גז';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => 'סכום חופשי';
+
+  @override
+  String get gasCalculators_blender_lineGas => 'מילוי';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => 'לחץ התחלתי';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => 'לחץ סופי';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return 'לחץ מילוי: $pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return 'סכום: $amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice =>
+      'לא הוגדר מחיר לגז זה, ולכן הוא מחויב ב-0.';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'הלחץ הסופי חייב להיות גבוה מהלחץ ההתחלתי.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'יש להזין לחץ התחלתי ולחץ סופי.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder => 'יש להזין נפח מכל.';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'אופציונלי. אם יישאר ריק, הוא ייווצר מתוך המילוי.';
 
   @override
   String get gasCalculators_blender_export => 'ייצוא';
@@ -13892,6 +14085,88 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => 'גבול עומק הנרקוזה לתערובת';
+
+  @override
+  String get gasCalculators_tab_density => 'צפיפות גז';
+
+  @override
+  String get gasCalculators_desc_density => 'צפיפות גז הנשימה בעומק, OC או CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters => 'תערובת גז ותנאים';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'עומק';
+
+  @override
+  String get gasCalculators_density_mode => 'מצב';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'ב-CCR, התערובת שלמעלה היא הגז המדלל.';
+
+  @override
+  String get gasCalculators_density_temperature => 'טמפרטורת הגז';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'צפיפות גז';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'בתוך הגבול המומלץ של $limit g/L.';
+  }
+
+  @override
+  String get gasCalculators_density_eaddLabel =>
+      'עומק שקול לצפיפות אוויר (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'EADD הוא העומק שבו אוויר היה צפוף כמו הגז הזה. בניגוד לצפיפות ב-g/L, הוא אינו תלוי בטמפרטורה.';
+
+  @override
+  String get gasCalculators_density_loopGasTitle => 'גז הלולאה בעומק';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'כאן ה-Setpoint גבוה מהלחץ הסביבתי, ולכן הלולאה מכילה חמצן טהור.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'הגז המדלל לבדו נותן כאן ppO2 של $ppO2, מעל ה-Setpoint. הצפיפות מחושבת לפי ה-ppO2 של הגז המדלל.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle => 'על צפיפות גז';
+
+  @override
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'גז צפוף קשה יותר לנשימה ומעלה את הסיכון לאגירת CO2. שמרו על צפיפות של $warn g/L לכל היותר; $critical g/L הוא הגבול העליון המוחלט.\n\nב-CCR קובעת צפיפות גז הלולאה: חמצן לפי ה-Setpoint, והשאר מחולק בין חנקן להליום ביחס של הגז המדלל.\n\nגז קר יותר צפוף יותר, ולכן אפשרות הטמפרטורה הקרה יותר היא השמרנית. החישוב מניח גז אידיאלי.';
+  }
 
   @override
   String get gasCalculators_desc_blender => 'נוהל מילוי לתערובת היעד';
@@ -15614,7 +15889,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_species => 'מינים';
 
   @override
-  String get nav_statistics => 'סטטיסטיקות';
+  String get nav_insights => 'תובנות';
 
   @override
   String get nav_tooltip_closeMenu => 'סגירת תפריט';
@@ -17813,14 +18088,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_data_offlineMaps => 'מפות לא מקוונות';
 
   @override
-  String get settings_data_offlineMaps_subtitle => 'הורד מפות לשימוש לא מקוון';
-
-  @override
-  String get settings_data_threeDMaps => '3D Maps';
-
-  @override
-  String get settings_data_threeDMaps_subtitle =>
-      'Manage cached swissBATHY3D and other bathymetry data';
+  String get settings_data_offlineMaps_subtitle =>
+      'אריחי מפה ונתוני פני שטח בתלת-ממד';
 
   @override
   String get settings_data_restore => 'שחזור';
@@ -19264,108 +19533,108 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get statistics_appBar_title => 'סטטיסטיקות';
+  String get insights_appBar_title => 'תובנות';
 
   @override
-  String statistics_categoryCard_semanticLabel(Object title) {
-    return 'קטגוריית סטטיסטיקות $title';
+  String insights_categoryCard_semanticLabel(Object title) {
+    return 'קטגוריית תובנות $title';
   }
 
   @override
-  String get statistics_category_conditions_subtitle => 'ראות וטמפרטורה';
+  String get insights_category_conditions_subtitle => 'ראות וטמפרטורה';
 
   @override
-  String get statistics_category_conditions_title => 'תנאים';
+  String get insights_category_conditions_title => 'תנאים';
 
   @override
-  String get statistics_category_equipment_subtitle => 'שימוש בציוד ומשקל';
+  String get insights_category_equipment_subtitle => 'שימוש בציוד ומשקל';
 
   @override
-  String get statistics_category_equipment_title => 'ציוד';
+  String get insights_category_equipment_title => 'ציוד';
 
   @override
-  String get statistics_category_gas_subtitle => 'צריכת גז ותערובות גז';
+  String get insights_category_gas_subtitle => 'צריכת גז ותערובות גז';
 
   @override
-  String get statistics_category_gas_title => 'צריכת אוויר';
+  String get insights_category_gas_title => 'צריכת אוויר';
 
   @override
-  String get statistics_category_geographic_subtitle => 'מדינות ואזורים';
+  String get insights_category_geographic_subtitle => 'מדינות ואזורים';
 
   @override
-  String get statistics_category_geographic_title => 'גיאוגרפיה';
+  String get insights_category_geographic_title => 'גיאוגרפיה';
 
   @override
-  String get statistics_category_marineLife_subtitle => 'תצפיות מינים';
+  String get insights_category_marineLife_subtitle => 'תצפיות מינים';
 
   @override
-  String get statistics_category_marineLife_title => 'מינים';
+  String get insights_category_marineLife_title => 'מינים';
 
   @override
-  String get statistics_category_overview_title => 'Overview';
+  String get insights_category_overview_title => 'Overview';
 
   @override
-  String get statistics_category_overview_subtitle =>
+  String get insights_category_overview_subtitle =>
       'Totals, records, and breakdowns at a glance';
 
   @override
-  String get statistics_category_profile_subtitle => 'קצבי עלייה ודקו';
+  String get insights_category_profile_subtitle => 'קצבי עלייה ודקו';
 
   @override
-  String get statistics_category_profile_title => 'ניתוח פרופיל';
+  String get insights_category_profile_title => 'ניתוח פרופיל';
 
   @override
-  String get statistics_category_progression_subtitle => 'מגמות עומק וזמן';
+  String get insights_category_progression_subtitle => 'מגמות עומק וזמן';
 
   @override
-  String get statistics_category_progression_title => 'התקדמות';
+  String get insights_category_progression_title => 'התקדמות';
 
   @override
-  String get statistics_category_social_subtitle => 'שותפים ומרכזי צלילה';
+  String get insights_category_social_subtitle => 'שותפים ומרכזי צלילה';
 
   @override
-  String get statistics_category_social_title => 'חברתי';
+  String get insights_category_social_title => 'חברתי';
 
   @override
-  String get statistics_category_timePatterns_subtitle => 'מתי אתה צולל';
+  String get insights_category_timePatterns_subtitle => 'מתי אתה צולל';
 
   @override
-  String get statistics_category_timePatterns_title => 'דפוסי זמן';
+  String get insights_category_timePatterns_title => 'דפוסי זמן';
 
   @override
-  String statistics_chart_barSemanticLabel(Object count) {
+  String insights_chart_barSemanticLabel(Object count) {
     return 'תרשים עמודות עם $count קטגוריות';
   }
 
   @override
-  String statistics_chart_distributionSemanticLabel(Object count) {
+  String insights_chart_distributionSemanticLabel(Object count) {
     return 'תרשים עוגה עם $count מקטעים';
   }
 
   @override
-  String statistics_chart_multiTrendSemanticLabel(Object seriesNames) {
+  String insights_chart_multiTrendSemanticLabel(Object seriesNames) {
     return 'תרשים מגמה רב-קווי המשווה $seriesNames';
   }
 
   @override
-  String get statistics_chart_noBarData => 'אין נתונים זמינים';
+  String get insights_chart_noBarData => 'אין נתונים זמינים';
 
   @override
-  String get statistics_chart_noDistributionData => 'אין נתוני התפלגות זמינים';
+  String get insights_chart_noDistributionData => 'אין נתוני התפלגות זמינים';
 
   @override
-  String get statistics_chart_noTrendData => 'אין נתוני מגמה זמינים';
+  String get insights_chart_noTrendData => 'אין נתוני מגמה זמינים';
 
   @override
-  String get statistics_chart_notRecorded => 'לא נרשם';
+  String get insights_chart_notRecorded => 'לא נרשם';
 
   @override
-  String statistics_chart_trendSemanticLabel(Object count) {
+  String insights_chart_trendSemanticLabel(Object count) {
     return 'תרשים קו מגמה המציג $count נקודות נתונים';
   }
 
   @override
-  String statistics_chart_trendSemanticLabelWithAxis(
+  String insights_chart_trendSemanticLabelWithAxis(
     Object count,
     Object yAxisLabel,
   ) {
@@ -19373,215 +19642,209 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get statistics_conditions_appBar_title => 'תנאים';
+  String get insights_conditions_appBar_title => 'תנאים';
 
   @override
-  String get statistics_conditions_entryMethod_empty =>
+  String get insights_conditions_entryMethod_empty =>
       'אין נתוני שיטת כניסה זמינים';
 
   @override
-  String get statistics_conditions_entryMethod_error =>
+  String get insights_conditions_entryMethod_error =>
       'שגיאה בטעינת נתוני שיטת כניסה';
 
   @override
-  String get statistics_conditions_entryMethod_subtitle => 'חוף, סירה וכו\'';
+  String get insights_conditions_entryMethod_subtitle => 'חוף, סירה וכו\'';
 
   @override
-  String get statistics_conditions_entryMethod_title => 'שיטת כניסה';
+  String get insights_conditions_entryMethod_title => 'שיטת כניסה';
 
   @override
-  String get statistics_conditions_temperature_empty =>
+  String get insights_conditions_temperature_empty =>
       'אין נתוני טמפרטורה זמינים';
 
   @override
-  String get statistics_conditions_temperature_error =>
+  String get insights_conditions_temperature_error =>
       'שגיאה בטעינת נתוני טמפרטורה';
 
   @override
-  String get statistics_conditions_temperature_seriesAvg => 'ממוצע';
+  String get insights_conditions_temperature_seriesAvg => 'ממוצע';
 
   @override
-  String get statistics_conditions_temperature_seriesMax => 'מקסימום';
+  String get insights_conditions_temperature_seriesMax => 'מקסימום';
 
   @override
-  String get statistics_conditions_temperature_seriesMin => 'מינימום';
+  String get insights_conditions_temperature_seriesMin => 'מינימום';
 
   @override
-  String get statistics_conditions_temperature_subtitle =>
+  String get insights_conditions_temperature_subtitle =>
       'מינימום, ממוצע ומקסימום לפי חודש קלנדרי, על פני כל השנים';
 
   @override
-  String get statistics_conditions_temperature_title => 'טמפרטורת מים עונתית';
+  String get insights_conditions_temperature_title => 'טמפרטורת מים עונתית';
 
   @override
-  String get statistics_conditions_visibility_error =>
-      'שגיאה בטעינת נתוני ראות';
+  String get insights_conditions_visibility_error => 'שגיאה בטעינת נתוני ראות';
 
   @override
-  String get statistics_conditions_visibility_subtitle =>
-      'צלילות לפי תנאי ראות';
+  String get insights_conditions_visibility_subtitle => 'צלילות לפי תנאי ראות';
 
   @override
-  String get statistics_conditions_visibility_title => 'התפלגות ראות';
+  String get insights_conditions_visibility_title => 'התפלגות ראות';
 
   @override
-  String get statistics_conditions_siteType_error =>
+  String get insights_conditions_siteType_error =>
       'טעינת נתוני סוגי האתרים נכשלה';
 
   @override
-  String statistics_conditions_siteType_semanticLabel(String description) {
+  String insights_conditions_siteType_semanticLabel(String description) {
     return 'תרשים עמודות. צלילות לפי סוג אתר. $description';
   }
 
   @override
-  String get statistics_conditions_siteType_subtitle =>
+  String get insights_conditions_siteType_subtitle =>
       'צלילות לפי סוג אתר. צלילה באתר עם כמה סוגים נספרת לכל אחד מהם; אתרים ללא סוג אינם מוצגים.';
 
   @override
-  String get statistics_conditions_siteType_title => 'סוגי אתרים';
+  String get insights_conditions_siteType_title => 'סוגי אתרים';
 
   @override
-  String get statistics_conditions_waterType_error =>
+  String get insights_conditions_waterType_error =>
       'שגיאה בטעינת נתוני סוג מים';
 
   @override
-  String get statistics_conditions_waterType_subtitle =>
+  String get insights_conditions_waterType_subtitle =>
       'צלילות במים מלוחים לעומת מתוקים';
 
   @override
-  String get statistics_conditions_waterType_title => 'סוג מים';
+  String get insights_conditions_waterType_title => 'סוג מים';
 
   @override
-  String get statistics_equipment_appBar_title => 'ציוד';
+  String get insights_equipment_appBar_title => 'ציוד';
 
   @override
-  String get statistics_equipment_mostUsedGear_error =>
-      'שגיאה בטעינת נתוני ציוד';
+  String get insights_equipment_mostUsedGear_error => 'שגיאה בטעינת נתוני ציוד';
 
   @override
-  String get statistics_equipment_mostUsedGear_subtitle =>
-      'ציוד לפי מספר צלילות';
+  String get insights_equipment_mostUsedGear_subtitle => 'ציוד לפי מספר צלילות';
 
   @override
-  String get statistics_equipment_mostUsedGear_title => 'הציוד הנפוץ ביותר';
+  String get insights_equipment_mostUsedGear_title => 'הציוד הנפוץ ביותר';
 
   @override
-  String get statistics_equipment_weightTrend_error => 'שגיאה בטעינת מגמת משקל';
+  String get insights_equipment_weightTrend_error => 'שגיאה בטעינת מגמת משקל';
 
   @override
-  String get statistics_equipment_weightTrend_subtitle =>
-      'סך המשקולות לכל צלילה';
+  String get insights_equipment_weightTrend_subtitle => 'סך המשקולות לכל צלילה';
 
   @override
-  String get statistics_equipment_weightTrend_title => 'מגמת משקל';
+  String get insights_equipment_weightTrend_title => 'מגמת משקל';
 
   @override
-  String get statistics_equipment_exposure_title => 'חשיפה';
+  String get insights_equipment_exposure_title => 'חשיפה';
 
   @override
-  String get statistics_equipment_exposure_error => 'טעינת נתוני החשיפה נכשלה';
+  String get insights_equipment_exposure_error => 'טעינת נתוני החשיפה נכשלה';
 
   @override
-  String get statistics_equipment_findings_error => 'טעינת ממצאי המצב נכשלה';
+  String get insights_equipment_findings_error => 'טעינת ממצאי המצב נכשלה';
 
   @override
-  String get statistics_equipment_issues_error => 'טעינת התקלות שדווחו נכשלה';
+  String get insights_equipment_issues_error => 'טעינת התקלות שדווחו נכשלה';
 
   @override
-  String get statistics_equipment_exposure_subtitle =>
+  String get insights_equipment_exposure_subtitle =>
       'סיכומים לכל פריט לפי הספים שלך';
 
   @override
-  String get statistics_equipment_exposure_empty => 'אין עדיין צלילות עם ציוד';
+  String get insights_equipment_exposure_empty => 'אין עדיין צלילות עם ציוד';
 
   @override
-  String get statistics_equipment_findings_title => 'ממצאי מצב';
+  String get insights_equipment_findings_title => 'ממצאי מצב';
 
   @override
-  String get statistics_equipment_findings_subtitle => 'ממצאים פתוחים לפי כלל';
+  String get insights_equipment_findings_subtitle => 'ממצאים פתוחים לפי כלל';
 
   @override
-  String get statistics_equipment_findings_subtitleAllDives =>
+  String get insights_equipment_findings_subtitleAllDives =>
       'ממצאים פתוחים לפי כלל, בכל הצלילות';
 
   @override
-  String get statistics_equipment_findings_empty => 'אין ממצאים פתוחים';
+  String get insights_equipment_findings_empty => 'אין ממצאים פתוחים';
 
   @override
-  String get statistics_equipment_issues_title => 'תקלות שדווחו';
+  String get insights_equipment_issues_title => 'תקלות שדווחו';
 
   @override
-  String get statistics_equipment_issues_subtitle =>
-      'תגיות הבדיקה הנפוצות ביותר';
+  String get insights_equipment_issues_subtitle => 'תגיות הבדיקה הנפוצות ביותר';
 
   @override
-  String get statistics_equipment_issues_empty => 'לא דווחו תקלות';
+  String get insights_equipment_issues_empty => 'לא דווחו תקלות';
 
   @override
-  String get statistics_equipment_countLabel_items => 'פריטים';
+  String get insights_equipment_countLabel_items => 'פריטים';
 
   @override
-  String get statistics_equipment_countLabel_findings => 'ממצאים';
+  String get insights_equipment_countLabel_findings => 'ממצאים';
 
   @override
-  String get statistics_equipment_countLabel_reports => 'דיווחים';
+  String get insights_equipment_countLabel_reports => 'דיווחים';
 
   @override
-  String get statistics_equipment_exposureUnit_days => 'ימים';
+  String get insights_equipment_exposureUnit_days => 'ימים';
 
   @override
-  String get statistics_equipment_exposureUnit_dives => 'צלילות';
+  String get insights_equipment_exposureUnit_dives => 'צלילות';
 
   @override
-  String get statistics_equipment_countLabel_days => 'ימים';
+  String get insights_equipment_countLabel_days => 'ימים';
 
   @override
-  String get statistics_equipment_countLabel_dives => 'צלילות';
+  String get insights_equipment_countLabel_dives => 'צלילות';
 
   @override
-  String get statistics_equipment_countLabel_hours => 'שעות';
+  String get insights_equipment_countLabel_hours => 'שעות';
 
   @override
-  String get statistics_equipment_countLabel_saltHours => 'שעות במים מלוחים';
+  String get insights_equipment_countLabel_saltHours => 'שעות במים מלוחים';
 
   @override
-  String get statistics_equipment_countLabel_coldDives => 'צלילות קרות';
+  String get insights_equipment_countLabel_coldDives => 'צלילות קרות';
 
   @override
-  String get statistics_equipment_countLabel_o2Hours => 'שעות ב-O2 גבוה';
+  String get insights_equipment_countLabel_o2Hours => 'שעות ב-O2 גבוה';
 
   @override
-  String get statistics_equipment_countLabel_deepCycles => 'צלילות עמוקות';
+  String get insights_equipment_countLabel_deepCycles => 'צלילות עמוקות';
 
   @override
-  String get statistics_equipment_countLabel_cycles => 'מחזורי סוללה';
+  String get insights_equipment_countLabel_cycles => 'מחזורי סוללה';
 
   @override
-  String get statistics_equipment_exposureUnit_hours => 'שעות';
+  String get insights_equipment_exposureUnit_hours => 'שעות';
 
   @override
-  String get statistics_equipment_exposureUnit_saltHours => 'שעות במים מלוחים';
+  String get insights_equipment_exposureUnit_saltHours => 'שעות במים מלוחים';
 
   @override
-  String get statistics_equipment_exposureUnit_coldDives => 'צלילות קרות';
+  String get insights_equipment_exposureUnit_coldDives => 'צלילות קרות';
 
   @override
-  String get statistics_equipment_exposureUnit_o2Hours => 'שעות ב-O2 גבוה';
+  String get insights_equipment_exposureUnit_o2Hours => 'שעות ב-O2 גבוה';
 
   @override
-  String get statistics_equipment_exposureUnit_deepCycles => 'צלילות עמוקות';
+  String get insights_equipment_exposureUnit_deepCycles => 'צלילות עמוקות';
 
   @override
-  String get statistics_equipment_exposureUnit_cycles => 'מחזורי סוללה';
+  String get insights_equipment_exposureUnit_cycles => 'מחזורי סוללה';
 
   @override
-  String get statistics_error_loadingStatistics => 'שגיאה בטעינת סטטיסטיקות';
+  String get insights_error_loadingInsights => 'שגיאה בטעינת תובנות';
 
   @override
-  String get statistics_filterBar_clear => 'ניקוי מסנן';
+  String get insights_filterBar_clear => 'ניקוי מסנן';
 
   @override
-  String statistics_filterBar_diveCount(int count) {
+  String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -19592,105 +19855,104 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get statistics_gas_appBar_title => 'צריכת אוויר';
+  String get insights_gas_appBar_title => 'צריכת אוויר';
 
   @override
-  String get statistics_gas_gasMix_error => 'שגיאה בטעינת נתוני תערובת גזים';
+  String get insights_gas_gasMix_error => 'שגיאה בטעינת נתוני תערובת גזים';
 
   @override
-  String get statistics_gas_gasMix_subtitle => 'צלילות לפי סוג גז';
+  String get insights_gas_gasMix_subtitle => 'צלילות לפי סוג גז';
 
   @override
-  String get statistics_gas_gasMix_title => 'התפלגות תערובות גזים';
+  String get insights_gas_gasMix_title => 'התפלגות תערובות גזים';
 
   @override
-  String get statistics_gas_sacByRole_empty => 'אין נתוני ריבוי בלונים זמינים';
+  String get insights_gas_sacByRole_empty => 'אין נתוני ריבוי בלונים זמינים';
 
   @override
-  String get statistics_gas_sacByRole_error => 'שגיאה בטעינת צריכה לפי תפקיד';
+  String get insights_gas_sacByRole_error => 'שגיאה בטעינת צריכה לפי תפקיד';
 
   @override
-  String get statistics_gas_sacByRole_subtitle => 'צריכה ממוצעת לפי סוג בלון';
+  String get insights_gas_sacByRole_subtitle => 'צריכה ממוצעת לפי סוג בלון';
 
   @override
-  String get statistics_gas_sacByRole_title => 'צריכת גז לפי תפקיד בלון';
+  String get insights_gas_sacByRole_title => 'צריכת גז לפי תפקיד בלון';
 
   @override
-  String get statistics_gas_sacRecords_empty => 'אין עדיין נתוני צריכה';
+  String get insights_gas_sacRecords_empty => 'אין עדיין נתוני צריכה';
 
   @override
-  String get statistics_gas_sacRecords_error => 'שגיאה בטעינת שיאי הצריכה';
+  String get insights_gas_sacRecords_error => 'שגיאה בטעינת שיאי הצריכה';
 
   @override
-  String get statistics_gas_sacRecords_highestRmv => 'RMV הגבוה ביותר';
+  String get insights_gas_sacRecords_highestRmv => 'RMV הגבוה ביותר';
 
   @override
-  String get statistics_gas_sacRecords_highestSac => 'SAC הגבוה ביותר';
+  String get insights_gas_sacRecords_highestSac => 'SAC הגבוה ביותר';
 
   @override
-  String get statistics_gas_sacRecords_bestRmv => 'RMV הטוב ביותר';
+  String get insights_gas_sacRecords_bestRmv => 'RMV הטוב ביותר';
 
   @override
-  String get statistics_gas_sacRecords_bestSac => 'SAC הטוב ביותר';
+  String get insights_gas_sacRecords_bestSac => 'SAC הטוב ביותר';
 
   @override
-  String get statistics_gas_sacRecords_subtitle =>
+  String get insights_gas_sacRecords_subtitle =>
       'צריכת אוויר הטובה והגרועה ביותר';
 
   @override
-  String get statistics_gas_sacRecords_title => 'שיאי צריכת גז';
+  String get insights_gas_sacRecords_title => 'שיאי צריכת גז';
 
   @override
-  String get statistics_gas_sacTrend_error => 'שגיאה בטעינת מגמת הצריכה';
+  String get insights_gas_sacTrend_error => 'שגיאה בטעינת מגמת הצריכה';
 
   @override
-  String get statistics_gas_sacTrend_subtitle => 'כל צלילה בטווח';
+  String get insights_gas_sacTrend_subtitle => 'כל צלילה בטווח';
 
   @override
-  String get statistics_gas_sacTrend_title => 'מגמת צריכת גז';
+  String get insights_gas_sacTrend_title => 'מגמת צריכת גז';
 
   @override
-  String get statistics_gas_tankRole_backGas => 'גז ראשי';
+  String get insights_gas_tankRole_backGas => 'גז ראשי';
 
   @override
-  String get statistics_gas_tankRole_bailout => 'חילוץ';
+  String get insights_gas_tankRole_bailout => 'חילוץ';
 
   @override
-  String get statistics_gas_tankRole_deco => 'דקו';
+  String get insights_gas_tankRole_deco => 'דקו';
 
   @override
-  String get statistics_gas_tankRole_diluent => 'מדלל';
+  String get insights_gas_tankRole_diluent => 'מדלל';
 
   @override
-  String get statistics_gas_tankRole_oxygenSupply => 'אספקת O₂';
+  String get insights_gas_tankRole_oxygenSupply => 'אספקת O₂';
 
   @override
-  String get statistics_gas_tankRole_pony => 'פוני';
+  String get insights_gas_tankRole_pony => 'פוני';
 
   @override
-  String get statistics_gas_tankRole_sidemountLeft => 'סיידמאונט שמאל';
+  String get insights_gas_tankRole_sidemountLeft => 'סיידמאונט שמאל';
 
   @override
-  String get statistics_gas_tankRole_sidemountRight => 'סיידמאונט ימין';
+  String get insights_gas_tankRole_sidemountRight => 'סיידמאונט ימין';
 
   @override
-  String get statistics_gas_tankRole_stage => 'סטייג\'';
+  String get insights_gas_tankRole_stage => 'סטייג\'';
 
   @override
-  String get statistics_geographic_appBar_title => 'גיאוגרפיה';
+  String get insights_geographic_appBar_title => 'גיאוגרפיה';
 
   @override
-  String get statistics_geographic_countries_empty => 'לא ביקרת במדינות';
+  String get insights_geographic_countries_empty => 'לא ביקרת במדינות';
 
   @override
-  String get statistics_geographic_countries_error =>
-      'שגיאה בטעינת נתוני מדינות';
+  String get insights_geographic_countries_error => 'שגיאה בטעינת נתוני מדינות';
 
   @override
-  String get statistics_geographic_countries_subtitle => 'צלילות לפי מדינה';
+  String get insights_geographic_countries_subtitle => 'צלילות לפי מדינה';
 
   @override
-  String statistics_geographic_countries_summary(
+  String insights_geographic_countries_summary(
     Object count,
     Object topName,
     Object topCount,
@@ -19699,19 +19961,19 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get statistics_geographic_countries_title => 'מדינות שביקרת בהן';
+  String get insights_geographic_countries_title => 'מדינות שביקרת בהן';
 
   @override
-  String get statistics_geographic_regions_empty => 'לא נחקרו אזורים';
+  String get insights_geographic_regions_empty => 'לא נחקרו אזורים';
 
   @override
-  String get statistics_geographic_regions_error => 'שגיאה בטעינת נתוני אזורים';
+  String get insights_geographic_regions_error => 'שגיאה בטעינת נתוני אזורים';
 
   @override
-  String get statistics_geographic_regions_subtitle => 'צלילות לפי אזור';
+  String get insights_geographic_regions_subtitle => 'צלילות לפי אזור';
 
   @override
-  String statistics_geographic_regions_summary(
+  String insights_geographic_regions_summary(
     Object count,
     Object topName,
     Object topCount,
@@ -19720,19 +19982,19 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get statistics_geographic_regions_title => 'אזורים שנחקרו';
+  String get insights_geographic_regions_title => 'אזורים שנחקרו';
 
   @override
-  String get statistics_geographic_trips_empty => 'אין נתוני טיולים';
+  String get insights_geographic_trips_empty => 'אין נתוני טיולים';
 
   @override
-  String get statistics_geographic_trips_error => 'שגיאה בטעינת נתוני טיולים';
+  String get insights_geographic_trips_error => 'שגיאה בטעינת נתוני טיולים';
 
   @override
-  String get statistics_geographic_trips_subtitle => 'הטיולים הפוריים ביותר';
+  String get insights_geographic_trips_subtitle => 'הטיולים הפוריים ביותר';
 
   @override
-  String statistics_geographic_trips_summary(
+  String insights_geographic_trips_summary(
     Object count,
     Object topName,
     Object topCount,
@@ -19741,27 +20003,26 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get statistics_geographic_trips_title => 'צלילות לפי טיול';
+  String get insights_geographic_trips_title => 'צלילות לפי טיול';
 
   @override
-  String get statistics_listContent_selectedSuffix => ', נבחר';
+  String get insights_listContent_selectedSuffix => ', נבחר';
 
   @override
-  String get statistics_marineLife_appBar_title => 'מינים';
+  String get insights_marineLife_appBar_title => 'מינים';
 
   @override
-  String get statistics_marineLife_bestSites_empty => 'אין נתוני אתרים';
+  String get insights_marineLife_bestSites_empty => 'אין נתוני אתרים';
 
   @override
-  String get statistics_marineLife_bestSites_error =>
-      'שגיאה בטעינת נתוני אתרים';
+  String get insights_marineLife_bestSites_error => 'שגיאה בטעינת נתוני אתרים';
 
   @override
-  String get statistics_marineLife_bestSites_subtitle =>
+  String get insights_marineLife_bestSites_subtitle =>
       'אתרים עם מגוון המינים הגדול ביותר';
 
   @override
-  String statistics_marineLife_bestSites_summary(
+  String insights_marineLife_bestSites_summary(
     Object count,
     Object topName,
     Object topCount,
@@ -19770,21 +20031,21 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get statistics_marineLife_bestSites_title => 'האתרים הטובים ביותר';
+  String get insights_marineLife_bestSites_title => 'האתרים הטובים ביותר';
 
   @override
-  String get statistics_marineLife_mostCommon_empty => 'אין נתוני תצפיות';
+  String get insights_marineLife_mostCommon_empty => 'אין נתוני תצפיות';
 
   @override
-  String get statistics_marineLife_mostCommon_error =>
+  String get insights_marineLife_mostCommon_error =>
       'שגיאה בטעינת נתוני תצפיות';
 
   @override
-  String get statistics_marineLife_mostCommon_subtitle =>
+  String get insights_marineLife_mostCommon_subtitle =>
       'המינים שנצפו בתדירות הגבוהה ביותר';
 
   @override
-  String statistics_marineLife_mostCommon_summary(
+  String insights_marineLife_mostCommon_summary(
     Object count,
     Object topName,
     Object topCount,
@@ -19793,172 +20054,169 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get statistics_marineLife_mostCommon_title => 'התצפיות הנפוצות ביותר';
+  String get insights_marineLife_mostCommon_title => 'התצפיות הנפוצות ביותר';
 
   @override
-  String get statistics_marineLife_speciesSpotted => 'מינים שנצפו';
+  String get insights_marineLife_speciesSpotted => 'מינים שנצפו';
 
   @override
-  String get statistics_marineLife_seeAllSpecies_title => 'הצגת כל המינים';
+  String get insights_marineLife_seeAllSpecies_title => 'הצגת כל המינים';
 
   @override
-  String get statistics_marineLife_seeAllSpecies_subtitle =>
+  String get insights_marineLife_seeAllSpecies_subtitle =>
       'כל המינים שתיעדת, עם חיפוש';
 
   @override
-  String get statistics_profile_appBar_title => 'ניתוח פרופיל';
+  String get insights_profile_appBar_title => 'ניתוח פרופיל';
 
   @override
-  String get statistics_profile_ascentDescent_empty =>
-      'אין נתוני פרופיל זמינים';
+  String get insights_profile_ascentDescent_empty => 'אין נתוני פרופיל זמינים';
 
   @override
-  String get statistics_profile_ascentDescent_error => 'שגיאה בטעינת נתוני קצב';
+  String get insights_profile_ascentDescent_error => 'שגיאה בטעינת נתוני קצב';
 
   @override
-  String get statistics_profile_ascentDescent_subtitle =>
-      'מנתוני פרופיל הצלילה';
+  String get insights_profile_ascentDescent_subtitle => 'מנתוני פרופיל הצלילה';
 
   @override
-  String get statistics_profile_ascentDescent_title =>
+  String get insights_profile_ascentDescent_title =>
       'קצבי עלייה וירידה ממוצעים';
 
   @override
-  String get statistics_profile_avgAscent => 'עלייה ממוצעת';
+  String get insights_profile_avgAscent => 'עלייה ממוצעת';
 
   @override
-  String get statistics_profile_avgDescent => 'ירידה ממוצעת';
+  String get insights_profile_avgDescent => 'ירידה ממוצעת';
 
   @override
-  String get statistics_profile_deco_decoDives => 'צלילות דקו';
+  String get insights_profile_deco_decoDives => 'צלילות דקו';
 
   @override
-  String get statistics_profile_deco_decoLabel => 'דקו';
+  String get insights_profile_deco_decoLabel => 'דקו';
 
   @override
-  String get statistics_profile_deco_decoRate => 'שיעור דקו';
+  String get insights_profile_deco_decoRate => 'שיעור דקו';
 
   @override
-  String get statistics_profile_deco_empty => 'אין נתוני דקו זמינים';
+  String get insights_profile_deco_empty => 'אין נתוני דקו זמינים';
 
   @override
-  String get statistics_profile_deco_error => 'שגיאה בטעינת נתוני דקו';
+  String get insights_profile_deco_error => 'שגיאה בטעינת נתוני דקו';
 
   @override
-  String get statistics_profile_deco_noDeco => 'ללא דקו';
+  String get insights_profile_deco_noDeco => 'ללא דקו';
 
   @override
-  String get statistics_profile_deco_notRecorded => 'לא נרשם';
+  String get insights_profile_deco_notRecorded => 'לא נרשם';
 
   @override
-  String statistics_profile_deco_notRecordedHint(int count) {
+  String insights_profile_deco_notRecordedHint(int count) {
     return 'ל-$count צלילות אין נתוני דקומפרסיה שנרשמו או שניתן לחשב, והן אינן נכללות בשיעור';
   }
 
   @override
-  String statistics_profile_deco_semanticLabel(Object percentage) {
+  String insights_profile_deco_semanticLabel(Object percentage) {
     return 'שיעור דקומפרסיה: $percentage% מהצלילות דרשו עצירות דקו';
   }
 
   @override
-  String get statistics_profile_deco_subtitle => 'צלילות שדרשו עצירות דקו';
+  String get insights_profile_deco_subtitle => 'צלילות שדרשו עצירות דקו';
 
   @override
-  String get statistics_profile_deco_title => 'חובת דקומפרסיה';
+  String get insights_profile_deco_title => 'חובת דקומפרסיה';
 
   @override
-  String get statistics_profile_timeAtDepth_empty => 'אין נתוני עומק זמינים';
+  String get insights_profile_timeAtDepth_empty => 'אין נתוני עומק זמינים';
 
   @override
-  String get statistics_profile_timeAtDepth_error =>
+  String get insights_profile_timeAtDepth_error =>
       'שגיאה בטעינת נתוני טווח עומק';
 
   @override
-  String get statistics_profile_timeAtDepth_subtitle => 'זמן משוער בכל עומק';
+  String get insights_profile_timeAtDepth_subtitle => 'זמן משוער בכל עומק';
 
   @override
-  String get statistics_profile_timeAtDepth_title => 'זמן בטווחי עומק';
+  String get insights_profile_timeAtDepth_title => 'זמן בטווחי עומק';
 
   @override
-  String statistics_profile_timeAtDepth_valueFormat(Object value) {
+  String insights_profile_timeAtDepth_valueFormat(Object value) {
     return '$value min';
   }
 
   @override
-  String get statistics_progression_appBar_title => 'התקדמות צלילה';
+  String get insights_progression_appBar_title => 'התקדמות צלילה';
 
   @override
-  String get statistics_progression_bottomTime_error =>
+  String get insights_progression_bottomTime_error =>
       'שגיאה בטעינת מגמת זמן תחתית';
 
   @override
-  String get statistics_progression_bottomTime_subtitle => 'כל צלילה בטווח';
+  String get insights_progression_bottomTime_subtitle => 'כל צלילה בטווח';
 
   @override
-  String get statistics_progression_bottomTime_title => 'מגמת זמן תחתית';
+  String get insights_progression_bottomTime_title => 'מגמת זמן תחתית';
 
   @override
-  String get statistics_progression_cumulative_error =>
+  String get insights_progression_cumulative_error =>
       'שגיאה בטעינת נתונים מצטברים';
 
   @override
-  String get statistics_progression_cumulative_subtitle =>
+  String get insights_progression_cumulative_subtitle =>
       'סה\"כ צלילות לאורך זמן';
 
   @override
-  String get statistics_progression_cumulative_title => 'ספירת צלילות מצטברת';
+  String get insights_progression_cumulative_title => 'ספירת צלילות מצטברת';
 
   @override
-  String get statistics_progression_depthProgression_error =>
+  String get insights_progression_depthProgression_error =>
       'שגיאה בטעינת התקדמות עומק';
 
   @override
-  String get statistics_progression_depthProgression_subtitle =>
-      'כל צלילה בטווח';
+  String get insights_progression_depthProgression_subtitle => 'כל צלילה בטווח';
 
   @override
-  String get statistics_progression_depthProgression_title =>
+  String get insights_progression_depthProgression_title =>
       'התקדמות עומק מקסימלי';
 
   @override
-  String get statistics_progression_divesPerYear_empty =>
+  String get insights_progression_divesPerYear_empty =>
       'אין נתונים שנתיים זמינים';
 
   @override
-  String get statistics_progression_divesPerYear_error =>
+  String get insights_progression_divesPerYear_error =>
       'שגיאה בטעינת נתונים שנתיים';
 
   @override
-  String get statistics_progression_divesPerYear_subtitle =>
+  String get insights_progression_divesPerYear_subtitle =>
       'השוואת ספירת צלילות שנתית';
 
   @override
-  String get statistics_progression_divesPerYear_title => 'צלילות לפי שנה';
+  String get insights_progression_divesPerYear_title => 'צלילות לפי שנה';
 
   @override
-  String get statistics_ranking_countLabel_dives => 'צלילות';
+  String get insights_ranking_countLabel_dives => 'צלילות';
 
   @override
-  String get statistics_ranking_countLabel_sightings => 'תצפיות';
+  String get insights_ranking_countLabel_sightings => 'תצפיות';
 
   @override
-  String get statistics_ranking_countLabel_species => 'מינים';
+  String get insights_ranking_countLabel_species => 'מינים';
 
   @override
-  String get statistics_ranking_emptyState => 'אין עדיין נתונים';
+  String get insights_ranking_emptyState => 'אין עדיין נתונים';
 
   @override
-  String statistics_ranking_itemCount(Object count, Object label) {
+  String insights_ranking_itemCount(Object count, Object label) {
     return '$count $label';
   }
 
   @override
-  String statistics_ranking_moreItems(Object count) {
+  String insights_ranking_moreItems(Object count) {
     return 'ועוד $count';
   }
 
   @override
-  String statistics_ranking_semanticLabel(
+  String insights_ranking_semanticLabel(
     Object name,
     Object rank,
     Object count,
@@ -19968,42 +20226,42 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get statistics_records_appBar_title => 'שיאי צלילה';
+  String get insights_records_appBar_title => 'שיאי צלילה';
 
   @override
-  String get statistics_records_coldestDive => 'הצלילה הקרה ביותר';
+  String get insights_records_coldestDive => 'הצלילה הקרה ביותר';
 
   @override
-  String get statistics_records_deepestDive => 'הצלילה העמוקה ביותר';
+  String get insights_records_deepestDive => 'הצלילה העמוקה ביותר';
 
   @override
-  String statistics_records_diveNumber(Object number) {
+  String insights_records_diveNumber(Object number) {
     return 'צלילה #$number';
   }
 
   @override
-  String get statistics_records_emptySubtitle =>
+  String get insights_records_emptySubtitle =>
       'התחל לרשום צלילות כדי לראות את השיאים שלך כאן';
 
   @override
-  String get statistics_records_emptyTitle => 'אין עדיין שיאים';
+  String get insights_records_emptyTitle => 'אין עדיין שיאים';
 
   @override
-  String get statistics_records_error => 'שגיאה בטעינת שיאים';
+  String get insights_records_error => 'שגיאה בטעינת שיאים';
 
   @override
-  String get statistics_records_firstDive => 'הצלילה הראשונה';
+  String get insights_records_firstDive => 'הצלילה הראשונה';
 
   @override
-  String get statistics_records_longestDive => 'הצלילה הארוכה ביותר';
+  String get insights_records_longestDive => 'הצלילה הארוכה ביותר';
 
   @override
-  String statistics_records_longestDiveValue(Object minutes) {
+  String insights_records_longestDiveValue(Object minutes) {
     return '$minutes min';
   }
 
   @override
-  String statistics_records_milestoneSemanticLabel(
+  String insights_records_milestoneSemanticLabel(
     Object title,
     Object siteName,
   ) {
@@ -20011,13 +20269,13 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get statistics_records_milestones => 'אבני דרך';
+  String get insights_records_milestones => 'אבני דרך';
 
   @override
-  String get statistics_records_mostRecentDive => 'הצלילה האחרונה';
+  String get insights_records_mostRecentDive => 'הצלילה האחרונה';
 
   @override
-  String statistics_records_recordSemanticLabel(
+  String insights_records_recordSemanticLabel(
     Object title,
     Object value,
     Object siteName,
@@ -20026,131 +20284,126 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get statistics_records_retry => 'נסה שוב';
+  String get insights_records_retry => 'נסה שוב';
 
   @override
-  String get statistics_records_shallowestDive => 'הצלילה הרדודה ביותר';
+  String get insights_records_shallowestDive => 'הצלילה הרדודה ביותר';
 
   @override
-  String get statistics_records_unknownSite => 'אתר לא ידוע';
+  String get insights_records_unknownSite => 'אתר לא ידוע';
 
   @override
-  String get statistics_records_warmestDive => 'הצלילה החמה ביותר';
+  String get insights_records_warmestDive => 'הצלילה החמה ביותר';
 
   @override
-  String statistics_sectionCard_semanticLabel(Object title) {
+  String insights_sectionCard_semanticLabel(Object title) {
     return 'מקטע $title';
   }
 
   @override
-  String get statistics_social_appBar_title => 'חברתי ושותפים';
+  String get insights_social_appBar_title => 'חברתי ושותפים';
 
   @override
-  String get statistics_social_soloVsBuddy_empty => 'אין נתוני צלילה זמינים';
+  String get insights_social_soloVsBuddy_empty => 'אין נתוני צלילה זמינים';
 
   @override
-  String get statistics_social_soloVsBuddy_error => 'שגיאה בטעינת נתוני שותפים';
+  String get insights_social_soloVsBuddy_error => 'שגיאה בטעינת נתוני שותפים';
 
   @override
-  String get statistics_social_soloVsBuddy_solo => 'סולו';
+  String get insights_social_soloVsBuddy_solo => 'סולו';
 
   @override
-  String get statistics_social_soloVsBuddy_subtitle => 'צלילה עם או בלי שותפים';
+  String get insights_social_soloVsBuddy_subtitle => 'צלילה עם או בלי שותפים';
 
   @override
-  String get statistics_social_soloVsBuddy_title => 'צלילות סולו לעומת שותף';
+  String get insights_social_soloVsBuddy_title => 'צלילות סולו לעומת שותף';
 
   @override
-  String get statistics_social_soloVsBuddy_withBuddy => 'עם שותף';
+  String get insights_social_soloVsBuddy_withBuddy => 'עם שותף';
 
   @override
-  String get statistics_social_topBuddies_error => 'שגיאה בטעינת דירוג שותפים';
+  String get insights_social_topBuddies_error => 'שגיאה בטעינת דירוג שותפים';
 
   @override
-  String get statistics_social_topBuddies_subtitle =>
+  String get insights_social_topBuddies_subtitle =>
       'שותפי הצלילה השכיחים ביותר';
 
   @override
-  String get statistics_social_topBuddies_title => 'שותפי הצלילה המובילים';
+  String get insights_social_topBuddies_title => 'שותפי הצלילה המובילים';
 
   @override
-  String get statistics_social_topDiveCenters_error =>
+  String get insights_social_topDiveCenters_error =>
       'שגיאה בטעינת דירוג מרכזי צלילה';
 
   @override
-  String get statistics_social_topDiveCenters_subtitle =>
-      'המפעילים הנצפים ביותר';
+  String get insights_social_topDiveCenters_subtitle => 'המפעילים הנצפים ביותר';
 
   @override
-  String get statistics_social_topDiveCenters_title => 'מרכזי הצלילה המובילים';
+  String get insights_social_topDiveCenters_title => 'מרכזי הצלילה המובילים';
 
   @override
-  String get statistics_summary_avgDepth => 'עומק ממוצע';
+  String get insights_summary_avgDepth => 'עומק ממוצע';
 
   @override
-  String get statistics_summary_avgTemp => 'טמפ\' ממוצעת';
+  String get insights_summary_avgTemp => 'טמפ\' ממוצעת';
 
   @override
-  String get statistics_summary_depthDistribution_empty =>
+  String get insights_summary_depthDistribution_empty =>
       'התרשים יופיע כשתרשום צלילות';
 
   @override
-  String get statistics_summary_depthDistribution_semanticLabel =>
+  String get insights_summary_depthDistribution_semanticLabel =>
       'תרשים עוגה המציג התפלגות עומק';
 
   @override
-  String get statistics_summary_depthDistribution_title => 'התפלגות עומק';
+  String get insights_summary_depthDistribution_title => 'התפלגות עומק';
 
   @override
-  String get statistics_summary_diveTypes_empty =>
-      'התרשים יופיע כשתרשום צלילות';
+  String get insights_summary_diveTypes_empty => 'התרשים יופיע כשתרשום צלילות';
 
   @override
-  String statistics_summary_diveTypes_moreTypes(Object count) {
+  String insights_summary_diveTypes_moreTypes(Object count) {
     return 'ועוד $count סוגים';
   }
 
   @override
-  String get statistics_summary_diveTypes_semanticLabel =>
+  String get insights_summary_diveTypes_semanticLabel =>
       'תרשים עוגה המציג התפלגות סוגי צלילה';
 
   @override
-  String get statistics_summary_diveTypes_title => 'סוגי צלילה';
+  String get insights_summary_diveTypes_title => 'סוגי צלילה';
 
   @override
-  String get statistics_summary_divesByMonth_empty =>
+  String get insights_summary_divesByMonth_empty =>
       'התרשים יופיע כשתרשום צלילות';
 
   @override
-  String get statistics_summary_divesByMonth_semanticLabel =>
+  String get insights_summary_divesByMonth_semanticLabel =>
       'תרשים עמודות המציג צלילות לפי חודש';
 
   @override
-  String get statistics_summary_divesByMonth_title => 'צלילות לפי חודש';
+  String get insights_summary_divesByMonth_title => 'צלילות לפי חודש';
 
   @override
-  String statistics_summary_divesByMonth_tooltip(
-    Object fullLabel,
-    Object count,
-  ) {
+  String insights_summary_divesByMonth_tooltip(Object fullLabel, Object count) {
     return '$fullLabel\n$count צלילות';
   }
 
   @override
-  String get statistics_summary_header_subtitle =>
-      'בחר קטגוריה כדי לחקור סטטיסטיקות מפורטות';
+  String get insights_summary_header_subtitle =>
+      'בחר קטגוריה כדי לחקור תובנות מפורטות';
 
   @override
-  String get statistics_summary_header_title => 'סקירת סטטיסטיקות';
+  String get insights_summary_header_title => 'סקירת תובנות';
 
   @override
-  String get statistics_summary_maxDepth => 'עומק מקסימלי';
+  String get insights_summary_maxDepth => 'עומק מקסימלי';
 
   @override
-  String get statistics_summary_sitesVisited => 'אתרים שביקרת';
+  String get insights_summary_sitesVisited => 'אתרים שביקרת';
 
   @override
-  String statistics_summary_tagUsage_diveCount(int count) {
+  String insights_summary_tagUsage_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -20161,148 +20414,148 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get statistics_summary_tagUsage_empty => 'לא נוצרו עדיין תגיות';
+  String get insights_summary_tagUsage_empty => 'לא נוצרו עדיין תגיות';
 
   @override
-  String get statistics_summary_tagUsage_emptyHint =>
+  String get insights_summary_tagUsage_emptyHint =>
       'הוסף תגיות לצלילות כדי לראות סטטיסטיקות';
 
   @override
-  String statistics_summary_tagUsage_moreTags(Object count) {
+  String insights_summary_tagUsage_moreTags(Object count) {
     return 'ועוד $count תגיות';
   }
 
   @override
-  String statistics_summary_tagUsage_tagCount(Object count) {
+  String insights_summary_tagUsage_tagCount(Object count) {
     return '$count תגיות';
   }
 
   @override
-  String get statistics_summary_tagUsage_title => 'שימוש בתגיות';
+  String get insights_summary_tagUsage_title => 'שימוש בתגיות';
 
   @override
-  String statistics_summary_topDiveSites_diveCount(Object count) {
+  String insights_summary_topDiveSites_diveCount(Object count) {
     return '$count צלילות';
   }
 
   @override
-  String get statistics_summary_topDiveSites_empty => 'אין עדיין אתרי צלילה';
+  String get insights_summary_topDiveSites_empty => 'אין עדיין אתרי צלילה';
 
   @override
-  String get statistics_summary_topDiveSites_title => 'אתרי הצלילה המובילים';
+  String get insights_summary_topDiveSites_title => 'אתרי הצלילה המובילים';
 
   @override
-  String statistics_summary_topDiveSites_totalCount(Object count) {
+  String insights_summary_topDiveSites_totalCount(Object count) {
     return '$count סה\"כ';
   }
 
   @override
-  String get statistics_summary_totalDives => 'סה\"כ צלילות';
+  String get insights_summary_totalDives => 'סה\"כ צלילות';
 
   @override
-  String get statistics_summary_totalTime => 'זמן כולל';
+  String get insights_summary_totalTime => 'זמן כולל';
 
   @override
-  String get statistics_timePatterns_appBar_title => 'דפוסי זמן';
+  String get insights_timePatterns_appBar_title => 'דפוסי זמן';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_empty => 'אין נתונים זמינים';
+  String get insights_timePatterns_dayOfWeek_empty => 'אין נתונים זמינים';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_error =>
+  String get insights_timePatterns_dayOfWeek_error =>
       'שגיאה בטעינת נתוני ימי השבוע';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_fri => 'שישי';
+  String get insights_timePatterns_dayOfWeek_fri => 'שישי';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_mon => 'שני';
+  String get insights_timePatterns_dayOfWeek_mon => 'שני';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_sat => 'שבת';
+  String get insights_timePatterns_dayOfWeek_sat => 'שבת';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_subtitle =>
+  String get insights_timePatterns_dayOfWeek_subtitle =>
       'מתי אתה צולל הכי הרבה?';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_sun => 'ראשון';
+  String get insights_timePatterns_dayOfWeek_sun => 'ראשון';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_thu => 'חמישי';
+  String get insights_timePatterns_dayOfWeek_thu => 'חמישי';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_title => 'צלילות לפי יום בשבוע';
+  String get insights_timePatterns_dayOfWeek_title => 'צלילות לפי יום בשבוע';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_tue => 'שלישי';
+  String get insights_timePatterns_dayOfWeek_tue => 'שלישי';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_wed => 'רביעי';
+  String get insights_timePatterns_dayOfWeek_wed => 'רביעי';
 
   @override
-  String get statistics_timePatterns_month_apr => 'אפר\'';
+  String get insights_timePatterns_month_apr => 'אפר\'';
 
   @override
-  String get statistics_timePatterns_month_aug => 'אוג\'';
+  String get insights_timePatterns_month_aug => 'אוג\'';
 
   @override
-  String get statistics_timePatterns_month_dec => 'דצמ\'';
+  String get insights_timePatterns_month_dec => 'דצמ\'';
 
   @override
-  String get statistics_timePatterns_month_feb => 'פבר\'';
+  String get insights_timePatterns_month_feb => 'פבר\'';
 
   @override
-  String get statistics_timePatterns_month_jan => 'ינו\'';
+  String get insights_timePatterns_month_jan => 'ינו\'';
 
   @override
-  String get statistics_timePatterns_month_jul => 'יולי';
+  String get insights_timePatterns_month_jul => 'יולי';
 
   @override
-  String get statistics_timePatterns_month_jun => 'יוני';
+  String get insights_timePatterns_month_jun => 'יוני';
 
   @override
-  String get statistics_timePatterns_month_mar => 'מרץ';
+  String get insights_timePatterns_month_mar => 'מרץ';
 
   @override
-  String get statistics_timePatterns_month_may => 'מאי';
+  String get insights_timePatterns_month_may => 'מאי';
 
   @override
-  String get statistics_timePatterns_month_nov => 'נוב\'';
+  String get insights_timePatterns_month_nov => 'נוב\'';
 
   @override
-  String get statistics_timePatterns_month_oct => 'אוק\'';
+  String get insights_timePatterns_month_oct => 'אוק\'';
 
   @override
-  String get statistics_timePatterns_month_sep => 'ספט\'';
+  String get insights_timePatterns_month_sep => 'ספט\'';
 
   @override
-  String get statistics_timePatterns_seasonal_empty => 'אין נתונים זמינים';
+  String get insights_timePatterns_seasonal_empty => 'אין נתונים זמינים';
 
   @override
-  String get statistics_timePatterns_seasonal_error =>
+  String get insights_timePatterns_seasonal_error =>
       'שגיאה בטעינת נתונים עונתיים';
 
   @override
-  String get statistics_timePatterns_seasonal_subtitle =>
+  String get insights_timePatterns_seasonal_subtitle =>
       'צלילות לפי חודש (כל השנים)';
 
   @override
-  String get statistics_timePatterns_seasonal_title => 'דפוסים עונתיים';
+  String get insights_timePatterns_seasonal_title => 'דפוסים עונתיים';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_average => 'ממוצע';
+  String get insights_timePatterns_surfaceInterval_average => 'ממוצע';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_empty =>
+  String get insights_timePatterns_surfaceInterval_empty =>
       'אין נתוני מרווח שטח זמינים';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_error =>
+  String get insights_timePatterns_surfaceInterval_error =>
       'שגיאה בטעינת נתוני מרווח שטח';
 
   @override
-  String statistics_timePatterns_surfaceInterval_formatHoursMinutes(
+  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
     Object hours,
     Object minutes,
   ) {
@@ -20310,49 +20563,48 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String statistics_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
+  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
     return '$minutes min';
   }
 
   @override
-  String get statistics_timePatterns_surfaceInterval_maximum => 'מקסימום';
+  String get insights_timePatterns_surfaceInterval_maximum => 'מקסימום';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_minimum => 'מינימום';
+  String get insights_timePatterns_surfaceInterval_minimum => 'מינימום';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_subtitle =>
-      'זמן בין צלילות';
+  String get insights_timePatterns_surfaceInterval_subtitle => 'זמן בין צלילות';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_title =>
+  String get insights_timePatterns_surfaceInterval_title =>
       'סטטיסטיקות מרווח שטח';
 
   @override
-  String get statistics_timePatterns_timeOfDay_error =>
+  String get insights_timePatterns_timeOfDay_error =>
       'שגיאה בטעינת נתוני שעות היום';
 
   @override
-  String get statistics_timePatterns_timeOfDay_subtitle =>
+  String get insights_timePatterns_timeOfDay_subtitle =>
       'בוקר, צהריים, ערב או לילה';
 
   @override
-  String get statistics_timePatterns_timeOfDay_title => 'צלילות לפי שעה ביום';
+  String get insights_timePatterns_timeOfDay_title => 'צלילות לפי שעה ביום';
 
   @override
-  String get statistics_tooltip_diveRecords => 'שיאי צלילה';
+  String get insights_tooltip_diveRecords => 'שיאי צלילה';
 
   @override
-  String get statistics_tooltip_filter => 'סינון סטטיסטיקות';
+  String get insights_tooltip_filter => 'סינון תובנות';
 
   @override
-  String get statistics_tooltip_refreshRecords => 'רענן שיאים';
+  String get insights_tooltip_refreshRecords => 'רענן שיאים';
 
   @override
-  String get statistics_tooltip_refreshStatistics => 'רענן סטטיסטיקות';
+  String get insights_tooltip_refreshInsights => 'רענן תובנות';
 
   @override
-  String statistics_valueCard_semanticLabel(Object label, Object value) {
+  String insights_valueCard_semanticLabel(Object label, Object value) {
     return '$label: $value';
   }
 
@@ -23343,6 +23595,45 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_label_skip => 'דלג';
 
   @override
+  String get universalImport_label_fillPlanned => 'השלמת צלילה מתוכננת';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'שיוך ההורדה הזו לצלילה שתכננתם';
+
+  @override
+  String get universalImport_label_filledPlanned => 'צלילות מתוכננות שהושלמו';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'משלים צלילה מתוכננת: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'הפרופיל המשורטט שלה יוחלף.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'שינוי';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle => 'בחירת צלילה מתוכננת';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'ייבוא כצלילה חדשה במקום';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'ביטול ההשלמות';
+
+  @override
+  String get universalImport_fillPlanned_undone => 'צלילות מתוכננות שוחזרו';
+
+  @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'לא ניתן היה לשחזר את כל הצלילות המתוכננות. נסו שוב.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'מתויג כ: $tag';
   }
@@ -25184,14 +25475,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps_offline_clearAll => 'נקה הכל';
 
   @override
-  String get maps_offline_clearAllCache => 'נקה את כל המטמון';
-
-  @override
   String get maps_offline_clearAllCacheMessage =>
       'למחוק את כל אזורי המפה שהורדו ואריחים שמורים?';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'לנקות את כל המטמון?';
+
+  @override
+  String get maps_offline_clearAllTiles => 'נקה את כל אריחי המפה';
 
   @override
   String maps_offline_clearCacheStats(Object count, Object size) {
@@ -25301,6 +25592,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get maps_offline_section_terrain => 'פני שטח בתלת-ממד';
+
+  @override
+  String get maps_offline_section_tiles => 'אריחי מפה';
+
+  @override
   String get maps_offline_size => 'גודל';
 
   @override
@@ -25342,6 +25639,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tankPresets_builtInPresets => 'תבניות מובנות';
+
+  @override
+  String get tankPresets_builtInPresets_description =>
+      'כבה תבניות שאינך משתמש בהן כדי להסתיר אותן מבוררי הבלונים. תבנית ברירת המחדל מוצגת תמיד.';
 
   @override
   String get tankPresets_currentDefault => 'ברירת מחדל נוכחית';
@@ -25492,6 +25793,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'הגדר כברירת מחדל';
+
+  @override
+  String get tankPresets_showInPickers => 'הצג בבוררי הבלונים';
 
   @override
   String get tankPresets_title => 'תבניות מיכל';
@@ -25994,9 +26298,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'עדיין לא נשמרו נתוני עומק אגמים';
 
   @override
-  String get maps3d_appBar_title => 'מפות תלת-ממד';
-
-  @override
   String get maps3d_section_all => 'כל הספקים';
 
   @override
@@ -26099,7 +26400,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get maps3d_busy_notice =>
-      'פעולה אחרת של מפות תלת-ממד פועלת כעת. יש להמתין עד לסיומה.';
+      'פעולה אחרת של פני שטח בתלת-ממד פועלת כעת. יש להמתין עד לסיומה.';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {
@@ -26478,12 +26779,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divers_edit_priorInvalidNumber => 'הזן מספר תקין';
 
   @override
-  String statistics_priorBreakdown(String logged, String prior) {
+  String insights_priorBreakdown(String logged, String prior) {
     return '$logged מתועדות + $prior קודמות';
   }
 
   @override
-  String statistics_divingSince(int year) {
+  String insights_divingSince(int year) {
     return 'צולל מאז $year';
   }
 
@@ -26606,6 +26907,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'המכשיר הזה ואחסון הענן כבר לא מסכימים על המאגר שבשימוש. חיבור מחדש של אחסון המדיה מאמץ את המאגר שנמצא כעת בענן.';
 
   @override
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      'המכשיר הזה כבר לא מחובר לאחסון המדיה הזה. אפשר לחבר אותו מחדש בהגדרות אחסון המדיה.';
+
+  @override
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      'לא ניתן היה לבדוק את אחסון המדיה. ההעברות ינוסו שוב באופן אוטומטי.';
+
+  @override
   String settings_mediaStorage_transfers_queued(int count) {
     return '$count בתור';
   }
@@ -26614,6 +26923,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String settings_mediaStorage_transfers_waitingRetry(int count) {
     return '$count ממתינים לניסיון חוזר';
   }
+
+  @override
+  String get settings_mediaStorage_transfers_waitingConnection =>
+      'ממתין לחיבור';
+
+  @override
+  String get settings_mediaStorage_report_action => 'ייצוא דוח מדיה';
+
+  @override
+  String get settings_mediaStorage_report_done => 'דוח המדיה יוצא';
+
+  @override
+  String get settings_mediaStorage_report_note =>
+      'הדוח מפרט נתיבי קבצים ושמות מכשירים. שום דבר לא נשלח.';
+
+  @override
+  String get settings_mediaStorage_report_running => 'בונה את דוח המדיה...';
 
   @override
   String get settings_mediaStorage_verify_action => 'אימות הספרייה';
@@ -27055,6 +27381,27 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dive3d_seascape_noCoordinates => 'לאתר זה אין נקודות ציון GPS';
 
   @override
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
+
+  @override
+  String dive3d_seascape_lodStageLabel(String stage, String span) {
+    return 'Level of detail: $stage ($span)';
+  }
+
+  @override
+  String get dive3d_seascape_lodStageOverview => 'Overview';
+
+  @override
+  String get dive3d_seascape_lodStageMedium => 'Medium';
+
+  @override
+  String get dive3d_seascape_lodStageFine => 'Fine';
+
+  @override
+  String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
+
+  @override
   String get dive3d_seascape_noData => 'אין נתוני עומק זמינים למיקום זה';
 
   @override
@@ -27276,6 +27623,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String settings_setup_mediaStoreReconnect(String hint) {
+    return 'חיבור מחדש של אחסון מדיה ($hint)';
+  }
+
+  @override
   String settings_setup_accountSignIn(String label) {
     return 'התחברות אל $label';
   }
@@ -27401,6 +27753,16 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get media_unavailablePlaceholder_accessDenied =>
       'אין גישה לספריית התמונות';
+
+  @override
+  String get media_unavailablePlaceholder_limitedAccess =>
+      'לא בין התמונות המורשות';
+
+  @override
+  String get media_limitedAccess_allowFullAccess => 'אפשר גישה מלאה';
+
+  @override
+  String get media_limitedAccess_choosePhotoAgain => 'בחר את התמונה שוב';
 
   @override
   String get attrLabel_hose_length_m => 'אורך הצינור';
@@ -28022,23 +28384,23 @@ class AppLocalizationsHe extends AppLocalizations {
       'הזן כתובת אינטרנט, למשל shop.example.com';
 
   @override
-  String get statistics_progression_divesBySuitThickness_title =>
+  String get insights_progression_divesBySuitThickness_title =>
       'צלילות לפי עובי חליפה';
 
   @override
-  String get statistics_progression_divesBySuitThickness_subtitle =>
+  String get insights_progression_divesBySuitThickness_subtitle =>
       'העובי העיקרי של חליפת הצלילה על פני הצלילות';
 
   @override
-  String get statistics_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitThickness_empty =>
       'אין צלילות המקושרות לחליפת צלילה או לחליפה יבשה';
 
   @override
-  String get statistics_progression_divesBySuitThickness_error =>
+  String get insights_progression_divesBySuitThickness_error =>
       'לא ניתן לטעון נתוני עובי חליפה';
 
   @override
-  String get statistics_progression_divesBySuitThickness_unknown => 'לא ידוע';
+  String get insights_progression_divesBySuitThickness_unknown => 'לא ידוע';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'עובי חליפה (מ\"מ)';
@@ -28460,6 +28822,66 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'רישום כמעט-תאונה';
+
+  @override
+  String get diveLog_planned_chip => 'מתוכננת';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'צלילה מתוכננת';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'ממתין לנתוני מחשב הצלילה. סמנו כנרשמה אם צללתם בלי מחשב.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'סימון כנרשמה';
+
+  @override
+  String get diveLog_planned_markedLogged => 'סומנה כנרשמה';
+
+  @override
+  String get diveLog_planned_markLoggedFailed =>
+      'לא ניתן היה לסמן את הצלילה כרשומה.';
+
+  @override
+  String get diveLog_mirror_dialogTitle =>
+      'לרשום את הצלילה הזו גם בפרופיל אחר?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'לחברי צוללים אלה יש פרופילים במכשיר זה. הצלילה מתווספת ליומן שלהם כצלילה מתוכננת עד שנתוני מחשב הצלילה שלהם ימלאו אותה.';
+
+  @override
+  String get diveLog_mirror_log => 'רישום';
+
+  @override
+  String get diveLog_mirror_notNow => 'לא עכשיו';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'נרשמה עבור $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'צלילות משוכפלות הוסרו';
+
+  @override
+  String get diveLog_mirror_undoFailed =>
+      'לא ניתן היה להסיר את הצלילות המשוכפלות.';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'לא ניתן היה לרשום עבור $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy => 'רישום בפרופיל של חבר צוללים';
+
+  @override
+  String get diveLog_detail_loggedWith => 'נרשמה עם';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned => 'ממתין למחשב הצלילה שלהם';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -30010,6 +30432,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return '$min $unit ומעלה';
+  }
+
+  @override
   String get settings_coordinateFormat_title => 'פורמט קואורדינטות';
 
   @override
@@ -30045,7 +30472,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_subtitle =>
-      'אילו מרחקים נחשבים ראות טובה במקום שבו אתה צולל';
+      'כיצד פרטי הצלילה והסטטיסטיקה מתארים את הראות שמדדת';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      'בחר אילו מרחקים שנמדדו ייחשבו מצוינת, טובה, בינונית או ירודה בפרטי הצלילה ובסטטיסטיקה. שינוי ההגדרה משנה רק את התוויות של הצלילות; הוא לעולם לא משנה את המרחקים שתיעדת.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'טרופי';
@@ -30073,7 +30504,19 @@ class AppLocalizationsHe extends AppLocalizations {
       'כל ערך חייב להיות קטן מזה שמעליו וגדול מאפס';
 
   @override
-  String statistics_conditions_visibility_legacySuffix(String band) {
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset => 'הגדר מרחקים משלך';
+
+  @override
+  String get settings_visibilityScale_customHelp =>
+      'הזן לכל דרגה את המרחק הקצר ביותר שעדיין נחשב לה.';
+
+  @override
+  String insights_conditions_visibility_legacySuffix(String band) {
     return '$band (נרשם לפני מדידה)';
   }
 
@@ -36445,32 +36888,29 @@ class AppLocalizationsHe extends AppLocalizations {
       'בודק מחדש כל תמונה שיובאה מכתובת URL או ממניפסט מול המארח שלה. מסמן פריטים לא נגישים כך שיוצגו כ\"חסרים\" בספרייה וניתן יהיה לנקות אותם.';
 
   @override
-  String statistics_conditions_entryMethod_semanticLabel(String description) {
+  String insights_conditions_entryMethod_semanticLabel(String description) {
     return 'תרשים עמודות. שיטות כניסה. $description';
   }
 
   @override
-  String statistics_conditions_visibility_semanticLabel(String description) {
+  String insights_conditions_visibility_semanticLabel(String description) {
     return 'תרשים עוגה. התפלגות ראות. $description';
   }
 
   @override
-  String statistics_conditions_waterType_semanticLabel(String description) {
+  String insights_conditions_waterType_semanticLabel(String description) {
     return 'תרשים עוגה. התפלגות סוג מים. $description';
   }
 
   @override
-  String statistics_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitThickness_semanticLabel(
     String description,
   ) {
     return 'תרשים עמודות. צלילות לפי עובי חליפה. $description';
   }
 
   @override
-  String statistics_progression_divesPerYear_countInYear(
-    int count,
-    String year,
-  ) {
+  String insights_progression_divesPerYear_countInYear(int count, String year) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -36483,20 +36923,20 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String statistics_progression_divesPerYear_semanticLabel(String description) {
+  String insights_progression_divesPerYear_semanticLabel(String description) {
     return 'תרשים עמודות. צלילות לפי שנה. $description';
   }
 
   @override
-  String get statistics_records_unavailable => 'השיאים אינם זמינים';
+  String get insights_records_unavailable => 'השיאים אינם זמינים';
 
   @override
-  String statistics_summary_depthBucket_over(String min, String unit) {
+  String insights_summary_depthBucket_over(String min, String unit) {
     return '$min$unit+';
   }
 
   @override
-  String statistics_summary_depthBucket_range(
+  String insights_summary_depthBucket_range(
     String min,
     String max,
     String unit,
@@ -36505,33 +36945,33 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get statistics_summary_distributions_title => 'התפלגויות';
+  String get insights_summary_distributions_title => 'התפלגויות';
 
   @override
-  String get statistics_summary_diveTypes_error =>
+  String get insights_summary_diveTypes_error =>
       'לא ניתן לטעון נתוני סוגי צלילה';
 
   @override
-  String get statistics_summary_diveTypes_unknown => 'לא ידוע';
+  String get insights_summary_diveTypes_unknown => 'לא ידוע';
 
   @override
-  String get statistics_summary_divesPerMonth => 'צלילות / חודש';
+  String get insights_summary_divesPerMonth => 'צלילות / חודש';
 
   @override
-  String get statistics_summary_divesPerYear => 'צלילות / שנה';
+  String get insights_summary_divesPerYear => 'צלילות / שנה';
 
   @override
-  String statistics_timePatterns_dayOfWeek_semanticLabel(String description) {
+  String insights_timePatterns_dayOfWeek_semanticLabel(String description) {
     return 'תרשים עמודות. צלילות לפי יום בשבוע. $description';
   }
 
   @override
-  String statistics_timePatterns_seasonal_semanticLabel(String description) {
+  String insights_timePatterns_seasonal_semanticLabel(String description) {
     return 'תרשים עמודות. צלילות לפי חודש. $description';
   }
 
   @override
-  String statistics_timePatterns_surfaceInterval_statLabel(
+  String insights_timePatterns_surfaceInterval_statLabel(
     String label,
     String value,
   ) {
@@ -36539,19 +36979,19 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get statistics_timePatterns_timeOfDay_afternoon => 'צהריים';
+  String get insights_timePatterns_timeOfDay_afternoon => 'צהריים';
 
   @override
-  String get statistics_timePatterns_timeOfDay_evening => 'ערב';
+  String get insights_timePatterns_timeOfDay_evening => 'ערב';
 
   @override
-  String get statistics_timePatterns_timeOfDay_morning => 'בוקר';
+  String get insights_timePatterns_timeOfDay_morning => 'בוקר';
 
   @override
-  String get statistics_timePatterns_timeOfDay_night => 'לילה';
+  String get insights_timePatterns_timeOfDay_night => 'לילה';
 
   @override
-  String statistics_timePatterns_timeOfDay_semanticLabel(String description) {
+  String insights_timePatterns_timeOfDay_semanticLabel(String description) {
     return 'תרשים עוגה. צלילות לפי שעה ביום. $description';
   }
 
@@ -37008,6 +37448,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'צלילה $diveNumber באתר $siteName';
+  }
+
+  @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return 'צלילה מתוכננת ב־$siteName';
   }
 
   @override
@@ -39773,7 +40218,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_info_actionReveal => 'הצג במנהל הקבצים';
 
   @override
+  String get media_info_actionCopyDiagnostics => 'העתק אבחון';
+
+  @override
   String get media_info_actionCopyPath => 'העתק הפניה';
+
+  @override
+  String get media_info_diagnosticsCopied => 'האבחון הועתק';
 
   @override
   String get media_info_referenceCopied => 'ההפניה הועתקה';
@@ -39877,91 +40328,88 @@ class AppLocalizationsHe extends AppLocalizations {
       'HealthKit אינו זמין במכשיר הזה';
 
   @override
-  String get statistics_trend_aggregation_monthly => 'ממוצע חודשי';
+  String get insights_trend_aggregation_monthly => 'ממוצע חודשי';
 
   @override
-  String get statistics_trend_aggregation_perDive => 'כל צלילה';
+  String get insights_trend_aggregation_perDive => 'כל צלילה';
 
   @override
-  String get statistics_trend_aggregation_tooltip => 'כיצד הצלילות מקובצות';
+  String get insights_trend_aggregation_tooltip => 'כיצד הצלילות מקובצות';
 
   @override
-  String get statistics_trend_aggregation_weekly => 'ממוצע שבועי';
+  String get insights_trend_aggregation_weekly => 'ממוצע שבועי';
 
   @override
-  String get statistics_trend_band_semanticLabel =>
+  String get insights_trend_band_semanticLabel =>
       'הרצועה המוצללת משתרעת בין הערך הנמוך לגבוה ביותר בכל קבוצה';
 
   @override
-  String get statistics_trend_legend_rate => 'מגמה כללית';
+  String get insights_trend_legend_rate => 'מגמה כללית';
 
   @override
-  String get statistics_trend_legend_rollingAverage => 'ממוצע נע';
+  String get insights_trend_legend_rollingAverage => 'ממוצע נע';
 
   @override
-  String statistics_trend_rate_perYear(String value) {
+  String insights_trend_rate_perYear(String value) {
     return '$value/שנה';
   }
 
   @override
-  String get statistics_conditions_tempTrend_title => 'מגמת טמפרטורת המים';
+  String get insights_conditions_tempTrend_title => 'מגמת טמפרטורת המים';
 
   @override
-  String get statistics_conditions_tempTrend_subtitle => 'כל צלילה בטווח';
+  String get insights_conditions_tempTrend_subtitle => 'כל צלילה בטווח';
 
   @override
-  String get statistics_conditions_tempTrend_empty =>
-      'אין נתוני טמפרטורה זמינים';
+  String get insights_conditions_tempTrend_empty => 'אין נתוני טמפרטורה זמינים';
 
   @override
-  String get statistics_conditions_tempTrend_error =>
+  String get insights_conditions_tempTrend_error =>
       'טעינת מגמת הטמפרטורה נכשלה';
 
   @override
-  String get statistics_conditions_waterTempBands_title =>
+  String get insights_conditions_waterTempBands_title =>
       'צלילות לפי טמפרטורת מים';
 
   @override
-  String get statistics_conditions_waterTempBands_subtitle =>
+  String get insights_conditions_waterTempBands_subtitle =>
       'חלוקת הצלילות שלך לפי טווחי טמפרטורת מים';
 
   @override
-  String get statistics_conditions_waterTempBands_empty =>
+  String get insights_conditions_waterTempBands_empty =>
       'אין נתוני טמפרטורת מים זמינים';
 
   @override
-  String get statistics_conditions_waterTempBands_error =>
+  String get insights_conditions_waterTempBands_error =>
       'לא ניתן לטעון את טווחי טמפרטורת המים';
 
   @override
-  String statistics_conditions_waterTempBands_semanticLabel(
-    String description,
-  ) {
+  String insights_conditions_waterTempBands_semanticLabel(String description) {
     return 'תרשים עמודות. צלילות לפי טמפרטורת מים. $description';
   }
 
   @override
-  String get statistics_conditions_waterTempBands_table_band => 'טווח';
+  String get insights_conditions_waterTempBands_table_band => 'טווח';
 
   @override
-  String get statistics_conditions_waterTempBands_table_dives => 'צלילות';
+  String get insights_conditions_waterTempBands_table_dives => 'צלילות';
 
   @override
-  String get statistics_conditions_waterTempBands_table_avgSac => 'SAC ממוצע';
+  String get insights_conditions_waterTempBands_table_avgSac => 'SAC ממוצע';
 
   @override
-  String get statistics_conditions_waterTempBands_table_avgRmv => 'RMV ממוצע';
+  String get insights_conditions_waterTempBands_table_avgRmv => 'RMV ממוצע';
 
   @override
-  String get statistics_conditions_waterTempBands_table_avgBottomTime =>
+  String get insights_conditions_waterTempBands_table_avgBottomTime =>
       'זמן תחתית ממוצע';
 
   @override
-  String get statistics_conditions_waterTempBands_table_error =>
+  String get insights_conditions_waterTempBands_table_error =>
       'טעינת הממוצעים לפי טווח נכשלה';
 
   @override
-  String statistics_conditions_waterTempBands_table_averageOver(
+  String insights_conditions_waterTempBands_table_averageOver(
     String value,
     String dives,
   ) {
@@ -39969,10 +40417,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get statistics_conditions_waterTempBands_table_noData => 'אין נתונים';
+  String get insights_conditions_waterTempBands_table_noData => 'אין נתונים';
 
   @override
-  String statistics_conditions_waterTempBands_table_rowSemanticLabel(
+  String insights_conditions_waterTempBands_table_rowSemanticLabel(
     String band,
     String dives,
     String lane,
@@ -39989,10 +40437,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_presetLast10Years => '10 השנים האחרונות';
 
   @override
-  String get statistics_trend_tooltip_lowest => 'הנמוך ביותר';
+  String get insights_trend_tooltip_lowest => 'הנמוך ביותר';
 
   @override
-  String get statistics_trend_tooltip_highest => 'הגבוה ביותר';
+  String get insights_trend_tooltip_highest => 'הגבוה ביותר';
 
   @override
   String get diveLog_edit_excludeFromStats => 'החרג מהסטטיסטיקות';
@@ -40028,7 +40476,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_summary_excluded => 'מוחרגת';
 
   @override
-  String statistics_excludedDivesFootnote(int count) {
+  String insights_excludedDivesFootnote(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,

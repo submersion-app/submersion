@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -1188,7 +1189,7 @@ void main() {
           // Create a minimal SQLite database with the tables that
           // ShearwaterDbReader.isShearwaterCloudDb checks for.
           final tempDir = await Directory.systemTemp.createTemp('shearwater_');
-          final dbPath = '${tempDir.path}/shearwater_cloud.db';
+          final dbPath = p.join(tempDir.path, 'shearwater_cloud.db');
           final db = sqlite3.sqlite3.open(dbPath);
           try {
             db.execute('CREATE TABLE dive_details (DiveId INTEGER)');
@@ -1487,7 +1488,7 @@ void main() {
         addTearDown(() async {
           if (root.existsSync()) await root.delete(recursive: true);
         });
-        final photo = File('${root.path}/dive042.jpg')
+        final photo = File(p.join(root.path, 'dive042.jpg'))
           ..writeAsStringSync('bytes');
 
         notifier.state = notifier.state.copyWith(

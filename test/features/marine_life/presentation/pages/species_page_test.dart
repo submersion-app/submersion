@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/domain/entities/seen_species.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/domain/seen_species_filter.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_page.dart';
 import 'package:submersion/features/marine_life/presentation/providers/seen_species_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -145,7 +146,14 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('species_sort_menu')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Name'));
+    // CheckedPopupMenuItem wraps its child in an IgnorePointer, so the label
+    // can never be hit-tested; tap the menu item that handles the gesture.
+    await tester.tap(
+      find.ancestor(
+        of: find.text('Name'),
+        matching: find.byType(CheckedPopupMenuItem<SeenSpeciesSort>),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(

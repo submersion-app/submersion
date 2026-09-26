@@ -110,3 +110,59 @@ BillingResult computeBlendCost({
 
   return BillingResult(lines: lines, total: complete ? total : null);
 }
+
+/// What a single hand-entered gas fill costs.
+class ManualGasFillCost {
+  const ManualGasFillCost({
+    required this.addedBar,
+    required this.freeGasLiters,
+    required this.cost,
+  });
+
+  /// End pressure minus start pressure.
+  final double addedBar;
+
+  /// Free gas at the surface, in litres: the same ideal
+  /// `water volume x bar delivered` [computeBlendCost] charges for.
+  final double freeGasLiters;
+
+  final double cost;
+}
+
+/// Price one gas filled by hand into a cylinder of [waterLiters] water
+/// capacity, from [startBar] up to [endBar], at [pricePer100] per 100 litres
+/// of free gas (issue #2302).
+///
+/// A gas with no price is charged at 0 rather than left unpriced: the line
+/// was entered by hand for a gas the blender chose, and the amount is shown
+/// before it is saved, so a zero is visible where a silent gap in the total
+/// would not be.
+///
+/// Null when the input cannot describe a fill: no cylinder, a negative start
+/// pressure, an end pressure not above the start, or a non-finite value.
+ManualGasFillCost? manualGasFillCost({
+  required double waterLiters,
+  required double startBar,
+  required double endBar,
+  required double? pricePer100,
+}) {
+  if (!waterLiters.isFinite || !startBar.isFinite || !endBar.isFinite) {
+    return null;
+  }
+  // A corrupt tariff is not an unset one: charging it as 0 would pass a
+  // broken price off as a deliberate free fill.
+  if (pricePer100 != null && !pricePer100.isFinite) return null;
+  if (waterLiters <= 0 || startBar < 0 || endBar <= startBar) return null;
+  final addedBar = endBar - startBar;
+  final liters = waterLiters * addedBar;
+  final price = pricePer100 ?? 0;
+  final cost = liters / 100 * price;
+  // Finite inputs can still multiply out to infinity, which a saved bill
+  // could not encode as JSON.
+  if (!liters.isFinite || !cost.isFinite) return null;
+  return ManualGasFillCost(
+    addedBar: addedBar,
+    freeGasLiters: liters,
+    cost: cost,
+  );
+}

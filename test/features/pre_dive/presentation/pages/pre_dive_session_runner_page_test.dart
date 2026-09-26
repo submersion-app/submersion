@@ -5,7 +5,6 @@ import 'package:submersion/features/equipment/domain/entities/overdue_service_en
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
@@ -371,9 +370,11 @@ void main() {
         s: session(),
         items: [item(0, equipmentId: 'g1')],
         extraOverrides: [
-          serviceClockStatusesProvider(
-            'g1',
-          ).overrideWith((ref) async => [overdueStatus]),
+          sessionServiceClocksProvider('s1').overrideWith(
+            (ref) async => {
+              'g1': [overdueStatus],
+            },
+          ),
         ],
       );
 
@@ -437,9 +438,11 @@ void main() {
         s: session(),
         items: [item(0, equipmentId: 'g1')],
         extraOverrides: [
-          serviceClockStatusesProvider(
-            'g1',
-          ).overrideWith((ref) async => [dueSoonStatus, okStatus]),
+          sessionServiceClocksProvider('s1').overrideWith(
+            (ref) async => {
+              'g1': [dueSoonStatus, okStatus],
+            },
+          ),
         ],
       );
 
@@ -487,7 +490,9 @@ void main() {
         s: session(),
         items: [item(0, equipmentId: 'g1')],
         extraOverrides: [
-          serviceClockStatusesProvider('g1').overrideWith((ref) async => []),
+          sessionServiceClocksProvider(
+            's1',
+          ).overrideWith((ref) async => {'g1': []}),
         ],
       );
 

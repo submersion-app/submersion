@@ -4,8 +4,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 
 /// Recent dives shown on the home tab (newest 3).
 ///
@@ -127,8 +127,8 @@ class YearInReview {
 
 /// This year vs last year. Null when both years are empty.
 final yearInReviewProvider = FutureProvider<YearInReview?>((ref) async {
-  final repository = ref.watch(statisticsRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchStatisticsChanges());
+  final repository = ref.watch(insightsRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchInsightsChanges());
   final diverId = ref.watch(currentDiverIdProvider);
   final year = DateTime.now().year;
   final current = await repository.getYearStats(year, diverId: diverId);
@@ -175,10 +175,10 @@ class DashboardQuickStats {
 /// Quick stats provider for dashboard.
 ///
 /// Deliberately UNFILTERED: the home dashboard has no filter UI, so it must
-/// not inherit whatever filter is active on the (unrelated) Statistics tab.
+/// not inherit whatever filter is active on the (unrelated) Insights tab.
 /// [topBuddiesProvider], [countriesVisitedProvider], and
 /// [uniqueSpeciesCountProvider] themselves stay filter-aware -- they also
-/// back the Statistics Social/Geographic/Marine-Life pages -- so this reads
+/// back the Insights Social/Geographic/Marine-Life pages -- so this reads
 /// the shared repository directly instead of watching those providers, and
 /// re-implements their diver scoping (but not their filter scoping).
 /// The statistics change tick preserves the dive-mutation reactivity that used
@@ -186,8 +186,8 @@ class DashboardQuickStats {
 final dashboardQuickStatsProvider = FutureProvider<DashboardQuickStats>((
   ref,
 ) async {
-  final repository = ref.watch(statisticsRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchStatisticsChanges());
+  final repository = ref.watch(insightsRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchInsightsChanges());
   final diverId = ref.watch(currentDiverIdProvider);
 
   // Get top buddy

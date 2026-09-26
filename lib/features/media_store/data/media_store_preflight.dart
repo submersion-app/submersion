@@ -1,11 +1,12 @@
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/media_store/store_marker.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 
 /// The admission check [MediaStoreWorker] runs before every transfer (design
 /// spec section 13): this device must still be attached to the store the
 /// runtime was built for, and the store must still carry that store's
-/// marker. A false answer suspends the drain.
+/// marker. A refusal ([check] answering a kind) suspends the drain.
 ///
 /// Attach state is re-read on every call, not captured: a disconnect can
 /// land while a drain is running, and the rest of that drain must stop.
@@ -32,12 +33,37 @@ class MediaStorePreflight {
   final MediaObjectStore _store;
   final String _attachedStoreId;
 
-  /// Whether the drain may proceed. Throws when the marker cannot be read;
-  /// the worker separates that from a determinate refusal.
-  Future<bool> call() async {
+  /// Null when the drain may proceed, else why it may not. Throws when the
+  /// marker cannot be read; the worker separates that from a refusal.
+  ///
+  /// A marker answer is remembered on the attach state, so the pending-setup
+  /// card can offer a reconnect for a mismatch and drop it once the marker
+  /// matches again. A throw remembers nothing: it says nothing about the
+  /// marker. Neither does an answer that outlived its attachment: any attach
+  /// change during the read (a reconnect to the same store included) makes
+  /// it detached, and the flag is written only within the attachment the
+  /// check began in.
+  Future<MediaTransferHoldKind?> check() async {
+    // Read first: every attach change after this point moves it.
+    final generation = await _attachState.attachGeneration();
     final currentId = await _attachState.attachedStoreId();
-    if (currentId == null || currentId != _attachedStoreId) return false;
+    if (currentId == null || currentId != _attachedStoreId) {
+      return MediaTransferHoldKind.detached;
+    }
     final marker = await StoreMarkerStore(store: _store).read();
-    return marker != null && marker.storeId == currentId;
+    // The read is a network call: the attachment may have changed under it,
+    // and then this answer is about an attachment this device has left.
+    if (await _attachState.attachGeneration() != generation) {
+      return MediaTransferHoldKind.detached;
+    }
+    final mismatch = marker == null || marker.storeId != currentId;
+    await _attachState.setMarkerMismatch(
+      mismatch,
+      withinGeneration: generation,
+    );
+    return mismatch ? MediaTransferHoldKind.markerMismatch : null;
   }
+
+  /// Whether the drain may proceed, for callers that need only that.
+  Future<bool> call() async => await check() == null;
 }

@@ -15,7 +15,7 @@ import 'package:submersion/features/safety/presentation/pages/incident_edit_page
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/site_detail_sections_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/unrecognized_backups_notice.dart';
@@ -944,6 +944,49 @@ void main() {
     // master-detail pane navigates with go() (a stable pageKey), so swapping
     // the page type under the same key would fail Page.canUpdate's
     // runtimeType check and slide the whole split view on every click.
+    test('equipment condition settings live under the safety route', () {
+      // Equipment condition is reached from Settings > Safety, not from the
+      // settings root, so its route nests under /settings/safety.
+      expect(
+        router.namedLocation('equipmentConditionSettings'),
+        '/settings/safety/equipment-condition',
+      );
+    });
+
+    testWidgets('the equipment condition route builds its settings page', (
+      tester,
+    ) async {
+      final config = router.configuration;
+      final route = _findRouteByName(
+        config.routes,
+        'equipmentConditionSettings',
+      );
+      expect(route, isNotNull);
+
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      final state = GoRouterState(
+        config,
+        uri: Uri.parse('/settings/safety/equipment-condition'),
+        matchedLocation: '/settings/safety/equipment-condition',
+        fullPath: '/settings/safety/equipment-condition',
+        pathParameters: const {},
+        pageKey: const ValueKey('/settings/safety/equipment-condition'),
+      );
+      final widget = route!.builder!(capturedContext, state);
+      expect(widget.runtimeType.toString(), 'EquipmentConditionSettingsPage');
+    });
+
     test('a section child route exists under /settings', () {
       final route = _findRouteByName(
         router.configuration.routes,
@@ -1129,7 +1172,7 @@ void main() {
   });
 
   group('diveSearch route carries the calling section filter (#1079)', () {
-    // Statistics keeps its own filter, so the advanced search form has to be
+    // Insights keeps its own filter, so the advanced search form has to be
     // told which filter it is editing. The section pushes its provider as the
     // route `extra`; anything else (deep link, keyboard shortcut) falls back
     // to the dive list's filter.
@@ -1159,8 +1202,8 @@ void main() {
       context = tester.element(find.byType(SizedBox));
 
       expect(
-        buildWith(statisticsFilterProvider).filterProvider,
-        same(statisticsFilterProvider),
+        buildWith(insightsFilterProvider).filterProvider,
+        same(insightsFilterProvider),
       );
     });
 

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,6 +12,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/legend_candida
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_legend_config.dart';
+import 'package:submersion/core/constants/o2_cell_unit.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Persistent dialog for chart toggle options.
 ///
@@ -39,9 +43,16 @@ class ChartOptionsDialog extends StatelessWidget {
     final top = anchorOffset.dy + anchorSize.height + 4;
 
     // Try to align the right edge of the dialog with the right edge of the
-    // button, but clamp so the dialog never overflows the screen edges.
+    // button, but clamp so the dialog never overflows the screen edges. On a
+    // screen narrower than the dialog itself (dialogMaxWidth + 2 *
+    // edgePadding), maxRight would fall below edgePadding and clamp(min, max)
+    // throws for min > max -- floor it at edgePadding instead, same as
+    // ConstrainedBox already does for maxWidth via dialogMaxWidth.
     final desiredRight = screenSize.width - anchorOffset.dx - anchorSize.width;
-    final maxRight = screenSize.width - dialogMaxWidth - edgePadding;
+    final maxRight = (screenSize.width - dialogMaxWidth - edgePadding).clamp(
+      edgePadding,
+      double.infinity,
+    );
     final right = desiredRight.clamp(edgePadding, maxRight);
 
     return Stack(
@@ -55,7 +66,13 @@ class ChartOptionsDialog extends StatelessWidget {
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 maxWidth: dialogMaxWidth,
-                maxHeight: screenSize.height - top - edgePadding - bottomInset,
+                // Floored at 0: a button anchored low enough on a short
+                // screen (or one already close to the bottom inset) would
+                // otherwise make this negative, which BoxConstraints rejects.
+                maxHeight: math.max(
+                  0,
+                  screenSize.height - top - edgePadding - bottomInset,
+                ),
               ),
               child: Consumer(
                 builder: (context, ref, _) {
@@ -73,6 +90,15 @@ class ChartOptionsDialog extends StatelessWidget {
                         context,
                         legendState: legendState,
                         legendNotifier: legendNotifier,
+                        // The unit is a viewing preference, not a per-dive
+                        // one: picking it here makes it the default for the
+                        // next dive too.
+                        onO2CellUnitChanged: (unit) {
+                          legendNotifier.setO2CellUnit(unit);
+                          ref
+                              .read(settingsProvider.notifier)
+                              .setO2CellUnit(unit);
+                        },
                       ),
                     ),
                   );
@@ -89,6 +115,7 @@ class ChartOptionsDialog extends StatelessWidget {
     BuildContext context, {
     required ProfileLegendState legendState,
     required ProfileLegend legendNotifier,
+    required ValueChanged<O2CellUnit> onO2CellUnitChanged,
   }) {
     final sections = <Widget>[];
 
@@ -430,15 +457,28 @@ class ChartOptionsDialog extends StatelessWidget {
           isEnabled: legendState.showPpHe,
           onTap: legendNotifier.togglePpHe,
         ),
-      if (config.hasO2CellMvData)
-        buildToggleItem(
-          context,
-          label: context.l10n.diveLog_legend_label_o2Cells,
-          // Cell 1's colour, so the swatch belongs to the same set as the lines.
-          color: o2CellColor(0),
-          isEnabled: legendState.showO2CellMv,
-          onTap: legendNotifier.toggleO2CellMv,
-        ),
+      if (config.hasO2CellData)
+        if (config.hasBothO2CellUnits)
+          buildToggleWithSource(
+            context,
+            label: context.l10n.diveLog_legend_label_o2Cells,
+            color: o2CellColor(0),
+            isEnabled: legendState.showO2Cells,
+            onTap: legendNotifier.toggleO2Cells,
+            currentSource: legendState.o2CellUnit,
+            onSourceChanged: onO2CellUnitChanged,
+            segments: o2CellUnitSegments(context),
+          )
+        else
+          buildToggleItem(
+            context,
+            label: context.l10n.diveLog_legend_label_o2Cells,
+            // Cell 1's colour, so the swatch belongs to the same set as the
+            // lines.
+            color: o2CellColor(0),
+            isEnabled: legendState.showO2Cells,
+            onTap: legendNotifier.toggleO2Cells,
+          ),
       if (config.hasModData)
         buildToggleItem(
           context,
@@ -524,6 +564,12 @@ class ChartOptionsDialog extends StatelessWidget {
             label: context.l10n.diveLog_chartOption_metricsFollowViewport,
             isEnabled: legendState.metricsFollowViewport,
             onTap: legendNotifier.toggleMetricsFollowViewport,
+          ),
+          buildBehaviorItem(
+            context,
+            label: context.l10n.diveLog_chartOption_tooltipFollowsCursor,
+            isEnabled: legendState.tooltipFollowsCursor,
+            onTap: legendNotifier.toggleTooltipFollowsCursor,
           ),
         ],
       ),

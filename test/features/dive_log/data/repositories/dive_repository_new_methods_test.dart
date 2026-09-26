@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/unique_ids.dart';
 
 const _labels = SourceNameLabels(
   unknownComputer: 'Unknown Computer',
@@ -60,7 +61,7 @@ void main() {
     int? diveDateTime,
     String? buddy,
   }) async {
-    final diveId = id ?? 'dive-${DateTime.now().microsecondsSinceEpoch}';
+    final diveId = id ?? uniqueTestId('dive');
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
         .into(db.dives)
@@ -141,7 +142,7 @@ void main() {
   }) {
     final now = DateTime.now();
     return DiveDataSourcesCompanion(
-      id: Value(id ?? 'reading-${now.microsecondsSinceEpoch}'),
+      id: Value(id ?? uniqueTestId('reading')),
       diveId: Value(diveId),
       isPrimary: Value(isPrimary),
       computerModel: Value(computerModel),

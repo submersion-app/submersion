@@ -75,10 +75,13 @@ class OriginFacts {
   final String? pointer;
 
   /// The device that created the link, or null when this source type does
-  /// not track one. Null is NOT "this device": `MediaRepository`
-  /// `_effectiveOriginDeviceId` stamps an id only for localFile and
-  /// serviceConnector rows and leaves the other five types null, so treating
-  /// null as local would claim a fact the app never recorded.
+  /// not track one. Null is NOT "this device": `MediaRepository._originFor`
+  /// stamps an id only for the types whose address resolves on one device
+  /// (localFile, serviceConnector and platformGallery), at link time and on
+  /// a repair relink, and leaves the other four null, so treating null as
+  /// local would claim a fact the app never recorded. Gallery rows linked
+  /// before gallery links recorded an origin also read null until the
+  /// gallery origin backfill stamps them (media sync program spec 6.1).
   final String? originDeviceId;
 
   final OriginHealth health;

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
+import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -14,6 +16,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_sort_sheet.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_section_toggle.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_set_list_content.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_summary_widget.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
@@ -34,6 +37,10 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
   late TabController _tabController;
   bool _switchingTabProgrammatically = false;
 
+  /// Bulk selection for the phone list. The page owns it because the phone's
+  /// app bar carries "Select items", and the rows it selects live in the list.
+  final SelectionController _phoneSelection = SelectionController();
+
   @override
   void initState() {
     super.initState();
@@ -45,6 +52,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
   void dispose() {
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
+    _phoneSelection.dispose();
     super.dispose();
   }
 
@@ -120,63 +128,14 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
               adapter: EquipmentFieldAdapter.instance,
             ),
           ),
-          appBarActions: [
-            IconButton(
-              icon: const Icon(Icons.search, size: 20),
-              tooltip: context.l10n.equipment_list_searchTooltip,
-              onPressed: () {
-                showSearch(
-                  context: context,
-                  delegate: EquipmentSearchDelegate(context.l10n),
-                );
-              },
-            ),
-            // Table mode has no app bar of its own inside the content, so the
-            // filter panel is reachable only from here.
-            IconButton(
-              key: const ValueKey('equipment_filter_button'),
-              icon: Badge(
-                isLabelVisible: ref
-                    .watch(equipmentFilterProvider)
-                    .hasActiveFilters,
-                child: const Icon(Icons.filter_list, size: 20),
-              ),
-              tooltip: context.l10n.equipment_list_filterTooltip,
-              onPressed: () => showEquipmentFilterSheet(context, ref),
-            ),
-            IconButton(
-              icon: const Icon(Icons.sort, size: 20),
-              tooltip: context.l10n.equipment_list_sortTooltip,
-              // The table stays flat, so its sheet leaves the grouping out.
-              onPressed: () =>
-                  showEquipmentListSortSheet(context, showGrouping: false),
-            ),
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, size: 20),
-              onSelected: (value) {
-                if (value.startsWith('view_')) {
-                  final mode = ListViewMode.fromName(
-                    value.replaceFirst('view_', ''),
-                  );
-                  ref.read(equipmentListViewModeProvider.notifier).state = mode;
-                }
-              },
-              itemBuilder: (context) {
-                final currentMode = ref.read(equipmentListViewModeProvider);
-                return [
-                  ...ListViewModeToggle.menuItems(
-                    context,
-                    currentMode: currentMode,
-                    modes: const [
-                      ListViewMode.detailed,
-                      ListViewMode.compact,
-                      ListViewMode.table,
-                    ],
-                  ),
-                ];
-              },
-            ),
-          ],
+          // Table mode has no app bar of its own inside the content, so the
+          // filter panel is reachable only from here. The table stays flat,
+          // so its sort sheet leaves the grouping out.
+          appBarActions: _buildListActions(
+            context,
+            showGrouping: false,
+            iconSize: 20,
+          ),
           floatingActionButton: fab,
         ),
       );
@@ -203,63 +162,187 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
   }
 
   Widget _buildMobileLayout(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    // Rebuilt with selection, because the actions step aside while selecting
+    // the way the list's own action row used to.
+    return ValueListenableBuilder<SelectionState>(
+      valueListenable: _phoneSelection,
+      builder: (context, selection, _) {
+        final actions = _isEquipmentTab && !selection.isActive
+            ? _buildListActions(
+                context,
+                showGrouping: EquipmentListContent.showsGrouping(
+                  ref.watch(equipmentListViewModeProvider),
+                ),
+                onSelect: _phoneSelection.enterExplicit,
+              )
+            : const <Widget>[];
+        final titleStyle = _phoneTitleStyle(context);
+        final oneRow =
+            actions.isEmpty ||
+            _phoneRowFits(context, titleStyle, actionCount: actions.length);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: FeatureAppBarTitle(
-          featureId: 'equipment',
-          title: context.l10n.equipment_appBar_title,
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: [
-            Tab(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.backpack, size: 20),
-                  const SizedBox(width: 8),
-                  Text(context.l10n.equipment_tab_equipment),
-                ],
-              ),
+        return Scaffold(
+          appBar: AppBar(
+            // The title is the section switcher: "Equipment" and "Sets" sit
+            // where the title would, the one showing in a pill. 8 here plus
+            // the switcher's own 8px label padding puts the text at the 16px
+            // every other app bar title sits at.
+            titleSpacing: _phoneTitleSpacing,
+            title: DefaultTextStyle.merge(
+              style: titleStyle,
+              child: _buildSectionToggle(context),
             ),
-            Tab(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.folder_special, size: 20),
-                  const SizedBox(width: 8),
-                  Text(context.l10n.equipment_tab_sets),
-                ],
+            // One row whenever the switcher and the actions both fit; a
+            // second row under the switcher otherwise, for the longer
+            // translations and the narrowest phones (issue #2256).
+            actions: oneRow ? actions : null,
+            bottom: oneRow
+                ? null
+                : PreferredSize(
+                    preferredSize: const Size.fromHeight(
+                      kMinInteractiveDimension,
+                    ),
+                    child: Row(children: [const Spacer(), ...actions]),
+                  ),
+          ),
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              EquipmentListContent(
+                showAppBar: false,
+                showHeader: false,
+                selectionController: _phoneSelection,
               ),
-            ),
-          ],
-          indicatorSize: TabBarIndicatorSize.tab,
-          indicator: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            color: colorScheme.primaryContainer,
+              const EquipmentSetListContent(showAppBar: false),
+            ],
           ),
-          indicatorPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 6,
-          ),
-          labelColor: colorScheme.onPrimaryContainer,
-          labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-          unselectedLabelColor: colorScheme.onSurfaceVariant,
-          splashBorderRadius: BorderRadius.circular(24),
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          const EquipmentListContent(showAppBar: false),
-          const EquipmentSetListContent(showAppBar: false),
-        ],
-      ),
-      floatingActionButton: _buildFab(context),
+          floatingActionButton: _buildFab(context),
+        );
+      },
     );
   }
+
+  /// Horizontal space either side of the phone title; see [_phoneRowFits].
+  static const double _phoneTitleSpacing = 8;
+
+  /// The phone title at 18px: a step under the usual 22px app bar title,
+  /// which is what lets the switcher share its row with the actions in most
+  /// locales.
+  TextStyle _phoneTitleStyle(BuildContext context) =>
+      (Theme.of(context).textTheme.titleMedium ?? const TextStyle()).copyWith(
+        fontSize: 18,
+      );
+
+  /// Whether the switcher and [actionCount] actions fit the app bar's one row.
+  ///
+  /// Mirrors how the app bar sizes its title: the width left after the
+  /// actions and their padding, less the title spacing on both sides.
+  bool _phoneRowFits(
+    BuildContext context,
+    TextStyle titleStyle, {
+    required int actionCount,
+  }) {
+    final hasAccentIcon =
+        resolveFeatureAccent(
+          context,
+          ref,
+          surface: AccentSurface.header,
+          featureId: 'equipment',
+        ) !=
+        null;
+    final actionsPadding =
+        AppBarTheme.of(context).actionsPadding?.horizontal ?? 0;
+    final needed =
+        EquipmentSectionToggle.naturalWidth(
+          context,
+          titleStyle,
+          withAccentIcon: hasAccentIcon,
+        ) +
+        2 * _phoneTitleSpacing +
+        actionCount * kMinInteractiveDimension +
+        actionsPadding;
+    return needed <= MediaQuery.sizeOf(context).width;
+  }
+
+  /// Search, filter, sort and the overflow menu, for an app bar.
+  ///
+  /// [onSelect] adds "Select items" to the overflow menu. The phone puts it
+  /// there so the header fits one row; table mode has its own select control.
+  List<Widget> _buildListActions(
+    BuildContext context, {
+    required bool showGrouping,
+    VoidCallback? onSelect,
+    double? iconSize,
+  }) {
+    return [
+      IconButton(
+        icon: Icon(Icons.search, size: iconSize),
+        tooltip: context.l10n.equipment_list_searchTooltip,
+        onPressed: () {
+          showSearch(
+            context: context,
+            delegate: EquipmentSearchDelegate(context.l10n),
+          );
+        },
+      ),
+      IconButton(
+        key: const ValueKey('equipment_filter_button'),
+        icon: Badge(
+          isLabelVisible: ref.watch(equipmentFilterProvider).hasActiveFilters,
+          child: Icon(Icons.filter_list, size: iconSize),
+        ),
+        tooltip: context.l10n.equipment_list_filterTooltip,
+        onPressed: () => showEquipmentFilterSheet(context, ref),
+      ),
+      IconButton(
+        icon: Icon(Icons.sort, size: iconSize),
+        tooltip: context.l10n.equipment_list_sortTooltip,
+        onPressed: () =>
+            showEquipmentListSortSheet(context, showGrouping: showGrouping),
+      ),
+      PopupMenuButton<String>(
+        icon: Icon(Icons.more_vert, size: iconSize),
+        onSelected: (value) {
+          if (value == _selectMenuValue) {
+            onSelect?.call();
+          } else if (value.startsWith('view_')) {
+            final mode = ListViewMode.fromName(value.replaceFirst('view_', ''));
+            ref.read(equipmentListViewModeProvider.notifier).state = mode;
+          }
+        },
+        itemBuilder: (context) {
+          final currentMode = ref.read(equipmentListViewModeProvider);
+          return [
+            if (onSelect != null) ...[
+              PopupMenuItem<String>(
+                value: _selectMenuValue,
+                // Laid out like the view-mode items below it.
+                child: Row(
+                  children: [
+                    const Icon(Icons.checklist, size: 20),
+                    const SizedBox(width: 12),
+                    Text(context.l10n.common_selection_enterTooltip),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+            ],
+            ...ListViewModeToggle.menuItems(
+              context,
+              currentMode: currentMode,
+              modes: const [
+                ListViewMode.detailed,
+                ListViewMode.compact,
+                ListViewMode.table,
+              ],
+            ),
+          ];
+        },
+      ),
+    ];
+  }
+
+  static const String _selectMenuValue = 'select_items';
 
   Widget _buildMasterDetailLayout(BuildContext context) {
     return _isEquipmentTab
@@ -267,44 +350,12 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         : _buildSetsMasterDetail();
   }
 
-  Widget _buildMasterTabBar(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return TabBar(
-      controller: _tabController,
-      tabs: [
-        Tab(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.backpack, size: 20),
-              const SizedBox(width: 8),
-              Text(context.l10n.equipment_tab_equipment),
-            ],
-          ),
-        ),
-        Tab(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.folder_special, size: 20),
-              const SizedBox(width: 8),
-              Text(context.l10n.equipment_tab_sets),
-            ],
-          ),
-        ),
-      ],
-      indicatorSize: TabBarIndicatorSize.tab,
-      indicator: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        color: colorScheme.primaryContainer,
-      ),
-      indicatorPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      labelColor: colorScheme.onPrimaryContainer,
-      labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-      unselectedLabelColor: colorScheme.onSurfaceVariant,
-      splashBorderRadius: BorderRadius.circular(24),
-    );
+  /// The Equipment / Sets switcher, for whichever header is hosting it.
+  ///
+  /// The same [TabController] drives it everywhere, so the phone layout keeps
+  /// the swipe gesture its `TabBarView` provides.
+  Widget _buildSectionToggle(BuildContext context) {
+    return EquipmentSectionToggle(controller: _tabController);
   }
 
   Widget _buildEquipmentMasterDetail() {
@@ -316,7 +367,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             onItemSelected: onItemSelected,
             selectedId: selectedId,
             showAppBar: false,
-            headerExtension: _buildMasterTabBar(context),
+            toggleBuilder: _buildSectionToggle,
           ),
       detailBuilder: (context, id) => EquipmentDetailPage(
         equipmentId: id,
@@ -355,7 +406,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             onItemSelected: onItemSelected,
             selectedId: selectedId,
             showAppBar: false,
-            headerExtension: _buildMasterTabBar(context),
+            toggleBuilder: _buildSectionToggle,
           ),
       detailBuilder: (context, id) => EquipmentSetDetailPage(setId: id),
       summaryBuilder: (context) => _buildSetsSummary(context),

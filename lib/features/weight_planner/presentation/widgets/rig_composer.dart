@@ -9,7 +9,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipm
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/features/tank_presets/domain/services/tank_preset_visibility.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -119,7 +121,10 @@ class RigComposer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final presets = ref.watch(tankPresetsProvider).valueOrNull ?? const [];
+    // `value`, not `valueOrNull`: hiding a preset reloads tankPresetsProvider
+    // through its settings dependency, and only `value` keeps the previous
+    // list until the filtered one lands (see async_value_reload_test.dart).
+    final visiblePresets = ref.watch(tankPresetsProvider).value ?? const [];
 
     return Card(
       child: Padding(
@@ -170,6 +175,10 @@ class RigComposer extends ConsumerWidget {
                   for (final item in gear)
                     if (!partIds.contains(item.id))
                       InputChip(
+                        avatar: ServiceStatusIndicatorFor(
+                          equipmentId: item.id,
+                          density: ServiceIndicatorDensity.dot,
+                        ),
                         label: Text(switch (partCounts[item.id]) {
                           final n? when n > 0 =>
                             context.l10n.equipment_assemblyChip_label(
@@ -195,13 +204,19 @@ class RigComposer extends ConsumerWidget {
                 TextButton.icon(
                   icon: const Icon(Icons.add, size: 18),
                   label: Text(context.l10n.tools_weight_addTank),
-                  onPressed: presets.isEmpty
+                  onPressed: visiblePresets.isEmpty
                       ? null
-                      : () => onTankAdded(presets.first),
+                      : () => onTankAdded(visiblePresets.first),
                 ),
               ],
             ),
-            for (var i = 0; i < tanks.length; i++)
+            // Each tank keeps its own preset in its dropdown even after the
+            // diver hides it (issue #2305), without offering it to the
+            // other tanks; adding a tank offers visible presets only.
+            for (final (i, presets) in [
+              for (var i = 0; i < tanks.length; i++)
+                (i, withKeptTankPresets(visiblePresets, [tanks[i].name])),
+            ])
               Row(
                 children: [
                   Expanded(

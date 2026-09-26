@@ -883,6 +883,60 @@ class DiveImportService {
     );
   }
 
+  /// Attach [dive]'s download to the planned dive [plannedDiveId] (issue
+  /// #2002). Like [_updateExistingDive] but nothing is cleared first, since
+  /// a planned dive holds no source for this computer, and the target is
+  /// named explicitly so a sibling dive at the same minute cannot be picked
+  /// by the time match.
+  Future<void> attachToPlannedDive(
+    DownloadedDive dive,
+    String plannedDiveId,
+    String computerId, {
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
+  }) async {
+    final profilePoints = _parser.parseProfile(dive);
+    final events = _convertEvents(dive.events);
+    final gasSwitches = _parser.parseGasSwitches(dive);
+    final tanks = _parser.parseTanks(dive);
+    final attachedTo = await _repository.importProfile(
+      computerId: computerId,
+      profileStartTime: dive.startTime,
+      points: profilePoints,
+      durationSeconds: dive.durationSeconds,
+      maxDepth: dive.maxDepth,
+      avgDepth: dive.avgDepth,
+      isPrimary: true,
+      tanks: tanks,
+      decoAlgorithm: dive.decoAlgorithm,
+      gfLow: dive.gfLow,
+      gfHigh: dive.gfHigh,
+      decoConservatism: dive.decoConservatism,
+      diveMode: dive.diveMode,
+      events: events,
+      gasSwitches: gasSwitches,
+      rawData: dive.rawData,
+      rawFingerprint: dive.rawFingerprint,
+      descriptorVendor: descriptorVendor,
+      descriptorProduct: descriptorProduct,
+      descriptorModel: descriptorModel,
+      libdivecomputerVersion: libdivecomputerVersion,
+      entryLatitude: dive.entryLatitude,
+      entryLongitude: dive.entryLongitude,
+      exitLatitude: dive.exitLatitude,
+      exitLongitude: dive.exitLongitude,
+      minTemperature: dive.minTemperature,
+      targetDiveId: plannedDiveId,
+    );
+    if (attachedTo != plannedDiveId) {
+      throw StateError(
+        'importProfile attached to $attachedTo, expected $plannedDiveId',
+      );
+    }
+  }
+
   /// Resolve a specific conflict and import the dive accordingly.
   Future<String?> resolveConflict(
     ImportConflict conflict,

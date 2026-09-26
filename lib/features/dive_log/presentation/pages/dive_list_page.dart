@@ -13,6 +13,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/slippy_tiles.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_chip.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
@@ -103,6 +105,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           context.push('/dives/new');
         }
       },
+      onPlanDive: () =>
+          context.push('/dives/new', extra: const DivePrefill(isPlanned: true)),
     );
   }
 
@@ -464,6 +468,17 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                   Uri(path: state.uri.path, queryParameters: params).toString(),
                 );
               },
+              onDeleted: () {
+                // The site is gone, so return to the dive it was opened from.
+                final params = {
+                  for (final entry in state.uri.queryParameters.entries)
+                    if (entry.key != 'mode' && entry.key != 'site')
+                      entry.key: entry.value,
+                };
+                context.replace(
+                  Uri(path: state.uri.path, queryParameters: params).toString(),
+                );
+              },
             );
           }
           return DiveEditPage(
@@ -649,6 +664,7 @@ class DiveSearchDelegate extends SearchDelegate<String?> {
             return DiveListTile(
               diveId: dive.id,
               diveNumber: dive.diveNumber ?? index + 1,
+              isPlanned: dive.isPlanned,
               dateTime: dive.dateTime,
               siteName: dive.siteName,
               siteLocation: dive.siteLocation,
@@ -686,6 +702,11 @@ class DiveSearchDelegate extends SearchDelegate<String?> {
 class DiveListTile extends ConsumerWidget {
   final String diveId;
   final int diveNumber;
+
+  /// The dive is planned and therefore unnumbered (issue #2002). Callers
+  /// that pass a [summary] may leave this false: the summary's own flag is
+  /// honoured too.
+  final bool isPlanned;
   final DateTime dateTime;
   final String? siteName;
   final String? siteLocation;
@@ -760,6 +781,7 @@ class DiveListTile extends ConsumerWidget {
     super.key,
     required this.diveId,
     required this.diveNumber,
+    this.isPlanned = false,
     required this.dateTime,
     this.siteName,
     this.siteLocation,
@@ -823,6 +845,10 @@ class DiveListTile extends ConsumerWidget {
     final showCardColors = colorAttribute != CardColorAttribute.none;
     // Check if map background is enabled
     final showMapBackground = ref.watch(showMapBackgroundOnDiveCardsProvider);
+
+    // A dive awaiting its computer data (issue #2002): no number of its own,
+    // so the badge and the screen-reader label leave the number out.
+    final isPlannedDive = isPlanned || summary?.isPlanned == true;
 
     // The active row carries a fill tint: checked in the bulk selection, or --
     // outside selection mode -- open in the detail pane. Inside selection mode
@@ -940,15 +966,25 @@ class DiveListTile extends ConsumerWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 4),
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
-                              child: Text(
-                                '#$diveNumber',
-                                maxLines: 1,
-                                style: TextStyle(
-                                  color: colorScheme.onPrimaryContainer,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
+                              // A planned dive holds no number, and the list
+                              // passes its position as a fallback, so the
+                              // badge would show a number that belongs to
+                              // another dive (issue #2002).
+                              child: isPlannedDive
+                                  ? Icon(
+                                      Icons.event_available_outlined,
+                                      size: 18,
+                                      color: colorScheme.onPrimaryContainer,
+                                    )
+                                  : Text(
+                                      '#$diveNumber',
+                                      maxLines: 1,
+                                      style: TextStyle(
+                                        color: colorScheme.onPrimaryContainer,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
                             ),
                           ),
                         ),
@@ -988,6 +1024,12 @@ class DiveListTile extends ConsumerWidget {
                                   strutStyle: titleStyle?.preservingStrut,
                                 ),
                               ),
+                              // Planned dive awaiting its computer data
+                              // (issue #2002).
+                              if (summary?.isPlanned == true) ...[
+                                const SizedBox(width: 6),
+                                const PlannedDiveChip(),
+                              ],
                               if (isFavorite) ...[
                                 const SizedBox(width: 4),
                                 ExcludeSemantics(
@@ -1222,10 +1264,14 @@ class DiveListTile extends ConsumerWidget {
         clipBehavior: Clip.antiAlias,
         child: Semantics(
           button: true,
-          label: context.l10n.diveLog_listPage_semanticsDiveAtSite(
-            diveNumber,
-            siteName ?? context.l10n.diveLog_listPage_unknownSite,
-          ),
+          label: isPlannedDive
+              ? context.l10n.diveLog_listPage_semanticsPlannedDiveAtSite(
+                  siteName ?? context.l10n.diveLog_listPage_unknownSite,
+                )
+              : context.l10n.diveLog_listPage_semanticsDiveAtSite(
+                  diveNumber,
+                  siteName ?? context.l10n.diveLog_listPage_unknownSite,
+                ),
           child: InkWell(
             onTap: onTap,
             onDoubleTap: onDoubleTap,
@@ -1283,10 +1329,14 @@ class DiveListTile extends ConsumerWidget {
         color: cardColor,
         child: Semantics(
           button: true,
-          label: context.l10n.diveLog_listPage_semanticsDiveAtSite(
-            diveNumber,
-            siteName ?? context.l10n.diveLog_listPage_unknownSite,
-          ),
+          label: isPlannedDive
+              ? context.l10n.diveLog_listPage_semanticsPlannedDiveAtSite(
+                  siteName ?? context.l10n.diveLog_listPage_unknownSite,
+                )
+              : context.l10n.diveLog_listPage_semanticsDiveAtSite(
+                  diveNumber,
+                  siteName ?? context.l10n.diveLog_listPage_unknownSite,
+                ),
           child: InkWell(
             onTap: onTap,
             onDoubleTap: onDoubleTap,

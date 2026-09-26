@@ -320,7 +320,7 @@ in groups, and each group has its own synced clock column on the row:
   by an older app version stamp facts through the row clock, so they still
   order correctly against new ones, and rows that predate the columns behave
   exactly as today.
-- The v223 rung backfills both clocks from the row clock for existing rows,
+- The v224 rung backfills both clocks from the row clock for existing rows,
   and a new row stamps both at creation, so later user edits do not move a
   fact group's effective clock.
 - The media upsert drops explicit nulls (`nullToAbsent`), so the merge writes
@@ -340,9 +340,17 @@ advancing the cursor after `apply` is correct.
 - The verification writers publish only when `isOrphaned` actually moves.
   `lastVerifiedAt` is set to "now" on every check, so including it would
   mean every check publishes, which is the thing this section exists to
-  stop. The date is recorded locally without a clock and reaches peers on
-  the row's next sync-visible write. (Amended 2026-09-19, while planning
-  slice 4.)
+  stop. The date is recorded locally without a clock, and it STAYS local
+  until something stamps the verification group, which only a real flag
+  change does: a later row edit moves the row clock, and the merge compares
+  each fact group on its own clock, so a peer with an equal or newer
+  verification clock keeps its own date. A peer can therefore show an older
+  "last checked" indefinitely for a row whose every check confirms what it
+  already said. The media health report shows this device's own value,
+  which is the one a support thread needs. (Amended 2026-09-19 while
+  planning slice 4; the "reaches peers on the next sync-visible write"
+  wording was corrected 2026-09-20 after review showed the merge discards
+  it.)
 - Inconclusive verifier outcomes (`fromOtherDevice`, `accessDenied`, no
   resolver, throw) never write the row.
 - `MediaItemView` reconciles only when the resolver verdict is `notFound` on
@@ -371,12 +379,21 @@ advancing the cursor after `apply` is correct.
 ### 5.4 Diver delete (#1954)
 
 `deleteDiverWithReassignment` gains the same media partition the single
-entity deletes use, computed before the transaction and applied through
-`MediaDeletionCoordinator` after it: media linked only to the diver's dives,
+entity deletes use, computed inside the transaction (after the shared rows
+are reassigned, before any delete, so it names exactly what the transaction
+removes) and applied through `MediaDeletionCoordinator` after it commits,
+each doomed row read again first so one relinked in between is spared: media linked only to the diver's dives,
 sites and gear is deleted with `media` and `mediaEnrichment` tombstones and
 a blob-delete intent for anything store-backed; media also linked to a
 surviving row is unlinked, stamped and marked pending. Originals are never
-touched. #1957 (the rest of the diver delete) stays its own issue; the two
+touched. The diver's buddies go too, and `media.signer_id` is also `ON
+DELETE SET NULL`, so a surviving signature whose signer was one of them has
+`signer_id` cleared, stamped and marked pending with the other unlinks. A
+signer is not a logbook link: it never keeps a row alive or dooms one. The
+media enrichment the diver's dives cascade away is tombstoned inside the
+transaction, from ids read before it. The per-entity partitions cannot be
+chained here, because each keeps a row another dying parent still links, so
+the plan classifies every row against all the dying sets at once. #1957 (the rest of the diver delete) stays its own issue; the two
 PRs coordinate on the transaction boundary.
 
 ## 6. Phase 2: resolution
@@ -399,9 +416,17 @@ returns null for `platformGallery`), and the origin republish sweep only
 selects rows this device already owns. Slice 7 therefore adds two things:
 gallery links stamp the linking device's id at insert from then on, and a
 one-time origin backfill stamps this device's id (a narrow write, one clock
-bump) on every null-origin row that resolves natively here. Until a row has
-an origin it keeps today's behaviour on the device with a cache hit for it
-and answers `fromOtherDevice` elsewhere.
+bump) on every null-origin row that resolves natively here. A repair that
+relinks a row to a gallery asset or a file records the repairing device as
+its origin too, since the new address resolves only there. Until a row has
+an origin it is never `notFound`, on any device (decided 2026-09-23). The
+spec first kept today's behaviour on a device with a cache hit, but the
+first failed thumbnail fetch clears that mapping, so the verdict would flip
+between renders. The backfill runs once per device after a successful sync,
+never at launch: the origin has no fact group, so a stamp bumps the row
+clock, and right after a pull is when it can least overwrite a peer's unseen
+newer edit. It runs only with full photo access, since a limited selection
+hides rows the device did link.
 
 ### 6.2 PhotoKit cloud identifier (#1937)
 
@@ -421,6 +446,23 @@ and answers `fromOtherDevice` elsewhere.
 - Cache invalidation: when a sync applies a new `cloud_asset_id` or new
   upload facts to a row, its `unresolved` cache entry is deleted, so the
   next view retries instead of waiting out the backoff.
+- Decided 2026-09-23 while planning: rung 226 (PR #1978 holds 225); the
+  floor stays 224; the batch `getCloudIdentifiers` call everywhere, since
+  `AssetEntity.darwin.cloudIdentifier` wraps it one id at a time and throws
+  off Apple platforms; the backfill is the slice 7 origin backfill's twin
+  (own rows, after a sync, full access), not the origin republish sweep,
+  and it waits for the origin backfill. It repeats at most once a day
+  rather than once ever (review of #2312): a photo linked before iCloud
+  Photos uploaded it, or before iCloud Photos was on, has no cloud id yet
+  and gains one later. A relink synced from a peer drops this device's
+  cached mapping outright, found or not, since it names the old photo; a
+  new cloud id or upload fact still retries only a search that gave up. A
+  gallery relink restamps
+  the cloud id, with an empty string for "none" because a null never
+  reaches a peer through the merge's nullToAbsent upsert. "New upload
+  facts" means an upload value this device did not have, not a won upload
+  clock: a group with no clock of its own falls back to the row clock, so
+  a plain edit can win it.
 
 ### 6.3 Android (#1625)
 
@@ -435,6 +477,18 @@ and answers `fromOtherDevice` elsewhere.
 - Reproduction plan: ask the #1625 reporter for a single-row health report;
   reproduce on the maintainer's Android phone with limited access, with a
   moved file, and across an OS re-index.
+- Decided 2026-09-23 while planning: the actions appear in the full-screen
+  viewer and the media info panel, not on grid tiles, which show a distinct
+  "Not in your allowed photos" placeholder; "Choose photo again" opens the
+  system's limited-selection sheet (`PhotoManager.presentLimited`) and the
+  row keeps its link; a lost content-URI grant on the linking device searches
+  the library by the metadata tiers (`AssetResolutionService.findInLibrary`,
+  which needs no stored asset id) and is `accessDenied` if nothing matches;
+  resolution reads permission through a new, non-prompting
+  `PhotoPickerService.currentPermission`, so the OS prompt comes only from
+  the picker and "Allow full access". A gallery query that throws is
+  `accessDenied` too, since `unavailable` read as `notFound` on the linking
+  device. The PR refs #1625 rather than closing it (section 10).
 
 ### 6.4 #425
 
@@ -448,18 +502,33 @@ a burst pair, before asking the reporter to confirm.
 
 ### 7.1 The queue never waits silently
 
-- A preflight throw records suspension with a reason; the Transfers page
-  and the Media Storage summary row show the existing suspended notice with
-  that reason; the retry window is armed as today.
+- Every stop of the drain records a hold with a reason, which the transfer
+  summary carries. A preflight throw while offline holds quietly: no
+  suspended notice, and the Media Storage summary row says the queue is
+  waiting for a connection. Any other throw suspends with the error as its
+  reason. A refusal suspends and names itself (detached, or a marker
+  mismatch). The Transfers page and the Media Storage summary row show the
+  existing suspended notice, naming the reason; the retry window is armed as
+  today. (Decided 2026-09-23: offline stays quiet, because an ordinary
+  moment without network must not read as a broken store.)
 - A per-entry budget expiry writes a waiting reason on the entry.
 - A `delete` entry with no processor is marked failed with a message rather
   than deferred.
-- Stranded `transferring` rows are reclaimed before the first drain and
-  again on every resume, by making the reclaim part of `drain` rather than a
-  process-cached provider.
-- The resume gate arms a wakeup for a queue that holds only deferred rows.
-- A marker mismatch or epoch failure raises the existing pending-setup card
-  with a one-tap reconnect, and the queue's suspended notice names it.
+- Stranded `transferring` rows are reclaimed at the start of every drain.
+  Leases on the entries a worker is running keep the reclaim off a transfer
+  still in flight, which is what the once-per-process reclaim provider
+  existed to protect.
+- The resume gate builds the runtime for any outstanding row: due,
+  deferred, or stranded in `transferring`.
+- A marker mismatch (another store's marker, or none) is remembered on the
+  attach state and raises a pending-setup card that opens Media Storage,
+  where disconnecting and connecting again adopts the store the cloud now
+  holds; the queue's suspended notice names it. A one-tap reconnect is the
+  guided adopt / rebuild / detach choice of design spec section 13, not
+  this slice: `media` rows carry no store id, so adopting silently would
+  leave upload stamps pointing at objects the new store never held. (The
+  earlier "epoch failure" wording is dropped: the media store has no
+  epoch.)
 
 ### 7.2 Store gate probe
 
@@ -468,6 +537,15 @@ media store, the tile probes the store for the row's `contentHash` once per
 row per session, negative-cached in memory, and falls back to the store when
 the object exists. Section 5.1 makes lost stamps rare; this makes a late or
 lost stamp cosmetic.
+
+Read-only (decided 2026-09-23): a successful probe serves the tile and
+writes nothing; the stamps stay the uploading device's facts, and a grid
+render never publishes a sync write. Only `fromOtherDevice` is probed
+(`notFound` is the linking device's own verdict that the bytes are gone),
+each tier the request needs is asked about once per store key for the
+life of the store runtime (an original's key carries its extension, so one
+content hash can have several), and a HEAD that failed or timed out is not
+remembered.
 
 ## 8. Phase 4: verification matrix
 
@@ -507,7 +585,7 @@ becomes a sub-issue and one PR. Dependencies run top to bottom.
 2. Media health report with its three entry points, `LogCategory.media`,
    per-category file floor, named origin device. (4.2 to 4.4)
 3. Engine merge rule: merge and keep pending where both sides are clocked,
-   media tables join the stale-copy guard, two fact clocks (schema v223),
+   media tables join the stale-copy guard, two fact clocks (schema v224),
    fact writers stamp their group clock. Turns S1 and S3 green. (5.1)
 4. Quiet verification: an inconclusive check writes nothing, and a
    verification publishes only when the orphan flag moves. Tombstone the

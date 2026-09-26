@@ -14,6 +14,7 @@ import 'package:submersion/core/database/legacy_sample_staging.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
+import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -1307,14 +1308,25 @@ class SyncDataSerializer {
         await writeData('${jsonEncode(spec.key)}:[');
         var firstRow = true;
 
+        // Fact clocks count toward the base's high-water mark as well as the
+        // row clock (media sync program spec 5.1): a base whose newest change
+        // is a fact write would otherwise leave the watermark below that
+        // clock, and the first incremental after it would re-publish the row
+        // for nothing.
+        final factClockKeys = [
+          for (final g in SyncFactGroups.of(spec.key)) g.clockKey,
+        ];
+
         Future<void> emit(Map<String, dynamic> row) async {
           if (!firstRow) await writeData(',');
           firstRow = false;
           rowCount++;
-          final hlc = row['hlc'];
-          if (hlc is String &&
-              (maxRowHlc == null || hlc.compareTo(maxRowHlc!) > 0)) {
-            maxRowHlc = hlc;
+          for (final key in ['hlc', ...factClockKeys]) {
+            final clock = row[key];
+            if (clock is String &&
+                (maxRowHlc == null || clock.compareTo(maxRowHlc!) > 0)) {
+              maxRowHlc = clock;
+            }
           }
           await writeData(jsonEncode(row));
         }
@@ -1422,12 +1434,24 @@ class SyncDataSerializer {
   /// changeset advances to. Null when the delta has no HLC-bearing rows.
   String? _maxHlcInData(SyncData data) {
     String? maxHlc;
-    for (final list in data.toJson().values) {
+    void consider(Object? h) {
+      if (h is String && (maxHlc == null || h.compareTo(maxHlc!) > 0)) {
+        maxHlc = h;
+      }
+    }
+
+    for (final entry in data.toJson().entries) {
+      final list = entry.value;
       if (list is! List) continue;
+      // Fact clocks count too (spec 5.1): a row exported only because a fact
+      // moved would otherwise leave the watermark below it and be re-sent on
+      // every publish.
+      final groups = SyncFactGroups.of(entry.key);
       for (final row in list) {
-        if (row is Map && row['hlc'] is String) {
-          final h = row['hlc'] as String;
-          if (maxHlc == null || h.compareTo(maxHlc) > 0) maxHlc = h;
+        if (row is! Map) continue;
+        consider(row['hlc']);
+        for (final g in groups) {
+          consider(row[g.clockKey]);
         }
       }
     }
@@ -1480,6 +1504,92 @@ class SyncDataSerializer {
     'diveSafetyFindings',
     'gasSwitches',
   };
+
+  /// Rows that export on their own clock but merge as blind upserts (no
+  /// conflict cards). Like [parentGatedChildEntities] they carry an hlc, so
+  /// the merge refuses a copy strictly older than the local row
+  /// (SyncService._mergeEntity); unlike them they are selected for export by
+  /// their own clock, so they must not join that set, which also drives the
+  /// pending-children export.
+  static const Set<String> clockGuardedEntities = {
+    'media',
+    'mediaEnrichment',
+    'mediaSpecies',
+    'mediaStores',
+    'species',
+    'importedFiles',
+    'fieldPresets',
+  };
+
+  /// Every entity whose rows carry their own HLC, whether they reach a peer
+  /// through a parent ([parentGatedChildEntities]) or on their own clock
+  /// ([clockGuardedEntities]).
+  ///
+  /// Tombstone and revival decisions read this, not the parent-gated set
+  /// alone. The media tables joined the stale-copy guard through their own
+  /// set, and the deletion paths were left comparing them by `updatedAt`:
+  /// `mediaSpecies` has no such column, so a local edit made after a peer's
+  /// delete was treated as ageless and deleted as stale.
+  static final Set<String> ownClockEntities = {
+    ...parentGatedChildEntities,
+    ...clockGuardedEntities,
+  };
+
+  /// Writes one fact group's columns and clock with explicit values, nulls
+  /// included. The media upsert builds its insert with nullToAbsent, so a
+  /// cleared stamp would never land through it (media sync program spec
+  /// 5.1).
+  Future<void> writeFactGroup(
+    String entityType,
+    String recordId,
+    SyncFactGroup group,
+    Map<String, dynamic> values,
+  ) async {
+    final target = SyncFactGroups.tables[entityType];
+    if (target == null) return;
+    // Only the keys the merge resolved: a column absent from [values] is one
+    // neither side carried, and writing null for it would clear a fact
+    // nobody asked to clear (an explicit null IS present and does clear).
+    final assignments = {
+      for (final e in {
+        ...group.columns,
+        group.clockKey: group.clockColumn,
+      }.entries)
+        if (values.containsKey(e.key)) e.key: e.value,
+    };
+    if (assignments.isEmpty) return;
+    final set = assignments.values.map((c) => '"$c" = ?').join(', ');
+    final args = [
+      for (final key in assignments.keys)
+        switch (values[key]) {
+          final bool b => b ? 1 : 0,
+          final Object? v => v,
+        },
+    ];
+    // customUpdate, not customStatement: a stale remote row whose fact group
+    // is newer skips the batched upsert, so this is the ONLY write for that
+    // record. customStatement tells Drift nothing about what changed, so the
+    // media query streams would not rebuild and a peer's new upload or
+    // verification facts stayed invisible to whatever was on screen until an
+    // unrelated reload.
+    await _db.customUpdate(
+      'UPDATE "${target.table}" SET $set WHERE "${target.pk}" = ?',
+      variables: [
+        for (final a in args)
+          switch (a) {
+            final int v => Variable.withInt(v),
+            final String v => Variable.withString(v),
+            final double v => Variable.withReal(v),
+            final bool v => Variable.withBool(v),
+            null => const Variable<String>(null),
+            final Object v => Variable.withString(v.toString()),
+          },
+        Variable.withString(recordId),
+      ],
+      updates: {_tableNamed(target.table)},
+      updateKind: UpdateKind.update,
+    );
+  }
 
   /// The sync record id of a [parentGatedChildEntities] row, in the shape
   /// SyncService.recordIdForEntity uses (a composite key is joined with
@@ -2743,6 +2853,33 @@ class SyncDataSerializer {
         return {
           for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
         };
+      case 'media':
+        final rows = await (_db.select(
+          _db.media,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {
+          for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
+        };
+      case 'mediaSpecies':
+        final rows = await (_db.select(
+          _db.mediaSpecies,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'species':
+        final rows = await (_db.select(
+          _db.species,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'importedFiles':
+        final rows = await (_db.select(
+          _db.importedFiles,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'fieldPresets':
+        final rows = await (_db.select(
+          _db.fieldPresets,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
       case 'mediaStores':
         final rows = await (_db.select(
           _db.mediaStores,
@@ -6533,7 +6670,15 @@ class SyncDataSerializer {
   Future<List<Map<String, dynamic>>> _exportMedia(String? hlcSince) async {
     final query = _db.select(_db.media);
     if (hlcSince != null) {
-      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+      // A fact write stamps its group clock, not the row clock (media sync
+      // program spec 5.1), so a row is due when either has moved past the
+      // watermark.
+      query.where(
+        (t) =>
+            t.hlc.isBiggerThanValue(hlcSince) |
+            t.uploadFactsHlc.isBiggerThanValue(hlcSince) |
+            t.verifyFactsHlc.isBiggerThanValue(hlcSince),
+      );
     }
     final rows = await query.get();
     // Media carries the imageData BLOB; encode it as base64, not a byte array.

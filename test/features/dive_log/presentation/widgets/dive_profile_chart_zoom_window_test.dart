@@ -57,7 +57,9 @@ Widget _buildChart({void Function(List<TooltipRow>? rows)? onTooltipData}) {
           height: 500,
           child: DiveProfileChart(
             profile: _profile(),
-            tooltipBelow: onTooltipData != null,
+            tooltipPresentation: onTooltipData != null
+                ? TooltipPresentation.external
+                : TooltipPresentation.inChart,
             onTooltipData: onTooltipData,
           ),
         ),

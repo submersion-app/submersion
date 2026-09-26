@@ -28,6 +28,7 @@ void main() {
       assets: [FakeGalleryAsset(id: 'A-1', bytes: bytes, takenAt: taken)],
     );
     resolver = PlatformGalleryResolver(
+      localDeviceId: () async => 'this-device',
       resolutionService: AssetResolutionService(
         cacheRepository: LocalAssetCacheRepository(database: cacheDb),
         photoPickerService: gallery,
@@ -38,16 +39,20 @@ void main() {
 
   tearDown(() => cacheDb.close());
 
+  // Rows here were linked on this device: a miss is evidence of absence
+  // only there (media sync program spec 6.1).
   MediaItem row(
     String assetId, {
     DateTime? takenAt,
     String filename = 'IMG_0001.JPG',
+    String? originDeviceId = 'this-device',
   }) => MediaItem(
     id: 'm-$assetId',
     platformAssetId: assetId,
     mediaType: MediaType.photo,
     sourceType: MediaSourceType.platformGallery,
     originalFilename: filename,
+    originDeviceId: originDeviceId,
     takenAt: takenAt ?? taken,
     createdAt: taken,
     updatedAt: taken,

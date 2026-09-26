@@ -178,9 +178,16 @@ class UnavailableData extends MediaSourceData {
   final String? userMessage;
   final String? originDeviceLabel;
 
+  /// With [UnavailableKind.accessDenied] only: the photo library was
+  /// searched through a limited selection, so the photo may be in the
+  /// library but outside what the user allowed (media sync program spec
+  /// 6.3). The viewer offers full access or the selection sheet for it.
+  final bool limitedAccess;
+
   const UnavailableData({
     required this.kind,
     this.userMessage,
     this.originDeviceLabel,
+    this.limitedAccess = false,
   });
 }

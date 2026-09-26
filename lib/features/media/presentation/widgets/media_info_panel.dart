@@ -17,9 +17,12 @@ import 'package:submersion/features/media/domain/value_objects/verify_result.dar
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
 import 'package:submersion/features/media/presentation/helpers/media_link_replacer.dart';
 import 'package:submersion/features/media/presentation/helpers/set_time_seed.dart';
+import 'package:submersion/features/media/presentation/providers/media_health_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_provenance_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
+import 'package:submersion/features/media/presentation/providers/photo_access_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/limited_access_actions.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -259,6 +262,17 @@ class _OriginSection extends ConsumerWidget {
       title: l10n.media_info_originSection,
       actions: [
         _CheckNowButton(item: item),
+        // Under limited photo access a gallery photo may be outside what the
+        // user allowed (spec 6.3). Offered whenever access is limited: the
+        // panel reads stored facts, not this device's live verdict.
+        if (origin.sourceType == MediaSourceType.platformGallery &&
+            ref.watch(galleryAccessLimitedProvider).value == true)
+          LimitedAccessActions(
+            onChanged: () {
+              ref.invalidate(galleryAccessLimitedProvider);
+              ref.invalidate(mediaByIdProvider(item.id));
+            },
+          ),
         // The repair engine's file candidate only makes sense for a row that
         // points at a path, so this is not offered for a missing gallery
         // asset, where picking a file would relink it to the wrong source
@@ -274,6 +288,7 @@ class _OriginSection extends ConsumerWidget {
             child: Text(l10n.media_info_actionReveal),
           ),
         if (pointer != null) _CopyReferenceButton(pointer: pointer),
+        _CopyDiagnosticsButton(item: item),
       ],
       children: [
         DiveDetailRow(
@@ -297,7 +312,8 @@ class _OriginSection extends ConsumerWidget {
             // stamped locally in the overwhelmingly common case.
             value: (thisDevice == null || deviceId == thisDevice)
                 ? l10n.media_info_thisDevice
-                : l10n.media_info_otherDevice,
+                : (ref.watch(originDeviceLabelProvider(deviceId)) ??
+                      l10n.media_info_otherDevice),
           ),
         DiveDetailRow(
           label: l10n.media_info_status,
@@ -616,6 +632,39 @@ class _CopyReferenceButton extends StatelessWidget {
       messenger.showSnackBar(SnackBar(content: Text(copied)));
     },
     child: Text(context.l10n.media_info_actionCopyPath),
+  );
+}
+
+/// Puts the one-row health report on the clipboard, store header included,
+/// so a support thread gets the synced facts, the cache and resolver
+/// verdicts, the store probe and the queue entry in one paste.
+class _CopyDiagnosticsButton extends ConsumerWidget {
+  const _CopyDiagnosticsButton({required this.item});
+
+  final MediaItem item;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => TextButton(
+    onPressed: () async {
+      final messenger = ScaffoldMessenger.of(context);
+      final l10n = context.l10n;
+      // Guarded like the other two entry points. Unhandled, a report that
+      // throws (a store whose credentials no longer parse, say) left the
+      // button looking dead: no clipboard write, no snack bar, nothing.
+      String message;
+      try {
+        final report = await ref
+            .read(mediaHealthReporterProvider)
+            .forItem(item, probeStore: true);
+        await Clipboard.setData(ClipboardData(text: report.toText()));
+        message = l10n.media_info_diagnosticsCopied;
+      } catch (e) {
+        message = l10n.settings_diagnostics_copyFailed(e);
+      }
+      if (!context.mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(message)));
+    },
+    child: Text(context.l10n.media_info_actionCopyDiagnostics),
   );
 }
 

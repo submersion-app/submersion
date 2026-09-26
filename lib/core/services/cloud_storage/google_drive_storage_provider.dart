@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import 'package:googleapis/drive/v3.dart' as drive;
+import 'package:googleapis_auth/googleapis_auth.dart' as gauth;
 import 'package:http/http.dart' as http;
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -168,15 +169,20 @@ class GoogleDriveStorageProvider
   /// The stale-vs-revoked disambiguation is the mobile authenticator's:
   /// google_sign_in's lightweight re-auth can mint a fresh token silently.
   /// The desktop authenticator's auto-refreshing client already handles
-  /// hourly expiry itself, so a 401 reaching here means a genuinely revoked
-  /// refresh token -- its handleAuthFailure() clears the token store, so the
-  /// retry's attemptSilentAuth() fails and the user is asked to sign in again.
+  /// hourly expiry itself. A revoked or expired refresh token reaches here
+  /// not as a 401 but as the refresh's own failure, an OAuth `invalid_grant`
+  /// ([_isRevokedGrant]); its handleAuthFailure() clears the token store, so
+  /// the retry's attemptSilentAuth() fails and the user is asked to sign in
+  /// again. Missing that case left the dead token in place, failing every
+  /// sync with a generic listing error (issue #2332).
   Future<T> _run<T>(Future<T> Function() operation) async {
     try {
       return await operation();
-    } on drive.DetailedApiRequestError catch (e) {
-      if (e.status != 401) rethrow;
-      _log.info('Drive API returned 401; attempting silent re-auth');
+    } catch (e) {
+      final unauthorized =
+          e is drive.DetailedApiRequestError && e.status == 401;
+      if (!unauthorized && !_isRevokedGrant(e)) rethrow;
+      _log.info('Drive rejected the sign-in ($e); attempting silent re-auth');
       await _authenticator.handleAuthFailure();
       _driveApi = null;
       if (!await _authenticator.attemptSilentAuth()) {
@@ -188,6 +194,17 @@ class GoogleDriveStorageProvider
       return await operation();
     }
   }
+
+  /// True when [e] is Google's token endpoint refusing the refresh token
+  /// itself (revoked, expired, or issued to another client). Any other
+  /// token-endpoint failure, a 5xx or a malformed response, is an outage
+  /// rather than a dead grant and must not sign the user out.
+  static bool _isRevokedGrant(Object e) =>
+      e is gauth.ServerRequestFailedException &&
+      switch (e.responseContent) {
+        {'error': 'invalid_grant'} => true,
+        _ => false,
+      };
 
   /// Maps a Drive error to a CloudStorageException with an actionable
   /// message where one exists (quota); otherwise a generic wrapper.

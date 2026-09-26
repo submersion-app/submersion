@@ -20,6 +20,9 @@ import 'package:submersion/features/media/domain/value_objects/media_source_meta
 
 class _StubPhotoPickerService implements PhotoPickerService {
   @override
+  Future<PhotoPermissionStatus> currentPermission() => checkPermission();
+
+  @override
   bool get supportsGalleryBrowsing => false;
 
   @override

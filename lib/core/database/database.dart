@@ -884,6 +884,11 @@ class Dives extends Table {
   BoolColumn get isPlanned =>
       boolean().withDefault(const Constant(false))(); // True for planned dives
 
+  /// Shared id across the sibling dives created by one mirror action (issue
+  /// #2002). Not a foreign key: a lone dive with an outing id is valid, and a
+  /// group id written once per row never half-applies under sync.
+  TextColumn get outingId => text().nullable()();
+
   // Primary computer used for this dive
   TextColumn get computerId =>
       text().nullable().references(DiveComputers, #id)();
@@ -1685,6 +1690,11 @@ class Media extends Table {
   TextColumn get connectorAccountId => text().nullable()();
   TextColumn get remoteAssetId => text().nullable()();
   TextColumn get originDeviceId => text().nullable()();
+  // v226: PhotoKit's cloud identifier for a gallery link (media sync
+  // program spec 6.2), which names the same photo on every device sharing
+  // an iCloud Photos library. Null when unknown; empty when a relink found
+  // none, since a null never clears a peer's copy (nullToAbsent).
+  TextColumn get cloudAssetId => text().nullable()();
   // Media store (v103) - content identity + upload confirmation stamps.
   // Nullable adds; a row with remote_uploaded_at set has its original bytes
   // confirmed present in the library's media store at the content-hash key.
@@ -1723,6 +1733,17 @@ class Media extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
   TextColumn get hlc => text().nullable()();
+
+  /// Clock of the upload facts (content identity, the three upload stamps
+  /// and the compressed rendition's level and size). Every upload-fact write
+  /// stamps this instead of [hlc], so a stamp never makes a stale caption win
+  /// the row, and a cleared stamp still orders against a set one. Null falls
+  /// back to [hlc] (v224, media sync program spec 5.1).
+  TextColumn get uploadFactsHlc => text().nullable()();
+
+  /// Clock of the verification facts (isOrphaned, lastVerifiedAt). Same
+  /// contract as [uploadFactsHlc].
+  TextColumn get verifyFactsHlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -2157,6 +2178,10 @@ class DiverSettings extends Table {
   // manual region override (ISO country code).
   TextColumn get hiddenChamberIds => text().nullable()();
   TextColumn get emergencyRegion => text().nullable()();
+
+  /// v227: built-in tank presets the diver hid from the pickers (issue
+  /// #2305), JSON list of preset slugs. Null or absent = none hidden.
+  TextColumn get hiddenTankPresetIds => text().nullable()();
   // Appearance settings
   BoolColumn get showDepthColoredDiveCards =>
       boolean().withDefault(const Constant(false))();
@@ -2341,6 +2366,12 @@ class DiverSettings extends Table {
 class Buddies extends Table {
   TextColumn get id => text()();
   TextColumn get diverId => text().nullable().references(Divers, #id)();
+
+  /// The local diver profile this buddy IS (issue #2002). Distinct from
+  /// [diverId], which says whose contact list the buddy belongs to. Set NULL
+  /// when that profile is deleted; repointed by the diver merge.
+  TextColumn get linkedDiverId =>
+      text().nullable().references(Divers, #id, onDelete: KeyAction.setNull)();
   TextColumn get name => text()();
   TextColumn get email => text().nullable()();
   TextColumn get phone => text().nullable()();
@@ -4268,7 +4299,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 222;
+  static const int currentSchemaVersion = 227;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4332,7 +4363,19 @@ class AppDatabase extends _$AppDatabase {
   /// are held until they update. Their own payloads still arrive here, and
   /// a live tank row still pointing at an item deleted here has its link
   /// cleared by [SyncService.parentRefs].
-  static const int minimumCompatibleSchemaVersion = 210;
+  ///
+  /// Raised 210 -> 224 by the media fact clocks: v224 splits a media row's
+  /// device-stamped facts (the upload stamps and the verification pair) onto
+  /// their own clocks, so this build publishes a media row whose ROW clock
+  /// did not move when only its facts changed. An older reader knows nothing
+  /// of the fact clocks and applies media as a blind upsert, so it would take
+  /// the whole row and overwrite a caption it holds that is newer than ours.
+  /// That is an old reader misapplying our payload, which is what this floor
+  /// exists to prevent. Peers below 224 are held until they update; their own
+  /// payloads still arrive here, and this build's merge reads a missing fact
+  /// clock as the row clock, so an old peer's writes still order correctly
+  /// (media sync program spec 5.1).
+  static const int minimumCompatibleSchemaVersion = 224;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -4892,6 +4935,31 @@ class AppDatabase extends _$AppDatabase {
     // #2141 follow-up). Additive column, default null. Compatibility floor
     // stays: an older reader simply never sees the per-site overrides.
     222,
+    // v223: buddies.linked_diver_id (a buddy that IS a local profile) and
+    // dives.outing_id (sibling dives mirrored from one save), issue #2002.
+    // Additive nullable columns, no backfill, so the floor stays at 210.
+    // Renumbered four times: equipment tags took 219, the computer-set
+    // auto-apply column took 220, rental gear memory took 221 and the
+    // per-site vertical exaggeration overrides took 222 while this branch
+    // was open, and a rung at or below the shipped version never runs.
+    223,
+    // v224: media.upload_facts_hlc and verify_facts_hlc, the two fact
+    // clocks (media sync program spec 5.1). Columns plus a backfill from
+    // the row clock, and the one rung on this ladder that DOES move the
+    // compatibility floor: a reader without them cannot order fact writes.
+    // Renumbered from 223, which buddy profile links took while this was
+    // in review.
+    224,
+    // v226: media.cloud_asset_id, the PhotoKit cloud identifier (media sync
+    // program spec 6.2). Column only; the one-time backfill runs after a
+    // sync, not here. Additive and nullable, so the floor stays at 224.
+    // 225 is held by PR #1978 (tissue loading import).
+    226,
+    // v227: diver_settings.hidden_tank_preset_ids (issue #2305). Additive
+    // nullable column, no backfill. The floor stays: an older reader simply
+    // shows every built-in preset. Renumbered from 225, which is held by PR
+    // #1978, after v226 landed while this was in review.
+    227,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -6383,6 +6451,48 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
+  /// v227: diver_settings.hidden_tank_preset_ids (issue #2305). Additive
+  /// column, default null, so every built-in preset stays visible until the
+  /// diver hides one. Idempotent, so it is safe to call from both onUpgrade
+  /// and the beforeOpen backstop.
+  Future<void> _assertHiddenTankPresetIdsColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('hidden_tank_preset_ids')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN hidden_tank_preset_ids TEXT',
+      );
+    }
+  }
+
+  /// v223: buddies.linked_diver_id and dives.outing_id (issue #2002).
+  /// Idempotent, so it is safe from both onUpgrade and the beforeOpen
+  /// backstop, and a no-op for either table when it does not exist yet.
+  /// SQLite lets ADD COLUMN carry a REFERENCES clause only for a nullable
+  /// column with no default, which this one is.
+  Future<void> _assertBuddyProfileDiveLinkColumns() async {
+    final buddyCols = await customSelect("PRAGMA table_info('buddies')").get();
+    if (buddyCols.isNotEmpty) {
+      final names = buddyCols.map((c) => c.read<String>('name')).toSet();
+      if (!names.contains('linked_diver_id')) {
+        await customStatement(
+          'ALTER TABLE buddies ADD COLUMN linked_diver_id TEXT '
+          'REFERENCES divers (id) ON DELETE SET NULL',
+        );
+      }
+    }
+    final diveCols = await customSelect("PRAGMA table_info('dives')").get();
+    if (diveCols.isNotEmpty) {
+      final names = diveCols.map((c) => c.read<String>('name')).toSet();
+      if (!names.contains('outing_id')) {
+        await customStatement('ALTER TABLE dives ADD COLUMN outing_id TEXT');
+      }
+    }
+  }
+
   /// v218: diver_settings.site_detail_sections and site_detail_layout (issue
   /// #1884). Idempotent, so it is safe to call from both onUpgrade and the
   /// beforeOpen backstop, and a no-op when the table does not exist yet.
@@ -7767,6 +7877,47 @@ class AppDatabase extends _$AppDatabase {
       'CREATE INDEX IF NOT EXISTS idx_media_equipment_id '
       'ON media(equipment_id)',
     );
+  }
+
+  Future<void> _assertMediaFactClockColumns() async {
+    final cols = await customSelect("PRAGMA table_info('media')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('upload_facts_hlc')) {
+      await customStatement(
+        'ALTER TABLE media ADD COLUMN upload_facts_hlc TEXT',
+      );
+    }
+    if (!names.contains('verify_facts_hlc')) {
+      await customStatement(
+        'ALTER TABLE media ADD COLUMN verify_facts_hlc TEXT',
+      );
+    }
+  }
+
+  Future<void> _assertMediaCloudAssetIdColumn() async {
+    final cols = await customSelect("PRAGMA table_info('media')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('cloud_asset_id')) {
+      await customStatement('ALTER TABLE media ADD COLUMN cloud_asset_id TEXT');
+    }
+  }
+
+  /// v224: existing facts were last written under the row clock, so that is
+  /// their clock. Rows already stamped (a re-run) are left alone. Guarded
+  /// like the backstops: a partially built database (a migration fixture, or
+  /// one caught mid-ladder) may lack the table or its row clock.
+  Future<void> _backfillMediaFactClocks() async {
+    final cols = await customSelect("PRAGMA table_info('media')").get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('hlc')) return;
+    for (final column in const ['upload_facts_hlc', 'verify_facts_hlc']) {
+      if (!names.contains(column)) continue;
+      await customStatement(
+        'UPDATE media SET $column = hlc WHERE $column IS NULL',
+      );
+    }
   }
 
   Future<void> _assertBuddyFavoriteColumn() async {
@@ -12403,8 +12554,36 @@ class AppDatabase extends _$AppDatabase {
           await _assertSeascapeVerticalExaggerationOverridesColumn();
         }
         if (from < 222) await reportProgress();
+        // v223: buddy profile links and dive outings (issue #2002).
+        // Column-only rung, no backfill: null reads back as "not linked"
+        // and "no siblings".
+        if (from < 223) {
+          await _assertBuddyProfileDiveLinkColumns();
+        }
+        if (from < 223) await reportProgress();
+        // v224: the two media fact clocks, backfilled from the row clock so
+        // an existing row starts with a clock on every group.
+        if (from < 224) {
+          await _assertMediaFactClockColumns();
+          await _backfillMediaFactClocks();
+        }
+        if (from < 224) await reportProgress();
+        // v226: media.cloud_asset_id. Column only, no backfill.
+        if (from < 226) {
+          await _assertMediaCloudAssetIdColumn();
+        }
+        if (from < 226) await reportProgress();
+        // v227: diver_settings.hidden_tank_preset_ids (issue #2305).
+        // Column-only rung, no backfill: null reads back as "none hidden".
+        if (from < 227) {
+          await _assertHiddenTankPresetIdsColumn();
+        }
+        if (from < 227) await reportProgress();
       },
       beforeOpen: (details) async {
+        // v227 backstop: the hidden built-in tank presets.
+        await _assertHiddenTankPresetIdsColumn();
+
         // v222 backstop: the per-site vertical exaggeration overrides.
         await _assertSeascapeVerticalExaggerationOverridesColumn();
 
@@ -12780,6 +12959,11 @@ class AppDatabase extends _$AppDatabase {
         // arrives by restore or sync-adopt without them would throw on the
         // first read.
         await _assertSiteDetailColumns();
+        // v223 backstop: re-assert the buddy link and outing columns. The
+        // buddy and dive mappers read the whole row, so a database that
+        // arrives by restore or sync-adopt without them would throw on the
+        // first read.
+        await _assertBuddyProfileDiveLinkColumns();
         // v182 backstop: re-assert the packed profile series tables, then
         // pack any dive that still has legacy rows and no series row. A
         // schema-version collision with a parallel branch skips the rung on
@@ -12885,6 +13069,16 @@ class AppDatabase extends _$AppDatabase {
         // every open: column-and-index only, no backfill, so it cannot
         // resurrect or overwrite diver data.
         await _assertMediaEquipmentIdColumn();
+
+        // v224 backstop: re-assert the media fact clock columns (parallel
+        // branch version-collision self-heal). Columns only, no backfill: a
+        // null clock falls back to the row clock, so nothing is lost.
+        await _assertMediaFactClockColumns();
+
+        // v226 backstop: re-assert media.cloud_asset_id (parallel-branch
+        // version-collision self-heal). Column only, so it cannot touch
+        // diver data.
+        await _assertMediaCloudAssetIdColumn();
 
         // v194 backstop: re-assert dive_tanks.transmitter_serial. Every tank
         // read selects the whole row, so a database that arrives by restore

@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
@@ -659,7 +660,7 @@ void main() {
 
       // Back in the dialog with the browsed tag staged as a chip.
       expect(find.byType(TagPickerSheet), findsNothing);
-      expect(find.widgetWithText(Chip, 'Nitrox'), findsOneWidget);
+      expect(find.widgetWithText(TagChip, 'Nitrox'), findsOneWidget);
 
       await tester.tap(
         find.descendant(

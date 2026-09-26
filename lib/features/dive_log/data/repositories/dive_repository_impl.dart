@@ -40,7 +40,7 @@ import 'package:submersion/features/dive_log/domain/services/profile_series_merg
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
-import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
     as domain;
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
@@ -1542,6 +1542,7 @@ class DiveRepository {
                 ),
                 // Dive planner (v1.5)
                 isPlanned: Value(dive.isPlanned),
+                outingId: Value(dive.outingId),
                 // Training course (v1.5)
                 courseId: Value(dive.courseId),
                 // Import source tracking
@@ -1836,6 +1837,7 @@ class DiveRepository {
             scrubberRemainingMinutes: Value(dive.scrubber?.remainingMinutes),
             // Dive planner (v1.5)
             isPlanned: Value(dive.isPlanned),
+            outingId: Value(dive.outingId),
             // Training course (v1.5)
             courseId: Value(dive.courseId),
             // Import source tracking
@@ -1997,7 +1999,7 @@ class DiveRepository {
       await _mediaDeletionCoordinator.deleteMediaItems(split.doomed);
     }
     if (split.unlinkIds.isNotEmpty) {
-      await _mediaRepository.unlinkMediaFromDeletedDives(split.unlinkIds);
+      await _mediaRepository.unlinkMediaFromDeletedDives(split.unlinkIds, ids);
     }
   }
 
@@ -2198,6 +2200,7 @@ class DiveRepository {
             'd.dive_date_time, d.entry_time, '
             'd.max_depth, d.bottom_time, d.runtime, d.water_temp, d.rating, '
             'd.is_favorite, d.excluded_from_stats, d.excluded_from_gas_stats, '
+            'd.is_planned, '
             'd.dive_type, d.dive_mode, '
             'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
             's.name AS site_name, s.country AS site_country, '
@@ -2687,9 +2690,9 @@ class DiveRepository {
         }
       }
     }
-    // Equipment attributes: the same EXISTS Statistics uses, one per
+    // Equipment attributes: the same EXISTS Insights uses, one per
     // condition. Missing until #1805, so the list and its count ignored the
-    // Suit thickness filter that the table view and Statistics applied.
+    // Suit thickness filter that the table view and Insights applied.
     for (final condition in filter.equipmentAttrConditions) {
       final c = equipmentAttrConditionSql(condition, diveIdRef: 'd.id');
       clauses.add(c.sql);
@@ -2800,6 +2803,31 @@ class DiveRepository {
   // ============================================================================
   // Query Operations
   // ============================================================================
+
+  /// Every dive in an outing: the siblings mirrored from one save (issue
+  /// #2002) plus the source dive itself. Ordered newest first like the
+  /// other per-parent lists. Crosses profiles on purpose: the caller shows
+  /// each sibling with its owner's name.
+  // stats-scope-exempt: navigation between sibling dives, not a statistic.
+  Future<List<domain.Dive>> getDivesByOutingId(String outingId) async {
+    try {
+      final query = _db.select(_db.dives)
+        ..where((t) => t.outingId.equals(outingId))
+        ..orderBy([
+          (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
+          (t) => OrderingTerm.desc(t.diveNumber),
+        ]);
+      final rows = await query.get();
+      return await Future.wait(rows.map(_mapRowToDive));
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get dives for outing: $outingId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
 
   /// Get dives for a specific site
   Future<List<domain.Dive>> getDivesForSite(String siteId) async {
@@ -3133,6 +3161,7 @@ class DiveRepository {
           'd.dive_date_time, d.entry_time, '
           'd.max_depth, d.bottom_time, d.runtime, d.water_temp, d.rating, '
           'd.is_favorite, d.excluded_from_stats, d.excluded_from_gas_stats, '
+          'd.is_planned, '
           'd.dive_type, d.dive_mode, '
           'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
           's.name AS site_name, s.country AS site_country, '
@@ -3240,6 +3269,7 @@ class DiveRepository {
         isFavorite: row.read<int>('is_favorite') == 1,
         excludedFromStats: row.read<int>('excluded_from_stats') == 1,
         excludedFromGasStats: row.read<int>('excluded_from_gas_stats') == 1,
+        isPlanned: row.read<int>('is_planned') == 1,
         diveMode: DiveMode.fromCode(row.read<String>('dive_mode')),
         diveTypeIds: diveTypesByDive[id] ?? [row.read<String>('dive_type')],
         tags: tagsByDive[id] ?? [],
@@ -3461,7 +3491,7 @@ class DiveRepository {
   /// Get dive records (superlatives)
   ///
   /// Optionally filter by [diverId] for per-diver records, and by [filter] for
-  /// a narrowed scope. Issue #1028: the Statistics tab shows these superlatives
+  /// a narrowed scope. Issue #1028: the Insights tab shows these superlatives
   /// beside totals that already honour its filter, so a deepest dive drawn from
   /// the whole logbook contradicted the panel right above it.
   Future<DiveRecords> getRecords({
@@ -4056,6 +4086,7 @@ class DiveRepository {
           : null,
       // Dive planner (v1.5)
       isPlanned: row.isPlanned,
+      outingId: row.outingId,
       // Training course (v1.5)
       courseId: row.courseId,
       // Import source tracking
@@ -4477,6 +4508,7 @@ class DiveRepository {
           : null,
       // Dive planner (v1.5)
       isPlanned: row.isPlanned,
+      outingId: row.outingId,
       // Training course (v1.5)
       courseId: row.courseId,
       // Import source tracking
@@ -5762,7 +5794,10 @@ class DiveRepository {
         '${diverId != null ? ' for diver $diverId' : ''}',
       );
 
+      // A planned dive holds no number until it is promoted (issue #2002),
+      // so it neither takes a slot nor shifts the numbers around it.
       final query = _db.select(_db.dives)
+        ..where((t) => t.isPlanned.equals(false))
         ..orderBy([
           (t) => OrderingTerm.asc(t.entryTime),
           (t) => OrderingTerm.asc(t.diveDateTime),
@@ -7554,6 +7589,18 @@ class DiveRepository {
       );
       rethrow;
     }
+  }
+
+  /// Whether a primary dive_data_sources row exists for [diveId]. A dive
+  /// with one holds downloaded data and cannot be marked planned (issue
+  /// #2002).
+  Future<bool> hasPrimaryDataSource(String diveId) async {
+    final row =
+        await (_db.select(_db.diveDataSources)
+              ..where((t) => t.diveId.equals(diveId) & t.isPrimary.equals(true))
+              ..limit(1))
+            .getSingleOrNull();
+    return row != null;
   }
 
   /// Create a primary [DiveDataSource] by back-filling metadata from the

@@ -24,6 +24,14 @@ void main() {
     expect(metadata, isNull);
   });
 
+  // Desktop reads files through a dialog, with nothing to prompt for.
+  test('currentPermission is authorized without asking', () async {
+    expect(
+      await PhotoPickerServiceDesktop().currentPermission(),
+      PhotoPermissionStatus.authorized,
+    );
+  });
+
   group('assetInfoForFile', () {
     late Directory tempDir;
     late PhotoPickerServiceDesktop service;

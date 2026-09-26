@@ -12,7 +12,7 @@ import 'package:submersion/features/media_store/data/media_stores_repository.dar
 
 /// What a device still needs to set up to match the library's synced
 /// configuration (program spec section 6).
-enum SetupItemKind { mediaStoreAttach, accountSignIn }
+enum SetupItemKind { mediaStoreAttach, mediaStoreReconnect, accountSignIn }
 
 /// One actionable "finish setting up this device" entry. [key] is stable
 /// per underlying object so per-device dismissals stick.
@@ -20,8 +20,9 @@ class PendingSetupItem {
   final SetupItemKind kind;
   final String key;
 
-  /// Display payload: the store hint for [SetupItemKind.mediaStoreAttach],
-  /// the account label for [SetupItemKind.accountSignIn].
+  /// Display payload: the store hint for [SetupItemKind.mediaStoreAttach] and
+  /// [SetupItemKind.mediaStoreReconnect], the account label for
+  /// [SetupItemKind.accountSignIn].
   final String label;
 
   /// For accountSignIn: the account's kind.
@@ -91,6 +92,26 @@ class PendingSetupService {
         items.add(
           PendingSetupItem(
             kind: SetupItemKind.mediaStoreAttach,
+            key: key,
+            label: store.displayHint,
+            route: '/settings/media-storage',
+          ),
+        );
+      }
+    }
+
+    // Attached to the announced store, but the store no longer carries the
+    // marker this device attached to (the preflight remembered it). The
+    // transfer queue is suspended until the user reconnects (media sync
+    // program spec 7.1).
+    if (store != null &&
+        attachedId == store.id &&
+        await _attachState.hasMarkerMismatch()) {
+      final key = 'store_marker_${store.id}';
+      if (!_isDismissed(key)) {
+        items.add(
+          PendingSetupItem(
+            kind: SetupItemKind.mediaStoreReconnect,
             key: key,
             label: store.displayHint,
             route: '/settings/media-storage',

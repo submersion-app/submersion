@@ -1,0 +1,683 @@
+import 'dart:async';
+
+import 'package:submersion/core/providers/provider.dart';
+
+import 'package:submersion/core/constants/gas_consumption_display.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_gas_lane_provider.dart';
+import 'package:submersion/features/insights/data/services/deco_classification_service.dart';
+import 'package:submersion/features/insights/domain/entities/species_insights.dart';
+import 'package:submersion/features/insights/domain/suit_thickness_stats.dart';
+import 'package:submersion/features/insights/domain/water_temp_band_metrics.dart';
+import 'package:submersion/features/insights/domain/water_temp_bands.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
+
+/// Repository provider.
+///
+/// Watches the gas model so flipping the preference rebuilds the repository
+/// and refreshes every gas statistic downstream of it (issue #828).
+final insightsRepositoryProvider = Provider<InsightsRepository>((ref) {
+  return InsightsRepository(gasModel: ref.watch(gasModelProvider));
+});
+
+/// How many dives the diver has explicitly excluded from statistics.
+///
+/// Backs the Overview footnote, which exists so the statistics dive count and
+/// the logbook dive count differing is self-explaining rather than a support
+/// ticket six months later. Deliberately unaffected by the Insights filter:
+/// it describes a persistent property of the logbook, not the current view.
+final excludedDiveCountProvider = FutureProvider<int>((ref) async {
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  ref.invalidateSelfWhen(repository.watchInsightsChanges());
+  return repository.countExcludedDives(diverId: currentDiverId);
+});
+
+/// Overview totals scoped by the Insights filter. Kept separate from
+/// diveStatisticsProvider so the home dashboard and dive-log summary (which
+/// read diveStatisticsProvider) stay unfiltered.
+final filteredDiveStatisticsProvider = FutureProvider<DiveStatistics>((
+  ref,
+) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  // An attribute condition makes the totals read the gear tables (#1805).
+  if (filter.equipmentAttrConditions.isNotEmpty) {
+    ref.invalidateSelfWhen(repository.watchEquipmentAttrFilterChanges());
+  }
+  return repository.getStatistics(diverId: currentDiverId, filter: filter);
+});
+
+/// Personal records (superlatives) scoped by the Insights filter.
+///
+/// Split from diveRecordsProvider for the same reason
+/// [filteredDiveStatisticsProvider] is split from diveStatisticsProvider: the
+/// dive-log summary widget reads the unfiltered one and has no filter UI, so
+/// the Insights tab's scope must not reach it. Issue #1028: before this
+/// split, the Insights tab's records were the only panel on the page that
+/// ignored the filter.
+///
+/// Takes the same dives tick as its unfiltered sibling (issue #217): a merge,
+/// a bulk delete, or a sync pull rewrites the superlatives without going
+/// through any notifier.
+final filteredDiveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  // An attribute condition makes the records read the gear tables (#1805).
+  if (filter.equipmentAttrConditions.isNotEmpty) {
+    ref.invalidateSelfWhen(repository.watchEquipmentAttrFilterChanges());
+  }
+  return repository.getRecords(diverId: currentDiverId, filter: filter);
+});
+
+/// Adds keepAlive with a 5-minute expiry and subscribes to the statistics
+/// change tick, so all stats providers stay cached across navigations but
+/// refresh whenever any table they read is written.
+///
+/// This used to watch `statisticsVersionProvider`, a counter incremented from
+/// exactly one line in the app, inside `PaginatedDiveListNotifier`. Merge,
+/// consolidate, import, and sync pulls never bumped it, so the cache this doc
+/// comment claimed was reactive stayed stale for up to five minutes: merge two
+/// dives, open Insights, and every chart still counted the merged-away dive
+/// (issue #974).
+void _keepAliveWithExpiry(Ref ref) {
+  ref.invalidateSelfWhen(
+    ref.watch(insightsRepositoryProvider).watchInsightsChanges(),
+  );
+  // Keep alive for 5 minutes after last listener detaches
+  final link = ref.keepAlive();
+  final timer = Timer(const Duration(minutes: 5), link.close);
+  ref.onDispose(timer.cancel);
+}
+
+// ============================================================================
+// Gas Statistics Providers
+// ============================================================================
+
+/// Consumption trend for the lane the gas page shows (SAC or RMV).
+final sacTrendProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final lane = ref.watch(insightsGasLaneProvider);
+  final filter = ref.watch(insightsFilterProvider);
+
+  if (lane == GasConsumptionLane.rmv) {
+    return repository.getSacVolumePerDive(
+      diverId: currentDiverId,
+      filter: filter,
+    );
+  } else {
+    return repository.getSacPressurePerDive(
+      diverId: currentDiverId,
+      filter: filter,
+    );
+  }
+});
+
+final gasMixDistributionProvider = FutureProvider<List<DistributionSegment>>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getGasMixDistribution(
+    diverId: currentDiverId,
+    filter: filter,
+  );
+});
+
+/// Best and highest consumption for the lane the gas page shows.
+final sacRecordsProvider =
+    FutureProvider<({RankingItem? best, RankingItem? worst})>((ref) async {
+      _keepAliveWithExpiry(ref);
+      final repository = ref.watch(insightsRepositoryProvider);
+      final currentDiverId = ref.watch(currentDiverIdProvider);
+      final lane = ref.watch(insightsGasLaneProvider);
+      final filter = ref.watch(insightsFilterProvider);
+
+      if (lane == GasConsumptionLane.rmv) {
+        return repository.getSacVolumeRecords(
+          diverId: currentDiverId,
+          filter: filter,
+        );
+      } else {
+        return repository.getSacPressureRecords(
+          diverId: currentDiverId,
+          filter: filter,
+        );
+      }
+    });
+
+/// Average consumption by tank role for the lane the gas page shows.
+final sacByTankRoleProvider = FutureProvider<Map<String, double>>((ref) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final lane = ref.watch(insightsGasLaneProvider);
+  final filter = ref.watch(insightsFilterProvider);
+
+  if (lane == GasConsumptionLane.rmv) {
+    return repository.getSacVolumeByTankRole(
+      diverId: currentDiverId,
+      filter: filter,
+    );
+  } else {
+    return repository.getSacPressureByTankRole(
+      diverId: currentDiverId,
+      filter: filter,
+    );
+  }
+});
+
+// ============================================================================
+// Dive Type Distribution Provider
+// ============================================================================
+
+final diveTypeDistributionProvider = FutureProvider<List<DistributionSegment>>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getDiveTypeDistribution(
+    diverId: currentDiverId,
+    filter: filter,
+  );
+});
+
+// ============================================================================
+// Dive Progression Providers
+// ============================================================================
+
+final depthProgressionTrendProvider = FutureProvider<List<TrendDataPoint>>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getDepthPerDive(diverId: currentDiverId, filter: filter);
+});
+
+final bottomTimeTrendProvider = FutureProvider<List<TrendDataPoint>>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getBottomTimePerDive(
+    diverId: currentDiverId,
+    filter: filter,
+  );
+});
+
+final divesPerYearProvider = FutureProvider<List<({int year, int count})>>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getDivesPerYear(diverId: currentDiverId, filter: filter);
+});
+
+final divesBySuitThicknessProvider = FutureProvider<SuitThicknessStats>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getDivesBySuitThickness(
+    diverId: currentDiverId,
+    filter: filter,
+  );
+});
+
+final cumulativeDiveCountProvider = FutureProvider<List<TrendDataPoint>>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getCumulativeDiveCount(
+    diverId: currentDiverId,
+    filter: filter,
+  );
+});
+
+// ============================================================================
+// Conditions & Environment Providers
+// ============================================================================
+
+final visibilityDistributionProvider =
+    FutureProvider<List<DistributionSegment>>((ref) async {
+      _keepAliveWithExpiry(ref);
+      final repository = ref.watch(insightsRepositoryProvider);
+      final currentDiverId = ref.watch(currentDiverIdProvider);
+      final filter = ref.watch(insightsFilterProvider);
+      // Watched, not read: changing the calibration must re-bin the chart.
+      final scale = ref.watch(
+        settingsProvider.select((s) => s.visibilityScale),
+      );
+      return repository.getVisibilityDistribution(
+        scale: scale,
+        diverId: currentDiverId,
+        filter: filter,
+      );
+    });
+
+final waterTypeDistributionProvider = FutureProvider<List<DistributionSegment>>(
+  (ref) async {
+    _keepAliveWithExpiry(ref);
+    final repository = ref.watch(insightsRepositoryProvider);
+    final currentDiverId = ref.watch(currentDiverIdProvider);
+    final filter = ref.watch(insightsFilterProvider);
+    return repository.getWaterTypeDistribution(
+      diverId: currentDiverId,
+      filter: filter,
+    );
+  },
+);
+
+/// Dives per site type (issue #1765); segment labels are site type ids.
+final siteTypeDistributionProvider = FutureProvider<List<DistributionSegment>>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getSiteTypeDistribution(
+    diverId: currentDiverId,
+    filter: filter,
+  );
+});
+
+final entryMethodDistributionProvider =
+    FutureProvider<List<DistributionSegment>>((ref) async {
+      _keepAliveWithExpiry(ref);
+      final repository = ref.watch(insightsRepositoryProvider);
+      final currentDiverId = ref.watch(currentDiverIdProvider);
+      final filter = ref.watch(insightsFilterProvider);
+      return repository.getEntryMethodDistribution(
+        diverId: currentDiverId,
+        filter: filter,
+      );
+    });
+
+final temperatureByMonthProvider =
+    FutureProvider<
+      List<({int month, double? minTemp, double? avgTemp, double? maxTemp})>
+    >((ref) async {
+      _keepAliveWithExpiry(ref);
+      final repository = ref.watch(insightsRepositoryProvider);
+      final currentDiverId = ref.watch(currentDiverIdProvider);
+      final filter = ref.watch(insightsFilterProvider);
+      return repository.getTemperatureByMonth(
+        diverId: currentDiverId,
+        filter: filter,
+      );
+    });
+
+/// Water temperature as a per-dive time series.
+///
+/// Sibling of [temperatureByMonthProvider], which stays a twelve-bucket
+/// seasonal climatology. A travelling diver needs the series; a diver with one
+/// home region gets real value from the season (issue #299).
+final waterTempTrendProvider = FutureProvider<List<TrendDataPoint>>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getWaterTempPerDive(
+    diverId: currentDiverId,
+    filter: filter,
+  );
+});
+
+/// Dives per water-temperature band, in the diver's temperature unit
+/// (issue #1827).
+final waterTempBandDistributionProvider =
+    FutureProvider<List<WaterTempBandCount>>((ref) async {
+      _keepAliveWithExpiry(ref);
+      final repository = ref.watch(insightsRepositoryProvider);
+      final currentDiverId = ref.watch(currentDiverIdProvider);
+      final filter = ref.watch(insightsFilterProvider);
+      // Watched, not read: the bands are defined per unit, so switching
+      // between Celsius and Fahrenheit must re-bin the chart.
+      final unit = ref.watch(settingsProvider.select((s) => s.temperatureUnit));
+      return repository.getDivesByWaterTempBand(
+        unit: unit,
+        diverId: currentDiverId,
+        filter: filter,
+      );
+    });
+
+/// Average consumption and bottom time per water-temperature band, in the
+/// diver's temperature unit (issue #1873).
+///
+/// Consumption follows the gas page's lane and reads the same per-dive
+/// values its trend does, so it keeps the gas scope (no gauge dives, no
+/// dives excluded from gas statistics). Bottom time and the band placement
+/// use the normal scope.
+final waterTempBandMetricsProvider = FutureProvider<List<WaterTempBandMetrics>>(
+  (ref) async {
+    _keepAliveWithExpiry(ref);
+    final repository = ref.watch(insightsRepositoryProvider);
+    final currentDiverId = ref.watch(currentDiverIdProvider);
+    final filter = ref.watch(insightsFilterProvider);
+    final lane = ref.watch(insightsGasLaneProvider);
+    final unit = ref.watch(settingsProvider.select((s) => s.temperatureUnit));
+
+    final (bandByDive, sacPerDive, bottomTimePerDive) = await (
+      repository.getWaterTempBandPerDive(
+        unit: unit,
+        diverId: currentDiverId,
+        filter: filter,
+      ),
+      lane == GasConsumptionLane.rmv
+          ? repository.getSacVolumePerDive(
+              diverId: currentDiverId,
+              filter: filter,
+            )
+          : repository.getSacPressurePerDive(
+              diverId: currentDiverId,
+              filter: filter,
+            ),
+      repository.getBottomTimePerDive(diverId: currentDiverId, filter: filter),
+    ).wait;
+
+    return aggregateWaterTempBandMetrics(
+      edges: waterTempBandEdges(unit),
+      bandByDive: bandByDive,
+      sacPerDive: sacPerDive,
+      bottomTimePerDive: bottomTimePerDive,
+    );
+  },
+);
+
+// ============================================================================
+// Social & Buddies Providers
+// ============================================================================
+
+final topBuddiesProvider = FutureProvider<List<RankingItem>>((ref) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getTopBuddies(diverId: currentDiverId, filter: filter);
+});
+
+final soloVsBuddyCountProvider =
+    FutureProvider<({int solo, int buddy, int notRecorded})>((ref) async {
+      _keepAliveWithExpiry(ref);
+      final repository = ref.watch(insightsRepositoryProvider);
+      final currentDiverId = ref.watch(currentDiverIdProvider);
+      final filter = ref.watch(insightsFilterProvider);
+      return repository.getSoloVsBuddyCount(
+        diverId: currentDiverId,
+        filter: filter,
+      );
+    });
+
+final topDiveCentersProvider = FutureProvider<List<RankingItem>>((ref) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getTopDiveCenters(diverId: currentDiverId, filter: filter);
+});
+
+// ============================================================================
+// Geographic Providers
+// ============================================================================
+
+final countriesVisitedProvider = FutureProvider<List<RankingItem>>((ref) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getCountriesVisited(
+    diverId: currentDiverId,
+    filter: filter,
+  );
+});
+
+final regionsExploredProvider = FutureProvider<List<RankingItem>>((ref) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getRegionsExplored(diverId: currentDiverId, filter: filter);
+});
+
+final divesPerTripProvider = FutureProvider<List<RankingItem>>((ref) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getDivesPerTrip(diverId: currentDiverId, filter: filter);
+});
+
+// ============================================================================
+// Marine Life Providers
+// ============================================================================
+
+final uniqueSpeciesCountProvider = FutureProvider<int>((ref) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getUniqueSpeciesCount(
+    diverId: currentDiverId,
+    filter: filter,
+  );
+});
+
+final mostCommonSightingsProvider = FutureProvider<List<RankingItem>>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getMostCommonSightings(
+    diverId: currentDiverId,
+    filter: filter,
+  );
+});
+
+final bestSitesForMarineLifeProvider = FutureProvider<List<RankingItem>>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getBestSitesForMarineLife(
+    diverId: currentDiverId,
+    filter: filter,
+  );
+});
+
+/// Per-species statistics (sightings, depth range, sites, first/last seen).
+///
+/// Deliberately UNFILTERED: its only consumer is the species detail page
+/// (route `/species/:id`), which is not an Insights-tab surface and has no
+/// filter UI. Watching [insightsFilterProvider] here would silently scope
+/// each species' detail stats to whatever filter is currently active on the
+/// (unrelated) Insights tab.
+final speciesInsightsProvider = FutureProvider.family<SpeciesInsights, String>((
+  ref,
+  speciesId,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  return repository.getSpeciesInsights(
+    speciesId: speciesId,
+    diverId: currentDiverId,
+  );
+});
+
+// ============================================================================
+// Time Pattern Providers
+// ============================================================================
+
+final divesByDayOfWeekProvider =
+    FutureProvider<List<({int dayOfWeek, int count})>>((ref) async {
+      _keepAliveWithExpiry(ref);
+      final repository = ref.watch(insightsRepositoryProvider);
+      final currentDiverId = ref.watch(currentDiverIdProvider);
+      final filter = ref.watch(insightsFilterProvider);
+      return repository.getDivesByDayOfWeek(
+        diverId: currentDiverId,
+        filter: filter,
+      );
+    });
+
+final divesByTimeOfDayProvider = FutureProvider<List<DistributionSegment>>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getDivesByTimeOfDay(
+    diverId: currentDiverId,
+    filter: filter,
+  );
+});
+
+final divesBySeasonProvider = FutureProvider<List<({int month, int count})>>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getDivesBySeason(diverId: currentDiverId, filter: filter);
+});
+
+final surfaceIntervalStatsProvider =
+    FutureProvider<
+      ({double? avgMinutes, double? minMinutes, double? maxMinutes})
+    >((ref) async {
+      _keepAliveWithExpiry(ref);
+      final repository = ref.watch(insightsRepositoryProvider);
+      final currentDiverId = ref.watch(currentDiverIdProvider);
+      final filter = ref.watch(insightsFilterProvider);
+      return repository.getSurfaceIntervalStats(
+        diverId: currentDiverId,
+        filter: filter,
+      );
+    });
+
+// ============================================================================
+// Equipment Providers
+// ============================================================================
+
+final mostUsedGearProvider = FutureProvider<List<RankingItem>>((ref) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getMostUsedGear(diverId: currentDiverId, filter: filter);
+});
+
+final weightTrendProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getWeightPerDive(diverId: currentDiverId, filter: filter);
+});
+
+// ============================================================================
+// Profile Analysis Providers
+// ============================================================================
+
+final ascentDescentRatesProvider =
+    FutureProvider<({double? avgAscent, double? avgDescent})>((ref) async {
+      _keepAliveWithExpiry(ref);
+      final repository = ref.watch(insightsRepositoryProvider);
+      final currentDiverId = ref.watch(currentDiverIdProvider);
+      final filter = ref.watch(insightsFilterProvider);
+      return repository.getAscentDescentRates(
+        diverId: currentDiverId,
+        filter: filter,
+      );
+    });
+
+final timeAtDepthRangesProvider =
+    FutureProvider<List<({int lowerDepth, int? upperDepth, int minutes})>>((
+      ref,
+    ) async {
+      _keepAliveWithExpiry(ref);
+      final repository = ref.watch(insightsRepositoryProvider);
+      final currentDiverId = ref.watch(currentDiverIdProvider);
+      final filter = ref.watch(insightsFilterProvider);
+      return repository.getTimeAtDepthRanges(
+        diverId: currentDiverId,
+        filter: filter,
+      );
+    });
+
+/// Deco obligation counts: recorded signals first, the app's own analysis as
+/// the fallback (#623).
+///
+/// A dive whose source recorded no deco columns is classified by the same
+/// analysis that draws the DECO badge on its detail page, so the card and the
+/// dive can no longer disagree. Dives with no profile at all stay unknown and
+/// are excluded from the rate rather than counted as no-deco.
+final decoObligationStatsProvider =
+    FutureProvider<({int decoCount, int noDecoCount, int unknownCount})>((
+      ref,
+    ) async {
+      _keepAliveWithExpiry(ref);
+      final repository = ref.watch(insightsRepositoryProvider);
+      final currentDiverId = ref.watch(currentDiverIdProvider);
+      final filter = ref.watch(insightsFilterProvider);
+
+      final scan = await repository.scanRecordedDecoSignals(
+        diverId: currentDiverId,
+        filter: filter,
+      );
+
+      var deco = scan.recordedDeco.length;
+      var noDeco = scan.recordedNoDeco.length;
+      var unknown = scan.noProfile.length;
+
+      final computed = await const DecoClassificationService().classify(
+        ref,
+        scan.needsCompute,
+      );
+      for (final diveId in scan.needsCompute.keys) {
+        final hadDeco = computed[diveId];
+        if (hadDeco == null) {
+          unknown++;
+        } else if (hadDeco) {
+          deco++;
+        } else {
+          noDeco++;
+        }
+      }
+
+      return (decoCount: deco, noDecoCount: noDeco, unknownCount: unknown);
+    });

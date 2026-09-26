@@ -67,21 +67,47 @@ void main() {
     expect(cleared.contentHash, 'b' * 64);
   });
 
-  test('updateMedia round-trips the new fields', () async {
+  test('the stampers round-trip the upload fields', () async {
     final created = await repository.createMedia(localFileItem('/tmp/z.jpg'));
-    await repository.updateMedia(
-      created.copyWith(
-        contentHash: 'c' * 64,
-        contentSizeBytes: 7,
-        remoteUploadedAt: DateTime(2026, 3, 3),
-        remoteThumbUploadedAt: DateTime(2026, 3, 4),
-      ),
+    await repository.stampContentIdentity(
+      created.id,
+      contentHash: 'c' * 64,
+      sizeBytes: 7,
+    );
+    await repository.stampRemoteUploaded(
+      created.id,
+      uploadedAt: DateTime(2026, 3, 3),
+    );
+    await repository.stampRemoteThumbUploaded(
+      created.id,
+      uploadedAt: DateTime(2026, 3, 4),
     );
     final loaded = await repository.getMediaById(created.id);
     expect(loaded!.contentHash, 'c' * 64);
     expect(loaded.contentSizeBytes, 7);
     expect(loaded.remoteUploadedAt, DateTime(2026, 3, 3));
     expect(loaded.remoteThumbUploadedAt, DateTime(2026, 3, 4));
+  });
+
+  test('updateMedia does not write the upload fields', () async {
+    // They belong to the stampers above. Every caller of updateMedia patches
+    // a row it read earlier, so letting the snapshot write them back would
+    // undo an upload that completed in the meantime, and the rollback would
+    // carry a fresh upload clock that beats the stamp it erased.
+    final created = await repository.createMedia(localFileItem('/tmp/z.jpg'));
+
+    await repository.updateMedia(
+      created.copyWith(
+        caption: 'a caption',
+        contentHash: 'c' * 64,
+        remoteUploadedAt: DateTime(2026, 3, 3),
+      ),
+    );
+
+    final loaded = await repository.getMediaById(created.id);
+    expect(loaded!.caption, 'a caption', reason: 'the user edit lands');
+    expect(loaded.contentHash, isNull);
+    expect(loaded.remoteUploadedAt, isNull);
   });
 
   test('stampRemoteThumbUploaded round-trips', () async {

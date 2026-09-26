@@ -48,6 +48,11 @@ class DuplicateActionCard extends StatefulWidget {
   /// warning-colored border and a [NeedsDecisionPill] in the header.
   final bool isPending;
 
+  /// For a planned-fill row (issue #2002): the planned dive's label and the
+  /// action that opens the picker to change or drop the target.
+  final String? plannedDiveLabel;
+  final VoidCallback? onChangeFillTarget;
+
   const DuplicateActionCard({
     super.key,
     required this.item,
@@ -58,6 +63,8 @@ class DuplicateActionCard extends StatefulWidget {
     required this.existingDiveId,
     this.projectedDiveNumber,
     this.isPending = false,
+    this.plannedDiveLabel,
+    this.onChangeFillTarget,
   });
 
   @override
@@ -90,6 +97,7 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
       DuplicateAction.consolidate => colorScheme.primary,
       DuplicateAction.skip => score >= 0.7 ? colorScheme.error : Colors.orange,
       DuplicateAction.replaceSource => Colors.blue.shade700,
+      DuplicateAction.fillPlanned => colorScheme.tertiary,
       null => colorScheme.tertiary,
     };
 
@@ -118,6 +126,8 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
                 widget.selectedAction == DuplicateAction.importAsNew
                 ? widget.projectedDiveNumber
                 : null,
+            plannedDiveLabel: widget.plannedDiveLabel,
+            onChangeFillTarget: widget.onChangeFillTarget,
           ),
           if (_expanded) _buildExpanded(context, colorScheme),
         ],
@@ -149,6 +159,7 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
       onActionChanged: widget.onActionChanged,
       availableActions: widget.availableActions,
       isPending: widget.isPending,
+      showFillPlanned: widget.matchResult.isPlannedFill,
     );
   }
 }
@@ -164,6 +175,8 @@ class _CollapsedHeader extends StatelessWidget {
   final bool isPending;
   final VoidCallback onToggle;
   final int? projectedDiveNumber;
+  final String? plannedDiveLabel;
+  final VoidCallback? onChangeFillTarget;
 
   const _CollapsedHeader({
     required this.item,
@@ -173,6 +186,8 @@ class _CollapsedHeader extends StatelessWidget {
     required this.onToggle,
     this.isPending = false,
     this.projectedDiveNumber,
+    this.plannedDiveLabel,
+    this.onChangeFillTarget,
   });
 
   @override
@@ -249,6 +264,35 @@ class _CollapsedHeader extends StatelessWidget {
                         ),
                       if (item.target case final target?)
                         ImportTargetChip(target: target),
+                      // A planned-fill row names the dive it fills and offers
+                      // to change the target (issue #2002).
+                      if (matchResult.isPlannedFill &&
+                          selectedAction == DuplicateAction.fillPlanned)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                context.l10n.universalImport_fillPlanned_target(
+                                  plannedDiveLabel ?? matchResult.diveId,
+                                ),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.tertiary,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (onChangeFillTarget != null)
+                              TextButton(
+                                key: const Key('fill_planned_change'),
+                                onPressed: onChangeFillTarget,
+                                child: Text(
+                                  context
+                                      .l10n
+                                      .universalImport_fillPlanned_change,
+                                ),
+                              ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -325,6 +369,10 @@ class _ActionBadge extends StatelessWidget {
       DuplicateAction.replaceSource => (
         l10n.universalImport_entityAction_replaceBadge,
         Colors.blue.shade700,
+      ),
+      DuplicateAction.fillPlanned => (
+        l10n.universalImport_label_fillPlanned,
+        theme.colorScheme.tertiary,
       ),
     };
 

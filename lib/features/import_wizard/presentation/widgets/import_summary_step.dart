@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
+import 'package:submersion/features/dive_computer/data/services/planned_dive_fill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
 import 'package:submersion/features/import_wizard/domain/models/diver_import_outcome.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_notice.da
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_summary_diver_outcomes.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/missing_dives_card.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/undo_fills_button.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -58,6 +60,8 @@ class ImportSummaryStep extends ConsumerWidget {
       importedCounts: result.importedCounts,
       consolidatedCount: result.consolidatedCount,
       updatedCount: result.updatedCount,
+      filledCount: result.filledCount,
+      fillOutcomes: result.fillOutcomes,
       skippedCount: result.skippedCount,
       attachedPhotoCount: result.attachedPhotoCount,
       unmatchedPhotoCount: result.unmatchedPhotoCount,
@@ -80,6 +84,8 @@ class _SuccessView extends StatelessWidget {
   final Map<ImportEntityType, int> importedCounts;
   final int consolidatedCount;
   final int updatedCount;
+  final int filledCount;
+  final List<PlannedDiveFillOutcome> fillOutcomes;
   final int skippedCount;
   final int attachedPhotoCount;
   final int unmatchedPhotoCount;
@@ -95,6 +101,8 @@ class _SuccessView extends StatelessWidget {
     required this.importedCounts,
     required this.consolidatedCount,
     this.updatedCount = 0,
+    this.filledCount = 0,
+    this.fillOutcomes = const [],
     required this.skippedCount,
     this.attachedPhotoCount = 0,
     this.unmatchedPhotoCount = 0,
@@ -115,7 +123,10 @@ class _SuccessView extends StatelessWidget {
       (sum, v) => sum + v,
     );
     final hasActivity =
-        totalImported > 0 || consolidatedCount > 0 || updatedCount > 0;
+        totalImported > 0 ||
+        consolidatedCount > 0 ||
+        updatedCount > 0 ||
+        filledCount > 0;
     final l10n = context.l10n;
     // "Import notes" explain dives that imported. Dives that did not (rows
     // whose date could not be read, dives a parser could not read) get their
@@ -131,7 +142,7 @@ class _SuccessView extends StatelessWidget {
     final Color iconColor;
     final Color iconBg;
     if (hasActivity) {
-      if (totalImported > 0) {
+      if (totalImported > 0 || filledCount > 0) {
         title = l10n.universalImport_title_successImported;
       } else if (updatedCount > 0) {
         title = l10n.universalImport_title_successUpdated;
@@ -185,6 +196,13 @@ class _SuccessView extends StatelessWidget {
                   label: _labelForType(l10n, entry.key),
                   count: entry.value,
                 ),
+            if (filledCount > 0)
+              _CountRow(
+                icon: Icons.event_available_outlined,
+                label: l10n.universalImport_label_filledPlanned,
+                count: filledCount,
+                key: const Key('import_summary_filled_row'),
+              ),
             if (updatedCount > 0)
               _CountRow(
                 icon: Icons.sync,
@@ -220,6 +238,8 @@ class _SuccessView extends StatelessWidget {
                 count: skippedCount,
                 key: const Key('import_summary_skipped_row'),
               ),
+            if (fillOutcomes.isNotEmpty)
+              UndoFillsButton(outcomes: fillOutcomes),
             for (final notice in notices)
               if (notice.kind.reportsMissingDives) ...[
                 const SizedBox(height: 8),

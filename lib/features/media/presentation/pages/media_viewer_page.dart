@@ -874,7 +874,11 @@ class _PhotoItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MediaItemView(item: item, fit: BoxFit.contain);
+    return MediaItemView(
+      item: item,
+      fit: BoxFit.contain,
+      showAccessActions: true,
+    );
   }
 }
 

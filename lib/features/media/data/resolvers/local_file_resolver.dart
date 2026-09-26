@@ -1,9 +1,12 @@
 import 'dart:io';
 import 'dart:ui' show Size;
 
+import 'package:flutter/services.dart' show PlatformException;
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/resolvers/media_fetch_gate.dart';
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
+import 'package:submersion/features/media/domain/services/diagnostic_probe.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
 import 'package:submersion/features/media/data/services/video_thumbnail_service.dart';
@@ -49,7 +52,7 @@ const int kLocalResolveConcurrency = 8;
 ///
 /// The Phase 1 stub fell back to [UnavailableData] on iOS / Android; this
 /// promotion replaces that with the full bookmark / URI flow.
-class LocalFileResolver implements MediaSourceResolver {
+class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
   final LocalBookmarkStorage _bookmarkStorage;
   final LocalMediaPlatform _platform;
   final ExifExtractor _exifExtractor;
@@ -65,11 +68,17 @@ class LocalFileResolver implements MediaSourceResolver {
     MediaFetchGate? gate,
     bool Function()? usesSecurityScopedBookmarks,
     Future<String?> Function()? localDeviceId,
+    Future<String?> Function(String deviceId)? deviceLabel,
+    bool Function()? readsContentUris,
+    Future<MediaSourceData?> Function(MediaItem item)? findInLibrary,
   }) : _bookmarkStorage = bookmarkStorage,
        _platform = platform,
        _exifExtractor = exifExtractor,
        _videoThumbnails = videoThumbnails,
        _localDeviceId = localDeviceId,
+       _deviceLabel = deviceLabel,
+       _readsContentUris = readsContentUris ?? (() => Platform.isAndroid),
+       _findInLibrary = findInLibrary,
        _volumeOnline = (volumeStatus ?? VolumeStatus()).newExpiringProbe(
          ttl: volumeProbeTtl,
          clock: clock,
@@ -114,10 +123,27 @@ class LocalFileResolver implements MediaSourceResolver {
   /// in tests), in which case every row reads as this device's.
   final Future<String?> Function()? _localDeviceId;
 
+  /// Names the device a row was linked on, for the "From {device}"
+  /// placeholder. Consulted only on a foreign-origin miss.
+  final Future<String?> Function(String deviceId)? _deviceLabel;
+
+  /// Whether this host links files by content URI (Android). Injectable so
+  /// the branch runs in the test shards, which run on Linux; production
+  /// always gets the real check.
+  final bool Function() _readsContentUris;
+
+  /// Searches the photo library for a file whose content URI stopped
+  /// reading, by the metadata tiers (spec 6.3). Null when there is no
+  /// library to search; answers null when the search finds nothing.
+  final Future<MediaSourceData?> Function(MediaItem item)? _findInLibrary;
+
   /// [_localDeviceId]'s answer, memoized once it succeeds. A failed fetch
   /// (no database open yet) is not cached, so the next resolution asks again.
   String? _knownDeviceId;
-  final _log = LoggerService.forClass(LocalFileResolver);
+  final _log = LoggerService.forClass(
+    LocalFileResolver,
+    category: LogCategory.media,
+  );
 
   @override
   MediaSourceType get sourceType => MediaSourceType.localFile;
@@ -133,6 +159,18 @@ class LocalFileResolver implements MediaSourceResolver {
     final origin = item.originDeviceId;
     if (local == null || origin == null) return true;
     return origin == local;
+  }
+
+  /// The published name of [deviceId], or null when unknown or unset. Never
+  /// throws: a label is decoration on a placeholder, not a verdict.
+  Future<String?> _labelFor(String? deviceId) async {
+    final lookup = _deviceLabel;
+    if (deviceId == null || lookup == null) return null;
+    try {
+      return await lookup(deviceId);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Whether [item]'s bytes were imported on a different device.
@@ -201,7 +239,10 @@ class LocalFileResolver implements MediaSourceResolver {
     if (resolved is UnavailableData &&
         resolved.kind == UnavailableKind.notFound &&
         await _importedElsewhere(item)) {
-      return const UnavailableData(kind: UnavailableKind.fromOtherDevice);
+      return UnavailableData(
+        kind: UnavailableKind.fromOtherDevice,
+        originDeviceLabel: await _labelFor(item.originDeviceId),
+      );
     }
     return resolved;
   }
@@ -281,23 +322,24 @@ class LocalFileResolver implements MediaSourceResolver {
       return const UnavailableData(kind: UnavailableKind.notFound);
     }
 
-    if (Platform.isAndroid) {
-      // coverage:ignore-start
-      // Android-only URI-bytes branch; test suite runs on macOS hosts so the
-      // `if` evaluates false. Behaviour mirrored by the iOS/macOS
-      // bookmark-bytes branch below, which is unit-tested.
+    if (_readsContentUris()) {
       try {
         final bytes = await _platform.readUriBytes(ref);
         return BytesData(bytes: bytes, servedFrom: ServedFrom.localDisk);
-      } catch (e, st) {
+      } on Object catch (e, st) {
+        // The native handler reports a SecurityException, the read grant
+        // being gone, as PERMISSION_DENIED; anything else as READ_FAILED.
+        final grantLost =
+            e is PlatformException && e.code == 'PERMISSION_DENIED';
         _log.warning(
-          'readUriBytes failed for item ${item.id}',
+          grantLost
+              ? 'Read grant lost for item ${item.id}'
+              : 'readUriBytes failed for item ${item.id}',
           error: e,
           stackTrace: st,
         );
-        return const UnavailableData(kind: UnavailableKind.notFound);
+        return _afterFailedUriRead(item, grantLost: grantLost);
       }
-      // coverage:ignore-end
     }
 
     if (_usesSecurityScopedBookmarks()) {
@@ -328,6 +370,33 @@ class LocalFileResolver implements MediaSourceResolver {
     }
 
     return const UnavailableData(kind: UnavailableKind.notFound);
+  }
+
+  /// A content URI that did not read, on this device (spec 6.3). Another
+  /// device's URI never had a grant here, so it is left to [resolve]'s
+  /// origin rule. Otherwise the library is searched by metadata before
+  /// anything is decided: a re-indexed or moved photo is usually still
+  /// there. A lost grant the search cannot recover is inconclusive, since
+  /// the file may be exactly where it was.
+  Future<MediaSourceData> _afterFailedUriRead(
+    MediaItem item, {
+    required bool grantLost,
+  }) async {
+    if (await _importedElsewhere(item)) {
+      return const UnavailableData(kind: UnavailableKind.notFound);
+    }
+    final search = _findInLibrary;
+    if (search != null) {
+      try {
+        final found = await search(item);
+        if (found != null) return found;
+      } on Object catch (e) {
+        _log.warning('Library search for item ${item.id} failed', error: e);
+      }
+    }
+    return UnavailableData(
+      kind: grantLost ? UnavailableKind.accessDenied : UnavailableKind.notFound,
+    );
   }
 
   /// [_volumeOnline], with a probe that itself failed treated as online.
@@ -434,6 +503,46 @@ class LocalFileResolver implements MediaSourceResolver {
     return null;
   }
 
+  /// The same decision tree as [verify], stopped before any byte read.
+  ///
+  /// [verify] answers by calling [resolve], which on the bookmark path hands
+  /// back the file's whole contents: right for a sweep that must prove the
+  /// bytes are reachable, ruinous for a report that asks about every row in
+  /// the library. This gets as far as "is the pointer still there", which is
+  /// what a diagnostic needs, using a stat and an open/close round-trip.
+  ///
+  /// Returns null for a row that only a read could settle, which is a row
+  /// with no usable path and a bookmark: opening the security scope IS the
+  /// read, so claiming the file is present on the strength of the bookmark
+  /// existing would be a guess.
+  @override
+  Future<VerifyResult?> probe(MediaItem item) async {
+    final localPath = item.localPath ?? item.filePath;
+    if (localPath != null && localPath.isNotEmpty) {
+      if (!await _volumeOnlineOrAssumed(localPath)) {
+        return VerifyResult.volumeOffline;
+      }
+      try {
+        final f = File(localPath);
+        if (await f.exists()) {
+          // Present but unopenable (sandbox denial, revoked permission) is
+          // not a dead pointer, exactly as in verify.
+          return await _readBlocker(f) == null
+              ? VerifyResult.available
+              : VerifyResult.transientError;
+        }
+      } on FileSystemException {
+        if (!await _volumeOnlineOrAssumed(localPath)) {
+          return VerifyResult.volumeOffline;
+        }
+      }
+    }
+    final ref = item.bookmarkRef;
+    if (ref != null && ref.isNotEmpty) return null;
+    if (await _importedElsewhere(item)) return VerifyResult.fromOtherDevice;
+    return VerifyResult.notFound;
+  }
+
   @override
   Future<VerifyResult> verify(MediaItem item) async {
     final data = await resolve(item);
@@ -453,6 +562,12 @@ class LocalFileResolver implements MediaSourceResolver {
     // merely slow during a sweep would mark its whole library missing.
     if (data.kind == UnavailableKind.stillFetching) {
       return VerifyResult.transientError;
+    }
+    // A lost read grant the library search could not recover: the file may
+    // be exactly where it was, and notFound here would let the sweep orphan
+    // it (spec 6.3).
+    if (data.kind == UnavailableKind.accessDenied) {
+      return VerifyResult.accessDenied;
     }
     // A file that is present but unreadable (sandbox denial, revoked
     // permission) is not a dead pointer: the bytes are still on disk and a

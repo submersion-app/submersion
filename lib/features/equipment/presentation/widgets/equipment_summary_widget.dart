@@ -7,7 +7,10 @@ import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
@@ -19,7 +22,10 @@ class EquipmentSummaryWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final allEquipmentAsync = ref.watch(allEquipmentProvider);
-    final serviceDueAsync = ref.watch(serviceDueEquipmentProvider);
+    // The summary counts everything with a clock due, both severities.
+    final serviceDueAsync = ref.watch(
+      serviceDueEquipmentProvider(ServiceDueFilter.any),
+    );
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -88,9 +94,26 @@ class EquipmentSummaryWidget extends ConsumerWidget {
   ) {
     // serviceDue mixes due-soon and overdue items, so the section reads red
     // only when something is actually overdue and amber otherwise.
-    final anyOverdue = (ref.watch(dueClocksProvider).value ?? const []).any(
+    final dueClocks = ref.watch(dueClocksProvider).value ?? const [];
+    final anyOverdue = dueClocks.any(
       (c) => c.status.severity == ServiceClockSeverity.overdue,
     );
+    // Keyed by item so each row can render its own severity: the card's
+    // swatch is the worst across the section, which made an overdue item
+    // and a due-soon item look identical (#2260).
+    //
+    // Reduced with isMoreUrgentClock rather than written as a map
+    // comprehension: an item with several clocks appears several times, and
+    // a comprehension keeps the LAST, which is the least urgent given this
+    // list arrives worst-first. Ranking explicitly also stops the row
+    // depending on how dueClocksProvider happens to sort.
+    final clockByItemId = <String, DueClock>{};
+    for (final c in dueClocks) {
+      final held = clockByItemId[c.item.id];
+      if (held == null || isMoreUrgentClock(c.status, held.status)) {
+        clockByItemId[c.item.id] = c;
+      }
+    }
     final status = StatusColors.of(context);
     final serviceSwatch = anyOverdue ? status.alert : status.warn;
 
@@ -164,7 +187,12 @@ class EquipmentSummaryWidget extends ConsumerWidget {
         ),
         if (serviceDue.isNotEmpty) ...[
           const SizedBox(height: 24),
-          _buildServiceDueSection(context, serviceDue, serviceSwatch),
+          _buildServiceDueSection(
+            context,
+            serviceDue,
+            serviceSwatch,
+            clockByItemId,
+          ),
         ],
         if (equipment.isNotEmpty) ...[
           const SizedBox(height: 24),
@@ -227,6 +255,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
     BuildContext context,
     List<EquipmentItem> serviceDue,
     StatusSwatch swatch,
+    Map<String, DueClock> clockByItemId,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,9 +296,25 @@ class EquipmentSummaryWidget extends ConsumerWidget {
                     item.name,
                     style: TextStyle(color: swatch.onContainer),
                   ),
-                  subtitle: Text(
-                    item.type.localizedName(context.l10n),
-                    style: TextStyle(color: swatch.onContainer),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        item.type.localizedName(context.l10n),
+                        style: TextStyle(color: swatch.onContainer),
+                      ),
+                      if (clockByItemId[item.id] case final due?)
+                        ServiceStatusIndicator(
+                          clock: (
+                            ownerId: due.item.id,
+                            ownerName: due.item.name,
+                            status: due.status,
+                          ),
+                          subjectId: item.id,
+                          color: swatch.onContainer,
+                        ),
+                    ],
                   ),
                   trailing: ExcludeSemantics(
                     child: Icon(Icons.chevron_right, color: swatch.onContainer),

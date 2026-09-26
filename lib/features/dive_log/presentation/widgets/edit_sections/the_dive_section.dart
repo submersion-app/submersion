@@ -37,6 +37,7 @@ class TheDiveSection extends StatelessWidget {
     this.runtimeSuggestion,
     this.surfaceIntervalRow,
     this.siteExtras,
+    this.showDiveNumber = true,
     this.profileChild,
   });
 
@@ -47,6 +48,10 @@ class TheDiveSection extends StatelessWidget {
   final TextEditingController bottomTimeController;
   final TextEditingController runtimeController;
   final TextEditingController diveNumberController;
+
+  /// Hidden while the dive is planned: a planned dive holds no number until
+  /// it is promoted (issue #2002).
+  final bool showDiveNumber;
   final String entryText;
   final VoidCallback onEditEntry;
   final String? exitText;
@@ -84,13 +89,14 @@ class TheDiveSection extends StatelessWidget {
           controller: nameController,
           placeholder: l10n.diveLog_edit_diveNamePlaceholder,
         ),
-        FormRow.text(
-          label: l10n.diveLog_edit_label_diveNumber,
-          controller: diveNumberController,
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          placeholder: l10n.diveLog_edit_row_notSet,
-        ),
+        if (showDiveNumber)
+          FormRow.text(
+            label: l10n.diveLog_edit_label_diveNumber,
+            controller: diveNumberController,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            placeholder: l10n.diveLog_edit_row_notSet,
+          ),
         FormRow.picker(
           label: l10n.diveLog_edit_row_entry,
           value: entryText,

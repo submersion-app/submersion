@@ -178,4 +178,147 @@ void main() {
       expect(result.total, isNotNull);
     });
   });
+
+  group('manualGasFillCost', () {
+    test('prices the pressure between start and end, issue #2302 example', () {
+      final cost = manualGasFillCost(
+        waterLiters: 12,
+        startBar: 50,
+        endBar: 200,
+        pricePer100: 1.5,
+      )!;
+      expect(cost.addedBar, 150);
+      expect(cost.freeGasLiters, 1800);
+      expect(cost.cost, closeTo(27, 1e-9));
+    });
+
+    test('an empty cylinder is filled from 0', () {
+      final cost = manualGasFillCost(
+        waterLiters: 10,
+        startBar: 0,
+        endBar: 232,
+        pricePer100: 2,
+      )!;
+      expect(cost.addedBar, 232);
+      expect(cost.cost, closeTo(46.4, 1e-9));
+    });
+
+    test('a gas without a price is charged at 0, not left unpriced', () {
+      final cost = manualGasFillCost(
+        waterLiters: 12,
+        startBar: 0,
+        endBar: 100,
+        pricePer100: null,
+      )!;
+      expect(cost.freeGasLiters, 1200);
+      expect(cost.cost, 0);
+    });
+
+    test('an end pressure not above the start pressure is rejected', () {
+      expect(
+        manualGasFillCost(
+          waterLiters: 12,
+          startBar: 100,
+          endBar: 100,
+          pricePer100: 1,
+        ),
+        isNull,
+      );
+      expect(
+        manualGasFillCost(
+          waterLiters: 12,
+          startBar: 150,
+          endBar: 100,
+          pricePer100: 1,
+        ),
+        isNull,
+      );
+    });
+
+    test('a negative start pressure or no cylinder is rejected', () {
+      expect(
+        manualGasFillCost(
+          waterLiters: 12,
+          startBar: -1,
+          endBar: 100,
+          pricePer100: 1,
+        ),
+        isNull,
+      );
+      expect(
+        manualGasFillCost(
+          waterLiters: 0,
+          startBar: 0,
+          endBar: 100,
+          pricePer100: 1,
+        ),
+        isNull,
+      );
+    });
+
+    test('a non-finite price is rejected, not treated as unset', () {
+      expect(
+        manualGasFillCost(
+          waterLiters: 12,
+          startBar: 0,
+          endBar: 100,
+          pricePer100: double.nan,
+        ),
+        isNull,
+      );
+      expect(
+        manualGasFillCost(
+          waterLiters: 12,
+          startBar: 0,
+          endBar: 100,
+          pricePer100: double.infinity,
+        ),
+        isNull,
+      );
+    });
+
+    test('finite input that overflows to infinity is rejected', () {
+      // The volume itself overflows.
+      expect(
+        manualGasFillCost(
+          waterLiters: 1e300,
+          startBar: 0,
+          endBar: 1e10,
+          pricePer100: 1,
+        ),
+        isNull,
+      );
+      // The volume is finite, only the cost overflows.
+      expect(
+        manualGasFillCost(
+          waterLiters: 1e300,
+          startBar: 0,
+          endBar: 1,
+          pricePer100: 1e20,
+        ),
+        isNull,
+      );
+    });
+
+    test('non-finite input is rejected rather than priced', () {
+      expect(
+        manualGasFillCost(
+          waterLiters: double.nan,
+          startBar: 0,
+          endBar: 100,
+          pricePer100: 1,
+        ),
+        isNull,
+      );
+      expect(
+        manualGasFillCost(
+          waterLiters: 12,
+          startBar: 0,
+          endBar: double.infinity,
+          pricePer100: 1,
+        ),
+        isNull,
+      );
+    });
+  });
 }

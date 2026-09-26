@@ -20,6 +20,18 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
 
+/// The interval-override dialog's baseline control is an [InkWell] wrapping an
+/// [InputDecorator] labelled "Baseline date", so `find.text('Baseline date')`
+/// matches the decorator's floating label rather than anything tappable.
+/// Material paints a floating label through `_labelTransform` but hit-tests it
+/// at its unfloated offset, so a tap aimed at the label derives an offset that
+/// misses it and lands on the decoration instead. Target the [InkWell] that
+/// actually opens the date picker.
+Finder get _baselineField => find.ancestor(
+  of: find.text('Baseline date'),
+  matching: find.byType(InkWell),
+);
+
 /// End-to-end interactions on [ServiceClocksCard] against the real test
 /// database: the kind-picker sheet, pause/resume/remove menu actions, and
 /// the interval-override dialog all execute their real repository paths.
@@ -219,8 +231,8 @@ void main() {
 
     // Pick today as the baseline date via the material date picker.
     // v202 added five exposure fields above the baseline row; scroll it in.
-    await tester.ensureVisible(find.text('Baseline date'));
-    await tester.tap(find.text('Baseline date'));
+    await tester.ensureVisible(_baselineField);
+    await tester.tap(_baselineField);
     await tester.pumpAndSettle();
     await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();
@@ -301,8 +313,8 @@ void main() {
     await openMenu(tester, 'Hydrostatic test');
     await tester.tap(find.text('Edit intervals'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Baseline date'));
-    await tester.tap(find.text('Baseline date'));
+    await tester.ensureVisible(_baselineField);
+    await tester.tap(_baselineField);
     await tester.pumpAndSettle();
     // The picker opens on the stored date; OK keeps it.
     await tester.tap(find.text('OK'));
@@ -387,7 +399,7 @@ void main() {
     await openMenu(tester, 'Hydrostatic test');
     await tester.tap(find.text('Edit intervals'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Baseline date'));
+    await tester.ensureVisible(_baselineField);
 
     expect(find.byTooltip('Clear baseline date'), findsNothing);
     expect(find.text('Jun 1, 2024'), findsNothing);

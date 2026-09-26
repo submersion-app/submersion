@@ -40,7 +40,18 @@ class TripStoryDayHeader extends ConsumerWidget {
   /// per-trip read. Null when nothing is stored yet.
   final TripStoryDayWeather? storedWeather;
 
-  const TripStoryDayHeader({super.key, required this.day, this.storedWeather});
+  /// Compact form for the story band's docked panel: no Planned chip (it would
+  /// consume the subtitle at half width, and the chapter's own full-width
+  /// heading still carries it) and no background of its own, since the band
+  /// paints one.
+  final bool compact;
+
+  const TripStoryDayHeader({
+    super.key,
+    required this.day,
+    this.storedWeather,
+    this.compact = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,7 +84,7 @@ class TripStoryDayHeader extends ConsumerWidget {
     final weatherBadge = _weatherBadge(context, theme, units, weather);
 
     return Material(
-      color: theme.colorScheme.surfaceContainer,
+      color: compact ? Colors.transparent : theme.colorScheme.surfaceContainer,
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: minHeight),
         child: Padding(
@@ -113,7 +124,7 @@ class TripStoryDayHeader extends ConsumerWidget {
                 const SizedBox(width: 8),
                 weatherBadge,
               ],
-              if (day.kind == TripStoryDayKind.future)
+              if (!compact && day.kind == TripStoryDayKind.future)
                 Chip(
                   label: Text(context.l10n.trips_story_planned),
                   visualDensity: VisualDensity.compact,

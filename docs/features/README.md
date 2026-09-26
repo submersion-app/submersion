@@ -11,7 +11,7 @@ Submersion includes professional-grade features for all levels of divers.
 | [**Dive Logging**](guide/dive-logging.md) | Comprehensive dive entries with 40+ fields |
 | [**Dive Sites**](guide/dive-sites.md) | GPS-enabled site database with maps |
 | [**Equipment**](guide/equipment.md) | Gear tracking with service reminders |
-| [**Statistics**](guide/statistics.md) | Personal records and analytics |
+| [**Insights**](guide/insights.md) | Personal records and analytics |
 | [**Buddies**](features/buddies.md) | Track dive partners and certifications |
 | [**Marine Life**](features/marine-life.md) | Species sighting database |
 
@@ -63,7 +63,7 @@ Core functionality:
 - Dive logging with all fields
 - Dive site database
 - Equipment management
-- Statistics dashboards
+- Insights dashboards
 - UDDF/CSV import/export
 - Multi-diver support
 

@@ -81,10 +81,39 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        final label = tester.widget<Text>(find.text('Annual service'));
+        // The label now carries its severity wording too ("Annual service
+        // overdue"), so match on the kind rather than the whole string; this
+        // test is about the colour, which the wording tests do not cover.
+        final label = tester.widget<Text>(
+          find.textContaining('Annual service'),
+        );
         expect(label.style?.color, expected);
       });
     }
+  });
+
+  testWidgets('the service label stays right-aligned in its column', (
+    tester,
+  ) async {
+    // The 80px status column right-aligns every other state (finding,
+    // retired) and the type column beside it. The label wraps in that
+    // width, so each LINE must align right, not just the text box (#2260).
+    final item = _makeItem();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          equipmentRollupClockProvider.overrideWith(
+            (ref) async => {
+              item.id: _clock(item, ServiceClockSeverity.overdue),
+            },
+          ),
+        ],
+        child: DenseEquipmentListTile(item: item, onTap: () {}),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final label = tester.widget<Text>(find.textContaining('Annual service'));
+    expect(label.textAlign, TextAlign.right);
   });
 
   group('DenseEquipmentListTile', () {

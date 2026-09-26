@@ -13,6 +13,9 @@ import 'package:submersion/features/media/domain/value_objects/media_source_meta
 
 class _StubPhotoPickerService implements PhotoPickerService {
   @override
+  Future<PhotoPermissionStatus> currentPermission() => checkPermission();
+
+  @override
   bool get supportsGalleryBrowsing => false;
   @override
   Future<List<AssetInfo>> getAssetsInDateRange(DateTime s, DateTime e) async =>
@@ -45,11 +48,17 @@ class _FakeService extends AssetResolutionService {
   Future<ResolutionResult> resolveAssetId(MediaItem item) async => _r;
 }
 
-MediaItem _gallery({String? assetId = 'A'}) => MediaItem(
+// Rows here were linked on this device: a miss is evidence of absence
+// only there (media sync program spec 6.1).
+MediaItem _gallery({
+  String? assetId = 'A',
+  String? originDeviceId = 'this-device',
+}) => MediaItem(
   id: 'x',
   mediaType: MediaType.photo,
   sourceType: MediaSourceType.platformGallery,
   platformAssetId: assetId,
+  originDeviceId: originDeviceId,
   takenAt: DateTime.utc(2024, 1, 1),
   createdAt: DateTime.utc(2024, 1, 1),
   updatedAt: DateTime.utc(2024, 1, 1),
@@ -58,6 +67,7 @@ MediaItem _gallery({String? assetId = 'A'}) => MediaItem(
 void main() {
   test('sourceType getter returns platformGallery', () {
     final r = PlatformGalleryResolver(
+      localDeviceId: () async => 'this-device',
       resolutionService: _FakeService(
         const ResolutionResult(status: ResolutionStatus.unavailable),
       ),
@@ -69,6 +79,7 @@ void main() {
     'resolve returns Unavailable.notFound when AssetResolutionService is unavailable',
     () async {
       final r = PlatformGalleryResolver(
+        localDeviceId: () async => 'this-device',
         resolutionService: _FakeService(
           const ResolutionResult(status: ResolutionStatus.unavailable),
         ),
@@ -81,6 +92,7 @@ void main() {
 
   test('resolveThumbnail returns notFound when assetId missing', () async {
     final r = PlatformGalleryResolver(
+      localDeviceId: () async => 'this-device',
       resolutionService: _FakeService(
         const ResolutionResult(status: ResolutionStatus.unavailable),
       ),
@@ -95,6 +107,7 @@ void main() {
 
   test('resolveThumbnail returns notFound when assetId empty', () async {
     final r = PlatformGalleryResolver(
+      localDeviceId: () async => 'this-device',
       resolutionService: _FakeService(
         const ResolutionResult(status: ResolutionStatus.unavailable),
       ),
@@ -110,6 +123,7 @@ void main() {
     'resolveThumbnail returns notFound when AssetResolutionService is unavailable',
     () async {
       final r = PlatformGalleryResolver(
+        localDeviceId: () async => 'this-device',
         resolutionService: _FakeService(
           const ResolutionResult(status: ResolutionStatus.unavailable),
         ),
@@ -126,6 +140,7 @@ void main() {
     'extractMetadata returns null when AssetResolutionService is unavailable',
     () async {
       final r = PlatformGalleryResolver(
+        localDeviceId: () async => 'this-device',
         resolutionService: _FakeService(
           const ResolutionResult(status: ResolutionStatus.unavailable),
         ),
@@ -139,6 +154,7 @@ void main() {
     'verify returns notFound when AssetResolutionService is unavailable',
     () async {
       final r = PlatformGalleryResolver(
+        localDeviceId: () async => 'this-device',
         resolutionService: _FakeService(
           const ResolutionResult(status: ResolutionStatus.unavailable),
         ),

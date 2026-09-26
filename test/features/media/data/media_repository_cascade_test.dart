@@ -106,7 +106,7 @@ void main() {
   test('unlinkMediaFromDeletedDives nulls diveId and keeps the row', () async {
     await insertDive('d1');
     final m = await repo.createMedia(item('a.jpg', diveId: 'd1'));
-    await repo.unlinkMediaFromDeletedDives([m.id]);
+    await repo.unlinkMediaFromDeletedDives([m.id], ['d1']);
     final got = await repo.getMediaById(m.id);
     expect(got, isNotNull);
     expect(got!.diveId, isNull);

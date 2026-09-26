@@ -139,6 +139,48 @@ void main() {
       expect(container.read(settingsProvider).hiddenChamberIds, isEmpty);
     });
 
+    test('setTankPresetHidden toggles hidden tank presets', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).hiddenTankPresetIds, isEmpty);
+      await container
+          .read(settingsProvider.notifier)
+          .setTankPresetHidden('hp80', true);
+      expect(container.read(settingsProvider).hiddenTankPresetIds, {'hp80'});
+      await container
+          .read(settingsProvider.notifier)
+          .setTankPresetHidden('hp80', false);
+      expect(container.read(settingsProvider).hiddenTankPresetIds, isEmpty);
+    });
+
+    test('setTankPresetHidden never hides the default preset', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      final notifier = container.read(settingsProvider.notifier);
+      await notifier.setDefaultTankPreset('steel12');
+      await notifier.setTankPresetHidden('steel12', true);
+      expect(container.read(settingsProvider).hiddenTankPresetIds, isEmpty);
+    });
+
+    test('setDefaultTankPreset shows a hidden preset again', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      final notifier = container.read(settingsProvider.notifier);
+      await notifier.setTankPresetHidden('hp80', true);
+      await notifier.setTankPresetHidden('lp85', true);
+      await notifier.setDefaultTankPreset('hp80');
+      final settings = container.read(settingsProvider);
+      expect(settings.defaultTankPreset, 'hp80');
+      expect(settings.hiddenTankPresetIds, {'lp85'});
+
+      // Clearing the default leaves the hidden set alone.
+      await notifier.setDefaultTankPreset(null);
+      expect(container.read(settingsProvider).hiddenTankPresetIds, {'lp85'});
+    });
+
     test('setHomeChipEnabled toggles hidden home chips', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();
@@ -511,58 +553,6 @@ void main() {
         container.read(cnsCalculationMethodProvider),
         CnsCalculationMethod.subsurface,
       );
-    });
-
-    test('readout card position defaults to null and persists', () async {
-      final notifier = container.read(settingsProvider.notifier);
-      await waitForInit();
-
-      expect(container.read(settingsProvider).fullscreenReadoutCardX, isNull);
-      expect(container.read(settingsProvider).fullscreenReadoutCardY, isNull);
-
-      await notifier.setFullscreenReadoutCardPosition(0.25, 0.75);
-
-      expect(container.read(settingsProvider).fullscreenReadoutCardX, 0.25);
-      expect(container.read(settingsProvider).fullscreenReadoutCardY, 0.75);
-
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getDouble('fullscreen_readout_card_x'), 0.25);
-      expect(prefs.getDouble('fullscreen_readout_card_y'), 0.75);
-    });
-
-    test('readout card position clamps out-of-range values', () async {
-      final notifier = container.read(settingsProvider.notifier);
-      await waitForInit();
-
-      // Keep persisted data inside the 0..1 contract even if a future call
-      // site passes junk; the widget clamps on read too, but stored values
-      // should stay canonical.
-      await notifier.setFullscreenReadoutCardPosition(5.0, -3.0);
-
-      expect(container.read(settingsProvider).fullscreenReadoutCardX, 1.0);
-      expect(container.read(settingsProvider).fullscreenReadoutCardY, 0.0);
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getDouble('fullscreen_readout_card_x'), 1.0);
-      expect(prefs.getDouble('fullscreen_readout_card_y'), 0.0);
-    });
-
-    test('readout card position sanitizes non-finite values', () async {
-      final notifier = container.read(settingsProvider.notifier);
-      await waitForInit();
-
-      // NaN bypasses clamp (NaN.clamp(0,1) is NaN); it must never be
-      // persisted or the card would seed with invalid layout input.
-      await notifier.setFullscreenReadoutCardPosition(
-        double.nan,
-        double.negativeInfinity,
-      );
-
-      // Non-finite inputs canonicalize to the default corner (1, 0).
-      expect(container.read(settingsProvider).fullscreenReadoutCardX, 1.0);
-      expect(container.read(settingsProvider).fullscreenReadoutCardY, 0.0);
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getDouble('fullscreen_readout_card_x'), 1.0);
-      expect(prefs.getDouble('fullscreen_readout_card_y'), 0.0);
     });
   });
 

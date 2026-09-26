@@ -187,3 +187,54 @@ final bathymetryGridProvider =
       }
       return grid;
     });
+
+/// A smaller, additional LOD patch grid for one site -- the `medium`/`fine`
+/// stages in `bathymetry_lod.dart`. Unlike [bathymetryGridProvider], the
+/// key carries the exact site center (not a quantized cell): a patch is
+/// requested for one specific site's zoomed-in view, not shared across
+/// nearby coordinates the way the always-loaded base square is. Same
+/// never-errors/transient-retry contract as [bathymetryGridProvider].
+///
+/// `autoDispose`, unlike [bathymetryGridProvider]: the base provider is
+/// keyed by a coarse, coalescing quantized cell, so its entry count stays
+/// bounded by how many distinct 0.02 degree cells the diver has ever
+/// visited -- cheap to keep resident for the app session. A patch entry is
+/// keyed by exact coordinate AND LOD stage, so browsing many sites and
+/// zooming into each would otherwise leave an unbounded, never-freed trail
+/// of these heavier (per-site, per-stage) grids in memory. Autodispose lets
+/// a stage/site combination that is no longer being watched (the diver
+/// zoomed back out, or left the site) free its entry instead.
+// no-tick: a write-once cache in the local-only cache database. Rows are keyed
+// by exact coordinate and span and never updated in place -- a span change
+// misses the old key rather than rewriting it -- and the transient-failure
+// case already self-invalidates on a backoff timer.
+final bathymetryPatchGridProvider = FutureProvider.autoDispose
+    .family<
+      BathymetryGrid?,
+      ({double lat, double lon, double spanMeters, int maxDim})
+    >((ref, request) async {
+      void retryLater() {
+        final timer = Timer(
+          bathymetryTransientRetryBackoff,
+          ref.invalidateSelf,
+        );
+        ref.onDispose(timer.cancel);
+      }
+
+      final repo = ref.watch(bathymetryRepositoryProvider);
+      if (repo == null) {
+        retryLater(); // cache DB may simply not be ready yet
+        return null;
+      }
+      final center = GeoPoint(request.lat, request.lon);
+      final grid = await repo.getGridForSpan(
+        center,
+        request.spanMeters,
+        maxDim: request.maxDim,
+      );
+      if (grid == null &&
+          !await repo.hasCachedAnswer(center, spanMeters: request.spanMeters)) {
+        retryLater(); // transient failure, not a real "no water here"
+      }
+      return grid;
+    });

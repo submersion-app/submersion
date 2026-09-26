@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_chip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -22,6 +23,11 @@ import 'package:submersion/shared/selection/selection_leading.dart';
 class CompactDiveListTile extends ConsumerWidget {
   final String diveId;
   final int diveNumber;
+
+  /// The dive is planned and therefore unnumbered (issue #2002). Callers
+  /// that pass a [summary] may leave this false: the summary's own flag is
+  /// honoured too.
+  final bool isPlanned;
   final DateTime dateTime;
   final String? siteName;
   final double? maxDepth;
@@ -74,6 +80,7 @@ class CompactDiveListTile extends ConsumerWidget {
     super.key,
     required this.diveId,
     required this.diveNumber,
+    this.isPlanned = false,
     required this.dateTime,
     this.siteName,
     this.maxDepth,
@@ -202,6 +209,10 @@ class CompactDiveListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // A dive awaiting its computer data (issue #2002) has no number, and the
+    // list passes its position as a fallback, so the badge and the
+    // screen-reader label leave the number out.
+    final isPlannedDive = isPlanned || summary?.isPlanned == true;
     final colorScheme = Theme.of(context).colorScheme;
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
@@ -275,7 +286,9 @@ class CompactDiveListTile extends ConsumerWidget {
         color: cardColor,
         child: Semantics(
           button: true,
-          label: 'Dive $diveNumber at ${siteName ?? 'Unknown Site'}',
+          label: isPlannedDive
+              ? 'Planned dive at ${siteName ?? 'Unknown Site'}'
+              : 'Dive $diveNumber at ${siteName ?? 'Unknown Site'}',
           child: InkWell(
             onTap: onTap,
             onDoubleTap: onDoubleTap,
@@ -299,15 +312,21 @@ class CompactDiveListTile extends ConsumerWidget {
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
                               alignment: Alignment.centerLeft,
-                              child: Text(
-                                '#$diveNumber',
-                                maxLines: 1,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                  color: accentColor,
-                                ),
-                              ),
+                              child: isPlannedDive
+                                  ? Icon(
+                                      Icons.event_available_outlined,
+                                      size: 14,
+                                      color: accentColor,
+                                    )
+                                  : Text(
+                                      '#$diveNumber',
+                                      maxLines: 1,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: accentColor,
+                                      ),
+                                    ),
                             ),
                           ),
                         ),
@@ -348,6 +367,10 @@ class CompactDiveListTile extends ConsumerWidget {
                           maxLines: 1,
                         ),
                       ),
+                      if (summary?.isPlanned == true) ...[
+                        const SizedBox(width: 6),
+                        const PlannedDiveChip(),
+                      ],
                       const SizedBox(width: 6),
                       DiveModeBadge(
                         mode: summary?.diveMode ?? DiveMode.oc,

@@ -38,6 +38,10 @@ class PhotoPickerServiceDesktop implements PhotoPickerService {
   }
 
   @override
+  Future<PhotoPermissionStatus> currentPermission() async =>
+      PhotoPermissionStatus.authorized;
+
+  @override
   Future<PhotoPermissionStatus> requestPermission() async {
     // Desktop platforms don't require explicit permission for file access
     return PhotoPermissionStatus.authorized;

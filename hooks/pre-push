@@ -85,8 +85,15 @@ cd "$PROJECT_ROOT"
 
 # Resolve a main ref, used to bound the range when pushing a brand-new branch
 # (its remote sha is all-zeros, so there is no remote base to diff against).
+# upstream/main first: a fork's own "origin/main" is not kept in sync by
+# working from feature branches alone and can sit arbitrarily far behind the
+# canonical repo, which would widen this range to everything that changed
+# upstream since the fork last synced -- pulling in unrelated changed/test
+# files (and their failures) that have nothing to do with the actual push.
+# Falls back to origin/main, then local main, for a checkout with no
+# "upstream" remote configured (e.g. working directly in the canonical repo).
 MAIN_REF=""
-for ref in origin/main main; do
+for ref in upstream/main origin/main main; do
     if git rev-parse --verify --quiet "$ref" >/dev/null; then
         MAIN_REF="$ref"
         break
@@ -292,7 +299,20 @@ format_check() {
     if [ "${#changed_dart[@]}" -eq 0 ]; then
         return 0
     fi
-    dart format --set-exit-if-changed "${changed_dart[@]}"
+    # Piped through xargs in small, fixed-size batches (-n 20), not passed
+    # directly as argv and not left to xargs' own auto-sized chunking: a push
+    # spanning enough commits (a long-lived branch, a squash-worthy PR) can
+    # list enough changed files that a single dart-format invocation's
+    # command line exceeds the OS's length limit -- on Windows this fails
+    # with "Die Befehlszeile ist zu lang" before dart format ever runs,
+    # misreporting a real format pass as a failure. xargs' own default chunk
+    # size is calculated from a reported ARG_MAX that does not hold in
+    # practice once `dart` resolves through a wrapping .bat on Windows (each
+    # layer of batch-file re-quoting eats into the same limit), so it still
+    # overflowed at 178 files with no explicit -n; a small fixed batch avoids
+    # depending on that estimate at all. -0 keeps it filename-safe (paths
+    # with spaces).
+    printf '%s\0' "${changed_dart[@]}" | xargs -0 -n 20 dart format --set-exit-if-changed
 }
 
 echo "📝 Checking formatting and 🔬 analyzing (in parallel)..."
@@ -394,6 +414,30 @@ fi
 # Shared test runner: "$@" is an explicit file list; empty means whole suite.
 run_tests() {
     flutter test --exclude-tags performance --concurrency="$CONCURRENCY" "$@"
+}
+
+# Runs an explicit file list through run_tests in fixed-size batches, rather
+# than as one invocation: a selection large enough (a long-lived branch, a
+# squash-worthy PR) makes flutter test's own command line exceed the OS's
+# length limit -- on Windows this fails with "Argument list too long" inside
+# flutter.bat before a single test runs, the same class of failure the
+# xargs-batched format check above works around. Each batch pays its own
+# isolate/compile startup cost, which is the point: correctness over the
+# single-invocation speed this hook otherwise optimizes for, and this path
+# only engages once a selection is large enough to overflow in the first
+# place. Returns non-zero if any batch fails, after running them all so one
+# failing batch does not hide a later one.
+run_tests_batched() {
+    local -a files=("$@")
+    local batch_size=100
+    local i=0
+    local failed=0
+    while [ "$i" -lt "${#files[@]}" ]; do
+        local -a batch=("${files[@]:$i:$batch_size}")
+        run_tests "${batch[@]}" || failed=1
+        i=$((i + batch_size))
+    done
+    return "$failed"
 }
 
 if [ "${SKIP_TESTS:-0}" = "1" ]; then
@@ -571,7 +615,7 @@ if [ "${#test_files[@]}" -gt 0 ]; then
         printf '   %s\n' "${test_files[@]}"
     fi
     echo ""
-    if ! run_tests "${test_files[@]}"; then
+    if ! run_tests_batched "${test_files[@]}"; then
         echo ""
         echo "❌ Tests failed! Fix the failing tests before pushing."
         echo "   (RUN_ALL_TESTS=1 git push runs the full suite; CI runs it regardless.)"

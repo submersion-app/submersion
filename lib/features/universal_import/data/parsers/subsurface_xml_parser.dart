@@ -13,6 +13,7 @@ import 'package:submersion/features/universal_import/data/parsers/import_parser.
 import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_gps.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_site_resolver.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_tag_vocabulary.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 import 'package:submersion/features/universal_import/data/services/suit_classifier.dart';
 
 /// Parser for Subsurface XML (.ssrf) dive log files.
@@ -195,7 +196,7 @@ class SubsurfaceXmlParser implements ImportParser {
     }
 
     if (divesMissingSite > 0) {
-      warnings.add(_sitesUnresolved(divesMissingSite));
+      warnings.add(ImportSiteLocation.sitesUnresolved(divesMissingSite));
     }
 
     return ImportPayload(
@@ -204,16 +205,6 @@ class SubsurfaceXmlParser implements ImportParser {
       metadata: const {'source': 'subsurface_xml'},
     );
   }
-
-  /// Dives that pointed at a dive site the file never described, so they were
-  /// imported without one. Aggregated into a single notice.
-  static ImportWarning _sitesUnresolved(int count) => ImportWarning(
-    severity: ImportWarningSeverity.warning,
-    code: ImportWarningCode.sitesUnresolved,
-    message: '$count dives referred to a dive site the file does not describe',
-    entityType: ImportEntityType.dives,
-    count: count,
-  );
 
   /// Every `<dive>` in the file, trip-wrapped ones first, in the order the
   /// parse loops below read them.
@@ -944,7 +935,7 @@ class SubsurfaceXmlParser implements ImportParser {
       // Pressure *readings* (`start`, `end`) are sensor artifacts that
       // Subsurface dive computers can emit for phantom cylinder slots
       // (see the `does not invent extra tanks from placeholder cylinders`
-      // regression test using subsurface_export.ssrf) — these are excluded
+      // regression test using fixtures/shore-log.ssrf); these are excluded
       // from the preservation signal on purpose. Empty-string attribute
       // values (e.g., `<cylinder o2='' />`) also count as absent.
       final hasAnyCylinderProperty =

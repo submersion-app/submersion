@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_header_bar.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Content widget for the equipment set list, used in master-detail layout.
@@ -24,14 +25,19 @@ class EquipmentSetListContent extends ConsumerWidget {
   /// the parent Scaffold's AppBar.
   final bool showAppBar;
 
-  final Widget? headerExtension;
+  /// Builds the Equipment / Sets toggle into this list's own header bar.
+  ///
+  /// Null on phone, where the page's app bar carries it instead. Sets have no
+  /// actions of their own, so the bar disappears entirely in that case rather
+  /// than holding a row open for nothing.
+  final EquipmentHeaderToggleBuilder? toggleBuilder;
 
   const EquipmentSetListContent({
     super.key,
     this.onItemSelected,
     this.selectedId,
     this.showAppBar = true,
-    this.headerExtension,
+    this.toggleBuilder,
   });
 
   @override
@@ -49,46 +55,17 @@ class EquipmentSetListContent extends ConsumerWidget {
     if (!showAppBar) {
       return Column(
         children: [
-          _buildCompactAppBar(context),
-          ?headerExtension,
+          EquipmentHeaderBar(
+            toggleBuilder: toggleBuilder,
+            actionsBuilder: (context, {required bool dense}) =>
+                const <Widget>[],
+          ),
           Expanded(child: content),
         ],
       );
     }
 
     return content;
-  }
-
-  Widget _buildCompactAppBar(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 8, height: 40),
-          // This bar carries no actions, so the Spacer that used to trail the
-          // title had nothing to push and only the title needs to flex.
-          Expanded(
-            child: Text(
-              context.l10n.equipment_appBar_title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildEmptyState(BuildContext context) {

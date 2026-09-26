@@ -193,6 +193,20 @@ void main() {
       expect(find.text('Other'), findsOneWidget);
     });
 
+    testWidgets('opens without crashing on a screen narrower than the '
+        'dialog itself (issue #2228 follow-up: clamp(min, max) throws once '
+        'the screen is narrow enough that max falls below min)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await openDialog(tester);
+      expect(tester.takeException(), isNull);
+      expect(find.text('Overlays'), findsOneWidget);
+    });
+
     testWidgets('Overlays section starts expanded with metrics visible', (
       tester,
     ) async {

@@ -38,6 +38,7 @@ import 'package:submersion/features/tank_presets/presentation/providers/tank_pre
 import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
+import 'package:submersion/core/constants/o2_cell_unit.dart';
 
 typedef Override = riverpod.Override;
 
@@ -158,7 +159,23 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(
         defaultTankPreset: presetName,
         clearDefaultTankPreset: presetName == null,
+        hiddenTankPresetIds: {
+          for (final name in state.hiddenTankPresetIds)
+            if (name != presetName && name != state.defaultTankPreset) name,
+        },
       );
+  @override
+  Future<void> setTankPresetHidden(String presetName, bool hidden) async {
+    if (hidden && presetName == state.defaultTankPreset) return;
+    final ids = {...state.hiddenTankPresetIds};
+    if (hidden) {
+      ids.add(presetName);
+    } else {
+      ids.remove(presetName);
+    }
+    state = state.copyWith(hiddenTankPresetIds: ids);
+  }
+
   @override
   Future<void> setApplyDefaultTankToImports(bool value) async =>
       state = state.copyWith(applyDefaultTankToImports: value);
@@ -456,6 +473,10 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(defaultShowO2CellMv: value);
 
   @override
+  Future<void> setO2CellUnit(O2CellUnit value) async =>
+      state = state.copyWith(o2CellUnit: value);
+
+  @override
   Future<void> setDefaultShowGtr(bool value) async =>
       state = state.copyWith(defaultShowGtr: value);
 
@@ -584,13 +605,6 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
       _ => state,
     };
   }
-
-  @override
-  Future<void> setFullscreenReadoutCardPosition(double x, double y) async =>
-      state = state.copyWith(
-        fullscreenReadoutCardX: x,
-        fullscreenReadoutCardY: y,
-      );
 
   @override
   Future<void> setProfileMetricsFollowViewport(bool value) async =>

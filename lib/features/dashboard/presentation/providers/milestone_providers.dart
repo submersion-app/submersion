@@ -2,7 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
-import 'package:submersion/features/statistics/presentation/providers/career_totals_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/career_totals_provider.dart';
 
 const _milestoneLadder = [10, 25, 50, 100, 250, 500, 1000];
 

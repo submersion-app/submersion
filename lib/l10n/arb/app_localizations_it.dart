@@ -324,16 +324,16 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String gasCalculators_bestMix_densityCritical(Object limit) {
-    return 'Oltre il limite massimo di densita di $limit g/L.';
+    return 'Oltre il limite massimo di densità di $limit g/L.';
   }
 
   @override
   String get gasCalculators_bestMix_densityLabel =>
-      'Densita del gas alla quota';
+      'Densità del gas alla quota';
 
   @override
   String gasCalculators_bestMix_densityWarn(Object limit) {
-    return 'Oltre il limite di densita raccomandato di $limit g/L.';
+    return 'Oltre il limite di densità raccomandato di $limit g/L.';
   }
 
   @override
@@ -365,7 +365,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gasCalculators_bestMix_nearestStandard =>
-      'Miscela standard piu vicina che copre questa quota';
+      'Miscela standard più vicina che copre questa quota';
 
   @override
   String get gasCalculators_bestMix_recommendedMix => 'Miscela consigliata';
@@ -437,6 +437,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String trips_story_dayLabel(int number) {
     return 'Giorno $number';
+  }
+
+  @override
+  String trips_story_dockedDay_goToDay(int number) {
+    return 'Vai al giorno $number';
   }
 
   @override
@@ -979,7 +984,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get accessibility_keyLabel_delete => 'Canc';
 
   @override
-  String get accessibility_keyLabel_down => 'Giu';
+  String get accessibility_keyLabel_down => 'Giù';
 
   @override
   String get accessibility_keyLabel_enter => 'Invio';
@@ -1097,7 +1102,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get accessibility_shortcut_goToSites => 'Vai a Siti';
 
   @override
-  String get accessibility_shortcut_goToStatistics => 'Vai a Statistiche';
+  String get accessibility_shortcut_goToInsights => 'Vai ad Analisi';
 
   @override
   String get accessibility_shortcut_keyboardShortcuts =>
@@ -1489,6 +1494,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buddies_field_emailHint => 'email@esempio.com';
 
   @override
+  String get buddies_field_linkedProfile => 'Profilo collegato';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'Il profilo locale che corrisponde a questo compagno';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'Non collegato';
+
+  @override
   String get buddies_field_nameHint => 'Inserisci nome compagno';
 
   @override
@@ -1699,6 +1714,39 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'Usa';
+
+  @override
+  String get buddies_linkedProfile_chip => 'Profilo';
+
+  @override
+  String get buddies_linkedProfile_link => 'Collega';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'Non ora';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'Apri compagno';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'Collega a un profilo';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'Un compagno non può essere collegato al proprio profilo.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName è già collegato a questo profilo.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name ha un profilo qui. Collegare questo compagno a esso?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'Questi compagni sono collegati a profili diversi. Unisci prima i profili.';
 
   @override
   String get buddies_message_added => 'Compagno aggiunto con successo';
@@ -2064,7 +2112,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get certifications_detail_label_type => 'Tipo';
 
   @override
-  String get certifications_detail_label_validity => 'Validita';
+  String get certifications_detail_label_validity => 'Validità';
 
   @override
   String get certifications_detail_noExpiration => 'Nessuna scadenza';
@@ -2124,7 +2172,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get certifications_detail_status_expired =>
-      'Questa certificazione e scaduta';
+      'Questa certificazione è scaduta';
 
   @override
   String certifications_detail_status_expiredOn(Object date) {
@@ -3631,7 +3679,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get dashboard_alerts_insuranceExpiredGeneric =>
-      'La tua assicurazione subacquea e scaduta';
+      'La tua assicurazione subacquea è scaduta';
 
   @override
   String dashboard_alerts_insuranceExpiredProvider(Object provider) {
@@ -3696,7 +3744,7 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get dashboard_hero_error => 'Pronti a esplorare le profondita?';
+  String get dashboard_hero_error => 'Pronti a esplorare le profondità?';
 
   @override
   String dashboard_hero_hoursUnderwater(Object hours) {
@@ -3763,23 +3811,35 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dashboard_gauges_addGear => 'Aggiungi attrezzatura';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name OK';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
-    return '$name in scadenza tra ${days}g';
+    return '$name manutenzione tra ${days}g';
   }
 
   @override
   String dashboard_gauges_gearOverdue(String name) {
-    return '$name in ritardo';
+    return '$name manutenzione scaduta';
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count altri in ritardo';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count attrezzi con manutenzione scaduta',
+      one: '$count attrezzo con manutenzione scaduta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count attrezzi con manutenzione tra ${days}g',
+      one: '$count attrezzo con manutenzione tra ${days}g',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -4045,19 +4105,19 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get dashboard_personalRecords_coldest => 'Piu fredda';
+  String get dashboard_personalRecords_coldest => 'Più fredda';
 
   @override
-  String get dashboard_personalRecords_deepest => 'Piu profonda';
+  String get dashboard_personalRecords_deepest => 'Più profonda';
 
   @override
-  String get dashboard_personalRecords_longest => 'Piu lunga';
+  String get dashboard_personalRecords_longest => 'Più lunga';
 
   @override
   String get dashboard_personalRecords_sectionTitle => 'Record personali';
 
   @override
-  String get dashboard_personalRecords_warmest => 'Piu calda';
+  String get dashboard_personalRecords_warmest => 'Più calda';
 
   @override
   String get dashboard_quickActions_addSite => 'Aggiungi sito';
@@ -4084,11 +4144,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dashboard_quickActions_sectionTitle => 'Azioni rapide';
 
   @override
-  String get dashboard_quickActions_statistics => 'Statistiche';
+  String get dashboard_quickActions_insights => 'Analisi';
 
   @override
-  String get dashboard_quickActions_statisticsTooltip =>
-      'Visualizza statistiche immersioni';
+  String get dashboard_quickActions_insightsTooltip =>
+      'Visualizza analisi immersioni';
 
   @override
   String get dashboard_quickStats_countries => 'Paesi';
@@ -4176,7 +4236,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dashboard_stats_hoursLogged => 'Ore registrate';
 
   @override
-  String get dashboard_stats_maxDepth => 'Profondita massima';
+  String get dashboard_stats_maxDepth => 'Profondità massima';
 
   @override
   String get dashboard_stats_sitesVisited => 'Siti visitati';
@@ -4781,7 +4841,7 @@ class AppLocalizationsIt extends AppLocalizations {
       other: 'immersioni',
       one: 'immersione',
     );
-    return 'Sei sicuro di voler eliminare $count $_temp0? Questa azione non puo essere annullata.';
+    return 'Sei sicuro di voler eliminare $count $_temp0? Questa azione non può essere annullata.';
   }
 
   @override
@@ -5225,7 +5285,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_delete_confirm =>
-      'Questa azione non puo essere annullata. L\'immersione e tutti i dati associati (profilo, bombole, avvistamenti) saranno eliminati definitivamente.';
+      'Questa azione non può essere annullata. L\'immersione e tutti i dati associati (profilo, bombole, avvistamenti) saranno eliminati definitivamente.';
 
   @override
   String get diveLog_delete_delete => 'Elimina';
@@ -5336,7 +5396,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_detail_label_airTemp => 'Temp. aria';
 
   @override
-  String get diveLog_detail_label_avgDepth => 'Profondita media';
+  String get diveLog_detail_label_avgDepth => 'Profondità media';
 
   @override
   String get diveLog_detail_label_buddy => 'Compagno';
@@ -5345,7 +5405,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_detail_label_currentDirection => 'Direzione corrente';
 
   @override
-  String get diveLog_detail_label_currentStrength => 'Intensita corrente';
+  String get diveLog_detail_label_currentStrength => 'Intensità corrente';
 
   @override
   String get diveLog_detail_label_diveComputer => 'Computer subacqueo';
@@ -5417,7 +5477,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_detail_label_total => 'Totale:';
 
   @override
-  String get diveLog_detail_label_visibility => 'Visibilita';
+  String get diveLog_detail_label_visibility => 'Visibilità';
 
   @override
   String get diveLog_detail_label_waterType => 'Tipo di acqua';
@@ -5485,7 +5545,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_detail_section_oxygenToxicity =>
-      'Tossicita dell\'ossigeno';
+      'Tossicità dell\'ossigeno';
 
   @override
   String get diveLog_detail_section_sacRateBySegment =>
@@ -5523,7 +5583,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_detail_stat_bottomTime => 'Tempo di fondo';
 
   @override
-  String get diveLog_detail_stat_maxDepth => 'Profondita massima';
+  String get diveLog_detail_stat_maxDepth => 'Profondità massima';
 
   @override
   String get diveLog_detail_stat_runtime => 'Tempo totale';
@@ -5588,10 +5648,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Rebreather semi-chiuso con ppO2 variabile';
 
   @override
-  String get diveLog_diveMode_title => 'Modalita immersione';
+  String get diveLog_diveMode_title => 'Modalità immersione';
 
   @override
-  String get diveLog_editSighting_count => 'Quantita';
+  String get diveLog_editSighting_count => 'Quantità';
 
   @override
   String get diveLog_editSighting_notes => 'Note';
@@ -5723,7 +5783,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_label_altitude => 'Altitudine';
 
   @override
-  String get diveLog_edit_label_avgDepth => 'Profondita media';
+  String get diveLog_edit_label_avgDepth => 'Profondità media';
 
   @override
   String get diveLog_edit_label_bottomTime => 'Tempo di fondo';
@@ -5732,7 +5792,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_label_currentDirection => 'Direzione corrente';
 
   @override
-  String get diveLog_edit_label_currentStrength => 'Intensita corrente';
+  String get diveLog_edit_label_currentStrength => 'Intensità corrente';
 
   @override
   String get diveLog_edit_label_diveType => 'Tipo di immersione';
@@ -5761,7 +5821,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_label_exitMethod => 'Metodo di uscita';
 
   @override
-  String get diveLog_edit_label_maxDepth => 'Profondita massima';
+  String get diveLog_edit_label_maxDepth => 'Profondità massima';
 
   @override
   String get diveLog_edit_label_runtime => 'Tempo totale';
@@ -5776,7 +5836,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_label_type => 'Tipo';
 
   @override
-  String get diveLog_edit_label_visibility => 'Visibilita';
+  String get diveLog_edit_label_visibility => 'Visibilità';
 
   @override
   String get diveLog_edit_label_waterTemp => 'Temp. acqua';
@@ -5789,7 +5849,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tocca \"Aggiungi\" per registrare gli avvistamenti';
 
   @override
-  String get diveLog_edit_nearbySitesFirst => 'Prima i siti piu vicini';
+  String get diveLog_edit_nearbySitesFirst => 'Prima i siti più vicini';
 
   @override
   String get diveLog_edit_noEquipmentSelected =>
@@ -5806,6 +5866,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_edit_overline_tanks => 'Bombole';
+
+  @override
+  String get diveLog_edit_planned_switch => 'Immersione pianificata';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'In attesa dei dati del computer. Nessun numero di immersione finché non viene registrata.';
 
   @override
   String get diveLog_edit_profile_draw => 'Disegna un profilo';
@@ -5919,7 +5986,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_section_customFields => 'Custom Fields';
 
   @override
-  String get diveLog_edit_section_depthDuration => 'Profondita e durata';
+  String get diveLog_edit_section_depthDuration => 'Profondità e durata';
 
   @override
   String get diveLog_edit_section_diveCenter => 'Centro immersioni';
@@ -5976,7 +6043,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String diveLog_edit_snackbar_avgDepthCalculated(Object depth) {
-    return 'Profondita media calcolata: $depth';
+    return 'Profondità media calcolata: $depth';
   }
 
   @override
@@ -5991,7 +6058,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String diveLog_edit_snackbar_maxDepthCalculated(Object depth) {
-    return 'Profondita max calcolata: $depth';
+    return 'Profondità max calcolata: $depth';
   }
 
   @override
@@ -6005,7 +6072,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_edit_snackbar_unableToCalculateAvgDepth =>
-      'Impossibile calcolare la profondita media dal profilo';
+      'Impossibile calcolare la profondità media dal profilo';
 
   @override
   String get diveLog_edit_snackbar_unableToCalculate =>
@@ -6013,7 +6080,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_edit_snackbar_unableToCalculateMaxDepth =>
-      'Impossibile calcolare la profondita max dal profilo';
+      'Impossibile calcolare la profondità max dal profilo';
 
   @override
   String get diveLog_edit_snackbar_unableToCalculateRuntime =>
@@ -6198,11 +6265,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_equipmentPicker_allSelected =>
-      'Tutta l\'attrezzatura gia selezionata';
+      'Tutta l\'attrezzatura già selezionata';
 
   @override
   String get diveLog_equipmentPicker_allSpare =>
-      'L\'attrezzatura rimanente e segnata come di scorta';
+      'L\'attrezzatura rimanente è segnata come di scorta';
 
   @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
@@ -6490,7 +6557,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionDepthRange =>
-      'Intervallo profondita (metri)';
+      'Intervallo profondità (metri)';
 
   @override
   String get diveLog_filter_sectionDiveSite => 'Sito di immersione';
@@ -6546,11 +6613,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get diveLog_legend_label_ascentRate => 'Velocita di risalita';
+  String get diveLog_legend_label_ascentRate => 'Velocità di risalita';
 
   @override
   String get diveLog_legend_label_ascentRateLine =>
-      'Linea velocita di risalita';
+      'Linea velocità di risalita';
 
   @override
   String get diveLog_legend_label_ceiling => 'Ceiling';
@@ -6562,7 +6629,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_cns => 'CNS%';
 
   @override
-  String get diveLog_legend_label_depth => 'Profondita';
+  String get diveLog_legend_label_depth => 'Profondità';
 
   @override
   String get diveLog_legend_label_events => 'Eventi';
@@ -6571,7 +6638,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_computedEvents => 'Eventi calcolati';
 
   @override
-  String get diveLog_legend_label_gasDensity => 'Densita del gas';
+  String get diveLog_legend_label_gasDensity => 'Densità del gas';
 
   @override
   String get diveLog_legend_label_gasSwitches => 'Cambi gas';
@@ -6583,10 +6650,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_heartRate => 'Frequenza cardiaca';
 
   @override
-  String get diveLog_legend_label_maxDepth => 'Profondita massima';
+  String get diveLog_legend_label_maxDepth => 'Profondità massima';
 
   @override
-  String get diveLog_legend_label_meanDepth => 'Profondita media';
+  String get diveLog_legend_label_meanDepth => 'Profondità media';
 
   @override
   String get diveLog_legend_label_mod => 'MOD';
@@ -6665,6 +6732,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mantieni le sovrapposizioni in vista';
 
   @override
+  String get diveLog_chartOption_tooltipFollowsCursor =>
+      'Il tooltip segue il cursore';
+
+  @override
   String get diveLog_pressure_estimatedSuffix => '(stim.)';
 
   @override
@@ -6710,6 +6781,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Registra immersione manualmente';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive =>
+      'Pianifica un\'immersione';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'Inserisci i dettagli ora, aggiungi i dati del computer più tardi';
 
   @override
   String get diveLog_listPage_fab_addDive => 'Aggiungi immersione';
@@ -7094,8 +7173,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'Visualizza i tuoi punti di immersione sulla mappa';
 
   @override
-  String get setup_finish_feature_statistics =>
-      'Esplora le statistiche delle tue immersioni';
+  String get setup_finish_feature_insights =>
+      'Esplora le analisi delle tue immersioni';
 
   @override
   String get setup_finish_start => 'Inizia';
@@ -7606,9 +7685,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Cerca per sito, compagno o note';
 
   @override
-  String get diveLog_listPage_title => 'Diario immersioni';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Indietro';
 
   @override
@@ -7638,11 +7714,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_map_emptySubtitle =>
-      'Registra immersioni con dati di posizione per vedere la tua attivita sulla mappa';
+      'Registra immersioni con dati di posizione per vedere la tua attività sulla mappa';
 
   @override
   String get diveLog_map_emptyTitle =>
-      'Nessuna attivita di immersione da visualizzare';
+      'Nessuna attività di immersione da visualizzare';
 
   @override
   String diveLog_map_errorLoading(Object error) {
@@ -7692,7 +7768,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_numbering_renumberDialog_content =>
-      'Tutte le immersioni saranno rinumerate in modo sequenziale in base alla data/ora di ingresso. Questa azione non puo essere annullata.';
+      'Tutte le immersioni saranno rinumerate in modo sequenziale in base alla data/ora di ingresso. Questa azione non può essere annullata.';
 
   @override
   String get diveLog_numbering_renumberDialog_renumber => 'Rinumera';
@@ -7758,7 +7834,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_o2tox_label_maxPpO2 => 'ppO2 massimo';
 
   @override
-  String get diveLog_o2tox_label_maxPpO2Depth => 'Profondita ppO2 massimo';
+  String get diveLog_o2tox_label_maxPpO2Depth => 'Profondità ppO2 massimo';
 
   @override
   String diveLog_o2tox_label_timeAboveLimit(String limit) {
@@ -7770,7 +7846,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_o2tox_oxygenToleranceUnits =>
-      'Unita di tolleranza all\'ossigeno';
+      'Unità di tolleranza all\'ossigeno';
 
   @override
   String diveLog_o2tox_semantics_cnsBadge(Object value) {
@@ -7779,7 +7855,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_o2tox_semantics_criticalWarning =>
-      'Avviso critico tossicita dell\'ossigeno';
+      'Avviso critico tossicità dell\'ossigeno';
 
   @override
   String diveLog_o2tox_semantics_otu(Object value, Object percent) {
@@ -7788,7 +7864,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_o2tox_semantics_warning =>
-      'Avviso tossicita dell\'ossigeno';
+      'Avviso tossicità dell\'ossigeno';
 
   @override
   String diveLog_o2tox_startPercent(Object value) {
@@ -7796,7 +7872,7 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get diveLog_o2tox_title => 'Tossicita dell\'ossigeno';
+  String get diveLog_o2tox_title => 'Tossicità dell\'ossigeno';
 
   @override
   String get diveLog_playbackStats_deco => 'DECO';
@@ -7814,11 +7890,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_playback_tooltip_skipStart => 'Vai all\'inizio';
 
   @override
-  String get diveLog_playback_tooltip_speed => 'Velocita di riproduzione';
+  String get diveLog_playback_tooltip_speed => 'Velocità di riproduzione';
 
   @override
   String diveLog_profile_axisDepth(Object unit) {
-    return 'Profondita ($unit)';
+    return 'Profondità ($unit)';
   }
 
   @override
@@ -8014,7 +8090,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_search_label_deco => 'Decompressione';
 
   @override
-  String get diveLog_search_label_depthRange => 'Intervallo profondita (m)';
+  String get diveLog_search_label_depthRange => 'Intervallo profondità (m)';
 
   @override
   String get diveLog_search_label_diveCenter => 'Centro immersioni';
@@ -8047,7 +8123,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_search_section_gasEquipment => 'Gas e attrezzatura';
 
   @override
-  String get diveLog_search_section_location => 'Localita';
+  String get diveLog_search_section_location => 'Località';
 
   @override
   String get diveLog_search_section_organization => 'Organizzazione';
@@ -8170,7 +8246,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_summary_action_logDive => 'Registra immersione';
 
   @override
-  String get diveLog_summary_action_viewStats => 'Visualizza statistiche';
+  String get diveLog_summary_action_viewInsights => 'Visualizza analisi';
 
   @override
   String diveLog_summary_diveCount(int count) {
@@ -8187,19 +8263,19 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_summary_overview => 'Panoramica';
 
   @override
-  String get diveLog_summary_record_coldest => 'Immersione piu fredda';
+  String get diveLog_summary_record_coldest => 'Immersione più fredda';
 
   @override
-  String get diveLog_summary_record_deepest => 'Immersione piu profonda';
+  String get diveLog_summary_record_deepest => 'Immersione più profonda';
 
   @override
-  String get diveLog_summary_record_longest => 'Immersione piu lunga';
+  String get diveLog_summary_record_longest => 'Immersione più lunga';
 
   @override
-  String get diveLog_summary_record_warmest => 'Immersione piu calda';
+  String get diveLog_summary_record_warmest => 'Immersione più calda';
 
   @override
-  String get diveLog_summary_section_mostVisited => 'Siti piu visitati';
+  String get diveLog_summary_section_mostVisited => 'Siti più visitati';
 
   @override
   String get diveLog_summary_section_quickActions => 'Azioni rapide';
@@ -8212,7 +8288,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Seleziona un\'immersione dalla lista per visualizzare i dettagli';
 
   @override
-  String get diveLog_summary_stat_avgMaxDepth => 'Profondita max media';
+  String get diveLog_summary_stat_avgMaxDepth => 'Profondità max media';
 
   @override
   String get diveLog_summary_stat_avgWaterTemp => 'Temp. acqua media';
@@ -8224,7 +8300,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_summary_stat_diveTime => 'Tempo di immersione';
 
   @override
-  String get diveLog_summary_stat_maxDepth => 'Profondita max';
+  String get diveLog_summary_stat_maxDepth => 'Profondità max';
 
   @override
   String get diveLog_summary_stat_totalDives => 'Immersioni totali';
@@ -8335,10 +8411,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_tooltip_cns => 'CNS';
 
   @override
-  String get diveLog_tooltip_density => 'Densita';
+  String get diveLog_tooltip_density => 'Densità';
 
   @override
-  String get diveLog_tooltip_depth => 'Profondita';
+  String get diveLog_tooltip_depth => 'Profondità';
 
   @override
   String get diveLog_tooltip_gfPercent => 'GF%';
@@ -8374,7 +8450,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_tooltip_press => 'Press';
 
   @override
-  String get diveLog_tooltip_rate => 'Velocita';
+  String get diveLog_tooltip_rate => 'Velocità';
 
   @override
   String get gasConsumption_rmv => 'RMV';
@@ -8961,7 +9037,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_detail_deleteDialog_content =>
-      'Sei sicuro di voler eliminare questo sito? Questa azione non puo essere annullata.';
+      'Sei sicuro di voler eliminare questo sito? Questa azione non può essere annullata.';
 
   @override
   String get diveSites_detail_deleteDialog_title => 'Elimina sito';
@@ -9032,7 +9108,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_detail_noDepthInfo =>
-      'Nessuna informazione sulla profondita';
+      'Nessuna informazione sulla profondità';
 
   @override
   String get diveSites_detail_noDescription => 'Nessuna descrizione';
@@ -9055,14 +9131,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_detail_section_altitude => 'Altitudine';
 
   @override
-  String get diveSites_detail_section_depthRange => 'Intervallo profondita';
+  String get diveSites_detail_section_depthRange => 'Intervallo profondità';
 
   @override
   String get diveSites_detail_section_description => 'Descrizione';
 
   @override
   String get diveSites_detail_section_difficultyLevel =>
-      'Livello di difficolta';
+      'Livello di difficoltà';
 
   @override
   String get diveSites_detail_section_diveStatistics =>
@@ -9076,7 +9152,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_detail_section_hazards => 'Pericoli e sicurezza';
 
   @override
-  String get diveSites_detail_section_location => 'Localita';
+  String get diveSites_detail_section_location => 'Località';
 
   @override
   String get diveSites_detail_section_notes => 'Note';
@@ -9094,10 +9170,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_detail_stats_lastDive => 'Ultima immersione';
 
   @override
-  String get diveSites_detail_stats_longestDive => 'Immersione piu lunga';
+  String get diveSites_detail_stats_longestDive => 'Immersione più lunga';
 
   @override
-  String get diveSites_detail_stats_maxDepth => 'Immersione piu profonda';
+  String get diveSites_detail_stats_maxDepth => 'Immersione più profonda';
 
   @override
   String get diveSites_detail_stats_minDepth => 'Immersione meno profonda';
@@ -9136,7 +9212,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_detail_siteNotFound_body =>
-      'Questo sito non esiste piu.';
+      'Questo sito non esiste più.';
 
   @override
   String get diveSites_detail_siteNotFound_title => 'Sito non trovato';
@@ -9168,7 +9244,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_edit_access_parkingInfo_hint =>
-      'Disponibilita parcheggio, tariffe, consigli';
+      'Disponibilità parcheggio, tariffe, consigli';
 
   @override
   String get diveSites_edit_access_parkingInfo_label =>
@@ -9262,14 +9338,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_edit_depth_helperText =>
-      'Dal punto meno profondo al punto piu profondo';
+      'Dal punto meno profondo al punto più profondo';
 
   @override
   String get diveSites_edit_depth_maxHint => 'es. 30';
 
   @override
   String diveSites_edit_depth_maxLabel(Object symbol) {
-    return 'Profondita massima ($symbol)';
+    return 'Profondità massima ($symbol)';
   }
 
   @override
@@ -9277,7 +9353,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String diveSites_edit_depth_minLabel(Object symbol) {
-    return 'Profondita minima ($symbol)';
+    return 'Profondità minima ($symbol)';
   }
 
   @override
@@ -9492,10 +9568,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_edit_section_altitude => 'Altitudine';
 
   @override
-  String get diveSites_edit_section_depthRange => 'Intervallo profondita';
+  String get diveSites_edit_section_depthRange => 'Intervallo profondità';
 
   @override
-  String get diveSites_edit_section_difficultyLevel => 'Livello di difficolta';
+  String get diveSites_edit_section_difficultyLevel => 'Livello di difficoltà';
 
   @override
   String get diveSites_edit_section_expectedMarineLife => 'Specie previste';
@@ -9622,13 +9698,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_filter_section_depthRange =>
-      'Intervallo profondita massima';
+      'Intervallo profondità massima';
 
   @override
-  String get diveSites_filter_section_difficulty => 'Difficolta';
+  String get diveSites_filter_section_difficulty => 'Difficoltà';
 
   @override
-  String get diveSites_filter_section_location => 'Localita';
+  String get diveSites_filter_section_location => 'Località';
 
   @override
   String get diveSites_filter_section_minRating => 'Valutazione minima';
@@ -9658,7 +9734,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_import_button_import => 'Importa';
 
   @override
-  String get diveSites_import_detail_alreadyImported => 'Gia importato';
+  String get diveSites_import_detail_alreadyImported => 'Già importato';
 
   @override
   String get diveSites_import_detail_importToMySites => 'Importa nei miei siti';
@@ -9820,7 +9896,7 @@ class AppLocalizationsIt extends AppLocalizations {
       other: 'siti',
       one: 'sito',
     );
-    return 'Sei sicuro di voler eliminare $count $_temp0? Questa azione puo essere annullata entro 5 secondi.';
+    return 'Sei sicuro di voler eliminare $count $_temp0? Questa azione può essere annullata entro 5 secondi.';
   }
 
   @override
@@ -9879,7 +9955,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_list_empty_subtitle =>
-      'Aggiungi siti di immersione per tenere traccia delle tue localita preferite';
+      'Aggiungi siti di immersione per tenere traccia delle tue località preferite';
 
   @override
   String get diveSites_list_empty_title => 'Nessun sito di immersione';
@@ -10207,7 +10283,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_summary_section_countriesRegions => 'Paesi e regioni';
 
   @override
-  String get diveSites_summary_section_mostDived => 'Piu visitati';
+  String get diveSites_summary_section_mostDived => 'Più visitati';
 
   @override
   String get diveSites_summary_section_overview => 'Panoramica';
@@ -10216,7 +10292,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_summary_section_quickActions => 'Azioni rapide';
 
   @override
-  String get diveSites_summary_section_topRated => 'Piu votati';
+  String get diveSites_summary_section_topRated => 'Più votati';
 
   @override
   String get diveSites_summary_stat_avgRating => 'Valutazione media';
@@ -11343,11 +11419,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_profileEvent_ascentRateCritical =>
-      'Velocita di risalita critica';
+      'Velocità di risalita critica';
 
   @override
   String get enum_profileEvent_ascentRateWarning =>
-      'Attenzione velocita di risalita';
+      'Attenzione velocità di risalita';
 
   @override
   String get enum_profileEvent_ascentStart => 'Inizio risalita';
@@ -11377,7 +11453,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_profileEvent_lowGas => 'Avviso gas scarso';
 
   @override
-  String get enum_profileEvent_maxDepth => 'Profondita massima';
+  String get enum_profileEvent_maxDepth => 'Profondità massima';
 
   @override
   String get enum_profileEvent_missedStop => 'Sosta deco mancata';
@@ -11417,10 +11493,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_profileMetricCategory_primary => 'Metriche principali';
 
   @override
-  String get enum_profileMetric_gasDensity => 'Densita del gas';
+  String get enum_profileMetric_gasDensity => 'Densità del gas';
 
   @override
-  String get enum_profileMetric_gasDensity_short => 'Densita';
+  String get enum_profileMetric_gasDensity_short => 'Densità';
 
   @override
   String get enum_profileMetric_gf => 'GF%';
@@ -11435,7 +11511,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_profileMetric_heartRate_short => 'FC';
 
   @override
-  String get enum_profileMetric_meanDepth => 'Profondita media';
+  String get enum_profileMetric_meanDepth => 'Profondità media';
 
   @override
   String get enum_profileMetric_meanDepth_short => 'Media';
@@ -11567,7 +11643,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_sortField_dateTaken => 'Data dello scatto';
 
   @override
-  String get enum_sortField_difficulty => 'Difficolta';
+  String get enum_sortField_difficulty => 'Difficoltà';
 
   @override
   String get enum_sortField_diveCount => 'Numero di immersioni';
@@ -11594,7 +11670,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_sortField_lastServiceDate => 'Ultima revisione';
 
   @override
-  String get enum_sortField_maxDepth => 'Profondita massima';
+  String get enum_sortField_maxDepth => 'Profondità massima';
 
   @override
   String get enum_sortField_name => 'Nome';
@@ -11727,6 +11803,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_logCategory_database => 'Database';
+
+  @override
+  String get enum_logCategory_media => 'Media';
 
   @override
   String get enum_visibility_excellent => 'Eccellente (>30m / >100ft)';
@@ -11868,7 +11947,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_deleteDialog_content =>
-      'Sei sicuro di voler eliminare questa attrezzatura? Questa azione non puo essere annullata.';
+      'Sei sicuro di voler eliminare questa attrezzatura? Questa azione non può essere annullata.';
 
   @override
   String get equipment_deleteDialog_title => 'Elimina attrezzatura';
@@ -11990,7 +12069,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_detail_notFoundMessage =>
-      'Questa attrezzatura non esiste piu.';
+      'Questa attrezzatura non esiste più.';
 
   @override
   String get equipment_detail_notFoundTitle => 'Attrezzatura non trovata';
@@ -12409,11 +12488,6 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String equipment_list_worstClock(String kind) {
-    return '$kind in ritardo';
-  }
-
-  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -12431,8 +12505,72 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String trips_serviceAlert_overdue(String kind) {
+  String equipment_service_overdue(String kind) {
     return '$kind in ritardo';
+  }
+
+  @override
+  String equipment_service_dueRelative(String kind, String relative) {
+    return '$kind in scadenza $relative';
+  }
+
+  @override
+  String equipment_service_shortDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'tra $count immersioni',
+      one: 'tra $count immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortHours(String count) {
+    return 'tra $count ore';
+  }
+
+  @override
+  String equipment_service_shortSaltHours(String count) {
+    return 'tra $count ore in acqua salata';
+  }
+
+  @override
+  String equipment_service_shortColdDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'tra $count immersioni in acqua fredda',
+      one: 'tra $count immersione in acqua fredda',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortO2Hours(String count) {
+    return 'tra $count ore ad alto O2';
+  }
+
+  @override
+  String equipment_service_shortDeepCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'tra $count immersioni profonde',
+      one: 'tra $count immersione profonda',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'tra $count cicli di batteria',
+      one: 'tra $count ciclo di batteria',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12451,9 +12589,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String equipment_detail_serviceIntervalValue(Object days) {
     return '$days giorni';
   }
-
-  @override
-  String get equipment_detail_serviceOverdue => 'Manutenzione scaduta!';
 
   @override
   String equipment_detail_showEquipmentWith(String name) {
@@ -12580,7 +12715,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_edit_notFoundMessage =>
-      'Questa attrezzatura non esiste piu.';
+      'Questa attrezzatura non esiste più.';
 
   @override
   String get equipment_edit_notFoundTitle => 'Attrezzatura non trovata';
@@ -12724,6 +12859,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'attrezzatura che necessita manutenzione';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'attrezzatura con manutenzione in scadenza';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'attrezzatura con manutenzione scaduta';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return 'attrezzatura $status';
   }
@@ -12752,7 +12895,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_list_emptyState_serviceDueUpToDate =>
-      'Tutta la tua attrezzatura e in regola con la manutenzione!';
+      'Tutta la tua attrezzatura è in regola con la manutenzione!';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'Nulla necessita manutenzione a breve.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'Nulla ha la manutenzione scaduta.';
 
   @override
   String equipment_list_errorLoading(Object error) {
@@ -12764,6 +12915,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'Manutenzione prevista';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'In scadenza';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'Scaduta';
 
   @override
   String get equipment_list_typeFilterAll => 'Tutti i tipi';
@@ -13279,7 +13436,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_setDetail_notFoundMessage =>
-      'Questo set di attrezzatura non esiste piu.';
+      'Questo set di attrezzatura non esiste più.';
 
   @override
   String get equipment_setDetail_notFoundTitle => 'Set non trovato';
@@ -13330,7 +13487,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_setEdit_notFoundMessage =>
-      'Questo set di attrezzatura non esiste piu.';
+      'Questo set di attrezzatura non esiste più.';
 
   @override
   String get equipment_setEdit_notFoundTitle => 'Set non trovato';
@@ -13706,10 +13863,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Limite di lavoro standard per immersioni ricreative';
 
   @override
-  String get gasCalculators_mnd_depthInput => 'Profondita';
+  String get gasCalculators_mnd_depthInput => 'Profondità';
 
   @override
-  String get gasCalculators_mnd_endAtDepthTitle => 'END alla profondita';
+  String get gasCalculators_mnd_endAtDepthTitle => 'END alla profondità';
 
   @override
   String get gasCalculators_mnd_endLimit => 'Limite END';
@@ -13719,7 +13876,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gasCalculators_mnd_infoContent =>
-      'La profondita narcotica massima (MND) e la profondita massima a cui puoi scendere prima che la narcosi superi il tuo limite END. La profondita narcotica equivalente (END) indica l\'effetto narcotico del tuo gas a una data profondita.\n\nQuando \"O2 e narcotico\" e attivato, sia l\'ossigeno che l\'azoto contribuiscono alla narcosi (piu conservativo). Quando disattivato, solo l\'azoto e considerato narcotico.';
+      'La profondità narcotica massima (MND) è la profondità massima a cui puoi scendere prima che la narcosi superi il tuo limite END. La profondità narcotica equivalente (END) indica l\'effetto narcotico del tuo gas a una data profondità.\n\nQuando \"O2 è narcotico\" è attivato, sia l\'ossigeno che l\'azoto contribuiscono alla narcosi (più conservativo). Quando disattivato, solo l\'azoto è considerato narcotico.';
 
   @override
   String get gasCalculators_mnd_infoTitle => 'Informazioni su MND/END';
@@ -13732,13 +13889,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Miscela gas e impostazioni narcosi';
 
   @override
-  String get gasCalculators_mnd_o2Narcotic => 'O2 e narcotico';
+  String get gasCalculators_mnd_o2Narcotic => 'O2 è narcotico';
 
   @override
   String get gasCalculators_mnd_o2Percent => 'O2 %';
 
   @override
-  String get gasCalculators_mnd_resultTitle => 'Profondita narcotica massima';
+  String get gasCalculators_mnd_resultTitle => 'Profondità narcotica massima';
 
   @override
   String get gasCalculators_ppO2Limit => 'Limite ppO₂';
@@ -14093,7 +14250,52 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_lineNeedsDescription =>
-      'Inserisci una descrizione, oppure una bombola e una miscela.';
+      'Inserisci una descrizione.';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => 'Ricarica di gas';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => 'Importo libero';
+
+  @override
+  String get gasCalculators_blender_lineGas => 'Ricarica';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => 'Pressione iniziale';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => 'Pressione finale';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return 'Pressione di ricarica: $pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return 'Importo: $amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice =>
+      'Nessun prezzo impostato per questo gas, quindi viene addebitato a 0.';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'La pressione finale deve essere superiore a quella iniziale.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'Inserisci una pressione iniziale e una finale.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder =>
+      'Inserisci un volume della bombola.';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'Facoltativo. Se lasciato vuoto, viene generato dalla ricarica.';
 
   @override
   String get gasCalculators_blender_export => 'Esporta';
@@ -14233,6 +14435,91 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get gasCalculators_desc_mnd =>
       'Profondità narcotica limite di una miscela';
+
+  @override
+  String get gasCalculators_tab_density => 'Densità del gas';
+
+  @override
+  String get gasCalculators_desc_density =>
+      'Densità del gas respirato in profondità, OC o CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters => 'Miscela e condizioni';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'Profondità';
+
+  @override
+  String get gasCalculators_density_mode => 'Modalità';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'In CCR la miscela sopra è il gas diluente.';
+
+  @override
+  String get gasCalculators_density_temperature => 'Temperatura del gas';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'Densità del gas';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'Entro il limite raccomandato di $limit g/L.';
+  }
+
+  @override
+  String get gasCalculators_density_eaddLabel =>
+      'Profondità equivalente di densità dell\'aria (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'L\'EADD è la profondità alla quale l\'aria sarebbe densa quanto questo gas. A differenza della densità in g/L, non dipende dalla temperatura.';
+
+  @override
+  String get gasCalculators_density_loopGasTitle =>
+      'Gas del loop in profondità';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'Qui il setpoint supera la pressione ambiente, quindi il loop è ossigeno puro.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'Il solo diluente dà qui una ppO2 di $ppO2, superiore al setpoint. La densità usa la ppO2 del diluente.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle =>
+      'Informazioni sulla densità del gas';
+
+  @override
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'Un gas denso è più faticoso da respirare e aumenta il rischio di ritenzione di CO2. Mantieni la densità a $warn g/L o meno; $critical g/L è il limite massimo.\n\nIn CCR conta la densità del gas nel loop: ossigeno al setpoint, il resto diviso tra azoto ed elio nel rapporto del diluente.\n\nUn gas più freddo è più denso, quindi l\'opzione di temperatura più fredda è quella conservativa. Il calcolo assume un gas ideale.';
+  }
 
   @override
   String get gasCalculators_desc_blender =>
@@ -14965,7 +15252,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_diveScan_accessDenied =>
-      'L\'accesso alla libreria foto e necessario per cercare le foto';
+      'L\'accesso alla libreria foto è necessario per cercare le foto';
 
   @override
   String media_diveScan_foundPhotos(int count) {
@@ -15046,8 +15333,8 @@ class AppLocalizationsIt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count foto gia collegate a questa immersione',
-      one: '1 foto gia collegata a questa immersione',
+      other: '$count foto già collegate a questa immersione',
+      one: '1 foto già collegata a questa immersione',
     );
     return '$_temp0';
   }
@@ -15065,7 +15352,7 @@ class AppLocalizationsIt extends AppLocalizations {
       other: 'Importate $imported foto',
       one: 'Importata 1 foto',
     );
-    return '$_temp0 ($skipped gia collegate)';
+    return '$_temp0 ($skipped già collegate)';
   }
 
   @override
@@ -15376,7 +15663,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_photoPicker_thumbnailAlreadyLinkedLabel =>
-      'Foto gia collegata a questa immersione';
+      'Foto già collegata a questa immersione';
 
   @override
   String get media_perdixOverlay_labelCns => 'CNS';
@@ -15998,7 +16285,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get nav_species => 'Specie';
 
   @override
-  String get nav_statistics => 'Statistiche';
+  String get nav_insights => 'Analisi';
 
   @override
   String get nav_tooltip_closeMenu => 'Chiudi menu';
@@ -17260,7 +17547,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_appearance_header_theme => 'Tema';
 
   @override
-  String get settings_appearance_header_mode => 'Modalita';
+  String get settings_appearance_header_mode => 'Modalità';
 
   @override
   String get settings_themes_title => 'Scegli tema';
@@ -17376,10 +17663,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_appearance_metric_gtr => 'GTR (Tempo gas rimanente)';
 
   @override
-  String get settings_appearance_metric_cns => 'CNS% (Tossicita O2)';
+  String get settings_appearance_metric_cns => 'CNS% (Tossicità O2)';
 
   @override
-  String get settings_appearance_metric_otu => 'OTU (Unita di tolleranza O2)';
+  String get settings_appearance_metric_otu => 'OTU (Unità di tolleranza O2)';
 
   @override
   String get settings_appearance_metric_photoMarkers => 'Indicatori foto';
@@ -18263,14 +18550,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_data_offlineMaps_subtitle =>
-      'Scarica mappe per l\'uso offline';
-
-  @override
-  String get settings_data_threeDMaps => '3D Maps';
-
-  @override
-  String get settings_data_threeDMaps_subtitle =>
-      'Manage cached swissBATHY3D and other bathymetry data';
+      'Tile della mappa e dati del terreno 3D';
 
   @override
   String get settings_data_restore => 'Ripristina';
@@ -18412,18 +18692,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_decompression_header_narcosis => 'Narcosi';
 
   @override
-  String get settings_decompression_o2Narcotic => 'O2 e narcotico';
+  String get settings_decompression_o2Narcotic => 'O2 è narcotico';
 
   @override
   String get settings_decompression_o2Narcotic_subtitle =>
-      'Quando attivato, sia O2 che N2 sono considerati narcotici (piu conservativo). Quando disattivato, solo N2 contribuisce alla narcosi.';
+      'Quando attivato, sia O2 che N2 sono considerati narcotici (più conservativo). Quando disattivato, solo N2 contribuisce alla narcosi.';
 
   @override
   String get settings_decompression_endLimit => 'Limite END';
 
   @override
   String get settings_decompression_endLimit_subtitle =>
-      'Profondita narcotica equivalente massima utilizzata per i calcoli MND';
+      'Profondità narcotica equivalente massima utilizzata per i calcoli MND';
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'Limite END';
@@ -19320,7 +19600,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_storage_resetDialog_backupFailed =>
-      'Backup non riuscito. Il reset e stato annullato per proteggere i tuoi dati.';
+      'Backup non riuscito. Il reset è stato annullato per proteggere i tuoi dati.';
 
   @override
   String settings_storage_resetDialog_resetFailed(Object error) {
@@ -19745,117 +20025,115 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get statistics_appBar_title => 'Statistiche';
+  String get insights_appBar_title => 'Analisi';
 
   @override
-  String statistics_categoryCard_semanticLabel(Object title) {
-    return 'Categoria statistiche $title';
+  String insights_categoryCard_semanticLabel(Object title) {
+    return 'Categoria analisi $title';
   }
 
   @override
-  String get statistics_category_conditions_subtitle =>
-      'Visibilita e temperatura';
+  String get insights_category_conditions_subtitle =>
+      'Visibilità e temperatura';
 
   @override
-  String get statistics_category_conditions_title => 'Condizioni';
+  String get insights_category_conditions_title => 'Condizioni';
 
   @override
-  String get statistics_category_equipment_subtitle =>
+  String get insights_category_equipment_subtitle =>
       'Utilizzo attrezzatura e zavorra';
 
   @override
-  String get statistics_category_equipment_title => 'Attrezzatura';
+  String get insights_category_equipment_title => 'Attrezzatura';
 
   @override
-  String get statistics_category_gas_subtitle => 'Consumo di gas e miscele';
+  String get insights_category_gas_subtitle => 'Consumo di gas e miscele';
 
   @override
-  String get statistics_category_gas_title => 'Consumo aria';
+  String get insights_category_gas_title => 'Consumo aria';
 
   @override
-  String get statistics_category_geographic_subtitle => 'Paesi e regioni';
+  String get insights_category_geographic_subtitle => 'Paesi e regioni';
 
   @override
-  String get statistics_category_geographic_title => 'Geografiche';
+  String get insights_category_geographic_title => 'Geografiche';
 
   @override
-  String get statistics_category_marineLife_subtitle =>
-      'Avvistamenti di specie';
+  String get insights_category_marineLife_subtitle => 'Avvistamenti di specie';
 
   @override
-  String get statistics_category_marineLife_title => 'Specie';
+  String get insights_category_marineLife_title => 'Specie';
 
   @override
-  String get statistics_category_overview_title => 'Overview';
+  String get insights_category_overview_title => 'Overview';
 
   @override
-  String get statistics_category_overview_subtitle =>
+  String get insights_category_overview_subtitle =>
       'Totals, records, and breakdowns at a glance';
 
   @override
-  String get statistics_category_profile_subtitle =>
-      'Velocita di risalita e deco';
+  String get insights_category_profile_subtitle =>
+      'Velocità di risalita e deco';
 
   @override
-  String get statistics_category_profile_title => 'Analisi profilo';
+  String get insights_category_profile_title => 'Analisi profilo';
 
   @override
-  String get statistics_category_progression_subtitle =>
-      'Tendenze profondita e tempo';
+  String get insights_category_progression_subtitle =>
+      'Tendenze profondità e tempo';
 
   @override
-  String get statistics_category_progression_title => 'Progressione';
+  String get insights_category_progression_title => 'Progressione';
 
   @override
-  String get statistics_category_social_subtitle =>
+  String get insights_category_social_subtitle =>
       'Compagni e centri immersioni';
 
   @override
-  String get statistics_category_social_title => 'Sociale';
+  String get insights_category_social_title => 'Sociale';
 
   @override
-  String get statistics_category_timePatterns_subtitle => 'Quando ti immergi';
+  String get insights_category_timePatterns_subtitle => 'Quando ti immergi';
 
   @override
-  String get statistics_category_timePatterns_title =>
-      'Distribuzioni temporali';
+  String get insights_category_timePatterns_title => 'Distribuzioni temporali';
 
   @override
-  String statistics_chart_barSemanticLabel(Object count) {
+  String insights_chart_barSemanticLabel(Object count) {
     return 'Grafico a barre con $count categorie';
   }
 
   @override
-  String statistics_chart_distributionSemanticLabel(Object count) {
+  String insights_chart_distributionSemanticLabel(Object count) {
     return 'Grafico a torta con $count segmenti';
   }
 
   @override
-  String statistics_chart_multiTrendSemanticLabel(Object seriesNames) {
+  String insights_chart_multiTrendSemanticLabel(Object seriesNames) {
     return 'Grafico a linee multiple che confronta $seriesNames';
   }
 
   @override
-  String get statistics_chart_noBarData => 'Nessun dato disponibile';
+  String get insights_chart_noBarData => 'Nessun dato disponibile';
 
   @override
-  String get statistics_chart_noDistributionData =>
+  String get insights_chart_noDistributionData =>
       'Nessun dato di distribuzione disponibile';
 
   @override
-  String get statistics_chart_noTrendData =>
+  String get insights_chart_noTrendData =>
       'Nessun dato di tendenza disponibile';
 
   @override
-  String get statistics_chart_notRecorded => 'Non registrato';
+  String get insights_chart_notRecorded => 'Non registrato';
 
   @override
-  String statistics_chart_trendSemanticLabel(Object count) {
+  String insights_chart_trendSemanticLabel(Object count) {
     return 'Grafico di tendenza con $count punti dati';
   }
 
   @override
-  String statistics_chart_trendSemanticLabelWithAxis(
+  String insights_chart_trendSemanticLabelWithAxis(
     Object count,
     Object yAxisLabel,
   ) {
@@ -19863,228 +20141,224 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get statistics_conditions_appBar_title => 'Condizioni';
+  String get insights_conditions_appBar_title => 'Condizioni';
 
   @override
-  String get statistics_conditions_entryMethod_empty =>
+  String get insights_conditions_entryMethod_empty =>
       'Nessun dato sul metodo di ingresso disponibile';
 
   @override
-  String get statistics_conditions_entryMethod_error =>
+  String get insights_conditions_entryMethod_error =>
       'Impossibile caricare i dati sul metodo di ingresso';
 
   @override
-  String get statistics_conditions_entryMethod_subtitle => 'Riva, barca, ecc.';
+  String get insights_conditions_entryMethod_subtitle => 'Riva, barca, ecc.';
 
   @override
-  String get statistics_conditions_entryMethod_title => 'Metodo di ingresso';
+  String get insights_conditions_entryMethod_title => 'Metodo di ingresso';
 
   @override
-  String get statistics_conditions_temperature_empty =>
+  String get insights_conditions_temperature_empty =>
       'Nessun dato sulla temperatura disponibile';
 
   @override
-  String get statistics_conditions_temperature_error =>
+  String get insights_conditions_temperature_error =>
       'Impossibile caricare i dati sulla temperatura';
 
   @override
-  String get statistics_conditions_temperature_seriesAvg => 'Media';
+  String get insights_conditions_temperature_seriesAvg => 'Media';
 
   @override
-  String get statistics_conditions_temperature_seriesMax => 'Max';
+  String get insights_conditions_temperature_seriesMax => 'Max';
 
   @override
-  String get statistics_conditions_temperature_seriesMin => 'Min';
+  String get insights_conditions_temperature_seriesMin => 'Min';
 
   @override
-  String get statistics_conditions_temperature_subtitle =>
+  String get insights_conditions_temperature_subtitle =>
       'Min, media e max per mese di calendario, su tutti gli anni';
 
   @override
-  String get statistics_conditions_temperature_title =>
+  String get insights_conditions_temperature_title =>
       'Temperatura dell\'acqua per stagione';
 
   @override
-  String get statistics_conditions_visibility_error =>
-      'Impossibile caricare i dati sulla visibilita';
+  String get insights_conditions_visibility_error =>
+      'Impossibile caricare i dati sulla visibilità';
 
   @override
-  String get statistics_conditions_visibility_subtitle =>
-      'Immersioni per condizione di visibilita';
+  String get insights_conditions_visibility_subtitle =>
+      'Immersioni per condizione di visibilità';
 
   @override
-  String get statistics_conditions_visibility_title =>
-      'Distribuzione visibilita';
+  String get insights_conditions_visibility_title => 'Distribuzione visibilità';
 
   @override
-  String get statistics_conditions_siteType_error =>
+  String get insights_conditions_siteType_error =>
       'Impossibile caricare i dati dei tipi di sito';
 
   @override
-  String statistics_conditions_siteType_semanticLabel(String description) {
+  String insights_conditions_siteType_semanticLabel(String description) {
     return 'Grafico a barre. Immersioni per tipo di sito. $description';
   }
 
   @override
-  String get statistics_conditions_siteType_subtitle =>
+  String get insights_conditions_siteType_subtitle =>
       'Immersioni per tipo di sito. Un\'immersione in un sito con più tipi conta per ciascuno; i siti senza tipo non sono mostrati.';
 
   @override
-  String get statistics_conditions_siteType_title => 'Tipi di sito';
+  String get insights_conditions_siteType_title => 'Tipi di sito';
 
   @override
-  String get statistics_conditions_waterType_error =>
+  String get insights_conditions_waterType_error =>
       'Impossibile caricare i dati sul tipo di acqua';
 
   @override
-  String get statistics_conditions_waterType_subtitle =>
+  String get insights_conditions_waterType_subtitle =>
       'Immersioni in acqua salata vs dolce';
 
   @override
-  String get statistics_conditions_waterType_title => 'Tipo di acqua';
+  String get insights_conditions_waterType_title => 'Tipo di acqua';
 
   @override
-  String get statistics_equipment_appBar_title => 'Attrezzatura';
+  String get insights_equipment_appBar_title => 'Attrezzatura';
 
   @override
-  String get statistics_equipment_mostUsedGear_error =>
+  String get insights_equipment_mostUsedGear_error =>
       'Impossibile caricare i dati sull\'attrezzatura';
 
   @override
-  String get statistics_equipment_mostUsedGear_subtitle =>
+  String get insights_equipment_mostUsedGear_subtitle =>
       'Attrezzatura per numero di immersioni';
 
   @override
-  String get statistics_equipment_mostUsedGear_title =>
-      'Attrezzatura piu usata';
+  String get insights_equipment_mostUsedGear_title => 'Attrezzatura più usata';
 
   @override
-  String get statistics_equipment_weightTrend_error =>
+  String get insights_equipment_weightTrend_error =>
       'Impossibile caricare la tendenza della zavorra';
 
   @override
-  String get statistics_equipment_weightTrend_subtitle =>
+  String get insights_equipment_weightTrend_subtitle =>
       'Piombo totale per immersione';
 
   @override
-  String get statistics_equipment_weightTrend_title => 'Tendenza zavorra';
+  String get insights_equipment_weightTrend_title => 'Tendenza zavorra';
 
   @override
-  String get statistics_equipment_exposure_title => 'Esposizione';
+  String get insights_equipment_exposure_title => 'Esposizione';
 
   @override
-  String get statistics_equipment_exposure_error =>
+  String get insights_equipment_exposure_error =>
       'Impossibile caricare i dati di esposizione';
 
   @override
-  String get statistics_equipment_findings_error =>
+  String get insights_equipment_findings_error =>
       'Impossibile caricare i rilievi sullo stato';
 
   @override
-  String get statistics_equipment_issues_error =>
+  String get insights_equipment_issues_error =>
       'Impossibile caricare i problemi segnalati';
 
   @override
-  String get statistics_equipment_exposure_subtitle =>
+  String get insights_equipment_exposure_subtitle =>
       'Totali per articolo con le tue soglie';
 
   @override
-  String get statistics_equipment_exposure_empty =>
+  String get insights_equipment_exposure_empty =>
       'Ancora nessuna immersione con attrezzatura';
 
   @override
-  String get statistics_equipment_findings_title => 'Rilievi sullo stato';
+  String get insights_equipment_findings_title => 'Rilievi sullo stato';
 
   @override
-  String get statistics_equipment_findings_subtitle =>
+  String get insights_equipment_findings_subtitle =>
       'Rilievi aperti per regola';
 
   @override
-  String get statistics_equipment_findings_subtitleAllDives =>
+  String get insights_equipment_findings_subtitleAllDives =>
       'Rilievi aperti per regola, su tutte le immersioni';
 
   @override
-  String get statistics_equipment_findings_empty => 'Nessun rilievo aperto';
+  String get insights_equipment_findings_empty => 'Nessun rilievo aperto';
 
   @override
-  String get statistics_equipment_issues_title => 'Problemi segnalati';
+  String get insights_equipment_issues_title => 'Problemi segnalati';
 
   @override
-  String get statistics_equipment_issues_subtitle =>
+  String get insights_equipment_issues_subtitle =>
       'Tag di controllo più frequenti';
 
   @override
-  String get statistics_equipment_issues_empty => 'Nessun problema segnalato';
+  String get insights_equipment_issues_empty => 'Nessun problema segnalato';
 
   @override
-  String get statistics_equipment_countLabel_items => 'articoli';
+  String get insights_equipment_countLabel_items => 'articoli';
 
   @override
-  String get statistics_equipment_countLabel_findings => 'rilievi';
+  String get insights_equipment_countLabel_findings => 'rilievi';
 
   @override
-  String get statistics_equipment_countLabel_reports => 'segnalazioni';
+  String get insights_equipment_countLabel_reports => 'segnalazioni';
 
   @override
-  String get statistics_equipment_exposureUnit_days => 'Giorni';
+  String get insights_equipment_exposureUnit_days => 'Giorni';
 
   @override
-  String get statistics_equipment_exposureUnit_dives => 'Immersioni';
+  String get insights_equipment_exposureUnit_dives => 'Immersioni';
 
   @override
-  String get statistics_equipment_countLabel_days => 'giorni';
+  String get insights_equipment_countLabel_days => 'giorni';
 
   @override
-  String get statistics_equipment_countLabel_dives => 'immersioni';
+  String get insights_equipment_countLabel_dives => 'immersioni';
 
   @override
-  String get statistics_equipment_countLabel_hours => 'ore';
+  String get insights_equipment_countLabel_hours => 'ore';
 
   @override
-  String get statistics_equipment_countLabel_saltHours => 'ore in acqua salata';
+  String get insights_equipment_countLabel_saltHours => 'ore in acqua salata';
 
   @override
-  String get statistics_equipment_countLabel_coldDives => 'immersioni fredde';
+  String get insights_equipment_countLabel_coldDives => 'immersioni fredde';
 
   @override
-  String get statistics_equipment_countLabel_o2Hours => 'ore ad alto O2';
+  String get insights_equipment_countLabel_o2Hours => 'ore ad alto O2';
 
   @override
-  String get statistics_equipment_countLabel_deepCycles =>
-      'immersioni profonde';
+  String get insights_equipment_countLabel_deepCycles => 'immersioni profonde';
 
   @override
-  String get statistics_equipment_countLabel_cycles => 'cicli batteria';
+  String get insights_equipment_countLabel_cycles => 'cicli batteria';
 
   @override
-  String get statistics_equipment_exposureUnit_hours => 'Ore';
+  String get insights_equipment_exposureUnit_hours => 'Ore';
 
   @override
-  String get statistics_equipment_exposureUnit_saltHours =>
-      'Ore in acqua salata';
+  String get insights_equipment_exposureUnit_saltHours => 'Ore in acqua salata';
 
   @override
-  String get statistics_equipment_exposureUnit_coldDives => 'Immersioni fredde';
+  String get insights_equipment_exposureUnit_coldDives => 'Immersioni fredde';
 
   @override
-  String get statistics_equipment_exposureUnit_o2Hours => 'Ore ad alto O2';
+  String get insights_equipment_exposureUnit_o2Hours => 'Ore ad alto O2';
 
   @override
-  String get statistics_equipment_exposureUnit_deepCycles =>
+  String get insights_equipment_exposureUnit_deepCycles =>
       'Immersioni profonde';
 
   @override
-  String get statistics_equipment_exposureUnit_cycles => 'Cicli batteria';
+  String get insights_equipment_exposureUnit_cycles => 'Cicli batteria';
 
   @override
-  String get statistics_error_loadingStatistics =>
-      'Errore nel caricamento delle statistiche';
+  String get insights_error_loadingInsights =>
+      'Errore nel caricamento delle analisi';
 
   @override
-  String get statistics_filterBar_clear => 'Cancella filtro';
+  String get insights_filterBar_clear => 'Cancella filtro';
 
   @override
-  String statistics_filterBar_diveCount(int count) {
+  String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -20095,113 +20369,112 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get statistics_gas_appBar_title => 'Consumo aria';
+  String get insights_gas_appBar_title => 'Consumo aria';
 
   @override
-  String get statistics_gas_gasMix_error =>
+  String get insights_gas_gasMix_error =>
       'Impossibile caricare i dati sulle miscele gas';
 
   @override
-  String get statistics_gas_gasMix_subtitle => 'Immersioni per tipo di gas';
+  String get insights_gas_gasMix_subtitle => 'Immersioni per tipo di gas';
 
   @override
-  String get statistics_gas_gasMix_title => 'Distribuzione miscele gas';
+  String get insights_gas_gasMix_title => 'Distribuzione miscele gas';
 
   @override
-  String get statistics_gas_sacByRole_empty =>
+  String get insights_gas_sacByRole_empty =>
       'Nessun dato multi-bombola disponibile';
 
   @override
-  String get statistics_gas_sacByRole_error =>
+  String get insights_gas_sacByRole_error =>
       'Impossibile caricare il consumo per ruolo';
 
   @override
-  String get statistics_gas_sacByRole_subtitle =>
+  String get insights_gas_sacByRole_subtitle =>
       'Consumo medio per tipo di bombola';
 
   @override
-  String get statistics_gas_sacByRole_title =>
-      'Consumo di gas per ruolo bombola';
+  String get insights_gas_sacByRole_title => 'Consumo di gas per ruolo bombola';
 
   @override
-  String get statistics_gas_sacRecords_empty =>
+  String get insights_gas_sacRecords_empty =>
       'Nessun dato di consumo disponibile';
 
   @override
-  String get statistics_gas_sacRecords_error =>
+  String get insights_gas_sacRecords_error =>
       'Impossibile caricare i record di consumo';
 
   @override
-  String get statistics_gas_sacRecords_highestRmv => 'RMV più alto';
+  String get insights_gas_sacRecords_highestRmv => 'RMV più alto';
 
   @override
-  String get statistics_gas_sacRecords_highestSac => 'SAC più alto';
+  String get insights_gas_sacRecords_highestSac => 'SAC più alto';
 
   @override
-  String get statistics_gas_sacRecords_bestRmv => 'Miglior RMV';
+  String get insights_gas_sacRecords_bestRmv => 'Miglior RMV';
 
   @override
-  String get statistics_gas_sacRecords_bestSac => 'Miglior SAC';
+  String get insights_gas_sacRecords_bestSac => 'Miglior SAC';
 
   @override
-  String get statistics_gas_sacRecords_subtitle =>
+  String get insights_gas_sacRecords_subtitle =>
       'Miglior e peggior consumo d\'aria';
 
   @override
-  String get statistics_gas_sacRecords_title => 'Record di consumo di gas';
+  String get insights_gas_sacRecords_title => 'Record di consumo di gas';
 
   @override
-  String get statistics_gas_sacTrend_error =>
+  String get insights_gas_sacTrend_error =>
       'Impossibile caricare la tendenza del consumo';
 
   @override
-  String get statistics_gas_sacTrend_subtitle => 'Ogni immersione nel periodo';
+  String get insights_gas_sacTrend_subtitle => 'Ogni immersione nel periodo';
 
   @override
-  String get statistics_gas_sacTrend_title => 'Tendenza del consumo di gas';
+  String get insights_gas_sacTrend_title => 'Tendenza del consumo di gas';
 
   @override
-  String get statistics_gas_tankRole_backGas => 'Gas principale';
+  String get insights_gas_tankRole_backGas => 'Gas principale';
 
   @override
-  String get statistics_gas_tankRole_bailout => 'Bailout';
+  String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
-  String get statistics_gas_tankRole_deco => 'Deco';
+  String get insights_gas_tankRole_deco => 'Deco';
 
   @override
-  String get statistics_gas_tankRole_diluent => 'Diluente';
+  String get insights_gas_tankRole_diluent => 'Diluente';
 
   @override
-  String get statistics_gas_tankRole_oxygenSupply => 'Riserva O₂';
+  String get insights_gas_tankRole_oxygenSupply => 'Riserva O₂';
 
   @override
-  String get statistics_gas_tankRole_pony => 'Pony';
+  String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get statistics_gas_tankRole_sidemountLeft => 'Sidemount S';
+  String get insights_gas_tankRole_sidemountLeft => 'Sidemount S';
 
   @override
-  String get statistics_gas_tankRole_sidemountRight => 'Sidemount D';
+  String get insights_gas_tankRole_sidemountRight => 'Sidemount D';
 
   @override
-  String get statistics_gas_tankRole_stage => 'Stage';
+  String get insights_gas_tankRole_stage => 'Stage';
 
   @override
-  String get statistics_geographic_appBar_title => 'Geografiche';
+  String get insights_geographic_appBar_title => 'Geografiche';
 
   @override
-  String get statistics_geographic_countries_empty => 'Nessun paese visitato';
+  String get insights_geographic_countries_empty => 'Nessun paese visitato';
 
   @override
-  String get statistics_geographic_countries_error =>
+  String get insights_geographic_countries_error =>
       'Impossibile caricare i dati sui paesi';
 
   @override
-  String get statistics_geographic_countries_subtitle => 'Immersioni per paese';
+  String get insights_geographic_countries_subtitle => 'Immersioni per paese';
 
   @override
-  String statistics_geographic_countries_summary(
+  String insights_geographic_countries_summary(
     Object count,
     Object topName,
     Object topCount,
@@ -20210,20 +20483,20 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get statistics_geographic_countries_title => 'Paesi visitati';
+  String get insights_geographic_countries_title => 'Paesi visitati';
 
   @override
-  String get statistics_geographic_regions_empty => 'Nessuna regione esplorata';
+  String get insights_geographic_regions_empty => 'Nessuna regione esplorata';
 
   @override
-  String get statistics_geographic_regions_error =>
+  String get insights_geographic_regions_error =>
       'Impossibile caricare i dati sulle regioni';
 
   @override
-  String get statistics_geographic_regions_subtitle => 'Immersioni per regione';
+  String get insights_geographic_regions_subtitle => 'Immersioni per regione';
 
   @override
-  String statistics_geographic_regions_summary(
+  String insights_geographic_regions_summary(
     Object count,
     Object topName,
     Object topCount,
@@ -20232,20 +20505,20 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get statistics_geographic_regions_title => 'Regioni esplorate';
+  String get insights_geographic_regions_title => 'Regioni esplorate';
 
   @override
-  String get statistics_geographic_trips_empty => 'Nessun dato sui viaggi';
+  String get insights_geographic_trips_empty => 'Nessun dato sui viaggi';
 
   @override
-  String get statistics_geographic_trips_error =>
+  String get insights_geographic_trips_error =>
       'Impossibile caricare i dati sui viaggi';
 
   @override
-  String get statistics_geographic_trips_subtitle => 'Viaggi piu produttivi';
+  String get insights_geographic_trips_subtitle => 'Viaggi più produttivi';
 
   @override
-  String statistics_geographic_trips_summary(
+  String insights_geographic_trips_summary(
     Object count,
     Object topName,
     Object topCount,
@@ -20254,27 +20527,27 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get statistics_geographic_trips_title => 'Immersioni per viaggio';
+  String get insights_geographic_trips_title => 'Immersioni per viaggio';
 
   @override
-  String get statistics_listContent_selectedSuffix => ', selezionato';
+  String get insights_listContent_selectedSuffix => ', selezionato';
 
   @override
-  String get statistics_marineLife_appBar_title => 'Specie';
+  String get insights_marineLife_appBar_title => 'Specie';
 
   @override
-  String get statistics_marineLife_bestSites_empty => 'Nessun dato sui siti';
+  String get insights_marineLife_bestSites_empty => 'Nessun dato sui siti';
 
   @override
-  String get statistics_marineLife_bestSites_error =>
+  String get insights_marineLife_bestSites_error =>
       'Impossibile caricare i dati sui siti';
 
   @override
-  String get statistics_marineLife_bestSites_subtitle =>
-      'Siti con maggiore varieta di specie';
+  String get insights_marineLife_bestSites_subtitle =>
+      'Siti con maggiore varietà di specie';
 
   @override
-  String statistics_marineLife_bestSites_summary(
+  String insights_marineLife_bestSites_summary(
     Object count,
     Object topName,
     Object topCount,
@@ -20283,207 +20556,203 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get statistics_marineLife_bestSites_title => 'Migliori siti';
+  String get insights_marineLife_bestSites_title => 'Migliori siti';
 
   @override
-  String get statistics_marineLife_mostCommon_empty =>
+  String get insights_marineLife_mostCommon_empty =>
       'Nessun dato sugli avvistamenti';
 
   @override
-  String get statistics_marineLife_mostCommon_error =>
+  String get insights_marineLife_mostCommon_error =>
       'Impossibile caricare i dati sugli avvistamenti';
 
   @override
-  String get statistics_marineLife_mostCommon_subtitle =>
-      'Specie avvistate piu spesso';
+  String get insights_marineLife_mostCommon_subtitle =>
+      'Specie avvistate più spesso';
 
   @override
-  String statistics_marineLife_mostCommon_summary(
+  String insights_marineLife_mostCommon_summary(
     Object count,
     Object topName,
     Object topCount,
   ) {
-    return '$count specie. Piu comune: $topName con $topCount avvistamenti';
+    return '$count specie. Più comune: $topName con $topCount avvistamenti';
   }
 
   @override
-  String get statistics_marineLife_mostCommon_title =>
-      'Avvistamenti piu comuni';
+  String get insights_marineLife_mostCommon_title => 'Avvistamenti più comuni';
 
   @override
-  String get statistics_marineLife_speciesSpotted => 'Specie avvistate';
+  String get insights_marineLife_speciesSpotted => 'Specie avvistate';
 
   @override
-  String get statistics_marineLife_seeAllSpecies_title =>
-      'Vedi tutte le specie';
+  String get insights_marineLife_seeAllSpecies_title => 'Vedi tutte le specie';
 
   @override
-  String get statistics_marineLife_seeAllSpecies_subtitle =>
+  String get insights_marineLife_seeAllSpecies_subtitle =>
       'Tutte le specie che hai registrato, con ricerca';
 
   @override
-  String get statistics_profile_appBar_title => 'Analisi profilo';
+  String get insights_profile_appBar_title => 'Analisi profilo';
 
   @override
-  String get statistics_profile_ascentDescent_empty =>
+  String get insights_profile_ascentDescent_empty =>
       'Nessun dato sul profilo disponibile';
 
   @override
-  String get statistics_profile_ascentDescent_error =>
-      'Impossibile caricare i dati sulle velocita';
+  String get insights_profile_ascentDescent_error =>
+      'Impossibile caricare i dati sulle velocità';
 
   @override
-  String get statistics_profile_ascentDescent_subtitle =>
+  String get insights_profile_ascentDescent_subtitle =>
       'Dai dati del profilo immersione';
 
   @override
-  String get statistics_profile_ascentDescent_title =>
-      'Velocita medie di risalita e discesa';
+  String get insights_profile_ascentDescent_title =>
+      'Velocità medie di risalita e discesa';
 
   @override
-  String get statistics_profile_avgAscent => 'Risalita media';
+  String get insights_profile_avgAscent => 'Risalita media';
 
   @override
-  String get statistics_profile_avgDescent => 'Discesa media';
+  String get insights_profile_avgDescent => 'Discesa media';
 
   @override
-  String get statistics_profile_deco_decoDives => 'Immersioni deco';
+  String get insights_profile_deco_decoDives => 'Immersioni deco';
 
   @override
-  String get statistics_profile_deco_decoLabel => 'Deco';
+  String get insights_profile_deco_decoLabel => 'Deco';
 
   @override
-  String get statistics_profile_deco_decoRate => 'Percentuale deco';
+  String get insights_profile_deco_decoRate => 'Percentuale deco';
 
   @override
-  String get statistics_profile_deco_empty => 'Nessun dato deco disponibile';
+  String get insights_profile_deco_empty => 'Nessun dato deco disponibile';
 
   @override
-  String get statistics_profile_deco_error =>
-      'Impossibile caricare i dati deco';
+  String get insights_profile_deco_error => 'Impossibile caricare i dati deco';
 
   @override
-  String get statistics_profile_deco_noDeco => 'No deco';
+  String get insights_profile_deco_noDeco => 'No deco';
 
   @override
-  String get statistics_profile_deco_notRecorded => 'Non registrato';
+  String get insights_profile_deco_notRecorded => 'Non registrato';
 
   @override
-  String statistics_profile_deco_notRecordedHint(int count) {
+  String insights_profile_deco_notRecordedHint(int count) {
     return '$count immersioni non hanno dati di decompressione registrati o calcolabili e sono escluse dal tasso';
   }
 
   @override
-  String statistics_profile_deco_semanticLabel(Object percentage) {
+  String insights_profile_deco_semanticLabel(Object percentage) {
     return 'Percentuale decompressione: $percentage% delle immersioni ha richiesto soste deco';
   }
 
   @override
-  String get statistics_profile_deco_subtitle =>
+  String get insights_profile_deco_subtitle =>
       'Immersioni con obbligo di decompressione';
 
   @override
-  String get statistics_profile_deco_title => 'Obbligo di decompressione';
+  String get insights_profile_deco_title => 'Obbligo di decompressione';
 
   @override
-  String get statistics_profile_timeAtDepth_empty =>
-      'Nessun dato sulla profondita disponibile';
+  String get insights_profile_timeAtDepth_empty =>
+      'Nessun dato sulla profondità disponibile';
 
   @override
-  String get statistics_profile_timeAtDepth_error =>
-      'Impossibile caricare i dati sugli intervalli di profondita';
+  String get insights_profile_timeAtDepth_error =>
+      'Impossibile caricare i dati sugli intervalli di profondità';
 
   @override
-  String get statistics_profile_timeAtDepth_subtitle =>
-      'Tempo approssimativo trascorso a ogni profondita';
+  String get insights_profile_timeAtDepth_subtitle =>
+      'Tempo approssimativo trascorso a ogni profondità';
 
   @override
-  String get statistics_profile_timeAtDepth_title =>
-      'Tempo per intervalli di profondita';
+  String get insights_profile_timeAtDepth_title =>
+      'Tempo per intervalli di profondità';
 
   @override
-  String statistics_profile_timeAtDepth_valueFormat(Object value) {
+  String insights_profile_timeAtDepth_valueFormat(Object value) {
     return '$value min';
   }
 
   @override
-  String get statistics_progression_appBar_title => 'Progressione immersioni';
+  String get insights_progression_appBar_title => 'Progressione immersioni';
 
   @override
-  String get statistics_progression_bottomTime_error =>
+  String get insights_progression_bottomTime_error =>
       'Impossibile caricare la tendenza del tempo di fondo';
 
   @override
-  String get statistics_progression_bottomTime_subtitle =>
+  String get insights_progression_bottomTime_subtitle =>
       'Ogni immersione nel periodo';
 
   @override
-  String get statistics_progression_bottomTime_title =>
-      'Tendenza tempo di fondo';
+  String get insights_progression_bottomTime_title => 'Tendenza tempo di fondo';
 
   @override
-  String get statistics_progression_cumulative_error =>
+  String get insights_progression_cumulative_error =>
       'Impossibile caricare i dati cumulativi';
 
   @override
-  String get statistics_progression_cumulative_subtitle =>
+  String get insights_progression_cumulative_subtitle =>
       'Immersioni totali nel tempo';
 
   @override
-  String get statistics_progression_cumulative_title =>
+  String get insights_progression_cumulative_title =>
       'Conteggio cumulativo immersioni';
 
   @override
-  String get statistics_progression_depthProgression_error =>
-      'Impossibile caricare la progressione di profondita';
+  String get insights_progression_depthProgression_error =>
+      'Impossibile caricare la progressione di profondità';
 
   @override
-  String get statistics_progression_depthProgression_subtitle =>
+  String get insights_progression_depthProgression_subtitle =>
       'Ogni immersione nel periodo';
 
   @override
-  String get statistics_progression_depthProgression_title =>
-      'Progressione profondita massima';
+  String get insights_progression_depthProgression_title =>
+      'Progressione profondità massima';
 
   @override
-  String get statistics_progression_divesPerYear_empty =>
+  String get insights_progression_divesPerYear_empty =>
       'Nessun dato annuale disponibile';
 
   @override
-  String get statistics_progression_divesPerYear_error =>
+  String get insights_progression_divesPerYear_error =>
       'Impossibile caricare i dati annuali';
 
   @override
-  String get statistics_progression_divesPerYear_subtitle =>
+  String get insights_progression_divesPerYear_subtitle =>
       'Confronto annuale del numero di immersioni';
 
   @override
-  String get statistics_progression_divesPerYear_title => 'Immersioni per anno';
+  String get insights_progression_divesPerYear_title => 'Immersioni per anno';
 
   @override
-  String get statistics_ranking_countLabel_dives => 'immersioni';
+  String get insights_ranking_countLabel_dives => 'immersioni';
 
   @override
-  String get statistics_ranking_countLabel_sightings => 'avvistamenti';
+  String get insights_ranking_countLabel_sightings => 'avvistamenti';
 
   @override
-  String get statistics_ranking_countLabel_species => 'specie';
+  String get insights_ranking_countLabel_species => 'specie';
 
   @override
-  String get statistics_ranking_emptyState => 'Nessun dato disponibile';
+  String get insights_ranking_emptyState => 'Nessun dato disponibile';
 
   @override
-  String statistics_ranking_itemCount(Object count, Object label) {
+  String insights_ranking_itemCount(Object count, Object label) {
     return '$count $label';
   }
 
   @override
-  String statistics_ranking_moreItems(Object count) {
+  String insights_ranking_moreItems(Object count) {
     return 'e $count altri';
   }
 
   @override
-  String statistics_ranking_semanticLabel(
+  String insights_ranking_semanticLabel(
     Object name,
     Object rank,
     Object count,
@@ -20493,42 +20762,42 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get statistics_records_appBar_title => 'Record immersioni';
+  String get insights_records_appBar_title => 'Record immersioni';
 
   @override
-  String get statistics_records_coldestDive => 'Immersione piu fredda';
+  String get insights_records_coldestDive => 'Immersione più fredda';
 
   @override
-  String get statistics_records_deepestDive => 'Immersione piu profonda';
+  String get insights_records_deepestDive => 'Immersione più profonda';
 
   @override
-  String statistics_records_diveNumber(Object number) {
+  String insights_records_diveNumber(Object number) {
     return 'Immersione #$number';
   }
 
   @override
-  String get statistics_records_emptySubtitle =>
+  String get insights_records_emptySubtitle =>
       'Inizia a registrare immersioni per vedere i tuoi record qui';
 
   @override
-  String get statistics_records_emptyTitle => 'Nessun record ancora';
+  String get insights_records_emptyTitle => 'Nessun record ancora';
 
   @override
-  String get statistics_records_error => 'Errore nel caricamento dei record';
+  String get insights_records_error => 'Errore nel caricamento dei record';
 
   @override
-  String get statistics_records_firstDive => 'Prima immersione';
+  String get insights_records_firstDive => 'Prima immersione';
 
   @override
-  String get statistics_records_longestDive => 'Immersione piu lunga';
+  String get insights_records_longestDive => 'Immersione più lunga';
 
   @override
-  String statistics_records_longestDiveValue(Object minutes) {
+  String insights_records_longestDiveValue(Object minutes) {
     return '$minutes min';
   }
 
   @override
-  String statistics_records_milestoneSemanticLabel(
+  String insights_records_milestoneSemanticLabel(
     Object title,
     Object siteName,
   ) {
@@ -20536,13 +20805,13 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get statistics_records_milestones => 'Traguardi';
+  String get insights_records_milestones => 'Traguardi';
 
   @override
-  String get statistics_records_mostRecentDive => 'Immersione piu recente';
+  String get insights_records_mostRecentDive => 'Immersione più recente';
 
   @override
-  String statistics_records_recordSemanticLabel(
+  String insights_records_recordSemanticLabel(
     Object title,
     Object value,
     Object siteName,
@@ -20551,139 +20820,136 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get statistics_records_retry => 'Riprova';
+  String get insights_records_retry => 'Riprova';
 
   @override
-  String get statistics_records_shallowestDive => 'Immersione meno profonda';
+  String get insights_records_shallowestDive => 'Immersione meno profonda';
 
   @override
-  String get statistics_records_unknownSite => 'Sito sconosciuto';
+  String get insights_records_unknownSite => 'Sito sconosciuto';
 
   @override
-  String get statistics_records_warmestDive => 'Immersione piu calda';
+  String get insights_records_warmestDive => 'Immersione più calda';
 
   @override
-  String statistics_sectionCard_semanticLabel(Object title) {
+  String insights_sectionCard_semanticLabel(Object title) {
     return 'Sezione $title';
   }
 
   @override
-  String get statistics_social_appBar_title => 'Sociale e compagni';
+  String get insights_social_appBar_title => 'Sociale e compagni';
 
   @override
-  String get statistics_social_soloVsBuddy_empty =>
+  String get insights_social_soloVsBuddy_empty =>
       'Nessun dato sulle immersioni disponibile';
 
   @override
-  String get statistics_social_soloVsBuddy_error =>
+  String get insights_social_soloVsBuddy_error =>
       'Impossibile caricare i dati sui compagni';
 
   @override
-  String get statistics_social_soloVsBuddy_solo => 'Solitaria';
+  String get insights_social_soloVsBuddy_solo => 'Solitaria';
 
   @override
-  String get statistics_social_soloVsBuddy_subtitle =>
+  String get insights_social_soloVsBuddy_subtitle =>
       'Immersioni con o senza compagni';
 
   @override
-  String get statistics_social_soloVsBuddy_title =>
+  String get insights_social_soloVsBuddy_title =>
       'Immersioni solitarie vs con compagno';
 
   @override
-  String get statistics_social_soloVsBuddy_withBuddy => 'Con compagno';
+  String get insights_social_soloVsBuddy_withBuddy => 'Con compagno';
 
   @override
-  String get statistics_social_topBuddies_error =>
+  String get insights_social_topBuddies_error =>
       'Impossibile caricare la classifica dei compagni';
 
   @override
-  String get statistics_social_topBuddies_subtitle =>
-      'Compagni di immersione piu frequenti';
+  String get insights_social_topBuddies_subtitle =>
+      'Compagni di immersione più frequenti';
 
   @override
-  String get statistics_social_topBuddies_title =>
+  String get insights_social_topBuddies_title =>
       'Migliori compagni di immersione';
 
   @override
-  String get statistics_social_topDiveCenters_error =>
+  String get insights_social_topDiveCenters_error =>
       'Impossibile caricare la classifica dei centri immersioni';
 
   @override
-  String get statistics_social_topDiveCenters_subtitle =>
-      'Operatori piu visitati';
+  String get insights_social_topDiveCenters_subtitle =>
+      'Operatori più visitati';
 
   @override
-  String get statistics_social_topDiveCenters_title =>
+  String get insights_social_topDiveCenters_title =>
       'Migliori centri immersioni';
 
   @override
-  String get statistics_summary_avgDepth => 'Profondita media';
+  String get insights_summary_avgDepth => 'Profondità media';
 
   @override
-  String get statistics_summary_avgTemp => 'Temp. media';
+  String get insights_summary_avgTemp => 'Temp. media';
 
   @override
-  String get statistics_summary_depthDistribution_empty =>
-      'Il grafico apparira quando registrerai immersioni';
+  String get insights_summary_depthDistribution_empty =>
+      'Il grafico apparirà quando registrerai immersioni';
 
   @override
-  String get statistics_summary_depthDistribution_semanticLabel =>
-      'Grafico a torta che mostra la distribuzione della profondita';
+  String get insights_summary_depthDistribution_semanticLabel =>
+      'Grafico a torta che mostra la distribuzione della profondità';
 
   @override
-  String get statistics_summary_depthDistribution_title =>
-      'Distribuzione profondita';
+  String get insights_summary_depthDistribution_title =>
+      'Distribuzione profondità';
 
   @override
-  String get statistics_summary_diveTypes_empty =>
-      'Il grafico apparira quando registrerai immersioni';
+  String get insights_summary_diveTypes_empty =>
+      'Il grafico apparirà quando registrerai immersioni';
 
   @override
-  String statistics_summary_diveTypes_moreTypes(Object count) {
+  String insights_summary_diveTypes_moreTypes(Object count) {
     return 'e $count altri tipi';
   }
 
   @override
-  String get statistics_summary_diveTypes_semanticLabel =>
+  String get insights_summary_diveTypes_semanticLabel =>
       'Grafico a torta che mostra la distribuzione dei tipi di immersione';
 
   @override
-  String get statistics_summary_diveTypes_title => 'Tipi di immersione';
+  String get insights_summary_diveTypes_title => 'Tipi di immersione';
 
   @override
-  String get statistics_summary_divesByMonth_empty =>
-      'Il grafico apparira quando registrerai immersioni';
+  String get insights_summary_divesByMonth_empty =>
+      'Il grafico apparirà quando registrerai immersioni';
 
   @override
-  String get statistics_summary_divesByMonth_semanticLabel =>
+  String get insights_summary_divesByMonth_semanticLabel =>
       'Grafico a barre che mostra le immersioni per mese';
 
   @override
-  String get statistics_summary_divesByMonth_title => 'Immersioni per mese';
+  String get insights_summary_divesByMonth_title => 'Immersioni per mese';
 
   @override
-  String statistics_summary_divesByMonth_tooltip(
-    Object fullLabel,
-    Object count,
-  ) {
+  String insights_summary_divesByMonth_tooltip(Object fullLabel, Object count) {
     return '$fullLabel\n$count immersioni';
   }
 
   @override
-  String get statistics_summary_header_subtitle =>
-      'Seleziona una categoria per esplorare le statistiche dettagliate';
+  String get insights_summary_header_subtitle =>
+      'Seleziona una categoria per esplorare le analisi dettagliate';
 
   @override
-  String get statistics_summary_header_title => 'Panoramica statistiche';
+  String get insights_summary_header_title => 'Panoramica analisi';
 
   @override
-  String get statistics_summary_maxDepth => 'Profondita max';
+  String get insights_summary_maxDepth => 'Profondità max';
 
   @override
-  String get statistics_summary_sitesVisited => 'Siti visitati';
+  String get insights_summary_sitesVisited => 'Siti visitati';
 
   @override
-  String statistics_summary_tagUsage_diveCount(int count) {
+  String insights_summary_tagUsage_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -20694,154 +20960,151 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get statistics_summary_tagUsage_empty => 'Nessun tag ancora creato';
+  String get insights_summary_tagUsage_empty => 'Nessun tag ancora creato';
 
   @override
-  String get statistics_summary_tagUsage_emptyHint =>
+  String get insights_summary_tagUsage_emptyHint =>
       'Aggiungi tag alle immersioni per vedere le statistiche';
 
   @override
-  String statistics_summary_tagUsage_moreTags(Object count) {
+  String insights_summary_tagUsage_moreTags(Object count) {
     return 'e $count altri tag';
   }
 
   @override
-  String statistics_summary_tagUsage_tagCount(Object count) {
+  String insights_summary_tagUsage_tagCount(Object count) {
     return '$count tag';
   }
 
   @override
-  String get statistics_summary_tagUsage_title => 'Utilizzo tag';
+  String get insights_summary_tagUsage_title => 'Utilizzo tag';
 
   @override
-  String statistics_summary_topDiveSites_diveCount(Object count) {
+  String insights_summary_topDiveSites_diveCount(Object count) {
     return '$count immersioni';
   }
 
   @override
-  String get statistics_summary_topDiveSites_empty =>
+  String get insights_summary_topDiveSites_empty =>
       'Nessun sito di immersione ancora';
 
   @override
-  String get statistics_summary_topDiveSites_title =>
+  String get insights_summary_topDiveSites_title =>
       'Migliori siti di immersione';
 
   @override
-  String statistics_summary_topDiveSites_totalCount(Object count) {
+  String insights_summary_topDiveSites_totalCount(Object count) {
     return '$count totali';
   }
 
   @override
-  String get statistics_summary_totalDives => 'Immersioni totali';
+  String get insights_summary_totalDives => 'Immersioni totali';
 
   @override
-  String get statistics_summary_totalTime => 'Tempo totale';
+  String get insights_summary_totalTime => 'Tempo totale';
 
   @override
-  String get statistics_timePatterns_appBar_title => 'Distribuzioni temporali';
+  String get insights_timePatterns_appBar_title => 'Distribuzioni temporali';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_empty =>
-      'Nessun dato disponibile';
+  String get insights_timePatterns_dayOfWeek_empty => 'Nessun dato disponibile';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_error =>
+  String get insights_timePatterns_dayOfWeek_error =>
       'Impossibile caricare i dati per giorno della settimana';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_fri => 'Ven';
+  String get insights_timePatterns_dayOfWeek_fri => 'Ven';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_mon => 'Lun';
+  String get insights_timePatterns_dayOfWeek_mon => 'Lun';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_sat => 'Sab';
+  String get insights_timePatterns_dayOfWeek_sat => 'Sab';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_subtitle =>
-      'Quando ti immergi di piu?';
+  String get insights_timePatterns_dayOfWeek_subtitle =>
+      'Quando ti immergi di più?';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_sun => 'Dom';
+  String get insights_timePatterns_dayOfWeek_sun => 'Dom';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_thu => 'Gio';
+  String get insights_timePatterns_dayOfWeek_thu => 'Gio';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_title =>
+  String get insights_timePatterns_dayOfWeek_title =>
       'Immersioni per giorno della settimana';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_tue => 'Mar';
+  String get insights_timePatterns_dayOfWeek_tue => 'Mar';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_wed => 'Mer';
+  String get insights_timePatterns_dayOfWeek_wed => 'Mer';
 
   @override
-  String get statistics_timePatterns_month_apr => 'Apr';
+  String get insights_timePatterns_month_apr => 'Apr';
 
   @override
-  String get statistics_timePatterns_month_aug => 'Ago';
+  String get insights_timePatterns_month_aug => 'Ago';
 
   @override
-  String get statistics_timePatterns_month_dec => 'Dic';
+  String get insights_timePatterns_month_dec => 'Dic';
 
   @override
-  String get statistics_timePatterns_month_feb => 'Feb';
+  String get insights_timePatterns_month_feb => 'Feb';
 
   @override
-  String get statistics_timePatterns_month_jan => 'Gen';
+  String get insights_timePatterns_month_jan => 'Gen';
 
   @override
-  String get statistics_timePatterns_month_jul => 'Lug';
+  String get insights_timePatterns_month_jul => 'Lug';
 
   @override
-  String get statistics_timePatterns_month_jun => 'Giu';
+  String get insights_timePatterns_month_jun => 'Giu';
 
   @override
-  String get statistics_timePatterns_month_mar => 'Mar';
+  String get insights_timePatterns_month_mar => 'Mar';
 
   @override
-  String get statistics_timePatterns_month_may => 'Mag';
+  String get insights_timePatterns_month_may => 'Mag';
 
   @override
-  String get statistics_timePatterns_month_nov => 'Nov';
+  String get insights_timePatterns_month_nov => 'Nov';
 
   @override
-  String get statistics_timePatterns_month_oct => 'Ott';
+  String get insights_timePatterns_month_oct => 'Ott';
 
   @override
-  String get statistics_timePatterns_month_sep => 'Set';
+  String get insights_timePatterns_month_sep => 'Set';
 
   @override
-  String get statistics_timePatterns_seasonal_empty =>
-      'Nessun dato disponibile';
+  String get insights_timePatterns_seasonal_empty => 'Nessun dato disponibile';
 
   @override
-  String get statistics_timePatterns_seasonal_error =>
+  String get insights_timePatterns_seasonal_error =>
       'Impossibile caricare i dati stagionali';
 
   @override
-  String get statistics_timePatterns_seasonal_subtitle =>
+  String get insights_timePatterns_seasonal_subtitle =>
       'Immersioni per mese (tutti gli anni)';
 
   @override
-  String get statistics_timePatterns_seasonal_title =>
-      'Distribuzioni stagionali';
+  String get insights_timePatterns_seasonal_title => 'Distribuzioni stagionali';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_average => 'Media';
+  String get insights_timePatterns_surfaceInterval_average => 'Media';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_empty =>
+  String get insights_timePatterns_surfaceInterval_empty =>
       'Nessun dato sull\'intervallo di superficie disponibile';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_error =>
+  String get insights_timePatterns_surfaceInterval_error =>
       'Impossibile caricare i dati sull\'intervallo di superficie';
 
   @override
-  String statistics_timePatterns_surfaceInterval_formatHoursMinutes(
+  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
     Object hours,
     Object minutes,
   ) {
@@ -20849,50 +21112,50 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String statistics_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
+  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
     return '$minutes min';
   }
 
   @override
-  String get statistics_timePatterns_surfaceInterval_maximum => 'Massimo';
+  String get insights_timePatterns_surfaceInterval_maximum => 'Massimo';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_minimum => 'Minimo';
+  String get insights_timePatterns_surfaceInterval_minimum => 'Minimo';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_subtitle =>
+  String get insights_timePatterns_surfaceInterval_subtitle =>
       'Tempo tra le immersioni';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_title =>
+  String get insights_timePatterns_surfaceInterval_title =>
       'Statistiche intervallo di superficie';
 
   @override
-  String get statistics_timePatterns_timeOfDay_error =>
+  String get insights_timePatterns_timeOfDay_error =>
       'Impossibile caricare i dati sull\'ora del giorno';
 
   @override
-  String get statistics_timePatterns_timeOfDay_subtitle =>
+  String get insights_timePatterns_timeOfDay_subtitle =>
       'Mattina, pomeriggio, sera o notte';
 
   @override
-  String get statistics_timePatterns_timeOfDay_title =>
+  String get insights_timePatterns_timeOfDay_title =>
       'Immersioni per ora del giorno';
 
   @override
-  String get statistics_tooltip_diveRecords => 'Record immersioni';
+  String get insights_tooltip_diveRecords => 'Record immersioni';
 
   @override
-  String get statistics_tooltip_filter => 'Filtra statistiche';
+  String get insights_tooltip_filter => 'Filtra analisi';
 
   @override
-  String get statistics_tooltip_refreshRecords => 'Aggiorna record';
+  String get insights_tooltip_refreshRecords => 'Aggiorna record';
 
   @override
-  String get statistics_tooltip_refreshStatistics => 'Aggiorna statistiche';
+  String get insights_tooltip_refreshInsights => 'Aggiorna analisi';
 
   @override
-  String statistics_valueCard_semanticLabel(Object label, Object value) {
+  String insights_valueCard_semanticLabel(Object label, Object value) {
     return '$label: $value';
   }
 
@@ -21393,7 +21656,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tags_manage_useForSites => 'Usa per i siti';
 
   @override
-  String get tags_manage_nameRequired => 'Il nome del tag e obbligatorio';
+  String get tags_manage_nameRequired => 'Il nome del tag è obbligatorio';
 
   @override
   String get tags_manage_deleteTitle => 'Eliminare il tag?';
@@ -21407,7 +21670,7 @@ class AppLocalizationsIt extends AppLocalizations {
       one: '1 immersione',
       zero: '0 immersioni',
     );
-    return '\"$tagName\" verra rimosso da $_temp0. Questa azione non puo essere annullata.';
+    return '\"$tagName\" verrà rimosso da $_temp0. Questa azione non può essere annullata.';
   }
 
   @override
@@ -21542,7 +21805,7 @@ class AppLocalizationsIt extends AppLocalizations {
       one: '1 immersione',
       zero: '0 immersioni',
     );
-    return 'Questi tag verranno rimossi da $_temp0 in totale. Questa azione non puo essere annullata.';
+    return 'Questi tag verranno rimossi da $_temp0 in totale. Questa azione non può essere annullata.';
   }
 
   @override
@@ -21678,7 +21941,7 @@ class AppLocalizationsIt extends AppLocalizations {
       one: '1 immersione',
       zero: '0 immersioni',
     );
-    return 'Questo influenzera $_temp0 in totale.';
+    return 'Questo influenzerà $_temp0 in totale.';
   }
 
   @override
@@ -21830,7 +22093,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tank_al63_displayName => 'AL63';
 
   @override
-  String get tank_al80_description => 'Alluminio 80 cu ft (la piu comune)';
+  String get tank_al80_description => 'Alluminio 80 cu ft (la più comune)';
 
   @override
   String get tank_al80_displayName => 'AL80';
@@ -23923,6 +24186,49 @@ class AppLocalizationsIt extends AppLocalizations {
   String get universalImport_label_skip => 'Salta';
 
   @override
+  String get universalImport_label_fillPlanned =>
+      'Completa immersione pianificata';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'Collega questo download all\'immersione che hai pianificato';
+
+  @override
+  String get universalImport_label_filledPlanned =>
+      'Immersioni pianificate completate';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'Completa l\'immersione pianificata: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'Il profilo abbozzato verrà sostituito.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'Cambia';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle =>
+      'Scegli un\'immersione pianificata';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'Importa invece come nuova immersione';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'Annulla completamenti';
+
+  @override
+  String get universalImport_fillPlanned_undone =>
+      'Immersioni pianificate ripristinate';
+
+  @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'Impossibile ripristinare tutte le immersioni pianificate. Riprova.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Taggato come: $tag';
   }
@@ -24465,7 +24771,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveComputer_downloadExit_content =>
-      'Uscendo verra annullato il download in corso dal computer da sub. Sei sicuro?';
+      'Uscendo verrà annullato il download in corso dal computer da sub. Sei sicuro?';
 
   @override
   String get diveComputer_downloadExit_leave => 'Esci';
@@ -24824,7 +25130,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveComputer_scan_emptyStateInstructions =>
-      'Assicurati che il tuo computer da sub sia:\n• Acceso\n• In modalita di abbinamento Bluetooth\n• Vicino al tuo dispositivo';
+      'Assicurati che il tuo computer da sub sia:\n• Acceso\n• In modalità di abbinamento Bluetooth\n• Vicino al tuo dispositivo';
 
   @override
   String get diveComputer_scan_knownBadge => 'Conosciuto';
@@ -25012,7 +25318,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveImport_healthkit_dataUsage =>
-      'Legge le attivita di immersione subacquea da Apple Health, inclusi profondita, durata, temperatura dell\'acqua e frequenza cardiaca. Questi dati vengono archiviati localmente nel tuo registro immersioni e non vengono mai condivisi con terze parti.';
+      'Legge le attività di immersione subacquea da Apple Health, inclusi profondità, durata, temperatura dell\'acqua e frequenza cardiaca. Questi dati vengono archiviati localmente nel tuo registro immersioni e non vengono mai condivisi con terze parti.';
 
   @override
   String get diveImport_healthkit_dateFrom => 'Da';
@@ -25811,14 +26117,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get maps_offline_clearAll => 'Cancella tutto';
 
   @override
-  String get maps_offline_clearAllCache => 'Cancella tutta la cache';
-
-  @override
   String get maps_offline_clearAllCacheMessage =>
       'Eliminare tutte le regioni scaricate e i tile nella cache?';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'Cancellare tutta la cache?';
+
+  @override
+  String get maps_offline_clearAllTiles => 'Cancella tutti i tile della mappa';
 
   @override
   String maps_offline_clearCacheStats(Object count, Object size) {
@@ -25928,6 +26234,12 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get maps_offline_section_terrain => 'Terreno 3D';
+
+  @override
+  String get maps_offline_section_tiles => 'Tile della mappa';
+
+  @override
   String get maps_offline_size => 'Dimensione';
 
   @override
@@ -25972,6 +26284,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tankPresets_builtInPresets => 'Preset predefiniti';
+
+  @override
+  String get tankPresets_builtInPresets_description =>
+      'Disattiva i preset che non usi per nasconderli nei selettori di bombola. Il preset predefinito viene sempre mostrato.';
 
   @override
   String get tankPresets_currentDefault => 'Predefinito attuale';
@@ -26126,6 +26442,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tankPresets_setAsDefault => 'Imposta come predefinito';
 
   @override
+  String get tankPresets_showInPickers => 'Mostra nei selettori di bombola';
+
+  @override
   String get tankPresets_title => 'Preset bombole';
 
   @override
@@ -26267,7 +26586,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_dataTypeWorkouts =>
-      'Allenamenti di immersione subacquea - orario di inizio, durata e dati di attivita dell\'immersione';
+      'Allenamenti di immersione subacquea - orario di inizio, durata e dati di attività dell\'immersione';
 
   @override
   String get settings_dataSources_appleHealth_dataTypeHeartRate =>
@@ -26636,9 +26955,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun dato di profondità dei laghi ancora memorizzato';
 
   @override
-  String get maps3d_appBar_title => 'Mappe 3D';
-
-  @override
   String get maps3d_section_all => 'Tutti i fornitori';
 
   @override
@@ -26744,7 +27060,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get maps3d_busy_notice =>
-      'È in corso un\'altra azione Mappe 3D. Attendi il completamento.';
+      'È in corso un\'altra azione sul terreno 3D. Attendi il completamento.';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {
@@ -27136,12 +27452,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get divers_edit_priorInvalidNumber => 'Inserisci un numero valido';
 
   @override
-  String statistics_priorBreakdown(String logged, String prior) {
+  String insights_priorBreakdown(String logged, String prior) {
     return '$logged registrate + $prior precedenti';
   }
 
   @override
-  String statistics_divingSince(int year) {
+  String insights_divingSince(int year) {
     return 'Immersioni dal $year';
   }
 
@@ -27267,6 +27583,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questo dispositivo e l\'archivio cloud non concordano più su quale archivio sia in uso. Riconnettere l\'archivio multimediale adotta quello che il cloud contiene ora.';
 
   @override
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      'Questo dispositivo non è più collegato a questo archivio multimediale. Può essere ricollegato in Archiviazione multimediale.';
+
+  @override
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      'Non è stato possibile verificare l\'archivio multimediale. I trasferimenti vengono ritentati automaticamente.';
+
+  @override
   String settings_mediaStorage_transfers_queued(int count) {
     return '$count in coda';
   }
@@ -27275,6 +27599,24 @@ class AppLocalizationsIt extends AppLocalizations {
   String settings_mediaStorage_transfers_waitingRetry(int count) {
     return '$count in attesa di riprovare';
   }
+
+  @override
+  String get settings_mediaStorage_transfers_waitingConnection =>
+      'In attesa di connessione';
+
+  @override
+  String get settings_mediaStorage_report_action => 'Esporta rapporto media';
+
+  @override
+  String get settings_mediaStorage_report_done => 'Rapporto media esportato';
+
+  @override
+  String get settings_mediaStorage_report_note =>
+      'Il rapporto elenca percorsi dei file e nomi dei dispositivi. Non viene inviato nulla.';
+
+  @override
+  String get settings_mediaStorage_report_running =>
+      'Creazione del rapporto media...';
 
   @override
   String get settings_mediaStorage_verify_action => 'Verifica libreria';
@@ -27727,6 +28069,27 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questo sito non ha coordinate GPS';
 
   @override
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
+
+  @override
+  String dive3d_seascape_lodStageLabel(String stage, String span) {
+    return 'Level of detail: $stage ($span)';
+  }
+
+  @override
+  String get dive3d_seascape_lodStageOverview => 'Overview';
+
+  @override
+  String get dive3d_seascape_lodStageMedium => 'Medium';
+
+  @override
+  String get dive3d_seascape_lodStageFine => 'Fine';
+
+  @override
+  String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
+
+  @override
   String get dive3d_seascape_noData =>
       'Nessuna batimetria disponibile per questa posizione';
 
@@ -27953,6 +28316,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String settings_setup_mediaStoreReconnect(String hint) {
+    return 'Ricollega archiviazione multimediale ($hint)';
+  }
+
+  @override
   String settings_setup_accountSignIn(String label) {
     return 'Accedi a $label';
   }
@@ -28085,6 +28453,16 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get media_unavailablePlaceholder_accessDenied =>
       'Nessun accesso alla libreria foto';
+
+  @override
+  String get media_unavailablePlaceholder_limitedAccess =>
+      'Non tra le foto consentite';
+
+  @override
+  String get media_limitedAccess_allowFullAccess => 'Consenti accesso completo';
+
+  @override
+  String get media_limitedAccess_choosePhotoAgain => 'Scegli di nuovo la foto';
 
   @override
   String get attrLabel_hose_length_m => 'Lunghezza della frusta';
@@ -28709,24 +29087,23 @@ class AppLocalizationsIt extends AppLocalizations {
       'Inserisci un indirizzo web, es. shop.example.com';
 
   @override
-  String get statistics_progression_divesBySuitThickness_title =>
+  String get insights_progression_divesBySuitThickness_title =>
       'Immersioni per spessore della muta';
 
   @override
-  String get statistics_progression_divesBySuitThickness_subtitle =>
+  String get insights_progression_divesBySuitThickness_subtitle =>
       'Spessore principale della muta nelle tue immersioni';
 
   @override
-  String get statistics_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitThickness_empty =>
       'Nessuna immersione collegata a una muta umida o stagna';
 
   @override
-  String get statistics_progression_divesBySuitThickness_error =>
+  String get insights_progression_divesBySuitThickness_error =>
       'Impossibile caricare i dati sullo spessore';
 
   @override
-  String get statistics_progression_divesBySuitThickness_unknown =>
-      'Sconosciuto';
+  String get insights_progression_divesBySuitThickness_unknown => 'Sconosciuto';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Spessore della muta (mm)';
@@ -29159,6 +29536,68 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'Registra quasi incidente';
+
+  @override
+  String get diveLog_planned_chip => 'Pianificata';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'Immersione pianificata';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'In attesa dei dati del computer. Segnala come registrata se hai immerso senza computer.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'Segna come registrata';
+
+  @override
+  String get diveLog_planned_markedLogged => 'Segnata come registrata';
+
+  @override
+  String get diveLog_planned_markLoggedFailed =>
+      'Impossibile contrassegnare l\'immersione come registrata.';
+
+  @override
+  String get diveLog_mirror_dialogTitle =>
+      'Registrare questa immersione anche in un altro profilo?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'Questi compagni hanno un profilo su questo dispositivo. L\'immersione viene aggiunta ai loro registri come immersione pianificata finché i dati del loro computer non la completano.';
+
+  @override
+  String get diveLog_mirror_log => 'Registra';
+
+  @override
+  String get diveLog_mirror_notNow => 'Non ora';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Registrata per $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Immersioni speculari rimosse';
+
+  @override
+  String get diveLog_mirror_undoFailed =>
+      'Impossibile rimuovere le immersioni speculari.';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'Impossibile registrare per $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy =>
+      'Registra nel profilo di un compagno';
+
+  @override
+  String get diveLog_detail_loggedWith => 'Registrata con';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned =>
+      'in attesa del loro computer subacqueo';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -30752,6 +31191,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return '$min $unit o più';
+  }
+
+  @override
   String get settings_coordinateFormat_title => 'Formato delle coordinate';
 
   @override
@@ -30787,7 +31231,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_subtitle =>
-      'Quali distanze contano come buona visibilità dove ti immergi';
+      'Come i dettagli dell\'immersione e le statistiche descrivono la visibilità che hai misurato';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      'Scegli quali distanze misurate contano come Eccellente, Buona, Moderata o Scarsa nei dettagli dell\'immersione e nelle statistiche. Cambiarlo rietichetta solo le tue immersioni; non modifica mai le distanze registrate.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'Tropicale';
@@ -30816,7 +31264,19 @@ class AppLocalizationsIt extends AppLocalizations {
       'Ogni valore deve essere inferiore a quello sopra e maggiore di zero';
 
   @override
-  String statistics_conditions_visibility_legacySuffix(String band) {
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset => 'Imposta le tue distanze';
+
+  @override
+  String get settings_visibilityScale_customHelp =>
+      'Inserisci la distanza più breve che conta ancora per ogni livello.';
+
+  @override
+  String insights_conditions_visibility_legacySuffix(String band) {
     return '$band (registrato prima della misurazione)';
   }
 
@@ -37210,32 +37670,29 @@ class AppLocalizationsIt extends AppLocalizations {
       'Ricontrolla presso il relativo host ogni foto importata da URL o da manifest. Contrassegna gli elementi non raggiungibili in modo che risultino «mancanti» nella libreria e possano essere ripuliti.';
 
   @override
-  String statistics_conditions_entryMethod_semanticLabel(String description) {
+  String insights_conditions_entryMethod_semanticLabel(String description) {
     return 'Grafico a barre. Metodi di ingresso. $description';
   }
 
   @override
-  String statistics_conditions_visibility_semanticLabel(String description) {
+  String insights_conditions_visibility_semanticLabel(String description) {
     return 'Grafico a torta. Distribuzione della visibilità. $description';
   }
 
   @override
-  String statistics_conditions_waterType_semanticLabel(String description) {
+  String insights_conditions_waterType_semanticLabel(String description) {
     return 'Grafico a torta. Distribuzione dei tipi di acqua. $description';
   }
 
   @override
-  String statistics_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitThickness_semanticLabel(
     String description,
   ) {
     return 'Grafico a barre. Immersioni per spessore della muta. $description';
   }
 
   @override
-  String statistics_progression_divesPerYear_countInYear(
-    int count,
-    String year,
-  ) {
+  String insights_progression_divesPerYear_countInYear(int count, String year) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -37246,20 +37703,20 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String statistics_progression_divesPerYear_semanticLabel(String description) {
+  String insights_progression_divesPerYear_semanticLabel(String description) {
     return 'Grafico a barre. Immersioni per anno. $description';
   }
 
   @override
-  String get statistics_records_unavailable => 'Record non disponibili';
+  String get insights_records_unavailable => 'Record non disponibili';
 
   @override
-  String statistics_summary_depthBucket_over(String min, String unit) {
+  String insights_summary_depthBucket_over(String min, String unit) {
     return '$min$unit+';
   }
 
   @override
-  String statistics_summary_depthBucket_range(
+  String insights_summary_depthBucket_range(
     String min,
     String max,
     String unit,
@@ -37268,33 +37725,33 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get statistics_summary_distributions_title => 'Distribuzioni';
+  String get insights_summary_distributions_title => 'Distribuzioni';
 
   @override
-  String get statistics_summary_diveTypes_error =>
+  String get insights_summary_diveTypes_error =>
       'Impossibile caricare i dati sui tipi di immersione';
 
   @override
-  String get statistics_summary_diveTypes_unknown => 'Sconosciuto';
+  String get insights_summary_diveTypes_unknown => 'Sconosciuto';
 
   @override
-  String get statistics_summary_divesPerMonth => 'Immersioni / mese';
+  String get insights_summary_divesPerMonth => 'Immersioni / mese';
 
   @override
-  String get statistics_summary_divesPerYear => 'Immersioni / anno';
+  String get insights_summary_divesPerYear => 'Immersioni / anno';
 
   @override
-  String statistics_timePatterns_dayOfWeek_semanticLabel(String description) {
+  String insights_timePatterns_dayOfWeek_semanticLabel(String description) {
     return 'Grafico a barre. Immersioni per giorno della settimana. $description';
   }
 
   @override
-  String statistics_timePatterns_seasonal_semanticLabel(String description) {
+  String insights_timePatterns_seasonal_semanticLabel(String description) {
     return 'Grafico a barre. Immersioni per mese. $description';
   }
 
   @override
-  String statistics_timePatterns_surfaceInterval_statLabel(
+  String insights_timePatterns_surfaceInterval_statLabel(
     String label,
     String value,
   ) {
@@ -37302,19 +37759,19 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get statistics_timePatterns_timeOfDay_afternoon => 'Pomeriggio';
+  String get insights_timePatterns_timeOfDay_afternoon => 'Pomeriggio';
 
   @override
-  String get statistics_timePatterns_timeOfDay_evening => 'Sera';
+  String get insights_timePatterns_timeOfDay_evening => 'Sera';
 
   @override
-  String get statistics_timePatterns_timeOfDay_morning => 'Mattina';
+  String get insights_timePatterns_timeOfDay_morning => 'Mattina';
 
   @override
-  String get statistics_timePatterns_timeOfDay_night => 'Notte';
+  String get insights_timePatterns_timeOfDay_night => 'Notte';
 
   @override
-  String statistics_timePatterns_timeOfDay_semanticLabel(String description) {
+  String insights_timePatterns_timeOfDay_semanticLabel(String description) {
     return 'Grafico a torta. Immersioni per fascia oraria. $description';
   }
 
@@ -37779,6 +38236,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'Immersione $diveNumber presso $siteName';
+  }
+
+  @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return 'Immersione pianificata a $siteName';
   }
 
   @override
@@ -40568,7 +41030,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_info_actionReveal => 'Mostra nel gestore file';
 
   @override
+  String get media_info_actionCopyDiagnostics => 'Copia diagnostica';
+
+  @override
   String get media_info_actionCopyPath => 'Copia riferimento';
+
+  @override
+  String get media_info_diagnosticsCopied => 'Diagnostica copiata';
 
   @override
   String get media_info_referenceCopied => 'Riferimento copiato';
@@ -40673,94 +41141,92 @@ class AppLocalizationsIt extends AppLocalizations {
       'HealthKit non è disponibile su questo dispositivo';
 
   @override
-  String get statistics_trend_aggregation_monthly => 'Media mensile';
+  String get insights_trend_aggregation_monthly => 'Media mensile';
 
   @override
-  String get statistics_trend_aggregation_perDive => 'Ogni immersione';
+  String get insights_trend_aggregation_perDive => 'Ogni immersione';
 
   @override
-  String get statistics_trend_aggregation_tooltip =>
+  String get insights_trend_aggregation_tooltip =>
       'Come sono raggruppate le immersioni';
 
   @override
-  String get statistics_trend_aggregation_weekly => 'Media settimanale';
+  String get insights_trend_aggregation_weekly => 'Media settimanale';
 
   @override
-  String get statistics_trend_band_semanticLabel =>
+  String get insights_trend_band_semanticLabel =>
       'La banda ombreggiata copre il valore minimo e massimo di ogni gruppo';
 
   @override
-  String get statistics_trend_legend_rate => 'Tendenza complessiva';
+  String get insights_trend_legend_rate => 'Tendenza complessiva';
 
   @override
-  String get statistics_trend_legend_rollingAverage => 'Media mobile';
+  String get insights_trend_legend_rollingAverage => 'Media mobile';
 
   @override
-  String statistics_trend_rate_perYear(String value) {
+  String insights_trend_rate_perYear(String value) {
     return '$value/anno';
   }
 
   @override
-  String get statistics_conditions_tempTrend_title =>
+  String get insights_conditions_tempTrend_title =>
       'Andamento della temperatura dell\'acqua';
 
   @override
-  String get statistics_conditions_tempTrend_subtitle =>
+  String get insights_conditions_tempTrend_subtitle =>
       'Ogni immersione nel periodo';
 
   @override
-  String get statistics_conditions_tempTrend_empty =>
+  String get insights_conditions_tempTrend_empty =>
       'Nessun dato di temperatura disponibile';
 
   @override
-  String get statistics_conditions_tempTrend_error =>
+  String get insights_conditions_tempTrend_error =>
       'Impossibile caricare l\'andamento della temperatura';
 
   @override
-  String get statistics_conditions_waterTempBands_title =>
+  String get insights_conditions_waterTempBands_title =>
       'Immersioni per temperatura dell\'acqua';
 
   @override
-  String get statistics_conditions_waterTempBands_subtitle =>
+  String get insights_conditions_waterTempBands_subtitle =>
       'Come si distribuiscono le tue immersioni tra le fasce di temperatura dell\'acqua';
 
   @override
-  String get statistics_conditions_waterTempBands_empty =>
+  String get insights_conditions_waterTempBands_empty =>
       'Nessun dato sulla temperatura dell\'acqua disponibile';
 
   @override
-  String get statistics_conditions_waterTempBands_error =>
+  String get insights_conditions_waterTempBands_error =>
       'Impossibile caricare le fasce di temperatura dell\'acqua';
 
   @override
-  String statistics_conditions_waterTempBands_semanticLabel(
-    String description,
-  ) {
+  String insights_conditions_waterTempBands_semanticLabel(String description) {
     return 'Grafico a barre. Immersioni per temperatura dell\'acqua. $description';
   }
 
   @override
-  String get statistics_conditions_waterTempBands_table_band => 'Fascia';
+  String get insights_conditions_waterTempBands_table_band => 'Fascia';
 
   @override
-  String get statistics_conditions_waterTempBands_table_dives => 'Immersioni';
+  String get insights_conditions_waterTempBands_table_dives => 'Immersioni';
 
   @override
-  String get statistics_conditions_waterTempBands_table_avgSac => 'SAC medio';
+  String get insights_conditions_waterTempBands_table_avgSac => 'SAC medio';
 
   @override
-  String get statistics_conditions_waterTempBands_table_avgRmv => 'RMV medio';
+  String get insights_conditions_waterTempBands_table_avgRmv => 'RMV medio';
 
   @override
-  String get statistics_conditions_waterTempBands_table_avgBottomTime =>
+  String get insights_conditions_waterTempBands_table_avgBottomTime =>
       'Tempo di fondo medio';
 
   @override
-  String get statistics_conditions_waterTempBands_table_error =>
+  String get insights_conditions_waterTempBands_table_error =>
       'Impossibile caricare le medie per fascia';
 
   @override
-  String statistics_conditions_waterTempBands_table_averageOver(
+  String insights_conditions_waterTempBands_table_averageOver(
     String value,
     String dives,
   ) {
@@ -40768,10 +41234,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get statistics_conditions_waterTempBands_table_noData => 'nessun dato';
+  String get insights_conditions_waterTempBands_table_noData => 'nessun dato';
 
   @override
-  String statistics_conditions_waterTempBands_table_rowSemanticLabel(
+  String insights_conditions_waterTempBands_table_rowSemanticLabel(
     String band,
     String dives,
     String lane,
@@ -40788,10 +41254,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_filter_presetLast10Years => 'Ultimi 10 anni';
 
   @override
-  String get statistics_trend_tooltip_lowest => 'Minimo';
+  String get insights_trend_tooltip_lowest => 'Minimo';
 
   @override
-  String get statistics_trend_tooltip_highest => 'Massimo';
+  String get insights_trend_tooltip_highest => 'Massimo';
 
   @override
   String get diveLog_edit_excludeFromStats => 'Escludi dalle statistiche';
@@ -40831,7 +41297,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_summary_excluded => 'Esclusa';
 
   @override
-  String statistics_excludedDivesFootnote(int count) {
+  String insights_excludedDivesFootnote(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,

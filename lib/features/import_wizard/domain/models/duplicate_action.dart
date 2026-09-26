@@ -11,4 +11,8 @@ enum DuplicateAction {
 
   /// Replace the matched entry's source data with the incoming item.
   replaceSource,
+
+  /// Attach the incoming item's measured data to a planned dive the diver
+  /// entered ahead of time, then promote that dive (issue #2002).
+  fillPlanned,
 }

@@ -497,19 +497,33 @@ void main() {
           .firstWhere((a) => a.radius == 32);
       expect(avatar.backgroundColor, alert.container);
 
-      final box = tester.widget<Container>(
-        find
-            .ancestor(
-              of: find.text('Service is overdue!'),
-              matching: find.byType(Container),
-            )
-            .first,
-      );
+      // The banner names the service now (#2260); the palette is unchanged.
+      const headline = 'Annual service overdue';
+      final banner = find
+          .ancestor(of: find.text(headline), matching: find.byType(Container))
+          .first;
+      final box = tester.widget<Container>(banner);
       final decoration = box.decoration! as BoxDecoration;
       expect(decoration.color, alert.container);
       expect((decoration.border! as Border).top.color, alert.outline);
       expect(
-        tester.widget<Text>(find.text('Service is overdue!')).style?.color,
+        tester.widget<Text>(find.text(headline)).style?.color,
+        alert.onContainer,
+      );
+      // The second line too: on this solid fill the indicator's default grey
+      // would not read, which is why the banner passes onContainer through.
+      // Scoped to the banner: the Service Clocks card below renders the same
+      // trigger line for the same clock.
+      expect(
+        tester
+            .widget<Text>(
+              find.descendant(
+                of: banner,
+                matching: find.textContaining('Overdue since'),
+              ),
+            )
+            .style
+            ?.color,
         alert.onContainer,
       );
     });

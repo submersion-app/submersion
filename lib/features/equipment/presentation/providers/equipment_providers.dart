@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/data/repositories/service_record_r
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_thresholds.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
@@ -324,26 +325,42 @@ final equipmentTripIdsProvider = FutureProvider.family<List<String>, String>((
   return repository.getTripIdsForEquipment(equipmentId);
 });
 
-/// Active gear with at least one service clock due soon or overdue, worst
-/// first.
+/// Active gear whose service is due, narrowed to one severity, worst first.
 ///
 /// Reads the service ledger (schedules + records + usage, via
-/// [dueClocksProvider]), the same source as the row badges and the dashboard
-/// card. It must not go back to the legacy `EquipmentItem.isServiceDue`
-/// getter: that reads `serviceIntervalDays`, a column the v122/v131
-/// migrations copied into the ledger and no in-app editor writes any more, so
-/// the Service Due filter always came back empty while the badges said
-/// overdue.
-final serviceDueEquipmentProvider = FutureProvider<List<EquipmentItem>>((
-  ref,
-) async {
-  final due = await ref.watch(dueClocksProvider.future);
-  final items = <String, EquipmentItem>{};
-  for (final clock in due) {
-    items.putIfAbsent(clock.item.id, () => clock.item);
-  }
-  return items.values.toList();
-});
+/// [equipmentWorstClockProvider]), the same source as the row badges and the
+/// dashboard card. It must not go back to the legacy
+/// `EquipmentItem.isServiceDue` getter: that reads `serviceIntervalDays`, a
+/// column the v122/v131 migrations copied into the ledger and no in-app
+/// editor writes any more, so the Service Due filter always came back empty
+/// while the badges said overdue.
+///
+/// Each item is bucketed by its WORST clock, so it appears under exactly one
+/// severity. That is what lets the home strip's counted chips promise a
+/// number and land on a list with that many rows in it.
+final serviceDueEquipmentProvider =
+    FutureProvider.family<List<EquipmentItem>, ServiceDueFilter>((
+      ref,
+      filter,
+    ) async {
+      // Keyed by item and already sorted overdue-first, so the result needs
+      // no de-duplication of its own.
+      final worst = await ref.watch(equipmentWorstClockProvider.future);
+      return [
+        for (final clock in worst.values)
+          if (matchesServiceDue(filter, clock.status.severity)) clock.item,
+      ];
+    });
+
+/// Whether a clock of [severity] belongs in the [filter]'s list.
+bool matchesServiceDue(
+  ServiceDueFilter filter,
+  ServiceClockSeverity severity,
+) => switch (filter) {
+  ServiceDueFilter.any => severity != ServiceClockSeverity.ok,
+  ServiceDueFilter.overdue => severity == ServiceClockSeverity.overdue,
+  ServiceDueFilter.dueSoon => severity == ServiceClockSeverity.dueSoon,
+};
 
 /// Equipment search provider
 final equipmentSearchProvider =
@@ -799,10 +816,34 @@ Future<List<ServiceClockStatus>> _evaluateClocksFor(
   final exposure = await ref
       .watch(equipmentRepositoryProvider)
       .getItemExposure(item, siblings: siblings);
-  final usage = exposure.samples;
-  final kindsById = {for (final k in allKinds) k.id: k};
-  final classifier = ExposureClassifier(
+  final window = await ref.watch(serviceDueSoonWindowDaysProvider.future);
+  return _evaluateLoaded(
+    item,
+    schedules: schedules,
+    kindsById: {for (final k in allKinds) k.id: k},
+    records: records,
+    exposure: exposure,
     thresholds: ref.watch(exposureThresholdsProvider),
+    dueSoonWindowDays: window,
+    now: DateTime.now(),
+  );
+}
+
+/// Runs the engine over one item's already loaded inputs. The single-item
+/// and the batched evaluation both end here, so the classifier is wired
+/// once.
+List<ServiceClockStatus> _evaluateLoaded(
+  EquipmentItem item, {
+  required List<ServiceSchedule> schedules,
+  required Map<String, ServiceKind> kindsById,
+  required List<ServiceRecord> records,
+  required ItemExposure exposure,
+  required ExposureThresholds thresholds,
+  required int dueSoonWindowDays,
+  required DateTime now,
+}) {
+  final classifier = ExposureClassifier(
+    thresholds: thresholds,
     loopTimeOnly: exposure.isRebreather,
     countsCycles: accruesBatteryCycles(
       type: item.type,
@@ -813,18 +854,75 @@ Future<List<ServiceClockStatus>> _evaluateClocksFor(
       (c) => c.type == EquipmentType.battery,
     ),
   );
-  final window = await ref.watch(serviceDueSoonWindowDaysProvider.future);
   return const ServiceDueEngine().evaluate(
     schedules: schedules,
     kindsById: kindsById,
     records: records,
-    usage: usage,
+    usage: exposure.samples,
     classifier: classifier,
     purchaseDate: item.purchaseDate,
-    equipmentCreatedAt: item.createdAt ?? DateTime.now(),
-    dueSoonWindowDays: window,
-    now: DateTime.now(),
+    equipmentCreatedAt: item.createdAt ?? now,
+    dueSoonWindowDays: dueSoonWindowDays,
+    now: now,
   );
+}
+
+/// Every evaluated clock on the gear named by [ids], keyed by equipment id,
+/// in a fixed number of statements however many ids there are. Unlike
+/// [activeEquipmentClocksProvider], retired and spare gear is evaluated
+/// too, and every clock is kept, not only the worst. An id with no gear
+/// row, or gear with no configured clock, is absent.
+///
+/// Registers the same invalidation inputs as [serviceClockStatusesProvider]
+/// on [ref], so a provider built on this refreshes when that family would.
+Future<Map<String, List<ServiceClockStatus>>> evaluateServiceClocksForIds(
+  Ref ref,
+  List<String> ids,
+) async {
+  final repository = ref.watch(equipmentRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  ref.invalidateSelfWhen(repository.watchAttributeChanges());
+  ref.invalidateSelfWhen(
+    ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
+  );
+  _invalidateOnServiceLedgerChanges(ref);
+  if (ids.isEmpty) return const {};
+
+  final schedulesById = await ref
+      .watch(serviceScheduleRepositoryProvider)
+      .getSchedulesForEquipmentIds(ids);
+  if (schedulesById.isEmpty) return const {};
+  final items = await repository.getEquipmentByIds(schedulesById.keys.toList());
+  if (items.isEmpty) return const {};
+  if (items.any((i) => i.type == EquipmentType.transmitter)) {
+    ref.invalidateSelfWhen(
+      ref.watch(transmitterRepositoryProvider).watchTransmittersChanges(),
+    );
+  }
+
+  final kinds = await ref.watch(serviceKindRepositoryProvider).getAllKinds();
+  final kindsById = {for (final k in kinds) k.id: k};
+  final recordsById = await ref
+      .watch(serviceRecordRepositoryProvider)
+      .getRecordsForEquipmentIds([for (final i in items) i.id]);
+  final exposures = await repository.getItemExposures(items);
+  final window = await ref.watch(serviceDueSoonWindowDaysProvider.future);
+  final thresholds = ref.watch(exposureThresholdsProvider);
+  final now = DateTime.now();
+
+  return {
+    for (final item in items)
+      item.id: _evaluateLoaded(
+        item,
+        schedules: schedulesById[item.id]!,
+        kindsById: kindsById,
+        records: recordsById[item.id] ?? const [],
+        exposure: exposures[item.id]!,
+        thresholds: thresholds,
+        dueSoonWindowDays: window,
+        now: now,
+      ),
+  };
 }
 
 /// All evaluated clocks for one equipment item (detail page).

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/native.dart';
@@ -13,10 +14,13 @@ import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 
 import '../../helpers/in_memory_media_object_store.dart';
 import '../../helpers/test_database.dart';
 import '../../helpers/wait_until.dart';
+
+const _mismatch = MediaTransferHoldKind.markerMismatch;
 
 class _RecordingPipeline extends MediaUploadPipeline {
   _RecordingPipeline({
@@ -142,7 +146,7 @@ void main() {
               kind: MediaStoreErrorKind.transient,
             );
           }
-          return true;
+          return null;
         },
       );
       addTearDown(worker.dispose);
@@ -166,7 +170,7 @@ void main() {
     final worker = MediaStoreWorker(
       queue: queue,
       pipeline: pipeline,
-      preflight: () async => verified,
+      preflight: () async => verified ? null : _mismatch,
       preflightRetryWindow: const Duration(milliseconds: 20),
     );
     addTearDown(worker.dispose);
@@ -187,7 +191,7 @@ void main() {
     final worker = MediaStoreWorker(
       queue: queue,
       pipeline: pipeline,
-      preflight: () async => false,
+      preflight: () async => _mismatch,
     );
     addTearDown(worker.dispose);
 
@@ -206,7 +210,7 @@ void main() {
     final worker = MediaStoreWorker(
       queue: queue,
       pipeline: pipeline,
-      preflight: () async => false,
+      preflight: () async => _mismatch,
     );
     addTearDown(worker.dispose);
 
@@ -224,7 +228,7 @@ void main() {
     final worker = MediaStoreWorker(
       queue: queue,
       pipeline: pipeline,
-      preflight: () async => verified,
+      preflight: () async => verified ? null : _mismatch,
     );
     addTearDown(worker.dispose);
     final seen = <bool>[];
@@ -253,8 +257,7 @@ void main() {
   // network and drain() runs the preflight BEFORE the gate that owns
   // offline. Reporting that as a suspension told the user their store could
   // not be verified, over a store that was fine.
-  test('a preflight that throws suspends the drain without reporting a '
-      'store problem', () async {
+  test('a preflight that throws while offline holds quietly', () async {
     await queue.enqueueUpload(mediaId: 'm1');
     final worker = MediaStoreWorker(
       queue: queue,
@@ -263,6 +266,7 @@ void main() {
         'Could not reach S3 endpoint',
         kind: MediaStoreErrorKind.transient,
       ),
+      isOffline: () async => true,
     );
     addTearDown(worker.dispose);
 
@@ -270,6 +274,223 @@ void main() {
 
     expect(pipeline.processed, isEmpty);
     expect(worker.isSuspended, isFalse);
+    expect(
+      queue.currentHold?.kind,
+      MediaTransferHoldKind.offline,
+      reason: 'quiet is not silent: the queue still says why',
+    );
+  });
+
+  // Online, a throw means the store itself could not be checked. That is
+  // the user's to know (spec 7.1), with the error as the reason.
+  test('a preflight that throws while online suspends with its '
+      'reason', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      preflight: () async => throw const MediaStoreException(
+        'get smv1/store.json failed: 503',
+        kind: MediaStoreErrorKind.transient,
+      ),
+      isOffline: () async => false,
+    );
+    addTearDown(worker.dispose);
+
+    await worker.drain();
+
+    expect(worker.isSuspended, isTrue);
+    expect(queue.currentHold?.kind, MediaTransferHoldKind.storeUnreachable);
+    expect(queue.currentHold?.message, contains('smv1/store.json'));
+  });
+
+  // Could not tell is not the same as offline: the reason then shows, the
+  // safer mistake of the two.
+  test('an offline check that throws reads as online', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      preflight: () async => throw StateError('marker unreadable'),
+      isOffline: () async => throw StateError('no connectivity plugin'),
+    );
+    addTearDown(worker.dispose);
+
+    await worker.drain();
+
+    expect(worker.isSuspended, isTrue);
+    expect(queue.currentHold?.kind, MediaTransferHoldKind.storeUnreachable);
+  });
+
+  test('a refusal suspends and names its kind', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      preflight: () async => MediaTransferHoldKind.detached,
+    );
+    addTearDown(worker.dispose);
+
+    await worker.drain();
+
+    expect(worker.isSuspended, isTrue);
+    expect(queue.currentHold?.kind, MediaTransferHoldKind.detached);
+  });
+
+  test('a preflight that passes clears the hold', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    MediaTransferHoldKind? verdict = _mismatch;
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      preflight: () async => verdict,
+    );
+    addTearDown(worker.dispose);
+
+    await worker.drain();
+    expect(queue.currentHold?.kind, _mismatch);
+
+    verdict = null;
+    await worker.drain();
+
+    expect(worker.isSuspended, isFalse);
+    expect(queue.currentHold, isNull);
+  });
+
+  test('a gate that stops for offline records an offline hold', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      gate: (_) async => WorkerGate.stopDraining,
+    );
+    addTearDown(worker.dispose);
+
+    await worker.drain();
+
+    expect(pipeline.processed, isEmpty);
+    expect(worker.isSuspended, isFalse);
+    expect(queue.currentHold?.kind, MediaTransferHoldKind.offline);
+  });
+
+  // The production gate reads connectivity and policies, and any of them can
+  // throw. The drain must not end silently with a due row and no retry: it
+  // holds, says why, and arms the retry window like any failed admission.
+  test('a gate that throws holds and arms a retry', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      gate: (_) async => throw StateError('policy read failed'),
+      isOffline: () async => false,
+      preflightRetryWindow: const Duration(minutes: 7),
+    );
+    addTearDown(worker.dispose);
+
+    await expectLater(worker.drain(), completes);
+
+    expect(pipeline.processed, isEmpty);
+    expect(worker.wakeupDelayForTesting, const Duration(minutes: 7));
+    expect(queue.currentHold?.message, contains('policy read failed'));
+    expect(
+      await queue.nextPending(DateTime.now()),
+      isNotNull,
+      reason: 'the claim went back, so the retry can take the row',
+    );
+  });
+
+  test('a gate that throws while offline holds quietly', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      gate: (_) async => throw StateError('no connectivity plugin'),
+      isOffline: () async => true,
+    );
+    addTearDown(worker.dispose);
+
+    await worker.drain();
+
+    expect(worker.isSuspended, isFalse);
+    expect(queue.currentHold?.kind, MediaTransferHoldKind.offline);
+  });
+
+  // The drain claims a row before the gate sees it. A claim the gate turns
+  // away must go back, or no later drain could select the row.
+  test('a row the gate stops for is taken by a later drain', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    var gate = WorkerGate.stopDraining;
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      gate: (_) async => gate,
+    );
+    addTearDown(worker.dispose);
+
+    await worker.drain();
+    gate = WorkerGate.proceed;
+    await worker.drain();
+
+    expect(pipeline.processed, ['m1']);
+  });
+
+  // A disconnect disposes the runtime and builds none in its place, so a
+  // hold left standing would name a store this device no longer uses.
+  test('dispose clears the hold it recorded', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      preflight: () async => _mismatch,
+    );
+
+    await worker.drain();
+    worker.dispose();
+
+    expect(queue.currentHold, isNull);
+  });
+
+  // The hold is shared by every worker over one database. A worker disposed
+  // after its replacement recorded a reason must leave that reason alone.
+  test('dispose leaves a hold its replacement recorded', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final superseded = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      preflight: () async => _mismatch,
+    );
+    final replacement = MediaStoreWorker(
+      queue: MediaTransferQueueRepository(database: cacheDb),
+      pipeline: pipeline,
+      preflight: () async => MediaTransferHoldKind.detached,
+    );
+    addTearDown(replacement.dispose);
+
+    await superseded.drain();
+    await replacement.drain();
+    superseded.dispose();
+
+    expect(queue.currentHold?.kind, MediaTransferHoldKind.detached);
+  });
+
+  // Dispose does not stop a drain already running, and the hold is shared
+  // with the worker that replaced this one.
+  test('a superseded drain does not record a hold after dispose', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final answer = Completer<MediaTransferHoldKind?>();
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      preflight: () => answer.future,
+    );
+
+    final drain = worker.drain();
+    await pumpEventQueue();
+    worker.dispose();
+    answer.complete(_mismatch);
+    await drain;
+
+    expect(queue.currentHold, isNull);
   });
 
   // Scheduling and the UI signal are separate concerns. A preflight that
@@ -289,8 +510,9 @@ void main() {
             kind: MediaStoreErrorKind.transient,
           );
         }
-        return true;
+        return null;
       },
+      isOffline: () async => offline,
       preflightRetryWindow: const Duration(milliseconds: 20),
     );
     addTearDown(worker.dispose);

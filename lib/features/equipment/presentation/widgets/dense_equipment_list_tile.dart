@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/presentation/providers/condition_badge_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/condition_finding_text.dart';
-import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -161,23 +160,12 @@ class DenseEquipmentListTile extends ConsumerWidget {
     final theme = Theme.of(context);
 
     if (worstClock != null) {
-      final kindLabel = worstClock.ownerId == item.id
-          ? worstClock.status.kind.name
-          : context.l10n.equipment_components_rollupClock(
-              worstClock.ownerName,
-              worstClock.status.kind.name,
-            );
-      return Text(
-        kindLabel,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: serviceSeveritySwatch(
-            StatusColors.of(context),
-            worstClock.status.severity,
-          )?.accent,
-          fontWeight: FontWeight.w600,
-        ),
+      // Right-aligned like every other state in this column and the type
+      // column beside it.
+      return ServiceStatusIndicator(
+        clock: worstClock,
+        subjectId: item.id,
         textAlign: TextAlign.right,
-        overflow: TextOverflow.ellipsis,
       );
     }
 

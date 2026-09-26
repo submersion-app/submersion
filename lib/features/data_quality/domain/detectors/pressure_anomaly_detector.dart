@@ -72,6 +72,7 @@ class PressureAnomalyDetector extends QualityDetector {
       }
       final endReferenceBar = _endReferenceBar(series, surfacingTime);
       if (ep != null &&
+          endReferenceBar != null &&
           (ep - endReferenceBar).abs() >
               QualityThresholds.pressureEndpointMismatchBar) {
         out.add(
@@ -162,31 +163,36 @@ class PressureAnomalyDetector extends QualityDetector {
     return out;
   }
 
-  /// The pressure to treat as this tank's end-of-dive reading.
+  /// The pressure to treat as this tank's end-of-dive reading, or null when
+  /// the series holds nothing that describes the end of the dive.
   ///
-  /// A dive computer keeps recording for a while after the diver surfaces,
-  /// and on some sources (notably a rebreather bleeding its O2 supply down
-  /// through a mass-flow orifice) that tail reads well below the pressure the
-  /// cylinder actually held at surfacing -- the exact drop the surfacing-
-  /// pressure import fix corrects the reported end pressure for (#1092,
-  /// #2220). Comparing against the raw last sample would flag every dive that
-  /// fix already handled correctly, so once the series keeps recording past
-  /// surfacing, the last sample at or before that moment is used instead.
+  /// The reading used is the last sample at or before surfacing, never a
+  /// later one. A dive computer keeps recording for a while after the diver
+  /// surfaces, and on some sources (notably a rebreather bleeding its O2
+  /// supply down through a mass-flow orifice) that tail reads well below the
+  /// pressure the cylinder actually held at surfacing: that is the exact drop
+  /// the surfacing-pressure import fix corrects the reported end pressure for
+  /// (#1092, #2220). Comparing against the raw last sample would flag every
+  /// dive that fix already handled correctly.
   ///
-  /// That substitute sample must itself have been taken close to surfacing
-  /// ([QualityThresholds.pressureSurfacingLookbackSeconds]): a tank series
-  /// sampled far more sparsely than the depth series -- in the extreme, just
-  /// a start and an end reading -- would otherwise fall back to a stale
-  /// early-dive pressure that has nothing to do with surfacing. Falls back to
-  /// the raw last sample whenever there is no tail, no depth data to place a
-  /// surfacing moment, or no pressure reading close enough to it.
-  double _endReferenceBar(
+  /// That sample must itself have been taken close to surfacing
+  /// ([QualityThresholds.pressureSurfacingLookbackSeconds]). A tank series
+  /// sampled far more sparsely than the depth series (in the extreme, just a
+  /// start and an end reading) carries no reading that describes the end of
+  /// the dive at all, and neither a stale early-dive pressure nor the tail
+  /// above can stand in for one, so the comparison is suppressed instead.
+  /// This mirrors the start check, which drops out the same way when the
+  /// first sample lands too late to say anything about the reported start
+  /// pressure (#2222).
+  ///
+  /// Without depth data there is no surfacing moment to measure anything
+  /// against, so the last sample stands as the end reading, as it did before
+  /// #2220.
+  double? _endReferenceBar(
     List<QualityPressureSample> series,
     int? surfacingTime,
   ) {
-    if (surfacingTime == null || series.last.t <= surfacingTime) {
-      return series.last.bar;
-    }
+    if (surfacingTime == null) return series.last.bar;
     QualityPressureSample? atSurfacing;
     for (final p in series) {
       if (p.t <= surfacingTime) atSurfacing = p;
@@ -194,7 +200,7 @@ class PressureAnomalyDetector extends QualityDetector {
     if (atSurfacing == null ||
         surfacingTime - atSurfacing.t >
             QualityThresholds.pressureSurfacingLookbackSeconds) {
-      return series.last.bar;
+      return null;
     }
     return atSurfacing.bar;
   }

@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/presentation/other_gear_retype_act
 import 'package:submersion/features/equipment/presentation/providers/other_gear_retype_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -106,7 +107,17 @@ class _RetypeOtherGearPageState extends ConsumerState<RetypeOtherGearPage> {
                       : {..._excluded, id},
                 ),
                 title: Text(candidate.item.name),
-                subtitle: Text(_proposal(candidate, units)),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_proposal(candidate, units)),
+                    ServiceStatusIndicatorFor(
+                      equipmentId: candidate.item.id,
+                      density: ServiceIndicatorDensity.compact,
+                    ),
+                  ],
+                ),
               );
             },
           ),

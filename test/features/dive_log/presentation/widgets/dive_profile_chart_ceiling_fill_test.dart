@@ -46,12 +46,14 @@ Widget _buildChartHarness({
   );
 }
 
-/// The dashed red ceiling curve. The deco stop band shares its colour but is
-/// drawn with a transparent stroke, so the stroke colour identifies the line.
+/// The purple ceiling curve. Its colour is unique among the chart's lines
+/// (the deco stop band uses red), so that alone identifies it -- the line no
+/// longer carries a dash (issue #2228: active metric lines draw solid, since
+/// their colour already distinguishes them from every other metric).
 LineChartBarData _ceilingBar(WidgetTester tester) {
   final chart = tester.widget<LineChart>(find.byType(LineChart));
   return chart.data.lineBarsData.firstWhere(
-    (b) => b.color == const Color(0xFF7B1FA2) && b.dashArray != null,
+    (b) => b.color == const Color(0xFF7B1FA2),
   );
 }
 

@@ -279,13 +279,17 @@ void main() {
       },
     );
 
+    // The end check drops out the same way the start check does: a reported
+    // endpoint is only compared against a sample near the moment it
+    // describes. The three series below carry no such sample, so no
+    // endmismatch may be raised for any of them.
     test(
-      'a two-point tank series spanning the whole dive still compares against the raw last sample',
+      'a two-point tank series spanning the whole dive corroborates no end pressure',
       () {
-        // Only a start and an end reading: the end reading sits well past
-        // surfacing but the last pre-surfacing reading (t=0) is far too old
-        // to stand in for it, so the raw last sample is used, as before this
-        // fix.
+        // Only a start and an end reading. The end reading sits past
+        // surfacing (t=290), in the tail #1092 exists to distrust, and the
+        // last pre-surfacing reading (t=0) is the whole dive away from the
+        // end. Neither describes the pressure at the surface.
         final ctx = makeContext(
           dive: makeTestDive(tanks: [tank(start: 200, end: 65)]),
           samples: flatProfile(depth: 10, durationSeconds: 300),
@@ -296,11 +300,79 @@ void main() {
             ],
           },
         );
+        expect(
+          det.detect(ctx).where((f) => f.params['endpoint'] == 'end'),
+          isEmpty,
+        );
+      },
+    );
+
+    test('a series that stops long before surfacing corroborates no end '
+        'pressure', () {
+      // No post-surfacing tail at all: the transmitter dropped out at t=600
+      // and the diver surfaced at t=1190, so the last reading is ten minutes
+      // of breathing away from the pressure the cylinder held at the surface.
+      final ctx = makeContext(
+        dive: makeTestDive(tanks: [tank(start: 200, end: 60)]),
+        samples: flatProfile(depth: 20, durationSeconds: 1200),
+        pressures: {
+          't1': const [
+            QualityPressureSample(t: 0, bar: 200),
+            QualityPressureSample(t: 600, bar: 140),
+          ],
+        },
+      );
+      expect(
+        det.detect(ctx).where((f) => f.params['endpoint'] == 'end'),
+        isEmpty,
+      );
+    });
+
+    test(
+      'a series that begins after surfacing corroborates neither endpoint',
+      () {
+        // Every reading lands in the post-surfacing tail, so there is nothing
+        // at or before surfacing to read at all.
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 200, end: 60)]),
+          samples: flatProfile(depth: 10, durationSeconds: 300),
+          pressures: {
+            't1': const [
+              QualityPressureSample(t: 295, bar: 100),
+              QualityPressureSample(t: 400, bar: 90),
+            ],
+          },
+        );
+        expect(
+          det.detect(ctx).where((f) => f.params['endpoint'] != null),
+          isEmpty,
+        );
+      },
+    );
+
+    test(
+      'a reading inside the surfacing lookback is still compared, not the tail',
+      () {
+        // Surfacing is t=290 and the last pre-surfacing reading is t=200,
+        // inside pressureSurfacingLookbackSeconds: close enough to describe
+        // the end of the dive, so a genuine mismatch is still reported
+        // against that reading (70), never the tail (50).
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 200, end: 40)]),
+          samples: flatProfile(depth: 10, durationSeconds: 300),
+          pressures: {
+            't1': const [
+              QualityPressureSample(t: 0, bar: 200),
+              QualityPressureSample(t: 200, bar: 70),
+              QualityPressureSample(t: 300, bar: 50),
+            ],
+          },
+        );
         final endMismatch = det
             .detect(ctx)
             .singleWhere((f) => f.params['endpoint'] == 'end');
-        expect(endMismatch.params['recordBar'], 65);
-        expect(endMismatch.params['seriesBar'], 50);
+        expect(endMismatch.params['recordBar'], 40);
+        expect(endMismatch.params['seriesBar'], 70);
       },
     );
 

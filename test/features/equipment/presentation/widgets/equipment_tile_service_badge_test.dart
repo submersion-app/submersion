@@ -82,7 +82,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Hydrostatic test'), findsOneWidget);
+      // The dense tile used to render the bare kind here while the standard
+      // tile said "overdue"; both now read the same (#2260).
+      expect(find.text('Hydrostatic test overdue'), findsOneWidget);
     });
 
     testWidgets('dueSoon clock renders in tertiary styling', (tester) async {
@@ -99,7 +101,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Hydrostatic test'), findsOneWidget);
+      // Due soon now says so rather than relying on amber alone (#2260).
+      expect(find.text('Hydrostatic test due in 0d'), findsOneWidget);
     });
   });
 
@@ -135,7 +138,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Hydrostatic test'), findsOneWidget);
+      // Due soon now says so rather than relying on amber alone (#2260).
+      expect(find.text('Hydrostatic test due in 0d'), findsOneWidget);
     });
 
     testWidgets('no badge when the ledger has no entry (legacy ignored)', (

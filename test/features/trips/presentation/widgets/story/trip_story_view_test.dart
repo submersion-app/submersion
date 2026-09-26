@@ -15,10 +15,14 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_band.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_band_extents.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_map_header.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_docked_day.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/trip_story_map_header.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_stat_strip.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -79,6 +83,7 @@ Future<void> pumpView(
   Size viewSize = const Size(800, 2600),
   http.Client? weatherHttpClient,
   Map<int, TripDayWeather>? tripDayWeather,
+  Locale locale = const Locale('en'),
 }) async {
   tester.view.physicalSize = viewSize;
   tester.view.devicePixelRatio = 1.0;
@@ -103,7 +108,7 @@ Future<void> pumpView(
     ProviderScope(
       overrides: [...overrides, ...extra].cast(),
       child: MaterialApp.router(
-        locale: const Locale('en'),
+        locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: router,
@@ -112,6 +117,79 @@ Future<void> pumpView(
   );
   await tester.pump();
   await tester.pump(const Duration(seconds: 1));
+}
+
+/// Top of a day's full-width chapter heading, or null when it is not built.
+double? _headingTop(WidgetTester tester, int dayNumber) {
+  final matches = find
+      .byWidgetPredicate(
+        (w) =>
+            w is TripStoryDayHeader &&
+            !w.compact &&
+            w.day.dayNumber == dayNumber,
+      )
+      .evaluate();
+  if (matches.isEmpty) return null;
+  return tester.getTopLeft(find.byWidget(matches.first.widget)).dy;
+}
+
+int _dockedDayNumber(WidgetTester tester) => tester
+    .widget<TripStoryDockedDay>(find.byType(TripStoryDockedDay))
+    .day
+    .dayNumber;
+
+/// Where the band switches days for a viewport [height] tall: a third of the
+/// way down the space below the docked band.
+double _switchLineFor(double height) =>
+    TripStoryBandExtents.dockedFloor +
+    (height - TripStoryBandExtents.dockedFloor) / 3;
+
+/// The switch line on the 500x700 phone most of these tests use.
+double get _switchLine => _switchLineFor(700);
+
+ScrollPosition _storyScroll(WidgetTester tester) => tester
+    .state<ScrollableState>(
+      find
+          .descendant(
+            of: find.byType(CustomScrollView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    )
+    .position;
+
+/// Drags in steps past the touch slop until day [dayNumber]'s heading sits
+/// strictly between [above] and [below], then fails loudly if it never did.
+Future<double> _creepHeadingInto(
+  WidgetTester tester,
+  int dayNumber, {
+  required double above,
+  required double below,
+}) async {
+  // jumpTo rather than drags: it moves an exact distance with no momentum to
+  // coast past a narrow window, and still fires real scroll notifications.
+  for (var i = 0; i < 200; i++) {
+    final top = _headingTop(tester, dayNumber);
+    if (top != null && top > above && top < below) return top;
+    final position = _storyScroll(tester);
+    position.jumpTo(position.pixels + 20);
+    await tester.pump(const Duration(milliseconds: 150));
+  }
+  fail('day $dayNumber heading never landed between $above and $below');
+}
+
+/// Forces one resolution at the settled position, independent of how the
+/// view handles a scroll coming to rest, so a test about WHERE the line is
+/// does not also depend on WHEN resolution runs.
+Future<void> _resolveInPlace(WidgetTester tester) async {
+  final position = _storyScroll(tester);
+  final settled = position.pixels;
+  await tester.pump(const Duration(milliseconds: 150));
+  position.jumpTo(settled - 1);
+  await tester.pump(const Duration(milliseconds: 150));
+  position.jumpTo(settled);
+  await tester.pump(const Duration(milliseconds: 150));
+  await tester.pump(const Duration(milliseconds: 400));
 }
 
 void main() {
@@ -180,7 +258,7 @@ void main() {
     expect(find.byType(TripVesselSection), findsOneWidget);
   });
 
-  testWidgets('wide layout docks the map beside the story', (tester) async {
+  testWidgets('one band serves every width', (tester) async {
     final trip = _trip(
       start: DateTime(2026, 3, 27),
       end: DateTime(2026, 3, 28),
@@ -188,9 +266,56 @@ void main() {
     final story = _story(trip, today: DateTime(2026, 6, 1));
     await pumpView(tester, story, viewSize: const Size(1400, 900));
 
-    expect(find.byKey(const Key('trip-story-wide-layout')), findsOneWidget);
-    // Wide layout keeps the strip fixed in the side panel.
-    expect(find.byType(TripStatStrip), findsOneWidget);
+    // The 380px map column and its 900px breakpoint are gone.
+    expect(find.byKey(const Key('trip-story-wide-layout')), findsNothing);
+    expect(find.byKey(TripStoryBandDelegate.bandKey), findsOneWidget);
+    expect(find.byType(CustomScrollView), findsOneWidget);
+  });
+
+  testWidgets('the story fills a wide window rather than sitting in gutters', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 27),
+      end: DateTime(2026, 3, 28),
+    );
+    final story = _story(trip, today: DateTime(2026, 6, 1));
+    await pumpView(tester, story, viewSize: const Size(1400, 900));
+
+    // Edge to edge: a centred maximum width left blank space either side,
+    // which reads as a broken page rather than a deliberate measure.
+    expect(tester.getSize(find.byType(CustomScrollView)).width, 1400.0);
+    expect(
+      tester.getSize(find.byKey(TripStoryBandDelegate.bandKey)).width,
+      1400.0,
+    );
+  });
+
+  testWidgets('the band parks at the docked extent', (tester) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    final scrollable = find.byType(CustomScrollView);
+    for (var i = 0; i < 4; i++) {
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(
+      tester.getSize(find.byKey(TripStoryBandDelegate.bandKey)).height,
+      closeTo(TripStoryBandExtents.dockedFloor, 1.0),
+    );
   });
 
   testWidgets('stat strip scrolls away in the narrow layout', (tester) async {
@@ -288,7 +413,7 @@ void main() {
     expect(markerOpacity('Site a'), lessThan(1.0));
   });
 
-  testWidgets('day header sticks below the collapsed map while scrolling', (
+  testWidgets('the band names the day whose heading last crossed the line', (
     tester,
   ) async {
     final trip = _trip(
@@ -315,22 +440,458 @@ void main() {
     );
     await pumpView(tester, story, viewSize: const Size(500, 700));
 
-    // Scroll deep into the story so the map is fully collapsed and a later
-    // day's chapter is under the headers.
+    final scrollable = find.byType(CustomScrollView);
     for (var i = 0; i < 4; i++) {
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
+      await tester.drag(scrollable, const Offset(0, -400));
       await tester.pump(const Duration(milliseconds: 150));
     }
+    await tester.pump(const Duration(milliseconds: 500));
 
-    // Exactly one day header is pinned directly below the 180px map header;
-    // the first day's header has been pushed out by a later one.
-    final pinnedTops = [
-      for (final element in find.byType(TripStoryDayHeader).evaluate())
-        tester.getTopLeft(find.byWidget(element.widget)).dy,
-    ];
-    expect(pinnedTops, anyElement(closeTo(180.0, 1.0)));
-    // The first day's header (its badge shows "Mar 25") has been pushed out.
+    // The band names a day.
+    expect(find.byType(TripStoryDockedDay), findsOneWidget);
+
+    // The band names the day whose heading most recently crossed the line:
+    // that heading, if still on screen, is above the line, and the next
+    // day's heading, if on screen, is still below it.
+    await _resolveInPlace(tester);
+    final docked = _dockedDayNumber(tester);
+    final dockedTop = _headingTop(tester, docked);
+    if (dockedTop != null) {
+      expect(dockedTop, lessThanOrEqualTo(_switchLine + 1));
+    }
+    final nextTop = _headingTop(tester, docked + 1);
+    if (nextTop != null) {
+      expect(nextTop, greaterThan(_switchLine - 1));
+    }
+
+    // The first day is well out of view by now.
     expect(find.textContaining('Mar 25'), findsNothing);
+  });
+
+  testWidgets('the band switches a third of the way below itself', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    // Just below the line: day 1 still owns the screen. A halfway line (398)
+    // would already have switched here.
+    await _creepHeadingInto(
+      tester,
+      2,
+      above: _switchLine + 12,
+      below: _switchLine + 85,
+    );
+    await _resolveInPlace(tester);
+    expect(_dockedDayNumber(tester), 1);
+
+    // Just above the line, but still below both earlier rules: the band edge
+    // (96) and a third of the whole viewport (233). Both would still show
+    // day 1 here, which is the late switch this line exists to fix.
+    await _creepHeadingInto(tester, 2, above: 235, below: _switchLine - 12);
+    await _resolveInPlace(tester);
+    expect(_dockedDayNumber(tester), 2);
+  });
+
+  testWidgets('the last day docks once the story is scrolled to the end', (
+    tester,
+  ) async {
+    // The last chapter plus the closers is shorter than the space below the
+    // band, so its heading can never reach the line on its own: the scroll
+    // runs out first. At the end the last day still has to get its turn.
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    // A tall viewport pushes the line down to 397, below where the last
+    // heading bottoms out, so only the end-of-scroll rule can dock it.
+    await pumpView(tester, story, viewSize: const Size(500, 1000));
+
+    final position = _storyScroll(tester);
+    position.jumpTo(position.maxScrollExtent);
+    await tester.pump(const Duration(milliseconds: 150));
+    await _resolveInPlace(tester);
+
+    final lastTop = _headingTop(tester, 6);
+    expect(lastTop, isNotNull);
+    expect(
+      lastTop,
+      greaterThan(_switchLineFor(1000)),
+      reason: 'the fixture no longer strands the last heading below the line',
+    );
+    expect(_dockedDayNumber(tester), 6);
+  });
+
+  testWidgets('a last chapter taller than the screen still docks its own day', (
+    tester,
+  ) async {
+    // The last day carries enough dives that its chapter is taller than the
+    // screen, so at the end of the scroll its heading has gone up past the top
+    // while its body is still what fills the screen. No other heading can be
+    // visible then, since every earlier day is further up, so the band should
+    // name the last day rather than skip back to an earlier one.
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 5; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+        for (var j = 0; j < 12; j++)
+          _dive('last$j', DateTime(2026, 3, 30, 7 + j)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    final position = _storyScroll(tester);
+    position.jumpTo(position.maxScrollExtent);
+    await tester.pump(const Duration(milliseconds: 150));
+    await _resolveInPlace(tester);
+
+    // Guard: the scenario is actually reached. Headings are box slivers, so
+    // they stay mounted however far off screen they go; look past offstage.
+    final heading = find.byWidgetPredicate(
+      (w) => w is TripStoryDayHeader && !w.compact && w.day.dayNumber == 6,
+      skipOffstage: false,
+    );
+    expect(heading, findsOneWidget);
+    expect(
+      tester.getTopLeft(heading).dy,
+      lessThan(0),
+      reason: 'the last chapter no longer outgrows the screen',
+    );
+    expect(_dockedDayNumber(tester), 6);
+  });
+
+  testWidgets('the band catches up when a scroll comes to rest', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    // Day 2's heading comfortably below the line, band on day 1.
+    await _creepHeadingInto(
+      tester,
+      2,
+      above: _switchLine + 60,
+      below: _switchLine + 110,
+    );
+    await _resolveInPlace(tester);
+    expect(_dockedDayNumber(tester), 1);
+
+    // One slow drag that carries the heading well above the line: every move
+    // lands in the same frame, so the throttle resolves only the first (with
+    // the heading still below the line) and drops the rest. The finger then
+    // rests before lifting, so there is no momentum and no later update. Only
+    // the scroll coming to rest can switch the band now.
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(CustomScrollView)),
+    );
+    for (var i = 0; i < 12; i++) {
+      await gesture.moveBy(const Offset(0, -20));
+    }
+    await tester.pump(const Duration(milliseconds: 200));
+    await gesture.up();
+    await tester.pump(const Duration(milliseconds: 150));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(
+      _headingTop(tester, 2),
+      lessThan(_switchLine - 40),
+      reason: 'the drag did not carry the heading past the line',
+    );
+    expect(_dockedDayNumber(tester), 2);
+  });
+
+  testWidgets('tapping the docked day scrolls its chapter back into view', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    final scrollable = find.byType(CustomScrollView);
+    for (var i = 0; i < 3; i++) {
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+
+    final docked = tester
+        .widget<TripStoryDockedDay>(find.byType(TripStoryDockedDay))
+        .day
+        .date;
+
+    await tester.tap(find.byType(TripStoryDockedDay));
+    await tester.pumpAndSettle();
+
+    // Its full-width heading is back on screen, below the band.
+    final heading = find.byWidgetPredicate(
+      (w) => w is TripStoryDayHeader && !w.compact && w.day.date == docked,
+    );
+    expect(heading, findsOneWidget);
+    expect(
+      tester.getTopLeft(heading).dy,
+      greaterThanOrEqualTo(TripStoryBandExtents.dockedFloor - 1),
+    );
+  });
+
+  testWidgets('the docked day sits at the start edge in both directions', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+
+    Future<double> panelRelativeToMap(Locale locale) async {
+      await pumpView(
+        tester,
+        story,
+        viewSize: const Size(500, 700),
+        locale: locale,
+      );
+      final scrollable = find.byType(CustomScrollView);
+      for (var i = 0; i < 4; i++) {
+        await tester.drag(scrollable, const Offset(0, -400));
+        await tester.pump(const Duration(milliseconds: 150));
+      }
+      await tester.pump(const Duration(milliseconds: 500));
+      return tester.getCenter(find.byType(TripStoryDockedDay)).dx -
+          tester.getCenter(find.byType(TripStoryMap)).dx;
+    }
+
+    expect(await panelRelativeToMap(const Locale('en')), lessThan(0));
+    expect(await panelRelativeToMap(const Locale('he')), greaterThan(0));
+  });
+
+  testWidgets('large text does not overflow the docked panel', (tester) async {
+    // 2x is the common accessibility setting, and 96px has enough slack to
+    // absorb it: the band does not grow here, it just must not clip.
+    tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    final scrollable = find.byType(CustomScrollView);
+    for (var i = 0; i < 4; i++) {
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+
+    // No RenderFlex overflow from the scaled date and subtitle.
+    expect(tester.takeException(), isNull);
+    expect(find.byType(TripStoryDockedDay), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(TripStoryBandDelegate.bandKey)).height,
+      closeTo(TripStoryBandExtents.dockedFloor, 1.0),
+    );
+  });
+
+  testWidgets('text past the floor grows the band rather than clipping it', (
+    tester,
+  ) async {
+    // Above roughly 2.3x the panel outgrows the 96px floor, and the band has
+    // to grow with it: a fixed extent would clip the date instead.
+    tester.platformDispatcher.textScaleFactorTestValue = 3.0;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    final scrollable = find.byType(CustomScrollView);
+    for (var i = 0; i < 4; i++) {
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(
+      tester.getSize(find.byKey(TripStoryBandDelegate.bandKey)).height,
+      greaterThan(TripStoryBandExtents.dockedFloor),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a subtitled day at 3x text does not clip the docked panel', (
+    tester,
+  ) async {
+    // Dives with sites, so the docked panel carries a subtitle under the date.
+    // Two scaled lines are what the band's extents have to reserve for; a day
+    // without a subtitle needs less and would not catch an under-estimate.
+    tester.platformDispatcher.textScaleFactorTestValue = 3.0;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final labels = ['a', 'b', 'c', 'd', 'e', 'f'];
+    final story = buildTripStory(
+      trip: trip,
+      dives: [
+        for (var i = 0; i < labels.length; i++)
+          _diveAt(
+            labels[i],
+            DateTime(2026, 3, 25 + i, 9),
+            12.10 + i * 0.002,
+            -68.20 + i * 0.002,
+          ),
+      ],
+      itineraryDays: [],
+      mediaByDiveId: {},
+      sightingsByDiveId: {},
+      checklistItems: [],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    final scrollable = find.byType(CustomScrollView);
+    for (var i = 0; i < 4; i++) {
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.byType(TripStoryDockedDay), findsOneWidget);
+    expect(
+      tester.takeException(),
+      isNull,
+      reason: 'the docked panel overflowed the band it was given',
+    );
+  });
+
+  testWidgets('tapping the docked day clears the chapter of the band', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    // Stop mid-story, so the reveal is not clamped by the end of the scroll
+    // extent: that clamp is what hides an alignment that ignores the band.
+    final scrollable = find.byType(CustomScrollView);
+    for (var i = 0; i < 2; i++) {
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+
+    final docked = tester
+        .widget<TripStoryDockedDay>(find.byType(TripStoryDockedDay))
+        .day
+        .date;
+
+    await tester.tap(find.byType(TripStoryDockedDay));
+    await tester.pumpAndSettle();
+
+    final heading = find.byWidgetPredicate(
+      (w) => w is TripStoryDayHeader && !w.compact && w.day.date == docked,
+    );
+    expect(heading, findsOneWidget);
+    // Fully clear of the pinned band, not tucked underneath it.
+    expect(
+      tester.getTopLeft(heading).dy,
+      greaterThanOrEqualTo(TripStoryBandExtents.dockedFloor),
+      reason: 'the revealed heading is hidden behind the band',
+    );
+  });
+
+  testWidgets('a trip with no mappable points still renders the band', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 27),
+    );
+    // Dives without sites: the geometry has no points at all.
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 3; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    expect(find.byKey(TripStoryBandDelegate.bandKey), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('checklist and notes closers share the section title style', (
@@ -405,6 +966,66 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Surface day'), findsOneWidget);
+  });
+
+  testWidgets('the docked day carries its stored weather into the band', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    final now = DateTime(2026, 3, 31);
+
+    // Weather for every day of the trip, each at a distinct temperature, so
+    // the badge in the band can only come from the day actually docked.
+    await pumpView(
+      tester,
+      story,
+      viewSize: const Size(500, 700),
+      tripDayWeather: {
+        for (var i = 0; i < 6; i++)
+          tripDayMillis(DateTime(2026, 3, 25 + i)): TripDayWeather(
+            id: 'w$i',
+            tripId: trip.id,
+            date: DateTime(2026, 3, 25 + i),
+            latitude: 12.10,
+            longitude: -68.20,
+            airTemp: 20.0 + i,
+            cloudCover: CloudCover.clear,
+            fetchedAt: now,
+            createdAt: now,
+            updatedAt: now,
+          ),
+      },
+    );
+
+    final scrollable = find.byType(CustomScrollView);
+    for (var i = 0; i < 4; i++) {
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+
+    final panel = find.byType(TripStoryDockedDay);
+    final dockedDay = tester.widget<TripStoryDockedDay>(panel).day;
+    final expectedTemp = 20 + (dockedDay.dayNumber - 1);
+
+    expect(
+      find.descendant(
+        of: panel,
+        matching: find.textContaining('$expectedTemp'),
+      ),
+      findsOneWidget,
+      reason: 'the band shows the docked day\'s own weather',
+    );
   });
 
   testWidgets('the surface day renders stored weather', (tester) async {

@@ -139,7 +139,9 @@ void main() {
       type: EquipmentType.regulator,
     );
     await pumpDetail(tester, item: item, clockStatuses: [overdueStatus('e1')]);
-    expect(find.text('Service is overdue!'), findsOneWidget);
+    // The banner now names the service rather than "Service is overdue!"
+    // (#2260).
+    expect(find.text('Regulator service overdue'), findsOneWidget);
   });
 
   testWidgets('the overflow menu no longer offers Mark as Serviced', (

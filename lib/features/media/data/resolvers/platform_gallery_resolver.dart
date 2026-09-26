@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 import 'dart:ui' show Size;
 
+import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 import 'package:submersion/features/media/data/services/gallery_asset_reader.dart';
 import 'package:submersion/features/media/data/services/gallery_thumbnail_cache.dart';
@@ -36,29 +38,103 @@ class PlatformGalleryResolver implements MediaSourceResolver {
   /// [AssetResolutionService], whose gallery search is an interactive file
   /// dialog on those platforms.
   ///
-  /// Never [UnavailableKind.notFound]: that is the one verdict that orphans a
-  /// row, and the write syncs, so a Linux device would mark photos that are
-  /// still safe in a Mac's or phone's library missing everywhere.
+  /// [UnavailableKind.notFound] is the one verdict that orphans a row, and
+  /// the write syncs, so it is origin-qualified. A host without a library
+  /// never gives it for a row that carries an asset id: a Linux device would
+  /// otherwise mark photos still safe in a Mac's or phone's library missing
+  /// everywhere. A host with a library gives it only when the search fails
+  /// for a row whose origin is this device ([_linkedHere], via [_missing]);
+  /// a row linked elsewhere, or with no origin yet, is
+  /// [UnavailableKind.fromOtherDevice]. A row with no asset id at all has
+  /// nothing to search for and is notFound on every host.
   final bool _hasPhotoLibrary;
 
-  static const _elsewhere = UnavailableData(
-    kind: UnavailableKind.fromOtherDevice,
-  );
+  /// Names the device a row was linked on, for the "From {device}"
+  /// placeholder. Consulted only when this host has no photo library.
+  final Future<String?> Function(String deviceId)? _deviceLabel;
 
-  ///
+  Future<UnavailableData> _elsewhereFor(MediaItem item) async =>
+      UnavailableData(
+        kind: UnavailableKind.fromOtherDevice,
+        originDeviceLabel: await _labelFor(item.originDeviceId),
+      );
+
+  /// The published name of [deviceId], or null when unknown or unset. Never
+  /// throws: a label is decoration on a placeholder, not a verdict.
+  Future<String?> _labelFor(String? deviceId) async {
+    final lookup = _deviceLabel;
+    if (deviceId == null || lookup == null) return null;
+    try {
+      return await lookup(deviceId);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// [assetReader] performs the byte and metadata reads once an id is
   /// resolved. Production uses photo_manager; tests inject a fake library.
+  ///
+  /// [localDeviceId] names this device, so a miss can be judged by where the
+  /// row was linked. Fetched lazily, only when a search fails, and memoized
+  /// once it succeeds.
   PlatformGalleryResolver({
     required AssetResolutionService resolutionService,
     GalleryThumbnailCache? thumbnailCache,
     bool hasPhotoLibrary = true,
     GalleryAssetReader? assetReader,
+    Future<String?> Function(String deviceId)? deviceLabel,
+    Future<String?> Function()? localDeviceId,
   }) : _resolutionService = resolutionService,
        _thumbnailCache = thumbnailCache ?? GalleryThumbnailCache(),
        _hasPhotoLibrary = hasPhotoLibrary,
-       _reader = assetReader ?? const PhotoManagerAssetReader();
+       _reader = assetReader ?? const PhotoManagerAssetReader(),
+       _deviceLabel = deviceLabel,
+       _localDeviceId = localDeviceId;
 
   final GalleryAssetReader _reader;
+  final Future<String?> Function()? _localDeviceId;
+
+  /// [_localDeviceId]'s answer, memoized once it succeeds. A failed fetch is
+  /// not cached, so the next miss asks again.
+  String? _knownDeviceId;
+  final _log = LoggerService.forClass(
+    PlatformGalleryResolver,
+    category: LogCategory.media,
+  );
+
+  Future<String?> _thisDeviceId() async {
+    if (_knownDeviceId != null) return _knownDeviceId;
+    final source = _localDeviceId;
+    if (source == null) return null;
+    try {
+      return _knownDeviceId = await source();
+    } on Object catch (e) {
+      // "Unknown" is not "linked here": a miss then says nothing about the
+      // bytes, which is the safe answer when the answer syncs.
+      _log.debug('Local device id unavailable', error: e);
+      return null;
+    }
+  }
+
+  /// Whether [item] was provably linked on this device.
+  ///
+  /// Only then is a failed search evidence the photo is gone. A row linked
+  /// elsewhere is one this device never had; a row with no origin was linked
+  /// before gallery rows recorded one, and until the gallery origin backfill
+  /// stamps it no device can prove it is the one (media sync program spec
+  /// 6.1). Either way the verdict must not orphan a row on every device.
+  Future<bool> _linkedHere(MediaItem item) async {
+    final origin = item.originDeviceId;
+    if (origin == null) return false;
+    final local = await _thisDeviceId();
+    return local != null && origin == local;
+  }
+
+  /// The verdict for a gallery search that came back empty.
+  Future<UnavailableData> _missing(MediaItem item) async =>
+      await _linkedHere(item)
+      ? const UnavailableData(kind: UnavailableKind.notFound)
+      : _elsewhereFor(item);
 
   @override
   MediaSourceType get sourceType => MediaSourceType.platformGallery;
@@ -72,23 +148,42 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     if (assetId == null || assetId.isEmpty) {
       return const UnavailableData(kind: UnavailableKind.notFound);
     }
-    if (!_hasPhotoLibrary) return _elsewhere;
+    if (!_hasPhotoLibrary) return _elsewhereFor(item);
     final resolution = await _resolutionService.resolveAssetId(item);
     // Checked before the id, because accessDenied always carries a null id
     // and collapsing the two would report "your photo is gone" for what is
     // really "let me look at your photos".
     if (resolution.status == ResolutionStatus.accessDenied) {
-      return const UnavailableData(kind: UnavailableKind.accessDenied);
+      return UnavailableData(
+        kind: UnavailableKind.accessDenied,
+        limitedAccess: resolution.limitedAccess,
+      );
     }
     final resolvedId = resolution.localAssetId;
-    if (resolvedId == null) {
-      return const UnavailableData(kind: UnavailableKind.notFound);
-    }
+    if (resolvedId == null) return _missing(item);
     final bytes = await _reader.originBytes(resolvedId);
-    if (bytes == null) {
-      return const UnavailableData(kind: UnavailableKind.notFound);
+    if (bytes != null) {
+      return BytesData(bytes: bytes, servedFrom: ServedFrom.platformGallery);
     }
-    return BytesData(bytes: bytes, servedFrom: ServedFrom.platformGallery);
+    // A cached mapping is trusted without re-proving it, so the photo can
+    // stop reading under it: dropped from a limited selection, or
+    // re-indexed. Search again before calling it gone (spec 6.3), and keep
+    // an inconclusive answer, which would otherwise read as notFound here.
+    final again = await _resolutionService.reresolve(item);
+    if (again.status == ResolutionStatus.accessDenied) {
+      return UnavailableData(
+        kind: UnavailableKind.accessDenied,
+        limitedAccess: again.limitedAccess,
+      );
+    }
+    final newId = again.localAssetId;
+    if (newId != null && newId != resolvedId) {
+      final found = await _reader.originBytes(newId);
+      if (found != null) {
+        return BytesData(bytes: found, servedFrom: ServedFrom.platformGallery);
+      }
+    }
+    return _missing(item);
   }
 
   @override
@@ -100,7 +195,7 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     if (assetId == null || assetId.isEmpty) {
       return const UnavailableData(kind: UnavailableKind.notFound);
     }
-    if (!_hasPhotoLibrary) return _elsewhere;
+    if (!_hasPhotoLibrary) return _elsewhereFor(item);
     final width = target.width.toInt();
     final height = target.height.toInt();
     // Keyed by size as well as item: the grid and the viewer ask for different
@@ -119,12 +214,14 @@ class PlatformGalleryResolver implements MediaSourceResolver {
       // Load-bearing: grid tiles call resolveThumbnail, so without this every
       // tile on a permission-revoked device reports notFound and the
       // reconciler would orphan the whole library.
-      final status = (await _resolutionService.resolveAssetId(item)).status;
-      return UnavailableData(
-        kind: status == ResolutionStatus.accessDenied
-            ? UnavailableKind.accessDenied
-            : UnavailableKind.notFound,
-      );
+      final again = await _resolutionService.resolveAssetId(item);
+      if (again.status == ResolutionStatus.accessDenied) {
+        return UnavailableData(
+          kind: UnavailableKind.accessDenied,
+          limitedAccess: again.limitedAccess,
+        );
+      }
+      return _missing(item);
     }
     return BytesData(
       bytes: bytes,
@@ -178,10 +275,25 @@ class PlatformGalleryResolver implements MediaSourceResolver {
       return VerifyResult.accessDenied;
     }
     final resolvedId = resolution.localAssetId;
-    if (resolvedId == null) return VerifyResult.notFound;
-    return await _reader.exists(resolvedId)
-        ? VerifyResult.available
-        : VerifyResult.notFound;
+    if (resolvedId != null && await _reader.exists(resolvedId)) {
+      return VerifyResult.available;
+    }
+    // A cached mapping whose asset no longer exists is searched again, as
+    // in resolve: an inconclusive search must not become the orphaning
+    // verdict (spec 6.3).
+    if (resolvedId != null) {
+      final again = await _resolutionService.reresolve(item);
+      if (again.status == ResolutionStatus.accessDenied) {
+        return VerifyResult.accessDenied;
+      }
+      final newId = again.localAssetId;
+      if (newId != null && newId != resolvedId && await _reader.exists(newId)) {
+        return VerifyResult.available;
+      }
+    }
+    return await _linkedHere(item)
+        ? VerifyResult.notFound
+        : VerifyResult.fromOtherDevice;
   }
 
   /// Delegates to [AssetResolutionService] to obtain the local asset ID.

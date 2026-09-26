@@ -25,7 +25,61 @@ class MediaStoreException implements Exception {
   const MediaStoreException(this.message, {required this.kind, this.cause});
 
   @override
-  String toString() => 'MediaStoreException(${kind.name}): $message';
+  String toString() {
+    final base = 'MediaStoreException(${kind.name}): $message';
+    final detail = _describe(cause);
+    // The queue stores this string in errorMessage, and the Transfers page
+    // and the media health report both read it, so the provider's own
+    // explanation has to be in it: Dropbox puts its error_summary in the
+    // cause, the S3 and Dropbox stores put the whole underlying
+    // CloudStorageException there, and every adapter puts the
+    // FileSystemException there on a read failure. #2018 was this same gap
+    // one layer up, on Drive.
+    //
+    // Bounded, because a cause can be an HTML error page from a proxy and
+    // this lands in a database column and a list tile. Skipped when the
+    // message already contains it, which happens wherever a mapper folded
+    // the cause's text in before wrapping it.
+    if (detail == null || detail.isEmpty || _messageCarries(message, detail)) {
+      return base;
+    }
+    final trimmed = detail.length <= 200
+        ? detail
+        : '${detail.substring(0, 200)}...';
+    return '$base (cause: $trimmed)';
+  }
+
+  /// [cause]'s own text, or null when there is none.
+  ///
+  /// Never throws. The upload pipeline calls toString inside its catch to
+  /// hand the text to markFailed, and if that call threw the row would stay
+  /// 'transferring', which the drainer never selects, wedging the queue
+  /// head (#1270). [cause] is an arbitrary Object?, so its toString is
+  /// allowed to throw; [Error.safeToString] is the fallback, the same one
+  /// CloudStorageException uses for its own cause.
+  static String? _describe(Object? cause) {
+    if (cause == null) return null;
+    try {
+      return cause.toString();
+    } catch (_) {
+      return Error.safeToString(cause);
+    }
+  }
+
+  /// Whether [message] already says what [detail] says.
+  ///
+  /// A wrapped exception's `toString` is `ClassName: message`, but the
+  /// mappers build their own message out of the wrapped message alone, so a
+  /// plain containment check never matches on the path that wraps a whole
+  /// CloudStorageException and the provider's explanation prints twice.
+  static bool _messageCarries(String message, String detail) {
+    if (message.contains(detail)) return true;
+    final unprefixed = detail.replaceFirst(
+      RegExp(r'^\w+(Exception|Error): '),
+      '',
+    );
+    return unprefixed != detail && message.contains(unprefixed);
+  }
 }
 
 /// Progress callback: [transferredBytes] so far; [totalBytes] null when

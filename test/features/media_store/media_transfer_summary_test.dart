@@ -2,6 +2,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
 
 void main() {
@@ -136,5 +137,74 @@ void main() {
     await repo.defer(id, now.add(const Duration(hours: 1)));
     await repo.markTransferring(id);
     expect(await repo.earliestPendingWakeup(now), isNull);
+  });
+
+  // A suspended drain leaves its rows untouched, so they cannot carry the
+  // reason (spec 7.1: the queue never waits silently).
+  group('holds', () {
+    const unreachable = MediaTransferHold(
+      MediaTransferHoldKind.storeUnreachable,
+      'Could not check the media store: marker unreadable',
+    );
+
+    test('a hold names why due work is not moving', () async {
+      await repo.enqueueUpload(mediaId: 'm1');
+
+      repo.recordHold(unreachable);
+      final summary = await repo.watchSummary().first;
+
+      expect(summary.hold, unreachable);
+      expect(summary.queued, 1, reason: 'held rows are still due, not parked');
+      expect(summary.waitingReason, unreachable.message);
+    });
+
+    test('a hold outranks a parked row error as the waiting reason', () async {
+      final id = await repo.enqueueUpload(mediaId: 'm1');
+      await repo.markFailed(id, 'source unavailable');
+
+      repo.recordHold(unreachable);
+
+      expect(
+        (await repo.watchSummary().first).waitingReason,
+        unreachable.message,
+      );
+    });
+
+    test('recording or clearing a hold re-emits the summary', () async {
+      await repo.enqueueUpload(mediaId: 'm1');
+      final seen = <MediaTransferHoldKind?>[];
+      final sub = repo.watchSummary().listen((s) => seen.add(s.hold?.kind));
+      await pumpEventQueue();
+
+      repo.recordHold(
+        const MediaTransferHold(MediaTransferHoldKind.offline, 'Offline'),
+      );
+      await pumpEventQueue();
+      repo.recordHold(null);
+      await pumpEventQueue();
+      await sub.cancel();
+
+      expect(seen, [null, MediaTransferHoldKind.offline, null]);
+    });
+
+    test('another repository over the same database sees the hold', () async {
+      // Production's worker and the summary provider hold different
+      // instances over one database.
+      repo.recordHold(unreachable);
+
+      expect(
+        MediaTransferQueueRepository(database: db).currentHold,
+        unreachable,
+      );
+    });
+
+    test('a hold on one database does not reach another', () async {
+      final other = LocalCacheDatabase(NativeDatabase.memory());
+      addTearDown(other.close);
+
+      repo.recordHold(unreachable);
+
+      expect(MediaTransferQueueRepository(database: other).currentHold, isNull);
+    });
   });
 }

@@ -1,5 +1,11 @@
 # Google Play production access application
 
+> **Granted 2026-09-22.** Kept for the record, and because the Data safety
+> declaration in section 3 has to be reaffirmed on every update. If you ever
+> apply for another app on this account, read section 2 first: the form's
+> fields are capped at **300 characters each**, which is far shorter than the
+> answers drafted here.
+
 Working document for the production access application on the personal
 developer account holding `app.submersion`. Everything here is derived from
 the code in this repository as of version 1.8.0 (version code 128), not from
@@ -131,13 +137,102 @@ Both are separate from the production access form and both gate publishing:
 
 ## 2. Production access application answers
 
-Google's form is free text across roughly six prompts. Exact wording varies;
-match the drafted answer to the prompt it fits. Answers below are written to
-be specific, because the reviewers are reading for evidence that a real app
-with real users exists.
+**Every field is capped at 300 characters.** This was not apparent until the
+form was open, and it is the single most useful thing on this page: the
+answers below run far longer and had to be cut to roughly a fifth of their
+length on the spot. What actually got submitted is in 2.1.
 
-Sections marked **[FILL]** cannot be drafted from the repository. Do not ship
-them as written.
+The form is three steps. Step 1 asks about the closed test (recruitment, how
+easy recruiting was, tester engagement, feedback summary), step 2 about the
+app (audience, value, expected first-year installs), step 3 about production
+readiness (what changed because of the test, how you decided it was ready).
+Two are multiple choice; the rest are 300-character free text.
+
+The long-form answers below are kept because they are the raw material: they
+hold the reasoning and the sourced detail, and cutting from them is far
+easier than writing to the cap cold.
+
+Every answer below is drafted. Two still need a number only the Play Console
+and your test suite can give you, marked **VERIFY**: the tester count and the
+test count. Read the accuracy note above the feedback answer before pasting
+that one.
+
+### 2.1 What was actually submitted
+
+These are the answers that were approved, each within the 300-character cap.
+Kept verbatim because a reapplication or a second app starts from here, not
+from the long-form drafts below.
+
+**Step 1, about your closed test**
+
+Recruitment (297):
+
+> No paid testing provider, and not friends and family. Testers came from
+> Submersion's existing iOS App Store users who also carry Android, from the
+> project's public GitHub issue tracker, and from dive clubs and scuba forums,
+> where I looked for owners of dive computers I have no way to test myself.
+
+How easy was recruiting: **Neither difficult or easy**.
+
+Engagement (291):
+
+> Real diving, not synthetic testing. Testers logged their own dives and
+> downloaded from their own dive computers. Coverage was deliberately uneven:
+> each tester exercised the parts their own diving uses, which is how they
+> found faults in hardware, regions and data shapes I cannot reach alone.
+
+Feedback summary (300):
+
+> Collected through the public GitHub tracker and by direct email. 204 issues
+> from 40 reporters were closed during the test. Examples: the planner read a
+> cylinder's cuft as water volume not gas capacity (#2027); re-parsing erased
+> hand-entered tank pressures (#2014); Swiss bathymetry timed out (#2021).
+
+**Step 2, about your app**
+
+Intended audience (293):
+
+> Certified scuba divers, from newly certified recreational divers logging
+> their first dives to technical divers running trimix and closed-circuit
+> rebreathers. Also instructors and divemasters tracking student dives and
+> equipment servicing. Adults: no social features and no shared user content.
+
+Value to users (297):
+
+> Dive logging software is either dated desktop software or a mobile app that
+> locks your dives in a proprietary cloud. Submersion is one app on Android,
+> iOS, macOS, Windows and Linux. It downloads from 350+ dive computers,
+> analyses decompression, and keeps your log as a file you own and can export.
+
+Expected first-year installs: **0 to 10K**.
+
+**Step 3, your production readiness**
+
+Changes made because of the test (300):
+
+> Fixed what testers found and removed the causes. An Android-only defect
+> surfaced: contact import was offered but its permission was never declared,
+> so it could never run. Now declared and held by a test. The planner also
+> separates a cylinder's water capacity from its gas capacity in the type
+> system.
+
+How readiness was decided (275):
+
+> It is already in production on the App Store, so it has passed Apple's
+> review. Every change runs a sharded test suite, static analysis with infos
+> treated as fatal, CodeQL and architecture guards before merge. Stable
+> releases promote from a beta that testers have already run.
+
+### What worked, if you ever do this again
+
+- The audience answer names what the app is *not* (no social features, no
+  shared user content) so it agrees with the content rating questionnaire and
+  the 18+ target audience declaration. Those three are cross-checked.
+- The changes answer leads with a defect that existed **only on Android**.
+  That is the strongest evidence a closed test on this track did real work,
+  as opposed to a test a desktop build would have passed.
+- Issue numbers beat adjectives at 300 characters. They are checkable in a
+  public tracker and cost almost nothing to include.
 
 ### "What is your app about?"
 
@@ -198,62 +293,102 @@ them as written.
 > library behind Subsurface, which is what makes 350+ computer models across
 > 30 manufacturers practical rather than aspirational.
 
-### "How did you recruit your testers?" **[FILL]**
+### "How did you recruit your testers?"
 
-Answer honestly and concretely. What reviewers want to see is that testers are
-real people using the app, not accounts assembled to clear the threshold.
+**Before submitting:** replace [N] with the real tester count from the Play
+Console. Everything else here is sourced.
 
-Structure that works:
-
-> Testers were recruited from [where: the project's GitHub issue tracker, the
-> existing iOS App Store user base, dive club contacts, the r/scuba community,
-> and so on]. [N] testers joined, of whom [N] own dive computers in the
-> supported set, which was the main thing I needed covered, since dive
-> computer download is the highest-risk area of the app and needs real
-> hardware to exercise.
+> Testers came from three places.
 >
-> The project has been publishing beta builds publicly throughout at
-> github.com/submersion-app/beta-builds, and the iOS build has been on the
-> App Store [since DATE], which gave me an existing pool of users to invite.
+> First, the existing user base. Submersion has been in production on the
+> Apple App Store (apps.apple.com/us/app/submersion-dive-log/id6757456915),
+> so there were already divers using the application daily who owned Android
+> devices as well, and I invited them across to the Android closed track.
+>
+> Second, the project's public issue tracker at
+> github.com/submersion-app/submersion/issues. Submersion is open source, and
+> people who had already filed issues or followed development were a natural
+> pool: they were motivated, and several of them owned dive computers I
+> needed exercised against real hardware.
+>
+> Third, the diving community directly: dive clubs and scuba forums, where I
+> was specifically looking for testers with dive computers from manufacturers
+> I could not test myself.
+>
+> [N] testers joined the closed track. Dive computer support is the
+> highest-risk area of the application, since it depends on physical hardware
+> across 30 manufacturers, so hardware coverage drove who I most wanted.
 
-The App Store presence is worth stating plainly. A reviewer seeing a shipping
-iOS app at apps.apple.com/us/app/submersion-dive-log/id6757456915 is seeing
-evidence this is not a throwaway listing.
+### "What feedback did you receive, and how did you act on it?"
 
-### "What feedback did you receive, and how did you act on it?" **[FILL]**
+**Accuracy note before you paste this.** The issues below were filed during
+the test window through the project's public tracker, which serves all five
+platforms. Some reporters were on the Play closed track and some were using
+macOS, Windows, iOS or Linux builds. The answer below is written so it does
+not claim they were all Play testers, because that would not be true and the
+tracker is public for anyone to check. If you know which reporters were on
+the Android track, naming a couple of them specifically would strengthen it
+further.
 
-This is the answer that decides the application. Generic text ("testers found
-it useful, I fixed some bugs") is what declined applications look like. Give
-three or four concrete items in this shape:
+> Feedback came through the project's public issue tracker and by direct
+> email. During the testing period 204 issues raised by people other than me
+> were closed, from 40 distinct reporters. A representative sample, and what
+> each one changed:
+>
+> **A tester found the dive planner reading a cylinder's specification
+> incorrectly** (#2027), treating a tank's cubic-foot rating as water volume
+> rather than gas capacity. For a dive planner this is a safety-relevant
+> defect: it produces wrong gas requirements for a planned dive. Fixed in
+> #2079, with the calculation separated into an explicit type that
+> distinguishes water capacity from free gas so the two cannot be confused
+> again.
+>
+> **A tester reported that re-parsing a dive downloaded from a computer
+> without a pressure transmitter erased tank pressures they had entered by
+> hand** (#2014). That is silent data loss in a dive log, which is the worst
+> category of bug this application can have. Fixed so a re-parse preserves
+> manually entered values.
+>
+> **A tester reported PDF logbook export failing outright on dives with long
+> notes** (#2056). The renderer could not flow text onto a second page. Fixed
+> in #2065 and #2067 so notes, custom fields and species sightings continue
+> across pages.
+>
+> **A tester reported that merging two dives duplicated their cylinders**
+> (#2036), and separately that dives were not inheriting the dive type of the
+> site they were assigned to (#2037). Fixed in #2069 and #2070.
+>
+> **A tester in Switzerland reported the Swiss bathymetry layer timing out**
+> and never loading seafloor terrain for local dive sites (#2021), which I
+> could not have found without someone diving in that region. Fixed in #2053.
+>
+> **A tester reported buddy dive counts being wrong in the list** (#2084),
+> and another reported names sorting incorrectly when they contained accented
+> characters (#2038), which affects most non-English dive logs. Fixed in
+> #2168, #2172 and #2083.
+>
+> The pattern that mattered most: testers found defects in areas I could not
+> reach myself, because they depended on hardware I do not own, regions I do
+> not dive, or data shapes I had not created. The Swiss bathymetry timeout,
+> the cylinder specification error and the accented-name sorting are all of
+> that kind.
 
-> **[Issue]:** [What a tester reported, in their terms.]
-> **[Response]:** [What changed, with the version it shipped in.]
+### "How did you engage with your testers during the test?"
 
-Candidates you can source from the changelog and issue tracker, phrased as
-examples of the shape to use:
-
-> - A tester reported that dive computer downloads produced duplicate dives
->   when the same dive was already in the log. I added a duplicate review step
->   that scores the match and offers four resolutions rather than silently
->   merging or silently duplicating.
-> - Testers on the Play closed track were not seeing release notes on new
->   builds while TestFlight testers were. The upload pipeline was writing the
->   notes to a path the uploader did not read. Fixed in [version].
-
-Pull the real ones. Two or three specific, traceable items beat six vague ones.
-
-### "How did you engage with your testers during the test?" **[FILL]**
-
-> Testers reported issues through the project's public GitHub issue tracker at
-> github.com/submersion-app/submersion/issues and through [direct channel].
-> Every reported issue was triaged and [N] were fixed and shipped to the
-> closed track during the test window. Builds were published to testers [at
-> what cadence: on every merge to main / weekly], each with release notes
-> describing what changed.
-
-The continuous beta pipeline is genuinely unusual for a solo application and
-is worth stating, because it demonstrates a maintained release process rather
-than a one-off build.
+> Two channels. Testers reported issues through the project's public tracker
+> at github.com/submersion-app/submersion/issues, and a number reported
+> directly by email, usually those who preferred not to open a GitHub account.
+>
+> Every report was triaged and answered. During the testing period 204 issues
+> raised by people other than me were closed, from 40 distinct reporters. The
+> tracker is public, so this is verifiable rather than asserted.
+>
+> Builds reached testers continuously rather than in occasional drops. Every
+> change merged to the main branch is built and published automatically, each
+> with release notes describing what changed, so a tester who reported
+> something usually had a build containing the fix within days and could
+> confirm it themselves. Several of the fixes above were verified by the
+> person who reported them before the issue was closed.
 
 ### "Why is your app ready for production?"
 
@@ -379,7 +514,7 @@ Do **not** tick "Data is end-to-end encrypted" on any row. See 3.4.
 | **Audio files** | No | Not collected |
 | **Files and docs** | Yes | `ImportedFiles.bytes` retains every imported dive log file verbatim (`database.dart:3365`) and is in the sync payload, as is `RawDiveData.rawData`, the raw bytes libdivecomputer returned from the dive computer. Encrypted database envelopes are written to the user's chosen cloud storage |
 | **Calendar** | No | Not accessed |
-| **Contacts** | Yes | Buddy records are contact information by Play's definition (names, email addresses, phone numbers) and they ride the sync payload however they were entered. They can also come from the device address book on either platform: `READ_CONTACTS` is declared on Android by #2192 (see 5.8) |
+| **Contacts** | Yes | Buddy records are contact information by Play's definition (names, email addresses, phone numbers) and they ride the sync payload however they were entered. They can also come from the device address book on either platform: `READ_CONTACTS` is declared on Android as of #2192 (see 5.8) |
 | **App activity** | No | No analytics. Verified: no Firebase, Sentry, Crashlytics, Amplitude, Mixpanel or any analytics SDK in `pubspec.yaml` |
 | **Web browsing** | No | Not collected |
 | **App info and performance: Crash logs** | No | No crash reporting SDK |
@@ -721,7 +856,7 @@ link it in the declaration.
 | `SCHEDULE_EXACT_ALARM` | Gear maintenance reminders | Medium. See 5.4 |
 | `RECEIVE_BOOT_COMPLETED` | Re-arm reminders after reboot | None |
 | `POST_NOTIFICATIONS` | Maintenance reminders | None |
-| `READ_CONTACTS` | Selecting a dive buddy from the address book. Declared by #2192; absent from this branch until that merges | Low. Dangerous but not restricted, so no Permissions Declaration Form. It is a declared permission every review will see |
+| `READ_CONTACTS` | Selecting a dive buddy from the address book | Low. Dangerous but not restricted, so no Permissions Declaration Form. It is a declared permission every review will see |
 
 **Absent and worth noting:** no `ACCESS_BACKGROUND_LOCATION`, no
 `QUERY_ALL_PACKAGES`, no `MANAGE_EXTERNAL_STORAGE`, no `REQUEST_INSTALL_PACKAGES`,
@@ -780,14 +915,24 @@ rather than merely asserting it.
 
 ### 5.6 Target SDK
 
-**Finding:** `android/app/build.gradle` sets `compileSdk = 37` and
+**Finding:** `android/app/build.gradle.kts` sets `compileSdk = 37` and
 `targetSdk = flutter.targetSdkVersion`.
 
-**VERIFY:** resolve what `flutter.targetSdkVersion` evaluates to on your
-Flutter version and confirm it meets Play's current minimum for new releases.
-Play enforces a rolling target API level floor and rejects uploads below it.
-If the resolved value is below the floor, pin `targetSdk` explicitly rather
-than inheriting it.
+**Resolved:** `flutter.targetSdkVersion` is **36** on Flutter 3.47.0, read
+from `packages/flutter_tools/gradle/src/main/kotlin/FlutterExtension.kt:34` in
+the installed SDK. `compileSdk` is pinned to 37 in `build.gradle.kts` and
+`minSdk` to 26, both deliberate.
+
+Play enforces a rolling target API floor and rejects uploads below it, so the
+strongest evidence is empirical rather than documentary: builds have been
+uploading to the closed track throughout the test, which they could not do if
+the target level were below the floor.
+
+Two caveats worth keeping. The value is inherited, not pinned, so a Flutter
+SDK downgrade would silently lower it; pinning `targetSdk` explicitly costs
+nothing and removes that failure mode. And the floor rises annually, usually
+at the end of August, so re-check this before the first release of each
+target-API year rather than assuming it stays satisfied.
 
 `minSdk = 26` (Android 8.0) is fine and is a deliberate floor, not a default.
 
@@ -820,11 +965,6 @@ pairing the Dart platform gate to the manifest in both directions so they
 cannot drift apart again, and routes the user to system settings after a
 permanent denial.
 
-**Merge order:** #2192 is a separate PR. Until it merges, this branch's tree
-does not contain the declaration, so the 5.2 inventory row and the 3.2
-justification describe the post-merge state. If #2192 is closed without
-merging, revert those two and restore the iOS-only wording in `PRIVACY.md`.
-
 **For this application:** the Data safety answer does not change. The Contacts
 row in 3.2 was already Yes for a reason independent of the address book, which
 is that buddy records are contact information by Play's definition however they
@@ -838,19 +978,17 @@ declared permission that every review will see.
 
 One switch, documented in `docs/developer/release-process.md`:
 
-`PLAY_BETA_TRACK` defaults to `alpha` in `android/fastlane/Fastfile`. Once
-production access is granted, open testing becomes available and the default
-can move to `beta`. The helper validates the value and accepts only `alpha` or
-`beta`, so a typo fails loudly rather than uploading to the wrong track.
+**Granted 2026-09-22.** The default in the `beta_track` helper is now `beta`,
+so betas go to open testing and the `promote-play` leg works. Neither
+`beta.yml` nor `promote.yml` sets `PLAY_BETA_TRACK`, so the helper's default
+is the only lever; the environment variable still overrides it for a one-off
+run. The helper accepts only `alpha` or `beta`, so a typo fails loudly rather
+than uploading to the wrong track.
 
-Change the default in the `beta_track` helper, or set `PLAY_BETA_TRACK=beta`
-in `.github/workflows/beta.yml` and `.github/workflows/promote.yml`.
-
-The `promote-play` leg of the release pipeline, which currently cannot
-succeed, starts working at the same moment. Verify the first promotion with a
-staged rollout: `promote_to_production` already defaults to `rollout: "1.0"`,
-which is 100 percent. For the first production release, pass a smaller value
-explicitly.
+Both `promote_to_production` and the `play-rollout` input on `promote.yml`
+default to `1.0`, every user at once, which is the intended behaviour. See
+the rollout note in `docs/developer/release-process.md` for why, and for how
+to stage one if a release ever warrants it.
 
 ---
 
@@ -944,7 +1082,7 @@ Checked because each one looked like it might be, and was not:
 
 ## Open items
 
-Collected from the **[FILL]** and **VERIFY** markers above:
+Collected from the **VERIFY** markers above:
 
 - [x] ~~Revise `PRIVACY.md` to disclose all network destinations~~ Done (1.1)
 - [x] ~~Correct the encryption claims~~ Done: sync, database and media
@@ -952,10 +1090,15 @@ Collected from the **[FILL]** and **VERIFY** markers above:
       not claim end-to-end encryption (1.1, 3.4)
 - [ ] Confirm the privacy policy is served at a public HTTPS URL (1.1)
 - [ ] Confirm 12 testers stayed opted in for 14 continuous days (1.2)
-- [ ] Write the tester recruitment answer (2)
-- [ ] Write the tester feedback and response answer, with versions (2)
-- [ ] Write the tester engagement answer (2)
-- [ ] Fill in the test count and beta duration (2)
+- [x] ~~Write the tester recruitment answer~~ Drafted (2)
+- [x] ~~Write the tester feedback and response answer~~ Drafted from 204
+      externally reported issues closed in the window, citing six by number
+      (2)
+- [x] ~~Write the tester engagement answer~~ Drafted (2)
+- [ ] Substitute the real tester count in the recruitment answer, and the
+      test count and beta duration in the readiness answer (2)
+- [ ] Confirm which reporters were on the Play closed track, if you want to
+      name any of them specifically (2)
 - [x] ~~Confirm whether a buddy record can hold a phone number~~ Traced: yes,
       `Buddies.phone` exists and syncs. Declared (3.2)
 - [x] ~~Confirm whether media sync uploads image bytes or metadata only~~
@@ -971,6 +1114,8 @@ Collected from the **[FILL]** and **VERIFY** markers above:
       `PRIVACY.md`~~ Done (A.3)
 - [ ] Complete the Foreground service permissions declaration and record the
       video (5.1)
-- [ ] Resolve `flutter.targetSdkVersion` against Play's current floor (5.6)
+- [x] ~~Resolve `flutter.targetSdkVersion` against Play's current floor~~
+      Resolves to 36 on Flutter 3.47.0, and closed-track uploads succeed,
+      which is the practical proof. Consider pinning it (5.6)
 - [ ] Create the 1024 x 500 feature graphic (4.3)
 - [ ] Capture Android phone screenshots at phone aspect ratio (4.3)

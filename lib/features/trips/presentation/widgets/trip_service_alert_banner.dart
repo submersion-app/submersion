@@ -127,7 +127,7 @@ class TripServiceAlertBanner extends ConsumerWidget {
     // (see tripServiceAlertsProvider), so "due before {date}" is always safe.
     final dueDate = status.dueDate;
     if (status.severity == ServiceClockSeverity.overdue || dueDate == null) {
-      return context.l10n.trips_serviceAlert_overdue(status.kind.name);
+      return context.l10n.equipment_service_overdue(status.kind.name);
     }
     return context.l10n.trips_serviceAlert_dueBefore(
       status.kind.name,

@@ -15,7 +15,7 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 /// center, calculators as a tools list below.
 ///
 /// On desktop (>=1100px) the calculators open in a detail pane so the hub
-/// list stays visible, matching Settings and Statistics. The dive planner is
+/// list stays visible, matching Settings and Insights. The dive planner is
 /// the exception and always takes the whole window; see [kDivePlannerToolId].
 class PlanningPage extends ConsumerWidget {
   const PlanningPage({super.key});

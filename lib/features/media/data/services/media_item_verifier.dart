@@ -6,13 +6,10 @@ import 'package:submersion/features/media/domain/value_objects/verify_result.dar
 
 /// Checks one media item's source and persists what it finds.
 ///
-/// The only other caller of `MediaSourceResolver.verify` that writes the
-/// result is `LocalFilesDiagnosticsService.reverifyAll`, which is a bulk
-/// sweep wired directly to `LocalFileResolver` rather than dispatching
-/// through the registry. This exists so a user can check a single item of
-/// any source type, and it mirrors that service's persistence contract
-/// exactly: a divergence would let a one-off check and the bulk sweep
-/// disagree about the same row.
+/// `MediaVerificationSweep` runs this over many rows for the Settings
+/// "Check all media" action, so the two must agree about what a result
+/// means: the sweep counts a row inconclusive under exactly the predicate
+/// this method declines to write under.
 class MediaItemVerifier {
   MediaItemVerifier({
     required MediaSourceResolverRegistry registry,
@@ -75,9 +72,16 @@ class MediaItemVerifier {
       // and an upload finishing after it was taken has stamped the row since.
       // Writing the snapshot back would roll those stamps to null and sync
       // the rollback, which is how a second device ends up believing a
-      // backed-up photo has no backup.
+      // backed-up photo has no backup. Inconclusive outcomes now return
+      // before any write.
+      // An inconclusive outcome writes NOTHING, not even the date. The date
+      // is a synced column, so stamping it queued a pending record for every
+      // row a Check all pass could not reach, and on a device that holds a
+      // peer's library that is every row (media sync program spec 5.2). The
+      // check did not learn whether the bytes exist, so there is nothing to
+      // record: the resolver verdict in the media health report is where a
+      // support thread reads what this device could see.
       if (result != VerifyResult.available && result != VerifyResult.notFound) {
-        await _repository.stampVerification(item.id, verifiedAt: stamp);
         return result;
       }
       await _repository.stampVerification(

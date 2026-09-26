@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -81,6 +82,13 @@ class Dive3dInteractiveViewport extends StatefulWidget {
   /// draped meshes sample it so modulate blending leaves them unchanged.
   final ({double u, double v})? imageryWhiteTexel;
 
+  /// Fires with the current zoom once it has been still for
+  /// [_zoomSettleDelay] -- debounced so a drag or a burst of scroll-wheel
+  /// ticks does not trigger a fetch per frame. Consumers (the site LOD
+  /// patch) key their own fetch on this settled value, not on every
+  /// intermediate `_zoom` change.
+  final ValueChanged<double>? onZoomSettled;
+
   const Dive3dInteractiveViewport({
     super.key,
     required this.scene,
@@ -100,6 +108,7 @@ class Dive3dInteractiveViewport extends StatefulWidget {
     this.contourLabels,
     this.terrainImagery,
     this.imageryWhiteTexel,
+    this.onZoomSettled,
   });
 
   @override
@@ -110,6 +119,13 @@ class Dive3dInteractiveViewport extends StatefulWidget {
 class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
   static const double _minZoom = 0.4;
   static const double _maxZoom = 8.0;
+
+  /// How long the zoom must sit still before [Dive3dInteractiveViewport.
+  /// onZoomSettled] fires -- a drag or a burst of scroll-wheel ticks resets
+  /// this each time, so a fetch-driving consumer sees one call per pause,
+  /// not one per frame.
+  static const Duration _zoomSettleDelay = Duration(milliseconds: 300);
+  Timer? _zoomSettleTimer;
   CameraPose _pose = CameraPose.defaultView;
   double _yaw = CameraPose.defaultView.yawDegrees;
   double _pitch = CameraPose.defaultView.pitchDegrees;
@@ -144,6 +160,7 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
       _pose = pose;
       _applyPose();
     });
+    _scheduleZoomSettled();
     _refreshHoverAfterCameraChange();
   }
 
@@ -154,10 +171,27 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
   }
 
   @override
+  void dispose() {
+    _zoomSettleTimer?.cancel();
+    super.dispose();
+  }
+
+  /// (Re)starts the settle timer so [Dive3dInteractiveViewport.onZoomSettled]
+  /// fires once with the CURRENT [_zoom] after [_zoomSettleDelay] of no
+  /// further zoom change. Called every time `_zoom` is assigned.
+  void _scheduleZoomSettled() {
+    final callback = widget.onZoomSettled;
+    if (callback == null) return;
+    _zoomSettleTimer?.cancel();
+    _zoomSettleTimer = Timer(_zoomSettleDelay, () => callback(_zoom));
+  }
+
+  @override
   void didUpdateWidget(Dive3dInteractiveViewport old) {
     super.didUpdateWidget(old);
     if (old.chartMode != widget.chartMode) {
       setState(_applyPose);
+      _scheduleZoomSettled();
       _refreshHoverAfterCameraChange();
     }
   }
@@ -219,12 +253,14 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
     _pan =
         focalPoint - center - (focalPoint - focalDelta - center - _pan) * ratio;
     _zoom = next;
+    _scheduleZoomSettled();
   }
 
   void _zoomBy(double factor) {
     setState(() {
       _zoom = (_zoom * factor).clamp(_minZoom, _maxZoom);
     });
+    _scheduleZoomSettled();
     _refreshHoverAfterCameraChange();
   }
 
@@ -239,6 +275,7 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
       _pan += event.panDelta;
       _zoom = (_panZoomBaseZoom * event.scale).clamp(_minZoom, _maxZoom);
     });
+    _scheduleZoomSettled();
     _refreshHoverAfterCameraChange();
   }
 
@@ -247,6 +284,7 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
       _pose = CameraPose.defaultView;
       _applyPose();
     });
+    _scheduleZoomSettled();
     _refreshHoverAfterCameraChange();
   }
 

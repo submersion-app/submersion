@@ -1051,7 +1051,7 @@ class SiteRepository {
   /// an N+1 over the whole list.
   ///
   /// Durations coalesce runtime to bottom time, matching
-  /// `StatisticsRepository.getSiteDiveStatistics`; a dive carrying neither
+  /// `InsightsRepository.getSiteDiveStatistics`; a dive carrying neither
   /// is counted but contributes to neither duration figure.
   Future<Map<String, SiteDiveAggregate>> getDiveAggregatesBySite() async {
     try {

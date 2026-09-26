@@ -43,6 +43,7 @@ const Set<String> kNonDiveTypeModes = {
   'multi-gas dive',
 };
 
+final RegExp _ice = RegExp(r'\bice\b');
 final RegExp _minesOrSumps = RegExp(r'\b(mines?|sumps?)\b');
 final RegExp _technical = RegExp(r'\btec');
 final RegExp _fun = RegExp(r'\bfun\b');
@@ -131,7 +132,10 @@ String mapDiveType(String? raw) {
       s.contains('apnea')) {
     return 'freedive';
   }
-  if (s.contains('ice')) return 'ice';
+  // As a word: "ice" also sits inside "Practice", "Service" and
+  // "Novice", so a bare contains() recorded a training dive as an ice
+  // dive, which is the same over-claiming this mapper exists to stop.
+  if (_ice.hasMatch(s)) return 'ice';
   if (s.contains('altitude')) return 'altitude';
   if (s.contains('shore') || s.contains('beach')) return 'shore';
   if (s.contains('boat')) return 'boat';

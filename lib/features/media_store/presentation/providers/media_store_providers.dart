@@ -86,31 +86,6 @@ final mediaTransferQueueRepositoryProvider =
       (ref) => MediaTransferQueueRepository(),
     );
 
-/// Recovers media transfer rows stranded in 'transferring' by a previous
-/// process (app killed or backgrounded mid-upload) back to 'pending'.
-///
-/// Deliberately separate from [mediaStoreRuntimeProvider] and run exactly
-/// once per process. The runtime is rebuilt on every connect/disconnect,
-/// and a rebuild can spawn a fresh worker while a worker from the previous
-/// runtime is still mid-upload (nothing cancels its in-flight drain).
-/// Reclaiming on each rebuild - or inside drain() - would flip that live
-/// transfer's row back to 'pending' and let two workers process it at once.
-/// A row is only ever orphaned by process death, which is observable only
-/// at process start, so running reclamation once before the first drain
-/// recovers every real orphan without ever touching a live worker's row.
-/// This provider is never invalidated: its cached result makes the reclaim
-/// idempotent for the process lifetime. Uses ref.read, not ref.watch, so an
-/// invalidation/override of the repository provider (e.g. in a nested test
-/// scope) cannot recompute this future and trigger a second reclaim pass.
-// no-tick: recomputing is the bug, not the fix. The cached result is what
-// makes the reclaim idempotent for the process lifetime; a tick would run a
-// second reclaim pass over the queue on every write. The doc comment above
-// spells out why it deliberately uses ref.read rather than ref.watch.
-final FutureProvider<void> mediaTransferQueueReclaimProvider =
-    FutureProvider<void>((ref) async {
-      await ref.read(mediaTransferQueueRepositoryProvider).requeueStale();
-    });
-
 Future<Directory>? _mediaCacheRootFuture;
 
 /// The on-disk root of the media cache: originals, thumbs, renditions, plus
@@ -158,10 +133,9 @@ void resetMediaCacheRootForTesting() => _mediaCacheRootFuture = null;
 /// download that might never come. Running the same pass on the way up means
 /// a library that has stopped fetching still settles back under budget.
 ///
-/// Cached like [mediaTransferQueueReclaimProvider] so a runtime rebuild does
-/// not repeat it. Unlike that one it is deliberately NOT awaited by the
-/// runtime: reclaim must precede any drain for correctness, whereas eviction
-/// is housekeeping and must never delay one.
+/// Cached so a runtime rebuild does not repeat it, and deliberately NOT
+/// awaited by the runtime: eviction is housekeeping and must never delay a
+/// drain.
 // no-tick: recomputing is the bug, not the fix. The cached result is what
 // keeps this to one pass per process.
 final FutureProvider<void> mediaCacheEvictionProvider = FutureProvider<void>((
@@ -240,9 +214,11 @@ final mediaVerifyRunnerProvider =
 /// runtime opens the keychain and reads the store marker out of the bucket:
 /// [mediaStoreAttachedProvider] is one SharedPreferences read (and is
 /// documented never to error, which is exactly why it exists), and
-/// [MediaTransferQueueRepository.nextPending] is one indexed local read that
-/// means precisely "there is work a drain could take right now". A queue
-/// holding only deferred rows is left to the worker's own wakeup timer.
+/// [MediaTransferQueueRepository.hasOutstandingWork] is one local read that
+/// means "some row still needs a runtime": a due row for the drain, a row
+/// stranded in transferring for its reclaim, or a deferred row for the
+/// worker's wakeup, which exists only once the runtime does (spec 7.1).
+/// Finished and failed rows need nothing.
 ///
 /// Contains its own failures rather than propagating them: both call sites are
 /// fire-and-forget, so an escaping throw would land in the zone handler with
@@ -254,7 +230,7 @@ final mediaTransferResumeProvider = Provider<Future<void> Function()>((ref) {
     try {
       if (!await ref.read(mediaStoreAttachedProvider.future)) return;
       final queue = ref.read(mediaTransferQueueRepositoryProvider);
-      if (await queue.nextPending(DateTime.now()) == null) return;
+      if (!await queue.hasOutstandingWork()) return;
       // Building the runtime is the kick: see the unawaited drain at the end
       // of mediaStoreRuntimeProvider.
       await ref.read(mediaStoreRuntimeProvider.future);
@@ -366,14 +342,20 @@ final FutureProvider<bool> mediaStoreAttachedProvider = FutureProvider<bool>((
 
 /// Call after any media store attach change (connect or disconnect).
 ///
-/// Two providers cache attachment state: [mediaStoreRuntimeProvider] holds
-/// the store itself, and [mediaStoreAttachedProvider] holds the cheap
+/// Three providers cache attachment state:
+/// [attachedMediaObjectStoreProvider] holds the store adapter,
+/// [mediaStoreRuntimeProvider] holds the runtime built from it, and
+/// [mediaStoreAttachedProvider] holds the cheap
 /// boolean the tile badge reads. Refreshing only the runtime leaves the
 /// badge answering from a stale cache, so a freshly attached store shows
 /// no not-backed-up badges until the app restarts, and a disconnected one
 /// keeps showing them. Invalidating both together is the whole point of
 /// this helper: keep new call sites from having to remember the second.
 void invalidateMediaStoreAttachment(WidgetRef ref) {
+  // The adapter first: the runtime is built from it, so invalidating the
+  // runtime alone would rebuild it around the old store, and a diagnostics
+  // report would keep probing a store this device just disconnected from.
+  ref.invalidate(attachedMediaObjectStoreProvider);
   ref.invalidate(mediaStoreRuntimeProvider);
   ref.invalidate(mediaStoreAttachedProvider);
 }
@@ -390,6 +372,67 @@ final mediaStoreServiceProvider = Provider<MediaStoreService>(
     storesRepository: ref.watch(mediaStoresRepositoryProvider),
   ),
 );
+
+/// The attached media store's adapter, or null when nothing is attached or
+/// the provider cannot be built right now (missing config, no silent Google
+/// session, iCloud unavailable). Side-effect free: no worker, no drain, no
+/// sweep, so diagnostics can read the store without changing anything.
+/// [mediaStoreRuntimeProvider] builds on top of this.
+// no-tick: builds a store ADAPTER from attach state, not a cached query
+// result. The one repository read (the connected account behind the
+// attachment) changes only on connect or disconnect, and both invalidate
+// this provider together with the runtime; a tick would rebuild the adapter
+// under a drain in flight.
+final FutureProvider<MediaObjectStore?> attachedMediaObjectStoreProvider =
+    FutureProvider<MediaObjectStore?>((ref) async {
+      final attachState = ref.watch(mediaStoreAttachStateProvider);
+      final attachedId = await attachState.attachedStoreId();
+      if (attachedId == null) return null;
+      final providerType = await attachState.attachedProviderType();
+
+      // Account-first: attachments made through the Connected Accounts
+      // layer resolve their store via the account's adapter. Legacy
+      // attachments (no account id) keep the pre-account path unchanged.
+      final accountId = await attachState.attachedAccountId();
+      if (accountId != null) {
+        final account = await ref
+            .watch(connectedAccountsRepositoryProvider)
+            .getById(accountId);
+        if (account == null) return null;
+        return buildMediaObjectStoreForAccount(
+          account,
+          ref.watch(accountProviderRegistryProvider),
+        );
+      }
+      final legacyType = providerType ?? CloudProviderType.s3;
+      final s3Config = legacyType == CloudProviderType.s3
+          ? await ref.watch(mediaStoreCredentialsStoreProvider).load()
+          : null;
+      return buildMediaObjectStore(legacyType, s3Config: s3Config);
+    });
+
+/// A store resolver for the store gate probe (media sync program spec
+/// 7.2), built on the attached adapter alone: no worker, no drain, no sweep,
+/// so a probe a grid render makes writes nothing. The runtime's own
+/// resolver is not used for it because building the runtime kicks a queue
+/// drain and may run a verify sweep. Null when nothing is attached. Kept for
+/// the container's life, so its probe answers last the session.
+// no-tick: builds a resolver SERVICE from the store adapter, not a cached
+// query result. Attach changes invalidate the adapter, which rebuilds this.
+final FutureProvider<MediaStoreResolver?> mediaStoreProbeResolverProvider =
+    FutureProvider<MediaStoreResolver?>((ref) async {
+      final store = await ref.watch(attachedMediaObjectStoreProvider.future);
+      if (store == null) return null;
+      final resolver = MediaStoreResolver(
+        store: store,
+        cache: MediaCacheStore(
+          database: LocalCacheDatabaseService.instance.database,
+          root: await mediaCacheRoot(),
+        ),
+      );
+      ref.onDispose(resolver.dispose);
+      return resolver;
+    });
 
 /// The configured media store runtime, or null when this device has no
 /// store attached. Lazy: the first watcher (a media view or the settings
@@ -408,33 +451,7 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       final attachState = ref.watch(mediaStoreAttachStateProvider);
       final attachedId = await attachState.attachedStoreId();
       if (attachedId == null) return null;
-      final providerType = await attachState.attachedProviderType();
-
-      // Account-first: attachments made through the Connected Accounts
-      // layer resolve their store via the account's adapter. Legacy
-      // attachments (no account id) keep the pre-account path unchanged.
-      MediaObjectStore? builtStore;
-      final accountId = await attachState.attachedAccountId();
-      if (accountId != null) {
-        final account = await ref
-            .watch(connectedAccountsRepositoryProvider)
-            .getById(accountId);
-        if (account == null) return null;
-        builtStore = await buildMediaObjectStoreForAccount(
-          account,
-          ref.watch(accountProviderRegistryProvider),
-        );
-      } else {
-        final legacyType = providerType ?? CloudProviderType.s3;
-        final s3Config = legacyType == CloudProviderType.s3
-            ? await ref.watch(mediaStoreCredentialsStoreProvider).load()
-            : null;
-        builtStore = await buildMediaObjectStore(
-          legacyType,
-          s3Config: s3Config,
-        );
-      }
-      final store = builtStore;
+      final store = await ref.watch(attachedMediaObjectStoreProvider.future);
       if (store == null) return null;
 
       final cache = MediaCacheStore(
@@ -476,7 +493,10 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
         queue: MediaTransferQueueRepository(),
         pipeline: pipeline,
         deleteProcessor: deleteProcessor,
-        preflight: preflight.call,
+        preflight: preflight.check,
+        // Tells a marker read that failed for want of network (a quiet
+        // hold) from a store that could not be checked (a suspension).
+        isOffline: () async => await network.current() == NetworkKind.offline,
         gate: (entry) async {
           // Network policies (design spec section 9): offline halts the
           // drain; cellular defers anything the policy disallows.
@@ -497,16 +517,6 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
           return WorkerGate.proceed;
         },
       );
-      // Recover orphaned 'transferring' rows once per process, and do it
-      // BEFORE any drain can start - including a connectivity-triggered one.
-      // Awaited before the network subscription is attached so a network
-      // event during the await cannot kick a drain that marks a row
-      // 'transferring' while requeueStale is still running. Driven via the
-      // cached provider (not inside drain()) so a connect/disconnect rebuild
-      // cannot reclaim a row a still-running worker from the previous runtime
-      // owns; the cache makes it run only once.
-      await ref.read(mediaTransferQueueReclaimProvider.future);
-
       // Fire-and-forget: housekeeping must not delay the drain below.
       //
       // catchError is load-bearing, not decoration. A FutureProvider records

@@ -242,7 +242,7 @@ void main() {
       // The list reads one provider, so the two are a single choice.
       _useTallSurface(tester);
       final container = await _container(
-        filter: const EquipmentFilterState(serviceDueOnly: true),
+        filter: const EquipmentFilterState(serviceDue: ServiceDueFilter.any),
       );
 
       await _openSheet(tester, container);
@@ -270,8 +270,105 @@ void main() {
       await tester.pumpAndSettle();
 
       final applied = container.read(equipmentFilterProvider);
-      expect(applied.serviceDueOnly, isTrue);
+      expect(applied.serviceDue, ServiceDueFilter.any);
       expect(applied.status, isNull);
+    });
+
+    testWidgets('each service severity is its own choice', (tester) async {
+      // The home strip seeds these two, so the diver has to be able to
+      // reach and re-select the same state by hand.
+      _useTallSurface(tester);
+      final container = await _container();
+
+      await _openSheet(tester, container);
+      expect(find.text('Overdue'), findsOneWidget);
+      expect(find.text('Due Soon'), findsOneWidget);
+
+      await tester.tap(
+        find.byKey(const ValueKey('equipment_filter_status_serviceOverdue')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('equipment_filter_apply')));
+      await tester.pumpAndSettle();
+
+      expect(
+        container.read(equipmentFilterProvider).serviceDue,
+        ServiceDueFilter.overdue,
+      );
+    });
+
+    testWidgets('the service severities are mutually exclusive', (
+      tester,
+    ) async {
+      // One provider, one choice: picking Due Soon must release Overdue
+      // rather than leaving both chips lit.
+      _useTallSurface(tester);
+      final container = await _container(
+        filter: const EquipmentFilterState(
+          serviceDue: ServiceDueFilter.overdue,
+        ),
+      );
+
+      await _openSheet(tester, container);
+      await tester.tap(
+        find.byKey(const ValueKey('equipment_filter_status_serviceDueSoon')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        _isSelected(
+          tester,
+          find.byKey(const ValueKey('equipment_filter_status_serviceOverdue')),
+        ),
+        isFalse,
+      );
+
+      await tester.tap(find.byKey(const ValueKey('equipment_filter_apply')));
+      await tester.pumpAndSettle();
+      expect(
+        container.read(equipmentFilterProvider).serviceDue,
+        ServiceDueFilter.dueSoon,
+      );
+    });
+
+    testWidgets('tapping a lit service severity releases it', (tester) async {
+      // The chips toggle, so the diver drops the narrowing from the same
+      // chip that applied it rather than hunting for All Equipment.
+      _useTallSurface(tester);
+      final container = await _container(
+        filter: const EquipmentFilterState(
+          serviceDue: ServiceDueFilter.overdue,
+        ),
+      );
+
+      await _openSheet(tester, container);
+      await tester.tap(
+        find.byKey(const ValueKey('equipment_filter_status_serviceOverdue')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('equipment_filter_apply')));
+      await tester.pumpAndSettle();
+
+      expect(container.read(equipmentFilterProvider).serviceDue, isNull);
+    });
+
+    testWidgets('picking a status releases a service severity', (tester) async {
+      _useTallSurface(tester);
+      final container = await _container(
+        filter: const EquipmentFilterState(
+          serviceDue: ServiceDueFilter.overdue,
+        ),
+      );
+
+      await _openSheet(tester, container);
+      await tester.tap(_statusChip(EquipmentStatus.retired));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('equipment_filter_apply')));
+      await tester.pumpAndSettle();
+
+      final applied = container.read(equipmentFilterProvider);
+      expect(applied.serviceDue, isNull);
+      expect(applied.status, EquipmentStatus.retired);
     });
 
     testWidgets('needsService is not offered as a status', (tester) async {

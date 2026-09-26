@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/domain/services/session_item_composer.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
@@ -229,7 +230,22 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
                   for (final e in equipmentList)
                     DropdownMenuItem<EquipmentItem?>(
                       value: e,
-                      child: Text(e.name),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ServiceStatusIndicatorFor(
+                            equipmentId: e.id,
+                            density: ServiceIndicatorDensity.dot,
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              e.name,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                 ],
                 onChanged: (e) =>

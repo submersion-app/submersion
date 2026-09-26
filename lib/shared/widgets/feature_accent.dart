@@ -67,10 +67,26 @@ class FeatureAppBarTitle extends ConsumerWidget {
     required this.featureId,
     required this.title,
     this.style,
-  });
+  }) : child = null;
+
+  /// A title that is itself a widget, such as a header whose title doubles as
+  /// a section switcher.
+  ///
+  /// The accent icon still leads it, so a header like that keeps the same look
+  /// as every other titled pane when section headers are on. The [child] owns
+  /// its own text styling and overflow.
+  const FeatureAppBarTitle.custom({
+    super.key,
+    required this.featureId,
+    required Widget this.child,
+  }) : title = '',
+       style = null;
 
   final String featureId;
   final String title;
+
+  /// Replaces the title text when set; see [FeatureAppBarTitle.custom].
+  final Widget? child;
 
   /// Applied to the title text in both states. Compact app bars style their
   /// own title, so it has to survive the accent wrapping unchanged.
@@ -83,13 +99,15 @@ class FeatureAppBarTitle extends ConsumerWidget {
   /// pixels. Left to wrap, "Certifications" broke mid-word and grew the bar's
   /// height; the accent branch made it worse, since the icon and its gap take
   /// 32px out of that budget before the text gets any.
-  Widget _titleText() => Text(
-    title,
-    style: style,
-    maxLines: 1,
-    overflow: TextOverflow.ellipsis,
-    softWrap: false,
-  );
+  Widget _titleText() =>
+      child ??
+      Text(
+        title,
+        style: style,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        softWrap: false,
+      );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_computer/data/services/planned_dive_fill_service.dart';
 import 'package:submersion/features/import_wizard/domain/models/diver_import_outcome.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
@@ -18,6 +19,12 @@ class UnifiedImportResult {
   /// Number of dives whose source data was replaced with freshly downloaded
   /// data (replaceSource duplicate action).
   final int updatedCount;
+
+  /// Planned dives filled from a download and promoted (issue #2002).
+  final int filledCount;
+
+  /// One outcome per filled planned dive, so the summary can undo them.
+  final List<PlannedDiveFillOutcome> fillOutcomes;
 
   /// Number of items that were skipped (e.g. detected duplicates the user
   /// chose not to import).
@@ -51,6 +58,8 @@ class UnifiedImportResult {
     required this.importedCounts,
     required this.consolidatedCount,
     this.updatedCount = 0,
+    this.filledCount = 0,
+    this.fillOutcomes = const [],
     required this.skippedCount,
     this.importedDiveIds = const [],
     this.errorMessage,

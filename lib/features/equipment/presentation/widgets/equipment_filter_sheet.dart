@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/domain/models/service_due_filter_display.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_choice_attribute_filter.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
@@ -39,10 +40,18 @@ class EquipmentFilterSheet extends ConsumerStatefulWidget {
       _EquipmentFilterSheetState();
 }
 
+/// The widget-key suffix for a severity's choice chip. [ServiceDueFilter.any]
+/// keeps the key the combined Service Due chip has always had.
+String _severityKey(ServiceDueFilter severity) => switch (severity) {
+  ServiceDueFilter.any => 'serviceDue',
+  ServiceDueFilter.overdue => 'serviceOverdue',
+  ServiceDueFilter.dueSoon => 'serviceDueSoon',
+};
+
 class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
   // Local draft, mirroring EquipmentFilterState.
   EquipmentStatus? _status;
-  bool _serviceDueOnly = false;
+  ServiceDueFilter? _serviceDue;
   EquipmentType? _type;
   List<EquipmentAttrCondition> _attrConditions = const [];
   Set<String> _tagIds = const {};
@@ -52,7 +61,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
     super.initState();
     final filter = widget.ref.read(equipmentFilterProvider);
     _status = filter.status;
-    _serviceDueOnly = filter.serviceDueOnly;
+    _serviceDue = filter.serviceDue;
     _type = filter.type;
     _attrConditions = filter.attrConditions;
     _tagIds = filter.tagIds;
@@ -182,21 +191,26 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
             ChoiceChip(
               key: const ValueKey('equipment_filter_status_all'),
               label: Text(context.l10n.equipment_list_filterAll),
-              selected: _status == null && !_serviceDueOnly,
+              selected: _status == null && _serviceDue == null,
               onSelected: (_) => setState(() {
                 _status = null;
-                _serviceDueOnly = false;
+                _serviceDue = null;
               }),
             ),
-            ChoiceChip(
-              key: const ValueKey('equipment_filter_status_serviceDue'),
-              label: Text(context.l10n.equipment_list_filterServiceDue),
-              selected: _serviceDueOnly,
-              onSelected: (selected) => setState(() {
-                _serviceDueOnly = selected;
-                if (selected) _status = null;
-              }),
-            ),
+            // The severities are the states the home strip's service chips
+            // seed, so the diver can reach and re-select them by hand.
+            for (final severity in ServiceDueFilter.values)
+              ChoiceChip(
+                key: ValueKey(
+                  'equipment_filter_status_${_severityKey(severity)}',
+                ),
+                label: Text(severity.localizedName(context.l10n)),
+                selected: _serviceDue == severity,
+                onSelected: (selected) => setState(() {
+                  _serviceDue = selected ? severity : null;
+                  if (selected) _status = null;
+                }),
+              ),
             // needsService is excluded: the computed Service Due choice above
             // is what divers actually mean by it.
             for (final status in EquipmentStatus.values.where(
@@ -208,7 +222,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                 selected: _status == status,
                 onSelected: (selected) => setState(() {
                   _status = selected ? status : null;
-                  if (selected) _serviceDueOnly = false;
+                  if (selected) _serviceDue = null;
                 }),
               ),
           ],
@@ -313,7 +327,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
   void _clearAll() {
     setState(() {
       _status = null;
-      _serviceDueOnly = false;
+      _serviceDue = null;
       _type = null;
       _attrConditions = const [];
       _tagIds = const {};
@@ -325,7 +339,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
         .read(equipmentFilterProvider.notifier)
         .state = EquipmentFilterState(
       status: _status,
-      serviceDueOnly: _serviceDueOnly,
+      serviceDue: _serviceDue,
       type: _type,
       attrConditions: _attrConditions,
       tagIds: _tagIds,

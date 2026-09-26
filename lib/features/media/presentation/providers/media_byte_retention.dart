@@ -36,7 +36,7 @@ const Duration thumbnailRetention = Duration(minutes: 5);
 ///
 /// Only meaningful on a provider declared `isAutoDispose: true`; on a
 /// keep-forever provider the link has nothing to release. Mirrors the
-/// `_keepAliveWithExpiry` idiom in `statistics_providers.dart`.
+/// `_keepAliveWithExpiry` idiom in `insights_providers.dart`.
 void retainFor(Ref ref, Duration window) {
   final link = ref.keepAlive();
   final timer = Timer(window, link.close);

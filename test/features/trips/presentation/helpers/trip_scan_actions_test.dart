@@ -24,6 +24,9 @@ import '../../../../helpers/mock_providers.dart';
 /// Photo picker that always denies permission.
 class _DeniedPicker implements PhotoPickerService {
   @override
+  Future<PhotoPermissionStatus> currentPermission() => checkPermission();
+
+  @override
   Future<PhotoPermissionStatus> requestPermission() async =>
       PhotoPermissionStatus.denied;
 
@@ -47,6 +50,9 @@ class _DeniedPicker implements PhotoPickerService {
 
 /// Photo picker with access granted over a fixed library.
 class _GrantedPicker implements PhotoPickerService {
+  @override
+  Future<PhotoPermissionStatus> currentPermission() => checkPermission();
+
   _GrantedPicker(this.library);
 
   final List<AssetInfo> library;

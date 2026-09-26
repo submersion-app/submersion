@@ -1,3 +1,4 @@
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -39,14 +40,29 @@ class MediaDeletionCoordinator {
   /// dive-deletion cascade partitions its doomed set out of a single
   /// select, so re-reading each row by id here would be duplicate work
   /// proportional to the number of photos on the dives being deleted.
-  Future<void> deleteMediaItems(List<MediaItem> items) => _delete(
+  ///
+  /// [keepIf] spares any row it answers true for, judged inside the delete's
+  /// own transaction (see [MediaRepository.deleteMultipleMedia]). A caller
+  /// whose items were chosen earlier passes the rule that chose them, so a
+  /// row relinked in the meantime, even during the queue write below,
+  /// survives. Its intent was already enqueued; that is harmless by the
+  /// same refcount that covers a crash between enqueue and delete.
+  Future<void> deleteMediaItems(
+    List<MediaItem> items, {
+    bool Function(MediaData row)? keepIf,
+  }) => _delete(
     [for (final item in items) item.id],
     {for (final item in items) item.id: item},
+    keepIf: keepIf,
   );
 
   /// [known] short-circuits the per-id read for callers that already hold
   /// the row; ids absent from it are read back as before.
-  Future<void> _delete(List<String> ids, Map<String, MediaItem> known) async {
+  Future<void> _delete(
+    List<String> ids,
+    Map<String, MediaItem> known, {
+    bool Function(MediaData row)? keepIf,
+  }) async {
     var enqueued = false;
     for (final id in ids) {
       // Untyped catch on purpose: an uninitialized
@@ -64,7 +80,9 @@ class MediaDeletionCoordinator {
         );
       }
     }
-    if (ids.length == 1) {
+    if (keepIf != null) {
+      await _mediaRepository.deleteMultipleMedia(ids, keepIf: keepIf);
+    } else if (ids.length == 1) {
       await _mediaRepository.deleteMedia(ids.single);
     } else {
       await _mediaRepository.deleteMultipleMedia(ids);

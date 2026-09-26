@@ -12,6 +12,9 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/peer_device_name_store.dart';
+import 'package:submersion/core/services/sync/sync_fact_groups.dart';
+import 'package:submersion/core/services/sync/media_resolution_hints.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_apply_progress.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_json_stream_reader.dart';
@@ -235,6 +238,17 @@ class SyncService {
   /// Keyslot self-heal after publish (encrypted libraries). Nullable so
   /// existing constructions keep working; heal runs only when provided.
   final SyncEncryptionService? _encryptionService;
+
+  /// Where the names peers publish on their manifests are remembered, so
+  /// labels such as "From Eric's MacBook" need no cloud read. Optional:
+  /// the legacy tests build the service without one.
+  final PeerDeviceNameStore? _peerNames;
+
+  /// Told which media rows a merge gave something new to be found by, so
+  /// their cached "not found here" searches retry at once (spec 6.2).
+  /// Optional: most tests build the service without one.
+  final Future<void> Function(MediaResolutionHints hints)?
+  _onMediaResolutionHints;
   final _log = LoggerService.forClass(SyncService);
   final _uuid = const Uuid();
 
@@ -298,12 +312,16 @@ class SyncService {
     LibraryEpochStore? epochStore,
     SyncEncryptionService? encryptionService,
     AppLocalizations Function()? localizations,
+    PeerDeviceNameStore? peerNames,
+    Future<void> Function(MediaResolutionHints hints)? onMediaResolutionHints,
   }) : _syncRepository = syncRepository,
        _serializer = serializer,
        _cloudProvider = cloudProvider,
        _syncInitializer = syncInitializer,
        _epochStore = epochStore,
        _encryptionService = encryptionService,
+       _peerNames = peerNames,
+       _onMediaResolutionHints = onMediaResolutionHints,
        _localizations = localizations ?? _englishLocalizations;
 
   /// Set a callback to receive progress updates during sync
@@ -611,6 +629,7 @@ class SyncService {
         // Reuse the fence check's listing (null after a rejoin, which mutates
         // the folder and needs a fresh view).
         preListedFiles: fence.files,
+        peerNames: _peerNames,
         apply: (payload) async {
           final r = await _applyRemotePayload(payload, lastSyncTime);
           recordsSynced += r.recordsApplied;
@@ -872,9 +891,14 @@ class SyncService {
         message: e.message,
       );
     } on CloudStorageException catch (e) {
+      // toString carries the underlying cause the message omits, which is
+      // what a user's diagnostics need to tell an outage from a sign-in.
+      _log.warning('Sync failed: $e');
       return SyncResult(
         status: SyncResultStatus.networkError,
-        message: e.message,
+        message: _causedByTimeout(e)
+            ? _l10n.settings_cloudSync_result_timedOut
+            : e.message,
       );
     } catch (e, stackTrace) {
       _log.error('Changeset sync failed', error: e, stackTrace: stackTrace);
@@ -921,6 +945,14 @@ class SyncService {
     } on SyncEncryptionRequired {
       // Not unreadable-corrupt: encrypted. Reaches performSync's handler,
       // which halts with awaitingPassphrase instead of a generic error.
+      rethrow;
+    } on TimeoutException {
+      // Not unreadable either: the backend could not be reached. This is the
+      // sync's first cloud request, so a dead connection or an expired
+      // sign-in surfaces here first. performSync's handlers still halt the
+      // sync, but say what went wrong instead of blaming the marker (#2332).
+      rethrow;
+    } on CloudStorageException {
       rethrow;
     } catch (e) {
       _log.warning('Library epoch marker unreadable; failing closed: $e');
@@ -1160,6 +1192,18 @@ class SyncService {
     } catch (_) {
       return null;
     }
+  }
+
+  /// True when [e] is a provider's report of a missed deadline. Providers put
+  /// HTTP timeouts on every request and wrap a miss like any other failure,
+  /// sometimes more than once as calls nest, so the chain of causes is walked
+  /// rather than only the first link.
+  static bool _causedByTimeout(CloudStorageException e) {
+    Object? cause = e.cause;
+    while (cause is CloudStorageException) {
+      cause = cause.cause;
+    }
+    return cause is TimeoutException;
   }
 
   String _formatSyncError(Object error, StackTrace stackTrace) {
@@ -2178,8 +2222,8 @@ class SyncService {
           // edited after the peer deleted it, which reached us before the
           // delete did, is kept. Either clock missing: the rules below.
           final localHlc =
-              SyncDataSerializer.parentGatedChildEntities.contains(entityType)
-              ? _extractHlc(local)
+              SyncDataSerializer.ownClockEntities.contains(entityType)
+              ? _ownClock(entityType, local)
               : null;
           final deletionHlc = _parseHlc(deletion.hlc);
           if (deletionHlc != null) SyncClock.instance.receive(deletionHlc);
@@ -2704,16 +2748,38 @@ class SyncService {
     // A child exported through its parent is applied as a blind upsert, but
     // carries its own clock (v210), so its local copy is read too: one batch
     // for the stale-copy guard below.
-    final childClocked = SyncDataSerializer.parentGatedChildEntities.contains(
-      entityType,
-    );
-    final localById = hasUpdatedAt || childClocked
+    // One predicate for every row that carries its own clock, whether it
+    // reaches a peer through a parent or on its own (media sync program
+    // spec 5.1). The stale-copy guard, the tombstone comparison and the
+    // revival check below all read it, so a row cannot be guarded in the
+    // merge and compared by timestamp when a delete arrives.
+    final ownClocked = SyncDataSerializer.ownClockEntities.contains(entityType);
+    final clockGuarded = ownClocked;
+    final factGroups = SyncFactGroups.of(entityType);
+    final localById = hasUpdatedAt || clockGuarded || factGroups.isNotEmpty
         ? await _serializer.fetchRecords(entityType, [
             for (final record in records)
               ?recordIdForEntity(entityType, record),
           ])
         : const <String, Map<String, dynamic>>{};
     final toUpsert = <Map<String, dynamic>>[];
+    // Fact groups written after the batched upsert with explicit values, so
+    // a peer's cleared stamp lands (the upsert drops nulls; spec 5.1).
+    // [inBatch] records whether this row also went into the batched upsert,
+    // so a batch that fails can take its own fact writes down with it. A
+    // fact write whose row never joined the batch is independent of it.
+    // Media rows this merge gave something new to be found by (spec 6.2),
+    // and whether each rode the batch, so a failed batch drops its own.
+    final hinted = <({String id, MediaResolutionHint hint, bool inBatch})>[];
+    final factWrites =
+        <
+          ({
+            String id,
+            Map<String, dynamic> row,
+            List<SyncFactGroup> groups,
+            bool inBatch,
+          })
+        >[];
 
     for (final record in records) {
       String? recordId;
@@ -2728,7 +2794,32 @@ class SyncService {
           continue;
         }
 
-        if (pendingRecordIds.contains(recordId)) {
+        // A locally pending row used to skip the peer's copy outright, and
+        // the changeset cursor still advanced past it, so the peer's update
+        // was lost for good: a newer edit made elsewhere never landed here,
+        // and the peer then refused this device's older copy, leaving the
+        // two devices diverged. Where both sides carry a clock the ordinary
+        // resolution below orders them, and the pending mark is kept, so
+        // this device still publishes whatever wins. Where either clock is
+        // missing nothing can order an unpublished local edit against the
+        // peer's, so the skip stays. Entities whose local rows are not
+        // fetched (the clockless blind upserts) have no local clock here and
+        // keep the skip too.
+        //
+        // A fact-carrying row is the exception. A media row's first local
+        // write can be a fact write, which stamps the group clock and
+        // deliberately leaves the row clock null, so a legacy row can be
+        // pending and unorderable while its FACTS are perfectly ordered by
+        // their own clocks. Skipping it outright threw away the peer's
+        // facts for good. Such a row keeps its local user fields, exactly
+        // as the skip intends, and falls through to the per-group merge
+        // below, which takes only the groups the peer's clocks win.
+        final pendingUnorderable =
+            pendingRecordIds.contains(recordId) &&
+            !_orderable(localById[recordId], record);
+        if (pendingUnorderable &&
+            (localById[recordId] == null ||
+                SyncFactGroups.of(entityType).isEmpty)) {
           continue;
         }
 
@@ -2784,12 +2875,12 @@ class SyncService {
             // A child with its own clock, against the clock of our delete:
             // only an edit made after the delete revives it. Either clock
             // missing: the timestamps below.
-            final deleteClock = childClocked
+            final deleteClock = ownClocked
                 ? selfTombstoneClocks[recordId]
                 : null;
             final remoteClock = deleteClock == null
                 ? null
-                : _extractHlc(record);
+                : _ownClock(entityType, record);
             if (deleteClock != null && remoteClock != null) {
               if (remoteClock.compareTo(deleteClock) <= 0) continue;
             } else {
@@ -2809,10 +2900,16 @@ class SyncService {
         }
 
         if (!hasUpdatedAt) {
-          if (childClocked) {
+          final local = localById[recordId];
+          var rowFromRemote = true;
+          if (clockGuarded) {
             final remoteHlc = _extractHlc(record);
             if (remoteHlc != null) SyncClock.instance.receive(remoteHlc);
-            final localHlc = _extractHlc(localById[recordId]);
+            for (final g in factGroups) {
+              final factClock = _parseHlc(record[g.clockKey]);
+              if (factClock != null) SyncClock.instance.receive(factClock);
+            }
+            final localHlc = _extractHlc(local);
             // A copy strictly older than the local row is stale: a peer's
             // snapshot taken before this device's newer edit to the same
             // child, which the blind upsert used to write over it. An exact
@@ -2823,11 +2920,62 @@ class SyncService {
             if (localHlc != null &&
                 remoteHlc != null &&
                 remoteHlc.compareTo(localHlc) < 0) {
-              continue;
+              rowFromRemote = false;
             }
           }
-          toUpsert.add(recordToApply);
-          applied += 1;
+          // An unorderable pending row keeps its own user fields; only its
+          // fact groups are open to the peer (see the gate above).
+          if (pendingUnorderable) rowFromRemote = false;
+          if (factGroups.isEmpty) {
+            if (!rowFromRemote) continue;
+            toUpsert.add(recordToApply);
+            applied += 1;
+            continue;
+          }
+          // Facts resolve per group by their own clocks (spec 5.1): a stale
+          // row still hands over newer facts, and a newer row does not take
+          // older ones.
+          //
+          // No _overlayOntoLocal here, unlike the LWW path below, and it is
+          // not needed: these arms build their insert with nullToAbsent, so
+          // a column an older peer omits is simply not written and the local
+          // value stands. That is the same property writeFactGroup exists to
+          // work around, since it is what stops a peer's explicit clear from
+          // landing through the upsert. media_clock_guard_test pins it.
+          final resolved = mergeFactGroups(
+            entityType: entityType,
+            base: rowFromRemote ? recordToApply : local!,
+            local: local,
+            remote: recordToApply,
+          );
+          final hint = entityType == 'media'
+              ? mediaResolutionHintFor(
+                  local: local,
+                  applied: resolved.row,
+                  rowFromRemote: rowFromRemote,
+                )
+              : null;
+          if (hint != null) {
+            hinted.add((id: recordId, hint: hint, inBatch: rowFromRemote));
+          }
+          if (rowFromRemote) {
+            toUpsert.add(resolved.row);
+            factWrites.add((
+              id: recordId,
+              row: resolved.row,
+              groups: factGroups,
+              inBatch: true,
+            ));
+            applied += 1;
+          } else if (resolved.fromRemote.isNotEmpty) {
+            factWrites.add((
+              id: recordId,
+              row: resolved.row,
+              groups: resolved.fromRemote,
+              inBatch: false,
+            ));
+            applied += 1;
+          }
           continue;
         }
 
@@ -2905,6 +3053,7 @@ class SyncService {
     // right, and the partial stage is harmless: the staged rows are
     // pack that reads it is idempotent, and a retry restages the same ids
     // over the same rows.
+    var batchFailed = false;
     if (toUpsert.isNotEmpty) {
       try {
         await _serializer.upsertRecords(entityType, toUpsert);
@@ -2914,8 +3063,60 @@ class SyncService {
           error: e,
           stackTrace: stackTrace,
         );
+        batchFailed = true;
         failed += toUpsert.length;
         applied -= toUpsert.length;
+      }
+    }
+
+    // Rethrown, not counted, unlike the row upsert above. The upsert has
+    // already written this row including its new fact clock, while the
+    // group's own columns are still the old values (the upsert builds with
+    // nullToAbsent, which is why the targeted write exists at all). Swallow
+    // the failure and the row looks applied, the reader advances its cursor
+    // past this changeset, and the peer's clear is lost for good: its clock
+    // is now ours. Throwing rolls back the deferred-FK transaction around
+    // the whole payload, and the reader leaves its cursor where it was, so
+    // the next sync re-pulls this changeset (media sync program spec 5.1).
+    for (final w in factWrites) {
+      // The batch is all-or-nothing, so a failure means this row was never
+      // written. Writing its facts anyway would apply half a changeset that
+      // failed: the row keeps its old values while its fact columns and
+      // clock move, which can consume a peer's clear outright. A fact write
+      // whose row was not in the batch is untouched by that failure.
+      if (batchFailed && w.inBatch) continue;
+      try {
+        for (final g in w.groups) {
+          await _serializer.writeFactGroup(entityType, w.id, g, w.row);
+        }
+      } catch (e, stackTrace) {
+        _log.error(
+          'Failed to write facts for $entityType ${w.id}; rolling back the '
+          'payload so the changeset is re-applied next sync',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        rethrow;
+      }
+    }
+
+    // After the writes, so a row the batch failed to write is not treated
+    // as if it had landed. The cache is another database and outside this
+    // payload's transaction: if the payload later rolls back, the only
+    // cost is a search that runs sooner than it would have.
+    final hints = MediaResolutionHints.of([
+      for (final h in hinted)
+        if (!(batchFailed && h.inBatch)) (h.id, h.hint),
+    ]);
+    final onHints = _onMediaResolutionHints;
+    if (!hints.isEmpty && onHints != null) {
+      try {
+        await onHints(hints);
+      } on Object catch (e) {
+        _log.warning(
+          'Could not apply resolution hints for '
+          '${hints.retry.length + hints.remap.length} media rows: $e',
+        );
       }
     }
 
@@ -3039,6 +3240,33 @@ class SyncService {
       return null;
     }
   }
+
+  /// The newest clock a row carries: its own, or any of its fact groups'.
+  ///
+  /// A media fact write advances ONLY its group clock and deliberately
+  /// leaves the row clock alone, so reading the row clock by itself makes a
+  /// freshly written fact look older than it is. A tombstone decision that
+  /// did that fell through to the `updatedAt` comparison and could apply a
+  /// stale delete over a newer fact write (media sync program spec 5.1).
+  /// The row clock alone is still the answer for an entity with no fact
+  /// groups, and for a peer old enough to send none.
+  Hlc? _ownClock(String entityType, Map<String, dynamic>? row) {
+    var newest = _extractHlc(row);
+    for (final g in SyncFactGroups.of(entityType)) {
+      final factClock = _parseHlc(row?[g.clockKey]);
+      if (factClock != null &&
+          (newest == null || factClock.compareTo(newest) > 0)) {
+        newest = factClock;
+      }
+    }
+    return newest;
+  }
+
+  /// Whether a local row and a peer's copy can be ordered: both carry a
+  /// clock. A pending local row is protected from the peer's copy only when
+  /// they cannot be.
+  bool _orderable(Map<String, dynamic>? local, Map<String, dynamic> remote) =>
+      _extractHlc(local) != null && _extractHlc(remote) != null;
 
   /// The id the merge keys a record by: `id` for most entities, the natural
   /// key for the handful that have none. Must agree with the id
@@ -3664,7 +3892,7 @@ class SyncService {
 
     // 4. Replay the pending snapshot: offline-created records survive.
     if (pending != null) {
-      await _replayPendingSnapshot(pending);
+      await _replayPendingSnapshot(pending, publishedThrough: watermark);
     }
 
     // 5. Live again: drop our marker. The rest of this sync pulls (cursors
@@ -3672,6 +3900,108 @@ class SyncService {
     await provider.deleteFile(markerId);
     _log.info('Rejoined after retirement');
     return null;
+  }
+
+  /// One snapshot row with fresh clocks for the replay.
+  ///
+  /// Fact groups (media sync program spec 5.1) carry their own clocks, and a
+  /// row can be pending because of a fact write alone. [publishedThrough] is
+  /// the watermark the snapshot was exported above: a clock at or below it
+  /// was already published, a clock above it never was. Only the unpublished
+  /// clocks are refreshed, because only they are this device's unsent writes
+  /// and so the only ones with something to say.
+  ///
+  /// Refreshing a published clock would fabricate freshness. The export
+  /// selects a row on ANY of its clocks, so a row pending on one group
+  /// carries its other groups along in the same payload, holding facts the
+  /// cloud has already resolved; a brand-new clock on those would let this
+  /// device's untouched observation beat a peer that really did write one.
+  /// How a group's clock sorts against the ROW clock says nothing about
+  /// this, which is why the watermark decides and the row clock is chosen
+  /// the same way. Everything else travels with its original clock, which is
+  /// exactly what the per-group merge needs to leave a peer's newer facts
+  /// alone; the row still exports either way.
+  ///
+  /// A row with nothing above the watermark cannot come out of the export,
+  /// but would sort below the adopted watermark and be lost if it did, so
+  /// its row clock is refreshed as a floor.
+  @visibleForTesting
+  static Map<String, dynamic> restampRowForReplay(
+    String entityType,
+    Map<String, dynamic> row, {
+    required String? publishedThrough,
+  }) {
+    // No watermark means this device has published nothing at all.
+    bool unpublished(Object? clock) =>
+        clock is String &&
+        (publishedThrough == null || clock.compareTo(publishedThrough) > 0);
+
+    final groups = SyncFactGroups.of(entityType);
+    if (groups.isEmpty) {
+      return {...row, 'hlc': SyncClock.instance.issue()};
+    }
+    final restampRow =
+        unpublished(row['hlc']) ||
+        !groups.any((g) => unpublished(row[g.clockKey]));
+    return {
+      ...row,
+      if (restampRow) 'hlc': SyncClock.instance.issue(),
+      for (final g in groups)
+        if (unpublished(row[g.clockKey]))
+          g.clockKey: SyncClock.instance.issue(),
+    };
+  }
+
+  /// Marks pending, before the replay is applied, each replayed row that
+  /// cannot be ordered against the adopted copy: a fact-carrying row whose
+  /// row clock is null (a legacy row whose only unsent write was a fact), so
+  /// [restampRowForReplay] left it without one. The merge applies an
+  /// unordered copy whole, which let this device's snapshot fields (a stale
+  /// caption) overwrite newer ones a peer published. Marked pending first,
+  /// the row takes the merge's pending-unorderable path instead: the adopted
+  /// row keeps its fields and only the fact groups the replay's clocks win
+  /// come over.
+  ///
+  /// Only rows the adoption holds. That path skips a copy with no local row
+  /// at all, and for such a row the replay is its only way back.
+  ///
+  /// "No row clock" is read the way the merge reads it ([_extractHlc]):
+  /// absent, blank or malformed alike, so every row the merge would find
+  /// unorderable is marked. All marks commit in one transaction; each
+  /// mark's own transaction nests as a savepoint, so a library with many
+  /// legacy rows pays one commit, not one per row.
+  Future<void> _markUnorderableReplayPending(
+    Map<String, dynamic> restamped,
+  ) async {
+    final nowMillis = DateTime.now().millisecondsSinceEpoch;
+    final toMark = <({String entityType, String id})>[];
+    for (final entry in restamped.entries) {
+      final rows = entry.value;
+      if (rows is! List || SyncFactGroups.of(entry.key).isEmpty) continue;
+      final ids = [
+        for (final row in rows)
+          if (row is Map<String, dynamic> &&
+              _extractHlc(row) == null &&
+              row['id'] is String)
+            row['id'] as String,
+      ];
+      if (ids.isEmpty) continue;
+      final adopted = await _serializer.fetchRecords(entry.key, ids);
+      toMark.addAll([
+        for (final id in adopted.keys) (entityType: entry.key, id: id),
+      ]);
+    }
+    if (toMark.isEmpty) return;
+    await DatabaseService.instance.database.transaction(() async {
+      for (final row in toMark) {
+        await _syncRepository.markRecordPending(
+          entityType: row.entityType,
+          recordId: row.id,
+          localUpdatedAt: nowMillis,
+          stampClock: false,
+        );
+      }
+    });
   }
 
   /// Re-applies the pre-fence pending snapshot with FRESH HLC stamps. The
@@ -3682,7 +4012,13 @@ class SyncService {
   /// reason; their local effect still applies via the payload's deletions,
   /// under the standard deletedAt-vs-updatedAt LWW (a peer's newer edit
   /// legitimately revives the record -- unchanged semantics).
-  Future<void> _replayPendingSnapshot(SyncPayload pending) async {
+  ///
+  /// [publishedThrough] is the watermark the snapshot was exported above;
+  /// [restampRowForReplay] refreshes only the clocks that sit over it.
+  Future<void> _replayPendingSnapshot(
+    SyncPayload pending, {
+    required String? publishedThrough,
+  }) async {
     await _syncRepository.ensureSyncClockConfigured();
     final dataJson = pending.data.toJson();
     final restamped = <String, dynamic>{};
@@ -3695,7 +4031,11 @@ class SyncService {
       restamped[entry.key] = [
         for (final row in rows)
           if (row is Map<String, dynamic> && row.containsKey('hlc'))
-            {...row, 'hlc': SyncClock.instance.issue()}
+            restampRowForReplay(
+              entry.key,
+              row,
+              publishedThrough: publishedThrough,
+            )
           else
             row,
       ];
@@ -3711,27 +4051,38 @@ class SyncService {
       data: data,
       deletions: pending.deletions,
     );
+    await _markUnorderableReplayPending(restamped);
     await _applyRemotePayload(payload, null);
     // Re-mark the replayed rows pending: the fence's resetSyncState cleared
     // the pending table, and the remote-apply path above does not repopulate
     // it, so without this _shouldSkipPublishAfterAdopt would read "nothing to
     // say" and the replayed records would never publish until an unrelated
     // later edit re-tripped the gate. (The publish CONTENT is selected by the
-    // HLC watermark; these marks only open the gate.)
+    // HLC watermark; these marks only open the gate.) One transaction for
+    // all of them, each mark nesting as a savepoint: one commit for the
+    // snapshot, not one per row.
     final nowMillis = DateTime.now().millisecondsSinceEpoch;
-    for (final entry in restamped.entries) {
-      final rows = entry.value;
-      if (rows is! List) continue;
-      for (final row in rows) {
-        final id = row is Map<String, dynamic> ? row['id'] : null;
-        if (id is! String) continue;
-        await _syncRepository.markRecordPending(
-          entityType: entry.key,
-          recordId: id,
-          localUpdatedAt: nowMillis,
-        );
+    await DatabaseService.instance.database.transaction(() async {
+      for (final entry in restamped.entries) {
+        final rows = entry.value;
+        if (rows is! List) continue;
+        for (final row in rows) {
+          final id = row is Map<String, dynamic> ? row['id'] : null;
+          if (id is! String) continue;
+          // No stamp: restampRowForReplay already chose this row's clocks
+          // and the apply above wrote them. Stamping here would bump the row
+          // clock even for a row that is pending on a fact write alone,
+          // republishing this device's whole snapshot of it over a peer's
+          // newer edit, which is exactly what that restamp avoids.
+          await _syncRepository.markRecordPending(
+            entityType: entry.key,
+            recordId: id,
+            localUpdatedAt: nowMillis,
+            stampClock: false,
+          );
+        }
       }
-    }
+    });
     for (final entry in pending.deletions.entries) {
       for (final d in entry.value) {
         await _syncRepository.logDeletion(
@@ -3910,9 +4261,54 @@ class SyncService {
       for (final record in entry.value.values) {
         await _serializer.upsertRecord(entry.key, record);
       }
+      await _landAdoptedFactClears(entry.key, entry.value.values);
     }
 
     await _serializer.repairDanglingForeignKeys();
+  }
+
+  /// Lands the explicit fact clears an adopt's upsert would drop.
+  ///
+  /// Adopt applies rows straight through the serializer's upsert, which
+  /// builds with nullToAbsent, so a cleared stamp in the library being
+  /// adopted leaves this device's own value in place and the adopted
+  /// library is not the one the cloud holds (media sync program spec 5.1).
+  /// The merge path solves this with a targeted write; adopt needs the same
+  /// one.
+  ///
+  /// Only rows that carry an explicit null: adopt is a wholesale replace
+  /// applied in sequence, so a non-null value already landed through the
+  /// upsert and re-writing it would cost an UPDATE per media row for
+  /// nothing. There is no per-group clock resolution to do either, because
+  /// there is no local side to resolve against; the sequence is the answer.
+  Future<void> _landAdoptedFactClears(
+    String entityType,
+    Iterable<Map<String, dynamic>> rows,
+  ) async {
+    final groups = SyncFactGroups.of(entityType);
+    if (groups.isEmpty) return;
+    for (final row in rows) {
+      final id = recordIdForEntity(entityType, row);
+      if (id == null) continue;
+      for (final g in groups) {
+        // An explicitly null CLOCK counts as well as an explicitly null
+        // value. The v224 backstop adds the fact clock columns without
+        // backfilling them, so a row adopted from a library that upgraded
+        // that way carries a null clock beside non-null facts. The upsert
+        // omits nulls, so the local clock would survive and the adopted
+        // group would look newer than it is, instead of falling back to the
+        // row clock as a null clock is meant to.
+        //
+        // Still only explicit keys: a key the row omits is one the sender
+        // never had, and writing null for it would clear a fact nobody
+        // asked to clear.
+        final clears = [
+          ...g.columns.keys,
+          g.clockKey,
+        ].any((k) => row.containsKey(k) && row[k] == null);
+        if (clears) await _serializer.writeFactGroup(entityType, id, g, row);
+      }
+    }
   }
 
   /// Test seam: in-memory adopt of [payloads] (the parity reference). Captures
@@ -3980,6 +4376,7 @@ class SyncService {
       ];
       if (valid.isEmpty) return;
       await _serializer.upsertRecords(table, valid);
+      await _landAdoptedFactClears(table, valid);
     }
 
     // Apply units: each base file and each changeset, ascending by exportedAt
@@ -4160,6 +4557,7 @@ class SyncService {
     final cursors = <({String deviceId, int baseSeq, int appliedThrough})>[];
     final newerSchemaPeerDeviceIds = <String>{};
     final newerSchemaPeerNames = <String, String>{};
+    final selfDeviceId = await _syncRepository.getDeviceId();
     for (final deviceId in deviceIds) {
       if (excludeDeviceIds.contains(deviceId)) continue;
       final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
@@ -4171,6 +4569,28 @@ class SyncService {
         );
       } catch (_) {
         continue;
+      }
+      // Recorded unconditionally: the manifest parsed, so a missing name is
+      // the peer's current state and clears any name it published before.
+      //
+      // Never for this device, though. Unlike a pull, this scan reads every
+      // manifest in the folder including its own, and PeerDeviceNameStore
+      // documents that this device is not in it: the device identity
+      // service already knows its own name, and a self entry would show up
+      // as a peer to anything that lists the map.
+      //
+      // Guarded on its own: nothing above catches here, so a failed
+      // preferences write would abort the whole scan and with it the
+      // library adoption, over optional metadata.
+      if (deviceId != selfDeviceId) {
+        try {
+          await _peerNames?.record(deviceId, manifest.deviceName);
+        } catch (e) {
+          _log.warning(
+            'Could not record the name for peer $deviceId',
+            error: e,
+          );
+        }
       }
       if (manifest.epochId != epochId) continue;
       final baseSeq = manifest.baseSeq;
@@ -4267,12 +4687,17 @@ class SyncService {
   /// Download and parse the cloud epoch marker. Returns null when absent.
   /// Throws on listing/parse failure: "unreadable" must be distinguishable
   /// from "absent" -- the caller fails the sync closed rather than guessing.
+  ///
+  /// The listing is a sync's first cloud request, so it also carries the
+  /// provider's cold start (an OAuth token refresh, the sync-folder lookup).
+  /// It gets the same 30 s as the download: the HTTP layer alone allows 15 s
+  /// to connect, and a shorter cap failed slow but working connections.
   Future<LibraryEpochMarker?> readLibraryEpochMarker(
     CloudStorageProvider provider,
   ) async {
     final files = await provider
         .listFiles(namePattern: libraryEpochFileName)
-        .timeout(const Duration(seconds: 8));
+        .timeout(const Duration(seconds: 30));
     final candidates = files
         .where((f) => !_isConflictCopy(f.name))
         .where((f) => f.name == libraryEpochFileName)

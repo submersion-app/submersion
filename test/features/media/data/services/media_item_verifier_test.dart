@@ -110,7 +110,7 @@ void main() {
   // notFound is the ONLY positive finding. Everything below describes a
   // failure to REACH the source, which says nothing about whether the bytes
   // still exist, and the orphan flag is sticky and syncs.
-  test('unauthenticated stamps the date but never orphans', () async {
+  test('unauthenticated writes nothing', () async {
     // Emitted when a Lightroom account is not connected
     // (connector_media_resolver.dart:67) and on a 401. Orphaning here would
     // empty a connector library because a token expired.
@@ -119,11 +119,14 @@ void main() {
     ).verify(_item(isOrphaned: false));
 
     expect(result, VerifyResult.unauthenticated);
-    expect(repository.written.single.isOrphaned, isNull);
-    expect(repository.written.single.verifiedAt, stamp);
+    expect(
+      repository.written,
+      isEmpty,
+      reason: 'nothing was learned, so the row is not touched',
+    );
   });
 
-  test('fromOtherDevice stamps the date but never orphans', () async {
+  test('fromOtherDevice writes nothing', () async {
     // "Not resolvable HERE" is not "absent". Orphaning would mark a row
     // missing on this device and sync that claim to the device the file
     // actually lives on.
@@ -132,52 +135,65 @@ void main() {
     ).verify(_item(isOrphaned: false));
 
     expect(result, VerifyResult.fromOtherDevice);
-    expect(repository.written.single.isOrphaned, isNull);
-    expect(repository.written.single.verifiedAt, stamp);
+    expect(
+      repository.written,
+      isEmpty,
+      reason: 'nothing was learned, so the row is not touched',
+    );
   });
 
   test('neither clears an existing orphan flag', () async {
     await build(VerifyResult.fromOtherDevice).verify(_item(isOrphaned: true));
 
-    expect(repository.written.single.isOrphaned, isNull);
+    expect(
+      repository.written,
+      isEmpty,
+      reason: 'nothing was learned, so the row is not touched',
+    );
   });
 
   // volumeOffline and transientError are recoverable conditions, not dead
   // pointers. Flagging them would let a check mark a row missing while the
   // share is merely unmounted or the file is temporarily unreadable, and the
   // orphan flag is sticky, so the row would stay wrong after recovery.
-  test(
-    'volumeOffline stamps the date but leaves the orphan flag alone',
-    () async {
-      final result = await build(
-        VerifyResult.volumeOffline,
-      ).verify(_item(isOrphaned: false));
+  test('volumeOffline writes nothing', () async {
+    final result = await build(
+      VerifyResult.volumeOffline,
+    ).verify(_item(isOrphaned: false));
 
-      expect(result, VerifyResult.volumeOffline);
-      expect(repository.written.single.isOrphaned, isNull);
-      expect(repository.written.single.verifiedAt, stamp);
-    },
-  );
+    expect(result, VerifyResult.volumeOffline);
+    expect(
+      repository.written,
+      isEmpty,
+      reason: 'nothing was learned, so the row is not touched',
+    );
+  });
 
   test('transientError does not clear an existing orphan flag', () async {
     await build(VerifyResult.transientError).verify(_item(isOrphaned: true));
 
-    expect(repository.written.single.isOrphaned, isNull);
-    expect(repository.written.single.verifiedAt, stamp);
+    expect(
+      repository.written,
+      isEmpty,
+      reason: 'nothing was learned, so the row is not touched',
+    );
   });
 
   // accessDenied is the one that used to arrive as notFound. A revoked photo
   // permission makes EVERY gallery row fail to resolve, so treating it as a
   // dead pointer marked an entire library orphaned, and markRecordPending
   // replicated that claim to every other device.
-  test('accessDenied stamps the date but never orphans a row', () async {
+  test('accessDenied writes nothing', () async {
     final result = await build(
       VerifyResult.accessDenied,
     ).verify(_item(isOrphaned: false));
 
     expect(result, VerifyResult.accessDenied);
-    expect(repository.written.single.isOrphaned, isNull);
-    expect(repository.written.single.verifiedAt, stamp);
+    expect(
+      repository.written,
+      isEmpty,
+      reason: 'nothing was learned, so the row is not touched',
+    );
   });
 
   test('accessDenied does not clear an existing orphan flag either', () async {
@@ -185,8 +201,24 @@ void main() {
     // the flag in either direction.
     await build(VerifyResult.accessDenied).verify(_item(isOrphaned: true));
 
-    expect(repository.written.single.isOrphaned, isNull);
-    expect(repository.written.single.verifiedAt, stamp);
+    expect(
+      repository.written,
+      isEmpty,
+      reason: 'nothing was learned, so the row is not touched',
+    );
+  });
+
+  test('every inconclusive outcome leaves the row alone', () async {
+    for (final outcome in VerifyResult.values) {
+      if (outcome == VerifyResult.available ||
+          outcome == VerifyResult.notFound) {
+        continue;
+      }
+      repository = _CapturingRepository();
+
+      expect(await build(outcome).verify(_item()), outcome);
+      expect(repository.written, isEmpty, reason: outcome.name);
+    }
   });
 
   // A row whose source type has no registered resolver is a programmer

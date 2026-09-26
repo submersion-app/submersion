@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_stat_strip.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_map_header.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -82,14 +83,15 @@ Future<void> pumpHeader(
         home: Scaffold(
           body: CustomScrollView(
             slivers: [
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: TripStoryMapHeaderDelegate(
-                  geometry: geometry,
-                  activeDayIndex: 0,
-                  mapController: controller,
-                  onDaySelected: (_) {},
-                  maxExtentValue: 260,
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 260,
+                  child: TripStoryMap(
+                    geometry: geometry,
+                    activeDayIndex: 0,
+                    mapController: controller,
+                    onDaySelected: (_) {},
+                  ),
                 ),
               ),
               const SliverToBoxAdapter(child: SizedBox(height: 1000)),
@@ -260,29 +262,6 @@ void main() {
     expect(size.height, greaterThanOrEqualTo(48));
   });
 
-  testWidgets('collapsed header keeps the map 180 tall', (tester) async {
-    const geometry = TripStoryMapGeometry(
-      points: [
-        TripStoryMapPoint(
-          latitude: 12.1,
-          longitude: -68.2,
-          dayIndex: 0,
-          label: 'A',
-        ),
-      ],
-    );
-    await pumpHeader(tester, geometry);
-
-    // Fully expanded: the map fills the whole 260px header.
-    expect(tester.getSize(find.byType(FlutterMap).first).height, 260);
-
-    // Scroll far enough to fully collapse the pinned header.
-    await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
-    await tester.pump();
-
-    expect(tester.getSize(find.byType(FlutterMap).first).height, 180);
-  });
-
   testWidgets('MapCameraAnimator eases the camera then disposes cleanly', (
     tester,
   ) async {
@@ -300,30 +279,4 @@ void main() {
     // animator and controller.
     expect(find.byType(FlutterMap), findsOneWidget);
   });
-
-  test(
-    'shouldRebuild is false for equal inputs, true when a field changes',
-    () {
-      final controller = MapController();
-      addTearDown(controller.dispose);
-      void onDay(int _) {}
-      const geometry = TripStoryMapGeometry(points: []);
-
-      TripStoryMapHeaderDelegate make({int activeDayIndex = 0}) =>
-          TripStoryMapHeaderDelegate(
-            geometry: geometry,
-            activeDayIndex: activeDayIndex,
-            mapController: controller,
-            onDaySelected: onDay, // same callback identity across instances
-            maxExtentValue: 260,
-          );
-
-      // Same inputs (including the shared callback) => no rebuild.
-      expect(make().shouldRebuild(make()), isFalse);
-      // A changed input => rebuild.
-      expect(make(activeDayIndex: 1).shouldRebuild(make()), isTrue);
-      // The collapsed map keeps a usable height.
-      expect(make().minExtent, 180);
-    },
-  );
 }
