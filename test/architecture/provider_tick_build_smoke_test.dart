@@ -72,6 +72,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/universal_import/presentation/providers/csv_preset_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 
 import '../helpers/mock_providers.dart';
 import '../helpers/test_database.dart';
@@ -874,6 +875,13 @@ void main() {
     (
       name: 'userCsvPresetsProvider',
       read: (c) => c.read(userCsvPresetsProvider.future),
+    ),
+  ]);
+
+  _tickGroup('query', [
+    (
+      name: 'queryNameIndexProvider',
+      read: (c) => c.read(queryNameIndexProvider.future),
     ),
   ]);
 }
