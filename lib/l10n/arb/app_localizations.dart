@@ -70175,6 +70175,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'\"{name}\" refers to something that no longer exists'**
   String query_savedRow_unresolved(String name);
+
+  /// Settings > Manage > Saved queries page title
+  ///
+  /// In en, this message translates to:
+  /// **'Saved Queries'**
+  String get savedQueries_appBar_title;
+
+  /// Empty state of the saved queries page
+  ///
+  /// In en, this message translates to:
+  /// **'No saved queries yet. Save one from the query editor on the dive search page.'**
+  String get savedQueries_empty;
+
+  /// Tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get savedQueries_renameTooltip;
+
+  /// Tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get savedQueries_deleteTooltip;
+
+  /// Tooltip on the drag handle
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to reorder'**
+  String get savedQueries_reorderTooltip;
+
+  /// Confirm dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Delete query?'**
+  String get savedQueries_deleteDialog_title;
+
+  /// Confirm dialog body
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"? This cannot be undone.'**
+  String savedQueries_deleteDialog_content(String name);
+
+  /// Subtitle of a saved query whose JSON is newer or corrupt
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot be read by this version of the app'**
+  String get savedQueries_problem_unreadable;
+
+  /// Subtitle of a saved query the registry rejects
+  ///
+  /// In en, this message translates to:
+  /// **'Uses something this version does not have: {detail}'**
+  String savedQueries_problem_invalid(String detail);
+
+  /// Subtitle of a saved query whose subject is unknown
+  ///
+  /// In en, this message translates to:
+  /// **'For a list this version does not have: {detail}'**
+  String savedQueries_problem_unknownSubject(String detail);
+
+  /// Subtitle of a saved query with a deleted reference
+  ///
+  /// In en, this message translates to:
+  /// **'Refers to something that no longer exists: {detail}'**
+  String savedQueries_problem_unresolved(String detail);
+
+  /// Snackbar after deleting a saved query
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted \"{name}\"'**
+  String savedQueries_snackbar_deleted(String name);
+
+  /// Settings > Manage entry
+  ///
+  /// In en, this message translates to:
+  /// **'Saved Queries'**
+  String get settings_manage_savedQueries;
+
+  /// Settings > Manage entry subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Rename, reorder and delete saved queries'**
+  String get settings_manage_savedQueries_subtitle;
 }
 
 class _AppLocalizationsDelegate

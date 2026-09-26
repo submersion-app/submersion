@@ -2561,6 +2561,16 @@ class _ManageSectionContent extends StatelessWidget {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/tags'),
                 ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.bookmarks_outlined),
+                  title: Text(context.l10n.settings_manage_savedQueries),
+                  subtitle: Text(
+                    context.l10n.settings_manage_savedQueries_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/saved-queries'),
+                ),
               ],
             ),
           ),

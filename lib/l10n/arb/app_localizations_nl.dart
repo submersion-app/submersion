@@ -43464,4 +43464,59 @@ class AppLocalizationsNl extends AppLocalizations {
   String query_savedRow_unresolved(String name) {
     return '\"$name\" refers to something that no longer exists';
   }
+
+  @override
+  String get savedQueries_appBar_title => 'Saved Queries';
+
+  @override
+  String get savedQueries_empty =>
+      'No saved queries yet. Save one from the query editor on the dive search page.';
+
+  @override
+  String get savedQueries_renameTooltip => 'Rename';
+
+  @override
+  String get savedQueries_deleteTooltip => 'Delete';
+
+  @override
+  String get savedQueries_reorderTooltip => 'Drag to reorder';
+
+  @override
+  String get savedQueries_deleteDialog_title => 'Delete query?';
+
+  @override
+  String savedQueries_deleteDialog_content(String name) {
+    return 'Delete \"$name\"? This cannot be undone.';
+  }
+
+  @override
+  String get savedQueries_problem_unreadable =>
+      'Cannot be read by this version of the app';
+
+  @override
+  String savedQueries_problem_invalid(String detail) {
+    return 'Uses something this version does not have: $detail';
+  }
+
+  @override
+  String savedQueries_problem_unknownSubject(String detail) {
+    return 'For a list this version does not have: $detail';
+  }
+
+  @override
+  String savedQueries_problem_unresolved(String detail) {
+    return 'Refers to something that no longer exists: $detail';
+  }
+
+  @override
+  String savedQueries_snackbar_deleted(String name) {
+    return 'Deleted \"$name\"';
+  }
+
+  @override
+  String get settings_manage_savedQueries => 'Saved Queries';
+
+  @override
+  String get settings_manage_savedQueries_subtitle =>
+      'Rename, reorder and delete saved queries';
 }
