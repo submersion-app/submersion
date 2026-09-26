@@ -8943,13 +8943,13 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh =>
-      'Profondità Narcotica Equivalente troppo alta';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END di $depth supera il limite di $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END di $depth supera il limite sicuro';
-  }
+  String get divePlanner_warning_endHigh =>
+      'Profondità Narcotica Equivalente troppo alta';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {

@@ -14674,17 +14674,17 @@ abstract class AppLocalizations {
   /// **'CNS% exceeds {threshold}%'**
   String divePlanner_warning_cnsWarning(Object threshold);
 
+  /// No description provided for @divePlanner_warning_endExceedsLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'END of {depth} exceeds the {limit} limit'**
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit);
+
   /// No description provided for @divePlanner_warning_endHigh.
   ///
   /// In en, this message translates to:
   /// **'Equivalent Narcotic Depth too high'**
   String get divePlanner_warning_endHigh;
-
-  /// No description provided for @divePlanner_warning_endHighWithDepth.
-  ///
-  /// In en, this message translates to:
-  /// **'END of {depth} exceeds safe limit'**
-  String divePlanner_warning_endHighWithDepth(Object depth);
 
   /// No description provided for @divePlanner_warning_gasLow.
   ///

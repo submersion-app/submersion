@@ -8924,13 +8924,13 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh =>
-      'Ekvivalens narkotikus mélység túl magas';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END $depth meghaladja a limitet ($limit)';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END $depth meghaladja a biztonságos limitet';
-  }
+  String get divePlanner_warning_endHigh =>
+      'Ekvivalens narkotikus mélység túl magas';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {

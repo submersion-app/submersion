@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
@@ -313,5 +315,49 @@ void main() {
       container.read(activePlanOutcomeProvider),
       same(container.read(planOutcomeProvider)),
     );
+  });
+
+  group('planIssueMessage for an END warning (issue #1499)', () {
+    const issue = PlanIssue(
+      type: PlanIssueType.endExceeded,
+      severity: PlanIssueSeverity.warning,
+      message: 'END 32 m exceeds 40 m',
+      atDepth: 32,
+      value: 32,
+      threshold: 40,
+    );
+
+    Future<String> render(WidgetTester tester, AppSettings settings) async {
+      late String message;
+      await tester.pumpWidget(
+        testApp(
+          child: Builder(
+            builder: (context) {
+              message = planIssueMessage(
+                context,
+                issue,
+                UnitFormatter(settings),
+              );
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      return message;
+    }
+
+    testWidgets('names both the END and the limit it exceeds', (tester) async {
+      expect(
+        await render(tester, const AppSettings()),
+        'END of 32m exceeds the 40m limit',
+      );
+    });
+
+    testWidgets('converts both depths to the diver\'s units', (tester) async {
+      expect(
+        await render(tester, const AppSettings(depthUnit: DepthUnit.feet)),
+        'END of 105ft exceeds the 131ft limit',
+      );
+    });
   });
 }

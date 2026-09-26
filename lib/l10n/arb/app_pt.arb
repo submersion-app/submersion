@@ -3028,7 +3028,7 @@
   "divePlanner_warning_cnsCritical": "CNS% excede 100%",
   "divePlanner_warning_cnsWarning": "CNS% excede {threshold}%",
   "divePlanner_warning_endHigh": "Profundidade Narcótica Equivalente muito alta",
-  "divePlanner_warning_endHighWithDepth": "END de {depth} excede o limite seguro",
+  "divePlanner_warning_endExceedsLimit": "END de {depth} excede o limite de {limit}",
   "divePlanner_warning_gasLow": "Cilindro abaixo de {threshold} de reserva",
   "divePlanner_warning_gasOut": "Cilindro ficará vazio",
   "divePlanner_warning_minGasViolation": "Reserva mínima de gás não mantida",
