@@ -161,6 +161,66 @@ void main() {
     expect(r.gasSegments.last.setpoint, 0.7);
   });
 
+  test('a leg keeps one setpoint, chosen from its average depth', () {
+    // PlanEngine picks the loop setpoint per leg from the leg's average
+    // depth; the synthesized samples must not switch partway down a leg.
+    final plan = domain.DivePlan(
+      id: 'p',
+      name: 'p',
+      gfLow: 30,
+      gfHigh: 70,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+      tanks: const [back],
+      mode: domain.PlanMode.ccr,
+      setpointLow: 0.7,
+      setpointHigh: 1.3,
+      segments: [
+        PlanSegment.hold(
+          id: 'a',
+          depth: 20,
+          durationMinutes: 0,
+          tankId: 'back',
+          gasMix: const GasMix(o2: 21),
+        ),
+        const PlanSegment(
+          id: 't',
+          targetDepth: 40,
+          durationSeconds: 120,
+          tankId: 'back',
+          gasMix: GasMix(o2: 21),
+          order: 1,
+        ),
+        PlanSegment.hold(
+          id: 'h',
+          depth: 40,
+          durationMinutes: 5,
+          tankId: 'back',
+          gasMix: const GasMix(o2: 21),
+          order: 2,
+        ),
+      ],
+    );
+    const engine = PlanEngine();
+    final r = synthesizeRemainder(
+      plan: plan,
+      outcome: engine.compute(plan),
+      startTimestamp: 0,
+      startDepth: 20,
+      ascentPlan: engine.ascentPlanFor(plan.tanks),
+      loop: const LoopSetpoints(
+        low: 0.7,
+        high: 1.3,
+        switchDepth: 30,
+        diluent: GasMix(o2: 21),
+      ),
+    );
+    // The 20 to 40 m leg averages exactly 30 m: not deeper than the switch
+    // depth, so it stays on the low setpoint until the hold begins at 120 s.
+    final firstHigh = r.gasSegments.firstWhere((g) => g.setpoint == 1.3);
+    expect(firstHigh.startTimestamp, greaterThanOrEqualTo(120));
+  });
+
   test('splice keeps the actual prefix and appends the remainder once', () {
     final plan = _plan();
     const engine = PlanEngine();

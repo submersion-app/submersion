@@ -219,9 +219,12 @@ class DiveToPlanConverter {
     final resultIsAnchor = <bool>[];
     for (final i in ordered) {
       final isAnchor = anchors.all.contains(i);
+      // A plan authored through a chosen sample ends where the diver was at
+      // that sample, even when it falls inside a single-hold bottom.
       final isBottomEdge =
           bottomIsSingleHold &&
-          (i == anchors.bottomStart || i == anchors.bottomEnd);
+          (i == anchors.bottomStart || i == anchors.bottomEnd) &&
+          !(throughTimestamp != null && i == endIndex);
       final depth = isBottomEdge ? bottomDepth : _snapDepth(pts[i].y);
       final time = pts[i].x.round();
       if (result.isNotEmpty) {

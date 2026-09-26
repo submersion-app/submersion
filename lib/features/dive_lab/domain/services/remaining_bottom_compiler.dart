@@ -215,8 +215,14 @@ class _Waypoint {
   final bool isLevel;
 }
 
+/// The tank id the remainder carries on a dive logged without cylinders.
+/// The lab runs the engine without gas accounting then (it has no tank to
+/// charge); a consumer that needs a real tank, such as the planner hand-off,
+/// maps exactly this id onto one.
+const String kLabNoTankId = 'lab-no-tank';
+
 String _tankIdAt(TankSchedule schedule, int t, String? forced) =>
-    forced ?? schedule.tankIdAt(t) ?? 'lab-no-tank';
+    forced ?? schedule.tankIdAt(t) ?? kLabNoTankId;
 
 GasMix _mixAt(TankSchedule schedule, int t, String? forced) =>
     (forced != null ? schedule.tankById(forced)?.gasMix : null) ??

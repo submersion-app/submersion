@@ -478,6 +478,34 @@ void main() {
       },
     );
 
+    test('a branch on a drifting bottom ends at the branch depth', () {
+      // Descent to 40 m, then a bottom drifting up to 37 m (all within the
+      // 90% bottom band), then the ascent. At level 1 the bottom is one hold,
+      // but the plan must still end where the diver was at the branch.
+      final profile = <DiveProfilePoint>[];
+      for (var t = 0; t <= 120; t += 10) {
+        profile.add(DiveProfilePoint(timestamp: t, depth: 40 * t / 120));
+      }
+      for (var t = 130; t <= 1320; t += 10) {
+        profile.add(
+          DiveProfilePoint(timestamp: t, depth: 40 - 3 * (t - 120) / 1200),
+        );
+      }
+      for (var t = 1330; t <= 1620; t += 10) {
+        profile.add(
+          DiveProfilePoint(timestamp: t, depth: 37 * (1 - (t - 1320) / 300)),
+        );
+      }
+      final points = const DiveToPlanConverter().breakpoints(
+        profile: profile,
+        gasSwitches: const [],
+        levels: 1,
+        throughTimestamp: 1320,
+      );
+      expect(points.last.timeSeconds, 1320);
+      expect(points.last.depth, 37);
+    });
+
     test('a timestamp in the descent authors the descent only', () {
       final points = const DiveToPlanConverter().breakpoints(
         profile: _squareProfile(),

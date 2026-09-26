@@ -4,6 +4,7 @@ import 'package:submersion/features/dive_lab/domain/entities/scenario_interventi
 import 'package:submersion/features/dive_lab/domain/entities/scenario_mode.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_outcome.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_request.dart';
+import 'package:submersion/features/dive_lab/domain/services/remaining_bottom_compiler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
@@ -129,26 +130,45 @@ ScenarioPlanHandoffResult buildScenarioPlanHandoff({
     }
   }
 
-  final authored = converted.segments.length;
-  // The lab compiles a tankless dive against a placeholder tank id; those
-  // segments follow the converter's last tank so every segment on the plan
-  // names a tank the plan carries.
-  final known = {for (final t in tanks) t.id};
-  final fallback = converted.segments.isNotEmpty
+  // Plan segments and tanks are stored keyed by id alone, so nothing the lab
+  // named deterministically may reach the plan: a hypothetical tank gets a
+  // fresh id (the segments that breathe it follow), and so does every
+  // remainder segment. The dive's own tanks keep their ids, as they do in the
+  // rebuild flow.
+  final logged = {...original.keys, ...converted.tanks.map((t) => t.id)};
+  final tankIdMap = <String, String>{
+    for (final t in tanks)
+      if (!logged.contains(t.id)) t.id: newId(),
+  };
+  tanks = [
+    for (final t in tanks)
+      tankIdMap.containsKey(t.id) ? t.copyWith(id: tankIdMap[t.id]) : t,
+  ];
+  // A dive logged without cylinders: the lab's remainder names the
+  // placeholder [kLabNoTankId]; it breathes the converter's last tank.
+  final noTank = converted.segments.isNotEmpty
       ? tanks.firstWhere(
           (t) => t.id == converted.segments.last.tankId,
           orElse: () => tanks.first,
         )
       : (tanks.isEmpty ? null : tanks.first);
+
+  final authored = converted.segments.length;
   final remainder = [
     for (final (i, s) in compiled.segments.indexed)
-      known.contains(s.tankId) || fallback == null
-          ? s.copyWith(order: authored + i)
-          : s.copyWith(
-              order: authored + i,
-              tankId: fallback.id,
-              gasMix: fallback.gasMix,
-            ),
+      if (s.tankId == kLabNoTankId && noTank != null)
+        s.copyWith(
+          id: newId(),
+          order: authored + i,
+          tankId: noTank.id,
+          gasMix: noTank.gasMix,
+        )
+      else
+        s.copyWith(
+          id: newId(),
+          order: authored + i,
+          tankId: tankIdMap[s.tankId] ?? s.tankId,
+        ),
   ];
   final segments = [...converted.segments, ...remainder];
 

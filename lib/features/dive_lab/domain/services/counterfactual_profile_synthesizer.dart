@@ -145,12 +145,6 @@ String? tankIdForMix(List<DiveTank> tanks, double fO2, double fHe) {
   return match?.id;
 }
 
-/// Midpoint of the leg the builder is about to walk (or is walking) for [s]:
-/// its current depth to the segment's target. A segment carries no start
-/// depth of its own, so the builder's position stands in for it.
-double _legMidDepth(_Builder b, PlanSegment s) =>
-    (b.depths.last + s.targetDepth) / 2;
-
 /// Samples for the counterfactual remainder: the plan's segments, then the
 /// engine's ascent and stops, then the final leg to the surface.
 SynthesizedRemainder synthesizeRemainder({
@@ -168,22 +162,30 @@ SynthesizedRemainder synthesizeRemainder({
 
   final segments = List<PlanSegment>.from(plan.segments)
     ..sort((x, y) => x.order.compareTo(y.order));
-  void segmentGas(PlanSegment s) => b.gas(
+  // The setpoint is chosen once per leg from the leg's average depth, the
+  // rule PlanEngine charges by: a segment carries no start depth of its own,
+  // so the builder's position when the leg begins stands in for it.
+  void segmentGas(PlanSegment s, double legAvgDepth) => b.gas(
     t: b.now,
     fN2: fN2Of(s.gasMix),
     fHe: s.gasMix.he / 100.0,
     tankId: s.tankId,
     setpoint: loop == null
         ? null
-        : (_legMidDepth(b, s) > loop.switchDepth ? loop.high : loop.low),
+        : (legAvgDepth > loop.switchDepth ? loop.high : loop.low),
   );
   for (final s in segments) {
-    segmentGas(s);
+    final legAvgDepth = (b.depths.last + s.targetDepth) / 2;
+    segmentGas(s, legAvgDepth);
     if (s.durationSeconds <= 0) {
       // A zero-duration hold (ascend-now anchor) adds no time.
       continue;
     }
-    b.leg(s.targetDepth, s.durationSeconds, (t, d) => segmentGas(s));
+    b.leg(
+      s.targetDepth,
+      s.durationSeconds,
+      (t, d) => segmentGas(s, legAvgDepth),
+    );
   }
   final bottomEnd = b.now;
 

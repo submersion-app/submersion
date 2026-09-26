@@ -252,6 +252,40 @@ void main() {
     }
   });
 
+  test('every hand-off gets fresh segment and hypothetical tank ids', () {
+    // Plan segments and tanks are stored keyed by id alone, so two saved
+    // hand-offs must never share one.
+    final request = _request(
+      d,
+      branchSeconds: 900,
+      interventions: const [
+        SwitchGasIntervention(
+          tank: HypotheticalTankRef(
+            gasMix: GasMix(o2: 32, he: 0),
+            volumeLiters: 11,
+            startPressureBar: 200,
+          ),
+        ),
+      ],
+    );
+    final first = _handoff(d, request).plan;
+    final second = _handoff(d, request).plan;
+    final firstIds = first.segments.map((s) => s.id).toSet();
+    final secondIds = second.segments.map((s) => s.id).toSet();
+    expect(firstIds, hasLength(first.segments.length));
+    expect(firstIds.intersection(secondIds), isEmpty);
+    expect(firstIds.where((id) => id.startsWith('lab-')), isEmpty);
+    final hypothetical = first.tanks.where((t) => t.gasMix.o2 == 32).single;
+    final hypothetical2 = second.tanks.where((t) => t.gasMix.o2 == 32).single;
+    expect(hypothetical.id.startsWith('lab-'), isFalse);
+    expect(hypothetical.id, isNot(hypothetical2.id));
+    final tankIds = first.tanks.map((t) => t.id).toSet();
+    for (final seg in first.segments) {
+      expect(tankIds, contains(seg.tankId), reason: 'segment ${seg.id}');
+    }
+    expect(first.segments.any((seg) => seg.tankId == hypothetical.id), isTrue);
+  });
+
   test('gradient factors come from the intervention', () {
     final request = _request(
       d,
