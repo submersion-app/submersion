@@ -95,11 +95,12 @@ class ReefCacheDao {
     final now = _now().toUtc();
     final providers = ReefProviderId.values.asNameMap();
 
-    var deleted = 0;
+    final expired = <({String provider, String coordKey, String variant})>[];
     // The snapshot is taken inside the transaction so a refetch cannot land
     // between it and the deletes: writes from outside queue until this
     // commits, so the row each DELETE removes is the row that was evaluated,
-    // never a fresh replacement under the same primary key.
+    // never a fresh replacement under the same primary key. That also makes
+    // every collected key still present, so its length is the deleted count.
     await _db.transaction(() async {
       final rows =
           await (_db.selectOnly(t)..addColumns([
@@ -112,7 +113,6 @@ class ReefCacheDao {
               .get();
       for (final row in rows) {
         final providerName = row.read(t.provider)!;
-        final coordKey = row.read(t.coordKey)!;
         final variant = row.read(t.variant)!;
         final provider = providers[providerName];
         if (provider != null &&
@@ -128,17 +128,28 @@ class ReefCacheDao {
             )) {
           continue;
         }
-        deleted +=
-            await (_db.delete(t)..where(
-                  (r) =>
-                      r.provider.equals(providerName) &
-                      r.coordKey.equals(coordKey) &
-                      r.variant.equals(variant),
-                ))
-                .go();
+        expired.add((
+          provider: providerName,
+          coordKey: row.read(t.coordKey)!,
+          variant: variant,
+        ));
       }
+      if (expired.isEmpty) return;
+      // One batch rather than a DELETE per row: the database lives on a
+      // worker isolate, so each separate statement is a round trip.
+      await _db.batch((b) {
+        for (final key in expired) {
+          b.deleteWhere(
+            t,
+            (r) =>
+                r.provider.equals(key.provider) &
+                r.coordKey.equals(key.coordKey) &
+                r.variant.equals(key.variant),
+          );
+        }
+      });
     });
-    return deleted;
+    return expired.length;
   }
 
   static ReefDataStatus _statusOf(String name) =>

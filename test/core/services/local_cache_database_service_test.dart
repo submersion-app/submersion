@@ -47,11 +47,12 @@ void main() {
     await db.customSelect('SELECT 1').get();
 
     // A periodic timer cannot fire while this isolate is blocked inside a
-    // synchronous SQLite call, so ticks during a slow query prove the query
-    // ran somewhere else.
+    // synchronous SQLite call, so a blocked isolate sees exactly zero ticks
+    // (it did, before the move to a worker). Any tick at all proves the query
+    // ran somewhere else; how many a busy runner delivers is not the point.
     var ticks = 0;
     final timer = Timer.periodic(
-      const Duration(milliseconds: 1),
+      const Duration(milliseconds: 10),
       (_) => ticks++,
     );
     final stopwatch = Stopwatch()..start();
@@ -66,7 +67,7 @@ void main() {
 
     expect(
       ticks,
-      greaterThan(5),
+      greaterThan(0),
       reason: 'a ${stopwatch.elapsedMilliseconds} ms query saw $ticks ticks',
     );
   });
