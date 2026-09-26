@@ -597,6 +597,58 @@ static int jni_io_ioctl(void *userdata, unsigned int request,
         return status;
     }
 
+    // Handle BLE characteristic reads (issue #422).
+    {
+        char uuid[LIBDC_BLE_UUID_STRING_SIZE];
+        size_t value_size = 0;
+        int decoded = libdc_ble_characteristic_read_decode(
+            request, data, size, uuid, &value_size);
+        if (decoded == LIBDC_BLE_CHAR_READ_INVALID) {
+            return LIBDC_STATUS_INVALIDARGS;
+        }
+        if (decoded == LIBDC_BLE_CHAR_READ_OK) {
+            JNIEnv *env;
+            bool attached = false;
+            if (ctx->jvm->GetEnv(reinterpret_cast<void **>(&env),
+                                 JNI_VERSION_1_6) != JNI_OK) {
+                ctx->jvm->AttachCurrentThread(&env, nullptr);
+                attached = true;
+            }
+            jclass cls = env->GetObjectClass(ctx->ioHandler);
+            jmethodID method = env->GetMethodID(cls, "readCharacteristic",
+                "(Ljava/lang/String;)[B");
+            env->DeleteLocalRef(cls);
+            int status = LIBDC_STATUS_UNSUPPORTED;
+            if (method == nullptr) {
+                env->ExceptionClear();
+            } else {
+                jstring jUuid = env->NewStringUTF(uuid);
+                auto jValue = (jbyteArray)env->CallObjectMethod(
+                    ctx->ioHandler, method, jUuid);
+                env->DeleteLocalRef(jUuid);
+                if (env->ExceptionCheck()) {
+                    env->ExceptionClear();
+                    status = LIBDC_STATUS_IO;
+                } else if (jValue == nullptr) {
+                    status = LIBDC_STATUS_IO;
+                } else {
+                    jsize len = env->GetArrayLength(jValue);
+                    jbyte *bytes = env->GetByteArrayElements(jValue, nullptr);
+                    status = libdc_ble_characteristic_read_fill(
+                        data, size, reinterpret_cast<unsigned char *>(bytes),
+                        static_cast<size_t>(len));
+                    env->ReleaseByteArrayElements(jValue, bytes, JNI_ABORT);
+                    env->DeleteLocalRef(jValue);
+                }
+            }
+            __android_log_print(ANDROID_LOG_DEBUG, TAG,
+                "ioctl BLE_CHARACTERISTIC_READ %s (%zu bytes) -> %d",
+                uuid, value_size, status);
+            if (attached) ctx->jvm->DetachCurrentThread();
+            return status;
+        }
+    }
+
     return LIBDC_STATUS_UNSUPPORTED;
 }
 

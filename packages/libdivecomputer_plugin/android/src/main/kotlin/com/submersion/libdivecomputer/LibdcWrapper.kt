@@ -129,6 +129,10 @@ interface BleIoHandler : IoHandler {
     fun onPinCodeRequired(address: String): String
     fun getAccessCode(address: String): ByteArray?
     fun setAccessCode(address: String, code: ByteArray)
+
+    // Read a GATT characteristic by UUID (libdivecomputer's
+    // DC_IOCTL_BLE_CHARACTERISTIC_READ, issue #422). Returns null on failure.
+    fun readCharacteristic(uuid: String): ByteArray?
 }
 
 // Serial I/O: adds serial line-control (baud/data/parity/stop/flow + DTR/RTS).
