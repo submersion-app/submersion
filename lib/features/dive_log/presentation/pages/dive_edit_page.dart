@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/equipment/presentation/utils/usable_set_items.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
@@ -3564,15 +3565,33 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     bool markDirty = true,
   }) async {
     if (items.isEmpty) return;
+    // A set can list gear no longer shared with this dive's diver; it stays
+    // in the set but is not applied (issue #2046).
+    var toAdd = items;
+    if (viaSetId != null) {
+      final diverId =
+          _existingDive?.diverId ??
+          await ref.read(validatedCurrentDiverIdProvider.future);
+      if (!mounted) return;
+      if (diverId != null) {
+        final visible = await EquipmentRepository().visibleIdsAmong(
+          items.map((i) => i.id),
+          diverId,
+        );
+        if (!mounted) return;
+        toAdd = usableSetItems(items, visible);
+      }
+    }
+    if (toAdd.isEmpty) return;
     final merged = [
       ..._selectedEquipment,
-      for (final item in items)
+      for (final item in toAdd)
         if (!_selectedEquipment.any((e) => e.id == item.id)) item,
     ];
     final expansion = await expandGearOnPage(
       ref,
       additions: [
-        for (final i in items) (equipmentId: i.id, viaSetId: viaSetId),
+        for (final i in toAdd) (equipmentId: i.id, viaSetId: viaSetId),
       ],
       existing: _gearRows,
       existingItems: merged,
