@@ -19,10 +19,10 @@ Future<bool> _tableExists(AppDatabase db, String table) async {
 }
 
 void main() {
-  test('v229 creates dive_scenarios with the hlc column', () async {
+  test('v231 creates dive_scenarios with the hlc column', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 228');
+        rawDb.execute('PRAGMA user_version = 230');
         rawDb.execute('CREATE TABLE dives (id TEXT NOT NULL PRIMARY KEY)');
       },
     );
@@ -55,10 +55,10 @@ void main() {
     expect(idx, hasLength(1));
   });
 
-  test('backstop heals a 229 database that lacks the table', () async {
+  test('backstop heals a 231 database that lacks the table', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 229');
+        rawDb.execute('PRAGMA user_version = 231');
         rawDb.execute('CREATE TABLE dives (id TEXT NOT NULL PRIMARY KEY)');
       },
     );
@@ -67,12 +67,12 @@ void main() {
     expect(await _tableExists(db, 'dive_scenarios'), isTrue);
   });
 
-  test('v229 is at or below the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(229));
-    expect(AppDatabase.migrationVersions, contains(229));
+  test('v231 is at or below the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(231));
+    expect(AppDatabase.migrationVersions, contains(231));
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.migrationStepCount(228), 1);
+    expect(AppDatabase.migrationStepCount(230), 1);
     // A new table is additive: the compatibility floor stays put.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });

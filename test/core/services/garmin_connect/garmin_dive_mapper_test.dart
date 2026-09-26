@@ -11,6 +11,8 @@ ImportedDive _dive({
   String? decoModel,
   double? latitude = 10.0,
   double? longitude = 20.0,
+  double? exitLatitude = 10.1,
+  double? exitLongitude = 20.1,
 }) {
   return ImportedDive(
     sourceId: 'garmin-1',
@@ -23,8 +25,8 @@ ImportedDive _dive({
     maxTemperature: 25.0,
     latitude: latitude,
     longitude: longitude,
-    exitLatitude: 10.1,
-    exitLongitude: 20.1,
+    exitLatitude: exitLatitude,
+    exitLongitude: exitLongitude,
     computerModel: 'Descent Mk2',
     computerSerial: 'SN-42',
     computerFirmware: '5.10',
@@ -94,6 +96,47 @@ void main() {
       expect(result.dive.entryLatitude, isNull);
       expect(result.dive.entryLongitude, isNull);
     });
+
+    test('falls back to Connect\'s activity-list end position for the exit '
+        'when the FIT file has none (issue #1797)', () {
+      final result = GarminDiveMapper.map(
+        _dive(exitLatitude: null, exitLongitude: null),
+        activityId: 1,
+        fallbackExitLatitude: 28.4612,
+        fallbackExitLongitude: -16.3251,
+      );
+
+      expect(result.dive.exitLatitude, 28.4612);
+      expect(result.dive.exitLongitude, -16.3251);
+      expect(result.dive.entryLatitude, 10.0);
+      expect(result.dive.entryLongitude, 20.0);
+    });
+
+    test('prefers the FIT file\'s own exit position over the fallback', () {
+      final result = GarminDiveMapper.map(
+        _dive(),
+        activityId: 1,
+        fallbackExitLatitude: 99.0,
+        fallbackExitLongitude: 99.0,
+      );
+
+      expect(result.dive.exitLatitude, 10.1);
+      expect(result.dive.exitLongitude, 20.1);
+    });
+
+    test(
+      'ignores a lone fallback exit latitude with no matching longitude',
+      () {
+        final result = GarminDiveMapper.map(
+          _dive(exitLatitude: null, exitLongitude: null),
+          activityId: 1,
+          fallbackExitLatitude: 28.4612,
+        );
+
+        expect(result.dive.exitLatitude, isNull);
+        expect(result.dive.exitLongitude, isNull);
+      },
+    );
 
     test('produces a stable, distinct fingerprint per activity id', () {
       final a = GarminDiveMapper.map(_dive(), activityId: 111);

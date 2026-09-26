@@ -428,6 +428,8 @@ class GarminCloudFetchStep extends StatelessWidget {
                 activityId: activityId,
                 fallbackLatitude: page[i].latitude,
                 fallbackLongitude: page[i].longitude,
+                fallbackExitLatitude: page[i].exitLatitude,
+                fallbackExitLongitude: page[i].exitLongitude,
               );
             }
           } catch (_) {
