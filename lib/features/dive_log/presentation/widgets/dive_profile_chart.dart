@@ -2036,7 +2036,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         TooltipRow(
           label: l10n.diveLog_tooltip_rate,
           value:
-              '$arrow ${convertedRate.toStringAsFixed(1)} ${units.depthSymbol}/min',
+              '$arrow ${convertedRate.toStringAsFixed(1)} ${units.depthRateSymbol}',
           bulletColor: rateColor,
           metric: ProfileRightAxisMetric.ascentRate,
         ),

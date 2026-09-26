@@ -16938,7 +16938,7 @@
       }
     }
   },
-  "divePlanner_segmentEditor_derivedAscent": "Ascent {from} → {to} at {rate}/min",
+  "divePlanner_segmentEditor_derivedAscent": "Ascent {from} → {to} at {rate}",
   "@divePlanner_segmentEditor_derivedAscent": {
     "placeholders": {
       "from": {
@@ -16948,7 +16948,8 @@
         "type": "Object"
       },
       "rate": {
-        "type": "Object"
+        "type": "Object",
+        "description": "Rate with its unit already attached, e.g. 9m/min"
       }
     }
   },
@@ -16963,7 +16964,7 @@
       }
     }
   },
-  "divePlanner_segmentEditor_derivedDescent": "Descent {from} → {to} at {rate}/min",
+  "divePlanner_segmentEditor_derivedDescent": "Descent {from} → {to} at {rate}",
   "@divePlanner_segmentEditor_derivedDescent": {
     "placeholders": {
       "from": {
@@ -16973,7 +16974,8 @@
         "type": "Object"
       },
       "rate": {
-        "type": "Object"
+        "type": "Object",
+        "description": "Rate with its unit already attached, e.g. 9m/min"
       }
     }
   },
@@ -19344,7 +19346,15 @@
   "safetyHub_noFly_disclaimer": "DAN/UHMS guideline intervals from your last dive. Not a substitute for your dive computer's no-fly time.",
   "diveLog_detail_altitudeMismatch_title": "Site is at altitude",
   "diveLog_detail_altitudeMismatch_subtitle": "This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive's altitude to correct it.",
-  "diveLog_detail_sacVolumeHint": "Add a cylinder volume to show RMV in {unit}/min",
+  "diveLog_detail_sacVolumeHint": "Add a cylinder volume to show RMV in {unit}",
+  "@diveLog_detail_sacVolumeHint": {
+    "placeholders": {
+      "unit": {
+        "type": "String",
+        "description": "Rate unit, e.g. L/min or cuft/min"
+      }
+    }
+  },
   "safetyHub_alert_noFly": "No-fly: {remaining} remaining",
   "@safetyHub_alert_noFly": {
     "placeholders": {
@@ -25604,13 +25614,6 @@
     }
   },
   "@settings_units_gasConsumption_rmv_subtitle": {
-    "placeholders": {
-      "unit": {
-        "type": "String"
-      }
-    }
-  },
-  "@diveLog_detail_sacVolumeHint": {
     "placeholders": {
       "unit": {
         "type": "String"

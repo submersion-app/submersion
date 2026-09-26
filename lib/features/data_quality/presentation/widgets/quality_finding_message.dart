@@ -4,6 +4,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 class QualityUnitFormatters {
   const QualityUnitFormatters({
     required this.depth,
+    required this.depthRate,
     required this.pressure,
     required this.temperature,
     required this.sac,
@@ -12,6 +13,9 @@ class QualityUnitFormatters {
     required this.limitDepth,
   });
   final String Function(double meters) depth;
+
+  /// Formats a vertical rate given in m/min, including the rate unit.
+  final String Function(double metersPerMinute) depthRate;
 
   /// Formats a limit depth such as a MOD, rounded DOWN so it never reads
   /// deeper than the gas may be taken. Required, so no formatter set can
@@ -123,7 +127,7 @@ QualityFindingMessage buildFindingMessage(
       }
     case 'impossible_rate':
       detail = l10n.dataQuality_msg_rate(
-        '${fmt.depth(d('maxRateMetersPerMinute'))}/min',
+        fmt.depthRate(d('maxRateMetersPerMinute')),
         i('durationSeconds'),
       );
     case 'temp_anomaly':

@@ -26283,7 +26283,7 @@ class AppLocalizationsIt extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Risalita $from → $to a $rate/min';
+    return 'Risalita $from → $to a $rate';
   }
 
   @override
@@ -26297,7 +26297,7 @@ class AppLocalizationsIt extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Discesa $from → $to a $rate/min';
+    return 'Discesa $from → $to a $rate';
   }
 
   @override
@@ -29923,7 +29923,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Aggiungi il volume della bombola per mostrare l\'RMV in $unit/min';
+    return 'Aggiungi il volume della bombola per mostrare l\'RMV in $unit';
   }
 
   @override

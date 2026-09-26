@@ -26245,7 +26245,7 @@ class AppLocalizationsDe extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Aufstieg $from -> $to mit $rate/min';
+    return 'Aufstieg $from -> $to mit $rate';
   }
 
   @override
@@ -26259,7 +26259,7 @@ class AppLocalizationsDe extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Abstieg $from -> $to mit $rate/min';
+    return 'Abstieg $from -> $to mit $rate';
   }
 
   @override
@@ -29876,7 +29876,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Flaschenvolumen eintragen, um den AMV in $unit/min anzuzeigen';
+    return 'Flaschenvolumen eintragen, um den AMV in $unit anzuzeigen';
   }
 
   @override

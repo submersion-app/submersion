@@ -89,27 +89,6 @@ class ProfileEvent extends Equatable {
   /// Whether this event has associated data value
   bool get hasValue => value != null;
 
-  /// Get formatted value with appropriate units based on event type
-  String? get formattedValue {
-    if (value == null) return null;
-
-    switch (eventType) {
-      case ProfileEventType.ascentRateWarning:
-      case ProfileEventType.ascentRateCritical:
-        return '${value!.toStringAsFixed(1)} m/min';
-      case ProfileEventType.ppO2High:
-      case ProfileEventType.ppO2Low:
-        return '${value!.toStringAsFixed(2)} bar';
-      case ProfileEventType.cnsWarning:
-      case ProfileEventType.cnsCritical:
-        return '${value!.toStringAsFixed(0)}%';
-      case ProfileEventType.setpointChange:
-        return '${value!.toStringAsFixed(1)} bar';
-      default:
-        return value!.toStringAsFixed(1);
-    }
-  }
-
   /// Create an ascent start event
   factory ProfileEvent.ascentStart({
     required String id,

@@ -53,6 +53,32 @@ class UnitFormatter {
   String get depthSymbol => settings.depthUnit.symbol;
 
   // ============================================================================
+  // Rates
+  // ============================================================================
+
+  /// The one place a per-minute rate unit is built: "m/min", "psi/min".
+  ///
+  /// The minute part is an untranslated SI-style symbol, like the base
+  /// symbols from the unit enums, so it reads "/min" in every locale. Call
+  /// sites use [depthRateSymbol], [sacSymbol] or [rmvSymbol] rather than
+  /// interpolating "/min" themselves (issue #1932).
+  static String perMinute(String unitSymbol) => '$unitSymbol/min';
+
+  /// Ascent/descent rate unit: "m/min" or "ft/min".
+  String get depthRateSymbol => perMinute(depthSymbol);
+
+  /// Format a vertical rate given in m/min, in the same style as
+  /// [formatDepth]: "9.0m/min" or "29.5ft/min".
+  String formatDepthRate(double? metersPerMin, {int decimals = 1}) {
+    if (metersPerMin == null) return '--';
+    final converted = DepthUnit.meters.convert(
+      metersPerMin,
+      settings.depthUnit,
+    );
+    return '${formatFixedForDisplay(converted, decimals)}$depthRateSymbol';
+  }
+
+  // ============================================================================
   // Coordinates
   // ============================================================================
 
@@ -310,10 +336,10 @@ class UnitFormatter {
   // ============================================================================
 
   /// SAC display suffix: "bar/min" or "psi/min".
-  String get sacSymbol => '$pressureSymbol/min';
+  String get sacSymbol => perMinute(pressureSymbol);
 
   /// RMV display suffix: "L/min" or "cuft/min".
-  String get rmvSymbol => '$volumeSymbol/min';
+  String get rmvSymbol => perMinute(volumeSymbol);
 
   /// Convert a SAC in bar/min (from [Dive.sac]) to the pressure unit.
   double convertSac(double barPerMin) => convertPressure(barPerMin);

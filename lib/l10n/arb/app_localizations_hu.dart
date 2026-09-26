@@ -26207,7 +26207,7 @@ class AppLocalizationsHu extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Emelkedés $from -> $to, $rate/perc';
+    return 'Emelkedés $from -> $to, $rate';
   }
 
   @override
@@ -26221,7 +26221,7 @@ class AppLocalizationsHu extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Süllyedés $from -> $to, $rate/perc';
+    return 'Süllyedés $from -> $to, $rate';
   }
 
   @override
@@ -29810,7 +29810,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Add meg a palack térfogatát, hogy az RMV $unit/min-ben jelenjen meg';
+    return 'Add meg a palack térfogatát, hogy az RMV $unit-ben jelenjen meg';
   }
 
   @override

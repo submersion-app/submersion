@@ -523,10 +523,10 @@ class _UnitsSectionContent extends ConsumerWidget {
                   value: switch (settings.gasConsumptionDisplay) {
                     GasConsumptionDisplay.sac =>
                       '${context.l10n.gasConsumption_sac} '
-                          '(${settings.pressureUnit.symbol}/min)',
+                          '(${UnitFormatter(settings).sacSymbol})',
                     GasConsumptionDisplay.rmv =>
                       '${context.l10n.gasConsumption_rmv} '
-                          '(${settings.volumeUnit.symbol}/min)',
+                          '(${UnitFormatter(settings).rmvSymbol})',
                     GasConsumptionDisplay.both =>
                       context.l10n.settings_units_gasConsumption_both,
                   },
@@ -948,14 +948,14 @@ class _UnitsSectionContent extends ConsumerWidget {
                 GasConsumptionDisplay.sac,
                 l10n.gasConsumption_sac,
                 l10n.settings_units_gasConsumption_sac_subtitle(
-                  '${settings.pressureUnit.symbol}/min',
+                  UnitFormatter(settings).sacSymbol,
                 ),
               ),
               option(
                 GasConsumptionDisplay.rmv,
                 l10n.gasConsumption_rmv,
                 l10n.settings_units_gasConsumption_rmv_subtitle(
-                  '${settings.volumeUnit.symbol}/min',
+                  UnitFormatter(settings).rmvSymbol,
                 ),
               ),
               option(

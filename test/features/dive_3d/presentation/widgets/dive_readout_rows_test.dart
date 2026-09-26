@@ -70,6 +70,38 @@ void main() {
     expect(byLabel['TTS']!.value, '10 min');
   });
 
+  test('ascent rate row reads in the depth unit per minute', () async {
+    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    const rising = Dive3dSceneData(
+      diveId: 'd1',
+      times: [0, 100],
+      depths: [20, 5],
+      temperatures: [null, null],
+      ascentRates: [9, 9],
+      ppO2s: [null, null],
+      cnss: [null, null],
+      heartRates: [null, null],
+      ceilings: [null, null],
+      ttss: [null, null],
+      tankPressures: {},
+      gasSwitches: [],
+      bookmarkEvents: [],
+      photos: [],
+      durationSeconds: 100,
+      maxDepthMeters: 20,
+    );
+    final rows = diveReadoutRows(
+      lookups: DiveReadoutLookups(rising),
+      timestampSeconds: 50,
+      units: const UnitFormatter(AppSettings()),
+      l10n: l10n,
+    );
+    final ascent = rows.singleWhere(
+      (r) => r.label == l10n.dive3d_metric_ascentRate,
+    );
+    expect(ascent.value, '9.0 m/min');
+  });
+
   test('lookups hold one entry per tank, null for an empty series', () {
     const twoTanks = Dive3dSceneData(
       diveId: 'd1',

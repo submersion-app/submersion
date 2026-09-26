@@ -291,13 +291,13 @@ class RangeStatsPanel extends ConsumerWidget {
 
   String _formatRate(double rate) {
     final converted = units.convertDepth(rate);
-    return '${converted.toStringAsFixed(1)} ${units.depthSymbol}/min';
+    return '${converted.toStringAsFixed(1)} ${units.depthRateSymbol}';
   }
 
   String _formatSignedRate(double rate) {
     final converted = units.convertDepth(rate);
     final sign = converted > 0 ? '+' : '';
-    return '$sign${converted.toStringAsFixed(1)} ${units.depthSymbol}/min';
+    return '$sign${converted.toStringAsFixed(1)} ${units.depthRateSymbol}';
   }
 
   _RangeStats _calculateRangeStats(

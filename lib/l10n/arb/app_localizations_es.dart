@@ -26310,7 +26310,7 @@ class AppLocalizationsEs extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Ascenso $from -> $to a $rate/min';
+    return 'Ascenso $from -> $to a $rate';
   }
 
   @override
@@ -26324,7 +26324,7 @@ class AppLocalizationsEs extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Descenso $from -> $to a $rate/min';
+    return 'Descenso $from -> $to a $rate';
   }
 
   @override
@@ -29951,7 +29951,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Añade el volumen del cilindro para mostrar el RMV en $unit/min';
+    return 'Añade el volumen del cilindro para mostrar el RMV en $unit';
   }
 
   @override

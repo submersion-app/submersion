@@ -24914,7 +24914,7 @@ class AppLocalizationsZh extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return '上升 $from → $to，$rate/分钟';
+    return '上升 $from → $to，$rate';
   }
 
   @override
@@ -24928,7 +24928,7 @@ class AppLocalizationsZh extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return '下降 $from → $to，$rate/分钟';
+    return '下降 $from → $to，$rate';
   }
 
   @override
@@ -28374,7 +28374,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return '添加气瓶容积以按 $unit/min 显示 RMV';
+    return '添加气瓶容积以按 $unit 显示 RMV';
   }
 
   @override
