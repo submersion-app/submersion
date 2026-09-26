@@ -91,6 +91,26 @@ void main() {
       expect(scan.glitchIndices, hasLength(24));
     });
 
+    test('a dropout the cylinder comes back from a few bar warmer is a '
+        'glitch', () {
+      // Four minutes at ~0 bar, and the cylinder warmed meanwhile: the
+      // reading after it sits 4 bar above the one before. A reading of ~0
+      // bar is no pressure the cylinder held, whatever follows it.
+      final base = draining(count: 60);
+      final series = [
+        for (var i = 0; i < base.length; i++)
+          if (i >= 10 && i < 34)
+            (t: base[i].t, bar: 0.6)
+          else if (i >= 34)
+            (t: base[i].t, bar: base[9].bar + 4 - (i - 34) * 0.3)
+          else
+            base[i],
+      ];
+      final scan = scanPressureGlitches(series);
+      expect(scan.episodeCount, 1);
+      expect(scan.glitchIndices, hasLength(24));
+    });
+
     test('a dip followed by a higher reading than before is not a glitch', () {
       // The reading after the dip sits well above the level before it, so
       // the dip cannot be told apart from a switch of source.

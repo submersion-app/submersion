@@ -238,6 +238,28 @@ void main() {
       );
     });
 
+    test('a sudden jump next to a slow creep is still flagged', () {
+      // Three bar of creep over eight minutes, then a 15 bar jump in one
+      // sample: averaged over the whole run it is ~2 bar/min, but the jump
+      // itself is 90 bar/min.
+      final series = [
+        const QualityPressureSample(t: 0, bar: 200),
+        const QualityPressureSample(t: 600, bar: 170),
+        for (var i = 1; i <= 30; i++)
+          QualityPressureSample(t: 600 + i * 16, bar: 170 + i * 0.1),
+        const QualityPressureSample(t: 1090, bar: 188),
+        const QualityPressureSample(t: 2400, bar: 150),
+      ];
+      final ctx = makeContext(
+        dive: makeTestDive(tanks: [tank(start: 200, end: 150)]),
+        pressures: {'t1': series},
+      );
+      final rise = det
+          .detect(ctx)
+          .singleWhere((f) => f.params.containsKey('riseBar'));
+      expect(rise.params['riseBar'], closeTo(18.0, 1e-9));
+    });
+
     test('a large rise is flagged even when sampled too sparsely for a '
         'rate', () {
       // One reading every ten minutes: a 25 bar rise between two of them is
@@ -538,6 +560,55 @@ void main() {
           expect(start.params['seriesBar'], closeTo(199.5, 1e-9));
         },
       );
+
+      test('a long lead-in lends no mid-dive reading to the start check', () {
+        // The transmitter paired ten minutes in: its ~0 bar lead-in says
+        // nothing about the start, and neither does the first real reading,
+        // taken well into the dive (#2222).
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 200, end: 80)]),
+          pressures: {
+            't1': [
+              for (var t = 0; t < 600; t += 10)
+                QualityPressureSample(t: t, bar: 0.4),
+              for (var t = 600; t <= 2400; t += 10)
+                QualityPressureSample(t: t, bar: 170 - (t - 600) / 20),
+            ],
+          },
+        );
+        final out = det.detect(ctx);
+        expect(out.where((f) => f.params['endpoint'] == 'start'), isEmpty);
+        expect(out.where((f) => f.params.containsKey('startBar')), isEmpty);
+      });
+
+      test('a swap is still flagged past a post-surfacing bleed-down', () {
+        // A rebreather O2 cylinder: 200 bar at the start, 120 at surfacing,
+        // then the tail bleeds down to 90. The record is entered the wrong
+        // way round; the tail must not hide that (#2220).
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 120, end: 200)]),
+          samples: const [
+            QualitySample(t: 0, depth: 20),
+            QualitySample(t: 1000, depth: 20),
+            QualitySample(t: 1200, depth: 1.0),
+            QualitySample(t: 1320, depth: 0.2),
+          ],
+          pressures: {
+            't1': const [
+              QualityPressureSample(t: 0, bar: 200),
+              QualityPressureSample(t: 1000, bar: 130),
+              QualityPressureSample(t: 1200, bar: 120),
+              QualityPressureSample(t: 1260, bar: 105),
+              QualityPressureSample(t: 1320, bar: 90),
+            ],
+          },
+        );
+        final swap = det
+            .detect(ctx)
+            .singleWhere((f) => f.params.containsKey('startBar'));
+        expect(swap.params['startBar'], 120);
+        expect(swap.params['endBar'], 200);
+      });
 
       test('a swap the series confirms is still flagged', () {
         // Start and end really were entered the wrong way round: the

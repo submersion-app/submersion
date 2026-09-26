@@ -119,6 +119,35 @@ void main() {
     }
   });
 
+  test('a secondary with several sources keeps its unattributed series '
+      'unattributed', () async {
+    // f2 holds a second source, and one of its series never got one: it
+    // could be either source's recording, so it stays unattributed rather
+    // than being grouped with the primary source's series.
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion.insert(
+            id: 'src-f2-other',
+            diveId: 'f2',
+            importedAt: DateTime.utc(2026, 7, 18),
+            createdAt: DateTime.utc(2026, 7, 18),
+          ),
+        );
+    await tankSeries.insertSeries(
+      diveId: 'f2',
+      tankId: 'tank-f2',
+      samples: recording(offset: 7, start: 196),
+      now: 1000,
+    );
+
+    await service.apply(targetDiveId: 'f1', secondaryDiveIds: ['f2']);
+
+    final series = await tankSeries.getSeriesForDive('f1');
+    expect(series, hasLength(3));
+    expect(series.where((s) => s.sourceId == null), hasLength(1));
+  });
+
   test('a target with several sources keeps its unattributed series '
       'unattributed', () async {
     // f1 already holds a second source from an earlier consolidation, so an

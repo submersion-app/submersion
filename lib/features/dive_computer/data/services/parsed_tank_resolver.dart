@@ -185,6 +185,7 @@ _ResolvedCylinders _resolveCylinders(
     // samples, so a dropout or a pre-valve lead-in at either end becomes
     // the cylinder's pressure (#2441).
     final readings = readingsByTank[tank.index] ?? const <PressureReading>[];
+    final glitches = scanPressureGlitches(readings);
     result.add(
       DownloadedTank(
         index: tank.index,
@@ -194,12 +195,14 @@ _ResolvedCylinders _resolveCylinders(
           reportedBar: tank.startPressureBar,
           readings: readings,
           atStart: true,
+          scan: glitches,
         ),
         endPressure: trimEndPressureBar(
           reportedBar: replaceGlitchedEndpoint(
             reportedBar: tank.endPressureBar,
             readings: readings,
             atStart: false,
+            scan: glitches,
           ),
           reading: surfacingReadings[tank.index],
         ),
@@ -532,18 +535,16 @@ Map<int, double> _sampleTankReadings(pigeon.ProfileSample sample) {
 Map<int, List<PressureReading>> _readingsByTank(
   List<SurfacingProfilePoint> points,
 ) {
-  final indexed = [for (var i = 0; i < points.length; i++) (i, points[i])]
-    ..sort((a, b) {
-      final byTime = a.$2.timeSeconds.compareTo(b.$2.timeSeconds);
-      return byTime != 0 ? byTime : a.$1.compareTo(b.$1);
-    });
   final byTank = <int, List<PressureReading>>{};
-  for (final (_, p) in indexed) {
+  for (final p in points) {
     for (final entry in p.tankPressuresBar.entries) {
       (byTank[entry.key] ??= []).add((t: p.timeSeconds, bar: entry.value));
     }
   }
-  return byTank;
+  return {
+    for (final entry in byTank.entries)
+      entry.key: readingsInTimeOrder(entry.value),
+  };
 }
 
 /// Reduce libdivecomputer samples to the depth-plus-pressure points the

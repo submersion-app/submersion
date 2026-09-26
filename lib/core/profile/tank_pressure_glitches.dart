@@ -25,6 +25,11 @@ const double kPressureGlitchReturnBelowBar = 10.0;
 /// A dip that returns much higher is no misread of one cylinder.
 const double kPressureGlitchReturnAboveBar = 3.0;
 
+/// The same allowance after a near-zero dropout, in bar. A dropout can last
+/// minutes, over which a cylinder warming in the water gains a few bar, and
+/// a reading of ~0 bar is never real whatever follows it.
+const double kPressureGlitchDropoutReturnAboveBar = 10.0;
+
 /// How far below the first stable reading a lead-in reading must sit, in bar,
 /// to count as taken before the valve was open or the transmitter paired.
 const double kPressureGlitchLeadInGapBar = 10.0;
@@ -137,13 +142,18 @@ List<PressureReading> withoutPressureGlitches(List<PressureReading> readings) {
 /// glitch sitting at either end. When [reportedBar] matches a glitch reading
 /// of [readings], the first or last clean reading replaces it; any other
 /// value, and a null, comes back unchanged.
+///
+/// [readings] must be in time order. A caller resolving both endpoints of one
+/// cylinder passes the [scan] of [readings] it already holds, so the series
+/// is scanned once rather than per endpoint.
 double? replaceGlitchedEndpoint({
   required double? reportedBar,
   required List<PressureReading> readings,
   required bool atStart,
+  PressureGlitchScan? scan,
 }) {
   if (reportedBar == null) return null;
-  final scan = scanPressureGlitches(readings);
+  scan ??= scanPressureGlitches(readings);
   if (scan.glitchIndices.isEmpty) return reportedBar;
   final matchesGlitch = scan.glitchIndices.any(
     (i) => (readings[i].bar - reportedBar).abs() <= _endpointMatchToleranceBar,
@@ -166,14 +176,21 @@ double? replaceGlitchedEndpoint({
 ({double start, double end})? cleanSeriesEndpoints(
   List<PressureReading> readings,
 ) {
+  final clean = withoutPressureGlitches(readingsInTimeOrder(readings));
+  if (clean.isEmpty) return null;
+  return (start: clean.first.bar, end: clean.last.bar);
+}
+
+/// [readings] sorted by time, readings sharing a second kept in the order
+/// given. Dart's List.sort is not stable, and every glitch rule reads the
+/// series in time order.
+List<PressureReading> readingsInTimeOrder(List<PressureReading> readings) {
   final indexed = [for (var i = 0; i < readings.length; i++) (i, readings[i])]
     ..sort((a, b) {
       final byTime = a.$2.t.compareTo(b.$2.t);
       return byTime != 0 ? byTime : a.$1.compareTo(b.$1);
     });
-  final clean = withoutPressureGlitches([for (final e in indexed) e.$2]);
-  if (clean.isEmpty) return null;
-  return (start: clean.first.bar, end: clean.last.bar);
+  return [for (final e in indexed) e.$2];
 }
 
 // Sources quantize pressure before converting it (Shearwater logs 2 psi
@@ -210,7 +227,6 @@ int _leadInLength(List<PressureReading> readings) {
 bool _isGlitch(List<PressureReading> readings, int before, int start, int end) {
   final level = readings[before].bar;
   final after = readings[end].bar;
-  if (after > level + kPressureGlitchReturnAboveBar) return false;
   final floor = (after < level ? after : level) - kPressureGlitchMinDipBar;
   var nearZero = true;
   for (var j = start; j < end; j++) {
@@ -218,7 +234,10 @@ bool _isGlitch(List<PressureReading> readings, int before, int start, int end) {
     if (bar >= floor) return false;
     if (bar >= kPressureGlitchNearZeroBar) nearZero = false;
   }
-  if (nearZero) return true;
+  if (nearZero) {
+    return after <= level + kPressureGlitchDropoutReturnAboveBar;
+  }
+  if (after > level + kPressureGlitchReturnAboveBar) return false;
   // Measured between the good readings either side, not across the dip
   // alone: in a sparsely sampled series the drop may have happened at any
   // point of a long gap, where it is as likely real consumption.

@@ -23,8 +23,10 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// unscoped read interleaves them, and since the two computers sample on
 /// offset seconds the single line alternates between them every sample: a
 /// fuzzy band wherever they disagree by a fraction of a bar (#543's
-/// pressure counterpart). Chart surfaces read this; SAC, exports and the
-/// buoyancy twins keep the union, which is every reading the dive holds.
+/// pressure counterpart). Chart surfaces read this. SAC and the buoyancy
+/// twins read [tankPressuresProvider], which takes the primary source for
+/// any stretch two sources recorded (#2440); only the exports keep every
+/// reading the dive holds.
 final activeSourceTankPressuresProvider = FutureProvider.autoDispose
     .family<Map<String, List<TankPressurePoint>>, String>((ref, diveId) {
       final active = ref.watch(activeSourceProfileProvider(diveId));

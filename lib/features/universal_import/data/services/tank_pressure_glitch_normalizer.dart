@@ -58,15 +58,18 @@ Map<String, dynamic> _fixDive(Map<String, dynamic> dive) {
     }
     final start = (tank['startPressure'] as num?)?.toDouble();
     final end = (tank['endPressure'] as num?)?.toDouble();
+    final glitches = scanPressureGlitches(readings);
     final newStart = replaceGlitchedEndpoint(
       reportedBar: start,
       readings: readings,
       atStart: true,
+      scan: glitches,
     );
     final newEnd = replaceGlitchedEndpoint(
       reportedBar: end,
       readings: readings,
       atStart: false,
+      scan: glitches,
     );
     if (newStart == start && newEnd == end) {
       fixed.add(tank);
@@ -100,17 +103,7 @@ Map<int, List<PressureReading>> _readingsByTank(List<dynamic> profile) {
     }
   }
   return {
-    for (final entry in byTank.entries) entry.key: _inTimeOrder(entry.value),
+    for (final entry in byTank.entries)
+      entry.key: readingsInTimeOrder(entry.value),
   };
-}
-
-/// [readings] sorted by time. Dart's List.sort is not stable, so the index
-/// keeps equal times in the order the profile listed them.
-List<PressureReading> _inTimeOrder(List<PressureReading> readings) {
-  final indexed = [for (var i = 0; i < readings.length; i++) (i, readings[i])]
-    ..sort((a, b) {
-      final byTime = a.$2.t.compareTo(b.$2.t);
-      return byTime != 0 ? byTime : a.$1.compareTo(b.$1);
-    });
-  return [for (final e in indexed) e.$2];
 }

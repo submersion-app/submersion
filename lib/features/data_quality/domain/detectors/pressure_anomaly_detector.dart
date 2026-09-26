@@ -84,10 +84,25 @@ class PressureAnomalyDetector extends QualityDetector {
         );
       }
 
+      // What the series says about either end of the dive, or null where it
+      // says nothing: a series that began logging late describes no start
+      // (#2222), and one with no reading near surfacing describes no end
+      // (#2220). Measured on the series without its glitches, so a lead-in
+      // or a dropout never stands in for either end (#2441).
+      final hasSeries = series.length >= 2;
+      final startReferenceBar =
+          hasSeries &&
+              series.first.t <= QualityThresholds.pressureStartLookbackSeconds
+          ? series.first.bar
+          : null;
+      final endReferenceBar = hasSeries
+          ? _endReferenceBar(series, surfacingTime)
+          : null;
+
       if (sp != null &&
           ep != null &&
           ep - sp > QualityThresholds.pressureSwapMinDiffBar &&
-          _seriesAllowsSwap(series, sp, ep)) {
+          _seriesAllowsSwap(startReferenceBar, endReferenceBar, sp, ep)) {
         out.add(
           make(
             ctx,
@@ -104,13 +119,11 @@ class PressureAnomalyDetector extends QualityDetector {
         );
       }
 
-      if (series.length < 2) continue;
+      if (!hasSeries) continue;
 
-      // The lookback asks when the series began logging, so it reads the
-      // raw first sample: a lead-in dropped above says nothing about that.
       if (sp != null &&
-          raw.first.t <= QualityThresholds.pressureStartLookbackSeconds &&
-          (sp - series.first.bar).abs() >
+          startReferenceBar != null &&
+          (sp - startReferenceBar).abs() >
               QualityThresholds.pressureEndpointMismatchBar) {
         out.add(
           make(
@@ -120,7 +133,7 @@ class PressureAnomalyDetector extends QualityDetector {
             severity: QualitySeverity.warning,
             params: {
               'recordBar': sp,
-              'seriesBar': series.first.bar,
+              'seriesBar': startReferenceBar,
               'tankId': tank.id,
               'tankOrder': tank.order,
               'endpoint': 'start',
@@ -128,7 +141,6 @@ class PressureAnomalyDetector extends QualityDetector {
           ),
         );
       }
-      final endReferenceBar = _endReferenceBar(series, surfacingTime);
       if (ep != null &&
           endReferenceBar != null &&
           (ep - endReferenceBar).abs() >
@@ -153,10 +165,19 @@ class PressureAnomalyDetector extends QualityDetector {
       // Mid-dive rising runs away from any gas switch.
       var rise = 0.0;
       int? riseStart;
+      // The steepest single step of the run, so a sudden jump is not
+      // averaged away by a slow creep before or after it.
+      var steepestBar = 0.0;
+      var steepestSeconds = 0;
       void closeRise(int endT) {
         final start = riseStart;
         if (start != null &&
-            _isAnomalousRise(rise, endT - start) &&
+            _isAnomalousRise(
+              rise,
+              endT - start,
+              steepestBar: steepestBar,
+              steepestSeconds: steepestSeconds,
+            ) &&
             !_nearSwitch(ctx, start, endT)) {
           out.add(
             make(
@@ -176,6 +197,8 @@ class PressureAnomalyDetector extends QualityDetector {
         }
         rise = 0;
         riseStart = null;
+        steepestBar = 0;
+        steepestSeconds = 0;
       }
 
       for (var i = 1; i < series.length; i++) {
@@ -183,6 +206,10 @@ class PressureAnomalyDetector extends QualityDetector {
         if (d > 0) {
           riseStart ??= series[i - 1].t;
           rise += d;
+          if (d > steepestBar) {
+            steepestBar = d;
+            steepestSeconds = series[i].t - series[i - 1].t;
+          }
         } else {
           closeRise(series[i - 1].t);
         }
@@ -265,34 +292,59 @@ class PressureAnomalyDetector extends QualityDetector {
     return atSurfacing.bar;
   }
 
-  /// Whether the tank's pressure series, if it has one, agrees that the
-  /// recorded start and end pressures were entered the wrong way round.
+  /// Whether the tank's pressure series, where it describes the start and
+  /// end of the dive, agrees that the recorded start and end pressures were
+  /// entered the wrong way round.
   ///
-  /// A record whose start pressure came from a dropout (1 to 12 bar) also
-  /// shows an end above its start, and swapping the two would make it
-  /// worse. The series settles which it is: a real swap drains from the
-  /// recorded end down to the recorded start. Without a series the record
-  /// is all there is to go by, so the swap stands.
+  /// A record whose start pressure was read before the valve was open (a
+  /// few bar) also shows an end above its start, and swapping the two would
+  /// make it worse. The series settles which it is: in a real swap the
+  /// series starts near the recorded end and ends near the recorded start.
+  /// Either reference is null where the series says nothing about that end
+  /// of the dive, and a series that says nothing at all leaves the record
+  /// as all there is to go by, so the swap stands.
   bool _seriesAllowsSwap(
-    List<QualityPressureSample> series,
+    double? startReferenceBar,
+    double? endReferenceBar,
     double startBar,
     double endBar,
   ) {
-    if (series.length < 2) return true;
     const tolerance = QualityThresholds.pressureEndpointMismatchBar;
-    return (series.first.bar - endBar).abs() <= tolerance &&
-        (series.last.bar - startBar).abs() <= tolerance;
+    if (startReferenceBar != null &&
+        (startReferenceBar - endBar).abs() > tolerance) {
+      return false;
+    }
+    if (endReferenceBar != null &&
+        (endReferenceBar - startBar).abs() > tolerance) {
+      return false;
+    }
+    return true;
   }
 
   /// Whether a rising run of [riseBar] over [durationSeconds] is an anomaly
   /// rather than a cylinder warming up or a drifting sensor (#2442).
-  bool _isAnomalousRise(double riseBar, int durationSeconds) {
+  ///
+  /// The run's steepest single step ([steepestBar] over [steepestSeconds])
+  /// is judged on its own as well: a genuine jump next to a slow creep would
+  /// otherwise be averaged below the rate gate.
+  bool _isAnomalousRise(
+    double riseBar,
+    int durationSeconds, {
+    required double steepestBar,
+    required int steepestSeconds,
+  }) {
     if (riseBar <= QualityThresholds.pressureRiseBar) return false;
     if (riseBar > QualityThresholds.pressureRiseAlwaysFlagBar) return true;
+    if (_fasterThanRiseGate(riseBar, durationSeconds)) return true;
+    return steepestBar > QualityThresholds.pressureRiseBar &&
+        _fasterThanRiseGate(steepestBar, steepestSeconds);
+  }
+
+  bool _fasterThanRiseGate(double bar, int seconds) {
     // Timestamps never decrease, but two readings can share one; a rise
     // with no measurable duration is as fast as a rise can be.
-    if (durationSeconds <= 0) return true;
-    return riseBar / (durationSeconds / 60.0) >
+    if (seconds <= 0) return true;
+    return bar / (seconds / 60.0) >
         QualityThresholds.pressureRiseMinBarPerMinute;
   }
 

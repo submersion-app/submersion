@@ -366,8 +366,13 @@ class DiveConsolidationService {
             // The owning source, re-pointed like the profile rows above
             // (issue #2440): two file-imported sources both carry a null
             // computer, and without it their series of one cylinder merge
-            // into one.
-            sourceId: sourceIdMap[s.sourceId] ?? sourceIdMap[null],
+            // into one. An unattributed series of a secondary holding
+            // several sources stays unattributed, as in the merge and the
+            // v232 backfill: handing it to one of them would group it with
+            // another source's recording.
+            sourceId: s.sourceId == null && secSources.length > 1
+                ? null
+                : sourceIdMap[s.sourceId] ?? sourceIdMap[null],
             samples: [for (final p in s.samples) p.shiftedBy(offset)],
             now: now,
           );
