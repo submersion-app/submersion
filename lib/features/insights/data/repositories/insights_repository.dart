@@ -108,7 +108,15 @@ class EntryExitPairCount {
   final int count;
 }
 
-/// Repository for all advanced statistics queries
+/// Repository for all advanced statistics queries.
+///
+/// A failed query is logged and rethrown, never answered with an empty
+/// result (issue #1930). Every card treats an empty result as "you have no
+/// data for this", so a default would show a broken query as a diver with
+/// no dives, and the card's error state would never appear. Rethrowing lets
+/// the provider complete with an `AsyncError` instead. The callers outside
+/// Insights (the home dashboard, the site pages, the planner's logged SAC)
+/// already treat an error as nothing to show.
 class InsightsRepository {
   /// Equation of state used to convert cylinder pressure to gas volume.
   ///
@@ -367,7 +375,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -428,7 +436,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -477,7 +485,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -604,7 +612,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return (best: null, worst: null);
+      rethrow;
     }
   }
 
@@ -672,7 +680,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return (best: null, worst: null);
+      rethrow;
     }
   }
 
@@ -755,7 +763,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return {};
+      rethrow;
     }
   }
 
@@ -809,7 +817,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return {};
+      rethrow;
     }
   }
 
@@ -870,7 +878,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -915,7 +923,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -952,7 +960,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -988,7 +996,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1037,7 +1045,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return const YearStats(diveCount: 0, totalSeconds: 0);
+      rethrow;
     }
   }
 
@@ -1047,9 +1055,6 @@ class InsightsRepository {
   /// thickness at all. The thickness join is a LEFT JOIN so a suit without
   /// the attribute still reaches a bucket. COUNT(DISTINCT) so a dive with two
   /// suits in the same bucket counts once there.
-  ///
-  /// Errors are rethrown after logging: an empty result would render as
-  /// "no suits linked" and hide the failure behind the card's empty state.
   Future<SuitThicknessStats> getDivesBySuitThickness({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -1149,7 +1154,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1244,7 +1249,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1311,7 +1316,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1366,7 +1371,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1434,7 +1439,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1488,7 +1493,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1507,7 +1512,7 @@ class InsightsRepository {
   /// never made contribute to none of them, the count included.
   ///
   /// Returns [SiteDiveStatistics.empty] (diveCount 0, all other fields null)
-  /// when the site has no matching dives, or on error.
+  /// when the site has no matching dives.
   Future<SiteDiveStatistics> getSiteDiveStatistics({
     required String siteId,
     String? diverId,
@@ -1607,7 +1612,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return SiteDiveStatistics.empty;
+      rethrow;
     }
   }
 
@@ -1648,7 +1653,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1703,7 +1708,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1741,7 +1746,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return {};
+      rethrow;
     }
   }
 
@@ -1829,7 +1834,7 @@ class InsightsRepository {
       }).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get top buddies', error: e, stackTrace: stackTrace);
-      return [];
+      rethrow;
     }
   }
 
@@ -1854,7 +1859,6 @@ class InsightsRepository {
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
-    const zero = (solo: 0, buddy: 0, notRecorded: 0);
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
@@ -1905,7 +1909,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return zero;
+      rethrow;
     }
   }
 
@@ -1972,7 +1976,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2019,7 +2023,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2064,7 +2068,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2109,7 +2113,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2141,7 +2145,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return 0;
+      rethrow;
     }
   }
 
@@ -2187,7 +2191,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2231,7 +2235,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2316,7 +2320,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return SpeciesInsights.empty;
+      rethrow;
     }
   }
 
@@ -2356,7 +2360,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2417,7 +2421,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2450,7 +2454,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2513,7 +2517,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return (avgMinutes: null, minMinutes: null, maxMinutes: null);
+      rethrow;
     }
   }
 
@@ -2571,7 +2575,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2617,7 +2621,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2657,7 +2661,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2735,7 +2739,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return (avgAscent: null, avgDescent: null);
+      rethrow;
     }
   }
 
@@ -2820,7 +2824,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2929,12 +2933,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return (
-        recordedDeco: const <String>{},
-        recordedNoDeco: const <String>{},
-        needsCompute: const <String, int>{},
-        noProfile: const <String>{},
-      );
+      rethrow;
     }
   }
 
