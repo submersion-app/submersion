@@ -302,4 +302,22 @@ void main() {
 
     expect(repo.getMapPoints(diverId: 'd1'), throwsA(anything));
   });
+
+  test('an item placed at its attached site is labelled with that site, '
+      "not its dive's site", () async {
+    // The dive's site has no coordinates, so placement falls through to the
+    // row's own attached site; the label must name where it actually sits.
+    await insertMedia(
+      'both-sites',
+      DateTime(2026, 6, 12, 11),
+      diveId: 'dive-nocoord',
+      siteId: 'site-att',
+    );
+
+    final points = byId(await repo.getMapPoints(diverId: 'd1'));
+    final point = points['both-sites']!;
+    expect(point.placement, MediaPlacement.attachedSite);
+    expect(point.placeLabel, 'Reef');
+    expect(point.entry.siteName, 'Reef');
+  });
 }

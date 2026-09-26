@@ -362,7 +362,11 @@ class MediaLibraryRepository {
         );
         if (resolved == null) continue;
 
-        final label = siteRow?.name ?? attachedRow?.name;
+        // A site placement is labelled with the site the item sits at; a GPS
+        // placement takes the nearest context, the dive's site first.
+        final label = resolved.placement == MediaPlacement.attachedSite
+            ? attachedRow?.name
+            : siteRow?.name ?? attachedRow?.name;
         points.add(
           MediaMapPoint(
             entry: MediaLibraryEntry(

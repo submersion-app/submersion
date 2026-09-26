@@ -61,7 +61,7 @@ is one located item:
 | `entry` | `MediaLibraryEntry` | The item plus dive number, dive date and site name, as the grid already carries |
 | `point` | `LatLng` | The resolved position |
 | `placement` | `MediaPlacement` | `ownGps`, `diveEntry`, `diveSite` or `attachedSite` |
-| `placeLabel` | `String?` | The dive's site name, else the attached site's name, else null. For a site placement this is the site the item sits at; for a GPS placement it is the nearest known context |
+| `placeLabel` | `String?` | For a site placement, the name of the site the item sits at (the dive's site, or the attached site when placement fell through to it). For a GPS placement, the nearest known context: the dive's site, else the attached site. Null when no site is known |
 
 **`resolveMediaPlacement`**
 (`lib/features/media/domain/services/media_placement_resolver.dart`, next to

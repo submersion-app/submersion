@@ -23,9 +23,10 @@ class MediaMapPoint extends Equatable {
   final LatLng point;
   final MediaPlacement placement;
 
-  /// The dive's site name, else the attached site's name, else null. For a
-  /// site placement this is the site the item sits at; for a GPS placement
-  /// it is the nearest known context.
+  /// The name of the site the item sits at for a site placement (the
+  /// dive's site, or the attached site when that is where it was placed).
+  /// For a GPS placement, the nearest known context: the dive's site, else
+  /// the attached site. Null when no site is known.
   final String? placeLabel;
 
   MediaItem get item => entry.item;
