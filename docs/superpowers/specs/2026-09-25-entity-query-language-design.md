@@ -745,6 +745,18 @@ Decided in the whole-branch review of PR 1:
   cannot read (a newer JSON version, a corrupt payload, a field or subject
   this build lacks) are listed flagged and deletable; a row whose ref was
   deleted applies with the row flagged.
+- **Reordering touches only rows a diver owns.** Rows with no owner are
+  visible to every diver, so they list after the diver's own rows, carry
+  no drag handle, and are never renumbered or stamped by a drag. Each
+  diver's rows are numbered in their own block, so a drag lands exactly
+  where it was dropped and a new row goes last in that block.
+- **The builder guards its edges.** Negation is a labelled "Not" chip; the
+  last selected value of an enum list cannot be deselected; an emptied
+  text row keeps its words and says it needs one; a condition naming a
+  field this build lacks renders flagged and removable instead of failing.
+  Same-named refs ("Blue Hole") are listed and checked by id, and value
+  fields follow a value set from outside (a saved query applied, a unit
+  change) without rewriting the diver's own typing.
 - **`saved_queries.diver_id` is nullable and references `divers`** like
   `cylinder_fills`, so the diver-delete rules and the dangling-key repair
   apply unchanged; reads return the diver's rows plus unowned rows.

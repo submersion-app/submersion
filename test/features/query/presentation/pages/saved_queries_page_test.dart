@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -163,5 +164,65 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('db is locked'), findsNothing);
+  });
+
+  testWidgets('a load failure is logged once, not on every rebuild', (
+    tester,
+  ) async {
+    final logged = <String>[];
+    final sub = LoggerService.logStream.listen((e) {
+      if (e.message.contains('Failed to load saved queries')) {
+        logged.add(e.message);
+      }
+    });
+    addTearDown(sub.cancel);
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testAppInShell(
+        locale: const Locale('en'),
+        overrides: [
+          ...overrides,
+          savedQueryLoadsProvider(
+            null,
+          ).overrideWith((ref) async => throw StateError('db is locked')),
+        ],
+        child: const SavedQueriesPage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 3; i++) {
+      tester.element(find.byType(SavedQueriesPage)).markNeedsBuild();
+      await tester.pump();
+    }
+    expect(logged, hasLength(1));
+  });
+
+  testWidgets('a row no diver owns cannot be dragged', (tester) async {
+    final now = DateTime(2026).millisecondsSinceEpoch;
+    await db
+        .into(db.savedQueries)
+        .insert(
+          SavedQueriesCompanion.insert(
+            id: 'shared',
+            subject: 'dives',
+            name: 'Shared',
+            queryJson: '{"version":1,"node":{"type":"text","words":["reef"]}}',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    await repo.create(
+      subject: QuerySubject.dives,
+      name: 'Mine',
+      node: depth,
+      diverId: 'me',
+    );
+    await pump(tester);
+    Finder handleOf(String name) => find.descendant(
+      of: find.widgetWithText(ListTile, name),
+      matching: find.byIcon(Icons.drag_handle),
+    );
+    expect(handleOf('Mine'), findsOneWidget);
+    expect(handleOf('Shared'), findsNothing);
   });
 }

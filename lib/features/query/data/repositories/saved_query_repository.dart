@@ -29,9 +29,13 @@ class SavedQueryRepository {
   Stream<void> watchSavedQueriesChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.savedQueries));
 
+  /// The diver's own rows first, in their sort order, then rows no diver
+  /// owns. Unowned rows are shared by every diver, so they sit in a block
+  /// of their own rather than in any one diver's numbering.
   Future<List<SavedQuery>> getAll({String? subject, String? diverId}) async {
     final query = _db.select(_db.savedQueries)
       ..orderBy([
+        (t) => OrderingTerm.asc(t.diverId.isNull()),
         (t) => OrderingTerm.asc(t.sortOrder),
         (t) => OrderingTerm.asc(t.name),
       ]);
@@ -92,10 +96,11 @@ class SavedQueryRepository {
     SavedQueriesCompanion(queryJson: Value(jsonEncode(queryNodeToJson(node)))),
   );
 
-  /// Gives each row in [orderedIds] its position as sort_order, in one
-  /// transaction, then marks each rewritten row pending once. Rows no diver
-  /// owns are skipped: every diver sees them, so one diver's drag must not
-  /// renumber (or stamp) another diver's view of them.
+  /// Numbers the owned rows of [orderedIds] 0..n-1 in the order given, in
+  /// one transaction, then marks each rewritten row pending once. Rows no
+  /// diver owns are skipped: every diver sees them, so one diver's drag
+  /// must not renumber (or stamp) them, and [getAll] lists them after the
+  /// owned block, so they never tie with it.
   Future<void> reorder(List<String> orderedIds) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -106,11 +111,11 @@ class SavedQueryRepository {
           row.id,
       };
       await _db.transaction(() async {
-        for (var i = 0; i < orderedIds.length; i++) {
-          if (!owned.contains(orderedIds[i])) continue;
+        final ids = orderedIds.where(owned.contains).toList();
+        for (var i = 0; i < ids.length; i++) {
           await (_db.update(
             _db.savedQueries,
-          )..where((t) => t.id.equals(orderedIds[i]))).write(
+          )..where((t) => t.id.equals(ids[i]))).write(
             SavedQueriesCompanion(sortOrder: Value(i), updatedAt: Value(now)),
           );
         }
@@ -163,13 +168,13 @@ class SavedQueryRepository {
     SyncEventBus.notifyLocalChange();
   }
 
-  /// The highest sort_order among the rows [diverId] sees for [subject],
-  /// their own and unowned ones, so a new row lands after all of them.
+  /// The highest sort_order among [diverId]'s own rows for [subject], so a
+  /// new row lands last in their block (unowned rows list after it).
   Future<int> _maxSortOrder(String subject, String diverId) async {
     final result = await _db
         .customSelect(
           'SELECT MAX(sort_order) AS max_order FROM saved_queries '
-          'WHERE subject = ? AND (diver_id = ? OR diver_id IS NULL)',
+          'WHERE subject = ? AND diver_id = ?',
           variables: [Variable<String>(subject), Variable<String>(diverId)],
         )
         .getSingleOrNull();

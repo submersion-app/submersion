@@ -94,9 +94,7 @@ class QueryConditionRow extends StatelessWidget {
     }
     final label = field != null
         ? context.labels.field(field)
-        : rel != null
-        ? context.labels.relation(rel)
-        : condition.path.toString();
+        : context.labels.relation(rel!);
     // The relations walked before the terminal field or relation.
     final crumbHops = field != null || target.hops.isEmpty
         ? target.hops

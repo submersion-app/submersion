@@ -988,19 +988,19 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
   Future<void> _saveQuery() async {
     final node = _query;
     if (node == null) return;
-    // Queries are saved per diver: say so up front rather than asking for
-    // a name and then doing nothing.
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    if (!mounted) return;
-    if (diverId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.query_saveNeedsDiver)),
-      );
-      return;
-    }
-    final name = await showSaveQueryDialog(context);
-    if (name == null || !mounted) return;
     try {
+      // Queries are saved per diver: say so up front rather than asking
+      // for a name and then doing nothing.
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      if (!mounted) return;
+      if (diverId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.query_saveNeedsDiver)),
+        );
+        return;
+      }
+      final name = await showSaveQueryDialog(context);
+      if (name == null || !mounted) return;
       await ref
           .read(savedQueryRepositoryProvider)
           .create(

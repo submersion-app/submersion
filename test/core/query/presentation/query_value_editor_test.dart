@@ -412,6 +412,32 @@ void main() {
     expect(fresh.onSelected, isNotNull);
   });
 
+  testWidgets('a retired enum name does not keep the last live chip enabled', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        QueryValueEditor(
+          context: ctx(),
+          target: target('waterType'),
+          op: QueryOp.inList,
+          value: ListValue([
+            const EnumValue('retired'),
+            const EnumValue('salt'),
+          ]),
+          onChanged: (_) {},
+          strings: kTestBuilderStrings,
+        ),
+      ),
+    );
+    final salt = tester.widget<FilterChip>(
+      find.widgetWithText(FilterChip, 'Salt water'),
+    );
+    // Deselecting salt would leave only the retired name, which the chips
+    // drop: an empty list.
+    expect(salt.onSelected, isNull);
+  });
+
   testWidgets('a condition whose path no longer resolves renders', (
     tester,
   ) async {

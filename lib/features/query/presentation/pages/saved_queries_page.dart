@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/query/syntax/query_printer.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
@@ -10,22 +11,31 @@ import 'package:submersion/features/query/presentation/providers/query_unit_pref
 import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
 import 'package:submersion/features/query/presentation/query_error_text.dart';
 import 'package:submersion/features/query/presentation/widgets/save_query_dialog.dart';
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/fab_clearance.dart';
+
+final _log = LoggerService.forClass(SavedQueriesPage);
 
 /// Settings > Manage > Saved queries (spec Unit 7): rename, reorder and
 /// delete. Rows this build cannot read are flagged, never hidden, so they
 /// can be deleted. Queries are created from the editor, so there is no add
 /// button here.
-final _log = LoggerService.forClass(SavedQueriesPage);
-
 class SavedQueriesPage extends ConsumerWidget {
   const SavedQueriesPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final loadsAsync = ref.watch(savedQueryLoadsProvider(null));
+    // Logged when a load fails, not each time the page rebuilds.
+    ref.listen(savedQueryLoadsProvider(null), (_, next) {
+      if (next case AsyncError(:final error, :final stackTrace)) {
+        _log.error(
+          'Failed to load saved queries',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
+    });
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.savedQueries_appBar_title),
@@ -38,10 +48,8 @@ class SavedQueriesPage extends ConsumerWidget {
       body: loadsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         // The detail goes to the log; the diver gets a plain message.
-        error: (e, st) {
-          _log.error('Failed to load saved queries', error: e, stackTrace: st);
-          return Center(child: Text(context.l10n.common_error_tryAgain));
-        },
+        error: (_, _) =>
+            Center(child: Text(context.l10n.common_error_tryAgain)),
         data: (loads) => loads.isEmpty
             ? Center(
                 child: Padding(
@@ -87,13 +95,13 @@ class _SavedQueryListState extends ConsumerState<_SavedQueryList> {
       await ref.read(savedQueryRepositoryProvider).reorder([
         for (final l in _loads) l.saved.id,
       ]);
-    } catch (e) {
-      if (mounted) _showError(e);
+    } catch (e, st) {
+      if (mounted) _showError(e, st);
     }
   }
 
-  void _showError(Object e) {
-    _log.error('Saved query write failed', error: e);
+  void _showError(Object e, StackTrace st) {
+    _log.error('Saved query write failed', error: e, stackTrace: st);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(context.l10n.common_error_tryAgain),
@@ -180,16 +188,19 @@ class _SavedQueryListState extends ConsumerState<_SavedQueryList> {
             tooltip: l10n.savedQueries_deleteTooltip,
             onPressed: () => _confirmDelete(load),
           ),
-          ReorderableDragStartListener(
-            index: index,
-            child: Tooltip(
-              message: l10n.savedQueries_reorderTooltip,
-              child: const Padding(
-                padding: EdgeInsets.all(8),
-                child: Icon(Icons.drag_handle),
+          // A row no diver owns lists after the diver's own and keeps its
+          // place: every diver sees it, so no one diver reorders it.
+          if (load.saved.diverId != null)
+            ReorderableDragStartListener(
+              index: index,
+              child: Tooltip(
+                message: l10n.savedQueries_reorderTooltip,
+                child: const Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Icon(Icons.drag_handle),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -203,8 +214,8 @@ class _SavedQueryListState extends ConsumerState<_SavedQueryList> {
     if (name == null || name == load.saved.name) return;
     try {
       await ref.read(savedQueryRepositoryProvider).rename(load.saved.id, name);
-    } catch (e) {
-      if (mounted) _showError(e);
+    } catch (e, st) {
+      if (mounted) _showError(e, st);
     }
   }
 
@@ -241,8 +252,8 @@ class _SavedQueryListState extends ConsumerState<_SavedQueryList> {
           ),
         );
       }
-    } catch (e) {
-      if (mounted) _showError(e);
+    } catch (e, st) {
+      if (mounted) _showError(e, st);
     }
   }
 }

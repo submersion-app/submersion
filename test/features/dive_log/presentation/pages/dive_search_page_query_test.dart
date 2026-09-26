@@ -212,4 +212,29 @@ void main() {
     // No name prompt for a save that cannot happen.
     expect(find.byType(AlertDialog), findsNothing);
   });
+
+  testWidgets('a failing diver lookup on Save says try again', (tester) async {
+    await pumpPage(
+      tester,
+      DiveFilterState(
+        query: ConditionNode(
+          FieldPath(['depth']),
+          QueryOp.gt,
+          const NumberValue(30, null),
+        ),
+      ),
+      extraOverrides: [
+        validatedCurrentDiverIdProvider.overrideWith(
+          (ref) async => throw StateError('database closed'),
+        ),
+      ],
+    );
+    await tester.tap(find.text('Save query'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.byType(AlertDialog), findsNothing);
+  });
 }

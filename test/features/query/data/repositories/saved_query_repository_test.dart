@@ -160,8 +160,8 @@ void main() {
       node: node,
       diverId: 'me',
     );
-    // A new row sorts after every row the diver sees, unowned ones too.
-    expect(a.sortOrder, 6);
+    // Unowned rows list after the diver's own, so numbering is per diver.
+    expect(a.sortOrder, 0);
     final b = await repo.create(
       subject: QuerySubject.dives,
       name: 'B',
@@ -176,6 +176,46 @@ void main() {
         .get();
     expect(pending, isEmpty);
     expect((await repo.getById(b.id))!.sortOrder, 0);
-    expect((await repo.getById(a.id))!.sortOrder, 2);
+    expect((await repo.getById(a.id))!.sortOrder, 1);
   });
+
+  test(
+    'a drag orders the diver\'s rows exactly; unowned rows list after',
+    () async {
+      final now = DateTime(2026).millisecondsSinceEpoch;
+      // Sorts first by both sort_order and name, so only the owned-first
+      // rule keeps it from tying with the diver's dragged rows.
+      await db
+          .into(db.savedQueries)
+          .insert(
+            SavedQueriesCompanion.insert(
+              id: 'shared',
+              subject: 'dives',
+              name: 'Aaa shared',
+              queryJson: '{}',
+              sortOrder: const Value(0),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      final a = await repo.create(
+        subject: QuerySubject.dives,
+        name: 'A',
+        node: node,
+        diverId: 'me',
+      );
+      final b = await repo.create(
+        subject: QuerySubject.dives,
+        name: 'B',
+        node: node,
+        diverId: 'me',
+      );
+      await repo.reorder([b.id, 'shared', a.id]);
+      final names = (await repo.getAll(
+        subject: 'dives',
+        diverId: 'me',
+      )).map((q) => q.name);
+      expect(names, ['B', 'A', 'Aaa shared']);
+    },
+  );
 }

@@ -268,7 +268,7 @@ class _TextRowState extends State<_TextRow> {
         .split(RegExp(r'\s+'))
         .where((s) => s.isNotEmpty)
         .toList();
-    setState(() => _empty = words.isEmpty);
+    if (_empty != words.isEmpty) setState(() => _empty = words.isEmpty);
     if (words.isNotEmpty) widget.onWords(words);
   }
 

@@ -254,9 +254,12 @@ class QueryValueEditor extends StatelessWidget {
   }
 
   Widget _enumChips(QueryField field) {
+    // Names the field still lists: a retired name is dropped on the next
+    // edit, so it must not count toward the last selected value.
     final selected = {
       for (final item in (value as ListValue?)?.items ?? const <QueryValue>[])
-        if (item is EnumValue) item.name,
+        if (item is EnumValue && field.enumValues!.contains(item.name))
+          item.name,
     };
     return Wrap(
       spacing: 8,
