@@ -42162,9 +42162,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String navTrack_review_segmentSummaryWithFix(
     int underwater,
     int surface,
-    int vector,
+    String vector,
   ) {
-    return '$underwater échantillons sous l\'eau, $surface échantillons en surface, fix GPS à $vector m de la fin estimée.';
+    return '$underwater échantillons sous l\'eau, $surface échantillons en surface, fix GPS à $vector de la fin estimée.';
   }
 
   @override

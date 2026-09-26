@@ -25895,7 +25895,7 @@
       }
     }
   },
-  "navTrack_review_segmentSummaryWithFix": "{underwater} samples underwater, {surface} surface samples, GPS fix {vector}m from the reckoned end.",
+  "navTrack_review_segmentSummaryWithFix": "{underwater} samples underwater, {surface} surface samples, GPS fix {vector} from the reckoned end.",
   "@navTrack_review_segmentSummaryWithFix": {
     "placeholders": {
       "underwater": {
@@ -25905,7 +25905,7 @@
         "type": "int"
       },
       "vector": {
-        "type": "int"
+        "type": "String"
       }
     }
   },

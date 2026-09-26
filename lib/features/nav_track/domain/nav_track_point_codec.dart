@@ -169,7 +169,7 @@ List<NavTrackPoint> decodeNavTrackPoints(Uint8List blob) {
     }
     points.add(
       NavTrackPoint(
-        timestamp: _requireFinite(raw[0], i, 'timestamp').toInt(),
+        timestamp: _requireWholeSeconds(raw[0], i),
         north: _requireFinite(raw[1], i, 'north').toDouble(),
         east: _requireFinite(raw[2], i, 'east').toDouble(),
         depth: _requireFinite(raw[3], i, 'depth').toDouble(),
@@ -217,6 +217,18 @@ num _requireFinite(Object? value, int index, String field) {
 
 /// Like [_requireFinite], but null is the only other value the encoder
 /// ever writes for an optional field.
+/// A timestamp is whole epoch seconds. Rejects a fraction rather than
+/// truncating it, which would silently move the sample in time.
+int _requireWholeSeconds(Object? value, int index) {
+  final seconds = _requireFinite(value, index, 'timestamp');
+  if (seconds != seconds.truncate()) {
+    throw NavTrackCodecException(
+      'sample $index has a fractional timestamp: $seconds',
+    );
+  }
+  return seconds.toInt();
+}
+
 double? _optionalFinite(Object? value, int index, String field) {
   if (value == null) return null;
   return _requireFinite(value, index, field).toDouble();

@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -77,6 +79,7 @@ Future<void> _pump(
   required NavTrackImportPreview preview,
   NavTrackImportService? service,
   List<EquipmentItem>? equipment,
+  MockSettingsNotifier? settingsNotifier,
 }) async {
   // A host locale the app actually translates into, so the English finders
   // below pass only because the MaterialApp pins `en`. Drop the pin and
@@ -89,7 +92,7 @@ Future<void> _pump(
   ];
   addTearDown(tester.platformDispatcher.clearLocalesTestValue);
 
-  final base = await getBaseOverrides();
+  final base = await getBaseOverrides(settingsNotifier: settingsNotifier);
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -216,6 +219,31 @@ class _ThrowingImportService implements NavTrackImportService {
 }
 
 void main() {
+  testWidgets('the GPS-fix distance follows the diver\'s depth unit', (
+    tester,
+  ) async {
+    // A dive, a surface sample, then a 100 m GPS re-acquisition jump.
+    const points = [
+      NavTrackPoint(timestamp: 1700000000, north: 0, east: 0, depth: 5),
+      NavTrackPoint(timestamp: 1700000600, north: 10, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000602, north: 110, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000604, north: 111, east: 0, depth: 0),
+    ];
+    await _pump(
+      tester,
+      preview: _preview(points: points),
+      settingsNotifier: MockSettingsNotifier(
+        const AppSettings(depthUnit: DepthUnit.feet),
+      ),
+    );
+
+    final summary = tester.widget<Text>(
+      find.byKey(const ValueKey('nav-track-segment-summary')),
+    );
+    expect(summary.data, contains('GPS fix 328ft from'));
+    expect(summary.data, isNot(contains('m from')));
+  });
+
   testWidgets('shows the source file name and segment summary', (tester) async {
     await _pump(tester, preview: _preview());
     expect(find.text('005.DAT.csv'), findsOneWidget);

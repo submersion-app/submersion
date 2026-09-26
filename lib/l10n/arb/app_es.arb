@@ -12504,7 +12504,7 @@
   "navTrack_detail_chooseSite": "Elegir punto de buceo",
   "navTrack_review_title": "Importar ruta submarina",
   "navTrack_review_segmentSummaryNoFix": "{underwater} muestras bajo el agua, sin fix GPS en esta grabación.",
-  "navTrack_review_segmentSummaryWithFix": "{underwater} muestras bajo el agua, {surface} muestras en superficie, fix GPS a {vector} m del final estimado.",
+  "navTrack_review_segmentSummaryWithFix": "{underwater} muestras bajo el agua, {surface} muestras en superficie, fix GPS a {vector} del final estimado.",
   "navTrack_review_saveError": "No se pudo guardar esta ruta: {error}",
   "navTrack_review_importError": "No se pudo importar este archivo: {error}",
   "navTrack_review_sourceLabel": "Registro Seacraft ENC",

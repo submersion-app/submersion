@@ -41209,9 +41209,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String navTrack_review_segmentSummaryWithFix(
     int underwater,
     int surface,
-    int vector,
+    String vector,
   ) {
-    return '$underwater דגימות מתחת למים, $surface דגימות פני שטח, תיקון GPS במרחק $vector מ׳ מהסיום המשוער.';
+    return '$underwater דגימות מתחת למים, $surface דגימות פני שטח, תיקון GPS במרחק $vector מהסיום המשוער.';
   }
 
   @override

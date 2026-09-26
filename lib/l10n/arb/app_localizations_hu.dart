@@ -41887,9 +41887,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String navTrack_review_segmentSummaryWithFix(
     int underwater,
     int surface,
-    int vector,
+    String vector,
   ) {
-    return '$underwater minta víz alatt, $surface minta a felszínen, a GPS-fix $vector m-re van a becsült végponttól.';
+    return '$underwater minta víz alatt, $surface minta a felszínen, a GPS-fix $vector távolságra van a becsült végponttól.';
   }
 
   @override

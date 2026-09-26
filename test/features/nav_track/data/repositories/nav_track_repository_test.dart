@@ -1,6 +1,10 @@
+import 'dart:async';
+
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
@@ -693,6 +697,27 @@ void main() {
       expect(route!.siteId, 's2');
       expect(route.anchor, const GeoPoint(50.0, 10.0));
     });
+
+    test('clears the stored anchor when asked to (it followed the old site '
+        'and the new site has no coordinates)', () async {
+      await insertSite('s1', 47.1, 8.3);
+      await db.customStatement(
+        "INSERT INTO dive_sites (id, name, created_at, updated_at) "
+        "VALUES ('s2', 'No Pin', 1, 1)",
+      );
+      final id = await repo.insertImportedRoute(
+        points: _samplePoints(),
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'a.csv',
+        siteId: 's1',
+      );
+
+      await repo.setSite(id, 's2', clearAnchor: true);
+
+      final route = await repo.getById(id);
+      expect(route!.siteId, 's2');
+      expect(route.anchor, isNull);
+    });
   });
 
   group('primary invariant after sync (two primaries on one dive)', () {
@@ -813,6 +838,61 @@ void main() {
       final route = await repo.getById(id);
       expect(route, isNotNull);
       expect(route!.diveId, isNull);
+    });
+  });
+
+  group('reads that do not hydrate points', () {
+    // Each points blob can be megabytes; a list of routes, a link decision or
+    // a primary check must not pull every blob out of SQLite only to drop it.
+    test('never select the points column', () async {
+      // Swap in a database that logs the SQL it runs.
+      await tearDownTestDatabase();
+      db = AppDatabase(NativeDatabase.memory(logStatements: true));
+      DatabaseService.instance.setTestDatabase(db);
+      await db.customStatement('PRAGMA foreign_keys = ON');
+      await _insertMinimalDive(db, 'd1');
+      final linkedId = await repo.insertImportedRoute(
+        points: _samplePoints(),
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'a.csv',
+        diveId: 'd1',
+      );
+      final unlinkedId = await repo.insertImportedRoute(
+        points: _samplePoints(startAt: 1700000100),
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'b.csv',
+      );
+
+      final statements = <String>[];
+      final results = await runZoned(
+        () async => (
+          all: await repo.getAll(),
+          unlinked: await repo.getUnlinked(),
+          forDive: await repo.getForDive('d1'),
+          one: await repo.getById(linkedId, includePoints: false),
+        ),
+        zoneSpecification: ZoneSpecification(
+          print: (self, parent, zone, line) => statements.add(line),
+        ),
+      );
+
+      // Long log lines arrive in chunks; rejoin them, then split per
+      // statement.
+      final routeReads = [
+        for (final s in statements.join().split('Drift: Sent '))
+          if (s.startsWith('SELECT') && s.contains('nav_tracks')) s,
+      ];
+      expect(routeReads, isNotEmpty);
+      for (final statement in routeReads) {
+        expect(statement, isNot(contains('*')), reason: statement);
+        expect(statement, isNot(contains('"points"')), reason: statement);
+      }
+      // Same rows as a full read would give, just without the blob.
+      expect(results.all.map((r) => r.id), [unlinkedId, linkedId]);
+      expect(results.unlinked.map((r) => r.id), [unlinkedId]);
+      expect(results.forDive.map((r) => r.id), [linkedId]);
+      expect(results.one!.pointCount, 5);
+      expect(results.one!.points, isEmpty);
     });
   });
 

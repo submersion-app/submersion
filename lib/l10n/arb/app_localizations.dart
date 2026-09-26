@@ -67366,11 +67366,11 @@ abstract class AppLocalizations {
   /// No description provided for @navTrack_review_segmentSummaryWithFix.
   ///
   /// In en, this message translates to:
-  /// **'{underwater} samples underwater, {surface} surface samples, GPS fix {vector}m from the reckoned end.'**
+  /// **'{underwater} samples underwater, {surface} surface samples, GPS fix {vector} from the reckoned end.'**
   String navTrack_review_segmentSummaryWithFix(
     int underwater,
     int surface,
-    int vector,
+    String vector,
   );
 
   /// No description provided for @navTrack_review_saveError.

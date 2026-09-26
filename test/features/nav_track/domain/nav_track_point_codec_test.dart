@@ -182,6 +182,26 @@ void main() {
       );
     });
 
+    test('rejects a fractional timestamp instead of truncating it', () {
+      // Timestamps are whole epoch seconds; a fraction means the blob was
+      // not written by this codec, and truncating it would silently move
+      // the sample in time.
+      expect(
+        () => decodeNavTrackPoints(
+          gzipOf('[[1700000000.5,0,0,0,null,null,null,null,null,null,null]]'),
+        ),
+        throwsA(isA<NavTrackCodecException>()),
+      );
+    });
+
+    test('accepts a whole-number timestamp written as a double', () {
+      final points = decodeNavTrackPoints(
+        gzipOf('[[1700000000.0,0,0,0,null,null,null,null,null,null,null]]'),
+      );
+
+      expect(points.single.timestamp, 1700000000);
+    });
+
     test('accepts null for every optional field', () {
       final decoded = decodeNavTrackPoints(
         gzipOf('[[0,1,2,3,null,null,null,null,null,null,null]]'),

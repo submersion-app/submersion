@@ -84,13 +84,13 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
   _Placing _placing = _Placing.none;
   NavTrackTerrainCheckResult? _terrainResult;
 
-  /// Bumped every time a new terrain check starts, so a check whose async
-  /// bathymetry fetch is still in flight when a NEWER one starts can tell
-  /// it has been superseded once it finally resolves, and discard its
-  /// result instead of overwriting whatever the newer check already
-  /// applied. Cancelling `_terrainDebounce` only stops a check that has not
-  /// started yet; it cannot cancel `_runTerrainCheck`'s own already-awaited
-  /// `Future`.
+  /// Bumped every time a terrain check is scheduled and again when it
+  /// starts, so a check whose async bathymetry fetch is still in flight
+  /// when the correction changes can tell it has been superseded once it
+  /// finally resolves, and discard its result instead of showing it for a
+  /// correction the diver already moved on from. Cancelling
+  /// `_terrainDebounce` only stops a check that has not started yet; it
+  /// cannot cancel `_runTerrainCheck`'s own already-awaited `Future`.
   int _terrainCheckGeneration = 0;
 
   static const Duration _terrainDebounceDuration = Duration(milliseconds: 300);
@@ -117,9 +117,13 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     _scheduleTerrainCheck(route);
   }
 
+  /// How far the dive ends from where it started, over the active range: a
+  /// post-surfacing GPS tail (or a pre-dive calibration) says where the
+  /// console was on the surface, not whether the dive closed its loop.
   double _rawEndDistanceFromStart(List<NavTrackPoint> points) {
-    final first = points.first;
-    final last = points.last;
+    final range = NavTrackCorrector.activeRange(points);
+    final first = points[range.start];
+    final last = points[range.end];
     final dNorth = last.north - first.north;
     final dEast = last.east - first.east;
     return math.sqrt(dNorth * dNorth + dEast * dEast);
@@ -134,6 +138,10 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
   }
 
   void _scheduleTerrainCheck(NavTrack route) {
+    // Superseding here, not only when the next check starts: a fetch still
+    // in flight must not apply its result during this debounce either, for
+    // a correction the diver has already moved on from.
+    _terrainCheckGeneration++;
     _terrainDebounce?.cancel();
     _terrainDebounce = Timer(
       _terrainDebounceDuration,

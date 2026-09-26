@@ -58,6 +58,27 @@ Future<ProviderContainer> _container({
 }
 
 void main() {
+  test(
+    'builds a route too long for the UI isolate on a background one',
+    () async {
+      final points = [
+        for (var i = 0; i < 5000; i++)
+          NavTrackPoint(
+            timestamp: 1755856800 + i,
+            north: i * 0.5,
+            east: (i % 40) * 1.0,
+            depth: 5.0 + (i % 10),
+          ),
+      ];
+      final container = await _container(route: _route(points: points));
+
+      final result = await container.read(navTrackSceneProvider('r1').future);
+
+      expect(result, isNotNull);
+      expect(result!.pathProvenance, PathProvenance.measured);
+    },
+  );
+
   test('returns null when the route does not exist', () async {
     final container = await _container(route: null);
 

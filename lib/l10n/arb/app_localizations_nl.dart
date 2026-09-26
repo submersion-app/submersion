@@ -41770,9 +41770,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String navTrack_review_segmentSummaryWithFix(
     int underwater,
     int surface,
-    int vector,
+    String vector,
   ) {
-    return '$underwater metingen onder water, $surface metingen aan de oppervlakte, GPS-fix $vector m van het berekende einde.';
+    return '$underwater metingen onder water, $surface metingen aan de oppervlakte, GPS-fix $vector van het berekende einde.';
   }
 
   @override

@@ -12504,7 +12504,7 @@
   "navTrack_detail_chooseSite": "Duikstek kiezen",
   "navTrack_review_title": "Onderwaterroute importeren",
   "navTrack_review_segmentSummaryNoFix": "{underwater} metingen onder water, geen GPS-fix in deze opname.",
-  "navTrack_review_segmentSummaryWithFix": "{underwater} metingen onder water, {surface} metingen aan de oppervlakte, GPS-fix {vector} m van het berekende einde.",
+  "navTrack_review_segmentSummaryWithFix": "{underwater} metingen onder water, {surface} metingen aan de oppervlakte, GPS-fix {vector} van het berekende einde.",
   "navTrack_review_saveError": "Deze route kon niet worden opgeslagen: {error}",
   "navTrack_review_importError": "Dit bestand kon niet worden geïmporteerd: {error}",
   "navTrack_review_sourceLabel": "Seacraft ENC-log",

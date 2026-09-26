@@ -24,9 +24,12 @@ enum NavTrackSource {
     _ => throw ArgumentError.value(value, 'value', 'unknown nav track source'),
   };
 
+  /// The device or brand name, shown inside localized text (the 3D
+  /// caption's "Recorded route ({source})"). Product names are not
+  /// translated, so this carries no other words.
   String get label => switch (this) {
     NavTrackSource.seacraftEnc => 'Seacraft ENC',
-    NavTrackSource.suuntoRoute => 'Suunto route',
+    NavTrackSource.suuntoRoute => 'Suunto',
   };
 }
 

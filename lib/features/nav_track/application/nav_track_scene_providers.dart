@@ -4,7 +4,6 @@ import 'package:submersion/features/bathymetry/application/bathymetry_providers.
 import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
-import 'package:submersion/features/dive_3d/domain/spatial/spatial_geometry_service.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_path_adapter.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -39,8 +38,10 @@ final navTrackSceneProvider =
       );
       final depthUnit = ref.watch(settingsProvider.select((s) => s.depthUnit));
 
-      final built = const SpatialGeometryService().buildWithFrame(
-        path,
+      // Routes can run to kMaxNavTrackPointCount samples, so this goes
+      // through the same off-isolate threshold as the dive scene.
+      final built = await buildSpatialScene((
+        path: path,
         siteMaxDepth: null,
         grid: grid,
         gridCenter: grid == null ? null : anchor,
@@ -49,7 +50,7 @@ final navTrackSceneProvider =
         displayUnitInMeters: depthUnit == DepthUnit.feet ? 0.3048 : 1.0,
         depthSymbol: depthUnit.symbol,
         imageryFrame: null,
-      );
+      ));
 
       return SpatialSceneResult(
         scene: built.scene,

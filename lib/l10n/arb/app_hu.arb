@@ -12504,7 +12504,7 @@
   "navTrack_detail_chooseSite": "Merülőhely választása",
   "navTrack_review_title": "Vízalatti útvonal importálása",
   "navTrack_review_segmentSummaryNoFix": "{underwater} minta víz alatt, nincs GPS-fix ebben a felvételben.",
-  "navTrack_review_segmentSummaryWithFix": "{underwater} minta víz alatt, {surface} minta a felszínen, a GPS-fix {vector} m-re van a becsült végponttól.",
+  "navTrack_review_segmentSummaryWithFix": "{underwater} minta víz alatt, {surface} minta a felszínen, a GPS-fix {vector} távolságra van a becsült végponttól.",
   "navTrack_review_saveError": "Nem sikerült menteni ezt az útvonalat: {error}",
   "navTrack_review_importError": "Nem sikerült importálni ezt a fájlt: {error}",
   "navTrack_review_sourceLabel": "Seacraft ENC napló",

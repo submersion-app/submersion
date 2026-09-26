@@ -619,4 +619,31 @@ void main() {
       );
     });
   });
+
+  group('navTrackAnchorChangeForSite', () {
+    const oldPin = GeoPoint(47.1, 8.3);
+    const newPin = GeoPoint(47.2, 8.4);
+
+    test('moves an anchor that followed the old pin to the new pin', () {
+      expect(navTrackAnchorChangeForSite(oldPin, oldPin, newPin), (
+        write: true,
+        anchor: newPin,
+      ));
+    });
+
+    test('clears an anchor that followed the old pin when the new site has '
+        'no pin, rather than leaving the route at the old site', () {
+      expect(navTrackAnchorChangeForSite(oldPin, oldPin, null), (
+        write: true,
+        anchor: null,
+      ));
+    });
+
+    test('leaves a hand-placed anchor alone', () {
+      expect(
+        navTrackAnchorChangeForSite(const GeoPoint(50, 10), oldPin, newPin),
+        (write: false, anchor: null),
+      );
+    });
+  });
 }

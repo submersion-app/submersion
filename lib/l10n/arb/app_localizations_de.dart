@@ -41968,9 +41968,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String navTrack_review_segmentSummaryWithFix(
     int underwater,
     int surface,
-    int vector,
+    String vector,
   ) {
-    return '$underwater Messpunkte unter Wasser, $surface Messpunkte an der Oberfläche, GPS-Fix $vector m vom rekonstruierten Ende entfernt.';
+    return '$underwater Messpunkte unter Wasser, $surface Messpunkte an der Oberfläche, GPS-Fix $vector vom rekonstruierten Ende entfernt.';
   }
 
   @override

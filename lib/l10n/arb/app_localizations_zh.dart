@@ -39589,9 +39589,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String navTrack_review_segmentSummaryWithFix(
     int underwater,
     int surface,
-    int vector,
+    String vector,
   ) {
-    return '$underwater 个水下采样点，$surface 个水面采样点，GPS 定位距推算终点 $vector 米。';
+    return '$underwater 个水下采样点，$surface 个水面采样点，GPS 定位距推算终点 $vector。';
   }
 
   @override

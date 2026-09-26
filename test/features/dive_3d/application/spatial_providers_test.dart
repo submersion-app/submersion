@@ -4,6 +4,7 @@ import 'package:submersion/features/bathymetry/application/bathymetry_providers.
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
@@ -82,6 +83,65 @@ Future<ProviderContainer> makeContainer({
 }
 
 void main() {
+  group('spatialBuildRunsInBackground', () {
+    SpatialBuildInput inputWith({required int points, BathymetryGrid? grid}) =>
+        (
+          path: ReckonedPath(
+            points: [
+              for (var i = 0; i < points; i++)
+                ReckonedPoint(
+                  east: 0,
+                  north: i.toDouble(),
+                  depth: 5,
+                  timeSeconds: i.toDouble(),
+                ),
+            ],
+            provenance: PathProvenance.measured,
+            minEast: 0,
+            maxEast: 0,
+            minNorth: 0,
+            maxNorth: points.toDouble(),
+            maxDepth: 5,
+            durationSeconds: points.toDouble(),
+          ),
+          siteMaxDepth: null,
+          grid: grid,
+          gridCenter: null,
+          pathAnchor: (east: 0.0, north: 0.0),
+          appearance: const SeascapeAppearance(),
+          displayUnitInMeters: 1.0,
+          depthSymbol: 'm',
+          imageryFrame: null,
+        );
+
+    test('keeps a short path with no grid on the calling isolate', () {
+      expect(spatialBuildRunsInBackground(inputWith(points: 3999)), isFalse);
+    });
+
+    test('moves a long path to a background isolate', () {
+      expect(spatialBuildRunsInBackground(inputWith(points: 4000)), isTrue);
+    });
+
+    test('moves a large grid to a background isolate', () {
+      final grid = BathymetryGrid(
+        originLat: 0,
+        originLon: 0,
+        cellSizeLatDeg: 0.001,
+        cellSizeLonDeg: 0.001,
+        rows: 64,
+        cols: 64,
+        depthsMeters: List<double?>.filled(64 * 64, 10),
+        sourceId: 'test',
+        resolutionMeters: 5,
+        fetchedAt: DateTime(2026, 1, 1),
+      );
+      expect(
+        spatialBuildRunsInBackground(inputWith(points: 10, grid: grid)),
+        isTrue,
+      );
+    });
+  });
+
   test(
     'reckons a path from profile headings and lands on the exit fix',
     () async {

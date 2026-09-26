@@ -195,10 +195,17 @@ class NavTrackRepository {
     String id, {
     bool includePoints = true,
   }) async {
+    if (!includePoints) {
+      final rows = await _selectWithoutPoints(
+        where: 'id = ?',
+        variables: [Variable.withString(id)],
+      );
+      return rows.isEmpty ? null : _toDomain(rows.single, includePoints: false);
+    }
     final row = await (_db.select(
       _db.navTracks,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
-    return row == null ? null : _toDomain(row, includePoints: includePoints);
+    return row == null ? null : _toDomain(row, includePoints: true);
   }
 
   /// Routes linked to [diveId], primary first.
@@ -211,15 +218,20 @@ class NavTrackRepository {
     String diveId, {
     bool includePoints = false,
   }) async {
-    final rows =
-        await (_db.select(_db.navTracks)
-              ..where((t) => t.diveId.equals(diveId))
-              ..orderBy([
-                (t) => OrderingTerm.desc(t.isPrimary),
-                (t) => OrderingTerm.asc(t.startTime),
-                (t) => OrderingTerm.asc(t.id),
-              ]))
-            .get();
+    final rows = includePoints
+        ? await (_db.select(_db.navTracks)
+                ..where((t) => t.diveId.equals(diveId))
+                ..orderBy([
+                  (t) => OrderingTerm.desc(t.isPrimary),
+                  (t) => OrderingTerm.asc(t.startTime),
+                  (t) => OrderingTerm.asc(t.id),
+                ]))
+              .get()
+        : await _selectWithoutPoints(
+            where: 'dive_id = ?',
+            variables: [Variable.withString(diveId)],
+            orderBy: 'is_primary DESC, start_time ASC, id ASC',
+          );
     return [for (final r in rows) _toDomain(r, includePoints: includePoints)];
   }
 
@@ -229,20 +241,26 @@ class NavTrackRepository {
   Future<List<domain.NavTrack>> getUnlinked({
     bool includePoints = false,
   }) async {
-    final rows =
-        await (_db.select(_db.navTracks)
-              ..where((t) => t.diveId.isNull())
-              ..orderBy([(t) => OrderingTerm.desc(t.startTime)]))
-            .get();
+    final rows = includePoints
+        ? await (_db.select(_db.navTracks)
+                ..where((t) => t.diveId.isNull())
+                ..orderBy([(t) => OrderingTerm.desc(t.startTime)]))
+              .get()
+        : await _selectWithoutPoints(
+            where: 'dive_id IS NULL',
+            orderBy: 'start_time DESC',
+          );
     return [for (final r in rows) _toDomain(r, includePoints: includePoints)];
   }
 
   /// Every route for the routes area's own list, unlinked first and then
   /// most recently recorded within each group.
   Future<List<domain.NavTrack>> getAll({bool includePoints = false}) async {
-    final rows = await (_db.select(
-      _db.navTracks,
-    )..orderBy([(t) => OrderingTerm.desc(t.startTime)])).get();
+    final rows = includePoints
+        ? await (_db.select(
+            _db.navTracks,
+          )..orderBy([(t) => OrderingTerm.desc(t.startTime)])).get()
+        : await _selectWithoutPoints(orderBy: 'start_time DESC');
     final tracks = [
       for (final r in rows) _toDomain(r, includePoints: includePoints),
     ];
@@ -394,14 +412,12 @@ class NavTrackRepository {
       }
       final now = DateTime.now().millisecondsSinceEpoch;
       final demotedIds = await _db.transaction(() async {
-        final demoted =
-            await (_db.select(_db.navTracks)..where(
-                  (t) =>
-                      t.diveId.equals(diveId) &
-                      t.id.equals(routeId).not() &
-                      t.isPrimary.equals(true),
-                ))
-                .get();
+        final demoted = await _idsWhere(
+          (t) =>
+              t.diveId.equals(diveId) &
+              t.id.equals(routeId).not() &
+              t.isPrimary.equals(true),
+        );
         await (_db.update(_db.navTracks)..where(
               (t) => t.diveId.equals(diveId) & t.id.equals(routeId).not(),
             ))
@@ -419,7 +435,7 @@ class NavTrackRepository {
             updatedAt: Value(now),
           ),
         );
-        return [for (final row in demoted) row.id];
+        return demoted;
       });
       // Every demoted route must be marked pending with the same timestamp
       // too, not only the newly primary one -- otherwise a sibling route's
@@ -484,24 +500,29 @@ class NavTrackRepository {
   /// the old site's pin (the current anchor is unset, or still exactly
   /// equals the old site's stored location) -- never when they already
   /// corrected it by hand. Passing null leaves the stored anchor untouched
-  /// either way.
+  /// either way, unless [clearAnchor] asks for it to be removed: an anchor
+  /// that followed the old site's pin has nothing to follow when the new
+  /// site has no coordinates, and keeping it would leave the route sitting
+  /// at the old site.
   Future<void> setSite(
     String routeId,
     String? siteId, {
     GeoPoint? anchor,
+    bool clearAnchor = false,
   }) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
+      final writeAnchor = anchor != null || clearAnchor;
       await (_db.update(
         _db.navTracks,
       )..where((t) => t.id.equals(routeId))).write(
         NavTracksCompanion(
           siteId: Value(siteId),
-          anchorLatitude: anchor != null
-              ? Value(anchor.latitude)
+          anchorLatitude: writeAnchor
+              ? Value(anchor?.latitude)
               : const Value.absent(),
-          anchorLongitude: anchor != null
-              ? Value(anchor.longitude)
+          anchorLongitude: writeAnchor
+              ? Value(anchor?.longitude)
               : const Value.absent(),
           updatedAt: Value(now),
         ),
@@ -543,12 +564,8 @@ class NavTrackRepository {
   /// delete itself, so by the time the dive is gone there is no way to tell
   /// "was linked to this dive" from "was never linked" by querying
   /// `nav_tracks` alone.
-  Future<List<String>> routeIdsLinkedToDive(String diveId) async {
-    final rows = await (_db.select(
-      _db.navTracks,
-    )..where((t) => t.diveId.equals(diveId))).get();
-    return [for (final row in rows) row.id];
-  }
+  Future<List<String>> routeIdsLinkedToDive(String diveId) =>
+      _idsWhere((t) => t.diveId.equals(diveId));
 
   /// Normalizes routes whose linked dive was just deleted.
   ///
@@ -637,15 +654,13 @@ class NavTrackRepository {
     String diveId, {
     String? excludingRouteId,
   }) async {
-    final rows =
-        await (_db.select(_db.navTracks)..where((t) {
-              final base = t.diveId.equals(diveId) & t.isPrimary.equals(true);
-              return excludingRouteId == null
-                  ? base
-                  : base & t.id.equals(excludingRouteId).not();
-            }))
-            .get();
-    return rows.isEmpty;
+    final primaries = await _idsWhere((t) {
+      final base = t.diveId.equals(diveId) & t.isPrimary.equals(true);
+      return excludingRouteId == null
+          ? base
+          : base & t.id.equals(excludingRouteId).not();
+    });
+    return primaries.isEmpty;
   }
 
   /// Promotes the earliest-recorded route still linked to [diveId] to
@@ -656,25 +671,69 @@ class NavTrackRepository {
   Future<void> _promoteSiblingIfNoPrimary(String diveId, int now) async {
     // Not getSingleOrNull: sync can leave a dive with two primaries (see
     // [getForDive]), and "any primary left" is all this needs to know.
-    final stillPrimary =
-        await (_db.select(_db.navTracks)
-              ..where((t) => t.diveId.equals(diveId) & t.isPrimary.equals(true))
-              ..limit(1))
-            .get();
+    final stillPrimary = await _idsWhere(
+      (t) => t.diveId.equals(diveId) & t.isPrimary.equals(true),
+      limit: 1,
+    );
     if (stillPrimary.isNotEmpty) return;
-    final sibling =
-        await (_db.select(_db.navTracks)
-              ..where((t) => t.diveId.equals(diveId))
-              ..orderBy([(t) => OrderingTerm.asc(t.startTime)])
-              ..limit(1))
-            .getSingleOrNull();
-    if (sibling == null) return;
+    final sibling = await _idsWhere(
+      (t) => t.diveId.equals(diveId),
+      orderBy: _db.navTracks.startTime,
+      limit: 1,
+    );
+    if (sibling.isEmpty) return;
+    final siblingId = sibling.single;
     await (_db.update(
       _db.navTracks,
-    )..where((t) => t.id.equals(sibling.id))).write(
+    )..where((t) => t.id.equals(siblingId))).write(
       NavTracksCompanion(isPrimary: const Value(true), updatedAt: Value(now)),
     );
-    await _markPending(sibling.id, now);
+    await _markPending(siblingId, now);
+  }
+
+  /// Rows of every column but `points`, which stands in as an empty blob.
+  ///
+  /// For reads that never decode the points: the blob can be megabytes per
+  /// route, and a plain select would still pull every one of them out of
+  /// SQLite only for [_toDomain] to drop it. [where] and [orderBy] are SQL
+  /// fragments over the table's own column names, with [variables] bound to
+  /// the placeholders in [where].
+  Future<List<NavTrackRow>> _selectWithoutPoints({
+    String? where,
+    List<Variable> variables = const [],
+    String? orderBy,
+  }) async {
+    final table = _db.navTracks;
+    final columns = [
+      for (final column in table.$columns)
+        if (column != table.points) '"${column.name}"',
+    ].join(', ');
+    final rows = await _db
+        .customSelect(
+          "SELECT $columns, X'' AS points FROM nav_tracks"
+          '${where == null ? '' : ' WHERE $where'}'
+          '${orderBy == null ? '' : ' ORDER BY $orderBy'}',
+          variables: variables,
+          readsFrom: {table},
+        )
+        .get();
+    return [for (final row in rows) table.map(row.data)];
+  }
+
+  /// Ids of the routes matching [filter], without reading any other column.
+  Future<List<String>> _idsWhere(
+    Expression<bool> Function($NavTracksTable t) filter, {
+    GeneratedColumn<Object>? orderBy,
+    int? limit,
+  }) async {
+    final table = _db.navTracks;
+    final query = _db.selectOnly(table)
+      ..addColumns([table.id])
+      ..where(filter(table));
+    if (orderBy != null) query.orderBy([OrderingTerm.asc(orderBy)]);
+    if (limit != null) query.limit(limit);
+    final rows = await query.get();
+    return [for (final row in rows) row.read(table.id)!];
   }
 
   Future<void> _markPending(String routeId, int now) async {

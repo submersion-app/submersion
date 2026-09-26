@@ -12504,7 +12504,7 @@
   "navTrack_detail_chooseSite": "اختيار موقع",
   "navTrack_review_title": "استيراد مسار تحت الماء",
   "navTrack_review_segmentSummaryNoFix": "{underwater} عينات تحت الماء، لا يوجد إصلاح GPS في هذا التسجيل.",
-  "navTrack_review_segmentSummaryWithFix": "{underwater} عينات تحت الماء، {surface} عينات على السطح، إصلاح GPS على بعد {vector} م من النهاية المقدَّرة.",
+  "navTrack_review_segmentSummaryWithFix": "{underwater} عينات تحت الماء، {surface} عينات على السطح، إصلاح GPS على بعد {vector} من النهاية المقدَّرة.",
   "navTrack_review_saveError": "تعذر حفظ هذا المسار: {error}",
   "navTrack_review_importError": "تعذر استيراد هذا الملف: {error}",
   "navTrack_review_sourceLabel": "سجل Seacraft ENC",

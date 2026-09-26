@@ -222,6 +222,7 @@ class _NavTrackImportReviewPageState
 
   String _segmentSummary(
     AppLocalizations l10n,
+    UnitFormatter units,
     NavTrackSegmentation segmentation,
   ) {
     final underwater = segmentation.kinds
@@ -236,11 +237,11 @@ class _NavTrackImportReviewPageState
     final event = segmentation.fixEvents.first;
     final dNorth = event.afterNorth - event.beforeNorth;
     final dEast = event.afterEast - event.beforeEast;
-    final vector = math.sqrt(dNorth * dNorth + dEast * dEast).round();
+    final vector = math.sqrt(dNorth * dNorth + dEast * dEast);
     return l10n.navTrack_review_segmentSummaryWithFix(
       underwater,
       surface,
-      vector,
+      units.formatDistance(vector),
     );
   }
 
@@ -370,7 +371,7 @@ class _NavTrackImportReviewPageState
         _SummaryGrid(units: units, preview: preview, start: start, end: end),
         const SizedBox(height: 16),
         Text(
-          _segmentSummary(l10n, preview.segmentation),
+          _segmentSummary(l10n, units, preview.segmentation),
           key: const ValueKey('nav-track-segment-summary'),
           style: theme.textTheme.bodyMedium,
         ),

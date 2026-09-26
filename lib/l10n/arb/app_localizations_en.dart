@@ -41422,9 +41422,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String navTrack_review_segmentSummaryWithFix(
     int underwater,
     int surface,
-    int vector,
+    String vector,
   ) {
-    return '$underwater samples underwater, $surface surface samples, GPS fix ${vector}m from the reckoned end.';
+    return '$underwater samples underwater, $surface surface samples, GPS fix $vector from the reckoned end.';
   }
 
   @override

@@ -12617,7 +12617,7 @@
   "navTrack_detail_chooseSite": "Tauchplatz wählen",
   "navTrack_review_title": "Unterwasser-Route importieren",
   "navTrack_review_segmentSummaryNoFix": "{underwater} Messpunkte unter Wasser, kein GPS-Fix in dieser Aufzeichnung.",
-  "navTrack_review_segmentSummaryWithFix": "{underwater} Messpunkte unter Wasser, {surface} Messpunkte an der Oberfläche, GPS-Fix {vector} m vom rekonstruierten Ende entfernt.",
+  "navTrack_review_segmentSummaryWithFix": "{underwater} Messpunkte unter Wasser, {surface} Messpunkte an der Oberfläche, GPS-Fix {vector} vom rekonstruierten Ende entfernt.",
   "navTrack_review_saveError": "Diese Route konnte nicht gespeichert werden: {error}",
   "navTrack_review_importError": "Diese Datei konnte nicht importiert werden: {error}",
   "navTrack_review_sourceLabel": "Seacraft-ENC-Protokoll",

@@ -8,7 +8,6 @@ import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
-import 'package:submersion/features/nav_track/data/services/nav_track_match_service.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
@@ -32,10 +31,6 @@ void main() {
     service = NavTrackImportService(
       routeRepository: routeRepo,
       diveRepository: diveRepo,
-      matchService: NavTrackMatchService(
-        routeRepository: routeRepo,
-        diveRepository: diveRepo,
-      ),
     );
   });
 
@@ -144,32 +139,36 @@ void main() {
   });
 
   group('commit', () {
-    test('writes the route unlinked and runs the sweep when no dive was '
-        'chosen', () async {
-      final routeStart = DateTime.utc(2025, 1, 15, 16, 16, 7);
-      await seedDive(
-        'd1',
-        routeStart.millisecondsSinceEpoch,
-        exitTimeMs: routeStart
-            .add(const Duration(hours: 1))
-            .millisecondsSinceEpoch,
-      );
-      final preview = await service.prepare(
-        _fixture('seacraft_enc3_short.csv'),
-        fileName: '005.DAT.csv',
-      );
+    test(
+      'keeps the route unlinked when no dive was chosen, even with one '
+      'overlapping dive (the review page\'s "Leave unlinked" choice)',
+      () async {
+        final routeStart = DateTime.utc(2025, 1, 15, 16, 16, 7);
+        await seedDive(
+          'd1',
+          routeStart.millisecondsSinceEpoch,
+          exitTimeMs: routeStart
+              .add(const Duration(hours: 1))
+              .millisecondsSinceEpoch,
+        );
+        final preview = await service.prepare(
+          _fixture('seacraft_enc3_short.csv'),
+          fileName: '005.DAT.csv',
+        );
+        // The review page proposes the unique match itself; getting here with
+        // no dive means the diver turned that proposal down.
+        expect(preview.candidateDives.map((d) => d.id), ['d1']);
 
-      final id = await service.commit(
-        parsed: preview.parsed,
-        sourceRef: preview.sourceRef,
-      );
+        final id = await service.commit(
+          parsed: preview.parsed,
+          sourceRef: preview.sourceRef,
+        );
 
-      final route = await routeRepo.getById(id);
-      // The sweep found the single overlapping dive and linked it, even
-      // though the diver made no explicit choice on the review page.
-      expect(route!.diveId, 'd1');
-      expect(route.linkMode, isNotNull);
-    });
+        final route = await routeRepo.getById(id);
+        expect(route!.diveId, isNull);
+        expect(route.linkMode, isNull);
+      },
+    );
 
     test('links directly and skips the sweep when a dive was chosen', () async {
       await seedDive('d1', 1000000, exitTimeMs: 1100000);

@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
-import 'package:submersion/features/nav_track/data/services/nav_track_match_service.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/seacraft_enc_csv_parser.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
@@ -54,20 +53,12 @@ class NavTrackImportPreview {
 class NavTrackImportService {
   final NavTrackRepository _routeRepository;
   final DiveRepository _diveRepository;
-  final NavTrackMatchService _matchService;
 
   NavTrackImportService({
     NavTrackRepository? routeRepository,
     DiveRepository? diveRepository,
-    NavTrackMatchService? matchService,
   }) : _routeRepository = routeRepository ?? NavTrackRepository(),
-       _diveRepository = diveRepository ?? DiveRepository(),
-       _matchService =
-           matchService ??
-           NavTrackMatchService(
-             routeRepository: routeRepository ?? NavTrackRepository(),
-             diveRepository: diveRepository ?? DiveRepository(),
-           );
+       _diveRepository = diveRepository ?? DiveRepository();
 
   /// Parses [bytes] as a Seacraft ENC CSV. Throws [NavTrackParseException]
   /// (with its [NavTrackParseReason]) on anything the diver needs to act on;
@@ -109,10 +100,12 @@ class NavTrackImportService {
   }
 
   /// Writes [parsed] as a new route, optionally pre-linked to [dive] (the
-  /// diver's own choice on the review page) and anchored to [site]. When no
-  /// dive was chosen, the match sweep runs immediately afterward, limited to
-  /// the new route, so an unambiguous time-window match still links it
-  /// automatically rather than waiting for the next general sweep.
+  /// diver's own choice on the review page) and anchored to [site].
+  ///
+  /// A null [dive] leaves the route unlinked. No match sweep runs here: the
+  /// review page already proposes the unique time-window match, so arriving
+  /// without a dive means the diver chose "Leave unlinked" (or there was no
+  /// single match to propose), and a sweep would only override that choice.
   ///
   /// [replacingRouteId] is the duplicate the review page's "replace" option
   /// supersedes. It is removed only after the new route is stored, so a
@@ -137,9 +130,6 @@ class NavTrackImportService {
       siteId: siteId,
       equipmentId: equipmentId,
     );
-    if (dive == null) {
-      await _matchService.sweep(limitToRouteIds: [id]);
-    }
     if (replacingRouteId != null) {
       await _routeRepository.replace(replacingRouteId, withRouteId: id);
     }

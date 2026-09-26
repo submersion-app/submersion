@@ -665,6 +665,98 @@ void main() {
   );
 
   testWidgets(
+    'discards an older terrain result that lands while a newer check is '
+    'still waiting out its debounce',
+    (tester) async {
+      final completers =
+          <({double lat, double lon}), Completer<BathymetryGrid?>>{};
+      final coarseGrid = BathymetryGrid(
+        originLat: 0,
+        originLon: 0,
+        cellSizeLatDeg: 0.01,
+        cellSizeLonDeg: 0.01,
+        rows: 1,
+        cols: 1,
+        depthsMeters: const [50.0],
+        sourceId: 'test-coarse',
+        resolutionMeters: 500, // coarse: adds the caveat
+        fetchedAt: DateTime(2026, 1, 1),
+      );
+      final dive = Dive(
+        id: 'dive-1',
+        diveNumber: 1,
+        dateTime: DateTime(2026, 8, 22, 10, 8),
+        entryLocation: const GeoPoint(46.9, 7.2),
+      );
+      await _pump(
+        tester,
+        route: _route(diveId: 'dive-1'),
+        linkedDive: dive,
+        bathymetryOverride: bathymetryGridProvider.overrideWith((ref, cell) {
+          final completer = completers.putIfAbsent(cell, () => Completer());
+          return completer.future;
+        }),
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-align-place-start')),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-set-here')));
+      await tester.pump(const Duration(milliseconds: 300)); // first check runs
+      final firstCell = completers.keys.single;
+
+      // Move the start point; the next check is still inside its debounce.
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-align-from-dive-entry')),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // The first check's fetch lands now, for a start point the diver has
+      // already moved away from.
+      completers[firstCell]!.complete(coarseGrid);
+      await tester.pump();
+
+      expect(find.textContaining('coarse bathymetry'), findsNothing);
+      await tester.pump(const Duration(milliseconds: 300));
+    },
+  );
+
+  testWidgets(
+    'proposes "same as start" for a looped dive whose recording ends with a '
+    'far-away GPS fix (the proposal measures the dive, not the surface tail)',
+    (tester) async {
+      final route = NavTrack(
+        id: 'r-loop',
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'r-loop.csv',
+        startTime: 1755856800000,
+        endTime: 1755856854000,
+        pointCount: 7,
+        points: const [
+          NavTrackPoint(timestamp: 1755856800, north: 0, east: 0, depth: 5),
+          NavTrackPoint(timestamp: 1755856810, north: 40, east: 0, depth: 8),
+          NavTrackPoint(timestamp: 1755856820, north: 40, east: 40, depth: 8),
+          NavTrackPoint(timestamp: 1755856830, north: 0, east: 40, depth: 6),
+          // Back where it started, then surfacing.
+          NavTrackPoint(timestamp: 1755856850, north: 2, east: 1, depth: 0),
+          // GPS re-acquired: the console jumps far away within seconds.
+          NavTrackPoint(timestamp: 1755856852, north: 400, east: 0, depth: 0),
+          NavTrackPoint(timestamp: 1755856854, north: 401, east: 0, depth: 0),
+        ],
+        createdAt: DateTime(2026, 8, 22),
+        updatedAt: DateTime(2026, 8, 22),
+      );
+
+      final repository = await _pump(tester, route: route);
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.pumpAndSettle();
+
+      expect(repository.lastCorrection?.endMode, NavTrackEndMode.sameAsStart);
+    },
+  );
+
+  testWidgets(
     'the terrain check only runs over the active dead-reckoned range, not '
     'the raw recording (proactive finding: a GPS-fixed/out-of-water tail '
     'must not be checked against the seafloor at all)',

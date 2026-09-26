@@ -36,6 +36,23 @@ bool navTrackAnchorShouldFollowSiteChange(
   return currentAnchor == null || currentAnchor == oldSiteLocation;
 }
 
+/// What changing a route's site does to its stored anchor.
+///
+/// `write` false keeps the anchor as it is (the diver placed it by hand).
+/// Otherwise the anchor becomes `anchor`: the new site's pin, or null when
+/// the new site has none, since an anchor that followed the old pin would
+/// otherwise keep the route at the old site.
+({bool write, GeoPoint? anchor}) navTrackAnchorChangeForSite(
+  GeoPoint? currentAnchor,
+  GeoPoint? oldSiteLocation,
+  GeoPoint? newSiteLocation,
+) {
+  if (!navTrackAnchorShouldFollowSiteChange(currentAnchor, oldSiteLocation)) {
+    return (write: false, anchor: null);
+  }
+  return (write: true, anchor: newSiteLocation);
+}
+
 /// One route: stats, an inline map when anchored, its dive link, correction
 /// status, and 3D (spec 2026-09-10-underwater-nav-track-design.md, "The
 /// routes area", detail page).
@@ -192,16 +209,18 @@ class NavTrackDetailPage extends ConsumerWidget {
     );
     if (chosen == null) return;
 
-    final followsNewSite = navTrackAnchorShouldFollowSiteChange(
+    final anchorChange = navTrackAnchorChangeForSite(
       route.anchor,
       oldSiteLocation,
+      chosen.location,
     );
     await ref
         .read(navTrackRepositoryProvider)
         .setSite(
           route.id,
           chosen.id,
-          anchor: followsNewSite ? chosen.location : null,
+          anchor: anchorChange.anchor,
+          clearAnchor: anchorChange.write && anchorChange.anchor == null,
         );
   }
 

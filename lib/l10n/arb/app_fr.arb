@@ -12504,7 +12504,7 @@
   "navTrack_detail_chooseSite": "Choisir un site",
   "navTrack_review_title": "Importer un trajet sous-marin",
   "navTrack_review_segmentSummaryNoFix": "{underwater} échantillons sous l'eau, aucun fix GPS dans cet enregistrement.",
-  "navTrack_review_segmentSummaryWithFix": "{underwater} échantillons sous l'eau, {surface} échantillons en surface, fix GPS à {vector} m de la fin estimée.",
+  "navTrack_review_segmentSummaryWithFix": "{underwater} échantillons sous l'eau, {surface} échantillons en surface, fix GPS à {vector} de la fin estimée.",
   "navTrack_review_saveError": "Impossible d'enregistrer ce trajet : {error}",
   "navTrack_review_importError": "Ce fichier n'a pas pu être importé : {error}",
   "navTrack_review_sourceLabel": "Journal Seacraft ENC",

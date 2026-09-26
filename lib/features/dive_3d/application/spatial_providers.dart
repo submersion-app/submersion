@@ -139,7 +139,9 @@ class SpatialSceneResult {
   });
 }
 
-typedef _SpatialBuildInput = ({
+/// Everything [buildSpatialScene] needs, as one record so it can cross into
+/// a background isolate.
+typedef SpatialBuildInput = ({
   ReckonedPath path,
   double? siteMaxDepth,
   BathymetryGrid? grid,
@@ -224,10 +226,7 @@ final spatialGeometryProvider =
         depthSymbol: depthUnit.symbol,
         imageryFrame: imagery?.frame,
       );
-      final cells = grid == null ? 0 : grid.rows * grid.cols;
-      final built = (path.points.length < 4000 && cells < 4000)
-          ? _buildSpatial(input)
-          : await compute(_buildSpatial, input);
+      final built = await buildSpatialScene(input);
       return SpatialSceneResult(
         scene: built.scene,
         bathymetrySourceId: grid?.sourceId,
@@ -241,12 +240,35 @@ final spatialGeometryProvider =
       );
     });
 
+/// Whether [buildSpatialScene] moves this build off the calling isolate:
+/// a long path or a large grid takes long enough to drop frames.
+bool spatialBuildRunsInBackground(SpatialBuildInput input) {
+  final grid = input.grid;
+  final cells = grid == null ? 0 : grid.rows * grid.cols;
+  return input.path.points.length >= 4000 || cells >= 4000;
+}
+
+/// Builds a scene's geometry, on a background isolate when
+/// [spatialBuildRunsInBackground] says it is large enough to cause jank.
+/// Shared by every 3D scene provider so the threshold lives in one place.
+Future<
+  ({
+    Scene3d scene,
+    SeascapeAxisInputs frame,
+    List<ContourLabelSpec> contourLabels,
+  })
+>
+buildSpatialScene(SpatialBuildInput input) async =>
+    spatialBuildRunsInBackground(input)
+    ? await compute(_buildSpatial, input)
+    : _buildSpatial(input);
+
 ({
   Scene3d scene,
   SeascapeAxisInputs frame,
   List<ContourLabelSpec> contourLabels,
 })
-_buildSpatial(_SpatialBuildInput input) =>
+_buildSpatial(SpatialBuildInput input) =>
     const SpatialGeometryService().buildWithFrame(
       input.path,
       siteMaxDepth: input.siteMaxDepth,
