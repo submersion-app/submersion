@@ -48,10 +48,10 @@ void main() {
     final repo = EquipmentRepository();
     final item = (await repo.getEquipmentById('cyl'))!;
     final usage = await repo.getUsageByDiver(item);
-    expect({for (final u in usage) u.diveId: u.diverId}, {
-      'd1': 'owner',
-      'd2': 'wife',
-    });
+    expect(
+      {for (final u in usage) u.diveId: u.diverId},
+      {'d1': 'owner', 'd2': 'wife'},
+    );
     expect(usage.map((u) => u.date.millisecondsSinceEpoch), [1000, 2000]);
   });
 }
