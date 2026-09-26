@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_history_card.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_sharing_row.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -248,6 +250,12 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 DocumentOpenHelper.open(context, ref, item),
           ),
           const SizedBox(height: 24),
+          // Who used it and every share (issue #2046); only with two or more
+          // profiles, so a single-profile page keeps its spacing.
+          if (ref.watch(hasMultipleDiversProvider)) ...[
+            EquipmentHistoryCard(equipmentId: equipmentId),
+            const SizedBox(height: 24),
+          ],
           ServiceHistorySection(equipmentId: equipmentId),
           if (equipment.notes.isNotEmpty) ...[
             const SizedBox(height: 24),

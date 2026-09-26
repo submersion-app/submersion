@@ -19,6 +19,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_t
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_share.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_history_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -119,6 +120,7 @@ void main() {
             (ref) async => activeDiverId,
           ),
           equipmentSharesProvider(id).overrideWith((ref) async => shares),
+          equipmentHistoryProvider(id).overrideWith((ref) async => const []),
         ].cast(),
         child: MaterialApp.router(
           routerConfig: router,
@@ -144,6 +146,18 @@ void main() {
     expect(find.text('Owned by'), findsOneWidget);
     expect(find.text('Bill'), findsOneWidget);
     expect(find.byKey(overflow), findsNothing);
+  });
+
+  testWidgets('the History card shows with two or more profiles', (
+    tester,
+  ) async {
+    await pump(tester, activeDiverId: 'owner');
+    await tester.scrollUntilVisible(
+      find.text('History'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('History'), findsOneWidget);
   });
 
   testWidgets('one profile shows no sharing rows', (tester) async {
