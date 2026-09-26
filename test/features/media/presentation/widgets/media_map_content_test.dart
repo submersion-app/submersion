@@ -595,4 +595,106 @@ void main() {
     expect(find.byType(MediaPlaceStrip), findsOneWidget);
     await _flushMapTimers(tester);
   });
+
+  // Store availability changes must reach mounted tiles without disturbing
+  // the clusters or the strip.
+
+  MediaMapPoint stamped(MediaMapPoint p) => MediaMapPoint(
+    entry: MediaLibraryEntry(
+      item: p.item.copyWith(
+        contentHash: 'abc123',
+        remoteThumbUploadedAt: DateTime.utc(2026, 9, 25),
+      ),
+    ),
+    point: p.point,
+    placement: p.placement,
+    placeLabel: p.placeLabel,
+  );
+
+  testWidgets('an upload-stamp reload hands a single marker the fresh item', (
+    tester,
+  ) async {
+    final notifier = await _pump(
+      tester,
+      state: MediaMapState(points: [_point('a')]),
+    );
+
+    notifier.seed(MediaMapState(points: [stamped(_point('a'))]));
+    await tester.pump();
+
+    final marker = tester.widget<MediaMapMarker>(find.byType(MediaMapMarker));
+    expect(marker.item.remoteThumbUploadedAt, DateTime.utc(2026, 9, 25));
+    await _flushMapTimers(tester);
+  });
+
+  testWidgets('an upload-stamp reload keeps the cluster tile and the open '
+      'strip, and both show the fresh items', (tester) async {
+    final notifier = await openStrip(tester);
+    State clusterThumb() => tester.state(
+      find.descendant(
+        of: find.byType(MediaMapMarker),
+        matching: find.byType(MediaItemView),
+      ),
+    );
+    final before = clusterThumb();
+
+    notifier.seed(
+      MediaMapState(points: [stamped(_point('a')), stamped(_point('b'))]),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.byType(MediaPlaceStrip), findsOneWidget);
+    expect(identical(clusterThumb(), before), isTrue, reason: 'no re-cluster');
+    final clusterTile = tester.widget<MediaMapMarker>(
+      find.byType(MediaMapMarker),
+    );
+    expect(clusterTile.item.contentHash, 'abc123');
+    final strip = tester.widget<MediaPlaceStrip>(find.byType(MediaPlaceStrip));
+    expect(strip.points.every((p) => p.item.contentHash == 'abc123'), isTrue);
+    await _flushMapTimers(tester);
+  });
+
+  testWidgets('an in-flight cluster zoom stops when the map unmounts, so it '
+      'cannot overwrite the next fit', (tester) async {
+    const a = LatLng(12.5000, 43.2000);
+    const b = LatLng(12.5002, 43.2002);
+    final notifier = await _pump(
+      tester,
+      state: MediaMapState(
+        points: [
+          _point('a', at: a),
+          _point('b', at: b),
+        ],
+      ),
+    );
+    final controller = tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .mapController!;
+    controller.move(const LatLng(12.5001, 43.2001), 16);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    // Start the 800 ms cluster zoom, then change the filter mid-flight.
+    await tester.tap(find.byType(MediaMapMarker));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(MediaMapContent)),
+    );
+    container.read(mediaLibraryFilterProvider.notifier).state =
+        const MediaLibraryFilter(mediaType: MediaType.photo);
+    notifier.seed(const MediaMapState(isLoading: true));
+    await tester.pump();
+    notifier.seed(
+      MediaMapState(points: [_point('c', at: const LatLng(-8, 115))]),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(tester.takeException(), isNull);
+    expect(controller.camera.center.latitude, closeTo(-8, 1e-6));
+    expect(controller.camera.zoom, closeTo(12, 1e-6));
+    await _flushMapTimers(tester);
+  });
 }

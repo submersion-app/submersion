@@ -314,8 +314,8 @@ void main() {
     expect(cleared.isLoading, isFalse);
   });
 
-  test('a reload that only stamps media-store uploads keeps the list '
-      'instance', () async {
+  test('a reload that only stamps media-store uploads delivers the fresh '
+      'item', () async {
     repo.points = [_point('a')];
     await start();
     final before = container.read(mediaMapPointsProvider).points;
@@ -337,9 +337,8 @@ void main() {
     await _settle();
     await _settle();
 
-    expect(
-      identical(container.read(mediaMapPointsProvider).points, before),
-      isTrue,
-    );
+    final after = container.read(mediaMapPointsProvider).points;
+    expect(identical(after, before), isFalse);
+    expect(after.single.item.remoteUploadedAt, DateTime.utc(2026, 9, 25));
   });
 }

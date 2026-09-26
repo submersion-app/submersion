@@ -36,9 +36,10 @@ MediaMapPoint _point(MediaItem item) => MediaMapPoint(
 );
 
 void main() {
-  test('media-store bookkeeping does not make a map point unequal', () {
-    // A store upload stamps these on every row it drains; none of them
-    // changes what the map draws or where.
+  test('a media-store upload makes a map point unequal', () {
+    // The tile resolver's store fallback reads the hash and upload stamps,
+    // so a tile on a device without the local file needs the fresh item.
+    // Cluster stability is the widget's job, not equality's.
     final before = _point(_item());
     final after = _point(
       _item(
@@ -49,7 +50,7 @@ void main() {
       ),
     );
 
-    expect(after, before);
+    expect(after, isNot(before));
   });
 
   test('a favorite toggle makes a map point unequal', () {
