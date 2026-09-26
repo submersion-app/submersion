@@ -204,8 +204,8 @@ void main() {
           CsvPresetRepository().watchPresetsChanges,
       'DiveRepository.watchAnalysisInputChanges':
           DiveRepository().watchAnalysisInputChanges,
-      'DiveRepository.watchEquipmentAttrFilterChanges':
-          DiveRepository().watchEquipmentAttrFilterChanges,
+      'DiveRepository.watchTables': () =>
+          DiveRepository().watchTables({'equipment_attributes'}),
       'DiveRepository.watchDiveListChangesWithBuddyLinks':
           DiveRepository().watchDiveListChangesWithBuddyLinks,
       'DiveRepository.watchDivesChangesWithBuddyLinks':
@@ -294,6 +294,42 @@ void main() {
                     updatedAt: now,
                   ),
                 ),
+          ),
+          isTrue,
+        );
+      },
+    );
+
+    test(
+      'DiveRepository.watchTables fires on a write to a named table',
+      () async {
+        expect(
+          await fires(
+            DiveRepository().watchTables({'equipment_attributes'}),
+            () async {
+              await db
+                  .into(db.equipment)
+                  .insert(
+                    EquipmentCompanion.insert(
+                      id: 'eq_query_tick',
+                      name: 'tick',
+                      type: 'hose',
+                      createdAt: now,
+                      updatedAt: now,
+                    ),
+                  );
+              await db
+                  .into(db.equipmentAttributes)
+                  .insert(
+                    EquipmentAttributesCompanion.insert(
+                      id: 'attr_eq_query_tick',
+                      equipmentId: 'eq_query_tick',
+                      attrKey: 'query_tick',
+                      createdAt: now,
+                      updatedAt: now,
+                    ),
+                  );
+            },
           ),
           isTrue,
         );

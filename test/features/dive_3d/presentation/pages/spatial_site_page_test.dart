@@ -9,6 +9,8 @@ import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -136,6 +138,100 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
     expect(find.text('Contours'), findsNothing);
     expect(find.byKey(const ValueKey('seascapeDepthLegend')), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets(
+    'the "Show route" toggle appears only when a route is linked, and '
+    'switching it off falls back to the dead-reckoned estimate',
+    (tester) async {
+      final route = NavTrack(
+        id: 'route-1',
+        diveId: 'd1',
+        source: NavTrackSource.seacraftEnc,
+        startTime: 0,
+        endTime: 20000,
+        pointCount: 3,
+        points: const [
+          NavTrackPoint(timestamp: 0, north: 0, east: 0, depth: 0),
+          NavTrackPoint(timestamp: 10, north: 10, east: 0, depth: 5),
+          NavTrackPoint(timestamp: 20, north: 20, east: 0, depth: 0),
+        ],
+        createdAt: DateTime(2026, 9, 10),
+        updatedAt: DateTime(2026, 9, 10),
+      );
+      final overrides = await getBaseOverrides(primaryNavTrack: route);
+      final measuredScene = const SpatialGeometryService().build(
+        reckoned(),
+        siteMaxDepth: 30,
+      );
+      final estimateScene = const SpatialGeometryService().build(
+        reckoned(),
+        siteMaxDepth: 30,
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            spatialGeometryProvider('d1').overrideWith((ref) async {
+              final showRoute = ref.watch(showMeasuredRouteProvider('d1'));
+              return SpatialSceneResult(
+                scene: showRoute ? measuredScene : estimateScene,
+              );
+            }),
+          ],
+          child: const SpatialSitePage(diveId: 'd1'),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      final toggleFinder = find.byKey(
+        const ValueKey('spatial-site-show-route-toggle'),
+      );
+      expect(toggleFinder, findsOneWidget);
+      // On by default: showMeasuredRouteProvider defaults to true.
+      expect(tester.widget<FilterChip>(toggleFinder).selected, isTrue);
+
+      await tester.tap(toggleFinder);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(tester.widget<FilterChip>(toggleFinder).selected, isFalse);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 1));
+    },
+  );
+
+  testWidgets('the "Show route" toggle is absent with no route linked', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    final path = reckoned();
+    final scene = const SpatialGeometryService().build(path, siteMaxDepth: 30);
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          spatialReckonedPathProvider('d1').overrideWith((ref) async => path),
+          spatialGeometryProvider(
+            'd1',
+          ).overrideWith((ref) async => SpatialSceneResult(scene: scene)),
+        ],
+        child: const SpatialSitePage(diveId: 'd1'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(
+      find.byKey(const ValueKey('spatial-site-show-route-toggle')),
+      findsNothing,
+    );
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 1));

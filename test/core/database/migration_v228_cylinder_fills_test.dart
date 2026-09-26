@@ -81,8 +81,9 @@ void main() {
     return rows.map((r) => r.read<String>('name')).toSet();
   }
 
-  test('v228 is in the ladder', () {
-    // Relaxed once v229 (equipment sharing, issue #2046) landed on top.
+  test('v228 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v230 (nav_tracks) landed on top; the newest rung owns
+    // the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(228));
     expect(AppDatabase.migrationVersions, contains(228));
     expect(AppDatabase.migrationStepCount(227), greaterThanOrEqualTo(1));
