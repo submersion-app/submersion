@@ -240,7 +240,7 @@ class SwissBathy3dSource implements BathymetrySource {
   }) async {
     final lake = findSwissLake(center);
     if (lake == null) {
-      throw const BathymetryFetchException(
+      throw const BathymetryNoDataException(
         'coordinate outside known Swiss lakes',
       );
     }
@@ -400,7 +400,9 @@ class SwissBathy3dSource implements BathymetrySource {
     }
 
     if (tiles.isEmpty) {
-      throw BathymetryFetchException(
+      // Every tile is a confirmed gap (no transient failure got this far,
+      // see failedTileKeys above): a definitive miss, not a retryable one.
+      throw BathymetryNoDataException(
         'no swissBATHY3D tiles for tile range '
         'E[$tileEMin..$tileEMax] N[$tileNMin..$tileNMax]',
       );

@@ -11,6 +11,19 @@ class BathymetryFetchException implements Exception {
   String toString() => 'BathymetryFetchException: $message';
 }
 
+/// Thrown by [BathymetrySource.fetch] when the source answered and confirmed
+/// it holds no data for the request (swissBATHY3D: every tile in the span is
+/// a confirmed gap). A DEFINITIVE miss, unlike [BathymetryFetchException]:
+/// the resolver falls through without treating the result as provisional,
+/// so the fallback it reaches can still be cached (issue #1770).
+class BathymetryNoDataException implements Exception {
+  final String message;
+  const BathymetryNoDataException(this.message);
+
+  @override
+  String toString() => 'BathymetryNoDataException: $message';
+}
+
 /// What a source claims it can deliver at one coordinate. Declared, not
 /// measured: a source reports the finest grid it believes it holds there,
 /// which the resolver uses only to ORDER candidates. The wet-cell and

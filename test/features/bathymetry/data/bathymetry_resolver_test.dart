@@ -84,6 +84,26 @@ class _ErrorSource implements BathymetrySource {
   }
 }
 
+/// Fetches fine but confirms it holds no data here (swissBATHY3D's "every
+/// tile in the span is a confirmed gap").
+class _NoDataSource implements BathymetrySource {
+  @override
+  String get id => 'no-data';
+  @override
+  bool get global => false;
+  @override
+  double get minKnownFraction => 0.0;
+  @override
+  Future<SourceCapability?> probe(GeoPoint center) async =>
+      const SourceCapability(cellSizeMeters: 2, detail: 'no-data');
+  @override
+  Future<BathymetryGrid> fetch(
+    GeoPoint c, {
+    required double spanMeters,
+  }) async =>
+      throw const BathymetryNoDataException('every tile is a confirmed gap');
+}
+
 class _ThrowingProbeSource implements BathymetrySource {
   /// Thrown by [probe]; null throws an unexpected [StateError].
   final Object? error;
@@ -226,6 +246,30 @@ void main() {
       expect(laterDown.fetchCount, 1);
     },
   );
+
+  test('a confirmed no-data miss ahead of the winner is a decline, not a '
+      'transient failure: the fallback is still definitive', () async {
+    final res = await BathymetryResolver(
+      sources: [
+        _NoDataSource(),
+        FakeSource('b', result: gridWith(wet, 'b')),
+      ],
+    ).resolve(p);
+    expect(res.grid!.sourceId, 'b');
+    expect(res.definitive, isTrue);
+  });
+
+  test('a confirmed no-data miss does not stop a global dry answer from '
+      'being a definitive empty', () async {
+    final res = await BathymetryResolver(
+      sources: [
+        _NoDataSource(),
+        FakeSource('g', result: gridWith(dry, 'g')),
+      ],
+    ).resolve(p);
+    expect(res.grid, isNull);
+    expect(res.definitive, isTrue);
+  });
 
   test('all sources failing is transient', () async {
     final res = await BathymetryResolver(

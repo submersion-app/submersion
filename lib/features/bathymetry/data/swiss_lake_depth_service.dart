@@ -32,6 +32,8 @@ class SwissLakeDepthService {
       grid = await _source.fetch(point, spanMeters: 0);
     } on BathymetryFetchException {
       return null;
+    } on BathymetryNoDataException {
+      return null; // STAC confirmed there is no tile here
     }
     final depth = bilinearInterpolateDepth(
       grid,

@@ -103,7 +103,7 @@ void main() {
       });
       expect(
         () => source.fetch(alpsPoint, spanMeters: 1000),
-        throwsA(isA<BathymetryFetchException>()),
+        throwsA(isA<BathymetryNoDataException>()),
       );
       expect(calls, 0);
     });
@@ -163,13 +163,13 @@ void main() {
 
         await expectLater(
           source.fetch(zurichseePoint, spanMeters: 100),
-          throwsA(isA<BathymetryFetchException>()),
+          throwsA(isA<BathymetryNoDataException>()),
         );
         expect(itemCalls, 1);
 
         await expectLater(
           source.fetch(zurichseePoint, spanMeters: 100),
-          throwsA(isA<BathymetryFetchException>()),
+          throwsA(isA<BathymetryNoDataException>()),
         );
         // The negative answer was cached by tile key: no second STAC call.
         expect(itemCalls, 1);
@@ -220,9 +220,17 @@ void main() {
             200,
           );
         });
-        expect(
-          () => source.fetch(zurichseePoint, spanMeters: 100),
+        await expectLater(
+          source.fetch(zurichseePoint, spanMeters: 100),
           throwsA(isA<BathymetryFetchException>()),
+        );
+        // ZipDecoder reads non-zip bytes as an EMPTY archive rather than
+        // throwing, which used to fall through to "no candidate covers this
+        // tile" and cache a permanent gap from one bad download. The tile
+        // must stay uncached so the next visit retries it.
+        expect(
+          await SwissBathyTileCacheRepository(db).hasCachedAnswer('2685_1240'),
+          isFalse,
         );
       },
     );
@@ -949,7 +957,7 @@ nodata_value -9999
 
       await expectLater(
         source.fetch(zurichseePoint, spanMeters: 100),
-        throwsA(isA<BathymetryFetchException>()),
+        throwsA(isA<BathymetryNoDataException>()),
       );
       // Both candidates' real content was checked before giving up.
       expect(downloadCalls, 2);
@@ -1082,7 +1090,7 @@ nodata_value -9999
 
       await expectLater(
         source.fetch(zurichseePoint, spanMeters: 2000),
-        throwsA(isA<BathymetryFetchException>()),
+        throwsA(isA<BathymetryNoDataException>()),
       );
       // One shared items lookup for the whole lake (#1764) -- and even the
       // unrelated item's own declared bbox does not overlap Zürichsee's
@@ -1444,7 +1452,7 @@ nodata_value -9999
       expect(calls, 1);
 
       gate.complete();
-      await expectLater(pending, throwsA(isA<BathymetryFetchException>()));
+      await expectLater(pending, throwsA(isA<BathymetryNoDataException>()));
     });
 
     test('a tile already cached from an earlier fetch is served without a '
@@ -1744,7 +1752,7 @@ nodata_value -9999
         // fetch()'s own doc) and must still run regardless.
         await expectLater(
           source.fetch(zurichseePoint, spanMeters: 100),
-          throwsA(isA<BathymetryFetchException>()),
+          throwsA(isA<BathymetryNoDataException>()),
         );
         await settle();
 
@@ -3175,7 +3183,7 @@ nodata_value -9999
 
       await expectLater(
         source.fetch(zurichseePoint, spanMeters: 100),
-        throwsA(isA<BathymetryFetchException>()),
+        throwsA(isA<BathymetryNoDataException>()),
       );
       expect(itemCalls, 1);
 
