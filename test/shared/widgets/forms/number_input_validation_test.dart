@@ -40,6 +40,31 @@ void main() {
     });
   });
 
+  group('NumberRead', () {
+    test('equal reads hash alike, so they work as set and map keys', () {
+      expect({
+        const NumberBlank(),
+        const NumberBlank(),
+        const NumberInvalid(),
+        const NumberInvalid(),
+        const NumberValue(2),
+        const NumberValue(2),
+        const NumberValue(3),
+      }, hasLength(4));
+    });
+
+    test('describes itself for test failures and logs', () {
+      expect(const NumberBlank().toString(), 'NumberBlank()');
+      expect(const NumberInvalid().toString(), 'NumberInvalid()');
+      expect(const NumberValue(1.5).toString(), 'NumberValue(1.5)');
+    });
+
+    test('a value is not equal to a different value or kind', () {
+      expect(const NumberValue(1) == const NumberValue(2), isFalse);
+      expect(const NumberBlank() == const NumberInvalid(), isFalse);
+    });
+  });
+
   group('LiveNumber', () {
     test('reports readable values and remembers them', () {
       Intl.defaultLocale = 'en_US';

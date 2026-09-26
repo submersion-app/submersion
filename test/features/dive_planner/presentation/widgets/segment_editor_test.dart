@@ -209,6 +209,24 @@ void main() {
     expect(find.byType(SegmentEditor), findsOneWidget);
   });
 
+  testWidgets('an emptied depth saves a surface leg, as it always has', (
+    tester,
+  ) async {
+    PlanSegment? saved;
+    await tester.pumpWidget(
+      dialogHarness(startDepth: 12, onSave: (s) => saved = s),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, '');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(saved!.targetDepth, 0);
+  });
+
   testWidgets('editing preserves the setpoint and dive-mode override', (
     tester,
   ) async {
