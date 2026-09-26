@@ -259,6 +259,48 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_equipment_status;
     case 'query_equipment_type':
       return l10n.query_equipment_type;
+    case 'query_error_betweenNeedsTwo':
+      return l10n.query_error_betweenNeedsTwo;
+    case 'query_error_decimalComma':
+      return l10n.query_error_decimalComma;
+    case 'query_error_emptyGroup':
+      return l10n.query_error_emptyGroup;
+    case 'query_error_emptyList':
+      return l10n.query_error_emptyList;
+    case 'query_error_emptyPath':
+      return l10n.query_error_emptyPath;
+    case 'query_error_emptyText':
+      return l10n.query_error_emptyText;
+    case 'query_error_expectedAnd':
+      return l10n.query_error_expectedAnd;
+    case 'query_error_expectedBool':
+      return l10n.query_error_expectedBool;
+    case 'query_error_expectedCloseBracket':
+      return l10n.query_error_expectedCloseBracket;
+    case 'query_error_expectedCloseParen':
+      return l10n.query_error_expectedCloseParen;
+    case 'query_error_expectedConditionOrText':
+      return l10n.query_error_expectedConditionOrText;
+    case 'query_error_expectedDate':
+      return l10n.query_error_expectedDate;
+    case 'query_error_expectedDateValue':
+      return l10n.query_error_expectedDateValue;
+    case 'query_error_expectedName':
+      return l10n.query_error_expectedName;
+    case 'query_error_expectedNumber':
+      return l10n.query_error_expectedNumber;
+    case 'query_error_expectedOpenBracketAfterIn':
+      return l10n.query_error_expectedOpenBracketAfterIn;
+    case 'query_error_expectedOperator':
+      return l10n.query_error_expectedOperator;
+    case 'query_error_expectedText':
+      return l10n.query_error_expectedText;
+    case 'query_error_expectedValue':
+      return l10n.query_error_expectedValue;
+    case 'query_error_inNeedsList':
+      return l10n.query_error_inNeedsList;
+    case 'query_error_unterminatedQuote':
+      return l10n.query_error_unterminatedQuote;
     case 'query_media_caption':
       return l10n.query_media_caption;
     case 'query_media_favorite':

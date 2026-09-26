@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/presentation/query_builder_group.dart';
 import 'package:submersion/core/query/presentation/query_builder_strings.dart';
@@ -34,6 +35,7 @@ class QueryEditor extends StatefulWidget {
     required this.onChanged,
     required this.strings,
     this.onSave,
+    this.describeError,
   });
 
   final QueryEditorContext context;
@@ -43,6 +45,10 @@ class QueryEditor extends StatefulWidget {
 
   /// Shown as a Save button when set; enabled while [value] is not null.
   final VoidCallback? onSave;
+
+  /// How the text tab words a parse or validation error; the engine's
+  /// English message when null.
+  final String Function(QueryError error)? describeError;
 
   @override
   State<QueryEditor> createState() => _QueryEditorState();
@@ -98,6 +104,7 @@ class _QueryEditorState extends State<QueryEditor>
                   value: widget.value,
                   onChanged: widget.onChanged,
                   hintText: strings.hint,
+                  describeError: widget.describeError,
                 )
               : QueryBuilderGroup(
                   context: widget.context,

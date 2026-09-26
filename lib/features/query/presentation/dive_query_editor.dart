@@ -11,6 +11,7 @@ import 'package:submersion/features/query/data/query_name_index.dart';
 import 'package:submersion/features/query/presentation/app_query_labels.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
+import 'package:submersion/features/query/presentation/query_error_text.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -83,6 +84,7 @@ class DiveQueryEditor extends ConsumerWidget {
       onChanged: onChanged,
       strings: queryEditorStringsOf(context.l10n),
       onSave: onSave,
+      describeError: (e) => describeQueryError(context.l10n, e),
     );
   }
 }

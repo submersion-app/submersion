@@ -1,3 +1,4 @@
+import 'package:submersion/core/query/domain/query_error_code.dart';
 import 'package:meta/meta.dart';
 
 import 'package:submersion/core/query/domain/query_errors.dart';
@@ -111,7 +112,9 @@ class QueryParser {
     try {
       _tokens = tokenize(text);
     } on TokenizeException catch (e) {
-      return ParseFailure(QueryError(e.message, offset: e.offset, length: 1));
+      return ParseFailure(
+        QueryError(e.code, args: e.args, offset: e.offset, length: 1),
+      );
     }
     _pos = 0;
     _scope = [root];
@@ -120,7 +123,13 @@ class QueryParser {
       if (_peek.kind == TokenKind.end) return const ParseOk(null);
       final node = _or();
       if (_peek.kind != TokenKind.end) {
-        throw _Abort(_err('unexpected "${_peek.text}"', _peek));
+        throw _Abort(
+          _err(
+            QueryErrorCode.unexpectedToken,
+            _peek,
+            args: {'text': _peek.text},
+          ),
+        );
       }
       return ParseOk(node);
     } on _Abort catch (a) {
@@ -133,11 +142,13 @@ class QueryParser {
   QueryEntity get _entity => _scope.last;
 
   QueryError _err(
-    String message,
+    QueryErrorCode code,
     Token at, {
+    Map<String, String> args = const {},
     List<String> suggestions = const [],
   }) => QueryError(
-    message,
+    code,
+    args: args,
     offset: at.offset,
     length: at.length == 0 ? 1 : at.length,
     suggestions: suggestions,
@@ -194,14 +205,16 @@ class QueryParser {
     if (_isSymbol(t, '(')) {
       _next();
       final inner = _or();
-      if (!_isSymbol(_peek, ')')) throw _Abort(_err('expected ")"', _peek));
+      if (!_isSymbol(_peek, ')')) {
+        throw _Abort(_err(QueryErrorCode.expectedCloseParen, _peek));
+      }
       _next();
       return inner;
     }
     if (t.kind == TokenKind.quoted) {
       _next();
       final words = t.text.split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
-      if (words.isEmpty) throw _Abort(_err('empty text', t));
+      if (words.isEmpty) throw _Abort(_err(QueryErrorCode.emptyText, t));
       return TextNode(words.toList());
     }
     if (t.kind == TokenKind.number) {
@@ -216,7 +229,7 @@ class QueryParser {
       _next();
       return TextNode([t.text]);
     }
-    throw _Abort(_err('expected a condition or text', t));
+    throw _Abort(_err(QueryErrorCode.expectedConditionOrText, t));
   }
 
   bool _operatorFollows(Token t) =>
@@ -235,7 +248,8 @@ class QueryParser {
           typed.segments.take(seg).fold<int>(0, (n, s) => n + s.length + 1);
       throw _Abort(
         QueryError(
-          res.error!.message,
+          res.error!.code,
+          args: res.error!.args,
           offset: segOffset,
           length: typed.segments[seg].length,
           suggestions: res.error!.suggestions,
@@ -247,9 +261,9 @@ class QueryParser {
     if (_hopDepth + res.hops.length > kMaxPathHops) {
       throw _Abort(
         _err(
-          'a query may cross at most $kMaxPathHops relations, '
-          'counting nested groups',
+          QueryErrorCode.tooManyHops,
           pathTok,
+          args: {'max': '$kMaxPathHops'},
         ),
       );
     }
@@ -259,7 +273,11 @@ class QueryParser {
       final rel = res.terminalRelation;
       if (rel == null) {
         throw _Abort(
-          _err('"[...]" needs a relation, "$path" is a field', pathTok),
+          _err(
+            QueryErrorCode.scopeNeedsRelationQuoted,
+            pathTok,
+            args: {'path': '$path'},
+          ),
         );
       }
       _scope.add(registry.entityFor(rel.target));
@@ -267,7 +285,9 @@ class QueryParser {
       final inner = _or();
       _hopDepth -= res.hops.length;
       _scope.removeLast();
-      if (!_isSymbol(_peek, ']')) throw _Abort(_err('expected "]"', _peek));
+      if (!_isSymbol(_peek, ']')) {
+        throw _Abort(_err(QueryErrorCode.expectedCloseBracket, _peek));
+      }
       _next();
       return ScopedNode(path, inner);
     }
@@ -282,10 +302,9 @@ class QueryParser {
           // both spellings.
           throw _Abort(
             _err(
-              '"${path.segments.last}:none" is ambiguous: write '
-              '"${path.segments.last} = none" for the value none, or '
-              '"NOT ${path.segments.last}:any" for unrecorded',
+              QueryErrorCode.noneAmbiguous,
               v,
+              args: {'field': path.segments.last},
             ),
           );
         }
@@ -318,7 +337,7 @@ class QueryParser {
         return _dateCondition(path, QueryOp.inList, field);
       }
       if (!_isSymbol(_peek, '[')) {
-        throw _Abort(_err('expected "[" after "in"', _peek));
+        throw _Abort(_err(QueryErrorCode.expectedOpenBracketAfterIn, _peek));
       }
       final open = _next();
       if (field.type == FieldType.date) {
@@ -327,25 +346,25 @@ class QueryParser {
         final days = <QueryNode>[];
         while (!_isSymbol(_peek, ']')) {
           if (_peek.kind == TokenKind.end) {
-            throw _Abort(_err('expected "]"', _peek));
+            throw _Abort(_err(QueryErrorCode.expectedCloseBracket, _peek));
           }
           days.add(_dateCondition(path, QueryOp.eq, field));
           if (_isSymbol(_peek, ',')) _next();
         }
         _next();
-        if (days.isEmpty) throw _Abort(_err('the list is empty', open));
+        if (days.isEmpty) throw _Abort(_err(QueryErrorCode.emptyList, open));
         return days.length == 1 ? days.first : OrNode(days);
       }
       final items = <QueryValue>[];
       while (!_isSymbol(_peek, ']')) {
         if (_peek.kind == TokenKind.end) {
-          throw _Abort(_err('expected "]"', _peek));
+          throw _Abort(_err(QueryErrorCode.expectedCloseBracket, _peek));
         }
         items.add(_value(field, QueryOp.inList));
         if (_isSymbol(_peek, ',')) _next();
       }
       _next();
-      if (items.isEmpty) throw _Abort(_err('the list is empty', open));
+      if (items.isEmpty) throw _Abort(_err(QueryErrorCode.emptyList, open));
       return ConditionNode(path, QueryOp.inList, ListValue(items));
     }
     if (_isKeyword(opTok, 'between')) {
@@ -353,7 +372,7 @@ class QueryParser {
       final isDate = field.type == FieldType.date;
       final a = isDate ? _singleDay() : _value(field, QueryOp.between);
       if (!_isKeyword(_peek, 'and')) {
-        throw _Abort(_err('expected "and"', _peek));
+        throw _Abort(_err(QueryErrorCode.expectedAnd, _peek));
       }
       _next();
       final b = isDate ? _singleDay() : _value(field, QueryOp.between);
@@ -371,7 +390,7 @@ class QueryParser {
       '~' => QueryOp.contains,
       _ => null,
     };
-    if (op == null) throw _Abort(_err('expected an operator', opTok));
+    if (op == null) throw _Abort(_err(QueryErrorCode.expectedOperator, opTok));
     _requireOp(field, op, opTok);
     if (field.type == FieldType.date) return _dateCondition(path, op, field);
     return ConditionNode(path, op, _value(field, op));
@@ -382,8 +401,9 @@ class QueryParser {
     if (f == null) {
       throw _Abort(
         _err(
-          '"${pathTok.text}" is a relation; use =, in, :none, :any or [...]',
+          QueryErrorCode.relationNeedsRefOp,
           pathTok,
+          args: {'path': pathTok.text},
         ),
       );
     }
@@ -395,7 +415,11 @@ class QueryParser {
   void _requireOp(QueryField field, QueryOp op, Token opTok) {
     if (!field.ops.contains(op)) {
       throw _Abort(
-        _err('"${opTok.text}" cannot be used with ${field.key}', opTok),
+        _err(
+          QueryErrorCode.opNotForFieldQuoted,
+          opTok,
+          args: {'op': opTok.text, 'field': field.key},
+        ),
       );
     }
   }
@@ -405,19 +429,19 @@ class QueryParser {
   QueryNode _relationRef(FieldPath path, QueryRelation rel, Token opTok) {
     if (_isKeyword(opTok, 'in')) {
       if (!_isSymbol(_peek, '[')) {
-        throw _Abort(_err('expected "[" after "in"', _peek));
+        throw _Abort(_err(QueryErrorCode.expectedOpenBracketAfterIn, _peek));
       }
       final open = _next();
       final items = <QueryValue>[];
       while (!_isSymbol(_peek, ']')) {
         if (_peek.kind == TokenKind.end) {
-          throw _Abort(_err('expected "]"', _peek));
+          throw _Abort(_err(QueryErrorCode.expectedCloseBracket, _peek));
         }
         items.add(_refValue(rel));
         if (_isSymbol(_peek, ',')) _next();
       }
       _next();
-      if (items.isEmpty) throw _Abort(_err('the list is empty', open));
+      if (items.isEmpty) throw _Abort(_err(QueryErrorCode.emptyList, open));
       return ConditionNode(path, QueryOp.inList, ListValue(items));
     }
     final op = switch (opTok.text) {
@@ -425,9 +449,9 @@ class QueryParser {
       '!=' => QueryOp.neq,
       _ => throw _Abort(
         _err(
-          '"${opTok.text}" cannot be used with a relation; '
-          'use =, !=, in, :none, :any or [...]',
+          QueryErrorCode.relationOpNotAllowed,
           opTok,
+          args: {'op': opTok.text},
         ),
       ),
     };
@@ -437,15 +461,16 @@ class QueryParser {
   RefValue _refValue(QueryRelation rel) {
     final tok = _next();
     if (tok.kind == TokenKind.symbol || tok.kind == TokenKind.end) {
-      throw _Abort(_err('expected a name', tok));
+      throw _Abort(_err(QueryErrorCode.expectedName, tok));
     }
     final ref = context.names.resolve(rel.target, tok.text);
     if (ref == null) {
       throw _Abort(
         _err(
-          'no ${rel.key} named "${tok.text}"',
+          QueryErrorCode.noRefNamed,
           tok,
           suggestions: context.names.candidates(rel.target, tok.text),
+          args: {'relation': rel.key, 'text': tok.text},
         ),
       );
     }
@@ -466,12 +491,14 @@ class QueryParser {
   DateValue _singleDay() {
     final t = _next();
     if (t.kind == TokenKind.end || t.kind == TokenKind.symbol) {
-      throw _Abort(_err('expected a date', t));
+      throw _Abort(_err(QueryErrorCode.expectedDate, t));
     }
     final range = parseDateText(t.text, now: context.now);
     final start = range?.start;
     if (range == null || start == null || range.end != start) {
-      throw _Abort(_err('"${t.text}" is not a single day', t));
+      throw _Abort(
+        _err(QueryErrorCode.notSingleDay, t, args: {'text': t.text}),
+      );
     }
     return DateValue(start);
   }
@@ -481,10 +508,12 @@ class QueryParser {
   QueryNode _dateCondition(FieldPath path, QueryOp op, QueryField field) {
     final t = _next();
     if (t.kind == TokenKind.end || t.kind == TokenKind.symbol) {
-      throw _Abort(_err('expected a date value', t));
+      throw _Abort(_err(QueryErrorCode.expectedDateValue, t));
     }
     final range = parseDateText(t.text, now: context.now);
-    if (range == null) throw _Abort(_err('"${t.text}" is not a date', t));
+    if (range == null) {
+      throw _Abort(_err(QueryErrorCode.notADate, t, args: {'text': t.text}));
+    }
     final (:start, :end) = range;
     if (start != null && end != null) {
       if (start == end) return ConditionNode(path, op, DateValue(start));
@@ -518,10 +547,14 @@ class QueryParser {
         );
         throw _Abort(
           _err(
-            '"${t.text}" is open-ended; write ${path.segments.last} '
-            '${op == QueryOp.lt || op == QueryOp.lte ? '<' : '>='} $day '
-            'instead',
+            QueryErrorCode.openEndedDate,
             t,
+            args: {
+              'text': t.text,
+              'field': path.segments.last,
+              'symbol': op == QueryOp.lt || op == QueryOp.lte ? '<' : '>=',
+              'day': day,
+            },
           ),
         );
     }
@@ -536,7 +569,7 @@ class QueryParser {
     final t = _peek;
     if (t.kind == TokenKind.end ||
         (t.kind == TokenKind.symbol && !_isSymbol(t, '-'))) {
-      throw _Abort(_err('expected a value', t));
+      throw _Abort(_err(QueryErrorCode.expectedValue, t));
     }
     switch (field.type) {
       case FieldType.number:
@@ -547,7 +580,7 @@ class QueryParser {
           tok = _next();
         }
         if (tok.kind != TokenKind.number) {
-          throw _Abort(_err('expected a number', tok));
+          throw _Abort(_err(QueryErrorCode.expectedNumber, tok));
         }
         final m = RegExp(r'^(\d+(?:\.\d+)?)([A-Za-z]*)$').firstMatch(tok.text)!;
         // Canonical at four decimals in the typed unit, the precision the
@@ -559,7 +592,9 @@ class QueryParser {
         if (suffix.isNotEmpty) {
           unit = QueryUnit.fromSuffix(suffix);
           if (unit == null) {
-            throw _Abort(_err('unknown unit "$suffix"', tok));
+            throw _Abort(
+              _err(QueryErrorCode.unknownUnit, tok, args: {'unit': suffix}),
+            );
           }
           final unitless = const {
             FieldDimension.none,
@@ -567,20 +602,30 @@ class QueryParser {
             FieldDimension.count,
           }.contains(field.dimension);
           if (unitless) {
-            throw _Abort(_err('${field.key} takes no unit', tok));
+            throw _Abort(
+              _err(
+                QueryErrorCode.noUnitAllowed,
+                tok,
+                args: {'field': field.key},
+              ),
+            );
           }
           if (dimensionOfUnit(unit) != field.dimension) {
             throw _Abort(
               _err(
-                '"$suffix" is not a ${field.dimension.name} unit; '
-                '${field.key} is measured in ${field.dimension.name}',
+                QueryErrorCode.wrongUnitForField,
                 tok,
+                args: {
+                  'unit': suffix,
+                  'dimension': field.dimension.name,
+                  'field': field.key,
+                },
               ),
             );
           }
         }
         if (_isSymbol(_peek, ',') && op != QueryOp.inList) {
-          throw _Abort(_err('use "." for decimals, not ","', _peek));
+          throw _Abort(_err(QueryErrorCode.decimalComma, _peek));
         }
         return NumberValue(
           groundToStorage(raw, unit, field.dimension, context.prefs),
@@ -590,15 +635,17 @@ class QueryParser {
       case FieldType.id:
         final tok = _next();
         if (tok.kind == TokenKind.symbol) {
-          throw _Abort(_err('expected text', tok));
+          throw _Abort(_err(QueryErrorCode.expectedText, tok));
         }
-        if (tok.text.trim().isEmpty) throw _Abort(_err('empty text', tok));
+        if (tok.text.trim().isEmpty) {
+          throw _Abort(_err(QueryErrorCode.emptyText, tok));
+        }
         return StringValue(tok.text);
       case FieldType.bool:
         final tok = _next();
         if (_isKeyword(tok, 'true')) return const BoolValue(true);
         if (_isKeyword(tok, 'false')) return const BoolValue(false);
-        throw _Abort(_err('expected true or false', tok));
+        throw _Abort(_err(QueryErrorCode.expectedBool, tok));
       case FieldType.enumName:
         final tok = _next();
         final values = field.enumValues ?? const [];
@@ -611,9 +658,10 @@ class QueryParser {
           final near = suggestNames(tok.text, values);
           throw _Abort(
             _err(
-              '"${tok.text}" is not a ${field.key} value',
+              QueryErrorCode.notEnumValue,
               tok,
               suggestions: near.isEmpty ? values.take(5).toList() : near,
+              args: {'text': tok.text, 'field': field.key},
             ),
           );
         }

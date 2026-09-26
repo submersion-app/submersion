@@ -43817,4 +43817,238 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_manage_savedQueries_subtitle =>
       'Rename, reorder and delete saved queries';
+
+  @override
+  String get query_error_unterminatedQuote => 'unterminated quote';
+
+  @override
+  String query_error_unexpectedCharacter(String text) {
+    return 'unexpected character \"$text\"';
+  }
+
+  @override
+  String query_error_unexpectedToken(String text) {
+    return 'unexpected \"$text\"';
+  }
+
+  @override
+  String get query_error_expectedCloseParen => 'expected \")\"';
+
+  @override
+  String get query_error_expectedCloseBracket => 'expected \"]\"';
+
+  @override
+  String get query_error_expectedOpenBracketAfterIn =>
+      'expected \"[\" after \"in\"';
+
+  @override
+  String get query_error_expectedAnd => 'expected \"and\"';
+
+  @override
+  String get query_error_expectedOperator => 'expected an operator';
+
+  @override
+  String get query_error_expectedConditionOrText =>
+      'expected a condition or text';
+
+  @override
+  String get query_error_expectedName => 'expected a name';
+
+  @override
+  String get query_error_expectedDate => 'expected a date';
+
+  @override
+  String get query_error_expectedDateValue => 'expected a date value';
+
+  @override
+  String get query_error_expectedValue => 'expected a value';
+
+  @override
+  String get query_error_expectedNumber => 'expected a number';
+
+  @override
+  String get query_error_expectedText => 'expected text';
+
+  @override
+  String get query_error_expectedBool => 'expected true or false';
+
+  @override
+  String get query_error_emptyText => 'empty text';
+
+  @override
+  String get query_error_emptyList => 'the list is empty';
+
+  @override
+  String get query_error_emptyGroup => 'an empty group matches nothing';
+
+  @override
+  String get query_error_emptyPath => 'empty path';
+
+  @override
+  String query_error_notSingleDay(String text) {
+    return '\"$text\" is not a single day';
+  }
+
+  @override
+  String query_error_notADate(String text) {
+    return '\"$text\" is not a date';
+  }
+
+  @override
+  String query_error_openEndedDate(
+    String text,
+    String field,
+    String symbol,
+    String day,
+  ) {
+    return '\"$text\" is open-ended; write $field $symbol $day instead';
+  }
+
+  @override
+  String query_error_unknownUnit(String unit) {
+    return 'unknown unit \"$unit\"';
+  }
+
+  @override
+  String query_error_noUnitAllowed(String field) {
+    return '$field takes no unit';
+  }
+
+  @override
+  String query_error_wrongUnitDimension(String unit, String dimension) {
+    return '\"$unit\" is not a $dimension unit';
+  }
+
+  @override
+  String query_error_wrongUnitForField(
+    String unit,
+    String dimension,
+    String field,
+  ) {
+    return '\"$unit\" is not a $dimension unit; $field is measured in $dimension';
+  }
+
+  @override
+  String get query_error_decimalComma => 'use \".\" for decimals, not \",\"';
+
+  @override
+  String query_error_scopeNeedsRelationQuoted(String path) {
+    return '\"[...]\" needs a relation, \"$path\" is a field';
+  }
+
+  @override
+  String query_error_scopeNeedsRelation(String path) {
+    return '[...] needs a relation, \"$path\" is a field';
+  }
+
+  @override
+  String query_error_relationNeedsRefOp(String path) {
+    return '\"$path\" is a relation; use =, in, :none, :any or [...]';
+  }
+
+  @override
+  String query_error_relationOpNotAllowed(String op) {
+    return '\"$op\" cannot be used with a relation; use =, !=, in, :none, :any or [...]';
+  }
+
+  @override
+  String query_error_opNotForFieldQuoted(String op, String field) {
+    return '\"$op\" cannot be used with $field';
+  }
+
+  @override
+  String query_error_opNotForField(String op, String field) {
+    return '$op cannot be used with $field';
+  }
+
+  @override
+  String query_error_noneAmbiguous(String field) {
+    return '\"$field:none\" is ambiguous: write \"$field = none\" for the value none, or \"NOT $field:any\" for unrecorded';
+  }
+
+  @override
+  String query_error_noRefNamed(String relation, String text) {
+    return 'no $relation named \"$text\"';
+  }
+
+  @override
+  String query_error_notEnumValue(String text, String field) {
+    return '\"$text\" is not a $field value';
+  }
+
+  @override
+  String query_error_unknownField(String name) {
+    return 'unknown field \"$name\"';
+  }
+
+  @override
+  String query_error_fieldNotPath(String name, String next) {
+    return '\"$name\" is a field and cannot be followed by \".$next\"';
+  }
+
+  @override
+  String query_error_tooManyHops(String max) {
+    return 'a query may cross at most $max relations, counting nested groups';
+  }
+
+  @override
+  String query_error_pathTooLong(String max) {
+    return 'a path may cross at most $max relations';
+  }
+
+  @override
+  String query_error_textNotSearchable(String table) {
+    return 'free text cannot be searched inside $table';
+  }
+
+  @override
+  String query_error_expectsReference(String name) {
+    return '$name expects a reference';
+  }
+
+  @override
+  String query_error_expectsReferences(String name) {
+    return '$name expects references';
+  }
+
+  @override
+  String get query_error_betweenNeedsTwo => 'between needs two values';
+
+  @override
+  String get query_error_inNeedsList => 'in needs a list';
+
+  @override
+  String query_error_expectsNumber(String field) {
+    return '$field expects a number';
+  }
+
+  @override
+  String query_error_outOfRange(String field) {
+    return '$field value is out of range';
+  }
+
+  @override
+  String query_error_expectsText(String field) {
+    return '$field expects text';
+  }
+
+  @override
+  String query_error_expectsBool(String field) {
+    return '$field expects true or false';
+  }
+
+  @override
+  String query_error_expectsEnumValue(String field) {
+    return '$field expects one of its values';
+  }
+
+  @override
+  String query_error_expectsSingleDay(String field) {
+    return '$field expects a single day here';
+  }
+
+  @override
+  String query_error_expectsDate(String field) {
+    return '$field expects a date';
+  }
 }

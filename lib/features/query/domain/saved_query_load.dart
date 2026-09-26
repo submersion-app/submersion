@@ -20,12 +20,22 @@ enum SavedQueryProblem { unreadable, invalid, unknownSubject, unresolvedRef }
 
 @immutable
 class SavedQueryLoad {
-  const SavedQueryLoad(this.saved, {this.node, this.problem, this.detail});
+  const SavedQueryLoad(
+    this.saved, {
+    this.node,
+    this.problem,
+    this.detail,
+    this.error,
+  });
 
   final SavedQuery saved;
   final QueryNode? node;
   final SavedQueryProblem? problem;
   final String? detail;
+
+  /// The validator's error for [SavedQueryProblem.invalid], so the UI can
+  /// word it in the diver's language; [detail] holds its English text.
+  final QueryError? error;
 
   bool get isApplicable => node != null;
 }
@@ -119,6 +129,7 @@ SavedQueryLoad loadSavedQuery(
       saved,
       problem: SavedQueryProblem.invalid,
       detail: errors.first.message,
+      error: errors.first,
     );
   }
   final missing = unresolvedRefPaths(node, root, registry, names);

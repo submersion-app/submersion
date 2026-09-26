@@ -8,6 +8,7 @@ import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/query/domain/saved_query_load.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
+import 'package:submersion/features/query/presentation/query_error_text.dart';
 import 'package:submersion/features/query/presentation/widgets/save_query_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/fab_clearance.dart';
@@ -133,7 +134,11 @@ class _SavedQueryListState extends ConsumerState<_SavedQueryList> {
         style: TextStyle(color: theme.colorScheme.error),
       ),
       SavedQueryProblem.invalid => Text(
-        l10n.savedQueries_problem_invalid(load.detail ?? ''),
+        l10n.savedQueries_problem_invalid(
+          load.error == null
+              ? load.detail ?? ''
+              : describeQueryError(l10n, load.error!),
+        ),
         style: TextStyle(color: theme.colorScheme.error),
       ),
       SavedQueryProblem.unknownSubject => Text(
