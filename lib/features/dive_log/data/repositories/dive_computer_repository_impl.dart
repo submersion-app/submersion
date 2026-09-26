@@ -17,6 +17,7 @@ import 'package:submersion/core/database/database.dart'
         DiveProfileEvent;
 import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/matching/match_scorer.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
@@ -2239,16 +2240,13 @@ class DiveComputerRepository {
   /// Delete all events for a dive
   Future<void> clearEventsForDive(String diveId) async {
     try {
-      final existing = await (_db.select(
-        _db.diveProfileEvents,
-      )..where((t) => t.diveId.equals(diveId))).get();
-      await (_db.delete(
+      final deleted = await (_db.delete(
         _db.diveProfileEvents,
       )..where((t) => t.diveId.equals(diveId))).go();
-      for (final event in existing) {
-        await _syncRepository.logDeletion(
-          entityType: 'diveProfileEvents',
-          recordId: event.id,
+      // One tombstone for the dive's events, not one per event (#1926).
+      if (deleted > 0) {
+        await _syncRepository.logScopedDeletion(
+          EventScopeTombstone(diveId: diveId),
         );
       }
       final now = DateTime.now().millisecondsSinceEpoch;

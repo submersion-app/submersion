@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
+import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/features/dive_import/data/services/dive_reimport_service.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -1332,10 +1334,16 @@ void main() {
         now: DateTime(2026, 9, 3),
       );
 
-      final tombstones = await (db.select(
-        db.deletionLog,
-      )..where((t) => t.entityType.equals('diveProfileEvents'))).get();
-      expect(tombstones.map((r) => r.recordId), ['ev-old']);
+      // One tombstone for the dive's events, not one per event (#1926).
+      final tombstones = await db.select(db.deletionLog).get();
+      expect(
+        tombstones.where((r) => r.entityType == 'diveProfileEvents'),
+        isEmpty,
+      );
+      final scope = tombstones.singleWhere(
+        (r) => r.entityType == EventScopeTombstone.entityType,
+      );
+      expect(scope.recordId, diveId);
 
       final pending = await syncRepository.getPendingRecords();
       final pendingEvents = [
@@ -1346,6 +1354,12 @@ void main() {
         db.diveProfileEvents,
       )..where((t) => t.diveId.equals(diveId))).get();
       expect(pendingEvents, unorderedEquals(fresh.map((e) => e.id)));
+      // A peer deletes only events that predate the scope; the fresh ones
+      // must be newer or they would go too.
+      final scopeClock = Hlc.parse(scope.originHlc!);
+      for (final e in fresh) {
+        expect(Hlc.parse(e.hlc!).compareTo(scopeClock), greaterThan(0));
+      }
     });
   });
 
