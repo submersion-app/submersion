@@ -268,7 +268,12 @@ class _FormRowState extends State<FormRow> {
   void initState() {
     super.initState();
     _focusNode.addListener(() {
-      if (!_focusNode.hasFocus && (_editing || widget.inputValidator != null)) {
+      if (_focusNode.hasFocus) {
+        // Focus can arrive without a tap on the resting row: a row held open
+        // because its text fails is edited in place. Count it as editing, or
+        // fixing the text rests the row and unmounts the field mid-typing.
+        if (!_editing) setState(() => _editing = true);
+      } else if (_editing || widget.inputValidator != null) {
         setState(() => _editing = false);
       }
     });

@@ -111,6 +111,37 @@ void main() {
       expect(find.text('12'), findsOneWidget);
     });
 
+    testWidgets('fixing a row that is open only because it failed keeps the '
+        'field while the parent rebuilds', (tester) async {
+      final controller = TextEditingController(text: '1x');
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          StatefulBuilder(
+            builder: (context, setState) => FormRow.text(
+              label: 'Depth',
+              controller: controller,
+              inputValidator: notANumber,
+              onChanged: (_) => setState(() {}),
+            ),
+          ),
+        ),
+      );
+      // Open because it fails, not because the diver tapped the resting row.
+      await tester.tap(find.byType(TextFormField));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField), '12');
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byType(TextFormField),
+        findsOneWidget,
+        reason: 'the field must not unmount under the cursor mid-typing',
+      );
+      final field = tester.widget<EditableText>(find.byType(EditableText));
+      expect(field.focusNode.hasFocus, isTrue);
+    });
+
     testWidgets('an open invalid row fails Form.validate', (tester) async {
       final formKey = GlobalKey<FormState>();
       final controller = TextEditingController(text: '1x');

@@ -210,6 +210,32 @@ void main() {
     expect(_field(tester).controller!.text, '9');
   });
 
+  testWidgets('showing the message keeps the same text field, so the '
+      'keyboard stays up (#1900 review)', (tester) async {
+    await tester.pumpWidget(
+      _harness(
+        value: 9,
+        min: 1,
+        max: 30,
+        isInteger: false,
+        decimals: 1,
+        onChanged: (_) {},
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.showKeyboard(find.byType(TextField).first);
+    final before = tester.state(find.byType(EditableText).first);
+
+    await tester.enterText(find.byType(TextField).first, '1..8');
+    await tester.pump();
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    expect(
+      identical(tester.state(find.byType(EditableText).first), before),
+      isTrue,
+      reason: 'a remounted field closes the input connection',
+    );
+  });
+
   testWidgets('restores the current value when unreadable text is committed', (
     tester,
   ) async {

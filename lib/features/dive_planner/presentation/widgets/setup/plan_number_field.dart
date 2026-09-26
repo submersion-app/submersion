@@ -242,27 +242,29 @@ class PlanNumberFieldState extends State<PlanNumberField> {
         ],
       ),
     );
-    if (!_unreadable) return row;
-    // Only while the box holds unreadable text, so the rows below shift just
-    // for as long as the diver has something to fix.
+    // Always the same Column, with the message added only while the text is
+    // unreadable: swapping the root widget would remount the field and close
+    // its input connection mid-typing. The rows below shift only for as long
+    // as the diver has something to fix.
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
         row,
-        Text(
-          invalidNumberText(
-                context,
-                _controller.text,
-                integer: widget.isInteger,
-              ) ??
-              '',
-          textAlign: TextAlign.end,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.error,
+        if (_unreadable)
+          Text(
+            invalidNumberText(
+                  context,
+                  _controller.text,
+                  integer: widget.isInteger,
+                ) ??
+                '',
+            textAlign: TextAlign.end,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.error,
+            ),
           ),
-        ),
       ],
     );
   }
