@@ -4,16 +4,13 @@ import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/connections/data/repositories/connections_repository.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
-import 'package:submersion/features/connections/domain/entities/connection_node.dart';
-import 'package:submersion/features/connections/domain/entities/connection_query.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/domain/views/kind_link.dart';
+import 'package:submersion/features/connections/domain/views/map_spec.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 
 import '../../../../helpers/test_database.dart';
-
-NodeRef _b(String id) => NodeRef(ConnectionKind.buddy, id);
-NodeRef _s(String id) => NodeRef(ConnectionKind.site, id);
 
 Future<void> _diver(db.AppDatabase d, String id) async {
   final ms = DateTime(2024, 1, 1).millisecondsSinceEpoch;
@@ -104,14 +101,9 @@ Future<void> _link(
       );
 }
 
-const _circle = ConnectionQuery(
-  kindA: ConnectionKind.buddy,
-  kindB: ConnectionKind.buddy,
-);
-const _where = ConnectionQuery(
-  kindA: ConnectionKind.buddy,
-  kindB: ConnectionKind.site,
-);
+NodeRef _b(String id) => NodeRef(ConnectionKind.buddy, id);
+NodeRef _s(String id) => NodeRef(ConnectionKind.site, id);
+const _bs = {ConnectionKind.buddy, ConnectionKind.site};
 
 void main() {
   late ConnectionsRepository repo;
@@ -123,234 +115,225 @@ void main() {
     repo = ConnectionsRepository();
     await _diver(d, 'me');
     await _diver(d, 'other');
-    for (final b in ['jane', 'ken', 'lou']) {
+    for (final b in ['jane', 'ken', 'lou', 'mo']) {
       await _buddy(d, b);
     }
     await _site(d, 's1', country: 'Bonaire');
     await _site(d, 's2');
-    // d1: jane + ken at s1. d2: jane + ken at s1. d3: jane + lou at s2.
+    await _site(d, 's9');
+    // d1, d2: jane + ken at s1. d3: jane + lou at s2.
+    // d6: ken + mo at s9 (reachable from jane only through ken).
+    // d7..d9: mo alone at s9, so mo out-dives every hop-1 entity.
     await _dive(d, id: 'd1', at: DateTime.utc(2024, 1, 10), siteId: 's1');
     await _dive(d, id: 'd2', at: DateTime.utc(2024, 3, 5), siteId: 's1');
     await _dive(d, id: 'd3', at: DateTime.utc(2024, 6, 1), siteId: 's2');
+    await _dive(d, id: 'd6', at: DateTime.utc(2024, 7, 1), siteId: 's9');
+    for (final id in ['d7', 'd8', 'd9']) {
+      await _dive(d, id: id, at: DateTime.utc(2024, 8, 1), siteId: 's9');
+      await _link(d, id, 'mo');
+    }
     await _link(d, 'd1', 'jane');
     await _link(d, 'd1', 'ken');
     await _link(d, 'd2', 'jane');
     await _link(d, 'd2', 'ken');
     await _link(d, 'd3', 'jane');
     await _link(d, 'd3', 'lou', role: 'instructor');
+    await _link(d, 'd6', 'ken');
+    await _link(d, 'd6', 'mo');
   });
 
   tearDown(() async => tearDownTestDatabase());
 
-  group('whole web', () {
-    test('buddy to buddy edges carry distinct dive counts and dates', () async {
-      final g = await repo.loadGraph(_circle, diverId: 'me');
+  group('loadMap', () {
+    test('one kind, same-kind link: the dive circle', () async {
+      final g = await repo.loadMap(
+        MapSpec.of(
+          {ConnectionKind.buddy},
+          {KindLink(ConnectionKind.buddy, ConnectionKind.buddy)},
+        ),
+        diverId: 'me',
+      );
       final janeKen = g.edges.singleWhere(
-        (e) => e.source == _b('jane') && e.target == _b('ken'),
+        (e) => e.touches(_b('jane')) && e.touches(_b('ken')),
       );
       expect(janeKen.weight, 2);
       expect(janeKen.firstDiveAt, DateTime.utc(2024, 1, 10));
-      expect(janeKen.lastDiveAt, DateTime.utc(2024, 3, 5));
-      final janeLou = g.edges.singleWhere(
-        (e) => e.source == _b('jane') && e.target == _b('lou'),
+      expect(g.nodes.every((n) => n.hop == null), isTrue);
+    });
+
+    test('two kinds, both links, and the minimum thins weak lines', () async {
+      final spec = MapSpec.of(_bs, {
+        KindLink(ConnectionKind.buddy, ConnectionKind.site),
+        KindLink(ConnectionKind.buddy, ConnectionKind.buddy),
+      });
+      final all = await repo.loadMap(spec, diverId: 'me');
+      expect(all.edges.any((e) => e.touches(_s('s2'))), isTrue);
+      final strong = await repo.loadMap(spec.withMinimum(2), diverId: 'me');
+      expect(strong.edges.every((e) => e.weight >= 2), isTrue);
+      expect(strong.edges.any((e) => e.touches(_s('s2'))), isFalse);
+      expect(
+        strong.nodeFor(_s('s2')),
+        isNotNull,
+        reason: 'an entity with no surviving line stays as an island',
       );
-      expect(janeLou.weight, 1);
-      expect(g.edges.length, 2, reason: 'ken and lou never dived together');
     });
 
-    test('nodes come from membership with their own dive counts', () async {
-      final g = await repo.loadGraph(_circle, diverId: 'me');
-      final counts = {for (final n in g.nodes) n.ref.id: n.diveCount};
-      expect(counts, {'jane': 3, 'ken': 2, 'lou': 1});
-      expect(g.hiddenNodeCount, 0);
-    });
-
-    test(
-      'a buddy with one role gets a RoleSubtitle, mixed roles none',
-      () async {
-        await _link(d, 'd1', 'lou', role: 'buddy', rowId: 'extra-lou');
-        final g = await repo.loadGraph(_circle, diverId: 'me');
-        final jane = g.nodeFor(_b('jane'))!;
-        final lou = g.nodeFor(_b('lou'))!;
-        expect(jane.subtitle, const RoleSubtitle('buddy'));
-        expect(lou.subtitle, isNull);
-      },
-    );
-
-    test('duplicate junction rows count a dive once', () async {
-      await _link(d, 'd1', 'jane', rowId: 'dup');
-      final g = await repo.loadGraph(_circle, diverId: 'me');
-      final janeKen = g.edges.singleWhere((e) => e.touches(_b('ken')));
-      expect(janeKen.weight, 2);
-      expect(g.nodeFor(_b('jane'))!.diveCount, 3);
-    });
-
-    test(
-      'planned and excluded dives form no edge and add to no count',
-      () async {
-        await _dive(d, id: 'p1', at: DateTime.utc(2025, 1, 1), planned: true);
-        await _dive(d, id: 'x1', at: DateTime.utc(2025, 1, 2), excluded: true);
-        await _link(d, 'p1', 'ken');
-        await _link(d, 'p1', 'lou');
-        await _link(d, 'x1', 'ken');
-        await _link(d, 'x1', 'lou');
-        final g = await repo.loadGraph(_circle, diverId: 'me');
-        expect(
-          g.edges.any((e) => e.touches(_b('ken')) && e.touches(_b('lou'))),
-          isFalse,
-        );
-        expect(g.nodeFor(_b('ken'))!.diveCount, 2);
-      },
-    );
-
-    test(
-      "another diver's dives are ignored, a null diver sees them all",
-      () async {
-        await _dive(
-          d,
-          id: 'o1',
-          at: DateTime.utc(2025, 2, 1),
-          diverId: 'other',
-        );
-        await _link(d, 'o1', 'ken');
-        await _link(d, 'o1', 'lou');
-        final mine = await repo.loadGraph(_circle, diverId: 'me');
-        expect(
-          mine.edges.any((e) => e.touches(_b('lou')) && e.touches(_b('ken'))),
-          isFalse,
-        );
-        final all = await repo.loadGraph(_circle, diverId: null);
-        expect(
-          all.edges.any((e) => e.touches(_b('lou')) && e.touches(_b('ken'))),
-          isTrue,
-        );
-      },
-    );
-
-    test('the view filter narrows edges and counts', () async {
-      const q = ConnectionQuery(
-        kindA: ConnectionKind.buddy,
-        kindB: ConnectionKind.buddy,
-        filter: DiveFilterState(siteId: 's2'),
-      );
-      final g = await repo.loadGraph(q, diverId: 'me');
-      expect(g.edges.length, 1);
-      expect(g.edges.single.touches(_b('lou')), isTrue);
-      expect(g.nodeFor(_b('jane'))!.diveCount, 1);
-      expect(g.nodeFor(_b('ken')), isNull, reason: 'no dives at s2');
-    });
-
-    test(
-      'mixed lens keeps kind A as source and includes isolated sites',
-      () async {
-        await _site(d, 's3');
-        await _dive(d, id: 'd4', at: DateTime.utc(2024, 7, 1), siteId: 's3');
-        final g = await repo.loadGraph(_where, diverId: 'me');
-        for (final e in g.edges) {
-          expect(e.source.kind, ConnectionKind.buddy);
-          expect(e.target.kind, ConnectionKind.site);
-        }
-        final janeS1 = g.edges.singleWhere(
-          (e) => e.source == _b('jane') && e.target == _s('s1'),
-        );
-        expect(janeS1.weight, 2);
-        final s3 = g.nodeFor(_s('s3'))!;
-        expect(s3.diveCount, 1, reason: 'a site dived alone is an island');
-        expect(g.nodeFor(_s('s1'))!.subtitle, const TextSubtitle('Bonaire'));
-        expect(g.nodeFor(_s('s2'))!.subtitle, isNull);
-      },
-    );
-
-    test('the budget trims and reports hidden nodes', () async {
-      final g = await repo.loadGraph(
-        _circle.copyWith(nodeBudget: 2),
+    test('a kind with no link contributes nodes only', () async {
+      final g = await repo.loadMap(
+        MapSpec.of(_bs, {KindLink(ConnectionKind.buddy, ConnectionKind.buddy)}),
         diverId: 'me',
       );
-      expect(g.nodes.map((n) => n.ref.id).toSet(), {'jane', 'ken'});
-      expect(g.hiddenNodeCount, 1);
+      expect(g.nodeFor(_s('s1')), isNotNull);
+      expect(g.edges.any((e) => e.touches(_s('s1'))), isFalse);
+    });
+
+    test('planned dives and other divers are out of scope', () async {
+      await _dive(d, id: 'p1', at: DateTime.utc(2025), planned: true);
+      await _link(d, 'p1', 'lou');
+      await _link(d, 'p1', 'ken');
+      await _dive(d, id: 'o1', at: DateTime.utc(2025), diverId: 'other');
+      await _link(d, 'o1', 'lou');
+      await _link(d, 'o1', 'ken');
+      final g = await repo.loadMap(
+        MapSpec.of(
+          {ConnectionKind.buddy},
+          {KindLink(ConnectionKind.buddy, ConnectionKind.buddy)},
+        ),
+        diverId: 'me',
+      );
+      expect(
+        g.edges.any((e) => e.touches(_b('lou')) && e.touches(_b('ken'))),
+        isFalse,
+      );
     });
   });
 
-  group('ego', () {
-    test('spokes, neighbours and chords around the focus', () async {
-      // ken and lou share d5 so a chord exists between two of jane's
-      // neighbours.
-      await _dive(d, id: 'd5', at: DateTime.utc(2024, 8, 1));
-      await _link(d, 'd5', 'ken');
-      await _link(d, 'd5', 'lou');
-      final g = await repo.loadGraph(
-        _circle.copyWith(focus: _b('jane')),
+  group('loadAround', () {
+    test(
+      'one hop: every enabled kind, spokes and chords, hop 0 and 1',
+      () async {
+        final g = await repo.loadAround(
+          focus: _b('jane'),
+          kinds: _bs,
+          hops: 1,
+          diverId: 'me',
+        );
+        expect(g.nodes.map((n) => n.ref).toSet(), {
+          _b('jane'),
+          _b('ken'),
+          _b('lou'),
+          _s('s1'),
+          _s('s2'),
+        });
+        expect(g.nodeFor(_b('jane'))!.hop, 0);
+        expect(g.nodeFor(_s('s1'))!.hop, 1);
+        expect(
+          g.edges.any((e) => e.touches(_b('ken')) && e.touches(_s('s1'))),
+          isTrue,
+          reason: 'lines among neighbours are drawn too',
+        );
+        expect(g.nodeFor(_b('mo')), isNull);
+      },
+    );
+
+    test(
+      'two hops reach entities only a neighbour shares dives with',
+      () async {
+        final g = await repo.loadAround(
+          focus: _b('jane'),
+          kinds: _bs,
+          hops: 2,
+          diverId: 'me',
+        );
+        expect(g.nodeFor(_b('mo'))!.hop, 2);
+        expect(g.nodeFor(_s('s9'))!.hop, 2);
+        expect(g.nodeFor(_b('ken'))!.hop, 1);
+      },
+    );
+
+    test('disabled kinds are left out', () async {
+      final g = await repo.loadAround(
+        focus: _b('jane'),
+        kinds: {ConnectionKind.buddy},
+        hops: 1,
         diverId: 'me',
       );
-      expect(g.nodes.map((n) => n.ref.id).toSet(), {'jane', 'ken', 'lou'});
-      final spokes = g.edges.where((e) => e.touches(_b('jane'))).toList();
-      expect(spokes.length, 2);
-      expect(spokes.every((e) => e.source == _b('jane')), isTrue);
-      final chord = g.edges.singleWhere((e) => !e.touches(_b('jane')));
-      expect({chord.source.id, chord.target.id}, {'ken', 'lou'});
+      expect(g.nodes.every((n) => n.ref.kind == ConnectionKind.buddy), isTrue);
     });
 
-    test('a mixed-lens focus on kind B swaps sides', () async {
-      final g = await repo.loadGraph(
-        _where.copyWith(focus: _s('s1')),
+    test('the budget keeps nearer hops over busier far ones', () async {
+      final g = await repo.loadAround(
+        focus: _b('jane'),
+        kinds: _bs,
+        hops: 2,
         diverId: 'me',
+        nodeBudget: 3,
       );
       expect(g.nodes.map((n) => n.ref).toSet(), {
-        _s('s1'),
         _b('jane'),
         _b('ken'),
+        _s('s1'),
       });
-      expect(g.edges.every((e) => e.source == _s('s1')), isTrue);
+      expect(g.hiddenNodeCount, greaterThan(0));
     });
 
-    test('a focus with no row throws FocusNotFoundException', () async {
-      expect(
-        () =>
-            repo.loadGraph(_circle.copyWith(focus: _b('ghost')), diverId: 'me'),
-        throwsA(isA<FocusNotFoundException>()),
-      );
-    });
-
-    test('a focus with no dives in scope is still returned alone', () async {
+    test('a focus with no dives in scope stands alone', () async {
       await _buddy(d, 'newbie');
-      final g = await repo.loadGraph(
-        _circle.copyWith(focus: _b('newbie')),
+      final g = await repo.loadAround(
+        focus: _b('newbie'),
+        kinds: _bs,
+        hops: 2,
         diverId: 'me',
       );
       expect(g.nodes.single.ref, _b('newbie'));
       expect(g.nodes.single.diveCount, 0);
+      expect(g.nodes.single.hop, 0);
       expect(g.edges, isEmpty);
     });
 
-    test('an invalid focus kind is an ArgumentError', () async {
+    test('a focus with no row throws FocusNotFoundException', () async {
       expect(
-        () => repo.loadGraph(_circle.copyWith(focus: _s('s1')), diverId: 'me'),
-        throwsArgumentError,
+        () => repo.loadAround(
+          focus: _b('ghost'),
+          kinds: _bs,
+          hops: 1,
+          diverId: 'me',
+        ),
+        throwsA(isA<FocusNotFoundException>()),
       );
+    });
+
+    test('the focus kind is included even when its chip is off', () async {
+      final g = await repo.loadAround(
+        focus: _s('s1'),
+        kinds: {ConnectionKind.buddy},
+        hops: 1,
+        diverId: 'me',
+      );
+      expect(g.nodeFor(_s('s1'))!.hop, 0);
+      expect(g.nodes.where((n) => n.ref.kind == ConnectionKind.site).length, 1);
+      expect(g.nodeFor(_b('jane'))!.hop, 1);
     });
   });
 
-  group('helpers', () {
-    test('diveYearSpan spans the scoped dives', () async {
-      await _dive(d, id: 'old', at: DateTime.utc(2019, 5, 5));
-      await _dive(
-        d,
-        id: 'planned',
-        at: DateTime.utc(2031, 1, 1),
-        planned: true,
-      );
-      final span = await repo.diveYearSpan(diverId: 'me');
-      expect(span, (first: 2019, last: 2024));
-      expect(await repo.diveYearSpan(diverId: 'nobody'), isNull);
+  group('searchEntities', () {
+    test('matches labels across kinds, busiest first', () async {
+      final hits = await repo.searchEntities('s', diverId: 'me');
+      expect(hits.map((n) => n.ref), containsAll([_s('s1'), _s('s9')]));
+      final jan = await repo.searchEntities('JAN', diverId: 'me');
+      expect(jan.map((n) => n.ref), [_b('jane')]);
     });
 
-    test('diveIdsFor a node and an edge', () async {
-      final jane = await repo.diveIdsFor(
-        const NodeSelection(NodeRef(ConnectionKind.buddy, 'jane')),
-        diverId: 'me',
-        filter: const DiveFilterState(),
-      );
-      expect(jane.toSet(), {'d1', 'd2', 'd3'});
+    test('blank text finds nothing and LIKE characters are literal', () async {
+      expect(await repo.searchEntities('   ', diverId: 'me'), isEmpty);
+      expect(await repo.searchEntities('%', diverId: 'me'), isEmpty);
+      expect(await repo.searchEntities('_', diverId: 'me'), isEmpty);
+    });
+  });
+
+  group('unchanged helpers', () {
+    test('diveYearSpan and diveIdsFor', () async {
+      expect(await repo.diveYearSpan(diverId: 'me'), (first: 2024, last: 2024));
       final pair = await repo.diveIdsFor(
         EdgeSelection(_b('jane'), _b('ken')),
         diverId: 'me',
