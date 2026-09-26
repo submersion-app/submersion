@@ -18,6 +18,120 @@ Widget _wrapIntrinsic(Widget child) => MaterialApp(
 );
 
 void main() {
+  group('FormRow.text inputValidator (#1900)', () {
+    String? notANumber(String? v) =>
+        (v ?? '').contains('x') ? 'bad number' : null;
+
+    testWidgets('a valid row rests like any other row', (tester) async {
+      final controller = TextEditingController(text: '18');
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          FormRow.text(
+            label: 'Depth',
+            controller: controller,
+            inputValidator: notANumber,
+          ),
+        ),
+      );
+      expect(find.byType(TextFormField), findsNothing);
+      expect(find.text('18'), findsOneWidget);
+    });
+
+    testWidgets('invalid text shows the error while typing and stays open '
+        'after focus leaves', (tester) async {
+      final controller = TextEditingController(text: '18');
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          FormRow.text(
+            label: 'Depth',
+            controller: controller,
+            inputValidator: notANumber,
+          ),
+        ),
+      );
+      await tester.tap(find.text('18'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField), '1x');
+      await tester.pump();
+      expect(find.text('bad number'), findsOneWidget);
+
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(find.byType(TextFormField), findsOneWidget);
+      expect(find.text('bad number'), findsOneWidget);
+    });
+
+    testWidgets('keeps focus when the text turns invalid and the parent '
+        'rebuilds mid-typing', (tester) async {
+      final controller = TextEditingController(text: '18');
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          StatefulBuilder(
+            builder: (context, setState) => FormRow.text(
+              label: 'Depth',
+              controller: controller,
+              inputValidator: notANumber,
+              // Parents such as the dive edit page setState on every edit.
+              onChanged: (_) => setState(() {}),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('18'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField), '1x');
+      await tester.pumpAndSettle();
+      final field = tester.widget<EditableText>(find.byType(EditableText));
+      expect(field.focusNode.hasFocus, isTrue);
+    });
+
+    testWidgets('an invalid row returns to rest once fixed and left', (
+      tester,
+    ) async {
+      final controller = TextEditingController(text: '1x');
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          FormRow.text(
+            label: 'Depth',
+            controller: controller,
+            inputValidator: notANumber,
+          ),
+        ),
+      );
+      await tester.tap(find.byType(TextFormField));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField), '12');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(find.byType(TextFormField), findsNothing);
+      expect(find.text('12'), findsOneWidget);
+    });
+
+    testWidgets('an open invalid row fails Form.validate', (tester) async {
+      final formKey = GlobalKey<FormState>();
+      final controller = TextEditingController(text: '1x');
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          Form(
+            key: formKey,
+            child: FormRow.text(
+              label: 'Depth',
+              controller: controller,
+              inputValidator: notANumber,
+            ),
+          ),
+        ),
+      );
+      expect(find.byType(TextFormField), findsOneWidget);
+      expect(formKey.currentState!.validate(), isFalse);
+    });
+  });
+
   group('FormRow.text', () {
     testWidgets('resting shows label and value; tap enters inline edit', (
       tester,

@@ -41,6 +41,7 @@ class FormRow extends StatefulWidget {
     this.maxLines = 1,
     this.alwaysEditing = false,
     this.validator,
+    this.inputValidator,
     this.onChanged,
     this.decoration,
     this.profileSuggestion,
@@ -77,6 +78,7 @@ class FormRow extends StatefulWidget {
        maxLines = 1,
        alwaysEditing = false,
        validator = null,
+       inputValidator = null,
        onChanged = null,
        boolValue = null,
        onBoolChanged = null,
@@ -100,6 +102,7 @@ class FormRow extends StatefulWidget {
       maxLines = 1,
       alwaysEditing = false,
       validator = null,
+      inputValidator = null,
       onChanged = null,
       onTap = null,
       boolValue = null,
@@ -134,6 +137,7 @@ class FormRow extends StatefulWidget {
        maxLines = 1,
        alwaysEditing = false,
        validator = null,
+       inputValidator = null,
        onChanged = null,
        onTap = null,
        intValue = null,
@@ -163,6 +167,7 @@ class FormRow extends StatefulWidget {
        maxLines = 1,
        alwaysEditing = false,
        validator = null,
+       inputValidator = null,
        onChanged = null,
        onTap = null,
        boolValue = null,
@@ -186,6 +191,7 @@ class FormRow extends StatefulWidget {
       maxLines = 1,
       alwaysEditing = false,
       validator = null,
+      inputValidator = null,
       onChanged = null,
       onTap = null,
       boolValue = null,
@@ -211,6 +217,15 @@ class FormRow extends StatefulWidget {
   final int maxLines;
   final bool alwaysEditing;
   final String? Function(String?)? validator;
+
+  /// A validator for what the diver types, as opposed to [validator], which
+  /// also covers a blank required field and so keeps the row open always.
+  ///
+  /// The row rests normally while its text passes, and stays open, showing
+  /// the error, only while the text fails. That keeps Form.validate() able to
+  /// see every failing row without turning every numeric row into a bare
+  /// field that hides its profile suggestion (#1900).
+  final String? Function(String?)? inputValidator;
   final ValueChanged<String>? onChanged;
   final InputDecoration? decoration;
   final VoidCallback? onTap;
@@ -237,14 +252,23 @@ class _FormRowState extends State<FormRow> {
 
   /// A row with a validator must keep its field mounted, or Form.validate()
   /// cannot see it.
-  bool get _persistent => widget.alwaysEditing || widget.validator != null;
+  bool get _persistent => _alwaysMounted || _failsInputValidator;
+
+  /// Mounted whatever the text. Only these rows hand focus to the field's
+  /// own node: a row kept open by [FormRow.inputValidator] still owns
+  /// [_focusNode], so turning invalid mid-typing never swaps the node (and
+  /// drops the keyboard) and leaving it can bring the row back to rest.
+  bool get _alwaysMounted => widget.alwaysEditing || widget.validator != null;
+
+  bool get _failsInputValidator =>
+      widget.inputValidator?.call(widget.controller?.text) != null;
   final _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     _focusNode.addListener(() {
-      if (!_focusNode.hasFocus && _editing) {
+      if (!_focusNode.hasFocus && (_editing || widget.inputValidator != null)) {
         setState(() => _editing = false);
       }
     });
@@ -345,19 +369,22 @@ class _FormRowState extends State<FormRow> {
                 Expanded(
                   child: TextFormField(
                     controller: widget.controller,
-                    focusNode: _persistent ? null : _focusNode,
-                    autofocus: !_persistent,
+                    focusNode: _alwaysMounted ? null : _focusNode,
+                    autofocus: _editing && !_alwaysMounted,
                     maxLines: widget.maxLines,
                     keyboardType: widget.keyboardType,
                     inputFormatters: widget.inputFormatters,
-                    validator: widget.validator,
+                    validator: widget.validator ?? widget.inputValidator,
+                    autovalidateMode: widget.inputValidator != null
+                        ? AutovalidateMode.onUserInteraction
+                        : null,
                     onChanged: widget.onChanged,
                     textAlign: widget.maxLines > 1
                         ? TextAlign.start
                         : TextAlign.end,
                     style: theme.textTheme.bodyMedium,
                     decoration: widget.decoration ?? _bareDecoration(context),
-                    onFieldSubmitted: _persistent
+                    onFieldSubmitted: _alwaysMounted
                         ? null
                         : (_) => setState(() => _editing = false),
                   ),
