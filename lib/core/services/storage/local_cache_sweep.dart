@@ -193,8 +193,9 @@ class LocalCacheSweep {
   /// Gated on the freelist rather than on what this pass deleted, so space
   /// freed by any other path (an evicted media cache entry, a dropped track)
   /// is reclaimed too. The #1375 design kept VACUUM off the main database
-  /// because two isolates contend for its lock; this one is opened only on
-  /// the main isolate and is a few megabytes, so the rewrite is brief.
+  /// because two isolates contend for its lock; this database has a single
+  /// connection, on the worker isolate `LocalCacheDatabaseService` owns, so
+  /// the rewrite neither contends nor blocks the UI.
   Future<bool> _vacuumIfWorthIt() async {
     final freePages = await _pragmaInt('freelist_count');
     final pageSize = await _pragmaInt('page_size');
