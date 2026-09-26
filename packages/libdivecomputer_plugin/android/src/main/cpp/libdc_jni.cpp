@@ -218,12 +218,24 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadSessionReportedDe
                                                 sizeof(product), &model)) {
         return nullptr;
     }
-    jclass stringClass = env->FindClass("java/lang/String");
-    jobjectArray result = env->NewObjectArray(2, stringClass, nullptr);
-    env->SetObjectArrayElement(result, 0, env->NewStringUTF(product));
     char modelText[16];
     snprintf(modelText, sizeof(modelText), "%u", model);
-    env->SetObjectArrayElement(result, 1, env->NewStringUTF(modelText));
+    jclass stringClass = env->FindClass("java/lang/String");
+    if (stringClass == nullptr) return nullptr;  // exception pending
+    jobjectArray result = env->NewObjectArray(2, stringClass, nullptr);
+    env->DeleteLocalRef(stringClass);
+    if (result == nullptr) return nullptr;  // OutOfMemoryError pending
+    jstring jProduct = env->NewStringUTF(product);
+    jstring jModel = env->NewStringUTF(modelText);
+    if (jProduct == nullptr || jModel == nullptr) {
+        // A relabel is optional: drop it rather than fail the download.
+        env->ExceptionClear();
+        return nullptr;
+    }
+    env->SetObjectArrayElement(result, 0, jProduct);
+    env->SetObjectArrayElement(result, 1, jModel);
+    env->DeleteLocalRef(jProduct);
+    env->DeleteLocalRef(jModel);
     return result;
 }
 
@@ -656,10 +668,19 @@ static int jni_io_ioctl(void *userdata, unsigned int request,
                 } else {
                     jsize len = env->GetArrayLength(jValue);
                     jbyte *bytes = env->GetByteArrayElements(jValue, nullptr);
-                    status = libdc_ble_characteristic_read_fill(
-                        data, size, reinterpret_cast<unsigned char *>(bytes),
-                        static_cast<size_t>(len));
-                    env->ReleaseByteArrayElements(jValue, bytes, JNI_ABORT);
+                    if (bytes == nullptr) {
+                        // Out of memory: an exception is pending and must be
+                        // cleared before any further JNI call.
+                        env->ExceptionClear();
+                        status = LIBDC_STATUS_NOMEMORY;
+                    } else {
+                        status = libdc_ble_characteristic_read_fill(
+                            data, size,
+                            reinterpret_cast<unsigned char *>(bytes),
+                            static_cast<size_t>(len));
+                        env->ReleaseByteArrayElements(jValue, bytes,
+                                                      JNI_ABORT);
+                    }
                     env->DeleteLocalRef(jValue);
                 }
             }
