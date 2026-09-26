@@ -258,6 +258,20 @@ void main() {
     });
   });
 
+  test(
+    'a dive with a recorded profile is not flagged as profile-less',
+    () async {
+      final payload = await const FitImportParser().parse(_richFitBytes());
+
+      expect(
+        payload.warnings.where(
+          (w) => w.code == ImportWarningCode.profileUnreadable,
+        ),
+        isEmpty,
+      );
+    },
+  );
+
   group('dive name from source filename', () {
     ImportOptions optsWithFile(String name) => ImportOptions(
       sourceApp: SourceApp.garminConnect,
