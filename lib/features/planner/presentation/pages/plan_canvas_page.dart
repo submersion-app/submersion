@@ -6,7 +6,7 @@ import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
@@ -709,14 +709,29 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       return;
     }
 
+    // The plan holds only the site id; the dive needs the site itself. A site
+    // deleted since the plan was saved resolves to null and is left off.
+    final siteId = ref.read(divePlanNotifierProvider).siteId;
+    final site = siteId == null
+        ? null
+        : await ref.read(siteProvider(siteId).future);
+    if (!mounted) return;
+
+    // Read the plan after the site lookup so the dive describes the plan as
+    // it is now. If the diver switched sites meanwhile, the fetched site is
+    // stale, so drop it rather than attach the wrong one.
     final notifier = ref.read(divePlanNotifierProvider.notifier);
     final outcome = ref.read(planOutcomeProvider);
     final series = ref.read(planCanvasSeriesProvider);
+    final currentSite = ref.read(divePlanNotifierProvider).siteId == siteId
+        ? site
+        : null;
 
     // The state's segments stop at the bottom; the engine computes the
     // ascent. Persist the full computed profile so the logged dive shows
     // the deco schedule the plan produced.
     final dive = notifier.toDive().copyWith(
+      site: currentSite,
       profile: [
         for (final point in series.profile)
           DiveProfilePoint(
@@ -730,10 +745,13 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     );
 
     // The logged dive is a planned, unnumbered entry until the diver's
-    // download fills it or they mark it as logged (issue #2002).
+    // download fills it or they mark it as logged (issue #2002). It goes
+    // through the dive list notifier, as the dive edit page's saves do, so it
+    // is assigned to the current diver: the dive list shows only that diver's
+    // dives, and a dive written without one never appears there (#2392).
     final created = await ref
-        .read(diveRepositoryProvider)
-        .createPlannedDive(dive);
+        .read(diveListNotifierProvider.notifier)
+        .addDive(dive);
     notifier.setLinkedDive(created.id);
     await notifier.save(
       summary: PlanSummaryData(

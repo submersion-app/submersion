@@ -4,7 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_deco_section.dart';
@@ -18,6 +24,7 @@ import 'package:submersion/features/planner/presentation/widgets/plan_chart_read
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../helpers/mock_providers.dart';
 import '../../helpers/test_app.dart';
 import '../../helpers/test_database.dart';
 
@@ -42,9 +49,16 @@ void main() {
     DatabaseService.instance.resetForTesting();
   });
 
-  Widget harness() => testApp(
+  // Convert to Dive creates the dive through the dive list notifier, which
+  // reads the current diver; the real provider needs SharedPreferences.
+  Widget harness({String? diverId}) => testApp(
     overrides: [
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+      currentDiverIdProvider.overrideWith((ref) {
+        final notifier = MockCurrentDiverIdNotifier();
+        if (diverId != null) notifier.setCurrentDiver(diverId);
+        return notifier;
+      }),
     ],
     locale: const Locale('en'),
     child: const PlanCanvasPage(),
@@ -268,6 +282,48 @@ void main() {
     await tester.pumpAndSettle();
     await openMenu(tester, 'Convert to Dive');
     expect(find.byType(SnackBar), findsOneWidget);
+  });
+
+  testWidgets('convert logs the dive for the current diver at the plan site', (
+    tester,
+  ) async {
+    final seeded = await tester.runAsync(() async {
+      final now = DateTime.now();
+      final diver = await DiverRepository().createDiver(
+        Diver(
+          id: 'convert-diver',
+          name: 'Test Diver',
+          isDefault: true,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      final site = await SiteRepository().createSite(
+        DiveSite(id: '', name: 'Blue Hole', diverId: diver.id),
+      );
+      return (diverId: diver.id, siteId: site.id);
+    });
+    final diverId = seeded!.diverId;
+
+    await setSize(tester, const Size(420, 900));
+    await tester.pumpWidget(harness(diverId: diverId));
+    seed(tester);
+    ProviderScope.containerOf(
+      tester.element(find.byType(PlanCanvasPage)),
+    ).read(divePlanNotifierProvider.notifier).updateSite(seeded.siteId);
+    await tester.pumpAndSettle();
+
+    await openMenu(tester, 'Convert to Dive');
+    expect(find.byType(SnackBar), findsOneWidget);
+
+    // The dive list reads the current diver's dives only, so a dive written
+    // without a diver never shows up there.
+    final listed = await tester.runAsync(
+      () => DiveRepository().getAllDives(diverId: diverId),
+    );
+    expect(listed, hasLength(1));
+    expect(listed!.single.isPlanned, isTrue);
+    expect(listed.single.site?.id, seeded.siteId);
   });
 
   testWidgets('tapping the title renames the plan', (tester) async {
