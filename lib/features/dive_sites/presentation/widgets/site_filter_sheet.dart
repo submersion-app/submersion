@@ -13,6 +13,8 @@ import 'package:submersion/features/site_types/presentation/providers/site_type_
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Bottom sheet for filtering dive sites.
 ///
@@ -353,12 +355,16 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
   }
 
   /// Convert a depth the diver typed in their own unit back to the meters the
-  /// filter compares against.
-  double? _depthInputToMeters(String value) {
-    final typed = parseUserDecimal(value);
-    if (typed == null) return null;
-    return UnitFormatter(ref.read(settingsProvider)).depthToMeters(typed);
-  }
+  /// filter compares against. Blank clears the bound; unreadable text keeps
+  /// [previous] while the field shows its error (#1900).
+  double? _depthInputToMeters(NumberRead read, double? previous) =>
+      switch (read) {
+        NumberValue(:final value) => UnitFormatter(
+          ref.read(settingsProvider),
+        ).depthToMeters(value),
+        NumberBlank() => null,
+        NumberInvalid() => previous,
+      };
 
   Widget _buildDepthSection() {
     final depthSymbol = UnitFormatter(ref.watch(settingsProvider)).depthSymbol;
@@ -373,17 +379,16 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
         Row(
           children: [
             Expanded(
-              child: TextField(
+              child: NumberField(
                 controller: _minDepthController,
-                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveSites_filter_depth_min_label,
                   suffixText: depthSymbol,
                   border: const OutlineInputBorder(),
                 ),
-                onChanged: (value) {
+                onChanged: (read) {
                   setState(() {
-                    _minDepth = _depthInputToMeters(value);
+                    _minDepth = _depthInputToMeters(read, _minDepth);
                   });
                 },
               ),
@@ -393,17 +398,16 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
               child: Text(context.l10n.diveSites_filter_depth_separator),
             ),
             Expanded(
-              child: TextField(
+              child: NumberField(
                 controller: _maxDepthController,
-                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveSites_filter_depth_max_label,
                   suffixText: depthSymbol,
                   border: const OutlineInputBorder(),
                 ),
-                onChanged: (value) {
+                onChanged: (read) {
                   setState(() {
-                    _maxDepth = _depthInputToMeters(value);
+                    _maxDepth = _depthInputToMeters(read, _maxDepth);
                   });
                 },
               ),

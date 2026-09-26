@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/utils/number_input.dart';
 
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Dialog for managing dive numbering - detecting gaps and renumbering dives
 class DiveNumberingDialog extends ConsumerStatefulWidget {
@@ -314,18 +315,24 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
           children: [
             Text(context.l10n.diveLog_numbering_renumberDialog_content),
             const SizedBox(height: 16),
-            TextField(
+            TextFormField(
               decoration: InputDecoration(
                 labelText:
                     context.l10n.diveLog_numbering_renumberDialog_startFrom,
                 border: const OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
-              controller: TextEditingController(text: _startFrom.toString()),
+              initialValue: _startFrom.toString(),
+              inputFormatters: numberInputFormatters(),
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              validator: numberValidator(context, integer: true),
               onChanged: (value) {
-                final num = parseUserInt(value);
-                if (num != null && num > 0) {
-                  _startFrom = num;
+                // Blank or unreadable keeps the last number the diver typed;
+                // the field shows why.
+                if (readNumber(value, integer: true) case NumberValue(
+                  :final value,
+                ) when value > 0) {
+                  _startFrom = value.toInt();
                 }
               },
             ),

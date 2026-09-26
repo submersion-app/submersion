@@ -329,6 +329,27 @@ void main() {
     expect(applied.maxBottomTimeMinutes, 60);
   });
 
+  testWidgets('unreadable depth keeps the typed bound and shows the error '
+      '(#1900)', (tester) async {
+    final ref = await openSheet(tester);
+
+    final depthFields = find.byWidgetPredicate(
+      (w) => w is TextField && w.decoration?.suffixText == 'm',
+    );
+    await scrollTo(tester, find.text('Depth Range (m)'));
+    await tester.enterText(depthFields.first, '10');
+    await tester.enterText(depthFields.first, '1..0');
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    await tapText(tester, 'Apply Filters');
+    expect(
+      ref.read(filterProvider).minDepth,
+      10,
+      reason: 'unreadable text used to clear the bound silently',
+    );
+  });
+
   testWidgets('favorites, tags, gas-mix and rating selectors', (tester) async {
     final ref = await openSheet(tester);
 
