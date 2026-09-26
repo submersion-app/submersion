@@ -9,7 +9,7 @@ import 'package:submersion/features/explore/presentation/providers/explore_provi
 import 'package:submersion/features/explore/presentation/widgets/explore_charts.dart';
 import 'package:submersion/features/explore/presentation/widgets/explore_chip_rows.dart';
 import 'package:submersion/features/explore/presentation/widgets/explore_results_list.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -160,11 +160,11 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                     Expanded(
                       child: FilledButton(
                         onPressed: () {
-                          ref.read(statisticsFilterProvider.notifier).state =
-                              ref.read(exploreFilterProvider);
-                          context.go('/statistics');
+                          ref.read(insightsFilterProvider.notifier).state = ref
+                              .read(exploreFilterProvider);
+                          context.go('/insights');
                         },
-                        child: Text(l10n.explore_handoff_statistics),
+                        child: Text(l10n.explore_handoff_insights),
                       ),
                     ),
                   ],

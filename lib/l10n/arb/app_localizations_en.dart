@@ -37589,7 +37589,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get explore_handoff_diveList => 'Open in dive list';
 
   @override
-  String get explore_handoff_statistics => 'Open in Statistics';
+  String get explore_handoff_insights => 'Open in Insights';
 
   @override
   String get explore_hint =>

@@ -37334,7 +37334,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get explore_handoff_diveList => 'פתיחה ברשימת הצלילות';
 
   @override
-  String get explore_handoff_statistics => 'פתיחה בסטטיסטיקה';
+  String get explore_handoff_insights => 'פתיחה בתובנות';
 
   @override
   String get explore_hint =>

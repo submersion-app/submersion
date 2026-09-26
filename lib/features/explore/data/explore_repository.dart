@@ -4,7 +4,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
-import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 
 /// Queries Explore needs that no existing repository offers.
 class ExploreRepository {

@@ -38139,7 +38139,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get explore_handoff_diveList => 'Abrir en la lista de inmersiones';
 
   @override
-  String get explore_handoff_statistics => 'Abrir en Estadísticas';
+  String get explore_handoff_insights => 'Abrir en Análisis';
 
   @override
   String get explore_hint =>

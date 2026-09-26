@@ -61610,11 +61610,11 @@ abstract class AppLocalizations {
   /// **'Open in dive list'**
   String get explore_handoff_diveList;
 
-  /// No description provided for @explore_handoff_statistics.
+  /// No description provided for @explore_handoff_insights.
   ///
   /// In en, this message translates to:
-  /// **'Open in Statistics'**
-  String get explore_handoff_statistics;
+  /// **'Open in Insights'**
+  String get explore_handoff_insights;
 
   /// No description provided for @explore_hint.
   ///

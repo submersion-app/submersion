@@ -38040,7 +38040,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get explore_handoff_diveList => 'In der Tauchgangsliste öffnen';
 
   @override
-  String get explore_handoff_statistics => 'In Statistiken öffnen';
+  String get explore_handoff_insights => 'In Einblicken öffnen';
 
   @override
   String get explore_hint =>

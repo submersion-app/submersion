@@ -37960,7 +37960,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get explore_handoff_diveList => 'Megnyitás a merüléslistában';
 
   @override
-  String get explore_handoff_statistics => 'Megnyitás a Statisztikában';
+  String get explore_handoff_insights => 'Megnyitás az Elemzésekben';
 
   @override
   String get explore_hint =>

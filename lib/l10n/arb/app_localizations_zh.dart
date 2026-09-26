@@ -35981,7 +35981,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get explore_handoff_diveList => '在潜水列表中打开';
 
   @override
-  String get explore_handoff_statistics => '在统计中打开';
+  String get explore_handoff_insights => '在洞察中打开';
 
   @override
   String get explore_hint => '询问你的潜水，例如博奈尔 20 米以下的海龟';

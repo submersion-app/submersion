@@ -38124,7 +38124,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get explore_handoff_diveList => 'Abrir na lista de mergulhos';
 
   @override
-  String get explore_handoff_statistics => 'Abrir em Estatísticas';
+  String get explore_handoff_insights => 'Abrir em Análises';
 
   @override
   String get explore_hint =>

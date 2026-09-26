@@ -23,8 +23,8 @@ import 'package:submersion/features/explore/domain/unit_grounding.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/statistics/domain/trend_aggregation.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/insights/domain/trend_aggregation.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -283,8 +283,8 @@ final exploreChartDataProvider =
     FutureProvider.family<ExploreChartData, ChartRequest>((ref, request) async {
       final filter = ref.watch(exploreFilterProvider);
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
-      final stats = ref.watch(statisticsRepositoryProvider);
-      ref.invalidateSelfWhen(stats.watchStatisticsChanges());
+      final stats = ref.watch(insightsRepositoryProvider);
+      ref.invalidateSelfWhen(stats.watchInsightsChanges());
       if (!filter.hasActiveFilters) return const ExploreChartData();
       switch (request.kind) {
         case ChartKind.divesOverTime:

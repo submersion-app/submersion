@@ -14,7 +14,7 @@ import 'package:submersion/features/explore/presentation/pages/explore_page.dart
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/features/explore/data/recent_query_repository.dart';
 
@@ -117,10 +117,7 @@ void main() {
       routes: [
         GoRoute(path: '/dives/explore', builder: (_, _) => const ExplorePage()),
         GoRoute(path: '/dives', builder: (_, _) => const Text('dive list')),
-        GoRoute(
-          path: '/statistics',
-          builder: (_, _) => const Text('statistics'),
-        ),
+        GoRoute(path: '/insights', builder: (_, _) => const Text('insights')),
         GoRoute(
           path: '/dives/:id',
           builder: (_, s) => Text('dive ${s.pathParameters['id']}'),
@@ -200,15 +197,13 @@ void main() {
     expect(find.text('dive list'), findsOneWidget);
   });
 
-  testWidgets('statistics handoff writes the statistics filter', (
-    tester,
-  ) async {
+  testWidgets('insights handoff writes the insights filter', (tester) async {
     final (container, _) = await pump(tester);
     await ask(tester);
-    await tester.tap(find.text('Open in Statistics'));
+    await tester.tap(find.text('Open in Insights'));
     await tester.pumpAndSettle();
-    expect(container.read(statisticsFilterProvider).minDepth, 20);
-    expect(find.text('statistics'), findsOneWidget);
+    expect(container.read(insightsFilterProvider).minDepth, 20);
+    expect(find.text('insights'), findsOneWidget);
   });
 
   testWidgets('a result tile pushes the dive detail', (tester) async {

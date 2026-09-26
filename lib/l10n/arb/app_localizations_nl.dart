@@ -37858,7 +37858,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get explore_handoff_diveList => 'Openen in duiklijst';
 
   @override
-  String get explore_handoff_statistics => 'Openen in Statistieken';
+  String get explore_handoff_insights => 'Openen in Inzichten';
 
   @override
   String get explore_hint =>

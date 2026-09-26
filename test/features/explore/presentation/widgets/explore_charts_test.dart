@@ -4,9 +4,9 @@ import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
 import 'package:submersion/features/explore/presentation/widgets/explore_charts.dart';
-import 'package:submersion/features/statistics/domain/trend_aggregation.dart';
-import 'package:submersion/features/statistics/presentation/widgets/dive_trend_chart.dart';
-import 'package:submersion/features/statistics/presentation/widgets/horizontal_category_bar_chart.dart';
+import 'package:submersion/features/insights/domain/trend_aggregation.dart';
+import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
+import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../../../helpers/mock_providers.dart';

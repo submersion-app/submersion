@@ -38217,7 +38217,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get explore_handoff_diveList => 'Ouvrir dans la liste des plongées';
 
   @override
-  String get explore_handoff_statistics => 'Ouvrir dans les statistiques';
+  String get explore_handoff_insights => 'Ouvrir dans les analyses';
 
   @override
   String get explore_hint =>

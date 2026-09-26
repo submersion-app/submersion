@@ -37721,7 +37721,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get explore_handoff_diveList => 'فتح في قائمة الغطسات';
 
   @override
-  String get explore_handoff_statistics => 'فتح في الإحصائيات';
+  String get explore_handoff_insights => 'فتح في الرؤى';
 
   @override
   String get explore_hint =>
