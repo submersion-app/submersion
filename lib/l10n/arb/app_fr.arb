@@ -3779,6 +3779,7 @@
   "passport_tag_stale": "L'étiquette a été écrite avant le dernier entretien ou changement de caractéristiques. Réimprimez-la.",
   "passport_tag_printLabel": "Imprimer l'étiquette",
   "passport_tag_printLabels": "Imprimer les étiquettes",
+  "passport_tag_qrSemantics": "Code QR du passeport",
   "passport_tag_printFailed": "Impossible de créer les étiquettes. Réessayez.",
   "passport_tag_linkExisting": "Lier une étiquette existante",
   "passport_tag_linkPrompt": "Collez le lien de l'étiquette",

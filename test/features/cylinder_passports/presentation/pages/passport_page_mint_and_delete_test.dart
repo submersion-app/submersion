@@ -158,4 +158,25 @@ void main() {
     );
     expect(rows, isEmpty);
   });
+
+  testWidgets('a double tap on Track O2 cleaning makes one schedule', (
+    tester,
+  ) async {
+    final l10n = await pump(tester);
+    final track = find.text(l10n.passport_service_trackO2Clean);
+    await tester.ensureVisible(track);
+    await tester.tap(track);
+    await tester.tap(track);
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 300)),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    final schedules = await tester.runAsync(
+      () => (db.select(
+        db.serviceSchedules,
+      )..where((t) => t.serviceKindId.equals('o2-clean'))).get(),
+    );
+    expect(schedules, hasLength(1));
+  });
 }

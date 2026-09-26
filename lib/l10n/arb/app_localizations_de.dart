@@ -12006,6 +12006,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get passport_tag_printLabels => 'Etiketten drucken';
 
   @override
+  String get passport_tag_qrSemantics => 'QR-Code des Flaschenpasses';
+
+  @override
   String get passport_tag_printFailed =>
       'Die Etiketten konnten nicht erstellt werden. Bitte erneut versuchen.';
 

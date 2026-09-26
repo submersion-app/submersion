@@ -11747,6 +11747,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_tag_printLabels => 'הדפסת תוויות';
 
   @override
+  String get passport_tag_qrSemantics => 'קוד QR של הדרכון';
+
+  @override
   String get passport_tag_printFailed =>
       'לא ניתן היה ליצור את התוויות. נסו שוב.';
 

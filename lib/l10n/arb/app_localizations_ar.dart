@@ -11812,6 +11812,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_tag_printLabels => 'طباعة الملصقات';
 
   @override
+  String get passport_tag_qrSemantics => 'رمز QR للجواز';
+
+  @override
   String get passport_tag_printFailed => 'تعذّر إنشاء الملصقات. حاول مرة أخرى.';
 
   @override

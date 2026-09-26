@@ -11474,6 +11474,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_tag_printLabels => '打印标签';
 
   @override
+  String get passport_tag_qrSemantics => '护照二维码';
+
+  @override
   String get passport_tag_printFailed => '无法创建标签。请重试。';
 
   @override

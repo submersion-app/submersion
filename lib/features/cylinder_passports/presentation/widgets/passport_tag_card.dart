@@ -119,6 +119,7 @@ class PassportTagCard extends ConsumerWidget {
               Center(
                 child: PassportQrView(
                   data: PassportPayloadCodec.httpsUrl(payload),
+                  semanticLabel: l10n.passport_tag_qrSemantics,
                   size: 200,
                 ),
               ),

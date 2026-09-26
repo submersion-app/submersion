@@ -11984,6 +11984,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get passport_tag_printLabels => 'Címkék nyomtatása';
 
   @override
+  String get passport_tag_qrSemantics => 'Útlevél QR-kódja';
+
+  @override
   String get passport_tag_printFailed =>
       'A címkék létrehozása nem sikerült. Próbálja újra.';
 

@@ -11921,6 +11921,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get passport_tag_printLabels => 'Labels afdrukken';
 
   @override
+  String get passport_tag_qrSemantics => 'QR-code van het paspoort';
+
+  @override
   String get passport_tag_printFailed =>
       'De labels konden niet worden gemaakt. Probeer het opnieuw.';
 

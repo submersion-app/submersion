@@ -11828,6 +11828,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passport_tag_printLabels => 'Print labels';
 
   @override
+  String get passport_tag_qrSemantics => 'Passport QR code';
+
+  @override
   String get passport_tag_printFailed =>
       'Could not create the labels. Try again.';
 

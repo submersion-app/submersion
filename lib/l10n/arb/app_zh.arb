@@ -4027,6 +4027,7 @@
   "passport_tag_stale": "该标签写入于最近一次保养或规格变更之前。请重新打印。",
   "passport_tag_printLabel": "打印标签",
   "passport_tag_printLabels": "打印标签",
+  "passport_tag_qrSemantics": "护照二维码",
   "passport_tag_printFailed": "无法创建标签。请重试。",
   "passport_tag_linkExisting": "关联现有标签",
   "passport_tag_linkPrompt": "粘贴标签上的链接",

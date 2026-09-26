@@ -6917,6 +6917,7 @@
   "passport_tag_stale": "The tag was written before the latest service or spec change. Reprint it.",
   "passport_tag_printLabel": "Print label",
   "passport_tag_printLabels": "Print labels",
+  "passport_tag_qrSemantics": "Passport QR code",
   "passport_tag_printFailed": "Could not create the labels. Try again.",
   "passport_tag_linkExisting": "Link an existing tag",
   "passport_tag_linkPrompt": "Paste the link from the tag",

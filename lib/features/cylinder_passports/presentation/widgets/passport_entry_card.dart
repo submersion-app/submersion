@@ -50,6 +50,7 @@ class PassportEntryCard extends ConsumerWidget {
               if (payload != null)
                 PassportQrView(
                   data: PassportPayloadCodec.httpsUrl(payload),
+                  semanticLabel: l10n.passport_tag_qrSemantics,
                   size: 72,
                 )
               else

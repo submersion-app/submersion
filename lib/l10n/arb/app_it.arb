@@ -3779,6 +3779,7 @@
   "passport_tag_stale": "Il tag è stato scritto prima dell'ultima manutenzione o modifica delle specifiche. Ristampalo.",
   "passport_tag_printLabel": "Stampa etichetta",
   "passport_tag_printLabels": "Stampa etichette",
+  "passport_tag_qrSemantics": "Codice QR del passaporto",
   "passport_tag_printFailed": "Impossibile creare le etichette. Riprova.",
   "passport_tag_linkExisting": "Collega un tag esistente",
   "passport_tag_linkPrompt": "Incolla il link del tag",

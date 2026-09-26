@@ -12011,6 +12011,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get passport_tag_printLabels => 'Imprimir etiquetas';
 
   @override
+  String get passport_tag_qrSemantics => 'Código QR del pasaporte';
+
+  @override
   String get passport_tag_printFailed =>
       'No se pudieron crear las etiquetas. Inténtalo de nuevo.';
 

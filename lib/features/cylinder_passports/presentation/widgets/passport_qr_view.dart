@@ -8,10 +8,19 @@ import 'package:qr/qr.dart';
 /// standard needs the margin to find the finder patterns. Error correction M
 /// matches the printed label so both scan alike.
 class PassportQrView extends StatelessWidget {
-  const PassportQrView({super.key, required this.data, required this.size});
+  const PassportQrView({
+    super.key,
+    required this.data,
+    required this.size,
+    required this.semanticLabel,
+  });
 
   final String data;
   final double size;
+
+  /// What a screen reader announces. The URL itself is never read out: it
+  /// is a long run of characters that means nothing spoken.
+  final String semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +29,7 @@ class PassportQrView extends StatelessWidget {
       errorCorrectLevel: QrErrorCorrectLevel.M,
     );
     return Semantics(
-      label: data,
+      label: semanticLabel,
       image: true,
       child: SizedBox(
         width: size,

@@ -13,7 +13,13 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
-          body: Center(child: PassportQrView(data: url, size: 200)),
+          body: Center(
+            child: PassportQrView(
+              data: url,
+              size: 200,
+              semanticLabel: 'Passport QR code',
+            ),
+          ),
         ),
       ),
     );
@@ -28,7 +34,8 @@ void main() {
       ),
     );
     expect((painter.painter as QrModulesPainter).moduleCount, code.moduleCount);
-    expect(find.bySemanticsLabel(url), findsOneWidget);
+    expect(find.bySemanticsLabel('Passport QR code'), findsOneWidget);
+    expect(find.bySemanticsLabel(url), findsNothing);
   });
 
   test('a full 160-character payload is a version 9 or smaller code', () {
@@ -45,7 +52,13 @@ void main() {
       MaterialApp(
         theme: ThemeData.dark(),
         home: const Scaffold(
-          body: Center(child: PassportQrView(data: url, size: 200)),
+          body: Center(
+            child: PassportQrView(
+              data: url,
+              size: 200,
+              semanticLabel: 'Passport QR code',
+            ),
+          ),
         ),
       ),
     );

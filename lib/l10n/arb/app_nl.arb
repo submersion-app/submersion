@@ -3881,6 +3881,7 @@
   "passport_tag_stale": "De tag is geschreven vóór het laatste onderhoud of de laatste specificatiewijziging. Druk hem opnieuw af.",
   "passport_tag_printLabel": "Label afdrukken",
   "passport_tag_printLabels": "Labels afdrukken",
+  "passport_tag_qrSemantics": "QR-code van het paspoort",
   "passport_tag_printFailed": "De labels konden niet worden gemaakt. Probeer het opnieuw.",
   "passport_tag_linkExisting": "Bestaande tag koppelen",
   "passport_tag_linkPrompt": "Plak de link van de tag",

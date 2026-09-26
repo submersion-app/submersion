@@ -3779,6 +3779,7 @@
   "passport_tag_stale": "התג נכתב לפני הטיפול או שינוי המפרט האחרון. יש להדפיסו מחדש.",
   "passport_tag_printLabel": "הדפסת תווית",
   "passport_tag_printLabels": "הדפסת תוויות",
+  "passport_tag_qrSemantics": "קוד QR של הדרכון",
   "passport_tag_printFailed": "לא ניתן היה ליצור את התוויות. נסו שוב.",
   "passport_tag_linkExisting": "קישור תג קיים",
   "passport_tag_linkPrompt": "הדביקו את הקישור מהתג",

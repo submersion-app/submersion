@@ -3881,6 +3881,7 @@
   "passport_tag_stale": "كُتبت البطاقة قبل آخر صيانة أو تغيير في المواصفات. أعد طباعتها.",
   "passport_tag_printLabel": "طباعة الملصق",
   "passport_tag_printLabels": "طباعة الملصقات",
+  "passport_tag_qrSemantics": "رمز QR للجواز",
   "passport_tag_printFailed": "تعذّر إنشاء الملصقات. حاول مرة أخرى.",
   "passport_tag_linkExisting": "ربط بطاقة موجودة",
   "passport_tag_linkPrompt": "الصق الرابط من البطاقة",

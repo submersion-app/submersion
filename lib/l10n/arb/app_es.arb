@@ -3881,6 +3881,7 @@
   "passport_tag_stale": "La etiqueta se escribió antes del último mantenimiento o cambio de especificación. Vuelve a imprimirla.",
   "passport_tag_printLabel": "Imprimir etiqueta",
   "passport_tag_printLabels": "Imprimir etiquetas",
+  "passport_tag_qrSemantics": "Código QR del pasaporte",
   "passport_tag_printFailed": "No se pudieron crear las etiquetas. Inténtalo de nuevo.",
   "passport_tag_linkExisting": "Vincular una etiqueta existente",
   "passport_tag_linkPrompt": "Pega el enlace de la etiqueta",

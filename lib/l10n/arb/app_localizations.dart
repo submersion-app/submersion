@@ -19978,6 +19978,12 @@ abstract class AppLocalizations {
   /// **'Print labels'**
   String get passport_tag_printLabels;
 
+  /// No description provided for @passport_tag_qrSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Passport QR code'**
+  String get passport_tag_qrSemantics;
+
   /// No description provided for @passport_tag_printFailed.
   ///
   /// In en, this message translates to:

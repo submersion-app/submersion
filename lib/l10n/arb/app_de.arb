@@ -3893,6 +3893,7 @@
   "passport_tag_stale": "Der Tag wurde vor der letzten Wartung oder Spezifikationsänderung geschrieben. Neu drucken.",
   "passport_tag_printLabel": "Etikett drucken",
   "passport_tag_printLabels": "Etiketten drucken",
+  "passport_tag_qrSemantics": "QR-Code des Flaschenpasses",
   "passport_tag_printFailed": "Die Etiketten konnten nicht erstellt werden. Bitte erneut versuchen.",
   "passport_tag_linkExisting": "Vorhandenen Tag verknüpfen",
   "passport_tag_linkPrompt": "Link vom Tag einfügen",

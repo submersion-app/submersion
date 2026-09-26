@@ -25,19 +25,30 @@ class PassportServiceCard extends ConsumerWidget {
 
   final EquipmentItem equipment;
 
+  /// Attaches the built-in O2 clean schedule once. The id is derived from
+  /// the item, as auto-attach does, so a second tap (or a peer doing the
+  /// same) collides with the first instead of adding a duplicate clock.
   Future<void> _trackO2Clean(BuildContext context, WidgetRef ref) async {
+    final repository = ref.read(serviceScheduleRepositoryProvider);
+    final existing = await repository.getSchedulesForEquipment(equipment.id);
+    if (existing.any((s) => s.serviceKindId == 'o2-clean')) return;
     final now = DateTime.now();
-    await ref
-        .read(serviceScheduleRepositoryProvider)
-        .createSchedule(
-          ServiceSchedule(
-            id: '',
-            equipmentId: equipment.id,
-            serviceKindId: 'o2-clean',
-            createdAt: now,
-            updatedAt: now,
-          ),
-        );
+    try {
+      await repository.createSchedule(
+        ServiceSchedule(
+          id: 'auto-o2-clean-${equipment.id}',
+          equipmentId: equipment.id,
+          serviceKindId: 'o2-clean',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    } catch (_) {
+      // Only the other tap winning the race is harmless; anything else is a
+      // real failure and must surface.
+      final attached = await repository.getSchedulesForEquipment(equipment.id);
+      if (!attached.any((s) => s.serviceKindId == 'o2-clean')) rethrow;
+    }
     invalidateServiceClockProviders(ref, equipment.id);
   }
 
