@@ -96,6 +96,14 @@ const fixtureDives = QueryEntity(
       enumValues: ['salt', 'fresh', 'brackish'],
     ),
     QueryField(
+      key: 'current',
+      type: FieldType.enumName,
+      sql: '{r}.current_strength',
+      emptySql: '{r}.current_strength IS NULL',
+      labelKey: 'x',
+      enumValues: ['none', 'light', 'strong'],
+    ),
+    QueryField(
       key: 'weekday',
       type: FieldType.enumName,
       sql:

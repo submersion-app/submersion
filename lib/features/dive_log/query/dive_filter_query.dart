@@ -1,4 +1,5 @@
 import 'package:submersion/core/query/compiler/query_compiler.dart';
+import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
@@ -205,5 +206,14 @@ CompiledQuery compileDiveFilter(
   rootAlias: rootAlias,
 );
 
-Set<String> diveFilterTablesTouched(DiveFilterState filter) =>
-    compileDiveFilter(filter).tablesTouched;
+/// The tables [filter] reads, for change ticks. Computed inside provider
+/// listeners, so it never throws: an advanced query the compiler rejects
+/// falls back to the base tick and the SQL path reports the error through
+/// its AsyncValue, where the diver can see it.
+Set<String> diveFilterTablesTouched(DiveFilterState filter) {
+  try {
+    return compileDiveFilter(filter).tablesTouched;
+  } on QueryCompileError {
+    return const {'dives'};
+  }
+}

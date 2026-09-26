@@ -84,4 +84,13 @@ void main() {
   test('watchTables rejects an unknown table', () {
     expect(() => repo.watchTables({'nope'}), throwsArgumentError);
   });
+
+  test('the list tick tables are named once and all resolve', () {
+    expect(
+      repo.tablesNamed(DiveRepository.diveListTickTables).length,
+      DiveRepository.diveListTickTables.length,
+    );
+    expect(DiveRepository.diveListTickTables, contains('dives'));
+    expect(DiveRepository.diveListTickTables, contains('dive_tags'));
+  });
 }

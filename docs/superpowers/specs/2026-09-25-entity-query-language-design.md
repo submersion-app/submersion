@@ -679,6 +679,16 @@ Decided in the whole-branch review of PR 1:
 - **`last N days` and `last N weeks` use calendar arithmetic**, never a
   `Duration`, so a range typed after a spring-forward change starts on the
   right day.
+- **`:none` is refused on an enum that stores a value named `none`**
+  (`currentStrength`): the parser and validator name both spellings,
+  `currentStrength = none` for the value and `NOT currentStrength:any` for
+  unrecorded, rather than silently picking one.
+- **`DiveFilterState` has value equality**, so an unchanged filter set
+  again is no change to a listener and the id-set family reuses its
+  instance for an equal filter.
+- **The tick-table lookup never throws** (`diveFilterTablesTouched` falls
+  back to `dives` on a compile error), and the dive list's tick tables are
+  named once, on the repository (`DiveRepository.diveListTickTables`).
 
 ## Open items for the implementation plans
 

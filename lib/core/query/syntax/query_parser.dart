@@ -264,6 +264,20 @@ class QueryParser {
     if (_isSymbol(opTok, ':')) {
       final v = _peek;
       if (_isKeyword(v, 'none')) {
+        final noneValue = res.field?.enumValues?.contains('none') ?? false;
+        if (noneValue) {
+          // `current:none` would read as "unrecorded" while the diver may
+          // mean the stored value "none": refuse the ambiguity and name
+          // both spellings.
+          throw _Abort(
+            _err(
+              '"${path.segments.last}:none" is ambiguous: write '
+              '"${path.segments.last} = none" for the value none, or '
+              '"NOT ${path.segments.last}:any" for unrecorded',
+              v,
+            ),
+          );
+        }
         _next();
         return ConditionNode(path, QueryOp.isEmpty, null);
       }

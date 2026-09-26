@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show listEquals;
+
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
@@ -47,8 +49,8 @@ class DiveFilterState {
   /// unrecorded (no profile, or a profile needing the computed fallback)
   /// match neither.
   ///
-  /// This axis is SQL-only. It is applied by `decoSignalCondition` in the
-  /// query paths and deliberately NOT by [apply]; see the note there.
+  /// Lowered to the registry's `deco` field, whose SQL is
+  /// `decoSignalCondition`, so every path evaluates it the same way.
   final bool? decoOnly;
 
   /// True to restrict the list to dives with no buddy assigned: neither the
@@ -182,6 +184,74 @@ class DiveFilterState {
       (customFieldKey != null && customFieldKey!.isNotEmpty) ||
       equipmentAttrConditions.isNotEmpty ||
       query != null;
+
+  /// Value equality over every axis, so an unchanged filter set again is
+  /// no change to a listener, and the id-set family keyed on the filter
+  /// reuses its instance for an equal filter.
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DiveFilterState &&
+          other.startDate == startDate &&
+          other.endDate == endDate &&
+          other.diveTypeId == diveTypeId &&
+          other.siteId == siteId &&
+          other.tripId == tripId &&
+          other.diveCenterId == diveCenterId &&
+          other.minDepth == minDepth &&
+          other.maxDepth == maxDepth &&
+          other.favoritesOnly == favoritesOnly &&
+          other.excludedFromStatsOnly == excludedFromStatsOnly &&
+          other.decoOnly == decoOnly &&
+          other.noBuddyOnly == noBuddyOnly &&
+          listEquals(other.tagIds, tagIds) &&
+          listEquals(other.weekdays, weekdays) &&
+          listEquals(other.equipmentIds, equipmentIds) &&
+          other.buddyNameFilter == buddyNameFilter &&
+          other.buddyId == buddyId &&
+          listEquals(other.diveIds, diveIds) &&
+          other.minO2Percent == minO2Percent &&
+          other.maxO2Percent == maxO2Percent &&
+          other.minRating == minRating &&
+          other.minBottomTimeMinutes == minBottomTimeMinutes &&
+          other.maxBottomTimeMinutes == maxBottomTimeMinutes &&
+          other.computerId == computerId &&
+          other.customFieldKey == customFieldKey &&
+          other.customFieldValue == customFieldValue &&
+          listEquals(other.equipmentAttrConditions, equipmentAttrConditions) &&
+          other.query == query;
+
+  @override
+  int get hashCode => Object.hashAll([
+    startDate,
+    endDate,
+    diveTypeId,
+    siteId,
+    tripId,
+    diveCenterId,
+    minDepth,
+    maxDepth,
+    favoritesOnly,
+    excludedFromStatsOnly,
+    decoOnly,
+    noBuddyOnly,
+    Object.hashAll(tagIds),
+    Object.hashAll(weekdays),
+    Object.hashAll(equipmentIds),
+    buddyNameFilter,
+    buddyId,
+    Object.hashAll(diveIds),
+    minO2Percent,
+    maxO2Percent,
+    minRating,
+    minBottomTimeMinutes,
+    maxBottomTimeMinutes,
+    computerId,
+    customFieldKey,
+    customFieldValue,
+    Object.hashAll(equipmentAttrConditions),
+    query,
+  ]);
 
   DiveFilterState copyWith({
     DateTime? startDate,

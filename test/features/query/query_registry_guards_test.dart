@@ -170,4 +170,76 @@ void main() {
       }
     }
   });
+
+  test('every table a fragment reads is declared, for the change ticks', () {
+    final fromOrJoin = RegExp(r'\b(?:FROM|JOIN)\s+(\w+)');
+    for (final e in appQueryRegistry.entities) {
+      Set<String> read(String sql) =>
+          fromOrJoin.allMatches(sql).map((m) => m[1]!).toSet();
+      for (final f in e.fields) {
+        final declared = {e.table, ...f.tables};
+        final used = {
+          ...read(f.sql),
+          ...read(f.emptySql),
+          if (f.boolSql != null) ...read(f.boolSql!.whenTrue),
+          if (f.boolSql != null) ...read(f.boolSql!.whenFalse),
+        };
+        expect(
+          used.difference(declared),
+          isEmpty,
+          reason: '${e.subject}.${f.key} reads undeclared tables',
+        );
+      }
+      for (final r in e.relations) {
+        final target = appQueryRegistry.entityFor(r.target).table;
+        final declared = {e.table, target, ...r.tables};
+        final used = {
+          ...read(r.joinSql),
+          if (r.emptySql != null) ...read(r.emptySql!),
+        };
+        expect(
+          used.difference(declared),
+          isEmpty,
+          reason: '${e.subject}.${r.key} reads undeclared tables',
+        );
+      }
+      final textUsed = {for (final t in e.textSearchSql) ...read(t)};
+      expect(
+        textUsed.difference({e.table, ...e.textSearchTables}),
+        isEmpty,
+        reason: '${e.subject} text search reads undeclared tables',
+      );
+    }
+  });
+
+  test('only text search templates carry bind placeholders', () {
+    for (final e in appQueryRegistry.entities) {
+      for (final f in e.fields) {
+        for (final sql in [
+          f.sql,
+          f.emptySql,
+          if (f.boolSql != null) f.boolSql!.whenTrue,
+          if (f.boolSql != null) f.boolSql!.whenFalse,
+        ]) {
+          expect(
+            countPlaceholders(sql),
+            0,
+            reason: '${e.subject}.${f.key} would misorder bind params',
+          );
+        }
+      }
+      for (final r in e.relations) {
+        expect(
+          countPlaceholders(r.joinSql),
+          0,
+          reason: '${e.subject}.${r.key}',
+        );
+        expect(
+          countPlaceholders(r.emptySql ?? ''),
+          0,
+          reason: '${e.subject}.${r.key} emptySql',
+        );
+      }
+    }
+  });
 }

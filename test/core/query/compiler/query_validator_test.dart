@@ -200,4 +200,19 @@ void main() {
       [contains('4')],
     );
   });
+
+  test(':none on an enum with a stored value named none is ambiguous', () {
+    expect(
+      messages(
+        ConditionNode(const FieldPath(['current']), QueryOp.isEmpty, null),
+      ),
+      [contains('current = none')],
+    );
+    expect(
+      messages(
+        ConditionNode(const FieldPath(['waterType']), QueryOp.isEmpty, null),
+      ),
+      isEmpty,
+    );
+  });
 }

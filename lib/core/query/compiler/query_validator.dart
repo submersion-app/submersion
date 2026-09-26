@@ -105,6 +105,17 @@ void _walk(
         );
         return;
       }
+      if (op == QueryOp.isEmpty &&
+          (field.enumValues?.contains('none') ?? false)) {
+        out.add(
+          QueryError(
+            '"${field.key}:none" is ambiguous: write "${field.key} = none" '
+            'for the value none, or "NOT ${field.key}:any" for unrecorded',
+            path: path,
+          ),
+        );
+        return;
+      }
       if (value == null) return;
       _checkValue(path, field, op, value, out);
   }

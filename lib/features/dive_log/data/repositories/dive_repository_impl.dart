@@ -201,17 +201,24 @@ class DiveRepository {
       .tableUpdates(TableUpdateQuery.allOf(_diveListTables))
       .debounce(changeTickDebounce);
 
+  /// The tables the dive list renders from, by SQL name: the summary row,
+  /// its site and trip joins, the safety badge, and the row chips (tag
+  /// membership and names, the dive-type junction; type NAMES resolve
+  /// through their own provider). One list, read by [watchDiveListChanges]
+  /// and by the paginator to know which filter tables are EXTRA.
+  static const Set<String> diveListTickTables = {
+    'dives',
+    'dive_sites',
+    'trips',
+    'dive_safety_findings',
+    'dive_tags',
+    'tags',
+    'dive_dive_types',
+  };
+
   List<TableUpdateQuery> get _diveListTables => [
-    TableUpdateQuery.onTable(_db.dives),
-    TableUpdateQuery.onTable(_db.diveSites),
-    TableUpdateQuery.onTable(_db.trips),
-    TableUpdateQuery.onTable(_db.diveSafetyFindings),
-    // Row chips: tag membership and tag names, and the dive-type badges. The
-    // type NAMES resolve through their own provider, so only the junction is
-    // needed for them.
-    TableUpdateQuery.onTable(_db.diveTags),
-    TableUpdateQuery.onTable(_db.tags),
-    TableUpdateQuery.onTable(_db.diveDiveTypes),
+    for (final t in tablesNamed(diveListTickTables))
+      TableUpdateQuery.onTable(t),
   ];
 
   /// [watchDiveListChanges] plus the tables the buddy filters read

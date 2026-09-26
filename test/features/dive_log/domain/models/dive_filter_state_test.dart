@@ -251,6 +251,32 @@ void main() {
       });
     });
 
+    group('equality', () {
+      test('two filters with the same axes are equal', () {
+        DiveFilterState make() => DiveFilterState(
+          startDate: DateTime(2025, 1, 1),
+          tagIds: const ['a', 'b'],
+          weekdays: const [1],
+          minDepth: 18,
+          noBuddyOnly: true,
+          query: ConditionNode(
+            const FieldPath(['weights']),
+            QueryOp.isEmpty,
+            null,
+          ),
+        );
+        expect(make(), equals(make()));
+        expect(make().hashCode, make().hashCode);
+        expect(make(), isNot(equals(make().copyWith(minDepth: 19))));
+        expect(
+          make(),
+          isNot(equals(make().copyWith(tagIds: const ['b', 'a']))),
+          reason: 'list order is part of the value',
+        );
+        expect(const DiveFilterState(), const DiveFilterState());
+      });
+    });
+
     group('query (#2365)', () {
       test('copyWith sets and clears the advanced query', () {
         final node = ConditionNode(

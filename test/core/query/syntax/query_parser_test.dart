@@ -420,4 +420,20 @@ void main() {
       contains('quote'),
     );
   });
+
+  test(':none on an enum with a stored value named none is refused', () {
+    final f = bad(metric(), 'current:none');
+    expect(f.error.message, contains('current = none'));
+    expect(f.error.message, contains('NOT current:any'));
+    expect(
+      ok(metric(), 'current = none'),
+      ConditionNode(
+        const FieldPath(['current']),
+        QueryOp.eq,
+        const EnumValue('none'),
+      ),
+    );
+    expect(ok(metric(), 'current:any'), isA<ConditionNode>());
+    expect(ok(metric(), 'waterType:none'), isA<ConditionNode>());
+  });
 }

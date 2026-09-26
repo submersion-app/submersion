@@ -270,4 +270,17 @@ void main() {
     );
     expect(diveFilterTablesTouched(const DiveFilterState()), {'dives'});
   });
+
+  test('an invalid advanced query never throws out of the tick lookup', () {
+    final broken = DiveFilterState(
+      query: ConditionNode(
+        const FieldPath(['noSuchField']),
+        QueryOp.eq,
+        const StringValue('x'),
+      ),
+    );
+    // The notifiers compute this inside listeners; the SQL path reports the
+    // error through AsyncValue, this must not throw before it gets there.
+    expect(diveFilterTablesTouched(broken), {'dives'});
+  });
 }

@@ -484,18 +484,6 @@ class _FilterAwareTick {
   }
 }
 
-/// The tables [DiveRepository.watchDiveListChanges] already watches; a
-/// filter's extra tables are what remains after removing these.
-const Set<String> kDiveListTickTables = {
-  'dives',
-  'dive_sites',
-  'trips',
-  'dive_safety_findings',
-  'dive_tags',
-  'tags',
-  'dive_dive_types',
-};
-
 /// Dive list notifier for mutations
 class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
   final DiveRepository _repository;
@@ -801,7 +789,7 @@ class PaginatedDiveListNotifier
   /// without touching the dives table (#1193).
   late final _listTick = _FilterAwareTick(
     plain: _repository.watchDiveListChanges,
-    baseTables: kDiveListTickTables,
+    baseTables: DiveRepository.diveListTickTables,
     watchTables: _repository.watchTables,
     onTick: _silentReloadLoadedPages,
   );
@@ -814,7 +802,9 @@ class PaginatedDiveListNotifier
   /// reloads for those writes.
   void _followFilterTicks(DiveFilterState filter) {
     _listTick.follow(
-      diveFilterTablesTouched(filter).difference(kDiveListTickTables),
+      diveFilterTablesTouched(
+        filter,
+      ).difference(DiveRepository.diveListTickTables),
     );
   }
 
