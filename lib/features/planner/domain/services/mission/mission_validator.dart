@@ -4,6 +4,14 @@ import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_geometry.dart';
 
+/// A real, finite number above zero. NaN fails every comparison, so a plain
+/// `<= 0` check would let it through into gas maths where every comparison
+/// is false and an exit reads feasible.
+bool _isPositive(double v) => v.isFinite && v > 0;
+
+/// A real, finite number of zero or more.
+bool _isNonNegative(double v) => v.isFinite && v >= 0;
+
 /// Everything that makes a mission impossible to compute, or its answer
 /// meaningless, found before any scenario runs (issue #2086).
 List<MissionIssue> validateMission(DpvMission mission) {
@@ -27,7 +35,7 @@ List<MissionIssue> validateMission(DpvMission mission) {
   // Burn must be allowed and reserved within the battery: a negative reserve
   // would let a scooter run past its rated burn time.
   final reserve = mission.batteryReserveFraction;
-  if (!reserve.isFinite || reserve < 0 || reserve > 1) {
+  if (!_isNonNegative(reserve) || reserve > 1) {
     issues.add(
       const MissionIssue(
         type: MissionIssueType.batteryReserveInvalid,
@@ -39,10 +47,10 @@ List<MissionIssue> validateMission(DpvMission mission) {
     final scooter = member.scooter;
     // A tow factor of zero or less would charge a tow no burn, or give it no
     // speed; either makes a tow read possible when it is not.
-    if (!(scooter.ratedSpeedMps > 0) ||
+    if (!_isPositive(scooter.ratedSpeedMps) ||
         scooter.burnTimeSeconds <= 0 ||
-        !(scooter.towSpeedFactor > 0) ||
-        !(scooter.towBurnFactor > 0)) {
+        !_isPositive(scooter.towSpeedFactor) ||
+        !_isPositive(scooter.towBurnFactor)) {
       issues.add(
         MissionIssue(
           type: MissionIssueType.scooterUnspecified,
@@ -51,7 +59,7 @@ List<MissionIssue> validateMission(DpvMission mission) {
         ),
       );
     }
-    if (member.sacBottom <= 0) {
+    if (!_isPositive(member.sacBottom)) {
       issues.add(
         MissionIssue(
           type: MissionIssueType.memberSacUnset,
@@ -60,7 +68,7 @@ List<MissionIssue> validateMission(DpvMission mission) {
         ),
       );
     }
-    if (member.swimSpeedMps <= 0) {
+    if (!_isPositive(member.swimSpeedMps)) {
       issues.add(
         MissionIssue(
           type: MissionIssueType.memberSwimSpeedUnset,
@@ -73,7 +81,9 @@ List<MissionIssue> validateMission(DpvMission mission) {
   if (mission.environment == MissionEnvironment.openWater) {
     // A negative distance would always pass the swim limit and win as the
     // fastest route, reporting an exit that does not exist.
-    if ((mission.surfaceSwimLimitM ?? 0) < 0 || mission.walkSpeedMps < 0) {
+    final limit = mission.surfaceSwimLimitM;
+    if ((limit != null && !_isNonNegative(limit)) ||
+        !_isNonNegative(mission.walkSpeedMps)) {
       issues.add(
         const MissionIssue(
           type: MissionIssueType.openWaterInputInvalid,
@@ -83,7 +93,9 @@ List<MissionIssue> validateMission(DpvMission mission) {
     }
     for (final leg in mission.legs) {
       final shore = leg.shoreExit;
-      if (shore != null && (shore.surfaceSwimM < 0 || shore.walkM < 0)) {
+      if (shore != null &&
+          (!_isNonNegative(shore.surfaceSwimM) ||
+              !_isNonNegative(shore.walkM))) {
         issues.add(
           MissionIssue(
             type: MissionIssueType.openWaterInputInvalid,
@@ -98,8 +110,7 @@ List<MissionIssue> validateMission(DpvMission mission) {
     // A leg shorter than the shortest exit leg is not a leg: its return
     // would be skipped while its outbound hold is built, leaving the two
     // unmatched.
-    // Written as a negation so a distance that is not a number fails too.
-    if (!(leg.distanceM >= kMinExitLegM)) {
+    if (!leg.distanceM.isFinite || !(leg.distanceM >= kMinExitLegM)) {
       issues.add(
         MissionIssue(
           type: MissionIssueType.legTooShort,
@@ -109,7 +120,7 @@ List<MissionIssue> validateMission(DpvMission mission) {
       );
     }
     // Negative depth would put the profile above the surface.
-    if (!(leg.depthM >= 0) || !leg.depthM.isFinite) {
+    if (!_isNonNegative(leg.depthM)) {
       issues.add(
         MissionIssue(
           type: MissionIssueType.legDepthInvalid,

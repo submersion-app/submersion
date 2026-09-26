@@ -8,6 +8,7 @@ import 'package:submersion/features/planner/domain/entities/mission/mission_leg.
 import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
+import 'package:submersion/features/planner/domain/entities/mission/shore_exit.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_engine.dart';
 
 const _air = GasMix(o2: 21);
@@ -34,20 +35,25 @@ domain.DivePlan _plan({
   updatedAt: DateTime(2026, 9, 26),
 );
 
-MissionMember _member({double towSpeed = 0.6, double towBurn = 1.5}) =>
-    MissionMember(
-      id: 'a',
-      order: 0,
-      displayName: 'a',
-      sacBottom: 15,
-      scooter: ScooterSpec(
-        name: 'S',
-        ratedSpeedMps: 0.5,
-        burnTimeSeconds: 7200,
-        towSpeedFactor: towSpeed,
-        towBurnFactor: towBurn,
-      ),
-    );
+MissionMember _member({
+  double towSpeed = 0.6,
+  double towBurn = 1.5,
+  double sac = 15,
+  double swim = 0.2,
+}) => MissionMember(
+  id: 'a',
+  order: 0,
+  displayName: 'a',
+  sacBottom: sac,
+  swimSpeedMps: swim,
+  scooter: ScooterSpec(
+    name: 'S',
+    ratedSpeedMps: 0.5,
+    burnTimeSeconds: 7200,
+    towSpeedFactor: towSpeed,
+    towBurnFactor: towBurn,
+  ),
+);
 
 MissionLeg _leg({double distance = 200, double depth = 20}) => MissionLeg(
   id: 'L1',
@@ -115,6 +121,68 @@ void main() {
             ),
           ),
           contains((MissionIssueType.scooterUnspecified, null, 'a')),
+        );
+      });
+    }
+  });
+
+  group('numbers that are not numbers are refused', () {
+    // NaN fails every comparison, so a `<= 0` check lets it through and it
+    // then makes every gas comparison false: an exit would read feasible.
+    for (final sac in [double.nan, double.infinity]) {
+      test('a SAC of $sac', () {
+        expect(
+          _blocking(_mission(member: _member(sac: sac))),
+          contains((MissionIssueType.memberSacUnset, null, 'a')),
+        );
+      });
+    }
+
+    test('a swim speed of NaN', () {
+      expect(
+        _blocking(_mission(member: _member(swim: double.nan))),
+        contains((MissionIssueType.memberSwimSpeedUnset, null, 'a')),
+      );
+    });
+
+    test('a tow burn factor of infinity', () {
+      expect(
+        _blocking(_mission(member: _member(towBurn: double.infinity))),
+        contains((MissionIssueType.scooterUnspecified, null, 'a')),
+      );
+    });
+
+    DpvMission openWater({
+      double? limit,
+      double walk = 0.8,
+      ShoreExit? shore,
+    }) => DpvMission(
+      legs: [_leg().copyWith(shoreExit: shore)],
+      team: [_member()],
+      environment: MissionEnvironment.openWater,
+      surfaceSwimLimitM: limit,
+      walkSpeedMps: walk,
+    );
+
+    for (final (label, mission, legId) in [
+      ('a surface swim limit of NaN', openWater(limit: double.nan), null),
+      ('a walking speed of NaN', openWater(walk: double.nan), null),
+      ('a walking speed of infinity', openWater(walk: double.infinity), null),
+      (
+        'a shore swim of NaN',
+        openWater(shore: const ShoreExit(surfaceSwimM: double.nan, walkM: 0)),
+        'L1',
+      ),
+      (
+        'a shore walk of NaN',
+        openWater(shore: const ShoreExit(surfaceSwimM: 50, walkM: double.nan)),
+        'L1',
+      ),
+    ]) {
+      test(label, () {
+        expect(
+          _blocking(mission),
+          contains((MissionIssueType.openWaterInputInvalid, legId, null)),
         );
       });
     }
