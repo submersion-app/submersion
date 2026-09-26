@@ -14228,6 +14228,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => '潜水点';
 
   @override
+  String get marineLife_speciesDetail_statsError => '无法加载目击统计';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return '分类纲：$className';
   }

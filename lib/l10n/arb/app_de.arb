@@ -4838,6 +4838,7 @@
   "marineLife_speciesDetail_editTooltip": "Art bearbeiten",
   "marineLife_speciesDetail_errorPrefix": "Fehler: {error}",
   "marineLife_speciesDetail_noSightings": "Noch keine Sichtungen erfasst",
+  "marineLife_speciesDetail_statsError": "Sichtungsstatistiken konnten nicht geladen werden",
   "marineLife_speciesDetail_notFound": "Art nicht gefunden",
   "marineLife_speciesDetail_sightingCount": "{count} {count, plural, =1{Sichtung} other{Sichtungen}}",
   "marineLife_speciesDetail_sightingPeriodTitle": "Sichtungszeitraum",

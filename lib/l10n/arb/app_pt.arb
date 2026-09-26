@@ -4734,6 +4734,7 @@
   "marineLife_speciesDetail_editTooltip": "Editar espécie",
   "marineLife_speciesDetail_errorPrefix": "Erro: {error}",
   "marineLife_speciesDetail_noSightings": "Nenhum avistamento registrado ainda",
+  "marineLife_speciesDetail_statsError": "Não foi possível carregar as estatísticas de avistamentos",
   "marineLife_speciesDetail_notFound": "Espécie não encontrada",
   "marineLife_speciesDetail_sightingCount": "{count} {count, plural, =1{avistamento} other{avistamentos}}",
   "marineLife_speciesDetail_sightingPeriodTitle": "Período de Avistamento",

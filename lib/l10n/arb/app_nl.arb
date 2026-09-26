@@ -4734,6 +4734,7 @@
   "marineLife_speciesDetail_editTooltip": "Soort bewerken",
   "marineLife_speciesDetail_errorPrefix": "Fout: {error}",
   "marineLife_speciesDetail_noSightings": "Nog geen waarnemingen geregistreerd",
+  "marineLife_speciesDetail_statsError": "Kan waarnemingsstatistieken niet laden",
   "marineLife_speciesDetail_notFound": "Soort niet gevonden",
   "marineLife_speciesDetail_sightingCount": "{count} {count, plural, =1{waarneming} other{waarnemingen}}",
   "marineLife_speciesDetail_sightingPeriodTitle": "Waarnemingsperiode",

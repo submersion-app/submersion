@@ -14937,6 +14937,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => 'Tauchplätze';
 
   @override
+  String get marineLife_speciesDetail_statsError =>
+      'Sichtungsstatistiken konnten nicht geladen werden';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'Klasse: $className';
   }

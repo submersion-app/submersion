@@ -14957,6 +14957,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => 'Pontos';
 
   @override
+  String get marineLife_speciesDetail_statsError =>
+      'Não foi possível carregar as estatísticas de avistamentos';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'Classe: $className';
   }

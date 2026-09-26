@@ -8773,6 +8773,7 @@
   "marineLife_speciesDetail_sightingPeriodTitle": "Sighting Period",
   "marineLife_speciesDetail_sightingStatsTitle": "Sighting Statistics",
   "marineLife_speciesDetail_sitesLabel": "Sites",
+  "marineLife_speciesDetail_statsError": "Failed to load sighting statistics",
   "marineLife_speciesDetail_taxonomyClassLabel": "Class: {className}",
   "marineLife_speciesDetail_topSitesTitle": "Top Sites",
   "marineLife_speciesDetail_totalSightingsLabel": "Total Sightings",

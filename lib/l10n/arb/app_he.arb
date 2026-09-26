@@ -4632,6 +4632,7 @@
   "marineLife_speciesDetail_editTooltip": "ערוך מין",
   "marineLife_speciesDetail_errorPrefix": "שגיאה: {error}",
   "marineLife_speciesDetail_noSightings": "עדיין לא נרשמו תצפיות",
+  "marineLife_speciesDetail_statsError": "לא ניתן לטעון את סטטיסטיקת התצפיות",
   "marineLife_speciesDetail_notFound": "המין לא נמצא",
   "marineLife_speciesDetail_sightingCount": "{count} {count, plural, =1{תצפית} other{תצפיות}}",
   "marineLife_speciesDetail_sightingPeriodTitle": "תקופת תצפיות",

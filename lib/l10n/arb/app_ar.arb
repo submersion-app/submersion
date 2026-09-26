@@ -4734,6 +4734,7 @@
   "marineLife_speciesDetail_editTooltip": "تعديل النوع",
   "marineLife_speciesDetail_errorPrefix": "خطأ: {error}",
   "marineLife_speciesDetail_noSightings": "لم يتم تسجيل مشاهدات بعد",
+  "marineLife_speciesDetail_statsError": "تعذر تحميل إحصائيات المشاهدات",
   "marineLife_speciesDetail_notFound": "النوع غير موجود",
   "marineLife_speciesDetail_sightingCount": "{count} {count, plural, =1{مشاهدة} other{مشاهدات}}",
   "marineLife_speciesDetail_sightingPeriodTitle": "فترة المشاهدة",

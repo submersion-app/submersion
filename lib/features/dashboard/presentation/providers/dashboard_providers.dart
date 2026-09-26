@@ -201,9 +201,11 @@ final dashboardQuickStatsProvider = FutureProvider<DashboardQuickStats>((
 
   final (topBuddies, countries, speciesCount) = await (
     _quickStat('top buddy', () => repository.getTopBuddies(diverId: diverId)),
+    // A count, not the top of the ranking: without a limit of -1 (SQLite's
+    // "no upper bound") the ranking's default of 10 capped the count.
     _quickStat(
       'countries visited',
-      () => repository.getCountriesVisited(diverId: diverId),
+      () => repository.getCountriesVisited(diverId: diverId, limit: -1),
     ),
     _quickStat(
       'species discovered',

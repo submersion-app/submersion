@@ -4632,6 +4632,7 @@
   "marineLife_speciesDetail_editTooltip": "Faj szerkesztése",
   "marineLife_speciesDetail_errorPrefix": "Hiba: {error}",
   "marineLife_speciesDetail_noSightings": "Még nincsenek rögzített észlelések",
+  "marineLife_speciesDetail_statsError": "Nem sikerült betölteni az észlelési statisztikákat",
   "marineLife_speciesDetail_notFound": "Faj nem található",
   "marineLife_speciesDetail_sightingCount": "{count} {count, plural, =1{észlelés} other{észlelés}}",
   "marineLife_speciesDetail_sightingPeriodTitle": "Észlelési időszak",

@@ -14712,6 +14712,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => 'المواقع';
 
   @override
+  String get marineLife_speciesDetail_statsError =>
+      'تعذر تحميل إحصائيات المشاهدات';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'الصنف: $className';
   }

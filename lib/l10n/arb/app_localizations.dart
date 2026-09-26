@@ -24563,6 +24563,12 @@ abstract class AppLocalizations {
   /// **'Sites'**
   String get marineLife_speciesDetail_sitesLabel;
 
+  /// No description provided for @marineLife_speciesDetail_statsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load sighting statistics'**
+  String get marineLife_speciesDetail_statsError;
+
   /// No description provided for @marineLife_speciesDetail_taxonomyClassLabel.
   ///
   /// In en, this message translates to:

@@ -14843,6 +14843,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => 'Duikstekken';
 
   @override
+  String get marineLife_speciesDetail_statsError =>
+      'Kan waarnemingsstatistieken niet laden';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'Klasse: $className';
   }
