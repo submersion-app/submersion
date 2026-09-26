@@ -129,7 +129,9 @@ class NavTrackRepository {
       // route linked afterward. Without this, whether a route ends up
       // anchored depends on which of the two otherwise-equivalent linking
       // paths (pre-link at import vs. link after the fact) the diver used.
-      if (anchor == null && diveId != null) {
+      // A site the diver did choose wins even without coordinates: the
+      // route stays unanchored rather than sitting at a different point.
+      if (anchor == null && siteId == null && diveId != null) {
         final diveRow = await (_db.select(
           _db.dives,
         )..where((t) => t.id.equals(diveId))).getSingleOrNull();
@@ -164,6 +166,7 @@ class NavTrackRepository {
               maxDepth: Value(stats.maxDepth),
               maxSpeed: Value(stats.maxSpeed),
               avgSpeed: Value(stats.avgSpeed),
+              durationSeconds: Value(stats.durationSeconds),
               anchorLatitude: Value(anchor?.latitude),
               anchorLongitude: Value(anchor?.longitude),
               points: encodeNavTrackPoints(points),
@@ -786,6 +789,7 @@ class NavTrackRepository {
       maxDepth: row.maxDepth,
       maxSpeed: row.maxSpeed,
       avgSpeed: row.avgSpeed,
+      durationSeconds: row.durationSeconds,
       anchorLatitude: row.anchorLatitude,
       anchorLongitude: row.anchorLongitude,
       endMode: domain.NavTrackEndModeWire.fromWireValue(row.endMode),

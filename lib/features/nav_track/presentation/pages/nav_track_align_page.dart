@@ -199,6 +199,7 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     maxDepth: base.maxDepth,
     maxSpeed: base.maxSpeed,
     avgSpeed: base.avgSpeed,
+    durationSeconds: base.durationSeconds,
     anchorLatitude: _correction.anchor?.latitude,
     anchorLongitude: _correction.anchor?.longitude,
     endMode: _correction.endMode,

@@ -79,6 +79,30 @@ void main() {
     );
   });
 
+  test('a nav_tracks table created before duration_seconds existed gains '
+      'the column', () async {
+    // A development database from an earlier build of this branch: the
+    // table is there, at the current version, without the newer column.
+    final nativeDb = NativeDatabase.memory(
+      setup: (rawDb) {
+        rawDb.execute(
+          'PRAGMA user_version = ${AppDatabase.currentSchemaVersion}',
+        );
+        rawDb.execute('''
+          CREATE TABLE nav_tracks (
+            id TEXT NOT NULL PRIMARY KEY,
+            dive_id TEXT,
+            start_time INTEGER NOT NULL
+          )
+        ''');
+      },
+    );
+    final db = AppDatabase(nativeDb);
+    addTearDown(db.close);
+
+    expect(await _columns(db, 'nav_tracks'), contains('duration_seconds'));
+  });
+
   test('a database stranded before v230 gains the table', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {

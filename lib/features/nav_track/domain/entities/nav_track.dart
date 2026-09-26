@@ -124,6 +124,11 @@ class NavTrack extends Equatable {
   /// Metres per second.
   final double? avgSpeed;
 
+  /// Seconds from the first to the last dead-reckoned sample (the active
+  /// range), so a list row can show the dive's length without decoding the
+  /// points. Null on rows stored before this was recorded.
+  final int? durationSeconds;
+
   final double? anchorLatitude;
   final double? anchorLongitude;
 
@@ -163,6 +168,7 @@ class NavTrack extends Equatable {
     this.maxDepth,
     this.maxSpeed,
     this.avgSpeed,
+    this.durationSeconds,
     this.anchorLatitude,
     this.anchorLongitude,
     this.endMode = NavTrackEndMode.none,
@@ -216,6 +222,7 @@ class NavTrack extends Equatable {
     double? maxDepth,
     double? maxSpeed,
     double? avgSpeed,
+    int? durationSeconds,
     double? anchorLatitude,
     double? anchorLongitude,
     NavTrackEndMode? endMode,
@@ -247,6 +254,7 @@ class NavTrack extends Equatable {
       maxDepth: maxDepth ?? this.maxDepth,
       maxSpeed: maxSpeed ?? this.maxSpeed,
       avgSpeed: avgSpeed ?? this.avgSpeed,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
       anchorLatitude: anchorLatitude ?? this.anchorLatitude,
       anchorLongitude: anchorLongitude ?? this.anchorLongitude,
       endMode: endMode ?? this.endMode,
@@ -281,6 +289,7 @@ class NavTrack extends Equatable {
     maxDepth,
     maxSpeed,
     avgSpeed,
+    durationSeconds,
     anchorLatitude,
     anchorLongitude,
     endMode,

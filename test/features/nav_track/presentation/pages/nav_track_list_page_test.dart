@@ -98,6 +98,7 @@ Future<_RecordingNavTrackRepository> _pump(
   Map<String, NavTrack>? hydrated,
   NavTrackMatchService? matchService,
   MockSettingsNotifier? settingsNotifier,
+  List<Override> extraOverrides = const [],
 }) async {
   final overrides = await getBaseOverrides(settingsNotifier: settingsNotifier);
   final repository = _RecordingNavTrackRepository();
@@ -116,6 +117,7 @@ Future<_RecordingNavTrackRepository> _pump(
             navTrackByIdProvider(
               entry.key,
             ).overrideWith((ref) async => entry.value),
+        ...extraOverrides,
       ],
       child: const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -255,48 +257,32 @@ void main() {
   );
 
   testWidgets(
-    'the list row\'s duration stops at the last dead-reckoned sample, not '
-    'the raw recording span (item 8: a GPS-fix jump and the post-surfacing '
-    'tail must not inflate the displayed duration)',
+    'the list row shows the stored dive duration, not the raw recording '
+    'span, without loading the route\'s points',
     (tester) async {
-      final points = [
-        const NavTrackPoint(timestamp: 0, north: 0, east: 0, depth: 5),
-        // Last active sample: 600 s (10 min) after the first.
-        const NavTrackPoint(
-          timestamp: 600,
-          north: 50,
-          east: 0,
-          depth: 0.1,
-          distance: 50,
-        ),
-        // Fix event: >50 m step in <=5 s at the surface -- gpsFixed from
-        // here on, and NOT part of the active dead-reckoned range.
-        const NavTrackPoint(
-          timestamp: 602,
-          north: 500,
-          east: 0,
-          depth: 0.1,
-          distance: 50,
-        ),
-        // The raw recording keeps going for another hour after the fix.
-        const NavTrackPoint(
-          timestamp: 4200,
-          north: 505,
-          east: 0,
-          depth: 0.1,
-          distance: 50,
-        ),
-      ];
-      final listRow = _route(id: 'r1', name: 'Wreck dive').copyWith(
-        startTime: points.first.timestamp * 1000,
-        endTime: points.last.timestamp * 1000,
+      // Stored at import: 10 min up to the last dead-reckoned sample. The
+      // raw file runs on for an hour after the GPS fix.
+      final listRow = _route(
+        id: 'r1',
+        name: 'Wreck dive',
+        anchorLatitude: 47.1,
+        anchorLongitude: 8.3,
+      ).copyWith(startTime: 0, endTime: 4200 * 1000, durationSeconds: 600);
+      var hydrations = 0;
+      await _pump(
+        tester,
+        routes: [listRow],
+        extraOverrides: [
+          navTrackByIdProvider('r1').overrideWith((ref) async {
+            hydrations++;
+            return null;
+          }),
+        ],
       );
-      final hydratedRoute = listRow.copyWith(points: points);
-      await _pump(tester, routes: [listRow], hydrated: {'r1': hydratedRoute});
 
-      // Active range: 10 min. Raw span: 1h 10min. Only the former may show.
       expect(find.textContaining('10min'), findsOneWidget);
       expect(find.textContaining('1h 10min'), findsNothing);
+      expect(hydrations, 0);
     },
   );
 

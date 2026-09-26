@@ -207,6 +207,50 @@ void main() {
       expect(route!.anchor, const GeoPoint(47.1, 8.3));
     });
 
+    test('leaves the anchor unset when the chosen site has no coordinates, '
+        'rather than falling back to the dive\'s entry fix', () async {
+      await _insertDiveWithEntryLocation(
+        db,
+        'd1',
+        latitude: 47.2,
+        longitude: 8.4,
+      );
+      await db.customStatement(
+        "INSERT INTO dive_sites (id, name, created_at, updated_at) "
+        "VALUES ('s1', 'No Pin', 1, 1)",
+      );
+
+      final id = await repo.insertImportedRoute(
+        points: _samplePoints(),
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: '008.DAT.csv',
+        diveId: 'd1',
+        siteId: 's1',
+      );
+
+      final route = await repo.getById(id);
+      expect(route!.siteId, 's1');
+      expect(route.anchor, isNull);
+    });
+
+    test('stores the dive\'s own duration, stopping before a post-surfacing '
+        'GPS tail, so list rows need not decode the points', () async {
+      final id = await repo.insertImportedRoute(
+        points: const [
+          NavTrackPoint(timestamp: 1700000000, north: 0, east: 0, depth: 5),
+          NavTrackPoint(timestamp: 1700000600, north: 50, east: 0, depth: 0.1),
+          // GPS re-acquired at the surface, then the recording runs on.
+          NavTrackPoint(timestamp: 1700000602, north: 500, east: 0, depth: 0),
+          NavTrackPoint(timestamp: 1700004200, north: 505, east: 0, depth: 0),
+        ],
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: '011.DAT.csv',
+      );
+
+      final route = await repo.getById(id, includePoints: false);
+      expect(route!.durationSeconds, 600);
+    });
+
     test('does not hydrate points on a list read', () async {
       await repo.insertImportedRoute(
         points: _samplePoints(),

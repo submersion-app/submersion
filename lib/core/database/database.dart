@@ -621,6 +621,11 @@ class NavTracks extends Table {
   RealColumn get maxSpeed => real().nullable()(); // m/s
   RealColumn get avgSpeed => real().nullable()(); // m/s
 
+  /// Seconds from the first to the last dead-reckoned sample (the active
+  /// range), excluding a post-surfacing GPS tail that start/end_time keep
+  /// for time matching. Null on rows written before it was stored.
+  IntColumn get durationSeconds => integer().nullable()();
+
   /// Where the route's origin sits on the map. Null until the diver sets
   /// it (or accepts a suggestion); the route then has no 2D position.
   RealColumn get anchorLatitude => real().nullable()();
@@ -5543,6 +5548,9 @@ class AppDatabase extends _$AppDatabase {
   /// onUpgrade step and the beforeOpen backstop.
   Future<void> _assertNavTracksSchema() async {
     await createMigrator().createTable(navTracks);
+    // Added after the table first shipped on development builds of the
+    // route branch; createTable leaves an existing table as it is.
+    await _addColumnIfMissing('nav_tracks', 'duration_seconds', 'INTEGER');
     await customStatement('''
       CREATE INDEX IF NOT EXISTS idx_nav_tracks_dive ON nav_tracks(dive_id)
     ''');
