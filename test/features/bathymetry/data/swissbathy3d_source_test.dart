@@ -3283,6 +3283,48 @@ nodata_value -9999
     });
   });
 
+  test('a legacy "empty" tile at the right level is re-resolved on the next '
+      'fetch rather than served as a definitive gap (issue #1770: it may be '
+      'a bad download the old decoder misread as an empty zip)', () async {
+    // zurichseePoint resolves to tile 2685_1240 (see gridBody's fixture
+    // header above), cached under Zürichsee's real 405.92 m.
+    await db
+        .into(db.swissBathyTileCache)
+        .insert(
+          SwissBathyTileCacheCompanion.insert(
+            tileKey: '2685_1240',
+            status: 'empty',
+            fetchedAt: DateTime.now().millisecondsSinceEpoch,
+            referenceLevelMeters: const Value(405.92),
+          ),
+        );
+
+    var itemCalls = 0;
+    final source = buildSource((req) async {
+      if (req.url.path.endsWith('/items')) {
+        itemCalls++;
+        return http.Response(
+          jsonEncode({
+            'features': [
+              {
+                'bbox': _requestedBbox(req),
+                'assets': {
+                  'grid': {'href': 'https://example.org/tile_grid.zip'},
+                },
+              },
+            ],
+          }),
+          200,
+        );
+      }
+      return http.Response.bytes(_zipOf('tile.asc', gridBody), 200);
+    });
+
+    final grid = await source.fetch(zurichseePoint, spanMeters: 100);
+    expect(grid.sourceId, 'swissbathy3d');
+    expect(itemCalls, 1);
+  });
+
   group('SwissBathy3dSource in the resolver chain', () {
     // Regression test for a bug observed after the swissBATHY3D integration:
     // a land coordinate outside every known lake stopped loading a 3D model
