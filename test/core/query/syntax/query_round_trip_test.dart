@@ -1,0 +1,154 @@
+import 'dart:math';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/query/registry/query_field.dart';
+import 'package:submersion/core/query/syntax/query_parser.dart';
+import 'package:submersion/core/query/syntax/query_printer.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
+
+import '../fixtures/fixture_registry.dart';
+
+/// parse(print(ast)) == ast over generated trees, in both unit systems.
+void main() {
+  const names = MapNameResolver({
+    QuerySubject.sites: {'Salt Pier': 'site-1', 'Bob\'s "Reef"': 'site-2'},
+  });
+  const imperial = UnitPrefs(
+    depth: DepthUnit.feet,
+    temperature: TemperatureUnit.fahrenheit,
+    pressure: PressureUnit.psi,
+    weight: WeightUnit.pounds,
+    volume: VolumeUnit.cubicFeet,
+  );
+
+  QueryValue number(Random r, UnitPrefs prefs) {
+    // Up to four decimals, the precision the parser keeps.
+    final raw = r.nextInt(400) + (r.nextBool() ? 0 : r.nextInt(10000) / 10000);
+    final unit = r.nextInt(3) == 0
+        ? (r.nextBool() ? QueryUnit.m : QueryUnit.ft)
+        : null;
+    return NumberValue(
+      groundToStorage(raw, unit, FieldDimension.depth, prefs),
+      unit,
+    );
+  }
+
+  QueryNode leaf(Random r, UnitPrefs prefs) {
+    switch (r.nextInt(12)) {
+      case 0:
+        return ConditionNode(
+          FieldPath(['depth']),
+          QueryOp.gt,
+          number(r, prefs),
+        );
+      case 1:
+        // The parser orders between bounds, so a canonical tree does too.
+        final pair = [number(r, prefs), number(r, prefs)]
+          ..sort(
+            (a, b) =>
+                (a as NumberValue).value.compareTo((b as NumberValue).value),
+          );
+        return ConditionNode(
+          FieldPath(['depth']),
+          QueryOp.between,
+          ListValue(pair),
+        );
+      case 2:
+        return ConditionNode(FieldPath(['weights']), QueryOp.isEmpty, null);
+      case 3:
+        return ConditionNode(
+          FieldPath(['notes']),
+          QueryOp.contains,
+          const StringValue('night dive'),
+        );
+      case 4:
+        return ConditionNode(
+          FieldPath(['waterType']),
+          QueryOp.inList,
+          ListValue([const EnumValue('salt'), const EnumValue('fresh')]),
+        );
+      case 5:
+        return ConditionNode(
+          FieldPath(['site']),
+          QueryOp.eq,
+          const RefValue('site-2', 'Bob\'s "Reef"'),
+        );
+      case 6:
+        return ConditionNode(
+          FieldPath(['date']),
+          QueryOp.inList,
+          DateRangeValue(DateTime(2025, 1, 1), DateTime(2025, 12, 31)),
+        );
+      case 7:
+        return ConditionNode(
+          FieldPath(['date']),
+          QueryOp.lt,
+          DateValue(DateTime(2025, 6, 3)),
+        );
+      case 8:
+        return ScopedNode(
+          FieldPath(['gear']),
+          ConditionNode(
+            FieldPath(['type']),
+            QueryOp.neq,
+            const EnumValue('bcd'),
+          ),
+        );
+      case 9:
+        return ConditionNode(
+          FieldPath(['buddies', 'certifications', 'level']),
+          QueryOp.eq,
+          const StringValue('rescue'),
+        );
+      case 10:
+        return TextNode(['manta']);
+      default:
+        return ConditionNode(
+          FieldPath(['favorite']),
+          QueryOp.eq,
+          const BoolValue(true),
+        );
+    }
+  }
+
+  QueryNode tree(Random r, int depth, UnitPrefs prefs) {
+    if (depth == 0 || r.nextInt(3) == 0) return leaf(r, prefs);
+    switch (r.nextInt(3)) {
+      case 0:
+        return AndNode([tree(r, depth - 1, prefs), tree(r, depth - 1, prefs)]);
+      case 1:
+        return OrNode([tree(r, depth - 1, prefs), tree(r, depth - 1, prefs)]);
+      default:
+        return NotNode(tree(r, depth - 1, prefs));
+    }
+  }
+
+  for (final (label, prefs) in [
+    ('metric', kMetricPrefs),
+    ('imperial', imperial),
+  ]) {
+    test('parse(print(ast)) == ast, $label, 300 trees', () {
+      final r = Random(20260925);
+      final printer = QueryPrinter(fixtureRegistry, fixtureDives, prefs);
+      final parser = QueryParser(
+        fixtureRegistry,
+        fixtureDives,
+        ParseContext(prefs: prefs, now: DateTime(2026, 9, 25), names: names),
+      );
+      for (var i = 0; i < 300; i++) {
+        final ast = tree(r, 3, prefs);
+        final text = printer.print(ast);
+        final back = parser.parse(text);
+        expect(
+          back,
+          isA<ParseOk>(),
+          reason: 'could not re-parse "$text": $back',
+        );
+        expect((back as ParseOk).node, equals(ast), reason: 'from "$text"');
+      }
+    });
+  }
+}

@@ -68036,6 +68036,834 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete this rental note?'**
   String get diveCenters_rental_deleteConfirm;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications'**
+  String get query_buddies_certifications;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get query_buddies_email;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get query_buddies_favorite;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_buddies_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_buddies_notes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get query_buddies_phone;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get query_centers_city;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get query_centers_country;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_centers_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Agency'**
+  String get query_certifications_agency;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Card number'**
+  String get query_certifications_cardNumber;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry date'**
+  String get query_certifications_expiryDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Instructor name'**
+  String get query_certifications_instructorName;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Issue date'**
+  String get query_certifications_issueDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Level'**
+  String get query_certifications_level;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_certifications_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Manufacturer'**
+  String get query_computers_manufacturer;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get query_computers_model;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_computers_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number'**
+  String get query_computers_serialNumber;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Agency'**
+  String get query_courses_agency;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Completion date'**
+  String get query_courses_completionDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_courses_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get query_courses_startDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Key'**
+  String get query_customFields_key;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get query_customFields_value;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
+  String get query_diveTypes_builtIn;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_diveTypes_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Air temperature'**
+  String get query_dives_airTemp;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Average depth'**
+  String get query_dives_avgDepth;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Boat'**
+  String get query_dives_boatName;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom time'**
+  String get query_dives_bottomTime;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Buddies'**
+  String get query_dives_buddies;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive center'**
+  String get query_dives_center;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'CNS at end'**
+  String get query_dives_cnsEnd;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive computer'**
+  String get query_dives_computer;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Course'**
+  String get query_dives_course;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get query_dives_currentStrength;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Custom fields'**
+  String get query_dives_customFields;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get query_dives_date;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Decompression dive'**
+  String get query_dives_deco;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get query_dives_depth;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive master'**
+  String get query_dives_diveMaster;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive mode'**
+  String get query_dives_diveMode;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive number'**
+  String get query_dives_diveNumber;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Operator'**
+  String get query_dives_diveOperator;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Entry method'**
+  String get query_dives_entryMethod;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded from statistics'**
+  String get query_dives_excludedFromStats;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Exit method'**
+  String get query_dives_exitMethod;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get query_dives_favorite;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Number of tanks'**
+  String get query_dives_gasCount;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Gear'**
+  String get query_dives_gear;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Has profile'**
+  String get query_dives_hasProfile;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive ID'**
+  String get query_dives_id;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy (legacy text)'**
+  String get query_dives_legacyBuddy;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get query_dives_media;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_dives_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_dives_notes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'OTU'**
+  String get query_dives_otu;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Planned'**
+  String get query_dives_planned;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get query_dives_rating;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Runtime'**
+  String get query_dives_runtime;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Sightings'**
+  String get query_dives_sightings;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get query_dives_site;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Surface conditions'**
+  String get query_dives_surfaceConditions;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Surface interval'**
+  String get query_dives_surfaceInterval;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get query_dives_tags;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tanks'**
+  String get query_dives_tanks;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Trip'**
+  String get query_dives_trip;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive types'**
+  String get query_dives_types;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Visibility'**
+  String get query_dives_visibility;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Water temperature'**
+  String get query_dives_waterTemp;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Water type'**
+  String get query_dives_waterType;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Weekday'**
+  String get query_dives_weekday;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get query_dives_weight;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Weights'**
+  String get query_dives_weights;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get query_dives_year;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Buddies'**
+  String get query_entity_buddies;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive centers'**
+  String get query_entity_centers;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications'**
+  String get query_entity_certifications;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive computers'**
+  String get query_entity_computers;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Courses'**
+  String get query_entity_courses;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Custom fields'**
+  String get query_entity_customFields;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive types'**
+  String get query_entity_diveTypes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get query_entity_dives;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get query_entity_equipment;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment attributes'**
+  String get query_entity_equipmentAttributes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get query_entity_media;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Sightings'**
+  String get query_entity_sightings;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive sites'**
+  String get query_entity_sites;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get query_entity_species;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get query_entity_tags;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tanks'**
+  String get query_entity_tanks;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Trips'**
+  String get query_entity_trips;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Weights'**
+  String get query_entity_weights;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get query_equipmentAttributes_custom;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Key'**
+  String get query_equipmentAttributes_key;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Numeric value'**
+  String get query_equipmentAttributes_valueNum;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Text value'**
+  String get query_equipmentAttributes_valueText;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get query_equipment_active;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Attributes'**
+  String get query_equipment_attributes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get query_equipment_brand;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get query_equipment_model;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_equipment_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number'**
+  String get query_equipment_serialNumber;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get query_equipment_status;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get query_equipment_type;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Caption'**
+  String get query_media_caption;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get query_media_favorite;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get query_media_type;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Count'**
+  String get query_sightings_count;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_sightings_notes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get query_sightings_species;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get query_sites_city;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get query_sites_country;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Island'**
+  String get query_sites_island;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get query_sites_maxDepth;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_sites_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get query_sites_rating;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Region'**
+  String get query_sites_region;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get query_species_category;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_species_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Scientific name'**
+  String get query_species_scientificName;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_tags_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder'**
+  String get query_tanks_cylinder;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'End pressure'**
+  String get query_tanks_endPressure;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Helium'**
+  String get query_tanks_he;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_tanks_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Oxygen'**
+  String get query_tanks_o2;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Start pressure'**
+  String get query_tanks_startPressure;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get query_tanks_volume;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'End date'**
+  String get query_trips_endDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get query_trips_location;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_trips_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get query_trips_startDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get query_weights_amount;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_weights_notes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get query_weights_type;
 }
 
 class _AppLocalizationsDelegate

@@ -42547,4 +42547,418 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveCenters_rental_deleteConfirm =>
       'Eliminar esta nota de aluguer?';
+
+  @override
+  String get query_buddies_certifications => 'Certificações';
+
+  @override
+  String get query_buddies_email => 'E-mail';
+
+  @override
+  String get query_buddies_favorite => 'Favorito';
+
+  @override
+  String get query_buddies_name => 'Nome';
+
+  @override
+  String get query_buddies_notes => 'Notas';
+
+  @override
+  String get query_buddies_phone => 'Telefone';
+
+  @override
+  String get query_centers_city => 'Cidade';
+
+  @override
+  String get query_centers_country => 'País';
+
+  @override
+  String get query_centers_name => 'Nome';
+
+  @override
+  String get query_certifications_agency => 'Agência';
+
+  @override
+  String get query_certifications_cardNumber => 'Número do cartão';
+
+  @override
+  String get query_certifications_expiryDate => 'Data de validade';
+
+  @override
+  String get query_certifications_instructorName => 'Nome do instrutor';
+
+  @override
+  String get query_certifications_issueDate => 'Data de emissão';
+
+  @override
+  String get query_certifications_level => 'Nível';
+
+  @override
+  String get query_certifications_name => 'Nome';
+
+  @override
+  String get query_computers_manufacturer => 'Fabricante';
+
+  @override
+  String get query_computers_model => 'Modelo';
+
+  @override
+  String get query_computers_name => 'Nome';
+
+  @override
+  String get query_computers_serialNumber => 'Número de série';
+
+  @override
+  String get query_courses_agency => 'Agência';
+
+  @override
+  String get query_courses_completionDate => 'Data de conclusão';
+
+  @override
+  String get query_courses_name => 'Nome';
+
+  @override
+  String get query_courses_startDate => 'Data de início';
+
+  @override
+  String get query_customFields_key => 'Chave';
+
+  @override
+  String get query_customFields_value => 'Valor';
+
+  @override
+  String get query_diveTypes_builtIn => 'Predefinido';
+
+  @override
+  String get query_diveTypes_name => 'Nome';
+
+  @override
+  String get query_dives_airTemp => 'Temperatura do ar';
+
+  @override
+  String get query_dives_avgDepth => 'Profundidade média';
+
+  @override
+  String get query_dives_boatName => 'Barco';
+
+  @override
+  String get query_dives_bottomTime => 'Tempo de fundo';
+
+  @override
+  String get query_dives_buddies => 'Duplas';
+
+  @override
+  String get query_dives_center => 'Centro de mergulho';
+
+  @override
+  String get query_dives_cnsEnd => 'CNS no final';
+
+  @override
+  String get query_dives_computer => 'Computador de mergulho';
+
+  @override
+  String get query_dives_course => 'Curso';
+
+  @override
+  String get query_dives_currentStrength => 'Correnteza';
+
+  @override
+  String get query_dives_customFields => 'Campos personalizados';
+
+  @override
+  String get query_dives_date => 'Data';
+
+  @override
+  String get query_dives_deco => 'Mergulho com descompressão';
+
+  @override
+  String get query_dives_depth => 'Profundidade máxima';
+
+  @override
+  String get query_dives_diveMaster => 'Divemaster';
+
+  @override
+  String get query_dives_diveMode => 'Modo de mergulho';
+
+  @override
+  String get query_dives_diveNumber => 'Número do mergulho';
+
+  @override
+  String get query_dives_diveOperator => 'Operadora';
+
+  @override
+  String get query_dives_entryMethod => 'Método de entrada';
+
+  @override
+  String get query_dives_excludedFromStats => 'Excluído das estatísticas';
+
+  @override
+  String get query_dives_exitMethod => 'Método de saída';
+
+  @override
+  String get query_dives_favorite => 'Favorito';
+
+  @override
+  String get query_dives_gasCount => 'Número de cilindros';
+
+  @override
+  String get query_dives_gear => 'Equipamento';
+
+  @override
+  String get query_dives_hasProfile => 'Tem perfil';
+
+  @override
+  String get query_dives_id => 'ID do mergulho';
+
+  @override
+  String get query_dives_legacyBuddy => 'Dupla (texto antigo)';
+
+  @override
+  String get query_dives_media => 'Mídia';
+
+  @override
+  String get query_dives_name => 'Nome';
+
+  @override
+  String get query_dives_notes => 'Notas';
+
+  @override
+  String get query_dives_otu => 'OTU';
+
+  @override
+  String get query_dives_planned => 'Planejado';
+
+  @override
+  String get query_dives_rating => 'Avaliação';
+
+  @override
+  String get query_dives_runtime => 'Duração total';
+
+  @override
+  String get query_dives_sightings => 'Avistamentos';
+
+  @override
+  String get query_dives_site => 'Ponto de mergulho';
+
+  @override
+  String get query_dives_surfaceConditions => 'Condições na superfície';
+
+  @override
+  String get query_dives_surfaceInterval => 'Intervalo de superfície';
+
+  @override
+  String get query_dives_tags => 'Etiquetas';
+
+  @override
+  String get query_dives_tanks => 'Cilindros';
+
+  @override
+  String get query_dives_trip => 'Viagem';
+
+  @override
+  String get query_dives_types => 'Tipos de mergulho';
+
+  @override
+  String get query_dives_visibility => 'Visibilidade';
+
+  @override
+  String get query_dives_waterTemp => 'Temperatura da água';
+
+  @override
+  String get query_dives_waterType => 'Tipo de água';
+
+  @override
+  String get query_dives_weekday => 'Dia da semana';
+
+  @override
+  String get query_dives_weight => 'Lastro';
+
+  @override
+  String get query_dives_weights => 'Lastro';
+
+  @override
+  String get query_dives_year => 'Ano';
+
+  @override
+  String get query_entity_buddies => 'Duplas';
+
+  @override
+  String get query_entity_centers => 'Centros de mergulho';
+
+  @override
+  String get query_entity_certifications => 'Certificações';
+
+  @override
+  String get query_entity_computers => 'Computadores de mergulho';
+
+  @override
+  String get query_entity_courses => 'Cursos';
+
+  @override
+  String get query_entity_customFields => 'Campos personalizados';
+
+  @override
+  String get query_entity_diveTypes => 'Tipos de mergulho';
+
+  @override
+  String get query_entity_dives => 'Mergulhos';
+
+  @override
+  String get query_entity_equipment => 'Equipamento';
+
+  @override
+  String get query_entity_equipmentAttributes => 'Atributos do equipamento';
+
+  @override
+  String get query_entity_media => 'Mídia';
+
+  @override
+  String get query_entity_sightings => 'Avistamentos';
+
+  @override
+  String get query_entity_sites => 'Pontos de mergulho';
+
+  @override
+  String get query_entity_species => 'Espécies';
+
+  @override
+  String get query_entity_tags => 'Etiquetas';
+
+  @override
+  String get query_entity_tanks => 'Cilindros';
+
+  @override
+  String get query_entity_trips => 'Viagens';
+
+  @override
+  String get query_entity_weights => 'Lastro';
+
+  @override
+  String get query_equipmentAttributes_custom => 'Personalizado';
+
+  @override
+  String get query_equipmentAttributes_key => 'Chave';
+
+  @override
+  String get query_equipmentAttributes_valueNum => 'Valor numérico';
+
+  @override
+  String get query_equipmentAttributes_valueText => 'Valor de texto';
+
+  @override
+  String get query_equipment_active => 'Ativo';
+
+  @override
+  String get query_equipment_attributes => 'Atributos';
+
+  @override
+  String get query_equipment_brand => 'Marca';
+
+  @override
+  String get query_equipment_model => 'Modelo';
+
+  @override
+  String get query_equipment_name => 'Nome';
+
+  @override
+  String get query_equipment_serialNumber => 'Número de série';
+
+  @override
+  String get query_equipment_status => 'Estado';
+
+  @override
+  String get query_equipment_type => 'Tipo';
+
+  @override
+  String get query_media_caption => 'Legenda';
+
+  @override
+  String get query_media_favorite => 'Favorito';
+
+  @override
+  String get query_media_type => 'Tipo';
+
+  @override
+  String get query_sightings_count => 'Quantidade';
+
+  @override
+  String get query_sightings_notes => 'Notas';
+
+  @override
+  String get query_sightings_species => 'Espécies';
+
+  @override
+  String get query_sites_city => 'Cidade';
+
+  @override
+  String get query_sites_country => 'País';
+
+  @override
+  String get query_sites_island => 'Ilha';
+
+  @override
+  String get query_sites_maxDepth => 'Profundidade máxima';
+
+  @override
+  String get query_sites_name => 'Nome';
+
+  @override
+  String get query_sites_rating => 'Avaliação';
+
+  @override
+  String get query_sites_region => 'Região';
+
+  @override
+  String get query_species_category => 'Categoria';
+
+  @override
+  String get query_species_name => 'Nome';
+
+  @override
+  String get query_species_scientificName => 'Nome científico';
+
+  @override
+  String get query_tags_name => 'Nome';
+
+  @override
+  String get query_tanks_cylinder => 'Cilindro';
+
+  @override
+  String get query_tanks_endPressure => 'Pressão final';
+
+  @override
+  String get query_tanks_he => 'Hélio';
+
+  @override
+  String get query_tanks_name => 'Nome';
+
+  @override
+  String get query_tanks_o2 => 'Oxigênio';
+
+  @override
+  String get query_tanks_startPressure => 'Pressão inicial';
+
+  @override
+  String get query_tanks_volume => 'Volume';
+
+  @override
+  String get query_trips_endDate => 'Data de fim';
+
+  @override
+  String get query_trips_location => 'Local';
+
+  @override
+  String get query_trips_name => 'Nome';
+
+  @override
+  String get query_trips_startDate => 'Data de início';
+
+  @override
+  String get query_weights_amount => 'Quantidade';
+
+  @override
+  String get query_weights_notes => 'Notas';
+
+  @override
+  String get query_weights_type => 'Tipo';
 }

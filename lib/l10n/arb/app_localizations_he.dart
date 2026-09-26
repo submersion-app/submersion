@@ -41676,4 +41676,418 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveCenters_rental_deleteConfirm => 'למחוק את הערת ההשכרה הזו?';
+
+  @override
+  String get query_buddies_certifications => 'הסמכות';
+
+  @override
+  String get query_buddies_email => 'דוא\"ל';
+
+  @override
+  String get query_buddies_favorite => 'מועדף';
+
+  @override
+  String get query_buddies_name => 'שם';
+
+  @override
+  String get query_buddies_notes => 'הערות';
+
+  @override
+  String get query_buddies_phone => 'טלפון';
+
+  @override
+  String get query_centers_city => 'עיר';
+
+  @override
+  String get query_centers_country => 'מדינה';
+
+  @override
+  String get query_centers_name => 'שם';
+
+  @override
+  String get query_certifications_agency => 'ארגון';
+
+  @override
+  String get query_certifications_cardNumber => 'מספר כרטיס';
+
+  @override
+  String get query_certifications_expiryDate => 'תאריך תפוגה';
+
+  @override
+  String get query_certifications_instructorName => 'שם המדריך';
+
+  @override
+  String get query_certifications_issueDate => 'תאריך הנפקה';
+
+  @override
+  String get query_certifications_level => 'רמה';
+
+  @override
+  String get query_certifications_name => 'שם';
+
+  @override
+  String get query_computers_manufacturer => 'יצרן';
+
+  @override
+  String get query_computers_model => 'דגם';
+
+  @override
+  String get query_computers_name => 'שם';
+
+  @override
+  String get query_computers_serialNumber => 'מספר סידורי';
+
+  @override
+  String get query_courses_agency => 'ארגון';
+
+  @override
+  String get query_courses_completionDate => 'תאריך סיום';
+
+  @override
+  String get query_courses_name => 'שם';
+
+  @override
+  String get query_courses_startDate => 'תאריך התחלה';
+
+  @override
+  String get query_customFields_key => 'מפתח';
+
+  @override
+  String get query_customFields_value => 'ערך';
+
+  @override
+  String get query_diveTypes_builtIn => 'מובנה';
+
+  @override
+  String get query_diveTypes_name => 'שם';
+
+  @override
+  String get query_dives_airTemp => 'טמפרטורת האוויר';
+
+  @override
+  String get query_dives_avgDepth => 'עומק ממוצע';
+
+  @override
+  String get query_dives_boatName => 'סירה';
+
+  @override
+  String get query_dives_bottomTime => 'זמן קרקעית';
+
+  @override
+  String get query_dives_buddies => 'שותפי צלילה';
+
+  @override
+  String get query_dives_center => 'מרכז צלילה';
+
+  @override
+  String get query_dives_cnsEnd => 'CNS בסיום';
+
+  @override
+  String get query_dives_computer => 'מחשב צלילה';
+
+  @override
+  String get query_dives_course => 'קורס';
+
+  @override
+  String get query_dives_currentStrength => 'זרם';
+
+  @override
+  String get query_dives_customFields => 'שדות מותאמים אישית';
+
+  @override
+  String get query_dives_date => 'תאריך';
+
+  @override
+  String get query_dives_deco => 'צלילת דקומפרסיה';
+
+  @override
+  String get query_dives_depth => 'עומק מרבי';
+
+  @override
+  String get query_dives_diveMaster => 'דייבמאסטר';
+
+  @override
+  String get query_dives_diveMode => 'מצב צלילה';
+
+  @override
+  String get query_dives_diveNumber => 'מספר צלילה';
+
+  @override
+  String get query_dives_diveOperator => 'מפעיל';
+
+  @override
+  String get query_dives_entryMethod => 'שיטת כניסה';
+
+  @override
+  String get query_dives_excludedFromStats => 'לא נכלל בסטטיסטיקה';
+
+  @override
+  String get query_dives_exitMethod => 'שיטת יציאה';
+
+  @override
+  String get query_dives_favorite => 'מועדף';
+
+  @override
+  String get query_dives_gasCount => 'מספר מיכלים';
+
+  @override
+  String get query_dives_gear => 'ציוד';
+
+  @override
+  String get query_dives_hasProfile => 'יש פרופיל';
+
+  @override
+  String get query_dives_id => 'מזהה צלילה';
+
+  @override
+  String get query_dives_legacyBuddy => 'שותף צלילה (טקסט ישן)';
+
+  @override
+  String get query_dives_media => 'מדיה';
+
+  @override
+  String get query_dives_name => 'שם';
+
+  @override
+  String get query_dives_notes => 'הערות';
+
+  @override
+  String get query_dives_otu => 'OTU';
+
+  @override
+  String get query_dives_planned => 'מתוכננת';
+
+  @override
+  String get query_dives_rating => 'דירוג';
+
+  @override
+  String get query_dives_runtime => 'משך כולל';
+
+  @override
+  String get query_dives_sightings => 'תצפיות';
+
+  @override
+  String get query_dives_site => 'אתר';
+
+  @override
+  String get query_dives_surfaceConditions => 'תנאי פני השטח';
+
+  @override
+  String get query_dives_surfaceInterval => 'מרווח פני השטח';
+
+  @override
+  String get query_dives_tags => 'תגיות';
+
+  @override
+  String get query_dives_tanks => 'מיכלים';
+
+  @override
+  String get query_dives_trip => 'טיול';
+
+  @override
+  String get query_dives_types => 'סוגי צלילה';
+
+  @override
+  String get query_dives_visibility => 'ראות';
+
+  @override
+  String get query_dives_waterTemp => 'טמפרטורת המים';
+
+  @override
+  String get query_dives_waterType => 'סוג מים';
+
+  @override
+  String get query_dives_weekday => 'יום בשבוע';
+
+  @override
+  String get query_dives_weight => 'משקולת';
+
+  @override
+  String get query_dives_weights => 'משקולות';
+
+  @override
+  String get query_dives_year => 'שנה';
+
+  @override
+  String get query_entity_buddies => 'שותפי צלילה';
+
+  @override
+  String get query_entity_centers => 'מרכזי צלילה';
+
+  @override
+  String get query_entity_certifications => 'הסמכות';
+
+  @override
+  String get query_entity_computers => 'מחשבי צלילה';
+
+  @override
+  String get query_entity_courses => 'קורסים';
+
+  @override
+  String get query_entity_customFields => 'שדות מותאמים אישית';
+
+  @override
+  String get query_entity_diveTypes => 'סוגי צלילה';
+
+  @override
+  String get query_entity_dives => 'צלילות';
+
+  @override
+  String get query_entity_equipment => 'ציוד';
+
+  @override
+  String get query_entity_equipmentAttributes => 'מאפייני ציוד';
+
+  @override
+  String get query_entity_media => 'מדיה';
+
+  @override
+  String get query_entity_sightings => 'תצפיות';
+
+  @override
+  String get query_entity_sites => 'אתרי צלילה';
+
+  @override
+  String get query_entity_species => 'מינים';
+
+  @override
+  String get query_entity_tags => 'תגיות';
+
+  @override
+  String get query_entity_tanks => 'מיכלים';
+
+  @override
+  String get query_entity_trips => 'טיולים';
+
+  @override
+  String get query_entity_weights => 'משקולות';
+
+  @override
+  String get query_equipmentAttributes_custom => 'מותאם אישית';
+
+  @override
+  String get query_equipmentAttributes_key => 'מפתח';
+
+  @override
+  String get query_equipmentAttributes_valueNum => 'ערך מספרי';
+
+  @override
+  String get query_equipmentAttributes_valueText => 'ערך טקסט';
+
+  @override
+  String get query_equipment_active => 'פעיל';
+
+  @override
+  String get query_equipment_attributes => 'מאפיינים';
+
+  @override
+  String get query_equipment_brand => 'מותג';
+
+  @override
+  String get query_equipment_model => 'דגם';
+
+  @override
+  String get query_equipment_name => 'שם';
+
+  @override
+  String get query_equipment_serialNumber => 'מספר סידורי';
+
+  @override
+  String get query_equipment_status => 'מצב';
+
+  @override
+  String get query_equipment_type => 'סוג';
+
+  @override
+  String get query_media_caption => 'כיתוב';
+
+  @override
+  String get query_media_favorite => 'מועדף';
+
+  @override
+  String get query_media_type => 'סוג';
+
+  @override
+  String get query_sightings_count => 'כמות';
+
+  @override
+  String get query_sightings_notes => 'הערות';
+
+  @override
+  String get query_sightings_species => 'מינים';
+
+  @override
+  String get query_sites_city => 'עיר';
+
+  @override
+  String get query_sites_country => 'מדינה';
+
+  @override
+  String get query_sites_island => 'אי';
+
+  @override
+  String get query_sites_maxDepth => 'עומק מרבי';
+
+  @override
+  String get query_sites_name => 'שם';
+
+  @override
+  String get query_sites_rating => 'דירוג';
+
+  @override
+  String get query_sites_region => 'אזור';
+
+  @override
+  String get query_species_category => 'קטגוריה';
+
+  @override
+  String get query_species_name => 'שם';
+
+  @override
+  String get query_species_scientificName => 'שם מדעי';
+
+  @override
+  String get query_tags_name => 'שם';
+
+  @override
+  String get query_tanks_cylinder => 'מיכל';
+
+  @override
+  String get query_tanks_endPressure => 'לחץ סופי';
+
+  @override
+  String get query_tanks_he => 'הליום';
+
+  @override
+  String get query_tanks_name => 'שם';
+
+  @override
+  String get query_tanks_o2 => 'חמצן';
+
+  @override
+  String get query_tanks_startPressure => 'לחץ התחלתי';
+
+  @override
+  String get query_tanks_volume => 'נפח';
+
+  @override
+  String get query_trips_endDate => 'תאריך סיום';
+
+  @override
+  String get query_trips_location => 'מיקום';
+
+  @override
+  String get query_trips_name => 'שם';
+
+  @override
+  String get query_trips_startDate => 'תאריך התחלה';
+
+  @override
+  String get query_weights_amount => 'כמות';
+
+  @override
+  String get query_weights_notes => 'הערות';
+
+  @override
+  String get query_weights_type => 'סוג';
 }
