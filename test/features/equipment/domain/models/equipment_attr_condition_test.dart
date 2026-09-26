@@ -178,24 +178,5 @@ void main() {
         isFalse,
       );
     });
-
-    test('the list key compares element by element', () {
-      final one = EquipmentAttrConditionsKey([
-        EquipmentAttrCondition.suitThickness(min: 3),
-      ]);
-      final two = EquipmentAttrConditionsKey([
-        EquipmentAttrCondition.suitThickness(min: 3),
-      ]);
-      expect(one, two);
-      expect(one.hashCode, two.hashCode);
-      expect(
-        one,
-        isNot(
-          EquipmentAttrConditionsKey([
-            EquipmentAttrCondition.suitThickness(min: 4),
-          ]),
-        ),
-      );
-    });
   });
 }

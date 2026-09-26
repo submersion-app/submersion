@@ -264,4 +264,18 @@ void main() {
       );
     });
   });
+
+  test('the view mode notifier round-trips map', () async {
+    final settings = _FakeSettingsRepo();
+    final notifier = MediaLibraryViewModeNotifier(settings);
+    addTearDown(notifier.dispose);
+
+    await notifier.setMode(MediaLibraryViewMode.map);
+    expect(settings.values['media_library_view_mode'], 'map');
+
+    final reloaded = MediaLibraryViewModeNotifier(settings);
+    addTearDown(reloaded.dispose);
+    await Future<void>.delayed(Duration.zero);
+    expect(reloaded.state, MediaLibraryViewMode.map);
+  });
 }

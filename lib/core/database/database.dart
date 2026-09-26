@@ -554,6 +554,114 @@ class GpsTrackPointsLocal extends Table {
   // coverage:ignore-end
 }
 
+/// Measured underwater routes from navigation consoles and IMU-equipped
+/// dive computers (spec 2026-09-10-underwater-nav-track-design.md, issues
+/// #1195 and #1445). One row per recording; points live in a gzipped JSON
+/// blob like gps_tracks so sync moves one HLC row per route. The blob is
+/// the recording as it came off the device and is never rewritten; every
+/// correction column below is a non-destructive parameter applied on read.
+@DataClassName('NavTrackRow')
+class NavTracks extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+
+  /// The dive this route belongs to, or null while unlinked. SET NULL on
+  /// dive deletion: the recording outlives the dive and shows as unlinked
+  /// in the routes area, ready to be matched again.
+  TextColumn get diveId =>
+      text().nullable().references(Dives, #id, onDelete: KeyAction.setNull)();
+
+  /// 'auto' when the match sweep linked it, 'manual' when the diver did.
+  /// The sweep never touches a linked row of either kind; the flag exists
+  /// so the UI can say how the link came about.
+  TextColumn get linkMode => text().nullable()();
+
+  /// The route the dive's 3D seascape draws when several are linked to the
+  /// same dive (two devices on one dive). The first link sets it.
+  BoolColumn get isPrimary => boolean().withDefault(const Constant(true))();
+
+  /// The dive site chosen at import (or taken from the linked dive): gives
+  /// an unlinked route a map position to start from, the default anchor
+  /// until the diver corrects it.
+  TextColumn get siteId => text().nullable().references(
+    DiveSites,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// 'seacraft_enc' | 'suunto_route'. Rendering never branches on it; only
+  /// the caption and the parser registry do.
+  TextColumn get source => text()();
+  TextColumn get sourceRef => text().nullable()(); // originating file name
+  TextColumn get deviceName => text().nullable()();
+
+  /// User-editable label; defaults to the file name.
+  TextColumn get name => text().nullable()();
+
+  /// Optional link to the console or scooter in the equipment list.
+  TextColumn get equipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// Wall-clock-as-UTC epoch milliseconds (dives.entryTime convention).
+  IntColumn get startTime => integer()();
+  IntColumn get endTime => integer()();
+  IntColumn get tzOffsetMinutes => integer().withDefault(const Constant(0))();
+
+  /// Seconds added to the device's clock to place it on the linked dive's
+  /// timeline (same idea as dive_data_sources.time_offset_seconds).
+  IntColumn get timeOffsetSeconds => integer().withDefault(const Constant(0))();
+  IntColumn get pointCount => integer()();
+
+  /// Summary scalars for list rows and stats, so no blob decode is needed.
+  RealColumn get totalDistance => real().nullable()(); // m, device log
+  RealColumn get maxDepth => real().nullable()(); // m
+  RealColumn get maxSpeed => real().nullable()(); // m/s
+  RealColumn get avgSpeed => real().nullable()(); // m/s
+
+  /// Seconds from the first to the last dead-reckoned sample (the active
+  /// range), excluding a post-surfacing GPS tail that start/end_time keep
+  /// for time matching. Null on rows written before it was stored.
+  IntColumn get durationSeconds => integer().nullable()();
+
+  /// Where the route's origin sits on the map. Null until the diver sets
+  /// it (or accepts a suggestion); the route then has no 2D position.
+  RealColumn get anchorLatitude => real().nullable()();
+  RealColumn get anchorLongitude => real().nullable()();
+
+  /// 'none' | 'same_as_start' | 'point' | 'gps_fix'. With 'point',
+  /// endLatitude/endLongitude hold the target. 'same_as_start' follows the
+  /// anchor when it moves, which a copied coordinate would not.
+  TextColumn get endMode => text().withDefault(const Constant('none'))();
+  RealColumn get endLatitude => real().nullable()();
+  RealColumn get endLongitude => real().nullable()();
+
+  /// Trust mark: fraction of the route's cumulative distance, 0 to 1, up
+  /// to which the recording is taken as correct. 0 (default) means the
+  /// whole route is corrected proportionally; 1 disables the correction.
+  RealColumn get trustFraction => real().withDefault(const Constant(0))();
+
+  /// Clockwise rotation applied to the route (magnetic declination, mount
+  /// misalignment).
+  RealColumn get headingOffsetDeg => real().withDefault(const Constant(0))();
+
+  IntColumn get codecVersion => integer().withDefault(const Constant(1))();
+
+  /// Gzipped JSON array of
+  /// [wallClockEpochSeconds, north, east, depth, course, pitch, roll,
+  ///  distance, speed, temp, battV]; null for channels a source lacks.
+  BlobColumn get points => blob()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
 /// Saved dive plans (dive planner redesign, Phase 2)
 class DivePlans extends Table {
   // coverage:ignore-start
@@ -2114,6 +2222,11 @@ class DiverSettings extends Table {
   IntColumn get gfHigh => integer().withDefault(const Constant(70))();
   RealColumn get ppO2MaxWorking => real().withDefault(const Constant(1.4))();
   RealColumn get ppO2MaxDeco => real().withDefault(const Constant(1.6))();
+  // CCR ppO2 limits (v231, issue #2342): the diver's default setpoints and
+  // the ppO2 a diluent may reach on a flush, which sets its MOD.
+  RealColumn get ccrSetpointLow => real().withDefault(const Constant(0.7))();
+  RealColumn get ccrSetpointHigh => real().withDefault(const Constant(1.3))();
+  RealColumn get ccrDiluentModPpO2 => real().withDefault(const Constant(1.6))();
   IntColumn get cnsWarningThreshold =>
       integer().withDefault(const Constant(80))();
   RealColumn get ascentRateWarning => real().withDefault(const Constant(9.0))();
@@ -3225,6 +3338,48 @@ class Transmitters extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Cylinder fill history (issue #2334, v228). One row per fill of one
+/// physical cylinder, keyed by the cylinder's passport id (an equipment
+/// attribute, not a foreign key) so the history survives a deleted and
+/// re-created item and can belong to a cylinder the diver does not own.
+/// [equipmentId] is a convenience link resolved from the passport id at write
+/// time and re-resolved by "Link an existing tag". Synced entity with its own
+/// hlc, registered like [Transmitters].
+@DataClassName('CylinderFillRow')
+class CylinderFills extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get passportId => text()();
+  TextColumn get equipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  IntColumn get filledAt => integer()();
+  RealColumn get o2Percent => real()();
+  RealColumn get hePercent => real().withDefault(const Constant(0.0))();
+  RealColumn get pressureBar => real().nullable()();
+  RealColumn get temperatureC => real().nullable()();
+  TextColumn get analyzer => text().nullable()();
+  TextColumn get stationName => text().nullable()();
+  // base64url Ed25519 public key from a signed record (PR 3); null for a
+  // manual fill.
+  TextColumn get stationKey => text().nullable()();
+  // The JWS token verbatim (PR 3); the truth for every analysis column.
+  TextColumn get signedRecord => text().nullable()();
+  // FillSource.name: manual, qr, nfc, file, link, issued.
+  TextColumn get source => text().withDefault(const Constant('manual'))();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Dive computers (devices that record dive data)
 class DiveComputers extends Table {
   TextColumn get id => text()();
@@ -4269,6 +4424,9 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // GPS surface track logging (discussion #289)
     GpsTracks,
     GpsTrackPointsLocal,
+    // Measured underwater routes (spec 2026-09-10-underwater-nav-track-design.md,
+    // issues #1195 and #1445)
+    NavTracks,
     // Saved dive plans (planner redesign Phase 2)
     DivePlans,
     DivePlanTanks,
@@ -4290,6 +4448,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     CylinderConfigItems,
     // Rental gear memory (v221, issue #2075)
     DiveCenterGearNotes,
+    // Cylinder fill history (v228, issue #2334)
+    CylinderFills,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -4299,7 +4459,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 227;
+  static const int currentSchemaVersion = 231;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4879,7 +5039,6 @@ class AppDatabase extends _$AppDatabase {
     // was linked to failed. Rebuilds the table from its stored definition.
     // Also an hlc column on the 19 child tables exported through their
     // parent, so a stale copy from a peer cannot overwrite a newer edit.
-    // 209 is claimed by #1639, still open.
     210,
     // v211: diver_settings.auto_tag_imports (issue #998). Additive defaulted
     // boolean, no backfill. Renumbered from 208: main's own v208 (issue
@@ -4960,6 +5119,26 @@ class AppDatabase extends _$AppDatabase {
     // shows every built-in preset. Renumbered from 225, which is held by PR
     // #1978, after v226 landed while this was in review.
     227,
+    // v228: cylinder_fills, the fill history keyed by passport id (issue
+    // #2334). Table-only rung, no backfill, floor stays at 224. Renumbered
+    // from 227, which hidden tank presets (#2305) took while this was in
+    // review.
+    228,
+    // v230: nav_tracks -- measured underwater routes from Seacraft ENC
+    // navigation consoles and similar IMU-equipped computers (issues #1195,
+    // #1445). Table-only rung, additive, so the floor stays at 224.
+    // Renumbered from 209, then 228: main shipped cylinder fills (#2364) as
+    // 228 while this branch was open, and 229 is claimed by the diver
+    // figure branch (#2372). A rung at or below the shipped version never
+    // runs its onUpgrade step.
+    230,
+    // v231: diver_settings CCR ppO2 limits (issue #2342): setpoint low,
+    // setpoint high and the diluent's flush ppO2. Additive defaulted
+    // columns, no backfill, so the floor stays at 224. Renumbered from 228,
+    // then 230: main shipped cylinder fills (#2364) as 228 and nav tracks
+    // (#1772) as 230 while this was open, and 229 is claimed by #2372,
+    // #2331 and #2407.
+    231,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -5373,6 +5552,23 @@ class AppDatabase extends _$AppDatabase {
         ') WHERE updated_at IS NULL',
       );
     }
+  }
+
+  /// v230: the nav_tracks table for measured underwater routes (spec
+  /// 2026-09-10-underwater-nav-track-design.md, issues #1195, #1445).
+  /// Idempotent (createTable is IF NOT EXISTS); called from the v230
+  /// onUpgrade step and the beforeOpen backstop.
+  Future<void> _assertNavTracksSchema() async {
+    await createMigrator().createTable(navTracks);
+    // Added after the table first shipped on development builds of the
+    // route branch; createTable leaves an existing table as it is.
+    await _addColumnIfMissing('nav_tracks', 'duration_seconds', 'INTEGER');
+    await customStatement('''
+      CREATE INDEX IF NOT EXISTS idx_nav_tracks_dive ON nav_tracks(dive_id)
+    ''');
+    await customStatement('''
+      CREATE INDEX IF NOT EXISTS idx_nav_tracks_start ON nav_tracks(start_time)
+    ''');
   }
 
   /// v210: an `hlc` column on every child table exported through its
@@ -8361,6 +8557,29 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  /// Idempotent DDL for the diver_settings CCR ppO2 limits (v231, issue
+  /// #2342). Existing rows get the defaults the planner already assumed for
+  /// a new CCR plan (0.7 / 1.3) and the 1.6 bar flush ceiling.
+  Future<void> _assertCcrPpO2LimitColumns() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    const columns = {
+      'ccr_setpoint_low': '0.7',
+      'ccr_setpoint_high': '1.3',
+      'ccr_diluent_mod_pp_o2': '1.6',
+    };
+    for (final entry in columns.entries) {
+      if (names.contains(entry.key)) continue;
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN '
+        '${entry.key} REAL NOT NULL DEFAULT ${entry.value}',
+      );
+    }
+  }
+
   /// Idempotent DDL for diver_settings.auto_tag_imports (v211, issue #998).
   /// Existing rows default to on, matching the wizard's prior behavior of
   /// always pre-filling an import tag.
@@ -8530,6 +8749,29 @@ class AppDatabase extends _$AppDatabase {
     }
     await createMigrator().createTable(equipmentTags);
     await assertEquipmentTagUniqueness(this);
+  }
+
+  /// Idempotent creation of the v228 `cylinder_fills` table and its two
+  /// lookup indexes (issue #2334). Called from the v228 rung and the
+  /// beforeOpen backstop. Skipped on a partial migration-test fixture that
+  /// lacks either parent table.
+  Future<void> _assertCylinderFillsSchema() async {
+    for (final parent in const ['divers', 'equipment']) {
+      final rows = await customSelect(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+        variables: [Variable<String>(parent)],
+      ).get();
+      if (rows.isEmpty) return;
+    }
+    await createMigrator().createTable(cylinderFills);
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_passport '
+      'ON cylinder_fills(passport_id, filled_at)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_equipment '
+      'ON cylinder_fills(equipment_id)',
+    );
   }
 
   /// Idempotent creation of the v221 `dive_center_gear_notes` table (issue
@@ -12476,9 +12718,9 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 208) await reportProgress();
         // v210: dive_tanks.equipment_id ON DELETE SET NULL, a table rebuild
-        // (see _assertDiveTankEquipmentSetNull). 209 is claimed by an open
-        // PR. Re-asserted in the beforeOpen backstop, which runs it before
-        // foreign keys are switched on.
+        // (see _assertDiveTankEquipmentSetNull). Re-asserted in the
+        // beforeOpen backstop, which runs it before foreign keys are
+        // switched on.
         if (from < 210) {
           await _assertDiveTankEquipmentSetNull();
           await _assertChildHlcColumns();
@@ -12579,6 +12821,28 @@ class AppDatabase extends _$AppDatabase {
           await _assertHiddenTankPresetIdsColumn();
         }
         if (from < 227) await reportProgress();
+        // v228: cylinder fill history (issue #2334). Table-only rung, no
+        // backfill.
+        if (from < 228) {
+          await _assertCylinderFillsSchema();
+        }
+        if (from < 228) await reportProgress();
+        // v230: nav_tracks -- measured underwater routes from Seacraft ENC
+        // navigation consoles and similar IMU-equipped computers (spec
+        // 2026-09-10-underwater-nav-track-design.md, issues #1195, #1445).
+        // A new synced table, so onUpgrade need only create it; idempotent
+        // and re-asserted in the beforeOpen backstop against the
+        // parallel-branch version collisions noted above.
+        if (from < 230) {
+          await _assertNavTracksSchema();
+        }
+        if (from < 230) await reportProgress();
+        // v231: diver_settings CCR ppO2 limits (issue #2342). Column-only
+        // rung, no backfill.
+        if (from < 231) {
+          await _assertCcrPpO2LimitColumns();
+        }
+        if (from < 231) await reportProgress();
       },
       beforeOpen: (details) async {
         // v227 backstop: the hidden built-in tank presets.
@@ -12606,6 +12870,10 @@ class AppDatabase extends _$AppDatabase {
 
         // Enable foreign keys
         await customStatement('PRAGMA foreign_keys = ON');
+
+        // v230 backstop: re-assert the nav_tracks table. A database that
+        // arrives by restore or sync-adopt never runs onUpgrade.
+        await _assertNavTracksSchema();
 
         // v207 backstop: re-assert the gear junctions' updated_at. A device
         // stranded without it has no age signal on those rows, so a stale
@@ -13079,6 +13347,14 @@ class AppDatabase extends _$AppDatabase {
         // version-collision self-heal). Column only, so it cannot touch
         // diver data.
         await _assertMediaCloudAssetIdColumn();
+        // v228 backstop: the cylinder_fills table (parallel-branch
+        // version-collision self-heal; createTable is idempotent).
+        await _assertCylinderFillsSchema();
+
+        // v231 backstop: re-assert the diver_settings CCR ppO2 limits
+        // (parallel-branch version-collision self-heal). Defaulted columns
+        // only, so it cannot touch diver data.
+        await _assertCcrPpO2LimitColumns();
 
         // v194 backstop: re-assert dive_tanks.transmitter_serial. Every tank
         // read selects the whole row, so a database that arrives by restore

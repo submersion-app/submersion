@@ -90,6 +90,17 @@ Future<ProviderContainer> _pumpPanel(
         diveListNotifierProvider.overrideWith(
           (ref) => _StubDiveListNotifier([_houseDive, _farDive]),
         ),
+        // The id set the filter keeps is resolved in SQL in production
+        // (#2365); this stub world has no database, so answer the one axis
+        // these cases set from the two stub dives.
+        queryFilteredDiveIdsProvider.overrideWith(
+          (ref, filter) async => filter.siteId == null
+              ? null
+              : {
+                  for (final d in [_houseDive, _farDive])
+                    if (d.site?.id == filter.siteId) d.id,
+                },
+        ),
         highlightedDiveIdProvider.overrideWith((ref) => highlightedId),
         ..._perDiveOverrides(_houseDive),
         ..._perDiveOverrides(_farDive),

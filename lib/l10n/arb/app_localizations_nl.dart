@@ -10442,6 +10442,138 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get divelogsImport_fetch_button => 'Logboek ophalen';
+
+  @override
+  String get divelogsImport_fetch_certificationsUnavailable =>
+      'Brevetten konden niet worden opgehaald en worden niet geïmporteerd.';
+
+  @override
+  String get divelogsImport_fetch_empty =>
+      'Je divelogs.de-logboek bevat niets om te importeren.';
+
+  @override
+  String get divelogsImport_fetch_failedTitle => 'Kan je logboek niet ophalen';
+
+  @override
+  String get divelogsImport_fetch_fetching => 'Je logboek wordt opgehaald…';
+
+  @override
+  String divelogsImport_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken gevonden',
+      one: '$count duik gevonden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divelogsImport_fetch_foundPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto\'s om te importeren',
+      one: '$count foto om te importeren',
+      zero: 'Geen foto\'s om te importeren',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_gearUnavailable =>
+      'De uitrusting kon niet worden opgehaald; duiken worden geïmporteerd zonder koppeling aan hun uitrusting.';
+
+  @override
+  String get divelogsImport_fetch_includePhotos => 'Foto\'s meenemen';
+
+  @override
+  String get divelogsImport_fetch_includePhotosHint =>
+      'Foto\'s worden tijdens het importeren gedownload naar een map die je zelf kiest.';
+
+  @override
+  String divelogsImport_fetch_listingPhotos(int current, int total) {
+    return 'Foto\'s voor duik $current van $total worden opgevraagd…';
+  }
+
+  @override
+  String divelogsImport_fetch_photoListingsFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Foto\'s voor $count duiken konden niet worden opgevraagd.',
+      one: 'Foto\'s voor $count duik konden niet worden opgevraagd.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_retry => 'Opnieuw proberen';
+
+  @override
+  String get divelogsImport_fetch_sessionExpired =>
+      'Je divelogs.de-sessie is verlopen. Ga terug en meld je opnieuw aan.';
+
+  @override
+  String divelogsImport_fetch_skippedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken konden niet worden gelezen en worden overgeslagen.',
+      one: '$count duik kon niet worden gelezen en wordt overgeslagen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_signIn_badCredentials =>
+      'divelogs.de heeft de gebruikersnaam of het wachtwoord geweigerd.';
+
+  @override
+  String get divelogsImport_signIn_button => 'Aanmelden';
+
+  @override
+  String get divelogsImport_signIn_description =>
+      'Meld je aan met je divelogs.de-account om je logboek te importeren. Je wachtwoord wordt nooit opgeslagen; alleen de resulterende sessie wordt in de cache bewaard.';
+
+  @override
+  String get divelogsImport_signIn_passwordLabel => 'Wachtwoord';
+
+  @override
+  String get divelogsImport_signIn_passwordRequired =>
+      'Wachtwoord is verplicht';
+
+  @override
+  String divelogsImport_signIn_signedInAs(String username) {
+    return 'Aangemeld als $username';
+  }
+
+  @override
+  String get divelogsImport_signIn_signingIn => 'Bezig met aanmelden…';
+
+  @override
+  String get divelogsImport_signIn_signOut => 'Afmelden';
+
+  @override
+  String get divelogsImport_signIn_title => 'Aanmelden bij divelogs.de';
+
+  @override
+  String get divelogsImport_signIn_unexpected =>
+      'divelogs.de stuurde een onverwacht antwoord. Probeer het later opnieuw.';
+
+  @override
+  String get divelogsImport_signIn_unreachable =>
+      'Kan divelogs.de niet bereiken. Controleer je verbinding en probeer het opnieuw.';
+
+  @override
+  String get divelogsImport_signIn_usernameLabel => 'Gebruikersnaam';
+
+  @override
+  String get divelogsImport_signIn_usernameRequired =>
+      'Gebruikersnaam is verplicht';
+
+  @override
   String get divers_detail_activeDiver => 'Actieve duiker';
 
   @override
@@ -11782,6 +11914,217 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get passport_title => 'Flessenpaspoort';
+
+  @override
+  String get passport_open => 'Paspoort openen';
+
+  @override
+  String get passport_entry_noFill => 'Geen vulling gelogd';
+
+  @override
+  String passport_entry_lastFillNoPressure(String mix, String date) {
+    return '$mix, $date';
+  }
+
+  @override
+  String passport_entry_lastFill(String mix, String pressure, String date) {
+    return '$mix op $pressure, $date';
+  }
+
+  @override
+  String get passport_spec_title => 'Fles';
+
+  @override
+  String passport_spec_freeGas(String pressure) {
+    return 'Vrij gas bij $pressure';
+  }
+
+  @override
+  String get passport_spec_buoyancyEmpty => 'Drijfvermogen leeg';
+
+  @override
+  String get passport_spec_buoyancyFull => 'Drijfvermogen vol';
+
+  @override
+  String get passport_service_title => 'Onderhoud';
+
+  @override
+  String get passport_service_notTracked => 'Niet bijgehouden';
+
+  @override
+  String get passport_service_neverRecorded => 'Nooit vastgelegd';
+
+  @override
+  String get passport_service_trackO2Clean => 'O2-reiniging bijhouden';
+
+  @override
+  String get passport_service_trackFailed =>
+      'Het bijhouden van O2-reiniging kon niet worden gestart. Probeer het opnieuw.';
+
+  @override
+  String passport_service_lastDone(String date) {
+    return 'Laatste $date';
+  }
+
+  @override
+  String passport_o2Warning_untracked(String o2) {
+    return 'De laatste vulling is $o2 O2 en deze fles wordt niet als O2-schoon bijgehouden.';
+  }
+
+  @override
+  String passport_o2Warning_overdue(String o2) {
+    return 'De laatste vulling is $o2 O2 en de O2-reiniging van deze fles is over tijd.';
+  }
+
+  @override
+  String get passport_fill_title => 'Huidige vulling';
+
+  @override
+  String get passport_fill_none => 'Nog geen vulling gelogd';
+
+  @override
+  String get passport_fill_log => 'Vulling loggen';
+
+  @override
+  String passport_fill_mod(String depth, String ppo2) {
+    return 'MOD $depth bij ppO2 $ppo2';
+  }
+
+  @override
+  String passport_fill_end(String depth) {
+    return 'END $depth op de werk-MOD';
+  }
+
+  @override
+  String passport_fill_station(String station) {
+    return 'Gevuld door $station';
+  }
+
+  @override
+  String passport_fill_analyzer(String analyzer) {
+    return 'Geanalyseerd met $analyzer';
+  }
+
+  @override
+  String passport_fill_analysis(String o2, String he) {
+    return 'O2 $o2, He $he';
+  }
+
+  @override
+  String passport_fill_temperature(String temperature) {
+    return 'Gastemperatuur $temperature';
+  }
+
+  @override
+  String get passport_fill_unsigned => 'Niet ondertekend';
+
+  @override
+  String get passport_history_title => 'Vulgeschiedenis';
+
+  @override
+  String passport_history_sinceHydro(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vullingen sinds de laatste hydrotest',
+      one: '$count vulling sinds de laatste hydrotest',
+      zero: 'Geen vullingen sinds de laatste hydrotest',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_history_delete => 'Vulling verwijderen';
+
+  @override
+  String get passport_history_deleteConfirm => 'Deze vulling verwijderen?';
+
+  @override
+  String get passport_tag_title => 'Tag';
+
+  @override
+  String passport_tag_written(String date) {
+    return 'Geschreven $date';
+  }
+
+  @override
+  String get passport_tag_stale =>
+      'De tag is geschreven vóór het laatste onderhoud of de laatste specificatiewijziging. Druk hem opnieuw af.';
+
+  @override
+  String get passport_tag_printLabel => 'Label afdrukken';
+
+  @override
+  String get passport_tag_printLabels => 'Labels afdrukken';
+
+  @override
+  String get passport_tag_qrSemantics => 'QR-code van het paspoort';
+
+  @override
+  String get passport_tag_printFailed =>
+      'De labels konden niet worden gemaakt. Probeer het opnieuw.';
+
+  @override
+  String get passport_tag_linkExisting => 'Bestaande tag koppelen';
+
+  @override
+  String get passport_tag_linkPrompt => 'Plak de link van de tag';
+
+  @override
+  String get passport_tag_linkInvalid => 'Dat is geen flessentag';
+
+  @override
+  String get passport_tag_linkFailed =>
+      'De tag kon niet worden gekoppeld. Probeer het opnieuw.';
+
+  @override
+  String passport_tag_linkInUse(String name) {
+    return 'Die tag hoort al bij $name';
+  }
+
+  @override
+  String get passport_tag_linked => 'Tag gekoppeld';
+
+  @override
+  String get passport_logFill_date => 'Gevuld op';
+
+  @override
+  String get passport_logFill_time => 'Tijd';
+
+  @override
+  String get passport_logFill_o2 => 'O2 (%)';
+
+  @override
+  String get passport_logFill_he => 'He (%)';
+
+  @override
+  String get passport_logFill_pressure => 'Vuldruk';
+
+  @override
+  String get passport_logFill_temperature => 'Gastemperatuur';
+
+  @override
+  String get passport_logFill_station => 'Vulstation';
+
+  @override
+  String get passport_logFill_analyzer => 'Analyser';
+
+  @override
+  String get passport_logFill_notes => 'Notities';
+
+  @override
+  String get passport_logFill_invalidMix =>
+      'O2 en He moeten elk tussen 0 en 100 liggen en samen hoogstens 100 zijn';
+
+  @override
+  String get passport_logFill_invalidNumber => 'Voer een getal in';
+
+  @override
+  String get passport_logFill_saveFailed =>
+      'De vulling kon niet worden opgeslagen. Probeer het opnieuw.';
 
   @override
   String equipment_bulkTags_confirmAdding(int count) {
@@ -13719,8 +14062,206 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_mod_aboutMod => 'Over MOD';
 
   @override
-  String get gasCalculators_mod_aboutModBody =>
-      'Lager O₂ = diepere MOD = kortere NDL';
+  String get gasCalculators_mod_mode => 'Modus';
+
+  @override
+  String get gasCalculators_mod_modeRecHint =>
+      'Nitrox voor recreatief duiken: MOD en EAD, met 1 bar per 10 m zoals in het logboek.';
+
+  @override
+  String get gasCalculators_mod_modeOcTecHint =>
+      'Trimix in open circuit: MOD, minimale diepte, narcose en gasdichtheid.';
+
+  @override
+  String get gasCalculators_mod_modeCcrTecHint =>
+      'Gesloten circuit: het mengsel is het diluent. De MOD is die van het diluent bij een flush; de loop houdt het setpoint.';
+
+  @override
+  String get gasCalculators_mod_heliumHe => 'Helium (He)';
+
+  @override
+  String get gasCalculators_mod_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_mod_limitsTitle => 'ppO₂-limieten';
+
+  @override
+  String get gasCalculators_mod_workingPpO2 => 'Werk-ppO₂';
+
+  @override
+  String get gasCalculators_mod_decoPpO2 => 'Deco-ppO₂';
+
+  @override
+  String get gasCalculators_mod_flushPpO2 =>
+      'ppO₂ voor de MOD van het diluent (flush)';
+
+  @override
+  String get gasCalculators_mod_minPpO2 =>
+      'Minimale ppO₂ (hypoxische mengsels)';
+
+  @override
+  String get gasCalculators_mod_fromProfile => 'Uit je duikersprofiel';
+
+  @override
+  String gasCalculators_mod_differsFromProfile(String value) {
+    return 'Wijkt af van je profiel ($value bar)';
+  }
+
+  @override
+  String get gasCalculators_mod_useProfileValue => 'Profielwaarde gebruiken';
+
+  @override
+  String get gasCalculators_mod_checkTargetDepth =>
+      'Ook een doeldiepte controleren';
+
+  @override
+  String get gasCalculators_mod_targetDepth => 'Doeldiepte';
+
+  @override
+  String get gasCalculators_mod_diluentMod => 'MOD diluent (flush)';
+
+  @override
+  String gasCalculators_mod_contingencyMod(String ppO2) {
+    return 'Nood-MOD bij $ppO2 bar';
+  }
+
+  @override
+  String gasCalculators_mod_decoMod(String ppO2) {
+    return 'MOD bij deco-ppO₂ $ppO2 bar';
+  }
+
+  @override
+  String gasCalculators_mod_minDepth(String ppO2) {
+    return 'Minimale diepte bij ppO₂ $ppO2 bar';
+  }
+
+  @override
+  String get gasCalculators_mod_fromSurface => 'vanaf het oppervlak';
+
+  @override
+  String gasCalculators_mod_mnd(String limit) {
+    return 'MND (END-limiet $limit)';
+  }
+
+  @override
+  String get gasCalculators_mod_noNarcoticLimit => 'geen limiet';
+
+  @override
+  String get gasCalculators_mod_atDepthTitle => 'Op diepte';
+
+  @override
+  String get gasCalculators_mod_atMod => 'Op MOD';
+
+  @override
+  String get gasCalculators_mod_atTarget => 'Op doeldiepte';
+
+  @override
+  String get gasCalculators_mod_rowDepth => 'Diepte';
+
+  @override
+  String get gasCalculators_mod_rowPpO2 => 'ppO₂';
+
+  @override
+  String get gasCalculators_mod_rowEad => 'EAD (N₂ narcotisch)';
+
+  @override
+  String get gasCalculators_mod_rowEnd => 'END (N₂ + O₂ narcotisch)';
+
+  @override
+  String get gasCalculators_mod_rowEadd => 'EADD (luchtdichtheid)';
+
+  @override
+  String get gasCalculators_mod_rowDensity => 'Gasdichtheid bij 0 °C';
+
+  @override
+  String get gasCalculators_mod_openDensity =>
+      'Openen in de gasdichtheidscalculator';
+
+  @override
+  String get gasCalculators_mod_assessmentTitle => 'Beoordeling';
+
+  @override
+  String gasCalculators_mod_recBeyondLimit(String limit) {
+    return 'De MOD ligt dieper dan de recreatieve limiet van $limit. Daar bepalen narcose en gasdichtheid de grens, niet de zuurstof.';
+  }
+
+  @override
+  String gasCalculators_mod_recWithinLimit(String limit) {
+    return 'De MOD ligt binnen de recreatieve limiet van $limit.';
+  }
+
+  @override
+  String gasCalculators_mod_targetBeyondMod(String ppO2) {
+    return 'De doeldiepte ligt dieper dan de MOD: daar ppO₂ $ppO2 bar.';
+  }
+
+  @override
+  String get gasCalculators_mod_targetAboveMinDepth =>
+      'De doeldiepte ligt ondieper dan de minimale diepte: het mengsel is daar hypoxisch.';
+
+  @override
+  String gasCalculators_mod_hypoxic(String depth) {
+    return 'Hypoxisch mengsel: niet ondieper dan $depth ademen.';
+  }
+
+  @override
+  String gasCalculators_mod_narcosisExceeded(
+    String where,
+    String depth,
+    String limit,
+  ) {
+    return '$where: narcotische diepte $depth overschrijdt je END-limiet van $limit.';
+  }
+
+  @override
+  String gasCalculators_mod_densityWarn(
+    String where,
+    String density,
+    String limit,
+  ) {
+    return '$where: gasdichtheid $density g/L ligt boven de aanbevolen $limit g/L.';
+  }
+
+  @override
+  String gasCalculators_mod_densityCritical(
+    String where,
+    String density,
+    String limit,
+  ) {
+    return '$where: gasdichtheid $density g/L ligt boven de harde limiet van $limit g/L.';
+  }
+
+  @override
+  String gasCalculators_mod_targetBeyondDiluentMod(String ppO2) {
+    return 'De doeldiepte ligt dieper dan de MOD van het diluent: een flush geeft daar ppO₂ $ppO2 bar.';
+  }
+
+  @override
+  String gasCalculators_mod_diluentAboveSetpoint(String where, String ppO2) {
+    return '$where: het diluent alleen geeft ppO₂ $ppO2 bar, meer dan het setpoint; de loop draait op de ppO₂ van het diluent.';
+  }
+
+  @override
+  String gasCalculators_mod_setpointCapped(String where) {
+    return '$where: het setpoint ligt boven de omgevingsdruk, de loop is zuivere zuurstof.';
+  }
+
+  @override
+  String get gasCalculators_mod_allClear =>
+      'Binnen je ppO₂-, END- en dichtheidslimieten op de gecontroleerde dieptes.';
+
+  @override
+  String get gasCalculators_mod_aboutModesBody =>
+      'De MOD is de diepte waarop het mengsel de ppO₂-limiet bereikt. Hij wordt altijd naar beneden afgerond, nooit naar boven.\n\nRec rekent met 1 bar per 10 m, zoals het logboek. OC Tec en CCR Tec halen de omgevingsdruk uit het watertype, zoals de gasdichtheidscalculator, dus hetzelfde mengsel kan daar een iets ondiepere MOD tonen.\n\nDe EAD telt stikstof als narcotisch, de END stikstof en zuurstof. Je END-limiet, of zuurstof als narcotisch telt en de standaard-ppO₂-limieten komen uit je duikersprofiel.';
+
+  @override
+  String get gasCalculators_mod_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_mod_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_mod_modeCcrTec => 'CCR Tec';
 
   @override
   String get gasCalculators_mod_inputParameters => 'Invoerparameters';
@@ -16132,7 +16673,61 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_library_viewMode_grid => 'Raster';
 
   @override
+  String get media_library_viewMode_map => 'Kaart';
+
+  @override
   String get media_library_viewMode_timeline => 'Tijdlijn';
+
+  @override
+  String get media_map_closeStrip => 'Sluiten';
+
+  @override
+  String media_map_clusterSemantics(int count, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items bij $place',
+      one: '$count item bij $place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_map_emptyHint =>
+      'Foto\'s en video\'s worden geplaatst op basis van hun eigen gps, het instappunt van de duik of de duikstek.';
+
+  @override
+  String get media_map_emptyTitle => 'Geen media met locatie';
+
+  @override
+  String media_map_errorLoading(String error) {
+    return 'Fout bij het laden van medialocaties: $error';
+  }
+
+  @override
+  String get media_map_markerSemantics => 'Media openen';
+
+  @override
+  String media_map_placeItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_map_unlocatedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items zonder locatie',
+      one: '$count item zonder locatie',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get media_viewer_goToDive => 'Naar duik';
@@ -18510,7 +19105,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Zuurstoftoxiciteit';
 
   @override
-  String get settings_decompression_ppO2LimitsTitle => 'ppO2-limieten';
+  String get settings_decompression_ppO2LimitsTitle => 'ppO2-limieten OC';
 
   @override
   String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
@@ -18518,7 +19113,43 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_ppO2Dialog_title => 'ppO2-limieten';
+  String get settings_decompression_ppO2Dialog_title => 'ppO2-limieten OC';
+
+  @override
+  String get settings_decompression_ccrPpO2LimitsTitle => 'ppO2-limieten CCR';
+
+  @override
+  String settings_decompression_ccrPpO2LimitsSubtitle(
+    String low,
+    String high,
+    String dil,
+  ) {
+    return 'Setpoint laag $low · hoog $high · Dil-MOD $dil bar';
+  }
+
+  @override
+  String get settings_decompression_ccrDialog_info =>
+      'Standaardwaarden voor duiken met een rebreather. De CCR-modus van de MOD-calculator start met deze waarden.';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLow => 'Setpoint laag';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLowHint =>
+      'Dicht bij het oppervlak, bij afdaling en opstijging';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHigh => 'Setpoint hoog';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHighHint => 'Op diepte';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentMod => 'Dil-MOD';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentModHint =>
+      'ppO2 die het diluent bij een flush mag bereiken; bepaalt de MOD';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>
@@ -21327,6 +21958,17 @@ class AppLocalizationsNl extends AppLocalizations {
       'In die map kan niet worden geschreven. Kies een andere.';
 
   @override
+  String importWizard_photos_downloadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto\'s om te downloaden',
+      one: '$count foto om te downloaden',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String importWizard_review_olderDivesSkipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -23728,6 +24370,56 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze duiken verwezen naar een duikstek die het bestand niet beschrijft en zijn daarom zonder duikstek geïmporteerd. Je kunt er een instellen door de duik te bewerken.';
 
   @override
+  String get universalImport_summary_noticeGearUnavailableTitle =>
+      'Uitrusting niet geïmporteerd';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableBody =>
+      'De uitrustingslijst kon niet worden opgehaald, dus er is geen uitrusting geïmporteerd en de duiken zijn niet aan hun uitrusting gekoppeld. Importeer later opnieuw om deze toe te voegen.';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableTitle =>
+      'Brevetten niet geïmporteerd';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableBody =>
+      'De lijst met brevetten kon niet worden opgehaald, dus er zijn geen brevetten geïmporteerd. Importeer later opnieuw om ze toe te voegen.';
+
+  @override
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
+      'Sommige foto\'s niet opgevraagd';
+
+  @override
+  String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Foto\'s voor $count duiken konden niet worden opgevraagd en zijn daarom niet geïmporteerd.',
+      one:
+          'Foto\'s voor $count duik konden niet worden opgevraagd en zijn daarom niet geïmporteerd.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosNotDownloadedTitle =>
+      'Sommige foto\'s niet gedownload';
+
+  @override
+  String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count foto\'s konden niet worden gedownload. Importeer opnieuw om het nog eens te proberen; al opgeslagen foto\'s worden niet gedupliceerd.',
+      one:
+          '$count foto kon niet worden gedownload. Importeer opnieuw om het nog eens te proberen; al opgeslagen foto\'s worden niet gedupliceerd.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'Brevetten en servicerecords niet in het bestand';
 
@@ -23798,6 +24490,9 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get universalImport_summary_importAsRoute => 'Importeren als route';
 
   @override
   String get universalImport_summary_fileNeedsIndividualImport =>
@@ -27719,6 +28414,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dive3d_seascape_overlay_walls => 'Steile wanden';
 
   @override
+  String get dive3d_seascape_showRoute => 'Route tonen';
+
+  @override
   String get dive3d_overlay_water => 'Wateroppervlak';
 
   @override
@@ -28003,6 +28701,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dive3d_spatial_estimatedPath => 'Geschat pad (gegist bestek)';
+
+  @override
+  String get dive3d_spatial_recordedPath => 'Opgenomen route';
+
+  @override
+  String dive3d_spatial_recordedPathWithSource(String source) {
+    return 'Opgenomen route ($source)';
+  }
 
   @override
   String get dive3d_spatial_synthesizedSeafloor => 'Gesynthetiseerde zeebodem';
@@ -28305,6 +29011,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_last_hydro_test => 'Laatste hydrostatische test';
 
   @override
+  String get attrLabel_passport_id => 'Paspoort-id';
+
+  @override
   String get attrLabel_connection => 'Aansluiting';
 
   @override
@@ -28429,6 +29138,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrLabel_speed_mps => 'Topsnelheid';
+
+  @override
+  String get attrLabel_tow_burn_factor => 'Verbruiksfactor bij slepen';
+
+  @override
+  String get attrLabel_tow_speed_factor => 'Snelheidsfactor bij slepen';
 
   @override
   String get attrLabel_sku => 'SKU';
@@ -40931,6 +41646,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Duiken importeren uit je Garmin Connect-account';
 
   @override
+  String get transfer_importCloud_divelogsTitle => 'divelogs.de';
+
+  @override
+  String get transfer_importCloud_divelogsSubtitle =>
+      'Je logboek, duikstekken, uitrusting, brevetten en foto\'s importeren uit divelogs.de';
+
+  @override
   String get transfer_section_cloudTitle => 'Cloud';
 
   @override
@@ -41591,6 +42313,414 @@ class AppLocalizationsNl extends AppLocalizations {
       'Hoe uitrusting bij een duik wordt gegroepeerd en gesorteerd';
 
   @override
+  String get navTrack_common_loadError => 'Deze route kon niet worden geladen.';
+
+  @override
+  String get navTrack_common_notFound => 'Route niet gevonden.';
+
+  @override
+  String get navTrack_common_cancel => 'Annuleren';
+
+  @override
+  String get navTrack_common_save => 'Opslaan';
+
+  @override
+  String get navTrack_common_delete => 'Verwijderen';
+
+  @override
+  String get navTrack_common_unlink => 'Ontkoppelen';
+
+  @override
+  String get navTrack_common_open3dTooltip => '3D openen';
+
+  @override
+  String navTrack_common_diveNumber(String number) {
+    return 'Duik #$number';
+  }
+
+  @override
+  String navTrack_common_diveById(String id) {
+    return 'Duik $id';
+  }
+
+  @override
+  String get navTrack_common_unlinked => 'niet gekoppeld';
+
+  @override
+  String get navTrack_align_title => 'Uitlijnen op kaart';
+
+  @override
+  String get navTrack_align_resetTooltip => 'Correctie herstellen';
+
+  @override
+  String get navTrack_align_setStartHere => 'Start hier plaatsen';
+
+  @override
+  String get navTrack_align_setEndHere => 'Einde hier plaatsen';
+
+  @override
+  String get navTrack_align_setStartOnMap => 'Start op kaart plaatsen';
+
+  @override
+  String get navTrack_align_fromDiveEntry => 'Vanaf duikinstappunt';
+
+  @override
+  String get navTrack_align_fromSite => 'Vanaf duikstek';
+
+  @override
+  String get navTrack_align_fromGps => 'Vanaf gps';
+
+  @override
+  String get navTrack_align_startLabel => 'Start: ';
+
+  @override
+  String get navTrack_align_endLabel => 'Einde: ';
+
+  @override
+  String get navTrack_align_endMode_none => 'Geen';
+
+  @override
+  String get navTrack_align_endMode_sameAsStart => 'Zelfde als start';
+
+  @override
+  String get navTrack_align_endMode_point => 'Op kaart plaatsen';
+
+  @override
+  String get navTrack_align_endMode_gpsFix => 'Vanaf GPS-fix';
+
+  @override
+  String navTrack_align_trustSummary(String distance, int minutes) {
+    return 'Vertrouwen: betrouwbaar tot $distance, $minutes min';
+  }
+
+  @override
+  String get navTrack_align_rotationLabel => 'Rotatie:';
+
+  @override
+  String navTrack_align_rotationDegrees(String degrees) {
+    return '$degrees°';
+  }
+
+  @override
+  String navTrack_terrain_summary(
+    int onLand,
+    int below,
+    int total,
+    int unknown,
+    String maxPart,
+    String coarsePart,
+  ) {
+    return '$onLand punten aan land, $below van $total onder de zeebodem$maxPart, $unknown onbekend$coarsePart';
+  }
+
+  @override
+  String navTrack_terrain_maxPart(String depth) {
+    return ' (max $depth)';
+  }
+
+  @override
+  String get navTrack_terrain_coarsePart =>
+      ' (grove bathymetrie: alleen landconflicten gecontroleerd)';
+
+  @override
+  String get navTrack_detail_renameTitle => 'Route hernoemen';
+
+  @override
+  String get navTrack_detail_deleteTitle => 'Route verwijderen?';
+
+  @override
+  String get navTrack_detail_deleteMessage =>
+      'Dit kan niet ongedaan worden gemaakt.';
+
+  @override
+  String get navTrack_detail_defaultTitle => 'Route';
+
+  @override
+  String get navTrack_detail_menuRename => 'Hernoemen';
+
+  @override
+  String get navTrack_detail_menuChangeSite => 'Duikstek wijzigen';
+
+  @override
+  String get navTrack_detail_noMapYet =>
+      'Stel het startpunt in om dit op een kaart te zien.';
+
+  @override
+  String get navTrack_detail_correctionStatus_none =>
+      'Nog geen correctie toegepast.';
+
+  @override
+  String get navTrack_detail_correctionStatus_sameAsStart =>
+      'Einde ingesteld als zelfde als start.';
+
+  @override
+  String get navTrack_detail_correctionStatus_point =>
+      'Eindpunt op de kaart ingesteld.';
+
+  @override
+  String get navTrack_detail_correctionStatus_gpsFix =>
+      'Einde ingesteld vanaf de GPS-fix van de opname.';
+
+  @override
+  String navTrack_detail_device(String name) {
+    return 'Apparaat: $name';
+  }
+
+  @override
+  String navTrack_detail_equipment(String name) {
+    return 'Uitrusting: $name';
+  }
+
+  @override
+  String navTrack_detail_distance(String value) {
+    return 'Afstand: $value';
+  }
+
+  @override
+  String navTrack_detail_maxDepth(String value) {
+    return 'Max. diepte: $value';
+  }
+
+  @override
+  String navTrack_detail_maxSpeed(String value) {
+    return 'Max. snelheid: $value';
+  }
+
+  @override
+  String navTrack_detail_avgSpeed(String value) {
+    return 'Gem. snelheid: $value';
+  }
+
+  @override
+  String navTrack_detail_duration(int hours, int minutes) {
+    return 'Duur: ${hours}u ${minutes}min';
+  }
+
+  @override
+  String navTrack_detail_battery(String start, String end) {
+    return 'Batterij: $start V -> $end V';
+  }
+
+  @override
+  String get navTrack_detail_noDiveLinked => 'Geen duik gekoppeld';
+
+  @override
+  String get navTrack_detail_chooseDive => 'Duik kiezen';
+
+  @override
+  String get navTrack_detail_noSite => 'Geen duikstek';
+
+  @override
+  String get navTrack_detail_chooseSite => 'Duikstek kiezen';
+
+  @override
+  String get navTrack_review_title => 'Onderwaterroute importeren';
+
+  @override
+  String navTrack_review_segmentSummaryNoFix(int underwater) {
+    return '$underwater metingen onder water, geen GPS-fix na de duik.';
+  }
+
+  @override
+  String navTrack_review_segmentSummaryWithFix(
+    int underwater,
+    int surface,
+    String vector,
+  ) {
+    return '$underwater metingen onder water, $surface metingen aan de oppervlakte, GPS-fix $vector van het berekende einde.';
+  }
+
+  @override
+  String navTrack_review_saveError(String error) {
+    return 'Deze route kon niet worden opgeslagen: $error';
+  }
+
+  @override
+  String navTrack_review_importError(String error) {
+    return 'Dit bestand kon niet worden geïmporteerd: $error';
+  }
+
+  @override
+  String get navTrack_review_sourceLabel => 'Seacraft ENC-log';
+
+  @override
+  String get navTrack_review_nameHint => 'Naam (optioneel)';
+
+  @override
+  String get navTrack_review_warningNoMovement =>
+      'Geen beweging geregistreerd: afstand en snelheid blijven het hele bestand op nul.';
+
+  @override
+  String get navTrack_review_warningDuplicate =>
+      'Dit lijkt op een route die al uit hetzelfde bestand is geïmporteerd.';
+
+  @override
+  String get navTrack_review_replaceLabel => 'Vervangen';
+
+  @override
+  String get navTrack_review_linkToDive => 'Koppelen aan duik';
+
+  @override
+  String get navTrack_review_diveSite => 'Duikstek';
+
+  @override
+  String get navTrack_review_equipment => 'Uitrusting';
+
+  @override
+  String get navTrack_review_noEquipmentChosen => 'Geen uitrusting';
+
+  @override
+  String get navTrack_review_noSiteChosen => 'Geen duikstek gekozen';
+
+  @override
+  String get navTrack_review_row_start => 'Start';
+
+  @override
+  String get navTrack_review_row_end => 'Einde';
+
+  @override
+  String get navTrack_review_row_duration => 'Duur';
+
+  @override
+  String get navTrack_review_row_distance => 'Afstand';
+
+  @override
+  String get navTrack_review_row_maxDepth => 'Max. diepte';
+
+  @override
+  String get navTrack_review_row_maxSpeed => 'Max. snelheid';
+
+  @override
+  String get navTrack_review_leaveUnlinked => 'Ongekoppeld laten';
+
+  @override
+  String navTrack_list_importFailed(String error) {
+    return 'Importeren mislukt: $error';
+  }
+
+  @override
+  String get navTrack_list_matchError => 'Routes konden niet worden gekoppeld.';
+
+  @override
+  String get navTrack_list_matchSuccess => 'Routes gekoppeld aan duiken.';
+
+  @override
+  String navTrack_list_deleteMessage(String name) {
+    return '\"$name\" verwijderen?';
+  }
+
+  @override
+  String get navTrack_list_importTooltip => 'Routebestand importeren';
+
+  @override
+  String get navTrack_list_matchTooltip => 'Nu koppelen';
+
+  @override
+  String get navTrack_list_title => 'Onderwaterroutes';
+
+  @override
+  String get navTrack_list_noMapRoutes =>
+      'Nog geen routes op de kaart geplaatst.';
+
+  @override
+  String get navTrack_list_empty => 'Nog geen onderwaterroutes.';
+
+  @override
+  String get navTrack_seascape_title => 'Onderwaterlandschap van de route';
+
+  @override
+  String get navTrack_seascape_noScene =>
+      'Deze route heeft geen bruikbaar onderwaterlandschap.';
+
+  @override
+  String get navTrack_handoff_recognized => 'Seacraft ENC-navigatielog herkend';
+
+  @override
+  String get navTrack_handoff_description =>
+      'Dit is een onderwaterroute, geen duiklog. Deze heeft een eigen plek in Submersion, los van je duikimport.';
+
+  @override
+  String get navTrack_handoff_reviewButton => 'Route bekijken';
+
+  @override
+  String get navTrack_section_title => 'Onderwaterroute';
+
+  @override
+  String navTrack_section_routeCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count routes',
+      one: '$count route',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_section_noRouteLinked => 'Geen route gekoppeld';
+
+  @override
+  String get navTrack_section_linkButton => 'Route koppelen';
+
+  @override
+  String get navTrack_section_importButton => 'Bestand importeren';
+
+  @override
+  String get navTrack_section_primaryTag => 'primair';
+
+  @override
+  String get navTrack_section_menuOpen => 'Route openen';
+
+  @override
+  String get navTrack_section_menuOpen3d => '3D-landschap openen';
+
+  @override
+  String get navTrack_section_menuMakePrimary => 'Als primair instellen';
+
+  @override
+  String get navTrack_importError_unsupportedFormat =>
+      'Dit bestand is geen Seacraft ENC-navigatielog.';
+
+  @override
+  String get navTrack_importError_unreadable =>
+      'Dit bestand kon niet worden gelezen als Seacraft ENC-navigatielog.';
+
+  @override
+  String get navTrack_importError_tooShort =>
+      'Deze opname heeft te weinig metingen om een bruikbare route te zijn.';
+
+  @override
+  String get navTrack_importError_badData =>
+      'Dit bestand bevat gegevens die Submersion niet kon interpreteren.';
+
+  @override
+  String get navTrack_importError_tooLarge =>
+      'Deze opname heeft meer metingen dan een route kan opslaan.';
+
+  @override
+  String get diveDetailSection_navTrack_name => 'Onderwaterroute';
+
+  @override
+  String get diveDetailSection_navTrack_description =>
+      'Gemeten onderwaterroute vanaf een navigatieconsole';
+
+  @override
+  String get dashboard_quickActions_navRoutes => 'Onderwaterroutes';
+
+  @override
+  String navTrack_list_durationHours(int hours, int minutes) {
+    return '${hours}u ${minutes}min';
+  }
+
+  @override
+  String navTrack_list_durationMinutes(int minutes) {
+    return '${minutes}min';
+  }
+
+  @override
+  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
+
+  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
@@ -41777,4 +42907,418 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveCenters_rental_deleteConfirm =>
       'Deze huurnotitie verwijderen?';
+
+  @override
+  String get query_buddies_certifications => 'Brevetten';
+
+  @override
+  String get query_buddies_email => 'E-mail';
+
+  @override
+  String get query_buddies_favorite => 'Favoriet';
+
+  @override
+  String get query_buddies_name => 'Naam';
+
+  @override
+  String get query_buddies_notes => 'Notities';
+
+  @override
+  String get query_buddies_phone => 'Telefoon';
+
+  @override
+  String get query_centers_city => 'Stad';
+
+  @override
+  String get query_centers_country => 'Land';
+
+  @override
+  String get query_centers_name => 'Naam';
+
+  @override
+  String get query_certifications_agency => 'Organisatie';
+
+  @override
+  String get query_certifications_cardNumber => 'Kaartnummer';
+
+  @override
+  String get query_certifications_expiryDate => 'Vervaldatum';
+
+  @override
+  String get query_certifications_instructorName => 'Naam instructeur';
+
+  @override
+  String get query_certifications_issueDate => 'Uitgiftedatum';
+
+  @override
+  String get query_certifications_level => 'Niveau';
+
+  @override
+  String get query_certifications_name => 'Naam';
+
+  @override
+  String get query_computers_manufacturer => 'Fabrikant';
+
+  @override
+  String get query_computers_model => 'Model';
+
+  @override
+  String get query_computers_name => 'Naam';
+
+  @override
+  String get query_computers_serialNumber => 'Serienummer';
+
+  @override
+  String get query_courses_agency => 'Organisatie';
+
+  @override
+  String get query_courses_completionDate => 'Voltooiingsdatum';
+
+  @override
+  String get query_courses_name => 'Naam';
+
+  @override
+  String get query_courses_startDate => 'Startdatum';
+
+  @override
+  String get query_customFields_key => 'Sleutel';
+
+  @override
+  String get query_customFields_value => 'Waarde';
+
+  @override
+  String get query_diveTypes_builtIn => 'Ingebouwd';
+
+  @override
+  String get query_diveTypes_name => 'Naam';
+
+  @override
+  String get query_dives_airTemp => 'Luchttemperatuur';
+
+  @override
+  String get query_dives_avgDepth => 'Gemiddelde diepte';
+
+  @override
+  String get query_dives_boatName => 'Boot';
+
+  @override
+  String get query_dives_bottomTime => 'Bodemtijd';
+
+  @override
+  String get query_dives_buddies => 'Buddy\'s';
+
+  @override
+  String get query_dives_center => 'Duikcentrum';
+
+  @override
+  String get query_dives_cnsEnd => 'CNS aan het einde';
+
+  @override
+  String get query_dives_computer => 'Duikcomputer';
+
+  @override
+  String get query_dives_course => 'Cursus';
+
+  @override
+  String get query_dives_currentStrength => 'Stroming';
+
+  @override
+  String get query_dives_customFields => 'Aangepaste velden';
+
+  @override
+  String get query_dives_date => 'Datum';
+
+  @override
+  String get query_dives_deco => 'Decompressieduik';
+
+  @override
+  String get query_dives_depth => 'Maximale diepte';
+
+  @override
+  String get query_dives_diveMaster => 'Divemaster';
+
+  @override
+  String get query_dives_diveMode => 'Duikmodus';
+
+  @override
+  String get query_dives_diveNumber => 'Duiknummer';
+
+  @override
+  String get query_dives_diveOperator => 'Operator';
+
+  @override
+  String get query_dives_entryMethod => 'Instapmethode';
+
+  @override
+  String get query_dives_excludedFromStats => 'Uitgesloten van statistieken';
+
+  @override
+  String get query_dives_exitMethod => 'Uitstapmethode';
+
+  @override
+  String get query_dives_favorite => 'Favoriet';
+
+  @override
+  String get query_dives_gasCount => 'Aantal flessen';
+
+  @override
+  String get query_dives_gear => 'Uitrusting';
+
+  @override
+  String get query_dives_hasProfile => 'Heeft profiel';
+
+  @override
+  String get query_dives_id => 'Duik-ID';
+
+  @override
+  String get query_dives_legacyBuddy => 'Buddy (oude tekst)';
+
+  @override
+  String get query_dives_media => 'Media';
+
+  @override
+  String get query_dives_name => 'Naam';
+
+  @override
+  String get query_dives_notes => 'Notities';
+
+  @override
+  String get query_dives_otu => 'OTU';
+
+  @override
+  String get query_dives_planned => 'Gepland';
+
+  @override
+  String get query_dives_rating => 'Beoordeling';
+
+  @override
+  String get query_dives_runtime => 'Totale duur';
+
+  @override
+  String get query_dives_sightings => 'Waarnemingen';
+
+  @override
+  String get query_dives_site => 'Duikstek';
+
+  @override
+  String get query_dives_surfaceConditions => 'Oppervlakteomstandigheden';
+
+  @override
+  String get query_dives_surfaceInterval => 'Oppervlakte-interval';
+
+  @override
+  String get query_dives_tags => 'Tags';
+
+  @override
+  String get query_dives_tanks => 'Flessen';
+
+  @override
+  String get query_dives_trip => 'Reis';
+
+  @override
+  String get query_dives_types => 'Duiktypes';
+
+  @override
+  String get query_dives_visibility => 'Zicht';
+
+  @override
+  String get query_dives_waterTemp => 'Watertemperatuur';
+
+  @override
+  String get query_dives_waterType => 'Watertype';
+
+  @override
+  String get query_dives_weekday => 'Weekdag';
+
+  @override
+  String get query_dives_weight => 'Lood';
+
+  @override
+  String get query_dives_weights => 'Lood';
+
+  @override
+  String get query_dives_year => 'Jaar';
+
+  @override
+  String get query_entity_buddies => 'Buddy\'s';
+
+  @override
+  String get query_entity_centers => 'Duikcentra';
+
+  @override
+  String get query_entity_certifications => 'Brevetten';
+
+  @override
+  String get query_entity_computers => 'Duikcomputers';
+
+  @override
+  String get query_entity_courses => 'Cursussen';
+
+  @override
+  String get query_entity_customFields => 'Aangepaste velden';
+
+  @override
+  String get query_entity_diveTypes => 'Duiktypes';
+
+  @override
+  String get query_entity_dives => 'Duiken';
+
+  @override
+  String get query_entity_equipment => 'Uitrusting';
+
+  @override
+  String get query_entity_equipmentAttributes => 'Uitrustingskenmerken';
+
+  @override
+  String get query_entity_media => 'Media';
+
+  @override
+  String get query_entity_sightings => 'Waarnemingen';
+
+  @override
+  String get query_entity_sites => 'Duikstekken';
+
+  @override
+  String get query_entity_species => 'Soorten';
+
+  @override
+  String get query_entity_tags => 'Tags';
+
+  @override
+  String get query_entity_tanks => 'Flessen';
+
+  @override
+  String get query_entity_trips => 'Reizen';
+
+  @override
+  String get query_entity_weights => 'Lood';
+
+  @override
+  String get query_equipmentAttributes_custom => 'Aangepast';
+
+  @override
+  String get query_equipmentAttributes_key => 'Sleutel';
+
+  @override
+  String get query_equipmentAttributes_valueNum => 'Numerieke waarde';
+
+  @override
+  String get query_equipmentAttributes_valueText => 'Tekstwaarde';
+
+  @override
+  String get query_equipment_active => 'Actief';
+
+  @override
+  String get query_equipment_attributes => 'Kenmerken';
+
+  @override
+  String get query_equipment_brand => 'Merk';
+
+  @override
+  String get query_equipment_model => 'Model';
+
+  @override
+  String get query_equipment_name => 'Naam';
+
+  @override
+  String get query_equipment_serialNumber => 'Serienummer';
+
+  @override
+  String get query_equipment_status => 'Status';
+
+  @override
+  String get query_equipment_type => 'Type';
+
+  @override
+  String get query_media_caption => 'Bijschrift';
+
+  @override
+  String get query_media_favorite => 'Favoriet';
+
+  @override
+  String get query_media_type => 'Type';
+
+  @override
+  String get query_sightings_count => 'Aantal';
+
+  @override
+  String get query_sightings_notes => 'Notities';
+
+  @override
+  String get query_sightings_species => 'Soorten';
+
+  @override
+  String get query_sites_city => 'Stad';
+
+  @override
+  String get query_sites_country => 'Land';
+
+  @override
+  String get query_sites_island => 'Eiland';
+
+  @override
+  String get query_sites_maxDepth => 'Maximale diepte';
+
+  @override
+  String get query_sites_name => 'Naam';
+
+  @override
+  String get query_sites_rating => 'Beoordeling';
+
+  @override
+  String get query_sites_region => 'Regio';
+
+  @override
+  String get query_species_category => 'Categorie';
+
+  @override
+  String get query_species_name => 'Naam';
+
+  @override
+  String get query_species_scientificName => 'Wetenschappelijke naam';
+
+  @override
+  String get query_tags_name => 'Naam';
+
+  @override
+  String get query_tanks_cylinder => 'Fles';
+
+  @override
+  String get query_tanks_endPressure => 'Einddruk';
+
+  @override
+  String get query_tanks_he => 'Helium';
+
+  @override
+  String get query_tanks_name => 'Naam';
+
+  @override
+  String get query_tanks_o2 => 'Zuurstof';
+
+  @override
+  String get query_tanks_startPressure => 'Begindruk';
+
+  @override
+  String get query_tanks_volume => 'Volume';
+
+  @override
+  String get query_trips_endDate => 'Einddatum';
+
+  @override
+  String get query_trips_location => 'Locatie';
+
+  @override
+  String get query_trips_name => 'Naam';
+
+  @override
+  String get query_trips_startDate => 'Startdatum';
+
+  @override
+  String get query_weights_amount => 'Hoeveelheid';
+
+  @override
+  String get query_weights_notes => 'Notities';
+
+  @override
+  String get query_weights_type => 'Type';
 }

@@ -1,11 +1,15 @@
+import 'package:flutter/foundation.dart' show listEquals;
+
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 
-/// Filter state for dive list.
+/// Filter state for the dive list.
 ///
-/// Used by both the provider layer (UI filter state) and the repository layer
-/// (SQL WHERE clause generation for paginated queries).
+/// A plain model the filter sheet edits. It evaluates nothing itself: every
+/// consumer (the paginated list and its count, Statistics, the table, map
+/// and export views) lowers it through `DiveFilterQuery.toQuery()` and
+/// compiles that one tree to SQL (#2365).
 class DiveFilterState {
   /// Inclusive first day of the range, treated as a CALENDAR DATE: only the
   /// year/month/day are read, and any time-of-day or timezone flag the value
@@ -45,8 +49,8 @@ class DiveFilterState {
   /// unrecorded (no profile, or a profile needing the computed fallback)
   /// match neither.
   ///
-  /// This axis is SQL-only. It is applied by `decoSignalCondition` in the
-  /// query paths and deliberately NOT by [apply]; see the note there.
+  /// Lowered to the registry's `deco` field, whose SQL is
+  /// `decoSignalCondition`, so every path evaluates it the same way.
   final bool? decoOnly;
 
   /// True to restrict the list to dives with no buddy assigned: neither the
@@ -93,6 +97,11 @@ class DiveFilterState {
   /// ([EquipmentAttrCondition.suitThickness]).
   final List<EquipmentAttrCondition> equipmentAttrConditions;
 
+  /// The advanced part of the filter: a query tree the typed field or the
+  /// rule builder edits (#2365). ANDed with every other axis by
+  /// `toQuery()`. Null means no advanced conditions.
+  final QueryNode? query;
+
   const DiveFilterState({
     this.startDate,
     this.endDate,
@@ -121,6 +130,7 @@ class DiveFilterState {
     this.customFieldKey,
     this.customFieldValue,
     this.equipmentAttrConditions = const [],
+    this.query,
   });
 
   /// Inclusive lower bound for `dives.dive_date_time`, in the wall-clock-as-UTC
@@ -145,18 +155,6 @@ class DiveFilterState {
       date,
     ).add(const Duration(days: 1)).millisecondsSinceEpoch;
   }
-
-  /// Whether a filter reads the `dive_buddies` junction (the name filter also
-  /// joins `buddies.name`). Those tables change without a `dives` write (a
-  /// sync pull of a buddy link, a buddy merge or rename), so a list filtered
-  /// this way must also follow those tables' writes (#1915). A name filter
-  /// counts only with a non-blank comma-separated part: the SQL builder and
-  /// [apply] both drop blank parts, so `' , '` filters nothing.
-  bool get readsBuddyLinks =>
-      buddyId != null ||
-      noBuddyOnly == true ||
-      (buddyNameFilter?.split(',').any((name) => name.trim().isNotEmpty) ??
-          false);
 
   bool get hasActiveFilters =>
       startDate != null ||
@@ -184,7 +182,76 @@ class DiveFilterState {
       maxBottomTimeMinutes != null ||
       computerId != null ||
       (customFieldKey != null && customFieldKey!.isNotEmpty) ||
-      equipmentAttrConditions.isNotEmpty;
+      equipmentAttrConditions.isNotEmpty ||
+      query != null;
+
+  /// Value equality over every axis, so an unchanged filter set again is
+  /// no change to a listener, and the id-set family keyed on the filter
+  /// reuses its instance for an equal filter.
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DiveFilterState &&
+          other.startDate == startDate &&
+          other.endDate == endDate &&
+          other.diveTypeId == diveTypeId &&
+          other.siteId == siteId &&
+          other.tripId == tripId &&
+          other.diveCenterId == diveCenterId &&
+          other.minDepth == minDepth &&
+          other.maxDepth == maxDepth &&
+          other.favoritesOnly == favoritesOnly &&
+          other.excludedFromStatsOnly == excludedFromStatsOnly &&
+          other.decoOnly == decoOnly &&
+          other.noBuddyOnly == noBuddyOnly &&
+          listEquals(other.tagIds, tagIds) &&
+          listEquals(other.weekdays, weekdays) &&
+          listEquals(other.equipmentIds, equipmentIds) &&
+          other.buddyNameFilter == buddyNameFilter &&
+          other.buddyId == buddyId &&
+          listEquals(other.diveIds, diveIds) &&
+          other.minO2Percent == minO2Percent &&
+          other.maxO2Percent == maxO2Percent &&
+          other.minRating == minRating &&
+          other.minBottomTimeMinutes == minBottomTimeMinutes &&
+          other.maxBottomTimeMinutes == maxBottomTimeMinutes &&
+          other.computerId == computerId &&
+          other.customFieldKey == customFieldKey &&
+          other.customFieldValue == customFieldValue &&
+          listEquals(other.equipmentAttrConditions, equipmentAttrConditions) &&
+          other.query == query;
+
+  @override
+  int get hashCode => Object.hashAll([
+    startDate,
+    endDate,
+    diveTypeId,
+    siteId,
+    tripId,
+    diveCenterId,
+    minDepth,
+    maxDepth,
+    favoritesOnly,
+    excludedFromStatsOnly,
+    decoOnly,
+    noBuddyOnly,
+    Object.hashAll(tagIds),
+    Object.hashAll(weekdays),
+    Object.hashAll(equipmentIds),
+    buddyNameFilter,
+    buddyId,
+    Object.hashAll(diveIds),
+    minO2Percent,
+    maxO2Percent,
+    minRating,
+    minBottomTimeMinutes,
+    maxBottomTimeMinutes,
+    computerId,
+    customFieldKey,
+    customFieldValue,
+    Object.hashAll(equipmentAttrConditions),
+    query,
+  ]);
 
   DiveFilterState copyWith({
     DateTime? startDate,
@@ -214,6 +281,7 @@ class DiveFilterState {
     String? customFieldKey,
     String? customFieldValue,
     List<EquipmentAttrCondition>? equipmentAttrConditions,
+    QueryNode? query,
     bool clearStartDate = false,
     bool clearEndDate = false,
     bool clearDiveType = false,
@@ -241,6 +309,7 @@ class DiveFilterState {
     bool clearCustomFieldKey = false,
     bool clearCustomFieldValue = false,
     bool clearEquipmentAttrConditions = false,
+    bool clearQuery = false,
   }) {
     return DiveFilterState(
       startDate: clearStartDate ? null : (startDate ?? this.startDate),
@@ -294,166 +363,7 @@ class DiveFilterState {
       equipmentAttrConditions: clearEquipmentAttrConditions
           ? const []
           : (equipmentAttrConditions ?? this.equipmentAttrConditions),
+      query: clearQuery ? null : (query ?? this.query),
     );
-  }
-
-  /// Filter a list of dives based on current filter state.
-  /// Used as a fallback for non-paginated code paths (e.g., export, table/map
-  /// views).
-  ///
-  /// Two axes are NOT applied here, because the entity cannot answer them.
-  ///
-  /// [equipmentAttrConditions]: a cylinder matched through the transmitter
-  /// registry reaches the entity without its item or attributes, so only SQL
-  /// can see it. Callers that honour the axis intersect this result with
-  /// `equipmentAttrFilteredDiveIdsProvider`, which uses the same
-  /// `equipmentAttrConditionSql` as the paginated list.
-  ///
-  /// [decoOnly]: getAllDives skips
-  /// profile hydration for list views and deco-stop events never reach the
-  /// entity, so there is nothing here to classify a dive from; evaluating it
-  /// anyway would silently match no dive at all. Callers that honour the deco
-  /// axis intersect this result with `decoFilteredDiveIdsProvider`, which
-  /// resolves it through the same SQL condition the paginated list uses.
-  List<Dive> apply(List<Dive> dives) {
-    final startBound = startDateBoundMs;
-    final endBound = endDateBoundMs;
-    return dives.where((dive) {
-      if (startBound != null || endBound != null) {
-        // Compare CALENDAR DAYS, not instants. Reducing the dive to the start
-        // of its own day makes this identical to the SQL half-open range
-        // (`>= startBound AND < endBound`), because both bounds are themselves
-        // day starts: a timestamp satisfies them exactly when its day does.
-        // Going through the day start also keeps the comparison honest for a
-        // caller holding a local-flagged entity, since only the digits the
-        // diver sees are read.
-        final diveDay = wallClockUtcDayStart(
-          dive.dateTime,
-        ).millisecondsSinceEpoch;
-        if (startBound != null && diveDay < startBound) {
-          return false;
-        }
-        if (endBound != null && diveDay >= endBound) {
-          return false;
-        }
-      }
-      if (diveTypeId != null && !dive.diveTypeIds.contains(diveTypeId)) {
-        return false;
-      }
-      if (siteId != null && dive.site?.id != siteId) {
-        return false;
-      }
-      if (tripId != null && dive.tripId != tripId) {
-        return false;
-      }
-      if (diveCenterId != null && dive.diveCenter?.id != diveCenterId) {
-        return false;
-      }
-      if (equipmentIds.isNotEmpty) {
-        // Directly linked, or through a tank the registry matched to a
-        // cylinder: in step with the SQL filters.
-        final diveEquipmentIds = {
-          for (final e in dive.equipment) e.id,
-          for (final t in dive.tanks) ?t.equipmentId,
-        };
-        if (!equipmentIds.any((eqId) => diveEquipmentIds.contains(eqId))) {
-          return false;
-        }
-      }
-      if (minDepth != null &&
-          (dive.maxDepth == null || dive.maxDepth! < minDepth!)) {
-        return false;
-      }
-      if (maxDepth != null &&
-          (dive.maxDepth == null || dive.maxDepth! > maxDepth!)) {
-        return false;
-      }
-      if (favoritesOnly == true && !dive.isFavorite) {
-        return false;
-      }
-      if (excludedFromStatsOnly == true && !dive.excludedFromStats) {
-        return false;
-      }
-      if (noBuddyOnly == true) {
-        final hasLegacyBuddy = dive.buddy != null && dive.buddy!.isNotEmpty;
-        if (hasLegacyBuddy || dive.buddies.isNotEmpty) {
-          return false;
-        }
-      }
-      if (tagIds.isNotEmpty) {
-        final diveTagIds = dive.tags.map((t) => t.id).toSet();
-        if (!tagIds.any((tagId) => diveTagIds.contains(tagId))) {
-          return false;
-        }
-      }
-      if (weekdays.isNotEmpty && !weekdays.contains(dive.dateTime.weekday)) {
-        return false;
-      }
-      if (buddyNameFilter != null && buddyNameFilter!.isNotEmpty) {
-        final filters = buddyNameFilter!
-            .split(',')
-            .map((s) => s.trim().toLowerCase())
-            .where((s) => s.isNotEmpty)
-            .toList();
-
-        for (final filterLower in filters) {
-          final legacyBuddyText = dive.buddy?.toLowerCase() ?? '';
-          final hasLegacyMatch = legacyBuddyText.contains(filterLower);
-          final hasLinkedBuddyMatch = dive.buddies.any(
-            (b) => b.buddy.name.toLowerCase().contains(filterLower),
-          );
-          if (!hasLegacyMatch && !hasLinkedBuddyMatch) {
-            return false;
-          }
-        }
-      }
-      if (buddyId != null && !dive.buddies.any((b) => b.buddy.id == buddyId)) {
-        return false;
-      }
-      if (diveIds.isNotEmpty && !diveIds.contains(dive.id)) {
-        return false;
-      }
-      if (minO2Percent != null || maxO2Percent != null) {
-        if (dive.tanks.isEmpty) return false;
-        final hasMatchingTank = dive.tanks.any((tank) {
-          final o2 = tank.gasMix.o2;
-          if (minO2Percent != null && o2 < minO2Percent!) return false;
-          if (maxO2Percent != null && o2 > maxO2Percent!) return false;
-          return true;
-        });
-        if (!hasMatchingTank) return false;
-      }
-      if (minRating != null) {
-        if (dive.rating == null || dive.rating! < minRating!) return false;
-      }
-      if (minBottomTimeMinutes != null || maxBottomTimeMinutes != null) {
-        final durationMinutes = (dive.bottomTime)?.inMinutes;
-        if (durationMinutes == null) return false;
-        if (minBottomTimeMinutes != null &&
-            durationMinutes < minBottomTimeMinutes!) {
-          return false;
-        }
-        if (maxBottomTimeMinutes != null &&
-            durationMinutes > maxBottomTimeMinutes!) {
-          return false;
-        }
-      }
-      if (computerId != null) {
-        if (dive.computerId != computerId) return false;
-      }
-      if (customFieldKey != null && customFieldKey!.isNotEmpty) {
-        final hasMatch = dive.customFields.any((cf) {
-          if (cf.key != customFieldKey) return false;
-          if (customFieldValue != null && customFieldValue!.isNotEmpty) {
-            return cf.value.toLowerCase().contains(
-              customFieldValue!.toLowerCase(),
-            );
-          }
-          return true;
-        });
-        if (!hasMatch) return false;
-      }
-      return true;
-    }).toList();
   }
 }

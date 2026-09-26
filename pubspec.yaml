@@ -38,6 +38,9 @@ dependencies:
   # encrypted databases; the codec only engages when PRAGMA key is set.
   path_provider: ^2.1.5
   path: ^1.9.0
+  # `@immutable` for the pure-Dart query package (lib/core/query), which
+  # must not import Flutter.
+  meta: ^1.16.0
 
   # Serialization
   json_annotation: ^4.9.0
@@ -59,6 +62,9 @@ dependencies:
 
   # Networking
   http: ^1.2.2
+  # HTTP-date parsing for Retry-After (all three RFC 7231 forms, pure Dart,
+  # so it stays usable on web). Already locked as a dependency of http.
+  http_parser: ^4.1.2
   # Network-type detection for media store transfer policies (Wi-Fi vs
   # cellular vs offline).
   connectivity_plus: ^7.3.1
@@ -125,6 +131,7 @@ dependencies:
   xml: ^7.0.1
   clock: ^1.1.2  # zone-aware now() so tests can drive time via fake_async
   pdf: ^3.11.1
+  qr: ^3.0.2  # on-screen cylinder passport QR; the pdf label uses pw.BarcodeWidget
   csv: ^6.0.0
   excel_community: ^2.2.1  # maintained fork of `excel` (archive 4.x)
   archive: ^4.0.9  # ZIP expansion for DiveCloud export archives
