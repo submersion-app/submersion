@@ -36,7 +36,21 @@ void main() {
     String diveId, {
     bool dismissed = false,
     String rule = 'rapidAscent',
+    bool reviewed = true,
   }) async {
+    // A finding counts only while its dive has a review marker (see the
+    // invalidated-review test below), so the common case writes one.
+    if (reviewed) {
+      await db
+          .into(db.diveSafetyReviews)
+          .insertOnConflictUpdate(
+            DiveSafetyReviewsCompanion.insert(
+              diveId: diveId,
+              engineVersion: 1,
+              reviewedAt: now,
+            ),
+          );
+    }
     await db
         .into(db.diveSafetyFindings)
         .insert(
@@ -63,6 +77,18 @@ void main() {
 
     expect(byId['dive-1']!.safetyFindingCount, 1);
     expect(byId['dive-2']!.safetyFindingCount, 0);
+  });
+
+  test('a dive whose review was invalidated shows no badge', () async {
+    // clearReviewForDive drops the marker and keeps the findings for the
+    // next recompute to diff against; until then the dive has no review.
+    await insertDive('dive-1');
+    await insertFinding('f1', 'dive-1', reviewed: false);
+
+    final summaries = await repository.getDiveSummaries();
+    expect(summaries.single.safetyFindingCount, 0);
+    final results = await repository.searchDiveSummaries('Reef');
+    expect(results.single.safetyFindingCount, 0);
   });
 
   test('search summaries carry safety finding counts too', () async {

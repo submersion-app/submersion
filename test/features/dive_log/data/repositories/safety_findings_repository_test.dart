@@ -446,31 +446,43 @@ void main() {
     },
   );
 
-  test(
-    'clearReviewForDive removes marker and findings with tombstones',
-    () async {
-      await repo.saveReview(
-        SafetyReview(
-          diveId: 'dive-1',
-          engineVersion: 1,
-          reviewedAt: now,
-          findings: [finding('f1')],
-        ),
-      );
-      await SafetyFindingsRepository.clearReviewForDive(
-        db,
-        syncRepository,
-        'dive-1',
-      );
-      expect(await repo.getReview('dive-1'), isNull);
+  test('clearReviewForDive drops only the marker', () async {
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 1,
+        reviewedAt: now,
+        findings: [finding('f1')],
+      ),
+    );
+    await SafetyFindingsRepository.clearReviewForDive(
+      db,
+      syncRepository,
+      'dive-1',
+    );
 
-      final tombstones = await db.select(db.deletionLog).get();
-      expect(
-        tombstones.map((t) => t.entityType).toSet(),
-        containsAll(['diveSafetyFindings', 'diveSafetyReviews']),
-      );
-    },
-  );
+    expect(await repo.getReview('dive-1'), isNull);
+    expect((await db.select(db.diveSafetyFindings).get()).map((r) => r.id), [
+      'f1',
+    ], reason: 'kept so the recompute can diff against it');
+    final tombstones = await db.select(db.deletionLog).get();
+    expect(tombstones.map((t) => (t.entityType, t.recordId)), [
+      ('diveSafetyReviews', 'dive-1'),
+    ]);
+
+    // The recompute reaches the same finding: nothing is tombstoned, and
+    // the marker's tombstone is cleared.
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 1,
+        reviewedAt: now,
+        findings: [finding('x')],
+      ),
+    );
+    expect(await db.select(db.deletionLog).get(), isEmpty);
+    expect((await repo.getReview('dive-1'))!.findings.single.id, 'f1');
+  });
 
   group('setDismissedForDives', () {
     // Every rule is enabled unless a test narrows the set.

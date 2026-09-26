@@ -345,26 +345,18 @@ class SafetyFindingsRepository {
     return changed;
   }
 
-  /// Invalidation hook for profile writes: drops the review so the next view
-  /// recomputes against the new profile. Static so both dive repositories
+  /// Invalidation hook for profile writes: drops the review marker so the
+  /// next view recomputes against the new profile. The findings rows stay,
+  /// so that recompute diffs against them and a re-import reaching the same
+  /// findings mints no tombstones (#1926). Readers gate on the marker:
+  /// [getReview] returns null without one, and the dive list's badge counts
+  /// findings only on dives that have one. Static so both dive repositories
   /// can call it without holding a SafetyFindingsRepository.
   static Future<void> clearReviewForDive(
     AppDatabase db,
     SyncRepository sync,
     String diveId,
   ) async {
-    final existing = await (db.select(
-      db.diveSafetyFindings,
-    )..where((t) => t.diveId.equals(diveId))).get();
-    await (db.delete(
-      db.diveSafetyFindings,
-    )..where((t) => t.diveId.equals(diveId))).go();
-    for (final row in existing) {
-      await sync.logDeletion(
-        entityType: 'diveSafetyFindings',
-        recordId: row.id,
-      );
-    }
     final deletedMarker = await (db.delete(
       db.diveSafetyReviews,
     )..where((t) => t.diveId.equals(diveId))).go();

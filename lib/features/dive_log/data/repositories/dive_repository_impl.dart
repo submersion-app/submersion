@@ -2212,7 +2212,12 @@ class DiveRepository {
             // idx_dive_safety_findings_dive_id and only counts findings for the
             // page's dives, instead of grouping the whole findings table.
             '(SELECT COUNT(*) FROM dive_safety_findings sf '
-            'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL'
+            'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL '
+            // A dive whose review was invalidated (clearReviewForDive keeps
+            // its findings for the next recompute to diff against) shows no
+            // badge until it is recomputed.
+            'AND EXISTS (SELECT 1 FROM dive_safety_reviews sr '
+            'WHERE sr.dive_id = d.id)'
             '$safetyCountFilter) '
             'AS safety_finding_count '
             'FROM dives d '
@@ -2233,6 +2238,7 @@ class DiveRepository {
                 // Renaming a trip changes a header the list is showing.
                 _db.trips,
                 _db.diveSafetyFindings,
+                _db.diveSafetyReviews,
                 // Whatever the filter joined (#2365).
                 ...tablesNamed(compiled.tablesTouched),
               },
@@ -2861,7 +2867,12 @@ class DiveRepository {
           // idx_dive_safety_findings_dive_id and only counts findings for the
           // requested dives, instead of grouping the whole findings table.
           '(SELECT COUNT(*) FROM dive_safety_findings sf '
-          'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL'
+          'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL '
+          // A dive whose review was invalidated (clearReviewForDive keeps
+          // its findings for the next recompute to diff against) shows no
+          // badge until it is recomputed.
+          'AND EXISTS (SELECT 1 FROM dive_safety_reviews sr '
+          'WHERE sr.dive_id = d.id)'
           '$safetyCountFilter) '
           'AS safety_finding_count '
           'FROM dives d '
@@ -2879,6 +2890,7 @@ class DiveRepository {
             _db.diveSites,
             _db.trips,
             _db.diveSafetyFindings,
+            _db.diveSafetyReviews,
           },
         )
         .get();
