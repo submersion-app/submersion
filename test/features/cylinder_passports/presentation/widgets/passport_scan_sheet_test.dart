@@ -110,4 +110,28 @@ void main() {
     expect(results, isEmpty);
     expect(find.byType(PassportScanSheet), findsOneWidget);
   });
+
+  testWidgets('a clipboard that cannot be read leaves the sheet usable', (
+    tester,
+  ) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+          if (call.method == 'Clipboard.getData') {
+            throw PlatformException(code: 'clipboard_denied');
+          }
+          return null;
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, null),
+    );
+    await openSheet(tester, camera: null);
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportScanSheet)),
+    );
+    await tester.tap(find.byTooltip(l10n.passport_scan_paste));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(PassportScanSheet), findsOneWidget);
+  });
 }

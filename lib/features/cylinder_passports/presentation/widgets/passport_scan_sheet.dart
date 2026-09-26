@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_mobile_scanner.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+final _log = LoggerService.forClass(PassportScanSheet);
 
 /// Builds the live camera for the scan sheet; [onDetected] receives each
 /// decoded QR value.
@@ -72,7 +75,19 @@ class _PassportScanSheetState extends ConsumerState<PassportScanSheet> {
   }
 
   Future<void> _paste() async {
-    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final ClipboardData? data;
+    try {
+      data = await Clipboard.getData(Clipboard.kTextPlain);
+    } on PlatformException catch (e, stackTrace) {
+      // Some platforms refuse clipboard access; the field still takes a
+      // typed or long-press-pasted link, so this is a quiet no-op.
+      _log.warning(
+        'Could not read the clipboard',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return;
+    }
     final text = data?.text?.trim();
     if (!mounted || text == null || text.isEmpty) return;
     setState(() => _link.text = text);
