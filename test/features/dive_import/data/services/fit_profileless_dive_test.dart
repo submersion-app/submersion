@@ -143,5 +143,20 @@ void main() {
         expect(dives.single.containsKey('profile'), isFalse);
       },
     );
+
+    test('tells the diver the dive came without a profile', () async {
+      final bytes = buildProfilelessFitFile(
+        startTime: start,
+        summaryMaxDepth: 18.4,
+      );
+
+      final payload = await const FitImportParser().parse(bytes);
+
+      final notice = payload.warnings.singleWhere(
+        (w) => w.code == ImportWarningCode.profileUnreadable,
+      );
+      expect(notice.severity, ImportWarningSeverity.warning);
+      expect(notice.entityType, ImportEntityType.dives);
+    });
   });
 }
