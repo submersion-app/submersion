@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_history_card.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -307,10 +308,10 @@ class _EquipmentDetailContent extends ConsumerWidget {
   /// is delete, shows only to the item's owner. With no diver or no owner
   /// every profile counts as the owner, as before sharing existed.
   bool _isOwner(WidgetRef ref, EquipmentItem equipment) {
-    final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
-    return equipment.diverId == null ||
-        activeDiverId == null ||
-        equipment.diverId == activeDiverId;
+    final activeDiver = ref.watch(validatedCurrentDiverIdProvider);
+    // Hidden until the active diver is known, so a sharee never sees it flash.
+    if (!activeDiver.hasValue) return false;
+    return canDeleteEquipment(equipment, activeDiver.value);
   }
 
   Widget _buildEmbeddedHeader(

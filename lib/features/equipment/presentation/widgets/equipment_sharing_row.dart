@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
@@ -23,11 +24,15 @@ class EquipmentSharingRow extends ConsumerWidget {
       return const SizedBox.shrink();
     }
     final l10n = context.l10n;
-    final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
+    // Until the active diver is known, say nothing about ownership rather
+    // than flash the wrong answer.
+    final activeDiver = ref.watch(validatedCurrentDiverIdProvider);
+    if (!activeDiver.hasValue) return const SizedBox.shrink();
+    final activeDiverId = activeDiver.value;
     final names = ref.watch(diverNamesByIdProvider).value ?? const {};
     final shares =
         ref.watch(equipmentSharesProvider(equipment.id)).value ?? const [];
-    final isOwner = equipment.diverId == activeDiverId;
+    final isOwner = canShareEquipment(equipment, activeDiverId);
     String nameOf(String id) => names[id] ?? l10n.equipment_owner_unknown;
 
     final sharedWith = shares.isEmpty
@@ -142,6 +147,8 @@ class EquipmentSharingRow extends ConsumerWidget {
             actingDiverId: activeDiverId,
           );
     } catch (_) {
+      // The page may have closed while the save ran.
+      if (!context.mounted) return;
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.common_error_tryAgain)),
       );

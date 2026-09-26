@@ -1,4 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 
@@ -64,5 +67,31 @@ void main() {
       ),
       2,
     );
+  });
+
+  test('the Dives row refreshes when a tank link is added', () async {
+    final container = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'owner'),
+      ],
+    );
+    addTearDown(container.dispose);
+    final sub = container.listen(equipmentDiveCountProvider('cyl'), (_, _) {});
+    addTearDown(sub.close);
+    expect(await container.read(equipmentDiveCountProvider('cyl').future), 2);
+
+    await db.customInsert(
+      'INSERT INTO dives (id, diver_id, dive_date_time, created_at, '
+      "updated_at) VALUES ('d4', 'owner', 0, 0, 0)",
+    );
+    // Only dive_tanks notifies, as when a cylinder is put on a dive.
+    await db.customInsert(
+      'INSERT INTO dive_tanks (id, dive_id, equipment_id) '
+      "VALUES ('t4', 'd4', 'cyl')",
+      updates: {db.diveTanks},
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+
+    expect(await container.read(equipmentDiveCountProvider('cyl').future), 3);
   });
 }

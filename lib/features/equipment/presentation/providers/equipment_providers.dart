@@ -135,6 +135,19 @@ final equipmentFilterProvider = StateProvider<EquipmentFilterState>(
   (ref) => const EquipmentFilterState(),
 );
 
+/// The filter the list applies: [equipmentFilterProvider] without its owner
+/// axis while only one profile exists (issue #2046). The Owner chips are
+/// hidden then, so a leftover Mine or Shared with me must neither narrow the
+/// list nor light the filter badge where it cannot be cleared.
+final effectiveEquipmentFilterProvider = Provider<EquipmentFilterState>((ref) {
+  final filter = ref.watch(equipmentFilterProvider);
+  if (filter.owner == EquipmentOwnerFilter.all ||
+      ref.watch(hasMultipleDiversProvider)) {
+    return filter;
+  }
+  return filter.copyWith(owner: EquipmentOwnerFilter.all);
+});
+
 /// The gear categories the diver actually owns, in [EquipmentType] order.
 ///
 /// Drives the filter panel's category chips so it never offers a type with no
@@ -311,7 +324,15 @@ final equipmentDiveCountProvider = FutureProvider.family<int, String>((
 ) async {
   final repository = ref.watch(equipmentRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
-  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
+  // The count reads the dives and their gear and tank links, so putting the
+  // item on (or off) a dive refreshes it.
+  ref.invalidateSelfWhen(
+    ref.read(diveRepositoryProvider).watchTables(const {
+      'dives',
+      'dive_equipment',
+      'dive_tanks',
+    }),
+  );
   // The active diver's dives, as the dive list the row opens (issue #2046).
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   return repository.getDiveCountForEquipment(equipmentId, diverId: diverId);

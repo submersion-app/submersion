@@ -28,6 +28,18 @@ class EquipmentUsageRun extends EquipmentHistoryEntry {
     required this.diveCount,
   });
 
+  EquipmentUsageRun copyWith({
+    String? diverId,
+    DateTime? first,
+    DateTime? last,
+    int? diveCount,
+  }) => EquipmentUsageRun(
+    diverId: diverId ?? this.diverId,
+    first: first ?? this.first,
+    last: last ?? this.last,
+    diveCount: diveCount ?? this.diveCount,
+  );
+
   @override
   DateTime get at => last;
 
@@ -39,6 +51,9 @@ class EquipmentEventEntry extends EquipmentHistoryEntry {
   final EquipmentOwnershipEvent event;
 
   const EquipmentEventEntry(this.event);
+
+  EquipmentEventEntry copyWith({EquipmentOwnershipEvent? event}) =>
+      EquipmentEventEntry(event ?? this.event);
 
   @override
   DateTime get at => event.occurredAt;
@@ -55,6 +70,9 @@ class EquipmentAddedEntry extends EquipmentHistoryEntry {
   final DateTime at;
 
   const EquipmentAddedEntry({required this.ownerId, required this.at});
+
+  EquipmentAddedEntry copyWith({String? ownerId, DateTime? at}) =>
+      EquipmentAddedEntry(ownerId: ownerId ?? this.ownerId, at: at ?? this.at);
 
   @override
   List<Object?> get props => [ownerId, at];

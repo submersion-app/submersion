@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -118,6 +119,7 @@ Future<List<Override>> _buildPhoneOverrides({
   SortState<EquipmentSortField>? sort,
   List<Diver> divers = const [],
   String? activeDiverId,
+  EquipmentFilterState? filter,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -126,6 +128,7 @@ Future<List<Override>> _buildPhoneOverrides({
     sharedPreferencesProvider.overrideWithValue(prefs),
     allDiversProvider.overrideWith((ref) async => divers),
     validatedCurrentDiverIdProvider.overrideWith((ref) async => activeDiverId),
+    if (filter != null) equipmentFilterProvider.overrideWith((ref) => filter),
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     equipmentByStatusProvider.overrideWith((ref, status) => items),
@@ -2502,6 +2505,31 @@ void main() {
       await _filterVia(tester, ['equipment_filter_owner_mine']);
       expect(find.text('My BCD'), findsOneWidget);
       expect(find.text('Her Reg'), findsNothing);
+    });
+
+    testWidgets('a leftover Owner filter is ignored with one profile', (
+      tester,
+    ) async {
+      // Its chips are hidden with one profile, so it must not narrow the
+      // list (or light the badge) where it cannot be cleared.
+      final overrides = await _buildPhoneOverrides(
+        items: [own, hers],
+        divers: divers.take(1).toList(),
+        activeDiverId: 'owner',
+        filter: const EquipmentFilterState(
+          owner: EquipmentOwnerFilter.sharedWithMe,
+        ),
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const EquipmentListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('My BCD'), findsOneWidget);
+      expect(find.text('Her Reg'), findsOneWidget);
+      expect(_badgeIsVisible(tester), isFalse);
     });
 
     testWidgets('no chips with a single profile', (tester) async {

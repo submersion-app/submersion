@@ -122,4 +122,30 @@ void main() {
       'bill',
     ]);
   });
+
+  test('entries copy with changed fields and compare by value', () {
+    final run = EquipmentUsageRun(
+      diverId: 'bill',
+      first: d(1),
+      last: d(2),
+      diveCount: 2,
+    );
+    expect(run.copyWith(diveCount: 3).diveCount, 3);
+    expect(run.copyWith(diveCount: 3).first, d(1));
+    expect(run.copyWith(), run);
+    expect(
+      run.copyWith(diverId: 'anna', first: d(3), last: d(4)),
+      EquipmentUsageRun(diverId: 'anna', first: d(3), last: d(4), diveCount: 2),
+    );
+
+    final e = event(EquipmentOwnershipEventKind.shared, 5, from: 'a', to: 'b');
+    final entry = EquipmentEventEntry(e);
+    expect(entry.copyWith(), entry);
+    expect(entry.copyWith(event: e.copyWith(id: 'z')).event.id, 'z');
+
+    final added = EquipmentAddedEntry(ownerId: 'bill', at: d(1));
+    expect(added.copyWith(ownerId: 'anna').ownerId, 'anna');
+    expect(added.copyWith(at: d(9)).at, d(9));
+    expect(added.copyWith(), added);
+  });
 }

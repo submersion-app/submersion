@@ -197,6 +197,62 @@ void main() {
     expect(await repo.getSharesFor('mask'), isEmpty);
   });
 
+  test('a library larger than one id chunk shares every item', () async {
+    final t = DateTime.now().millisecondsSinceEpoch;
+    final ids = [for (var i = 0; i < 1000; i++) 'item$i'];
+    await db.batch(
+      (b) => b.insertAll(db.equipment, [
+        for (final id in ids)
+          EquipmentCompanion.insert(
+            id: id,
+            name: id,
+            type: 'bcd',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value('owner'),
+          ),
+      ]),
+    );
+    final result = await repo.shareMany(
+      equipmentIds: [...ids, 'mask'],
+      diverIds: ['wife', 'son'],
+      actingDiverId: 'owner',
+    );
+    expect(result.added, 2000);
+    expect(result.itemsChanged, 1000);
+    expect(result.skippedNotOwned, 1);
+    expect(await repo.getSharesForItems(ids), hasLength(1000));
+    final again = await repo.shareMany(
+      equipmentIds: ids,
+      diverIds: ['wife'],
+      actingDiverId: 'owner',
+    );
+    expect(again.added, 0);
+    expect(again.itemsChanged, 0);
+  });
+
+  test('setShares removing two profiles logs and tombstones both', () async {
+    await repo.shareMany(
+      equipmentIds: ['bcd'],
+      diverIds: ['wife', 'son'],
+      actingDiverId: 'owner',
+    );
+    final shareIds = {for (final s in await repo.getSharesFor('bcd')) s.id};
+    final result = await repo.setShares(
+      equipmentId: 'bcd',
+      diverIds: const {},
+      actingDiverId: 'owner',
+    );
+    expect(result.removed, 2);
+    expect(await repo.getSharesFor('bcd'), isEmpty);
+    expect(await tombstones('equipmentShares'), containsAll(shareIds));
+    final unshared = [
+      for (final e in await repo.getEventsFor('bcd'))
+        if (e.kind == EquipmentOwnershipEventKind.unshared) e.toDiverId,
+    ];
+    expect(unshared, unorderedEquals(['wife', 'son']));
+  });
+
   test('watchChanges fires on a share', () async {
     final fired = repo.watchChanges().first;
     await repo.shareMany(

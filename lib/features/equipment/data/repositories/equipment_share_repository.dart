@@ -5,6 +5,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_ownership_event.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_share.dart';
 
@@ -56,9 +57,6 @@ class EquipmentShareRepository {
   static const String sharesEntity = 'equipmentShares';
   static const String eventsEntity = 'equipmentOwnershipEvents';
 
-  /// Ids bound per `IN (...)` list, under SQLite's 999-variable floor.
-  static const int _idChunk = 900;
-
   /// Emits when a share or an event is written or removed.
   Stream<void> watchChanges() => _db.tableUpdates(
     TableUpdateQuery.onAllTables([
@@ -76,8 +74,7 @@ class EquipmentShareRepository {
   ) async {
     final ids = equipmentIds.toSet().toList();
     final result = <String, List<EquipmentShare>>{};
-    for (var i = 0; i < ids.length; i += _idChunk) {
-      final chunk = ids.sublist(i, (i + _idChunk).clamp(0, ids.length));
+    for (final chunk in seriesIdChunks(ids)) {
       final rows =
           await (_db.select(_db.equipmentShares)
                 ..where((t) => t.equipmentId.isIn(chunk))
@@ -123,26 +120,22 @@ class EquipmentShareRepository {
     required String actingDiverId,
   }) async {
     final result = await _db.transaction(() async {
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final owners = await _ownersOf(equipmentIds);
-      final known = await _existingDivers(diverIds);
-      var total = const EquipmentShareResult();
-      for (final id in equipmentIds.toSet()) {
-        final owner = owners[id];
-        if (owner != actingDiverId) {
-          total += const EquipmentShareResult(skippedNotOwned: 1);
-          continue;
-        }
-        var itemTotal = const EquipmentShareResult();
-        for (final diverId in diverIds.toSet()) {
-          itemTotal += await _add(id, owner!, diverId, known, now);
-        }
-        total += itemTotal;
-        if (itemTotal.added > 0) {
-          total += const EquipmentShareResult(itemsChanged: 1);
-        }
-      }
-      return total;
+      final requested = equipmentIds.toSet();
+      final owners = await _ownersOf(requested);
+      final owned = [
+        for (final id in requested)
+          if (owners[id] == actingDiverId) id,
+      ];
+      final result = await _addShares(
+        owned,
+        diverIds.toSet(),
+        owner: actingDiverId,
+        now: DateTime.now().millisecondsSinceEpoch,
+      );
+      return result +
+          EquipmentShareResult(
+            skippedNotOwned: requested.length - owned.length,
+          );
     });
     SyncEventBus.notifyLocalChange();
     return result;
@@ -164,15 +157,19 @@ class EquipmentShareRepository {
       final current = {
         for (final s in await getSharesFor(equipmentId)) s.diverId,
       };
-      final known = await _existingDivers(diverIds);
-      var total = const EquipmentShareResult();
-      for (final diverId in current.difference(diverIds)) {
-        total += await _remove(equipmentId, owner!, diverId, now);
-      }
-      for (final diverId in diverIds.difference(current)) {
-        total += await _add(equipmentId, owner!, diverId, known, now);
-      }
-      return total;
+      final removed = await _removeShares(
+        equipmentId,
+        current.difference(diverIds),
+        owner: actingDiverId,
+        now: now,
+      );
+      final added = await _addShares(
+        [equipmentId],
+        diverIds.difference(current),
+        owner: actingDiverId,
+        now: now,
+      );
+      return removed + added;
     });
     SyncEventBus.notifyLocalChange();
     return result;
@@ -188,15 +185,50 @@ class EquipmentShareRepository {
       if (owner != actingDiverId) {
         return const EquipmentShareResult(skippedNotOwned: 1);
       }
-      return _remove(
+      return _removeShares(
         equipmentId,
-        owner!,
-        diverId,
-        DateTime.now().millisecondsSinceEpoch,
+        {diverId},
+        owner: actingDiverId,
+        now: DateTime.now().millisecondsSinceEpoch,
       );
     });
     SyncEventBus.notifyLocalChange();
     return result;
+  }
+
+  /// Deletes and tombstones every share and event of [equipmentId], for an
+  /// item delete. Cascades write no tombstones, so the item's delete calls
+  /// this first and every peer drops them too. Runs inside the caller's
+  /// transaction.
+  Future<void> deleteForEquipment(String equipmentId) async {
+    final shareIds =
+        await (_db.selectOnly(_db.equipmentShares)
+              ..addColumns([_db.equipmentShares.id])
+              ..where(_db.equipmentShares.equipmentId.equals(equipmentId)))
+            .map((r) => r.read(_db.equipmentShares.id)!)
+            .get();
+    final eventIds =
+        await (_db.selectOnly(_db.equipmentOwnershipEvents)
+              ..addColumns([_db.equipmentOwnershipEvents.id])
+              ..where(
+                _db.equipmentOwnershipEvents.equipmentId.equals(equipmentId),
+              ))
+            .map((r) => r.read(_db.equipmentOwnershipEvents.id)!)
+            .get();
+    await (_db.delete(
+      _db.equipmentShares,
+    )..where((t) => t.equipmentId.equals(equipmentId))).go();
+    await (_db.delete(
+      _db.equipmentOwnershipEvents,
+    )..where((t) => t.equipmentId.equals(equipmentId))).go();
+    await _syncRepository.logDeletions(
+      entityType: sharesEntity,
+      recordIds: shareIds,
+    );
+    await _syncRepository.logDeletions(
+      entityType: eventsEntity,
+      recordIds: eventIds,
+    );
   }
 
   /// Shares every item [ownerId] owns with each of [diverIds], for Settings >
@@ -219,99 +251,123 @@ class EquipmentShareRepository {
     );
   }
 
-  Future<EquipmentShareResult> _add(
-    String equipmentId,
-    String owner,
-    String diverId,
-    Set<String> knownDivers,
-    int now,
-  ) async {
-    if (diverId == owner || !knownDivers.contains(diverId)) {
-      return const EquipmentShareResult(rejected: 1);
+  /// Shares each of [ownedIds] (all owned by [owner]) with each of
+  /// [diverIds], writing the new shares and their `shared` events in one
+  /// batch. A pair that already exists is skipped; a pair naming the owner or
+  /// an unknown profile is rejected. Runs inside the caller's transaction.
+  Future<EquipmentShareResult> _addShares(
+    List<String> ownedIds,
+    Set<String> diverIds, {
+    required String owner,
+    required int now,
+  }) async {
+    if (ownedIds.isEmpty || diverIds.isEmpty) {
+      return const EquipmentShareResult();
     }
-    final shareId = _uuid.v4();
-    final inserted = await _db
-        .into(_db.equipmentShares)
-        .insertReturningOrNull(
+    final known = await _existingDivers(diverIds);
+    final targets = {
+      for (final d in diverIds)
+        if (d != owner && known.contains(d)) d,
+    };
+    final rejected = ownedIds.length * (diverIds.length - targets.length);
+    final existing = await _existingPairs(ownedIds);
+    final shares = <EquipmentSharesCompanion>[];
+    final events = <EquipmentOwnershipEventsCompanion>[];
+    var itemsChanged = 0;
+    for (final equipmentId in ownedIds) {
+      final before = shares.length;
+      for (final diverId in targets) {
+        if (existing[equipmentId]?.contains(diverId) ?? false) continue;
+        shares.add(
           EquipmentSharesCompanion.insert(
-            id: shareId,
+            id: _uuid.v4(),
             equipmentId: equipmentId,
             diverId: diverId,
             createdAt: now,
           ),
-          onConflict: DoNothing<$EquipmentSharesTable, EquipmentShareRow>(
-            target: const [],
+        );
+        events.add(
+          _event(
+            equipmentId,
+            EquipmentOwnershipEventKind.shared,
+            from: owner,
+            to: diverId,
+            now: now,
           ),
         );
-    if (inserted == null) return const EquipmentShareResult();
-    final eventId = await _logEvent(
-      equipmentId,
-      EquipmentOwnershipEventKind.shared,
-      from: owner,
-      to: diverId,
-      now: now,
-    );
-    await _markPending(sharesEntity, shareId, now);
-    await _markPending(eventsEntity, eventId, now);
-    return const EquipmentShareResult(added: 1);
-  }
-
-  Future<EquipmentShareResult> _remove(
-    String equipmentId,
-    String owner,
-    String diverId,
-    int now,
-  ) async {
-    final rows =
-        await (_db.select(_db.equipmentShares)..where(
-              (t) =>
-                  t.equipmentId.equals(equipmentId) & t.diverId.equals(diverId),
-            ))
-            .get();
-    if (rows.isEmpty) return const EquipmentShareResult();
-    await (_db.delete(_db.equipmentShares)..where(
-          (t) => t.equipmentId.equals(equipmentId) & t.diverId.equals(diverId),
-        ))
-        .go();
-    for (final r in rows) {
-      await _syncRepository.logDeletion(
-        entityType: sharesEntity,
-        recordId: r.id,
-      );
+      }
+      if (shares.length > before) itemsChanged++;
     }
-    final eventId = await _logEvent(
-      equipmentId,
-      EquipmentOwnershipEventKind.unshared,
-      from: owner,
-      to: diverId,
-      now: now,
+    if (shares.isNotEmpty) {
+      await _db.batch((b) {
+        b.insertAll(_db.equipmentShares, shares);
+        b.insertAll(_db.equipmentOwnershipEvents, events);
+      });
+      for (final r in shares) {
+        await _markPending(sharesEntity, r.id.value, now);
+      }
+      for (final r in events) {
+        await _markPending(eventsEntity, r.id.value, now);
+      }
+    }
+    return EquipmentShareResult(
+      added: shares.length,
+      rejected: rejected,
+      itemsChanged: itemsChanged,
     );
-    await _markPending(eventsEntity, eventId, now);
-    return const EquipmentShareResult(removed: 1);
   }
 
-  Future<String> _logEvent(
+  /// Removes [equipmentId]'s shares with [diverIds], tombstoning each row and
+  /// logging one `unshared` event per profile that had a share. Runs inside
+  /// the caller's transaction.
+  Future<EquipmentShareResult> _removeShares(
+    String equipmentId,
+    Set<String> diverIds, {
+    required String owner,
+    required int now,
+  }) async {
+    if (diverIds.isEmpty) return const EquipmentShareResult();
+    Expression<bool> where($EquipmentSharesTable t) =>
+        t.equipmentId.equals(equipmentId) & t.diverId.isIn(diverIds);
+    final rows = await (_db.select(_db.equipmentShares)..where(where)).get();
+    if (rows.isEmpty) return const EquipmentShareResult();
+    await (_db.delete(_db.equipmentShares)..where(where)).go();
+    await _syncRepository.logDeletions(
+      entityType: sharesEntity,
+      recordIds: [for (final r in rows) r.id],
+    );
+    final unshared = {for (final r in rows) r.diverId};
+    final events = [
+      for (final diverId in unshared)
+        _event(
+          equipmentId,
+          EquipmentOwnershipEventKind.unshared,
+          from: owner,
+          to: diverId,
+          now: now,
+        ),
+    ];
+    await _db.batch((b) => b.insertAll(_db.equipmentOwnershipEvents, events));
+    for (final r in events) {
+      await _markPending(eventsEntity, r.id.value, now);
+    }
+    return EquipmentShareResult(removed: unshared.length);
+  }
+
+  EquipmentOwnershipEventsCompanion _event(
     String equipmentId,
     EquipmentOwnershipEventKind kind, {
     required String? from,
     required String? to,
     required int now,
-  }) async {
-    final id = _uuid.v4();
-    await _db
-        .into(_db.equipmentOwnershipEvents)
-        .insert(
-          EquipmentOwnershipEventsCompanion.insert(
-            id: id,
-            equipmentId: equipmentId,
-            kind: kind.name,
-            fromDiverId: Value(from),
-            toDiverId: Value(to),
-            occurredAt: now,
-          ),
-        );
-    return id;
-  }
+  }) => EquipmentOwnershipEventsCompanion.insert(
+    id: _uuid.v4(),
+    equipmentId: equipmentId,
+    kind: kind.name,
+    fromDiverId: Value(from),
+    toDiverId: Value(to),
+    occurredAt: now,
+  );
 
   Future<void> _markPending(String entityType, String id, int now) =>
       _syncRepository.markRecordPending(
@@ -320,11 +376,26 @@ class EquipmentShareRepository {
         localUpdatedAt: now,
       );
 
+  /// The profiles each of [equipmentIds] is already shared with.
+  Future<Map<String, Set<String>>> _existingPairs(
+    List<String> equipmentIds,
+  ) async {
+    final pairs = <String, Set<String>>{};
+    for (final chunk in seriesIdChunks(equipmentIds)) {
+      final rows = await (_db.select(
+        _db.equipmentShares,
+      )..where((t) => t.equipmentId.isIn(chunk))).get();
+      for (final r in rows) {
+        (pairs[r.equipmentId] ??= {}).add(r.diverId);
+      }
+    }
+    return pairs;
+  }
+
   Future<Map<String, String?>> _ownersOf(Iterable<String> equipmentIds) async {
     final ids = equipmentIds.toSet().toList();
     final owners = <String, String?>{};
-    for (var i = 0; i < ids.length; i += _idChunk) {
-      final chunk = ids.sublist(i, (i + _idChunk).clamp(0, ids.length));
+    for (final chunk in seriesIdChunks(ids)) {
       final rows = await (_db.select(
         _db.equipment,
       )..where((t) => t.id.isIn(chunk))).get();

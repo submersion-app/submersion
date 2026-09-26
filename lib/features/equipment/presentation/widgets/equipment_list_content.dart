@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/features/equipment/presentation/widgets/profile_checklist_dialog.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_share.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_owner_sections.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_owner_chip.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -281,7 +282,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               const <String, ServiceClockStatus>{})
         : const <String, ServiceClockStatus>{};
 
-    final filter = ref.watch(equipmentFilterProvider);
+    final filter = ref.watch(effectiveEquipmentFilterProvider);
     // Tags ride beside the items, not on them (issue #1942): one batch read
     // for the whole list feeds the tag filter and the detailed tiles' chips.
     final tagsByEquipment =
@@ -600,62 +601,15 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           icon: Icons.share,
           label: context.l10n.equipment_bulkShare_action,
           isEnabled: (ids) =>
-              everyChecked(ids, (e) => e.diverId == activeDiverId),
-          onInvoke: () => _shareSelected(activeDiverId),
-        ),
-    ];
-  }
-
-  Future<BulkActionOutcome> _shareSelected(String? activeDiverId) async {
-    final ids = _selectedIds.toList();
-    if (ids.isEmpty || activeDiverId == null) {
-      return BulkActionOutcome.cancelled;
-    }
-    final l10n = context.l10n;
-    final messenger = ScaffoldMessenger.of(context);
-    final divers = await ref.read(allDiversProvider.future);
-    final others = [
-      for (final d in divers)
-        if (d.id != activeDiverId) d,
-    ];
-    if (!mounted) return BulkActionOutcome.cancelled;
-    final chosen = await showProfileChecklistDialog(
-      context,
-      title: l10n.equipment_sharing_dialogTitle,
-      body: l10n.equipment_sharing_dialogBody,
-      profiles: others,
-      initiallySelected: const {},
-      confirmLabel: l10n.common_action_share,
-      allowEmpty: false,
-    );
-    if (chosen == null) return BulkActionOutcome.cancelled;
-    try {
-      final result = await ref
-          .read(equipmentShareRepositoryProvider)
-          .shareMany(
-            equipmentIds: ids,
-            diverIds: chosen.toList(),
-            actingDiverId: activeDiverId,
-          );
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            result.skippedNotOwned == 0
-                ? l10n.equipment_bulkShare_done(result.itemsChanged)
-                : l10n.equipment_bulkShare_doneSkipped(
-                    result.itemsChanged,
-                    result.skippedNotOwned,
-                  ),
+              everyChecked(ids, (e) => canShareEquipment(e, activeDiverId)),
+          onInvoke: () => shareEquipmentWithProfiles(
+            context,
+            ref,
+            equipmentIds: _selectedIds.toList(),
+            activeDiverId: activeDiverId,
           ),
         ),
-      );
-      return BulkActionOutcome.completed;
-    } catch (_) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.common_error_tryAgain)),
-      );
-      return BulkActionOutcome.failed;
-    }
+    ];
   }
 
   SelectionAppBar _buildSelectionBar(
@@ -924,7 +878,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       ),
       _buildFilterAction(
         context,
-        ref.watch(equipmentFilterProvider),
+        ref.watch(effectiveEquipmentFilterProvider),
         iconSize: 20,
         dense: dense,
       ),
@@ -1203,7 +1157,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     required bool hadItemsBeforeTypeFilter,
     required bool tagsEmptied,
   }) {
-    final filter = ref.watch(equipmentFilterProvider);
+    final filter = ref.watch(effectiveEquipmentFilterProvider);
 
     // Blame the tags (issue #1942) when the category and its conditions left
     // items that none of the selected tags is on: a tag chip on a retired

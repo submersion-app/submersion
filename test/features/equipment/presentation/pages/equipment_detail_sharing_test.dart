@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -78,6 +80,7 @@ void main() {
     required String activeDiverId,
     List<Diver>? divers,
     bool refuseDelete = false,
+    bool diverLoading = false,
     EquipmentItem item = wing,
   }) async {
     tester.view.devicePixelRatio = 1.0;
@@ -132,7 +135,9 @@ void main() {
           tagsForEquipmentProvider(id).overrideWith((ref) async => const []),
           allDiversProvider.overrideWith((ref) async => divers ?? [bill, anna]),
           validatedCurrentDiverIdProvider.overrideWith(
-            (ref) async => activeDiverId,
+            (ref) => diverLoading
+                ? Completer<String?>().future
+                : Future.value(activeDiverId),
           ),
           equipmentSharesProvider(id).overrideWith((ref) async => shares),
           if (refuseDelete)
@@ -202,6 +207,17 @@ void main() {
     );
     expect(find.text('Shared with'), findsNothing);
     expect(find.text('Owned by'), findsNothing);
+  });
+
+  testWidgets('nothing about ownership shows while the diver loads', (
+    tester,
+  ) async {
+    // Neither "Owned by <you>" nor the delete menu may flash for the wrong
+    // profile before the active diver is known.
+    await pump(tester, activeDiverId: 'wife', diverLoading: true);
+    expect(find.text('Owned by'), findsNothing);
+    expect(find.text('Shared with'), findsNothing);
+    expect(find.byKey(overflow), findsNothing);
   });
 
   testWidgets('one profile shows no sharing rows', (tester) async {

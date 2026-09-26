@@ -11,7 +11,9 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_visibility_queries.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
@@ -20,6 +22,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_attribut
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -65,6 +68,7 @@ class EquipmentRepository {
   final MediaDeletionCoordinator _mediaDeletionCoordinator;
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
+  EquipmentVisibilityQueries get _visibility => EquipmentVisibilityQueries(_db);
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(EquipmentRepository);
 
@@ -278,57 +282,16 @@ class EquipmentRepository {
   /// them"). Ownerless or missing rows apply as they always have. Every
   /// set-application path (dive edit, download and import defaulting, the
   /// computer-set linker, the planner) goes through this.
-  Future<List<String>> usableSetMemberIds(
-    List<String> ids,
-    String diverId,
-  ) async {
-    final unique = ids.toSet().toList();
-    final hidden = <String>{};
-    for (var i = 0; i < unique.length; i += 450) {
-      final chunk = unique.sublist(i, (i + 450).clamp(0, unique.length));
-      final placeholders = List.filled(chunk.length, '?').join(', ');
-      final rows = await _db
-          .customSelect(
-            'SELECT id FROM equipment '
-            'WHERE id IN ($placeholders) '
-            'AND diver_id IS NOT NULL AND diver_id <> ? '
-            'AND id NOT IN (SELECT equipment_id FROM equipment_shares '
-            'WHERE diver_id = ?)',
-            variables: [
-              for (final id in chunk) Variable.withString(id),
-              Variable.withString(diverId),
-              Variable.withString(diverId),
-            ],
-          )
-          .get();
-      hidden.addAll(rows.map((r) => r.read<String>('id')));
-    }
-    return [
-      for (final id in ids)
-        if (!hidden.contains(id)) id,
-    ];
-  }
+  Future<List<String>> usableSetMemberIds(List<String> ids, String diverId) =>
+      _visibility.usableSetMemberIds(ids, diverId);
 
   /// Whether [diverId] owns [equipmentId] or holds a share of it.
   Future<bool> isVisibleTo(String equipmentId, String diverId) async =>
       (await visibleIdsAmong([equipmentId], diverId)).isNotEmpty;
 
-  /// The subset of [ids] visible to [diverId] (owned or shared), in one
-  /// statement per 450 ids (each chunk binds the ids plus the diver twice).
-  Future<Set<String>> visibleIdsAmong(
-    Iterable<String> ids,
-    String diverId,
-  ) async {
-    final list = ids.toSet().toList();
-    final visible = <String>{};
-    for (var i = 0; i < list.length; i += 450) {
-      final chunk = list.sublist(i, (i + 450).clamp(0, list.length));
-      final query = _db.select(_db.equipment)..where((t) => t.id.isIn(chunk));
-      VisibilityFilter.applyToEquipment(_db, query, diverId);
-      visible.addAll((await query.get()).map((r) => r.id));
-    }
-    return visible;
-  }
+  /// The subset of [ids] visible to [diverId] (owned or shared).
+  Future<Set<String>> visibleIdsAmong(Iterable<String> ids, String diverId) =>
+      _visibility.visibleIdsAmong(ids, diverId);
 
   /// Create new equipment. With [notify] false the caller notifies sync once
   /// its own transaction commits, as [createEquipmentWithTags] does.
@@ -651,32 +614,7 @@ class EquipmentRepository {
         await EquipmentTagRepository().deleteLinksForEquipment(id);
         // Shares and their event log (issue #2046): deleted and tombstoned
         // before the row, like the tag links, so every peer drops them too.
-        final shareIds =
-            await (_db.selectOnly(_db.equipmentShares)
-                  ..addColumns([_db.equipmentShares.id])
-                  ..where(_db.equipmentShares.equipmentId.equals(id)))
-                .map((r) => r.read(_db.equipmentShares.id)!)
-                .get();
-        final eventIds =
-            await (_db.selectOnly(_db.equipmentOwnershipEvents)
-                  ..addColumns([_db.equipmentOwnershipEvents.id])
-                  ..where(_db.equipmentOwnershipEvents.equipmentId.equals(id)))
-                .map((r) => r.read(_db.equipmentOwnershipEvents.id)!)
-                .get();
-        await (_db.delete(
-          _db.equipmentShares,
-        )..where((t) => t.equipmentId.equals(id))).go();
-        await (_db.delete(
-          _db.equipmentOwnershipEvents,
-        )..where((t) => t.equipmentId.equals(id))).go();
-        await _syncRepository.logDeletions(
-          entityType: 'equipmentShares',
-          recordIds: shareIds,
-        );
-        await _syncRepository.logDeletions(
-          entityType: 'equipmentOwnershipEvents',
-          recordIds: eventIds,
-        );
+        await EquipmentShareRepository().deleteForEquipment(id);
         await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
         for (final s in schedules) {
           await _syncRepository.logDeletion(
@@ -733,16 +671,8 @@ class EquipmentRepository {
     String id, {
     required String? actingDiverId,
   }) async {
-    if (actingDiverId != null) {
-      final item = await getEquipmentById(id);
-      // An ownerless item (no owner to defer to) stays deletable, as it was
-      // before sharing existed.
-      if (item != null &&
-          item.diverId != null &&
-          item.diverId != actingDiverId) {
-        return false;
-      }
-    }
+    final item = await getEquipmentById(id);
+    if (item != null && !canDeleteEquipment(item, actingDiverId)) return false;
     await deleteEquipment(id);
     return true;
   }
@@ -1272,19 +1202,9 @@ class EquipmentRepository {
   Future<List<({String diveId, String? diverId, DateTime date})>>
   getUsageByDiver(EquipmentItem item) async {
     final exposure = await getItemExposure(item);
-    final ids = [for (final s in exposure.samples) s.diveId];
-    final diverByDive = <String, String?>{};
-    for (var i = 0; i < ids.length; i += 900) {
-      final chunk = ids.sublist(i, (i + 900).clamp(0, ids.length));
-      final rows =
-          await (_db.selectOnly(_db.dives)
-                ..addColumns([_db.dives.id, _db.dives.diverId])
-                ..where(_db.dives.id.isIn(chunk)))
-              .get();
-      for (final r in rows) {
-        diverByDive[r.read(_db.dives.id)!] = r.read(_db.dives.diverId);
-      }
-    }
+    final diverByDive = await _visibility.diversOfDives([
+      for (final s in exposure.samples) s.diveId,
+    ]);
     return [
       for (final s in exposure.samples)
         (diveId: s.diveId, diverId: diverByDive[s.diveId], date: s.date),

@@ -1,4 +1,5 @@
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
 
 /// The members of a set to apply: those in [visibleIds], the ids a caller
 /// got from `EquipmentRepository.usableSetMemberIds`. A member whose share
@@ -15,17 +16,19 @@ List<EquipmentItem> usableSetItems(
 /// The set members [diverId] gets when a set is applied, from items already
 /// in hand: every member except one another profile owns that is not in
 /// [visibleIds] (issue #2046). Ownerless items apply as they always have.
-/// The same rule as `EquipmentRepository.usableSetMemberIds`, for callers
-/// that already hold the visible list.
+/// The same rule ([isSetMemberUsableBy]) as
+/// `EquipmentRepository.usableSetMemberIds`, for callers that already hold
+/// the visible list.
 List<EquipmentItem> setItemsUsableBy(
   Iterable<EquipmentItem> items, {
   required String? diverId,
   required Set<String> visibleIds,
 }) => [
   for (final item in items)
-    if (diverId == null ||
-        item.diverId == null ||
-        item.diverId == diverId ||
-        visibleIds.contains(item.id))
+    if (isSetMemberUsableBy(
+      ownerId: item.diverId,
+      diverId: diverId,
+      sharedWithDiver: visibleIds.contains(item.id),
+    ))
       item,
 ];
