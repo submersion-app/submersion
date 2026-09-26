@@ -82,6 +82,9 @@ const List<DiverDeleteStep> diverDiveSteps = [
 
 const _ofDiverTrips = 'trip_id IN (SELECT id FROM trips WHERE diver_id = ?1)';
 
+const _ofDiverTripCylinders =
+    'trip_cylinder_id IN (SELECT id FROM trip_cylinders WHERE $_ofDiverTrips)';
+
 /// The trips and sites the diver still owns: the private ones, and the
 /// shared ones too when no diver survived to take them. A trip's children
 /// reference `trips` with no ON DELETE action, so they go first, tombstoned
@@ -103,6 +106,13 @@ const List<DiverDeleteStep> diverTripAndSiteSteps = [
     entityType: 'tripChecklistItems',
     where: _ofDiverTrips,
   ),
+  // The ledger first: it cascades from its slot, and a cascade logs nothing.
+  (
+    table: 'trip_cylinder_events',
+    entityType: 'tripCylinderEvents',
+    where: _ofDiverTripCylinders,
+  ),
+  (table: 'trip_cylinders', entityType: 'tripCylinders', where: _ofDiverTrips),
   (
     table: 'trip_day_weather',
     entityType: 'tripDayWeather',

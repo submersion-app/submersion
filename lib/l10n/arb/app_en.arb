@@ -11615,6 +11615,7 @@
   "settings_conflict_ref_tag": "Tag",
   "settings_conflict_ref_tank": "Tank",
   "settings_conflict_ref_trip": "Trip",
+  "settings_conflict_ref_tripCylinder": "Trip cylinder",
   "settings_conflict_remoteVersion": "Remote Version",
   "settings_conflict_resolved": "Resolved {count, plural, =1{1 conflict} other{{count} conflicts}}",
   "settings_conflict_title": "Resolve Conflicts",
