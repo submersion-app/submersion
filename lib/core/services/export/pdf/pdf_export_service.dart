@@ -200,7 +200,7 @@ class PdfExportService {
       EquipmentSetRepository(),
     );
 
-    // Read once, so the cover's stamp and the file name name the same moment.
+    // Read once, so the cover's stamp and the file name show the same moment.
     final generatedAt = _now();
 
     final builder = PdfTemplateFactory().getBuilder(options.template);

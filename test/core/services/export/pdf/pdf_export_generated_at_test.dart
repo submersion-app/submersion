@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/pdf_text.dart';
 import '../../../../helpers/test_database.dart';
 
 /// [PdfExportService] reads its clock once per export, for the cover's
@@ -46,22 +47,19 @@ void main() {
   test('exports stamped the same minute are the same size', () async {
     final at = DateTime(2026, 3, 28, 10, 59);
 
-    expect(
-      (await exportAt(at)).bytes.length,
-      (await exportAt(at)).bytes.length,
-    );
+    final first = await exportAt(at);
+    final second = await exportAt(at);
+
+    expect(second.bytes.length, first.bytes.length);
   });
 
-  test('a stamp ticking from 10:59 to 11:00 changes the size', () async {
-    // The flake, made deterministic: the 9 of 10:59 appears nowhere else in
-    // this document, so the second export's font subset lacks its glyph.
-    final before = await exportAt(DateTime(2026, 3, 28, 10, 59));
-    final after = await exportAt(DateTime(2026, 3, 28, 11, 0));
+  test('stamps the cover with the injected clock', () async {
+    final result = await exportAt(DateTime(2031, 7, 14, 10, 59));
 
     expect(
-      after.bytes.length,
-      isNot(before.bytes.length),
-      reason: 'the stamp must come from the injected clock',
+      pdfSubsetTexts(result.bytes),
+      anyElement(contains('Generated on 14/07/2031 10:59')),
+      reason: 'the service must hand its clock to the template',
     );
   });
 
