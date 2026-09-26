@@ -42407,4 +42407,418 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveCenters_rental_deleteConfirm =>
       'Törlöd ezt a bérlési jegyzetet?';
+
+  @override
+  String get query_buddies_certifications => 'Minősítések';
+
+  @override
+  String get query_buddies_email => 'E-mail';
+
+  @override
+  String get query_buddies_favorite => 'Kedvenc';
+
+  @override
+  String get query_buddies_name => 'Név';
+
+  @override
+  String get query_buddies_notes => 'Jegyzetek';
+
+  @override
+  String get query_buddies_phone => 'Telefon';
+
+  @override
+  String get query_centers_city => 'Város';
+
+  @override
+  String get query_centers_country => 'Ország';
+
+  @override
+  String get query_centers_name => 'Név';
+
+  @override
+  String get query_certifications_agency => 'Szervezet';
+
+  @override
+  String get query_certifications_cardNumber => 'Kártyaszám';
+
+  @override
+  String get query_certifications_expiryDate => 'Lejárat dátuma';
+
+  @override
+  String get query_certifications_instructorName => 'Oktató neve';
+
+  @override
+  String get query_certifications_issueDate => 'Kiállítás dátuma';
+
+  @override
+  String get query_certifications_level => 'Szint';
+
+  @override
+  String get query_certifications_name => 'Név';
+
+  @override
+  String get query_computers_manufacturer => 'Gyártó';
+
+  @override
+  String get query_computers_model => 'Modell';
+
+  @override
+  String get query_computers_name => 'Név';
+
+  @override
+  String get query_computers_serialNumber => 'Sorozatszám';
+
+  @override
+  String get query_courses_agency => 'Szervezet';
+
+  @override
+  String get query_courses_completionDate => 'Befejezés dátuma';
+
+  @override
+  String get query_courses_name => 'Név';
+
+  @override
+  String get query_courses_startDate => 'Kezdő dátum';
+
+  @override
+  String get query_customFields_key => 'Kulcs';
+
+  @override
+  String get query_customFields_value => 'Érték';
+
+  @override
+  String get query_diveTypes_builtIn => 'Beépített';
+
+  @override
+  String get query_diveTypes_name => 'Név';
+
+  @override
+  String get query_dives_airTemp => 'Léghőmérséklet';
+
+  @override
+  String get query_dives_avgDepth => 'Átlagos mélység';
+
+  @override
+  String get query_dives_boatName => 'Hajó';
+
+  @override
+  String get query_dives_bottomTime => 'Fenékidő';
+
+  @override
+  String get query_dives_buddies => 'Merülőtársak';
+
+  @override
+  String get query_dives_center => 'Búvárközpont';
+
+  @override
+  String get query_dives_cnsEnd => 'CNS a végén';
+
+  @override
+  String get query_dives_computer => 'Búvárkomputer';
+
+  @override
+  String get query_dives_course => 'Tanfolyam';
+
+  @override
+  String get query_dives_currentStrength => 'Áramlás';
+
+  @override
+  String get query_dives_customFields => 'Egyéni mezők';
+
+  @override
+  String get query_dives_date => 'Dátum';
+
+  @override
+  String get query_dives_deco => 'Dekompressziós merülés';
+
+  @override
+  String get query_dives_depth => 'Maximális mélység';
+
+  @override
+  String get query_dives_diveMaster => 'Divemaster';
+
+  @override
+  String get query_dives_diveMode => 'Merülési mód';
+
+  @override
+  String get query_dives_diveNumber => 'Merülés száma';
+
+  @override
+  String get query_dives_diveOperator => 'Szolgáltató';
+
+  @override
+  String get query_dives_entryMethod => 'Beszállás módja';
+
+  @override
+  String get query_dives_excludedFromStats => 'Kizárva a statisztikából';
+
+  @override
+  String get query_dives_exitMethod => 'Kiszállás módja';
+
+  @override
+  String get query_dives_favorite => 'Kedvenc';
+
+  @override
+  String get query_dives_gasCount => 'Palackok száma';
+
+  @override
+  String get query_dives_gear => 'Felszerelés';
+
+  @override
+  String get query_dives_hasProfile => 'Van profil';
+
+  @override
+  String get query_dives_id => 'Merülés azonosító';
+
+  @override
+  String get query_dives_legacyBuddy => 'Merülőtárs (régi szöveg)';
+
+  @override
+  String get query_dives_media => 'Média';
+
+  @override
+  String get query_dives_name => 'Név';
+
+  @override
+  String get query_dives_notes => 'Jegyzetek';
+
+  @override
+  String get query_dives_otu => 'OTU';
+
+  @override
+  String get query_dives_planned => 'Tervezett';
+
+  @override
+  String get query_dives_rating => 'Értékelés';
+
+  @override
+  String get query_dives_runtime => 'Teljes idő';
+
+  @override
+  String get query_dives_sightings => 'Észlelések';
+
+  @override
+  String get query_dives_site => 'Merülőhely';
+
+  @override
+  String get query_dives_surfaceConditions => 'Felszíni körülmények';
+
+  @override
+  String get query_dives_surfaceInterval => 'Felszíni intervallum';
+
+  @override
+  String get query_dives_tags => 'Címkék';
+
+  @override
+  String get query_dives_tanks => 'Palackok';
+
+  @override
+  String get query_dives_trip => 'Utazás';
+
+  @override
+  String get query_dives_types => 'Merülés típusok';
+
+  @override
+  String get query_dives_visibility => 'Látótávolság';
+
+  @override
+  String get query_dives_waterTemp => 'Vízhőmérséklet';
+
+  @override
+  String get query_dives_waterType => 'Víz típusa';
+
+  @override
+  String get query_dives_weekday => 'Hét napja';
+
+  @override
+  String get query_dives_weight => 'Ólom';
+
+  @override
+  String get query_dives_weights => 'Ólom';
+
+  @override
+  String get query_dives_year => 'Év';
+
+  @override
+  String get query_entity_buddies => 'Merülőtársak';
+
+  @override
+  String get query_entity_centers => 'Búvárközpontok';
+
+  @override
+  String get query_entity_certifications => 'Minősítések';
+
+  @override
+  String get query_entity_computers => 'Búvárkomputerek';
+
+  @override
+  String get query_entity_courses => 'Tanfolyamok';
+
+  @override
+  String get query_entity_customFields => 'Egyéni mezők';
+
+  @override
+  String get query_entity_diveTypes => 'Merülés típusok';
+
+  @override
+  String get query_entity_dives => 'Merülések';
+
+  @override
+  String get query_entity_equipment => 'Felszerelés';
+
+  @override
+  String get query_entity_equipmentAttributes => 'Felszerelés jellemzői';
+
+  @override
+  String get query_entity_media => 'Média';
+
+  @override
+  String get query_entity_sightings => 'Észlelések';
+
+  @override
+  String get query_entity_sites => 'Merülőhelyek';
+
+  @override
+  String get query_entity_species => 'Fajok';
+
+  @override
+  String get query_entity_tags => 'Címkék';
+
+  @override
+  String get query_entity_tanks => 'Palackok';
+
+  @override
+  String get query_entity_trips => 'Utazások';
+
+  @override
+  String get query_entity_weights => 'Ólom';
+
+  @override
+  String get query_equipmentAttributes_custom => 'Egyéni';
+
+  @override
+  String get query_equipmentAttributes_key => 'Kulcs';
+
+  @override
+  String get query_equipmentAttributes_valueNum => 'Számérték';
+
+  @override
+  String get query_equipmentAttributes_valueText => 'Szöveges érték';
+
+  @override
+  String get query_equipment_active => 'Aktív';
+
+  @override
+  String get query_equipment_attributes => 'Jellemzők';
+
+  @override
+  String get query_equipment_brand => 'Márka';
+
+  @override
+  String get query_equipment_model => 'Modell';
+
+  @override
+  String get query_equipment_name => 'Név';
+
+  @override
+  String get query_equipment_serialNumber => 'Sorozatszám';
+
+  @override
+  String get query_equipment_status => 'Állapot';
+
+  @override
+  String get query_equipment_type => 'Típus';
+
+  @override
+  String get query_media_caption => 'Felirat';
+
+  @override
+  String get query_media_favorite => 'Kedvenc';
+
+  @override
+  String get query_media_type => 'Típus';
+
+  @override
+  String get query_sightings_count => 'Darabszám';
+
+  @override
+  String get query_sightings_notes => 'Jegyzetek';
+
+  @override
+  String get query_sightings_species => 'Fajok';
+
+  @override
+  String get query_sites_city => 'Város';
+
+  @override
+  String get query_sites_country => 'Ország';
+
+  @override
+  String get query_sites_island => 'Sziget';
+
+  @override
+  String get query_sites_maxDepth => 'Maximális mélység';
+
+  @override
+  String get query_sites_name => 'Név';
+
+  @override
+  String get query_sites_rating => 'Értékelés';
+
+  @override
+  String get query_sites_region => 'Régió';
+
+  @override
+  String get query_species_category => 'Kategória';
+
+  @override
+  String get query_species_name => 'Név';
+
+  @override
+  String get query_species_scientificName => 'Tudományos név';
+
+  @override
+  String get query_tags_name => 'Név';
+
+  @override
+  String get query_tanks_cylinder => 'Palack';
+
+  @override
+  String get query_tanks_endPressure => 'Végnyomás';
+
+  @override
+  String get query_tanks_he => 'Hélium';
+
+  @override
+  String get query_tanks_name => 'Név';
+
+  @override
+  String get query_tanks_o2 => 'Oxigén';
+
+  @override
+  String get query_tanks_startPressure => 'Kezdő nyomás';
+
+  @override
+  String get query_tanks_volume => 'Térfogat';
+
+  @override
+  String get query_trips_endDate => 'Záró dátum';
+
+  @override
+  String get query_trips_location => 'Helyszín';
+
+  @override
+  String get query_trips_name => 'Név';
+
+  @override
+  String get query_trips_startDate => 'Kezdő dátum';
+
+  @override
+  String get query_weights_amount => 'Mennyiség';
+
+  @override
+  String get query_weights_notes => 'Jegyzetek';
+
+  @override
+  String get query_weights_type => 'Típus';
 }

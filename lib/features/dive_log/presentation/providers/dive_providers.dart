@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show setEquals;
+
 import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
@@ -24,9 +26,10 @@ import 'package:submersion/features/dive_log/domain/entities/source_profile.dart
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
+import 'package:submersion/features/dive_log/presentation/providers/narrow_dives.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
@@ -49,96 +52,40 @@ final diveSortProvider = StateProvider<SortState<DiveSortField>>(
   ),
 );
 
-/// The ids of every dive matching one polarity of the decompression filter.
+/// The ids [filter] keeps, resolved in SQL through the one compiled query
+/// every dive path shares (#2365), or null when the filter has no active
+/// axes so the hydrated list passes through untouched.
 ///
-/// The deco axis cannot be evaluated in memory: [DiveRepository.getAllDives]
-/// deliberately skips profile hydration for list views, and deco-stop events
-/// never reach the [domain.Dive] entity at all, so
-/// [DiveFilterState.apply] has nothing to classify from. Resolving the ids in
-/// SQL instead keeps the entity-backed surfaces (table view, activity and heat
-/// maps) in exact agreement with the paginated list, which reads the same
-/// `decoSignalCondition`.
-///
-/// Keyed on the wanted polarity so flipping Yes/No lands on a fresh instance
-/// rather than briefly reusing the other polarity's cached ids.
-final decoFilteredDiveIdsProvider = FutureProvider.family<Set<String>, bool>((
-  ref,
-  wantDeco,
-) async {
-  final diverId = ref.watch(currentDiverIdProvider);
-  final repository = ref.watch(diveRepositoryProvider);
-  // Profile rows and deco-stop events both feed the classification, so the
-  // dives tick alone is not enough to keep this fresh.
-  ref.invalidateSelfWhen(repository.watchAnalysisInputChanges());
-  return repository.getDiveIdsWithDecoSignal(
-    wantDeco: wantDeco,
-    diverId: diverId,
-  );
-});
-
-/// The ids of every dive matching the equipment-attribute conditions.
-///
-/// Like [decoFilteredDiveIdsProvider], this exists because the in-memory
-/// path cannot evaluate the axis: a cylinder matched through the transmitter
-/// registry reaches the entity without its item or attributes. Keyed on
-/// [EquipmentAttrConditionsKey], which compares the list element by element,
-/// so a changed condition set lands on a fresh instance rather than briefly
-/// reusing the previous set's ids.
-final equipmentAttrFilteredDiveIdsProvider =
-    FutureProvider.family<Set<String>, EquipmentAttrConditionsKey>((
-      ref,
-      key,
-    ) async {
+/// Keyed on the filter INSTANCE (the sheet replaces the state on every
+/// edit), so a changed filter lands on a fresh instance that starts
+/// loading rather than briefly reusing the previous filter's ids, while a
+/// write to a table the query read invalidates the same instance and keeps
+/// its value until the new one arrives, so the list never blanks. Follows
+/// exactly the tables the compiled query touched: a synced buddy link, a
+/// weight row or an attribute-only save refreshes it without a dives
+/// write.
+final queryFilteredDiveIdsProvider = FutureProvider.autoDispose
+    .family<Set<String>?, DiveFilterState>((ref, filter) async {
+      if (!filter.hasActiveFilters) return null;
       final diverId = ref.watch(currentDiverIdProvider);
       final repository = ref.watch(diveRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchEquipmentAttrFilterChanges());
-      return repository.getDiveIdsMatchingEquipmentAttrs(
-        key.conditions,
-        diverId: diverId,
-      );
+      // Compiled once: the same object names the tables to follow and is
+      // the query the repository runs.
+      final compiled = compileDiveFilter(filter, rootAlias: 'd');
+      ref.invalidateSelfWhen(repository.watchTables(compiled.tablesTouched));
+      return repository.getDiveIdsForQuery(compiled, diverId: diverId);
     });
 
-/// Filtered dives provider - applies current filter to dive list
+/// Filtered dives provider: the hydrated list narrowed to the ids the
+/// compiled filter keeps. No axis is evaluated in Dart any more; the
+/// repository answers every one in SQL, in step with the paginated list
+/// and Statistics.
 final filteredDivesProvider = Provider<AsyncValue<List<domain.Dive>>>((ref) {
   final divesAsync = ref.watch(diveListNotifierProvider);
   final filter = ref.watch(diveFilterProvider);
-
-  // Axes the entity cannot answer resolve to SQL id sets; each one present
-  // narrows the in-memory result.
-  final idSets = <AsyncValue<Set<String>>>[
-    if (filter.decoOnly case final decoOnly?)
-      ref.watch(decoFilteredDiveIdsProvider(decoOnly)),
-    if (filter.equipmentAttrConditions.isNotEmpty)
-      ref.watch(
-        equipmentAttrFilteredDiveIdsProvider(
-          EquipmentAttrConditionsKey(filter.equipmentAttrConditions),
-        ),
-      ),
-  ];
-
-  final resolved = <Set<String>>[];
-  for (final idsAsync in idSets) {
-    // Built-in AsyncValue.value, not the repo's valueOrNull polyfill: it
-    // retains the previous ids across a reload, so a write does not blank the
-    // list. Null means first load (or a failure), never a stale answer.
-    final ids = idsAsync.value;
-    if (ids == null) {
-      if (idsAsync.hasError) {
-        return AsyncValue.error(
-          idsAsync.error!,
-          idsAsync.stackTrace ?? StackTrace.empty,
-        );
-      }
-      return const AsyncValue.loading();
-    }
-    resolved.add(ids);
-  }
-
-  return divesAsync.whenData(
-    (dives) => filter
-        .apply(dives)
-        .where((d) => resolved.every((ids) => ids.contains(d.id)))
-        .toList(),
+  return narrowDivesByIds(
+    divesAsync,
+    ref.watch(queryFilteredDiveIdsProvider(filter)),
   );
 });
 
@@ -170,16 +117,16 @@ final orderedDiveIdsProvider = FutureProvider.autoDispose<List<String>>((
   final filter = ref.watch(diveFilterProvider);
   final sort = ref.watch(diveSortProvider);
   final repository = ref.watch(diveRepositoryProvider);
-  // A buddy filter makes the query read dive_buddies and buddies (#1915).
+  // ONE debounced tick over `dives` plus whatever else the compiled filter
+  // reads (#2365): the buddy tables under a buddy filter (#1915), the gear
+  // tables under an attribute condition (#1805). One stream, not two, so a
+  // junction write followed by the dive write recomputes the ids once.
+  final extra = diveFilterTablesTouched(filter).difference({'dives'});
   ref.invalidateSelfWhen(
-    filter.readsBuddyLinks
-        ? repository.watchDivesChangesWithBuddyLinks()
-        : repository.watchDivesChanges(),
+    extra.isEmpty
+        ? repository.watchDivesChanges()
+        : repository.watchTables({'dives', ...extra}),
   );
-  // An attribute condition makes the query read the gear tables (#1805).
-  if (filter.equipmentAttrConditions.isNotEmpty) {
-    ref.invalidateSelfWhen(repository.watchEquipmentAttrFilterChanges());
-  }
   return repository.getOrderedDiveIds(
     diverId: diverId,
     filter: filter,
@@ -490,59 +437,45 @@ final diveSearchProvider = FutureProvider.family<List<DiveSummary>, String>((
   );
 });
 
-/// A change tick subscribed only while a filter reads its tables, so writes
-/// to those tables never reload a list that is not filtered by them.
-class _FilterTickFollower {
-  _FilterTickFollower(this._tick, this._onTick);
-
-  final Stream<void> Function() _tick;
-  final void Function() _onTick;
-  StreamSubscription<void>? _subscription;
-
-  /// Subscribes when [wanted] and not yet subscribed; cancels when not.
-  void follow(bool wanted) {
-    if (wanted && _subscription == null) {
-      _subscription = _tick().listen((_) => _onTick());
-    } else if (!wanted) {
-      cancel();
-    }
-  }
-
-  void cancel() {
-    _subscription?.cancel();
-    _subscription = null;
-  }
-}
-
-/// A list's one change tick, switched to the variant that also watches the
-/// buddy tables while a buddy filter is set (#1915). One debounced stream,
-/// not a second tick beside the first: a local buddy edit writes
-/// `dive_buddies` and then the dive row, and two ticks would reload the list
-/// once for each write.
-class _BuddyAwareTick {
-  _BuddyAwareTick({
+/// A notifier's one change tick, widened to the tables its compiled
+/// filter reads (#2365).
+///
+/// With no extra tables it is [plain] (the notifier's own debounced
+/// stream). With extra tables it is ONE debounced stream over the base
+/// tables plus the extra ones, never a second tick beside the first: a
+/// local buddy edit writes `dive_buddies` and then the dive row, and two
+/// separately debounced ticks would reload the list once for each write.
+/// Resubscribes only when the extra set changes. The many test fakes that
+/// `implements DiveRepository` without `watchTables` are never asked for
+/// it while the filter reads nothing extra.
+class _FilterAwareTick {
+  _FilterAwareTick({
     required Stream<void> Function() plain,
-    required Stream<void> Function() withBuddyLinks,
+    required Set<String> baseTables,
+    required Stream<void> Function(Set<String>) watchTables,
     required void Function() onTick,
   }) : _plain = plain,
-       _withBuddyLinks = withBuddyLinks,
+       _baseTables = baseTables,
+       _watchTables = watchTables,
        _onTick = onTick;
 
   final Stream<void> Function() _plain;
-  final Stream<void> Function() _withBuddyLinks;
+  final Set<String> _baseTables;
+  final Stream<void> Function(Set<String>) _watchTables;
   final void Function() _onTick;
   StreamSubscription<void>? _subscription;
-  bool? _buddyLinks;
+  Set<String>? _extra;
 
-  /// Subscribes to the variant [buddyLinks] calls for, resubscribing only
-  /// when that changes.
-  void follow(bool buddyLinks) {
-    if (_subscription != null && _buddyLinks == buddyLinks) return;
+  /// Subscribes for [extra] (the filter's tables beyond the base set),
+  /// resubscribing only when that set changes.
+  void follow(Set<String> extra) {
+    if (_subscription != null && setEquals(_extra, extra)) return;
     _subscription?.cancel();
-    _buddyLinks = buddyLinks;
-    _subscription = (buddyLinks ? _withBuddyLinks : _plain)().listen(
-      (_) => _onTick(),
-    );
+    _extra = extra;
+    final stream = extra.isEmpty
+        ? _plain()
+        : _watchTables({..._baseTables, ...extra});
+    _subscription = stream.listen((_) => _onTick());
   }
 
   void cancel() {
@@ -575,25 +508,22 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     // and page-preserving so a local edit-save doesn't shrink the list out
     // from under the diver (#1610).
     //
-    // filteredDivesProvider (the maps) applies the buddy-name and no-buddy
-    // filters to each dive's hydrated buddies (DiveFilterState.apply has no
-    // buddyId clause yet, #1919), which a link-only write (a sync pull, a
-    // merge, a rename) changes without a dives write, so under a buddy
-    // filter the tick also watches the buddy tables (#1915).
-    final divesTick = _BuddyAwareTick(
+    // filteredDivesProvider narrows this list by a SQL id set that joins
+    // whatever tables the filter names; a write to one of them (a synced
+    // buddy link, a weight row) changes the answer without a dives write,
+    // so the tick follows the filter's tables beyond `dives` (#1915).
+    final divesTick = _FilterAwareTick(
       plain: _repository.watchDivesChanges,
-      withBuddyLinks: _repository.watchDivesChangesWithBuddyLinks,
+      baseTables: const {'dives'},
+      watchTables: _repository.watchTables,
       onTick: _silentReload,
     );
+    Set<String> extra(DiveFilterState f) =>
+        diveFilterTablesTouched(f).difference({'dives'});
     _ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
-      final entering =
-          next.readsBuddyLinks && !(previous?.readsBuddyLinks ?? false);
-      divesTick.follow(next.readsBuddyLinks);
-      // Unfiltered, buddy-only writes were not watched, so the hydrated
-      // buddies may be stale; re-read them before the new filter sees them.
-      if (entering) _silentReload();
+      divesTick.follow(extra(next));
     });
-    divesTick.follow(_ref.read(diveFilterProvider).readsBuddyLinks);
+    divesTick.follow(extra(_ref.read(diveFilterProvider)));
     _ref.onDispose(divesTick.cancel);
   }
 
@@ -829,10 +759,7 @@ class PaginatedDiveListNotifier
       }
     });
     _followFilterTicks(_ref.read(diveFilterProvider));
-    _ref.onDispose(() {
-      _listTick.cancel();
-      _attrFilterTick.cancel();
-    });
+    _ref.onDispose(_listTick.cancel);
     _ref.listen<SortState<DiveSortField>>(diveSortProvider, (previous, next) {
       if (previous != next) {
         loadFirstPage();
@@ -860,29 +787,25 @@ class PaginatedDiveListNotifier
   /// The list tick, not the dives one: the summary query joins sites and
   /// trips, so a trip rename or a site rename changes what is on screen
   /// without touching the dives table (#1193).
-  late final _listTick = _BuddyAwareTick(
+  late final _listTick = _FilterAwareTick(
     plain: _repository.watchDiveListChanges,
-    withBuddyLinks: _repository.watchDiveListChangesWithBuddyLinks,
+    baseTables: DiveRepository.diveListTickTables,
+    watchTables: _repository.watchTables,
     onTick: _silentReloadLoadedPages,
   );
 
-  /// [DiveRepository.watchEquipmentAttrFilterChanges], followed only while
-  /// the filter has an equipment-attribute condition.
-  late final _attrFilterTick = _FilterTickFollower(
-    _repository.watchEquipmentAttrFilterChanges,
-    _silentReloadLoadedPages,
-  );
-
-  /// Follows the tables only some filters read. The page and count read
-  /// `dive_buddies`/`buddies` under a buddy filter (#1915) and the gear
-  /// tables under an equipment-attribute condition (#1805), none of which the
-  /// plain list tick watches, so a buddy link, merge or rename, a gear link
-  /// or an attribute-only write (a sync pull, saveAttributes) would otherwise
-  /// leave them stale. Without such a filter those tables are not watched, so
-  /// their writes never reload an unfiltered list.
+  /// Follows the tables the compiled filter reads beyond the list tick's
+  /// own set (#2365): `dive_buddies` and `buddies` under a buddy filter
+  /// (#1915), the gear tables under an attribute condition (#1805),
+  /// `dive_weights` under `weights:none`, and so on. Without such a filter
+  /// only the plain list tick is watched, so an unfiltered list never
+  /// reloads for those writes.
   void _followFilterTicks(DiveFilterState filter) {
-    _listTick.follow(filter.readsBuddyLinks);
-    _attrFilterTick.follow(filter.equipmentAttrConditions.isNotEmpty);
+    _listTick.follow(
+      diveFilterTablesTouched(
+        filter,
+      ).difference(DiveRepository.diveListTickTables),
+    );
   }
 
   bool get _isDateSort {

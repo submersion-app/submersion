@@ -40085,4 +40085,418 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveCenters_rental_deleteConfirm => '删除此租赁备注？';
+
+  @override
+  String get query_buddies_certifications => '证书';
+
+  @override
+  String get query_buddies_email => '电子邮件';
+
+  @override
+  String get query_buddies_favorite => '收藏';
+
+  @override
+  String get query_buddies_name => '名称';
+
+  @override
+  String get query_buddies_notes => '备注';
+
+  @override
+  String get query_buddies_phone => '电话';
+
+  @override
+  String get query_centers_city => '城市';
+
+  @override
+  String get query_centers_country => '国家';
+
+  @override
+  String get query_centers_name => '名称';
+
+  @override
+  String get query_certifications_agency => '认证机构';
+
+  @override
+  String get query_certifications_cardNumber => '卡号';
+
+  @override
+  String get query_certifications_expiryDate => '到期日期';
+
+  @override
+  String get query_certifications_instructorName => '教练姓名';
+
+  @override
+  String get query_certifications_issueDate => '签发日期';
+
+  @override
+  String get query_certifications_level => '等级';
+
+  @override
+  String get query_certifications_name => '名称';
+
+  @override
+  String get query_computers_manufacturer => '制造商';
+
+  @override
+  String get query_computers_model => '型号';
+
+  @override
+  String get query_computers_name => '名称';
+
+  @override
+  String get query_computers_serialNumber => '序列号';
+
+  @override
+  String get query_courses_agency => '认证机构';
+
+  @override
+  String get query_courses_completionDate => '完成日期';
+
+  @override
+  String get query_courses_name => '名称';
+
+  @override
+  String get query_courses_startDate => '开始日期';
+
+  @override
+  String get query_customFields_key => '键';
+
+  @override
+  String get query_customFields_value => '值';
+
+  @override
+  String get query_diveTypes_builtIn => '内置';
+
+  @override
+  String get query_diveTypes_name => '名称';
+
+  @override
+  String get query_dives_airTemp => '气温';
+
+  @override
+  String get query_dives_avgDepth => '平均深度';
+
+  @override
+  String get query_dives_boatName => '船';
+
+  @override
+  String get query_dives_bottomTime => '水底时间';
+
+  @override
+  String get query_dives_buddies => '潜伴';
+
+  @override
+  String get query_dives_center => '潜水中心';
+
+  @override
+  String get query_dives_cnsEnd => '结束时 CNS';
+
+  @override
+  String get query_dives_computer => '潜水电脑';
+
+  @override
+  String get query_dives_course => '课程';
+
+  @override
+  String get query_dives_currentStrength => '水流';
+
+  @override
+  String get query_dives_customFields => '自定义字段';
+
+  @override
+  String get query_dives_date => '日期';
+
+  @override
+  String get query_dives_deco => '减压潜水';
+
+  @override
+  String get query_dives_depth => '最大深度';
+
+  @override
+  String get query_dives_diveMaster => '潜水长';
+
+  @override
+  String get query_dives_diveMode => '潜水模式';
+
+  @override
+  String get query_dives_diveNumber => '潜次';
+
+  @override
+  String get query_dives_diveOperator => '运营商';
+
+  @override
+  String get query_dives_entryMethod => '入水方式';
+
+  @override
+  String get query_dives_excludedFromStats => '不计入统计';
+
+  @override
+  String get query_dives_exitMethod => '出水方式';
+
+  @override
+  String get query_dives_favorite => '收藏';
+
+  @override
+  String get query_dives_gasCount => '气瓶数量';
+
+  @override
+  String get query_dives_gear => '装备';
+
+  @override
+  String get query_dives_hasProfile => '有剖面';
+
+  @override
+  String get query_dives_id => '潜水编号';
+
+  @override
+  String get query_dives_legacyBuddy => '潜伴（旧文本）';
+
+  @override
+  String get query_dives_media => '媒体';
+
+  @override
+  String get query_dives_name => '名称';
+
+  @override
+  String get query_dives_notes => '备注';
+
+  @override
+  String get query_dives_otu => 'OTU';
+
+  @override
+  String get query_dives_planned => '已计划';
+
+  @override
+  String get query_dives_rating => '评分';
+
+  @override
+  String get query_dives_runtime => '总时长';
+
+  @override
+  String get query_dives_sightings => '观察记录';
+
+  @override
+  String get query_dives_site => '潜点';
+
+  @override
+  String get query_dives_surfaceConditions => '水面状况';
+
+  @override
+  String get query_dives_surfaceInterval => '水面间隔';
+
+  @override
+  String get query_dives_tags => '标签';
+
+  @override
+  String get query_dives_tanks => '气瓶';
+
+  @override
+  String get query_dives_trip => '旅程';
+
+  @override
+  String get query_dives_types => '潜水类型';
+
+  @override
+  String get query_dives_visibility => '能见度';
+
+  @override
+  String get query_dives_waterTemp => '水温';
+
+  @override
+  String get query_dives_waterType => '水域类型';
+
+  @override
+  String get query_dives_weekday => '星期';
+
+  @override
+  String get query_dives_weight => '配重';
+
+  @override
+  String get query_dives_weights => '配重';
+
+  @override
+  String get query_dives_year => '年份';
+
+  @override
+  String get query_entity_buddies => '潜伴';
+
+  @override
+  String get query_entity_centers => '潜水中心';
+
+  @override
+  String get query_entity_certifications => '证书';
+
+  @override
+  String get query_entity_computers => '潜水电脑';
+
+  @override
+  String get query_entity_courses => '课程';
+
+  @override
+  String get query_entity_customFields => '自定义字段';
+
+  @override
+  String get query_entity_diveTypes => '潜水类型';
+
+  @override
+  String get query_entity_dives => '潜水';
+
+  @override
+  String get query_entity_equipment => '装备';
+
+  @override
+  String get query_entity_equipmentAttributes => '装备属性';
+
+  @override
+  String get query_entity_media => '媒体';
+
+  @override
+  String get query_entity_sightings => '观察记录';
+
+  @override
+  String get query_entity_sites => '潜点';
+
+  @override
+  String get query_entity_species => '物种';
+
+  @override
+  String get query_entity_tags => '标签';
+
+  @override
+  String get query_entity_tanks => '气瓶';
+
+  @override
+  String get query_entity_trips => '旅程';
+
+  @override
+  String get query_entity_weights => '配重';
+
+  @override
+  String get query_equipmentAttributes_custom => '自定义';
+
+  @override
+  String get query_equipmentAttributes_key => '键';
+
+  @override
+  String get query_equipmentAttributes_valueNum => '数值';
+
+  @override
+  String get query_equipmentAttributes_valueText => '文本值';
+
+  @override
+  String get query_equipment_active => '启用';
+
+  @override
+  String get query_equipment_attributes => '属性';
+
+  @override
+  String get query_equipment_brand => '品牌';
+
+  @override
+  String get query_equipment_model => '型号';
+
+  @override
+  String get query_equipment_name => '名称';
+
+  @override
+  String get query_equipment_serialNumber => '序列号';
+
+  @override
+  String get query_equipment_status => '状态';
+
+  @override
+  String get query_equipment_type => '类型';
+
+  @override
+  String get query_media_caption => '说明';
+
+  @override
+  String get query_media_favorite => '收藏';
+
+  @override
+  String get query_media_type => '类型';
+
+  @override
+  String get query_sightings_count => '数量';
+
+  @override
+  String get query_sightings_notes => '备注';
+
+  @override
+  String get query_sightings_species => '物种';
+
+  @override
+  String get query_sites_city => '城市';
+
+  @override
+  String get query_sites_country => '国家';
+
+  @override
+  String get query_sites_island => '岛屿';
+
+  @override
+  String get query_sites_maxDepth => '最大深度';
+
+  @override
+  String get query_sites_name => '名称';
+
+  @override
+  String get query_sites_rating => '评分';
+
+  @override
+  String get query_sites_region => '地区';
+
+  @override
+  String get query_species_category => '类别';
+
+  @override
+  String get query_species_name => '名称';
+
+  @override
+  String get query_species_scientificName => '学名';
+
+  @override
+  String get query_tags_name => '名称';
+
+  @override
+  String get query_tanks_cylinder => '气瓶';
+
+  @override
+  String get query_tanks_endPressure => '结束压力';
+
+  @override
+  String get query_tanks_he => '氦气';
+
+  @override
+  String get query_tanks_name => '名称';
+
+  @override
+  String get query_tanks_o2 => '氧气';
+
+  @override
+  String get query_tanks_startPressure => '起始压力';
+
+  @override
+  String get query_tanks_volume => '容量';
+
+  @override
+  String get query_trips_endDate => '结束日期';
+
+  @override
+  String get query_trips_location => '地点';
+
+  @override
+  String get query_trips_name => '名称';
+
+  @override
+  String get query_trips_startDate => '开始日期';
+
+  @override
+  String get query_weights_amount => '数量';
+
+  @override
+  String get query_weights_notes => '备注';
+
+  @override
+  String get query_weights_type => '类型';
 }

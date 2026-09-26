@@ -41940,4 +41940,418 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveCenters_rental_deleteConfirm => 'Delete this rental note?';
+
+  @override
+  String get query_buddies_certifications => 'Certifications';
+
+  @override
+  String get query_buddies_email => 'Email';
+
+  @override
+  String get query_buddies_favorite => 'Favorite';
+
+  @override
+  String get query_buddies_name => 'Name';
+
+  @override
+  String get query_buddies_notes => 'Notes';
+
+  @override
+  String get query_buddies_phone => 'Phone';
+
+  @override
+  String get query_centers_city => 'City';
+
+  @override
+  String get query_centers_country => 'Country';
+
+  @override
+  String get query_centers_name => 'Name';
+
+  @override
+  String get query_certifications_agency => 'Agency';
+
+  @override
+  String get query_certifications_cardNumber => 'Card number';
+
+  @override
+  String get query_certifications_expiryDate => 'Expiry date';
+
+  @override
+  String get query_certifications_instructorName => 'Instructor name';
+
+  @override
+  String get query_certifications_issueDate => 'Issue date';
+
+  @override
+  String get query_certifications_level => 'Level';
+
+  @override
+  String get query_certifications_name => 'Name';
+
+  @override
+  String get query_computers_manufacturer => 'Manufacturer';
+
+  @override
+  String get query_computers_model => 'Model';
+
+  @override
+  String get query_computers_name => 'Name';
+
+  @override
+  String get query_computers_serialNumber => 'Serial number';
+
+  @override
+  String get query_courses_agency => 'Agency';
+
+  @override
+  String get query_courses_completionDate => 'Completion date';
+
+  @override
+  String get query_courses_name => 'Name';
+
+  @override
+  String get query_courses_startDate => 'Start date';
+
+  @override
+  String get query_customFields_key => 'Key';
+
+  @override
+  String get query_customFields_value => 'Value';
+
+  @override
+  String get query_diveTypes_builtIn => 'Built-in';
+
+  @override
+  String get query_diveTypes_name => 'Name';
+
+  @override
+  String get query_dives_airTemp => 'Air temperature';
+
+  @override
+  String get query_dives_avgDepth => 'Average depth';
+
+  @override
+  String get query_dives_boatName => 'Boat';
+
+  @override
+  String get query_dives_bottomTime => 'Bottom time';
+
+  @override
+  String get query_dives_buddies => 'Buddies';
+
+  @override
+  String get query_dives_center => 'Dive center';
+
+  @override
+  String get query_dives_cnsEnd => 'CNS at end';
+
+  @override
+  String get query_dives_computer => 'Dive computer';
+
+  @override
+  String get query_dives_course => 'Course';
+
+  @override
+  String get query_dives_currentStrength => 'Current';
+
+  @override
+  String get query_dives_customFields => 'Custom fields';
+
+  @override
+  String get query_dives_date => 'Date';
+
+  @override
+  String get query_dives_deco => 'Decompression dive';
+
+  @override
+  String get query_dives_depth => 'Max depth';
+
+  @override
+  String get query_dives_diveMaster => 'Dive master';
+
+  @override
+  String get query_dives_diveMode => 'Dive mode';
+
+  @override
+  String get query_dives_diveNumber => 'Dive number';
+
+  @override
+  String get query_dives_diveOperator => 'Operator';
+
+  @override
+  String get query_dives_entryMethod => 'Entry method';
+
+  @override
+  String get query_dives_excludedFromStats => 'Excluded from statistics';
+
+  @override
+  String get query_dives_exitMethod => 'Exit method';
+
+  @override
+  String get query_dives_favorite => 'Favorite';
+
+  @override
+  String get query_dives_gasCount => 'Number of tanks';
+
+  @override
+  String get query_dives_gear => 'Gear';
+
+  @override
+  String get query_dives_hasProfile => 'Has profile';
+
+  @override
+  String get query_dives_id => 'Dive ID';
+
+  @override
+  String get query_dives_legacyBuddy => 'Buddy (legacy text)';
+
+  @override
+  String get query_dives_media => 'Media';
+
+  @override
+  String get query_dives_name => 'Name';
+
+  @override
+  String get query_dives_notes => 'Notes';
+
+  @override
+  String get query_dives_otu => 'OTU';
+
+  @override
+  String get query_dives_planned => 'Planned';
+
+  @override
+  String get query_dives_rating => 'Rating';
+
+  @override
+  String get query_dives_runtime => 'Runtime';
+
+  @override
+  String get query_dives_sightings => 'Sightings';
+
+  @override
+  String get query_dives_site => 'Site';
+
+  @override
+  String get query_dives_surfaceConditions => 'Surface conditions';
+
+  @override
+  String get query_dives_surfaceInterval => 'Surface interval';
+
+  @override
+  String get query_dives_tags => 'Tags';
+
+  @override
+  String get query_dives_tanks => 'Tanks';
+
+  @override
+  String get query_dives_trip => 'Trip';
+
+  @override
+  String get query_dives_types => 'Dive types';
+
+  @override
+  String get query_dives_visibility => 'Visibility';
+
+  @override
+  String get query_dives_waterTemp => 'Water temperature';
+
+  @override
+  String get query_dives_waterType => 'Water type';
+
+  @override
+  String get query_dives_weekday => 'Weekday';
+
+  @override
+  String get query_dives_weight => 'Weight';
+
+  @override
+  String get query_dives_weights => 'Weights';
+
+  @override
+  String get query_dives_year => 'Year';
+
+  @override
+  String get query_entity_buddies => 'Buddies';
+
+  @override
+  String get query_entity_centers => 'Dive centers';
+
+  @override
+  String get query_entity_certifications => 'Certifications';
+
+  @override
+  String get query_entity_computers => 'Dive computers';
+
+  @override
+  String get query_entity_courses => 'Courses';
+
+  @override
+  String get query_entity_customFields => 'Custom fields';
+
+  @override
+  String get query_entity_diveTypes => 'Dive types';
+
+  @override
+  String get query_entity_dives => 'Dives';
+
+  @override
+  String get query_entity_equipment => 'Equipment';
+
+  @override
+  String get query_entity_equipmentAttributes => 'Equipment attributes';
+
+  @override
+  String get query_entity_media => 'Media';
+
+  @override
+  String get query_entity_sightings => 'Sightings';
+
+  @override
+  String get query_entity_sites => 'Dive sites';
+
+  @override
+  String get query_entity_species => 'Species';
+
+  @override
+  String get query_entity_tags => 'Tags';
+
+  @override
+  String get query_entity_tanks => 'Tanks';
+
+  @override
+  String get query_entity_trips => 'Trips';
+
+  @override
+  String get query_entity_weights => 'Weights';
+
+  @override
+  String get query_equipmentAttributes_custom => 'Custom';
+
+  @override
+  String get query_equipmentAttributes_key => 'Key';
+
+  @override
+  String get query_equipmentAttributes_valueNum => 'Numeric value';
+
+  @override
+  String get query_equipmentAttributes_valueText => 'Text value';
+
+  @override
+  String get query_equipment_active => 'Active';
+
+  @override
+  String get query_equipment_attributes => 'Attributes';
+
+  @override
+  String get query_equipment_brand => 'Brand';
+
+  @override
+  String get query_equipment_model => 'Model';
+
+  @override
+  String get query_equipment_name => 'Name';
+
+  @override
+  String get query_equipment_serialNumber => 'Serial number';
+
+  @override
+  String get query_equipment_status => 'Status';
+
+  @override
+  String get query_equipment_type => 'Type';
+
+  @override
+  String get query_media_caption => 'Caption';
+
+  @override
+  String get query_media_favorite => 'Favorite';
+
+  @override
+  String get query_media_type => 'Type';
+
+  @override
+  String get query_sightings_count => 'Count';
+
+  @override
+  String get query_sightings_notes => 'Notes';
+
+  @override
+  String get query_sightings_species => 'Species';
+
+  @override
+  String get query_sites_city => 'City';
+
+  @override
+  String get query_sites_country => 'Country';
+
+  @override
+  String get query_sites_island => 'Island';
+
+  @override
+  String get query_sites_maxDepth => 'Max depth';
+
+  @override
+  String get query_sites_name => 'Name';
+
+  @override
+  String get query_sites_rating => 'Rating';
+
+  @override
+  String get query_sites_region => 'Region';
+
+  @override
+  String get query_species_category => 'Category';
+
+  @override
+  String get query_species_name => 'Name';
+
+  @override
+  String get query_species_scientificName => 'Scientific name';
+
+  @override
+  String get query_tags_name => 'Name';
+
+  @override
+  String get query_tanks_cylinder => 'Cylinder';
+
+  @override
+  String get query_tanks_endPressure => 'End pressure';
+
+  @override
+  String get query_tanks_he => 'Helium';
+
+  @override
+  String get query_tanks_name => 'Name';
+
+  @override
+  String get query_tanks_o2 => 'Oxygen';
+
+  @override
+  String get query_tanks_startPressure => 'Start pressure';
+
+  @override
+  String get query_tanks_volume => 'Volume';
+
+  @override
+  String get query_trips_endDate => 'End date';
+
+  @override
+  String get query_trips_location => 'Location';
+
+  @override
+  String get query_trips_name => 'Name';
+
+  @override
+  String get query_trips_startDate => 'Start date';
+
+  @override
+  String get query_weights_amount => 'Amount';
+
+  @override
+  String get query_weights_notes => 'Notes';
+
+  @override
+  String get query_weights_type => 'Type';
 }
