@@ -123,6 +123,15 @@ int? parseUserInt(String text) {
   return value.toInt();
 }
 
+/// [parseUserInt], with [smartParseUserDecimal]'s correction of one
+/// unambiguous wrong-separator keystroke. A fraction is still rejected, not
+/// rounded, for the same reason as [parseUserInt].
+int? smartParseUserInt(String text) {
+  final value = smartParseUserDecimal(text);
+  if (value == null || value != value.roundToDouble()) return null;
+  return value.toInt();
+}
+
 /// [value] rendered for seeding an editable field, in the active locale's
 /// decimal convention and without grouping separators.
 ///

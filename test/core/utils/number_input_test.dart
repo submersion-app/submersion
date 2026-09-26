@@ -326,4 +326,33 @@ void main() {
       expect(smartParseUserDecimal('   '), isNull);
     });
   });
+
+  group('smartParseUserInt', () {
+    test('reads a whole number', () {
+      Intl.defaultLocale = 'de';
+      expect(smartParseUserInt('42'), 42);
+    });
+
+    test('returns null for blank input', () {
+      Intl.defaultLocale = 'de';
+      expect(smartParseUserInt('  '), isNull);
+    });
+
+    test('rejects a fraction, including a corrected wrong separator', () {
+      Intl.defaultLocale = 'de';
+      expect(smartParseUserInt('12,5'), isNull);
+      // "12.5" is corrected to 12,5 by the smart parser, still a fraction.
+      expect(smartParseUserInt('12.5'), isNull);
+    });
+
+    test('accepts a corrected separator that yields a whole value', () {
+      Intl.defaultLocale = 'de';
+      expect(smartParseUserInt('12.0'), 12);
+    });
+
+    test('returns null for garbage', () {
+      Intl.defaultLocale = 'en_US';
+      expect(smartParseUserInt('abc'), isNull);
+    });
+  });
 }
