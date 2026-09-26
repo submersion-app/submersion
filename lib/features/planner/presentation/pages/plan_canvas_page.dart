@@ -719,14 +719,15 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     if (!mounted) return;
 
     // Saved plans are not diver-scoped, so the plan may name a site private to
-    // another diver. Attach only a site the current diver can see, by the same
-    // owner-or-shared rule the site list applies (VisibilityFilter). From
-    // here to addDive nothing awaits, and addDive reads the diver once on
+    // another diver. Attach only a shared site or one the dive's own owner
+    // owns: the owner-or-shared rule the site list applies (VisibilityFilter),
+    // except that with no current diver the dive is unowned, where every
+    // all-divers read would show the site, so only an unowned site qualifies.
+    // From here to addDive nothing awaits, and addDive reads the diver once on
     // entry, so the dive goes to the diver this check was made for.
     final diverId = ref.read(currentDiverIdProvider);
     final visibleSite =
-        site != null &&
-            (diverId == null || site.diverId == diverId || site.isShared)
+        site != null && (site.isShared || site.diverId == diverId)
         ? site
         : null;
 

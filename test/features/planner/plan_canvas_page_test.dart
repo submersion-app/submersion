@@ -297,7 +297,7 @@ void main() {
 
   Future<String> createSite(
     WidgetTester tester, {
-    required String ownerId,
+    required String? ownerId,
     bool isShared = false,
   }) async {
     final site = await tester.runAsync(
@@ -314,10 +314,11 @@ void main() {
   }
 
   /// Converts a plan at [siteId] while [diverId] is the current diver, and
-  /// returns that diver's dives: what their dive list reads.
+  /// returns that diver's dives: what their dive list reads (every dive when
+  /// there is no current diver).
   Future<List<Dive>> convertAt(
     WidgetTester tester, {
-    required String diverId,
+    required String? diverId,
     required String siteId,
   }) async {
     await setSize(tester, const Size(420, 900));
@@ -371,6 +372,30 @@ void main() {
     final siteId = await createSite(tester, ownerId: ownerId, isShared: true);
 
     final listed = await convertAt(tester, diverId: diverId, siteId: siteId);
+    expect(listed, hasLength(1));
+    expect(listed.single.site?.id, siteId);
+  });
+
+  testWidgets('with no current diver, convert leaves off a private site', (
+    tester,
+  ) async {
+    final ownerId = await createDiver(tester, 'site-owner');
+    final siteId = await createSite(tester, ownerId: ownerId);
+
+    // No current diver (a fresh start before the stored id resolves) leaves
+    // the dive unowned, where every all-divers read would show the site.
+    final listed = await convertAt(tester, diverId: null, siteId: siteId);
+    expect(listed, hasLength(1));
+    expect(listed.single.site, isNull);
+  });
+
+  testWidgets('with no current diver, convert keeps an unowned site', (
+    tester,
+  ) async {
+    // A logbook with no diver profiles: its sites belong to no one.
+    final siteId = await createSite(tester, ownerId: null);
+
+    final listed = await convertAt(tester, diverId: null, siteId: siteId);
     expect(listed, hasLength(1));
     expect(listed.single.site?.id, siteId);
   });
