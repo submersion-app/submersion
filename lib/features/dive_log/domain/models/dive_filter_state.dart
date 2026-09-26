@@ -40,7 +40,7 @@ class DiveFilterState {
   /// Decompression status, derived from the recorded profile signal: a
   /// deco-stop profile point, a `decoStopStart` event, or a positive ceiling
   /// on a profile carrying no deco-type data at all (mirroring
-  /// `scanRecordedDecoSignals` in StatisticsRepository). Null means no filter;
+  /// `scanRecordedDecoSignals` in InsightsRepository). Null means no filter;
   /// true/false restrict to deco/no-deco dives. Dives whose status is
   /// unrecorded (no profile, or a profile needing the computed fallback)
   /// match neither.

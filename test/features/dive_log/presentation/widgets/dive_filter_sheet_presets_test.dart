@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -33,7 +33,7 @@ void main() {
                 builder: (context) => Consumer(
                   builder: (context, ref, _) => DiveFilterSheet(
                     ref: ref,
-                    filterProvider: statisticsFilterProvider,
+                    filterProvider: insightsFilterProvider,
                   ),
                 ),
               ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/nav/nav_id_aliases.dart';
 import 'package:submersion/shared/widgets/nav/nav_slot_count.dart';
 
 /// Canonical metadata for a single bottom-nav / nav-rail destination.
@@ -116,7 +117,7 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
   ),
   // Species closes the logging-and-training run that precedes the analysis
   // surfaces: it is a record of what dives turned up, so it reads last before
-  // Statistics. Material has no fish glyph, so this borrows MDI's and reuses
+  // Insights. Material has no fish glyph, so this borrows MDI's and reuses
   // it for the selected state the way `gps-log` reuses its icon.
   NavDestination(
     id: 'species',
@@ -126,11 +127,11 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     label: (l10n) => l10n.nav_species,
   ),
   NavDestination(
-    id: 'statistics',
-    route: '/statistics',
-    icon: Icons.bar_chart_outlined,
-    selectedIcon: Icons.bar_chart,
-    label: (l10n) => l10n.nav_statistics,
+    id: 'insights',
+    route: '/insights',
+    icon: Icons.insights_outlined,
+    selectedIcon: Icons.insights,
+    label: (l10n) => l10n.nav_insights,
   ),
   NavDestination(
     id: 'planning',
@@ -196,6 +197,9 @@ final List<String> kDefaultPrimaryIds = List.unmodifiable(
 /// - It contains every id in [movableIds] exactly once, so no destination can
 ///   be stranded by a partial or corrupt stored value.
 /// - Ids present in [stored] come first, in stored order.
+/// - An id this build does not know is first read through [kRenamedNavIds],
+///   so a renamed destination keeps its slot. An alias never replaces an id
+///   the build still knows.
 /// - Unknown and pinned ids are dropped; a duplicate keeps its first position.
 /// - Everything else is appended in [movableIds] (canonical) order.
 ///
@@ -209,7 +213,10 @@ List<String> normalizeNavOrder({
   required List<String> movableIds,
 }) {
   final result = <String>[];
-  for (final id in stored) {
+  for (final storedId in stored) {
+    final id = movableIds.contains(storedId)
+        ? storedId
+        : kRenamedNavIds[storedId] ?? storedId;
     if (!movableIds.contains(id)) continue;
     if (result.contains(id)) continue;
     result.add(id);

@@ -597,4 +597,37 @@ void main() {
       }
     });
   });
+
+  group('passport id (issue #2334)', () {
+    test('is a system attribute on tanks only', () {
+      final def = EquipmentAttributeCatalog.defFor(
+        EquipmentAttrKeys.passportId,
+      );
+      expect(def, isNotNull);
+      expect(def!.kind, AttributeKind.text);
+      expect(def.group, AttributeGroup.system);
+      expect(
+        EquipmentAttributeCatalog.attributesFor(EquipmentType.tank),
+        contains(def),
+      );
+      expect(
+        EquipmentAttributeCatalog.attributesFor(
+          EquipmentType.regulator,
+        ).map((d) => d.key),
+        isNot(contains(EquipmentAttrKeys.passportId)),
+      );
+    });
+
+    test('no spec or purchase consumer sees a system attribute', () {
+      for (final type in EquipmentType.values) {
+        final visible = EquipmentAttributeCatalog.attributesFor(
+          type,
+        ).where((d) => d.group != AttributeGroup.system);
+        expect(
+          visible.map((d) => d.key),
+          isNot(contains(EquipmentAttrKeys.passportId)),
+        );
+      }
+    });
+  });
 }

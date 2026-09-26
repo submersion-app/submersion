@@ -21,7 +21,7 @@ void main() {
         '/sites',
         '/equipment',
         '/settings',
-        '/statistics',
+        '/insights',
         '/trips',
         '/planning',
         '/certifications',

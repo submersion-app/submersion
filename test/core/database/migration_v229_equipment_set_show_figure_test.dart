@@ -40,9 +40,9 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 229);
     expect(AppDatabase.migrationVersions, contains(229));
-    // 228 is held by open PRs, so this rung follows 227 directly.
-    expect(AppDatabase.migrationVersions, isNot(contains(228)));
-    expect(AppDatabase.migrationStepCount(227), 1);
+    // v228 (cylinder fills) sits directly below this rung.
+    expect(AppDatabase.migrationVersions, contains(228));
+    expect(AppDatabase.migrationStepCount(228), 1);
   });
 
   test('this rung is additive and did not move the sync floor', () {

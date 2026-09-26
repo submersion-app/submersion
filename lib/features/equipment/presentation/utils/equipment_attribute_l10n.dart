@@ -15,6 +15,7 @@ String attributeLabel(AppLocalizations l10n, String key) => switch (key) {
   'tank_identifier' => l10n.attrLabel_tank_identifier,
   'last_visual_inspection' => l10n.attrLabel_last_visual_inspection,
   'last_hydro_test' => l10n.attrLabel_last_hydro_test,
+  'passport_id' => l10n.attrLabel_passport_id,
   'connection' => l10n.attrLabel_connection,
   'plate_material' => l10n.attrLabel_plate_material,
   'hose_length_m' => l10n.attrLabel_hose_length_m,

@@ -8,6 +8,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/csv/csv_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
@@ -47,7 +48,7 @@ void main() {
 
   /// Points the picker at a real destination and returns that path.
   String chooses(String name) {
-    final target = '${workDir.path}/$name';
+    final target = p.join(workDir.path, name);
     picker.saveFileResult = Uri.file(target);
     return target;
   }
@@ -217,7 +218,7 @@ void main() {
     });
 
     test('debug log file', () async {
-      final source = File('${workDir.path}/submersion.log');
+      final source = File(p.join(workDir.path, 'submersion.log'));
       await source.writeAsString('boot\nsync ok\n');
       final target = chooses('submersion-debug-logs.txt');
 
@@ -229,11 +230,11 @@ void main() {
     });
 
     test('a missing debug log file never opens the dialog', () async {
-      picker.saveFileResult = Uri.file('${workDir.path}/unused.txt');
+      picker.saveFileResult = Uri.file(p.join(workDir.path, 'unused.txt'));
 
       expect(
         await saveLogFile(
-          _FixedLogFileService('${workDir.path}/absent.log'),
+          _FixedLogFileService(p.join(workDir.path, 'absent.log')),
           _l10n,
         ),
         isNull,
