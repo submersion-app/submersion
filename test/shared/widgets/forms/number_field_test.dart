@@ -96,4 +96,34 @@ void main() {
     await tester.pump();
     expect(reads.last, const NumberValue(12));
   });
+
+  group('numberInputFormatters', () {
+    String filter(String text, {bool allowNegative = false}) {
+      var value = TextEditingValue(text: text);
+      for (final f in numberInputFormatters(allowNegative: allowNegative)) {
+        value = f.formatEditUpdate(TextEditingValue.empty, value);
+      }
+      return value.text;
+    }
+
+    test('keeps the locale\'s own separators, so validation sees them '
+        '(#1900 review)', () {
+      Intl.defaultLocale = 'ar_EG';
+      // Stripping U+066B would turn "1٫3" into 13 without a word.
+      expect(filter('1\u066B3'), '1\u066B3');
+      Intl.defaultLocale = 'fr';
+      expect(filter('1\u202F250,5'), '1\u202F250,5');
+    });
+
+    test('keeps the locale minus sign, direction mark included', () {
+      Intl.defaultLocale = 'he';
+      expect(filter('\u200E-5', allowNegative: true), '\u200E-5');
+      expect(filter('\u200E-5'), '5');
+    });
+
+    test('still drops letters', () {
+      Intl.defaultLocale = 'en_US';
+      expect(filter('1a2'), '12');
+    });
+  });
 }

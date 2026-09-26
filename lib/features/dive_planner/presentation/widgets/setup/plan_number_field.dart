@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// A compact numeric row for one planner setting: the label on the left, a
@@ -227,9 +227,10 @@ class PlanNumberFieldState extends State<PlanNumberField> {
                 keyboardType: TextInputType.numberWithOptions(
                   decimal: !widget.isInteger,
                 ),
-                inputFormatters: widget.isInteger
-                    ? [FilteringTextInputFormatter.digitsOnly]
-                    : [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
+                // Separators are kept even for whole numbers: a digits-only
+                // filter turned "5.5" into 55, where readNumber now reports
+                // a fraction as unreadable (#1900 review).
+                inputFormatters: numberInputFormatters(),
                 onChanged: _onChanged,
               ),
             ),

@@ -1,17 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:submersion/core/utils/locale_number_symbols.dart';
+
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
-/// Input filter for numeric fields: digits and both separators, since the
-/// smart parser corrects a wrong one, plus '-' only where a value can be
-/// negative (temperatures, time offsets).
-List<TextInputFormatter> numberInputFormatters({bool allowNegative = false}) =>
-    [
-      FilteringTextInputFormatter.allow(
-        RegExp(allowNegative ? r'[0-9.,\-]' : r'[0-9.,]'),
-      ),
-    ];
+/// Input filter for numeric fields: digits, both ASCII separators (the smart
+/// parser corrects a wrong one), and the active locale's own decimal and
+/// grouping characters, plus '-' and the locale's minus sign only where a
+/// value can be negative (temperatures, time offsets).
+///
+/// The locale's characters matter because a field is seeded with them: an
+/// ar_EG seed of "1٫3" run through an ASCII-only filter on the first
+/// edit would become "13" before validation could see it, and he/ar prefix
+/// the minus with a direction mark (#1900 review).
+List<TextInputFormatter> numberInputFormatters({bool allowNegative = false}) {
+  final symbols = localeNumberFormat().symbols;
+  final allowed = <String>{
+    '.',
+    ',',
+    ...symbols.DECIMAL_SEP.split(''),
+    ...symbols.GROUP_SEP.split(''),
+    if (allowNegative) ...['-', ...symbols.MINUS_SIGN.split('')],
+  };
+  final escaped = allowed.map((c) => r'\]^-['.contains(c) ? '\\$c' : c);
+  return [FilteringTextInputFormatter.allow(RegExp('[0-9${escaped.join()}]'))];
+}
 
 /// A numeric text field that shows why its text cannot be read, as the diver
 /// types, and makes an enclosing Form refuse to validate while it cannot.

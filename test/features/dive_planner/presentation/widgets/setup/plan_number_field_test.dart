@@ -236,6 +236,26 @@ void main() {
     );
   });
 
+  testWidgets('a fraction in a whole-number box says so instead of becoming '
+      'a different number (#1900 review)', (tester) async {
+    double? reported;
+    await tester.pumpWidget(
+      _harness(value: 9, min: 1, max: 100, onChanged: (v) => reported = v),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, '5.5');
+    await tester.pumpAndSettle();
+
+    expect(
+      _field(tester).controller!.text,
+      '5.5',
+      reason: 'a digits-only filter turned "5.5" into 55',
+    );
+    expect(find.text('Enter a whole number'), findsOneWidget);
+    expect(reported, isNull);
+  });
+
   testWidgets('restores the current value when unreadable text is committed', (
     tester,
   ) async {

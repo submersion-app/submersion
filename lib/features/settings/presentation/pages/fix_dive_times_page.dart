@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -9,6 +8,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
 
 class FixDiveTimesPage extends ConsumerStatefulWidget {
   const FixDiveTimesPage({super.key});
@@ -81,10 +81,10 @@ class _FixDiveTimesPageState extends ConsumerState<FixDiveTimesPage> {
       () => _offsetHours = switch (readNumber(value, integer: true)) {
         NumberValue(:final value) => value.toInt(),
         NumberBlank() => 0,
-        // The filter admits digits and a leading '-' only, so this is the
-        // sign on the way to a negative offset: keep the offset until the
-        // digits arrive.
-        NumberInvalid() => _offsetHours,
+        // No shift while the text cannot be read, so Apply stays disabled:
+        // keeping the last readable offset would let Apply shift the dives
+        // by a number the field no longer shows (#1900 review).
+        NumberInvalid() => 0,
       },
     );
   }
@@ -416,11 +416,16 @@ class _FilterBar extends StatelessWidget {
                   keyboardType: const TextInputType.numberWithOptions(
                     signed: true,
                   ),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^-?\d*')),
-                  ],
+                  // Separators are kept so "2.5" is reported, not read as 2.
+                  inputFormatters: numberInputFormatters(allowNegative: true),
                   decoration: InputDecoration(
                     labelText: context.l10n.settings_fixDiveTimes_hoursField,
+                    errorText: invalidNumberText(
+                      context,
+                      offsetController.text,
+                      integer: true,
+                    ),
+                    errorMaxLines: 2,
                     border: const OutlineInputBorder(),
                     isDense: true,
                   ),
