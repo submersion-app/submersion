@@ -1,5 +1,6 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
+import 'package:submersion/features/trips/data/services/trip_fill_passport_copy.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
@@ -39,3 +40,8 @@ final tripCylinderStatesProvider =
           ),
       ];
     });
+
+/// Writes the passport copy of a trip fill on an owned cylinder.
+final tripFillPassportCopierProvider = Provider<TripFillPassportCopier>(
+  (ref) => TripFillPassportCopier(),
+);
