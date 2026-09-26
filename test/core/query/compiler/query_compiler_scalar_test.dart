@@ -352,4 +352,29 @@ void main() {
         : ScopedNode(FieldPath(['buddies']), nest(n - 1));
     expect(() => c(nest(5)), throwsA(isA<Error>()));
   });
+
+  test(
+    'a reversed between (from JSON or the builder) still means the range',
+    () {
+      final n = c(
+        ConditionNode(
+          FieldPath(['depth']),
+          QueryOp.between,
+          ListValue([const NumberValue(30, null), const NumberValue(18, null)]),
+        ),
+      );
+      expect(n.params, [18.0, 30.0]);
+      final d = c(
+        ConditionNode(
+          FieldPath(['date']),
+          QueryOp.between,
+          ListValue([
+            DateValue(DateTime(2025, 3, 15)),
+            DateValue(DateTime(2025, 3, 14)),
+          ]),
+        ),
+      );
+      expect(d.params.first, lessThan(d.params.last as int));
+    },
+  );
 }

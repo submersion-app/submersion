@@ -461,4 +461,35 @@ void main() {
       contains('single day'),
     );
   });
+
+  test('reversed between bounds are put in order', () {
+    expect(
+      ok(metric(), 'depth between 30 and 18'),
+      ConditionNode(
+        FieldPath(['depth']),
+        QueryOp.between,
+        ListValue([const NumberValue(18, null), const NumberValue(30, null)]),
+      ),
+    );
+    expect(
+      ok(metric(), 'date between 2025-03-15 and 2025-03-14'),
+      ConditionNode(
+        FieldPath(['date']),
+        QueryOp.between,
+        ListValue([
+          DateValue(DateTime(2025, 3, 14)),
+          DateValue(DateTime(2025, 3, 15)),
+        ]),
+      ),
+    );
+  });
+
+  test(
+    'typed numbers are canonical at four decimals, so printing is lossless',
+    () {
+      final a = ok(metric(), 'depth > 100.12345ft') as ConditionNode;
+      final b = ok(metric(), 'depth > 100.1235ft') as ConditionNode;
+      expect(a, b);
+    },
+  );
 }

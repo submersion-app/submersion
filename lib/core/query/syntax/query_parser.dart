@@ -346,7 +346,9 @@ class QueryParser {
       }
       _next();
       final b = isDate ? _singleDay() : _value(field, QueryOp.between);
-      return ConditionNode(path, QueryOp.between, ListValue([a, b]));
+      // Reversed bounds still mean the range between them; the tree keeps
+      // them in order so the printed text is canonical.
+      return ConditionNode(path, QueryOp.between, ListValue(_ordered(a, b)));
     }
     final op = switch (opTok.text) {
       '=' => QueryOp.eq,
@@ -439,6 +441,16 @@ class QueryParser {
     return ref;
   }
 
+  /// [a] and [b] in ascending order, for numbers and days.
+  static List<QueryValue> _ordered(QueryValue a, QueryValue b) {
+    final reversed = switch ((a, b)) {
+      (final NumberValue x, final NumberValue y) => x.value > y.value,
+      (final DateValue x, final DateValue y) => x.day.isAfter(y.day),
+      _ => false,
+    };
+    return reversed ? [b, a] : [a, b];
+  }
+
   /// One side of `date between a and b`: a single calendar day.
   DateValue _singleDay() {
     final t = _next();
@@ -527,7 +539,10 @@ class QueryParser {
           throw _Abort(_err('expected a number', tok));
         }
         final m = RegExp(r'^(\d+(?:\.\d+)?)([A-Za-z]*)$').firstMatch(tok.text)!;
-        final raw = double.parse(m[1]!) * (negative ? -1 : 1);
+        // Canonical at four decimals in the typed unit, the precision the
+        // printer keeps, so parse(print(x)) == parse(x) for any typed text.
+        final raw =
+            (double.parse(m[1]!) * 10000).round() / 10000 * (negative ? -1 : 1);
         final suffix = m[2]!;
         QueryUnit? unit;
         if (suffix.isNotEmpty) {

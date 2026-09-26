@@ -111,6 +111,9 @@ void main() {
       'd2',
     }, reason: 'unrecorded is excluded (Review Focus 5)');
     expect(await ids('bottomTime:none'), {'d3'});
+    // A count is never "unrecorded"; :none is zero, :any is one or more.
+    expect(await ids('gasCount:none'), QueryFixtureIds.mine.toSet());
+    expect(await ids('gasCount:any'), isEmpty);
   });
 
   test('dates are calendar days in the wall clock frame', () async {

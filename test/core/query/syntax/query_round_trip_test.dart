@@ -25,8 +25,8 @@ void main() {
   );
 
   QueryValue number(Random r, UnitPrefs prefs) {
-    // Up to three decimals, the precision a diver plausibly types.
-    final raw = r.nextInt(400) + (r.nextBool() ? 0 : r.nextInt(1000) / 1000);
+    // Up to four decimals, the precision the parser keeps.
+    final raw = r.nextInt(400) + (r.nextBool() ? 0 : r.nextInt(10000) / 10000);
     final unit = r.nextInt(3) == 0
         ? (r.nextBool() ? QueryUnit.m : QueryUnit.ft)
         : null;
@@ -45,10 +45,16 @@ void main() {
           number(r, prefs),
         );
       case 1:
+        // The parser orders between bounds, so a canonical tree does too.
+        final pair = [number(r, prefs), number(r, prefs)]
+          ..sort(
+            (a, b) =>
+                (a as NumberValue).value.compareTo((b as NumberValue).value),
+          );
         return ConditionNode(
           FieldPath(['depth']),
           QueryOp.between,
-          ListValue([number(r, prefs), number(r, prefs)]),
+          ListValue(pair),
         );
       case 2:
         return ConditionNode(FieldPath(['weights']), QueryOp.isEmpty, null);

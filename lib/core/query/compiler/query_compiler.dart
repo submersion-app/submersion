@@ -276,7 +276,8 @@ class _Ctx {
       case QueryOp.isSet:
         return '(NOT (${substituteRow(f.emptySql, alias)}))';
       case QueryOp.between:
-        final items = (value as ListValue).items;
+        // A reversed pair (from JSON or the builder) still means the range.
+        final items = _ascending((value as ListValue).items);
         return '(${_cmp(f, col, '>=', items[0])} '
             'AND ${_cmp(f, col, '<=', items[1])})';
       case QueryOp.inList:
@@ -348,6 +349,15 @@ class _Ctx {
     // SQL's `col != ?` is already false for NULL; the explicit test keeps
     // the intent readable in the plan and matches the golden.
     return positive ? '($col = ?)' : '(($col) IS NOT NULL AND $col != ?)';
+  }
+
+  static List<QueryValue> _ascending(List<QueryValue> pair) {
+    final reversed = switch ((pair[0], pair[1])) {
+      (final NumberValue x, final NumberValue y) => x.value > y.value,
+      (final DateValue x, final DateValue y) => x.day.isAfter(y.day),
+      _ => false,
+    };
+    return reversed ? [pair[1], pair[0]] : pair;
   }
 
   String _cmp(QueryField f, String col, String sym, QueryValue v) {

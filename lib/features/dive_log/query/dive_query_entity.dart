@@ -305,7 +305,9 @@ final QueryEntity diveQueryEntity = QueryEntity(
       'gasCount',
       '(SELECT COUNT(*) FROM dive_tanks t WHERE t.dive_id = {r}.id)',
       dimension: FieldDimension.count,
-      emptySql: '0',
+      // A count is never unrecorded: `:none` is no tanks at all.
+      emptySql:
+          'NOT EXISTS (SELECT 1 FROM dive_tanks t WHERE t.dive_id = {r}.id)',
       tables: ['dive_tanks'],
     ),
     _text('notes', 'notes'),

@@ -111,4 +111,42 @@ void main() {
       throwsA(isA<QueryJsonException>()),
     );
   });
+
+  test('every malformed shape is a QueryJsonException, never another type', () {
+    final shapes = <Map<String, Object?>>[
+      // isEmpty carrying a value: ConditionNode's own ArgumentError
+      {
+        't': 'cond',
+        'path': ['notes'],
+        'op': 'isEmpty',
+        'value': {'k': 'str', 'v': 'x'},
+      },
+      // a path that is not a list: a cast failure
+      {
+        't': 'cond',
+        'path': 'depth',
+        'op': 'gt',
+        'value': {'k': 'num', 'v': 1},
+      },
+      // children that are not maps
+      {
+        't': 'and',
+        'c': [1, 2],
+      },
+      // a non-numeric day component
+      {
+        't': 'cond',
+        'path': ['date'],
+        'op': 'eq',
+        'value': {'k': 'date', 'v': '2025-xx-01'},
+      },
+    ];
+    for (final node in shapes) {
+      expect(
+        () => queryNodeFromJson({'version': 1, 'node': node}),
+        throwsA(isA<QueryJsonException>()),
+        reason: '$node',
+      );
+    }
+  });
 }

@@ -63,7 +63,20 @@ QueryNode queryNodeFromJson(Map<String, Object?> json) {
   if (node is! Map) {
     throw const QueryJsonException('missing node');
   }
-  return _readNode(_readMap(node));
+  // A corrupted or hand-edited payload fails as ONE type, whatever the
+  // shape of the damage: a cast that does not hold, a node constructor's
+  // own argument check, a number that does not parse.
+  try {
+    return _readNode(_readMap(node));
+  } on QueryJsonException {
+    rethrow;
+  } on ArgumentError catch (e) {
+    throw QueryJsonException('invalid node: ${e.message}');
+  } on TypeError catch (e) {
+    throw QueryJsonException('malformed query: $e');
+  } on FormatException catch (e) {
+    throw QueryJsonException('malformed value: ${e.message}');
+  }
 }
 
 QueryNode _readNode(Map<String, Object?> m) {
