@@ -56,24 +56,25 @@ void main() {
     ),
   );
 
-  Widget wrap(Map<String, RollupClock> map) => ProviderScope(
-    overrides: [
-      equipmentRollupClockProvider.overrideWith((ref) async => map),
-      equipmentComponentsIndexProvider.overrideWith(
-        (ref) async => ComponentsIndex.empty,
-      ),
-      activeEquipmentProvider.overrideWith((ref) async => const [reg]),
-      settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-    ],
-    child: const MaterialApp(
-      locale: Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(
-        body: SingleChildScrollView(child: EquipmentListTile(item: reg)),
-      ),
-    ),
-  );
+  Widget wrap(Map<String, RollupClock> map, {EquipmentItem item = reg}) =>
+      ProviderScope(
+        overrides: [
+          equipmentRollupClockProvider.overrideWith((ref) async => map),
+          equipmentComponentsIndexProvider.overrideWith(
+            (ref) async => ComponentsIndex.empty,
+          ),
+          activeEquipmentProvider.overrideWith((ref) async => [item]),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(child: EquipmentListTile(item: item)),
+          ),
+        ),
+      );
 
   Future<void> pumpAt(
     WidgetTester tester,
@@ -137,5 +138,48 @@ void main() {
     final tileWidth = tester.getSize(find.byType(ListTile)).width;
     expect(trailingWidth, tester.getSize(find.text('Regulator')).width);
     expect(trailingWidth, lessThan(tileWidth / 3));
+  });
+
+  group('every capped label stays on one line', () {
+    // At this width the cap is narrower than the type label itself, so an
+    // unbounded Text would wrap and overflow the tile's trailing height.
+    Future<void> expectSingleLines(WidgetTester tester, Widget app) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(240, 900);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(app);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final labels = find.descendant(
+        of: find.byType(MaxWidthFraction),
+        matching: find.byType(Text),
+      );
+      expect(labels, findsWidgets);
+      for (final label in labels.evaluate()) {
+        // One line of bodySmall or labelSmall is 16 px in the test font.
+        expect(
+          tester.getSize(find.byWidget(label.widget)).height,
+          lessThan(24),
+        );
+      }
+    }
+
+    testWidgets('type label and service status', (tester) async {
+      await expectSingleLines(
+        tester,
+        wrap({'reg': rollup(ServiceClockSeverity.overdue)}),
+      );
+    });
+
+    testWidgets('type label and equipment status', (tester) async {
+      await expectSingleLines(
+        tester,
+        wrap(
+          const {},
+          item: reg.copyWith(status: EquipmentStatus.needsService),
+        ),
+      );
+    });
   });
 }

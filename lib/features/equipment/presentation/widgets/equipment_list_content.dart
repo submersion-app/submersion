@@ -1347,11 +1347,15 @@ class EquipmentListTile extends ConsumerWidget {
   ) {
     final theme = Theme.of(context);
 
+    // Every label here is one line: the column is width-capped, and the
+    // tile also caps its trailing height, so a wrapped label would overflow.
     final typeLabel = Text(
       item.type.localizedName(context.l10n),
       style: theme.textTheme.bodySmall?.copyWith(
         color: theme.colorScheme.onSurfaceVariant,
       ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
 
     if (finding != null) {
@@ -1370,6 +1374,8 @@ class EquipmentListTile extends ConsumerWidget {
                   : theme.colorScheme.tertiary,
               fontWeight: FontWeight.w600,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       );
@@ -1400,6 +1406,8 @@ class EquipmentListTile extends ConsumerWidget {
               color: theme.colorScheme.onSecondaryContainer,
               fontWeight: FontWeight.w500,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       );

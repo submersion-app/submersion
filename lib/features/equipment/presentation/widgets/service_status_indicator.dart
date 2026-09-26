@@ -143,6 +143,7 @@ class ServiceStatusIndicator extends ConsumerWidget {
             line,
             style: labelStyle,
             textAlign: textAlign,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         );
