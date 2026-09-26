@@ -12503,7 +12503,7 @@
   "navTrack_detail_noSite": "无潜点",
   "navTrack_detail_chooseSite": "选择潜点",
   "navTrack_review_title": "导入水下路线",
-  "navTrack_review_segmentSummaryNoFix": "{underwater} 个水下采样点，此记录中没有 GPS 定位。",
+  "navTrack_review_segmentSummaryNoFix": "{underwater} 个水下采样点，潜水结束后没有 GPS 定位。",
   "navTrack_review_segmentSummaryWithFix": "{underwater} 个水下采样点，{surface} 个水面采样点，GPS 定位距推算终点 {vector}。",
   "navTrack_review_saveError": "无法保存此路线：{error}",
   "navTrack_review_importError": "无法导入此文件：{error}",

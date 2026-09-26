@@ -39582,7 +39582,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String navTrack_review_segmentSummaryNoFix(int underwater) {
-    return '$underwater 个水下采样点，此记录中没有 GPS 定位。';
+    return '$underwater 个水下采样点，潜水结束后没有 GPS 定位。';
   }
 
   @override

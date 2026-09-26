@@ -42061,7 +42061,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String navTrack_review_segmentSummaryNoFix(int underwater) {
-    return '$underwater amostras subaquáticas, nenhum fix de GPS nesta gravação.';
+    return '$underwater amostras subaquáticas, nenhum fix de GPS após o mergulho.';
   }
 
   @override

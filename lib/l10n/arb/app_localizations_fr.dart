@@ -42155,7 +42155,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String navTrack_review_segmentSummaryNoFix(int underwater) {
-    return '$underwater échantillons sous l\'eau, aucun fix GPS dans cet enregistrement.';
+    return '$underwater échantillons sous l\'eau, aucun fix GPS après la plongée.';
   }
 
   @override

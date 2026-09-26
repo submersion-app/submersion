@@ -41707,7 +41707,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String navTrack_review_segmentSummaryNoFix(int underwater) {
-    return '$underwater عينات تحت الماء، لا يوجد إصلاح GPS في هذا التسجيل.';
+    return '$underwater عينات تحت الماء، لا يوجد إصلاح GPS بعد الغوص.';
   }
 
   @override

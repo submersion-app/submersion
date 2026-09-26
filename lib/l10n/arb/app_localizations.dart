@@ -67360,7 +67360,7 @@ abstract class AppLocalizations {
   /// No description provided for @navTrack_review_segmentSummaryNoFix.
   ///
   /// In en, this message translates to:
-  /// **'{underwater} samples underwater, no GPS fix in this recording.'**
+  /// **'{underwater} samples underwater, no GPS fix after the dive.'**
   String navTrack_review_segmentSummaryNoFix(int underwater);
 
   /// No description provided for @navTrack_review_segmentSummaryWithFix.

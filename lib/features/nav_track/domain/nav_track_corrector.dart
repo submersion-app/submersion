@@ -171,6 +171,31 @@ class NavTrackCorrector {
     return preDiveFix;
   }
 
+  /// The GPS-fix event that ends the dive: the first fix after the active
+  /// range, never a pre-dive calibration. Null when the recording has none.
+  ///
+  /// The single rule for "the fix at the end": [NavTrackEndMode.gpsFix]
+  /// targets it, and the import review page reports how far it settled
+  /// from the reckoned end.
+  static NavTrackFixEvent? postDiveFixEvent(List<NavTrackPoint> points) {
+    if (points.isEmpty) return null;
+    final segmentation = NavTrackSegmenter.classify(points);
+    final range = _activeRange(segmentation, points.length);
+    return _firstFixAfter(segmentation, range.end);
+  }
+
+  /// Fix events are in file order, so the first one past [index] is also
+  /// the earliest.
+  static NavTrackFixEvent? _firstFixAfter(
+    NavTrackSegmentation segmentation,
+    int index,
+  ) {
+    for (final event in segmentation.fixEvents) {
+      if (event.index > index) return event;
+    }
+    return null;
+  }
+
   static List<CorrectedNavTrackPoint> apply(
     List<NavTrackPoint> points,
     NavTrackCorrection correction,
@@ -268,17 +293,7 @@ class NavTrackCorrector {
           end: range.end,
         );
       case NavTrackEndMode.gpsFix:
-        // The first fix event that occurs AFTER the active range, i.e. a
-        // post-dive fix -- never a pre-dive one that [_activeRange] already
-        // skipped past to find [range.start]. Fix events are in file order,
-        // so the first one past [range.end] is also the earliest.
-        NavTrackFixEvent? postDiveFix;
-        for (final event in segmentation.fixEvents) {
-          if (event.index > range.end) {
-            postDiveFix = event;
-            break;
-          }
-        }
+        final postDiveFix = _firstFixAfter(segmentation, range.end);
         if (postDiveFix == null) return null;
         final stabilized = NavTrackSegmenter.stabilizedFixPosition(
           points,

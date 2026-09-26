@@ -471,6 +471,32 @@ void main() {
     });
   });
 
+  group('NavTrackCorrector.postDiveFixEvent', () {
+    test('is the first fix after the dive', () {
+      final points = [
+        _p(timestamp: 0, north: 0, depth: 5),
+        _p(timestamp: 20, north: 0, depth: 0),
+        _p(timestamp: 22, north: 300, depth: 0), // post-dive fix
+        _p(timestamp: 24, north: 301, depth: 0),
+      ];
+
+      expect(NavTrackCorrector.postDiveFixEvent(points)?.index, 2);
+    });
+
+    test('is null when the only fix calibrates the console before the '
+        'dive', () {
+      final points = [
+        _p(timestamp: 0, north: 0, depth: 0),
+        _p(timestamp: 2, north: 300, depth: 0), // pre-dive fix
+        _p(timestamp: 4, north: 302, depth: 0),
+        _p(timestamp: 6, north: 302, depth: 5),
+        _p(timestamp: 8, north: 305, depth: 12),
+      ];
+
+      expect(NavTrackCorrector.postDiveFixEvent(points), isNull);
+    });
+  });
+
   group('NavTrackCorrector.preDiveFixEvent', () {
     test('is the fix before the first underwater sample', () {
       final points = [

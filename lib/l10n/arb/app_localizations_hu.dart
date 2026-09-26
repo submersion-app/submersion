@@ -41880,7 +41880,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String navTrack_review_segmentSummaryNoFix(int underwater) {
-    return '$underwater minta víz alatt, nincs GPS-fix ebben a felvételben.';
+    return '$underwater minta víz alatt, nincs GPS-fix a merülés után.';
   }
 
   @override

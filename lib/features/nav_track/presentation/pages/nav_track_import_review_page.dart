@@ -12,6 +12,8 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_parse_error_text.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
@@ -223,6 +225,7 @@ class _NavTrackImportReviewPageState
   String _segmentSummary(
     AppLocalizations l10n,
     UnitFormatter units,
+    List<NavTrackPoint> points,
     NavTrackSegmentation segmentation,
   ) {
     final underwater = segmentation.kinds
@@ -231,17 +234,25 @@ class _NavTrackImportReviewPageState
     final surface = segmentation.kinds
         .where((k) => k == NavTrackSampleKind.surfaceReckoned)
         .length;
-    if (segmentation.fixEvents.isEmpty) {
+    // Only a fix after the dive says anything about where it ended; a
+    // pre-dive calibration does not.
+    final postDiveFix = NavTrackCorrector.postDiveFixEvent(points);
+    if (postDiveFix == null) {
       return l10n.navTrack_review_segmentSummaryNoFix(underwater);
     }
-    final event = segmentation.fixEvents.first;
-    final dNorth = event.afterNorth - event.beforeNorth;
-    final dEast = event.afterEast - event.beforeEast;
-    final vector = math.sqrt(dNorth * dNorth + dEast * dEast);
+    // Where the fix settles, measured from the reckoned end: the same
+    // target the gpsFix correction pulls the route to.
+    final end = points[NavTrackCorrector.activeRange(points).end];
+    final settled = NavTrackSegmenter.stabilizedFixPosition(
+      points,
+      postDiveFix,
+    );
+    final dNorth = settled.north - end.north;
+    final dEast = settled.east - end.east;
     return l10n.navTrack_review_segmentSummaryWithFix(
       underwater,
       surface,
-      units.formatDistance(vector),
+      units.formatDistance(math.sqrt(dNorth * dNorth + dEast * dEast)),
     );
   }
 
@@ -371,7 +382,12 @@ class _NavTrackImportReviewPageState
         _SummaryGrid(units: units, preview: preview, start: start, end: end),
         const SizedBox(height: 16),
         Text(
-          _segmentSummary(l10n, units, preview.segmentation),
+          _segmentSummary(
+            l10n,
+            units,
+            preview.parsed.points,
+            preview.segmentation,
+          ),
           key: const ValueKey('nav-track-segment-summary'),
           style: theme.textTheme.bodyMedium,
         ),

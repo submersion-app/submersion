@@ -222,12 +222,13 @@ void main() {
   testWidgets('the GPS-fix distance follows the diver\'s depth unit', (
     tester,
   ) async {
-    // A dive, a surface sample, then a 100 m GPS re-acquisition jump.
+    // A dive, a surface sample, then a GPS fix that settles 100 m away.
     const points = [
       NavTrackPoint(timestamp: 1700000000, north: 0, east: 0, depth: 5),
       NavTrackPoint(timestamp: 1700000600, north: 10, east: 0, depth: 0),
       NavTrackPoint(timestamp: 1700000602, north: 110, east: 0, depth: 0),
-      NavTrackPoint(timestamp: 1700000604, north: 111, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000604, north: 110, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000606, north: 110, east: 0, depth: 0),
     ];
     await _pump(
       tester,
@@ -242,6 +243,46 @@ void main() {
     );
     expect(summary.data, contains('GPS fix 328ft from'));
     expect(summary.data, isNot(contains('m from')));
+  });
+
+  testWidgets('measures the GPS fix where it settles, not at the first '
+      'jump (the position the gpsFix correction targets)', (tester) async {
+    // The console jumps 100 m on re-acquiring GPS, then wanders on to
+    // settle about 140 m from where the dive's reckoned track ended.
+    const points = [
+      NavTrackPoint(timestamp: 1700000000, north: 0, east: 0, depth: 5),
+      NavTrackPoint(timestamp: 1700000600, north: 10, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000602, north: 110, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000604, north: 150, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000606, north: 150, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000608, north: 150, east: 0, depth: 0),
+    ];
+    await _pump(tester, preview: _preview(points: points));
+
+    final summary = tester.widget<Text>(
+      find.byKey(const ValueKey('nav-track-segment-summary')),
+    );
+    expect(summary.data, contains('GPS fix 140m from'));
+  });
+
+  testWidgets('does not report a pre-dive calibration as the fix at the end', (
+    tester,
+  ) async {
+    // GPS re-acquired on the surface before descending, and never again.
+    const points = [
+      NavTrackPoint(timestamp: 1700000000, north: 0, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000002, north: 300, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000004, north: 300, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000600, north: 320, east: 0, depth: 6),
+      NavTrackPoint(timestamp: 1700001200, north: 340, east: 0, depth: 6),
+    ];
+    await _pump(tester, preview: _preview(points: points));
+
+    final summary = tester.widget<Text>(
+      find.byKey(const ValueKey('nav-track-segment-summary')),
+    );
+    expect(summary.data, isNot(contains('from the reckoned end')));
+    expect(summary.data, contains('no GPS fix after the dive'));
   });
 
   testWidgets('shows the source file name and segment summary', (tester) async {

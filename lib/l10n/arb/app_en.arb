@@ -25887,7 +25887,7 @@
   "navTrack_detail_noSite": "No site",
   "navTrack_detail_chooseSite": "Choose site",
   "navTrack_review_title": "Import Underwater Route",
-  "navTrack_review_segmentSummaryNoFix": "{underwater} samples underwater, no GPS fix in this recording.",
+  "navTrack_review_segmentSummaryNoFix": "{underwater} samples underwater, no GPS fix after the dive.",
   "@navTrack_review_segmentSummaryNoFix": {
     "placeholders": {
       "underwater": {

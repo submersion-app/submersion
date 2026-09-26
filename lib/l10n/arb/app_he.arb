@@ -12503,7 +12503,7 @@
   "navTrack_detail_noSite": "אין אתר צלילה",
   "navTrack_detail_chooseSite": "בחר אתר",
   "navTrack_review_title": "ייבוא מסלול תת-ימי",
-  "navTrack_review_segmentSummaryNoFix": "{underwater} דגימות מתחת למים, אין תיקון GPS בהקלטה זו.",
+  "navTrack_review_segmentSummaryNoFix": "{underwater} דגימות מתחת למים, אין תיקון GPS אחרי הצלילה.",
   "navTrack_review_segmentSummaryWithFix": "{underwater} דגימות מתחת למים, {surface} דגימות פני שטח, תיקון GPS במרחק {vector} מהסיום המשוער.",
   "navTrack_review_saveError": "לא ניתן היה לשמור את המסלול הזה: {error}",
   "navTrack_review_importError": "לא ניתן היה לייבא את הקובץ הזה: {error}",

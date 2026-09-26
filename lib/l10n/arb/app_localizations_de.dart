@@ -41961,7 +41961,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String navTrack_review_segmentSummaryNoFix(int underwater) {
-    return '$underwater Messpunkte unter Wasser, kein GPS-Fix in dieser Aufzeichnung.';
+    return '$underwater Messpunkte unter Wasser, kein GPS-Fix nach dem Tauchgang.';
   }
 
   @override

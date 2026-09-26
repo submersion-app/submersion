@@ -41202,7 +41202,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String navTrack_review_segmentSummaryNoFix(int underwater) {
-    return '$underwater דגימות מתחת למים, אין תיקון GPS בהקלטה זו.';
+    return '$underwater דגימות מתחת למים, אין תיקון GPS אחרי הצלילה.';
   }
 
   @override
