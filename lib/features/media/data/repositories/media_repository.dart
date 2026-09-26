@@ -1983,9 +1983,10 @@ class MediaRepository {
       return (doomed: const <domain.MediaItem>[], unlinkIds: const <String>[]);
     }
     // Chunked: a bulk delete can pass more dives than SQLite binds in one
-    // statement (issue #1953).
+    // statement (issue #1953). Deduplicated first, or a dive listed in two
+    // chunks would doom its media twice.
     final rows = [
-      for (final chunk in seriesIdChunks(diveIds))
+      for (final chunk in seriesIdChunks(diveIds.toSet().toList()))
         ...await (_db.select(
           _db.media,
         )..where((t) => t.diveId.isIn(chunk))).get(),

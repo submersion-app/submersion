@@ -573,10 +573,11 @@ class NavTrackRepository {
 
   /// [routeIdsLinkedToDive] for many dives, in one query per chunk rather
   /// than one per dive, and under SQLite's bound-variable limit however many
-  /// dives a bulk delete selects (issue #1953).
+  /// dives a bulk delete selects (issue #1953). A repeated dive id is
+  /// looked up once, so each route comes back once.
   Future<List<String>> routeIdsLinkedToDives(List<String> diveIds) async {
     final routeIds = <String>[];
-    for (final chunk in seriesIdChunks(diveIds)) {
+    for (final chunk in seriesIdChunks(diveIds.toSet().toList())) {
       routeIds.addAll(await _idsWhere((t) => t.diveId.isIn(chunk)));
     }
     return routeIds;

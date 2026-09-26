@@ -2050,20 +2050,23 @@ class DiveRepository {
 
     try {
       _log.info('Bulk deleting ${ids.length} dives');
-      if (cascadeMedia) await _cascadeMediaForDiveDeletion(ids);
+      // Once each: a single `IN (...)` collapsed a repeated id, but chunked
+      // statements can each match it, doubling the rows they return.
+      final dives = ids.toSet().toList();
+      if (cascadeMedia) await _cascadeMediaForDiveDeletion(dives);
       // Check-ins on the dives stay as bench notes; staged, not just nulled.
-      await _observationRepository.unlinkFromDeletedDives(ids);
+      await _observationRepository.unlinkFromDeletedDives(dives);
       // See deleteDive: must be captured before the delete removes the
       // dives that the nav_tracks.dive_id FK's SET NULL is about to unlink.
       final linkedRouteIds = await _navTrackRepository.routeIdsLinkedToDives(
-        ids,
+        dives,
       );
-      await _deleteDiveRows(ids);
+      await _deleteDiveRows(dives);
       await _navTrackRepository.normalizeAfterDiveDeletion(linkedRouteIds);
       // See deleteDive: the cascade may have orphaned a stored import file.
       if (cascadeMedia) await _importedFileReclaimer.reclaimOrphans();
       // One transaction for every tombstone, not one per dive.
-      await _syncRepository.logDeletions(entityType: 'dives', recordIds: ids);
+      await _syncRepository.logDeletions(entityType: 'dives', recordIds: dives);
       SyncEventBus.notifyLocalChange();
       _log.info('Bulk deleted ${ids.length} dives');
       return ids;
@@ -2081,13 +2084,13 @@ class DiveRepository {
   ///
   /// Read in chunks, since the list view's bulk delete reads every selected
   /// dive first (issue #1953), and sorted here because no one statement
-  /// sees them all.
+  /// sees them all. A repeated id is read once, as one `IN (...)` read it.
   Future<List<domain.Dive>> getDivesByIds(List<String> ids) async {
     if (ids.isEmpty) return [];
 
     try {
       final rows = <Dive>[];
-      for (final chunk in seriesIdChunks(ids)) {
+      for (final chunk in seriesIdChunks(ids.toSet().toList())) {
         rows.addAll(
           await (_db.select(_db.dives)..where((t) => t.id.isIn(chunk))).get(),
         );
