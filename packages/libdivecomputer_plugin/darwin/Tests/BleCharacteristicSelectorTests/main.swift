@@ -30,7 +30,7 @@ func resolve(_ services: [BleCharacteristicSelector.Service],
     let service = services[selection.serviceIndex]
     return (
         service.characteristics[selection.writeIndex].uuid,
-        service.characteristics[selection.notifyIndex].uuid,
+        service.characteristics[selection.responseIndex].uuid,
         selection.serviceIndex
     )
 }
@@ -68,6 +68,8 @@ do {
     expect(result?.notify == CBUUID(string: halcyonTx),
            "halcyon: app reads replies from the device Tx (00000201), "
                + "got \(result?.notify.uuidString ?? "nil")")
+    expect(BleCharacteristicSelector.select(services: services)?.responseMode == .notify,
+           "halcyon: a notify-capable device keeps the notify response path")
 }
 
 // 2. Regression: a device with one write-only and one notify-only
@@ -361,6 +363,111 @@ do {
            "ublox-pin: FIFO wins the write role despite the lower raw score")
     expect(result?.notify == CBUUID(string: ubloxData),
            "ublox-pin: FIFO wins the notify role despite the lower raw score")
+}
+
+// Read-poll tier (issue #1454). The Seac Tablet's only data characteristic can
+// be read and written but cannot notify or indicate (libdivecomputer 415778c),
+// so the host must read it for every packet.
+let seacService = "84968FFE-D26D-478A-B953-5010BCF58BCA"
+let seacData = "43C620C2-1B09-4951-BC1E-9C75298CDDEB"
+
+// 15. The Tablet as Android and BlueZ enumerate it: Generic Access (whose
+// Device Name is read+write on some peripherals) and Device Information ahead
+// of the Seac service. Only the Seac service may be chosen, in read mode, with
+// the one characteristic serving both roles.
+do {
+    let services = [
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: "00001800-0000-1000-8000-00805F9B34FB"),
+            characteristics: [char("00002A00-0000-1000-8000-00805F9B34FB", [.read, .write])]
+        ),
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: "0000180A-0000-1000-8000-00805F9B34FB"),
+            characteristics: [char("00002A29-0000-1000-8000-00805F9B34FB", [.read])]
+        ),
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: seacService),
+            characteristics: [char(seacData, [.read, .write])]
+        ),
+    ]
+    let selection = BleCharacteristicSelector.select(services: services)
+    let result = resolve(services, selection)
+    expect(selection?.responseMode == .read, "seac: read-poll response path selected")
+    expect(result?.serviceIndex == 2, "seac: the Seac service is chosen over GAP and DIS")
+    expect(result?.write == CBUUID(string: seacData), "seac: commands go to the data characteristic")
+    expect(result?.notify == CBUUID(string: seacData), "seac: replies are read from the same characteristic")
+    expect(selection?.terminalIoCredits == nil, "seac: no credit handshake")
+}
+
+// 16. The allowlist is the whole read tier: the same read+write shape under
+// any other service, or another characteristic under the Seac service, is
+// not selectable.
+do {
+    let elsewhere = [
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: "0000FFE0-0000-1000-8000-00805F9B34FB"),
+            characteristics: [char(seacData, [.read, .write])]
+        )
+    ]
+    expect(BleCharacteristicSelector.select(services: elsewhere) == nil,
+           "allowlist: the Seac characteristic under another service is not selected")
+    let otherCharacteristic = [
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: seacService),
+            characteristics: [char("0000FFE1-0000-1000-8000-00805F9B34FB", [.read, .write])]
+        )
+    ]
+    expect(BleCharacteristicSelector.select(services: otherCharacteristic) == nil,
+           "allowlist: another characteristic under the Seac service is not selected")
+}
+
+// 17. Strict fallback: any service with a write/notify pair beats the read
+// tier, whatever the discovery order, so no device that works today changes.
+do {
+    let notifyService = BleCharacteristicSelector.Service(
+        uuid: CBUUID(string: "0000FFE0-0000-1000-8000-00805F9B34FB"),
+        characteristics: [char("0000FFE1-0000-1000-8000-00805F9B34FB", [.writeWithoutResponse, .notify])]
+    )
+    let seac = BleCharacteristicSelector.Service(
+        uuid: CBUUID(string: seacService),
+        characteristics: [char(seacData, [.read, .write])]
+    )
+    let seacFirst = BleCharacteristicSelector.select(services: [seac, notifyService])
+    expect(seacFirst?.responseMode == .notify && seacFirst?.serviceIndex == 1,
+           "fallback: the notify service wins when listed second")
+    let seacLast = BleCharacteristicSelector.select(services: [notifyService, seac])
+    expect(seacLast?.responseMode == .notify && seacLast?.serviceIndex == 0,
+           "fallback: the notify service wins when listed first")
+}
+
+// 18. The allowlisted characteristic needs both directions: READ for replies
+// and a write property for commands. Write-without-response alone is enough.
+do {
+    func selectSeac(_ properties: CBCharacteristicProperties) -> BleCharacteristicSelector.Selection? {
+        BleCharacteristicSelector.select(services: [
+            BleCharacteristicSelector.Service(
+                uuid: CBUUID(string: seacService),
+                characteristics: [char(seacData, properties)]
+            )
+        ])
+    }
+    expect(selectSeac([.write]) == nil, "seac-props: no READ, not selected")
+    expect(selectSeac([.read]) == nil, "seac-props: no write property, not selected")
+    expect(selectSeac([.read, .writeWithoutResponse])?.responseMode == .read,
+           "seac-props: read + write-without-response is selected")
+}
+
+// 19. If future firmware adds notify to the characteristic, the ordinary
+// notify path takes it and read-poll is never used.
+do {
+    let services = [
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: seacService),
+            characteristics: [char(seacData, [.read, .write, .notify])]
+        )
+    ]
+    expect(BleCharacteristicSelector.select(services: services)?.responseMode == .notify,
+           "seac-notify: a characteristic that notifies uses the notify path")
 }
 
 if failures == 0 {

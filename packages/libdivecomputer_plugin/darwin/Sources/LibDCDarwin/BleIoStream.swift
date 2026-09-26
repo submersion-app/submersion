@@ -886,7 +886,7 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         // unambiguous even if the peripheral exposes duplicate service UUIDs.
         let entry = discoveredServices[selection.serviceIndex]
         let writeChar = entry.characteristics[selection.writeIndex]
-        let notifyChar = entry.characteristics[selection.notifyIndex]
+        let notifyChar = entry.characteristics[selection.responseIndex]
 
         writeCharacteristic = writeChar
         notifyCharacteristic = notifyChar
