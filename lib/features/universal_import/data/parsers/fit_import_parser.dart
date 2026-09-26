@@ -170,6 +170,17 @@ class FitImportParser implements ImportParser {
         ImportEntityType.dives: [diveData],
       },
       warnings: [
+        // A dive logged without a recorded profile still imports (#1605),
+        // but the diver should know why its chart is empty.
+        if (dive.profile.isEmpty)
+          const ImportWarning(
+            severity: ImportWarningSeverity.warning,
+            code: ImportWarningCode.profileUnreadable,
+            entityType: ImportEntityType.dives,
+            message:
+                'This file contains no depth samples, so the dive was '
+                'imported without a profile.',
+          ),
         if (_hasNoTankPressure(dive))
           const ImportWarning(
             severity: ImportWarningSeverity.info,

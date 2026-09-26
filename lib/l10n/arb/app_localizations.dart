@@ -23281,11 +23281,317 @@ abstract class AppLocalizations {
   /// **'About MOD'**
   String get gasCalculators_mod_aboutMod;
 
-  /// No description provided for @gasCalculators_mod_aboutModBody.
+  /// No description provided for @gasCalculators_mod_mode.
   ///
   /// In en, this message translates to:
-  /// **'Lower O₂ = deeper MOD = shorter NDL'**
-  String get gasCalculators_mod_aboutModBody;
+  /// **'Mode'**
+  String get gasCalculators_mod_mode;
+
+  /// No description provided for @gasCalculators_mod_modeRecHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Nitrox for recreational diving: MOD and EAD, at 1 bar per 10 m as in the dive log.'**
+  String get gasCalculators_mod_modeRecHint;
+
+  /// No description provided for @gasCalculators_mod_modeOcTecHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Trimix on open circuit: MOD, minimum depth, narcosis and gas density.'**
+  String get gasCalculators_mod_modeOcTecHint;
+
+  /// No description provided for @gasCalculators_mod_modeCcrTecHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed circuit: the mix is the diluent. The MOD is the diluent MOD on a flush; the loop holds the setpoint at the target depth.'**
+  String get gasCalculators_mod_modeCcrTecHint;
+
+  /// No description provided for @gasCalculators_mod_heliumHe.
+  ///
+  /// In en, this message translates to:
+  /// **'Helium (He)'**
+  String get gasCalculators_mod_heliumHe;
+
+  /// No description provided for @gasCalculators_mod_setpoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint (bar)'**
+  String get gasCalculators_mod_setpoint;
+
+  /// No description provided for @gasCalculators_mod_limitsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO₂ limits'**
+  String get gasCalculators_mod_limitsTitle;
+
+  /// No description provided for @gasCalculators_mod_workingPpO2.
+  ///
+  /// In en, this message translates to:
+  /// **'Working ppO₂'**
+  String get gasCalculators_mod_workingPpO2;
+
+  /// No description provided for @gasCalculators_mod_decoPpO2.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco ppO₂'**
+  String get gasCalculators_mod_decoPpO2;
+
+  /// No description provided for @gasCalculators_mod_flushPpO2.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO₂ for the diluent MOD (flush)'**
+  String get gasCalculators_mod_flushPpO2;
+
+  /// No description provided for @gasCalculators_mod_minPpO2.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum ppO₂ (hypoxic mixes)'**
+  String get gasCalculators_mod_minPpO2;
+
+  /// No description provided for @gasCalculators_mod_fromProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'From your diver profile'**
+  String get gasCalculators_mod_fromProfile;
+
+  /// No description provided for @gasCalculators_mod_differsFromProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Differs from your profile ({value} bar)'**
+  String gasCalculators_mod_differsFromProfile(String value);
+
+  /// No description provided for @gasCalculators_mod_useProfileValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Use profile value'**
+  String get gasCalculators_mod_useProfileValue;
+
+  /// No description provided for @gasCalculators_mod_checkTargetDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Also check a target depth'**
+  String get gasCalculators_mod_checkTargetDepth;
+
+  /// No description provided for @gasCalculators_mod_targetDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Target depth'**
+  String get gasCalculators_mod_targetDepth;
+
+  /// No description provided for @gasCalculators_mod_diluentMod.
+  ///
+  /// In en, this message translates to:
+  /// **'Diluent MOD (flush)'**
+  String get gasCalculators_mod_diluentMod;
+
+  /// No description provided for @gasCalculators_mod_contingencyMod.
+  ///
+  /// In en, this message translates to:
+  /// **'Contingency MOD at {ppO2} bar'**
+  String gasCalculators_mod_contingencyMod(String ppO2);
+
+  /// No description provided for @gasCalculators_mod_decoMod.
+  ///
+  /// In en, this message translates to:
+  /// **'MOD at deco ppO₂ {ppO2} bar'**
+  String gasCalculators_mod_decoMod(String ppO2);
+
+  /// No description provided for @gasCalculators_mod_minDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum depth at ppO₂ {ppO2} bar'**
+  String gasCalculators_mod_minDepth(String ppO2);
+
+  /// No description provided for @gasCalculators_mod_fromSurface.
+  ///
+  /// In en, this message translates to:
+  /// **'from the surface'**
+  String get gasCalculators_mod_fromSurface;
+
+  /// No description provided for @gasCalculators_mod_mnd.
+  ///
+  /// In en, this message translates to:
+  /// **'MND (END limit {limit})'**
+  String gasCalculators_mod_mnd(String limit);
+
+  /// No description provided for @gasCalculators_mod_noNarcoticLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'no limit'**
+  String get gasCalculators_mod_noNarcoticLimit;
+
+  /// No description provided for @gasCalculators_mod_atDepthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'At depth'**
+  String get gasCalculators_mod_atDepthTitle;
+
+  /// No description provided for @gasCalculators_mod_atMod.
+  ///
+  /// In en, this message translates to:
+  /// **'At MOD'**
+  String get gasCalculators_mod_atMod;
+
+  /// No description provided for @gasCalculators_mod_atTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'At target depth'**
+  String get gasCalculators_mod_atTarget;
+
+  /// No description provided for @gasCalculators_mod_rowDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get gasCalculators_mod_rowDepth;
+
+  /// No description provided for @gasCalculators_mod_rowPpO2.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO₂'**
+  String get gasCalculators_mod_rowPpO2;
+
+  /// No description provided for @gasCalculators_mod_rowEad.
+  ///
+  /// In en, this message translates to:
+  /// **'EAD (N₂ narcotic)'**
+  String get gasCalculators_mod_rowEad;
+
+  /// No description provided for @gasCalculators_mod_rowEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'END (N₂ + O₂ narcotic)'**
+  String get gasCalculators_mod_rowEnd;
+
+  /// No description provided for @gasCalculators_mod_rowEadd.
+  ///
+  /// In en, this message translates to:
+  /// **'EADD (air density)'**
+  String get gasCalculators_mod_rowEadd;
+
+  /// No description provided for @gasCalculators_mod_rowDensity.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas density at 0 °C'**
+  String get gasCalculators_mod_rowDensity;
+
+  /// No description provided for @gasCalculators_mod_openDensity.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in the gas density calculator'**
+  String get gasCalculators_mod_openDensity;
+
+  /// No description provided for @gasCalculators_mod_assessmentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Assessment'**
+  String get gasCalculators_mod_assessmentTitle;
+
+  /// No description provided for @gasCalculators_mod_recBeyondLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'The MOD lies deeper than the recreational limit of {limit}. Down there narcosis and gas density, not oxygen, set the limit.'**
+  String gasCalculators_mod_recBeyondLimit(String limit);
+
+  /// No description provided for @gasCalculators_mod_recWithinLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'The MOD lies within the recreational limit of {limit}.'**
+  String gasCalculators_mod_recWithinLimit(String limit);
+
+  /// No description provided for @gasCalculators_mod_targetBeyondMod.
+  ///
+  /// In en, this message translates to:
+  /// **'The target depth is deeper than the MOD: ppO₂ {ppO2} bar there.'**
+  String gasCalculators_mod_targetBeyondMod(String ppO2);
+
+  /// No description provided for @gasCalculators_mod_targetAboveMinDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'The target depth is shallower than the minimum depth: the mix is hypoxic there.'**
+  String get gasCalculators_mod_targetAboveMinDepth;
+
+  /// No description provided for @gasCalculators_mod_hypoxic.
+  ///
+  /// In en, this message translates to:
+  /// **'Hypoxic mix: do not breathe it shallower than {depth}.'**
+  String gasCalculators_mod_hypoxic(String depth);
+
+  /// No description provided for @gasCalculators_mod_narcosisExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'{where}: narcotic depth {depth} exceeds your END limit of {limit}.'**
+  String gasCalculators_mod_narcosisExceeded(
+    String where,
+    String depth,
+    String limit,
+  );
+
+  /// No description provided for @gasCalculators_mod_densityWarn.
+  ///
+  /// In en, this message translates to:
+  /// **'{where}: gas density {density} g/L is above the recommended {limit} g/L.'**
+  String gasCalculators_mod_densityWarn(
+    String where,
+    String density,
+    String limit,
+  );
+
+  /// No description provided for @gasCalculators_mod_densityCritical.
+  ///
+  /// In en, this message translates to:
+  /// **'{where}: gas density {density} g/L is above the hard limit of {limit} g/L.'**
+  String gasCalculators_mod_densityCritical(
+    String where,
+    String density,
+    String limit,
+  );
+
+  /// No description provided for @gasCalculators_mod_targetBeyondDiluentMod.
+  ///
+  /// In en, this message translates to:
+  /// **'The target depth is deeper than the diluent MOD: a flush there gives ppO₂ {ppO2} bar.'**
+  String gasCalculators_mod_targetBeyondDiluentMod(String ppO2);
+
+  /// No description provided for @gasCalculators_mod_diluentAboveSetpoint.
+  ///
+  /// In en, this message translates to:
+  /// **'{where}: the diluent alone gives ppO₂ {ppO2} bar, more than the setpoint; the loop runs at the diluent\'s ppO₂.'**
+  String gasCalculators_mod_diluentAboveSetpoint(String where, String ppO2);
+
+  /// No description provided for @gasCalculators_mod_setpointCapped.
+  ///
+  /// In en, this message translates to:
+  /// **'{where}: the setpoint is above ambient pressure, the loop is pure oxygen.'**
+  String gasCalculators_mod_setpointCapped(String where);
+
+  /// No description provided for @gasCalculators_mod_allClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Within your ppO₂, END and density limits at the depths checked.'**
+  String get gasCalculators_mod_allClear;
+
+  /// No description provided for @gasCalculators_mod_aboutModesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The MOD is the depth at which the mix reaches the ppO₂ limit. It is always rounded down, never up.\n\nRec uses 1 bar per 10 m, like the dive log. OC Tec and CCR Tec take the ambient pressure from the water type, like the gas density calculator, so the same mix can show a slightly shallower MOD there.\n\nEAD counts nitrogen as narcotic, END nitrogen and oxygen. Your END limit, whether oxygen counts as narcotic and the default ppO₂ limits come from your diver profile.'**
+  String get gasCalculators_mod_aboutModesBody;
+
+  /// No description provided for @gasCalculators_mod_modeRec.
+  ///
+  /// In en, this message translates to:
+  /// **'Rec'**
+  String get gasCalculators_mod_modeRec;
+
+  /// No description provided for @gasCalculators_mod_modeOcTec.
+  ///
+  /// In en, this message translates to:
+  /// **'OC Tec'**
+  String get gasCalculators_mod_modeOcTec;
+
+  /// No description provided for @gasCalculators_mod_modeCcrTec.
+  ///
+  /// In en, this message translates to:
+  /// **'CCR Tec'**
+  String get gasCalculators_mod_modeCcrTec;
 
   /// No description provided for @gasCalculators_mod_inputParameters.
   ///
@@ -30830,7 +31136,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_decompression_ppO2LimitsTitle.
   ///
   /// In en, this message translates to:
-  /// **'ppO2 limits'**
+  /// **'ppO2 limits OC'**
   String get settings_decompression_ppO2LimitsTitle;
 
   /// No description provided for @settings_decompression_ppO2LimitsSubtitle.
@@ -30842,8 +31148,66 @@ abstract class AppLocalizations {
   /// No description provided for @settings_decompression_ppO2Dialog_title.
   ///
   /// In en, this message translates to:
-  /// **'ppO2 limits'**
+  /// **'ppO2 limits OC'**
   String get settings_decompression_ppO2Dialog_title;
+
+  /// No description provided for @settings_decompression_ccrPpO2LimitsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO2 limits CCR'**
+  String get settings_decompression_ccrPpO2LimitsTitle;
+
+  /// No description provided for @settings_decompression_ccrPpO2LimitsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint low {low} · high {high} · Dil MOD {dil} bar'**
+  String settings_decompression_ccrPpO2LimitsSubtitle(
+    String low,
+    String high,
+    String dil,
+  );
+
+  /// No description provided for @settings_decompression_ccrDialog_info.
+  ///
+  /// In en, this message translates to:
+  /// **'Defaults for rebreather dives. The CCR mode of the MOD calculator starts from these values.'**
+  String get settings_decompression_ccrDialog_info;
+
+  /// No description provided for @settings_decompression_ccrDialog_setpointLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint low'**
+  String get settings_decompression_ccrDialog_setpointLow;
+
+  /// No description provided for @settings_decompression_ccrDialog_setpointLowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Held near the surface, on descent and ascent'**
+  String get settings_decompression_ccrDialog_setpointLowHint;
+
+  /// No description provided for @settings_decompression_ccrDialog_setpointHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint high'**
+  String get settings_decompression_ccrDialog_setpointHigh;
+
+  /// No description provided for @settings_decompression_ccrDialog_setpointHighHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Held at depth'**
+  String get settings_decompression_ccrDialog_setpointHighHint;
+
+  /// No description provided for @settings_decompression_ccrDialog_diluentMod.
+  ///
+  /// In en, this message translates to:
+  /// **'Dil MOD'**
+  String get settings_decompression_ccrDialog_diluentMod;
+
+  /// No description provided for @settings_decompression_ccrDialog_diluentModHint.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO2 the diluent may reach on a flush; sets its MOD'**
+  String get settings_decompression_ccrDialog_diluentModHint;
 
   /// No description provided for @settings_decompression_ppO2Dialog_info.
   ///

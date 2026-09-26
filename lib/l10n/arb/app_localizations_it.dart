@@ -14171,8 +14171,205 @@ class AppLocalizationsIt extends AppLocalizations {
   String get gasCalculators_mod_aboutMod => 'Informazioni su MOD';
 
   @override
-  String get gasCalculators_mod_aboutModBody =>
-      'Meno O₂ = MOD più profonda = NDL più breve';
+  String get gasCalculators_mod_mode => 'Modalità';
+
+  @override
+  String get gasCalculators_mod_modeRecHint =>
+      'Nitrox per l\'immersione ricreativa: MOD ed EAD, con 1 bar ogni 10 m come nel logbook.';
+
+  @override
+  String get gasCalculators_mod_modeOcTecHint =>
+      'Trimix in circuito aperto: MOD, profondità minima, narcosi e densità del gas.';
+
+  @override
+  String get gasCalculators_mod_modeCcrTecHint =>
+      'Circuito chiuso: la miscela è il diluente. La MOD è quella del diluente in un flush; il loop mantiene il setpoint.';
+
+  @override
+  String get gasCalculators_mod_heliumHe => 'Elio (He)';
+
+  @override
+  String get gasCalculators_mod_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_mod_limitsTitle => 'Limiti di ppO₂';
+
+  @override
+  String get gasCalculators_mod_workingPpO2 => 'ppO₂ di lavoro';
+
+  @override
+  String get gasCalculators_mod_decoPpO2 => 'ppO₂ di deco';
+
+  @override
+  String get gasCalculators_mod_flushPpO2 =>
+      'ppO₂ per la MOD del diluente (flush)';
+
+  @override
+  String get gasCalculators_mod_minPpO2 => 'ppO₂ minima (miscele ipossiche)';
+
+  @override
+  String get gasCalculators_mod_fromProfile => 'Dal tuo profilo subacqueo';
+
+  @override
+  String gasCalculators_mod_differsFromProfile(String value) {
+    return 'Diverso dal profilo ($value bar)';
+  }
+
+  @override
+  String get gasCalculators_mod_useProfileValue => 'Usa il valore del profilo';
+
+  @override
+  String get gasCalculators_mod_checkTargetDepth =>
+      'Controlla anche una profondità obiettivo';
+
+  @override
+  String get gasCalculators_mod_targetDepth => 'Profondità obiettivo';
+
+  @override
+  String get gasCalculators_mod_diluentMod => 'MOD del diluente (flush)';
+
+  @override
+  String gasCalculators_mod_contingencyMod(String ppO2) {
+    return 'MOD di emergenza a $ppO2 bar';
+  }
+
+  @override
+  String gasCalculators_mod_decoMod(String ppO2) {
+    return 'MOD a ppO₂ di deco $ppO2 bar';
+  }
+
+  @override
+  String gasCalculators_mod_minDepth(String ppO2) {
+    return 'Profondità minima a ppO₂ $ppO2 bar';
+  }
+
+  @override
+  String get gasCalculators_mod_fromSurface => 'dalla superficie';
+
+  @override
+  String gasCalculators_mod_mnd(String limit) {
+    return 'MND (limite END $limit)';
+  }
+
+  @override
+  String get gasCalculators_mod_noNarcoticLimit => 'nessun limite';
+
+  @override
+  String get gasCalculators_mod_atDepthTitle => 'In profondità';
+
+  @override
+  String get gasCalculators_mod_atMod => 'Alla MOD';
+
+  @override
+  String get gasCalculators_mod_atTarget => 'Alla profondità obiettivo';
+
+  @override
+  String get gasCalculators_mod_rowDepth => 'Profondità';
+
+  @override
+  String get gasCalculators_mod_rowPpO2 => 'ppO₂';
+
+  @override
+  String get gasCalculators_mod_rowEad => 'EAD (N₂ narcotico)';
+
+  @override
+  String get gasCalculators_mod_rowEnd => 'END (N₂ + O₂ narcotici)';
+
+  @override
+  String get gasCalculators_mod_rowEadd => 'EADD (densità dell\'aria)';
+
+  @override
+  String get gasCalculators_mod_rowDensity => 'Densità del gas a 0 °C';
+
+  @override
+  String get gasCalculators_mod_openDensity =>
+      'Apri nel calcolatore di densità';
+
+  @override
+  String get gasCalculators_mod_assessmentTitle => 'Valutazione';
+
+  @override
+  String gasCalculators_mod_recBeyondLimit(String limit) {
+    return 'La MOD è più profonda del limite ricreativo di $limit. Laggiù il limite lo fissano narcosi e densità del gas, non l\'ossigeno.';
+  }
+
+  @override
+  String gasCalculators_mod_recWithinLimit(String limit) {
+    return 'La MOD rientra nel limite ricreativo di $limit.';
+  }
+
+  @override
+  String gasCalculators_mod_targetBeyondMod(String ppO2) {
+    return 'La profondità obiettivo è più profonda della MOD: lì ppO₂ $ppO2 bar.';
+  }
+
+  @override
+  String get gasCalculators_mod_targetAboveMinDepth =>
+      'La profondità obiettivo è meno profonda della profondità minima: lì la miscela è ipossica.';
+
+  @override
+  String gasCalculators_mod_hypoxic(String depth) {
+    return 'Miscela ipossica: non respirarla sopra $depth.';
+  }
+
+  @override
+  String gasCalculators_mod_narcosisExceeded(
+    String where,
+    String depth,
+    String limit,
+  ) {
+    return '$where: la profondità narcotica $depth supera il tuo limite END di $limit.';
+  }
+
+  @override
+  String gasCalculators_mod_densityWarn(
+    String where,
+    String density,
+    String limit,
+  ) {
+    return '$where: la densità del gas $density g/L supera i $limit g/L raccomandati.';
+  }
+
+  @override
+  String gasCalculators_mod_densityCritical(
+    String where,
+    String density,
+    String limit,
+  ) {
+    return '$where: la densità del gas $density g/L supera il limite massimo di $limit g/L.';
+  }
+
+  @override
+  String gasCalculators_mod_targetBeyondDiluentMod(String ppO2) {
+    return 'La profondità obiettivo è più profonda della MOD del diluente: un flush lì dà ppO₂ $ppO2 bar.';
+  }
+
+  @override
+  String gasCalculators_mod_diluentAboveSetpoint(String where, String ppO2) {
+    return '$where: il solo diluente dà ppO₂ $ppO2 bar, più del setpoint; il loop funziona alla ppO₂ del diluente.';
+  }
+
+  @override
+  String gasCalculators_mod_setpointCapped(String where) {
+    return '$where: il setpoint supera la pressione ambiente, il loop è ossigeno puro.';
+  }
+
+  @override
+  String get gasCalculators_mod_allClear =>
+      'Entro i tuoi limiti di ppO₂, END e densità alle profondità controllate.';
+
+  @override
+  String get gasCalculators_mod_aboutModesBody =>
+      'La MOD è la profondità alla quale la miscela raggiunge il limite di ppO₂. Viene sempre arrotondata per difetto, mai per eccesso.\n\nRec usa 1 bar ogni 10 m, come il logbook. OC Tec e CCR Tec ricavano la pressione ambiente dal tipo di acqua, come il calcolatore di densità, quindi la stessa miscela può mostrare lì una MOD un po\' meno profonda.\n\nL\'EAD considera narcotico l\'azoto, l\'END azoto e ossigeno. Il tuo limite END, se l\'ossigeno conta come narcotico e i limiti di ppO₂ predefiniti vengono dal tuo profilo subacqueo.';
+
+  @override
+  String get gasCalculators_mod_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_mod_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_mod_modeCcrTec => 'CCR Tec';
 
   @override
   String get gasCalculators_mod_inputParameters => 'Parametri di Input';
@@ -19056,7 +19253,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tossicità dell\'ossigeno';
 
   @override
-  String get settings_decompression_ppO2LimitsTitle => 'Limiti di ppO2';
+  String get settings_decompression_ppO2LimitsTitle => 'Limiti di ppO2 OC';
 
   @override
   String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
@@ -19064,7 +19261,44 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_ppO2Dialog_title => 'Limiti di ppO2';
+  String get settings_decompression_ppO2Dialog_title => 'Limiti di ppO2 OC';
+
+  @override
+  String get settings_decompression_ccrPpO2LimitsTitle => 'Limiti di ppO2 CCR';
+
+  @override
+  String settings_decompression_ccrPpO2LimitsSubtitle(
+    String low,
+    String high,
+    String dil,
+  ) {
+    return 'Setpoint basso $low · alto $high · MOD Dil $dil bar';
+  }
+
+  @override
+  String get settings_decompression_ccrDialog_info =>
+      'Valori predefiniti per le immersioni con rebreather. La modalità CCR del calcolatore di MOD parte da questi valori.';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLow => 'Setpoint basso';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLowHint =>
+      'Vicino alla superficie, in discesa e in risalita';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHigh => 'Setpoint alto';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHighHint =>
+      'In profondità';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentMod => 'MOD Dil';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentModHint =>
+      'ppO2 che il diluente può raggiungere in un flush; ne fissa la MOD';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

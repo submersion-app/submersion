@@ -5,6 +5,7 @@ class FileShareHandlerDelegate {
   void initialize({
     required Future<void> Function(Uint8List bytes, String fileName)
     onFileReceived,
+    Future<void> Function(List<String> paths)? onFilesReceived,
     void Function(Object error)? onError,
   }) {}
 
@@ -12,6 +13,7 @@ class FileShareHandlerDelegate {
     List<dynamic> files, {
     required Future<void> Function(Uint8List bytes, String fileName)
     onFileReceived,
+    Future<void> Function(List<String> paths)? onFilesReceived,
     void Function(Object error)? onError,
   }) async {}
 

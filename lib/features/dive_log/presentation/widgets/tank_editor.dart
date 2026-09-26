@@ -923,7 +923,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     AppSettings settings,
   ) {
     final workingPpO2 = settings.ppO2MaxWorking;
-    final modDepth = units.formatDepth(
+    final modDepth = units.formatDepthFloor(
       gasMix.mod(ppO2: workingPpO2),
       decimals: 0,
     );
@@ -932,7 +932,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       o2Narcotic: settings.o2Narcotic,
     );
     final mndDepth = mndValue.isFinite
-        ? units.formatDepth(mndValue, decimals: 0)
+        ? units.formatDepthFloor(mndValue, decimals: 0)
         : '--';
 
     return Padding(
