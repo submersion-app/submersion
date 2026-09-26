@@ -1466,6 +1466,11 @@ class SyncService {
             records: data.cylinderFills,
             hasUpdatedAt: true,
           ),
+          (
+            type: 'connectionMaps',
+            records: data.connectionMaps,
+            hasUpdatedAt: true,
+          ),
           (type: 'species', records: data.species, hasUpdatedAt: false),
           (type: 'tags', records: data.tags, hasUpdatedAt: true),
           // Courses must apply before dives/certifications that reference them.
@@ -2390,6 +2395,7 @@ class SyncService {
     'diveComputers': true,
     'transmitters': true,
     'cylinderFills': true,
+    'connectionMaps': true,
     'species': false,
     'tags': true,
     'courses': true,
