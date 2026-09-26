@@ -327,7 +327,11 @@ void main() {
       threshold: 40,
     );
 
-    Future<String> render(WidgetTester tester, AppSettings settings) async {
+    Future<String> render(
+      WidgetTester tester,
+      AppSettings settings, {
+      PlanIssue issue = issue,
+    }) async {
       late String message;
       await tester.pumpWidget(
         testApp(
@@ -358,6 +362,23 @@ void main() {
       expect(
         await render(tester, const AppSettings(depthUnit: DepthUnit.feet)),
         'END of 105ft exceeds the 131ft limit',
+      );
+    });
+
+    testWidgets('never reads as equal to the limit it exceeds', (tester) async {
+      // Trimix 21/10 at 34.5 m, O2 narcotic: END 30.05 m against 30 m.
+      // Rounding both to whole metres would print "30m exceeds the 30m".
+      const barelyOver = PlanIssue(
+        type: PlanIssueType.endExceeded,
+        severity: PlanIssueSeverity.warning,
+        message: 'END 30 m exceeds 30 m',
+        atDepth: 34.5,
+        value: 30.05,
+        threshold: 30,
+      );
+      expect(
+        await render(tester, const AppSettings(), issue: barelyOver),
+        'END of 31m exceeds the 30m limit',
       );
     });
   });

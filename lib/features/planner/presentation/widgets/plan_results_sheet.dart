@@ -39,9 +39,17 @@ String planIssueMessage(
         issue.value?.toStringAsFixed(2) ?? '--',
       );
     case PlanIssueType.endExceeded:
+      // The engine compares unrounded values, so plain rounding could print
+      // "30m exceeds the 30m limit" for an END of 30.05 m. Rounding the END
+      // up and the limit down keeps the shown END above the shown limit; the
+      // epsilon stops float noise (32.0000001) from bumping a whole value.
+      const epsilon = 1e-6;
+      final end = (units.convertDepth(issue.value ?? 0) - epsilon).ceil();
+      final limit = (units.convertDepth(issue.threshold ?? 0) + epsilon)
+          .floor();
       return l10n.divePlanner_warning_endExceedsLimit(
-        units.formatDepth(issue.value ?? 0, decimals: 0),
-        units.formatDepth(issue.threshold ?? 0, decimals: 0),
+        units.formatDepth(units.depthToMeters(end.toDouble()), decimals: 0),
+        units.formatDepth(units.depthToMeters(limit.toDouble()), decimals: 0),
       );
     case PlanIssueType.gasDensityHigh:
       return l10n.plannerCanvas_issue_gasDensityHigh(
