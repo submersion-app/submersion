@@ -935,7 +935,7 @@ class SubsurfaceXmlParser implements ImportParser {
       // Pressure *readings* (`start`, `end`) are sensor artifacts that
       // Subsurface dive computers can emit for phantom cylinder slots
       // (see the `does not invent extra tanks from placeholder cylinders`
-      // regression test using subsurface_export.ssrf) — these are excluded
+      // regression test using fixtures/shore-log.ssrf); these are excluded
       // from the preservation signal on purpose. Empty-string attribute
       // values (e.g., `<cylinder o2='' />`) also count as absent.
       final hasAnyCylinderProperty =

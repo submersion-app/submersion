@@ -4314,6 +4314,76 @@ void main() {
       },
     );
 
+    // Regression: the first update that lifted the zoom off 1x used to
+    // restructure the plot's parent (the zoom hint's Stack only existed while
+    // zoomed), which remounted the plot and disposed the trackpad recognizer
+    // mid-gesture. The rest of that pinch was dropped, so zooming from the
+    // full view stalled after a tiny step. Only a chart WITHOUT an exportKey
+    // (the fullscreen page) was affected; a GlobalKey reparents the subtree.
+    testWidgets('one trackpad pinch keeps zooming past the first step off 1x', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 20)));
+      await tester.pumpAndSettle();
+
+      final chart = find.byType(LineChart).first;
+      final center = tester.getCenter(chart);
+      final fullWidth = primaryChartData(tester).maxX;
+
+      final pointer = TestPointer(1, PointerDeviceKind.trackpad);
+      await tester.sendEventToBinding(pointer.panZoomStart(center));
+      for (final scale in [1.1, 1.5, 2.0, 4.0]) {
+        await tester.sendEventToBinding(
+          pointer.panZoomUpdate(center, scale: scale),
+        );
+        await tester.pump();
+      }
+      await tester.sendEventToBinding(pointer.panZoomEnd());
+      await tester.pump();
+
+      final data = primaryChartData(tester);
+      expect(
+        (data.maxX - data.minX) / fullWidth,
+        closeTo(0.25, 0.01),
+        reason: 'every update of one pinch applies, reaching 4x',
+      );
+    });
+
+    testWidgets(
+      'after zooming back out to 1x, one pinch again zooms past the first step',
+      (tester) async {
+        await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 20)));
+        await tester.pumpAndSettle();
+
+        final chart = find.byType(LineChart).first;
+        final center = tester.getCenter(chart);
+        final fullWidth = primaryChartData(tester).maxX;
+
+        Future<void> pinch(TestPointer pointer, List<double> scales) async {
+          await tester.sendEventToBinding(pointer.panZoomStart(center));
+          for (final scale in scales) {
+            await tester.sendEventToBinding(
+              pointer.panZoomUpdate(center, scale: scale),
+            );
+            await tester.pump();
+          }
+          await tester.sendEventToBinding(pointer.panZoomEnd());
+          await tester.pump();
+        }
+
+        await pinch(TestPointer(1, PointerDeviceKind.trackpad), [2.0]);
+        // Out past 1x (clamped there), then in again within the same pinch.
+        await pinch(TestPointer(2, PointerDeviceKind.trackpad), [0.1, 0.3]);
+
+        final data = primaryChartData(tester);
+        expect(
+          (data.maxX - data.minX) / fullWidth,
+          closeTo(1 / 3, 0.01),
+          reason: 'the zoom-in after returning to 1x applies (3x)',
+        );
+      },
+    );
+
     testWidgets('trackpad horizontal two-finger scroll does not zoom', (
       tester,
     ) async {

@@ -58,16 +58,17 @@ diver's units through the existing formatters. Cylinder sizes go through
 `formatVolume`; pressures through `formatPressure`; money through
 `lib/core/utils/currency.dart`.
 
-### Phase 1, schema rung 228
+### Phase 1, schema rung 229
 
-Main is at 226 and PR #2315 (hide built-in tank presets) claims 227 on
-2026-09-25, so this program takes 228. The
+PR #2315 (hide built-in tank presets) took 227 and PR #2364 (cylinder
+passports, fill history) took 228 while PR 1 was in review, so this program
+landed on 229. The
 ladder (open PR diffs and bodies, plus main) is re-checked right before PR
 1's plan is written and again before push. The migration is an inline
-`if (from < 228)` block in `database.dart` creating both tables and adding
+`if (from < 229)` block in `database.dart` creating both tables and adding
 the column, followed by `reportProgress()`, with the version added to
 `migrationVersions`, an idempotent `_assertTripCylindersSchema()` backstop
-called from `beforeOpen`, and a `migration_v228_trip_cylinders_test.dart`
+called from `beforeOpen`, and a `migration_v229_trip_cylinders_test.dart`
 after the v221 gear notes test.
 
 `trip_cylinders`, one row per slot:
@@ -368,7 +369,7 @@ Five PRs, each based on main after the previous one merges, each with its
 own implementation plan written only then. `dart format .` and
 `flutter analyze --fatal-infos` clean before every push.
 
-1. Phase 1 data: rung 228, entities, repository, sync registration, the
+1. Phase 1 data: rung 229, entities, repository, sync registration, the
    fold, deletion paths, `DiveTank.tripCylinderId` end to end. No UI.
 2. Phase 1 board: the story card, the board page, add, fill and adjust
    sheets, the ledger, the route.

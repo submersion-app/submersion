@@ -405,7 +405,7 @@ class DiverProfileHubPage extends ConsumerWidget {
       return '${diver.priorDiveCount} ${context.l10n.divers_edit_priorDivesLabel}';
     }
     if (diver.divingSince != null) {
-      return context.l10n.statistics_divingSince(diver.divingSince!.year);
+      return context.l10n.insights_divingSince(diver.divingSince!.year);
     }
     return context.l10n.divers_edit_divingSinceNotSet;
   }

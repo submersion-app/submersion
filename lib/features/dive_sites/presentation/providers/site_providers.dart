@@ -22,7 +22,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_dive_statist
 import 'package:submersion/features/dive_sites/domain/models/entry_exit_suggestion.dart';
 import 'package:submersion/features/dive_sites/domain/utils/location_options.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
@@ -443,7 +443,7 @@ final siteEntryExitSuggestionProvider =
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       if (diverId == null) return null;
 
-      final stats = ref.watch(statisticsRepositoryProvider);
+      final stats = ref.watch(insightsRepositoryProvider);
       final pairs = await stats.getEntryExitMethodPairsForSite(
         siteId: siteId,
         diverId: diverId,
@@ -481,7 +481,7 @@ final siteDiveStatisticsProvider =
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       if (diverId == null) return SiteDiveStatistics.empty;
 
-      final stats = ref.watch(statisticsRepositoryProvider);
+      final stats = ref.watch(insightsRepositoryProvider);
       return stats.getSiteDiveStatistics(siteId: siteId, diverId: diverId);
     });
 

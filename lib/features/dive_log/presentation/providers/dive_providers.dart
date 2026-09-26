@@ -1164,7 +1164,7 @@ class PaginatedDiveListNotifier
   /// Invalidate the dive-level stats provider.
   ///
   /// Every other statistics provider now self-invalidates on
-  /// [StatisticsRepository.watchStatisticsChanges], so there is no version
+  /// [InsightsRepository.watchInsightsChanges], so there is no version
   /// counter to bump (issue #974).
   void _invalidateStatistics() {
     _ref.invalidate(diveStatisticsProvider);

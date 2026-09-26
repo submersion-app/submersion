@@ -10,7 +10,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
-/// The dive_tanks.trip_cylinder_id link (v228, issue #2325): user-authored,
+/// The dive_tanks.trip_cylinder_id link (v229, issue #2325): user-authored,
 /// so an edit writes it and a rebuild must carry it; meaningless outside its
 /// trip, so a move to another trip drops it.
 void main() {

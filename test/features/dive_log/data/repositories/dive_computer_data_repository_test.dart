@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/unique_ids.dart';
 
 void main() {
   late DiveRepository repository;
@@ -39,7 +40,7 @@ void main() {
     int? gradientFactorLow,
     int? gradientFactorHigh,
   }) async {
-    final diveId = id ?? 'dive-${DateTime.now().microsecondsSinceEpoch}';
+    final diveId = id ?? uniqueTestId('dive');
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
         .into(db.dives)
@@ -78,7 +79,7 @@ void main() {
   }) {
     final now = DateTime.now();
     return DiveDataSourcesCompanion(
-      id: Value(id ?? 'reading-${now.microsecondsSinceEpoch}'),
+      id: Value(id ?? uniqueTestId('reading')),
       diveId: Value(diveId),
       isPrimary: Value(isPrimary),
       computerId: Value(computerId),

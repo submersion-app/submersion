@@ -73,7 +73,7 @@ The `MainScaffold` widget provides:
 | `/equipment` | EquipmentListPage | Gear inventory |
 | `/buddies` | BuddyListPage | Dive buddies |
 | `/planning` | PlanningPage | Planning hub |
-| `/statistics` | StatisticsPage | Analytics |
+| `/insights` | InsightsPage | Insights |
 | `/records` | RecordsPage | Personal records |
 | `/transfer` | TransferPage | Import/Export hub |
 | `/settings` | SettingsPage | Configuration |
@@ -238,20 +238,20 @@ GoRoute(
 | `/planning/weight-calculator` | weightCalculator | WeightCalculatorPage |
 | `/planning/surface-interval` | surfaceInterval | SurfaceIntervalToolPage |
 
-### Statistics
+### Insights
 
 | Path | Name | Screen |
 |------|------|--------|
-| `/statistics` | statistics | StatisticsPage |
-| `/statistics/gas` | statisticsGas | StatisticsGasPage |
-| `/statistics/progression` | statisticsProgression | StatisticsProgressionPage |
-| `/statistics/conditions` | statisticsConditions | StatisticsConditionsPage |
-| `/statistics/social` | statisticsSocial | StatisticsSocialPage |
-| `/statistics/geographic` | statisticsGeographic | StatisticsGeographicPage |
-| `/statistics/marine-life` | statisticsMarineLife | StatisticsMarineLifePage |
-| `/statistics/time-patterns` | statisticsTimePatterns | StatisticsTimePatternsPage |
-| `/statistics/equipment` | statisticsEquipment | StatisticsEquipmentPage |
-| `/statistics/profile` | statisticsProfile | StatisticsProfilePage |
+| `/insights` | insights | InsightsPage |
+| `/insights/gas` | insightsGas | InsightsGasPage |
+| `/insights/progression` | insightsProgression | InsightsProgressionPage |
+| `/insights/conditions` | insightsConditions | InsightsConditionsPage |
+| `/insights/social` | insightsSocial | InsightsSocialPage |
+| `/insights/geographic` | insightsGeographic | InsightsGeographicPage |
+| `/insights/marine-life` | insightsMarineLife | InsightsMarineLifePage |
+| `/insights/time-patterns` | insightsTimePatterns | InsightsTimePatternsPage |
+| `/insights/equipment` | insightsEquipment | InsightsEquipmentPage |
+| `/insights/profile` | insightsProfile | InsightsProfilePage |
 
 ### Records
 

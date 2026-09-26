@@ -100,13 +100,46 @@ void main() {
       s.id == id ? s.copyWith(visible: false) : s,
   ];
 
-  testWidgets('the tune button sits in the embedded header', (tester) async {
+  /// Opens the page's overflow menu.
+  Future<void> openOverflow(WidgetTester tester) async {
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('the embedded header has no display-options button', (
+    tester,
+  ) async {
     await pumpPage(tester);
 
-    expect(find.byIcon(Icons.tune), findsOneWidget);
+    expect(find.byIcon(Icons.tune), findsNothing);
   });
 
-  testWidgets('the tune button sits in the standalone app bar', (tester) async {
+  testWidgets('the embedded overflow lists display options and delete', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    await openOverflow(tester);
+
+    expect(find.text('Display options'), findsOneWidget);
+    expect(find.text('Delete'), findsOneWidget);
+  });
+
+  testWidgets('display options in the embedded overflow opens the panel', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    await openOverflow(tester);
+
+    await tester.tap(find.text('Display options'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('LAYOUT'), findsOneWidget);
+    expect(find.byType(ReorderableListView), findsOneWidget);
+  });
+
+  testWidgets('the standalone app bar overflow lists display options only', (
+    tester,
+  ) async {
     await pumpPage(tester, embedded: false);
 
     expect(
@@ -114,8 +147,26 @@ void main() {
         of: find.byType(AppBar),
         matching: find.byIcon(Icons.tune),
       ),
-      findsOneWidget,
+      findsNothing,
     );
+
+    await openOverflow(tester);
+
+    expect(find.text('Display options'), findsOneWidget);
+    expect(find.text('Delete'), findsNothing);
+  });
+
+  testWidgets('display options in the standalone overflow opens the panel', (
+    tester,
+  ) async {
+    await pumpPage(tester, embedded: false);
+    await openOverflow(tester);
+
+    await tester.tap(find.text('Display options'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('LAYOUT'), findsOneWidget);
+    expect(find.byType(ReorderableListView), findsOneWidget);
   });
 
   testWidgets('a hidden card is not on the page', (tester) async {

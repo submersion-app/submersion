@@ -21,6 +21,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_revi
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/cell_divergence_highlight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor_tooltip.dart'
     show TooltipCard, computeTooltipCardSize;
@@ -28,6 +29,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_l
 import 'package:submersion/features/dive_log/presentation/widgets/profile_transport_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_highlight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
+import 'package:submersion/features/equipment/presentation/providers/dive_sensor_summary_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -178,6 +180,9 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
       settingsProvider.select((s) => s.safetyReviewDisabledRules),
     );
     final safetyReview = ref.watch(safetyReviewProvider(widget.diveId)).value;
+    final sensorSummary = ref
+        .watch(diveSensorSummaryProvider(widget.diveId))
+        .value;
     final laneFindings = safetyReviewEnabled
         ? chartSafetyFindings(safetyReview, safetyDisabledRules)
         : const <SafetyFinding>[];
@@ -486,6 +491,10 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                           highlightedTimestamp: reviewTimestamp,
                           highlightRange: profileHighlightRangeFor(
                             visibleSelectedFinding,
+                            Theme.of(context).colorScheme,
+                          ),
+                          secondaryRanges: cellDivergenceHighlightRanges(
+                            sensorSummary,
                             Theme.of(context).colorScheme,
                           ),
                           safetyFindings: laneFindings.isEmpty
