@@ -185,4 +185,27 @@ void main() {
     expect(find.textContaining('edit in the Text tab'), findsOneWidget);
     expect(find.byType(TextField), findsNothing);
   });
+
+  testWidgets('a text row follows an outside change', (tester) async {
+    await tester.pumpWidget(
+      host(
+        AndNode([
+          TextNode(['manta']),
+        ]),
+        (_) {},
+      ),
+    );
+    await tester.pumpWidget(
+      host(
+        AndNode([
+          TextNode(['shark']),
+        ]),
+        (_) {},
+      ),
+    );
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      'shark',
+    );
+  });
 }

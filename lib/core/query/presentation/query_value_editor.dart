@@ -387,14 +387,11 @@ class QueryValueEditor extends StatelessWidget {
   /// True when the resolver lists [id] under [kind]; a resolver that cannot
   /// list its entries (the parser-only kind) never flags a ref.
   bool _known(QuerySubject kind, String id) {
-    final names = context.names;
-    if (names case final NameEntries entries) {
-      for (final label in entries.entryLabels(kind)) {
-        if (names.resolve(kind, label)?.id == id) return true;
-      }
-      return false;
-    }
-    return true;
+    return switch (context.names) {
+      final NameEntries entries =>
+        entries.refEntries(kind).any((r) => r.id == id),
+      _ => true,
+    };
   }
 }
 
@@ -418,6 +415,19 @@ class _NumberField extends StatefulWidget {
 
 class _NumberFieldState extends State<_NumberField> {
   late final _controller = TextEditingController(text: widget.initialText);
+
+  /// Follows a value set from outside (a saved query applied, the field
+  /// re-picked, the unit setting changed). The field's own echo (the
+  /// number just typed coming back) is left alone, so `30.` keeps its dot.
+  @override
+  void didUpdateWidget(_NumberField old) {
+    super.didUpdateWidget(old);
+    if (widget.initialText == old.initialText) return;
+    final typed = double.tryParse(_controller.text.replaceAll(',', '.'));
+    final incoming = double.tryParse(widget.initialText);
+    if (typed != null && typed == incoming) return;
+    _controller.text = widget.initialText;
+  }
 
   @override
   void dispose() {
@@ -450,6 +460,16 @@ class _TextValueField extends StatefulWidget {
 
 class _TextValueFieldState extends State<_TextValueField> {
   late final _controller = TextEditingController(text: widget.initialText);
+
+  /// Follows a value set from outside; its own echo is identical text.
+  @override
+  void didUpdateWidget(_TextValueField old) {
+    super.didUpdateWidget(old);
+    if (widget.initialText != old.initialText &&
+        widget.initialText != _controller.text) {
+      _controller.text = widget.initialText;
+    }
+  }
 
   @override
   void dispose() {

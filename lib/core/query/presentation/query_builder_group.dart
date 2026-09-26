@@ -262,6 +262,16 @@ class _TextRow extends StatefulWidget {
 class _TextRowState extends State<_TextRow> {
   late final _controller = TextEditingController(text: widget.initial);
 
+  /// Follows words set from outside. The row's own echo is the typed text
+  /// with its whitespace collapsed, which is left alone.
+  @override
+  void didUpdateWidget(_TextRow old) {
+    super.didUpdateWidget(old);
+    if (widget.initial == old.initial) return;
+    final typed = _controller.text.trim().split(RegExp(r'\s+')).join(' ');
+    if (typed != widget.initial) _controller.text = widget.initial;
+  }
+
   @override
   void dispose() {
     _controller.dispose();

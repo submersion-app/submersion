@@ -9,6 +9,7 @@ import 'package:submersion/core/query/syntax/query_parser.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 
 import '../fixtures/fixture_registry.dart';
+import 'query_value_editor_test.dart' show DuplicateNameResolver;
 
 void main() {
   final context = QueryEditorContext(
@@ -83,5 +84,36 @@ void main() {
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
     expect(picked, const [RefValue('s3', 'Cenote')]);
+  });
+
+  testWidgets('two rows with one name are both pickable, by id', (
+    tester,
+  ) async {
+    final dupes = QueryEditorContext(
+      registry: fixtureRegistry,
+      root: fixtureDives,
+      prefs: kMetricPrefs,
+      names: const DuplicateNameResolver(),
+      labels: const MapQueryLabels(),
+      now: () => DateTime(2026, 9, 25),
+    );
+    RefValue? picked;
+    await tester.pumpWidget(
+      host((ctx) async {
+        picked = await showQueryRefPicker(
+          ctx,
+          editor: dupes,
+          kind: QuerySubject.sites,
+          title: 'Choose site',
+          searchHint: 'Search',
+        );
+      }),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.text('Blue Hole'), findsNWidgets(2));
+    await tester.tap(find.text('Blue Hole').at(1));
+    await tester.pumpAndSettle();
+    expect(picked, const RefValue('s2', 'Blue Hole'));
   });
 }

@@ -23,8 +23,7 @@ class QueryNameIndex implements NameResolver, NameEntries {
   List<RefValue> entries(QuerySubject kind) => _entries[kind] ?? const [];
 
   @override
-  Iterable<String> entryLabels(QuerySubject kind) =>
-      entries(kind).map((r) => r.label);
+  Iterable<RefValue> refEntries(QuerySubject kind) => entries(kind);
 
   String? labelOf(QuerySubject kind, String id) {
     for (final r in entries(kind)) {

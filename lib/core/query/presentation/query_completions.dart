@@ -122,7 +122,9 @@ List<Completion> completionsAt(
     if (resolved?.field?.enumValues case final values?) return emit(values);
     if (resolved?.terminalRelation case final rel?) {
       if (context.names case final NameEntries names) {
-        return emit(names.entryLabels(rel.target), quote: true);
+        return emit({
+          for (final r in names.refEntries(rel.target)) r.label,
+        }, quote: true);
       }
       return const [];
     }

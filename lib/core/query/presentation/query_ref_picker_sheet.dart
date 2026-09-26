@@ -5,18 +5,14 @@ import 'package:submersion/core/query/domain/query_value.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
 
-/// The rows a ref picker can offer: the resolver's entries when it can list
-/// them, otherwise nothing (the text tab still resolves typed names).
-List<RefValue> _entriesOf(QueryEditorContext editor, QuerySubject kind) {
-  final names = editor.names;
-  if (names case final NameEntries entries) {
-    return [
-      for (final label in entries.entryLabels(kind))
-        ?names.resolve(kind, label),
-    ];
-  }
-  return const [];
-}
+/// The rows a ref picker can offer: the resolver's rows when it can list
+/// them, otherwise nothing (the text tab still resolves typed names). Rows
+/// keep their own ids, so two sites with one name are both pickable.
+List<RefValue> _entriesOf(QueryEditorContext editor, QuerySubject kind) =>
+    switch (editor.names) {
+      final NameEntries entries => entries.refEntries(kind).toList(),
+      _ => const [],
+    };
 
 /// Pick one row of [kind] by name (spec Unit 6, "a ref type-ahead").
 Future<RefValue?> showQueryRefPicker(

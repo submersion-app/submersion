@@ -283,4 +283,131 @@ void main() {
     );
     expect(find.byType(TextField), findsNothing);
   });
+
+  testWidgets('a number field follows an outside change and a unit change', (
+    tester,
+  ) async {
+    Widget editor(UnitPrefs prefs, double storage) => host(
+      QueryValueEditor(
+        context: ctx(prefs),
+        target: target('depth'),
+        op: QueryOp.gt,
+        value: NumberValue(storage, null),
+        onChanged: (_) {},
+        strings: kTestBuilderStrings,
+      ),
+    );
+    String shown() =>
+        tester.widget<TextField>(find.byType(TextField)).controller!.text;
+
+    await tester.pumpWidget(editor(kMetricPrefs, 30.48));
+    expect(shown(), '30.48');
+    // The unit setting changes: the same storage value reads in feet.
+    await tester.pumpWidget(editor(imperial, 30.48));
+    expect(shown(), '100');
+    // A saved query or a re-picked field replaces the value.
+    await tester.pumpWidget(editor(imperial, 12.192));
+    expect(shown(), '40');
+  });
+
+  testWidgets('typing is not rewritten by its own echo', (tester) async {
+    QueryValue value = const NumberValue(30, null);
+    await tester.pumpWidget(
+      host(
+        StatefulBuilder(
+          builder: (context, setState) => QueryValueEditor(
+            context: ctx(),
+            target: target('depth'),
+            op: QueryOp.gt,
+            value: value,
+            onChanged: (v) => setState(() => value = v),
+            strings: kTestBuilderStrings,
+          ),
+        ),
+      ),
+    );
+    await tester.enterText(find.byType(TextField), '30.');
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      '30.',
+    );
+    await tester.enterText(find.byType(TextField), '305');
+    await tester.pump();
+    expect((value as NumberValue).value, 305);
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      '305',
+    );
+  });
+
+  testWidgets('a text field follows an outside change', (tester) async {
+    Widget editor(String text) => host(
+      QueryValueEditor(
+        context: ctx(),
+        target: target('notes'),
+        op: QueryOp.contains,
+        value: StringValue(text),
+        onChanged: (_) {},
+        strings: kTestBuilderStrings,
+      ),
+    );
+    await tester.pumpWidget(editor('manta'));
+    await tester.pumpWidget(editor('shark'));
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      'shark',
+    );
+  });
+
+  testWidgets('same-named refs keep their own ids', (tester) async {
+    final dupes = QueryEditorContext(
+      registry: fixtureRegistry,
+      root: fixtureDives,
+      prefs: kMetricPrefs,
+      names: const DuplicateNameResolver(),
+      labels: const MapQueryLabels(),
+      now: () => DateTime(2026, 9, 25),
+    );
+    await tester.pumpWidget(
+      host(
+        QueryValueEditor(
+          context: dupes,
+          target: target('site'),
+          op: QueryOp.eq,
+          value: const RefValue('s2', 'Blue Hole'),
+          onChanged: (_) {},
+          strings: kTestBuilderStrings,
+        ),
+      ),
+    );
+    // The second "Blue Hole" exists; it must not be flagged as gone.
+    expect(find.byTooltip('No longer exists'), findsNothing);
+  });
+}
+
+/// Two sites share a name, as dive sites often do ("Blue Hole").
+class DuplicateNameResolver implements NameResolver, NameEntries {
+  const DuplicateNameResolver();
+
+  static const refs = [
+    RefValue('s1', 'Blue Hole'),
+    RefValue('s2', 'Blue Hole'),
+    RefValue('s3', 'Cenote'),
+  ];
+
+  @override
+  RefValue? resolve(QuerySubject kind, String text) {
+    for (final r in refEntries(kind)) {
+      if (r.label.toLowerCase() == text.toLowerCase()) return r;
+    }
+    return null;
+  }
+
+  @override
+  List<String> candidates(QuerySubject kind, String text) => const [];
+
+  @override
+  Iterable<RefValue> refEntries(QuerySubject kind) =>
+      kind == QuerySubject.sites ? refs : const [];
 }
