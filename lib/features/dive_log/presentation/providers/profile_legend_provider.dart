@@ -89,6 +89,8 @@ class ProfileLegendState {
 
   // Per-tank visibility (keyed by tank ID). Hides the tank's pressure trace
   // on multi-tank dives and its gas-switch markers on gas-switch dives.
+  // Holds only the choices the user made this session: a tank with no entry
+  // falls back to a default (see [isTankPressureVisible]).
   final Map<String, bool> showTankPressure;
 
   // Gas timeline strip visibility
@@ -197,6 +199,12 @@ class ProfileLegendState {
 
   /// Whether any secondary toggle is active
   bool get hasActiveSecondary => activeSecondaryCount > 0;
+
+  /// Whether [tankId]'s pressure trace is drawn: the user's own choice for
+  /// that tank when they made one, otherwise the Pressure default seeded from
+  /// [AppSettings.defaultShowPressure] (issue #1999).
+  bool isTankPressureVisible(String tankId) =>
+      showTankPressure[tankId] ?? showPressure;
 
   ProfileLegendState copyWith({
     ProfileRightAxisMetric? rightAxisMetric,
@@ -703,34 +711,14 @@ class ProfileLegend extends _$ProfileLegend {
     state = state.copyWith(showGas: !state.showGas);
   }
 
-  /// Toggle visibility for a specific tank's pressure line
-  void toggleTankPressure(String tankId) {
-    final current = state.showTankPressure[tankId] ?? true;
+  /// Flip one tank's checkbox. [visibleByDefault] is what the checkbox shows
+  /// before the user has touched it: the Pressure default for a pressure
+  /// trace, and visible for a cylinder's gas-switch markers.
+  void toggleTankPressure(String tankId, {bool visibleByDefault = true}) {
+    final current = state.showTankPressure[tankId] ?? visibleByDefault;
     state = state.copyWith(
       showTankPressure: {...state.showTankPressure, tankId: !current},
     );
-  }
-
-  /// Initialize tank pressure visibility for tanks that don't have state yet
-  void initializeTankPressures(List<String> tankIds) {
-    final updated = Map<String, bool>.from(state.showTankPressure);
-    var hasChanges = false;
-
-    for (final tankId in tankIds) {
-      if (!updated.containsKey(tankId)) {
-        updated[tankId] = true; // Default to visible
-        hasChanges = true;
-      }
-    }
-
-    if (hasChanges) {
-      state = state.copyWith(showTankPressure: updated);
-    }
-  }
-
-  /// Check if a specific tank's pressure is visible
-  bool isTankPressureVisible(String tankId) {
-    return state.showTankPressure[tankId] ?? true;
   }
 
   /// Reset all toggles to their default values

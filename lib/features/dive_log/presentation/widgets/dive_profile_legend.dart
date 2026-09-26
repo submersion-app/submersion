@@ -50,16 +50,6 @@ class DiveProfileLegend extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final legendState = ref.watch(profileLegendProvider);
-    final legendNotifier = ref.read(profileLegendProvider.notifier);
-
-    // Initialize tank pressures if needed
-    if (config.hasMultiTankPressure && config.tankPressures != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        legendNotifier.initializeTankPressures(
-          config.tankPressures!.keys.toList(),
-        );
-      });
-    }
 
     final entries = activeLegendEntries(
       context,

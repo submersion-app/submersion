@@ -150,9 +150,8 @@ void main() {
       expect(entries.map((e) => e.label), ['Depth', 'D80 (Air)']);
     });
 
-    testWidgets('treats a tank with no recorded preference as visible', (
-      tester,
-    ) async {
+    testWidgets('shows a tank with no recorded preference when the Pressure '
+        'default is on', (tester) async {
       final entries = await _entries(
         tester,
         config: const ProfileLegendConfig(
@@ -160,11 +159,29 @@ void main() {
           tanks: _tanks,
           tankPressures: _tankPressures,
         ),
-        state: const ProfileLegendState(),
+        state: const ProfileLegendState(showPressure: true),
       );
 
       // Depth plus the two tanks.
       expect(entries, hasLength(3));
+    });
+
+    testWidgets('hides a tank with no recorded preference when the Pressure '
+        'default is off (issue #1999)', (tester) async {
+      final entries = await _entries(
+        tester,
+        config: const ProfileLegendConfig(
+          hasMultiTankPressure: true,
+          tanks: _tanks,
+          tankPressures: _tankPressures,
+        ),
+        state: const ProfileLegendState(
+          showPressure: false,
+          showTankPressure: {'tank-2': true},
+        ),
+      );
+
+      expect(entries.map((e) => e.label), ['Depth', 'AL80 (EAN50)']);
     });
 
     testWidgets('leaves out the gas strip and display behaviour', (
