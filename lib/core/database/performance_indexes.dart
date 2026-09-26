@@ -418,6 +418,14 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_equipment '
         'ON cylinder_fills(equipment_id)',
   ),
+  // Saved queries (v234, issue #2365): one diver's queries for one subject,
+  // in display order.
+  (
+    name: 'idx_saved_queries_diver',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_saved_queries_diver '
+        'ON saved_queries(diver_id, subject, sort_order)',
+  ),
 ];
 
 /// Creates any canonical index missing from [db], returning the names of
