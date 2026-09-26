@@ -43720,4 +43720,437 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get query_weights_type => 'Type';
+
+  @override
+  String get query_op_eq => 'est';
+
+  @override
+  String get query_op_neq => 'n\'est pas';
+
+  @override
+  String get query_op_lt => 'inférieur à';
+
+  @override
+  String get query_op_lte => 'au plus';
+
+  @override
+  String get query_op_gt => 'supérieur à';
+
+  @override
+  String get query_op_gte => 'au moins';
+
+  @override
+  String get query_op_contains => 'contient';
+
+  @override
+  String get query_op_inList => 'est parmi';
+
+  @override
+  String get query_op_between => 'entre';
+
+  @override
+  String get query_op_isEmpty => 'non renseigné';
+
+  @override
+  String get query_op_isSet => 'renseigné';
+
+  @override
+  String get query_editor_tabText => 'Texte';
+
+  @override
+  String get query_editor_tabBuilder => 'Constructeur';
+
+  @override
+  String get query_editor_hint => 'p. ex. weights:none AND depth > 30';
+
+  @override
+  String get query_editor_save => 'Enregistrer la requête';
+
+  @override
+  String get query_editor_allOf => 'Toutes les conditions';
+
+  @override
+  String get query_editor_anyOf => 'Une des conditions';
+
+  @override
+  String get query_editor_addCondition => 'Ajouter une condition';
+
+  @override
+  String get query_editor_addGroup => 'Ajouter un groupe';
+
+  @override
+  String get query_editor_negate => 'Non';
+
+  @override
+  String get query_editor_remove => 'Retirer';
+
+  @override
+  String get query_editor_pickField => 'Choisir un champ';
+
+  @override
+  String get query_editor_pickFieldSearch => 'Rechercher des champs';
+
+  @override
+  String query_editor_useRelation(String name) {
+    return 'Utiliser $name directement';
+  }
+
+  @override
+  String query_editor_fieldsOf(String name) {
+    return 'Champs de $name';
+  }
+
+  @override
+  String query_editor_pickRef(String name) {
+    return 'Choisir $name';
+  }
+
+  @override
+  String get query_editor_pickRefSearch => 'Rechercher';
+
+  @override
+  String get query_editor_done => 'Terminé';
+
+  @override
+  String get query_editor_unresolvedRef => 'N\'existe plus';
+
+  @override
+  String query_editor_scopedRow(String name) {
+    return 'Groupe sur $name : modifier dans l\'onglet Texte';
+  }
+
+  @override
+  String get query_editor_textRow => 'Recherche de texte';
+
+  @override
+  String get query_editor_betweenAnd => 'et';
+
+  @override
+  String get query_editor_valueTrue => 'Oui';
+
+  @override
+  String get query_editor_valueFalse => 'Non';
+
+  @override
+  String get diveLog_filter_queryRow => 'Requête';
+
+  @override
+  String get diveLog_search_section_query => 'Requête';
+
+  @override
+  String get query_saveDialog_title => 'Enregistrer la requête';
+
+  @override
+  String get query_saveDialog_nameLabel => 'Nom';
+
+  @override
+  String get query_saveDialog_nameValidation => 'Saisissez un nom';
+
+  @override
+  String query_saved_snackbar(String name) {
+    return '« $name » enregistrée';
+  }
+
+  @override
+  String get query_savedRow_title => 'Enregistrées';
+
+  @override
+  String query_savedRow_unreadable(String name, String detail) {
+    return 'Impossible de lire « $name » : $detail';
+  }
+
+  @override
+  String query_savedRow_unresolved(String name) {
+    return '« $name » fait référence à un élément qui n\'existe plus';
+  }
+
+  @override
+  String get savedQueries_appBar_title => 'Requêtes enregistrées';
+
+  @override
+  String get savedQueries_empty =>
+      'Aucune requête enregistrée pour le moment. Enregistrez-en une depuis l\'éditeur de requêtes de la page de recherche de plongées.';
+
+  @override
+  String get savedQueries_renameTooltip => 'Renommer';
+
+  @override
+  String get savedQueries_deleteTooltip => 'Supprimer';
+
+  @override
+  String get savedQueries_reorderTooltip => 'Faire glisser pour réorganiser';
+
+  @override
+  String get savedQueries_deleteDialog_title => 'Supprimer la requête ?';
+
+  @override
+  String savedQueries_deleteDialog_content(String name) {
+    return 'Supprimer « $name » ? Cette action est irréversible.';
+  }
+
+  @override
+  String get savedQueries_problem_unreadable =>
+      'Illisible par cette version de l\'application';
+
+  @override
+  String savedQueries_problem_invalid(String detail) {
+    return 'Utilise un élément absent de cette version : $detail';
+  }
+
+  @override
+  String savedQueries_problem_unknownSubject(String detail) {
+    return 'Pour une liste absente de cette version : $detail';
+  }
+
+  @override
+  String savedQueries_problem_unresolved(String detail) {
+    return 'Fait référence à un élément qui n\'existe plus : $detail';
+  }
+
+  @override
+  String savedQueries_snackbar_deleted(String name) {
+    return '« $name » supprimée';
+  }
+
+  @override
+  String get settings_manage_savedQueries => 'Requêtes enregistrées';
+
+  @override
+  String get settings_manage_savedQueries_subtitle =>
+      'Renommer, réorganiser et supprimer les requêtes enregistrées';
+
+  @override
+  String get query_error_unterminatedQuote => 'guillemet non fermé';
+
+  @override
+  String query_error_unexpectedCharacter(String text) {
+    return 'caractère inattendu « $text »';
+  }
+
+  @override
+  String query_error_unexpectedToken(String text) {
+    return '« $text » inattendu';
+  }
+
+  @override
+  String get query_error_expectedCloseParen => '« ) » attendu';
+
+  @override
+  String get query_error_expectedCloseBracket => '« ] » attendu';
+
+  @override
+  String get query_error_expectedOpenBracketAfterIn =>
+      '« [ » attendu après « in »';
+
+  @override
+  String get query_error_expectedAnd => '« and » attendu';
+
+  @override
+  String get query_error_expectedOperator => 'opérateur attendu';
+
+  @override
+  String get query_error_expectedConditionOrText =>
+      'condition ou texte attendu';
+
+  @override
+  String get query_error_expectedName => 'nom attendu';
+
+  @override
+  String get query_error_expectedDate => 'date attendue';
+
+  @override
+  String get query_error_expectedDateValue => 'valeur de date attendue';
+
+  @override
+  String get query_error_expectedValue => 'valeur attendue';
+
+  @override
+  String get query_error_expectedNumber => 'nombre attendu';
+
+  @override
+  String get query_error_expectedText => 'texte attendu';
+
+  @override
+  String get query_error_expectedBool => 'true ou false attendu';
+
+  @override
+  String get query_error_emptyText => 'texte vide';
+
+  @override
+  String get query_error_emptyList => 'la liste est vide';
+
+  @override
+  String get query_error_emptyGroup => 'un groupe vide ne correspond à rien';
+
+  @override
+  String get query_error_emptyPath => 'chemin vide';
+
+  @override
+  String query_error_notSingleDay(String text) {
+    return '« $text » n\'est pas un jour unique';
+  }
+
+  @override
+  String query_error_notADate(String text) {
+    return '« $text » n\'est pas une date';
+  }
+
+  @override
+  String query_error_openEndedDate(
+    String text,
+    String field,
+    String symbol,
+    String day,
+  ) {
+    return '« $text » est une période ouverte ; écrivez plutôt $field $symbol $day';
+  }
+
+  @override
+  String query_error_unknownUnit(String unit) {
+    return 'unité inconnue « $unit »';
+  }
+
+  @override
+  String query_error_noUnitAllowed(String field) {
+    return '$field n\'accepte pas d\'unité';
+  }
+
+  @override
+  String query_error_wrongUnitDimension(String unit, String dimension) {
+    return '« $unit » n\'est pas une unité de $dimension';
+  }
+
+  @override
+  String query_error_wrongUnitForField(
+    String unit,
+    String dimension,
+    String field,
+  ) {
+    return '« $unit » n\'est pas une unité de $dimension ; $field se mesure en $dimension';
+  }
+
+  @override
+  String get query_error_decimalComma =>
+      'utilisez « . » pour les décimales, pas « , »';
+
+  @override
+  String query_error_scopeNeedsRelationQuoted(String path) {
+    return '« [...] » nécessite une relation, « $path » est un champ';
+  }
+
+  @override
+  String query_error_scopeNeedsRelation(String path) {
+    return '[...] nécessite une relation, « $path » est un champ';
+  }
+
+  @override
+  String query_error_relationNeedsRefOp(String path) {
+    return '« $path » est une relation ; utilisez =, in, :none, :any ou [...]';
+  }
+
+  @override
+  String query_error_relationOpNotAllowed(String op) {
+    return '« $op » ne peut pas être utilisé avec une relation ; utilisez =, !=, in, :none, :any ou [...]';
+  }
+
+  @override
+  String query_error_opNotForFieldQuoted(String op, String field) {
+    return '« $op » ne peut pas être utilisé avec $field';
+  }
+
+  @override
+  String query_error_opNotForField(String op, String field) {
+    return '$op ne peut pas être utilisé avec $field';
+  }
+
+  @override
+  String query_error_noneAmbiguous(String field) {
+    return '« $field:none » est ambigu : écrivez « $field = none » pour la valeur none, ou « NOT $field:any » pour une valeur non renseignée';
+  }
+
+  @override
+  String query_error_noRefNamed(String relation, String text) {
+    return '$relation « $text » introuvable';
+  }
+
+  @override
+  String query_error_notEnumValue(String text, String field) {
+    return '« $text » n\'est pas une valeur valide pour $field';
+  }
+
+  @override
+  String query_error_unknownField(String name) {
+    return 'champ inconnu « $name »';
+  }
+
+  @override
+  String query_error_fieldNotPath(String name, String next) {
+    return '« $name » est un champ et ne peut pas être suivi de « .$next »';
+  }
+
+  @override
+  String query_error_tooManyHops(String max) {
+    return 'une requête peut traverser au plus $max relations, groupes imbriqués compris';
+  }
+
+  @override
+  String query_error_pathTooLong(String max) {
+    return 'un chemin peut traverser au plus $max relations';
+  }
+
+  @override
+  String query_error_textNotSearchable(String table) {
+    return 'impossible de rechercher du texte libre dans $table';
+  }
+
+  @override
+  String query_error_expectsReference(String name) {
+    return '$name attend une référence';
+  }
+
+  @override
+  String query_error_expectsReferences(String name) {
+    return '$name attend des références';
+  }
+
+  @override
+  String get query_error_betweenNeedsTwo => 'between nécessite deux valeurs';
+
+  @override
+  String get query_error_inNeedsList => 'in nécessite une liste';
+
+  @override
+  String query_error_expectsNumber(String field) {
+    return '$field attend un nombre';
+  }
+
+  @override
+  String query_error_outOfRange(String field) {
+    return 'la valeur de $field est hors limites';
+  }
+
+  @override
+  String query_error_expectsText(String field) {
+    return '$field attend du texte';
+  }
+
+  @override
+  String query_error_expectsBool(String field) {
+    return '$field attend true ou false';
+  }
+
+  @override
+  String query_error_expectsEnumValue(String field) {
+    return '$field attend l\'une de ses valeurs';
+  }
+
+  @override
+  String query_error_expectsSingleDay(String field) {
+    return '$field attend ici un seul jour';
+  }
+
+  @override
+  String query_error_expectsDate(String field) {
+    return '$field attend une date';
+  }
 }

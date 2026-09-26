@@ -43278,4 +43278,436 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_weights_type => 'النوع';
+
+  @override
+  String get query_op_eq => 'يساوي';
+
+  @override
+  String get query_op_neq => 'لا يساوي';
+
+  @override
+  String get query_op_lt => 'أقل من';
+
+  @override
+  String get query_op_lte => 'على الأكثر';
+
+  @override
+  String get query_op_gt => 'أكثر من';
+
+  @override
+  String get query_op_gte => 'على الأقل';
+
+  @override
+  String get query_op_contains => 'يحتوي على';
+
+  @override
+  String get query_op_inList => 'أحد';
+
+  @override
+  String get query_op_between => 'بين';
+
+  @override
+  String get query_op_isEmpty => 'غير محدد';
+
+  @override
+  String get query_op_isSet => 'محدد';
+
+  @override
+  String get query_editor_tabText => 'النص';
+
+  @override
+  String get query_editor_tabBuilder => 'المنشئ';
+
+  @override
+  String get query_editor_hint => 'مثال: weights:none AND depth > 30';
+
+  @override
+  String get query_editor_save => 'حفظ الاستعلام';
+
+  @override
+  String get query_editor_allOf => 'جميع الشروط';
+
+  @override
+  String get query_editor_anyOf => 'أي من الشروط';
+
+  @override
+  String get query_editor_addCondition => 'إضافة شرط';
+
+  @override
+  String get query_editor_addGroup => 'إضافة مجموعة';
+
+  @override
+  String get query_editor_negate => 'نفي';
+
+  @override
+  String get query_editor_remove => 'إزالة';
+
+  @override
+  String get query_editor_pickField => 'اختر حقلًا';
+
+  @override
+  String get query_editor_pickFieldSearch => 'البحث في الحقول';
+
+  @override
+  String query_editor_useRelation(String name) {
+    return 'استخدام $name نفسه';
+  }
+
+  @override
+  String query_editor_fieldsOf(String name) {
+    return 'حقول $name';
+  }
+
+  @override
+  String query_editor_pickRef(String name) {
+    return 'اختر $name';
+  }
+
+  @override
+  String get query_editor_pickRefSearch => 'بحث';
+
+  @override
+  String get query_editor_done => 'تم';
+
+  @override
+  String get query_editor_unresolvedRef => 'لم يعد موجودًا';
+
+  @override
+  String query_editor_scopedRow(String name) {
+    return 'مجموعة ضمن $name: حرّرها في علامة تبويب النص';
+  }
+
+  @override
+  String get query_editor_textRow => 'بحث نصي';
+
+  @override
+  String get query_editor_betweenAnd => 'و';
+
+  @override
+  String get query_editor_valueTrue => 'نعم';
+
+  @override
+  String get query_editor_valueFalse => 'لا';
+
+  @override
+  String get diveLog_filter_queryRow => 'استعلام';
+
+  @override
+  String get diveLog_search_section_query => 'استعلام';
+
+  @override
+  String get query_saveDialog_title => 'حفظ الاستعلام';
+
+  @override
+  String get query_saveDialog_nameLabel => 'الاسم';
+
+  @override
+  String get query_saveDialog_nameValidation => 'أدخل اسمًا';
+
+  @override
+  String query_saved_snackbar(String name) {
+    return 'تم حفظ \"$name\"';
+  }
+
+  @override
+  String get query_savedRow_title => 'المحفوظة';
+
+  @override
+  String query_savedRow_unreadable(String name, String detail) {
+    return 'تعذّرت قراءة \"$name\": $detail';
+  }
+
+  @override
+  String query_savedRow_unresolved(String name) {
+    return 'يشير \"$name\" إلى شيء لم يعد موجودًا';
+  }
+
+  @override
+  String get savedQueries_appBar_title => 'الاستعلامات المحفوظة';
+
+  @override
+  String get savedQueries_empty =>
+      'لا توجد استعلامات محفوظة بعد. احفظ استعلامًا من محرر الاستعلامات في صفحة البحث عن الغطسات.';
+
+  @override
+  String get savedQueries_renameTooltip => 'إعادة تسمية';
+
+  @override
+  String get savedQueries_deleteTooltip => 'حذف';
+
+  @override
+  String get savedQueries_reorderTooltip => 'اسحب لإعادة الترتيب';
+
+  @override
+  String get savedQueries_deleteDialog_title => 'حذف الاستعلام؟';
+
+  @override
+  String savedQueries_deleteDialog_content(String name) {
+    return 'حذف \"$name\"؟ لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String get savedQueries_problem_unreadable =>
+      'لا يمكن لهذا الإصدار من التطبيق قراءته';
+
+  @override
+  String savedQueries_problem_invalid(String detail) {
+    return 'يستخدم شيئًا غير موجود في هذا الإصدار: $detail';
+  }
+
+  @override
+  String savedQueries_problem_unknownSubject(String detail) {
+    return 'لقائمة غير موجودة في هذا الإصدار: $detail';
+  }
+
+  @override
+  String savedQueries_problem_unresolved(String detail) {
+    return 'يشير إلى شيء لم يعد موجودًا: $detail';
+  }
+
+  @override
+  String savedQueries_snackbar_deleted(String name) {
+    return 'تم حذف \"$name\"';
+  }
+
+  @override
+  String get settings_manage_savedQueries => 'الاستعلامات المحفوظة';
+
+  @override
+  String get settings_manage_savedQueries_subtitle =>
+      'إعادة تسمية الاستعلامات المحفوظة وإعادة ترتيبها وحذفها';
+
+  @override
+  String get query_error_unterminatedQuote => 'علامة اقتباس غير مغلقة';
+
+  @override
+  String query_error_unexpectedCharacter(String text) {
+    return 'حرف غير متوقع \"$text\"';
+  }
+
+  @override
+  String query_error_unexpectedToken(String text) {
+    return '\"$text\" غير متوقع';
+  }
+
+  @override
+  String get query_error_expectedCloseParen => 'يُتوقع \")\"';
+
+  @override
+  String get query_error_expectedCloseBracket => 'يُتوقع \"]\"';
+
+  @override
+  String get query_error_expectedOpenBracketAfterIn =>
+      'يُتوقع \"[\" بعد \"in\"';
+
+  @override
+  String get query_error_expectedAnd => 'يُتوقع \"and\"';
+
+  @override
+  String get query_error_expectedOperator => 'يُتوقع عامل';
+
+  @override
+  String get query_error_expectedConditionOrText => 'يُتوقع شرط أو نص';
+
+  @override
+  String get query_error_expectedName => 'يُتوقع اسم';
+
+  @override
+  String get query_error_expectedDate => 'يُتوقع تاريخ';
+
+  @override
+  String get query_error_expectedDateValue => 'يُتوقع قيمة تاريخ';
+
+  @override
+  String get query_error_expectedValue => 'يُتوقع قيمة';
+
+  @override
+  String get query_error_expectedNumber => 'يُتوقع رقم';
+
+  @override
+  String get query_error_expectedText => 'يُتوقع نص';
+
+  @override
+  String get query_error_expectedBool => 'يُتوقع true أو false';
+
+  @override
+  String get query_error_emptyText => 'نص فارغ';
+
+  @override
+  String get query_error_emptyList => 'القائمة فارغة';
+
+  @override
+  String get query_error_emptyGroup => 'المجموعة الفارغة لا تطابق شيئًا';
+
+  @override
+  String get query_error_emptyPath => 'مسار فارغ';
+
+  @override
+  String query_error_notSingleDay(String text) {
+    return '\"$text\" ليس يومًا واحدًا';
+  }
+
+  @override
+  String query_error_notADate(String text) {
+    return '\"$text\" ليس تاريخًا';
+  }
+
+  @override
+  String query_error_openEndedDate(
+    String text,
+    String field,
+    String symbol,
+    String day,
+  ) {
+    return '\"$text\" مفتوح النهاية؛ اكتب $field $symbol $day بدلًا من ذلك';
+  }
+
+  @override
+  String query_error_unknownUnit(String unit) {
+    return 'وحدة غير معروفة \"$unit\"';
+  }
+
+  @override
+  String query_error_noUnitAllowed(String field) {
+    return 'لا يقبل $field أي وحدة';
+  }
+
+  @override
+  String query_error_wrongUnitDimension(String unit, String dimension) {
+    return '\"$unit\" ليست وحدة $dimension';
+  }
+
+  @override
+  String query_error_wrongUnitForField(
+    String unit,
+    String dimension,
+    String field,
+  ) {
+    return '\"$unit\" ليست وحدة $dimension؛ يُقاس $field بوحدات $dimension';
+  }
+
+  @override
+  String get query_error_decimalComma =>
+      'استخدم \".\" للكسور العشرية، وليس \",\"';
+
+  @override
+  String query_error_scopeNeedsRelationQuoted(String path) {
+    return 'يحتاج \"[...]\" إلى علاقة، و\"$path\" حقل';
+  }
+
+  @override
+  String query_error_scopeNeedsRelation(String path) {
+    return 'يحتاج [...] إلى علاقة، و\"$path\" حقل';
+  }
+
+  @override
+  String query_error_relationNeedsRefOp(String path) {
+    return '\"$path\" علاقة؛ استخدم = أو in أو :none أو :any أو [...]';
+  }
+
+  @override
+  String query_error_relationOpNotAllowed(String op) {
+    return 'لا يمكن استخدام \"$op\" مع علاقة؛ استخدم = أو != أو in أو :none أو :any أو [...]';
+  }
+
+  @override
+  String query_error_opNotForFieldQuoted(String op, String field) {
+    return 'لا يمكن استخدام \"$op\" مع $field';
+  }
+
+  @override
+  String query_error_opNotForField(String op, String field) {
+    return 'لا يمكن استخدام $op مع $field';
+  }
+
+  @override
+  String query_error_noneAmbiguous(String field) {
+    return '\"$field:none\" غامض: اكتب \"$field = none\" للقيمة none، أو \"NOT $field:any\" لغير المسجَّل';
+  }
+
+  @override
+  String query_error_noRefNamed(String relation, String text) {
+    return 'لا يوجد $relation باسم \"$text\"';
+  }
+
+  @override
+  String query_error_notEnumValue(String text, String field) {
+    return '\"$text\" ليست قيمة من قيم $field';
+  }
+
+  @override
+  String query_error_unknownField(String name) {
+    return 'حقل غير معروف \"$name\"';
+  }
+
+  @override
+  String query_error_fieldNotPath(String name, String next) {
+    return '\"$name\" حقل ولا يمكن أن يتبعه \".$next\"';
+  }
+
+  @override
+  String query_error_tooManyHops(String max) {
+    return 'يمكن للاستعلام أن يعبر $max علاقات على الأكثر، بما في ذلك المجموعات المتداخلة';
+  }
+
+  @override
+  String query_error_pathTooLong(String max) {
+    return 'يمكن للمسار أن يعبر $max علاقات على الأكثر';
+  }
+
+  @override
+  String query_error_textNotSearchable(String table) {
+    return 'لا يمكن البحث بالنص الحر داخل $table';
+  }
+
+  @override
+  String query_error_expectsReference(String name) {
+    return 'يتوقع $name مرجعًا';
+  }
+
+  @override
+  String query_error_expectsReferences(String name) {
+    return 'يتوقع $name مراجع';
+  }
+
+  @override
+  String get query_error_betweenNeedsTwo => 'يحتاج between إلى قيمتين';
+
+  @override
+  String get query_error_inNeedsList => 'يحتاج in إلى قائمة';
+
+  @override
+  String query_error_expectsNumber(String field) {
+    return 'يتوقع $field رقمًا';
+  }
+
+  @override
+  String query_error_outOfRange(String field) {
+    return 'قيمة $field خارج النطاق';
+  }
+
+  @override
+  String query_error_expectsText(String field) {
+    return 'يتوقع $field نصًا';
+  }
+
+  @override
+  String query_error_expectsBool(String field) {
+    return 'يتوقع $field القيمة true أو false';
+  }
+
+  @override
+  String query_error_expectsEnumValue(String field) {
+    return 'يتوقع $field إحدى قيمه';
+  }
+
+  @override
+  String query_error_expectsSingleDay(String field) {
+    return 'يتوقع $field يومًا واحدًا هنا';
+  }
+
+  @override
+  String query_error_expectsDate(String field) {
+    return 'يتوقع $field تاريخًا';
+  }
 }

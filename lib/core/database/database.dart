@@ -3380,6 +3380,30 @@ class CylinderFills extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// A named query a diver saved (entity query language #2365, v234, spec
+/// Unit 7). [queryJson] is the versioned AST from `queryNodeToJson`, never
+/// the printed text, so a grammar change cannot break stored rows; the
+/// printer regenerates the text on load. [subject] is the root entity's
+/// `QuerySubject.name` (`dives`, `sites`, ...). Synced with its own hlc,
+/// registered like [CylinderFills]; per diver, tombstoned with the diver.
+@DataClassName('SavedQueryRow')
+class SavedQueries extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get subject => text()();
+  TextColumn get name => text()();
+  TextColumn get queryJson => text()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Dive computers (devices that record dive data)
 class DiveComputers extends Table {
   TextColumn get id => text()();
@@ -4450,6 +4474,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DiveCenterGearNotes,
     // Cylinder fill history (v228, issue #2334)
     CylinderFills,
+    // Saved queries (v234, issue #2365)
+    SavedQueries,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -4459,7 +4485,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 231;
+  static const int currentSchemaVersion = 234;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -5139,6 +5165,11 @@ class AppDatabase extends _$AppDatabase {
     // (#1772) as 230 while this was open, and 229 is claimed by #2372,
     // #2331 and #2407.
     231,
+    // v234: saved_queries, a diver's named query trees (issue #2365, spec
+    // Unit 7). Table-only rung, additive, floor stays at 224. 232 was held
+    // by #2411, #2407 and #2331 and 233 by #2438 when this rung was taken
+    // (2026-09-26).
+    234,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -8771,6 +8802,22 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_equipment '
       'ON cylinder_fills(equipment_id)',
+    );
+  }
+
+  /// Idempotent creation of the v234 `saved_queries` table and its lookup
+  /// index (issue #2365). Called from the v234 rung and the beforeOpen
+  /// backstop. Skipped on a partial migration-test fixture that lacks the
+  /// divers table its foreign key points at.
+  Future<void> _assertSavedQueriesSchema() async {
+    final rows = await customSelect(
+      "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'divers'",
+    ).get();
+    if (rows.isEmpty) return;
+    await createMigrator().createTable(savedQueries);
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_saved_queries_diver '
+      'ON saved_queries(diver_id, subject, sort_order)',
     );
   }
 
@@ -12843,6 +12890,13 @@ class AppDatabase extends _$AppDatabase {
           await _assertCcrPpO2LimitColumns();
         }
         if (from < 231) await reportProgress();
+        // v234: saved_queries (issue #2365). A new synced table, so
+        // onUpgrade need only create it; idempotent and re-asserted in the
+        // beforeOpen backstop against parallel-branch version collisions.
+        if (from < 234) {
+          await _assertSavedQueriesSchema();
+        }
+        if (from < 234) await reportProgress();
       },
       beforeOpen: (details) async {
         // v227 backstop: the hidden built-in tank presets.
@@ -13355,6 +13409,10 @@ class AppDatabase extends _$AppDatabase {
         // (parallel-branch version-collision self-heal). Defaulted columns
         // only, so it cannot touch diver data.
         await _assertCcrPpO2LimitColumns();
+
+        // v234 backstop: re-assert the saved_queries table. A database that
+        // arrives by restore or sync-adopt never runs onUpgrade.
+        await _assertSavedQueriesSchema();
 
         // v194 backstop: re-assert dive_tanks.transmitter_serial. Every tank
         // read selects the whole row, so a database that arrives by restore

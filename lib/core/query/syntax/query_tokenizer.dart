@@ -1,3 +1,4 @@
+import 'package:submersion/core/query/domain/query_error_code.dart';
 import 'package:meta/meta.dart';
 
 enum TokenKind { word, quoted, number, symbol, end }
@@ -18,9 +19,13 @@ class Token {
 }
 
 class TokenizeException implements Exception {
-  final String message;
+  final QueryErrorCode code;
+  final Map<String, String> args;
   final int offset;
-  const TokenizeException(this.message, this.offset);
+  const TokenizeException(this.code, this.offset, {this.args = const {}});
+
+  /// The English text; the parser re-wraps the code into a QueryError.
+  String get message => englishQueryMessage(code, args);
   @override
   String toString() => 'TokenizeException($message @$offset)';
 }
@@ -81,7 +86,7 @@ List<Token> tokenize(String input) {
         buf.write(d);
         j++;
       }
-      if (!closed) throw TokenizeException('unterminated quote', i);
+      if (!closed) throw TokenizeException(QueryErrorCode.unterminatedQuote, i);
       out.add(Token(TokenKind.quoted, buf.toString(), i, j - i));
       i = j;
       continue;
@@ -114,7 +119,13 @@ List<Token> tokenize(String input) {
     while (j < input.length && _isWordChar(input[j])) {
       j++;
     }
-    if (j == i) throw TokenizeException('unexpected character "$c"', i);
+    if (j == i) {
+      throw TokenizeException(
+        QueryErrorCode.unexpectedCharacter,
+        i,
+        args: {'text': c},
+      );
+    }
     out.add(Token(TokenKind.word, input.substring(i, j), i, j - i));
     i = j;
   }

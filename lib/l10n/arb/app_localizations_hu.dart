@@ -43436,4 +43436,438 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_weights_type => 'Típus';
+
+  @override
+  String get query_op_eq => 'egyenlő';
+
+  @override
+  String get query_op_neq => 'nem egyenlő';
+
+  @override
+  String get query_op_lt => 'kisebb mint';
+
+  @override
+  String get query_op_lte => 'legfeljebb';
+
+  @override
+  String get query_op_gt => 'nagyobb mint';
+
+  @override
+  String get query_op_gte => 'legalább';
+
+  @override
+  String get query_op_contains => 'tartalmazza';
+
+  @override
+  String get query_op_inList => 'egyike';
+
+  @override
+  String get query_op_between => 'között';
+
+  @override
+  String get query_op_isEmpty => 'nincs megadva';
+
+  @override
+  String get query_op_isSet => 'meg van adva';
+
+  @override
+  String get query_editor_tabText => 'Szöveg';
+
+  @override
+  String get query_editor_tabBuilder => 'Összeállító';
+
+  @override
+  String get query_editor_hint => 'pl. weights:none AND depth > 30';
+
+  @override
+  String get query_editor_save => 'Lekérdezés mentése';
+
+  @override
+  String get query_editor_allOf => 'Mindegyik';
+
+  @override
+  String get query_editor_anyOf => 'Bármelyik';
+
+  @override
+  String get query_editor_addCondition => 'Feltétel hozzáadása';
+
+  @override
+  String get query_editor_addGroup => 'Csoport hozzáadása';
+
+  @override
+  String get query_editor_negate => 'Tagadás';
+
+  @override
+  String get query_editor_remove => 'Eltávolítás';
+
+  @override
+  String get query_editor_pickField => 'Mező kiválasztása';
+
+  @override
+  String get query_editor_pickFieldSearch => 'Mezők keresése';
+
+  @override
+  String query_editor_useRelation(String name) {
+    return '$name használata önmagában';
+  }
+
+  @override
+  String query_editor_fieldsOf(String name) {
+    return '$name mezői';
+  }
+
+  @override
+  String query_editor_pickRef(String name) {
+    return '$name kiválasztása';
+  }
+
+  @override
+  String get query_editor_pickRefSearch => 'Keresés';
+
+  @override
+  String get query_editor_done => 'Kész';
+
+  @override
+  String get query_editor_unresolvedRef => 'Már nem létezik';
+
+  @override
+  String query_editor_scopedRow(String name) {
+    return 'Csoport ($name): a Szöveg lapon szerkeszthető';
+  }
+
+  @override
+  String get query_editor_textRow => 'Szöveges keresés';
+
+  @override
+  String get query_editor_betweenAnd => 'és';
+
+  @override
+  String get query_editor_valueTrue => 'Igen';
+
+  @override
+  String get query_editor_valueFalse => 'Nem';
+
+  @override
+  String get diveLog_filter_queryRow => 'Lekérdezés';
+
+  @override
+  String get diveLog_search_section_query => 'Lekérdezés';
+
+  @override
+  String get query_saveDialog_title => 'Lekérdezés mentése';
+
+  @override
+  String get query_saveDialog_nameLabel => 'Név';
+
+  @override
+  String get query_saveDialog_nameValidation => 'Adjon meg egy nevet';
+
+  @override
+  String query_saved_snackbar(String name) {
+    return 'Mentve: \"$name\"';
+  }
+
+  @override
+  String get query_savedRow_title => 'Mentett';
+
+  @override
+  String query_savedRow_unreadable(String name, String detail) {
+    return '\"$name\" nem olvasható: $detail';
+  }
+
+  @override
+  String query_savedRow_unresolved(String name) {
+    return '\"$name\" olyasmire hivatkozik, ami már nem létezik';
+  }
+
+  @override
+  String get savedQueries_appBar_title => 'Mentett lekérdezések';
+
+  @override
+  String get savedQueries_empty =>
+      'Még nincsenek mentett lekérdezések. A merülések keresőoldalán, a lekérdezésszerkesztőből menthet egyet.';
+
+  @override
+  String get savedQueries_renameTooltip => 'Átnevezés';
+
+  @override
+  String get savedQueries_deleteTooltip => 'Törlés';
+
+  @override
+  String get savedQueries_reorderTooltip => 'Húzza az átrendezéshez';
+
+  @override
+  String get savedQueries_deleteDialog_title => 'Törli a lekérdezést?';
+
+  @override
+  String savedQueries_deleteDialog_content(String name) {
+    return 'Törli ezt: \"$name\"? Ez a művelet nem vonható vissza.';
+  }
+
+  @override
+  String get savedQueries_problem_unreadable =>
+      'Az alkalmazás ezen verziója nem tudja beolvasni';
+
+  @override
+  String savedQueries_problem_invalid(String detail) {
+    return 'Olyasmit használ, ami ebben a verzióban nem létezik: $detail';
+  }
+
+  @override
+  String savedQueries_problem_unknownSubject(String detail) {
+    return 'Olyan listához tartozik, amely ebben a verzióban nem létezik: $detail';
+  }
+
+  @override
+  String savedQueries_problem_unresolved(String detail) {
+    return 'Olyasmire hivatkozik, ami már nem létezik: $detail';
+  }
+
+  @override
+  String savedQueries_snackbar_deleted(String name) {
+    return 'Törölve: \"$name\"';
+  }
+
+  @override
+  String get settings_manage_savedQueries => 'Mentett lekérdezések';
+
+  @override
+  String get settings_manage_savedQueries_subtitle =>
+      'Mentett lekérdezések átnevezése, átrendezése és törlése';
+
+  @override
+  String get query_error_unterminatedQuote => 'lezáratlan idézőjel';
+
+  @override
+  String query_error_unexpectedCharacter(String text) {
+    return 'váratlan karakter: \"$text\"';
+  }
+
+  @override
+  String query_error_unexpectedToken(String text) {
+    return 'váratlan elem: \"$text\"';
+  }
+
+  @override
+  String get query_error_expectedCloseParen => '\")\" szükséges';
+
+  @override
+  String get query_error_expectedCloseBracket => '\"]\" szükséges';
+
+  @override
+  String get query_error_expectedOpenBracketAfterIn =>
+      'az \"in\" után \"[\" szükséges';
+
+  @override
+  String get query_error_expectedAnd => '\"and\" szükséges';
+
+  @override
+  String get query_error_expectedOperator => 'operátor szükséges';
+
+  @override
+  String get query_error_expectedConditionOrText =>
+      'feltétel vagy szöveg szükséges';
+
+  @override
+  String get query_error_expectedName => 'név szükséges';
+
+  @override
+  String get query_error_expectedDate => 'dátum szükséges';
+
+  @override
+  String get query_error_expectedDateValue => 'dátumérték szükséges';
+
+  @override
+  String get query_error_expectedValue => 'érték szükséges';
+
+  @override
+  String get query_error_expectedNumber => 'szám szükséges';
+
+  @override
+  String get query_error_expectedText => 'szöveg szükséges';
+
+  @override
+  String get query_error_expectedBool => 'true vagy false szükséges';
+
+  @override
+  String get query_error_emptyText => 'üres szöveg';
+
+  @override
+  String get query_error_emptyList => 'a lista üres';
+
+  @override
+  String get query_error_emptyGroup =>
+      'az üres csoport semmire sem illeszkedik';
+
+  @override
+  String get query_error_emptyPath => 'üres útvonal';
+
+  @override
+  String query_error_notSingleDay(String text) {
+    return '\"$text\" nem egyetlen nap';
+  }
+
+  @override
+  String query_error_notADate(String text) {
+    return '\"$text\" nem dátum';
+  }
+
+  @override
+  String query_error_openEndedDate(
+    String text,
+    String field,
+    String symbol,
+    String day,
+  ) {
+    return '\"$text\" nyitott végű; helyette írja így: $field $symbol $day';
+  }
+
+  @override
+  String query_error_unknownUnit(String unit) {
+    return 'ismeretlen mértékegység: \"$unit\"';
+  }
+
+  @override
+  String query_error_noUnitAllowed(String field) {
+    return 'a(z) $field mezőhöz nem adható mértékegység';
+  }
+
+  @override
+  String query_error_wrongUnitDimension(String unit, String dimension) {
+    return '\"$unit\" nem $dimension mértékegység';
+  }
+
+  @override
+  String query_error_wrongUnitForField(
+    String unit,
+    String dimension,
+    String field,
+  ) {
+    return '\"$unit\" nem $dimension mértékegység; a(z) $field mértéke: $dimension';
+  }
+
+  @override
+  String get query_error_decimalComma =>
+      'tizedesjelként \".\" használandó, nem \",\"';
+
+  @override
+  String query_error_scopeNeedsRelationQuoted(String path) {
+    return 'a \"[...]\" kapcsolatot igényel, \"$path\" pedig egy mező';
+  }
+
+  @override
+  String query_error_scopeNeedsRelation(String path) {
+    return 'a [...] kapcsolatot igényel, \"$path\" pedig egy mező';
+  }
+
+  @override
+  String query_error_relationNeedsRefOp(String path) {
+    return '\"$path\" egy kapcsolat; használja ezeket: =, in, :none, :any vagy [...]';
+  }
+
+  @override
+  String query_error_relationOpNotAllowed(String op) {
+    return '\"$op\" nem használható kapcsolattal; használja ezeket: =, !=, in, :none, :any vagy [...]';
+  }
+
+  @override
+  String query_error_opNotForFieldQuoted(String op, String field) {
+    return '\"$op\" nem használható ezzel: $field';
+  }
+
+  @override
+  String query_error_opNotForField(String op, String field) {
+    return '$op nem használható ezzel: $field';
+  }
+
+  @override
+  String query_error_noneAmbiguous(String field) {
+    return '\"$field:none\" nem egyértelmű: a none értékhez \"$field = none\", a nem rögzített értékhez \"NOT $field:any\" a helyes forma';
+  }
+
+  @override
+  String query_error_noRefNamed(String relation, String text) {
+    return 'nincs \"$text\" nevű $relation';
+  }
+
+  @override
+  String query_error_notEnumValue(String text, String field) {
+    return '\"$text\" nem érvényes $field érték';
+  }
+
+  @override
+  String query_error_unknownField(String name) {
+    return 'ismeretlen mező: \"$name\"';
+  }
+
+  @override
+  String query_error_fieldNotPath(String name, String next) {
+    return '\"$name\" egy mező, ezért nem követheti \".$next\"';
+  }
+
+  @override
+  String query_error_tooManyHops(String max) {
+    return 'egy lekérdezés legfeljebb $max kapcsolaton haladhat át, a beágyazott csoportokat is beleszámítva';
+  }
+
+  @override
+  String query_error_pathTooLong(String max) {
+    return 'egy útvonal legfeljebb $max kapcsolaton haladhat át';
+  }
+
+  @override
+  String query_error_textNotSearchable(String table) {
+    return 'szabad szöveg nem kereshető itt: $table';
+  }
+
+  @override
+  String query_error_expectsReference(String name) {
+    return 'a(z) $name hivatkozást vár';
+  }
+
+  @override
+  String query_error_expectsReferences(String name) {
+    return 'a(z) $name hivatkozásokat vár';
+  }
+
+  @override
+  String get query_error_betweenNeedsTwo => 'a between két értéket igényel';
+
+  @override
+  String get query_error_inNeedsList => 'az in listát igényel';
+
+  @override
+  String query_error_expectsNumber(String field) {
+    return 'a(z) $field mező számot vár';
+  }
+
+  @override
+  String query_error_outOfRange(String field) {
+    return 'a(z) $field értéke a tartományon kívül esik';
+  }
+
+  @override
+  String query_error_expectsText(String field) {
+    return 'a(z) $field mező szöveget vár';
+  }
+
+  @override
+  String query_error_expectsBool(String field) {
+    return 'a(z) $field mező true vagy false értéket vár';
+  }
+
+  @override
+  String query_error_expectsEnumValue(String field) {
+    return 'a(z) $field mező a saját értékeinek egyikét várja';
+  }
+
+  @override
+  String query_error_expectsSingleDay(String field) {
+    return 'a(z) $field mező itt egyetlen napot vár';
+  }
+
+  @override
+  String query_error_expectsDate(String field) {
+    return 'a(z) $field mező dátumot vár';
+  }
 }

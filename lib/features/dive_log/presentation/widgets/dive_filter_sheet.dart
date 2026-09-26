@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/query/presentation/widgets/saved_query_chip_row.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/number_input.dart';
@@ -237,6 +239,23 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                     controller: scrollController,
                     padding: const EdgeInsets.all(16),
                     children: [
+                      // Saved queries apply at once: the sheet's own axes
+                      // are untouched, the advanced part is replaced
+                      // (#2365).
+                      SavedQueryChipRow(
+                        subject: QuerySubject.dives,
+                        onApply: (load) {
+                          final current = widget.ref.read(
+                            widget.filterProvider,
+                          );
+                          widget.ref
+                              .read(widget.filterProvider.notifier)
+                              .state = current.copyWith(
+                            query: load.node,
+                          );
+                          Navigator.of(context).pop();
+                        },
+                      ),
                       // Link to advanced search
                       Align(
                         alignment: AlignmentDirectional.centerStart,
@@ -265,6 +284,24 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                           },
                           icon: const Icon(Icons.manage_search, size: 18),
                           label: Text(context.l10n.diveLog_search_appBar),
+                        ),
+                      ),
+                      // The query editor lives on the search page; this
+                      // opens it on that section (#2365). Same push-not-go
+                      // reasoning as the link above.
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: TextButton.icon(
+                          onPressed: () {
+                            final router = GoRouter.of(context);
+                            Navigator.of(context).pop();
+                            router.push(
+                              '/dives/search?section=query',
+                              extra: widget.filterProvider,
+                            );
+                          },
+                          icon: const Icon(Icons.code, size: 18),
+                          label: Text(context.l10n.diveLog_filter_queryRow),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -663,6 +700,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
 
                       // Favorites Section
                       SwitchListTile(
+                        key: const Key('filter-favorites-only'),
                         title: Text(context.l10n.diveLog_filter_favoritesOnly),
                         subtitle: Text(
                           context.l10n.diveLog_filter_showOnlyFavorites,
@@ -1254,27 +1292,50 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
     }
   }
 
+  /// Writes the sheet's axes over the current state with copyWith, so the
+  /// axes this sheet does not edit (the advanced query, trip, centre, gear
+  /// ids, buddy id, the Insights dive-id seam, custom fields, deco) survive
+  /// an Apply (#2365). An axis the sheet edits is set, or cleared with its
+  /// flag when the sheet's value is empty.
   void _applyFilters() {
-    widget.ref.read(widget.filterProvider.notifier).state = DiveFilterState(
+    final current = widget.ref.read(widget.filterProvider);
+    final computerId = _resolveComputerId();
+    final buddyName = _buddyNameFilter;
+    widget.ref.read(widget.filterProvider.notifier).state = current.copyWith(
       startDate: _startDate,
+      clearStartDate: _startDate == null,
       endDate: _endDate,
+      clearEndDate: _endDate == null,
       diveTypeId: _diveTypeId,
+      clearDiveType: _diveTypeId == null,
       siteId: _siteId,
+      clearSiteId: _siteId == null,
       minDepth: _minDepth,
+      clearMinDepth: _minDepth == null,
       maxDepth: _maxDepth,
+      clearMaxDepth: _maxDepth == null,
       favoritesOnly: _favoritesOnly ? true : null,
+      clearFavoritesOnly: !_favoritesOnly,
       excludedFromStatsOnly: _excludedFromStatsOnly ? true : null,
+      clearExcludedFromStatsOnly: !_excludedFromStatsOnly,
       tagIds: _selectedTagIds,
       weekdays: _selectedWeekdays,
-      // v1.5 filters
-      buddyNameFilter: _buddyNameFilter,
+      buddyNameFilter: buddyName,
+      clearBuddyNameFilter: buddyName == null || buddyName.isEmpty,
       noBuddyOnly: _noBuddyOnly ? true : null,
+      clearNoBuddyOnly: !_noBuddyOnly,
       minO2Percent: _minO2Percent,
+      clearMinO2Percent: _minO2Percent == null,
       maxO2Percent: _maxO2Percent,
+      clearMaxO2Percent: _maxO2Percent == null,
       minRating: _minRating,
+      clearMinRating: _minRating == null,
       minBottomTimeMinutes: _minDurationMinutes,
+      clearMinBottomTimeMinutes: _minDurationMinutes == null,
       maxBottomTimeMinutes: _maxDurationMinutes,
-      computerId: _resolveComputerId(),
+      clearMaxBottomTimeMinutes: _maxDurationMinutes == null,
+      computerId: computerId,
+      clearComputerId: computerId == null,
       equipmentAttrConditions: [
         if (_suitThicknessMin != null || _suitThicknessMax != null)
           EquipmentAttrCondition.suitThickness(
