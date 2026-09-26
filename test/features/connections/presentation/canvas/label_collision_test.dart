@@ -23,4 +23,12 @@ void main() {
     ]);
     expect(visible.length, 2);
   });
+
+  test('a label over another node is hidden', () {
+    final visible = LabelCollision.visible(
+      [(ref: _b('a'), rect: const Rect.fromLTWH(0, 0, 60, 12))],
+      obstacles: [Rect.fromCircle(center: const Offset(30, 6), radius: 10)],
+    );
+    expect(visible, isEmpty);
+  });
 }

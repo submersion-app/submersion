@@ -229,6 +229,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
           labelCache: _labelCache,
           dimLabelCache: _dimLabelCache,
           initialsCache: _initialsCache,
+          haloColor: theme.colorScheme.surface,
         );
         final gestures = RawGestureDetector(
           behavior: HitTestBehavior.opaque,

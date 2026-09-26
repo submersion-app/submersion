@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/connections/presentation/canvas/node_metrics.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 
 void main() {
   test('radius grows with the square root and is clamped', () {
@@ -33,5 +34,56 @@ void main() {
     expect(NodeMetrics.initialsFor('  cher '), 'C');
     expect(NodeMetrics.initialsFor('Salt Pier North'), 'SP');
     expect(NodeMetrics.initialsFor(''), '');
+  });
+
+  test('glyphFor picks photo, icon, initials or nothing', () {
+    expect(
+      NodeMetrics.glyphFor(
+        kind: ConnectionKind.buddy,
+        hasPhoto: true,
+        radius: 20,
+      ),
+      NodeGlyph.photo,
+    );
+    expect(
+      NodeMetrics.glyphFor(
+        kind: ConnectionKind.buddy,
+        hasPhoto: true,
+        radius: 10,
+      ),
+      NodeGlyph.none,
+    );
+    expect(
+      NodeMetrics.glyphFor(
+        kind: ConnectionKind.buddy,
+        hasPhoto: false,
+        radius: 20,
+      ),
+      NodeGlyph.initials,
+    );
+    expect(
+      NodeMetrics.glyphFor(
+        kind: ConnectionKind.site,
+        hasPhoto: false,
+        radius: 18,
+      ),
+      NodeGlyph.icon,
+    );
+    expect(
+      NodeMetrics.glyphFor(
+        kind: ConnectionKind.site,
+        hasPhoto: false,
+        radius: 15,
+      ),
+      NodeGlyph.initials,
+    );
+    expect(
+      NodeMetrics.glyphFor(
+        kind: ConnectionKind.site,
+        hasPhoto: false,
+        radius: 8,
+      ),
+      NodeGlyph.none,
+    );
   });
 }

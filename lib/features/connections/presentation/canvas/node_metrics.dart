@@ -1,7 +1,11 @@
 import 'dart:math' as math;
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 
 /// Size and stroke rules shared by the painter, the hit tester and the
 /// selection UI, so a node is drawn and picked at the same radius.
+/// What a node disc shows inside it.
+enum NodeGlyph { none, initials, icon, photo }
+
 class NodeMetrics {
   const NodeMetrics._();
 
@@ -28,5 +32,17 @@ class NodeMetrics {
   static String initialsFor(String label) {
     final words = label.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
     return words.take(2).map((w) => w[0].toUpperCase()).join();
+  }
+
+  /// What to draw inside a node disc of [radius] screen pixels.
+  static NodeGlyph glyphFor({
+    required ConnectionKind kind,
+    required bool hasPhoto,
+    required double radius,
+  }) {
+    if (hasPhoto && radius >= 14) return NodeGlyph.photo;
+    if (kind != ConnectionKind.buddy && radius >= 18) return NodeGlyph.icon;
+    if (radius >= 12) return NodeGlyph.initials;
+    return NodeGlyph.none;
   }
 }

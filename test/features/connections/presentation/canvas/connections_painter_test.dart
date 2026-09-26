@@ -13,6 +13,7 @@ import 'package:submersion/features/connections/domain/layout/layout_frame.dart'
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
 import 'package:submersion/features/connections/presentation/canvas/connections_painter.dart';
 import 'package:submersion/features/connections/presentation/canvas/graph_viewport.dart';
+import 'package:submersion/features/connections/presentation/canvas/connection_kind_icons.dart';
 
 NodeRef _b(String id) => NodeRef(ConnectionKind.buddy, id);
 
@@ -100,5 +101,26 @@ void main() {
     );
     expect(c.colorFor(ConnectionKind.buddy), isNotNull);
     expect(c.colorFor(ConnectionKind.tag), c.fallback);
+  });
+
+  test('visible labels sit on a halo in the given colour', () {
+    final p = ConnectionsPainter(
+      graph: graph,
+      frame: frame,
+      viewport: const GraphViewport(scale: 1, offset: Offset(50, 50)),
+      colors: colors,
+      labelStyle: const TextStyle(fontSize: 12, color: Colors.black),
+      haloColor: Colors.white,
+    );
+    expect(
+      (Canvas canvas) => p.paint(canvas, const Size(300, 300)),
+      paints..rrect(color: Colors.white.withValues(alpha: 0.85)),
+    );
+  });
+
+  test('every kind has an icon', () {
+    for (final k in ConnectionKind.values) {
+      expect(connectionKindIcon(k), isA<IconData>());
+    }
   });
 }

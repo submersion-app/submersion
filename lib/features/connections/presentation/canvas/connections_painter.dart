@@ -7,6 +7,7 @@ import 'package:submersion/features/connections/domain/entities/graph_selection.
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/layout/layout_frame.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
+import 'package:submersion/features/connections/presentation/canvas/connection_kind_icons.dart';
 import 'package:submersion/features/connections/presentation/canvas/graph_viewport.dart';
 import 'package:submersion/features/connections/presentation/canvas/label_collision.dart';
 import 'package:submersion/features/connections/presentation/canvas/node_metrics.dart';
@@ -25,6 +26,7 @@ class ConnectionsPainter extends CustomPainter {
     this.photos = const {},
     this.labelZoomThreshold = 0.6,
     this.maxLabelsAtLowZoom = 12,
+    this.haloColor,
     Map<NodeRef, TextPainter>? labelCache,
     Map<NodeRef, TextPainter>? dimLabelCache,
     Map<(NodeRef, int), TextPainter>? initialsCache,
@@ -44,6 +46,10 @@ class ConnectionsPainter extends CustomPainter {
   final Map<NodeRef, ui.Image> photos;
   final double labelZoomThreshold;
   final int maxLabelsAtLowZoom;
+
+  /// Painted behind each visible label so it reads over edges; none when
+  /// null.
+  final Color? haloColor;
 
   /// Laid-out text, owned by the canvas state so a frame never re-runs
   /// paragraph layout for every node (measured at about 7 ms per frame for
@@ -131,6 +137,7 @@ class ConnectionsPainter extends CustomPainter {
     final labelCandidates = <({NodeRef ref, Rect rect})>[];
     final nodesByRef = <NodeRef, ConnectionNode>{};
 
+    final discs = <Rect>[];
     for (final n in nodesByDives) {
       final p = frame.positions[n.ref];
       if (p == null) continue;
@@ -143,37 +150,65 @@ class ConnectionsPainter extends CustomPainter {
           .colorFor(n.ref.kind)
           .withValues(alpha: dim && !isLit ? 0.35 : 1);
       canvas.drawCircle(centre, r, Paint()..color = fill);
+      discs.add(Rect.fromCircle(center: centre, radius: r));
       final photo = photos[n.ref];
-      if (photo != null && r >= 14) {
-        canvas.save();
-        canvas.clipPath(
-          Path()..addOval(Rect.fromCircle(center: centre, radius: r - 1.5)),
-        );
-        paintImage(
-          canvas: canvas,
-          rect: Rect.fromCircle(center: centre, radius: r),
-          image: photo,
-          fit: BoxFit.cover,
-          opacity: dim && !isLit ? 0.35 : 1,
-        );
-        canvas.restore();
-      } else if (r >= 12) {
-        final fontSize = (r * 0.8).round();
-        final tp = initialsCache.putIfAbsent(
-          (n.ref, fontSize),
-          () => TextPainter(
-            text: TextSpan(
-              text: NodeMetrics.initialsFor(n.label),
-              style: labelStyle.copyWith(
-                color: Colors.white,
-                fontSize: fontSize.toDouble(),
-                fontWeight: FontWeight.w600,
+      final glyph = NodeMetrics.glyphFor(
+        kind: n.ref.kind,
+        hasPhoto: photo != null,
+        radius: r,
+      );
+      switch (glyph) {
+        case NodeGlyph.photo:
+          canvas.save();
+          canvas.clipPath(
+            Path()..addOval(Rect.fromCircle(center: centre, radius: r - 1.5)),
+          );
+          paintImage(
+            canvas: canvas,
+            rect: Rect.fromCircle(center: centre, radius: r),
+            image: photo!,
+            fit: BoxFit.cover,
+            opacity: dim && !isLit ? 0.35 : 1,
+          );
+          canvas.restore();
+        case NodeGlyph.icon:
+          final size = (r * 1.1).round();
+          final icon = connectionKindIcon(n.ref.kind);
+          final tp = initialsCache.putIfAbsent(
+            (n.ref, -size),
+            () => TextPainter(
+              text: TextSpan(
+                text: String.fromCharCode(icon.codePoint),
+                style: TextStyle(
+                  fontFamily: icon.fontFamily,
+                  package: icon.fontPackage,
+                  fontSize: size.toDouble(),
+                  color: Colors.white,
+                ),
               ),
-            ),
-            textDirection: TextDirection.ltr,
-          )..layout(),
-        );
-        tp.paint(canvas, centre - Offset(tp.width / 2, tp.height / 2));
+              textDirection: TextDirection.ltr,
+            )..layout(),
+          );
+          tp.paint(canvas, centre - Offset(tp.width / 2, tp.height / 2));
+        case NodeGlyph.initials:
+          final fontSize = (r * 0.8).round();
+          final tp = initialsCache.putIfAbsent(
+            (n.ref, fontSize),
+            () => TextPainter(
+              text: TextSpan(
+                text: NodeMetrics.initialsFor(n.label),
+                style: labelStyle.copyWith(
+                  color: Colors.white,
+                  fontSize: fontSize.toDouble(),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              textDirection: TextDirection.ltr,
+            )..layout(),
+          );
+          tp.paint(canvas, centre - Offset(tp.width / 2, tp.height / 2));
+        case NodeGlyph.none:
+          break;
       }
       if (isSelected || isLit) {
         canvas.drawCircle(
@@ -205,11 +240,18 @@ class ConnectionsPainter extends CustomPainter {
       ...allowed.where((c) => forced.contains(c.ref)),
       ...allowed.where((c) => !forced.contains(c.ref)),
     ];
-    final visible = LabelCollision.visible(ranked);
+    final visible = LabelCollision.visible(ranked, obstacles: discs);
     for (final c in ranked) {
       if (!visible.contains(c.ref)) continue;
       final dimmed = dim && !forced.contains(c.ref);
       final tp = _label(nodesByRef[c.ref]!, dimmed: dimmed, ink: ink);
+      final halo = haloColor;
+      if (halo != null) {
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(c.rect.inflate(2), const Radius.circular(4)),
+          Paint()..color = halo.withValues(alpha: 0.85),
+        );
+      }
       tp.paint(canvas, c.rect.topLeft);
     }
   }
@@ -223,5 +265,6 @@ class ConnectionsPainter extends CustomPainter {
       old.selection != selection ||
       old.hovered != hovered ||
       old.photos.length != photos.length ||
-      old.labelStyle != labelStyle;
+      old.labelStyle != labelStyle ||
+      old.haloColor != haloColor;
 }
