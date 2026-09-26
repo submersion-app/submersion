@@ -77,8 +77,9 @@ List<MissionIssue> validateMission(DpvMission mission) {
     }
   }
   for (final leg in mission.legs) {
-    // A leg shorter than an exit leg can be is no leg: its return would be
-    // skipped while its outbound hold is built, leaving the two unmatched.
+    // A leg shorter than the shortest exit leg is not a leg: its return
+    // would be skipped while its outbound hold is built, leaving the two
+    // unmatched.
     if (leg.distanceM < kMinExitLegM) {
       issues.add(
         MissionIssue(

@@ -103,6 +103,27 @@ void main() {
     },
   );
 
+  test('each failed member breathes their own stress on the surface exit', () {
+    // The ascent is the same for every failure, but the diver whose scooter
+    // died is stressed up to the first stop, so a's gas on a's own surface
+    // exit exceeds a's gas on b's.
+    final outcome = engine.compute(
+      plan: _plan(),
+      mission: DpvMission(
+        legs: _legs(),
+        team: [_member('a', 0), _member('b', 1)],
+        environment: MissionEnvironment.openWater,
+      ),
+    );
+    final members = outcome.waypoints.last.members;
+    final aFails = members.firstWhere((m) => m.memberId == 'a').surface!;
+    final bFails = members.firstWhere((m) => m.memberId == 'b').surface!;
+    expect(
+      aFails.exitLitersByMember['a']!,
+      greaterThan(bFails.exitLitersByMember['a']!),
+    );
+  });
+
   test('a buddy can tow in a lake, straight home at tow speed', () {
     final outcome = engine.compute(
       plan: _plan(),

@@ -161,8 +161,9 @@ class MissionScenarioService {
   /// Open water: ascend at waypoint [waypointIndex], then swim at the
   /// surface straight to the entry or to the waypoint's shore exit and walk.
   ///
-  /// The ascent does not depend on whose scooter failed, so the result is
-  /// shared by every member. Surface swimming is not charged gas. It does
+  /// The ascent itself does not depend on whose scooter failed, but its gas
+  /// does: [failedMemberId], when given, breathes their stressed SAC up to
+  /// the first stop. Surface swimming is not charged gas. It does
   /// feel the current: the swim home takes the same current as the straight
   /// underwater leg home, resolved as speed over ground, and a shore route,
   /// whose bearing is unknown, takes the worst the current can do. A route
@@ -175,6 +176,7 @@ class MissionScenarioService {
     required domain.DivePlan plan,
     required DpvMission mission,
     required int waypointIndex,
+    String? failedMemberId,
     MissionProfile? outbound,
   }) {
     final out =
@@ -193,7 +195,11 @@ class MissionScenarioService {
       exitSpeedMps: 0,
       divers: [
         for (final member in mission.team)
-          ExitDiver(id: member.id, sacBottom: member.sacBottom),
+          ExitDiver(
+            id: member.id,
+            sacBottom: member.sacBottom,
+            stressed: member.id == failedMemberId,
+          ),
       ],
     );
 

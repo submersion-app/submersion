@@ -114,6 +114,18 @@ void main() {
     }
   });
 
+  test('a plan with no cylinder is a blocking issue, not an empty answer', () {
+    final outcome = engine.compute(
+      plan: _plan().copyWith(tanks: const []),
+      mission: DpvMission(legs: [_leg('L1', 0)], team: [_member('a', 0)]),
+    );
+    expect(outcome.isBlocked, isTrue);
+    expect(
+      outcome.issues.map((i) => i.type),
+      contains(MissionIssueType.planHasNoTank),
+    );
+  });
+
   test('a safe-surface scenario that throws is reported, not swallowed', () {
     final outcome = const MissionEngine(scenarios: _SafeSurfaceThrows())
         .compute(

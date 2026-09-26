@@ -116,6 +116,53 @@ void main() {
     expect(_outcomeOf(outcome, 'b').bindingFactor, MissionBindingFactor.ownGas);
   });
 
+  test('a tow that made headway is kept over one the current blocked', () {
+    // 0.35 m/s sets outbound along a 30 m leg. The swim (0.2 m/s) and a's
+    // tow (0.3 m/s) make no headway home; c's tow (capped at 0.5 m/s by a's
+    // scooter) makes 0.15 m/s but c's 300 s battery cannot pay for it. a
+    // comes first in the team, yet c's tow is the one that tells why.
+    final outcome = _compute(
+      DpvMission(
+        legs: const [
+          MissionLeg(
+            id: 'L1',
+            order: 0,
+            label: 'T',
+            distanceM: 30,
+            depthM: 20,
+            headingDeg: 0,
+          ),
+        ],
+        team: [
+          _member('a', 0),
+          _member('b', 1),
+          const MissionMember(
+            id: 'c',
+            order: 2,
+            displayName: 'c',
+            sacBottom: 15,
+            swimSpeedMps: 0.2,
+            scooter: ScooterSpec(
+              name: 'S-c',
+              ratedSpeedMps: 1.0,
+              burnTimeSeconds: 300,
+            ),
+          ),
+        ],
+        defaultCurrent: const CurrentVector(speedMps: 0.35, setsTowardDeg: 0),
+      ),
+    );
+    final b = outcome.waypoints.single.members.firstWhere(
+      (m) => m.memberId == 'b',
+    );
+    expect(b.tow!.towerId, 'c');
+    expect(b.tow!.blockedByCurrent, isFalse);
+    expect(
+      _outcomeOf(outcome, 'b').bindingFactor,
+      MissionBindingFactor.noFeasibleTow,
+    );
+  });
+
   test('a tow that makes headway but fails on battery is no feasible tow', () {
     // 0.25 m/s sets outbound along the 30 m leg: the scooters make 0.25 m/s
     // home, a 0.2 m/s swim makes none, and a 0.3 m/s tow makes 0.05 m/s,

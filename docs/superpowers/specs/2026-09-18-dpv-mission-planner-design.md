@@ -281,12 +281,15 @@ and a bailout cylinder are not held to the reserve.
 A leg shorter than half a metre is a blocking validation issue: it is too
 short to travel, and its outbound and return could not be matched.
 
-Scenario count per failure is one swim plus up to `members - 1` tows, so an
-overhead mission runs at most `waypoints * members * members` engine runs (54
-for three members and six waypoints). Open water adds one surface-exit run
-per waypoint, shared by every member because the ascent does not depend on
-whose scooter failed, so the total is `waypoints * (members * members + 1)`
-(60 for the same mission).
+Scenario count per failure is one swim plus up to `members - 1` tows, so the
+underwater exits take at most `waypoints * members * members` engine runs (54
+for three members and six waypoints). An overhead mission adds one run per
+waypoint for the time to the next safe surface, `waypoints * (members *
+members + 1)` in all (60). Open water instead adds one surface-exit run per
+failed member: the ascent is the same whoever failed, but the failed diver
+breathes their stressed SAC up to the first stop, so the gas differs. That is
+`waypoints * (members * members + members)` (72). Each waypoint's outbound
+profile is built once and shared by every run there.
 
 **MissionOutcome.** The result type the UI reads:
 

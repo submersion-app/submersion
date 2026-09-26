@@ -15,9 +15,9 @@ class MemberWaypointOutcome extends Equatable {
   /// teammate: a solo diver has no buddy to tow them.
   final ExitOutcome? tow;
 
-  /// Open water only: ascend in place and continue at the surface. Shared
-  /// by every member, because the ascent does not depend on whose scooter
-  /// failed. Null in an overhead, or when the scenario could not be run.
+  /// Open water only: ascend in place and continue at the surface, with this
+  /// member stressed up to the first stop. Null in an overhead, or when the
+  /// scenario could not be run.
   final ExitOutcome? surface;
   final bool survivable;
 

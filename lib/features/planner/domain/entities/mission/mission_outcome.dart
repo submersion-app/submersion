@@ -20,6 +20,9 @@ enum MissionIssueType {
 
   /// A leg shorter than half a metre: too short to travel either way.
   legTooShort,
+
+  /// The plan carries no cylinder, so no dive can be computed at all.
+  planHasNoTank,
   untraversableLeg,
   scenarioFailed,
 }

@@ -80,7 +80,19 @@ class MissionEngine {
       outboundSpeedMps: cruise,
       exitSpeedMps: cruise,
     );
-    if (profile.segments.isEmpty) return MissionOutcome.empty(issues: issues);
+    if (profile.segments.isEmpty) {
+      // The builder has no cylinder to breathe: nothing can be computed, and
+      // an empty answer must not read as a mission with no problems.
+      return MissionOutcome.empty(
+        issues: [
+          ...issues,
+          const MissionIssue(
+            type: MissionIssueType.planHasNoTank,
+            severity: MissionIssueSeverity.blocking,
+          ),
+        ],
+      );
+    }
 
     final legOutcomes = _legOutcomes(legs, legSpeeds, profile);
     final roundTripSeconds = profile.segments.fold(
@@ -111,17 +123,8 @@ class MissionEngine {
         throughLegIndex: k,
         speedMps: cruise,
       );
-      final surface = openWater
-          ? _evaluateSurface(
-              plan: plan,
-              mission: route,
-              k: k,
-              outbound: outbound,
-              issues: issues,
-            )
-          : null;
-      final safeSurfaceSeconds = openWater
-          ? surface?.ttsSeconds
+      final overheadSafeSurface = openWater
+          ? null
           : _overheadSafeSurface(
               plan: plan,
               mission: route,
@@ -131,6 +134,18 @@ class MissionEngine {
             );
       final members = <MemberWaypointOutcome>[];
       for (final member in team) {
+        // Per failed member: the ascent is the same, but the diver whose
+        // scooter died breathes their stressed SAC up to the first stop.
+        final surface = openWater
+            ? _evaluateSurface(
+                plan: plan,
+                mission: route,
+                k: k,
+                failedMemberId: member.id,
+                outbound: outbound,
+                issues: issues,
+              )
+            : null;
         final swim = _evaluate(
           plan: plan,
           mission: route,
@@ -178,6 +193,11 @@ class MissionEngine {
           ),
         );
       }
+      // In open water the safe surface is the ascent alone, which does not
+      // depend on whose scooter failed.
+      final safeSurfaceSeconds = openWater
+          ? members.map((m) => m.surface?.ttsSeconds).nonNulls.firstOrNull
+          : overheadSafeSurface;
       waypoints.add(
         WaypointOutcome(
           index: k,
@@ -287,12 +307,13 @@ class MissionEngine {
     }
   }
 
-  /// The shared open-water surface exit at waypoint [k], or null (with a
-  /// warning) when its scenario cannot be run.
+  /// The open-water surface exit at waypoint [k] after [failedMemberId]'s
+  /// scooter dies, or null (with a warning) when it cannot be run.
   ExitOutcome? _evaluateSurface({
     required domain.DivePlan plan,
     required DpvMission mission,
     required int k,
+    required String failedMemberId,
     required MissionProfile outbound,
     required List<MissionIssue> issues,
   }) {
@@ -301,6 +322,7 @@ class MissionEngine {
         plan: plan,
         mission: mission,
         waypointIndex: k,
+        failedMemberId: failedMemberId,
         outbound: outbound,
       );
     } on Object {
@@ -309,6 +331,7 @@ class MissionEngine {
           type: MissionIssueType.scenarioFailed,
           severity: MissionIssueSeverity.warning,
           legId: mission.legs[k].id,
+          memberId: failedMemberId,
         ),
       );
       return null;
@@ -343,11 +366,16 @@ class MissionEngine {
     }
   }
 
-  /// Prefers a feasible tow, then the quicker one.
+  /// Prefers a feasible tow; then one that made headway over one the current
+  /// blocked (a blocked tow reports no time, so it would otherwise win on
+  /// time and hide why the tow that ran failed); then the quicker one.
   ExitOutcome _betterTow(ExitOutcome? current, ExitOutcome candidate) {
     if (current == null) return candidate;
     if (candidate.feasible != current.feasible) {
       return candidate.feasible ? candidate : current;
+    }
+    if (candidate.blockedByCurrent != current.blockedByCurrent) {
+      return candidate.blockedByCurrent ? current : candidate;
     }
     return candidate.exitSeconds < current.exitSeconds ? candidate : current;
   }

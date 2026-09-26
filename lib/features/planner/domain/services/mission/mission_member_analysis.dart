@@ -22,7 +22,9 @@ class MissionMemberAnalysis {
   });
 
   /// Seconds of the cruise-speed return from each waypoint k back to the
-  /// start: the return hold and travel segments of legs 0 through k.
+  /// start: the return holds of legs 0 through k, and the depth transitions
+  /// into legs 0 through k - 1. The transition into leg k belongs to coming
+  /// back from leg k + 1, so it is not part of the way back from k.
   List<int> returnSecondsFrom(List<MissionLeg> legs, MissionProfile profile) {
     return [
       for (var k = 0; k < legs.length; k++)
@@ -30,8 +32,8 @@ class MissionMemberAnalysis {
             .where((s) {
               if (!s.id.startsWith('mission-ret-')) return false;
               for (var i = 0; i <= k; i++) {
-                if (s.id == 'mission-ret-${legs[i].id}' ||
-                    s.id == 'mission-ret-travel-${legs[i].id}') {
+                if (s.id == 'mission-ret-${legs[i].id}') return true;
+                if (i < k && s.id == 'mission-ret-travel-${legs[i].id}') {
                   return true;
                 }
               }
