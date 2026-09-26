@@ -153,10 +153,14 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
       cluster.firstWhere((p) => p.item.isFavorite, orElse: () => cluster.first);
 
   /// Recovers the points behind the plugin's markers through their media-id
-  /// keys. Markers without one of our keys are ignored.
+  /// keys, in library order (date taken, oldest first). The plugin's own
+  /// traversal order follows its nested cluster tree, not the dates, so it
+  /// cannot be trusted for the representative or the strip. Markers without
+  /// one of our keys are ignored.
   List<MediaMapPoint> _pointsFor(
     Iterable<Marker> markers,
     Map<String, MediaMapPoint> byId,
+    Map<String, int> orderOf,
   ) {
     final points = <MediaMapPoint>[];
     for (final marker in markers) {
@@ -166,11 +170,16 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
         if (point != null) points.add(point);
       }
     }
+    points.sort((x, y) => orderOf[x.item.id]!.compareTo(orderOf[y.item.id]!));
     return points;
   }
 
-  void _onClusterTap(MarkerClusterNode node, Map<String, MediaMapPoint> byId) {
-    final cluster = _pointsFor(node.mapMarkers, byId);
+  void _onClusterTap(
+    MarkerClusterNode node,
+    Map<String, MediaMapPoint> byId,
+    Map<String, int> orderOf,
+  ) {
+    final cluster = _pointsFor(node.mapMarkers, byId, orderOf);
     if (cluster.isEmpty) return;
     final first = cluster.first.point;
     final coLocated = cluster.every((p) => p.point == first);
@@ -277,6 +286,9 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
     }
 
     final byId = {for (final p in state.points) p.item.id: p};
+    final orderOf = {
+      for (var i = 0; i < state.points.length; i++) state.points[i].item.id: i,
+    };
     final colorScheme = Theme.of(context).colorScheme;
     final strip = _strip;
     final stripPoints = strip == null
@@ -317,7 +329,7 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
                     size: const Size(kMediaMapMarkerSize, kMediaMapMarkerSize),
                     markers: _markersFrom(context, state.points),
                     builder: (context, markers) {
-                      final cluster = _pointsFor(markers, byId);
+                      final cluster = _pointsFor(markers, byId, orderOf);
                       if (cluster.isEmpty) return const SizedBox.shrink();
                       return Semantics(
                         button: true,
@@ -336,7 +348,7 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
                     // stack; leaving it on would draw both, and each fanned
                     // tile would open a one-item viewer instead of the stack.
                     spiderfyCluster: false,
-                    onClusterTap: (node) => _onClusterTap(node, byId),
+                    onClusterTap: (node) => _onClusterTap(node, byId, orderOf),
                   ),
                 ),
                 const MapAttribution(),
@@ -363,6 +375,20 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
                         style: Theme.of(context).textTheme.labelMedium
                             ?.copyWith(color: colorScheme.onSurfaceVariant),
                       ),
+                    ),
+                  // A reload failed but the last points are still on screen:
+                  // say so, rather than leaving stale markers unexplained.
+                  if (state.error != null)
+                    IconButton(
+                      icon: Icon(
+                        Icons.sync_problem,
+                        size: 20,
+                        color: colorScheme.error,
+                      ),
+                      tooltip: l10n.media_map_errorLoading(
+                        state.error.toString(),
+                      ),
+                      onPressed: () => ref.invalidate(mediaMapPointsProvider),
                     ),
                   IconButton(
                     icon: const Icon(Icons.my_location, size: 20),

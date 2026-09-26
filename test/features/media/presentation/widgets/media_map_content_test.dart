@@ -697,4 +697,79 @@ void main() {
     expect(controller.camera.zoom, closeTo(12, 1e-6));
     await _flushMapTimers(tester);
   });
+
+  testWidgets('a failed reload with markers on screen shows a retry control '
+      'that reloads the points', (tester) async {
+    var builds = 0;
+    tester.view.physicalSize = const Size(800, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          mediaMapPointsProvider.overrideWith((ref) {
+            builds++;
+            return _SeededMapNotifier(
+              MediaMapState(points: [_point('a')], error: StateError('x')),
+            );
+          }),
+          mediaStoreAttachedProvider.overrideWith((ref) async => true),
+          mediaQueueFactsProvider.overrideWith((ref, id) => Stream.value(null)),
+          mediaStoreIdentityProvider.overrideWith((ref) async => null),
+          currentDeviceIdProvider.overrideWith((ref) async => 'dev-a'),
+          mediaServingRecorderProvider.overrideWithValue(
+            MediaServingRecorder(),
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: MediaMapContent()),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // The markers stay, and the failure is no longer silent.
+    expect(find.byType(MediaMapMarker), findsOneWidget);
+    expect(find.byIcon(Icons.sync_problem), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.sync_problem));
+    await tester.pump();
+    expect(builds, 2);
+    await _flushMapTimers(tester);
+  });
+
+  testWidgets('a nested cluster with no favorite shows its oldest item, not '
+      "the plugin's traversal order", (tester) async {
+    // Library (date) order: a, b, c. a and c sit together and b is about a
+    // kilometre away, so at zoom 12 the plugin nests {a, c} under the
+    // cluster and lists b first.
+    await _pump(
+      tester,
+      state: MediaMapState(
+        points: [
+          _point('a', at: const LatLng(12.5000, 43.2000)),
+          _point('b', at: const LatLng(12.5060, 43.2060)),
+          _point('c', at: const LatLng(12.50005, 43.20005)),
+        ],
+      ),
+    );
+    final controller = tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .mapController!;
+    controller.move(const LatLng(12.503, 43.203), 12);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    final tile = tester.widget<MediaMapMarker>(find.byType(MediaMapMarker));
+    expect(tile.count, 3);
+    expect(tile.item.id, 'a');
+    await _flushMapTimers(tester);
+  });
 }
