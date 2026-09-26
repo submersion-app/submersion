@@ -41,3 +41,28 @@ Future<bool> handleIncomingFile({
 
   return true;
 }
+
+/// Multi-file counterpart of [handleIncomingFile], for a share-sheet intent
+/// carrying several files at once. The files enter the import wizard as one
+/// batch, the way several dropped files do in [GlobalDropTarget].
+///
+/// Returns `true` when the caller should navigate to the import wizard.
+Future<bool> handleIncomingFiles({
+  required List<String> paths,
+  required String currentPath,
+  required UniversalImportNotifier notifier,
+  required ScaffoldMessengerState? messenger,
+  String? wizardActiveMessage,
+}) async {
+  if (currentPath.startsWith('/transfer/import-wizard')) {
+    messenger?.showSnackBar(
+      SnackBar(
+        content: Text(wizardActiveMessage ?? 'Finish current import first'),
+      ),
+    );
+    return false;
+  }
+
+  await notifier.loadFilesFromPaths(paths);
+  return true;
+}
