@@ -3635,7 +3635,7 @@ class SyncDataSerializer {
         );
   }
 
-  /// Applies one incoming `equipment_shares` row (v231, issue #2046). The
+  /// Applies one incoming `equipment_shares` row (v232, issue #2046). The
   /// (item, diver) pair is unique, so a peer's copy of a pair this device
   /// holds under another id is reconciled to the lower id and then skipped
   /// with DO NOTHING, as [_applySiteSiteTypeRecord] does.
@@ -7750,7 +7750,7 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  /// Equipment shares (v231, issue #2046), gated on the parent item's clock
+  /// Equipment shares (v232, issue #2046), gated on the parent item's clock
   /// like [_exportEquipmentTags].
   Future<List<Map<String, dynamic>>> _exportEquipmentShares(
     String? hlcSince,
@@ -7769,7 +7769,7 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  /// Equipment share and ownership events (v231, issue #2046), gated on the
+  /// Equipment share and ownership events (v232, issue #2046), gated on the
   /// parent item's clock like [_exportEquipmentTags].
   Future<List<Map<String, dynamic>>> _exportEquipmentOwnershipEvents(
     String? hlcSince,

@@ -4,11 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/equipment_share_uniqueness.dart';
 
-/// Schema v231: equipment sharing (issue #2046).
+/// Schema v232: equipment sharing (issue #2046).
 void main() {
-  /// A v230 database without the sharing tables. Minimal parents, as the
+  /// A v231 database without the sharing tables. Minimal parents, as the
   /// v219 fixture: the beforeOpen backstops heal every older rung.
-  NativeDatabase setupDb({int userVersion = 230, bool withEquipment = true}) {
+  NativeDatabase setupDb({int userVersion = 231, bool withEquipment = true}) {
     return NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = $userVersion');
@@ -86,12 +86,12 @@ void main() {
     return rows.isEmpty ? null : rows.single.read<String?>('sql');
   }
 
-  test('v231 is the current schema version and is in the ladder', () {
+  test('v232 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 231);
-    expect(AppDatabase.migrationVersions, contains(231));
-    expect(AppDatabase.migrationStepCount(230), 1);
+    expect(AppDatabase.currentSchemaVersion, 232);
+    expect(AppDatabase.migrationVersions, contains(232));
+    expect(AppDatabase.migrationStepCount(231), 1);
     // Additive rung: the sync compatibility floor must not move.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });
@@ -167,9 +167,9 @@ void main() {
   });
 
   test(
-    'a database stamped v231 without the schema heals in beforeOpen',
+    'a database stamped v232 without the schema heals in beforeOpen',
     () async {
-      final db = AppDatabase(setupDb(userVersion: 231));
+      final db = AppDatabase(setupDb(userVersion: 232));
       addTearDown(db.close);
       expect(await columnsOf(db, 'equipment_shares'), contains('diver_id'));
       expect(

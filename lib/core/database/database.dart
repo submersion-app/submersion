@@ -2223,6 +2223,11 @@ class DiverSettings extends Table {
   IntColumn get gfHigh => integer().withDefault(const Constant(70))();
   RealColumn get ppO2MaxWorking => real().withDefault(const Constant(1.4))();
   RealColumn get ppO2MaxDeco => real().withDefault(const Constant(1.6))();
+  // CCR ppO2 limits (v231, issue #2342): the diver's default setpoints and
+  // the ppO2 a diluent may reach on a flush, which sets its MOD.
+  RealColumn get ccrSetpointLow => real().withDefault(const Constant(0.7))();
+  RealColumn get ccrSetpointHigh => real().withDefault(const Constant(1.3))();
+  RealColumn get ccrDiluentModPpO2 => real().withDefault(const Constant(1.6))();
   IntColumn get cnsWarningThreshold =>
       integer().withDefault(const Constant(80))();
   RealColumn get ascentRateWarning => real().withDefault(const Constant(9.0))();
@@ -2828,7 +2833,7 @@ class EquipmentTags extends Table {
   TextColumn get hlc => text().nullable()();
 }
 
-/// Diver profiles an equipment item is shared with (v231, issue #2046). The
+/// Diver profiles an equipment item is shared with (v232, issue #2046). The
 /// owner stays `equipment.diver_id`; a row here makes the item visible to
 /// [diverId] too. Surrogate uuid primary key like [EquipmentTags]; the
 /// (equipment_id, diver_id) unique index lives in
@@ -2851,7 +2856,7 @@ class EquipmentShares extends Table {
   TextColumn get hlc => text().nullable()();
 }
 
-/// Append-only log of an item's share and ownership changes (v231, issue
+/// Append-only log of an item's share and ownership changes (v232, issue
 /// #2046): `shared`, `unshared`, and `transferred` from the transfer work.
 /// Diver references are SET NULL, so deleting a profile keeps the event,
 /// read as "a deleted profile". No row is ever updated, except by a diver
@@ -4436,7 +4441,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SiteTags,
     // Equipment tags (v219, issue #1942)
     EquipmentTags,
-    // Equipment sharing and its event log (v231, issue #2046)
+    // Equipment sharing and its event log (v232, issue #2046)
     EquipmentShares,
     EquipmentOwnershipEvents,
     // Training courses (v1.5)
@@ -4506,7 +4511,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 231;
+  static const int currentSchemaVersion = 232;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -5179,13 +5184,21 @@ class AppDatabase extends _$AppDatabase {
     // figure branch (#2372). A rung at or below the shipped version never
     // runs its onUpgrade step.
     230,
-    // v231: equipment sharing (issue #2046). Two tables, equipment_shares
+    // v231: diver_settings CCR ppO2 limits (issue #2342): setpoint low,
+    // setpoint high and the diluent's flush ppO2. Additive defaulted
+    // columns, no backfill, so the floor stays at 224. Renumbered from 228,
+    // then 230: main shipped cylinder fills (#2364) as 228 and nav tracks
+    // (#1772) as 230 while this was open, and 229 is claimed by #2372,
+    // #2331 and #2407.
+    231,
+    // v232: equipment sharing (issue #2046). Two tables, equipment_shares
     // with its (equipment_id, diver_id) unique index and
     // equipment_ownership_events, plus two lookup indexes. Additive only, so
     // the compatibility floor stays. Renumbered from 228, then 229: cylinder
     // fills (#2364) took 228, 229 is claimed by the diver figure branch
-    // (#2372) and nav tracks (#1772) took 230 while this was open.
-    231,
+    // (#2372), nav tracks (#1772) took 230 and CCR ppO2 limits (#2342)
+    // took 231 while this was open.
+    232,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -8606,6 +8619,29 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  /// Idempotent DDL for the diver_settings CCR ppO2 limits (v231, issue
+  /// #2342). Existing rows get the defaults the planner already assumed for
+  /// a new CCR plan (0.7 / 1.3) and the 1.6 bar flush ceiling.
+  Future<void> _assertCcrPpO2LimitColumns() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    const columns = {
+      'ccr_setpoint_low': '0.7',
+      'ccr_setpoint_high': '1.3',
+      'ccr_diluent_mod_pp_o2': '1.6',
+    };
+    for (final entry in columns.entries) {
+      if (names.contains(entry.key)) continue;
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN '
+        '${entry.key} REAL NOT NULL DEFAULT ${entry.value}',
+      );
+    }
+  }
+
   /// Idempotent DDL for diver_settings.auto_tag_imports (v211, issue #998).
   /// Existing rows default to on, matching the wizard's prior behavior of
   /// always pre-filling an import tag.
@@ -8800,9 +8836,9 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  /// Idempotent creation of the v231 equipment sharing schema (issue #2046):
+  /// Idempotent creation of the v232 equipment sharing schema (issue #2046):
   /// `equipment_shares` with its (equipment, diver) unique index, and
-  /// `equipment_ownership_events`. Called from the v231 rung and the
+  /// `equipment_ownership_events`. Called from the v232 rung and the
   /// beforeOpen backstop.
   ///
   /// Skipped on a partial migration-test fixture that lacks either parent
@@ -9185,7 +9221,7 @@ class AppDatabase extends _$AppDatabase {
         // same reason: createAll() never builds raw-SQL indexes.
         await assertEquipmentTagUniqueness(this);
 
-        // Equipment share pair unique index (v231, issue #2046), for the
+        // Equipment share pair unique index (v232, issue #2046), for the
         // same reason.
         await assertEquipmentShareUniqueness(this);
       },
@@ -12888,12 +12924,18 @@ class AppDatabase extends _$AppDatabase {
           await _assertNavTracksSchema();
         }
         if (from < 230) await reportProgress();
-        // v231: equipment sharing (issue #2046). Table-only rung, no
-        // backfill: no existing row changes.
+        // v231: diver_settings CCR ppO2 limits (issue #2342). Column-only
+        // rung, no backfill.
         if (from < 231) {
-          await _assertEquipmentSharingSchema();
+          await _assertCcrPpO2LimitColumns();
         }
         if (from < 231) await reportProgress();
+        // v232: equipment sharing (issue #2046). Table-only rung, no
+        // backfill: no existing row changes.
+        if (from < 232) {
+          await _assertEquipmentSharingSchema();
+        }
+        if (from < 232) await reportProgress();
       },
       beforeOpen: (details) async {
         // v227 backstop: the hidden built-in tank presets.
@@ -13032,7 +13074,7 @@ class AppDatabase extends _$AppDatabase {
         // version-collision self-heal; createTable is idempotent).
         await _assertDiveCenterGearNotesSchema();
 
-        // v231 backstop: the equipment sharing tables and the share pair
+        // v232 backstop: the equipment sharing tables and the share pair
         // index (parallel-branch version-collision self-heal; all
         // idempotent).
         await _assertEquipmentSharingSchema();
@@ -13406,6 +13448,11 @@ class AppDatabase extends _$AppDatabase {
         // v228 backstop: the cylinder_fills table (parallel-branch
         // version-collision self-heal; createTable is idempotent).
         await _assertCylinderFillsSchema();
+
+        // v231 backstop: re-assert the diver_settings CCR ppO2 limits
+        // (parallel-branch version-collision self-heal). Defaulted columns
+        // only, so it cannot touch diver data.
+        await _assertCcrPpO2LimitColumns();
 
         // v194 backstop: re-assert dive_tanks.transmitter_serial. Every tank
         // read selects the whole row, so a database that arrives by restore

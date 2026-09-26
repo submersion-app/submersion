@@ -14283,8 +14283,205 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_mod_aboutMod => 'A MOD-ról';
 
   @override
-  String get gasCalculators_mod_aboutModBody =>
-      'Alacsonyabb O₂ = mélyebb MOD = rövidebb NDL';
+  String get gasCalculators_mod_mode => 'Mód';
+
+  @override
+  String get gasCalculators_mod_modeRecHint =>
+      'Nitrox a szabadidős merüléshez: MOD és EAD, 10 méterenként 1 barral, mint a naplóban.';
+
+  @override
+  String get gasCalculators_mod_modeOcTecHint =>
+      'Trimix nyitott rendszerben: MOD, minimális mélység, narkózis és gázsűrűség.';
+
+  @override
+  String get gasCalculators_mod_modeCcrTecHint =>
+      'Zárt rendszer: a keverék a hígítógáz. A MOD a hígítógázé öblítéskor; a loop tartja a setpointot.';
+
+  @override
+  String get gasCalculators_mod_heliumHe => 'Hélium (He)';
+
+  @override
+  String get gasCalculators_mod_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_mod_limitsTitle => 'ppO₂-határok';
+
+  @override
+  String get gasCalculators_mod_workingPpO2 => 'Munka-ppO₂';
+
+  @override
+  String get gasCalculators_mod_decoPpO2 => 'Deko-ppO₂';
+
+  @override
+  String get gasCalculators_mod_flushPpO2 =>
+      'ppO₂ a hígítógáz MOD-jához (öblítés)';
+
+  @override
+  String get gasCalculators_mod_minPpO2 =>
+      'Minimális ppO₂ (hipoxiás keverékek)';
+
+  @override
+  String get gasCalculators_mod_fromProfile => 'A búvárprofilodból';
+
+  @override
+  String gasCalculators_mod_differsFromProfile(String value) {
+    return 'Eltér a profiltól ($value bar)';
+  }
+
+  @override
+  String get gasCalculators_mod_useProfileValue => 'Profilérték használata';
+
+  @override
+  String get gasCalculators_mod_checkTargetDepth => 'Célmélység ellenőrzése is';
+
+  @override
+  String get gasCalculators_mod_targetDepth => 'Célmélység';
+
+  @override
+  String get gasCalculators_mod_diluentMod => 'Hígítógáz MOD (öblítés)';
+
+  @override
+  String gasCalculators_mod_contingencyMod(String ppO2) {
+    return 'Vész-MOD $ppO2 barnál';
+  }
+
+  @override
+  String gasCalculators_mod_decoMod(String ppO2) {
+    return 'MOD deko-ppO₂ $ppO2 barnál';
+  }
+
+  @override
+  String gasCalculators_mod_minDepth(String ppO2) {
+    return 'Minimális mélység ppO₂ $ppO2 barnál';
+  }
+
+  @override
+  String get gasCalculators_mod_fromSurface => 'a felszíntől';
+
+  @override
+  String gasCalculators_mod_mnd(String limit) {
+    return 'MND (END-határ $limit)';
+  }
+
+  @override
+  String get gasCalculators_mod_noNarcoticLimit => 'nincs határ';
+
+  @override
+  String get gasCalculators_mod_atDepthTitle => 'Mélységben';
+
+  @override
+  String get gasCalculators_mod_atMod => 'A MOD-on';
+
+  @override
+  String get gasCalculators_mod_atTarget => 'A célmélységben';
+
+  @override
+  String get gasCalculators_mod_rowDepth => 'Mélység';
+
+  @override
+  String get gasCalculators_mod_rowPpO2 => 'ppO₂';
+
+  @override
+  String get gasCalculators_mod_rowEad => 'EAD (N₂ narkotikus)';
+
+  @override
+  String get gasCalculators_mod_rowEnd => 'END (N₂ + O₂ narkotikus)';
+
+  @override
+  String get gasCalculators_mod_rowEadd => 'EADD (levegősűrűség)';
+
+  @override
+  String get gasCalculators_mod_rowDensity => 'Gázsűrűség 0 °C-on';
+
+  @override
+  String get gasCalculators_mod_openDensity =>
+      'Megnyitás a gázsűrűség-kalkulátorban';
+
+  @override
+  String get gasCalculators_mod_assessmentTitle => 'Értékelés';
+
+  @override
+  String gasCalculators_mod_recBeyondLimit(String limit) {
+    return 'A MOD mélyebben van a $limit szabadidős határnál. Ott a narkózis és a gázsűrűség szab határt, nem az oxigén.';
+  }
+
+  @override
+  String gasCalculators_mod_recWithinLimit(String limit) {
+    return 'A MOD a $limit szabadidős határon belül van.';
+  }
+
+  @override
+  String gasCalculators_mod_targetBeyondMod(String ppO2) {
+    return 'A célmélység mélyebb a MOD-nál: ott ppO₂ $ppO2 bar.';
+  }
+
+  @override
+  String get gasCalculators_mod_targetAboveMinDepth =>
+      'A célmélység sekélyebb a minimális mélységnél: ott a keverék hipoxiás.';
+
+  @override
+  String gasCalculators_mod_hypoxic(String depth) {
+    return 'Hipoxiás keverék: ne lélegezd $depth felett.';
+  }
+
+  @override
+  String gasCalculators_mod_narcosisExceeded(
+    String where,
+    String depth,
+    String limit,
+  ) {
+    return '$where: a narkotikus mélység ($depth) meghaladja a $limit END-határodat.';
+  }
+
+  @override
+  String gasCalculators_mod_densityWarn(
+    String where,
+    String density,
+    String limit,
+  ) {
+    return '$where: a gázsűrűség ($density g/L) meghaladja az ajánlott $limit g/L-t.';
+  }
+
+  @override
+  String gasCalculators_mod_densityCritical(
+    String where,
+    String density,
+    String limit,
+  ) {
+    return '$where: a gázsűrűség ($density g/L) meghaladja a $limit g/L kemény határt.';
+  }
+
+  @override
+  String gasCalculators_mod_targetBeyondDiluentMod(String ppO2) {
+    return 'A célmélység mélyebb a hígítógáz MOD-jánál: az öblítés ott $ppO2 bar ppO₂-t ad.';
+  }
+
+  @override
+  String gasCalculators_mod_diluentAboveSetpoint(String where, String ppO2) {
+    return '$where: a hígítógáz önmagában $ppO2 bar ppO₂-t ad, többet a setpointnál; a loop a hígítógáz ppO₂-jével működik.';
+  }
+
+  @override
+  String gasCalculators_mod_setpointCapped(String where) {
+    return '$where: a setpoint meghaladja a környezeti nyomást, a loop tiszta oxigén.';
+  }
+
+  @override
+  String get gasCalculators_mod_allClear =>
+      'Az ellenőrzött mélységekben a ppO₂-, END- és sűrűséghatáraidon belül.';
+
+  @override
+  String get gasCalculators_mod_aboutModesBody =>
+      'A MOD az a mélység, ahol a keverék eléri a ppO₂-határt. Mindig lefelé kerekítjük, soha nem felfelé.\n\nA Rec 10 méterenként 1 barral számol, mint a napló. Az OC Tec és a CCR Tec a vízfajtából veszi a környezeti nyomást, mint a gázsűrűség-kalkulátor, ezért ugyanaz a keverék ott valamivel sekélyebb MOD-ot mutathat.\n\nAz EAD a nitrogént tekinti narkotikusnak, az END a nitrogént és az oxigént. Az END-határod, hogy az oxigén narkotikusnak számít-e, és az alapértelmezett ppO₂-határok a búvárprofilodból származnak.';
+
+  @override
+  String get gasCalculators_mod_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_mod_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_mod_modeCcrTec => 'CCR Tec';
 
   @override
   String get gasCalculators_mod_inputParameters => 'Bemeneti paraméterek';
@@ -19154,7 +19351,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_decompression_header_oxygenToxicity => 'Oxigéntoxicitás';
 
   @override
-  String get settings_decompression_ppO2LimitsTitle => 'ppO2-határok';
+  String get settings_decompression_ppO2LimitsTitle => 'ppO2-határok OC';
 
   @override
   String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
@@ -19162,7 +19359,44 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_ppO2Dialog_title => 'ppO2-határok';
+  String get settings_decompression_ppO2Dialog_title => 'ppO2-határok OC';
+
+  @override
+  String get settings_decompression_ccrPpO2LimitsTitle => 'ppO2-határok CCR';
+
+  @override
+  String settings_decompression_ccrPpO2LimitsSubtitle(
+    String low,
+    String high,
+    String dil,
+  ) {
+    return 'Setpoint alacsony $low · magas $high · Dil-MOD $dil bar';
+  }
+
+  @override
+  String get settings_decompression_ccrDialog_info =>
+      'Alapértékek zárt rendszerű merülésekhez. A MOD-kalkulátor CCR módja ezekkel az értékekkel indul.';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLow =>
+      'Alacsony setpoint';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLowHint =>
+      'A felszín közelében, le- és feljutáskor';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHigh => 'Magas setpoint';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHighHint => 'Mélységben';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentMod => 'Dil-MOD';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentModHint =>
+      'A hígítógáz öblítéskor elérhető ppO2-je; ez határozza meg a MOD-ját';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>
