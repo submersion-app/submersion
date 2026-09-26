@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 
 import '../../../../helpers/mock_file_picker_platform.dart';
@@ -37,7 +38,7 @@ void main() {
   });
 
   test('returns the chosen path and writes the content', () async {
-    final target = '${tempDir.path}/track.gpx';
+    final target = p.join(tempDir.path, 'track.gpx');
     mockPicker.saveFileResult = Uri.file(target);
 
     final result = await saveTextToFile(
@@ -52,7 +53,7 @@ void main() {
   });
 
   test('writes UTF-8 so non-ASCII track names survive', () async {
-    final target = '${tempDir.path}/track.gpx';
+    final target = p.join(tempDir.path, 'track.gpx');
     mockPicker.saveFileResult = Uri.file(target);
 
     await saveTextToFile(

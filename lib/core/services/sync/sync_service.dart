@@ -891,9 +891,14 @@ class SyncService {
         message: e.message,
       );
     } on CloudStorageException catch (e) {
+      // toString carries the underlying cause the message omits, which is
+      // what a user's diagnostics need to tell an outage from a sign-in.
+      _log.warning('Sync failed: $e');
       return SyncResult(
         status: SyncResultStatus.networkError,
-        message: e.message,
+        message: _causedByTimeout(e)
+            ? _l10n.settings_cloudSync_result_timedOut
+            : e.message,
       );
     } catch (e, stackTrace) {
       _log.error('Changeset sync failed', error: e, stackTrace: stackTrace);
@@ -940,6 +945,14 @@ class SyncService {
     } on SyncEncryptionRequired {
       // Not unreadable-corrupt: encrypted. Reaches performSync's handler,
       // which halts with awaitingPassphrase instead of a generic error.
+      rethrow;
+    } on TimeoutException {
+      // Not unreadable either: the backend could not be reached. This is the
+      // sync's first cloud request, so a dead connection or an expired
+      // sign-in surfaces here first. performSync's handlers still halt the
+      // sync, but say what went wrong instead of blaming the marker (#2332).
+      rethrow;
+    } on CloudStorageException {
       rethrow;
     } catch (e) {
       _log.warning('Library epoch marker unreadable; failing closed: $e');
@@ -1179,6 +1192,18 @@ class SyncService {
     } catch (_) {
       return null;
     }
+  }
+
+  /// True when [e] is a provider's report of a missed deadline. Providers put
+  /// HTTP timeouts on every request and wrap a miss like any other failure,
+  /// sometimes more than once as calls nest, so the chain of causes is walked
+  /// rather than only the first link.
+  static bool _causedByTimeout(CloudStorageException e) {
+    Object? cause = e.cause;
+    while (cause is CloudStorageException) {
+      cause = cause.cause;
+    }
+    return cause is TimeoutException;
   }
 
   String _formatSyncError(Object error, StackTrace stackTrace) {
@@ -4662,12 +4687,17 @@ class SyncService {
   /// Download and parse the cloud epoch marker. Returns null when absent.
   /// Throws on listing/parse failure: "unreadable" must be distinguishable
   /// from "absent" -- the caller fails the sync closed rather than guessing.
+  ///
+  /// The listing is a sync's first cloud request, so it also carries the
+  /// provider's cold start (an OAuth token refresh, the sync-folder lookup).
+  /// It gets the same 30 s as the download: the HTTP layer alone allows 15 s
+  /// to connect, and a shorter cap failed slow but working connections.
   Future<LibraryEpochMarker?> readLibraryEpochMarker(
     CloudStorageProvider provider,
   ) async {
     final files = await provider
         .listFiles(namePattern: libraryEpochFileName)
-        .timeout(const Duration(seconds: 8));
+        .timeout(const Duration(seconds: 30));
     final candidates = files
         .where((f) => !_isConflictCopy(f.name))
         .where((f) => f.name == libraryEpochFileName)

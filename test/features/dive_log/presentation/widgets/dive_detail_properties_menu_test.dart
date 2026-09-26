@@ -9,6 +9,7 @@ import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_properties_menu.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/section_properties_menu.dart';
 
 /// Settings notifier that keeps state in memory, so the menu's writes are
 /// visible to the next pump without a database.
@@ -42,21 +43,39 @@ class _FakeSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// The page's overflow button, whose row opens the panel.
+Widget _overflow(MenuController controller) => PopupMenuButton<String>(
+  onSelected: (_) => controller.open(),
+  itemBuilder: (context) => [displayOptionsMenuItem(context, 'displayOptions')],
+);
+
 Widget _harness(_FakeSettingsNotifier notifier, {bool isGauge = false}) {
+  final controller = MenuController();
   return ProviderScope(
     overrides: [settingsProvider.overrideWith((ref) => notifier)],
     child: MaterialApp(
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
-        appBar: AppBar(actions: [DiveDetailPropertiesMenu(isGauge: isGauge)]),
+        appBar: AppBar(
+          actions: [
+            DiveDetailPropertiesMenu(
+              isGauge: isGauge,
+              controller: controller,
+              child: _overflow(controller),
+            ),
+          ],
+        ),
       ),
     ),
   );
 }
 
 Future<void> _openMenu(WidgetTester tester) async {
-  await tester.tap(find.byIcon(Icons.tune));
+  await tester.tap(find.byIcon(Icons.more_vert));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Display options'));
   await tester.pumpAndSettle();
 }
 
@@ -351,13 +370,20 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(600, 1600));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
+    final controller = MenuController();
     final router = GoRouter(
       routes: [
         GoRoute(
           path: '/',
           builder: (context, state) => Scaffold(
             appBar: AppBar(
-              actions: const [DiveDetailPropertiesMenu(isGauge: false)],
+              actions: [
+                DiveDetailPropertiesMenu(
+                  isGauge: false,
+                  controller: controller,
+                  child: _overflow(controller),
+                ),
+              ],
             ),
           ),
         ),

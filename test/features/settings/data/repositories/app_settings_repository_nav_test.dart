@@ -24,11 +24,11 @@ void main() {
     });
 
     test('round-trip stores and reads the list unchanged', () async {
-      await repo.setNavPrimaryIds(['equipment', 'buddies', 'statistics']);
+      await repo.setNavPrimaryIds(['equipment', 'buddies', 'insights']);
       expect(await repo.getNavPrimaryIdsRaw(), [
         'equipment',
         'buddies',
-        'statistics',
+        'insights',
       ]);
     });
 

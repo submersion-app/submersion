@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -93,6 +95,38 @@ void main() {
         () => service.readLibraryEpochMarker(cloud),
         throwsA(isA<FormatException>()),
       );
+    });
+
+    // The marker listing is a sync's first cloud request, so it also pays for
+    // the provider's cold start (an OAuth token refresh, the sync-folder
+    // lookup). The HTTP layer alone allows 15 s to connect, so a cap below
+    // that fails a slow but working connection (issue #2332).
+    test('read waits out a slow first listing', () {
+      final slow = _SlowEpochListCloud(const Duration(seconds: 20));
+      fakeAsync((async) {
+        slow.uploadFile(
+          Uint8List.fromList(utf8.encode(jsonEncode(marker.toJson()))),
+          libraryEpochFileName,
+        );
+        async.flushMicrotasks();
+
+        LibraryEpochMarker? read;
+        Object? error;
+        buildService()
+            .readLibraryEpochMarker(slow)
+            .then(
+              (m) {
+                read = m;
+              },
+              onError: (Object e) {
+                error = e;
+              },
+            );
+        async.elapse(const Duration(seconds: 21));
+
+        expect(error, isNull);
+        expect(read?.epochId, 'e1');
+      });
     });
   });
 
@@ -292,6 +326,78 @@ void main() {
       );
       final result = await buildService().performSync();
       expect(result.status, SyncResultStatus.error);
+      expect(
+        result.message,
+        l10nForLocaleTag('en').settings_cloudSync_result_epochMarkerUnreadable,
+      );
+    });
+
+    // The marker read is the first real cloud request of a sync, so it is
+    // where a dead connection or an expired sign-in shows up first. Those
+    // must still halt the sync, but under their own message: blaming the
+    // marker sends the user hunting for a corrupt file that does not exist
+    // (issue #2332).
+    test('a cloud error reading the marker halts with the provider message, '
+        'not an unreadable marker', () async {
+      cloud = _EpochListFailCloud(
+        const CloudStorageException(
+          'Google Drive sign-in expired. Please sign in again.',
+        ),
+      );
+      cloud.operationLog.clear();
+
+      final result = await buildService().performSync();
+
+      expect(result.status, SyncResultStatus.networkError);
+      expect(
+        result.message,
+        'Google Drive sign-in expired. Please sign in again.',
+      );
+      expect(
+        cloud.operationLog.where((op) => op.startsWith('upload:')),
+        isEmpty,
+        reason: 'the gate still fails closed',
+      );
+    });
+
+    // Providers put their own HTTP deadlines on every request and report a
+    // miss the way they report any failure, as a CloudStorageException
+    // around the TimeoutException. It is still a timeout and must read as
+    // one, not as "List files failed: TimeoutException after ..." (#2332).
+    test('a provider error caused by a timeout halts as a timeout', () async {
+      cloud = _EpochListFailCloud(
+        CloudStorageException(
+          'List files failed: TimeoutException after 0:00:30.000000',
+          TimeoutException('response'),
+        ),
+      );
+
+      final result = await buildService().performSync();
+
+      expect(result.status, SyncResultStatus.networkError);
+      expect(
+        result.message,
+        l10nForLocaleTag('en').settings_cloudSync_result_timedOut,
+      );
+    });
+
+    test('a timed-out marker read halts as a timeout, '
+        'not an unreadable marker', () async {
+      cloud = _EpochListFailCloud(TimeoutException('epoch list'));
+      cloud.operationLog.clear();
+
+      final result = await buildService().performSync();
+
+      expect(result.status, SyncResultStatus.networkError);
+      expect(
+        result.message,
+        l10nForLocaleTag('en').settings_cloudSync_result_timedOut,
+      );
+      expect(
+        cloud.operationLog.where((op) => op.startsWith('upload:')),
+        isEmpty,
+        reason: 'the gate still fails closed',
+      );
     });
   });
 
@@ -1049,6 +1155,41 @@ class _SyncListFailCloud extends FakeCloudStorageProvider {
     if (namePattern == failPattern) {
       throw const CloudStorageException('list failed (test)');
     }
+    return super.listFiles(folderId: folderId, namePattern: namePattern);
+  }
+}
+
+/// Fails only the epoch marker listing, with [error], so a test controls
+/// exactly what the epoch gate's read sees.
+class _EpochListFailCloud extends FakeCloudStorageProvider {
+  _EpochListFailCloud(this.error);
+
+  final Object error;
+
+  @override
+  Future<List<CloudFileInfo>> listFiles({
+    String? folderId,
+    String? namePattern,
+  }) async {
+    operationLog.add('list');
+    if (namePattern == libraryEpochFileName) throw error;
+    return super.listFiles(folderId: folderId, namePattern: namePattern);
+  }
+}
+
+/// Answers the epoch marker listing only after [delay], modelling a slow but
+/// working first request.
+class _SlowEpochListCloud extends FakeCloudStorageProvider {
+  _SlowEpochListCloud(this.delay);
+
+  final Duration delay;
+
+  @override
+  Future<List<CloudFileInfo>> listFiles({
+    String? folderId,
+    String? namePattern,
+  }) async {
+    if (namePattern == libraryEpochFileName) await Future.delayed(delay);
     return super.listFiles(folderId: folderId, namePattern: namePattern);
   }
 }

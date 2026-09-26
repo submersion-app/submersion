@@ -18,21 +18,27 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// Both resolvers fall back to the stored English string so a page that
 /// registers an ad-hoc shortcut still renders something readable.
 String shortcutEntryLabel(AppLocalizations l10n, String label) =>
-    switch (label) {
-      'New dive' => l10n.accessibility_shortcut_newDive,
-      'Go to Dives' => l10n.accessibility_shortcut_goToDives,
-      'Go to Sites' => l10n.accessibility_shortcut_goToSites,
-      'Go to Equipment' => l10n.accessibility_shortcut_goToEquipment,
-      'Go to Statistics' => l10n.accessibility_shortcut_goToStatistics,
-      'Go to Settings' => l10n.accessibility_shortcut_goToSettings,
-      'Go back' => l10n.accessibility_shortcut_goBack,
-      'Search dives' => l10n.accessibility_shortcut_searchDives,
-      'Close / Cancel' => l10n.accessibility_shortcut_closeCancel,
-      'Open settings' => l10n.accessibility_shortcut_openSettings,
-      'Switch diver' => l10n.accessibility_shortcut_switchDiver,
-      'Keyboard shortcuts' => l10n.accessibility_shortcut_keyboardShortcuts,
-      _ => label,
-    };
+    _shortcutEntryLabels[label]?.call(l10n) ?? label;
+
+/// Whether [label] is one of the built-in catalog labels with a translation,
+/// rather than an ad-hoc label that [shortcutEntryLabel] shows as it is.
+bool hasShortcutEntryTranslation(String label) =>
+    _shortcutEntryLabels.containsKey(label);
+
+final Map<String, String Function(AppLocalizations)> _shortcutEntryLabels = {
+  'New dive': (l10n) => l10n.accessibility_shortcut_newDive,
+  'Go to Dives': (l10n) => l10n.accessibility_shortcut_goToDives,
+  'Go to Sites': (l10n) => l10n.accessibility_shortcut_goToSites,
+  'Go to Equipment': (l10n) => l10n.accessibility_shortcut_goToEquipment,
+  'Go to Insights': (l10n) => l10n.accessibility_shortcut_goToInsights,
+  'Go to Settings': (l10n) => l10n.accessibility_shortcut_goToSettings,
+  'Go back': (l10n) => l10n.accessibility_shortcut_goBack,
+  'Search dives': (l10n) => l10n.accessibility_shortcut_searchDives,
+  'Close / Cancel': (l10n) => l10n.accessibility_shortcut_closeCancel,
+  'Open settings': (l10n) => l10n.accessibility_shortcut_openSettings,
+  'Switch diver': (l10n) => l10n.accessibility_shortcut_switchDiver,
+  'Keyboard shortcuts': (l10n) => l10n.accessibility_shortcut_keyboardShortcuts,
+};
 
 /// Localized name for a built-in shortcut category; the raw string otherwise.
 String shortcutCategoryLabel(AppLocalizations l10n, String category) =>

@@ -127,6 +127,18 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   }
 
   @override
+  Future<void> setTankPresetHidden(String presetName, bool hidden) async {
+    if (hidden && presetName == state.defaultTankPreset) return;
+    final ids = {...state.hiddenTankPresetIds};
+    if (hidden) {
+      ids.add(presetName);
+    } else {
+      ids.remove(presetName);
+    }
+    state = state.copyWith(hiddenTankPresetIds: ids);
+  }
+
+  @override
   Future<void> setEmergencyRegion(String? countryCode) async =>
       state = countryCode == null
       ? state.copyWith(clearEmergencyRegion: true)
@@ -852,6 +864,19 @@ void main() {
       );
     });
 
+    testWidgets('Storage offers one Offline Maps row covering tiles and 3D '
+        'terrain', (tester) async {
+      // Map tiles and 3D terrain data used to be two rows with two pages.
+      await tester.pumpWidget(
+        buildTestWidget(const SettingsSectionDetailPage(sectionId: 'data')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Offline Maps'), findsOneWidget);
+      expect(find.text('Map tiles and 3D terrain data'), findsOneWidget);
+      expect(find.text('3D Maps'), findsNothing);
+    });
+
     testWidgets('should display Diver Profile section', (tester) async {
       await tester.pumpWidget(buildTestWidget(const SettingsPage()));
 
@@ -1395,7 +1420,7 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       final repo = FakeAppSettingsRepository()
-        ..navRailIds = ['statistics', 'gps-log', 'planning'];
+        ..navRailIds = ['insights', 'gps-log', 'planning'];
       await tester.pumpWidget(
         buildAppearanceWidget([
           ...getOverrides(),
@@ -1405,7 +1430,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(NavCustomizationTile), findsOneWidget);
-      expect(find.text('Statistics · GPS Log · Planning'), findsOneWidget);
+      expect(find.text('Insights · GPS Log · Planning'), findsOneWidget);
     });
 
     // The desktop master-detail pane renders _AppearanceSectionContent, a

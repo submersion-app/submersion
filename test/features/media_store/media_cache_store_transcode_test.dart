@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 
@@ -23,7 +24,7 @@ void main() {
     final a = await cache.transcodeFile('h1', 'balanced');
     final b = await cache.transcodeFile('h1', 'balanced');
     expect(a.path, b.path);
-    expect(a.path, endsWith('transcode/h1_balanced.mp4'));
+    expect(a.path, endsWith(p.join('transcode', 'h1_balanced.mp4')));
     expect(await a.parent.exists(), isTrue);
   });
 

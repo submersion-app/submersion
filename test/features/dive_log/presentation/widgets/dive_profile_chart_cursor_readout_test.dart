@@ -1,7 +1,9 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -54,6 +56,7 @@ Widget _chart({
   int? highlightedTimestamp,
   bool tooltipBelow = true,
   List<DiveProfilePoint>? profile,
+  List<ProfileMarker>? markers,
 }) {
   final points = profile ?? _standardProfile;
   return ProviderScope(
@@ -76,6 +79,8 @@ Widget _chart({
                 : TooltipPresentation.inChart,
             onTooltipData: onTooltipData,
             highlightedTimestamp: highlightedTimestamp,
+            markers: markers,
+            showMaxDepthMarker: markers != null,
           ),
         ),
       ),
@@ -385,5 +390,115 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(rows, isNull);
+  });
+
+  // The depth line is tagged ChartOnlyMetric.depth, and a tooltip row renders
+  // bold when its metric equals the hovered line's tag. A Depth row without
+  // that metric could never match, so hovering the depth line left its row
+  // plain while every other metric's row lit up.
+  testWidgets('the Depth row carries the depth line\'s hover identity', (
+    tester,
+  ) async {
+    List<TooltipRow>? rows;
+    await tester.pumpWidget(_chart(onTooltipData: (r) => rows = r));
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      _chart(onTooltipData: (r) => rows = r, highlightedTimestamp: 150),
+    );
+    await tester.pumpAndSettle();
+
+    final depthRow = rows?.where((r) => r.label == 'Depth').firstOrNull;
+    expect(depthRow, isNotNull);
+    expect(depthRow!.metric, ChartOnlyMetric.depth);
+  });
+
+  testWidgets('the Depth row keeps its hover identity on the surface lead-in', (
+    tester,
+  ) async {
+    List<TooltipRow>? rows;
+    final profile = _leadInProfile();
+    await tester.pumpWidget(
+      _chart(onTooltipData: (r) => rows = r, profile: profile),
+    );
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      _chart(
+        onTooltipData: (r) => rows = r,
+        profile: profile,
+        highlightedTimestamp: 5,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(_rowValue(rows, 'Time'), '0:00');
+    final depthRow = rows?.where((r) => r.label == 'Depth').firstOrNull;
+    expect(depthRow?.metric, ChartOnlyMetric.depth);
+  });
+
+  // On the lead-in, rows whose value is only carried over from the first
+  // sample are rebuilt with an "interpolated" value. The rebuilt row must
+  // keep its metric, or hovering that line at t=0 would leave its row plain.
+  testWidgets('an interpolated lead-in row keeps its hover identity', (
+    tester,
+  ) async {
+    List<TooltipRow>? rows;
+    final profile = _leadInProfile();
+    await tester.pumpWidget(
+      _chart(onTooltipData: (r) => rows = r, profile: profile),
+    );
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      _chart(
+        onTooltipData: (r) => rows = r,
+        profile: profile,
+        highlightedTimestamp: 5,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(_rowValue(rows, 'Time'), '0:00');
+    final tempRow = rows?.where((r) => r.label == 'Temp').firstOrNull;
+    expect(tempRow, isNotNull);
+    expect(
+      tempRow!.value,
+      endsWith('(interpolated)'),
+      reason: 'the row must actually have been rebuilt as interpolated',
+    );
+    expect(tempRow.metric, ProfileRightAxisMetric.temperature);
+  });
+
+  // A marker row is drawn with a diamond bullet; rebuilding it as
+  // interpolated on the lead-in must not turn it back into a plain circle.
+  testWidgets('an interpolated lead-in marker row keeps its diamond bullet', (
+    tester,
+  ) async {
+    List<TooltipRow>? rows;
+    final profile = _leadInProfile();
+    const markers = [
+      ProfileMarker(timestamp: 0, depth: 0, type: ProfileMarkerType.maxDepth),
+    ];
+    await tester.pumpWidget(
+      _chart(
+        onTooltipData: (r) => rows = r,
+        profile: profile,
+        markers: markers,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      _chart(
+        onTooltipData: (r) => rows = r,
+        profile: profile,
+        markers: markers,
+        highlightedTimestamp: 5,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(_rowValue(rows, 'Time'), '0:00');
+    final markerRow = rows?.where((r) => r.label == 'Marker').firstOrNull;
+    expect(markerRow, isNotNull);
+    expect(markerRow!.value, endsWith('(interpolated)'));
+    expect(markerRow.diamondBullet, isTrue);
   });
 }
