@@ -9,6 +9,184 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
+  String get connections_action_centreHere => 'Centrar aquí';
+
+  @override
+  String get connections_around_centredOn => 'Centrado en';
+
+  @override
+  String get connections_around_hops => 'Saltos';
+
+  @override
+  String connections_around_kindChip(String kind, int count) {
+    return '$kind ($count)';
+  }
+
+  @override
+  String get connections_around_noResults => 'Sin resultados';
+
+  @override
+  String get connections_around_prompt =>
+      'Busca un compañero, un punto, un viaje u otra cosa para centrar el mapa en ello.';
+
+  @override
+  String get connections_around_searchHint =>
+      'Buscar compañeros, puntos, viajes y otros';
+
+  @override
+  String get connections_around_show => 'Mostrar';
+
+  @override
+  String get connections_editor_kinds => 'Tipos';
+
+  @override
+  String connections_editor_link(String a, String b) {
+    return '$a con $b';
+  }
+
+  @override
+  String get connections_editor_links => 'Enlaces';
+
+  @override
+  String connections_editor_minShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Al menos $count inmersiones compartidas',
+      one: 'Al menos 1 inmersión compartida',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_editor_saveAsMap => 'Guardar como mapa';
+
+  @override
+  String get connections_editor_title => 'Mapa personalizado';
+
+  @override
+  String get connections_filter_allFilters => 'Todos los filtros';
+
+  @override
+  String get connections_filter_clear => 'Borrar';
+
+  @override
+  String get connections_filter_none => 'No hay filtros activos.';
+
+  @override
+  String get connections_loading => 'Cargando conexiones';
+
+  @override
+  String get connections_mode_around => 'Alrededor de un elemento';
+
+  @override
+  String get connections_mode_map => 'Mapa completo';
+
+  @override
+  String get connections_preset_centers => 'Centros y personas';
+
+  @override
+  String get connections_preset_circle => 'Círculo de buceo';
+
+  @override
+  String get connections_preset_edited => 'editado';
+
+  @override
+  String get connections_preset_gear => 'Equipo en conjunto';
+
+  @override
+  String get connections_preset_gearRoad => 'Equipo de viaje';
+
+  @override
+  String get connections_preset_life => 'Puntos por vida marina';
+
+  @override
+  String get connections_preset_reef => 'Vida del arrecife';
+
+  @override
+  String get connections_preset_travel => 'Historia de viaje';
+
+  @override
+  String get connections_preset_trips => 'Viajes y personas';
+
+  @override
+  String get connections_preset_where => 'Quién bucea dónde';
+
+  @override
+  String get connections_presets_title => 'Predefinidos';
+
+  @override
+  String get connections_savedMap_badge => 'Mapa guardado';
+
+  @override
+  String connections_savedMap_deleted(String name) {
+    return '\"$name\" eliminado';
+  }
+
+  @override
+  String get connections_savedMap_nameLabel => 'Nombre';
+
+  @override
+  String get connections_savedMap_rename => 'Renombrar';
+
+  @override
+  String get connections_savedMap_saveTitle => 'Guardar mapa';
+
+  @override
+  String get connections_savedMap_undo => 'Deshacer';
+
+  @override
+  String get connections_savedMap_update => 'Actualizar con la vista actual';
+
+  @override
+  String get connections_summary_closest => 'Más cercano';
+
+  @override
+  String connections_summary_entitiesAround(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos',
+      one: '1 elemento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_mostConnected => 'Con más conexiones';
+
+  @override
+  String connections_summary_pairValue(int count, String a, String b) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$a y $b, $count inmersiones',
+      one: '$a y $b, 1 inmersión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_strongestPair => 'Pareja más fuerte';
+
+  @override
+  String get connections_summary_title => 'Resumen';
+
+  @override
+  String get connections_tab_details => 'Detalles';
+
+  @override
+  String get connections_tab_filter => 'Filtro';
+
+  @override
+  String connections_tab_filterCount(int count) {
+    return 'Filtro ($count)';
+  }
+
+  @override
+  String get connections_tab_view => 'Vista';
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'No se pudo abrir el navegador. Usa Copiar enlace y pega la dirección en tu navegador.';
 

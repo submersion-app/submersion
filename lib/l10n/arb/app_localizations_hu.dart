@@ -9,6 +9,184 @@ class AppLocalizationsHu extends AppLocalizations {
   AppLocalizationsHu([String locale = 'hu']) : super(locale);
 
   @override
+  String get connections_action_centreHere => 'Középre ide';
+
+  @override
+  String get connections_around_centredOn => 'Középpontban';
+
+  @override
+  String get connections_around_hops => 'Lépések';
+
+  @override
+  String connections_around_kindChip(String kind, int count) {
+    return '$kind ($count)';
+  }
+
+  @override
+  String get connections_around_noResults => 'Nincs találat';
+
+  @override
+  String get connections_around_prompt =>
+      'Keress egy búvártársat, helyet, utat vagy bármi mást, hogy a térképet köré igazítsd.';
+
+  @override
+  String get connections_around_searchHint =>
+      'Búvártársak, helyek, utak és más keresése';
+
+  @override
+  String get connections_around_show => 'Megjelenítés';
+
+  @override
+  String get connections_editor_kinds => 'Típusok';
+
+  @override
+  String connections_editor_link(String a, String b) {
+    return '$a és $b';
+  }
+
+  @override
+  String get connections_editor_links => 'Kapcsolatok';
+
+  @override
+  String connections_editor_minShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Legalább $count közös merülés',
+      one: 'Legalább 1 közös merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_editor_saveAsMap => 'Mentés térképként';
+
+  @override
+  String get connections_editor_title => 'Egyéni térkép';
+
+  @override
+  String get connections_filter_allFilters => 'Összes szűrő';
+
+  @override
+  String get connections_filter_clear => 'Törlés';
+
+  @override
+  String get connections_filter_none => 'Nincs aktív szűrő.';
+
+  @override
+  String get connections_loading => 'Kapcsolatok betöltése';
+
+  @override
+  String get connections_mode_around => 'Egy elem körül';
+
+  @override
+  String get connections_mode_map => 'Teljes térkép';
+
+  @override
+  String get connections_preset_centers => 'Központok és emberek';
+
+  @override
+  String get connections_preset_circle => 'Búvárkör';
+
+  @override
+  String get connections_preset_edited => 'módosítva';
+
+  @override
+  String get connections_preset_gear => 'Együtt használt felszerelés';
+
+  @override
+  String get connections_preset_gearRoad => 'Felszerelés úton';
+
+  @override
+  String get connections_preset_life => 'Merülőhelyek élővilág szerint';
+
+  @override
+  String get connections_preset_reef => 'Zátonyélet';
+
+  @override
+  String get connections_preset_travel => 'Úti történet';
+
+  @override
+  String get connections_preset_trips => 'Utak és emberek';
+
+  @override
+  String get connections_preset_where => 'Ki hol merül';
+
+  @override
+  String get connections_presets_title => 'Előbeállítások';
+
+  @override
+  String get connections_savedMap_badge => 'Mentett térkép';
+
+  @override
+  String connections_savedMap_deleted(String name) {
+    return '\"$name\" törölve';
+  }
+
+  @override
+  String get connections_savedMap_nameLabel => 'Név';
+
+  @override
+  String get connections_savedMap_rename => 'Átnevezés';
+
+  @override
+  String get connections_savedMap_saveTitle => 'Térkép mentése';
+
+  @override
+  String get connections_savedMap_undo => 'Visszavonás';
+
+  @override
+  String get connections_savedMap_update => 'Frissítés a jelenlegi nézettel';
+
+  @override
+  String get connections_summary_closest => 'Legközelebbi';
+
+  @override
+  String connections_summary_entitiesAround(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem',
+      one: '1 elem',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_mostConnected => 'Legtöbb kapcsolat';
+
+  @override
+  String connections_summary_pairValue(int count, String a, String b) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$a és $b, $count merülés',
+      one: '$a és $b, 1 merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_strongestPair => 'Legerősebb pár';
+
+  @override
+  String get connections_summary_title => 'Összegzés';
+
+  @override
+  String get connections_tab_details => 'Részletek';
+
+  @override
+  String get connections_tab_filter => 'Szűrő';
+
+  @override
+  String connections_tab_filterCount(int count) {
+    return 'Szűrő ($count)';
+  }
+
+  @override
+  String get connections_tab_view => 'Nézet';
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'Nem sikerült megnyitni a böngészőt. Használd a Link másolása gombot, és illeszd be a címet a böngésződbe.';
 

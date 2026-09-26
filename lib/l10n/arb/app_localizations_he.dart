@@ -9,6 +9,184 @@ class AppLocalizationsHe extends AppLocalizations {
   AppLocalizationsHe([String locale = 'he']) : super(locale);
 
   @override
+  String get connections_action_centreHere => 'מרכוז כאן';
+
+  @override
+  String get connections_around_centredOn => 'במרכז';
+
+  @override
+  String get connections_around_hops => 'צעדים';
+
+  @override
+  String connections_around_kindChip(String kind, int count) {
+    return '$kind ($count)';
+  }
+
+  @override
+  String get connections_around_noResults => 'אין תוצאות';
+
+  @override
+  String get connections_around_prompt =>
+      'חפשו שותף, אתר, טיול או כל דבר אחר כדי למרכז עליו את המפה.';
+
+  @override
+  String get connections_around_searchHint =>
+      'חיפוש שותפים, אתרים, טיולים ועוד';
+
+  @override
+  String get connections_around_show => 'הצגה';
+
+  @override
+  String get connections_editor_kinds => 'סוגים';
+
+  @override
+  String connections_editor_link(String a, String b) {
+    return '$a עם $b';
+  }
+
+  @override
+  String get connections_editor_links => 'קישורים';
+
+  @override
+  String connections_editor_minShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לפחות $count צלילות משותפות',
+      one: 'לפחות צלילה משותפת אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_editor_saveAsMap => 'שמירה כמפה';
+
+  @override
+  String get connections_editor_title => 'מפה מותאמת';
+
+  @override
+  String get connections_filter_allFilters => 'כל המסננים';
+
+  @override
+  String get connections_filter_clear => 'ניקוי';
+
+  @override
+  String get connections_filter_none => 'אין מסננים פעילים.';
+
+  @override
+  String get connections_loading => 'טוען קשרים';
+
+  @override
+  String get connections_mode_around => 'סביב פריט אחד';
+
+  @override
+  String get connections_mode_map => 'מפה מלאה';
+
+  @override
+  String get connections_preset_centers => 'מרכזים ואנשים';
+
+  @override
+  String get connections_preset_circle => 'מעגל הצלילה';
+
+  @override
+  String get connections_preset_edited => 'נערך';
+
+  @override
+  String get connections_preset_gear => 'ציוד יחד';
+
+  @override
+  String get connections_preset_gearRoad => 'ציוד בדרכים';
+
+  @override
+  String get connections_preset_life => 'אתרים לפי חיים ימיים';
+
+  @override
+  String get connections_preset_reef => 'חיי השונית';
+
+  @override
+  String get connections_preset_travel => 'סיפור מסע';
+
+  @override
+  String get connections_preset_trips => 'טיולים ואנשים';
+
+  @override
+  String get connections_preset_where => 'מי צולל איפה';
+
+  @override
+  String get connections_presets_title => 'הגדרות מוכנות';
+
+  @override
+  String get connections_savedMap_badge => 'מפה שמורה';
+
+  @override
+  String connections_savedMap_deleted(String name) {
+    return '\"$name\" נמחקה';
+  }
+
+  @override
+  String get connections_savedMap_nameLabel => 'שם';
+
+  @override
+  String get connections_savedMap_rename => 'שינוי שם';
+
+  @override
+  String get connections_savedMap_saveTitle => 'שמירת מפה';
+
+  @override
+  String get connections_savedMap_undo => 'ביטול';
+
+  @override
+  String get connections_savedMap_update => 'עדכון מהתצוגה הנוכחית';
+
+  @override
+  String get connections_summary_closest => 'הקרוב ביותר';
+
+  @override
+  String connections_summary_entitiesAround(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים',
+      one: 'פריט אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_mostConnected => 'המקושר ביותר';
+
+  @override
+  String connections_summary_pairValue(int count, String a, String b) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$a ו-$b, $count צלילות',
+      one: '$a ו-$b, צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_strongestPair => 'הזוג החזק ביותר';
+
+  @override
+  String get connections_summary_title => 'סיכום';
+
+  @override
+  String get connections_tab_details => 'פרטים';
+
+  @override
+  String get connections_tab_filter => 'סינון';
+
+  @override
+  String connections_tab_filterCount(int count) {
+    return 'סינון ($count)';
+  }
+
+  @override
+  String get connections_tab_view => 'תצוגה';
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'לא ניתן לפתוח את הדפדפן. השתמש בהעתקת קישור והדבק את הכתובת בדפדפן שלך.';
 

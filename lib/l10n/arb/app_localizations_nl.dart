@@ -9,6 +9,184 @@ class AppLocalizationsNl extends AppLocalizations {
   AppLocalizationsNl([String locale = 'nl']) : super(locale);
 
   @override
+  String get connections_action_centreHere => 'Hier centreren';
+
+  @override
+  String get connections_around_centredOn => 'Gecentreerd op';
+
+  @override
+  String get connections_around_hops => 'Stappen';
+
+  @override
+  String connections_around_kindChip(String kind, int count) {
+    return '$kind ($count)';
+  }
+
+  @override
+  String get connections_around_noResults => 'Geen resultaten';
+
+  @override
+  String get connections_around_prompt =>
+      'Zoek een buddy, duikplek, reis of iets anders om de kaart erop te centreren.';
+
+  @override
+  String get connections_around_searchHint =>
+      'Zoek buddy\'s, duikplekken, reizen en meer';
+
+  @override
+  String get connections_around_show => 'Tonen';
+
+  @override
+  String get connections_editor_kinds => 'Soorten';
+
+  @override
+  String connections_editor_link(String a, String b) {
+    return '$a met $b';
+  }
+
+  @override
+  String get connections_editor_links => 'Koppelingen';
+
+  @override
+  String connections_editor_minShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Minstens $count gedeelde duiken',
+      one: 'Minstens 1 gedeelde duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_editor_saveAsMap => 'Opslaan als kaart';
+
+  @override
+  String get connections_editor_title => 'Eigen kaart';
+
+  @override
+  String get connections_filter_allFilters => 'Alle filters';
+
+  @override
+  String get connections_filter_clear => 'Wissen';
+
+  @override
+  String get connections_filter_none => 'Geen filters actief.';
+
+  @override
+  String get connections_loading => 'Verbindingen laden';
+
+  @override
+  String get connections_mode_around => 'Rond één item';
+
+  @override
+  String get connections_mode_map => 'Volledige kaart';
+
+  @override
+  String get connections_preset_centers => 'Duikcentra en mensen';
+
+  @override
+  String get connections_preset_circle => 'Duikkring';
+
+  @override
+  String get connections_preset_edited => 'bewerkt';
+
+  @override
+  String get connections_preset_gear => 'Uitrusting samen';
+
+  @override
+  String get connections_preset_gearRoad => 'Uitrusting onderweg';
+
+  @override
+  String get connections_preset_life => 'Duikplekken naar zeeleven';
+
+  @override
+  String get connections_preset_reef => 'Rifleven';
+
+  @override
+  String get connections_preset_travel => 'Reisverhaal';
+
+  @override
+  String get connections_preset_trips => 'Reizen en mensen';
+
+  @override
+  String get connections_preset_where => 'Wie duikt waar';
+
+  @override
+  String get connections_presets_title => 'Voorinstellingen';
+
+  @override
+  String get connections_savedMap_badge => 'Opgeslagen kaart';
+
+  @override
+  String connections_savedMap_deleted(String name) {
+    return '\"$name\" verwijderd';
+  }
+
+  @override
+  String get connections_savedMap_nameLabel => 'Naam';
+
+  @override
+  String get connections_savedMap_rename => 'Hernoemen';
+
+  @override
+  String get connections_savedMap_saveTitle => 'Kaart opslaan';
+
+  @override
+  String get connections_savedMap_undo => 'Ongedaan maken';
+
+  @override
+  String get connections_savedMap_update => 'Bijwerken met huidige weergave';
+
+  @override
+  String get connections_summary_closest => 'Dichtstbij';
+
+  @override
+  String connections_summary_entitiesAround(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_mostConnected => 'Meest verbonden';
+
+  @override
+  String connections_summary_pairValue(int count, String a, String b) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$a en $b, $count duiken',
+      one: '$a en $b, 1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_strongestPair => 'Sterkste paar';
+
+  @override
+  String get connections_summary_title => 'Samenvatting';
+
+  @override
+  String get connections_tab_details => 'Details';
+
+  @override
+  String get connections_tab_filter => 'Filter';
+
+  @override
+  String connections_tab_filterCount(int count) {
+    return 'Filter ($count)';
+  }
+
+  @override
+  String get connections_tab_view => 'Weergave';
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'Kan de browser niet openen. Gebruik Link kopiëren en plak het adres in je browser.';
 

@@ -116,6 +116,294 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @connections_action_centreHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Centre here'**
+  String get connections_action_centreHere;
+
+  /// No description provided for @connections_around_centredOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Centred on'**
+  String get connections_around_centredOn;
+
+  /// No description provided for @connections_around_hops.
+  ///
+  /// In en, this message translates to:
+  /// **'Hops'**
+  String get connections_around_hops;
+
+  /// No description provided for @connections_around_kindChip.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind} ({count})'**
+  String connections_around_kindChip(String kind, int count);
+
+  /// No description provided for @connections_around_noResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches'**
+  String get connections_around_noResults;
+
+  /// No description provided for @connections_around_prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a buddy, site, trip or anything else to centre the map on it.'**
+  String get connections_around_prompt;
+
+  /// No description provided for @connections_around_searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search buddies, sites, trips and more'**
+  String get connections_around_searchHint;
+
+  /// No description provided for @connections_around_show.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get connections_around_show;
+
+  /// No description provided for @connections_editor_kinds.
+  ///
+  /// In en, this message translates to:
+  /// **'Kinds'**
+  String get connections_editor_kinds;
+
+  /// No description provided for @connections_editor_link.
+  ///
+  /// In en, this message translates to:
+  /// **'{a} with {b}'**
+  String connections_editor_link(String a, String b);
+
+  /// No description provided for @connections_editor_links.
+  ///
+  /// In en, this message translates to:
+  /// **'Links'**
+  String get connections_editor_links;
+
+  /// No description provided for @connections_editor_minShared.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{At least 1 shared dive} other{At least {count} shared dives}}'**
+  String connections_editor_minShared(int count);
+
+  /// No description provided for @connections_editor_saveAsMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as map'**
+  String get connections_editor_saveAsMap;
+
+  /// No description provided for @connections_editor_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom map'**
+  String get connections_editor_title;
+
+  /// No description provided for @connections_filter_allFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'All filters'**
+  String get connections_filter_allFilters;
+
+  /// No description provided for @connections_filter_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get connections_filter_clear;
+
+  /// No description provided for @connections_filter_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No filters are active.'**
+  String get connections_filter_none;
+
+  /// No description provided for @connections_loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading connections'**
+  String get connections_loading;
+
+  /// No description provided for @connections_mode_around.
+  ///
+  /// In en, this message translates to:
+  /// **'Around one entity'**
+  String get connections_mode_around;
+
+  /// No description provided for @connections_mode_map.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole map'**
+  String get connections_mode_map;
+
+  /// No description provided for @connections_preset_centers.
+  ///
+  /// In en, this message translates to:
+  /// **'Centers and people'**
+  String get connections_preset_centers;
+
+  /// No description provided for @connections_preset_circle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive circle'**
+  String get connections_preset_circle;
+
+  /// No description provided for @connections_preset_edited.
+  ///
+  /// In en, this message translates to:
+  /// **'edited'**
+  String get connections_preset_edited;
+
+  /// No description provided for @connections_preset_gear.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear together'**
+  String get connections_preset_gear;
+
+  /// No description provided for @connections_preset_gearRoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear on the road'**
+  String get connections_preset_gearRoad;
+
+  /// No description provided for @connections_preset_life.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites by marine life'**
+  String get connections_preset_life;
+
+  /// No description provided for @connections_preset_reef.
+  ///
+  /// In en, this message translates to:
+  /// **'Reef life'**
+  String get connections_preset_reef;
+
+  /// No description provided for @connections_preset_travel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel story'**
+  String get connections_preset_travel;
+
+  /// No description provided for @connections_preset_trips.
+  ///
+  /// In en, this message translates to:
+  /// **'Trips and people'**
+  String get connections_preset_trips;
+
+  /// No description provided for @connections_preset_where.
+  ///
+  /// In en, this message translates to:
+  /// **'Who dives where'**
+  String get connections_preset_where;
+
+  /// No description provided for @connections_presets_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Presets'**
+  String get connections_presets_title;
+
+  /// No description provided for @connections_savedMap_badge.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved map'**
+  String get connections_savedMap_badge;
+
+  /// No description provided for @connections_savedMap_deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted \"{name}\"'**
+  String connections_savedMap_deleted(String name);
+
+  /// No description provided for @connections_savedMap_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get connections_savedMap_nameLabel;
+
+  /// No description provided for @connections_savedMap_rename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get connections_savedMap_rename;
+
+  /// No description provided for @connections_savedMap_saveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save map'**
+  String get connections_savedMap_saveTitle;
+
+  /// No description provided for @connections_savedMap_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get connections_savedMap_undo;
+
+  /// No description provided for @connections_savedMap_update.
+  ///
+  /// In en, this message translates to:
+  /// **'Update from current'**
+  String get connections_savedMap_update;
+
+  /// No description provided for @connections_summary_closest.
+  ///
+  /// In en, this message translates to:
+  /// **'Closest'**
+  String get connections_summary_closest;
+
+  /// No description provided for @connections_summary_entitiesAround.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 entity} other{{count} entities}}'**
+  String connections_summary_entitiesAround(int count);
+
+  /// No description provided for @connections_summary_mostConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Most connected'**
+  String get connections_summary_mostConnected;
+
+  /// No description provided for @connections_summary_pairValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{a} and {b}, 1 dive} other{{a} and {b}, {count} dives}}'**
+  String connections_summary_pairValue(int count, String a, String b);
+
+  /// No description provided for @connections_summary_strongestPair.
+  ///
+  /// In en, this message translates to:
+  /// **'Strongest pair'**
+  String get connections_summary_strongestPair;
+
+  /// No description provided for @connections_summary_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get connections_summary_title;
+
+  /// No description provided for @connections_tab_details.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get connections_tab_details;
+
+  /// No description provided for @connections_tab_filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get connections_tab_filter;
+
+  /// No description provided for @connections_tab_filterCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter ({count})'**
+  String connections_tab_filterCount(int count);
+
+  /// No description provided for @connections_tab_view.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get connections_tab_view;
+
   /// No description provided for @settings_oauth_connect_browserFailed.
   ///
   /// In en, this message translates to:

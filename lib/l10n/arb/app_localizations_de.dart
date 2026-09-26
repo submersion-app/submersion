@@ -9,6 +9,185 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
+  String get connections_action_centreHere => 'Hier zentrieren';
+
+  @override
+  String get connections_around_centredOn => 'Zentriert auf';
+
+  @override
+  String get connections_around_hops => 'Schritte';
+
+  @override
+  String connections_around_kindChip(String kind, int count) {
+    return '$kind ($count)';
+  }
+
+  @override
+  String get connections_around_noResults => 'Keine Treffer';
+
+  @override
+  String get connections_around_prompt =>
+      'Suche einen Buddy, einen Platz, eine Reise oder etwas anderes, um die Karte darauf zu zentrieren.';
+
+  @override
+  String get connections_around_searchHint =>
+      'Buddys, Plätze, Reisen und mehr suchen';
+
+  @override
+  String get connections_around_show => 'Anzeigen';
+
+  @override
+  String get connections_editor_kinds => 'Arten';
+
+  @override
+  String connections_editor_link(String a, String b) {
+    return '$a mit $b';
+  }
+
+  @override
+  String get connections_editor_links => 'Verbindungen';
+
+  @override
+  String connections_editor_minShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mindestens $count gemeinsame Tauchgänge',
+      one: 'Mindestens 1 gemeinsamer Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_editor_saveAsMap => 'Als Karte speichern';
+
+  @override
+  String get connections_editor_title => 'Eigene Karte';
+
+  @override
+  String get connections_filter_allFilters => 'Alle Filter';
+
+  @override
+  String get connections_filter_clear => 'Zurücksetzen';
+
+  @override
+  String get connections_filter_none => 'Keine Filter aktiv.';
+
+  @override
+  String get connections_loading => 'Verbindungen werden geladen';
+
+  @override
+  String get connections_mode_around => 'Rund um einen Eintrag';
+
+  @override
+  String get connections_mode_map => 'Gesamte Karte';
+
+  @override
+  String get connections_preset_centers => 'Basen und Personen';
+
+  @override
+  String get connections_preset_circle => 'Tauchkreis';
+
+  @override
+  String get connections_preset_edited => 'bearbeitet';
+
+  @override
+  String get connections_preset_gear => 'Ausrüstung zusammen';
+
+  @override
+  String get connections_preset_gearRoad => 'Ausrüstung unterwegs';
+
+  @override
+  String get connections_preset_life => 'Plätze nach Meeresleben';
+
+  @override
+  String get connections_preset_reef => 'Riffleben';
+
+  @override
+  String get connections_preset_travel => 'Reisegeschichte';
+
+  @override
+  String get connections_preset_trips => 'Reisen und Personen';
+
+  @override
+  String get connections_preset_where => 'Wer taucht wo';
+
+  @override
+  String get connections_presets_title => 'Vorlagen';
+
+  @override
+  String get connections_savedMap_badge => 'Gespeicherte Karte';
+
+  @override
+  String connections_savedMap_deleted(String name) {
+    return '\"$name\" gelöscht';
+  }
+
+  @override
+  String get connections_savedMap_nameLabel => 'Name';
+
+  @override
+  String get connections_savedMap_rename => 'Umbenennen';
+
+  @override
+  String get connections_savedMap_saveTitle => 'Karte speichern';
+
+  @override
+  String get connections_savedMap_undo => 'Rückgängig';
+
+  @override
+  String get connections_savedMap_update =>
+      'Mit aktueller Ansicht aktualisieren';
+
+  @override
+  String get connections_summary_closest => 'Am nächsten';
+
+  @override
+  String connections_summary_entitiesAround(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Einträge',
+      one: '1 Eintrag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_mostConnected => 'Am stärksten verbunden';
+
+  @override
+  String connections_summary_pairValue(int count, String a, String b) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$a und $b, $count Tauchgänge',
+      one: '$a und $b, 1 Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_strongestPair => 'Stärkstes Paar';
+
+  @override
+  String get connections_summary_title => 'Übersicht';
+
+  @override
+  String get connections_tab_details => 'Details';
+
+  @override
+  String get connections_tab_filter => 'Filter';
+
+  @override
+  String connections_tab_filterCount(int count) {
+    return 'Filter ($count)';
+  }
+
+  @override
+  String get connections_tab_view => 'Ansicht';
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'Der Browser konnte nicht geöffnet werden. Verwenden Sie „Link kopieren“ und fügen Sie die Adresse in Ihren Browser ein.';
 

@@ -9,6 +9,182 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get connections_action_centreHere => '以此为中心';
+
+  @override
+  String get connections_around_centredOn => '中心';
+
+  @override
+  String get connections_around_hops => '跳数';
+
+  @override
+  String connections_around_kindChip(String kind, int count) {
+    return '$kind（$count）';
+  }
+
+  @override
+  String get connections_around_noResults => '无匹配结果';
+
+  @override
+  String get connections_around_prompt => '搜索潜伴、潜点、行程或其他内容，以其为中心显示图谱。';
+
+  @override
+  String get connections_around_searchHint => '搜索潜伴、潜点、行程等';
+
+  @override
+  String get connections_around_show => '显示';
+
+  @override
+  String get connections_editor_kinds => '类型';
+
+  @override
+  String connections_editor_link(String a, String b) {
+    return '$a 与 $b';
+  }
+
+  @override
+  String get connections_editor_links => '连线';
+
+  @override
+  String connections_editor_minShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '至少 $count 次共同潜水',
+      one: '至少 1 次共同潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_editor_saveAsMap => '另存为图谱';
+
+  @override
+  String get connections_editor_title => '自定义图谱';
+
+  @override
+  String get connections_filter_allFilters => '全部筛选';
+
+  @override
+  String get connections_filter_clear => '清除';
+
+  @override
+  String get connections_filter_none => '没有启用的筛选。';
+
+  @override
+  String get connections_loading => '正在加载关联';
+
+  @override
+  String get connections_mode_around => '围绕单个条目';
+
+  @override
+  String get connections_mode_map => '完整图谱';
+
+  @override
+  String get connections_preset_centers => '潜店与人';
+
+  @override
+  String get connections_preset_circle => '潜伴圈';
+
+  @override
+  String get connections_preset_edited => '已编辑';
+
+  @override
+  String get connections_preset_gear => '一起使用的装备';
+
+  @override
+  String get connections_preset_gearRoad => '旅途中的装备';
+
+  @override
+  String get connections_preset_life => '按海洋生物看潜点';
+
+  @override
+  String get connections_preset_reef => '珊瑚礁生物';
+
+  @override
+  String get connections_preset_travel => '旅行故事';
+
+  @override
+  String get connections_preset_trips => '行程与人';
+
+  @override
+  String get connections_preset_where => '谁在哪里潜水';
+
+  @override
+  String get connections_presets_title => '预设';
+
+  @override
+  String get connections_savedMap_badge => '已保存的图谱';
+
+  @override
+  String connections_savedMap_deleted(String name) {
+    return '已删除“$name”';
+  }
+
+  @override
+  String get connections_savedMap_nameLabel => '名称';
+
+  @override
+  String get connections_savedMap_rename => '重命名';
+
+  @override
+  String get connections_savedMap_saveTitle => '保存图谱';
+
+  @override
+  String get connections_savedMap_undo => '撤销';
+
+  @override
+  String get connections_savedMap_update => '用当前视图更新';
+
+  @override
+  String get connections_summary_closest => '最接近';
+
+  @override
+  String connections_summary_entitiesAround(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个条目',
+      one: '1 个条目',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_mostConnected => '关联最多';
+
+  @override
+  String connections_summary_pairValue(int count, String a, String b) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$a 与 $b，$count 次潜水',
+      one: '$a 与 $b，1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_strongestPair => '最紧密的一对';
+
+  @override
+  String get connections_summary_title => '摘要';
+
+  @override
+  String get connections_tab_details => '详情';
+
+  @override
+  String get connections_tab_filter => '筛选';
+
+  @override
+  String connections_tab_filterCount(int count) {
+    return '筛选（$count）';
+  }
+
+  @override
+  String get connections_tab_view => '视图';
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       '无法打开浏览器。请使用“复制链接”，并将地址粘贴到浏览器中。';
 

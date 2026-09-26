@@ -9,6 +9,184 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get connections_action_centreHere => 'Centre here';
+
+  @override
+  String get connections_around_centredOn => 'Centred on';
+
+  @override
+  String get connections_around_hops => 'Hops';
+
+  @override
+  String connections_around_kindChip(String kind, int count) {
+    return '$kind ($count)';
+  }
+
+  @override
+  String get connections_around_noResults => 'No matches';
+
+  @override
+  String get connections_around_prompt =>
+      'Search for a buddy, site, trip or anything else to centre the map on it.';
+
+  @override
+  String get connections_around_searchHint =>
+      'Search buddies, sites, trips and more';
+
+  @override
+  String get connections_around_show => 'Show';
+
+  @override
+  String get connections_editor_kinds => 'Kinds';
+
+  @override
+  String connections_editor_link(String a, String b) {
+    return '$a with $b';
+  }
+
+  @override
+  String get connections_editor_links => 'Links';
+
+  @override
+  String connections_editor_minShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'At least $count shared dives',
+      one: 'At least 1 shared dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_editor_saveAsMap => 'Save as map';
+
+  @override
+  String get connections_editor_title => 'Custom map';
+
+  @override
+  String get connections_filter_allFilters => 'All filters';
+
+  @override
+  String get connections_filter_clear => 'Clear';
+
+  @override
+  String get connections_filter_none => 'No filters are active.';
+
+  @override
+  String get connections_loading => 'Loading connections';
+
+  @override
+  String get connections_mode_around => 'Around one entity';
+
+  @override
+  String get connections_mode_map => 'Whole map';
+
+  @override
+  String get connections_preset_centers => 'Centers and people';
+
+  @override
+  String get connections_preset_circle => 'Dive circle';
+
+  @override
+  String get connections_preset_edited => 'edited';
+
+  @override
+  String get connections_preset_gear => 'Gear together';
+
+  @override
+  String get connections_preset_gearRoad => 'Gear on the road';
+
+  @override
+  String get connections_preset_life => 'Sites by marine life';
+
+  @override
+  String get connections_preset_reef => 'Reef life';
+
+  @override
+  String get connections_preset_travel => 'Travel story';
+
+  @override
+  String get connections_preset_trips => 'Trips and people';
+
+  @override
+  String get connections_preset_where => 'Who dives where';
+
+  @override
+  String get connections_presets_title => 'Presets';
+
+  @override
+  String get connections_savedMap_badge => 'Saved map';
+
+  @override
+  String connections_savedMap_deleted(String name) {
+    return 'Deleted \"$name\"';
+  }
+
+  @override
+  String get connections_savedMap_nameLabel => 'Name';
+
+  @override
+  String get connections_savedMap_rename => 'Rename';
+
+  @override
+  String get connections_savedMap_saveTitle => 'Save map';
+
+  @override
+  String get connections_savedMap_undo => 'Undo';
+
+  @override
+  String get connections_savedMap_update => 'Update from current';
+
+  @override
+  String get connections_summary_closest => 'Closest';
+
+  @override
+  String connections_summary_entitiesAround(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entities',
+      one: '1 entity',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_mostConnected => 'Most connected';
+
+  @override
+  String connections_summary_pairValue(int count, String a, String b) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$a and $b, $count dives',
+      one: '$a and $b, 1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_strongestPair => 'Strongest pair';
+
+  @override
+  String get connections_summary_title => 'Summary';
+
+  @override
+  String get connections_tab_details => 'Details';
+
+  @override
+  String get connections_tab_filter => 'Filter';
+
+  @override
+  String connections_tab_filterCount(int count) {
+    return 'Filter ($count)';
+  }
+
+  @override
+  String get connections_tab_view => 'View';
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'Could not open your browser. Use Copy link and paste the address into your browser.';
 
