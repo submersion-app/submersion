@@ -2,27 +2,37 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-/// Presentation code must take every per-minute rate unit from `UnitFormatter`
+/// Every per-minute rate unit the app shows must come from `UnitFormatter`
 /// (`depthRateSymbol`, `sacSymbol`, `rmvSymbol`, `formatDepthRate`, or
-/// `UnitFormatter.perMinute` for any other base unit), never by writing
-/// "/min" into a string itself.
+/// `UnitFormatter.perMinute` for any other base unit), never from code that
+/// writes "/min" into a string itself.
 ///
 /// Rate units used to be hand-built as `'${units.depthSymbol}/min'` in about
 /// thirty places (issue #1932), so there was no single place that decided how
-/// a rate unit reads. Every offender was converted; this scan is the ratchet.
+/// a rate unit reads. Those sites were not all presentation code (the chart
+/// axes in `lib/core/utils` and the 3D view's `application` layer built them
+/// too), so the whole of `lib/` is scanned. Every offender was converted;
+/// this scan is the ratchet.
 void main() {
-  /// Directories whose whole job is drawing the UI.
-  const scannedRoots = ['lib/core/presentation', 'lib/shared', 'lib/features'];
+  /// Generated code, which no one edits by hand. The l10n classes mirror the
+  /// ARB files, which carry their own review.
+  bool isGenerated(String path) =>
+      path.startsWith('lib/l10n/') || path.endsWith('.g.dart');
 
-  /// Only presentation code is scanned inside `lib/features`; parsers and
-  /// codecs legitimately match a literal "m/min" in someone else's file.
-  bool isScanned(String path) {
-    if (!path.startsWith('lib/features/')) return true;
-    return path.contains('/presentation/');
-  }
-
-  /// Files that still build a rate unit by hand, each with the reason.
+  /// Files that write "/min" on purpose, each with the reason.
   const allowed = <String, String>{
+    // The one place a rate unit is built.
+    'lib/core/utils/unit_formatter.dart': 'defines UnitFormatter.perMinute',
+    // Column headers in other apps' CSV files, matched as they are written.
+    'lib/core/services/export/csv/codec/csv_attribute_codec.dart':
+        'parses m/min and ft/min CSV headers',
+    'lib/features/universal_import/data/csv/presets/built_in_presets.dart':
+        'matches a "sac [l/min]" CSV header',
+    'lib/features/universal_import/data/services/format_detector.dart':
+        'matches a "sac [l/min]" CSV header',
+    // An ArgumentError message for developers, never shown to a diver.
+    'lib/features/planner/domain/services/recreational_ndl_solver.dart':
+        'developer error message',
     // The SCR injection rate and VO2 fields hard-code litres whatever the
     // diver's volume unit; issue #1935 moves them onto `rmvSymbol`. Remove
     // this entry when that lands.
@@ -32,23 +42,19 @@ void main() {
 
   final perMinute = RegExp(r'/min\b');
 
-  test('no presentation file builds a per-minute unit by hand', () {
+  test('no file outside UnitFormatter builds a per-minute unit by hand', () {
     final offenders = <String>[];
-    for (final root in scannedRoots) {
-      final dir = Directory(root);
-      if (!dir.existsSync()) continue;
-      for (final entity in dir.listSync(recursive: true)) {
-        if (entity is! File || !entity.path.endsWith('.dart')) continue;
-        final path = entity.path.replaceAll(r'\', '/');
-        if (!isScanned(path) || allowed.containsKey(path)) continue;
-        final lines = entity.readAsLinesSync();
-        for (var i = 0; i < lines.length; i++) {
-          final line = lines[i];
-          // Comments may name units ("stored in m/min") freely.
-          final code = line.split('//').first;
-          if (perMinute.hasMatch(code)) {
-            offenders.add('$path:${i + 1}: ${line.trim()}');
-          }
+    for (final entity in Directory('lib').listSync(recursive: true)) {
+      if (entity is! File || !entity.path.endsWith('.dart')) continue;
+      final path = entity.path.replaceAll(r'\', '/');
+      if (isGenerated(path) || allowed.containsKey(path)) continue;
+      final lines = entity.readAsLinesSync();
+      for (var i = 0; i < lines.length; i++) {
+        final line = lines[i];
+        // Comments may name units ("stored in m/min") freely.
+        final code = line.split('//').first;
+        if (perMinute.hasMatch(code)) {
+          offenders.add('$path:${i + 1}: ${line.trim()}');
         }
       }
     }

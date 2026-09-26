@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -6,7 +7,21 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// Every displayed rate unit comes from [UnitFormatter.perMinute] (issue
 /// #1932). The minute part is an untranslated SI symbol, like `m` and `bar`,
 /// so it reads "/min" in every locale.
+///
+/// Digits follow `Intl.defaultLocale`, so each test pins it (see
+/// unit_formatter_locale_test.dart) rather than inheriting the process value.
 void main() {
+  late String? previousLocale;
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+
+  tearDown(() {
+    Intl.defaultLocale = previousLocale;
+  });
+
   const metric = UnitFormatter(AppSettings());
   const imperial = UnitFormatter(
     AppSettings(
@@ -40,6 +55,11 @@ void main() {
     test('converts to the diver depth unit', () {
       // 9 m/min is 29.5 ft/min.
       expect(imperial.formatDepthRate(9), '29.5ft/min');
+    });
+
+    test('localises the digits but never the minute symbol', () {
+      Intl.defaultLocale = 'de';
+      expect(metric.formatDepthRate(9), '9,0m/min');
     });
 
     test('renders the neutral placeholder for a missing value', () {
