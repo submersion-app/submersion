@@ -19,6 +19,7 @@ import 'package:submersion/core/services/storage/scratch_sweep.dart';
 import 'package:submersion/core/services/sync/changeset_log/local_only_tombstone_gc.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_sweep.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_engine_preflight.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
@@ -856,6 +857,15 @@ class _StartupWrapperState extends State<StartupWrapper>
         );
       }
     }());
+
+    // Leftover sync temp files, every launch (issue #1931). An interrupted
+    // sync strands its `ssv1_` base export or assembled base in the app temp
+    // dir, a full copy of the library, and nothing else reclaims it short of
+    // Repair sync. One listing of the temp dir; it spares anything touched in
+    // the last five minutes, so a background-isolate sync is not disturbed.
+    // Not gated on a provider: a device that signed out can still hold one.
+    // No try/catch: the sweep logs and swallows every failure itself.
+    unawaited(sweepLeftoverSyncTempFiles());
 
     // Scratch-file sweep, at most once a day. Unlike the media sweep above,
     // whose probe is one indexed SELECT, this walks the filesystem, so it

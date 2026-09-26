@@ -28,6 +28,7 @@ import 'package:submersion/core/services/cloud_storage/icloud_native_service.dar
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/s3_storage_provider.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_sweep.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
@@ -1640,7 +1641,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
   Future<void> repairSync() async {
     await resetSyncState();
     await _ref.read(libraryEpochStoreProvider).clear();
-    await _syncService.deleteLeftoverBaseTempFiles();
+    await sweepLeftoverSyncTempFiles();
     state = state.copyWith(status: SyncStatus.idle, message: null);
     await refreshState();
   }
