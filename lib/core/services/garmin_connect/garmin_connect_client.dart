@@ -668,6 +668,9 @@ class GarminConnectClient {
     final seconds = int.tryParse(value);
     if (seconds != null) {
       if (seconds < 0) return null;
+      // Cap before converting: Duration counts microseconds, so a huge
+      // value would overflow into a negative wait that slips past the cap.
+      if (seconds >= _maxRetryAfter.inSeconds) return _maxRetryAfter;
       requested = Duration(seconds: seconds);
     } else {
       final now = _clock().toUtc();

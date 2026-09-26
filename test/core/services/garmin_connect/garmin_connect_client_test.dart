@@ -882,6 +882,21 @@ void main() {
         },
       );
 
+      test(
+        'caps an enormous numeric Retry-After without overflowing',
+        () async {
+          // Converting this many seconds to microseconds overflows a 64-bit
+          // int, which would wrap to a negative wait and skip the cap.
+          server
+            ..downloadStatusQueue[42] = [429]
+            ..downloadFailureHeaders = {'retry-after': '9223372036854775807'};
+
+          await client.downloadActivityFit(42);
+
+          expect(delays, [const Duration(seconds: 30)]);
+        },
+      );
+
       group('Retry-After as an HTTP date', () {
         final now = DateTime.utc(2026, 9, 26, 12);
 
