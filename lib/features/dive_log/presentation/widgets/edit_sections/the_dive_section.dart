@@ -114,7 +114,7 @@ class TheDiveSection extends StatelessWidget {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           // The validator reports text left unreadable instead of it
           // saving as 0 m (#1900).
-          inputFormatters: numberInputFormatters(allowNegative: true),
+          inputFormatters: numberInputFormatters(),
           inputValidator: numberValidator(context),
           profileSuggestion: maxDepthSuggestion,
         ),
@@ -125,7 +125,7 @@ class TheDiveSection extends StatelessWidget {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           // The validator reports text left unreadable instead of it
           // saving as 0 m (#1900).
-          inputFormatters: numberInputFormatters(allowNegative: true),
+          inputFormatters: numberInputFormatters(),
           inputValidator: numberValidator(context),
           profileSuggestion: avgDepthSuggestion,
         ),

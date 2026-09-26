@@ -251,7 +251,7 @@ class _AltitudeInputState extends State<_AltitudeInput> {
         ),
         // Signed: a dive below sea level has a negative altitude.
         keyboardType: const TextInputType.numberWithOptions(signed: true),
-        inputFormatters: numberInputFormatters(allowNegative: true),
+        inputFormatters: numberInputFormatters(),
         onChanged: (text) {
           switch (readNumber(text)) {
             case NumberValue(:final value):

@@ -417,7 +417,7 @@ class _FilterBar extends StatelessWidget {
                     signed: true,
                   ),
                   // Separators are kept so "2.5" is reported, not read as 2.
-                  inputFormatters: numberInputFormatters(allowNegative: true),
+                  inputFormatters: numberInputFormatters(),
                   decoration: InputDecoration(
                     labelText: context.l10n.settings_fixDiveTimes_hoursField,
                     errorText: invalidNumberText(

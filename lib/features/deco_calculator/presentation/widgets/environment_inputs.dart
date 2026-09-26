@@ -43,7 +43,7 @@ class EnvironmentInputs extends ConsumerWidget {
             ),
             // Signed: a dive below sea level has a negative altitude.
             keyboardType: const TextInputType.numberWithOptions(signed: true),
-            inputFormatters: numberInputFormatters(allowNegative: true),
+            inputFormatters: numberInputFormatters(),
             autovalidateMode: AutovalidateMode.onUserInteraction,
             validator: numberValidator(context),
             onChanged: (text) {

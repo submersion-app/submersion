@@ -59,9 +59,10 @@ class ConditionsSection extends StatelessWidget {
           controller: waterTempController,
           suffixText: temperatureSymbol,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          // Signed, since water and air can be below zero. The validator
-          // reports text left unreadable instead of it saving as 0 (#1900).
-          inputFormatters: numberInputFormatters(allowNegative: true),
+          // Water and air can be below zero; the filter keeps '-'. The
+          // validator reports text left unreadable instead of it saving as 0
+          // (#1900).
+          inputFormatters: numberInputFormatters(),
           inputValidator: numberValidator(context),
         ),
         FormRow.text(
@@ -69,9 +70,10 @@ class ConditionsSection extends StatelessWidget {
           controller: airTempController,
           suffixText: temperatureSymbol,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          // Signed, since water and air can be below zero. The validator
-          // reports text left unreadable instead of it saving as 0 (#1900).
-          inputFormatters: numberInputFormatters(allowNegative: true),
+          // Water and air can be below zero; the filter keeps '-'. The
+          // validator reports text left unreadable instead of it saving as 0
+          // (#1900).
+          inputFormatters: numberInputFormatters(),
           inputValidator: numberValidator(context),
         ),
         ...environmentRows,

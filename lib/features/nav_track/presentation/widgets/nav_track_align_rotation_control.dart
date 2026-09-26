@@ -117,7 +117,7 @@ class _NavTrackRotationControlState extends State<NavTrackRotationControl> {
               signed: true,
             ),
             textInputAction: TextInputAction.done,
-            inputFormatters: numberInputFormatters(allowNegative: true),
+            inputFormatters: numberInputFormatters(),
             decoration: InputDecoration(
               suffixText: '°',
               isDense: true,

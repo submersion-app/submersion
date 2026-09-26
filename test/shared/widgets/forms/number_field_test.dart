@@ -98,9 +98,9 @@ void main() {
   });
 
   group('numberInputFormatters', () {
-    String filter(String text, {bool allowNegative = false}) {
+    String filter(String text) {
       var value = TextEditingValue(text: text);
-      for (final f in numberInputFormatters(allowNegative: allowNegative)) {
+      for (final f in numberInputFormatters()) {
         value = f.formatEditUpdate(TextEditingValue.empty, value);
       }
       return value.text;
@@ -117,8 +117,14 @@ void main() {
 
     test('keeps the locale minus sign, direction mark included', () {
       Intl.defaultLocale = 'he';
-      expect(filter('\u200E-5', allowNegative: true), '\u200E-5');
-      expect(filter('\u200E-5'), '5');
+      expect(filter('\u200E-5'), '\u200E-5');
+    });
+
+    test('never strips a minus sign, even where negatives are not expected '
+        '(#1900 review)', () {
+      // Stripping it turned "-5" into 5: a different number, silently.
+      Intl.defaultLocale = 'en_US';
+      expect(filter('-5'), '-5');
     });
 
     test('still drops letters', () {

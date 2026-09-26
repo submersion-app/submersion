@@ -497,10 +497,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                     // Capacity
                     TextFormField(
                       controller: _capacityController,
-                      // Signed so "-3" stays the negative that saves as none, not 3.
-                      inputFormatters: numberInputFormatters(
-                        allowNegative: true,
-                      ),
+                      // The filter keeps '-', so "-3" saves as none rather than as 3.
+                      inputFormatters: numberInputFormatters(),
                       validator: numberValidator(context, integer: true),
                       decoration: InputDecoration(
                         labelText: context.l10n.trips_edit_label_capacity,
@@ -575,8 +573,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _expectedDivesController,
-                    // Signed so "-3" stays the negative that saves as none, not 3.
-                    inputFormatters: numberInputFormatters(allowNegative: true),
+                    // The filter keeps '-', so "-3" saves as none rather than as 3.
+                    inputFormatters: numberInputFormatters(),
                     validator: numberValidator(context, integer: true),
                     decoration: InputDecoration(
                       labelText: context.l10n.trips_edit_label_expectedDives,
@@ -588,8 +586,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _expectedRuntimeController,
-                    // Signed so "-3" stays the negative that saves as none, not 3.
-                    inputFormatters: numberInputFormatters(allowNegative: true),
+                    // The filter keeps '-', so "-3" saves as none rather than as 3.
+                    inputFormatters: numberInputFormatters(),
                     validator: numberValidator(context, integer: true),
                     decoration: InputDecoration(
                       labelText: context.l10n.trips_edit_label_expectedRuntime,

@@ -6,22 +6,24 @@ import 'package:submersion/core/utils/locale_number_symbols.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Input filter for numeric fields: digits, both ASCII separators (the smart
-/// parser corrects a wrong one), and the active locale's own decimal and
-/// grouping characters, plus '-' and the locale's minus sign only where a
-/// value can be negative (temperatures, time offsets).
+/// parser corrects a wrong one), the active locale's own decimal and grouping
+/// characters, and a minus sign in both its ASCII and locale forms.
 ///
 /// The locale's characters matter because a field is seeded with them: an
-/// ar_EG seed of "1٫3" run through an ASCII-only filter on the first
+/// ar_EG seed of "1\u066B3" run through an ASCII-only filter on the first
 /// edit would become "13" before validation could see it, and he/ar prefix
-/// the minus with a direction mark (#1900 review).
-List<TextInputFormatter> numberInputFormatters({bool allowNegative = false}) {
+/// the minus with a direction mark. The minus is kept even where a negative
+/// makes no sense: stripping it turned "-5" into 5, a different number, while
+/// a kept sign reaches the field's own range rule (#1900 review).
+List<TextInputFormatter> numberInputFormatters() {
   final symbols = localeNumberFormat().symbols;
   final allowed = <String>{
     '.',
     ',',
+    '-',
     ...symbols.DECIMAL_SEP.split(''),
     ...symbols.GROUP_SEP.split(''),
-    if (allowNegative) ...['-', ...symbols.MINUS_SIGN.split('')],
+    ...symbols.MINUS_SIGN.split(''),
   };
   final escaped = allowed.map((c) => r'\]^-['.contains(c) ? '\\$c' : c);
   return [FilteringTextInputFormatter.allow(RegExp('[0-9${escaped.join()}]'))];
@@ -57,6 +59,9 @@ class NumberField extends StatelessWidget {
   final ValueChanged<NumberRead> onChanged;
   final InputDecoration decoration;
   final bool integer;
+
+  /// Offers a signed keyboard. The input filter keeps a minus sign either
+  /// way, so a typed "-5" is never silently read as 5.
   final bool allowNegative;
   final bool required;
   final String? Function(double value)? check;
@@ -86,7 +91,7 @@ class NumberField extends StatelessWidget {
         decimal: !integer,
         signed: allowNegative,
       ),
-      inputFormatters: numberInputFormatters(allowNegative: allowNegative),
+      inputFormatters: numberInputFormatters(),
       autovalidateMode: AutovalidateMode.onUserInteraction,
       validator: numberValidator(
         context,

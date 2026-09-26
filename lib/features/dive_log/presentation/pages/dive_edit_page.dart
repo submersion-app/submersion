@@ -4299,7 +4299,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               decimal: true,
               signed: true,
             ),
-            inputFormatters: numberInputFormatters(allowNegative: true),
+            inputFormatters: numberInputFormatters(),
             inputValidator: numberValidator(context),
             onChanged: (_) => setState(() {}),
           ),
