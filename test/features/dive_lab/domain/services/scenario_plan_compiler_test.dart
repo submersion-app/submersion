@@ -113,6 +113,70 @@ void main() {
     expect(segments[1].order, 1);
   });
 
+  test(
+    'a remainder that opens with a transition is anchored at the branch depth',
+    () {
+      // Branching at the last sample of a level leaves no hold before the
+      // transition: the anchor must be where the diver is (40 m), not where
+      // the transition ends (20 m), or the engine holds the descent flat at 20.
+      final c = compileScenarioPlan(
+        request: _request(),
+        branch: branch,
+        settings: const ScenarioSettings(),
+        interventions: const [],
+        remainingBottom: [
+          const PlanSegment(
+            id: 'lab-seg-0',
+            targetDepth: 20,
+            durationSeconds: 120,
+            tankId: 'back',
+            gasMix: GasMix(o2: 21),
+          ),
+          PlanSegment.hold(
+            id: 'lab-seg-1',
+            depth: 20,
+            durationMinutes: 5,
+            tankId: 'back',
+            gasMix: const GasMix(o2: 21),
+            order: 1,
+          ),
+        ],
+      );
+      expect(c.plan.segments, hasLength(3));
+      expect(c.plan.segments[0].durationSeconds, 0);
+      expect(c.plan.segments[0].targetDepth, branch.depthMeters);
+      expect(c.plan.segments[1].targetDepth, 20);
+    },
+  );
+
+  test(
+    'an ascent-rate intervention slows every tier, never speeds a slower one',
+    () {
+      final slow = compileScenarioPlan(
+        request: _request(),
+        branch: branch,
+        settings: const ScenarioSettings(),
+        interventions: const [AscentPolicyIntervention(ascentRate: 3)],
+        remainingBottom: bottom,
+      ).plan;
+      expect(slow.ascentRate, 3);
+      expect(slow.intermediateAscentRate, 3);
+      expect(slow.shallowAscentRate, 3);
+      expect(slow.finalAscentRate, 1);
+      final fast = compileScenarioPlan(
+        request: _request(),
+        branch: branch,
+        settings: const ScenarioSettings(),
+        interventions: const [AscentPolicyIntervention(ascentRate: 12)],
+        remainingBottom: bottom,
+      ).plan;
+      expect(fast.ascentRate, 12);
+      expect(fast.intermediateAscentRate, 6);
+      expect(fast.shallowAscentRate, 3);
+      expect(fast.finalAscentRate, 1);
+    },
+  );
+
   test('a remainder that is already a zero-duration hold gets no anchor', () {
     final c = compileScenarioPlan(
       request: _request(),
@@ -152,7 +216,7 @@ void main() {
     expect(p.tanks.map((t) => t.id), ['back', 'deco50']);
     expect(p.tanks[0].startPressure, 130);
     expect(p.tanks[1].startPressure, 198);
-    expect(p.segments, anchoredAtDepth(bottom));
+    expect(p.segments, anchoredAtDepth(bottom, branch.depthMeters));
     expect(p.reservePressure, 50);
     expect(c.forcedTankId, isNull);
   });

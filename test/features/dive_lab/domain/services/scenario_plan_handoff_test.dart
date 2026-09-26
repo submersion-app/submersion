@@ -165,6 +165,93 @@ void main() {
     },
   );
 
+  test('a tank with no logged start pressure starts at its first sample', () {
+    final withoutStart = <DiveTank>[
+      for (final tank in d.tanks)
+        tank.id == 'back'
+            ? DiveTank(
+                id: tank.id,
+                name: tank.name,
+                volume: tank.volume,
+                workingPressure: tank.workingPressure,
+                gasMix: tank.gasMix,
+                role: tank.role,
+                order: tank.order,
+              )
+            : tank,
+    ];
+    final base = _request(d, branchSeconds: 900);
+    final request = ScenarioRequest(
+      diveId: base.diveId,
+      depths: base.depths,
+      timestamps: base.timestamps,
+      diveMode: base.diveMode,
+      tanks: withoutStart,
+      gasSwitches: base.gasSwitches,
+      tankPressures: base.tankPressures,
+      startCns: 0,
+      startOtu: 0,
+      settings: base.settings,
+      scenario: base.scenario,
+    );
+    final result = _handoff(d, request);
+    final back = result.plan.tanks.firstWhere((t) => t.id == 'back');
+    expect(back.startPressure, d.tankPressures['back']!.first.pressureBar);
+  });
+
+  test('a dive with no cylinders hands off the converter\'s tanks', () {
+    final base = _request(d, branchSeconds: 900);
+    final request = ScenarioRequest(
+      diveId: base.diveId,
+      depths: base.depths,
+      timestamps: base.timestamps,
+      diveMode: base.diveMode,
+      tanks: const [],
+      gasSwitches: const [],
+      tankPressures: const {},
+      startCns: 0,
+      startOtu: 0,
+      settings: base.settings,
+      scenario: base.scenario,
+    );
+    final outcome = const ScenarioEngine().run(request);
+    final defaults = _defaults().copyWith(
+      tanks: const [
+        DiveTank(
+          id: 'default-tank',
+          name: 'Primary',
+          volume: 11.1,
+          workingPressure: 207,
+          startPressure: 200,
+          gasMix: GasMix(o2: 21, he: 0),
+          role: TankRole.backGas,
+          order: 0,
+        ),
+      ],
+    );
+    final dive = Dive(
+      id: 'd',
+      dateTime: DateTime(2026, 9, 25, 9),
+      diveMode: DiveMode.oc,
+      profile: _dive(d).profile,
+    );
+    final result = buildScenarioPlanHandoff(
+      request: request,
+      outcome: outcome,
+      scenario: request.scenario,
+      dive: dive,
+      profile: dive.profile,
+      gasSwitches: const [],
+      defaults: defaults,
+      planName: 'x',
+    );
+    expect(result.plan.tanks.map((t) => t.id), ['default-tank']);
+    final ids = result.plan.tanks.map((t) => t.id).toSet();
+    for (final s in result.plan.segments) {
+      expect(ids, contains(s.tankId), reason: 'segment ${s.id}');
+    }
+  });
+
   test('gradient factors come from the intervention', () {
     final request = _request(
       d,

@@ -95,13 +95,29 @@ ScenarioPlanHandoffResult buildScenarioPlanHandoff({
   // or the pre-branch consumption is charged twice. A hypothetical tank has no
   // logged counterpart and keeps its own.
   final original = {for (final t in request.tanks) t.id: t};
+  double? loggedStart(String tankId) {
+    final start = original[tankId]?.startPressure;
+    if (start != null) return start;
+    // No logged start but a pressure series: its first sample is the closest
+    // thing to a start pressure the dive has.
+    final samples = request.tankPressures[tankId];
+    if (samples == null || samples.isEmpty) return null;
+    return samples
+        .reduce((a, b) => a.timestamp <= b.timestamp ? a : b)
+        .pressureBar;
+  }
+
   var tanks = [
     for (final t in compiled.tanks)
-      switch (original[t.id]?.startPressure) {
+      switch (loggedStart(t.id)) {
         final double p => t.copyWith(startPressure: p),
         _ => t,
       },
   ];
+  // A dive logged without cylinders: the converter authored its segments
+  // against the planner's default tanks, so those are the plan's tanks too,
+  // or every segment would point at a tank the plan does not carry.
+  if (tanks.isEmpty) tanks = converted.tanks;
 
   for (final i in scenario.interventions) {
     if (i is! LoseTankIntervention) continue;
@@ -114,9 +130,25 @@ ScenarioPlanHandoffResult buildScenarioPlanHandoff({
   }
 
   final authored = converted.segments.length;
+  // The lab compiles a tankless dive against a placeholder tank id; those
+  // segments follow the converter's last tank so every segment on the plan
+  // names a tank the plan carries.
+  final known = {for (final t in tanks) t.id};
+  final fallback = converted.segments.isNotEmpty
+      ? tanks.firstWhere(
+          (t) => t.id == converted.segments.last.tankId,
+          orElse: () => tanks.first,
+        )
+      : (tanks.isEmpty ? null : tanks.first);
   final remainder = [
     for (final (i, s) in compiled.segments.indexed)
-      s.copyWith(order: authored + i),
+      known.contains(s.tankId) || fallback == null
+          ? s.copyWith(order: authored + i)
+          : s.copyWith(
+              order: authored + i,
+              tankId: fallback.id,
+              gasMix: fallback.gasMix,
+            ),
   ];
   final segments = [...converted.segments, ...remainder];
 

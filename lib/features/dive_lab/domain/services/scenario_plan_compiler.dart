@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_lab/domain/entities/branch_state.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_intervention.dart';
@@ -158,29 +160,53 @@ CompiledScenario compileScenarioPlan({
     sourceDiveId: request.diveId,
     setpointLow: request.setpointLow,
     setpointHigh: request.setpointHigh,
-    segments: anchoredAtDepth(remainingBottom),
+    segments: anchoredAtDepth(remainingBottom, branch.depthMeters),
     tanks: tanks,
   );
+  // A slower ascent rate slows every tier of the ascent (the engine ascends
+  // at a rate per phase since #1479); a faster one never speeds up a tier
+  // that is already slower than it.
+  final tiered = ascentRate == settings.ascentRate
+      ? plan
+      : plan.copyWith(
+          intermediateAscentRate: math.min(
+            plan.intermediateAscentRate,
+            ascentRate,
+          ),
+          shallowAscentRate: math.min(plan.shallowAscentRate, ascentRate),
+          finalAscentRate: math.min(plan.finalAscentRate, ascentRate),
+        );
   return CompiledScenario(
-    plan: plan,
+    plan: tiered,
     forcedTankId: forcedTankId,
     extraLastStopSeconds: extraLastStopSeconds,
   );
 }
 
-/// [segments] with a zero-duration waypoint at the first segment's depth in
-/// front. A waypoint plan resolves from the surface (`SegmentChain.resolve`
-/// starts every chain at 0 m), so a remainder that begins with a hold at the
-/// branch depth would otherwise read as a descent from the surface lasting
-/// the whole hold. The anchor takes no time and no gas; the engine arrives
-/// at depth instantly, which is where the branch state already puts it.
-/// A remainder that already opens with a zero-duration hold (the ascend-now
-/// anchor) needs nothing.
-List<PlanSegment> anchoredAtDepth(List<PlanSegment> segments) {
+/// [segments] with a zero-duration waypoint at [branchDepth] in front. A
+/// waypoint plan resolves from the surface (`SegmentChain.resolve` starts
+/// every chain at 0 m), so a remainder that begins at depth would otherwise
+/// read as a descent from the surface lasting its whole first segment. The
+/// anchor takes no time and no gas; the engine arrives at the branch depth
+/// instantly, which is where the branch state already puts it. It sits at
+/// the branch depth, not the first segment's target: a remainder that opens
+/// with a transition (the branch was the last sample of a level) must start
+/// where the diver is, not where the transition ends. A remainder that
+/// already opens with a zero-duration hold (the ascend-now anchor) needs
+/// nothing.
+List<PlanSegment> anchoredAtDepth(
+  List<PlanSegment> segments,
+  double branchDepth,
+) {
   if (segments.isEmpty || segments.first.durationSeconds == 0) return segments;
   final first = segments.first;
   return [
-    first.copyWith(id: '${first.id}-anchor', durationSeconds: 0, order: 0),
+    first.copyWith(
+      id: '${first.id}-anchor',
+      targetDepth: branchDepth,
+      durationSeconds: 0,
+      order: 0,
+    ),
     for (var k = 0; k < segments.length; k++)
       segments[k].copyWith(order: k + 1),
   ];
