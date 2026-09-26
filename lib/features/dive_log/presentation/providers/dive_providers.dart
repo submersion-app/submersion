@@ -644,14 +644,18 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
   }
 
   Future<domain.Dive> addDive(domain.Dive dive) async {
-    // Ensure the dive is assigned to the current diver (if diver exists)
+    // Ensure the dive is assigned to the current diver (if diver exists).
+    // Read the diver once, at the call: a switch while the check below
+    // awaits must not hand the dive to a diver nobody validated, or one the
+    // caller never prepared it for (a site it may see, #2392).
+    final diverId = _currentDiverId;
     var diveWithDiver = dive;
-    if (dive.diverId == null && _currentDiverId != null) {
+    if (dive.diverId == null && diverId != null) {
       // Verify the diver exists before assigning to avoid FK constraint errors
       final diverRepository = _ref.read(diverRepositoryProvider);
-      final diverExists = await diverRepository.getDiverById(_currentDiverId!);
+      final diverExists = await diverRepository.getDiverById(diverId);
       if (diverExists != null) {
-        diveWithDiver = dive.copyWith(diverId: _currentDiverId);
+        diveWithDiver = dive.copyWith(diverId: diverId);
       }
     }
     final newDive = await _repository.createDive(diveWithDiver);
@@ -662,7 +666,7 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     // A planned dive stays unnumbered until it is promoted (issue #2002).
     if (dive.diveNumber == null && !dive.isPlanned) {
       await _repository.assignMissingDiveNumbers(
-        diverId: newDive.diverId ?? _currentDiverId,
+        diverId: newDive.diverId ?? diverId,
       );
       _ref.invalidate(diveNumberingInfoProvider);
     }
@@ -1171,12 +1175,14 @@ class PaginatedDiveListNotifier
   }
 
   Future<domain.Dive> addDive(domain.Dive dive) async {
+    // Read the diver once, at the call: see DiveListNotifier.addDive.
+    final diverId = _currentDiverId;
     var diveWithDiver = dive;
-    if (dive.diverId == null && _currentDiverId != null) {
+    if (dive.diverId == null && diverId != null) {
       final diverRepository = _ref.read(diverRepositoryProvider);
-      final diverExists = await diverRepository.getDiverById(_currentDiverId!);
+      final diverExists = await diverRepository.getDiverById(diverId);
       if (diverExists != null) {
-        diveWithDiver = dive.copyWith(diverId: _currentDiverId);
+        diveWithDiver = dive.copyWith(diverId: diverId);
       }
     }
     final newDive = await _repository.createDive(diveWithDiver);
@@ -1184,7 +1190,7 @@ class PaginatedDiveListNotifier
     // A planned dive stays unnumbered until it is promoted (issue #2002).
     if (dive.diveNumber == null && !dive.isPlanned) {
       await _repository.assignMissingDiveNumbers(
-        diverId: newDive.diverId ?? _currentDiverId,
+        diverId: newDive.diverId ?? diverId,
       );
       _ref.invalidate(diveNumberingInfoProvider);
     }

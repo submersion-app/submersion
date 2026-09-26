@@ -720,7 +720,9 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
 
     // Saved plans are not diver-scoped, so the plan may name a site private to
     // another diver. Attach only a site the current diver can see, by the same
-    // owner-or-shared rule the site list applies (VisibilityFilter).
+    // owner-or-shared rule the site list applies (VisibilityFilter). From
+    // here to addDive nothing awaits, and addDive reads the diver once on
+    // entry, so the dive goes to the diver this check was made for.
     final diverId = ref.read(currentDiverIdProvider);
     final visibleSite =
         site != null &&
@@ -761,7 +763,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     // is assigned to the current diver: the dive list shows only that diver's
     // dives, and a dive written without one never appears there (#2392).
     final created = await ref
-        .read(diveListNotifierProvider.notifier)
+        .read(paginatedDiveListProvider.notifier)
         .addDive(dive);
     notifier.setLinkedDive(created.id);
     await notifier.save(
