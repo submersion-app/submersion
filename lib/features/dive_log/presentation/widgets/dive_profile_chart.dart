@@ -767,9 +767,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showHeartRate = false;
   bool _showSac = false;
 
-  // Per-tank pressure visibility (keyed by tank ID)
-  // Defaults to all visible; populated on first build if multi-tank data exists
+  // Per-tank pressure visibility (keyed by tank ID), mirroring the legend's
+  // per-tank choices. A tank with no entry follows [_showPressure].
   final Map<String, bool> _showTankPressure = {};
+  bool _showPressure = false;
 
   // Decompression visualization toggles
   bool _showCeiling = true;
@@ -1563,7 +1564,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showDecoStops = widget.showDecoStops;
     _showAscentRateColors = widget.showAscentRateColors;
     _showEvents = widget.showEvents;
-    _scheduleTankPressureVisibilityInitialization();
     _scheduleComputedEventsSeed();
   }
 
@@ -1575,9 +1575,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       _liveCursorTooltipRows = const [];
       _lastTooltipSpotIndex = null;
       _lastTooltipItems = const [];
-    }
-    if (oldWidget.tankPressures != widget.tankPressures) {
-      _scheduleTankPressureVisibilityInitialization();
     }
     if (oldWidget.events != widget.events) {
       _scheduleComputedEventsSeed();
@@ -1712,15 +1709,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final x = plotInsets.left + (timestamp - visibleMinX) / rangeX * plotWidth;
     final y = plotInsets.top + (depth - visibleMinDepth) / rangeY * plotHeight;
     return (cursorLocal: Offset(x, y), rows: rows);
-  }
-
-  void _scheduleTankPressureVisibilityInitialization() {
-    if (!_hasMultiTankPressure) return;
-    final tankIds = widget.tankPressures!.keys.toList();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || tankIds.isEmpty) return;
-      ref.read(profileLegendProvider.notifier).initializeTankPressures(tankIds);
-    });
   }
 
   /// Whether this dive carries the computer's own (imported) events.
@@ -2488,7 +2476,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
       for (var i = 0; i < sortedTankIds.length; i++) {
         final tankId = sortedTankIds[i];
-        if (!(_showTankPressure[tankId] ?? true)) continue;
+        if (!(_showTankPressure[tankId] ?? _showPressure)) continue;
         if (!_isComputerVisible(tankComputerIds[tankId])) continue;
         final pressurePoints = widget.tankPressures![tankId];
         if (pressurePoints == null || pressurePoints.isEmpty) continue;
@@ -2737,6 +2725,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showCns = legendState.showCns;
     _showOtu = legendState.showOtu;
     // Sync per-tank pressure visibility
+    _showPressure = legendState.showPressure;
     for (final entry in legendState.showTankPressure.entries) {
       _showTankPressure[entry.key] = entry.value;
     }
@@ -5972,6 +5961,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         hasMultiTankPressure: _hasMultiTankPressure,
         tankPressures: widget.tankPressures,
         showTankPressure: _showTankPressure,
+        tankPressureVisibleByDefault: _showPressure,
         estimatedTankIds: widget.estimatedTankIds,
         profile: widget.profile,
         sortedTankIds: _sortedTankIds,
