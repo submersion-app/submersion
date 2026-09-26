@@ -1,4 +1,5 @@
 {
+  "equipment_delete_notOwner": "Ezt az elemet csak a tulajdonosa törölheti",
   "equipment_sharedWithMe": "Velem megosztva",
   "equipment_owner_unknown": "Másik profil",
   "equipment_ownerChip_semanticLabel": "Tulajdonos: {name}",

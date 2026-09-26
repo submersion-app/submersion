@@ -9,6 +9,10 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
+  String get equipment_delete_notOwner =>
+      'Solo su propietario puede eliminar este elemento';
+
+  @override
   String get equipment_sharedWithMe => 'Compartido conmigo';
 
   @override

@@ -9,6 +9,10 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
+  String get equipment_delete_notOwner =>
+      'Nur der Besitzer kann dieses Teil löschen';
+
+  @override
   String get equipment_sharedWithMe => 'Mit mir geteilt';
 
   @override

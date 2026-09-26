@@ -116,6 +116,12 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @equipment_delete_notOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Only its owner can delete this item'**
+  String get equipment_delete_notOwner;
+
   /// No description provided for @equipment_sharedWithMe.
   ///
   /// In en, this message translates to:

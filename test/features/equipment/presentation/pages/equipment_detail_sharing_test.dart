@@ -34,6 +34,19 @@ class _MockServiceRecordNotifier
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
+/// Refuses every delete, as the repository does for another profile's item.
+class _RefusingEquipmentNotifier
+    extends StateNotifier<AsyncValue<List<EquipmentItem>>>
+    implements EquipmentListNotifier {
+  _RefusingEquipmentNotifier() : super(const AsyncValue.data([]));
+
+  @override
+  Future<bool> deleteEquipment(String id) async => false;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
 /// Sharing on the equipment detail page (issue #2046): the owner manages
 /// shares; a profile the item is shared with sees who owns it and cannot
 /// delete it.
@@ -64,6 +77,8 @@ void main() {
     WidgetTester tester, {
     required String activeDiverId,
     List<Diver>? divers,
+    bool refuseDelete = false,
+    EquipmentItem item = wing,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(600, 2400);
@@ -86,7 +101,7 @@ void main() {
       ProviderScope(
         overrides: [
           ...overrides,
-          equipmentItemProvider(id).overrideWith((ref) async => wing),
+          equipmentItemProvider(id).overrideWith((ref) async => item),
           equipmentDiveCountProvider(id).overrideWith((ref) async => 0),
           equipmentTripCountProvider(id).overrideWith((ref) async => 0),
           serviceRecordNotifierProvider(
@@ -120,6 +135,10 @@ void main() {
             (ref) async => activeDiverId,
           ),
           equipmentSharesProvider(id).overrideWith((ref) async => shares),
+          if (refuseDelete)
+            equipmentListNotifierProvider.overrideWith(
+              (ref) => _RefusingEquipmentNotifier(),
+            ),
           equipmentHistoryProvider(id).overrideWith((ref) async => const []),
         ].cast(),
         child: MaterialApp.router(
@@ -158,6 +177,33 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('History'), findsOneWidget);
+  });
+
+  testWidgets('a refused delete says so and stays on the page', (
+    tester,
+  ) async {
+    await pump(tester, activeDiverId: 'owner', refuseDelete: true);
+    await tester.tap(find.byKey(overflow));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete').last);
+    await tester.pumpAndSettle();
+    // Confirm in the dialog.
+    await tester.tap(find.text('Delete').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Only its owner can delete this item'), findsOneWidget);
+    expect(find.text('Equipment deleted'), findsNothing);
+    expect(find.byKey(overflow), findsOneWidget);
+  });
+
+  testWidgets('an ownerless item offers no sharing', (tester) async {
+    // No owner to manage its shares (issue #2046).
+    await pump(
+      tester,
+      activeDiverId: 'owner',
+      item: const EquipmentItem(id: id, name: 'Wing', type: EquipmentType.bcd),
+    );
+    expect(find.text('Shared with'), findsNothing);
+    expect(find.text('Owned by'), findsNothing);
   });
 
   testWidgets('one profile shows no sharing rows', (tester) async {

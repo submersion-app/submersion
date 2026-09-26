@@ -75,6 +75,26 @@ void main() {
     expect(await repo.getEquipmentById('bcd'), isNull);
   });
 
+  test('an ownerless item stays deletable, as before sharing', () async {
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'legacy',
+            name: 'legacy',
+            type: 'bcd',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    expect(
+      await repo.deleteOwnedEquipment('legacy', actingDiverId: 'wife'),
+      isTrue,
+    );
+    expect(await repo.getEquipmentById('legacy'), isNull);
+  });
+
   test('with no diver at all the delete proceeds', () async {
     expect(await repo.deleteOwnedEquipment('bcd', actingDiverId: null), isTrue);
   });

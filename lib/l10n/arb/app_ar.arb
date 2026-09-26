@@ -1,4 +1,5 @@
 {
+  "equipment_delete_notOwner": "يمكن لمالك هذا العنصر وحده حذفه",
   "equipment_sharedWithMe": "مُشارَك معي",
   "equipment_owner_unknown": "ملف آخر",
   "equipment_ownerChip_semanticLabel": "مملوك لـ {name}",

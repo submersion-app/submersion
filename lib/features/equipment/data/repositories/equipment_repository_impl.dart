@@ -723,15 +723,21 @@ class EquipmentRepository {
 
   /// Deletes [id] only when [actingDiverId] owns it; delete is owner-only
   /// (issue #2046), so a profile the item is shared with gets false and
-  /// nothing changes. A null [actingDiverId] (no diver profile exists)
-  /// deletes as [deleteEquipment] does.
+  /// nothing changes. A null [actingDiverId] (no diver profile exists) or an
+  /// ownerless item deletes as [deleteEquipment] does.
   Future<bool> deleteOwnedEquipment(
     String id, {
     required String? actingDiverId,
   }) async {
     if (actingDiverId != null) {
       final item = await getEquipmentById(id);
-      if (item != null && item.diverId != actingDiverId) return false;
+      // An ownerless item (no owner to defer to) stays deletable, as it was
+      // before sharing existed.
+      if (item != null &&
+          item.diverId != null &&
+          item.diverId != actingDiverId) {
+        return false;
+      }
     }
     await deleteEquipment(id);
     return true;

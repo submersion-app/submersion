@@ -1,4 +1,5 @@
 {
+  "equipment_delete_notOwner": "רק הבעלים יכול למחוק פריט זה",
   "equipment_sharedWithMe": "משותף איתי",
   "equipment_owner_unknown": "פרופיל אחר",
   "equipment_ownerChip_semanticLabel": "בבעלות {name}",

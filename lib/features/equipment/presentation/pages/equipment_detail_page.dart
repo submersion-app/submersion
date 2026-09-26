@@ -940,7 +940,17 @@ class _EquipmentDetailContent extends ConsumerWidget {
         );
 
         if (confirmed == true) {
-          await notifier.deleteEquipment(equipmentId);
+          final deleted = await notifier.deleteEquipment(equipmentId);
+          if (!deleted) {
+            // Delete is owner-only (issue #2046): the item was kept, so stay
+            // on it and say why.
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(context.l10n.equipment_delete_notOwner)),
+              );
+            }
+            break;
+          }
           if (context.mounted) {
             if (embedded) {
               onDeleted?.call();

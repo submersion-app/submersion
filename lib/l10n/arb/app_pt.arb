@@ -1,4 +1,5 @@
 {
+  "equipment_delete_notOwner": "Só o proprietário pode eliminar este item",
   "equipment_sharedWithMe": "Partilhado comigo",
   "equipment_owner_unknown": "Outro perfil",
   "equipment_ownerChip_semanticLabel": "Pertence a {name}",

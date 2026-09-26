@@ -18,14 +18,16 @@ class EquipmentSharingRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!ref.watch(hasMultipleDiversProvider)) return const SizedBox.shrink();
+    // An ownerless item has no owner to manage its shares.
+    if (!ref.watch(hasMultipleDiversProvider) || equipment.diverId == null) {
+      return const SizedBox.shrink();
+    }
     final l10n = context.l10n;
     final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
     final names = ref.watch(diverNamesByIdProvider).value ?? const {};
     final shares =
         ref.watch(equipmentSharesProvider(equipment.id)).value ?? const [];
-    final isOwner =
-        equipment.diverId == null || equipment.diverId == activeDiverId;
+    final isOwner = equipment.diverId == activeDiverId;
     String nameOf(String id) => names[id] ?? l10n.equipment_owner_unknown;
 
     final sharedWith = shares.isEmpty

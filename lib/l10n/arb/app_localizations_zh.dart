@@ -9,6 +9,9 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get equipment_delete_notOwner => '只有所有者可以删除此装备';
+
+  @override
   String get equipment_sharedWithMe => '与我共享';
 
   @override
