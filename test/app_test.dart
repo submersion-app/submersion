@@ -330,7 +330,7 @@ void main() {
       _DrivableSyncNotifier(const SyncState()),
       links: links,
       extraOverrides: [
-        hasAnyDiversProvider.overrideWith((ref) async => true),
+        diverCountProvider.overrideWith((ref) async => 1),
         validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
       ],
     );
@@ -371,7 +371,7 @@ void main() {
       extraOverrides: [
         // The wizard has already written the diver row: divers exist, but
         // setup is still on screen.
-        hasAnyDiversProvider.overrideWith((ref) async => true),
+        diverCountProvider.overrideWith((ref) async => 1),
         validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
       ],
     );
@@ -414,7 +414,7 @@ void main() {
       links: links,
       router: router,
       extraOverrides: [
-        hasAnyDiversProvider.overrideWith((ref) async => true),
+        diverCountProvider.overrideWith((ref) async => 1),
         validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
       ],
     );

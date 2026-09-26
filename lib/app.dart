@@ -93,6 +93,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   late final PassportLinkDispatcher _passportLinks;
   late final GoRouter _linkRouter;
   bool _hasDivers = false;
+  bool _linkReadyRetryScheduled = false;
   late final AppLifecycleListener _lifecycleListener;
 
   @override
@@ -126,8 +127,11 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     // tapped with the app closed waits for the navigator to exist.
     _linkRouter = ref.read(appRouterProvider);
     _linkRouter.routeInformationProvider.addListener(_updatePassportLinkReady);
-    ref.listenManual<AsyncValue<bool>>(hasAnyDiversProvider, (_, next) {
-      _hasDivers = next.value ?? false;
+    // The SQL count, not the profile list: this listener lives all session,
+    // and keeping the list alive would re-hydrate every profile on each
+    // divers-table write.
+    ref.listenManual<AsyncValue<int>>(diverCountProvider, (_, next) {
+      _hasDivers = (next.value ?? 0) > 0;
       _updatePassportLinkReady();
     }, fireImmediately: true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -384,10 +388,13 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         _linkRouter.routeInformationProvider.value.uri.path != '/welcome';
     final navigatorBuilt = rootNavigatorKey.currentContext != null;
     _passportLinks.setReady(settled && navigatorBuilt);
-    if (settled && !navigatorBuilt) {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => _updatePassportLinkReady(),
-      );
+    // One pending retry at most, however many updates arrive meanwhile.
+    if (settled && !navigatorBuilt && !_linkReadyRetryScheduled) {
+      _linkReadyRetryScheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _linkReadyRetryScheduled = false;
+        _updatePassportLinkReady();
+      });
     }
   }
 
