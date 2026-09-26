@@ -161,4 +161,36 @@ void main() {
 
     expect(dives.map((d) => d.id), ['new', 'mid', 'old']);
   });
+
+  test('getDivesByIds breaks a time tie by dive number, highest first and '
+      'unnumbered last', () async {
+    // The sort moved from SQL to Dart with chunking, so it has to keep
+    // SQLite's `dive_number DESC` order, which puts NULL last. Inserted
+    // and requested in the reverse of that order, so only the tie-break
+    // can produce it.
+    await db.batch((b) {
+      b.insertAll(db.dives, [
+        for (final (id, number) in [
+          ('unnumbered', null),
+          ('one', 1),
+          ('two', 2),
+        ])
+          DivesCompanion.insert(
+            id: id,
+            diveNumber: Value(number),
+            diveDateTime: epoch,
+            createdAt: epoch,
+            updatedAt: epoch,
+          ),
+      ]);
+    });
+
+    final dives = await diveRepository.getDivesByIds([
+      'unnumbered',
+      'one',
+      'two',
+    ]);
+
+    expect(dives.map((d) => d.id), ['two', 'one', 'unnumbered']);
+  });
 }
