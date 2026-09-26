@@ -2237,7 +2237,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         TooltipRow(
           label: l10n.diveLog_tooltip_mod,
           value: mod != null && mod > 0 && mod < 200
-              ? units.formatDepth(mod)
+              // A limit depth, so rounded down (issue #2342).
+              ? units.formatDepthFloor(mod)
               : '-',
           bulletColor: const Color(0xFFFFB300),
           metric: ChartOnlyMetric.mod,

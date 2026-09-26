@@ -13,6 +13,7 @@ void main() {
   final fmt = QualityUnitFormatters(
     depth: (m) => 'D${m.toStringAsFixed(1)}',
     depthRate: (mpm) => 'R${mpm.toStringAsFixed(1)}',
+    limitDepth: (m) => 'L${m.toStringAsFixed(1)}',
     pressure: (bar) => 'P${bar.toStringAsFixed(1)}',
     temperature: (c) => 'T${c.toStringAsFixed(1)}',
     sac: (lpm) => 'S${lpm.toStringAsFixed(1)}',
@@ -239,7 +240,8 @@ void main() {
     test('switch/MOD branch', () {
       final d = detailFor('gas_mod', {'switchDepth': 25.0, 'modMeters': 22.0});
       expect(d, contains('D25.0'));
-      expect(d, contains('D22.0'));
+      // The MOD is a limit: it goes through the rounded-down formatter.
+      expect(d, contains('L22.0'));
     });
 
     test('hypoxic-at-surface branch', () {

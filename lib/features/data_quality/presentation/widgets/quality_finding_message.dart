@@ -10,11 +10,17 @@ class QualityUnitFormatters {
     required this.sac,
     required this.date,
     required this.dateTime,
+    required this.limitDepth,
   });
   final String Function(double meters) depth;
 
   /// Formats a vertical rate given in m/min, including the rate unit.
   final String Function(double metersPerMinute) depthRate;
+
+  /// Formats a limit depth such as a MOD, rounded DOWN so it never reads
+  /// deeper than the gas may be taken. Required, so no formatter set can
+  /// silently round a limit to nearest.
+  final String Function(double meters) limitDepth;
   final String Function(double bar) pressure;
   final String Function(double celsius) temperature;
 
@@ -166,7 +172,7 @@ QualityFindingMessage buildFindingMessage(
       } else if (p.containsKey('switchDepth')) {
         detail = l10n.dataQuality_msg_switchMod(
           fmt.depth(d('switchDepth')),
-          fmt.depth(d('modMeters')),
+          fmt.limitDepth(d('modMeters')),
         );
       } else {
         detail = l10n.dataQuality_msg_hypoxic('${d('o2Percent').round()}%');

@@ -10,6 +10,7 @@ QualityUnitFormatters qualityUnitFormattersFor(UnitFormatter units) =>
     QualityUnitFormatters(
       depth: (m) => units.formatDepth(m),
       depthRate: (mpm) => units.formatDepthRate(mpm),
+      limitDepth: (m) => units.formatDepthFloor(m),
       pressure: (bar) => units.formatPressure(bar),
       temperature: (c) => units.formatTemperature(c),
       // Surface air consumption is a volume rate; honor the volume unit
