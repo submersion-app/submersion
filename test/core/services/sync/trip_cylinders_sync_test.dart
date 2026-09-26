@@ -208,6 +208,47 @@ void main() {
     },
   );
 
+  test('a peer trip tombstone that names no slots still applies', () async {
+    // An older peer deletes the trip without knowing its slots exist, so no
+    // slot or fill tombstone arrives. The remote apply runs in a deferred-FK
+    // transaction and repairs the orphans, as it does for every trip child.
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'd1',
+            diveDateTime: 2000,
+            tripId: const Value('trip-1'),
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(
+            id: 't1',
+            diveId: 'd1',
+          ).copyWith(tripCylinderId: const Value('slot-1')),
+        );
+
+    await serializer.applyInDeferredFkTransaction(() async {
+      await serializer.deleteRecord('trips', 'trip-1');
+      await serializer.repairDanglingForeignKeys();
+    });
+
+    expect(await serializer.fetchRecord('trips', 'trip-1'), isNull);
+    expect(await serializer.fetchRecord('tripCylinders', 'slot-1'), isNull);
+    expect(
+      await serializer.fetchRecord('tripCylinderEvents', 'fill-1'),
+      isNull,
+    );
+    final tank = await db
+        .customSelect("SELECT trip_cylinder_id FROM dive_tanks WHERE id = 't1'")
+        .getSingle();
+    expect(tank.readNullable<String>('trip_cylinder_id'), isNull);
+  });
+
   test('both entities are registered as hlc targets', () {
     // An omission here is silent: _stampHlc no-ops on an unknown entity
     // type, the column stays NULL, and the delta export excludes the row

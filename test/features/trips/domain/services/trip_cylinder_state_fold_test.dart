@@ -252,6 +252,27 @@ void main() {
     });
   });
 
+  group('determinism', () {
+    test(
+      'two fills on one instant resolve by id, whatever the input order',
+      () {
+        // Two devices filling the same slot at the same millisecond; replicas
+        // may read the rows back in either order.
+        final x = fill(0, id: 'x', pressure: 200);
+        final y = fill(0, id: 'y', pressure: 180);
+        expect(fold(events: [x, y]).pressure, 180);
+        expect(fold(events: [y, x]).pressure, 180);
+      },
+    );
+
+    test('two tanks on one instant resolve by tank id', () {
+      final a = dive(60, tankId: 'a', end: 100);
+      final b = dive(60, tankId: 'b', end: 90);
+      expect(fold(events: [fill(0)], uses: [a, b]).pressure, 90);
+      expect(fold(events: [fill(0)], uses: [b, a]).pressure, 90);
+    });
+  });
+
   group('suggestTripCylinder', () {
     TripCylinderState state(
       String id, {

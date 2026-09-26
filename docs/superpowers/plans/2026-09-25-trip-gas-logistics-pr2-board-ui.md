@@ -56,7 +56,7 @@ Modify:
 
 ---
 
-### Task 1: Data follow-ups from the PR 1 review (the fold tie-break; the trip filter already shipped in PR 1)
+### Task 1: Data follow-ups: the last item, site names and reorder (the fold tie-break and the trip filter already shipped in PR 1)
 
 **Files:**
 - Modify: `lib/features/trips/domain/entities/trip_cylinder_state.dart`
@@ -74,22 +74,7 @@ Modify:
 Append inside `main()` of `test/features/trips/domain/services/trip_cylinder_state_fold_test.dart`, after the existing `group('foldCylinderState', ...)`:
 
 ```dart
-  group('determinism and the last item', () {
-    test('two fills on one instant resolve by id, whatever the input order', () {
-      // Two devices filling the same slot at the same millisecond.
-      final x = fill(0, id: 'x', pressure: 200);
-      final y = fill(0, id: 'y', pressure: 180);
-      expect(fold(events: [x, y]).pressure, 180);
-      expect(fold(events: [y, x]).pressure, 180);
-    });
-
-    test('two tanks on one instant resolve by tank id', () {
-      final a = dive(60, tankId: 'a', end: 100);
-      final b = dive(60, tankId: 'b', end: 90);
-      expect(fold(events: [fill(0)], uses: [a, b]).pressure, 90);
-      expect(fold(events: [fill(0)], uses: [b, a]).pressure, 90);
-    });
-
+  group('the last item', () {
     test('the last item is the event when an event came last', () {
       final f = fill(120, label: '14');
       final s = fold(events: [f], uses: [dive(60)]);
@@ -146,34 +131,9 @@ In `TripCylinderState`, after `final int linkedDiveCount;` add:
 
 In its constructor after `this.linkedDiveCount = 0,` add `this.lastEvent,` and `this.lastUse,`; in its `props` after `linkedDiveCount,` add `lastEvent,` and `lastUse,`.
 
-- [ ] **Step 4: Make the fold deterministic and report the last item**
+- [ ] **Step 4: Report the last item from the fold**
 
-In `lib/features/trips/domain/services/trip_cylinder_state_fold.dart`, in `class _Item`, after the constructor add:
-
-```dart
-
-  /// Breaks a tie on instant and rank so the order never depends on input
-  /// order or on the sort's stability.
-  String get tieKey => event?.id ?? use!.tankId;
-```
-
-Replace the sort comparator body
-
-```dart
-    final byTime = a.at.compareTo(b.at);
-    return byTime != 0 ? byTime : a.rank.compareTo(b.rank);
-```
-
-with
-
-```dart
-    final byTime = a.at.compareTo(b.at);
-    if (byTime != 0) return byTime;
-    final byRank = a.rank.compareTo(b.rank);
-    return byRank != 0 ? byRank : a.tieKey.compareTo(b.tieKey);
-```
-
-In the returned `TripCylinderState(...)`, after `linkedDiveCount: ...,` add:
+In `lib/features/trips/domain/services/trip_cylinder_state_fold.dart` (the tie-break on instant, rank and id already landed in PR 1), in the returned `TripCylinderState(...)`, after `linkedDiveCount: ...,` add:
 
 ```dart
     lastEvent: last?.event,
@@ -183,7 +143,7 @@ In the returned `TripCylinderState(...)`, after `linkedDiveCount: ...,` add:
 - [ ] **Step 5: Run the fold tests to verify they pass**
 
 Run: `flutter test test/features/trips/domain/services/trip_cylinder_state_fold_test.dart`
-Expected: PASS, 31 tests.
+Expected: PASS, 31 tests (PR 1 left 28).
 
 - [ ] **Step 6: Write the failing repository tests**
 

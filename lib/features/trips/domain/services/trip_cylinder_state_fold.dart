@@ -26,6 +26,10 @@ class _Item {
   final TripCylinderTankUse? use;
 
   const _Item({required this.at, required this.rank, this.event, this.use});
+
+  /// Breaks a tie on instant and rank, so every replica folds the same rows
+  /// in the same order whatever order the query returned them in.
+  String get tieKey => event?.id ?? use!.tankId;
 }
 
 /// Pure. Walks the slot's fills, adjustments and linked dive tanks in time
@@ -68,7 +72,9 @@ TripCylinderState foldCylinderState({
           ),
       ]..sort((a, b) {
         final byTime = a.at.compareTo(b.at);
-        return byTime != 0 ? byTime : a.rank.compareTo(b.rank);
+        if (byTime != 0) return byTime;
+        final byRank = a.rank.compareTo(b.rank);
+        return byRank != 0 ? byRank : a.tieKey.compareTo(b.tieKey);
       });
 
   double? pressure;
