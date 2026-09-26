@@ -230,6 +230,35 @@ void main() {
     });
   });
 
+  test('counts the events a scope deleted, not the scope itself', () async {
+    await addEvent('e1', hlc: at(-1000));
+    await addEvent('e2', hlc: at(-1000));
+    Future<int> apply() async {
+      const data = SyncData();
+      final result =
+          await SyncService(
+            syncRepository: SyncRepository(),
+            serializer: SyncDataSerializer(),
+          ).debugApplyPayload(
+            SyncPayload(
+              version: syncFormatVersion,
+              exportedAt: deleteMs + 5000,
+              deviceId: 'peer-b',
+              checksum: sha256
+                  .convert(utf8.encode(jsonEncode(data.toJson())))
+                  .toString(),
+              data: data,
+              deletions: scope('d1'),
+            ),
+          );
+      return result.recordsApplied;
+    }
+
+    expect(await apply(), 2);
+    // A relayed copy of the same scope finds nothing left to delete.
+    expect(await apply(), 0);
+  });
+
   test('a malformed scope deletes nothing and the sync goes on', () async {
     await addEvent('e1', hlc: at(-1000));
 

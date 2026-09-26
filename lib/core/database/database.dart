@@ -5679,10 +5679,6 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// v230: the nav_tracks table for measured underwater routes (spec
-  /// 2026-09-10-underwater-nav-track-design.md, issues #1195, #1445).
-  /// Idempotent (createTable is IF NOT EXISTS); called from the v230
-  /// onUpgrade step and the beforeOpen backstop.
   /// v235: scoped event tombstones select events by dive (#1926). Guarded
   /// on the table, as the other backstops are, for migration fixtures that
   /// build only part of the schema.
@@ -5694,6 +5690,10 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  /// v230: the nav_tracks table for measured underwater routes (spec
+  /// 2026-09-10-underwater-nav-track-design.md, issues #1195, #1445).
+  /// Idempotent (createTable is IF NOT EXISTS); called from the v230
+  /// onUpgrade step and the beforeOpen backstop.
   Future<void> _assertNavTracksSchema() async {
     await createMigrator().createTable(navTracks);
     // Added after the table first shipped on development builds of the

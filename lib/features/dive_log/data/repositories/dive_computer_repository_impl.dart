@@ -2207,9 +2207,7 @@ class DiveComputerRepository {
   ///
   /// One statement per [kSeriesIdChunkSize] ids instead of one per dive, so
   /// the full UDDF export costs the same for any logbook size (issue #1867).
-  /// `dive_profile_events` has no `dive_id` index, which made every
-  /// per-dive read a scan of the whole table. Each dive keeps the per-dive
-  /// read's timestamp order.
+  /// Each dive keeps the per-dive read's timestamp order.
   Future<Map<String, List<DiveProfileEvent>>> getEventsForDives(
     List<String> diveIds,
   ) async {

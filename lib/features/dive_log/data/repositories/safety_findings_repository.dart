@@ -316,10 +316,18 @@ class SafetyFindingsRepository {
           start,
           end < diveIds.length ? end : diveIds.length,
         );
+        // Only dives with a current review: clearReviewForDive keeps an
+        // invalidated review's findings for the recompute to diff against
+        // (#1926), and nothing shows them until then.
         Expression<bool> pending($DiveSafetyFindingsTable t) =>
             t.diveId.isIn(chunk) &
             t.ruleId.isIn(ruleIds) &
-            (dismissed ? t.dismissedAt.isNull() : t.dismissedAt.isNotNull());
+            (dismissed ? t.dismissedAt.isNull() : t.dismissedAt.isNotNull()) &
+            existsQuery(
+              _db.selectOnly(_db.diveSafetyReviews)
+                ..addColumns([_db.diveSafetyReviews.diveId])
+                ..where(_db.diveSafetyReviews.diveId.equalsExp(t.diveId)),
+            );
 
         await _db.transaction(() async {
           // Read the affected ids first: the UPDATE below cannot report which

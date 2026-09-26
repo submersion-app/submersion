@@ -2288,7 +2288,9 @@ class SyncService {
           if (entityType == EventScopeTombstone.entityType) {
             final deletionHlc = _parseHlc(deletion.hlc);
             if (deletionHlc != null) SyncClock.instance.receive(deletionHlc);
-            await _eventScopeApplier.apply(
+            // The rows it removed, not the scope: a relayed copy that finds
+            // nothing left to delete applied nothing.
+            applied += await _eventScopeApplier.apply(
               deletion: deletion,
               deletedAt: deletion.deletedAt > 0
                   ? deletion.deletedAt
@@ -2298,7 +2300,6 @@ class SyncService {
               contradictedEventIds:
                   contradictedByEntity['diveProfileEvents'] ?? const <String>{},
             );
-            applied += 1;
             continue;
           }
           if (pendingByEntity[entityType]?.contains(recordId) == true) {

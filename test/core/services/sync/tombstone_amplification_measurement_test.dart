@@ -4,7 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/features/dive_import/data/services/dive_reimport_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
@@ -158,13 +158,36 @@ void main() {
     expect(profileEdit, 0);
   });
 
-  test('re-importing a long dive', () async {
+  test('re-importing a long dive from its file', () async {
+    // DiveReimportService is the real re-import path: a file resync that
+    // reports the dive's events replaces all of them.
     await insertDive('dive-1');
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion.insert(
+            id: 'src-file',
+            diveId: 'dive-1',
+            isPrimary: const Value(true),
+            importedAt: DateTime.utc(2026, 1, 1),
+            createdAt: DateTime.utc(2026, 1, 1),
+          ),
+        );
     await insertEvents('dive-1', null, 300);
 
     final minted = await measure(
       'reimport-300-events',
-      () => DiveComputerRepository().clearEventsForDive('dive-1'),
+      () => DiveReimportService(db: db).applyReimport(
+        diveId: 'dive-1',
+        diveData: {
+          'dateTime': DateTime(2026, 9, 1, 9),
+          'events': [
+            for (var i = 0; i < 300; i++)
+              {'eventType': 'bookmark', 'timestamp': i * 10},
+          ],
+        },
+        now: DateTime(2026, 9, 3),
+      ),
     );
 
     expect(minted, 1);

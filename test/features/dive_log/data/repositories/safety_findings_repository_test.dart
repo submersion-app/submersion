@@ -572,6 +572,30 @@ void main() {
           .toSet();
     }
 
+    test('leaves the findings of an invalidated review alone', () async {
+      // clearReviewForDive keeps the findings for the recompute to diff
+      // against, but nothing shows them until then (#1926).
+      await seed('dive-1', [finding('f1')]);
+      await SafetyFindingsRepository.clearReviewForDive(
+        db,
+        syncRepository,
+        'dive-1',
+      );
+
+      final changed = await repo.setDismissedForDives(
+        diveIds: ['dive-1'],
+        dismissed: true,
+        enabledRuleIds: allRules,
+        now: now,
+      );
+
+      expect(changed, 0);
+      final row = await (db.select(
+        db.diveSafetyFindings,
+      )..where((t) => t.id.equals('f1'))).getSingle();
+      expect(row.dismissedAt, isNull);
+    });
+
     test('dismisses every active finding across the given dives', () async {
       await createTestDive('dive-2');
       await seed('dive-1', [finding('f1'), finding('f2')]);
