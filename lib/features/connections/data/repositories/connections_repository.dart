@@ -111,8 +111,8 @@ class ConnectionsRepository {
       kindB: kindB,
       diverId: diverId,
       filter: filter,
-      focus: focus,
-      restrictTo: restrictTo,
+      restrictA: focus != null ? [focus.id] : restrictTo,
+      restrictB: focus != null ? null : restrictTo,
     );
     final rows = await _db
         .customSelect(q.sql, variables: q.params.map(Variable.new).toList())

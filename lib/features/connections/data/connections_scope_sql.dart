@@ -28,3 +28,8 @@ import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 }
 
 String placeholders(int count) => List.filled(count, '?').join(', ');
+
+/// Escapes `\`, `%` and `_` so user text matches literally inside a LIKE
+/// pattern written with `ESCAPE '\'`.
+String escapeLike(String text) =>
+    text.replaceAll(r'\', r'\\').replaceAll('%', r'\%').replaceAll('_', r'\_');

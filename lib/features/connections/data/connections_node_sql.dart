@@ -45,6 +45,8 @@ KindTable kindTable(ConnectionKind kind) => switch (kind) {
   required String? diverId,
   required DiveFilterState filter,
   Iterable<String>? onlyIds,
+  String? labelLike,
+  int? limit,
 }) {
   final extraWhere = <String>[];
   final extraParams = <Object?>[];
@@ -64,6 +66,10 @@ KindTable kindTable(ConnectionKind kind) => switch (kind) {
   final params = [...scope.params, ...extraParams];
   final t = kindTable(kind);
   final extra = t.extraColumns.map((c) => ', t.$c AS $c').join();
+  final outerWhere = labelLike == null
+      ? ''
+      : "\nWHERE t.${t.labelColumn} LIKE ? ESCAPE '\\'";
+  final limitClause = limit == null ? '' : '\nLIMIT ?';
   final sql =
       '''
 SELECT t.id AS id, t.${t.labelColumn} AS label$extra, c.dive_count AS dive_count
@@ -74,9 +80,9 @@ FROM (
   WHERE ${where.join(' AND ')}
   GROUP BY m.entity_id
 ) c
-JOIN ${t.table} t ON t.id = c.entity_id
-ORDER BY c.dive_count DESC, label ASC''';
-  return (sql: sql, params: params);
+JOIN ${t.table} t ON t.id = c.entity_id$outerWhere
+ORDER BY c.dive_count DESC, label ASC$limitClause''';
+  return (sql: sql, params: [...params, ?labelLike, ?limit]);
 }
 
 /// One row per buddy in [buddyIds] whose dives in scope all carry the same

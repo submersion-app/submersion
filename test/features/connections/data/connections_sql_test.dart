@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/connections/data/connections_edge_sql.dart';
 import 'package:submersion/features/connections/data/connections_membership_sql.dart';
 import 'package:submersion/features/connections/data/connections_node_sql.dart';
+import 'package:submersion/features/connections/data/connections_scope_sql.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
-import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 
 void main() {
@@ -57,18 +57,68 @@ void main() {
       expect(r.params, isEmpty);
     });
 
-    test('a focus pins side a and excludes the focus from side b', () {
+    test('restricting only side A spokes out without self pairs', () {
       final r = buildEdgeSql(
         kindA: ConnectionKind.buddy,
         kindB: ConnectionKind.buddy,
         diverId: 'me',
         filter: const DiveFilterState(),
-        focus: const NodeRef(ConnectionKind.buddy, 'jane'),
+        restrictA: ['jane'],
       );
-      expect(r.sql, contains('a.entity_id = ?'));
+      expect(r.sql, contains('a.entity_id IN (?)'));
       expect(r.sql, contains('b.entity_id <> a.entity_id'));
       expect(r.sql, isNot(contains('a.entity_id < b.entity_id')));
       expect(r.params, ['me', 'jane']);
+    });
+
+    test('restricting both sides of a same-kind pair dedupes', () {
+      final r = buildEdgeSql(
+        kindA: ConnectionKind.buddy,
+        kindB: ConnectionKind.buddy,
+        diverId: null,
+        filter: const DiveFilterState(),
+        restrictA: ['x', 'y'],
+        restrictB: ['x', 'y'],
+      );
+      expect(r.sql, contains('a.entity_id IN (?, ?)'));
+      expect(r.sql, contains('b.entity_id IN (?, ?)'));
+      expect(r.sql, contains('a.entity_id < b.entity_id'));
+      expect(r.params, ['x', 'y', 'x', 'y']);
+    });
+
+    test('excludeB and minShared bind after the restrictions', () {
+      final r = buildEdgeSql(
+        kindA: ConnectionKind.buddy,
+        kindB: ConnectionKind.site,
+        diverId: 'me',
+        filter: const DiveFilterState(),
+        restrictA: ['jane'],
+        excludeB: ['s1', 's2'],
+        minShared: 3,
+      );
+      expect(r.sql, contains('b.entity_id NOT IN (?, ?)'));
+      expect(r.sql, contains('HAVING COUNT(DISTINCT d.id) >= ?'));
+      expect(r.params, ['me', 'jane', 's1', 's2', 3]);
+    });
+
+    test('empty restrictions match nothing; empty exclusions add nothing', () {
+      final nothing = buildEdgeSql(
+        kindA: ConnectionKind.buddy,
+        kindB: ConnectionKind.site,
+        diverId: null,
+        filter: const DiveFilterState(),
+        restrictB: const [],
+      );
+      expect(nothing.sql, contains('0 = 1'));
+      final open = buildEdgeSql(
+        kindA: ConnectionKind.buddy,
+        kindB: ConnectionKind.site,
+        diverId: null,
+        filter: const DiveFilterState(),
+        excludeB: const [],
+      );
+      expect(open.sql, isNot(contains('NOT IN')));
+      expect(open.sql, isNot(contains('HAVING')));
     });
 
     test(
@@ -85,19 +135,6 @@ void main() {
         expect(r.params, contains('s1'));
       },
     );
-
-    test('restrictTo limits both ends', () {
-      final r = buildEdgeSql(
-        kindA: ConnectionKind.buddy,
-        kindB: ConnectionKind.buddy,
-        diverId: null,
-        filter: const DiveFilterState(),
-        restrictTo: ['x', 'y'],
-      );
-      expect(r.sql, contains('a.entity_id IN (?, ?)'));
-      expect(r.sql, contains('b.entity_id IN (?, ?)'));
-      expect(r.params, ['x', 'y', 'x', 'y']);
-    });
   });
 
   group('buildNodeSql', () {
@@ -124,6 +161,25 @@ void main() {
       );
       expect(r.sql, contains('m.entity_id IN (?, ?)'));
       expect(r.params, ['a', 'b']);
+    });
+
+    test('labelLike and limit bind after onlyIds', () {
+      final r = buildNodeSql(
+        kind: ConnectionKind.species,
+        diverId: 'me',
+        filter: const DiveFilterState(),
+        onlyIds: ['sp1'],
+        labelLike: '%tur%',
+        limit: 5,
+      );
+      expect(r.sql, contains("t.common_name LIKE ? ESCAPE '\\'"));
+      expect(r.sql, contains('LIMIT ?'));
+      expect(r.params, ['me', 'sp1', '%tur%', 5]);
+    });
+
+    test('escapeLike escapes the LIKE metacharacters', () {
+      expect(escapeLike(r'50%_off\'), r'50\%\_off\\');
+      expect(escapeLike('plain'), 'plain');
     });
 
     test('the buddy role query keeps only unanimous roles', () {
