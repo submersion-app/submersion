@@ -14,12 +14,33 @@ class ReckonedPoint {
   });
 }
 
+/// Where a [ReckonedPath]'s horizontal shape came from.
+enum PathProvenance {
+  /// A measured underwater route (e.g. a linked Seacraft ENC / Suunto
+  /// route), adapted through `NavTrackPathAdapter`.
+  measured,
+
+  /// Dead reckoning from the dive computer's compass headings.
+  deadReckoned,
+
+  /// A straight entry->exit line: heading data was insufficient to dead
+  /// reckon.
+  straightLine,
+}
+
 /// The reconstructed swim path plus its horizontal/vertical extent and
-/// whether it came from real compass headings (dead reckoning) or a
-/// straight-line entry->exit fallback.
+/// whether it is a measured route, dead reckoning, or a straight-line
+/// entry->exit fallback.
 class ReckonedPath {
   final List<ReckonedPoint> points;
-  final bool reconstructed;
+
+  /// Where this path's shape came from.
+  final PathProvenance provenance;
+
+  /// A human-readable caption for [PathProvenance.measured] paths (e.g. "
+  /// Seacraft ENC"), or null when no more specific label is available.
+  final String? sourceLabel;
+
   final double minEast, maxEast;
   final double minNorth, maxNorth;
   final double maxDepth;
@@ -27,14 +48,24 @@ class ReckonedPath {
 
   const ReckonedPath({
     required this.points,
-    required this.reconstructed,
+    PathProvenance? provenance,
+    @Deprecated('Use provenance instead.') bool? reconstructed,
+    this.sourceLabel,
     required this.minEast,
     required this.maxEast,
     required this.minNorth,
     required this.maxNorth,
     required this.maxDepth,
     required this.durationSeconds,
-  });
+  }) : provenance =
+           provenance ??
+           (reconstructed == true
+               ? PathProvenance.deadReckoned
+               : PathProvenance.straightLine);
+
+  /// Kept for existing call sites written before [PathProvenance] existed:
+  /// true for anything but a straight-line fallback.
+  bool get reconstructed => provenance != PathProvenance.straightLine;
 
   bool get isEmpty => points.isEmpty;
   double get eastSpan => (maxEast - minEast).abs();
@@ -58,7 +89,8 @@ ReckonedPath offsetReckonedPath(
           timeSeconds: p.timeSeconds,
         ),
     ],
-    reconstructed: path.reconstructed,
+    provenance: path.provenance,
+    sourceLabel: path.sourceLabel,
     minEast: path.minEast + anchor.east,
     maxEast: path.maxEast + anchor.east,
     minNorth: path.minNorth + anchor.north,

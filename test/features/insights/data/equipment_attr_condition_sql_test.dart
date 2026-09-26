@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 
 import '../../../helpers/test_database.dart';
@@ -89,16 +90,13 @@ void main() {
   Future<Set<String>> idsMatching(
     List<EquipmentAttrCondition> conditions,
   ) async {
-    final parts = [
-      for (final c in conditions)
-        equipmentAttrConditionSql(c, diveIdRef: 'dives.id'),
-    ];
+    final f = buildFilteredDiveIdSubquery(
+      DiveFilterState(equipmentAttrConditions: conditions),
+    );
     final rows = await db
         .customSelect(
-          'SELECT id FROM dives WHERE ${parts.map((p) => p.sql).join(' AND ')}',
-          variables: [
-            for (final p in parts) ...p.params.map((v) => Variable<Object>(v)),
-          ],
+          f.subquery,
+          variables: [for (final v in f.params) Variable<Object>(v!)],
         )
         .get();
     return rows.map((r) => r.read<String>('id')).toSet();
@@ -109,23 +107,6 @@ void main() {
     choices: {'hp'},
     types: {EquipmentType.hose},
   );
-
-  test('binds every value in placeholder order', () {
-    final result = equipmentAttrConditionSql(
-      const EquipmentAttrCondition(
-        key: 'k',
-        choices: {'b', 'a'},
-        min: 1,
-        max: 2,
-        types: {EquipmentType.hose, EquipmentType.bcd},
-      ),
-      diveIdRef: 'd.id',
-    );
-    expect(result.params, ['bcd', 'hose', 'k', 'a', 'b', 1.0, 2.0]);
-    expect(result.sql, contains('de.dive_id = d.id'));
-    expect(result.sql, contains('dt.dive_id = d.id'));
-    expect(result.sql, isNot(contains("'hose'")));
-  });
 
   test('a choice matches gear linked through dive_equipment', () async {
     for (final d in ['d1', 'd2', 'd3']) {

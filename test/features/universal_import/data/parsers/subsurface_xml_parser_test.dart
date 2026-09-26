@@ -256,8 +256,55 @@ void main() {
       );
       final dive = result.entitiesOf(ImportEntityType.dives).first;
       expect(dive['visibility'], Visibility.excellent);
-      expect(dive['currentStrength'], CurrentStrength.strong);
+      expect(dive['currentStrength'], CurrentStrength.light);
       expect(dive['rating'], 3);
+    });
+
+    // Subsurface rates every dive condition on a comfort scale: five stars is
+    // the most comfortable (no current), one star the least (strongest
+    // current). The mapping must run the other way round from visibility's.
+    for (final (stars, expected) in [
+      (1, CurrentStrength.strong),
+      (2, CurrentStrength.strong),
+      (3, CurrentStrength.moderate),
+      (4, CurrentStrength.light),
+      (5, CurrentStrength.none),
+    ]) {
+      test('maps current=$stars stars to $expected', () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' current='$stars' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        expect(dive['currentStrength'], expected);
+      });
+    }
+
+    test('leaves currentStrength unset when current is absent', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      expect(dive.containsKey('currentStrength'), isFalse);
     });
 
     test('maps watersalinity to WaterType', () async {
@@ -1879,7 +1926,7 @@ $diveXml
       final buddies = result.entitiesOf(ImportEntityType.buddies);
       expect(buddies.length, greaterThanOrEqualTo(2));
       expect(dive1['visibility'], Visibility.poor);
-      expect(dive1['currentStrength'], CurrentStrength.strong);
+      expect(dive1['currentStrength'], CurrentStrength.light);
       expect(dive1['waterType'], WaterType.salt);
 
       final profile = dive1['profile'] as List<Map<String, dynamic>>?;

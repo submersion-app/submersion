@@ -36,6 +36,8 @@ class GarminDiveMapper {
     required int activityId,
     double? fallbackLatitude,
     double? fallbackLongitude,
+    double? fallbackExitLatitude,
+    double? fallbackExitLongitude,
   }) {
     final tanks = _mapTanks(imported.tanks);
     final gasSwitches = _mapGasSwitches(imported.gasSwitches);
@@ -59,6 +61,19 @@ class GarminDiveMapper {
         ? imported.longitude
         : (hasFallbackEntryPosition ? fallbackLongitude : null);
 
+    // The exit position works the same way: the FIT file's own end position
+    // needs a fix after surfacing, and Connect's end estimate covers the gap.
+    final hasFitExitPosition =
+        imported.exitLatitude != null && imported.exitLongitude != null;
+    final hasFallbackExitPosition =
+        fallbackExitLatitude != null && fallbackExitLongitude != null;
+    final exitLatitude = hasFitExitPosition
+        ? imported.exitLatitude
+        : (hasFallbackExitPosition ? fallbackExitLatitude : null);
+    final exitLongitude = hasFitExitPosition
+        ? imported.exitLongitude
+        : (hasFallbackExitPosition ? fallbackExitLongitude : null);
+
     final dive = DownloadedDive(
       diveNumber: imported.diveNumber,
       startTime: imported.startTime,
@@ -69,8 +84,8 @@ class GarminDiveMapper {
       maxTemperature: imported.maxTemperature,
       entryLatitude: entryLatitude,
       entryLongitude: entryLongitude,
-      exitLatitude: imported.exitLatitude,
-      exitLongitude: imported.exitLongitude,
+      exitLatitude: exitLatitude,
+      exitLongitude: exitLongitude,
       profile: profile,
       tanks: tanks,
       gasSwitches: gasSwitches,
