@@ -115,6 +115,8 @@ TripCylinderState foldCylinderState({
         ? null
         : DateTime.fromMillisecondsSinceEpoch(last.at, isUtc: true),
     linkedDiveCount: uses.map((u) => u.diveId).toSet().length,
+    lastEvent: last?.event,
+    lastUse: last?.use,
   );
 }
 

@@ -2,7 +2,7 @@ import 'package:drift/drift.dart' show Value, Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
-    show AppDatabase, DivesCompanion, DiveTanksCompanion;
+    show AppDatabase, DiveSitesCompanion, DivesCompanion, DiveTanksCompanion;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
@@ -378,5 +378,50 @@ void main() {
       use.entryTime,
       DateTime.fromMillisecondsSinceEpoch(t0 + 7200000, isUtc: true),
     );
+  });
+
+  group('board follow-ups', () {
+    test('a tank use carries its dive site name', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion.insert(
+              id: 's1',
+              name: 'Salt Pier',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      await insertDiveWithTank(
+        diveId: 'd1',
+        tankId: 't1',
+        entryMillis: at.millisecondsSinceEpoch,
+        cylinderId: a.id,
+      );
+      await db.customUpdate("UPDATE dives SET site_id = 's1' WHERE id = 'd1'");
+
+      final uses = await repository.getTankUsesForTrip(tripId);
+      expect(uses[a.id]!.single.siteName, 'Salt Pier');
+    });
+
+    test('reorder rewrites board order and stages only moved rows', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      final b = await repository.createCylinder(slot(label: 'B', sortOrder: 1));
+      final c = await repository.createCylinder(slot(label: 'C', sortOrder: 2));
+      await db.customStatement("DELETE FROM sync_records");
+
+      await repository.reorderCylinders([c.id, a.id, b.id]);
+
+      final listed = await repository.getCylindersForTrip(tripId);
+      expect(listed.map((x) => x.label), ['C', 'A', 'B']);
+      expect(await pendingCountFor('tripCylinders', c.id), 1);
+      expect(await pendingCountFor('tripCylinders', a.id), 1);
+      expect(await pendingCountFor('tripCylinders', b.id), 1);
+
+      await db.customStatement("DELETE FROM sync_records");
+      await repository.reorderCylinders([c.id, a.id, b.id]);
+      expect(await pendingCountFor('tripCylinders', a.id), 0);
+    });
   });
 }

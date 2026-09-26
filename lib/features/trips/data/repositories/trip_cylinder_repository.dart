@@ -205,6 +205,44 @@ class TripCylinderRepository {
     }
   }
 
+  /// Rewrites board order to match [orderedIds]. Only rows whose position
+  /// changed are written and staged, so a no-op reorder syncs nothing.
+  Future<void> reorderCylinders(List<String> orderedIds) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await _db.transaction(() async {
+        for (var i = 0; i < orderedIds.length; i++) {
+          final id = orderedIds[i];
+          final changed =
+              await (_db.update(_db.tripCylinders)..where(
+                    (t) => t.id.equals(id) & t.sortOrder.equals(i).not(),
+                  ))
+                  .write(
+                    TripCylindersCompanion(
+                      sortOrder: Value(i),
+                      updatedAt: Value(now),
+                    ),
+                  );
+          if (changed > 0) {
+            await _syncRepository.markRecordPending(
+              entityType: 'tripCylinders',
+              recordId: id,
+              localUpdatedAt: now,
+            );
+          }
+        }
+      });
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to reorder cylinders',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   // --------------------------------------------------------------- events
 
   /// The whole ledger of a trip, keyed by slot id, each list in time order.
@@ -361,16 +399,22 @@ class TripCylinderRepository {
           SELECT t.id AS tank_id, t.dive_id,
                  COALESCE(d.entry_time, d.dive_date_time) AS entry_ms,
                  t.start_pressure, t.end_pressure, t.o2_percent, t.he_percent,
-                 t.trip_cylinder_id
+                 t.trip_cylinder_id, s.name AS site_name
           FROM dive_tanks t
           JOIN dives d ON d.id = t.dive_id
+          LEFT JOIN dive_sites s ON s.id = d.site_id
           WHERE d.trip_id = ?1
             AND t.trip_cylinder_id IN
                 (SELECT id FROM trip_cylinders WHERE trip_id = ?1)
           ORDER BY entry_ms ASC, t.tank_order ASC
           ''',
           variables: [Variable.withString(tripId)],
-          readsFrom: {_db.diveTanks, _db.dives, _db.tripCylinders},
+          readsFrom: {
+            _db.diveTanks,
+            _db.dives,
+            _db.tripCylinders,
+            _db.diveSites,
+          },
         )
         .get();
     final out = <String, List<TripCylinderTankUse>>{};
@@ -388,6 +432,7 @@ class TripCylinderRepository {
           o2: r.read<double>('o2_percent'),
           he: r.read<double>('he_percent'),
         ),
+        siteName: r.readNullable<String>('site_name'),
       );
       (out[r.read<String>('trip_cylinder_id')] ??= []).add(use);
     }

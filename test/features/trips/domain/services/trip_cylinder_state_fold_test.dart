@@ -390,4 +390,26 @@ void main() {
       expect(pick!.id, 'first');
     });
   });
+
+  group('the last item', () {
+    test('the last item is the event when an event came last', () {
+      final f = fill(120, label: '14');
+      final s = fold(events: [f], uses: [dive(60)]);
+      expect(s.lastEvent, f);
+      expect(s.lastUse, isNull);
+    });
+
+    test('the last item is the tank use when a dive came last', () {
+      final d = dive(60);
+      final s = fold(events: [fill(0)], uses: [d]);
+      expect(s.lastUse, d);
+      expect(s.lastEvent, isNull);
+    });
+
+    test('an untouched slot has no last item', () {
+      final s = fold();
+      expect(s.lastEvent, isNull);
+      expect(s.lastUse, isNull);
+    });
+  });
 }
