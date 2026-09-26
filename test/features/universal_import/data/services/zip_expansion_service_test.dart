@@ -234,6 +234,24 @@ void main() {
       expect(expansion.photoPathsByBaseName['dive'], hasLength(1));
     });
 
+    test('extracts the FIT file from a Garmin Connect export ZIP', () async {
+      // Connect's "Export Original" wraps one activity's FIT file in a ZIP
+      // named after the activity; it used to expand to nothing (#1635).
+      final fit = File(
+        p.join('test', 'dives', '005_oc-trimix-two-deco-gases.fit'),
+      ).readAsBytesSync();
+      final bytes = _buildZip({'21874512345_ACTIVITY.fit': fit});
+
+      final expansion = await service.expandZipBytes(bytes, '21874512345.zip');
+
+      expect(expansion.filePaths, hasLength(1));
+      expect(
+        p.basename(expansion.filePaths.single),
+        '21874512345_ACTIVITY.fit',
+      );
+      expect(File(expansion.filePaths.single).readAsBytesSync(), fit);
+    });
+
     // expandZipBytes is public and does not require callers to have run
     // isZipBytes first, so the signature probe must be length-guarded rather
     // than indexing bytes[2]/bytes[3] blind.

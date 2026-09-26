@@ -10334,6 +10334,149 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get divelogsImport_fetch_button => 'جلب سجل الغوص';
+
+  @override
+  String get divelogsImport_fetch_certificationsUnavailable =>
+      'تعذّر جلب الشهادات ولن يتم استيرادها.';
+
+  @override
+  String get divelogsImport_fetch_empty =>
+      'لا يوجد في سجل divelogs.de الخاص بك ما يمكن استيراده.';
+
+  @override
+  String get divelogsImport_fetch_failedTitle => 'تعذّر جلب سجلك';
+
+  @override
+  String get divelogsImport_fetch_fetching => 'جارٍ جلب سجلك…';
+
+  @override
+  String divelogsImport_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم العثور على $count غوصة',
+      many: 'تم العثور على $count غوصة',
+      few: 'تم العثور على $count غوصات',
+      two: 'تم العثور على $count غوصتين',
+      one: 'تم العثور على $count غوصة',
+      zero: 'لم يتم العثور على أي غوصة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divelogsImport_fetch_foundPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة للاستيراد',
+      many: '$count صورة للاستيراد',
+      few: '$count صور للاستيراد',
+      two: '$count صورتان للاستيراد',
+      one: '$count صورة للاستيراد',
+      zero: 'لا توجد صور لاستيرادها',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_gearUnavailable =>
+      'تعذّر جلب المعدات؛ سيتم استيراد الغوصات بدون روابط المعدات.';
+
+  @override
+  String get divelogsImport_fetch_includePhotos => 'تضمين الصور';
+
+  @override
+  String get divelogsImport_fetch_includePhotosHint =>
+      'يتم تنزيل الصور أثناء الاستيراد إلى مجلد تختاره.';
+
+  @override
+  String divelogsImport_fetch_listingPhotos(int current, int total) {
+    return 'جارٍ سرد صور الغوصة $current من $total…';
+  }
+
+  @override
+  String divelogsImport_fetch_photoListingsFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذّر سرد صور $count غوصة.',
+      many: 'تعذّر سرد صور $count غوصة.',
+      few: 'تعذّر سرد صور $count غوصات.',
+      two: 'تعذّر سرد صور $count غوصتين.',
+      one: 'تعذّر سرد صور $count غوصة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_retry => 'إعادة المحاولة';
+
+  @override
+  String get divelogsImport_fetch_sessionExpired =>
+      'انتهت صلاحية جلستك على divelogs.de. عُد وسجّل الدخول مرة أخرى.';
+
+  @override
+  String divelogsImport_fetch_skippedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذّرت قراءة $count غوصة وسيتم تخطيها.',
+      many: 'تعذّرت قراءة $count غوصة وسيتم تخطيها.',
+      few: 'تعذّرت قراءة $count غوصات وسيتم تخطيها.',
+      two: 'تعذّرت قراءة $count غوصتين وسيتم تخطيهما.',
+      one: 'تعذّرت قراءة $count غوصة وسيتم تخطيها.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_signIn_badCredentials =>
+      'رفض divelogs.de اسم المستخدم أو كلمة المرور.';
+
+  @override
+  String get divelogsImport_signIn_button => 'تسجيل الدخول';
+
+  @override
+  String get divelogsImport_signIn_description =>
+      'سجّل الدخول بحساب divelogs.de الخاص بك لاستيراد سجلك. لا يتم تخزين كلمة المرور مطلقًا، بل يتم تخزين الجلسة الناتجة مؤقتًا فقط.';
+
+  @override
+  String get divelogsImport_signIn_passwordLabel => 'كلمة المرور';
+
+  @override
+  String get divelogsImport_signIn_passwordRequired => 'كلمة المرور مطلوبة';
+
+  @override
+  String divelogsImport_signIn_signedInAs(String username) {
+    return 'تم تسجيل الدخول باسم $username';
+  }
+
+  @override
+  String get divelogsImport_signIn_signingIn => 'جارٍ تسجيل الدخول…';
+
+  @override
+  String get divelogsImport_signIn_signOut => 'تسجيل الخروج';
+
+  @override
+  String get divelogsImport_signIn_title => 'تسجيل الدخول إلى divelogs.de';
+
+  @override
+  String get divelogsImport_signIn_unexpected =>
+      'أرسل divelogs.de استجابة غير متوقعة. حاول مرة أخرى لاحقًا.';
+
+  @override
+  String get divelogsImport_signIn_unreachable =>
+      'تعذّر الوصول إلى divelogs.de. تحقق من الاتصال وحاول مرة أخرى.';
+
+  @override
+  String get divelogsImport_signIn_usernameLabel => 'اسم المستخدم';
+
+  @override
+  String get divelogsImport_signIn_usernameRequired => 'اسم المستخدم مطلوب';
+
+  @override
   String get divers_detail_activeDiver => 'الغواص النشط';
 
   @override
@@ -11674,6 +11817,214 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get passport_title => 'جواز الأسطوانة';
+
+  @override
+  String get passport_open => 'افتح الجواز';
+
+  @override
+  String get passport_entry_noFill => 'لم تُسجَّل أي تعبئة';
+
+  @override
+  String passport_entry_lastFillNoPressure(String mix, String date) {
+    return '$mix، $date';
+  }
+
+  @override
+  String passport_entry_lastFill(String mix, String pressure, String date) {
+    return '$mix عند $pressure، $date';
+  }
+
+  @override
+  String get passport_spec_title => 'الأسطوانة';
+
+  @override
+  String passport_spec_freeGas(String pressure) {
+    return 'الغاز الحر عند $pressure';
+  }
+
+  @override
+  String get passport_spec_buoyancyEmpty => 'الطفو وهي فارغة';
+
+  @override
+  String get passport_spec_buoyancyFull => 'الطفو وهي ممتلئة';
+
+  @override
+  String get passport_service_title => 'الصيانة';
+
+  @override
+  String get passport_service_notTracked => 'غير متابَع';
+
+  @override
+  String get passport_service_neverRecorded => 'لم يُسجَّل قط';
+
+  @override
+  String get passport_service_trackO2Clean => 'متابعة تنظيف الأكسجين';
+
+  @override
+  String get passport_service_trackFailed =>
+      'تعذّر بدء متابعة تنظيف الأكسجين. حاول مرة أخرى.';
+
+  @override
+  String passport_service_lastDone(String date) {
+    return 'آخر مرة $date';
+  }
+
+  @override
+  String passport_o2Warning_untracked(String o2) {
+    return 'آخر تعبئة تحوي $o2 أكسجين، وهذه الأسطوانة غير متابَعة كنظيفة للأكسجين.';
+  }
+
+  @override
+  String passport_o2Warning_overdue(String o2) {
+    return 'آخر تعبئة تحوي $o2 أكسجين، وتنظيف الأكسجين لهذه الأسطوانة متأخر.';
+  }
+
+  @override
+  String get passport_fill_title => 'التعبئة الحالية';
+
+  @override
+  String get passport_fill_none => 'لم تُسجَّل أي تعبئة بعد';
+
+  @override
+  String get passport_fill_log => 'تسجيل تعبئة';
+
+  @override
+  String passport_fill_mod(String depth, String ppo2) {
+    return 'MOD $depth عند ppO2 $ppo2';
+  }
+
+  @override
+  String passport_fill_end(String depth) {
+    return 'END $depth عند MOD العمل';
+  }
+
+  @override
+  String passport_fill_station(String station) {
+    return 'عبّأها $station';
+  }
+
+  @override
+  String passport_fill_analyzer(String analyzer) {
+    return 'حُلِّلت بجهاز $analyzer';
+  }
+
+  @override
+  String passport_fill_analysis(String o2, String he) {
+    return 'O2 $o2، He $he';
+  }
+
+  @override
+  String passport_fill_temperature(String temperature) {
+    return 'درجة حرارة الغاز $temperature';
+  }
+
+  @override
+  String get passport_fill_unsigned => 'غير موقَّعة';
+
+  @override
+  String get passport_history_title => 'سجل التعبئة';
+
+  @override
+  String passport_history_sinceHydro(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تعبئات منذ آخر اختبار هيدروستاتيكي',
+      one: '$count تعبئة منذ آخر اختبار هيدروستاتيكي',
+      zero: 'لا تعبئات منذ آخر اختبار هيدروستاتيكي',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_history_delete => 'حذف التعبئة';
+
+  @override
+  String get passport_history_deleteConfirm => 'هل تريد حذف سجل التعبئة هذا؟';
+
+  @override
+  String get passport_tag_title => 'البطاقة';
+
+  @override
+  String passport_tag_written(String date) {
+    return 'كُتبت في $date';
+  }
+
+  @override
+  String get passport_tag_stale =>
+      'كُتبت البطاقة قبل آخر صيانة أو تغيير في المواصفات. أعد طباعتها.';
+
+  @override
+  String get passport_tag_printLabel => 'طباعة الملصق';
+
+  @override
+  String get passport_tag_printLabels => 'طباعة الملصقات';
+
+  @override
+  String get passport_tag_qrSemantics => 'رمز QR للجواز';
+
+  @override
+  String get passport_tag_printFailed => 'تعذّر إنشاء الملصقات. حاول مرة أخرى.';
+
+  @override
+  String get passport_tag_linkExisting => 'ربط بطاقة موجودة';
+
+  @override
+  String get passport_tag_linkPrompt => 'الصق الرابط من البطاقة';
+
+  @override
+  String get passport_tag_linkInvalid => 'هذه ليست بطاقة أسطوانة';
+
+  @override
+  String get passport_tag_linkFailed => 'تعذّر ربط البطاقة. حاول مرة أخرى.';
+
+  @override
+  String passport_tag_linkInUse(String name) {
+    return 'هذه البطاقة تعود بالفعل إلى $name';
+  }
+
+  @override
+  String get passport_tag_linked => 'تم ربط البطاقة';
+
+  @override
+  String get passport_logFill_date => 'تاريخ التعبئة';
+
+  @override
+  String get passport_logFill_time => 'الوقت';
+
+  @override
+  String get passport_logFill_o2 => 'O2 (%)';
+
+  @override
+  String get passport_logFill_he => 'He (%)';
+
+  @override
+  String get passport_logFill_pressure => 'ضغط التعبئة';
+
+  @override
+  String get passport_logFill_temperature => 'درجة حرارة الغاز';
+
+  @override
+  String get passport_logFill_station => 'محطة التعبئة';
+
+  @override
+  String get passport_logFill_analyzer => 'جهاز التحليل';
+
+  @override
+  String get passport_logFill_notes => 'ملاحظات';
+
+  @override
+  String get passport_logFill_invalidMix =>
+      'يجب أن يكون كل من O2 وHe بين 0 و100 وألا يتجاوز مجموعهما 100';
+
+  @override
+  String get passport_logFill_invalidNumber => 'أدخل رقمًا';
+
+  @override
+  String get passport_logFill_saveFailed => 'تعذّر حفظ التعبئة. حاول مرة أخرى.';
 
   @override
   String equipment_bulkTags_confirmAdding(int count) {
@@ -13591,7 +13942,203 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_mod_aboutMod => 'حول MOD';
 
   @override
-  String get gasCalculators_mod_aboutModBody => 'أقل O₂ = أعمق MOD = أقصر NDL';
+  String get gasCalculators_mod_mode => 'الوضع';
+
+  @override
+  String get gasCalculators_mod_modeRecHint =>
+      'نيتروكس للغوص الترفيهي: MOD و EAD، بمعدل 1 بار لكل 10 م كما في السجل.';
+
+  @override
+  String get gasCalculators_mod_modeOcTecHint =>
+      'ترايمكس في الدائرة المفتوحة: MOD والعمق الأدنى والتخدير وكثافة الغاز.';
+
+  @override
+  String get gasCalculators_mod_modeCcrTecHint =>
+      'الدائرة المغلقة: الخليط هو غاز التخفيف. الـ MOD هو لغاز التخفيف عند الشطف؛ والحلقة تحافظ على نقطة الضبط.';
+
+  @override
+  String get gasCalculators_mod_heliumHe => 'الهيليوم (He)';
+
+  @override
+  String get gasCalculators_mod_setpoint => 'نقطة الضبط (بار)';
+
+  @override
+  String get gasCalculators_mod_limitsTitle => 'حدود ppO₂';
+
+  @override
+  String get gasCalculators_mod_workingPpO2 => 'ppO₂ العمل';
+
+  @override
+  String get gasCalculators_mod_decoPpO2 => 'ppO₂ تخفيف الضغط';
+
+  @override
+  String get gasCalculators_mod_flushPpO2 => 'ppO₂ لـ MOD غاز التخفيف (الشطف)';
+
+  @override
+  String get gasCalculators_mod_minPpO2 =>
+      'الحد الأدنى لـ ppO₂ (الخلائط ناقصة الأكسجين)';
+
+  @override
+  String get gasCalculators_mod_fromProfile => 'من ملف الغواص الخاص بك';
+
+  @override
+  String gasCalculators_mod_differsFromProfile(String value) {
+    return 'يختلف عن ملفك ($value بار)';
+  }
+
+  @override
+  String get gasCalculators_mod_useProfileValue => 'استخدام قيمة الملف';
+
+  @override
+  String get gasCalculators_mod_checkTargetDepth => 'فحص عمق مستهدف أيضًا';
+
+  @override
+  String get gasCalculators_mod_targetDepth => 'العمق المستهدف';
+
+  @override
+  String get gasCalculators_mod_diluentMod => 'MOD غاز التخفيف (الشطف)';
+
+  @override
+  String gasCalculators_mod_contingencyMod(String ppO2) {
+    return 'MOD الطوارئ عند $ppO2 بار';
+  }
+
+  @override
+  String gasCalculators_mod_decoMod(String ppO2) {
+    return 'MOD عند ppO₂ تخفيف الضغط $ppO2 بار';
+  }
+
+  @override
+  String gasCalculators_mod_minDepth(String ppO2) {
+    return 'العمق الأدنى عند ppO₂ $ppO2 بار';
+  }
+
+  @override
+  String get gasCalculators_mod_fromSurface => 'من السطح';
+
+  @override
+  String gasCalculators_mod_mnd(String limit) {
+    return 'MND (حد END $limit)';
+  }
+
+  @override
+  String get gasCalculators_mod_noNarcoticLimit => 'بلا حد';
+
+  @override
+  String get gasCalculators_mod_atDepthTitle => 'على العمق';
+
+  @override
+  String get gasCalculators_mod_atMod => 'عند MOD';
+
+  @override
+  String get gasCalculators_mod_atTarget => 'عند العمق المستهدف';
+
+  @override
+  String get gasCalculators_mod_rowDepth => 'العمق';
+
+  @override
+  String get gasCalculators_mod_rowPpO2 => 'ppO₂';
+
+  @override
+  String get gasCalculators_mod_rowEad => 'EAD (N₂ مخدر)';
+
+  @override
+  String get gasCalculators_mod_rowEnd => 'END (N₂ + O₂ مخدران)';
+
+  @override
+  String get gasCalculators_mod_rowEadd => 'EADD (كثافة الهواء)';
+
+  @override
+  String get gasCalculators_mod_rowDensity => 'كثافة الغاز عند 0 °C';
+
+  @override
+  String get gasCalculators_mod_openDensity => 'فتح في حاسبة كثافة الغاز';
+
+  @override
+  String get gasCalculators_mod_assessmentTitle => 'التقييم';
+
+  @override
+  String gasCalculators_mod_recBeyondLimit(String limit) {
+    return 'الـ MOD أعمق من الحد الترفيهي البالغ $limit. هناك يحدد التخدير وكثافة الغاز الحد، لا الأكسجين.';
+  }
+
+  @override
+  String gasCalculators_mod_recWithinLimit(String limit) {
+    return 'الـ MOD ضمن الحد الترفيهي البالغ $limit.';
+  }
+
+  @override
+  String gasCalculators_mod_targetBeyondMod(String ppO2) {
+    return 'العمق المستهدف أعمق من الـ MOD: ppO₂ $ppO2 بار هناك.';
+  }
+
+  @override
+  String get gasCalculators_mod_targetAboveMinDepth =>
+      'العمق المستهدف أقل من العمق الأدنى: الخليط ناقص الأكسجين هناك.';
+
+  @override
+  String gasCalculators_mod_hypoxic(String depth) {
+    return 'خليط ناقص الأكسجين: لا تتنفسه أقل عمقًا من $depth.';
+  }
+
+  @override
+  String gasCalculators_mod_narcosisExceeded(
+    String where,
+    String depth,
+    String limit,
+  ) {
+    return '$where: العمق المخدر $depth يتجاوز حد END لديك البالغ $limit.';
+  }
+
+  @override
+  String gasCalculators_mod_densityWarn(
+    String where,
+    String density,
+    String limit,
+  ) {
+    return '$where: كثافة الغاز $density غ/ل أعلى من $limit غ/ل الموصى بها.';
+  }
+
+  @override
+  String gasCalculators_mod_densityCritical(
+    String where,
+    String density,
+    String limit,
+  ) {
+    return '$where: كثافة الغاز $density غ/ل أعلى من الحد الأقصى البالغ $limit غ/ل.';
+  }
+
+  @override
+  String gasCalculators_mod_targetBeyondDiluentMod(String ppO2) {
+    return 'العمق المستهدف أعمق من MOD غاز التخفيف: الشطف هناك يعطي ppO₂ $ppO2 بار.';
+  }
+
+  @override
+  String gasCalculators_mod_diluentAboveSetpoint(String where, String ppO2) {
+    return '$where: غاز التخفيف وحده يعطي ppO₂ $ppO2 بار، أكثر من نقطة الضبط؛ الحلقة تعمل بـ ppO₂ غاز التخفيف.';
+  }
+
+  @override
+  String gasCalculators_mod_setpointCapped(String where) {
+    return '$where: نقطة الضبط أعلى من الضغط المحيط، الحلقة أكسجين نقي.';
+  }
+
+  @override
+  String get gasCalculators_mod_allClear =>
+      'ضمن حدود ppO₂ و END والكثافة لديك في الأعماق المفحوصة.';
+
+  @override
+  String get gasCalculators_mod_aboutModesBody =>
+      'الـ MOD هو العمق الذي يبلغ فيه الخليط حد ppO₂. يُقرَّب دائمًا للأسفل، ولا يُقرَّب للأعلى أبدًا.\n\nيستخدم Rec بارًا واحدًا لكل 10 م، مثل السجل. يأخذ OC Tec و CCR Tec الضغط المحيط من نوع الماء، مثل حاسبة كثافة الغاز، لذلك قد يظهر الخليط نفسه هناك بـ MOD أقل عمقًا بقليل.\n\nتعد EAD النيتروجين مخدرًا، و END النيتروجين والأكسجين. حد END لديك، واعتبار الأكسجين مخدرًا، وحدود ppO₂ الافتراضية تأتي من ملف الغواص الخاص بك.';
+
+  @override
+  String get gasCalculators_mod_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_mod_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_mod_modeCcrTec => 'CCR Tec';
 
   @override
   String get gasCalculators_mod_inputParameters => 'معاملات الإدخال';
@@ -15975,7 +16522,64 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_library_viewMode_grid => 'شبكة';
 
   @override
+  String get media_library_viewMode_map => 'خريطة';
+
+  @override
   String get media_library_viewMode_timeline => 'الخط الزمني';
+
+  @override
+  String get media_map_closeStrip => 'إغلاق';
+
+  @override
+  String media_map_clusterSemantics(int count, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر في $place',
+      two: 'عنصران في $place',
+      one: 'عنصر واحد في $place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_map_emptyHint =>
+      'تُوضع الصور ومقاطع الفيديو حسب إحداثيات GPS الخاصة بها، أو نقطة دخول الغوصة، أو موقع الغوص.';
+
+  @override
+  String get media_map_emptyTitle => 'لا توجد وسائط لها موقع';
+
+  @override
+  String media_map_errorLoading(String error) {
+    return 'خطأ في تحميل مواقع الوسائط: $error';
+  }
+
+  @override
+  String get media_map_markerSemantics => 'فتح الوسائط';
+
+  @override
+  String media_map_placeItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر',
+      two: 'عنصران',
+      one: 'عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_map_unlocatedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر بلا موقع',
+      two: 'عنصران بلا موقع',
+      one: 'عنصر واحد بلا موقع',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get media_viewer_goToDive => 'الانتقال إلى الغطسة';
@@ -18331,7 +18935,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_decompression_ppO2LimitsTitle =>
-      'حدود الضغط الجزئي للأكسجين';
+      'حدود الضغط الجزئي للأكسجين OC';
 
   @override
   String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
@@ -18340,7 +18944,46 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_decompression_ppO2Dialog_title =>
-      'حدود الضغط الجزئي للأكسجين';
+      'حدود الضغط الجزئي للأكسجين OC';
+
+  @override
+  String get settings_decompression_ccrPpO2LimitsTitle =>
+      'حدود الضغط الجزئي للأكسجين CCR';
+
+  @override
+  String settings_decompression_ccrPpO2LimitsSubtitle(
+    String low,
+    String high,
+    String dil,
+  ) {
+    return 'نقطة الضبط المنخفضة $low · المرتفعة $high · MOD التخفيف $dil بار';
+  }
+
+  @override
+  String get settings_decompression_ccrDialog_info =>
+      'القيم الافتراضية لغطسات الدائرة المغلقة. يبدأ وضع CCR في حاسبة MOD من هذه القيم.';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLow =>
+      'نقطة الضبط المنخفضة';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLowHint =>
+      'قرب السطح، أثناء النزول والصعود';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHigh =>
+      'نقطة الضبط المرتفعة';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHighHint => 'على العمق';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentMod => 'MOD غاز التخفيف';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentModHint =>
+      'ppO2 الذي قد يبلغه غاز التخفيف عند الشطف؛ يحدد الـ MOD الخاص به';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>
@@ -21112,6 +21755,20 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يمكن الكتابة في هذا المجلد. اختر مجلدًا آخر.';
 
   @override
+  String importWizard_photos_downloadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة للتنزيل',
+      many: '$count صورة للتنزيل',
+      few: '$count صور للتنزيل',
+      two: '$count صورتان للتنزيل',
+      one: '$count صورة للتنزيل',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String importWizard_review_olderDivesSkipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -23589,6 +24246,63 @@ class AppLocalizationsAr extends AppLocalizations {
       'أشارت هذه الغطسات إلى موقع غوص لا يصفه الملف، فاستُوردت بدون موقع. يمكنك تعيين موقع بتحرير الغطسة.';
 
   @override
+  String get universalImport_summary_noticeGearUnavailableTitle =>
+      'لم يتم استيراد المعدات';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableBody =>
+      'تعذّر جلب قائمة المعدات، لذا لم يتم استيراد أي معدات ولم تُربط الغطسات بمعداتها. استورد مجددًا لاحقًا لإضافتها.';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableTitle =>
+      'لم يتم استيراد الشهادات';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableBody =>
+      'تعذّر جلب قائمة الشهادات، لذا لم يتم استيراد أي شهادات. استورد مجددًا لاحقًا لإضافتها.';
+
+  @override
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
+      'تعذّر سرد بعض الصور';
+
+  @override
+  String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذّر سرد صور $count غطسة، لذا لم يتم استيرادها.',
+      many: 'تعذّر سرد صور $count غطسة، لذا لم يتم استيرادها.',
+      few: 'تعذّر سرد صور $count غطسات، لذا لم يتم استيرادها.',
+      two: 'تعذّر سرد صور $count غطستين، لذا لم يتم استيرادها.',
+      one: 'تعذّر سرد صور $count غطسة، لذا لم يتم استيرادها.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosNotDownloadedTitle =>
+      'لم يتم تنزيل بعض الصور';
+
+  @override
+  String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'تعذّر تنزيل $count صورة. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
+      many:
+          'تعذّر تنزيل $count صورة. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
+      few:
+          'تعذّر تنزيل $count صور. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
+      two:
+          'تعذّر تنزيل $count صورتين. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
+      one:
+          'تعذّر تنزيل $count صورة. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'الشهادات وسجلات الصيانة غير موجودة في الملف';
 
@@ -23659,6 +24373,9 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get universalImport_summary_importAsRoute => 'استيراد كمسار';
 
   @override
   String get universalImport_summary_fileNeedsIndividualImport =>
@@ -27537,6 +28254,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dive3d_seascape_overlay_walls => 'جدران شديدة الانحدار';
 
   @override
+  String get dive3d_seascape_showRoute => 'إظهار المسار';
+
+  @override
   String get dive3d_overlay_water => 'سطح الماء';
 
   @override
@@ -27819,6 +28539,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dive3d_spatial_estimatedPath => 'مسار مقدّر (الحساب الاستدلالي)';
+
+  @override
+  String get dive3d_spatial_recordedPath => 'مسار مسجّل';
+
+  @override
+  String dive3d_spatial_recordedPathWithSource(String source) {
+    return 'مسار مسجّل ($source)';
+  }
 
   @override
   String get dive3d_spatial_synthesizedSeafloor => 'قاع بحر مُركّب';
@@ -28112,6 +28840,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_last_hydro_test => 'آخر اختبار هيدروستاتيكي';
 
   @override
+  String get attrLabel_passport_id => 'معرّف جواز الأسطوانة';
+
+  @override
   String get attrLabel_connection => 'التوصيل';
 
   @override
@@ -28236,6 +28967,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrLabel_speed_mps => 'السرعة القصوى';
+
+  @override
+  String get attrLabel_tow_burn_factor => 'معامل استهلاك البطارية أثناء السحب';
+
+  @override
+  String get attrLabel_tow_speed_factor => 'معامل السرعة أثناء السحب';
 
   @override
   String get attrLabel_sku => 'رمز المنتج (SKU)';
@@ -40871,6 +41608,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'استيراد الغوصات من حساب Garmin Connect الخاص بك';
 
   @override
+  String get transfer_importCloud_divelogsTitle => 'divelogs.de';
+
+  @override
+  String get transfer_importCloud_divelogsSubtitle =>
+      'استيراد سجلك ومواقعك ومعداتك وشهاداتك وصورك من divelogs.de';
+
+  @override
   String get transfer_section_cloudTitle => 'السحابة';
 
   @override
@@ -41525,6 +42269,416 @@ class AppLocalizationsAr extends AppLocalizations {
       'كيفية تجميع المعدات وترتيبها في الغوصة';
 
   @override
+  String get navTrack_common_loadError => 'تعذر تحميل هذا المسار.';
+
+  @override
+  String get navTrack_common_notFound => 'المسار غير موجود.';
+
+  @override
+  String get navTrack_common_cancel => 'إلغاء';
+
+  @override
+  String get navTrack_common_save => 'حفظ';
+
+  @override
+  String get navTrack_common_delete => 'حذف';
+
+  @override
+  String get navTrack_common_unlink => 'إلغاء الربط';
+
+  @override
+  String get navTrack_common_open3dTooltip => 'فتح ثلاثي الأبعاد';
+
+  @override
+  String navTrack_common_diveNumber(String number) {
+    return 'الغطسة رقم $number';
+  }
+
+  @override
+  String navTrack_common_diveById(String id) {
+    return 'الغطسة $id';
+  }
+
+  @override
+  String get navTrack_common_unlinked => 'غير مرتبط';
+
+  @override
+  String get navTrack_align_title => 'المحاذاة على الخريطة';
+
+  @override
+  String get navTrack_align_resetTooltip => 'إعادة تعيين التصحيح';
+
+  @override
+  String get navTrack_align_setStartHere => 'تعيين البداية هنا';
+
+  @override
+  String get navTrack_align_setEndHere => 'تعيين النهاية هنا';
+
+  @override
+  String get navTrack_align_setStartOnMap => 'تعيين البداية على الخريطة';
+
+  @override
+  String get navTrack_align_fromDiveEntry => 'من نقطة دخول الغطسة';
+
+  @override
+  String get navTrack_align_fromSite => 'من موقع الغوص';
+
+  @override
+  String get navTrack_align_fromGps => 'من GPS';
+
+  @override
+  String get navTrack_align_startLabel => 'البداية: ';
+
+  @override
+  String get navTrack_align_endLabel => 'النهاية: ';
+
+  @override
+  String get navTrack_align_endMode_none => 'بلا';
+
+  @override
+  String get navTrack_align_endMode_sameAsStart => 'مثل البداية';
+
+  @override
+  String get navTrack_align_endMode_point => 'التعيين على الخريطة';
+
+  @override
+  String get navTrack_align_endMode_gpsFix => 'من إصلاح GPS';
+
+  @override
+  String navTrack_align_trustSummary(String distance, int minutes) {
+    return 'الموثوقية: موثوق حتى $distance، $minutes دقيقة';
+  }
+
+  @override
+  String get navTrack_align_rotationLabel => 'الدوران:';
+
+  @override
+  String navTrack_align_rotationDegrees(String degrees) {
+    return '$degrees°';
+  }
+
+  @override
+  String navTrack_terrain_summary(
+    int onLand,
+    int below,
+    int total,
+    int unknown,
+    String maxPart,
+    String coarsePart,
+  ) {
+    return '$onLand نقاط على اليابسة، $below من $total تحت قاع البحر$maxPart، $unknown غير معروفة$coarsePart';
+  }
+
+  @override
+  String navTrack_terrain_maxPart(String depth) {
+    return ' (بحد أقصى $depth)';
+  }
+
+  @override
+  String get navTrack_terrain_coarsePart =>
+      ' (قياس أعماق منخفض الدقة: تم فحص تعارضات اليابسة فقط)';
+
+  @override
+  String get navTrack_detail_renameTitle => 'إعادة تسمية المسار';
+
+  @override
+  String get navTrack_detail_deleteTitle => 'حذف المسار؟';
+
+  @override
+  String get navTrack_detail_deleteMessage => 'لا يمكن التراجع عن هذا.';
+
+  @override
+  String get navTrack_detail_defaultTitle => 'مسار';
+
+  @override
+  String get navTrack_detail_menuRename => 'إعادة التسمية';
+
+  @override
+  String get navTrack_detail_menuChangeSite => 'تغيير الموقع';
+
+  @override
+  String get navTrack_detail_noMapYet =>
+      'عيّن نقطة البداية لرؤية هذا على خريطة.';
+
+  @override
+  String get navTrack_detail_correctionStatus_none =>
+      'لم يُطبَّق أي تصحيح بعد.';
+
+  @override
+  String get navTrack_detail_correctionStatus_sameAsStart =>
+      'تم تعيين النهاية لتكون مثل البداية.';
+
+  @override
+  String get navTrack_detail_correctionStatus_point =>
+      'تم تعيين نقطة النهاية على الخريطة.';
+
+  @override
+  String get navTrack_detail_correctionStatus_gpsFix =>
+      'تم تعيين النهاية من إصلاح GPS الخاص بالتسجيل.';
+
+  @override
+  String navTrack_detail_device(String name) {
+    return 'الجهاز: $name';
+  }
+
+  @override
+  String navTrack_detail_equipment(String name) {
+    return 'المعدات: $name';
+  }
+
+  @override
+  String navTrack_detail_distance(String value) {
+    return 'المسافة: $value';
+  }
+
+  @override
+  String navTrack_detail_maxDepth(String value) {
+    return 'أقصى عمق: $value';
+  }
+
+  @override
+  String navTrack_detail_maxSpeed(String value) {
+    return 'أقصى سرعة: $value';
+  }
+
+  @override
+  String navTrack_detail_avgSpeed(String value) {
+    return 'متوسط السرعة: $value';
+  }
+
+  @override
+  String navTrack_detail_duration(int hours, int minutes) {
+    return 'المدة: $hours س $minutes د';
+  }
+
+  @override
+  String navTrack_detail_battery(String start, String end) {
+    return 'البطارية: $start فولت -> $end فولت';
+  }
+
+  @override
+  String get navTrack_detail_noDiveLinked => 'لا توجد غطسة مرتبطة';
+
+  @override
+  String get navTrack_detail_chooseDive => 'اختيار غطسة';
+
+  @override
+  String get navTrack_detail_noSite => 'لا يوجد موقع غوص';
+
+  @override
+  String get navTrack_detail_chooseSite => 'اختيار موقع';
+
+  @override
+  String get navTrack_review_title => 'استيراد مسار تحت الماء';
+
+  @override
+  String navTrack_review_segmentSummaryNoFix(int underwater) {
+    return '$underwater عينات تحت الماء، لا يوجد إصلاح GPS بعد الغوص.';
+  }
+
+  @override
+  String navTrack_review_segmentSummaryWithFix(
+    int underwater,
+    int surface,
+    String vector,
+  ) {
+    return '$underwater عينات تحت الماء، $surface عينات على السطح، إصلاح GPS على بعد $vector من النهاية المقدَّرة.';
+  }
+
+  @override
+  String navTrack_review_saveError(String error) {
+    return 'تعذر حفظ هذا المسار: $error';
+  }
+
+  @override
+  String navTrack_review_importError(String error) {
+    return 'تعذر استيراد هذا الملف: $error';
+  }
+
+  @override
+  String get navTrack_review_sourceLabel => 'سجل Seacraft ENC';
+
+  @override
+  String get navTrack_review_nameHint => 'الاسم (اختياري)';
+
+  @override
+  String get navTrack_review_warningNoMovement =>
+      'لم تُسجَّل أي حركة: تبقى المسافة والسرعة عند الصفر طوال هذا الملف.';
+
+  @override
+  String get navTrack_review_warningDuplicate =>
+      'يبدو هذا مسارًا تم استيراده مسبقًا من الملف نفسه.';
+
+  @override
+  String get navTrack_review_replaceLabel => 'استبدال';
+
+  @override
+  String get navTrack_review_linkToDive => 'الربط بغطسة';
+
+  @override
+  String get navTrack_review_diveSite => 'موقع الغوص';
+
+  @override
+  String get navTrack_review_equipment => 'المعدات';
+
+  @override
+  String get navTrack_review_noEquipmentChosen => 'بدون معدات';
+
+  @override
+  String get navTrack_review_noSiteChosen => 'لم يتم اختيار موقع غوص';
+
+  @override
+  String get navTrack_review_row_start => 'البداية';
+
+  @override
+  String get navTrack_review_row_end => 'النهاية';
+
+  @override
+  String get navTrack_review_row_duration => 'المدة';
+
+  @override
+  String get navTrack_review_row_distance => 'المسافة';
+
+  @override
+  String get navTrack_review_row_maxDepth => 'أقصى عمق';
+
+  @override
+  String get navTrack_review_row_maxSpeed => 'أقصى سرعة';
+
+  @override
+  String get navTrack_review_leaveUnlinked => 'الترك بدون ربط';
+
+  @override
+  String navTrack_list_importFailed(String error) {
+    return 'فشل الاستيراد: $error';
+  }
+
+  @override
+  String get navTrack_list_matchError => 'تعذرت مطابقة المسارات.';
+
+  @override
+  String get navTrack_list_matchSuccess => 'تمت مطابقة المسارات مع الغطسات.';
+
+  @override
+  String navTrack_list_deleteMessage(String name) {
+    return 'حذف \"$name\"؟';
+  }
+
+  @override
+  String get navTrack_list_importTooltip => 'استيراد ملف مسار';
+
+  @override
+  String get navTrack_list_matchTooltip => 'المطابقة الآن';
+
+  @override
+  String get navTrack_list_title => 'المسارات تحت الماء';
+
+  @override
+  String get navTrack_list_noMapRoutes =>
+      'لا توجد مسارات موضوعة على الخريطة بعد.';
+
+  @override
+  String get navTrack_list_empty => 'لا توجد مسارات تحت الماء بعد.';
+
+  @override
+  String get navTrack_seascape_title => 'المشهد البحري للمسار';
+
+  @override
+  String get navTrack_seascape_noScene =>
+      'لا يحتوي هذا المسار على مشهد بحري قابل للاستخدام.';
+
+  @override
+  String get navTrack_handoff_recognized =>
+      'تم التعرف على سجل ملاحة Seacraft ENC';
+
+  @override
+  String get navTrack_handoff_description =>
+      'هذا مسار تحت الماء، وليس سجل غطس. له مكانه الخاص في Submersion، منفصل عن استيراد غطساتك.';
+
+  @override
+  String get navTrack_handoff_reviewButton => 'مراجعة المسار';
+
+  @override
+  String get navTrack_section_title => 'مسار تحت الماء';
+
+  @override
+  String navTrack_section_routeCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مسار',
+      few: '$count مسارات',
+      two: 'مساران',
+      one: 'مسار واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_section_noRouteLinked => 'لا يوجد مسار مرتبط';
+
+  @override
+  String get navTrack_section_linkButton => 'ربط مسار';
+
+  @override
+  String get navTrack_section_importButton => 'استيراد ملف';
+
+  @override
+  String get navTrack_section_primaryTag => 'أساسي';
+
+  @override
+  String get navTrack_section_menuOpen => 'فتح المسار';
+
+  @override
+  String get navTrack_section_menuOpen3d => 'فتح المشهد ثلاثي الأبعاد';
+
+  @override
+  String get navTrack_section_menuMakePrimary => 'تعيين كأساسي';
+
+  @override
+  String get navTrack_importError_unsupportedFormat =>
+      'هذا الملف ليس سجل ملاحة Seacraft ENC.';
+
+  @override
+  String get navTrack_importError_unreadable =>
+      'تعذرت قراءة هذا الملف كسجل ملاحة Seacraft ENC.';
+
+  @override
+  String get navTrack_importError_tooShort =>
+      'يحتوي هذا التسجيل على عدد قليل جدًا من العينات ليكون مسارًا قابلاً للاستخدام.';
+
+  @override
+  String get navTrack_importError_badData =>
+      'يحتوي هذا الملف على بيانات تعذر على Submersion فهمها.';
+
+  @override
+  String get navTrack_importError_tooLarge =>
+      'يحتوي هذا التسجيل على عينات أكثر مما يمكن لمسار تخزينه.';
+
+  @override
+  String get diveDetailSection_navTrack_name => 'مسار تحت الماء';
+
+  @override
+  String get diveDetailSection_navTrack_description =>
+      'مسار تحت الماء تم قياسه من وحدة تحكم ملاحية';
+
+  @override
+  String get dashboard_quickActions_navRoutes => 'المسارات تحت الماء';
+
+  @override
+  String navTrack_list_durationHours(int hours, int minutes) {
+    return '${hours}h ${minutes}min';
+  }
+
+  @override
+  String navTrack_list_durationMinutes(int minutes) {
+    return '${minutes}min';
+  }
+
+  @override
+  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
+
+  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
@@ -41710,4 +42864,418 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveCenters_rental_deleteConfirm => 'حذف ملاحظة التأجير هذه؟';
+
+  @override
+  String get query_buddies_certifications => 'الشهادات';
+
+  @override
+  String get query_buddies_email => 'البريد الإلكتروني';
+
+  @override
+  String get query_buddies_favorite => 'مفضّل';
+
+  @override
+  String get query_buddies_name => 'الاسم';
+
+  @override
+  String get query_buddies_notes => 'ملاحظات';
+
+  @override
+  String get query_buddies_phone => 'الهاتف';
+
+  @override
+  String get query_centers_city => 'المدينة';
+
+  @override
+  String get query_centers_country => 'البلد';
+
+  @override
+  String get query_centers_name => 'الاسم';
+
+  @override
+  String get query_certifications_agency => 'الهيئة';
+
+  @override
+  String get query_certifications_cardNumber => 'رقم البطاقة';
+
+  @override
+  String get query_certifications_expiryDate => 'تاريخ الانتهاء';
+
+  @override
+  String get query_certifications_instructorName => 'اسم المدرب';
+
+  @override
+  String get query_certifications_issueDate => 'تاريخ الإصدار';
+
+  @override
+  String get query_certifications_level => 'المستوى';
+
+  @override
+  String get query_certifications_name => 'الاسم';
+
+  @override
+  String get query_computers_manufacturer => 'الشركة المصنعة';
+
+  @override
+  String get query_computers_model => 'الطراز';
+
+  @override
+  String get query_computers_name => 'الاسم';
+
+  @override
+  String get query_computers_serialNumber => 'الرقم التسلسلي';
+
+  @override
+  String get query_courses_agency => 'الهيئة';
+
+  @override
+  String get query_courses_completionDate => 'تاريخ الإكمال';
+
+  @override
+  String get query_courses_name => 'الاسم';
+
+  @override
+  String get query_courses_startDate => 'تاريخ البدء';
+
+  @override
+  String get query_customFields_key => 'المفتاح';
+
+  @override
+  String get query_customFields_value => 'القيمة';
+
+  @override
+  String get query_diveTypes_builtIn => 'مدمج';
+
+  @override
+  String get query_diveTypes_name => 'الاسم';
+
+  @override
+  String get query_dives_airTemp => 'درجة حرارة الهواء';
+
+  @override
+  String get query_dives_avgDepth => 'متوسط العمق';
+
+  @override
+  String get query_dives_boatName => 'القارب';
+
+  @override
+  String get query_dives_bottomTime => 'زمن القاع';
+
+  @override
+  String get query_dives_buddies => 'رفاق الغوص';
+
+  @override
+  String get query_dives_center => 'مركز الغوص';
+
+  @override
+  String get query_dives_cnsEnd => 'CNS في النهاية';
+
+  @override
+  String get query_dives_computer => 'حاسوب الغوص';
+
+  @override
+  String get query_dives_course => 'الدورة';
+
+  @override
+  String get query_dives_currentStrength => 'التيار';
+
+  @override
+  String get query_dives_customFields => 'الحقول المخصصة';
+
+  @override
+  String get query_dives_date => 'التاريخ';
+
+  @override
+  String get query_dives_deco => 'غطسة مع تخفيف الضغط';
+
+  @override
+  String get query_dives_depth => 'أقصى عمق';
+
+  @override
+  String get query_dives_diveMaster => 'مرشد الغوص';
+
+  @override
+  String get query_dives_diveMode => 'وضع الغوص';
+
+  @override
+  String get query_dives_diveNumber => 'رقم الغطسة';
+
+  @override
+  String get query_dives_diveOperator => 'المشغّل';
+
+  @override
+  String get query_dives_entryMethod => 'طريقة الدخول';
+
+  @override
+  String get query_dives_excludedFromStats => 'مستبعد من الإحصائيات';
+
+  @override
+  String get query_dives_exitMethod => 'طريقة الخروج';
+
+  @override
+  String get query_dives_favorite => 'مفضّل';
+
+  @override
+  String get query_dives_gasCount => 'عدد الأسطوانات';
+
+  @override
+  String get query_dives_gear => 'المعدات';
+
+  @override
+  String get query_dives_hasProfile => 'له ملف تعريف';
+
+  @override
+  String get query_dives_id => 'معرّف الغطسة';
+
+  @override
+  String get query_dives_legacyBuddy => 'رفيق الغوص (نص قديم)';
+
+  @override
+  String get query_dives_media => 'الوسائط';
+
+  @override
+  String get query_dives_name => 'الاسم';
+
+  @override
+  String get query_dives_notes => 'ملاحظات';
+
+  @override
+  String get query_dives_otu => 'OTU';
+
+  @override
+  String get query_dives_planned => 'مخطط';
+
+  @override
+  String get query_dives_rating => 'التقييم';
+
+  @override
+  String get query_dives_runtime => 'المدة الكلية';
+
+  @override
+  String get query_dives_sightings => 'المشاهدات';
+
+  @override
+  String get query_dives_site => 'الموقع';
+
+  @override
+  String get query_dives_surfaceConditions => 'أحوال السطح';
+
+  @override
+  String get query_dives_surfaceInterval => 'فترة السطح';
+
+  @override
+  String get query_dives_tags => 'الوسوم';
+
+  @override
+  String get query_dives_tanks => 'الأسطوانات';
+
+  @override
+  String get query_dives_trip => 'الرحلة';
+
+  @override
+  String get query_dives_types => 'أنواع الغوص';
+
+  @override
+  String get query_dives_visibility => 'الرؤية';
+
+  @override
+  String get query_dives_waterTemp => 'درجة حرارة الماء';
+
+  @override
+  String get query_dives_waterType => 'نوع الماء';
+
+  @override
+  String get query_dives_weekday => 'يوم الأسبوع';
+
+  @override
+  String get query_dives_weight => 'الثقل';
+
+  @override
+  String get query_dives_weights => 'الأثقال';
+
+  @override
+  String get query_dives_year => 'السنة';
+
+  @override
+  String get query_entity_buddies => 'رفاق الغوص';
+
+  @override
+  String get query_entity_centers => 'مراكز الغوص';
+
+  @override
+  String get query_entity_certifications => 'الشهادات';
+
+  @override
+  String get query_entity_computers => 'حواسيب الغوص';
+
+  @override
+  String get query_entity_courses => 'الدورات';
+
+  @override
+  String get query_entity_customFields => 'الحقول المخصصة';
+
+  @override
+  String get query_entity_diveTypes => 'أنواع الغوص';
+
+  @override
+  String get query_entity_dives => 'الغطسات';
+
+  @override
+  String get query_entity_equipment => 'المعدات';
+
+  @override
+  String get query_entity_equipmentAttributes => 'خصائص المعدات';
+
+  @override
+  String get query_entity_media => 'الوسائط';
+
+  @override
+  String get query_entity_sightings => 'المشاهدات';
+
+  @override
+  String get query_entity_sites => 'مواقع الغوص';
+
+  @override
+  String get query_entity_species => 'الأنواع';
+
+  @override
+  String get query_entity_tags => 'الوسوم';
+
+  @override
+  String get query_entity_tanks => 'الأسطوانات';
+
+  @override
+  String get query_entity_trips => 'الرحلات';
+
+  @override
+  String get query_entity_weights => 'الأثقال';
+
+  @override
+  String get query_equipmentAttributes_custom => 'مخصص';
+
+  @override
+  String get query_equipmentAttributes_key => 'المفتاح';
+
+  @override
+  String get query_equipmentAttributes_valueNum => 'قيمة رقمية';
+
+  @override
+  String get query_equipmentAttributes_valueText => 'قيمة نصية';
+
+  @override
+  String get query_equipment_active => 'نشط';
+
+  @override
+  String get query_equipment_attributes => 'الخصائص';
+
+  @override
+  String get query_equipment_brand => 'العلامة التجارية';
+
+  @override
+  String get query_equipment_model => 'الطراز';
+
+  @override
+  String get query_equipment_name => 'الاسم';
+
+  @override
+  String get query_equipment_serialNumber => 'الرقم التسلسلي';
+
+  @override
+  String get query_equipment_status => 'الحالة';
+
+  @override
+  String get query_equipment_type => 'النوع';
+
+  @override
+  String get query_media_caption => 'التعليق';
+
+  @override
+  String get query_media_favorite => 'مفضّل';
+
+  @override
+  String get query_media_type => 'النوع';
+
+  @override
+  String get query_sightings_count => 'العدد';
+
+  @override
+  String get query_sightings_notes => 'ملاحظات';
+
+  @override
+  String get query_sightings_species => 'الأنواع';
+
+  @override
+  String get query_sites_city => 'المدينة';
+
+  @override
+  String get query_sites_country => 'البلد';
+
+  @override
+  String get query_sites_island => 'الجزيرة';
+
+  @override
+  String get query_sites_maxDepth => 'أقصى عمق';
+
+  @override
+  String get query_sites_name => 'الاسم';
+
+  @override
+  String get query_sites_rating => 'التقييم';
+
+  @override
+  String get query_sites_region => 'المنطقة';
+
+  @override
+  String get query_species_category => 'الفئة';
+
+  @override
+  String get query_species_name => 'الاسم';
+
+  @override
+  String get query_species_scientificName => 'الاسم العلمي';
+
+  @override
+  String get query_tags_name => 'الاسم';
+
+  @override
+  String get query_tanks_cylinder => 'الأسطوانة';
+
+  @override
+  String get query_tanks_endPressure => 'ضغط النهاية';
+
+  @override
+  String get query_tanks_he => 'الهيليوم';
+
+  @override
+  String get query_tanks_name => 'الاسم';
+
+  @override
+  String get query_tanks_o2 => 'الأكسجين';
+
+  @override
+  String get query_tanks_startPressure => 'ضغط البداية';
+
+  @override
+  String get query_tanks_volume => 'الحجم';
+
+  @override
+  String get query_trips_endDate => 'تاريخ الانتهاء';
+
+  @override
+  String get query_trips_location => 'الموقع';
+
+  @override
+  String get query_trips_name => 'الاسم';
+
+  @override
+  String get query_trips_startDate => 'تاريخ البدء';
+
+  @override
+  String get query_weights_amount => 'الكمية';
+
+  @override
+  String get query_weights_notes => 'ملاحظات';
+
+  @override
+  String get query_weights_type => 'النوع';
 }

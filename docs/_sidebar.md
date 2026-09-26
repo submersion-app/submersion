@@ -11,6 +11,7 @@
   * [Equipment Management](guide/equipment.md)
   * [Insights](guide/insights.md)
   * [Import & Export](guide/import-export.md)
+  * [Cylinder Passport Tags](import-formats/cylinder-passport-tag.md)
   * [Dive Computers](guide/dive-computer.md)
   * [Settings](guide/settings.md)
   * [Multi-Device Sync](guide/multi-device-sync.md)
