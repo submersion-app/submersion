@@ -19052,6 +19052,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_ref_trip => 'Reise';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'Reiseflasche';
+
+  @override
   String get settings_conflict_remoteVersion => 'Remote-Version';
 
   @override

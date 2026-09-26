@@ -18937,6 +18937,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_ref_trip => 'Reis';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'Reisfles';
+
+  @override
   String get settings_conflict_remoteVersion => 'Externe versie';
 
   @override

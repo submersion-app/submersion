@@ -24,7 +24,7 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 234);
     expect(AppDatabase.migrationVersions, contains(234));
-    expect(AppDatabase.migrationStepCount(231), 1);
+    expect(AppDatabase.migrationStepCount(232), 1);
   });
 
   test(

@@ -18612,6 +18612,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_trip => 'טיול';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'בלון הטיול';
+
+  @override
   String get settings_conflict_remoteVersion => 'גרסה מרוחקת';
 
   @override
