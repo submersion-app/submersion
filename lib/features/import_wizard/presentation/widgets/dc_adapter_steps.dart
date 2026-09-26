@@ -559,16 +559,30 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
 
+      // Saving the computer and noting its clock sync answer are bookkeeping:
+      // the dives are already in hand. Each failure is logged and swallowed so
+      // it cannot skip the can-advance flip below, which is what left the
+      // wizard on "Download complete" with Next disabled (issue #2439).
       final discoveryState = ref.read(discoveryNotifierProvider);
       final device = discoveryState.selectedDevice;
       if (device != null) {
         // Serial and firmware ride on the completion event, not on the dives,
         // so the hardware-identity rebind still works with an empty download.
-        await widget.adapter.ensureComputer(
-          device: device,
-          serialNumber: state.serialNumber,
-          firmwareVersion: state.firmwareVersion,
-        );
+        try {
+          await widget.adapter.ensureComputer(
+            device: device,
+            serialNumber: state.serialNumber,
+            firmwareVersion: state.firmwareVersion,
+          );
+        } catch (e, stackTrace) {
+          _log.error(
+            'Could not save ${device.displayName} after its download; '
+            'continuing without a computer record',
+            category: LogCategory.database,
+            error: e,
+            stackTrace: stackTrace,
+          );
+        }
         if (!mounted) return;
 
         // Remember what the model answered about clock sync so the detail
@@ -578,9 +592,20 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
         final computer = widget.adapter.computer;
         final clockSyncStatus = state.clockSyncStatus;
         if (computer != null && clockSyncStatus != null) {
-          await ref
-              .read(clockSyncSettingsNotifierProvider.notifier)
-              .recordSupport(computer.id, clockSyncStatus);
+          try {
+            await ref
+                .read(clockSyncSettingsNotifierProvider.notifier)
+                .recordSupport(computer.id, clockSyncStatus);
+          } catch (e, stackTrace) {
+            _log.error(
+              'Could not record clock sync support for '
+              '${computer.displayName}',
+              category: LogCategory.app,
+              error: e,
+              stackTrace: stackTrace,
+            );
+          }
+          if (!mounted) return;
         }
       }
 

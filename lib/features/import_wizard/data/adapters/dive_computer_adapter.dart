@@ -160,6 +160,11 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   int? _descriptorModel;
   String? _libdivecomputerVersion;
 
+  /// What the last [ensureComputer] call was given, kept so [performImport]
+  /// can retry the save when the download step's attempt failed.
+  ({DiscoveredDevice device, String? serialNumber, String? firmwareVersion})?
+  _pendingComputerSave;
+
   /// Set by the wizard so the confirm step can navigate back to scan.
   VoidCallback? goBackFromConfirm;
 
@@ -231,6 +236,12 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     String? serialNumber,
     String? firmwareVersion,
   }) async {
+    _pendingComputerSave = (
+      device: device,
+      serialNumber: serialNumber,
+      firmwareVersion: firmwareVersion,
+    );
+
     // Capture descriptor fields regardless of whether a computer record already
     // exists — these are always needed for the import service.
     final model = device.recognizedModel;
@@ -315,6 +326,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   @override
   void resetState() {
     _sinceCutoff = null;
+    _pendingComputerSave = null;
     final ref = _ref;
     if (ref == null) return;
     ref.invalidate(dcAdapterScanCanAdvanceProvider);
@@ -526,6 +538,31 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     ImportProgressCallback? onProgress,
     ImportCancellationToken? cancelToken,
   }) async {
+    // The download step lets the diver past a failed computer save (issue
+    // #2439), so try once more here before giving up on the import.
+    final pending = _pendingComputerSave;
+    if (computer == null && pending != null) {
+      try {
+        await ensureComputer(
+          device: pending.device,
+          serialNumber: pending.serialNumber,
+          firmwareVersion: pending.firmwareVersion,
+        );
+      } catch (e, stackTrace) {
+        _log.error(
+          'Could not save ${pending.device.displayName} before import',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return UnifiedImportResult(
+          importedCounts: const {},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          errorMessage: 'Could not save the dive computer: $e',
+        );
+      }
+    }
+
     final comp = computer;
     if (comp == null) {
       return const UnifiedImportResult(

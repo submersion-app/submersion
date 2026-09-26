@@ -1615,6 +1615,110 @@ void main() {
   });
 
   // -------------------------------------------------------------------------
+  // performImport after a failed computer save (issue #2439)
+  // -------------------------------------------------------------------------
+
+  // The download step no longer lets a failed computer save strand the
+  // wizard, so the diver can reach Import without a computer record. Import
+  // retries the save once with what the download reported rather than
+  // failing on the missing record.
+  group('performImport after a failed computer save (issue #2439)', () {
+    late DiveComputerAdapter discoveryAdapter;
+    late DiscoveredDevice device;
+
+    setUp(() {
+      discoveryAdapter = DiveComputerAdapter(
+        importService: mockImportService,
+        computerRepository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
+        diverId: diverId,
+      );
+      device = DiscoveredDevice(
+        id: 'device-1',
+        name: 'G2 HUD',
+        connectionType: DeviceConnectionType.ble,
+        address: 'AA:BB:CC:DD:EE:FF',
+        discoveredAt: DateTime(2026, 3, 20),
+      );
+    });
+
+    test('retries the save and imports when it succeeds', () async {
+      final createdComputer = makeComputer(id: 'new-computer-id');
+      var attempts = 0;
+      when(mockComputerRepo.createComputer(any)).thenAnswer((_) async {
+        attempts++;
+        if (attempts == 1) throw StateError('database is locked');
+        return createdComputer;
+      });
+
+      await expectLater(
+        discoveryAdapter.ensureComputer(
+          device: device,
+          serialNumber: 'SN-99999',
+          firmwareVersion: 'v4.0',
+        ),
+        throwsStateError,
+      );
+      expect(discoveryAdapter.computer, isNull);
+
+      final dive = makeDownloadedDive();
+      discoveryAdapter.setDownloadedDives([dive]);
+      final bundle = await discoveryAdapter.buildBundle();
+      when(
+        mockImportService.importSingleDiveAsNew(
+          dive,
+          computerId: 'new-computer-id',
+          diverId: diverId,
+        ),
+      ).thenAnswer((_) async => 'new-dive-1');
+
+      final result = await discoveryAdapter.performImport(bundle, {
+        ImportEntityType.dives: {0},
+      }, {});
+
+      expect(result.errorMessage, isNull);
+      expect(result.importedCounts[ImportEntityType.dives], equals(1));
+      final saved =
+          verify(mockComputerRepo.createComputer(captureAny)).captured.last
+              as DiveComputer;
+      expect(saved.serialNumber, equals('SN-99999'));
+      expect(saved.firmwareVersion, equals('v4.0'));
+      expect(discoveryAdapter.computer, equals(createdComputer));
+    });
+
+    test('reports why when the retried save fails again', () async {
+      when(
+        mockComputerRepo.createComputer(any),
+      ).thenThrow(StateError('database is locked'));
+
+      await expectLater(
+        discoveryAdapter.ensureComputer(device: device),
+        throwsStateError,
+      );
+
+      final dive = makeDownloadedDive();
+      discoveryAdapter.setDownloadedDives([dive]);
+      final bundle = await discoveryAdapter.buildBundle();
+
+      final result = await discoveryAdapter.performImport(bundle, {
+        ImportEntityType.dives: {0},
+      }, {});
+
+      expect(result.errorMessage, contains('database is locked'));
+      expect(result.importedCounts, isEmpty);
+      verify(mockComputerRepo.createComputer(any)).called(2);
+      verifyNever(
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
+          diverId: anyNamed('diverId'),
+        ),
+      );
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // setCustomDeviceName
   // -------------------------------------------------------------------------
 

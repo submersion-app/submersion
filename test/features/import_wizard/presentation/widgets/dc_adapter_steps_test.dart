@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:libdivecomputer_plugin/src/dive_computer_service.dart'
     show DownloadEvent;
+// flutter_riverpod 3 no longer re-exports Override.
+import 'package:riverpod/src/framework.dart' as riverpod show Override;
 
 import 'package:submersion/features/dive_computer/domain/entities/clock_sync.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
@@ -123,6 +125,42 @@ class _RecordingDiveComputerRepository extends DiveComputerRepository {
   }) async => null;
 }
 
+/// Repository whose computer save fails, standing in for any database error
+/// while the download step records the computer it just talked to.
+class _FailingCreateDiveComputerRepository extends DiveComputerRepository {
+  @override
+  Future<DiveComputer> createComputer(DiveComputer computer) async {
+    throw StateError('database is locked');
+  }
+
+  @override
+  Future<void> updateComputer(dynamic computer) async {}
+
+  @override
+  Future<DiveComputer?> findByBluetoothAddress(
+    String address, {
+    String? diverId,
+  }) async => null;
+
+  @override
+  Future<DiveComputer?> findByHardwareIdentity({
+    required String manufacturer,
+    required String model,
+    required String serialNumber,
+    String? diverId,
+  }) async => null;
+}
+
+/// Clock sync settings whose write fails, as a SharedPreferences error would.
+class _FailingClockSyncSettingsNotifier extends ClockSyncSettingsNotifier {
+  _FailingClockSyncSettingsNotifier() : super.unstored();
+
+  @override
+  Future<void> recordSupport(String computerId, ClockSyncStatus status) async {
+    throw StateError('preferences unavailable');
+  }
+}
+
 /// Repository that never resolves findByBluetoothAddress, simulating
 /// an async delay during computer resolution.
 class _NeverResolveDiveComputerRepository extends DiveComputerRepository {
@@ -229,9 +267,11 @@ ProviderScope _scopeWithOverrides({
   required Widget child,
   DiscoveryState? discoveryState,
   DownloadState? downloadState,
+  List<riverpod.Override> extraOverrides = const [],
 }) {
   return ProviderScope(
     overrides: [
+      ...extraOverrides,
       diveComputerServiceProvider.overrideWithValue(_FakeDiveComputerService()),
       diveComputerRepositoryProvider.overrideWithValue(
         _FakeDiveComputerRepository(),
@@ -283,10 +323,12 @@ Widget _buildDownloadStep({
   DiveComputer? knownComputer,
   DiscoveryState? discoveryState,
   DownloadState? downloadState,
+  List<riverpod.Override> extraOverrides = const [],
 }) {
   return _scopeWithOverrides(
     discoveryState: discoveryState,
     downloadState: downloadState,
+    extraOverrides: extraOverrides,
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -746,6 +788,77 @@ void main() {
         ClockSyncSupport.unknown,
       );
     });
+
+    // Issue #2439: saving the computer and noting its clock sync answer are
+    // bookkeeping, and the dives are already in hand. A failure in either used
+    // to escape the post-frame callback before it enabled Next, leaving the
+    // wizard on "Download complete" with no way forward.
+    testWidgets(
+      'a completed download still advances when saving the computer fails',
+      (tester) async {
+        final adapter = _makeAdapter(
+          computerRepository: _FailingCreateDiveComputerRepository(),
+        );
+
+        await tester.pumpWidget(
+          _buildDownloadStep(
+            adapter: adapter,
+            discoveryState: DiscoveryState(selectedDevice: _testDevice),
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DcAdapterDownloadStep)),
+        );
+        container.read(downloadNotifierProvider.notifier).state = DownloadState(
+          phase: DownloadPhase.complete,
+          downloadedDives: [_downloadedDive(), _downloadedDive()],
+          serialNumber: '12345',
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(container.read(dcAdapterDownloadCanAdvanceProvider), isTrue);
+      },
+    );
+
+    testWidgets(
+      'a completed download still advances when recording clock sync fails',
+      (tester) async {
+        final repository = _RecordingDiveComputerRepository();
+        final adapter = _makeAdapter(computerRepository: repository);
+
+        await tester.pumpWidget(
+          _buildDownloadStep(
+            adapter: adapter,
+            discoveryState: DiscoveryState(selectedDevice: _testDevice),
+            extraOverrides: [
+              clockSyncSettingsNotifierProvider.overrideWith(
+                (ref) => _FailingClockSyncSettingsNotifier(),
+              ),
+            ],
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DcAdapterDownloadStep)),
+        );
+        container.read(downloadNotifierProvider.notifier).state = DownloadState(
+          phase: DownloadPhase.complete,
+          downloadedDives: [_downloadedDive()],
+          clockSyncStatus: ClockSyncStatus.unsupported,
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(repository.created, hasLength(1));
+        expect(container.read(dcAdapterDownloadCanAdvanceProvider), isTrue);
+      },
+    );
 
     testWidgets(
       'importing a partial download captures dives and advances the wizard',
