@@ -43,6 +43,8 @@ class BleCharacteristicSelectorTest {
         const val UBLOX_SERVICE = "2456e1b9-26e2-8f83-e744-f34f01e9d701"
         const val UBLOX_DATA = "2456e1b9-26e2-8f83-e744-f34f01e9d703"
         const val UBLOX_CREDITS = "2456e1b9-26e2-8f83-e744-f34f01e9d704"
+        const val SEAC_SERVICE = "84968ffe-d26d-478a-b953-5010bcf58bca"
+        const val SEAC_DATA = "43c620c2-1b09-4951-bc1e-9c75298cddeb"
     }
 
     private data class Resolved(val write: UUID, val response: UUID, val serviceIndex: Int)
@@ -264,5 +266,68 @@ class BleCharacteristicSelectorTest {
         val result = resolve(services, BleCharacteristicSelector.select(services))
         assertEquals(uuid(UBLOX_DATA), result?.write)
         assertEquals(uuid(UBLOX_DATA), result?.response)
+    }
+
+    // 15. The Seac Tablet (issue #1454) as Android enumerates it, with Generic
+    // Access (Device Name can be read+write) and Device Information first. Only
+    // the Seac service is chosen, in read mode, one characteristic both ways.
+    @Test
+    fun seacTabletSelectsReadMode() {
+        val services = listOf(
+            service("00001800-0000-1000-8000-00805f9b34fb", char("00002a00-0000-1000-8000-00805f9b34fb", R, W)),
+            service("0000180a-0000-1000-8000-00805f9b34fb", char("00002a29-0000-1000-8000-00805f9b34fb", R)),
+            service(SEAC_SERVICE, char(SEAC_DATA, R, W))
+        )
+        val selection = BleCharacteristicSelector.select(services)
+        val result = resolve(services, selection)
+        assertEquals(ResponseMode.READ, selection?.responseMode)
+        assertEquals(2, result?.serviceIndex)
+        assertEquals(uuid(SEAC_DATA), result?.write)
+        assertEquals(uuid(SEAC_DATA), result?.response)
+        assertNull(selection?.terminalIoCredits)
+    }
+
+    // 16. The allowlist is the whole read tier.
+    @Test
+    fun readOnlyShapeOutsideTheAllowlistIsNotSelected() {
+        assertNull(BleCharacteristicSelector.select(listOf(
+            service("0000ffe0-0000-1000-8000-00805f9b34fb", char(SEAC_DATA, R, W))
+        )))
+        assertNull(BleCharacteristicSelector.select(listOf(
+            service(SEAC_SERVICE, char("0000ffe1-0000-1000-8000-00805f9b34fb", R, W))
+        )))
+    }
+
+    // 17. Strict fallback: a write/notify service wins in either order.
+    @Test
+    fun notifyServiceBeatsTheReadPollService() {
+        val notifyService = service("0000ffe0-0000-1000-8000-00805f9b34fb", char("0000ffe1-0000-1000-8000-00805f9b34fb", WNR, N))
+        val seac = service(SEAC_SERVICE, char(SEAC_DATA, R, W))
+
+        val seacFirst = BleCharacteristicSelector.select(listOf(seac, notifyService))
+        assertEquals(ResponseMode.NOTIFY, seacFirst?.responseMode)
+        assertEquals(1, seacFirst?.serviceIndex)
+
+        val seacLast = BleCharacteristicSelector.select(listOf(notifyService, seac))
+        assertEquals(ResponseMode.NOTIFY, seacLast?.responseMode)
+        assertEquals(0, seacLast?.serviceIndex)
+    }
+
+    // 18. READ plus a write property are both required; write-without-response
+    // alone is enough for the write side.
+    @Test
+    fun allowlistedCharacteristicNeedsReadAndWrite() {
+        fun selectSeac(vararg properties: Int) =
+            BleCharacteristicSelector.select(listOf(service(SEAC_SERVICE, char(SEAC_DATA, *properties))))
+        assertNull(selectSeac(W))
+        assertNull(selectSeac(R))
+        assertEquals(ResponseMode.READ, selectSeac(R, WNR)?.responseMode)
+    }
+
+    // 19. Firmware that adds notify gets the ordinary notify path.
+    @Test
+    fun seacCharacteristicThatNotifiesUsesTheNotifyPath() {
+        val services = listOf(service(SEAC_SERVICE, char(SEAC_DATA, R, W, N)))
+        assertEquals(ResponseMode.NOTIFY, BleCharacteristicSelector.select(services)?.responseMode)
     }
 }

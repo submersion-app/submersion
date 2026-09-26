@@ -117,8 +117,51 @@ object BleCharacteristicSelector {
         UUID.fromString("00000201-8c3b-4f2c-a59e-8c08224f3253")
     )
 
+    // Read-poll services (issue #1454). A few computers expose a data
+    // characteristic that can be read and written but cannot notify or
+    // indicate, so every reply has to be fetched with a GATT read.
+    // libdivecomputer commit 415778c documents the Seac Tablet's layout;
+    // Subsurface's qt-ble.cpp reads it the same way (e8e0cea769).
+    //
+    // Deliberately an allowlist rather than "any read+write characteristic":
+    // Generic Access's Device Name is read+write on some peripherals, and a
+    // generic tier would connect to it on a computer whose real serial service
+    // was simply not recognised, then time out with nothing to explain why.
+    val SEAC_SERVICE_UUID: UUID = UUID.fromString("84968ffe-d26d-478a-b953-5010bcf58bca")
+    // Rx/Tx in one characteristic: commands are written to it, replies read from it.
+    val SEAC_DATA_UUID: UUID = UUID.fromString("43c620c2-1b09-4951-bc1e-9c75298cddeb")
+
+    // Read-poll service UUID to its data characteristic UUID.
+    val READ_POLL_SERVICES: Map<UUID, UUID> = mapOf(SEAC_SERVICE_UUID to SEAC_DATA_UUID)
+
     // Choose the characteristics to talk through, or null if nothing usable.
-    fun select(services: List<Service>): Selection? = selectNotify(services)
+    // The write/notify pass runs first and is unchanged; the read-poll tier is
+    // consulted only when it finds nothing, so no device that already works
+    // can be moved onto the read path.
+    fun select(services: List<Service>): Selection? =
+        selectNotify(services) ?: selectReadPoll(services)
+
+    // The first allowlisted read-poll service whose data characteristic can
+    // be both read and written, or null.
+    private fun selectReadPoll(services: List<Service>): Selection? {
+        for ((serviceIndex, service) in services.withIndex()) {
+            val dataUuid = READ_POLL_SERVICES[service.uuid] ?: continue
+            val index = service.characteristics.indexOfFirst { it.uuid == dataUuid }
+            if (index < 0) continue
+            val props = service.characteristics[index].properties
+            if (props and PROPERTY_READ == 0) continue
+            if (props and (PROPERTY_WRITE or PROPERTY_WRITE_NO_RESPONSE) == 0) continue
+            return Selection(
+                serviceIndex = serviceIndex,
+                writeIndex = index,
+                responseIndex = index,
+                responseMode = ResponseMode.READ,
+                score = 0,
+                terminalIoCredits = null
+            )
+        }
+        return null
+    }
 
     private fun writeScore(characteristic: Characteristic): Int? {
         val props = characteristic.properties
