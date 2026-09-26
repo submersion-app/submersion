@@ -2724,11 +2724,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showGtr = legendState.showGtr;
     _showCns = legendState.showCns;
     _showOtu = legendState.showOtu;
-    // Sync per-tank pressure visibility
+    // Sync per-tank pressure visibility. Replace rather than merge: the
+    // legend's map holds only the user's choices, and it starts over empty
+    // when the provider rebuilds, so a leftover entry here would outlive it.
     _showPressure = legendState.showPressure;
-    for (final entry in legendState.showTankPressure.entries) {
-      _showTankPressure[entry.key] = entry.value;
-    }
+    _showTankPressure
+      ..clear()
+      ..addAll(legendState.showTankPressure);
 
     // Per-group signatures for the memoized bars (see _barsCache): playback /
     // hover / zoom rebuilds inside one decimation bucket reuse every group;

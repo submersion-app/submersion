@@ -164,5 +164,29 @@ void main() {
       expect(_traceCount(tester, _air), 0);
       expect(_markerCount(tester), 2);
     });
+
+    testWidgets('drops a stale tank choice once the legend is rebuilt', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_chart(const AppSettings()));
+      await tester.pumpAndSettle();
+
+      _legend(tester).toggleTankPressure('tank-1');
+      await tester.pumpAndSettle();
+      expect(_traceCount(tester, _air), 0);
+
+      // A write to a watched default rebuilds the legend provider, which
+      // starts over with no per-tank choices: tank-1 follows the Pressure
+      // default (on) again, so the chart must not keep its old choice.
+      final settings = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      ).read(settingsProvider.notifier);
+      (settings as _SettingsNotifier).state = settings.state.copyWith(
+        defaultShowTemperature: !settings.state.defaultShowTemperature,
+      );
+      await tester.pumpAndSettle();
+
+      expect(_traceCount(tester, _air), 1);
+    });
   });
 }
