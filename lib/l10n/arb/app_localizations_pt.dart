@@ -42175,6 +42175,17 @@ class AppLocalizationsPt extends AppLocalizations {
   String get numberInput_invalidValue => 'Insira um número válido';
 
   @override
+  String numberInput_invalidNumber(String separator) {
+    return 'Introduza um número válido (separador decimal: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'Insira um número inteiro';
+
+  @override
+  String get numberInput_required => 'Obrigatório';
+
+  @override
   String get diveCenters_rental_sectionTitle => 'Equipamento alugado';
 
   @override

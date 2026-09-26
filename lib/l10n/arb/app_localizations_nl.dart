@@ -41880,6 +41880,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get numberInput_invalidValue => 'Voer een geldig getal in';
 
   @override
+  String numberInput_invalidNumber(String separator) {
+    return 'Voer een geldig getal in (decimaalteken: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'Voer een geheel getal in';
+
+  @override
+  String get numberInput_required => 'Verplicht';
+
+  @override
   String get diveCenters_rental_sectionTitle => 'Huuruitrusting';
 
   @override

@@ -41989,6 +41989,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get numberInput_invalidValue => 'Adjon meg érvényes számot';
 
   @override
+  String numberInput_invalidNumber(String separator) {
+    return 'Adjon meg egy érvényes számot (tizedesjel: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'Adjon meg egy egész számot';
+
+  @override
+  String get numberInput_required => 'Kötelező';
+
+  @override
   String get diveCenters_rental_sectionTitle => 'Bérelt felszerelés';
 
   @override

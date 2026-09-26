@@ -25935,6 +25935,16 @@
   "plannerCanvas_compare_actual": "Actual",
   "plannerCanvas_compare_showOnChart": "Show on chart",
   "numberInput_invalidValue": "Enter a valid number",
+  "numberInput_invalidNumber": "Enter a valid number (decimal separator: \"{separator}\")",
+  "@numberInput_invalidNumber": {
+    "placeholders": {
+      "separator": {
+        "type": "String"
+      }
+    }
+  },
+  "numberInput_invalidWholeNumber": "Enter a whole number",
+  "numberInput_required": "Required",
   "diveCenters_rental_sectionTitle": "Rental gear",
   "diveCenters_rental_lastTimeAt": "Last time at {center}",
   "@diveCenters_rental_lastTimeAt": {"placeholders": {"center": {"type": "Object"}}},

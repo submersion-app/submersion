@@ -67563,6 +67563,24 @@ abstract class AppLocalizations {
   /// **'Enter a valid number'**
   String get numberInput_invalidValue;
 
+  /// No description provided for @numberInput_invalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid number (decimal separator: \"{separator}\")'**
+  String numberInput_invalidNumber(String separator);
+
+  /// No description provided for @numberInput_invalidWholeNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number'**
+  String get numberInput_invalidWholeNumber;
+
+  /// No description provided for @numberInput_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get numberInput_required;
+
   /// No description provided for @diveCenters_rental_sectionTitle.
   ///
   /// In en, this message translates to:

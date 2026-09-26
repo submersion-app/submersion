@@ -41811,6 +41811,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get numberInput_invalidValue => 'أدخل رقمًا صالحًا';
 
   @override
+  String numberInput_invalidNumber(String separator) {
+    return 'أدخل رقمًا صالحًا (الفاصلة العشرية: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'أدخل عددًا صحيحًا';
+
+  @override
+  String get numberInput_required => 'مطلوب';
+
+  @override
   String get diveCenters_rental_sectionTitle => 'معدات مستأجرة';
 
   @override

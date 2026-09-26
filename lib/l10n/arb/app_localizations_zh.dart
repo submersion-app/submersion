@@ -39700,6 +39700,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get numberInput_invalidValue => '请输入有效的数字';
 
   @override
+  String numberInput_invalidNumber(String separator) {
+    return '请输入有效数字（小数点分隔符：\"$separator\"）';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => '请输入整数';
+
+  @override
+  String get numberInput_required => '必填';
+
+  @override
   String get diveCenters_rental_sectionTitle => '租赁装备';
 
   @override

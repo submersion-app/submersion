@@ -41309,6 +41309,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get numberInput_invalidValue => 'הזן מספר תקין';
 
   @override
+  String numberInput_invalidNumber(String separator) {
+    return 'הזן מספר תקין (מפריד עשרוני: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'הזן מספר שלם';
+
+  @override
+  String get numberInput_required => 'שדה חובה';
+
+  @override
   String get diveCenters_rental_sectionTitle => 'ציוד מושכר';
 
   @override
