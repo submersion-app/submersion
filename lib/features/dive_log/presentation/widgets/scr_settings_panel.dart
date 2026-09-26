@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 
@@ -19,7 +24,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_disp
 /// **Key formula for CMF SCR:**
 /// FO₂_loop = (Q_injection × FO₂_supply - VO₂) / (Q_injection - VO₂)
 /// where VO₂ is oxygen consumption rate (typically 1.0-1.5 L/min at rest)
-class ScrSettingsPanel extends StatefulWidget {
+///
+/// The injection rate and VO₂ are stored in L/min but shown and entered in
+/// the diver's volume unit per minute (#1935).
+class ScrSettingsPanel extends ConsumerStatefulWidget {
   /// Type of SCR system.
   final ScrType? scrType;
 
@@ -91,10 +99,34 @@ class ScrSettingsPanel extends StatefulWidget {
   });
 
   @override
-  State<ScrSettingsPanel> createState() => _ScrSettingsPanelState();
+  ConsumerState<ScrSettingsPanel> createState() => _ScrSettingsPanelState();
 }
 
-class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
+/// Typical CMF injection rate, in L/min, shown as the field's placeholder.
+const double _hintInjectionRateLpm = 8.0;
+
+/// VO₂ assumed when the dive has none recorded, in L/min.
+const double _defaultVo2Lpm = 1.30;
+
+/// The text a flow field was seeded with, and the L/min value it stands for.
+///
+/// While the field still holds [text] the panel reports [litersPerMin] as is,
+/// so a save that never touched the field cannot drift it through the
+/// rounding of a cuft/min seed (8.0 L/min seeds as 0.28, which reads back as
+/// 7.93). Both halves are frozen at seeding time: the parent passes each
+/// reported value back in, so comparing against the widget's current value
+/// would restore whatever was last typed.
+typedef _FlowSeed = ({String text, double? litersPerMin});
+
+class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
+  /// The unit the flow fields currently hold. Replaced, with the fields
+  /// re-seeded, when the diver's volume unit changes while the panel is open
+  /// (including when the stored settings finish loading after it was built).
+  late UnitFormatter _units;
+
+  late _FlowSeed _injectionRateSeed;
+  late _FlowSeed _assumedVo2Seed;
+
   late ScrType _selectedType;
   late TextEditingController _injectionRateController;
   late TextEditingController _additionRatioController;
@@ -112,15 +144,15 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
   @override
   void initState() {
     super.initState();
+    _units = UnitFormatter(ref.read(settingsProvider));
     _selectedType = widget.scrType ?? ScrType.cmf;
     // Every seed goes through formatDecimalForInput so the diver's locale
     // decides the separator, matching what parseUserDecimal reads back in
     // _notifyChange. The VO2 default is formatted too: a literal '1.30' would
     // be unreadable in a comma-decimal locale and silently become null (#1091).
+    _injectionRateSeed = _seedInjectionRate(widget.injectionRate);
     _injectionRateController = TextEditingController(
-      text: widget.injectionRate != null
-          ? formatDecimalForInput(widget.injectionRate!)
-          : '',
+      text: _injectionRateSeed.text,
     );
     _additionRatioController = TextEditingController(
       text: widget.additionRatio != null
@@ -137,9 +169,8 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
     _supplyHeController = TextEditingController(
       text: formatDecimalForInput(widget.supplyGas?.he ?? 0),
     );
-    _assumedVo2Controller = TextEditingController(
-      text: formatDecimalForInput(widget.assumedVo2 ?? 1.30),
-    );
+    _assumedVo2Seed = _seedAssumedVo2(widget.assumedVo2 ?? _defaultVo2Lpm);
+    _assumedVo2Controller = TextEditingController(text: _assumedVo2Seed.text);
     _loopO2MinController = TextEditingController(
       text: widget.loopO2Min != null
           ? formatDecimalForInput(widget.loopO2Min!)
@@ -187,13 +218,71 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
     super.dispose();
   }
 
+  /// Decimals for VO₂ in the diver's unit. VO₂ is roughly a sixth of a CMF
+  /// rate, so it takes one digit more than the RMV precision: 1.30 L/min is
+  /// 0.046 cuft/min, which two decimals would flatten to 0.05.
+  int get _vo2Decimals => _units.rmvDecimals + 1;
+
+  /// A stored L/min flow rendered for its field in the diver's volume unit.
+  /// Litres keep their full stored precision, as before; cubic feet round to
+  /// [decimals] so the conversion's long tail does not leak into the field.
+  String _seedFlow(double litersPerMin, int decimals) =>
+      _units.settings.volumeUnit == VolumeUnit.liters
+      ? formatDecimalForInput(litersPerMin)
+      : formatRoundedForInput(_units.convertRmv(litersPerMin), decimals);
+
+  /// Placeholder for a flow field: [litersPerMin] in the diver's unit and
+  /// locale, at [decimals].
+  String _flowHint(double litersPerMin, int decimals) =>
+      formatFixedForDisplay(_units.convertRmv(litersPerMin), decimals);
+
+  _FlowSeed _seedFlowField(double? litersPerMin, int decimals) => (
+    text: litersPerMin != null ? _seedFlow(litersPerMin, decimals) : '',
+    litersPerMin: litersPerMin,
+  );
+
+  _FlowSeed _seedInjectionRate(double? litersPerMin) =>
+      _seedFlowField(litersPerMin, _units.rmvDecimals);
+
+  _FlowSeed _seedAssumedVo2(double? litersPerMin) =>
+      _seedFlowField(litersPerMin, _vo2Decimals);
+
+  /// A flow field read back as L/min, or the seeded value while the field
+  /// still holds its seed text.
+  double? _readFlowLpm(TextEditingController controller, _FlowSeed seed) {
+    if (controller.text == seed.text) return seed.litersPerMin;
+    final display = parseUserDecimal(controller.text);
+    return display != null ? _units.volumeToLiters(display) : null;
+  }
+
+  double? get _injectionRateLpm =>
+      _readFlowLpm(_injectionRateController, _injectionRateSeed);
+
+  double? get _assumedVo2Lpm =>
+      _readFlowLpm(_assumedVo2Controller, _assumedVo2Seed);
+
+  /// Re-renders both flow fields in [units]. Each field is read as L/min in
+  /// the old unit first, so what the diver typed carries over; the stored
+  /// values are unchanged, so nothing needs reporting.
+  void _changeUnits(UnitFormatter units) {
+    final injectionRate = _injectionRateLpm;
+    final assumedVo2 = _assumedVo2Lpm;
+    setState(() {
+      _units = units;
+      _injectionRateSeed = _seedInjectionRate(injectionRate);
+      _assumedVo2Seed = _seedAssumedVo2(assumedVo2);
+      _injectionRateController.text = _injectionRateSeed.text;
+      _assumedVo2Controller.text = _assumedVo2Seed.text;
+    });
+  }
+
   void _notifyChange() {
     final supplyO2 = parseUserDecimal(_supplyO2Controller.text);
     final supplyHe = parseUserDecimal(_supplyHeController.text);
 
     widget.onChanged(
       scrType: _selectedType,
-      injectionRate: parseUserDecimal(_injectionRateController.text),
+      injectionRate: _injectionRateLpm,
       additionRatio: parseUserDecimal(_additionRatioController.text),
       orificeSize: _orificeSizeController.text.isNotEmpty
           ? _orificeSizeController.text
@@ -201,7 +290,7 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
       supplyGas: supplyO2 != null
           ? GasMix(o2: supplyO2, he: supplyHe ?? 0)
           : null,
-      assumedVo2: parseUserDecimal(_assumedVo2Controller.text),
+      assumedVo2: _assumedVo2Lpm,
       loopO2Min: parseUserDecimal(_loopO2MinController.text),
       loopO2Max: parseUserDecimal(_loopO2MaxController.text),
       loopO2Avg: parseUserDecimal(_loopO2AvgController.text),
@@ -216,6 +305,14 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    ref.listen<VolumeUnit>(
+      settingsProvider.select((settings) => settings.volumeUnit),
+      (_, next) {
+        if (next != _units.settings.volumeUnit) {
+          _changeUnits(UnitFormatter(ref.read(settingsProvider)));
+        }
+      },
+    );
 
     return Card(
       child: Padding(
@@ -461,9 +558,12 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                 controller: _injectionRateController,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_scr_label_injectionRate,
-                  suffixText: 'L/min',
+                  suffixText: _units.rmvSymbol,
                   isDense: true,
-                  hintText: 'e.g., 8.0',
+                  hintText: _flowHint(
+                    _hintInjectionRateLpm,
+                    _units.rmvDecimals,
+                  ),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
@@ -477,9 +577,9 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                 controller: _assumedVo2Controller,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_scr_label_assumedVo2,
-                  suffixText: 'L/min',
+                  suffixText: _units.rmvSymbol,
                   isDense: true,
-                  hintText: '1.30',
+                  hintText: _flowHint(_defaultVo2Lpm, _vo2Decimals),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
@@ -529,9 +629,9 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                 controller: _assumedVo2Controller,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_scr_label_assumedVo2,
-                  suffixText: 'L/min',
+                  suffixText: _units.rmvSymbol,
                   isDense: true,
-                  hintText: '1.30',
+                  hintText: _flowHint(_defaultVo2Lpm, _vo2Decimals),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
@@ -573,9 +673,9 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                 controller: _assumedVo2Controller,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_scr_label_assumedVo2,
-                  suffixText: 'L/min',
+                  suffixText: _units.rmvSymbol,
                   isDense: true,
-                  hintText: '1.30',
+                  hintText: _flowHint(_defaultVo2Lpm, _vo2Decimals),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
@@ -625,9 +725,10 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
   }
 
   Widget _buildCalculatedLoopFo2(ThemeData theme) {
-    final injectionRate = parseUserDecimal(_injectionRateController.text);
+    // Both flows in L/min, so the fallback VO₂ shares their unit.
+    final injectionRate = _injectionRateLpm;
     final supplyO2 = parseUserDecimal(_supplyO2Controller.text);
-    final vo2 = parseUserDecimal(_assumedVo2Controller.text) ?? 1.3;
+    final vo2 = _assumedVo2Lpm ?? _defaultVo2Lpm;
 
     if (injectionRate == null || supplyO2 == null || injectionRate <= vo2) {
       return const SizedBox.shrink();

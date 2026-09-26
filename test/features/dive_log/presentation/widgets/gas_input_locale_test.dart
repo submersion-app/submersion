@@ -276,13 +276,20 @@ Finder _fieldWithLabel(String label) =>
 
 /// Hosts [panel] in an English MaterialApp. The pinned English locale keeps the
 /// label finders working; `Intl.defaultLocale` is what governs number parsing.
+/// The SCR panel reads the diver's volume unit, so default (metric) settings
+/// are provided.
 Future<void> _pumpPanel(WidgetTester tester, Widget panel) async {
   await tester.pumpWidget(
-    MaterialApp(
-      locale: const Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(body: SingleChildScrollView(child: panel)),
+    ProviderScope(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+      ],
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: SingleChildScrollView(child: panel)),
+      ),
     ),
   );
   await tester.pumpAndSettle();
