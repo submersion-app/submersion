@@ -91,6 +91,29 @@ void main() {
     expect((await getDive(diveId)).bottomTime, 3600);
   });
 
+  test('the source row carries the reported bottom time, since split and '
+      'attribution read its duration as bottom time', () async {
+    final reportedId = await computers.importProfile(
+      computerId: 'comp-1',
+      profileStartTime: DateTime(2026, 1, 1, 10),
+      points: slowAscent,
+      durationSeconds: 3700,
+      maxDepth: 20.0,
+      bottomTimeSeconds: 3600,
+    );
+    final derivedId = await computers.importProfile(
+      computerId: 'comp-1',
+      profileStartTime: DateTime(2026, 1, 2, 10),
+      points: slowAscent,
+      durationSeconds: 3700,
+      maxDepth: 20.0,
+    );
+
+    expect((await getSource(reportedId)).duration, 3600);
+    // Unchanged for a download that reports none: still the runtime.
+    expect((await getSource(derivedId)).duration, 3700);
+  });
+
   test('stores the reported surface interval and water type', () async {
     final diveId = await computers.importProfile(
       computerId: 'comp-1',
@@ -143,7 +166,7 @@ void main() {
       points: slowAscent,
       durationSeconds: 3600,
       maxDepth: 20.0,
-      bottomTimeSeconds: 3600,
+      bottomTimeSeconds: 3300,
       surfaceIntervalSeconds: 5400,
       waterType: WaterType.salt,
       cnsEnd: 14.0,
@@ -166,6 +189,7 @@ void main() {
     expect(source.cns, 14.0);
     expect(source.otu, 38.0);
     expect(source.surfaceInterval, 5400);
+    expect(source.duration, 3300);
   });
 
   test('a download attached to an existing dive without a summary takes its '

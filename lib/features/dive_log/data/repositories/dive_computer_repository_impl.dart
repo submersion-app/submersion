@@ -801,6 +801,7 @@ class DiveComputerRepository {
     required double? maxDepth,
     required double? effectiveAvgDepth,
     required double? minWaterTemp,
+    required int? reportedBottomTimeSeconds,
     required double? cns,
     required double? otu,
     required int? surfaceIntervalSeconds,
@@ -830,7 +831,10 @@ class DiveComputerRepository {
       sourceFormat: const Value('dive_computer'),
       maxDepth: Value(maxDepth),
       avgDepth: Value(effectiveAvgDepth),
-      duration: Value(durationSeconds),
+      // Readers (field attribution, split, uncombine) take this column as the
+      // source's bottom time. Only a source that reports one has a better
+      // value than the runtime to put here (issue #1798).
+      duration: Value(reportedBottomTimeSeconds ?? durationSeconds),
       waterTemp: Value(minWaterTemp),
       entryLatitude: Value(entryLatitude),
       entryLongitude: Value(entryLongitude),
@@ -1354,6 +1358,14 @@ class DiveComputerRepository {
       final diveId = matchedDiveId ?? _uuid.v4();
       final isNewDive = matchedDiveId == null;
 
+      // A bottom time the source reported, bounded by the runtime so it
+      // cannot come out longer than the dive (issue #1642).
+      final reportedBottomTimeSeconds = bottomTimeSeconds == null
+          ? null
+          : (bottomTimeSeconds < durationSeconds
+                ? bottomTimeSeconds
+                : durationSeconds);
+
       if (isNewDive) {
         // Create a new dive for this profile
         _log.info('No matching dive found, creating new dive');
@@ -1385,17 +1397,14 @@ class DiveComputerRepository {
 
         // durationSeconds from the dive computer is total runtime,
         // not bottom time. A bottom time the source reported wins (#1798);
-        // otherwise calculate it from the profile. Either way it is bounded
-        // by that runtime so it cannot come out longer than the dive
-        // (issue #1642).
-        final effectiveBottomTimeSeconds = bottomTimeSeconds != null
-            ? (bottomTimeSeconds < durationSeconds
-                  ? bottomTimeSeconds
-                  : durationSeconds)
-            : _calculateBottomTimeFromPoints(
-                points,
-                totalDurationSeconds: durationSeconds,
-              );
+        // otherwise calculate it from the profile, bounded by that runtime
+        // so it cannot come out longer than the dive (issue #1642).
+        final effectiveBottomTimeSeconds =
+            reportedBottomTimeSeconds ??
+            _calculateBottomTimeFromPoints(
+              points,
+              totalDurationSeconds: durationSeconds,
+            );
 
         // The source's own end-of-dive CNS wins over the highest sample.
         final effectiveCnsEnd = cnsEnd ?? maxCns;
@@ -1552,6 +1561,7 @@ class DiveComputerRepository {
                 maxDepth: maxDepth,
                 effectiveAvgDepth: effectiveAvgDepth,
                 minWaterTemp: minWaterTemp,
+                reportedBottomTimeSeconds: reportedBottomTimeSeconds,
                 cns: effectiveCnsEnd,
                 otu: otu,
                 surfaceIntervalSeconds: surfaceIntervalSeconds,
@@ -1633,6 +1643,7 @@ class DiveComputerRepository {
                     (existingSampleTemps.isNotEmpty
                         ? existingSampleTemps.reduce((a, b) => a < b ? a : b)
                         : null),
+                reportedBottomTimeSeconds: reportedBottomTimeSeconds,
                 cns:
                     cnsEnd ??
                     (existingSampleCns.isNotEmpty
