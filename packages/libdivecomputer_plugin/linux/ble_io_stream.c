@@ -78,6 +78,9 @@ BleIoStream* ble_io_stream_new(void) {
     stream->pin_ready = FALSE;
     stream->device_address = NULL;
     stream->on_pin_code_required = NULL;
+    stream->characteristic_paths = g_hash_table_new_full(
+        g_str_hash, g_str_equal, g_free, g_free);
+    stream->suppress_notify_echo = NULL;
     stream->pin_callback_data = NULL;
     stream->credits = credit_balance_new();
     return stream;
@@ -364,9 +367,20 @@ static void on_properties_changed(GDBusConnection* connection,
         value_var, &n_bytes, sizeof(guint8));
 
     if (n_bytes > 0 && bytes) {
+        g_mutex_lock(&stream->read_mutex);
+        GByteArray* echo = stream->suppress_notify_echo;
+        if (echo != NULL && echo->len == n_bytes &&
+            memcmp(echo->data, bytes, n_bytes) == 0) {
+            // The PropertiesChanged BlueZ emits for our own ReadValue on the
+            // notify characteristic, not a packet (issue #422).
+            g_byte_array_unref(echo);
+            stream->suppress_notify_echo = NULL;
+            g_mutex_unlock(&stream->read_mutex);
+            g_variant_unref(value_var);
+            return;
+        }
         GByteArray* chunk = g_byte_array_sized_new((guint)n_bytes);
         g_byte_array_append(chunk, bytes, (guint)n_bytes);
-        g_mutex_lock(&stream->read_mutex);
         g_queue_push_tail(stream->read_chunks, chunk);
         g_cond_signal(&stream->read_cond);
         g_mutex_unlock(&stream->read_mutex);
@@ -391,6 +405,7 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
     }
 
     stream->device_path = g_strdup(device_path);
+    g_hash_table_remove_all(stream->characteristic_paths);
 
     // Connect the device.
     g_dbus_connection_call_sync(
@@ -473,6 +488,8 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
             continue;
         }
         const gchar* uuid = g_variant_get_string(uuid_var, NULL);
+        g_hash_table_replace(stream->characteristic_paths,
+                             g_ascii_strdown(uuid, -1), g_strdup(obj_path));
 
         if (g_ascii_strcasecmp(uuid, TIO_DATA_RX_UUID) == 0) {
             g_free(tio_data_rx_path);
@@ -855,6 +872,61 @@ static int ble_ioctl(void* userdata, unsigned int request,
         }
     }
 
+    // Characteristic reads (issue #422): the Cressi Goa backend reads its
+    // version block from three extra characteristics.
+    {
+        char uuid[LIBDC_BLE_UUID_STRING_SIZE];
+        size_t value_size = 0;
+        int decoded = libdc_ble_characteristic_read_decode(
+            request, data, size, uuid, &value_size);
+        if (decoded == LIBDC_BLE_CHAR_READ_INVALID) {
+            return LIBDC_STATUS_INVALIDARGS;
+        }
+        if (decoded == LIBDC_BLE_CHAR_READ_OK) {
+            const gchar* path =
+                g_hash_table_lookup(stream->characteristic_paths, uuid);
+            if (path == NULL) {
+                g_warning("BleIoStream: characteristic %s not found", uuid);
+                return LIBDC_STATUS_NOACCESS;
+            }
+            GVariantBuilder opts;
+            g_variant_builder_init(&opts, G_VARIANT_TYPE("a{sv}"));
+            g_autoptr(GError) error = NULL;
+            GVariant* reply = g_dbus_connection_call_sync(
+                stream->connection, "org.bluez", path,
+                "org.bluez.GattCharacteristic1", "ReadValue",
+                g_variant_new("(a{sv})", &opts), G_VARIANT_TYPE("(ay)"),
+                G_DBUS_CALL_FLAGS_NONE, MIN(stream->timeout_ms, 10000),
+                NULL, &error);
+            if (error != NULL || reply == NULL) {
+                g_warning("BleIoStream: ReadValue %s failed: %s", uuid,
+                          error ? error->message : "no reply");
+                return LIBDC_STATUS_IO;
+            }
+            GVariant* bytes_var = g_variant_get_child_value(reply, 0);
+            gsize n_bytes = 0;
+            const guint8* bytes = g_variant_get_fixed_array(
+                bytes_var, &n_bytes, sizeof(guint8));
+            int status = libdc_ble_characteristic_read_fill(
+                data, size, bytes, n_bytes);
+            if (status == LIBDC_STATUS_SUCCESS &&
+                g_strcmp0(path, stream->notify_path) == 0) {
+                g_mutex_lock(&stream->read_mutex);
+                if (stream->suppress_notify_echo) {
+                    g_byte_array_unref(stream->suppress_notify_echo);
+                }
+                stream->suppress_notify_echo =
+                    g_byte_array_sized_new((guint)n_bytes);
+                g_byte_array_append(stream->suppress_notify_echo, bytes,
+                                    (guint)n_bytes);
+                g_mutex_unlock(&stream->read_mutex);
+            }
+            g_variant_unref(bytes_var);
+            g_variant_unref(reply);
+            return status;
+        }
+    }
+
     return LIBDC_STATUS_UNSUPPORTED;
 }
 
@@ -901,6 +973,12 @@ static int ble_purge(void* userdata, unsigned int direction) {
     GByteArray* chunk;
     while ((chunk = g_queue_pop_head(stream->read_chunks)) != NULL) {
         g_byte_array_unref(chunk);
+    }
+    // A pending read echo must never outlive the data it was guarding
+    // against, or it could swallow a later real packet (issue #422).
+    if (stream->suppress_notify_echo) {
+        g_byte_array_unref(stream->suppress_notify_echo);
+        stream->suppress_notify_echo = NULL;
     }
     g_mutex_unlock(&stream->read_mutex);
     return LIBDC_STATUS_SUCCESS;
@@ -977,6 +1055,12 @@ void ble_io_stream_free(BleIoStream* stream) {
     g_free(stream->credits_notify_path);
     if (stream->credits) credit_balance_unref(stream->credits);
     g_free(stream->device_name);
+    if (stream->characteristic_paths) {
+        g_hash_table_unref(stream->characteristic_paths);
+    }
+    if (stream->suppress_notify_echo) {
+        g_byte_array_unref(stream->suppress_notify_echo);
+    }
     g_mutex_clear(&stream->pin_mutex);
     g_cond_clear(&stream->pin_cond);
     g_free(stream->pending_pin);

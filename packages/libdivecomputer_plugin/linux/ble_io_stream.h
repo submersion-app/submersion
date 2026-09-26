@@ -45,6 +45,14 @@ typedef struct {
     gint timeout_ms;
     gchar* device_name;
 
+    // Every GATT characteristic under the device, UUID (lowercase) -> object
+    // path, for DC_IOCTL_BLE_CHARACTERISTIC_READ (issue #422).
+    GHashTable* characteristic_paths;
+    // A characteristic read of the notify characteristic makes BlueZ emit a
+    // PropertiesChanged "Value" for it as well; that echo is not download
+    // data. Guarded by read_mutex.
+    GByteArray* suppress_notify_echo;
+
     GMutex pin_mutex;
     GCond pin_cond;
     gchar* pending_pin;
