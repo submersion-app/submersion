@@ -38,6 +38,11 @@ class _PresetListNotifier
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
+class _MissingEquipment extends EquipmentRepository {
+  @override
+  Future<EquipmentItem?> getEquipmentById(String id) async => null;
+}
+
 void main() {
   const own = '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
   const stranger = '11111111-2222-4333-8444-555555555555';
@@ -96,9 +101,10 @@ void main() {
     WidgetTester tester, {
     required String? scanned,
     required void Function(DiveTank) onChanged,
-    void Function(EquipmentItem)? onCylinderScanned,
+    Future<void> Function(EquipmentItem)? onCylinderScanned,
     MockSettingsNotifier? settings,
     DiveTank tank = const DiveTank(id: 'tank-1'),
+    List<dynamic> extra = const [],
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -121,6 +127,7 @@ void main() {
           passportScanLauncherProvider.overrideWithValue(
             (context) async => scanned,
           ),
+          ...extra,
         ].cast(),
         child: MaterialApp(
           locale: const Locale('en'),
@@ -160,7 +167,7 @@ void main() {
       tester,
       scanned: 'https://submersion.app/c#f=1&p=$own',
       onChanged: (t) => changed = t,
-      onCylinderScanned: (item) => scannedItem = item,
+      onCylinderScanned: (item) async => scannedItem = item,
     );
     await scan(tester);
     expect(changed!.volume, 12);
@@ -178,7 +185,7 @@ void main() {
       tester,
       scanned: 'https://submersion.app/c#f=1&p=$stranger&v=10&wp=300&m=al',
       onChanged: (t) => changed = t,
-      onCylinderScanned: (item) => scannedItem = item,
+      onCylinderScanned: (item) async => scannedItem = item,
     );
     await scan(tester);
     expect(changed!.volume, 10);
@@ -225,6 +232,34 @@ void main() {
     expect(changed!.material, TankMaterial.steel);
     expect(changed!.presetName, 'al80');
     expect(changed!.volume, 11.1);
+  });
+
+  testWidgets('an own cylinder whose row is gone says the scan failed', (
+    tester,
+  ) async {
+    final l10n = await pump(
+      tester,
+      scanned: 'https://submersion.app/c#f=1&p=$own',
+      onChanged: (_) {},
+      extra: [
+        equipmentRepositoryProvider.overrideWithValue(_MissingEquipment()),
+      ],
+    );
+    await scan(tester);
+    expect(find.text(l10n.passport_scan_openFailed), findsOneWidget);
+  });
+
+  testWidgets('a failing gear add is reported, not left unhandled', (
+    tester,
+  ) async {
+    final l10n = await pump(
+      tester,
+      scanned: 'https://submersion.app/c#f=1&p=$own',
+      onChanged: (_) {},
+      onCylinderScanned: (item) async => throw StateError('gear add failed'),
+    );
+    await scan(tester);
+    expect(find.text(l10n.passport_scan_openFailed), findsOneWidget);
   });
 
   testWidgets('text that is not a tag changes nothing', (tester) async {

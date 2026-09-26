@@ -46,10 +46,11 @@ class TankEditor extends ConsumerStatefulWidget {
   final bool showPressures;
 
   /// Called with the diver's own cylinder when its tag is scanned, so the
-  /// host can add it to the dive's gear (issue #2335). The tank itself never
+  /// host can add it to the dive's gear (issue #2335). Awaited, so a failed
+  /// add is reported like any other scan failure. The tank itself never
   /// records the link: `DiveTank.equipmentId` belongs to the transmitter
   /// registry.
-  final ValueChanged<EquipmentItem>? onCylinderScanned;
+  final Future<void> Function(EquipmentItem item)? onCylinderScanned;
 
   const TankEditor({
     super.key,
@@ -1031,7 +1032,12 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 passportId: tag.passportId,
                 equipmentId: equipmentId,
               );
-          if (!mounted || item == null) return;
+          if (!mounted) return;
+          // The passport lookup found it, but the row is gone (deleted on
+          // another device): say so rather than do nothing.
+          if (item == null) {
+            throw StateError('Scanned cylinder $equipmentId has no row');
+          }
           final filled = _applyScannedSpec(
             volumeL: item.volumeL,
             workingPressureBar: item.workingPressureBar,
@@ -1039,7 +1045,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             mix: fills.isEmpty ? null : fills.first.gasMix,
           );
           // The cylinder joins the dive's gear even when it records no spec.
-          widget.onCylinderScanned?.call(item);
+          await widget.onCylinderScanned?.call(item);
           if (filled) {
             messenger.showSnackBar(
               SnackBar(content: Text(l10n.passport_scan_filledFrom(item.name))),

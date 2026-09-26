@@ -33,7 +33,7 @@ class TankRow extends StatefulWidget {
   final bool initiallyExpanded;
 
   /// Forwarded to [TankEditor.onCylinderScanned].
-  final ValueChanged<EquipmentItem>? onCylinderScanned;
+  final Future<void> Function(EquipmentItem item)? onCylinderScanned;
 
   @override
   State<TankRow> createState() => _TankRowState();
