@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:go_router/go_router.dart';
@@ -364,6 +367,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
 
   List<PopupMenuEntry<String>> _buildMenuItems(BuildContext context) {
     return [
+      openInConnectionsMenuItem(context),
       PopupMenuItem(
         value: 'delete',
         child: ListTile(
@@ -897,6 +901,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
     final notifier = ref.read(equipmentListNotifierProvider.notifier);
 
     switch (action) {
+      case kOpenInConnectionsAction:
+        openInConnections(
+          context,
+          NodeRef(ConnectionKind.equipment, equipmentId),
+        );
       case 'delete':
         final confirmed = await showDialog<bool>(
           context: context,

@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
@@ -182,9 +185,10 @@ class _BuddyDetailContent extends ConsumerWidget {
           ),
           PopupMenuButton<String>(
             onSelected: (value) async {
-              if (value == 'connections') {
-                context.push(
-                  '/connections?lens=circle&focus=buddy:${buddy.id}',
+              if (value == kOpenInConnectionsAction) {
+                openInConnections(
+                  context,
+                  NodeRef(ConnectionKind.buddy, buddy.id),
                 );
               } else if (value == 'share') {
                 await _shareDivesWithBuddy(context, ref);
@@ -193,20 +197,7 @@ class _BuddyDetailContent extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'connections',
-                child: Row(
-                  children: [
-                    const Icon(Icons.hub_outlined),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        context.l10n.connections_action_openInConnections,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              openInConnectionsMenuItem(context),
               PopupMenuItem(
                 value: 'share',
                 child: Row(
@@ -301,9 +292,10 @@ class _BuddyDetailContent extends ConsumerWidget {
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) async {
-              if (value == 'connections') {
-                context.push(
-                  '/connections?lens=circle&focus=buddy:${buddy.id}',
+              if (value == kOpenInConnectionsAction) {
+                openInConnections(
+                  context,
+                  NodeRef(ConnectionKind.buddy, buddy.id),
                 );
               } else if (value == 'share') {
                 await _shareDivesWithBuddy(context, ref);
@@ -312,20 +304,7 @@ class _BuddyDetailContent extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'connections',
-                child: Row(
-                  children: [
-                    const Icon(Icons.hub_outlined),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        context.l10n.connections_action_openInConnections,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              openInConnectionsMenuItem(context),
               PopupMenuItem(
                 value: 'share',
                 child: Row(

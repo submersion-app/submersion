@@ -210,7 +210,7 @@ void main() {
       await tester.tap(find.text('Open in Connections'));
       await tester.pumpAndSettle();
       expect(
-        find.text('CONNECTIONS lens=circle&focus=buddy:buddy-1'),
+        find.text('CONNECTIONS mode=around&focus=buddy:buddy-1'),
         findsOneWidget,
       );
     });

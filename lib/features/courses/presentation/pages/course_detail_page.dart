@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -274,41 +277,7 @@ class CourseDetailPage extends ConsumerWidget {
             tooltip: context.l10n.courses_action_edit,
             onPressed: () => context.push('/courses/${course.id}/edit'),
           ),
-          PopupMenuButton<String>(
-            tooltip: context.l10n.courses_action_moreOptions,
-            onSelected: (value) {
-              if (value == 'delete') {
-                _confirmDelete(context, ref, course);
-              } else if (value == 'export') {
-                _exportTrainingLog(context, ref, course);
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'export',
-                child: Row(
-                  children: [
-                    const Icon(Icons.picture_as_pdf_outlined),
-                    const SizedBox(width: 8),
-                    Text(context.l10n.courses_action_exportTrainingLog),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    const Icon(Icons.delete_outline, color: Colors.red),
-                    const SizedBox(width: 8),
-                    Text(
-                      context.l10n.common_action_delete,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          _buildMoreMenu(context, ref, course),
         ],
       ),
       body: body,
@@ -568,43 +537,55 @@ class CourseDetailPage extends ConsumerWidget {
               }
             },
           ),
-          PopupMenuButton<String>(
-            tooltip: context.l10n.courses_action_moreOptions,
-            onSelected: (value) {
-              if (value == 'delete') {
-                _confirmDelete(context, ref, course);
-              } else if (value == 'export') {
-                _exportTrainingLog(context, ref, course);
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'export',
-                child: Row(
-                  children: [
-                    const Icon(Icons.picture_as_pdf_outlined),
-                    const SizedBox(width: 8),
-                    Text(context.l10n.courses_action_exportTrainingLog),
-                  ],
-                ),
+          _buildMoreMenu(context, ref, course),
+        ],
+      ),
+    );
+  }
+
+  /// The overflow menu shared by the standalone and embedded headers.
+  Widget _buildMoreMenu(BuildContext context, WidgetRef ref, Course course) {
+    return PopupMenuButton<String>(
+      tooltip: context.l10n.courses_action_moreOptions,
+      onSelected: (value) {
+        if (value == kOpenInConnectionsAction) {
+          openInConnections(context, NodeRef(ConnectionKind.course, course.id));
+        } else if (value == 'delete') {
+          _confirmDelete(context, ref, course);
+        } else if (value == 'export') {
+          _exportTrainingLog(context, ref, course);
+        }
+      },
+      itemBuilder: (context) => [
+        openInConnectionsMenuItem(context),
+        PopupMenuItem(
+          value: 'export',
+          child: Row(
+            children: [
+              const Icon(Icons.picture_as_pdf_outlined),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(context.l10n.courses_action_exportTrainingLog),
               ),
-              PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    const Icon(Icons.delete_outline, color: Colors.red),
-                    const SizedBox(width: 8),
-                    Text(
-                      context.l10n.common_action_delete,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ],
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              const Icon(Icons.delete_outline, color: Colors.red),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  context.l10n.common_action_delete,
+                  style: const TextStyle(color: Colors.red),
                 ),
               ),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
