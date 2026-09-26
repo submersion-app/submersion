@@ -24,8 +24,7 @@ class _FakeRepo extends SafetyFindingsRepository {
   Future<SafetyReview?> getReview(String diveId) async => stored;
 
   @override
-  Future<SafetyReview> saveReview(SafetyReview review) async =>
-      saved = review;
+  Future<SafetyReview> saveReview(SafetyReview review) async => saved = review;
 }
 
 void main() {
