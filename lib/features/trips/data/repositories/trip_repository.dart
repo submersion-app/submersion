@@ -351,19 +351,22 @@ class TripRepository {
   Future<void> assignDiveToTrip(String diveId, String tripId) async {
     try {
       _log.info('Assigning dive $diveId to trip $tripId');
-      // A link into another trip's slot means nothing on this dive.
-      await clearForeignTripCylinderLinks(
-        _db,
-        _syncRepository,
-        diveId,
-        tripId: tripId,
-        now: DateTime.now().millisecondsSinceEpoch,
-      );
-      await _db.customUpdate(
-        'UPDATE dives SET trip_id = ? WHERE id = ?',
-        variables: [Variable.withString(tripId), Variable.withString(diveId)],
-        updates: {_db.dives},
-      );
+      // One transaction: a move that fails (an unknown trip id trips the
+      // foreign key) must not leave the tank links cleared.
+      await _db.transaction(() async {
+        await clearForeignTripCylinderLinks(
+          _db,
+          _syncRepository,
+          diveId,
+          tripId: tripId,
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
+        await _db.customUpdate(
+          'UPDATE dives SET trip_id = ? WHERE id = ?',
+          variables: [Variable.withString(tripId), Variable.withString(diveId)],
+          updates: {_db.dives},
+        );
+      });
       // The cleared tank links are staged; tell auto-sync.
       SyncEventBus.notifyLocalChange();
       _log.info('Assigned dive to trip');
@@ -381,19 +384,22 @@ class TripRepository {
   Future<void> removeDiveFromTrip(String diveId) async {
     try {
       _log.info('Removing dive $diveId from trip');
-      // Off the trip, the dive can hold no slot link at all.
-      await clearForeignTripCylinderLinks(
-        _db,
-        _syncRepository,
-        diveId,
-        tripId: null,
-        now: DateTime.now().millisecondsSinceEpoch,
-      );
-      await _db.customUpdate(
-        'UPDATE dives SET trip_id = NULL WHERE id = ?',
-        variables: [Variable.withString(diveId)],
-        updates: {_db.dives},
-      );
+      // One transaction, as in assignDiveToTrip: the links and the dive
+      // change together or not at all.
+      await _db.transaction(() async {
+        await clearForeignTripCylinderLinks(
+          _db,
+          _syncRepository,
+          diveId,
+          tripId: null,
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
+        await _db.customUpdate(
+          'UPDATE dives SET trip_id = NULL WHERE id = ?',
+          variables: [Variable.withString(diveId)],
+          updates: {_db.dives},
+        );
+      });
       // The cleared tank links are staged; tell auto-sync.
       SyncEventBus.notifyLocalChange();
       _log.info('Removed dive from trip');

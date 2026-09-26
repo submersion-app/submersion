@@ -186,4 +186,16 @@ void main() {
       await expectLater(removed.timeout(const Duration(seconds: 1)), completes);
     },
   );
+
+  test('a failed move leaves the links as they were', () async {
+    await insertDiveWithTank('d1', 't1', tripId: tripA, cylinderId: slotA);
+
+    // A trip id that does not exist fails the move on the foreign key.
+    await expectLater(
+      trips.assignDiveToTrip('d1', 'no-such-trip'),
+      throwsA(anything),
+    );
+
+    expect(await linkOf('t1'), slotA);
+  });
 }
