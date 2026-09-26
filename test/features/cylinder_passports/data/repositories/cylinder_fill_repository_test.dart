@@ -191,4 +191,27 @@ void main() {
     );
     expect(fills.map((f) => f.id), ['mine']);
   });
+
+  test('recent station and analyzer names, newest first, once each', () async {
+    await repo.create(
+      fill('a', t0).copyWith(stationName: 'Blue Water', analyzer: 'Divesoft'),
+    );
+    await repo.create(
+      fill(
+        'b',
+        t0.add(const Duration(days: 2)),
+      ).copyWith(stationName: 'Reef Air', analyzer: 'Analox'),
+    );
+    await repo.create(
+      fill(
+        'c',
+        t0.add(const Duration(days: 1)),
+      ).copyWith(stationName: 'Blue Water'),
+    );
+    await repo.create(
+      fill('d', t0.add(const Duration(days: 3))).copyWith(stationName: '  '),
+    );
+    expect(await repo.recentStationNames(), ['Reef Air', 'Blue Water']);
+    expect(await repo.recentAnalyzers(), ['Analox', 'Divesoft']);
+  });
 }

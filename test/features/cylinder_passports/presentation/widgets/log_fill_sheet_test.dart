@@ -80,6 +80,7 @@ void main() {
     final l10n = AppLocalizations.of(tester.element(find.byType(LogFillSheet)));
     await tester.enterText(find.byKey(const Key('logFill_o2')), '60');
     await tester.enterText(find.byKey(const Key('logFill_he')), '50');
+    await tester.ensureVisible(find.text(l10n.forms_save));
     await tester.tap(find.text(l10n.forms_save));
     await tester.pumpAndSettle();
     expect(find.text(l10n.passport_logFill_invalidMix), findsOneWidget);
@@ -89,6 +90,7 @@ void main() {
     await pump(tester);
     final l10n = AppLocalizations.of(tester.element(find.byType(LogFillSheet)));
     await tester.enterText(find.byKey(const Key('logFill_pressure')), 'abc');
+    await tester.ensureVisible(find.text(l10n.forms_save));
     await tester.tap(find.text(l10n.forms_save));
     await tester.pumpAndSettle();
     expect(find.text(l10n.passport_logFill_invalidNumber), findsOneWidget);
@@ -98,6 +100,7 @@ void main() {
     await pump(tester);
     final l10n = AppLocalizations.of(tester.element(find.byType(LogFillSheet)));
     await tester.enterText(find.byKey(const Key('logFill_o2')), '0');
+    await tester.ensureVisible(find.text(l10n.forms_save));
     await tester.tap(find.text(l10n.forms_save));
     await tester.pumpAndSettle();
     expect(find.text(l10n.passport_logFill_invalidMix), findsOneWidget);
@@ -108,6 +111,7 @@ void main() {
   ) async {
     await pump(tester, repository: _ThrowingFillRepository());
     final l10n = AppLocalizations.of(tester.element(find.byType(LogFillSheet)));
+    await tester.ensureVisible(find.text(l10n.forms_save));
     await tester.tap(find.text(l10n.forms_save));
     await tester.pumpAndSettle();
     expect(find.text(l10n.passport_logFill_saveFailed), findsOneWidget);
@@ -134,6 +138,7 @@ void main() {
       find.widgetWithText(TextField, l10n.passport_logFill_station),
       'Blue Water Fills',
     );
+    await tester.ensureVisible(find.text(l10n.forms_save));
     await tester.tap(find.text(l10n.forms_save));
     await tester.pumpAndSettle();
 
@@ -158,6 +163,27 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(DatePickerDialog), findsNothing);
   });
+  testWidgets('the time of the fill can be set', (tester) async {
+    await pump(tester);
+    final l10n = AppLocalizations.of(tester.element(find.byType(LogFillSheet)));
+    await tester.tap(find.text(l10n.passport_logFill_time));
+    await tester.pumpAndSettle();
+    expect(find.byType(TimePickerDialog), findsOneWidget);
+  });
+
+  testWidgets('the last analyzer is remembered and stations are suggested', (
+    tester,
+  ) async {
+    await pump(tester, repository: _HistoryFillRepository());
+    final l10n = AppLocalizations.of(tester.element(find.byType(LogFillSheet)));
+    expect(find.text('Analox'), findsOneWidget);
+    await tester.enterText(
+      find.widgetWithText(TextField, l10n.passport_logFill_station),
+      'Re',
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Reef Air'), findsOneWidget);
+  });
 }
 
 class _CapturingFillRepository extends CylinderFillRepository {
@@ -168,6 +194,17 @@ class _CapturingFillRepository extends CylinderFillRepository {
     created.add(fill);
     return fill;
   }
+}
+
+class _HistoryFillRepository extends CylinderFillRepository {
+  @override
+  Future<List<String>> recentStationNames({int limit = 8}) async => [
+    'Reef Air',
+    'Blue Water',
+  ];
+
+  @override
+  Future<List<String>> recentAnalyzers({int limit = 8}) async => ['Analox'];
 }
 
 class _ThrowingFillRepository extends CylinderFillRepository {

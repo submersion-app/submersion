@@ -11428,6 +11428,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String passport_fill_analysis(String o2, String he) {
+    return 'O2 $o2，He $he';
+  }
+
+  @override
   String passport_fill_temperature(String temperature) {
     return '气体温度 $temperature';
   }
@@ -11501,6 +11506,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get passport_logFill_date => '充气日期';
+
+  @override
+  String get passport_logFill_time => '时间';
 
   @override
   String get passport_logFill_o2 => 'O2 (%)';

@@ -54,6 +54,10 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
   final _temperature = TextEditingController();
   final _station = TextEditingController();
   final _analyzer = TextEditingController();
+  final _stationFocus = FocusNode();
+  final _analyzerFocus = FocusNode();
+  List<String> _recentStations = const [];
+  List<String> _recentAnalyzers = const [];
   final _notes = TextEditingController();
   String? _mixError;
   String? _pressureError;
@@ -61,7 +65,52 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
   bool _saving = false;
 
   @override
+  void initState() {
+    super.initState();
+    _loadHistory();
+  }
+
+  /// Recent stations and analyzers for suggestions; the analyzer a diver
+  /// used last is filled in, since it is usually the same instrument.
+  Future<void> _loadHistory() async {
+    try {
+      final repository = ref.read(cylinderFillRepositoryProvider);
+      final stations = await repository.recentStationNames();
+      final analyzers = await repository.recentAnalyzers();
+      if (!mounted) return;
+      setState(() {
+        _recentStations = stations;
+        _recentAnalyzers = analyzers;
+        if (_analyzer.text.isEmpty && analyzers.isNotEmpty) {
+          _analyzer.text = analyzers.first;
+        }
+      });
+    } catch (_) {
+      // Suggestions are a convenience; the sheet works without them.
+    }
+  }
+
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_filledAt),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _filledAt = DateTime(
+        _filledAt.year,
+        _filledAt.month,
+        _filledAt.day,
+        picked.hour,
+        picked.minute,
+      );
+    });
+  }
+
+  @override
   void dispose() {
+    _stationFocus.dispose();
+    _analyzerFocus.dispose();
     for (final c in [
       _o2,
       _he,
@@ -189,6 +238,13 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
             subtitle: Text(units.formatDate(_filledAt)),
             onTap: _pickDate,
           ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.schedule),
+            title: Text(l10n.passport_logFill_time),
+            subtitle: Text(units.formatTime(_filledAt)),
+            onTap: _pickTime,
+          ),
           Row(
             children: [
               Expanded(
@@ -254,18 +310,18 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
             ],
           ),
           const SizedBox(height: 12),
-          TextField(
+          _SuggestingField(
             controller: _station,
-            decoration: InputDecoration(
-              labelText: l10n.passport_logFill_station,
-            ),
+            focusNode: _stationFocus,
+            label: l10n.passport_logFill_station,
+            suggestions: _recentStations,
           ),
           const SizedBox(height: 12),
-          TextField(
+          _SuggestingField(
             controller: _analyzer,
-            decoration: InputDecoration(
-              labelText: l10n.passport_logFill_analyzer,
-            ),
+            focusNode: _analyzerFocus,
+            label: l10n.passport_logFill_analyzer,
+            suggestions: _recentAnalyzers,
           ),
           const SizedBox(height: 12),
           TextField(
@@ -289,6 +345,65 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A text field that offers [suggestions] containing what has been typed,
+/// case-insensitively, most recent first.
+class _SuggestingField extends StatelessWidget {
+  const _SuggestingField({
+    required this.controller,
+    required this.focusNode,
+    required this.label,
+    required this.suggestions,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final String label;
+  final List<String> suggestions;
+
+  @override
+  Widget build(BuildContext context) {
+    return RawAutocomplete<String>(
+      textEditingController: controller,
+      focusNode: focusNode,
+      optionsBuilder: (value) {
+        final typed = value.text.trim().toLowerCase();
+        if (typed.isEmpty) return const [];
+        return suggestions.where(
+          (s) => s.toLowerCase().contains(typed) && s.toLowerCase() != typed,
+        );
+      },
+      fieldViewBuilder: (context, controller, focusNode, onSubmitted) =>
+          TextField(
+            controller: controller,
+            focusNode: focusNode,
+            decoration: InputDecoration(labelText: label),
+            onSubmitted: (_) => onSubmitted(),
+          ),
+      optionsViewBuilder: (context, onSelected, options) => Align(
+        alignment: AlignmentDirectional.topStart,
+        child: Material(
+          elevation: 4,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 200, maxWidth: 320),
+            child: ListView(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              children: [
+                for (final option in options)
+                  ListTile(
+                    dense: true,
+                    title: Text(option),
+                    onTap: () => onSelected(option),
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

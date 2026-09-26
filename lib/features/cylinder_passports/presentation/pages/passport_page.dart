@@ -13,8 +13,10 @@ import 'package:submersion/features/cylinder_passports/presentation/widgets/pass
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_spec_card.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_tag_card.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The scanned tag a route carried, or null when the route's extra is
@@ -150,6 +152,7 @@ class _PassportHeader extends StatelessWidget {
       if (equipment.model?.isNotEmpty ?? false) equipment.model!,
       if (equipment.serialNumber?.isNotEmpty ?? false) equipment.serialNumber!,
     ].join(' ');
+    final material = equipment.attrText(EquipmentAttrKeys.tankMaterial);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -158,6 +161,20 @@ class _PassportHeader extends StatelessWidget {
           Text(equipment.identifier!, style: theme.textTheme.titleMedium),
         if (subtitle.isNotEmpty)
           Text(subtitle, style: theme.textTheme.bodyMedium),
+        if (material != null) ...[
+          const SizedBox(height: 8),
+          Chip(
+            avatar: const Icon(Icons.propane_tank_outlined, size: 18),
+            label: Text(
+              attributeChoiceLabel(
+                context.l10n,
+                EquipmentAttrKeys.tankMaterial,
+                material,
+              ),
+            ),
+            visualDensity: VisualDensity.compact,
+          ),
+        ],
       ],
     );
   }

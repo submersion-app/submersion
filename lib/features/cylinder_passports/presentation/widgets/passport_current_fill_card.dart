@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_metrics.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/gas_percent.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/log_fill_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -99,6 +100,12 @@ class _FillSummary extends StatelessWidget {
           ],
         ),
         Text(units.formatDate(fill.filledAt)),
+        Text(
+          l10n.passport_fill_analysis(
+            formatGasPercent(fill.o2Percent),
+            formatGasPercent(fill.hePercent),
+          ),
+        ),
         if (fill.stationName != null)
           Text(l10n.passport_fill_station(fill.stationName!)),
         if (fill.analyzer != null)

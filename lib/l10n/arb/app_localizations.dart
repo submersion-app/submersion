@@ -19912,6 +19912,12 @@ abstract class AppLocalizations {
   /// **'Analyzed with {analyzer}'**
   String passport_fill_analyzer(String analyzer);
 
+  /// No description provided for @passport_fill_analysis.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 {o2}, He {he}'**
+  String passport_fill_analysis(String o2, String he);
+
   /// No description provided for @passport_fill_temperature.
   ///
   /// In en, this message translates to:
@@ -20031,6 +20037,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Filled on'**
   String get passport_logFill_date;
+
+  /// No description provided for @passport_logFill_time.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get passport_logFill_time;
 
   /// No description provided for @passport_logFill_o2.
   ///

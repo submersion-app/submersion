@@ -319,6 +319,16 @@ void main() {
     expect(scannedTagFrom('https://submersion.app/c#p=x'), isNull);
     expect(scannedTagFrom(42), isNull);
   });
+
+  testWidgets('the current fill shows the analysed O2 and He', (tester) async {
+    final l10n = await pump(tester, fills: [fill(32)]);
+    expect(find.text(l10n.passport_fill_analysis('32%', '0%')), findsOneWidget);
+  });
+
+  testWidgets('the header names the cylinder material', (tester) async {
+    await pump(tester);
+    expect(find.widgetWithText(Chip, 'Steel'), findsOneWidget);
+  });
 }
 
 class _BrokenEquipmentRepository extends EquipmentRepository {

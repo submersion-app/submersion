@@ -6891,6 +6891,13 @@
       "analyzer": {"type": "String"}
     }
   },
+  "passport_fill_analysis": "O2 {o2}, He {he}",
+  "@passport_fill_analysis": {
+    "placeholders": {
+      "o2": {"type": "String"},
+      "he": {"type": "String"}
+    }
+  },
   "passport_fill_temperature": "Gas temperature {temperature}",
   "@passport_fill_temperature": {
     "placeholders": {
@@ -6931,6 +6938,7 @@
   },
   "passport_tag_linked": "Tag linked",
   "passport_logFill_date": "Filled on",
+  "passport_logFill_time": "Time",
   "passport_logFill_o2": "O2 (%)",
   "passport_logFill_he": "He (%)",
   "passport_logFill_pressure": "Fill pressure",

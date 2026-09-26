@@ -11959,6 +11959,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String passport_fill_analysis(String o2, String he) {
+    return 'O2 $o2, He $he';
+  }
+
+  @override
   String passport_fill_temperature(String temperature) {
     return 'Gastemperatur $temperature';
   }
@@ -12035,6 +12040,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get passport_logFill_date => 'Gefüllt am';
+
+  @override
+  String get passport_logFill_time => 'Uhrzeit';
 
   @override
   String get passport_logFill_o2 => 'O2 (%)';

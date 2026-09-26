@@ -11700,6 +11700,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String passport_fill_analysis(String o2, String he) {
+    return 'O2 $o2, He $he';
+  }
+
+  @override
   String passport_fill_temperature(String temperature) {
     return 'טמפרטורת הגז $temperature';
   }
@@ -11775,6 +11780,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get passport_logFill_date => 'מולא בתאריך';
+
+  @override
+  String get passport_logFill_time => 'שעה';
 
   @override
   String get passport_logFill_o2 => 'O2 (%)';

@@ -113,6 +113,36 @@ class CylinderFillRepository {
     };
   }
 
+  /// Station names from logged fills, most recently used first, each once,
+  /// for the fill sheet's suggestions.
+  Future<List<String>> recentStationNames({int limit = 8}) =>
+      _recentDistinct(_db.cylinderFills.stationName, limit);
+
+  /// Analyzers from logged fills, most recently used first, each once; the
+  /// first is what the fill sheet remembers.
+  Future<List<String>> recentAnalyzers({int limit = 8}) =>
+      _recentDistinct(_db.cylinderFills.analyzer, limit);
+
+  Future<List<String>> _recentDistinct(
+    GeneratedColumn<String> column,
+    int limit,
+  ) async {
+    final rows =
+        await (_db.selectOnly(_db.cylinderFills)
+              ..addColumns([column])
+              ..where(column.isNotNull())
+              ..orderBy([OrderingTerm.desc(_db.cylinderFills.filledAt)]))
+            .get();
+    final seen = <String>[];
+    for (final row in rows) {
+      final value = row.read(column)?.trim();
+      if (value == null || value.isEmpty || seen.contains(value)) continue;
+      seen.add(value);
+      if (seen.length == limit) break;
+    }
+    return seen;
+  }
+
   /// Moves the fills of [equipmentId] logged under passport id [from] to
   /// [to], staging each for sync. Fills under [from] with no gear link, or
   /// another cylinder's link, are left alone. Returns how many moved.
