@@ -180,11 +180,27 @@ void main() {
       expect(formatDecimalForInput(0.1 + 0.2), '0,3');
     });
 
-    test('keeps every digit up to twelve significant digits', () {
+    test('keeps every digit of a value with up to fifteen significant '
+        'digits', () {
+      // Fifteen is DBL_DIG: every decimal that short round-trips through a
+      // double exactly, so noise removal must never cost one of its digits.
       Intl.defaultLocale = 'en_US';
       expect(formatDecimalForInput(12.3456789012), '12.3456789012');
       expect(formatDecimalForInput(-122.1234567), '-122.1234567');
-      expect(formatDecimalForInput(123456789.123), '123456789.123');
+      expect(formatDecimalForInput(123456789.12345), '123456789.12345');
+      expect(formatDecimalForInput(123456789.123456), '123456789.123456');
+      expect(formatDecimalForInput(0.123456789012345), '0.123456789012345');
+    });
+
+    test('drops noise left by a chained unit conversion', () {
+      // metres -> feet -> metres, the kind of multi-step path a seeded field
+      // can sit at the end of.
+      Intl.defaultLocale = 'en_US';
+      for (var tenths = 0; tenths <= 3000; tenths++) {
+        final metres = tenths / 10.0;
+        final seeded = formatDecimalForInput(metres * 3.28084 / 3.28084);
+        expect(seeded, formatDecimalForInput(metres), reason: '$metres m');
+      }
     });
   });
 

@@ -53,7 +53,9 @@ String localiseNumberSeparators(String text) {
       .replaceFirst('-', symbols.MINUS_SIGN);
 }
 
-/// [value] as locale-aware text at whatever precision the value itself carries.
+/// [value] as locale-aware text at whatever precision the value itself carries,
+/// up to the 15 significant digits a double holds exactly (see
+/// [_withoutBinaryNoise]).
 ///
 /// The shared body of `formatDecimalForInput` and `formatDecimalForDisplay`,
 /// which differ only in [stripTrailingZero]. That strip happens here rather
@@ -78,11 +80,15 @@ String localiseDoubleText(double value, {required bool stripTrailingZero}) {
   return localiseNumberSeparators(text);
 }
 
-/// Significant digits kept by [_withoutBinaryNoise]. A double carries 15 to 17,
-/// and the error one arithmetic step leaves sits in the last one or two, so 12
-/// discards the noise of several chained steps (a unit conversion, say) while
-/// keeping every digit of any value a diver enters or a device records.
-const _significantDigits = 12;
+/// Significant digits kept by [_withoutBinaryNoise]: 15, which is DBL_DIG.
+///
+/// Every decimal of up to 15 significant digits round-trips through a double
+/// exactly, so rounding here never changes a value anyone typed or a device
+/// recorded. The error an arithmetic step leaves sits in the 16th and 17th
+/// digits, so this still discards the noise of several chained steps (a unit
+/// conversion there and back, say). Only a double that needs 16 or 17 digits
+/// to reproduce, which in practice means one carrying that noise, loses them.
+const _significantDigits = 15;
 
 /// [value] with the floating-point noise below [_significantDigits] removed,
 /// so 55 / 100.0 * 100.0 renders "55" rather than "55.00000000000001" (#2032).

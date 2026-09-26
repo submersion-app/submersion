@@ -131,6 +131,9 @@ int? parseUserInt(String text) {
 ///
 /// The digits come from [double.toString], which yields the shortest decimal
 /// that reads back as the same double, and only the separator is localised.
+/// The value is first rounded to 15 significant digits, which keeps every
+/// digit of anything a diver typed but drops floating-point noise, so a
+/// downloaded 55% He seeds "55" rather than "55.00000000000001" (#2032).
 /// NumberFormat is the wrong tool for the digits here: it renders the exact
 /// binary value, so raising its 3-digit cap far enough to stop it rounding
 /// 12.345678 to 12.346 makes it start emitting noise instead (12.05 becomes
