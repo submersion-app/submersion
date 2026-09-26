@@ -23,6 +23,15 @@ String? _asNonEmptyString(Object? v) {
   return trimmed.isEmpty ? null : trimmed;
 }
 
+/// A remote row id, or null when absent or blank. Ids key source ids, gear
+/// links and photo maps, so an empty string must never stand in for one:
+/// every blank-id row would then share a single key.
+String? _asId(Object? v) => switch (v) {
+  final num n => '$n',
+  final String s => _asNonEmptyString(s),
+  _ => null,
+};
+
 DateTime? _asUtcDate(Object? v) {
   final s = _asNonEmptyString(v);
   return s == null ? null : DateTime.tryParse('${s}T00:00:00Z');
@@ -169,9 +178,8 @@ class DivelogsDive {
       }
     }
 
-    final rawId = json['id'] ?? json['dive_id'];
     return DivelogsDive(
-      id: rawId == null ? null : '$rawId',
+      id: _asId(json['id'] ?? json['dive_id']),
       dateTime: dateTime,
       durationSeconds: duration,
       maxDepth: maxDepth,
@@ -227,11 +235,11 @@ class DivelogsGearItem {
   });
 
   static DivelogsGearItem? fromJson(Map<String, dynamic> json) {
-    final rawId = json['id'] ?? json['gear_id'];
+    final rawId = _asId(json['id'] ?? json['gear_id']);
     final name = _asNonEmptyString(json['name']);
     if (rawId == null || name == null) return null;
     return DivelogsGearItem(
-      id: '$rawId',
+      id: rawId,
       name: name,
       geartypeId: _asInt(json['geartype']),
       purchaseDate: _asUtcDate(json['purchasedate']),
@@ -258,9 +266,9 @@ class DivelogsCertification {
   static DivelogsCertification? fromJson(Map<String, dynamic> json) {
     final name = _asNonEmptyString(json['name']);
     if (name == null) return null;
-    final rawId = json['id'];
+    final rawId = _asId(json['id']);
     return DivelogsCertification(
-      id: rawId == null ? null : '$rawId',
+      id: rawId,
       name: name,
       date: _asUtcDate(json['date']),
       org: _asNonEmptyString(json['org']),
@@ -281,7 +289,7 @@ class DivelogsPicture {
   static const _urlKeys = ['url', 'link', 'href', 'imageurl'];
 
   static DivelogsPicture? fromJson(Map<String, dynamic> json) {
-    final rawId = json['id'] ?? json['picture_id'];
+    final rawId = _asId(json['id'] ?? json['picture_id']);
     Uri? url;
     for (final key in _urlKeys) {
       final candidate = _asNonEmptyString(json[key]);
@@ -295,6 +303,6 @@ class DivelogsPicture {
     }
     final hasUrlKey = _urlKeys.any((k) => json[k] != null);
     if (rawId == null && !hasUrlKey) return null;
-    return DivelogsPicture(id: rawId == null ? null : '$rawId', url: url);
+    return DivelogsPicture(id: rawId, url: url);
   }
 }

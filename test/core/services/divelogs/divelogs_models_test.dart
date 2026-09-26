@@ -194,4 +194,37 @@ void main() {
       throwsFormatException,
     );
   });
+
+  group('blank remote ids are treated as absent', () {
+    Map<String, dynamic> dive(Object id) => {
+      'id': id,
+      'date': '2022-09-03',
+      'time': '14:42:00',
+      'duration': 2808,
+      'maxdepth': 12,
+    };
+
+    test('a dive keeps no id, so no shared source id is made', () {
+      expect(DivelogsDive.fromJson(dive('')).id, isNull);
+      expect(DivelogsDive.fromJson(dive('  ')).id, isNull);
+      expect(DivelogsDive.fromJson(dive(4711)).id, '4711');
+      expect(DivelogsDive.fromJson(dive(' 12 ')).id, '12');
+    });
+
+    test('a gear row without a real id is unusable', () {
+      expect(DivelogsGearItem.fromJson({'id': '', 'name': 'Reg'}), isNull);
+      expect(DivelogsGearItem.fromJson({'id': 45, 'name': 'Reg'})!.id, '45');
+    });
+
+    test('a certification falls back to having no id', () {
+      expect(
+        DivelogsCertification.fromJson({'id': ' ', 'name': 'Open Water'})!.id,
+        isNull,
+      );
+    });
+
+    test('a picture with only a blank id and no link is not a row', () {
+      expect(DivelogsPicture.fromJson({'id': ''}), isNull);
+    });
+  });
 }
