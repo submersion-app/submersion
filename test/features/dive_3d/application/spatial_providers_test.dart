@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
+import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
@@ -337,43 +338,94 @@ void main() {
         fetchedAt: DateTime.utc(2026, 7, 28),
       );
 
-      Future<ProviderContainer> containerFor(NavTrack route) async {
+      final requestedCells = <({double lat, double lon})>[];
+
+      Future<ProviderContainer> containerFor(
+        NavTrack route, {
+        Dive? dive,
+      }) async {
         final base = await getBaseOverrides(primaryNavTrack: route);
         final container = ProviderContainer(
           overrides: [
             ...base,
             diveProvider('d1').overrideWith(
-              (ref) async => Dive(
-                id: 'd1',
-                dateTime: DateTime.utc(2026, 1, 1),
-                // Far from both the site and the route's own anchor, offset
-                // mostly in longitude (east) so the effect lands squarely on
-                // the axisInputs.maxEast assertion below: the dive's entry
-                // fix must NOT be used to place a measured, anchored route
-                // in its own dive's 3D scene.
-                entryLocation: const GeoPoint(10.0005, 20.01),
-                site: const DiveSite(
-                  id: 's1',
-                  name: 'Reef',
-                  location: GeoPoint(10.0005, 20.0005),
-                  maxDepth: 30,
-                ),
-              ),
+              (ref) async =>
+                  dive ??
+                  Dive(
+                    id: 'd1',
+                    dateTime: DateTime.utc(2026, 1, 1),
+                    // Far from both the site and the route's own anchor, offset
+                    // mostly in longitude (east) so the effect lands squarely on
+                    // the axisInputs.maxEast assertion below: the dive's entry
+                    // fix must NOT be used to place a measured, anchored route
+                    // in its own dive's 3D scene.
+                    entryLocation: const GeoPoint(10.0005, 20.01),
+                    site: const DiveSite(
+                      id: 's1',
+                      name: 'Reef',
+                      location: GeoPoint(10.0005, 20.0005),
+                      maxDepth: 30,
+                    ),
+                  ),
             ),
             sourceProfilesProvider(
               'd1',
             ).overrideWith((ref) async => {'src': headingProfile()}),
-            bathymetryGridProvider.overrideWith((ref, cell) async => grid()),
+            bathymetryGridProvider.overrideWith((ref, cell) async {
+              requestedCells.add(cell);
+              return grid();
+            }),
           ],
         );
         addTearDown(container.dispose);
         return container;
       }
 
+      setUp(requestedCells.clear);
+
       final points = [
         for (var i = 0; i < 3; i++)
           NavTrackPoint(timestamp: i * 10, north: i * 5.0, east: 0, depth: 5),
       ];
+
+      test('fetches terrain around the route\'s own anchor, not the dive\'s '
+          'site, when the route sits in another cell', () async {
+        const routeAnchor = GeoPoint(10.2, 20.2);
+        final container = await containerFor(
+          _route(
+            points: points,
+            anchorLatitude: routeAnchor.latitude,
+            anchorLongitude: routeAnchor.longitude,
+          ),
+        );
+
+        final result = await container.read(
+          spatialGeometryProvider('d1').future,
+        );
+
+        expect(result, isNotNull);
+        expect(requestedCells, [BathymetryRepository.quantize(routeAnchor)]);
+      });
+
+      test('uses the route\'s anchor for terrain even when the dive has no '
+          'location at all', () async {
+        const routeAnchor = GeoPoint(10.0005, 20.0005);
+        final container = await containerFor(
+          _route(
+            points: points,
+            anchorLatitude: routeAnchor.latitude,
+            anchorLongitude: routeAnchor.longitude,
+          ),
+          dive: Dive(id: 'd1', dateTime: DateTime.utc(2026, 1, 1)),
+        );
+
+        final result = await container.read(
+          spatialGeometryProvider('d1').future,
+        );
+
+        expect(result!.grid, isNotNull);
+        expect(requestedCells, [BathymetryRepository.quantize(routeAnchor)]);
+      });
 
       test(
         'uses the route\'s own anchor, not the dive\'s entry location',

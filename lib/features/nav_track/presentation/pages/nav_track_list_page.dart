@@ -36,6 +36,15 @@ const String kNavTrackSectionKey = 'nav-track-list';
 /// routes area"): every measured underwater route, whether or not it is
 /// linked to a dive, with unlinked routes first (`allNavTracksProvider`
 /// already returns them in that order).
+/// What the routes map's camera framing depends on: each anchored route and
+/// where its start point sits. When this changes, the map re-frames, so a
+/// realigned route or a site change that moves an anchor is brought back
+/// into view, not only a route arriving or leaving.
+String navTrackMapFramingSignature(List<NavTrack> anchoredRoutes) => [
+  for (final route in anchoredRoutes)
+    '${route.id}@${route.anchor?.latitude},${route.anchor?.longitude}',
+].join(';');
+
 class NavTrackListPage extends ConsumerStatefulWidget {
   const NavTrackListPage({super.key});
 
@@ -209,11 +218,11 @@ class _NavTrackListPageState extends ConsumerState<NavTrackListPage> {
     final anchoredRoutes = routes.where((r) => r.anchor != null).toList();
     final cameraFit = _cameraFitFor(anchoredRoutes);
 
-    // Re-frame when the anchored set changes -- a route arriving, an anchor
-    // being set on the alignment page, or a route being deleted -- the same
-    // signature-latch GpsTrackOverviewMap uses, since initialCameraFit only
+    // Re-frame when the anchored set or any anchor changes (a route
+    // arriving, being deleted, or realigned on the alignment page), the same
+    // signature latch GpsTrackOverviewMap uses, since initialCameraFit only
     // ever applies once at first layout.
-    final signature = anchoredRoutes.map((r) => r.id).join(',');
+    final signature = navTrackMapFramingSignature(anchoredRoutes);
     if (_mapReady && cameraFit != null && _framedOn != signature) {
       _framedOn = signature;
       WidgetsBinding.instance.addPostFrameCallback((_) {

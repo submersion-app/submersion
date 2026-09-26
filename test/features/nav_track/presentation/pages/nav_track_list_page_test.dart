@@ -129,6 +129,32 @@ Future<_RecordingNavTrackRepository> _pump(
 }
 
 void main() {
+  group('navTrackMapFramingSignature', () {
+    test('changes when an anchored route is realigned, not only when the '
+        'set of anchored routes changes', () {
+      final before = navTrackMapFramingSignature([
+        _route(id: 'a', anchorLatitude: 47.1, anchorLongitude: 8.3),
+      ]);
+      final realigned = navTrackMapFramingSignature([
+        _route(id: 'a', anchorLatitude: 46.9, anchorLongitude: 8.5),
+      ]);
+
+      expect(realigned, isNot(before));
+    });
+
+    test('stays the same for the same routes at the same anchors', () {
+      List<NavTrack> routes() => [
+        _route(id: 'a', anchorLatitude: 47.1, anchorLongitude: 8.3),
+        _route(id: 'b', anchorLatitude: 47.2, anchorLongitude: 8.4),
+      ];
+
+      expect(
+        navTrackMapFramingSignature(routes()),
+        navTrackMapFramingSignature(routes()),
+      );
+    });
+  });
+
   testWidgets('renders route rows with distance, depth and an unlinked chip', (
     tester,
   ) async {

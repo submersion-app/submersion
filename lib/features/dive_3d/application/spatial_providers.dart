@@ -160,31 +160,32 @@ final spatialGeometryProvider =
       final dive = await ref.watch(diveProvider(diveId).future);
       final siteMaxDepth = dive?.site?.maxDepth;
 
-      // Real terrain when any anchor coordinate exists: prefer the site
-      // pin, else the dive's own entry fix. Null grid (no coordinates,
-      // offline-and-uncached, definitive empty) falls back to synthesized.
-      final center = dive?.site?.location ?? dive?.entryLocation;
+      // A linked, primary route carries its own georeferenced start point
+      // (`anchor`), set by the diver on the alignment page. When the scene
+      // draws that measured route, it places the path AND centers the
+      // terrain: a route aligned away from the dive's site, or linked to a
+      // dive with no location at all, would otherwise land outside the
+      // fetched grid or get synthesized terrain.
+      GeoPoint? routeAnchor;
+      if (path.provenance == PathProvenance.measured) {
+        final route = await ref.watch(
+          primaryNavTrackForDiveProvider(diveId).future,
+        );
+        routeAnchor = route?.anchor;
+      }
+
+      // Real terrain when any anchor coordinate exists: the measured route's
+      // own anchor, else the site pin, else the dive's own entry fix. Null
+      // grid (no coordinates, offline-and-uncached, definitive empty) falls
+      // back to synthesized.
+      final center = routeAnchor ?? dive?.site?.location ?? dive?.entryLocation;
       BathymetryGrid? grid;
       if (center != null) {
         grid = await ref.watch(
           bathymetryGridProvider(BathymetryRepository.quantize(center)).future,
         );
       }
-      // A linked, primary route carries its own georeferenced start point
-      // (`anchor`), set by the diver on the alignment page; when the scene
-      // is drawing that measured route, use it in place of the dive's own
-      // entry fix, mirroring what siteSeascapeProvider already does for the
-      // same route one level up. Without this a manually aligned route
-      // renders at the dive's entry location instead of where the diver
-      // actually put it.
-      GeoPoint? entry;
-      if (path.provenance == PathProvenance.measured) {
-        final route = await ref.watch(
-          primaryNavTrackForDiveProvider(diveId).future,
-        );
-        entry = route?.anchor;
-      }
-      entry ??= dive?.entryLocation;
+      final entry = routeAnchor ?? dive?.entryLocation;
       final anchor = (grid != null && center != null && entry != null)
           ? enuOffsetMeters(center, entry)
           : (east: 0.0, north: 0.0);
