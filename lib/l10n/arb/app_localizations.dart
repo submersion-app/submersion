@@ -44466,6 +44466,12 @@ abstract class AppLocalizations {
   /// **'Could not resync: the original file no longer contains a matching dive'**
   String get diveLog_detail_resyncFailed_noMatchingDive;
 
+  /// Snackbar shown when the original file holds a matching dive for several divers and this dive, imported before its diver was recorded, cannot say which copy is its own
+  ///
+  /// In en, this message translates to:
+  /// **'Could not resync: the original file has a matching dive for more than one diver, and this dive does not record which one it came from'**
+  String get diveLog_detail_resyncFailed_ambiguousDiver;
+
   /// Snackbar shown when reading or parsing the stored original file threw
   ///
   /// In en, this message translates to:

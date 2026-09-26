@@ -152,9 +152,9 @@ void main() {
     'hlc',
   ];
 
-  test('v232 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
+  test('v232 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v233 (dive source diver key, #1921) landed on top; the
+    // newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(232));
     expect(AppDatabase.migrationVersions, contains(232));
     expect(AppDatabase.migrationStepCount(231), greaterThanOrEqualTo(1));

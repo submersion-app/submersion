@@ -9,10 +9,12 @@ import 'package:submersion/core/constants/enums.dart';
 // Only the companion: database.dart also exports Drift row classes whose
 // names collide with the domain entities this test imports (DiveSite, Dive,
 // Buddy, Tag, Trip, ...).
-import 'package:submersion/core/database/database.dart' show DiveSitesCompanion;
+import 'package:submersion/core/database/database.dart'
+    show DiveDataSourcesCompanion, DiveSitesCompanion;
 import 'package:submersion/core/services/export/export_service.dart'
     hide ServiceRecord;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -2584,6 +2586,60 @@ void main() {
       expect(reading.waterTemp.value, 22.0);
       expect(reading.cns.value, 24.0);
       expect(reading.otu.value, 64.0);
+    });
+
+    group('source diver key on the primary source (#1921)', () {
+      Future<DiveDataSourcesCompanion> importOne(
+        Map<String, dynamic> diveData,
+      ) async {
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+        when(mockDiveRepo.saveComputerReading(any)).thenAnswer((_) async {});
+
+        await importer.import(
+          data: UddfImportResult(
+            dives: [
+              {'dateTime': now, 'maxDepth': 18.0, ...diveData},
+            ],
+          ),
+          selections: const UddfImportSelections(dives: {0}),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        return verify(
+              mockDiveRepo.saveComputerReading(captureAny),
+            ).captured.single
+            as DiveDataSourcesCompanion;
+      }
+
+      test('stores the diver the logbook attributed the dive to', () async {
+        final reading = await importOne({SourceDiver.mapKey: 'name:Ann Lee'});
+
+        expect(reading.sourceDiverKey.value, 'name:Ann Lee');
+      });
+
+      test('stores the key as the file itself emits it, not as the batch '
+          'merger qualified it', () async {
+        // A resync re-parses the one stored file with no merger in between,
+        // so only the file-true key can ever match its candidates again.
+        final reading = await importOne({
+          '_sourceFileId': 'f1',
+          SourceDiver.mapKey: SourceDiver.qualifyForFile(
+            'local:macdive-pk3',
+            'f1',
+          ),
+        });
+
+        expect(reading.sourceDiverKey.value, 'local:macdive-pk3');
+      });
+
+      test('leaves it null for a format with no diver attribution', () async {
+        final reading = await importOne(const {});
+
+        expect(reading.sourceDiverKey.value, isNull);
+      });
     });
 
     test(

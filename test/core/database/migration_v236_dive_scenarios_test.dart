@@ -22,7 +22,7 @@ void main() {
   test('v236 creates dive_scenarios with the hlc column', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 232');
+        rawDb.execute('PRAGMA user_version = 233');
         rawDb.execute('CREATE TABLE dives (id TEXT NOT NULL PRIMARY KEY)');
       },
     );
@@ -72,7 +72,7 @@ void main() {
     expect(AppDatabase.migrationVersions, contains(236));
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.migrationStepCount(232), 1);
+    expect(AppDatabase.migrationStepCount(233), 1);
     // A new table is additive: the compatibility floor stays put.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });

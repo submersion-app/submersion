@@ -7874,6 +7874,7 @@
   "diveLog_detail_resyncFailed_unsupportedFormat": "تعذّرت إعادة المزامنة: تنسيق الملف هذا غير مدعوم",
   "diveLog_detail_resyncFailed_storedFileMissing": "تعذّرت إعادة المزامنة: الملف الأصلي غير موجود على هذا الجهاز",
   "diveLog_detail_resyncFailed_noMatchingDive": "تعذّرت إعادة المزامنة: لم يعد الملف الأصلي يحتوي على غطسة مطابقة",
+  "diveLog_detail_resyncFailed_ambiguousDiver": "تعذّرت إعادة المزامنة: يحتوي الملف الأصلي على غطسة مطابقة لأكثر من غوّاص، ولا تسجّل هذه الغطسة من أيّها جاءت",
   "diveLog_detail_resyncFailed_unexpectedError": "تعذّرت إعادة المزامنة: حدث خطأ غير متوقع أثناء قراءة الملف الأصلي",
   "universalImport_label_replaceSource": "استبدال المصدر",
   "universalImport_label_replaceSourceSubtitle": "تحديث من نفس الكمبيوتر",
