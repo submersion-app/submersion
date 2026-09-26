@@ -48,6 +48,29 @@ class _FakeGarminServer {
   /// serve a deliberately malformed or FIT-less archive body.
   final Map<int, List<int>> rawDownloadBytes = {};
 
+  /// HTTP statuses a download answers with, one per attempt, before it
+  /// finally serves the FIT file -- the shape of Garmin rate-limiting or a
+  /// flaky backend. Consumed front to back.
+  final Map<int, List<int>> downloadStatusQueue = {};
+
+  /// Extra headers sent with each [downloadStatusQueue] failure response.
+  Map<String, String> downloadFailureHeaders = const {};
+
+  /// How many times a download throws at the transport level before it
+  /// succeeds, per activity id.
+  final Map<int, int> downloadTransportFailures = {};
+
+  /// Download attempts seen, per activity id.
+  final Map<int, int> downloadAttempts = {};
+
+  /// HTTP statuses the OAuth 2 token exchange answers with, one per attempt,
+  /// before it hands out a token. Consumed front to back.
+  final List<int> exchangeStatusQueue = [];
+
+  /// The Authorization header of every token-exchange attempt, so a test can
+  /// check each retry carries a freshly signed request.
+  final List<String?> exchangeAuthHeaders = [];
+
   final List<http.Request> requestsSeen = [];
 
   MockClient get client => MockClient((request) async {
@@ -115,6 +138,10 @@ class _FakeGarminServer {
       }
       if (url.path == '/oauth-service/oauth/exchange/user/2.0') {
         expect(request.headers['Authorization'], contains('oauth_token="'));
+        exchangeAuthHeaders.add(request.headers['Authorization']);
+        if (exchangeStatusQueue.isNotEmpty) {
+          return http.Response('busy', exchangeStatusQueue.removeAt(0));
+        }
         return http.Response(
           jsonEncode({
             'access_token': accessToken,
@@ -134,6 +161,20 @@ class _FakeGarminServer {
       }
       if (url.path.startsWith('/download-service/files/activity/')) {
         final id = int.parse(url.path.split('/').last);
+        downloadAttempts[id] = (downloadAttempts[id] ?? 0) + 1;
+        final transportFailures = downloadTransportFailures[id] ?? 0;
+        if (transportFailures > 0) {
+          downloadTransportFailures[id] = transportFailures - 1;
+          throw Exception('connection reset by peer');
+        }
+        final queued = downloadStatusQueue[id];
+        if (queued != null && queued.isNotEmpty) {
+          return http.Response(
+            'busy',
+            queued.removeAt(0),
+            headers: downloadFailureHeaders,
+          );
+        }
         final raw = rawDownloadBytes[id];
         if (raw != null) return http.Response.bytes(raw, 200);
         final bytes = fitFiles[id];
@@ -400,6 +441,94 @@ void main() {
           ),
         ),
       );
+    });
+  });
+
+  group('token exchange retries', () {
+    const stored = GarminOAuth1Token(
+      token: 'stored-token',
+      tokenSecret: 'stored-secret',
+    );
+
+    test('retries a transient failure with a freshly signed request', () async {
+      final server = _FakeGarminServer()..exchangeStatusQueue.addAll([503]);
+      final delays = <Duration>[];
+      final client = GarminConnectClient(
+        httpClient: server.client,
+        retryDelay: (d) async => delays.add(d),
+      );
+
+      await client.restoreSession(stored);
+
+      expect(client.hasSession, isTrue);
+      expect(server.exchangeAuthHeaders, hasLength(2));
+      // An OAuth 1 signature carries a nonce and timestamp, so replaying
+      // the first attempt's header could be refused as a replay.
+      expect(
+        server.exchangeAuthHeaders[1],
+        isNot(server.exchangeAuthHeaders[0]),
+      );
+      expect(delays, [const Duration(seconds: 1)]);
+    });
+
+    test('an expired access token survives a flaky re-exchange before a '
+        'download', () async {
+      final server = _FakeGarminServer()
+        ..expiresIn = -10
+        ..fitFiles[42] = [1, 2, 3, 4];
+      final client = GarminConnectClient(
+        httpClient: server.client,
+        retryDelay: (_) async {},
+      );
+      await client.login('diver@example.com', 'hunter2');
+      server.exchangeStatusQueue.addAll([429, 502]);
+
+      final bytes = await client.downloadActivityFit(42);
+
+      expect(bytes, [1, 2, 3, 4]);
+    });
+
+    test('does not retry Garmin rejecting the stored sign-in', () async {
+      final server = _FakeGarminServer()..exchangeStatusQueue.addAll([401]);
+      final delays = <Duration>[];
+      final client = GarminConnectClient(
+        httpClient: server.client,
+        retryDelay: (d) async => delays.add(d),
+      );
+
+      await expectLater(
+        client.restoreSession(stored),
+        throwsA(
+          isA<GarminApiException>().having(
+            (e) => e.isAuthExpired,
+            'isAuthExpired',
+            isTrue,
+          ),
+        ),
+      );
+      expect(server.exchangeAuthHeaders, hasLength(1));
+      expect(delays, isEmpty);
+    });
+
+    test('gives up after three attempts', () async {
+      final server = _FakeGarminServer()
+        ..exchangeStatusQueue.addAll([503, 503, 503, 503]);
+      final client = GarminConnectClient(
+        httpClient: server.client,
+        retryDelay: (_) async {},
+      );
+
+      await expectLater(
+        client.restoreSession(stored),
+        throwsA(
+          isA<GarminApiException>().having(
+            (e) => e.statusCode,
+            'statusCode',
+            503,
+          ),
+        ),
+      );
+      expect(server.exchangeAuthHeaders, hasLength(3));
     });
   });
 
@@ -705,6 +834,182 @@ void main() {
         () => client.downloadActivityFit(7),
         throwsA(isA<GarminApiException>()),
       );
+    });
+
+    group('transient failures', () {
+      late _FakeGarminServer server;
+      late List<Duration> delays;
+      late GarminConnectClient client;
+
+      setUp(() async {
+        server = _FakeGarminServer()..fitFiles[42] = [1, 2, 3, 4];
+        delays = [];
+        client = GarminConnectClient(
+          httpClient: server.client,
+          retryDelay: (d) async => delays.add(d),
+        );
+        await client.login('diver@example.com', 'hunter2');
+      });
+
+      test('retries a rate-limited download until it succeeds', () async {
+        server.downloadStatusQueue[42] = [429];
+
+        final bytes = await client.downloadActivityFit(42);
+
+        expect(bytes, [1, 2, 3, 4]);
+        expect(server.downloadAttempts[42], 2);
+        expect(delays, hasLength(1));
+      });
+
+      test('retries a server error with a growing backoff', () async {
+        server.downloadStatusQueue[42] = [503, 502];
+
+        final bytes = await client.downloadActivityFit(42);
+
+        expect(bytes, [1, 2, 3, 4]);
+        expect(server.downloadAttempts[42], 3);
+        expect(delays, [
+          const Duration(seconds: 1),
+          const Duration(seconds: 2),
+        ]);
+      });
+
+      test('retries a transport-level failure', () async {
+        server.downloadTransportFailures[42] = 1;
+
+        final bytes = await client.downloadActivityFit(42);
+
+        expect(bytes, [1, 2, 3, 4]);
+        expect(server.downloadAttempts[42], 2);
+      });
+
+      test(
+        'waits as long as a Retry-After header asks, within a cap',
+        () async {
+          server
+            ..downloadStatusQueue[42] = [429, 429]
+            ..downloadFailureHeaders = {'retry-after': '5'};
+
+          await client.downloadActivityFit(42);
+
+          expect(delays, [
+            const Duration(seconds: 5),
+            const Duration(seconds: 5),
+          ]);
+
+          server
+            ..downloadStatusQueue[42] = [429]
+            ..downloadFailureHeaders = {'retry-after': '3600'};
+          delays.clear();
+
+          await client.downloadActivityFit(42);
+
+          expect(delays.single, lessThanOrEqualTo(const Duration(seconds: 30)));
+        },
+      );
+
+      test(
+        'caps an enormous numeric Retry-After without overflowing',
+        () async {
+          // Converting this many seconds to microseconds overflows a 64-bit
+          // int, which would wrap to a negative wait and skip the cap.
+          server
+            ..downloadStatusQueue[42] = [429]
+            ..downloadFailureHeaders = {'retry-after': '9223372036854775807'};
+
+          await client.downloadActivityFit(42);
+
+          expect(delays, [const Duration(seconds: 30)]);
+        },
+      );
+
+      group('Retry-After as an HTTP date', () {
+        final now = DateTime.utc(2026, 9, 26, 12);
+
+        setUp(() async {
+          client = GarminConnectClient(
+            httpClient: server.client,
+            retryDelay: (d) async => delays.add(d),
+            clock: () => now,
+          );
+          await client.login('diver@example.com', 'hunter2');
+        });
+
+        Future<Duration> delayFor(String retryAfter) async {
+          server
+            ..downloadStatusQueue[42] = [503]
+            ..downloadFailureHeaders = {'retry-after': retryAfter};
+          delays.clear();
+          await client.downloadActivityFit(42);
+          return delays.single;
+        }
+
+        test('waits until the date the server names', () async {
+          expect(
+            await delayFor('Sat, 26 Sep 2026 12:00:07 GMT'),
+            const Duration(seconds: 7),
+          );
+        });
+
+        test('reads the obsolete RFC 850 and asctime forms too', () async {
+          expect(
+            await delayFor('Saturday, 26-Sep-26 12:00:04 GMT'),
+            const Duration(seconds: 4),
+          );
+          expect(
+            await delayFor('Sat Sep 26 12:00:09 2026'),
+            const Duration(seconds: 9),
+          );
+        });
+
+        test('retries at once for a date already past', () async {
+          expect(
+            await delayFor('Sat, 26 Sep 2026 11:59:00 GMT'),
+            Duration.zero,
+          );
+        });
+
+        test('caps a far-off date', () async {
+          expect(
+            await delayFor('Sun, 27 Sep 2026 12:00:00 GMT'),
+            const Duration(seconds: 30),
+          );
+        });
+
+        test('falls back to the backoff for an unreadable value', () async {
+          expect(await delayFor('soon'), const Duration(seconds: 1));
+        });
+      });
+
+      test(
+        'gives up after three attempts and reports the last status',
+        () async {
+          server.downloadStatusQueue[42] = [503, 503, 503, 503];
+
+          await expectLater(
+            client.downloadActivityFit(42),
+            throwsA(
+              isA<GarminApiException>().having(
+                (e) => e.statusCode,
+                'statusCode',
+                503,
+              ),
+            ),
+          );
+          expect(server.downloadAttempts[42], 3);
+        },
+      );
+
+      test('does not retry a permanent failure', () async {
+        server.downloadStatusQueue[42] = [404];
+
+        await expectLater(
+          client.downloadActivityFit(42),
+          throwsA(isA<GarminApiException>()),
+        );
+        expect(server.downloadAttempts[42], 1);
+        expect(delays, isEmpty);
+      });
     });
 
     test('throws when the archive has no .fit member', () async {

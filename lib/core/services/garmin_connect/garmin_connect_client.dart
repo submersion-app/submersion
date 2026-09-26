@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart' show parseHttpDate;
 
 import 'package:submersion/core/services/garmin_connect/garmin_api_exception.dart';
 import 'package:submersion/core/services/garmin_connect/garmin_auth_tokens.dart';
@@ -112,8 +113,17 @@ class GarminLoginResult {
 /// its own Android app; garth publishes it because the OAuth 1 exchange
 /// cannot be performed without it.
 class GarminConnectClient {
-  GarminConnectClient({http.Client? httpClient})
-    : _http = httpClient ?? http.Client();
+  /// [retryDelay] waits out the backoff between attempts of a transient API
+  /// failure, and [clock] is the time a date-form `Retry-After` is measured
+  /// from. Both are injectable so a test can record the waits instead of
+  /// sleeping, against a fixed now.
+  GarminConnectClient({
+    http.Client? httpClient,
+    Future<void> Function(Duration delay)? retryDelay,
+    DateTime Function()? clock,
+  }) : _http = httpClient ?? http.Client(),
+       _retryDelay = retryDelay ?? Future<void>.delayed,
+       _clock = clock ?? DateTime.now;
 
   static const String _ssoBase = 'https://sso.garmin.com';
   static const String _apiBase = 'https://connectapi.garmin.com';
@@ -152,7 +162,17 @@ class GarminConnectClient {
   /// still recognised rather than silently dropped.
   static const List<String> _diveTypeFragments = ['diving', 'apnea'];
 
+  /// Attempts an authenticated API request gets before a transient failure
+  /// (rate limiting, a 5xx, a dropped connection) is reported to the caller.
+  static const int _maxApiAttempts = 3;
+
+  /// Upper bound on a server-requested `Retry-After` wait, so a large value
+  /// cannot stall an import for minutes per dive.
+  static const Duration _maxRetryAfter = Duration(seconds: 30);
+
   final http.Client _http;
+  final Future<void> Function(Duration delay) _retryDelay;
+  final DateTime Function() _clock;
 
   /// Minimal cookie jar. The SSO handshake threads Cloudflare and Garmin
   /// session cookies across three requests, and `package:http` does not
@@ -518,10 +538,13 @@ class GarminConnectClient {
       tokenSecret: oauth1.tokenSecret,
     );
 
-    final response = await _send(
+    // Retried like any API request: an access token lapses mid-import, and a
+    // transient failure here would otherwise fail the dive being downloaded.
+    // Re-signed per attempt, since the signature carries a one-time nonce.
+    final response = await _sendRetrying(
       'POST',
       url,
-      headers: {
+      headers: () => {
         ..._oauthHeaders,
         'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': signer.authorizationHeader(
@@ -570,16 +593,108 @@ class GarminConnectClient {
       _oauth2Token = await _exchangeForOAuth2(oauth1);
     }
 
-    final response = await _send(
+    final response = await _sendRetrying(
       method,
       url,
-      headers: {
+      headers: () => {
         ..._apiHeaders,
         'Authorization': _oauth2Token!.authorizationHeader,
       },
     );
     _throwForStatus(response, 'Garmin request failed');
     return response;
+  }
+
+  /// Sends a request, retrying a transient failure with a short backoff
+  /// before it reaches the caller. Returns the final response, whatever its
+  /// status; the caller decides what counts as an error.
+  ///
+  /// The fetch step downloads a page of FIT files at once, and Garmin
+  /// answers a burst like that with the odd 429 or 5xx; without a retry
+  /// each of those became a dive silently missing from the import (#1635).
+  /// Only idempotent calls come through here: API GETs, and the token
+  /// exchange, which just mints another access token. [headers] is called
+  /// per attempt so a signed request gets a fresh signature each time.
+  Future<http.Response> _sendRetrying(
+    String method,
+    Uri url, {
+    required Map<String, String> Function() headers,
+    List<int>? body,
+  }) async {
+    for (var attempt = 1; ; attempt++) {
+      final http.Response response;
+      try {
+        response = await _send(method, url, headers: headers(), body: body);
+      } on GarminApiException {
+        // _send only throws for a transport-level failure.
+        if (attempt >= _maxApiAttempts) rethrow;
+        await _retryDelay(_backoff(attempt));
+        continue;
+      }
+
+      if (_isTransientStatus(response.statusCode) &&
+          attempt < _maxApiAttempts) {
+        await _retryDelay(_retryAfter(response) ?? _backoff(attempt));
+        continue;
+      }
+      return response;
+    }
+  }
+
+  static final _rfc850Date = RegExp(r'^\w+, \d{2}-\w{3}-\d{2} ');
+
+  /// `parseHttpDate` puts an RFC 850 date's two-digit year in the 1900s.
+  /// RFC 7231 section 7.1.1.1 wants the year with those last two digits that
+  /// is not more than 50 years ahead of [now], so this re-centuries it.
+  static DateTime _fixTwoDigitYear(DateTime parsed, String raw, DateTime now) {
+    if (!_rfc850Date.hasMatch(raw)) return parsed;
+    var year = now.year - now.year % 100 + parsed.year % 100;
+    if (year > now.year + 50) year -= 100;
+    return DateTime.utc(
+      year,
+      parsed.month,
+      parsed.day,
+      parsed.hour,
+      parsed.minute,
+      parsed.second,
+    );
+  }
+
+  static bool _isTransientStatus(int statusCode) =>
+      statusCode == 429 || statusCode >= 500;
+
+  /// 1 s after the first failed attempt, 2 s after the second.
+  static Duration _backoff(int attempt) =>
+      Duration(seconds: 1 << (attempt - 1));
+
+  /// The server's own `Retry-After` wait, capped at [_maxRetryAfter]. The
+  /// header is either a number of seconds or an HTTP date (any of the three
+  /// RFC 7231 forms); a date already past means retry at once. Null when
+  /// absent or unreadable, so the caller falls back to [_backoff].
+  Duration? _retryAfter(http.Response response) {
+    final value = response.headers['retry-after']?.trim();
+    if (value == null || value.isEmpty) return null;
+
+    Duration requested;
+    final seconds = int.tryParse(value);
+    if (seconds != null) {
+      if (seconds < 0) return null;
+      // Cap before converting: Duration counts microseconds, so a huge
+      // value would overflow into a negative wait that slips past the cap.
+      if (seconds >= _maxRetryAfter.inSeconds) return _maxRetryAfter;
+      requested = Duration(seconds: seconds);
+    } else {
+      final now = _clock().toUtc();
+      final DateTime at;
+      try {
+        at = _fixTwoDigitYear(parseHttpDate(value), value, now);
+      } on FormatException {
+        return null;
+      }
+      requested = at.difference(now);
+      if (requested.isNegative) requested = Duration.zero;
+    }
+    return requested > _maxRetryAfter ? _maxRetryAfter : requested;
   }
 
   Future<List<dynamic>> _getJsonList(Uri url) async {
