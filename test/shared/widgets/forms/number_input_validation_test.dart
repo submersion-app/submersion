@@ -40,6 +40,43 @@ void main() {
     });
   });
 
+  group('LiveNumber', () {
+    test('reports readable values and remembers them', () {
+      Intl.defaultLocale = 'en_US';
+      final live = LiveNumber(18);
+      expect(live.resolve('20'), 20);
+      expect(live.resolve('2..0'), 20);
+    });
+
+    test('unreadable text before any edit keeps the seeded value', () {
+      Intl.defaultLocale = 'en_US';
+      expect(LiveNumber(18).resolve('x'), 18);
+    });
+
+    test('blank reports the caller-chosen blank value', () {
+      Intl.defaultLocale = 'en_US';
+      final live = LiveNumber(18);
+      expect(live.resolve(''), isNull);
+      expect(live.resolve('', blank: 21), 21);
+    });
+
+    test('garbage after a clear restores the last readable value, not the '
+        'blank value', () {
+      Intl.defaultLocale = 'en_US';
+      final live = LiveNumber(18);
+      live.resolve('25');
+      live.resolve('');
+      expect(live.resolve('2..5'), 25);
+    });
+
+    test('integer mode treats a fraction as unreadable', () {
+      Intl.defaultLocale = 'en_US';
+      final live = LiveNumber(90, integer: true);
+      expect(live.resolve('12.5'), 90);
+      expect(live.resolve('120'), 120);
+    });
+  });
+
   group('numberValidator', () {
     Future<BuildContext> pumpContext(WidgetTester tester) async {
       late BuildContext captured;

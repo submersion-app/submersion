@@ -69,6 +69,36 @@ NumberRead readNumber(String text, {bool integer = false}) {
   return value == null ? const NumberInvalid() : NumberValue(value);
 }
 
+/// One live-updating numeric field's value across edits, for a field that
+/// reports every change straight to its parent instead of waiting for a Save
+/// button.
+///
+/// [resolve] reports a readable value and remembers it, reports the caller's
+/// `blank` value for an empty field, and reports the last readable value for
+/// unreadable text, so a mistype never reaches the parent as 0 or null while
+/// the field shows its error. Blank does not overwrite the remembered value:
+/// parents write every change straight back, so after a diver clears a field
+/// to retype it the parent already holds the blank value, and falling back to
+/// the parent's value would lose what the diver last typed.
+class LiveNumber {
+  LiveNumber(this._lastReadable, {this.integer = false});
+
+  final bool integer;
+  double? _lastReadable;
+
+  double? resolve(String text, {double? blank}) {
+    switch (readNumber(text, integer: integer)) {
+      case NumberValue(:final value):
+        _lastReadable = value;
+        return value;
+      case NumberBlank():
+        return blank;
+      case NumberInvalid():
+        return _lastReadable;
+    }
+  }
+}
+
 /// The message for unreadable [text], or null when [text] is blank or
 /// readable. For the few places that show an error outside a form field.
 String? invalidNumberText(
