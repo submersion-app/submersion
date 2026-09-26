@@ -5,6 +5,13 @@ Issue: #1901
 Delivery: one PR, based on `main`
 Related: PR #1856 (open, fork `urbamax/submersion`, `fix/restore-cleanup-resilience`)
 
+> **Update (issue #1924):** the `stale` classification below no longer
+> exists. An unmarked `.pre-restore` beside a live file this build opens is
+> now `unproven`: a restore quarantines it like a `precious` one, the
+> missing-source sweep leaves it alone, and `findInterrupted()` does not offer
+> it. Nothing deletes a leftover of an earlier restore; the only delete left
+> is a successful restore removing its own aside copy after `commit()`.
+
 ## Problem
 
 `DatabaseService.restore` (`lib/core/services/database_service.dart`) moves

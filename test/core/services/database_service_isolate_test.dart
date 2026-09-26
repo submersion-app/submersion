@@ -767,7 +767,10 @@ void main() {
     );
     // An unmarked leftover is moved to a timestamped name, never deleted.
     // A directory already sitting at that name makes the move fail, as a
-    // file lock that outlasts the restore would.
+    // file lock that outlasts the restore would. The quarantine's collision
+    // check does not step past it to `-1`: it probes with File.existsSync,
+    // which is false for a directory, so the rename targets the directory
+    // and throws.
     final asidePath = '$defaultPath.pre-restore';
     File(asidePath).writeAsStringSync('stale');
     DatabaseService.instance.debugClock = () =>
