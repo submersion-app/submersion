@@ -220,4 +220,65 @@ void main() {
       expect(await linkOf('t2'), isNull);
     },
   );
+
+  group('bulk paths', () {
+    Future<int> pendingTank(String id) async =>
+        (await db
+                .customSelect(
+                  "SELECT COUNT(*) AS n FROM sync_records WHERE entity_type = "
+                  "'diveTanks' AND record_id = ? AND sync_status = 'pending'",
+                  variables: [Variable<String>(id)],
+                )
+                .getSingle())
+            .read<int>('n');
+
+    Future<void> linkedDive() => repo.createDive(
+      createTestDiveWithBottomTime(id: 'd1').copyWith(
+        tripId: tripA,
+        tanks: const [DiveTank(id: 't1', tripCylinderId: 'slot-a')],
+      ),
+    );
+
+    test('a bulk trip change drops links into the old trip', () async {
+      await linkedDive();
+      await db.customStatement('DELETE FROM sync_records');
+
+      await repo.bulkUpdateTrip(['d1'], tripB);
+
+      expect(await linkOf('t1'), isNull);
+      expect(await pendingTank('t1'), 1);
+    });
+
+    test('a bulk trip change to the same trip keeps the link', () async {
+      await linkedDive();
+      await repo.bulkUpdateTrip(['d1'], tripA);
+      expect(await linkOf('t1'), 'slot-a');
+    });
+
+    test('an undo of a tank replace survives a deleted slot', () async {
+      await repo.createDive(
+        createTestDiveWithBottomTime(id: 'd1').copyWith(tripId: tripA),
+      );
+      await repo.bulkReplaceTanks(
+        ['d1'],
+        const [DiveTank(id: 'tpl', tripCylinderId: 'slot-gone')],
+        restoreLinks: true,
+      );
+      final d1 = (await repo.getDiveById('d1'))!;
+      expect(d1.tanks.single.tripCylinderId, isNull);
+    });
+
+    test('an undo of a tank spec edit survives a deleted slot', () async {
+      await linkedDive();
+      final captured = await db.select(db.diveTanks).get();
+      // The slot goes (here, or by a synced tombstone) before the undo.
+      await db.customStatement(
+        "DELETE FROM trip_cylinders WHERE id = 'slot-a'",
+      );
+
+      await repo.bulkRestoreTankRows(captured);
+
+      expect(await linkOf('t1'), isNull);
+    });
+  });
 }

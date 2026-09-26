@@ -6663,6 +6663,7 @@ class DiveRepository {
     domain.DiveTank t,
     int order, {
     bool withLink = false,
+    Set<String> validSlots = const {},
   }) => DiveTanksCompanion(
     id: Value(id),
     diveId: Value(diveId),
@@ -6683,7 +6684,9 @@ class DiveRepository {
     sourceTankIndex: Value(t.sourceTankIndex),
     // The trip cylinder slot, kept out of templates for the same reason as
     // the registry link: only a restore writes it.
-    tripCylinderId: withLink ? Value(t.tripCylinderId) : const Value.absent(),
+    tripCylinderId: withLink
+        ? Value(validTripCylinderLink(t.tripCylinderId, validSlots))
+        : const Value.absent(),
     // The registry's cylinder link, owned by the transmitter registry. A
     // template copied from a linked tank must not stamp that cylinder onto
     // every dive it lands on, so only a restore writes it.
@@ -6811,10 +6814,22 @@ class DiveRepository {
   Future<void> bulkRestoreTankRows(List<DiveTank> rows) async {
     if (rows.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
+    final slotsByDive = <String, Set<String>>{};
     for (final row in rows) {
+      var companion = row.toCompanion(false);
+      final link = row.tripCylinderId;
+      if (link != null) {
+        // The captured link may name a slot deleted since the capture.
+        final valid = slotsByDive[row.diveId] ??= await _tripCylinderIdsForDive(
+          row.diveId,
+        );
+        if (!valid.contains(link)) {
+          companion = companion.copyWith(tripCylinderId: const Value(null));
+        }
+      }
       await (_db.update(
         _db.diveTanks,
-      )..where((t) => t.id.equals(row.id))).write(row.toCompanion(false));
+      )..where((t) => t.id.equals(row.id))).write(companion);
       await _syncRepository.markRecordPending(
         entityType: 'diveTanks',
         recordId: row.id,
@@ -6822,6 +6837,14 @@ class DiveRepository {
       );
     }
     await _bumpDives(rows.map((r) => r.diveId).toSet().toList(), now);
+  }
+
+  /// The slot ids on [diveId]'s trip: the links a restored tank may keep.
+  Future<Set<String>> _tripCylinderIdsForDive(String diveId) async {
+    final dive = await (_db.select(
+      _db.dives,
+    )..where((d) => d.id.equals(diveId))).getSingleOrNull();
+    return tripCylinderIdsForTrip(_db, dive?.tripId);
   }
 
   /// How many of [diveIds] have no tank rows at all. Used to warn before an
@@ -6855,6 +6878,11 @@ class DiveRepository {
     if (diveIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final diveId in diveIds) {
+      // A restored slot link may name a slot deleted since the capture;
+      // written unchecked it would fail the undo on the foreign key.
+      final validSlots = restoreLinks
+          ? await _tripCylinderIdsForDive(diveId)
+          : const <String>{};
       final existing = await (_db.select(
         _db.diveTanks,
       )..where((t) => t.diveId.equals(diveId))).get();
@@ -6878,6 +6906,7 @@ class DiveRepository {
                 tanks[i],
                 i,
                 withLink: restoreLinks,
+                validSlots: validSlots,
               ),
             );
         await _syncRepository.markRecordPending(
@@ -6976,6 +7005,15 @@ class DiveRepository {
           entityType: 'dives',
           recordId: diveId,
           localUpdatedAt: now,
+        );
+        // A tank link into another trip's slot means nothing once the dive
+        // has moved; the single-dive paths drop it the same way.
+        await clearForeignTripCylinderLinks(
+          _db,
+          _syncRepository,
+          diveId,
+          tripId: tripId,
+          now: now,
         );
       }
       SyncEventBus.notifyLocalChange();
