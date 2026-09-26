@@ -17200,6 +17200,174 @@ abstract class AppLocalizations {
   /// **'Updated \"{name}\"'**
   String diveTypes_snackbar_updated(Object name);
 
+  /// No description provided for @divelogsImport_fetch_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch Logbook'**
+  String get divelogsImport_fetch_button;
+
+  /// No description provided for @divelogsImport_fetch_certificationsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications could not be fetched and will not be imported.'**
+  String get divelogsImport_fetch_certificationsUnavailable;
+
+  /// No description provided for @divelogsImport_fetch_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your divelogs.de logbook has nothing to import.'**
+  String get divelogsImport_fetch_empty;
+
+  /// No description provided for @divelogsImport_fetch_failedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not fetch your logbook'**
+  String get divelogsImport_fetch_failedTitle;
+
+  /// No description provided for @divelogsImport_fetch_fetching.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching your logbook…'**
+  String get divelogsImport_fetch_fetching;
+
+  /// No description provided for @divelogsImport_fetch_foundDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Found {count} dive} other{Found {count} dives}}'**
+  String divelogsImport_fetch_foundDives(int count);
+
+  /// No description provided for @divelogsImport_fetch_foundPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No photos to import} one{{count} photo to import} other{{count} photos to import}}'**
+  String divelogsImport_fetch_foundPhotos(int count);
+
+  /// No description provided for @divelogsImport_fetch_gearUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear could not be fetched; dives will import without gear links.'**
+  String get divelogsImport_fetch_gearUnavailable;
+
+  /// No description provided for @divelogsImport_fetch_includePhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Include photos'**
+  String get divelogsImport_fetch_includePhotos;
+
+  /// No description provided for @divelogsImport_fetch_includePhotosHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos are downloaded during the import into a folder you choose.'**
+  String get divelogsImport_fetch_includePhotosHint;
+
+  /// No description provided for @divelogsImport_fetch_listingPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Listing photos for dive {current} of {total}…'**
+  String divelogsImport_fetch_listingPhotos(int current, int total);
+
+  /// No description provided for @divelogsImport_fetch_photoListingsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Photos for {count} dive could not be listed.} other{Photos for {count} dives could not be listed.}}'**
+  String divelogsImport_fetch_photoListingsFailed(int count);
+
+  /// No description provided for @divelogsImport_fetch_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get divelogsImport_fetch_retry;
+
+  /// No description provided for @divelogsImport_fetch_sessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your divelogs.de session expired. Go back and sign in again.'**
+  String get divelogsImport_fetch_sessionExpired;
+
+  /// No description provided for @divelogsImport_fetch_skippedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive could not be read and will be skipped.} other{{count} dives could not be read and will be skipped.}}'**
+  String divelogsImport_fetch_skippedDives(int count);
+
+  /// No description provided for @divelogsImport_signIn_badCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'divelogs.de rejected the username or password.'**
+  String get divelogsImport_signIn_badCredentials;
+
+  /// No description provided for @divelogsImport_signIn_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get divelogsImport_signIn_button;
+
+  /// No description provided for @divelogsImport_signIn_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with your divelogs.de account to import your logbook. Your password is never stored; only the resulting session is cached.'**
+  String get divelogsImport_signIn_description;
+
+  /// No description provided for @divelogsImport_signIn_passwordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get divelogsImport_signIn_passwordLabel;
+
+  /// No description provided for @divelogsImport_signIn_passwordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get divelogsImport_signIn_passwordRequired;
+
+  /// No description provided for @divelogsImport_signIn_signedInAs.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in as {username}'**
+  String divelogsImport_signIn_signedInAs(String username);
+
+  /// No description provided for @divelogsImport_signIn_signingIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing in…'**
+  String get divelogsImport_signIn_signingIn;
+
+  /// No description provided for @divelogsImport_signIn_signOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get divelogsImport_signIn_signOut;
+
+  /// No description provided for @divelogsImport_signIn_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to divelogs.de'**
+  String get divelogsImport_signIn_title;
+
+  /// No description provided for @divelogsImport_signIn_unexpected.
+  ///
+  /// In en, this message translates to:
+  /// **'divelogs.de sent an unexpected response. Try again later.'**
+  String get divelogsImport_signIn_unexpected;
+
+  /// No description provided for @divelogsImport_signIn_unreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach divelogs.de. Check your connection and try again.'**
+  String get divelogsImport_signIn_unreachable;
+
+  /// No description provided for @divelogsImport_signIn_usernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get divelogsImport_signIn_usernameLabel;
+
+  /// No description provided for @divelogsImport_signIn_usernameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Username is required'**
+  String get divelogsImport_signIn_usernameRequired;
+
   /// No description provided for @divers_detail_activeDiver.
   ///
   /// In en, this message translates to:
@@ -26798,11 +26966,65 @@ abstract class AppLocalizations {
   /// **'Grid'**
   String get media_library_viewMode_grid;
 
+  /// Library view mode: thumbnails placed on a map
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get media_library_viewMode_map;
+
   /// Library view mode: date-grouped timeline
   ///
   /// In en, this message translates to:
   /// **'Timeline'**
   String get media_library_viewMode_timeline;
+
+  /// Tooltip on the button that dismisses the media map place strip
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get media_map_closeStrip;
+
+  /// Screen-reader label for a cluster of media on the map
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item at {place}} other{{count} items at {place}}}'**
+  String media_map_clusterSemantics(int count, String place);
+
+  /// Media map empty state: how items get a location
+  ///
+  /// In en, this message translates to:
+  /// **'Photos and videos are placed by their own GPS, their dive\'s entry point, or their dive\'s site.'**
+  String get media_map_emptyHint;
+
+  /// Media map empty state title
+  ///
+  /// In en, this message translates to:
+  /// **'No media with a location'**
+  String get media_map_emptyTitle;
+
+  /// Media map error state
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading media locations: {error}'**
+  String media_map_errorLoading(String error);
+
+  /// Screen-reader label for a single media thumbnail on the map
+  ///
+  /// In en, this message translates to:
+  /// **'Open media'**
+  String get media_map_markerSemantics;
+
+  /// Item count shown in the media map place strip
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item} other{{count} items}}'**
+  String media_map_placeItemCount(int count);
+
+  /// Label on the media map for in-scope items that could not be placed
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item without a location} other{{count} items without a location}}'**
+  String media_map_unlocatedCount(int count);
 
   /// Viewer action: navigate to the dive owning this media
   ///
@@ -35302,6 +35524,12 @@ abstract class AppLocalizations {
   /// **'That folder can\'t be written to. Choose another one.'**
   String get importWizard_photos_destinationUnwritable;
 
+  /// No description provided for @importWizard_photos_downloadCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} photo to download} other{{count} photos to download}}'**
+  String importWizard_photos_downloadCount(int count);
+
   /// Title for the collapsed ExpansionTile summarizing auto-skipped dives that fall at or before the diver's first-sync cutoff
   ///
   /// In en, this message translates to:
@@ -38672,6 +38900,54 @@ abstract class AppLocalizations {
   /// **'These dives referred to a dive site the file does not describe, so they were imported without one. You can set a site by editing the dive.'**
   String get universalImport_summary_noticeSitesUnresolvedBody;
 
+  /// No description provided for @universalImport_summary_noticeGearUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear not imported'**
+  String get universalImport_summary_noticeGearUnavailableTitle;
+
+  /// No description provided for @universalImport_summary_noticeGearUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The gear list could not be fetched, so no gear was imported and dives were not linked to their gear. Import again later to add it.'**
+  String get universalImport_summary_noticeGearUnavailableBody;
+
+  /// No description provided for @universalImport_summary_noticeCertificationsUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications not imported'**
+  String get universalImport_summary_noticeCertificationsUnavailableTitle;
+
+  /// No description provided for @universalImport_summary_noticeCertificationsUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The certification list could not be fetched, so no certifications were imported. Import again later to add them.'**
+  String get universalImport_summary_noticeCertificationsUnavailableBody;
+
+  /// No description provided for @universalImport_summary_noticePhotoListingsUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some photos not listed'**
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle;
+
+  /// No description provided for @universalImport_summary_noticePhotoListingsUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Photos for {count} dive could not be listed, so they were not imported.} other{Photos for {count} dives could not be listed, so they were not imported.}}'**
+  String universalImport_summary_noticePhotoListingsUnavailableBody(int count);
+
+  /// No description provided for @universalImport_summary_noticePhotosNotDownloadedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some photos not downloaded'**
+  String get universalImport_summary_noticePhotosNotDownloadedTitle;
+
+  /// No description provided for @universalImport_summary_noticePhotosNotDownloadedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} photo could not be downloaded. Import again to retry; photos already saved are not duplicated.} other{{count} photos could not be downloaded. Import again to retry; photos already saved are not duplicated.}}'**
+  String universalImport_summary_noticePhotosNotDownloadedBody(int count);
+
   /// No description provided for @universalImport_summary_noticeMacdiveXmlCertsTitle.
   ///
   /// In en, this message translates to:
@@ -38734,6 +39010,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 dive imported} other{{count} dives imported}}'**
   String universalImport_summary_fileImported(num count);
+
+  /// Action on the batch summary row that lets the diver re-open a recognised Seacraft ENC file (excluded from the batch) in the underwater route review page
+  ///
+  /// In en, this message translates to:
+  /// **'Import as route'**
+  String get universalImport_summary_importAsRoute;
 
   /// Per-file summary line for CSV files excluded from the batch
   ///
@@ -44932,6 +45214,12 @@ abstract class AppLocalizations {
   /// **'Steep walls'**
   String get dive3d_seascape_overlay_walls;
 
+  /// No description provided for @dive3d_seascape_showRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Show route'**
+  String get dive3d_seascape_showRoute;
+
   /// No description provided for @dive3d_overlay_water.
   ///
   /// In en, this message translates to:
@@ -45465,6 +45753,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Estimated path (dead reckoning)'**
   String get dive3d_spatial_estimatedPath;
+
+  /// No description provided for @dive3d_spatial_recordedPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded route'**
+  String get dive3d_spatial_recordedPath;
+
+  /// No description provided for @dive3d_spatial_recordedPathWithSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded route ({source})'**
+  String dive3d_spatial_recordedPathWithSource(String source);
 
   /// No description provided for @dive3d_spatial_synthesizedSeafloor.
   ///
@@ -46239,6 +46539,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Top speed'**
   String get attrLabel_speed_mps;
+
+  /// No description provided for @attrLabel_tow_burn_factor.
+  ///
+  /// In en, this message translates to:
+  /// **'Tow burn factor'**
+  String get attrLabel_tow_burn_factor;
+
+  /// No description provided for @attrLabel_tow_speed_factor.
+  ///
+  /// In en, this message translates to:
+  /// **'Tow speed factor'**
+  String get attrLabel_tow_speed_factor;
 
   /// No description provided for @attrLabel_sku.
   ///
@@ -66463,6 +66775,18 @@ abstract class AppLocalizations {
   /// **'Import dives from your Garmin Connect account'**
   String get transfer_importCloud_garminSubtitle;
 
+  /// No description provided for @transfer_importCloud_divelogsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'divelogs.de'**
+  String get transfer_importCloud_divelogsTitle;
+
+  /// No description provided for @transfer_importCloud_divelogsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import your logbook, sites, gear, certifications and photos from divelogs.de'**
+  String get transfer_importCloud_divelogsSubtitle;
+
   /// No description provided for @transfer_section_cloudTitle.
   ///
   /// In en, this message translates to:
@@ -67437,6 +67761,671 @@ abstract class AppLocalizations {
   /// **'How equipment is grouped and sorted on a dive'**
   String get settings_appearance_gearArrangementSubtitle;
 
+  /// No description provided for @navTrack_common_loadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this route.'**
+  String get navTrack_common_loadError;
+
+  /// No description provided for @navTrack_common_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Route not found.'**
+  String get navTrack_common_notFound;
+
+  /// No description provided for @navTrack_common_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get navTrack_common_cancel;
+
+  /// No description provided for @navTrack_common_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get navTrack_common_save;
+
+  /// No description provided for @navTrack_common_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get navTrack_common_delete;
+
+  /// No description provided for @navTrack_common_unlink.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get navTrack_common_unlink;
+
+  /// No description provided for @navTrack_common_open3dTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open 3D'**
+  String get navTrack_common_open3dTooltip;
+
+  /// No description provided for @navTrack_common_diveNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive #{number}'**
+  String navTrack_common_diveNumber(String number);
+
+  /// No description provided for @navTrack_common_diveById.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {id}'**
+  String navTrack_common_diveById(String id);
+
+  /// No description provided for @navTrack_common_unlinked.
+  ///
+  /// In en, this message translates to:
+  /// **'unlinked'**
+  String get navTrack_common_unlinked;
+
+  /// No description provided for @navTrack_align_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Align on map'**
+  String get navTrack_align_title;
+
+  /// No description provided for @navTrack_align_resetTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset correction'**
+  String get navTrack_align_resetTooltip;
+
+  /// No description provided for @navTrack_align_setStartHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Set start here'**
+  String get navTrack_align_setStartHere;
+
+  /// No description provided for @navTrack_align_setEndHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Set end here'**
+  String get navTrack_align_setEndHere;
+
+  /// No description provided for @navTrack_align_setStartOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Set start on map'**
+  String get navTrack_align_setStartOnMap;
+
+  /// No description provided for @navTrack_align_fromDiveEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'From dive entry'**
+  String get navTrack_align_fromDiveEntry;
+
+  /// No description provided for @navTrack_align_fromSite.
+  ///
+  /// In en, this message translates to:
+  /// **'From site'**
+  String get navTrack_align_fromSite;
+
+  /// No description provided for @navTrack_align_fromGps.
+  ///
+  /// In en, this message translates to:
+  /// **'From GPS'**
+  String get navTrack_align_fromGps;
+
+  /// No description provided for @navTrack_align_startLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Start: '**
+  String get navTrack_align_startLabel;
+
+  /// No description provided for @navTrack_align_endLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'End: '**
+  String get navTrack_align_endLabel;
+
+  /// No description provided for @navTrack_align_endMode_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get navTrack_align_endMode_none;
+
+  /// No description provided for @navTrack_align_endMode_sameAsStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as start'**
+  String get navTrack_align_endMode_sameAsStart;
+
+  /// No description provided for @navTrack_align_endMode_point.
+  ///
+  /// In en, this message translates to:
+  /// **'Place on map'**
+  String get navTrack_align_endMode_point;
+
+  /// No description provided for @navTrack_align_endMode_gpsFix.
+  ///
+  /// In en, this message translates to:
+  /// **'From GPS fix'**
+  String get navTrack_align_endMode_gpsFix;
+
+  /// No description provided for @navTrack_align_trustSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Trust: trusted up to {distance}, {minutes} min'**
+  String navTrack_align_trustSummary(String distance, int minutes);
+
+  /// No description provided for @navTrack_align_rotationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotation:'**
+  String get navTrack_align_rotationLabel;
+
+  /// No description provided for @navTrack_align_rotationDegrees.
+  ///
+  /// In en, this message translates to:
+  /// **'{degrees} deg'**
+  String navTrack_align_rotationDegrees(String degrees);
+
+  /// No description provided for @navTrack_terrain_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{onLand} points on land, {below} of {total} below the seafloor{maxPart}, {unknown} unknown{coarsePart}'**
+  String navTrack_terrain_summary(
+    int onLand,
+    int below,
+    int total,
+    int unknown,
+    String maxPart,
+    String coarsePart,
+  );
+
+  /// No description provided for @navTrack_terrain_maxPart.
+  ///
+  /// In en, this message translates to:
+  /// **' (max {depth})'**
+  String navTrack_terrain_maxPart(String depth);
+
+  /// No description provided for @navTrack_terrain_coarsePart.
+  ///
+  /// In en, this message translates to:
+  /// **' (coarse bathymetry: only land conflicts checked)'**
+  String get navTrack_terrain_coarsePart;
+
+  /// No description provided for @navTrack_detail_renameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename route'**
+  String get navTrack_detail_renameTitle;
+
+  /// No description provided for @navTrack_detail_deleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete route?'**
+  String get navTrack_detail_deleteTitle;
+
+  /// No description provided for @navTrack_detail_deleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This cannot be undone.'**
+  String get navTrack_detail_deleteMessage;
+
+  /// No description provided for @navTrack_detail_defaultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Route'**
+  String get navTrack_detail_defaultTitle;
+
+  /// No description provided for @navTrack_detail_menuRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get navTrack_detail_menuRename;
+
+  /// No description provided for @navTrack_detail_menuChangeSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Change site'**
+  String get navTrack_detail_menuChangeSite;
+
+  /// No description provided for @navTrack_detail_noMapYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the start point to see this on a map.'**
+  String get navTrack_detail_noMapYet;
+
+  /// No description provided for @navTrack_detail_correctionStatus_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No correction applied yet.'**
+  String get navTrack_detail_correctionStatus_none;
+
+  /// No description provided for @navTrack_detail_correctionStatus_sameAsStart.
+  ///
+  /// In en, this message translates to:
+  /// **'End set to same as start.'**
+  String get navTrack_detail_correctionStatus_sameAsStart;
+
+  /// No description provided for @navTrack_detail_correctionStatus_point.
+  ///
+  /// In en, this message translates to:
+  /// **'End point set on the map.'**
+  String get navTrack_detail_correctionStatus_point;
+
+  /// No description provided for @navTrack_detail_correctionStatus_gpsFix.
+  ///
+  /// In en, this message translates to:
+  /// **'End set from the recording\'s GPS fix.'**
+  String get navTrack_detail_correctionStatus_gpsFix;
+
+  /// No description provided for @navTrack_detail_device.
+  ///
+  /// In en, this message translates to:
+  /// **'Device: {name}'**
+  String navTrack_detail_device(String name);
+
+  /// No description provided for @navTrack_detail_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment: {name}'**
+  String navTrack_detail_equipment(String name);
+
+  /// No description provided for @navTrack_detail_distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance: {value}'**
+  String navTrack_detail_distance(String value);
+
+  /// No description provided for @navTrack_detail_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth: {value}'**
+  String navTrack_detail_maxDepth(String value);
+
+  /// No description provided for @navTrack_detail_maxSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Max speed: {value}'**
+  String navTrack_detail_maxSpeed(String value);
+
+  /// No description provided for @navTrack_detail_avgSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg speed: {value}'**
+  String navTrack_detail_avgSpeed(String value);
+
+  /// No description provided for @navTrack_detail_duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration: {hours}h {minutes}min'**
+  String navTrack_detail_duration(int hours, int minutes);
+
+  /// No description provided for @navTrack_detail_battery.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery: {start} V -> {end} V'**
+  String navTrack_detail_battery(String start, String end);
+
+  /// No description provided for @navTrack_detail_noDiveLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'No dive linked'**
+  String get navTrack_detail_noDiveLinked;
+
+  /// No description provided for @navTrack_detail_chooseDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose dive'**
+  String get navTrack_detail_chooseDive;
+
+  /// No description provided for @navTrack_detail_noSite.
+  ///
+  /// In en, this message translates to:
+  /// **'No site'**
+  String get navTrack_detail_noSite;
+
+  /// No description provided for @navTrack_detail_chooseSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose site'**
+  String get navTrack_detail_chooseSite;
+
+  /// No description provided for @navTrack_review_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Underwater Route'**
+  String get navTrack_review_title;
+
+  /// No description provided for @navTrack_review_segmentSummaryNoFix.
+  ///
+  /// In en, this message translates to:
+  /// **'{underwater} samples underwater, no GPS fix after the dive.'**
+  String navTrack_review_segmentSummaryNoFix(int underwater);
+
+  /// No description provided for @navTrack_review_segmentSummaryWithFix.
+  ///
+  /// In en, this message translates to:
+  /// **'{underwater} samples underwater, {surface} surface samples, GPS fix {vector} from the reckoned end.'**
+  String navTrack_review_segmentSummaryWithFix(
+    int underwater,
+    int surface,
+    String vector,
+  );
+
+  /// No description provided for @navTrack_review_saveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save this route: {error}'**
+  String navTrack_review_saveError(String error);
+
+  /// No description provided for @navTrack_review_importError.
+  ///
+  /// In en, this message translates to:
+  /// **'This file could not be imported: {error}'**
+  String navTrack_review_importError(String error);
+
+  /// No description provided for @navTrack_review_sourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Seacraft ENC log'**
+  String get navTrack_review_sourceLabel;
+
+  /// No description provided for @navTrack_review_nameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (optional)'**
+  String get navTrack_review_nameHint;
+
+  /// No description provided for @navTrack_review_warningNoMovement.
+  ///
+  /// In en, this message translates to:
+  /// **'No movement recorded: distance and speed stay at zero throughout this file.'**
+  String get navTrack_review_warningNoMovement;
+
+  /// No description provided for @navTrack_review_warningDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'This looks like a route already imported from the same file.'**
+  String get navTrack_review_warningDuplicate;
+
+  /// No description provided for @navTrack_review_replaceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get navTrack_review_replaceLabel;
+
+  /// No description provided for @navTrack_review_linkToDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to dive'**
+  String get navTrack_review_linkToDive;
+
+  /// No description provided for @navTrack_review_diveSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive site'**
+  String get navTrack_review_diveSite;
+
+  /// No description provided for @navTrack_review_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get navTrack_review_equipment;
+
+  /// No description provided for @navTrack_review_noEquipmentChosen.
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment'**
+  String get navTrack_review_noEquipmentChosen;
+
+  /// No description provided for @navTrack_review_noSiteChosen.
+  ///
+  /// In en, this message translates to:
+  /// **'No site chosen'**
+  String get navTrack_review_noSiteChosen;
+
+  /// No description provided for @navTrack_review_row_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get navTrack_review_row_start;
+
+  /// No description provided for @navTrack_review_row_end.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get navTrack_review_row_end;
+
+  /// No description provided for @navTrack_review_row_duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get navTrack_review_row_duration;
+
+  /// No description provided for @navTrack_review_row_distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get navTrack_review_row_distance;
+
+  /// No description provided for @navTrack_review_row_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get navTrack_review_row_maxDepth;
+
+  /// No description provided for @navTrack_review_row_maxSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Max speed'**
+  String get navTrack_review_row_maxSpeed;
+
+  /// No description provided for @navTrack_review_leaveUnlinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave unlinked'**
+  String get navTrack_review_leaveUnlinked;
+
+  /// No description provided for @navTrack_list_importFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Import failed: {error}'**
+  String navTrack_list_importFailed(String error);
+
+  /// No description provided for @navTrack_list_matchError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not match routes.'**
+  String get navTrack_list_matchError;
+
+  /// No description provided for @navTrack_list_matchSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Routes matched to dives.'**
+  String get navTrack_list_matchSuccess;
+
+  /// No description provided for @navTrack_list_deleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String navTrack_list_deleteMessage(String name);
+
+  /// No description provided for @navTrack_list_importTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Import route file'**
+  String get navTrack_list_importTooltip;
+
+  /// No description provided for @navTrack_list_matchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Match now'**
+  String get navTrack_list_matchTooltip;
+
+  /// No description provided for @navTrack_list_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater Routes'**
+  String get navTrack_list_title;
+
+  /// No description provided for @navTrack_list_noMapRoutes.
+  ///
+  /// In en, this message translates to:
+  /// **'No routes are placed on the map yet.'**
+  String get navTrack_list_noMapRoutes;
+
+  /// No description provided for @navTrack_list_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No underwater routes yet.'**
+  String get navTrack_list_empty;
+
+  /// No description provided for @navTrack_seascape_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Route seascape'**
+  String get navTrack_seascape_title;
+
+  /// No description provided for @navTrack_seascape_noScene.
+  ///
+  /// In en, this message translates to:
+  /// **'This route has no usable seascape.'**
+  String get navTrack_seascape_noScene;
+
+  /// No description provided for @navTrack_handoff_recognized.
+  ///
+  /// In en, this message translates to:
+  /// **'Seacraft ENC navigation log recognised'**
+  String get navTrack_handoff_recognized;
+
+  /// No description provided for @navTrack_handoff_description.
+  ///
+  /// In en, this message translates to:
+  /// **'This is an underwater route, not a dive log. It has its own place in Submersion, separate from your dive import.'**
+  String get navTrack_handoff_description;
+
+  /// No description provided for @navTrack_handoff_reviewButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Review route'**
+  String get navTrack_handoff_reviewButton;
+
+  /// No description provided for @navTrack_section_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater Route'**
+  String get navTrack_section_title;
+
+  /// No description provided for @navTrack_section_routeCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} route} other{{count} routes}}'**
+  String navTrack_section_routeCount(num count);
+
+  /// No description provided for @navTrack_section_noRouteLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'No route linked'**
+  String get navTrack_section_noRouteLinked;
+
+  /// No description provided for @navTrack_section_linkButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Link route'**
+  String get navTrack_section_linkButton;
+
+  /// No description provided for @navTrack_section_importButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Import file'**
+  String get navTrack_section_importButton;
+
+  /// No description provided for @navTrack_section_primaryTag.
+  ///
+  /// In en, this message translates to:
+  /// **'primary'**
+  String get navTrack_section_primaryTag;
+
+  /// No description provided for @navTrack_section_menuOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open route'**
+  String get navTrack_section_menuOpen;
+
+  /// No description provided for @navTrack_section_menuOpen3d.
+  ///
+  /// In en, this message translates to:
+  /// **'Open 3D seascape'**
+  String get navTrack_section_menuOpen3d;
+
+  /// No description provided for @navTrack_section_menuMakePrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Make primary'**
+  String get navTrack_section_menuMakePrimary;
+
+  /// No description provided for @navTrack_importError_unsupportedFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is not a Seacraft ENC navigation log.'**
+  String get navTrack_importError_unsupportedFormat;
+
+  /// No description provided for @navTrack_importError_unreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'This file could not be read as a Seacraft ENC navigation log.'**
+  String get navTrack_importError_unreadable;
+
+  /// No description provided for @navTrack_importError_tooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'This recording has too few samples to be a usable route.'**
+  String get navTrack_importError_tooShort;
+
+  /// No description provided for @navTrack_importError_badData.
+  ///
+  /// In en, this message translates to:
+  /// **'This file has data Submersion could not make sense of.'**
+  String get navTrack_importError_badData;
+
+  /// No description provided for @navTrack_importError_tooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'This recording has more samples than a route can store.'**
+  String get navTrack_importError_tooLarge;
+
+  /// No description provided for @diveDetailSection_navTrack_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater Route'**
+  String get diveDetailSection_navTrack_name;
+
+  /// No description provided for @diveDetailSection_navTrack_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Measured underwater route from a navigation console'**
+  String get diveDetailSection_navTrack_description;
+
+  /// No description provided for @dashboard_quickActions_navRoutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater Routes'**
+  String get dashboard_quickActions_navRoutes;
+
+  /// No description provided for @navTrack_list_durationHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}min'**
+  String navTrack_list_durationHours(int hours, int minutes);
+
+  /// No description provided for @navTrack_list_durationMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}min'**
+  String navTrack_list_durationMinutes(int minutes);
+
+  /// No description provided for @diveLog_detail_tooltip_whatIf.
+  ///
+  /// In en, this message translates to:
+  /// **'Replan this dive'**
+  String get diveLog_detail_tooltip_whatIf;
+
   /// No description provided for @diveLog_detail_menu_whatIf.
   ///
   /// In en, this message translates to:
@@ -67742,6 +68731,834 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete this rental note?'**
   String get diveCenters_rental_deleteConfirm;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications'**
+  String get query_buddies_certifications;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get query_buddies_email;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get query_buddies_favorite;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_buddies_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_buddies_notes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get query_buddies_phone;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get query_centers_city;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get query_centers_country;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_centers_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Agency'**
+  String get query_certifications_agency;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Card number'**
+  String get query_certifications_cardNumber;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry date'**
+  String get query_certifications_expiryDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Instructor name'**
+  String get query_certifications_instructorName;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Issue date'**
+  String get query_certifications_issueDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Level'**
+  String get query_certifications_level;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_certifications_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Manufacturer'**
+  String get query_computers_manufacturer;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get query_computers_model;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_computers_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number'**
+  String get query_computers_serialNumber;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Agency'**
+  String get query_courses_agency;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Completion date'**
+  String get query_courses_completionDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_courses_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get query_courses_startDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Key'**
+  String get query_customFields_key;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get query_customFields_value;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
+  String get query_diveTypes_builtIn;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_diveTypes_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Air temperature'**
+  String get query_dives_airTemp;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Average depth'**
+  String get query_dives_avgDepth;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Boat'**
+  String get query_dives_boatName;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom time'**
+  String get query_dives_bottomTime;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Buddies'**
+  String get query_dives_buddies;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive center'**
+  String get query_dives_center;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'CNS at end'**
+  String get query_dives_cnsEnd;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive computer'**
+  String get query_dives_computer;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Course'**
+  String get query_dives_course;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get query_dives_currentStrength;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Custom fields'**
+  String get query_dives_customFields;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get query_dives_date;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Decompression dive'**
+  String get query_dives_deco;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get query_dives_depth;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive master'**
+  String get query_dives_diveMaster;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive mode'**
+  String get query_dives_diveMode;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive number'**
+  String get query_dives_diveNumber;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Operator'**
+  String get query_dives_diveOperator;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Entry method'**
+  String get query_dives_entryMethod;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded from statistics'**
+  String get query_dives_excludedFromStats;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Exit method'**
+  String get query_dives_exitMethod;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get query_dives_favorite;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Number of tanks'**
+  String get query_dives_gasCount;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Gear'**
+  String get query_dives_gear;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Has profile'**
+  String get query_dives_hasProfile;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive ID'**
+  String get query_dives_id;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy (legacy text)'**
+  String get query_dives_legacyBuddy;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get query_dives_media;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_dives_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_dives_notes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'OTU'**
+  String get query_dives_otu;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Planned'**
+  String get query_dives_planned;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get query_dives_rating;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Runtime'**
+  String get query_dives_runtime;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Sightings'**
+  String get query_dives_sightings;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get query_dives_site;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Surface conditions'**
+  String get query_dives_surfaceConditions;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Surface interval'**
+  String get query_dives_surfaceInterval;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get query_dives_tags;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tanks'**
+  String get query_dives_tanks;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Trip'**
+  String get query_dives_trip;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive types'**
+  String get query_dives_types;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Visibility'**
+  String get query_dives_visibility;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Water temperature'**
+  String get query_dives_waterTemp;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Water type'**
+  String get query_dives_waterType;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Weekday'**
+  String get query_dives_weekday;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get query_dives_weight;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Weights'**
+  String get query_dives_weights;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get query_dives_year;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Buddies'**
+  String get query_entity_buddies;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive centers'**
+  String get query_entity_centers;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications'**
+  String get query_entity_certifications;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive computers'**
+  String get query_entity_computers;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Courses'**
+  String get query_entity_courses;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Custom fields'**
+  String get query_entity_customFields;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive types'**
+  String get query_entity_diveTypes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get query_entity_dives;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get query_entity_equipment;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment attributes'**
+  String get query_entity_equipmentAttributes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get query_entity_media;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Sightings'**
+  String get query_entity_sightings;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive sites'**
+  String get query_entity_sites;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get query_entity_species;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get query_entity_tags;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tanks'**
+  String get query_entity_tanks;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Trips'**
+  String get query_entity_trips;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Weights'**
+  String get query_entity_weights;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get query_equipmentAttributes_custom;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Key'**
+  String get query_equipmentAttributes_key;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Numeric value'**
+  String get query_equipmentAttributes_valueNum;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Text value'**
+  String get query_equipmentAttributes_valueText;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get query_equipment_active;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Attributes'**
+  String get query_equipment_attributes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get query_equipment_brand;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get query_equipment_model;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_equipment_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number'**
+  String get query_equipment_serialNumber;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get query_equipment_status;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get query_equipment_type;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Caption'**
+  String get query_media_caption;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get query_media_favorite;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get query_media_type;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Count'**
+  String get query_sightings_count;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_sightings_notes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get query_sightings_species;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get query_sites_city;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get query_sites_country;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Island'**
+  String get query_sites_island;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get query_sites_maxDepth;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_sites_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get query_sites_rating;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Region'**
+  String get query_sites_region;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get query_species_category;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_species_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Scientific name'**
+  String get query_species_scientificName;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_tags_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder'**
+  String get query_tanks_cylinder;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'End pressure'**
+  String get query_tanks_endPressure;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Helium'**
+  String get query_tanks_he;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_tanks_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Oxygen'**
+  String get query_tanks_o2;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Start pressure'**
+  String get query_tanks_startPressure;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get query_tanks_volume;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'End date'**
+  String get query_trips_endDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get query_trips_location;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_trips_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get query_trips_startDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get query_weights_amount;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_weights_notes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get query_weights_type;
 }
 
 class _AppLocalizationsDelegate

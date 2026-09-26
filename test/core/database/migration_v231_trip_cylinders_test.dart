@@ -3,12 +3,12 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v229: trip-scale gas logistics, phase 1 (issue #2325). Two children
+/// Schema v231: trip-scale gas logistics, phase 1 (issue #2325). Two children
 /// of trips, trip_cylinders and trip_cylinder_events, and the
 /// dive_tanks.trip_cylinder_id link.
 void main() {
-  /// Pre-v229 dive_tanks: only the columns the rung and its assertions touch.
-  const preV229DiveTanks = '''
+  /// Pre-v231 dive_tanks: only the columns the rung and its assertions touch.
+  const preV231DiveTanks = '''
     CREATE TABLE dive_tanks (
       id TEXT NOT NULL PRIMARY KEY,
       dive_id TEXT NOT NULL,
@@ -20,11 +20,11 @@ void main() {
   ''';
 
   /// A v226 database with every parent the new tables reference, the tables
-  /// the beforeOpen backstops touch, one pre-v229 tank row, and neither new
+  /// the beforeOpen backstops touch, one pre-v231 tank row, and neither new
   /// table. If a backstop throws on a missing column of one of these stub
   /// tables, add that column here, as the v221 fixture did for tags.
   NativeDatabase setupDb({
-    int userVersion = 228,
+    int userVersion = 230,
     bool withTrips = true,
     bool linkColumnAlreadyAdded = false,
   }) {
@@ -39,7 +39,7 @@ void main() {
         if (withTrips) {
           rawDb.execute('CREATE TABLE trips (id TEXT PRIMARY KEY)');
         }
-        rawDb.execute(preV229DiveTanks);
+        rawDb.execute(preV231DiveTanks);
         rawDb.execute(
           "INSERT INTO dive_tanks (id, dive_id, o2_percent, computer_id) "
           "VALUES ('t1', 'd1', 32.0, 'dc1')",
@@ -152,12 +152,12 @@ void main() {
     'hlc',
   ];
 
-  test('v229 is the current schema version and is in the ladder', () {
+  test('v231 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 229);
-    expect(AppDatabase.migrationVersions, contains(229));
-    expect(AppDatabase.migrationStepCount(228), 1);
+    expect(AppDatabase.currentSchemaVersion, 231);
+    expect(AppDatabase.migrationVersions, contains(231));
+    expect(AppDatabase.migrationStepCount(230), 1);
     // Additive rung: the sync compatibility floor must not move.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });
@@ -240,11 +240,11 @@ void main() {
   });
 
   test(
-    'a database stamped v229 without the tables heals in beforeOpen',
+    'a database stamped v231 without the tables heals in beforeOpen',
     () async {
-      // A parallel branch that claimed 229 first carries a device past the
+      // A parallel branch that claimed 231 first carries a device past the
       // rung; the beforeOpen backstop must build what the rung would have.
-      final db = AppDatabase(setupDb(userVersion: 229));
+      final db = AppDatabase(setupDb(userVersion: 231));
       addTearDown(db.close);
 
       expect(await columnsOf(db, 'trip_cylinders'), contains('trip_id'));

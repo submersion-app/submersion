@@ -7,7 +7,7 @@ import 'package:submersion/core/services/sync/sync_service.dart';
 
 import '../../../helpers/test_database.dart';
 
-/// The two trip cylinder entities (v229, issue #2325) through every sync
+/// The two trip cylinder entities (v231, issue #2325) through every sync
 /// path a trip child takes: fetch, upsert, ids, delete, delta export,
 /// registration, and the SQLite actions a peer's delete relies on.
 void main() {

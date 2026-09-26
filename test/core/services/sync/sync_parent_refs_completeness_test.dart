@@ -89,6 +89,7 @@ void main() {
     'service_kinds': 'serviceKinds',
     'service_schedules': 'serviceSchedules',
     'gps_tracks': 'gpsTracks',
+    'nav_tracks': 'navTracks',
     'diver_weight_entries': 'diverWeightEntries',
     'dive_roles': 'diveRoles',
     'equipment_attributes': 'equipmentAttributes',
@@ -245,5 +246,20 @@ void main() {
           'These merge-applied entities are missing from syncedTables, so '
           'their FK guards are unverified:\n${missing.join('\n')}',
     );
+  });
+
+  test('alsoClearedWithParent only names declared set-null references', () {
+    // A key that matches no nullable parentRefs entry would never be read,
+    // silently leaving its fields set after the parent is tombstoned.
+    for (final entity in SyncService.alsoClearedWithParent.entries) {
+      final refs = SyncService.parentRefs[entity.key] ?? const [];
+      for (final field in entity.value.keys) {
+        expect(
+          refs.any((r) => r.field == field && r.nullable),
+          isTrue,
+          reason: '${entity.key}.$field is not a nullable parentRefs entry',
+        );
+      }
+    }
   });
 }

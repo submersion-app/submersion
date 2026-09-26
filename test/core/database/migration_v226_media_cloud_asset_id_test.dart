@@ -47,7 +47,7 @@ void main() {
 
   test('v226 is at or below the current schema version and in the ladder', () {
     // Relaxed once v227 (hidden tank presets), v228 (cylinder fills) and
-    // v229 (trip cylinders) landed on top; the newest rung owns the exact assertion.
+    // v231 (trip cylinders) landed on top; the newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(226));
     expect(AppDatabase.migrationVersions, contains(226));
     // Counted from 225 so it holds whether or not #1978's rung has landed.

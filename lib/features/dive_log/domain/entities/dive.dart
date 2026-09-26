@@ -1125,7 +1125,7 @@ class DiveTank extends Equatable {
   /// tank editor sets it and downloads never touch it.
   final String? regulatorEquipmentId;
 
-  /// The trip cylinder slot this tank was breathed from (v229, issue
+  /// The trip cylinder slot this tank was breathed from (v231, issue
   /// #2325). User-authored: the tank editor sets it and downloads never
   /// touch it. Meaningless outside the dive's trip, so the repository drops
   /// it when the dive moves.
