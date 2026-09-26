@@ -236,6 +236,20 @@ void main() {
       expect(await rowCount(), 0);
     });
 
+    test('never deletes a row refetched while the sweep runs', () async {
+      await put(ReefProviderId.health, 'k');
+      clock = clock.add(const Duration(days: 2));
+
+      // Issued before deleteExpired has read anything, so a snapshot taken
+      // outside the delete transaction sees the expired row and then deletes
+      // the fresh replacement by primary key.
+      final sweep = dao.deleteExpired();
+      final refetch = put(ReefProviderId.health, 'k');
+      await Future.wait([sweep, refetch]);
+
+      expect(await dao.read(ReefProviderId.health, 'k'), isNotNull);
+    });
+
     test('an empty cache deletes nothing', () async {
       expect(await dao.deleteExpired(), 0);
     });

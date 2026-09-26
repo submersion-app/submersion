@@ -92,20 +92,24 @@ class ReefCacheDao {
   /// is the answer for a dive on that day and is read again with that dive.
   Future<int> deleteExpired() async {
     final t = _db.reefDataCache;
-    final rows =
-        await (_db.selectOnly(t)..addColumns([
-              t.provider,
-              t.coordKey,
-              t.variant,
-              t.status,
-              t.fetchedAt,
-            ]))
-            .get();
     final now = _now().toUtc();
     final providers = ReefProviderId.values.asNameMap();
 
     var deleted = 0;
+    // The snapshot is taken inside the transaction so a refetch cannot land
+    // between it and the deletes: writes from outside queue until this
+    // commits, so the row each DELETE removes is the row that was evaluated,
+    // never a fresh replacement under the same primary key.
     await _db.transaction(() async {
+      final rows =
+          await (_db.selectOnly(t)..addColumns([
+                t.provider,
+                t.coordKey,
+                t.variant,
+                t.status,
+                t.fetchedAt,
+              ]))
+              .get();
       for (final row in rows) {
         final providerName = row.read(t.provider)!;
         final coordKey = row.read(t.coordKey)!;

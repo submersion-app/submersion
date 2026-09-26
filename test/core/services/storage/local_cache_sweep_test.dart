@@ -328,7 +328,8 @@ void main() {
           b.insert(
             local.bathymetryCache,
             BathymetryCacheCompanion.insert(
-              cacheKey: '12.$i,-68.30@8000$generationSuffix',
+              cacheKey:
+                  '12.${i.toString().padLeft(2, '0')},-68.30@8000$generationSuffix',
               centerLat: 0,
               centerLon: 0,
               status: 'ok',
@@ -374,6 +375,7 @@ void main() {
         library: library,
       ).run();
 
+      expect(report.bathymetryRows, 0);
       expect(report.decoRows, 1);
       expect(report.vacuumed, isFalse);
       expect(await file.length(), before);
