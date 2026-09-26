@@ -13,8 +13,11 @@ class PressureAnomalyDetector extends QualityDetector {
   // Bumped for the endmismatch/startmismatch surfacing-lookback logic
   // (#2220, #2222): divers who already ran a full scan at v1 need the
   // "new checks available" prompt so their stale false positives retire.
+  // v3: slow rises no longer flagged (#2442), signal dropouts reported once
+  // per tank instead of as rises (#2441), series mixed from two sources
+  // reported as such (#2440).
   @override
-  int get version => 2;
+  int get version => 3;
   @override
   QualityCategory get category => QualityCategory.pressure;
 
@@ -96,18 +99,20 @@ class PressureAnomalyDetector extends QualityDetector {
       var rise = 0.0;
       int? riseStart;
       void closeRise(int endT) {
-        if (rise > QualityThresholds.pressureRiseBar &&
-            riseStart != null &&
-            !_nearSwitch(ctx, riseStart!, endT)) {
+        final start = riseStart;
+        if (start != null &&
+            _isAnomalousRise(rise, endT - start) &&
+            !_nearSwitch(ctx, start, endT)) {
           out.add(
             make(
               ctx,
-              discriminator: 'rise:${tank.id}:${riseStart! ~/ 60}',
+              discriminator: 'rise:${tank.id}:${start ~/ 60}',
               computerId: tank.computerId,
               severity: QualitySeverity.warning,
               params: {
                 'riseBar': rise,
-                'startSeconds': riseStart,
+                'startSeconds': start,
+                'durationSeconds': endT - start,
                 'tankId': tank.id,
                 'tankOrder': tank.order,
               },
@@ -203,6 +208,18 @@ class PressureAnomalyDetector extends QualityDetector {
       return null;
     }
     return atSurfacing.bar;
+  }
+
+  /// Whether a rising run of [riseBar] over [durationSeconds] is an anomaly
+  /// rather than a cylinder warming up or a drifting sensor (#2442).
+  bool _isAnomalousRise(double riseBar, int durationSeconds) {
+    if (riseBar <= QualityThresholds.pressureRiseBar) return false;
+    if (riseBar > QualityThresholds.pressureRiseAlwaysFlagBar) return true;
+    // Timestamps never decrease, but two readings can share one; a rise
+    // with no measurable duration is as fast as a rise can be.
+    if (durationSeconds <= 0) return true;
+    return riseBar / (durationSeconds / 60.0) >
+        QualityThresholds.pressureRiseMinBarPerMinute;
   }
 
   bool _nearSwitch(DiveQualityContext ctx, int startT, int endT) =>

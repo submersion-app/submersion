@@ -178,20 +178,84 @@ void main() {
       final series = [
         const QualityPressureSample(t: 0, bar: 200),
         const QualityPressureSample(t: 600, bar: 180),
-        const QualityPressureSample(t: 660, bar: 184),
-        const QualityPressureSample(t: 720, bar: 188),
-        const QualityPressureSample(t: 780, bar: 188.5),
-        const QualityPressureSample(t: 2400, bar: 195),
+        const QualityPressureSample(t: 610, bar: 184),
+        const QualityPressureSample(t: 620, bar: 188),
+        const QualityPressureSample(t: 630, bar: 195),
+        const QualityPressureSample(t: 2400, bar: 150),
       ];
-      // After the drop to 180, pressure rises monotonically to 195: one
-      // continuous rising run of 15 bar (180 -> 195), no gas switches.
+      // After the drop to 180, pressure rises monotonically to 195 within
+      // 30 s: one continuous rising run of 15 bar at 30 bar/min, no gas
+      // switches.
       final ctx = makeContext(
-        dive: makeTestDive(tanks: [tank(start: 200, end: 195)]),
+        dive: makeTestDive(tanks: [tank(start: 200, end: 150)]),
         pressures: {'t1': series},
       );
-      final out = det.detect(ctx);
-      expect(out.length, greaterThanOrEqualTo(1));
-      expect(out.first.params['riseBar'], closeTo(15.0, 1e-9));
+      final rise = det
+          .detect(ctx)
+          .singleWhere((f) => f.params.containsKey('riseBar'));
+      expect(rise.params['riseBar'], closeTo(15.0, 1e-9));
+      expect(rise.params['durationSeconds'], 30);
+    });
+
+    // A cylinder warming up in the water (e.g. above a thermocline) or a
+    // drifting sensor raises the reading by a few bar over minutes. Real
+    // logbooks show such rises at up to ~6 bar/min, far below the rate of a
+    // genuine jump (#2442).
+    test('a slow rise of a few bar over minutes is not flagged', () {
+      final series = [
+        const QualityPressureSample(t: 0, bar: 200),
+        const QualityPressureSample(t: 300, bar: 165.3),
+        for (var i = 1; i <= 10; i++)
+          QualityPressureSample(t: 300 + i * 42, bar: 165.3 + i * 0.78),
+        const QualityPressureSample(t: 2400, bar: 100),
+      ];
+      final ctx = makeContext(
+        dive: makeTestDive(tanks: [tank(start: 200, end: 100)]),
+        pressures: {'t1': series},
+      );
+      expect(
+        det.detect(ctx).where((f) => f.params.containsKey('riseBar')),
+        isEmpty,
+      );
+    });
+
+    test('a rise right at the rate threshold is not flagged', () {
+      // 6 bar over 36 s is exactly 10 bar/min: not faster than the gate.
+      final series = [
+        const QualityPressureSample(t: 0, bar: 200),
+        const QualityPressureSample(t: 600, bar: 180),
+        const QualityPressureSample(t: 636, bar: 186),
+        const QualityPressureSample(t: 2400, bar: 150),
+      ];
+      final ctx = makeContext(
+        dive: makeTestDive(tanks: [tank(start: 200, end: 150)]),
+        pressures: {'t1': series},
+      );
+      expect(
+        det.detect(ctx).where((f) => f.params.containsKey('riseBar')),
+        isEmpty,
+      );
+    });
+
+    test('a large rise is flagged even when sampled too sparsely for a '
+        'rate', () {
+      // One reading every ten minutes: a 25 bar rise between two of them is
+      // only 2.5 bar/min, yet no cylinder warms by 25 bar in the water.
+      final series = [
+        const QualityPressureSample(t: 0, bar: 200),
+        const QualityPressureSample(t: 600, bar: 170),
+        const QualityPressureSample(t: 1200, bar: 195),
+        const QualityPressureSample(t: 1800, bar: 150),
+      ];
+      final ctx = makeContext(
+        dive: makeTestDive(tanks: [tank(start: 200, end: 150)]),
+        pressures: {'t1': series},
+      );
+      final rise = det
+          .detect(ctx)
+          .singleWhere((f) => f.params.containsKey('riseBar'));
+      expect(rise.params['riseBar'], closeTo(25.0, 1e-9));
+      expect(rise.params['durationSeconds'], 600);
     });
 
     test('implausible consumption flags SAC', () {
@@ -380,7 +444,8 @@ void main() {
       final series = [
         const QualityPressureSample(t: 0, bar: 200),
         const QualityPressureSample(t: 600, bar: 180),
-        const QualityPressureSample(t: 660, bar: 190), // 10 bar rise
+        // 10 bar in 20 s: fast enough to flag without the switch.
+        const QualityPressureSample(t: 620, bar: 190),
         const QualityPressureSample(t: 2400, bar: 175),
       ];
       final ctx = makeContext(
