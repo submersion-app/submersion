@@ -156,6 +156,36 @@ void main() {
       expect(formatDecimalForInput(12.345678), '12.345678');
       expect(formatDecimalForInput(2.7215420), anyOf('2.721542', '2.72154200'));
     });
+
+    test('drops floating-point noise from a percentage that round-tripped '
+        'through a fraction (#2032)', () {
+      // Every native bridge hands a gas mix over as fraction * 100, and the
+      // Shearwater parser built that fraction as percent / 100.0. The round
+      // trip misses the integer in both directions.
+      const heNoisyUp = 55 / 100.0 * 100.0;
+      const heNoisyDown = 29 / 100.0 * 100.0;
+      expect(heNoisyUp, isNot(55.0), reason: 'guard: the input must be noisy');
+      expect(
+        heNoisyDown,
+        isNot(29.0),
+        reason: 'guard: the input must be noisy',
+      );
+
+      Intl.defaultLocale = 'en_US';
+      expect(formatDecimalForInput(heNoisyUp), '55');
+      expect(formatDecimalForInput(heNoisyDown), '29');
+      expect(formatDecimalForInput(-heNoisyUp), '-55');
+      expect(formatDecimalForInput(0.1 + 0.2), '0.3');
+      Intl.defaultLocale = 'de';
+      expect(formatDecimalForInput(0.1 + 0.2), '0,3');
+    });
+
+    test('keeps every digit up to twelve significant digits', () {
+      Intl.defaultLocale = 'en_US';
+      expect(formatDecimalForInput(12.3456789012), '12.3456789012');
+      expect(formatDecimalForInput(-122.1234567), '-122.1234567');
+      expect(formatDecimalForInput(123456789.123), '123456789.123');
+    });
   });
 
   group('formatRoundedForInput', () {
