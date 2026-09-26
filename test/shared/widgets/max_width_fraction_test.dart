@@ -92,6 +92,53 @@ void main() {
     expect(tester.getSize(find.byType(MaxWidthFraction)).width, 200);
   });
 
+  testWidgets('an unchanged fraction keeps the layout clean', (tester) async {
+    Widget at() => host(
+      400,
+      const MaxWidthFraction(
+        fraction: 0.25,
+        child: SizedBox(width: 1000, height: 10),
+      ),
+    );
+    await tester.pumpWidget(at());
+    final box = tester.renderObject<RenderMaxWidthFraction>(
+      find.byType(MaxWidthFraction),
+    );
+    box.fraction = 0.25;
+    expect(box.debugNeedsLayout, isFalse);
+    box.fraction = 0.5;
+    expect(box.debugNeedsLayout, isTrue);
+    expect(box.fraction, 0.5);
+  });
+
+  testWidgets('with no child it takes the smallest size offered', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(400, const MaxWidthFraction(fraction: 0.4)));
+    expect(tester.getSize(find.byType(MaxWidthFraction)), Size.zero);
+  });
+
+  test('dry layout with no child is the smallest size offered', () {
+    final box = RenderMaxWidthFraction(fraction: 0.5);
+    const constraints = BoxConstraints(
+      minWidth: 10,
+      maxWidth: 300,
+      minHeight: 4,
+      maxHeight: 100,
+    );
+    expect(box.getDryLayout(constraints), const Size(10, 4));
+  });
+
+  test('reports its fraction in diagnostics', () {
+    final box = RenderMaxWidthFraction(fraction: 0.4);
+    final builder = DiagnosticPropertiesBuilder();
+    box.debugFillProperties(builder);
+    final property = builder.properties.singleWhere(
+      (p) => p.name == 'fraction',
+    );
+    expect(property.value, 0.4);
+  });
+
   test('rejects a fraction outside (0, 1]', () {
     for (final fraction in [0.0, -0.5, 1.5]) {
       expect(
