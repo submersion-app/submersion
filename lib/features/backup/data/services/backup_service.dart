@@ -572,9 +572,14 @@ class BackupService {
   /// rule: they are decrypted on export precisely so they restore on a
   /// device where the database password is unknown, and an encrypted-looking
   /// one is a real problem that must fail loudly.
+  ///
+  /// [requireBackupExtension] is false only for a database copy the restore
+  /// journal set aside, whose name ends in a timestamp rather than an
+  /// extension. Its deep check is otherwise the same.
   Future<BackupValidationResult> validateBackupFile(
     String filePath, {
     bool allowLiveDatabaseEncryption = false,
+    bool requireBackupExtension = true,
   }) async {
     final file = File(filePath);
 
@@ -585,7 +590,10 @@ class BackupService {
 
     // Check extension
     final ext = p.extension(filePath).toLowerCase();
-    if (ext != '.sqlite' && ext != '.db' && ext != BackupCrypto.fileExtension) {
+    if (requireBackupExtension &&
+        ext != '.sqlite' &&
+        ext != '.db' &&
+        ext != BackupCrypto.fileExtension) {
       return BackupValidationResult.invalid(
         'Invalid file extension "$ext". Expected .db, .sqlite, or '
         '${BackupCrypto.fileExtension}',
@@ -781,13 +789,7 @@ class BackupService {
     } finally {
       await materialized.cleanUp();
     }
-    if (mode == RestoreMode.replace) {
-      await _mintPendingReplace();
-    } else {
-      // Merge: the restore dialog's choice is the consent. Arm a one-shot
-      // intent so the next launch forces a gate-bypassing reconciling sync.
-      await _postRestoreSyncStore?.setPending();
-    }
+    await _armPostRestoreSync(mode);
 
     _log.info('Restore completed from: ${record.filename}');
   }
@@ -861,6 +863,72 @@ class BackupService {
     } finally {
       await materialized.cleanUp();
     }
+    await _armPostRestoreSync(mode);
+
+    _log.info('Restore from file completed: ${p.basename(filePath)}');
+  }
+
+  /// Restore the database from a copy the restore journal set aside next to
+  /// the live database (issue #1923).
+  ///
+  /// Such a copy is a raw database file, not a backup artifact: its name
+  /// ends in a timestamp rather than an extension, it may be SQLCipher
+  /// ciphertext under the live key, and it may still have a `-wal` holding
+  /// its latest transactions. So it is validated with the live key and
+  /// without the extension rule, and its journal is folded in before the
+  /// swap, which stages only the main file.
+  ///
+  /// Otherwise it is an ordinary restore: a safety backup of the current
+  /// database first, then the swap and the sync re-baseline. The copy itself
+  /// is left where it is; deleting it is the diver's call.
+  ///
+  /// Throws [BackupException] when the copy is gone or this build cannot
+  /// open it, before anything else has happened.
+  Future<void> restoreFromDatabaseCopy(
+    String path, {
+    RestoreMode mode = RestoreMode.merge,
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
+  }) async {
+    _log.info('Starting restore from database copy: ${p.basename(path)}');
+
+    final validation = await validateBackupFile(
+      path,
+      allowLiveDatabaseEncryption: true,
+      requireBackupExtension: false,
+    );
+    if (!validation.isValid) {
+      throw BackupException(
+        validation.error ?? 'Database copy failed validation',
+      );
+    }
+
+    // After validation, so a copy that cannot be restored is left exactly as
+    // it was found. Folding rewrites the file, but only with transactions it
+    // had already committed.
+    try {
+      DatabaseService.checkpointWriteAheadLog(
+        path,
+        keyHex: isEncryptedDatabaseFile(path)
+            ? _dbAdapter.databaseKeyHex
+            : null,
+      );
+    } catch (e) {
+      throw BackupException('Could not prepare the database copy: $e');
+    }
+
+    await performBackup();
+    await _replaceDatabaseAndRebaselineSync(
+      path,
+      onMigrationProgress: onMigrationProgress,
+    );
+    await _armPostRestoreSync(mode);
+
+    _log.info('Restore from database copy completed: ${p.basename(path)}');
+  }
+
+  /// What a completed restore leaves for the next sync. [RestoreMode.replace]
+  /// mints a pending replace intent; a merge arms a one-shot reconciling sync.
+  Future<void> _armPostRestoreSync(RestoreMode mode) async {
     if (mode == RestoreMode.replace) {
       await _mintPendingReplace();
     } else {
@@ -868,8 +936,6 @@ class BackupService {
       // intent so the next launch forces a gate-bypassing reconciling sync.
       await _postRestoreSyncStore?.setPending();
     }
-
-    _log.info('Restore from file completed: ${p.basename(filePath)}');
   }
 
   /// Replace the database with [sourcePath], then re-baseline sync.

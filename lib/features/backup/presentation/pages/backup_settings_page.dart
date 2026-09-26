@@ -18,6 +18,7 @@ import 'package:submersion/features/backup/presentation/providers/backup_provide
 import 'package:submersion/features/backup/presentation/widgets/backup_encryption_section.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_history_tile.dart';
 import 'package:submersion/features/backup/presentation/widgets/export_bottom_sheet.dart';
+import 'package:submersion/features/backup/presentation/widgets/quarantined_databases_section.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_confirmation_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/encryption_passphrase_dialog.dart';
@@ -78,6 +79,9 @@ class BackupSettingsPage extends ConsumerWidget {
           // Backup encryption section (issue #580)
           const BackupEncryptionSection(),
           const Divider(),
+          // Database copies a restore set aside (issue #1923); renders nothing
+          // when there are none.
+          const QuarantinedDatabasesSection(),
           // History section
           _buildHistorySection(context, ref, historyAsync),
         ],

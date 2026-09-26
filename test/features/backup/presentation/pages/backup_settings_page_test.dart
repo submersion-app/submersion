@@ -15,6 +15,7 @@ import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 import 'package:submersion/features/backup/presentation/pages/backup_settings_page.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/backup/presentation/providers/quarantined_database_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_history_tile.dart';
 import 'package:submersion/features/backup/presentation/widgets/pre_migration_badge.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -213,6 +214,7 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(prefs),
           backupServiceProvider.overrideWithValue(service),
           cloudStorageProviderProvider.overrideWithValue(null),
+          quarantinedDatabasesProvider.overrideWith((ref) async => const []),
           backupHistoryProvider.overrideWith(
             (ref) async => backupPrefs.getHistory(),
           ),
@@ -356,6 +358,7 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(prefs),
           backupServiceProvider.overrideWithValue(service),
           cloudStorageProviderProvider.overrideWithValue(null),
+          quarantinedDatabasesProvider.overrideWith((ref) async => const []),
           backupHistoryProvider.overrideWith(
             (ref) async => backupPrefs.getHistory(),
           ),
@@ -572,6 +575,7 @@ void main() {
               _FakeCloudProvider(),
             ),
             backupHistoryProvider.overrideWith((ref) async => const []),
+            quarantinedDatabasesProvider.overrideWith((ref) async => const []),
           ],
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -692,6 +696,7 @@ class _RecordingRestoreService extends BackupService {
   Future<BackupValidationResult> validateBackupFile(
     String filePath, {
     bool allowLiveDatabaseEncryption = false,
+    bool requireBackupExtension = true,
   }) async => const BackupValidationResult.valid(sizeBytes: 1);
 
   @override
