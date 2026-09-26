@@ -26,9 +26,9 @@ Future<void> _insertMinimalDive(AppDatabase db, String id) {
 }
 
 void main() {
-  test('v230 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
+  test('v230 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v231 (diver_settings CCR ppO2 limits) landed on top; the
+    // newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(230));
     expect(AppDatabase.migrationVersions, contains(230));
     // Earlier numbers this rung held before main shipped them elsewhere.

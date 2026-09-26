@@ -2222,6 +2222,11 @@ class DiverSettings extends Table {
   IntColumn get gfHigh => integer().withDefault(const Constant(70))();
   RealColumn get ppO2MaxWorking => real().withDefault(const Constant(1.4))();
   RealColumn get ppO2MaxDeco => real().withDefault(const Constant(1.6))();
+  // CCR ppO2 limits (v231, issue #2342): the diver's default setpoints and
+  // the ppO2 a diluent may reach on a flush, which sets its MOD.
+  RealColumn get ccrSetpointLow => real().withDefault(const Constant(0.7))();
+  RealColumn get ccrSetpointHigh => real().withDefault(const Constant(1.3))();
+  RealColumn get ccrDiluentModPpO2 => real().withDefault(const Constant(1.6))();
   IntColumn get cnsWarningThreshold =>
       integer().withDefault(const Constant(80))();
   RealColumn get ascentRateWarning => real().withDefault(const Constant(9.0))();
@@ -4320,7 +4325,7 @@ const String kLegacyDataSourceIdPrefix = 'legacy-src-';
 /// [kLegacyDataSourceIdPrefix].
 String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
 
-/// Saved "what if" scenarios on a logged dive (Dive Lab, v231). Inputs only:
+/// Saved "what if" scenarios on a logged dive (Dive Lab, v232). Inputs only:
 /// the branch point, the mode and the interventions; outcomes are always
 /// recomputed. Synced like dive plans (hlc column, deletion_log tombstones).
 class DiveScenarios extends Table {
@@ -4487,7 +4492,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 231;
+  static const int currentSchemaVersion = 232;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -5160,12 +5165,19 @@ class AppDatabase extends _$AppDatabase {
     // figure branch (#2372). A rung at or below the shipped version never
     // runs its onUpgrade step.
     230,
-    // v231 (Dive Lab): dive_scenarios, saved what-if scenarios on a logged
-    // dive (branch point, mode, interventions), synced with an hlc column.
-    // Renumbered from 161, 228 and 229: main shipped cylinder fills as 228
-    // and nav tracks as 230 while this branch was open, and 229 is claimed
-    // by the diver figure branch (#2372).
+    // v231: diver_settings CCR ppO2 limits (issue #2342): setpoint low,
+    // setpoint high and the diluent's flush ppO2. Additive defaulted
+    // columns, no backfill, so the floor stays at 224. Renumbered from 228,
+    // then 230: main shipped cylinder fills (#2364) as 228 and nav tracks
+    // (#1772) as 230 while this was open, and 229 is claimed by #2372,
+    // #2331 and #2407.
     231,
+    // v232 (Dive Lab): dive_scenarios, saved what-if scenarios on a logged
+    // dive (branch point, mode, interventions), synced with an hlc column.
+    // Renumbered from 161, 228, 229 and 231: main shipped cylinder fills
+    // (228), nav tracks (230) and CCR ppO2 limits (231) while this branch
+    // was open, and 229 is claimed by #2372.
+    232,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -8584,6 +8596,29 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  /// Idempotent DDL for the diver_settings CCR ppO2 limits (v231, issue
+  /// #2342). Existing rows get the defaults the planner already assumed for
+  /// a new CCR plan (0.7 / 1.3) and the 1.6 bar flush ceiling.
+  Future<void> _assertCcrPpO2LimitColumns() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    const columns = {
+      'ccr_setpoint_low': '0.7',
+      'ccr_setpoint_high': '1.3',
+      'ccr_diluent_mod_pp_o2': '1.6',
+    };
+    for (final entry in columns.entries) {
+      if (names.contains(entry.key)) continue;
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN '
+        '${entry.key} REAL NOT NULL DEFAULT ${entry.value}',
+      );
+    }
+  }
+
   /// Idempotent DDL for diver_settings.auto_tag_imports (v211, issue #998).
   /// Existing rows default to on, matching the wizard's prior behavior of
   /// always pre-filling an import tag.
@@ -8755,7 +8790,7 @@ class AppDatabase extends _$AppDatabase {
     await assertEquipmentTagUniqueness(this);
   }
 
-  /// v231: the Dive Lab scenarios table. Migrator.createTable is IF NOT
+  /// v232: the Dive Lab scenarios table. Migrator.createTable is IF NOT
   /// EXISTS and the index is guarded, so this is safe from both onUpgrade and
   /// the beforeOpen backstop.
   Future<void> _assertDiveScenariosSchema() async {
@@ -12852,13 +12887,19 @@ class AppDatabase extends _$AppDatabase {
           await _assertNavTracksSchema();
         }
         if (from < 230) await reportProgress();
-        // v231: dive_scenarios (Dive Lab saved scenarios). createTable is IF
-        // NOT EXISTS and the index is guarded, so the block is idempotent;
-        // the beforeOpen backstop re-asserts the same objects.
+        // v231: diver_settings CCR ppO2 limits (issue #2342). Column-only
+        // rung, no backfill.
         if (from < 231) {
-          await _assertDiveScenariosSchema();
+          await _assertCcrPpO2LimitColumns();
         }
         if (from < 231) await reportProgress();
+        // v232: dive_scenarios (Dive Lab saved scenarios). createTable is IF
+        // NOT EXISTS and the index is guarded, so the block is idempotent;
+        // the beforeOpen backstop re-asserts the same objects.
+        if (from < 232) {
+          await _assertDiveScenariosSchema();
+        }
+        if (from < 232) await reportProgress();
       },
       beforeOpen: (details) async {
         // v227 backstop: the hidden built-in tank presets.
@@ -13366,10 +13407,15 @@ class AppDatabase extends _$AppDatabase {
         // v228 backstop: the cylinder_fills table (parallel-branch
         // version-collision self-heal; createTable is idempotent).
         await _assertCylinderFillsSchema();
-        // v231 backstop: re-assert the dive_scenarios table and its index for
-        // databases that reached 231 through a parallel branch, a restore or
+        // v232 backstop: re-assert the dive_scenarios table and its index for
+        // databases that reached 232 through a parallel branch, a restore or
         // sync-adopt without running the onUpgrade block.
         await _assertDiveScenariosSchema();
+
+        // v231 backstop: re-assert the diver_settings CCR ppO2 limits
+        // (parallel-branch version-collision self-heal). Defaulted columns
+        // only, so it cannot touch diver data.
+        await _assertCcrPpO2LimitColumns();
 
         // v194 backstop: re-assert dive_tanks.transmitter_serial. Every tank
         // read selects the whole row, so a database that arrives by restore

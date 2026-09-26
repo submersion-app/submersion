@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -214,6 +215,91 @@ void main() {
       );
 
       expect(result, IncomingFileOutcome.none);
+    });
+  });
+
+  // Plain tests, not testWidgets: loading reads the files through dart:io,
+  // whose futures never complete under testWidgets' fake async zone.
+  group('handleIncomingFiles', () {
+    late Directory tempDir;
+
+    setUp(() async {
+      tempDir = await Directory.systemTemp.createTemp('incoming_files_');
+    });
+
+    tearDown(() async {
+      await tempDir.delete(recursive: true);
+    });
+
+    Future<List<String>> writeUddfFiles(int count) async {
+      return [
+        for (var i = 0; i < count; i++)
+          await () async {
+            final path = p.join(tempDir.path, 'dive_$i.uddf');
+            await File(path).writeAsBytes(_uddfBytes);
+            return path;
+          }(),
+      ];
+    }
+
+    test('loads every file into the wizard as one batch', () async {
+      final paths = await writeUddfFiles(2);
+
+      final result = await handleIncomingFiles(
+        paths: paths,
+        currentPath: '/dives',
+        notifier: notifier,
+        messenger: null,
+      );
+
+      expect(result, isTrue);
+      final state = container.read(universalImportNotifierProvider);
+      expect(state.isBatch, isTrue);
+      expect(state.files.map((f) => f.name), ['dive_0.uddf', 'dive_1.uddf']);
+    });
+
+    // A testWidgets case is safe here: the wizard check returns before any
+    // file is read, so no dart:io future is left waiting on fake async.
+    testWidgets('tells the diver to finish the open import first', (
+      tester,
+    ) async {
+      late ScaffoldMessengerState messenger;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              messenger = ScaffoldMessenger.of(context);
+              return const Scaffold(body: SizedBox.shrink());
+            },
+          ),
+        ),
+      );
+
+      final result = await handleIncomingFiles(
+        paths: const ['a.fit', 'b.fit'],
+        currentPath: '/transfer/import-wizard/review',
+        notifier: notifier,
+        messenger: messenger,
+        wizardActiveMessage: 'Finish the open import first',
+      );
+      await tester.pump();
+
+      expect(result, isFalse);
+      expect(find.text('Finish the open import first'), findsOneWidget);
+    });
+
+    test('refuses while an import is already in progress', () async {
+      final paths = await writeUddfFiles(2);
+
+      final result = await handleIncomingFiles(
+        paths: paths,
+        currentPath: '/transfer/import-wizard',
+        notifier: notifier,
+        messenger: null,
+      );
+
+      expect(result, isFalse);
+      expect(container.read(universalImportNotifierProvider).files, isEmpty);
     });
   });
 }
