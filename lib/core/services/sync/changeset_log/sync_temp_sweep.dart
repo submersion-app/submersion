@@ -27,9 +27,9 @@ const Duration syncTempFileGrace = Duration(minutes: 5);
 /// still hold leftovers.
 ///
 /// Skips anything touched within [syncTempFileGrace]. The prefix keeps the
-/// sweep off files this app did not write, but NOT off files another sync is
-/// writing right now: a background-isolate sync can be mid-export while the
-/// foreground app launches, and under `flutter test` [resolveSyncTempDir]
+/// sweep off files this app did not write, but NOT off files a sync is
+/// writing right now: the app's own sync can start while the launch sweep is
+/// still listing the directory, and under `flutter test` [resolveSyncTempDir]
 /// falls back to the machine-wide `Directory.systemTemp`, so every concurrent
 /// test process shares one directory and a base export in flight in one of
 /// them sits next to this sweep running in another. Deleting it fails that

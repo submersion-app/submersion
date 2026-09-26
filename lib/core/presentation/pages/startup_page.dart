@@ -862,7 +862,8 @@ class _StartupWrapperState extends State<StartupWrapper>
     // sync strands its `ssv1_` base export or assembled base in the app temp
     // dir, a full copy of the library, and nothing else reclaims it short of
     // Repair sync. One listing of the temp dir; it spares anything touched in
-    // the last five minutes, so a background-isolate sync is not disturbed.
+    // the last five minutes, so a sync that starts during launch keeps its
+    // in-flight files.
     // Not gated on a provider: a device that signed out can still hold one.
     // No try/catch: the sweep logs and swallows every failure itself.
     unawaited(sweepLeftoverSyncTempFiles());
