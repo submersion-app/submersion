@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 
 import 'package:submersion/core/services/suunto_cloud/suunto_cloud_event_map.dart';
+import 'package:submersion/core/services/suunto_cloud/suunto_tissue_parser.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 
 /// A dive parsed from a Suunto export, plus the device identity fields
 /// needed to resolve/create the owning [DiveComputer] record (kept separate
@@ -15,6 +17,11 @@ class SuuntoParsedDive {
   });
 
   final DownloadedDive dive;
+
+  /// Dive-level tissue state the computer reported in the SML header
+  /// (`Header.Diving.StartTissue` / `EndTissue` / `Algorithm`), if any.
+  /// Lives on [dive] so the shared import pipeline persists it.
+  ComputerTissueSnapshot? get computerTissue => dive.computerTissue;
 
   /// Suunto's internal device codename (e.g. "Vaasa"), already mapped to a
   /// commercial product line name (e.g. "Suunto Nautic") for display.
@@ -96,6 +103,7 @@ class SuuntoDiveParser {
     final diving = header['Diving'] as Map<String, dynamic>?;
     final gfLow = (diving?['GfLow'] as num?)?.round();
     final gfHigh = (diving?['GfHigh'] as num?)?.round();
+    final computerTissue = diving == null ? null : parseSuuntoTissue(diving);
 
     final tanks = _buildTanks(diving, profileResult.gasSwitchOrder);
 
@@ -125,6 +133,7 @@ class SuuntoDiveParser {
       gfLow: gfLow,
       gfHigh: gfHigh,
       decoAlgorithm: (gfLow != null && gfHigh != null) ? 'buhlmann' : null,
+      computerTissue: computerTissue,
       events: profileResult.events,
     );
 

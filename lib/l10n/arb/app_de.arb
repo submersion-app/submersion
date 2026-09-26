@@ -12754,5 +12754,22 @@
   "diveCenters_rental_leadAdjustmentLabel": "Zusätzlich benötigtes Blei ({unit})",
   "diveCenters_rental_volumeLabel": "Tatsächliches Volumen ({unit})",
   "diveCenters_rental_noteLabel": "Notiz",
-  "diveCenters_rental_deleteConfirm": "Diese Leihnotiz löschen?"
+  "diveCenters_rental_deleteConfirm": "Diese Leihnotiz löschen?",
+  "diveLog_computerTissue_title": "Tauchcomputer",
+  "diveLog_computerTissue_algorithm": "Algorithmus",
+  "diveLog_computerTissue_compartments": "{count} Kompartimente",
+  "diveLog_computerTissue_compartmentsWithAlgorithm": "{count} {algorithm}-Kompartimente",
+  "diveLog_computerTissue_compartment": "C{number}",
+  "diveLog_computerTissue_endLoading": "Sättigung am Ende des Tauchgangs",
+  "diveLog_computerTissue_endTensions": "Gewebespannungen am Ende des Tauchgangs",
+  "diveLog_computerTissue_columnStart": "Start",
+  "diveLog_computerTissue_columnEnd": "Ende",
+  "diveLog_computerTissue_rowN2Load": "N₂-Sättigung",
+  "diveLog_computerTissue_rowCns": "CNS",
+  "diveLog_computerTissue_rowOtu": "OTU",
+  "diveLog_computerTissue_rgbmNitrogen": "RGBM-N₂-Faktor",
+  "diveLog_computerTissue_rgbmHelium": "RGBM-He-Faktor",
+  "diveLog_computerTissue_calculated": "berechnet {value}",
+  "diveLog_computerTissue_labelN2": "N₂",
+  "diveLog_computerTissue_labelHe": "He"
 }

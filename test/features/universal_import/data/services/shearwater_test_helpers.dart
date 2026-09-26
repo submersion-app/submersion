@@ -13,6 +13,9 @@ Uint8List createShearwaterTestDb({
   List<ShearwaterTestDive> dives = const [],
   bool includeDiveDetails = true,
   bool includeLogData = true,
+  bool includeDiveLogs = false,
+  bool includeDiveLogRecords = false,
+  bool includeGf99Column = true,
 }) {
   final tempPath =
       '${Directory.systemTemp.path}/sw_test_${DateTime.now().millisecondsSinceEpoch}.db';
@@ -65,6 +68,38 @@ Uint8List createShearwaterTestDb({
           data_bytes_2 BLOB,
           data_bytes_3 BLOB,
           calculated_values_from_samples TEXT
+        )
+      ''');
+    }
+
+    if (includeDiveLogs) {
+      db.execute('''
+        CREATE TABLE dive_logs (
+          id INTEGER,
+          diveId TEXT PRIMARY KEY,
+          gfMin INTEGER,
+          gfMax INTEGER,
+          startCNS INTEGER,
+          endCNS INTEGER,
+          decoModel INTEGER,
+          vpmbConservatism INTEGER,
+          startGFS INTEGER
+        )
+      ''');
+    }
+
+    if (includeDiveLogRecords) {
+      final gf99Column = includeGf99Column ? 'gf99 INTEGER,' : '';
+      db.execute('''
+        CREATE TABLE dive_log_records (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          diveLogId TEXT,
+          currentTime INTEGER,
+          currentDepth REAL,
+          CNSPercent INTEGER,
+          decoCeiling INTEGER,
+          $gf99Column
+          currentNdl INTEGER
         )
       ''');
     }
@@ -141,6 +176,57 @@ Uint8List createShearwaterTestDb({
           ],
         );
       }
+
+      final diveLog = dive.diveLog;
+      if (includeDiveLogs && diveLog != null) {
+        db.execute(
+          '''INSERT INTO dive_logs (
+            diveId, gfMin, gfMax, startCNS, endCNS,
+            decoModel, vpmbConservatism, startGFS
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+          [
+            dive.diveId,
+            diveLog.gfMin,
+            diveLog.gfMax,
+            diveLog.startCNS,
+            diveLog.endCNS,
+            diveLog.decoModel,
+            diveLog.vpmbConservatism,
+            diveLog.startGFS,
+          ],
+        );
+      }
+
+      if (includeDiveLogRecords) {
+        for (final record in dive.logRecords) {
+          if (includeGf99Column) {
+            db.execute(
+              '''INSERT INTO dive_log_records (
+                diveLogId, currentTime, currentDepth, CNSPercent, gf99
+              ) VALUES (?, ?, ?, ?, ?)''',
+              [
+                dive.diveId,
+                record.currentTime,
+                record.currentDepth,
+                record.cnsPercent,
+                record.gf99,
+              ],
+            );
+          } else {
+            db.execute(
+              '''INSERT INTO dive_log_records (
+                diveLogId, currentTime, currentDepth, CNSPercent
+              ) VALUES (?, ?, ?, ?)''',
+              [
+                dive.diveId,
+                record.currentTime,
+                record.currentDepth,
+                record.cnsPercent,
+              ],
+            );
+          }
+        }
+      }
     }
   } finally {
     db.close();
@@ -215,6 +301,8 @@ class ShearwaterTestDive {
   final Uint8List? dataBytes2;
   final Uint8List? dataBytes3;
   final String? calculatedValuesJson;
+  final ShearwaterTestDiveLog? diveLog;
+  final List<ShearwaterTestLogRecord> logRecords;
 
   const ShearwaterTestDive({
     required this.diveId,
@@ -253,5 +341,49 @@ class ShearwaterTestDive {
     this.dataBytes2,
     this.dataBytes3,
     this.calculatedValuesJson,
+    this.diveLog,
+    this.logRecords = const [],
+  });
+}
+
+/// Test data for the optional `dive_logs` row of a dive (computer header
+/// values: gradient factors, CNS, deco model, start surface GF).
+///
+/// [decoModel] is dynamic on purpose: real exports store an integer code,
+/// and tests also exercise a spelled-out string.
+class ShearwaterTestDiveLog {
+  final int? gfMin;
+  final int? gfMax;
+  final int? startCNS;
+  final int? endCNS;
+  final Object? decoModel;
+  final int? vpmbConservatism;
+  final int? startGFS;
+
+  const ShearwaterTestDiveLog({
+    this.gfMin,
+    this.gfMax,
+    this.startCNS,
+    this.endCNS,
+    this.decoModel,
+    this.vpmbConservatism,
+    this.startGFS,
+  });
+}
+
+/// Test data for one optional `dive_log_records` sample row.
+///
+/// [currentTime] is stored as-is; real exports write milliseconds.
+class ShearwaterTestLogRecord {
+  final int currentTime;
+  final double? currentDepth;
+  final int? cnsPercent;
+  final int? gf99;
+
+  const ShearwaterTestLogRecord({
+    required this.currentTime,
+    this.currentDepth,
+    this.cnsPercent,
+    this.gf99,
   });
 }

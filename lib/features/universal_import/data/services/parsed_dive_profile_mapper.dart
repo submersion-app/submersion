@@ -14,6 +14,15 @@ class ParsedDiveProfileMapper {
 
   /// Builds the `profile` value: one map per sample, with every sensor
   /// channel libdivecomputer reported.
+  ///
+  /// Per-sample tissue loading is NOT set here: libdivecomputer does not
+  /// report it. Parsers that read it from the file itself (Garmin FIT
+  /// `n2_load`, Shearwater Cloud `gf99`, UDDF `<gradientfactor>`) add the
+  /// keys `'gf99'` and `'n2Load'` to the same sample map, both as whole
+  /// percents (`int`), and the importer carries them to
+  /// `DiveProfilePoint.gf99` / `DiveProfilePoint.n2Load`. Dive-level tissue
+  /// state goes under the dive map key `'computerTissue'` as a
+  /// `ComputerTissueSnapshot`.
   static List<Map<String, dynamic>> samples(pigeon.ParsedDive parsed) {
     return parsed.samples.map((s) {
       final sampleMap = <String, dynamic>{

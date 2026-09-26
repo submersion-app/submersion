@@ -590,6 +590,8 @@ class DiveReimportService {
             ndl: p['ndl'] as int?,
             tts: p['tts'] as int?,
             ceiling: _asDouble(p['ceiling']),
+            gf99: p['gf99'] as int?,
+            n2Load: p['n2Load'] as int?,
           ),
       ],
       now: now.millisecondsSinceEpoch,

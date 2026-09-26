@@ -12654,5 +12654,22 @@
   "diveCenters_rental_leadAdjustmentLabel": "Zavorra aggiuntiva necessaria ({unit})",
   "diveCenters_rental_volumeLabel": "Capacità reale ({unit})",
   "diveCenters_rental_noteLabel": "Nota",
-  "diveCenters_rental_deleteConfirm": "Eliminare questa nota sul noleggio?"
+  "diveCenters_rental_deleteConfirm": "Eliminare questa nota sul noleggio?",
+  "diveLog_computerTissue_title": "Computer subacqueo",
+  "diveLog_computerTissue_algorithm": "Algoritmo",
+  "diveLog_computerTissue_compartments": "{count} compartimenti",
+  "diveLog_computerTissue_compartmentsWithAlgorithm": "{count} compartimenti {algorithm}",
+  "diveLog_computerTissue_compartment": "C{number}",
+  "diveLog_computerTissue_endLoading": "Saturazione a fine immersione",
+  "diveLog_computerTissue_endTensions": "Tensioni tissutali a fine immersione",
+  "diveLog_computerTissue_columnStart": "Inizio",
+  "diveLog_computerTissue_columnEnd": "Fine",
+  "diveLog_computerTissue_rowN2Load": "Carico N₂",
+  "diveLog_computerTissue_rowCns": "CNS",
+  "diveLog_computerTissue_rowOtu": "OTU",
+  "diveLog_computerTissue_rgbmNitrogen": "Fattore N₂ RGBM",
+  "diveLog_computerTissue_rgbmHelium": "Fattore He RGBM",
+  "diveLog_computerTissue_calculated": "calcolato {value}",
+  "diveLog_computerTissue_labelN2": "N₂",
+  "diveLog_computerTissue_labelHe": "He"
 }

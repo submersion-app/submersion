@@ -2,7 +2,8 @@ import 'package:equatable/equatable.dart';
 
 /// One profile sample exactly as the v181 `dive_profiles` table stored it
 /// (the codec's column order), minus the identity columns (`id`, `dive_id`,
-/// `computer_id`, `source_id`, `is_primary`) that live on the series row.
+/// `computer_id`, `source_id`, `is_primary`) that live on the series row,
+/// plus the codec v2 fields ([gf99], [n2Load]) appended after them.
 ///
 /// This is the codec's input and output type. It differs from the domain
 /// `DiveProfilePoint` in one field: the legacy per-sample [pressure]
@@ -44,6 +45,8 @@ class ProfileSample extends Equatable {
     this.o2SensorMv4,
     this.o2SensorMv5,
     this.o2SensorMv6,
+    this.gf99,
+    this.n2Load,
   });
 
   /// Seconds from dive start.
@@ -81,6 +84,13 @@ class ProfileSample extends Equatable {
   final int? o2SensorMv5;
   final int? o2SensorMv6;
 
+  /// Computer-reported GF99, whole percent. Codec v2; null in every v1 blob.
+  final int? gf99;
+
+  /// Computer-reported aggregate N2 tissue loading, whole percent. Codec v2;
+  /// null in every v1 blob.
+  final int? n2Load;
+
   /// The same sample [seconds] later (negative moves it earlier). Merge and
   /// consolidation re-base a segment's samples onto the combined timeline.
   ProfileSample shiftedBy(int seconds) => ProfileSample(
@@ -112,6 +122,43 @@ class ProfileSample extends Equatable {
     o2SensorMv4: o2SensorMv4,
     o2SensorMv5: o2SensorMv5,
     o2SensorMv6: o2SensorMv6,
+    gf99: gf99,
+    n2Load: n2Load,
+  );
+
+  /// The same sample with exactly these tissue fields: an omitted argument
+  /// clears the field, it does not keep it.
+  ProfileSample withTissue({int? gf99, int? n2Load}) => ProfileSample(
+    timestamp: timestamp,
+    depth: depth,
+    pressure: pressure,
+    temperature: temperature,
+    heartRate: heartRate,
+    ascentRate: ascentRate,
+    ceiling: ceiling,
+    ndl: ndl,
+    setpoint: setpoint,
+    ppO2: ppO2,
+    o2Sensor1: o2Sensor1,
+    o2Sensor2: o2Sensor2,
+    o2Sensor3: o2Sensor3,
+    o2Sensor4: o2Sensor4,
+    o2Sensor5: o2Sensor5,
+    o2Sensor6: o2Sensor6,
+    cns: cns,
+    tts: tts,
+    rbt: rbt,
+    decoType: decoType,
+    heartRateSource: heartRateSource,
+    heading: heading,
+    o2SensorMv1: o2SensorMv1,
+    o2SensorMv2: o2SensorMv2,
+    o2SensorMv3: o2SensorMv3,
+    o2SensorMv4: o2SensorMv4,
+    o2SensorMv5: o2SensorMv5,
+    o2SensorMv6: o2SensorMv6,
+    gf99: gf99,
+    n2Load: n2Load,
   );
 
   @override
@@ -144,5 +191,7 @@ class ProfileSample extends Equatable {
     o2SensorMv4,
     o2SensorMv5,
     o2SensorMv6,
+    gf99,
+    n2Load,
   ];
 }

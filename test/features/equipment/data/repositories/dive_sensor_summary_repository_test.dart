@@ -203,16 +203,16 @@ void main() {
               maxDepth: 9.0,
               firstDepth: 1.0,
               lastDepth: 9.0,
-              codecVersion: 2,
+              codecVersion: 3,
               createdAt: 1000,
               updatedAt: 1000,
               samples:
                   const ProfileSeriesCodec(
-                    fieldTables: {2: kProfileFieldTableV1},
+                    fieldTables: {3: kProfileFieldTableV1},
                   ).encode(const [
                     ProfileSample(timestamp: 0, depth: 1.0),
                     ProfileSample(timestamp: 60, depth: 9.0),
-                  ], version: 2).bytes,
+                  ], version: 3).bytes,
             ).copyWith(isPrimary: const Value(true)),
           );
 

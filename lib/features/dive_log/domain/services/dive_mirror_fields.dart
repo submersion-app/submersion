@@ -50,6 +50,7 @@ const Set<String> kUnmirroredDiveFields = {
   'gradientFactorHigh',
   'decoAlgorithm',
   'decoConservatism',
+  'computerTissue',
   'diveComputerModel',
   'diveComputerSerial',
   'diveComputerFirmware',

@@ -465,6 +465,15 @@ class UddfExportService {
                                         }
                                       }
                                     }
+                                    // Computer-reported GF99, as Shearwater
+                                    // Cloud writes it, so a round trip keeps
+                                    // the recorded value.
+                                    if (point.gf99 != null) {
+                                      builder.element(
+                                        'gradientfactor',
+                                        nest: point.gf99.toString(),
+                                      );
+                                    }
                                   },
                                 );
                               }

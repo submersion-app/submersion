@@ -31,6 +31,8 @@ void main() {
     rbt: 1500,
     decoType: 2,
     tts: 900,
+    gf99: 47,
+    n2Load: 81,
   );
 
   test('fromPoint then toPoint is the identity on every point field', () {
@@ -54,6 +56,8 @@ void main() {
     expect(sample.temperature, isNull);
     expect(sample.heartRateSource, isNull);
     expect(sample.o2SensorMv6, isNull);
+    expect(sample.gf99, isNull);
+    expect(sample.n2Load, isNull);
     expect(sample.toPoint(), minimal);
   });
 
@@ -64,6 +68,6 @@ void main() {
     expect(a, b);
     expect(a.hashCode, b.hashCode);
     expect(a, isNot(c));
-    expect(a.props, hasLength(28));
+    expect(a.props, hasLength(30));
   });
 }

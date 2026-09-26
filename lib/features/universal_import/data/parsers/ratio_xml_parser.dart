@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:xml/xml.dart';
 
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -219,12 +220,21 @@ class RatioXmlParser implements ImportParser {
     int? lastOtu;
     int? firstGfLow;
     int? firstGfHigh;
+    _TissueReading? firstTissue;
+    _TissueReading? lastTissue;
 
     for (final sample in sampleElements) {
       final runtimeS = _intElement(sample, 'runtimeS');
       if (runtimeS == null) continue;
 
       lastRuntimeS = runtimeS;
+
+      // Per-compartment tissue loading (tissueGroup1Percent ...)
+      final tissue = _TissueReading.fromSample(sample);
+      if (tissue != null) {
+        firstTissue ??= tissue;
+        lastTissue = tissue;
+      }
 
       // Depth: decimeters -> meters
       final depthDm = _intElement(sample, 'depthDm');
@@ -376,6 +386,16 @@ class RatioXmlParser implements ImportParser {
       }
     }
 
+    // Tissue state the computer reported: first sample as the dive start,
+    // last sample as the dive end.
+    if (firstTissue != null && lastTissue != null) {
+      diveData['computerTissue'] = ComputerTissueSnapshot(
+        algorithm: diveData['decoAlgorithm'] as String?,
+        start: firstTissue.toState(),
+        end: lastTissue.toState(),
+      );
+    }
+
     // Build tank data
     if (tankIdToIndex.isNotEmpty) {
       _buildTanks(
@@ -503,6 +523,37 @@ class RatioXmlParser implements ImportParser {
     3 => 'Gauge',
     _ => 'OC',
   };
+}
+
+/// One sample's per-compartment tissue loading, as `<tissueGroupNPercent>`
+/// elements numbered from 1, with the CNS the same sample reported.
+class _TissueReading {
+  const _TissueReading({required this.loadPercent, this.cnsPercent});
+
+  final List<double> loadPercent;
+  final double? cnsPercent;
+
+  /// Reads groups 1, 2, ... until the first missing or non-numeric one.
+  /// Null when group 1 is absent or unreadable.
+  static _TissueReading? fromSample(XmlElement sample) {
+    final values = <double>[];
+    for (var group = 1; ; group++) {
+      final text = sample.getElement('tissueGroup${group}Percent')?.innerText;
+      final value = text == null ? null : double.tryParse(text.trim());
+      if (value == null) break;
+      values.add(value);
+    }
+    if (values.isEmpty) return null;
+
+    final cns = RatioXmlParser._intElement(sample, 'CNS');
+    return _TissueReading(
+      loadPercent: List.unmodifiable(values),
+      cnsPercent: cns?.toDouble(),
+    );
+  }
+
+  ComputerTissueState toState() =>
+      ComputerTissueState(loadPercent: loadPercent, cnsPercent: cnsPercent);
 }
 
 /// Internal helper to track tank pressure readings across samples.

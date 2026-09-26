@@ -8333,6 +8333,70 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tissue_title => 'Weefselbelasting';
 
   @override
+  String get diveLog_computerTissue_title => 'Duikcomputer';
+
+  @override
+  String get diveLog_computerTissue_algorithm => 'Algoritme';
+
+  @override
+  String diveLog_computerTissue_compartments(Object count) {
+    return '$count compartimenten';
+  }
+
+  @override
+  String diveLog_computerTissue_compartmentsWithAlgorithm(
+    Object count,
+    Object algorithm,
+  ) {
+    return '$count $algorithm-compartimenten';
+  }
+
+  @override
+  String diveLog_computerTissue_compartment(Object number) {
+    return 'C$number';
+  }
+
+  @override
+  String get diveLog_computerTissue_endLoading =>
+      'Belasting aan het einde van de duik';
+
+  @override
+  String get diveLog_computerTissue_endTensions =>
+      'Weefselspanningen aan het einde van de duik';
+
+  @override
+  String get diveLog_computerTissue_columnStart => 'Start';
+
+  @override
+  String get diveLog_computerTissue_columnEnd => 'Einde';
+
+  @override
+  String get diveLog_computerTissue_rowN2Load => 'N₂-belasting';
+
+  @override
+  String get diveLog_computerTissue_rowCns => 'CNS';
+
+  @override
+  String get diveLog_computerTissue_rowOtu => 'OTU';
+
+  @override
+  String get diveLog_computerTissue_rgbmNitrogen => 'RGBM N₂-factor';
+
+  @override
+  String get diveLog_computerTissue_rgbmHelium => 'RGBM He-factor';
+
+  @override
+  String diveLog_computerTissue_calculated(Object value) {
+    return 'berekend $value';
+  }
+
+  @override
+  String get diveLog_computerTissue_labelN2 => 'N₂';
+
+  @override
+  String get diveLog_computerTissue_labelHe => 'He';
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(gem., berekend)';
 
   @override

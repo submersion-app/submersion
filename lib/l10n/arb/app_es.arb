@@ -12654,5 +12654,22 @@
   "diveCenters_rental_leadAdjustmentLabel": "Lastre adicional necesario ({unit})",
   "diveCenters_rental_volumeLabel": "Capacidad real ({unit})",
   "diveCenters_rental_noteLabel": "Nota",
-  "diveCenters_rental_deleteConfirm": "¿Eliminar esta nota de alquiler?"
+  "diveCenters_rental_deleteConfirm": "¿Eliminar esta nota de alquiler?",
+  "diveLog_computerTissue_title": "Ordenador de buceo",
+  "diveLog_computerTissue_algorithm": "Algoritmo",
+  "diveLog_computerTissue_compartments": "{count} compartimentos",
+  "diveLog_computerTissue_compartmentsWithAlgorithm": "{count} compartimentos {algorithm}",
+  "diveLog_computerTissue_compartment": "C{number}",
+  "diveLog_computerTissue_endLoading": "Carga al final de la inmersión",
+  "diveLog_computerTissue_endTensions": "Tensiones tisulares al final de la inmersión",
+  "diveLog_computerTissue_columnStart": "Inicio",
+  "diveLog_computerTissue_columnEnd": "Fin",
+  "diveLog_computerTissue_rowN2Load": "Carga de N₂",
+  "diveLog_computerTissue_rowCns": "CNS",
+  "diveLog_computerTissue_rowOtu": "OTU",
+  "diveLog_computerTissue_rgbmNitrogen": "Factor N₂ RGBM",
+  "diveLog_computerTissue_rgbmHelium": "Factor He RGBM",
+  "diveLog_computerTissue_calculated": "calculado {value}",
+  "diveLog_computerTissue_labelN2": "N₂",
+  "diveLog_computerTissue_labelHe": "He"
 }
