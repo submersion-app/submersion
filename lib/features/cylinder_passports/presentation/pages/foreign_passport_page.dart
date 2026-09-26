@@ -2,16 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_attribute_keys.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_dive_tank.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+final _log = LoggerService.forClass(ForeignPassportPage);
 
 /// Where a scanned tag the diver does not hold opens. The tag rides in the
 /// query so the page survives a restart; its payload is public by design.
@@ -40,6 +47,51 @@ class ForeignPassportPage extends ConsumerStatefulWidget {
 }
 
 class _ForeignPassportPageState extends ConsumerState<ForeignPassportPage> {
+  bool _busy = false;
+
+  Future<void> _addToGear(CylinderPassportPayload tag) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    final l10n = context.l10n;
+    setState(() => _busy = true);
+    try {
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      final item = await ref
+          .read(passportAdoptionServiceProvider)
+          .adopt(
+            tag,
+            diverId: diverId,
+            fallbackName: l10n.passport_foreign_defaultName,
+          );
+      if (!mounted) return;
+      router.pushReplacement('/equipment/${item.id}/passport');
+    } on PassportIdInUse catch (e) {
+      final holder = await ref
+          .read(equipmentRepositoryProvider)
+          .getEquipmentById(e.equipmentId);
+      if (!mounted) return;
+      setState(() => _busy = false);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.passport_tag_linkInUse(holder?.name ?? e.equipmentId),
+          ),
+        ),
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to add a scanned cylinder to gear',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (!mounted) return;
+      setState(() => _busy = false);
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.passport_foreign_addFailed)),
+      );
+    }
+  }
+
   /// The page's actions (Use on a dive, Add to my gear).
   List<Widget> _actions(CylinderPassportPayload tag) => [
     FilledButton.icon(
@@ -50,6 +102,13 @@ class _ForeignPassportPageState extends ConsumerState<ForeignPassportPage> {
         '/dives/new',
         extra: DivePrefill(tank: tankFromPassport(tag)),
       ),
+    ),
+    const SizedBox(height: 8),
+    OutlinedButton.icon(
+      key: const Key('foreign_addToGear'),
+      icon: const Icon(Icons.add),
+      label: Text(context.l10n.passport_foreign_addToGear),
+      onPressed: _busy ? null : () => _addToGear(tag),
     ),
   ];
 

@@ -11,6 +11,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/test_database.dart';
 
 void main() {
   const id = '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
@@ -144,5 +145,46 @@ void main() {
     final tank = (extra! as DivePrefill).tank!;
     expect(tank.volume, 10);
     expect(tank.workingPressure, 300);
+  });
+
+  testWidgets('Add to my gear creates the cylinder and opens its passport', (
+    tester,
+  ) async {
+    await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+    final overrides = await getBaseOverrides();
+    final router = GoRouter(
+      initialLocation: foreignPassportLocation(full),
+      routes: [
+        GoRoute(
+          path: '/equipment/tag',
+          builder: (context, state) => ForeignPassportPage(
+            tag: foreignTagFromQuery(state.uri.queryParameters['t']),
+          ),
+        ),
+        GoRoute(
+          path: '/equipment/:id/passport',
+          builder: (context, state) =>
+              Text('passport ${state.pathParameters['id']}'),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: overrides.cast(),
+        child: MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('foreign_addToGear')));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 300)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('passport '), findsOneWidget);
   });
 }
