@@ -153,6 +153,10 @@ void main() {
           (type: 'diveComputers', table: db.diveComputers.actualTableName),
           (type: 'cylinderFills', table: db.cylinderFills.actualTableName),
           (type: 'savedQueries', table: db.savedQueries.actualTableName),
+          (
+            type: 'mediaSmartAlbums',
+            table: db.mediaSmartAlbums.actualTableName,
+          ),
           (type: 'tideRecords', table: db.tideRecords.actualTableName),
           (type: 'species', table: db.species.actualTableName),
           (type: 'sightings', table: db.sightings.actualTableName),
