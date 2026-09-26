@@ -12,6 +12,7 @@ import 'package:submersion/core/database/profile_series_pack.dart';
 import 'package:submersion/core/database/raw_dive_data_codec.dart';
 import 'package:submersion/core/database/site_classification_uniqueness.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
+import 'package:submersion/core/database/equipment_share_uniqueness.dart';
 import 'package:submersion/core/database/tag_uniqueness.dart';
 import 'package:submersion/core/constants/enums.dart';
 
@@ -2719,6 +2720,54 @@ class EquipmentTags extends Table {
   TextColumn get hlc => text().nullable()();
 }
 
+/// Diver profiles an equipment item is shared with (v228, issue #2046). The
+/// owner stays `equipment.diver_id`; a row here makes the item visible to
+/// [diverId] too. Surrogate uuid primary key like [EquipmentTags]; the
+/// (equipment_id, diver_id) unique index lives in
+/// equipment_share_uniqueness.dart. The repository never writes a row that
+/// names the item's own owner.
+@DataClassName('EquipmentShareRow')
+class EquipmentShares extends Table {
+  TextColumn get id => text()();
+  TextColumn get equipmentId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diverId =>
+      text().references(Divers, #id, onDelete: KeyAction.cascade)();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  /// This child's own clock, stamped when it is marked pending
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
+}
+
+/// Append-only log of an item's share and ownership changes (v228, issue
+/// #2046): `shared`, `unshared`, and `transferred` from the transfer work.
+/// Diver references are SET NULL, so deleting a profile keeps the event,
+/// read as "a deleted profile". No row is ever updated, except by a diver
+/// merge repointing both sides to the surviving profile.
+@DataClassName('EquipmentOwnershipEventRow')
+class EquipmentOwnershipEvents extends Table {
+  TextColumn get id => text()();
+  TextColumn get equipmentId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+  TextColumn get kind => text()();
+  TextColumn get fromDiverId =>
+      text().nullable().references(Divers, #id, onDelete: KeyAction.setNull)();
+  TextColumn get toDiverId =>
+      text().nullable().references(Divers, #id, onDelete: KeyAction.setNull)();
+  IntColumn get occurredAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  /// This child's own clock, stamped when it is marked pending
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
+}
+
 /// Seeds one junction row per existing dive from its representative dive_type
 /// slug. Used by the v92 migration and asserted directly in tests.
 ///
@@ -4237,6 +4286,9 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SiteTags,
     // Equipment tags (v219, issue #1942)
     EquipmentTags,
+    // Equipment sharing and its event log (v228, issue #2046)
+    EquipmentShares,
+    EquipmentOwnershipEvents,
     // Training courses (v1.5)
     Courses,
     // Course requirement tracker (v121)
@@ -4299,7 +4351,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 227;
+  static const int currentSchemaVersion = 228;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4960,6 +5012,11 @@ class AppDatabase extends _$AppDatabase {
     // shows every built-in preset. Renumbered from 225, which is held by PR
     // #1978, after v226 landed while this was in review.
     227,
+    // v228: equipment sharing (issue #2046). Two tables, equipment_shares
+    // with its (equipment_id, diver_id) unique index and
+    // equipment_ownership_events, plus two lookup indexes. Additive only, so
+    // the compatibility floor stays.
+    228,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -5400,6 +5457,8 @@ class AppDatabase extends _$AppDatabase {
       'site_site_types',
       'site_tags',
       'equipment_tags',
+      'equipment_shares',
+      'equipment_ownership_events',
       'dive_profile_events',
       'dive_safety_reviews',
       'dive_safety_findings',
@@ -8532,6 +8591,27 @@ class AppDatabase extends _$AppDatabase {
     await assertEquipmentTagUniqueness(this);
   }
 
+  /// Idempotent creation of the v228 equipment sharing schema (issue #2046):
+  /// `equipment_shares` with its (equipment, diver) unique index, and
+  /// `equipment_ownership_events`. Called from the v228 rung and the
+  /// beforeOpen backstop.
+  ///
+  /// Skipped on a partial migration-test fixture that lacks either parent
+  /// table, so a fixture written for an older rung does not gain tables
+  /// whose foreign keys point nowhere.
+  Future<void> _assertEquipmentSharingSchema() async {
+    for (final parent in const ['equipment', 'divers']) {
+      final rows = await customSelect(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+        variables: [Variable<String>(parent)],
+      ).get();
+      if (rows.isEmpty) return;
+    }
+    await createMigrator().createTable(equipmentShares);
+    await createMigrator().createTable(equipmentOwnershipEvents);
+    await assertEquipmentShareUniqueness(this);
+  }
+
   /// Idempotent creation of the v221 `dive_center_gear_notes` table (issue
   /// #2075). Called from the v221 rung and the beforeOpen backstop.
   ///
@@ -8895,6 +8975,10 @@ class AppDatabase extends _$AppDatabase {
         // Equipment tag junction unique index (v219, issue #1942), for the
         // same reason: createAll() never builds raw-SQL indexes.
         await assertEquipmentTagUniqueness(this);
+
+        // Equipment share pair unique index (v228, issue #2046), for the
+        // same reason.
+        await assertEquipmentShareUniqueness(this);
       },
       onUpgrade: (Migrator m, int from, int to) async {
         int completedSteps = 0;
@@ -12579,6 +12663,12 @@ class AppDatabase extends _$AppDatabase {
           await _assertHiddenTankPresetIdsColumn();
         }
         if (from < 227) await reportProgress();
+        // v228: equipment sharing (issue #2046). Table-only rung, no
+        // backfill: no existing row changes.
+        if (from < 228) {
+          await _assertEquipmentSharingSchema();
+        }
+        if (from < 228) await reportProgress();
       },
       beforeOpen: (details) async {
         // v227 backstop: the hidden built-in tank presets.
@@ -12712,6 +12802,11 @@ class AppDatabase extends _$AppDatabase {
         // v221 backstop: the rental gear notes table (parallel-branch
         // version-collision self-heal; createTable is idempotent).
         await _assertDiveCenterGearNotesSchema();
+
+        // v228 backstop: the equipment sharing tables and the share pair
+        // index (parallel-branch version-collision self-heal; all
+        // idempotent).
+        await _assertEquipmentSharingSchema();
 
         // v122 backstop: re-assert service ledger schema + built-in kinds.
         // The legacy backfill is NOT here (onUpgrade only) -- re-running it
