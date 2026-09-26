@@ -427,6 +427,14 @@ int libdc_download_run(
 // Cancel a running download (thread-safe).
 void libdc_download_cancel(libdc_download_session_t *session);
 
+// After libdc_download_run: the descriptor product and model the device
+// reported about itself, when it differs from the one the download was
+// opened with (see libdc_resolve_reported_product). Returns 1 and fills
+// both outputs, or 0 when there is nothing to relabel.
+int libdc_download_session_reported_device(
+    const libdc_download_session_t *session,
+    char *product_out, size_t product_out_size, unsigned int *model_out);
+
 // Free the session.
 void libdc_download_session_free(libdc_download_session_t *session);
 
