@@ -16,41 +16,15 @@ import java.util.UUID
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 // Client Characteristic Configuration Descriptor UUID for enabling notifications.
 private val CCCD_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
-// Telit/Stollmann Terminal I/O (TIO), service 0xFEFB.
-//
-// Heinrichs Weikamp computers built on the Telit (formerly Stollmann)
-// BlueMod+SR module -- the OSTC 2/3/4/Sport/cR/Plus family -- expose their
-// serial bridge behind this service with credit-based flow control (Telit
-// "TIO Implementation Guide" r04). The module carries no UART data until the
-// client subscribes to UART Credits TX and grants initial credits on UART
-// Credits RX, and it spends one credit per notification, so the balance must
-// also be topped up while a transfer runs. Without the handshake the first
-// command write fails and libdivecomputer reports "Failed to send the
-// command" (issue #923, OSTC4).
-//
-// Subsurface implements the same handshake in core/qt-ble.cpp across the two
-// Heinrichs Weikamp module families, and both are handled here: Telit (0xFEFB,
-// four characteristics, credits mandatory) and the u-blox serial service
-// (...d701, two characteristics, credits optional -- the OSTC nano downloads
-// today with no handshake at all, #280/#394, so a rejected grant there falls
-// back to running without flow control instead of failing a working device).
-// Mirrors darwin's BleCharacteristicSelector + TerminalIoCreditPolicy.
-private val TIO_SERVICE_UUID = UUID.fromString("0000fefb-0000-1000-8000-00805f9b34fb")
-private val TIO_DATA_RX_UUID = UUID.fromString("00000001-0000-1000-8000-008025000000")
-private val TIO_DATA_TX_UUID = UUID.fromString("00000002-0000-1000-8000-008025000000")
-private val TIO_CREDITS_RX_UUID = UUID.fromString("00000003-0000-1000-8000-008025000000")
-private val TIO_CREDITS_TX_UUID = UUID.fromString("00000004-0000-1000-8000-008025000000")
-
-// u-blox serial service: one characteristic carries data in both directions
-// and one carries credits in both directions.
-private val UBLOX_SERVICE_UUID = UUID.fromString("2456e1b9-26e2-8f83-e744-f34f01e9d701")
-private val UBLOX_DATA_UUID = UUID.fromString("2456e1b9-26e2-8f83-e744-f34f01e9d703")
-private val UBLOX_CREDITS_UUID = UUID.fromString("2456e1b9-26e2-8f83-e744-f34f01e9d704")
+// Telit/u-blox credit flow control (issue #923). The layouts and preferred
+// UUIDs live in BleCharacteristicSelector; the credit arithmetic stays here
+// with the GATT writes that carry it.
 
 // Opening credit grant. 0xFF is reserved by the TIO protocol, so 254 is the
 // largest value that means "credits" rather than a control code.
@@ -61,45 +35,6 @@ private const val TIO_REFILL_THRESHOLD = 32
 // Sentinel for "the bond-state broadcast carried no reason extra". Every
 // real UNBOND_REASON_* value is positive, so a negative cannot collide.
 private const val NO_REASON = -1
-
-// Preferred UUIDs for characteristic selection scoring (matching Darwin BleIoStream).
-// These ensure devices like Aqualung/Oceanic select the correct write and notify
-// characteristics when the service has multiple write-capable chars.
-private val PREFERRED_SERVICE_UUIDS = setOf(
-    UUID.fromString("cb3c4555-d670-4670-bc20-b61dbc851e9a"),
-    // Biased so the serial bridge always beats the Stollmann vendor service
-    // the same devices also advertise, which can tie on raw score.
-    TIO_SERVICE_UUID,
-    UBLOX_SERVICE_UUID
-)
-private val PREFERRED_WRITE_UUIDS = setOf(
-    UUID.fromString("6606ab42-89d5-4a00-a8ce-4eb5e1414ee0"),
-    // Telit UART Data RX. Raw scoring already prefers it over UART Credits RX,
-    // but commands written to the credits characteristic would be silently
-    // swallowed, so the pair is pinned rather than left to the heuristic.
-    TIO_DATA_RX_UUID,
-    // u-blox FIFO, pinned over the credits characteristic for the same reason.
-    UBLOX_DATA_UUID,
-    // Halcyon Symbios: the app writes commands to the device's Rx endpoint
-    // (00000101). Both Symbios characteristics advertise read+write+indicate and
-    // tie on raw score, so a preferred UUID is required to tell them apart. The
-    // Tx/Rx names are device-centric: Subsurface's qt-ble.cpp writes commands to
-    // 00000101 ("Rx") and reads replies from 00000201 ("Tx"). PR #356 mapped
-    // these backwards and the device never answered (issue #288).
-    UUID.fromString("00000101-8c3b-4f2c-a59e-8c08224f3253")
-)
-private val PREFERRED_NOTIFY_UUIDS = setOf(
-    UUID.fromString("a60b8e5c-b267-44d7-9764-837caf96489e"),
-    // Telit UART Data TX (see PREFERRED_WRITE_UUIDS).
-    TIO_DATA_TX_UUID,
-    // u-blox FIFO carries data in both directions, so it is the notify
-    // candidate as well as the write one.
-    UBLOX_DATA_UUID,
-    // Halcyon Symbios: the device transmits replies on its Tx endpoint
-    // (00000201) via indications; the app writes commands on 00000101 (see
-    // PREFERRED_WRITE_UUIDS and issue #288).
-    UUID.fromString("00000201-8c3b-4f2c-a59e-8c08224f3253")
-)
 
 // Bridges Android BLE GATT communication to libdivecomputer's synchronous
 // I/O interface using semaphores.
@@ -128,6 +63,18 @@ class BleIoStream(
     private var gatt: BluetoothGatt? = null
     private var writeCharacteristic: BluetoothGattCharacteristic? = null
     private var notifyCharacteristic: BluetoothGattCharacteristic? = null
+    // The read-poll data characteristic (issue #1454), non-null only when the
+    // selected service cannot notify. Replies are fetched with
+    // readCharacteristic() and land in readQueue exactly as notifications do.
+    @Volatile
+    private var readCharacteristic: BluetoothGattCharacteristic? = null
+    private val readPollLock = Any()
+    private var readPoll = ReadPollPolicy()
+    // Whether an in-flight GATT read holds gattOperation. Atomic because the
+    // completion, the disconnect branch and a refused issue on the download
+    // thread can all race to release it, and releasing twice would silently
+    // destroy the gate's mutual exclusion (Semaphore has no permit ceiling).
+    private val readGateHeld = AtomicBoolean(false)
     // UART Credits RX/TX, non-null only on Telit Terminal I/O devices.
     private var creditsWriteCharacteristic: BluetoothGattCharacteristic? = null
     private var creditsNotifyCharacteristic: BluetoothGattCharacteristic? = null
@@ -157,12 +104,17 @@ class BleIoStream(
     // that releases it.
     private val gattOperation = Semaphore(1)
     private val connectSemaphore = Semaphore(0)
+    // Written on the GATT callback thread, read by the read-poll loop on the
+    // download thread.
+    @Volatile
     private var connected = false
 
-    // Whether the Data TX CCCD write completed successfully. Assigning
+    // Whether the computer's replies can reach readQueue: the Data TX CCCD
+    // write completed successfully, or the read-poll characteristic was chosen
+    // (issue #1454), which needs no subscription. Assigning
     // notifyCharacteristic only means a candidate was found; until the
     // descriptor write lands the peripheral sends nothing.
-    private var dataNotifyReady = false
+    private var responsePathReady = false
     private var readBuffer = ByteArray(0)
 
     private val pinSemaphore = Semaphore(0)
@@ -235,6 +187,11 @@ class BleIoStream(
                     creditTopUpInFlight = false
                     gattOperation.release()
                 }
+                // A read-poll read in flight gets no completion either; free
+                // its gate and fail any reader, which otherwise waits out
+                // libdivecomputer's timeout (or forever, for "no timeout").
+                releaseReadGate()
+                synchronized(readPollLock) { readPoll.close() }
                 // A command write in flight gets no completion callback once
                 // the link is down either. libdivecomputer's negative "no
                 // timeout" maps to Long.MAX_VALUE, so its wait would never
@@ -280,97 +237,54 @@ class BleIoStream(
                 return
             }
 
-            // Score-based characteristic selection (mirrors Darwin BleIoStream).
-            // Write and notify/indicate chars are scored independently so that
-            // devices with separate write and notify characteristics (e.g.
-            // Aqualung i300C) select the correct pair rather than picking a
-            // single combined characteristic for both.
-            var bestServiceScore = -1
-            var bestWrite: BluetoothGattCharacteristic? = null
-            var bestNotify: BluetoothGattCharacteristic? = null
-            var bestCreditsWrite: BluetoothGattCharacteristic? = null
-            var bestCreditsNotify: BluetoothGattCharacteristic? = null
-            var bestCreditsRequired = false
-
-            for (service in gatt.services) {
+            // Selection lives in BleCharacteristicSelector so it can be unit-
+            // tested on the JVM; it mirrors darwin's selector of the same
+            // name. The live list is captured once because the returned
+            // indices address it.
+            val liveServices = gatt.services
+            val services = liveServices.map { service ->
                 NativeLogger.d(TAG, "BLE", "Service: ${service.uuid}")
-                var serviceWrite: BluetoothGattCharacteristic? = null
-                var serviceWriteScore = -1
-                var serviceNotify: BluetoothGattCharacteristic? = null
-                var serviceNotifyScore = -1
-
-                for (char in service.characteristics) {
-                    val props = char.properties
-                    NativeLogger.d(TAG, "BLE", "  Char: ${char.uuid} props=0x${props.toString(16)} descriptors=${char.descriptors.size}")
-
-                    // Score write candidates.
-                    if (props and BluetoothGattCharacteristic.PROPERTY_WRITE != 0 ||
-                        props and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE != 0
-                    ) {
-                        var ws = 0
-                        if (props and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE != 0) ws += 4
-                        if (props and BluetoothGattCharacteristic.PROPERTY_WRITE != 0) ws += 2
-                        if (PREFERRED_WRITE_UUIDS.contains(char.uuid)) ws += 1000
-                        if (ws > serviceWriteScore) {
-                            serviceWrite = char
-                            serviceWriteScore = ws
-                        }
+                BleCharacteristicSelector.Service(
+                    service.uuid,
+                    service.characteristics.map { char ->
+                        NativeLogger.d(TAG, "BLE",
+                            "  Char: ${char.uuid} props=0x${char.properties.toString(16)}" +
+                                " descriptors=${char.descriptors.size}")
+                        BleCharacteristicSelector.Characteristic(char.uuid, char.properties)
                     }
+                )
+            }
+            val selection = BleCharacteristicSelector.select(services)
 
-                    // Score notify/indicate candidates.
-                    if (props and BluetoothGattCharacteristic.PROPERTY_NOTIFY != 0 ||
-                        props and BluetoothGattCharacteristic.PROPERTY_INDICATE != 0
-                    ) {
-                        var ns = 0
-                        if (props and BluetoothGattCharacteristic.PROPERTY_NOTIFY != 0) ns += 4
-                        if (props and BluetoothGattCharacteristic.PROPERTY_INDICATE != 0) ns += 2
-                        if (PREFERRED_NOTIFY_UUIDS.contains(char.uuid)) ns += 1000
-                        if (ns > serviceNotifyScore) {
-                            serviceNotify = char
-                            serviceNotifyScore = ns
-                        }
-                    }
-                }
-
-                if (serviceWrite != null && serviceNotify != null) {
-                    var score = serviceWriteScore + serviceNotifyScore
-                    if (PREFERRED_SERVICE_UUIDS.contains(service.uuid)) score += 1000
-                    if (score > bestServiceScore) {
-                        bestServiceScore = score
-                        bestWrite = serviceWrite
-                        bestNotify = serviceNotify
-                        // Only run the handshake on a complete known layout, so
-                        // every other device keeps today's plain write/notify
-                        // path. Telit needs all four UART characteristics;
-                        // u-blox needs its data and credits pair.
-                        val tioCreditsRx = service.getCharacteristic(TIO_CREDITS_RX_UUID)
-                        val tioCreditsTx = service.getCharacteristic(TIO_CREDITS_TX_UUID)
-                        val ubloxCredits = service.getCharacteristic(UBLOX_CREDITS_UUID)
-                        if (tioCreditsRx != null && tioCreditsTx != null &&
-                            service.getCharacteristic(TIO_DATA_RX_UUID) != null &&
-                            service.getCharacteristic(TIO_DATA_TX_UUID) != null
-                        ) {
-                            bestCreditsWrite = tioCreditsRx
-                            bestCreditsNotify = tioCreditsTx
-                            bestCreditsRequired = true
-                        } else if (ubloxCredits != null &&
-                            service.getCharacteristic(UBLOX_DATA_UUID) != null
-                        ) {
-                            bestCreditsWrite = ubloxCredits
-                            bestCreditsNotify = ubloxCredits
-                            bestCreditsRequired = false
-                        } else {
-                            bestCreditsWrite = null
-                            bestCreditsNotify = null
-                            bestCreditsRequired = false
-                        }
-                    }
-                }
+            if (selection != null &&
+                selection.responseMode == BleCharacteristicSelector.ResponseMode.READ
+            ) {
+                // Read-poll tier (issue #1454): the computer cannot push its
+                // replies, so there is no CCCD to write and the response path
+                // is ready as soon as the characteristic is chosen. GATT is
+                // free for I/O at once.
+                val service = liveServices[selection.serviceIndex]
+                val char = service.characteristics[selection.responseIndex]
+                writeCharacteristic = service.characteristics[selection.writeIndex]
+                readCharacteristic = char
+                responsePathReady = true
+                NativeLogger.d(TAG, "BLE",
+                    "read-poll tier selected: service=${service.uuid} characteristic=${char.uuid}" +
+                        " props=0x${char.properties.toString(16)}")
+                connectSemaphore.release()
+                return
             }
 
             var startedSetup = false
-            if (bestWrite != null && bestNotify != null) {
-                NativeLogger.d(TAG, "BLE", "Data service selected (score=$bestServiceScore)")
+            if (selection != null) {
+                val chars = liveServices[selection.serviceIndex].characteristics
+                val bestWrite = chars[selection.writeIndex]
+                val bestNotify = chars[selection.responseIndex]
+                val credits = selection.terminalIoCredits
+                val bestCreditsWrite = credits?.let { chars[it.writeIndex] }
+                val bestCreditsNotify = credits?.let { chars[it.notifyIndex] }
+                val bestCreditsRequired = credits?.required ?: false
+                NativeLogger.d(TAG, "BLE", "Data service selected (score=${selection.score})")
                 NativeLogger.d(TAG, "BLE", "  write=${bestWrite.uuid} notify=${bestNotify.uuid}")
                 writeCharacteristic = bestWrite
                 notifyCharacteristic = bestNotify
@@ -460,7 +374,7 @@ class BleIoStream(
                 // The one point where the peripheral has confirmed it will
                 // push data. connectAndDiscover reports on this rather than
                 // on the characteristic being non-null.
-                dataNotifyReady = true
+                responsePathReady = true
                 if (creditsWriteCharacteristic == null) {
                     // No credit flow control on this device, or already
                     // abandoned: GATT is free for I/O.
@@ -471,7 +385,7 @@ class BleIoStream(
                 }
             } else if (completed == SetupStep.DATA_NOTIFY) {
                 // The computer accepted the CCCD write and then completed it
-                // with a failure status, which leaves dataNotifyReady false
+                // with a failure status, which leaves responsePathReady false
                 // and fails the connect. writeDescriptor() returning true is
                 // only the local stack queueing the write; the peripheral's
                 // answer arrives here, and until this the whole account of a
@@ -504,6 +418,28 @@ class BleIoStream(
             val value = characteristic.value ?: return
             NativeLogger.d(TAG, "BLE", "onCharacteristicChanged(legacy): ${value.size} bytes")
             onNotification(characteristic, value)
+        }
+
+        // API 33+ delivers read responses via this overload. Overriding it
+        // without calling super keeps the deprecated one below from also
+        // firing for the same response.
+        override fun onCharacteristicRead(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic,
+            value: ByteArray,
+            status: Int
+        ) {
+            onReadResponse(characteristic, value, status)
+        }
+
+        // Pre-API 33 fallback: the value is on characteristic.value.
+        @Deprecated("Deprecated in API 33")
+        override fun onCharacteristicRead(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic,
+            status: Int
+        ) {
+            onReadResponse(characteristic, characteristic.value ?: ByteArray(0), status)
         }
 
         override fun onCharacteristicWrite(
@@ -579,6 +515,108 @@ class BleIoStream(
         if (notify != null && characteristic.uuid != notify.uuid) return
         readQueue.offer(value)
         replenishCredits()
+    }
+
+    // Settle one read-poll response (issue #1454). The gate is released first:
+    // a command write may be waiting on it.
+    private fun onReadResponse(
+        characteristic: BluetoothGattCharacteristic,
+        value: ByteArray,
+        status: Int
+    ) {
+        if (characteristic.uuid != readCharacteristic?.uuid) return
+        releaseReadGate()
+        val ok = status == BluetoothGatt.GATT_SUCCESS && value.isNotEmpty()
+        // Queued under the read-poll lock, as purge() clears under it, so a
+        // value the policy accepts can never land after a purge.
+        val deliver = synchronized(readPollLock) {
+            readPoll.completed(ok, nowMs()).also { if (it) readQueue.offer(value) }
+        }
+        NativeLogger.d(TAG, "BLE",
+            "read-poll response: status=$status bytes=${value.size} delivered=$deliver")
+    }
+
+    // Put one GATT read on the wire, holding the GATT gate until
+    // onCharacteristicRead releases it: Android runs one operation at a time
+    // and rejects the loser, exactly as for writes. False means no read is in
+    // flight and no completion is coming.
+    private fun issueGattRead(char: BluetoothGattCharacteristic, deadline: Long): Boolean {
+        val g = gatt ?: return false
+        val wait = if (deadline == Long.MAX_VALUE) Long.MAX_VALUE
+        else (deadline - nowMs()).coerceAtLeast(0L)
+        if (!gattOperation.tryAcquire(wait, TimeUnit.MILLISECONDS)) {
+            NativeLogger.w(TAG, "BLE", "read-poll: timed out waiting for GATT to be free")
+            return false
+        }
+        // Set before issuing: the completion can arrive on the binder thread
+        // before readCharacteristic() returns.
+        readGateHeld.set(true)
+        if (!g.readCharacteristic(char)) {
+            releaseReadGate()
+            NativeLogger.w(TAG, "BLE", "read-poll: readCharacteristic() returned false")
+            return false
+        }
+        NativeLogger.d(TAG, "BLE", "read-poll: read issued on ${char.uuid}")
+        return true
+    }
+
+    // Release the gate held by a read in flight, at most once however many
+    // terminal paths race for it.
+    private fun releaseReadGate() {
+        if (readGateHeld.compareAndSet(true, false)) gattOperation.release()
+    }
+
+    // Monotonic milliseconds for ReadPollPolicy. May be negative.
+    private fun nowMs(): Long = System.nanoTime() / 1_000_000
+
+    // read() for a read-poll characteristic (issue #1454): the computer never
+    // pushes, so each packet is asked for with a GATT read. ReadPollPolicy
+    // decides when one goes on the wire; replies land in readQueue exactly as
+    // notifications do, one entry per packet. The wait is sliced so an empty
+    // value, a refused read or a dropped link is noticed within
+    // WAIT_SLICE_MS even when libdivecomputer asked for no timeout.
+    private fun readPolled(
+        char: BluetoothGattCharacteristic,
+        size: Int,
+        timeoutMs: Int
+    ): ByteArray? {
+        val deadline = if (timeoutMs < 0) Long.MAX_VALUE else nowMs() + timeoutMs
+        while (true) {
+            readQueue.poll()?.let { return takeChunk(it, size) }
+            val now = nowMs()
+            if (deadline != Long.MAX_VALUE && now >= deadline) return null
+            if (!connected) {
+                synchronized(readPollLock) { readPoll.close() }
+            }
+            // Re-check under the lock onReadResponse queues under: a reply
+            // that landed since the poll above must not trigger a second read
+            // while it sits in the queue (the slice poll below returns it).
+            val action = synchronized(readPollLock) {
+                if (readQueue.isNotEmpty()) ReadPollPolicy.Action.WAIT else readPoll.next(now)
+            }
+            when (action) {
+                ReadPollPolicy.Action.CLOSED -> return null
+                ReadPollPolicy.Action.ISSUE_READ -> if (!issueGattRead(char, deadline)) {
+                    synchronized(readPollLock) { readPoll.issueFailed(nowMs()) }
+                }
+                ReadPollPolicy.Action.WAIT -> Unit
+            }
+            val remaining = if (deadline == Long.MAX_VALUE) Long.MAX_VALUE
+            else deadline - nowMs()
+            val slice = remaining.coerceIn(1L, ReadPollPolicy.WAIT_SLICE_MS)
+            readQueue.poll(slice, TimeUnit.MILLISECONDS)?.let { return takeChunk(it, size) }
+        }
+    }
+
+    // Return up to `size` bytes of one packet, keeping the rest for the next
+    // read so bytes from two packets are never returned together.
+    private fun takeChunk(chunk: ByteArray, size: Int): ByteArray {
+        val bytesToCopy = minOf(size, chunk.size)
+        val result = chunk.copyOfRange(0, bytesToCopy)
+        if (bytesToCopy < chunk.size) {
+            readBuffer = chunk.copyOfRange(bytesToCopy, chunk.size)
+        }
+        return result
     }
 
     // Give up on credit flow control and run the connection without it.
@@ -774,9 +812,9 @@ class BleIoStream(
         val terminalIoReady = creditsWriteCharacteristic == null || credits > 0
         val ok = connected &&
             writeCharacteristic != null &&
-            dataNotifyReady &&
+            responsePathReady &&
             terminalIoReady
-        NativeLogger.d(TAG, "BLE", "connectAndDiscover: connected=$connected writeChar=${writeCharacteristic?.uuid} notifyReady=$dataNotifyReady credits=$credits result=$ok")
+        NativeLogger.d(TAG, "BLE", "connectAndDiscover: connected=$connected writeChar=${writeCharacteristic?.uuid} responseReady=$responsePathReady credits=$credits result=$ok")
         return ok
     }
 
@@ -974,19 +1012,15 @@ class BleIoStream(
             return result
         }
 
+        readCharacteristic?.let { return readPolled(it, size, timeoutMs) }
+
         // Wait for exactly one BLE notification. Shearwater's SLIP decoder
         // expects each read to return a single BLE packet (it skips a 2-byte
         // BLE header per read call). Accumulating multiple notifications
         // into one buffer corrupts the SLIP framing.
         val timeout = if (timeoutMs < 0) Long.MAX_VALUE else timeoutMs.toLong()
         val chunk = readQueue.poll(timeout, TimeUnit.MILLISECONDS) ?: return null
-
-        val bytesToCopy = minOf(size, chunk.size)
-        val result = chunk.copyOfRange(0, bytesToCopy)
-        if (bytesToCopy < chunk.size) {
-            readBuffer = chunk.copyOfRange(bytesToCopy, chunk.size)
-        }
-        return result
+        return takeChunk(chunk, size)
     }
 
     override fun write(data: ByteArray, timeoutMs: Int): Int {
@@ -1077,17 +1111,29 @@ class BleIoStream(
         // Direction 1 = input (read buffer). Clear any stale data
         // so the next protocol exchange starts clean.
         if (direction and 1 != 0) {
-            readBuffer = ByteArray(0)
-            readQueue.clear()
+            // A read already on the wire answers a command libdivecomputer
+            // has abandoned (issue #1454). One lock with onReadResponse: a
+            // read completing concurrently is either queued before the clear
+            // or discarded by the policy, never appended after it.
+            synchronized(readPollLock) {
+                readPoll.purge()
+                readBuffer = ByteArray(0)
+                readQueue.clear()
+            }
         }
     }
 
     override fun close() {
+        // Fail a read-poll reader and free a gate a pending read still holds:
+        // no completion arrives once the client is closed.
+        synchronized(readPollLock) { readPoll.close() }
+        releaseReadGate()
         gatt?.disconnect()
         gatt?.close()
         gatt = null
         creditsWriteCharacteristic = null
         creditsNotifyCharacteristic = null
+        readCharacteristic = null
         credits = 0
         creditsRequired = false
         creditsOpen = false

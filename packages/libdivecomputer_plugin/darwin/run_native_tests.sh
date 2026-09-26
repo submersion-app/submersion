@@ -119,3 +119,12 @@ swiftc -o "$BUILD_DIR/descriptor_transport_mapping_tests" \
     Tests/DescriptorTransportMappingTests/main.swift
 
 "$BUILD_DIR/descriptor_transport_mapping_tests"
+
+# Read-poll response path (issue #1454). The Seac Tablet's data characteristic
+# cannot notify, so every reply is fetched with a GATT read; the policy decides
+# when a read goes on the wire.
+swiftc -o "$BUILD_DIR/read_poll_policy_tests" \
+    Sources/LibDCDarwin/ReadPollPolicy.swift \
+    Tests/ReadPollPolicyTests/main.swift
+
+"$BUILD_DIR/read_poll_policy_tests"
