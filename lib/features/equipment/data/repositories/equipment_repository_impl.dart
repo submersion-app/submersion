@@ -555,7 +555,8 @@ class EquipmentRepository {
   }
 
   /// Delete equipment. Service schedules, service records, assembly
-  /// component rows and tag links are first-class synced children
+  /// component rows, tag links, shares and share events are first-class
+  /// synced children
   /// cascade-deleted by SQLite, but cascades emit no deletion-log entries, so
   /// each is tombstoned explicitly (mirrors EquipmentSetRepository.deleteSet).
   /// Cylinders linked to the item are cleared and staged for sync.
@@ -607,6 +608,34 @@ class EquipmentRepository {
         // Tag links (issue #1942): deleted and tombstoned before the row, so
         // the cascade finds nothing and every peer drops them too.
         await EquipmentTagRepository().deleteLinksForEquipment(id);
+        // Shares and their event log (issue #2046): deleted and tombstoned
+        // before the row, like the tag links, so every peer drops them too.
+        final shareIds =
+            await (_db.selectOnly(_db.equipmentShares)
+                  ..addColumns([_db.equipmentShares.id])
+                  ..where(_db.equipmentShares.equipmentId.equals(id)))
+                .map((r) => r.read(_db.equipmentShares.id)!)
+                .get();
+        final eventIds =
+            await (_db.selectOnly(_db.equipmentOwnershipEvents)
+                  ..addColumns([_db.equipmentOwnershipEvents.id])
+                  ..where(_db.equipmentOwnershipEvents.equipmentId.equals(id)))
+                .map((r) => r.read(_db.equipmentOwnershipEvents.id)!)
+                .get();
+        await (_db.delete(
+          _db.equipmentShares,
+        )..where((t) => t.equipmentId.equals(id))).go();
+        await (_db.delete(
+          _db.equipmentOwnershipEvents,
+        )..where((t) => t.equipmentId.equals(id))).go();
+        await _syncRepository.logDeletions(
+          entityType: 'equipmentShares',
+          recordIds: shareIds,
+        );
+        await _syncRepository.logDeletions(
+          entityType: 'equipmentOwnershipEvents',
+          recordIds: eventIds,
+        );
         await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
         for (final s in schedules) {
           await _syncRepository.logDeletion(
@@ -653,6 +682,22 @@ class EquipmentRepository {
       );
       rethrow;
     }
+  }
+
+  /// Deletes [id] only when [actingDiverId] owns it; delete is owner-only
+  /// (issue #2046), so a profile the item is shared with gets false and
+  /// nothing changes. A null [actingDiverId] (no diver profile exists)
+  /// deletes as [deleteEquipment] does.
+  Future<bool> deleteOwnedEquipment(
+    String id, {
+    required String? actingDiverId,
+  }) async {
+    if (actingDiverId != null) {
+      final item = await getEquipmentById(id);
+      if (item != null && item.diverId != actingDiverId) return false;
+    }
+    await deleteEquipment(id);
+    return true;
   }
 
   /// Mark equipment as serviced

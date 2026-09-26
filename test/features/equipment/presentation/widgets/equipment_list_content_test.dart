@@ -2212,7 +2212,10 @@ class _CapturingEquipmentNotifier
   final reactivated = <String>[];
 
   @override
-  Future<void> deleteEquipment(String id) async => deleted.add(id);
+  Future<bool> deleteEquipment(String id) async {
+    deleted.add(id);
+    return true;
+  }
 
   @override
   Future<void> retireEquipment(String id) async => retired.add(id);

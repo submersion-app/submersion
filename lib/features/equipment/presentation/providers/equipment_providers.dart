@@ -503,9 +503,17 @@ class EquipmentListNotifier
     await refresh();
   }
 
-  Future<void> deleteEquipment(String id) async {
-    await _repository.deleteEquipment(id);
+  /// False, changing nothing, when the active diver does not own [id].
+  Future<bool> deleteEquipment(String id) async {
+    final diverId =
+        _validatedDiverId ??
+        await _ref.read(validatedCurrentDiverIdProvider.future);
+    final deleted = await _repository.deleteOwnedEquipment(
+      id,
+      actingDiverId: diverId,
+    );
     await refresh();
+    return deleted;
   }
 
   Future<void> markAsServiced(String id) async {
