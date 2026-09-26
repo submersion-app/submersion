@@ -192,7 +192,7 @@ class _SourceComparisonGrid extends StatelessWidget {
         (s) => s.avgDepth != null ? units.formatDepth(s.avgDepth!) : null,
       ),
       (
-        l10n.diveLog_sources_row_duration,
+        l10n.diveLog_sources_row_bottomTime,
         (s) => s.duration != null
             ? l10n.diveLog_sources_minutes(s.duration! ~/ 60)
             : null,
@@ -511,7 +511,7 @@ class _DataSourceCard extends StatelessWidget {
                   ),
                   Expanded(
                     child: _MetricCell(
-                      label: context.l10n.diveLog_sources_row_duration,
+                      label: context.l10n.diveLog_sources_row_bottomTime,
                       value: _formatDuration(context, source.duration),
                       labelStyle: labelStyle,
                       valueStyle: valueStyle,

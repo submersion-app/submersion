@@ -8478,7 +8478,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_sources_row_avgDepth => 'Átl. mélység';
 
   @override
-  String get diveLog_sources_row_duration => 'Időtartam';
+  String get diveLog_sources_row_bottomTime => 'Fenékidő';
 
   @override
   String get diveLog_sources_row_waterTemp => 'Víz hőm.';

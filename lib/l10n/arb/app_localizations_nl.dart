@@ -8432,7 +8432,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_sources_row_avgDepth => 'Gem. diepte';
 
   @override
-  String get diveLog_sources_row_duration => 'Duur';
+  String get diveLog_sources_row_bottomTime => 'Bodemtijd';
 
   @override
   String get diveLog_sources_row_waterTemp => 'Watertemp.';

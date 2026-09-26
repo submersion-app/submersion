@@ -8536,7 +8536,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_sources_row_avgDepth => 'Prof. moy.';
 
   @override
-  String get diveLog_sources_row_duration => 'Durée';
+  String get diveLog_sources_row_bottomTime => 'Temps au fond';
 
   @override
   String get diveLog_sources_row_waterTemp => 'Temp. eau';

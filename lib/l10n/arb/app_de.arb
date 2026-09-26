@@ -2891,7 +2891,7 @@
   "diveLog_sources_row_metric": "Messwert",
   "diveLog_sources_row_maxDepth": "Max. Tiefe",
   "diveLog_sources_row_avgDepth": "Ø Tiefe",
-  "diveLog_sources_row_duration": "Dauer",
+  "diveLog_sources_row_bottomTime": "Grundzeit",
   "diveLog_sources_row_waterTemp": "Wassertemp.",
   "diveLog_sources_row_cns": "CNS",
   "diveLog_sources_row_otu": "OTU",

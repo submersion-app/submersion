@@ -2879,7 +2879,7 @@
   "diveLog_sources_row_metric": "المقياس",
   "diveLog_sources_row_maxDepth": "أقصى عمق",
   "diveLog_sources_row_avgDepth": "متوسط العمق",
-  "diveLog_sources_row_duration": "المدة",
+  "diveLog_sources_row_bottomTime": "وقت القاع",
   "diveLog_sources_row_waterTemp": "حرارة الماء",
   "diveLog_sources_row_cns": "CNS",
   "diveLog_sources_row_otu": "OTU",

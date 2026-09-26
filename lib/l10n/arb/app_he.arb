@@ -2777,7 +2777,7 @@
   "diveLog_sources_row_metric": "מדד",
   "diveLog_sources_row_maxDepth": "עומק מקסימלי",
   "diveLog_sources_row_avgDepth": "עומק ממוצע",
-  "diveLog_sources_row_duration": "משך",
+  "diveLog_sources_row_bottomTime": "זמן תחתית",
   "diveLog_sources_row_waterTemp": "טמפ' מים",
   "diveLog_sources_row_cns": "CNS",
   "diveLog_sources_row_otu": "OTU",

@@ -4512,7 +4512,7 @@
   "diveLog_sources_row_metric": "Metric",
   "diveLog_sources_row_maxDepth": "Max Depth",
   "diveLog_sources_row_avgDepth": "Avg Depth",
-  "diveLog_sources_row_duration": "Duration",
+  "diveLog_sources_row_bottomTime": "Bottom Time",
   "diveLog_sources_row_waterTemp": "Water Temp",
   "diveLog_sources_row_cns": "CNS",
   "diveLog_sources_row_otu": "OTU",

@@ -8287,7 +8287,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sources_row_avgDepth => 'עומק ממוצע';
 
   @override
-  String get diveLog_sources_row_duration => 'משך';
+  String get diveLog_sources_row_bottomTime => 'זמן תחתית';
 
   @override
   String get diveLog_sources_row_waterTemp => 'טמפ\' מים';
