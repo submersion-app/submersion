@@ -7978,6 +7978,7 @@
   "diveLog_detail_resyncFailed_unsupportedFormat": "Resynchronisierung fehlgeschlagen: Dieses Dateiformat wird nicht unterstützt",
   "diveLog_detail_resyncFailed_storedFileMissing": "Resynchronisierung fehlgeschlagen: Die Originaldatei ist auf diesem Gerät nicht mehr vorhanden",
   "diveLog_detail_resyncFailed_noMatchingDive": "Resynchronisierung fehlgeschlagen: Die Originaldatei enthält keinen passenden Tauchgang mehr",
+  "diveLog_detail_resyncFailed_ambiguousDiver": "Resynchronisierung fehlgeschlagen: Die Originaldatei enthält einen passenden Tauchgang für mehrere Taucher, und bei diesem Tauchgang ist nicht gespeichert, von welchem er stammt",
   "diveLog_detail_resyncFailed_unexpectedError": "Resynchronisierung fehlgeschlagen: Beim Lesen der Originaldatei ist ein unerwarteter Fehler aufgetreten",
   "universalImport_label_replaceSource": "Quelle ersetzen",
   "universalImport_label_replaceSourceSubtitle": "Vom selben Computer aktualisieren",

@@ -27931,6 +27931,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo resincronizar: el archivo original ya no contiene una inmersión coincidente';
 
   @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'No se pudo resincronizar: el archivo original tiene una inmersión coincidente para más de un buceador y esta inmersión no registra de cuál procede';
+
+  @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
       'No se pudo resincronizar: se produjo un error inesperado al leer el archivo original';
 

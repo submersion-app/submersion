@@ -7874,6 +7874,7 @@
   "diveLog_detail_resyncFailed_unsupportedFormat": "לא ניתן היה לסנכרן מחדש: תבנית הקובץ הזו אינה נתמכת",
   "diveLog_detail_resyncFailed_storedFileMissing": "לא ניתן היה לסנכרן מחדש: הקובץ המקורי אינו נמצא במכשיר הזה",
   "diveLog_detail_resyncFailed_noMatchingDive": "לא ניתן היה לסנכרן מחדש: הקובץ המקורי כבר לא מכיל צלילה תואמת",
+  "diveLog_detail_resyncFailed_ambiguousDiver": "לא ניתן היה לסנכרן מחדש: בקובץ המקורי יש צלילה תואמת ליותר מצולל אחד, ובצלילה הזו לא נשמר מאיזו מהן היא הגיעה",
   "diveLog_detail_resyncFailed_unexpectedError": "לא ניתן היה לסנכרן מחדש: אירעה שגיאה בלתי צפויה בעת קריאת הקובץ המקורי",
   "universalImport_label_replaceSource": "החלף מקור",
   "universalImport_label_replaceSourceSubtitle": "עדכן מאותו מחשב",

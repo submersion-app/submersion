@@ -27857,6 +27857,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Resynchronisierung fehlgeschlagen: Die Originaldatei enthält keinen passenden Tauchgang mehr';
 
   @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Resynchronisierung fehlgeschlagen: Die Originaldatei enthält einen passenden Tauchgang für mehrere Taucher, und bei diesem Tauchgang ist nicht gespeichert, von welchem er stammt';
+
+  @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
       'Resynchronisierung fehlgeschlagen: Beim Lesen der Originaldatei ist ein unerwarteter Fehler aufgetreten';
 

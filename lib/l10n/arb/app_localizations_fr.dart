@@ -28009,6 +28009,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de resynchroniser : le fichier original ne contient plus de plongée correspondante';
 
   @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Impossible de resynchroniser : le fichier original contient une plongée correspondante pour plusieurs plongeurs, et cette plongée n\'indique pas de laquelle elle provient';
+
+  @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
       'Impossible de resynchroniser : une erreur inattendue s\'est produite lors de la lecture du fichier original';
 

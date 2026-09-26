@@ -7874,6 +7874,7 @@
   "diveLog_detail_resyncFailed_unsupportedFormat": "Kan niet opnieuw synchroniseren: deze bestandsindeling wordt niet ondersteund",
   "diveLog_detail_resyncFailed_storedFileMissing": "Kan niet opnieuw synchroniseren: het originele bestand staat niet meer op dit apparaat",
   "diveLog_detail_resyncFailed_noMatchingDive": "Kan niet opnieuw synchroniseren: het originele bestand bevat geen overeenkomende duik meer",
+  "diveLog_detail_resyncFailed_ambiguousDiver": "Kan niet opnieuw synchroniseren: het originele bestand bevat een overeenkomende duik voor meer dan één duiker, en bij deze duik is niet vastgelegd van welke hij afkomstig is",
   "diveLog_detail_resyncFailed_unexpectedError": "Kan niet opnieuw synchroniseren: er is een onverwachte fout opgetreden bij het lezen van het originele bestand",
   "universalImport_label_replaceSource": "Bron vervangen",
   "universalImport_label_replaceSourceSubtitle": "Bijwerken vanaf dezelfde computer",
