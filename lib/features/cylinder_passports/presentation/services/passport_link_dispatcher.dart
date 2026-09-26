@@ -3,12 +3,16 @@ import 'dart:async';
 import 'package:app_links/app_links.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
 
 /// Where incoming links come from. An interface so tests, and the app's own
 /// widget tests, never open the platform channel.
 abstract interface class IncomingLinkSource {
-  Stream<Uri> get links;
+  /// Each incoming link as the raw text it arrived as. Raw, not a parsed
+  /// [Uri]: parsing repairs a stray '%' into '%25', and the passport codec
+  /// refuses a broken tag only when it sees the text as written.
+  Stream<String> get links;
 }
 
 /// `app_links`: the link that launched the app arrives through the same
@@ -19,8 +23,10 @@ class AppLinksSource implements IncomingLinkSource {
   final AppLinks _appLinks;
 
   @override
-  Stream<Uri> get links => _appLinks.uriLinkStream;
+  Stream<String> get links => _appLinks.stringLinkStream;
 }
+
+final _log = LoggerService.forClass(PassportLinkDispatcher);
 
 final incomingLinkSourceProvider = Provider<IncomingLinkSource>(
   (ref) => AppLinksSource(),
@@ -44,7 +50,7 @@ class PassportLinkDispatcher {
   final DateTime Function() _clock;
   final Duration _repeatWindow;
 
-  StreamSubscription<Uri>? _subscription;
+  StreamSubscription<String>? _subscription;
   bool _ready = false;
   String? _pending;
   String? _lastText;
@@ -54,7 +60,11 @@ class PassportLinkDispatcher {
     _subscription ??= _source.links.listen(
       _onLink,
       // One unreadable link must not end the subscription.
-      onError: (Object _) {},
+      onError: (Object e, StackTrace stackTrace) => _log.warning(
+        'An incoming link could not be read',
+        error: e,
+        stackTrace: stackTrace,
+      ),
     );
   }
 
@@ -67,8 +77,7 @@ class PassportLinkDispatcher {
     unawaited(_open(pending));
   }
 
-  void _onLink(Uri uri) {
-    final text = uri.toString();
+  void _onLink(String text) {
     // An OAuth callback, a future /f record link, any other page: not ours.
     if (PassportPayloadCodec.extractQuery(text) == null) return;
     final now = _clock();

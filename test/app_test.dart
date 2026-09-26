@@ -123,10 +123,10 @@ class _DrivableBackupOp extends StateNotifier<BackupOperationState>
 
 /// An incoming-link source a test can push links into.
 class _PushableLinks implements IncomingLinkSource {
-  final controller = StreamController<Uri>.broadcast();
+  final controller = StreamController<String>.broadcast();
 
   @override
-  Stream<Uri> get links => controller.stream;
+  Stream<String> get links => controller.stream;
 }
 
 /// Minimal router wired to the real [rootNavigatorKey] so the app-root adopt
@@ -337,7 +337,7 @@ void main() {
 
     // A tag link with no passport id: it reaches the tag handling, which
     // refuses it with a message instead of navigating.
-    links.controller.add(Uri.parse('submersion://c?f=1'));
+    links.controller.add('submersion://c?f=1');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
@@ -376,7 +376,7 @@ void main() {
       ],
     );
 
-    links.controller.add(Uri.parse('submersion://c?f=1'));
+    links.controller.add('submersion://c?f=1');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.text('That is not a cylinder tag'), findsNothing);
@@ -420,7 +420,7 @@ void main() {
     );
     expect(rootNavigatorKey.currentContext, isNull);
 
-    links.controller.add(Uri.parse('submersion://c?f=1'));
+    links.controller.add('submersion://c?f=1');
     await tester.pump();
 
     gate.complete();

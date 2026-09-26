@@ -757,5 +757,5 @@ class NoIncomingLinks implements IncomingLinkSource {
   const NoIncomingLinks();
 
   @override
-  Stream<Uri> get links => const Stream<Uri>.empty();
+  Stream<String> get links => const Stream<String>.empty();
 }

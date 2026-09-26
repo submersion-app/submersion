@@ -4,10 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
 
 class _FakeSource implements IncomingLinkSource {
-  final controller = StreamController<Uri>.broadcast();
+  final controller = StreamController<String>.broadcast();
 
   @override
-  Stream<Uri> get links => controller.stream;
+  Stream<String> get links => controller.stream;
 }
 
 void main() {
@@ -34,7 +34,7 @@ void main() {
   });
 
   Future<void> send(String link) async {
-    source.controller.add(Uri.parse(link));
+    source.controller.add(link);
     await Future<void>.delayed(Duration.zero);
   }
 
@@ -93,5 +93,15 @@ void main() {
     await Future<void>.delayed(Duration.zero);
     await send(tag);
     expect(opened, [tag]);
+  });
+
+  test('the link text reaches the tag handling exactly as sent', () async {
+    // A broken escape must reach the codec as written, so it is refused
+    // rather than repaired by a URI parser into a different name.
+    const broken =
+        'https://submersion.app/c#f=1&p=8f3a5c1e-1b2c-4d5e-8f90-1234567890ab&n=Club%';
+    dispatcher.setReady(true);
+    await send(broken);
+    expect(opened, [broken]);
   });
 }
