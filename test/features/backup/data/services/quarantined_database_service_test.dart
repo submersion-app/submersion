@@ -178,6 +178,33 @@ void main() {
       expect(byDay[5]!.path, endsWith('.20260105T000000Z'));
     });
 
+    test('measures the copy after probing it, since a probe can fold the '
+        '-wal in', () async {
+      final main = await writeFile(
+        'submersion.db.pre-restore.20260101T000000Z',
+        bytes: 4,
+      );
+      await writeFile(
+        'submersion.db.pre-restore.20260101T000000Z-wal',
+        bytes: 300,
+      );
+      final service = QuarantinedDatabaseService(
+        databasePath: () async => dbPath,
+        keyHex: () => null,
+        probe: (path, {required keyHex}) {
+          // What a read-write open does on close: checkpoint and delete.
+          File(path).writeAsBytesSync(List.filled(200, 1));
+          File('$path-wal').deleteSync();
+          return 70;
+        },
+      );
+
+      final copy = (await service.find()).single;
+
+      expect(copy.files, [main]);
+      expect(copy.sizeBytes, 200);
+    });
+
     test('never probes a sidecar-only copy', () async {
       await writeFile('submersion.db.pre-restore.20260105T000000Z-wal');
       final probed = <(String, String?)>[];

@@ -13,6 +13,11 @@ final quarantinedDatabaseServiceProvider = Provider<QuarantinedDatabaseService>(
 
 /// The database copies a restore set aside next to the live database,
 /// newest first.
-final quarantinedDatabasesProvider = FutureProvider<List<QuarantinedDatabase>>(
-  (ref) => ref.watch(quarantinedDatabaseServiceProvider).find(),
-);
+///
+/// Auto-disposed so each visit to Backups scans again: the database can move
+/// to another folder while the app runs, and a failed restore can set a new
+/// copy aside, neither of which a cached result would show.
+final quarantinedDatabasesProvider =
+    FutureProvider.autoDispose<List<QuarantinedDatabase>>(
+      (ref) => ref.watch(quarantinedDatabaseServiceProvider).find(),
+    );

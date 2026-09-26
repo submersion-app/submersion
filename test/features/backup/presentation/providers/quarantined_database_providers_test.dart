@@ -57,4 +57,22 @@ void main() {
     ]);
     expect(copies.single.status, QuarantinedDatabaseStatus.unreadable);
   });
+
+  test('scans again once nobody is watching, instead of caching', () async {
+    final folder = await Directory(
+      p.join(documents.path, kAppDocumentsFolder),
+    ).create(recursive: true);
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    expect(await container.read(quarantinedDatabasesProvider.future), isEmpty);
+    await File(
+      p.join(folder.path, 'submersion.db.restore-rejected.20260926T134501Z'),
+    ).writeAsString('not a database');
+    // Let the unwatched provider dispose, as leaving the Backups page does.
+    await container.pump();
+
+    final copies = await container.read(quarantinedDatabasesProvider.future);
+    expect(copies, hasLength(1));
+  });
 }

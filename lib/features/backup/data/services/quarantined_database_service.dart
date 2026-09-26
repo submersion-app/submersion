@@ -165,11 +165,6 @@ class QuarantinedDatabaseService {
     QuarantinedName name,
     List<String> files,
   ) async {
-    var sizeBytes = 0;
-    for (final path in files) {
-      sizeBytes += await File(path).length();
-    }
-
     final int? schemaVersion;
     final QuarantinedDatabaseStatus status;
     if (!files.contains(mainPath)) {
@@ -180,11 +175,22 @@ class QuarantinedDatabaseService {
       status = _statusFor(schemaVersion);
     }
 
+    // Measured after the probe, which opens the copy read-write: closing it
+    // can checkpoint the -wal into the database file and delete it.
+    final present = [
+      for (final path in files)
+        if (await File(path).exists()) path,
+    ];
+    var sizeBytes = 0;
+    for (final path in present) {
+      sizeBytes += await File(path).length();
+    }
+
     return QuarantinedDatabase(
       path: mainPath,
       kind: name.kind,
       quarantinedAt: name.quarantinedAt,
-      files: List.unmodifiable(files),
+      files: List.unmodifiable(present),
       sizeBytes: sizeBytes,
       status: status,
       schemaVersion: schemaVersion,
