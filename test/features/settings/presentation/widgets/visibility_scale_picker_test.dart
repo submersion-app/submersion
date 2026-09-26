@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
@@ -40,6 +41,20 @@ class _RecordingSettingsNotifier extends StateNotifier<AppSettings>
 void main() {
   const metric = UnitFormatter(AppSettings(depthUnit: DepthUnit.meters));
   const imperial = UnitFormatter(AppSettings(depthUnit: DepthUnit.feet));
+
+  // The form seeds and parses through Intl.defaultLocale, a process global
+  // that MaterialApp's locale does not set. Pin it so "2.5" is not riding on
+  // intl's implicit fallback, and restore it for the next file.
+  late String? previousLocale;
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+
+  tearDown(() {
+    Intl.defaultLocale = previousLocale;
+  });
 
   Widget host(Widget child) => MaterialApp(
     locale: const Locale('en'),
@@ -428,6 +443,27 @@ void main() {
       expect(find.text('Poor under 2.5 m'), findsOneWidget);
     });
 
+    testWidgets('the Poor line matches a whole-unit Moderate seed', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          CustomVisibilityScaleForm(
+            initial: VisibilityScale.coldWater,
+            units: imperial,
+            wholeUnits: true,
+            onSubmit: (_) {},
+            onCancel: () {},
+          ),
+        ),
+      );
+
+      // Moderate is 2 m, seeded as "7" ft; the line must not read 6.6 ft
+      // beside a field that says 7.
+      expect(find.widgetWithText(TextField, '7'), findsOneWidget);
+      expect(find.text('Poor under 7 ft'), findsOneWidget);
+    });
+
     testWidgets('hides the Poor line while Moderate is unusable', (
       tester,
     ) async {
@@ -451,19 +487,182 @@ void main() {
       expect(find.textContaining('Poor'), findsNothing);
     });
 
-    testWidgets('seeds in the diver depth unit', (tester) async {
+    testWidgets('seeds a named preset in whole diver depth units', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         host(
           CustomVisibilityScaleForm(
             initial: VisibilityScale.coldWater,
+            units: imperial,
+            wholeUnits: true,
+            onSubmit: (_) {},
+            onCancel: () {},
+          ),
+        ),
+      );
+      // 12 m is 39.37 ft. A preset's bounds are nominal, so the decimal is
+      // noise and the field matches the "39" the preset list advertises.
+      expect(find.widgetWithText(TextField, '39'), findsOneWidget);
+    });
+
+    testWidgets('seeds a fractional threshold with its decimal', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          CustomVisibilityScaleForm(
+            initial: const VisibilityScale(
+              excellentAtOrAboveM: 18,
+              goodAtOrAboveM: 9,
+              moderateAtOrAboveM: 2.5,
+            ),
+            units: metric,
+            onSubmit: (_) {},
+            onCancel: () {},
+          ),
+        ),
+      );
+
+      // Rounding to "3" would move the threshold on the next Save.
+      expect(find.widgetWithText(TextField, '2.5'), findsOneWidget);
+      expect(find.widgetWithText(TextField, '3'), findsNothing);
+      expect(find.widgetWithText(TextField, '18'), findsOneWidget);
+    });
+
+    testWidgets('saves an untouched field at its stored precision', (
+      tester,
+    ) async {
+      VisibilityScale? submitted;
+      await tester.pumpWidget(
+        host(
+          CustomVisibilityScaleForm(
+            initial: const VisibilityScale(
+              excellentAtOrAboveM: 18,
+              goodAtOrAboveM: 9,
+              moderateAtOrAboveM: 2.56,
+            ),
+            units: metric,
+            onSubmit: (s) => submitted = s,
+            onCancel: () {},
+          ),
+        ),
+      );
+      // Shown at one decimal, but Save must not store the rounded 2.6.
+      expect(find.widgetWithText(TextField, '2.6'), findsOneWidget);
+
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+
+      expect(submitted!.moderateAtOrAboveM, 2.56);
+    });
+
+    testWidgets('saves an untouched field exactly through a feet round trip', (
+      tester,
+    ) async {
+      VisibilityScale? submitted;
+      await tester.pumpWidget(
+        host(
+          CustomVisibilityScaleForm(
+            initial: const VisibilityScale(
+              excellentAtOrAboveM: 18,
+              goodAtOrAboveM: 9,
+              moderateAtOrAboveM: 2.5,
+            ),
+            units: imperial,
+            onSubmit: (s) => submitted = s,
+            onCancel: () {},
+          ),
+        ),
+      );
+
+      // 2.5 m shows as 8.2 ft, which reads back as 2.499 m.
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+
+      expect(submitted!.excellentAtOrAboveM, 18);
+      expect(submitted!.goodAtOrAboveM, 9);
+      expect(submitted!.moderateAtOrAboveM, 2.5);
+    });
+
+    testWidgets('an edited field saves what was typed, not the stored value', (
+      tester,
+    ) async {
+      VisibilityScale? submitted;
+      await tester.pumpWidget(
+        host(
+          CustomVisibilityScaleForm(
+            initial: const VisibilityScale(
+              excellentAtOrAboveM: 18,
+              goodAtOrAboveM: 9,
+              moderateAtOrAboveM: 2.56,
+            ),
+            units: metric,
+            onSubmit: (s) => submitted = s,
+            onCancel: () {},
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField).at(2), '2.7');
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+
+      expect(submitted!.moderateAtOrAboveM, 2.7);
+    });
+
+    testWidgets('seeds and saves with a comma decimal separator', (
+      tester,
+    ) async {
+      Intl.defaultLocale = 'de';
+      VisibilityScale? submitted;
+      await tester.pumpWidget(
+        host(
+          CustomVisibilityScaleForm(
+            initial: const VisibilityScale(
+              excellentAtOrAboveM: 18,
+              goodAtOrAboveM: 9,
+              moderateAtOrAboveM: 2.5,
+            ),
+            units: metric,
+            onSubmit: (s) => submitted = s,
+            onCancel: () {},
+          ),
+        ),
+      );
+      expect(find.widgetWithText(TextField, '2,5'), findsOneWidget);
+
+      // Under de '.' groups thousands, so an edit must be read with ','.
+      await tester.enterText(find.byType(TextField).at(1), '9,5');
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+
+      expect(submitted!.goodAtOrAboveM, 9.5);
+      expect(submitted!.moderateAtOrAboveM, 2.5);
+    });
+
+    testWidgets('seeds a feet entry back as the whole number typed', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          CustomVisibilityScaleForm(
+            // 40 ft, 20 ft and 8.2 ft, as stored after an imperial entry.
+            initial: const VisibilityScale(
+              excellentAtOrAboveM: 12.192,
+              goodAtOrAboveM: 6.096,
+              moderateAtOrAboveM: 2.49936,
+            ),
             units: imperial,
             onSubmit: (_) {},
             onCancel: () {},
           ),
         ),
       );
-      // 12 m is about 39 ft.
-      expect(find.widgetWithText(TextField, '39'), findsOneWidget);
+
+      expect(find.widgetWithText(TextField, '40'), findsOneWidget);
+      expect(find.widgetWithText(TextField, '20'), findsOneWidget);
+      expect(find.widgetWithText(TextField, '8.2'), findsOneWidget);
     });
 
     testWidgets('submits metric thresholds from a metric entry', (
@@ -738,6 +937,71 @@ void main() {
       expect(find.widgetWithText(TextField, '9'), findsOneWidget);
       expect(find.widgetWithText(TextField, '3'), findsOneWidget);
       expect(find.widgetWithText(TextField, '12'), findsNothing);
+    });
+
+    testWidgets('reopening a fractional custom threshold and saving keeps it', (
+      tester,
+    ) async {
+      final saved = await pumpPicker(
+        tester,
+        const AppSettings(
+          visibilityScalePreset: VisibilityScalePreset.custom,
+          visibilityScaleExcellentM: 18,
+          visibilityScaleGoodM: 9,
+          visibilityScaleModerateM: 2.5,
+        ),
+      );
+
+      await tester.tap(find.text('Custom'));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(TextField, '2.5'), findsOneWidget);
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(saved.single.visibilityScaleModerateM, 2.5);
+    });
+
+    testWidgets('reopening a feet custom threshold shows the number typed', (
+      tester,
+    ) async {
+      await pumpPicker(
+        tester,
+        const AppSettings(
+          depthUnit: DepthUnit.feet,
+          visibilityScalePreset: VisibilityScalePreset.custom,
+          visibilityScaleExcellentM: 12.192,
+          visibilityScaleGoodM: 6.096,
+          visibilityScaleModerateM: 1.8288,
+        ),
+      );
+
+      await tester.tap(find.text('Custom'));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(TextField, '40'), findsOneWidget);
+      expect(find.widgetWithText(TextField, '20'), findsOneWidget);
+      expect(find.widgetWithText(TextField, '6'), findsOneWidget);
+    });
+
+    testWidgets('with no custom thresholds saved, the form seeds the active '
+        'preset in whole feet', (tester) async {
+      await pumpPicker(
+        tester,
+        const AppSettings(
+          depthUnit: DepthUnit.feet,
+          visibilityScalePreset: VisibilityScalePreset.coldWater,
+        ),
+      );
+
+      await tester.tap(find.text('Custom'));
+      await tester.pumpAndSettle();
+
+      // Cold water is 12 / 6 / 2 m: 39.37, 19.69 and 6.56 ft.
+      expect(find.widgetWithText(TextField, '39'), findsOneWidget);
+      expect(find.widgetWithText(TextField, '20'), findsOneWidget);
+      expect(find.widgetWithText(TextField, '7'), findsOneWidget);
+      expect(find.widgetWithText(TextField, '39.4'), findsNothing);
     });
 
     testWidgets('submitting the custom form saves metric thresholds', (

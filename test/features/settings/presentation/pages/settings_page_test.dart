@@ -1420,7 +1420,7 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       final repo = FakeAppSettingsRepository()
-        ..navRailIds = ['statistics', 'gps-log', 'planning'];
+        ..navRailIds = ['insights', 'gps-log', 'planning'];
       await tester.pumpWidget(
         buildAppearanceWidget([
           ...getOverrides(),
@@ -1430,7 +1430,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(NavCustomizationTile), findsOneWidget);
-      expect(find.text('Statistics · GPS Log · Planning'), findsOneWidget);
+      expect(find.text('Insights · GPS Log · Planning'), findsOneWidget);
     });
 
     // The desktop master-detail pane renders _AppearanceSectionContent, a

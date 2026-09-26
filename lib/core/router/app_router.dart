@@ -76,18 +76,18 @@ import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_gallery_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_overview_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/records_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_gas_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_progression_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_conditions_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_social_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_geographic_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_marine_life_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_time_patterns_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_equipment_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_profile_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_overview_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_page.dart';
+import 'package:submersion/features/insights/presentation/pages/records_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_gas_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_progression_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_conditions_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_social_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_geographic_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_marine_life_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_time_patterns_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_equipment_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_profile_page.dart';
 import 'package:submersion/features/backup/presentation/pages/backup_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
 import 'package:submersion/features/media_store/presentation/pages/media_storage_page.dart';
@@ -383,7 +383,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'search',
                 name: 'diveSearch',
-                // Sections with their own filter (Statistics) push this page
+                // Sections with their own filter (Insights) push this page
                 // with their filter provider as `extra` so the form edits and
                 // applies to that filter (#1079). Every other entry point,
                 // such as a deep link or the keyboard shortcut, gets the dive
@@ -850,64 +850,64 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
 
-          // Statistics
+          // Insights
           GoRoute(
-            path: '/statistics',
-            name: 'statistics',
+            path: '/insights',
+            name: 'insights',
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
-              child: const StatisticsPage(),
+              child: const InsightsPage(),
             ),
             routes: [
               GoRoute(
                 path: 'overview',
-                name: 'statisticsOverview',
-                builder: (context, state) => const StatisticsOverviewPage(),
+                name: 'insightsOverview',
+                builder: (context, state) => const InsightsOverviewPage(),
               ),
               GoRoute(
                 path: 'gas',
-                name: 'statisticsGas',
-                builder: (context, state) => const StatisticsGasPage(),
+                name: 'insightsGas',
+                builder: (context, state) => const InsightsGasPage(),
               ),
               GoRoute(
                 path: 'progression',
-                name: 'statisticsProgression',
-                builder: (context, state) => const StatisticsProgressionPage(),
+                name: 'insightsProgression',
+                builder: (context, state) => const InsightsProgressionPage(),
               ),
               GoRoute(
                 path: 'conditions',
-                name: 'statisticsConditions',
-                builder: (context, state) => const StatisticsConditionsPage(),
+                name: 'insightsConditions',
+                builder: (context, state) => const InsightsConditionsPage(),
               ),
               GoRoute(
                 path: 'social',
-                name: 'statisticsSocial',
-                builder: (context, state) => const StatisticsSocialPage(),
+                name: 'insightsSocial',
+                builder: (context, state) => const InsightsSocialPage(),
               ),
               GoRoute(
                 path: 'geographic',
-                name: 'statisticsGeographic',
-                builder: (context, state) => const StatisticsGeographicPage(),
+                name: 'insightsGeographic',
+                builder: (context, state) => const InsightsGeographicPage(),
               ),
               GoRoute(
                 path: 'marine-life',
-                name: 'statisticsMarineLife',
-                builder: (context, state) => const StatisticsMarineLifePage(),
+                name: 'insightsMarineLife',
+                builder: (context, state) => const InsightsMarineLifePage(),
               ),
               GoRoute(
                 path: 'time-patterns',
-                name: 'statisticsTimePatterns',
-                builder: (context, state) => const StatisticsTimePatternsPage(),
+                name: 'insightsTimePatterns',
+                builder: (context, state) => const InsightsTimePatternsPage(),
               ),
               GoRoute(
                 path: 'equipment',
-                name: 'statisticsEquipment',
-                builder: (context, state) => const StatisticsEquipmentPage(),
+                name: 'insightsEquipment',
+                builder: (context, state) => const InsightsEquipmentPage(),
               ),
               GoRoute(
                 path: 'profile',
-                name: 'statisticsProfile',
-                builder: (context, state) => const StatisticsProfilePage(),
+                name: 'insightsProfile',
+                builder: (context, state) => const InsightsProfilePage(),
               ),
             ],
           ),

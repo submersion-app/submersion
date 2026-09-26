@@ -13,7 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// gauge-mode exclusion was hand-copied into seven queries with nothing
 /// ensuring an eighth would get it.
 const _censusFiles = <String>[
-  'lib/features/statistics/data/repositories/statistics_repository.dart',
+  'lib/features/insights/data/repositories/insights_repository.dart',
   'lib/features/dive_log/data/repositories/dive_repository_impl.dart',
   'lib/features/buddies/data/repositories/buddy_repository.dart',
   'lib/features/dive_sites/data/repositories/site_repository_impl.dart',
@@ -98,7 +98,7 @@ List<String> _memberChunks(String source) {
       scanned++;
 
       // Only two things count as applying the scope: naming DiveStatsScope,
-      // or calling StatisticsRepository's own `_diveFilter` wrapper, which
+      // or calling InsightsRepository's own `_diveFilter` wrapper, which
       // emits it unconditionally.
       //
       // A bare `excluded_from_stats` mention deliberately does NOT count.

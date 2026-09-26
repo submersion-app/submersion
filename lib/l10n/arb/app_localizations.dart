@@ -1765,11 +1765,11 @@ abstract class AppLocalizations {
   /// **'Go to Sites'**
   String get accessibility_shortcut_goToSites;
 
-  /// Keyboard shortcut label for navigating to statistics
+  /// Keyboard shortcut label for navigating to Insights
   ///
   /// In en, this message translates to:
-  /// **'Go to Statistics'**
-  String get accessibility_shortcut_goToStatistics;
+  /// **'Go to Insights'**
+  String get accessibility_shortcut_goToInsights;
 
   /// Keyboard shortcut label for opening the shortcuts help
   ///
@@ -6747,17 +6747,17 @@ abstract class AppLocalizations {
   /// **'Quick Actions'**
   String get dashboard_quickActions_sectionTitle;
 
-  /// No description provided for @dashboard_quickActions_statistics.
+  /// No description provided for @dashboard_quickActions_insights.
   ///
   /// In en, this message translates to:
-  /// **'Statistics'**
-  String get dashboard_quickActions_statistics;
+  /// **'Insights'**
+  String get dashboard_quickActions_insights;
 
-  /// No description provided for @dashboard_quickActions_statisticsTooltip.
+  /// No description provided for @dashboard_quickActions_insightsTooltip.
   ///
   /// In en, this message translates to:
-  /// **'View dive statistics'**
-  String get dashboard_quickActions_statisticsTooltip;
+  /// **'View dive insights'**
+  String get dashboard_quickActions_insightsTooltip;
 
   /// No description provided for @dashboard_quickStats_countries.
   ///
@@ -11631,11 +11631,11 @@ abstract class AppLocalizations {
   /// **'Map your dive sites'**
   String get setup_finish_feature_sites;
 
-  /// No description provided for @setup_finish_feature_statistics.
+  /// No description provided for @setup_finish_feature_insights.
   ///
   /// In en, this message translates to:
-  /// **'Explore statistics about your diving'**
-  String get setup_finish_feature_statistics;
+  /// **'Explore insights about your diving'**
+  String get setup_finish_feature_insights;
 
   /// No description provided for @setup_finish_start.
   ///
@@ -13455,11 +13455,11 @@ abstract class AppLocalizations {
   /// **'Log Dive'**
   String get diveLog_summary_action_logDive;
 
-  /// No description provided for @diveLog_summary_action_viewStats.
+  /// No description provided for @diveLog_summary_action_viewInsights.
   ///
   /// In en, this message translates to:
-  /// **'View Statistics'**
-  String get diveLog_summary_action_viewStats;
+  /// **'View Insights'**
+  String get diveLog_summary_action_viewInsights;
 
   /// No description provided for @diveLog_summary_diveCount.
   ///
@@ -26522,11 +26522,11 @@ abstract class AppLocalizations {
   /// **'Species'**
   String get nav_species;
 
-  /// Navigation label for statistics section
+  /// Navigation label for the Insights section
   ///
   /// In en, this message translates to:
-  /// **'Statistics'**
-  String get nav_statistics;
+  /// **'Insights'**
+  String get nav_insights;
 
   /// Tooltip for the close button on the more menu
   ///
@@ -32623,1870 +32623,1864 @@ abstract class AppLocalizations {
   /// **'View signature from {name}'**
   String signatures_viewSignatureSemantics(Object name);
 
-  /// No description provided for @statistics_appBar_title.
+  /// No description provided for @insights_appBar_title.
   ///
   /// In en, this message translates to:
-  /// **'Statistics'**
-  String get statistics_appBar_title;
+  /// **'Insights'**
+  String get insights_appBar_title;
 
-  /// No description provided for @statistics_categoryCard_semanticLabel.
+  /// No description provided for @insights_categoryCard_semanticLabel.
   ///
   /// In en, this message translates to:
-  /// **'{title} statistics category'**
-  String statistics_categoryCard_semanticLabel(Object title);
+  /// **'{title} insights category'**
+  String insights_categoryCard_semanticLabel(Object title);
 
-  /// No description provided for @statistics_category_conditions_subtitle.
+  /// No description provided for @insights_category_conditions_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Visibility & temperature'**
-  String get statistics_category_conditions_subtitle;
+  String get insights_category_conditions_subtitle;
 
-  /// No description provided for @statistics_category_conditions_title.
+  /// No description provided for @insights_category_conditions_title.
   ///
   /// In en, this message translates to:
   /// **'Conditions'**
-  String get statistics_category_conditions_title;
+  String get insights_category_conditions_title;
 
-  /// No description provided for @statistics_category_equipment_subtitle.
+  /// No description provided for @insights_category_equipment_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Gear usage & weight'**
-  String get statistics_category_equipment_subtitle;
+  String get insights_category_equipment_subtitle;
 
-  /// No description provided for @statistics_category_equipment_title.
+  /// No description provided for @insights_category_equipment_title.
   ///
   /// In en, this message translates to:
   /// **'Equipment'**
-  String get statistics_category_equipment_title;
+  String get insights_category_equipment_title;
 
-  /// No description provided for @statistics_category_gas_subtitle.
+  /// No description provided for @insights_category_gas_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Gas consumption & gas mixes'**
-  String get statistics_category_gas_subtitle;
+  String get insights_category_gas_subtitle;
 
-  /// No description provided for @statistics_category_gas_title.
+  /// No description provided for @insights_category_gas_title.
   ///
   /// In en, this message translates to:
   /// **'Air Consumption'**
-  String get statistics_category_gas_title;
+  String get insights_category_gas_title;
 
-  /// No description provided for @statistics_category_geographic_subtitle.
+  /// No description provided for @insights_category_geographic_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Countries & regions'**
-  String get statistics_category_geographic_subtitle;
+  String get insights_category_geographic_subtitle;
 
-  /// No description provided for @statistics_category_geographic_title.
+  /// No description provided for @insights_category_geographic_title.
   ///
   /// In en, this message translates to:
   /// **'Geographic'**
-  String get statistics_category_geographic_title;
+  String get insights_category_geographic_title;
 
-  /// No description provided for @statistics_category_marineLife_subtitle.
+  /// No description provided for @insights_category_marineLife_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Species sightings'**
-  String get statistics_category_marineLife_subtitle;
+  String get insights_category_marineLife_subtitle;
 
-  /// No description provided for @statistics_category_marineLife_title.
+  /// No description provided for @insights_category_marineLife_title.
   ///
   /// In en, this message translates to:
   /// **'Species'**
-  String get statistics_category_marineLife_title;
+  String get insights_category_marineLife_title;
 
-  /// Title for the Overview entry in the Statistics category list
+  /// Title for the Overview entry in the Insights category list
   ///
   /// In en, this message translates to:
   /// **'Overview'**
-  String get statistics_category_overview_title;
+  String get insights_category_overview_title;
 
-  /// Subtitle for the Overview entry in the Statistics category list
+  /// Subtitle for the Overview entry in the Insights category list
   ///
   /// In en, this message translates to:
   /// **'Totals, records, and breakdowns at a glance'**
-  String get statistics_category_overview_subtitle;
+  String get insights_category_overview_subtitle;
 
-  /// No description provided for @statistics_category_profile_subtitle.
+  /// No description provided for @insights_category_profile_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Ascent rates & deco'**
-  String get statistics_category_profile_subtitle;
+  String get insights_category_profile_subtitle;
 
-  /// No description provided for @statistics_category_profile_title.
+  /// No description provided for @insights_category_profile_title.
   ///
   /// In en, this message translates to:
   /// **'Profile Analysis'**
-  String get statistics_category_profile_title;
+  String get insights_category_profile_title;
 
-  /// No description provided for @statistics_category_progression_subtitle.
+  /// No description provided for @insights_category_progression_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Depth & time trends'**
-  String get statistics_category_progression_subtitle;
+  String get insights_category_progression_subtitle;
 
-  /// No description provided for @statistics_category_progression_title.
+  /// No description provided for @insights_category_progression_title.
   ///
   /// In en, this message translates to:
   /// **'Progression'**
-  String get statistics_category_progression_title;
+  String get insights_category_progression_title;
 
-  /// No description provided for @statistics_category_social_subtitle.
+  /// No description provided for @insights_category_social_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Buddies & dive centers'**
-  String get statistics_category_social_subtitle;
+  String get insights_category_social_subtitle;
 
-  /// No description provided for @statistics_category_social_title.
+  /// No description provided for @insights_category_social_title.
   ///
   /// In en, this message translates to:
   /// **'Social'**
-  String get statistics_category_social_title;
+  String get insights_category_social_title;
 
-  /// No description provided for @statistics_category_timePatterns_subtitle.
+  /// No description provided for @insights_category_timePatterns_subtitle.
   ///
   /// In en, this message translates to:
   /// **'When you dive'**
-  String get statistics_category_timePatterns_subtitle;
+  String get insights_category_timePatterns_subtitle;
 
-  /// No description provided for @statistics_category_timePatterns_title.
+  /// No description provided for @insights_category_timePatterns_title.
   ///
   /// In en, this message translates to:
   /// **'Time Patterns'**
-  String get statistics_category_timePatterns_title;
+  String get insights_category_timePatterns_title;
 
-  /// No description provided for @statistics_chart_barSemanticLabel.
+  /// No description provided for @insights_chart_barSemanticLabel.
   ///
   /// In en, this message translates to:
   /// **'Bar chart with {count} categories'**
-  String statistics_chart_barSemanticLabel(Object count);
+  String insights_chart_barSemanticLabel(Object count);
 
-  /// No description provided for @statistics_chart_distributionSemanticLabel.
+  /// No description provided for @insights_chart_distributionSemanticLabel.
   ///
   /// In en, this message translates to:
   /// **'Distribution pie chart with {count} segments'**
-  String statistics_chart_distributionSemanticLabel(Object count);
+  String insights_chart_distributionSemanticLabel(Object count);
 
-  /// No description provided for @statistics_chart_multiTrendSemanticLabel.
+  /// No description provided for @insights_chart_multiTrendSemanticLabel.
   ///
   /// In en, this message translates to:
   /// **'Multi-trend line chart comparing {seriesNames}'**
-  String statistics_chart_multiTrendSemanticLabel(Object seriesNames);
+  String insights_chart_multiTrendSemanticLabel(Object seriesNames);
 
-  /// No description provided for @statistics_chart_noBarData.
+  /// No description provided for @insights_chart_noBarData.
   ///
   /// In en, this message translates to:
   /// **'No data available'**
-  String get statistics_chart_noBarData;
+  String get insights_chart_noBarData;
 
-  /// No description provided for @statistics_chart_noDistributionData.
+  /// No description provided for @insights_chart_noDistributionData.
   ///
   /// In en, this message translates to:
   /// **'No distribution data available'**
-  String get statistics_chart_noDistributionData;
+  String get insights_chart_noDistributionData;
 
-  /// No description provided for @statistics_chart_noTrendData.
+  /// No description provided for @insights_chart_noTrendData.
   ///
   /// In en, this message translates to:
   /// **'No trend data available'**
-  String get statistics_chart_noTrendData;
+  String get insights_chart_noTrendData;
 
-  /// No description provided for @statistics_chart_notRecorded.
+  /// No description provided for @insights_chart_notRecorded.
   ///
   /// In en, this message translates to:
   /// **'Not recorded'**
-  String get statistics_chart_notRecorded;
+  String get insights_chart_notRecorded;
 
-  /// No description provided for @statistics_chart_trendSemanticLabel.
+  /// No description provided for @insights_chart_trendSemanticLabel.
   ///
   /// In en, this message translates to:
   /// **'Trend line chart showing {count} data points'**
-  String statistics_chart_trendSemanticLabel(Object count);
+  String insights_chart_trendSemanticLabel(Object count);
 
-  /// No description provided for @statistics_chart_trendSemanticLabelWithAxis.
+  /// No description provided for @insights_chart_trendSemanticLabelWithAxis.
   ///
   /// In en, this message translates to:
   /// **'Trend line chart showing {count} data points for {yAxisLabel}'**
-  String statistics_chart_trendSemanticLabelWithAxis(
+  String insights_chart_trendSemanticLabelWithAxis(
     Object count,
     Object yAxisLabel,
   );
 
-  /// No description provided for @statistics_conditions_appBar_title.
+  /// No description provided for @insights_conditions_appBar_title.
   ///
   /// In en, this message translates to:
   /// **'Conditions'**
-  String get statistics_conditions_appBar_title;
+  String get insights_conditions_appBar_title;
 
-  /// No description provided for @statistics_conditions_entryMethod_empty.
+  /// No description provided for @insights_conditions_entryMethod_empty.
   ///
   /// In en, this message translates to:
   /// **'No entry method data available'**
-  String get statistics_conditions_entryMethod_empty;
+  String get insights_conditions_entryMethod_empty;
 
-  /// No description provided for @statistics_conditions_entryMethod_error.
+  /// No description provided for @insights_conditions_entryMethod_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load entry method data'**
-  String get statistics_conditions_entryMethod_error;
+  String get insights_conditions_entryMethod_error;
 
-  /// No description provided for @statistics_conditions_entryMethod_subtitle.
+  /// No description provided for @insights_conditions_entryMethod_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Shore, boat, etc.'**
-  String get statistics_conditions_entryMethod_subtitle;
+  String get insights_conditions_entryMethod_subtitle;
 
-  /// No description provided for @statistics_conditions_entryMethod_title.
+  /// No description provided for @insights_conditions_entryMethod_title.
   ///
   /// In en, this message translates to:
   /// **'Entry Method'**
-  String get statistics_conditions_entryMethod_title;
+  String get insights_conditions_entryMethod_title;
 
-  /// No description provided for @statistics_conditions_temperature_empty.
+  /// No description provided for @insights_conditions_temperature_empty.
   ///
   /// In en, this message translates to:
   /// **'No temperature data available'**
-  String get statistics_conditions_temperature_empty;
+  String get insights_conditions_temperature_empty;
 
-  /// No description provided for @statistics_conditions_temperature_error.
+  /// No description provided for @insights_conditions_temperature_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load temperature data'**
-  String get statistics_conditions_temperature_error;
+  String get insights_conditions_temperature_error;
 
-  /// No description provided for @statistics_conditions_temperature_seriesAvg.
+  /// No description provided for @insights_conditions_temperature_seriesAvg.
   ///
   /// In en, this message translates to:
   /// **'Avg'**
-  String get statistics_conditions_temperature_seriesAvg;
+  String get insights_conditions_temperature_seriesAvg;
 
-  /// No description provided for @statistics_conditions_temperature_seriesMax.
+  /// No description provided for @insights_conditions_temperature_seriesMax.
   ///
   /// In en, this message translates to:
   /// **'Max'**
-  String get statistics_conditions_temperature_seriesMax;
+  String get insights_conditions_temperature_seriesMax;
 
-  /// No description provided for @statistics_conditions_temperature_seriesMin.
+  /// No description provided for @insights_conditions_temperature_seriesMin.
   ///
   /// In en, this message translates to:
   /// **'Min'**
-  String get statistics_conditions_temperature_seriesMin;
+  String get insights_conditions_temperature_seriesMin;
 
-  /// No description provided for @statistics_conditions_temperature_subtitle.
+  /// No description provided for @insights_conditions_temperature_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Min, average and max by calendar month, across every year'**
-  String get statistics_conditions_temperature_subtitle;
+  String get insights_conditions_temperature_subtitle;
 
-  /// No description provided for @statistics_conditions_temperature_title.
+  /// No description provided for @insights_conditions_temperature_title.
   ///
   /// In en, this message translates to:
   /// **'Seasonal Water Temperature'**
-  String get statistics_conditions_temperature_title;
+  String get insights_conditions_temperature_title;
 
-  /// No description provided for @statistics_conditions_visibility_error.
+  /// No description provided for @insights_conditions_visibility_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load visibility data'**
-  String get statistics_conditions_visibility_error;
+  String get insights_conditions_visibility_error;
 
-  /// No description provided for @statistics_conditions_visibility_subtitle.
+  /// No description provided for @insights_conditions_visibility_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Dives by visibility condition'**
-  String get statistics_conditions_visibility_subtitle;
+  String get insights_conditions_visibility_subtitle;
 
-  /// No description provided for @statistics_conditions_visibility_title.
+  /// No description provided for @insights_conditions_visibility_title.
   ///
   /// In en, this message translates to:
   /// **'Visibility Distribution'**
-  String get statistics_conditions_visibility_title;
+  String get insights_conditions_visibility_title;
 
-  /// No description provided for @statistics_conditions_siteType_error.
+  /// No description provided for @insights_conditions_siteType_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load site type data'**
-  String get statistics_conditions_siteType_error;
+  String get insights_conditions_siteType_error;
 
-  /// No description provided for @statistics_conditions_siteType_semanticLabel.
+  /// No description provided for @insights_conditions_siteType_semanticLabel.
   ///
   /// In en, this message translates to:
   /// **'Bar chart. Dives per site type. {description}'**
-  String statistics_conditions_siteType_semanticLabel(String description);
+  String insights_conditions_siteType_semanticLabel(String description);
 
-  /// No description provided for @statistics_conditions_siteType_subtitle.
+  /// No description provided for @insights_conditions_siteType_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Dives per site type. A dive at a site with several types counts toward each; sites without a type are not shown.'**
-  String get statistics_conditions_siteType_subtitle;
+  String get insights_conditions_siteType_subtitle;
 
-  /// No description provided for @statistics_conditions_siteType_title.
+  /// No description provided for @insights_conditions_siteType_title.
   ///
   /// In en, this message translates to:
   /// **'Site Types'**
-  String get statistics_conditions_siteType_title;
+  String get insights_conditions_siteType_title;
 
-  /// No description provided for @statistics_conditions_waterType_error.
+  /// No description provided for @insights_conditions_waterType_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load water type data'**
-  String get statistics_conditions_waterType_error;
+  String get insights_conditions_waterType_error;
 
-  /// No description provided for @statistics_conditions_waterType_subtitle.
+  /// No description provided for @insights_conditions_waterType_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Salt vs Fresh water dives'**
-  String get statistics_conditions_waterType_subtitle;
+  String get insights_conditions_waterType_subtitle;
 
-  /// No description provided for @statistics_conditions_waterType_title.
+  /// No description provided for @insights_conditions_waterType_title.
   ///
   /// In en, this message translates to:
   /// **'Water Type'**
-  String get statistics_conditions_waterType_title;
+  String get insights_conditions_waterType_title;
 
-  /// No description provided for @statistics_equipment_appBar_title.
+  /// No description provided for @insights_equipment_appBar_title.
   ///
   /// In en, this message translates to:
   /// **'Equipment'**
-  String get statistics_equipment_appBar_title;
+  String get insights_equipment_appBar_title;
 
-  /// No description provided for @statistics_equipment_mostUsedGear_error.
+  /// No description provided for @insights_equipment_mostUsedGear_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load gear data'**
-  String get statistics_equipment_mostUsedGear_error;
+  String get insights_equipment_mostUsedGear_error;
 
-  /// No description provided for @statistics_equipment_mostUsedGear_subtitle.
+  /// No description provided for @insights_equipment_mostUsedGear_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Equipment by dive count'**
-  String get statistics_equipment_mostUsedGear_subtitle;
+  String get insights_equipment_mostUsedGear_subtitle;
 
-  /// No description provided for @statistics_equipment_mostUsedGear_title.
+  /// No description provided for @insights_equipment_mostUsedGear_title.
   ///
   /// In en, this message translates to:
   /// **'Most Used Gear'**
-  String get statistics_equipment_mostUsedGear_title;
+  String get insights_equipment_mostUsedGear_title;
 
-  /// No description provided for @statistics_equipment_weightTrend_error.
+  /// No description provided for @insights_equipment_weightTrend_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load weight trend'**
-  String get statistics_equipment_weightTrend_error;
+  String get insights_equipment_weightTrend_error;
 
-  /// No description provided for @statistics_equipment_weightTrend_subtitle.
+  /// No description provided for @insights_equipment_weightTrend_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Total lead carried per dive'**
-  String get statistics_equipment_weightTrend_subtitle;
+  String get insights_equipment_weightTrend_subtitle;
 
-  /// No description provided for @statistics_equipment_weightTrend_title.
+  /// No description provided for @insights_equipment_weightTrend_title.
   ///
   /// In en, this message translates to:
   /// **'Weight Trend'**
-  String get statistics_equipment_weightTrend_title;
+  String get insights_equipment_weightTrend_title;
 
-  /// No description provided for @statistics_equipment_exposure_title.
+  /// No description provided for @insights_equipment_exposure_title.
   ///
   /// In en, this message translates to:
   /// **'Exposure'**
-  String get statistics_equipment_exposure_title;
+  String get insights_equipment_exposure_title;
 
-  /// No description provided for @statistics_equipment_exposure_error.
+  /// No description provided for @insights_equipment_exposure_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load exposure data'**
-  String get statistics_equipment_exposure_error;
+  String get insights_equipment_exposure_error;
 
-  /// No description provided for @statistics_equipment_findings_error.
+  /// No description provided for @insights_equipment_findings_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load condition findings'**
-  String get statistics_equipment_findings_error;
+  String get insights_equipment_findings_error;
 
-  /// No description provided for @statistics_equipment_issues_error.
+  /// No description provided for @insights_equipment_issues_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load reported issues'**
-  String get statistics_equipment_issues_error;
+  String get insights_equipment_issues_error;
 
-  /// No description provided for @statistics_equipment_exposure_subtitle.
+  /// No description provided for @insights_equipment_exposure_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Totals per item with your thresholds'**
-  String get statistics_equipment_exposure_subtitle;
+  String get insights_equipment_exposure_subtitle;
 
-  /// No description provided for @statistics_equipment_exposure_empty.
+  /// No description provided for @insights_equipment_exposure_empty.
   ///
   /// In en, this message translates to:
   /// **'No dives with gear yet'**
-  String get statistics_equipment_exposure_empty;
+  String get insights_equipment_exposure_empty;
 
-  /// No description provided for @statistics_equipment_findings_title.
+  /// No description provided for @insights_equipment_findings_title.
   ///
   /// In en, this message translates to:
   /// **'Condition findings'**
-  String get statistics_equipment_findings_title;
+  String get insights_equipment_findings_title;
 
-  /// No description provided for @statistics_equipment_findings_subtitle.
+  /// No description provided for @insights_equipment_findings_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Open findings by rule'**
-  String get statistics_equipment_findings_subtitle;
+  String get insights_equipment_findings_subtitle;
 
-  /// No description provided for @statistics_equipment_findings_subtitleAllDives.
+  /// No description provided for @insights_equipment_findings_subtitleAllDives.
   ///
   /// In en, this message translates to:
   /// **'Open findings by rule, across all dives'**
-  String get statistics_equipment_findings_subtitleAllDives;
+  String get insights_equipment_findings_subtitleAllDives;
 
-  /// No description provided for @statistics_equipment_findings_empty.
+  /// No description provided for @insights_equipment_findings_empty.
   ///
   /// In en, this message translates to:
   /// **'No open findings'**
-  String get statistics_equipment_findings_empty;
+  String get insights_equipment_findings_empty;
 
-  /// No description provided for @statistics_equipment_issues_title.
+  /// No description provided for @insights_equipment_issues_title.
   ///
   /// In en, this message translates to:
   /// **'Reported issues'**
-  String get statistics_equipment_issues_title;
+  String get insights_equipment_issues_title;
 
-  /// No description provided for @statistics_equipment_issues_subtitle.
+  /// No description provided for @insights_equipment_issues_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Most frequent check-in tags'**
-  String get statistics_equipment_issues_subtitle;
+  String get insights_equipment_issues_subtitle;
 
-  /// No description provided for @statistics_equipment_issues_empty.
+  /// No description provided for @insights_equipment_issues_empty.
   ///
   /// In en, this message translates to:
   /// **'No issues reported'**
-  String get statistics_equipment_issues_empty;
+  String get insights_equipment_issues_empty;
 
-  /// No description provided for @statistics_equipment_countLabel_items.
+  /// No description provided for @insights_equipment_countLabel_items.
   ///
   /// In en, this message translates to:
   /// **'items'**
-  String get statistics_equipment_countLabel_items;
+  String get insights_equipment_countLabel_items;
 
-  /// No description provided for @statistics_equipment_countLabel_findings.
+  /// No description provided for @insights_equipment_countLabel_findings.
   ///
   /// In en, this message translates to:
   /// **'findings'**
-  String get statistics_equipment_countLabel_findings;
+  String get insights_equipment_countLabel_findings;
 
-  /// No description provided for @statistics_equipment_countLabel_reports.
+  /// No description provided for @insights_equipment_countLabel_reports.
   ///
   /// In en, this message translates to:
   /// **'reports'**
-  String get statistics_equipment_countLabel_reports;
+  String get insights_equipment_countLabel_reports;
 
-  /// No description provided for @statistics_equipment_exposureUnit_days.
+  /// No description provided for @insights_equipment_exposureUnit_days.
   ///
   /// In en, this message translates to:
   /// **'Days'**
-  String get statistics_equipment_exposureUnit_days;
+  String get insights_equipment_exposureUnit_days;
 
-  /// No description provided for @statistics_equipment_exposureUnit_dives.
+  /// No description provided for @insights_equipment_exposureUnit_dives.
   ///
   /// In en, this message translates to:
   /// **'Dives'**
-  String get statistics_equipment_exposureUnit_dives;
+  String get insights_equipment_exposureUnit_dives;
 
-  /// No description provided for @statistics_equipment_countLabel_days.
+  /// No description provided for @insights_equipment_countLabel_days.
   ///
   /// In en, this message translates to:
   /// **'days'**
-  String get statistics_equipment_countLabel_days;
+  String get insights_equipment_countLabel_days;
 
-  /// No description provided for @statistics_equipment_countLabel_dives.
+  /// No description provided for @insights_equipment_countLabel_dives.
   ///
   /// In en, this message translates to:
   /// **'dives'**
-  String get statistics_equipment_countLabel_dives;
+  String get insights_equipment_countLabel_dives;
 
-  /// No description provided for @statistics_equipment_countLabel_hours.
+  /// No description provided for @insights_equipment_countLabel_hours.
   ///
   /// In en, this message translates to:
   /// **'hours'**
-  String get statistics_equipment_countLabel_hours;
+  String get insights_equipment_countLabel_hours;
 
-  /// No description provided for @statistics_equipment_countLabel_saltHours.
+  /// No description provided for @insights_equipment_countLabel_saltHours.
   ///
   /// In en, this message translates to:
   /// **'salt-water hours'**
-  String get statistics_equipment_countLabel_saltHours;
+  String get insights_equipment_countLabel_saltHours;
 
-  /// No description provided for @statistics_equipment_countLabel_coldDives.
+  /// No description provided for @insights_equipment_countLabel_coldDives.
   ///
   /// In en, this message translates to:
   /// **'cold dives'**
-  String get statistics_equipment_countLabel_coldDives;
+  String get insights_equipment_countLabel_coldDives;
 
-  /// No description provided for @statistics_equipment_countLabel_o2Hours.
+  /// No description provided for @insights_equipment_countLabel_o2Hours.
   ///
   /// In en, this message translates to:
   /// **'high-O2 hours'**
-  String get statistics_equipment_countLabel_o2Hours;
+  String get insights_equipment_countLabel_o2Hours;
 
-  /// No description provided for @statistics_equipment_countLabel_deepCycles.
+  /// No description provided for @insights_equipment_countLabel_deepCycles.
   ///
   /// In en, this message translates to:
   /// **'deep dives'**
-  String get statistics_equipment_countLabel_deepCycles;
+  String get insights_equipment_countLabel_deepCycles;
 
-  /// No description provided for @statistics_equipment_countLabel_cycles.
+  /// No description provided for @insights_equipment_countLabel_cycles.
   ///
   /// In en, this message translates to:
   /// **'battery cycles'**
-  String get statistics_equipment_countLabel_cycles;
+  String get insights_equipment_countLabel_cycles;
 
-  /// No description provided for @statistics_equipment_exposureUnit_hours.
+  /// No description provided for @insights_equipment_exposureUnit_hours.
   ///
   /// In en, this message translates to:
   /// **'Hours'**
-  String get statistics_equipment_exposureUnit_hours;
+  String get insights_equipment_exposureUnit_hours;
 
-  /// No description provided for @statistics_equipment_exposureUnit_saltHours.
+  /// No description provided for @insights_equipment_exposureUnit_saltHours.
   ///
   /// In en, this message translates to:
   /// **'Salt-water hours'**
-  String get statistics_equipment_exposureUnit_saltHours;
+  String get insights_equipment_exposureUnit_saltHours;
 
-  /// No description provided for @statistics_equipment_exposureUnit_coldDives.
+  /// No description provided for @insights_equipment_exposureUnit_coldDives.
   ///
   /// In en, this message translates to:
   /// **'Cold dives'**
-  String get statistics_equipment_exposureUnit_coldDives;
+  String get insights_equipment_exposureUnit_coldDives;
 
-  /// No description provided for @statistics_equipment_exposureUnit_o2Hours.
+  /// No description provided for @insights_equipment_exposureUnit_o2Hours.
   ///
   /// In en, this message translates to:
   /// **'High-O2 hours'**
-  String get statistics_equipment_exposureUnit_o2Hours;
+  String get insights_equipment_exposureUnit_o2Hours;
 
-  /// No description provided for @statistics_equipment_exposureUnit_deepCycles.
+  /// No description provided for @insights_equipment_exposureUnit_deepCycles.
   ///
   /// In en, this message translates to:
   /// **'Deep dives'**
-  String get statistics_equipment_exposureUnit_deepCycles;
+  String get insights_equipment_exposureUnit_deepCycles;
 
-  /// No description provided for @statistics_equipment_exposureUnit_cycles.
+  /// No description provided for @insights_equipment_exposureUnit_cycles.
   ///
   /// In en, this message translates to:
   /// **'Battery cycles'**
-  String get statistics_equipment_exposureUnit_cycles;
+  String get insights_equipment_exposureUnit_cycles;
 
-  /// No description provided for @statistics_error_loadingStatistics.
+  /// No description provided for @insights_error_loadingInsights.
   ///
   /// In en, this message translates to:
-  /// **'Error loading statistics'**
-  String get statistics_error_loadingStatistics;
+  /// **'Error loading insights'**
+  String get insights_error_loadingInsights;
 
-  /// No description provided for @statistics_filterBar_clear.
+  /// No description provided for @insights_filterBar_clear.
   ///
   /// In en, this message translates to:
   /// **'Clear filter'**
-  String get statistics_filterBar_clear;
+  String get insights_filterBar_clear;
 
-  /// No description provided for @statistics_filterBar_diveCount.
+  /// No description provided for @insights_filterBar_diveCount.
   ///
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
-  String statistics_filterBar_diveCount(int count);
+  String insights_filterBar_diveCount(int count);
 
-  /// No description provided for @statistics_gas_appBar_title.
+  /// No description provided for @insights_gas_appBar_title.
   ///
   /// In en, this message translates to:
   /// **'Air Consumption'**
-  String get statistics_gas_appBar_title;
+  String get insights_gas_appBar_title;
 
-  /// No description provided for @statistics_gas_gasMix_error.
+  /// No description provided for @insights_gas_gasMix_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load gas mix data'**
-  String get statistics_gas_gasMix_error;
+  String get insights_gas_gasMix_error;
 
-  /// No description provided for @statistics_gas_gasMix_subtitle.
+  /// No description provided for @insights_gas_gasMix_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Dives by gas type'**
-  String get statistics_gas_gasMix_subtitle;
+  String get insights_gas_gasMix_subtitle;
 
-  /// No description provided for @statistics_gas_gasMix_title.
+  /// No description provided for @insights_gas_gasMix_title.
   ///
   /// In en, this message translates to:
   /// **'Gas Mix Distribution'**
-  String get statistics_gas_gasMix_title;
+  String get insights_gas_gasMix_title;
 
-  /// No description provided for @statistics_gas_sacByRole_empty.
+  /// No description provided for @insights_gas_sacByRole_empty.
   ///
   /// In en, this message translates to:
   /// **'No multi-tank data available'**
-  String get statistics_gas_sacByRole_empty;
+  String get insights_gas_sacByRole_empty;
 
-  /// No description provided for @statistics_gas_sacByRole_error.
+  /// No description provided for @insights_gas_sacByRole_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load consumption by role'**
-  String get statistics_gas_sacByRole_error;
+  String get insights_gas_sacByRole_error;
 
-  /// No description provided for @statistics_gas_sacByRole_subtitle.
+  /// No description provided for @insights_gas_sacByRole_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Average consumption by tank type'**
-  String get statistics_gas_sacByRole_subtitle;
+  String get insights_gas_sacByRole_subtitle;
 
-  /// No description provided for @statistics_gas_sacByRole_title.
+  /// No description provided for @insights_gas_sacByRole_title.
   ///
   /// In en, this message translates to:
   /// **'Gas consumption by tank role'**
-  String get statistics_gas_sacByRole_title;
+  String get insights_gas_sacByRole_title;
 
-  /// No description provided for @statistics_gas_sacRecords_empty.
+  /// No description provided for @insights_gas_sacRecords_empty.
   ///
   /// In en, this message translates to:
   /// **'No consumption data yet'**
-  String get statistics_gas_sacRecords_empty;
+  String get insights_gas_sacRecords_empty;
 
-  /// No description provided for @statistics_gas_sacRecords_error.
+  /// No description provided for @insights_gas_sacRecords_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load consumption records'**
-  String get statistics_gas_sacRecords_error;
+  String get insights_gas_sacRecords_error;
 
-  /// No description provided for @statistics_gas_sacRecords_highestRmv.
+  /// No description provided for @insights_gas_sacRecords_highestRmv.
   ///
   /// In en, this message translates to:
   /// **'Highest RMV'**
-  String get statistics_gas_sacRecords_highestRmv;
+  String get insights_gas_sacRecords_highestRmv;
 
-  /// No description provided for @statistics_gas_sacRecords_highestSac.
+  /// No description provided for @insights_gas_sacRecords_highestSac.
   ///
   /// In en, this message translates to:
   /// **'Highest SAC'**
-  String get statistics_gas_sacRecords_highestSac;
+  String get insights_gas_sacRecords_highestSac;
 
-  /// No description provided for @statistics_gas_sacRecords_bestRmv.
+  /// No description provided for @insights_gas_sacRecords_bestRmv.
   ///
   /// In en, this message translates to:
   /// **'Best RMV'**
-  String get statistics_gas_sacRecords_bestRmv;
+  String get insights_gas_sacRecords_bestRmv;
 
-  /// No description provided for @statistics_gas_sacRecords_bestSac.
+  /// No description provided for @insights_gas_sacRecords_bestSac.
   ///
   /// In en, this message translates to:
   /// **'Best SAC'**
-  String get statistics_gas_sacRecords_bestSac;
+  String get insights_gas_sacRecords_bestSac;
 
-  /// No description provided for @statistics_gas_sacRecords_subtitle.
+  /// No description provided for @insights_gas_sacRecords_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Best and worst air consumption'**
-  String get statistics_gas_sacRecords_subtitle;
+  String get insights_gas_sacRecords_subtitle;
 
-  /// No description provided for @statistics_gas_sacRecords_title.
+  /// No description provided for @insights_gas_sacRecords_title.
   ///
   /// In en, this message translates to:
   /// **'Gas consumption records'**
-  String get statistics_gas_sacRecords_title;
+  String get insights_gas_sacRecords_title;
 
-  /// No description provided for @statistics_gas_sacTrend_error.
+  /// No description provided for @insights_gas_sacTrend_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load consumption trend'**
-  String get statistics_gas_sacTrend_error;
+  String get insights_gas_sacTrend_error;
 
-  /// No description provided for @statistics_gas_sacTrend_subtitle.
+  /// No description provided for @insights_gas_sacTrend_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Every dive in range'**
-  String get statistics_gas_sacTrend_subtitle;
+  String get insights_gas_sacTrend_subtitle;
 
-  /// No description provided for @statistics_gas_sacTrend_title.
+  /// No description provided for @insights_gas_sacTrend_title.
   ///
   /// In en, this message translates to:
   /// **'Gas consumption trend'**
-  String get statistics_gas_sacTrend_title;
+  String get insights_gas_sacTrend_title;
 
-  /// No description provided for @statistics_gas_tankRole_backGas.
+  /// No description provided for @insights_gas_tankRole_backGas.
   ///
   /// In en, this message translates to:
   /// **'Back Gas'**
-  String get statistics_gas_tankRole_backGas;
+  String get insights_gas_tankRole_backGas;
 
-  /// No description provided for @statistics_gas_tankRole_bailout.
+  /// No description provided for @insights_gas_tankRole_bailout.
   ///
   /// In en, this message translates to:
   /// **'Bailout'**
-  String get statistics_gas_tankRole_bailout;
+  String get insights_gas_tankRole_bailout;
 
-  /// No description provided for @statistics_gas_tankRole_deco.
+  /// No description provided for @insights_gas_tankRole_deco.
   ///
   /// In en, this message translates to:
   /// **'Deco'**
-  String get statistics_gas_tankRole_deco;
+  String get insights_gas_tankRole_deco;
 
-  /// No description provided for @statistics_gas_tankRole_diluent.
+  /// No description provided for @insights_gas_tankRole_diluent.
   ///
   /// In en, this message translates to:
   /// **'Diluent'**
-  String get statistics_gas_tankRole_diluent;
+  String get insights_gas_tankRole_diluent;
 
-  /// No description provided for @statistics_gas_tankRole_oxygenSupply.
+  /// No description provided for @insights_gas_tankRole_oxygenSupply.
   ///
   /// In en, this message translates to:
   /// **'O₂ Supply'**
-  String get statistics_gas_tankRole_oxygenSupply;
+  String get insights_gas_tankRole_oxygenSupply;
 
-  /// No description provided for @statistics_gas_tankRole_pony.
+  /// No description provided for @insights_gas_tankRole_pony.
   ///
   /// In en, this message translates to:
   /// **'Pony'**
-  String get statistics_gas_tankRole_pony;
+  String get insights_gas_tankRole_pony;
 
-  /// No description provided for @statistics_gas_tankRole_sidemountLeft.
+  /// No description provided for @insights_gas_tankRole_sidemountLeft.
   ///
   /// In en, this message translates to:
   /// **'Sidemount L'**
-  String get statistics_gas_tankRole_sidemountLeft;
+  String get insights_gas_tankRole_sidemountLeft;
 
-  /// No description provided for @statistics_gas_tankRole_sidemountRight.
+  /// No description provided for @insights_gas_tankRole_sidemountRight.
   ///
   /// In en, this message translates to:
   /// **'Sidemount R'**
-  String get statistics_gas_tankRole_sidemountRight;
+  String get insights_gas_tankRole_sidemountRight;
 
-  /// No description provided for @statistics_gas_tankRole_stage.
+  /// No description provided for @insights_gas_tankRole_stage.
   ///
   /// In en, this message translates to:
   /// **'Stage'**
-  String get statistics_gas_tankRole_stage;
+  String get insights_gas_tankRole_stage;
 
-  /// No description provided for @statistics_geographic_appBar_title.
+  /// No description provided for @insights_geographic_appBar_title.
   ///
   /// In en, this message translates to:
   /// **'Geographic'**
-  String get statistics_geographic_appBar_title;
+  String get insights_geographic_appBar_title;
 
-  /// No description provided for @statistics_geographic_countries_empty.
+  /// No description provided for @insights_geographic_countries_empty.
   ///
   /// In en, this message translates to:
   /// **'No countries visited'**
-  String get statistics_geographic_countries_empty;
+  String get insights_geographic_countries_empty;
 
-  /// No description provided for @statistics_geographic_countries_error.
+  /// No description provided for @insights_geographic_countries_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load country data'**
-  String get statistics_geographic_countries_error;
+  String get insights_geographic_countries_error;
 
-  /// No description provided for @statistics_geographic_countries_subtitle.
+  /// No description provided for @insights_geographic_countries_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Dives by country'**
-  String get statistics_geographic_countries_subtitle;
+  String get insights_geographic_countries_subtitle;
 
-  /// No description provided for @statistics_geographic_countries_summary.
+  /// No description provided for @insights_geographic_countries_summary.
   ///
   /// In en, this message translates to:
   /// **'{count} countries. Top: {topName} with {topCount} dives'**
-  String statistics_geographic_countries_summary(
+  String insights_geographic_countries_summary(
     Object count,
     Object topName,
     Object topCount,
   );
 
-  /// No description provided for @statistics_geographic_countries_title.
+  /// No description provided for @insights_geographic_countries_title.
   ///
   /// In en, this message translates to:
   /// **'Countries Visited'**
-  String get statistics_geographic_countries_title;
+  String get insights_geographic_countries_title;
 
-  /// No description provided for @statistics_geographic_regions_empty.
+  /// No description provided for @insights_geographic_regions_empty.
   ///
   /// In en, this message translates to:
   /// **'No regions explored'**
-  String get statistics_geographic_regions_empty;
+  String get insights_geographic_regions_empty;
 
-  /// No description provided for @statistics_geographic_regions_error.
+  /// No description provided for @insights_geographic_regions_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load region data'**
-  String get statistics_geographic_regions_error;
+  String get insights_geographic_regions_error;
 
-  /// No description provided for @statistics_geographic_regions_subtitle.
+  /// No description provided for @insights_geographic_regions_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Dives by region'**
-  String get statistics_geographic_regions_subtitle;
+  String get insights_geographic_regions_subtitle;
 
-  /// No description provided for @statistics_geographic_regions_summary.
+  /// No description provided for @insights_geographic_regions_summary.
   ///
   /// In en, this message translates to:
   /// **'{count} regions. Top: {topName} with {topCount} dives'**
-  String statistics_geographic_regions_summary(
+  String insights_geographic_regions_summary(
     Object count,
     Object topName,
     Object topCount,
   );
 
-  /// No description provided for @statistics_geographic_regions_title.
+  /// No description provided for @insights_geographic_regions_title.
   ///
   /// In en, this message translates to:
   /// **'Regions Explored'**
-  String get statistics_geographic_regions_title;
+  String get insights_geographic_regions_title;
 
-  /// No description provided for @statistics_geographic_trips_empty.
+  /// No description provided for @insights_geographic_trips_empty.
   ///
   /// In en, this message translates to:
   /// **'No trip data'**
-  String get statistics_geographic_trips_empty;
+  String get insights_geographic_trips_empty;
 
-  /// No description provided for @statistics_geographic_trips_error.
+  /// No description provided for @insights_geographic_trips_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load trip data'**
-  String get statistics_geographic_trips_error;
+  String get insights_geographic_trips_error;
 
-  /// No description provided for @statistics_geographic_trips_subtitle.
+  /// No description provided for @insights_geographic_trips_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Most productive trips'**
-  String get statistics_geographic_trips_subtitle;
+  String get insights_geographic_trips_subtitle;
 
-  /// No description provided for @statistics_geographic_trips_summary.
+  /// No description provided for @insights_geographic_trips_summary.
   ///
   /// In en, this message translates to:
   /// **'{count} trips. Top: {topName} with {topCount} dives'**
-  String statistics_geographic_trips_summary(
+  String insights_geographic_trips_summary(
     Object count,
     Object topName,
     Object topCount,
   );
 
-  /// No description provided for @statistics_geographic_trips_title.
+  /// No description provided for @insights_geographic_trips_title.
   ///
   /// In en, this message translates to:
   /// **'Dives Per Trip'**
-  String get statistics_geographic_trips_title;
+  String get insights_geographic_trips_title;
 
-  /// No description provided for @statistics_listContent_selectedSuffix.
+  /// No description provided for @insights_listContent_selectedSuffix.
   ///
   /// In en, this message translates to:
   /// **', selected'**
-  String get statistics_listContent_selectedSuffix;
+  String get insights_listContent_selectedSuffix;
 
-  /// No description provided for @statistics_marineLife_appBar_title.
+  /// No description provided for @insights_marineLife_appBar_title.
   ///
   /// In en, this message translates to:
   /// **'Species'**
-  String get statistics_marineLife_appBar_title;
+  String get insights_marineLife_appBar_title;
 
-  /// No description provided for @statistics_marineLife_bestSites_empty.
+  /// No description provided for @insights_marineLife_bestSites_empty.
   ///
   /// In en, this message translates to:
   /// **'No site data'**
-  String get statistics_marineLife_bestSites_empty;
+  String get insights_marineLife_bestSites_empty;
 
-  /// No description provided for @statistics_marineLife_bestSites_error.
+  /// No description provided for @insights_marineLife_bestSites_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load site data'**
-  String get statistics_marineLife_bestSites_error;
+  String get insights_marineLife_bestSites_error;
 
-  /// No description provided for @statistics_marineLife_bestSites_subtitle.
+  /// No description provided for @insights_marineLife_bestSites_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Sites with most species variety'**
-  String get statistics_marineLife_bestSites_subtitle;
+  String get insights_marineLife_bestSites_subtitle;
 
-  /// No description provided for @statistics_marineLife_bestSites_summary.
+  /// No description provided for @insights_marineLife_bestSites_summary.
   ///
   /// In en, this message translates to:
   /// **'{count} sites. Best: {topName} with {topCount} species'**
-  String statistics_marineLife_bestSites_summary(
+  String insights_marineLife_bestSites_summary(
     Object count,
     Object topName,
     Object topCount,
   );
 
-  /// No description provided for @statistics_marineLife_bestSites_title.
+  /// No description provided for @insights_marineLife_bestSites_title.
   ///
   /// In en, this message translates to:
   /// **'Best Sites'**
-  String get statistics_marineLife_bestSites_title;
+  String get insights_marineLife_bestSites_title;
 
-  /// No description provided for @statistics_marineLife_mostCommon_empty.
+  /// No description provided for @insights_marineLife_mostCommon_empty.
   ///
   /// In en, this message translates to:
   /// **'No sighting data'**
-  String get statistics_marineLife_mostCommon_empty;
+  String get insights_marineLife_mostCommon_empty;
 
-  /// No description provided for @statistics_marineLife_mostCommon_error.
+  /// No description provided for @insights_marineLife_mostCommon_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load sighting data'**
-  String get statistics_marineLife_mostCommon_error;
+  String get insights_marineLife_mostCommon_error;
 
-  /// No description provided for @statistics_marineLife_mostCommon_subtitle.
+  /// No description provided for @insights_marineLife_mostCommon_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Species spotted most often'**
-  String get statistics_marineLife_mostCommon_subtitle;
+  String get insights_marineLife_mostCommon_subtitle;
 
-  /// No description provided for @statistics_marineLife_mostCommon_summary.
+  /// No description provided for @insights_marineLife_mostCommon_summary.
   ///
   /// In en, this message translates to:
   /// **'{count} species. Most common: {topName} with {topCount} sightings'**
-  String statistics_marineLife_mostCommon_summary(
+  String insights_marineLife_mostCommon_summary(
     Object count,
     Object topName,
     Object topCount,
   );
 
-  /// No description provided for @statistics_marineLife_mostCommon_title.
+  /// No description provided for @insights_marineLife_mostCommon_title.
   ///
   /// In en, this message translates to:
   /// **'Most Common Sightings'**
-  String get statistics_marineLife_mostCommon_title;
+  String get insights_marineLife_mostCommon_title;
 
-  /// No description provided for @statistics_marineLife_speciesSpotted.
+  /// No description provided for @insights_marineLife_speciesSpotted.
   ///
   /// In en, this message translates to:
   /// **'Species Spotted'**
-  String get statistics_marineLife_speciesSpotted;
+  String get insights_marineLife_speciesSpotted;
 
-  /// No description provided for @statistics_marineLife_seeAllSpecies_title.
+  /// No description provided for @insights_marineLife_seeAllSpecies_title.
   ///
   /// In en, this message translates to:
   /// **'See all species'**
-  String get statistics_marineLife_seeAllSpecies_title;
+  String get insights_marineLife_seeAllSpecies_title;
 
-  /// No description provided for @statistics_marineLife_seeAllSpecies_subtitle.
+  /// No description provided for @insights_marineLife_seeAllSpecies_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Every species you have logged, searchable'**
-  String get statistics_marineLife_seeAllSpecies_subtitle;
+  String get insights_marineLife_seeAllSpecies_subtitle;
 
-  /// No description provided for @statistics_profile_appBar_title.
+  /// No description provided for @insights_profile_appBar_title.
   ///
   /// In en, this message translates to:
   /// **'Profile Analysis'**
-  String get statistics_profile_appBar_title;
+  String get insights_profile_appBar_title;
 
-  /// No description provided for @statistics_profile_ascentDescent_empty.
+  /// No description provided for @insights_profile_ascentDescent_empty.
   ///
   /// In en, this message translates to:
   /// **'No profile data available'**
-  String get statistics_profile_ascentDescent_empty;
+  String get insights_profile_ascentDescent_empty;
 
-  /// No description provided for @statistics_profile_ascentDescent_error.
+  /// No description provided for @insights_profile_ascentDescent_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load rate data'**
-  String get statistics_profile_ascentDescent_error;
+  String get insights_profile_ascentDescent_error;
 
-  /// No description provided for @statistics_profile_ascentDescent_subtitle.
+  /// No description provided for @insights_profile_ascentDescent_subtitle.
   ///
   /// In en, this message translates to:
   /// **'From dive profile data'**
-  String get statistics_profile_ascentDescent_subtitle;
+  String get insights_profile_ascentDescent_subtitle;
 
-  /// No description provided for @statistics_profile_ascentDescent_title.
+  /// No description provided for @insights_profile_ascentDescent_title.
   ///
   /// In en, this message translates to:
   /// **'Average Ascent & Descent Rates'**
-  String get statistics_profile_ascentDescent_title;
+  String get insights_profile_ascentDescent_title;
 
-  /// No description provided for @statistics_profile_avgAscent.
+  /// No description provided for @insights_profile_avgAscent.
   ///
   /// In en, this message translates to:
   /// **'Avg Ascent'**
-  String get statistics_profile_avgAscent;
+  String get insights_profile_avgAscent;
 
-  /// No description provided for @statistics_profile_avgDescent.
+  /// No description provided for @insights_profile_avgDescent.
   ///
   /// In en, this message translates to:
   /// **'Avg Descent'**
-  String get statistics_profile_avgDescent;
+  String get insights_profile_avgDescent;
 
-  /// No description provided for @statistics_profile_deco_decoDives.
+  /// No description provided for @insights_profile_deco_decoDives.
   ///
   /// In en, this message translates to:
   /// **'Deco Dives'**
-  String get statistics_profile_deco_decoDives;
+  String get insights_profile_deco_decoDives;
 
-  /// No description provided for @statistics_profile_deco_decoLabel.
+  /// No description provided for @insights_profile_deco_decoLabel.
   ///
   /// In en, this message translates to:
   /// **'Deco'**
-  String get statistics_profile_deco_decoLabel;
+  String get insights_profile_deco_decoLabel;
 
-  /// No description provided for @statistics_profile_deco_decoRate.
+  /// No description provided for @insights_profile_deco_decoRate.
   ///
   /// In en, this message translates to:
   /// **'Deco Rate'**
-  String get statistics_profile_deco_decoRate;
+  String get insights_profile_deco_decoRate;
 
-  /// No description provided for @statistics_profile_deco_empty.
+  /// No description provided for @insights_profile_deco_empty.
   ///
   /// In en, this message translates to:
   /// **'No deco data available'**
-  String get statistics_profile_deco_empty;
+  String get insights_profile_deco_empty;
 
-  /// No description provided for @statistics_profile_deco_error.
+  /// No description provided for @insights_profile_deco_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load deco data'**
-  String get statistics_profile_deco_error;
+  String get insights_profile_deco_error;
 
-  /// No description provided for @statistics_profile_deco_noDeco.
+  /// No description provided for @insights_profile_deco_noDeco.
   ///
   /// In en, this message translates to:
   /// **'No Deco'**
-  String get statistics_profile_deco_noDeco;
+  String get insights_profile_deco_noDeco;
 
-  /// No description provided for @statistics_profile_deco_notRecorded.
+  /// No description provided for @insights_profile_deco_notRecorded.
   ///
   /// In en, this message translates to:
   /// **'Not Recorded'**
-  String get statistics_profile_deco_notRecorded;
+  String get insights_profile_deco_notRecorded;
 
-  /// No description provided for @statistics_profile_deco_notRecordedHint.
+  /// No description provided for @insights_profile_deco_notRecordedHint.
   ///
   /// In en, this message translates to:
   /// **'{count} dives have no recorded or computable deco data and are excluded from the rate'**
-  String statistics_profile_deco_notRecordedHint(int count);
+  String insights_profile_deco_notRecordedHint(int count);
 
-  /// No description provided for @statistics_profile_deco_semanticLabel.
+  /// No description provided for @insights_profile_deco_semanticLabel.
   ///
   /// In en, this message translates to:
   /// **'Decompression rate: {percentage}% of dives required deco stops'**
-  String statistics_profile_deco_semanticLabel(Object percentage);
+  String insights_profile_deco_semanticLabel(Object percentage);
 
-  /// No description provided for @statistics_profile_deco_subtitle.
+  /// No description provided for @insights_profile_deco_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Dives that incurred deco stops'**
-  String get statistics_profile_deco_subtitle;
+  String get insights_profile_deco_subtitle;
 
-  /// No description provided for @statistics_profile_deco_title.
+  /// No description provided for @insights_profile_deco_title.
   ///
   /// In en, this message translates to:
   /// **'Decompression Obligation'**
-  String get statistics_profile_deco_title;
+  String get insights_profile_deco_title;
 
-  /// No description provided for @statistics_profile_timeAtDepth_empty.
+  /// No description provided for @insights_profile_timeAtDepth_empty.
   ///
   /// In en, this message translates to:
   /// **'No depth data available'**
-  String get statistics_profile_timeAtDepth_empty;
+  String get insights_profile_timeAtDepth_empty;
 
-  /// No description provided for @statistics_profile_timeAtDepth_error.
+  /// No description provided for @insights_profile_timeAtDepth_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load depth range data'**
-  String get statistics_profile_timeAtDepth_error;
+  String get insights_profile_timeAtDepth_error;
 
-  /// No description provided for @statistics_profile_timeAtDepth_subtitle.
+  /// No description provided for @insights_profile_timeAtDepth_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Approximate time spent at each depth'**
-  String get statistics_profile_timeAtDepth_subtitle;
+  String get insights_profile_timeAtDepth_subtitle;
 
-  /// No description provided for @statistics_profile_timeAtDepth_title.
+  /// No description provided for @insights_profile_timeAtDepth_title.
   ///
   /// In en, this message translates to:
   /// **'Time at Depth Ranges'**
-  String get statistics_profile_timeAtDepth_title;
+  String get insights_profile_timeAtDepth_title;
 
-  /// No description provided for @statistics_profile_timeAtDepth_valueFormat.
+  /// No description provided for @insights_profile_timeAtDepth_valueFormat.
   ///
   /// In en, this message translates to:
   /// **'{value} min'**
-  String statistics_profile_timeAtDepth_valueFormat(Object value);
+  String insights_profile_timeAtDepth_valueFormat(Object value);
 
-  /// No description provided for @statistics_progression_appBar_title.
+  /// No description provided for @insights_progression_appBar_title.
   ///
   /// In en, this message translates to:
   /// **'Dive Progression'**
-  String get statistics_progression_appBar_title;
+  String get insights_progression_appBar_title;
 
-  /// No description provided for @statistics_progression_bottomTime_error.
+  /// No description provided for @insights_progression_bottomTime_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load bottom time trend'**
-  String get statistics_progression_bottomTime_error;
+  String get insights_progression_bottomTime_error;
 
-  /// No description provided for @statistics_progression_bottomTime_subtitle.
+  /// No description provided for @insights_progression_bottomTime_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Every dive in range'**
-  String get statistics_progression_bottomTime_subtitle;
+  String get insights_progression_bottomTime_subtitle;
 
-  /// No description provided for @statistics_progression_bottomTime_title.
+  /// No description provided for @insights_progression_bottomTime_title.
   ///
   /// In en, this message translates to:
   /// **'Bottom Time Trend'**
-  String get statistics_progression_bottomTime_title;
+  String get insights_progression_bottomTime_title;
 
-  /// No description provided for @statistics_progression_cumulative_error.
+  /// No description provided for @insights_progression_cumulative_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load cumulative data'**
-  String get statistics_progression_cumulative_error;
+  String get insights_progression_cumulative_error;
 
-  /// No description provided for @statistics_progression_cumulative_subtitle.
+  /// No description provided for @insights_progression_cumulative_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Total dives over time'**
-  String get statistics_progression_cumulative_subtitle;
+  String get insights_progression_cumulative_subtitle;
 
-  /// No description provided for @statistics_progression_cumulative_title.
+  /// No description provided for @insights_progression_cumulative_title.
   ///
   /// In en, this message translates to:
   /// **'Cumulative Dive Count'**
-  String get statistics_progression_cumulative_title;
+  String get insights_progression_cumulative_title;
 
-  /// No description provided for @statistics_progression_depthProgression_error.
+  /// No description provided for @insights_progression_depthProgression_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load depth progression'**
-  String get statistics_progression_depthProgression_error;
+  String get insights_progression_depthProgression_error;
 
-  /// No description provided for @statistics_progression_depthProgression_subtitle.
+  /// No description provided for @insights_progression_depthProgression_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Every dive in range'**
-  String get statistics_progression_depthProgression_subtitle;
+  String get insights_progression_depthProgression_subtitle;
 
-  /// No description provided for @statistics_progression_depthProgression_title.
+  /// No description provided for @insights_progression_depthProgression_title.
   ///
   /// In en, this message translates to:
   /// **'Maximum Depth Progression'**
-  String get statistics_progression_depthProgression_title;
+  String get insights_progression_depthProgression_title;
 
-  /// No description provided for @statistics_progression_divesPerYear_empty.
+  /// No description provided for @insights_progression_divesPerYear_empty.
   ///
   /// In en, this message translates to:
   /// **'No yearly data available'**
-  String get statistics_progression_divesPerYear_empty;
+  String get insights_progression_divesPerYear_empty;
 
-  /// No description provided for @statistics_progression_divesPerYear_error.
+  /// No description provided for @insights_progression_divesPerYear_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load yearly data'**
-  String get statistics_progression_divesPerYear_error;
+  String get insights_progression_divesPerYear_error;
 
-  /// No description provided for @statistics_progression_divesPerYear_subtitle.
+  /// No description provided for @insights_progression_divesPerYear_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Annual dive count comparison'**
-  String get statistics_progression_divesPerYear_subtitle;
+  String get insights_progression_divesPerYear_subtitle;
 
-  /// No description provided for @statistics_progression_divesPerYear_title.
+  /// No description provided for @insights_progression_divesPerYear_title.
   ///
   /// In en, this message translates to:
   /// **'Dives Per Year'**
-  String get statistics_progression_divesPerYear_title;
+  String get insights_progression_divesPerYear_title;
 
-  /// No description provided for @statistics_ranking_countLabel_dives.
+  /// No description provided for @insights_ranking_countLabel_dives.
   ///
   /// In en, this message translates to:
   /// **'dives'**
-  String get statistics_ranking_countLabel_dives;
+  String get insights_ranking_countLabel_dives;
 
-  /// No description provided for @statistics_ranking_countLabel_sightings.
+  /// No description provided for @insights_ranking_countLabel_sightings.
   ///
   /// In en, this message translates to:
   /// **'sightings'**
-  String get statistics_ranking_countLabel_sightings;
+  String get insights_ranking_countLabel_sightings;
 
-  /// No description provided for @statistics_ranking_countLabel_species.
+  /// No description provided for @insights_ranking_countLabel_species.
   ///
   /// In en, this message translates to:
   /// **'species'**
-  String get statistics_ranking_countLabel_species;
+  String get insights_ranking_countLabel_species;
 
-  /// No description provided for @statistics_ranking_emptyState.
+  /// No description provided for @insights_ranking_emptyState.
   ///
   /// In en, this message translates to:
   /// **'No data yet'**
-  String get statistics_ranking_emptyState;
+  String get insights_ranking_emptyState;
 
-  /// No description provided for @statistics_ranking_itemCount.
+  /// No description provided for @insights_ranking_itemCount.
   ///
   /// In en, this message translates to:
   /// **'{count} {label}'**
-  String statistics_ranking_itemCount(Object count, Object label);
+  String insights_ranking_itemCount(Object count, Object label);
 
-  /// No description provided for @statistics_ranking_moreItems.
+  /// No description provided for @insights_ranking_moreItems.
   ///
   /// In en, this message translates to:
   /// **'and {count} more'**
-  String statistics_ranking_moreItems(Object count);
+  String insights_ranking_moreItems(Object count);
 
-  /// No description provided for @statistics_ranking_semanticLabel.
+  /// No description provided for @insights_ranking_semanticLabel.
   ///
   /// In en, this message translates to:
   /// **'{name}, rank {rank}, {count} {label}'**
-  String statistics_ranking_semanticLabel(
+  String insights_ranking_semanticLabel(
     Object name,
     Object rank,
     Object count,
     Object label,
   );
 
-  /// No description provided for @statistics_records_appBar_title.
+  /// No description provided for @insights_records_appBar_title.
   ///
   /// In en, this message translates to:
   /// **'Dive Records'**
-  String get statistics_records_appBar_title;
+  String get insights_records_appBar_title;
 
-  /// No description provided for @statistics_records_coldestDive.
+  /// No description provided for @insights_records_coldestDive.
   ///
   /// In en, this message translates to:
   /// **'Coldest Dive'**
-  String get statistics_records_coldestDive;
+  String get insights_records_coldestDive;
 
-  /// No description provided for @statistics_records_deepestDive.
+  /// No description provided for @insights_records_deepestDive.
   ///
   /// In en, this message translates to:
   /// **'Deepest Dive'**
-  String get statistics_records_deepestDive;
+  String get insights_records_deepestDive;
 
-  /// No description provided for @statistics_records_diveNumber.
+  /// No description provided for @insights_records_diveNumber.
   ///
   /// In en, this message translates to:
   /// **'Dive #{number}'**
-  String statistics_records_diveNumber(Object number);
+  String insights_records_diveNumber(Object number);
 
-  /// No description provided for @statistics_records_emptySubtitle.
+  /// No description provided for @insights_records_emptySubtitle.
   ///
   /// In en, this message translates to:
   /// **'Start logging dives to see your records here'**
-  String get statistics_records_emptySubtitle;
+  String get insights_records_emptySubtitle;
 
-  /// No description provided for @statistics_records_emptyTitle.
+  /// No description provided for @insights_records_emptyTitle.
   ///
   /// In en, this message translates to:
   /// **'No Records Yet'**
-  String get statistics_records_emptyTitle;
+  String get insights_records_emptyTitle;
 
-  /// No description provided for @statistics_records_error.
+  /// No description provided for @insights_records_error.
   ///
   /// In en, this message translates to:
   /// **'Error loading records'**
-  String get statistics_records_error;
+  String get insights_records_error;
 
-  /// No description provided for @statistics_records_firstDive.
+  /// No description provided for @insights_records_firstDive.
   ///
   /// In en, this message translates to:
   /// **'First Dive'**
-  String get statistics_records_firstDive;
+  String get insights_records_firstDive;
 
-  /// No description provided for @statistics_records_longestDive.
+  /// No description provided for @insights_records_longestDive.
   ///
   /// In en, this message translates to:
   /// **'Longest Dive'**
-  String get statistics_records_longestDive;
+  String get insights_records_longestDive;
 
-  /// No description provided for @statistics_records_longestDiveValue.
+  /// No description provided for @insights_records_longestDiveValue.
   ///
   /// In en, this message translates to:
   /// **'{minutes} min'**
-  String statistics_records_longestDiveValue(Object minutes);
+  String insights_records_longestDiveValue(Object minutes);
 
-  /// No description provided for @statistics_records_milestoneSemanticLabel.
+  /// No description provided for @insights_records_milestoneSemanticLabel.
   ///
   /// In en, this message translates to:
   /// **'{title}: {siteName}'**
-  String statistics_records_milestoneSemanticLabel(
-    Object title,
-    Object siteName,
-  );
+  String insights_records_milestoneSemanticLabel(Object title, Object siteName);
 
-  /// No description provided for @statistics_records_milestones.
+  /// No description provided for @insights_records_milestones.
   ///
   /// In en, this message translates to:
   /// **'Milestones'**
-  String get statistics_records_milestones;
+  String get insights_records_milestones;
 
-  /// No description provided for @statistics_records_mostRecentDive.
+  /// No description provided for @insights_records_mostRecentDive.
   ///
   /// In en, this message translates to:
   /// **'Most Recent Dive'**
-  String get statistics_records_mostRecentDive;
+  String get insights_records_mostRecentDive;
 
-  /// No description provided for @statistics_records_recordSemanticLabel.
+  /// No description provided for @insights_records_recordSemanticLabel.
   ///
   /// In en, this message translates to:
   /// **'{title}: {value} at {siteName}'**
-  String statistics_records_recordSemanticLabel(
+  String insights_records_recordSemanticLabel(
     Object title,
     Object value,
     Object siteName,
   );
 
-  /// No description provided for @statistics_records_retry.
+  /// No description provided for @insights_records_retry.
   ///
   /// In en, this message translates to:
   /// **'Retry'**
-  String get statistics_records_retry;
+  String get insights_records_retry;
 
-  /// No description provided for @statistics_records_shallowestDive.
+  /// No description provided for @insights_records_shallowestDive.
   ///
   /// In en, this message translates to:
   /// **'Shallowest Dive'**
-  String get statistics_records_shallowestDive;
+  String get insights_records_shallowestDive;
 
-  /// No description provided for @statistics_records_unknownSite.
+  /// No description provided for @insights_records_unknownSite.
   ///
   /// In en, this message translates to:
   /// **'Unknown Site'**
-  String get statistics_records_unknownSite;
+  String get insights_records_unknownSite;
 
-  /// No description provided for @statistics_records_warmestDive.
+  /// No description provided for @insights_records_warmestDive.
   ///
   /// In en, this message translates to:
   /// **'Warmest Dive'**
-  String get statistics_records_warmestDive;
+  String get insights_records_warmestDive;
 
-  /// No description provided for @statistics_sectionCard_semanticLabel.
+  /// No description provided for @insights_sectionCard_semanticLabel.
   ///
   /// In en, this message translates to:
   /// **'{title} section'**
-  String statistics_sectionCard_semanticLabel(Object title);
+  String insights_sectionCard_semanticLabel(Object title);
 
-  /// No description provided for @statistics_social_appBar_title.
+  /// No description provided for @insights_social_appBar_title.
   ///
   /// In en, this message translates to:
   /// **'Social & Buddies'**
-  String get statistics_social_appBar_title;
+  String get insights_social_appBar_title;
 
-  /// No description provided for @statistics_social_soloVsBuddy_empty.
+  /// No description provided for @insights_social_soloVsBuddy_empty.
   ///
   /// In en, this message translates to:
   /// **'No dive data available'**
-  String get statistics_social_soloVsBuddy_empty;
+  String get insights_social_soloVsBuddy_empty;
 
-  /// No description provided for @statistics_social_soloVsBuddy_error.
+  /// No description provided for @insights_social_soloVsBuddy_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load buddy data'**
-  String get statistics_social_soloVsBuddy_error;
+  String get insights_social_soloVsBuddy_error;
 
-  /// No description provided for @statistics_social_soloVsBuddy_solo.
+  /// No description provided for @insights_social_soloVsBuddy_solo.
   ///
   /// In en, this message translates to:
   /// **'Solo'**
-  String get statistics_social_soloVsBuddy_solo;
+  String get insights_social_soloVsBuddy_solo;
 
-  /// No description provided for @statistics_social_soloVsBuddy_subtitle.
+  /// No description provided for @insights_social_soloVsBuddy_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Diving with or without companions'**
-  String get statistics_social_soloVsBuddy_subtitle;
+  String get insights_social_soloVsBuddy_subtitle;
 
-  /// No description provided for @statistics_social_soloVsBuddy_title.
+  /// No description provided for @insights_social_soloVsBuddy_title.
   ///
   /// In en, this message translates to:
   /// **'Solo vs Buddy Dives'**
-  String get statistics_social_soloVsBuddy_title;
+  String get insights_social_soloVsBuddy_title;
 
-  /// No description provided for @statistics_social_soloVsBuddy_withBuddy.
+  /// No description provided for @insights_social_soloVsBuddy_withBuddy.
   ///
   /// In en, this message translates to:
   /// **'With Buddy'**
-  String get statistics_social_soloVsBuddy_withBuddy;
+  String get insights_social_soloVsBuddy_withBuddy;
 
-  /// No description provided for @statistics_social_topBuddies_error.
+  /// No description provided for @insights_social_topBuddies_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load buddy rankings'**
-  String get statistics_social_topBuddies_error;
+  String get insights_social_topBuddies_error;
 
-  /// No description provided for @statistics_social_topBuddies_subtitle.
+  /// No description provided for @insights_social_topBuddies_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Most frequent diving companions'**
-  String get statistics_social_topBuddies_subtitle;
+  String get insights_social_topBuddies_subtitle;
 
-  /// No description provided for @statistics_social_topBuddies_title.
+  /// No description provided for @insights_social_topBuddies_title.
   ///
   /// In en, this message translates to:
   /// **'Top Dive Buddies'**
-  String get statistics_social_topBuddies_title;
+  String get insights_social_topBuddies_title;
 
-  /// No description provided for @statistics_social_topDiveCenters_error.
+  /// No description provided for @insights_social_topDiveCenters_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load dive center rankings'**
-  String get statistics_social_topDiveCenters_error;
+  String get insights_social_topDiveCenters_error;
 
-  /// No description provided for @statistics_social_topDiveCenters_subtitle.
+  /// No description provided for @insights_social_topDiveCenters_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Most visited operators'**
-  String get statistics_social_topDiveCenters_subtitle;
+  String get insights_social_topDiveCenters_subtitle;
 
-  /// No description provided for @statistics_social_topDiveCenters_title.
+  /// No description provided for @insights_social_topDiveCenters_title.
   ///
   /// In en, this message translates to:
   /// **'Top Dive Centers'**
-  String get statistics_social_topDiveCenters_title;
+  String get insights_social_topDiveCenters_title;
 
-  /// No description provided for @statistics_summary_avgDepth.
+  /// No description provided for @insights_summary_avgDepth.
   ///
   /// In en, this message translates to:
   /// **'Avg Depth'**
-  String get statistics_summary_avgDepth;
+  String get insights_summary_avgDepth;
 
-  /// No description provided for @statistics_summary_avgTemp.
+  /// No description provided for @insights_summary_avgTemp.
   ///
   /// In en, this message translates to:
   /// **'Avg Temp'**
-  String get statistics_summary_avgTemp;
+  String get insights_summary_avgTemp;
 
-  /// No description provided for @statistics_summary_depthDistribution_empty.
+  /// No description provided for @insights_summary_depthDistribution_empty.
   ///
   /// In en, this message translates to:
   /// **'Chart will appear when you log dives'**
-  String get statistics_summary_depthDistribution_empty;
+  String get insights_summary_depthDistribution_empty;
 
-  /// No description provided for @statistics_summary_depthDistribution_semanticLabel.
+  /// No description provided for @insights_summary_depthDistribution_semanticLabel.
   ///
   /// In en, this message translates to:
   /// **'Pie chart showing depth distribution'**
-  String get statistics_summary_depthDistribution_semanticLabel;
+  String get insights_summary_depthDistribution_semanticLabel;
 
-  /// No description provided for @statistics_summary_depthDistribution_title.
+  /// No description provided for @insights_summary_depthDistribution_title.
   ///
   /// In en, this message translates to:
   /// **'Depth Distribution'**
-  String get statistics_summary_depthDistribution_title;
+  String get insights_summary_depthDistribution_title;
 
-  /// No description provided for @statistics_summary_diveTypes_empty.
+  /// No description provided for @insights_summary_diveTypes_empty.
   ///
   /// In en, this message translates to:
   /// **'Chart will appear when you log dives'**
-  String get statistics_summary_diveTypes_empty;
+  String get insights_summary_diveTypes_empty;
 
-  /// No description provided for @statistics_summary_diveTypes_moreTypes.
+  /// No description provided for @insights_summary_diveTypes_moreTypes.
   ///
   /// In en, this message translates to:
   /// **'and {count} more types'**
-  String statistics_summary_diveTypes_moreTypes(Object count);
+  String insights_summary_diveTypes_moreTypes(Object count);
 
-  /// No description provided for @statistics_summary_diveTypes_semanticLabel.
+  /// No description provided for @insights_summary_diveTypes_semanticLabel.
   ///
   /// In en, this message translates to:
   /// **'Pie chart showing dive type distribution'**
-  String get statistics_summary_diveTypes_semanticLabel;
+  String get insights_summary_diveTypes_semanticLabel;
 
-  /// No description provided for @statistics_summary_diveTypes_title.
+  /// No description provided for @insights_summary_diveTypes_title.
   ///
   /// In en, this message translates to:
   /// **'Dive Types'**
-  String get statistics_summary_diveTypes_title;
+  String get insights_summary_diveTypes_title;
 
-  /// No description provided for @statistics_summary_divesByMonth_empty.
+  /// No description provided for @insights_summary_divesByMonth_empty.
   ///
   /// In en, this message translates to:
   /// **'Chart will appear when you log dives'**
-  String get statistics_summary_divesByMonth_empty;
+  String get insights_summary_divesByMonth_empty;
 
-  /// No description provided for @statistics_summary_divesByMonth_semanticLabel.
+  /// No description provided for @insights_summary_divesByMonth_semanticLabel.
   ///
   /// In en, this message translates to:
   /// **'Bar chart showing dives by month'**
-  String get statistics_summary_divesByMonth_semanticLabel;
+  String get insights_summary_divesByMonth_semanticLabel;
 
-  /// No description provided for @statistics_summary_divesByMonth_title.
+  /// No description provided for @insights_summary_divesByMonth_title.
   ///
   /// In en, this message translates to:
   /// **'Dives by Month'**
-  String get statistics_summary_divesByMonth_title;
+  String get insights_summary_divesByMonth_title;
 
-  /// No description provided for @statistics_summary_divesByMonth_tooltip.
+  /// No description provided for @insights_summary_divesByMonth_tooltip.
   ///
   /// In en, this message translates to:
   /// **'{fullLabel} {count} dives'**
-  String statistics_summary_divesByMonth_tooltip(
-    Object fullLabel,
-    Object count,
-  );
+  String insights_summary_divesByMonth_tooltip(Object fullLabel, Object count);
 
-  /// No description provided for @statistics_summary_header_subtitle.
+  /// No description provided for @insights_summary_header_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Select a category to explore detailed statistics'**
-  String get statistics_summary_header_subtitle;
+  /// **'Select a category to explore detailed insights'**
+  String get insights_summary_header_subtitle;
 
-  /// No description provided for @statistics_summary_header_title.
+  /// No description provided for @insights_summary_header_title.
   ///
   /// In en, this message translates to:
-  /// **'Statistics Overview'**
-  String get statistics_summary_header_title;
+  /// **'Insights Overview'**
+  String get insights_summary_header_title;
 
-  /// No description provided for @statistics_summary_maxDepth.
+  /// No description provided for @insights_summary_maxDepth.
   ///
   /// In en, this message translates to:
   /// **'Max Depth'**
-  String get statistics_summary_maxDepth;
+  String get insights_summary_maxDepth;
 
-  /// No description provided for @statistics_summary_sitesVisited.
+  /// No description provided for @insights_summary_sitesVisited.
   ///
   /// In en, this message translates to:
   /// **'Sites Visited'**
-  String get statistics_summary_sitesVisited;
+  String get insights_summary_sitesVisited;
 
-  /// No description provided for @statistics_summary_tagUsage_diveCount.
+  /// No description provided for @insights_summary_tagUsage_diveCount.
   ///
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
-  String statistics_summary_tagUsage_diveCount(int count);
+  String insights_summary_tagUsage_diveCount(int count);
 
-  /// No description provided for @statistics_summary_tagUsage_empty.
+  /// No description provided for @insights_summary_tagUsage_empty.
   ///
   /// In en, this message translates to:
   /// **'No tags created yet'**
-  String get statistics_summary_tagUsage_empty;
+  String get insights_summary_tagUsage_empty;
 
-  /// No description provided for @statistics_summary_tagUsage_emptyHint.
+  /// No description provided for @insights_summary_tagUsage_emptyHint.
   ///
   /// In en, this message translates to:
   /// **'Add tags to dives to see statistics'**
-  String get statistics_summary_tagUsage_emptyHint;
+  String get insights_summary_tagUsage_emptyHint;
 
-  /// No description provided for @statistics_summary_tagUsage_moreTags.
+  /// No description provided for @insights_summary_tagUsage_moreTags.
   ///
   /// In en, this message translates to:
   /// **'and {count} more tags'**
-  String statistics_summary_tagUsage_moreTags(Object count);
+  String insights_summary_tagUsage_moreTags(Object count);
 
-  /// No description provided for @statistics_summary_tagUsage_tagCount.
+  /// No description provided for @insights_summary_tagUsage_tagCount.
   ///
   /// In en, this message translates to:
   /// **'{count} tags'**
-  String statistics_summary_tagUsage_tagCount(Object count);
+  String insights_summary_tagUsage_tagCount(Object count);
 
-  /// No description provided for @statistics_summary_tagUsage_title.
+  /// No description provided for @insights_summary_tagUsage_title.
   ///
   /// In en, this message translates to:
   /// **'Tag Usage'**
-  String get statistics_summary_tagUsage_title;
+  String get insights_summary_tagUsage_title;
 
-  /// No description provided for @statistics_summary_topDiveSites_diveCount.
+  /// No description provided for @insights_summary_topDiveSites_diveCount.
   ///
   /// In en, this message translates to:
   /// **'{count} dives'**
-  String statistics_summary_topDiveSites_diveCount(Object count);
+  String insights_summary_topDiveSites_diveCount(Object count);
 
-  /// No description provided for @statistics_summary_topDiveSites_empty.
+  /// No description provided for @insights_summary_topDiveSites_empty.
   ///
   /// In en, this message translates to:
   /// **'No dive sites yet'**
-  String get statistics_summary_topDiveSites_empty;
+  String get insights_summary_topDiveSites_empty;
 
-  /// No description provided for @statistics_summary_topDiveSites_title.
+  /// No description provided for @insights_summary_topDiveSites_title.
   ///
   /// In en, this message translates to:
   /// **'Top Dive Sites'**
-  String get statistics_summary_topDiveSites_title;
+  String get insights_summary_topDiveSites_title;
 
-  /// No description provided for @statistics_summary_topDiveSites_totalCount.
+  /// No description provided for @insights_summary_topDiveSites_totalCount.
   ///
   /// In en, this message translates to:
   /// **'{count} total'**
-  String statistics_summary_topDiveSites_totalCount(Object count);
+  String insights_summary_topDiveSites_totalCount(Object count);
 
-  /// No description provided for @statistics_summary_totalDives.
+  /// No description provided for @insights_summary_totalDives.
   ///
   /// In en, this message translates to:
   /// **'Total Dives'**
-  String get statistics_summary_totalDives;
+  String get insights_summary_totalDives;
 
-  /// No description provided for @statistics_summary_totalTime.
+  /// No description provided for @insights_summary_totalTime.
   ///
   /// In en, this message translates to:
   /// **'Total Time'**
-  String get statistics_summary_totalTime;
+  String get insights_summary_totalTime;
 
-  /// No description provided for @statistics_timePatterns_appBar_title.
+  /// No description provided for @insights_timePatterns_appBar_title.
   ///
   /// In en, this message translates to:
   /// **'Time Patterns'**
-  String get statistics_timePatterns_appBar_title;
+  String get insights_timePatterns_appBar_title;
 
-  /// No description provided for @statistics_timePatterns_dayOfWeek_empty.
+  /// No description provided for @insights_timePatterns_dayOfWeek_empty.
   ///
   /// In en, this message translates to:
   /// **'No data available'**
-  String get statistics_timePatterns_dayOfWeek_empty;
+  String get insights_timePatterns_dayOfWeek_empty;
 
-  /// No description provided for @statistics_timePatterns_dayOfWeek_error.
+  /// No description provided for @insights_timePatterns_dayOfWeek_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load day of week data'**
-  String get statistics_timePatterns_dayOfWeek_error;
+  String get insights_timePatterns_dayOfWeek_error;
 
-  /// No description provided for @statistics_timePatterns_dayOfWeek_fri.
+  /// No description provided for @insights_timePatterns_dayOfWeek_fri.
   ///
   /// In en, this message translates to:
   /// **'Fri'**
-  String get statistics_timePatterns_dayOfWeek_fri;
+  String get insights_timePatterns_dayOfWeek_fri;
 
-  /// No description provided for @statistics_timePatterns_dayOfWeek_mon.
+  /// No description provided for @insights_timePatterns_dayOfWeek_mon.
   ///
   /// In en, this message translates to:
   /// **'Mon'**
-  String get statistics_timePatterns_dayOfWeek_mon;
+  String get insights_timePatterns_dayOfWeek_mon;
 
-  /// No description provided for @statistics_timePatterns_dayOfWeek_sat.
+  /// No description provided for @insights_timePatterns_dayOfWeek_sat.
   ///
   /// In en, this message translates to:
   /// **'Sat'**
-  String get statistics_timePatterns_dayOfWeek_sat;
+  String get insights_timePatterns_dayOfWeek_sat;
 
-  /// No description provided for @statistics_timePatterns_dayOfWeek_subtitle.
+  /// No description provided for @insights_timePatterns_dayOfWeek_subtitle.
   ///
   /// In en, this message translates to:
   /// **'When do you dive most?'**
-  String get statistics_timePatterns_dayOfWeek_subtitle;
+  String get insights_timePatterns_dayOfWeek_subtitle;
 
-  /// No description provided for @statistics_timePatterns_dayOfWeek_sun.
+  /// No description provided for @insights_timePatterns_dayOfWeek_sun.
   ///
   /// In en, this message translates to:
   /// **'Sun'**
-  String get statistics_timePatterns_dayOfWeek_sun;
+  String get insights_timePatterns_dayOfWeek_sun;
 
-  /// No description provided for @statistics_timePatterns_dayOfWeek_thu.
+  /// No description provided for @insights_timePatterns_dayOfWeek_thu.
   ///
   /// In en, this message translates to:
   /// **'Thu'**
-  String get statistics_timePatterns_dayOfWeek_thu;
+  String get insights_timePatterns_dayOfWeek_thu;
 
-  /// No description provided for @statistics_timePatterns_dayOfWeek_title.
+  /// No description provided for @insights_timePatterns_dayOfWeek_title.
   ///
   /// In en, this message translates to:
   /// **'Dives by Day of Week'**
-  String get statistics_timePatterns_dayOfWeek_title;
+  String get insights_timePatterns_dayOfWeek_title;
 
-  /// No description provided for @statistics_timePatterns_dayOfWeek_tue.
+  /// No description provided for @insights_timePatterns_dayOfWeek_tue.
   ///
   /// In en, this message translates to:
   /// **'Tue'**
-  String get statistics_timePatterns_dayOfWeek_tue;
+  String get insights_timePatterns_dayOfWeek_tue;
 
-  /// No description provided for @statistics_timePatterns_dayOfWeek_wed.
+  /// No description provided for @insights_timePatterns_dayOfWeek_wed.
   ///
   /// In en, this message translates to:
   /// **'Wed'**
-  String get statistics_timePatterns_dayOfWeek_wed;
+  String get insights_timePatterns_dayOfWeek_wed;
 
-  /// No description provided for @statistics_timePatterns_month_apr.
+  /// No description provided for @insights_timePatterns_month_apr.
   ///
   /// In en, this message translates to:
   /// **'Apr'**
-  String get statistics_timePatterns_month_apr;
+  String get insights_timePatterns_month_apr;
 
-  /// No description provided for @statistics_timePatterns_month_aug.
+  /// No description provided for @insights_timePatterns_month_aug.
   ///
   /// In en, this message translates to:
   /// **'Aug'**
-  String get statistics_timePatterns_month_aug;
+  String get insights_timePatterns_month_aug;
 
-  /// No description provided for @statistics_timePatterns_month_dec.
+  /// No description provided for @insights_timePatterns_month_dec.
   ///
   /// In en, this message translates to:
   /// **'Dec'**
-  String get statistics_timePatterns_month_dec;
+  String get insights_timePatterns_month_dec;
 
-  /// No description provided for @statistics_timePatterns_month_feb.
+  /// No description provided for @insights_timePatterns_month_feb.
   ///
   /// In en, this message translates to:
   /// **'Feb'**
-  String get statistics_timePatterns_month_feb;
+  String get insights_timePatterns_month_feb;
 
-  /// No description provided for @statistics_timePatterns_month_jan.
+  /// No description provided for @insights_timePatterns_month_jan.
   ///
   /// In en, this message translates to:
   /// **'Jan'**
-  String get statistics_timePatterns_month_jan;
+  String get insights_timePatterns_month_jan;
 
-  /// No description provided for @statistics_timePatterns_month_jul.
+  /// No description provided for @insights_timePatterns_month_jul.
   ///
   /// In en, this message translates to:
   /// **'Jul'**
-  String get statistics_timePatterns_month_jul;
+  String get insights_timePatterns_month_jul;
 
-  /// No description provided for @statistics_timePatterns_month_jun.
+  /// No description provided for @insights_timePatterns_month_jun.
   ///
   /// In en, this message translates to:
   /// **'Jun'**
-  String get statistics_timePatterns_month_jun;
+  String get insights_timePatterns_month_jun;
 
-  /// No description provided for @statistics_timePatterns_month_mar.
+  /// No description provided for @insights_timePatterns_month_mar.
   ///
   /// In en, this message translates to:
   /// **'Mar'**
-  String get statistics_timePatterns_month_mar;
+  String get insights_timePatterns_month_mar;
 
-  /// No description provided for @statistics_timePatterns_month_may.
+  /// No description provided for @insights_timePatterns_month_may.
   ///
   /// In en, this message translates to:
   /// **'May'**
-  String get statistics_timePatterns_month_may;
+  String get insights_timePatterns_month_may;
 
-  /// No description provided for @statistics_timePatterns_month_nov.
+  /// No description provided for @insights_timePatterns_month_nov.
   ///
   /// In en, this message translates to:
   /// **'Nov'**
-  String get statistics_timePatterns_month_nov;
+  String get insights_timePatterns_month_nov;
 
-  /// No description provided for @statistics_timePatterns_month_oct.
+  /// No description provided for @insights_timePatterns_month_oct.
   ///
   /// In en, this message translates to:
   /// **'Oct'**
-  String get statistics_timePatterns_month_oct;
+  String get insights_timePatterns_month_oct;
 
-  /// No description provided for @statistics_timePatterns_month_sep.
+  /// No description provided for @insights_timePatterns_month_sep.
   ///
   /// In en, this message translates to:
   /// **'Sep'**
-  String get statistics_timePatterns_month_sep;
+  String get insights_timePatterns_month_sep;
 
-  /// No description provided for @statistics_timePatterns_seasonal_empty.
+  /// No description provided for @insights_timePatterns_seasonal_empty.
   ///
   /// In en, this message translates to:
   /// **'No data available'**
-  String get statistics_timePatterns_seasonal_empty;
+  String get insights_timePatterns_seasonal_empty;
 
-  /// No description provided for @statistics_timePatterns_seasonal_error.
+  /// No description provided for @insights_timePatterns_seasonal_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load seasonal data'**
-  String get statistics_timePatterns_seasonal_error;
+  String get insights_timePatterns_seasonal_error;
 
-  /// No description provided for @statistics_timePatterns_seasonal_subtitle.
+  /// No description provided for @insights_timePatterns_seasonal_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Dives by month (all years)'**
-  String get statistics_timePatterns_seasonal_subtitle;
+  String get insights_timePatterns_seasonal_subtitle;
 
-  /// No description provided for @statistics_timePatterns_seasonal_title.
+  /// No description provided for @insights_timePatterns_seasonal_title.
   ///
   /// In en, this message translates to:
   /// **'Seasonal Patterns'**
-  String get statistics_timePatterns_seasonal_title;
+  String get insights_timePatterns_seasonal_title;
 
-  /// No description provided for @statistics_timePatterns_surfaceInterval_average.
+  /// No description provided for @insights_timePatterns_surfaceInterval_average.
   ///
   /// In en, this message translates to:
   /// **'Average'**
-  String get statistics_timePatterns_surfaceInterval_average;
+  String get insights_timePatterns_surfaceInterval_average;
 
-  /// No description provided for @statistics_timePatterns_surfaceInterval_empty.
+  /// No description provided for @insights_timePatterns_surfaceInterval_empty.
   ///
   /// In en, this message translates to:
   /// **'No surface interval data available'**
-  String get statistics_timePatterns_surfaceInterval_empty;
+  String get insights_timePatterns_surfaceInterval_empty;
 
-  /// No description provided for @statistics_timePatterns_surfaceInterval_error.
+  /// No description provided for @insights_timePatterns_surfaceInterval_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load surface interval data'**
-  String get statistics_timePatterns_surfaceInterval_error;
+  String get insights_timePatterns_surfaceInterval_error;
 
-  /// No description provided for @statistics_timePatterns_surfaceInterval_formatHoursMinutes.
+  /// No description provided for @insights_timePatterns_surfaceInterval_formatHoursMinutes.
   ///
   /// In en, this message translates to:
   /// **'{hours}h {minutes}m'**
-  String statistics_timePatterns_surfaceInterval_formatHoursMinutes(
+  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
     Object hours,
     Object minutes,
   );
 
-  /// No description provided for @statistics_timePatterns_surfaceInterval_formatMinutes.
+  /// No description provided for @insights_timePatterns_surfaceInterval_formatMinutes.
   ///
   /// In en, this message translates to:
   /// **'{minutes} min'**
-  String statistics_timePatterns_surfaceInterval_formatMinutes(Object minutes);
+  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes);
 
-  /// No description provided for @statistics_timePatterns_surfaceInterval_maximum.
+  /// No description provided for @insights_timePatterns_surfaceInterval_maximum.
   ///
   /// In en, this message translates to:
   /// **'Maximum'**
-  String get statistics_timePatterns_surfaceInterval_maximum;
+  String get insights_timePatterns_surfaceInterval_maximum;
 
-  /// No description provided for @statistics_timePatterns_surfaceInterval_minimum.
+  /// No description provided for @insights_timePatterns_surfaceInterval_minimum.
   ///
   /// In en, this message translates to:
   /// **'Minimum'**
-  String get statistics_timePatterns_surfaceInterval_minimum;
+  String get insights_timePatterns_surfaceInterval_minimum;
 
-  /// No description provided for @statistics_timePatterns_surfaceInterval_subtitle.
+  /// No description provided for @insights_timePatterns_surfaceInterval_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Time between dives'**
-  String get statistics_timePatterns_surfaceInterval_subtitle;
+  String get insights_timePatterns_surfaceInterval_subtitle;
 
-  /// No description provided for @statistics_timePatterns_surfaceInterval_title.
+  /// No description provided for @insights_timePatterns_surfaceInterval_title.
   ///
   /// In en, this message translates to:
   /// **'Surface Interval Statistics'**
-  String get statistics_timePatterns_surfaceInterval_title;
+  String get insights_timePatterns_surfaceInterval_title;
 
-  /// No description provided for @statistics_timePatterns_timeOfDay_error.
+  /// No description provided for @insights_timePatterns_timeOfDay_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load time of day data'**
-  String get statistics_timePatterns_timeOfDay_error;
+  String get insights_timePatterns_timeOfDay_error;
 
-  /// No description provided for @statistics_timePatterns_timeOfDay_subtitle.
+  /// No description provided for @insights_timePatterns_timeOfDay_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Morning, afternoon, evening, or night'**
-  String get statistics_timePatterns_timeOfDay_subtitle;
+  String get insights_timePatterns_timeOfDay_subtitle;
 
-  /// No description provided for @statistics_timePatterns_timeOfDay_title.
+  /// No description provided for @insights_timePatterns_timeOfDay_title.
   ///
   /// In en, this message translates to:
   /// **'Dives by Time of Day'**
-  String get statistics_timePatterns_timeOfDay_title;
+  String get insights_timePatterns_timeOfDay_title;
 
-  /// No description provided for @statistics_tooltip_diveRecords.
+  /// No description provided for @insights_tooltip_diveRecords.
   ///
   /// In en, this message translates to:
   /// **'Dive Records'**
-  String get statistics_tooltip_diveRecords;
+  String get insights_tooltip_diveRecords;
 
-  /// No description provided for @statistics_tooltip_filter.
+  /// No description provided for @insights_tooltip_filter.
   ///
   /// In en, this message translates to:
-  /// **'Filter statistics'**
-  String get statistics_tooltip_filter;
+  /// **'Filter insights'**
+  String get insights_tooltip_filter;
 
-  /// No description provided for @statistics_tooltip_refreshRecords.
+  /// No description provided for @insights_tooltip_refreshRecords.
   ///
   /// In en, this message translates to:
   /// **'Refresh records'**
-  String get statistics_tooltip_refreshRecords;
+  String get insights_tooltip_refreshRecords;
 
-  /// No description provided for @statistics_tooltip_refreshStatistics.
+  /// No description provided for @insights_tooltip_refreshInsights.
   ///
   /// In en, this message translates to:
-  /// **'Refresh statistics'**
-  String get statistics_tooltip_refreshStatistics;
+  /// **'Refresh insights'**
+  String get insights_tooltip_refreshInsights;
 
-  /// No description provided for @statistics_valueCard_semanticLabel.
+  /// No description provided for @insights_valueCard_semanticLabel.
   ///
   /// In en, this message translates to:
   /// **'{label}: {value}'**
-  String statistics_valueCard_semanticLabel(Object label, Object value);
+  String insights_valueCard_semanticLabel(Object label, Object value);
 
   /// Educational text explaining tissue compartments and nitrogen loading
   ///
@@ -43844,17 +43838,17 @@ abstract class AppLocalizations {
   /// **'Enter a valid number'**
   String get divers_edit_priorInvalidNumber;
 
-  /// No description provided for @statistics_priorBreakdown.
+  /// No description provided for @insights_priorBreakdown.
   ///
   /// In en, this message translates to:
   /// **'{logged} logged + {prior} prior'**
-  String statistics_priorBreakdown(String logged, String prior);
+  String insights_priorBreakdown(String logged, String prior);
 
-  /// No description provided for @statistics_divingSince.
+  /// No description provided for @insights_divingSince.
   ///
   /// In en, this message translates to:
   /// **'Diving since {year}'**
-  String statistics_divingSince(int year);
+  String insights_divingSince(int year);
 
   /// No description provided for @db_location_choose_volume.
   ///
@@ -46792,35 +46786,35 @@ abstract class AppLocalizations {
   /// **'Enter a web address, e.g. shop.example.com'**
   String get equipment_edit_invalidWebLink;
 
-  /// No description provided for @statistics_progression_divesBySuitThickness_title.
+  /// No description provided for @insights_progression_divesBySuitThickness_title.
   ///
   /// In en, this message translates to:
   /// **'Dives by Suit Thickness'**
-  String get statistics_progression_divesBySuitThickness_title;
+  String get insights_progression_divesBySuitThickness_title;
 
-  /// No description provided for @statistics_progression_divesBySuitThickness_subtitle.
+  /// No description provided for @insights_progression_divesBySuitThickness_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Exposure suit primary thickness across your dives'**
-  String get statistics_progression_divesBySuitThickness_subtitle;
+  String get insights_progression_divesBySuitThickness_subtitle;
 
-  /// No description provided for @statistics_progression_divesBySuitThickness_empty.
+  /// No description provided for @insights_progression_divesBySuitThickness_empty.
   ///
   /// In en, this message translates to:
   /// **'No dives with a wetsuit or drysuit linked'**
-  String get statistics_progression_divesBySuitThickness_empty;
+  String get insights_progression_divesBySuitThickness_empty;
 
-  /// No description provided for @statistics_progression_divesBySuitThickness_error.
+  /// No description provided for @insights_progression_divesBySuitThickness_error.
   ///
   /// In en, this message translates to:
   /// **'Could not load suit thickness data'**
-  String get statistics_progression_divesBySuitThickness_error;
+  String get insights_progression_divesBySuitThickness_error;
 
-  /// No description provided for @statistics_progression_divesBySuitThickness_unknown.
+  /// No description provided for @insights_progression_divesBySuitThickness_unknown.
   ///
   /// In en, this message translates to:
   /// **'Unknown'**
-  String get statistics_progression_divesBySuitThickness_unknown;
+  String get insights_progression_divesBySuitThickness_unknown;
 
   /// No description provided for @diveLog_filter_sectionSuitThickness.
   ///
@@ -50030,11 +50024,11 @@ abstract class AppLocalizations {
   /// **'Enter the shortest distance that still counts for each label.'**
   String get settings_visibilityScale_customHelp;
 
-  /// No description provided for @statistics_conditions_visibility_legacySuffix.
+  /// No description provided for @insights_conditions_visibility_legacySuffix.
   ///
   /// In en, this message translates to:
   /// **'{band} (logged before measurement)'**
-  String statistics_conditions_visibility_legacySuffix(String band);
+  String insights_conditions_visibility_legacySuffix(String band);
 
   /// No description provided for @common_selection_countSelected.
   ///
@@ -60941,25 +60935,25 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Bar chart. Entry methods. {description}'**
-  String statistics_conditions_entryMethod_semanticLabel(String description);
+  String insights_conditions_entryMethod_semanticLabel(String description);
 
   /// Screen-reader summary of the visibility distribution pie chart
   ///
   /// In en, this message translates to:
   /// **'Pie chart. Visibility distribution. {description}'**
-  String statistics_conditions_visibility_semanticLabel(String description);
+  String insights_conditions_visibility_semanticLabel(String description);
 
   /// Screen-reader summary of the water type distribution pie chart
   ///
   /// In en, this message translates to:
   /// **'Pie chart. Water type distribution. {description}'**
-  String statistics_conditions_waterType_semanticLabel(String description);
+  String insights_conditions_waterType_semanticLabel(String description);
 
   /// Screen-reader summary of the dives-by-suit-thickness bar chart
   ///
   /// In en, this message translates to:
   /// **'Bar chart. Dives by suit thickness. {description}'**
-  String statistics_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitThickness_semanticLabel(
     String description,
   );
 
@@ -60967,119 +60961,116 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 dive in {year}} other{{count} dives in {year}}}'**
-  String statistics_progression_divesPerYear_countInYear(
-    int count,
-    String year,
-  );
+  String insights_progression_divesPerYear_countInYear(int count, String year);
 
   /// Screen-reader summary of the dives-per-year bar chart
   ///
   /// In en, this message translates to:
   /// **'Bar chart. Dives per year. {description}'**
-  String statistics_progression_divesPerYear_semanticLabel(String description);
+  String insights_progression_divesPerYear_semanticLabel(String description);
 
-  /// No description provided for @statistics_records_unavailable.
+  /// No description provided for @insights_records_unavailable.
   ///
   /// In en, this message translates to:
   /// **'Records unavailable'**
-  String get statistics_records_unavailable;
+  String get insights_records_unavailable;
 
   /// Depth-distribution legend for the open-ended deepest bucket; unit is the diver's depth symbol
   ///
   /// In en, this message translates to:
   /// **'{min}{unit}+'**
-  String statistics_summary_depthBucket_over(String min, String unit);
+  String insights_summary_depthBucket_over(String min, String unit);
 
   /// Depth-distribution legend for a closed depth bucket; unit is the diver's depth symbol
   ///
   /// In en, this message translates to:
   /// **'{min}-{max}{unit}'**
-  String statistics_summary_depthBucket_range(
+  String insights_summary_depthBucket_range(
     String min,
     String max,
     String unit,
   );
 
-  /// No description provided for @statistics_summary_distributions_title.
+  /// No description provided for @insights_summary_distributions_title.
   ///
   /// In en, this message translates to:
   /// **'Distributions'**
-  String get statistics_summary_distributions_title;
+  String get insights_summary_distributions_title;
 
-  /// No description provided for @statistics_summary_diveTypes_error.
+  /// No description provided for @insights_summary_diveTypes_error.
   ///
   /// In en, this message translates to:
   /// **'Unable to load dive type data'**
-  String get statistics_summary_diveTypes_error;
+  String get insights_summary_diveTypes_error;
 
-  /// No description provided for @statistics_summary_diveTypes_unknown.
+  /// No description provided for @insights_summary_diveTypes_unknown.
   ///
   /// In en, this message translates to:
   /// **'Unknown'**
-  String get statistics_summary_diveTypes_unknown;
+  String get insights_summary_diveTypes_unknown;
 
-  /// No description provided for @statistics_summary_divesPerMonth.
+  /// No description provided for @insights_summary_divesPerMonth.
   ///
   /// In en, this message translates to:
   /// **'Dives / Month'**
-  String get statistics_summary_divesPerMonth;
+  String get insights_summary_divesPerMonth;
 
-  /// No description provided for @statistics_summary_divesPerYear.
+  /// No description provided for @insights_summary_divesPerYear.
   ///
   /// In en, this message translates to:
   /// **'Dives / Year'**
-  String get statistics_summary_divesPerYear;
+  String get insights_summary_divesPerYear;
 
   /// Screen-reader summary of the dives-by-day-of-week bar chart
   ///
   /// In en, this message translates to:
   /// **'Bar chart. Dives by day of week. {description}'**
-  String statistics_timePatterns_dayOfWeek_semanticLabel(String description);
+  String insights_timePatterns_dayOfWeek_semanticLabel(String description);
 
   /// Screen-reader summary of the dives-by-month bar chart
   ///
   /// In en, this message translates to:
   /// **'Bar chart. Dives by month. {description}'**
-  String statistics_timePatterns_seasonal_semanticLabel(String description);
+  String insights_timePatterns_seasonal_semanticLabel(String description);
 
   /// Screen-reader label for one surface-interval statistic tile
   ///
   /// In en, this message translates to:
   /// **'{label} surface interval: {value}'**
-  String statistics_timePatterns_surfaceInterval_statLabel(
+  String insights_timePatterns_surfaceInterval_statLabel(
     String label,
     String value,
   );
 
-  /// No description provided for @statistics_timePatterns_timeOfDay_afternoon.
+  /// No description provided for @insights_timePatterns_timeOfDay_afternoon.
   ///
   /// In en, this message translates to:
   /// **'Afternoon'**
-  String get statistics_timePatterns_timeOfDay_afternoon;
+  String get insights_timePatterns_timeOfDay_afternoon;
 
-  /// No description provided for @statistics_timePatterns_timeOfDay_evening.
+  /// No description provided for @insights_timePatterns_timeOfDay_evening.
   ///
   /// In en, this message translates to:
   /// **'Evening'**
-  String get statistics_timePatterns_timeOfDay_evening;
+  String get insights_timePatterns_timeOfDay_evening;
 
-  /// No description provided for @statistics_timePatterns_timeOfDay_morning.
+  /// No description provided for @insights_timePatterns_timeOfDay_morning.
   ///
   /// In en, this message translates to:
   /// **'Morning'**
-  String get statistics_timePatterns_timeOfDay_morning;
+  String get insights_timePatterns_timeOfDay_morning;
 
-  /// No description provided for @statistics_timePatterns_timeOfDay_night.
+  /// No description provided for @insights_timePatterns_timeOfDay_night.
   ///
   /// In en, this message translates to:
   /// **'Night'**
-  String get statistics_timePatterns_timeOfDay_night;
+  String get insights_timePatterns_timeOfDay_night;
 
   /// Screen-reader summary of the dives-by-time-of-day pie chart
   ///
   /// In en, this message translates to:
   /// **'Pie chart. Dives by time of day. {description}'**
-  String statistics_timePatterns_timeOfDay_semanticLabel(String description);
+  String insights_timePatterns_timeOfDay_semanticLabel(String description);
 
   /// No description provided for @columnConfig_displayOptions.
   ///
@@ -65551,149 +65542,149 @@ abstract class AppLocalizations {
   /// **'HealthKit is not available on this device'**
   String get settings_dataSources_appleHealth_permissionUnsupported;
 
-  /// No description provided for @statistics_trend_aggregation_monthly.
+  /// No description provided for @insights_trend_aggregation_monthly.
   ///
   /// In en, this message translates to:
   /// **'Monthly average'**
-  String get statistics_trend_aggregation_monthly;
+  String get insights_trend_aggregation_monthly;
 
-  /// No description provided for @statistics_trend_aggregation_perDive.
+  /// No description provided for @insights_trend_aggregation_perDive.
   ///
   /// In en, this message translates to:
   /// **'Every dive'**
-  String get statistics_trend_aggregation_perDive;
+  String get insights_trend_aggregation_perDive;
 
-  /// No description provided for @statistics_trend_aggregation_tooltip.
+  /// No description provided for @insights_trend_aggregation_tooltip.
   ///
   /// In en, this message translates to:
   /// **'How dives are grouped'**
-  String get statistics_trend_aggregation_tooltip;
+  String get insights_trend_aggregation_tooltip;
 
-  /// No description provided for @statistics_trend_aggregation_weekly.
+  /// No description provided for @insights_trend_aggregation_weekly.
   ///
   /// In en, this message translates to:
   /// **'Weekly average'**
-  String get statistics_trend_aggregation_weekly;
+  String get insights_trend_aggregation_weekly;
 
-  /// No description provided for @statistics_trend_band_semanticLabel.
+  /// No description provided for @insights_trend_band_semanticLabel.
   ///
   /// In en, this message translates to:
   /// **'Shaded band spans the lowest and highest value in each group'**
-  String get statistics_trend_band_semanticLabel;
+  String get insights_trend_band_semanticLabel;
 
-  /// No description provided for @statistics_trend_legend_rate.
+  /// No description provided for @insights_trend_legend_rate.
   ///
   /// In en, this message translates to:
   /// **'Overall trend'**
-  String get statistics_trend_legend_rate;
+  String get insights_trend_legend_rate;
 
-  /// No description provided for @statistics_trend_legend_rollingAverage.
+  /// No description provided for @insights_trend_legend_rollingAverage.
   ///
   /// In en, this message translates to:
   /// **'Rolling avg'**
-  String get statistics_trend_legend_rollingAverage;
+  String get insights_trend_legend_rollingAverage;
 
   /// Linear trend rate shown beside the rate legend entry. The value already carries its unit symbol, for example '+4.4 m'.
   ///
   /// In en, this message translates to:
   /// **'{value}/yr'**
-  String statistics_trend_rate_perYear(String value);
+  String insights_trend_rate_perYear(String value);
 
-  /// No description provided for @statistics_conditions_tempTrend_title.
+  /// No description provided for @insights_conditions_tempTrend_title.
   ///
   /// In en, this message translates to:
   /// **'Water Temperature Trend'**
-  String get statistics_conditions_tempTrend_title;
+  String get insights_conditions_tempTrend_title;
 
-  /// No description provided for @statistics_conditions_tempTrend_subtitle.
+  /// No description provided for @insights_conditions_tempTrend_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Every dive in range'**
-  String get statistics_conditions_tempTrend_subtitle;
+  String get insights_conditions_tempTrend_subtitle;
 
-  /// No description provided for @statistics_conditions_tempTrend_empty.
+  /// No description provided for @insights_conditions_tempTrend_empty.
   ///
   /// In en, this message translates to:
   /// **'No temperature data available'**
-  String get statistics_conditions_tempTrend_empty;
+  String get insights_conditions_tempTrend_empty;
 
-  /// No description provided for @statistics_conditions_tempTrend_error.
+  /// No description provided for @insights_conditions_tempTrend_error.
   ///
   /// In en, this message translates to:
   /// **'Failed to load temperature trend'**
-  String get statistics_conditions_tempTrend_error;
+  String get insights_conditions_tempTrend_error;
 
   /// Title of the Conditions statistics card that counts dives per water-temperature band (for example below 10, 10-18, 18-24 and 24+ degrees)
   ///
   /// In en, this message translates to:
   /// **'Dives by Water Temperature'**
-  String get statistics_conditions_waterTempBands_title;
+  String get insights_conditions_waterTempBands_title;
 
   /// Subtitle under the dives-by-water-temperature card title, explaining that the chart shows how many dives fall in each temperature range
   ///
   /// In en, this message translates to:
   /// **'How your dives split across water temperature bands'**
-  String get statistics_conditions_waterTempBands_subtitle;
+  String get insights_conditions_waterTempBands_subtitle;
 
   /// Empty state of the dives-by-water-temperature card, shown when no dive in the current filter has a water temperature recorded
   ///
   /// In en, this message translates to:
   /// **'No water temperature data available'**
-  String get statistics_conditions_waterTempBands_empty;
+  String get insights_conditions_waterTempBands_empty;
 
   /// Error state of the dives-by-water-temperature card, shown when the band counts could not be loaded
   ///
   /// In en, this message translates to:
   /// **'Failed to load water temperature bands'**
-  String get statistics_conditions_waterTempBands_error;
+  String get insights_conditions_waterTempBands_error;
 
   /// Screen-reader summary of the dives-by-water-temperature-band bar chart
   ///
   /// In en, this message translates to:
   /// **'Bar chart. Dives by water temperature. {description}'**
-  String statistics_conditions_waterTempBands_semanticLabel(String description);
+  String insights_conditions_waterTempBands_semanticLabel(String description);
 
   /// Header of the first column of the per-band averages table on the dives-by-water-temperature card: the water-temperature band, such as 10-18°C
   ///
   /// In en, this message translates to:
   /// **'Band'**
-  String get statistics_conditions_waterTempBands_table_band;
+  String get insights_conditions_waterTempBands_table_band;
 
   /// Header of the column of the per-band averages table that counts every dive in the band
   ///
   /// In en, this message translates to:
   /// **'Dives'**
-  String get statistics_conditions_waterTempBands_table_dives;
+  String get insights_conditions_waterTempBands_table_dives;
 
   /// Header of the column of the per-band averages table showing the average SAC (tank-pressure drop per minute) of the band's dives
   ///
   /// In en, this message translates to:
   /// **'Avg SAC'**
-  String get statistics_conditions_waterTempBands_table_avgSac;
+  String get insights_conditions_waterTempBands_table_avgSac;
 
   /// Header of the column of the per-band averages table showing the average RMV (surface gas volume per minute) of the band's dives
   ///
   /// In en, this message translates to:
   /// **'Avg RMV'**
-  String get statistics_conditions_waterTempBands_table_avgRmv;
+  String get insights_conditions_waterTempBands_table_avgRmv;
 
   /// Header of the column of the per-band averages table showing the average bottom time of the band's dives
   ///
   /// In en, this message translates to:
   /// **'Avg bottom time'**
-  String get statistics_conditions_waterTempBands_table_avgBottomTime;
+  String get insights_conditions_waterTempBands_table_avgBottomTime;
 
   /// Shown in place of the per-band averages table on the dives-by-water-temperature card when the averages could not be loaded
   ///
   /// In en, this message translates to:
   /// **'Failed to load band averages'**
-  String get statistics_conditions_waterTempBands_table_error;
+  String get insights_conditions_waterTempBands_table_error;
 
   /// Screen-reader text for one average and how many dives it is based on
   ///
   /// In en, this message translates to:
   /// **'{value} over {dives}'**
-  String statistics_conditions_waterTempBands_table_averageOver(
+  String insights_conditions_waterTempBands_table_averageOver(
     String value,
     String dives,
   );
@@ -65702,13 +65693,13 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'no data'**
-  String get statistics_conditions_waterTempBands_table_noData;
+  String get insights_conditions_waterTempBands_table_noData;
 
   /// Screen-reader summary of one row of the per-band averages table: the band, its dive count, its average gas consumption and its average bottom time
   ///
   /// In en, this message translates to:
   /// **'{band}: {dives}. Average {lane}: {consumption}. Average bottom time: {bottomTime}.'**
-  String statistics_conditions_waterTempBands_table_rowSemanticLabel(
+  String insights_conditions_waterTempBands_table_rowSemanticLabel(
     String band,
     String dives,
     String lane,
@@ -65728,17 +65719,17 @@ abstract class AppLocalizations {
   /// **'Last 10 years'**
   String get diveLog_filter_presetLast10Years;
 
-  /// No description provided for @statistics_trend_tooltip_lowest.
+  /// No description provided for @insights_trend_tooltip_lowest.
   ///
   /// In en, this message translates to:
   /// **'Lowest'**
-  String get statistics_trend_tooltip_lowest;
+  String get insights_trend_tooltip_lowest;
 
-  /// No description provided for @statistics_trend_tooltip_highest.
+  /// No description provided for @insights_trend_tooltip_highest.
   ///
   /// In en, this message translates to:
   /// **'Highest'**
-  String get statistics_trend_tooltip_highest;
+  String get insights_trend_tooltip_highest;
 
   /// Checkbox: exclude this dive from all statistics
   ///
@@ -65804,7 +65795,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{count, plural, one{1 dive excluded from statistics} other{{count} dives excluded from statistics}}'**
-  String statistics_excludedDivesFootnote(int count);
+  String insights_excludedDivesFootnote(int count);
 
   /// Collapsible dive-form group holding the statistics-exclusion toggles
   ///

@@ -585,7 +585,7 @@
   "accessibility_shortcut_goToEquipment": "Go to Equipment",
   "accessibility_shortcut_goToSettings": "Go to Settings",
   "accessibility_shortcut_goToSites": "Go to Sites",
-  "accessibility_shortcut_goToStatistics": "Go to Statistics",
+  "accessibility_shortcut_goToInsights": "Go to Insights",
   "accessibility_shortcut_keyboardShortcuts": "Keyboard shortcuts",
   "accessibility_shortcut_newDive": "New dive",
   "accessibility_shortcut_openSettings": "Open settings",
@@ -728,8 +728,8 @@
   "@accessibility_shortcut_goToSites": {
     "description": "Keyboard shortcut label for navigating to sites"
   },
-  "@accessibility_shortcut_goToStatistics": {
-    "description": "Keyboard shortcut label for navigating to statistics"
+  "@accessibility_shortcut_goToInsights": {
+    "description": "Keyboard shortcut label for navigating to Insights"
   },
   "@accessibility_shortcut_keyboardShortcuts": {
     "description": "Keyboard shortcut label for opening the shortcuts help"
@@ -2584,8 +2584,8 @@
   "dashboard_quickActions_planDive": "Plan Dive",
   "dashboard_quickActions_planDiveTooltip": "Plan a new dive",
   "dashboard_quickActions_sectionTitle": "Quick Actions",
-  "dashboard_quickActions_statistics": "Statistics",
-  "dashboard_quickActions_statisticsTooltip": "View dive statistics",
+  "dashboard_quickActions_insights": "Insights",
+  "dashboard_quickActions_insightsTooltip": "View dive insights",
   "dashboard_quickStats_countries": "Countries",
   "dashboard_quickStats_countriesSubtitle": "visited",
   "dashboard_quickStats_sectionTitle": "At a Glance",
@@ -3980,7 +3980,7 @@
   "setup_finish_feature_gear": "Track gear and service intervals",
   "setup_finish_feature_import": "Import logs from files and other apps",
   "setup_finish_feature_sites": "Map your dive sites",
-  "setup_finish_feature_statistics": "Explore statistics about your diving",
+  "setup_finish_feature_insights": "Explore insights about your diving",
   "setup_finish_start": "Get started",
   "setup_finish_subtitle": "Submersion can also...",
   "setup_finish_title": "You're all set",
@@ -4428,7 +4428,7 @@
   "diveLog_speciesPicker_tooltip_clearSearch": "Clear search",
   "diveLog_summary_action_importComputer": "Import from Computer",
   "diveLog_summary_action_logDive": "Log Dive",
-  "diveLog_summary_action_viewStats": "View Statistics",
+  "diveLog_summary_action_viewInsights": "View Insights",
   "diveLog_summary_diveCount": "{count} {count, plural, =1{dive} other{dives}}",
   "diveLog_summary_overview": "Overview",
   "diveLog_summary_record_coldest": "Coldest Dive",
@@ -10021,7 +10021,7 @@
   "nav_settings": "Settings",
   "nav_sites": "Sites",
   "nav_species": "Species",
-  "nav_statistics": "Statistics",
+  "nav_insights": "Insights",
   "nav_tooltip_closeMenu": "Close menu",
   "nav_tooltip_collapseMenu": "Collapse menu",
   "nav_tooltip_expandMenu": "Expand menu",
@@ -10072,8 +10072,8 @@
   "@nav_species": {
     "description": "Navigation label for the species section"
   },
-  "@nav_statistics": {
-    "description": "Navigation label for statistics section"
+  "@nav_insights": {
+    "description": "Navigation label for the Insights section"
   },
   "@nav_tooltip_closeMenu": {
     "description": "Tooltip for the close button on the more menu"
@@ -12164,359 +12164,359 @@
       }
     }
   },
-  "statistics_appBar_title": "Statistics",
-  "statistics_categoryCard_semanticLabel": "{title} statistics category",
-  "statistics_category_conditions_subtitle": "Visibility & temperature",
-  "statistics_category_conditions_title": "Conditions",
-  "statistics_category_equipment_subtitle": "Gear usage & weight",
-  "statistics_category_equipment_title": "Equipment",
-  "statistics_category_gas_subtitle": "Gas consumption & gas mixes",
-  "statistics_category_gas_title": "Air Consumption",
-  "statistics_category_geographic_subtitle": "Countries & regions",
-  "statistics_category_geographic_title": "Geographic",
-  "statistics_category_marineLife_subtitle": "Species sightings",
-  "statistics_category_marineLife_title": "Species",
-  "statistics_category_overview_title": "Overview",
-  "@statistics_category_overview_title": {
-    "description": "Title for the Overview entry in the Statistics category list"
+  "insights_appBar_title": "Insights",
+  "insights_categoryCard_semanticLabel": "{title} insights category",
+  "insights_category_conditions_subtitle": "Visibility & temperature",
+  "insights_category_conditions_title": "Conditions",
+  "insights_category_equipment_subtitle": "Gear usage & weight",
+  "insights_category_equipment_title": "Equipment",
+  "insights_category_gas_subtitle": "Gas consumption & gas mixes",
+  "insights_category_gas_title": "Air Consumption",
+  "insights_category_geographic_subtitle": "Countries & regions",
+  "insights_category_geographic_title": "Geographic",
+  "insights_category_marineLife_subtitle": "Species sightings",
+  "insights_category_marineLife_title": "Species",
+  "insights_category_overview_title": "Overview",
+  "@insights_category_overview_title": {
+    "description": "Title for the Overview entry in the Insights category list"
   },
-  "statistics_category_overview_subtitle": "Totals, records, and breakdowns at a glance",
-  "@statistics_category_overview_subtitle": {
-    "description": "Subtitle for the Overview entry in the Statistics category list"
+  "insights_category_overview_subtitle": "Totals, records, and breakdowns at a glance",
+  "@insights_category_overview_subtitle": {
+    "description": "Subtitle for the Overview entry in the Insights category list"
   },
-  "statistics_category_profile_subtitle": "Ascent rates & deco",
-  "statistics_category_profile_title": "Profile Analysis",
-  "statistics_category_progression_subtitle": "Depth & time trends",
-  "statistics_category_progression_title": "Progression",
-  "statistics_category_social_subtitle": "Buddies & dive centers",
-  "statistics_category_social_title": "Social",
-  "statistics_category_timePatterns_subtitle": "When you dive",
-  "statistics_category_timePatterns_title": "Time Patterns",
-  "statistics_chart_barSemanticLabel": "Bar chart with {count} categories",
-  "statistics_chart_distributionSemanticLabel": "Distribution pie chart with {count} segments",
-  "statistics_chart_multiTrendSemanticLabel": "Multi-trend line chart comparing {seriesNames}",
-  "statistics_chart_noBarData": "No data available",
-  "statistics_chart_noDistributionData": "No distribution data available",
-  "statistics_chart_noTrendData": "No trend data available",
-  "statistics_chart_notRecorded": "Not recorded",
-  "statistics_chart_trendSemanticLabel": "Trend line chart showing {count} data points",
-  "statistics_chart_trendSemanticLabelWithAxis": "Trend line chart showing {count} data points for {yAxisLabel}",
-  "statistics_conditions_appBar_title": "Conditions",
-  "statistics_conditions_entryMethod_empty": "No entry method data available",
-  "statistics_conditions_entryMethod_error": "Failed to load entry method data",
-  "statistics_conditions_entryMethod_subtitle": "Shore, boat, etc.",
-  "statistics_conditions_entryMethod_title": "Entry Method",
-  "statistics_conditions_temperature_empty": "No temperature data available",
-  "statistics_conditions_temperature_error": "Failed to load temperature data",
-  "statistics_conditions_temperature_seriesAvg": "Avg",
-  "statistics_conditions_temperature_seriesMax": "Max",
-  "statistics_conditions_temperature_seriesMin": "Min",
-  "statistics_conditions_temperature_subtitle": "Min, average and max by calendar month, across every year",
-  "statistics_conditions_temperature_title": "Seasonal Water Temperature",
-  "statistics_conditions_visibility_error": "Failed to load visibility data",
-  "statistics_conditions_visibility_subtitle": "Dives by visibility condition",
-  "statistics_conditions_visibility_title": "Visibility Distribution",
-  "statistics_conditions_siteType_error": "Failed to load site type data",
-  "statistics_conditions_siteType_semanticLabel": "Bar chart. Dives per site type. {description}",
-  "@statistics_conditions_siteType_semanticLabel": {
+  "insights_category_profile_subtitle": "Ascent rates & deco",
+  "insights_category_profile_title": "Profile Analysis",
+  "insights_category_progression_subtitle": "Depth & time trends",
+  "insights_category_progression_title": "Progression",
+  "insights_category_social_subtitle": "Buddies & dive centers",
+  "insights_category_social_title": "Social",
+  "insights_category_timePatterns_subtitle": "When you dive",
+  "insights_category_timePatterns_title": "Time Patterns",
+  "insights_chart_barSemanticLabel": "Bar chart with {count} categories",
+  "insights_chart_distributionSemanticLabel": "Distribution pie chart with {count} segments",
+  "insights_chart_multiTrendSemanticLabel": "Multi-trend line chart comparing {seriesNames}",
+  "insights_chart_noBarData": "No data available",
+  "insights_chart_noDistributionData": "No distribution data available",
+  "insights_chart_noTrendData": "No trend data available",
+  "insights_chart_notRecorded": "Not recorded",
+  "insights_chart_trendSemanticLabel": "Trend line chart showing {count} data points",
+  "insights_chart_trendSemanticLabelWithAxis": "Trend line chart showing {count} data points for {yAxisLabel}",
+  "insights_conditions_appBar_title": "Conditions",
+  "insights_conditions_entryMethod_empty": "No entry method data available",
+  "insights_conditions_entryMethod_error": "Failed to load entry method data",
+  "insights_conditions_entryMethod_subtitle": "Shore, boat, etc.",
+  "insights_conditions_entryMethod_title": "Entry Method",
+  "insights_conditions_temperature_empty": "No temperature data available",
+  "insights_conditions_temperature_error": "Failed to load temperature data",
+  "insights_conditions_temperature_seriesAvg": "Avg",
+  "insights_conditions_temperature_seriesMax": "Max",
+  "insights_conditions_temperature_seriesMin": "Min",
+  "insights_conditions_temperature_subtitle": "Min, average and max by calendar month, across every year",
+  "insights_conditions_temperature_title": "Seasonal Water Temperature",
+  "insights_conditions_visibility_error": "Failed to load visibility data",
+  "insights_conditions_visibility_subtitle": "Dives by visibility condition",
+  "insights_conditions_visibility_title": "Visibility Distribution",
+  "insights_conditions_siteType_error": "Failed to load site type data",
+  "insights_conditions_siteType_semanticLabel": "Bar chart. Dives per site type. {description}",
+  "@insights_conditions_siteType_semanticLabel": {
     "placeholders": {
       "description": {
         "type": "String"
       }
     }
   },
-  "statistics_conditions_siteType_subtitle": "Dives per site type. A dive at a site with several types counts toward each; sites without a type are not shown.",
-  "statistics_conditions_siteType_title": "Site Types",
-  "statistics_conditions_waterType_error": "Failed to load water type data",
-  "statistics_conditions_waterType_subtitle": "Salt vs Fresh water dives",
-  "statistics_conditions_waterType_title": "Water Type",
-  "statistics_equipment_appBar_title": "Equipment",
-  "statistics_equipment_mostUsedGear_error": "Failed to load gear data",
-  "statistics_equipment_mostUsedGear_subtitle": "Equipment by dive count",
-  "statistics_equipment_mostUsedGear_title": "Most Used Gear",
-  "statistics_equipment_weightTrend_error": "Failed to load weight trend",
-  "statistics_equipment_weightTrend_subtitle": "Total lead carried per dive",
-  "statistics_equipment_weightTrend_title": "Weight Trend",
-  "statistics_equipment_exposure_title": "Exposure",
-  "statistics_equipment_exposure_error": "Failed to load exposure data",
-  "statistics_equipment_findings_error": "Failed to load condition findings",
-  "statistics_equipment_issues_error": "Failed to load reported issues",
-  "statistics_equipment_exposure_subtitle": "Totals per item with your thresholds",
-  "statistics_equipment_exposure_empty": "No dives with gear yet",
-  "statistics_equipment_findings_title": "Condition findings",
-  "statistics_equipment_findings_subtitle": "Open findings by rule",
-  "statistics_equipment_findings_subtitleAllDives": "Open findings by rule, across all dives",
-  "statistics_equipment_findings_empty": "No open findings",
-  "statistics_equipment_issues_title": "Reported issues",
-  "statistics_equipment_issues_subtitle": "Most frequent check-in tags",
-  "statistics_equipment_issues_empty": "No issues reported",
-  "statistics_equipment_countLabel_items": "items",
-  "statistics_equipment_countLabel_findings": "findings",
-  "statistics_equipment_countLabel_reports": "reports",
-  "statistics_equipment_exposureUnit_days": "Days",
-  "statistics_equipment_exposureUnit_dives": "Dives",
-  "statistics_equipment_countLabel_days": "days",
-  "statistics_equipment_countLabel_dives": "dives",
-  "statistics_equipment_countLabel_hours": "hours",
-  "statistics_equipment_countLabel_saltHours": "salt-water hours",
-  "statistics_equipment_countLabel_coldDives": "cold dives",
-  "statistics_equipment_countLabel_o2Hours": "high-O2 hours",
-  "statistics_equipment_countLabel_deepCycles": "deep dives",
-  "statistics_equipment_countLabel_cycles": "battery cycles",
-  "statistics_equipment_exposureUnit_hours": "Hours",
-  "statistics_equipment_exposureUnit_saltHours": "Salt-water hours",
-  "statistics_equipment_exposureUnit_coldDives": "Cold dives",
-  "statistics_equipment_exposureUnit_o2Hours": "High-O2 hours",
-  "statistics_equipment_exposureUnit_deepCycles": "Deep dives",
-  "statistics_equipment_exposureUnit_cycles": "Battery cycles",
-  "statistics_error_loadingStatistics": "Error loading statistics",
-  "statistics_filterBar_clear": "Clear filter",
-  "statistics_filterBar_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
-  "statistics_gas_appBar_title": "Air Consumption",
-  "statistics_gas_gasMix_error": "Failed to load gas mix data",
-  "statistics_gas_gasMix_subtitle": "Dives by gas type",
-  "statistics_gas_gasMix_title": "Gas Mix Distribution",
-  "statistics_gas_sacByRole_empty": "No multi-tank data available",
-  "statistics_gas_sacByRole_error": "Failed to load consumption by role",
-  "statistics_gas_sacByRole_subtitle": "Average consumption by tank type",
-  "statistics_gas_sacByRole_title": "Gas consumption by tank role",
-  "statistics_gas_sacRecords_empty": "No consumption data yet",
-  "statistics_gas_sacRecords_error": "Failed to load consumption records",
-  "statistics_gas_sacRecords_highestRmv": "Highest RMV",
-  "statistics_gas_sacRecords_highestSac": "Highest SAC",
-  "statistics_gas_sacRecords_bestRmv": "Best RMV",
-  "statistics_gas_sacRecords_bestSac": "Best SAC",
-  "statistics_gas_sacRecords_subtitle": "Best and worst air consumption",
-  "statistics_gas_sacRecords_title": "Gas consumption records",
-  "statistics_gas_sacTrend_error": "Failed to load consumption trend",
-  "statistics_gas_sacTrend_subtitle": "Every dive in range",
-  "statistics_gas_sacTrend_title": "Gas consumption trend",
-  "statistics_gas_tankRole_backGas": "Back Gas",
-  "statistics_gas_tankRole_bailout": "Bailout",
-  "statistics_gas_tankRole_deco": "Deco",
-  "statistics_gas_tankRole_diluent": "Diluent",
-  "statistics_gas_tankRole_oxygenSupply": "O₂ Supply",
-  "statistics_gas_tankRole_pony": "Pony",
-  "statistics_gas_tankRole_sidemountLeft": "Sidemount L",
-  "statistics_gas_tankRole_sidemountRight": "Sidemount R",
-  "statistics_gas_tankRole_stage": "Stage",
-  "statistics_geographic_appBar_title": "Geographic",
-  "statistics_geographic_countries_empty": "No countries visited",
-  "statistics_geographic_countries_error": "Failed to load country data",
-  "statistics_geographic_countries_subtitle": "Dives by country",
-  "statistics_geographic_countries_summary": "{count} countries. Top: {topName} with {topCount} dives",
-  "statistics_geographic_countries_title": "Countries Visited",
-  "statistics_geographic_regions_empty": "No regions explored",
-  "statistics_geographic_regions_error": "Failed to load region data",
-  "statistics_geographic_regions_subtitle": "Dives by region",
-  "statistics_geographic_regions_summary": "{count} regions. Top: {topName} with {topCount} dives",
-  "statistics_geographic_regions_title": "Regions Explored",
-  "statistics_geographic_trips_empty": "No trip data",
-  "statistics_geographic_trips_error": "Failed to load trip data",
-  "statistics_geographic_trips_subtitle": "Most productive trips",
-  "statistics_geographic_trips_summary": "{count} trips. Top: {topName} with {topCount} dives",
-  "statistics_geographic_trips_title": "Dives Per Trip",
-  "statistics_listContent_selectedSuffix": ", selected",
-  "statistics_marineLife_appBar_title": "Species",
-  "statistics_marineLife_bestSites_empty": "No site data",
-  "statistics_marineLife_bestSites_error": "Failed to load site data",
-  "statistics_marineLife_bestSites_subtitle": "Sites with most species variety",
-  "statistics_marineLife_bestSites_summary": "{count} sites. Best: {topName} with {topCount} species",
-  "statistics_marineLife_bestSites_title": "Best Sites",
-  "statistics_marineLife_mostCommon_empty": "No sighting data",
-  "statistics_marineLife_mostCommon_error": "Failed to load sighting data",
-  "statistics_marineLife_mostCommon_subtitle": "Species spotted most often",
-  "statistics_marineLife_mostCommon_summary": "{count} species. Most common: {topName} with {topCount} sightings",
-  "statistics_marineLife_mostCommon_title": "Most Common Sightings",
-  "statistics_marineLife_speciesSpotted": "Species Spotted",
-  "statistics_marineLife_seeAllSpecies_title": "See all species",
-  "statistics_marineLife_seeAllSpecies_subtitle": "Every species you have logged, searchable",
-  "statistics_profile_appBar_title": "Profile Analysis",
-  "statistics_profile_ascentDescent_empty": "No profile data available",
-  "statistics_profile_ascentDescent_error": "Failed to load rate data",
-  "statistics_profile_ascentDescent_subtitle": "From dive profile data",
-  "statistics_profile_ascentDescent_title": "Average Ascent & Descent Rates",
-  "statistics_profile_avgAscent": "Avg Ascent",
-  "statistics_profile_avgDescent": "Avg Descent",
-  "statistics_profile_deco_decoDives": "Deco Dives",
-  "statistics_profile_deco_decoLabel": "Deco",
-  "statistics_profile_deco_decoRate": "Deco Rate",
-  "statistics_profile_deco_empty": "No deco data available",
-  "statistics_profile_deco_error": "Failed to load deco data",
-  "statistics_profile_deco_noDeco": "No Deco",
-  "statistics_profile_deco_notRecorded": "Not Recorded",
-  "statistics_profile_deco_notRecordedHint": "{count} dives have no recorded or computable deco data and are excluded from the rate",
-  "statistics_profile_deco_semanticLabel": "Decompression rate: {percentage}% of dives required deco stops",
-  "statistics_profile_deco_subtitle": "Dives that incurred deco stops",
-  "statistics_profile_deco_title": "Decompression Obligation",
-  "statistics_profile_timeAtDepth_empty": "No depth data available",
-  "statistics_profile_timeAtDepth_error": "Failed to load depth range data",
-  "statistics_profile_timeAtDepth_subtitle": "Approximate time spent at each depth",
-  "statistics_profile_timeAtDepth_title": "Time at Depth Ranges",
-  "statistics_profile_timeAtDepth_valueFormat": "{value} min",
-  "statistics_progression_appBar_title": "Dive Progression",
-  "statistics_progression_bottomTime_error": "Failed to load bottom time trend",
-  "statistics_progression_bottomTime_subtitle": "Every dive in range",
-  "statistics_progression_bottomTime_title": "Bottom Time Trend",
-  "statistics_progression_cumulative_error": "Failed to load cumulative data",
-  "statistics_progression_cumulative_subtitle": "Total dives over time",
-  "statistics_progression_cumulative_title": "Cumulative Dive Count",
-  "statistics_progression_depthProgression_error": "Failed to load depth progression",
-  "statistics_progression_depthProgression_subtitle": "Every dive in range",
-  "statistics_progression_depthProgression_title": "Maximum Depth Progression",
-  "statistics_progression_divesPerYear_empty": "No yearly data available",
-  "statistics_progression_divesPerYear_error": "Failed to load yearly data",
-  "statistics_progression_divesPerYear_subtitle": "Annual dive count comparison",
-  "statistics_progression_divesPerYear_title": "Dives Per Year",
-  "statistics_ranking_countLabel_dives": "dives",
-  "statistics_ranking_countLabel_sightings": "sightings",
-  "statistics_ranking_countLabel_species": "species",
-  "statistics_ranking_emptyState": "No data yet",
-  "statistics_ranking_itemCount": "{count} {label}",
-  "statistics_ranking_moreItems": "and {count} more",
-  "statistics_ranking_semanticLabel": "{name}, rank {rank}, {count} {label}",
-  "statistics_records_appBar_title": "Dive Records",
-  "statistics_records_coldestDive": "Coldest Dive",
-  "statistics_records_deepestDive": "Deepest Dive",
-  "statistics_records_diveNumber": "Dive #{number}",
-  "statistics_records_emptySubtitle": "Start logging dives to see your records here",
-  "statistics_records_emptyTitle": "No Records Yet",
-  "statistics_records_error": "Error loading records",
-  "statistics_records_firstDive": "First Dive",
-  "statistics_records_longestDive": "Longest Dive",
-  "statistics_records_longestDiveValue": "{minutes} min",
-  "statistics_records_milestoneSemanticLabel": "{title}: {siteName}",
-  "statistics_records_milestones": "Milestones",
-  "statistics_records_mostRecentDive": "Most Recent Dive",
-  "statistics_records_recordSemanticLabel": "{title}: {value} at {siteName}",
-  "statistics_records_retry": "Retry",
-  "statistics_records_shallowestDive": "Shallowest Dive",
-  "statistics_records_unknownSite": "Unknown Site",
-  "statistics_records_warmestDive": "Warmest Dive",
-  "statistics_sectionCard_semanticLabel": "{title} section",
-  "statistics_social_appBar_title": "Social & Buddies",
-  "statistics_social_soloVsBuddy_empty": "No dive data available",
-  "statistics_social_soloVsBuddy_error": "Failed to load buddy data",
-  "statistics_social_soloVsBuddy_solo": "Solo",
-  "statistics_social_soloVsBuddy_subtitle": "Diving with or without companions",
-  "statistics_social_soloVsBuddy_title": "Solo vs Buddy Dives",
-  "statistics_social_soloVsBuddy_withBuddy": "With Buddy",
-  "statistics_social_topBuddies_error": "Failed to load buddy rankings",
-  "statistics_social_topBuddies_subtitle": "Most frequent diving companions",
-  "statistics_social_topBuddies_title": "Top Dive Buddies",
-  "statistics_social_topDiveCenters_error": "Failed to load dive center rankings",
-  "statistics_social_topDiveCenters_subtitle": "Most visited operators",
-  "statistics_social_topDiveCenters_title": "Top Dive Centers",
-  "statistics_summary_avgDepth": "Avg Depth",
-  "statistics_summary_avgTemp": "Avg Temp",
-  "statistics_summary_depthDistribution_empty": "Chart will appear when you log dives",
-  "statistics_summary_depthDistribution_semanticLabel": "Pie chart showing depth distribution",
-  "statistics_summary_depthDistribution_title": "Depth Distribution",
-  "statistics_summary_diveTypes_empty": "Chart will appear when you log dives",
-  "statistics_summary_diveTypes_moreTypes": "and {count} more types",
-  "statistics_summary_diveTypes_semanticLabel": "Pie chart showing dive type distribution",
-  "statistics_summary_diveTypes_title": "Dive Types",
-  "statistics_summary_divesByMonth_empty": "Chart will appear when you log dives",
-  "statistics_summary_divesByMonth_semanticLabel": "Bar chart showing dives by month",
-  "statistics_summary_divesByMonth_title": "Dives by Month",
-  "statistics_summary_divesByMonth_tooltip": "{fullLabel} {count} dives",
-  "statistics_summary_header_subtitle": "Select a category to explore detailed statistics",
-  "statistics_summary_header_title": "Statistics Overview",
-  "statistics_summary_maxDepth": "Max Depth",
-  "statistics_summary_sitesVisited": "Sites Visited",
-  "statistics_summary_tagUsage_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
-  "statistics_summary_tagUsage_empty": "No tags created yet",
-  "statistics_summary_tagUsage_emptyHint": "Add tags to dives to see statistics",
-  "statistics_summary_tagUsage_moreTags": "and {count} more tags",
-  "statistics_summary_tagUsage_tagCount": "{count} tags",
-  "statistics_summary_tagUsage_title": "Tag Usage",
-  "statistics_summary_topDiveSites_diveCount": "{count} dives",
-  "statistics_summary_topDiveSites_empty": "No dive sites yet",
-  "statistics_summary_topDiveSites_title": "Top Dive Sites",
-  "statistics_summary_topDiveSites_totalCount": "{count} total",
-  "statistics_summary_totalDives": "Total Dives",
-  "statistics_summary_totalTime": "Total Time",
-  "statistics_timePatterns_appBar_title": "Time Patterns",
-  "statistics_timePatterns_dayOfWeek_empty": "No data available",
-  "statistics_timePatterns_dayOfWeek_error": "Failed to load day of week data",
-  "statistics_timePatterns_dayOfWeek_fri": "Fri",
-  "statistics_timePatterns_dayOfWeek_mon": "Mon",
-  "statistics_timePatterns_dayOfWeek_sat": "Sat",
-  "statistics_timePatterns_dayOfWeek_subtitle": "When do you dive most?",
-  "statistics_timePatterns_dayOfWeek_sun": "Sun",
-  "statistics_timePatterns_dayOfWeek_thu": "Thu",
-  "statistics_timePatterns_dayOfWeek_title": "Dives by Day of Week",
-  "statistics_timePatterns_dayOfWeek_tue": "Tue",
-  "statistics_timePatterns_dayOfWeek_wed": "Wed",
-  "statistics_timePatterns_month_apr": "Apr",
-  "statistics_timePatterns_month_aug": "Aug",
-  "statistics_timePatterns_month_dec": "Dec",
-  "statistics_timePatterns_month_feb": "Feb",
-  "statistics_timePatterns_month_jan": "Jan",
-  "statistics_timePatterns_month_jul": "Jul",
-  "statistics_timePatterns_month_jun": "Jun",
-  "statistics_timePatterns_month_mar": "Mar",
-  "statistics_timePatterns_month_may": "May",
-  "statistics_timePatterns_month_nov": "Nov",
-  "statistics_timePatterns_month_oct": "Oct",
-  "statistics_timePatterns_month_sep": "Sep",
-  "statistics_timePatterns_seasonal_empty": "No data available",
-  "statistics_timePatterns_seasonal_error": "Failed to load seasonal data",
-  "statistics_timePatterns_seasonal_subtitle": "Dives by month (all years)",
-  "statistics_timePatterns_seasonal_title": "Seasonal Patterns",
-  "statistics_timePatterns_surfaceInterval_average": "Average",
-  "statistics_timePatterns_surfaceInterval_empty": "No surface interval data available",
-  "statistics_timePatterns_surfaceInterval_error": "Failed to load surface interval data",
-  "statistics_timePatterns_surfaceInterval_formatHoursMinutes": "{hours}h {minutes}m",
-  "statistics_timePatterns_surfaceInterval_formatMinutes": "{minutes} min",
-  "statistics_timePatterns_surfaceInterval_maximum": "Maximum",
-  "statistics_timePatterns_surfaceInterval_minimum": "Minimum",
-  "statistics_timePatterns_surfaceInterval_subtitle": "Time between dives",
-  "statistics_timePatterns_surfaceInterval_title": "Surface Interval Statistics",
-  "statistics_timePatterns_timeOfDay_error": "Failed to load time of day data",
-  "statistics_timePatterns_timeOfDay_subtitle": "Morning, afternoon, evening, or night",
-  "statistics_timePatterns_timeOfDay_title": "Dives by Time of Day",
-  "statistics_tooltip_diveRecords": "Dive Records",
-  "statistics_tooltip_filter": "Filter statistics",
-  "statistics_tooltip_refreshRecords": "Refresh records",
-  "statistics_tooltip_refreshStatistics": "Refresh statistics",
-  "statistics_valueCard_semanticLabel": "{label}: {value}",
-  "@statistics_categoryCard_semanticLabel": {
+  "insights_conditions_siteType_subtitle": "Dives per site type. A dive at a site with several types counts toward each; sites without a type are not shown.",
+  "insights_conditions_siteType_title": "Site Types",
+  "insights_conditions_waterType_error": "Failed to load water type data",
+  "insights_conditions_waterType_subtitle": "Salt vs Fresh water dives",
+  "insights_conditions_waterType_title": "Water Type",
+  "insights_equipment_appBar_title": "Equipment",
+  "insights_equipment_mostUsedGear_error": "Failed to load gear data",
+  "insights_equipment_mostUsedGear_subtitle": "Equipment by dive count",
+  "insights_equipment_mostUsedGear_title": "Most Used Gear",
+  "insights_equipment_weightTrend_error": "Failed to load weight trend",
+  "insights_equipment_weightTrend_subtitle": "Total lead carried per dive",
+  "insights_equipment_weightTrend_title": "Weight Trend",
+  "insights_equipment_exposure_title": "Exposure",
+  "insights_equipment_exposure_error": "Failed to load exposure data",
+  "insights_equipment_findings_error": "Failed to load condition findings",
+  "insights_equipment_issues_error": "Failed to load reported issues",
+  "insights_equipment_exposure_subtitle": "Totals per item with your thresholds",
+  "insights_equipment_exposure_empty": "No dives with gear yet",
+  "insights_equipment_findings_title": "Condition findings",
+  "insights_equipment_findings_subtitle": "Open findings by rule",
+  "insights_equipment_findings_subtitleAllDives": "Open findings by rule, across all dives",
+  "insights_equipment_findings_empty": "No open findings",
+  "insights_equipment_issues_title": "Reported issues",
+  "insights_equipment_issues_subtitle": "Most frequent check-in tags",
+  "insights_equipment_issues_empty": "No issues reported",
+  "insights_equipment_countLabel_items": "items",
+  "insights_equipment_countLabel_findings": "findings",
+  "insights_equipment_countLabel_reports": "reports",
+  "insights_equipment_exposureUnit_days": "Days",
+  "insights_equipment_exposureUnit_dives": "Dives",
+  "insights_equipment_countLabel_days": "days",
+  "insights_equipment_countLabel_dives": "dives",
+  "insights_equipment_countLabel_hours": "hours",
+  "insights_equipment_countLabel_saltHours": "salt-water hours",
+  "insights_equipment_countLabel_coldDives": "cold dives",
+  "insights_equipment_countLabel_o2Hours": "high-O2 hours",
+  "insights_equipment_countLabel_deepCycles": "deep dives",
+  "insights_equipment_countLabel_cycles": "battery cycles",
+  "insights_equipment_exposureUnit_hours": "Hours",
+  "insights_equipment_exposureUnit_saltHours": "Salt-water hours",
+  "insights_equipment_exposureUnit_coldDives": "Cold dives",
+  "insights_equipment_exposureUnit_o2Hours": "High-O2 hours",
+  "insights_equipment_exposureUnit_deepCycles": "Deep dives",
+  "insights_equipment_exposureUnit_cycles": "Battery cycles",
+  "insights_error_loadingInsights": "Error loading insights",
+  "insights_filterBar_clear": "Clear filter",
+  "insights_filterBar_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "insights_gas_appBar_title": "Air Consumption",
+  "insights_gas_gasMix_error": "Failed to load gas mix data",
+  "insights_gas_gasMix_subtitle": "Dives by gas type",
+  "insights_gas_gasMix_title": "Gas Mix Distribution",
+  "insights_gas_sacByRole_empty": "No multi-tank data available",
+  "insights_gas_sacByRole_error": "Failed to load consumption by role",
+  "insights_gas_sacByRole_subtitle": "Average consumption by tank type",
+  "insights_gas_sacByRole_title": "Gas consumption by tank role",
+  "insights_gas_sacRecords_empty": "No consumption data yet",
+  "insights_gas_sacRecords_error": "Failed to load consumption records",
+  "insights_gas_sacRecords_highestRmv": "Highest RMV",
+  "insights_gas_sacRecords_highestSac": "Highest SAC",
+  "insights_gas_sacRecords_bestRmv": "Best RMV",
+  "insights_gas_sacRecords_bestSac": "Best SAC",
+  "insights_gas_sacRecords_subtitle": "Best and worst air consumption",
+  "insights_gas_sacRecords_title": "Gas consumption records",
+  "insights_gas_sacTrend_error": "Failed to load consumption trend",
+  "insights_gas_sacTrend_subtitle": "Every dive in range",
+  "insights_gas_sacTrend_title": "Gas consumption trend",
+  "insights_gas_tankRole_backGas": "Back Gas",
+  "insights_gas_tankRole_bailout": "Bailout",
+  "insights_gas_tankRole_deco": "Deco",
+  "insights_gas_tankRole_diluent": "Diluent",
+  "insights_gas_tankRole_oxygenSupply": "O₂ Supply",
+  "insights_gas_tankRole_pony": "Pony",
+  "insights_gas_tankRole_sidemountLeft": "Sidemount L",
+  "insights_gas_tankRole_sidemountRight": "Sidemount R",
+  "insights_gas_tankRole_stage": "Stage",
+  "insights_geographic_appBar_title": "Geographic",
+  "insights_geographic_countries_empty": "No countries visited",
+  "insights_geographic_countries_error": "Failed to load country data",
+  "insights_geographic_countries_subtitle": "Dives by country",
+  "insights_geographic_countries_summary": "{count} countries. Top: {topName} with {topCount} dives",
+  "insights_geographic_countries_title": "Countries Visited",
+  "insights_geographic_regions_empty": "No regions explored",
+  "insights_geographic_regions_error": "Failed to load region data",
+  "insights_geographic_regions_subtitle": "Dives by region",
+  "insights_geographic_regions_summary": "{count} regions. Top: {topName} with {topCount} dives",
+  "insights_geographic_regions_title": "Regions Explored",
+  "insights_geographic_trips_empty": "No trip data",
+  "insights_geographic_trips_error": "Failed to load trip data",
+  "insights_geographic_trips_subtitle": "Most productive trips",
+  "insights_geographic_trips_summary": "{count} trips. Top: {topName} with {topCount} dives",
+  "insights_geographic_trips_title": "Dives Per Trip",
+  "insights_listContent_selectedSuffix": ", selected",
+  "insights_marineLife_appBar_title": "Species",
+  "insights_marineLife_bestSites_empty": "No site data",
+  "insights_marineLife_bestSites_error": "Failed to load site data",
+  "insights_marineLife_bestSites_subtitle": "Sites with most species variety",
+  "insights_marineLife_bestSites_summary": "{count} sites. Best: {topName} with {topCount} species",
+  "insights_marineLife_bestSites_title": "Best Sites",
+  "insights_marineLife_mostCommon_empty": "No sighting data",
+  "insights_marineLife_mostCommon_error": "Failed to load sighting data",
+  "insights_marineLife_mostCommon_subtitle": "Species spotted most often",
+  "insights_marineLife_mostCommon_summary": "{count} species. Most common: {topName} with {topCount} sightings",
+  "insights_marineLife_mostCommon_title": "Most Common Sightings",
+  "insights_marineLife_speciesSpotted": "Species Spotted",
+  "insights_marineLife_seeAllSpecies_title": "See all species",
+  "insights_marineLife_seeAllSpecies_subtitle": "Every species you have logged, searchable",
+  "insights_profile_appBar_title": "Profile Analysis",
+  "insights_profile_ascentDescent_empty": "No profile data available",
+  "insights_profile_ascentDescent_error": "Failed to load rate data",
+  "insights_profile_ascentDescent_subtitle": "From dive profile data",
+  "insights_profile_ascentDescent_title": "Average Ascent & Descent Rates",
+  "insights_profile_avgAscent": "Avg Ascent",
+  "insights_profile_avgDescent": "Avg Descent",
+  "insights_profile_deco_decoDives": "Deco Dives",
+  "insights_profile_deco_decoLabel": "Deco",
+  "insights_profile_deco_decoRate": "Deco Rate",
+  "insights_profile_deco_empty": "No deco data available",
+  "insights_profile_deco_error": "Failed to load deco data",
+  "insights_profile_deco_noDeco": "No Deco",
+  "insights_profile_deco_notRecorded": "Not Recorded",
+  "insights_profile_deco_notRecordedHint": "{count} dives have no recorded or computable deco data and are excluded from the rate",
+  "insights_profile_deco_semanticLabel": "Decompression rate: {percentage}% of dives required deco stops",
+  "insights_profile_deco_subtitle": "Dives that incurred deco stops",
+  "insights_profile_deco_title": "Decompression Obligation",
+  "insights_profile_timeAtDepth_empty": "No depth data available",
+  "insights_profile_timeAtDepth_error": "Failed to load depth range data",
+  "insights_profile_timeAtDepth_subtitle": "Approximate time spent at each depth",
+  "insights_profile_timeAtDepth_title": "Time at Depth Ranges",
+  "insights_profile_timeAtDepth_valueFormat": "{value} min",
+  "insights_progression_appBar_title": "Dive Progression",
+  "insights_progression_bottomTime_error": "Failed to load bottom time trend",
+  "insights_progression_bottomTime_subtitle": "Every dive in range",
+  "insights_progression_bottomTime_title": "Bottom Time Trend",
+  "insights_progression_cumulative_error": "Failed to load cumulative data",
+  "insights_progression_cumulative_subtitle": "Total dives over time",
+  "insights_progression_cumulative_title": "Cumulative Dive Count",
+  "insights_progression_depthProgression_error": "Failed to load depth progression",
+  "insights_progression_depthProgression_subtitle": "Every dive in range",
+  "insights_progression_depthProgression_title": "Maximum Depth Progression",
+  "insights_progression_divesPerYear_empty": "No yearly data available",
+  "insights_progression_divesPerYear_error": "Failed to load yearly data",
+  "insights_progression_divesPerYear_subtitle": "Annual dive count comparison",
+  "insights_progression_divesPerYear_title": "Dives Per Year",
+  "insights_ranking_countLabel_dives": "dives",
+  "insights_ranking_countLabel_sightings": "sightings",
+  "insights_ranking_countLabel_species": "species",
+  "insights_ranking_emptyState": "No data yet",
+  "insights_ranking_itemCount": "{count} {label}",
+  "insights_ranking_moreItems": "and {count} more",
+  "insights_ranking_semanticLabel": "{name}, rank {rank}, {count} {label}",
+  "insights_records_appBar_title": "Dive Records",
+  "insights_records_coldestDive": "Coldest Dive",
+  "insights_records_deepestDive": "Deepest Dive",
+  "insights_records_diveNumber": "Dive #{number}",
+  "insights_records_emptySubtitle": "Start logging dives to see your records here",
+  "insights_records_emptyTitle": "No Records Yet",
+  "insights_records_error": "Error loading records",
+  "insights_records_firstDive": "First Dive",
+  "insights_records_longestDive": "Longest Dive",
+  "insights_records_longestDiveValue": "{minutes} min",
+  "insights_records_milestoneSemanticLabel": "{title}: {siteName}",
+  "insights_records_milestones": "Milestones",
+  "insights_records_mostRecentDive": "Most Recent Dive",
+  "insights_records_recordSemanticLabel": "{title}: {value} at {siteName}",
+  "insights_records_retry": "Retry",
+  "insights_records_shallowestDive": "Shallowest Dive",
+  "insights_records_unknownSite": "Unknown Site",
+  "insights_records_warmestDive": "Warmest Dive",
+  "insights_sectionCard_semanticLabel": "{title} section",
+  "insights_social_appBar_title": "Social & Buddies",
+  "insights_social_soloVsBuddy_empty": "No dive data available",
+  "insights_social_soloVsBuddy_error": "Failed to load buddy data",
+  "insights_social_soloVsBuddy_solo": "Solo",
+  "insights_social_soloVsBuddy_subtitle": "Diving with or without companions",
+  "insights_social_soloVsBuddy_title": "Solo vs Buddy Dives",
+  "insights_social_soloVsBuddy_withBuddy": "With Buddy",
+  "insights_social_topBuddies_error": "Failed to load buddy rankings",
+  "insights_social_topBuddies_subtitle": "Most frequent diving companions",
+  "insights_social_topBuddies_title": "Top Dive Buddies",
+  "insights_social_topDiveCenters_error": "Failed to load dive center rankings",
+  "insights_social_topDiveCenters_subtitle": "Most visited operators",
+  "insights_social_topDiveCenters_title": "Top Dive Centers",
+  "insights_summary_avgDepth": "Avg Depth",
+  "insights_summary_avgTemp": "Avg Temp",
+  "insights_summary_depthDistribution_empty": "Chart will appear when you log dives",
+  "insights_summary_depthDistribution_semanticLabel": "Pie chart showing depth distribution",
+  "insights_summary_depthDistribution_title": "Depth Distribution",
+  "insights_summary_diveTypes_empty": "Chart will appear when you log dives",
+  "insights_summary_diveTypes_moreTypes": "and {count} more types",
+  "insights_summary_diveTypes_semanticLabel": "Pie chart showing dive type distribution",
+  "insights_summary_diveTypes_title": "Dive Types",
+  "insights_summary_divesByMonth_empty": "Chart will appear when you log dives",
+  "insights_summary_divesByMonth_semanticLabel": "Bar chart showing dives by month",
+  "insights_summary_divesByMonth_title": "Dives by Month",
+  "insights_summary_divesByMonth_tooltip": "{fullLabel} {count} dives",
+  "insights_summary_header_subtitle": "Select a category to explore detailed insights",
+  "insights_summary_header_title": "Insights Overview",
+  "insights_summary_maxDepth": "Max Depth",
+  "insights_summary_sitesVisited": "Sites Visited",
+  "insights_summary_tagUsage_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "insights_summary_tagUsage_empty": "No tags created yet",
+  "insights_summary_tagUsage_emptyHint": "Add tags to dives to see statistics",
+  "insights_summary_tagUsage_moreTags": "and {count} more tags",
+  "insights_summary_tagUsage_tagCount": "{count} tags",
+  "insights_summary_tagUsage_title": "Tag Usage",
+  "insights_summary_topDiveSites_diveCount": "{count} dives",
+  "insights_summary_topDiveSites_empty": "No dive sites yet",
+  "insights_summary_topDiveSites_title": "Top Dive Sites",
+  "insights_summary_topDiveSites_totalCount": "{count} total",
+  "insights_summary_totalDives": "Total Dives",
+  "insights_summary_totalTime": "Total Time",
+  "insights_timePatterns_appBar_title": "Time Patterns",
+  "insights_timePatterns_dayOfWeek_empty": "No data available",
+  "insights_timePatterns_dayOfWeek_error": "Failed to load day of week data",
+  "insights_timePatterns_dayOfWeek_fri": "Fri",
+  "insights_timePatterns_dayOfWeek_mon": "Mon",
+  "insights_timePatterns_dayOfWeek_sat": "Sat",
+  "insights_timePatterns_dayOfWeek_subtitle": "When do you dive most?",
+  "insights_timePatterns_dayOfWeek_sun": "Sun",
+  "insights_timePatterns_dayOfWeek_thu": "Thu",
+  "insights_timePatterns_dayOfWeek_title": "Dives by Day of Week",
+  "insights_timePatterns_dayOfWeek_tue": "Tue",
+  "insights_timePatterns_dayOfWeek_wed": "Wed",
+  "insights_timePatterns_month_apr": "Apr",
+  "insights_timePatterns_month_aug": "Aug",
+  "insights_timePatterns_month_dec": "Dec",
+  "insights_timePatterns_month_feb": "Feb",
+  "insights_timePatterns_month_jan": "Jan",
+  "insights_timePatterns_month_jul": "Jul",
+  "insights_timePatterns_month_jun": "Jun",
+  "insights_timePatterns_month_mar": "Mar",
+  "insights_timePatterns_month_may": "May",
+  "insights_timePatterns_month_nov": "Nov",
+  "insights_timePatterns_month_oct": "Oct",
+  "insights_timePatterns_month_sep": "Sep",
+  "insights_timePatterns_seasonal_empty": "No data available",
+  "insights_timePatterns_seasonal_error": "Failed to load seasonal data",
+  "insights_timePatterns_seasonal_subtitle": "Dives by month (all years)",
+  "insights_timePatterns_seasonal_title": "Seasonal Patterns",
+  "insights_timePatterns_surfaceInterval_average": "Average",
+  "insights_timePatterns_surfaceInterval_empty": "No surface interval data available",
+  "insights_timePatterns_surfaceInterval_error": "Failed to load surface interval data",
+  "insights_timePatterns_surfaceInterval_formatHoursMinutes": "{hours}h {minutes}m",
+  "insights_timePatterns_surfaceInterval_formatMinutes": "{minutes} min",
+  "insights_timePatterns_surfaceInterval_maximum": "Maximum",
+  "insights_timePatterns_surfaceInterval_minimum": "Minimum",
+  "insights_timePatterns_surfaceInterval_subtitle": "Time between dives",
+  "insights_timePatterns_surfaceInterval_title": "Surface Interval Statistics",
+  "insights_timePatterns_timeOfDay_error": "Failed to load time of day data",
+  "insights_timePatterns_timeOfDay_subtitle": "Morning, afternoon, evening, or night",
+  "insights_timePatterns_timeOfDay_title": "Dives by Time of Day",
+  "insights_tooltip_diveRecords": "Dive Records",
+  "insights_tooltip_filter": "Filter insights",
+  "insights_tooltip_refreshRecords": "Refresh records",
+  "insights_tooltip_refreshInsights": "Refresh insights",
+  "insights_valueCard_semanticLabel": "{label}: {value}",
+  "@insights_categoryCard_semanticLabel": {
     "placeholders": {
       "title": {
         "type": "Object"
       }
     }
   },
-  "@statistics_chart_barSemanticLabel": {
+  "@insights_chart_barSemanticLabel": {
     "placeholders": {
       "count": {
         "type": "Object"
       }
     }
   },
-  "@statistics_chart_distributionSemanticLabel": {
+  "@insights_chart_distributionSemanticLabel": {
     "placeholders": {
       "count": {
         "type": "Object"
       }
     }
   },
-  "@statistics_chart_multiTrendSemanticLabel": {
+  "@insights_chart_multiTrendSemanticLabel": {
     "placeholders": {
       "seriesNames": {
         "type": "Object"
       }
     }
   },
-  "@statistics_chart_trendSemanticLabel": {
+  "@insights_chart_trendSemanticLabel": {
     "placeholders": {
       "count": {
         "type": "Object"
       }
     }
   },
-  "@statistics_chart_trendSemanticLabelWithAxis": {
+  "@insights_chart_trendSemanticLabelWithAxis": {
     "placeholders": {
       "count": {
         "type": "Object"
@@ -12526,14 +12526,14 @@
       }
     }
   },
-  "@statistics_filterBar_diveCount": {
+  "@insights_filterBar_diveCount": {
     "placeholders": {
       "count": {
         "type": "int"
       }
     }
   },
-  "@statistics_geographic_countries_summary": {
+  "@insights_geographic_countries_summary": {
     "placeholders": {
       "count": {
         "type": "Object"
@@ -12546,7 +12546,7 @@
       }
     }
   },
-  "@statistics_geographic_regions_summary": {
+  "@insights_geographic_regions_summary": {
     "placeholders": {
       "count": {
         "type": "Object"
@@ -12559,7 +12559,7 @@
       }
     }
   },
-  "@statistics_geographic_trips_summary": {
+  "@insights_geographic_trips_summary": {
     "placeholders": {
       "count": {
         "type": "Object"
@@ -12572,7 +12572,7 @@
       }
     }
   },
-  "@statistics_marineLife_bestSites_summary": {
+  "@insights_marineLife_bestSites_summary": {
     "placeholders": {
       "count": {
         "type": "Object"
@@ -12585,7 +12585,7 @@
       }
     }
   },
-  "@statistics_marineLife_mostCommon_summary": {
+  "@insights_marineLife_mostCommon_summary": {
     "placeholders": {
       "count": {
         "type": "Object"
@@ -12598,28 +12598,28 @@
       }
     }
   },
-  "@statistics_profile_deco_notRecordedHint": {
+  "@insights_profile_deco_notRecordedHint": {
     "placeholders": {
       "count": {
         "type": "int"
       }
     }
   },
-  "@statistics_profile_deco_semanticLabel": {
+  "@insights_profile_deco_semanticLabel": {
     "placeholders": {
       "percentage": {
         "type": "Object"
       }
     }
   },
-  "@statistics_profile_timeAtDepth_valueFormat": {
+  "@insights_profile_timeAtDepth_valueFormat": {
     "placeholders": {
       "value": {
         "type": "Object"
       }
     }
   },
-  "@statistics_ranking_itemCount": {
+  "@insights_ranking_itemCount": {
     "placeholders": {
       "count": {
         "type": "Object"
@@ -12629,14 +12629,14 @@
       }
     }
   },
-  "@statistics_ranking_moreItems": {
+  "@insights_ranking_moreItems": {
     "placeholders": {
       "count": {
         "type": "Object"
       }
     }
   },
-  "@statistics_ranking_semanticLabel": {
+  "@insights_ranking_semanticLabel": {
     "placeholders": {
       "name": {
         "type": "Object"
@@ -12652,21 +12652,21 @@
       }
     }
   },
-  "@statistics_records_diveNumber": {
+  "@insights_records_diveNumber": {
     "placeholders": {
       "number": {
         "type": "Object"
       }
     }
   },
-  "@statistics_records_longestDiveValue": {
+  "@insights_records_longestDiveValue": {
     "placeholders": {
       "minutes": {
         "type": "Object"
       }
     }
   },
-  "@statistics_records_milestoneSemanticLabel": {
+  "@insights_records_milestoneSemanticLabel": {
     "placeholders": {
       "title": {
         "type": "Object"
@@ -12676,7 +12676,7 @@
       }
     }
   },
-  "@statistics_records_recordSemanticLabel": {
+  "@insights_records_recordSemanticLabel": {
     "placeholders": {
       "title": {
         "type": "Object"
@@ -12689,21 +12689,21 @@
       }
     }
   },
-  "@statistics_sectionCard_semanticLabel": {
+  "@insights_sectionCard_semanticLabel": {
     "placeholders": {
       "title": {
         "type": "Object"
       }
     }
   },
-  "@statistics_summary_diveTypes_moreTypes": {
+  "@insights_summary_diveTypes_moreTypes": {
     "placeholders": {
       "count": {
         "type": "Object"
       }
     }
   },
-  "@statistics_summary_divesByMonth_tooltip": {
+  "@insights_summary_divesByMonth_tooltip": {
     "placeholders": {
       "fullLabel": {
         "type": "Object"
@@ -12713,42 +12713,42 @@
       }
     }
   },
-  "@statistics_summary_tagUsage_diveCount": {
+  "@insights_summary_tagUsage_diveCount": {
     "placeholders": {
       "count": {
         "type": "int"
       }
     }
   },
-  "@statistics_summary_tagUsage_moreTags": {
+  "@insights_summary_tagUsage_moreTags": {
     "placeholders": {
       "count": {
         "type": "Object"
       }
     }
   },
-  "@statistics_summary_tagUsage_tagCount": {
+  "@insights_summary_tagUsage_tagCount": {
     "placeholders": {
       "count": {
         "type": "Object"
       }
     }
   },
-  "@statistics_summary_topDiveSites_diveCount": {
+  "@insights_summary_topDiveSites_diveCount": {
     "placeholders": {
       "count": {
         "type": "Object"
       }
     }
   },
-  "@statistics_summary_topDiveSites_totalCount": {
+  "@insights_summary_topDiveSites_totalCount": {
     "placeholders": {
       "count": {
         "type": "Object"
       }
     }
   },
-  "@statistics_timePatterns_surfaceInterval_formatHoursMinutes": {
+  "@insights_timePatterns_surfaceInterval_formatHoursMinutes": {
     "placeholders": {
       "hours": {
         "type": "Object"
@@ -12758,14 +12758,14 @@
       }
     }
   },
-  "@statistics_timePatterns_surfaceInterval_formatMinutes": {
+  "@insights_timePatterns_surfaceInterval_formatMinutes": {
     "placeholders": {
       "minutes": {
         "type": "Object"
       }
     }
   },
-  "@statistics_valueCard_semanticLabel": {
+  "@insights_valueCard_semanticLabel": {
     "placeholders": {
       "label": {
         "type": "Object"
@@ -17847,8 +17847,8 @@
   "divers_edit_divingSinceNotSet": "Not set",
   "divers_edit_clearDivingSinceTooltip": "Clear diving since",
   "divers_edit_priorInvalidNumber": "Enter a valid number",
-  "statistics_priorBreakdown": "{logged} logged + {prior} prior",
-  "@statistics_priorBreakdown": {
+  "insights_priorBreakdown": "{logged} logged + {prior} prior",
+  "@insights_priorBreakdown": {
     "placeholders": {
       "logged": {
         "type": "String"
@@ -17858,8 +17858,8 @@
       }
     }
   },
-  "statistics_divingSince": "Diving since {year}",
-  "@statistics_divingSince": {
+  "insights_divingSince": "Diving since {year}",
+  "@insights_divingSince": {
     "placeholders": {
       "year": {
         "type": "int"
@@ -18743,11 +18743,11 @@
   "attr_flagNo": "No",
   "equipment_edit_invalidThickness": "Use 5, 5/4 or 7/5/3",
   "equipment_edit_invalidWebLink": "Enter a web address, e.g. shop.example.com",
-  "statistics_progression_divesBySuitThickness_title": "Dives by Suit Thickness",
-  "statistics_progression_divesBySuitThickness_subtitle": "Exposure suit primary thickness across your dives",
-  "statistics_progression_divesBySuitThickness_empty": "No dives with a wetsuit or drysuit linked",
-  "statistics_progression_divesBySuitThickness_error": "Could not load suit thickness data",
-  "statistics_progression_divesBySuitThickness_unknown": "Unknown",
+  "insights_progression_divesBySuitThickness_title": "Dives by Suit Thickness",
+  "insights_progression_divesBySuitThickness_subtitle": "Exposure suit primary thickness across your dives",
+  "insights_progression_divesBySuitThickness_empty": "No dives with a wetsuit or drysuit linked",
+  "insights_progression_divesBySuitThickness_error": "Could not load suit thickness data",
+  "insights_progression_divesBySuitThickness_unknown": "Unknown",
   "diveLog_filter_sectionSuitThickness": "Suit thickness (mm)",
   "diveLog_filter_sectionGearAttributes": "Gear attributes",
   "diveLog_filter_gearCategory": "Gear category",
@@ -20272,8 +20272,8 @@
   },
   "settings_visibilityScale_customUnset": "Set your own distances",
   "settings_visibilityScale_customHelp": "Enter the shortest distance that still counts for each label.",
-  "statistics_conditions_visibility_legacySuffix": "{band} (logged before measurement)",
-  "@statistics_conditions_visibility_legacySuffix": {
+  "insights_conditions_visibility_legacySuffix": "{band} (logged before measurement)",
+  "@insights_conditions_visibility_legacySuffix": {
     "placeholders": {
       "band": {
         "type": "String"
@@ -22151,28 +22151,28 @@
   "settings_mediaSources_checkAllBlocked": "{count, plural, one{Could not check the item. Its source is not reachable right now.} other{Could not check any of the {count} items. Their sources are not reachable right now.}}",
   "settings_mediaSources_title": "Media Sources",
   "settings_networkSources_scanDescription": "Re-checks every URL- or manifest-imported photo against its host. Marks unreachable items so they show \"missing\" in your library and can be cleaned up.",
-  "statistics_conditions_entryMethod_semanticLabel": "Bar chart. Entry methods. {description}",
-  "statistics_conditions_visibility_semanticLabel": "Pie chart. Visibility distribution. {description}",
-  "statistics_conditions_waterType_semanticLabel": "Pie chart. Water type distribution. {description}",
-  "statistics_progression_divesBySuitThickness_semanticLabel": "Bar chart. Dives by suit thickness. {description}",
-  "statistics_progression_divesPerYear_countInYear": "{count, plural, =1{1 dive in {year}} other{{count} dives in {year}}}",
-  "statistics_progression_divesPerYear_semanticLabel": "Bar chart. Dives per year. {description}",
-  "statistics_records_unavailable": "Records unavailable",
-  "statistics_summary_depthBucket_over": "{min}{unit}+",
-  "statistics_summary_depthBucket_range": "{min}-{max}{unit}",
-  "statistics_summary_distributions_title": "Distributions",
-  "statistics_summary_diveTypes_error": "Unable to load dive type data",
-  "statistics_summary_diveTypes_unknown": "Unknown",
-  "statistics_summary_divesPerMonth": "Dives / Month",
-  "statistics_summary_divesPerYear": "Dives / Year",
-  "statistics_timePatterns_dayOfWeek_semanticLabel": "Bar chart. Dives by day of week. {description}",
-  "statistics_timePatterns_seasonal_semanticLabel": "Bar chart. Dives by month. {description}",
-  "statistics_timePatterns_surfaceInterval_statLabel": "{label} surface interval: {value}",
-  "statistics_timePatterns_timeOfDay_afternoon": "Afternoon",
-  "statistics_timePatterns_timeOfDay_evening": "Evening",
-  "statistics_timePatterns_timeOfDay_morning": "Morning",
-  "statistics_timePatterns_timeOfDay_night": "Night",
-  "statistics_timePatterns_timeOfDay_semanticLabel": "Pie chart. Dives by time of day. {description}",
+  "insights_conditions_entryMethod_semanticLabel": "Bar chart. Entry methods. {description}",
+  "insights_conditions_visibility_semanticLabel": "Pie chart. Visibility distribution. {description}",
+  "insights_conditions_waterType_semanticLabel": "Pie chart. Water type distribution. {description}",
+  "insights_progression_divesBySuitThickness_semanticLabel": "Bar chart. Dives by suit thickness. {description}",
+  "insights_progression_divesPerYear_countInYear": "{count, plural, =1{1 dive in {year}} other{{count} dives in {year}}}",
+  "insights_progression_divesPerYear_semanticLabel": "Bar chart. Dives per year. {description}",
+  "insights_records_unavailable": "Records unavailable",
+  "insights_summary_depthBucket_over": "{min}{unit}+",
+  "insights_summary_depthBucket_range": "{min}-{max}{unit}",
+  "insights_summary_distributions_title": "Distributions",
+  "insights_summary_diveTypes_error": "Unable to load dive type data",
+  "insights_summary_diveTypes_unknown": "Unknown",
+  "insights_summary_divesPerMonth": "Dives / Month",
+  "insights_summary_divesPerYear": "Dives / Year",
+  "insights_timePatterns_dayOfWeek_semanticLabel": "Bar chart. Dives by day of week. {description}",
+  "insights_timePatterns_seasonal_semanticLabel": "Bar chart. Dives by month. {description}",
+  "insights_timePatterns_surfaceInterval_statLabel": "{label} surface interval: {value}",
+  "insights_timePatterns_timeOfDay_afternoon": "Afternoon",
+  "insights_timePatterns_timeOfDay_evening": "Evening",
+  "insights_timePatterns_timeOfDay_morning": "Morning",
+  "insights_timePatterns_timeOfDay_night": "Night",
+  "insights_timePatterns_timeOfDay_semanticLabel": "Pie chart. Dives by time of day. {description}",
   "@common_action_done": {
     "description": "Dismiss a finished operation"
   },
@@ -22648,7 +22648,7 @@
   "@settings_networkSources_scanDescription": {
     "description": "Network Sources: explanation under the scan-all button"
   },
-  "@statistics_conditions_entryMethod_semanticLabel": {
+  "@insights_conditions_entryMethod_semanticLabel": {
     "description": "Screen-reader summary of the entry method bar chart",
     "placeholders": {
       "description": {
@@ -22657,7 +22657,7 @@
       }
     }
   },
-  "@statistics_conditions_visibility_semanticLabel": {
+  "@insights_conditions_visibility_semanticLabel": {
     "description": "Screen-reader summary of the visibility distribution pie chart",
     "placeholders": {
       "description": {
@@ -22666,7 +22666,7 @@
       }
     }
   },
-  "@statistics_conditions_waterType_semanticLabel": {
+  "@insights_conditions_waterType_semanticLabel": {
     "description": "Screen-reader summary of the water type distribution pie chart",
     "placeholders": {
       "description": {
@@ -22675,7 +22675,7 @@
       }
     }
   },
-  "@statistics_progression_divesBySuitThickness_semanticLabel": {
+  "@insights_progression_divesBySuitThickness_semanticLabel": {
     "description": "Screen-reader summary of the dives-by-suit-thickness bar chart",
     "placeholders": {
       "description": {
@@ -22684,7 +22684,7 @@
       }
     }
   },
-  "@statistics_progression_divesPerYear_countInYear": {
+  "@insights_progression_divesPerYear_countInYear": {
     "description": "One entry of the dives-per-year screen-reader summary",
     "placeholders": {
       "count": {
@@ -22697,7 +22697,7 @@
       }
     }
   },
-  "@statistics_progression_divesPerYear_semanticLabel": {
+  "@insights_progression_divesPerYear_semanticLabel": {
     "description": "Screen-reader summary of the dives-per-year bar chart",
     "placeholders": {
       "description": {
@@ -22706,7 +22706,7 @@
       }
     }
   },
-  "@statistics_summary_depthBucket_over": {
+  "@insights_summary_depthBucket_over": {
     "description": "Depth-distribution legend for the open-ended deepest bucket; unit is the diver's depth symbol",
     "placeholders": {
       "min": {
@@ -22719,7 +22719,7 @@
       }
     }
   },
-  "@statistics_summary_depthBucket_range": {
+  "@insights_summary_depthBucket_range": {
     "description": "Depth-distribution legend for a closed depth bucket; unit is the diver's depth symbol",
     "placeholders": {
       "min": {
@@ -22736,7 +22736,7 @@
       }
     }
   },
-  "@statistics_timePatterns_dayOfWeek_semanticLabel": {
+  "@insights_timePatterns_dayOfWeek_semanticLabel": {
     "description": "Screen-reader summary of the dives-by-day-of-week bar chart",
     "placeholders": {
       "description": {
@@ -22745,7 +22745,7 @@
       }
     }
   },
-  "@statistics_timePatterns_seasonal_semanticLabel": {
+  "@insights_timePatterns_seasonal_semanticLabel": {
     "description": "Screen-reader summary of the dives-by-month bar chart",
     "placeholders": {
       "description": {
@@ -22754,7 +22754,7 @@
       }
     }
   },
-  "@statistics_timePatterns_surfaceInterval_statLabel": {
+  "@insights_timePatterns_surfaceInterval_statLabel": {
     "description": "Screen-reader label for one surface-interval statistic tile",
     "placeholders": {
       "label": {
@@ -22767,7 +22767,7 @@
       }
     }
   },
-  "@statistics_timePatterns_timeOfDay_semanticLabel": {
+  "@insights_timePatterns_timeOfDay_semanticLabel": {
     "description": "Screen-reader summary of the dives-by-time-of-day pie chart",
     "placeholders": {
       "description": {
@@ -25102,15 +25102,15 @@
       }
     }
   },
-  "statistics_trend_aggregation_monthly": "Monthly average",
-  "statistics_trend_aggregation_perDive": "Every dive",
-  "statistics_trend_aggregation_tooltip": "How dives are grouped",
-  "statistics_trend_aggregation_weekly": "Weekly average",
-  "statistics_trend_band_semanticLabel": "Shaded band spans the lowest and highest value in each group",
-  "statistics_trend_legend_rate": "Overall trend",
-  "statistics_trend_legend_rollingAverage": "Rolling avg",
-  "statistics_trend_rate_perYear": "{value}/yr",
-  "@statistics_trend_rate_perYear": {
+  "insights_trend_aggregation_monthly": "Monthly average",
+  "insights_trend_aggregation_perDive": "Every dive",
+  "insights_trend_aggregation_tooltip": "How dives are grouped",
+  "insights_trend_aggregation_weekly": "Weekly average",
+  "insights_trend_band_semanticLabel": "Shaded band spans the lowest and highest value in each group",
+  "insights_trend_legend_rate": "Overall trend",
+  "insights_trend_legend_rollingAverage": "Rolling avg",
+  "insights_trend_rate_perYear": "{value}/yr",
+  "@insights_trend_rate_perYear": {
     "description": "Linear trend rate shown beside the rate legend entry. The value already carries its unit symbol, for example '+4.4 m'.",
     "placeholders": {
       "value": {
@@ -25118,28 +25118,28 @@
       }
     }
   },
-  "statistics_conditions_tempTrend_title": "Water Temperature Trend",
-  "statistics_conditions_tempTrend_subtitle": "Every dive in range",
-  "statistics_conditions_tempTrend_empty": "No temperature data available",
-  "statistics_conditions_tempTrend_error": "Failed to load temperature trend",
-  "statistics_conditions_waterTempBands_title": "Dives by Water Temperature",
-  "@statistics_conditions_waterTempBands_title": {
+  "insights_conditions_tempTrend_title": "Water Temperature Trend",
+  "insights_conditions_tempTrend_subtitle": "Every dive in range",
+  "insights_conditions_tempTrend_empty": "No temperature data available",
+  "insights_conditions_tempTrend_error": "Failed to load temperature trend",
+  "insights_conditions_waterTempBands_title": "Dives by Water Temperature",
+  "@insights_conditions_waterTempBands_title": {
     "description": "Title of the Conditions statistics card that counts dives per water-temperature band (for example below 10, 10-18, 18-24 and 24+ degrees)"
   },
-  "statistics_conditions_waterTempBands_subtitle": "How your dives split across water temperature bands",
-  "@statistics_conditions_waterTempBands_subtitle": {
+  "insights_conditions_waterTempBands_subtitle": "How your dives split across water temperature bands",
+  "@insights_conditions_waterTempBands_subtitle": {
     "description": "Subtitle under the dives-by-water-temperature card title, explaining that the chart shows how many dives fall in each temperature range"
   },
-  "statistics_conditions_waterTempBands_empty": "No water temperature data available",
-  "@statistics_conditions_waterTempBands_empty": {
+  "insights_conditions_waterTempBands_empty": "No water temperature data available",
+  "@insights_conditions_waterTempBands_empty": {
     "description": "Empty state of the dives-by-water-temperature card, shown when no dive in the current filter has a water temperature recorded"
   },
-  "statistics_conditions_waterTempBands_error": "Failed to load water temperature bands",
-  "@statistics_conditions_waterTempBands_error": {
+  "insights_conditions_waterTempBands_error": "Failed to load water temperature bands",
+  "@insights_conditions_waterTempBands_error": {
     "description": "Error state of the dives-by-water-temperature card, shown when the band counts could not be loaded"
   },
-  "statistics_conditions_waterTempBands_semanticLabel": "Bar chart. Dives by water temperature. {description}",
-  "@statistics_conditions_waterTempBands_semanticLabel": {
+  "insights_conditions_waterTempBands_semanticLabel": "Bar chart. Dives by water temperature. {description}",
+  "@insights_conditions_waterTempBands_semanticLabel": {
     "description": "Screen-reader summary of the dives-by-water-temperature-band bar chart",
     "placeholders": {
       "description": {
@@ -25148,32 +25148,32 @@
       }
     }
   },
-  "statistics_conditions_waterTempBands_table_band": "Band",
-  "@statistics_conditions_waterTempBands_table_band": {
+  "insights_conditions_waterTempBands_table_band": "Band",
+  "@insights_conditions_waterTempBands_table_band": {
     "description": "Header of the first column of the per-band averages table on the dives-by-water-temperature card: the water-temperature band, such as 10-18°C"
   },
-  "statistics_conditions_waterTempBands_table_dives": "Dives",
-  "@statistics_conditions_waterTempBands_table_dives": {
+  "insights_conditions_waterTempBands_table_dives": "Dives",
+  "@insights_conditions_waterTempBands_table_dives": {
     "description": "Header of the column of the per-band averages table that counts every dive in the band"
   },
-  "statistics_conditions_waterTempBands_table_avgSac": "Avg SAC",
-  "@statistics_conditions_waterTempBands_table_avgSac": {
+  "insights_conditions_waterTempBands_table_avgSac": "Avg SAC",
+  "@insights_conditions_waterTempBands_table_avgSac": {
     "description": "Header of the column of the per-band averages table showing the average SAC (tank-pressure drop per minute) of the band's dives"
   },
-  "statistics_conditions_waterTempBands_table_avgRmv": "Avg RMV",
-  "@statistics_conditions_waterTempBands_table_avgRmv": {
+  "insights_conditions_waterTempBands_table_avgRmv": "Avg RMV",
+  "@insights_conditions_waterTempBands_table_avgRmv": {
     "description": "Header of the column of the per-band averages table showing the average RMV (surface gas volume per minute) of the band's dives"
   },
-  "statistics_conditions_waterTempBands_table_avgBottomTime": "Avg bottom time",
-  "@statistics_conditions_waterTempBands_table_avgBottomTime": {
+  "insights_conditions_waterTempBands_table_avgBottomTime": "Avg bottom time",
+  "@insights_conditions_waterTempBands_table_avgBottomTime": {
     "description": "Header of the column of the per-band averages table showing the average bottom time of the band's dives"
   },
-  "statistics_conditions_waterTempBands_table_error": "Failed to load band averages",
-  "@statistics_conditions_waterTempBands_table_error": {
+  "insights_conditions_waterTempBands_table_error": "Failed to load band averages",
+  "@insights_conditions_waterTempBands_table_error": {
     "description": "Shown in place of the per-band averages table on the dives-by-water-temperature card when the averages could not be loaded"
   },
-  "statistics_conditions_waterTempBands_table_averageOver": "{value} over {dives}",
-  "@statistics_conditions_waterTempBands_table_averageOver": {
+  "insights_conditions_waterTempBands_table_averageOver": "{value} over {dives}",
+  "@insights_conditions_waterTempBands_table_averageOver": {
     "description": "Screen-reader text for one average and how many dives it is based on",
     "placeholders": {
       "value": {
@@ -25186,12 +25186,12 @@
       }
     }
   },
-  "statistics_conditions_waterTempBands_table_noData": "no data",
-  "@statistics_conditions_waterTempBands_table_noData": {
+  "insights_conditions_waterTempBands_table_noData": "no data",
+  "@insights_conditions_waterTempBands_table_noData": {
     "description": "Screen-reader text for an average the band has no dives for, read in place of the value (the table itself shows --)"
   },
-  "statistics_conditions_waterTempBands_table_rowSemanticLabel": "{band}: {dives}. Average {lane}: {consumption}. Average bottom time: {bottomTime}.",
-  "@statistics_conditions_waterTempBands_table_rowSemanticLabel": {
+  "insights_conditions_waterTempBands_table_rowSemanticLabel": "{band}: {dives}. Average {lane}: {consumption}. Average bottom time: {bottomTime}.",
+  "@insights_conditions_waterTempBands_table_rowSemanticLabel": {
     "description": "Screen-reader summary of one row of the per-band averages table: the band, its dive count, its average gas consumption and its average bottom time",
     "placeholders": {
       "band": {
@@ -25218,8 +25218,8 @@
   },
   "diveLog_filter_presetLast5Years": "Last 5 years",
   "diveLog_filter_presetLast10Years": "Last 10 years",
-  "statistics_trend_tooltip_lowest": "Lowest",
-  "statistics_trend_tooltip_highest": "Highest",
+  "insights_trend_tooltip_lowest": "Lowest",
+  "insights_trend_tooltip_highest": "Highest",
   "diveLog_edit_excludeFromStats": "Exclude from statistics",
   "@diveLog_edit_excludeFromStats": {
     "description": "Checkbox: exclude this dive from all statistics"
@@ -25260,8 +25260,8 @@
   "@diveLog_edit_summary_excluded": {
     "description": "Collapsed summary fragment: dive excluded from statistics"
   },
-  "statistics_excludedDivesFootnote": "{count, plural, one{1 dive excluded from statistics} other{{count} dives excluded from statistics}}",
-  "@statistics_excludedDivesFootnote": {
+  "insights_excludedDivesFootnote": "{count, plural, one{1 dive excluded from statistics} other{{count} dives excluded from statistics}}",
+  "@insights_excludedDivesFootnote": {
     "description": "Overview footnote naming how many dives are excluded",
     "placeholders": {
       "count": {

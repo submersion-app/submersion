@@ -3,7 +3,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
-import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 
 /// Every field and relation a dive query can name (#2365). This file is
 /// the ONLY place a dive filter axis is defined: the paginated list, its

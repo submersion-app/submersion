@@ -8,8 +8,8 @@ import 'package:submersion/features/marine_life/presentation/pages/species_detai
 import 'package:submersion/features/marine_life/presentation/providers/seen_species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/insights/domain/entities/species_insights.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -37,9 +37,9 @@ Future<List<Uri>> _pump(WidgetTester tester, Species species) async {
       overrides: [
         ...overrides,
         speciesProvider(species.id).overrideWith((ref) async => species),
-        speciesStatisticsProvider(
+        speciesInsightsProvider(
           species.id,
-        ).overrideWith((ref) async => SpeciesStatistics.empty),
+        ).overrideWith((ref) async => SpeciesInsights.empty),
         speciesSightingsProvider(
           species.id,
         ).overrideWith((ref) async => const []),

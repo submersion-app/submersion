@@ -4,7 +4,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
-import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 
 import '../../../helpers/test_database.dart';
 import 'dive_query_fixture.dart';

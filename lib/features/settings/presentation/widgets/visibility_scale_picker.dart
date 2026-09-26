@@ -83,6 +83,12 @@ void showCustomVisibilityScaleDialog(
       content: CustomVisibilityScaleForm(
         initial: seed,
         units: UnitFormatter(settings),
+        // Only a seed made entirely of preset bounds is nominal; any retained
+        // value is the diver's own and keeps its decimal.
+        wholeUnits:
+            settings.visibilityScaleExcellentM == null &&
+            settings.visibilityScaleGoodM == null &&
+            settings.visibilityScaleModerateM == null,
         onCancel: () => Navigator.of(dialogContext).pop(),
         onSubmit: (scale) {
           ref
@@ -319,6 +325,12 @@ class CustomVisibilityScaleForm extends StatefulWidget {
   final VisibilityScale initial;
   final UnitFormatter units;
 
+  /// Seed whole units rather than one decimal. Set when [initial] is a named
+  /// preset's bounds: they are round metric numbers, so an imperial
+  /// conversion's decimal (12 m is 39.4 ft) is noise, and the fields should
+  /// match what the preset list shows.
+  final bool wholeUnits;
+
   /// Called with metric thresholds once they validate.
   final ValueChanged<VisibilityScale> onSubmit;
   final VoidCallback onCancel;
@@ -327,6 +339,7 @@ class CustomVisibilityScaleForm extends StatefulWidget {
     super.key,
     required this.initial,
     required this.units,
+    this.wholeUnits = false,
     required this.onSubmit,
     required this.onCancel,
   });
@@ -340,23 +353,32 @@ class _CustomVisibilityScaleFormState extends State<CustomVisibilityScaleForm> {
   late final TextEditingController _excellent;
   late final TextEditingController _good;
   late final TextEditingController _moderate;
+
+  /// The text each field was seeded with and the meters it stands for, so a
+  /// field the diver never edited saves the stored value itself.
+  late final Map<TextEditingController, ({String text, double meters})> _seeds;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    // Whole units only, but rendered through the locale formatter so the text
-    // shares one convention with [_metersFrom].
-    String initial(double meters) => formatDecimalForInput(
-      widget.units.convertDepth(meters).roundToDouble(),
+    // One decimal, so a custom 2.5 m reads "2.5" rather than a misleading
+    // "3". Rendered through the locale formatter so the text shares one
+    // convention with [_metersFrom].
+    ({String text, double meters}) seed(double meters) => (
+      text: formatRoundedForInput(
+        widget.units.convertDepth(meters),
+        widget.wholeUnits ? 0 : 1,
+      ),
+      meters: meters,
     );
-    _excellent = TextEditingController(
-      text: initial(widget.initial.excellentAtOrAboveM),
-    );
-    _good = TextEditingController(text: initial(widget.initial.goodAtOrAboveM));
-    _moderate = TextEditingController(
-      text: initial(widget.initial.moderateAtOrAboveM),
-    );
+    final excellent = seed(widget.initial.excellentAtOrAboveM);
+    final good = seed(widget.initial.goodAtOrAboveM);
+    final moderate = seed(widget.initial.moderateAtOrAboveM);
+    _excellent = TextEditingController(text: excellent.text);
+    _good = TextEditingController(text: good.text);
+    _moderate = TextEditingController(text: moderate.text);
+    _seeds = {_excellent: excellent, _good: good, _moderate: moderate};
   }
 
   @override
@@ -367,7 +389,19 @@ class _CustomVisibilityScaleFormState extends State<CustomVisibilityScaleForm> {
     super.dispose();
   }
 
+  /// The meters a field saves as.
   double? _metersFrom(TextEditingController c) {
+    // Re-parsing untouched text would store its rounding (2.56 m saved as 2.6)
+    // or a unit round trip's drift (2.5 m through "8.2" ft is 2.499 m).
+    final seeded = _seeds[c];
+    if (seeded != null && c.text == seeded.text) return seeded.meters;
+    return _typedMetersFrom(c);
+  }
+
+  /// The meters a field's text reads as, for anything that describes what
+  /// the diver can see: a whole-unit seed of "7" ft must not be described as
+  /// the 6.6 ft it was rounded from.
+  double? _typedMetersFrom(TextEditingController c) {
     final parsed = parseUserDecimal(c.text);
     return parsed == null ? null : widget.units.depthToMeters(parsed);
   }
@@ -432,7 +466,7 @@ class _CustomVisibilityScaleFormState extends State<CustomVisibilityScaleForm> {
         ListenableBuilder(
           listenable: _moderate,
           builder: (context, _) {
-            final moderateM = _metersFrom(_moderate);
+            final moderateM = _typedMetersFrom(_moderate);
             if (moderateM == null || moderateM <= 0) {
               return const SizedBox.shrink();
             }

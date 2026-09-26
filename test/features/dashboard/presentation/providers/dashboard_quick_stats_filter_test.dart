@@ -7,18 +7,18 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
 /// Regression guard for the final "filterable statistics" review (issue
 /// #453): [dashboardQuickStatsProvider] backs the home dashboard, which has
-/// no filter UI. Pre-fix, it inherited the Statistics tab's filter
+/// no filter UI. Pre-fix, it inherited the Insights tab's filter
 /// transitively (via [topBuddiesProvider]/[countriesVisitedProvider]/
 /// [uniqueSpeciesCountProvider], which are themselves correctly
-/// filter-aware for the Statistics Social/Geographic/Marine-Life pages), so
-/// an active Statistics filter would silently change the numbers shown on
+/// filter-aware for the Insights Social/Geographic/Marine-Life pages), so
+/// an active Insights filter would silently change the numbers shown on
 /// the home tab.
 void main() {
   late AppDatabase db;
@@ -118,17 +118,17 @@ void main() {
       currentDiverIdProvider.overrideWith(
         (ref) => MockCurrentDiverIdNotifier(),
       ),
-      // statisticsRepositoryProvider watches the gas model (issue #828), which
+      // insightsRepositoryProvider watches the gas model (issue #828), which
       // otherwise pulls in settingsProvider and its SharedPreferences
       // dependency. Pin it instead of standing up the whole settings stack.
       gasModelProvider.overrideWith((ref) => GasModel.real),
-      statisticsFilterProvider.overrideWith((ref) => filter),
+      insightsFilterProvider.overrideWith((ref) => filter),
     ],
   );
 
-  test('dashboardQuickStatsProvider ignores an active statisticsFilterProvider '
+  test('dashboardQuickStatsProvider ignores an active insightsFilterProvider '
       'filter (issue #453 finding #2)', () async {
-    // A minDepth:30 Statistics filter would keep only 'deep'. If any of
+    // A minDepth:30 Insights filter would keep only 'deep'. If any of
     // the three values bled the filter, activating it would drop
     // 'shallow's country/buddy-dive/species contribution.
     await insertSite('site-shallow', 'Wonderland');
@@ -162,9 +162,9 @@ void main() {
     );
 
     const reason =
-        'dashboardQuickStatsProvider must ignore statisticsFilterProvider; '
+        'dashboardQuickStatsProvider must ignore insightsFilterProvider; '
         'the home dashboard has no filter UI and must not be silently '
-        'rescoped by the Statistics tab.';
+        'rescoped by the Insights tab.';
     expect(
       withActiveFilter.topBuddyDiveCount,
       unfiltered.topBuddyDiveCount,

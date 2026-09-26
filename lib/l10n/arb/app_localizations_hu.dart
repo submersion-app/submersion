@@ -1098,7 +1098,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get accessibility_shortcut_goToSites => 'Ugrás a merülőhelyekhez';
 
   @override
-  String get accessibility_shortcut_goToStatistics => 'Ugrás a statisztikákhoz';
+  String get accessibility_shortcut_goToInsights => 'Ugrás az elemzésekhez';
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => 'Billentyűparancsok';
@@ -4132,11 +4132,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dashboard_quickActions_sectionTitle => 'Gyors műveletek';
 
   @override
-  String get dashboard_quickActions_statistics => 'Statisztikák';
+  String get dashboard_quickActions_insights => 'Elemzések';
 
   @override
-  String get dashboard_quickActions_statisticsTooltip =>
-      'Merülési statisztikák megtekintése';
+  String get dashboard_quickActions_insightsTooltip =>
+      'Merülési elemzések megtekintése';
 
   @override
   String get dashboard_quickStats_countries => 'Országok';
@@ -7154,8 +7154,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Merülőhelyek megjelenítése térképen';
 
   @override
-  String get setup_finish_feature_statistics =>
-      'Merülési statisztikák felfedezése';
+  String get setup_finish_feature_insights => 'Merülési elemzések felfedezése';
 
   @override
   String get setup_finish_start => 'Kezdés';
@@ -8225,7 +8224,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_summary_action_logDive => 'Merülés rögzítése';
 
   @override
-  String get diveLog_summary_action_viewStats => 'Statisztikák megtekintése';
+  String get diveLog_summary_action_viewInsights => 'Elemzések megtekintése';
 
   @override
   String diveLog_summary_diveCount(int count) {
@@ -16231,7 +16230,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_species => 'Fajok';
 
   @override
-  String get nav_statistics => 'Statisztikák';
+  String get nav_insights => 'Elemzések';
 
   @override
   String get nav_tooltip_closeMenu => 'Menü bezárása';
@@ -19968,115 +19967,112 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get statistics_appBar_title => 'Statisztikák';
+  String get insights_appBar_title => 'Elemzések';
 
   @override
-  String statistics_categoryCard_semanticLabel(Object title) {
-    return '$title statisztikai kategória';
+  String insights_categoryCard_semanticLabel(Object title) {
+    return '$title elemzési kategória';
   }
 
   @override
-  String get statistics_category_conditions_subtitle =>
+  String get insights_category_conditions_subtitle =>
       'Látási viszonyok és hőmérséklet';
 
   @override
-  String get statistics_category_conditions_title => 'Körülmények';
+  String get insights_category_conditions_title => 'Körülmények';
 
   @override
-  String get statistics_category_equipment_subtitle =>
+  String get insights_category_equipment_subtitle =>
       'Felszerelés használat és súly';
 
   @override
-  String get statistics_category_equipment_title => 'Felszerelés';
+  String get insights_category_equipment_title => 'Felszerelés';
 
   @override
-  String get statistics_category_gas_subtitle =>
-      'Gázfogyasztás és gázkeverékek';
+  String get insights_category_gas_subtitle => 'Gázfogyasztás és gázkeverékek';
 
   @override
-  String get statistics_category_gas_title => 'Levegőfelhasználás';
+  String get insights_category_gas_title => 'Levegőfelhasználás';
 
   @override
-  String get statistics_category_geographic_subtitle => 'Országok és régiók';
+  String get insights_category_geographic_subtitle => 'Országok és régiók';
 
   @override
-  String get statistics_category_geographic_title => 'Földrajzi';
+  String get insights_category_geographic_title => 'Földrajzi';
 
   @override
-  String get statistics_category_marineLife_subtitle => 'Fajok észlelések';
+  String get insights_category_marineLife_subtitle => 'Fajok észlelések';
 
   @override
-  String get statistics_category_marineLife_title => 'Fajok';
+  String get insights_category_marineLife_title => 'Fajok';
 
   @override
-  String get statistics_category_overview_title => 'Overview';
+  String get insights_category_overview_title => 'Overview';
 
   @override
-  String get statistics_category_overview_subtitle =>
+  String get insights_category_overview_subtitle =>
       'Totals, records, and breakdowns at a glance';
 
   @override
-  String get statistics_category_profile_subtitle =>
+  String get insights_category_profile_subtitle =>
       'Felszállási sebesség és deko';
 
   @override
-  String get statistics_category_profile_title => 'Profil elemzés';
+  String get insights_category_profile_title => 'Profil elemzés';
 
   @override
-  String get statistics_category_progression_subtitle =>
-      'Mélység és idő trendek';
+  String get insights_category_progression_subtitle => 'Mélység és idő trendek';
 
   @override
-  String get statistics_category_progression_title => 'Fejlődés';
+  String get insights_category_progression_title => 'Fejlődés';
 
   @override
-  String get statistics_category_social_subtitle =>
+  String get insights_category_social_subtitle =>
       'Merülőtársak és merülőközpontok';
 
   @override
-  String get statistics_category_social_title => 'Közösségi';
+  String get insights_category_social_title => 'Közösségi';
 
   @override
-  String get statistics_category_timePatterns_subtitle => 'Mikor merül';
+  String get insights_category_timePatterns_subtitle => 'Mikor merül';
 
   @override
-  String get statistics_category_timePatterns_title => 'Időminták';
+  String get insights_category_timePatterns_title => 'Időminták';
 
   @override
-  String statistics_chart_barSemanticLabel(Object count) {
+  String insights_chart_barSemanticLabel(Object count) {
     return 'Oszlopdiagram $count kategóriával';
   }
 
   @override
-  String statistics_chart_distributionSemanticLabel(Object count) {
+  String insights_chart_distributionSemanticLabel(Object count) {
     return 'Megoszlási kördiagram $count szegmenssel';
   }
 
   @override
-  String statistics_chart_multiTrendSemanticLabel(Object seriesNames) {
+  String insights_chart_multiTrendSemanticLabel(Object seriesNames) {
     return 'Többszörös trend vonaldiagram, $seriesNames összehasonlítása';
   }
 
   @override
-  String get statistics_chart_noBarData => 'Nincsenek elérhető adatok';
+  String get insights_chart_noBarData => 'Nincsenek elérhető adatok';
 
   @override
-  String get statistics_chart_noDistributionData =>
-      'Nincsenek megoszlási adatok';
+  String get insights_chart_noDistributionData => 'Nincsenek megoszlási adatok';
 
   @override
-  String get statistics_chart_noTrendData => 'Nincsenek trend adatok';
+  String get insights_chart_noTrendData => 'Nincsenek trend adatok';
 
   @override
-  String get statistics_chart_notRecorded => 'Nincs rögzítve';
+  String get insights_chart_notRecorded => 'Nincs rögzítve';
 
   @override
-  String statistics_chart_trendSemanticLabel(Object count) {
+  String insights_chart_trendSemanticLabel(Object count) {
     return 'Trend vonaldiagram $count adatponttal';
   }
 
   @override
-  String statistics_chart_trendSemanticLabelWithAxis(
+  String insights_chart_trendSemanticLabelWithAxis(
     Object count,
     Object yAxisLabel,
   ) {
@@ -20084,225 +20080,223 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get statistics_conditions_appBar_title => 'Körülmények';
+  String get insights_conditions_appBar_title => 'Körülmények';
 
   @override
-  String get statistics_conditions_entryMethod_empty =>
+  String get insights_conditions_entryMethod_empty =>
       'Nincsenek belépési módszer adatok';
 
   @override
-  String get statistics_conditions_entryMethod_error =>
+  String get insights_conditions_entryMethod_error =>
       'Nem sikerült a belépési módszer adatok betöltése';
 
   @override
-  String get statistics_conditions_entryMethod_subtitle => 'Parti, hajós stb.';
+  String get insights_conditions_entryMethod_subtitle => 'Parti, hajós stb.';
 
   @override
-  String get statistics_conditions_entryMethod_title => 'Belépési módszer';
+  String get insights_conditions_entryMethod_title => 'Belépési módszer';
 
   @override
-  String get statistics_conditions_temperature_empty =>
+  String get insights_conditions_temperature_empty =>
       'Nincsenek hőmérséklet adatok';
 
   @override
-  String get statistics_conditions_temperature_error =>
+  String get insights_conditions_temperature_error =>
       'Nem sikerült a hőmérséklet adatok betöltése';
 
   @override
-  String get statistics_conditions_temperature_seriesAvg => 'Átl.';
+  String get insights_conditions_temperature_seriesAvg => 'Átl.';
 
   @override
-  String get statistics_conditions_temperature_seriesMax => 'Max';
+  String get insights_conditions_temperature_seriesMax => 'Max';
 
   @override
-  String get statistics_conditions_temperature_seriesMin => 'Min';
+  String get insights_conditions_temperature_seriesMin => 'Min';
 
   @override
-  String get statistics_conditions_temperature_subtitle =>
+  String get insights_conditions_temperature_subtitle =>
       'Min, átlag és max naptári hónap szerint, minden évre összevonva';
 
   @override
-  String get statistics_conditions_temperature_title =>
+  String get insights_conditions_temperature_title =>
       'Szezonális vízhőmérséklet';
 
   @override
-  String get statistics_conditions_visibility_error =>
+  String get insights_conditions_visibility_error =>
       'Nem sikerült a látási adatok betöltése';
 
   @override
-  String get statistics_conditions_visibility_subtitle =>
+  String get insights_conditions_visibility_subtitle =>
       'Merülések látási viszonyok szerint';
 
   @override
-  String get statistics_conditions_visibility_title => 'Látható megoszlás';
+  String get insights_conditions_visibility_title => 'Látható megoszlás';
 
   @override
-  String get statistics_conditions_siteType_error =>
+  String get insights_conditions_siteType_error =>
       'A merülőhely-típusok adatai nem tölthetők be';
 
   @override
-  String statistics_conditions_siteType_semanticLabel(String description) {
+  String insights_conditions_siteType_semanticLabel(String description) {
     return 'Oszlopdiagram. Merülések merülőhely-típusonként. $description';
   }
 
   @override
-  String get statistics_conditions_siteType_subtitle =>
+  String get insights_conditions_siteType_subtitle =>
       'Merülések merülőhely-típusonként. A több típusú helyen tett merülés mindegyiknél számít; a típus nélküli helyek nem jelennek meg.';
 
   @override
-  String get statistics_conditions_siteType_title => 'Merülőhely-típusok';
+  String get insights_conditions_siteType_title => 'Merülőhely-típusok';
 
   @override
-  String get statistics_conditions_waterType_error =>
+  String get insights_conditions_waterType_error =>
       'Nem sikerült a víztípus adatok betöltése';
 
   @override
-  String get statistics_conditions_waterType_subtitle =>
+  String get insights_conditions_waterType_subtitle =>
       'Sós és édesvízi merülések';
 
   @override
-  String get statistics_conditions_waterType_title => 'Víztípus';
+  String get insights_conditions_waterType_title => 'Víztípus';
 
   @override
-  String get statistics_equipment_appBar_title => 'Felszerelés';
+  String get insights_equipment_appBar_title => 'Felszerelés';
 
   @override
-  String get statistics_equipment_mostUsedGear_error =>
+  String get insights_equipment_mostUsedGear_error =>
       'Nem sikerült a felszerelés adatok betöltése';
 
   @override
-  String get statistics_equipment_mostUsedGear_subtitle =>
+  String get insights_equipment_mostUsedGear_subtitle =>
       'Felszerelés merülések száma szerint';
 
   @override
-  String get statistics_equipment_mostUsedGear_title =>
+  String get insights_equipment_mostUsedGear_title =>
       'Legtöbbet használt felszerelés';
 
   @override
-  String get statistics_equipment_weightTrend_error =>
+  String get insights_equipment_weightTrend_error =>
       'Nem sikerült a súly trend betöltése';
 
   @override
-  String get statistics_equipment_weightTrend_subtitle =>
+  String get insights_equipment_weightTrend_subtitle =>
       'Összes ólom merülésenként';
 
   @override
-  String get statistics_equipment_weightTrend_title => 'Súly trend';
+  String get insights_equipment_weightTrend_title => 'Súly trend';
 
   @override
-  String get statistics_equipment_exposure_title => 'Igénybevétel';
+  String get insights_equipment_exposure_title => 'Igénybevétel';
 
   @override
-  String get statistics_equipment_exposure_error =>
+  String get insights_equipment_exposure_error =>
       'Az igénybevételi adatokat nem sikerült betölteni';
 
   @override
-  String get statistics_equipment_findings_error =>
+  String get insights_equipment_findings_error =>
       'Az állapotmegállapításokat nem sikerült betölteni';
 
   @override
-  String get statistics_equipment_issues_error =>
+  String get insights_equipment_issues_error =>
       'A bejelentett problémákat nem sikerült betölteni';
 
   @override
-  String get statistics_equipment_exposure_subtitle =>
+  String get insights_equipment_exposure_subtitle =>
       'Összegek eszközönként a küszöbeiddel';
 
   @override
-  String get statistics_equipment_exposure_empty =>
+  String get insights_equipment_exposure_empty =>
       'Még nincs merülés felszereléssel';
 
   @override
-  String get statistics_equipment_findings_title => 'Állapotmegállapítások';
+  String get insights_equipment_findings_title => 'Állapotmegállapítások';
 
   @override
-  String get statistics_equipment_findings_subtitle =>
+  String get insights_equipment_findings_subtitle =>
       'Nyitott megállapítások szabályonként';
 
   @override
-  String get statistics_equipment_findings_subtitleAllDives =>
+  String get insights_equipment_findings_subtitleAllDives =>
       'Nyitott megállapítások szabályonként, az összes merülésre';
 
   @override
-  String get statistics_equipment_findings_empty =>
-      'Nincs nyitott megállapítás';
+  String get insights_equipment_findings_empty => 'Nincs nyitott megállapítás';
 
   @override
-  String get statistics_equipment_issues_title => 'Bejelentett problémák';
+  String get insights_equipment_issues_title => 'Bejelentett problémák';
 
   @override
-  String get statistics_equipment_issues_subtitle =>
+  String get insights_equipment_issues_subtitle =>
       'Leggyakoribb ellenőrzési címkék';
 
   @override
-  String get statistics_equipment_issues_empty => 'Nincs bejelentett probléma';
+  String get insights_equipment_issues_empty => 'Nincs bejelentett probléma';
 
   @override
-  String get statistics_equipment_countLabel_items => 'eszköz';
+  String get insights_equipment_countLabel_items => 'eszköz';
 
   @override
-  String get statistics_equipment_countLabel_findings => 'megállapítás';
+  String get insights_equipment_countLabel_findings => 'megállapítás';
 
   @override
-  String get statistics_equipment_countLabel_reports => 'bejelentés';
+  String get insights_equipment_countLabel_reports => 'bejelentés';
 
   @override
-  String get statistics_equipment_exposureUnit_days => 'Nap';
+  String get insights_equipment_exposureUnit_days => 'Nap';
 
   @override
-  String get statistics_equipment_exposureUnit_dives => 'Merülés';
+  String get insights_equipment_exposureUnit_dives => 'Merülés';
 
   @override
-  String get statistics_equipment_countLabel_days => 'nap';
+  String get insights_equipment_countLabel_days => 'nap';
 
   @override
-  String get statistics_equipment_countLabel_dives => 'merülés';
+  String get insights_equipment_countLabel_dives => 'merülés';
 
   @override
-  String get statistics_equipment_countLabel_hours => 'óra';
+  String get insights_equipment_countLabel_hours => 'óra';
 
   @override
-  String get statistics_equipment_countLabel_saltHours => 'sósvízi óra';
+  String get insights_equipment_countLabel_saltHours => 'sósvízi óra';
 
   @override
-  String get statistics_equipment_countLabel_coldDives => 'hideg merülés';
+  String get insights_equipment_countLabel_coldDives => 'hideg merülés';
 
   @override
-  String get statistics_equipment_countLabel_o2Hours => 'óra magas O2-vel';
+  String get insights_equipment_countLabel_o2Hours => 'óra magas O2-vel';
 
   @override
-  String get statistics_equipment_countLabel_deepCycles => 'mély merülés';
+  String get insights_equipment_countLabel_deepCycles => 'mély merülés';
 
   @override
-  String get statistics_equipment_countLabel_cycles => 'akkumulátorciklus';
+  String get insights_equipment_countLabel_cycles => 'akkumulátorciklus';
 
   @override
-  String get statistics_equipment_exposureUnit_hours => 'Óra';
+  String get insights_equipment_exposureUnit_hours => 'Óra';
 
   @override
-  String get statistics_equipment_exposureUnit_saltHours => 'Sósvízi óra';
+  String get insights_equipment_exposureUnit_saltHours => 'Sósvízi óra';
 
   @override
-  String get statistics_equipment_exposureUnit_coldDives => 'Hideg merülés';
+  String get insights_equipment_exposureUnit_coldDives => 'Hideg merülés';
 
   @override
-  String get statistics_equipment_exposureUnit_o2Hours => 'Óra magas O2-vel';
+  String get insights_equipment_exposureUnit_o2Hours => 'Óra magas O2-vel';
 
   @override
-  String get statistics_equipment_exposureUnit_deepCycles => 'Mély merülés';
+  String get insights_equipment_exposureUnit_deepCycles => 'Mély merülés';
 
   @override
-  String get statistics_equipment_exposureUnit_cycles => 'Akkumulátorciklus';
+  String get insights_equipment_exposureUnit_cycles => 'Akkumulátorciklus';
 
   @override
-  String get statistics_error_loadingStatistics =>
-      'Hiba a statisztikák betöltésekor';
+  String get insights_error_loadingInsights => 'Hiba az elemzések betöltésekor';
 
   @override
-  String get statistics_filterBar_clear => 'Szűrő törlése';
+  String get insights_filterBar_clear => 'Szűrő törlése';
 
   @override
-  String statistics_filterBar_diveCount(int count) {
+  String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -20313,115 +20307,113 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get statistics_gas_appBar_title => 'Levegőfelhasználás';
+  String get insights_gas_appBar_title => 'Levegőfelhasználás';
 
   @override
-  String get statistics_gas_gasMix_error =>
+  String get insights_gas_gasMix_error =>
       'Nem sikerült a gázkeverék adatok betöltése';
 
   @override
-  String get statistics_gas_gasMix_subtitle => 'Merülések gáztípus szerint';
+  String get insights_gas_gasMix_subtitle => 'Merülések gáztípus szerint';
 
   @override
-  String get statistics_gas_gasMix_title => 'Gázkeverék megoszlás';
+  String get insights_gas_gasMix_title => 'Gázkeverék megoszlás';
 
   @override
-  String get statistics_gas_sacByRole_empty => 'Nincsenek többpalackos adatok';
+  String get insights_gas_sacByRole_empty => 'Nincsenek többpalackos adatok';
 
   @override
-  String get statistics_gas_sacByRole_error =>
+  String get insights_gas_sacByRole_error =>
       'Nem sikerült a szerep szerinti fogyasztás betöltése';
 
   @override
-  String get statistics_gas_sacByRole_subtitle =>
+  String get insights_gas_sacByRole_subtitle =>
       'Átlagos felhasználás palack típus szerint';
 
   @override
-  String get statistics_gas_sacByRole_title =>
+  String get insights_gas_sacByRole_title =>
       'Gázfogyasztás palack szerep szerint';
 
   @override
-  String get statistics_gas_sacRecords_empty =>
+  String get insights_gas_sacRecords_empty =>
       'Még nincsenek fogyasztási adatok';
 
   @override
-  String get statistics_gas_sacRecords_error =>
+  String get insights_gas_sacRecords_error =>
       'Nem sikerült a fogyasztási rekordok betöltése';
 
   @override
-  String get statistics_gas_sacRecords_highestRmv => 'Legmagasabb RMV';
+  String get insights_gas_sacRecords_highestRmv => 'Legmagasabb RMV';
 
   @override
-  String get statistics_gas_sacRecords_highestSac => 'Legmagasabb SAC';
+  String get insights_gas_sacRecords_highestSac => 'Legmagasabb SAC';
 
   @override
-  String get statistics_gas_sacRecords_bestRmv => 'Legjobb RMV';
+  String get insights_gas_sacRecords_bestRmv => 'Legjobb RMV';
 
   @override
-  String get statistics_gas_sacRecords_bestSac => 'Legjobb SAC';
+  String get insights_gas_sacRecords_bestSac => 'Legjobb SAC';
 
   @override
-  String get statistics_gas_sacRecords_subtitle =>
+  String get insights_gas_sacRecords_subtitle =>
       'Legjobb és legrosszabb levegőfelhasználás';
 
   @override
-  String get statistics_gas_sacRecords_title => 'Gázfogyasztási rekordok';
+  String get insights_gas_sacRecords_title => 'Gázfogyasztási rekordok';
 
   @override
-  String get statistics_gas_sacTrend_error =>
+  String get insights_gas_sacTrend_error =>
       'Nem sikerült a fogyasztási trend betöltése';
 
   @override
-  String get statistics_gas_sacTrend_subtitle =>
-      'Minden merülés a tartományban';
+  String get insights_gas_sacTrend_subtitle => 'Minden merülés a tartományban';
 
   @override
-  String get statistics_gas_sacTrend_title => 'Gázfogyasztási trend';
+  String get insights_gas_sacTrend_title => 'Gázfogyasztási trend';
 
   @override
-  String get statistics_gas_tankRole_backGas => 'Háttérgáz';
+  String get insights_gas_tankRole_backGas => 'Háttérgáz';
 
   @override
-  String get statistics_gas_tankRole_bailout => 'Bailout';
+  String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
-  String get statistics_gas_tankRole_deco => 'Deko';
+  String get insights_gas_tankRole_deco => 'Deko';
 
   @override
-  String get statistics_gas_tankRole_diluent => 'Hígító';
+  String get insights_gas_tankRole_diluent => 'Hígító';
 
   @override
-  String get statistics_gas_tankRole_oxygenSupply => 'O₂ ellátás';
+  String get insights_gas_tankRole_oxygenSupply => 'O₂ ellátás';
 
   @override
-  String get statistics_gas_tankRole_pony => 'Pony';
+  String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get statistics_gas_tankRole_sidemountLeft => 'Sidemount B';
+  String get insights_gas_tankRole_sidemountLeft => 'Sidemount B';
 
   @override
-  String get statistics_gas_tankRole_sidemountRight => 'Sidemount J';
+  String get insights_gas_tankRole_sidemountRight => 'Sidemount J';
 
   @override
-  String get statistics_gas_tankRole_stage => 'Stage';
+  String get insights_gas_tankRole_stage => 'Stage';
 
   @override
-  String get statistics_geographic_appBar_title => 'Földrajzi';
+  String get insights_geographic_appBar_title => 'Földrajzi';
 
   @override
-  String get statistics_geographic_countries_empty =>
+  String get insights_geographic_countries_empty =>
       'Nincsenek látogatott országok';
 
   @override
-  String get statistics_geographic_countries_error =>
+  String get insights_geographic_countries_error =>
       'Nem sikerült az ország adatok betöltése';
 
   @override
-  String get statistics_geographic_countries_subtitle =>
-      'Merülések országonként';
+  String get insights_geographic_countries_subtitle => 'Merülések országonként';
 
   @override
-  String statistics_geographic_countries_summary(
+  String insights_geographic_countries_summary(
     Object count,
     Object topName,
     Object topCount,
@@ -20430,21 +20422,21 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get statistics_geographic_countries_title => 'Látogatott országok';
+  String get insights_geographic_countries_title => 'Látogatott országok';
 
   @override
-  String get statistics_geographic_regions_empty =>
+  String get insights_geographic_regions_empty =>
       'Nincsenek felfedezett régiók';
 
   @override
-  String get statistics_geographic_regions_error =>
+  String get insights_geographic_regions_error =>
       'Nem sikerült a régió adatok betöltése';
 
   @override
-  String get statistics_geographic_regions_subtitle => 'Merülések régióként';
+  String get insights_geographic_regions_subtitle => 'Merülések régióként';
 
   @override
-  String statistics_geographic_regions_summary(
+  String insights_geographic_regions_summary(
     Object count,
     Object topName,
     Object topCount,
@@ -20453,20 +20445,20 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get statistics_geographic_regions_title => 'Felfedezett régiók';
+  String get insights_geographic_regions_title => 'Felfedezett régiók';
 
   @override
-  String get statistics_geographic_trips_empty => 'Nincsenek utazási adatok';
+  String get insights_geographic_trips_empty => 'Nincsenek utazási adatok';
 
   @override
-  String get statistics_geographic_trips_error =>
+  String get insights_geographic_trips_error =>
       'Nem sikerült az utazási adatok betöltése';
 
   @override
-  String get statistics_geographic_trips_subtitle => 'Legproduktívabb utazások';
+  String get insights_geographic_trips_subtitle => 'Legproduktívabb utazások';
 
   @override
-  String statistics_geographic_trips_summary(
+  String insights_geographic_trips_summary(
     Object count,
     Object topName,
     Object topCount,
@@ -20475,28 +20467,27 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get statistics_geographic_trips_title => 'Merülések utazásonként';
+  String get insights_geographic_trips_title => 'Merülések utazásonként';
 
   @override
-  String get statistics_listContent_selectedSuffix => ', kiválasztva';
+  String get insights_listContent_selectedSuffix => ', kiválasztva';
 
   @override
-  String get statistics_marineLife_appBar_title => 'Fajok';
+  String get insights_marineLife_appBar_title => 'Fajok';
 
   @override
-  String get statistics_marineLife_bestSites_empty =>
-      'Nincsenek helyszín adatok';
+  String get insights_marineLife_bestSites_empty => 'Nincsenek helyszín adatok';
 
   @override
-  String get statistics_marineLife_bestSites_error =>
+  String get insights_marineLife_bestSites_error =>
       'Nem sikerült a helyszín adatok betöltése';
 
   @override
-  String get statistics_marineLife_bestSites_subtitle =>
+  String get insights_marineLife_bestSites_subtitle =>
       'Legtöbb fajválasztékú helyszínek';
 
   @override
-  String statistics_marineLife_bestSites_summary(
+  String insights_marineLife_bestSites_summary(
     Object count,
     Object topName,
     Object topCount,
@@ -20505,22 +20496,22 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get statistics_marineLife_bestSites_title => 'Legjobb helyszínek';
+  String get insights_marineLife_bestSites_title => 'Legjobb helyszínek';
 
   @override
-  String get statistics_marineLife_mostCommon_empty =>
+  String get insights_marineLife_mostCommon_empty =>
       'Nincsenek észlelési adatok';
 
   @override
-  String get statistics_marineLife_mostCommon_error =>
+  String get insights_marineLife_mostCommon_error =>
       'Nem sikerült az észlelési adatok betöltése';
 
   @override
-  String get statistics_marineLife_mostCommon_subtitle =>
+  String get insights_marineLife_mostCommon_subtitle =>
       'Leggyakrabban látható fajok';
 
   @override
-  String statistics_marineLife_mostCommon_summary(
+  String insights_marineLife_mostCommon_summary(
     Object count,
     Object topName,
     Object topCount,
@@ -20529,181 +20520,177 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get statistics_marineLife_mostCommon_title =>
-      'Leggyakoribb észlelések';
+  String get insights_marineLife_mostCommon_title => 'Leggyakoribb észlelések';
 
   @override
-  String get statistics_marineLife_speciesSpotted => 'Észlelt fajok';
+  String get insights_marineLife_speciesSpotted => 'Észlelt fajok';
 
   @override
-  String get statistics_marineLife_seeAllSpecies_title =>
+  String get insights_marineLife_seeAllSpecies_title =>
       'Összes faj megtekintése';
 
   @override
-  String get statistics_marineLife_seeAllSpecies_subtitle =>
+  String get insights_marineLife_seeAllSpecies_subtitle =>
       'Minden naplózott faj, kereshetően';
 
   @override
-  String get statistics_profile_appBar_title => 'Profil elemzés';
+  String get insights_profile_appBar_title => 'Profil elemzés';
 
   @override
-  String get statistics_profile_ascentDescent_empty =>
+  String get insights_profile_ascentDescent_empty =>
       'Nincsenek elérhető profil adatok';
 
   @override
-  String get statistics_profile_ascentDescent_error =>
+  String get insights_profile_ascentDescent_error =>
       'Nem sikerült a sebesség adatok betöltése';
 
   @override
-  String get statistics_profile_ascentDescent_subtitle =>
+  String get insights_profile_ascentDescent_subtitle =>
       'Merülési profil adatokból';
 
   @override
-  String get statistics_profile_ascentDescent_title =>
+  String get insights_profile_ascentDescent_title =>
       'Átlagos felszállási és lesüllyedési sebesség';
 
   @override
-  String get statistics_profile_avgAscent => 'Átl. felszállás';
+  String get insights_profile_avgAscent => 'Átl. felszállás';
 
   @override
-  String get statistics_profile_avgDescent => 'Átl. lesüllyedés';
+  String get insights_profile_avgDescent => 'Átl. lesüllyedés';
 
   @override
-  String get statistics_profile_deco_decoDives => 'Deko merülések';
+  String get insights_profile_deco_decoDives => 'Deko merülések';
 
   @override
-  String get statistics_profile_deco_decoLabel => 'Deko';
+  String get insights_profile_deco_decoLabel => 'Deko';
 
   @override
-  String get statistics_profile_deco_decoRate => 'Deko arány';
+  String get insights_profile_deco_decoRate => 'Deko arány';
 
   @override
-  String get statistics_profile_deco_empty => 'Nincsenek deko adatok';
+  String get insights_profile_deco_empty => 'Nincsenek deko adatok';
 
   @override
-  String get statistics_profile_deco_error =>
+  String get insights_profile_deco_error =>
       'Nem sikerült a deko adatok betöltése';
 
   @override
-  String get statistics_profile_deco_noDeco => 'Nincs deko';
+  String get insights_profile_deco_noDeco => 'Nincs deko';
 
   @override
-  String get statistics_profile_deco_notRecorded => 'Nincs rögzítve';
+  String get insights_profile_deco_notRecorded => 'Nincs rögzítve';
 
   @override
-  String statistics_profile_deco_notRecordedHint(int count) {
+  String insights_profile_deco_notRecordedHint(int count) {
     return '$count merülés nem tartalmaz rögzített vagy számítható dekompressziós adatot, ezért kimarad az arányból';
   }
 
   @override
-  String statistics_profile_deco_semanticLabel(Object percentage) {
+  String insights_profile_deco_semanticLabel(Object percentage) {
     return 'Dekompressziós arány: $percentage% a merüléseknek deko megállóást igényelt';
   }
 
   @override
-  String get statistics_profile_deco_subtitle =>
+  String get insights_profile_deco_subtitle =>
       'Merülések amelyek deko megállóást igényeltek';
 
   @override
-  String get statistics_profile_deco_title => 'Dekompressziós kötelezetség';
+  String get insights_profile_deco_title => 'Dekompressziós kötelezetség';
 
   @override
-  String get statistics_profile_timeAtDepth_empty => 'Nincsenek mélység adatok';
+  String get insights_profile_timeAtDepth_empty => 'Nincsenek mélység adatok';
 
   @override
-  String get statistics_profile_timeAtDepth_error =>
+  String get insights_profile_timeAtDepth_error =>
       'Nem sikerült a mélység tartomány adatok betöltése';
 
   @override
-  String get statistics_profile_timeAtDepth_subtitle =>
+  String get insights_profile_timeAtDepth_subtitle =>
       'Közelítő idő az egyes mélységekben';
 
   @override
-  String get statistics_profile_timeAtDepth_title =>
-      'Idő mélység tartományoként';
+  String get insights_profile_timeAtDepth_title => 'Idő mélység tartományoként';
 
   @override
-  String statistics_profile_timeAtDepth_valueFormat(Object value) {
+  String insights_profile_timeAtDepth_valueFormat(Object value) {
     return '$value min';
   }
 
   @override
-  String get statistics_progression_appBar_title => 'Merülési fejlődés';
+  String get insights_progression_appBar_title => 'Merülési fejlődés';
 
   @override
-  String get statistics_progression_bottomTime_error =>
+  String get insights_progression_bottomTime_error =>
       'Nem sikerült a fenékidő trend betöltése';
 
   @override
-  String get statistics_progression_bottomTime_subtitle =>
+  String get insights_progression_bottomTime_subtitle =>
       'Minden merülés a tartományban';
 
   @override
-  String get statistics_progression_bottomTime_title => 'Fenékidő trend';
+  String get insights_progression_bottomTime_title => 'Fenékidő trend';
 
   @override
-  String get statistics_progression_cumulative_error =>
+  String get insights_progression_cumulative_error =>
       'Nem sikerült a kumulatív adatok betöltése';
 
   @override
-  String get statistics_progression_cumulative_subtitle =>
+  String get insights_progression_cumulative_subtitle =>
       'Összes merülés az idő függvényében';
 
   @override
-  String get statistics_progression_cumulative_title =>
-      'Kumulatív merülési szám';
+  String get insights_progression_cumulative_title => 'Kumulatív merülési szám';
 
   @override
-  String get statistics_progression_depthProgression_error =>
+  String get insights_progression_depthProgression_error =>
       'Nem sikerült a mélység fejlődés betöltése';
 
   @override
-  String get statistics_progression_depthProgression_subtitle =>
+  String get insights_progression_depthProgression_subtitle =>
       'Minden merülés a tartományban';
 
   @override
-  String get statistics_progression_depthProgression_title =>
+  String get insights_progression_depthProgression_title =>
       'Maximális mélység fejlődés';
 
   @override
-  String get statistics_progression_divesPerYear_empty =>
-      'Nincsenek éves adatok';
+  String get insights_progression_divesPerYear_empty => 'Nincsenek éves adatok';
 
   @override
-  String get statistics_progression_divesPerYear_error =>
+  String get insights_progression_divesPerYear_error =>
       'Nem sikerült az éves adatok betöltése';
 
   @override
-  String get statistics_progression_divesPerYear_subtitle =>
+  String get insights_progression_divesPerYear_subtitle =>
       'Éves merülésszám összehasonlítás';
 
   @override
-  String get statistics_progression_divesPerYear_title => 'Merülések évente';
+  String get insights_progression_divesPerYear_title => 'Merülések évente';
 
   @override
-  String get statistics_ranking_countLabel_dives => 'merülés';
+  String get insights_ranking_countLabel_dives => 'merülés';
 
   @override
-  String get statistics_ranking_countLabel_sightings => 'észlelés';
+  String get insights_ranking_countLabel_sightings => 'észlelés';
 
   @override
-  String get statistics_ranking_countLabel_species => 'faj';
+  String get insights_ranking_countLabel_species => 'faj';
 
   @override
-  String get statistics_ranking_emptyState => 'Még nincsenek adatok';
+  String get insights_ranking_emptyState => 'Még nincsenek adatok';
 
   @override
-  String statistics_ranking_itemCount(Object count, Object label) {
+  String insights_ranking_itemCount(Object count, Object label) {
     return '$count $label';
   }
 
   @override
-  String statistics_ranking_moreItems(Object count) {
+  String insights_ranking_moreItems(Object count) {
     return 'és $count további';
   }
 
   @override
-  String statistics_ranking_semanticLabel(
+  String insights_ranking_semanticLabel(
     Object name,
     Object rank,
     Object count,
@@ -20713,42 +20700,42 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get statistics_records_appBar_title => 'Merülési rekordok';
+  String get insights_records_appBar_title => 'Merülési rekordok';
 
   @override
-  String get statistics_records_coldestDive => 'Leghidegebb merülés';
+  String get insights_records_coldestDive => 'Leghidegebb merülés';
 
   @override
-  String get statistics_records_deepestDive => 'Legmélyebb merülés';
+  String get insights_records_deepestDive => 'Legmélyebb merülés';
 
   @override
-  String statistics_records_diveNumber(Object number) {
+  String insights_records_diveNumber(Object number) {
     return '#$number. merülés';
   }
 
   @override
-  String get statistics_records_emptySubtitle =>
+  String get insights_records_emptySubtitle =>
       'Kezdjen el merüléseket rögzíteni, hogy lássa rekordJait';
 
   @override
-  String get statistics_records_emptyTitle => 'Még nincsenek rekordok';
+  String get insights_records_emptyTitle => 'Még nincsenek rekordok';
 
   @override
-  String get statistics_records_error => 'Hiba a rekordok betöltésekor';
+  String get insights_records_error => 'Hiba a rekordok betöltésekor';
 
   @override
-  String get statistics_records_firstDive => 'Első merülés';
+  String get insights_records_firstDive => 'Első merülés';
 
   @override
-  String get statistics_records_longestDive => 'Leghosszabb merülés';
+  String get insights_records_longestDive => 'Leghosszabb merülés';
 
   @override
-  String statistics_records_longestDiveValue(Object minutes) {
+  String insights_records_longestDiveValue(Object minutes) {
     return '$minutes min';
   }
 
   @override
-  String statistics_records_milestoneSemanticLabel(
+  String insights_records_milestoneSemanticLabel(
     Object title,
     Object siteName,
   ) {
@@ -20756,13 +20743,13 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get statistics_records_milestones => 'Mérföldkövek';
+  String get insights_records_milestones => 'Mérföldkövek';
 
   @override
-  String get statistics_records_mostRecentDive => 'Legutóbbl merülés';
+  String get insights_records_mostRecentDive => 'Legutóbbl merülés';
 
   @override
-  String statistics_records_recordSemanticLabel(
+  String insights_records_recordSemanticLabel(
     Object title,
     Object value,
     Object siteName,
@@ -20771,135 +20758,130 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get statistics_records_retry => 'Újra';
+  String get insights_records_retry => 'Újra';
 
   @override
-  String get statistics_records_shallowestDive => 'Legsekélyebb merülés';
+  String get insights_records_shallowestDive => 'Legsekélyebb merülés';
 
   @override
-  String get statistics_records_unknownSite => 'Ismeretlen helyszín';
+  String get insights_records_unknownSite => 'Ismeretlen helyszín';
 
   @override
-  String get statistics_records_warmestDive => 'Legmelegebb merülés';
+  String get insights_records_warmestDive => 'Legmelegebb merülés';
 
   @override
-  String statistics_sectionCard_semanticLabel(Object title) {
+  String insights_sectionCard_semanticLabel(Object title) {
     return '$title szekció';
   }
 
   @override
-  String get statistics_social_appBar_title => 'Közösségi és merülőtársak';
+  String get insights_social_appBar_title => 'Közösségi és merülőtársak';
 
   @override
-  String get statistics_social_soloVsBuddy_empty => 'Nincsenek merülési adatok';
+  String get insights_social_soloVsBuddy_empty => 'Nincsenek merülési adatok';
 
   @override
-  String get statistics_social_soloVsBuddy_error =>
+  String get insights_social_soloVsBuddy_error =>
       'Nem sikerült a merülőtárs adatok betöltése';
 
   @override
-  String get statistics_social_soloVsBuddy_solo => 'Egyedüli';
+  String get insights_social_soloVsBuddy_solo => 'Egyedüli';
 
   @override
-  String get statistics_social_soloVsBuddy_subtitle =>
+  String get insights_social_soloVsBuddy_subtitle =>
       'Merülés társakkal vagy nélkülük';
 
   @override
-  String get statistics_social_soloVsBuddy_title => 'Egyedüli vs. társakkal';
+  String get insights_social_soloVsBuddy_title => 'Egyedüli vs. társakkal';
 
   @override
-  String get statistics_social_soloVsBuddy_withBuddy => 'Merülőtárssal';
+  String get insights_social_soloVsBuddy_withBuddy => 'Merülőtárssal';
 
   @override
-  String get statistics_social_topBuddies_error =>
+  String get insights_social_topBuddies_error =>
       'Nem sikerült a merülőtárs rangsor betöltése';
 
   @override
-  String get statistics_social_topBuddies_subtitle =>
-      'Leggyakoribb merülőtársak';
+  String get insights_social_topBuddies_subtitle => 'Leggyakoribb merülőtársak';
 
   @override
-  String get statistics_social_topBuddies_title => 'Legjobb merülőtársak';
+  String get insights_social_topBuddies_title => 'Legjobb merülőtársak';
 
   @override
-  String get statistics_social_topDiveCenters_error =>
+  String get insights_social_topDiveCenters_error =>
       'Nem sikerült a merülőközpont rangsor betöltése';
 
   @override
-  String get statistics_social_topDiveCenters_subtitle =>
+  String get insights_social_topDiveCenters_subtitle =>
       'Leglátogatottabb szolgáltatók';
 
   @override
-  String get statistics_social_topDiveCenters_title =>
-      'Legjobb merülőközpontok';
+  String get insights_social_topDiveCenters_title => 'Legjobb merülőközpontok';
 
   @override
-  String get statistics_summary_avgDepth => 'Átl. mélység';
+  String get insights_summary_avgDepth => 'Átl. mélység';
 
   @override
-  String get statistics_summary_avgTemp => 'Átl. hőmérséklet';
+  String get insights_summary_avgTemp => 'Átl. hőmérséklet';
 
   @override
-  String get statistics_summary_depthDistribution_empty =>
+  String get insights_summary_depthDistribution_empty =>
       'A diagram megjelenik, ha rögzít merüléseket';
 
   @override
-  String get statistics_summary_depthDistribution_semanticLabel =>
+  String get insights_summary_depthDistribution_semanticLabel =>
       'Kördiagram a mélység megoszlásról';
 
   @override
-  String get statistics_summary_depthDistribution_title => 'Mélység megoszlás';
+  String get insights_summary_depthDistribution_title => 'Mélység megoszlás';
 
   @override
-  String get statistics_summary_diveTypes_empty =>
+  String get insights_summary_diveTypes_empty =>
       'A diagram megjelenik, ha rögzít merüléseket';
 
   @override
-  String statistics_summary_diveTypes_moreTypes(Object count) {
+  String insights_summary_diveTypes_moreTypes(Object count) {
     return 'és $count további típus';
   }
 
   @override
-  String get statistics_summary_diveTypes_semanticLabel =>
+  String get insights_summary_diveTypes_semanticLabel =>
       'Kördiagram a merülési típusok megoszlásáról';
 
   @override
-  String get statistics_summary_diveTypes_title => 'Merülési típusok';
+  String get insights_summary_diveTypes_title => 'Merülési típusok';
 
   @override
-  String get statistics_summary_divesByMonth_empty =>
+  String get insights_summary_divesByMonth_empty =>
       'A diagram megjelenik, ha rögzít merüléseket';
 
   @override
-  String get statistics_summary_divesByMonth_semanticLabel =>
+  String get insights_summary_divesByMonth_semanticLabel =>
       'Oszlopdiagram a hayl merülésekről';
 
   @override
-  String get statistics_summary_divesByMonth_title => 'Merülések hónaponként';
+  String get insights_summary_divesByMonth_title => 'Merülések hónaponként';
 
   @override
-  String statistics_summary_divesByMonth_tooltip(
-    Object fullLabel,
-    Object count,
-  ) {
+  String insights_summary_divesByMonth_tooltip(Object fullLabel, Object count) {
     return '$fullLabel\n$count merülés';
   }
 
   @override
-  String get statistics_summary_header_subtitle =>
-      'Válasszon kategóriát a részletes statisztikák megtekIntéséhez';
+  String get insights_summary_header_subtitle =>
+      'Válasszon kategóriát a részletes elemzések megtekintéséhez';
 
   @override
-  String get statistics_summary_header_title => 'Statisztikák áttekintése';
+  String get insights_summary_header_title => 'Elemzések áttekintése';
 
   @override
-  String get statistics_summary_maxDepth => 'Max mélység';
+  String get insights_summary_maxDepth => 'Max mélység';
 
   @override
-  String get statistics_summary_sitesVisited => 'Látogatott helyszínek';
+  String get insights_summary_sitesVisited => 'Látogatott helyszínek';
 
   @override
-  String statistics_summary_tagUsage_diveCount(int count) {
+  String insights_summary_tagUsage_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -20910,152 +20892,152 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get statistics_summary_tagUsage_empty => 'Még nincsenek címkék';
+  String get insights_summary_tagUsage_empty => 'Még nincsenek címkék';
 
   @override
-  String get statistics_summary_tagUsage_emptyHint =>
+  String get insights_summary_tagUsage_emptyHint =>
       'Adjon címkéket a merülésekhez a statisztikák megtekIntéséhez';
 
   @override
-  String statistics_summary_tagUsage_moreTags(Object count) {
+  String insights_summary_tagUsage_moreTags(Object count) {
     return 'és $count további címke';
   }
 
   @override
-  String statistics_summary_tagUsage_tagCount(Object count) {
+  String insights_summary_tagUsage_tagCount(Object count) {
     return '$count címke';
   }
 
   @override
-  String get statistics_summary_tagUsage_title => 'Címke használat';
+  String get insights_summary_tagUsage_title => 'Címke használat';
 
   @override
-  String statistics_summary_topDiveSites_diveCount(Object count) {
+  String insights_summary_topDiveSites_diveCount(Object count) {
     return '$count merülés';
   }
 
   @override
-  String get statistics_summary_topDiveSites_empty =>
+  String get insights_summary_topDiveSites_empty =>
       'Még nincsenek merülőhelyek';
 
   @override
-  String get statistics_summary_topDiveSites_title => 'Legjobb merülőhelyek';
+  String get insights_summary_topDiveSites_title => 'Legjobb merülőhelyek';
 
   @override
-  String statistics_summary_topDiveSites_totalCount(Object count) {
+  String insights_summary_topDiveSites_totalCount(Object count) {
     return '$count összesen';
   }
 
   @override
-  String get statistics_summary_totalDives => 'Összes merülés';
+  String get insights_summary_totalDives => 'Összes merülés';
 
   @override
-  String get statistics_summary_totalTime => 'Összes idő';
+  String get insights_summary_totalTime => 'Összes idő';
 
   @override
-  String get statistics_timePatterns_appBar_title => 'Időminták';
+  String get insights_timePatterns_appBar_title => 'Időminták';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_empty =>
+  String get insights_timePatterns_dayOfWeek_empty =>
       'Nincsenek elérhető adatok';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_error =>
+  String get insights_timePatterns_dayOfWeek_error =>
       'Nem sikerült a heti nap adatok betöltése';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_fri => 'Pe';
+  String get insights_timePatterns_dayOfWeek_fri => 'Pe';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_mon => 'He';
+  String get insights_timePatterns_dayOfWeek_mon => 'He';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_sat => 'Szo';
+  String get insights_timePatterns_dayOfWeek_sat => 'Szo';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_subtitle =>
+  String get insights_timePatterns_dayOfWeek_subtitle =>
       'Mikor merül a legtöbbet?';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_sun => 'V';
+  String get insights_timePatterns_dayOfWeek_sun => 'V';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_thu => 'Cs';
+  String get insights_timePatterns_dayOfWeek_thu => 'Cs';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_title =>
+  String get insights_timePatterns_dayOfWeek_title =>
       'Merülések a hét napjai szerint';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_tue => 'K';
+  String get insights_timePatterns_dayOfWeek_tue => 'K';
 
   @override
-  String get statistics_timePatterns_dayOfWeek_wed => 'Sze';
+  String get insights_timePatterns_dayOfWeek_wed => 'Sze';
 
   @override
-  String get statistics_timePatterns_month_apr => 'Ápr.';
+  String get insights_timePatterns_month_apr => 'Ápr.';
 
   @override
-  String get statistics_timePatterns_month_aug => 'Aug.';
+  String get insights_timePatterns_month_aug => 'Aug.';
 
   @override
-  String get statistics_timePatterns_month_dec => 'Dec.';
+  String get insights_timePatterns_month_dec => 'Dec.';
 
   @override
-  String get statistics_timePatterns_month_feb => 'Feb.';
+  String get insights_timePatterns_month_feb => 'Feb.';
 
   @override
-  String get statistics_timePatterns_month_jan => 'Jan.';
+  String get insights_timePatterns_month_jan => 'Jan.';
 
   @override
-  String get statistics_timePatterns_month_jul => 'Júl.';
+  String get insights_timePatterns_month_jul => 'Júl.';
 
   @override
-  String get statistics_timePatterns_month_jun => 'Jún.';
+  String get insights_timePatterns_month_jun => 'Jún.';
 
   @override
-  String get statistics_timePatterns_month_mar => 'Márc.';
+  String get insights_timePatterns_month_mar => 'Márc.';
 
   @override
-  String get statistics_timePatterns_month_may => 'Máj.';
+  String get insights_timePatterns_month_may => 'Máj.';
 
   @override
-  String get statistics_timePatterns_month_nov => 'Nov.';
+  String get insights_timePatterns_month_nov => 'Nov.';
 
   @override
-  String get statistics_timePatterns_month_oct => 'Okt.';
+  String get insights_timePatterns_month_oct => 'Okt.';
 
   @override
-  String get statistics_timePatterns_month_sep => 'Szept.';
+  String get insights_timePatterns_month_sep => 'Szept.';
 
   @override
-  String get statistics_timePatterns_seasonal_empty =>
+  String get insights_timePatterns_seasonal_empty =>
       'Nincsenek elérhető adatok';
 
   @override
-  String get statistics_timePatterns_seasonal_error =>
+  String get insights_timePatterns_seasonal_error =>
       'Nem sikerült az évszakos adatok betöltése';
 
   @override
-  String get statistics_timePatterns_seasonal_subtitle =>
+  String get insights_timePatterns_seasonal_subtitle =>
       'Merülések hónaponként (minden év)';
 
   @override
-  String get statistics_timePatterns_seasonal_title => 'Évszakos minták';
+  String get insights_timePatterns_seasonal_title => 'Évszakos minták';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_average => 'Átlag';
+  String get insights_timePatterns_surfaceInterval_average => 'Átlag';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_empty =>
+  String get insights_timePatterns_surfaceInterval_empty =>
       'Nincsenek felszíni intervallum adatok';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_error =>
+  String get insights_timePatterns_surfaceInterval_error =>
       'Nem sikerült a felszíni intervallum adatok betöltése';
 
   @override
-  String statistics_timePatterns_surfaceInterval_formatHoursMinutes(
+  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
     Object hours,
     Object minutes,
   ) {
@@ -21063,50 +21045,50 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String statistics_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
+  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
     return '$minutes min';
   }
 
   @override
-  String get statistics_timePatterns_surfaceInterval_maximum => 'Maximum';
+  String get insights_timePatterns_surfaceInterval_maximum => 'Maximum';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_minimum => 'Minimum';
+  String get insights_timePatterns_surfaceInterval_minimum => 'Minimum';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_subtitle =>
+  String get insights_timePatterns_surfaceInterval_subtitle =>
       'Idő a merülések között';
 
   @override
-  String get statistics_timePatterns_surfaceInterval_title =>
+  String get insights_timePatterns_surfaceInterval_title =>
       'Felszíni intervallum statisztikák';
 
   @override
-  String get statistics_timePatterns_timeOfDay_error =>
+  String get insights_timePatterns_timeOfDay_error =>
       'Nem sikerült a napszak adatok betöltése';
 
   @override
-  String get statistics_timePatterns_timeOfDay_subtitle =>
+  String get insights_timePatterns_timeOfDay_subtitle =>
       'Reggel, délután, este vagy éjszaka';
 
   @override
-  String get statistics_timePatterns_timeOfDay_title =>
+  String get insights_timePatterns_timeOfDay_title =>
       'Merülések napszak szerint';
 
   @override
-  String get statistics_tooltip_diveRecords => 'Merülési rekordok';
+  String get insights_tooltip_diveRecords => 'Merülési rekordok';
 
   @override
-  String get statistics_tooltip_filter => 'Statisztikák szűrése';
+  String get insights_tooltip_filter => 'Elemzések szűrése';
 
   @override
-  String get statistics_tooltip_refreshRecords => 'Rekordok frissítése';
+  String get insights_tooltip_refreshRecords => 'Rekordok frissítése';
 
   @override
-  String get statistics_tooltip_refreshStatistics => 'Statisztikák frissítése';
+  String get insights_tooltip_refreshInsights => 'Elemzések frissítése';
 
   @override
-  String statistics_valueCard_semanticLabel(Object label, Object value) {
+  String insights_valueCard_semanticLabel(Object label, Object value) {
     return '$label: $value';
   }
 
@@ -27378,12 +27360,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divers_edit_priorInvalidNumber => 'Adjon meg egy érvényes számot';
 
   @override
-  String statistics_priorBreakdown(String logged, String prior) {
+  String insights_priorBreakdown(String logged, String prior) {
     return '$logged naplózva + $prior korábbi';
   }
 
   @override
-  String statistics_divingSince(int year) {
+  String insights_divingSince(int year) {
     return '$year óta merül';
   }
 
@@ -28990,24 +28972,23 @@ class AppLocalizationsHu extends AppLocalizations {
       'Adjon meg egy webcímet, pl. shop.example.com';
 
   @override
-  String get statistics_progression_divesBySuitThickness_title =>
+  String get insights_progression_divesBySuitThickness_title =>
       'Merülések ruhavastagság szerint';
 
   @override
-  String get statistics_progression_divesBySuitThickness_subtitle =>
+  String get insights_progression_divesBySuitThickness_subtitle =>
       'A ruha fő vastagsága a merüléseid során';
 
   @override
-  String get statistics_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitThickness_empty =>
       'Nincs neoprén- vagy szárazruhához kapcsolt merülés';
 
   @override
-  String get statistics_progression_divesBySuitThickness_error =>
+  String get insights_progression_divesBySuitThickness_error =>
       'Nem sikerült betölteni a vastagsági adatokat';
 
   @override
-  String get statistics_progression_divesBySuitThickness_unknown =>
-      'Ismeretlen';
+  String get insights_progression_divesBySuitThickness_unknown => 'Ismeretlen';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Ruhavastagság (mm)';
@@ -31173,7 +31154,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Add meg minden szinthez a legrövidebb távolságot, amely még oda számít.';
 
   @override
-  String statistics_conditions_visibility_legacySuffix(String band) {
+  String insights_conditions_visibility_legacySuffix(String band) {
     return '$band (mérés előtt rögzítve)';
   }
 
@@ -37531,32 +37512,29 @@ class AppLocalizationsHu extends AppLocalizations {
       'Újra ellenőrzi minden URL-ről vagy manifesztből importált fotót a kiszolgálójánál. A nem elérhető elemeket megjelöli, így a könyvtárban „hiányzó” állapotban jelennek meg, és kitakaríthatók.';
 
   @override
-  String statistics_conditions_entryMethod_semanticLabel(String description) {
+  String insights_conditions_entryMethod_semanticLabel(String description) {
     return 'Oszlopdiagram. Belépési módszerek. $description';
   }
 
   @override
-  String statistics_conditions_visibility_semanticLabel(String description) {
+  String insights_conditions_visibility_semanticLabel(String description) {
     return 'Kördiagram. A látási viszonyok megoszlása. $description';
   }
 
   @override
-  String statistics_conditions_waterType_semanticLabel(String description) {
+  String insights_conditions_waterType_semanticLabel(String description) {
     return 'Kördiagram. A víztípus megoszlása. $description';
   }
 
   @override
-  String statistics_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitThickness_semanticLabel(
     String description,
   ) {
     return 'Oszlopdiagram. Merülések ruhavastagság szerint. $description';
   }
 
   @override
-  String statistics_progression_divesPerYear_countInYear(
-    int count,
-    String year,
-  ) {
+  String insights_progression_divesPerYear_countInYear(int count, String year) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -37567,20 +37545,20 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String statistics_progression_divesPerYear_semanticLabel(String description) {
+  String insights_progression_divesPerYear_semanticLabel(String description) {
     return 'Oszlopdiagram. Merülések évenként. $description';
   }
 
   @override
-  String get statistics_records_unavailable => 'A rekordok nem érhetők el';
+  String get insights_records_unavailable => 'A rekordok nem érhetők el';
 
   @override
-  String statistics_summary_depthBucket_over(String min, String unit) {
+  String insights_summary_depthBucket_over(String min, String unit) {
     return '$min$unit+';
   }
 
   @override
-  String statistics_summary_depthBucket_range(
+  String insights_summary_depthBucket_range(
     String min,
     String max,
     String unit,
@@ -37589,33 +37567,33 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get statistics_summary_distributions_title => 'Megoszlások';
+  String get insights_summary_distributions_title => 'Megoszlások';
 
   @override
-  String get statistics_summary_diveTypes_error =>
+  String get insights_summary_diveTypes_error =>
       'Nem sikerült betölteni a merülési típusok adatait';
 
   @override
-  String get statistics_summary_diveTypes_unknown => 'Ismeretlen';
+  String get insights_summary_diveTypes_unknown => 'Ismeretlen';
 
   @override
-  String get statistics_summary_divesPerMonth => 'Merülés / hónap';
+  String get insights_summary_divesPerMonth => 'Merülés / hónap';
 
   @override
-  String get statistics_summary_divesPerYear => 'Merülés / év';
+  String get insights_summary_divesPerYear => 'Merülés / év';
 
   @override
-  String statistics_timePatterns_dayOfWeek_semanticLabel(String description) {
+  String insights_timePatterns_dayOfWeek_semanticLabel(String description) {
     return 'Oszlopdiagram. Merülések a hét napjai szerint. $description';
   }
 
   @override
-  String statistics_timePatterns_seasonal_semanticLabel(String description) {
+  String insights_timePatterns_seasonal_semanticLabel(String description) {
     return 'Oszlopdiagram. Merülések havonta. $description';
   }
 
   @override
-  String statistics_timePatterns_surfaceInterval_statLabel(
+  String insights_timePatterns_surfaceInterval_statLabel(
     String label,
     String value,
   ) {
@@ -37623,19 +37601,19 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get statistics_timePatterns_timeOfDay_afternoon => 'Délután';
+  String get insights_timePatterns_timeOfDay_afternoon => 'Délután';
 
   @override
-  String get statistics_timePatterns_timeOfDay_evening => 'Este';
+  String get insights_timePatterns_timeOfDay_evening => 'Este';
 
   @override
-  String get statistics_timePatterns_timeOfDay_morning => 'Reggel';
+  String get insights_timePatterns_timeOfDay_morning => 'Reggel';
 
   @override
-  String get statistics_timePatterns_timeOfDay_night => 'Éjszaka';
+  String get insights_timePatterns_timeOfDay_night => 'Éjszaka';
 
   @override
-  String statistics_timePatterns_timeOfDay_semanticLabel(String description) {
+  String insights_timePatterns_timeOfDay_semanticLabel(String description) {
     return 'Kördiagram. Merülések napszak szerint. $description';
   }
 
@@ -40659,94 +40637,91 @@ class AppLocalizationsHu extends AppLocalizations {
       'A HealthKit nem érhető el ezen az eszközön';
 
   @override
-  String get statistics_trend_aggregation_monthly => 'Havi átlag';
+  String get insights_trend_aggregation_monthly => 'Havi átlag';
 
   @override
-  String get statistics_trend_aggregation_perDive => 'Minden merülés';
+  String get insights_trend_aggregation_perDive => 'Minden merülés';
 
   @override
-  String get statistics_trend_aggregation_tooltip =>
+  String get insights_trend_aggregation_tooltip =>
       'Hogyan csoportosulnak a merülések';
 
   @override
-  String get statistics_trend_aggregation_weekly => 'Heti átlag';
+  String get insights_trend_aggregation_weekly => 'Heti átlag';
 
   @override
-  String get statistics_trend_band_semanticLabel =>
+  String get insights_trend_band_semanticLabel =>
       'Az árnyékolt sáv az egyes csoportok legalacsonyabb és legmagasabb értékét fogja át';
 
   @override
-  String get statistics_trend_legend_rate => 'Általános trend';
+  String get insights_trend_legend_rate => 'Általános trend';
 
   @override
-  String get statistics_trend_legend_rollingAverage => 'Mozgóátlag';
+  String get insights_trend_legend_rollingAverage => 'Mozgóátlag';
 
   @override
-  String statistics_trend_rate_perYear(String value) {
+  String insights_trend_rate_perYear(String value) {
     return '$value/év';
   }
 
   @override
-  String get statistics_conditions_tempTrend_title =>
-      'Vízhőmérséklet alakulása';
+  String get insights_conditions_tempTrend_title => 'Vízhőmérséklet alakulása';
 
   @override
-  String get statistics_conditions_tempTrend_subtitle =>
+  String get insights_conditions_tempTrend_subtitle =>
       'Minden merülés a tartományban';
 
   @override
-  String get statistics_conditions_tempTrend_empty =>
+  String get insights_conditions_tempTrend_empty =>
       'Nincs elérhető hőmérsékleti adat';
 
   @override
-  String get statistics_conditions_tempTrend_error =>
+  String get insights_conditions_tempTrend_error =>
       'A hőmérséklet alakulása nem tölthető be';
 
   @override
-  String get statistics_conditions_waterTempBands_title =>
+  String get insights_conditions_waterTempBands_title =>
       'Merülések vízhőmérséklet szerint';
 
   @override
-  String get statistics_conditions_waterTempBands_subtitle =>
+  String get insights_conditions_waterTempBands_subtitle =>
       'Merüléseid megoszlása vízhőmérséklet-tartományok szerint';
 
   @override
-  String get statistics_conditions_waterTempBands_empty =>
+  String get insights_conditions_waterTempBands_empty =>
       'Nincsenek vízhőmérséklet-adatok';
 
   @override
-  String get statistics_conditions_waterTempBands_error =>
+  String get insights_conditions_waterTempBands_error =>
       'Nem sikerült betölteni a vízhőmérséklet-tartományokat';
 
   @override
-  String statistics_conditions_waterTempBands_semanticLabel(
-    String description,
-  ) {
+  String insights_conditions_waterTempBands_semanticLabel(String description) {
     return 'Oszlopdiagram. Merülések vízhőmérséklet szerint. $description';
   }
 
   @override
-  String get statistics_conditions_waterTempBands_table_band => 'Tartomány';
+  String get insights_conditions_waterTempBands_table_band => 'Tartomány';
 
   @override
-  String get statistics_conditions_waterTempBands_table_dives => 'Merülések';
+  String get insights_conditions_waterTempBands_table_dives => 'Merülések';
 
   @override
-  String get statistics_conditions_waterTempBands_table_avgSac => 'Átl. SAC';
+  String get insights_conditions_waterTempBands_table_avgSac => 'Átl. SAC';
 
   @override
-  String get statistics_conditions_waterTempBands_table_avgRmv => 'Átl. RMV';
+  String get insights_conditions_waterTempBands_table_avgRmv => 'Átl. RMV';
 
   @override
-  String get statistics_conditions_waterTempBands_table_avgBottomTime =>
+  String get insights_conditions_waterTempBands_table_avgBottomTime =>
       'Átl. fenékidő';
 
   @override
-  String get statistics_conditions_waterTempBands_table_error =>
+  String get insights_conditions_waterTempBands_table_error =>
       'Nem sikerült betölteni a tartományok átlagait';
 
   @override
-  String statistics_conditions_waterTempBands_table_averageOver(
+  String insights_conditions_waterTempBands_table_averageOver(
     String value,
     String dives,
   ) {
@@ -40754,10 +40729,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get statistics_conditions_waterTempBands_table_noData => 'nincs adat';
+  String get insights_conditions_waterTempBands_table_noData => 'nincs adat';
 
   @override
-  String statistics_conditions_waterTempBands_table_rowSemanticLabel(
+  String insights_conditions_waterTempBands_table_rowSemanticLabel(
     String band,
     String dives,
     String lane,
@@ -40774,10 +40749,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_presetLast10Years => 'Elmúlt 10 év';
 
   @override
-  String get statistics_trend_tooltip_lowest => 'Legalacsonyabb';
+  String get insights_trend_tooltip_lowest => 'Legalacsonyabb';
 
   @override
-  String get statistics_trend_tooltip_highest => 'Legmagasabb';
+  String get insights_trend_tooltip_highest => 'Legmagasabb';
 
   @override
   String get diveLog_edit_excludeFromStats => 'Kizárás a statisztikákból';
@@ -40815,7 +40790,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_summary_excluded => 'Kizárva';
 
   @override
-  String statistics_excludedDivesFootnote(int count) {
+  String insights_excludedDivesFootnote(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,

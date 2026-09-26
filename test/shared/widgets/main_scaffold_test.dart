@@ -414,7 +414,7 @@ void main() {
                 builder: (context, state) => const SizedBox(),
               ),
               GoRoute(
-                path: '/statistics',
+                path: '/insights',
                 builder: (context, state) => const SizedBox(),
               ),
               GoRoute(
@@ -795,7 +795,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'statistics'];
+      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'insights'];
       await tester.pumpWidget(await buildHarness(repo: repo));
       await tester.pumpAndSettle();
 
@@ -812,7 +812,7 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.widgetWithText(NavigationDestination, 'Statistics'),
+        find.widgetWithText(NavigationDestination, 'Insights'),
         findsOneWidget,
       );
       expect(
@@ -834,7 +834,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'statistics'];
+      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'insights'];
       await tester.pumpWidget(await buildHarness(repo: repo));
       await tester.pumpAndSettle();
 
@@ -865,7 +865,7 @@ void main() {
         'Certifications',
         'Courses',
         'Species',
-        'Statistics',
+        'Insights',
         'Planning',
         'Transfer',
         'GPS Log',
@@ -911,8 +911,7 @@ void main() {
 
       // A partial stored value: normalization keeps these three at the top and
       // appends the rest in canonical order.
-      final repo = _FakeRepo()
-        ..storedRail = ['settings', 'statistics', 'dives'];
+      final repo = _FakeRepo()..storedRail = ['settings', 'insights', 'dives'];
       await tester.pumpWidget(await buildHarness(repo: repo));
       await tester.pumpAndSettle();
 
@@ -930,7 +929,7 @@ void main() {
       expect(labels.take(4).toList(), [
         'Home',
         'Settings',
-        'Statistics',
+        'Insights',
         'Dives',
       ]);
       // Nothing is lost: every destination still has a rail row.
@@ -945,8 +944,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      final repo = _FakeRepo()
-        ..storedRail = ['settings', 'statistics', 'dives'];
+      final repo = _FakeRepo()..storedRail = ['settings', 'insights', 'dives'];
       await tester.pumpWidget(await buildHarness(repo: repo));
       await tester.pumpAndSettle();
 
@@ -1045,7 +1043,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'statistics'];
+      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'insights'];
       final harness = await buildHarnessWithRouter(repo: repo);
       await tester.pumpWidget(harness.app);
       await tester.pumpAndSettle();
@@ -1069,7 +1067,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'statistics'];
+      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'insights'];
       await tester.pumpWidget(await buildHarness(repo: repo));
       await tester.pumpAndSettle();
 
@@ -1103,7 +1101,7 @@ void main() {
       // Items now in primary should NOT appear in the overflow sheet.
       expect(find.widgetWithText(ListTile, 'Equipment'), findsNothing);
       expect(find.widgetWithText(ListTile, 'Buddies'), findsNothing);
-      expect(find.widgetWithText(ListTile, 'Statistics'), findsNothing);
+      expect(find.widgetWithText(ListTile, 'Insights'), findsNothing);
     });
 
     // Issue #1480: the overflow sheet is scroll-controlled, and a dozen
