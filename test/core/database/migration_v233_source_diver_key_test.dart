@@ -75,4 +75,19 @@ void main() {
       expect(await sourceColumns(db), contains('source_diver_key'));
     },
   );
+
+  test('the backstop leaves a database without the table alone', () async {
+    // A partial file (restore or sync-adopt mid-flight) may not have the
+    // table yet; the helper must not create a bare one or throw.
+    final db = AppDatabase(
+      NativeDatabase.memory(
+        setup: (rawDb) => rawDb.execute(
+          'PRAGMA user_version = ${AppDatabase.currentSchemaVersion}',
+        ),
+      ),
+    );
+    addTearDown(db.close);
+
+    expect(await sourceColumns(db), isEmpty);
+  });
 }
