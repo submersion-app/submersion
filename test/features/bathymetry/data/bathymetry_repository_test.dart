@@ -193,11 +193,11 @@ void main() {
     // The key carries the request span and the selection generation, so a
     // change to either refetches instead of serving the old cached answer
     // forever.
-    expect(BathymetryRepository.keyFor(bonaire), '12.16,-68.30@8000v5');
+    expect(BathymetryRepository.keyFor(bonaire), '12.16,-68.30@8000v6');
     // Nearby coordinates share the key.
     expect(
       BathymetryRepository.keyFor(const GeoPoint(12.171, -68.281)),
-      '12.16,-68.30@8000v5',
+      '12.16,-68.30@8000v6',
     );
   });
 
@@ -457,7 +457,7 @@ void main() {
       final baseKey = BathymetryRepository.keyFor(bonaire);
       final patchKey = BathymetryRepository.keyFor(bonaire, spanMeters: 500);
       expect(patchKey, isNot(baseKey));
-      expect(patchKey, endsWith('@500v5'));
+      expect(patchKey, endsWith('@500v6'));
       // Omitting spanMeters must reproduce the exact base-square key, so
       // every already-cached base row keeps matching untouched.
       expect(
@@ -599,7 +599,7 @@ void main() {
 
   test('the cache key carries the selection generation', () {
     final key = BathymetryRepository.keyFor(const GeoPoint(12.16, -68.29));
-    expect(key, endsWith('@8000v5'));
+    expect(key, endsWith('@8000v6'));
   });
 
   test('a row written under the previous generation is not reused', () {
@@ -611,6 +611,28 @@ void main() {
     final legacyKey =
         '${q.lat.toStringAsFixed(2)},${q.lon.toStringAsFixed(2)}@8000';
     expect(BathymetryRepository.keyFor(p), isNot(legacyKey));
+  });
+
+  test('a v5 row, possibly a fallback pinned by a transient failure before '
+      'issue #1770, is not reused', () async {
+    // Such a row reads exactly like a good one, so only a generation bump
+    // lets an existing install re-resolve and reach the better source.
+    final source = ScriptedSource(() => BathymetryResolution.ok(wetGrid()));
+    final r = repo(source);
+    final key = BathymetryRepository.keyFor(bonaire);
+    await db
+        .into(db.bathymetryCache)
+        .insert(
+          BathymetryCacheCompanion.insert(
+            cacheKey: key.replaceFirst(RegExp(r'v6$'), 'v5'),
+            centerLat: 12.17,
+            centerLon: -68.29,
+            status: 'empty',
+            fetchedAt: 1753600000000,
+          ),
+        );
+    expect(await r.getGrid(bonaire), isNotNull);
+    expect(source.calls, 1);
   });
 
   group('BathymetryRepository.averageCachedGridBytes', () {

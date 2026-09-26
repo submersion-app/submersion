@@ -73,6 +73,13 @@ class BathymetryResolver {
     // result. Such a source may have outranked the winner, or found water a
     // global source called dry, so the answer is only provisional: returned
     // for display, never cached as definitive (issue #1770).
+    //
+    // A failed probe taints the result wherever that source sits in the
+    // declared order: without its capability the resolver cannot know its
+    // cell size, and a materially finer source preempts regardless of rank
+    // (see [preemptionFactor]). Unlike a fetch failure, it cannot be placed
+    // "below the winner". NoaaDemSource's coverage regions keep this from
+    // reaching coordinates where the only network probe could never win.
     var sawTransientFailure = probeFailed;
     for (final source in ordered) {
       try {

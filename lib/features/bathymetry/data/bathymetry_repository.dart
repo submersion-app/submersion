@@ -65,7 +65,13 @@ class BathymetryRepository {
   /// them) changes what some ALREADY-v4-cached Rotsee/Vierwaldstättersee-
   /// area coordinates should have resolved to, so those rows need one
   /// more forced re-resolution too.
-  static const String selectionGeneration = 'v5';
+  ///
+  /// v6 (#1770): before that fix, a fallback grid (or a global 'empty')
+  /// reached only because a better source failed transiently was cached as
+  /// the permanent answer. Those rows look exactly like good ones, so the
+  /// fix alone would only protect new entries; this bump lets every already
+  /// pinned coordinate re-resolve once and reach the better source.
+  static const String selectionGeneration = 'v6';
   static const double quantumDeg = 0.02;
 
   final LocalCacheDatabase _db;
