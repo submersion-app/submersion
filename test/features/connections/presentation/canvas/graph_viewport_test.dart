@@ -53,4 +53,38 @@ void main() {
     expect(right.dx, greaterThanOrEqualTo(48));
     expect(right.dy, greaterThanOrEqualTo(48));
   });
+
+  test('fittedWithOverhang leaves room for labels at the edges', () {
+    const bounds = GraphBounds(0, 0, 200, 100);
+    final v = const GraphViewport().fittedWithOverhang(
+      bounds,
+      const Size(600, 400),
+      left: 70,
+      top: 39,
+      right: 70,
+      bottom: 60,
+    );
+    final left = v.toScreen(const GraphPoint(0, 50));
+    final right = v.toScreen(const GraphPoint(200, 50));
+    final bottom = v.toScreen(const GraphPoint(100, 100));
+    expect(left.dx - 70, greaterThanOrEqualTo(24 - 1e-6));
+    expect(right.dx + 70, lessThanOrEqualTo(600 - 24 + 1e-6));
+    expect(bottom.dy + 60, lessThanOrEqualTo(400 - 24 + 1e-6));
+  });
+
+  test('isCloseTo tolerates rounding only', () {
+    const a = GraphViewport(scale: 1, offset: Offset(10, 10));
+    expect(
+      a.isCloseTo(const GraphViewport(scale: 1.005, offset: Offset(10.5, 10))),
+      isTrue,
+    );
+    expect(
+      a.isCloseTo(const GraphViewport(scale: 1.2, offset: Offset(10, 10))),
+      isFalse,
+    );
+    expect(
+      a.isCloseTo(const GraphViewport(scale: 1, offset: Offset(14, 10))),
+      isFalse,
+    );
+  });
 }

@@ -163,6 +163,35 @@ void main() {
     expect(_painter(tester).frame.positions.containsKey(_b('ken')), isTrue);
     expect(_painter(tester).graph.nodes.length, 3);
   });
+
+  testWidgets('a long label at the edge of the fit stays inside the canvas', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_Host(onSelect: (_) {}, onFocus: (_) {}));
+    await tester.pump();
+    final painter = _painter(tester);
+    for (final p in painter.frame.positions.values) {
+      final s = painter.viewport.toScreen(p);
+      expect(s.dx, inInclusiveRange(70.0, 330.0));
+    }
+  });
+
+  testWidgets('a pan stops the auto-fit from pulling the view back', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: _ReloadHost()));
+    await tester.pump(const Duration(milliseconds: 16));
+    await tester.drag(find.byType(ConnectionsCanvas), const Offset(80, 0));
+    await tester.pump();
+    final afterDrag = _painter(tester).viewport.offset;
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(_painter(tester).viewport.offset, afterDrag);
+  });
 }
 
 /// Owns its controller like ConnectionsPage does, so the ticker is disposed

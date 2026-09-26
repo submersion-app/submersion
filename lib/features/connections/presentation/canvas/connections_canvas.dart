@@ -8,6 +8,7 @@ import 'package:submersion/features/connections/domain/entities/graph_selection.
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_layout_controller.dart';
 
+import 'package:submersion/features/connections/presentation/canvas/camera_tween.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
 import 'package:submersion/features/connections/presentation/canvas/connections_hit_tester.dart';
 import 'package:submersion/features/connections/presentation/canvas/connections_painter.dart';
@@ -45,7 +46,12 @@ class ConnectionsCanvas extends StatefulWidget {
 
 class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
   GraphViewport _viewport = const GraphViewport();
-  bool _fitted = false;
+
+  /// The camera follows the layout until the diver moves it.
+  bool _autoFit = true;
+
+  /// False until the first fit, which snaps; later fits ease.
+  bool _everFitted = false;
   Size _size = Size.zero;
   NodeRef? _hovered;
   Offset? _hoverPosition;
@@ -76,7 +82,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
       widget.controller.addListener(_onFrame);
     }
     if (old.graph != widget.graph) {
-      _fitted = false;
+      _autoFit = true;
       _clearTextCaches();
       _decodePhotos();
     }
@@ -94,10 +100,15 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
     if (!mounted) return;
     setState(() {
       final frame = widget.controller.frame;
-      if (!_fitted && _size != Size.zero && frame.positions.isNotEmpty) {
-        _viewport = _viewport.fitted(frame.bounds, _size);
-        _fitted = widget.controller.settled;
+      if (!_autoFit || _size == Size.zero || frame.positions.isEmpty) return;
+      final target = _fitTarget(_size);
+      if (!_everFitted || widget.controller.settled) {
+        _viewport = target;
+        _everFitted = true;
+        if (widget.controller.settled) _autoFit = false;
+        return;
       }
+      _viewport = CameraTween(_viewport, target, _size).at(0.25);
     });
   }
 
@@ -128,6 +139,21 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
         _viewport.scale.clamp(0.5, 1.5);
   }
 
+  /// Where the camera should be for the current frame, leaving room for the
+  /// largest node and a full label on every side.
+  GraphViewport _fitTarget(Size size) {
+    const r = NodeMetrics.maxRadius * 1.5;
+    final labelHeight = (_cachedLabelStyle?.fontSize ?? 11) * 1.5;
+    return _viewport.fittedWithOverhang(
+      widget.controller.frame.bounds,
+      size,
+      left: math.max(r, 70),
+      top: r,
+      right: math.max(r, 70),
+      bottom: r + 2 + labelHeight,
+    );
+  }
+
   NodeRef? _nodeAt(Offset p) => ConnectionsHitTester.hitNode(
     p,
     frame: widget.controller.frame,
@@ -154,6 +180,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
 
   void _zoomAt(double factor, Offset focal) {
     setState(() {
+      _autoFit = false;
       _viewport = _viewport
           .zoomedAt(factor, focal)
           .clampedTo(widget.controller.frame.bounds, _size);
@@ -162,6 +189,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
 
   void _pan(Offset delta) {
     setState(() {
+      _autoFit = false;
       _viewport = _viewport
           .panned(delta)
           .clampedTo(widget.controller.frame.bounds, _size);
@@ -183,9 +211,10 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
         final size = Size(constraints.maxWidth, constraints.maxHeight);
         if (size != _size) {
           _size = size;
-          if (!_fitted) {
-            _viewport = _viewport.fitted(widget.controller.frame.bounds, size);
-            _fitted = widget.controller.settled;
+          if (_autoFit && widget.controller.frame.positions.isNotEmpty) {
+            _viewport = _fitTarget(size);
+            _everFitted = true;
+            if (widget.controller.settled) _autoFit = false;
           }
         }
         final painter = ConnectionsPainter(
@@ -263,6 +292,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
                   () => LongPressGestureRecognizer(),
                   (r) => r
                     ..onLongPressStart = (d) {
+                      _autoFit = false;
                       _dragging = _nodeAt(d.localPosition);
                       if (_dragging != null) {
                         widget.onSelect(NodeSelection(_dragging!));

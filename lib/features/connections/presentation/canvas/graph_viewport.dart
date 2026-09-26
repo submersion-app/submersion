@@ -68,4 +68,36 @@ class GraphViewport {
     if (dx == 0 && dy == 0) return this;
     return GraphViewport(scale: scale, offset: offset + Offset(dx, dy));
   }
+
+  /// Fits [bounds] plus screen-space overhangs (node radii and labels that
+  /// extend past the node centres) inside [size] less [margin], centred.
+  GraphViewport fittedWithOverhang(
+    GraphBounds bounds,
+    Size size, {
+    required double left,
+    required double top,
+    required double right,
+    required double bottom,
+    double margin = 24,
+  }) {
+    final availW = math.max(1.0, size.width - 2 * margin - left - right);
+    final availH = math.max(1.0, size.height - 2 * margin - top - bottom);
+    final w = math.max(1.0, bounds.width);
+    final h = math.max(1.0, bounds.height);
+    final s = bounds.isEmpty
+        ? 1.0
+        : math.min(availW / w, availH / h).clamp(minScale, maxScale);
+    final boxW = bounds.width * s;
+    final boxH = bounds.height * s;
+    final x0 = margin + left + (availW - boxW) / 2;
+    final y0 = margin + top + (availH - boxH) / 2;
+    return GraphViewport(
+      scale: s,
+      offset: Offset(x0 - bounds.left * s, y0 - bounds.top * s),
+    );
+  }
+
+  bool isCloseTo(GraphViewport other) =>
+      (scale / other.scale - 1).abs() < 0.01 &&
+      (offset - other.offset).distance < 1;
 }
