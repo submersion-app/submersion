@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/figure/domain/figure_model.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_view.dart';
 import 'package:submersion/features/equipment/figure/presentation/diver_figure.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_name_label.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 
 void main() {
@@ -362,5 +363,55 @@ void main() {
     await tester.pump();
     expect(find.text('Also carried'), findsNothing);
     expect(find.text('Item tool'), findsOneWidget);
+  });
+
+  testWidgets('a three-digit number widens its badge instead of clipping', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Center(child: FigureNumberBadge(number: 100, size: 18)),
+        ),
+      ),
+    );
+    final digits = tester
+        .renderObject<RenderParagraph>(find.text('100'))
+        .getMaxIntrinsicWidth(double.infinity);
+    final badge = tester.getSize(find.byType(FigureNumberBadge)).width;
+    expect(badge, greaterThanOrEqualTo(digits));
+    // A short number keeps the round badge. (The test font draws every
+    // glyph as wide as its size, so one digit is the fair check here.)
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Center(child: FigureNumberBadge(number: 7, size: 18)),
+        ),
+      ),
+    );
+    expect(tester.getSize(find.byType(FigureNumberBadge)), const Size(18, 18));
+  });
+
+  testWidgets('a long tray name truncates on a phone instead of overflowing', (
+    tester,
+  ) async {
+    final withTray = composeFigure([
+      item('mask', EquipmentType.mask),
+      item('tool', EquipmentType.tool),
+    ]);
+    await pump(
+      tester,
+      withTray,
+      width: 360,
+      labelText: (p) => p.item.type == EquipmentType.tool
+          ? 'Apeks XTX50 DST first stage with octopus and SPG'
+          : p.item.name,
+    );
+    expect(tester.takeException(), isNull);
+    final name = tester.widget<Text>(
+      find.text('Apeks XTX50 DST first stage with octopus and SPG'),
+    );
+    expect(name.maxLines, 1);
+    expect(name.overflow, TextOverflow.ellipsis);
   });
 }

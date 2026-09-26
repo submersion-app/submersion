@@ -104,21 +104,26 @@ void main() {
     expect(model.byId('wing')!.zone, isNull);
   });
 
-  test('a second BCD goes to the tray but still makes the rig sidemount', () {
-    final model = composeFigure([
-      item('jacket', EquipmentType.bcd),
-      item(
-        'harness',
-        EquipmentType.bcd,
-        attributes: {EquipmentAttrKeys.bcdStyle: 'sidemount'},
-      ),
-      item('t1', EquipmentType.tank),
-    ]);
-    expect(model.byId('jacket')!.zone, FigureZone.wing);
-    expect(model.byId('harness')!.zone, isNull);
-    expect(model.byId('harness')!.number, 2);
-    expect(model.byId('t1')!.zone, FigureZone.sidemountLeft);
-  });
+  test(
+    'a sidemount rig draws its sidemount BCD, and a jacket goes to the tray',
+    () {
+      // The harness makes the tanks sidemount, so the back must show the
+      // harness's rigging, not a jacket's bladder, whatever the list order.
+      final model = composeFigure([
+        item('jacket', EquipmentType.bcd),
+        item(
+          'harness',
+          EquipmentType.bcd,
+          attributes: {EquipmentAttrKeys.bcdStyle: 'sidemount'},
+        ),
+        item('t1', EquipmentType.tank),
+      ]);
+      expect(model.byId('harness')!.zone, FigureZone.wing);
+      expect(model.byId('jacket')!.zone, isNull);
+      expect(model.byId('jacket')!.number, 1);
+      expect(model.byId('t1')!.zone, FigureZone.sidemountLeft);
+    },
+  );
 
   test(
     'a back-mounted rebreather fills the back so a tank goes to a stage slot',

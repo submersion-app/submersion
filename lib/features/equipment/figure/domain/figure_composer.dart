@@ -36,14 +36,23 @@ FigureModel composeFigure(List<FigureItemInput> items) {
           FigurePlacement.contributesSidemountRig(item.type, item.attributes),
     ),
   );
+  // Within a type, an item that makes the rig sidemount is placed first, so
+  // with a jacket and a sidemount harness in one set the harness takes the
+  // back and the drawing matches the sidemount tanks.
+  int rigFirst(FigureItemInput item) =>
+      FigurePlacement.contributesSidemountRig(item.type, item.attributes)
+      ? 0
+      : 1;
   final ordered = [...topLevel]
     ..sort((a, b) {
       final byType = equipmentTypeRank(
         a.type,
         kCanonicalTypeOrder,
       ).compareTo(equipmentTypeRank(b.type, kCanonicalTypeOrder));
-      return byType != 0
-          ? byType
+      if (byType != 0) return byType;
+      final byRig = rigFirst(a).compareTo(rigFirst(b));
+      return byRig != 0
+          ? byRig
           : numberById[a.id]!.compareTo(numberById[b.id]!);
     });
 

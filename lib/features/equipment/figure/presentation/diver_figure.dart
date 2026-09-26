@@ -198,6 +198,7 @@ class _DiverFigureState extends State<DiverFigure> {
         style,
         direction,
         textScaler: scaler,
+        number: p.number,
       ),
     );
     return _canvas(context, width, layout, slots);
@@ -311,12 +312,18 @@ class _TrayTile extends StatelessWidget {
                 color: highlight?.onFill,
               ),
               const SizedBox(width: 6),
-              Text(
-                name,
-                style: FigureNameLabel.styleFor(
-                  context,
-                  pill: true,
-                ).copyWith(color: highlight?.onFill),
+              // Flexible so a long name truncates within the tray's width
+              // instead of overflowing the tile on a phone.
+              Flexible(
+                child: Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: FigureNameLabel.styleFor(
+                    context,
+                    pill: true,
+                  ).copyWith(color: highlight?.onFill),
+                ),
               ),
             ],
           ),

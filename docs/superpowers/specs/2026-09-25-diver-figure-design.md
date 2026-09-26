@@ -309,12 +309,14 @@ or stage, is placed by that role instead of the set rule.
 ```dart
 DiverFigure({
   required FigureModel model,
-  required String semanticsLabel,
-  FigureMode mode = FigureMode.pair,      // pair; thumbnail and locate later
+  required String semanticsLabel,          // the whole picture
+  required String Function(PlacedItem) labelText,         // the item's name
+  required String Function(FigureView, int) sideLabel,    // "Front · 8"
+  FigureMode mode = FigureMode.pair,       // pair; thumbnail and locate later
   String? selectedItemId,
+  int selectionSerial = 0,                 // bumped on every selection
   ValueChanged<PlacedItem>? onItemTap,
-  String Function(PlacedItem)? labelText, // the item's name
-  String Function(PlacedItem)? itemSemantics,
+  String Function(PlacedItem)? itemSemantics,            // "3, BCD, Hollis SMS75"
   String? trayTitle,
 })
 ```

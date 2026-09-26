@@ -54,9 +54,15 @@ class FigureNameLabel extends StatelessWidget {
     TextStyle style,
     TextDirection direction, {
     TextScaler textScaler = TextScaler.noScaling,
+    int number = 1,
   }) {
     final width = _measure(text, style, direction, textScaler);
-    return badgeSize + _gap + width + _pillPadding * 2 + 2;
+    final badge = FigureNumberBadge.widthFor(
+      number,
+      badgeSize,
+      textScaler: textScaler,
+    );
+    return badge + _gap + width + _pillPadding * 2 + 2;
   }
 
   /// The row height a label needs for its lines at the diver's text size,
