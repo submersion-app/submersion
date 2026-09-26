@@ -22,7 +22,8 @@ const _diveSports = {Sport.diving};
 /// Orchestrates focused extractors (see `fit/`) to pull depth/temp/HR samples,
 /// recorded deco (ceiling/TTS/NDL/CNS), air-integration tanks + pressure series,
 /// gas mixes, GPS, and dive-level summary fields. Returns null for non-dive
-/// activities, corrupt files, or files with no depth samples.
+/// activities and corrupt files. A dive with no depth samples still parses,
+/// with an empty profile.
 class FitParserService {
   const FitParserService();
 
@@ -55,8 +56,9 @@ class FitParserService {
     if (sessionStartMs == null) return null;
 
     final records = messages.whereType<RecordMessage>().toList();
+    // May be empty: a dive logged without a recorded profile still imports,
+    // with its depth taken from the dive summary (#1605).
     final samples = FitProfileExtractor.extract(records);
-    if (samples.isEmpty) return null;
 
     final fileId = _firstOfType<FileIdMessage>(messages);
     final activity = _firstOfType<ActivityMessage>(messages);
@@ -105,10 +107,16 @@ class FitParserService {
       realTanks,
     );
 
-    // Summary stats derived from the samples.
+    // Summary stats derived from the samples. Without any, the dive summary's
+    // own depths are all there is; a dive that recorded no depth anywhere
+    // imports at 0 m for the diver to correct.
     final depths = samples.map((s) => s.depth).toList();
-    final maxDepth = depths.reduce(math.max);
-    final avgDepth = depths.reduce((a, b) => a + b) / depths.length;
+    final maxDepth = depths.isEmpty
+        ? (diveSummary?.maxDepth ?? 0.0)
+        : depths.reduce(math.max);
+    final avgDepth = depths.isEmpty
+        ? diveSummary?.avgDepth
+        : depths.reduce((a, b) => a + b) / depths.length;
 
     final temps = samples
         .map((s) => s.temperature)
