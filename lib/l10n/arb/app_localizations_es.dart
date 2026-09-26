@@ -42236,7 +42236,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'El archivo que ocupa ahora su lugar se conserva a su lado; no se elimina.';
+      'El archivo que ocupa ahora su lugar se conserva; no se elimina. Puedes restaurarlo o eliminarlo más tarde en Respaldo y Restauración, dentro de Ajustes.';
 
   @override
   String get startup_interruptedRestore_keepAction =>
@@ -42244,7 +42244,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'Tu cuaderno de buceo anterior se conserva como archivo en la carpeta de la base de datos.';
+      'Tu cuaderno de buceo anterior se conserva; no se elimina. Puedes restaurarlo o eliminarlo más tarde en Respaldo y Restauración, dentro de Ajustes.';
 
   @override
   String get startup_interruptedRestore_failed =>
@@ -42569,6 +42569,67 @@ class AppLocalizationsEs extends AppLocalizations {
   String backup_unrecognized_freed(String size) {
     return 'Se liberaron $size';
   }
+
+  @override
+  String get backup_quarantined_sectionTitle => 'Bases de datos apartadas';
+
+  @override
+  String get backup_quarantined_explanation =>
+      'Una restauración que no pudo terminar correctamente conservó estas copias de tu base de datos en lugar de eliminarlas. Restaura una para volver a usarla o elimínala para liberar espacio.';
+
+  @override
+  String get backup_quarantined_kind_preRestore =>
+      'Cuaderno de buceo de antes de una restauración';
+
+  @override
+  String get backup_quarantined_kind_restoreRejected =>
+      'Cuaderno de buceo sustituido durante una recuperación';
+
+  @override
+  String backup_quarantined_detail(String date, String size) {
+    return '$date • $size';
+  }
+
+  @override
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
+    return '$date • $size • base de datos v$version';
+  }
+
+  @override
+  String get backup_quarantined_status_needsNewerApp =>
+      'Necesita una versión más reciente de Submersion';
+
+  @override
+  String get backup_quarantined_status_unreadable =>
+      'No se puede abrir aquí. Puede estar dañada o protegida con una contraseña que este dispositivo no tiene.';
+
+  @override
+  String get backup_quarantined_status_incomplete =>
+      'Solo quedan archivos de diario; el archivo de la base de datos ya no existe.';
+
+  @override
+  String get backup_quarantined_delete_title =>
+      '¿Eliminar esta copia de la base de datos?';
+
+  @override
+  String get backup_quarantined_delete_message =>
+      'La copia y sus archivos de diario se eliminarán definitivamente de este dispositivo. Esta acción no se puede deshacer.';
+
+  @override
+  String get backup_quarantined_deleted =>
+      'Copia de la base de datos eliminada';
+
+  @override
+  String get backup_quarantined_deleteFailed =>
+      'No se pudo eliminar la copia de la base de datos.';
+
+  @override
+  String get backup_quarantined_loadFailed =>
+      'No se pudo revisar la carpeta de la base de datos en busca de copias apartadas.';
 
   @override
   String settings_storageUsage_unrecognized_title(int count) {

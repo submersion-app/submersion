@@ -730,6 +730,37 @@ class DatabaseService {
     }
   }
 
+  /// Folds the `-wal` beside the database file at [dbPath] into the file
+  /// itself, so that the file alone holds every committed transaction.
+  ///
+  /// [restore] stages only the main file of its source. That is right for a
+  /// backup artifact, which never has a journal, but a database copy the
+  /// restore journal set aside can: a copy taken while the app was killed
+  /// with the database open keeps its latest dives in its `-wal` (issue
+  /// #1923). Restoring such a copy without this step would silently drop
+  /// them.
+  ///
+  /// Throws when the log could not be folded completely, which callers must
+  /// treat as "do not restore from this file".
+  static void checkpointWriteAheadLog(String dbPath, {String? keyHex}) {
+    final db = openRaw(dbPath, keyHex: keyHex);
+    try {
+      db.select('PRAGMA wal_checkpoint(TRUNCATE)');
+    } finally {
+      db.close();
+    }
+    // Judged by the file rather than the pragma's busy flag: a checkpoint
+    // another connection blocked leaves frames in the log, and so does one
+    // SQLite skipped for any other reason.
+    final wal = File('$dbPath-wal');
+    if (wal.existsSync() && wal.lengthSync() > 0) {
+      throw FileSystemException(
+        'The database journal could not be folded in completely',
+        wal.path,
+      );
+    }
+  }
+
   /// True if [error] is a [sqlite3.SqliteException] in the SQLITE_READONLY
   /// family (primary result code 8) — typically SQLITE_READONLY_ROLLBACK
   /// (776) after a cancelled transaction left a hot journal behind.
