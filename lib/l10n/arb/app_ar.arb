@@ -13077,5 +13077,7 @@
   "savedQueries_reorderTooltip": "اسحب لإعادة الترتيب",
   "savedQueries_snackbar_deleted": "تم حذف \"{name}\"",
   "settings_manage_savedQueries": "الاستعلامات المحفوظة",
-  "settings_manage_savedQueries_subtitle": "إعادة تسمية الاستعلامات المحفوظة وإعادة ترتيبها وحذفها"
+  "settings_manage_savedQueries_subtitle": "إعادة تسمية الاستعلامات المحفوظة وإعادة ترتيبها وحذفها",
+  "query_editor_needsText": "أدخل كلمة واحدة على الأقل",
+  "query_saveNeedsDiver": "أنشئ ملف غواص لحفظ الاستعلامات"
 }

@@ -131,7 +131,10 @@ class QueryValueEditor extends StatelessWidget {
     if (!op.takesValue) return const SizedBox.shrink();
     final rel = target.terminalRelation;
     if (rel != null) return _ref(buildContext, rel);
-    final field = target.field!;
+    final field = target.field;
+    // A path this build cannot resolve (a saved query naming a field that
+    // no longer exists): nothing to edit; the row says so.
+    if (field == null) return const SizedBox.shrink();
     switch (field.type) {
       case FieldType.number:
         return op == QueryOp.between
@@ -262,13 +265,16 @@ class QueryValueEditor extends StatelessWidget {
           FilterChip(
             label: Text(context.labels.enumValue(field, v)),
             selected: selected.contains(v),
-            onSelected: (on) {
-              final next = [
-                for (final e in field.enumValues!)
-                  if (e == v ? on : selected.contains(e)) EnumValue(e),
-              ];
-              if (next.isNotEmpty) onChanged(ListValue(next));
-            },
+            // The last selected value cannot go: an empty list is no
+            // condition. Disabled, rather than a tap that bounces back.
+            onSelected: selected.length == 1 && selected.contains(v)
+                ? null
+                : (on) => onChanged(
+                    ListValue([
+                      for (final e in field.enumValues!)
+                        if (e == v ? on : selected.contains(e)) EnumValue(e),
+                    ]),
+                  ),
           ),
       ],
     );

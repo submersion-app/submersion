@@ -44153,4 +44153,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String query_error_expectsDate(String field) {
     return '$field attend une date';
   }
+
+  @override
+  String get query_editor_needsText => 'Saisissez au moins un mot';
+
+  @override
+  String get query_saveNeedsDiver =>
+      'Créez un profil de plongeur pour enregistrer des requêtes';
 }

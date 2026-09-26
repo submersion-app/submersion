@@ -13,21 +13,19 @@ final savedQueryRepositoryProvider = Provider<SavedQueryRepository>(
 /// The current diver's saved queries for [subject] (a `QuerySubject.name`),
 /// or every subject when null (the Manage page). Refreshes when the table
 /// changes, including a sync applying a remote row.
-final savedQueriesProvider = FutureProvider.family<List<SavedQuery>, String?>((
-  ref,
-  subject,
-) async {
-  final repository = ref.watch(savedQueryRepositoryProvider);
-  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
-  ref.invalidateSelfWhen(repository.watchSavedQueriesChanges());
-  return repository.getAll(subject: subject, diverId: diverId);
-});
+final savedQueriesProvider = FutureProvider.autoDispose
+    .family<List<SavedQuery>, String?>((ref, subject) async {
+      final repository = ref.watch(savedQueryRepositoryProvider);
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      ref.invalidateSelfWhen(repository.watchSavedQueriesChanges());
+      return repository.getAll(subject: subject, diverId: diverId);
+    });
 
 /// The same rows decoded against this build's registry and the live name
 /// index, so a chip row or the Manage page can show each one readable,
 /// flagged or unreadable (spec Unit 7).
-final savedQueryLoadsProvider =
-    FutureProvider.family<List<SavedQueryLoad>, String?>((ref, subject) async {
+final savedQueryLoadsProvider = FutureProvider.autoDispose
+    .family<List<SavedQueryLoad>, String?>((ref, subject) async {
       final rows = await ref.watch(savedQueriesProvider(subject).future);
       final names = await ref.watch(queryNameIndexProvider.future);
       return [for (final r in rows) loadSavedQuery(r, appQueryRegistry, names)];

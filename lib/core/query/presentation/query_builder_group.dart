@@ -173,15 +173,9 @@ class _Group extends StatelessWidget {
       case TextNode(:final words):
         body = _TextRow(
           label: strings.textRow,
+          needsText: strings.needsText,
           initial: words.join(' '),
-          onChanged: (t) {
-            final w = t
-                .trim()
-                .split(RegExp(r'\s+'))
-                .where((s) => s.isNotEmpty)
-                .toList();
-            if (w.isNotEmpty) onTree(replaceAt(root, innerPath, TextNode(w)));
-          },
+          onWords: (w) => onTree(replaceAt(root, innerPath, TextNode(w))),
         );
       case ScopedNode(:final path):
         final rel = resolvePath(
@@ -247,13 +241,18 @@ class _Group extends StatelessWidget {
 class _TextRow extends StatefulWidget {
   const _TextRow({
     required this.label,
+    required this.needsText,
     required this.initial,
-    required this.onChanged,
+    required this.onWords,
   });
 
   final String label;
+  final String needsText;
   final String initial;
-  final ValueChanged<String> onChanged;
+
+  /// Called with the typed words; never with none (an empty text term is
+  /// no condition), which the field reports instead.
+  final ValueChanged<List<String>> onWords;
 
   @override
   State<_TextRow> createState() => _TextRowState();
@@ -261,6 +260,17 @@ class _TextRow extends StatefulWidget {
 
 class _TextRowState extends State<_TextRow> {
   late final _controller = TextEditingController(text: widget.initial);
+  bool _empty = false;
+
+  void _onChanged(String text) {
+    final words = text
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((s) => s.isNotEmpty)
+        .toList();
+    setState(() => _empty = words.isEmpty);
+    if (words.isNotEmpty) widget.onWords(words);
+  }
 
   /// Follows words set from outside. The row's own echo is the typed text
   /// with its whitespace collapsed, which is left alone.
@@ -269,7 +279,10 @@ class _TextRowState extends State<_TextRow> {
     super.didUpdateWidget(old);
     if (widget.initial == old.initial) return;
     final typed = _controller.text.trim().split(RegExp(r'\s+')).join(' ');
-    if (typed != widget.initial) _controller.text = widget.initial;
+    if (typed != widget.initial) {
+      _controller.text = widget.initial;
+      _empty = false;
+    }
   }
 
   @override
@@ -281,7 +294,11 @@ class _TextRowState extends State<_TextRow> {
   @override
   Widget build(BuildContext context) => TextField(
     controller: _controller,
-    decoration: InputDecoration(labelText: widget.label, isDense: true),
-    onChanged: widget.onChanged,
+    decoration: InputDecoration(
+      labelText: widget.label,
+      isDense: true,
+      errorText: _empty ? widget.needsText : null,
+    ),
+    onChanged: _onChanged,
   );
 }

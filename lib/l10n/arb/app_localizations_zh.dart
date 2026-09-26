@@ -41518,4 +41518,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String query_error_expectsDate(String field) {
     return '$field 需要日期';
   }
+
+  @override
+  String get query_editor_needsText => '请至少输入一个词';
+
+  @override
+  String get query_saveNeedsDiver => '请先创建潜水员档案再保存查询';
 }

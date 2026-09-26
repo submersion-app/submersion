@@ -58,4 +58,9 @@ void main() {
       );
     },
   );
+
+  test('the saved-query families are released when unused', () {
+    expect(savedQueriesProvider('dives').isAutoDispose, isTrue);
+    expect(savedQueryLoadsProvider(null).isAutoDispose, isTrue);
+  });
 }

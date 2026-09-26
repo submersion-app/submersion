@@ -1,3 +1,4 @@
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -189,5 +190,26 @@ void main() {
     await tester.tap(searchButton());
     await tester.pumpAndSettle();
     expect(container.read(diveFilterProvider).query, depth);
+  });
+
+  testWidgets('Save without a diver profile says why', (tester) async {
+    await pumpPage(
+      tester,
+      DiveFilterState(
+        query: ConditionNode(
+          FieldPath(['depth']),
+          QueryOp.gt,
+          const NumberValue(30, null),
+        ),
+      ),
+      extraOverrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
+    await tester.tap(find.text('Save query'));
+    await tester.pumpAndSettle();
+    expect(find.text('Create a diver profile to save queries'), findsOneWidget);
+    // No name prompt for a save that cannot happen.
+    expect(find.byType(AlertDialog), findsNothing);
   });
 }

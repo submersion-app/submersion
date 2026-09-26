@@ -70586,6 +70586,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{field} expects a date'**
   String query_error_expectsDate(String field);
+
+  /// Builder text row left empty: it needs at least one word
+  ///
+  /// In en, this message translates to:
+  /// **'Enter at least one word'**
+  String get query_editor_needsText;
+
+  /// Snackbar when Save is tapped with no diver profile
+  ///
+  /// In en, this message translates to:
+  /// **'Create a diver profile to save queries'**
+  String get query_saveNeedsDiver;
 }
 
 class _AppLocalizationsDelegate

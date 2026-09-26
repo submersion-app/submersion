@@ -33,6 +33,7 @@ QueryBuilderStrings queryBuilderStringsOf(AppLocalizations l10n) =>
       pickRefSearch: l10n.query_editor_pickRefSearch,
       done: l10n.query_editor_done,
       unresolvedRef: l10n.query_editor_unresolvedRef,
+      needsText: l10n.query_editor_needsText,
       scopedRow: l10n.query_editor_scopedRow('{name}'),
       textRow: l10n.query_editor_textRow,
       betweenAnd: l10n.query_editor_betweenAnd,

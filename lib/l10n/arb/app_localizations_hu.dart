@@ -43870,4 +43870,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String query_error_expectsDate(String field) {
     return 'a(z) $field mező dátumot vár';
   }
+
+  @override
+  String get query_editor_needsText => 'Adjon meg legalább egy szót';
+
+  @override
+  String get query_saveNeedsDiver =>
+      'Hozzon létre merülő profilt a lekérdezések mentéséhez';
 }

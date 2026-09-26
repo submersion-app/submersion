@@ -19,6 +19,7 @@ class QueryBuilderStrings {
     required this.pickRefSearch,
     required this.done,
     required this.unresolvedRef,
+    required this.needsText,
     required this.scopedRow,
     required this.textRow,
     required this.betweenAnd,
@@ -46,6 +47,9 @@ class QueryBuilderStrings {
   final String pickRefSearch;
   final String done;
   final String unresolvedRef;
+
+  /// Under a text row left empty: it needs at least one word.
+  final String needsText;
 
   /// `{name}` is the relation label.
   final String scopedRow;

@@ -13077,5 +13077,7 @@
   "savedQueries_reorderTooltip": "Húzza az átrendezéshez",
   "savedQueries_snackbar_deleted": "Törölve: \"{name}\"",
   "settings_manage_savedQueries": "Mentett lekérdezések",
-  "settings_manage_savedQueries_subtitle": "Mentett lekérdezések átnevezése, átrendezése és törlése"
+  "settings_manage_savedQueries_subtitle": "Mentett lekérdezések átnevezése, átrendezése és törlése",
+  "query_editor_needsText": "Adjon meg legalább egy szót",
+  "query_saveNeedsDiver": "Hozzon létre merülő profilt a lekérdezések mentéséhez"
 }

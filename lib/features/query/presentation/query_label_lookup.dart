@@ -175,6 +175,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_editor_done;
     case 'query_editor_hint':
       return l10n.query_editor_hint;
+    case 'query_editor_needsText':
+      return l10n.query_editor_needsText;
     case 'query_editor_negate':
       return l10n.query_editor_negate;
     case 'query_editor_pickField':
@@ -335,6 +337,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_saveDialog_nameValidation;
     case 'query_saveDialog_title':
       return l10n.query_saveDialog_title;
+    case 'query_saveNeedsDiver':
+      return l10n.query_saveNeedsDiver;
     case 'query_savedRow_title':
       return l10n.query_savedRow_title;
     case 'query_sightings_count':

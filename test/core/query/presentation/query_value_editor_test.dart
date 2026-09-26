@@ -28,6 +28,7 @@ const kTestBuilderStrings = QueryBuilderStrings(
   pickRefSearch: 'Search',
   done: 'Done',
   unresolvedRef: 'No longer exists',
+  needsText: 'Enter at least one word',
   scopedRow: 'Group over {name}: edit in the Text tab',
   textRow: 'Text search',
   betweenAnd: 'and',
@@ -383,6 +384,56 @@ void main() {
     );
     // The second "Blue Hole" exists; it must not be flagged as gone.
     expect(find.byTooltip('No longer exists'), findsNothing);
+  });
+
+  testWidgets('the last selected enum chip cannot be deselected', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        QueryValueEditor(
+          context: ctx(),
+          target: target('waterType'),
+          op: QueryOp.inList,
+          value: ListValue([const EnumValue('salt')]),
+          onChanged: (_) {},
+          strings: kTestBuilderStrings,
+        ),
+      ),
+    );
+    final salt = tester.widget<FilterChip>(
+      find.widgetWithText(FilterChip, 'Salt water'),
+    );
+    final fresh = tester.widget<FilterChip>(
+      find.widgetWithText(FilterChip, 'Fresh water'),
+    );
+    // Disabled rather than a tap that silently bounces back.
+    expect(salt.onSelected, isNull);
+    expect(fresh.onSelected, isNotNull);
+  });
+
+  testWidgets('a condition whose path no longer resolves renders', (
+    tester,
+  ) async {
+    final ghost = resolvePath(
+      fixtureRegistry,
+      fixtureDives,
+      FieldPath(['warpFactor']),
+    );
+    await tester.pumpWidget(
+      host(
+        QueryValueEditor(
+          context: ctx(),
+          target: ghost,
+          op: QueryOp.gt,
+          value: const NumberValue(9, null),
+          onChanged: (_) {},
+          strings: kTestBuilderStrings,
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    expect(find.byType(TextField), findsNothing);
   });
 }
 

@@ -69,6 +69,29 @@ class QueryConditionRow extends StatelessWidget {
     final target = resolvePath(context.registry, context.root, condition.path);
     final field = target.field;
     final rel = target.terminalRelation;
+    if (target.error != null || (field == null && rel == null)) {
+      // A saved query naming a field this build lacks: show what it was,
+      // flagged, so the diver can remove it; never a crash.
+      return Row(
+        children: [
+          Tooltip(
+            message: strings.unresolvedRef,
+            child: Icon(
+              Icons.warning_amber,
+              size: 18,
+              color: Theme.of(buildContext).colorScheme.error,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              condition.path.toString(),
+              style: const TextStyle(fontFamily: 'monospace'),
+            ),
+          ),
+        ],
+      );
+    }
     final label = field != null
         ? context.labels.field(field)
         : rel != null

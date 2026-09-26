@@ -13077,5 +13077,7 @@
   "savedQueries_reorderTooltip": "Trascina per riordinare",
   "savedQueries_snackbar_deleted": "\"{name}\" eliminata",
   "settings_manage_savedQueries": "Query salvate",
-  "settings_manage_savedQueries_subtitle": "Rinomina, riordina ed elimina le query salvate"
+  "settings_manage_savedQueries_subtitle": "Rinomina, riordina ed elimina le query salvate",
+  "query_editor_needsText": "Inserisci almeno una parola",
+  "query_saveNeedsDiver": "Crea un profilo subacqueo per salvare le query"
 }

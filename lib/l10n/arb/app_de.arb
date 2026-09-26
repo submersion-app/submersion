@@ -13177,5 +13177,7 @@
   "savedQueries_reorderTooltip": "Zum Sortieren ziehen",
   "savedQueries_snackbar_deleted": "\"{name}\" gelöscht",
   "settings_manage_savedQueries": "Gespeicherte Abfragen",
-  "settings_manage_savedQueries_subtitle": "Gespeicherte Abfragen umbenennen, sortieren und löschen"
+  "settings_manage_savedQueries_subtitle": "Gespeicherte Abfragen umbenennen, sortieren und löschen",
+  "query_editor_needsText": "Mindestens ein Wort eingeben",
+  "query_saveNeedsDiver": "Legen Sie ein Taucherprofil an, um Abfragen zu speichern"
 }

@@ -13077,5 +13077,7 @@
   "savedQueries_reorderTooltip": "Arrastra para reordenar",
   "savedQueries_snackbar_deleted": "Consulta \"{name}\" eliminada",
   "settings_manage_savedQueries": "Consultas guardadas",
-  "settings_manage_savedQueries_subtitle": "Renombrar, reordenar y eliminar consultas guardadas"
+  "settings_manage_savedQueries_subtitle": "Renombrar, reordenar y eliminar consultas guardadas",
+  "query_editor_needsText": "Escribe al menos una palabra",
+  "query_saveNeedsDiver": "Crea un perfil de buceador para guardar consultas"
 }

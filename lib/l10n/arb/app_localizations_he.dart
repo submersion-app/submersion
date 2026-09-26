@@ -43170,4 +43170,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String query_error_expectsDate(String field) {
     return '$field מצפה לתאריך';
   }
+
+  @override
+  String get query_editor_needsText => 'הזן לפחות מילה אחת';
+
+  @override
+  String get query_saveNeedsDiver => 'צור פרופיל צולל כדי לשמור שאילתות';
 }

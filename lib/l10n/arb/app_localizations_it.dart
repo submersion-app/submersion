@@ -44032,4 +44032,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String query_error_expectsDate(String field) {
     return '$field richiede una data';
   }
+
+  @override
+  String get query_editor_needsText => 'Inserisci almeno una parola';
+
+  @override
+  String get query_saveNeedsDiver =>
+      'Crea un profilo subacqueo per salvare le query';
 }

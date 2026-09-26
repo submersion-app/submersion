@@ -43754,4 +43754,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String query_error_expectsDate(String field) {
     return '$field verwacht een datum';
   }
+
+  @override
+  String get query_editor_needsText => 'Voer minstens één woord in';
+
+  @override
+  String get query_saveNeedsDiver =>
+      'Maak een duikersprofiel aan om query\'s op te slaan';
 }

@@ -27151,5 +27151,9 @@
   "query_error_expectsSingleDay": "{field} expects a single day here",
   "@query_error_expectsSingleDay": {"description": "Query error message. field is what the diver typed; keep verbatim.", "placeholders": {"field": {"type": "String"}}},
   "query_error_expectsDate": "{field} expects a date",
-  "@query_error_expectsDate": {"description": "Query error message. field is what the diver typed; keep verbatim.", "placeholders": {"field": {"type": "String"}}}
+  "@query_error_expectsDate": {"description": "Query error message. field is what the diver typed; keep verbatim.", "placeholders": {"field": {"type": "String"}}},
+  "query_editor_needsText": "Enter at least one word",
+  "@query_editor_needsText": {"description": "Builder text row left empty: it needs at least one word"},
+  "query_saveNeedsDiver": "Create a diver profile to save queries",
+  "@query_saveNeedsDiver": {"description": "Snackbar when Save is tapped with no diver profile"}
 }

@@ -1,3 +1,4 @@
+import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -121,5 +122,46 @@ void main() {
   testWidgets('an empty list explains where queries come from', (tester) async {
     await pump(tester);
     expect(find.textContaining('No saved queries yet'), findsOneWidget);
+  });
+
+  testWidgets('a row with a deleted reference is flagged with a warning', (
+    tester,
+  ) async {
+    await repo.create(
+      subject: QuerySubject.dives,
+      name: 'Old site',
+      node: ConditionNode(
+        FieldPath(['site']),
+        QueryOp.eq,
+        const RefValue('gone', 'Old Wall'),
+      ),
+      diverId: 'me',
+    );
+    await pump(tester);
+    expect(find.byIcon(Icons.warning_amber), findsOneWidget);
+  });
+
+  testWidgets('a load failure shows a plain message, not the exception', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testAppInShell(
+        locale: const Locale('en'),
+        overrides: [
+          ...overrides,
+          savedQueryLoadsProvider(
+            null,
+          ).overrideWith((ref) async => throw StateError('db is locked')),
+        ],
+        child: const SavedQueriesPage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('db is locked'), findsNothing);
   });
 }

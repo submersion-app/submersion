@@ -13077,5 +13077,7 @@
   "savedQueries_reorderTooltip": "Arraste para reordenar",
   "savedQueries_snackbar_deleted": "Consulta \"{name}\" excluída",
   "settings_manage_savedQueries": "Consultas salvas",
-  "settings_manage_savedQueries_subtitle": "Renomear, reordenar e excluir consultas salvas"
+  "settings_manage_savedQueries_subtitle": "Renomear, reordenar e excluir consultas salvas",
+  "query_editor_needsText": "Digite pelo menos uma palavra",
+  "query_saveNeedsDiver": "Crie um perfil de mergulhador para salvar consultas"
 }

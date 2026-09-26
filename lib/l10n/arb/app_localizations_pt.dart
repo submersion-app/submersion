@@ -44051,4 +44051,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String query_error_expectsDate(String field) {
     return '$field espera uma data';
   }
+
+  @override
+  String get query_editor_needsText => 'Digite pelo menos uma palavra';
+
+  @override
+  String get query_saveNeedsDiver =>
+      'Crie um perfil de mergulhador para salvar consultas';
 }

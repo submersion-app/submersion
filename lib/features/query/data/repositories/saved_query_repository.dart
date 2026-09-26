@@ -92,13 +92,22 @@ class SavedQueryRepository {
     SavedQueriesCompanion(queryJson: Value(jsonEncode(queryNodeToJson(node)))),
   );
 
-  /// Rewrites sort_order so [orderedIds] run 0..n-1, in one transaction,
-  /// then marks each row pending once.
+  /// Gives each row in [orderedIds] its position as sort_order, in one
+  /// transaction, then marks each rewritten row pending once. Rows no diver
+  /// owns are skipped: every diver sees them, so one diver's drag must not
+  /// renumber (or stamp) another diver's view of them.
   Future<void> reorder(List<String> orderedIds) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
+      final owned = {
+        for (final row in await (_db.select(
+          _db.savedQueries,
+        )..where((t) => t.id.isIn(orderedIds) & t.diverId.isNotNull())).get())
+          row.id,
+      };
       await _db.transaction(() async {
         for (var i = 0; i < orderedIds.length; i++) {
+          if (!owned.contains(orderedIds[i])) continue;
           await (_db.update(
             _db.savedQueries,
           )..where((t) => t.id.equals(orderedIds[i]))).write(
@@ -106,7 +115,7 @@ class SavedQueryRepository {
           );
         }
       });
-      for (final id in orderedIds) {
+      for (final id in orderedIds.where(owned.contains)) {
         await _syncRepository.markRecordPending(
           entityType: entityType,
           recordId: id,
@@ -154,11 +163,13 @@ class SavedQueryRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// The highest sort_order among the rows [diverId] sees for [subject],
+  /// their own and unowned ones, so a new row lands after all of them.
   Future<int> _maxSortOrder(String subject, String diverId) async {
     final result = await _db
         .customSelect(
           'SELECT MAX(sort_order) AS max_order FROM saved_queries '
-          'WHERE subject = ? AND diver_id = ?',
+          'WHERE subject = ? AND (diver_id = ? OR diver_id IS NULL)',
           variables: [Variable<String>(subject), Variable<String>(diverId)],
         )
         .getSingleOrNull();

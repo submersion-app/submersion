@@ -138,4 +138,44 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 50));
     expect(fired, isTrue);
   });
+
+  test('reorder leaves rows no diver owns alone; new rows land last', () async {
+    final now = DateTime(2026).millisecondsSinceEpoch;
+    await db
+        .into(db.savedQueries)
+        .insert(
+          SavedQueriesCompanion.insert(
+            id: 'shared',
+            subject: 'dives',
+            name: 'Shared',
+            queryJson: '{}',
+            sortOrder: const Value(5),
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    final a = await repo.create(
+      subject: QuerySubject.dives,
+      name: 'A',
+      node: node,
+      diverId: 'me',
+    );
+    // A new row sorts after every row the diver sees, unowned ones too.
+    expect(a.sortOrder, 6);
+    final b = await repo.create(
+      subject: QuerySubject.dives,
+      name: 'B',
+      node: node,
+      diverId: 'me',
+    );
+    await repo.reorder([b.id, 'shared', a.id]);
+    final shared = await repo.getById('shared');
+    expect(shared!.sortOrder, 5);
+    final pending = await db
+        .customSelect("SELECT 1 FROM sync_records WHERE record_id = 'shared'")
+        .get();
+    expect(pending, isEmpty);
+    expect((await repo.getById(b.id))!.sortOrder, 0);
+    expect((await repo.getById(a.id))!.sortOrder, 2);
+  });
 }

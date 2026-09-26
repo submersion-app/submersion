@@ -208,4 +208,44 @@ void main() {
       'shark',
     );
   });
+
+  testWidgets('emptying a text row says so and keeps the words', (
+    tester,
+  ) async {
+    final changes = <QueryNode?>[];
+    await tester.pumpWidget(
+      host(
+        AndNode([
+          TextNode(['manta']),
+        ]),
+        changes.add,
+      ),
+    );
+    await tester.enterText(find.byType(TextField), '   ');
+    await tester.pump();
+    expect(find.text('Enter at least one word'), findsOneWidget);
+    expect(changes, isEmpty);
+  });
+
+  testWidgets('a row whose field no longer exists is shown, not a crash', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        AndNode([
+          ConditionNode(
+            FieldPath(['warpFactor']),
+            QueryOp.gt,
+            const NumberValue(9, null),
+          ),
+        ]),
+        (_) {},
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('warpFactor'), findsOneWidget);
+    expect(find.byTooltip('No longer exists'), findsOneWidget);
+    // It can still be removed.
+    expect(find.byKey(const ValueKey('remove-0')), findsOneWidget);
+  });
 }

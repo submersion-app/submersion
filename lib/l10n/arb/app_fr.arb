@@ -13077,5 +13077,7 @@
   "savedQueries_reorderTooltip": "Faire glisser pour réorganiser",
   "savedQueries_snackbar_deleted": "« {name} » supprimée",
   "settings_manage_savedQueries": "Requêtes enregistrées",
-  "settings_manage_savedQueries_subtitle": "Renommer, réorganiser et supprimer les requêtes enregistrées"
+  "settings_manage_savedQueries_subtitle": "Renommer, réorganiser et supprimer les requêtes enregistrées",
+  "query_editor_needsText": "Saisissez au moins un mot",
+  "query_saveNeedsDiver": "Créez un profil de plongeur pour enregistrer des requêtes"
 }

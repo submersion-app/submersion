@@ -43710,4 +43710,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String query_error_expectsDate(String field) {
     return 'يتوقع $field تاريخًا';
   }
+
+  @override
+  String get query_editor_needsText => 'أدخل كلمة واحدة على الأقل';
+
+  @override
+  String get query_saveNeedsDiver => 'أنشئ ملف غواص لحفظ الاستعلامات';
 }

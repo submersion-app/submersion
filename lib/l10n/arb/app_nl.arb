@@ -13077,5 +13077,7 @@
   "savedQueries_reorderTooltip": "Sleep om te herschikken",
   "savedQueries_snackbar_deleted": "\"{name}\" verwijderd",
   "settings_manage_savedQueries": "Opgeslagen query's",
-  "settings_manage_savedQueries_subtitle": "Opgeslagen query's hernoemen, herschikken en verwijderen"
+  "settings_manage_savedQueries_subtitle": "Opgeslagen query's hernoemen, herschikken en verwijderen",
+  "query_editor_needsText": "Voer minstens één woord in",
+  "query_saveNeedsDiver": "Maak een duikersprofiel aan om query's op te slaan"
 }

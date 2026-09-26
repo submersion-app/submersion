@@ -4,6 +4,7 @@ import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -987,10 +988,18 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
   Future<void> _saveQuery() async {
     final node = _query;
     if (node == null) return;
+    // Queries are saved per diver: say so up front rather than asking for
+    // a name and then doing nothing.
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    if (!mounted) return;
+    if (diverId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.query_saveNeedsDiver)),
+      );
+      return;
+    }
     final name = await showSaveQueryDialog(context);
     if (name == null || !mounted) return;
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    if (diverId == null || !mounted) return;
     try {
       await ref
           .read(savedQueryRepositoryProvider)
@@ -1005,11 +1014,14 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
           SnackBar(content: Text(context.l10n.query_saved_snackbar(name))),
         );
       }
-    } catch (e) {
+    } catch (e, st) {
+      LoggerService.forClass(
+        DiveSearchPage,
+      ).error('Failed to save query', error: e, stackTrace: st);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${context.l10n.common_label_error}: $e'),
+            content: Text(context.l10n.common_error_tryAgain),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

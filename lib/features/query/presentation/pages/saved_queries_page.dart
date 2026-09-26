@@ -10,6 +10,7 @@ import 'package:submersion/features/query/presentation/providers/query_unit_pref
 import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
 import 'package:submersion/features/query/presentation/query_error_text.dart';
 import 'package:submersion/features/query/presentation/widgets/save_query_dialog.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/fab_clearance.dart';
 
@@ -17,6 +18,8 @@ import 'package:submersion/shared/widgets/fab_clearance.dart';
 /// delete. Rows this build cannot read are flagged, never hidden, so they
 /// can be deleted. Queries are created from the editor, so there is no add
 /// button here.
+final _log = LoggerService.forClass(SavedQueriesPage);
+
 class SavedQueriesPage extends ConsumerWidget {
   const SavedQueriesPage({super.key});
 
@@ -34,8 +37,11 @@ class SavedQueriesPage extends ConsumerWidget {
       ),
       body: loadsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) =>
-            Center(child: Text('${context.l10n.common_label_error}: $e')),
+        // The detail goes to the log; the diver gets a plain message.
+        error: (e, st) {
+          _log.error('Failed to load saved queries', error: e, stackTrace: st);
+          return Center(child: Text(context.l10n.common_error_tryAgain));
+        },
         data: (loads) => loads.isEmpty
             ? Center(
                 child: Padding(
@@ -87,9 +93,10 @@ class _SavedQueryListState extends ConsumerState<_SavedQueryList> {
   }
 
   void _showError(Object e) {
+    _log.error('Saved query write failed', error: e);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${context.l10n.common_label_error}: $e'),
+        content: Text(context.l10n.common_error_tryAgain),
         backgroundColor: Theme.of(context).colorScheme.error,
       ),
     );
@@ -146,14 +153,18 @@ class _SavedQueryListState extends ConsumerState<_SavedQueryList> {
         style: TextStyle(color: theme.colorScheme.error),
       ),
     };
-    final flagged =
-        load.problem != null && load.problem != SavedQueryProblem.unresolvedRef;
+    final (IconData icon, Color color) = switch (load.problem) {
+      null => (Icons.bookmark_outline, theme.colorScheme.primary),
+      // Applies, but something it names is gone: flagged, as on the chip.
+      SavedQueryProblem.unresolvedRef => (
+        Icons.warning_amber,
+        theme.colorScheme.tertiary,
+      ),
+      _ => (Icons.error_outline, theme.colorScheme.error),
+    };
     return ListTile(
       key: ValueKey(load.saved.id),
-      leading: Icon(
-        flagged ? Icons.error_outline : Icons.bookmark_outline,
-        color: flagged ? theme.colorScheme.error : theme.colorScheme.primary,
-      ),
+      leading: Icon(icon, color: color),
       title: Text(load.saved.name),
       subtitle: subtitle,
       trailing: Row(
