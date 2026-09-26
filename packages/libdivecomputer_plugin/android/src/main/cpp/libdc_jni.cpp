@@ -205,6 +205,28 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadCancel(
     libdc_download_cancel(session);
 }
 
+// The product and model code the device reported about itself during the
+// last run, as [product, model], or null when there is nothing to relabel
+// (issue #422).
+extern "C" JNIEXPORT jobjectArray JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadSessionReportedDevice(
+    JNIEnv *env, jclass, jlong sessionPtr) {
+    auto *session = reinterpret_cast<libdc_download_session_t *>(sessionPtr);
+    char product[64];
+    unsigned int model = 0;
+    if (!libdc_download_session_reported_device(session, product,
+                                                sizeof(product), &model)) {
+        return nullptr;
+    }
+    jclass stringClass = env->FindClass("java/lang/String");
+    jobjectArray result = env->NewObjectArray(2, stringClass, nullptr);
+    env->SetObjectArrayElement(result, 0, env->NewStringUTF(product));
+    char modelText[16];
+    snprintf(modelText, sizeof(modelText), "%u", model);
+    env->SetObjectArrayElement(result, 1, env->NewStringUTF(modelText));
+    return result;
+}
+
 extern "C" JNIEXPORT void JNICALL
 Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadSessionFree(
     JNIEnv *, jclass, jlong sessionPtr) {

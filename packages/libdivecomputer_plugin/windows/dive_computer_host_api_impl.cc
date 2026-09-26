@@ -539,6 +539,19 @@ void DiveComputerHostApiImpl::PerformDownload(
             ? std::optional<std::string>(libdc_clock_sync_status_name(clock_sync))
             : std::nullopt;
 
+    // The model the device named about itself (issue #422), read before the
+    // session is freed.
+    char reported_buf[64] = {};
+    unsigned int reported_model_code = 0;
+    std::optional<std::string> reported_product;
+    std::optional<int64_t> reported_model;
+    if (libdc_download_session_reported_device(session, reported_buf,
+                                               sizeof(reported_buf),
+                                               &reported_model_code) != 0) {
+        reported_product = std::string(reported_buf);
+        reported_model = static_cast<int64_t>(reported_model_code);
+    }
+
     // Report completion or error.
     if (rc == 0 || rc == LIBDC_STATUS_CANCELLED) {
         flutter_api_->OnDownloadComplete(
@@ -546,6 +559,8 @@ void DiveComputerHostApiImpl::PerformDownload(
             serial_str ? &*serial_str : nullptr,
             firmware_str ? &*firmware_str : nullptr,
             clock_sync_str ? &*clock_sync_str : nullptr,
+            reported_product ? &*reported_product : nullptr,
+            reported_model ? &*reported_model : nullptr,
             [] {}, [](const auto&) {});
     } else {
         flutter_api_->OnError(

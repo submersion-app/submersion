@@ -1803,12 +1803,14 @@ LibdivecomputerPluginDiveComputerFlutterApiOnDiveDownloadedResponse* libdivecomp
  * @serial_number: (allow-none): parameter for this method.
  * @firmware_version: (allow-none): parameter for this method.
  * @clock_sync_status: (allow-none): parameter for this method.
+ * @reported_product: (allow-none): parameter for this method.
+ * @reported_model: (allow-none): parameter for this method.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): (allow-none): a #GAsyncReadyCallback to call when the call is complete or %NULL to ignore the response.
  * @user_data: (closure): user data to pass to @callback.
  *
  */
-void libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete(LibdivecomputerPluginDiveComputerFlutterApi* api, int64_t total_dives, const gchar* serial_number, const gchar* firmware_version, const gchar* clock_sync_status, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data);
+void libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete(LibdivecomputerPluginDiveComputerFlutterApi* api, int64_t total_dives, const gchar* serial_number, const gchar* firmware_version, const gchar* clock_sync_status, const gchar* reported_product, int64_t* reported_model, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data);
 
 /**
  * libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete_finish:

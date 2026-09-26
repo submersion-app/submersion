@@ -32,6 +32,8 @@ object LibdcWrapper {
     // Download session
     external fun nativeDownloadSessionNew(): Long
     external fun nativeDownloadCancel(sessionPtr: Long)
+    // [product, model] the device reported during the last run (issue #422).
+    external fun nativeDownloadSessionReportedDevice(sessionPtr: Long): Array<String>?
     external fun nativeDownloadSessionFree(sessionPtr: Long)
     // infoOut receives three slots after the run: device serial, firmware
     // version, and the clock sync status code (libdc_clock_sync_status_t).
