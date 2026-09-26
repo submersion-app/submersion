@@ -9,7 +9,7 @@ import 'package:submersion/features/connections/domain/entities/connection_node.
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
-import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/connections/presentation/widgets/selection_details.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -133,13 +133,13 @@ void main() {
     expect(button.onPressed, isNull);
   });
 
-  testWidgets('Open pushes the detail route and Focus sets the focus', (
+  testWidgets('Open pushes the detail route and Centre here centres the view', (
     tester,
   ) async {
     final container = await _pump(tester, NodeSelection(_b('jane')));
-    await tester.tap(find.text('Focus'));
+    await tester.tap(find.text('Centre here'));
     await tester.pump();
-    expect(container.read(connectionsFocusProvider), _b('jane'));
+    expect(container.read(connectionsViewProvider).focus, _b('jane'));
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
     expect(find.text('BUDDY_jane'), findsOneWidget);
@@ -153,6 +153,6 @@ void main() {
     expect(find.textContaining('Ken'), findsWidgets);
     expect(find.text('2 dives together'), findsOneWidget);
     expect(find.textContaining('First '), findsOneWidget);
-    expect(find.text('Focus'), findsNothing);
+    expect(find.text('Centre here'), findsNothing);
   });
 }

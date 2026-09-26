@@ -235,6 +235,10 @@ void main() {
       ),
     ),
     (
+      name: 'connectionsSearchProvider',
+      read: (c) => c.read(connectionsSearchProvider('a').future),
+    ),
+    (
       name: 'savedConnectionMapsProvider',
       read: (c) => c.read(savedConnectionMapsProvider.future),
     ),

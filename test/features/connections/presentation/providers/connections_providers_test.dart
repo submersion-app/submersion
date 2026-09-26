@@ -7,9 +7,9 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
-import 'package:submersion/features/connections/domain/lenses/connection_lens.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
-import 'package:submersion/features/connections/presentation/providers/connections_lens_provider.dart';
+import 'package:submersion/features/connections/domain/views/connection_presets.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -129,22 +129,25 @@ void main() {
     final filtered = await c.read(connectionGraphProvider(80).future);
     expect(filtered.isEmpty, isTrue);
     c.read(connectionsFilterProvider.notifier).state = const DiveFilterState();
-    c
-        .read(connectionsLensProvider.notifier)
-        .select(const LensSelection.lens(ConnectionLens.where));
+    await c
+        .read(connectionsViewProvider.notifier)
+        .update((s) => s.applyPreset(ConnectionPresets.byId('where')!));
     final where = await c.read(connectionGraphProvider(80).future);
     expect(
-      where.nodes.every((n) => n.ref.kind == ConnectionKind.buddy),
+      where.nodes.every(
+        (n) =>
+            n.ref.kind == ConnectionKind.buddy ||
+            n.ref.kind == ConnectionKind.site,
+      ),
       isTrue,
     );
     expect(where.edges, isEmpty, reason: 'no dive has a site');
   });
 
   test('a focus switches to the ego graph', () async {
-    c.read(connectionsFocusProvider.notifier).state = const NodeRef(
-      ConnectionKind.buddy,
-      'jane',
-    );
+    await c
+        .read(connectionsViewProvider.notifier)
+        .update((s) => s.centreOn(const NodeRef(ConnectionKind.buddy, 'jane')));
     final sub = c.listen(connectionGraphProvider(80), (_, _) {});
     addTearDown(sub.close);
     final g = await c.read(connectionGraphProvider(80).future);

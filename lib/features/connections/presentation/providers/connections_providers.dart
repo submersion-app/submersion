@@ -1,39 +1,54 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/connections/data/repositories/connections_repository.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
-import 'package:submersion/features/connections/domain/entities/connection_query.dart';
+import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
+import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
-import 'package:submersion/features/connections/presentation/providers/connections_lens_provider.dart';
-import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 
 final connectionsRepositoryProvider = Provider<ConnectionsRepository>(
   (ref) => ConnectionsRepository(),
 );
 
-/// The graph for the active lens, filter and focus, trimmed to the node
-/// budget given as the family key (the page picks 80 or 160 by width).
-///
-/// Not keyed by [ConnectionQuery]: `DiveFilterState` has no value equality,
-/// so the query is rebuilt here from the individual providers instead.
+/// The graph for the current view and filter, trimmed to the node budget
+/// given as the family key (the page picks 80 or 160 by width).
 final connectionGraphProvider = FutureProvider.autoDispose
     .family<ConnectionGraph, int>((ref, nodeBudget) async {
       final repository = ref.watch(connectionsRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchConnectionsChanges());
       final diverId = ref.watch(currentDiverIdProvider);
-      final lens = ref.watch(connectionsLensProvider);
+      final view = ref.watch(connectionsViewProvider);
       final filter = ref.watch(connectionsFilterProvider);
-      final focus = ref.watch(connectionsFocusProvider);
-      final query = ConnectionQuery(
-        kindA: lens.kindA,
-        kindB: lens.kindB,
+      if (view.isAroundWithoutFocus) return ConnectionGraph.empty;
+      if (view.mode == ConnectionsMode.around) {
+        return repository.loadAround(
+          focus: view.focus!,
+          kinds: view.aroundKinds,
+          hops: view.hops,
+          diverId: diverId,
+          filter: filter,
+          nodeBudget: nodeBudget,
+        );
+      }
+      return repository.loadMap(
+        view.mapSpec,
+        diverId: diverId,
         filter: filter,
-        focus: focus,
         nodeBudget: nodeBudget,
       );
-      return repository.loadGraph(query, diverId: diverId);
+    });
+
+/// Entities of any kind whose name contains the text, for the Around
+/// search field.
+final connectionsSearchProvider = FutureProvider.autoDispose
+    .family<List<ConnectionNode>, String>((ref, text) async {
+      final repository = ref.watch(connectionsRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchConnectionsChanges());
+      final diverId = ref.watch(currentDiverIdProvider);
+      return repository.searchEntities(text, diverId: diverId);
     });
 
 /// First and last dive year for the current diver, for the year slider.

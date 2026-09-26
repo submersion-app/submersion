@@ -2,15 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
-import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
-import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
-import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
-import 'package:submersion/features/connections/presentation/providers/connections_lens_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
-import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_filter_bar.dart';
-import 'package:submersion/features/connections/presentation/widgets/lens_chip_row.dart';
 import 'package:submersion/features/connections/presentation/widgets/year_range_slider.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -41,25 +35,6 @@ Future<ProviderContainer> _pump(
 }
 
 void main() {
-  testWidgets('lens chips switch the lens and clear focus and selection', (
-    tester,
-  ) async {
-    final c = await _pump(tester, const LensChipRow());
-    c.read(connectionsFocusProvider.notifier).state = const NodeRef(
-      ConnectionKind.buddy,
-      'x',
-    );
-    c.read(connectionsSelectionProvider.notifier).state = const NodeSelection(
-      NodeRef(ConnectionKind.buddy, 'x'),
-    );
-    expect(find.text('Dive circle'), findsOneWidget);
-    await tester.tap(find.text('Who dives where'));
-    await tester.pump();
-    expect(c.read(connectionsLensProvider).lensId, 'where');
-    expect(c.read(connectionsFocusProvider), isNull);
-    expect(c.read(connectionsSelectionProvider), isNull);
-  });
-
   testWidgets('the filter bar is hidden without a filter and clears with one', (
     tester,
   ) async {

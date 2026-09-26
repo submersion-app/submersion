@@ -9,6 +9,7 @@ import 'package:submersion/features/connections/domain/entities/graph_selection.
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -132,9 +133,11 @@ class GraphSelectionDetails extends ConsumerWidget {
             if (focus != null)
               OutlinedButton.icon(
                 icon: const Icon(Icons.center_focus_strong),
-                label: Text(l10n.connections_action_focus),
+                label: Text(l10n.connections_action_centreHere),
                 onPressed: () {
-                  ref.read(connectionsFocusProvider.notifier).state = focus;
+                  ref
+                      .read(connectionsViewProvider.notifier)
+                      .update((s) => s.centreOn(focus));
                   ref.read(connectionsSelectionProvider.notifier).state =
                       NodeSelection(focus);
                 },

@@ -77,6 +77,7 @@ import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_gallery_page.dart';
+import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/connections/presentation/pages/connections_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_overview_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_page.dart';
@@ -935,12 +936,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               final q = state.uri.queryParameters;
               return NoTransitionPage(
                 key: state.pageKey,
-                child: ConnectionsPage(
-                  lensId: q['lens'],
-                  kindAName: q['a'],
-                  kindBName: q['b'],
-                  focusWire: q['focus'],
-                ),
+                child: ConnectionsPage(args: ConnectionsRouteArgs.fromQuery(q)),
               );
             },
           ),

@@ -11,10 +11,8 @@ import 'package:submersion/features/connections/data/connections_scope_sql.dart'
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
-import 'package:submersion/features/connections/domain/entities/connection_query.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
-import 'package:submersion/features/connections/domain/views/kind_link.dart';
 import 'package:submersion/features/connections/domain/views/map_spec.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -89,36 +87,6 @@ class ConnectionsRepository {
       return byDives != 0 ? byDives : a.label.compareTo(b.label);
     });
     return hits.take(limit).toList();
-  }
-
-  /// Phase 1 entry point, kept only until Task 8 removes ConnectionQuery.
-  Future<ConnectionGraph> loadGraph(
-    ConnectionQuery query, {
-    required String? diverId,
-  }) {
-    if (!query.focusIsValid) {
-      throw ArgumentError.value(query.focus, 'focus', 'not in this query');
-    }
-    final focus = query.focus;
-    if (focus == null) {
-      return loadMap(
-        MapSpec.of(
-          {query.kindA, query.kindB},
-          {KindLink(query.kindA, query.kindB)},
-        ),
-        diverId: diverId,
-        filter: query.filter,
-        nodeBudget: query.nodeBudget,
-      );
-    }
-    return loadAround(
-      focus: focus,
-      kinds: {query.neighbourKind!},
-      hops: 1,
-      diverId: diverId,
-      filter: query.filter,
-      nodeBudget: query.nodeBudget,
-    );
   }
 
   /// First and last calendar year of the dives in scope, or null when there

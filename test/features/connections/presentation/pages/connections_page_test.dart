@@ -9,11 +9,12 @@ import 'package:submersion/features/connections/domain/entities/connection_kind.
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/connections/presentation/pages/connections_page.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
-import 'package:submersion/features/connections/presentation/providers/connections_lens_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -60,12 +61,7 @@ Future<ProviderContainer> _pump(
         path: '/connections',
         builder: (_, state) {
           final q = state.uri.queryParameters;
-          return ConnectionsPage(
-            lensId: q['lens'],
-            kindAName: q['a'],
-            kindBName: q['b'],
-            focusWire: q['focus'],
-          );
+          return ConnectionsPage(args: ConnectionsRouteArgs.fromQuery(q));
         },
       ),
     ],
@@ -75,7 +71,7 @@ Future<ProviderContainer> _pump(
       overrides: [
         ...overrides,
         connectionGraphProvider.overrideWith((ref, budget) async {
-          seenFocus?.add(ref.read(connectionsFocusProvider));
+          seenFocus?.add(ref.read(connectionsViewProvider).focus);
           seenBudgets?.add(budget);
           if (builder != null) return builder(ref);
           if (error != null) throw error;
@@ -105,7 +101,6 @@ void main() {
     'phone layout: chips, canvas, legend, hidden chip; no side panel',
     (tester) async {
       await _pump(tester, size: const Size(732, 1000));
-      expect(find.text('Dive circle'), findsOneWidget);
       expect(
         find.byKey(const ValueKey('connections-canvas-paint')),
         findsOneWidget,
@@ -138,12 +133,12 @@ void main() {
       size: const Size(732, 1000),
       location: '/connections?lens=where&focus=buddy:jane',
     );
-    expect(c.read(connectionsLensProvider).lensId, 'where');
-    expect(c.read(connectionsFocusProvider), _b('jane'));
+    expect(c.read(connectionsViewProvider).presetId, 'where');
+    expect(c.read(connectionsViewProvider).focus, _b('jane'));
     expect(c.read(connectionsSelectionProvider)?.toString(), contains('jane'));
   });
 
-  testWidgets('a focus outside the lens opens unfocused with a snackbar', (
+  testWidgets('a site focus from a buddy lens centres on the site', (
     tester,
   ) async {
     final c = await _pump(
@@ -152,8 +147,11 @@ void main() {
       location: '/connections?lens=circle&focus=site:s1',
     );
     await tester.pump(const Duration(milliseconds: 100));
-    expect(c.read(connectionsFocusProvider), isNull);
-    expect(find.text('That item is no longer in the log.'), findsOneWidget);
+    expect(
+      c.read(connectionsViewProvider).focus,
+      const NodeRef(ConnectionKind.site, 's1'),
+    );
+    expect(find.text('That item is no longer in the log.'), findsNothing);
   });
 
   testWidgets('a missing focus clears and warns', (tester) async {
@@ -166,7 +164,7 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 100));
-    expect(c.read(connectionsFocusProvider), isNull);
+    expect(c.read(connectionsViewProvider).focus, isNull);
     expect(find.text('That item is no longer in the log.'), findsOneWidget);
   });
 
@@ -185,16 +183,12 @@ void main() {
     expect(find.text('Retry'), findsOneWidget);
   });
 
-  testWidgets('an empty lens keeps the lens chips and filter controls', (
-    tester,
-  ) async {
+  testWidgets('an empty map keeps the filter controls', (tester) async {
     await _pump(
       tester,
       size: const Size(732, 1000),
       graph: ConnectionGraph.empty,
     );
-    expect(find.text('Dive circle'), findsOneWidget);
-    expect(find.text('Who dives where'), findsOneWidget);
     expect(find.byType(RangeSlider), findsOneWidget);
     expect(find.textContaining('Data Tools'), findsOneWidget);
   });
@@ -239,17 +233,19 @@ void main() {
       size: const Size(732, 1000),
       location: '/connections?lens=circle&focus=buddy:ghost',
       builder: (ref) async {
-        final focus = ref.watch(connectionsFocusProvider);
+        final focus = ref.watch(connectionsViewProvider).focus;
         if (focus != null) throw FocusNotFoundException(focus);
         return _graph;
       },
     );
     await tester.pump(const Duration(milliseconds: 100));
-    expect(c.read(connectionsFocusProvider), isNull);
-    c.read(connectionsFocusProvider.notifier).state = _b('ghost2');
+    expect(c.read(connectionsViewProvider).focus, isNull);
+    await c
+        .read(connectionsViewProvider.notifier)
+        .update((s) => s.centreOn(_b('ghost2')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
-    expect(c.read(connectionsFocusProvider), isNull);
+    expect(c.read(connectionsViewProvider).focus, isNull);
   });
 
   testWidgets('show all raises the budget without asking when it fits', (

@@ -2,23 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/connections/data/repositories/connections_repository.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
-import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
-import 'package:submersion/features/connections/domain/lenses/connection_lens.dart';
+import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
+import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
 import 'package:submersion/features/connections/presentation/canvas/connections_canvas.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_layout_controller.dart';
-import 'package:submersion/features/connections/presentation/providers/connections_lens_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_empty_state.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_filter_action.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_filter_bar.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_legend.dart';
 import 'package:submersion/features/connections/presentation/widgets/hidden_nodes_chip.dart';
-import 'package:submersion/features/connections/presentation/widgets/lens_chip_row.dart';
 import 'package:submersion/features/connections/presentation/widgets/selection_card.dart';
 import 'package:submersion/features/connections/presentation/widgets/selection_panel.dart';
 import 'package:submersion/features/connections/presentation/widgets/year_range_slider.dart';
@@ -26,18 +25,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 class ConnectionsPage extends ConsumerStatefulWidget {
-  const ConnectionsPage({
-    super.key,
-    this.lensId,
-    this.kindAName,
-    this.kindBName,
-    this.focusWire,
-  });
+  const ConnectionsPage({super.key, this.args = const ConnectionsRouteArgs()});
 
-  final String? lensId;
-  final String? kindAName;
-  final String? kindBName;
-  final String? focusWire;
+  /// The `/connections` query parameters, applied once after the first frame.
+  final ConnectionsRouteArgs args;
 
   static const compactBudget = 80;
   static const wideBudget = 160;
@@ -57,14 +48,11 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   NodeRef? _laidOutFocus;
   bool _focusWarned = false;
 
-  /// True until a deep link's lens and focus have been written to their
-  /// providers. Riverpod forbids provider writes inside initState, so the
+  /// True until a deep link's arguments have been written to the view
+  /// provider. Riverpod forbids provider writes inside initState, so the
   /// write waits for the first frame; deferring the first graph watch until
   /// then avoids loading the whole web only to replace it with the ego graph.
-  late bool _deepLinkPending =
-      widget.lensId != null ||
-      widget.focusWire != null ||
-      (widget.kindAName != null && widget.kindBName != null);
+  late bool _deepLinkPending = !widget.args.isEmpty;
 
   @override
   void initState() {
@@ -78,25 +66,12 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
 
   void _applyDeepLink() {
     if (!mounted) return;
-    final lensNotifier = ref.read(connectionsLensProvider.notifier);
-    final lens = ConnectionLens.byId(widget.lensId);
-    final a = ConnectionKind.fromName(widget.kindAName);
-    final b = ConnectionKind.fromName(widget.kindBName);
-    if (lens != null) {
-      lensNotifier.select(LensSelection.lens(lens));
-    } else if (a != null && b != null) {
-      lensNotifier.select(LensSelection.custom(kindA: a, kindB: b));
-    }
-    final focus = NodeRef.parse(widget.focusWire);
-    if (focus == null) return;
-    final active = ref.read(connectionsLensProvider);
-    if (focus.kind == active.kindA || focus.kind == active.kindB) {
-      ref.read(connectionsFocusProvider.notifier).state = focus;
+    ref.read(connectionsViewProvider.notifier).update(widget.args.apply);
+    final focus = NodeRef.parse(widget.args.focus);
+    if (focus != null) {
       ref.read(connectionsSelectionProvider.notifier).state = NodeSelection(
         focus,
       );
-    } else {
-      _warnFocusMissing();
     }
   }
 
@@ -104,7 +79,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     if (!mounted) return;
     // The reset always runs: a focus can vanish more than once in one page
     // lifetime (a deep link, then a buddy deleted while the page is open).
-    ref.read(connectionsFocusProvider.notifier).state = null;
+    ref
+        .read(connectionsViewProvider.notifier)
+        .update((s) => s.copyWith(clearFocus: true));
     if (_focusWarned) return;
     _focusWarned = true;
     // initState has no Scaffold above it yet; the snackbar waits a frame.
@@ -195,9 +172,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         _budgetOverride ??
         (wide ? ConnectionsPage.wideBudget : ConnectionsPage.compactBudget);
     final graphAsync = ref.watch(connectionGraphProvider(budget));
-    final focus = ref.watch(connectionsFocusProvider);
+    final view = ref.watch(connectionsViewProvider);
+    final focus = view.mode == ConnectionsMode.around ? view.focus : null;
     final selection = ref.watch(connectionsSelectionProvider);
-    final lens = ref.watch(connectionsLensProvider);
     final colors = ConnectionKindColors.of(context);
 
     ref.listen(connectionGraphProvider(budget), (_, next) {
@@ -231,7 +208,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         if (graph.isEmpty) {
           final span = ref.watch(connectionsYearSpanProvider).value;
           centre = ConnectionsEmptyState(
-            lens: lens,
+            view: view,
             hasAnyDives: span != null,
             hasActiveFilter: ref
                 .watch(connectionsFilterProvider)
@@ -247,7 +224,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
             onSelect: (s) =>
                 ref.read(connectionsSelectionProvider.notifier).state = s,
             onFocus: (node) {
-              ref.read(connectionsFocusProvider.notifier).state = node;
+              ref
+                  .read(connectionsViewProvider.notifier)
+                  .update((s) => s.centreOn(node));
               ref.read(connectionsSelectionProvider.notifier).state =
                   NodeSelection(node);
             },
@@ -301,7 +280,6 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
                 graph: graph,
                 selection: selection,
                 children: [
-                  const LensChipRow(),
                   ConnectionsFilterBar(graph: graphAsync),
                   const YearRangeSlider(),
                   const SizedBox(height: 12),
@@ -313,7 +291,6 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         }
         return Column(
           children: [
-            const LensChipRow(),
             ConnectionsFilterBar(graph: graphAsync),
             const YearRangeSlider(),
             Expanded(child: centre),
@@ -331,7 +308,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
               icon: const Icon(Icons.zoom_out_map),
               tooltip: l10n.connections_tooltip_showWholeWeb,
               onPressed: () {
-                ref.read(connectionsFocusProvider.notifier).state = null;
+                ref
+                    .read(connectionsViewProvider.notifier)
+                    .update((s) => s.withMode(ConnectionsMode.map));
                 ref.read(connectionsSelectionProvider.notifier).state = null;
               },
             )
