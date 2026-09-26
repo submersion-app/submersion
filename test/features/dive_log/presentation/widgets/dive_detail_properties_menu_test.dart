@@ -54,6 +54,7 @@ Widget _harness(_FakeSettingsNotifier notifier, {bool isGauge = false}) {
   return ProviderScope(
     overrides: [settingsProvider.overrideWith((ref) => notifier)],
     child: MaterialApp(
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
