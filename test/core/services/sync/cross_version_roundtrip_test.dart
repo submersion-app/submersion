@@ -25,7 +25,7 @@
 // item, and its live tank rows meet the parentRefs guard, which
 // sync_deletion_propagation_test.dart covers for this link.
 //
-// The floor moved 224 -> 233 with scoped event tombstones (#1926): this
+// The floor moved 224 -> 235 with scoped event tombstones (#1926): this
 // build replaces a dive's per-event tombstones with one tombstone for the
 // whole set, which an older reader stores as an inert unknown type, leaving
 // the events on that device for good. The direction the floor cannot reach,
@@ -601,7 +601,7 @@ void main() {
     );
   });
 
-  group('pre-v233 peer and scoped event tombstones', () {
+  group('pre-v235 peer and scoped event tombstones', () {
     late FakeCloudStorageProvider cloud;
 
     setUp(() async {
@@ -614,7 +614,7 @@ void main() {
     test('the floor holds readers that cannot apply a scope', () {
       expect(
         AppDatabase.minimumCompatibleSchemaVersion,
-        greaterThanOrEqualTo(233),
+        greaterThanOrEqualTo(235),
       );
     });
 

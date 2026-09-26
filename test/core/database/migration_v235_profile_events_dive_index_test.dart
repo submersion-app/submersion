@@ -17,19 +17,19 @@ Future<bool> _hasIndex(AppDatabase db) async {
 }
 
 void main() {
-  test('v233 is the current schema version and is in the ladder', () {
+  test('v235 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 233);
-    expect(AppDatabase.migrationVersions, contains(233));
+    expect(AppDatabase.currentSchemaVersion, 235);
+    expect(AppDatabase.migrationVersions, contains(235));
     expect(AppDatabase.migrationStepCount(231), 1);
   });
 
-  test('scoped event tombstones raise the sync floor to 233', () {
+  test('scoped event tombstones raise the sync floor to 235', () {
     // An older reader stores a scope tombstone as an inert unknown entity
     // type and keeps the events it names for good (#1926), so readers below
     // this rung are held until they update.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 233);
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 235);
   });
 
   test('a fresh database indexes profile events by dive', () async {
@@ -39,7 +39,7 @@ void main() {
     expect(await _hasIndex(db), isTrue);
   });
 
-  test('a database stranded before v233 gains the index', () async {
+  test('a database stranded before v235 gains the index', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('''

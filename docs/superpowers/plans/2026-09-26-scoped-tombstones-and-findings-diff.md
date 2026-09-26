@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Schema rung: **v233** (main is at 231; open PRs #2411, #2407 and #2331 all claim 232). Re-scan open PRs for `currentSchemaVersion` right before pushing and renumber upward if 233 is taken.
+- Schema rung: **v233**, shipped as **v235** after #2438 claimed 233 and #2443 claimed 234 (main is at 231; open PRs #2411, #2407 and #2331 all claim 232). Re-scan open PRs for `currentSchemaVersion` right before pushing and renumber upward if 233 is taken.
 - `minimumCompatibleSchemaVersion`: **224 -> 233**.
 - Scope entity type string: `diveProfileEventsScope`. recordId `<diveId>` or `<diveId>|<computerId>`.
 - Safety finding id namespace (never change once shipped): `kSafetyFindingNamespace = '4d0c8a52-6b1e-4f3a-9a27-c5e1d7b3f906'`.

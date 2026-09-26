@@ -184,11 +184,11 @@ keyed by dive id.
 
 ### Compat floor and schema
 
-- New rung **v231**: `CREATE INDEX IF NOT EXISTS idx_dive_profile_events_dive_id
+- New rung **v235** (renumbered from v231 as parallel branches claimed 231 to 234): `CREATE INDEX IF NOT EXISTS idx_dive_profile_events_dive_id
   ON dive_profile_events (dive_id)`, with a `beforeOpen` backstop. The scoped
   delete and merge lookups select events by dive; the table has no index on it
   today.
-- `minimumCompatibleSchemaVersion` rises **224 to 231**, with a history entry:
+- `minimumCompatibleSchemaVersion` rises **224 to 235**, with a history entry:
   this build publishes scope tombstones that an older reader stores as an inert
   unknown type, leaving the covered events on that device for good.
 - An older reader that somehow receives one anyway does no harm: an unknown
