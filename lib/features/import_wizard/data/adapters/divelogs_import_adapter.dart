@@ -21,6 +21,11 @@ final divelogsSignedInProvider = StateProvider<bool>((ref) => false);
 /// Signals that the fetch step installed a payload.
 final divelogsFetchedProvider = StateProvider<bool>((ref) => false);
 
+/// Bumped every time the signed-in client changes. A fetch that started
+/// under an earlier value belongs to a session that no longer exists, so
+/// its result must not be installed.
+final divelogsSessionGenerationProvider = StateProvider<int>((ref) => 0);
+
 /// Whether the fetch lists photos. Only honoured where the Photos step can
 /// pick a destination folder (desktop).
 final divelogsIncludePhotosProvider = StateProvider<bool>((ref) => true);
@@ -63,6 +68,7 @@ class DivelogsImportAdapter extends UniversalAdapter {
     _client = client;
     _photos = const {};
     widgetRef.read(divelogsFetchedProvider.notifier).state = false;
+    widgetRef.read(divelogsSessionGenerationProvider.notifier).state++;
     widgetRef.read(universalImportNotifierProvider.notifier).reset();
   }
 

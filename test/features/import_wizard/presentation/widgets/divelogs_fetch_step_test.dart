@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart'
@@ -303,6 +304,37 @@ void main() {
         findsOneWidget,
       );
       expect(container.read(divelogsSignedInProvider), isFalse);
+    });
+  });
+
+  testWidgets('a fetch that finishes after the session changed is dropped', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    final api = DivelogsApiClient(
+      getBearerToken: () async => 't',
+      onTokenRejected: () {},
+      httpClient: MockClient((req) async {
+        if (req.url.path == '/api/dives') {
+          await gate.future;
+          return http.Response(jsonEncode([_dive(1)]), 200);
+        }
+        return http.Response('[]', 200);
+      }),
+    );
+    await withPlatform(TargetPlatform.macOS, () async {
+      await pumpStep(tester, api);
+      await tester.tap(find.text('Fetch Logbook'));
+      await tester.pump();
+
+      // The user signs out or switches accounts while /dives is in flight.
+      container.read(divelogsSessionGenerationProvider.notifier).state++;
+      gate.complete();
+      await settle(tester);
+
+      expect(container.read(universalImportNotifierProvider).payload, isNull);
+      expect(container.read(divelogsFetchedProvider), isFalse);
+      expect(listed, isEmpty);
     });
   });
 }

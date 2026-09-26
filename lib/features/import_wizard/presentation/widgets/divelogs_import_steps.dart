@@ -317,6 +317,9 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
     // not the flag, not the payload, selections or photo decisions.
     ref.read(divelogsFetchedProvider.notifier).state = false;
     ref.read(universalImportNotifierProvider.notifier).reset();
+    final generation = ref.read(divelogsSessionGenerationProvider);
+    bool sessionChanged() =>
+        !mounted || ref.read(divelogsSessionGenerationProvider) != generation;
     setState(() {
       _phase = _FetchPhase.fetching;
       _photoProgress = null;
@@ -328,7 +331,11 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
           if (mounted) setState(() => _photoProgress = (current, total));
         },
       );
-      if (!mounted) return;
+      // Signed out or switched accounts while the request was in flight.
+      if (sessionChanged()) {
+        _backToIdle();
+        return;
+      }
       if (result.payload.isEmpty) {
         setState(() => _phase = _FetchPhase.empty);
         return;
@@ -340,7 +347,13 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
             result.payload,
             remotePhotoCount: result.photoCount,
           );
-      if (!mounted) return;
+      if (sessionChanged()) {
+        // The session changed while the payload was being installed; the
+        // change already reset the notifier, so drop what landed after it.
+        ref.read(universalImportNotifierProvider.notifier).reset();
+        _backToIdle();
+        return;
+      }
       setState(() {
         _result = result;
         _phase = _FetchPhase.done;
@@ -359,6 +372,11 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
       if (!mounted) return;
       setState(() => _phase = _FetchPhase.failed);
     }
+  }
+
+  /// Offers a fresh fetch after a result was dropped for a changed session.
+  void _backToIdle() {
+    if (mounted) setState(() => _phase = _FetchPhase.idle);
   }
 
   void _markExpired() {
