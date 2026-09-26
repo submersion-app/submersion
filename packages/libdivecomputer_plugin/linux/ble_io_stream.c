@@ -81,6 +81,8 @@ BleIoStream* ble_io_stream_new(void) {
     stream->characteristic_paths = g_hash_table_new_full(
         g_str_hash, g_str_equal, g_free, g_free);
     stream->suppress_notify_echo = NULL;
+    stream->suppress_echo_deadline = 0;
+    stream->chunks_pushed = 0;
     stream->pin_callback_data = NULL;
     stream->credits = credit_balance_new();
     return stream;
@@ -370,6 +372,7 @@ static void on_properties_changed(GDBusConnection* connection,
         g_mutex_lock(&stream->read_mutex);
         GByteArray* echo = stream->suppress_notify_echo;
         if (echo != NULL && echo->len == n_bytes &&
+            g_get_monotonic_time() < stream->suppress_echo_deadline &&
             memcmp(echo->data, bytes, n_bytes) == 0) {
             // The PropertiesChanged BlueZ emits for our own ReadValue on the
             // notify characteristic, not a packet (issue #422).
@@ -382,6 +385,7 @@ static void on_properties_changed(GDBusConnection* connection,
         GByteArray* chunk = g_byte_array_sized_new((guint)n_bytes);
         g_byte_array_append(chunk, bytes, (guint)n_bytes);
         g_queue_push_tail(stream->read_chunks, chunk);
+        stream->chunks_pushed++;
         g_cond_signal(&stream->read_cond);
         g_mutex_unlock(&stream->read_mutex);
 
@@ -892,6 +896,9 @@ static int ble_ioctl(void* userdata, unsigned int request,
             GVariantBuilder opts;
             g_variant_builder_init(&opts, G_VARIANT_TYPE("a{sv}"));
             g_autoptr(GError) error = NULL;
+            g_mutex_lock(&stream->read_mutex);
+            const guint64 pushed_before = stream->chunks_pushed;
+            g_mutex_unlock(&stream->read_mutex);
             GVariant* reply = g_dbus_connection_call_sync(
                 stream->connection, "org.bluez", path,
                 "org.bluez.GattCharacteristic1", "ReadValue",
@@ -912,12 +919,17 @@ static int ble_ioctl(void* userdata, unsigned int request,
             if (status == LIBDC_STATUS_SUCCESS &&
                 g_strcmp0(path, stream->notify_path) == 0) {
                 // BlueZ may deliver the echo before or after the method
-                // reply, on another thread. If it is already queued, drop
-                // it; otherwise arm a one-shot filter for when it arrives.
+                // reply, on another thread. Only a chunk queued while this
+                // read was in flight can be its echo: libdc is blocked in
+                // this ioctl, so nothing was consumed meanwhile and those
+                // chunks are the queue's tail. Otherwise arm a one-shot
+                // filter that expires one second from now.
                 g_mutex_lock(&stream->read_mutex);
                 gboolean dropped = FALSE;
+                guint64 arrived = stream->chunks_pushed - pushed_before;
                 for (GList* link = g_queue_peek_tail_link(stream->read_chunks);
-                     link != NULL; link = link->prev) {
+                     link != NULL && arrived > 0;
+                     link = link->prev, arrived--) {
                     GByteArray* chunk = (GByteArray*)link->data;
                     if (chunk->len == n_bytes &&
                         memcmp(chunk->data, bytes, n_bytes) == 0) {
@@ -932,6 +944,8 @@ static int ble_ioctl(void* userdata, unsigned int request,
                     stream->suppress_notify_echo = NULL;
                 }
                 if (!dropped) {
+                    stream->suppress_echo_deadline =
+                        g_get_monotonic_time() + G_TIME_SPAN_SECOND;
                     stream->suppress_notify_echo =
                         g_byte_array_sized_new((guint)n_bytes);
                     g_byte_array_append(stream->suppress_notify_echo, bytes,
