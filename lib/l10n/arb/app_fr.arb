@@ -582,6 +582,7 @@
   "accessibility_shortcut_newDive": "Nouvelle plongée",
   "accessibility_shortcut_openSettings": "Ouvrir les réglages",
   "accessibility_shortcut_searchDives": "Rechercher des plongées",
+  "accessibility_shortcut_exploreWithSentence": "Explorer avec une phrase",
   "accessibility_sort_selectedLabel": "Trier par {displayName}, actuellement sélectionné",
   "accessibility_sort_unselectedLabel": "Trier par {displayName}",
   "backup_appBar_title": "Sauvegarde et Restauration",

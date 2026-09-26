@@ -1087,6 +1087,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'Chiudi / Annulla';
 
   @override
+  String get accessibility_shortcut_exploreWithSentence =>
+      'Esplora con una frase';
+
+  @override
   String get accessibility_shortcut_goBack => 'Torna indietro';
 
   @override

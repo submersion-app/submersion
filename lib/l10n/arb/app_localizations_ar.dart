@@ -1077,6 +1077,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'إغلاق / إلغاء';
 
   @override
+  String get accessibility_shortcut_exploreWithSentence => 'استكشف بجملة';
+
+  @override
   String get accessibility_shortcut_goBack => 'رجوع';
 
   @override

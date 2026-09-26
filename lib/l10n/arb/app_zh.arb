@@ -676,6 +676,7 @@
   "accessibility_shortcut_newDive": "新建潜水",
   "accessibility_shortcut_openSettings": "打开设置",
   "accessibility_shortcut_searchDives": "搜索潜水",
+  "accessibility_shortcut_exploreWithSentence": "用一句话探索",
   "accessibility_sort_selectedLabel": "按{displayName}排序，当前已选中",
   "accessibility_sort_unselectedLabel": "按{displayName}排序",
   "backup_appBar_title": "备份与恢复",

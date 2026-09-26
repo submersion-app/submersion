@@ -1018,6 +1018,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => '关闭 / 取消';
 
   @override
+  String get accessibility_shortcut_exploreWithSentence => '用一句话探索';
+
+  @override
   String get accessibility_shortcut_goBack => '返回';
 
   @override

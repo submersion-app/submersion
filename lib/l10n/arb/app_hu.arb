@@ -582,6 +582,7 @@
   "accessibility_shortcut_newDive": "Új merülés",
   "accessibility_shortcut_openSettings": "Beállítások megnyitása",
   "accessibility_shortcut_searchDives": "Merülések keresése",
+  "accessibility_shortcut_exploreWithSentence": "Felfedezés egy mondattal",
   "accessibility_sort_selectedLabel": "Rendezés: {displayName}, jelenleg kiválasztva",
   "accessibility_sort_unselectedLabel": "Rendezés: {displayName}",
   "backup_appBar_title": "Biztonsági Mentés és Visszaállítás",

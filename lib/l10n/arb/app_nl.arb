@@ -582,6 +582,7 @@
   "accessibility_shortcut_newDive": "Nieuwe duik",
   "accessibility_shortcut_openSettings": "Instellingen openen",
   "accessibility_shortcut_searchDives": "Duiken zoeken",
+  "accessibility_shortcut_exploreWithSentence": "Verkennen met een zin",
   "accessibility_sort_selectedLabel": "Sorteren op {displayName}, momenteel geselecteerd",
   "accessibility_sort_unselectedLabel": "Sorteren op {displayName}",
   "backup_appBar_title": "Back-up en Herstel",

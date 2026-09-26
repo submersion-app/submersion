@@ -594,6 +594,7 @@
   "accessibility_shortcut_newDive": "Neuer Tauchgang",
   "accessibility_shortcut_openSettings": "Einstellungen öffnen",
   "accessibility_shortcut_searchDives": "Tauchgänge suchen",
+  "accessibility_shortcut_exploreWithSentence": "Mit einem Satz erkunden",
   "accessibility_sort_selectedLabel": "Sortieren nach {displayName}, derzeit ausgewählt",
   "accessibility_sort_unselectedLabel": "Sortieren nach {displayName}",
   "backup_appBar_title": "Sicherung und Wiederherstellung",

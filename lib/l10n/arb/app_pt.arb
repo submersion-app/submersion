@@ -582,6 +582,7 @@
   "accessibility_shortcut_newDive": "Novo mergulho",
   "accessibility_shortcut_openSettings": "Abrir configurações",
   "accessibility_shortcut_searchDives": "Buscar mergulhos",
+  "accessibility_shortcut_exploreWithSentence": "Explorar com uma frase",
   "accessibility_sort_selectedLabel": "Ordenar por {displayName}, selecionado atualmente",
   "accessibility_sort_unselectedLabel": "Ordenar por {displayName}",
   "backup_appBar_title": "Backup e Restauração",

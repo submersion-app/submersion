@@ -582,6 +582,7 @@
   "accessibility_shortcut_newDive": "غوصة جديدة",
   "accessibility_shortcut_openSettings": "فتح الإعدادات",
   "accessibility_shortcut_searchDives": "البحث في الغوصات",
+  "accessibility_shortcut_exploreWithSentence": "استكشف بجملة",
   "accessibility_sort_selectedLabel": "ترتيب حسب {displayName}، محدد حالياً",
   "accessibility_sort_unselectedLabel": "ترتيب حسب {displayName}",
   "backup_appBar_title": "النسخ الاحتياطي والاستعادة",

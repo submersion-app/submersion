@@ -1067,6 +1067,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'סגירה / ביטול';
 
   @override
+  String get accessibility_shortcut_exploreWithSentence => 'חקירה באמצעות משפט';
+
+  @override
   String get accessibility_shortcut_goBack => 'חזרה אחורה';
 
   @override

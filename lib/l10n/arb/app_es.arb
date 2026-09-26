@@ -582,6 +582,7 @@
   "accessibility_shortcut_newDive": "Nueva inmersión",
   "accessibility_shortcut_openSettings": "Abrir configuración",
   "accessibility_shortcut_searchDives": "Buscar inmersiones",
+  "accessibility_shortcut_exploreWithSentence": "Explorar con una frase",
   "accessibility_sort_selectedLabel": "Ordenar por {displayName}, actualmente seleccionado",
   "accessibility_sort_unselectedLabel": "Ordenar por {displayName}",
   "backup_appBar_title": "Copia de Seguridad y Restaurar",

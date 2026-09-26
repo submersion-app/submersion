@@ -582,6 +582,7 @@
   "accessibility_shortcut_newDive": "Nuova immersione",
   "accessibility_shortcut_openSettings": "Apri impostazioni",
   "accessibility_shortcut_searchDives": "Cerca immersioni",
+  "accessibility_shortcut_exploreWithSentence": "Esplora con una frase",
   "accessibility_sort_selectedLabel": "Ordina per {displayName}, attualmente selezionato",
   "accessibility_sort_unselectedLabel": "Ordina per {displayName}",
   "backup_appBar_title": "Backup e Ripristino",

@@ -582,6 +582,7 @@
   "accessibility_shortcut_newDive": "צלילה חדשה",
   "accessibility_shortcut_openSettings": "פתיחת הגדרות",
   "accessibility_shortcut_searchDives": "חיפוש צלילות",
+  "accessibility_shortcut_exploreWithSentence": "חקירה באמצעות משפט",
   "accessibility_sort_selectedLabel": "מיון לפי {displayName}, נבחר כעת",
   "accessibility_sort_unselectedLabel": "מיון לפי {displayName}",
   "backup_appBar_title": "גיבוי ושחזור",

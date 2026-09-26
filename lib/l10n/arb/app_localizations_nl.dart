@@ -1082,6 +1082,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'Sluiten / Annuleren';
 
   @override
+  String get accessibility_shortcut_exploreWithSentence =>
+      'Verkennen met een zin';
+
+  @override
   String get accessibility_shortcut_goBack => 'Ga terug';
 
   @override

@@ -1083,6 +1083,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'Bezárás / Mégse';
 
   @override
+  String get accessibility_shortcut_exploreWithSentence =>
+      'Felfedezés egy mondattal';
+
+  @override
   String get accessibility_shortcut_goBack => 'Vissza';
 
   @override
