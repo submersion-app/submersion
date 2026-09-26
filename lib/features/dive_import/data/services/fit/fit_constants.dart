@@ -22,6 +22,12 @@ class FitConstants {
   static const int tsEndPressure = 2;
   static const int tsVolumeUsed = 3;
 
+  // session (msg 18) end_position_lat/long, in semicircles. Newer than
+  // fit_tool's profile, so read off the raw bytes by FitRawFieldReader.
+  static const int sessionMsg = 18;
+  static const int sessionEndPositionLat = 38;
+  static const int sessionEndPositionLong = 39;
+
   // event (msg 21) field numbers. Read raw because fit_tool's typed
   // EventMessage getters throw on event values missing from its outdated
   // Event enum (gas_switched among them).
