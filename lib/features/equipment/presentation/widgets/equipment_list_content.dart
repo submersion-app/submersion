@@ -51,6 +51,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_lis
 import 'package:submersion/features/equipment/presentation/widgets/bulk_equipment_tag_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/shared/widgets/max_width_fraction.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
@@ -1324,10 +1325,16 @@ class EquipmentListTile extends ConsumerWidget {
                 ],
               )
             : null,
-        trailing: _buildTrailing(
-          context,
-          source == BadgeSource.finding ? null : worstClock,
-          source == BadgeSource.finding ? finding : null,
+        // The tile offers trailing the whole row, so a rollup label naming
+        // a long part took it all and left the title one letter per line
+        // (issue #1981).
+        trailing: MaxWidthFraction(
+          fraction: kListTileTrailingMaxWidthFraction,
+          child: _buildTrailing(
+            context,
+            source == BadgeSource.finding ? null : worstClock,
+            source == BadgeSource.finding ? finding : null,
+          ),
         ),
       ),
     );

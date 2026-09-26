@@ -98,6 +98,45 @@ void main() {
     expect(find.textContaining('overdue'), findsOneWidget);
   });
 
+  testWidgets('a long part name in the status leaves the title its room', (
+    tester,
+  ) async {
+    // A rollup badge names the due part, which can be long (issue #1981).
+    const partName =
+        '2nd Stage / Necklace / DGX Gears Xtra / XTRA Doubles Reg Package';
+    final base = clock();
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(375, 900);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      build(
+        map: {
+          'reg': (
+            ownerId: 'second-stage',
+            ownerName: partName,
+            status: base.status,
+          ),
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final tile = find.ancestor(
+      of: find.text('Cold water reg'),
+      matching: find.byType(ListTile),
+    );
+    final tileWidth = tester.getSize(tile).width;
+    final statusWidth = tester
+        .getSize(find.textContaining('General service overdue'))
+        .width;
+    expect(tester.takeException(), isNull);
+    expect(statusWidth, lessThanOrEqualTo(tileWidth / 3));
+    expect(
+      tester.getSize(find.text('Cold water reg')).width,
+      greaterThan(statusWidth),
+    );
+  });
+
   testWidgets('an ok clock carries no status', (tester) async {
     await tester.pumpWidget(
       build(map: {'reg': clock(severity: ServiceClockSeverity.ok)}),
