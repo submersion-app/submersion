@@ -311,6 +311,7 @@ class SyncData {
   final List<Map<String, dynamic>> weightPresetEntries;
   final List<Map<String, dynamic>> diveComputers;
   final List<Map<String, dynamic>> transmitters;
+  final List<Map<String, dynamic>> cylinderFills;
 
   /// Inbound only since v182: older peers still send row-per-sample arrays;
   /// they apply into the legacy tables and are packed into series by
@@ -409,6 +410,7 @@ class SyncData {
     this.weightPresetEntries = const [],
     this.diveComputers = const [],
     this.transmitters = const [],
+    this.cylinderFills = const [],
     this.tankPressureProfiles = const [],
     this.tideRecords = const [],
     this.settings = const [],
@@ -502,6 +504,7 @@ class SyncData {
     'weightPresetEntries': weightPresetEntries,
     'diveComputers': diveComputers,
     'transmitters': transmitters,
+    'cylinderFills': cylinderFills,
     'tideRecords': tideRecords,
     'settings': settings,
     'species': species,
@@ -598,6 +601,7 @@ class SyncData {
       weightPresetEntries: _parseList(json['weightPresetEntries']),
       diveComputers: _parseList(json['diveComputers']),
       transmitters: _parseList(json['transmitters']),
+      cylinderFills: _parseList(json['cylinderFills']),
       tankPressureProfiles: _parseList(json['tankPressureProfiles']),
       tideRecords: _parseList(json['tideRecords']),
       settings: _parseList(json['settings']),
@@ -1020,6 +1024,7 @@ class SyncDataSerializer {
     ),
     (key: 'diveComputers', table: _db.diveComputers, blob: false, full: null),
     (key: 'transmitters', table: _db.transmitters, blob: false, full: null),
+    (key: 'cylinderFills', table: _db.cylinderFills, blob: false, full: null),
     (key: 'tideRecords', table: _db.tideRecords, blob: false, full: null),
     (
       key: 'settings',
@@ -2049,6 +2054,10 @@ class SyncDataSerializer {
         'transmitters',
         () => _exportTransmitters(hlcSince),
       ),
+      cylinderFills: await _safeExport(
+        'cylinderFills',
+        () => _exportCylinderFills(hlcSince),
+      ),
       tideRecords: await _safeExport(
         'tideRecords',
         () async => _withPendingChildren(
@@ -2686,6 +2695,11 @@ class SyncDataSerializer {
           _db.transmitters,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'cylinderFills':
+        final row = await (_db.select(
+          _db.cylinderFills,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'tideRecords':
         final row = await (_db.select(
           _db.tideRecords,
@@ -3075,6 +3089,11 @@ class SyncDataSerializer {
       case 'transmitters':
         final rows = await (_db.select(
           _db.transmitters,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'cylinderFills':
+        final rows = await (_db.select(
+          _db.cylinderFills,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'tags':
@@ -3601,7 +3620,7 @@ class SyncDataSerializer {
         );
   }
 
-  /// Applies one incoming `equipment_shares` row (v228, issue #2046). The
+  /// Applies one incoming `equipment_shares` row (v229, issue #2046). The
   /// (item, diver) pair is unique, so a peer's copy of a pair this device
   /// holds under another id is reconciled to the lower id and then skipped
   /// with DO NOTHING, as [_applySiteSiteTypeRecord] does.
@@ -4066,6 +4085,13 @@ class SyncDataSerializer {
             .into(_db.transmitters)
             .insertOnConflictUpdate(
               TransmitterRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'cylinderFills':
+        await _db
+            .into(_db.cylinderFills)
+            .insertOnConflictUpdate(
+              CylinderFillRow.fromJson(data).toCompanion(false),
             );
         return;
       case 'tankPressureProfiles':
@@ -5159,6 +5185,16 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'cylinderFills':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.cylinderFills,
+            records
+                .map((r) => CylinderFillRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
       case 'tankPressureProfiles':
         // See upsertRecord's 'tankPressureProfiles' case: stages into a TEMP
         // table and packs after the merge.
@@ -5591,6 +5627,8 @@ class SyncDataSerializer {
         return plain(_db.diveComputers, _db.diveComputers.id);
       case 'transmitters':
         return plain(_db.transmitters, _db.transmitters.id);
+      case 'cylinderFills':
+        return plain(_db.cylinderFills, _db.cylinderFills.id);
       case 'species':
         return plain(_db.species, _db.species.id);
       case 'tags':
@@ -5972,6 +6010,8 @@ class SyncDataSerializer {
         return _db.diveComputers;
       case 'transmitters':
         return _db.transmitters;
+      case 'cylinderFills':
+        return _db.cylinderFills;
       case 'species':
         return _db.species;
       case 'tags':
@@ -6417,6 +6457,11 @@ class SyncDataSerializer {
       case 'transmitters':
         await (_db.delete(
           _db.transmitters,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'cylinderFills':
+        await (_db.delete(
+          _db.cylinderFills,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'tideRecords':
@@ -7400,6 +7445,17 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
+  Future<List<Map<String, dynamic>>> _exportCylinderFills(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.cylinderFills);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
   /// Removes fields that describe this host's connection to a device rather
   /// than the device's synced identity. A remote BLE identifier must never
   /// overwrite the identifier stored locally on another host.
@@ -7629,7 +7685,7 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  /// Equipment shares (v228, issue #2046), gated on the parent item's clock
+  /// Equipment shares (v229, issue #2046), gated on the parent item's clock
   /// like [_exportEquipmentTags].
   Future<List<Map<String, dynamic>>> _exportEquipmentShares(
     String? hlcSince,
@@ -7648,7 +7704,7 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  /// Equipment share and ownership events (v228, issue #2046), gated on the
+  /// Equipment share and ownership events (v229, issue #2046), gated on the
   /// parent item's clock like [_exportEquipmentTags].
   Future<List<Map<String, dynamic>>> _exportEquipmentOwnershipEvents(
     String? hlcSince,

@@ -2720,7 +2720,7 @@ class EquipmentTags extends Table {
   TextColumn get hlc => text().nullable()();
 }
 
-/// Diver profiles an equipment item is shared with (v228, issue #2046). The
+/// Diver profiles an equipment item is shared with (v229, issue #2046). The
 /// owner stays `equipment.diver_id`; a row here makes the item visible to
 /// [diverId] too. Surrogate uuid primary key like [EquipmentTags]; the
 /// (equipment_id, diver_id) unique index lives in
@@ -2743,7 +2743,7 @@ class EquipmentShares extends Table {
   TextColumn get hlc => text().nullable()();
 }
 
-/// Append-only log of an item's share and ownership changes (v228, issue
+/// Append-only log of an item's share and ownership changes (v229, issue
 /// #2046): `shared`, `unshared`, and `transferred` from the transfer work.
 /// Diver references are SET NULL, so deleting a profile keeps the event,
 /// read as "a deleted profile". No row is ever updated, except by a diver
@@ -3268,6 +3268,48 @@ class Transmitters extends Table {
 
   /// Hybrid Logical Clock for cross-device conflict resolution
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Cylinder fill history (issue #2334, v228). One row per fill of one
+/// physical cylinder, keyed by the cylinder's passport id (an equipment
+/// attribute, not a foreign key) so the history survives a deleted and
+/// re-created item and can belong to a cylinder the diver does not own.
+/// [equipmentId] is a convenience link resolved from the passport id at write
+/// time and re-resolved by "Link an existing tag". Synced entity with its own
+/// hlc, registered like [Transmitters].
+@DataClassName('CylinderFillRow')
+class CylinderFills extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get passportId => text()();
+  TextColumn get equipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  IntColumn get filledAt => integer()();
+  RealColumn get o2Percent => real()();
+  RealColumn get hePercent => real().withDefault(const Constant(0.0))();
+  RealColumn get pressureBar => real().nullable()();
+  RealColumn get temperatureC => real().nullable()();
+  TextColumn get analyzer => text().nullable()();
+  TextColumn get stationName => text().nullable()();
+  // base64url Ed25519 public key from a signed record (PR 3); null for a
+  // manual fill.
+  TextColumn get stationKey => text().nullable()();
+  // The JWS token verbatim (PR 3); the truth for every analysis column.
+  TextColumn get signedRecord => text().nullable()();
+  // FillSource.name: manual, qr, nfc, file, link, issued.
+  TextColumn get source => text().withDefault(const Constant('manual'))();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
   TextColumn get hlc => text().nullable()();
 
   @override
@@ -4286,7 +4328,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SiteTags,
     // Equipment tags (v219, issue #1942)
     EquipmentTags,
-    // Equipment sharing and its event log (v228, issue #2046)
+    // Equipment sharing and its event log (v229, issue #2046)
     EquipmentShares,
     EquipmentOwnershipEvents,
     // Training courses (v1.5)
@@ -4342,6 +4384,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     CylinderConfigItems,
     // Rental gear memory (v221, issue #2075)
     DiveCenterGearNotes,
+    // Cylinder fill history (v228, issue #2334)
+    CylinderFills,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -4351,7 +4395,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 228;
+  static const int currentSchemaVersion = 229;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -5012,11 +5056,16 @@ class AppDatabase extends _$AppDatabase {
     // shows every built-in preset. Renumbered from 225, which is held by PR
     // #1978, after v226 landed while this was in review.
     227,
-    // v228: equipment sharing (issue #2046). Two tables, equipment_shares
+    // v228: cylinder_fills, the fill history keyed by passport id (issue
+    // #2334). Table-only rung, no backfill, floor stays at 224. Renumbered
+    // from 227, which hidden tank presets (#2305) took while this was in
+    // review.
+    228,
+    // v229: equipment sharing (issue #2046). Two tables, equipment_shares
     // with its (equipment_id, diver_id) unique index and
     // equipment_ownership_events, plus two lookup indexes. Additive only, so
     // the compatibility floor stays.
-    228,
+    229,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -8591,9 +8640,32 @@ class AppDatabase extends _$AppDatabase {
     await assertEquipmentTagUniqueness(this);
   }
 
-  /// Idempotent creation of the v228 equipment sharing schema (issue #2046):
+  /// Idempotent creation of the v228 `cylinder_fills` table and its two
+  /// lookup indexes (issue #2334). Called from the v228 rung and the
+  /// beforeOpen backstop. Skipped on a partial migration-test fixture that
+  /// lacks either parent table.
+  Future<void> _assertCylinderFillsSchema() async {
+    for (final parent in const ['divers', 'equipment']) {
+      final rows = await customSelect(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+        variables: [Variable<String>(parent)],
+      ).get();
+      if (rows.isEmpty) return;
+    }
+    await createMigrator().createTable(cylinderFills);
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_passport '
+      'ON cylinder_fills(passport_id, filled_at)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_equipment '
+      'ON cylinder_fills(equipment_id)',
+    );
+  }
+
+  /// Idempotent creation of the v229 equipment sharing schema (issue #2046):
   /// `equipment_shares` with its (equipment, diver) unique index, and
-  /// `equipment_ownership_events`. Called from the v228 rung and the
+  /// `equipment_ownership_events`. Called from the v229 rung and the
   /// beforeOpen backstop.
   ///
   /// Skipped on a partial migration-test fixture that lacks either parent
@@ -8976,7 +9048,7 @@ class AppDatabase extends _$AppDatabase {
         // same reason: createAll() never builds raw-SQL indexes.
         await assertEquipmentTagUniqueness(this);
 
-        // Equipment share pair unique index (v228, issue #2046), for the
+        // Equipment share pair unique index (v229, issue #2046), for the
         // same reason.
         await assertEquipmentShareUniqueness(this);
       },
@@ -12663,12 +12735,18 @@ class AppDatabase extends _$AppDatabase {
           await _assertHiddenTankPresetIdsColumn();
         }
         if (from < 227) await reportProgress();
-        // v228: equipment sharing (issue #2046). Table-only rung, no
-        // backfill: no existing row changes.
+        // v228: cylinder fill history (issue #2334). Table-only rung, no
+        // backfill.
         if (from < 228) {
-          await _assertEquipmentSharingSchema();
+          await _assertCylinderFillsSchema();
         }
         if (from < 228) await reportProgress();
+        // v229: equipment sharing (issue #2046). Table-only rung, no
+        // backfill: no existing row changes.
+        if (from < 229) {
+          await _assertEquipmentSharingSchema();
+        }
+        if (from < 229) await reportProgress();
       },
       beforeOpen: (details) async {
         // v227 backstop: the hidden built-in tank presets.
@@ -12803,7 +12881,7 @@ class AppDatabase extends _$AppDatabase {
         // version-collision self-heal; createTable is idempotent).
         await _assertDiveCenterGearNotesSchema();
 
-        // v228 backstop: the equipment sharing tables and the share pair
+        // v229 backstop: the equipment sharing tables and the share pair
         // index (parallel-branch version-collision self-heal; all
         // idempotent).
         await _assertEquipmentSharingSchema();
@@ -13174,6 +13252,9 @@ class AppDatabase extends _$AppDatabase {
         // version-collision self-heal). Column only, so it cannot touch
         // diver data.
         await _assertMediaCloudAssetIdColumn();
+        // v228 backstop: the cylinder_fills table (parallel-branch
+        // version-collision self-heal; createTable is idempotent).
+        await _assertCylinderFillsSchema();
 
         // v194 backstop: re-assert dive_tanks.transmitter_serial. Every tank
         // read selects the whole row, so a database that arrives by restore

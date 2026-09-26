@@ -94,7 +94,7 @@ The rest of what a dive leaves behind.
 
 <img align="left" width="50%" src="docs/assets/screenshots/readme/07-statistics.jpg" alt="Dive statistics overview in dark mode with totals, personal records and most visited sites">
 
-### Statistics &amp; Records
+### Insights &amp; Records
 
 See your diving life at a glance.
 
@@ -555,7 +555,7 @@ lib/
 │   ├── dive_sites/       # Site management & maps
 │   ├── dive_computer/    # Device connectivity
 │   ├── equipment/        # Gear tracking
-│   ├── statistics/       # Analytics & records
+│   ├── insights/         # Analytics & records
 │   └── ...               # Additional features
 └── shared/               # Reusable widgets
 ```

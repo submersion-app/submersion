@@ -187,20 +187,28 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_equipment_attributes_key_num '
         'ON equipment_attributes(attr_key, value_num)',
   ),
+  // Passport id lookup (issue #2334): a scanned tag resolves to the one
+  // cylinder holding that value under attr_key = 'passport_id'.
+  (
+    name: 'idx_equipment_attributes_key_text',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_equipment_attributes_key_text '
+        'ON equipment_attributes(attr_key, value_text)',
+  ),
   (
     name: 'idx_equipment_components_parent',
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_equipment_components_parent '
         'ON equipment_components(parent_equipment_id)',
   ),
-  // Visibility subquery "items shared with this diver" (v228, issue #2046).
+  // Visibility subquery "items shared with this diver" (v229, issue #2046).
   (
     name: 'idx_equipment_shares_diver',
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_equipment_shares_diver '
         'ON equipment_shares(diver_id)',
   ),
-  // An item's history, oldest first (v228, issue #2046).
+  // An item's history, oldest first (v229, issue #2046).
   (
     name: 'idx_equipment_ownership_events_equipment',
     ddl:
@@ -409,6 +417,20 @@ const List<PerformanceIndex> kPerformanceIndexes = [
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_dive_plan_equipment_plan_id '
         'ON dive_plan_equipment(plan_id)',
+  ),
+  // Cylinder fill history (v228, issue #2334): newest fill per passport, and
+  // the fills of one gear row.
+  (
+    name: 'idx_cylinder_fills_passport',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_passport '
+        'ON cylinder_fills(passport_id, filled_at)',
+  ),
+  (
+    name: 'idx_cylinder_fills_equipment',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_equipment '
+        'ON cylinder_fills(equipment_id)',
   ),
 ];
 

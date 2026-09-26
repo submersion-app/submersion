@@ -449,7 +449,7 @@ jobs:
             test/features/dive_log/domain/models/dive_filter_state_test.dart
             test/features/dive_log/data/repositories/dive_records_filter_test.dart
             test/features/dive_log/data/repositories/dive_repository_weekday_filter_test.dart
-            test/features/statistics/data/dive_filter_sql_test.dart
+            test/features/insights/data/dive_filter_sql_test.dart
             test/features/trips/domain/entities/trip_test.dart
             test/features/trips/domain/entities/itinerary_day_test.dart
             test/features/trips/presentation/pages/trip_edit_page_test.dart
@@ -554,6 +554,20 @@ jobs:
           python3 -m coverage report -m --include="$guards"
           python3 -m coverage xml --include="$guards" \
             -o coverage/scripts.xml
+
+      - name: Run Statistics to Insights rename script tests and checks
+        # A one-shot migration tool rather than a guard: its phases drive git
+        # and flutter, which the unit tests do not exercise, so it stays out
+        # of the guards coverage set above. The code and keys checks stop a
+        # branch that merges after the rename from bringing back an old route,
+        # route name or l10n key, which would still compile. The values check
+        # is deliberately not run: translators must stay free to improve the
+        # section's wording. Remove this step with the script once the
+        # branches open at rename time have landed.
+        run: |
+          python3 scripts/rename_statistics_to_insights_test.py
+          python3 scripts/rename_statistics_to_insights.py code --check
+          python3 scripts/rename_statistics_to_insights.py keys --check
 
       - name: Run chamber directory pipeline tests
         # The harvester generates a safety-critical dataset: its validation

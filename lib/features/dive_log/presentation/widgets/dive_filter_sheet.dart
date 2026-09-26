@@ -242,7 +242,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                         alignment: AlignmentDirectional.centerStart,
                         child: TextButton.icon(
                           onPressed: () {
-                            // push, not go: this sheet also opens from Statistics, and
+                            // push, not go: this sheet also opens from Insights, and
                             // `go` into the `/dives` child route would rebuild the
                             // stack as [dive list, search] and discard the section --
                             // and its filters -- the user opened the sheet from. It
