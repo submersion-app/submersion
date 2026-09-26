@@ -3162,7 +3162,7 @@
   "divePlanner_warning_cnsCritical": "中枢神经系统%超过 100%",
   "divePlanner_warning_cnsWarning": "中枢神经系统%超过 {threshold}%",
   "divePlanner_warning_endHigh": "等效麻醉深度过高",
-  "divePlanner_warning_endHighWithDepth": "等效麻醉深度 {depth} 超过安全极限",
+  "divePlanner_warning_endExceedsLimit": "等效麻醉深度 {depth} 超过极限 {limit}",
   "divePlanner_warning_gasLow": "气瓶低于 {threshold} 储备",
   "divePlanner_warning_gasOut": "气瓶将耗尽",
   "divePlanner_warning_minGasViolation": "未保持最低气体储备",

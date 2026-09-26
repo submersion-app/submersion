@@ -8512,12 +8512,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh => '等效麻醉深度过高';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return '等效麻醉深度 $depth 超过极限 $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return '等效麻醉深度 $depth 超过安全极限';
-  }
+  String get divePlanner_warning_endHigh => '等效麻醉深度过高';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {

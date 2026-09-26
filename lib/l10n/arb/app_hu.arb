@@ -2926,7 +2926,7 @@
   "divePlanner_warning_cnsCritical": "CNS% meghaladja a 100%-ot",
   "divePlanner_warning_cnsWarning": "CNS% meghaladja a {threshold}%-ot",
   "divePlanner_warning_endHigh": "Ekvivalens narkotikus mélység túl magas",
-  "divePlanner_warning_endHighWithDepth": "END {depth} meghaladja a biztonságos limitet",
+  "divePlanner_warning_endExceedsLimit": "END {depth} meghaladja a limitet ({limit})",
   "divePlanner_warning_gasLow": "Palack {threshold} tartalék alatt",
   "divePlanner_warning_gasOut": "Palack ki fog ürülni",
   "divePlanner_warning_minGasViolation": "Minimum gáz tartalék nem tartható fenn",

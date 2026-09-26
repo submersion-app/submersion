@@ -21,7 +21,7 @@ BestMixResult suggestBestMixForPlan(
     BestMixInputs(
       depthMeters: depthMeters,
       ppO2Limit: forDeco ? resolved.ppO2Deco : resolved.ppO2Working,
-      endLimitMeters: resolved.endLimitMeters,
+      endLimitMeters: resolved.bestMixEndMeters,
       o2Narcotic: resolved.o2Narcotic,
     ),
   );

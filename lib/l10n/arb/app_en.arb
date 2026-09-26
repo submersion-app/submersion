@@ -5334,8 +5334,8 @@
   "divePlanner_warning_belowMinReserve": "Below minimum reserve ({reserve})",
   "divePlanner_warning_cnsCritical": "CNS% exceeds 100%",
   "divePlanner_warning_cnsWarning": "CNS% exceeds {threshold}%",
+  "divePlanner_warning_endExceedsLimit": "END of {depth} exceeds the {limit} limit",
   "divePlanner_warning_endHigh": "Equivalent Narcotic Depth too high",
-  "divePlanner_warning_endHighWithDepth": "END of {depth} exceeds safe limit",
   "divePlanner_warning_gasLow": "Tank below {threshold} reserve",
   "divePlanner_warning_gasOut": "Tank will be empty",
   "divePlanner_warning_minGasViolation": "Minimum gas reserve not maintained",
@@ -16080,9 +16080,12 @@
       }
     }
   },
-  "@divePlanner_warning_endHighWithDepth": {
+  "@divePlanner_warning_endExceedsLimit": {
     "placeholders": {
       "depth": {
+        "type": "Object"
+      },
+      "limit": {
         "type": "Object"
       }
     }

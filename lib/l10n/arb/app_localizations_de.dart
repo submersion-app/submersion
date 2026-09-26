@@ -8936,12 +8936,12 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh => 'Äquivalente Narkosetiefe zu hoch';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END von $depth überschreitet das Limit von $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END von $depth überschreitet sicheres Limit';
-  }
+  String get divePlanner_warning_endHigh => 'Äquivalente Narkosetiefe zu hoch';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {

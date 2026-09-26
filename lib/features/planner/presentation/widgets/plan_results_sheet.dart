@@ -39,8 +39,9 @@ String planIssueMessage(
         issue.value?.toStringAsFixed(2) ?? '--',
       );
     case PlanIssueType.endExceeded:
-      return l10n.divePlanner_warning_endHighWithDepth(
+      return l10n.divePlanner_warning_endExceedsLimit(
         units.formatDepth(issue.value ?? 0, decimals: 0),
+        units.formatDepth(issue.threshold ?? 0, decimals: 0),
       );
     case PlanIssueType.gasDensityHigh:
       return l10n.plannerCanvas_issue_gasDensityHigh(

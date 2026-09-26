@@ -8728,12 +8728,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh => 'עומק נרקוטי שווה ערך גבוה מדי';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END של $depth חורג מהמגבלה של $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END של $depth חורג מהמגבלה הבטוחה';
-  }
+  String get divePlanner_warning_endHigh => 'עומק נרקוטי שווה ערך גבוה מדי';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
