@@ -139,6 +139,53 @@ void main() {
     expect(property.value, 0.4);
   });
 
+  test('intrinsics account for the cap', () {
+    final box = RenderMaxWidthFraction(
+      fraction: 0.5,
+      child: RenderConstrainedBox(
+        additionalConstraints: const BoxConstraints.tightFor(
+          width: 120,
+          height: 20,
+        ),
+      ),
+    );
+    // Offered 240, the capped child reaches its natural 120.
+    expect(box.getMaxIntrinsicWidth(double.infinity), 240);
+    expect(box.getMinIntrinsicWidth(double.infinity), 240);
+    expect(box.getMinIntrinsicHeight(240), 20);
+    expect(box.getMaxIntrinsicHeight(240), 20);
+  });
+
+  testWidgets('an IntrinsicWidth parent gives a wide child its full width', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: IntrinsicWidth(
+            child: MaxWidthFraction(
+              fraction: 1 / 3,
+              child: SizedBox(key: Key('child'), width: 90, height: 10),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(tester.getSize(find.byKey(const Key('child'))).width, 90);
+  });
+
+  test('intrinsic heights measure the child at the capped width', () {
+    // A child whose height grows as its width shrinks, like wrapping text.
+    final child = RenderParagraph(
+      const TextSpan(text: 'aaaa bbbb cccc', style: TextStyle(fontSize: 10)),
+      textDirection: TextDirection.ltr,
+    );
+    final box = RenderMaxWidthFraction(fraction: 0.5, child: child);
+    expect(box.getMinIntrinsicHeight(100), child.getMinIntrinsicHeight(50));
+    expect(box.getMaxIntrinsicHeight(100), child.getMaxIntrinsicHeight(50));
+  });
+
   test('rejects a fraction outside (0, 1]', () {
     for (final fraction in [0.0, -0.5, 1.5]) {
       expect(

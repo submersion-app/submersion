@@ -61,6 +61,28 @@ class RenderMaxWidthFraction extends RenderProxyBox {
     );
   }
 
+  // The intrinsics follow the cap: to lay its child out at width w, this
+  // box must be offered w / fraction, and offered a width it measures the
+  // child at that width times fraction.
+  @override
+  double computeMinIntrinsicWidth(double height) =>
+      super.computeMinIntrinsicWidth(height) / _fraction;
+
+  @override
+  double computeMaxIntrinsicWidth(double height) =>
+      super.computeMaxIntrinsicWidth(height) / _fraction;
+
+  @override
+  double computeMinIntrinsicHeight(double width) =>
+      super.computeMinIntrinsicHeight(_cappedWidth(width));
+
+  @override
+  double computeMaxIntrinsicHeight(double width) =>
+      super.computeMaxIntrinsicHeight(_cappedWidth(width));
+
+  double _cappedWidth(double width) =>
+      width.isFinite ? width * _fraction : width;
+
   @override
   Size computeDryLayout(covariant BoxConstraints constraints) {
     final c = child;
