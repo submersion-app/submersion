@@ -149,6 +149,50 @@ class BathymetryRepository {
         '@$span$selectionGeneration';
   }
 
+  /// Whether [key] is one [keyFor] could still build, so a lookup can still
+  /// reach its row. Anything else is one of the inert leftovers [keyFor]
+  /// describes, and the local cache sweep deletes it (issue #1929).
+  ///
+  /// The generation has to match exactly: a generation 1 key ends in a bare
+  /// `@8000`, so a prefix or substring test would keep every generation.
+  ///
+  /// A quantized base-square key stores its cell corner rather than the site,
+  /// and flooring can put that corner inside a lake box while the site itself
+  /// is outside every lake, so it cannot be rebuilt from the key alone. It is
+  /// current at any span the base square uses. Every other key carries the raw
+  /// coordinate it was built from, so it is current exactly when [keyFor]
+  /// rebuilds it byte for byte. That catches a lake key under a level the lake
+  /// no longer documents, a lake coordinate keyed without its level, and a
+  /// raw-coordinate key at a span that never keys by the raw coordinate.
+  static bool isCurrentKey(String key) {
+    final parts = key.split('@');
+    if (parts.length < 2 || parts.length > 3) return false;
+    final spanGeneration = _currentSpanGeneration.firstMatch(parts[1]);
+    if (spanGeneration == null) return false;
+    final span = double.parse(spanGeneration.group(1)!);
+
+    final coordinate = parts[0].split(',');
+    if (coordinate.length != 2) return false;
+    final lat = double.tryParse(coordinate[0]);
+    final lon = double.tryParse(coordinate[1]);
+    if (lat == null || lon == null) return false;
+
+    if (parts.length == 2 && coordinate.every(_hasTwoDecimals)) {
+      return !_isPatchSpan(span);
+    }
+    return keyFor(GeoPoint(lat, lon), spanMeters: span) == key;
+  }
+
+  static final RegExp _currentSpanGeneration = RegExp(
+    '^([0-9]+)${RegExp.escape(selectionGeneration)}\$',
+  );
+
+  /// The shape `toStringAsFixed(2)` gives a quantized cell corner.
+  static bool _hasTwoDecimals(String value) {
+    final dot = value.indexOf('.');
+    return dot >= 0 && value.length - dot - 1 == 2;
+  }
+
   /// Whether the cache holds a DEFINITIVE answer (grid or empty) for this
   /// coordinate's cell (or, with [spanMeters], for its LOD patch cell --
   /// see [getGridForSpan]). False means a null from [getGrid]/

@@ -142,4 +142,116 @@ void main() {
     expect(current!.payloadJson, '{"current":true}');
     expect(past!.payloadJson, '{"current":false}');
   });
+
+  group('deleteExpired', () {
+    Future<void> put(
+      ReefProviderId provider,
+      String coordKey, {
+      String variant = '',
+      ReefDataStatus status = ReefDataStatus.ok,
+    }) => dao.write(
+      provider: provider,
+      coordKey: coordKey,
+      variant: variant,
+      status: status,
+      payloadJson: '{}',
+    );
+
+    Future<int> rowCount() async =>
+        (await db.select(db.reefDataCache).get()).length;
+
+    test('deletes exactly the rows read would refuse', () async {
+      await put(ReefProviderId.habitat, 'habitat');
+      await put(ReefProviderId.health, 'current');
+      await put(ReefProviderId.health, 'dated', variant: '2019-03-15');
+      await put(ReefProviderId.protection, 'protection');
+      await put(ReefProviderId.species, 'species');
+      await put(
+        ReefProviderId.habitat,
+        'failed',
+        status: ReefDataStatus.unavailable,
+      );
+
+      // Past the health and failure lifetimes, inside the others.
+      clock = clock.add(const Duration(days: 2));
+      expect(await dao.deleteExpired(), 2);
+
+      expect(await dao.read(ReefProviderId.habitat, 'habitat'), isNotNull);
+      expect(
+        await dao.read(ReefProviderId.health, 'dated', variant: '2019-03-15'),
+        isNotNull,
+      );
+      expect(
+        await dao.read(ReefProviderId.protection, 'protection'),
+        isNotNull,
+      );
+      expect(await dao.read(ReefProviderId.species, 'species'), isNotNull);
+      expect(await rowCount(), 4);
+    });
+
+    test('keeps dated health readings and habitat however old', () async {
+      await put(ReefProviderId.habitat, 'habitat');
+      await put(ReefProviderId.health, 'dated', variant: '2019-03-15');
+      clock = clock.add(const Duration(days: 3650));
+
+      expect(await dao.deleteExpired(), 0);
+      expect(await rowCount(), 2);
+    });
+
+    test('deletes a row whose provider this build does not know', () async {
+      await db
+          .into(db.reefDataCache)
+          .insert(
+            ReefDataCacheCompanion.insert(
+              provider: 'retiredProvider',
+              coordKey: 'k',
+              payloadJson: '{}',
+              status: 'ok',
+              fetchedAt: clock.millisecondsSinceEpoch,
+            ),
+          );
+
+      expect(await dao.deleteExpired(), 1);
+      expect(await rowCount(), 0);
+    });
+
+    test('treats a status this build does not know as a failure', () async {
+      // Habitat never expires when ok, so only the unavailable fallback's
+      // one-hour failure lifetime can make this row expire.
+      await db
+          .into(db.reefDataCache)
+          .insert(
+            ReefDataCacheCompanion.insert(
+              provider: ReefProviderId.habitat.name,
+              coordKey: 'k',
+              payloadJson: '{}',
+              status: 'retiredStatus',
+              fetchedAt: clock.millisecondsSinceEpoch,
+            ),
+          );
+
+      expect(await dao.deleteExpired(), 0);
+      clock = clock.add(ReefCacheDao.failureTtl);
+      expect(await dao.deleteExpired(), 1);
+      expect(await rowCount(), 0);
+    });
+
+    test('never deletes a row refetched while the sweep runs', () async {
+      await put(ReefProviderId.health, 'k');
+      clock = clock.add(const Duration(days: 2));
+
+      // Issued before deleteExpired has read anything, so a snapshot taken
+      // outside the delete transaction sees the expired row and then deletes
+      // the fresh replacement by primary key.
+      final sweep = dao.deleteExpired();
+      final refetch = put(ReefProviderId.health, 'k');
+      await Future.wait([sweep, refetch]);
+
+      expect(await dao.read(ReefProviderId.health, 'k'), isNotNull);
+    });
+
+    test('an empty cache deletes nothing', () async {
+      expect(await dao.deleteExpired(), 0);
+    });
+  });
 }
