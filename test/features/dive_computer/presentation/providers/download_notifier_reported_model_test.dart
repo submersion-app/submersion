@@ -143,6 +143,24 @@ void main() {
       expect(saved, isNull);
     });
 
+    test(
+      'a later completion reporting nothing clears the reported model',
+      () async {
+        await completeDownload(
+          computer: _savedComputer(),
+          reportedProduct: 'Donatello',
+          reportedModel: 4,
+        );
+        expect(notifier.state.reportedProduct, 'Donatello');
+
+        // A second download without reset() must not inherit the first one's
+        // reported model: the import wizard would relabel from stale data.
+        await completeDownload(computer: _savedComputer());
+        expect(notifier.state.reportedProduct, isNull);
+        expect(notifier.state.reportedModel, isNull);
+      },
+    );
+
     test('leaves the model alone when the device reported nothing', () async {
       // The reported serial is persisted as before; the label is not touched.
       final saved = await completeDownload(computer: _savedComputer());

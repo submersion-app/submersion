@@ -125,6 +125,7 @@ class DownloadState {
     int? reportedModel,
     bool clearError = false,
     bool clearClockSyncStatus = false,
+    bool clearReportedDevice = false,
   }) {
     return DownloadState(
       phase: phase ?? this.phase,
@@ -139,8 +140,12 @@ class DownloadState {
       clockSyncStatus: clearClockSyncStatus
           ? null
           : (clockSyncStatus ?? this.clockSyncStatus),
-      reportedProduct: reportedProduct ?? this.reportedProduct,
-      reportedModel: reportedModel ?? this.reportedModel,
+      reportedProduct: clearReportedDevice
+          ? null
+          : (reportedProduct ?? this.reportedProduct),
+      reportedModel: clearReportedDevice
+          ? null
+          : (reportedModel ?? this.reportedModel),
     );
   }
 
@@ -337,6 +342,9 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
           clockSyncStatus: ClockSyncStatus.fromWireName(clockSyncStatus),
           reportedProduct: reportedProduct,
           reportedModel: reportedModel,
+          // Each completion describes its own download: one that reported
+          // nothing must not inherit an earlier one's model (issue #422).
+          clearReportedDevice: reportedProduct == null,
         );
         _downloadSubscription?.cancel();
         _downloadSubscription = null;
