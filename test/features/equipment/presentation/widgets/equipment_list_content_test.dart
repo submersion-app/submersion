@@ -215,6 +215,8 @@ void main() {
     Future<Widget> host(
       List<EquipmentItem> items, {
       bool showAppBar = true,
+      List<Diver> divers = const [],
+      String? activeDiverId,
     }) async {
       notifier = _CapturingEquipmentNotifier();
       SharedPreferences.setMockInitialValues({});
@@ -228,6 +230,10 @@ void main() {
             (ref) => MockCurrentDiverIdNotifier(),
           ),
           equipmentListNotifierProvider.overrideWith((ref) => notifier),
+          allDiversProvider.overrideWith((ref) async => divers),
+          validatedCurrentDiverIdProvider.overrideWith(
+            (ref) async => activeDiverId,
+          ),
           equipmentByStatusProvider.overrideWith((ref, status) => items),
           activeEquipmentProvider.overrideWith((ref) async => items),
           equipmentListViewModeProvider.overrideWith(
@@ -259,6 +265,105 @@ void main() {
 
       expect(notifier.deleted, ['e1', 'e2']);
       expect(find.text('2 deleted'), findsOneWidget);
+    });
+
+    group('shared gear (issue #2046)', () {
+      final t = DateTime(2026);
+      final divers = [
+        Diver(id: 'owner', name: 'Bill', createdAt: t, updatedAt: t),
+        Diver(id: 'wife', name: 'Anna', createdAt: t, updatedAt: t),
+      ];
+      const own = EquipmentItem(
+        id: 'mine',
+        diverId: 'owner',
+        name: 'Aaa BCD',
+        type: EquipmentType.bcd,
+      );
+      const hers = EquipmentItem(
+        id: 'hers',
+        diverId: 'wife',
+        name: 'Bbb Reg',
+        type: EquipmentType.regulator,
+      );
+
+      Future<bool> shareEnabled(WidgetTester tester) async {
+        await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+        await tester.pumpAndSettle();
+        final item = tester.widget<PopupMenuItem<String>>(
+          find.byKey(const ValueKey('selection_menu_share')),
+        );
+        await tester.tapAt(Offset.zero);
+        await tester.pumpAndSettle();
+        return item.enabled;
+      }
+
+      testWidgets('Share with is enabled only for a selection you own', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          await host(const [own, hers], divers: divers, activeDiverId: 'owner'),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('enter_selection')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Aaa BCD'));
+        await tester.pumpAndSettle();
+        expect(await shareEnabled(tester), isTrue);
+
+        await tester.tap(find.text('Bbb Reg'));
+        await tester.pumpAndSettle();
+        expect(await shareEnabled(tester), isFalse);
+      });
+
+      testWidgets('bulk delete keeps shared gear and says so', (tester) async {
+        final widget = await host(
+          const [own, hers],
+          divers: divers,
+          activeDiverId: 'owner',
+        );
+        notifier.refused.add('hers');
+        await tester.pumpWidget(widget);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('enter_selection')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_delete')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            'Deleted 1 item. 1 shared item was kept: only its owner can '
+            'delete it',
+          ),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('no Share with action with a single profile', (tester) async {
+        await tester.pumpWidget(
+          await host(const [own], divers: divers.take(1).toList()),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('enter_selection')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const ValueKey('selection_action_share')),
+          findsNothing,
+        );
+        await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const ValueKey('selection_menu_share')),
+          findsNothing,
+        );
+      });
     });
 
     testWidgets('retire acts on a uniformly active selection', (tester) async {
@@ -2253,6 +2358,20 @@ void main() {
       );
     });
 
+    testWidgets('the Owner filter narrows to gear shared with me', (
+      tester,
+    ) async {
+      await pump(tester, divers);
+      await _filterVia(tester, ['equipment_filter_owner_sharedWithMe']);
+      expect(find.text('Her Reg'), findsOneWidget);
+      expect(find.text('My BCD'), findsNothing);
+      expect(_badgeIsVisible(tester), isTrue);
+
+      await _filterVia(tester, ['equipment_filter_owner_mine']);
+      expect(find.text('My BCD'), findsOneWidget);
+      expect(find.text('Her Reg'), findsNothing);
+    });
+
     testWidgets('no chips with a single profile', (tester) async {
       await pump(tester, divers.take(1).toList());
       expect(
@@ -2270,11 +2389,15 @@ class _CapturingEquipmentNotifier
   _CapturingEquipmentNotifier() : super(const AsyncValue.data([]));
 
   final deleted = <String>[];
+
+  /// Ids whose delete is refused, as for a shared item (issue #2046).
+  final refused = <String>{};
   final retired = <String>[];
   final reactivated = <String>[];
 
   @override
   Future<bool> deleteEquipment(String id) async {
+    if (refused.contains(id)) return false;
     deleted.add(id);
     return true;
   }

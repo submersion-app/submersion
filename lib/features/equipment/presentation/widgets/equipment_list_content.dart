@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/equipment/presentation/widgets/profile_checklist_dialog.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_owner_sections.dart';
@@ -301,6 +302,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       equipmentAsync = ref.watch(equipmentByStatusProvider(filter.status!));
     }
 
+    // The owner axis (issue #2046) compares each item with this diver.
+    final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
+
     // Whether the tag selection is what emptied the list (issue #1942), so
     // the empty state blames the tags rather than a stocked category.
     final tagsEmptied = filter.tagsEmptied(
@@ -312,7 +316,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     if (viewMode == ListViewMode.table) {
       final sortedAsync = equipmentAsync.whenData(
         (equipment) => applyEquipmentSorting(
-          filter.apply(equipment, tagIdsByEquipment),
+          filter.apply(
+            equipment,
+            tagIdsByEquipment,
+            activeDiverId: activeDiverId,
+          ),
           sort,
           serviceUrgency: serviceUrgency,
         ),
@@ -352,6 +360,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       filter.apply(
         equipmentAsync.value ?? const <EquipmentItem>[],
         tagIdsByEquipment,
+        activeDiverId: activeDiverId,
       ),
       arrangement,
       typeLabel: (t) => t.localizedName(context.l10n),
@@ -532,6 +541,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       return checked.isNotEmpty && checked.every(test);
     }
 
+    final multipleDivers = ref.watch(hasMultipleDiversProvider);
+    final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
+
     return [
       BulkAction(
         id: 'retire',
@@ -557,7 +569,70 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           equipmentIds: _selectedIds.toList(),
         ),
       ),
+      // Owner-only (issue #2046): enabled when every checked item is the
+      // active diver's own.
+      if (multipleDivers)
+        BulkAction(
+          id: 'share',
+          icon: Icons.share,
+          label: context.l10n.equipment_bulkShare_action,
+          isEnabled: (ids) =>
+              everyChecked(ids, (e) => e.diverId == activeDiverId),
+          onInvoke: () => _shareSelected(activeDiverId),
+        ),
     ];
+  }
+
+  Future<BulkActionOutcome> _shareSelected(String? activeDiverId) async {
+    final ids = _selectedIds.toList();
+    if (ids.isEmpty || activeDiverId == null) {
+      return BulkActionOutcome.cancelled;
+    }
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final divers = await ref.read(allDiversProvider.future);
+    final others = [
+      for (final d in divers)
+        if (d.id != activeDiverId) d,
+    ];
+    if (!mounted) return BulkActionOutcome.cancelled;
+    final chosen = await showProfileChecklistDialog(
+      context,
+      title: l10n.equipment_sharing_dialogTitle,
+      body: l10n.equipment_sharing_dialogBody,
+      profiles: others,
+      initiallySelected: const {},
+      confirmLabel: l10n.common_action_share,
+      allowEmpty: false,
+    );
+    if (chosen == null) return BulkActionOutcome.cancelled;
+    try {
+      final result = await ref
+          .read(equipmentShareRepositoryProvider)
+          .shareMany(
+            equipmentIds: ids,
+            diverIds: chosen.toList(),
+            actingDiverId: activeDiverId,
+          );
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            result.skippedNotOwned == 0
+                ? l10n.equipment_bulkShare_done(result.itemsChanged)
+                : l10n.equipment_bulkShare_doneSkipped(
+                    result.itemsChanged,
+                    result.skippedNotOwned,
+                  ),
+          ),
+        ),
+      );
+      return BulkActionOutcome.completed;
+    } catch (_) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.common_error_tryAgain)),
+      );
+      return BulkActionOutcome.failed;
+    }
   }
 
   SelectionAppBar _buildSelectionBar(
@@ -635,14 +710,22 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     final notifier = ref.read(equipmentListNotifierProvider.notifier);
     _selection.exit();
 
+    // Delete is owner-only (issue #2046): a shared item is kept and the
+    // snackbar says how many.
+    var deleted = 0;
     for (final id in ids) {
-      await notifier.deleteEquipment(id);
+      if (await notifier.deleteEquipment(id)) deleted++;
     }
+    final skipped = ids.length - deleted;
 
     if (!mounted) return BulkActionOutcome.completed;
     messenger.showSnackBar(
       SnackBar(
-        content: Text(context.l10n.common_bulkDelete_snackbar(ids.length)),
+        content: Text(
+          skipped == 0
+              ? context.l10n.common_bulkDelete_snackbar(deleted)
+              : context.l10n.equipment_bulkDelete_partial(deleted, skipped),
+        ),
       ),
     );
     return BulkActionOutcome.completed;
@@ -768,6 +851,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               for (final e in tagsByEquipment.entries)
                 e.key: [for (final t in e.value) t.name],
             },
+            ownerNames: ref.watch(diverNamesByIdProvider).value ?? const {},
           ),
           config: config,
           units: units,
