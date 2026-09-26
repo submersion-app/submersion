@@ -35,6 +35,7 @@ import 'package:submersion/features/connections/domain/entities/connection_kind.
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
+import 'package:submersion/features/connections/presentation/providers/saved_connection_maps_provider.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/cylinder_configs/presentation/providers/cylinder_config_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
@@ -232,6 +233,10 @@ void main() {
           const NodeSelection(NodeRef(ConnectionKind.buddy, _id)),
         ).future,
       ),
+    ),
+    (
+      name: 'savedConnectionMapsProvider',
+      read: (c) => c.read(savedConnectionMapsProvider.future),
     ),
   ]);
 
