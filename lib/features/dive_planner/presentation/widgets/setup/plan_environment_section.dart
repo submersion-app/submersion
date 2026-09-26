@@ -10,6 +10,8 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 PlannerWaterType planWaterOptionFor({
   WaterType? waterType,
@@ -67,19 +69,19 @@ class _SalinityInputState extends State<_SalinityInput> {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return NumberField(
       controller: _controller,
       decoration: InputDecoration(
         isDense: true,
         labelText: context.l10n.divePlanner_label_salinity,
         suffixText: 'ppt',
       ),
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      onChanged: (value) {
-        if (value.isEmpty) return;
-        final parsed = parseUserDecimal(value);
-        if (parsed == null) return;
-        widget.onChanged(parsed.clamp(0, 80).toDouble());
+      onChanged: (read) {
+        // Blank or unreadable leaves the plan's salinity alone; unreadable
+        // text shows the field's error.
+        if (read case NumberValue(:final value)) {
+          widget.onChanged(value.clamp(0, 80).toDouble());
+        }
       },
     );
   }
@@ -240,18 +242,27 @@ class _AltitudeInputState extends State<_AltitudeInput> {
           ),
           suffixText: widget.units.altitudeSymbol,
           hintText: '0',
+          // A bare red border, as on the planner's number boxes: an 80 px box
+          // has no room for the message, which goes under the row instead.
+          errorText: invalidNumberText(context, _controller.text) != null
+              ? ''
+              : null,
+          errorStyle: const TextStyle(height: 0, fontSize: 0),
         ),
         keyboardType: TextInputType.number,
-        onChanged: (value) {
-          if (value.isEmpty) {
-            widget.onChanged(null);
-          } else {
-            final parsed = parseUserDecimal(value);
-            if (parsed != null) {
-              final meters = widget.units.altitudeToMeters(parsed);
-              widget.onChanged(meters);
-            }
+        inputFormatters: numberInputFormatters(),
+        onChanged: (text) {
+          switch (readNumber(text)) {
+            case NumberValue(:final value):
+              widget.onChanged(widget.units.altitudeToMeters(value));
+            case NumberBlank():
+              widget.onChanged(null); // sea level, as before
+            case NumberInvalid():
+              break; // the plan keeps its altitude
           }
+          // Rebuild for the border and the message under the row, which the
+          // plan does not trigger when it keeps its altitude.
+          setState(() {});
         },
       ),
     );
@@ -300,6 +311,16 @@ class _AltitudeInputState extends State<_AltitudeInput> {
               textField,
               if (groupChip != null) ...[const SizedBox(width: 8), groupChip],
             ],
+          ),
+        if (invalidNumberText(context, _controller.text) case final message?)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              message,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
           ),
         if (showGroup)
           Padding(

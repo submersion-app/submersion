@@ -8,6 +8,8 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Contingency configuration: deviation deltas and the turn-pressure rule.
 class ContingencySettingsSection extends ConsumerStatefulWidget {
@@ -83,7 +85,7 @@ class _ContingencySettingsSectionState
           Row(
             children: [
               Expanded(
-                child: TextFormField(
+                child: NumberField(
                   controller: _depthController,
                   decoration: InputDecoration(
                     labelText:
@@ -92,10 +94,10 @@ class _ContingencySettingsSectionState
                     isDense: true,
                     border: const OutlineInputBorder(),
                   ),
-                  keyboardType: TextInputType.number,
-                  onChanged: (text) {
-                    final parsed = parseUserDecimal(text);
-                    if (parsed == null || parsed <= 0) return;
+                  onChanged: (read) {
+                    // Blank and unreadable text leave the plan alone.
+                    if (read is! NumberValue || read.value <= 0) return;
+                    final parsed = read.value;
                     final factor = units.convertDepth(1.0);
                     notifier.updateContingencies(
                       depthDelta: factor > 0 ? parsed / factor : parsed,
@@ -105,18 +107,19 @@ class _ContingencySettingsSectionState
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: TextFormField(
+                child: NumberField(
                   controller: _timeController,
+                  integer: true,
                   decoration: InputDecoration(
                     labelText: l10n.plannerCanvas_contingency_timeDelta,
                     isDense: true,
                     border: const OutlineInputBorder(),
                   ),
-                  keyboardType: TextInputType.number,
-                  onChanged: (text) {
-                    final parsed = parseUserInt(text);
-                    if (parsed == null || parsed <= 0) return;
-                    notifier.updateContingencies(timeMinutes: parsed);
+                  onChanged: (read) {
+                    if (read is! NumberValue || read.value <= 0) return;
+                    notifier.updateContingencies(
+                      timeMinutes: read.value.toInt(),
+                    );
                   },
                 ),
               ),
@@ -151,19 +154,17 @@ class _ContingencySettingsSectionState
               if (state.turnPressureRule == domain.TurnPressureRule.custom) ...[
                 const SizedBox(width: 8),
                 Expanded(
-                  child: TextFormField(
+                  child: NumberField(
                     controller: _fractionController,
                     decoration: InputDecoration(
                       labelText: l10n.plannerCanvas_contingency_turnFraction,
                       isDense: true,
                       border: const OutlineInputBorder(),
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    onChanged: (text) {
-                      final parsed = parseUserDecimal(text);
-                      if (parsed == null || parsed <= 0 || parsed > 1) return;
+                    onChanged: (read) {
+                      if (read is! NumberValue) return;
+                      final parsed = read.value;
+                      if (parsed <= 0 || parsed > 1) return;
                       notifier.updateContingencies(turnFraction: parsed);
                     },
                   ),

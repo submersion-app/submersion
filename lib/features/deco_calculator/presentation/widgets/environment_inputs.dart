@@ -8,6 +8,8 @@ import 'package:submersion/features/deco_calculator/presentation/providers/deco_
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Altitude + water type inputs feeding the calculator's DiveEnvironment
 /// (the same altitude/salinity seam the planner engine uses).
@@ -40,11 +42,18 @@ class EnvironmentInputs extends ConsumerWidget {
               border: const OutlineInputBorder(),
             ),
             keyboardType: TextInputType.number,
+            inputFormatters: numberInputFormatters(),
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            validator: numberValidator(context),
             onChanged: (text) {
-              final parsed = parseUserDecimal(text);
-              ref.read(calcAltitudeProvider.notifier).state = parsed == null
-                  ? null
-                  : units.altitudeToMeters(parsed);
+              final altitude = ref.read(calcAltitudeProvider.notifier);
+              altitude.state = switch (readNumber(text)) {
+                NumberValue(:final value) => units.altitudeToMeters(value),
+                NumberBlank() => null, // sea level, as before
+                // Unreadable text used to fall to sea level too, silently
+                // changing the deco; keep the altitude and show the error.
+                NumberInvalid() => altitude.state,
+              };
             },
           ),
         ),

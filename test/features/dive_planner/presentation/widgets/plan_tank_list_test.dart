@@ -395,13 +395,48 @@ void main() {
 
       // The dialog stayed open (the tank list is unchanged) and shows the
       // validator's error instead of silently saving 21% air.
-      expect(find.text('Enter a valid number'), findsOneWidget);
+      expect(find.textContaining('Enter a valid number'), findsOneWidget);
       final container = ProviderScope.containerOf(
         tester.element(find.byType(PlanTankList)),
       );
       expect(
         container.read(divePlanNotifierProvider).tanks.length,
         tanksBefore,
+      );
+    });
+
+    testWidgets('an unreadable start pressure blocks save', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanTankList()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final tanksBefore = ProviderScope.containerOf(
+        tester.element(find.byType(PlanTankList)),
+      ).read(divePlanNotifierProvider).tanks.length;
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+
+      final pressureField = find.widgetWithText(TextField, 'Start (bar)');
+      await tester.enterText(pressureField, '2..00');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Enter a valid number'), findsOneWidget);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanTankList)),
+      );
+      expect(
+        container.read(divePlanNotifierProvider).tanks.length,
+        tanksBefore,
+        reason: 'an unreadable pressure used to save the tank with none',
       );
     });
 
@@ -473,7 +508,10 @@ void main() {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Enter a valid number'), findsOneWidget);
+      expect(
+        find.text('O2 and He must each be 0 to 100 and total 100 or less'),
+        findsOneWidget,
+      );
       final container = ProviderScope.containerOf(
         tester.element(find.byType(PlanTankList)),
       );

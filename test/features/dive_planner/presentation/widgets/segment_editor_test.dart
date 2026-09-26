@@ -192,6 +192,23 @@ void main() {
     expect(saved!.tankId, 't1');
   });
 
+  testWidgets('unreadable depth blocks the segment and shows the error '
+      '(#1900)', (tester) async {
+    PlanSegment? saved;
+    await tester.pumpWidget(dialogHarness(onSave: (s) => saved = s));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, '3..0');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    expect(saved, isNull, reason: 'used to save a 0 m segment');
+    expect(find.byType(SegmentEditor), findsOneWidget);
+  });
+
   testWidgets('editing preserves the setpoint and dive-mode override', (
     tester,
   ) async {

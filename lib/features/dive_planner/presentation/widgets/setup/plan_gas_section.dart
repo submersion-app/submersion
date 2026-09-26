@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Gas settings for the Setup accordion: Bottom RMV (with one-tap logged
 /// average), reserve pressure, and the Subsurface-style Gas options
@@ -173,8 +174,15 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
     super.dispose();
   }
 
+  /// The reserve in display units. The field takes digits only, so its text
+  /// is always blank or readable.
+  double? _reserve(String value) => switch (readNumber(value)) {
+    NumberValue(:final value) => value,
+    NumberBlank() || NumberInvalid() => null,
+  };
+
   String? _getError(String value) {
-    final parsed = parseUserDecimal(value);
+    final parsed = _reserve(value);
     if (parsed == null) return null;
     final bar = widget.units.pressureToBar(parsed);
     if (bar <= 0) return context.l10n.divePlanner_error_reserveMustBePositive;
@@ -207,7 +215,7 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
       _isError = error != null;
     });
     if (error == null) {
-      final parsed = parseUserDecimal(value);
+      final parsed = _reserve(value);
       if (parsed != null) {
         widget.onChanged(widget.units.pressureToBar(parsed));
       }

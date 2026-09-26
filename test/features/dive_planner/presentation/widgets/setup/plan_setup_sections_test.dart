@@ -478,6 +478,25 @@ void main() {
     expect(find.textContaining('Group 2'), findsOneWidget);
   });
 
+  testWidgets('unreadable altitude keeps the plan altitude and says why '
+      '(#1900)', (tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness(const PlanEnvironmentSection()));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '1000');
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '1..000');
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanEnvironmentSection)),
+    );
+    expect(container.read(divePlanNotifierProvider).altitude, 1000);
+  });
+
   testWidgets('environment section water type feeds the plan and deco', (
     tester,
   ) async {
