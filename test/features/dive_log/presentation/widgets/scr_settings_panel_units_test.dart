@@ -238,6 +238,44 @@ void main() {
       expect(captured.assumedVo2, closeTo(1.30, 0.0001));
     });
 
+    testWidgets('a rate converted from cuft/min seeds without its tail', (
+      tester,
+    ) async {
+      // 0.3 cuft/min typed by an imperial diver is stored as 8.49504... L/min.
+      const stored = 0.3 / 0.0353147;
+      final captured = _Captured();
+      await _pumpPanel(
+        tester,
+        VolumeUnit.liters,
+        ScrSettingsPanel(
+          scrType: ScrType.cmf,
+          injectionRate: stored,
+          onChanged: captured.call,
+        ),
+      );
+
+      expect(_textOf(tester, 'Injection Rate'), '8.495');
+
+      // The rounded seed is display only: the stored value is kept exactly.
+      await tester.enterText(_fieldWithLabel('Type'), 'Sofnolime');
+      await tester.pump();
+      expect(captured.injectionRate, stored);
+    });
+
+    testWidgets('switching to litres while open seeds without the tail', (
+      tester,
+    ) async {
+      final host = await _pumpHost(tester, VolumeUnit.cubicFeet, null);
+      await tester.enterText(_fieldWithLabel('Injection Rate'), '0.3');
+      await tester.pump();
+
+      await host.settings.setVolumeUnit(VolumeUnit.liters);
+      await tester.pump();
+
+      expect(_textOf(tester, 'Injection Rate'), '8.495');
+      expect(host.injectionRate, closeTo(0.3 / 0.0353147, 0.0001));
+    });
+
     testWidgets('hints keep their metric values', (tester) async {
       await _pumpPanel(
         tester,

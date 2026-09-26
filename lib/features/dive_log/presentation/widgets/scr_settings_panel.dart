@@ -108,6 +108,9 @@ const double _hintInjectionRateLpm = 8.0;
 /// VO₂ assumed when the dive has none recorded, in L/min.
 const double _defaultVo2Lpm = 1.30;
 
+/// Decimals an L/min flow is seeded with. See `_seedFlow`.
+const int _literSeedDecimals = 3;
+
 /// The text a flow field was seeded with, and the L/min value it stands for.
 ///
 /// While the field still holds [text] the panel reports [litersPerMin] as is,
@@ -224,11 +227,14 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
   int get _vo2Decimals => _units.rmvDecimals + 1;
 
   /// A stored L/min flow rendered for its field in the diver's volume unit.
-  /// Litres keep their full stored precision, as before; cubic feet round to
-  /// [decimals] so the conversion's long tail does not leak into the field.
+  /// Cubic feet round to [decimals] so the conversion's long tail does not
+  /// leak into the field. Litres round to [_literSeedDecimals]: enough for
+  /// anything typed in L/min (8.25 still seeds as 8.25), while a value stored
+  /// from a cuft/min entry (8.49504...) seeds as 8.495. Either way the seed
+  /// is display only; an untouched field reports the stored value exactly.
   String _seedFlow(double litersPerMin, int decimals) =>
       _units.settings.volumeUnit == VolumeUnit.liters
-      ? formatDecimalForInput(litersPerMin)
+      ? formatRoundedForInput(litersPerMin, _literSeedDecimals)
       : formatRoundedForInput(_units.convertRmv(litersPerMin), decimals);
 
   /// Placeholder for a flow field: [litersPerMin] in the diver's unit and
