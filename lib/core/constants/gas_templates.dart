@@ -5,7 +5,6 @@ class GasTemplate {
   final double o2;
   final double he;
   final String? description;
-  final double? maxOperatingDepth; // at ppO2 1.4
 
   const GasTemplate({
     required this.name,
@@ -13,7 +12,6 @@ class GasTemplate {
     required this.o2,
     this.he = 0.0,
     this.description,
-    this.maxOperatingDepth,
   });
 }
 
@@ -27,7 +25,6 @@ class GasTemplates {
     displayName: 'Air',
     o2: 21.0,
     description: 'Standard air (21% O2)',
-    maxOperatingDepth: 56.7, // at ppO2 1.4
   );
 
   // Common nitrox blends
@@ -36,7 +33,6 @@ class GasTemplates {
     displayName: 'EAN32',
     o2: 32.0,
     description: 'Enriched Air Nitrox 32%',
-    maxOperatingDepth: 33.8,
   );
 
   static const ean36 = GasTemplate(
@@ -44,7 +40,6 @@ class GasTemplates {
     displayName: 'EAN36',
     o2: 36.0,
     description: 'Enriched Air Nitrox 36%',
-    maxOperatingDepth: 28.9,
   );
 
   static const ean40 = GasTemplate(
@@ -52,7 +47,6 @@ class GasTemplates {
     displayName: 'EAN40',
     o2: 40.0,
     description: 'Enriched Air Nitrox 40%',
-    maxOperatingDepth: 25.0,
   );
 
   // Deco gases
@@ -61,7 +55,6 @@ class GasTemplates {
     displayName: 'EAN50',
     o2: 50.0,
     description: 'Deco gas - 50% O2',
-    maxOperatingDepth: 18.0,
   );
 
   static const oxygen = GasTemplate(
@@ -69,7 +62,6 @@ class GasTemplates {
     displayName: 'Oxygen',
     o2: 100.0,
     description: 'Pure oxygen (6m deco only)',
-    maxOperatingDepth: 4.0,
   );
 
   // Common trimix blends
@@ -79,7 +71,6 @@ class GasTemplates {
     o2: 21.0,
     he: 35.0,
     description: 'Normoxic trimix 21/35',
-    maxOperatingDepth: 56.7,
   );
 
   static const tmx1845 = GasTemplate(
@@ -88,7 +79,6 @@ class GasTemplates {
     o2: 18.0,
     he: 45.0,
     description: 'Trimix 18/45 (deep diving)',
-    maxOperatingDepth: 67.8,
   );
 
   static const tmx1555 = GasTemplate(
@@ -97,7 +87,6 @@ class GasTemplates {
     o2: 15.0,
     he: 55.0,
     description: 'Hypoxic trimix 15/55 (very deep)',
-    maxOperatingDepth: 83.3,
   );
 
   static const helitrox2525 = GasTemplate(
@@ -106,7 +95,6 @@ class GasTemplates {
     o2: 25.0,
     he: 25.0,
     description: 'Helitrox 25/25 (recreational tech)',
-    maxOperatingDepth: 46.0,
   );
 
   // CCR Diluent mixes (normoxic and hypoxic trimix for deep CCR)
@@ -115,7 +103,6 @@ class GasTemplates {
     displayName: 'Air Diluent',
     o2: 21.0,
     description: 'Standard air diluent for shallow CCR',
-    maxOperatingDepth: 56.7,
   );
 
   static const diluentTx1260 = GasTemplate(
@@ -124,7 +111,6 @@ class GasTemplates {
     o2: 12.0,
     he: 60.0,
     description: 'Hypoxic diluent for deep CCR',
-    maxOperatingDepth: 106.7,
   );
 
   static const diluentTx1070 = GasTemplate(
@@ -133,7 +119,6 @@ class GasTemplates {
     o2: 10.0,
     he: 70.0,
     description: 'Hypoxic diluent for very deep CCR',
-    maxOperatingDepth: 130.0,
   );
 
   // SCR Supply gases (enriched nitrox for injection)
@@ -142,7 +127,6 @@ class GasTemplates {
     displayName: 'SCR EAN40',
     o2: 40.0,
     description: 'SCR supply gas - 40% O2',
-    maxOperatingDepth: 25.0,
   );
 
   static const scrEan50 = GasTemplate(
@@ -150,7 +134,6 @@ class GasTemplates {
     displayName: 'SCR EAN50',
     o2: 50.0,
     description: 'SCR supply gas - 50% O2',
-    maxOperatingDepth: 18.0,
   );
 
   static const scrEan60 = GasTemplate(
@@ -158,7 +141,6 @@ class GasTemplates {
     displayName: 'SCR EAN60',
     o2: 60.0,
     description: 'SCR supply gas - 60% O2',
-    maxOperatingDepth: 13.3,
   );
 
   /// Templates organized by category

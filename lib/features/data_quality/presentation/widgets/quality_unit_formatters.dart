@@ -9,6 +9,7 @@ import 'package:submersion/features/data_quality/presentation/widgets/quality_fi
 QualityUnitFormatters qualityUnitFormattersFor(UnitFormatter units) =>
     QualityUnitFormatters(
       depth: (m) => units.formatDepth(m),
+      limitDepth: (m) => units.formatDepthFloor(m),
       pressure: (bar) => units.formatPressure(bar),
       temperature: (c) => units.formatTemperature(c),
       // Surface air consumption is a volume rate; honor the volume unit
