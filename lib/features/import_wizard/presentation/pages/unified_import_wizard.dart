@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_compute
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
+import 'package:submersion/features/import_wizard/data/adapters/divelogs_import_adapter.dart';
 import 'package:submersion/features/import_wizard/data/services/import_provider_invalidator.dart';
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
@@ -148,6 +149,11 @@ class _UnifiedImportWizardBodyState
     final adapter = widget.adapter;
     if (adapter is DiveComputerAdapter) {
       adapter.goBackFromConfirm = () {
+        _navigatingForward = false;
+        _animateToPage(_currentPage - 1);
+      };
+    } else if (adapter is DivelogsImportAdapter) {
+      adapter.goBack = () {
         _navigatingForward = false;
         _animateToPage(_currentPage - 1);
       };

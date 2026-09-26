@@ -10442,6 +10442,138 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get divelogsImport_fetch_button => 'Logboek ophalen';
+
+  @override
+  String get divelogsImport_fetch_certificationsUnavailable =>
+      'Brevetten konden niet worden opgehaald en worden niet geïmporteerd.';
+
+  @override
+  String get divelogsImport_fetch_empty =>
+      'Je divelogs.de-logboek bevat niets om te importeren.';
+
+  @override
+  String get divelogsImport_fetch_failedTitle => 'Kan je logboek niet ophalen';
+
+  @override
+  String get divelogsImport_fetch_fetching => 'Je logboek wordt opgehaald…';
+
+  @override
+  String divelogsImport_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken gevonden',
+      one: '$count duik gevonden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divelogsImport_fetch_foundPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto\'s om te importeren',
+      one: '$count foto om te importeren',
+      zero: 'Geen foto\'s om te importeren',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_gearUnavailable =>
+      'De uitrusting kon niet worden opgehaald; duiken worden geïmporteerd zonder koppeling aan hun uitrusting.';
+
+  @override
+  String get divelogsImport_fetch_includePhotos => 'Foto\'s meenemen';
+
+  @override
+  String get divelogsImport_fetch_includePhotosHint =>
+      'Foto\'s worden tijdens het importeren gedownload naar een map die je zelf kiest.';
+
+  @override
+  String divelogsImport_fetch_listingPhotos(int current, int total) {
+    return 'Foto\'s voor duik $current van $total worden opgevraagd…';
+  }
+
+  @override
+  String divelogsImport_fetch_photoListingsFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Foto\'s voor $count duiken konden niet worden opgevraagd.',
+      one: 'Foto\'s voor $count duik konden niet worden opgevraagd.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_retry => 'Opnieuw proberen';
+
+  @override
+  String get divelogsImport_fetch_sessionExpired =>
+      'Je divelogs.de-sessie is verlopen. Ga terug en meld je opnieuw aan.';
+
+  @override
+  String divelogsImport_fetch_skippedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken konden niet worden gelezen en worden overgeslagen.',
+      one: '$count duik kon niet worden gelezen en wordt overgeslagen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_signIn_badCredentials =>
+      'divelogs.de heeft de gebruikersnaam of het wachtwoord geweigerd.';
+
+  @override
+  String get divelogsImport_signIn_button => 'Aanmelden';
+
+  @override
+  String get divelogsImport_signIn_description =>
+      'Meld je aan met je divelogs.de-account om je logboek te importeren. Je wachtwoord wordt nooit opgeslagen; alleen de resulterende sessie wordt in de cache bewaard.';
+
+  @override
+  String get divelogsImport_signIn_passwordLabel => 'Wachtwoord';
+
+  @override
+  String get divelogsImport_signIn_passwordRequired =>
+      'Wachtwoord is verplicht';
+
+  @override
+  String divelogsImport_signIn_signedInAs(String username) {
+    return 'Aangemeld als $username';
+  }
+
+  @override
+  String get divelogsImport_signIn_signingIn => 'Bezig met aanmelden…';
+
+  @override
+  String get divelogsImport_signIn_signOut => 'Afmelden';
+
+  @override
+  String get divelogsImport_signIn_title => 'Aanmelden bij divelogs.de';
+
+  @override
+  String get divelogsImport_signIn_unexpected =>
+      'divelogs.de stuurde een onverwacht antwoord. Probeer het later opnieuw.';
+
+  @override
+  String get divelogsImport_signIn_unreachable =>
+      'Kan divelogs.de niet bereiken. Controleer je verbinding en probeer het opnieuw.';
+
+  @override
+  String get divelogsImport_signIn_usernameLabel => 'Gebruikersnaam';
+
+  @override
+  String get divelogsImport_signIn_usernameRequired =>
+      'Gebruikersnaam is verplicht';
+
+  @override
   String get divers_detail_activeDiver => 'Actieve duiker';
 
   @override
@@ -21772,6 +21904,17 @@ class AppLocalizationsNl extends AppLocalizations {
       'In die map kan niet worden geschreven. Kies een andere.';
 
   @override
+  String importWizard_photos_downloadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto\'s om te downloaden',
+      one: '$count foto om te downloaden',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String importWizard_review_olderDivesSkipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -24171,6 +24314,56 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get universalImport_summary_noticeSitesUnresolvedBody =>
       'Deze duiken verwezen naar een duikstek die het bestand niet beschrijft en zijn daarom zonder duikstek geïmporteerd. Je kunt er een instellen door de duik te bewerken.';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableTitle =>
+      'Uitrusting niet geïmporteerd';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableBody =>
+      'De uitrustingslijst kon niet worden opgehaald, dus er is geen uitrusting geïmporteerd en de duiken zijn niet aan hun uitrusting gekoppeld. Importeer later opnieuw om deze toe te voegen.';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableTitle =>
+      'Brevetten niet geïmporteerd';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableBody =>
+      'De lijst met brevetten kon niet worden opgehaald, dus er zijn geen brevetten geïmporteerd. Importeer later opnieuw om ze toe te voegen.';
+
+  @override
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
+      'Sommige foto\'s niet opgevraagd';
+
+  @override
+  String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Foto\'s voor $count duiken konden niet worden opgevraagd en zijn daarom niet geïmporteerd.',
+      one:
+          'Foto\'s voor $count duik konden niet worden opgevraagd en zijn daarom niet geïmporteerd.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosNotDownloadedTitle =>
+      'Sommige foto\'s niet gedownload';
+
+  @override
+  String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count foto\'s konden niet worden gedownload. Importeer opnieuw om het nog eens te proberen; al opgeslagen foto\'s worden niet gedupliceerd.',
+      one:
+          '$count foto kon niet worden gedownload. Importeer opnieuw om het nog eens te proberen; al opgeslagen foto\'s worden niet gedupliceerd.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
@@ -28877,6 +29070,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrLabel_speed_mps => 'Topsnelheid';
+
+  @override
+  String get attrLabel_tow_burn_factor => 'Verbruiksfactor bij slepen';
+
+  @override
+  String get attrLabel_tow_speed_factor => 'Snelheidsfactor bij slepen';
 
   @override
   String get attrLabel_sku => 'SKU';
@@ -41377,6 +41576,13 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get transfer_importCloud_garminSubtitle =>
       'Duiken importeren uit je Garmin Connect-account';
+
+  @override
+  String get transfer_importCloud_divelogsTitle => 'divelogs.de';
+
+  @override
+  String get transfer_importCloud_divelogsSubtitle =>
+      'Je logboek, duikstekken, uitrusting, brevetten en foto\'s importeren uit divelogs.de';
 
   @override
   String get transfer_section_cloudTitle => 'Cloud';

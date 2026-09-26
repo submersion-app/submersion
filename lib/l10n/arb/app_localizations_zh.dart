@@ -10013,6 +10013,128 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get divelogsImport_fetch_button => '获取日志';
+
+  @override
+  String get divelogsImport_fetch_certificationsUnavailable =>
+      '无法获取证书，证书将不会被导入。';
+
+  @override
+  String get divelogsImport_fetch_empty => '您的 divelogs.de 日志中没有可导入的内容。';
+
+  @override
+  String get divelogsImport_fetch_failedTitle => '无法获取您的日志';
+
+  @override
+  String get divelogsImport_fetch_fetching => '正在获取您的日志…';
+
+  @override
+  String divelogsImport_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '找到 $count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divelogsImport_fetch_foundPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片待导入',
+      zero: '没有要导入的照片',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_gearUnavailable =>
+      '无法获取装备；潜水记录将在不关联装备的情况下导入。';
+
+  @override
+  String get divelogsImport_fetch_includePhotos => '包含照片';
+
+  @override
+  String get divelogsImport_fetch_includePhotosHint => '照片会在导入过程中下载到您选择的文件夹。';
+
+  @override
+  String divelogsImport_fetch_listingPhotos(int current, int total) {
+    return '正在列出第 $current 次潜水的照片，共 $total 次…';
+  }
+
+  @override
+  String divelogsImport_fetch_photoListingsFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '无法列出 $count 次潜水的照片。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_retry => '重试';
+
+  @override
+  String get divelogsImport_fetch_sessionExpired =>
+      '您的 divelogs.de 会话已过期。请返回并重新登录。';
+
+  @override
+  String divelogsImport_fetch_skippedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 次潜水无法读取，将被跳过。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_signIn_badCredentials => 'divelogs.de 拒绝了用户名或密码。';
+
+  @override
+  String get divelogsImport_signIn_button => '登录';
+
+  @override
+  String get divelogsImport_signIn_description =>
+      '使用您的 divelogs.de 账户登录，即可导入您的日志。您的密码不会被保存；仅缓存由此生成的会话。';
+
+  @override
+  String get divelogsImport_signIn_passwordLabel => '密码';
+
+  @override
+  String get divelogsImport_signIn_passwordRequired => '请输入密码';
+
+  @override
+  String divelogsImport_signIn_signedInAs(String username) {
+    return '已登录为 $username';
+  }
+
+  @override
+  String get divelogsImport_signIn_signingIn => '正在登录…';
+
+  @override
+  String get divelogsImport_signIn_signOut => '退出登录';
+
+  @override
+  String get divelogsImport_signIn_title => '登录 divelogs.de';
+
+  @override
+  String get divelogsImport_signIn_unexpected => 'divelogs.de 返回了意外的响应。请稍后重试。';
+
+  @override
+  String get divelogsImport_signIn_unreachable =>
+      '无法连接到 divelogs.de。请检查网络连接后重试。';
+
+  @override
+  String get divelogsImport_signIn_usernameLabel => '用户名';
+
+  @override
+  String get divelogsImport_signIn_usernameRequired => '请输入用户名';
+
+  @override
   String get divers_detail_activeDiver => '当前潜水员';
 
   @override
@@ -20795,6 +20917,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importWizard_photos_destinationUnwritable => '无法写入该文件夹。请选择其他文件夹。';
 
   @override
+  String importWizard_photos_downloadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片待下载',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String importWizard_review_olderDivesSkipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -23096,6 +23228,49 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get universalImport_summary_noticeSitesUnresolvedBody =>
       '这些潜水引用了文件中没有描述的潜水点，因此导入时没有潜水点。您可以通过编辑潜水来设置潜水点。';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableTitle => '未导入装备';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableBody =>
+      '无法获取装备列表，因此未导入任何装备，潜水记录也未关联到其装备。请稍后重新导入以添加装备。';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableTitle =>
+      '未导入证书';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableBody =>
+      '无法获取证书列表，因此未导入任何证书。请稍后重新导入以添加证书。';
+
+  @override
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
+      '部分照片未能列出';
+
+  @override
+  String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '无法列出 $count 次潜水的照片，因此这些照片未导入。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosNotDownloadedTitle =>
+      '部分照片未下载';
+
+  @override
+  String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片无法下载。请重新导入以重试；已保存的照片不会重复。',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
@@ -27567,6 +27742,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrLabel_speed_mps => '最高速度';
+
+  @override
+  String get attrLabel_tow_burn_factor => '拖带耗电系数';
+
+  @override
+  String get attrLabel_tow_speed_factor => '拖带速度系数';
 
   @override
   String get attrLabel_sku => '商品编号 (SKU)';
@@ -39233,6 +39414,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get transfer_importCloud_garminSubtitle =>
       '从您的 Garmin Connect 账户导入潜水记录';
+
+  @override
+  String get transfer_importCloud_divelogsTitle => 'divelogs.de';
+
+  @override
+  String get transfer_importCloud_divelogsSubtitle =>
+      '从 divelogs.de 导入您的日志、潜水点、装备、证书和照片';
 
   @override
   String get transfer_section_cloudTitle => '云端';

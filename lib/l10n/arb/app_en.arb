@@ -6284,6 +6284,79 @@
       }
     }
   },
+  "divelogsImport_fetch_button": "Fetch Logbook",
+  "divelogsImport_fetch_certificationsUnavailable": "Certifications could not be fetched and will not be imported.",
+  "divelogsImport_fetch_empty": "Your divelogs.de logbook has nothing to import.",
+  "divelogsImport_fetch_failedTitle": "Could not fetch your logbook",
+  "divelogsImport_fetch_fetching": "Fetching your logbook…",
+  "divelogsImport_fetch_foundDives": "{count, plural, one{Found {count} dive} other{Found {count} dives}}",
+  "@divelogsImport_fetch_foundDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "divelogsImport_fetch_foundPhotos": "{count, plural, =0{No photos to import} one{{count} photo to import} other{{count} photos to import}}",
+  "@divelogsImport_fetch_foundPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "divelogsImport_fetch_gearUnavailable": "Gear could not be fetched; dives will import without gear links.",
+  "divelogsImport_fetch_includePhotos": "Include photos",
+  "divelogsImport_fetch_includePhotosHint": "Photos are downloaded during the import into a folder you choose.",
+  "divelogsImport_fetch_listingPhotos": "Listing photos for dive {current} of {total}…",
+  "@divelogsImport_fetch_listingPhotos": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "divelogsImport_fetch_photoListingsFailed": "{count, plural, one{Photos for {count} dive could not be listed.} other{Photos for {count} dives could not be listed.}}",
+  "@divelogsImport_fetch_photoListingsFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "divelogsImport_fetch_retry": "Try Again",
+  "divelogsImport_fetch_sessionExpired": "Your divelogs.de session expired. Go back and sign in again.",
+  "divelogsImport_fetch_skippedDives": "{count, plural, one{{count} dive could not be read and will be skipped.} other{{count} dives could not be read and will be skipped.}}",
+  "@divelogsImport_fetch_skippedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "divelogsImport_signIn_badCredentials": "divelogs.de rejected the username or password.",
+  "divelogsImport_signIn_button": "Sign In",
+  "divelogsImport_signIn_description": "Sign in with your divelogs.de account to import your logbook. Your password is never stored; only the resulting session is cached.",
+  "divelogsImport_signIn_passwordLabel": "Password",
+  "divelogsImport_signIn_passwordRequired": "Password is required",
+  "divelogsImport_signIn_signedInAs": "Signed in as {username}",
+  "@divelogsImport_signIn_signedInAs": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "divelogsImport_signIn_signingIn": "Signing in…",
+  "divelogsImport_signIn_signOut": "Sign out",
+  "divelogsImport_signIn_title": "Sign in to divelogs.de",
+  "divelogsImport_signIn_unexpected": "divelogs.de sent an unexpected response. Try again later.",
+  "divelogsImport_signIn_unreachable": "Could not reach divelogs.de. Check your connection and try again.",
+  "divelogsImport_signIn_usernameLabel": "Username",
+  "divelogsImport_signIn_usernameRequired": "Username is required",
   "divers_detail_activeDiver": "Active Diver",
   "divers_detail_allergiesLabel": "Allergies",
   "divers_detail_appBarTitle": "Diver",
@@ -13573,6 +13646,14 @@
   "@importWizard_photos_destinationUnwritable": {
     "description": "Snackbar shown when the folder chosen for bundled archive photos cannot be written to"
   },
+  "importWizard_photos_downloadCount": "{count, plural, one{{count} photo to download} other{{count} photos to download}}",
+  "@importWizard_photos_downloadCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importWizard_review_olderDivesSkipped": "{count, plural, one{1 older dive skipped — already in your log} other{{count} older dives skipped — already in your log}}",
   "@importWizard_review_olderDivesSkipped": {
     "description": "Title for the collapsed ExpansionTile summarizing auto-skipped dives that fall at or before the diver's first-sync cutoff",
@@ -14931,6 +15012,28 @@
   },
   "universalImport_summary_noticeSitesUnresolvedTitle": "Some dives have no dive site",
   "universalImport_summary_noticeSitesUnresolvedBody": "These dives referred to a dive site the file does not describe, so they were imported without one. You can set a site by editing the dive.",
+  "universalImport_summary_noticeGearUnavailableTitle": "Gear not imported",
+  "universalImport_summary_noticeGearUnavailableBody": "The gear list could not be fetched, so no gear was imported and dives were not linked to their gear. Import again later to add it.",
+  "universalImport_summary_noticeCertificationsUnavailableTitle": "Certifications not imported",
+  "universalImport_summary_noticeCertificationsUnavailableBody": "The certification list could not be fetched, so no certifications were imported. Import again later to add them.",
+  "universalImport_summary_noticePhotoListingsUnavailableTitle": "Some photos not listed",
+  "universalImport_summary_noticePhotoListingsUnavailableBody": "{count, plural, one{Photos for {count} dive could not be listed, so they were not imported.} other{Photos for {count} dives could not be listed, so they were not imported.}}",
+  "@universalImport_summary_noticePhotoListingsUnavailableBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "universalImport_summary_noticePhotosNotDownloadedTitle": "Some photos not downloaded",
+  "universalImport_summary_noticePhotosNotDownloadedBody": "{count, plural, one{{count} photo could not be downloaded. Import again to retry; photos already saved are not duplicated.} other{{count} photos could not be downloaded. Import again to retry; photos already saved are not duplicated.}}",
+  "@universalImport_summary_noticePhotosNotDownloadedBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "universalImport_summary_noticeMacdiveXmlCertsTitle": "Certifications and service records not in the file",
   "universalImport_summary_noticeMacdiveXmlCertsBody": "MacDive leaves certifications and equipment service records out of its XML export. To bring them in, import your MacDive.sqlite database.",
   "universalImport_summary_noticeMacdiveLogbooksTitle": "MacDive logbooks not imported",
@@ -18928,6 +19031,8 @@
   "attrLabel_battery_capacity_wh": "Battery capacity (Wh)",
   "attrLabel_motor_type": "Motor",
   "attrLabel_speed_mps": "Top speed",
+  "attrLabel_tow_burn_factor": "Tow burn factor",
+  "attrLabel_tow_speed_factor": "Tow speed factor",
   "attrLabel_sku": "SKU",
   "attrLabel_retailer": "Retailer",
   "attrLabel_product_url": "Web link",
@@ -25765,6 +25870,8 @@
   "transfer_importCloud_suuntoSubtitle": "Import dives from your Suunto app / app.suunto.com account",
   "transfer_importCloud_garminTitle": "Garmin",
   "transfer_importCloud_garminSubtitle": "Import dives from your Garmin Connect account",
+  "transfer_importCloud_divelogsTitle": "divelogs.de",
+  "transfer_importCloud_divelogsSubtitle": "Import your logbook, sites, gear, certifications and photos from divelogs.de",
   "transfer_section_cloudTitle": "Cloud",
   "transfer_section_cloudSubtitle": "Import from cloud",
   "settings_storageUsage_appBar_title": "Storage Usage",

@@ -934,9 +934,18 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       );
     }
 
-    final dupResult = await _checkDuplicatesOrEmpty(payload);
+    await _installPayload(payload);
+  }
 
-    // Build default selections: all selected, minus duplicates
+  /// Duplicate-checks [payload] and makes it the one the review steps act
+  /// on, with every row selected except the duplicates. Shared by file
+  /// parsing and [setExternalPayload] so both leave the notifier in the
+  /// same state.
+  Future<void> _installPayload(
+    ImportPayload payload, {
+    int remotePhotoCount = 0,
+  }) async {
+    final dupResult = await _checkDuplicatesOrEmpty(payload);
     final selections = _defaultSelections(payload, dupResult);
 
     state = state.copyWith(
@@ -946,6 +955,35 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       duplicateResult: dupResult,
       selections: selections,
       currentStep: ImportWizardStep.review,
+      remotePhotoCount: remotePhotoCount,
+    );
+  }
+
+  /// Installs a payload built outside file parsing, by a source that
+  /// fetches it itself (divelogs.de).
+  ///
+  /// Goes through the same surfacing-pressure rule and duplicate check a
+  /// parsed file does. Photo decisions from any earlier import are cleared,
+  /// and [remotePhotoCount] tells the Photos step how many photos the
+  /// source will download at import time. The caller only hands over a
+  /// payload with something in it; an empty fetch is its own message.
+  Future<void> setExternalPayload(
+    ImportPayload payload, {
+    int remotePhotoCount = 0,
+  }) async {
+    state = state.copyWith(
+      isLoading: true,
+      clearError: true,
+      photoPathsByBaseName: const {},
+      unmatchedPhotoCount: 0,
+      photosSkipped: false,
+      clearPhotoResolution: true,
+      clearPhotoFolderPath: true,
+      clearBundledPhotoFolderPath: true,
+    );
+    await _installPayload(
+      _applySurfacingPressureRule(payload),
+      remotePhotoCount: remotePhotoCount,
     );
   }
 

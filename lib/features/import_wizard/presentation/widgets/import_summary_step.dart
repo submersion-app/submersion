@@ -548,6 +548,30 @@ _FileNoticeWording? _fileNoticeWording(
     ),
     // No action button: Dive Numbering is a dialog on the dive list, not
     // a route, so the body tells the diver where to find it.
+    ImportNoticeKind.gearUnavailable => (
+      title: l10n.universalImport_summary_noticeGearUnavailableTitle,
+      body: l10n.universalImport_summary_noticeGearUnavailableBody,
+      action: null,
+    ),
+    ImportNoticeKind.certificationsUnavailable => (
+      title: l10n.universalImport_summary_noticeCertificationsUnavailableTitle,
+      body: l10n.universalImport_summary_noticeCertificationsUnavailableBody,
+      action: null,
+    ),
+    ImportNoticeKind.photoListingsUnavailable => (
+      title: l10n.universalImport_summary_noticePhotoListingsUnavailableTitle,
+      body: l10n.universalImport_summary_noticePhotoListingsUnavailableBody(
+        notice.count,
+      ),
+      action: null,
+    ),
+    ImportNoticeKind.photosNotDownloaded => (
+      title: l10n.universalImport_summary_noticePhotosNotDownloadedTitle,
+      body: l10n.universalImport_summary_noticePhotosNotDownloadedBody(
+        notice.count,
+      ),
+      action: null,
+    ),
     ImportNoticeKind.diveNumberConflict => (
       title: l10n.universalImport_summary_noticeDiveNumberConflictTitle,
       body: l10n.universalImport_summary_noticeDiveNumberConflictBody,

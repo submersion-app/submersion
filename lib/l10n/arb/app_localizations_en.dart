@@ -10353,6 +10353,136 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get divelogsImport_fetch_button => 'Fetch Logbook';
+
+  @override
+  String get divelogsImport_fetch_certificationsUnavailable =>
+      'Certifications could not be fetched and will not be imported.';
+
+  @override
+  String get divelogsImport_fetch_empty =>
+      'Your divelogs.de logbook has nothing to import.';
+
+  @override
+  String get divelogsImport_fetch_failedTitle => 'Could not fetch your logbook';
+
+  @override
+  String get divelogsImport_fetch_fetching => 'Fetching your logbook…';
+
+  @override
+  String divelogsImport_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Found $count dives',
+      one: 'Found $count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divelogsImport_fetch_foundPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos to import',
+      one: '$count photo to import',
+      zero: 'No photos to import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_gearUnavailable =>
+      'Gear could not be fetched; dives will import without gear links.';
+
+  @override
+  String get divelogsImport_fetch_includePhotos => 'Include photos';
+
+  @override
+  String get divelogsImport_fetch_includePhotosHint =>
+      'Photos are downloaded during the import into a folder you choose.';
+
+  @override
+  String divelogsImport_fetch_listingPhotos(int current, int total) {
+    return 'Listing photos for dive $current of $total…';
+  }
+
+  @override
+  String divelogsImport_fetch_photoListingsFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Photos for $count dives could not be listed.',
+      one: 'Photos for $count dive could not be listed.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_retry => 'Try Again';
+
+  @override
+  String get divelogsImport_fetch_sessionExpired =>
+      'Your divelogs.de session expired. Go back and sign in again.';
+
+  @override
+  String divelogsImport_fetch_skippedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives could not be read and will be skipped.',
+      one: '$count dive could not be read and will be skipped.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_signIn_badCredentials =>
+      'divelogs.de rejected the username or password.';
+
+  @override
+  String get divelogsImport_signIn_button => 'Sign In';
+
+  @override
+  String get divelogsImport_signIn_description =>
+      'Sign in with your divelogs.de account to import your logbook. Your password is never stored; only the resulting session is cached.';
+
+  @override
+  String get divelogsImport_signIn_passwordLabel => 'Password';
+
+  @override
+  String get divelogsImport_signIn_passwordRequired => 'Password is required';
+
+  @override
+  String divelogsImport_signIn_signedInAs(String username) {
+    return 'Signed in as $username';
+  }
+
+  @override
+  String get divelogsImport_signIn_signingIn => 'Signing in…';
+
+  @override
+  String get divelogsImport_signIn_signOut => 'Sign out';
+
+  @override
+  String get divelogsImport_signIn_title => 'Sign in to divelogs.de';
+
+  @override
+  String get divelogsImport_signIn_unexpected =>
+      'divelogs.de sent an unexpected response. Try again later.';
+
+  @override
+  String get divelogsImport_signIn_unreachable =>
+      'Could not reach divelogs.de. Check your connection and try again.';
+
+  @override
+  String get divelogsImport_signIn_usernameLabel => 'Username';
+
+  @override
+  String get divelogsImport_signIn_usernameRequired => 'Username is required';
+
+  @override
   String get divers_detail_activeDiver => 'Active Diver';
 
   @override
@@ -21582,6 +21712,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'That folder can\'t be written to. Choose another one.';
 
   @override
+  String importWizard_photos_downloadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos to download',
+      one: '$count photo to download',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String importWizard_review_olderDivesSkipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -23966,6 +24107,56 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get universalImport_summary_noticeSitesUnresolvedBody =>
       'These dives referred to a dive site the file does not describe, so they were imported without one. You can set a site by editing the dive.';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableTitle =>
+      'Gear not imported';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableBody =>
+      'The gear list could not be fetched, so no gear was imported and dives were not linked to their gear. Import again later to add it.';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableTitle =>
+      'Certifications not imported';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableBody =>
+      'The certification list could not be fetched, so no certifications were imported. Import again later to add them.';
+
+  @override
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
+      'Some photos not listed';
+
+  @override
+  String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Photos for $count dives could not be listed, so they were not imported.',
+      one:
+          'Photos for $count dive could not be listed, so they were not imported.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosNotDownloadedTitle =>
+      'Some photos not downloaded';
+
+  @override
+  String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count photos could not be downloaded. Import again to retry; photos already saved are not duplicated.',
+      one:
+          '$count photo could not be downloaded. Import again to retry; photos already saved are not duplicated.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
@@ -28620,6 +28811,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrLabel_speed_mps => 'Top speed';
+
+  @override
+  String get attrLabel_tow_burn_factor => 'Tow burn factor';
+
+  @override
+  String get attrLabel_tow_speed_factor => 'Tow speed factor';
 
   @override
   String get attrLabel_sku => 'SKU';
@@ -41035,6 +41232,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get transfer_importCloud_garminSubtitle =>
       'Import dives from your Garmin Connect account';
+
+  @override
+  String get transfer_importCloud_divelogsTitle => 'divelogs.de';
+
+  @override
+  String get transfer_importCloud_divelogsSubtitle =>
+      'Import your logbook, sites, gear, certifications and photos from divelogs.de';
 
   @override
   String get transfer_section_cloudTitle => 'Cloud';

@@ -168,6 +168,7 @@ import 'package:submersion/features/dive_computer/presentation/providers/downloa
     show diveImportServiceProvider;
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
+import 'package:submersion/features/import_wizard/data/adapters/divelogs_import_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/garmin_cloud_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_cloud_adapter.dart';
 import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.dart';
@@ -957,6 +958,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'importFromCloudGarmin',
                 builder: (context, state) =>
                     const _GarminCloudImportWizardRoute(),
+              ),
+              GoRoute(
+                path: 'import-cloud/divelogs',
+                name: 'importFromCloudDivelogs',
+                builder: (context, state) => const _DivelogsImportWizardRoute(),
               ),
             ],
           ),
@@ -1851,6 +1857,17 @@ class _GarminCloudImportWizardRoute extends ConsumerWidget {
         ref: ref,
       ),
     );
+  }
+}
+
+/// Wrapper that creates a [DivelogsImportAdapter], for importing a logbook
+/// from a divelogs.de account.
+class _DivelogsImportWizardRoute extends ConsumerWidget {
+  const _DivelogsImportWizardRoute();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return UnifiedImportWizard(adapter: DivelogsImportAdapter(ref: ref));
   }
 }
 
