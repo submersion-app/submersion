@@ -95,7 +95,8 @@ Future<void> printPassportLabels(
           if (item.serialNumber?.isNotEmpty ?? false) item.serialNumber!,
         ].join(' '),
         specLine: [
-          if (item.volumeL != null) units.formatVolume(item.volumeL),
+          if (item.volumeL != null)
+            units.formatTankVolume(item.volumeL, item.workingPressureBar),
           if (item.workingPressureBar != null)
             units.formatPressure(item.workingPressureBar),
           if (material != null)
