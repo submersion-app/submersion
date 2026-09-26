@@ -64,6 +64,26 @@ void main() {
       );
     });
 
+    test('the gas mass follows the diver gas model, like free gas', () {
+      // Real gas holds less at 232 bar than the ideal law says, so a full
+      // cylinder under the real model is lighter by exactly that gas.
+      final real = PassportSpecMetrics.compute(
+        volumeL: 12,
+        workingPressureBar: 232,
+        material: TankMaterial.steel,
+        gasModel: GasModel.real,
+      );
+      final density = GasDensity.mixDensityKgPerLBar(
+        o2Percent: 21,
+        hePercent: 0,
+      );
+      expect(
+        real.emptyBuoyancyKg! - real.fullBuoyancyKg!,
+        closeTo(real.freeGasLiters! * density, 1e-9),
+      );
+      expect(real.freeGasLiters!, lessThan(12 * 232));
+    });
+
     test('without a volume nothing is derived', () {
       final m = PassportSpecMetrics.compute(gasModel: GasModel.real);
       expect(m.freeGasLiters, isNull);

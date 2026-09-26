@@ -49,21 +49,24 @@ class PassportSpecMetrics extends Equatable {
     if (workingPressureBar == null) {
       return PassportSpecMetrics(emptyBuoyancyKg: empty);
     }
+    // The same gas model for both figures: free gas in litres at 1 bar, and
+    // its mass at the surface density, so the full-cylinder buoyancy agrees
+    // with the free gas the diver sees on the line above.
+    final freeGas = gasVolume(
+      tankSizeLiters: volumeL,
+      pressureBar: workingPressureBar,
+      o2Percent: o2Percent,
+      hePercent: hePercent,
+      model: gasModel,
+    );
     final gasMass =
-        volumeL *
-        workingPressureBar *
+        freeGas *
         GasDensity.mixDensityKgPerLBar(
           o2Percent: o2Percent,
           hePercent: hePercent,
         );
     return PassportSpecMetrics(
-      freeGasLiters: gasVolume(
-        tankSizeLiters: volumeL,
-        pressureBar: workingPressureBar,
-        o2Percent: o2Percent,
-        hePercent: hePercent,
-        model: gasModel,
-      ),
+      freeGasLiters: freeGas,
       emptyBuoyancyKg: empty,
       fullBuoyancyKg: empty - gasMass,
     );

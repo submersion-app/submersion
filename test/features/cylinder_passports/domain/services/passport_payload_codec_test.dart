@@ -195,4 +195,23 @@ void main() {
       'X' * CylinderPassportPayload.maxSerialLength,
     );
   });
+
+  test('reads the tag whatever the scheme case, http, or a www host', () {
+    for (final text in [
+      'HTTPS://SUBMERSION.APP/c#f=1&p=$id',
+      'http://submersion.app/c#f=1&p=$id',
+      'https://www.submersion.app/c#f=1&p=$id',
+      'Submersion://c?f=1&p=$id',
+    ]) {
+      final result = PassportPayloadCodec.decode(text);
+      expect((result as PassportDecoded).payload.passportId, id, reason: text);
+    }
+  });
+
+  test('another host is never a tag', () {
+    final result = PassportPayloadCodec.decode(
+      'https://submersion.app.evil.example/c#f=1&p=$id',
+    );
+    expect((result as PassportRejected).reason, PassportRejectReason.notATag);
+  });
 }

@@ -137,28 +137,41 @@ abstract final class PassportPayloadCodec {
   static String httpsUrl(CylinderPassportPayload p) =>
       '$httpsPrefix#${encode(p)}';
 
+  /// Hosts a written tag may name; `www.` is what some scanners prepend.
+  static const Set<String> _tagHosts = {'submersion.app', 'www.submersion.app'};
+
   /// The payload part of [text], or null when [text] is not a tag in either
   /// URL form and not a bare query string.
+  ///
+  /// The URL is parsed rather than prefix-matched, so the scheme and host
+  /// match in any case (scanners and keyboards upper-case them), `http` and a
+  /// `www.` host are accepted, and the path must be exactly `/c`: a longer
+  /// path or any other host is some other page.
   static String? extractQuery(String text) {
     final s = text.trim();
-    String? rest;
-    if (s.startsWith(httpsPrefix)) {
-      rest = s.substring(httpsPrefix.length);
-    } else if (s.startsWith(schemePrefix)) {
-      rest = s.substring(schemePrefix.length);
-    }
-    if (rest != null) {
-      if (rest.startsWith('/')) rest = rest.substring(1);
-      // The path ends at /c: anything else on the host (/cfoo, /community,
-      // /c/extra) is some other page, not a cylinder tag.
-      if (rest.isNotEmpty && !rest.startsWith('#') && !rest.startsWith('?')) {
-        return null;
-      }
-      final hash = rest.indexOf('#');
-      if (hash >= 0) return rest.substring(hash + 1);
-      final q = rest.indexOf('?');
-      if (q >= 0) return rest.substring(q + 1);
-      return rest.isEmpty ? null : rest;
+    if (s.contains('://')) {
+      final uri = Uri.tryParse(s);
+      if (uri == null) return null;
+      final scheme = uri.scheme.toLowerCase();
+      final host = uri.host.toLowerCase();
+      final path = uri.path;
+      final isWeb =
+          (scheme == 'https' || scheme == 'http') &&
+          _tagHosts.contains(host) &&
+          (path == '/c' || path == '/c/');
+      final isApp =
+          scheme == 'submersion' &&
+          host == 'c' &&
+          (path.isEmpty || path == '/');
+      if (!isWeb && !isApp) return null;
+      // The payload comes from the raw text, not from `uri`: the parser
+      // repairs a stray '%' into '%25', which would turn a broken link into
+      // a wrong name instead of a refusal.
+      final hash = s.indexOf('#');
+      if (hash >= 0) return hash + 1 < s.length ? s.substring(hash + 1) : null;
+      final q = s.indexOf('?');
+      if (q >= 0) return q + 1 < s.length ? s.substring(q + 1) : null;
+      return null;
     }
     // A bare payload: the first pair must be a known key.
     final firstKey = s.split('&').first.split('=').first;
