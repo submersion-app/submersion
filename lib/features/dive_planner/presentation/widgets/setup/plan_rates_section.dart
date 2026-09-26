@@ -95,7 +95,7 @@ class _RateField extends StatelessWidget {
   Widget build(BuildContext context) {
     // Work the field in the diver's depth unit per minute; storage stays
     // m/min.
-    final suffix = '${units.depthSymbol}/min';
+    final suffix = units.depthRateSymbol;
     return PlanNumberField(
       label: label,
       value: units.convertDepth(value),

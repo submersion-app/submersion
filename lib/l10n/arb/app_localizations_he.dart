@@ -25412,7 +25412,7 @@ class AppLocalizationsHe extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'עלייה $from → $to בקצב $rate/דקה';
+    return 'עלייה $from → $to בקצב $rate';
   }
 
   @override
@@ -25426,7 +25426,7 @@ class AppLocalizationsHe extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'ירידה $from → $to בקצב $rate/דקה';
+    return 'ירידה $from → $to בקצב $rate';
   }
 
   @override
@@ -28976,7 +28976,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'הוסף נפח בלון כדי להציג RMV ב-$unit/min';
+    return 'הוסף נפח בלון כדי להציג RMV ב-$unit';
   }
 
   @override

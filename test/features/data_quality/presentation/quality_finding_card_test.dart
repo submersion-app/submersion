@@ -29,6 +29,7 @@ QualityFinding _finding({
 
 const _formatters = QualityUnitFormatters(
   depth: _fmt,
+  depthRate: _fmt,
   pressure: _fmt,
   temperature: _fmt,
   sac: _fmt,

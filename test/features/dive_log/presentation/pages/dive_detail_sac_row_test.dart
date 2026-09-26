@@ -167,7 +167,7 @@ void main() {
 
       expect(find.text('1.5 bar/min'), findsOneWidget);
       expect(
-        find.text(l10nOf(tester).diveLog_detail_sacVolumeHint('L')),
+        find.text(l10nOf(tester).diveLog_detail_sacVolumeHint('L/min')),
         findsOneWidget,
       );
     });
@@ -185,7 +185,7 @@ void main() {
       );
 
       expect(
-        find.text(l10nOf(tester).diveLog_detail_sacVolumeHint('cuft')),
+        find.text(l10nOf(tester).diveLog_detail_sacVolumeHint('cuft/min')),
         findsOneWidget,
       );
     });

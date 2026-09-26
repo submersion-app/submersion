@@ -41537,7 +41537,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_segmentEditor_derivedAscent.
   ///
   /// In en, this message translates to:
-  /// **'Ascent {from} → {to} at {rate}/min'**
+  /// **'Ascent {from} → {to} at {rate}'**
   String divePlanner_segmentEditor_derivedAscent(
     Object from,
     Object to,
@@ -41553,7 +41553,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_segmentEditor_derivedDescent.
   ///
   /// In en, this message translates to:
-  /// **'Descent {from} → {to} at {rate}/min'**
+  /// **'Descent {from} → {to} at {rate}'**
   String divePlanner_segmentEditor_derivedDescent(
     Object from,
     Object to,
@@ -47623,7 +47623,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_detail_sacVolumeHint.
   ///
   /// In en, this message translates to:
-  /// **'Add a cylinder volume to show RMV in {unit}/min'**
+  /// **'Add a cylinder volume to show RMV in {unit}'**
   String diveLog_detail_sacVolumeHint(String unit);
 
   /// No description provided for @safetyHub_alert_noFly.

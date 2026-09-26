@@ -54,7 +54,7 @@ String attributeUnitSymbol(AttributeDimension d, UnitFormatter units) =>
       AttributeDimension.lengthM ||
       AttributeDimension.depthM => units.depthSymbol,
       AttributeDimension.shortLengthM => units.shortLengthSymbol,
-      AttributeDimension.speedMps => '${units.depthSymbol}/min',
+      AttributeDimension.speedMps => units.depthRateSymbol,
       AttributeDimension.durationH => 'min',
       AttributeDimension.thicknessMm => 'mm',
       AttributeDimension.none => '',
