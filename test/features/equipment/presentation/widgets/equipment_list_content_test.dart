@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -345,6 +347,45 @@ void main() {
           ),
           findsOneWidget,
         );
+      });
+
+      testWidgets('Share with shares the selection and reports it', (
+        tester,
+      ) async {
+        final shares = _RecordingShareRepository();
+        await tester.pumpWidget(
+          await host(
+            const [own, hers],
+            divers: divers,
+            activeDiverId: 'owner',
+            extraOverrides: [
+              equipmentShareRepositoryProvider.overrideWithValue(shares),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('enter_selection')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Aaa BCD'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_menu_share')));
+        await tester.pumpAndSettle();
+
+        // Only the other profiles are offered.
+        expect(find.widgetWithText(CheckboxListTile, 'Bill'), findsNothing);
+        await tester.tap(find.widgetWithText(CheckboxListTile, 'Anna'));
+        await tester.pump();
+        await tester.tap(find.widgetWithText(FilledButton, 'Share'));
+        await tester.pumpAndSettle();
+
+        // Records holding lists compare by identity, so check each field.
+        expect(shares.calls, hasLength(1));
+        expect(shares.calls.single.equipmentIds, ['mine']);
+        expect(shares.calls.single.diverIds, ['wife']);
+        expect(shares.calls.single.actingDiverId, 'owner');
+        expect(find.text('Shared 1 item'), findsOneWidget);
       });
 
       testWidgets('no Share with action with a single profile', (tester) async {
@@ -2534,4 +2575,30 @@ class _BrokenEquipmentRepository extends EquipmentRepository {
   @override
   Future<List<EquipmentItem>> getEquipmentByIds(List<String> ids) async =>
       throw StateError('database is locked');
+}
+
+/// Records bulk shares instead of writing them (issue #2046).
+class _RecordingShareRepository extends EquipmentShareRepository {
+  final calls =
+      <
+        ({
+          List<String> equipmentIds,
+          List<String> diverIds,
+          String actingDiverId,
+        })
+      >[];
+
+  @override
+  Future<EquipmentShareResult> shareMany({
+    required List<String> equipmentIds,
+    required List<String> diverIds,
+    required String actingDiverId,
+  }) async {
+    calls.add((
+      equipmentIds: equipmentIds,
+      diverIds: diverIds,
+      actingDiverId: actingDiverId,
+    ));
+    return const EquipmentShareResult(added: 1, itemsChanged: 1);
+  }
 }

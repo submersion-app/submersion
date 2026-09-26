@@ -55,6 +55,7 @@ void main() {
   Future<ProviderContainer> pump(
     WidgetTester tester, {
     List<Diver>? divers,
+    List<EquipmentHistoryEntry>? history,
   }) async {
     final router = GoRouter(
       initialLocation: '/',
@@ -79,7 +80,9 @@ void main() {
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           allDiversProvider.overrideWith((ref) async => divers ?? [bill, anna]),
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'owner'),
-          equipmentHistoryProvider('x').overrideWith((ref) async => entries),
+          equipmentHistoryProvider(
+            'x',
+          ).overrideWith((ref) async => history ?? entries),
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -127,5 +130,44 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('dive list'), findsOneWidget);
     expect(container.read(diveFilterProvider).equipmentIds, ['x']);
+  });
+
+  testWidgets('names both sides of a transfer and an unshare', (tester) async {
+    await pump(
+      tester,
+      history: [
+        EquipmentEventEntry(
+          EquipmentOwnershipEvent(
+            id: 't',
+            equipmentId: 'x',
+            kind: EquipmentOwnershipEventKind.transferred,
+            fromDiverId: 'owner',
+            toDiverId: 'wife',
+            occurredAt: DateTime(2026, 5, 1),
+          ),
+        ),
+        EquipmentEventEntry(
+          EquipmentOwnershipEvent(
+            id: 'u',
+            equipmentId: 'x',
+            kind: EquipmentOwnershipEventKind.unshared,
+            fromDiverId: 'owner',
+            toDiverId: 'wife',
+            occurredAt: DateTime(2026, 4, 1),
+          ),
+        ),
+      ],
+    );
+    expect(find.text('Transferred from Bill to Anna'), findsOneWidget);
+    expect(find.text('Stopped sharing with Anna'), findsOneWidget);
+  });
+
+  testWidgets('an item not used on any dive says so', (tester) async {
+    await pump(
+      tester,
+      history: [EquipmentAddedEntry(ownerId: 'owner', at: DateTime(2026))],
+    );
+    expect(find.text('Not used on any dive yet'), findsOneWidget);
+    expect(find.text('Added by Bill'), findsOneWidget);
   });
 }
