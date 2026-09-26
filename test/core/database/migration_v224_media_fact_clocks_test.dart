@@ -71,7 +71,10 @@ void main() {
     // semantics are not. A pre-v224 reader knows nothing of the fact clocks
     // and blind-upserts media, so a fact-only export from this build would
     // overwrite a caption that reader holds and we do not have.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(224),
+    );
   });
 
   test(

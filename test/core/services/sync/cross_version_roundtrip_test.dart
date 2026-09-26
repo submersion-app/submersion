@@ -24,6 +24,13 @@
 // arriving here, has nothing new to carry: that peer cannot delete such an
 // item, and its live tank rows meet the parentRefs guard, which
 // sync_deletion_propagation_test.dart covers for this link.
+//
+// The floor moved 224 -> 233 with scoped event tombstones (#1926): this
+// build replaces a dive's per-event tombstones with one tombstone for the
+// whole set, which an older reader stores as an inert unknown type, leaving
+// the events on that device for good. The direction the floor cannot reach,
+// an older peer republishing events we scope-deleted, is the merge guard's
+// job; the last group below covers it.
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -34,6 +41,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
@@ -591,5 +599,83 @@ void main() {
         expect(after['anchorSetAt'], row['anchorSetAt']);
       },
     );
+  });
+
+  group('pre-v233 peer and scoped event tombstones', () {
+    late FakeCloudStorageProvider cloud;
+
+    setUp(() async {
+      await setUpTestDatabase();
+      cloud = FakeCloudStorageProvider();
+    });
+
+    tearDown(() => DatabaseService.instance.resetForTesting());
+
+    test('the floor holds readers that cannot apply a scope', () {
+      expect(
+        AppDatabase.minimumCompatibleSchemaVersion,
+        greaterThanOrEqualTo(233),
+      );
+    });
+
+    test('an older peer cannot bring scope-deleted events back', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        'INSERT INTO dive_profile_events '
+        '(id, dive_id, timestamp, event_type, created_at) '
+        "VALUES ('e-old', 'd1', 60, 'bookmark', 1000)",
+      );
+      final row = (await SyncDataSerializer().fetchRecord(
+        'diveProfileEvents',
+        'e-old',
+      ))!;
+      // A pre-v210 writer's shape: it has no event clock at all.
+      final oldPeerRow = Map<String, dynamic>.from(row)..remove('hlc');
+
+      // This device replaced the dive's events: one scope tombstone.
+      await db.customStatement("DELETE FROM dive_profile_events");
+      await SyncRepository().logScopedDeletion(
+        const EventScopeTombstone(diveId: 'd1'),
+      );
+      await SyncRepository().clearAllSyncRecords();
+
+      final later = DateTime.now()
+          .add(const Duration(hours: 1))
+          .millisecondsSinceEpoch;
+      final data = SyncData(
+        diveProfileEvents: [
+          oldPeerRow,
+          {...oldPeerRow, 'id': 'e-after', 'createdAt': later},
+        ],
+      );
+      await seedPeerBaseFromPayload(
+        cloud,
+        'peer-old',
+        SyncPayload(
+          version: syncFormatVersion,
+          exportedAt: later,
+          deviceId: 'peer-old',
+          checksum: sha256
+              .convert(utf8.encode(jsonEncode(data.toJson())))
+              .toString(),
+          data: data,
+          deletions: const {},
+        ),
+      );
+      final result = await SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+        cloudProvider: cloud,
+      ).performSync();
+      expect(result.status, isNot(SyncResultStatus.error));
+
+      final ids = (await db.select(db.diveProfileEvents).get()).map(
+        (e) => e.id,
+      );
+      expect(ids, ['e-after']);
+    });
   });
 }

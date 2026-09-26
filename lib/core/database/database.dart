@@ -4459,7 +4459,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 231;
+  static const int currentSchemaVersion = 233;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4535,7 +4535,17 @@ class AppDatabase extends _$AppDatabase {
   /// payloads still arrive here, and this build's merge reads a missing fact
   /// clock as the row clock, so an old peer's writes still order correctly
   /// (media sync program spec 5.1).
-  static const int minimumCompatibleSchemaVersion = 224;
+  ///
+  /// Raised 224 -> 233 by scoped event tombstones (#1926): this build
+  /// replaces the per-row tombstones a split, re-import or re-parse wrote for
+  /// a dive's events with one tombstone for the whole set. An older reader
+  /// knows nothing of the scope type and stores it as an inert unknown
+  /// entity, so the events it names stay on that device for good. That is an
+  /// old reader misapplying our payload, which is what this floor exists to
+  /// prevent. Peers below 233 are held until they update; their own payloads
+  /// still arrive here, and the merge's scope guard keeps their copies of
+  /// deleted events from coming back.
+  static const int minimumCompatibleSchemaVersion = 233;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -5139,6 +5149,10 @@ class AppDatabase extends _$AppDatabase {
     // (#1772) as 230 while this was open, and 229 is claimed by #2372,
     // #2331 and #2407.
     231,
+    // v233: idx_dive_profile_events_dive_id for scoped event tombstones
+    // (#1926), which delete and match events by dive; also raises the floor
+    // to 233. 232 is claimed by open PRs #2411, #2407 and #2331.
+    233,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -5558,6 +5572,17 @@ class AppDatabase extends _$AppDatabase {
   /// 2026-09-10-underwater-nav-track-design.md, issues #1195, #1445).
   /// Idempotent (createTable is IF NOT EXISTS); called from the v230
   /// onUpgrade step and the beforeOpen backstop.
+  /// v233: scoped event tombstones select events by dive (#1926). Guarded
+  /// on the table, as the other backstops are, for migration fixtures that
+  /// build only part of the schema.
+  Future<void> _assertProfileEventsDiveIdIndex() async {
+    if (!await _tableExists('dive_profile_events')) return;
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_dive_profile_events_dive_id '
+      'ON dive_profile_events (dive_id)',
+    );
+  }
+
   Future<void> _assertNavTracksSchema() async {
     await createMigrator().createTable(navTracks);
     // Added after the table first shipped on development builds of the
@@ -12843,8 +12868,19 @@ class AppDatabase extends _$AppDatabase {
           await _assertCcrPpO2LimitColumns();
         }
         if (from < 231) await reportProgress();
+        // v233: index dive_profile_events by dive (#1926). Scoped event
+        // tombstones delete and match events by dive, and the table had no
+        // index on it. Index-only rung; the floor rise it ships with is for
+        // the tombstones, not for this. Re-asserted in beforeOpen.
+        if (from < 233) {
+          await _assertProfileEventsDiveIdIndex();
+        }
+        if (from < 233) await reportProgress();
       },
       beforeOpen: (details) async {
+        // v233 backstop: the events-by-dive index.
+        await _assertProfileEventsDiveIdIndex();
+
         // v227 backstop: the hidden built-in tank presets.
         await _assertHiddenTankPresetIdsColumn();
 

@@ -13,13 +13,16 @@ void main() {
   test('v231 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 231);
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(231));
     expect(AppDatabase.migrationVersions, contains(231));
-    expect(AppDatabase.migrationStepCount(230), 1);
+    expect(AppDatabase.migrationStepCount(230), greaterThanOrEqualTo(1));
   });
 
   test('the columns are additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(224),
+    );
   });
 
   test('a fresh database has the CCR ppO2 limits with defaults', () async {

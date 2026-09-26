@@ -88,7 +88,10 @@ void main() {
     expect(AppDatabase.migrationVersions, contains(228));
     expect(AppDatabase.migrationStepCount(227), greaterThanOrEqualTo(1));
     // Additive rung: the sync compatibility floor must not move.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(224),
+    );
   });
 
   test('adds the cylinder_fills table', () async {

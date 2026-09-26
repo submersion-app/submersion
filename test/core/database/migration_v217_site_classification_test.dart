@@ -61,7 +61,10 @@ void main() {
     // Additive rung: the sync compatibility floor must not move.
     // The floor moved to 224 with the media fact clocks; this rung
     // still did not move it.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(224),
+    );
   });
 
   test('creates the three site classification tables', () async {
