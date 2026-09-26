@@ -378,4 +378,109 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
   });
+
+  testWidgets('a renewal refused for bad credentials hands back to sign in', (
+    tester,
+  ) async {
+    await withPlatform(TargetPlatform.macOS, () async {
+      await pumpStep(
+        tester,
+        client(
+          token: () async => throw const DivelogsAuthException(
+            DivelogsAuthFailure.badCredentials,
+          ),
+        ),
+      );
+      await fetch(tester);
+
+      expect(expiredCalls, 1);
+    });
+  });
+
+  testWidgets('a renewal that cannot reach divelogs.de offers a retry', (
+    tester,
+  ) async {
+    await withPlatform(TargetPlatform.macOS, () async {
+      await pumpStep(
+        tester,
+        client(
+          token: () async => throw const DivelogsAuthException(
+            DivelogsAuthFailure.unreachable,
+          ),
+        ),
+      );
+      await fetch(tester);
+
+      expect(expiredCalls, 0);
+      expect(find.text('Try Again'), findsOneWidget);
+    });
+  });
+
+  testWidgets('leaving the step while the payload installs is harmless', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    container.dispose();
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        settingsProvider.overrideWith(
+          (ref) => MockSettingsNotifier(const AppSettings()),
+        ),
+        universalImportNotifierProvider.overrideWith(
+          (ref) => _GatedNotifier(ref, gate.future),
+        ),
+      ],
+    );
+    await withPlatform(TargetPlatform.macOS, () async {
+      await pumpStep(tester, client());
+      await tester.tap(find.text('Fetch Logbook'));
+      for (var i = 0; i < 20; i++) {
+        await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+        await tester.pump();
+      }
+
+      // The diver backs out while the duplicate check is still running.
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: SizedBox.shrink()),
+        ),
+      );
+      gate.complete();
+      for (var i = 0; i < 20; i++) {
+        await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+        await tester.pump();
+      }
+
+      expect(tester.takeException(), isNull);
+      // The install did run to the end, so the disposed-step path was hit.
+      expect(
+        container.read(universalImportNotifierProvider).payload,
+        isNotNull,
+      );
+    });
+  });
+}
+
+/// Holds the payload install until [_gate] completes, standing in for a
+/// duplicate check that is still reading the library.
+class _GatedNotifier extends UniversalImportNotifier {
+  _GatedNotifier(super.ref, this._gate);
+
+  final Future<void> _gate;
+
+  @override
+  Future<void> setExternalPayload(
+    ImportPayload payload, {
+    int remotePhotoCount = 0,
+  }) async {
+    await _gate;
+    return super.setExternalPayload(
+      payload,
+      remotePhotoCount: remotePhotoCount,
+    );
+  }
 }

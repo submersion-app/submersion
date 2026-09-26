@@ -264,6 +264,25 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(container.read(divelogsSignedInProvider), isFalse);
   });
+
+  testWidgets('a keychain that cannot be read still shows the form', (
+    tester,
+  ) async {
+    container.dispose();
+    container = ProviderContainer(
+      overrides: [
+        divelogsSessionStoreProvider.overrideWithValue(_UnreadableStore()),
+        divelogsHttpClientProvider.overrideWithValue(
+          MockClient((_) async => fail('no request expected')),
+        ),
+      ],
+    );
+
+    await pumpStep(tester);
+
+    expect(find.text('Sign in to divelogs.de'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
 }
 
 /// A keychain that refuses every write, as a macOS build without the
@@ -274,4 +293,13 @@ class _BrokenStore extends DivelogsSessionStore {
   @override
   Future<void> save(DivelogsSession session) async =>
       throw PlatformException(code: 'keychain', message: 'denied');
+}
+
+/// A keychain whose reads fail, as a locked or unentitled one does.
+class _UnreadableStore extends DivelogsSessionStore {
+  _UnreadableStore() : super(storage: InMemoryKeychain());
+
+  @override
+  Future<DivelogsSession?> load() async =>
+      throw PlatformException(code: 'keychain', message: 'locked');
 }

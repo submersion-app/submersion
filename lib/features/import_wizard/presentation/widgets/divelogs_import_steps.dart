@@ -95,7 +95,15 @@ class _DivelogsSignInStepState extends ConsumerState<DivelogsSignInStep> {
 
   Future<void> _tryCachedSession() async {
     final auth = _newAuth();
-    final restored = await auth.restore();
+    final bool restored;
+    try {
+      restored = await auth.restore();
+    } catch (e) {
+      // An unreadable keychain only costs the cached session: offer the form.
+      _log.warning('Could not read the divelogs.de session: ${e.runtimeType}');
+      if (mounted) setState(() => _checkingCachedSession = false);
+      return;
+    }
     if (!mounted) return;
     if (!restored) {
       setState(() => _checkingCachedSession = false);
@@ -402,6 +410,9 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
             result.payload,
             remotePhotoCount: result.photoCount,
           );
+      // A step disposed mid-install must not touch its ref; the fetched
+      // flag it would set is what gates the import, and it stays false.
+      if (!mounted) return;
       if (sessionChanged()) {
         // The session changed while the payload was being installed; the
         // change already reset the notifier, so drop what landed after it.
@@ -422,8 +433,13 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
     } on DivelogsApiException {
       if (!mounted) return;
       setState(() => _phase = _FetchPhase.failed);
-    } on DivelogsAuthException {
-      // A token renewal mid-fetch could not reach divelogs.de.
+    } on DivelogsAuthException catch (e) {
+      // Renewing the token mid-fetch failed. Refused credentials (the
+      // password changed) end the session; anything else is worth a retry.
+      if (e.reason == DivelogsAuthFailure.badCredentials) {
+        _markExpired();
+        return;
+      }
       if (!mounted) return;
       setState(() => _phase = _FetchPhase.failed);
     } catch (e) {
