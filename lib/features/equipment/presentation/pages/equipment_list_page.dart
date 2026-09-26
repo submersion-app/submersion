@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/scan_tag_menu_entries.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -304,7 +305,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
       PopupMenuButton<String>(
         icon: Icon(Icons.more_vert, size: iconSize),
         onSelected: (value) {
-          if (value == _scanTagMenuValue) {
+          if (value == scanTagMenuValue) {
             scanAndOpenCylinderTag(context, ref);
           } else if (value == _selectMenuValue) {
             onSelect?.call();
@@ -316,19 +317,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         itemBuilder: (context) {
           final currentMode = ref.read(equipmentListViewModeProvider);
           return [
-            PopupMenuItem<String>(
-              key: const ValueKey('equipment_menu_scanTag'),
-              value: _scanTagMenuValue,
-              child: Row(
-                children: [
-                  const Icon(Icons.qr_code_scanner, size: 20),
-                  const SizedBox(width: 12),
-                  // Wraps rather than overflows: some translations are long.
-                  Flexible(child: Text(context.l10n.passport_scan_title)),
-                ],
-              ),
-            ),
-            const PopupMenuDivider(),
+            ...scanTagMenuEntries(context),
             if (onSelect != null) ...[
               PopupMenuItem<String>(
                 value: _selectMenuValue,
@@ -359,7 +348,6 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
   }
 
   static const String _selectMenuValue = 'select_items';
-  static const String _scanTagMenuValue = 'scan_tag';
 
   Widget _buildMasterDetailLayout(BuildContext context) {
     return _isEquipmentTab
