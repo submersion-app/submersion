@@ -3294,6 +3294,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get connections_tooltip_relayout => 'Reorganizar';
 
   @override
+  String get connections_tooltip_showWholeWeb => 'Voltar ao mapa completo';
+
+  @override
   String connections_filterBar_nodes(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -3417,6 +3420,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String connections_semantics_summary(int nodes, int edges) {
     return '$nodes elementos e $edges ligações';
+  }
+
+  @override
+  String connections_semantics_selected(String label) {
+    return 'Selecionado: $label';
   }
 
   @override

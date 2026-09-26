@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
@@ -60,5 +62,25 @@ void main() {
     expect(e.otherEnd(_b('a')), _b('b'));
     expect(e.otherEnd(_b('b')), _b('a'));
     expect(e.otherEnd(_b('z')), isNull);
+  });
+
+  test('node equality compares photos by identity, not by bytes', () {
+    final bytesA = Uint8List.fromList(List.filled(64, 7));
+    final bytesB = Uint8List.fromList(List.filled(64, 7));
+    final a = ConnectionNode(
+      ref: _b('x'),
+      label: 'X',
+      diveCount: 1,
+      photo: bytesA,
+    );
+    expect(
+      a,
+      ConnectionNode(ref: _b('x'), label: 'X', diveCount: 1, photo: bytesA),
+    );
+    expect(
+      a ==
+          ConnectionNode(ref: _b('x'), label: 'X', diveCount: 1, photo: bytesB),
+      isFalse,
+    );
   });
 }

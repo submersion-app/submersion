@@ -101,9 +101,12 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   }
 
   void _warnFocusMissing() {
-    if (_focusWarned || !mounted) return;
-    _focusWarned = true;
+    if (!mounted) return;
+    // The reset always runs: a focus can vanish more than once in one page
+    // lifetime (a deep link, then a buddy deleted while the page is open).
     ref.read(connectionsFocusProvider.notifier).state = null;
+    if (_focusWarned) return;
+    _focusWarned = true;
     // initState has no Scaffold above it yet; the snackbar waits a frame.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -130,28 +133,51 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     );
   }
 
+  /// Raises the node budget to [ConnectionsPage.maxBudget]. Only a graph
+  /// larger than the ceiling asks first, because only then can the layout
+  /// get slow.
   Future<void> _showAll(int total) async {
-    final l10n = context.l10n;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.connections_showAll_confirmTitle),
-        content: Text(l10n.connections_showAll_confirmBody(total)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.common_action_cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.connections_showAll),
-          ),
-        ],
-      ),
-    );
-    if (ok == true && mounted) {
+    if (total > ConnectionsPage.maxBudget) {
+      final l10n = context.l10n;
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(l10n.connections_showAll_confirmTitle),
+          content: Text(l10n.connections_showAll_confirmBody(total)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l10n.common_action_cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l10n.connections_showAll),
+            ),
+          ],
+        ),
+      );
+      if (ok != true) return;
+    }
+    if (mounted) {
       setState(() => _budgetOverride = ConnectionsPage.maxBudget);
     }
+  }
+
+  /// The canvas's accessible summary: counts, then the selection by name.
+  String _semanticsLabel(ConnectionGraph graph, GraphSelection? selection) {
+    final l10n = context.l10n;
+    final summary = l10n.connections_semantics_summary(
+      graph.nodes.length,
+      graph.edges.length,
+    );
+    final String? selected = switch (selection) {
+      null => null,
+      NodeSelection(:final ref) => graph.nodeFor(ref)?.label,
+      EdgeSelection(:final a, :final b) =>
+        '${graph.nodeFor(a)?.label ?? a.id}, ${graph.nodeFor(b)?.label ?? b.id}',
+    };
+    if (selected == null) return summary;
+    return '$summary. ${l10n.connections_semantics_selected(selected)}';
   }
 
   @override
@@ -217,10 +243,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
             controller: _layout,
             colors: colors,
             selection: selection,
-            semanticsLabel: l10n.connections_semantics_summary(
-              graph.nodes.length,
-              graph.edges.length,
-            ),
+            semanticsLabel: _semanticsLabel(graph, selection),
             onSelect: (s) =>
                 ref.read(connectionsSelectionProvider.notifier).state = s,
             onFocus: (node) {
@@ -252,8 +275,11 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
                 top: 12,
                 child: HiddenNodesChip(
                   count: graph.hiddenNodeCount,
-                  onShowAll: () =>
-                      _showAll(graph.nodes.length + graph.hiddenNodeCount),
+                  onShowAll: budget >= ConnectionsPage.maxBudget
+                      ? null
+                      : () => _showAll(
+                          graph.nodes.length + graph.hiddenNodeCount,
+                        ),
                 ),
               ),
               if (!wide && selection != null)
@@ -303,7 +329,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
           if (focus != null)
             IconButton(
               icon: const Icon(Icons.zoom_out_map),
-              tooltip: l10n.connections_tooltip_relayout,
+              tooltip: l10n.connections_tooltip_showWholeWeb,
               onPressed: () {
                 ref.read(connectionsFocusProvider.notifier).state = null;
                 ref.read(connectionsSelectionProvider.notifier).state = null;

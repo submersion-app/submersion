@@ -5337,6 +5337,12 @@ abstract class AppLocalizations {
   /// **'Lay out again'**
   String get connections_tooltip_relayout;
 
+  /// No description provided for @connections_tooltip_showWholeWeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the whole map'**
+  String get connections_tooltip_showWholeWeb;
+
   /// No description provided for @connections_filterBar_nodes.
   ///
   /// In en, this message translates to:
@@ -5486,6 +5492,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{nodes} nodes and {edges} connections'**
   String connections_semantics_summary(int nodes, int edges);
+
+  /// No description provided for @connections_semantics_selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected: {label}'**
+  String connections_semantics_selected(String label);
 
   /// No description provided for @connections_kind_buddy.
   ///

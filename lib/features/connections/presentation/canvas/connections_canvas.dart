@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/gestures.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/features/connections/presentation/canvas/connection_k
 import 'package:submersion/features/connections/presentation/canvas/connections_hit_tester.dart';
 import 'package:submersion/features/connections/presentation/canvas/connections_painter.dart';
 import 'package:submersion/features/connections/presentation/canvas/decoded_photo_cache.dart';
+import 'package:submersion/features/connections/presentation/canvas/node_photo_decoder.dart';
 import 'package:submersion/features/connections/presentation/canvas/graph_viewport.dart';
 import 'package:submersion/features/connections/presentation/canvas/node_metrics.dart';
 
@@ -106,7 +108,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
     };
     return _photos.sync(
       wanted,
-      decodeImageFromList,
+      decodeNodePhoto,
       onChanged: () {
         if (mounted) setState(() {});
       },
@@ -335,8 +337,14 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
               Positioned.fill(child: interactive),
               if (hovered != null && hoverPosition != null)
                 Positioned(
-                  left: (hoverPosition.dx + 12).clamp(0.0, size.width - 160),
-                  top: (hoverPosition.dy + 12).clamp(0.0, size.height - 48),
+                  left: (hoverPosition.dx + 12).clamp(
+                    0.0,
+                    math.max(0.0, size.width - 160),
+                  ),
+                  top: (hoverPosition.dy + 12).clamp(
+                    0.0,
+                    math.max(0.0, size.height - 48),
+                  ),
                   child: IgnorePointer(
                     child: _HoverTooltip(
                       label: widget.graph.nodeFor(hovered)?.label ?? '',

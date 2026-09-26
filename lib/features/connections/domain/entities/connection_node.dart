@@ -71,6 +71,28 @@ class ConnectionNode extends Equatable {
     );
   }
 
+  /// Photos compare by identity: the bytes come from one database read, and
+  /// a deep compare of every photo on each graph comparison is wasted work.
   @override
-  List<Object?> get props => [ref, label, diveCount, subtitle, photo];
+  List<Object?> get props => [
+    ref,
+    label,
+    diveCount,
+    subtitle,
+    _PhotoIdentity(photo),
+  ];
+}
+
+/// Wraps a photo so Equatable compares it with [identical] rather than
+/// element by element.
+class _PhotoIdentity {
+  const _PhotoIdentity(this.bytes);
+  final Uint8List? bytes;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _PhotoIdentity && identical(other.bytes, bytes);
+
+  @override
+  int get hashCode => identityHashCode(bytes);
 }

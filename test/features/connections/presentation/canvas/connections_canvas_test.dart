@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
@@ -30,7 +31,12 @@ final _graph = ConnectionGraph(
 );
 
 class _Host extends StatefulWidget {
-  const _Host({required this.onSelect, required this.onFocus});
+  const _Host({
+    required this.onSelect,
+    required this.onFocus,
+    this.width = 400,
+  });
+  final double width;
   final ValueChanged<GraphSelection?> onSelect;
   final ValueChanged<NodeRef> onFocus;
   @override
@@ -50,7 +56,7 @@ class _HostState extends State<_Host> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) => MaterialApp(
     home: Scaffold(
       body: SizedBox(
-        width: 400,
+        width: widget.width,
         height: 400,
         child: ConnectionsCanvas(
           graph: _graph,
@@ -122,4 +128,87 @@ void main() {
     await tester.pump();
     expect(find.bySemanticsLabel('2 nodes'), findsOneWidget);
   });
+
+  testWidgets('hovering on a canvas narrower than 160 px does not throw', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _Host(onSelect: (_) {}, onFocus: (_) {}, width: 120),
+    );
+    await tester.pump();
+    final painter = _painter(tester);
+    final me = painter.viewport.toScreen(painter.frame.positions[_b('me')]!);
+    final origin = tester.getTopLeft(find.byType(ConnectionsCanvas));
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    addTearDown(mouse.removePointer);
+    await mouse.addPointer(location: origin + const Offset(1, 1));
+    await mouse.moveTo(origin + me);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(find.text('Me (9)'), findsOneWidget);
+  });
+
+  testWidgets('a graph reload while the layout animates keeps painting', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: _ReloadHost()));
+    final host = tester.state<_ReloadHostState>(find.byType(_ReloadHost));
+    expect(host.controller.settled, isFalse);
+    await tester.pump(const Duration(milliseconds: 16));
+    host.swap();
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(tester.takeException(), isNull);
+    expect(_painter(tester).frame.positions.containsKey(_b('ken')), isTrue);
+    expect(_painter(tester).graph.nodes.length, 3);
+  });
+}
+
+/// Owns its controller like ConnectionsPage does, so the ticker is disposed
+/// with the tree, and swaps in a bigger graph mid-layout.
+class _ReloadHost extends StatefulWidget {
+  const _ReloadHost();
+  @override
+  State<_ReloadHost> createState() => _ReloadHostState();
+}
+
+class _ReloadHostState extends State<_ReloadHost>
+    with SingleTickerProviderStateMixin {
+  late final controller = ConnectionsLayoutController(vsync: this)
+    ..setGraph(_graph, mode: GraphLayoutMode.web);
+  ConnectionGraph graph = _graph;
+
+  void swap() {
+    setState(() {
+      graph = _graph.copyWith(
+        nodes: [
+          ..._graph.nodes,
+          ConnectionNode(ref: _b('ken'), label: 'Ken', diveCount: 2),
+        ],
+      );
+      controller.setGraph(graph, mode: GraphLayoutMode.web);
+    });
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: SizedBox(
+      width: 400,
+      height: 400,
+      child: ConnectionsCanvas(
+        graph: graph,
+        controller: controller,
+        colors: const ConnectionKindColors({}, Colors.grey),
+        onSelect: (_) {},
+        onFocus: (_) {},
+      ),
+    ),
+  );
 }

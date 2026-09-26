@@ -10,16 +10,24 @@ class HiddenNodesChip extends StatelessWidget {
   });
 
   final int count;
-  final VoidCallback onShowAll;
+
+  /// Null once the budget is at its ceiling: the count stays, the action
+  /// goes.
+  final VoidCallback? onShowAll;
 
   @override
   Widget build(BuildContext context) {
     if (count <= 0) return const SizedBox.shrink();
+    final label = Text(context.l10n.connections_hiddenNodes(count));
+    final action = onShowAll;
+    if (action == null) {
+      return Chip(key: const ValueKey('connections-hidden-chip'), label: label);
+    }
     return ActionChip(
       key: const ValueKey('connections-hidden-chip'),
       avatar: const Icon(Icons.more_horiz, size: 18),
-      label: Text(context.l10n.connections_hiddenNodes(count)),
-      onPressed: onShowAll,
+      label: label,
+      onPressed: action,
     );
   }
 }

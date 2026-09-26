@@ -7,6 +7,7 @@ import 'package:submersion/features/connections/domain/entities/connection_edge.
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
+import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/pages/connections_page.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
@@ -45,6 +46,8 @@ Future<ProviderContainer> _pump(
   String location = '/connections',
   List<Override> extraOverrides = const [],
   List<NodeRef?>? seenFocus,
+  List<int>? seenBudgets,
+  Future<ConnectionGraph> Function(Ref ref)? builder,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -73,6 +76,8 @@ Future<ProviderContainer> _pump(
         ...overrides,
         connectionGraphProvider.overrideWith((ref, budget) async {
           seenFocus?.add(ref.read(connectionsFocusProvider));
+          seenBudgets?.add(budget);
+          if (builder != null) return builder(ref);
           if (error != null) throw error;
           return graph ?? _graph;
         }),
@@ -224,5 +229,96 @@ void main() {
     );
     expect(seen, isNotEmpty);
     expect(seen.first, _b('jane'), reason: 'no whole-web query before ego');
+  });
+
+  testWidgets('a focus that vanishes twice is reset both times', (
+    tester,
+  ) async {
+    final c = await _pump(
+      tester,
+      size: const Size(732, 1000),
+      location: '/connections?lens=circle&focus=buddy:ghost',
+      builder: (ref) async {
+        final focus = ref.watch(connectionsFocusProvider);
+        if (focus != null) throw FocusNotFoundException(focus);
+        return _graph;
+      },
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(c.read(connectionsFocusProvider), isNull);
+    c.read(connectionsFocusProvider.notifier).state = _b('ghost2');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(c.read(connectionsFocusProvider), isNull);
+  });
+
+  testWidgets('show all raises the budget without asking when it fits', (
+    tester,
+  ) async {
+    final budgets = <int>[];
+    await _pump(tester, size: const Size(732, 1000), seenBudgets: budgets);
+    await tester.tap(find.text('3 more not shown'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(budgets.last, ConnectionsPage.maxBudget);
+  });
+
+  testWidgets('show all asks above the ceiling, then offers no action', (
+    tester,
+  ) async {
+    final budgets = <int>[];
+    await _pump(
+      tester,
+      size: const Size(732, 1000),
+      graph: _graph.copyWith(hiddenNodeCount: 500),
+      seenBudgets: budgets,
+    );
+    await tester.tap(find.text('500 more not shown'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Show all'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(budgets.last, ConnectionsPage.maxBudget);
+    expect(find.text('500 more not shown'), findsOneWidget);
+    expect(find.byType(ActionChip), findsNothing);
+  });
+
+  testWidgets('the exit-focus action has its own tooltip', (tester) async {
+    await _pump(
+      tester,
+      size: const Size(732, 1000),
+      location: '/connections?lens=circle&focus=buddy:jane',
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.byTooltip('Back to the whole map'), findsOneWidget);
+    expect(find.byTooltip('Lay out again'), findsNothing);
+  });
+
+  testWidgets('the canvas semantics name the selected node', (tester) async {
+    final handle = tester.ensureSemantics();
+    final c = await _pump(tester, size: const Size(1280, 800));
+    c.read(connectionsSelectionProvider.notifier).state = NodeSelection(
+      _b('jane'),
+    );
+    await tester.pump();
+    expect(find.bySemanticsLabel(RegExp('Selected: Jane')), findsOneWidget);
+    handle.dispose();
+  });
+
+  testWidgets('the selection card fits a 732 px phone', (tester) async {
+    final c = await _pump(tester, size: const Size(732, 1000));
+    c.read(connectionsSelectionProvider.notifier).state = NodeSelection(
+      _b('jane'),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(
+      find.byKey(const ValueKey('connections-selection-card')),
+      findsOneWidget,
+    );
+    expect(find.text('Show dives'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

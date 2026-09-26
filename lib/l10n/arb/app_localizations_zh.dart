@@ -3112,6 +3112,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connections_tooltip_relayout => '重新排列';
 
   @override
+  String get connections_tooltip_showWholeWeb => '返回完整图谱';
+
+  @override
   String connections_filterBar_nodes(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -3233,6 +3236,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String connections_semantics_summary(int nodes, int edges) {
     return '$nodes 个节点和 $edges 条关联';
+  }
+
+  @override
+  String connections_semantics_selected(String label) {
+    return '已选择：$label';
   }
 
   @override

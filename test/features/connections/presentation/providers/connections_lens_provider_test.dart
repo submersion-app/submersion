@@ -50,4 +50,19 @@ void main() {
     expect(c.read(connectionsLensProvider).lensId, 'where');
     expect(sp.getString('connections_last_lens'), 'where');
   });
+
+  test(
+    'a failing preference write keeps the selection and does not throw',
+    () async {
+      SharedPreferences.setMockInitialValues({});
+      final sp = await SharedPreferences.getInstance();
+      final notifier = ConnectionsLensNotifier(
+        sp,
+        write: (key, value) => Future.error(StateError('disk full')),
+      );
+      addTearDown(notifier.dispose);
+      await notifier.select(const LensSelection.lens(ConnectionLens.where));
+      expect(notifier.state.lensId, 'where');
+    },
+  );
 }

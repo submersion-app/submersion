@@ -3288,6 +3288,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get connections_tooltip_relayout => 'Újrarendezés';
 
   @override
+  String get connections_tooltip_showWholeWeb => 'Vissza a teljes térképhez';
+
+  @override
   String connections_filterBar_nodes(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -3415,6 +3418,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String connections_semantics_summary(int nodes, int edges) {
     return '$nodes csomópont és $edges kapcsolat';
+  }
+
+  @override
+  String connections_semantics_selected(String label) {
+    return 'Kijelölve: $label';
   }
 
   @override
