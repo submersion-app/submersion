@@ -129,7 +129,13 @@ void main() {
         points != null && points.isNotEmpty && points.first.longitude > 0.0049;
     final redrawn = Completer<void>();
     final sub = container.listen(key, (_, next) {
-      if (trimmed(next.value) && !redrawn.isCompleted) redrawn.complete();
+      if (redrawn.isCompleted) return;
+      // Surface a failed rebuild as itself rather than as a bare timeout.
+      if (next.hasError) {
+        redrawn.completeError(next.error!, next.stackTrace);
+      } else if (trimmed(next.value)) {
+        redrawn.complete();
+      }
     });
     addTearDown(sub.close);
     expect(trimmed(await container.read(key.future)), isFalse);
