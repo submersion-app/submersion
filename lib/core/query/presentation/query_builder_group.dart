@@ -213,13 +213,22 @@ class _Group extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          IconButton(
-            key: ValueKey('negate-$key'),
-            isSelected: negated,
-            tooltip: strings.negate,
-            icon: const Icon(Icons.block_outlined),
-            selectedIcon: Icon(Icons.block, color: theme.colorScheme.error),
-            onPressed: () => onTree(toggleNegation(root, at)),
+          // A labelled toggle rather than an icon: an off "no entry" icon
+          // on every row read as "this row is disabled".
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 4, top: 4),
+            child: FilterChip(
+              key: ValueKey('negate-$key'),
+              label: Text(strings.negate),
+              selected: negated,
+              showCheckmark: false,
+              visualDensity: VisualDensity.compact,
+              selectedColor: theme.colorScheme.errorContainer,
+              labelStyle: negated
+                  ? TextStyle(color: theme.colorScheme.onErrorContainer)
+                  : null,
+              onSelected: (_) => onTree(toggleNegation(root, at)),
+            ),
           ),
           Expanded(child: body),
           if (!isGroup)
