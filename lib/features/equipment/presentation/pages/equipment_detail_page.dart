@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_history_card.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_sharing_row.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:go_router/go_router.dart';
@@ -251,6 +255,12 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 DocumentOpenHelper.open(context, ref, item),
           ),
           const SizedBox(height: 24),
+          // Who used it and every share (issue #2046); only with two or more
+          // profiles, so a single-profile page keeps its spacing.
+          if (ref.watch(hasMultipleDiversProvider)) ...[
+            EquipmentHistoryCard(equipmentId: equipmentId),
+            const SizedBox(height: 24),
+          ],
           ServiceHistorySection(equipmentId: equipmentId),
           if (equipment.notes.isNotEmpty) ...[
             const SizedBox(height: 24),
@@ -281,14 +291,26 @@ class _EquipmentDetailContent extends ConsumerWidget {
             tooltip: context.l10n.equipment_detail_editTooltip,
             onPressed: () => context.push('/equipment/$equipmentId/edit'),
           ),
-          PopupMenuButton<String>(
-            onSelected: (value) => _handleMenuAction(context, ref, value),
-            itemBuilder: (context) => _buildMenuItems(context),
-          ),
+          if (_isOwner(ref, equipment))
+            PopupMenuButton<String>(
+              key: const ValueKey('equipment-detail-overflow'),
+              onSelected: (value) => _handleMenuAction(context, ref, value),
+              itemBuilder: (context) => _buildMenuItems(context),
+            ),
         ],
       ),
       body: body,
     );
+  }
+
+  /// Delete is owner-only (issue #2046), so the page menu, whose one action
+  /// is delete, shows only to the item's owner. With no diver or no owner
+  /// every profile counts as the owner, as before sharing existed.
+  bool _isOwner(WidgetRef ref, EquipmentItem equipment) {
+    final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
+    return equipment.diverId == null ||
+        activeDiverId == null ||
+        equipment.diverId == activeDiverId;
   }
 
   Widget _buildEmbeddedHeader(
@@ -352,11 +374,13 @@ class _EquipmentDetailContent extends ConsumerWidget {
               context.go('$currentPath?selected=$equipmentId&mode=edit');
             },
           ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, size: 20),
-            onSelected: (value) => _handleMenuAction(context, ref, value),
-            itemBuilder: (context) => _buildMenuItems(context),
-          ),
+          if (_isOwner(ref, equipment))
+            PopupMenuButton<String>(
+              key: const ValueKey('equipment-detail-overflow'),
+              icon: const Icon(Icons.more_vert, size: 20),
+              onSelected: (value) => _handleMenuAction(context, ref, value),
+              itemBuilder: (context) => _buildMenuItems(context),
+            ),
         ],
       ),
     );
@@ -622,6 +646,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
               ),
               error: (e, s) => const SizedBox.shrink(),
             ),
+            EquipmentSharingRow(equipment: equipment),
             if (equipment.brand != null)
               _buildDetailRow(
                 context,
@@ -920,7 +945,17 @@ class _EquipmentDetailContent extends ConsumerWidget {
         );
 
         if (confirmed == true) {
-          await notifier.deleteEquipment(equipmentId);
+          final deleted = await notifier.deleteEquipment(equipmentId);
+          if (!deleted) {
+            // Delete is owner-only (issue #2046): the item was kept, so stay
+            // on it and say why.
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(context.l10n.equipment_delete_notOwner)),
+              );
+            }
+            break;
+          }
           if (context.mounted) {
             if (embedded) {
               onDeleted?.call();

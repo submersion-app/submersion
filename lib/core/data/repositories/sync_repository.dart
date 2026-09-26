@@ -154,6 +154,8 @@ class SyncRepository {
     'siteSiteTypes': (table: 'site_site_types', pk: 'id'),
     'siteTags': (table: 'site_tags', pk: 'id'),
     'equipmentTags': (table: 'equipment_tags', pk: 'id'),
+    'equipmentShares': (table: 'equipment_shares', pk: 'id'),
+    'equipmentOwnershipEvents': (table: 'equipment_ownership_events', pk: 'id'),
     'diveProfileEvents': (table: 'dive_profile_events', pk: 'id'),
     'diveSafetyReviews': (table: 'dive_safety_reviews', pk: 'dive_id'),
     'diveSafetyFindings': (table: 'dive_safety_findings', pk: 'id'),

@@ -341,6 +341,8 @@ class SyncData {
   final List<Map<String, dynamic>> siteSiteTypes;
   final List<Map<String, dynamic>> siteTags;
   final List<Map<String, dynamic>> equipmentTags;
+  final List<Map<String, dynamic>> equipmentShares;
+  final List<Map<String, dynamic>> equipmentOwnershipEvents;
   final List<Map<String, dynamic>> mediaSpecies;
   final List<Map<String, dynamic>> siteFeatures;
   final List<Map<String, dynamic>> csvPresets;
@@ -436,6 +438,8 @@ class SyncData {
     this.siteSiteTypes = const [],
     this.siteTags = const [],
     this.equipmentTags = const [],
+    this.equipmentShares = const [],
+    this.equipmentOwnershipEvents = const [],
     this.mediaSpecies = const [],
     this.siteFeatures = const [],
     this.csvPresets = const [],
@@ -530,6 +534,8 @@ class SyncData {
     'siteSiteTypes': siteSiteTypes,
     'siteTags': siteTags,
     'equipmentTags': equipmentTags,
+    'equipmentShares': equipmentShares,
+    'equipmentOwnershipEvents': equipmentOwnershipEvents,
     'mediaSpecies': mediaSpecies,
     'siteFeatures': siteFeatures,
     'csvPresets': csvPresets,
@@ -629,6 +635,8 @@ class SyncData {
       siteSiteTypes: _parseList(json['siteSiteTypes']),
       siteTags: _parseList(json['siteTags']),
       equipmentTags: _parseList(json['equipmentTags']),
+      equipmentShares: _parseList(json['equipmentShares']),
+      equipmentOwnershipEvents: _parseList(json['equipmentOwnershipEvents']),
       mediaSpecies: _parseList(json['mediaSpecies']),
       siteFeatures: _parseList(json['siteFeatures']),
       csvPresets: _parseList(json['csvPresets']),
@@ -1118,6 +1126,18 @@ class SyncDataSerializer {
     (key: 'siteSiteTypes', table: _db.siteSiteTypes, blob: false, full: null),
     (key: 'siteTags', table: _db.siteTags, blob: false, full: null),
     (key: 'equipmentTags', table: _db.equipmentTags, blob: false, full: null),
+    (
+      key: 'equipmentShares',
+      table: _db.equipmentShares,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'equipmentOwnershipEvents',
+      table: _db.equipmentOwnershipEvents,
+      blob: false,
+      full: null,
+    ),
     (key: 'mediaSpecies', table: _db.mediaSpecies, blob: false, full: null),
     (key: 'siteFeatures', table: _db.siteFeatures, blob: false, full: null),
     (key: 'csvPresets', table: _db.csvPresets, blob: false, full: null),
@@ -1517,6 +1537,8 @@ class SyncDataSerializer {
     'siteSiteTypes',
     'siteTags',
     'equipmentTags',
+    'equipmentShares',
+    'equipmentOwnershipEvents',
     'weightPresetEntries',
     'diveCenterGearNotes',
     'tideRecords',
@@ -1659,6 +1681,8 @@ class SyncDataSerializer {
     'siteSiteTypes': 'site_site_types',
     'siteTags': 'site_tags',
     'equipmentTags': 'equipment_tags',
+    'equipmentShares': 'equipment_shares',
+    'equipmentOwnershipEvents': 'equipment_ownership_events',
     'diveDiveTypes': 'dive_dive_types',
     'weightPresetEntries': 'weight_preset_entries',
     'diveCenterGearNotes': 'dive_center_gear_notes',
@@ -2184,6 +2208,22 @@ class SyncDataSerializer {
           pendingChildren,
         ),
       ),
+      equipmentShares: await _safeExport(
+        'equipmentShares',
+        () async => _withPendingChildren(
+          'equipmentShares',
+          await _exportEquipmentShares(hlcSince),
+          pendingChildren,
+        ),
+      ),
+      equipmentOwnershipEvents: await _safeExport(
+        'equipmentOwnershipEvents',
+        () async => _withPendingChildren(
+          'equipmentOwnershipEvents',
+          await _exportEquipmentOwnershipEvents(hlcSince),
+          pendingChildren,
+        ),
+      ),
       siteTypes: await _safeExport(
         'siteTypes',
         () => _exportSiteTypes(hlcSince),
@@ -2661,6 +2701,16 @@ class SyncDataSerializer {
       case 'equipmentTags':
         final row = await (_db.select(
           _db.equipmentTags,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'equipmentShares':
+        final row = await (_db.select(
+          _db.equipmentShares,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'equipmentOwnershipEvents':
+        final row = await (_db.select(
+          _db.equipmentOwnershipEvents,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'diveRoles':
@@ -3628,6 +3678,29 @@ class SyncDataSerializer {
         );
   }
 
+  /// Applies one incoming `equipment_shares` row (v233, issue #2046). The
+  /// (item, diver) pair is unique, so a peer's copy of a pair this device
+  /// holds under another id is reconciled to the lower id and then skipped
+  /// with DO NOTHING, as [_applySiteSiteTypeRecord] does.
+  Future<void> _applyEquipmentShareRecord(EquipmentShareRow record) async {
+    await _reconcileJunctionIds(
+      'equipment_shares',
+      parentColumn: 'equipment_id',
+      childColumn: 'diver_id',
+      pairs: [
+        (parent: record.equipmentId, child: record.diverId, id: record.id),
+      ],
+    );
+    await _db
+        .into(_db.equipmentShares)
+        .insert(
+          record,
+          onConflict: DoNothing<$EquipmentSharesTable, EquipmentShareRow>(
+            target: const [],
+          ),
+        );
+  }
+
   /// Applies one incoming record.
   ///
   /// HLC-bearing entities (`entityHasUpdatedAt == true`) apply via
@@ -4044,6 +4117,14 @@ class SyncDataSerializer {
         await _applyEquipmentTagRecord(
           EquipmentTag.fromJson(_withTagAlias(data)),
         );
+        return;
+      case 'equipmentShares':
+        await _applyEquipmentShareRecord(EquipmentShareRow.fromJson(data));
+        return;
+      case 'equipmentOwnershipEvents':
+        await _db
+            .into(_db.equipmentOwnershipEvents)
+            .insertOnConflictUpdate(EquipmentOwnershipEventRow.fromJson(data));
         return;
       case 'diveRoles':
         await _db
@@ -5125,6 +5206,39 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'equipmentShares':
+        // DoNothing: see [_applyEquipmentShareRecord].
+        final shareRows = _lowestIdPerPair(
+          records.map((r) => EquipmentShareRow.fromJson(r)).toList(),
+          (row) => (parent: row.equipmentId, child: row.diverId, id: row.id),
+        );
+        await _reconcileJunctionIds(
+          'equipment_shares',
+          parentColumn: 'equipment_id',
+          childColumn: 'diver_id',
+          pairs: [
+            for (final row in shareRows)
+              (parent: row.equipmentId, child: row.diverId, id: row.id),
+          ],
+        );
+        await _db.batch(
+          (b) => b.insertAll(
+            _db.equipmentShares,
+            shareRows,
+            onConflict: DoNothing<$EquipmentSharesTable, EquipmentShareRow>(
+              target: const [],
+            ),
+          ),
+        );
+        return;
+      case 'equipmentOwnershipEvents':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.equipmentOwnershipEvents,
+            records.map((r) => EquipmentOwnershipEventRow.fromJson(r)).toList(),
+          ),
+        );
+        return;
       case 'diveRoles':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -5612,6 +5726,13 @@ class SyncDataSerializer {
         return plain(_db.siteTags, _db.siteTags.id);
       case 'equipmentTags':
         return plain(_db.equipmentTags, _db.equipmentTags.id);
+      case 'equipmentShares':
+        return plain(_db.equipmentShares, _db.equipmentShares.id);
+      case 'equipmentOwnershipEvents':
+        return plain(
+          _db.equipmentOwnershipEvents,
+          _db.equipmentOwnershipEvents.id,
+        );
       case 'diveRoles':
         return plain(_db.diveRoles, _db.diveRoles.id);
       case 'tankPresets':
@@ -5997,6 +6118,10 @@ class SyncDataSerializer {
         return _db.siteTags;
       case 'equipmentTags':
         return _db.equipmentTags;
+      case 'equipmentShares':
+        return _db.equipmentShares;
+      case 'equipmentOwnershipEvents':
+        return _db.equipmentOwnershipEvents;
       case 'diveRoles':
         return _db.diveRoles;
       case 'tankPresets':
@@ -6431,6 +6556,16 @@ class SyncDataSerializer {
       case 'equipmentTags':
         await (_db.delete(
           _db.equipmentTags,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'equipmentShares':
+        await (_db.delete(
+          _db.equipmentShares,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'equipmentOwnershipEvents':
+        await (_db.delete(
+          _db.equipmentOwnershipEvents,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'diveRoles':
@@ -7730,6 +7865,52 @@ class SyncDataSerializer {
     }
     final rows = await _db.select(_db.equipmentTags).get();
     return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Equipment shares (v233, issue #2046), gated on the parent item's clock
+  /// like [_exportEquipmentTags].
+  Future<List<Map<String, dynamic>>> _exportEquipmentShares(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final itemIds = await _equipmentModifiedSince(hlcSince);
+      if (itemIds.isEmpty) return [];
+      return _childRowsOf(
+        itemIds,
+        (chunk) => (_db.select(
+          _db.equipmentShares,
+        )..where((t) => t.equipmentId.isIn(chunk))).get(),
+      );
+    }
+    final rows = await _db.select(_db.equipmentShares).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Equipment share and ownership events (v233, issue #2046), gated on the
+  /// parent item's clock like [_exportEquipmentTags].
+  Future<List<Map<String, dynamic>>> _exportEquipmentOwnershipEvents(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final itemIds = await _equipmentModifiedSince(hlcSince);
+      if (itemIds.isEmpty) return [];
+      return _childRowsOf(
+        itemIds,
+        (chunk) => (_db.select(
+          _db.equipmentOwnershipEvents,
+        )..where((t) => t.equipmentId.isIn(chunk))).get(),
+      );
+    }
+    final rows = await _db.select(_db.equipmentOwnershipEvents).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Ids of equipment rows whose clock is past [hlcSince].
+  Future<Set<String>> _equipmentModifiedSince(String hlcSince) async {
+    final modifiedItems = await (_db.select(
+      _db.equipment,
+    )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+    return modifiedItems.map((e) => e.id).toSet();
   }
 
   Future<List<Map<String, dynamic>>> _exportSiteSpecies(

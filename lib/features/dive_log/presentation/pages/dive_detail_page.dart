@@ -4834,6 +4834,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: DiveGearTreeView(
           links: dive.gear,
+          ownerReferenceDiverId: dive.diverId,
           showServiceStatus: diveGearShowsLiveServiceStatus(
             dive,
             DateTime.now(),

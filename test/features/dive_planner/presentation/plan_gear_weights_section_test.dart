@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/buoyancy/weight_observation.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -151,6 +152,54 @@ void main() {
     await tester.tap(find.text('Tropical rig'));
     await tester.pumpAndSettle();
     expect(find.byType(InputChip), findsOneWidget);
+  });
+
+  testWidgets('a set member no longer shared is not added (issue #2046)', (
+    tester,
+  ) async {
+    const theirs = EquipmentItem(
+      id: 'theirs',
+      diverId: 'wife',
+      name: 'Their fins',
+      type: EquipmentType.fins,
+    );
+    final base = await getBaseOverrides();
+    final set = EquipmentSet(
+      id: 'set-1',
+      name: 'Tropical rig',
+      description: '',
+      equipmentIds: const ['suit', 'theirs'],
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...base,
+          weightObservationsProvider.overrideWith((ref) async => const []),
+          allEquipmentProvider.overrideWith((ref) async => const [suitItem]),
+          activeEquipmentProvider.overrideWith((ref) async => const [suitItem]),
+          validatedCurrentDiverIdProvider.overrideWith(
+            (ref) async => 'diver-1',
+          ),
+          latestDiverWeightProvider.overrideWith((ref) async => null),
+          latestDiverHeightProvider.overrideWith((ref) async => null),
+          equipmentSetsProvider.overrideWith((ref) async => [set]),
+          equipmentSetWithItemsProvider('set-1').overrideWith(
+            (ref) async => set.copyWith(items: const [suitItem, theirs]),
+          ),
+        ],
+        child: const PlanGearWeightsSection(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Use set'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tropical rig'));
+    await tester.pumpAndSettle();
+    expect(find.byType(InputChip), findsOneWidget);
+    expect(find.text('Their fins'), findsNothing);
   });
 
   testWidgets('an assembly shows one chip carrying its part count', (

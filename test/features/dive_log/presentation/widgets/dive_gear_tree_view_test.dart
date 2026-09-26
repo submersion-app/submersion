@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_tree_view.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
@@ -79,8 +81,11 @@ void main() {
     ComponentsIndex template = ComponentsIndex.empty,
     Set<String> activeParts = const {},
     List<EquipmentSet>? sets,
+    List<Diver> divers = const [],
+    String? ownerReferenceDiverId,
   }) => ProviderScope(
     overrides: [
+      allDiversProvider.overrideWith((ref) async => divers),
       equipmentArrangementProvider.overrideWithValue(arrangement),
       equipmentSetsProvider.overrideWith((ref) async => sets ?? [winter]),
       settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
@@ -100,11 +105,61 @@ void main() {
             onRemoveSet: onRemoveSet,
             rowTrailing: rowTrailing,
             onUpdateAssembly: onUpdateAssembly,
+            ownerReferenceDiverId: ownerReferenceDiverId,
           ),
         ),
       ),
     ),
   );
+
+  group('owner chip (issue #2046)', () {
+    final t = DateTime(2026);
+    final divers = [
+      Diver(id: 'owner', name: 'Bill', createdAt: t, updatedAt: t),
+      Diver(id: 'wife', name: 'Anna', createdAt: t, updatedAt: t),
+    ];
+    final ownersReg = gearLinksFor(const [
+      EquipmentItem(
+        id: 'reg',
+        diverId: 'owner',
+        name: 'Reg',
+        type: EquipmentType.regulator,
+      ),
+    ], const []);
+
+    testWidgets('gear another profile owns shows its owner', (tester) async {
+      await tester.pumpWidget(
+        build(
+          arrangement: flat,
+          gear: ownersReg,
+          divers: divers,
+          ownerReferenceDiverId: 'wife',
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('equipment-owner-chip-owner')),
+        findsOneWidget,
+      );
+      expect(find.text('Bill'), findsOneWidget);
+    });
+
+    testWidgets('the dive diver own gear shows no chip', (tester) async {
+      await tester.pumpWidget(
+        build(
+          arrangement: flat,
+          gear: ownersReg,
+          divers: divers,
+          ownerReferenceDiverId: 'owner',
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('equipment-owner-chip-owner')),
+        findsNothing,
+      );
+    });
+  });
 
   testWidgets('set chip above the list, assembly collapsed', (tester) async {
     await tester.pumpWidget(build(arrangement: flat));

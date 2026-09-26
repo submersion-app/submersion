@@ -2,16 +2,20 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_owner_sections.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_owner_chip.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_picker_filter_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -70,6 +74,10 @@ class EquipmentPickerSheet extends ConsumerWidget {
     final equipmentAsync = ref.watch(activeEquipmentProvider);
     final arrangement = ref.watch(equipmentArrangementProvider);
     final filter = ref.watch(equipmentPickerFilterProvider);
+    // Shared gear (issue #2046) gets its own section and an owner chip.
+    final multipleDivers = ref.watch(hasMultipleDiversProvider);
+    final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
+    final names = ref.watch(diverNamesByIdProvider).value ?? const {};
 
     return Column(
       children: [
@@ -201,15 +209,37 @@ class EquipmentPickerSheet extends ConsumerWidget {
               // Labelled as one list, because telling identical items apart
               // means comparing the rows the diver is looking at (#1549).
               final labels = equipmentRowLabelsOf(context, ref, available);
+              // The diver's own gear first, then what other profiles share
+              // with it, one section per owner (issue #2046).
+              String ownerName(String id) =>
+                  names[id] ?? context.l10n.equipment_owner_unknown;
+              final sections = multipleDivers
+                  ? sectionsByOwner(
+                      available,
+                      activeDiverId: activeDiverId,
+                      ownerName: ownerName,
+                    )
+                  : [(ownerId: null, items: available)];
               final rows = <_PickerRow>[
-                for (final group in arrangeEquipment(
-                  available,
-                  arrangement,
-                  typeLabel: (type) => type.localizedName(context.l10n),
-                )) ...[
-                  if (group.type != null) _HeaderRow(group.type!),
-                  for (final equipment in group.items)
-                    _ItemRow(equipment, showTypeLabel: group.type == null),
+                for (final (i, section) in sections.indexed) ...[
+                  if (section.ownerId != null &&
+                      (i == 0 || sections[i - 1].ownerId == null))
+                    _SectionRow(context.l10n.equipment_sharedWithMe),
+                  if (section.ownerId case final owner?)
+                    _SectionRow(
+                      context.l10n.equipment_picker_ownerHeader(
+                        ownerName(owner),
+                      ),
+                    ),
+                  for (final group in arrangeEquipment(
+                    section.items,
+                    arrangement,
+                    typeLabel: (type) => type.localizedName(context.l10n),
+                  )) ...[
+                    if (group.type != null) _HeaderRow(group.type!),
+                    for (final equipment in group.items)
+                      _ItemRow(equipment, showTypeLabel: group.type == null),
+                  ],
                 ],
               ];
 
@@ -217,6 +247,15 @@ class EquipmentPickerSheet extends ConsumerWidget {
                 controller: scrollController,
                 itemCount: rows.length,
                 itemBuilder: (context, index) => switch (rows[index]) {
+                  _SectionRow(:final title) => Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                    child: Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
                   _HeaderRow(:final type) => Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: EquipmentGroupHeader(type: type),
@@ -238,9 +277,22 @@ class EquipmentPickerSheet extends ConsumerWidget {
                       item,
                       showTypeLabel: showTypeLabel,
                     ),
-                    trailing: ServiceStatusIndicatorFor(
-                      equipmentId: item.id,
-                      density: ServiceIndicatorDensity.compact,
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (showsOwnerChip(
+                          item,
+                          activeDiverId,
+                          multipleDivers: multipleDivers,
+                        )) ...[
+                          EquipmentOwnerChip(ownerId: item.diverId),
+                          const SizedBox(width: 8),
+                        ],
+                        ServiceStatusIndicatorFor(
+                          equipmentId: item.id,
+                          density: ServiceIndicatorDensity.compact,
+                        ),
+                      ],
                     ),
                     onTap: () => onEquipmentSelected(item),
                   ),
@@ -299,6 +351,13 @@ class EquipmentPickerSheet extends ConsumerWidget {
 /// list stays lazy.
 sealed class _PickerRow {
   const _PickerRow();
+}
+
+/// A section title: "Shared with me", or one owner's name (issue #2046).
+class _SectionRow extends _PickerRow {
+  const _SectionRow(this.title);
+
+  final String title;
 }
 
 class _HeaderRow extends _PickerRow {

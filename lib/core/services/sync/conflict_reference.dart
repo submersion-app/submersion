@@ -83,6 +83,8 @@ class ConflictReferenceResolver {
     'diveTypeId': 'diveTypes',
     'siteTypeId': 'siteTypes',
     'diverId': 'divers',
+    'fromDiverId': 'divers',
+    'toDiverId': 'divers',
     'buddyId': 'buddies',
     'instructorId': 'buddies',
     'signerId': 'buddies',

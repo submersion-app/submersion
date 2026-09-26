@@ -2,11 +2,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -113,12 +116,16 @@ Future<List<Override>> _buildPhoneOverrides({
   String? highlightedEquipmentId,
   EquipmentArrangement? arrangement,
   SortState<EquipmentSortField>? sort,
+  List<Diver> divers = const [],
+  String? activeDiverId,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
 
   return [
     sharedPreferencesProvider.overrideWithValue(prefs),
+    allDiversProvider.overrideWith((ref) async => divers),
+    validatedCurrentDiverIdProvider.overrideWith((ref) async => activeDiverId),
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     equipmentByStatusProvider.overrideWith((ref, status) => items),
@@ -211,6 +218,8 @@ void main() {
     Future<Widget> host(
       List<EquipmentItem> items, {
       bool showAppBar = true,
+      List<Diver> divers = const [],
+      String? activeDiverId,
       List<dynamic> extraOverrides = const [],
     }) async {
       notifier = _CapturingEquipmentNotifier();
@@ -225,6 +234,10 @@ void main() {
             (ref) => MockCurrentDiverIdNotifier(),
           ),
           equipmentListNotifierProvider.overrideWith((ref) => notifier),
+          allDiversProvider.overrideWith((ref) async => divers),
+          validatedCurrentDiverIdProvider.overrideWith(
+            (ref) async => activeDiverId,
+          ),
           equipmentByStatusProvider.overrideWith((ref, status) => items),
           activeEquipmentProvider.overrideWith((ref) async => items),
           equipmentListViewModeProvider.overrideWith(
@@ -257,6 +270,144 @@ void main() {
 
       expect(notifier.deleted, ['e1', 'e2']);
       expect(find.text('2 deleted'), findsOneWidget);
+    });
+
+    group('shared gear (issue #2046)', () {
+      final t = DateTime(2026);
+      final divers = [
+        Diver(id: 'owner', name: 'Bill', createdAt: t, updatedAt: t),
+        Diver(id: 'wife', name: 'Anna', createdAt: t, updatedAt: t),
+      ];
+      const own = EquipmentItem(
+        id: 'mine',
+        diverId: 'owner',
+        name: 'Aaa BCD',
+        type: EquipmentType.bcd,
+      );
+      const hers = EquipmentItem(
+        id: 'hers',
+        diverId: 'wife',
+        name: 'Bbb Reg',
+        type: EquipmentType.regulator,
+      );
+
+      Future<bool> shareEnabled(WidgetTester tester) async {
+        await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+        await tester.pumpAndSettle();
+        final item = tester.widget<PopupMenuItem<String>>(
+          find.byKey(const ValueKey('selection_menu_share')),
+        );
+        await tester.tapAt(Offset.zero);
+        await tester.pumpAndSettle();
+        return item.enabled;
+      }
+
+      testWidgets('Share with is enabled only for a selection you own', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          await host(const [own, hers], divers: divers, activeDiverId: 'owner'),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('enter_selection')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Aaa BCD'));
+        await tester.pumpAndSettle();
+        expect(await shareEnabled(tester), isTrue);
+
+        await tester.tap(find.text('Bbb Reg'));
+        await tester.pumpAndSettle();
+        expect(await shareEnabled(tester), isFalse);
+      });
+
+      testWidgets('bulk delete keeps shared gear and says so', (tester) async {
+        final widget = await host(
+          const [own, hers],
+          divers: divers,
+          activeDiverId: 'owner',
+        );
+        notifier.refused.add('hers');
+        await tester.pumpWidget(widget);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('enter_selection')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_delete')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            'Deleted 1 item. 1 shared item was kept: only its owner can '
+            'delete it',
+          ),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('Share with shares the selection and reports it', (
+        tester,
+      ) async {
+        final shares = _RecordingShareRepository();
+        await tester.pumpWidget(
+          await host(
+            const [own, hers],
+            divers: divers,
+            activeDiverId: 'owner',
+            extraOverrides: [
+              equipmentShareRepositoryProvider.overrideWithValue(shares),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('enter_selection')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Aaa BCD'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_menu_share')));
+        await tester.pumpAndSettle();
+
+        // Only the other profiles are offered.
+        expect(find.widgetWithText(CheckboxListTile, 'Bill'), findsNothing);
+        await tester.tap(find.widgetWithText(CheckboxListTile, 'Anna'));
+        await tester.pump();
+        await tester.tap(find.widgetWithText(FilledButton, 'Share'));
+        await tester.pumpAndSettle();
+
+        // Records holding lists compare by identity, so check each field.
+        expect(shares.calls, hasLength(1));
+        expect(shares.calls.single.equipmentIds, ['mine']);
+        expect(shares.calls.single.diverIds, ['wife']);
+        expect(shares.calls.single.actingDiverId, 'owner');
+        expect(find.text('Shared 1 item'), findsOneWidget);
+      });
+
+      testWidgets('no Share with action with a single profile', (tester) async {
+        await tester.pumpWidget(
+          await host(const [own], divers: divers.take(1).toList()),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('enter_selection')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const ValueKey('selection_action_share')),
+          findsNothing,
+        );
+        await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const ValueKey('selection_menu_share')),
+          findsNothing,
+        );
+      });
     });
 
     testWidgets('retire acts on a uniformly active selection', (tester) async {
@@ -2273,6 +2424,94 @@ void main() {
       expect(activeBuilds, activeBefore);
     });
   });
+
+  group('owner chip on rows (issue #2046)', () {
+    final t = DateTime(2026);
+    final divers = [
+      Diver(id: 'owner', name: 'Bill', createdAt: t, updatedAt: t),
+      Diver(id: 'wife', name: 'Anna', createdAt: t, updatedAt: t),
+    ];
+    const own = EquipmentItem(
+      id: 'mine',
+      diverId: 'owner',
+      name: 'My BCD',
+      type: EquipmentType.bcd,
+    );
+    const hers = EquipmentItem(
+      id: 'hers',
+      diverId: 'wife',
+      name: 'Her Reg',
+      type: EquipmentType.regulator,
+    );
+
+    Future<void> pump(WidgetTester tester, List<Diver> ds) async {
+      final overrides = await _buildPhoneOverrides(
+        items: [own, hers],
+        divers: ds,
+        activeDiverId: 'owner',
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const EquipmentListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a shared row names its owner; an own row does not', (
+      tester,
+    ) async {
+      await pump(tester, divers);
+      expect(
+        find.byKey(const ValueKey('equipment-owner-chip-wife')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('equipment-owner-chip-owner')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('the Owner filter default chip reads All', (tester) async {
+      await pump(tester, divers);
+      await _openFilterPanel(tester);
+      final chip = find.byKey(const ValueKey('equipment_filter_owner_all'));
+      if (chip.evaluate().isEmpty) {
+        await tester.scrollUntilVisible(
+          chip,
+          120,
+          scrollable: find.byType(Scrollable).last,
+        );
+      }
+      expect(
+        find.descendant(of: chip, matching: find.text('All')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the Owner filter narrows to gear shared with me', (
+      tester,
+    ) async {
+      await pump(tester, divers);
+      await _filterVia(tester, ['equipment_filter_owner_sharedWithMe']);
+      expect(find.text('Her Reg'), findsOneWidget);
+      expect(find.text('My BCD'), findsNothing);
+      expect(_badgeIsVisible(tester), isTrue);
+
+      await _filterVia(tester, ['equipment_filter_owner_mine']);
+      expect(find.text('My BCD'), findsOneWidget);
+      expect(find.text('Her Reg'), findsNothing);
+    });
+
+    testWidgets('no chips with a single profile', (tester) async {
+      await pump(tester, divers.take(1).toList());
+      expect(
+        find.byKey(const ValueKey('equipment-owner-chip-wife')),
+        findsNothing,
+      );
+    });
+  });
 }
 
 /// Records which ids each bulk action reached the notifier with.
@@ -2282,11 +2521,18 @@ class _CapturingEquipmentNotifier
   _CapturingEquipmentNotifier() : super(const AsyncValue.data([]));
 
   final deleted = <String>[];
+
+  /// Ids whose delete is refused, as for a shared item (issue #2046).
+  final refused = <String>{};
   final retired = <String>[];
   final reactivated = <String>[];
 
   @override
-  Future<void> deleteEquipment(String id) async => deleted.add(id);
+  Future<bool> deleteEquipment(String id) async {
+    if (refused.contains(id)) return false;
+    deleted.add(id);
+    return true;
+  }
 
   @override
   Future<void> retireEquipment(String id) async => retired.add(id);
@@ -2329,4 +2575,30 @@ class _BrokenEquipmentRepository extends EquipmentRepository {
   @override
   Future<List<EquipmentItem>> getEquipmentByIds(List<String> ids) async =>
       throw StateError('database is locked');
+}
+
+/// Records bulk shares instead of writing them (issue #2046).
+class _RecordingShareRepository extends EquipmentShareRepository {
+  final calls =
+      <
+        ({
+          List<String> equipmentIds,
+          List<String> diverIds,
+          String actingDiverId,
+        })
+      >[];
+
+  @override
+  Future<EquipmentShareResult> shareMany({
+    required List<String> equipmentIds,
+    required List<String> diverIds,
+    required String actingDiverId,
+  }) async {
+    calls.add((
+      equipmentIds: equipmentIds,
+      diverIds: diverIds,
+      actingDiverId: actingDiverId,
+    ));
+    return const EquipmentShareResult(added: 1, itemsChanged: 1);
+  }
 }

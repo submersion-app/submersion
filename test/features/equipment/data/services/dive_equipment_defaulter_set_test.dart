@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart'
     hide EquipmentSet, EquipmentSetGeofence;
@@ -63,5 +64,46 @@ void main() {
     )..where((t) => t.diveId.equals('dive1'))).get();
     expect(rows.map((r) => r.equipmentId), unorderedEquals(['reg', 'fins']));
     expect(rows.map((r) => r.viaSetId), everyElement('def'));
+  });
+
+  test('a member no longer shared with the diver is not applied', () async {
+    // Issue #2046: the set keeps it, a downloaded dive does not get it.
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'theirs',
+            name: 'theirs',
+            type: 'bcd',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value('d2'),
+          ),
+        );
+    await sets.createSet(
+      EquipmentSet(
+        id: 'def',
+        diverId: 'd1',
+        name: 'Default',
+        equipmentIds: const ['reg', 'theirs'],
+        isDefault: true,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+    await sets.setAsDefault('def', diverId: 'd1');
+
+    final applied = await defaulter.applyDefaultEquipmentIfEmpty(
+      diveId: 'dive1',
+      diverId: 'd1',
+      divePoints: const [],
+    );
+
+    expect(applied, isTrue);
+    final rows = await (db.select(
+      db.diveEquipment,
+    )..where((t) => t.diveId.equals('dive1'))).get();
+    expect(rows.map((r) => r.equipmentId), ['reg']);
   });
 }

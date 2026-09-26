@@ -1594,6 +1594,17 @@ class SyncService {
             records: data.equipmentTags,
             hasUpdatedAt: false,
           ),
+          // After both parents (equipment and divers), issue #2046.
+          (
+            type: 'equipmentShares',
+            records: data.equipmentShares,
+            hasUpdatedAt: false,
+          ),
+          (
+            type: 'equipmentOwnershipEvents',
+            records: data.equipmentOwnershipEvents,
+            hasUpdatedAt: false,
+          ),
           (
             type: 'mediaSpecies',
             records: data.mediaSpecies,
@@ -2436,6 +2447,8 @@ class SyncService {
     'siteSiteTypes': false,
     'siteTags': false,
     'equipmentTags': false,
+    'equipmentShares': false,
+    'equipmentOwnershipEvents': false,
     'mediaSpecies': false,
     'siteFeatures': true,
     'csvPresets': true,
@@ -2674,6 +2687,14 @@ class SyncService {
     'equipmentTags': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),
       (field: 'tagId', parent: 'tags', nullable: false),
+    ],
+    // v233: equipment sharing (issue #2046). The diver keys are left to
+    // repairDanglingForeignKeys like every diverId (see the note above).
+    'equipmentShares': [
+      (field: 'equipmentId', parent: 'equipment', nullable: false),
+    ],
+    'equipmentOwnershipEvents': [
+      (field: 'equipmentId', parent: 'equipment', nullable: false),
     ],
     'mediaSpecies': [
       (field: 'mediaId', parent: 'media', nullable: false),

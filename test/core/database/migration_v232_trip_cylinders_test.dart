@@ -152,12 +152,11 @@ void main() {
     'hlc',
   ];
 
-  test('v232 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 232);
+  test('v232 is in the ladder', () {
+    // Relaxed once v233 (equipment sharing, issue #2046) landed on top.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(232));
     expect(AppDatabase.migrationVersions, contains(232));
-    expect(AppDatabase.migrationStepCount(231), 1);
+    expect(AppDatabase.migrationStepCount(231), greaterThanOrEqualTo(1));
     // Additive rung: the sync compatibility floor must not move.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });

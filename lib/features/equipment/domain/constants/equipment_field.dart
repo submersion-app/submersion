@@ -46,7 +46,10 @@ enum EquipmentField implements EntityField {
   components,
 
   // Tags (issue #1942). Appended for the same reason; never reordered.
-  tags;
+  tags,
+
+  // Owner (issue #2046). Appended for the same reason; never reordered.
+  owner;
 
   @override
   String get name => toString().split('.').last;
@@ -71,6 +74,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.notes => 'Notes',
     EquipmentField.components => 'Components',
     EquipmentField.tags => 'Tags',
+    EquipmentField.owner => 'Owner',
   };
 
   @override
@@ -93,6 +97,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.notes => 'Notes',
     EquipmentField.components => 'Parts',
     EquipmentField.tags => 'Tags',
+    EquipmentField.owner => 'Owner',
   };
 
   @override
@@ -117,6 +122,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.notes => l10n.enum_equipmentField_notes,
     EquipmentField.components => l10n.enum_equipmentField_components,
     EquipmentField.tags => l10n.enum_equipmentField_tags,
+    EquipmentField.owner => l10n.enum_equipmentField_owner,
   };
 
   @override
@@ -144,6 +150,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.notes => l10n.enum_equipmentField_notes_short,
     EquipmentField.components => l10n.enum_equipmentField_components_short,
     EquipmentField.tags => l10n.enum_equipmentField_tags_short,
+    EquipmentField.owner => l10n.enum_equipmentField_owner_short,
   };
 
   @override
@@ -166,6 +173,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.notes => Icons.notes,
     EquipmentField.components => Icons.account_tree_outlined,
     EquipmentField.tags => Icons.sell_outlined,
+    EquipmentField.owner => Icons.person_outline,
   };
 
   @override
@@ -188,6 +196,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.notes => 150,
     EquipmentField.components => 90,
     EquipmentField.tags => 160,
+    EquipmentField.owner => 140,
   };
 
   @override
@@ -210,6 +219,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.notes => 80,
     EquipmentField.components => 60,
     EquipmentField.tags => 80,
+    EquipmentField.owner => 90,
   };
 
   @override
@@ -232,6 +242,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.notes => false,
     EquipmentField.components => true,
     EquipmentField.tags => false,
+    EquipmentField.owner => true,
   };
 
   @override
@@ -254,6 +265,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.notes => 'other',
     EquipmentField.components => 'details',
     EquipmentField.tags => 'other',
+    EquipmentField.owner => 'details',
   };
 
   @override
@@ -282,10 +294,15 @@ class EquipmentFieldAdapter
   /// no tags. Same lifecycle as [worstClocks].
   final Map<String, List<String>> tagNames;
 
+  /// Profile names by diver id, for the Owner column (issue #2046). Same
+  /// lifecycle as [worstClocks].
+  final Map<String, String> ownerNames;
+
   EquipmentFieldAdapter({
     this.worstClocks = const {},
     this.componentCounts = const {},
     this.tagNames = const {},
+    this.ownerNames = const {},
   });
 
   static final instance = EquipmentFieldAdapter();
@@ -328,6 +345,7 @@ class EquipmentFieldAdapter
       EquipmentField.notes => entity.notes,
       EquipmentField.components => componentCounts[entity.id] ?? 0,
       EquipmentField.tags => tagNames[entity.id] ?? const <String>[],
+      EquipmentField.owner => ownerNames[entity.diverId] ?? '',
     };
   }
 
@@ -353,6 +371,7 @@ class EquipmentFieldAdapter
       EquipmentField.notes => value as String,
       EquipmentField.components => '${value as int}',
       EquipmentField.tags => _formatTags(value as List<String>),
+      EquipmentField.owner => (value as String).isEmpty ? '--' : value,
     };
   }
 

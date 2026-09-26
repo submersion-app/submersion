@@ -160,6 +160,20 @@ const List<DiverDeleteStep> diverGearSteps = [
     entityType: 'equipmentTags',
     where: 'equipment_id IN ($_diverGear)',
   ),
+  // Shares of the diver's gear, and the diver's own shares of other
+  // profiles' gear (issue #2046).
+  (
+    table: 'equipment_shares',
+    entityType: 'equipmentShares',
+    where: 'equipment_id IN ($_diverGear) OR diver_id = ?1',
+  ),
+  // The event log of the diver's gear. Events on other profiles' gear that
+  // name this diver stay, their diver columns nulled by ON DELETE SET NULL.
+  (
+    table: 'equipment_ownership_events',
+    entityType: 'equipmentOwnershipEvents',
+    where: 'equipment_id IN ($_diverGear)',
+  ),
   (table: 'equipment', entityType: 'equipment', where: 'diver_id = ?1'),
 ];
 

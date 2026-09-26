@@ -9,6 +9,161 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get equipment_filter_owner_all => 'All';
+
+  @override
+  String get equipment_delete_notOwner => 'Only its owner can delete this item';
+
+  @override
+  String get equipment_sharedWithMe => 'Shared with me';
+
+  @override
+  String get equipment_owner_unknown => 'Another profile';
+
+  @override
+  String equipment_ownerChip_semanticLabel(String name) {
+    return 'Owned by $name';
+  }
+
+  @override
+  String equipment_picker_ownerHeader(String name) {
+    return 'From $name';
+  }
+
+  @override
+  String get equipment_sharing_sharedWithLabel => 'Shared with';
+
+  @override
+  String get equipment_sharing_notShared => 'Not shared';
+
+  @override
+  String get equipment_sharing_ownedByLabel => 'Owned by';
+
+  @override
+  String get equipment_sharing_dialogTitle => 'Share with';
+
+  @override
+  String get equipment_sharing_dialogBody =>
+      'Profiles you choose can add this gear to their dives and log its servicing. Only the owner can delete it or change who it is shared with.';
+
+  @override
+  String get equipment_bulkShare_action => 'Share with...';
+
+  @override
+  String equipment_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Shared $count items',
+      one: 'Shared 1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Shared $count items',
+      one: 'Shared 1 item',
+    );
+    return '$_temp0, skipped $skipped you do not own';
+  }
+
+  @override
+  String equipment_bulkDelete_partial(int deleted, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      deleted,
+      locale: localeName,
+      other: 'Deleted $deleted items',
+      one: 'Deleted 1 item',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other:
+          '$skipped shared items were kept: only their owners can delete them',
+      one: '1 shared item was kept: only its owner can delete it',
+    );
+    return '$_temp0. $_temp1';
+  }
+
+  @override
+  String get equipment_filter_section_owner => 'Owner';
+
+  @override
+  String get equipment_filter_owner_mine => 'Mine';
+
+  @override
+  String get enum_equipmentField_owner => 'Owner';
+
+  @override
+  String get enum_equipmentField_owner_short => 'Owner';
+
+  @override
+  String get equipment_set_noLongerShared => 'No longer shared';
+
+  @override
+  String get equipment_history_title => 'History';
+
+  @override
+  String get equipment_history_empty => 'Not used on any dive yet';
+
+  @override
+  String get equipment_history_deletedProfile => 'a deleted profile';
+
+  @override
+  String equipment_history_runDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_history_dateRange(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String equipment_history_added(String name) {
+    return 'Added by $name';
+  }
+
+  @override
+  String equipment_history_shared(String name) {
+    return 'Shared with $name';
+  }
+
+  @override
+  String equipment_history_unshared(String name) {
+    return 'Stopped sharing with $name';
+  }
+
+  @override
+  String equipment_history_transferred(String from, String to) {
+    return 'Transferred from $from to $to';
+  }
+
+  @override
+  String get settings_shareAllEquipment_title => 'Share all my equipment...';
+
+  @override
+  String settings_shareAllEquipment_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Share your $count items with the profiles you choose.',
+      one: 'Share your 1 item with the profiles you choose.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'Could not open your browser. Use Copy link and paste the address into your browser.';
 
@@ -27565,7 +27720,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_sharedData_sectionSubtitle =>
-      'Share sites and trips across profiles';
+      'Share sites, trips and equipment across profiles';
 
   @override
   String get common_action_unshare => 'Unshare';

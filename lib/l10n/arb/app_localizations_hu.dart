@@ -9,6 +9,163 @@ class AppLocalizationsHu extends AppLocalizations {
   AppLocalizationsHu([String locale = 'hu']) : super(locale);
 
   @override
+  String get equipment_filter_owner_all => 'Összes';
+
+  @override
+  String get equipment_delete_notOwner =>
+      'Ezt az elemet csak a tulajdonosa törölheti';
+
+  @override
+  String get equipment_sharedWithMe => 'Velem megosztva';
+
+  @override
+  String get equipment_owner_unknown => 'Másik profil';
+
+  @override
+  String equipment_ownerChip_semanticLabel(String name) {
+    return 'Tulajdonos: $name';
+  }
+
+  @override
+  String equipment_picker_ownerHeader(String name) {
+    return '$name felszerelése';
+  }
+
+  @override
+  String get equipment_sharing_sharedWithLabel => 'Megosztva';
+
+  @override
+  String get equipment_sharing_notShared => 'Nincs megosztva';
+
+  @override
+  String get equipment_sharing_ownedByLabel => 'Tulajdonos';
+
+  @override
+  String get equipment_sharing_dialogTitle => 'Megosztás';
+
+  @override
+  String get equipment_sharing_dialogBody =>
+      'A kiválasztott profilok hozzáadhatják ezt a felszerelést a merüléseikhez, és rögzíthetik a szervizelését. Csak a tulajdonos törölheti, vagy módosíthatja, kivel van megosztva.';
+
+  @override
+  String get equipment_bulkShare_action => 'Megosztás...';
+
+  @override
+  String equipment_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem megosztva',
+      one: '1 elem megosztva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem megosztva',
+      one: '1 elem megosztva',
+    );
+    return '$_temp0, $skipped kihagyva, amely nem a tiéd';
+  }
+
+  @override
+  String equipment_bulkDelete_partial(int deleted, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      deleted,
+      locale: localeName,
+      other: '$deleted elem törölve',
+      one: '1 elem törölve',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other:
+          '$skipped megosztott elem megmaradt: csak a tulajdonosaik törölhetik',
+      one: '1 megosztott elem megmaradt: csak a tulajdonosa törölheti',
+    );
+    return '$_temp0. $_temp1';
+  }
+
+  @override
+  String get equipment_filter_section_owner => 'Tulajdonos';
+
+  @override
+  String get equipment_filter_owner_mine => 'Sajátjaim';
+
+  @override
+  String get enum_equipmentField_owner => 'Tulajdonos';
+
+  @override
+  String get enum_equipmentField_owner_short => 'Tulajdonos';
+
+  @override
+  String get equipment_set_noLongerShared => 'Már nincs megosztva';
+
+  @override
+  String get equipment_history_title => 'Előzmények';
+
+  @override
+  String get equipment_history_empty => 'Még egyetlen merülésen sem használták';
+
+  @override
+  String get equipment_history_deletedProfile => 'egy törölt profil';
+
+  @override
+  String equipment_history_runDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_history_dateRange(String from, String to) {
+    return '$from és $to között';
+  }
+
+  @override
+  String equipment_history_added(String name) {
+    return 'Hozzáadta: $name';
+  }
+
+  @override
+  String equipment_history_shared(String name) {
+    return 'Megosztva vele: $name';
+  }
+
+  @override
+  String equipment_history_unshared(String name) {
+    return 'Megosztás megszüntetve vele: $name';
+  }
+
+  @override
+  String equipment_history_transferred(String from, String to) {
+    return 'Átadva $from részéről $to részére';
+  }
+
+  @override
+  String get settings_shareAllEquipment_title =>
+      'Minden felszerelésem megosztása...';
+
+  @override
+  String settings_shareAllEquipment_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Oszd meg a(z) $count elemedet a kiválasztott profilokkal.',
+      one: 'Oszd meg az 1 elemedet a kiválasztott profilokkal.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'Nem sikerült megnyitni a böngészőt. Használd a Link másolása gombot, és illeszd be a címet a böngésződbe.';
 
@@ -27924,7 +28081,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_sharedData_sectionSubtitle =>
-      'Helyszínek és túrák megosztása profilok között';
+      'Helyszínek, túrák és felszerelés megosztása profilok között';
 
   @override
   String get common_action_unshare => 'Megosztás megszüntetése';

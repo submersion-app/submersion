@@ -57,6 +57,7 @@ void main() {
     WidgetTester tester, {
     required List<ServiceRecord> records,
     required List<ServiceKind> kinds,
+    Map<String, ServiceKind>? allKinds,
     Locale locale = const Locale('en'),
     Size surface = const Size(600, 1200),
     AsyncValue<List<ServiceRecord>>? recordsState,
@@ -77,6 +78,9 @@ void main() {
         overrides: [
           ...overrides,
           serviceKindsProvider.overrideWith((ref) async => kinds),
+          allServiceKindsByIdProvider.overrideWith(
+            (ref) async => allKinds ?? {for (final k in kinds) k.id: k},
+          ),
           serviceRecordNotifierProvider(equipmentId).overrideWith(
             (ref) =>
                 notifier ??
@@ -107,6 +111,19 @@ void main() {
     );
     if (settle) await tester.pumpAndSettle();
   }
+
+  testWidgets('names a record on another profile custom kind', (tester) async {
+    // Issue #2046: a shared item's record can use its owner's custom kind,
+    // which the active diver's scoped kind list leaves out.
+    await pumpSection(
+      tester,
+      records: [record(id: 'r1', kindId: 'owner-kind')],
+      kinds: const [],
+      allKinds: {'owner-kind': kind('owner-kind', 'Owner clean')},
+    );
+
+    expect(find.text('Owner clean'), findsOneWidget);
+  });
 
   testWidgets('row titles with the maintenance task name', (tester) async {
     await pumpSection(
