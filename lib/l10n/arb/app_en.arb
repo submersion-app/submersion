@@ -27003,5 +27003,19 @@
   "diveLog_filter_queryRow": "Query",
   "@diveLog_filter_queryRow": {"description": "Quick filter sheet row that opens the advanced search on its query editor"},
   "diveLog_search_section_query": "Query",
-  "@diveLog_search_section_query": {"description": "Advanced search section that hosts the query editor"}
+  "@diveLog_search_section_query": {"description": "Advanced search section that hosts the query editor"},
+  "query_saveDialog_title": "Save query",
+  "@query_saveDialog_title": {"description": "Dialog that names a query being saved"},
+  "query_saveDialog_nameLabel": "Name",
+  "@query_saveDialog_nameLabel": {"description": "Save query dialog field label"},
+  "query_saveDialog_nameValidation": "Enter a name",
+  "@query_saveDialog_nameValidation": {"description": "Save query dialog validation"},
+  "query_saved_snackbar": "Saved \"{name}\"",
+  "@query_saved_snackbar": {"description": "Confirmation after saving a query", "placeholders": {"name": {"type": "String"}}},
+  "query_savedRow_title": "Saved",
+  "@query_savedRow_title": {"description": "Heading of the saved-query chip row"},
+  "query_savedRow_unreadable": "Cannot read \"{name}\": {detail}",
+  "@query_savedRow_unreadable": {"description": "Snackbar when tapping a saved query this build cannot read", "placeholders": {"name": {"type": "String"}, "detail": {"type": "String"}}},
+  "query_savedRow_unresolved": "\"{name}\" refers to something that no longer exists",
+  "@query_savedRow_unresolved": {"description": "Tooltip on a saved query with a deleted reference", "placeholders": {"name": {"type": "String"}}}
 }

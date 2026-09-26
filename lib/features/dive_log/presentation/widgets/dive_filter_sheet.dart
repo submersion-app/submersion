@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/query/presentation/widgets/saved_query_chip_row.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/number_input.dart';
@@ -237,6 +239,23 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                     controller: scrollController,
                     padding: const EdgeInsets.all(16),
                     children: [
+                      // Saved queries apply at once: the sheet's own axes
+                      // are untouched, the advanced part is replaced
+                      // (#2365).
+                      SavedQueryChipRow(
+                        subject: QuerySubject.dives,
+                        onApply: (load) {
+                          final current = widget.ref.read(
+                            widget.filterProvider,
+                          );
+                          widget.ref
+                              .read(widget.filterProvider.notifier)
+                              .state = current.copyWith(
+                            query: load.node,
+                          );
+                          Navigator.of(context).pop();
+                        },
+                      ),
                       // Link to advanced search
                       Align(
                         alignment: AlignmentDirectional.centerStart,

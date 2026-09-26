@@ -287,6 +287,14 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_op_lte;
     case 'query_op_neq':
       return l10n.query_op_neq;
+    case 'query_saveDialog_nameLabel':
+      return l10n.query_saveDialog_nameLabel;
+    case 'query_saveDialog_nameValidation':
+      return l10n.query_saveDialog_nameValidation;
+    case 'query_saveDialog_title':
+      return l10n.query_saveDialog_title;
+    case 'query_savedRow_title':
+      return l10n.query_savedRow_title;
     case 'query_sightings_count':
       return l10n.query_sightings_count;
     case 'query_sightings_notes':

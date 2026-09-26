@@ -6,6 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
+import 'package:submersion/features/query/domain/entities/saved_query.dart';
+import 'package:submersion/features/query/domain/saved_query_load.dart';
+import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -128,5 +131,41 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('search page'), findsOneWidget);
     expect(s.pushed, ['/dives/search?section=query']);
+  });
+
+  testWidgets('a saved chip applies at once and keeps the sheet axes', (
+    tester,
+  ) async {
+    final shallow = ConditionNode(
+      FieldPath(['depth']),
+      QueryOp.lt,
+      const NumberValue(10, null),
+    );
+    final s = await pumpSheet(
+      tester,
+      extraOverrides: [
+        savedQueryLoadsProvider('dives').overrideWith(
+          (ref) async => [
+            SavedQueryLoad(
+              SavedQuery(
+                id: 'a',
+                subject: 'dives',
+                name: 'Shallow',
+                queryJson: '{}',
+                createdAt: DateTime(2026),
+                updatedAt: DateTime(2026),
+              ),
+              node: shallow,
+            ),
+          ],
+        ),
+      ],
+    );
+    await tester.tap(find.widgetWithText(ActionChip, 'Shallow'));
+    await tester.pumpAndSettle();
+    final applied = s.container.read(s.filter);
+    expect(applied.query, shallow);
+    expect(applied.tripId, 'trip-1');
+    expect(find.byType(DiveFilterSheet), findsNothing);
   });
 }

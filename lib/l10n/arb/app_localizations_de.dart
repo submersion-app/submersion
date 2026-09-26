@@ -43640,4 +43640,31 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_search_section_query => 'Query';
+
+  @override
+  String get query_saveDialog_title => 'Save query';
+
+  @override
+  String get query_saveDialog_nameLabel => 'Name';
+
+  @override
+  String get query_saveDialog_nameValidation => 'Enter a name';
+
+  @override
+  String query_saved_snackbar(String name) {
+    return 'Saved \"$name\"';
+  }
+
+  @override
+  String get query_savedRow_title => 'Saved';
+
+  @override
+  String query_savedRow_unreadable(String name, String detail) {
+    return 'Cannot read \"$name\": $detail';
+  }
+
+  @override
+  String query_savedRow_unresolved(String name) {
+    return '\"$name\" refers to something that no longer exists';
+  }
 }

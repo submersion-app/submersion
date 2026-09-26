@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
 
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -20,6 +21,9 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/widgets/weekday_filter_selector.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/query/presentation/dive_query_editor.dart';
+import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
+import 'package:submersion/features/query/presentation/widgets/save_query_dialog.dart';
+import 'package:submersion/features/query/presentation/widgets/saved_query_chip_row.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
@@ -234,9 +238,20 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
             key: 'query',
             title: context.l10n.diveLog_search_section_query,
             icon: Icons.code,
-            child: DiveQueryEditor(
-              value: _query,
-              onChanged: (node) => setState(() => _query = node),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SavedQueryChipRow(
+                  subject: QuerySubject.dives,
+                  onApply: (load) => setState(() => _query = load.node),
+                ),
+                const SizedBox(height: 8),
+                DiveQueryEditor(
+                  value: _query,
+                  onChanged: (node) => setState(() => _query = node),
+                  onSave: _saveQuery,
+                ),
+              ],
             ),
           ),
 
@@ -965,6 +980,40 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
           _endDate = picked;
         }
       });
+    }
+  }
+
+  /// Saves the current query under a name the diver gives (spec Unit 7).
+  Future<void> _saveQuery() async {
+    final node = _query;
+    if (node == null) return;
+    final name = await showSaveQueryDialog(context);
+    if (name == null || !mounted) return;
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    if (diverId == null || !mounted) return;
+    try {
+      await ref
+          .read(savedQueryRepositoryProvider)
+          .create(
+            subject: QuerySubject.dives,
+            name: name,
+            node: node,
+            diverId: diverId,
+          );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.query_saved_snackbar(name))),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${context.l10n.common_label_error}: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     }
   }
 

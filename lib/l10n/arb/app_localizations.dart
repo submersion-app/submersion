@@ -70133,6 +70133,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Query'**
   String get diveLog_search_section_query;
+
+  /// Dialog that names a query being saved
+  ///
+  /// In en, this message translates to:
+  /// **'Save query'**
+  String get query_saveDialog_title;
+
+  /// Save query dialog field label
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_saveDialog_nameLabel;
+
+  /// Save query dialog validation
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get query_saveDialog_nameValidation;
+
+  /// Confirmation after saving a query
+  ///
+  /// In en, this message translates to:
+  /// **'Saved \"{name}\"'**
+  String query_saved_snackbar(String name);
+
+  /// Heading of the saved-query chip row
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get query_savedRow_title;
+
+  /// Snackbar when tapping a saved query this build cannot read
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot read \"{name}\": {detail}'**
+  String query_savedRow_unreadable(String name, String detail);
+
+  /// Tooltip on a saved query with a deleted reference
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" refers to something that no longer exists'**
+  String query_savedRow_unresolved(String name);
 }
 
 class _AppLocalizationsDelegate

@@ -7,7 +7,10 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_search_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/query/data/query_name_index.dart';
+import 'package:submersion/features/query/domain/entities/saved_query.dart';
+import 'package:submersion/features/query/domain/saved_query_load.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
+import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -147,5 +150,44 @@ void main() {
     await tester.tap(searchButton());
     await tester.pumpAndSettle();
     expect(container.read(diveFilterProvider).query, isNull);
+  });
+
+  testWidgets('a saved chip applies its tree into the editor', (tester) async {
+    final depth = ConditionNode(
+      FieldPath(['depth']),
+      QueryOp.gt,
+      const NumberValue(30, null),
+    );
+    final container = await pumpPage(
+      tester,
+      const DiveFilterState(),
+      section: 'query',
+      extraOverrides: [
+        savedQueryLoadsProvider('dives').overrideWith(
+          (ref) async => [
+            SavedQueryLoad(
+              SavedQuery(
+                id: 'a',
+                subject: 'dives',
+                name: 'Deep',
+                queryJson: '{}',
+                createdAt: DateTime(2026),
+                updatedAt: DateTime(2026),
+              ),
+              node: depth,
+            ),
+          ],
+        ),
+      ],
+    );
+    await tester.tap(find.widgetWithText(ActionChip, 'Deep'));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextField>(queryField()).controller!.text,
+      'depth > 30',
+    );
+    await tester.tap(searchButton());
+    await tester.pumpAndSettle();
+    expect(container.read(diveFilterProvider).query, depth);
   });
 }
