@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/utils/locale_number_symbols.dart';
-import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_gas_role.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/flush_fee.dart';
@@ -14,6 +12,7 @@ import 'package:submersion/features/gas_calculators/presentation/widgets/blender
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_volume_conversion.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// The three fill-gas roles the blender draws from -- oxygen, helium and
 /// topup -- one row each, in the diver's configured fill order.
@@ -135,23 +134,34 @@ class BlenderFillGasesCard extends ConsumerWidget {
   }
 
   Widget _topupO2Field(BuildContext context, WidgetRef ref) {
-    return TextField(
-      key: const Key('blender-topup-o2'),
-      controller: topupO2Controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-        const BlenderDecimalDigitsFormatter(),
-      ],
-      decoration: InputDecoration(
-        labelText: '${context.l10n.gasCalculators_blender_o2} (%)',
-        isDense: true,
-        border: const OutlineInputBorder(),
+    return ListenableBuilder(
+      listenable: topupO2Controller,
+      builder: (context, _) => TextField(
+        key: const Key('blender-topup-o2'),
+        controller: topupO2Controller,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+          const BlenderDecimalDigitsFormatter(),
+        ],
+        decoration: InputDecoration(
+          labelText: '${context.l10n.gasCalculators_blender_o2} (%)',
+          errorText: invalidNumberText(context, topupO2Controller.text),
+          isDense: true,
+          border: const OutlineInputBorder(),
+        ),
+        onChanged: (v) {
+          final topup = ref.read(blenderTopupO2PercentProvider.notifier);
+          topup.state = switch (readNumber(v)) {
+            NumberValue(:final value) => value.clamp(0.0, 100.0),
+            NumberBlank() => 0.0, // no oxygen in the topup, as before
+            // Used to read as 0 % too; keep the fraction, the field says why.
+            NumberInvalid() => topup.state,
+          };
+        },
+        onEditingComplete: () => saveBlenderPreferences(ref),
+        onSubmitted: (_) => saveBlenderPreferences(ref),
       ),
-      onChanged: (v) => ref.read(blenderTopupO2PercentProvider.notifier).state =
-          (smartParseUserDecimal(v) ?? 0.0).clamp(0.0, 100.0),
-      onEditingComplete: () => saveBlenderPreferences(ref),
-      onSubmitted: (_) => saveBlenderPreferences(ref),
     );
   }
 
@@ -180,7 +190,7 @@ class BlenderFillGasesCard extends ConsumerWidget {
           labelText: context.l10n.gasCalculators_blender_unitPrice(
             units.volumeSymbol,
           ),
-          errorText: _invalidNumberText(context, controller.text),
+          errorText: invalidNumberText(context, controller.text),
           isDense: true,
           border: const OutlineInputBorder(),
         ),
@@ -188,20 +198,6 @@ class BlenderFillGasesCard extends ConsumerWidget {
         onEditingComplete: () => saveBlenderPreferences(ref),
         onSubmitted: (_) => saveBlenderPreferences(ref),
       ),
-    );
-  }
-
-  /// The error to show under a decimal field when [text] is non-blank but
-  /// still cannot be read after [smartParseUserDecimal] has already
-  /// corrected an unambiguous wrong-separator keystroke -- the one shape
-  /// left is genuinely malformed (e.g. two separators), not a diver's `.`
-  /// under a German locale, which is corrected automatically (#1876).
-  String? _invalidNumberText(BuildContext context, String text) {
-    if (text.trim().isEmpty || smartParseUserDecimal(text) != null) {
-      return null;
-    }
-    return context.l10n.gasCalculators_blender_invalidNumber(
-      localeNumberFormat().symbols.DECIMAL_SEP,
     );
   }
 
@@ -226,12 +222,11 @@ class BlenderFillGasesCard extends ConsumerWidget {
     int index,
     AppSettings settings,
   ) {
-    if (text.trim().isEmpty) return null;
-    final parsed = smartParseUserDecimal(text);
-    if (parsed == null) {
-      return index < previous.length ? previous[index] : null;
-    }
-    return displayToPricePer100Liters(parsed, settings);
+    return switch (readNumber(text)) {
+      NumberValue(:final value) => displayToPricePer100Liters(value, settings),
+      NumberBlank() => null,
+      NumberInvalid() => index < previous.length ? previous[index] : null,
+    };
   }
 
   Widget _flushVolumeField(
@@ -257,7 +252,7 @@ class BlenderFillGasesCard extends ConsumerWidget {
               '$label '
               '${context.l10n.gasCalculators_blender_flushFeeVolume} '
               '(${units.volumeSymbol})',
-          errorText: _invalidNumberText(context, controller.text),
+          errorText: invalidNumberText(context, controller.text),
           isDense: true,
           border: const OutlineInputBorder(),
         ),
@@ -294,12 +289,12 @@ class BlenderFillGasesCard extends ConsumerWidget {
     int index,
     AppSettings settings,
   ) {
-    if (text.trim().isEmpty) return 0;
-    final parsed = smartParseUserDecimal(text);
-    if (parsed == null) {
-      return index < previous.length ? previous[index].volumeLiters : 0;
-    }
-    return displayVolumeToLiters(parsed, settings);
+    return switch (readNumber(text)) {
+      NumberValue(:final value) => displayVolumeToLiters(value, settings),
+      NumberBlank() => 0,
+      NumberInvalid() =>
+        index < previous.length ? previous[index].volumeLiters : 0,
+    };
   }
 
   void _move(WidgetRef ref, List<BlenderGasRole> order, int from, int to) {

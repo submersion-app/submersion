@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/mix_template_messages.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Add and delete saved target-fill mixes (issue #1335 follow-up).
 ///
@@ -27,6 +27,12 @@ class _MixTemplateManagerState extends ConsumerState<MixTemplateManager> {
   /// The outcome of the last add attempt, shown under the entry row.
   String? _message;
 
+  static double? _percent(TextEditingController controller) =>
+      switch (readNumber(controller.text)) {
+        NumberValue(:final value) => value,
+        NumberBlank() || NumberInvalid() => null,
+      };
+
   @override
   void dispose() {
     _o2.dispose();
@@ -36,8 +42,10 @@ class _MixTemplateManagerState extends ConsumerState<MixTemplateManager> {
 
   /// Add the typed mix, saying why when it cannot be added.
   void _add() {
-    final o2 = parseUserDecimal(_o2.text);
-    final he = parseUserDecimal(_he.text);
+    // Blank and unreadable are both "missing a number" here, and the
+    // message below says so.
+    final o2 = _percent(_o2);
+    final he = _percent(_he);
     if (o2 == null || he == null) {
       // Not the same complaint as an impossible mix: a blank or half-typed
       // box is missing a number, and a silent no-op reads as a broken button.

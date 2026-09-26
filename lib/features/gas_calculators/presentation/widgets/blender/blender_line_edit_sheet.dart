@@ -17,6 +17,7 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// The two kinds of line "Add a line" can put on the bill (issue #2302).
 enum BlenderLineKind {
@@ -236,6 +237,24 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
     return '$label (${formatPreciseMix(context, gasForRole(role, topupO2))})';
   }
 
+  /// A field's number, or null when blank or unreadable. [_submit] checks
+  /// unreadable text first and says so in the sheet's error line.
+  static double? _numberIn(TextEditingController controller) =>
+      switch (readNumber(controller.text)) {
+        NumberValue(:final value) => value,
+        NumberBlank() || NumberInvalid() => null,
+      };
+
+  /// The shared "not a number" message for the first of [controllers] whose
+  /// text is unreadable, or null when none is.
+  String? _unreadableError(List<TextEditingController> controllers) {
+    for (final controller in controllers) {
+      final message = invalidNumberText(context, controller.text);
+      if (message != null) return message;
+    }
+    return null;
+  }
+
   double? _priceFor(BlenderGasRole role, List<double?> prices) =>
       role.index < prices.length ? prices[role.index] : null;
 
@@ -245,7 +264,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
     // its rounded text would lose in cubic feet.
     final saved = widget.fill?.manualGasLine?.cylinderLiters;
     if (saved != null && _cylinder.text == _seedCylinder) return saved;
-    final shown = smartParseUserDecimal(_cylinder.text);
+    final shown = _numberIn(_cylinder);
     if (shown == null || shown <= 0) return null;
     return displayVolumeToLiters(shown, settings);
   }
@@ -257,8 +276,8 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
     List<double?> prices,
   ) {
     final liters = _cylinderLiters(settings);
-    final start = smartParseUserDecimal(_startPressure.text);
-    final end = smartParseUserDecimal(_endPressure.text);
+    final start = _numberIn(_startPressure);
+    final end = _numberIn(_endPressure);
     if (liters == null || start == null || end == null) return null;
     return manualGasFillCost(
       waterLiters: liters,
@@ -271,6 +290,11 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
   void _submit() {
     final label = _label.text.trim();
     if (!_kindEditable || _kind == BlenderLineKind.amount) {
+      // An unreadable amount used to save the line with no amount at all.
+      if (_unreadableError([_amount]) case final message?) {
+        setState(() => _error = message);
+        return;
+      }
       if (label.isEmpty) {
         setState(
           () =>
@@ -281,7 +305,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
       Navigator.of(context).pop(
         BlenderLineEdit(
           label: label,
-          amount: smartParseUserDecimal(_amount.text),
+          amount: _numberIn(_amount), // blank is no amount, as before
           lines: _kindEditable ? const [] : null,
         ),
       );
@@ -305,6 +329,11 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
       );
       return;
     }
+    if (_unreadableError([_cylinder, _startPressure, _endPressure])
+        case final message?) {
+      setState(() => _error = message);
+      return;
+    }
     final liters = _cylinderLiters(settings);
     if (liters == null) {
       setState(
@@ -312,8 +341,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
       );
       return;
     }
-    if (smartParseUserDecimal(_startPressure.text) == null ||
-        smartParseUserDecimal(_endPressure.text) == null) {
+    if (_numberIn(_startPressure) == null || _numberIn(_endPressure) == null) {
       setState(
         () => _error = context.l10n.gasCalculators_blender_lineNeedsPressure,
       );
@@ -327,9 +355,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
       return;
     }
     final gasName = _gasName(_role);
-    final startBar = units.pressureToBar(
-      smartParseUserDecimal(_startPressure.text)!,
-    );
+    final startBar = units.pressureToBar(_numberIn(_startPressure)!);
     Navigator.of(context).pop(
       BlenderLineEdit(
         label: label.isNotEmpty
