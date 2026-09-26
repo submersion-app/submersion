@@ -331,6 +331,7 @@ void main() {
       late String message;
       await tester.pumpWidget(
         testApp(
+          locale: const Locale('en'),
           child: Builder(
             builder: (context) {
               message = planIssueMessage(
