@@ -117,6 +117,27 @@ int libdc_usbhid_match(const char *vendor, const char *product,
                        unsigned int model,
                        unsigned short vid, unsigned short pid);
 
+// The product a device reported about itself, when that differs from the
+// descriptor it was opened with (issue #422).
+//
+// A Cressi Donatello behind Cressi's Bluetooth adapter advertises "1_...",
+// the Cartesio's model code, so the scan labels it a Cartesio. The version
+// block the Goa backend reads during the download carries the real model
+// code, in the same code space as the descriptor table.
+//
+// Only families on an allowlist are consulted: most families report a
+// DEVINFO model in a private code space that does not index the descriptor
+// table, and reading it as one would mislabel hardware.
+//
+// Returns 1 and copies the product into product_out when reported_model names
+// a different row of the same vendor and family. Returns 0 otherwise,
+// including when product_out is too small for the whole name (the app matches
+// descriptors by exact product string).
+int libdc_resolve_reported_product(const char *vendor, const char *product,
+                                   unsigned int model,
+                                   unsigned int reported_model,
+                                   char *product_out, size_t product_out_size);
+
 // ============================================================
 // Custom I/O Callbacks (for BLE bridge)
 // ============================================================

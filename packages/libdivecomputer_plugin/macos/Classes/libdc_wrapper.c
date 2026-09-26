@@ -525,6 +525,71 @@ void libdc_parsed_dive_free(libdc_parsed_dive_t *dive) {
     free(dive);
 }
 
+// Families whose DEVINFO model shares the descriptor table's code space. Add
+// one only with evidence from its backend source: the model must be read
+// from the device and compared against descriptor model codes there.
+static int reported_model_family_allowed(dc_family_t family) {
+    return family == DC_FAMILY_CRESSI_GOA;
+}
+
+int libdc_resolve_reported_product(const char *vendor, const char *product,
+                                   unsigned int model,
+                                   unsigned int reported_model,
+                                   char *product_out,
+                                   size_t product_out_size) {
+    if (vendor == NULL || product == NULL || product_out == NULL ||
+        product_out_size == 0 || reported_model == model) {
+        return 0;
+    }
+
+    dc_iterator_t *iter = NULL;
+    if (dc_descriptor_iterator(&iter) != DC_STATUS_SUCCESS || iter == NULL) {
+        return 0;
+    }
+
+    // Pass 1: the family of the descriptor the download used.
+    dc_family_t family = DC_FAMILY_NULL;
+    int found = 0;
+    dc_descriptor_t *desc = NULL;
+    while (dc_iterator_next(iter, &desc) == DC_STATUS_SUCCESS) {
+        const char *v = dc_descriptor_get_vendor(desc);
+        const char *p = dc_descriptor_get_product(desc);
+        if (!found && v != NULL && p != NULL && strcmp(v, vendor) == 0 &&
+            strcmp(p, product) == 0 &&
+            dc_descriptor_get_model(desc) == model) {
+            family = dc_descriptor_get_type(desc);
+            found = 1;
+        }
+        dc_descriptor_free(desc);
+    }
+    dc_iterator_free(iter);
+    if (!found || !reported_model_family_allowed(family)) {
+        return 0;
+    }
+
+    // Pass 2: the row the device named.
+    if (dc_descriptor_iterator(&iter) != DC_STATUS_SUCCESS || iter == NULL) {
+        return 0;
+    }
+    int resolved = 0;
+    while (dc_iterator_next(iter, &desc) == DC_STATUS_SUCCESS) {
+        const char *v = dc_descriptor_get_vendor(desc);
+        const char *p = dc_descriptor_get_product(desc);
+        if (!resolved && v != NULL && p != NULL && strcmp(v, vendor) == 0 &&
+            dc_descriptor_get_type(desc) == family &&
+            dc_descriptor_get_model(desc) == reported_model) {
+            size_t len = strlen(p);
+            if (len < product_out_size) {
+                memcpy(product_out, p, len + 1);
+                resolved = 1;
+            }
+        }
+        dc_descriptor_free(desc);
+    }
+    dc_iterator_free(iter);
+    return resolved;
+}
+
 // ============================================================
 // BLE Characteristic Read ioctl (issue #422)
 // ============================================================
