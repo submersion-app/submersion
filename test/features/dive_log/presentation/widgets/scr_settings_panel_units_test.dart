@@ -109,6 +109,31 @@ void main() {
       expect(_hintOf(tester, 'Assumed VO₂'), '0.046');
     });
 
+    for (final type in [ScrType.pascr, ScrType.escr]) {
+      testWidgets('${type.name} shows and stores VO2 in cuft/min', (
+        tester,
+      ) async {
+        final captured = _Captured();
+        await _pumpPanel(
+          tester,
+          VolumeUnit.cubicFeet,
+          ScrSettingsPanel(
+            scrType: type,
+            assumedVo2: 1.30,
+            onChanged: captured.call,
+          ),
+        );
+
+        expect(find.text('cuft/min'), findsOneWidget);
+        expect(_textOf(tester, 'Assumed VO₂'), '0.046');
+        expect(_hintOf(tester, 'Assumed VO₂'), '0.046');
+
+        await tester.enterText(_fieldWithLabel('Assumed VO₂'), '0.05');
+        await tester.pump();
+        expect(captured.assumedVo2, closeTo(0.05 / 0.0353147, 0.0001));
+      });
+    }
+
     testWidgets('the calculated loop FO2 matches the metric result', (
       tester,
     ) async {
