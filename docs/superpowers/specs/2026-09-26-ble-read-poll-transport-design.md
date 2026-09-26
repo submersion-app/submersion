@@ -110,8 +110,9 @@ marked ready as soon as the characteristic is chosen:
 Close skips `StopNotify` and CCCD teardown in read mode.
 
 Diagnostics: each platform logs `read-poll tier selected: service=...
-characteristic=...`, and the "no usable service" error also lists read-only
-candidates it saw.
+characteristic=...`, and the "no usable service" error also says that no known
+read-poll service matched. The service UUIDs it already lists are what a new
+allowlist entry would be written from.
 
 ### 2. Read-poll semantics
 
