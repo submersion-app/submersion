@@ -43683,244 +43683,244 @@ class AppLocalizationsEs extends AppLocalizations {
   String get query_op_isSet => 'con valor';
 
   @override
-  String get query_editor_tabText => 'Text';
+  String get query_editor_tabText => 'Texto';
 
   @override
-  String get query_editor_tabBuilder => 'Builder';
+  String get query_editor_tabBuilder => 'Constructor';
 
   @override
-  String get query_editor_hint => 'e.g. weights:none AND depth > 30';
+  String get query_editor_hint => 'p. ej. weights:none AND depth > 30';
 
   @override
-  String get query_editor_save => 'Save query';
+  String get query_editor_save => 'Guardar consulta';
 
   @override
-  String get query_editor_allOf => 'All of';
+  String get query_editor_allOf => 'Todas';
 
   @override
-  String get query_editor_anyOf => 'Any of';
+  String get query_editor_anyOf => 'Cualquiera';
 
   @override
-  String get query_editor_addCondition => 'Add condition';
+  String get query_editor_addCondition => 'Agregar condición';
 
   @override
-  String get query_editor_addGroup => 'Add group';
+  String get query_editor_addGroup => 'Agregar grupo';
 
   @override
-  String get query_editor_negate => 'Not';
+  String get query_editor_negate => 'Negar';
 
   @override
-  String get query_editor_remove => 'Remove';
+  String get query_editor_remove => 'Quitar';
 
   @override
-  String get query_editor_pickField => 'Choose a field';
+  String get query_editor_pickField => 'Elegir un campo';
 
   @override
-  String get query_editor_pickFieldSearch => 'Search fields';
+  String get query_editor_pickFieldSearch => 'Buscar campos';
 
   @override
   String query_editor_useRelation(String name) {
-    return 'Use $name itself';
+    return 'Usar $name directamente';
   }
 
   @override
   String query_editor_fieldsOf(String name) {
-    return 'Fields of $name';
+    return 'Campos de $name';
   }
 
   @override
   String query_editor_pickRef(String name) {
-    return 'Choose $name';
+    return 'Elegir $name';
   }
 
   @override
-  String get query_editor_pickRefSearch => 'Search';
+  String get query_editor_pickRefSearch => 'Buscar';
 
   @override
-  String get query_editor_done => 'Done';
+  String get query_editor_done => 'Listo';
 
   @override
-  String get query_editor_unresolvedRef => 'No longer exists';
+  String get query_editor_unresolvedRef => 'Ya no existe';
 
   @override
   String query_editor_scopedRow(String name) {
-    return 'Group over $name: edit in the Text tab';
+    return 'Grupo sobre $name: edítalo en la pestaña Texto';
   }
 
   @override
-  String get query_editor_textRow => 'Text search';
+  String get query_editor_textRow => 'Búsqueda de texto';
 
   @override
-  String get query_editor_betweenAnd => 'and';
+  String get query_editor_betweenAnd => 'y';
 
   @override
-  String get query_editor_valueTrue => 'Yes';
+  String get query_editor_valueTrue => 'Sí';
 
   @override
   String get query_editor_valueFalse => 'No';
 
   @override
-  String get diveLog_filter_queryRow => 'Query';
+  String get diveLog_filter_queryRow => 'Consulta';
 
   @override
-  String get diveLog_search_section_query => 'Query';
+  String get diveLog_search_section_query => 'Consulta';
 
   @override
-  String get query_saveDialog_title => 'Save query';
+  String get query_saveDialog_title => 'Guardar consulta';
 
   @override
-  String get query_saveDialog_nameLabel => 'Name';
+  String get query_saveDialog_nameLabel => 'Nombre';
 
   @override
-  String get query_saveDialog_nameValidation => 'Enter a name';
+  String get query_saveDialog_nameValidation => 'Introduce un nombre';
 
   @override
   String query_saved_snackbar(String name) {
-    return 'Saved \"$name\"';
+    return 'Consulta \"$name\" guardada';
   }
 
   @override
-  String get query_savedRow_title => 'Saved';
+  String get query_savedRow_title => 'Guardadas';
 
   @override
   String query_savedRow_unreadable(String name, String detail) {
-    return 'Cannot read \"$name\": $detail';
+    return 'No se puede leer \"$name\": $detail';
   }
 
   @override
   String query_savedRow_unresolved(String name) {
-    return '\"$name\" refers to something that no longer exists';
+    return '\"$name\" hace referencia a algo que ya no existe';
   }
 
   @override
-  String get savedQueries_appBar_title => 'Saved Queries';
+  String get savedQueries_appBar_title => 'Consultas guardadas';
 
   @override
   String get savedQueries_empty =>
-      'No saved queries yet. Save one from the query editor on the dive search page.';
+      'Aún no hay consultas guardadas. Guarda una desde el editor de consultas en la página de búsqueda de inmersiones.';
 
   @override
-  String get savedQueries_renameTooltip => 'Rename';
+  String get savedQueries_renameTooltip => 'Renombrar';
 
   @override
-  String get savedQueries_deleteTooltip => 'Delete';
+  String get savedQueries_deleteTooltip => 'Eliminar';
 
   @override
-  String get savedQueries_reorderTooltip => 'Drag to reorder';
+  String get savedQueries_reorderTooltip => 'Arrastra para reordenar';
 
   @override
-  String get savedQueries_deleteDialog_title => 'Delete query?';
+  String get savedQueries_deleteDialog_title => '¿Eliminar consulta?';
 
   @override
   String savedQueries_deleteDialog_content(String name) {
-    return 'Delete \"$name\"? This cannot be undone.';
+    return '¿Eliminar \"$name\"? Esta acción no se puede deshacer.';
   }
 
   @override
   String get savedQueries_problem_unreadable =>
-      'Cannot be read by this version of the app';
+      'Esta versión de la app no puede leerla';
 
   @override
   String savedQueries_problem_invalid(String detail) {
-    return 'Uses something this version does not have: $detail';
+    return 'Usa algo que esta versión no tiene: $detail';
   }
 
   @override
   String savedQueries_problem_unknownSubject(String detail) {
-    return 'For a list this version does not have: $detail';
+    return 'Para una lista que esta versión no tiene: $detail';
   }
 
   @override
   String savedQueries_problem_unresolved(String detail) {
-    return 'Refers to something that no longer exists: $detail';
+    return 'Hace referencia a algo que ya no existe: $detail';
   }
 
   @override
   String savedQueries_snackbar_deleted(String name) {
-    return 'Deleted \"$name\"';
+    return 'Consulta \"$name\" eliminada';
   }
 
   @override
-  String get settings_manage_savedQueries => 'Saved Queries';
+  String get settings_manage_savedQueries => 'Consultas guardadas';
 
   @override
   String get settings_manage_savedQueries_subtitle =>
-      'Rename, reorder and delete saved queries';
+      'Renombrar, reordenar y eliminar consultas guardadas';
 
   @override
-  String get query_error_unterminatedQuote => 'unterminated quote';
+  String get query_error_unterminatedQuote => 'comillas sin cerrar';
 
   @override
   String query_error_unexpectedCharacter(String text) {
-    return 'unexpected character \"$text\"';
+    return 'carácter inesperado \"$text\"';
   }
 
   @override
   String query_error_unexpectedToken(String text) {
-    return 'unexpected \"$text\"';
+    return '\"$text\" inesperado';
   }
 
   @override
-  String get query_error_expectedCloseParen => 'expected \")\"';
+  String get query_error_expectedCloseParen => 'se esperaba \")\"';
 
   @override
-  String get query_error_expectedCloseBracket => 'expected \"]\"';
+  String get query_error_expectedCloseBracket => 'se esperaba \"]\"';
 
   @override
   String get query_error_expectedOpenBracketAfterIn =>
-      'expected \"[\" after \"in\"';
+      'se esperaba \"[\" después de \"in\"';
 
   @override
-  String get query_error_expectedAnd => 'expected \"and\"';
+  String get query_error_expectedAnd => 'se esperaba \"and\"';
 
   @override
-  String get query_error_expectedOperator => 'expected an operator';
+  String get query_error_expectedOperator => 'se esperaba un operador';
 
   @override
   String get query_error_expectedConditionOrText =>
-      'expected a condition or text';
+      'se esperaba una condición o texto';
 
   @override
-  String get query_error_expectedName => 'expected a name';
+  String get query_error_expectedName => 'se esperaba un nombre';
 
   @override
-  String get query_error_expectedDate => 'expected a date';
+  String get query_error_expectedDate => 'se esperaba una fecha';
 
   @override
-  String get query_error_expectedDateValue => 'expected a date value';
+  String get query_error_expectedDateValue => 'se esperaba un valor de fecha';
 
   @override
-  String get query_error_expectedValue => 'expected a value';
+  String get query_error_expectedValue => 'se esperaba un valor';
 
   @override
-  String get query_error_expectedNumber => 'expected a number';
+  String get query_error_expectedNumber => 'se esperaba un número';
 
   @override
-  String get query_error_expectedText => 'expected text';
+  String get query_error_expectedText => 'se esperaba texto';
 
   @override
-  String get query_error_expectedBool => 'expected true or false';
+  String get query_error_expectedBool => 'se esperaba true o false';
 
   @override
-  String get query_error_emptyText => 'empty text';
+  String get query_error_emptyText => 'texto vacío';
 
   @override
-  String get query_error_emptyList => 'the list is empty';
+  String get query_error_emptyList => 'la lista está vacía';
 
   @override
-  String get query_error_emptyGroup => 'an empty group matches nothing';
+  String get query_error_emptyGroup => 'un grupo vacío no coincide con nada';
 
   @override
-  String get query_error_emptyPath => 'empty path';
+  String get query_error_emptyPath => 'ruta vacía';
 
   @override
   String query_error_notSingleDay(String text) {
-    return '\"$text\" is not a single day';
+    return '\"$text\" no es un solo día';
   }
 
   @override
   String query_error_notADate(String text) {
-    return '\"$text\" is not a date';
+    return '\"$text\" no es una fecha';
   }
 
   @override
@@ -43930,22 +43930,22 @@ class AppLocalizationsEs extends AppLocalizations {
     String symbol,
     String day,
   ) {
-    return '\"$text\" is open-ended; write $field $symbol $day instead';
+    return '\"$text\" es un intervalo abierto; escribe $field $symbol $day en su lugar';
   }
 
   @override
   String query_error_unknownUnit(String unit) {
-    return 'unknown unit \"$unit\"';
+    return 'unidad desconocida \"$unit\"';
   }
 
   @override
   String query_error_noUnitAllowed(String field) {
-    return '$field takes no unit';
+    return '$field no admite unidad';
   }
 
   @override
   String query_error_wrongUnitDimension(String unit, String dimension) {
-    return '\"$unit\" is not a $dimension unit';
+    return '\"$unit\" no es una unidad de $dimension';
   }
 
   @override
@@ -43954,130 +43954,131 @@ class AppLocalizationsEs extends AppLocalizations {
     String dimension,
     String field,
   ) {
-    return '\"$unit\" is not a $dimension unit; $field is measured in $dimension';
+    return '\"$unit\" no es una unidad de $dimension; $field se mide en $dimension';
   }
 
   @override
-  String get query_error_decimalComma => 'use \".\" for decimals, not \",\"';
+  String get query_error_decimalComma =>
+      'usa \".\" para los decimales, no \",\"';
 
   @override
   String query_error_scopeNeedsRelationQuoted(String path) {
-    return '\"[...]\" needs a relation, \"$path\" is a field';
+    return '\"[...]\" necesita una relación, \"$path\" es un campo';
   }
 
   @override
   String query_error_scopeNeedsRelation(String path) {
-    return '[...] needs a relation, \"$path\" is a field';
+    return '[...] necesita una relación, \"$path\" es un campo';
   }
 
   @override
   String query_error_relationNeedsRefOp(String path) {
-    return '\"$path\" is a relation; use =, in, :none, :any or [...]';
+    return '\"$path\" es una relación; usa =, in, :none, :any o [...]';
   }
 
   @override
   String query_error_relationOpNotAllowed(String op) {
-    return '\"$op\" cannot be used with a relation; use =, !=, in, :none, :any or [...]';
+    return '\"$op\" no se puede usar con una relación; usa =, !=, in, :none, :any o [...]';
   }
 
   @override
   String query_error_opNotForFieldQuoted(String op, String field) {
-    return '\"$op\" cannot be used with $field';
+    return '\"$op\" no se puede usar con $field';
   }
 
   @override
   String query_error_opNotForField(String op, String field) {
-    return '$op cannot be used with $field';
+    return '$op no se puede usar con $field';
   }
 
   @override
   String query_error_noneAmbiguous(String field) {
-    return '\"$field:none\" is ambiguous: write \"$field = none\" for the value none, or \"NOT $field:any\" for unrecorded';
+    return '\"$field:none\" es ambiguo: escribe \"$field = none\" para el valor none, o \"NOT $field:any\" si no está registrado';
   }
 
   @override
   String query_error_noRefNamed(String relation, String text) {
-    return 'no $relation named \"$text\"';
+    return 'no existe $relation con el nombre \"$text\"';
   }
 
   @override
   String query_error_notEnumValue(String text, String field) {
-    return '\"$text\" is not a $field value';
+    return '\"$text\" no es un valor de $field';
   }
 
   @override
   String query_error_unknownField(String name) {
-    return 'unknown field \"$name\"';
+    return 'campo desconocido \"$name\"';
   }
 
   @override
   String query_error_fieldNotPath(String name, String next) {
-    return '\"$name\" is a field and cannot be followed by \".$next\"';
+    return '\"$name\" es un campo y no puede ir seguido de \".$next\"';
   }
 
   @override
   String query_error_tooManyHops(String max) {
-    return 'a query may cross at most $max relations, counting nested groups';
+    return 'una consulta puede cruzar como máximo $max relaciones, contando los grupos anidados';
   }
 
   @override
   String query_error_pathTooLong(String max) {
-    return 'a path may cross at most $max relations';
+    return 'una ruta puede cruzar como máximo $max relaciones';
   }
 
   @override
   String query_error_textNotSearchable(String table) {
-    return 'free text cannot be searched inside $table';
+    return 'no se puede buscar texto libre dentro de $table';
   }
 
   @override
   String query_error_expectsReference(String name) {
-    return '$name expects a reference';
+    return '$name espera una referencia';
   }
 
   @override
   String query_error_expectsReferences(String name) {
-    return '$name expects references';
+    return '$name espera referencias';
   }
 
   @override
-  String get query_error_betweenNeedsTwo => 'between needs two values';
+  String get query_error_betweenNeedsTwo => 'between necesita dos valores';
 
   @override
-  String get query_error_inNeedsList => 'in needs a list';
+  String get query_error_inNeedsList => 'in necesita una lista';
 
   @override
   String query_error_expectsNumber(String field) {
-    return '$field expects a number';
+    return '$field espera un número';
   }
 
   @override
   String query_error_outOfRange(String field) {
-    return '$field value is out of range';
+    return 'el valor de $field está fuera de rango';
   }
 
   @override
   String query_error_expectsText(String field) {
-    return '$field expects text';
+    return '$field espera texto';
   }
 
   @override
   String query_error_expectsBool(String field) {
-    return '$field expects true or false';
+    return '$field espera true o false';
   }
 
   @override
   String query_error_expectsEnumValue(String field) {
-    return '$field expects one of its values';
+    return '$field espera uno de sus valores';
   }
 
   @override
   String query_error_expectsSingleDay(String field) {
-    return '$field expects a single day here';
+    return '$field espera un solo día aquí';
   }
 
   @override
   String query_error_expectsDate(String field) {
-    return '$field expects a date';
+    return '$field espera una fecha';
   }
 }

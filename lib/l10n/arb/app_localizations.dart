@@ -70421,7 +70421,7 @@ abstract class AppLocalizations {
   /// **'\"{unit}\" is not a {dimension} unit'**
   String query_error_wrongUnitDimension(String unit, String dimension);
 
-  /// Query error message. unit, dimension, field are what the diver typed; keep verbatim. Query syntax, keep untranslated: in.
+  /// Query error message. unit, dimension, field are what the diver typed; keep verbatim.
   ///
   /// In en, this message translates to:
   /// **'\"{unit}\" is not a {dimension} unit; {field} is measured in {dimension}'**
@@ -70443,19 +70443,19 @@ abstract class AppLocalizations {
   /// **'\"[...]\" needs a relation, \"{path}\" is a field'**
   String query_error_scopeNeedsRelationQuoted(String path);
 
-  /// Query error message. path is what the diver typed; keep verbatim. Query syntax, keep untranslated: [...].
+  /// Query error message. path is what the diver typed; keep verbatim.
   ///
   /// In en, this message translates to:
   /// **'[...] needs a relation, \"{path}\" is a field'**
   String query_error_scopeNeedsRelation(String path);
 
-  /// Query error message. path is what the diver typed; keep verbatim. Query syntax, keep untranslated: [...] :any.
+  /// Query error message. path is what the diver typed; keep verbatim. Query syntax, keep untranslated: in [...] = :none :any.
   ///
   /// In en, this message translates to:
   /// **'\"{path}\" is a relation; use =, in, :none, :any or [...]'**
   String query_error_relationNeedsRefOp(String path);
 
-  /// Query error message. op is what the diver typed; keep verbatim. Query syntax, keep untranslated: [...] :any.
+  /// Query error message. op is what the diver typed; keep verbatim. Query syntax, keep untranslated: in [...] = != :none :any.
   ///
   /// In en, this message translates to:
   /// **'\"{op}\" cannot be used with a relation; use =, !=, in, :none, :any or [...]'**
@@ -70473,7 +70473,7 @@ abstract class AppLocalizations {
   /// **'{op} cannot be used with {field}'**
   String query_error_opNotForField(String op, String field);
 
-  /// Query error message. field is what the diver typed; keep verbatim. Query syntax, keep untranslated: =.
+  /// Query error message. field is what the diver typed; keep verbatim. Query syntax, keep untranslated: NOT :none :any.
   ///
   /// In en, this message translates to:
   /// **'\"{field}:none\" is ambiguous: write \"{field} = none\" for the value none, or \"NOT {field}:any\" for unrecorded'**
@@ -70497,7 +70497,7 @@ abstract class AppLocalizations {
   /// **'unknown field \"{name}\"'**
   String query_error_unknownField(String name);
 
-  /// Query error message. name, next are what the diver typed; keep verbatim. Query syntax, keep untranslated: and.
+  /// Query error message. name, next are what the diver typed; keep verbatim.
   ///
   /// In en, this message translates to:
   /// **'\"{name}\" is a field and cannot be followed by \".{next}\"'**

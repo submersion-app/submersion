@@ -706,6 +706,57 @@ Decided in the whole-branch review of PR 1:
   whatever the damage (a cast, a node's own argument check, a number).
 - **`gasCount:none` is "no tanks"**: a count is never unrecorded.
 
+## Deviations recorded during implementation (PR 2)
+
+- **Both dive surfaces apply through `copyWith`.** The quick sheet and the
+  search page used to build a fresh `DiveFilterState` on Apply, which
+  discarded the advanced query and every axis the surface did not edit
+  (trip, centre, gear ids, buddy id, the Insights dive-id seam, custom
+  fields, deco on the sheet; excluded-from-stats, buddy id, dive ids,
+  computer and attribute conditions on the page). Each now sets the axes it
+  edits, clears them with their flags when empty, and leaves the rest.
+- **The core widgets read no `AppLocalizations`.** `lib/core/query/
+  presentation/` takes a `QueryLabels` implementation and string holders
+  (`QueryBuilderStrings`, `QueryEditorStrings`) from the caller; the
+  feature layer fills them from the ARB. Placeholder strings pass `{name}`
+  through and the widgets substitute the label. A `NameEntries` interface
+  beside `NameResolver` lets the completions and ref pickers list names.
+- **Errors carry a code and args.** `QueryError` holds a `QueryErrorCode`
+  and the words it quotes; `message` is the English text (unchanged, so the
+  engine's tests and logs read as before) and the UI shows
+  `describeQueryError`, one ARB key per code in every locale, generated with
+  the enum from one table (`scripts/gen_query_error_codes.py`). The quoted
+  words are query syntax and stay verbatim, as does the `dimension` arg
+  (`depth`, `temperature`) of the two wrong-unit messages.
+- **Ref labels in the name index are the stored names.** Built-in dive
+  types therefore show their stored name, not the localized one, in the ref
+  picker and in a printed query; the printer emits the label the tree
+  holds. A localized name index is a follow-up.
+- **The builder does not edit scoped groups.** A `ScopedNode` renders
+  read-only with its printed text; the text tab edits it. The builder also
+  offers no in-list on numbers or text (between and contains cover them) and
+  no `!=` on booleans. One-child groups are kept (a new group must show its
+  card); the compiler and printer take them like any group.
+- **An open quote offers no completions.** The tokenizer refuses an
+  unterminated quote, so `site = "Sal` suggests nothing until the quote is
+  closed; `site = Sa` (unquoted) offers the names.
+- **Saved queries have no add button on the Manage page.** A query is saved
+  from the editor; the page renames, reorders and deletes. Rows this build
+  cannot read (a newer JSON version, a corrupt payload, a field or subject
+  this build lacks) are listed flagged and deletable; a row whose ref was
+  deleted applies with the row flagged.
+- **`saved_queries.diver_id` is nullable and references `divers`** like
+  `cylinder_fills`, so the diver-delete rules and the dangling-key repair
+  apply unchanged; reads return the diver's rows plus unowned rows.
+- **Insights shows no query chips.** Its bar is a count plus Clear; the
+  quick sheet it shares with the dive list carries the Saved row and the
+  Query row.
+- **The `QueryNameIndex` is a snapshot** reloaded on any ref-table tick, so
+  parsing stays synchronous; until the first load the editor parses against
+  an empty index.
+- **Schema rung 234.** Main shipped 231 while this was open; 232 was held by
+  #2411, #2407 and #2331 and 233 by #2438 on 2026-09-26.
+
 ## Open items for the implementation plans
 
 - PR 1 must re-grep `currentSchemaVersion` only if it adds a table; it does

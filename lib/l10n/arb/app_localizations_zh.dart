@@ -41126,244 +41126,239 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_op_isSet => '已设置';
 
   @override
-  String get query_editor_tabText => 'Text';
+  String get query_editor_tabText => '文本';
 
   @override
-  String get query_editor_tabBuilder => 'Builder';
+  String get query_editor_tabBuilder => '构建器';
 
   @override
-  String get query_editor_hint => 'e.g. weights:none AND depth > 30';
+  String get query_editor_hint => '例如 weights:none AND depth > 30';
 
   @override
-  String get query_editor_save => 'Save query';
+  String get query_editor_save => '保存查询';
 
   @override
-  String get query_editor_allOf => 'All of';
+  String get query_editor_allOf => '全部满足';
 
   @override
-  String get query_editor_anyOf => 'Any of';
+  String get query_editor_anyOf => '任一满足';
 
   @override
-  String get query_editor_addCondition => 'Add condition';
+  String get query_editor_addCondition => '添加条件';
 
   @override
-  String get query_editor_addGroup => 'Add group';
+  String get query_editor_addGroup => '添加分组';
 
   @override
-  String get query_editor_negate => 'Not';
+  String get query_editor_negate => '取反';
 
   @override
-  String get query_editor_remove => 'Remove';
+  String get query_editor_remove => '移除';
 
   @override
-  String get query_editor_pickField => 'Choose a field';
+  String get query_editor_pickField => '选择字段';
 
   @override
-  String get query_editor_pickFieldSearch => 'Search fields';
+  String get query_editor_pickFieldSearch => '搜索字段';
 
   @override
   String query_editor_useRelation(String name) {
-    return 'Use $name itself';
+    return '使用$name本身';
   }
 
   @override
   String query_editor_fieldsOf(String name) {
-    return 'Fields of $name';
+    return '$name的字段';
   }
 
   @override
   String query_editor_pickRef(String name) {
-    return 'Choose $name';
+    return '选择$name';
   }
 
   @override
-  String get query_editor_pickRefSearch => 'Search';
+  String get query_editor_pickRefSearch => '搜索';
 
   @override
-  String get query_editor_done => 'Done';
+  String get query_editor_done => '完成';
 
   @override
-  String get query_editor_unresolvedRef => 'No longer exists';
+  String get query_editor_unresolvedRef => '已不存在';
 
   @override
   String query_editor_scopedRow(String name) {
-    return 'Group over $name: edit in the Text tab';
+    return '$name范围内的分组：请在“文本”标签页中编辑';
   }
 
   @override
-  String get query_editor_textRow => 'Text search';
+  String get query_editor_textRow => '文本搜索';
 
   @override
-  String get query_editor_betweenAnd => 'and';
+  String get query_editor_betweenAnd => '和';
 
   @override
-  String get query_editor_valueTrue => 'Yes';
+  String get query_editor_valueTrue => '是';
 
   @override
-  String get query_editor_valueFalse => 'No';
+  String get query_editor_valueFalse => '否';
 
   @override
-  String get diveLog_filter_queryRow => 'Query';
+  String get diveLog_filter_queryRow => '查询';
 
   @override
-  String get diveLog_search_section_query => 'Query';
+  String get diveLog_search_section_query => '查询';
 
   @override
-  String get query_saveDialog_title => 'Save query';
+  String get query_saveDialog_title => '保存查询';
 
   @override
-  String get query_saveDialog_nameLabel => 'Name';
+  String get query_saveDialog_nameLabel => '名称';
 
   @override
-  String get query_saveDialog_nameValidation => 'Enter a name';
+  String get query_saveDialog_nameValidation => '请输入名称';
 
   @override
   String query_saved_snackbar(String name) {
-    return 'Saved \"$name\"';
+    return '已保存 \"$name\"';
   }
 
   @override
-  String get query_savedRow_title => 'Saved';
+  String get query_savedRow_title => '已保存';
 
   @override
   String query_savedRow_unreadable(String name, String detail) {
-    return 'Cannot read \"$name\": $detail';
+    return '无法读取 \"$name\"：$detail';
   }
 
   @override
   String query_savedRow_unresolved(String name) {
-    return '\"$name\" refers to something that no longer exists';
+    return '\"$name\" 引用了已不存在的内容';
   }
 
   @override
-  String get savedQueries_appBar_title => 'Saved Queries';
+  String get savedQueries_appBar_title => '已保存的查询';
 
   @override
-  String get savedQueries_empty =>
-      'No saved queries yet. Save one from the query editor on the dive search page.';
+  String get savedQueries_empty => '还没有已保存的查询。可在潜水搜索页面的查询编辑器中保存查询。';
 
   @override
-  String get savedQueries_renameTooltip => 'Rename';
+  String get savedQueries_renameTooltip => '重命名';
 
   @override
-  String get savedQueries_deleteTooltip => 'Delete';
+  String get savedQueries_deleteTooltip => '删除';
 
   @override
-  String get savedQueries_reorderTooltip => 'Drag to reorder';
+  String get savedQueries_reorderTooltip => '拖动以重新排序';
 
   @override
-  String get savedQueries_deleteDialog_title => 'Delete query?';
+  String get savedQueries_deleteDialog_title => '删除查询？';
 
   @override
   String savedQueries_deleteDialog_content(String name) {
-    return 'Delete \"$name\"? This cannot be undone.';
+    return '确定要删除 \"$name\" 吗？此操作无法撤销。';
   }
 
   @override
-  String get savedQueries_problem_unreadable =>
-      'Cannot be read by this version of the app';
+  String get savedQueries_problem_unreadable => '此版本的应用无法读取';
 
   @override
   String savedQueries_problem_invalid(String detail) {
-    return 'Uses something this version does not have: $detail';
+    return '使用了此版本不支持的内容：$detail';
   }
 
   @override
   String savedQueries_problem_unknownSubject(String detail) {
-    return 'For a list this version does not have: $detail';
+    return '针对此版本不支持的列表：$detail';
   }
 
   @override
   String savedQueries_problem_unresolved(String detail) {
-    return 'Refers to something that no longer exists: $detail';
+    return '引用了已不存在的内容：$detail';
   }
 
   @override
   String savedQueries_snackbar_deleted(String name) {
-    return 'Deleted \"$name\"';
+    return '已删除 \"$name\"';
   }
 
   @override
-  String get settings_manage_savedQueries => 'Saved Queries';
+  String get settings_manage_savedQueries => '已保存的查询';
 
   @override
-  String get settings_manage_savedQueries_subtitle =>
-      'Rename, reorder and delete saved queries';
+  String get settings_manage_savedQueries_subtitle => '重命名、重新排序和删除已保存的查询';
 
   @override
-  String get query_error_unterminatedQuote => 'unterminated quote';
+  String get query_error_unterminatedQuote => '引号未闭合';
 
   @override
   String query_error_unexpectedCharacter(String text) {
-    return 'unexpected character \"$text\"';
+    return '意外的字符 \"$text\"';
   }
 
   @override
   String query_error_unexpectedToken(String text) {
-    return 'unexpected \"$text\"';
+    return '意外的 \"$text\"';
   }
 
   @override
-  String get query_error_expectedCloseParen => 'expected \")\"';
+  String get query_error_expectedCloseParen => '此处应为 \")\"';
 
   @override
-  String get query_error_expectedCloseBracket => 'expected \"]\"';
+  String get query_error_expectedCloseBracket => '此处应为 \"]\"';
 
   @override
-  String get query_error_expectedOpenBracketAfterIn =>
-      'expected \"[\" after \"in\"';
+  String get query_error_expectedOpenBracketAfterIn => '\"in\" 后应为 \"[\"';
 
   @override
-  String get query_error_expectedAnd => 'expected \"and\"';
+  String get query_error_expectedAnd => '此处应为 \"and\"';
 
   @override
-  String get query_error_expectedOperator => 'expected an operator';
+  String get query_error_expectedOperator => '此处应为运算符';
 
   @override
-  String get query_error_expectedConditionOrText =>
-      'expected a condition or text';
+  String get query_error_expectedConditionOrText => '此处应为条件或文本';
 
   @override
-  String get query_error_expectedName => 'expected a name';
+  String get query_error_expectedName => '此处应为名称';
 
   @override
-  String get query_error_expectedDate => 'expected a date';
+  String get query_error_expectedDate => '此处应为日期';
 
   @override
-  String get query_error_expectedDateValue => 'expected a date value';
+  String get query_error_expectedDateValue => '此处应为日期值';
 
   @override
-  String get query_error_expectedValue => 'expected a value';
+  String get query_error_expectedValue => '此处应为值';
 
   @override
-  String get query_error_expectedNumber => 'expected a number';
+  String get query_error_expectedNumber => '此处应为数字';
 
   @override
-  String get query_error_expectedText => 'expected text';
+  String get query_error_expectedText => '此处应为文本';
 
   @override
-  String get query_error_expectedBool => 'expected true or false';
+  String get query_error_expectedBool => '此处应为 true 或 false';
 
   @override
-  String get query_error_emptyText => 'empty text';
+  String get query_error_emptyText => '文本为空';
 
   @override
-  String get query_error_emptyList => 'the list is empty';
+  String get query_error_emptyList => '列表为空';
 
   @override
-  String get query_error_emptyGroup => 'an empty group matches nothing';
+  String get query_error_emptyGroup => '空分组不匹配任何内容';
 
   @override
-  String get query_error_emptyPath => 'empty path';
+  String get query_error_emptyPath => '路径为空';
 
   @override
   String query_error_notSingleDay(String text) {
-    return '\"$text\" is not a single day';
+    return '\"$text\" 不是单个日期';
   }
 
   @override
   String query_error_notADate(String text) {
-    return '\"$text\" is not a date';
+    return '\"$text\" 不是日期';
   }
 
   @override
@@ -41373,22 +41368,22 @@ class AppLocalizationsZh extends AppLocalizations {
     String symbol,
     String day,
   ) {
-    return '\"$text\" is open-ended; write $field $symbol $day instead';
+    return '\"$text\" 是开放式日期；请改写为 $field $symbol $day';
   }
 
   @override
   String query_error_unknownUnit(String unit) {
-    return 'unknown unit \"$unit\"';
+    return '未知单位 \"$unit\"';
   }
 
   @override
   String query_error_noUnitAllowed(String field) {
-    return '$field takes no unit';
+    return '$field 不接受单位';
   }
 
   @override
   String query_error_wrongUnitDimension(String unit, String dimension) {
-    return '\"$unit\" is not a $dimension unit';
+    return '\"$unit\" 不是$dimension单位';
   }
 
   @override
@@ -41397,130 +41392,130 @@ class AppLocalizationsZh extends AppLocalizations {
     String dimension,
     String field,
   ) {
-    return '\"$unit\" is not a $dimension unit; $field is measured in $dimension';
+    return '\"$unit\" 不是$dimension单位；$field 以$dimension计量';
   }
 
   @override
-  String get query_error_decimalComma => 'use \".\" for decimals, not \",\"';
+  String get query_error_decimalComma => '小数请使用 \".\"，而不是 \",\"';
 
   @override
   String query_error_scopeNeedsRelationQuoted(String path) {
-    return '\"[...]\" needs a relation, \"$path\" is a field';
+    return '\"[...]\" 需要关联，而 \"$path\" 是字段';
   }
 
   @override
   String query_error_scopeNeedsRelation(String path) {
-    return '[...] needs a relation, \"$path\" is a field';
+    return '[...] 需要关联，而 \"$path\" 是字段';
   }
 
   @override
   String query_error_relationNeedsRefOp(String path) {
-    return '\"$path\" is a relation; use =, in, :none, :any or [...]';
+    return '\"$path\" 是关联；请使用 =、in、:none、:any 或 [...]';
   }
 
   @override
   String query_error_relationOpNotAllowed(String op) {
-    return '\"$op\" cannot be used with a relation; use =, !=, in, :none, :any or [...]';
+    return '\"$op\" 不能用于关联；请使用 =、!=、in、:none、:any 或 [...]';
   }
 
   @override
   String query_error_opNotForFieldQuoted(String op, String field) {
-    return '\"$op\" cannot be used with $field';
+    return '\"$op\" 不能用于 $field';
   }
 
   @override
   String query_error_opNotForField(String op, String field) {
-    return '$op cannot be used with $field';
+    return '$op 不能用于 $field';
   }
 
   @override
   String query_error_noneAmbiguous(String field) {
-    return '\"$field:none\" is ambiguous: write \"$field = none\" for the value none, or \"NOT $field:any\" for unrecorded';
+    return '\"$field:none\" 有歧义：值为 none 请写 \"$field = none\"，未记录请写 \"NOT $field:any\"';
   }
 
   @override
   String query_error_noRefNamed(String relation, String text) {
-    return 'no $relation named \"$text\"';
+    return '没有名为 \"$text\" 的$relation';
   }
 
   @override
   String query_error_notEnumValue(String text, String field) {
-    return '\"$text\" is not a $field value';
+    return '\"$text\" 不是 $field 的有效值';
   }
 
   @override
   String query_error_unknownField(String name) {
-    return 'unknown field \"$name\"';
+    return '未知字段 \"$name\"';
   }
 
   @override
   String query_error_fieldNotPath(String name, String next) {
-    return '\"$name\" is a field and cannot be followed by \".$next\"';
+    return '\"$name\" 是字段，后面不能接 \".$next\"';
   }
 
   @override
   String query_error_tooManyHops(String max) {
-    return 'a query may cross at most $max relations, counting nested groups';
+    return '一个查询最多只能跨越 $max 个关联（含嵌套分组）';
   }
 
   @override
   String query_error_pathTooLong(String max) {
-    return 'a path may cross at most $max relations';
+    return '一条路径最多只能跨越 $max 个关联';
   }
 
   @override
   String query_error_textNotSearchable(String table) {
-    return 'free text cannot be searched inside $table';
+    return '无法在 $table 中搜索自由文本';
   }
 
   @override
   String query_error_expectsReference(String name) {
-    return '$name expects a reference';
+    return '$name 需要一个引用';
   }
 
   @override
   String query_error_expectsReferences(String name) {
-    return '$name expects references';
+    return '$name 需要多个引用';
   }
 
   @override
-  String get query_error_betweenNeedsTwo => 'between needs two values';
+  String get query_error_betweenNeedsTwo => 'between 需要两个值';
 
   @override
-  String get query_error_inNeedsList => 'in needs a list';
+  String get query_error_inNeedsList => 'in 需要一个列表';
 
   @override
   String query_error_expectsNumber(String field) {
-    return '$field expects a number';
+    return '$field 需要数字';
   }
 
   @override
   String query_error_outOfRange(String field) {
-    return '$field value is out of range';
+    return '$field 的值超出范围';
   }
 
   @override
   String query_error_expectsText(String field) {
-    return '$field expects text';
+    return '$field 需要文本';
   }
 
   @override
   String query_error_expectsBool(String field) {
-    return '$field expects true or false';
+    return '$field 需要 true 或 false';
   }
 
   @override
   String query_error_expectsEnumValue(String field) {
-    return '$field expects one of its values';
+    return '$field 需要其可选值之一';
   }
 
   @override
   String query_error_expectsSingleDay(String field) {
-    return '$field expects a single day here';
+    return '$field 此处需要单个日期';
   }
 
   @override
   String query_error_expectsDate(String field) {
-    return '$field expects a date';
+    return '$field 需要日期';
   }
 }

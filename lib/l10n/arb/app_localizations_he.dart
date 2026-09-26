@@ -42774,244 +42774,242 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_op_isSet => 'מוגדר';
 
   @override
-  String get query_editor_tabText => 'Text';
+  String get query_editor_tabText => 'טקסט';
 
   @override
-  String get query_editor_tabBuilder => 'Builder';
+  String get query_editor_tabBuilder => 'בונה';
 
   @override
-  String get query_editor_hint => 'e.g. weights:none AND depth > 30';
+  String get query_editor_hint => 'לדוגמה: weights:none AND depth > 30';
 
   @override
-  String get query_editor_save => 'Save query';
+  String get query_editor_save => 'שמירת שאילתה';
 
   @override
-  String get query_editor_allOf => 'All of';
+  String get query_editor_allOf => 'כל התנאים';
 
   @override
-  String get query_editor_anyOf => 'Any of';
+  String get query_editor_anyOf => 'אחד מהתנאים';
 
   @override
-  String get query_editor_addCondition => 'Add condition';
+  String get query_editor_addCondition => 'הוספת תנאי';
 
   @override
-  String get query_editor_addGroup => 'Add group';
+  String get query_editor_addGroup => 'הוספת קבוצה';
 
   @override
-  String get query_editor_negate => 'Not';
+  String get query_editor_negate => 'שלילה';
 
   @override
-  String get query_editor_remove => 'Remove';
+  String get query_editor_remove => 'הסר';
 
   @override
-  String get query_editor_pickField => 'Choose a field';
+  String get query_editor_pickField => 'בחירת שדה';
 
   @override
-  String get query_editor_pickFieldSearch => 'Search fields';
+  String get query_editor_pickFieldSearch => 'חיפוש שדות';
 
   @override
   String query_editor_useRelation(String name) {
-    return 'Use $name itself';
+    return 'שימוש ב-$name עצמו';
   }
 
   @override
   String query_editor_fieldsOf(String name) {
-    return 'Fields of $name';
+    return 'השדות של $name';
   }
 
   @override
   String query_editor_pickRef(String name) {
-    return 'Choose $name';
+    return 'בחירת $name';
   }
 
   @override
-  String get query_editor_pickRefSearch => 'Search';
+  String get query_editor_pickRefSearch => 'חיפוש';
 
   @override
-  String get query_editor_done => 'Done';
+  String get query_editor_done => 'סיום';
 
   @override
-  String get query_editor_unresolvedRef => 'No longer exists';
+  String get query_editor_unresolvedRef => 'כבר לא קיים';
 
   @override
   String query_editor_scopedRow(String name) {
-    return 'Group over $name: edit in the Text tab';
+    return 'קבוצה על $name: יש לערוך בלשונית הטקסט';
   }
 
   @override
-  String get query_editor_textRow => 'Text search';
+  String get query_editor_textRow => 'חיפוש טקסט';
 
   @override
-  String get query_editor_betweenAnd => 'and';
+  String get query_editor_betweenAnd => 'עד';
 
   @override
-  String get query_editor_valueTrue => 'Yes';
+  String get query_editor_valueTrue => 'כן';
 
   @override
-  String get query_editor_valueFalse => 'No';
+  String get query_editor_valueFalse => 'לא';
 
   @override
-  String get diveLog_filter_queryRow => 'Query';
+  String get diveLog_filter_queryRow => 'שאילתה';
 
   @override
-  String get diveLog_search_section_query => 'Query';
+  String get diveLog_search_section_query => 'שאילתה';
 
   @override
-  String get query_saveDialog_title => 'Save query';
+  String get query_saveDialog_title => 'שמירת שאילתה';
 
   @override
-  String get query_saveDialog_nameLabel => 'Name';
+  String get query_saveDialog_nameLabel => 'שם';
 
   @override
-  String get query_saveDialog_nameValidation => 'Enter a name';
+  String get query_saveDialog_nameValidation => 'נא להזין שם';
 
   @override
   String query_saved_snackbar(String name) {
-    return 'Saved \"$name\"';
+    return '\"$name\" נשמרה';
   }
 
   @override
-  String get query_savedRow_title => 'Saved';
+  String get query_savedRow_title => 'שמורות';
 
   @override
   String query_savedRow_unreadable(String name, String detail) {
-    return 'Cannot read \"$name\": $detail';
+    return 'לא ניתן לקרוא את \"$name\": $detail';
   }
 
   @override
   String query_savedRow_unresolved(String name) {
-    return '\"$name\" refers to something that no longer exists';
+    return '\"$name\" מפנה למשהו שכבר לא קיים';
   }
 
   @override
-  String get savedQueries_appBar_title => 'Saved Queries';
+  String get savedQueries_appBar_title => 'שאילתות שמורות';
 
   @override
   String get savedQueries_empty =>
-      'No saved queries yet. Save one from the query editor on the dive search page.';
+      'אין עדיין שאילתות שמורות. אפשר לשמור שאילתה מעורך השאילתות בדף חיפוש הצלילות.';
 
   @override
-  String get savedQueries_renameTooltip => 'Rename';
+  String get savedQueries_renameTooltip => 'שינוי שם';
 
   @override
-  String get savedQueries_deleteTooltip => 'Delete';
+  String get savedQueries_deleteTooltip => 'מחיקה';
 
   @override
-  String get savedQueries_reorderTooltip => 'Drag to reorder';
+  String get savedQueries_reorderTooltip => 'גרירה לשינוי הסדר';
 
   @override
-  String get savedQueries_deleteDialog_title => 'Delete query?';
+  String get savedQueries_deleteDialog_title => 'למחוק שאילתה?';
 
   @override
   String savedQueries_deleteDialog_content(String name) {
-    return 'Delete \"$name\"? This cannot be undone.';
+    return 'למחוק את \"$name\"? לא ניתן לבטל פעולה זו.';
   }
 
   @override
   String get savedQueries_problem_unreadable =>
-      'Cannot be read by this version of the app';
+      'גרסה זו של האפליקציה אינה יכולה לקרוא אותה';
 
   @override
   String savedQueries_problem_invalid(String detail) {
-    return 'Uses something this version does not have: $detail';
+    return 'משתמשת במשהו שאינו קיים בגרסה זו: $detail';
   }
 
   @override
   String savedQueries_problem_unknownSubject(String detail) {
-    return 'For a list this version does not have: $detail';
+    return 'עבור רשימה שאינה קיימת בגרסה זו: $detail';
   }
 
   @override
   String savedQueries_problem_unresolved(String detail) {
-    return 'Refers to something that no longer exists: $detail';
+    return 'מפנה למשהו שכבר לא קיים: $detail';
   }
 
   @override
   String savedQueries_snackbar_deleted(String name) {
-    return 'Deleted \"$name\"';
+    return '\"$name\" נמחקה';
   }
 
   @override
-  String get settings_manage_savedQueries => 'Saved Queries';
+  String get settings_manage_savedQueries => 'שאילתות שמורות';
 
   @override
   String get settings_manage_savedQueries_subtitle =>
-      'Rename, reorder and delete saved queries';
+      'שינוי שם, סידור מחדש ומחיקה של שאילתות שמורות';
 
   @override
-  String get query_error_unterminatedQuote => 'unterminated quote';
+  String get query_error_unterminatedQuote => 'מירכאה לא סגורה';
 
   @override
   String query_error_unexpectedCharacter(String text) {
-    return 'unexpected character \"$text\"';
+    return 'תו לא צפוי \"$text\"';
   }
 
   @override
   String query_error_unexpectedToken(String text) {
-    return 'unexpected \"$text\"';
+    return '\"$text\" לא צפוי';
   }
 
   @override
-  String get query_error_expectedCloseParen => 'expected \")\"';
+  String get query_error_expectedCloseParen => 'צפוי \")\"';
 
   @override
-  String get query_error_expectedCloseBracket => 'expected \"]\"';
+  String get query_error_expectedCloseBracket => 'צפוי \"]\"';
 
   @override
-  String get query_error_expectedOpenBracketAfterIn =>
-      'expected \"[\" after \"in\"';
+  String get query_error_expectedOpenBracketAfterIn => 'צפוי \"[\" אחרי \"in\"';
 
   @override
-  String get query_error_expectedAnd => 'expected \"and\"';
+  String get query_error_expectedAnd => 'צפוי \"and\"';
 
   @override
-  String get query_error_expectedOperator => 'expected an operator';
+  String get query_error_expectedOperator => 'צפוי אופרטור';
 
   @override
-  String get query_error_expectedConditionOrText =>
-      'expected a condition or text';
+  String get query_error_expectedConditionOrText => 'צפוי תנאי או טקסט';
 
   @override
-  String get query_error_expectedName => 'expected a name';
+  String get query_error_expectedName => 'צפוי שם';
 
   @override
-  String get query_error_expectedDate => 'expected a date';
+  String get query_error_expectedDate => 'צפוי תאריך';
 
   @override
-  String get query_error_expectedDateValue => 'expected a date value';
+  String get query_error_expectedDateValue => 'צפוי ערך תאריך';
 
   @override
-  String get query_error_expectedValue => 'expected a value';
+  String get query_error_expectedValue => 'צפוי ערך';
 
   @override
-  String get query_error_expectedNumber => 'expected a number';
+  String get query_error_expectedNumber => 'צפוי מספר';
 
   @override
-  String get query_error_expectedText => 'expected text';
+  String get query_error_expectedText => 'צפוי טקסט';
 
   @override
-  String get query_error_expectedBool => 'expected true or false';
+  String get query_error_expectedBool => 'צפוי true או false';
 
   @override
-  String get query_error_emptyText => 'empty text';
+  String get query_error_emptyText => 'טקסט ריק';
 
   @override
-  String get query_error_emptyList => 'the list is empty';
+  String get query_error_emptyList => 'הרשימה ריקה';
 
   @override
-  String get query_error_emptyGroup => 'an empty group matches nothing';
+  String get query_error_emptyGroup => 'קבוצה ריקה אינה תואמת דבר';
 
   @override
-  String get query_error_emptyPath => 'empty path';
+  String get query_error_emptyPath => 'נתיב ריק';
 
   @override
   String query_error_notSingleDay(String text) {
-    return '\"$text\" is not a single day';
+    return '\"$text\" אינו יום יחיד';
   }
 
   @override
   String query_error_notADate(String text) {
-    return '\"$text\" is not a date';
+    return '\"$text\" אינו תאריך';
   }
 
   @override
@@ -43021,22 +43019,22 @@ class AppLocalizationsHe extends AppLocalizations {
     String symbol,
     String day,
   ) {
-    return '\"$text\" is open-ended; write $field $symbol $day instead';
+    return '\"$text\" פתוח בקצהו; יש לכתוב במקום זאת $field $symbol $day';
   }
 
   @override
   String query_error_unknownUnit(String unit) {
-    return 'unknown unit \"$unit\"';
+    return 'יחידה לא ידועה \"$unit\"';
   }
 
   @override
   String query_error_noUnitAllowed(String field) {
-    return '$field takes no unit';
+    return '$field אינו מקבל יחידה';
   }
 
   @override
   String query_error_wrongUnitDimension(String unit, String dimension) {
-    return '\"$unit\" is not a $dimension unit';
+    return '\"$unit\" אינה יחידת $dimension';
   }
 
   @override
@@ -43045,130 +43043,131 @@ class AppLocalizationsHe extends AppLocalizations {
     String dimension,
     String field,
   ) {
-    return '\"$unit\" is not a $dimension unit; $field is measured in $dimension';
+    return '\"$unit\" אינה יחידת $dimension; $field נמדד ביחידות $dimension';
   }
 
   @override
-  String get query_error_decimalComma => 'use \".\" for decimals, not \",\"';
+  String get query_error_decimalComma =>
+      'יש להשתמש ב-\".\" לשברים עשרוניים, לא ב-\",\"';
 
   @override
   String query_error_scopeNeedsRelationQuoted(String path) {
-    return '\"[...]\" needs a relation, \"$path\" is a field';
+    return '\"[...]\" דורש קשר, ו-\"$path\" הוא שדה';
   }
 
   @override
   String query_error_scopeNeedsRelation(String path) {
-    return '[...] needs a relation, \"$path\" is a field';
+    return '[...] דורש קשר, ו-\"$path\" הוא שדה';
   }
 
   @override
   String query_error_relationNeedsRefOp(String path) {
-    return '\"$path\" is a relation; use =, in, :none, :any or [...]';
+    return '\"$path\" הוא קשר; יש להשתמש באחד מאלה: =, in, :none, :any או [...]';
   }
 
   @override
   String query_error_relationOpNotAllowed(String op) {
-    return '\"$op\" cannot be used with a relation; use =, !=, in, :none, :any or [...]';
+    return 'לא ניתן להשתמש ב-\"$op\" עם קשר; יש להשתמש באחד מאלה: =, !=, in, :none, :any או [...]';
   }
 
   @override
   String query_error_opNotForFieldQuoted(String op, String field) {
-    return '\"$op\" cannot be used with $field';
+    return 'לא ניתן להשתמש ב-\"$op\" עם $field';
   }
 
   @override
   String query_error_opNotForField(String op, String field) {
-    return '$op cannot be used with $field';
+    return 'לא ניתן להשתמש ב-$op עם $field';
   }
 
   @override
   String query_error_noneAmbiguous(String field) {
-    return '\"$field:none\" is ambiguous: write \"$field = none\" for the value none, or \"NOT $field:any\" for unrecorded';
+    return '\"$field:none\" אינו חד-משמעי: יש לכתוב \"$field = none\" עבור הערך none, או \"NOT $field:any\" עבור ערך שלא נרשם';
   }
 
   @override
   String query_error_noRefNamed(String relation, String text) {
-    return 'no $relation named \"$text\"';
+    return 'אין $relation בשם \"$text\"';
   }
 
   @override
   String query_error_notEnumValue(String text, String field) {
-    return '\"$text\" is not a $field value';
+    return '\"$text\" אינו ערך של $field';
   }
 
   @override
   String query_error_unknownField(String name) {
-    return 'unknown field \"$name\"';
+    return 'שדה לא ידוע \"$name\"';
   }
 
   @override
   String query_error_fieldNotPath(String name, String next) {
-    return '\"$name\" is a field and cannot be followed by \".$next\"';
+    return '\"$name\" הוא שדה ולא ניתן להוסיף אחריו \".$next\"';
   }
 
   @override
   String query_error_tooManyHops(String max) {
-    return 'a query may cross at most $max relations, counting nested groups';
+    return 'שאילתה יכולה לעבור לכל היותר $max קשרים, כולל קבוצות מקוננות';
   }
 
   @override
   String query_error_pathTooLong(String max) {
-    return 'a path may cross at most $max relations';
+    return 'נתיב יכול לעבור לכל היותר $max קשרים';
   }
 
   @override
   String query_error_textNotSearchable(String table) {
-    return 'free text cannot be searched inside $table';
+    return 'לא ניתן לחפש טקסט חופשי בתוך $table';
   }
 
   @override
   String query_error_expectsReference(String name) {
-    return '$name expects a reference';
+    return '$name מצפה להפניה';
   }
 
   @override
   String query_error_expectsReferences(String name) {
-    return '$name expects references';
+    return '$name מצפה להפניות';
   }
 
   @override
-  String get query_error_betweenNeedsTwo => 'between needs two values';
+  String get query_error_betweenNeedsTwo => 'between דורש שני ערכים';
 
   @override
-  String get query_error_inNeedsList => 'in needs a list';
+  String get query_error_inNeedsList => 'in דורש רשימה';
 
   @override
   String query_error_expectsNumber(String field) {
-    return '$field expects a number';
+    return '$field מצפה למספר';
   }
 
   @override
   String query_error_outOfRange(String field) {
-    return '$field value is out of range';
+    return 'ערך $field מחוץ לטווח';
   }
 
   @override
   String query_error_expectsText(String field) {
-    return '$field expects text';
+    return '$field מצפה לטקסט';
   }
 
   @override
   String query_error_expectsBool(String field) {
-    return '$field expects true or false';
+    return '$field מצפה ל-true או false';
   }
 
   @override
   String query_error_expectsEnumValue(String field) {
-    return '$field expects one of its values';
+    return '$field מצפה לאחד מערכיו';
   }
 
   @override
   String query_error_expectsSingleDay(String field) {
-    return '$field expects a single day here';
+    return '$field מצפה כאן ליום יחיד';
   }
 
   @override
   String query_error_expectsDate(String field) {
-    return '$field expects a date';
+    return '$field מצפה לתאריך';
   }
 }

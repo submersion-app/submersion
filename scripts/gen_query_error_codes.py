@@ -171,10 +171,23 @@ def dump(v):
     return json.dumps(v, ensure_ascii=False, separators=(', ', ': '))
 
 
+# Messages that open with a bare keyword ("in needs a list").
+LEADING_KEYWORD = {'in', 'between'}
+
+
 def meta_for(template):
     args = args_of(template)
+    # Syntax is what the message quotes, the colon forms, NOT, and a keyword
+    # the message opens with; the same word in running prose is translated.
     syntax = [
-        w for w in SYNTAX if f'"{w}"' in template or f' {w} ' in f' {template} '
+        w
+        for w in SYNTAX
+        if f'"{w}"' in template
+        or (w.startswith(':') and w in template)
+        or (w == 'NOT' and 'NOT ' in template)
+        or (w in LEADING_KEYWORD and template.startswith(w + ' '))
+        or (w in ('true', 'false') and f'{w} or' in template or f'or {w}' in template)
+        or (w in ('=', '!=', '[...]') and f'use {w}' in template or f', {w},' in template)
     ]
     desc = 'Query error message.'
     if args:
