@@ -446,7 +446,7 @@ class EquipmentSetRequiredTypes extends Table {
 ```
 
 Schema rung: the next free one when phase 2 is cut. Phase 1 took 229 for
-the per-set switch (228 is held by PRs #2364 and #2331), so re-verify
+the per-set switch (228 is cylinder fills, #2364), so re-verify
 against main and open PRs before choosing. The migration
 creates the table and seeds one row per existing set and built-in type, so gap
 spotting works for sets that predate the feature (see section 16).
