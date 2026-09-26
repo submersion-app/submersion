@@ -68,6 +68,24 @@ class _PassportPageState extends ConsumerState<PassportPage> {
     }
   }
 
+  /// Prints this cylinder's label, telling the diver when it fails instead of
+  /// letting a database, PDF or share-sheet error escape the button.
+  Future<void> _printLabel(String equipmentId) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final failedText = context.l10n.passport_tag_printFailed;
+    try {
+      await printPassportLabels(context, ref, [equipmentId]);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to print the label for $equipmentId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(failedText)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -102,8 +120,7 @@ class _PassportPageState extends ConsumerState<PassportPage> {
                 PassportTagCard(
                   equipment: equipment,
                   scannedTag: widget.scannedTag,
-                  onPrintLabel: () =>
-                      printPassportLabels(context, ref, [equipment.id]),
+                  onPrintLabel: () => _printLabel(equipment.id),
                 ),
               ],
             ),

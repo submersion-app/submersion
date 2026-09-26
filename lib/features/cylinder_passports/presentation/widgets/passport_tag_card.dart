@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/ndef_fit.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_rules.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
@@ -32,16 +33,20 @@ CylinderPassportPayload? currentPayloadFor(
   ServiceClockStatus? clock(String kindId) =>
       clocks.where((c) => c.kind.id == kindId).firstOrNull;
   final o2 = clock('o2-clean');
-  return payloadForItem(
-    item: item,
-    passportId: passportId,
-    writtenOn: DateTime(now.year, now.month, now.day),
-    hydroAnchor: recordedServiceDate(clock: clock('hydro'), records: records),
-    vipAnchor: recordedServiceDate(clock: clock('vip'), records: records),
-    o2Clean:
-        o2 != null &&
-        o2.severity != ServiceClockSeverity.overdue &&
-        recordedServiceDate(clock: o2, records: records) != null,
+  // Bounded so every QR drawn from it (on screen and on the printed label)
+  // stays inside the label's designed density.
+  return NdefFit.fitForLabel(
+    payloadForItem(
+      item: item,
+      passportId: passportId,
+      writtenOn: DateTime(now.year, now.month, now.day),
+      hydroAnchor: recordedServiceDate(clock: clock('hydro'), records: records),
+      vipAnchor: recordedServiceDate(clock: clock('vip'), records: records),
+      o2Clean:
+          o2 != null &&
+          o2.severity != ServiceClockSeverity.overdue &&
+          recordedServiceDate(clock: o2, records: records) != null,
+    ),
   );
 }
 

@@ -59,6 +59,13 @@ abstract final class PassportPayloadCodec {
   );
   static final RegExp _date = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
 
+  /// [text] cut to at most [max] characters, counting whole code points so
+  /// an emoji or other surrogate pair is never split in half.
+  static String capCharacters(String text, int max) {
+    final runes = text.runes;
+    return runes.length <= max ? text : String.fromCharCodes(runes.take(max));
+  }
+
   static String formatDate(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-'
       '${d.month.toString().padLeft(2, '0')}-'
@@ -108,10 +115,10 @@ abstract final class PassportPayloadCodec {
       'w': p.writtenOn == null ? null : formatDate(p.writtenOn!),
       'n': name == null
           ? null
-          : (name.length > CylinderPassportPayload.maxNameLength
-                ? name.substring(0, CylinderPassportPayload.maxNameLength)
-                : name),
-      'sn': p.serial,
+          : capCharacters(name, CylinderPassportPayload.maxNameLength),
+      'sn': p.serial == null
+          ? null
+          : capCharacters(p.serial!, CylinderPassportPayload.maxSerialLength),
       'v': p.volumeL == null ? null : _volume(p.volumeL!),
       'wp': p.workingPressureBar?.toString(),
       'm': p.material == null ? null : _materialCode(p.material!),
@@ -197,10 +204,13 @@ abstract final class PassportPayloadCodec {
       writtenOn: parseDate(pairs['w']),
       name: name == null || name.isEmpty
           ? null
-          : (name.length > CylinderPassportPayload.maxNameLength
-                ? name.substring(0, CylinderPassportPayload.maxNameLength)
-                : name),
-      serial: (pairs['sn'] ?? '').isEmpty ? null : pairs['sn'],
+          : capCharacters(name, CylinderPassportPayload.maxNameLength),
+      serial: (pairs['sn'] ?? '').isEmpty
+          ? null
+          : capCharacters(
+              pairs['sn']!,
+              CylinderPassportPayload.maxSerialLength,
+            ),
       volumeL: volume != null && volume >= minVolumeL && volume <= maxVolumeL
           ? volume
           : null,

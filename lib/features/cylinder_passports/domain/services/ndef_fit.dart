@@ -54,6 +54,26 @@ abstract final class NdefFit {
         _ => p,
       };
 
+  /// Longest tag URL a printed label carries: a version 9 QR at error
+  /// correction M, about half a millimetre per module on a 26 mm label.
+  static const int labelMaxUrlLength = 160;
+
+  /// [p] with optional keys dropped, in [dropOrder], until its https URL is
+  /// at most [labelMaxUrlLength] characters. The identity alone is far
+  /// shorter, so this always returns a payload. A long name in a
+  /// multi-byte script, which percent-encodes to several characters per
+  /// glyph, is what usually goes first; the label prints it as text anyway.
+  static CylinderPassportPayload fitForLabel(CylinderPassportPayload p) {
+    var current = p;
+    for (final key in dropOrder) {
+      if (PassportPayloadCodec.httpsUrl(current).length <= labelMaxUrlLength) {
+        return current;
+      }
+      current = drop(current, key);
+    }
+    return current;
+  }
+
   /// The largest payload, in drop order, whose https URL fits
   /// [capacityBytes]; null when the identity alone does not.
   static CylinderPassportPayload? fit(

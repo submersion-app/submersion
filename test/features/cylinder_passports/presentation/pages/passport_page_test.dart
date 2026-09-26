@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/passport_page.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -112,6 +113,7 @@ void main() {
     List<CylinderFill> fills = const [],
     List<ServiceClockStatus> clocks = const [],
     List<ServiceRecord> records = const [],
+    List<dynamic> extraOverrides = const [],
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(600, 2800);
@@ -145,6 +147,7 @@ void main() {
               ),
             ],
           ),
+          ...extraOverrides,
         ].cast(),
         child: const MaterialApp(
           locale: Locale('en'),
@@ -291,4 +294,26 @@ void main() {
     expect(find.textContaining('ppO2 1,4'), findsOneWidget);
     expect(find.textContaining('ppO2 1,6'), findsOneWidget);
   });
+
+  testWidgets('a failed label print says so', (tester) async {
+    final l10n = await pump(
+      tester,
+      extraOverrides: [
+        equipmentRepositoryProvider.overrideWithValue(
+          _BrokenEquipmentRepository(),
+        ),
+      ],
+    );
+    await tester.ensureVisible(find.text(l10n.passport_tag_printLabel));
+    await tester.tap(find.text(l10n.passport_tag_printLabel));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text(l10n.passport_tag_printFailed), findsOneWidget);
+  });
+}
+
+class _BrokenEquipmentRepository extends EquipmentRepository {
+  @override
+  Future<List<EquipmentItem>> getEquipmentByIds(List<String> ids) async =>
+      throw StateError('database is locked');
 }

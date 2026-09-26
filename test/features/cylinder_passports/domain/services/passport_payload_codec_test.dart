@@ -186,4 +186,13 @@ void main() {
       expect(payload.workingPressureBar, 400);
     });
   });
+
+  test('a serial is capped like the name', () {
+    final p = CylinderPassportPayload(passportId: id, serial: 'X' * 60);
+    final back = PassportPayloadCodec.decode(PassportPayloadCodec.encode(p));
+    expect(
+      (back as PassportDecoded).payload.serial,
+      'X' * CylinderPassportPayload.maxSerialLength,
+    );
+  });
 }

@@ -29,6 +29,10 @@ class CylinderPassportPayload extends Equatable {
   static const int currentFormatVersion = 1;
   static const int maxNameLength = 40;
 
+  /// Stamped serials are short; the cap keeps a label's QR inside its
+  /// designed density whatever the equipment editor accepted.
+  static const int maxSerialLength = 24;
+
   final int formatVersion;
   final String passportId;
   final DateTime? writtenOn;

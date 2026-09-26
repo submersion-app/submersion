@@ -74,4 +74,22 @@ void main() {
   test('returns null when even the identity does not fit', () {
     expect(NdefFit.fit(full, 40), isNull);
   });
+
+  test('a label URL never exceeds 160 characters', () {
+    final long = full.copyWith(name: '北' * 40, serial: 'SN-${'9' * 80}');
+    expect(PassportPayloadCodec.httpsUrl(long).length, greaterThan(160));
+    final label = NdefFit.fitForLabel(long);
+    expect(
+      PassportPayloadCodec.httpsUrl(label).length,
+      lessThanOrEqualTo(NdefFit.labelMaxUrlLength),
+    );
+    expect(label.passportId, id);
+    expect(label.writtenOn, full.writtenOn);
+    // Only what had to go went: the spec survives.
+    expect(label.volumeL, 12);
+  });
+
+  test('a payload that already fits a label is unchanged', () {
+    expect(NdefFit.fitForLabel(full), full);
+  });
 }
