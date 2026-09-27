@@ -12,6 +12,8 @@ import 'package:submersion/features/tides/presentation/providers/tide_providers.
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 // The dive's stored tide record carries wall-clock-as-UTC instants: the digits
 // the diver saw, flagged UTC. The tide card must print them verbatim -- a
@@ -38,9 +40,10 @@ TideRecord _tideRecord({
 Future<void> _pumpDetailPage(
   WidgetTester tester,
   TideRecord record, {
+  Dive? dive,
   DateFormatPreference dateFormat = DateFormatPreference.mmmDYYYY,
 }) async {
-  final dive = createTestDiveWithBottomTime();
+  final shownDive = dive ?? createTestDiveWithBottomTime();
   final settings = MockSettingsNotifier();
   await settings.setTimeFormat(TimeFormat.twentyFourHour);
   await settings.setDateFormat(dateFormat);
@@ -56,20 +59,20 @@ Future<void> _pumpDetailPage(
     ProviderScope(
       overrides: [
         ...overrides,
-        diveProvider(dive.id).overrideWith((ref) async => dive),
+        diveProvider(shownDive.id).overrideWith((ref) async => shownDive),
         diveDataSourcesProvider(
-          dive.id,
+          shownDive.id,
         ).overrideWith((ref) async => <DiveDataSource>[]),
         healedTideRecordProvider((
-          diveId: dive.id,
-          location: dive.site?.location,
-          entryTime: dive.effectiveEntryTime,
+          diveId: shownDive.id,
+          location: shownDive.site?.location,
+          entryTime: shownDive.effectiveEntryTime,
         )).overrideWith((ref) async => record),
       ],
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: DiveDetailPage(diveId: dive.id, embedded: true),
+        home: DiveDetailPage(diveId: shownDive.id, embedded: true),
       ),
     ),
   );
@@ -153,6 +156,35 @@ void main() {
       );
 
       expect(find.text('Sat, 28 Mar | 20:00 - 08:00 (29 Mar)'), findsOneWidget);
+    });
+  });
+
+  group('DiveDetailPage tide card site-local times', () {
+    // Bonaire resolves to America/Caracas: UTC-4 with no DST.
+    const bonaire = GeoPoint(12.15, -68.27);
+
+    testWidgets('stored instants are shown in the site wall clock', (
+      tester,
+    ) async {
+      final dive = createTestDiveWithBottomTime().copyWith(
+        site: const DiveSite(
+          id: 'site-1',
+          name: 'Salt Pier',
+          location: bonaire,
+        ),
+      );
+      await _pumpDetailPage(
+        tester,
+        _tideRecord(
+          highTideTime: DateTime.utc(2026, 3, 28, 18, 20),
+          lowTideTime: DateTime.utc(2026, 3, 28, 12, 20),
+        ),
+        dive: dive,
+      );
+
+      expect(find.text('Sat, Mar 28 | 08:20 - 20:20'), findsOneWidget);
+      expect(find.textContaining('at 14:20'), findsOneWidget);
+      expect(find.textContaining('at 08:20'), findsOneWidget);
     });
   });
 }

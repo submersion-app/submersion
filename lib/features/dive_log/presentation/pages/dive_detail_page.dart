@@ -152,6 +152,8 @@ import 'package:submersion/features/weight_planner/presentation/widgets/weight_e
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 import 'package:submersion/features/tides/presentation/tide_state_display.dart';
+import 'package:submersion/features/tides/domain/services/site_wall_clock.dart';
+import 'package:submersion/features/tides/domain/services/tide_status_for_dive.dart';
 
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
@@ -3989,10 +3991,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     // First try to get stored tide record (lazily self-healed against a
     // fresh computation when the site has coordinates)
+    final siteLocation = dive.site?.location;
     final tideRecordAsync = ref.watch(
       healedTideRecordProvider((
         diveId: dive.id,
-        location: dive.site?.location,
+        location: siteLocation,
         entryTime: dive.effectiveEntryTime,
       )),
     );
@@ -4000,30 +4003,38 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     return tideRecordAsync.when<Widget?>(
       data: (tideRecord) {
         if (tideRecord != null) {
+          // Stored times are real instants. Without coordinates there is
+          // no site clock to map to, so they are shown as stored.
           return _buildTideCard(
             context,
-            tideRecord,
+            siteLocation == null
+                ? tideRecord
+                : tideRecord.toSiteWallClock(siteLocation),
             entryTime: dive.effectiveEntryTime,
           );
         }
 
-        // No stored record - try to calculate from tide model if we have coordinates
-        if (dive.site?.hasCoordinates != true) return null;
+        // No stored record: calculate from the tide model if we have
+        // coordinates.
+        if (siteLocation == null) return null;
 
-        final location = dive.site!.location!;
         final entryTime = dive.effectiveEntryTime;
-        final calculatorAsync = ref.watch(tideCalculatorProvider(location));
+        final calculatorAsync = ref.watch(tideCalculatorProvider(siteLocation));
 
         return calculatorAsync.when<Widget?>(
           data: (calculator) {
             if (calculator == null) return null; // No tide data here.
 
-            final status = calculator.getStatus(entryTime);
+            final status = tideStatusForDiveSync(
+              calculator: calculator,
+              entryWallClock: entryTime,
+              location: siteLocation,
+            );
             final record = TideRecord.fromStatus(
               id: 'calculated',
               diveId: dive.id,
               status: status,
-            );
+            ).toSiteWallClock(siteLocation);
 
             return _buildTideCard(
               context,
@@ -4092,8 +4103,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             UnitFormatter.weekdayMonthDayPattern(settings.dateFormat),
           ).format(dateRef)
         : '';
-    // Cycle bounds are stored wall-clock instants, not device-local times:
-    // format them verbatim without any timezone conversion.
+    // The record's times arrive already mapped to the dive site's wall
+    // clock (wall-clock-as-UTC), so format them verbatim.
     final timeRangeStr = cycleStart != null && cycleEnd != null
         ? () {
             final timeFmt = DateFormat(settings.timeFormat.pattern);

@@ -15,6 +15,7 @@ import 'package:submersion/features/tides/data/services/tide_constituent_resolve
 import 'package:submersion/features/tides/data/services/tide_data_service.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/tides/domain/services/tide_record_heal.dart';
+import 'package:submersion/features/tides/domain/services/tide_status_for_dive.dart';
 
 /// Provider for the [TideDataService] singleton.
 final tideDataServiceProvider = Provider<TideDataService>((ref) {
@@ -63,7 +64,12 @@ final healedTideRecordProvider =
       );
       if (resolved == null) return stored;
 
-      final status = await resolved.calculator.getStatusAsync(params.entryTime);
+      // entryTime is the dive's wall clock; the engine needs the instant.
+      final status = await tideStatusForDive(
+        calculator: resolved.calculator,
+        entryWallClock: params.entryTime,
+        location: location,
+      );
       final fresh = TideRecord.fromStatus(
         id: stored.id,
         diveId: params.diveId,
