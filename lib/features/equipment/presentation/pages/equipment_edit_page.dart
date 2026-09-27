@@ -498,6 +498,23 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               _hasChanges = true;
             }),
           ),
+          // The item's colour, which tints its artwork on the diver figure
+          // (issue #2326). Renders nothing for the types that have none.
+          EquipmentAttributeFormSection(
+            key: ValueKey('appearance-${_selectedType.name}'),
+            type: _selectedType,
+            group: AttributeGroup.appearance,
+            values: _attrValues,
+            units: UnitFormatter(ref.watch(settingsProvider)),
+            onChanged: (attr) => setState(() {
+              _attrValues[attr.key] = attr;
+              _hasChanges = true;
+            }),
+            onCleared: (key) => setState(() {
+              _attrValues.remove(key);
+              _hasChanges = true;
+            }),
+          ),
           // Serial #
           TextFormField(
             controller: _serialController,
