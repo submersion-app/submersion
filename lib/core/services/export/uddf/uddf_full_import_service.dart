@@ -110,8 +110,12 @@ class UddfFullImportService {
     // Parse dive sites with extended fields
     final sites = <Map<String, dynamic>>[];
     final siteMap = <String, Map<String, dynamic>>{};
-    final divesiteElement = uddfElement.findElements('divesite').firstOrNull;
-    if (divesiteElement != null) {
+    // Every <divesite> block is read. Only the first used to be, so a file
+    // carrying a second block lost its sites and every dive linking one
+    // (#2209). A <site> with no id is kept: no dive can link to it, but a
+    // logbook's site list holds places never dived, and a named place is
+    // worth more than the id the file forgot to give it.
+    for (final divesiteElement in uddfElement.findElements('divesite')) {
       for (final siteElement in divesiteElement.findElements('site')) {
         // A `<site>` the file never named is filed under its own
         // coordinates, so the review step shows where it is rather than
@@ -1799,6 +1803,76 @@ class UddfFullImportService {
     return diveData;
   }
 
+  /// Resolves a dive's `<link ref>` elements against the sites, buddies,
+  /// deco models and dive computers the file declares.
+  ///
+  /// A ref matching none of them used to fall off the end of this chain
+  /// without a word, which is how a logbook whose `<divesite>` block was lost
+  /// imported every dive with no site and no notice (#2209). One that could
+  /// have been a site now marks the dive with [_unresolvedSiteRefKey].
+  void _applyDiveLinks(
+    Iterable<XmlElement> links,
+    Map<String, dynamic> diveData,
+    List<String> buddyNames,
+    Map<String, Map<String, dynamic>> sites,
+    Map<String, Map<String, dynamic>> buddies,
+    Map<String, Map<String, int>> decoModels,
+    Map<String, Map<String, String>> diveComputers,
+  ) {
+    var sawDanglingRef = false;
+    for (final linkElement in links) {
+      final ref = linkElement.getAttribute('ref');
+      if (ref != null) {
+        // Check if it's a site reference
+        if (sites.containsKey(ref)) {
+          diveData['site'] = sites[ref];
+        }
+        // Check if it's a buddy reference
+        else if (buddies.containsKey(ref)) {
+          final buddyName = buddies[ref]?['name'] as String?;
+          if (buddyName != null && buddyName.isNotEmpty) {
+            buddyNames.add(buddyName);
+          }
+        }
+        // Check if it's a deco model reference (gradient factors)
+        else if (decoModels.containsKey(ref)) {
+          final model = decoModels[ref]!;
+          if (model['gfLow'] != null && model['gfLow']! > 0) {
+            diveData['gradientFactorLow'] = model['gfLow'];
+          }
+          if (model['gfHigh'] != null && model['gfHigh']! > 0) {
+            diveData['gradientFactorHigh'] = model['gfHigh'];
+          }
+        }
+        // Check if it's a dive computer reference
+        else if (diveComputers.containsKey(ref)) {
+          final computer = diveComputers[ref]!;
+          if (computer['model']?.isNotEmpty == true) {
+            diveData['diveComputerModel'] = computer['model'];
+          }
+          if (computer['serial']?.isNotEmpty == true) {
+            diveData['diveComputerSerial'] = computer['serial'];
+          }
+          if (computer['firmware']?.isNotEmpty == true) {
+            diveData['diveComputerFirmware'] = computer['firmware'];
+          }
+          if (computer['manufacturer']?.isNotEmpty == true) {
+            diveData['diveComputerManufacturer'] = computer['manufacturer'];
+          }
+        } else if (!_isNonSiteRef(ref)) {
+          sawDanglingRef = true;
+        }
+      }
+    }
+
+    // A dangling ref only counts against the dive when nothing else gave
+    // it a site: a file may legitimately link something this parser does
+    // not read, and that is not a lost location.
+    if (sawDanglingRef && diveData['site'] == null) {
+      diveData[_unresolvedSiteRefKey] = true;
+    }
+  }
+
   Map<String, dynamic> _parseUddfDive(
     XmlElement diveElement,
     Map<String, Map<String, dynamic>> sites,
@@ -1924,72 +1998,23 @@ class UddfFullImportService {
         }
       }
 
-      // Get all linked references (can be sites, buddies, decomodels, or dive computers)
-      // A ref matching none of them used to fall off the end of this chain
-      // without a word, which is how a logbook whose <divesite> block was
-      // lost imported every dive with no site and no notice (#2209).
-      //
       // UDDF allows a <link> either inside <informationbeforedive> or
-      // directly under <dive>. Only the inner ones were read, so a file
-      // using the outer shape lost its site link in silence even when the
-      // <divesite> block described the site perfectly well. Inner links are
-      // walked first, so a resolving one still wins over a dangling outer
-      // one rather than the last read winning.
-      var sawDanglingRef = false;
-      for (final linkElement in [
-        ...beforeElement.findElements('link'),
-        ...diveElement.findElements('link'),
-      ]) {
-        final ref = linkElement.getAttribute('ref');
-        if (ref != null) {
-          // Check if it's a site reference
-          if (sites.containsKey(ref)) {
-            diveData['site'] = sites[ref];
-          }
-          // Check if it's a buddy reference
-          else if (buddies.containsKey(ref)) {
-            final buddyName = buddies[ref]?['name'] as String?;
-            if (buddyName != null && buddyName.isNotEmpty) {
-              buddyNames.add(buddyName);
-            }
-          }
-          // Check if it's a deco model reference (gradient factors)
-          else if (decoModels.containsKey(ref)) {
-            final model = decoModels[ref]!;
-            if (model['gfLow'] != null && model['gfLow']! > 0) {
-              diveData['gradientFactorLow'] = model['gfLow'];
-            }
-            if (model['gfHigh'] != null && model['gfHigh']! > 0) {
-              diveData['gradientFactorHigh'] = model['gfHigh'];
-            }
-          }
-          // Check if it's a dive computer reference
-          else if (diveComputers.containsKey(ref)) {
-            final computer = diveComputers[ref]!;
-            if (computer['model']?.isNotEmpty == true) {
-              diveData['diveComputerModel'] = computer['model'];
-            }
-            if (computer['serial']?.isNotEmpty == true) {
-              diveData['diveComputerSerial'] = computer['serial'];
-            }
-            if (computer['firmware']?.isNotEmpty == true) {
-              diveData['diveComputerFirmware'] = computer['firmware'];
-            }
-            if (computer['manufacturer']?.isNotEmpty == true) {
-              diveData['diveComputerManufacturer'] = computer['manufacturer'];
-            }
-          } else if (!_isNonSiteRef(ref)) {
-            sawDanglingRef = true;
-          }
-        }
-      }
-
-      // A dangling ref only counts against the dive when nothing else gave
-      // it a site: a file may legitimately link something this parser does
-      // not read, and that is not a lost location.
-      if (sawDanglingRef && diveData['site'] == null) {
-        diveData[_unresolvedSiteRefKey] = true;
-      }
+      // directly under <dive>. Inner links are walked first, so a resolving
+      // one still wins over a dangling outer one rather than the last read
+      // winning. A dive with no <informationbeforedive> walks its outer
+      // links in the else branch below.
+      _applyDiveLinks(
+        [
+          ...beforeElement.findElements('link'),
+          ...diveElement.findElements('link'),
+        ],
+        diveData,
+        buddyNames,
+        sites,
+        buddies,
+        decoModels,
+        diveComputers,
+      );
 
       // Also check equipmentused for dive computer links (Shearwater style)
       if (equipmentElement != null) {
@@ -2012,6 +2037,19 @@ class UddfFullImportService {
           }
         }
       }
+    } else {
+      // The link walk above sat inside this block alone, so a dive with no
+      // <informationbeforedive> never had even its direct <link>s read, and
+      // a dangling one raised no notice (#2209).
+      _applyDiveLinks(
+        diveElement.findElements('link'),
+        diveData,
+        buddyNames,
+        sites,
+        buddies,
+        decoModels,
+        diveComputers,
+      );
     }
 
     // Also parse equipment refs from informationafterdive (if they exist there)
