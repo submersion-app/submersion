@@ -129,6 +129,11 @@ void main() {
       expect(french, isNot(const PdfExportOptions(languageCode: 'de')));
       expect(french, const PdfExportOptions(languageCode: 'fr'));
       expect(const PdfExportOptions().languageCode, isNull);
+      expect(
+        french.hashCode,
+        const PdfExportOptions(languageCode: 'fr').hashCode,
+      );
+      expect(french.toString(), contains('languageCode: fr'));
     });
   });
 }

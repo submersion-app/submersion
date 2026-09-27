@@ -288,4 +288,28 @@ void main() {
     expect(text, isNot(contains('Training Log')));
     expect(text, contains(fr.l10n.pdf_trainingDives));
   });
+
+  test('instructor number and location print in French (#2252)', () async {
+    final fr = PdfLocalization.forLanguageCode('fr');
+    final path = await service.exportCourseTrainingLogToPdf(
+      course.copyWith(instructorNumber: 'PADI-123', location: 'Marseille'),
+      [
+        trainingDive(
+          id: 'fr2',
+          number: 1,
+          runtime: const Duration(minutes: 40),
+        ),
+      ],
+      dates: isoDates,
+      units: metric,
+      localization: fr,
+    );
+    final text = pdfVisibleText(await File(path).readAsBytes());
+
+    expect(text, contains(fr.l10n.pdf_instructorNumber));
+    expect(text, contains('PADI-123'));
+    expect(text, contains(fr.l10n.pdf_location));
+    expect(text, contains(fr.l10n.pdf_completionDate));
+    expect(text, contains(fr.l10n.pdf_statusCompleted));
+  });
 }

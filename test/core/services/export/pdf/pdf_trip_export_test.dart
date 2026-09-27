@@ -244,4 +244,39 @@ void main() {
     expect(text, isNot(contains('Notes:')));
     expect(text, isNot(contains('Max Depth')));
   });
+
+  test(
+    'resort, liveaboard and total runtime print in French (#2252)',
+    () async {
+      final fr = PdfLocalization.forLanguageCode('fr');
+      final withStay = trip.copyWith(
+        resortName: 'Coral Bay',
+        liveaboardName: 'MY Blue',
+      );
+      final path = await service.exportTripToPdf(
+        withStay,
+        const [],
+        dates: isoDates,
+        units: metric,
+        stats: TripWithStats(trip: withStay, totalRuntime: 5400),
+        localization: fr,
+      );
+      final text = pdfVisibleText(await File(path).readAsBytes());
+
+      String plain(String value) => value.replaceAll(' ', ' ');
+      expect(
+        text,
+        contains(
+          plain(fr.l10n.pdf_labelValue(fr.l10n.pdf_resort, 'Coral Bay')),
+        ),
+      );
+      expect(
+        text,
+        contains(
+          plain(fr.l10n.pdf_labelValue(fr.l10n.pdf_liveaboard, 'MY Blue')),
+        ),
+      );
+      expect(text, contains(plain(fr.l10n.pdf_totalRuntime)));
+    },
+  );
 }
