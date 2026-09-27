@@ -1374,9 +1374,11 @@ class SyncRepository {
   /// insert, or an UPDATE that moves many rows at once. Newer than every
   /// clock this device has issued, a scope tombstone's included, so a row
   /// stamped with it is never covered by a scope logged before it.
-  Future<String?> issueRowClock() async {
+  Future<String> issueRowClock() async {
     await ensureSyncClockConfigured();
-    return SyncClock.instance.issue();
+    // Configured just above, and issue() is null only on an unconfigured
+    // clock.
+    return SyncClock.instance.issue()!;
   }
 
   /// One tombstone for a whole set of events (see [EventScopeTombstone]),

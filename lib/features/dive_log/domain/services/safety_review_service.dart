@@ -29,9 +29,11 @@ class SafetyReviewService {
     String Function()? idGenerator,
   }) {
     // Deterministic by default (see withDeterministicIds), so two devices
-    // reviewing the same dive converge on one set of rows. A caller-supplied
-    // generator is kept verbatim for tests that pin ids.
-    final nextId = idGenerator ?? () => '';
+    // reviewing the same dive converge on one set of rows; the counter only
+    // keeps the ids distinct until then. A caller-supplied generator is kept
+    // verbatim for tests that pin ids.
+    var placeholder = 0;
+    final nextId = idGenerator ?? () => 'pending-${placeholder++}';
     final findings = <SafetyFinding>[];
 
     findings.addAll(_rapidAscentFindings(diveId, analysis, now, nextId));

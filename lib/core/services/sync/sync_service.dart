@@ -2242,12 +2242,19 @@ class SyncService {
   ) {
     final scopes = deletions[EventScopeTombstone.entityType];
     if (scopes == null || scopes.isEmpty) return null;
+    // Only the clocks that parse: a scope without one falls back to its
+    // delete time, as it does in the applier.
+    final clocks = <String, Hlc>{};
+    for (final d in scopes) {
+      final clock = tryParseHlc(d.hlc);
+      if (clock != null) clocks[d.id] = clock;
+    }
     return EventScopeCoverage.from(
       deletedAt: {
         for (final d in scopes)
           d.id: d.deletedAt > 0 ? d.deletedAt : exportedAt,
       },
-      clocks: {for (final d in scopes) d.id: ?tryParseHlc(d.hlc)},
+      clocks: clocks,
     );
   }
 
