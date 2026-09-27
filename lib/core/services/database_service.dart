@@ -1121,22 +1121,20 @@ class DatabaseService {
   /// (issue #1924). Throws on failure, which aborts the restore before the
   /// database is closed.
   Future<void> _settleLeftoverPreRestore(RestoreJournal journal) async {
-    switch (journal.classifyPreRestore()) {
-      case PreRestoreState.none:
-        return;
-      case PreRestoreState.unproven:
-        final kept = await journal.quarantine(journal.asidePath);
-        _log.info(
-          'Moved an unmarked leftover of an earlier restore to $kept; nothing '
-          'proves it is not the only copy of an earlier database',
-        );
-      case PreRestoreState.precious:
-        final kept = await journal.quarantine(journal.asidePath);
-        _log.warning(
-          'An earlier restore never settled, and its aside copy may be the '
-          'only copy of the previous database; kept it at $kept instead of '
-          'deleting it',
-        );
+    final state = journal.classifyPreRestore();
+    if (state == PreRestoreState.none) return;
+    final kept = await journal.quarantine(journal.asidePath);
+    if (state == PreRestoreState.precious) {
+      _log.warning(
+        'An earlier restore never settled, and its aside copy may be the '
+        'only copy of the previous database; kept it at $kept instead of '
+        'deleting it',
+      );
+    } else {
+      _log.info(
+        'Moved an unmarked leftover of an earlier restore to $kept; nothing '
+        'proves it is not the only copy of an earlier database',
+      );
     }
   }
 
