@@ -80,4 +80,36 @@ void main() {
     await pumpEditor(tester, created.id);
     expect(find.byKey(const ValueKey('attr-field-color')), findsNothing);
   });
+
+  testWidgets('picking and then clearing a colour updates the form', (
+    tester,
+  ) async {
+    final created = await repository.createEquipment(
+      const EquipmentItem(id: '', name: 'Jet Fins', type: EquipmentType.fins),
+    );
+    await pumpEditor(tester, created.id);
+    final field = find.byKey(const ValueKey('attr-field-color'));
+    expect(
+      find.descendant(of: field, matching: find.text('--')),
+      findsOneWidget,
+    );
+
+    await tester.tap(field);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('color-swatch-#14B8A6')));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(of: field, matching: find.text('Teal')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.descendant(of: field, matching: find.byIcon(Icons.clear)),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(of: field, matching: find.text('--')),
+      findsOneWidget,
+    );
+  });
 }

@@ -288,6 +288,10 @@ class DiveRepository {
   ///
   /// Also watches `dive_sensor_summaries`, which the condition sweep fills
   /// outside any notifier.
+  ///
+  /// Also watches `equipment_attributes`: each gear item is hydrated with its
+  /// attributes, and its colour tints the diver figure in the equipment card
+  /// (issue #2326). A synced colour edit writes only this table.
   Stream<void> watchDiveDetailChanges() => _db
       .tableUpdates(
         TableUpdateQuery.allOf([
@@ -297,6 +301,7 @@ class DiveRepository {
           TableUpdateQuery.onTable(_db.tankPressureSeries),
           TableUpdateQuery.onTable(_db.diveEquipment),
           TableUpdateQuery.onTable(_db.equipment),
+          TableUpdateQuery.onTable(_db.equipmentAttributes),
           TableUpdateQuery.onTable(_db.gasSwitches),
           TableUpdateQuery.onTable(_db.diveDataSources),
           TableUpdateQuery.onTable(_db.diveComputers),
