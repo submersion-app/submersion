@@ -390,6 +390,70 @@ class MockDiveRepository extends Mock implements DiveRepository {
 }
 ```
 
+## Shared Isolates in CI
+
+`flutter test` compiles and loads every test file as its own entrypoint. In CI
+that made the cost of a run follow the number of test files, so the test job
+runs bundles instead: generated entrypoints that import many test files and
+call each one's `main()` inside a group named after the file
+(`scripts/bundle_tests.py`, issue #2500). Local runs and the pre-push hook still
+run test files one by one. At local concurrency a bundle is no faster, because
+it runs its files one after another in a single isolate.
+
+### The rule: put back what you replace
+
+The files in a bundle share process-wide state. A test that replaces a global
+restores it, so the next file starts from the same place.
+
+| You change | Put it back with |
+|---|---|
+| A `*Platform.instance`, or `HttpOverrides.global` | Read the previous value into a variable, and assign it back in `tearDown` or `addTearDown` |
+| `QualityScanScheduler.enabled`, `SensorSummaryScheduler.enabled` or `debugCanShareFiles` | `applyGlobalTestDefaults()` from `test/helpers/global_test_defaults.dart`, in `tearDown` |
+| A mock handler on the path provider or share channel | `clearPathAndShareChannelMocks()` from `test/helpers/mock_channels.dart`, in `tearDownAll` |
+| The share sheet | Assign your fake to `SharePlatform.instance` and restore it. The harness pins a forwarder, so the fake is looked up on every share |
+| PDF fonts | `loadPdfRoboto()` in `setUpAll` and `unloadPdfRoboto()` in `tearDownAll`, from `test/helpers/pdf_roboto.dart` |
+
+`test/architecture/test_global_state_restored_test.dart` fails on an assignment
+that nothing in the same file restores.
+
+A shared isolate exposes two more things:
+
+- Code in the body of `main()` or `group()` runs while the file is declared,
+  before any test. By then an earlier file has set up the test binding. Build
+  anything that touches the network or a platform channel inside `setUp` or the
+  test, or make it `late final`.
+- A warm isolate is faster than a cold one. An assertion that two timestamps
+  differ needs the difference built in, not left to the clock.
+
+### Reproducing a CI failure locally
+
+```bash
+# The bundle that runs a given test file:
+flutter test $(python3 scripts/bundle_tests.py --containing test/path/to/my_test.dart)
+
+# A whole CI shard. The shard count is TOTAL_SHARDS in .github/workflows/ci.yaml:
+flutter test --exclude-tags performance $(python3 scripts/bundle_tests.py --shard 2 --total-shards 6)
+
+# Exactly these files, in this order, in one isolate:
+flutter test $(python3 scripts/bundle_tests.py --files test/a_test.dart test/b_test.dart)
+```
+
+A failure names the file it came from: every test in a bundle sits in a group
+named after its file's path. To find the earlier file a failing test depends
+on, take the files imported before it in the bundle and halve the list with
+`--files` until one is left.
+
+### Files that run as their own entrypoint
+
+A file is left out of the bundles when it has a library-level `@Tags`,
+`@TestOn`, `@Timeout`, `@Skip`, `@Retry` or `@OnPlatform` annotation (the test
+runner reads those from an entrypoint only), calls `matchesGoldenFile`, or has
+a `main` that is `async` or takes parameters.
+
+The comment `// test-bundle: run-alone <reason>`, on a line of its own, does the
+same for any file. It is there to unblock main while a conflict is fixed, not
+to leave one in place.
+
 ## Best Practices
 
 1. **Isolation** - Each test is independent and doesn't rely on other tests
