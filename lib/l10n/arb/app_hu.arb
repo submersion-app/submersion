@@ -879,7 +879,7 @@
   "certifications_detail_dialog_deleteContent": "Biztosan törli a következőt: \"{name}\"?",
   "certifications_detail_dialog_deleteTitle": "Képesítés törlése?",
   "certifications_detail_label_agency": "Szervezet",
-  "certifications_detail_label_alsoRecognized": "Elismerve még mint",
+  "certifications_detail_label_alsoRecognized": "Más néven is elismert",
   "certifications_detail_label_cardNumber": "Kártyaszám",
   "certifications_detail_label_certification": "Képesítés",
   "certifications_detail_label_expiryDate": "Lejárat dátuma",

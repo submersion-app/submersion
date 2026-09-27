@@ -2239,7 +2239,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_detail_label_agency => 'Szervezet';
 
   @override
-  String get certifications_detail_label_alsoRecognized => 'Elismerve még mint';
+  String get certifications_detail_label_alsoRecognized =>
+      'Más néven is elismert';
 
   @override
   String get certifications_detail_label_cardNumber => 'Kártyaszám';
