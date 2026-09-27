@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/services/export/uddf/uddf_import_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
 
 void main() {
   String uddfWith(String? visibilityElement) =>
@@ -26,8 +26,8 @@ void main() {
 ''';
 
   Future<Map<String, dynamic>> importOne(String content) async {
-    final result = await UddfImportService().importDivesFromUddf(content);
-    final dives = result['dives']!;
+    final result = await UddfFullImportService().importAllDataFromUddf(content);
+    final dives = result.dives;
     expect(dives, hasLength(1));
     return dives.first;
   }

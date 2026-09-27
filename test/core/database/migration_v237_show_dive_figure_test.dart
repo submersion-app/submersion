@@ -3,13 +3,41 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
+/// v237: diver_settings.show_dive_figure, the diver-wide switch for the
+/// diver figure in the dive detail equipment card (issue #2326). Off by
+/// default for every diver; kept below main's v239, so a database already
+/// past it gains the column through the beforeOpen backstop.
 void main() {
-  test('v237 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 237);
-    expect(AppDatabase.migrationVersions, contains(237));
-    expect(AppDatabase.migrationStepCount(234), 1);
+  Future<Set<String>> settingsColumns(AppDatabase db) async {
+    final cols = await db
+        .customSelect("PRAGMA table_info('diver_settings')")
+        .get();
+    return cols.map((c) => c.read<String>('name')).toSet();
+  }
+
+  NativeDatabase strandedAt(int? userVersion) => NativeDatabase.memory(
+    setup: (rawDb) {
+      if (userVersion != null) {
+        rawDb.execute('PRAGMA user_version = $userVersion');
+      }
+      rawDb.execute('''
+        CREATE TABLE diver_settings (
+          id TEXT NOT NULL PRIMARY KEY,
+          created_at INTEGER,
+          updated_at INTEGER
+        )
+      ''');
+    },
+  );
+
+  test('v237 is in the ladder, between v234 and v239', () {
+    // Relaxed once v239 (regulator part service kinds) landed on top; the
+    // newest rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(237));
+    const ladder = AppDatabase.migrationVersions;
+    expect(ladder, contains(237));
+    expect(ladder.indexOf(237), greaterThan(ladder.indexOf(234)));
+    expect(ladder.indexOf(237), lessThan(ladder.indexOf(239)));
   });
 
   test('the column is additive and did not move the sync floor', () {
@@ -30,23 +58,17 @@ void main() {
   });
 
   test('a database stranded before v237 gains the column', () async {
-    final nativeDb = NativeDatabase.memory(
-      setup: (rawDb) {
-        rawDb.execute('''
-          CREATE TABLE diver_settings (
-            id TEXT NOT NULL PRIMARY KEY,
-            created_at INTEGER,
-            updated_at INTEGER
-          )
-        ''');
-      },
-    );
-    final db = AppDatabase(nativeDb);
+    final db = AppDatabase(strandedAt(null));
     addTearDown(db.close);
-    final cols = await db
-        .customSelect("PRAGMA table_info('diver_settings')")
-        .get();
-    final names = cols.map((c) => c.read<String>('name')).toSet();
-    expect(names, contains('show_dive_figure'));
+    expect(await settingsColumns(db), contains('show_dive_figure'));
   });
+
+  test(
+    'a database already past v237 (at main v239) regains it via beforeOpen',
+    () async {
+      final db = AppDatabase(strandedAt(AppDatabase.currentSchemaVersion));
+      addTearDown(db.close);
+      expect(await settingsColumns(db), contains('show_dive_figure'));
+    },
+  );
 }

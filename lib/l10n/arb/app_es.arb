@@ -4233,6 +4233,7 @@
   "dashboard_serviceDue_more": "+{count} más",
   "dashboard_alerts_clockDue": "{name}: {kind} pendiente",
   "dashboard_alerts_clockOverdue": "{name}: {kind} vencido",
+  "trips_gearAlerts_count": "{count, plural, one{{count} aviso de equipo para este viaje} other{{count} avisos de equipo para este viaje}}",
   "trips_serviceAlert_count": "{count, plural, =1{1 equipo necesita mantenimiento antes de este viaje} other{{count} equipos necesitan mantenimiento antes de este viaje}}",
   "trips_serviceAlert_dueBefore": "{kind} vence el {date}",
   "equipment_service_overdue": "{kind} vencido",

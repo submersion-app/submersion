@@ -4131,6 +4131,7 @@
   "dashboard_serviceDue_more": "+{count} נוספים",
   "dashboard_alerts_clockDue": "{name}: {kind} נדרש",
   "dashboard_alerts_clockOverdue": "{name}: {kind} באיחור",
+  "trips_gearAlerts_count": "{count, plural, one{{count} התראת ציוד לטיול הזה} two{{count} התראות ציוד לטיול הזה} many{{count} התראות ציוד לטיול הזה} other{{count} התראות ציוד לטיול הזה}}",
   "trips_serviceAlert_count": "{count, plural, one{פריט ציוד אחד זקוק לטיפול לפני הטיול הזה} two{שני פריטי ציוד זקוקים לטיפול לפני הטיול הזה} many{{count} פריטי ציוד זקוקים לטיפול לפני הטיול הזה} other{{count} פריטי ציוד זקוקים לטיפול לפני הטיול הזה}}",
   "trips_serviceAlert_dueBefore": "{kind} לביצוע עד {date}",
   "equipment_service_overdue": "{kind} באיחור",

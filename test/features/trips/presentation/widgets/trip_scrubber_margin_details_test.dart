@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
@@ -12,7 +13,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_scrubber_margin_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_scrubber_margin_details.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
@@ -81,7 +82,7 @@ Widget host(
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(
-      body: TripScrubberMarginCard(trip: trip(past: past)),
+      body: TripScrubberMarginDetails(margins: margins, isPast: past),
     ),
   ),
 );
@@ -105,7 +106,6 @@ void main() {
   ) async {
     await tester.pumpWidget(host([margin()]));
     await tester.pumpAndSettle();
-    expect(find.text('Scrubber margin'), findsOneWidget);
     expect(find.text('My CCR'), findsOneWidget);
     expect(
       find.text(
@@ -195,12 +195,6 @@ void main() {
     );
   });
 
-  testWidgets('a past trip says as of its start', (tester) async {
-    await tester.pumpWidget(host([margin()], past: true));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('as of Mar 1, 2025'), findsOneWidget);
-  });
-
   RollupClock overdueScrubber() {
     final t0 = DateTime(2025, 1, 1);
     return (
@@ -269,55 +263,6 @@ void main() {
     expect(find.textContaining('margin after'), findsNothing);
   });
 
-  testWidgets('many rebreathers on a short window leave room for the page', (
-    tester,
-  ) async {
-    // The card sits above the page's scrolling content, so it must never
-    // take the whole window: several units on a compact screen scroll
-    // inside the card instead of overflowing the page.
-    tester.view.physicalSize = const Size(400, 600);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          tripScrubberMarginsProvider(
-            't1',
-          ).overrideWith((ref) async => [for (var i = 0; i < 6; i++) margin()]),
-        ],
-        child: MaterialApp(
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: Column(
-              children: [
-                TripScrubberMarginCard(trip: trip()),
-                const Expanded(child: SizedBox(key: ValueKey('page-body'))),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull);
-    final card = tester.getSize(find.byType(TripScrubberMarginCard));
-    expect(card.height, lessThanOrEqualTo(600 * 0.4 + 1));
-    expect(
-      tester.getSize(find.byKey(const ValueKey('page-body'))).height,
-      greaterThan(0),
-    );
-  });
-
-  testWidgets('no rebreather renders nothing', (tester) async {
-    await tester.pumpWidget(host(const []));
-    await tester.pumpAndSettle();
-    expect(find.byType(Card), findsNothing);
-  });
-
   test('the banner summary picks the lowest margin', () {
     final l10n = AppLocalizationsEn();
     expect(
@@ -365,5 +310,18 @@ void main() {
       margin(rated: null, marginAfter: null, caution: false),
     ]);
     expect(summary, '2 rebreathers, lowest 40 min scrubber margin');
+  });
+
+  test('a past trip heads the breakdown as of its start', () {
+    final l10n = AppLocalizationsEn();
+    const units = UnitFormatter(AppSettings());
+    expect(
+      tripScrubberMarginTitle(l10n, units, trip(past: true), isPast: true),
+      'Scrubber margin (as of Mar 1, 2025)',
+    );
+    expect(
+      tripScrubberMarginTitle(l10n, units, trip(), isPast: false),
+      'Scrubber margin',
+    );
   });
 }

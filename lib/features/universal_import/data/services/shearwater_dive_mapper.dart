@@ -232,6 +232,24 @@ class ShearwaterDiveMapper {
       final name = siteKeyFor(dive);
       if (name == null) continue;
 
+      // Judged by the same contract as the dive's own fix, so a named site
+      // never carries the 0,0 sentinel or an off-globe pair the dive drops.
+      final fix = _gnssFix(dive.gnssEntryLocation);
+
+      // The first dive at a site may have had no usable fix; a later one
+      // that has one fills it in rather than leaving the site unplaced.
+      final existing = siteMap[name];
+      if (existing != null) {
+        if (fix != null && !existing.containsKey('latitude')) {
+          siteMap[name] = {
+            ...existing,
+            'latitude': fix.latitude,
+            'longitude': fix.longitude,
+          };
+        }
+        continue;
+      }
+
       siteMap.putIfAbsent(name, () {
         final site = <String, dynamic>{'name': name, 'uddfId': name};
 
@@ -239,10 +257,9 @@ class ShearwaterDiveMapper {
           site['notes'] = dive.location;
         }
 
-        final coords = _parseGnssLocation(dive.gnssEntryLocation);
-        if (coords != null) {
-          site['latitude'] = coords.$1;
-          site['longitude'] = coords.$2;
+        if (fix != null) {
+          site['latitude'] = fix.latitude;
+          site['longitude'] = fix.longitude;
         }
 
         // A suggestion only (issue #1765): the importer applies it while the

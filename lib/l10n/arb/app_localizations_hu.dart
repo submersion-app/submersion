@@ -13103,6 +13103,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String trips_gearAlerts_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count felszerelési figyelmeztetés ehhez az utazáshoz',
+      one: '$count felszerelési figyelmeztetés ehhez az utazáshoz',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

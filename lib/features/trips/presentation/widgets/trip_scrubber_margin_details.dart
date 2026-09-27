@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
-import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -18,7 +15,7 @@ String _minutes(double value) =>
 
 /// The banner's one-line summary: the lowest margin, or the count when
 /// the diver has several rebreathers. The lowest comes from the rated
-/// units; the count names them all, as the card shows a block for each.
+/// units; the count names them all, as the details show a block for each.
 /// Null when nothing has a rating.
 String? tripScrubberMarginSummary(
   AppLocalizations l10n,
@@ -33,65 +30,42 @@ String? tripScrubberMarginSummary(
       : l10n.trips_scrubber_bannerCount(margins.length, lowest);
 }
 
-/// The scrubber margin card on a trip: one block per active rebreather
-/// stating the four figures and the n behind each estimate, with a
-/// caution line under 20 percent of the rated duration. A past trip
-/// reads as of its start. Renders nothing without a rebreather.
-class TripScrubberMarginCard extends ConsumerWidget {
-  final Trip trip;
+/// The scrubber section's heading: a past trip reads as of its start.
+String tripScrubberMarginTitle(
+  AppLocalizations l10n,
+  UnitFormatter units,
+  Trip trip, {
+  required bool isPast,
+}) => isPast
+    ? '${l10n.trips_scrubber_title} '
+          '(${l10n.trips_scrubber_asOfStart(units.formatDate(trip.startDate))})'
+    : l10n.trips_scrubber_title;
 
-  const TripScrubberMarginCard({super.key, required this.trip});
+/// The scrubber margin breakdown on a trip: one block per active
+/// rebreather stating the four figures and the n behind each estimate,
+/// with a caution line under 20 percent of the rated duration.
+class TripScrubberMarginDetails extends StatelessWidget {
+  final List<ScrubberMargin> margins;
 
-  /// The most of the window the card may take before it scrolls.
-  static const maxHeightFraction = 0.4;
+  /// A past trip reads as of its start (see [_MarginBlock.isPast]).
+  final bool isPast;
+
+  const TripScrubberMarginDetails({
+    super.key,
+    required this.margins,
+    required this.isPast,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final margins =
-        ref.watch(tripScrubberMarginsProvider(trip.id)).value ?? const [];
-    if (margins.isEmpty) return const SizedBox.shrink();
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
-    // One clock read: the two getters each read it, and a build crossing
-    // midnight between them could misclassify a trip that just ended.
-    final isPast = trip.endsBefore(DateTime.now());
-    final title = isPast
-        ? '${l10n.trips_scrubber_title} '
-              '(${l10n.trips_scrubber_asOfStart(units.formatDate(trip.startDate))})'
-        : l10n.trips_scrubber_title;
-
-    // The card sits above the page's own scrolling content, so it is
-    // capped at a share of the window and scrolls inside: several units
-    // on a compact screen would otherwise push the page off the bottom.
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * maxHeightFraction,
-      ),
-      child: Card(
-        margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.air, color: theme.colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(title, style: theme.textTheme.titleMedium),
-                  ),
-                ],
-              ),
-              for (final m in margins) ...[
-                const Divider(),
-                _MarginBlock(margin: m, isPast: isPast),
-              ],
-            ],
-          ),
-        ),
-      ),
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final (i, m) in margins.indexed) ...[
+          if (i > 0) const Divider(),
+          _MarginBlock(margin: m, isPast: isPast),
+        ],
+      ],
     );
   }
 }

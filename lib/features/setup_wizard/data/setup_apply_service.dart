@@ -12,11 +12,13 @@ final setupApplyServiceProvider = Provider<SetupApplyService>(
 
 /// Persists a completed wizard draft.
 ///
-/// First-run ordering is load-bearing: createDiver seeds a defaults
-/// settings row, which is overwritten with the draft BEFORE the diver
-/// becomes current, because switching the current diver triggers an
-/// unawaited SettingsNotifier reload that would otherwise race (and
-/// clobber) any post-switch settings writes.
+/// First-run ordering is load-bearing: the diver's settings row must hold
+/// the draft from the moment the diver exists. The SettingsNotifier can
+/// load that row before this service reaches setCurrentDiver, because on a
+/// fresh database the active-diver notifier resolves to the new default
+/// diver on the divers-table tick alone. A row seeded with defaults and
+/// overwritten afterwards left the notifier on the defaults, and the next
+/// settings write saved them over the draft (#2298).
 class SetupApplyService {
   final Ref _ref;
 
@@ -29,9 +31,11 @@ class SetupApplyService {
     }
 
     final now = DateTime.now();
+    // Created with the draft as its settings, in the same transaction as
+    // the diver (see class doc).
     final newDiver = await _ref
-        .read(diverListNotifierProvider.notifier)
-        .addDiver(
+        .read(diverRepositoryProvider)
+        .createDiver(
           Diver(
             id: '',
             name: name,
@@ -39,13 +43,9 @@ class SetupApplyService {
             createdAt: now,
             updatedAt: now,
           ),
+          settings: draft.settings,
         );
-
-    // Overwrite the defaults row createDiver just made with the draft,
-    // BEFORE the switch (see class doc).
-    await _ref
-        .read(diverSettingsRepositoryProvider)
-        .updateSettingsForDiver(newDiver.id, draft.settings);
+    await _ref.read(diverListNotifierProvider.notifier).refresh();
 
     await _ref
         .read(currentDiverIdProvider.notifier)

@@ -1,9 +1,12 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart' hide Diver;
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -62,6 +65,39 @@ void main() {
           ),
         );
   }
+
+  group('createDiver settings seed', () {
+    Diver newDiver() {
+      final now = DateTime.now();
+      return Diver(id: '', name: 'Seeded', createdAt: now, updatedAt: now);
+    }
+
+    test('seeds the defaults when no settings are given', () async {
+      final created = await repository.createDiver(newDiver());
+
+      final stored = await DiverSettingsRepository().getSettingsForDiver(
+        created.id,
+      );
+      expect(stored!.depthUnit, DepthUnit.meters);
+    });
+
+    test('seeds the given settings instead of the defaults', () async {
+      final created = await repository.createDiver(
+        newDiver(),
+        settings: const AppSettings(
+          depthUnit: DepthUnit.feet,
+          pressureUnit: PressureUnit.psi,
+        ),
+      );
+
+      final rows = await (db.select(
+        db.diverSettings,
+      )..where((t) => t.diverId.equals(created.id))).get();
+      expect(rows, hasLength(1));
+      expect(rows.single.depthUnit, 'feet');
+      expect(rows.single.pressureUnit, 'psi');
+    });
+  });
 
   group('updateDiver', () {
     test('persists scalar field changes', () async {

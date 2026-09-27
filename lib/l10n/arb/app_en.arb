@@ -7572,6 +7572,14 @@
       }
     }
   },
+  "trips_gearAlerts_count": "{count, plural, one{{count} gear alert for this trip} other{{count} gear alerts for this trip}}",
+  "@trips_gearAlerts_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "trips_serviceAlert_count": "{count, plural, =1{1 item needs service before this trip} other{{count} items need service before this trip}}",
   "@trips_serviceAlert_count": {
     "placeholders": {
