@@ -2201,7 +2201,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_detail_label_agency => '机构';
 
   @override
-  String get certifications_detail_label_alsoRecognized => 'Also recognized as';
+  String get certifications_detail_label_alsoRecognized => '同时认可为';
 
   @override
   String get certifications_detail_label_cardNumber => '卡号';
@@ -2314,7 +2314,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String certifications_ecard_alsoRecognized(String recognitions) {
-    return 'Also: $recognitions';
+    return '另认可：$recognitions';
   }
 
   @override
@@ -2412,10 +2412,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_edit_label_agency => '机构 *';
 
   @override
-  String get certifications_edit_addRecognition => 'Add another recognition';
+  String get certifications_edit_addRecognition => '添加其他认可';
 
   @override
-  String get certifications_edit_removeRecognition => 'Remove this recognition';
+  String get certifications_edit_removeRecognition => '移除此认可';
 
   @override
   String get certifications_edit_label_cardNumber => '卡号';
@@ -26150,7 +26150,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tools_weight_yourWeight => '您的配重';
 
   @override
-  String get settings_section_dataSources_title => '数据来源';
+  String get settings_section_dataSources_title => 'Apple HealthKit';
 
   @override
   String get settings_section_dataSources_subtitle => '健康数据集成';
@@ -27586,25 +27586,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dive3d_seascape_noCoordinates => '该潜点没有GPS坐标';
 
   @override
-  String get dive3d_seascape_detailLimitReached =>
-      'This is the most detail available for this location';
+  String get dive3d_seascape_detailLimitReached => '这是该位置可用的最高细节';
 
   @override
   String dive3d_seascape_lodStageLabel(String stage, String span) {
-    return 'Level of detail: $stage ($span)';
+    return '细节级别：$stage（$span）';
   }
 
   @override
-  String get dive3d_seascape_lodStageOverview => 'Overview';
+  String get dive3d_seascape_lodStageOverview => '概览';
 
   @override
-  String get dive3d_seascape_lodStageMedium => 'Medium';
+  String get dive3d_seascape_lodStageMedium => '中等';
 
   @override
-  String get dive3d_seascape_lodStageFine => 'Fine';
+  String get dive3d_seascape_lodStageFine => '精细';
 
   @override
-  String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
+  String get dive3d_seascape_lodStageSuperFine => '超精细';
 
   @override
   String get dive3d_seascape_noData => '该位置没有可用的水深数据';
