@@ -40259,6 +40259,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'Valami más még használta az adatbázisfájlt, ezért a Submersion megállt ahelyett, hogy írt volna bele. Semmi nem változott és semmi nem sérült meg. Zárd be teljesen a Submersiont, majd nyisd meg újra.';
 
   @override
+  String get startup_locationUnreachable_title =>
+      'A merülési napló mappája nem érhető el';
+
+  @override
+  String get startup_locationUnreachable_body =>
+      'A merülési naplója egy Ön által választott mappában van, és a Submersion most nem tudja megnyitni ezt a mappát. Semmi sem változott benne. Ha a mappa egy nem csatlakoztatott meghajtón vagy egy még szinkronizálódó felhőmappában van, csatlakoztassa újra, majd nyissa meg ismét a Submersiont.';
+
+  @override
+  String get startup_locationUnreachable_folderLabel =>
+      'A merülési napló mappája:';
+
+  @override
   String get startup_failure_technicalDetails => 'Technikai részletek';
 
   @override
@@ -40323,6 +40335,22 @@ class AppLocalizationsHu extends AppLocalizations {
       'Tegye félre a sérült fájlt, és kezdje elölről. Semmi nem törlődik.';
 
   @override
+  String get startup_failure_chooseFolderAgain =>
+      'A merülési napló mappájának kiválasztása';
+
+  @override
+  String get startup_failure_chooseFolderAgain_subtitle =>
+      'Válassza ki újra ugyanazt a mappát, hogy a Submersion ismét hozzáférjen, vagy azt a mappát, amelyben most a naplója van.';
+
+  @override
+  String get startup_failure_useDefaultLocation =>
+      'Vissza az alkalmazás alapértelmezett helyére';
+
+  @override
+  String get startup_failure_useDefaultLocation_subtitle =>
+      'Ennek a mappának a használata megszűnik, és a Submersion a saját mappájában lévő naplót nyitja meg. Az Ön mappájában semmi sem változik.';
+
+  @override
   String get startup_recovery_adopt_title => 'Ezt a merülési naplót használja?';
 
   @override
@@ -40374,6 +40402,19 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get startup_recovery_encryptedBackup_body =>
       'Ez a biztonsági mentés titkosított. A Submersion csak megnyitott alkalmazásban tud titkosított mentést feloldani, ezért használja előbb az itteni másik utak egyikét, majd állítsa vissza a Beállításokban, a Biztonsági mentés és visszaállítás résznél.';
+
+  @override
+  String get startup_recovery_useDefault_title =>
+      'Visszatér az alkalmazás alapértelmezett helyére?';
+
+  @override
+  String startup_recovery_useDefault_body(Object folder) {
+    return 'A Submersion mostantól a saját mappájában lévő naplót nyitja meg, vagy ott hoz létre egy üreset, ha nincs. A következő mappában semmi sem kerül áthelyezésre vagy törlésre: $folder. Ha újra ezt a mappát szeretné használni, válassza ki a Beállításokban, az Adatbázis tárolás résznél.';
+  }
+
+  @override
+  String get startup_recovery_useDefault_confirm =>
+      'Az alapértelmezett hely használata';
 
   @override
   String get startup_failure_downgrade_title => 'Visszatérés az előző verzióra';

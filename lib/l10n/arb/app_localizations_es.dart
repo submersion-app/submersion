@@ -40468,6 +40468,18 @@ class AppLocalizationsEs extends AppLocalizations {
       'Algo más seguía usando el archivo de la base de datos, así que Submersion se detuvo en lugar de escribir en él. No se cambió nada y nada está dañado. Cierra Submersion por completo y vuelve a abrirlo.';
 
   @override
+  String get startup_locationUnreachable_title =>
+      'No se puede acceder a la carpeta de tu cuaderno de buceo';
+
+  @override
+  String get startup_locationUnreachable_body =>
+      'Tu cuaderno de buceo está en una carpeta que elegiste y Submersion no puede abrir esa carpeta ahora mismo. No se ha cambiado nada en ella. Si la carpeta está en una unidad que no está conectada, o en una carpeta en la nube que aún se está sincronizando, vuelve a conectarla y abre Submersion de nuevo.';
+
+  @override
+  String get startup_locationUnreachable_folderLabel =>
+      'Carpeta de tu cuaderno de buceo:';
+
+  @override
   String get startup_failure_technicalDetails => 'Detalles técnicos';
 
   @override
@@ -40532,6 +40544,22 @@ class AppLocalizationsEs extends AppLocalizations {
       'Aparta el archivo dañado y empieza de nuevo. No se elimina nada.';
 
   @override
+  String get startup_failure_chooseFolderAgain =>
+      'Elegir la carpeta del cuaderno de buceo';
+
+  @override
+  String get startup_failure_chooseFolderAgain_subtitle =>
+      'Vuelve a elegir la misma carpeta para devolverle el acceso a Submersion, o elige la carpeta donde está ahora tu cuaderno.';
+
+  @override
+  String get startup_failure_useDefaultLocation =>
+      'Volver a la ubicación predeterminada de la app';
+
+  @override
+  String get startup_failure_useDefaultLocation_subtitle =>
+      'Deja de usar esta carpeta y abre el cuaderno en la carpeta propia de Submersion. No se cambia nada en tu carpeta.';
+
+  @override
   String get startup_recovery_adopt_title => '¿Usar este cuaderno de buceo?';
 
   @override
@@ -40583,6 +40611,19 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get startup_recovery_encryptedBackup_body =>
       'Esa copia de seguridad está cifrada. Submersion solo puede desbloquear una copia cifrada con la app ya abierta, así que usa primero una de las otras opciones de aquí y luego restáurala desde Ajustes, en Copia de seguridad y restauración.';
+
+  @override
+  String get startup_recovery_useDefault_title =>
+      '¿Volver a la ubicación predeterminada de la app?';
+
+  @override
+  String startup_recovery_useDefault_body(Object folder) {
+    return 'A partir de ahora, Submersion abrirá el cuaderno en su propia carpeta, o creará allí uno vacío si no hay ninguno. No se mueve ni se elimina nada de $folder. Para volver a usar esa carpeta, elígela en Ajustes, en Almacenamiento de base de datos.';
+  }
+
+  @override
+  String get startup_recovery_useDefault_confirm =>
+      'Usar la ubicación predeterminada';
 
   @override
   String get startup_failure_downgrade_title => 'Volver a la versión anterior';

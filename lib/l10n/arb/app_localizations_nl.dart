@@ -40163,6 +40163,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'Iets anders gebruikte het databasebestand nog, dus Submersion is gestopt in plaats van ernaar te schrijven. Er is niets gewijzigd en niets beschadigd. Sluit Submersion volledig af en open het opnieuw.';
 
   @override
+  String get startup_locationUnreachable_title =>
+      'De map van je duiklogboek is niet bereikbaar';
+
+  @override
+  String get startup_locationUnreachable_body =>
+      'Je duiklogboek staat in een map die je zelf hebt gekozen, en Submersion kan die map nu niet openen. Er is niets in gewijzigd. Staat de map op een schijf die niet is aangesloten, of in een cloudmap die nog synchroniseert, sluit hem dan weer aan en open Submersion opnieuw.';
+
+  @override
+  String get startup_locationUnreachable_folderLabel =>
+      'Map van je duiklogboek:';
+
+  @override
   String get startup_failure_technicalDetails => 'Technische details';
 
   @override
@@ -40226,6 +40238,22 @@ class AppLocalizationsNl extends AppLocalizations {
       'Zet het beschadigde bestand opzij en begin opnieuw. Er wordt niets verwijderd.';
 
   @override
+  String get startup_failure_chooseFolderAgain =>
+      'De map van je logboek kiezen';
+
+  @override
+  String get startup_failure_chooseFolderAgain_subtitle =>
+      'Kies dezelfde map opnieuw om Submersion er weer toegang toe te geven, of kies de map waar je logboek nu staat.';
+
+  @override
+  String get startup_failure_useDefaultLocation =>
+      'Terug naar de standaard app-locatie';
+
+  @override
+  String get startup_failure_useDefaultLocation_subtitle =>
+      'Stop met het gebruik van deze map en open het logboek in de eigen map van Submersion. Er verandert niets in je map.';
+
+  @override
   String get startup_recovery_adopt_title => 'Dit logboek gebruiken?';
 
   @override
@@ -40277,6 +40305,19 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get startup_recovery_encryptedBackup_body =>
       'Die back-up is versleuteld. Submersion kan een versleutelde back-up pas ontgrendelen als de app open is, dus gebruik hier eerst een van de andere routes en herstel hem daarna via Instellingen, bij Back-up en herstel.';
+
+  @override
+  String get startup_recovery_useDefault_title =>
+      'Terug naar de standaard app-locatie?';
+
+  @override
+  String startup_recovery_useDefault_body(Object folder) {
+    return 'Voortaan opent Submersion het logboek in zijn eigen map, of maakt daar een leeg logboek aan als er geen is. Er wordt niets in $folder verplaatst of verwijderd. Wil je die map weer gebruiken, kies hem dan in Instellingen, bij Database-opslag.';
+  }
+
+  @override
+  String get startup_recovery_useDefault_confirm =>
+      'Standaardlocatie gebruiken';
 
   @override
   String get startup_failure_downgrade_title => 'Terug naar de vorige versie';

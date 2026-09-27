@@ -40427,6 +40427,18 @@ class AppLocalizationsIt extends AppLocalizations {
       'Qualcos’altro stava ancora usando il file del database, quindi Submersion si è fermato invece di scriverci. Non è stato modificato nulla e nulla è danneggiato. Chiudi completamente Submersion, poi riaprilo.';
 
   @override
+  String get startup_locationUnreachable_title =>
+      'Impossibile raggiungere la cartella del tuo diario di immersione';
+
+  @override
+  String get startup_locationUnreachable_body =>
+      'Il tuo diario di immersione si trova in una cartella che hai scelto, e Submersion al momento non riesce ad aprirla. Non è stato modificato nulla al suo interno. Se la cartella si trova su un\'unità non collegata o in una cartella cloud ancora in sincronizzazione, ricollegala e riapri Submersion.';
+
+  @override
+  String get startup_locationUnreachable_folderLabel =>
+      'Cartella del tuo diario di immersione:';
+
+  @override
   String get startup_failure_technicalDetails => 'Dettagli tecnici';
 
   @override
@@ -40489,6 +40501,22 @@ class AppLocalizationsIt extends AppLocalizations {
       'Metti da parte il file danneggiato e ricomincia. Non viene eliminato nulla.';
 
   @override
+  String get startup_failure_chooseFolderAgain =>
+      'Scegli la cartella del diario immersioni';
+
+  @override
+  String get startup_failure_chooseFolderAgain_subtitle =>
+      'Scegli di nuovo la stessa cartella per ridare l\'accesso a Submersion, oppure scegli la cartella in cui si trova ora il tuo diario.';
+
+  @override
+  String get startup_failure_useDefaultLocation =>
+      'Torna alla posizione predefinita dell\'app';
+
+  @override
+  String get startup_failure_useDefaultLocation_subtitle =>
+      'Smetti di usare questa cartella e apri il diario nella cartella di Submersion. Nella tua cartella non viene modificato nulla.';
+
+  @override
   String get startup_recovery_adopt_title => 'Usare questo diario immersioni?';
 
   @override
@@ -40540,6 +40568,19 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get startup_recovery_encryptedBackup_body =>
       'Quel backup è cifrato. Submersion può sbloccare un backup cifrato solo ad app aperta, quindi usa prima una delle altre opzioni qui e poi ripristinalo dalle Impostazioni, in Backup e ripristino.';
+
+  @override
+  String get startup_recovery_useDefault_title =>
+      'Tornare alla posizione predefinita dell\'app?';
+
+  @override
+  String startup_recovery_useDefault_body(Object folder) {
+    return 'D\'ora in poi Submersion aprirà il diario nella propria cartella, o ne creerà uno vuoto se non c\'è. Nulla in $folder viene spostato o eliminato. Per usare di nuovo quella cartella, sceglila dalle Impostazioni, in Archiviazione database.';
+  }
+
+  @override
+  String get startup_recovery_useDefault_confirm =>
+      'Usa la posizione predefinita';
 
   @override
   String get startup_failure_downgrade_title =>

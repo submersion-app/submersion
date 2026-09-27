@@ -38104,6 +38104,16 @@ class AppLocalizationsZh extends AppLocalizations {
       '有其他程序仍在使用数据库文件，因此 Submersion 停止了操作，没有写入。没有任何内容被更改或损坏。请完全关闭 Submersion，然后重新打开。';
 
   @override
+  String get startup_locationUnreachable_title => '无法访问潜水日志所在的文件夹';
+
+  @override
+  String get startup_locationUnreachable_body =>
+      '您的潜水日志保存在您选择的文件夹中，Submersion 目前无法打开该文件夹。其中的内容没有任何更改。如果该文件夹位于未连接的驱动器上，或位于仍在同步的云文件夹中，请重新连接后再次打开 Submersion。';
+
+  @override
+  String get startup_locationUnreachable_folderLabel => '潜水日志所在的文件夹：';
+
+  @override
   String get startup_failure_technicalDetails => '技术详情';
 
   @override
@@ -38161,6 +38171,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get startup_failure_startFresh_subtitle => '将损坏的文件移到一旁，重新开始。不会删除任何内容。';
 
   @override
+  String get startup_failure_chooseFolderAgain => '选择潜水日志所在的文件夹';
+
+  @override
+  String get startup_failure_chooseFolderAgain_subtitle =>
+      '再次选择同一个文件夹以恢复 Submersion 的访问权限，或选择潜水日志现在所在的文件夹。';
+
+  @override
+  String get startup_failure_useDefaultLocation => '返回应用默认位置';
+
+  @override
+  String get startup_failure_useDefaultLocation_subtitle =>
+      '停止使用此文件夹，改为打开 Submersion 自身文件夹中的潜水日志。您的文件夹不会有任何更改。';
+
+  @override
   String get startup_recovery_adopt_title => '使用这个潜水日志？';
 
   @override
@@ -38211,6 +38235,17 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get startup_recovery_encryptedBackup_body =>
       '该备份已加密。Submersion 只有在应用打开后才能解锁加密备份，因此请先使用这里的其他方式，然后在设置的备份与恢复中恢复它。';
+
+  @override
+  String get startup_recovery_useDefault_title => '返回应用默认位置？';
+
+  @override
+  String startup_recovery_useDefault_body(Object folder) {
+    return '从现在起，Submersion 将打开其自身文件夹中的潜水日志；如果那里没有，则新建一个空白日志。$folder 中的任何内容都不会被移动或删除。如需再次使用该文件夹，请在设置的数据库存储中选择它。';
+  }
+
+  @override
+  String get startup_recovery_useDefault_confirm => '使用默认位置';
 
   @override
   String get startup_failure_downgrade_title => '回到上一个版本';

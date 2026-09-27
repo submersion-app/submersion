@@ -40446,6 +40446,18 @@ class AppLocalizationsPt extends AppLocalizations {
       'Algo ainda estava a usar o ficheiro da base de dados, por isso o Submersion parou em vez de escrever nele. Nada foi alterado e nada está danificado. Feche o Submersion por completo e volte a abri-lo.';
 
   @override
+  String get startup_locationUnreachable_title =>
+      'Não é possível aceder à pasta do seu registo de mergulho';
+
+  @override
+  String get startup_locationUnreachable_body =>
+      'O seu registo de mergulho está numa pasta que escolheu e o Submersion não consegue abrir essa pasta neste momento. Nada foi alterado nela. Se a pasta estiver numa unidade que não está ligada, ou numa pasta na nuvem que ainda está a sincronizar, volte a ligá-la e abra novamente o Submersion.';
+
+  @override
+  String get startup_locationUnreachable_folderLabel =>
+      'Pasta do seu registo de mergulho:';
+
+  @override
   String get startup_failure_technicalDetails => 'Detalhes técnicos';
 
   @override
@@ -40511,6 +40523,22 @@ class AppLocalizationsPt extends AppLocalizations {
       'Ponha o ficheiro danificado de parte e comece de novo. Nada é eliminado.';
 
   @override
+  String get startup_failure_chooseFolderAgain =>
+      'Escolher a pasta do registo de mergulho';
+
+  @override
+  String get startup_failure_chooseFolderAgain_subtitle =>
+      'Escolha novamente a mesma pasta para devolver o acesso ao Submersion, ou escolha a pasta onde o seu registo está agora.';
+
+  @override
+  String get startup_failure_useDefaultLocation =>
+      'Voltar ao local padrão da aplicação';
+
+  @override
+  String get startup_failure_useDefaultLocation_subtitle =>
+      'Deixar de usar esta pasta e abrir o registo na pasta própria do Submersion. Nada é alterado na sua pasta.';
+
+  @override
   String get startup_recovery_adopt_title => 'Usar este registo de mergulho?';
 
   @override
@@ -40562,6 +40590,18 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get startup_recovery_encryptedBackup_body =>
       'Essa cópia de segurança está cifrada. O Submersion só consegue desbloquear uma cópia cifrada com a aplicação aberta, por isso use primeiro uma das outras opções aqui e restaure-a depois nas Definições, em Cópia de segurança e restauro.';
+
+  @override
+  String get startup_recovery_useDefault_title =>
+      'Voltar ao local padrão da aplicação?';
+
+  @override
+  String startup_recovery_useDefault_body(Object folder) {
+    return 'A partir de agora, o Submersion abre o registo de mergulho na sua própria pasta, ou cria lá um vazio se não existir nenhum. Nada em $folder é movido ou eliminado. Para voltar a usar essa pasta, escolha-a nas Definições, em Armazenamento do Banco de Dados.';
+  }
+
+  @override
+  String get startup_recovery_useDefault_confirm => 'Usar o local padrão';
 
   @override
   String get startup_failure_downgrade_title => 'Voltar à versão anterior';

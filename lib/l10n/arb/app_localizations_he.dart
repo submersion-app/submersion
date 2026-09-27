@@ -39645,6 +39645,18 @@ class AppLocalizationsHe extends AppLocalizations {
       'משהו אחר עדיין השתמש בקובץ מסד הנתונים, ולכן Submersion עצר במקום לכתוב אליו. שום דבר לא השתנה ושום דבר לא ניזוק. סגור את Submersion לגמרי ופתח אותו שוב.';
 
   @override
+  String get startup_locationUnreachable_title =>
+      'אי אפשר לגשת לתיקייה של יומן הצלילה';
+
+  @override
+  String get startup_locationUnreachable_body =>
+      'יומן הצלילה שלכם שמור בתיקייה שבחרתם, ו-Submersion לא יכול לפתוח אותה כרגע. שום דבר בה לא השתנה. אם התיקייה נמצאת בכונן שאינו מחובר או בתיקיית ענן שעדיין מסתנכרנת, חברו אותה מחדש ופתחו את Submersion שוב.';
+
+  @override
+  String get startup_locationUnreachable_folderLabel =>
+      'התיקייה של יומן הצלילה:';
+
+  @override
   String get startup_failure_technicalDetails => 'פרטים טכניים';
 
   @override
@@ -39705,6 +39717,22 @@ class AppLocalizationsHe extends AppLocalizations {
       'הניחו את הקובץ הפגום בצד והתחילו מחדש. שום דבר לא נמחק.';
 
   @override
+  String get startup_failure_chooseFolderAgain =>
+      'בחירת התיקייה של יומן הצלילה';
+
+  @override
+  String get startup_failure_chooseFolderAgain_subtitle =>
+      'בחרו שוב באותה תיקייה כדי להחזיר ל-Submersion גישה אליה, או בחרו בתיקייה שבה היומן נמצא עכשיו.';
+
+  @override
+  String get startup_failure_useDefaultLocation =>
+      'חזרה למיקום ברירת המחדל של האפליקציה';
+
+  @override
+  String get startup_failure_useDefaultLocation_subtitle =>
+      'הפסקת השימוש בתיקייה הזו ופתיחת היומן בתיקייה של Submersion עצמו. שום דבר בתיקייה שלכם לא משתנה.';
+
+  @override
   String get startup_recovery_adopt_title => 'להשתמש ביומן הצלילה הזה?';
 
   @override
@@ -39755,6 +39783,18 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get startup_recovery_encryptedBackup_body =>
       'הגיבוי הזה מוצפן. Submersion יכול לפתוח גיבוי מוצפן רק כשהאפליקציה פתוחה, ולכן השתמשו קודם באחת הדרכים האחרות כאן ואז שחזרו אותו מההגדרות, תחת גיבוי ושחזור.';
+
+  @override
+  String get startup_recovery_useDefault_title =>
+      'לחזור למיקום ברירת המחדל של האפליקציה?';
+
+  @override
+  String startup_recovery_useDefault_body(Object folder) {
+    return 'מעכשיו Submersion יפתח את היומן בתיקייה שלו, או ייצור שם יומן ריק אם אין. שום דבר ב-$folder לא מועבר או נמחק. כדי להשתמש שוב בתיקייה הזו, בחרו בה בהגדרות, תחת אחסון מסד נתונים.';
+  }
+
+  @override
+  String get startup_recovery_useDefault_confirm => 'להשתמש במיקום ברירת המחדל';
 
   @override
   String get startup_failure_downgrade_title => 'חזרה לגרסה הקודמת';

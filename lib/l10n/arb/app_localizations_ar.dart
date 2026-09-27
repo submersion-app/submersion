@@ -40137,6 +40137,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'كان هناك شيء آخر لا يزال يستخدم ملف قاعدة البيانات، لذلك توقف Submersion بدلاً من الكتابة فيه. لم يتغيّر أي شيء ولم يتضرر أي شيء. أغلق Submersion تمامًا ثم افتحه مرة أخرى.';
 
   @override
+  String get startup_locationUnreachable_title =>
+      'تعذّر الوصول إلى مجلد سجل الغوص الخاص بك';
+
+  @override
+  String get startup_locationUnreachable_body =>
+      'يُحفظ سجل الغوص الخاص بك في مجلد اخترته، ولا يستطيع Submersion فتح هذا المجلد الآن. لم يتغيّر أي شيء فيه. إذا كان المجلد على قرص غير متصل أو في مجلد سحابي لا تزال مزامنته جارية، فأعد توصيله ثم افتح Submersion مرة أخرى.';
+
+  @override
+  String get startup_locationUnreachable_folderLabel =>
+      'مجلد سجل الغوص الخاص بك:';
+
+  @override
   String get startup_failure_technicalDetails => 'تفاصيل تقنية';
 
   @override
@@ -40197,6 +40209,21 @@ class AppLocalizationsAr extends AppLocalizations {
       'ضع الملف التالف جانبًا وابدأ من جديد. لا يُحذف أي شيء.';
 
   @override
+  String get startup_failure_chooseFolderAgain => 'اختيار مجلد سجل الغوص';
+
+  @override
+  String get startup_failure_chooseFolderAgain_subtitle =>
+      'اختر المجلد نفسه مرة أخرى لإعادة منح Submersion حق الوصول إليه، أو اختر المجلد الذي يوجد فيه سجلك الآن.';
+
+  @override
+  String get startup_failure_useDefaultLocation =>
+      'العودة إلى موقع التطبيق الافتراضي';
+
+  @override
+  String get startup_failure_useDefaultLocation_subtitle =>
+      'التوقف عن استخدام هذا المجلد وفتح سجل الغوص في مجلد Submersion الخاص. لا يتغيّر أي شيء في مجلدك.';
+
+  @override
   String get startup_recovery_adopt_title => 'استخدام سجل الغوص هذا؟';
 
   @override
@@ -40247,6 +40274,18 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get startup_recovery_encryptedBackup_body =>
       'هذه النسخة الاحتياطية مشفَّرة. لا يستطيع Submersion فتح نسخة مشفَّرة إلا بعد تشغيل التطبيق، لذا استخدم إحدى الطرق الأخرى هنا أولًا ثم استعِدها من الإعدادات ضمن النسخ الاحتياطي والاستعادة.';
+
+  @override
+  String get startup_recovery_useDefault_title =>
+      'العودة إلى موقع التطبيق الافتراضي؟';
+
+  @override
+  String startup_recovery_useDefault_body(Object folder) {
+    return 'من الآن فصاعدًا يفتح Submersion سجل الغوص في مجلده الخاص، أو ينشئ هناك سجلًا فارغًا إن لم يوجد. لن يُنقل أو يُحذف أي شيء في $folder. لاستخدام ذلك المجلد مرة أخرى، اختره من الإعدادات ضمن تخزين قاعدة البيانات.';
+  }
+
+  @override
+  String get startup_recovery_useDefault_confirm => 'استخدام الموقع الافتراضي';
 
   @override
   String get startup_failure_downgrade_title => 'العودة إلى الإصدار السابق';

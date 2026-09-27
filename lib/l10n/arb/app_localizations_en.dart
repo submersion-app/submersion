@@ -39849,6 +39849,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Something else was still using the database file, so Submersion stopped rather than write to it. Nothing was changed and nothing is damaged. Close Submersion completely, then open it again.';
 
   @override
+  String get startup_locationUnreachable_title =>
+      'Your dive log\'s folder can\'t be reached';
+
+  @override
+  String get startup_locationUnreachable_body =>
+      'Your dive log is kept in a folder you chose, and Submersion can\'t open that folder right now. Nothing in it has been changed. If the folder is on a drive that isn\'t connected, or in a cloud folder that is still syncing, reconnect it and open Submersion again.';
+
+  @override
+  String get startup_locationUnreachable_folderLabel =>
+      'Your dive log\'s folder:';
+
+  @override
   String get startup_failure_technicalDetails => 'Technical details';
 
   @override
@@ -39909,6 +39921,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Set the damaged file aside and begin again. Nothing is deleted.';
 
   @override
+  String get startup_failure_chooseFolderAgain =>
+      'Choose your dive log\'s folder';
+
+  @override
+  String get startup_failure_chooseFolderAgain_subtitle =>
+      'Pick the same folder again to give Submersion access to it, or pick the folder your dive log is in now.';
+
+  @override
+  String get startup_failure_useDefaultLocation =>
+      'Go back to the app default location';
+
+  @override
+  String get startup_failure_useDefaultLocation_subtitle =>
+      'Stop using this folder and open the dive log in Submersion\'s own folder. Nothing in your folder is changed.';
+
+  @override
   String get startup_recovery_adopt_title => 'Use this dive log?';
 
   @override
@@ -39960,6 +39988,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get startup_recovery_encryptedBackup_body =>
       'That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings, under Backup and Restore.';
+
+  @override
+  String get startup_recovery_useDefault_title =>
+      'Go back to the app default location?';
+
+  @override
+  String startup_recovery_useDefault_body(Object folder) {
+    return 'From now on Submersion opens the dive log in its own folder, or starts an empty one there if there is none. Nothing in $folder is moved or deleted. To use that folder again, choose it in Settings, under Database Storage.';
+  }
+
+  @override
+  String get startup_recovery_useDefault_confirm => 'Use the default location';
 
   @override
   String get startup_failure_downgrade_title =>

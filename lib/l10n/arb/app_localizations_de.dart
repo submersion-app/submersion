@@ -40342,6 +40342,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Etwas anderes hat die Datenbankdatei noch verwendet, deshalb hat Submersion angehalten, statt hineinzuschreiben. Es wurde nichts geändert und nichts beschädigt. Schließen Sie Submersion vollständig und öffnen Sie es erneut.';
 
   @override
+  String get startup_locationUnreachable_title =>
+      'Der Ordner Ihres Tauchlogbuchs ist nicht erreichbar';
+
+  @override
+  String get startup_locationUnreachable_body =>
+      'Ihr Tauchlogbuch liegt in einem Ordner, den Sie gewählt haben, und Submersion kann diesen Ordner gerade nicht öffnen. Darin wurde nichts geändert. Liegt der Ordner auf einem Laufwerk, das nicht verbunden ist, oder in einem Cloud-Ordner, der noch synchronisiert, verbinden Sie ihn wieder und öffnen Sie Submersion erneut.';
+
+  @override
+  String get startup_locationUnreachable_folderLabel =>
+      'Ordner Ihres Tauchlogbuchs:';
+
+  @override
   String get startup_failure_technicalDetails => 'Technische Details';
 
   @override
@@ -40406,6 +40418,22 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die beschädigte Datei beiseitelegen und neu beginnen. Es wird nichts gelöscht.';
 
   @override
+  String get startup_failure_chooseFolderAgain =>
+      'Ordner des Logbuchs auswählen';
+
+  @override
+  String get startup_failure_chooseFolderAgain_subtitle =>
+      'Wählen Sie denselben Ordner erneut, um Submersion wieder Zugriff darauf zu geben, oder den Ordner, in dem Ihr Logbuch jetzt liegt.';
+
+  @override
+  String get startup_failure_useDefaultLocation =>
+      'Zum Standard-App-Speicherort zurückkehren';
+
+  @override
+  String get startup_failure_useDefaultLocation_subtitle =>
+      'Diesen Ordner nicht mehr verwenden und das Logbuch im eigenen Ordner von Submersion öffnen. In Ihrem Ordner wird nichts geändert.';
+
+  @override
   String get startup_recovery_adopt_title => 'Dieses Logbuch verwenden?';
 
   @override
@@ -40457,6 +40485,19 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get startup_recovery_encryptedBackup_body =>
       'Diese Sicherung ist verschlüsselt. Submersion kann eine verschlüsselte Sicherung erst entsperren, wenn die App geöffnet ist. Nutzen Sie daher zuerst einen der anderen Wege hier und stellen Sie sie danach in den Einstellungen unter Sicherung und Wiederherstellung wieder her.';
+
+  @override
+  String get startup_recovery_useDefault_title =>
+      'Zum Standard-App-Speicherort zurückkehren?';
+
+  @override
+  String startup_recovery_useDefault_body(Object folder) {
+    return 'Submersion öffnet ab jetzt das Logbuch im eigenen Ordner oder legt dort ein leeres an, falls keines vorhanden ist. In $folder wird nichts verschoben oder gelöscht. Um diesen Ordner wieder zu verwenden, wählen Sie ihn in den Einstellungen unter Datenbankspeicher aus.';
+  }
+
+  @override
+  String get startup_recovery_useDefault_confirm =>
+      'Standard-Speicherort verwenden';
 
   @override
   String get startup_failure_downgrade_title => 'Zurück zur vorherigen Version';
