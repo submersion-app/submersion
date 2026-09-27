@@ -408,6 +408,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ha ez a készlet tartalmaz egy merülőkomputert, a teljes készlet automatikusan hozzáadódik egy erről letöltött vagy importált merüléshez';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'A készlet felszerelését egy búváron mutatja a készlet oldalán';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title =>
+      'Búvárfigura megjelenítése';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geokerítések';
 
   @override
@@ -448,6 +456,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Alapértelmezett';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'Búvárfigura elrejtése';
+
+  @override
+  String get equipment_setDetail_showFigure => 'Búvárfigura megjelenítése';
 
   @override
   String get equipment_setDetail_setAsDefault =>
@@ -12311,6 +12325,76 @@ class AppLocalizationsHu extends AppLocalizations {
   String get passport_tag_linked => 'Címke összekapcsolva';
 
   @override
+  String get passport_scan_title => 'Palackcímke beolvasása';
+
+  @override
+  String get passport_scan_hint =>
+      'Irányítsa a kamerát a címkére, vagy illessze be a címke hivatkozását.';
+
+  @override
+  String get passport_scan_cameraUnavailable =>
+      'A kamera itt nem érhető el. Illessze be inkább a címke hivatkozását.';
+
+  @override
+  String get passport_scan_linkLabel => 'Címke hivatkozása';
+
+  @override
+  String get passport_scan_paste => 'Beillesztés';
+
+  @override
+  String get passport_scan_open => 'Megnyitás';
+
+  @override
+  String get passport_scan_openFailed =>
+      'A címkét nem sikerült megnyitni. Próbálja újra.';
+
+  @override
+  String get passport_scan_newerFormat =>
+      'Ezt a címkét a Submersion egy újabb verziója írta. Egyes adatok hiányozhatnak.';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return 'Kitöltve innen: $name';
+  }
+
+  @override
+  String get passport_foreign_title => 'Palackcímke';
+
+  @override
+  String get passport_foreign_notInGear =>
+      'Ez a palack nem szerepel a felszerelésében.';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return 'A címke adatai szerint, írva: $date';
+  }
+
+  @override
+  String get passport_foreign_noDetails =>
+      'A címke az azonosítóján kívül nem tartalmaz adatot.';
+
+  @override
+  String get passport_foreign_o2Clean => 'O2-tiszta volt a címke írásakor';
+
+  @override
+  String get passport_foreign_useOnDive => 'Használat egy merüléshez';
+
+  @override
+  String get passport_foreign_addToGear => 'Hozzáadás a felszerelésemhez';
+
+  @override
+  String get passport_foreign_addFailed =>
+      'A palack hozzáadása nem sikerült. Próbálja újra.';
+
+  @override
+  String get passport_foreign_defaultName => 'Palack';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return 'Sorozatszám: $serial';
+  }
+
+  @override
   String get passport_logFill_date => 'Töltés dátuma';
 
   @override
@@ -12340,9 +12424,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get passport_logFill_invalidMix =>
       'Az O2 és a He értéke 0 és 100 közé essen, összegük legfeljebb 100 lehet';
-
-  @override
-  String get passport_logFill_invalidNumber => 'Adjon meg egy számot';
 
   @override
   String get passport_logFill_saveFailed =>
@@ -13208,10 +13289,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_edit_purchasePriceLabel => 'Vásárlási ár';
 
   @override
-  String get equipment_edit_purchasePriceValidation =>
-      'Adjon meg érvényes összeget';
-
-  @override
   String get equipment_edit_remindMeBeforeServiceDue =>
       'Emlékeztetss a szerviz esedékesség előtt:';
 
@@ -13305,6 +13382,35 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'Készlet hozzáadása';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'Hátul · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'Elöl · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tétel',
+      one: '$count tétel',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'Egyéb felszerelés';
 
   @override
   String get equipment_list_emptyState_addFirstButton =>
@@ -14808,11 +14914,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'Ár 100 $unit egységenként';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'Adjon meg egy érvényes számot (tizedesjel: \"$separator\")';
   }
 
   @override
@@ -30760,9 +30861,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Magas O2-tartalmú keverék e felett (% O2)';
 
   @override
-  String get equipmentConditionSettings_invalid => 'Adjon meg egy számot';
-
-  @override
   String get equipmentConditionSettings_saveFailed =>
       'A mentés nem sikerült. Próbálja újra.';
 
@@ -41246,7 +41344,25 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_info_statusFound => 'Megtalálható ezen az eszközön';
 
   @override
+  String get media_info_statusFoundElsewhere =>
+      'Megtalálható egy másik eszközön';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'Megtalálható ezen: $device';
+  }
+
+  @override
   String get media_info_statusMissing => 'Hiányzik erről az eszközről';
+
+  @override
+  String get media_info_statusMissingElsewhere =>
+      'Hiányzik egy másik eszközről';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'Hiányzik innen: $device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'Még nincs ellenőrizve';
@@ -42040,6 +42156,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get profilePhoto_source_camera => 'Fénykép készítése';
+
+  @override
+  String get common_camera_unavailable =>
+      'A kamerát nem sikerült megnyitni. Kérem, engedélyezze a kamerahozzáférést a Beállításokban.';
+
+  @override
+  String get common_photo_pickFailed =>
+      'A fotót nem sikerült megnyitni. Kérem, próbáljon meg egy másikat.';
 
   @override
   String get profilePhoto_source_library => 'Választás a könyvtárból';
@@ -43134,7 +43258,24 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => 'Adjon meg érvényes számot';
+  String numberInput_invalidNumber(String separator) {
+    return 'Adjon meg egy érvényes számot (tizedesjel: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'Adjon meg egy egész számot';
+
+  @override
+  String get numberInput_required => 'Kötelező';
+
+  @override
+  String get numberInput_notNegative => 'Adjon meg 0-t vagy többet';
+
+  @override
+  String get numberInput_atLeastOne => 'Adjon meg 1-et vagy többet';
+
+  @override
+  String get numberInput_percentRange => 'Adjon meg 0 és 100 közötti értéket';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Bérelt felszerelés';

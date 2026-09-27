@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/scan_tag_menu_entries.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_share.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
@@ -480,6 +484,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                     PopupMenuButton<String>(
                       icon: const Icon(Icons.more_vert),
                       onSelected: (value) {
+                        if (value == scanTagMenuValue) {
+                          unawaited(scanAndOpenCylinderTag(context, ref));
+                          return;
+                        }
                         if (value.startsWith('view_')) {
                           final mode = ListViewMode.fromName(
                             value.replaceFirst('view_', ''),
@@ -495,6 +503,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                           equipmentListViewModeProvider,
                         );
                         return [
+                          ...scanTagMenuEntries(context),
                           ...ListViewModeToggle.menuItems(
                             context,
                             currentMode: currentMode,
@@ -904,6 +913,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           icon: const Icon(Icons.more_vert, size: 20),
           padding: dense ? EdgeInsets.zero : const EdgeInsets.all(8),
           onSelected: (value) {
+            if (value == scanTagMenuValue) {
+              unawaited(scanAndOpenCylinderTag(context, ref));
+              return;
+            }
             if (value.startsWith('view_')) {
               final mode = ListViewMode.fromName(
                 value.replaceFirst('view_', ''),
@@ -914,6 +927,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           itemBuilder: (context) {
             final currentMode = ref.read(equipmentListViewModeProvider);
             return [
+              ...scanTagMenuEntries(context),
               ...ListViewModeToggle.menuItems(
                 context,
                 currentMode: currentMode,

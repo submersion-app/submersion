@@ -146,6 +146,19 @@ void main() {
     expect(current.o2Percent, 32);
   });
 
+  testWidgets('an unreadable O2 says why and keeps the stored mix (#1900)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(item: seed(o2: 32)));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.widgetWithText(TextField, 'O2 %'), '3..2');
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    expect(current.o2Percent, 32);
+  });
+
   testWidgets('the label round-trips and an empty label clears it', (
     tester,
   ) async {

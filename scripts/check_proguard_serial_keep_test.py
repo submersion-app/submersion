@@ -48,6 +48,7 @@ com.submersion.libdivecomputer.BleIoStream -> X5.c:
     0:4:java.lang.String onPinCodeRequired(java.lang.String) -> onPinCodeRequired
     0:4:byte[] getAccessCode(java.lang.String) -> getAccessCode
     0:4:void setAccessCode(java.lang.String,byte[]) -> setAccessCode
+    0:4:byte[] readCharacteristic(java.lang.String) -> readCharacteristic
 """
 
 # A driver class kept verbatim by `-keep class ...driver.** { *; }`: it maps to

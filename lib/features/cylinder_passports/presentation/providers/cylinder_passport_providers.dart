@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/providers/ref_invalidate_on_change.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/services/passport_adoption_service.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 
@@ -12,6 +13,10 @@ final cylinderFillRepositoryProvider = Provider<CylinderFillRepository>(
 
 final cylinderPassportRepositoryProvider = Provider<CylinderPassportRepository>(
   (ref) => CylinderPassportRepository(),
+);
+
+final passportAdoptionServiceProvider = Provider<PassportAdoptionService>(
+  (ref) => PassportAdoptionService(),
 );
 
 /// The cylinder's passport id, or null until the passport page mints one.

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -13,6 +12,13 @@ import 'package:submersion/core/database/local_cache_database.dart';
 /// This database is stored in getApplicationSupportDirectory() and is
 /// never synced between devices. It holds per-device asset ID mappings
 /// for cross-device photo resolution.
+///
+/// SQLite runs on a worker isolate this service owns, like the main database,
+/// so no query blocks the UI isolate. Grid writes run to 143 KB a row, and the
+/// local cache sweep deletes megabytes and VACUUMs (issue #1929); on the UI
+/// isolate each of those froze the frame for as long as it ran. One connection
+/// on one isolate, so the lock contention that keeps VACUUM off the main
+/// database's hot path does not arise here.
 class LocalCacheDatabaseService {
   LocalCacheDatabaseService._();
 
@@ -20,6 +26,9 @@ class LocalCacheDatabaseService {
       LocalCacheDatabaseService._();
 
   LocalCacheDatabase? _database;
+
+  /// The worker behind [_database], or null for an injected test database.
+  BackgroundDatabaseConnection? _background;
 
   LocalCacheDatabase get database {
     if (_database == null) {
@@ -40,6 +49,7 @@ class LocalCacheDatabaseService {
   @visibleForTesting
   void resetForTesting() {
     _database = null;
+    _background = null;
   }
 
   Future<void> initialize() async {
@@ -54,8 +64,11 @@ class LocalCacheDatabaseService {
       await dbDir.create(recursive: true);
     }
 
-    final file = File(dbPath);
-    _database = LocalCacheDatabase(NativeDatabase(file));
+    final background = await BackgroundDatabaseConnection.openPlain(
+      File(dbPath),
+    );
+    _background = background;
+    _database = LocalCacheDatabase(background.connection);
   }
 
   Future<void> close() async {
@@ -64,11 +77,14 @@ class LocalCacheDatabaseService {
       // Shutdown path: a plain close() hangs while any watch() subscription
       // is paused (Riverpod 3 pauses the streams of unlistened providers),
       // because drift awaits the stream store before closing the executor.
-      // This helper falls back to closing the executor directly, which for
-      // this main-isolate database is the real sqlite3 close.
-      await closeDatabaseForAppShutdown(_database!);
+      // The helper then closes the executor directly and waits for the worker
+      // to exit, which happens only after SQLite has closed; letting the app
+      // terminate first aborts the worker in drift's FFI callbacks, the same
+      // trap the main database's close handles.
+      await closeDatabaseForAppShutdown(_database!, background: _background);
     } finally {
       _database = null;
+      _background = null;
     }
   }
 
