@@ -128,6 +128,30 @@ void main() {
       expect(unresolved(payload), isEmpty);
     });
 
+    test('resolves a dive computer linked directly under <dive>', () async {
+      // The same walk reads every kind of link, not only sites, so the
+      // computer a dateless dive names is no longer dropped either.
+      final payload = await parse(
+        document(
+          siteBlocks:
+              '<diver><owner id="owner_1"><equipment>'
+              '<divecomputer id="dc_perdix"><model>Perdix 2</model>'
+              '<serialnumber>A1B2</serialnumber>'
+              '<firmwareversion>93</firmwareversion>'
+              '<manufacturer><name>Shearwater</name></manufacturer>'
+              '</divecomputer></equipment></owner></diver>',
+          dive: diveWithOnlyDirectLink('dc_perdix'),
+        ),
+      );
+
+      final dive = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['diveComputerModel'], 'Perdix 2');
+      expect(dive['diveComputerSerial'], 'A1B2');
+      expect(dive['diveComputerFirmware'], '93');
+      expect(dive['diveComputerManufacturer'], 'Shearwater');
+      expect(unresolved(payload), isEmpty);
+    });
+
     test('raises the notice when that link does not resolve', () async {
       final payload = await parse(
         document(
