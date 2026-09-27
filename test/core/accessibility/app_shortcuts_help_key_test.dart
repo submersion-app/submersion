@@ -124,6 +124,32 @@ void main() {
     });
   });
 
+  group('NotWhileTypingActivator', () {
+    // Built at runtime, not const, so the constructor itself executes.
+    final inner = platformShortcut(LogicalKeyboardKey.slash);
+    final activator = NotWhileTypingActivator(inner);
+
+    test('forwards the wrapped activator triggers', () {
+      expect(activator.triggers, inner.triggers);
+      expect(
+        const NotWhileTypingActivator(CharacterActivator('?')).triggers,
+        isNull,
+      );
+    });
+
+    test('describes the wrapped keys and the typing guard', () {
+      expect(
+        activator.debugDescribeKeys(),
+        '${inner.debugDescribeKeys()} (not while typing)',
+      );
+    });
+
+    test('is not editing text when nothing has focus', () {
+      expect(FocusManager.instance.primaryFocus, isNull);
+      expect(NotWhileTypingActivator.isEditingText(), isFalse);
+    });
+  });
+
   group('shortcuts help catalog entries', () {
     // No clear() first: the widget tests above already registered through
     // globalBindings, and AppShortcuts' static flag would stop a re-register.
