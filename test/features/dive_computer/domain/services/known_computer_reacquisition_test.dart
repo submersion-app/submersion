@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/services/known_computer_reacquisition.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
@@ -139,6 +142,74 @@ void main() {
         ),
         isNull,
       );
+    });
+  });
+
+  // Issue #422: a download relabels a Cressi to the model it reports, while
+  // Cressi's Bluetooth adapter keeps advertising the Cartesio's model code.
+  group('interchangeable BLE models', () {
+    const address = 'D1:2C:3B:4A:59:68';
+
+    test('a relabeled Cressi is found under its scan-time model', () {
+      final scanned = _device(
+        address,
+        manufacturer: 'Cressi',
+        model: 'Cartesio',
+      );
+      expect(
+        sameModelFallbackDevice(
+          computer: _computer(manufacturer: 'Cressi', model: 'Donatello'),
+          discovered: [scanned],
+        ),
+        same(scanned),
+      );
+    });
+
+    test('two Cressi candidates are still ambiguous', () {
+      expect(
+        sameModelFallbackDevice(
+          computer: _computer(manufacturer: 'Cressi', model: 'Donatello'),
+          discovered: [
+            _device(address, manufacturer: 'Cressi', model: 'Cartesio'),
+            _device(
+              'E1:2C:3B:4A:59:68',
+              manufacturer: 'Cressi',
+              model: 'Donatello',
+            ),
+          ],
+        ),
+        isNull,
+      );
+    });
+
+    test('a Cressi Leonardo (another family) is not interchangeable', () {
+      expect(
+        sameModelFallbackDevice(
+          computer: _computer(manufacturer: 'Cressi', model: 'Donatello'),
+          discovered: [
+            _device(address, manufacturer: 'Cressi', model: 'Leonardo'),
+          ],
+        ),
+        isNull,
+      );
+    });
+
+    test('the Cressi group matches the Goa rows in descriptor.c', () {
+      final source = File(
+        p.join(
+          'packages',
+          'libdivecomputer_plugin',
+          'third_party',
+          'libdivecomputer',
+          'src',
+          'descriptor.c',
+        ),
+      ).readAsStringSync();
+      final rows = RegExp(
+        r'\{"Cressi",\s*"([^"]+)",\s*DC_FAMILY_CRESSI_GOA',
+      ).allMatches(source).map((m) => m.group(1)!.toLowerCase()).toSet();
+      expect(rows, isNotEmpty);
+      expect(interchangeableBleModels['cressi'], rows);
     });
   });
 }

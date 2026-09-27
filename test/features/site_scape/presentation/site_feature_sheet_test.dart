@@ -124,6 +124,21 @@ void main() {
     expect((result()! as SiteFeatureSheetSave).bearingDeg, 10);
   });
 
+  testWidgets('an unreadable depth keeps the sheet open and says why '
+      '(#1900)', (tester) async {
+    final result = await pumpHost(tester);
+    await tester.enterText(
+      find.byKey(const ValueKey('siteFeatureDepthField')),
+      '1..8',
+    );
+    await tester.tap(find.byKey(const ValueKey('siteFeatureSaveButton')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    expect(result(), isNull, reason: 'used to save the feature with no depth');
+  });
+
   testWidgets('blank optional fields come back null, not zero', (tester) async {
     final result = await pumpHost(tester);
     await tester.tap(find.byKey(const ValueKey('siteFeatureSaveButton')));

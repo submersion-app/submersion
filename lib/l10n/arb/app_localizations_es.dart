@@ -12418,6 +12418,76 @@ class AppLocalizationsEs extends AppLocalizations {
   String get passport_tag_linked => 'Etiqueta vinculada';
 
   @override
+  String get passport_scan_title => 'Escanear etiqueta de botella';
+
+  @override
+  String get passport_scan_hint =>
+      'Apunta la cámara a la etiqueta o pega el enlace de la etiqueta.';
+
+  @override
+  String get passport_scan_cameraUnavailable =>
+      'La cámara no está disponible aquí. Pega el enlace de la etiqueta.';
+
+  @override
+  String get passport_scan_linkLabel => 'Enlace de la etiqueta';
+
+  @override
+  String get passport_scan_paste => 'Pegar';
+
+  @override
+  String get passport_scan_open => 'Abrir';
+
+  @override
+  String get passport_scan_openFailed =>
+      'No se pudo abrir la etiqueta. Inténtalo de nuevo.';
+
+  @override
+  String get passport_scan_newerFormat =>
+      'Esta etiqueta la escribió una versión más reciente de Submersion. Puede que falten algunos datos.';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return 'Completado desde $name';
+  }
+
+  @override
+  String get passport_foreign_title => 'Etiqueta de botella';
+
+  @override
+  String get passport_foreign_notInGear => 'Esta botella no está en tu equipo.';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return 'Según la etiqueta escrita el $date';
+  }
+
+  @override
+  String get passport_foreign_noDetails =>
+      'La etiqueta no incluye datos aparte de su identificador.';
+
+  @override
+  String get passport_foreign_o2Clean =>
+      'Limpia para O2 cuando se escribió la etiqueta';
+
+  @override
+  String get passport_foreign_useOnDive => 'Usar en una inmersión';
+
+  @override
+  String get passport_foreign_addToGear => 'Añadir a mi equipo';
+
+  @override
+  String get passport_foreign_addFailed =>
+      'No se pudo añadir la botella. Inténtalo de nuevo.';
+
+  @override
+  String get passport_foreign_defaultName => 'Botella';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return 'N.º de serie $serial';
+  }
+
+  @override
   String get passport_logFill_date => 'Cargada el';
 
   @override
@@ -12447,9 +12517,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get passport_logFill_invalidMix =>
       'O2 y He deben estar entre 0 y 100 y sumar 100 o menos';
-
-  @override
-  String get passport_logFill_invalidNumber => 'Introduce un número';
 
   @override
   String get passport_logFill_saveFailed =>
@@ -13316,10 +13383,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'Precio de compra';
-
-  @override
-  String get equipment_edit_purchasePriceValidation =>
-      'Ingresa un monto válido';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -14949,11 +15012,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'Precio por 100 $unit';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'Introduce un número válido (separador decimal: \"$separator\")';
   }
 
   @override
@@ -31015,9 +31073,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mezcla con alto O2 por encima de (% O2)';
 
   @override
-  String get equipmentConditionSettings_invalid => 'Introduce un número';
-
-  @override
   String get equipmentConditionSettings_saveFailed =>
       'No se pudo guardar. Inténtalo de nuevo.';
 
@@ -41583,7 +41638,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_info_statusFound => 'Encontrada en este dispositivo';
 
   @override
+  String get media_info_statusFoundElsewhere =>
+      'Encontrada en otro dispositivo';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'Encontrada en $device';
+  }
+
+  @override
   String get media_info_statusMissing => 'No está en este dispositivo';
+
+  @override
+  String get media_info_statusMissingElsewhere => 'Falta en otro dispositivo';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'Falta en $device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'Aún sin comprobar';
@@ -42380,6 +42452,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get profilePhoto_source_camera => 'Hacer foto';
+
+  @override
+  String get common_camera_unavailable =>
+      'No se pudo abrir la cámara. Permite el acceso a la cámara en Ajustes.';
+
+  @override
+  String get common_photo_pickFailed =>
+      'No se pudo abrir la foto. Prueba con otra.';
 
   @override
   String get profilePhoto_source_library => 'Elegir de la galería';
@@ -43473,7 +43553,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => 'Ingresa un número válido';
+  String numberInput_invalidNumber(String separator) {
+    return 'Introduce un número válido (separador decimal: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'Introduce un número entero';
+
+  @override
+  String get numberInput_required => 'Obligatorio';
+
+  @override
+  String get numberInput_notNegative => 'Introduce 0 o más';
+
+  @override
+  String get numberInput_atLeastOne => 'Introduce 1 o más';
+
+  @override
+  String get numberInput_percentRange => 'Introduce un valor de 0 a 100';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Equipo de alquiler';

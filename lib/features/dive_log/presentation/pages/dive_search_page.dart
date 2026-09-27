@@ -21,6 +21,8 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Advanced search page with all filter options in collapsible sections.
 ///
@@ -557,37 +559,35 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
         Row(
           children: [
             Expanded(
-              child: TextField(
+              child: NumberField(
                 controller: _minDepthController,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_filter_min,
                   prefixIcon: const Icon(Icons.arrow_downward),
                   suffixText: units.depthSymbol,
                 ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  final entered = parseUserDecimal(value);
-                  _minDepth = entered == null
-                      ? null
-                      : units.depthToMeters(entered);
+                onChanged: (read) => _minDepth = switch (read) {
+                  // Typed in the diver's depth unit; the filter compares metres.
+                  NumberValue(:final value) => units.depthToMeters(value),
+                  NumberBlank() => null,
+                  NumberInvalid() => _minDepth, // the field shows the error
                 },
               ),
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: TextField(
+              child: NumberField(
                 controller: _maxDepthController,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_filter_max,
                   prefixIcon: const Icon(Icons.arrow_downward),
                   suffixText: units.depthSymbol,
                 ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  final entered = parseUserDecimal(value);
-                  _maxDepth = entered == null
-                      ? null
-                      : units.depthToMeters(entered);
+                onChanged: (read) => _maxDepth = switch (read) {
+                  // Typed in the diver's depth unit; the filter compares metres.
+                  NumberValue(:final value) => units.depthToMeters(value),
+                  NumberBlank() => null,
+                  NumberInvalid() => _maxDepth, // the field shows the error
                 },
               ),
             ),
@@ -604,28 +604,36 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
         Row(
           children: [
             Expanded(
-              child: TextField(
+              child: NumberField(
                 controller: _minDurationController,
+                integer: true,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_filter_min,
                   prefixIcon: const Icon(Icons.timer),
                   suffixText: 'min',
                 ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) => _minDurationMinutes = parseUserInt(value),
+                onChanged: (read) => _minDurationMinutes = switch (read) {
+                  NumberValue(:final value) => value.toInt(),
+                  NumberBlank() => null,
+                  NumberInvalid() => _minDurationMinutes,
+                },
               ),
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: TextField(
+              child: NumberField(
                 controller: _maxDurationController,
+                integer: true,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_filter_max,
                   prefixIcon: const Icon(Icons.timer),
                   suffixText: 'min',
                 ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) => _maxDurationMinutes = parseUserInt(value),
+                onChanged: (read) => _maxDurationMinutes = switch (read) {
+                  NumberValue(:final value) => value.toInt(),
+                  NumberBlank() => null,
+                  NumberInvalid() => _maxDurationMinutes,
+                },
               ),
             ),
           ],

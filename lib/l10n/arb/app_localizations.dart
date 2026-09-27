@@ -20548,6 +20548,120 @@ abstract class AppLocalizations {
   /// **'Tag linked'**
   String get passport_tag_linked;
 
+  /// No description provided for @passport_scan_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a cylinder tag'**
+  String get passport_scan_title;
+
+  /// No description provided for @passport_scan_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Point the camera at the label, or paste the tag\'s link.'**
+  String get passport_scan_hint;
+
+  /// No description provided for @passport_scan_cameraUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera is not available here. Paste the tag\'s link instead.'**
+  String get passport_scan_cameraUnavailable;
+
+  /// No description provided for @passport_scan_linkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag link'**
+  String get passport_scan_linkLabel;
+
+  /// No description provided for @passport_scan_paste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get passport_scan_paste;
+
+  /// No description provided for @passport_scan_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get passport_scan_open;
+
+  /// No description provided for @passport_scan_openFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the tag. Try again.'**
+  String get passport_scan_openFailed;
+
+  /// No description provided for @passport_scan_newerFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'This tag was written by a newer version of Submersion. Some details may be missing.'**
+  String get passport_scan_newerFormat;
+
+  /// No description provided for @passport_scan_filledFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled from {name}'**
+  String passport_scan_filledFrom(String name);
+
+  /// No description provided for @passport_foreign_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder tag'**
+  String get passport_foreign_title;
+
+  /// No description provided for @passport_foreign_notInGear.
+  ///
+  /// In en, this message translates to:
+  /// **'This cylinder is not in your gear.'**
+  String get passport_foreign_notInGear;
+
+  /// No description provided for @passport_foreign_writtenOn.
+  ///
+  /// In en, this message translates to:
+  /// **'As written on the tag on {date}'**
+  String passport_foreign_writtenOn(String date);
+
+  /// No description provided for @passport_foreign_noDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'The tag carries no details beyond its identity.'**
+  String get passport_foreign_noDetails;
+
+  /// No description provided for @passport_foreign_o2Clean.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 clean when the tag was written'**
+  String get passport_foreign_o2Clean;
+
+  /// No description provided for @passport_foreign_useOnDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Use on a dive'**
+  String get passport_foreign_useOnDive;
+
+  /// No description provided for @passport_foreign_addToGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to my gear'**
+  String get passport_foreign_addToGear;
+
+  /// No description provided for @passport_foreign_addFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not add the cylinder. Try again.'**
+  String get passport_foreign_addFailed;
+
+  /// No description provided for @passport_foreign_defaultName.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder'**
+  String get passport_foreign_defaultName;
+
+  /// No description provided for @passport_foreign_serial.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial {serial}'**
+  String passport_foreign_serial(String serial);
+
   /// No description provided for @passport_logFill_date.
   ///
   /// In en, this message translates to:
@@ -20607,12 +20721,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'O2 and He must each be 0 to 100 and total 100 or less'**
   String get passport_logFill_invalidMix;
-
-  /// No description provided for @passport_logFill_invalidNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter a number'**
-  String get passport_logFill_invalidNumber;
 
   /// No description provided for @passport_logFill_saveFailed.
   ///
@@ -21865,12 +21973,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Purchase Price'**
   String get equipment_edit_purchasePriceLabel;
-
-  /// No description provided for @equipment_edit_purchasePriceValidation.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter a valid amount'**
-  String get equipment_edit_purchasePriceValidation;
 
   /// No description provided for @equipment_edit_remindMeBeforeServiceDue.
   ///
@@ -24513,12 +24615,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Price per 100 {unit}'**
   String gasCalculators_blender_unitPrice(String unit);
-
-  /// No description provided for @gasCalculators_blender_invalidNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter a valid number (decimal separator: \"{separator}\")'**
-  String gasCalculators_blender_invalidNumber(String separator);
 
   /// No description provided for @gasCalculators_blender_currency.
   ///
@@ -49485,12 +49581,6 @@ abstract class AppLocalizations {
   /// **'High-O2 mix above (% O2)'**
   String get equipmentConditionSettings_o2Label;
 
-  /// No description provided for @equipmentConditionSettings_invalid.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter a number'**
-  String get equipmentConditionSettings_invalid;
-
   /// No description provided for @equipmentConditionSettings_saveFailed.
   ///
   /// In en, this message translates to:
@@ -66476,11 +66566,35 @@ abstract class AppLocalizations {
   /// **'Found on this device'**
   String get media_info_statusFound;
 
+  /// Origin block status: the source was verified present on the device that linked it, which is not this one and has no known name
+  ///
+  /// In en, this message translates to:
+  /// **'Found on another device'**
+  String get media_info_statusFoundElsewhere;
+
+  /// Origin block status: the source was verified present on the named device that linked it, which is not this one
+  ///
+  /// In en, this message translates to:
+  /// **'Found on {device}'**
+  String media_info_statusFoundOn(String device);
+
   /// No description provided for @media_info_statusMissing.
   ///
   /// In en, this message translates to:
   /// **'Missing from this device'**
   String get media_info_statusMissing;
+
+  /// Origin block status: the source was found missing on the device that linked it, which is not this one and has no known name
+  ///
+  /// In en, this message translates to:
+  /// **'Missing from another device'**
+  String get media_info_statusMissingElsewhere;
+
+  /// Origin block status: the source was found missing on the named device that linked it, which is not this one
+  ///
+  /// In en, this message translates to:
+  /// **'Missing from {device}'**
+  String media_info_statusMissingFrom(String device);
 
   /// No description provided for @media_info_statusUnchecked.
   ///
@@ -67762,6 +67876,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Take Photo'**
   String get profilePhoto_source_camera;
+
+  /// No description provided for @common_camera_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera could not be opened. Please allow camera access in Settings.'**
+  String get common_camera_unavailable;
+
+  /// No description provided for @common_photo_pickFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo could not be opened. Try another one.'**
+  String get common_photo_pickFailed;
 
   /// No description provided for @profilePhoto_source_library.
   ///
@@ -69412,11 +69538,41 @@ abstract class AppLocalizations {
   /// **'Show on chart'**
   String get plannerCanvas_compare_showOnChart;
 
-  /// No description provided for @numberInput_invalidValue.
+  /// No description provided for @numberInput_invalidNumber.
   ///
   /// In en, this message translates to:
-  /// **'Enter a valid number'**
-  String get numberInput_invalidValue;
+  /// **'Enter a valid number (decimal separator: \"{separator}\")'**
+  String numberInput_invalidNumber(String separator);
+
+  /// No description provided for @numberInput_invalidWholeNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number'**
+  String get numberInput_invalidWholeNumber;
+
+  /// No description provided for @numberInput_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get numberInput_required;
+
+  /// No description provided for @numberInput_notNegative.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter 0 or more'**
+  String get numberInput_notNegative;
+
+  /// No description provided for @numberInput_atLeastOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter 1 or more'**
+  String get numberInput_atLeastOne;
+
+  /// No description provided for @numberInput_percentRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter 0 to 100'**
+  String get numberInput_percentRange;
 
   /// No description provided for @diveCenters_rental_sectionTitle.
   ///

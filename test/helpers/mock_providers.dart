@@ -4,6 +4,7 @@ import 'package:http/testing.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/gas_model.dart';
@@ -695,6 +696,7 @@ Future<List<Override>> getBaseOverrides({
   Map<int, TripDayWeather>? tripDayWeather,
   List<TankPresetEntity>? tankPresets,
   NavTrack? primaryNavTrack,
+  IncomingLinkSource? incomingLinks,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -703,6 +705,10 @@ Future<List<Override>> getBaseOverrides({
     sharedPreferencesProvider.overrideWithValue(prefs),
     settingsProvider.overrideWith(
       (ref) => settingsNotifier ?? MockSettingsNotifier(),
+    ),
+    // Widget tests of the app root must never reach the app_links channel.
+    incomingLinkSourceProvider.overrideWithValue(
+      incomingLinks ?? const NoIncomingLinks(),
     ),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     // The Dives app-bar data-quality badge watches a live Drift stream; stub

@@ -67,7 +67,7 @@ class _GasBlenderBodyState extends ConsumerState<_GasBlenderBody> {
     // Seeding must be lossless: a re-seed happens on every pressure-unit
     // change, and rounding would silently rewrite 207.6 bar as 208, or a
     // 32.5% mix as 32%. formatDecimalForInput is also locale-correct, so it
-    // pairs with the parseUserDecimal used to read these fields back.
+    // pairs with the readNumber used to read these fields back.
     final decimals = pressureDecimalsFor(
       ref.read(settingsProvider).pressureUnit,
     );

@@ -1,5 +1,7 @@
 import 'package:flutter/services.dart';
 
+import 'package:submersion/core/utils/locale_number_symbols.dart';
+
 /// Limits a decimal field to [maxIntDigits] digits before the separator and
 /// [maxFractionDigits] after it, whichever of '.' or ',' the diver types
 /// (issue #1876). Every value the mixer's fields hold (percentages, prices,
@@ -29,7 +31,13 @@ class BlenderDecimalDigitsFormatter extends TextInputFormatter {
   final int maxIntDigits;
   final int maxFractionDigits;
 
-  static final _separator = RegExp('[.,]');
+  /// Both ASCII separators, which the smart parser reads, plus the active
+  /// locale's own, so a U+066B decimal is limited like any other rather than
+  /// counted as an integer digit.
+  static RegExp get _separator {
+    final local = localeNumberFormat().symbols.DECIMAL_SEP;
+    return RegExp('[.,${RegExp.escape(local)}]');
+  }
 
   @override
   TextEditingValue formatEditUpdate(

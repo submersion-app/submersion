@@ -12144,6 +12144,74 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_tag_linked => 'התג קושר';
 
   @override
+  String get passport_scan_title => 'סריקת תג מיכל';
+
+  @override
+  String get passport_scan_hint =>
+      'כוונו את המצלמה אל התווית, או הדביקו את הקישור מהתג.';
+
+  @override
+  String get passport_scan_cameraUnavailable =>
+      'המצלמה אינה זמינה כאן. הדביקו במקום זאת את הקישור מהתג.';
+
+  @override
+  String get passport_scan_linkLabel => 'קישור התג';
+
+  @override
+  String get passport_scan_paste => 'הדבקה';
+
+  @override
+  String get passport_scan_open => 'פתיחה';
+
+  @override
+  String get passport_scan_openFailed => 'לא ניתן היה לפתוח את התג. נסו שוב.';
+
+  @override
+  String get passport_scan_newerFormat =>
+      'התג נכתב בגרסה חדשה יותר של Submersion. ייתכן שחלק מהפרטים חסרים.';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return 'מולא מתוך $name';
+  }
+
+  @override
+  String get passport_foreign_title => 'תג מיכל';
+
+  @override
+  String get passport_foreign_notInGear => 'המיכל הזה אינו חלק מהציוד שלך.';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return 'כפי שנכתב בתג ב-$date';
+  }
+
+  @override
+  String get passport_foreign_noDetails =>
+      'התג אינו נושא פרטים מלבד המזהה שלו.';
+
+  @override
+  String get passport_foreign_o2Clean => 'נקי ל-O2 בזמן כתיבת התג';
+
+  @override
+  String get passport_foreign_useOnDive => 'שימוש בצלילה';
+
+  @override
+  String get passport_foreign_addToGear => 'הוספה לציוד שלי';
+
+  @override
+  String get passport_foreign_addFailed =>
+      'לא ניתן היה להוסיף את המיכל. נסו שוב.';
+
+  @override
+  String get passport_foreign_defaultName => 'מיכל';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return 'מספר סידורי $serial';
+  }
+
+  @override
   String get passport_logFill_date => 'מולא בתאריך';
 
   @override
@@ -12173,9 +12241,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get passport_logFill_invalidMix =>
       'O2 ו-He חייבים להיות בין 0 ל-100 וסכומם עד 100';
-
-  @override
-  String get passport_logFill_invalidNumber => 'יש להזין מספר';
 
   @override
   String get passport_logFill_saveFailed =>
@@ -13029,9 +13094,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'מחיר רכישה';
-
-  @override
-  String get equipment_edit_purchasePriceValidation => 'הזן סכום חוקי';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -14615,11 +14677,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'מחיר ל-100 $unit';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'הזן מספר תקין (מפריד עשרוני: \"$separator\")';
   }
 
   @override
@@ -30252,9 +30309,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'תערובת בחמצן גבוה מעל (% O2)';
 
   @override
-  String get equipmentConditionSettings_invalid => 'יש להזין מספר';
-
-  @override
   String get equipmentConditionSettings_saveFailed => 'השמירה נכשלה. נסו שוב.';
 
   @override
@@ -40715,7 +40769,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_info_statusFound => 'נמצא במכשיר זה';
 
   @override
+  String get media_info_statusFoundElsewhere => 'נמצא במכשיר אחר';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'נמצא ב-$device';
+  }
+
+  @override
   String get media_info_statusMissing => 'חסר במכשיר זה';
+
+  @override
+  String get media_info_statusMissingElsewhere => 'חסר במכשיר אחר';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'חסר ב-$device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'טרם נבדק';
@@ -41489,6 +41559,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get profilePhoto_source_camera => 'צילום תמונה';
+
+  @override
+  String get common_camera_unavailable =>
+      'לא ניתן היה לפתוח את המצלמה. נא לאפשר גישה למצלמה בהגדרות.';
+
+  @override
+  String get common_photo_pickFailed =>
+      'לא ניתן היה לפתוח את התמונה. נסו תמונה אחרת.';
 
   @override
   String get profilePhoto_source_library => 'בחירה מהספרייה';
@@ -42558,7 +42636,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => 'הזן מספר תקין';
+  String numberInput_invalidNumber(String separator) {
+    return 'הזן מספר תקין (מפריד עשרוני: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'הזן מספר שלם';
+
+  @override
+  String get numberInput_required => 'שדה חובה';
+
+  @override
+  String get numberInput_notNegative => 'הזן 0 או יותר';
+
+  @override
+  String get numberInput_atLeastOne => 'הזן 1 או יותר';
+
+  @override
+  String get numberInput_percentRange => 'הזן ערך בין 0 ל-100';
 
   @override
   String get diveCenters_rental_sectionTitle => 'ציוד מושכר';
