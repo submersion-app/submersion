@@ -77,7 +77,12 @@ class SafetyFindingsRepository {
       ];
       final storedKeys = safetyFindingKeys([
         for (final r in known)
-          (ruleId: r.ruleId, start: r.startTimestamp, end: r.endTimestamp),
+          (
+            ruleId: r.ruleId,
+            start: r.startTimestamp,
+            end: r.endTimestamp,
+            value: r.value,
+          ),
       ]);
       final storedByKey = {
         for (var i = 0; i < known.length; i++) storedKeys[i]: known[i],
@@ -88,6 +93,7 @@ class SafetyFindingsRepository {
             ruleId: f.ruleId.dbValue,
             start: f.startTimestamp,
             end: f.endTimestamp,
+            value: f.value,
           ),
       ]);
 
@@ -109,11 +115,15 @@ class SafetyFindingsRepository {
       final matched = <String>{};
       final updates = <(String, SafetyFinding, int?)>[];
       final inserts = <SafetyFinding>[];
+      // Where each insert sits in [persisted], so a renamed one is replaced
+      // there even when it shares an id with a kept row.
+      final insertSlots = <int>[];
       for (var i = 0; i < review.findings.length; i++) {
         final computed = review.findings[i];
         final old = storedByKey[computedKeys[i]];
         if (old == null) {
           inserts.add(computed);
+          insertSlots.add(persisted.length);
           persisted.add(computed);
           continue;
         }
@@ -143,6 +153,32 @@ class SafetyFindingsRepository {
             old.dismissedAt != dismissedAt) {
           updates.add((old.id, computed, dismissedAt));
         }
+      }
+
+      // An insert never takes the id of a row that stays. A kept row can
+      // hold the deterministic id of another ordinal (its value moved past a
+      // sibling's since it was minted), so the new finding takes the lowest
+      // free ordinal's id instead; every device resolves it the same way.
+      final taken = {...matched};
+      for (var k = 0; k < inserts.length; k++) {
+        final f = inserts[k];
+        if (!taken.contains(f.id)) {
+          taken.add(f.id);
+          continue;
+        }
+        var ordinal = 0;
+        String id;
+        do {
+          id = safetyFindingId(review.diveId, (
+            f.ruleId.dbValue,
+            f.startTimestamp,
+            f.endTimestamp,
+            ordinal++,
+          ));
+        } while (taken.contains(id));
+        taken.add(id);
+        inserts[k] = f.copyWith(id: id);
+        persisted[insertSlots[k]] = inserts[k];
       }
 
       // Deletes first, so an insert never meets a row that is about to go.

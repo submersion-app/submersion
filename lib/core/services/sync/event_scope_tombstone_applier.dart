@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart';
+
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -40,24 +42,33 @@ class EventScopeTombstoneApplier {
       return 0;
     }
     final deleteHlc = tryParseHlc(deletion.hlc);
-    final query = _db.select(_db.diveProfileEvents)
-      ..where((t) => t.diveId.equals(scope.diveId));
+    // Only the columns the decision reads: a long dive carries hundreds of
+    // events, and the rest of each row is never looked at.
+    final events = _db.diveProfileEvents;
     final computerId = scope.computerId;
-    if (computerId != null) {
-      query.where((t) => t.computerId.equals(computerId));
+    final query = _db.selectOnly(events)
+      ..addColumns([events.id, events.hlc, events.createdAt])
+      ..where(
+        computerId == null
+            ? events.diveId.equals(scope.diveId)
+            : events.diveId.equals(scope.diveId) &
+                  events.computerId.equals(computerId),
+      );
+    final doomed = <String>[];
+    for (final row in await query.get()) {
+      final id = row.read(events.id)!;
+      if (pendingEventIds.contains(id) || contradictedEventIds.contains(id)) {
+        continue;
+      }
+      if (eventPredatesScopeDelete(
+        rowHlc: tryParseHlc(row.read(events.hlc)),
+        rowCreatedAt: row.read(events.createdAt)!,
+        deleteHlc: deleteHlc,
+        deletedAt: deletedAt,
+      )) {
+        doomed.add(id);
+      }
     }
-    final doomed = [
-      for (final row in await query.get())
-        if (!pendingEventIds.contains(row.id) &&
-            !contradictedEventIds.contains(row.id) &&
-            eventPredatesScopeDelete(
-              rowHlc: tryParseHlc(row.hlc),
-              rowCreatedAt: row.createdAt,
-              deleteHlc: deleteHlc,
-              deletedAt: deletedAt,
-            ))
-          row.id,
-    ];
     for (var i = 0; i < doomed.length; i += _chunkSize) {
       final chunk = doomed.sublist(i, (i + _chunkSize).clamp(0, doomed.length));
       await (_db.delete(

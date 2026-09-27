@@ -20,11 +20,26 @@ void main() {
 
   test('keys number repeats of the same span in order', () {
     final keys = safetyFindingKeys([
-      (ruleId: 'a', start: 1, end: 2),
-      (ruleId: 'a', start: 1, end: 2),
-      (ruleId: 'a', start: 3, end: 4),
+      (ruleId: 'a', start: 1, end: 2, value: null),
+      (ruleId: 'a', start: 1, end: 2, value: null),
+      (ruleId: 'a', start: 3, end: 4, value: null),
     ]);
     expect(keys, [('a', 1, 2, 0), ('a', 1, 2, 1), ('a', 3, 4, 0)]);
+  });
+
+  test('repeats of a span are numbered by value, not by input order', () {
+    // Stored rows and the engine's output arrive in different orders; the
+    // same finding must get the same ordinal from either side.
+    final forward = safetyFindingKeys([
+      (ruleId: 'a', start: 1, end: 2, value: 20.0),
+      (ruleId: 'a', start: 1, end: 2, value: 10.0),
+    ]);
+    final reversed = safetyFindingKeys([
+      (ruleId: 'a', start: 1, end: 2, value: 10.0),
+      (ruleId: 'a', start: 1, end: 2, value: 20.0),
+    ]);
+    expect(forward, [('a', 1, 2, 1), ('a', 1, 2, 0)]);
+    expect(reversed, [('a', 1, 2, 0), ('a', 1, 2, 1)]);
   });
 
   test('the same finding gets the same id on every device', () {

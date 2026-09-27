@@ -8,6 +8,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/domain/services/safety_finding_identity.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -437,6 +438,73 @@ void main() {
         kept.dismissedAt?.millisecondsSinceEpoch,
         now.millisecondsSinceEpoch,
       );
+    });
+  });
+
+  group('two findings on one span', () {
+    SafetyFinding at(String id, double value) =>
+        finding(id).copyWith(value: value);
+
+    test('keep their rows whatever order the engine emits them', () async {
+      await repo.saveReview(
+        SafetyReview(
+          diveId: 'dive-1',
+          engineVersion: 1,
+          reviewedAt: now,
+          findings: [at('low', 10), at('high', 20)],
+        ),
+      );
+      await repo.saveReview(
+        SafetyReview(
+          diveId: 'dive-1',
+          engineVersion: 1,
+          reviewedAt: now,
+          findings: [at('x', 20), at('y', 10)],
+        ),
+      );
+
+      final byId = {
+        for (final f in (await repo.getReview('dive-1'))!.findings)
+          f.id: f.value,
+      };
+      expect(byId, {'low': 10, 'high': 20});
+      expect(await db.select(db.deletionLog).get(), isEmpty);
+    });
+
+    test('never reuse the id of a row that is kept', () async {
+      // A stored row can hold the deterministic id of ordinal 1 while it
+      // matches ordinal 0 (the engine's values moved). A new ordinal 1 must
+      // not insert under that id.
+      final ordinalOneId = safetyFindingId('dive-1', (
+        SafetyRuleId.rapidAscent.dbValue,
+        100,
+        140,
+        1,
+      ));
+      await repo.saveReview(
+        SafetyReview(
+          diveId: 'dive-1',
+          engineVersion: 1,
+          reviewedAt: now,
+          findings: [at(ordinalOneId, 10)],
+        ),
+      );
+
+      final saved = await repo.saveReview(
+        SafetyReview(
+          diveId: 'dive-1',
+          engineVersion: 1,
+          reviewedAt: now,
+          findings: withDeterministicIds('dive-1', [at('a', 10), at('b', 20)]),
+        ),
+      );
+
+      final ids = (await db.select(db.diveSafetyFindings).get()).map(
+        (r) => r.id,
+      );
+      expect(ids.toSet(), hasLength(2));
+      expect(ids, contains(ordinalOneId));
+      expect(saved.findings.map((f) => f.id).toSet(), ids.toSet());
     });
   });
 
