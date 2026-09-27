@@ -10,9 +10,11 @@ import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
 import 'package:submersion/core/presentation/widgets/dive_log_unavailable_view.dart';
 import 'package:submersion/core/presentation/widgets/interrupted_restore_view.dart';
+import 'package:submersion/core/presentation/widgets/startup_failure_view.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/dive_log_availability.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/restore_journal.dart';
 import 'package:submersion/core/services/security/database_security_service.dart';
 import 'package:submersion/core/services/security/security_preferences.dart';
@@ -64,6 +66,9 @@ class _Location extends DatabaseLocationService {
   /// asked for without startup going on to mount the real app.
   Completer<void>? holdMark;
 
+  /// When set, the stamp throws it, like a preferences write that fails.
+  Object? markError;
+
   @override
   Future<FolderPickResultWithBookmark?> pickCustomFolder() async {
     pickCalls++;
@@ -73,6 +78,8 @@ class _Location extends DatabaseLocationService {
   @override
   Future<void> markCustomLocationVerified() {
     markCalls++;
+    final error = markError;
+    if (error != null) return Future<void>.error(error);
     return holdMark?.future ?? super.markCustomLocationVerified();
   }
 }
@@ -449,6 +456,44 @@ void main() {
       expect((await location.getStorageConfig()).lastVerified, isNotNull);
       await tester.pumpWidget(const SizedBox());
       await finish(tester);
+    });
+
+    testWidgets('a stamp that fails does not cost the diver a launch that '
+        'otherwise worked', (tester) async {
+      location.markError = StateError('preferences write failed');
+      final warnings = <String>[];
+      final subscription = LoggerService.logStream.listen(
+        (entry) => warnings.add(entry.message),
+      );
+      addTearDown(subscription.cancel);
+
+      await tester.pumpWidget(
+        StartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: location,
+          initializerOverride: (_) async {},
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          enginePreflightOverride: () {},
+          restoreJournalFactory: (_) => _Journal(),
+          availabilityServiceOverride: scripted([DiveLogAvailability.ready]),
+        ),
+      );
+      await settle(tester);
+
+      expect(location.markCalls, 1);
+      // Caught and logged here, rather than thrown on to the failure screen.
+      // The failure screen itself would only appear once the one-second
+      // minimum splash ends, which is also when the real app would mount,
+      // so the log line is the observable difference inside the window.
+      expect(
+        warnings,
+        contains(contains('Could not stamp the dive log location')),
+      );
+      await tester.pumpWidget(const SizedBox());
+      await finish(tester);
+      expect(find.byType(StartupFailureView), findsNothing);
     });
 
     testWidgets('a failed open leaves it unstamped', (tester) async {
