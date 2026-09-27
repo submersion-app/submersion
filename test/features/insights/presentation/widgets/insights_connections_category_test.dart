@@ -54,4 +54,22 @@ void main() {
     expect(find.text('CONNECTIONS PAGE'), findsOneWidget);
     expect(selected, isEmpty, reason: 'it does not fill the detail pane');
   });
+
+  testWidgets('Connections sits right below Overview', (tester) async {
+    late List<String> ids;
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) {
+            ids = insightsCategoriesOf(context).map((c) => c.id).toList();
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(ids.take(2), ['overview', 'connections']);
+  });
 }

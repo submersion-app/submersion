@@ -41,6 +41,14 @@ List<InsightsCategory> insightsCategoriesOf(BuildContext context) => [
     color: Colors.blueGrey,
   ),
   InsightsCategory(
+    id: 'connections',
+    icon: Icons.hub_outlined,
+    title: context.l10n.connections_title,
+    subtitle: context.l10n.insights_category_connections_subtitle,
+    color: Colors.cyan.shade800,
+    route: kConnectionsLocation,
+  ),
+  InsightsCategory(
     id: 'gas',
     icon: Icons.air,
     title: context.l10n.insights_category_gas_title,
@@ -102,14 +110,6 @@ List<InsightsCategory> insightsCategoriesOf(BuildContext context) => [
     title: context.l10n.insights_category_profile_title,
     subtitle: context.l10n.insights_category_profile_subtitle,
     color: Colors.indigo,
-  ),
-  InsightsCategory(
-    id: 'connections',
-    icon: Icons.hub_outlined,
-    title: context.l10n.connections_title,
-    subtitle: context.l10n.insights_category_connections_subtitle,
-    color: Colors.cyan.shade800,
-    route: kConnectionsLocation,
   ),
 ];
 
