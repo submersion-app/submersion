@@ -20,6 +20,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:uuid/uuid.dart';
 
 class EquipmentSetEditPage extends ConsumerStatefulWidget {
@@ -145,6 +146,20 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
               ? context.l10n.equipment_setEdit_appBar_editTitle
               : context.l10n.equipment_setEdit_appBar_newTitle,
         ),
+        // Save sits top right, where the gear editor has it (issue #2266);
+        // the button at the bottom of the form stays for divers who scroll.
+        actions: [
+          Tooltip(
+            message: widget.isEditing
+                ? context.l10n.equipment_setEdit_saveTooltip_edit
+                : context.l10n.equipment_setEdit_saveTooltip_new,
+            child: AppBarTextAction(
+              label: context.l10n.common_action_save,
+              onPressed: _isLoading ? null : () => _saveSet(existingSet),
+              busy: _isLoading,
+            ),
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,

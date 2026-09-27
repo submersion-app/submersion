@@ -16,6 +16,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -181,6 +182,65 @@ void main() {
     expect(sets, hasLength(1));
     expect(sets.first.isDefault, isTrue);
     expect(await repo.getGeofencesForSet(sets.first.id), hasLength(1));
+  });
+
+  // The gear editor saves from the top-right app bar action; the set editor
+  // only had a button at the bottom of the form (issue #2266).
+  Finder appBarSave() => find.descendant(
+    of: find.byType(AppBar),
+    matching: find.widgetWithText(AppBarTextAction, 'Save'),
+  );
+
+  testWidgets('the app bar Save creates a new set without scrolling '
+      '(issue #2266)', (tester) async {
+    await tester.pumpWidget(await buildPage());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField).first, 'Cold Water');
+    expect(appBarSave(), findsOneWidget);
+    await tester.tap(appBarSave());
+    await tester.pumpAndSettle();
+
+    expect(find.text('home'), findsOneWidget);
+    final sets = await EquipmentSetRepository().getAllSets(diverId: 'd1');
+    expect(sets.map((s) => s.name), ['Cold Water']);
+  });
+
+  testWidgets('the app bar Save validates the form first (issue #2266)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(await buildPage());
+    await tester.pumpAndSettle();
+
+    await tester.tap(appBarSave());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Please enter a name'), findsOneWidget);
+    expect(find.text('home'), findsNothing);
+    expect(await EquipmentSetRepository().getAllSets(diverId: 'd1'), isEmpty);
+  });
+
+  testWidgets('the app bar Save is offered when editing an existing set '
+      '(issue #2266)', (tester) async {
+    await EquipmentSetRepository().createSet(
+      EquipmentSet(
+        id: 's1',
+        diverId: 'd1',
+        name: 'My Equipment',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+    await tester.pumpWidget(await buildPage(setId: 's1'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField).first, 'Warm Water');
+    await tester.tap(appBarSave());
+    await tester.pumpAndSettle();
+
+    expect(find.text('home'), findsOneWidget);
+    final saved = await EquipmentSetRepository().getSetById('s1');
+    expect(saved?.name, 'Warm Water');
   });
 
   testWidgets('saving a set survives a member being deleted while the form is '
