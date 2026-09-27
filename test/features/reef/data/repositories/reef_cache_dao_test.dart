@@ -240,9 +240,11 @@ void main() {
       await put(ReefProviderId.health, 'k');
       clock = clock.add(const Duration(days: 2));
 
-      // Issued before deleteExpired has read anything, so a snapshot taken
-      // outside the delete transaction sees the expired row and then deletes
-      // the fresh replacement by primary key.
+      // The refetch is issued before deleteExpired has read anything.
+      // deleteExpired reads its snapshot inside its transaction, so the write
+      // queues until that commits and the fresh row survives. Were the
+      // snapshot read before the transaction opened, the write would land in
+      // between and the delete would remove the fresh row by primary key.
       final sweep = dao.deleteExpired();
       final refetch = put(ReefProviderId.health, 'k');
       await Future.wait([sweep, refetch]);
