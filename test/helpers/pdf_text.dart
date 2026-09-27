@@ -104,13 +104,15 @@ List<String> pdfSubsetTexts(List<int> bytes) {
   final streams = _streamPayloads(bytes).toList();
   final maps = [
     for (final stream in streams)
-      if (stream.indexOf('beginbfchar') case final at when at >= 0)
+      if (_bfcharBlock.allMatches(stream).toList() case final blocks
+          when blocks.isNotEmpty)
         {
-          for (final pair in _bfchar.allMatches(stream.substring(at)))
-            int.parse(pair.group(1)!, radix: 16): int.parse(
-              pair.group(2)!,
-              radix: 16,
-            ),
+          for (final block in blocks)
+            for (final pair in _bfchar.allMatches(block.group(1)!))
+              int.parse(pair.group(1)!, radix: 16): int.parse(
+                pair.group(2)!,
+                radix: 16,
+              ),
         },
   ];
   // One entry per `[...]TJ` array; kerning can split a word across several
@@ -125,12 +127,21 @@ List<String> pdfSubsetTexts(List<int> bytes) {
       [
         for (final word in words)
           String.fromCharCodes([
-            for (var i = 0; i + 4 <= word.length; i += 4)
-              map[int.parse(word.substring(i, i + 4), radix: 16)] ?? 0xFFFD,
+            for (var i = 0; i < word.length; i += 4)
+              // A trailing fragment shorter than 4 digits is not a subset
+              // index; show it as U+FFFD rather than dropping it unseen.
+              if (i + 4 > word.length)
+                0xFFFD
+              else
+                map[int.parse(word.substring(i, i + 4), radix: 16)] ?? 0xFFFD,
           ]),
       ].join(' '),
   ];
 }
+
+/// The entries between `beginbfchar` and `endbfchar`, so no other hex pair in
+/// the stream is read as one.
+final _bfcharBlock = RegExp(r'beginbfchar(.*?)endbfchar', dotAll: true);
 
 /// One `<index> <code point>` entry of a `ToUnicode` map.
 final _bfchar = RegExp(r'<([0-9A-Fa-f]{4})>\s*<([0-9A-Fa-f]{4})>');
