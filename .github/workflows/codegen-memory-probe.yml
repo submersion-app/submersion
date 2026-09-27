@@ -20,12 +20,12 @@ jobs:
       matrix:
         include:
           # Proof the cap reaches the build script: this one must fail.
-          - {variant: baseline, heap: 1000, rep: 1}
+          - {variant: baseline, heap: 800, rep: 1}
           - {variant: baseline, heap: 6000, rep: 1}
           - {variant: baseline, heap: 4000, rep: 1}
           - {variant: db_mocklist, heap: 6000, rep: 1}
           - {variant: db_mocklist, heap: 4000, rep: 1}
-          - {variant: db_mocklist, heap: 3000, rep: 1}
+          - {variant: db_mocklist, heap: 2500, rep: 1}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -66,15 +66,20 @@ jobs:
           (
             while true; do
               free -m | awk -v t="$(date +%s)" '/^Mem:/{u=$3; a=$7} /^Swap:/{s=$3} END{printf "%s used=%s avail=%s swap=%s ", t, u, a, s}'
-              ps -C dartaotruntime -o rss= | awk '{r+=$1} END{printf "script_rss=%d\n", r/1024}'
+              ps -eo rss=,args= | awk '/build\.dart\.aot/ && !/awk/ {r+=$1} END{printf "script_rss=%d\n", r/1024}'
               sleep 2
             done
           ) > mem.log 2>&1 &
           sampler=$!
           start=$(date +%s)
           set +e
-          export DART_VM_OPTIONS="--old_gen_heap_size=${{ matrix.heap }}"
-          echo "DART_VM_OPTIONS=$DART_VM_OPTIONS"; dart --version
+          # build_runner runs its AOT build script with the dartaotruntime that
+          # sits beside the dart executable; wrap it to pass the heap cap.
+          bin="$(dirname "$(readlink -f "$(dirname "$(readlink -f "$(command -v flutter)")")/cache/dart-sdk/bin/dart")")"
+          echo "sdk bin: $bin"; ls -la "$bin" | head -20
+          mv "$bin/dartaotruntime" "$bin/dartaotruntime.real"
+          printf '#!/bin/sh\nexec "$(dirname "$0")/dartaotruntime.real" --old_gen_heap_size=%s "$@"\n' "${{ matrix.heap }}" > "$bin/dartaotruntime"
+          chmod +x "$bin/dartaotruntime"; cat "$bin/dartaotruntime"
           /usr/bin/time -v dart run build_runner build --delete-conflicting-outputs > run.log 2> time.log
           rc=$?
           set -e
