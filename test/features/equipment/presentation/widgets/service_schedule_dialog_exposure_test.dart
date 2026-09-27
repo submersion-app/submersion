@@ -106,10 +106,20 @@ void main() {
       find.byKey(const Key('service-schedule-exposure-saltHours')),
       '150.5',
     );
-    // A count unit takes whole numbers only; a fraction reads as no trigger.
+    // A count unit takes whole numbers only. A fraction used to read as "no
+    // trigger" without a word; it now blocks the save and says why (#1900).
     await tester.enterText(
       find.byKey(const Key('service-schedule-exposure-deepCycles')),
       '2.5',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('Enter a whole number'), findsOneWidget);
+    expect(saved, isNull);
+
+    await tester.enterText(
+      find.byKey(const Key('service-schedule-exposure-deepCycles')),
+      '',
     );
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();

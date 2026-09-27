@@ -15,10 +15,18 @@ enum PreRestoreState {
   /// Nothing is aside: no `.pre-restore` and no `.pre-restore-wal`/`-shm`.
   none,
 
-  /// Provably a leftover of a restore that completed. Safe to delete.
-  stale,
+  /// No marker, beside a live database this build opens. Usually the leftover
+  /// of a restore that completed, but nothing proves it: a build before the
+  /// journal could strand the diver's only copy here and then create a fresh
+  /// empty database at the live path, which opens just as cleanly (issue
+  /// #1924). Moved aside under a timestamped name, never deleted, and not
+  /// offered for recovery.
+  unproven,
 
-  /// May be the only copy of the diver's database. Never deleted.
+  /// The evidence says it may be the only copy of the diver's database: the
+  /// restore never settled, or the live file is missing or rejected. Never
+  /// deleted, and offered for recovery at startup when this build can open
+  /// it.
   precious,
 }
 
@@ -48,8 +56,10 @@ class InterruptedRestore {
 /// The marker file is the missing commit record: [begin] writes it before the
 /// live file moves, and [commit] removes it once the outcome is settled. A
 /// marker beside a `.pre-restore` means "never settled". Without a marker (a
-/// leftover from a build that predates the journal) the live file is probed
-/// instead, which is weaker but still catches a rejected live file.
+/// leftover from a build that predates the journal, or a completed restore
+/// whose best-effort cleanup failed) the live file is probed instead. That
+/// catches a rejected live file, but a healthy one proves nothing, so an
+/// unmarked leftover is never classified as safe to delete.
 ///
 /// File operations only; never opens a drift connection. Every failure mode
 /// costs disk space or an extra prompt, never data: nothing classified
@@ -106,12 +116,13 @@ class RestoreJournal {
   /// leftover.
   Future<void> commit() => _deleteFile(markerPath);
 
-  /// Whether the aside copy may be deleted. See [PreRestoreState].
+  /// What the aside copy is, as far as the files prove. Nothing here is ever
+  /// safe to delete; see [PreRestoreState].
   PreRestoreState classifyPreRestore() {
     if (!_anyExists(asidePath)) return PreRestoreState.none;
     if (hasMarker) return PreRestoreState.precious;
     return _opensHere(dbPath)
-        ? PreRestoreState.stale
+        ? PreRestoreState.unproven
         : PreRestoreState.precious;
   }
 

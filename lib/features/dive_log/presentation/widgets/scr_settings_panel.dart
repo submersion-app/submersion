@@ -9,6 +9,8 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 
 /// Panel for configuring SCR (Semi-Closed Rebreather) dive settings.
@@ -130,6 +132,12 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
   late _FlowSeed _injectionRateSeed;
   late _FlowSeed _assumedVo2Seed;
 
+  /// The last L/min each flow field could be read as. A LiveNumber would
+  /// remember the number in the display unit, which a unit change makes
+  /// wrong, so the flows keep theirs in the stored unit (#1900).
+  late double? _lastInjectionRateLpm = widget.injectionRate;
+  late double? _lastAssumedVo2Lpm = widget.assumedVo2 ?? _defaultVo2Lpm;
+
   late ScrType _selectedType;
   late TextEditingController _injectionRateController;
   late TextEditingController _additionRatioController;
@@ -144,13 +152,30 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
   late TextEditingController _scrubberDurationController;
   late TextEditingController _scrubberRemainingController;
 
+  // What each number field last held while readable, so a mistype reports
+  // that value instead of null while the field shows its error (#1900).
+  late final _additionRatio = LiveNumber(widget.additionRatio);
+  late final _supplyO2 = LiveNumber(widget.supplyGas?.o2 ?? 40);
+  late final _supplyHe = LiveNumber(widget.supplyGas?.he ?? 0);
+  late final _loopO2Min = LiveNumber(widget.loopO2Min);
+  late final _loopO2Max = LiveNumber(widget.loopO2Max);
+  late final _loopO2Avg = LiveNumber(widget.loopO2Avg);
+  late final _scrubberDuration = LiveNumber(
+    widget.scrubberDurationMinutes?.toDouble(),
+    integer: true,
+  );
+  late final _scrubberRemaining = LiveNumber(
+    widget.scrubberRemainingMinutes?.toDouble(),
+    integer: true,
+  );
+
   @override
   void initState() {
     super.initState();
     _units = UnitFormatter(ref.read(settingsProvider));
     _selectedType = widget.scrType ?? ScrType.cmf;
     // Every seed goes through formatDecimalForInput so the diver's locale
-    // decides the separator, matching what parseUserDecimal reads back in
+    // decides the separator, matching what readNumber reads back in
     // _notifyChange. The VO2 default is formatted too: a literal '1.30' would
     // be unreadable in a comma-decimal locale and silently become null (#1091).
     _injectionRateSeed = _seedInjectionRate(widget.injectionRate);
@@ -254,18 +279,29 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
       _seedFlowField(litersPerMin, _vo2Decimals);
 
   /// A flow field read back as L/min, or the seeded value while the field
-  /// still holds its seed text.
-  double? _readFlowLpm(TextEditingController controller, _FlowSeed seed) {
+  /// still holds its seed text. Unreadable text reports [lastLpm], the last
+  /// value the field could be read as, while the field shows its error.
+  double? _readFlowLpm(
+    TextEditingController controller,
+    _FlowSeed seed,
+    double? lastLpm,
+  ) {
     if (controller.text == seed.text) return seed.litersPerMin;
-    final display = parseUserDecimal(controller.text);
-    return display != null ? _units.volumeToLiters(display) : null;
+    return switch (readNumber(controller.text, allowNegative: false)) {
+      NumberValue(:final value) => _units.volumeToLiters(value),
+      NumberBlank() => null,
+      NumberInvalid() => lastLpm,
+    };
   }
 
-  double? get _injectionRateLpm =>
-      _readFlowLpm(_injectionRateController, _injectionRateSeed);
+  double? get _injectionRateLpm => _readFlowLpm(
+    _injectionRateController,
+    _injectionRateSeed,
+    _lastInjectionRateLpm,
+  );
 
   double? get _assumedVo2Lpm =>
-      _readFlowLpm(_assumedVo2Controller, _assumedVo2Seed);
+      _readFlowLpm(_assumedVo2Controller, _assumedVo2Seed, _lastAssumedVo2Lpm);
 
   /// Re-renders both flow fields in [units]. Each field is read as L/min in
   /// the old unit first, so what the diver typed carries over; the stored
@@ -291,16 +327,17 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
   /// Re-seeds [controller] from [litersPerMin] in the current unit. Text that
   /// cannot be read (a half-typed "1..") has no value to convert, so it is
   /// left as typed for the diver to correct rather than silently cleared; it
-  /// still reads back as null, as it did before the change.
+  /// still reports the last readable value. The seed is still renewed, so
+  /// typing the new unit's seed text back restores the value it stands for.
   _FlowSeed _reseedFlowField(
     TextEditingController controller,
     double? litersPerMin,
     _FlowSeed Function(double?) seed,
   ) {
-    if (litersPerMin == null && controller.text.trim().isNotEmpty) {
-      return (text: controller.text, litersPerMin: null);
-    }
     final next = seed(litersPerMin);
+    if (readNumber(controller.text, allowNegative: false) is NumberInvalid) {
+      return next;
+    }
     // Setting the whole value keeps a focused field's cursor, at the end of
     // the new text; assigning `text` alone would leave no valid selection.
     controller.value = TextEditingValue(
@@ -311,28 +348,39 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
   }
 
   void _notifyChange() {
-    final supplyO2 = parseUserDecimal(_supplyO2Controller.text);
-    final supplyHe = parseUserDecimal(_supplyHeController.text);
+    // Blank keeps its meaning from before: an empty field is "not set", an
+    // empty supply O2 drops the supply gas, and an empty He is 0 %.
+    final supplyO2 = _supplyO2.resolve(_supplyO2Controller.text);
+    final supplyHe = _supplyHe.resolve(_supplyHeController.text, blank: 0);
+    final injectionRate = _injectionRateLpm;
+    final assumedVo2 = _assumedVo2Lpm;
+    // A blank field is not a value to fall back to later, like LiveNumber.
+    if (injectionRate != null) _lastInjectionRateLpm = injectionRate;
+    if (assumedVo2 != null) _lastAssumedVo2Lpm = assumedVo2;
 
     widget.onChanged(
       scrType: _selectedType,
-      injectionRate: _injectionRateLpm,
-      additionRatio: parseUserDecimal(_additionRatioController.text),
+      injectionRate: injectionRate,
+      additionRatio: _additionRatio.resolve(_additionRatioController.text),
       orificeSize: _orificeSizeController.text.isNotEmpty
           ? _orificeSizeController.text
           : null,
       supplyGas: supplyO2 != null
           ? GasMix(o2: supplyO2, he: supplyHe ?? 0)
           : null,
-      assumedVo2: _assumedVo2Lpm,
-      loopO2Min: parseUserDecimal(_loopO2MinController.text),
-      loopO2Max: parseUserDecimal(_loopO2MaxController.text),
-      loopO2Avg: parseUserDecimal(_loopO2AvgController.text),
+      assumedVo2: assumedVo2,
+      loopO2Min: _loopO2Min.resolve(_loopO2MinController.text),
+      loopO2Max: _loopO2Max.resolve(_loopO2MaxController.text),
+      loopO2Avg: _loopO2Avg.resolve(_loopO2AvgController.text),
       scrubberType: _scrubberTypeController.text.isNotEmpty
           ? _scrubberTypeController.text
           : null,
-      scrubberDurationMinutes: parseUserInt(_scrubberDurationController.text),
-      scrubberRemainingMinutes: parseUserInt(_scrubberRemainingController.text),
+      scrubberDurationMinutes: _scrubberDuration
+          .resolve(_scrubberDurationController.text)
+          ?.toInt(),
+      scrubberRemainingMinutes: _scrubberRemaining
+          .resolve(_scrubberRemainingController.text)
+          ?.toInt(),
     );
   }
 
@@ -414,15 +462,12 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
+                  child: NumberField(
                     controller: _supplyO2Controller,
                     decoration: InputDecoration(
                       labelText: context.l10n.diveLog_ccr_label_o2,
                       suffixText: '%',
                       isDense: true,
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
                     ),
                     onChanged: (_) {
                       setState(() {});
@@ -432,15 +477,12 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: TextFormField(
+                  child: NumberField(
                     controller: _supplyHeController,
                     decoration: InputDecoration(
                       labelText: context.l10n.diveLog_ccr_label_he,
                       suffixText: '%',
                       isDense: true,
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
                     ),
                     onChanged: (_) {
                       setState(() {});
@@ -475,45 +517,36 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
+                  child: NumberField(
                     controller: _loopO2MinController,
                     decoration: InputDecoration(
                       labelText: context.l10n.diveLog_scr_label_min,
                       suffixText: '%',
                       isDense: true,
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
                     onChanged: (_) => _notifyChange(),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: TextFormField(
+                  child: NumberField(
                     controller: _loopO2MaxController,
                     decoration: InputDecoration(
                       labelText: context.l10n.diveLog_scr_label_max,
                       suffixText: '%',
                       isDense: true,
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
                     onChanged: (_) => _notifyChange(),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: TextFormField(
+                  child: NumberField(
                     controller: _loopO2AvgController,
                     decoration: InputDecoration(
                       labelText: context.l10n.diveLog_scr_label_avg,
                       suffixText: '%',
                       isDense: true,
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
                     ),
                     onChanged: (_) => _notifyChange(),
                   ),
@@ -544,27 +577,27 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: TextFormField(
+                  child: NumberField(
                     controller: _scrubberDurationController,
                     decoration: InputDecoration(
                       labelText: context.l10n.diveLog_ccr_label_rated,
                       suffixText: 'min',
                       isDense: true,
                     ),
-                    keyboardType: TextInputType.number,
+                    integer: true,
                     onChanged: (_) => _notifyChange(),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: TextFormField(
+                  child: NumberField(
                     controller: _scrubberRemainingController,
                     decoration: InputDecoration(
                       labelText: context.l10n.diveLog_ccr_label_remaining,
                       suffixText: 'min',
                       isDense: true,
                     ),
-                    keyboardType: TextInputType.number,
+                    integer: true,
                     onChanged: (_) => _notifyChange(),
                   ),
                 ),
@@ -588,7 +621,7 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
         Row(
           children: [
             Expanded(
-              child: TextFormField(
+              child: NumberField(
                 controller: _injectionRateController,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_scr_label_injectionRate,
@@ -599,24 +632,18 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
                     _units.rmvDecimals,
                   ),
                 ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
                 onChanged: (_) => _notifyChange(),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: TextFormField(
+              child: NumberField(
                 controller: _assumedVo2Controller,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_scr_label_assumedVo2,
                   suffixText: _units.rmvSymbol,
                   isDense: true,
                   hintText: _flowHint(_defaultVo2Lpm, _vo2Decimals),
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
                 ),
                 onChanged: (_) => _notifyChange(),
               ),
@@ -644,31 +671,25 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
         Row(
           children: [
             Expanded(
-              child: TextFormField(
+              child: NumberField(
                 controller: _additionRatioController,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_scr_label_additionRatio,
                   isDense: true,
                   hintText: context.l10n.diveLog_scr_hint_additionRatio,
                 ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
                 onChanged: (_) => _notifyChange(),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: TextFormField(
+              child: NumberField(
                 controller: _assumedVo2Controller,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_scr_label_assumedVo2,
                   suffixText: _units.rmvSymbol,
                   isDense: true,
                   hintText: _flowHint(_defaultVo2Lpm, _vo2Decimals),
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
                 ),
                 onChanged: (_) => _notifyChange(),
               ),
@@ -703,16 +724,13 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: TextFormField(
+              child: NumberField(
                 controller: _assumedVo2Controller,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_scr_label_assumedVo2,
                   suffixText: _units.rmvSymbol,
                   isDense: true,
                   hintText: _flowHint(_defaultVo2Lpm, _vo2Decimals),
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
                 ),
                 onChanged: (_) => _notifyChange(),
               ),
@@ -733,8 +751,10 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
       ('O₂', 100.0, 0.0),
     ];
 
-    final currentO2 = parseUserDecimal(_supplyO2Controller.text) ?? 40.0;
-    final currentHe = parseUserDecimal(_supplyHeController.text) ?? 0.0;
+    // The chips follow the mix the panel reports; an unreadable field shows
+    // its own error.
+    final currentO2 = _supplyO2.resolve(_supplyO2Controller.text) ?? 40.0;
+    final currentHe = _supplyHe.resolve(_supplyHeController.text) ?? 0.0;
 
     return Wrap(
       spacing: 8,
@@ -761,7 +781,7 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
   Widget _buildCalculatedLoopFo2(ThemeData theme) {
     // Both flows in L/min, so the fallback VO₂ shares their unit.
     final injectionRate = _injectionRateLpm;
-    final supplyO2 = parseUserDecimal(_supplyO2Controller.text);
+    final supplyO2 = _supplyO2.resolve(_supplyO2Controller.text);
     final vo2 = _assumedVo2Lpm ?? _defaultVo2Lpm;
 
     if (injectionRate == null || supplyO2 == null || injectionRate <= vo2) {
@@ -809,8 +829,8 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
   }
 
   String _calculateN2() {
-    final o2 = parseUserDecimal(_supplyO2Controller.text) ?? 40.0;
-    final he = parseUserDecimal(_supplyHeController.text) ?? 0.0;
+    final o2 = _supplyO2.resolve(_supplyO2Controller.text) ?? 40.0;
+    final he = _supplyHe.resolve(_supplyHeController.text) ?? 0.0;
     final n2 = 100.0 - o2 - he;
     return n2.clamp(0.0, 100.0).toStringAsFixed(0);
   }

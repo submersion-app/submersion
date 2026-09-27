@@ -140,7 +140,7 @@ void main() {
 
       // The diver is told, and the stored price is left alone rather than
       // silently nulled.
-      expect(find.text('Enter a valid amount'), findsOneWidget);
+      expect(find.textContaining('Enter a valid number'), findsOneWidget);
       final saved = await repository.getEquipmentById(created.id);
       expect(saved!.purchasePrice, 90);
     });

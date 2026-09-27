@@ -14,6 +14,7 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/domain/services/tank_preset_visibility.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
 
 /// The rig inputs for a weight prediction: gear chips (with set/item
 /// pickers), tank preset rows, water type, body weight, and optional height
@@ -261,7 +262,7 @@ class RigComposer extends ConsumerWidget {
                   onWaterChanged(selection.first),
             ),
             const SizedBox(height: 12),
-            TextField(
+            NumberField(
               controller: bodyWeightController,
               decoration: InputDecoration(
                 labelText: context.l10n.tools_weight_bodyWeightOptional,
@@ -273,9 +274,6 @@ class RigComposer extends ConsumerWidget {
                         onPressed: onSaveBodyWeight,
                       )
                     : null,
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
               ),
               onChanged: (_) => onChanged(),
             ),
@@ -306,36 +304,33 @@ class RigComposer extends ConsumerWidget {
   /// dialog: one centimetre field, or feet and inches side by side.
   Widget _heightFields(BuildContext context) {
     if (units.heightIsMetric) {
-      return TextField(
+      return NumberField(
         controller: heightCmController,
         decoration: InputDecoration(
           labelText: context.l10n.tools_weight_heightOptional,
           suffixText: 'cm',
         ),
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
         onChanged: (_) => onChanged(),
       );
     }
     return Row(
       children: [
         Expanded(
-          child: TextField(
+          child: NumberField(
             controller: heightFeetController,
             decoration: InputDecoration(
               labelText: context.l10n.bodyWeight_heightFeetLabel,
             ),
-            keyboardType: const TextInputType.numberWithOptions(decimal: false),
             onChanged: (_) => onChanged(),
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: TextField(
+          child: NumberField(
             controller: heightInchesController,
             decoration: InputDecoration(
               labelText: context.l10n.bodyWeight_heightInchesLabel,
             ),
-            keyboardType: const TextInputType.numberWithOptions(decimal: false),
             onChanged: (_) => onChanged(),
           ),
         ),
