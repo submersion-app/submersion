@@ -226,8 +226,16 @@ class SecurityScopedBookmarkHandler: NSObject {
     private func downloadICloudItem(path: String, timeoutSeconds: Int, result: @escaping FlutterResult) {
         let url = URL(fileURLWithPath: path)
         // Harmless when refused or when the item is already here. Where it is allowed, it
-        // starts the transfer before the coordinated read below waits on it.
-        try? FileManager.default.startDownloadingUbiquitousItem(at: url)
+        // starts the transfer before the coordinated read below waits on it. The item's own
+        // URL is the documented argument; the placeholder's URL is tried only if that is
+        // refused, for systems that still leave `.name.icloud` in its place.
+        do {
+            try FileManager.default.startDownloadingUbiquitousItem(at: url)
+        } catch {
+            let placeholder = url.deletingLastPathComponent()
+                .appendingPathComponent(".\(url.lastPathComponent).icloud")
+            try? FileManager.default.startDownloadingUbiquitousItem(at: placeholder)
+        }
 
         let coordinator = NSFileCoordinator(filePresenter: nil)
         let queue = DispatchQueue.global(qos: .userInitiated)
@@ -240,8 +248,10 @@ class SecurityScopedBookmarkHandler: NSObject {
             var coordinationError: NSError?
             var downloaded = false
             coordinator.coordinate(readingItemAt: url, options: [], error: &coordinationError) { readURL in
-                // An evicted file still exists by name, so presence alone proves nothing.
-                downloaded = FileManager.default.fileExists(atPath: readURL.path)
+                // Reading a byte is what makes an evicted file's contents arrive, whether or
+                // not the coordination fetched them already. An evicted file still exists by
+                // name, so presence alone proves nothing.
+                downloaded = Self.readsFirstByte(of: readURL)
                     && self.iCloudDownloadStatus(path: readURL.path) != "notDownloaded"
             }
             let succeeded = coordinationError == nil && downloaded
@@ -249,6 +259,13 @@ class SecurityScopedBookmarkHandler: NSObject {
                 result(succeeded)
             }
         }
+    }
+
+    /// True when the first byte of the file at `url` can be read.
+    private static func readsFirstByte(of url: URL) -> Bool {
+        guard let handle = try? FileHandle(forReadingFrom: url) else { return false }
+        defer { try? handle.close() }
+        return (try? handle.read(upToCount: 1))?.isEmpty == false
     }
 
     /// Call this when the app is terminating to clean up resources.
