@@ -14,6 +14,7 @@ import 'package:submersion/core/database/tables/marine_life_tables.dart';
 import 'package:submersion/core/database/tables/media_tables.dart';
 import 'package:submersion/core/database/tables/pre_dive_tables.dart';
 import 'package:submersion/core/database/tables/quality_tables.dart';
+import 'package:submersion/core/database/tables/query_tables.dart';
 import 'package:submersion/core/database/tables/safety_tables.dart';
 import 'package:submersion/core/database/tables/service_tables.dart';
 import 'package:submersion/core/database/tables/site_tables.dart';
@@ -37,6 +38,7 @@ export 'package:submersion/core/database/tables/marine_life_tables.dart';
 export 'package:submersion/core/database/tables/media_tables.dart';
 export 'package:submersion/core/database/tables/pre_dive_tables.dart';
 export 'package:submersion/core/database/tables/quality_tables.dart';
+export 'package:submersion/core/database/tables/query_tables.dart';
 export 'package:submersion/core/database/tables/safety_tables.dart';
 export 'package:submersion/core/database/tables/service_tables.dart';
 export 'package:submersion/core/database/tables/site_tables.dart';
@@ -136,6 +138,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Equipment sharing and its event log (v234, issue #2046)
     EquipmentShares,
     EquipmentOwnershipEvents,
+    // Saved queries (v238, issue #2365)
+    SavedQueries,
     // Training courses (v1.5)
     Courses,
     // Course requirement tracker (v121)
@@ -924,6 +928,13 @@ class AppDatabase extends _$AppDatabase {
     // took 231, trip cylinders (#2325) took 232 and the dive source diver
     // key (#1921) took 233 while this was open.
     234,
+    // v238: saved_queries, a diver's named query trees (issue #2365, spec
+    // Unit 7). Table-only rung, additive, floor stays at 224. Renumbered
+    // from 234 when equipment sharing (#2411) shipped it. Kept below
+    // v239, which main shipped with 238 left for this rung: a database
+    // already at 239 skips this step, and the beforeOpen backstop creates
+    // the table there.
+    238,
     // v239: the built-in regulator service and O2 clean kinds also apply to
     // first and second stages (issue #2275). A one-time UPDATE of two
     // built-in rows, which sync never exports, so the floor stays. 235 to

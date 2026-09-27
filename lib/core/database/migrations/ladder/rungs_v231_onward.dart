@@ -36,6 +36,13 @@ extension RungsFromV231 on AppDatabase {
       await _assertEquipmentSharingSchema();
     }
     if (from < 234) await reportProgress();
+    // v238: saved_queries (issue #2365). A new synced table, so onUpgrade
+    // need only create it; idempotent and re-asserted in the beforeOpen
+    // backstop, which is what reaches a database already past 238.
+    if (from < 238) {
+      await _assertSavedQueriesSchema();
+    }
+    if (from < 238) await reportProgress();
     // v239: regulator service and O2 clean apply to first and second
     // stages (issue #2275). A one-time UPDATE of two built-in rows; not
     // in the backstop, as v202's built-in backfill is not.

@@ -4,6 +4,7 @@ import 'package:submersion/core/data/repositories/connected_accounts_repository.
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_config_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/query/data/repositories/saved_query_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
@@ -196,6 +197,8 @@ void main() {
           CylinderConfigRepository().watchConfigsChanges(),
       'CylinderFillRepository.watchFillsChanges': () =>
           CylinderFillRepository().watchFillsChanges(),
+      'SavedQueryRepository.watchSavedQueriesChanges': () =>
+          SavedQueryRepository().watchSavedQueriesChanges(),
       'DiveComputerRepository.watchComputersChanges': () =>
           DiveComputerRepository().watchComputersChanges(),
       'OfflineMapRepository.watchRegionsChanges': () =>
@@ -525,6 +528,29 @@ void main() {
                   id: 'i1',
                   configId: 'c1',
                   tankRole: 'backGas',
+                  createdAt: now,
+                  updatedAt: now,
+                ),
+              ),
+        ),
+        isTrue,
+      );
+    });
+  });
+
+  group('saved queries', () {
+    test('watchSavedQueriesChanges fires on a saved query write', () async {
+      expect(
+        await fires(
+          SavedQueryRepository().watchSavedQueriesChanges(),
+          () => db
+              .into(db.savedQueries)
+              .insert(
+                SavedQueriesCompanion.insert(
+                  id: 'sq-tick',
+                  subject: 'dives',
+                  name: 'x',
+                  queryJson: '{}',
                   createdAt: now,
                   updatedAt: now,
                 ),
