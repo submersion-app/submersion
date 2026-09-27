@@ -6,7 +6,12 @@
 name: Native Plugin Tests
 
 on:
+  # PR branches are covered by pull_request. A push trigger on every branch ran
+  # the four macOS jobs twice per PR push (the two events use different refs, so
+  # the concurrency group never cancels one for the other), and again on any
+  # branch that merged a main commit touching these paths (#2510).
   push:
+    branches: [main]
     paths:
       - 'packages/libdivecomputer_plugin/**'
       - '.github/workflows/native-plugin-tests.yml'
