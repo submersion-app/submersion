@@ -99,10 +99,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   }
 
   void _onMndFocusChanged() {
-    if (!_mndFocusNode.hasFocus && _mndDriven) {
-      _mndDriven = false;
-      setState(() {});
-    }
+    // Leaving the box always rebuilds, so it syncs back to the mix's MND,
+    // including after an unreadable entry that left _mndDriven false.
+    if (!_mndFocusNode.hasFocus) setState(() => _mndDriven = false);
   }
 
   void _initializeControllers() {
@@ -881,8 +880,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       o2Narcotic: settings.o2Narcotic,
     );
 
-    // Sync controller if not actively editing MND
-    if (!_mndDriven) {
+    // Sync controller if not actively editing MND. While the box has focus
+    // it keeps what the diver typed, so an unreadable entry can say why
+    // rather than be overwritten; leaving the box syncs it again.
+    if (!_mndDriven && !_mndFocusNode.hasFocus) {
       final displayValue = currentMnd.isFinite
           ? formatDecimalForInput(
               units.convertDepth(currentMnd).roundToDouble(),
@@ -904,12 +905,21 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               suffixText: units.depthSymbol,
               isDense: true,
               helperText: context.l10n.diveLog_tank_mndHelper,
+              // A helper that is not saved, so it says why without blocking
+              // the dive's save (#1900 review).
+              errorText: invalidNumberText(
+                context,
+                _mndController.text,
+                allowNegative: false,
+              ),
+              errorMaxLines: 3,
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: numberInputFormatters(),
             onChanged: (value) {
-              final parsed = switch (readNumber(value)) {
+              final parsed = switch (readNumber(value, allowNegative: false)) {
                 NumberValue(:final value) => value,
-                // No MND to drive He from; the diver is mid-edit.
+                // No MND to drive He from; the field says why.
                 NumberBlank() || NumberInvalid() => null,
               };
               if (parsed != null && parsed > 0) {
@@ -926,7 +936,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 setState(() {});
                 _notifyChange();
               } else {
-                _mndDriven = false;
+                // Rebuild for the error line; nothing else changed.
+                setState(() => _mndDriven = false);
               }
             },
           ),

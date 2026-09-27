@@ -364,6 +364,68 @@ void main() {
     });
 
     testWidgets(
+      'an unreadable MND says why instead of being ignored (#1900 review)',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        final builtInPresets = TankPresets.all
+            .map((p) => TankPresetEntity.fromBuiltIn(p))
+            .toList();
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+              currentDiverIdProvider.overrideWith(
+                (ref) => MockCurrentDiverIdNotifier(),
+              ),
+              tankPresetListNotifierProvider.overrideWith(
+                (ref) => _MockTankPresetListNotifier(builtInPresets),
+              ),
+              tankPresetsProvider.overrideWith(
+                (ref) => Future.value(builtInPresets),
+              ),
+            ].cast(),
+            child: const MaterialApp(
+              locale: Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: SingleChildScrollView(
+                  child: _RebuildingTankHost(
+                    initial: DiveTank(
+                      id: 'tank-mnd',
+                      volume: 11.1,
+                      workingPressure: 206.843,
+                      gasMix: GasMix(o2: 21, he: 35),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final mndField = find.ancestor(
+          of: find.text('MND'),
+          matching: find.byType(TextFormField),
+        );
+        await tester.ensureVisible(mndField);
+        await tester.enterText(mndField, '1..2');
+        await tester.pump();
+
+        expect(find.textContaining('Enter a valid number'), findsOneWidget);
+
+        // Leaving the box puts back the MND the mix really has.
+        FocusManager.instance.primaryFocus?.unfocus();
+        await tester.pump();
+        expect(find.textContaining('Enter a valid number'), findsNothing);
+      },
+    );
+
+    testWidgets(
       'an unreadable start pressure keeps the last typed value and shows '
       'the error (#1900)',
       (tester) async {
