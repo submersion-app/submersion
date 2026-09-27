@@ -737,6 +737,88 @@ void main() {
       );
     });
 
+    // MacDive stores the dive's absolute moment in `ZRAWDATE` and the zone
+    // it was logged in, as an archived NSTimeZone, in `ZTIMEZONE`.
+    // Submersion keeps dive times as wall-clock-UTC, so the mapper has to
+    // shift the instant into that zone before emitting it.
+    group('ZRAWDATE and ZTIMEZONE', () {
+      late Uint8List losAngelesBplist;
+
+      setUpAll(() async {
+        losAngelesBplist = Uint8List.fromList(
+          await File(
+            'test/fixtures/macdive_sqlite/bplist_samples/macdive_ztimezone.bplist',
+          ).readAsBytes(),
+        );
+      });
+
+      test('emits the wall clock of the zone the dive was logged in', () async {
+        final payload = await MacDiveDiveMapper.toPayload(
+          _singleDiveLogbook(
+            MacDiveRawDive(
+              pk: 1,
+              uuid: 'dive-1',
+              rawDate: DateTime.utc(2024, 7, 1, 17, 5),
+              timezoneBplist: losAngelesBplist,
+            ),
+          ),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        // 17:05Z is 10:05 PDT, the time MacDive shows for this dive.
+        expect(dive['dateTime'], DateTime.utc(2024, 7, 1, 10, 5));
+      });
+
+      test('a dive with no ZTIMEZONE uses the zone of its site', () async {
+        final payload = await MacDiveDiveMapper.toPayload(
+          _singleDiveLogbook(
+            MacDiveRawDive(
+              pk: 1,
+              uuid: 'dive-1',
+              rawDate: DateTime.utc(2013, 5, 2, 20, 30),
+              diveSiteFk: 7,
+            ),
+            sitesByPk: {7: _tahitiSite},
+          ),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        // Tahiti is UTC-10 with no daylight saving.
+        expect(dive['dateTime'], DateTime.utc(2013, 5, 2, 10, 30));
+      });
+
+      test('ZTIMEZONE wins over the zone of the site', () async {
+        // MacDive derived ZRAWDATE from the dive computer's clock using the
+        // stored zone, so only that zone gives back the time MacDive shows.
+        final payload = await MacDiveDiveMapper.toPayload(
+          _singleDiveLogbook(
+            MacDiveRawDive(
+              pk: 1,
+              uuid: 'dive-1',
+              rawDate: DateTime.utc(2024, 7, 1, 17, 5),
+              timezoneBplist: losAngelesBplist,
+              diveSiteFk: 7,
+            ),
+            sitesByPk: {7: _tahitiSite},
+          ),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['dateTime'], DateTime.utc(2024, 7, 1, 10, 5));
+      });
+
+      test('a dive without ZRAWDATE has no dateTime', () async {
+        final payload = await MacDiveDiveMapper.toPayload(
+          _singleDiveLogbook(
+            MacDiveRawDive(
+              pk: 1,
+              uuid: 'dive-1',
+              timezoneBplist: losAngelesBplist,
+            ),
+          ),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        expect(dive.containsKey('dateTime'), isFalse);
+      });
+    });
+
     // #1606: `ZSURFACEINTERVAL` holds minutes. Confirmed by joining a real
     // MacDive.sqlite against the XML export of the same logbook: the column
     // and `<surfaceInterval>` carry the identical number for all 381
@@ -1621,11 +1703,19 @@ pigeon.ParsedDive _parsedDive({required List<pigeon.ProfileSample> samples}) {
 
 /// One dive whose only interesting column is `ZSURFACEINTERVAL`.
 MacDiveRawLogbook _surfaceIntervalLogbook(double surfaceInterval) {
+  return _singleDiveLogbook(
+    MacDiveRawDive(pk: 1, uuid: 'dive-1', surfaceInterval: surfaceInterval),
+  );
+}
+
+/// A logbook holding just [dive] and, optionally, the sites it links to.
+MacDiveRawLogbook _singleDiveLogbook(
+  MacDiveRawDive dive, {
+  Map<int, MacDiveRawSite> sitesByPk = const {},
+}) {
   return MacDiveRawLogbook(
-    dives: [
-      MacDiveRawDive(pk: 1, uuid: 'dive-1', surfaceInterval: surfaceInterval),
-    ],
-    sitesByPk: const {},
+    dives: [dive],
+    sitesByPk: sitesByPk,
     buddiesByPk: const {},
     tagsByPk: const {},
     gearByPk: const {},
@@ -1643,3 +1733,12 @@ MacDiveRawLogbook _surfaceIntervalLogbook(double surfaceInterval) {
     unitsPreference: 'Metric',
   );
 }
+
+/// A site off Moorea, French Polynesia (Pacific/Tahiti, UTC-10).
+const _tahitiSite = MacDiveRawSite(
+  pk: 7,
+  uuid: 'site-7',
+  name: 'Moorea',
+  latitude: -17.536,
+  longitude: -149.829,
+);

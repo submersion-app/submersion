@@ -150,6 +150,8 @@ dependencies:
   flutter_local_notifications: ^22.0.1
   workmanager: ^0.10.7
   timezone: ^0.11.0
+  # Offline zone lookup for dive sites, when an imported dive carries no zone.
+  lat_lng_to_timezone: ^0.2.0
   google_fonts: ^8.0.2
   linked_scroll_controller: ^0.2.0
   cryptography: ^2.9.0
