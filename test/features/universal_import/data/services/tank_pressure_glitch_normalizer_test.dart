@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/services/tank_pressure_glitch_normalizer.dart';
 
 /// Issue #2441: an exporting app that took a cylinder's start or end
@@ -62,6 +63,21 @@ void main() {
     final source = dive();
     replaceGlitchedTankPressures(payloadWith(source));
     expect((source['tanks'] as List).first['startPressure'], 3.9);
+  });
+
+  test('keeps the payload source divers', () {
+    // A multi-diver import (#1893) must still offer its Divers step after
+    // this normalizer rebuilt the payload.
+    const divers = [SourceDiver(key: 'd1', name: 'Anna')];
+    final result = replaceGlitchedTankPressures(
+      ImportPayload(
+        entities: {
+          ImportEntityType.dives: [dive()],
+        },
+        sourceDivers: divers,
+      ),
+    );
+    expect(result.sourceDivers, divers);
   });
 
   test('a dive without a profile comes through untouched', () {

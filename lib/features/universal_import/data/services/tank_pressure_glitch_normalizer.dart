@@ -29,6 +29,7 @@ ImportPayload replaceGlitchedTankPressures(ImportPayload payload) {
     },
     warnings: payload.warnings,
     metadata: payload.metadata,
+    sourceDivers: payload.sourceDivers,
   );
 }
 
