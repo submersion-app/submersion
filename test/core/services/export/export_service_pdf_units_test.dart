@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 import '../../../helpers/global_test_defaults.dart';
+import '../../../helpers/mock_channels.dart';
 import '../../../helpers/pdf_text.dart';
 import '../../../helpers/test_database.dart';
 
@@ -59,6 +60,7 @@ void main() {
       (call) async => null,
     );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   tearDownAll(() async {
     if (await shareDir.exists()) await shareDir.delete(recursive: true);

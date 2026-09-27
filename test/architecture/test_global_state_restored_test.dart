@@ -26,53 +26,8 @@ void main() {
   /// Written by `scripts/bundle_tests.py` and never checked in.
   bool isGenerated(String path) => path.startsWith('test/.bundles/');
 
-  /// Files that replace a global on purpose, each with the reason. The
-  /// entries marked pending are repaired by the change that adds this test.
-  const allowed = <String, String>{
-    'test/core/services/background_service_backup_test.dart':
-        'pending repair, issue #2500',
-    'test/core/services/export/export_service_dive_types_test.dart':
-        'pending repair, issue #2500',
-    'test/core/services/export/export_service_pdf_units_test.dart':
-        'pending repair, issue #2500',
-    'test/core/services/export/pdf/pdf_course_export_service_test.dart':
-        'pending repair, issue #2500',
-    'test/core/services/export/pdf/pdf_trip_export_test.dart':
-        'pending repair, issue #2500',
-    'test/core/services/export_service_test.dart':
-        'pending repair, issue #2500',
-    'test/core/services/sync/base_export_blob_paging_test.dart':
-        'pending repair, issue #2500',
-    'test/core/services/sync/base_export_fact_clock_watermark_test.dart':
-        'pending repair, issue #2500',
-    'test/features/backup/data/services/backup_encryption_backup_test.dart':
-        'pending repair, issue #2500',
-    'test/features/backup/data/services/backup_service_database_copy_restore_test.dart':
-        'pending repair, issue #2500',
-    'test/features/backup/data/services/backup_service_encryption_test.dart':
-        'pending repair, issue #2500',
-    'test/features/backup/data/services/backup_service_newer_schema_test.dart':
-        'pending repair, issue #2500',
-    'test/features/backup/data/services/backup_service_premigration_restore_test.dart':
-        'pending repair, issue #2500',
-    'test/features/backup/data/services/backup_service_replace_test.dart':
-        'pending repair, issue #2500',
-    'test/features/backup/data/services/backup_service_saf_io_test.dart':
-        'pending repair, issue #2500',
-    'test/features/backup/data/services/backup_service_saf_refs_test.dart':
-        'pending repair, issue #2500',
-    'test/features/backup/data/services/backup_service_test.dart':
-        'pending repair, issue #2500',
-    'test/features/backup/data/services/backup_target_lease_test.dart':
-        'pending repair, issue #2500',
-    'test/features/courses/presentation/pages/course_detail_export_units_test.dart':
-        'pending repair, issue #2500',
-    'test/features/settings/presentation/providers/export_pdf_logbook_test.dart':
-        'pending repair, issue #2500',
-    'test/features/settings/presentation/providers/export_uddf_profiles_test.dart':
-        'pending repair, issue #2500',
-    'test/integration/uddf_round_trip_test.dart': 'pending repair, issue #2500',
-  };
+  /// Files that replace a global on purpose, each with the reason.
+  const allowed = <String, String>{};
 
   Map<String, List<GlobalStateOffence>> scan() {
     final found = <String, List<GlobalStateOffence>>{};

@@ -14,6 +14,8 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 
+import '../../../../helpers/mock_channels.dart';
+
 /// The live-database key an encrypted install would hold in memory.
 const _liveKeyHex =
     '4a5f1c9d3e8b0726114d90ab63fe2d58c7093a41bb5e6f28d0c1a7935e4b8206';
@@ -91,6 +93,7 @@ void main() {
           (MethodCall methodCall) async => Directory.systemTemp.path,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
