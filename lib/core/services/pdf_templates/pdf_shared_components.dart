@@ -50,6 +50,20 @@ String pdfPressureRange(UnitFormatter units, double? start, double? end) {
       '${units.formatPressureValue(end)} ${units.pressureSymbol}';
 }
 
+/// Letter-spacing for [text]: [spacing], or none when [text] is in a script
+/// whose letters join (#2252).
+///
+/// Tracked-out headings are a Latin typographic habit. Spacing Arabic letters
+/// apart breaks the joins between them, so a heading printed that way reads
+/// as a row of isolated letters.
+double pdfTracking(String text, double spacing) =>
+    _joiningScript.hasMatch(text) ? 0 : spacing;
+
+/// Arabic, Arabic Supplement, Arabic Extended-A and the presentation forms.
+final _joiningScript = RegExp(
+  '[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]',
+);
+
 /// Shared PDF components used across multiple templates.
 ///
 /// These helper methods provide consistent styling and layout for

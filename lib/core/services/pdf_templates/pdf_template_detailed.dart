@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
@@ -313,11 +314,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
 
   pw.Widget _sectionTitle(String title) => pw.Text(
     title.toUpperCase(),
-    style: const pw.TextStyle(
+    style: pw.TextStyle(
       fontSize: 9,
       fontWeight: pw.FontWeight.bold,
       color: PdfColors.grey700,
-      letterSpacing: 1,
+      letterSpacing: pdfTracking(title, 1),
     ),
   );
 
@@ -594,7 +595,13 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     required Map<String, DiveTypeEntity> diveTypesById,
     required AppLocalizations l10n,
   }) {
-    final diveTypeNames = dive.diveTypeNamesFrom(diveTypesById);
+    // Built-in types print under their localized name, the way the app shows
+    // them; a custom type keeps the name the diver gave it (#1834, #2252).
+    final storedNames = dive.diveTypeNamesFrom(diveTypesById);
+    final diveTypeNames = [
+      for (var i = 0; i < storedNames.length; i++)
+        _diveTypeName(dive.diveTypeIds[i], storedNames[i], diveTypesById, l10n),
+    ];
     return [
       if (dive.diveComputerModel != null)
         _Field(l10n.pdf_computer, dive.diveComputerModel!),
@@ -615,6 +622,18 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       if (diveTypeNames.isNotEmpty)
         _Field(l10n.pdf_diveType, diveTypeNames.join(', ')),
     ];
+  }
+
+  /// [stored] is the name [Dive.diveTypeNamesFrom] settled on for [id].
+  String _diveTypeName(
+    String id,
+    String stored,
+    Map<String, DiveTypeEntity> typesById,
+    AppLocalizations l10n,
+  ) {
+    final type = typesById[id];
+    if (type != null) return type.isBuiltIn ? type.localizedName(l10n) : stored;
+    return builtInDiveTypeName(l10n, id) ?? stored;
   }
 
   /// Recorded weather, which #1017 asks for beyond the free-text summary.

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -205,11 +206,11 @@ class PdfFrontMatter {
         children: [
           pw.Text(
             label.toUpperCase(),
-            style: const pw.TextStyle(
+            style: pw.TextStyle(
               fontSize: 8,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.grey600,
-              letterSpacing: 1,
+              letterSpacing: pdfTracking(label, 1),
             ),
           ),
           pw.SizedBox(height: 2),

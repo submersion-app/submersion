@@ -156,11 +156,11 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
             child: pw.Center(
               child: pw.Text(
                 l10n.pdf_diveLogBanner,
-                style: const pw.TextStyle(
+                style: pw.TextStyle(
                   fontSize: 36,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColors.white,
-                  letterSpacing: 4,
+                  letterSpacing: pdfTracking(l10n.pdf_diveLogBanner, 4),
                 ),
               ),
             ),

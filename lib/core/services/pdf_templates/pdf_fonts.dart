@@ -80,57 +80,95 @@ class PdfFonts {
     );
   }
 
-  /// Replaces the fallback font download in tests, which must not reach the
-  /// network. Returning null means "no fallback font available".
+  /// Replaces the script font download in tests, which must not reach the
+  /// network. Returning null means "this weight is not available".
   @visibleForTesting
-  static Future<pw.Font?> Function(String languageCode)? debugFallbackLoader;
+  static Future<pw.Font?> Function(String languageCode, {required bool bold})?
+  debugScriptFontLoader;
 
-  /// Fallback fonts by language code, loaded once per run. A failed load is
+  /// Script fonts by language code, loaded once per run. A failed load is
   /// cached as null so an offline export does not retry on every page.
-  final Map<String, pw.Font?> _fallbacks = {};
+  final Map<String, ({pw.Font regular, pw.Font? bold})?> _scriptFonts = {};
 
   /// The theme for a PDF printed in [localization]'s language (#2252).
   ///
   /// Roboto (or Helvetica, when [initialize] has not run or failed) covers
-  /// Latin, Greek and Cyrillic but has no Arabic, Hebrew or Chinese glyphs,
-  /// so those languages get a Noto font as a fallback for every glyph the
-  /// base font lacks. Only those three trigger a download. Deliberately does
-  /// not call [initialize]: whether the base font is embedded stays the
+  /// Latin, Greek and Cyrillic, so those languages keep today's theme exactly.
+  /// Arabic, Hebrew and Chinese get a font covering both that script and
+  /// Latin as the BASE font, with the Latin font as a last-resort fallback.
+  /// Base rather than fallback matters: the pdf package hands every glyph
+  /// its base font lacks to the fallback one character at a time, and
+  /// characters laid out one at a time neither join (Arabic) nor keep their
+  /// order inside a mixed right-to-left line (Latin site names, units). Only those three languages trigger a download. Deliberately does
+  /// not call [initialize]: whether the Latin font is embedded stays the
   /// caller's decision, as it was before.
   ///
-  /// Never throws. A fallback that cannot be loaded (no network) leaves the
-  /// theme without one, which prints the base font exactly as before.
+  /// Never throws. A script font that cannot be loaded (no network) leaves
+  /// the Latin theme, which prints the characters it can, as before.
   Future<pw.ThemeData> themeFor(PdfLocalization localization) async {
-    final fallback = await _fallbackFor(localization.languageCode);
+    final script = await _scriptFontsFor(localization.languageCode);
+    if (script == null) {
+      return pw.ThemeData.withFont(
+        base: regular,
+        bold: bold,
+        italic: italic,
+        boldItalic: boldItalic,
+      );
+    }
+    final scriptBold = script.bold ?? script.regular;
     return pw.ThemeData.withFont(
-      base: regular,
-      bold: bold,
-      italic: italic,
-      boldItalic: boldItalic,
-      fontFallback: [?fallback],
+      base: script.regular,
+      bold: scriptBold,
+      italic: script.regular,
+      boldItalic: scriptBold,
+      fontFallback: [regular],
     );
   }
 
-  Future<pw.Font?> _fallbackFor(String languageCode) async {
+  Future<({pw.Font regular, pw.Font? bold})?> _scriptFontsFor(
+    String languageCode,
+  ) async {
     final load = switch (languageCode) {
-      'ar' => PdfGoogleFonts.notoSansArabicRegular,
-      'he' => PdfGoogleFonts.notoSansHebrewRegular,
-      'zh' => PdfGoogleFonts.notoSansSCRegular,
+      // Cairo and Heebo carry Latin glyphs beside their script (Heebo's
+      // Latin is Roboto's), so site names and units never reach the
+      // per-character fallback, which lays Latin out backwards on a
+      // right-to-left page. Noto Sans SC covers Latin itself.
+      'ar' => (
+        regular: PdfGoogleFonts.cairoRegular,
+        bold: PdfGoogleFonts.cairoBold,
+      ),
+      'he' => (
+        regular: PdfGoogleFonts.heeboRegular,
+        bold: PdfGoogleFonts.heeboBold,
+      ),
+      'zh' => (
+        regular: PdfGoogleFonts.notoSansSCRegular,
+        bold: PdfGoogleFonts.notoSansSCBold,
+      ),
       _ => null,
     };
     if (load == null) return null;
-    if (_fallbacks.containsKey(languageCode)) return _fallbacks[languageCode];
-
-    pw.Font? font;
-    try {
-      final override = debugFallbackLoader;
-      font = override != null ? await override(languageCode) : await load();
-    } catch (_) {
-      font = null;
+    if (_scriptFonts.containsKey(languageCode)) {
+      return _scriptFonts[languageCode];
     }
+
+    Future<pw.Font?> fetch({required bool bold}) async {
+      try {
+        final override = debugScriptFontLoader;
+        if (override != null) return await override(languageCode, bold: bold);
+        return await (bold ? load.bold : load.regular)();
+      } catch (_) {
+        return null;
+      }
+    }
+
+    final regularFont = await fetch(bold: false);
+    final fonts = regularFont == null
+        ? null
+        : (regular: regularFont, bold: await fetch(bold: true));
     // A test override is not cached, so each test sees its own loader.
-    if (debugFallbackLoader == null) _fallbacks[languageCode] = font;
-    return font;
+    if (debugScriptFontLoader == null) _scriptFonts[languageCode] = fonts;
+    return fonts;
   }
 
   /// Reset the font cache (useful for testing).
@@ -140,6 +178,6 @@ class PdfFonts {
     _italic = null;
     _boldItalic = null;
     _initialized = false;
-    _fallbacks.clear();
+    _scriptFonts.clear();
   }
 }

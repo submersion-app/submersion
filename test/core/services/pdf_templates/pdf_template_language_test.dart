@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui' show Locale;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -148,8 +149,10 @@ void main() {
   });
 
   group('right-to-left and CJK languages', () {
-    setUp(() => PdfFonts.debugFallbackLoader = (_) async => null);
-    tearDown(() => PdfFonts.debugFallbackLoader = null);
+    setUp(
+      () => PdfFonts.debugScriptFontLoader = (_, {required bold}) async => null,
+    );
+    tearDown(() => PdfFonts.debugScriptFontLoader = null);
 
     for (final code in ['ar', 'he', 'zh']) {
       for (final builder in <PdfTemplateBuilder>[
@@ -178,5 +181,32 @@ void main() {
         });
       }
     }
+  });
+
+  test('built-in dive types print their localized name', () async {
+    final bytes = await PdfTemplateDetailed().buildPdf(
+      dives: [
+        Dive(
+          id: 't1',
+          diveNumber: 1,
+          dateTime: DateTime(2026, 8, 17),
+          diveTypeIds: const ['recreational'],
+        ),
+      ],
+      pageSize: PdfPageSize.a4,
+      dates: dates,
+      units: units,
+      localization: french,
+    );
+
+    expect(fr.diveType_builtin_recreational, isNot('Recreational'));
+    expect(pdfVisibleText(bytes), contains(fr.diveType_builtin_recreational));
+  });
+
+  test('letter-spacing is dropped for a joining script', () {
+    // Spaced-out Arabic letters no longer join into words.
+    expect(pdfTracking('PROFIL', 1), 1);
+    expect(pdfTracking('ملف الغوصة', 1), 0);
+    expect(pdfTracking('Ras Mohammed غرب', 2), 0);
   });
 }

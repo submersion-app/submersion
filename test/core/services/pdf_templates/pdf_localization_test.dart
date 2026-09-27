@@ -38,11 +38,11 @@ void main() {
   });
 
   group('PdfFonts.themeFor', () {
-    tearDown(() => PdfFonts.debugFallbackLoader = null);
+    tearDown(() => PdfFonts.debugScriptFontLoader = null);
 
-    test('asks for a fallback font only for non-Latin scripts', () async {
+    test('asks for a script font only for non-Latin scripts', () async {
       final requested = <String>[];
-      PdfFonts.debugFallbackLoader = (code) async {
+      PdfFonts.debugScriptFontLoader = (code, {required bold}) async {
         requested.add(code);
         return null;
       };
@@ -54,8 +54,31 @@ void main() {
       expect(requested, ['zh', 'ar', 'he']);
     });
 
-    test('a failing fallback download still yields a theme', () async {
-      PdfFonts.debugFallbackLoader = (_) async => throw Exception('offline');
+    test(
+      'a script font is the base font, the Latin font its fallback',
+      () async {
+        // Arabic letters only join and reorder when a whole word reaches one
+        // font; a fallback font receives them one character at a time.
+        final arabic = pw.Font.courier();
+        final arabicBold = pw.Font.courierBold();
+        PdfFonts.debugScriptFontLoader = (_, {required bold}) async =>
+            bold ? arabicBold : arabic;
+
+        final theme = await PdfFonts.instance.themeFor(
+          PdfLocalization.forLanguageCode('ar'),
+        );
+
+        expect(theme.defaultTextStyle.fontNormal, same(arabic));
+        expect(theme.defaultTextStyle.fontBold, same(arabicBold));
+        final fallback = theme.defaultTextStyle.fontFallback;
+        expect(fallback, hasLength(1));
+        expect(fallback.single.fontName, PdfFonts.instance.regular.fontName);
+      },
+    );
+
+    test('a failing script font download still yields a theme', () async {
+      PdfFonts.debugScriptFontLoader = (_, {required bold}) async =>
+          throw Exception('offline');
 
       final theme = await PdfFonts.instance.themeFor(
         PdfLocalization.forLanguageCode('ar'),
