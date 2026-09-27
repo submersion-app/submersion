@@ -11,15 +11,17 @@ import 'package:submersion/features/tides/presentation/widgets/tide_section.dart
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import 'package:submersion/core/util/site_time_zone.dart';
+import 'package:submersion/features/tides/presentation/widgets/tide_times_table.dart';
 
 const _location = GeoPoint(36.95, -122.02);
 
-// The chart-window label replicates TideChart's window maths against the real
-// clock: the newest extreme before now becomes the window start (minus 30min)
-// and the second extreme after now becomes the window end (plus 30min). Anchor
-// those two bounds on far-past and far-future wall-clock-as-UTC fixtures so the
-// rendered digits are fully determined by the fixtures and never by the host's
-// UTC offset. (#222)
+// The provider returns real instants. The section shows them in the site's
+// wall clock: Santa Cruz is America/Los_Angeles, PDT (UTC-7) on both
+// fixture dates. The chart window runs from the newest extreme before now
+// (minus 30min) to the second extreme after now (plus 30min); far-past and
+// far-future fixtures keep the result independent of the real clock and of
+// the host's UTC offset. (#222)
 final _extremes = [
   TideExtreme(
     type: TideExtremeType.low,
@@ -38,6 +40,34 @@ final _extremes = [
   ),
 ];
 
+Future<void> _pumpSection(WidgetTester tester) async {
+  final settings = MockSettingsNotifier();
+  await settings.setTimeFormat(TimeFormat.twentyFourHour);
+  final overrides = await getBaseOverrides(settingsNotifier: settings);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        ...overrides,
+        hasTideDataProvider(_location).overrideWith((ref) async => true),
+        currentTideStatusProvider(_location).overrideWith((ref) async => null),
+        tidePredictionsProvider(
+          _location,
+        ).overrideWith((ref) async => <TidePrediction>[]),
+        tideExtremesProvider(_location).overrideWith((ref) async => _extremes),
+      ],
+      child: const MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(child: TideSection(location: _location)),
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
 void main() {
   String? previousDefaultLocale;
 
@@ -53,39 +83,35 @@ void main() {
   testWidgets('TideSection labels its chart window in wall-clock time (#222)', (
     tester,
   ) async {
-    final settings = MockSettingsNotifier();
-    await settings.setTimeFormat(TimeFormat.twentyFourHour);
-    final overrides = await getBaseOverrides(settingsNotifier: settings);
+    await _pumpSection(tester);
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          ...overrides,
-          hasTideDataProvider(_location).overrideWith((ref) async => true),
-          currentTideStatusProvider(
-            _location,
-          ).overrideWith((ref) async => null),
-          tidePredictionsProvider(
-            _location,
-          ).overrideWith((ref) async => <TidePrediction>[]),
-          tideExtremesProvider(
-            _location,
-          ).overrideWith((ref) async => _extremes),
-        ],
-        child: const MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: SingleChildScrollView(
-              child: TideSection(location: _location),
-            ),
-          ),
-        ),
-      ),
+    // Low 06:15Z Mar 10 2020 is 23:15 PDT Mar 9, minus 30min = 22:45.
+    // Low 14:30Z May 20 2030 is 07:30 PDT, plus 30min = 08:00.
+    expect(find.text('Mon, Mar 9 | 22:45 - 08:00 (May 20)'), findsOneWidget);
+  });
+
+  testWidgets('the times table gets site-clock extremes and a site-clock now', (
+    tester,
+  ) async {
+    await _pumpSection(tester);
+
+    final table = tester.widget<TideTimesTable>(find.byType(TideTimesTable));
+    expect(table.extremes.map((e) => e.time).toList(), [
+      DateTime.utc(2020, 3, 9, 23, 15),
+      DateTime.utc(2030, 5, 20, 1),
+      DateTime.utc(2030, 5, 20, 7, 30),
+    ]);
+
+    // "Today" and "Tomorrow" must be judged on the site's calendar.
+    final siteNow = SiteTimeZone.wallClockFromInstant(
+      DateTime.now(),
+      _location.latitude,
+      _location.longitude,
     );
-    await tester.pumpAndSettle();
-
-    // 06:15 - 30min = 05:45 on Tue Mar 10; 14:30 + 30min = 15:00 on May 20.
-    expect(find.text('Tue, Mar 10 | 05:45 - 15:00 (May 20)'), findsOneWidget);
+    expect(table.now, isNotNull);
+    expect(
+      table.now!.difference(siteNow).inMinutes.abs(),
+      lessThanOrEqualTo(1),
+    );
   });
 }
