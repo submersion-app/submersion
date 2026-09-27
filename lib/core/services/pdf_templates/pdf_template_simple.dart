@@ -6,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
@@ -32,7 +33,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
     required PdfPageSize pageSize,
     required PdfDateFormatter dates,
     required UnitFormatter units,
-    String title = 'Dive Logbook',
+    String? title,
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
     Diver? diver,
@@ -44,8 +45,12 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
     EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, String> equipmentSetNamesById = const {},
+    PdfLocalization? localization,
   }) async {
-    final pdf = pw.Document(theme: PdfFonts.instance.theme);
+    final loc = localization ?? PdfLocalization.english();
+    final l10n = loc.l10n;
+    final documentTitle = title ?? l10n.settings_export_pdfDocumentTitle;
+    final pdf = pw.Document(theme: await PdfFonts.instance.themeFor(loc));
     final pageFormat = getPageFormat(pageSize);
 
     // Key metrics up front (#1017). The compact table below stays untouched:
@@ -54,10 +59,12 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
       pdf.addPage(
         pw.Page(
           pageFormat: pageFormat,
+          textDirection: loc.textDirection,
           build: (context) => PdfSharedComponents.buildSummaryPage(
             dives: dives,
             dates: dates,
             units: units,
+            l10n: l10n,
           ),
         ),
       );
@@ -68,9 +75,11 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
         pw.MultiPage(
           pageFormat: pageFormat,
           margin: const pw.EdgeInsets.all(32),
+          textDirection: loc.textDirection,
           build: (context) => PdfSharedComponents.buildCertificationCardsBody(
             certifications: certifications,
             dates: dates,
+            l10n: l10n,
             diver: diver,
           ),
         ),
@@ -102,6 +111,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
         pw.Page(
           pageFormat: pageFormat,
           margin: const pw.EdgeInsets.all(24),
+          textDirection: loc.textDirection,
           build: (context) => pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
@@ -111,7 +121,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text(
-                      title,
+                      documentTitle,
                       style: const pw.TextStyle(
                         fontSize: 18,
                         fontWeight: pw.FontWeight.bold,
@@ -132,7 +142,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text(
-                      '${dives.length} dives',
+                      l10n.pdf_headerDiveCount(dives.length),
                       style: const pw.TextStyle(
                         fontSize: 10,
                         color: PdfColors.grey600,
@@ -174,11 +184,11 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                     ),
                     children: [
                       _buildHeaderCell('#', headerStyle),
-                      _buildHeaderCell('Date', headerStyle),
-                      _buildHeaderCell('Site', headerStyle),
-                      _buildHeaderCell('Depth', headerStyle),
-                      _buildHeaderCell('Time', headerStyle),
-                      _buildHeaderCell('Temp', headerStyle),
+                      _buildHeaderCell(l10n.pdf_columnDate, headerStyle),
+                      _buildHeaderCell(l10n.pdf_columnSite, headerStyle),
+                      _buildHeaderCell(l10n.pdf_columnDepth, headerStyle),
+                      _buildHeaderCell(l10n.pdf_columnTime, headerStyle),
+                      _buildHeaderCell(l10n.pdf_columnTemp, headerStyle),
                     ],
                   ),
                   // Data rows
@@ -190,7 +200,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                         _buildCell(
                           dive.site?.name ?? '-',
                           cellStyle,
-                          align: pw.TextAlign.left,
+                          align: pw.TextAlign.start,
                         ),
                         _buildCell(
                           dive.maxDepth != null
@@ -200,7 +210,9 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                         ),
                         _buildCell(
                           dive.effectiveRuntime != null
-                              ? '${dive.effectiveRuntime!.inMinutes}min'
+                              ? l10n.pdf_minutesCompact(
+                                  '${dive.effectiveRuntime!.inMinutes}',
+                                )
                               : '-',
                           cellStyle,
                         ),
@@ -221,14 +233,17 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text(
-                    'Generated ${dates.date(DateTime.now())}',
+                    l10n.pdf_generated(dates.date(DateTime.now())),
                     style: const pw.TextStyle(
                       fontSize: 8,
                       color: PdfColors.grey500,
                     ),
                   ),
                   pw.Text(
-                    'Page ${(pageStart ~/ divesPerPage) + 1} of ${((dives.length - 1) ~/ divesPerPage) + 1}',
+                    l10n.pdf_pageOf(
+                      '${(pageStart ~/ divesPerPage) + 1}',
+                      '${((dives.length - 1) ~/ divesPerPage) + 1}',
+                    ),
                     style: const pw.TextStyle(
                       fontSize: 8,
                       color: PdfColors.grey500,
@@ -247,9 +262,10 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
       pdf.addPage(
         pw.Page(
           pageFormat: pageFormat,
+          textDirection: loc.textDirection,
           build: (context) => pw.Center(
             child: pw.Text(
-              'No dives to display',
+              l10n.pdf_noDivesToDisplay,
               style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey600),
             ),
           ),

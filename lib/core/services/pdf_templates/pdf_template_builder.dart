@@ -5,6 +5,7 @@ import 'package:pdf/pdf.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -37,7 +38,8 @@ abstract class PdfTemplateBuilder {
   /// - [units]: Depth, temperature and pressure rendering for the diver's
   ///   unit settings. Dive fields are stored metric, so every displayed
   ///   measurement goes through this rather than a literal suffix.
-  /// - [title]: Title for the logbook cover page
+  /// - [title]: Title for the logbook cover page. Null prints the logbook
+  ///   title in [localization]'s language.
   /// - [diveSignatures]: Map of dive ID to list of signatures for that dive
   /// - [certifications]: Optional list of certifications to include
   /// - [diver]: Optional diver profile for personalization
@@ -55,6 +57,9 @@ abstract class PdfTemplateBuilder {
   /// - [equipmentSetNamesById]: Every equipment set's name by id, so a dive
   ///   names the sets its gear came from (#2031). A set with no entry is
   ///   left unnamed.
+  /// - [localization]: The language the document prints in (#2252). Null
+  ///   prints English, which is what every caller got before the choice
+  ///   existed.
   ///
   /// Returns the PDF document as a byte array.
   Future<List<int>> buildPdf({
@@ -62,7 +67,7 @@ abstract class PdfTemplateBuilder {
     required PdfPageSize pageSize,
     required PdfDateFormatter dates,
     required UnitFormatter units,
-    String title = 'Dive Logbook',
+    String? title,
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
     Diver? diver,
@@ -72,6 +77,7 @@ abstract class PdfTemplateBuilder {
     EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, String> equipmentSetNamesById = const {},
+    PdfLocalization? localization,
   });
 
   /// Convert [PdfPageSize] to the pdf package's [PdfPageFormat].

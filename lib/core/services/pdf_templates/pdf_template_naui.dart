@@ -6,6 +6,8 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
@@ -16,6 +18,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 
 /// NAUI-style PDF template mimicking NAUI logbook format.
 ///
@@ -35,7 +39,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
     required PdfPageSize pageSize,
     required PdfDateFormatter dates,
     required UnitFormatter units,
-    String title = 'Dive Logbook',
+    String? title,
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
     Diver? diver,
@@ -47,18 +51,24 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
     EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, String> equipmentSetNamesById = const {},
+    PdfLocalization? localization,
   }) async {
-    final pdf = pw.Document(theme: PdfFonts.instance.theme);
+    final loc = localization ?? PdfLocalization.english();
+    final l10n = loc.l10n;
+    final documentTitle = title ?? l10n.settings_export_pdfDocumentTitle;
+    final pdf = pw.Document(theme: await PdfFonts.instance.themeFor(loc));
     final pageFormat = getPageFormat(pageSize);
 
     // Cover page
     pdf.addPage(
       pw.Page(
         pageFormat: pageFormat,
+        textDirection: loc.textDirection,
         build: (context) => _buildCoverPage(
-          title: title,
+          title: documentTitle,
           diveCount: dives.length,
           dates: dates,
+          l10n: l10n,
           units: units,
           diver: diver,
           dives: dives,
@@ -72,9 +82,11 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
         pw.MultiPage(
           pageFormat: pageFormat,
           margin: const pw.EdgeInsets.all(32),
+          textDirection: loc.textDirection,
           build: (context) => PdfSharedComponents.buildCertificationCardsBody(
             certifications: certifications,
             dates: dates,
+            l10n: l10n,
             diver: diver,
             highlightAgency: 'naui',
             accentColor: _nauiGreen,
@@ -92,11 +104,12 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
         pw.Page(
           pageFormat: pageFormat,
           margin: const pw.EdgeInsets.all(24),
+          textDirection: loc.textDirection,
           build: (context) => pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               // Page header
-              _buildPageHeader(diver: diver),
+              _buildPageHeader(diver: diver, l10n: l10n),
               pw.SizedBox(height: 8),
               // Dive entries
               ...pageDives.expand(
@@ -105,6 +118,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                     dive,
                     dates: dates,
                     units: units,
+                    l10n: l10n,
                     signatures: diveSignatures?[dive.id],
                   ),
                   pw.SizedBox(height: 8),
@@ -124,6 +138,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
     required int diveCount,
     required PdfDateFormatter dates,
     required UnitFormatter units,
+    required AppLocalizations l10n,
     Diver? diver,
     required List<Dive> dives,
   }) {
@@ -157,7 +172,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                 ),
                 pw.SizedBox(height: 8),
                 pw.Text(
-                  'DIVE LOG',
+                  l10n.pdf_diveLogBanner,
                   style: const pw.TextStyle(
                     fontSize: 32,
                     fontWeight: pw.FontWeight.bold,
@@ -179,22 +194,22 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.center,
             children: [
-              _buildStatBox('$diveCount', 'Dives'),
+              _buildStatBox('$diveCount', l10n.pdf_statDives),
               pw.SizedBox(width: 20),
               _buildStatBox(
                 '${totalRuntime.inHours}:${(totalRuntime.inMinutes % 60).toString().padLeft(2, '0')}',
-                'Hours',
+                l10n.pdf_statHours,
               ),
               pw.SizedBox(width: 20),
               _buildStatBox(
                 units.formatDepth(maxDepth, decimals: 0),
-                'Max Depth',
+                l10n.pdf_maxDepth,
               ),
             ],
           ),
           pw.Spacer(),
           pw.Text(
-            'Generated ${dates.dateTime(DateTime.now())}',
+            l10n.pdf_generated(dates.dateTime(DateTime.now())),
             style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey500),
           ),
           pw.SizedBox(height: 20),
@@ -230,7 +245,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
     );
   }
 
-  pw.Widget _buildPageHeader({Diver? diver}) {
+  pw.Widget _buildPageHeader({Diver? diver, required AppLocalizations l10n}) {
     return pw.Container(
       width: double.infinity,
       padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -239,7 +254,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Text(
-            'NAUI DIVE LOG',
+            l10n.pdf_nauiDiveLogBanner,
             style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
@@ -260,6 +275,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
     Dive dive, {
     required PdfDateFormatter dates,
     required UnitFormatter units,
+    required AppLocalizations l10n,
     List<Signature>? signatures,
   }) {
     final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
@@ -281,7 +297,9 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  'DIVE #${dive.diveNumber ?? '-'}',
+                  l10n
+                      .pdf_diveNumber('${dive.diveNumber ?? '-'}')
+                      .toUpperCase(),
                   style: const pw.TextStyle(
                     fontSize: 11,
                     fontWeight: pw.FontWeight.bold,
@@ -309,7 +327,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                     children: [
                       // Site
                       pw.Text(
-                        dive.site?.name ?? 'Unknown Site',
+                        dive.site?.name ?? l10n.pdf_unknownSite,
                         style: const pw.TextStyle(
                           fontSize: 10,
                           fontWeight: pw.FontWeight.bold,
@@ -327,7 +345,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
                             pw.Text(
-                              'DIVE DATA',
+                              l10n.pdf_diveDataHeading,
                               style: const pw.TextStyle(
                                 fontSize: 7,
                                 fontWeight: pw.FontWeight.bold,
@@ -338,16 +356,18 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                             pw.Row(
                               children: [
                                 _buildNauiField(
-                                  'Depth',
+                                  l10n.pdf_columnDepth,
                                   units.formatDepth(dive.maxDepth),
                                 ),
                                 _buildNauiField(
-                                  'Avg',
+                                  l10n.pdf_avgShort,
                                   units.formatDepth(dive.avgDepth),
                                 ),
                                 _buildNauiField(
-                                  'Time',
-                                  '${pdfDiveDurationMinutes(dive)}min',
+                                  l10n.pdf_columnTime,
+                                  l10n.pdf_minutesCompact(
+                                    pdfDiveDurationMinutes(dive),
+                                  ),
                                 ),
                               ],
                             ),
@@ -355,13 +375,16 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                             pw.Row(
                               children: [
                                 if (tank != null) ...[
-                                  _buildNauiField('Gas', tank.gasMix.name),
                                   _buildNauiField(
-                                    'Start',
+                                    l10n.pdf_gas,
+                                    tank.gasMix.name,
+                                  ),
+                                  _buildNauiField(
+                                    l10n.pdf_pressureStart,
                                     units.formatPressure(tank.startPressure),
                                   ),
                                   _buildNauiField(
-                                    'End',
+                                    l10n.pdf_pressureEnd,
                                     units.formatPressure(tank.endPressure),
                                   ),
                                 ],
@@ -375,21 +398,23 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                       pw.Row(
                         children: [
                           _buildNauiField(
-                            'Temp',
+                            l10n.pdf_columnTemp,
                             units.formatTemperature(dive.waterTemp),
                           ),
                           _buildNauiField(
-                            'Vis',
+                            l10n.pdf_visibilityShort,
                             // Measured distance from v144; pre-v144 dives fall
                             // back to their bucket label.
                             dive.visibilityMeters != null
                                 ? units.formatDistance(dive.visibilityMeters!)
-                                : (dive.visibility?.displayName ?? '-'),
+                                : dive.visibility != null
+                                ? visibilityName(dive.visibility!, l10n)
+                                : '-',
                           ),
                           if (dive.currentStrength != null)
                             _buildNauiField(
-                              'Current',
-                              dive.currentStrength!.displayName,
+                              l10n.pdf_current,
+                              dive.currentStrength!.localizedName(l10n),
                             ),
                         ],
                       ),
@@ -397,7 +422,9 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                       if (dive.surfaceInterval != null) ...[
                         pw.SizedBox(height: 2),
                         pw.Text(
-                          'SI: ${dive.surfaceInterval!.inMinutes}min',
+                          l10n.pdf_surfaceIntervalShort(
+                            '${dive.surfaceInterval!.inMinutes}',
+                          ),
                           style: const pw.TextStyle(
                             fontSize: 8,
                             color: PdfColors.grey600,
@@ -425,7 +452,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
                             pw.Text(
-                              'VERIFICATION',
+                              l10n.pdf_verificationHeading,
                               style: const pw.TextStyle(
                                 fontSize: 7,
                                 fontWeight: pw.FontWeight.bold,
@@ -434,7 +461,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                             ),
                             pw.SizedBox(height: 4),
                             _buildVerificationLine(
-                              'Instructor',
+                              l10n.pdf_signerInstructor,
                               signatures
                                   ?.where((s) => !s.isBuddySignature)
                                   .firstOrNull,
@@ -447,7 +474,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                             ),
                             pw.SizedBox(height: 2),
                             _buildVerificationLine(
-                              'Buddy',
+                              l10n.pdf_signerBuddy,
                               signatures
                                   ?.where((s) => s.isBuddySignature)
                                   .firstOrNull,
