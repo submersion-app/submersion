@@ -1,31 +1,28 @@
 # Diver figure: visual representation of equipment sets and dive gear
 
 Tracking issue: #2326. Status: approved 2026-09-25; labelling revised the same day after
-the first build showed numbered discs could not be read at a glance (section 8).
+the first build showed numbered discs could not be read at a glance (section 8);
+scope cut on 2026-09-26 to the set page, the set edit page, and item colour
+(section 13).
 
 ## 1. Summary
 
 An equipment set is shown today as rows grouped by type. This design adds an
-illustrated diver, drawn front and back from the set's items, with numbered
-callouts that match the existing item list. Gaps against a per-set required
-list show as dashed callouts. Items may carry a colour that tints their
-artwork. The figure appears on the set page, the set edit page, set list cards,
-the item page, and the dive detail equipment section, and it can be shared as
-an image, printed as a one-page gear sheet PDF, and included in the detailed
-logbook PDF.
+illustrated diver, drawn front and back from the set's items, with every item
+named on the figure and each name led by a small number that matches the item
+list. Items may carry an optional colour that tints their artwork. The figure
+is opt-in per set and appears on the set page and, while the set is being
+edited, on the set edit page.
 
 The artwork is authored as SVG files under `tool/figure/` and compiled to Dart
-path strings, so one set of data draws on screen, in the share image, and in
-PDFs through the PDF library's `drawShape`.
+path strings, drawn by a `CustomPainter`.
 
 ## 2. Goals and non-goals
 
 Goals, in the diver's words:
 
 1. Open a set and see at once what it contains.
-2. See what a set is missing before a trip.
-3. Share or print a gear sheet for a buddy, instructor, or operator.
-4. See what was worn on a given dive.
+2. See each piece of gear in its own colour.
 
 Non-goals for this program:
 
@@ -33,7 +30,12 @@ Non-goals for this program:
 - Body types, skin tone, hair, or a face. The figure is a neutral mannequin.
 - Drag-to-place or any editing of where an item sits.
 - Animation.
-- Figures for the pre-dive runner or the statistics pages.
+- Any required list, completeness check, or missing-gear warning. A set holds
+  whatever the diver puts in it, with no required number or type of items.
+- Figures anywhere other than the set page and the set edit page: none on the
+  dive detail page, the set list, the item page, the pre-dive runner, or the
+  statistics pages.
+- Sharing the figure as an image, and the figure in any PDF export.
 
 ## 3. Decisions made during design
 
@@ -44,21 +46,19 @@ Non-goals for this program:
 | Labels | Names on the figure, each led by a small number: label columns beside one figure with a Front / Back switch on a phone, name pills beside the gear on a pair on wider screens; the list keeps matching number badges |
 | On or off | A per-set switch, off by default and off for every existing set: "Show diver figure" on the set edit page and Show / Hide in the set page's menu (section 8.7) |
 | BCD position | Worn on the back: the bladder is drawn behind the tank and every BCD style labels on the back view; the front shows only straps, cummerbund, and inflator |
-| What counts as a gap | A per-set required list, seeded from a per-diver default |
 | How far the drawing adapts | Type, the choice attributes that already exist, and a new per-item colour |
 | Base body | Neutral mannequin drawn from theme tones, no skin, no face |
-| Sharing | Share as image, gear sheet PDF per set, and the figure in the detailed logbook PDF |
 | Artwork pipeline | SVG sources compiled to Dart path data, drawn by a CustomPainter |
-| Delivery | Six stacked PRs, one per phase, one tracking issue |
+| Delivery | Two PRs under one tracking issue (section 13) |
 
 Rejected alternatives: a schematic silhouette (theme-safe but not what the
 diver wanted), a kit layout with no person, a three-quarter view (hides the far
 side), leader-line labels (no room for columns beside a pair on a phone),
-tap-to-reveal labels (a shared image would carry no names), numbered discs
+tap-to-reveal labels (nothing readable at a glance), numbered discs
 with the list as the only legend (built first, then dropped: a number says
 nothing until you find it in the list, so the figure could not be read at a
 glance), runtime SVG assets
-(a new dependency and a second code path for PDFs), hand-written drawing code.
+(a new dependency), hand-written drawing code.
 
 ## 4. The body-zone model
 
@@ -218,7 +218,7 @@ view, every path parses, every path's bounds lie inside the figure box, every
 role name is known, and every piece id in the manifest matches a source file.
 Any failure exits 1. The check that every piece the placement table names
 exists lives on the Dart side, where both the table and the generated map are
-in scope (section 14).
+in scope (section 12).
 
 The header digest is what keeps the checked-in artwork honest in CI, where
 Python does not run: a Dart test recomputes the digest from `tool/figure/` and
@@ -229,7 +229,8 @@ fails when the generated file is stale. This mirrors the l10n staleness gate.
 Path strings become `ui.Path` objects through the `path_parsing` package,
 already a transitive dependency, promoted to a direct one; a thirty-line
 `PathProxy` adapter targets `dart:ui`. Parsed paths are cached per piece in a
-process-wide map, so a list of thirty sets parses each piece once.
+process-wide map, so each piece is parsed once however often the figure is
+rebuilt.
 
 ## 6. Colour roles and palette
 
@@ -249,12 +250,11 @@ Paths carry roles, never colours: `body`, `bodyShade`, `gearDark`,
   default from the placement table. `itemShade` is the same colour darkened by
   a fixed fraction, and its outline darkened further, so a white fin keeps an
   edge on a light surface.
-- Number badges use `primary` and `onPrimary`; gap labels use the theme's
-  warning colour resolved the way the service status indicator does.
+- Number badges use `primary` and `onPrimary`.
 
-`FigurePalette.light` is a fixed light palette used for the share image and
-PDFs regardless of the app theme. The palette class is pure Dart (colours as
-ARGB ints) so the PDF code can use it without Flutter.
+`FigurePalette.light` is a fixed light palette; the themed palette takes its
+fixed gear greys from it. The palette class is pure Dart (colours as ARGB
+ints).
 
 ## 7. Composer and model
 
@@ -267,14 +267,12 @@ class FigureItemInput {
   final String name;
   final Map<String, String?> attributes; // choice keys and the colour hex
   final bool isChild;                     // parent link or assembly part
-  final TankRole? tankRole;               // dive surfaces only
 }
 
 class FigureModel {
   final List<PlacedItem> placed;
   final List<PlacedItem> tray;
-  final List<FigureGap> gaps;
-  final int itemCount;                    // numbered items
+  int get itemCount;                      // placed plus tray
 }
 
 class PlacedItem {
@@ -285,22 +283,11 @@ class PlacedItem {
   final int color;                        // resolved ARGB
 }
 
-class FigureGap {
-  final int number;
-  final EquipmentType type;
-  final FigureZone zone;                  // the type's first candidate
-}
-
-FigureModel composeFigure(
-  List<FigureItemInput> items, {
-  Set<EquipmentType> requiredTypes = const {},
-});
+FigureModel composeFigure(List<FigureItemInput> items);
 ```
 
 `composeFigure` numbers top-level items in input order, places them in
-placement priority order, appends gaps numbered after the items, and reports
-the tray. On dive surfaces a tank with a `tankRole` of sidemount left or right,
-or stage, is placed by that role instead of the set rule.
+placement priority order, and reports the tray.
 
 ## 8. Widget and interaction
 
@@ -312,7 +299,7 @@ DiverFigure({
   required String semanticsLabel,          // the whole picture
   required String Function(PlacedItem) labelText,         // the item's name
   required String Function(FigureView, int) sideLabel,    // "Front · 8"
-  FigureMode mode = FigureMode.pair,       // pair; thumbnail and locate later
+  FigureMode mode = FigureMode.pair,       // the only mode
   String? selectedItemId,
   int selectionSerial = 0,                 // bumped on every selection
   ValueChanged<PlacedItem>? onItemTap,
@@ -361,10 +348,9 @@ overflows it, and pill widths are measured at that text size.
   the anchor for anchors left of the centre line, right otherwise), with a
   short leader tick. The pill's maximum width is a quarter of the available
   width, and it never reaches past the box edge or into the other figure.
-- Pills are placed in number order; a pill that would overlap one already
-  placed steps down by its own height plus a gap until it is clear.
-- The share image and both PDFs (section 12) always use this layout, since
-  their width is fixed.
+- Pills are placed in number order, each at the free spot nearest its anchor.
+  A pill whose name does not fit on its outward side moves across when the
+  other side has more room.
 
 ### 8.4 Legend, tray, and tap linking
 
@@ -377,20 +363,16 @@ overflows it, and pill widths are measured at that text size.
   badge selects its label. The row's own tap still opens the item. Selection
   is page-local state.
 
-### 8.5 Modes
+### 8.5 Mode
 
-- `pair`: the layouts above. The set page and the dive card.
-- `thumbnail` (phase 4): front figure only, no labels, no tray, at about 40 by
-  80 pt, with a warning dot when the model has gaps.
-- `locate` (phase 4): the bare mannequin with only one item painted, and one
-  label.
+The figure has one mode, the pair described above, used on the set page and
+on the set edit page (section 10).
 
 ### 8.6 Accessibility
 
 The painted figure carries a summary label built from the plural strings, for
-example "Reef set, 9 items, 2 missing". Each label, pill, and tray tile is a
-button whose semantics read "3, BCD, Hollis SMS75". Thumbnails carry only the
-summary label.
+example "Reef set, 9 items". Each label, pill, and tray tile is a button whose
+semantics read "3, BCD, Hollis SMS75".
 
 ### 8.7 The per-set switch
 
@@ -406,233 +388,95 @@ summary label.
 - Off, the set page is exactly as it was before the figure: no figure card
   and no number badges on the list, since the numbers only mean something
   beside the figure.
-- Every figure surface that belongs to a set follows its switch: the set
-  list thumbnail (phase 4), the share image (phase 5), and the gear sheet
-  PDF (phase 6). The dive detail figure is not tied to one set; phase 4
-  decides whether it follows the dive's sets or its own switch.
+- The set edit page's live figure (section 10) follows the switch on the
+  form, so turning it on shows the figure at once and turning it off hides it.
 
-## 9. Gaps
-
-### 9.1 Diver default
-
-A new `diver_settings` column `figure_required_types TEXT` holds a JSON array
-of `EquipmentType` names. Null means "never set" and resolves to the built-in
-seed: mask, fins, wetsuit, bcd, regulator, tank, computer. An empty array is a
-real value and means nothing is required, which is why this codec differs from
-the condition-rules codec that collapses empty to null. The column is added by
-an `_assert...` helper called from both the upgrade step and `beforeOpen`, in
-the same shape as the v206 condition settings columns. It is exposed on
-`AppSettings` as `Set<EquipmentType>? figureRequiredTypes` with a
-`setFigureRequiredTypes` notifier method.
-
-Settings > Equipment > "Required for a complete set" lists every type with a
-checkbox and a "Reset to the built-in list" action.
-
-### 9.2 Per-set list
-
-A new synced child table:
-
-```dart
-class EquipmentSetRequiredTypes extends Table {
-  TextColumn get setId =>
-      text().references(EquipmentSets, #id, onDelete: KeyAction.cascade)();
-  TextColumn get equipmentType => text()();
-  IntColumn get updatedAt => integer().nullable().clientDefault(
-      () => DateTime.now().millisecondsSinceEpoch)();
-  TextColumn get hlc => text().nullable()();
-  @override
-  Set<Column> get primaryKey => {setId, equipmentType};
-}
-```
-
-Schema rung: the next free one when phase 2 is cut. Phase 1 took 229 for
-the per-set switch (228 is cylinder fills, #2364), so re-verify
-against main and open PRs before choosing. The migration
-creates the table and seeds one row per existing set and built-in type, so gap
-spotting works for sets that predate the feature (see section 16).
-
-`EquipmentSet` gains `requiredTypes: Set<EquipmentType>`, loaded with the set
-and saved with it. `createSet` copies the diver default into the new rows.
-The set edit page gets a "Required for this set" section below the item groups
-with the same per-type checkboxes and a "Reset to my default" action.
-
-Sync registration follows `equipmentSetItems` at every touch point: the hlc
-target with composite key columns, the serializer's base table, incremental
-export, parent-gated child, id resolver, fetch, upsert, record ids, delete;
-the sync service's apply order right after `equipmentSets`, `entityHasUpdatedAt`
-true, `parentRefs` from `setId`. A change to a set's required list stamps only
-these rows, never the parent set, per the child-sync design. The row follows
-the set's cascade on delete and joins the set items' wipe and adopt rules.
-
-### 9.3 Satisfaction rules
-
-A required type is satisfied by an item of that type in the set, or by one of
-its substitutes:
-
-| Required | Also satisfied by |
-| --- | --- |
-| regulator | rebreather |
-| tank | rebreather |
-| bcd | wing, backplate, harness |
-| wetsuit | drysuit |
-| drysuit | wetsuit |
-
-Every other type is satisfied only by itself. A set with an empty required list
-has no gaps.
-
-### 9.4 What the diver sees
-
-- A dashed label in the warning colour at the type's first candidate zone,
-  reading "Missing: hood", placed by the same column or pill rules as the
-  items and numbered after them.
-- The legend ends with one "Missing: hood, exposure suit" line in the same
-  colour, and the set page header count reads "9 items, 2 missing".
-- The set list card's thumbnail shows a warning dot.
-- On the set edit page, the figure sits above the item groups and redraws on
-  every tick, so a gap disappears the moment its type is checked.
-
-## 10. Item colour
+## 9. Item colour
 
 - `AttributeKind.color` is added to the catalog, with a `color` attribute in a
   new `AttributeGroup.appearance` applied to every type except `o2Cell`,
   `battery`, and `other`. The value is `#RRGGBB` in `valueText`, so it needs
   no schema change and flows through sync, export, backup, and import like
   every other attribute.
-- The attribute form renders the kind as a swatch row that opens a bottom
-  sheet with the same fixed palette as `TagColors.predefined`, plus "none".
-  The tags picker widget previews a tag chip, so the sheet is a sibling widget
-  that shares the palette rather than the widget itself.
+- The colour is optional. The attribute form renders the kind as a swatch row
+  that opens a bottom sheet with the same fixed palette as
+  `TagColors.predefined`, plus "none". The tags picker widget previews a tag
+  chip, so the sheet is a sibling widget that shares the palette rather than
+  the widget itself.
 - With no colour set, the placement table's per-type default applies.
-- Every figure mode, the share image, and both PDFs use the colour.
+- The figure on the set page and on the set edit page uses the colour.
 
-## 11. Other surfaces
+## 10. Set edit page
 
-- **Dive detail.** The figure sits inside the existing collapsible equipment
-  card above `DiveGearTreeView`, composed from the same top-level gear rows the
-  tree shows, with dive tank roles passed through for linked tanks. Dive tanks
-  with no gear link are not drawn. The tree's rows gain the number badge, and
-  the sort button renumbers both. No gap labels on a dive.
-- **Set list.** The folder icon on each card becomes the thumbnail. The list
-  already loads each set's items; the composer runs per card and the painter
-  uses the shared path cache.
-- **Item page.** A "Where it sits" card after the header shows the locate mode.
-  It is omitted for tray types and child items.
+- When the form's "Show diver figure" switch is on, the figure sits above the
+  item groups, composed from the items currently ticked, so it redraws on
+  every tick and untick before the set is saved.
+- It is the same pair widget as on the set page, with the same numbering,
+  labels, and tray. When the switch is off, the edit page is exactly as it was
+  before the figure.
 
-## 12. Share image and PDFs
-
-### 12.1 Share image
-
-`DiverFigureImageRenderer.render({model, title, legendRows, missingLine})`
-draws offscreen with a `PictureRecorder`, the way the certification card
-renderer does: title, the pair with its name pills (the wide layout), and the
-missing line, with `FigurePalette.light` on a white surface, at 2x. The set
-page menu and the dive equipment card header gain a share action that hands the
-bytes to `ExportService().exportImageAsPng` with the share sheet anchored, so
-the existing save-to-photos, save-to-file, and share choices apply. File names
-are `gear_<set>.png` and `dive_gear_<number>_<date>.png`.
-
-### 12.2 Gear sheet PDF
-
-`GearSheetPdfService.build({set, items, model, labels, units, dates})`
-follows the plan slate service: the app's PDF fonts and theme, one A4
-`MultiPage`, a title block (set name, diver name, date), the pair drawn as
-vectors, and a table with number, type, name, brand and model, serial, and next
-service due. The result goes to `sharePdfBytes`. The share sheet already offers
-print on both mobile platforms, so the printing package is not needed.
-
-`drawFigureOnPdf(PdfGraphics g, PdfPoint size, FigureModel model, FigureView
-view, FigurePalette palette)` is the PDF painter, called from a
-`pw.CustomPaint` painter callback. It applies a scale and a y-flip (PDF space
-points up), then for each piece path sets the fill colour for its role, calls
-`drawShape(d)`, and fills. Discs are `drawEllipse` plus `drawString`.
-
-### 12.3 Detailed logbook template
-
-Only the detailed template changes. Its equipment section becomes a row: the
-vector pair on the left at about a quarter of the page height, the existing
-field rows on the right, numbered to match the figure's labels. `PdfExportOptions` gains
-`includeGearFigure`, default true, surfaced as a switch in the existing PDF
-options sheet. Simple, PADI, and NAUI templates are untouched.
-
-### 12.4 Layering
-
-The figure model, composer, placement table, palette, and generated artwork
-have no Flutter import, so the PDF code under `lib/core/services` uses them
-directly. Only the painter, widget, and image renderer live in the feature's
-presentation layer.
-
-## 13. Localization
+## 11. Localization
 
 All new strings land in all eleven locales. Plural strings use CLDR categories
 (the `=1` branch is the `one` category, so zero is spelled out where a locale
 needs it):
 
-- items-with-missing count line, missing line, tray heading ("Also carried")
-- "Where it sits", "Share gear image", "Gear sheet"
-- Settings: section title, "Required for a complete set", "Reset to the
-  built-in list"; set edit: "Required for this set", "Reset to my default"
-- Semantics labels for item labels and gap labels
-- The phone switch: "Front · {count}" and "Back · {count}"; a gap label: "Missing: {type}"
-- Gear sheet labels, passed to the PDF service as a labels record like the
-  plan slate's, so the PDF is in the diver's language
+- The figure's summary label and each item's semantics label
+- The tray heading ("Also carried")
+- The phone switch: "Front · {count}" and "Back · {count}"
+- The per-set switch: "Show diver figure" on the edit page, and "Show diver
+  figure" / "Hide diver figure" in the set page menu
+- Item colour: the attribute's name, "None", and a screen-reader name for each
+  swatch
 
-## 14. Testing
+## 12. Testing
 
 - **Artwork:** digest staleness test; every type has a placement; every piece
   a placement names exists; every path parses; every path stays in the box.
 - **Composer:** fill order, the sidemount rule, doubles at count 2, overflow to
   the tray, hidden children and parts, numbering follows input order, placement
-  priority ignores input order, each substitution rule, empty required list,
-  dive tank roles.
+  priority ignores input order, an item's colour overrides its type default,
+  and a malformed colour falls back to it.
 - **Palette:** iterate `AppThemeRegistry.presets` times `Brightness.values`
   and assert contrast floors for badge digit on badge, label text on the page,
-  gap colour on body, body on surface. Never assert which role was picked.
+  and body on surface. Never assert which role was picked.
 - **Label layout:** column side assignment including centre anchors, stacking
   without overlap, level placement when there is room, truncation width; pill
-  outward side, stepping without overlap, maximum width.
+  outward side, moving across when the outward side is too narrow, placement
+  without overlap, maximum width.
 - **Widgets:** label and pill semantics, the switch shows counts and swaps
   views, phone versus wide by width, tap selects and flashes the row, badge
-  selects the label, 40 pt targets on both platforms, thumbnail has no labels,
-  locate has one, set page count line, edit page redraw on tick, list
-  warning dot, item page card present and absent, dive card figure and
-  renumbering after sort. Page tests use the same provider overrides as the
-  existing set detail tests.
-- **Rendering:** the image renderer test asserts dimensions and that the body
-  region is painted; goldens are macOS-only here and skipped in CI. Visual
-  review during development uses the throwaway-golden screenshot method.
-- **Schema and sync:** a migration test for the rung; the suites that enumerate
-  synced tables (hlc registration, parent refs, child hlc, serializer batch
-  coverage, delete tombstones) demand the new table's registration.
-- **Settings:** codec round trip including the empty array, notifier save,
-  settings page toggles.
-- **PDF:** gear sheet builds one page and contains the item names in its text
-  stream; the PDF painter's role mapping and y-flip are pinned in pure Dart;
-  the detailed template's equipment row honours the option.
-- **Share:** the fake share sheet from the media tests verifies a PNG with the
-  expected name.
+  selects the label, 40 pt targets on both platforms, the set page figure
+  follows the per-set switch, the edit page figure redraws on tick and follows
+  the form's switch, the colour swatch sheet sets and clears the colour. Page
+  tests use the same provider overrides as the existing set detail tests.
+- **Rendering:** goldens are macOS-only here and skipped in CI. Visual review
+  during development uses the throwaway-golden screenshot method.
+- **Schema:** a migration test for the `show_figure` rung, including the
+  `beforeOpen` backstop for a database already past it.
 - **Architecture guards:** run `test/architecture/` after adding files.
 
-## 15. Delivery
+## 13. Delivery
 
-Six stacked PRs, each branched from the previous, each saying `Part of #2326`
-and the last `Closes #2326`. One implementation plan per phase, written just
-before that phase is built against the code as it then stands.
+Two PRs under issue #2326, each saying `Part of #2326` and the last
+`Closes #2326`, each built from its own implementation plan written just
+before it against the code as it then stands.
 
-1. **Figure core and set page.** Zones, placement table, `tool/figure/`
-   sources for the mannequin and all 41 default pieces plus the attribute
-   variants, generator with verify, generated artwork, path cache, palette,
-   composer, painter, widget in pair mode, set page figure, legend badges,
-   tap linking. Artwork is the bulk; it lands in batches reviewed on a
-   contact sheet.
-2. **Gaps.** Settings column and page, per-set table with rung and sync
-   registration, satisfaction rules, gap labels, missing line, edit page live
-   figure, list warning dot.
-3. **Item colour.** Attribute kind, swatch sheet, per-type defaults, tinting.
-4. **Other surfaces.** Dive detail figure and tree badges, set list
-   thumbnails, item page locate card.
-5. **Share image.** Offscreen renderer, share action on the set page and the
-   dive card.
-6. **PDFs.** Gear sheet service, detailed template row, export option.
+1. **Figure core and set page** (PR #2372). Zones, placement table,
+   `tool/figure/` sources for the mannequin and every piece, generator with
+   verify, generated artwork, path cache, palette, composer, painter, widget,
+   set page figure, legend badges, tap linking, and the per-set switch.
+2. **Item colour and the set edit page figure.** Attribute kind, swatch
+   sheet, per-type defaults, tinting, and the live figure on the edit page.
+
+Scope history: the design first planned six phases. On 2026-09-26 four were
+dropped: the gaps phase (a per-diver and per-set required-types list with
+"Missing" labels and warnings), the other surfaces (the dive detail figure,
+set list thumbnails, and the item page's "where it sits" card), the share
+image, and the PDFs (a gear sheet and the figure in the logbook). A set
+carries no required number or type of items, and the figure lives only on
+the set pages. The live figure on the set edit page, first planned with the
+gaps, moved to the colour phase.
 
 File layout:
 
@@ -641,23 +485,16 @@ tool/figure/                                   SVG sources and manifest.json
 tool/build_figure_artwork.py                   generator and --verify
 lib/features/equipment/figure/domain/          zones, placement, composer, model, palette
 lib/features/equipment/figure/artwork/         figure_artwork.gen.dart (generated)
-lib/features/equipment/figure/presentation/    painter, widget, badge, image renderer
-lib/core/services/pdf_templates/pdf_figure.dart the PDF painter
-lib/core/services/export/pdf/gear_sheet_pdf_service.dart
+lib/features/equipment/figure/presentation/    painter, widget, labels, badge
 ```
 
-## 16. Risks and open points
+## 14. Risks and open points
 
-- **Artwork volume.** About 60 SVG pieces for 41 types and their variants.
-  Mitigation: the placement table, mannequin, and pipeline land first, then
-  pieces in batches; the verify step blocks a PR that leaves a type without
-  its default piece.
-- **Existing sets and the seed.** Sets that exist before phase 2 have no
-  required rows. The migration seeds every existing set once from the
-  built-in list, so gap spotting works for existing users; a diver who wants
-  a partial set clears its list. This is the one call to confirm at spec
-  review.
+- **Artwork volume.** 65 SVG pieces for 41 types, their variants, and the
+  back-view pieces. Mitigation: the placement table, mannequin, and pipeline
+  landed first, then pieces in batches reviewed on a contact sheet; the verify
+  step blocks a change that leaves a type without its default piece.
 - **Theme contrast.** Fixed gear greys must read on ten schemes; the palette
-  tests across every preset are the guard.
-- **Thumbnail cost.** Bounded by the path cache and a composer that is linear
-  in items.
+  tests across every preset are the guard. Item colours are the diver's
+  choice, so the outline and shade roles keep a light piece's edge visible on
+  a light surface.
