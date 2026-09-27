@@ -410,6 +410,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Si ce set inclut un ordinateur de plongée, ajoute automatiquement tout le set à une plongée téléchargée ou importée depuis celui-ci';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'Montre l\'équipement de cet ensemble sur un plongeur dans sa page';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title =>
+      'Afficher la silhouette du plongeur';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Géorepères';
 
   @override
@@ -450,6 +458,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Par défaut';
+
+  @override
+  String get equipment_setDetail_hideFigure =>
+      'Masquer la silhouette du plongeur';
+
+  @override
+  String get equipment_setDetail_showFigure =>
+      'Afficher la silhouette du plongeur';
 
   @override
   String get equipment_setDetail_setAsDefault => 'Définir par défaut';
@@ -12385,6 +12401,77 @@ class AppLocalizationsFr extends AppLocalizations {
   String get passport_tag_linked => 'Étiquette liée';
 
   @override
+  String get passport_scan_title => 'Scanner l\'étiquette d\'une bouteille';
+
+  @override
+  String get passport_scan_hint =>
+      'Pointez l\'appareil photo vers l\'étiquette ou collez le lien de l\'étiquette.';
+
+  @override
+  String get passport_scan_cameraUnavailable =>
+      'L\'appareil photo n\'est pas disponible ici. Collez plutôt le lien de l\'étiquette.';
+
+  @override
+  String get passport_scan_linkLabel => 'Lien de l\'étiquette';
+
+  @override
+  String get passport_scan_paste => 'Coller';
+
+  @override
+  String get passport_scan_open => 'Ouvrir';
+
+  @override
+  String get passport_scan_openFailed =>
+      'Impossible d\'ouvrir l\'étiquette. Réessayez.';
+
+  @override
+  String get passport_scan_newerFormat =>
+      'Cette étiquette a été écrite par une version plus récente de Submersion. Certains détails peuvent manquer.';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return 'Rempli depuis $name';
+  }
+
+  @override
+  String get passport_foreign_title => 'Étiquette de bouteille';
+
+  @override
+  String get passport_foreign_notInGear =>
+      'Cette bouteille ne fait pas partie de votre équipement.';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return 'Selon l\'étiquette écrite le $date';
+  }
+
+  @override
+  String get passport_foreign_noDetails =>
+      'L\'étiquette ne contient aucun détail en dehors de son identifiant.';
+
+  @override
+  String get passport_foreign_o2Clean =>
+      'Compatible O2 lors de l\'écriture de l\'étiquette';
+
+  @override
+  String get passport_foreign_useOnDive => 'Utiliser pour une plongée';
+
+  @override
+  String get passport_foreign_addToGear => 'Ajouter à mon équipement';
+
+  @override
+  String get passport_foreign_addFailed =>
+      'Impossible d\'ajouter la bouteille. Réessayez.';
+
+  @override
+  String get passport_foreign_defaultName => 'Bouteille';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return 'N° de série $serial';
+  }
+
+  @override
   String get passport_logFill_date => 'Gonflée le';
 
   @override
@@ -13496,6 +13583,17 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String trips_gearAlerts_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count alertes matériel pour ce voyage',
+      one: '$count alerte matériel pour ce voyage',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -13845,6 +13943,35 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'Ajouter un ensemble';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'Dos · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'Devant · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments',
+      one: '$count élément',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'Également emporté';
 
   @override
   String get equipment_list_emptyState_addFirstButton =>
@@ -41980,7 +42107,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_info_statusFound => 'Trouvée sur cet appareil';
 
   @override
+  String get media_info_statusFoundElsewhere => 'Trouvée sur un autre appareil';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'Trouvée sur $device';
+  }
+
+  @override
   String get media_info_statusMissing => 'Absente de cet appareil';
+
+  @override
+  String get media_info_statusMissingElsewhere =>
+      'Absente d\'un autre appareil';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'Absente de $device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'Pas encore vérifiée';
@@ -42777,6 +42921,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get profilePhoto_source_camera => 'Prendre une photo';
+
+  @override
+  String get common_camera_unavailable =>
+      'Impossible d\'ouvrir l\'appareil photo. Veuillez autoriser l\'accès à l\'appareil photo dans les Réglages.';
+
+  @override
+  String get common_photo_pickFailed =>
+      'Impossible d\'ouvrir la photo. Veuillez en essayer une autre.';
 
   @override
   String get profilePhoto_source_library => 'Choisir dans la galerie';

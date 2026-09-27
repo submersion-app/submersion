@@ -20,6 +20,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:uuid/uuid.dart';
 
 class EquipmentSetEditPage extends ConsumerStatefulWidget {
@@ -44,6 +45,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
   bool _isInitialized = false;
   bool _isDefault = false;
   bool _autoApplyOnComputerImport = false;
+  bool _showFigure = false;
   List<EquipmentSetGeofence> _geofences = [];
 
   @override
@@ -62,6 +64,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
     _selectedEquipmentIds.addAll(set.equipmentIds);
     _isDefault = set.isDefault;
     _autoApplyOnComputerImport = set.autoApplyOnComputerImport;
+    _showFigure = set.showFigure;
     _geofences = List.of(set.geofences);
   }
 
@@ -145,6 +148,20 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
               ? context.l10n.equipment_setEdit_appBar_editTitle
               : context.l10n.equipment_setEdit_appBar_newTitle,
         ),
+        // Save sits top right, where the gear editor has it (issue #2266);
+        // the button at the bottom of the form stays for divers who scroll.
+        actions: [
+          Tooltip(
+            message: widget.isEditing
+                ? context.l10n.equipment_setEdit_saveTooltip_edit
+                : context.l10n.equipment_setEdit_saveTooltip_new,
+            child: AppBarTextAction(
+              label: context.l10n.common_action_save,
+              onPressed: _isLoading ? null : () => _saveSet(existingSet),
+              busy: _isLoading,
+            ),
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,
@@ -203,6 +220,18 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
               ),
               value: _autoApplyOnComputerImport,
               onChanged: (v) => setState(() => _autoApplyOnComputerImport = v),
+            ),
+            const SizedBox(height: 8),
+
+            // The diver figure on the set page (issue #2326), off by default.
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(context.l10n.equipment_setEdit_figureSwitch_title),
+              subtitle: Text(
+                context.l10n.equipment_setEdit_figureSwitch_subtitle,
+              ),
+              value: _showFigure,
+              onChanged: (v) => setState(() => _showFigure = v),
             ),
             const SizedBox(height: 16),
 
@@ -543,6 +572,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
         description: _descriptionController.text.trim(),
         equipmentIds: _selectedEquipmentIds.toList(),
         autoApplyOnComputerImport: _autoApplyOnComputerImport,
+        showFigure: _showFigure,
         createdAt: existingSet?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );

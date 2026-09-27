@@ -106,7 +106,12 @@ class ServiceScheduleRepository {
     return schedule.copyWith(id: id, createdAt: now, updatedAt: now);
   }
 
-  Future<void> updateSchedule(domain.ServiceSchedule schedule) async {
+  /// Pass [notify] false inside a transaction and notify once after it
+  /// commits, as [createSchedule] does.
+  Future<void> updateSchedule(
+    domain.ServiceSchedule schedule, {
+    bool notify = true,
+  }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(
       _db.serviceSchedules,
@@ -131,7 +136,7 @@ class ServiceScheduleRepository {
       recordId: schedule.id,
       localUpdatedAt: now,
     );
-    SyncEventBus.notifyLocalChange();
+    if (notify) SyncEventBus.notifyLocalChange();
   }
 
   Future<void> deleteSchedule(String id) async {

@@ -27,11 +27,16 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 /// Handles PDF export for dive logbooks and trip reports.
 class PdfExportService {
   /// [templateFor] picks the builder for a template; tests pass one that
-  /// records what it was handed.
-  PdfExportService({PdfTemplateBuilder Function(PdfTemplate)? templateFor})
-    : _templateFor = templateFor ?? PdfTemplateFactory().getBuilder;
+  /// records what it was handed. [now] is the clock a logbook export is
+  /// stamped with, injectable so tests can pin it (#2446).
+  PdfExportService({
+    PdfTemplateBuilder Function(PdfTemplate)? templateFor,
+    DateTime Function()? now,
+  }) : _templateFor = templateFor ?? PdfTemplateFactory().getBuilder,
+       _now = now ?? DateTime.now;
 
   final PdfTemplateBuilder Function(PdfTemplate) _templateFor;
+  final DateTime Function() _now;
 
   /// File names stay ISO no matter what the diver reads in the document, so a
   /// folder of exports still sorts chronologically (#964).
@@ -241,12 +246,16 @@ class PdfExportService {
       EquipmentSetRepository(),
     );
 
+    // Read once, so the cover's stamp and the file name show the same moment.
+    final generatedAt = _now();
+
     final builder = _templateFor(options.template);
     // The language picked in the export sheet (#2252). A null title lets the
     // template head the document in that language, and dates name months in
     // it too.
     final localization = PdfLocalization.forLanguageCode(options.languageCode);
     final pdfBytes = await builder.buildPdf(
+      generatedAt: generatedAt,
       gearArrangement: gearArrangement,
       equipmentSetNamesById: equipmentSetNamesById,
       dives: dives,
@@ -268,7 +277,7 @@ class PdfExportService {
 
     final fileName =
         'dive_logbook_${options.template.name}_'
-        '${_fileNameDate.format(DateTime.now())}.pdf';
+        '${_fileNameDate.format(generatedAt)}.pdf';
     return (bytes: pdfBytes, fileName: fileName);
   }
 

@@ -531,6 +531,7 @@ class PdfSharedComponents {
     required PdfPageFormat pageFormat,
     required PdfDateFormatter dates,
     required AppLocalizations l10n,
+    required DateTime generatedAt,
     DateTime? firstDiveDate,
     DateTime? lastDiveDate,
     Diver? diver,
@@ -580,7 +581,7 @@ class PdfSharedComponents {
             ),
           pw.SizedBox(height: 40),
           pw.Text(
-            l10n.pdf_generatedOn(dates.dateTime(DateTime.now())),
+            l10n.pdf_generatedOn(dates.dateTime(generatedAt)),
             style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey600),
           ),
         ],

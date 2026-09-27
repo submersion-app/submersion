@@ -260,64 +260,71 @@ class DiveComputerRepository {
       final id = computer.id.isEmpty ? _uuid.v4() : computer.id;
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await _db
-          .into(_db.diveComputers)
-          .insert(
-            DiveComputersCompanion(
-              id: Value(id),
-              diverId: Value(computer.diverId),
-              name: Value(computer.name),
-              manufacturer: Value(computer.manufacturer),
-              model: Value(computer.model),
-              serialNumber: Value(computer.serialNumber),
-              firmwareVersion: Value(computer.firmwareVersion),
-              connectionType: Value(computer.connectionType),
-              bluetoothAddress: Value(computer.bluetoothAddress),
-              lastDownloadTimestamp: Value(
-                computer.lastDownload?.millisecondsSinceEpoch,
+      // One transaction for the whole creation (issue #2439): a failure part
+      // way through used to leave the registry row behind with no pending
+      // mark, and a caller retrying the save would then register the same
+      // computer a second time under a fresh id.
+      final equipmentId = await _db.transaction(() async {
+        await _db
+            .into(_db.diveComputers)
+            .insert(
+              DiveComputersCompanion(
+                id: Value(id),
+                diverId: Value(computer.diverId),
+                name: Value(computer.name),
+                manufacturer: Value(computer.manufacturer),
+                model: Value(computer.model),
+                serialNumber: Value(computer.serialNumber),
+                firmwareVersion: Value(computer.firmwareVersion),
+                connectionType: Value(computer.connectionType),
+                bluetoothAddress: Value(computer.bluetoothAddress),
+                lastDownloadTimestamp: Value(
+                  computer.lastDownload?.millisecondsSinceEpoch,
+                ),
+                diveCount: Value(computer.diveCount),
+                isFavorite: Value(computer.isFavorite),
+                notes: Value(computer.notes),
+                createdAt: Value(now),
+                updatedAt: Value(now),
               ),
-              diveCount: Value(computer.diveCount),
-              isFavorite: Value(computer.isFavorite),
-              notes: Value(computer.notes),
-              createdAt: Value(now),
-              updatedAt: Value(now),
-            ),
-          );
+            );
 
-      // Seed the gear twin once, here, because this is the only repository
-      // path that genuinely inserts a registry row (v175). Minting nowhere
-      // else is what makes a user-deleted twin permanent. Pass the resolved
-      // id: the caller's may have been empty and minted just above.
-      final twinId = await DiveComputerGearResolver().resolveGearTwin(
-        computer.copyWith(id: id),
-      );
-      if (twinId != null) {
-        await _db.customStatement(
-          'UPDATE dive_computers SET equipment_id = ? WHERE id = ?',
-          [twinId, id],
+        // Seed the gear twin once, here, because this is the only repository
+        // path that genuinely inserts a registry row (v175). Minting nowhere
+        // else is what makes a user-deleted twin permanent. Pass the resolved
+        // id: the caller's may have been empty and minted just above.
+        final twinId = await DiveComputerGearResolver().resolveGearTwin(
+          computer.copyWith(id: id),
         );
-      }
+        if (twinId != null) {
+          await _db.customStatement(
+            'UPDATE dive_computers SET equipment_id = ? WHERE id = ?',
+            [twinId, id],
+          );
+        }
 
-      // Marked pending ONCE, after the optional equipment_id write, so the row
-      // carries a single HLC representing its final state. Marking on either
-      // side of that update would spend two clock ticks on one logical
-      // creation. Unconditional: a computer whose twin failed to resolve is
-      // still a registered computer and still has to sync.
-      await _syncRepository.markRecordPending(
-        entityType: 'diveComputers',
-        recordId: id,
-        localUpdatedAt: now,
-      );
+        // Marked pending ONCE, after the optional equipment_id write, so the
+        // row carries a single HLC representing its final state. Marking on
+        // either side of that update would spend two clock ticks on one
+        // logical creation. Unconditional: a computer whose twin failed to
+        // resolve is still a registered computer and still has to sync.
+        await _syncRepository.markRecordPending(
+          entityType: 'diveComputers',
+          recordId: id,
+          localUpdatedAt: now,
+        );
 
-      // If a computer with this hardware identity was deleted earlier, its
-      // dives kept provenance snapshots; give them their link back.
-      await _relinkOrphanedRows(id, computer);
+        // If a computer with this hardware identity was deleted earlier, its
+        // dives kept provenance snapshots; give them their link back.
+        await _relinkOrphanedRows(id, computer);
+        return twinId;
+      });
       SyncEventBus.notifyLocalChange();
 
       _log.info('Created dive computer with id: $id');
       return computer.copyWith(
         id: id,
-        equipmentId: twinId,
+        equipmentId: equipmentId,
         createdAt: DateTime.fromMillisecondsSinceEpoch(now),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
       );
@@ -801,7 +808,6 @@ class DiveComputerRepository {
     required double? maxDepth,
     required double? effectiveAvgDepth,
     required double? minWaterTemp,
-    required int? reportedBottomTimeSeconds,
     required double? cns,
     required double? otu,
     required int? surfaceIntervalSeconds,
@@ -831,10 +837,10 @@ class DiveComputerRepository {
       sourceFormat: const Value('dive_computer'),
       maxDepth: Value(maxDepth),
       avgDepth: Value(effectiveAvgDepth),
-      // Readers (field attribution, split, uncombine) take this column as the
-      // source's bottom time. Only a source that reports one has a better
-      // value than the runtime to put here (issue #1798).
-      duration: Value(reportedBottomTimeSeconds ?? durationSeconds),
+      // What the computer measured: the runtime. Bottom time is derived from a
+      // profile and never stored in its place, even when the source reports
+      // one; that lands on the dive row only (issues #1798, #2421).
+      duration: Value(durationSeconds),
       waterTemp: Value(minWaterTemp),
       entryLatitude: Value(entryLatitude),
       entryLongitude: Value(entryLongitude),
@@ -1331,7 +1337,8 @@ class DiveComputerRepository {
     // A dive summary the source reported itself rather than one derived from
     // the profile (Garmin's FIT dive_summary, issue #1798). Like the diluent
     // above, the dive row only takes them when it is brand new; the
-    // download's own data source row takes them either way.
+    // download's own data source row takes them either way, except the
+    // bottom time: that row keeps the measured runtime (issue #2421).
     int? bottomTimeSeconds,
     int? surfaceIntervalSeconds,
     WaterType? waterType,
@@ -1561,7 +1568,6 @@ class DiveComputerRepository {
                 maxDepth: maxDepth,
                 effectiveAvgDepth: effectiveAvgDepth,
                 minWaterTemp: minWaterTemp,
-                reportedBottomTimeSeconds: reportedBottomTimeSeconds,
                 cns: effectiveCnsEnd,
                 otu: otu,
                 surfaceIntervalSeconds: surfaceIntervalSeconds,
@@ -1643,7 +1649,6 @@ class DiveComputerRepository {
                     (existingSampleTemps.isNotEmpty
                         ? existingSampleTemps.reduce((a, b) => a < b ? a : b)
                         : null),
-                reportedBottomTimeSeconds: reportedBottomTimeSeconds,
                 cns:
                     cnsEnd ??
                     (existingSampleCns.isNotEmpty

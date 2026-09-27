@@ -45,8 +45,10 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
     EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, String> equipmentSetNamesById = const {},
+    DateTime? generatedAt,
     PdfLocalization? localization,
   }) async {
+    final stamp = generatedAt ?? DateTime.now();
     final loc = localization ?? PdfLocalization.english();
     final l10n = loc.l10n;
     final documentTitle = title ?? l10n.settings_export_pdfDocumentTitle;
@@ -233,7 +235,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text(
-                    l10n.pdf_generated(dates.date(DateTime.now())),
+                    l10n.pdf_generated(dates.date(stamp)),
                     style: const pw.TextStyle(
                       fontSize: 8,
                       color: PdfColors.grey500,

@@ -404,6 +404,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'Draw this set\'s gear on a diver on the set page';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title => 'Show diver figure';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
 
   @override
@@ -444,6 +451,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Default';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'Hide diver figure';
+
+  @override
+  String get equipment_setDetail_showFigure => 'Show diver figure';
 
   @override
   String get equipment_setDetail_setAsDefault => 'Set as default';
@@ -12149,6 +12162,74 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passport_tag_linked => 'Tag linked';
 
   @override
+  String get passport_scan_title => 'Scan a cylinder tag';
+
+  @override
+  String get passport_scan_hint =>
+      'Point the camera at the label, or paste the tag\'s link.';
+
+  @override
+  String get passport_scan_cameraUnavailable =>
+      'The camera is not available here. Paste the tag\'s link instead.';
+
+  @override
+  String get passport_scan_linkLabel => 'Tag link';
+
+  @override
+  String get passport_scan_paste => 'Paste';
+
+  @override
+  String get passport_scan_open => 'Open';
+
+  @override
+  String get passport_scan_openFailed => 'Could not open the tag. Try again.';
+
+  @override
+  String get passport_scan_newerFormat =>
+      'This tag was written by a newer version of Submersion. Some details may be missing.';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return 'Filled from $name';
+  }
+
+  @override
+  String get passport_foreign_title => 'Cylinder tag';
+
+  @override
+  String get passport_foreign_notInGear => 'This cylinder is not in your gear.';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return 'As written on the tag on $date';
+  }
+
+  @override
+  String get passport_foreign_noDetails =>
+      'The tag carries no details beyond its identity.';
+
+  @override
+  String get passport_foreign_o2Clean => 'O2 clean when the tag was written';
+
+  @override
+  String get passport_foreign_useOnDive => 'Use on a dive';
+
+  @override
+  String get passport_foreign_addToGear => 'Add to my gear';
+
+  @override
+  String get passport_foreign_addFailed =>
+      'Could not add the cylinder. Try again.';
+
+  @override
+  String get passport_foreign_defaultName => 'Cylinder';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return 'Serial $serial';
+  }
+
+  @override
   String get passport_logFill_date => 'Filled on';
 
   @override
@@ -13254,6 +13335,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String trips_gearAlerts_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gear alerts for this trip',
+      one: '$count gear alert for this trip',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -13597,6 +13689,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'Add Set';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'Back · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'Front · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'Also carried';
 
   @override
   String get equipment_list_emptyState_addFirstButton =>
@@ -41260,7 +41381,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_info_statusFound => 'Found on this device';
 
   @override
+  String get media_info_statusFoundElsewhere => 'Found on another device';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'Found on $device';
+  }
+
+  @override
   String get media_info_statusMissing => 'Missing from this device';
+
+  @override
+  String get media_info_statusMissingElsewhere => 'Missing from another device';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'Missing from $device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'Not checked yet';
@@ -42037,6 +42174,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profilePhoto_source_camera => 'Take Photo';
+
+  @override
+  String get common_camera_unavailable =>
+      'The camera could not be opened. Please allow camera access in Settings.';
+
+  @override
+  String get common_photo_pickFailed =>
+      'The photo could not be opened. Try another one.';
 
   @override
   String get profilePhoto_source_library => 'Choose from Library';

@@ -408,6 +408,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Enthält dieses Set einen Tauchcomputer, wird das ganze Set automatisch zu einem von diesem heruntergeladenen oder importierten Tauchgang hinzugefügt';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'Die Ausrüstung dieses Sets auf der Set-Seite an einer Taucherfigur zeigen';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title => 'Taucherfigur anzeigen';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
 
   @override
@@ -448,6 +455,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Standard';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'Taucherfigur ausblenden';
+
+  @override
+  String get equipment_setDetail_showFigure => 'Taucherfigur anzeigen';
 
   @override
   String get equipment_setDetail_setAsDefault => 'Als Standard festlegen';
@@ -12335,6 +12348,77 @@ class AppLocalizationsDe extends AppLocalizations {
   String get passport_tag_linked => 'Tag verknüpft';
 
   @override
+  String get passport_scan_title => 'Flaschen-Tag scannen';
+
+  @override
+  String get passport_scan_hint =>
+      'Kamera auf das Etikett richten oder den Link des Tags einfügen.';
+
+  @override
+  String get passport_scan_cameraUnavailable =>
+      'Die Kamera ist hier nicht verfügbar. Stattdessen den Link des Tags einfügen.';
+
+  @override
+  String get passport_scan_linkLabel => 'Tag-Link';
+
+  @override
+  String get passport_scan_paste => 'Einfügen';
+
+  @override
+  String get passport_scan_open => 'Öffnen';
+
+  @override
+  String get passport_scan_openFailed =>
+      'Der Tag konnte nicht geöffnet werden. Bitte erneut versuchen.';
+
+  @override
+  String get passport_scan_newerFormat =>
+      'Dieser Tag wurde von einer neueren Submersion-Version geschrieben. Einige Angaben fehlen möglicherweise.';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return 'Übernommen von $name';
+  }
+
+  @override
+  String get passport_foreign_title => 'Flaschen-Tag';
+
+  @override
+  String get passport_foreign_notInGear =>
+      'Diese Flasche gehört nicht zur eigenen Ausrüstung.';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return 'Laut Tag, geschrieben am $date';
+  }
+
+  @override
+  String get passport_foreign_noDetails =>
+      'Der Tag enthält außer seiner Kennung keine Angaben.';
+
+  @override
+  String get passport_foreign_o2Clean =>
+      'O2-rein, als der Tag geschrieben wurde';
+
+  @override
+  String get passport_foreign_useOnDive => 'Für einen Tauchgang verwenden';
+
+  @override
+  String get passport_foreign_addToGear => 'Zu meiner Ausrüstung hinzufügen';
+
+  @override
+  String get passport_foreign_addFailed =>
+      'Die Flasche konnte nicht hinzugefügt werden. Bitte erneut versuchen.';
+
+  @override
+  String get passport_foreign_defaultName => 'Flasche';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return 'Seriennummer $serial';
+  }
+
+  @override
   String get passport_logFill_date => 'Gefüllt am';
 
   @override
@@ -13442,6 +13526,17 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String trips_gearAlerts_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Ausrüstungshinweise für diese Reise',
+      one: '$count Ausrüstungshinweis für diese Reise',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -13791,6 +13886,35 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'Set hinzufügen';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'Hinten · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'Vorne · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Gegenstände',
+      one: '$count Gegenstand',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'Außerdem dabei';
 
   @override
   String get equipment_list_emptyState_addFirstButton =>
@@ -41781,7 +41905,25 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_info_statusFound => 'Auf diesem Gerät gefunden';
 
   @override
+  String get media_info_statusFoundElsewhere =>
+      'Auf einem anderen Gerät gefunden';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'Auf $device gefunden';
+  }
+
+  @override
   String get media_info_statusMissing => 'Auf diesem Gerät nicht vorhanden';
+
+  @override
+  String get media_info_statusMissingElsewhere =>
+      'Auf einem anderen Gerät nicht vorhanden';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'Auf $device nicht vorhanden';
+  }
 
   @override
   String get media_info_statusUnchecked => 'Noch nicht geprüft';
@@ -42580,6 +42722,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get profilePhoto_source_camera => 'Foto aufnehmen';
+
+  @override
+  String get common_camera_unavailable =>
+      'Die Kamera konnte nicht geöffnet werden. Bitte erlauben Sie den Kamerazugriff in den Einstellungen.';
+
+  @override
+  String get common_photo_pickFailed =>
+      'Das Foto konnte nicht geöffnet werden. Bitte versuchen Sie ein anderes.';
 
   @override
   String get profilePhoto_source_library => 'Aus Mediathek wählen';

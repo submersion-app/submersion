@@ -43,6 +43,7 @@ class _RecordingSimple extends PdfTemplateSimple {
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, String> equipmentSetNamesById = const {},
     PdfLocalization? localization,
+    DateTime? generatedAt,
   }) {
     this.localization = localization;
     this.title = title;
@@ -54,6 +55,7 @@ class _RecordingSimple extends PdfTemplateSimple {
       units: units,
       title: title,
       localization: localization,
+      generatedAt: generatedAt,
     );
   }
 }

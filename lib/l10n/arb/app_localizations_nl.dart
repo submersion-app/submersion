@@ -405,6 +405,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Als deze set een duikcomputer bevat, wordt de hele set automatisch toegevoegd aan een duik die van deze computer is gedownload of geïmporteerd';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'Toont de uitrusting van deze set op een duiker op de setpagina';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title => 'Duikerfiguur tonen';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
 
   @override
@@ -445,6 +452,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Standaard';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'Duikerfiguur verbergen';
+
+  @override
+  String get equipment_setDetail_showFigure => 'Duikerfiguur tonen';
 
   @override
   String get equipment_setDetail_setAsDefault => 'Als standaard instellen';
@@ -12245,6 +12258,77 @@ class AppLocalizationsNl extends AppLocalizations {
   String get passport_tag_linked => 'Tag gekoppeld';
 
   @override
+  String get passport_scan_title => 'Flessentag scannen';
+
+  @override
+  String get passport_scan_hint =>
+      'Richt de camera op het label of plak de link van de tag.';
+
+  @override
+  String get passport_scan_cameraUnavailable =>
+      'De camera is hier niet beschikbaar. Plak in plaats daarvan de link van de tag.';
+
+  @override
+  String get passport_scan_linkLabel => 'Taglink';
+
+  @override
+  String get passport_scan_paste => 'Plakken';
+
+  @override
+  String get passport_scan_open => 'Openen';
+
+  @override
+  String get passport_scan_openFailed =>
+      'De tag kon niet worden geopend. Probeer het opnieuw.';
+
+  @override
+  String get passport_scan_newerFormat =>
+      'Deze tag is geschreven door een nieuwere versie van Submersion. Sommige gegevens kunnen ontbreken.';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return 'Ingevuld vanuit $name';
+  }
+
+  @override
+  String get passport_foreign_title => 'Flessentag';
+
+  @override
+  String get passport_foreign_notInGear =>
+      'Deze fles hoort niet bij je uitrusting.';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return 'Zoals op de tag geschreven op $date';
+  }
+
+  @override
+  String get passport_foreign_noDetails =>
+      'De tag bevat geen gegevens behalve zijn identiteit.';
+
+  @override
+  String get passport_foreign_o2Clean =>
+      'O2-schoon toen de tag werd geschreven';
+
+  @override
+  String get passport_foreign_useOnDive => 'Gebruiken bij een duik';
+
+  @override
+  String get passport_foreign_addToGear => 'Toevoegen aan mijn uitrusting';
+
+  @override
+  String get passport_foreign_addFailed =>
+      'De fles kon niet worden toegevoegd. Probeer het opnieuw.';
+
+  @override
+  String get passport_foreign_defaultName => 'Fles';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return 'Serienummer $serial';
+  }
+
+  @override
   String get passport_logFill_date => 'Gevuld op';
 
   @override
@@ -13352,6 +13436,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String trips_gearAlerts_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count uitrustingsmeldingen voor deze reis',
+      one: '$count uitrustingsmelding voor deze reis',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -13700,6 +13795,35 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'Set toevoegen';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'Achterkant · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'Voorkant · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'Ook meegenomen';
 
   @override
   String get equipment_list_emptyState_addFirstButton =>
@@ -41594,7 +41718,25 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_info_statusFound => 'Gevonden op dit apparaat';
 
   @override
+  String get media_info_statusFoundElsewhere =>
+      'Gevonden op een ander apparaat';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'Gevonden op $device';
+  }
+
+  @override
   String get media_info_statusMissing => 'Ontbreekt op dit apparaat';
+
+  @override
+  String get media_info_statusMissingElsewhere =>
+      'Ontbreekt op een ander apparaat';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'Ontbreekt op $device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'Nog niet gecontroleerd';
@@ -42383,6 +42525,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get profilePhoto_source_camera => 'Foto maken';
+
+  @override
+  String get common_camera_unavailable =>
+      'De camera kon niet worden geopend. Sta cameratoegang toe via Instellingen.';
+
+  @override
+  String get common_photo_pickFailed =>
+      'De foto kon niet worden geopend. Probeer een andere.';
 
   @override
   String get profilePhoto_source_library => 'Kies uit bibliotheek';

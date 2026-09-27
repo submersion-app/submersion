@@ -95,6 +95,12 @@ class BleIoStream(
 
     private val readQueue = LinkedBlockingQueue<ByteArray>()
     private val writeSemaphore = Semaphore(0)
+    // Characteristic read in flight (issue #422). Written on the download
+    // thread before the read is issued, completed on the GATT callback thread.
+    private val readCharacteristicSemaphore = Semaphore(0)
+    @Volatile private var pendingReadUuid: UUID? = null
+    @Volatile private var pendingReadValue: ByteArray? = null
+    private val readQuarantine = CharacteristicReadQuarantine()
     // One permit, held from the moment a GATT write is issued until its
     // completion callback arrives. Android's BluetoothGatt carries a single
     // busy flag and rejects writeCharacteristic() while any operation is
@@ -201,6 +207,9 @@ class BleIoStream(
                 // drains the semaphore before issuing.
                 lastWriteStatus = BluetoothGatt.GATT_FAILURE
                 writeSemaphore.release()
+                // A characteristic read in flight is woken the same way.
+                pendingReadValue = null
+                readCharacteristicSemaphore.release()
                 NativeLogger.d(TAG, "BLE",
                     "onConnectionStateChange: disconnected status=$status " +
                         "(${GattDiagnostics.describeConnectionStatus(status)})")
@@ -423,14 +432,18 @@ class BleIoStream(
 
         // API 33+ delivers read responses via this overload. Overriding it
         // without calling super keeps the deprecated one below from also
-        // firing for the same response.
+        // firing for the same response. A one-shot characteristic read
+        // (issue #422) claims its reply first; anything else is a read-poll
+        // response (issue #1454).
         override fun onCharacteristicRead(
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic,
             value: ByteArray,
             status: Int
         ) {
-            onReadResponse(characteristic, value, status)
+            if (!onReadComplete(characteristic, value, status)) {
+                onReadResponse(characteristic, value, status)
+            }
         }
 
         // Pre-API 33 fallback: the value is on characteristic.value.
@@ -440,7 +453,9 @@ class BleIoStream(
             characteristic: BluetoothGattCharacteristic,
             status: Int
         ) {
-            onReadResponse(characteristic, characteristic.value ?: ByteArray(0), status)
+            if (!onReadComplete(characteristic, characteristic.value, status)) {
+                onReadResponse(characteristic, characteristic.value ?: ByteArray(0), status)
+            }
         }
 
         override fun onCharacteristicWrite(
@@ -503,6 +518,23 @@ class BleIoStream(
             lastWriteStatus = status
             writeSemaphore.release()
         }
+    }
+
+    // Complete the one-shot characteristic read in flight (issue #422).
+    // Returns whether this response was that read's reply.
+    private fun onReadComplete(
+        characteristic: BluetoothGattCharacteristic,
+        value: ByteArray?,
+        status: Int
+    ): Boolean {
+        if (characteristic.uuid != pendingReadUuid) return false
+        pendingReadValue =
+            if (status == BluetoothGatt.GATT_SUCCESS) value?.copyOf() else null
+        NativeLogger.d(TAG, "BLE",
+            "onCharacteristicRead ${characteristic.uuid} status=$status " +
+                "bytes=${value?.size ?: 0}")
+        readCharacteristicSemaphore.release()
+        return true
     }
 
     // Route one notification, ignoring anything that is not the selected data
@@ -1034,6 +1066,52 @@ class BleIoStream(
         val timeout = if (timeoutMs < 0) Long.MAX_VALUE else timeoutMs.toLong()
         val chunk = readQueue.poll(timeout, TimeUnit.MILLISECONDS) ?: return null
         return takeChunk(chunk, size)
+    }
+
+    override fun readCharacteristic(uuid: String): ByteArray? {
+        val target = BleCharacteristicRead.parseUuid(uuid) ?: return null
+        if (!readQuarantine.mayRead(target)) {
+            NativeLogger.e(TAG, "BLE",
+                "readCharacteristic: $uuid refused, an earlier read of it timed out")
+            return null
+        }
+        val g = gatt ?: return null
+        // libdivecomputer names only the characteristic, so search every
+        // discovered service.
+        val char = g.services
+            ?.flatMap { it.characteristics }
+            ?.firstOrNull { it.uuid == target }
+        if (char == null) {
+            NativeLogger.w(TAG, "BLE", "readCharacteristic: $uuid not found")
+            return null
+        }
+        val timeout = BleCharacteristicRead.readTimeoutMs(-1)
+        // Same gate as command writes: Android runs one GATT operation at a
+        // time, and a credit top-up must not be in flight.
+        if (!gattOperation.tryAcquire(timeout, TimeUnit.MILLISECONDS)) {
+            NativeLogger.e(TAG, "BLE", "readCharacteristic: GATT busy")
+            return null
+        }
+        try {
+            readCharacteristicSemaphore.drainPermits()
+            pendingReadValue = null
+            pendingReadUuid = target
+            if (!g.readCharacteristic(char)) {
+                NativeLogger.e(TAG, "BLE",
+                    "readCharacteristic: readCharacteristic() returned false")
+                return null
+            }
+            if (!readCharacteristicSemaphore.tryAcquire(
+                    timeout, TimeUnit.MILLISECONDS)) {
+                NativeLogger.e(TAG, "BLE", "readCharacteristic: $uuid timed out")
+                readQuarantine.timedOut(target)
+                return null
+            }
+            return pendingReadValue
+        } finally {
+            pendingReadUuid = null
+            gattOperation.release()
+        }
     }
 
     override fun write(data: ByteArray, timeoutMs: Int): Int {

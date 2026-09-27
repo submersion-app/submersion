@@ -2972,7 +2972,9 @@ class UddfEntityImporter {
             sourceDiverKey: Value(sourceDiverKey),
             maxDepth: Value(asDoubleOrNull(diveData['maxDepth'])),
             avgDepth: Value(asDoubleOrNull(diveData['avgDepth'])),
-            duration: Value(dive.bottomTime?.inSeconds),
+            // The runtime the file reports; bottom time is derived and never
+            // stored in its place (issue #2421).
+            duration: Value(dive.runtime?.inSeconds),
             waterTemp: Value(asDoubleOrNull(diveData['waterTemp'])),
             entryTime: Value(dive.entryTime),
             exitTime: Value(dive.exitTime),

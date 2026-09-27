@@ -57,8 +57,10 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, String> equipmentSetNamesById = const {},
+    DateTime? generatedAt,
     PdfLocalization? localization,
   }) async {
+    final stamp = generatedAt ?? DateTime.now();
     final loc = localization ?? PdfLocalization.english();
     final l10n = loc.l10n;
     final documentTitle = title ?? l10n.settings_export_pdfDocumentTitle;
@@ -75,6 +77,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
           pageFormat: pageFormat,
           dates: dates,
           l10n: l10n,
+          generatedAt: stamp,
           firstDiveDate: dives.isNotEmpty ? dives.last.dateTime : null,
           lastDiveDate: dives.isNotEmpty ? dives.first.dateTime : null,
           diver: diver,

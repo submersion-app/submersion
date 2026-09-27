@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:submersion/shared/widgets/profile_photo/profile_photo_picker.dart';
@@ -240,5 +241,101 @@ void main() {
 
     expect(loaderCalls, 1);
     expect(find.text('Adjust Photo'), findsOneWidget);
+  });
+
+  testWidgets('a picker that is denied the camera says so', (tester) async {
+    ProfilePhotoResult? result;
+    var completed = false;
+
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () async {
+              result = await pickProfilePhoto(
+                context: context,
+                hasPhoto: false,
+                allowContacts: false,
+                pickImageOverride: (source) async =>
+                    throw PlatformException(code: 'camera_access_denied'),
+              );
+              completed = true;
+            },
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    await tester.tap(find.text('Take Photo'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(completed, isTrue);
+    expect(result, isNull);
+    expect(
+      find.text(
+        'The camera could not be opened. Please allow camera access in Settings.',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a failing library pick is not reported as a camera problem', (
+    tester,
+  ) async {
+    Object? error;
+
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () async {
+              try {
+                await pickProfilePhoto(
+                  context: context,
+                  hasPhoto: false,
+                  allowContacts: false,
+                  pickImageOverride: (source) async =>
+                      throw PlatformException(code: 'read_failed'),
+                );
+              } catch (e) {
+                error = e;
+              }
+            },
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    final libraryOption = find.text('Choose File').evaluate().isNotEmpty
+        ? find.text('Choose File')
+        : find.text('Choose from Library');
+    await tester.tap(libraryOption);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(
+      find.text(
+        'The camera could not be opened. Please allow camera access in Settings.',
+      ),
+      findsNothing,
+    );
+    expect(
+      find.text('The photo could not be opened. Try another one.'),
+      findsOneWidget,
+    );
+    expect(error, isNull);
   });
 }

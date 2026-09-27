@@ -51,8 +51,10 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
     EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, String> equipmentSetNamesById = const {},
+    DateTime? generatedAt,
     PdfLocalization? localization,
   }) async {
+    final stamp = generatedAt ?? DateTime.now();
     final loc = localization ?? PdfLocalization.english();
     final l10n = loc.l10n;
     final documentTitle = title ?? l10n.settings_export_pdfDocumentTitle;
@@ -69,6 +71,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
           diveCount: dives.length,
           dates: dates,
           l10n: l10n,
+          generatedAt: stamp,
           units: units,
           diver: diver,
           dives: dives,
@@ -137,6 +140,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
     required String title,
     required int diveCount,
     required PdfDateFormatter dates,
+    required DateTime generatedAt,
     required UnitFormatter units,
     required AppLocalizations l10n,
     Diver? diver,
@@ -209,7 +213,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
           ),
           pw.Spacer(),
           pw.Text(
-            l10n.pdf_generated(dates.dateTime(DateTime.now())),
+            l10n.pdf_generated(dates.dateTime(generatedAt)),
             style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey500),
           ),
           pw.SizedBox(height: 20),

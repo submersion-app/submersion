@@ -40,16 +40,25 @@ class VisibilityFilter {
     String? diverId,
   ) {
     if (diverId == null) return;
+    query.where((t) => equipmentVisibleTo(db, t, diverId)!);
+  }
+
+  /// The [applyToEquipment] predicate over [equipment], for queries that are
+  /// not a plain select on the table (a join through `equipment`). Null for a
+  /// null [diverId], so the caller adds nothing.
+  static Expression<bool>? equipmentVisibleTo(
+    AppDatabase db,
+    $EquipmentTable equipment,
+    String? diverId,
+  ) {
+    if (diverId == null) return null;
     final shares = db.equipmentShares;
-    query.where(
-      (t) =>
-          t.diverId.equals(diverId) |
-          t.id.isInQuery(
-            db.selectOnly(shares)
-              ..addColumns([shares.equipmentId])
-              ..where(shares.diverId.equals(diverId)),
-          ),
-    );
+    return equipment.diverId.equals(diverId) |
+        equipment.id.isInQuery(
+          db.selectOnly(shares)
+            ..addColumns([shares.equipmentId])
+            ..where(shares.diverId.equals(diverId)),
+        );
   }
 
   /// [applyToEquipment] for raw SQL: `$conjunction (alias.diver_id = ? OR

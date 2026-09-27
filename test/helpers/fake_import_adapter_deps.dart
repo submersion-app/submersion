@@ -48,6 +48,8 @@ class _FakeDiveComputerService implements pigeon.DiveComputerService {
     String? serialNumber,
     String? firmwareVersion,
     String? clockSyncStatus,
+    String? reportedProduct,
+    int? reportedModel,
   ) {}
   @override
   void onError(pigeon.DiveComputerError error) {}

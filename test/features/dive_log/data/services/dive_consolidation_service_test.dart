@@ -572,7 +572,7 @@ void main() {
 
     test('scenario 3b: secondary with NO dive_data_sources row (manual/file '
         'import) gets a synthesized non-primary source on the target, '
-        'carrying the secondary computer id, maxDepth, and duration', () async {
+        'carrying the secondary computer id, maxDepth, and runtime', () async {
       await seedDive(
         't',
         entry: DateTime.utc(2026, 7, 1, 9),
@@ -590,6 +590,7 @@ void main() {
         computerId: 'comp-s',
         serial: 'SER-S',
         depth: 27.5,
+        runtimeMin: 50,
         bottomTime: const Duration(minutes: 42),
       );
 
@@ -604,7 +605,8 @@ void main() {
       final synthesized = sources.firstWhere((s) => !s.isPrimary);
       expect(synthesized.computerId, 'comp-s');
       expect(synthesized.maxDepth, 27.5);
-      expect(synthesized.duration, const Duration(minutes: 42).inSeconds);
+      // The runtime it measured, never the derived bottom time (#2421).
+      expect(synthesized.duration, const Duration(minutes: 50).inSeconds);
     });
 
     test('scenario 4: stamps pre-existing target children with the primary '

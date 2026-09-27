@@ -408,6 +408,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ha ez a készlet tartalmaz egy merülőkomputert, a teljes készlet automatikusan hozzáadódik egy erről letöltött vagy importált merüléshez';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'A készlet felszerelését egy búváron mutatja a készlet oldalán';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title =>
+      'Búvárfigura megjelenítése';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geokerítések';
 
   @override
@@ -448,6 +456,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Alapértelmezett';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'Búvárfigura elrejtése';
+
+  @override
+  String get equipment_setDetail_showFigure => 'Búvárfigura megjelenítése';
 
   @override
   String get equipment_setDetail_setAsDefault =>
@@ -12311,6 +12325,76 @@ class AppLocalizationsHu extends AppLocalizations {
   String get passport_tag_linked => 'Címke összekapcsolva';
 
   @override
+  String get passport_scan_title => 'Palackcímke beolvasása';
+
+  @override
+  String get passport_scan_hint =>
+      'Irányítsa a kamerát a címkére, vagy illessze be a címke hivatkozását.';
+
+  @override
+  String get passport_scan_cameraUnavailable =>
+      'A kamera itt nem érhető el. Illessze be inkább a címke hivatkozását.';
+
+  @override
+  String get passport_scan_linkLabel => 'Címke hivatkozása';
+
+  @override
+  String get passport_scan_paste => 'Beillesztés';
+
+  @override
+  String get passport_scan_open => 'Megnyitás';
+
+  @override
+  String get passport_scan_openFailed =>
+      'A címkét nem sikerült megnyitni. Próbálja újra.';
+
+  @override
+  String get passport_scan_newerFormat =>
+      'Ezt a címkét a Submersion egy újabb verziója írta. Egyes adatok hiányozhatnak.';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return 'Kitöltve innen: $name';
+  }
+
+  @override
+  String get passport_foreign_title => 'Palackcímke';
+
+  @override
+  String get passport_foreign_notInGear =>
+      'Ez a palack nem szerepel a felszerelésében.';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return 'A címke adatai szerint, írva: $date';
+  }
+
+  @override
+  String get passport_foreign_noDetails =>
+      'A címke az azonosítóján kívül nem tartalmaz adatot.';
+
+  @override
+  String get passport_foreign_o2Clean => 'O2-tiszta volt a címke írásakor';
+
+  @override
+  String get passport_foreign_useOnDive => 'Használat egy merüléshez';
+
+  @override
+  String get passport_foreign_addToGear => 'Hozzáadás a felszerelésemhez';
+
+  @override
+  String get passport_foreign_addFailed =>
+      'A palack hozzáadása nem sikerült. Próbálja újra.';
+
+  @override
+  String get passport_foreign_defaultName => 'Palack';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return 'Sorozatszám: $serial';
+  }
+
+  @override
   String get passport_logFill_date => 'Töltés dátuma';
 
   @override
@@ -13417,6 +13501,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String trips_gearAlerts_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count felszerelési figyelmeztetés ehhez az utazáshoz',
+      one: '$count felszerelési figyelmeztetés ehhez az utazáshoz',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -13762,6 +13857,35 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'Készlet hozzáadása';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'Hátul · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'Elöl · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tétel',
+      one: '$count tétel',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'Egyéb felszerelés';
 
   @override
   String get equipment_list_emptyState_addFirstButton =>
@@ -41698,7 +41822,25 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_info_statusFound => 'Megtalálható ezen az eszközön';
 
   @override
+  String get media_info_statusFoundElsewhere =>
+      'Megtalálható egy másik eszközön';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'Megtalálható ezen: $device';
+  }
+
+  @override
   String get media_info_statusMissing => 'Hiányzik erről az eszközről';
+
+  @override
+  String get media_info_statusMissingElsewhere =>
+      'Hiányzik egy másik eszközről';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'Hiányzik innen: $device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'Még nincs ellenőrizve';
@@ -42492,6 +42634,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get profilePhoto_source_camera => 'Fénykép készítése';
+
+  @override
+  String get common_camera_unavailable =>
+      'A kamerát nem sikerült megnyitni. Kérem, engedélyezze a kamerahozzáférést a Beállításokban.';
+
+  @override
+  String get common_photo_pickFailed =>
+      'A fotót nem sikerült megnyitni. Kérem, próbáljon meg egy másikat.';
 
   @override
   String get profilePhoto_source_library => 'Választás a könyvtárból';

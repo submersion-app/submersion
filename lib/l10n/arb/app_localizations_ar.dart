@@ -404,6 +404,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'إذا كانت هذه المجموعة تتضمن كمبيوتر غوص، تتم إضافة المجموعة كاملة تلقائيًا إلى الغطسة التي يتم تنزيلها أو استيرادها منه';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'عرض معدات هذه المجموعة على غواص في صفحتها';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title => 'إظهار رسم الغواص';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'الأسوار الجغرافية';
 
   @override
@@ -444,6 +451,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'افتراضي';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'إخفاء رسم الغواص';
+
+  @override
+  String get equipment_setDetail_showFigure => 'إظهار رسم الغواص';
 
   @override
   String get equipment_setDetail_setAsDefault => 'تعيين كافتراضي';
@@ -12145,6 +12158,74 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_tag_linked => 'تم ربط البطاقة';
 
   @override
+  String get passport_scan_title => 'مسح بطاقة الأسطوانة';
+
+  @override
+  String get passport_scan_hint =>
+      'وجّه الكاميرا نحو الملصق، أو الصق رابط البطاقة.';
+
+  @override
+  String get passport_scan_cameraUnavailable =>
+      'الكاميرا غير متاحة هنا. الصق رابط البطاقة بدلًا من ذلك.';
+
+  @override
+  String get passport_scan_linkLabel => 'رابط البطاقة';
+
+  @override
+  String get passport_scan_paste => 'لصق';
+
+  @override
+  String get passport_scan_open => 'فتح';
+
+  @override
+  String get passport_scan_openFailed => 'تعذّر فتح البطاقة. حاول مرة أخرى.';
+
+  @override
+  String get passport_scan_newerFormat =>
+      'كتب هذه البطاقة إصدار أحدث من Submersion. قد تنقص بعض التفاصيل.';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return 'مُلئ من $name';
+  }
+
+  @override
+  String get passport_foreign_title => 'بطاقة الأسطوانة';
+
+  @override
+  String get passport_foreign_notInGear => 'هذه الأسطوانة ليست ضمن معداتك.';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return 'كما كُتب على البطاقة في $date';
+  }
+
+  @override
+  String get passport_foreign_noDetails =>
+      'لا تحمل البطاقة تفاصيل غير معرّفها.';
+
+  @override
+  String get passport_foreign_o2Clean => 'نظيفة للأكسجين عند كتابة البطاقة';
+
+  @override
+  String get passport_foreign_useOnDive => 'استخدام في غطسة';
+
+  @override
+  String get passport_foreign_addToGear => 'إضافة إلى معداتي';
+
+  @override
+  String get passport_foreign_addFailed =>
+      'تعذّر إضافة الأسطوانة. حاول مرة أخرى.';
+
+  @override
+  String get passport_foreign_defaultName => 'أسطوانة';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return 'الرقم التسلسلي $serial';
+  }
+
+  @override
   String get passport_logFill_date => 'تاريخ التعبئة';
 
   @override
@@ -13267,6 +13348,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String trips_gearAlerts_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تنبيه معدات لهذه الرحلة',
+      many: '$count تنبيهًا للمعدات لهذه الرحلة',
+      few: '$count تنبيهات معدات لهذه الرحلة',
+      two: '$count تنبيها معدات لهذه الرحلة',
+      one: '$count تنبيه معدات لهذه الرحلة',
+      zero: '$count تنبيهات معدات لهذه الرحلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -13610,6 +13706,35 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'إضافة طقم';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'الخلف · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'الأمام · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number، $type، $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر',
+      one: 'عنصر واحد',
+    );
+    return '$name، $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'يُحمل أيضًا';
 
   @override
   String get equipment_list_emptyState_addFirstButton => 'أضف معداتك الأولى';
@@ -41576,7 +41701,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_info_statusFound => 'موجود على هذا الجهاز';
 
   @override
+  String get media_info_statusFoundElsewhere => 'موجود على جهاز آخر';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'موجود على $device';
+  }
+
+  @override
   String get media_info_statusMissing => 'غير موجود على هذا الجهاز';
+
+  @override
+  String get media_info_statusMissingElsewhere => 'غير موجود على جهاز آخر';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'غير موجود على $device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'لم يتم التحقق بعد';
@@ -42356,6 +42497,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profilePhoto_source_camera => 'التقاط صورة';
+
+  @override
+  String get common_camera_unavailable =>
+      'تعذّر فتح الكاميرا. يرجى السماح بالوصول إلى الكاميرا في الإعدادات.';
+
+  @override
+  String get common_photo_pickFailed => 'تعذّر فتح الصورة. جرّب صورة أخرى.';
 
   @override
   String get profilePhoto_source_library => 'الاختيار من المكتبة';
