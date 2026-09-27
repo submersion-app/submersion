@@ -7205,7 +7205,7 @@
   "universalImport_summary_noticeMacdiveLogbooksTitle": "لم يتم استيراد دفاتر سجل MacDive",
   "universalImport_summary_noticeMacdiveLogbooksBody": "دفاتر سجل MacDive ({names}) هي عمليات بحث محفوظة وليست قوائم ثابتة من الغطسات، لذا لا يوجد ما يُستورد. يمكنك إعادة إنشائها كعوامل تصفية للغطسات.",
   "universalImport_summary_noticeMacdiveDeviceTimeZoneTitle": "قُرئت أوقات الغطس بالمنطقة الزمنية لهذا الجهاز",
-  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "حفظ MacDive هذه الغطسات بدون منطقة زمنية، ولا تحتوي مواقع الغوص الخاصة بها على موقع GPS، لذا قُرئت أوقاتها بالمنطقة الزمنية لهذا الجهاز. إذا أجريت هذه الغطسات في مكان آخر، فتحقق من أوقات بدئها.",
+  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "لم يحفظ MacDive منطقة زمنية قابلة للقراءة لهذه الغطسات، ولا تحتوي مواقع الغوص الخاصة بها على موقع GPS، لذا قُرئت أوقاتها بالمنطقة الزمنية لهذا الجهاز. إذا أجريت هذه الغطسات في مكان آخر، فتحقق من أوقات بدئها.",
   "universalImport_summary_fileImported": "{count, plural, =1{تم استيراد غطسة واحدة} other{تم استيراد {count} غطسات}}",
   "universalImport_summary_importAsRoute": "استيراد كمسار",
   "universalImport_summary_fileNeedsIndividualImport": "يتطلب استيرادًا فرديًا",

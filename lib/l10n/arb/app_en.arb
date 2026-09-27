@@ -15106,7 +15106,7 @@
     }
   },
   "universalImport_summary_noticeMacdiveDeviceTimeZoneTitle": "Dive times read in this device's time zone",
-  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "MacDive saved these dives without a time zone, and their dive sites have no GPS position, so their times were read in this device's time zone. If you made these dives somewhere else, check their start times.",
+  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "MacDive saved no time zone Submersion could read for these dives, and their dive sites have no GPS position, so their times were read in this device's time zone. If you made these dives somewhere else, check their start times.",
   "universalImport_summary_unreadableDatesTitle": "Some rows were not imported",
   "@universalImport_summary_unreadableDatesTitle": {
     "description": "Heading of the import summary card for CSV rows that were not imported because their date could not be read. A row is a spreadsheet row, one line of the CSV file, as numbered in a spreadsheet app."

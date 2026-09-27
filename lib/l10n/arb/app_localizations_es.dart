@@ -24652,7 +24652,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody =>
-      'MacDive guardó estas inmersiones sin zona horaria y sus puntos de buceo no tienen posición GPS, así que sus horas se leyeron en la zona horaria de este dispositivo. Si hiciste estas inmersiones en otro lugar, revisa sus horas de inicio.';
+      'MacDive no guardó una zona horaria legible para estas inmersiones y sus puntos de buceo no tienen posición GPS, así que sus horas se leyeron en la zona horaria de este dispositivo. Si hiciste estas inmersiones en otro lugar, revisa sus horas de inicio.';
 
   @override
   String get universalImport_summary_unreadableDatesTitle =>

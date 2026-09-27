@@ -852,6 +852,13 @@ void main() {
                 rawDate: DateTime.utc(2024, 7, 2, 17, 5),
                 diveSiteFk: 8,
               ),
+              // A stored zone that cannot be read, and no site.
+              MacDiveRawDive(
+                pk: 4,
+                uuid: 'dive-4',
+                rawDate: DateTime.utc(2024, 7, 4, 17, 5),
+                timezoneBplist: Uint8List.fromList([1, 2, 3, 4]),
+              ),
               // A stored zone: not a device-zone dive.
               MacDiveRawDive(
                 pk: 3,
@@ -868,7 +875,7 @@ void main() {
         final warning = payload.warnings.singleWhere(
           (w) => w.code == ImportWarningCode.macdiveDeviceTimeZone,
         );
-        expect(warning.count, 2);
+        expect(warning.count, 3);
         expect(warning.entityType, ImportEntityType.dives);
       });
 

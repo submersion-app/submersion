@@ -39345,7 +39345,7 @@ abstract class AppLocalizations {
   /// No description provided for @universalImport_summary_noticeMacdiveDeviceTimeZoneBody.
   ///
   /// In en, this message translates to:
-  /// **'MacDive saved these dives without a time zone, and their dive sites have no GPS position, so their times were read in this device\'s time zone. If you made these dives somewhere else, check their start times.'**
+  /// **'MacDive saved no time zone Submersion could read for these dives, and their dive sites have no GPS position, so their times were read in this device\'s time zone. If you made these dives somewhere else, check their start times.'**
   String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody;
 
   /// Heading of the import summary card for CSV rows that were not imported because their date could not be read. A row is a spreadsheet row, one line of the CSV file, as numbered in a spreadsheet app.

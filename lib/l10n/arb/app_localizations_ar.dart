@@ -24328,7 +24328,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody =>
-      'حفظ MacDive هذه الغطسات بدون منطقة زمنية، ولا تحتوي مواقع الغوص الخاصة بها على موقع GPS، لذا قُرئت أوقاتها بالمنطقة الزمنية لهذا الجهاز. إذا أجريت هذه الغطسات في مكان آخر، فتحقق من أوقات بدئها.';
+      'لم يحفظ MacDive منطقة زمنية قابلة للقراءة لهذه الغطسات، ولا تحتوي مواقع الغوص الخاصة بها على موقع GPS، لذا قُرئت أوقاتها بالمنطقة الزمنية لهذا الجهاز. إذا أجريت هذه الغطسات في مكان آخر، فتحقق من أوقات بدئها.';
 
   @override
   String get universalImport_summary_unreadableDatesTitle =>

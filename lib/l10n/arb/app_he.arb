@@ -7205,7 +7205,7 @@
   "universalImport_summary_noticeMacdiveLogbooksTitle": "יומני MacDive לא יובאו",
   "universalImport_summary_noticeMacdiveLogbooksBody": "יומני MacDive ({names}) הם חיפושים שמורים ולא רשימות קבועות של צלילות, ולכן אין מה לייבא. אפשר ליצור אותם מחדש כמסנני צלילות.",
   "universalImport_summary_noticeMacdiveDeviceTimeZoneTitle": "זמני הצלילה נקראו באזור הזמן של מכשיר זה",
-  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "MacDive שמר צלילות אלה ללא אזור זמן, ולאתרי הצלילה שלהן אין מיקום GPS, ולכן הזמנים שלהן נקראו באזור הזמן של מכשיר זה. אם ביצעת צלילות אלה במקום אחר, כדאי לבדוק את שעות ההתחלה שלהן.",
+  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "MacDive לא שמר אזור זמן קריא עבור צלילות אלה, ולאתרי הצלילה שלהן אין מיקום GPS, ולכן הזמנים שלהן נקראו באזור הזמן של מכשיר זה. אם ביצעת צלילות אלה במקום אחר, כדאי לבדוק את שעות ההתחלה שלהן.",
   "universalImport_summary_fileImported": "{count, plural, =1{צלילה אחת יובאה} other{{count} צלילות יובאו}}",
   "universalImport_summary_importAsRoute": "ייבוא כמסלול",
   "universalImport_summary_fileNeedsIndividualImport": "נדרש ייבוא נפרד",

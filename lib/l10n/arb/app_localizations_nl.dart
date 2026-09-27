@@ -24445,7 +24445,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody =>
-      'MacDive heeft deze duiken zonder tijdzone opgeslagen en hun duikstekken hebben geen GPS-positie, dus hun tijden zijn gelezen in de tijdzone van dit apparaat. Als je deze duiken ergens anders hebt gemaakt, controleer dan hun begintijden.';
+      'MacDive heeft voor deze duiken geen leesbare tijdzone opgeslagen en hun duikstekken hebben geen GPS-positie, dus hun tijden zijn gelezen in de tijdzone van dit apparaat. Als je deze duiken ergens anders hebt gemaakt, controleer dan hun begintijden.';
 
   @override
   String get universalImport_summary_unreadableDatesTitle =>

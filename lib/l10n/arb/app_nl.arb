@@ -7205,7 +7205,7 @@
   "universalImport_summary_noticeMacdiveLogbooksTitle": "MacDive-logboeken niet geïmporteerd",
   "universalImport_summary_noticeMacdiveLogbooksBody": "MacDive-logboeken ({names}) zijn opgeslagen zoekopdrachten, geen vaste lijsten met duiken, dus er is niets te importeren. Je kunt ze opnieuw maken als duikfilters.",
   "universalImport_summary_noticeMacdiveDeviceTimeZoneTitle": "Duiktijden gelezen in de tijdzone van dit apparaat",
-  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "MacDive heeft deze duiken zonder tijdzone opgeslagen en hun duikstekken hebben geen GPS-positie, dus hun tijden zijn gelezen in de tijdzone van dit apparaat. Als je deze duiken ergens anders hebt gemaakt, controleer dan hun begintijden.",
+  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "MacDive heeft voor deze duiken geen leesbare tijdzone opgeslagen en hun duikstekken hebben geen GPS-positie, dus hun tijden zijn gelezen in de tijdzone van dit apparaat. Als je deze duiken ergens anders hebt gemaakt, controleer dan hun begintijden.",
   "universalImport_summary_fileImported": "{count, plural, =1{1 duik geïmporteerd} other{{count} duiken geïmporteerd}}",
   "universalImport_summary_importAsRoute": "Importeren als route",
   "universalImport_summary_fileNeedsIndividualImport": "Afzonderlijke import vereist",

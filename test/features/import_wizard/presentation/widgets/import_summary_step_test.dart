@@ -1531,7 +1531,7 @@ void main() {
           count: 2,
         ),
         title: "Dive times read in this device's time zone",
-        bodyFragment: 'MacDive saved these dives without a time zone',
+        bodyFragment: 'MacDive saved no time zone Submersion could read',
         countLine: 'Affects 2 dives',
       );
     });

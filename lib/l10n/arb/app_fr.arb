@@ -7103,7 +7103,7 @@
   "universalImport_summary_noticeMacdiveLogbooksTitle": "Carnets MacDive non importés",
   "universalImport_summary_noticeMacdiveLogbooksBody": "Les carnets MacDive ({names}) sont des recherches enregistrées, pas des listes fixes de plongées : il n'y a donc rien à importer. Vous pouvez les recréer sous forme de filtres de plongées.",
   "universalImport_summary_noticeMacdiveDeviceTimeZoneTitle": "Heures de plongée lues dans le fuseau horaire de cet appareil",
-  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "MacDive a enregistré ces plongées sans fuseau horaire et leurs sites n'ont pas de position GPS : leurs heures ont donc été lues dans le fuseau horaire de cet appareil. Si vous avez fait ces plongées ailleurs, vérifiez leurs heures de début.",
+  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "MacDive n'a enregistré aucun fuseau horaire lisible pour ces plongées et leurs sites n'ont pas de position GPS : leurs heures ont donc été lues dans le fuseau horaire de cet appareil. Si vous avez fait ces plongées ailleurs, vérifiez leurs heures de début.",
   "universalImport_summary_fileImported": "{count, plural, =1{{count} plongée importée} other{{count} plongées importées}}",
   "universalImport_summary_importAsRoute": "Importer comme route",
   "universalImport_summary_fileNeedsIndividualImport": "Import individuel requis",

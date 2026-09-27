@@ -7103,7 +7103,7 @@
   "universalImport_summary_noticeMacdiveLogbooksTitle": "A MacDive-naplók nem lettek importálva",
   "universalImport_summary_noticeMacdiveLogbooksBody": "A MacDive-naplók ({names}) mentett keresések, nem pedig merülések rögzített listái, így nincs mit importálni. Merülésszűrőként újra létrehozhatod őket.",
   "universalImport_summary_noticeMacdiveDeviceTimeZoneTitle": "Merülési időpontok ennek az eszköznek az időzónája szerint",
-  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "A MacDive időzóna nélkül mentette ezeket a merüléseket, és a merülőhelyeiknek nincs GPS-pozíciója, ezért az időpontjaikat ennek az eszköznek az időzónájában olvastuk be. Ha ezeket a merüléseket máshol végezted, ellenőrizd a kezdési időpontjaikat.",
+  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "A MacDive nem mentett olvasható időzónát ezekhez a merülésekhez, és a merülőhelyeiknek nincs GPS-pozíciója, ezért az időpontjaikat ennek az eszköznek az időzónájában olvastuk be. Ha ezeket a merüléseket máshol végezted, ellenőrizd a kezdési időpontjaikat.",
   "universalImport_summary_fileImported": "{count, plural, =1{1 merülés importálva} other{{count} merülés importálva}}",
   "universalImport_summary_importAsRoute": "Importálás útvonalként",
   "universalImport_summary_fileNeedsIndividualImport": "Egyenkénti importálás szükséges",

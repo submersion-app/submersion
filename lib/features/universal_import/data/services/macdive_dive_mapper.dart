@@ -239,9 +239,9 @@ class MacDiveDiveMapper {
           code: ImportWarningCode.macdiveDeviceTimeZone,
           count: deviceZoneDives,
           message:
-              '$deviceZoneDives dive(s) had no time zone in MacDive and no '
-              "site GPS position, so their times were read in this device's "
-              'time zone.',
+              '$deviceZoneDives dive(s) had no readable time zone in MacDive '
+              "and no site GPS position, so their times were read in this "
+              "device's time zone.",
           entityType: ImportEntityType.dives,
         ),
       );

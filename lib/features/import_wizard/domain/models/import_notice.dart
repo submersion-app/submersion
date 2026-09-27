@@ -66,7 +66,7 @@ enum ImportNoticeKind {
   /// imported dives affected.
   sitesUnresolved,
 
-  /// MacDive saved dives with no time zone and their sites have no GPS
+  /// MacDive dives with no readable stored time zone and no site GPS
   /// position, so their times were read in the importing device's zone and
   /// may be off. [ImportNotice.count] is the number of imported dives
   /// affected.

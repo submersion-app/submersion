@@ -7205,7 +7205,7 @@
   "universalImport_summary_noticeMacdiveLogbooksTitle": "Logbooks do MacDive não importados",
   "universalImport_summary_noticeMacdiveLogbooksBody": "Os logbooks do MacDive ({names}) são buscas salvas, não listas fixas de mergulhos, então não há nada para importar. Você pode recriá-los como filtros de mergulhos.",
   "universalImport_summary_noticeMacdiveDeviceTimeZoneTitle": "Horários dos mergulhos lidos no fuso horário deste dispositivo",
-  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "O MacDive salvou estes mergulhos sem fuso horário e seus pontos de mergulho não têm posição GPS, então seus horários foram lidos no fuso horário deste dispositivo. Se você fez estes mergulhos em outro lugar, confira seus horários de início.",
+  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "O MacDive não salvou um fuso horário legível para estes mergulhos e seus pontos de mergulho não têm posição GPS, então seus horários foram lidos no fuso horário deste dispositivo. Se você fez estes mergulhos em outro lugar, confira seus horários de início.",
   "universalImport_summary_fileImported": "{count, plural, =1{{count} mergulho importado} other{{count} mergulhos importados}}",
   "universalImport_summary_importAsRoute": "Importar como rota",
   "universalImport_summary_fileNeedsIndividualImport": "Requer importação individual",

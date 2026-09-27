@@ -7392,7 +7392,7 @@
   "universalImport_summary_noticeMacdiveLogbooksTitle": "未导入 MacDive 日志簿",
   "universalImport_summary_noticeMacdiveLogbooksBody": "MacDive 日志簿（{names}）是已保存的搜索，而不是固定的潜水列表，因此没有可导入的内容。您可以将它们重新创建为潜水筛选条件。",
   "universalImport_summary_noticeMacdiveDeviceTimeZoneTitle": "潜水时间按此设备的时区读取",
-  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "MacDive 保存这些潜水时没有记录时区，而且它们的潜水点没有 GPS 位置，因此它们的时间按此设备的时区读取。如果您是在其他地方进行这些潜水的，请检查它们的开始时间。",
+  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "MacDive 没有为这些潜水保存可读取的时区，而且它们的潜水点没有 GPS 位置，因此它们的时间按此设备的时区读取。如果您是在其他地方进行这些潜水的，请检查它们的开始时间。",
   "universalImport_summary_fileImported": "已导入 {count} 次潜水",
   "universalImport_summary_importAsRoute": "作为路线导入",
   "universalImport_summary_fileNeedsIndividualImport": "需要单独导入",

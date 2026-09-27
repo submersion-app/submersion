@@ -24728,7 +24728,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody =>
-      'MacDive a enregistré ces plongées sans fuseau horaire et leurs sites n\'ont pas de position GPS : leurs heures ont donc été lues dans le fuseau horaire de cet appareil. Si vous avez fait ces plongées ailleurs, vérifiez leurs heures de début.';
+      'MacDive n\'a enregistré aucun fuseau horaire lisible pour ces plongées et leurs sites n\'ont pas de position GPS : leurs heures ont donc été lues dans le fuseau horaire de cet appareil. Si vous avez fait ces plongées ailleurs, vérifiez leurs heures de début.';
 
   @override
   String get universalImport_summary_unreadableDatesTitle =>
