@@ -16,7 +16,7 @@ String safetyFindingTitle(
   const unknown = '--';
   return switch (finding.ruleId) {
     SafetyRuleId.rapidAscent => l10n.safetyReview_rapidAscent_title(
-      value == null ? unknown : '${units.formatDepth(value, decimals: 0)}/min',
+      value == null ? unknown : units.formatDepthRate(value, decimals: 0),
       _durationOf(finding),
     ),
     SafetyRuleId.missedDecoStop => l10n.safetyReview_missedDecoStop_title(

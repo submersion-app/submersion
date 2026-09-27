@@ -3,6 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
@@ -44,6 +48,20 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 import 'package:submersion/core/constants/o2_cell_unit.dart';
+
+/// Records a Share all my equipment call (issue #2046).
+class _FakeShareRepository extends EquipmentShareRepository {
+  ({String ownerId, List<String> diverIds})? call;
+
+  @override
+  Future<EquipmentShareResult> shareAllForDiver({
+    required String ownerId,
+    required List<String> diverIds,
+  }) async {
+    call = (ownerId: ownerId, diverIds: diverIds);
+    return const EquipmentShareResult(added: 2, itemsChanged: 2);
+  }
+}
 
 /// Minimal fake SiteRepository for bulk-share smoke tests.
 class _FakeSiteRepository implements SiteRepository {
@@ -929,6 +947,92 @@ void main() {
         // The fake repository should have been called with true.
         expect(fakeAppSettings.setShareByDefaultCalled, isTrue);
         expect(fakeAppSettings.lastSetValue, isTrue);
+      },
+    );
+
+    testWidgets(
+      'bulk-share equipment: pick profiles, share, see snackbar with count',
+      (tester) async {
+        final twoDivers = [_makeDiver('diver-1'), _makeDiver('diver-2')];
+        final fakeShares = _FakeShareRepository();
+        const mine = [
+          EquipmentItem(
+            id: 'e1',
+            diverId: 'diver-1',
+            name: 'BCD',
+            type: EquipmentType.bcd,
+          ),
+          EquipmentItem(
+            id: 'e2',
+            diverId: 'diver-1',
+            name: 'Reg',
+            type: EquipmentType.regulator,
+          ),
+          EquipmentItem(
+            id: 'e3',
+            diverId: 'diver-2',
+            name: 'Their mask',
+            type: EquipmentType.mask,
+          ),
+        ];
+        fakeAppSettings = _FakeAppSettingsRepository();
+        await tester.pumpWidget(
+          MediaQuery(
+            data: const MediaQueryData(size: Size(400, 800)),
+            child: ProviderScope(
+              overrides: [
+                sharedPreferencesProvider.overrideWithValue(prefs),
+                logFileServiceProvider.overrideWithValue(logFileService),
+                settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+                currentDiverIdProvider.overrideWith(
+                  (ref) =>
+                      _MockCurrentDiverIdNotifier()..setCurrentDiver('diver-1'),
+                ),
+                validatedCurrentDiverIdProvider.overrideWith(
+                  (ref) async => 'diver-1',
+                ),
+                currentDiverProvider.overrideWith((ref) async => null),
+                diverListNotifierProvider.overrideWith(
+                  (ref) => _MockDiverListNotifier(),
+                ),
+                allDiversProvider.overrideWith((ref) async => twoDivers),
+                appSettingsRepositoryProvider.overrideWithValue(
+                  fakeAppSettings,
+                ),
+                shareByDefaultProvider.overrideWith(
+                  (ref) async => fakeAppSettings.getShareByDefault(),
+                ),
+                allEquipmentProvider.overrideWith((ref) async => mine),
+                equipmentShareRepositoryProvider.overrideWithValue(fakeShares),
+              ],
+              child: const MaterialApp(
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                home: Scaffold(body: SharedDataSectionContent()),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Share all my equipment...'));
+        await tester.pumpAndSettle();
+        expect(
+          find.text('Share your 2 items with the profiles you choose.'),
+          findsOneWidget,
+        );
+        expect(
+          find.widgetWithText(CheckboxListTile, 'Diver diver-1'),
+          findsNothing,
+        );
+        await tester.tap(find.text('Diver diver-2'));
+        await tester.pump();
+        await tester.tap(find.widgetWithText(FilledButton, 'Share'));
+        await tester.pumpAndSettle();
+
+        expect(fakeShares.call?.ownerId, 'diver-1');
+        expect(fakeShares.call?.diverIds, ['diver-2']);
+        expect(find.text('Shared 2 items'), findsOneWidget);
       },
     );
 

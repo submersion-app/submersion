@@ -9,6 +9,162 @@ class AppLocalizationsNl extends AppLocalizations {
   AppLocalizationsNl([String locale = 'nl']) : super(locale);
 
   @override
+  String get equipment_filter_owner_all => 'Alle';
+
+  @override
+  String get equipment_delete_notOwner =>
+      'Alleen de eigenaar kan dit item verwijderen';
+
+  @override
+  String get equipment_sharedWithMe => 'Met mij gedeeld';
+
+  @override
+  String get equipment_owner_unknown => 'Ander profiel';
+
+  @override
+  String equipment_ownerChip_semanticLabel(String name) {
+    return 'Eigendom van $name';
+  }
+
+  @override
+  String equipment_picker_ownerHeader(String name) {
+    return 'Van $name';
+  }
+
+  @override
+  String get equipment_sharing_sharedWithLabel => 'Gedeeld met';
+
+  @override
+  String get equipment_sharing_notShared => 'Niet gedeeld';
+
+  @override
+  String get equipment_sharing_ownedByLabel => 'Eigenaar';
+
+  @override
+  String get equipment_sharing_dialogTitle => 'Delen met';
+
+  @override
+  String get equipment_sharing_dialogBody =>
+      'De gekozen profielen kunnen deze uitrusting aan hun duiken toevoegen en het onderhoud ervan vastleggen. Alleen de eigenaar kan ze verwijderen of wijzigen met wie ze gedeeld wordt.';
+
+  @override
+  String get equipment_bulkShare_action => 'Delen met...';
+
+  @override
+  String equipment_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items gedeeld',
+      one: '1 item gedeeld',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items gedeeld',
+      one: '1 item gedeeld',
+    );
+    return '$_temp0, $skipped overgeslagen die niet van jou zijn';
+  }
+
+  @override
+  String equipment_bulkDelete_partial(int deleted, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      deleted,
+      locale: localeName,
+      other: '$deleted items verwijderd',
+      one: '1 item verwijderd',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other:
+          '$skipped gedeelde items zijn behouden: alleen de eigenaren kunnen ze verwijderen',
+      one: '1 gedeeld item is behouden: alleen de eigenaar kan het verwijderen',
+    );
+    return '$_temp0. $_temp1';
+  }
+
+  @override
+  String get equipment_filter_section_owner => 'Eigenaar';
+
+  @override
+  String get equipment_filter_owner_mine => 'Van mij';
+
+  @override
+  String get enum_equipmentField_owner => 'Eigenaar';
+
+  @override
+  String get enum_equipmentField_owner_short => 'Eigenaar';
+
+  @override
+  String get equipment_set_noLongerShared => 'Niet meer gedeeld';
+
+  @override
+  String get equipment_history_title => 'Geschiedenis';
+
+  @override
+  String get equipment_history_empty => 'Nog bij geen enkele duik gebruikt';
+
+  @override
+  String get equipment_history_deletedProfile => 'een verwijderd profiel';
+
+  @override
+  String equipment_history_runDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_history_dateRange(String from, String to) {
+    return '$from tot $to';
+  }
+
+  @override
+  String equipment_history_added(String name) {
+    return 'Toegevoegd door $name';
+  }
+
+  @override
+  String equipment_history_shared(String name) {
+    return 'Gedeeld met $name';
+  }
+
+  @override
+  String equipment_history_unshared(String name) {
+    return 'Niet meer gedeeld met $name';
+  }
+
+  @override
+  String equipment_history_transferred(String from, String to) {
+    return 'Overgedragen van $from aan $to';
+  }
+
+  @override
+  String get settings_shareAllEquipment_title => 'Al mijn uitrusting delen...';
+
+  @override
+  String settings_shareAllEquipment_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Deel je $count items met de gekozen profielen.',
+      one: 'Deel je 1 item met de gekozen profielen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'Kan de browser niet openen. Gebruik Link kopiëren en plak het adres in je browser.';
 
@@ -8873,12 +9029,12 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh => 'Equivalent Narcotic Depth te hoog';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END van $depth overschrijdt de limiet van $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END van $depth overschrijdt veilige limiet';
-  }
+  String get divePlanner_warning_endHigh => 'Equivalent Narcotic Depth te hoog';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -15039,6 +15195,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get marineLife_speciesDetail_sitesLabel => 'Duikstekken';
+
+  @override
+  String get marineLife_speciesDetail_statsError =>
+      'Kan waarnemingsstatistieken niet laden';
 
   @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
@@ -26091,7 +26251,7 @@ class AppLocalizationsNl extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Opstijging $from → $to met $rate/min';
+    return 'Opstijging $from → $to met $rate';
   }
 
   @override
@@ -26105,7 +26265,7 @@ class AppLocalizationsNl extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Afdaling $from → $to met $rate/min';
+    return 'Afdaling $from → $to met $rate';
   }
 
   @override
@@ -27815,7 +27975,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_sharedData_sectionSubtitle =>
-      'Sites en trips delen tussen profielen';
+      'Sites, trips en uitrusting delen tussen profielen';
 
   @override
   String get common_action_unshare => 'Delen opheffen';
@@ -29718,7 +29878,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Voeg een flesvolume toe om de RMV in $unit/min te tonen';
+    return 'Voeg een flesvolume toe om de RMV in $unit te tonen';
   }
 
   @override
@@ -42434,14 +42594,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'Het bestand dat nu op zijn plaats staat, wordt ernaast bewaard en niet verwijderd.';
+      'Het bestand dat nu op zijn plaats staat, wordt bewaard en niet verwijderd. Je kunt het later herstellen of verwijderen via Back-up en herstel in Instellingen.';
 
   @override
   String get startup_interruptedRestore_keepAction => 'Houden wat er nu staat';
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'Je vorige duiklogboek wordt als bestand in de databasemap bewaard.';
+      'Je vorige duiklogboek wordt bewaard en niet verwijderd. Je kunt het later herstellen of verwijderen via Back-up en herstel in Instellingen.';
 
   @override
   String get startup_interruptedRestore_failed =>
@@ -42763,6 +42923,66 @@ class AppLocalizationsNl extends AppLocalizations {
   String backup_unrecognized_freed(String size) {
     return '$size vrijgemaakt';
   }
+
+  @override
+  String get backup_quarantined_sectionTitle => 'Apart gezette databases';
+
+  @override
+  String get backup_quarantined_explanation =>
+      'Een herstel dat niet netjes kon worden afgerond, heeft deze kopieën van je database bewaard in plaats van ze te verwijderen. Herstel er een om hem weer te gebruiken, of verwijder hem om ruimte vrij te maken.';
+
+  @override
+  String get backup_quarantined_kind_preRestore =>
+      'Duiklogboek van vóór een herstel';
+
+  @override
+  String get backup_quarantined_kind_restoreRejected =>
+      'Duiklogboek vervangen tijdens een herstel';
+
+  @override
+  String backup_quarantined_detail(String date, String size) {
+    return '$date • $size';
+  }
+
+  @override
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
+    return '$date • $size • database v$version';
+  }
+
+  @override
+  String get backup_quarantined_status_needsNewerApp =>
+      'Vereist een nieuwere versie van Submersion';
+
+  @override
+  String get backup_quarantined_status_unreadable =>
+      'Kan hier niet worden geopend. Mogelijk is hij beschadigd, of beveiligd met een wachtwoord dat dit apparaat niet heeft.';
+
+  @override
+  String get backup_quarantined_status_incomplete =>
+      'Alleen journaalbestanden zijn over; het databasebestand zelf is verdwenen.';
+
+  @override
+  String get backup_quarantined_delete_title =>
+      'Deze databasekopie verwijderen?';
+
+  @override
+  String get backup_quarantined_delete_message =>
+      'De kopie en de bijbehorende journaalbestanden worden definitief van dit apparaat verwijderd. Dit kan niet ongedaan worden gemaakt.';
+
+  @override
+  String get backup_quarantined_deleted => 'Databasekopie verwijderd';
+
+  @override
+  String get backup_quarantined_deleteFailed =>
+      'Kon de databasekopie niet verwijderen.';
+
+  @override
+  String get backup_quarantined_loadFailed =>
+      'Kon de databasemap niet controleren op apart gezette kopieën.';
 
   @override
   String settings_storageUsage_unrecognized_title(int count) {

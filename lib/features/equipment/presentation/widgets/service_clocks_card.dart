@@ -47,6 +47,7 @@ class ServiceClocksCard extends ConsumerWidget {
       serviceSchedulesForEquipmentProvider(equipmentId),
     );
     final kindsAsync = ref.watch(serviceKindsProvider);
+    final allKindsAsync = ref.watch(allServiceKindsByIdProvider);
     final units = UnitFormatter(ref.watch(settingsProvider));
     final l10n = context.l10n;
 
@@ -91,7 +92,10 @@ class ServiceClocksCard extends ConsumerWidget {
               data: (statuses) {
                 final schedules = schedulesAsync.value ?? const [];
                 final paused = schedules.where((s) => !s.enabled).toList();
+                // Every kind, so a shared item's schedule on its owner's
+                // custom kind keeps its name (issue #2046).
                 final kindsById = {
+                  ...?allKindsAsync.value,
                   for (final k in kindsAsync.value ?? []) k.id: k,
                 };
                 // Enabled schedules the engine emitted no status for have no

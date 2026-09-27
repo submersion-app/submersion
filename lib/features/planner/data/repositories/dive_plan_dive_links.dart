@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
 /// `dive_plans.source_dive_id` ("plan from this dive") and `linked_dive_id`
 /// (plan-vs-actual) reference `dives` with no ON DELETE action, and plans are
@@ -18,17 +19,13 @@ Future<void> clearPlanLinksToDives(
   SyncRepository syncRepository,
   List<String> diveIds, {
   required int now,
-}) async {
-  if (diveIds.isEmpty) return;
-  final placeholders = List.filled(diveIds.length, '?').join(', ');
-  await _clearPlanLinks(
-    db,
-    syncRepository,
-    links: [for (final column in _diveLinkColumns) (column, placeholders)],
-    args: diveIds,
-    now: now,
-  );
-}
+}) => _clearPlanLinksToIds(
+  db,
+  syncRepository,
+  columns: _diveLinkColumns,
+  ids: diveIds,
+  now: now,
+);
 
 /// Clears the site of the dive plans set at [siteIds], stamping and marking
 /// each plan so the change reaches peers. Run it inside the caller's
@@ -39,16 +36,13 @@ Future<void> clearPlanLinksToSites(
   SyncRepository syncRepository,
   List<String> siteIds, {
   required int now,
-}) async {
-  if (siteIds.isEmpty) return;
-  await _clearPlanLinks(
-    db,
-    syncRepository,
-    links: [('site_id', List.filled(siteIds.length, '?').join(', '))],
-    args: siteIds,
-    now: now,
-  );
-}
+}) => _clearPlanLinksToIds(
+  db,
+  syncRepository,
+  columns: const ['site_id'],
+  ids: siteIds,
+  now: now,
+);
 
 /// Clears the links surviving dive plans hold to [diverId]'s dives and
 /// private sites, stamping and marking each plan so the change reaches
@@ -64,13 +58,12 @@ Future<void> clearPlanLinksToDiverRows(
   SyncRepository syncRepository,
   String diverId, {
   required int now,
-}) {
+}) async {
   // stats-scope-exempt: deletion cascade cleanup.
   const diverDives = 'SELECT id FROM dives WHERE diver_id = ?';
   const diverSites = 'SELECT id FROM dive_sites WHERE diver_id = ?';
-  return _clearPlanLinks(
+  final planIds = await _clearPlanLinks(
     db,
-    syncRepository,
     links: [
       for (final column in _diveLinkColumns) (column, diverDives),
       ('site_id', diverSites),
@@ -78,14 +71,42 @@ Future<void> clearPlanLinksToDiverRows(
     args: [diverId],
     now: now,
   );
+  await _markPlansPending(syncRepository, planIds, now: now);
+}
+
+/// Clears each of [columns] on the plans whose column names one of [ids].
+///
+/// Chunked: a bulk delete can pass more ids than SQLite binds in one
+/// statement (issue #1953). A plan cleared in two chunks, through both of
+/// its dive links, is still marked pending once.
+Future<void> _clearPlanLinksToIds(
+  AppDatabase db,
+  SyncRepository syncRepository, {
+  required List<String> columns,
+  required List<String> ids,
+  required int now,
+}) async {
+  if (ids.isEmpty) return;
+  final planIds = <String>{};
+  for (final chunk in seriesIdChunks(ids)) {
+    final placeholders = List.filled(chunk.length, '?').join(', ');
+    planIds.addAll(
+      await _clearPlanLinks(
+        db,
+        links: [for (final column in columns) (column, placeholders)],
+        args: chunk,
+        now: now,
+      ),
+    );
+  }
+  await _markPlansPending(syncRepository, planIds, now: now);
 }
 
 /// Sets each (column, ids) link of [links] to NULL on the plans whose column
 /// is in `ids`, the body of an `IN (...)` list (placeholders or a subquery)
-/// bound by [args].
-Future<void> _clearPlanLinks(
-  AppDatabase db,
-  SyncRepository syncRepository, {
+/// bound by [args]. Returns the plans it changed, for [_markPlansPending].
+Future<Set<String>> _clearPlanLinks(
+  AppDatabase db, {
   required List<(String, String)> links,
   required List<String> args,
   required int now,
@@ -112,6 +133,14 @@ Future<void> _clearPlanLinks(
     );
     planIds.addAll(rows.map((r) => r.read<String>('id')));
   }
+  return planIds;
+}
+
+Future<void> _markPlansPending(
+  SyncRepository syncRepository,
+  Set<String> planIds, {
+  required int now,
+}) async {
   for (final id in planIds) {
     await syncRepository.markRecordPending(
       entityType: 'divePlans',

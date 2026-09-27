@@ -22,6 +22,13 @@ void main() {
   setUp(() async {
     final db = await setUpTestDatabase();
     await db.customStatement('PRAGMA foreign_keys = OFF');
+    // The set's member exists and is the diver's own: applying a set skips a
+    // member the diver can no longer see (issue #2046).
+    await db.customStatement(
+      'INSERT INTO equipment (id, name, type, created_at, updated_at, '
+      "diver_id) VALUES ('eq-1', 'Apeks XTX50', 'regulator', 0, 0, "
+      "'diver-1')",
+    );
   });
   tearDown(tearDownTestDatabase);
 

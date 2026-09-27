@@ -101,6 +101,8 @@ void main() {
     'site_site_types': 'siteSiteTypes',
     'site_tags': 'siteTags',
     'equipment_tags': 'equipmentTags',
+    'equipment_shares': 'equipmentShares',
+    'equipment_ownership_events': 'equipmentOwnershipEvents',
     'dive_safety_reviews': 'diveSafetyReviews',
     'dive_safety_findings': 'diveSafetyFindings',
     'dive_plans': 'divePlans',

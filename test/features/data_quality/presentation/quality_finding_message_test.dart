@@ -12,6 +12,7 @@ void main() {
   // were routed through the unit formatter rather than hardcoded.
   final fmt = QualityUnitFormatters(
     depth: (m) => 'D${m.toStringAsFixed(1)}',
+    depthRate: (mpm) => 'R${mpm.toStringAsFixed(1)}',
     limitDepth: (m) => 'L${m.toStringAsFixed(1)}',
     pressure: (bar) => 'P${bar.toStringAsFixed(1)}',
     temperature: (c) => 'T${c.toStringAsFixed(1)}',
@@ -148,12 +149,13 @@ void main() {
     });
   });
 
-  test('impossible_rate formats rate/min', () {
+  test('impossible_rate routes the rate through the rate formatter', () {
     final d = detailFor('impossible_rate', {
       'maxRateMetersPerMinute': 30.0,
       'durationSeconds': 10,
     });
-    expect(d, contains('D30.0/min'));
+    expect(d, contains('R30.0'));
+    expect(d, isNot(contains('/min')));
   });
 
   group('temp_anomaly', () {
