@@ -110,4 +110,45 @@ void main() {
       ConnectionsViewState.initial,
     );
   });
+
+  test('an empty set of Around kinds survives a round trip', () {
+    final s = ConnectionsViewState.initial.withAroundKinds({});
+    expect(ConnectionsViewState.fromJson(s.toJson())!.aroundKinds, isEmpty);
+    final legacy = s.toJson()..remove('aroundKinds');
+    expect(
+      ConnectionsViewState.fromJson(legacy)!.aroundKinds,
+      kDefaultAroundKinds,
+      reason: 'a view stored before the field existed gets the defaults',
+    );
+  });
+
+  group('withSavedMaps', () {
+    final a = ConnectionPresets.byId('travel')!.spec;
+    final b = ConnectionPresets.byId('reef')!.spec;
+    final onSaved = ConnectionsViewState.initial.applySavedMap('bon', a);
+
+    test('follows an edit made elsewhere to the applied map', () {
+      final next = onSaved.withSavedMaps({'bon': b});
+      expect(next.mapSpec, b);
+      expect(next.savedMapId, 'bon');
+    });
+
+    test('turns the view custom when the applied map is gone', () {
+      final next = onSaved.withSavedMaps(const {});
+      expect(next.savedMapId, isNull);
+      expect(next.presetId, isNull);
+      expect(next.mapSpec, a, reason: 'what is on screen stays');
+    });
+
+    test('leaves a view on a preset or an unchanged map alone', () {
+      expect(
+        identical(
+          ConnectionsViewState.initial.withSavedMaps(const {}),
+          ConnectionsViewState.initial,
+        ),
+        isTrue,
+      );
+      expect(identical(onSaved.withSavedMaps({'bon': a}), onSaved), isTrue);
+    });
+  });
 }

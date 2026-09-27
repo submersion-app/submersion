@@ -54,7 +54,7 @@ class ConnectionsRouteArgs {
     if (preset != null) {
       next = next.applyPreset(preset);
     } else if (kindA != null && kindB != null) {
-      next = next.editMap(MapSpec.of({kindA, kindB}, {KindLink(kindA, kindB)}));
+      next = next.showMap(MapSpec.of({kindA, kindB}, {KindLink(kindA, kindB)}));
     }
     final ref = NodeRef.parse(focus);
     if (ref != null && mode != 'map') next = next.centreOn(ref);

@@ -181,31 +181,40 @@ class _SavedMapMenu extends ConsumerWidget {
       iconSize: 18,
       onSelected: (value) async {
         final repo = ref.read(connectionMapRepositoryProvider);
-        switch (value) {
-          case 'rename':
-            final name = await showSaveMapDialog(
-              context,
-              title: l10n.connections_savedMap_rename,
-              initialName: map.name,
-            );
-            if (name != null) await repo.rename(map.id, name);
-          case 'update':
-            await repo.updateSpec(
-              map.id,
-              ref.read(connectionsViewProvider).mapSpec,
-            );
-          case 'delete':
-            await repo.delete(map.id);
-            if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(l10n.connections_savedMap_deleted(map.name)),
-                action: SnackBarAction(
-                  label: l10n.connections_savedMap_undo,
-                  onPressed: () => repo.restore(map),
+        final messenger = ScaffoldMessenger.of(context);
+        try {
+          switch (value) {
+            case 'rename':
+              final name = await showSaveMapDialog(
+                context,
+                title: l10n.connections_savedMap_rename,
+                initialName: map.name,
+              );
+              if (name != null) await repo.rename(map.id, name);
+            case 'update':
+              final spec = ref.read(connectionsViewProvider).mapSpec;
+              await repo.updateSpec(map.id, spec);
+              // The map now holds what is on screen, so its card is the
+              // current view again.
+              await ref
+                  .read(connectionsViewProvider.notifier)
+                  .update((s) => s.applySavedMap(map.id, spec));
+            case 'delete':
+              await repo.delete(map.id);
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text(l10n.connections_savedMap_deleted(map.name)),
+                  action: SnackBarAction(
+                    label: l10n.connections_savedMap_undo,
+                    onPressed: () => repo.restore(map),
+                  ),
                 ),
-              ),
-            );
+              );
+          }
+        } catch (_) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.common_error_tryAgain)),
+          );
         }
       },
       itemBuilder: (context) => [

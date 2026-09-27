@@ -11,6 +11,7 @@ import 'package:submersion/features/connections/domain/entities/connection_kind.
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/domain/entities/saved_connection_map.dart';
 import 'package:submersion/features/connections/domain/views/connection_presets.dart';
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
@@ -53,6 +54,7 @@ Future<ProviderContainer> _pump(
   String location = '/connections',
   FutureOr<ConnectionGraph> Function(Ref ref, int budget)? graph,
   List<Override> extra = const [],
+  List<SavedConnectionMap> savedMaps = const [],
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -79,7 +81,7 @@ Future<ProviderContainer> _pump(
         connectionsYearSpanProvider.overrideWith(
           (ref) async => (first: 2019, last: 2024),
         ),
-        savedConnectionMapsProvider.overrideWith((ref) async => const []),
+        savedConnectionMapsProvider.overrideWith((ref) async => savedMaps),
         connectionsSelectionDiveIdsProvider.overrideWith(
           (ref, s) async => ['d1'],
         ),
@@ -331,5 +333,59 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
     expect(c.read(connectionsSelectionProvider), isNull);
+  });
+
+  testWidgets('an edge the new view drops clears its selection', (
+    tester,
+  ) async {
+    final c = await _pump(
+      tester,
+      graph: (ref, budget) {
+        final view = ref.watch(connectionsViewProvider);
+        return view.presetId == 'reef'
+            ? ConnectionGraph(nodes: _graph.nodes, edges: const [])
+            : _graph;
+      },
+    );
+    c.read(connectionsSelectionProvider.notifier).state = EdgeSelection(
+      _b('jane'),
+      _b('ken'),
+    );
+    await tester.pump();
+    await c
+        .read(connectionsViewProvider.notifier)
+        .update((s) => s.applyPreset(ConnectionPresets.byId('reef')!));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(c.read(connectionsSelectionProvider), isNull);
+  });
+
+  testWidgets('a saved map edited elsewhere redraws with its new spec', (
+    tester,
+  ) async {
+    final a = ConnectionPresets.byId('travel')!.spec;
+    final b = ConnectionPresets.byId('reef')!.spec;
+    final c = await _pump(
+      tester,
+      savedMaps: [
+        SavedConnectionMap(
+          id: 'bon',
+          diverId: 'me',
+          name: 'Bonaire',
+          spec: b,
+          createdAt: DateTime.utc(2026),
+          updatedAt: DateTime.utc(2026),
+        ),
+      ],
+    );
+    await c
+        .read(connectionsViewProvider.notifier)
+        .update((s) => s.applySavedMap('bon', a));
+    // The saved maps change (a sync brings device B's edit).
+    c.invalidate(savedConnectionMapsProvider);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(c.read(connectionsViewProvider).mapSpec, b);
+    expect(c.read(connectionsViewProvider).savedMapId, 'bon');
   });
 }

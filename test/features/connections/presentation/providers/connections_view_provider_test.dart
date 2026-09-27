@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
@@ -9,6 +10,8 @@ import 'package:submersion/features/connections/domain/views/connection_presets.
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
+import '../../../../helpers/mock_providers.dart';
 
 const _jane = NodeRef(ConnectionKind.buddy, 'jane');
 
@@ -71,5 +74,26 @@ void main() {
     addTearDown(notifier.dispose);
     await notifier.update((s) => s.centreOn(_jane));
     expect(notifier.state.focus, _jane);
+  });
+
+  test('switching diver clears the remembered centre', () async {
+    SharedPreferences.setMockInitialValues({});
+    final sp = await SharedPreferences.getInstance();
+    final diver = MockCurrentDiverIdNotifier();
+    final c = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(sp),
+        currentDiverIdProvider.overrideWith((ref) => diver),
+      ],
+    );
+    addTearDown(c.dispose);
+    await diver.setCurrentDiver('a');
+    await c
+        .read(connectionsViewProvider.notifier)
+        .update((s) => s.centreOn(_jane));
+    expect(c.read(connectionsViewProvider).focus, _jane);
+    await diver.setCurrentDiver('b');
+    await Future<void>.delayed(Duration.zero);
+    expect(c.read(connectionsViewProvider).focus, isNull);
   });
 }

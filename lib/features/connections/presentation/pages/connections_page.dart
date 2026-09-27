@@ -15,6 +15,7 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
+import 'package:submersion/features/connections/presentation/providers/saved_connection_maps_provider.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_empty_state.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_legend.dart';
 import 'package:submersion/features/connections/presentation/widgets/hidden_nodes_chip.dart';
@@ -172,8 +173,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     final present = switch (selection) {
       null => true,
       NodeSelection(:final ref) => graph.nodeFor(ref) != null,
-      EdgeSelection(:final a, :final b) =>
-        graph.nodeFor(a) != null && graph.nodeFor(b) != null,
+      EdgeSelection(:final a, :final b) => graph.edges.any(
+        (e) => e.touches(a) && e.touches(b),
+      ),
     };
     if (!present) ref.read(connectionsSelectionProvider.notifier).state = null;
   }
@@ -219,6 +221,15 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
       if (!next.isLoading && next.hasValue) _dropStaleSelection(next.value!);
     });
     ref.listen<GraphSelection?>(connectionsSelectionProvider, _onSelection);
+    // A saved map edited or deleted elsewhere (sync, another device) must
+    // not leave its card selected over a stale drawing.
+    ref.listen(savedConnectionMapsProvider, (_, next) {
+      final maps = next.value;
+      if (maps == null) return;
+      ref
+          .read(connectionsViewProvider.notifier)
+          .update((s) => s.withSavedMaps({for (final m in maps) m.id: m.spec}));
+    });
 
     final graph = graphAsync.value ?? ConnectionGraph.empty;
     final Widget canvasArea;

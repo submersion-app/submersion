@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 const kConnectionsViewKey = 'connections_view_v2';
@@ -59,6 +60,16 @@ class ConnectionsViewNotifier extends StateNotifier<ConnectionsViewState> {
 }
 
 final connectionsViewProvider =
-    StateNotifierProvider<ConnectionsViewNotifier, ConnectionsViewState>(
-      (ref) => ConnectionsViewNotifier(ref.watch(sharedPreferencesProvider)),
-    );
+    StateNotifierProvider<ConnectionsViewNotifier, ConnectionsViewState>((ref) {
+      final notifier = ConnectionsViewNotifier(
+        ref.watch(sharedPreferencesProvider),
+      );
+      // The view is remembered per device, but a centre is one diver's
+      // entity: another diver must not open Around on it.
+      ref.listen<String?>(currentDiverIdProvider, (previous, next) {
+        if (previous != null && previous != next) {
+          notifier.update((s) => s.copyWith(clearFocus: true));
+        }
+      });
+      return notifier;
+    });

@@ -67,4 +67,13 @@ void main() {
     }).apply(base);
     expect(s, base);
   });
+
+  test('a phase 1 pair link does not mark the preset edited', () {
+    final pair = ConnectionsRouteArgs.fromQuery(const {
+      'a': 'equipment',
+      'b': 'trip',
+    }).apply(base);
+    expect(pair.editedFromPresetId, isNull);
+    expect(pair.presetId, isNull);
+  });
 }

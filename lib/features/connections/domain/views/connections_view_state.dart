@@ -76,6 +76,35 @@ class ConnectionsViewState extends Equatable {
         hops: hops,
       );
 
+  /// Shows [spec] as a custom map without marking any preset edited (a map
+  /// that arrives from outside, such as a phase 1 pair link).
+  ConnectionsViewState showMap(MapSpec spec) => ConnectionsViewState(
+    mode: ConnectionsMode.map,
+    mapSpec: spec,
+    focus: focus,
+    aroundKinds: aroundKinds,
+    hops: hops,
+  );
+
+  /// Reconciles the applied saved map with the current saved maps: follows
+  /// an edit made elsewhere, and turns the view custom when the map is gone
+  /// (what is on screen stays). Returns this view unchanged otherwise.
+  ConnectionsViewState withSavedMaps(Map<String, MapSpec> savedById) {
+    final id = savedMapId;
+    if (id == null) return this;
+    final spec = savedById[id];
+    if (spec == null) return showMap(mapSpec).withMode(mode);
+    if (spec == mapSpec) return this;
+    return ConnectionsViewState(
+      mode: mode,
+      mapSpec: spec,
+      savedMapId: id,
+      focus: focus,
+      aroundKinds: aroundKinds,
+      hops: hops,
+    );
+  }
+
   /// Any edit to the map makes it a custom map.
   ConnectionsViewState editMap(MapSpec spec) => ConnectionsViewState(
     mode: ConnectionsMode.map,
@@ -158,9 +187,11 @@ class ConnectionsViewState extends Equatable {
       focus: NodeRef.parse(
         json['focus'] is String ? json['focus'] as String : null,
       ),
-      aroundKinds: kinds.isEmpty
-          ? kDefaultAroundKinds
-          : Set.unmodifiable(kinds),
+      // A stored empty list is the diver's choice; only a view stored
+      // before the field existed falls back to the defaults.
+      aroundKinds: rawKinds is List
+          ? Set.unmodifiable(kinds)
+          : kDefaultAroundKinds,
       hops: hops is int ? hops.clamp(1, 3) : 1,
     );
   }
@@ -176,10 +207,7 @@ class ConnectionsViewState extends Equatable {
       final b = ConnectionKind.fromName(parts[2]);
       if (a != null && b != null) {
         // Not editMap: a legacy pair must not mark Dive circle as edited.
-        return ConnectionsViewState(
-          mode: ConnectionsMode.map,
-          mapSpec: MapSpec.of({a, b}, {KindLink(a, b)}),
-        );
+        return initial.showMap(MapSpec.of({a, b}, {KindLink(a, b)}));
       }
     }
     return initial;

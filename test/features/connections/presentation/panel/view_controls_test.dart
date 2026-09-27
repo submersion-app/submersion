@@ -51,9 +51,14 @@ class _FakeMaps implements ConnectionMapRepository {
   Future<void> rename(String id, String name) async =>
       calls.add('rename:$id:$name');
 
+  /// Makes updateSpec throw, like a failed database write.
+  bool failUpdates = false;
+
   @override
-  Future<void> updateSpec(String id, MapSpec spec) async =>
-      calls.add('update:$id');
+  Future<void> updateSpec(String id, MapSpec spec) async {
+    if (failUpdates) throw StateError('disk full');
+    calls.add('update:$id');
+  }
 
   @override
   Future<void> delete(String id) async {
@@ -214,5 +219,46 @@ void main() {
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle();
     expect(fake.calls, ['delete:bon', 'restore:bon']);
+  });
+
+  testWidgets('Update from current stores the view and selects the map', (
+    tester,
+  ) async {
+    final (c, fake) = await _pump(tester, const PresetGrid());
+    await tester.tap(find.byKey(const ValueKey('preset-reef')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('saved-map-bon')),
+        matching: find.byType(PopupMenuButton<String>),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Update from current'));
+    await tester.pumpAndSettle();
+    expect(fake.calls, ['update:bon']);
+    expect(c.read(connectionsViewProvider).savedMapId, 'bon');
+    expect(
+      c.read(connectionsViewProvider).mapSpec,
+      ConnectionPresets.byId('reef')!.spec,
+    );
+  });
+
+  testWidgets('a failed saved-map write says so', (tester) async {
+    final (_, fake) = await _pump(tester, const PresetGrid());
+    fake.failUpdates = true;
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('saved-map-bon')),
+        matching: find.byType(PopupMenuButton<String>),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Update from current'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
   });
 }

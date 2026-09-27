@@ -38,20 +38,28 @@ class _MapEditorState extends ConsumerState<MapEditor> {
 
   Future<void> _save() async {
     final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
     final name = await showSaveMapDialog(
       context,
       title: l10n.connections_savedMap_saveTitle,
     );
-    if (name == null) return;
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    if (diverId == null) return;
-    final spec = ref.read(connectionsViewProvider).mapSpec;
-    final created = await ref
-        .read(connectionMapRepositoryProvider)
-        .create(diverId: diverId, name: name, spec: spec);
-    await ref
-        .read(connectionsViewProvider.notifier)
-        .update((s) => s.applySavedMap(created.id, spec));
+    if (name == null || !mounted) return;
+    try {
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      if (diverId == null || !mounted) return;
+      final spec = ref.read(connectionsViewProvider).mapSpec;
+      final created = await ref
+          .read(connectionMapRepositoryProvider)
+          .create(diverId: diverId, name: name, spec: spec);
+      if (!mounted) return;
+      await ref
+          .read(connectionsViewProvider.notifier)
+          .update((s) => s.applySavedMap(created.id, spec));
+    } catch (_) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.common_error_tryAgain)),
+      );
+    }
   }
 
   @override
