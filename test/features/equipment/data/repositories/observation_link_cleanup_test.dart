@@ -1,5 +1,7 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart' show IncidentsCompanion;
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -80,13 +82,22 @@ void main() {
       narrative: 'Free-flow at 18 m.',
       equipmentId: reg.id,
     );
+    // Backdate the stored row, as checkInOn does through its `now`. Creating
+    // the incident and deleting the gear both stamp the wall clock in
+    // milliseconds, and in a warm isolate they land in the same one.
+    final seeded = DateTime.utc(2026, 3, 1).millisecondsSinceEpoch;
+    final db = DatabaseService.instance.database;
+    await (db.update(db.incidents)..where((t) => t.id.equals(incident.id)))
+        .write(IncidentsCompanion(updatedAt: Value(seeded)));
+    final before = (await IncidentRepository().getIncidentById(incident.id))!;
+    expect(before.updatedAt.millisecondsSinceEpoch, seeded);
     await SyncRepository().clearAllSyncRecords();
 
     await EquipmentRepository().deleteEquipment(reg.id);
 
     final after = (await IncidentRepository().getIncidentById(incident.id))!;
     expect(after.equipmentId, isNull, reason: 'the incident itself stays');
-    expect(after.updatedAt.isAfter(incident.updatedAt), isTrue);
+    expect(after.updatedAt.isAfter(before.updatedAt), isTrue);
     expect(await pending('incidents'), [incident.id]);
   });
 }
