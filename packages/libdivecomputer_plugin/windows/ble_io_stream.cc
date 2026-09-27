@@ -914,7 +914,20 @@ int BleIoStream::ReadCharacteristic(const winrt::guid& uuid, void* data,
     try {
         for (const auto& ch : all_characteristics_) {
             if (ch.Uuid() != uuid) continue;
-            auto result = ch.ReadValueAsync(BluetoothCacheMode::Uncached).get();
+            // Bounded like the other bridges: WinRT can leave a GATT read
+            // pending after a link loss, and .get() would then block the
+            // libdivecomputer thread with no way to cancel it.
+            auto op = ch.ReadValueAsync(BluetoothCacheMode::Uncached);
+            using winrt::Windows::Foundation::AsyncStatus;
+            const AsyncStatus waited = op.wait_for(std::chrono::seconds(10));
+            if (waited == AsyncStatus::Started) {
+                op.Cancel();
+                return LIBDC_STATUS_TIMEOUT;
+            }
+            if (waited != AsyncStatus::Completed) {
+                return LIBDC_STATUS_IO;
+            }
+            auto result = op.GetResults();
             if (result.Status() != GattCommunicationStatus::Success) {
                 return LIBDC_STATUS_IO;
             }
