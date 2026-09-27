@@ -2239,7 +2239,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_detail_label_agency => 'Szervezet';
 
   @override
-  String get certifications_detail_label_alsoRecognized => 'Also recognized as';
+  String get certifications_detail_label_alsoRecognized => 'Elismerve még mint';
 
   @override
   String get certifications_detail_label_cardNumber => 'Kártyaszám';
@@ -2357,7 +2357,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String certifications_ecard_alsoRecognized(String recognitions) {
-    return 'Also: $recognitions';
+    return 'Továbbá: $recognitions';
   }
 
   @override
@@ -2461,10 +2461,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_edit_label_agency => 'Szervezet *';
 
   @override
-  String get certifications_edit_addRecognition => 'Add another recognition';
+  String get certifications_edit_addRecognition => 'Újabb elismerés hozzáadása';
 
   @override
-  String get certifications_edit_removeRecognition => 'Remove this recognition';
+  String get certifications_edit_removeRecognition => 'Elismerés eltávolítása';
 
   @override
   String get certifications_edit_label_cardNumber => 'Kártyaszám';
@@ -26089,7 +26089,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveImport_healthkit_accessDescription =>
-      'Submersion uses Apple HealthKit to read underwater diving workout data, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+      'A Submersion az Apple HealthKit segítségével olvassa be a víz alatti merülési edzések adatait, beleértve a mélységet, az időtartamot, a vízhőmérsékletet és a pulzust, hogy részletes merülésnaplókat hozzon létre.';
 
   @override
   String get diveImport_healthkit_accessRequired => 'Apple HealthKit';
@@ -27314,11 +27314,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tools_weight_yourWeight => 'Az Ön súlya';
 
   @override
-  String get settings_section_dataSources_title => 'Data Sources';
+  String get settings_section_dataSources_title => 'Apple HealthKit';
 
   @override
   String get settings_section_dataSources_subtitle =>
-      'Connected services & integrations';
+      'Egészségügyi adatok integrációja';
 
   @override
   String get settings_siteMatch_title => 'Automatikus helyhozzárendelés';
@@ -27356,7 +27356,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_description =>
-      'Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+      'A Submersion az Apple HealthKit segítségével olvassa be a víz alatti merülési edzések adatait az Apple Health alkalmazásból. Ezekből az adatokból részletes merülésnaplók készülnek az Apple Watch-csal végzett merüléseiről.';
 
   @override
   String get settings_dataSources_appleHealth_dataTypesHeader =>
@@ -27384,11 +27384,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_importAction =>
-      'Import from Apple Watch';
+      'Merülések importálása Apple Watch-ról a HealthKit segítségével';
 
   @override
   String get settings_dataSources_appleHealth_privacy =>
-      'Your health data is stored locally and is never shared with third parties.';
+      'Egészségügyi adatait helyben, ezen az eszközön tároljuk, és soha nem osztjuk meg harmadik felekkel. A Submersion csak olvassa az Apple HealthKit adatait, és nem ír vissza adatot a HealthKitbe.';
 
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
@@ -28826,24 +28826,24 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dive3d_seascape_detailLimitReached =>
-      'This is the most detail available for this location';
+      'Ennél a helynél ez a legnagyobb elérhető részletesség';
 
   @override
   String dive3d_seascape_lodStageLabel(String stage, String span) {
-    return 'Level of detail: $stage ($span)';
+    return 'Részletességi szint: $stage ($span)';
   }
 
   @override
-  String get dive3d_seascape_lodStageOverview => 'Overview';
+  String get dive3d_seascape_lodStageOverview => 'Áttekintés';
 
   @override
-  String get dive3d_seascape_lodStageMedium => 'Medium';
+  String get dive3d_seascape_lodStageMedium => 'Közepes';
 
   @override
-  String get dive3d_seascape_lodStageFine => 'Fine';
+  String get dive3d_seascape_lodStageFine => 'Finom';
 
   @override
-  String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
+  String get dive3d_seascape_lodStageSuperFine => 'Nagyon finom';
 
   @override
   String get dive3d_seascape_noData =>

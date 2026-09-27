@@ -2249,7 +2249,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_detail_label_agency => 'Verband';
 
   @override
-  String get certifications_detail_label_alsoRecognized => 'Also recognized as';
+  String get certifications_detail_label_alsoRecognized => 'Auch anerkannt als';
 
   @override
   String get certifications_detail_label_cardNumber => 'Kartennummer';
@@ -2369,7 +2369,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String certifications_ecard_alsoRecognized(String recognitions) {
-    return 'Also: $recognitions';
+    return 'Auch: $recognitions';
   }
 
   @override
@@ -2475,10 +2475,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_edit_label_agency => 'Verband *';
 
   @override
-  String get certifications_edit_addRecognition => 'Add another recognition';
+  String get certifications_edit_addRecognition =>
+      'Weitere Anerkennung hinzufügen';
 
   @override
-  String get certifications_edit_removeRecognition => 'Remove this recognition';
+  String get certifications_edit_removeRecognition =>
+      'Diese Anerkennung entfernen';
 
   @override
   String get certifications_edit_label_cardNumber => 'Kartennummer';
@@ -26126,7 +26128,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveImport_healthkit_accessDescription =>
-      'Submersion uses Apple HealthKit to read underwater diving workout data, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+      'Submersion verwendet Apple HealthKit, um Daten von Unterwasser-Tauchtrainings zu lesen, einschließlich Tiefe, Dauer, Wassertemperatur und Herzfrequenz, und daraus detaillierte Tauchlogbucheinträge zu erstellen.';
 
   @override
   String get diveImport_healthkit_accessRequired => 'Apple HealthKit';
@@ -27354,11 +27356,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tools_weight_yourWeight => 'Ihr Gewicht';
 
   @override
-  String get settings_section_dataSources_title => 'Data Sources';
+  String get settings_section_dataSources_title => 'Apple HealthKit';
 
   @override
   String get settings_section_dataSources_subtitle =>
-      'Connected services & integrations';
+      'Integration von Gesundheitsdaten';
 
   @override
   String get settings_siteMatch_title => 'Automatische Tauchplatzzuordnung';
@@ -27396,7 +27398,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_description =>
-      'Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+      'Submersion verwendet Apple HealthKit, um Daten von Unterwasser-Tauchtrainings aus Apple Health zu lesen. Aus diesen Daten werden detaillierte Tauchlogbucheinträge für Ihre Tauchgänge mit der Apple Watch erstellt.';
 
   @override
   String get settings_dataSources_appleHealth_dataTypesHeader =>
@@ -27424,11 +27426,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_importAction =>
-      'Import from Apple Watch';
+      'Tauchgänge per HealthKit von der Apple Watch importieren';
 
   @override
   String get settings_dataSources_appleHealth_privacy =>
-      'Your health data is stored locally and is never shared with third parties.';
+      'Ihre Gesundheitsdaten werden lokal auf diesem Gerät gespeichert und niemals an Dritte weitergegeben. Submersion liest nur Daten aus Apple HealthKit und schreibt keine Daten in HealthKit zurück.';
 
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
