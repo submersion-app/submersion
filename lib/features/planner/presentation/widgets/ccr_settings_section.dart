@@ -6,6 +6,8 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Setpoint controls for a CCR plan: low/high setpoints (bar) and the
 /// depth below which the high setpoint is in force (display units).
@@ -63,21 +65,21 @@ class _CcrSettingsSectionState extends ConsumerState<CcrSettingsSection> {
       bool allowZero = false,
     }) {
       return Expanded(
-        child: TextFormField(
+        child: NumberField(
           controller: controller,
           decoration: InputDecoration(
             labelText: label,
             isDense: true,
             border: const OutlineInputBorder(),
           ),
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          onChanged: (text) {
-            final parsed = parseUserDecimal(text);
+          onChanged: (read) {
+            // Blank and unreadable text leave the plan alone; the field shows
+            // why for unreadable text.
+            if (read is! NumberValue) return;
+            final parsed = read.value;
             // Setpoints must be positive; a switch depth of 0 (surface) is a
             // valid, useful configuration, so it opts into allowZero.
-            if (parsed == null || (allowZero ? parsed < 0 : parsed <= 0)) {
-              return;
-            }
+            if (allowZero ? parsed < 0 : parsed <= 0) return;
             onChanged(toMetric != null ? toMetric(parsed) : parsed);
           },
         ),

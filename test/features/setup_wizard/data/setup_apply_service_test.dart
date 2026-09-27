@@ -78,6 +78,41 @@ void main() {
     },
   );
 
+  // Issue #2298. On a fresh database the app is already running with a live
+  // SettingsNotifier and CurrentDiverIdNotifier. Creating the wizard's diver
+  // ticks the divers table, the id notifier self-repairs to that new default
+  // diver, and the settings notifier reloads the row createDiver seeded with
+  // the metric defaults. The wizard's own setCurrentDiver then names the same
+  // id, so no second reload ran: the notifier kept metric in memory and the
+  // next settings write (from anywhere, an import included) persisted it.
+  test('applyFirstRun leaves a live settings notifier on the draft units, '
+      'and a later settings write keeps them', () async {
+    final container = makeContainer();
+    container.listen(currentDiverIdProvider, (_, _) {});
+    container.listen(settingsProvider, (_, _) {});
+    await container.read(settingsProvider.notifier).initialLoad;
+
+    const draft = SetupWizardDraft(
+      mode: SetupWizardMode.firstRun,
+      path: SetupPath.fresh,
+      name: 'Eric',
+    );
+    await container
+        .read(setupApplyServiceProvider)
+        .applyFirstRun(draft.applyingUnitPreset(UnitPreset.imperial));
+    await pumpEventQueue(times: 50);
+
+    final diverId = container.read(currentDiverIdProvider)!;
+    expect(container.read(settingsProvider).depthUnit, DepthUnit.feet);
+    expect(container.read(settingsProvider).pressureUnit, PressureUnit.psi);
+
+    // Any setter writes the whole in-memory settings back to the row.
+    await container.read(settingsProvider.notifier).setAutoTagImports(false);
+    final stored = await DiverSettingsRepository().getSettingsForDiver(diverId);
+    expect(stored!.depthUnit, DepthUnit.feet);
+    expect(stored.pressureUnit, PressureUnit.psi);
+  });
+
   test(
     'applyFirstRun with empty name throws ArgumentError and writes nothing',
     () async {

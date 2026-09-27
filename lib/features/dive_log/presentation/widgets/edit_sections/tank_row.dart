@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 
@@ -20,6 +21,8 @@ class TankRow extends StatefulWidget {
     this.onRemove,
     this.canRemove = true,
     this.initiallyExpanded = false,
+    this.onCylinderScanned,
+    this.onScanPending,
   });
 
   final DiveTank tank;
@@ -29,6 +32,12 @@ class TankRow extends StatefulWidget {
   final VoidCallback? onRemove;
   final bool canRemove;
   final bool initiallyExpanded;
+
+  /// Forwarded to [TankEditor.onCylinderScanned].
+  final Future<void> Function(EquipmentItem item)? onCylinderScanned;
+
+  /// Forwarded to [TankEditor.onScanPending].
+  final void Function(Future<void> scan)? onScanPending;
 
   @override
   State<TankRow> createState() => _TankRowState();
@@ -65,6 +74,8 @@ class _TankRowState extends State<TankRow> {
               onChanged: widget.onChanged,
               onRemove: widget.onRemove,
               canRemove: widget.canRemove,
+              onCylinderScanned: widget.onCylinderScanned,
+              onScanPending: widget.onScanPending,
             ),
             Align(
               alignment: Alignment.centerRight,

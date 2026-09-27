@@ -86,8 +86,8 @@ void main() {
     return rows.isEmpty ? null : rows.single.read<String?>('sql');
   }
 
-  test('v234 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v235 (saved Connections maps, #2322) landed on top; the
+  test('v234 is the current schema version and is in the ladder', () {
+    // Relaxed once v239 (regulator part service kinds) landed on top; the
     // newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(234));
     expect(AppDatabase.migrationVersions, contains(234));

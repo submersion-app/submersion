@@ -76,4 +76,30 @@ void main() {
       expect(await pendingCountForComputer('c1'), 1);
     },
   );
+
+  // Issue #2439: the import wizard retries a computer save that failed. A
+  // creation that stopped after its insert would leave a row the retry cannot
+  // find (a fresh id, and no serial to match on), so the retry would register
+  // the same computer twice. The whole creation must land or none of it.
+  test('a creation that fails part way leaves nothing behind', () async {
+    // The pending mark is the last write; dropping its table fails it after
+    // the registry row and the gear twin were written.
+    await db.customStatement('DROP TABLE sync_records');
+
+    await expectLater(repo.createComputer(computer()), throwsA(anything));
+
+    final rows = await db
+        .customSelect(
+          "SELECT COUNT(*) AS c FROM dive_computers WHERE id = 'c1'",
+        )
+        .getSingle();
+    expect(rows.read<int>('c'), 0);
+    final gear = await db
+        .customSelect(
+          'SELECT COUNT(*) AS c FROM equipment WHERE id = ?',
+          variables: [Variable<String>(diveComputerGearId('c1'))],
+        )
+        .getSingle();
+    expect(gear.read<int>('c'), 0);
+  });
 }

@@ -587,6 +587,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Se este conjunto incluir um computador de mergulho, adiciona automaticamente todo o conjunto a uma imersão descarregada ou importada dele';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'Mostra o equipamento deste conjunto num mergulhador na sua página';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title =>
+      'Mostrar figura do mergulhador';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geocercas';
 
   @override
@@ -627,6 +635,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Padrão';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'Ocultar figura do mergulhador';
+
+  @override
+  String get equipment_setDetail_showFigure => 'Mostrar figura do mergulhador';
 
   @override
   String get equipment_setDetail_setAsDefault => 'Definir como padrão';
@@ -12669,6 +12683,77 @@ class AppLocalizationsPt extends AppLocalizations {
   String get passport_tag_linked => 'Etiqueta vinculada';
 
   @override
+  String get passport_scan_title => 'Ler etiqueta do cilindro';
+
+  @override
+  String get passport_scan_hint =>
+      'Aponte a câmera para a etiqueta ou cole o link da etiqueta.';
+
+  @override
+  String get passport_scan_cameraUnavailable =>
+      'A câmera não está disponível aqui. Cole o link da etiqueta.';
+
+  @override
+  String get passport_scan_linkLabel => 'Link da etiqueta';
+
+  @override
+  String get passport_scan_paste => 'Colar';
+
+  @override
+  String get passport_scan_open => 'Abrir';
+
+  @override
+  String get passport_scan_openFailed =>
+      'Não foi possível abrir a etiqueta. Tente novamente.';
+
+  @override
+  String get passport_scan_newerFormat =>
+      'Esta etiqueta foi escrita por uma versão mais recente do Submersion. Alguns detalhes podem estar faltando.';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return 'Preenchido a partir de $name';
+  }
+
+  @override
+  String get passport_foreign_title => 'Etiqueta do cilindro';
+
+  @override
+  String get passport_foreign_notInGear =>
+      'Este cilindro não está no seu equipamento.';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return 'Conforme escrito na etiqueta em $date';
+  }
+
+  @override
+  String get passport_foreign_noDetails =>
+      'A etiqueta não traz detalhes além da sua identificação.';
+
+  @override
+  String get passport_foreign_o2Clean =>
+      'Limpo para O2 quando a etiqueta foi escrita';
+
+  @override
+  String get passport_foreign_useOnDive => 'Usar em um mergulho';
+
+  @override
+  String get passport_foreign_addToGear => 'Adicionar ao meu equipamento';
+
+  @override
+  String get passport_foreign_addFailed =>
+      'Não foi possível adicionar o cilindro. Tente novamente.';
+
+  @override
+  String get passport_foreign_defaultName => 'Cilindro';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return 'Nº de série $serial';
+  }
+
+  @override
   String get passport_logFill_date => 'Carregado em';
 
   @override
@@ -12698,9 +12783,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get passport_logFill_invalidMix =>
       'O2 e He devem estar entre 0 e 100 e somar no máximo 100';
-
-  @override
-  String get passport_logFill_invalidNumber => 'Digite um número';
 
   @override
   String get passport_logFill_saveFailed =>
@@ -13318,6 +13400,17 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String trips_gearAlerts_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count alertas de equipamento para esta viagem',
+      one: '$count alerta de equipamento para esta viagem',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -13572,9 +13665,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_edit_purchasePriceLabel => 'Preço de Compra';
 
   @override
-  String get equipment_edit_purchasePriceValidation => 'Insira um valor válido';
-
-  @override
   String get equipment_edit_remindMeBeforeServiceDue =>
       'Lembrar-me antes da manutenção:';
 
@@ -13671,6 +13761,35 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'Adicionar Conjunto';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'Costas · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'Frente · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens',
+      one: '$count item',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'Também levado';
 
   @override
   String get equipment_list_emptyState_addFirstButton =>
@@ -15185,11 +15304,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'Preço por 100 $unit';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'Introduza um número válido (separador decimal: \"$separator\")';
   }
 
   @override
@@ -31213,9 +31327,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Mistura com O2 elevado acima de (% O2)';
 
   @override
-  String get equipmentConditionSettings_invalid => 'Introduza um número';
-
-  @override
   String get equipmentConditionSettings_saveFailed =>
       'Não foi possível guardar. Tente novamente.';
 
@@ -41761,7 +41872,25 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_info_statusFound => 'Encontrada neste dispositivo';
 
   @override
+  String get media_info_statusFoundElsewhere =>
+      'Encontrada em outro dispositivo';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'Encontrada em $device';
+  }
+
+  @override
   String get media_info_statusMissing => 'Ausente neste dispositivo';
+
+  @override
+  String get media_info_statusMissingElsewhere =>
+      'Ausente em outro dispositivo';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'Ausente em $device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'Ainda não verificada';
@@ -42558,6 +42687,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get profilePhoto_source_camera => 'Tirar foto';
+
+  @override
+  String get common_camera_unavailable =>
+      'Não foi possível abrir a câmera. Permita o acesso à câmera nas Configurações.';
+
+  @override
+  String get common_photo_pickFailed =>
+      'Não foi possível abrir a foto. Tente outra.';
 
   @override
   String get profilePhoto_source_library => 'Escolher da biblioteca';
@@ -43655,7 +43792,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => 'Insira um número válido';
+  String numberInput_invalidNumber(String separator) {
+    return 'Introduza um número válido (separador decimal: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'Insira um número inteiro';
+
+  @override
+  String get numberInput_required => 'Obrigatório';
+
+  @override
+  String get numberInput_notNegative => 'Insira 0 ou mais';
+
+  @override
+  String get numberInput_atLeastOne => 'Insira 1 ou mais';
+
+  @override
+  String get numberInput_percentRange => 'Insira um valor de 0 a 100';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Equipamento alugado';

@@ -38,7 +38,7 @@ class EquipmentSectionColors {
     final pill = scheme.secondaryContainer;
     return EquipmentSectionColors._(
       pill: pill,
-      selected: _readableOn(pill, [
+      selected: readableOn(pill, [
         scheme.onSecondaryContainer,
         scheme.onSurface,
       ]),
@@ -83,7 +83,7 @@ class EquipmentSectionColors {
   ///
   /// `onSecondaryContainer` is the pairing a theme is meant to guarantee, but
   /// two of the app's presets break it (2.95:1 and 4.10:1).
-  static Color _readableOn(Color fill, List<Color> candidates) {
+  static Color readableOn(Color fill, List<Color> candidates) {
     final best = candidates.reduce(
       (a, b) => contrastRatio(a, fill) >= contrastRatio(b, fill) ? a : b,
     );

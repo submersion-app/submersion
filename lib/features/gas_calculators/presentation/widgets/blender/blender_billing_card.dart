@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
@@ -17,6 +16,8 @@ import 'package:submersion/features/gas_calculators/presentation/widgets/blender
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// One entry in the cylinder-size dropdown, reduced to just what the row
 /// needs to show and select. Every entry comes from the diver's global tank
@@ -178,12 +179,8 @@ class _BlenderBillingCardState extends ConsumerState<BlenderBillingCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: TextField(
+          child: NumberField(
             controller: _cylinder,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-            ],
             decoration: InputDecoration(
               labelText:
                   '${context.l10n.gasCalculators_blender_cylinderVolume} '
@@ -191,11 +188,20 @@ class _BlenderBillingCardState extends ConsumerState<BlenderBillingCard> {
               isDense: true,
               border: const OutlineInputBorder(),
             ),
-            onChanged: (v) =>
-                ref.read(blenderCylinderLitersProvider.notifier).state =
-                    displayVolumeToLiters(parseUserDecimal(v) ?? 0, settings),
+            onChanged: (read) {
+              final liters = ref.read(blenderCylinderLitersProvider.notifier);
+              liters.state = switch (read) {
+                NumberValue(:final value) => displayVolumeToLiters(
+                  value,
+                  settings,
+                ),
+                NumberBlank() => 0, // no cylinder volume yet, as before
+                // Used to read as 0 L too; keep it, the field says why.
+                NumberInvalid() => liters.state,
+              };
+            },
             onEditingComplete: () => saveBlenderPreferences(ref),
-            onSubmitted: (_) => saveBlenderPreferences(ref),
+            onFieldSubmitted: (_) => saveBlenderPreferences(ref),
           ),
         ),
         const SizedBox(width: 8),

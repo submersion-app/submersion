@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
-
-/// Numeric entry filter for the decimal rows. Both separators are allowed
-/// because the diver's locale decides which one their keyboard offers, and the
-/// page reads the field back with `parseUserDecimal`. Allowing only '.' would
-/// strip the comma out of a comma-locale seed mid-edit (#1091).
-final _decimalFilter = FilteringTextInputFormatter.allow(RegExp(r'[0-9.,\-]'));
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Group 1 of the dive form: always expanded, owns the core facts.
 /// Rows: dive number, entry, exit, surface interval, max depth, avg depth,
@@ -94,7 +89,14 @@ class TheDiveSection extends StatelessWidget {
             label: l10n.diveLog_edit_label_diveNumber,
             controller: diveNumberController,
             keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            // Separators are kept so a fraction is reported, not read as a
+            // larger whole number ("5.5" as 55; #1900 review).
+            inputFormatters: numberInputFormatters(),
+            inputValidator: numberValidator(
+              context,
+              integer: true,
+              allowNegative: false,
+            ),
             placeholder: l10n.diveLog_edit_row_notSet,
           ),
         FormRow.picker(
@@ -114,7 +116,10 @@ class TheDiveSection extends StatelessWidget {
           controller: maxDepthController,
           suffixText: depthSymbol,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [_decimalFilter],
+          // The validator reports text left unreadable instead of it
+          // saving as 0 m (#1900).
+          inputFormatters: numberInputFormatters(),
+          inputValidator: numberValidator(context),
           profileSuggestion: maxDepthSuggestion,
         ),
         FormRow.text(
@@ -122,7 +127,10 @@ class TheDiveSection extends StatelessWidget {
           controller: avgDepthController,
           suffixText: depthSymbol,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [_decimalFilter],
+          // The validator reports text left unreadable instead of it
+          // saving as 0 m (#1900).
+          inputFormatters: numberInputFormatters(),
+          inputValidator: numberValidator(context),
           profileSuggestion: avgDepthSuggestion,
         ),
         FormRow.text(
@@ -130,7 +138,14 @@ class TheDiveSection extends StatelessWidget {
           controller: bottomTimeController,
           suffixText: 'min',
           keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          // Separators are kept so a fraction is reported, not read as a
+          // larger whole number ("5.5" as 55; #1900 review).
+          inputFormatters: numberInputFormatters(),
+          inputValidator: numberValidator(
+            context,
+            integer: true,
+            allowNegative: false,
+          ),
           profileSuggestion: bottomTimeSuggestion,
         ),
         FormRow.text(
@@ -138,7 +153,14 @@ class TheDiveSection extends StatelessWidget {
           controller: runtimeController,
           suffixText: 'min',
           keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          // Separators are kept so a fraction is reported, not read as a
+          // larger whole number ("5.5" as 55; #1900 review).
+          inputFormatters: numberInputFormatters(),
+          inputValidator: numberValidator(
+            context,
+            integer: true,
+            allowNegative: false,
+          ),
           placeholder: l10n.diveLog_edit_row_notSet,
           profileSuggestion: runtimeSuggestion,
         ),

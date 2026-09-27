@@ -83,12 +83,12 @@ void main() {
     return rows.map((r) => r.read<String>('name')).toSet();
   }
 
-  test('v235 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 235);
+  test('v235 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v239 (regulator part service kinds, #2275) landed on top;
+    // the newest rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(235));
     expect(AppDatabase.migrationVersions, contains(235));
-    expect(AppDatabase.migrationStepCount(234), 1);
+    expect(AppDatabase.migrationStepCount(234), greaterThanOrEqualTo(1));
     expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });
 

@@ -118,9 +118,21 @@
 				<string>adobe+66776bfb6c08aeff345bb6435bf88a06f406d90d</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleURLName</key>
+			<string>app.submersion.passport</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>submersion</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>FlutterDeepLinkingEnabled</key>
+	<false/>
 	<key>GIDClientID</key>
 	<string>433819313354-8sn10bh15pij7hsqbld4tunccrsgi4bf.apps.googleusercontent.com</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
@@ -134,7 +146,7 @@
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>Submersion uses Bluetooth to connect to dive computers and import dive data.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Submersion uses the camera to take photos of dive sites and marine life.</string>
+	<string>Submersion uses the camera to take photos of dive sites and marine life, and to scan cylinder labels.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Submersion uses Face ID to unlock your dive log.</string>
 	<key>NSContactsUsageDescription</key>
