@@ -39336,6 +39336,18 @@ abstract class AppLocalizations {
   /// **'MacDive logbooks ({names}) are saved searches, not fixed lists of dives, so there is nothing to import. You can recreate them as dive filters.'**
   String universalImport_summary_noticeMacdiveLogbooksBody(String names);
 
+  /// No description provided for @universalImport_summary_noticeMacdiveDeviceTimeZoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive times read in this device\'s time zone'**
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneTitle;
+
+  /// No description provided for @universalImport_summary_noticeMacdiveDeviceTimeZoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'MacDive saved these dives without a time zone, and their dive sites have no GPS position, so their times were read in this device\'s time zone. If you made these dives somewhere else, check their start times.'**
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody;
+
   /// Heading of the import summary card for CSV rows that were not imported because their date could not be read. A row is a spreadsheet row, one line of the CSV file, as numbered in a spreadsheet app.
   ///
   /// In en, this message translates to:

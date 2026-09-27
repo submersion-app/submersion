@@ -7204,6 +7204,8 @@
   "universalImport_summary_noticeMacdiveXmlCertsBody": "MacDive no incluye las certificaciones ni los registros de servicio del equipo en su exportación XML. Para traerlos, importa tu base de datos MacDive.sqlite.",
   "universalImport_summary_noticeMacdiveLogbooksTitle": "Libros de registro de MacDive no importados",
   "universalImport_summary_noticeMacdiveLogbooksBody": "Los libros de registro de MacDive ({names}) son búsquedas guardadas, no listas fijas de inmersiones, así que no hay nada que importar. Puedes recrearlos como filtros de inmersiones.",
+  "universalImport_summary_noticeMacdiveDeviceTimeZoneTitle": "Horas de inmersión leídas en la zona horaria de este dispositivo",
+  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "MacDive guardó estas inmersiones sin zona horaria y sus puntos de buceo no tienen posición GPS, así que sus horas se leyeron en la zona horaria de este dispositivo. Si hiciste estas inmersiones en otro lugar, revisa sus horas de inicio.",
   "universalImport_summary_fileImported": "{count, plural, =1{1 inmersión importada} other{{count} inmersiones importadas}}",
   "universalImport_summary_importAsRoute": "Importar como ruta",
   "universalImport_summary_fileNeedsIndividualImport": "Requiere importación individual",

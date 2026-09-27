@@ -7308,6 +7308,8 @@
   "universalImport_summary_noticeMacdiveXmlCertsBody": "MacDive lässt Zertifizierungen und Wartungseinträge der Ausrüstung in seinem XML-Export weg. Um sie zu übernehmen, importieren Sie Ihre MacDive.sqlite-Datenbank.",
   "universalImport_summary_noticeMacdiveLogbooksTitle": "MacDive-Logbücher nicht importiert",
   "universalImport_summary_noticeMacdiveLogbooksBody": "MacDive-Logbücher ({names}) sind gespeicherte Suchen und keine festen Listen von Tauchgängen, daher gibt es nichts zu importieren. Sie können sie als Tauchgangsfilter neu anlegen.",
+  "universalImport_summary_noticeMacdiveDeviceTimeZoneTitle": "Tauchzeiten in der Zeitzone dieses Geräts gelesen",
+  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "MacDive hat diese Tauchgänge ohne Zeitzone gespeichert, und ihre Tauchplätze haben keine GPS-Position. Ihre Zeiten wurden daher in der Zeitzone dieses Geräts gelesen. Wenn Sie diese Tauchgänge anderswo gemacht haben, prüfen Sie ihre Startzeiten.",
   "universalImport_summary_fileImported": "{count, plural, =1{1 Tauchgang importiert} other{{count} Tauchgänge importiert}}",
   "universalImport_summary_importAsRoute": "Als Route importieren",
   "universalImport_summary_fileNeedsIndividualImport": "Muss einzeln importiert werden",

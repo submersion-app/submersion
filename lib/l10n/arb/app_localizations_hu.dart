@@ -24553,6 +24553,14 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneTitle =>
+      'Merülési időpontok ennek az eszköznek az időzónája szerint';
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody =>
+      'A MacDive időzóna nélkül mentette ezeket a merüléseket, és a merülőhelyeiknek nincs GPS-pozíciója, ezért az időpontjaikat ennek az eszköznek az időzónájában olvastuk be. Ha ezeket a merüléseket máshol végezted, ellenőrizd a kezdési időpontjaikat.';
+
+  @override
   String get universalImport_summary_unreadableDatesTitle =>
       'Néhány sor nem lett importálva';
 

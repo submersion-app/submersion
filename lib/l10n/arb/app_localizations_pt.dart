@@ -24629,6 +24629,14 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneTitle =>
+      'Horários dos mergulhos lidos no fuso horário deste dispositivo';
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody =>
+      'O MacDive salvou estes mergulhos sem fuso horário e seus pontos de mergulho não têm posição GPS, então seus horários foram lidos no fuso horário deste dispositivo. Se você fez estes mergulhos em outro lugar, confira seus horários de início.';
+
+  @override
   String get universalImport_summary_unreadableDatesTitle =>
       'Algumas linhas não foram importadas';
 

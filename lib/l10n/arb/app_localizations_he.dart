@@ -24026,6 +24026,14 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneTitle =>
+      'זמני הצלילה נקראו באזור הזמן של מכשיר זה';
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody =>
+      'MacDive שמר צלילות אלה ללא אזור זמן, ולאתרי הצלילה שלהן אין מיקום GPS, ולכן הזמנים שלהן נקראו באזור הזמן של מכשיר זה. אם ביצעת צלילות אלה במקום אחר, כדאי לבדוק את שעות ההתחלה שלהן.';
+
+  @override
   String get universalImport_summary_unreadableDatesTitle =>
       'חלק מהשורות לא יובאו';
 
