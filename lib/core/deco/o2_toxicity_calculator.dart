@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart';
 
 /// Calculator for oxygen toxicity (CNS and OTU).
 ///
@@ -45,10 +46,8 @@ class O2ToxicityCalculator {
   /// [o2Fraction] is the oxygen fraction (0.0-1.0).
   /// [maxPpO2] is the maximum allowed ppO2 (typically 1.4 or 1.6).
   /// Returns MOD in meters.
-  static double calculateMod(double o2Fraction, {double maxPpO2 = 1.4}) {
-    if (o2Fraction <= 0) return 0;
-    return ((maxPpO2 / o2Fraction) - 1.0) * 10.0;
-  }
+  static double calculateMod(double o2Fraction, {double maxPpO2 = 1.4}) =>
+      maxOperatingDepthMeters(o2Fraction, maxPpO2: maxPpO2);
 
   /// Calculate the Equivalent Narcotic Depth (END) for a gas.
   ///

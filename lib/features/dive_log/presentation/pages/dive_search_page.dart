@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -145,8 +146,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     _customFieldValueController.text = _customFieldValue ?? '';
 
     // Set controller text
-    _minDepthController.text = _minDepth?.toStringAsFixed(0) ?? '';
-    _maxDepthController.text = _maxDepth?.toStringAsFixed(0) ?? '';
+    _seedDepthControllers(UnitFormatter(ref.read(settingsProvider)));
     _minDurationController.text = _minDurationMinutes?.toString() ?? '';
     _maxDurationController.text = _maxDurationMinutes?.toString() ?? '';
     _buddyNameController.text = _buddyNameFilter ?? '';
@@ -196,10 +196,33 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     super.dispose();
   }
 
+  /// Show the depth bounds, held in meters, in the diver's depth unit, as the
+  /// quick filter sheet does.
+  ///
+  /// Seeds from the meter state rather than the field text, so a value the
+  /// diver already typed keeps its depth when re-shown in another unit.
+  void _seedDepthControllers(UnitFormatter units) {
+    _minDepthController.text = _minDepth == null
+        ? ''
+        : formatRoundedForInput(units.convertDepth(_minDepth!), 0);
+    _maxDepthController.text = _maxDepth == null
+        ? ''
+        : formatRoundedForInput(units.convertDepth(_maxDepth!), 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
+
+    // Settings start as defaults and load the diver's row asynchronously (and
+    // reload on a diver switch), so the unit can change under an open page.
+    // Re-seed, or the fields keep text in the old unit beside the new suffix.
+    ref.listen(
+      settingsProvider.select((s) => s.depthUnit),
+      (_, _) =>
+          _seedDepthControllers(UnitFormatter(ref.read(settingsProvider))),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -235,7 +258,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
             key: 'conditions',
             title: context.l10n.diveLog_search_section_conditions,
             icon: Icons.waves,
-            child: _buildConditionsContent(),
+            child: _buildConditionsContent(units),
           ),
 
           // Gas & Equipment Section
@@ -523,13 +546,13 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     );
   }
 
-  Widget _buildConditionsContent() {
+  Widget _buildConditionsContent(UnitFormatter units) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Depth Range
         Text(
-          context.l10n.diveLog_search_label_depthRange,
+          context.l10n.diveLog_filter_sectionDepthRangeUnit(units.depthSymbol),
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         const SizedBox(height: 8),
@@ -541,10 +564,11 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_filter_min,
                   prefixIcon: const Icon(Icons.arrow_downward),
-                  suffixText: 'm',
+                  suffixText: units.depthSymbol,
                 ),
                 onChanged: (read) => _minDepth = switch (read) {
-                  NumberValue(:final value) => value,
+                  // Typed in the diver's depth unit; the filter compares metres.
+                  NumberValue(:final value) => units.depthToMeters(value),
                   NumberBlank() => null,
                   NumberInvalid() => _minDepth, // the field shows the error
                 },
@@ -557,10 +581,11 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_filter_max,
                   prefixIcon: const Icon(Icons.arrow_downward),
-                  suffixText: 'm',
+                  suffixText: units.depthSymbol,
                 ),
                 onChanged: (read) => _maxDepth = switch (read) {
-                  NumberValue(:final value) => value,
+                  // Typed in the diver's depth unit; the filter compares metres.
+                  NumberValue(:final value) => units.depthToMeters(value),
                   NumberBlank() => null,
                   NumberInvalid() => _maxDepth, // the field shows the error
                 },

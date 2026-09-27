@@ -18,6 +18,7 @@ import 'package:submersion/features/settings/presentation/pages/column_config_pa
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/widgets/ccr_ppo2_limit_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/coordinate_format_picker.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
@@ -522,10 +523,10 @@ class _UnitsSectionContent extends ConsumerWidget {
                   value: switch (settings.gasConsumptionDisplay) {
                     GasConsumptionDisplay.sac =>
                       '${context.l10n.gasConsumption_sac} '
-                          '(${settings.pressureUnit.symbol}/min)',
+                          '(${UnitFormatter(settings).sacSymbol})',
                     GasConsumptionDisplay.rmv =>
                       '${context.l10n.gasConsumption_rmv} '
-                          '(${settings.volumeUnit.symbol}/min)',
+                          '(${UnitFormatter(settings).rmvSymbol})',
                     GasConsumptionDisplay.both =>
                       context.l10n.settings_units_gasConsumption_both,
                   },
@@ -947,14 +948,14 @@ class _UnitsSectionContent extends ConsumerWidget {
                 GasConsumptionDisplay.sac,
                 l10n.gasConsumption_sac,
                 l10n.settings_units_gasConsumption_sac_subtitle(
-                  '${settings.pressureUnit.symbol}/min',
+                  UnitFormatter(settings).sacSymbol,
                 ),
               ),
               option(
                 GasConsumptionDisplay.rmv,
                 l10n.gasConsumption_rmv,
                 l10n.settings_units_gasConsumption_rmv_subtitle(
-                  '${settings.volumeUnit.symbol}/min',
+                  UnitFormatter(settings).rmvSymbol,
                 ),
               ),
               option(
@@ -1286,6 +1287,8 @@ class _DecompressionSectionContent extends ConsumerWidget {
                   trailing: const Icon(Icons.edit),
                   onTap: () => _showPpO2LimitPicker(context, ref, settings),
                 ),
+                const Divider(height: 1),
+                const CcrPpO2LimitTile(),
               ],
             ),
           ),

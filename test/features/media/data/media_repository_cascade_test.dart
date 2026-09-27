@@ -112,6 +112,28 @@ void main() {
     expect(got!.diveId, isNull);
   });
 
+  test('unlinkMediaFromDeletedDives leaves a row relinked to a surviving '
+      'dive alone, unmarked', () async {
+    // The partition chose both rows while both were on d1; one has since
+    // moved to d2, which survives. Only the row still on d1 is unlinked,
+    // and only it is marked for sync: a fresh mark on the other would
+    // claim a local change that never happened.
+    await insertDive('d1');
+    await insertDive('d2');
+    final dying = await repo.createMedia(item('a.jpg', diveId: 'd1'));
+    final moved = await repo.createMedia(item('b.jpg', diveId: 'd2'));
+    await db.customStatement('DELETE FROM sync_records');
+
+    await repo.unlinkMediaFromDeletedDives([dying.id, moved.id], ['d1']);
+
+    expect((await repo.getMediaById(dying.id))!.diveId, isNull);
+    expect((await repo.getMediaById(moved.id))!.diveId, 'd2');
+    final marked = await (db.select(
+      db.syncRecords,
+    )..where((t) => t.entityType.equals('media'))).get();
+    expect(marked.map((r) => r.recordId), [dying.id]);
+  });
+
   test('getSweepableOrphanIds honours linkage and age only', () async {
     await insertDive('d1');
     final orphan = await repo.createMedia(item('old.jpg'));

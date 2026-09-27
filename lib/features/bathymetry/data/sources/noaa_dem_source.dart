@@ -37,6 +37,34 @@ class NoaaDemSource implements BathymetrySource {
 
   static const Duration _timeout = Duration(seconds: 15);
 
+  /// Where the mosaic can hold a real coastal DEM: US states and
+  /// territories, as (minLat, maxLat, minLon, maxLon). Deliberately
+  /// generous, since erring wide only means a NOAA outage keeps a nearby
+  /// non-US site (the northern Bahamas, say) from caching until it
+  /// recovers, while erring narrow would let an outage pin a US site to a
+  /// coarser fallback forever. The Aleutians cross the antimeridian, hence
+  /// the second Alaska box.
+  static const List<(double, double, double, double)> _usCoverage = [
+    (23.5, 50.0, -125.0, -66.0), // contiguous US, Gulf, Great Lakes
+    (51.0, 72.0, -180.0, -129.0), // Alaska
+    (51.0, 56.0, 172.0, 180.0), // western Aleutians
+    (18.0, 29.0, -179.0, -154.0), // Hawaii, incl. Northwestern Islands
+    (17.0, 19.0, -68.0, -64.0), // Puerto Rico, US Virgin Islands
+    (13.0, 21.0, 144.0, 147.0), // Guam, Northern Mariana Islands
+    (-15.0, -10.5, -171.5, -168.0), // American Samoa
+  ];
+
+  /// Whether [p] sits where this source could plausibly have data. Only
+  /// there does a failed probe count as a transient failure rather than a
+  /// decline (see [BathymetrySource.probe]).
+  static bool plausiblyCovers(GeoPoint p) => _usCoverage.any(
+    (b) =>
+        p.latitude >= b.$1 &&
+        p.latitude <= b.$2 &&
+        p.longitude >= b.$3 &&
+        p.longitude <= b.$4,
+  );
+
   final http.Client _client;
   final String baseUrl;
 
@@ -76,9 +104,16 @@ class NoaaDemSource implements BathymetrySource {
         'f': 'json',
       },
     );
+    final http.Response resp;
     try {
-      final resp = await _client.get(url).timeout(_timeout);
-      if (resp.statusCode != 200) return null;
+      resp = await _client.get(url).timeout(_timeout);
+    } catch (e) {
+      return _couldNotAsk(center, 'NOAA DEM probe failed: $e');
+    }
+    if (resp.statusCode != 200) {
+      return _couldNotAsk(center, 'NOAA DEM probe HTTP ${resp.statusCode}');
+    }
+    try {
       final body = jsonDecode(resp.body);
       if (body is! Map<String, dynamic>) return null;
       // ArcGIS returns error envelopes with HTTP 200, so a body without a
@@ -131,10 +166,18 @@ class NoaaDemSource implements BathymetrySource {
         detail: bestName ?? 'NOAA NCEI DEM',
       );
     } catch (_) {
-      // A probe never throws: an unreachable or surprising service simply
-      // means this source does not contribute here.
+      // The service answered, just with something surprising: this source
+      // does not contribute here, which is a decline, not a failure.
       return null;
     }
+  }
+
+  /// The probe could not reach a verdict. Inside US coverage that is a
+  /// transient failure the resolver must hear about; anywhere else it ends
+  /// the same way as a decline (see [plausiblyCovers]).
+  static SourceCapability? _couldNotAsk(GeoPoint center, String why) {
+    if (plausiblyCovers(center)) throw BathymetryFetchException(why);
+    return null;
   }
 
   @override

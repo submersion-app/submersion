@@ -375,6 +375,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         computerId: widget.tank.computerId,
         transmitterSerial: widget.tank.transmitterSerial,
         regulatorEquipmentId: _regulatorEquipmentId,
+        // The slot link is carried, not edited, here; the picker that sets it
+        // arrives with the board (PR 3 of #2325). Dropping it would let
+        // updateDive wipe it on the next save.
+        tripCylinderId: widget.tank.tripCylinderId,
       ),
     );
   }
@@ -938,7 +942,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     AppSettings settings,
   ) {
     final workingPpO2 = settings.ppO2MaxWorking;
-    final modDepth = units.formatDepth(
+    final modDepth = units.formatDepthFloor(
       gasMix.mod(ppO2: workingPpO2),
       decimals: 0,
     );
@@ -947,7 +951,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       o2Narcotic: settings.o2Narcotic,
     );
     final mndDepth = mndValue.isFinite
-        ? units.formatDepth(mndValue, decimals: 0)
+        ? units.formatDepthFloor(mndValue, decimals: 0)
         : '--';
 
     return Padding(
