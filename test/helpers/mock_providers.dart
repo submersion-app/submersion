@@ -750,12 +750,3 @@ Future<List<Override>> getBaseOverrides({
     tankPresetsProvider.overrideWith((ref) async => tankPresets ?? const []),
   ];
 }
-
-/// An incoming-link source with no links, so widget tests of the app root
-/// never touch the app_links platform channel.
-class NoIncomingLinks implements IncomingLinkSource {
-  const NoIncomingLinks();
-
-  @override
-  Stream<String> get links => const Stream<String>.empty();
-}
