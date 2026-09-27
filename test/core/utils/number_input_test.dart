@@ -192,6 +192,15 @@ void main() {
       expect(formatDecimalForInput(0.123456789012345), '0.123456789012345');
     });
 
+    test('seeds negative zero as plain zero', () {
+      // A slightly negative value rounded to fixed decimals comes back as
+      // -0.0 ("-0.04" at one digit is "-0.0"), and "-0" is not a value any
+      // diver would type or expect to see in a field.
+      Intl.defaultLocale = 'en_US';
+      expect(formatDecimalForInput(-0.0), '0');
+      expect(formatRoundedForInput(-0.04, 1), '0');
+    });
+
     test('drops noise left by a chained unit conversion', () {
       // metres -> feet -> metres, the kind of multi-step path a seeded field
       // can sit at the end of.

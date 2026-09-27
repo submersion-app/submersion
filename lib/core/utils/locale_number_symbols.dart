@@ -102,7 +102,12 @@ const _significantDigits = 15;
 /// rather than truncating. It rounds by significant digits, not a fixed count
 /// of decimals, because the helpers built on this are shared by fields of very
 /// different precision: a fixed two decimals would cut a coordinate short.
+///
+/// Negative zero comes back as plain zero. `-0.0 == 0` holds, so both reach
+/// the early return, and returning a literal rather than [value] stops a
+/// slightly negative reading rounded to fixed decimals ("-0.04" at one digit)
+/// from rendering as "-0".
 double _withoutBinaryNoise(double value) {
-  if (value == 0) return value;
+  if (value == 0) return 0.0;
   return double.parse(value.toStringAsPrecision(_significantDigits));
 }

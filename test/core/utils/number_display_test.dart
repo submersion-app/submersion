@@ -147,6 +147,11 @@ void main() {
       expect(formatDecimalForDisplay(1e21), isNot(contains('e')));
     });
 
+    test('renders negative zero as plain zero', () {
+      Intl.defaultLocale = 'en_US';
+      expect(formatDecimalForDisplay(-0.0), '0.0');
+    });
+
     test('renders nothing for a non-finite value', () {
       // Unreachable through parseUserDecimal, which rejects both, but the
       // display form must not put "NaN" in front of a diver either way.
