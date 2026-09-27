@@ -82,7 +82,8 @@ class AroundControls extends ConsumerWidget {
                 label: Text(
                   l10n.connections_around_kindChip(
                     kindLabel(l10n, k),
-                    counts[k] ?? 0,
+                    // What the budget cut still exists around the centre.
+                    (counts[k] ?? 0) + (graph.hiddenByKind[k] ?? 0),
                   ),
                 ),
                 selected: view.aroundKinds.contains(k),

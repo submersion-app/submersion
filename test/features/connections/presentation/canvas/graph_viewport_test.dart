@@ -71,20 +71,4 @@ void main() {
     expect(right.dx + 70, lessThanOrEqualTo(600 - 24 + 1e-6));
     expect(bottom.dy + 60, lessThanOrEqualTo(400 - 24 + 1e-6));
   });
-
-  test('isCloseTo tolerates rounding only', () {
-    const a = GraphViewport(scale: 1, offset: Offset(10, 10));
-    expect(
-      a.isCloseTo(const GraphViewport(scale: 1.005, offset: Offset(10.5, 10))),
-      isTrue,
-    );
-    expect(
-      a.isCloseTo(const GraphViewport(scale: 1.2, offset: Offset(10, 10))),
-      isFalse,
-    );
-    expect(
-      a.isCloseTo(const GraphViewport(scale: 1, offset: Offset(14, 10))),
-      isFalse,
-    );
-  });
 }

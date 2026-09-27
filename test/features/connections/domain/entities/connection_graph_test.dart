@@ -102,4 +102,27 @@ void main() {
     expect(n.copyWith(hop: 1).hop, 1);
     expect(n == n.copyWith(hop: 1), isFalse);
   });
+
+  test('trimmed counts the hidden nodes of each kind', () {
+    final mixed = ConnectionGraph(
+      nodes: [
+        _node('a', 9),
+        _node('b', 8),
+        const ConnectionNode(
+          ref: NodeRef(ConnectionKind.site, 's1'),
+          label: 's1',
+          diveCount: 1,
+        ),
+        const ConnectionNode(
+          ref: NodeRef(ConnectionKind.site, 's2'),
+          label: 's2',
+          diveCount: 1,
+        ),
+      ],
+      edges: const [],
+    );
+    final t = mixed.trimmed(2);
+    expect(t.hiddenByKind, {ConnectionKind.site: 2});
+    expect(t.hiddenNodeCount, 2);
+  });
 }

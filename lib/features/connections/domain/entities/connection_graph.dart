@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 
@@ -9,6 +10,7 @@ class ConnectionGraph extends Equatable {
     required this.nodes,
     required this.edges,
     this.hiddenNodeCount = 0,
+    this.hiddenByKind = const {},
   });
 
   static const empty = ConnectionGraph(nodes: [], edges: []);
@@ -18,6 +20,10 @@ class ConnectionGraph extends Equatable {
 
   /// Nodes removed by [trimmed]; shown as "N more not shown".
   final int hiddenNodeCount;
+
+  /// [hiddenNodeCount] split by kind, so a control naming a kind can count
+  /// what the budget cut as well as what is shown.
+  final Map<ConnectionKind, int> hiddenByKind;
 
   bool get isEmpty => nodes.isEmpty;
 
@@ -75,7 +81,11 @@ class ConnectionGraph extends Equatable {
             (e) => keptRefs.contains(e.source) && keptRefs.contains(e.target),
           )
           .toList(),
-      hiddenNodeCount: nodes.length - kept.length,
+      hiddenNodeCount: hiddenNodeCount + nodes.length - kept.length,
+      hiddenByKind: addHidden(
+        hiddenByKind,
+        nodes.where((n) => !keptRefs.contains(n.ref)),
+      ),
     );
   }
 
@@ -83,14 +93,28 @@ class ConnectionGraph extends Equatable {
     List<ConnectionNode>? nodes,
     List<ConnectionEdge>? edges,
     int? hiddenNodeCount,
+    Map<ConnectionKind, int>? hiddenByKind,
   }) {
     return ConnectionGraph(
       nodes: nodes ?? this.nodes,
       edges: edges ?? this.edges,
       hiddenNodeCount: hiddenNodeCount ?? this.hiddenNodeCount,
+      hiddenByKind: hiddenByKind ?? this.hiddenByKind,
     );
   }
 
   @override
-  List<Object?> get props => [nodes, edges, hiddenNodeCount];
+  List<Object?> get props => [nodes, edges, hiddenNodeCount, hiddenByKind];
+
+  /// [counts] plus one per node of [dropped], by kind.
+  static Map<ConnectionKind, int> addHidden(
+    Map<ConnectionKind, int> counts,
+    Iterable<ConnectionNode> dropped,
+  ) {
+    final out = {...counts};
+    for (final n in dropped) {
+      out[n.ref.kind] = (out[n.ref.kind] ?? 0) + 1;
+    }
+    return Map.unmodifiable(out);
+  }
 }

@@ -33,4 +33,14 @@ void main() {
       );
     }
   });
+
+  test('copyWith replaces only what it is given', () {
+    const r = NodeRef(ConnectionKind.buddy, 'jane');
+    expect(r.copyWith(id: 'ken'), const NodeRef(ConnectionKind.buddy, 'ken'));
+    expect(
+      r.copyWith(kind: ConnectionKind.site),
+      const NodeRef(ConnectionKind.site, 'jane'),
+    );
+    expect(r.copyWith(), r);
+  });
 }

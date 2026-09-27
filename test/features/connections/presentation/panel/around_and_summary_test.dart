@@ -53,7 +53,10 @@ final _graph = ConnectionGraph(
   ],
 );
 
-Future<ProviderContainer> _pump(WidgetTester tester) async {
+Future<ProviderContainer> _pump(
+  WidgetTester tester, {
+  ConnectionGraph? graph,
+}) async {
   tester.view.physicalSize = const Size(400, 1800);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
@@ -79,7 +82,7 @@ Future<ProviderContainer> _pump(WidgetTester tester) async {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
-          body: SingleChildScrollView(child: ViewTab(graph: _graph)),
+          body: SingleChildScrollView(child: ViewTab(graph: graph ?? _graph)),
         ),
       ),
     ),
@@ -151,5 +154,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('No matches'), findsOneWidget);
     expect(find.text('Summary'), findsNothing, reason: 'no centre, no summary');
+  });
+
+  testWidgets('a kind cut by the budget still counts on its chip', (
+    tester,
+  ) async {
+    final c = await _pump(
+      tester,
+      graph: _graph.copyWith(
+        hiddenNodeCount: 12,
+        hiddenByKind: {ConnectionKind.species: 12},
+      ),
+    );
+    await c
+        .read(connectionsViewProvider.notifier)
+        .update((s) => s.centreOn(_kiyan));
+    await tester.pumpAndSettle();
+    expect(find.text('Species (12)'), findsOneWidget);
   });
 }

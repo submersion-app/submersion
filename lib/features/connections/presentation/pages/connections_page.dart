@@ -50,6 +50,15 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   /// False until the first graph is laid out; that one never animates.
   bool _hadGraph = false;
 
+  /// The last graph shown, held while a different budget loads (a new family
+  /// key has no previous value of its own), so the canvas never unmounts.
+  ConnectionGraph? _lastGraph;
+
+  /// The phone sheet's height as a fraction of the body; the canvas fits
+  /// the graph into the space above it.
+  double _sheetExtent = _sheetInitial;
+  static const double _sheetInitial = 0.22;
+
   /// True until a deep link has been written to the view. Riverpod forbids
   /// provider writes inside initState, so the write waits for the first
   /// frame, and the first graph watch waits with it (no wasted load).
@@ -58,6 +67,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   @override
   void initState() {
     super.initState();
+    _sheet.addListener(_onSheetMoved);
     if (!_deepLinkPending) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _applyDeepLink();
@@ -94,8 +104,17 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     });
   }
 
+  void _onSheetMoved() {
+    if (!mounted || !_sheet.isAttached) return;
+    final size = _sheet.size;
+    if ((size - _sheetExtent).abs() > 0.001) {
+      setState(() => _sheetExtent = size);
+    }
+  }
+
   @override
   void dispose() {
+    _sheet.removeListener(_onSheetMoved);
     _layout.dispose();
     _sheet.dispose();
     super.dispose();
@@ -231,40 +250,53 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
           .update((s) => s.withSavedMaps({for (final m in maps) m.id: m.spec}));
     });
 
-    final graph = graphAsync.value ?? ConnectionGraph.empty;
-    final Widget canvasArea;
-    if (!graphAsync.hasValue && graphAsync.hasError) {
-      canvasArea = graphAsync.error is FocusNotFoundException
-          ? const Center(child: CircularProgressIndicator())
-          : Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(l10n.connections_error_load),
-                  const SizedBox(height: 8),
-                  FilledButton(
-                    onPressed: () =>
-                        ref.invalidate(connectionGraphProvider(budget)),
-                    child: Text(l10n.common_action_retry),
-                  ),
-                ],
-              ),
-            );
-    } else if (!graphAsync.hasValue) {
-      canvasArea = const Center(child: CircularProgressIndicator());
-    } else if (view.isAroundWithoutFocus || graph.isEmpty) {
-      // Around mode with no centre prompts for one even while the previous
-      // map is still held for the reload.
-      canvasArea = ConnectionsEmptyState(
-        view: view,
-        hasAnyDives: ref.watch(connectionsYearSpanProvider).value != null,
-        hasActiveFilter: hasActiveFilter,
-      );
-    } else {
-      final animate = _hadGraph && !MediaQuery.disableAnimationsOf(context);
-      _syncLayout(graph, focus, animate: animate);
+    // A reload keeps the previous value; a new budget key has none, so the
+    // page holds the last graph itself while any load is running.
+    final held = graphAsync.value ?? (graphAsync.isLoading ? _lastGraph : null);
+    if (graphAsync.hasValue) _lastGraph = graphAsync.value;
+    final graph = held ?? ConnectionGraph.empty;
+    final showCanvas =
+        held != null && !view.isAroundWithoutFocus && !graph.isEmpty;
+    final animate = _hadGraph && !MediaQuery.disableAnimationsOf(context);
+    if (showCanvas) _syncLayout(graph, focus, animate: animate);
+    final reloadFailed =
+        held != null &&
+        graphAsync.hasError &&
+        graphAsync.error is! FocusNotFoundException;
+
+    Widget canvasArea(double bottomInset) {
+      if (held == null && graphAsync.hasError) {
+        return graphAsync.error is FocusNotFoundException
+            ? const Center(child: CircularProgressIndicator())
+            : Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(l10n.connections_error_load),
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: () =>
+                          ref.invalidate(connectionGraphProvider(budget)),
+                      child: Text(l10n.common_action_retry),
+                    ),
+                  ],
+                ),
+              );
+      }
+      if (held == null) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      if (!showCanvas) {
+        // Around mode with no centre prompts for one even while the
+        // previous map is still held for the reload.
+        return ConnectionsEmptyState(
+          view: view,
+          hasAnyDives: ref.watch(connectionsYearSpanProvider).value != null,
+          hasActiveFilter: hasActiveFilter,
+        );
+      }
       final kinds = graph.nodes.map((n) => n.ref.kind).toSet();
-      canvasArea = Stack(
+      return Stack(
         children: [
           Positioned.fill(
             child: ConnectionsCanvas(
@@ -274,6 +306,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
               selection: selection,
               semanticsLabel: _semanticsLabel(graph, selection),
               animate: animate,
+              bottomInset: bottomInset,
               onSelect: (s) =>
                   ref.read(connectionsSelectionProvider.notifier).state = s,
               onFocus: (node) {
@@ -310,6 +343,28 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
                   : () => _showAll(graph.nodes.length + graph.hiddenNodeCount),
             ),
           ),
+          if (reloadFailed)
+            Positioned(
+              left: 12,
+              right: 12,
+              top: 56,
+              child: Card(
+                key: const ValueKey('connections-reload-error'),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+                  child: Row(
+                    children: [
+                      Expanded(child: Text(l10n.connections_error_load)),
+                      TextButton(
+                        onPressed: () =>
+                            ref.invalidate(connectionGraphProvider(budget)),
+                        child: Text(l10n.common_action_retry),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           if (graphAsync.isLoading)
             Positioned(
               left: 0,
@@ -338,32 +393,36 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     final body = wide
         ? Row(
             children: [
-              Expanded(child: canvasArea),
+              Expanded(child: canvasArea(0)),
               SizedBox(width: ConnectionsPage.panelWidth, child: panel()),
             ],
           )
-        : Stack(
-            children: [
-              Positioned.fill(child: canvasArea),
-              DraggableScrollableSheet(
-                key: const ValueKey('connections-sheet'),
-                controller: _sheet,
-                initialChildSize: 0.22,
-                minChildSize: 0.12,
-                maxChildSize: 0.85,
-                snap: true,
-                snapSizes: const [0.22, 0.5],
-                builder: (context, scrollController) => ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
-                  child: panel(
-                    scrollController: scrollController,
-                    compact: true,
+        : LayoutBuilder(
+            builder: (context, constraints) => Stack(
+              children: [
+                Positioned.fill(
+                  child: canvasArea(_sheetExtent * constraints.maxHeight),
+                ),
+                DraggableScrollableSheet(
+                  key: const ValueKey('connections-sheet'),
+                  controller: _sheet,
+                  initialChildSize: _sheetInitial,
+                  minChildSize: 0.12,
+                  maxChildSize: 0.85,
+                  snap: true,
+                  snapSizes: const [_sheetInitial, 0.5],
+                  builder: (context, scrollController) => ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                    child: panel(
+                      scrollController: scrollController,
+                      compact: true,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
 
     return Scaffold(

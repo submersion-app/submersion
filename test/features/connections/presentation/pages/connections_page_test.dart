@@ -14,6 +14,7 @@ import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/entities/saved_connection_map.dart';
 import 'package:submersion/features/connections/domain/views/connection_presets.dart';
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
+import 'package:submersion/features/connections/presentation/canvas/connections_painter.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/connections/presentation/pages/connections_page.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
@@ -387,5 +388,108 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
     expect(c.read(connectionsViewProvider).mapSpec, b);
     expect(c.read(connectionsViewProvider).savedMapId, 'bon');
+  });
+
+  testWidgets('show all keeps the canvas mounted while the bigger graph '
+      'loads', (tester) async {
+    final bigger = Completer<ConnectionGraph>();
+    await _pump(
+      tester,
+      size: _phone,
+      graph: (ref, budget) =>
+          budget == ConnectionsPage.maxBudget ? bigger.future : _graph,
+    );
+    await tester.tap(find.text('3 more not shown'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(
+      find.byKey(const ValueKey('connections-canvas-paint')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('connections-reload-progress')),
+      findsOneWidget,
+    );
+    bigger.complete(_graph);
+  });
+
+  testWidgets('a failed reload keeps the canvas and says so', (tester) async {
+    var calls = 0;
+    final c = await _pump(
+      tester,
+      graph: (ref, budget) {
+        ref.watch(connectionsViewProvider);
+        calls++;
+        if (calls > 1) throw StateError('boom');
+        return _graph;
+      },
+    );
+    await c
+        .read(connectionsViewProvider.notifier)
+        .update((s) => s.applyPreset(ConnectionPresets.byId('reef')!));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(
+      find.byKey(const ValueKey('connections-canvas-paint')),
+      findsOneWidget,
+    );
+    expect(find.text('Could not load connections.'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
+  });
+
+  testWidgets('on a phone the graph stays above the sheet as it opens', (
+    tester,
+  ) async {
+    // A centre with a ring of neighbours lays out round. Selecting a node
+    // opens the sheet to half height; a fit that ignores the sheet leaves
+    // the lower half of the ring behind it.
+    final ring = ConnectionGraph(
+      nodes: [
+        ConnectionNode(ref: _b('jane'), label: 'Jane', diveCount: 30, hop: 0),
+        for (var i = 0; i < 12; i++)
+          ConnectionNode(ref: _b('n$i'), label: 'N$i', diveCount: 3, hop: 1),
+      ],
+      edges: [
+        for (var i = 0; i < 12; i++)
+          ConnectionEdge(
+            source: _b('jane'),
+            target: _b('n$i'),
+            weight: 2,
+            firstDiveAt: DateTime.utc(2024),
+            lastDiveAt: DateTime.utc(2024),
+          ),
+      ],
+    );
+    await _pump(
+      tester,
+      size: _phone,
+      location: '/connections?mode=around&focus=buddy:jane',
+      graph: (ref, budget) => ring,
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+    final c = ProviderScope.containerOf(
+      tester.element(find.byType(ConnectionsPage)),
+    );
+    // The deep link already selected Jane; clear it, then pick a neighbour
+    // so the sheet opens as it does for a tap.
+    c.read(connectionsSelectionProvider.notifier).state = null;
+    await tester.pump();
+    c.read(connectionsSelectionProvider.notifier).state = NodeSelection(
+      _b('n0'),
+    );
+    for (var i = 0; i < 60; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    final paint = tester.widget<CustomPaint>(
+      find.byKey(const ValueKey('connections-canvas-paint')),
+    );
+    final painter = paint.painter! as ConnectionsPainter;
+    final canvasHeight = tester
+        .getSize(find.byKey(const ValueKey('connections-canvas-paint')))
+        .height;
+    final sheetTop = canvasHeight * (1 - 0.5);
+    for (final p in painter.frame.positions.values) {
+      expect(painter.viewport.toScreen(p).dy, lessThan(sheetTop));
+    }
   });
 }

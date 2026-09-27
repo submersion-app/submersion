@@ -25,6 +25,9 @@ class NodeRef extends Equatable {
     return NodeRef(kind, value.substring(split + 1));
   }
 
+  NodeRef copyWith({ConnectionKind? kind, String? id}) =>
+      NodeRef(kind ?? this.kind, id ?? this.id);
+
   @override
   List<Object?> get props => [kind, id];
 

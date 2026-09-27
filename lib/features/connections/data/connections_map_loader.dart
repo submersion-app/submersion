@@ -47,8 +47,6 @@ class MapLoader {
       nodes: kept,
       edges: edges,
     ).trimmed(nodeBudget);
-    return graph.copyWith(
-      hiddenNodeCount: graph.hiddenNodeCount + nodes.length - kept.length,
-    );
+    return withDropped(graph, nodes, kept);
   }
 }

@@ -1,11 +1,11 @@
 import 'dart:math' as math;
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 
-/// Size and stroke rules shared by the painter, the hit tester and the
-/// selection UI, so a node is drawn and picked at the same radius.
 /// What a node disc shows inside it.
 enum NodeGlyph { none, initials, icon, photo }
 
+/// Size and stroke rules shared by the painter, the hit tester and the
+/// selection UI, so a node is drawn and picked at the same radius.
 class NodeMetrics {
   const NodeMetrics._();
 

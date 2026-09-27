@@ -6,15 +6,21 @@ class LabelCollision {
   const LabelCollision._();
 
   /// Keeps each label whose rect overlaps neither an already-kept,
-  /// higher-ranked label nor any of [obstacles] (the node discs).
+  /// higher-ranked label nor any of [obstacles] (the node discs). Labels in
+  /// [exempt] (the selected, hovered and lit nodes) ignore the discs: the
+  /// diver is looking at them, so they must read even in a dense cluster.
   static Set<NodeRef> visible(
     List<({NodeRef ref, Rect rect})> ranked, {
     List<Rect> obstacles = const [],
+    Set<NodeRef> exempt = const {},
   }) {
     final kept = <Rect>[];
     final out = <NodeRef>{};
     for (final c in ranked) {
-      if (obstacles.any((o) => _strictlyOverlaps(o, c.rect))) continue;
+      if (!exempt.contains(c.ref) &&
+          obstacles.any((o) => _strictlyOverlaps(o, c.rect))) {
+        continue;
+      }
       if (kept.any((k) => _strictlyOverlaps(k, c.rect))) continue;
       kept.add(c.rect);
       out.add(c.ref);

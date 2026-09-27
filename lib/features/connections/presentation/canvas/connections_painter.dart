@@ -243,7 +243,11 @@ class ConnectionsPainter extends CustomPainter {
       ...allowed.where((c) => forced.contains(c.ref)),
       ...allowed.where((c) => !forced.contains(c.ref)),
     ];
-    final visible = LabelCollision.visible(ranked, obstacles: discs);
+    final visible = LabelCollision.visible(
+      ranked,
+      obstacles: discs,
+      exempt: forced,
+    );
     for (final c in ranked) {
       if (!visible.contains(c.ref)) continue;
       final dimmed = dim && !forced.contains(c.ref);

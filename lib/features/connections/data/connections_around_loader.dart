@@ -101,8 +101,6 @@ class AroundLoader {
       nodes: kept,
       edges: edges,
     ).trimmed(nodeBudget, keep: focus);
-    return graph.copyWith(
-      hiddenNodeCount: graph.hiddenNodeCount + nodes.length - kept.length,
-    );
+    return withDropped(graph, nodes, kept);
   }
 }

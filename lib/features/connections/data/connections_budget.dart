@@ -1,3 +1,4 @@
+import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 
@@ -39,4 +40,20 @@ Map<ConnectionKind, Set<String>> idsByKind(Iterable<ConnectionNode> nodes) {
     out.putIfAbsent(n.ref.kind, () => {}).add(n.ref.id);
   }
   return out;
+}
+
+/// [graph] with the nodes of [all] that the budget cut before the edge
+/// queries (those not in [kept]) added to its hidden counts.
+ConnectionGraph withDropped(
+  ConnectionGraph graph,
+  List<ConnectionNode> all,
+  List<ConnectionNode> kept,
+) {
+  if (all.length == kept.length) return graph;
+  final keptRefs = {for (final n in kept) n.ref};
+  final dropped = all.where((n) => !keptRefs.contains(n.ref)).toList();
+  return graph.copyWith(
+    hiddenNodeCount: graph.hiddenNodeCount + dropped.length,
+    hiddenByKind: ConnectionGraph.addHidden(graph.hiddenByKind, dropped),
+  );
 }

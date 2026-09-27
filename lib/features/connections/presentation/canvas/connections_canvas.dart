@@ -31,6 +31,7 @@ class ConnectionsCanvas extends StatefulWidget {
     this.selection,
     this.semanticsLabel,
     this.animate = false,
+    this.bottomInset = 0,
   });
 
   final ConnectionGraph graph;
@@ -43,6 +44,10 @@ class ConnectionsCanvas extends StatefulWidget {
 
   /// Glide the camera to the new fit when the graph changes (a refocus).
   final bool animate;
+
+  /// Screen pixels at the bottom covered by something else (the phone's
+  /// panel sheet); the fit keeps the graph above them.
+  final double bottomInset;
 
   @override
   State<ConnectionsCanvas> createState() => _ConnectionsCanvasState();
@@ -57,6 +62,10 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
 
   /// False until the first fit, which snaps; later fits ease.
   bool _everFitted = false;
+
+  /// True once the diver pans, zooms or drags; the camera then stops
+  /// following the sheet until the next graph change.
+  bool _userMoved = false;
   Size _size = Size.zero;
   NodeRef? _hovered;
   Offset? _hoverPosition;
@@ -104,8 +113,15 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
       old.controller.removeListener(_onFrame);
       widget.controller.addListener(_onFrame);
     }
+    if (old.bottomInset != widget.bottomInset &&
+        !_userMoved &&
+        _size != Size.zero &&
+        widget.controller.frame.positions.isNotEmpty) {
+      _viewport = _fitTarget(_size);
+    }
     if (old.graph != widget.graph) {
       _autoFit = true;
+      _userMoved = false;
       if (widget.animate &&
           _everFitted &&
           !MediaQuery.disableAnimationsOf(context)) {
@@ -182,7 +198,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
       left: math.max(r, 70),
       top: r,
       right: math.max(r, 70),
-      bottom: r + 2 + labelHeight,
+      bottom: r + 2 + labelHeight + widget.bottomInset,
     );
   }
 
@@ -213,6 +229,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
   void _zoomAt(double factor, Offset focal) {
     setState(() {
       _autoFit = false;
+      _userMoved = true;
       _glide.stop();
       _viewport = _viewport
           .zoomedAt(factor, focal)
@@ -223,6 +240,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
   void _pan(Offset delta) {
     setState(() {
       _autoFit = false;
+      _userMoved = true;
       _glide.stop();
       _viewport = _viewport
           .panned(delta)
@@ -328,6 +346,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
                   (r) => r
                     ..onLongPressStart = (d) {
                       _autoFit = false;
+                      _userMoved = true;
                       _glide.stop();
                       _dragging = _nodeAt(d.localPosition);
                       if (_dragging != null) {

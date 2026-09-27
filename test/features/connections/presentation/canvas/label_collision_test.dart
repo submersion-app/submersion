@@ -31,4 +31,13 @@ void main() {
     );
     expect(visible, isEmpty);
   });
+
+  test('an exempt label shows over a disc', () {
+    final visible = LabelCollision.visible(
+      [(ref: _b('a'), rect: const Rect.fromLTWH(0, 0, 60, 12))],
+      obstacles: [Rect.fromCircle(center: const Offset(30, 6), radius: 10)],
+      exempt: {_b('a')},
+    );
+    expect(visible, {_b('a')});
+  });
 }

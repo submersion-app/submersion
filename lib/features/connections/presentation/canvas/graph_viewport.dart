@@ -96,8 +96,4 @@ class GraphViewport {
       offset: Offset(x0 - bounds.left * s, y0 - bounds.top * s),
     );
   }
-
-  bool isCloseTo(GraphViewport other) =>
-      (scale / other.scale - 1).abs() < 0.01 &&
-      (offset - other.offset).distance < 1;
 }
