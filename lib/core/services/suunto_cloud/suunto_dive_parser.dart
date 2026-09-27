@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_cloud_event_map.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 
@@ -64,6 +65,12 @@ class SuuntoDiveParser {
 
     final headerStart = _parseIso8601(header['DateTime'] as String?);
 
+    final transmitters = _TransmitterLayout.scan(
+      samples,
+      gasOffset: gasOffset,
+      gasCount: _gases(header['Diving'] as Map<String, dynamic>?).length,
+    );
+
     final firstPass = _FirstPass.scan(samples);
     final diveStartMs = firstPass.diveStartMs;
     final startTime = diveStartMs != null
@@ -77,6 +84,7 @@ class SuuntoDiveParser {
             diveStartMs: diveStartMs,
             temperatureReadings: firstPass.temperatureReadings,
             gasOffset: gasOffset,
+            transmitters: transmitters,
           );
 
     final depthObj = header['Depth'] as Map<String, dynamic>?;
@@ -116,7 +124,10 @@ class SuuntoDiveParser {
     final gfLow = (diving?['GfLow'] as num?)?.round();
     final gfHigh = (diving?['GfHigh'] as num?)?.round();
 
-    final tanks = _buildTanks(diving, profileResult.gasSwitchOrder);
+    final tanks = _withSidemountPartners(
+      _buildTanks(diving, profileResult.gasSwitchOrder),
+      transmitters,
+    );
 
     // Suunto takes a surface fix before the descent and another after the
     // ascent, and keeps the pair in the dive footer's DiveLocation block
@@ -232,8 +243,7 @@ class SuuntoDiveParser {
     Map<String, dynamic>? diving,
     List<int> gasSwitchOrder,
   ) {
-    final gases = (diving?['Gases'] as List<dynamic>? ?? const [])
-        .cast<Map<String, dynamic>>();
+    final gases = _gases(diving);
     if (gases.isEmpty) return const [];
 
     // A dive with only one recorded gas never emits a gas-switch event (there
@@ -268,11 +278,83 @@ class SuuntoDiveParser {
     return tanks;
   }
 
+  /// The header's gas list, empty when it has none.
+  static List<Map<String, dynamic>> _gases(Map<String, dynamic>? diving) =>
+      (diving?['Gases'] as List<dynamic>? ?? const [])
+          .cast<Map<String, dynamic>>();
+
+  /// Adds a cylinder for every extra transmitter a gas carries.
+  ///
+  /// In sidemount mode a Nautic or Ocean logs both cylinders' transmitters
+  /// under one gas, as `Pressure` and `Pressure2`. The header has one gas
+  /// entry for the pair, so [_buildTanks] makes one cylinder, and without a
+  /// second the other transmitter's readings have no tank to land on. The
+  /// pair becomes Sidemount Left (`Pressure`) and Sidemount Right
+  /// (`Pressure2`); nothing in the export says which side each is on, so
+  /// this follows the transmitter slot and the diver can swap them.
+  ///
+  /// The added cylinder shares its gas's mix and size. The gas's start and
+  /// end pressures were read by the first transmitter, so it gets neither;
+  /// the importer derives them from its own pressure series. A gas with no
+  /// cylinder of its own gains none here.
+  static List<DownloadedTank> _withSidemountPartners(
+    List<DownloadedTank> tanks,
+    _TransmitterLayout transmitters,
+  ) {
+    if (transmitters.extraSlots.isEmpty) return tanks;
+
+    final paired = <int>{};
+    final partners = <DownloadedTank>[];
+    for (final MapEntry(key: (gasIndex, slot), value: index)
+        in transmitters.extraSlots.entries) {
+      final primary = tanks.where((t) => t.index == gasIndex).firstOrNull;
+      if (primary == null) continue;
+      if (slot == 1) paired.add(gasIndex);
+      partners.add(
+        DownloadedTank(
+          index: index,
+          o2Percent: primary.o2Percent,
+          hePercent: primary.hePercent,
+          volumeLiters: primary.volumeLiters,
+          role: slot == 1 ? TankRole.sidemountRight.name : null,
+        ),
+      );
+    }
+
+    return [
+      for (final tank in tanks)
+        paired.contains(tank.index)
+            ? DownloadedTank(
+                index: tank.index,
+                o2Percent: tank.o2Percent,
+                hePercent: tank.hePercent,
+                startPressure: tank.startPressure,
+                endPressure: tank.endPressure,
+                volumeLiters: tank.volumeLiters,
+                role: TankRole.sidemountLeft.name,
+                transmitterSerial: tank.transmitterSerial,
+              )
+            : tank,
+      ...partners,
+    ];
+  }
+
+  /// [readings] as a list indexed by tank index, null where a tank has none.
+  static List<double?> _byTankIndex(List<_PressureReading> readings) {
+    final highest = readings.map((r) => r.tankIndex).reduce(math.max);
+    final byTank = List<double?>.filled(highest + 1, null);
+    for (final reading in readings) {
+      byTank[reading.tankIndex] = reading.pressureBar;
+    }
+    return List.unmodifiable(byTank);
+  }
+
   static _ProfileResult _buildProfile(
     List<Map<String, dynamic>> samples, {
     required int diveStartMs,
     required List<_TempReading> temperatureReadings,
     required int gasOffset,
+    required _TransmitterLayout transmitters,
   }) {
     final profile = <ProfileSample>[];
     final gasSwitches = <GasSwitchEvent>[];
@@ -308,7 +390,11 @@ class SuuntoDiveParser {
         final ndl = (sample['NoDecTime'] as num?)?.round();
         final tts = (sample['TimeToSurface'] as num?)?.round();
 
-        final pressures = _readCylinderPressures(sample, gasOffset);
+        final pressures = _readCylinderPressures(
+          sample,
+          gasOffset,
+          transmitters,
+        );
 
         profile.add(
           ProfileSample(
@@ -317,28 +403,17 @@ class SuuntoDiveParser {
             temperature: temperature,
             pressure: pressures.isEmpty ? null : pressures.first.pressureBar,
             tankIndex: pressures.isEmpty ? null : pressures.first.tankIndex,
+            // Every transmitter's reading at this instant on the one row
+            // (issue #1223). A row per extra reading would repeat the
+            // sample's timestamp in the stored profile.
+            tankPressures: pressures.length > 1
+                ? _byTankIndex(pressures)
+                : null,
             ndl: ndl,
             ceiling: (ceiling ?? 0) > 0 ? ceiling : null,
             tts: tts,
           ),
         );
-
-        // A dive computer with more than one live pressure transmitter
-        // reports every tank's pressure at the same instant; submersion's
-        // profile-sample model (mirroring how multi-transmitter downloads
-        // from real dive computers are represented) carries one
-        // pressure/tankIndex pair per row, so extra simultaneous readings
-        // ride along as additional minimal rows at the same timestamp.
-        for (final extra in pressures.skip(1)) {
-          profile.add(
-            ProfileSample(
-              timeSeconds: elapsedSecs,
-              depth: depthValue,
-              pressure: extra.pressureBar,
-              tankIndex: extra.tankIndex,
-            ),
-          );
-        }
       }
 
       final clampedElapsed = elapsedSecs < 0 ? 0 : elapsedSecs;
@@ -476,37 +551,49 @@ class SuuntoDiveParser {
       ..addAll(nowActive);
   }
 
-  /// Reads every "Pressure"/"Pressure2"/"Pressure3"... transmitter reading
-  /// off a sample's `Cylinders` entries, in submersion units (bar).
+  /// Every transmitter reading on [sample], in bar, placed on its tank by
+  /// [transmitters].
   static List<_PressureReading> _readCylinderPressures(
     Map<String, dynamic> sample,
     int gasOffset,
-  ) {
-    final cylinders = sample['Cylinders'] as List<dynamic>?;
-    if (cylinders == null) return const [];
+    _TransmitterLayout transmitters,
+  ) => [
+    for (final (:gasIndex, :slot, :pressureBar) in _transmitterReadings(
+      sample,
+      gasOffset,
+    ))
+      if (transmitters.tankIndexFor(gasIndex, slot) case final tankIndex?)
+        _PressureReading(tankIndex, pressureBar),
+  ];
 
-    final readings = <_PressureReading>[];
+  /// Reads every "Pressure"/"Pressure2"/"Pressure3"... transmitter reading
+  /// off a sample's `Cylinders` entries, in submersion units (bar), with the
+  /// zero-based gas it was logged under and its slot (0 for `Pressure`, 1
+  /// for `Pressure2`, ...). A gas that maps below zero is skipped: no
+  /// cylinder can hold it.
+  static Iterable<({int gasIndex, int slot, double pressureBar})>
+  _transmitterReadings(Map<String, dynamic> sample, int gasOffset) sync* {
+    final cylinders = sample['Cylinders'] as List<dynamic>?;
+    if (cylinders == null) return;
+
     for (final entry in cylinders) {
       final cyl = entry as Map<String, dynamic>;
-      final gasNumber = (cyl['GasNumber'] as num?)?.toInt() ?? 0;
-      var sensor = gasNumber - gasOffset;
+      final gasIndex = ((cyl['GasNumber'] as num?)?.toInt() ?? 0) - gasOffset;
+      if (gasIndex < 0) continue;
 
-      for (var t = 0; ; t++) {
-        final key = t == 0 ? 'Pressure' : 'Pressure${t + 1}';
+      for (var slot = 0; ; slot++) {
+        final key = slot == 0 ? 'Pressure' : 'Pressure${slot + 1}';
         if (!cyl.containsKey(key)) break;
-        final value = cyl[key];
-        if (value == null) {
-          sensor++;
-          continue;
+        final pressurePa = _asDouble(cyl[key]);
+        if (pressurePa != null && pressurePa > 0) {
+          yield (
+            gasIndex: gasIndex,
+            slot: slot,
+            pressureBar: pressurePa / 100000,
+          );
         }
-        final pressurePa = (value as num).toDouble();
-        if (pressurePa > 0) {
-          readings.add(_PressureReading(sensor, pressurePa / 100000));
-        }
-        sensor++;
       }
     }
-    return readings;
   }
 
   static double? _findNearestTemperature(
@@ -629,6 +716,60 @@ class _TempReading {
   const _TempReading(this.timestampMs, this.kelvin);
   final int timestampMs;
   final double kelvin;
+}
+
+/// Which tank index each transmitter reading belongs to.
+///
+/// A gas's first transmitter (`Pressure`) reads its own cylinder, whose
+/// index is the gas's. Any further transmitter on the same gas (`Pressure2`,
+/// a sidemount partner) is a cylinder no gas numbers, so it gets an index
+/// above every gas the dive uses. Numbering straight on from the gas would
+/// put gas 0's `Pressure2` on gas 1's cylinder, which collides the moment a
+/// sidemount diver's stage bottle has a transmitter of its own.
+///
+/// Worked out from the whole dive up front so a transmitter keeps one index
+/// throughout, whatever order its readings first appear in.
+class _TransmitterLayout {
+  const _TransmitterLayout(this.extraSlots);
+
+  /// Tank index of every extra transmitter, keyed by (gas index, slot).
+  final Map<(int, int), int> extraSlots;
+
+  static _TransmitterLayout scan(
+    List<Map<String, dynamic>> samples, {
+    required int gasOffset,
+    required int gasCount,
+  }) {
+    var highestGas = gasCount - 1;
+    final extras = <(int, int)>{};
+    final switchedTo = <int>[];
+
+    for (final sample in samples) {
+      for (final reading in SuuntoDiveParser._transmitterReadings(
+        sample,
+        gasOffset,
+      )) {
+        highestGas = math.max(highestGas, reading.gasIndex);
+        if (reading.slot > 0) extras.add((reading.gasIndex, reading.slot));
+      }
+      SuuntoDiveParser._collectGasSwitchOrder(sample, gasOffset, switchedTo);
+    }
+    for (final gasIndex in switchedTo) {
+      highestGas = math.max(highestGas, gasIndex);
+    }
+
+    final ordered = extras.toList()
+      ..sort((a, b) {
+        final byGas = a.$1.compareTo(b.$1);
+        return byGas != 0 ? byGas : a.$2.compareTo(b.$2);
+      });
+    return _TransmitterLayout({
+      for (var i = 0; i < ordered.length; i++) ordered[i]: highestGas + 1 + i,
+    });
+  }
+
+  int? tankIndexFor(int gasIndex, int slot) =>
+      slot == 0 ? gasIndex : extraSlots[(gasIndex, slot)];
 }
 
 class _PressureReading {
