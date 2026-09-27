@@ -407,16 +407,30 @@ restores it, so the next file starts from the same place.
 
 | You change | Put it back with |
 |---|---|
-| A `*Platform.instance`, or `HttpOverrides.global` | Read the previous value into a variable, and assign it back in `tearDown` or `addTearDown` |
+| The path provider | `useFakePathProvider(fake)` from `test/helpers/fake_path_provider.dart`, in `setUp` or the test. It restores the previous provider when the test ends |
+| Any other `*Platform.instance`, or `HttpOverrides.global` | Read the previous value into a variable, and assign that variable back in `tearDown` or `addTearDown` |
+| `debugPrint`, `FlutterError.onError` or `debugDefaultTargetPlatformOverride` | Put the saved value (or `null` for the platform override) back before the test ends. flutter_test requires this in the body of a `testWidgets` |
 | `QualityScanScheduler.enabled`, `SensorSummaryScheduler.enabled` or `debugCanShareFiles` | `applyGlobalTestDefaults()` from `test/helpers/global_test_defaults.dart`, in `tearDown` |
-| A mock handler on the path provider or share channel | `clearPathAndShareChannelMocks()` from `test/helpers/mock_channels.dart`, in `tearDownAll` |
+| A mock handler on the path provider or share channel | `clearPathAndShareChannelMocks()` from `test/helpers/mock_channels.dart`, or `setMockMethodCallHandler(channel, null)`, in a `tearDown` or `tearDownAll` |
 | The share sheet | Assign your fake to `SharePlatform.instance` and restore it. The harness pins a forwarder, so the fake is looked up on every share |
 | PDF fonts | `loadPdfRoboto()` in `setUpAll` and `unloadPdfRoboto()` in `tearDownAll`, from `test/helpers/pdf_roboto.dart` |
 
-`test/architecture/test_global_state_restored_test.dart` fails on an assignment
-that nothing in its scope restores. A `tearDown` answers for the group it is
-declared in, and an `addTearDown` for the test that registers it, so restoring
-in one group does not cover a replacement in another.
+A restore belongs in a teardown, so that it runs when a test fails too. A
+`tearDown` answers for the group it is declared in, and an `addTearDown` for the
+test that registers it, so restoring in one group does not cover a replacement
+in another. The foundation hooks above are the exception.
+
+Two checks enforce the rule:
+
+- `test/architecture/test_global_state_restored_test.dart` reads the source and
+  fails on an assignment that nothing in its scope restores. It names the file
+  and line, and it runs locally like any other test.
+- In CI, each generated bundle records the process-wide state before a file's
+  tests (`test/helpers/global_state_snapshot.dart`) and fails that file's group
+  if anything is left changed afterwards, whatever shape the code took.
+
+A file that throws while its tests are being declared fails in a test of its
+own, named `declares its tests`, and the other files in the bundle still run.
 
 A shared isolate exposes two more things:
 
