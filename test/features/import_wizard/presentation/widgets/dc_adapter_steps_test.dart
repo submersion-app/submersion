@@ -952,6 +952,64 @@ void main() {
       );
     });
 
+    testWidgets('a failed clock sync write after a recovered save is logged', (
+      tester,
+    ) async {
+      final created = _makeComputer(id: 'recovered-computer');
+      var attempts = 0;
+      final repository = _FlakyCreateDiveComputerRepository(() {
+        attempts++;
+        if (attempts == 1) throw StateError('database is locked');
+        return created;
+      });
+      DiveComputerAdapter? adapter;
+
+      await tester.pumpWidget(
+        _scopeWithOverrides(
+          discoveryState: DiscoveryState(selectedDevice: _testDevice),
+          extraOverrides: [
+            clockSyncSettingsNotifierProvider.overrideWith(
+              (ref) => _FailingClockSyncSettingsNotifier(),
+            ),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) {
+                  adapter ??= _makeAdapter(
+                    computerRepository: repository,
+                    ref: ref,
+                  );
+                  return DcAdapterDownloadStep(adapter: adapter!);
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DcAdapterDownloadStep)),
+      );
+      container.read(downloadNotifierProvider.notifier).state = DownloadState(
+        phase: DownloadPhase.complete,
+        downloadedDives: [_downloadedDive()],
+        clockSyncStatus: ClockSyncStatus.unsupported,
+      );
+      await tester.pumpAndSettle();
+
+      // The retried save still produces the computer and the bundle; only
+      // the clock sync note is lost.
+      final bundle = await adapter!.buildBundle();
+
+      expect(adapter!.computer, equals(created));
+      expect(bundle.source.currentComputerId, 'recovered-computer');
+    });
+
     testWidgets(
       'importing a partial download captures dives and advances the wizard',
       (tester) async {
