@@ -67967,6 +67967,69 @@ abstract class AppLocalizations {
   /// **'Recovery did not complete. Nothing was deleted; both files are still on this device.'**
   String get startup_interruptedRestore_failed;
 
+  /// No description provided for @startup_diveLogUnavailable_downloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading your dive log from iCloud'**
+  String get startup_diveLogUnavailable_downloading;
+
+  /// No description provided for @startup_diveLogUnavailable_iCloud_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your dive log is still in iCloud'**
+  String get startup_diveLogUnavailable_iCloud_title;
+
+  /// Startup screen when the dive log in a custom folder has been evicted by iCloud and could not be downloaded. The folder is the configured dive log folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Your dive log in {folder} is stored in iCloud but is not on this device yet, and it could not be downloaded. It is safe in iCloud, and nothing has been changed. Check your internet connection, or download it in the Files app or Finder, then try again.'**
+  String startup_diveLogUnavailable_iCloud_body(String folder);
+
+  /// No description provided for @startup_diveLogUnavailable_missing_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your dive log was not found'**
+  String get startup_diveLogUnavailable_missing_title;
+
+  /// Startup screen when a custom folder that held the dive log no longer holds it. Names the file and folder so the diver can check by hand.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion keeps your dive log in {folder}, but there is no {filename} there now. If that folder is on a drive that is not connected, or in a synced folder that has not caught up, connect or sync it and try again. Nothing has been created or changed.'**
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  );
+
+  /// No description provided for @startup_diveLogUnavailable_startNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new dive log in this folder'**
+  String get startup_diveLogUnavailable_startNew;
+
+  /// No description provided for @startup_diveLogUnavailable_startNew_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Only if your old dive log is gone for good. The new one starts empty.'**
+  String get startup_diveLogUnavailable_startNew_subtitle;
+
+  /// No description provided for @startup_diveLogUnavailable_startNew_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new dive log here?'**
+  String get startup_diveLogUnavailable_startNew_confirmTitle;
+
+  /// Confirms creating an empty dive log in a folder whose dive log is missing.
+  ///
+  /// In en, this message translates to:
+  /// **'An empty dive log is created in {folder}. If your old dive log comes back later, for example when a sync finishes, it will conflict with the new one.'**
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder);
+
+  /// No description provided for @startup_diveLogUnavailable_startNew_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Start new dive log'**
+  String get startup_diveLogUnavailable_startNew_confirm;
+
   /// No description provided for @backup_history_preDowngradeSubtitle.
   ///
   /// In en, this message translates to:

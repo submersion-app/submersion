@@ -48,6 +48,11 @@ enum StartupLocationCheck {
   /// Custom database is not accessible and the configuration was reset
   /// (sandbox platforms, where folder access can be permanently revoked).
   resetToDefault,
+
+  /// The custom database is in iCloud but its contents are not on this
+  /// device. The configuration is KEPT on every platform, so startup can
+  /// fetch the diver's dive log instead of creating an empty one (#2177).
+  keptNotDownloaded,
 }
 
 class DatabaseLocationService {
@@ -275,6 +280,9 @@ class DatabaseLocationService {
   /// to lose access to, a missing file is created by the open, and the old
   /// unconditional reset made the setting appear to never persist on
   /// Linux.
+  ///
+  /// A database iCloud holds but has not downloaded is KEPT everywhere and
+  /// left unread: that is a fetch still to happen, not lost access (#2177).
   Future<StartupLocationCheck> validateCustomLocationAtStartup({
     bool? isBookmarkPlatform,
   }) async {
@@ -299,7 +307,24 @@ class DatabaseLocationService {
     // DOES occupy the path (including a directory) has to be opened to
     // decide, so test the entity type rather than File.exists().
     if (await FileSystemEntity.type(dbPath) == FileSystemEntityType.notFound) {
+      if (await File(iCloudPlaceholderPath(dbPath)).exists()) {
+        return StartupLocationCheck.keptNotDownloaded;
+      }
       return StartupLocationCheck.keptDatabaseMissing;
+    }
+
+    // macOS Sonoma and later evict an iCloud file in place: it keeps its name
+    // and loses its contents. Reading one here would fetch all of it before
+    // the read returned, with no limit and before the app has drawn a frame,
+    // and offline the read fails and the reset below would open an empty dive
+    // log at the default path. Startup fetches it instead, under the splash,
+    // where it can say what is happening and give up (#2177). Only a definite
+    // "not downloaded" counts: an unknown state is read exactly as before.
+    final iCloud = await SecurityScopedBookmarkService.iCloudDownloadStatus(
+      dbPath,
+    );
+    if (iCloud == ICloudItemStatus.notDownloaded) {
+      return StartupLocationCheck.keptNotDownloaded;
     }
 
     var canAccess = false;
@@ -433,6 +458,16 @@ class FolderPickResultWithBookmark {
 
   const FolderPickResultWithBookmark({required this.path, this.bookmarkData});
 }
+
+/// The hidden placeholder iCloud leaves in place of [path] once it has evicted
+/// the file's contents: `.submersion.db.icloud` beside `submersion.db`.
+///
+/// iOS and macOS before Sonoma evict this way, and the file itself is then
+/// absent, which reads exactly like a folder that has never held one. macOS
+/// Sonoma and later evict in place instead and keep the name, so a missing
+/// placeholder proves nothing on its own (issue #2177).
+String iCloudPlaceholderPath(String path) =>
+    p.join(p.dirname(path), '.${p.basename(path)}.icloud');
 
 /// A selectable external volume for the database location (Android).
 class ExternalVolumeOption {

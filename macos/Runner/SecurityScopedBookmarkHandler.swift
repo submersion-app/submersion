@@ -59,6 +59,23 @@ class SecurityScopedBookmarkHandler: NSObject {
             }
             verifyWriteAccess(path: path, result: result)
 
+        case "iCloudDownloadStatus":
+            guard let args = call.arguments as? [String: Any],
+                  let path = args["path"] as? String else {
+                result(FlutterError(code: "INVALID_ARGS", message: "Missing path argument", details: nil))
+                return
+            }
+            result(iCloudDownloadStatus(path: path))
+
+        case "downloadICloudItem":
+            guard let args = call.arguments as? [String: Any],
+                  let path = args["path"] as? String else {
+                result(FlutterError(code: "INVALID_ARGS", message: "Missing path argument", details: nil))
+                return
+            }
+            let timeoutSeconds = args["timeoutSeconds"] as? Int ?? 60
+            downloadICloudItem(path: path, timeoutSeconds: timeoutSeconds, result: result)
+
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -173,6 +190,64 @@ class SecurityScopedBookmarkHandler: NSObject {
             result(true)
         } catch {
             result(false)
+        }
+    }
+
+    // MARK: - iCloud
+
+    /// Reports whether the file at `path` is in iCloud and whether its contents are on this
+    /// device: "notUbiquitous", "downloaded" or "notDownloaded". Nil when the resource values
+    /// cannot be read, which Dart treats as unknown. Never starts a download.
+    ///
+    /// Needed because macOS Sonoma and later evict an iCloud file in place: it keeps its name
+    /// and loses its contents, so from Dart it looks present until a read fails (issue #2177).
+    private func iCloudDownloadStatus(path: String) -> String? {
+        let url = URL(fileURLWithPath: path)
+        guard let values = try? url.resourceValues(
+            forKeys: [.isUbiquitousItemKey, .ubiquitousItemDownloadingStatusKey]
+        ) else {
+            return nil
+        }
+        guard values.isUbiquitousItem == true else { return "notUbiquitous" }
+        let status = values.ubiquitousItemDownloadingStatus
+        if status == .notDownloaded { return "notDownloaded" }
+        if status == .current || status == .downloaded { return "downloaded" }
+        return nil
+    }
+
+    /// Asks iCloud for the contents of the file at `path`, and replies true once they are on
+    /// this device, or false when the download fails or `timeoutSeconds` pass. Replies exactly
+    /// once, on the main thread.
+    ///
+    /// A coordinated read is what makes the system fetch a ubiquitous item before handing it
+    /// over, and it works for an item reached through a bookmark or a picker, where
+    /// startDownloadingUbiquitousItem alone may be refused. It blocks until the item is here,
+    /// so it runs off the main thread, and cancelling the coordinator is what bounds it.
+    private func downloadICloudItem(path: String, timeoutSeconds: Int, result: @escaping FlutterResult) {
+        let url = URL(fileURLWithPath: path)
+        // Harmless when refused or when the item is already here. Where it is allowed, it
+        // starts the transfer before the coordinated read below waits on it.
+        try? FileManager.default.startDownloadingUbiquitousItem(at: url)
+
+        let coordinator = NSFileCoordinator(filePresenter: nil)
+        let queue = DispatchQueue.global(qos: .userInitiated)
+        // A read still waiting when this fires returns with a cancellation error; one that has
+        // already finished is unaffected.
+        queue.asyncAfter(deadline: .now() + .seconds(max(timeoutSeconds, 1))) {
+            coordinator.cancel()
+        }
+        queue.async {
+            var coordinationError: NSError?
+            var downloaded = false
+            coordinator.coordinate(readingItemAt: url, options: [], error: &coordinationError) { readURL in
+                // An evicted file still exists by name, so presence alone proves nothing.
+                downloaded = FileManager.default.fileExists(atPath: readURL.path)
+                    && self.iCloudDownloadStatus(path: readURL.path) != "notDownloaded"
+            }
+            let succeeded = coordinationError == nil && downloaded
+            DispatchQueue.main.async {
+                result(succeeded)
+            }
         }
     }
 

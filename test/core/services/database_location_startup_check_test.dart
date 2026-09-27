@@ -19,12 +19,17 @@ void main() {
   /// Every method name the service sent down the bookmark channel, in order.
   late List<String> bookmarkCalls;
 
+  /// What the native side answers when asked for a file's iCloud state.
+  /// Null, the default, is what every build without iCloud support says.
+  String? iCloudStatusReply;
+
   setUp(() {
     // resetToDefault releases any security-scoped bookmark via a platform
     // channel that has no host implementation in tests. The binary
     // messenger is process-global, so the handler is removed again after
     // each test rather than leaking into later ones.
     bookmarkCalls = <String>[];
+    iCloudStatusReply = null;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(bookmarkChannel, (call) async {
           bookmarkCalls.add(call.method);
@@ -36,6 +41,7 @@ void main() {
               'isStale': false,
             };
           }
+          if (call.method == 'iCloudDownloadStatus') return iCloudStatusReply;
           return null;
         });
     addTearDown(
@@ -250,6 +256,110 @@ void main() {
         expect(bookmarkCalls, isNot(contains('resolveBookmark')));
       },
     );
+
+    group('a database iCloud has evicted (#2177)', () {
+      setUp(() {
+        // The iCloud question is only ever put on Apple platforms. Forcing
+        // the gate open keeps these tests meaningful on the Linux shards.
+        SecurityScopedBookmarkService.debugSupportedOverride = true;
+        addTearDown(
+          () => SecurityScopedBookmarkService.debugSupportedOverride = null,
+        );
+      });
+
+      test('a placeholder where the database should be keeps the config and '
+          'says why', () async {
+        final dir = await Directory.systemTemp.createTemp('submersion2177');
+        addTearDown(() => dir.delete(recursive: true));
+        await File(
+          p.join(dir.path, '.submersion.db.icloud'),
+        ).writeAsString('stub');
+
+        final service = await serviceWithCustomFolder(dir.path);
+        final check = await service.validateCustomLocationAtStartup(
+          isBookmarkPlatform: true,
+        );
+
+        expect(check, StartupLocationCheck.keptNotDownloaded);
+        expect(
+          (await service.getStorageConfig()).mode,
+          StorageLocationMode.customFolder,
+        );
+      });
+
+      test('an unreadable database iCloud has not downloaded keeps the '
+          'config instead of resetting: macOS 14 and later evict in '
+          'place', () async {
+        iCloudStatusReply = 'notDownloaded';
+        final dir = await folderWithUnreadableDatabase();
+
+        final service = await serviceWithCustomFolder(dir.path);
+        final check = await service.validateCustomLocationAtStartup(
+          isBookmarkPlatform: true,
+        );
+
+        expect(check, StartupLocationCheck.keptNotDownloaded);
+        expect(
+          (await service.getStorageConfig()).mode,
+          StorageLocationMode.customFolder,
+          reason:
+              'resetting here opens an empty dive log at the default path '
+              'while the real one waits in iCloud',
+        );
+        expect(bookmarkCalls, contains('iCloudDownloadStatus'));
+        expect(
+          bookmarkCalls,
+          isNot(contains('stopAccessingSecurityScopedResource')),
+        );
+      });
+
+      test('a database iCloud has not downloaded is left unread, so the '
+          'fetch happens under the splash rather than before the first '
+          'frame', () async {
+        // Reading an evicted file makes macOS fetch all of it before the
+        // read returns, with no limit, before the app has drawn anything.
+        // A real file here reads fine, so "accessible" would prove the read
+        // ran first.
+        iCloudStatusReply = 'notDownloaded';
+        final dir = await Directory.systemTemp.createTemp('submersion2177');
+        addTearDown(() => dir.delete(recursive: true));
+        await File(
+          p.join(dir.path, 'submersion.db'),
+        ).writeAsBytes(List.filled(32, 1));
+
+        final service = await serviceWithCustomFolder(dir.path);
+        final check = await service.validateCustomLocationAtStartup(
+          isBookmarkPlatform: true,
+        );
+
+        expect(check, StartupLocationCheck.keptNotDownloaded);
+      });
+
+      test('an unreadable database iCloud says is downloaded still resets: '
+          'that is lost access, not a download', () async {
+        iCloudStatusReply = 'downloaded';
+        final dir = await folderWithUnreadableDatabase();
+
+        final service = await serviceWithCustomFolder(dir.path);
+        final check = await service.validateCustomLocationAtStartup(
+          isBookmarkPlatform: true,
+        );
+
+        expect(check, StartupLocationCheck.resetToDefault);
+      });
+
+      test('an unreadable database whose iCloud state is unknown still '
+          'resets, as before', () async {
+        final dir = await folderWithUnreadableDatabase();
+
+        final service = await serviceWithCustomFolder(dir.path);
+        final check = await service.validateCustomLocationAtStartup(
+          isBookmarkPlatform: true,
+        );
+
+        expect(check, StartupLocationCheck.resetToDefault);
+      });
+    });
 
     test('default location short-circuits', () async {
       SharedPreferences.setMockInitialValues({});

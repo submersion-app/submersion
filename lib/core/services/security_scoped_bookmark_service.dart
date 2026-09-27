@@ -169,6 +169,83 @@ class SecurityScopedBookmarkService {
       rethrow;
     }
   }
+
+  /// Whether the file at [path] is in iCloud, and if so whether its contents
+  /// are on this device (issue #2177).
+  ///
+  /// Asked of the bookmark handler rather than a channel of its own because
+  /// the answer is only readable inside the security scope that handler
+  /// holds for the chosen folder.
+  ///
+  /// Null whenever the answer is not known: off Apple platforms, when the
+  /// native side cannot read the file's resource values, or on a build whose
+  /// native side predates the method. Callers treat null as "carry on as
+  /// before", so an unknown can never read as "not downloaded".
+  static Future<ICloudItemStatus?> iCloudDownloadStatus(String path) async {
+    if (!isSupported) return null;
+
+    try {
+      final status = await _channel.invokeMethod<String>(
+        'iCloudDownloadStatus',
+        {'path': path},
+      );
+      return switch (status) {
+        'notUbiquitous' => ICloudItemStatus.notInICloud,
+        'downloaded' => ICloudItemStatus.downloaded,
+        'notDownloaded' => ICloudItemStatus.notDownloaded,
+        _ => null,
+      };
+    } on PlatformException catch (e) {
+      debugPrint('Failed to read iCloud status: ${e.message}');
+      return null;
+    } on MissingPluginException {
+      return null;
+    }
+  }
+
+  /// Asks iCloud to bring the contents of the file at [path] onto this
+  /// device, and reports whether they arrived within [timeout].
+  ///
+  /// The native side gives up after [timeout] itself. Dart gives up a little
+  /// later as well, because this runs under the startup splash, and a native
+  /// side that never replied would otherwise leave the diver there with no
+  /// way out.
+  static Future<bool> downloadICloudItem(
+    String path, {
+    required Duration timeout,
+  }) async {
+    if (!isSupported) return false;
+
+    try {
+      final downloaded = await _channel
+          .invokeMethod<bool>('downloadICloudItem', {
+            'path': path,
+            'timeoutSeconds': timeout.inSeconds,
+          })
+          .timeout(timeout + _nativeReplyGrace, onTimeout: () => false);
+      return downloaded ?? false;
+    } on PlatformException catch (e) {
+      debugPrint('Failed to download from iCloud: ${e.message}');
+      return false;
+    } on MissingPluginException {
+      return false;
+    }
+  }
+
+  /// How long past its own timeout the native download may take to reply.
+  static const _nativeReplyGrace = Duration(seconds: 10);
+}
+
+/// Where a file stands with iCloud, as far as this device can tell.
+enum ICloudItemStatus {
+  /// The file is not an iCloud item at all.
+  notInICloud,
+
+  /// The file is in iCloud and a copy of its contents is on this device.
+  downloaded,
+
+  /// The file is in iCloud, but its contents are not on this device.
+  notDownloaded,
 }
 
 /// Result of picking a folder with security scope on iOS.

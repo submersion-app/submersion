@@ -31,6 +31,7 @@ import 'package:submersion/core/presentation/startup_brightness.dart';
 import 'package:submersion/core/presentation/startup_failure.dart';
 import 'package:submersion/core/presentation/startup_theme.dart';
 import 'package:submersion/core/presentation/widgets/backup_status_views.dart';
+import 'package:submersion/core/presentation/widgets/dive_log_unavailable_view.dart';
 import 'package:submersion/core/presentation/widgets/interrupted_restore_view.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/presentation/widgets/startup_failure_view.dart';
@@ -41,6 +42,7 @@ import 'package:submersion/core/services/accounts/account_startup_migration.dart
 import 'package:submersion/core/services/background_service.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/dive_log_availability.dart';
 import 'package:submersion/core/services/startup_recovery_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/security/biometric_service.dart';
@@ -49,6 +51,7 @@ import 'package:submersion/core/services/security/database_security_service.dart
 import 'package:submersion/core/services/security/database_security_sidecar.dart';
 import 'package:submersion/core/services/security/locked_database_escape.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/core/services/restore_journal.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
@@ -112,6 +115,8 @@ Future<void> timeStartupStep(
 
 enum _StartupState {
   initializing,
+  downloadingFromICloud,
+  diveLogUnavailable,
   locked,
   interruptedRestore,
   backingUp,
@@ -199,6 +204,12 @@ class StartupWrapper extends StatefulWidget {
   @visibleForTesting
   final StartupRecoveryService? recoveryServiceOverride;
 
+  /// Optional override for the check that the configured dive log is on this
+  /// device (used in tests, whose answers would otherwise need real iCloud
+  /// state and real file I/O).
+  @visibleForTesting
+  final DiveLogAvailabilityService? availabilityServiceOverride;
+
   const StartupWrapper({
     super.key,
     required this.prefs,
@@ -215,6 +226,7 @@ class StartupWrapper extends StatefulWidget {
     this.restoreJournalFactory,
     this.recoveryServiceOverride,
     this.pickBackupFileOverride,
+    this.availabilityServiceOverride,
   });
 
   @override
@@ -262,6 +274,21 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// An earlier restore that stopped with the diver's previous database still
   /// aside, found before anything was opened. Null otherwise (issue #1901).
   InterruptedRestore? _interruptedRestore;
+
+  /// Why the configured dive log is not on this device, and the folder it
+  /// was expected in. Set only while startup is stopped on that (#2177).
+  DiveLogAvailability? _unavailableDiveLog;
+  String? _unavailableFolder;
+
+  /// Set once the diver has chosen to start a new dive log in a folder whose
+  /// dive log is missing, so the relaunch does not stop on the same screen.
+  bool _startingNewDiveLog = false;
+
+  late final DiveLogAvailabilityService _availability =
+      widget.availabilityServiceOverride ??
+      DiveLogAvailabilityService(widget.locationService);
+
+  static const _log = LoggerService('Startup');
 
   StartupRestoreStatus _restoreStatus = StartupRestoreStatus.idle;
   String? _restoreError;
@@ -322,6 +349,14 @@ class _StartupWrapperState extends State<StartupWrapper>
 
       // Determine if migration is needed before opening the database
       final dbPath = await widget.locationService.getDatabasePath();
+      final journal = _restoreJournal(dbPath);
+
+      // A dive log that is not on this device has to stop startup here,
+      // before the security gate as well as before the open. The open would
+      // create an empty dive log in its place, and the security gate reads a
+      // missing file as a plaintext one and switches encryption off to match
+      // (issue #2177).
+      if (!await _ensureDiveLogAvailable(dbPath, journal)) return;
 
       // App Security gate: must resolve BEFORE the schema probe below, which
       // needs the cipher key to read an encrypted file.
@@ -331,7 +366,6 @@ class _StartupWrapperState extends State<StartupWrapper>
       // live path (missing, or a plaintext restored file) an encrypted
       // install read as an interrupted disable-encryption run and lost the
       // key the recovery probe below needs (issue #1901).
-      final journal = _restoreJournal(dbPath);
       await _resolveSecurityGate(
         dbPath,
         headerPath: journal.pendingAsidePath ?? dbPath,
@@ -488,6 +522,65 @@ class _StartupWrapperState extends State<StartupWrapper>
       _errorMessage = '$error';
     });
     unawaited(_loadRecoveryOptions());
+  }
+
+  /// Stops startup when the dive log a custom folder points at is not on this
+  /// device, before anything could create an empty one in its place (issue
+  /// #2177). Returns whether startup may carry on.
+  ///
+  /// A dive log iCloud holds is fetched first, under the splash. Only one
+  /// that does not arrive, or one that is missing outright, stops startup.
+  Future<bool> _ensureDiveLogAvailable(
+    String dbPath,
+    RestoreJournal journal,
+  ) async {
+    // An unsettled restore is the restore screen's to explain: its live path
+    // may be empty on purpose, with the diver's database set aside.
+    if (_startingNewDiveLog || journal.pendingAsidePath != null) return true;
+
+    var availability = await _availability.check();
+    if (availability == DiveLogAvailability.inICloudOnly) {
+      _log.info('Dive log at $dbPath is in iCloud only; downloading it');
+      if (mounted) {
+        setState(() => _state = _StartupState.downloadingFromICloud);
+      }
+      // Trusted only once the file is really here: a download that reports
+      // success over a file still missing must not reach the open.
+      if (await _availability.downloadFromICloud()) {
+        availability = await _availability.check();
+      }
+    }
+
+    if (availability == DiveLogAvailability.ready) {
+      if (mounted && _state == _StartupState.downloadingFromICloud) {
+        setState(() => _state = _StartupState.initializing);
+      }
+      return true;
+    }
+
+    _log.warning(
+      'Startup stopped before opening: dive log at $dbPath is '
+      '${availability.name}',
+    );
+    if (mounted) {
+      setState(() {
+        _unavailableDiveLog = availability;
+        _unavailableFolder = p.dirname(dbPath);
+        _state = _StartupState.diveLogUnavailable;
+      });
+    }
+    return false;
+  }
+
+  /// Creates a new, empty dive log in the folder whose dive log is missing,
+  /// once the diver confirms. Never offered for a dive log still in iCloud.
+  Future<void> _startNewDiveLogHere() async {
+    final context = _dialogContext;
+    final folder = _unavailableFolder;
+    if (context == null || !context.mounted || folder == null) return;
+    if (!await showStartNewDiveLogDialog(context, folder)) return;
+    _startingNewDiveLog = true;
+    await _relaunchStartup();
   }
 
   /// Resolves the App Security gate before any database access.
@@ -1555,6 +1648,8 @@ class _StartupWrapperState extends State<StartupWrapper>
       _backupsDirectory = null;
       _restoreStatus = StartupRestoreStatus.idle;
       _restoreError = null;
+      _unavailableDiveLog = null;
+      _unavailableFolder = null;
     });
     await _runInitialization();
   }
@@ -1740,6 +1835,7 @@ class _StartupWrapperState extends State<StartupWrapper>
                     resolveAppLocale(preferred, supported),
                 home:
                     (_state == _StartupState.error ||
+                        _state == _StartupState.diveLogUnavailable ||
                         _state == _StartupState.interruptedRestore ||
                         _state == _StartupState.backupFailed ||
                         _state == _StartupState.recoveryRequired ||
@@ -1859,6 +1955,8 @@ class _StartupWrapperState extends State<StartupWrapper>
                         ),
                       ],
                     )
+                  : _state == _StartupState.downloadingFromICloud
+                  ? _buildICloudDownloadProgress(context)
                   : const SizedBox.shrink(),
             ),
           ),
@@ -1867,11 +1965,55 @@ class _StartupWrapperState extends State<StartupWrapper>
     );
   }
 
+  /// Shown under the logo while iCloud fetches the dive log (#2177). No
+  /// percentage: iCloud reports none that a coordinated read can see.
+  Widget _buildICloudDownloadProgress(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        LinearProgressIndicator(
+          backgroundColor: Colors.white.withValues(alpha: 0.2),
+          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          context.l10n.startup_diveLogUnavailable_downloading,
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.white.withValues(alpha: 0.8),
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
   Widget _buildErrorContent(
     BuildContext context,
     Color textColor,
     Color subtitleColor,
   ) {
+    final unavailable = _unavailableDiveLog;
+    final unavailableFolder = _unavailableFolder;
+    if (_state == _StartupState.diveLogUnavailable &&
+        unavailable != null &&
+        unavailableFolder != null) {
+      return DiveLogUnavailableView(
+        availability: unavailable,
+        folderPath: unavailableFolder,
+        textColor: textColor,
+        subtitleColor: subtitleColor,
+        onTryAgain: () => _runRecoveryRoute(_relaunchStartup),
+        onUseAnotherFolder: () => _runRecoveryRoute(_useAnotherFolder),
+        onRestoreFromFile: () => _runRecoveryRoute(_restoreFromPickedFile),
+        onStartNew: () => _runRecoveryRoute(_startNewDiveLogHere),
+        onClose: _closeApp,
+        busy: _recoveryBusy,
+        restoreStatus: _restoreStatus,
+        restoreError: _restoreError,
+      );
+    }
+
     final interrupted = _interruptedRestore;
     if (_state == _StartupState.interruptedRestore && interrupted != null) {
       return InterruptedRestoreView(
