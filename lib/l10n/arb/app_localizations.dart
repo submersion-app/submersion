@@ -27530,12 +27530,6 @@ abstract class AppLocalizations {
   /// **'Certifications'**
   String get nav_certifications;
 
-  /// No description provided for @nav_connections.
-  ///
-  /// In en, this message translates to:
-  /// **'Connections'**
-  String get nav_connections;
-
   /// Navigation label for courses section
   ///
   /// In en, this message translates to:
@@ -34432,6 +34426,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Conditions'**
   String get insights_category_conditions_title;
+
+  /// No description provided for @insights_category_connections_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddies, sites & gear linked'**
+  String get insights_category_connections_subtitle;
 
   /// No description provided for @insights_category_equipment_subtitle.
   ///

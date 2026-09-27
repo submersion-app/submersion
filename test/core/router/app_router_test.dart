@@ -191,14 +191,14 @@ void main() {
   });
 
   group('app_router route configuration', () {
-    test('connections is a named section root that accepts query params', () {
+    test('connections lives under Insights and accepts query params', () {
       final routes = router.configuration.routes;
       expect(_findRouteByName(routes, 'connections'), isNotNull);
-      expect(_locationOfRoute(routes, 'connections'), '/connections');
+      expect(_locationOfRoute(routes, 'connections'), '/insights/connections');
       final match = router.configuration.findMatch(
-        Uri.parse('/connections?lens=circle&focus=buddy:abc'),
+        Uri.parse('/insights/connections?mode=around&focus=buddy:abc'),
       );
-      expect(match.fullPath, '/connections');
+      expect(match.fullPath, '/insights/connections');
     });
 
     test('the cylinder passport nests under equipment detail', () {

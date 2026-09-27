@@ -17062,9 +17062,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get nav_certifications => 'Brevets';
 
   @override
-  String get nav_connections => 'Verbindungen';
-
-  @override
   String get nav_courses => 'Kurse';
 
   @override
@@ -21261,6 +21258,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insights_category_conditions_title => 'Bedingungen';
+
+  @override
+  String get insights_category_connections_subtitle =>
+      'Buddies, Tauchplätze & Ausrüstung verknüpft';
 
   @override
   String get insights_category_equipment_subtitle =>

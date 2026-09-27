@@ -17078,9 +17078,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get nav_certifications => 'Certificações';
 
   @override
-  String get nav_connections => 'Ligações';
-
-  @override
   String get nav_courses => 'Cursos';
 
   @override
@@ -21296,6 +21293,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get insights_category_conditions_title => 'Condições';
+
+  @override
+  String get insights_category_connections_subtitle =>
+      'Duplas, pontos e equipamentos ligados';
 
   @override
   String get insights_category_equipment_subtitle =>

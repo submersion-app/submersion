@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_action.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
 
@@ -16,12 +17,17 @@ class InsightsCategory {
   final String subtitle;
   final Color color;
 
+  /// A category that opens its own full page (rather than a detail pane
+  /// beside the list) names that page's location here.
+  final String? route;
+
   const InsightsCategory({
     required this.id,
     required this.icon,
     required this.title,
     required this.subtitle,
     required this.color,
+    this.route,
   });
 }
 
@@ -97,6 +103,14 @@ List<InsightsCategory> insightsCategoriesOf(BuildContext context) => [
     subtitle: context.l10n.insights_category_profile_subtitle,
     color: Colors.indigo,
   ),
+  InsightsCategory(
+    id: 'connections',
+    icon: Icons.hub_outlined,
+    title: context.l10n.connections_title,
+    subtitle: context.l10n.insights_category_connections_subtitle,
+    color: Colors.cyan.shade800,
+    route: kConnectionsLocation,
+  ),
 ];
 
 /// Content widget for the statistics category list, used in master-detail layout.
@@ -131,7 +145,10 @@ class InsightsListContent extends ConsumerWidget {
           category: category,
           isSelected: isSelected,
           onTap: () {
-            if (onItemSelected != null) {
+            final route = category.route;
+            if (route != null) {
+              context.push(route);
+            } else if (onItemSelected != null) {
               onItemSelected!(category.id);
             }
           },

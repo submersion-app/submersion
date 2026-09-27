@@ -101,7 +101,7 @@ void main() {
             builder: (_, s) => TripDetailPage(tripId: s.pathParameters['id']!),
           ),
           GoRoute(
-            path: '/connections',
+            path: '/insights/connections',
             builder: (context, state) =>
                 Scaffold(body: Text('CONNECTIONS ${state.uri.query}')),
           ),

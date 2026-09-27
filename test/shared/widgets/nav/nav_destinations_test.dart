@@ -10,8 +10,8 @@ void main() {
       expect(insights.selectedIcon, Icons.insights);
     });
 
-    test('has exactly 18 entries (17 routable + more sentinel)', () {
-      expect(kNavDestinations.length, 18);
+    test('has exactly 17 entries (16 routable + more sentinel)', () {
+      expect(kNavDestinations.length, 17);
     });
 
     test('exactly two entries are pinned (dashboard and more)', () {
@@ -32,7 +32,7 @@ void main() {
       }
     });
 
-    test('contains the expected 17 routable ids plus more sentinel', () {
+    test('contains the expected 16 routable ids plus more sentinel', () {
       expect(kNavDestinations.map((d) => d.id).toList(), [
         'dashboard',
         'dives',
@@ -46,7 +46,6 @@ void main() {
         'courses',
         'species',
         'insights',
-        'connections',
         'planning',
         'transfer',
         'gps-log',
@@ -83,7 +82,6 @@ void main() {
         'courses',
         'species',
         'insights',
-        'connections',
         'planning',
         'transfer',
         'gps-log',
@@ -91,15 +89,12 @@ void main() {
       ]);
     });
 
-    test('has exactly 16 entries', () {
-      expect(movableNavIds.length, 16);
+    test('has exactly 15 entries', () {
+      expect(movableNavIds.length, 15);
     });
 
-    test('connections is routable and movable', () {
-      final d = kNavDestinations.singleWhere((d) => d.id == 'connections');
-      expect(d.route, '/connections');
-      expect(d.isPinned, isFalse);
-      expect(movableNavIds, contains('connections'));
+    test('Connections lives in Insights, not in the nav', () {
+      expect(kNavDestinations.map((d) => d.id), isNot(contains('connections')));
     });
   });
 }

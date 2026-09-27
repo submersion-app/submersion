@@ -49,10 +49,10 @@ Future<ProviderContainer> _pump(
 }) async {
   final overrides = await getBaseOverrides();
   final router = GoRouter(
-    initialLocation: '/connections',
+    initialLocation: '/insights/connections',
     routes: [
       GoRoute(
-        path: '/connections',
+        path: '/insights/connections',
         builder: (_, _) => Scaffold(
           body: GraphSelectionDetails(graph: _graph, selection: selection),
         ),

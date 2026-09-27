@@ -16801,9 +16801,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_certifications => 'الشهادات';
 
   @override
-  String get nav_connections => 'الروابط';
-
-  @override
   String get nav_courses => 'الدورات';
 
   @override
@@ -20952,6 +20949,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_category_conditions_title => 'الظروف';
+
+  @override
+  String get insights_category_connections_subtitle =>
+      'الرفاق والمواقع والمعدات مترابطة';
 
   @override
   String get insights_category_equipment_subtitle => 'استخدام المعدات والأوزان';

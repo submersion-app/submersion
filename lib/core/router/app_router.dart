@@ -935,20 +935,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'insightsProfile',
                 builder: (context, state) => const InsightsProfilePage(),
               ),
+              // Connections opens from Insights as its own full page.
+              GoRoute(
+                path: 'connections',
+                name: 'connections',
+                builder: (context, state) => ConnectionsPage(
+                  args: ConnectionsRouteArgs.fromQuery(
+                    state.uri.queryParameters,
+                  ),
+                ),
+              ),
             ],
           ),
 
-          // Connections
+          // Connections moved under Insights; links saved before the move
+          // (and phase 1 deep links) still land there.
           GoRoute(
             path: '/connections',
-            name: 'connections',
-            pageBuilder: (context, state) {
-              final q = state.uri.queryParameters;
-              return NoTransitionPage(
-                key: state.pageKey,
-                child: ConnectionsPage(args: ConnectionsRouteArgs.fromQuery(q)),
-              );
-            },
+            redirect: (context, state) => connectionsLegacyRedirect(state.uri),
           ),
 
           // Records

@@ -16254,9 +16254,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get nav_certifications => '证书';
 
   @override
-  String get nav_connections => '关联';
-
-  @override
   String get nav_courses => '课程';
 
   @override
@@ -20212,6 +20209,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_category_conditions_title => '条件';
+
+  @override
+  String get insights_category_connections_subtitle => '潜伴、潜水点与装备的关联';
 
   @override
   String get insights_category_equipment_subtitle => '装备使用与配重';

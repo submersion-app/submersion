@@ -5,9 +5,17 @@ import 'package:submersion/features/connections/domain/views/connections_view_st
 import 'package:submersion/features/connections/domain/views/kind_link.dart';
 import 'package:submersion/features/connections/domain/views/map_spec.dart';
 
+/// Where the Connections explorer lives: a full page in the Insights area.
+const kConnectionsLocation = '/insights/connections';
+
 /// The deep link every detail page's "Open in Connections" pushes.
 String connectionsAroundLocation(NodeRef ref) =>
-    '/connections?mode=around&focus=${ref.wire}';
+    '$kConnectionsLocation?mode=around&focus=${ref.wire}';
+
+/// Maps a link to the old top-level `/connections` route onto the page's
+/// place under Insights, keeping its query.
+String connectionsLegacyRedirect(Uri uri) =>
+    uri.hasQuery ? '$kConnectionsLocation?${uri.query}' : kConnectionsLocation;
 
 /// `/connections` query parameters. Revision 2 uses `mode`, `preset`,
 /// `focus` and `hops`; phase 1's `lens`, `a` and `b` stay accepted.

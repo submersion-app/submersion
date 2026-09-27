@@ -11,7 +11,7 @@ void main() {
   test('the around location carries the mode and the focus', () {
     expect(
       connectionsAroundLocation(const NodeRef(ConnectionKind.site, 's1')),
-      '/connections?mode=around&focus=site:s1',
+      '/insights/connections?mode=around&focus=site:s1',
     );
   });
 
@@ -75,5 +75,18 @@ void main() {
     }).apply(base);
     expect(pair.editedFromPresetId, isNull);
     expect(pair.presetId, isNull);
+  });
+
+  test('an old /connections link moves under Insights with its query', () {
+    expect(
+      connectionsLegacyRedirect(
+        Uri.parse('/connections?lens=circle&focus=buddy:jane'),
+      ),
+      '/insights/connections?lens=circle&focus=buddy:jane',
+    );
+    expect(
+      connectionsLegacyRedirect(Uri.parse('/connections')),
+      '/insights/connections',
+    );
   });
 }

@@ -52,7 +52,7 @@ const _desktop = Size(1280, 800);
 Future<ProviderContainer> _pump(
   WidgetTester tester, {
   Size size = _desktop,
-  String location = '/connections',
+  String location = '/insights/connections',
   FutureOr<ConnectionGraph> Function(Ref ref, int budget)? graph,
   List<Override> extra = const [],
   List<SavedConnectionMap> savedMaps = const [],
@@ -65,7 +65,7 @@ Future<ProviderContainer> _pump(
     initialLocation: location,
     routes: [
       GoRoute(
-        path: '/connections',
+        path: '/insights/connections',
         builder: (_, state) => ConnectionsPage(
           args: ConnectionsRouteArgs.fromQuery(state.uri.queryParameters),
         ),
@@ -126,7 +126,7 @@ void main() {
   ) async {
     final c = await _pump(
       tester,
-      location: '/connections?mode=around&focus=buddy:jane',
+      location: '/insights/connections?mode=around&focus=buddy:jane',
     );
     await tester.pump(const Duration(milliseconds: 50));
     expect(c.read(connectionsViewProvider).mode, ConnectionsMode.around);
@@ -135,7 +135,7 @@ void main() {
   });
 
   testWidgets('a phase 1 link still works', (tester) async {
-    final c = await _pump(tester, location: '/connections?lens=where');
+    final c = await _pump(tester, location: '/insights/connections?lens=where');
     await tester.pump(const Duration(milliseconds: 50));
     expect(c.read(connectionsViewProvider).presetId, 'where');
   });
@@ -187,7 +187,7 @@ void main() {
   ) async {
     final c = await _pump(
       tester,
-      location: '/connections?mode=around&focus=buddy:ghost',
+      location: '/insights/connections?mode=around&focus=buddy:ghost',
       graph: (ref, budget) {
         final focus = ref.watch(connectionsViewProvider).focus;
         if (focus != null) throw FocusNotFoundException(focus);
@@ -242,7 +242,10 @@ void main() {
   });
 
   testWidgets('leaving around mode has its own tooltip', (tester) async {
-    await _pump(tester, location: '/connections?mode=around&focus=buddy:jane');
+    await _pump(
+      tester,
+      location: '/insights/connections?mode=around&focus=buddy:jane',
+    );
     await tester.pump(const Duration(milliseconds: 50));
     expect(find.byTooltip('Back to the whole map'), findsOneWidget);
   });
@@ -463,7 +466,7 @@ void main() {
     await _pump(
       tester,
       size: _phone,
-      location: '/connections?mode=around&focus=buddy:jane',
+      location: '/insights/connections?mode=around&focus=buddy:jane',
       graph: (ref, budget) => ring,
     );
     await tester.pump(const Duration(milliseconds: 50));
@@ -591,7 +594,7 @@ void main() {
   ) async {
     final c = await _pump(
       tester,
-      location: '/connections?mode=around&focus=buddy:jane',
+      location: '/insights/connections?mode=around&focus=buddy:jane',
     );
     await tester.pump(const Duration(milliseconds: 50));
     await tester.tap(find.byTooltip('Back to the whole map'));

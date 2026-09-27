@@ -17067,9 +17067,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get nav_certifications => 'Certificaciones';
 
   @override
-  String get nav_connections => 'Conexiones';
-
-  @override
   String get nav_courses => 'Cursos';
 
   @override
@@ -21297,6 +21294,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get insights_category_conditions_title => 'Condiciones';
+
+  @override
+  String get insights_category_connections_subtitle =>
+      'Compañeros, puntos y equipo enlazados';
 
   @override
   String get insights_category_equipment_subtitle => 'Uso de equipo y peso';

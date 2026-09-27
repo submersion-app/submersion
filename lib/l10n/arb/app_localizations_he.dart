@@ -16668,9 +16668,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_certifications => 'הסמכות';
 
   @override
-  String get nav_connections => 'קשרים';
-
-  @override
   String get nav_courses => 'קורסים';
 
   @override
@@ -20775,6 +20772,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_category_conditions_title => 'תנאים';
+
+  @override
+  String get insights_category_connections_subtitle =>
+      'שותפים, אתרים וציוד מקושרים';
 
   @override
   String get insights_category_equipment_subtitle => 'שימוש בציוד ומשקל';

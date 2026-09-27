@@ -17080,9 +17080,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get nav_certifications => 'Brevetti';
 
   @override
-  String get nav_connections => 'Connessioni';
-
-  @override
   String get nav_courses => 'Corsi';
 
   @override
@@ -21287,6 +21284,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insights_category_conditions_title => 'Condizioni';
+
+  @override
+  String get insights_category_connections_subtitle =>
+      'Compagni, siti e attrezzatura collegati';
 
   @override
   String get insights_category_equipment_subtitle =>

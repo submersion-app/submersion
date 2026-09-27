@@ -46,7 +46,7 @@ void main() {
               CourseDetailPage(courseId: s.pathParameters['id']!),
         ),
         GoRoute(
-          path: '/connections',
+          path: '/insights/connections',
           builder: (context, state) =>
               Scaffold(body: Text('CONNECTIONS ${state.uri.query}')),
         ),

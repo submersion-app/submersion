@@ -17025,9 +17025,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_certifications => 'Képesítések';
 
   @override
-  String get nav_connections => 'Kapcsolatok';
-
-  @override
   String get nav_courses => 'Tanfolyamok';
 
   @override
@@ -21229,6 +21226,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_category_conditions_title => 'Körülmények';
+
+  @override
+  String get insights_category_connections_subtitle =>
+      'Merülőtársak, helyek és felszerelés összekötve';
 
   @override
   String get insights_category_equipment_subtitle =>

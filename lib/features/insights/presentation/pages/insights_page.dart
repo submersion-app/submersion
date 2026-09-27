@@ -117,7 +117,9 @@ class InsightsMobileContent extends ConsumerWidget {
                 final category = insightsCategoriesOf(context)[index];
                 return _InsightsCategoryTile(
                   category: category,
-                  onTap: () => context.push('/insights/${category.id}'),
+                  onTap: () => context.push(
+                    category.route ?? '/insights/${category.id}',
+                  ),
                 );
               },
             ),
