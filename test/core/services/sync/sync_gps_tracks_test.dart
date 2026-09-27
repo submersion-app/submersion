@@ -243,6 +243,24 @@ void main() {
       expect(await cachedTrackIds(), {other});
     });
 
+    test('a track arriving with no stored row drops orphaned LODs', () async {
+      // LODs can outlive their track: a delete from a peer before eviction
+      // existed, or an eviction that failed. A row that then reappears with
+      // different geometry has nothing to compare against, so the orphaned
+      // LODs must not be trusted.
+      final id = await seedTrack();
+      final row = (await serializer.fetchRecord('gpsTracks', id))!;
+      final db = DatabaseService.instance.database;
+      await (db.delete(db.gpsTracks)..where((t) => t.id.equals(id))).go();
+      await cacheAllLods(id);
+
+      await serializer.upsertRecords('gpsTracks', [
+        {...row, 'trimStartTime': 1700000600000},
+      ]);
+
+      expect(await cachedTrackIds(), isEmpty);
+    });
+
     test('a peer rename keeps the cached LODs', () async {
       final id = await seedTrack();
       await cacheAllLods(id);

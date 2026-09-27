@@ -710,21 +710,24 @@ class SyncDataSerializer {
     }
   }
 
-  /// Ids of the [incoming] tracks whose stored row draws differently from the
-  /// incoming one, read BEFORE the upsert overwrites it.
+  /// Ids of the [incoming] tracks whose cached LODs may no longer match, read
+  /// BEFORE the upsert overwrites the stored rows.
   ///
   /// A trim or split made on this device evicts its own cached LODs
   /// (trimTrackProvider, splitTrackProvider); one arriving from a peer only
   /// overwrites the row, and the cache has no TTL, so without this the map
-  /// kept drawing the pre-trim polyline for good (issue #2447). A track new
-  /// to this device has nothing cached, and a metadata-only edit (a rename)
-  /// keeps its still-valid cache.
+  /// kept drawing the pre-trim polyline for good (issue #2447). Only a stored
+  /// row that draws exactly like the incoming one proves the cache still
+  /// valid, so a metadata-only edit (a rename) keeps it. A track with no
+  /// stored row is included: LODs can outlive their track (a delete that
+  /// predates eviction, or a failed eviction), and there is nothing to
+  /// compare them against.
   Future<Set<String>> _gpsTracksWithNewGeometry(
     List<GpsTrackRow> incoming,
   ) async {
     final byId = {for (final track in incoming) track.id: track};
     final ids = byId.keys.toList();
-    final geometryChanged = <String>{};
+    final geometryChanged = ids.toSet();
     // Chunked to stay under SQLite's bound-variable limit.
     for (final chunk in seriesIdChunks(ids)) {
       final stored = await (_db.select(
@@ -732,11 +735,11 @@ class SyncDataSerializer {
       )..where((t) => t.id.isIn(chunk))).get();
       for (final row in stored) {
         final next = byId[row.id]!;
-        if (row.trimStartTime != next.trimStartTime ||
-            row.trimEndTime != next.trimEndTime ||
-            row.pointCount != next.pointCount ||
-            !_sameBytes(row.points, next.points)) {
-          geometryChanged.add(row.id);
+        if (row.trimStartTime == next.trimStartTime &&
+            row.trimEndTime == next.trimEndTime &&
+            row.pointCount == next.pointCount &&
+            _sameBytes(row.points, next.points)) {
+          geometryChanged.remove(row.id);
         }
       }
     }
