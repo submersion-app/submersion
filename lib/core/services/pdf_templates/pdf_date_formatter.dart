@@ -36,7 +36,16 @@ class PdfDateFormatter {
   /// throws would be worse than month names in the app language.
   PdfDateFormatter inLanguage(String languageCode) {
     try {
-      return PdfDateFormatter._(_datePattern, _timePattern, languageCode);
+      final localized = PdfDateFormatter._(
+        _datePattern,
+        _timePattern,
+        languageCode,
+      );
+      // Formatting once here, inside the try, catches a locale-data failure
+      // intl defers to the first format() call, so no page of the export
+      // can meet it later.
+      localized.dateTime(DateTime(2000, 1, 1, 13));
+      return localized;
     } catch (_) {
       // LocaleDataException (symbols not loaded) or ArgumentError (unknown
       // locale); localeExists() reports true for `en` in both cases.
