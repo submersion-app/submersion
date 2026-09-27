@@ -350,15 +350,34 @@ class SecurityScopedBookmarkHandler: NSObject, UIDocumentPickerDelegate {
         return nil
     }
 
+    /// Replies owed for downloads still under way, by path, each with its own id so its
+    /// deadline can answer it alone. Touched only on the main thread.
+    private var downloadWaiters: [String: [(id: UUID, result: FlutterResult)]] = [:]
+
+    /// Paths with a coordinated read under way. A second request for the same path waits on
+    /// that read instead of starting another: a read blocked on an evicted file cannot be
+    /// interrupted, so fresh reads would only pile up behind it. Main thread only.
+    private var downloadsInFlight: Set<String> = []
+
     /// Asks iCloud for the contents of the file at `path`, and replies true once they are on
-    /// this device, or false when the download fails or `timeoutSeconds` pass. Replies exactly
-    /// once, on the main thread.
+    /// this device, or false when the download fails or `timeoutSeconds` pass. Each caller
+    /// is answered exactly once, on the main thread, by its own deadline at the latest, even
+    /// while the read itself is still blocked.
     ///
     /// A coordinated read is what makes the system fetch a ubiquitous item before handing it
     /// over, and it works for an item reached through a bookmark or a picker, where
     /// startDownloadingUbiquitousItem alone may be refused. It blocks until the item is here,
-    /// so it runs off the main thread, and cancelling the coordinator is what bounds it.
+    /// so it runs off the main thread.
     private func downloadICloudItem(path: String, timeoutSeconds: Int, result: @escaping FlutterResult) {
+        let id = UUID()
+        downloadWaiters[path, default: []].append((id: id, result: result))
+        let deadline = DispatchTime.now() + .seconds(max(timeoutSeconds, 1))
+        DispatchQueue.main.asyncAfter(deadline: deadline) { [weak self] in
+            self?.answerDownloadWaiter(path: path, id: id, downloaded: false)
+        }
+        guard !downloadsInFlight.contains(path) else { return }
+        downloadsInFlight.insert(path)
+
         let url = URL(fileURLWithPath: path)
         // Harmless when refused or when the item is already here. Where it is allowed, it
         // starts the transfer before the coordinated read below waits on it. The item's own
@@ -374,9 +393,10 @@ class SecurityScopedBookmarkHandler: NSObject, UIDocumentPickerDelegate {
 
         let coordinator = NSFileCoordinator(filePresenter: nil)
         let queue = DispatchQueue.global(qos: .userInitiated)
-        // A read still waiting when this fires returns with a cancellation error; one that has
-        // already finished is unaffected.
-        queue.asyncAfter(deadline: .now() + .seconds(max(timeoutSeconds, 1))) {
+        // A read still waiting for coordination when this fires returns with a cancellation
+        // error. One already inside the accessor runs on, and the waiters' own deadlines
+        // answer for it.
+        queue.asyncAfter(deadline: deadline) {
             coordinator.cancel()
         }
         queue.async {
@@ -384,18 +404,35 @@ class SecurityScopedBookmarkHandler: NSObject, UIDocumentPickerDelegate {
             var downloaded = false
             coordinator.coordinate(readingItemAt: url, options: [], error: &coordinationError) { readURL in
                 // Reading a byte is what makes an evicted file's contents arrive, whether or
-                // not the coordination fetched them already. An evicted file still exists by
-                // name, so presence alone proves nothing, and neither does an unknown status:
-                // only an explicit answer that the contents are local counts.
+                // not the coordination fetched them already, so the status is read after it.
+                // An evicted file still exists by name, so presence alone proves nothing, and
+                // neither does an unknown status: only an explicit answer that the contents
+                // are local counts.
+                let readable = Self.readsFirstByte(of: readURL)
                 let status = self.iCloudDownloadStatus(path: readURL.path)
-                downloaded = Self.readsFirstByte(of: readURL)
-                    && (status == "downloaded" || status == "notUbiquitous")
+                downloaded = readable && (status == "downloaded" || status == "notUbiquitous")
             }
             let succeeded = coordinationError == nil && downloaded
             DispatchQueue.main.async {
-                result(succeeded)
+                self.downloadsInFlight.remove(path)
+                self.answerAllDownloadWaiters(path: path, downloaded: succeeded)
             }
         }
+    }
+
+    /// Answers one caller of `downloadICloudItem`, if it has not been answered yet.
+    private func answerDownloadWaiter(path: String, id: UUID, downloaded: Bool) {
+        guard var waiters = downloadWaiters[path],
+              let index = waiters.firstIndex(where: { $0.id == id }) else { return }
+        let waiter = waiters.remove(at: index)
+        downloadWaiters[path] = waiters.isEmpty ? nil : waiters
+        waiter.result(downloaded)
+    }
+
+    /// Answers every caller still waiting on the download of `path`.
+    private func answerAllDownloadWaiters(path: String, downloaded: Bool) {
+        let waiters = downloadWaiters.removeValue(forKey: path) ?? []
+        waiters.forEach { $0.result(downloaded) }
     }
 
     /// True when the first byte of the file at `url` can be read.

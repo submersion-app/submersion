@@ -320,25 +320,19 @@ class DatabaseLocationService {
     // location before the database was ever created (#218). Anything that
     // DOES occupy the path (including a directory) has to be opened to
     // decide, so test the entity type rather than File.exists().
-    if (await FileSystemEntity.type(dbPath) == FileSystemEntityType.notFound) {
-      if (await File(iCloudPlaceholderPath(dbPath)).exists()) {
-        return StartupLocationCheck.keptNotDownloaded;
-      }
-      return StartupLocationCheck.keptDatabaseMissing;
+    // A dive log iCloud has evicted is a fetch still to happen, not lost
+    // access, so it is kept and left unread. Reading an evicted file would
+    // fetch all of it before the read returned, with no limit and before the
+    // app has drawn a frame; offline the read fails and the reset below would
+    // open an empty dive log at the default path. Startup fetches it instead,
+    // under the splash, where it can say what is happening and give up
+    // (#2177).
+    if (await isOnlyInICloud(dbPath)) {
+      return StartupLocationCheck.keptNotDownloaded;
     }
 
-    // macOS Sonoma and later evict an iCloud file in place: it keeps its name
-    // and loses its contents. Reading one here would fetch all of it before
-    // the read returned, with no limit and before the app has drawn a frame,
-    // and offline the read fails and the reset below would open an empty dive
-    // log at the default path. Startup fetches it instead, under the splash,
-    // where it can say what is happening and give up (#2177). Only a definite
-    // "not downloaded" counts: an unknown state is read exactly as before.
-    final iCloud = await SecurityScopedBookmarkService.iCloudDownloadStatus(
-      dbPath,
-    );
-    if (iCloud == ICloudItemStatus.notDownloaded) {
-      return StartupLocationCheck.keptNotDownloaded;
+    if (await FileSystemEntity.type(dbPath) == FileSystemEntityType.notFound) {
+      return StartupLocationCheck.keptDatabaseMissing;
     }
 
     var canAccess = false;
@@ -472,16 +466,6 @@ class FolderPickResultWithBookmark {
 
   const FolderPickResultWithBookmark({required this.path, this.bookmarkData});
 }
-
-/// The hidden placeholder iCloud leaves in place of [path] once it has evicted
-/// the file's contents: `.submersion.db.icloud` beside `submersion.db`.
-///
-/// iOS and macOS before Sonoma evict this way, and the file itself is then
-/// absent, which reads exactly like a folder that has never held one. macOS
-/// Sonoma and later evict in place instead and keep the name, so a missing
-/// placeholder proves nothing on its own (issue #2177).
-String iCloudPlaceholderPath(String path) =>
-    p.join(p.dirname(path), '.${p.basename(path)}.icloud');
 
 /// A selectable external volume for the database location (Android).
 class ExternalVolumeOption {

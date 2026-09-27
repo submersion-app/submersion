@@ -51,7 +51,8 @@ class DiveLogUnavailableView extends StatelessWidget {
   final VoidCallback onClose;
 
   /// True while one of the routes is running. Every route acts on the same
-  /// folder, so none may start while another is still going.
+  /// folder, so none may start, and the app may not close, while another is
+  /// still going.
   final bool busy;
   final StartupRestoreStatus restoreStatus;
   final String? restoreError;
@@ -181,8 +182,10 @@ class DiveLogUnavailableView extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 24),
+            // Held with the rest: quitting while a restore is swapping files
+            // would leave the next launch a half-finished restore to sort out.
             TextButton(
-              onPressed: onClose,
+              onPressed: locked ? null : onClose,
               child: Text(l10n.common_action_close),
             ),
           ],

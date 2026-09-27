@@ -16,6 +16,11 @@ import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/restore_journal.dart';
 import 'package:submersion/core/services/security/database_security_service.dart';
 import 'package:submersion/core/services/security/security_preferences.dart';
+import 'package:submersion/core/services/startup_recovery_service.dart';
+import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/backup_service.dart';
+import 'package:submersion/features/backup/data/services/pre_migration_backup_service.dart';
+import 'package:submersion/features/backup/domain/exceptions/backup_failed_exception.dart';
 
 /// Answers the startup gate from a script instead of the filesystem, so a
 /// widget test never waits on real I/O. The last answer repeats once the
@@ -53,11 +58,62 @@ class _Location extends DatabaseLocationService {
   _Location(super.prefs);
 
   int pickCalls = 0;
+  int markCalls = 0;
+
+  /// When set, the stamp waits on it, so a test can observe the stamp was
+  /// asked for without startup going on to mount the real app.
+  Completer<void>? holdMark;
 
   @override
   Future<FolderPickResultWithBookmark?> pickCustomFolder() async {
     pickCalls++;
     return null;
+  }
+
+  @override
+  Future<void> markCustomLocationVerified() {
+    markCalls++;
+    return holdMark?.future ?? super.markCustomLocationVerified();
+  }
+}
+
+/// Classifies any picked file as a restorable backup, so the failure
+/// screen's restore route can be driven without a real backup file.
+class _AcceptingRecovery extends StartupRecoveryService {
+  _AcceptingRecovery(super.locationService);
+
+  @override
+  Future<BackupFileChoice> classifyBackupFile(
+    String path,
+    SharedPreferences prefs, {
+    Future<BackupValidationResult> Function(String path)? validate,
+  }) async => RestorableBackupFile(path);
+}
+
+/// Fails the first pre-migration backup and succeeds after, like a disk that
+/// was briefly full.
+class _FlakyBackup extends PreMigrationBackupService {
+  _FlakyBackup({required super.preferences, required this.fail})
+    : super(
+        livePathProvider: () async => 'unused.db',
+        backupsDirProvider: () async => 'unused-backups',
+      );
+
+  final bool fail;
+
+  @override
+  Future<void> backupIfMigrationPending({
+    required int stored,
+    required int target,
+    required String appVersion,
+  }) async {
+    if (fail) {
+      throw const BackupFailedException(
+        cause: BackupFailureCause.unknown,
+        userMessage: 'Backup failed once.',
+        technicalDetails: 'flaky',
+      );
+    }
   }
 }
 
@@ -414,6 +470,79 @@ void main() {
 
       expect((await location.getStorageConfig()).lastVerified, isNull);
     });
+  });
+
+  testWidgets('after a new dive log fails to open, the next attempt checks '
+      'again: the choice covers one launch, not the rest of the process', (
+    tester,
+  ) async {
+    final availability = scripted([DiveLogAvailability.missing]);
+    var opens = 0;
+
+    await tester.pumpWidget(
+      StartupWrapper(
+        prefs: prefs,
+        logFileService: logFileService,
+        locationService: location,
+        initializerOverride: (_) {
+          opens++;
+          if (opens == 1) throw StateError('folder is not writable');
+          return Completer<void>().future;
+        },
+        schemaVersionProbeOverride: (_) =>
+            (needsMigration: false, totalSteps: 0),
+        enginePreflightOverride: () {},
+        restoreJournalFactory: (_) => _Journal(),
+        availabilityServiceOverride: availability,
+        recoveryServiceOverride: _AcceptingRecovery(location),
+        pickBackupFileOverride: () async => p.join(folder.path, 'backup.db'),
+        restoreOverride: (_, _) async {},
+      ),
+    );
+    await settle(tester);
+    await tap(tester, find.text('Start a new dive log in this folder'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.text('Start new dive log'));
+    await settle(tester);
+    await finish(tester);
+    expect(opens, 1, reason: 'the new dive log was tried and failed');
+
+    // The failure screen's restore reruns startup from the top.
+    await tap(tester, find.text('Restore from a backup file'));
+
+    expect(availability.checkCalls, 2);
+    expect(find.byType(DiveLogUnavailableView), findsOneWidget);
+  });
+
+  testWidgets('the retry after a failed pre-upgrade backup also stamps the '
+      'location', (tester) async {
+    location.holdMark = Completer<void>();
+    var backups = 0;
+
+    await tester.pumpWidget(
+      StartupWrapper(
+        prefs: prefs,
+        logFileService: logFileService,
+        locationService: location,
+        initializerOverride: (_) async {},
+        schemaVersionProbeOverride: (_) =>
+            (needsMigration: true, totalSteps: 1),
+        preMigrationBackupFactory:
+            ({
+              required String livePath,
+              required BackupPreferences preferences,
+            }) => _FlakyBackup(preferences: preferences, fail: backups++ == 0),
+        enginePreflightOverride: () {},
+        restoreJournalFactory: (_) => _Journal(),
+        availabilityServiceOverride: scripted([DiveLogAvailability.ready]),
+      ),
+    );
+    await settle(tester);
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Retry'));
+    await settle(tester);
+
+    expect(location.markCalls, 1);
+    await finish(tester);
   });
 
   testWidgets('the check runs before the security gate, so an evicted '

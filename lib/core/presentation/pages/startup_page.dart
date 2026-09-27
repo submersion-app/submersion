@@ -32,6 +32,7 @@ import 'package:submersion/core/presentation/startup_failure.dart';
 import 'package:submersion/core/presentation/startup_theme.dart';
 import 'package:submersion/core/presentation/widgets/backup_status_views.dart';
 import 'package:submersion/core/presentation/widgets/dive_log_unavailable_view.dart';
+import 'package:submersion/core/presentation/widgets/icloud_download_progress.dart';
 import 'package:submersion/core/presentation/widgets/interrupted_restore_view.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/presentation/widgets/startup_failure_view.dart';
@@ -528,28 +529,32 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// device, before anything could create an empty one in its place (issue
   /// #2177). Returns whether startup may carry on.
   ///
-  /// A dive log iCloud holds is fetched first, under the splash. Only one
-  /// that does not arrive, or one that is missing outright, stops startup.
+  /// A dive log iCloud holds is fetched first, under the splash (see
+  /// [DiveLogAvailabilityService.resolve]). Only one that does not arrive, or
+  /// one that is missing outright, stops startup.
   Future<bool> _ensureDiveLogAvailable(
     String dbPath,
     RestoreJournal journal,
   ) async {
+    // The diver's choice to start a new dive log covers this one launch. It
+    // is spent here, so a later rerun (a restore after the new one failed to
+    // open, say) checks again rather than skipping the gate for good.
+    if (_startingNewDiveLog) {
+      _startingNewDiveLog = false;
+      return true;
+    }
     // An unsettled restore is the restore screen's to explain: its live path
     // may be empty on purpose, with the diver's database set aside.
-    if (_startingNewDiveLog || journal.pendingAsidePath != null) return true;
+    if (journal.pendingAsidePath != null) return true;
 
-    var availability = await _availability.check();
-    if (availability == DiveLogAvailability.inICloudOnly) {
-      _log.info('Dive log at $dbPath is in iCloud only; downloading it');
-      if (mounted) {
-        setState(() => _state = _StartupState.downloadingFromICloud);
-      }
-      // Trusted only once the file is really here: a download that reports
-      // success over a file still missing must not reach the open.
-      if (await _availability.downloadFromICloud()) {
-        availability = await _availability.check();
-      }
-    }
+    final availability = await _availability.resolve(
+      onDownloading: () {
+        _log.info('Dive log at $dbPath is in iCloud only; downloading it');
+        if (mounted) {
+          setState(() => _state = _StartupState.downloadingFromICloud);
+        }
+      },
+    );
 
     if (availability == DiveLogAvailability.ready) {
       if (mounted && _state == _StartupState.downloadingFromICloud) {
@@ -1969,35 +1974,12 @@ class _StartupWrapperState extends State<StartupWrapper>
                       ],
                     )
                   : _state == _StartupState.downloadingFromICloud
-                  ? _buildICloudDownloadProgress(context)
+                  ? const ICloudDownloadProgress()
                   : const SizedBox.shrink(),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  /// Shown under the logo while iCloud fetches the dive log (#2177). No
-  /// percentage: iCloud reports none that a coordinated read can see.
-  Widget _buildICloudDownloadProgress(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        LinearProgressIndicator(
-          backgroundColor: Colors.white.withValues(alpha: 0.2),
-          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          context.l10n.startup_diveLogUnavailable_downloading,
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.white.withValues(alpha: 0.8),
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
     );
   }
 

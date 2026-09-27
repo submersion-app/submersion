@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as p;
 
 /// Service for managing security-scoped bookmarks on macOS and iOS.
 ///
@@ -275,4 +276,44 @@ class BookmarkResolveResult {
 
   @override
   String toString() => 'BookmarkResolveResult(path: $path, isStale: $isStale)';
+}
+
+/// Reads a file's iCloud state. Null means unknown.
+typedef ICloudStatusReader = Future<ICloudItemStatus?> Function(String path);
+
+/// The hidden placeholder iCloud leaves in place of [path] once it has evicted
+/// the file's contents: `.submersion.db.icloud` beside `submersion.db`.
+///
+/// iOS and macOS before Sonoma evict this way, and the file itself is then
+/// absent, which reads exactly like a folder that has never held one. macOS
+/// Sonoma and later evict in place instead and keep the name, so a missing
+/// placeholder proves nothing on its own (issue #2177).
+String iCloudPlaceholderPath(String path) =>
+    p.join(p.dirname(path), '.${p.basename(path)}.icloud');
+
+/// Whether iCloud holds the file at [path] but its contents are not on this
+/// device, by either shape of eviction (issue #2177).
+///
+/// The one rule every startup check applies, so they cannot drift apart.
+/// Only ever true on Apple platforms: elsewhere nothing can download the
+/// file, and a `.icloud` file beside it is a stale copy from a Mac folder,
+/// not a placeholder. An unknown iCloud state is never "only in iCloud".
+///
+/// [readStatus] and [iCloudSupported] are seams for tests.
+Future<bool> isOnlyInICloud(
+  String path, {
+  ICloudStatusReader? readStatus,
+  bool? iCloudSupported,
+}) async {
+  if (!(iCloudSupported ?? SecurityScopedBookmarkService.isSupported)) {
+    return false;
+  }
+  if (await FileSystemEntity.type(path) == FileSystemEntityType.notFound) {
+    return File(iCloudPlaceholderPath(path)).exists();
+  }
+  final status =
+      await (readStatus ?? SecurityScopedBookmarkService.iCloudDownloadStatus)(
+        path,
+      );
+  return status == ICloudItemStatus.notDownloaded;
 }

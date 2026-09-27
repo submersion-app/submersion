@@ -15,9 +15,6 @@ enum DiveLogAvailability {
   missing,
 }
 
-/// Reads a file's iCloud state. Null means unknown.
-typedef ICloudStatusReader = Future<ICloudItemStatus?> Function(String path);
-
 /// Asks iCloud for a file's contents and reports whether they arrived.
 typedef ICloudDownloader =
     Future<bool> Function(String path, {required Duration timeout});
@@ -38,16 +35,21 @@ class DiveLogAvailabilityService {
     this._location, {
     ICloudStatusReader? readICloudStatus,
     ICloudDownloader? downloadFromICloud,
+    bool? iCloudSupported,
   }) : _readICloudStatus =
            readICloudStatus ??
            SecurityScopedBookmarkService.iCloudDownloadStatus,
        _downloadFromICloud =
            downloadFromICloud ??
-           SecurityScopedBookmarkService.downloadICloudItem;
+           SecurityScopedBookmarkService.downloadICloudItem,
+       _iCloudSupported = iCloudSupported;
 
   final DatabaseLocationService _location;
   final ICloudStatusReader _readICloudStatus;
   final ICloudDownloader _downloadFromICloud;
+
+  /// Null asks the platform. A seam for tests on hosts without iCloud.
+  final bool? _iCloudSupported;
 
   /// How long startup waits for iCloud before explaining instead. Long
   /// enough for a large dive log on an ordinary connection; "Try again"
@@ -62,18 +64,17 @@ class DiveLogAvailabilityService {
     }
 
     final dbPath = await _location.getDatabasePath();
-    if (await FileSystemEntity.type(dbPath) != FileSystemEntityType.notFound) {
-      // macOS Sonoma and later evict in place: the file keeps its name and
-      // only iCloud can say whether its contents are here.
-      final iCloud = await _readICloudStatus(dbPath);
-      return iCloud == ICloudItemStatus.notDownloaded
-          ? DiveLogAvailability.inICloudOnly
-          : DiveLogAvailability.ready;
-    }
-
-    // The placeholder proves a dive log exists, whatever else is known.
-    if (await File(iCloudPlaceholderPath(dbPath)).exists()) {
+    // Either shape of eviction proves a dive log exists, whatever else is
+    // known.
+    if (await isOnlyInICloud(
+      dbPath,
+      readStatus: _readICloudStatus,
+      iCloudSupported: _iCloudSupported,
+    )) {
       return DiveLogAvailability.inICloudOnly;
+    }
+    if (await FileSystemEntity.type(dbPath) != FileSystemEntityType.notFound) {
+      return DiveLogAvailability.ready;
     }
 
     // Every flow that saves a custom location puts a verified dive log there
@@ -83,6 +84,20 @@ class DiveLogAvailabilityService {
     return config.lastVerified == null
         ? DiveLogAvailability.ready
         : DiveLogAvailability.missing;
+  }
+
+  /// Where the configured dive log stands once iCloud has had its chance.
+  ///
+  /// A dive log only in iCloud is downloaded first, with [onDownloading]
+  /// called as that starts so the caller can say so. It is trusted only once
+  /// a second [check] finds it here: a download that reports success over a
+  /// file still missing must not reach the open.
+  Future<DiveLogAvailability> resolve({void Function()? onDownloading}) async {
+    final found = await check();
+    if (found != DiveLogAvailability.inICloudOnly) return found;
+    onDownloading?.call();
+    if (!await downloadFromICloud()) return found;
+    return check();
   }
 
   /// Asks iCloud for the configured dive log. True once its contents are on

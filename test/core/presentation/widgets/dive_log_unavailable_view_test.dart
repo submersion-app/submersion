@@ -131,7 +131,8 @@ void main() {
     ]);
   });
 
-  testWidgets('while a route is running, only Close still answers', (
+  testWidgets('while a route is running, no button answers, Close '
+      'included: quitting mid-restore would strand a half-swapped file', (
     tester,
   ) async {
     final pressed = <String>[];
@@ -142,6 +143,7 @@ void main() {
       find.text('Use a dive log in another folder'),
       find.text('Restore from a backup file'),
       find.text('Start a new dive log in this folder'),
+      find.text('Close'),
     ]) {
       await tester.ensureVisible(finder);
       await tester.tap(finder, warnIfMissed: false);
@@ -161,9 +163,11 @@ void main() {
       ),
     );
 
-    await tester.ensureVisible(find.byKey(tryAgainKey));
-    await tester.tap(find.byKey(tryAgainKey), warnIfMissed: false);
-    await tester.pump();
+    for (final finder in [find.byKey(tryAgainKey), find.text('Close')]) {
+      await tester.ensureVisible(finder);
+      await tester.tap(finder, warnIfMissed: false);
+      await tester.pump();
+    }
 
     expect(pressed, isEmpty);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);

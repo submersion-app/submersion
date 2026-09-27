@@ -287,6 +287,23 @@ void main() {
         );
       });
 
+      test('off Apple platforms a stray placeholder is not read as iCloud: '
+          'the database is simply missing', () async {
+        SecurityScopedBookmarkService.debugSupportedOverride = false;
+        final dir = await Directory.systemTemp.createTemp('submersion2177');
+        addTearDown(() => dir.delete(recursive: true));
+        await File(
+          p.join(dir.path, '.submersion.db.icloud'),
+        ).writeAsString('stub');
+
+        final service = await serviceWithCustomFolder(dir.path);
+        final check = await service.validateCustomLocationAtStartup(
+          isBookmarkPlatform: false,
+        );
+
+        expect(check, StartupLocationCheck.keptDatabaseMissing);
+      });
+
       test('an unreadable database iCloud has not downloaded keeps the '
           'config instead of resetting: macOS 14 and later evict in '
           'place', () async {

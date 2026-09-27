@@ -54,9 +54,11 @@ void main() {
     DatabaseLocationService location, {
     ICloudItemStatus? status,
     List<String>? statusRequests,
+    bool iCloudSupported = true,
   }) {
     return DiveLogAvailabilityService(
       location,
+      iCloudSupported: iCloudSupported,
       readICloudStatus: (path) async {
         statusRequests?.add(path);
         return status;
@@ -147,6 +149,32 @@ void main() {
       expect(await service.check(), DiveLogAvailability.inICloudOnly);
     });
 
+    test('off Apple platforms a stray placeholder is not an iCloud dive '
+        'log: nothing there could download it', () async {
+      // A folder copied from a Mac can carry a stale `.submersion.db.icloud`.
+      // Read as iCloud, it would strand a Linux or Windows diver on a screen
+      // telling them to use Finder, with no restore and no new dive log.
+      await File(iCloudPlaceholderPath(dbPath)).writeAsString('stub');
+      final requests = <String>[];
+
+      expect(
+        await serviceFor(
+          await customLocation(verified: true),
+          iCloudSupported: false,
+          statusRequests: requests,
+        ).check(),
+        DiveLogAvailability.missing,
+      );
+      expect(
+        await serviceFor(
+          await customLocation(verified: false),
+          iCloudSupported: false,
+        ).check(),
+        DiveLogAvailability.ready,
+      );
+      expect(requests, isEmpty);
+    });
+
     test('a folder that has never held a dive log is ready, so its first '
         'launch creates one (#218)', () async {
       final service = serviceFor(await customLocation(verified: false));
@@ -171,6 +199,84 @@ void main() {
       );
 
       expect(await service.check(), DiveLogAvailability.missing);
+    });
+  });
+
+  group('resolve', () {
+    /// A service whose checks answer from [checks] in order and whose
+    /// download answers [downloaded], recording what it was asked.
+    ({DiveLogAvailabilityService service, List<String> calls}) scripted(
+      DatabaseLocationService location,
+      List<DiveLogAvailability> checks, {
+      bool downloaded = false,
+    }) {
+      final calls = <String>[];
+      final service = _ScriptedChecks(
+        location,
+        checks: checks,
+        downloaded: downloaded,
+        calls: calls,
+      );
+      return (service: service, calls: calls);
+    }
+
+    test('a dive log that is here is ready without a download', () async {
+      final s = scripted(await customLocation(verified: true), [
+        DiveLogAvailability.ready,
+      ]);
+      var downloading = 0;
+
+      expect(
+        await s.service.resolve(onDownloading: () => downloading++),
+        DiveLogAvailability.ready,
+      );
+      expect(s.calls, ['check']);
+      expect(downloading, 0);
+    });
+
+    test('a missing dive log is never sent to iCloud', () async {
+      final s = scripted(await customLocation(verified: true), [
+        DiveLogAvailability.missing,
+      ]);
+
+      expect(await s.service.resolve(), DiveLogAvailability.missing);
+      expect(s.calls, ['check']);
+    });
+
+    test('an iCloud-only dive log is downloaded, then trusted only once a '
+        'second check finds it here', () async {
+      final s = scripted(await customLocation(verified: true), [
+        DiveLogAvailability.inICloudOnly,
+        DiveLogAvailability.ready,
+      ], downloaded: true);
+      var downloading = 0;
+
+      expect(
+        await s.service.resolve(onDownloading: () => downloading++),
+        DiveLogAvailability.ready,
+      );
+      expect(s.calls, ['check', 'download', 'check']);
+      expect(downloading, 1);
+    });
+
+    test('a download that reports success over a file still in iCloud is '
+        'not trusted', () async {
+      final s = scripted(await customLocation(verified: true), [
+        DiveLogAvailability.inICloudOnly,
+        DiveLogAvailability.inICloudOnly,
+      ], downloaded: true);
+
+      expect(await s.service.resolve(), DiveLogAvailability.inICloudOnly);
+    });
+
+    test('a download that fails stays in iCloud only, without checking '
+        'again', () async {
+      final s = scripted(await customLocation(verified: true), [
+        DiveLogAvailability.inICloudOnly,
+      ]);
+
+      expect(await s.service.resolve(), DiveLogAvailability.inICloudOnly);
+      expect(s.calls, ['check', 'download']);
     });
   });
 
@@ -232,4 +338,31 @@ void main() {
       ]);
     });
   });
+}
+
+/// Answers `check` from a script and `downloadFromICloud` with a fixed
+/// result, so `resolve` can be tested on its own. The last answer repeats.
+class _ScriptedChecks extends DiveLogAvailabilityService {
+  _ScriptedChecks(
+    super.location, {
+    required List<DiveLogAvailability> checks,
+    required this.downloaded,
+    required this.calls,
+  }) : _checks = [...checks];
+
+  final List<DiveLogAvailability> _checks;
+  final bool downloaded;
+  final List<String> calls;
+
+  @override
+  Future<DiveLogAvailability> check() async {
+    calls.add('check');
+    return _checks.length > 1 ? _checks.removeAt(0) : _checks.single;
+  }
+
+  @override
+  Future<bool> downloadFromICloud() async {
+    calls.add('download');
+    return downloaded;
+  }
 }
