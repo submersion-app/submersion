@@ -151,6 +151,35 @@ class _FailingCreateDiveComputerRepository extends DiveComputerRepository {
   }) async => null;
 }
 
+/// Repository whose computer save runs [onCreate], so a test can fail the
+/// first attempt and let a retry succeed.
+class _FlakyCreateDiveComputerRepository extends DiveComputerRepository {
+  _FlakyCreateDiveComputerRepository(this.onCreate);
+
+  final DiveComputer Function() onCreate;
+
+  @override
+  Future<DiveComputer> createComputer(DiveComputer computer) async =>
+      onCreate();
+
+  @override
+  Future<void> updateComputer(dynamic computer) async {}
+
+  @override
+  Future<DiveComputer?> findByBluetoothAddress(
+    String address, {
+    String? diverId,
+  }) async => null;
+
+  @override
+  Future<DiveComputer?> findByHardwareIdentity({
+    required String manufacturer,
+    required String model,
+    required String serialNumber,
+    String? diverId,
+  }) async => null;
+}
+
 /// Clock sync settings whose write fails, as a SharedPreferences error would.
 class _FailingClockSyncSettingsNotifier extends ClockSyncSettingsNotifier {
   _FailingClockSyncSettingsNotifier() : super.unstored();
@@ -245,6 +274,7 @@ DiveComputer _makeComputer({
 DiveComputerAdapter _makeAdapter({
   DiveComputer? knownComputer,
   DiveComputerRepository? computerRepository,
+  WidgetRef? ref,
 }) {
   final repo = computerRepository ?? _FakeDiveComputerRepository();
   final diveRepository = DiveRepository();
@@ -255,6 +285,7 @@ DiveComputerAdapter _makeAdapter({
     consolidationService: DiveConsolidationService(diveRepository),
     diverId: 'diver-1',
     knownComputer: knownComputer,
+    ref: ref,
   );
 }
 
@@ -859,6 +890,66 @@ void main() {
         expect(container.read(dcAdapterDownloadCanAdvanceProvider), isTrue);
       },
     );
+
+    // The clock sync answer needs a computer id. When the first save fails
+    // the step has nothing to record it against, so the adapter carries it
+    // and records it once buildBundle's retry recovers the computer.
+    testWidgets('records the clock sync answer once a retried save recovers', (
+      tester,
+    ) async {
+      final created = _makeComputer(id: 'recovered-computer');
+      var attempts = 0;
+      final repository = _FlakyCreateDiveComputerRepository(() {
+        attempts++;
+        if (attempts == 1) throw StateError('database is locked');
+        return created;
+      });
+      DiveComputerAdapter? adapter;
+
+      await tester.pumpWidget(
+        _scopeWithOverrides(
+          discoveryState: DiscoveryState(selectedDevice: _testDevice),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) {
+                  adapter ??= _makeAdapter(
+                    computerRepository: repository,
+                    ref: ref,
+                  );
+                  return DcAdapterDownloadStep(adapter: adapter!);
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DcAdapterDownloadStep)),
+      );
+      container.read(downloadNotifierProvider.notifier).state = DownloadState(
+        phase: DownloadPhase.complete,
+        downloadedDives: [_downloadedDive()],
+        clockSyncStatus: ClockSyncStatus.unsupported,
+      );
+      await tester.pumpAndSettle();
+      expect(adapter!.computer, isNull);
+
+      await adapter!.buildBundle();
+
+      expect(adapter!.computer, equals(created));
+      expect(
+        container
+            .read(clockSyncSettingsNotifierProvider)
+            .supportFor('recovered-computer'),
+        ClockSyncSupport.unsupported,
+      );
+    });
 
     testWidgets(
       'importing a partial download captures dives and advances the wizard',

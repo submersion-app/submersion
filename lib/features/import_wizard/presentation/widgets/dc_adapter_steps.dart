@@ -566,6 +566,10 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       final discoveryState = ref.read(discoveryNotifierProvider);
       final device = discoveryState.selectedDevice;
       if (device != null) {
+        // If the save below fails, the adapter records this once a later
+        // retry recovers the computer.
+        widget.adapter.rememberClockSyncStatus(state.clockSyncStatus);
+
         // Serial and firmware ride on the completion event, not on the dives,
         // so the hardware-identity rebind still works with an empty download.
         try {

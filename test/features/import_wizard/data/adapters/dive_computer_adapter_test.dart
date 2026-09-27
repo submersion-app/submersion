@@ -1619,9 +1619,9 @@ void main() {
   // -------------------------------------------------------------------------
 
   // The download step no longer lets a failed computer save strand the
-  // wizard, so the diver can reach Import without a computer record. Import
-  // retries the save once with what the download reported rather than
-  // failing on the missing record.
+  // wizard, so the diver can reach Review without a computer record.
+  // buildBundle retries the save with what the download reported; Import
+  // never imports a bundle that was checked without the computer.
   group('performImport after a failed computer save (issue #2439)', () {
     late DiveComputerAdapter discoveryAdapter;
     late DiscoveredDevice device;
@@ -1728,6 +1728,43 @@ void main() {
       expect(discoveryAdapter.computer, equals(createdComputer));
     });
 
+    // Duplicate detection already ran on a bundle with no computer id, so a
+    // save that only works at Import must not let that bundle through: the
+    // same-computer matches it missed would import as new dives.
+    test(
+      'does not retry at import a save that failed for the bundle',
+      () async {
+        var attempts = 0;
+        when(mockComputerRepo.createComputer(any)).thenAnswer((_) async {
+          attempts++;
+          if (attempts <= 2) throw StateError('database is locked');
+          return makeComputer(id: 'late-computer-id');
+        });
+
+        await expectLater(
+          discoveryAdapter.ensureComputer(device: device),
+          throwsStateError,
+        );
+        discoveryAdapter.setDownloadedDives([makeDownloadedDive()]);
+        final bundle = await discoveryAdapter.buildBundle();
+        expect(bundle.source.currentComputerId, isNull);
+
+        final result = await discoveryAdapter.performImport(bundle, {
+          ImportEntityType.dives: {0},
+        }, {});
+
+        expect(result.errorMessage, contains('database is locked'));
+        verify(mockComputerRepo.createComputer(any)).called(2);
+        verifyNever(
+          mockImportService.importSingleDiveAsNew(
+            any,
+            computerId: anyNamed('computerId'),
+            diverId: anyNamed('diverId'),
+          ),
+        );
+      },
+    );
+
     test('reports why when the retried save fails again', () async {
       when(
         mockComputerRepo.createComputer(any),
@@ -1748,8 +1785,8 @@ void main() {
 
       expect(result.errorMessage, contains('database is locked'));
       expect(result.importedCounts, isEmpty);
-      // The download step, the bundle build and the import each tried.
-      verify(mockComputerRepo.createComputer(any)).called(3);
+      // The download step and the bundle build each tried; Import did not.
+      verify(mockComputerRepo.createComputer(any)).called(2);
       verifyNever(
         mockImportService.importSingleDiveAsNew(
           any,
