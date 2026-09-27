@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -614,16 +615,15 @@ class DiveReimportService {
     final eventsRaw = diveData['events'] ?? diveData['profileEvents'];
     if (eventsRaw is! List) return;
 
-    final existing = await (db.select(
-      db.diveProfileEvents,
-    )..where((t) => t.diveId.equals(diveId))).get();
-    await (db.delete(
+    final deleted = await (db.delete(
       db.diveProfileEvents,
     )..where((t) => t.diveId.equals(diveId))).go();
-    for (final row in existing) {
-      await _syncRepository.logDeletion(
-        entityType: 'diveProfileEvents',
-        recordId: row.id,
+    // One tombstone for the dive's events, not one per event (#1926). Logged
+    // before the fresh events are staged below, so their clocks are newer
+    // and a peer applying the scope keeps them.
+    if (deleted > 0) {
+      await _syncRepository.logScopedDeletion(
+        EventScopeTombstone(diveId: diveId),
       );
     }
 

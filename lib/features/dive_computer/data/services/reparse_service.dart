@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -208,11 +209,13 @@ class ReparseService {
         await _deleteAndTombstone(
           'diveProfileEvents',
           await _idsOf(db.diveProfileEvents, diveId),
+          diveId: diveId,
         );
         if (rewritesTanks) {
           await _deleteAndTombstone(
             'gasSwitches',
             await _idsOf(db.gasSwitches, diveId),
+            diveId: diveId,
           );
           await _tankSeries.deleteForDive(diveId);
         }
@@ -306,8 +309,14 @@ class ReparseService {
         .get();
   }
 
-  /// Deletes the [entityType] rows [ids] and logs a tombstone for each.
-  Future<void> _deleteAndTombstone(String entityType, List<String> ids) async {
+  /// Deletes the [entityType] rows [ids], every one of them on [diveId], and
+  /// tombstones them: events with one scope tombstone for the dive (#1926),
+  /// anything else with one tombstone per row, written in one batch.
+  Future<void> _deleteAndTombstone(
+    String entityType,
+    List<String> ids, {
+    required String diveId,
+  }) async {
     if (ids.isEmpty) return;
     final table = switch (entityType) {
       'diveProfileEvents' => 'dive_profile_events',
@@ -323,8 +332,13 @@ class ReparseService {
         chunk,
       );
     }
-    for (final id in ids) {
-      await _sync.logDeletion(entityType: entityType, recordId: id);
+    if (entityType == 'diveProfileEvents') {
+      // The ids are every event on the dive (_idsOf), which is exactly what
+      // the dive scope covers on a peer. The re-inserted events are staged
+      // after this, so their clocks are newer and the scope keeps them.
+      await _sync.logScopedDeletion(EventScopeTombstone(diveId: diveId));
+    } else {
+      await _sync.logDeletions(entityType: entityType, recordIds: ids);
     }
   }
 
