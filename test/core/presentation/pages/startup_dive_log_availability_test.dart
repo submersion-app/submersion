@@ -358,6 +358,64 @@ void main() {
     expect(availability.checkCalls, 0);
   });
 
+  group('stamping a location that has held a dive log', () {
+    setUp(() async {
+      // A custom location saved before the stamp existed.
+      await location.saveStorageConfig(
+        StorageConfig(
+          mode: StorageLocationMode.customFolder,
+          customFolderPath: folder.path,
+        ),
+      );
+    });
+
+    testWidgets('a successful open stamps an unstamped custom location', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        StartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: location,
+          initializerOverride: (_) async {},
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          enginePreflightOverride: () {},
+          restoreJournalFactory: (_) => _Journal(),
+          availabilityServiceOverride: scripted([DiveLogAvailability.ready]),
+        ),
+      );
+      await settle(tester);
+
+      // Observed inside the one-second minimum splash: past it the real app
+      // mounts, which a unit test cannot host, so the tree is torn down
+      // before the timer fires.
+      expect((await location.getStorageConfig()).lastVerified, isNotNull);
+      await tester.pumpWidget(const SizedBox());
+      await finish(tester);
+    });
+
+    testWidgets('a failed open leaves it unstamped', (tester) async {
+      await tester.pumpWidget(
+        StartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: location,
+          initializerOverride: (_) async => throw StateError('open failed'),
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          enginePreflightOverride: () {},
+          restoreJournalFactory: (_) => _Journal(),
+          availabilityServiceOverride: scripted([DiveLogAvailability.ready]),
+        ),
+      );
+      await settle(tester);
+      await finish(tester);
+
+      expect((await location.getStorageConfig()).lastVerified, isNull);
+    });
+  });
+
   testWidgets('the check runs before the security gate, so an evicted '
       'encrypted dive log keeps its encryption setting', (tester) async {
     // The security gate reads a missing file as plaintext and switches

@@ -270,6 +270,20 @@ class DatabaseLocationService {
     await saveStorageConfig(config.copyWith(lastVerified: DateTime.now()));
   }
 
+  /// Stamps a custom location as one that has held a dive log, if nothing
+  /// has stamped it yet (#2177).
+  ///
+  /// Called once a dive log has opened there. Every flow that saves a custom
+  /// location stamps it today, but configurations saved before the stamp
+  /// existed carry none, and without it a later loss reads as a first launch
+  /// and an empty dive log is created in its place. This records a fact the
+  /// app just observed; it changes no choice the diver made.
+  Future<void> markCustomLocationVerified() async {
+    final config = await getStorageConfig();
+    if (!config.isCustomLocation || config.lastVerified != null) return;
+    await saveStorageConfig(config.copyWith(lastVerified: DateTime.now()));
+  }
+
   /// Clear the storage configuration and reset to default
   /// Verifies a configured custom database location at startup (#218).
   ///

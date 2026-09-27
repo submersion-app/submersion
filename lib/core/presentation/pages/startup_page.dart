@@ -443,7 +443,7 @@ class _StartupWrapperState extends State<StartupWrapper>
 
       // Run DB init and minimum splash duration in parallel
       await Future.wait([
-        _initializeServices(),
+        _initializeServices().then((_) => _markLocationVerified()),
         Future.delayed(const Duration(seconds: 1)),
       ]);
 
@@ -570,6 +570,18 @@ class _StartupWrapperState extends State<StartupWrapper>
       });
     }
     return false;
+  }
+
+  /// Records that the custom location has held a dive log, now that one has
+  /// opened there, so a later loss stops startup instead of reading as a
+  /// first launch (#2177). Best-effort: a failed stamp must not cost the
+  /// diver a launch that has otherwise succeeded.
+  Future<void> _markLocationVerified() async {
+    try {
+      await widget.locationService.markCustomLocationVerified();
+    } catch (e) {
+      _log.warning('Could not stamp the dive log location as verified: $e');
+    }
   }
 
   /// Creates a new, empty dive log in the folder whose dive log is missing,
@@ -1121,6 +1133,7 @@ class _StartupWrapperState extends State<StartupWrapper>
         _progress = MigrationProgress(currentStep: 0, totalSteps: totalSteps);
       });
       await _initializeServices();
+      await _markLocationVerified();
       if (!mounted) return;
       setState(() => _state = _StartupState.ready);
       _splashFadeController.forward();

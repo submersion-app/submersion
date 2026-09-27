@@ -174,6 +174,40 @@ void main() {
     });
   });
 
+  group('markCustomLocationVerified', () {
+    test('stamps a custom location saved before the stamp existed, so a '
+        'later loss is caught', () async {
+      final location = await customLocation(verified: false);
+      await location.markCustomLocationVerified();
+
+      expect((await location.getStorageConfig()).lastVerified, isNotNull);
+      expect(
+        await serviceFor(location).check(),
+        DiveLogAvailability.missing,
+        reason: 'the folder is empty now, and it has held a dive log',
+      );
+    });
+
+    test('leaves an existing stamp alone', () async {
+      final location = await customLocation(verified: true);
+      await location.markCustomLocationVerified();
+
+      expect(
+        (await location.getStorageConfig()).lastVerified,
+        DateTime(2026, 9, 1),
+      );
+    });
+
+    test('never touches the default location', () async {
+      final location = DatabaseLocationService(prefs);
+      await location.markCustomLocationVerified();
+
+      final config = await location.getStorageConfig();
+      expect(config.isCustomLocation, isFalse);
+      expect(config.lastVerified, isNull);
+    });
+  });
+
   group('downloadFromICloud', () {
     test('asks for the dive log path with the startup timeout and reports '
         'the answer', () async {
