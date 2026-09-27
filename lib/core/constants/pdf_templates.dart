@@ -112,6 +112,12 @@ class PdfExportOptions {
   /// included on a dedicated page after the summary.
   final bool includeCertificationCards;
 
+  /// The language the PDF prints in, as a language code such as `fr` (#2252).
+  ///
+  /// Null means "the app language": the export sheet always sets it, and a
+  /// caller with no sheet resolves null against the language the app shows.
+  final String? languageCode;
+
   /// Creates PDF export options with the specified settings.
   ///
   /// Defaults to [PdfTemplate.detailed], [PdfPageSize.a4], and no
@@ -121,6 +127,7 @@ class PdfExportOptions {
     this.pageSize = PdfPageSize.a4,
     this.includeCertificationCards = false,
     this.includeVerificationAreas = false,
+    this.languageCode,
   });
 
   /// Creates a copy of this options object with the given fields replaced.
@@ -129,6 +136,7 @@ class PdfExportOptions {
     PdfPageSize? pageSize,
     bool? includeCertificationCards,
     bool? includeVerificationAreas,
+    String? languageCode,
   }) {
     return PdfExportOptions(
       template: template ?? this.template,
@@ -137,6 +145,7 @@ class PdfExportOptions {
           includeCertificationCards ?? this.includeCertificationCards,
       includeVerificationAreas:
           includeVerificationAreas ?? this.includeVerificationAreas,
+      languageCode: languageCode ?? this.languageCode,
     );
   }
 
@@ -147,7 +156,8 @@ class PdfExportOptions {
         other.template == template &&
         other.pageSize == pageSize &&
         other.includeCertificationCards == includeCertificationCards &&
-        other.includeVerificationAreas == includeVerificationAreas;
+        other.includeVerificationAreas == includeVerificationAreas &&
+        other.languageCode == languageCode;
   }
 
   @override
@@ -157,6 +167,7 @@ class PdfExportOptions {
       pageSize,
       includeCertificationCards,
       includeVerificationAreas,
+      languageCode,
     );
   }
 
@@ -166,6 +177,7 @@ class PdfExportOptions {
         'template: $template, '
         'pageSize: $pageSize, '
         'includeCertificationCards: $includeCertificationCards, '
-        'includeVerificationAreas: $includeVerificationAreas)';
+        'includeVerificationAreas: $includeVerificationAreas, '
+        'languageCode: $languageCode)';
   }
 }
