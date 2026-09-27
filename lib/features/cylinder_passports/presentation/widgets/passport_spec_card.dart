@@ -37,7 +37,10 @@ class PassportSpecCard extends ConsumerWidget {
       if (equipment.volumeL != null)
         (
           attributeLabel(l10n, EquipmentAttrKeys.volumeL),
-          units.formatVolume(equipment.volumeL),
+          units.formatTankVolume(
+            equipment.volumeL,
+            equipment.workingPressureBar,
+          ),
         ),
       if (equipment.workingPressureBar != null)
         (

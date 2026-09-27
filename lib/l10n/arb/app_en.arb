@@ -1,4 +1,47 @@
 {
+  "equipment_filter_owner_all": "All",
+  "equipment_delete_notOwner": "Only its owner can delete this item",
+  "equipment_sharedWithMe": "Shared with me",
+  "equipment_owner_unknown": "Another profile",
+  "equipment_ownerChip_semanticLabel": "Owned by {name}",
+  "@equipment_ownerChip_semanticLabel": {"placeholders": {"name": {"type": "String"}}},
+  "equipment_picker_ownerHeader": "From {name}",
+  "@equipment_picker_ownerHeader": {"placeholders": {"name": {"type": "String"}}},
+  "equipment_sharing_sharedWithLabel": "Shared with",
+  "equipment_sharing_notShared": "Not shared",
+  "equipment_sharing_ownedByLabel": "Owned by",
+  "equipment_sharing_dialogTitle": "Share with",
+  "equipment_sharing_dialogBody": "Profiles you choose can add this gear to their dives and log its servicing. Only the owner can delete it or change who it is shared with.",
+  "equipment_bulkShare_action": "Share with...",
+  "equipment_bulkShare_done": "{count, plural, =1{Shared 1 item} other{Shared {count} items}}",
+  "@equipment_bulkShare_done": {"placeholders": {"count": {"type": "int"}}},
+  "equipment_bulkShare_doneSkipped": "{count, plural, =1{Shared 1 item} other{Shared {count} items}}, skipped {skipped} you do not own",
+  "@equipment_bulkShare_doneSkipped": {"placeholders": {"count": {"type": "int"}, "skipped": {"type": "int"}}},
+  "equipment_bulkDelete_partial": "{deleted, plural, =1{Deleted 1 item} other{Deleted {deleted} items}}. {skipped, plural, =1{1 shared item was kept: only its owner can delete it} other{{skipped} shared items were kept: only their owners can delete them}}",
+  "@equipment_bulkDelete_partial": {"placeholders": {"deleted": {"type": "int"}, "skipped": {"type": "int"}}},
+  "equipment_filter_section_owner": "Owner",
+  "equipment_filter_owner_mine": "Mine",
+  "enum_equipmentField_owner": "Owner",
+  "enum_equipmentField_owner_short": "Owner",
+  "equipment_set_noLongerShared": "No longer shared",
+  "equipment_history_title": "History",
+  "equipment_history_empty": "Not used on any dive yet",
+  "equipment_history_deletedProfile": "a deleted profile",
+  "equipment_history_runDives": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "@equipment_history_runDives": {"placeholders": {"count": {"type": "int"}}},
+  "equipment_history_dateRange": "{from} to {to}",
+  "@equipment_history_dateRange": {"placeholders": {"from": {"type": "String"}, "to": {"type": "String"}}},
+  "equipment_history_added": "Added by {name}",
+  "@equipment_history_added": {"placeholders": {"name": {"type": "String"}}},
+  "equipment_history_shared": "Shared with {name}",
+  "@equipment_history_shared": {"placeholders": {"name": {"type": "String"}}},
+  "equipment_history_unshared": "Stopped sharing with {name}",
+  "@equipment_history_unshared": {"placeholders": {"name": {"type": "String"}}},
+  "equipment_history_transferred": "Transferred from {from} to {to}",
+  "@equipment_history_transferred": {"placeholders": {"from": {"type": "String"}, "to": {"type": "String"}}},
+  "settings_shareAllEquipment_title": "Share all my equipment...",
+  "settings_shareAllEquipment_body": "{count, plural, =1{Share your 1 item with the profiles you choose.} other{Share your {count} items with the profiles you choose.}}",
+  "@settings_shareAllEquipment_body": {"placeholders": {"count": {"type": "int"}}},
   "settings_oauth_connect_browserFailed": "Could not open your browser. Use Copy link and paste the address into your browser.",
   "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "Add component",
@@ -5334,8 +5377,8 @@
   "divePlanner_warning_belowMinReserve": "Below minimum reserve ({reserve})",
   "divePlanner_warning_cnsCritical": "CNS% exceeds 100%",
   "divePlanner_warning_cnsWarning": "CNS% exceeds {threshold}%",
+  "divePlanner_warning_endExceedsLimit": "END of {depth} exceeds the {limit} limit",
   "divePlanner_warning_endHigh": "Equivalent Narcotic Depth too high",
-  "divePlanner_warning_endHighWithDepth": "END of {depth} exceeds safe limit",
   "divePlanner_warning_gasLow": "Tank below {threshold} reserve",
   "divePlanner_warning_gasOut": "Tank will be empty",
   "divePlanner_warning_minGasViolation": "Minimum gas reserve not maintained",
@@ -8948,6 +8991,7 @@
   "marineLife_speciesDetail_sightingPeriodTitle": "Sighting Period",
   "marineLife_speciesDetail_sightingStatsTitle": "Sighting Statistics",
   "marineLife_speciesDetail_sitesLabel": "Sites",
+  "marineLife_speciesDetail_statsError": "Failed to load sighting statistics",
   "marineLife_speciesDetail_taxonomyClassLabel": "Class: {className}",
   "marineLife_speciesDetail_topSitesTitle": "Top Sites",
   "marineLife_speciesDetail_totalSightingsLabel": "Total Sightings",
@@ -16080,9 +16124,12 @@
       }
     }
   },
-  "@divePlanner_warning_endHighWithDepth": {
+  "@divePlanner_warning_endExceedsLimit": {
     "placeholders": {
       "depth": {
+        "type": "Object"
+      },
+      "limit": {
         "type": "Object"
       }
     }
@@ -16938,7 +16985,7 @@
       }
     }
   },
-  "divePlanner_segmentEditor_derivedAscent": "Ascent {from} → {to} at {rate}/min",
+  "divePlanner_segmentEditor_derivedAscent": "Ascent {from} → {to} at {rate}",
   "@divePlanner_segmentEditor_derivedAscent": {
     "placeholders": {
       "from": {
@@ -16948,7 +16995,8 @@
         "type": "Object"
       },
       "rate": {
-        "type": "Object"
+        "type": "Object",
+        "description": "Rate with its unit already attached, e.g. 9m/min"
       }
     }
   },
@@ -16963,7 +17011,7 @@
       }
     }
   },
-  "divePlanner_segmentEditor_derivedDescent": "Descent {from} → {to} at {rate}/min",
+  "divePlanner_segmentEditor_derivedDescent": "Descent {from} → {to} at {rate}",
   "@divePlanner_segmentEditor_derivedDescent": {
     "placeholders": {
       "from": {
@@ -16973,7 +17021,8 @@
         "type": "Object"
       },
       "rate": {
-        "type": "Object"
+        "type": "Object",
+        "description": "Rate with its unit already attached, e.g. 9m/min"
       }
     }
   },
@@ -18184,7 +18233,7 @@
   "@settings_sharedData_sectionTitle": {
     "description": "Section header for shared data controls"
   },
-  "settings_sharedData_sectionSubtitle": "Share sites and trips across profiles",
+  "settings_sharedData_sectionSubtitle": "Share sites, trips and equipment across profiles",
   "@settings_sharedData_sectionSubtitle": {
     "description": "Subtitle for the 'Shared data' section in Settings — short description of the section's purpose."
   },
@@ -19348,7 +19397,15 @@
   "safetyHub_noFly_disclaimer": "DAN/UHMS guideline intervals from your last dive. Not a substitute for your dive computer's no-fly time.",
   "diveLog_detail_altitudeMismatch_title": "Site is at altitude",
   "diveLog_detail_altitudeMismatch_subtitle": "This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive's altitude to correct it.",
-  "diveLog_detail_sacVolumeHint": "Add a cylinder volume to show RMV in {unit}/min",
+  "diveLog_detail_sacVolumeHint": "Add a cylinder volume to show RMV in {unit}",
+  "@diveLog_detail_sacVolumeHint": {
+    "placeholders": {
+      "unit": {
+        "type": "String",
+        "description": "Rate unit, e.g. L/min or cuft/min"
+      }
+    }
+  },
   "safetyHub_alert_noFly": "No-fly: {remaining} remaining",
   "@safetyHub_alert_noFly": {
     "placeholders": {
@@ -25614,13 +25671,6 @@
       }
     }
   },
-  "@diveLog_detail_sacVolumeHint": {
-    "placeholders": {
-      "unit": {
-        "type": "String"
-      }
-    }
-  },
   "insights_trend_aggregation_monthly": "Monthly average",
   "insights_trend_aggregation_perDive": "Every dive",
   "insights_trend_aggregation_tooltip": "How dives are grouped",
@@ -26081,9 +26131,9 @@
   },
   "startup_interruptedRestore_body": "Submersion was restoring a backup when it stopped. Your dive log from before that restore is still on this device, and this version can open it.",
   "startup_interruptedRestore_recoverAction": "Recover my previous dive log",
-  "startup_interruptedRestore_recoverNote": "The file that is in its place now is kept beside it, not deleted.",
+  "startup_interruptedRestore_recoverNote": "The file in its place now is kept, not deleted. You can restore or delete it later in Backup & Restore in Settings.",
   "startup_interruptedRestore_keepAction": "Keep what is there now",
-  "startup_interruptedRestore_keepNote": "Your previous dive log is kept as a file in the database folder.",
+  "startup_interruptedRestore_keepNote": "Your previous dive log is kept, not deleted. You can restore or delete it later in Backup & Restore in Settings.",
   "startup_interruptedRestore_failed": "Recovery did not complete. Nothing was deleted; both files are still on this device.",
   "backup_history_preDowngradeSubtitle": "Newer database, kept when going back - {size}",
   "@backup_history_preDowngradeSubtitle": {
@@ -26245,6 +26295,22 @@
   "backup_unrecognized_deleteFailed": "Could not delete the selected files.",
   "backup_unrecognized_freed": "Freed {size}",
   "@backup_unrecognized_freed": { "placeholders": { "size": { "type": "String" } } },
+  "backup_quarantined_sectionTitle": "Set-aside databases",
+  "backup_quarantined_explanation": "A restore that could not finish cleanly kept these copies of your database instead of deleting them. Restore one to use it again, or delete it to free up space.",
+  "backup_quarantined_kind_preRestore": "Dive log from before a restore",
+  "backup_quarantined_kind_restoreRejected": "Dive log replaced during a recovery",
+  "backup_quarantined_detail": "{date} • {size}",
+  "@backup_quarantined_detail": { "placeholders": { "date": { "type": "String" }, "size": { "type": "String" } } },
+  "backup_quarantined_detailWithVersion": "{date} • {size} • database v{version}",
+  "@backup_quarantined_detailWithVersion": { "placeholders": { "date": { "type": "String" }, "size": { "type": "String" }, "version": { "type": "int" } } },
+  "backup_quarantined_status_needsNewerApp": "Needs a newer version of Submersion",
+  "backup_quarantined_status_unreadable": "Cannot be opened here. It may be damaged, or protected with a password this device does not have.",
+  "backup_quarantined_status_incomplete": "Only journal files remain; the database file itself is gone.",
+  "backup_quarantined_delete_title": "Delete this database copy?",
+  "backup_quarantined_delete_message": "The copy and its journal files will be permanently deleted from this device. This cannot be undone.",
+  "backup_quarantined_deleted": "Database copy deleted",
+  "backup_quarantined_deleteFailed": "Could not delete the database copy.",
+  "backup_quarantined_loadFailed": "Could not check the database folder for set-aside copies.",
   "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 file not in your backup history} other{{count} files not in your backup history}}",
   "@settings_storageUsage_unrecognized_title": { "placeholders": { "count": { "type": "int" } } },
   "settings_storageUsage_unrecognized_action": "Review",

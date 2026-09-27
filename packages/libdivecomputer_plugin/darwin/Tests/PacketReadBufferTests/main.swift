@@ -146,6 +146,31 @@ do {
            "stale signal: poll on drained buffer returns false")
 }
 
+// 11. interrupt() wakes a poll that is already waiting, with no data and a
+// far deadline, so closing a read-poll stream (issue #1454) does not have to
+// wait for the poll to time out.
+do {
+    let buffer = PacketReadBuffer()
+    let started = DispatchTime.now()
+    DispatchQueue.global().asyncAfter(deadline: .now() + .milliseconds(50)) {
+        buffer.interrupt()
+    }
+    let gotData = buffer.poll(deadline: .now() + .seconds(10))
+    let elapsedMs = (DispatchTime.now().uptimeNanoseconds - started.uptimeNanoseconds) / 1_000_000
+    expect(!gotData, "interrupt: the woken poll reports no data")
+    expect(elapsedMs < 2000, "interrupt: poll returned in \(elapsedMs) ms, not at its deadline")
+}
+
+// 12. An interrupt is consumed by the poll it wakes; the next poll waits for
+// data as usual.
+do {
+    let buffer = PacketReadBuffer()
+    buffer.interrupt()
+    expect(!buffer.poll(deadline: .now() + .seconds(10)), "interrupt-once: first poll is woken")
+    buffer.append(Data([0x01]))
+    expect(buffer.poll(deadline: .now() + .milliseconds(100)), "interrupt-once: next poll sees data")
+}
+
 if failures == 0 {
     print("All PacketReadBuffer tests passed.")
     exit(0)

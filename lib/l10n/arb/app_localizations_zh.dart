@@ -9,6 +9,160 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get equipment_filter_owner_all => '全部';
+
+  @override
+  String get equipment_delete_notOwner => '只有所有者可以删除此装备';
+
+  @override
+  String get equipment_sharedWithMe => '与我共享';
+
+  @override
+  String get equipment_owner_unknown => '其他资料';
+
+  @override
+  String equipment_ownerChip_semanticLabel(String name) {
+    return '所有者：$name';
+  }
+
+  @override
+  String equipment_picker_ownerHeader(String name) {
+    return '来自 $name';
+  }
+
+  @override
+  String get equipment_sharing_sharedWithLabel => '共享给';
+
+  @override
+  String get equipment_sharing_notShared => '未共享';
+
+  @override
+  String get equipment_sharing_ownedByLabel => '所有者';
+
+  @override
+  String get equipment_sharing_dialogTitle => '共享给';
+
+  @override
+  String get equipment_sharing_dialogBody =>
+      '所选资料可以将此装备添加到自己的潜水记录并记录保养。只有所有者可以删除它或更改共享对象。';
+
+  @override
+  String get equipment_bulkShare_action => '共享给...';
+
+  @override
+  String equipment_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已共享 $count 件',
+      one: '已共享 1 件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已共享 $count 件',
+      one: '已共享 1 件',
+    );
+    return '$_temp0，跳过 $skipped 件非你所有的装备';
+  }
+
+  @override
+  String equipment_bulkDelete_partial(int deleted, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      deleted,
+      locale: localeName,
+      other: '已删除 $deleted 件',
+      one: '已删除 1 件',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other: '保留了 $skipped 件共享装备：只有其所有者可以删除',
+      one: '保留了 1 件共享装备：只有其所有者可以删除',
+    );
+    return '$_temp0。$_temp1';
+  }
+
+  @override
+  String get equipment_filter_section_owner => '所有者';
+
+  @override
+  String get equipment_filter_owner_mine => '我的';
+
+  @override
+  String get enum_equipmentField_owner => '所有者';
+
+  @override
+  String get enum_equipmentField_owner_short => '所有者';
+
+  @override
+  String get equipment_set_noLongerShared => '已不再共享';
+
+  @override
+  String get equipment_history_title => '历史';
+
+  @override
+  String get equipment_history_empty => '尚未在任何潜水中使用';
+
+  @override
+  String get equipment_history_deletedProfile => '已删除的资料';
+
+  @override
+  String equipment_history_runDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      one: '1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_history_dateRange(String from, String to) {
+    return '$from 至 $to';
+  }
+
+  @override
+  String equipment_history_added(String name) {
+    return '由 $name 添加';
+  }
+
+  @override
+  String equipment_history_shared(String name) {
+    return '已共享给 $name';
+  }
+
+  @override
+  String equipment_history_unshared(String name) {
+    return '已停止共享给 $name';
+  }
+
+  @override
+  String equipment_history_transferred(String from, String to) {
+    return '已从 $from 转给 $to';
+  }
+
+  @override
+  String get settings_shareAllEquipment_title => '共享我的全部装备...';
+
+  @override
+  String settings_shareAllEquipment_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '将你的 $count 件装备共享给所选资料。',
+      one: '将你的 1 件装备共享给所选资料。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       '无法打开浏览器。请使用“复制链接”，并将地址粘贴到浏览器中。';
 
@@ -8512,12 +8666,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh => '等效麻醉深度过高';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return '等效麻醉深度 $depth 超过极限 $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return '等效麻醉深度 $depth 超过安全极限';
-  }
+  String get divePlanner_warning_endHigh => '等效麻醉深度过高';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -14418,6 +14572,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get marineLife_speciesDetail_sitesLabel => '潜水点';
+
+  @override
+  String get marineLife_speciesDetail_statsError => '无法加载目击统计';
 
   @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
@@ -24914,7 +25071,7 @@ class AppLocalizationsZh extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return '上升 $from → $to，$rate/分钟';
+    return '上升 $from → $to，$rate';
   }
 
   @override
@@ -24928,7 +25085,7 @@ class AppLocalizationsZh extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return '下降 $from → $to，$rate/分钟';
+    return '下降 $from → $to，$rate';
   }
 
   @override
@@ -26553,7 +26710,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_sharedData_sectionTitle => '共享数据';
 
   @override
-  String get settings_sharedData_sectionSubtitle => '在资料之间共享潜点和行程';
+  String get settings_sharedData_sectionSubtitle => '在资料之间共享潜点、行程和装备';
 
   @override
   String get common_action_unshare => '取消共享';
@@ -28378,7 +28535,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return '添加气瓶容积以按 $unit/min 显示 RMV';
+    return '添加气瓶容积以按 $unit 显示 RMV';
   }
 
   @override
@@ -39730,13 +39887,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      '当前位于其位置的文件会保留在旁边，不会被删除。';
+      '当前位于其位置的文件会保留，不会被删除。您之后可以在设置中的“备份与恢复”里恢复或删除它。';
 
   @override
   String get startup_interruptedRestore_keepAction => '保留当前内容';
 
   @override
-  String get startup_interruptedRestore_keepNote => '您之前的潜水日志将作为文件保留在数据库文件夹中。';
+  String get startup_interruptedRestore_keepNote =>
+      '您之前的潜水日志会保留，不会被删除。您之后可以在设置中的“备份与恢复”里恢复或删除它。';
 
   @override
   String get startup_interruptedRestore_failed => '恢复未完成。没有删除任何内容；两个文件仍在此设备上。';
@@ -40042,6 +40200,58 @@ class AppLocalizationsZh extends AppLocalizations {
   String backup_unrecognized_freed(String size) {
     return '已释放 $size';
   }
+
+  @override
+  String get backup_quarantined_sectionTitle => '已搁置的数据库';
+
+  @override
+  String get backup_quarantined_explanation =>
+      '一次未能正常完成的恢复保留了这些数据库副本，而没有删除它们。恢复其中一个即可再次使用，或将其删除以释放空间。';
+
+  @override
+  String get backup_quarantined_kind_preRestore => '恢复之前的潜水日志';
+
+  @override
+  String get backup_quarantined_kind_restoreRejected => '恢复旧日志时被替换的潜水日志';
+
+  @override
+  String backup_quarantined_detail(String date, String size) {
+    return '$date • $size';
+  }
+
+  @override
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
+    return '$date • $size • 数据库 v$version';
+  }
+
+  @override
+  String get backup_quarantined_status_needsNewerApp => '需要更新版本的 Submersion';
+
+  @override
+  String get backup_quarantined_status_unreadable =>
+      '无法在此打开。它可能已损坏，或受本设备没有的密码保护。';
+
+  @override
+  String get backup_quarantined_status_incomplete => '只剩下日志文件；数据库文件本身已不存在。';
+
+  @override
+  String get backup_quarantined_delete_title => '删除此数据库副本？';
+
+  @override
+  String get backup_quarantined_delete_message => '该副本及其日志文件将从本设备永久删除。此操作无法撤销。';
+
+  @override
+  String get backup_quarantined_deleted => '数据库副本已删除';
+
+  @override
+  String get backup_quarantined_deleteFailed => '无法删除数据库副本。';
+
+  @override
+  String get backup_quarantined_loadFailed => '无法检查数据库文件夹中是否有已搁置的副本。';
 
   @override
   String settings_storageUsage_unrecognized_title(int count) {

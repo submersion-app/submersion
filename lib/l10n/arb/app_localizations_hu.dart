@@ -9,6 +9,163 @@ class AppLocalizationsHu extends AppLocalizations {
   AppLocalizationsHu([String locale = 'hu']) : super(locale);
 
   @override
+  String get equipment_filter_owner_all => 'Összes';
+
+  @override
+  String get equipment_delete_notOwner =>
+      'Ezt az elemet csak a tulajdonosa törölheti';
+
+  @override
+  String get equipment_sharedWithMe => 'Velem megosztva';
+
+  @override
+  String get equipment_owner_unknown => 'Másik profil';
+
+  @override
+  String equipment_ownerChip_semanticLabel(String name) {
+    return 'Tulajdonos: $name';
+  }
+
+  @override
+  String equipment_picker_ownerHeader(String name) {
+    return '$name felszerelése';
+  }
+
+  @override
+  String get equipment_sharing_sharedWithLabel => 'Megosztva';
+
+  @override
+  String get equipment_sharing_notShared => 'Nincs megosztva';
+
+  @override
+  String get equipment_sharing_ownedByLabel => 'Tulajdonos';
+
+  @override
+  String get equipment_sharing_dialogTitle => 'Megosztás';
+
+  @override
+  String get equipment_sharing_dialogBody =>
+      'A kiválasztott profilok hozzáadhatják ezt a felszerelést a merüléseikhez, és rögzíthetik a szervizelését. Csak a tulajdonos törölheti, vagy módosíthatja, kivel van megosztva.';
+
+  @override
+  String get equipment_bulkShare_action => 'Megosztás...';
+
+  @override
+  String equipment_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem megosztva',
+      one: '1 elem megosztva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem megosztva',
+      one: '1 elem megosztva',
+    );
+    return '$_temp0, $skipped kihagyva, amely nem a tiéd';
+  }
+
+  @override
+  String equipment_bulkDelete_partial(int deleted, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      deleted,
+      locale: localeName,
+      other: '$deleted elem törölve',
+      one: '1 elem törölve',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other:
+          '$skipped megosztott elem megmaradt: csak a tulajdonosaik törölhetik',
+      one: '1 megosztott elem megmaradt: csak a tulajdonosa törölheti',
+    );
+    return '$_temp0. $_temp1';
+  }
+
+  @override
+  String get equipment_filter_section_owner => 'Tulajdonos';
+
+  @override
+  String get equipment_filter_owner_mine => 'Sajátjaim';
+
+  @override
+  String get enum_equipmentField_owner => 'Tulajdonos';
+
+  @override
+  String get enum_equipmentField_owner_short => 'Tulajdonos';
+
+  @override
+  String get equipment_set_noLongerShared => 'Már nincs megosztva';
+
+  @override
+  String get equipment_history_title => 'Előzmények';
+
+  @override
+  String get equipment_history_empty => 'Még egyetlen merülésen sem használták';
+
+  @override
+  String get equipment_history_deletedProfile => 'egy törölt profil';
+
+  @override
+  String equipment_history_runDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_history_dateRange(String from, String to) {
+    return '$from és $to között';
+  }
+
+  @override
+  String equipment_history_added(String name) {
+    return 'Hozzáadta: $name';
+  }
+
+  @override
+  String equipment_history_shared(String name) {
+    return 'Megosztva vele: $name';
+  }
+
+  @override
+  String equipment_history_unshared(String name) {
+    return 'Megosztás megszüntetve vele: $name';
+  }
+
+  @override
+  String equipment_history_transferred(String from, String to) {
+    return 'Átadva $from részéről $to részére';
+  }
+
+  @override
+  String get settings_shareAllEquipment_title =>
+      'Minden felszerelésem megosztása...';
+
+  @override
+  String settings_shareAllEquipment_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Oszd meg a(z) $count elemedet a kiválasztott profilokkal.',
+      one: 'Oszd meg az 1 elemedet a kiválasztott profilokkal.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'Nem sikerült megnyitni a böngészőt. Használd a Link másolása gombot, és illeszd be a címet a böngésződbe.';
 
@@ -8924,13 +9081,13 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh =>
-      'Ekvivalens narkotikus mélység túl magas';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END $depth meghaladja a limitet ($limit)';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END $depth meghaladja a biztonságos limitet';
-  }
+  String get divePlanner_warning_endHigh =>
+      'Ekvivalens narkotikus mélység túl magas';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -15106,6 +15263,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get marineLife_speciesDetail_sitesLabel => 'Merülőhelyek';
+
+  @override
+  String get marineLife_speciesDetail_statsError =>
+      'Nem sikerült betölteni az észlelési statisztikákat';
 
   @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
@@ -26207,7 +26368,7 @@ class AppLocalizationsHu extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Emelkedés $from -> $to, $rate/perc';
+    return 'Emelkedés $from -> $to, $rate';
   }
 
   @override
@@ -26221,7 +26382,7 @@ class AppLocalizationsHu extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Süllyedés $from -> $to, $rate/perc';
+    return 'Süllyedés $from -> $to, $rate';
   }
 
   @override
@@ -27928,7 +28089,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_sharedData_sectionSubtitle =>
-      'Helyszínek és túrák megosztása profilok között';
+      'Helyszínek, túrák és felszerelés megosztása profilok között';
 
   @override
   String get common_action_unshare => 'Megosztás megszüntetése';
@@ -29814,7 +29975,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Add meg a palack térfogatát, hogy az RMV $unit/min-ben jelenjen meg';
+    return 'Add meg a palack térfogatát, hogy az RMV $unit-ben jelenjen meg';
   }
 
   @override
@@ -42026,7 +42187,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'A most a helyén lévő fájl mellette megmarad, nem törlődik.';
+      'A most a helyén lévő fájl megmarad, nem törlődik. Később visszaállíthatod vagy törölheted a Beállítások Biztonsági mentés és visszaállítás részében.';
 
   @override
   String get startup_interruptedRestore_keepAction =>
@@ -42034,7 +42195,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'Az előző merülési naplód fájlként megmarad az adatbázis mappájában.';
+      'Az előző merülési naplód megmarad, nem törlődik. Később visszaállíthatod vagy törölheted a Beállítások Biztonsági mentés és visszaállítás részében.';
 
   @override
   String get startup_interruptedRestore_failed =>
@@ -42359,6 +42520,66 @@ class AppLocalizationsHu extends AppLocalizations {
   String backup_unrecognized_freed(String size) {
     return '$size felszabadítva';
   }
+
+  @override
+  String get backup_quarantined_sectionTitle => 'Félretett adatbázisok';
+
+  @override
+  String get backup_quarantined_explanation =>
+      'Egy visszaállítás, amely nem tudott rendben befejeződni, törlés helyett megtartotta az adatbázisod ezen másolatait. Állíts vissza egyet, hogy újra használd, vagy töröld, hogy helyet szabadíts fel.';
+
+  @override
+  String get backup_quarantined_kind_preRestore =>
+      'Egy visszaállítás előtti merülési napló';
+
+  @override
+  String get backup_quarantined_kind_restoreRejected =>
+      'Helyreállításkor lecserélt merülési napló';
+
+  @override
+  String backup_quarantined_detail(String date, String size) {
+    return '$date • $size';
+  }
+
+  @override
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
+    return '$date • $size • adatbázis v$version';
+  }
+
+  @override
+  String get backup_quarantined_status_needsNewerApp =>
+      'A Submersion újabb verziójára van szükség';
+
+  @override
+  String get backup_quarantined_status_unreadable =>
+      'Itt nem nyitható meg. Lehet, hogy sérült, vagy olyan jelszó védi, amellyel ez az eszköz nem rendelkezik.';
+
+  @override
+  String get backup_quarantined_status_incomplete =>
+      'Csak naplófájlok maradtak; maga az adatbázisfájl hiányzik.';
+
+  @override
+  String get backup_quarantined_delete_title =>
+      'Törlöd ezt az adatbázis-másolatot?';
+
+  @override
+  String get backup_quarantined_delete_message =>
+      'A másolat és naplófájljai véglegesen törlődnek erről az eszközről. Ez nem vonható vissza.';
+
+  @override
+  String get backup_quarantined_deleted => 'Adatbázis-másolat törölve';
+
+  @override
+  String get backup_quarantined_deleteFailed =>
+      'Az adatbázis-másolat törlése nem sikerült.';
+
+  @override
+  String get backup_quarantined_loadFailed =>
+      'Nem sikerült félretett másolatokat keresni az adatbázis mappájában.';
 
   @override
   String settings_storageUsage_unrecognized_title(int count) {

@@ -116,6 +116,192 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @equipment_filter_owner_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get equipment_filter_owner_all;
+
+  /// No description provided for @equipment_delete_notOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Only its owner can delete this item'**
+  String get equipment_delete_notOwner;
+
+  /// No description provided for @equipment_sharedWithMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared with me'**
+  String get equipment_sharedWithMe;
+
+  /// No description provided for @equipment_owner_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Another profile'**
+  String get equipment_owner_unknown;
+
+  /// No description provided for @equipment_ownerChip_semanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Owned by {name}'**
+  String equipment_ownerChip_semanticLabel(String name);
+
+  /// No description provided for @equipment_picker_ownerHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'From {name}'**
+  String equipment_picker_ownerHeader(String name);
+
+  /// No description provided for @equipment_sharing_sharedWithLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared with'**
+  String get equipment_sharing_sharedWithLabel;
+
+  /// No description provided for @equipment_sharing_notShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Not shared'**
+  String get equipment_sharing_notShared;
+
+  /// No description provided for @equipment_sharing_ownedByLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Owned by'**
+  String get equipment_sharing_ownedByLabel;
+
+  /// No description provided for @equipment_sharing_dialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with'**
+  String get equipment_sharing_dialogTitle;
+
+  /// No description provided for @equipment_sharing_dialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Profiles you choose can add this gear to their dives and log its servicing. Only the owner can delete it or change who it is shared with.'**
+  String get equipment_sharing_dialogBody;
+
+  /// No description provided for @equipment_bulkShare_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with...'**
+  String get equipment_bulkShare_action;
+
+  /// No description provided for @equipment_bulkShare_done.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Shared 1 item} other{Shared {count} items}}'**
+  String equipment_bulkShare_done(int count);
+
+  /// No description provided for @equipment_bulkShare_doneSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Shared 1 item} other{Shared {count} items}}, skipped {skipped} you do not own'**
+  String equipment_bulkShare_doneSkipped(int count, int skipped);
+
+  /// No description provided for @equipment_bulkDelete_partial.
+  ///
+  /// In en, this message translates to:
+  /// **'{deleted, plural, =1{Deleted 1 item} other{Deleted {deleted} items}}. {skipped, plural, =1{1 shared item was kept: only its owner can delete it} other{{skipped} shared items were kept: only their owners can delete them}}'**
+  String equipment_bulkDelete_partial(int deleted, int skipped);
+
+  /// No description provided for @equipment_filter_section_owner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get equipment_filter_section_owner;
+
+  /// No description provided for @equipment_filter_owner_mine.
+  ///
+  /// In en, this message translates to:
+  /// **'Mine'**
+  String get equipment_filter_owner_mine;
+
+  /// No description provided for @enum_equipmentField_owner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get enum_equipmentField_owner;
+
+  /// No description provided for @enum_equipmentField_owner_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get enum_equipmentField_owner_short;
+
+  /// No description provided for @equipment_set_noLongerShared.
+  ///
+  /// In en, this message translates to:
+  /// **'No longer shared'**
+  String get equipment_set_noLongerShared;
+
+  /// No description provided for @equipment_history_title.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get equipment_history_title;
+
+  /// No description provided for @equipment_history_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Not used on any dive yet'**
+  String get equipment_history_empty;
+
+  /// No description provided for @equipment_history_deletedProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'a deleted profile'**
+  String get equipment_history_deletedProfile;
+
+  /// No description provided for @equipment_history_runDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String equipment_history_runDives(int count);
+
+  /// No description provided for @equipment_history_dateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String equipment_history_dateRange(String from, String to);
+
+  /// No description provided for @equipment_history_added.
+  ///
+  /// In en, this message translates to:
+  /// **'Added by {name}'**
+  String equipment_history_added(String name);
+
+  /// No description provided for @equipment_history_shared.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared with {name}'**
+  String equipment_history_shared(String name);
+
+  /// No description provided for @equipment_history_unshared.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped sharing with {name}'**
+  String equipment_history_unshared(String name);
+
+  /// No description provided for @equipment_history_transferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Transferred from {from} to {to}'**
+  String equipment_history_transferred(String from, String to);
+
+  /// No description provided for @settings_shareAllEquipment_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Share all my equipment...'**
+  String get settings_shareAllEquipment_title;
+
+  /// No description provided for @settings_shareAllEquipment_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Share your 1 item with the profiles you choose.} other{Share your {count} items with the profiles you choose.}}'**
+  String settings_shareAllEquipment_body(int count);
+
   /// No description provided for @settings_oauth_connect_browserFailed.
   ///
   /// In en, this message translates to:
@@ -14674,17 +14860,17 @@ abstract class AppLocalizations {
   /// **'CNS% exceeds {threshold}%'**
   String divePlanner_warning_cnsWarning(Object threshold);
 
+  /// No description provided for @divePlanner_warning_endExceedsLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'END of {depth} exceeds the {limit} limit'**
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit);
+
   /// No description provided for @divePlanner_warning_endHigh.
   ///
   /// In en, this message translates to:
   /// **'Equivalent Narcotic Depth too high'**
   String get divePlanner_warning_endHigh;
-
-  /// No description provided for @divePlanner_warning_endHighWithDepth.
-  ///
-  /// In en, this message translates to:
-  /// **'END of {depth} exceeds safe limit'**
-  String divePlanner_warning_endHighWithDepth(Object depth);
 
   /// No description provided for @divePlanner_warning_gasLow.
   ///
@@ -24868,6 +25054,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sites'**
   String get marineLife_speciesDetail_sitesLabel;
+
+  /// No description provided for @marineLife_speciesDetail_statsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load sighting statistics'**
+  String get marineLife_speciesDetail_statsError;
 
   /// No description provided for @marineLife_speciesDetail_taxonomyClassLabel.
   ///
@@ -41907,7 +42099,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_segmentEditor_derivedAscent.
   ///
   /// In en, this message translates to:
-  /// **'Ascent {from} → {to} at {rate}/min'**
+  /// **'Ascent {from} → {to} at {rate}'**
   String divePlanner_segmentEditor_derivedAscent(
     Object from,
     Object to,
@@ -41923,7 +42115,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_segmentEditor_derivedDescent.
   ///
   /// In en, this message translates to:
-  /// **'Descent {from} → {to} at {rate}/min'**
+  /// **'Descent {from} → {to} at {rate}'**
   String divePlanner_segmentEditor_derivedDescent(
     Object from,
     Object to,
@@ -44649,7 +44841,7 @@ abstract class AppLocalizations {
   /// Subtitle for the 'Shared data' section in Settings — short description of the section's purpose.
   ///
   /// In en, this message translates to:
-  /// **'Share sites and trips across profiles'**
+  /// **'Share sites, trips and equipment across profiles'**
   String get settings_sharedData_sectionSubtitle;
 
   /// Button label to remove sharing from a record that was previously shared with all dive profiles.
@@ -47999,7 +48191,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_detail_sacVolumeHint.
   ///
   /// In en, this message translates to:
-  /// **'Add a cylinder volume to show RMV in {unit}/min'**
+  /// **'Add a cylinder volume to show RMV in {unit}'**
   String diveLog_detail_sacVolumeHint(String unit);
 
   /// No description provided for @safetyHub_alert_noFly.
@@ -67568,7 +67760,7 @@ abstract class AppLocalizations {
   /// No description provided for @startup_interruptedRestore_recoverNote.
   ///
   /// In en, this message translates to:
-  /// **'The file that is in its place now is kept beside it, not deleted.'**
+  /// **'The file in its place now is kept, not deleted. You can restore or delete it later in Backup & Restore in Settings.'**
   String get startup_interruptedRestore_recoverNote;
 
   /// No description provided for @startup_interruptedRestore_keepAction.
@@ -67580,7 +67772,7 @@ abstract class AppLocalizations {
   /// No description provided for @startup_interruptedRestore_keepNote.
   ///
   /// In en, this message translates to:
-  /// **'Your previous dive log is kept as a file in the database folder.'**
+  /// **'Your previous dive log is kept, not deleted. You can restore or delete it later in Backup & Restore in Settings.'**
   String get startup_interruptedRestore_keepNote;
 
   /// No description provided for @startup_interruptedRestore_failed.
@@ -68010,6 +68202,94 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Freed {size}'**
   String backup_unrecognized_freed(String size);
+
+  /// No description provided for @backup_quarantined_sectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set-aside databases'**
+  String get backup_quarantined_sectionTitle;
+
+  /// No description provided for @backup_quarantined_explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'A restore that could not finish cleanly kept these copies of your database instead of deleting them. Restore one to use it again, or delete it to free up space.'**
+  String get backup_quarantined_explanation;
+
+  /// No description provided for @backup_quarantined_kind_preRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive log from before a restore'**
+  String get backup_quarantined_kind_preRestore;
+
+  /// No description provided for @backup_quarantined_kind_restoreRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive log replaced during a recovery'**
+  String get backup_quarantined_kind_restoreRejected;
+
+  /// No description provided for @backup_quarantined_detail.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} • {size}'**
+  String backup_quarantined_detail(String date, String size);
+
+  /// No description provided for @backup_quarantined_detailWithVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} • {size} • database v{version}'**
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  );
+
+  /// No description provided for @backup_quarantined_status_needsNewerApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs a newer version of Submersion'**
+  String get backup_quarantined_status_needsNewerApp;
+
+  /// No description provided for @backup_quarantined_status_unreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot be opened here. It may be damaged, or protected with a password this device does not have.'**
+  String get backup_quarantined_status_unreadable;
+
+  /// No description provided for @backup_quarantined_status_incomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Only journal files remain; the database file itself is gone.'**
+  String get backup_quarantined_status_incomplete;
+
+  /// No description provided for @backup_quarantined_delete_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this database copy?'**
+  String get backup_quarantined_delete_title;
+
+  /// No description provided for @backup_quarantined_delete_message.
+  ///
+  /// In en, this message translates to:
+  /// **'The copy and its journal files will be permanently deleted from this device. This cannot be undone.'**
+  String get backup_quarantined_delete_message;
+
+  /// No description provided for @backup_quarantined_deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Database copy deleted'**
+  String get backup_quarantined_deleted;
+
+  /// No description provided for @backup_quarantined_deleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete the database copy.'**
+  String get backup_quarantined_deleteFailed;
+
+  /// No description provided for @backup_quarantined_loadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check the database folder for set-aside copies.'**
+  String get backup_quarantined_loadFailed;
 
   /// No description provided for @settings_storageUsage_unrecognized_title.
   ///

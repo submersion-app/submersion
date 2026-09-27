@@ -25,7 +25,16 @@ class PlanEngineConfig {
   final double ppO2Deco;
   final int cnsWarningThreshold;
   final bool o2Narcotic;
+
+  /// END above which a segment raises [PlanIssueType.endExceeded]. Sourced
+  /// from the diver's Settings END limit (issue #1499).
   final double endLimitMeters;
+
+  /// END target for best-mix gas suggestions. Resolved from the plan's own
+  /// Gas options ([domain.DivePlan.bestMixEndMeters]); it never moves the
+  /// [endLimitMeters] warning.
+  final double bestMixEndMeters;
+
   final double otuLimit;
 
   /// CCR metabolic O2 consumption (surface liters per minute).
@@ -68,6 +77,7 @@ class PlanEngineConfig {
     this.cnsWarningThreshold = 80,
     this.o2Narcotic = true,
     this.endLimitMeters = 30.0,
+    this.bestMixEndMeters = 30.0,
     this.otuLimit = 300.0,
     this.o2MetabolicRateLpm = 1.0,
     this.loopVolumeLiters = 6.0,
@@ -86,14 +96,17 @@ class PlanEngineConfig {
   ///
   /// `sacFactor` and `bestMixEndMeters` have no global-settings source today
   /// (they are plain defaulted fields, not nullable overrides), so they
-  /// always replace [buddyFactor] and [endLimitMeters] for this plan.
+  /// always replace [buddyFactor] and [bestMixEndMeters] for this plan.
+  /// [endLimitMeters] is the diver's Settings END limit and passes through
+  /// unchanged.
   PlanEngineConfig resolvedFor(domain.DivePlan plan) {
     return PlanEngineConfig(
       ppO2Working: plan.ppO2Bottom ?? ppO2Working,
       ppO2Deco: plan.ppO2Deco ?? ppO2Deco,
       cnsWarningThreshold: cnsWarningThreshold,
       o2Narcotic: plan.o2Narcotic ?? o2Narcotic,
-      endLimitMeters: plan.bestMixEndMeters,
+      endLimitMeters: endLimitMeters,
+      bestMixEndMeters: plan.bestMixEndMeters,
       otuLimit: otuLimit,
       o2MetabolicRateLpm: o2MetabolicRateLpm,
       loopVolumeLiters: loopVolumeLiters,

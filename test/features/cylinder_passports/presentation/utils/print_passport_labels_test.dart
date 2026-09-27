@@ -1,7 +1,10 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/database/database.dart';
+import 'package:intl/intl.dart';
+import 'package:submersion/core/constants/tank_presets.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/database/database.dart' hide TankPresets;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/pdf/passport_label_pdf_export_service.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
@@ -34,7 +37,12 @@ void main() {
         );
   }
 
+  // UnitFormatter localises the decimal separator from Intl.defaultLocale,
+  // so pin it for the English-formatted spec lines below.
+  late String? savedIntlLocale;
   setUp(() async {
+    savedIntlLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
     db = await setUpTestDatabase();
     await seed('tank', 'tank', serial: 'F123');
     await seed('reg', 'regulator');
@@ -61,16 +69,20 @@ void main() {
       ),
     ]);
   });
-  tearDown(tearDownTestDatabase);
+  tearDown(() async {
+    Intl.defaultLocale = savedIntlLocale;
+    await tearDownTestDatabase();
+  });
 
   /// Pumps a button that prints labels for [ids] and returns what reached
   /// the exporter, or null when it was never called.
   Future<List<PassportLabelData>?> printVia(
     WidgetTester tester,
-    List<String> ids,
-  ) async {
+    List<String> ids, {
+    MockSettingsNotifier? settings,
+  }) async {
     List<PassportLabelData>? exported;
-    final overrides = await getBaseOverrides();
+    final overrides = await getBaseOverrides(settingsNotifier: settings);
     await tester.pumpWidget(
       testApp(
         overrides: overrides,
@@ -111,6 +123,41 @@ void main() {
       label.url,
       startsWith('${PassportPayloadCodec.httpsPrefix}#f=1&p=$minted'),
     );
+  });
+
+  /// Seeds an 11.1 L / 207 bar aluminium 80 with no material, so its spec
+  /// line is the tank size and working pressure alone.
+  Future<void> seedAl80(WidgetTester tester) => tester.runAsync(() async {
+    await seed('al80', 'tank');
+    await EquipmentRepository().saveAttributes('al80', [
+      EquipmentAttribute.curated(
+        equipmentId: 'al80',
+        key: EquipmentAttrKeys.volumeL,
+        valueNum: 11.1,
+      ),
+      EquipmentAttribute.curated(
+        equipmentId: 'al80',
+        key: EquipmentAttrKeys.workingPressureBar,
+        valueNum: 207,
+      ),
+    ]);
+  });
+
+  testWidgets('tank volume keeps its decimal in liters', (tester) async {
+    await seedAl80(tester);
+    final labels = await printVia(tester, ['al80']);
+    expect(labels!.single.specLine, '11.1 L, 207 bar');
+  });
+
+  testWidgets('tank volume reads as rated gas capacity in cubic feet', (
+    tester,
+  ) async {
+    await seedAl80(tester);
+    final settings = MockSettingsNotifier();
+    await settings.setVolumeUnit(VolumeUnit.cubicFeet);
+    final labels = await printVia(tester, ['al80'], settings: settings);
+    final rated = TankPresets.matchBySpecs(11.1, 207)!.ratedCapacityCuft!;
+    expect(labels!.single.specLine, startsWith('${rated.round()} cuft, '));
   });
 
   testWidgets('a selection with no cylinder exports nothing', (tester) async {
