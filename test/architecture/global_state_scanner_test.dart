@@ -257,6 +257,234 @@ setUpAll(() {
     });
   });
 
+  group('scope', () {
+    test('restoring one replacement does not excuse one in another group', () {
+      final offences = scan('''
+void main() {
+  group('a', () {
+    late PathProviderPlatform original;
+    setUp(() {
+      original = PathProviderPlatform.instance;
+      PathProviderPlatform.instance = _Fake();
+    });
+    tearDown(() => PathProviderPlatform.instance = original);
+  });
+
+  group('b', () {
+    setUp(() => PathProviderPlatform.instance = _Other());
+  });
+}
+''');
+
+      expect(offences.map((o) => o.line), [12]);
+      expect(offences.single.rule, platformRule);
+    });
+
+    test('a teardown covers a replacement made inside a test', () {
+      final offences = scan('''
+void main() {
+  late GoogleSignInPlatform original;
+  setUp(() {
+    original = GoogleSignInPlatform.instance;
+    GoogleSignInPlatform.instance = _Fake();
+  });
+  tearDown(() => GoogleSignInPlatform.instance = original);
+
+  test('t', () {
+    GoogleSignInPlatform.instance = _Throwing();
+  });
+}
+''');
+
+      expect(offences, isEmpty);
+    });
+
+    test('a teardown in an outer group covers an inner group', () {
+      final offences = scan('''
+void main() {
+  group('outer', () {
+    late SharePlatform original;
+    setUpAll(() => original = SharePlatform.instance);
+    tearDownAll(() => SharePlatform.instance = original);
+
+    group('inner', () {
+      setUp(() => SharePlatform.instance = _Fake());
+    });
+  });
+}
+''');
+
+      expect(offences, isEmpty);
+    });
+
+    test('addTearDown covers its own test and no other', () {
+      final offences = scan('''
+void main() {
+  test('a', () {
+    final original = VideoPlayerPlatform.instance;
+    addTearDown(() => VideoPlayerPlatform.instance = original);
+    VideoPlayerPlatform.instance = _Fake();
+  });
+
+  test('b', () {
+    VideoPlayerPlatform.instance = _Fake();
+  });
+}
+''');
+
+      expect(offences.map((o) => o.line), [9]);
+    });
+
+    test('addTearDown registered in setUp covers every test beside it', () {
+      final offences = scan('''
+void main() {
+  setUp(() {
+    SensorSummaryScheduler.enabled = true;
+    addTearDown(() {
+      applyGlobalTestDefaults();
+    });
+  });
+
+  test('t', () {
+    SensorSummaryScheduler.enabled = false;
+  });
+}
+''');
+
+      expect(offences, isEmpty);
+    });
+
+    test('a restore inside try and finally counts', () {
+      final offences = scan('''
+void main() {
+  late PathProviderPlatform original;
+  setUp(() {
+    original = PathProviderPlatform.instance;
+    PathProviderPlatform.instance = _Fake();
+  });
+  tearDown(() async {
+    try {
+      await close();
+    } finally {
+      PathProviderPlatform.instance = original;
+    }
+  });
+}
+''');
+
+      expect(offences, isEmpty);
+    });
+
+    test('the harness helper in one group does not excuse another', () {
+      final offences = scan('''
+void main() {
+  group('a', () {
+    setUp(() => QualityScanScheduler.enabled = true);
+    tearDown(applyGlobalTestDefaults);
+  });
+
+  group('b', () {
+    setUp(() => QualityScanScheduler.enabled = true);
+  });
+}
+''');
+
+      expect(offences.map((o) => o.line), [8]);
+      expect(offences.single.rule, harnessRule);
+    });
+  });
+
+  group('string literals', () {
+    test('an assignment inside a string is ignored', () {
+      final offences = scan(r"""
+const fixture = '''
+PathProviderPlatform.instance = _Fake();
+QualityScanScheduler.enabled = true;
+HttpOverrides.global = _Overrides();
+''';
+void main() {}
+""");
+
+      expect(offences, isEmpty);
+    });
+
+    test('a restore inside a string does not count', () {
+      final offences = scan(r"""
+const fixture = '''
+final original = SharePlatform.instance;
+SharePlatform.instance = original;
+''';
+void main() {
+  setUp(() => SharePlatform.instance = _Fake());
+}
+""");
+
+      expect(offences.map((o) => o.line), [6]);
+    });
+
+    test('a helper named only inside a string does not count', () {
+      final offences = scan(r"""
+const hint = 'call applyGlobalTestDefaults in tearDown';
+void main() {
+  setUp(() => QualityScanScheduler.enabled = true);
+}
+""");
+
+      expect(offences.map((o) => o.rule), [harnessRule]);
+    });
+
+    test('a channel mock inside a string is ignored', () {
+      final offences = scan(r"""
+const fixture = '''
+messenger.setMockMethodCallHandler(
+  const MethodChannel('plugins.flutter.io/path_provider'),
+  (call) async => dir.path,
+);
+''';
+void main() {}
+""");
+
+      expect(offences, isEmpty);
+    });
+
+    test('a clearing helper named only inside a string does not count', () {
+      final offences = scan(r"""
+const hint = 'call clearPathAndShareChannelMocks in tearDownAll';
+void main() {
+  setUpAll(() {
+    messenger.setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (call) async => dir.path,
+    );
+  });
+}
+""");
+
+      expect(offences.map((o) => o.rule), [channelRule]);
+    });
+
+    test('interpolation with braces and quotes does not derail the scan', () {
+      final offences = scan(r"""
+void main() {
+  final label = 'x ${map['k']} { ${'}'} ';
+  final raw = r'\';
+  setUp(() => SharePlatform.instance = _Fake());
+}
+""");
+
+      expect(offences.map((o) => o.line), [4]);
+    });
+
+    test('a block comment is ignored', () {
+      final offences = scan('''
+/* SharePlatform.instance = fake; */
+void main() {}
+''');
+
+      expect(offences, isEmpty);
+    });
+  });
+
   test('a file with Windows line endings reports clean text', () {
     final offences = scan(
       'SharePlatform.instance = fake;\r\nvoid main() {}\r\n',

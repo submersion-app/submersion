@@ -414,7 +414,9 @@ restores it, so the next file starts from the same place.
 | PDF fonts | `loadPdfRoboto()` in `setUpAll` and `unloadPdfRoboto()` in `tearDownAll`, from `test/helpers/pdf_roboto.dart` |
 
 `test/architecture/test_global_state_restored_test.dart` fails on an assignment
-that nothing in the same file restores.
+that nothing in its scope restores. A `tearDown` answers for the group it is
+declared in, and an `addTearDown` for the test that registers it, so restoring
+in one group does not cover a replacement in another.
 
 A shared isolate exposes two more things:
 

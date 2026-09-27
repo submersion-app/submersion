@@ -12,6 +12,11 @@ import 'global_state_scanner.dart';
 /// one that caused it, often in an unrelated change. This scan catches the
 /// leak where it is written.
 ///
+/// A restore answers for its own scope: a `tearDown` for the group it is
+/// declared in, an `addTearDown` for the test that registers it. Restoring in
+/// one group does not excuse a replacement in another. Comments and the
+/// contents of strings are not scanned.
+///
 /// What to write instead:
 ///
 /// * A `*Platform.instance` or `HttpOverrides.global`: read the previous value
@@ -29,6 +34,8 @@ void main() {
 
   /// Files that replace a global on purpose, each with the reason.
   const allowed = <String, String>{
+    // Where the defaults are written down. Every other file restores to them.
+    'test/helpers/global_test_defaults.dart': 'defines the harness defaults',
     // The harness pins the forwarder once, for the life of the isolate. There
     // is no earlier value to put back: staying in place is what it is for.
     'test/helpers/late_bound_share_platform.dart':
