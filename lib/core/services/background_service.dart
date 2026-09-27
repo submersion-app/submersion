@@ -54,9 +54,9 @@ const _log = LoggerService('HeadlessDatabase');
 ///     isolate cannot re-acquire.
 ///
 /// Note what it deliberately does NOT do: reset an unreachable custom location
-/// to the default, which is the foreground's answer in
-/// [DatabaseLocationService.validateCustomLocationAtStartup]. A background task
-/// must not silently rewrite the diver's storage setting.
+/// to the default. Nothing may silently rewrite the diver's storage setting;
+/// in the foreground only the diver can, from the startup failure screen
+/// (#2178).
 Future<bool> prepareHeadlessDatabaseLocation({
   required SharedPreferences prefs,
 }) async {
