@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -906,11 +907,9 @@ class BackupService {
     // it was found. Folding rewrites the file, but only with transactions it
     // had already committed.
     try {
-      DatabaseService.checkpointWriteAheadLog(
+      await _checkpointOnWorker(
         path,
-        keyHex: isEncryptedDatabaseFile(path)
-            ? _dbAdapter.databaseKeyHex
-            : null,
+        isEncryptedDatabaseFile(path) ? _dbAdapter.databaseKeyHex : null,
       );
     } catch (e) {
       throw BackupException('Could not prepare the database copy: $e');
@@ -925,6 +924,17 @@ class BackupService {
 
     _log.info('Restore from database copy completed: ${p.basename(path)}');
   }
+
+  /// Folds a database copy's -wal in on a worker isolate: the checkpoint is
+  /// synchronous SQLite work that can take a while for a large log, and on
+  /// the UI isolate it would freeze the restore barrier's progress. Static,
+  /// so the [Isolate.run] closure's scope holds only the two strings it
+  /// sends. Errors cross back to the caller.
+  static Future<void> _checkpointOnWorker(String path, String? keyHex) =>
+      Isolate.run(
+        () => DatabaseService.checkpointWriteAheadLog(path, keyHex: keyHex),
+        debugName: 'restore-wal-fold',
+      );
 
   /// What a completed restore leaves for the next sync. [RestoreMode.replace]
   /// mints a pending replace intent; a merge arms a one-shot reconciling sync.
