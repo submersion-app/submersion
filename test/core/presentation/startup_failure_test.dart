@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
@@ -226,9 +228,65 @@ void main() {
     });
   });
 
+  // Issue #2178. macOS and iOS used to answer an unreachable folder by
+  // resetting the storage location without a word. Now the failure screen
+  // says what happened, which needs a class of its own.
+  group('classifyStartupFailure - unreachable custom folder', () {
+    test('an unreachable folder outranks what the open threw', () {
+      final errors = <Object>[
+        const FileSystemException(
+          'Cannot open file',
+          '/Users/diver/iCloud/submersion.db',
+          OSError('Operation not permitted', 1),
+        ),
+        _sqliteError(14, 'unable to open database file'),
+        Exception('database disk image is malformed'),
+      ];
+      for (final error in errors) {
+        for (final phase in StartupPhase.values) {
+          expect(
+            classifyStartupFailure(error, phase, locationUnreachable: true),
+            StartupFailureKind.locationUnreachable,
+            reason: '$error during $phase',
+          );
+        }
+      }
+    });
+
+    test('an engine failure still outranks an unreachable folder', () {
+      // The database was never opened, so the folder is not why startup
+      // stopped, and pointing the diver at it would hide the packaging fault.
+      expect(
+        classifyStartupFailure(
+          const DatabaseEngineUnavailableException('missing library'),
+          StartupPhase.preflight,
+          locationUnreachable: true,
+        ),
+        StartupFailureKind.engineUnavailable,
+      );
+    });
+
+    test('a reachable folder leaves the classification alone', () {
+      expect(
+        classifyStartupFailure(
+          Exception('database disk image is malformed'),
+          StartupPhase.opening,
+        ),
+        StartupFailureKind.dataUnreadable,
+      );
+    });
+  });
+
   group('StartupFailureKind.dataIsAtRisk', () {
     test('an engine failure never puts data at risk', () {
       expect(StartupFailureKind.engineUnavailable.dataIsAtRisk, isFalse);
+    });
+
+    test('an unreachable folder never puts data at risk', () {
+      // Nothing could be opened, so nothing could be written. It also keeps
+      // the restore card and start-fresh off the screen: both write into the
+      // very folder that cannot be reached.
+      expect(StartupFailureKind.locationUnreachable.dataIsAtRisk, isFalse);
     });
 
     test('the classes that touched the file do', () {

@@ -60,6 +60,8 @@ class StartupFailureView extends StatelessWidget {
     this.onUseAnotherFolder,
     this.onRestoreFromFile,
     this.onStartFresh,
+    this.unreachableFolder,
+    this.onUseDefaultLocation,
     this.recoveryBusy = false,
   });
 
@@ -129,6 +131,21 @@ class StartupFailureView extends StatelessWidget {
   /// Database Storage back within reach.
   final VoidCallback? onStartFresh;
 
+  /// The folder the diver keeps their dive log in, shown for
+  /// [StartupFailureKind.locationUnreachable] so they know which drive to
+  /// reconnect or which cloud folder to wait for.
+  final String? unreachableFolder;
+
+  /// Stops using the unreachable folder and goes back to the app default
+  /// location.
+  ///
+  /// Offered for [StartupFailureKind.locationUnreachable] only. Startup used
+  /// to do this by itself on macOS and iOS, without a word, which made the
+  /// diver's dive log look like it had emptied itself (#2178). A damaged file
+  /// in a folder that CAN be reached already has [onStartFresh], and
+  /// switching locations there would only hide the damaged file.
+  final VoidCallback? onUseDefaultLocation;
+
   /// Whether one of the routes out is already running.
   ///
   /// Every route here acts on the diver's ONE database: a restore copies over
@@ -141,18 +158,36 @@ class StartupFailureView extends StatelessWidget {
   bool get _canRestore =>
       kind.dataIsAtRisk && recoveryBackup != null && onRestoreBackup != null;
 
+  bool get _folderUnreachable => kind == StartupFailureKind.locationUnreachable;
+
+  /// Picking a folder helps when the data was touched, and when the folder is
+  /// the problem: choosing the same one again gives a sandboxed build its
+  /// access back.
+  bool get _offersFolderRoute =>
+      (kind.dataIsAtRisk || _folderUnreachable) && onUseAnotherFolder != null;
+
+  /// Both of these write into the live folder, so they are offered only when
+  /// that folder can be reached and something in it may be wrong.
+  bool get _offersRestoreFromFile =>
+      kind.dataIsAtRisk && onRestoreFromFile != null;
+  bool get _offersStartFresh => kind.dataIsAtRisk && onStartFresh != null;
+
+  bool get _offersDefaultLocation =>
+      _folderUnreachable && onUseDefaultLocation != null;
+
   /// Whether the "other ways back in" section has anything to show.
   ///
   /// Gated on [StartupFailureKind.dataIsAtRisk] for the same reason the
   /// restore card is: pointing a broken build at a different file fixes
   /// nothing, and a lock means the database is intact, so offering to set it
   /// aside would invite a diver to abandon good data over a problem that a
-  /// relaunch fixes.
+  /// relaunch fixes. An unreachable folder is the one exception, and gets
+  /// only the routes that change which folder is used.
   bool get _hasRecoveryRoutes =>
-      kind.dataIsAtRisk &&
-      (onUseAnotherFolder != null ||
-          onRestoreFromFile != null ||
-          onStartFresh != null);
+      _offersFolderRoute ||
+      _offersRestoreFromFile ||
+      _offersStartFresh ||
+      _offersDefaultLocation;
 
   bool get _canDowngrade =>
       kind == StartupFailureKind.migrationFailed &&
@@ -174,6 +209,11 @@ class StartupFailureView extends StatelessWidget {
       icon: Icons.lock_clock,
       color: Colors.orange,
     ),
+    // Orange too: a folder that cannot be reached was never opened.
+    StartupFailureKind.locationUnreachable => (
+      icon: Icons.folder_off_outlined,
+      color: Colors.orange,
+    ),
     StartupFailureKind.migrationFailed || StartupFailureKind.unknown => (
       icon: Icons.error_outline,
       color: Colors.red,
@@ -188,6 +228,8 @@ class StartupFailureView extends StatelessWidget {
     StartupFailureKind.dataUnreadable =>
       context.l10n.startup_dataUnreadable_title,
     StartupFailureKind.databaseBusy => context.l10n.startup_databaseBusy_title,
+    StartupFailureKind.locationUnreachable =>
+      context.l10n.startup_locationUnreachable_title,
     StartupFailureKind.unknown => context.l10n.startup_error_title,
   };
 
@@ -199,6 +241,8 @@ class StartupFailureView extends StatelessWidget {
     StartupFailureKind.dataUnreadable =>
       context.l10n.startup_dataUnreadable_body,
     StartupFailureKind.databaseBusy => context.l10n.startup_databaseBusy_body,
+    StartupFailureKind.locationUnreachable =>
+      context.l10n.startup_locationUnreachable_body,
     StartupFailureKind.unknown => context.l10n.startup_error_body,
   };
 
@@ -225,6 +269,24 @@ class StartupFailureView extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(_body(context), style: bodyStyle, textAlign: TextAlign.center),
+          if (_folderUnreachable && unreachableFolder != null) ...[
+            const SizedBox(height: 16),
+            Text(
+              context.l10n.startup_locationUnreachable_folderLabel,
+              style: TextStyle(fontSize: 12, color: subtitleColor),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            SelectableText(
+              unreachableFolder!,
+              style: TextStyle(
+                fontSize: 12,
+                color: subtitleColor,
+                fontFamily: 'monospace',
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
           if (kind == StartupFailureKind.engineUnavailable) ...[
             const SizedBox(height: 12),
             Text(
@@ -309,17 +371,33 @@ class StartupFailureView extends StatelessWidget {
             // Ordered by how much of the diver's data each one keeps: the two
             // that end with their existing dives in front of them first, and
             // the empty log last.
-            if (onUseAnotherFolder != null)
+            if (_offersFolderRoute)
               _RecoveryRoute(
                 icon: Icons.folder_special_outlined,
-                label: context.l10n.startup_failure_useAnotherFolder,
-                description:
-                    context.l10n.startup_failure_useAnotherFolder_subtitle,
+                // Same picker either way. Worded for the SAME folder when the
+                // folder is the problem, because that is the pick that
+                // restores a sandboxed build's access.
+                label: _folderUnreachable
+                    ? context.l10n.startup_failure_chooseFolderAgain
+                    : context.l10n.startup_failure_useAnotherFolder,
+                description: _folderUnreachable
+                    ? context.l10n.startup_failure_chooseFolderAgain_subtitle
+                    : context.l10n.startup_failure_useAnotherFolder_subtitle,
                 onPressed: recoveryBusy ? null : onUseAnotherFolder!,
                 textColor: textColor,
                 subtitleColor: subtitleColor,
               ),
-            if (onRestoreFromFile != null)
+            if (_offersDefaultLocation)
+              _RecoveryRoute(
+                icon: Icons.home_outlined,
+                label: context.l10n.startup_failure_useDefaultLocation,
+                description:
+                    context.l10n.startup_failure_useDefaultLocation_subtitle,
+                onPressed: recoveryBusy ? null : onUseDefaultLocation!,
+                textColor: textColor,
+                subtitleColor: subtitleColor,
+              ),
+            if (_offersRestoreFromFile)
               _RecoveryRoute(
                 icon: Icons.restore_page_outlined,
                 label: context.l10n.startup_failure_restoreFromFile,
@@ -329,7 +407,7 @@ class StartupFailureView extends StatelessWidget {
                 textColor: textColor,
                 subtitleColor: subtitleColor,
               ),
-            if (onStartFresh != null)
+            if (_offersStartFresh)
               _RecoveryRoute(
                 icon: Icons.note_add_outlined,
                 label: context.l10n.startup_failure_startFresh,

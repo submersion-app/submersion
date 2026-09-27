@@ -53,6 +53,14 @@ enum StartupFailureKind {
   /// Closing Submersion fully and reopening is the whole fix.
   databaseBusy,
 
+  /// The diver keeps their dive log in a folder of their choosing, and that
+  /// folder cannot be reached: a drive that is not connected, a cloud folder
+  /// still syncing, a permission the system took back. The file was never
+  /// opened, so nothing in it changed. The storage setting is kept, so the
+  /// diver can reconnect, choose the folder again, or go back to the default
+  /// location (#2178).
+  locationUnreachable,
+
   /// Nothing more specific could be established. Treated conservatively: the
   /// failure is assumed to have reached the database, so the recovery routes
   /// stay on offer, but the app does not claim an upgrade failed.
@@ -61,12 +69,15 @@ enum StartupFailureKind {
   /// Whether the diver's database could plausibly have been touched.
   ///
   /// Drives both the reassurance wording and whether restore is offered.
-  /// [engineUnavailable] promises the file was never opened; [databaseBusy]
-  /// promises it was opened but never written. Offering a restore for a lock
-  /// would invite a diver to overwrite a perfectly intact database.
+  /// [engineUnavailable] and [locationUnreachable] promise the file was never
+  /// opened; [databaseBusy] promises it was opened but never written. Offering
+  /// a restore for a lock would invite a diver to overwrite a perfectly intact
+  /// database, and one for an unreachable folder would write into the folder
+  /// that cannot be reached.
   bool get dataIsAtRisk =>
       this != StartupFailureKind.engineUnavailable &&
-      this != StartupFailureKind.databaseBusy;
+      this != StartupFailureKind.databaseBusy &&
+      this != StartupFailureKind.locationUnreachable;
 }
 
 /// SQLite primary result code 11, SQLITE_CORRUPT.
@@ -108,7 +119,17 @@ const List<String> _unreadableDataMarkers = [
 /// phase entirely: #1129 died at the security gate while the app believed a
 /// migration was underway, and calling that a failed upgrade pointed diagnosis
 /// at migration code when the defect was in Windows packaging.
-StartupFailureKind classifyStartupFailure(Object error, StartupPhase phase) {
+///
+/// [locationUnreachable] comes from probing the diver's custom folder after
+/// the failure, not from the error: a folder the sandbox no longer grants
+/// surfaces as a plain file error, or as SQLite failing to open or read the
+/// file, none of which names the folder. It outranks everything but an engine
+/// failure, because until the folder can be reached no other answer helps.
+StartupFailureKind classifyStartupFailure(
+  Object error,
+  StartupPhase phase, {
+  bool locationUnreachable = false,
+}) {
   if (error is DatabaseEngineUnavailableException) {
     return StartupFailureKind.engineUnavailable;
   }
@@ -118,6 +139,8 @@ StartupFailureKind classifyStartupFailure(Object error, StartupPhase phase) {
   if (_engineFailureMarkers.any(message.contains)) {
     return StartupFailureKind.engineUnavailable;
   }
+
+  if (locationUnreachable) return StartupFailureKind.locationUnreachable;
 
   if (error is sqlite3.SqliteException &&
       (error.resultCode == _sqliteCorrupt ||

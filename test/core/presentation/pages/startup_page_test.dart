@@ -3233,6 +3233,283 @@ void main() {
       expect(find.text('Your dive log could not be read'), findsOneWidget);
     });
   });
+
+  // Issue #2178. On macOS and iOS an unreachable custom folder used to reset
+  // the storage location during startup, silently, so this screen was never
+  // reached and the next launch opened an empty default database.
+  group('an unreachable dive log folder', () {
+    const folder = '/Users/diver/Library/Mobile Documents/Submersion';
+    late SharedPreferences prefs;
+    late LogFileService logFileService;
+    late Directory tempDir;
+    late String dbPath;
+
+    /// How a folder the sandbox no longer grants actually fails: the open,
+    /// with nothing in the error that names the folder.
+    const revokedAccess = FileSystemException(
+      'Cannot open file',
+      '$folder/submersion.db',
+      OSError('Operation not permitted', 1),
+    );
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+      logFileService = LogFileService(logDirectory: '/tmp/test-logs');
+      tempDir = Directory.systemTemp.createTempSync('startup_unreachable_');
+      dbPath = p.join(tempDir.path, DatabaseLocationService.databaseFilename);
+    });
+
+    tearDown(() {
+      if (tempDir.existsSync()) tempDir.deleteSync(recursive: true);
+    });
+
+    Future<void> pumpUnreachable(
+      WidgetTester tester, {
+      required DatabaseLocationService locationService,
+      required ServiceInitializer initializer,
+      StartupRecoveryService? recoveryServiceOverride,
+    }) async {
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: initializer,
+          recoveryServiceOverride: recoveryServiceOverride,
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('is reported as a folder problem, naming the folder', (
+      tester,
+    ) async {
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+        ),
+        initializer: (_) async => throw revokedAccess,
+      );
+
+      expect(find.text("Your dive log's folder can't be reached"), findsOne);
+      expect(find.text(folder), findsOneWidget);
+      expect(find.text('Submersion could not start'), findsNothing);
+      expect(find.text("Choose your dive log's folder"), findsOneWidget);
+      expect(find.text('Go back to the app default location'), findsOne);
+      expect(find.text('Start with an empty dive log'), findsNothing);
+      expect(find.text('Restore from a backup file'), findsNothing);
+    });
+
+    testWidgets('going back to the default location asks first, then '
+        'relaunches', (tester) async {
+      final recovery = _FakeStartupRecoveryService();
+      var initializerCalls = 0;
+      // Left pending: reaching `ready` would mount the real app against an
+      // uninitialized DatabaseService, which is not what this test is about.
+      final secondAttempt = Completer<void>();
+
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+        ),
+        recoveryServiceOverride: recovery,
+        initializer: (_) async {
+          initializerCalls++;
+          if (initializerCalls == 1) throw revokedAccess;
+          await secondAttempt.future;
+        },
+      );
+
+      await tester.ensureVisible(
+        find.text('Go back to the app default location'),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Go back to the app default location'));
+      await tester.pumpAndSettle();
+
+      // Asked, not done: the dialog names the folder being left, so the diver
+      // knows where their dive log still is.
+      expect(find.text('Go back to the app default location?'), findsOne);
+      expect(find.textContaining('Nothing in $folder is moved'), findsOne);
+      expect(recovery.useDefaultCalls, 0);
+
+      await tester.tap(find.text('Use the default location'));
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      expect(recovery.useDefaultCalls, 1);
+      expect(initializerCalls, 2, reason: 'startup must run again');
+      expect(
+        find.text("Your dive log's folder can't be reached"),
+        findsNothing,
+      );
+
+      // Drain the splash-delay timer started by the second _runInitialization.
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('backing out of the default location changes nothing', (
+      tester,
+    ) async {
+      final recovery = _FakeStartupRecoveryService();
+      var initializerCalls = 0;
+
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+        ),
+        recoveryServiceOverride: recovery,
+        initializer: (_) async {
+          initializerCalls++;
+          throw revokedAccess;
+        },
+      );
+
+      await tester.ensureVisible(
+        find.text('Go back to the app default location'),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Go back to the app default location'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(recovery.useDefaultCalls, 0);
+      expect(initializerCalls, 1, reason: 'nothing may relaunch');
+      expect(find.text("Your dive log's folder can't be reached"), findsOne);
+    });
+
+    testWidgets('a return to the default location that fails is reported', (
+      tester,
+    ) async {
+      final recovery = _FakeStartupRecoveryService(
+        useDefaultError: StateError('prefs are read-only'),
+      );
+      var initializerCalls = 0;
+
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+        ),
+        recoveryServiceOverride: recovery,
+        initializer: (_) async {
+          initializerCalls++;
+          throw revokedAccess;
+        },
+      );
+
+      await tester.ensureVisible(
+        find.text('Go back to the app default location'),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Go back to the app default location'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Use the default location'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('That did not work'), findsOneWidget);
+      expect(find.textContaining('prefs are read-only'), findsOneWidget);
+
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(initializerCalls, 1, reason: 'nothing may relaunch');
+      expect(find.text("Your dive log's folder can't be reached"), findsOne);
+    });
+
+    // Picking the same folder again is what restores a sandboxed build's
+    // access, so the folder route has to lead to the same adoption flow.
+    testWidgets('choosing the folder again adopts it and relaunches', (
+      tester,
+    ) async {
+      final recovery = _FakeStartupRecoveryService(
+        inspection: AdoptableDiveLog(
+          path: '$folder/${DatabaseLocationService.databaseFilename}',
+          diveCount: 412,
+          siteCount: 87,
+          sizeBytes: 9 * 1024 * 1024,
+          lastModified: DateTime.utc(2026, 9, 18),
+        ),
+      );
+      var initializerCalls = 0;
+      final secondAttempt = Completer<void>();
+
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+          picks: folder,
+        ),
+        recoveryServiceOverride: recovery,
+        initializer: (_) async {
+          initializerCalls++;
+          if (initializerCalls == 1) throw revokedAccess;
+          await secondAttempt.future;
+        },
+      );
+
+      await tester.ensureVisible(find.text("Choose your dive log's folder"));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text("Choose your dive log's folder"));
+      await tester.pumpAndSettle();
+
+      expect(recovery.inspectedFolder, folder);
+      await tester.tap(find.text('Use this dive log'));
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      expect(recovery.adoptCalls, 1);
+      expect(initializerCalls, 2, reason: 'startup must run again');
+
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    // The probe runs on a screen the diver reached because something already
+    // went wrong. If it fails too, the original failure has to be what they
+    // see, not a second terminal state.
+    testWidgets('a probe that throws leaves the original failure on screen', (
+      tester,
+    ) async {
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+          probeError: StateError('prefs unavailable'),
+        ),
+        initializer: (_) async {
+          throw Exception('database disk image is malformed');
+        },
+      );
+
+      expect(find.text('Your dive log could not be read'), findsOneWidget);
+      expect(
+        find.text("Your dive log's folder can't be reached"),
+        findsNothing,
+      );
+    });
+  });
 }
 
 /// A backup service whose `backupIfMigrationPending` always throws.
@@ -3264,6 +3541,7 @@ class _FakeStartupRecoveryService implements StartupRecoveryService {
     this.setAsideResult = '/aside',
     this.inspection = const NoDiveLogInFolder(),
     this.backupChoice,
+    this.useDefaultError,
   });
 
   final String setAsideResult;
@@ -3271,10 +3549,20 @@ class _FakeStartupRecoveryService implements StartupRecoveryService {
 
   final BackupFileChoice? backupChoice;
 
+  /// Thrown by [useDefaultLocation] when set.
+  final Object? useDefaultError;
+
   int setAsideCalls = 0;
   int adoptCalls = 0;
+  int useDefaultCalls = 0;
   String? inspectedFolder;
   String? classifiedPath;
+
+  @override
+  Future<void> useDefaultLocation() async {
+    useDefaultCalls++;
+    if (useDefaultError != null) throw useDefaultError!;
+  }
 
   @override
   Future<String> setAsideUnreadableDatabase() async {
@@ -3313,4 +3601,32 @@ class _PickingLocationService extends _CustomPathLocationService {
   Future<FolderPickResultWithBookmark?> pickCustomFolder({
     Future<ExternalVolumeOption?> Function(List<ExternalVolumeOption>)? chooser,
   }) async => picks == null ? null : FolderPickResultWithBookmark(path: picks!);
+}
+
+/// A location service whose custom folder cannot be reached.
+///
+/// Answers the probe directly: the real one is `dart:io`, and a `dart:io`
+/// future started inside the fake-async widget-test zone never completes. The
+/// probe itself is covered against real folders in
+/// `test/core/services/database_location_startup_check_test.dart`.
+class _UnreachableLocationService extends _PickingLocationService {
+  _UnreachableLocationService(
+    super.prefs,
+    super.path, {
+    required this.folder,
+    super.picks,
+    this.probeError,
+  });
+
+  final String folder;
+
+  /// Thrown by the probe when set, to prove a failed probe never replaces
+  /// the failure the diver actually hit.
+  final Object? probeError;
+
+  @override
+  Future<String?> unreachableCustomFolder() async {
+    if (probeError != null) throw probeError!;
+    return folder;
+  }
 }

@@ -242,6 +242,10 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// Which class of failure the terminal error screen is reporting.
   StartupFailureKind _failureKind = StartupFailureKind.unknown;
 
+  /// The diver's custom folder, when the failure screen found it unreachable
+  /// (#2178). Null at the default location and whenever the folder is fine.
+  String? _unreachableFolder;
+
   /// A backup the diver could swap in, discovered after the failure. Null
   /// until [_loadRecoveryOptions] finds one (and never loaded at all for an
   /// engine failure, where no restore can help).
@@ -464,10 +468,10 @@ class _StartupWrapperState extends State<StartupWrapper>
           });
         }
       } else {
-        _enterFailureState(e);
+        await _enterFailureState(e);
       }
     } catch (e) {
-      _enterFailureState(e);
+      await _enterFailureState(e);
     }
   }
 
@@ -478,16 +482,43 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// "Database upgrade failed", which was wrong in both directions: it told
   /// divers their upgrade failed when the database had never been opened, and
   /// it pointed diagnosis at migration code.
-  void _enterFailureState(Object error) {
-    final kind = classifyStartupFailure(error, _phase);
+  ///
+  /// The custom folder is probed first because an unreachable one never says
+  /// so in the error: a folder the sandbox no longer grants surfaces as a
+  /// plain file error or a SQLite open failure. Startup on macOS and iOS used
+  /// to answer that by resetting the storage location, silently (#2178).
+  Future<void> _enterFailureState(Object error) async {
+    final unreachableFolder = await _probeUnreachableFolder();
+    final kind = classifyStartupFailure(
+      error,
+      _phase,
+      locationUnreachable: unreachableFolder != null,
+    );
     debugPrint('FATAL: App initialization failed (${kind.name}): $error');
     if (!mounted) return;
     setState(() {
       _state = _StartupState.error;
       _failureKind = kind;
       _errorMessage = '$error';
+      _unreachableFolder = kind == StartupFailureKind.locationUnreachable
+          ? unreachableFolder
+          : null;
     });
     unawaited(_loadRecoveryOptions());
+  }
+
+  /// The diver's custom folder if it cannot be reached, else null.
+  ///
+  /// Never throws. This runs on the way to a screen the diver reaches because
+  /// something already failed, so a probe that fails too must leave that
+  /// original failure on screen rather than replace it.
+  Future<String?> _probeUnreachableFolder() async {
+    try {
+      return await widget.locationService.unreachableCustomFolder();
+    } catch (e) {
+      debugPrint('Could not check the dive log folder: $e');
+      return null;
+    }
   }
 
   /// Resolves the App Security gate before any database access.
@@ -1039,7 +1070,7 @@ class _StartupWrapperState extends State<StartupWrapper>
         });
       }
     } catch (e) {
-      _enterFailureState(e);
+      await _enterFailureState(e);
     }
   }
 
@@ -1513,6 +1544,27 @@ class _StartupWrapperState extends State<StartupWrapper>
     return picked?.path;
   }
 
+  /// Stops using the folder that cannot be reached and goes back to the app
+  /// default location, once the diver has said so.
+  ///
+  /// The same reset startup used to perform unasked on macOS and iOS (#2178).
+  /// Nothing in the folder is touched, so choosing it again from Settings >
+  /// Database Storage picks the dive log back up.
+  Future<void> _useDefaultLocation() async {
+    final folder = _unreachableFolder;
+    final context = _dialogContext;
+    if (folder == null || context == null || !context.mounted) return;
+    if (!await showUseDefaultLocationDialog(context, folder)) return;
+
+    try {
+      await _recoveryService.useDefaultLocation();
+    } catch (e) {
+      await _reportRecoveryProblem(null, detail: '$e');
+      return;
+    }
+    await _relaunchStartup();
+  }
+
   /// Sets the database that will not open aside and starts an empty one.
   ///
   /// The last resort, and still worth having: an app that opens at all puts
@@ -1551,6 +1603,7 @@ class _StartupWrapperState extends State<StartupWrapper>
     setState(() {
       _state = _StartupState.initializing;
       _errorMessage = '';
+      _unreachableFolder = null;
       _recoveryBackup = null;
       _backupsDirectory = null;
       _restoreStatus = StartupRestoreStatus.idle;
@@ -1937,6 +1990,8 @@ class _StartupWrapperState extends State<StartupWrapper>
       onUseAnotherFolder: () => _runRecoveryRoute(_useAnotherFolder),
       onRestoreFromFile: () => _runRecoveryRoute(_restoreFromPickedFile),
       onStartFresh: () => _runRecoveryRoute(_startFresh),
+      unreachableFolder: _unreachableFolder,
+      onUseDefaultLocation: () => _runRecoveryRoute(_useDefaultLocation),
       recoveryBusy: _recoveryRoutesBusy,
       onClose: _closeApp,
     );

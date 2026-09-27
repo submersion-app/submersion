@@ -175,6 +175,22 @@ class StartupRecoveryService {
     }
   }
 
+  /// Points the app back at its own folder, for this and every later launch.
+  ///
+  /// The way out when the diver's chosen folder cannot be reached and is not
+  /// coming back. Startup used to do this unasked on macOS and iOS, which is
+  /// how a dive log appeared to empty itself while the real one sat untouched
+  /// in the folder (#2178). Nothing at the custom location is moved or
+  /// deleted, so choosing that folder again later picks the dive log back up.
+  Future<void> useDefaultLocation() async {
+    final left = (await _locationService.getStorageConfig()).customFolderPath;
+    await _locationService.resetToDefault();
+    _log.info(
+      'Returned to the default storage location at the diver\'s request; '
+      'nothing in $left was changed',
+    );
+  }
+
   /// Decides what [path] is before anything is swapped in.
   ///
   /// The registry's own records were checked when they were written; a file
