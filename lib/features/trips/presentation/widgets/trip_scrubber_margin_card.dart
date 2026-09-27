@@ -37,7 +37,12 @@ String? tripScrubberMarginSummary(
 /// stating the four figures and the n behind each estimate, with a
 /// caution line under 20 percent of the rated duration. A past trip
 /// reads as of its start. Renders nothing without a rebreather.
-class TripScrubberMarginCard extends ConsumerWidget {
+///
+/// It opens collapsed to a single line (the banner summary, under a
+/// warning triangle when any unit is short) and expands on tap: the full
+/// breakdown sat above the page and took half a phone window that the
+/// diver could not reclaim (#2221).
+class TripScrubberMarginCard extends ConsumerStatefulWidget {
   final Trip trip;
 
   const TripScrubberMarginCard({super.key, required this.trip});
@@ -45,8 +50,21 @@ class TripScrubberMarginCard extends ConsumerWidget {
   /// The most of the window the card may take before it scrolls.
   static const maxHeightFraction = 0.4;
 
+  /// The tappable one-line header that opens and closes the breakdown.
+  static const headerKey = ValueKey('trip-scrubber-margin-header');
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TripScrubberMarginCard> createState() =>
+      _TripScrubberMarginCardState();
+}
+
+class _TripScrubberMarginCardState
+    extends ConsumerState<TripScrubberMarginCard> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final trip = widget.trip;
     final margins =
         ref.watch(tripScrubberMarginsProvider(trip.id)).value ?? const [];
     if (margins.isEmpty) return const SizedBox.shrink();
@@ -60,36 +78,81 @@ class TripScrubberMarginCard extends ConsumerWidget {
         ? '${l10n.trips_scrubber_title} '
               '(${l10n.trips_scrubber_asOfStart(units.formatDate(trip.startDate))})'
         : l10n.trips_scrubber_title;
+    final caution = margins.any((m) => m.caution);
+    // With no unit rated there is no margin to summarise, so the line
+    // names the card and the breakdown carries the no-rating hint.
+    final summary = tripScrubberMarginSummary(l10n, margins) ?? title;
+    final accent = caution
+        ? theme.colorScheme.error
+        : theme.colorScheme.primary;
 
-    // The card sits above the page's own scrolling content, so it is
-    // capped at a share of the window and scrolls inside: several units
-    // on a compact screen would otherwise push the page off the bottom.
+    final header = Semantics(
+      key: TripScrubberMarginCard.headerKey,
+      button: true,
+      expanded: _expanded,
+      child: InkWell(
+        onTap: () => setState(() => _expanded = !_expanded),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Icon(
+                caution ? Icons.warning_amber_rounded : Icons.air,
+                color: accent,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  summary,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: caution ? accent : null,
+                  ),
+                ),
+              ),
+              Icon(_expanded ? Icons.expand_less : Icons.expand_more),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // The card sits above the page's own scrolling content, so once open
+    // it is capped at a share of the window and scrolls inside: several
+    // units on a compact screen would otherwise push the page off the
+    // bottom.
     return ConstrainedBox(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * maxHeightFraction,
+        maxHeight:
+            MediaQuery.sizeOf(context).height *
+            TripScrubberMarginCard.maxHeightFraction,
       ),
       child: Card(
         margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.air, color: theme.colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(title, style: theme.textTheme.titleMedium),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            header,
+            if (_expanded)
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: theme.textTheme.titleMedium),
+                      for (final m in margins) ...[
+                        const Divider(),
+                        _MarginBlock(margin: m, isPast: isPast),
+                      ],
+                    ],
                   ),
-                ],
+                ),
               ),
-              for (final m in margins) ...[
-                const Divider(),
-                _MarginBlock(margin: m, isPast: isPast),
-              ],
-            ],
-          ),
+          ],
         ),
       ),
     );

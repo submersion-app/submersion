@@ -86,6 +86,12 @@ Widget host(
   ),
 );
 
+/// The card opens collapsed to one line; the breakdown is behind a tap.
+Future<void> expand(WidgetTester tester) async {
+  await tester.tap(find.byKey(TripScrubberMarginCard.headerKey));
+  await tester.pumpAndSettle();
+}
+
 void main() {
   // formatDate resolves DateFormat against Intl.defaultLocale, a process
   // global the app assigns from the diver's locale and a widget test never
@@ -105,6 +111,7 @@ void main() {
   ) async {
     await tester.pumpWidget(host([margin()]));
     await tester.pumpAndSettle();
+    await expand(tester);
     expect(find.text('Scrubber margin'), findsOneWidget);
     expect(find.text('My CCR'), findsOneWidget);
     expect(
@@ -138,6 +145,7 @@ void main() {
       ]),
     );
     await tester.pumpAndSettle();
+    await expand(tester);
     expect(
       find.text('10 expected dives (from your last 3 trips)'),
       findsOneWidget,
@@ -150,6 +158,7 @@ void main() {
     // "since the last repack" would misstate for a first-use scrubber.
     await tester.pumpWidget(host([margin(noRepack: true)]));
     await tester.pumpAndSettle();
+    await expand(tester);
     expect(
       find.text(
         '210 min left before the trip (rated 300 min, 90 min used, no repack recorded)',
@@ -171,6 +180,7 @@ void main() {
       ]),
     );
     await tester.pumpAndSettle();
+    await expand(tester);
     expect(find.text('1 expected dive (from your last trip)'), findsOneWidget);
     expect(
       find.text('35 min per dive (from your last rebreather dive)'),
@@ -183,6 +193,7 @@ void main() {
     // margin below zero is always shown as a shortfall.
     await tester.pumpWidget(host([margin(marginAfter: -0.4)]));
     await tester.pumpAndSettle();
+    await expand(tester);
     expect(find.text('0 min margin after the trip'), findsNothing);
     expect(find.text('-1 min margin after the trip'), findsOneWidget);
   });
@@ -198,6 +209,7 @@ void main() {
   testWidgets('a past trip says as of its start', (tester) async {
     await tester.pumpWidget(host([margin()], past: true));
     await tester.pumpAndSettle();
+    await expand(tester);
     expect(find.textContaining('as of Mar 1, 2025'), findsOneWidget);
   });
 
@@ -236,6 +248,7 @@ void main() {
       host([margin()], clocks: {ccr.id: overdueScrubber()}),
     );
     await tester.pumpAndSettle();
+    await expand(tester);
     expect(
       find.bySemanticsLabel(RegExp('Scrubber repack overdue')),
       findsOneWidget,
@@ -253,6 +266,7 @@ void main() {
       host([margin()], past: true, clocks: {ccr.id: overdueScrubber()}),
     );
     await tester.pumpAndSettle();
+    await expand(tester);
     expect(
       find.bySemanticsLabel(RegExp('Scrubber repack overdue')),
       findsNothing,
@@ -265,6 +279,7 @@ void main() {
       host([margin(rated: null, marginAfter: null, caution: false)]),
     );
     await tester.pumpAndSettle();
+    await expand(tester);
     expect(find.textContaining('No rated duration'), findsOneWidget);
     expect(find.textContaining('margin after'), findsNothing);
   });
@@ -303,6 +318,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await expand(tester);
     expect(tester.takeException(), isNull);
     final card = tester.getSize(find.byType(TripScrubberMarginCard));
     expect(card.height, lessThanOrEqualTo(600 * 0.4 + 1));
@@ -352,6 +368,7 @@ void main() {
       ]),
     );
     await tester.pumpAndSettle();
+    await expand(tester);
     expect(find.text('10 expected dives'), findsOneWidget);
     expect(find.textContaining('set on this trip'), findsNothing);
     expect(find.textContaining('from your last'), findsNothing);
@@ -365,5 +382,105 @@ void main() {
       margin(rated: null, marginAfter: null, caution: false),
     ]);
     expect(summary, '2 rebreathers, lowest 40 min scrubber margin');
+  });
+
+  group('collapsed to one line (#2221)', () {
+    testWidgets('opens as the summary alone, the breakdown hidden', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host([margin()]));
+      await tester.pumpAndSettle();
+      expect(find.text('-140 min scrubber margin'), findsOneWidget);
+      expect(find.text('My CCR'), findsNothing);
+      expect(find.textContaining('Under 20 percent'), findsNothing);
+    });
+
+    testWidgets('a caution shows the warning triangle', (tester) async {
+      await tester.pumpWidget(host([margin()]));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
+    });
+
+    testWidgets('a comfortable margin keeps the plain icon', (tester) async {
+      await tester.pumpWidget(host([margin(marginAfter: 200, caution: false)]));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.warning_amber_rounded), findsNothing);
+      expect(find.byIcon(Icons.air), findsOneWidget);
+    });
+
+    testWidgets('several rebreathers fold under one line with a count', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host([
+          margin(marginAfter: 50, caution: false),
+          margin(marginAfter: 20),
+        ]),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.text('2 rebreathers, lowest 20 min scrubber margin'),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
+      expect(find.text('My CCR'), findsNothing);
+      await expand(tester);
+      expect(find.text('My CCR'), findsNWidgets(2));
+    });
+
+    testWidgets('with no rating anywhere the line names the card', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host([margin(rated: null, marginAfter: null, caution: false)]),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Scrubber margin'), findsOneWidget);
+      expect(find.textContaining('No rated duration'), findsNothing);
+    });
+
+    testWidgets('a second tap folds it away again', (tester) async {
+      await tester.pumpWidget(host([margin()]));
+      await tester.pumpAndSettle();
+      await expand(tester);
+      expect(find.text('My CCR'), findsOneWidget);
+      await expand(tester);
+      expect(find.text('My CCR'), findsNothing);
+    });
+
+    testWidgets('screen readers hear whether it is open', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(host([margin()]));
+      await tester.pumpAndSettle();
+      final header = find.byKey(TripScrubberMarginCard.headerKey);
+      expect(
+        tester.getSemantics(header),
+        isSemantics(isButton: true, hasExpandedState: true, isExpanded: false),
+      );
+      await expand(tester);
+      expect(
+        tester.getSemantics(header),
+        isSemantics(isButton: true, hasExpandedState: true, isExpanded: true),
+      );
+      semantics.dispose();
+    });
+
+    testWidgets('on a phone the collapsed card is a single short row', (
+      tester,
+    ) async {
+      // The reported screen: a full breakdown took half an iPhone window
+      // above the trip timeline and could not be dismissed.
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(host([margin()], past: true));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.getSize(find.byType(TripScrubberMarginCard)).height,
+        lessThan(80),
+      );
+    });
   });
 }
