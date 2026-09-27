@@ -256,6 +256,97 @@ void main() {
       }
     });
 
+    /// Makes the bookmark resolve to [path], as it does once the diver has
+    /// moved or renamed the folder it points at.
+    void bookmarkResolvesTo(String path) {
+      SecurityScopedBookmarkService.debugSupportedOverride = true;
+      addTearDown(
+        () => SecurityScopedBookmarkService.debugSupportedOverride = null,
+      );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(bookmarkChannel, (call) async {
+            bookmarkCalls.add(call.method);
+            if (call.method == 'resolveBookmark') {
+              return <Object?, Object?>{'path': path, 'isStale': true};
+            }
+            return null;
+          });
+    }
+
+    // A bookmark follows its folder when the folder is moved or renamed; the
+    // stored path does not. Probing the old path would report the folder
+    // unreachable while the app already knows where it went.
+    test(
+      'a folder the bookmark followed to a new path is followed too',
+      () async {
+        final parent = await Directory.systemTemp.createTemp('submersion2178');
+        addTearDown(() => parent.delete(recursive: true));
+        final moved = Directory(p.join(parent.path, 'renamed'))..createSync();
+        File(
+          p.join(moved.path, 'submersion.db'),
+        ).writeAsBytesSync(List.filled(32, 1));
+        bookmarkResolvesTo(moved.path);
+
+        final service = await serviceWithCustomFolder(
+          p.join(parent.path, 'original'),
+        );
+        await prefs.setString(
+          'db_security_bookmark',
+          base64Encode(<int>[1, 2]),
+        );
+
+        final check = await service.validateCustomLocationAtStartup(
+          isBookmarkPlatform: true,
+        );
+
+        expect(check, StartupLocationCheck.accessible);
+        final config = await service.getStorageConfig();
+        expect(config.mode, StorageLocationMode.customFolder);
+        expect(config.customFolderPath, moved.path);
+        expect(service.hasStoredBookmark(), isTrue);
+      },
+    );
+
+    // Only a stored path that is GONE is replaced. A folder that is still
+    // where the diver put it stays the choice, whatever the bookmark says.
+    test('a stored folder that still exists is never repointed', () async {
+      final stored = await Directory.systemTemp.createTemp('submersion2178');
+      addTearDown(() => stored.delete(recursive: true));
+      final elsewhere = await Directory.systemTemp.createTemp('submersion2178');
+      addTearDown(() => elsewhere.delete(recursive: true));
+      bookmarkResolvesTo(elsewhere.path);
+
+      final service = await serviceWithCustomFolder(stored.path);
+      await prefs.setString('db_security_bookmark', base64Encode(<int>[1, 2]));
+
+      await service.validateCustomLocationAtStartup(isBookmarkPlatform: true);
+
+      expect((await service.getStorageConfig()).customFolderPath, stored.path);
+    });
+
+    test(
+      'a bookmark that resolves nowhere real leaves the config alone',
+      () async {
+        final parent = await Directory.systemTemp.createTemp('submersion2178');
+        addTearDown(() => parent.delete(recursive: true));
+        final original = p.join(parent.path, 'original');
+        bookmarkResolvesTo(p.join(parent.path, 'also-gone'));
+
+        final service = await serviceWithCustomFolder(original);
+        await prefs.setString(
+          'db_security_bookmark',
+          base64Encode(<int>[1, 2]),
+        );
+
+        final check = await service.validateCustomLocationAtStartup(
+          isBookmarkPlatform: true,
+        );
+
+        expect(check, StartupLocationCheck.keptFolderMissing);
+        expect((await service.getStorageConfig()).customFolderPath, original);
+      },
+    );
+
     test(
       'a bookmark platform with NO stored bookmark skips the resolve',
       () async {
@@ -339,6 +430,71 @@ void main() {
   }
 
   const posixOnly = 'chmod-based permission tests are POSIX-only';
+
+  // Listing alone cannot be the only witness on Apple platforms: a
+  // security-scoped folder can still be listed after the sandbox refuses its
+  // files. The refusal itself is the sandbox's signature: it denies a read
+  // with EPERM, where plain permissions answer EACCES.
+  group('unreadableVerdict (#2178)', () {
+    const sandboxRefusal = FileSystemException(
+      'Cannot open file',
+      '/Users/diver/iCloud/submersion.db',
+      OSError('Operation not permitted', 1),
+    );
+    const permissionDenied = FileSystemException(
+      'Cannot open file',
+      '/Users/diver/iCloud/submersion.db',
+      OSError('Permission denied', 13),
+    );
+
+    test('a sandbox refusal blames the folder even when it can be listed', () {
+      expect(
+        DatabaseLocationService.unreadableVerdict(
+          sandboxRefusal,
+          folderListable: true,
+          sandboxed: true,
+        ),
+        StartupLocationCheck.keptInaccessible,
+      );
+    });
+
+    test('EPERM means nothing special outside the sandbox', () {
+      expect(
+        DatabaseLocationService.unreadableVerdict(
+          sandboxRefusal,
+          folderListable: true,
+          sandboxed: false,
+        ),
+        StartupLocationCheck.keptDatabaseUnreadable,
+      );
+    });
+
+    test('any other refusal in a listable folder is the file', () {
+      expect(
+        DatabaseLocationService.unreadableVerdict(
+          permissionDenied,
+          folderListable: true,
+          sandboxed: true,
+        ),
+        StartupLocationCheck.keptDatabaseUnreadable,
+      );
+    });
+
+    test('a folder that cannot be listed is always the folder', () {
+      for (final error in [sandboxRefusal, permissionDenied]) {
+        for (final sandboxed in [true, false]) {
+          expect(
+            DatabaseLocationService.unreadableVerdict(
+              error,
+              folderListable: false,
+              sandboxed: sandboxed,
+            ),
+            StartupLocationCheck.keptInaccessible,
+          );
+        }
+      }
+    });
+  });
 
   group('checkCustomLocation tells the folder from the file (#2178)', () {
     // Copilot on PR 2497: an open failure alone does not mean the FOLDER is

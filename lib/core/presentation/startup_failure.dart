@@ -112,6 +112,27 @@ const List<String> _unreadableDataMarkers = [
   'file is not a database',
 ];
 
+/// Whether an unreachable custom folder can be what stopped startup.
+///
+/// Only before the file was reached: the folder probe proves the folder is
+/// unreachable NOW, not that nothing touched the file. [databaseOpened] means
+/// a connection was made, after which the ladder or any later service may
+/// have written to it; the upgrade writes to it by definition; and an engine
+/// failure never got as far as the file. Also decides whether the probe runs
+/// at all, since on a dead network mount it can block for the whole timeout.
+bool canBlameUnreachableFolder(
+  Object error,
+  StartupPhase phase, {
+  required bool databaseOpened,
+}) =>
+    !databaseOpened &&
+    phase != StartupPhase.upgrading &&
+    !_isEngineFailure(error);
+
+bool _isEngineFailure(Object error) =>
+    error is DatabaseEngineUnavailableException ||
+    _engineFailureMarkers.any(error.toString().toLowerCase().contains);
+
 /// Classifies a terminal startup failure into the class whose title and body
 /// tell the diver the truth about their data.
 ///
@@ -123,34 +144,23 @@ const List<String> _unreadableDataMarkers = [
 /// [locationUnreachable] comes from probing the diver's custom folder after
 /// the failure, not from the error: a folder the sandbox no longer grants
 /// surfaces as a plain file error, or as SQLite failing to open or read the
-/// file, none of which names the folder. It outranks everything but an engine
-/// failure, because until the folder can be reached no other answer helps.
-/// Except once the file was reached: the probe only proves the folder is
-/// unreachable NOW. [databaseOpened] means a connection was made, after which
-/// the ladder or any later service may have written to the file; and during
-/// the upgrade the ladder is writing by definition. Either way the screen
-/// that keeps the backups and the safety copy on offer is the honest one.
+/// file, none of which names the folder. It outranks every other class
+/// wherever [canBlameUnreachableFolder] allows it, because until the folder
+/// can be reached no other answer helps.
 StartupFailureKind classifyStartupFailure(
   Object error,
   StartupPhase phase, {
   bool locationUnreachable = false,
   bool databaseOpened = false,
 }) {
-  if (error is DatabaseEngineUnavailableException) {
-    return StartupFailureKind.engineUnavailable;
+  if (_isEngineFailure(error)) return StartupFailureKind.engineUnavailable;
+
+  if (locationUnreachable &&
+      canBlameUnreachableFolder(error, phase, databaseOpened: databaseOpened)) {
+    return StartupFailureKind.locationUnreachable;
   }
 
   final message = error.toString().toLowerCase();
-
-  if (_engineFailureMarkers.any(message.contains)) {
-    return StartupFailureKind.engineUnavailable;
-  }
-
-  if (locationUnreachable &&
-      !databaseOpened &&
-      phase != StartupPhase.upgrading) {
-    return StartupFailureKind.locationUnreachable;
-  }
 
   if (error is sqlite3.SqliteException &&
       (error.resultCode == _sqliteCorrupt ||

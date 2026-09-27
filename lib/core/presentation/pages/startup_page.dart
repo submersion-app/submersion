@@ -495,17 +495,23 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// plain file error or a SQLite open failure. Startup on macOS and iOS used
   /// to answer that by resetting the storage location, silently (#2178).
   Future<void> _enterFailureState(Object error) async {
-    final unreachableFolder = await _probeUnreachableFolder();
+    // A connection that opened reached the file, and relaunching at the
+    // default location would reuse it: initialize() returns early while a
+    // database is open.
+    final databaseOpened =
+        (widget.databaseOpenedOverride ??
+        () => DatabaseService.instance.isOpen)();
+    // Probed only when its answer can change the screen: on a dead network
+    // mount every file call can block for the whole network timeout.
+    final unreachableFolder =
+        canBlameUnreachableFolder(error, _phase, databaseOpened: databaseOpened)
+        ? await _probeUnreachableFolder()
+        : null;
     final kind = classifyStartupFailure(
       error,
       _phase,
       locationUnreachable: unreachableFolder != null,
-      // A connection that opened reached the file, and relaunching at the
-      // default location would reuse it: initialize() returns early while a
-      // database is open.
-      databaseOpened:
-          (widget.databaseOpenedOverride ??
-          () => DatabaseService.instance.isOpen)(),
+      databaseOpened: databaseOpened,
     );
     debugPrint('FATAL: App initialization failed (${kind.name}): $error');
     if (!mounted) return;

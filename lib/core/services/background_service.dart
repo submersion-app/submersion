@@ -82,7 +82,9 @@ Future<bool> prepareHeadlessDatabaseLocation({
   }
 
   final dbPath = await location.getDatabasePath();
-  if (!await _isReadableDatabase(dbPath)) {
+  // Existence alone is not enough: a security-scoped folder can be listed
+  // and still refuse the open. The same probe the foreground startup uses.
+  if (await readProbeError(dbPath) != null) {
     _log.info(
       'Headless run skipped: no readable database at $dbPath '
       '(custom location: ${config.isCustomLocation}). Not creating one.',
@@ -92,33 +94,6 @@ Future<bool> prepareHeadlessDatabaseLocation({
 
   DatabaseService.instance.adoptLocationService(location);
   return true;
-}
-
-/// Whether [dbPath] holds a file this isolate can actually read.
-///
-/// Existence alone is not enough: a security-scoped folder can be listed and
-/// still refuse the open. This is the same probe
-/// [DatabaseLocationService.validateCustomLocationAtStartup] uses.
-Future<bool> _isReadableDatabase(String dbPath) async {
-  RandomAccessFile? handle;
-  try {
-    handle = await File(dbPath).open(mode: FileMode.read);
-    await handle.read(16);
-    return true;
-  } catch (_) {
-    return false;
-  } finally {
-    // Close even when the read throws, or the handle leaks on every
-    // background run that hits a revoked-permission folder. The close is
-    // itself guarded because an exception raised in a finally block REPLACES
-    // the value the try/catch settled on, which would turn "skip this run"
-    // into "the task failed".
-    try {
-      await handle?.close();
-    } catch (_) {
-      // Nothing to do: the probe's answer is already decided.
-    }
-  }
 }
 
 /// Headless isolates have no unlock UI. Load the cached key (keychain) and

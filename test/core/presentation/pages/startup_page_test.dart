@@ -3248,10 +3248,10 @@ void main() {
 
     /// How a folder the sandbox no longer grants actually fails: the open,
     /// with nothing in the error that names the folder.
-    const revokedAccess = FileSystemException(
+    final revokedAccess = FileSystemException(
       'Cannot open file',
-      '$folder/submersion.db',
-      OSError('Operation not permitted', 1),
+      p.join(folder, DatabaseLocationService.databaseFilename),
+      const OSError('Operation not permitted', 1),
     );
 
     setUp(() async {
@@ -3449,7 +3449,7 @@ void main() {
     ) async {
       final recovery = _FakeStartupRecoveryService(
         inspection: AdoptableDiveLog(
-          path: '$folder/${DatabaseLocationService.databaseFilename}',
+          path: p.join(folder, DatabaseLocationService.databaseFilename),
           diveCount: 412,
           siteCount: 87,
           sizeBytes: 9 * 1024 * 1024,
@@ -3520,6 +3520,27 @@ void main() {
       expect(find.text('Go back to the app default location'), findsNothing);
       expect(find.text('Submersion could not start'), findsOneWidget);
       expect(find.text('Start with an empty dive log'), findsOneWidget);
+    });
+
+    // Its answer could not change the screen, and on a dead network mount
+    // each file call can block for the whole network timeout.
+    testWidgets('the folder is not probed when its answer cannot matter', (
+      tester,
+    ) async {
+      final location = _UnreachableLocationService(
+        prefs,
+        dbPath,
+        folder: folder,
+      );
+      await pumpUnreachable(
+        tester,
+        locationService: location,
+        databaseOpened: true,
+        initializer: (_) async => throw revokedAccess,
+      );
+
+      expect(location.probeCalls, 0);
+      expect(find.text('Submersion could not start'), findsOneWidget);
     });
 
     testWidgets('a probe that throws leaves the original failure on screen', (
@@ -3659,8 +3680,12 @@ class _UnreachableLocationService extends _PickingLocationService {
   /// the failure the diver actually hit.
   final Object? probeError;
 
+  /// How many times the failure screen asked.
+  int probeCalls = 0;
+
   @override
   Future<String?> unreachableCustomFolder() async {
+    probeCalls++;
     if (probeError != null) throw probeError!;
     return folder;
   }

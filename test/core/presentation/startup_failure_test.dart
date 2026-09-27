@@ -295,6 +295,55 @@ void main() {
       },
     );
 
+    // The same rule decides whether the folder is worth probing at all, so a
+    // probe that can hang on a dead network mount is never run for nothing.
+    test(
+      'the folder can explain a failure only before the file was reached',
+      () {
+        final fileError = Exception('Cannot open file');
+        expect(
+          canBlameUnreachableFolder(
+            fileError,
+            StartupPhase.preflight,
+            databaseOpened: false,
+          ),
+          isTrue,
+        );
+        expect(
+          canBlameUnreachableFolder(
+            fileError,
+            StartupPhase.opening,
+            databaseOpened: false,
+          ),
+          isTrue,
+        );
+        expect(
+          canBlameUnreachableFolder(
+            fileError,
+            StartupPhase.opening,
+            databaseOpened: true,
+          ),
+          isFalse,
+        );
+        expect(
+          canBlameUnreachableFolder(
+            fileError,
+            StartupPhase.upgrading,
+            databaseOpened: false,
+          ),
+          isFalse,
+        );
+        expect(
+          canBlameUnreachableFolder(
+            const DatabaseEngineUnavailableException('missing library'),
+            StartupPhase.preflight,
+            databaseOpened: false,
+          ),
+          isFalse,
+        );
+      },
+    );
+
     test('an engine failure still outranks an unreachable folder', () {
       // The database was never opened, so the folder is not why startup
       // stopped, and pointing the diver at it would hide the packaging fault.
