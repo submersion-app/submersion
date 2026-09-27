@@ -87,9 +87,14 @@ class _SavedQueryListState extends ConsumerState<_SavedQueryList> {
   }
 
   Future<void> _reorder(int oldIndex, int newIndex) async {
+    // The diver's own rows list first and rows no diver owns after them
+    // (the repository sorts them so), so a drop past the boundary is
+    // pulled back to the end of the diver's block rather than shown where
+    // it cannot persist.
+    final ownedCount = _loads.where((l) => l.saved.diverId != null).length;
     setState(() {
       final moved = _loads.removeAt(oldIndex);
-      _loads.insert(newIndex, moved);
+      _loads.insert(newIndex.clamp(0, ownedCount - 1), moved);
     });
     try {
       await ref.read(savedQueryRepositoryProvider).reorder([

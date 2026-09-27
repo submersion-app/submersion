@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,12 +33,15 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    List<Override> extraOverrides = const [],
+  }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       testAppInShell(
         locale: const Locale('en'),
-        overrides: overrides,
+        overrides: [...overrides, ...extraOverrides],
         child: const SavedQueriesPage(),
       ),
     );
@@ -225,4 +230,66 @@ void main() {
     expect(handleOf('Mine'), findsOneWidget);
     expect(handleOf('Shared'), findsNothing);
   });
+
+  testWidgets('a drop below rows no diver owns stays with the diver\'s own', (
+    tester,
+  ) async {
+    final now = DateTime(2026).millisecondsSinceEpoch;
+    await db
+        .into(db.savedQueries)
+        .insert(
+          SavedQueriesCompanion.insert(
+            id: 'shared',
+            subject: 'dives',
+            name: 'Shared',
+            queryJson: '{"version":1,"node":{"type":"text","words":["reef"]}}',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    final a = await repo.create(
+      subject: QuerySubject.dives,
+      name: 'A',
+      node: depth,
+      diverId: 'me',
+    );
+    final b = await repo.create(
+      subject: QuerySubject.dives,
+      name: 'B',
+      node: depth,
+      diverId: 'me',
+    );
+    // The write never lands, so the list shows only the local drop.
+    final written = _PendingReorderRepository();
+    await pump(
+      tester,
+      extraOverrides: [savedQueryRepositoryProvider.overrideWithValue(written)],
+    );
+    await tester.timedDrag(
+      find.descendant(
+        of: find.widgetWithText(ListTile, 'A'),
+        matching: find.byIcon(Icons.drag_handle),
+      ),
+      const Offset(0, 400),
+      const Duration(milliseconds: 500),
+    );
+    await tester.pumpAndSettle();
+    double top(String name) =>
+        tester.getTopLeft(find.widgetWithText(ListTile, name)).dy;
+    expect(top('B'), lessThan(top('A')));
+    expect(top('A'), lessThan(top('Shared')));
+    expect(written.orders.single, [b.id, a.id, 'shared']);
+  });
+}
+
+/// Records each reorder and never finishes it, so a test sees the page's
+/// own drop result rather than the reloaded rows.
+class _PendingReorderRepository extends SavedQueryRepository {
+  final orders = <List<String>>[];
+
+  @override
+  Future<void> reorder(List<String> orderedIds) {
+    orders.add(orderedIds);
+    return Completer<void>().future;
+  }
 }
