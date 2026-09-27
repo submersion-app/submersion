@@ -27444,7 +27444,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_siteMatch_relaxed => 'Relajado';
 
   @override
-  String get settings_dataSources_header => 'Data Sources';
+  String get settings_dataSources_header => 'Integración con Apple HealthKit';
 
   @override
   String get settings_dataSources_appleHealth_title => 'Apple Health';
@@ -27495,7 +27495,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_dataSources_noSources =>
-      'No data source integrations are available on this platform.';
+      'No hay integraciones de fuentes de datos disponibles en esta plataforma.';
 
   @override
   String get diveLog_edit_section_environment => 'Entorno';

@@ -27375,7 +27375,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_siteMatch_relaxed => 'Locker';
 
   @override
-  String get settings_dataSources_header => 'Data Sources';
+  String get settings_dataSources_header => 'Apple HealthKit-Integration';
 
   @override
   String get settings_dataSources_appleHealth_title => 'Apple Health';
@@ -27426,7 +27426,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_dataSources_noSources =>
-      'No data source integrations are available on this platform.';
+      'Auf dieser Plattform sind keine Datenquellen-Integrationen verfügbar.';
 
   @override
   String get diveLog_edit_section_environment => 'Umgebung';

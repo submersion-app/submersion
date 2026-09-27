@@ -27520,7 +27520,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_siteMatch_relaxed => 'Souple';
 
   @override
-  String get settings_dataSources_header => 'Data Sources';
+  String get settings_dataSources_header => 'Intégration d\'Apple HealthKit';
 
   @override
   String get settings_dataSources_appleHealth_title => 'Apple Health';
@@ -27571,7 +27571,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_dataSources_noSources =>
-      'No data source integrations are available on this platform.';
+      'Aucune intégration de source de données n\'est disponible sur cette plateforme.';
 
   @override
   String get diveLog_edit_section_environment => 'Environnement';

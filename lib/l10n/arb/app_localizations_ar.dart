@@ -27074,7 +27074,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_siteMatch_relaxed => 'متساهل';
 
   @override
-  String get settings_dataSources_header => 'Data Sources';
+  String get settings_dataSources_header => 'تكامل Apple HealthKit';
 
   @override
   String get settings_dataSources_appleHealth_title => 'Apple Health';
@@ -27125,7 +27125,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_dataSources_noSources =>
-      'No data source integrations are available on this platform.';
+      'لا تتوفر أي عمليات تكامل لمصادر البيانات على هذه المنصة.';
 
   @override
   String get diveLog_edit_section_environment => 'البيئة';

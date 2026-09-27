@@ -26755,7 +26755,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_siteMatch_relaxed => 'גמיש';
 
   @override
-  String get settings_dataSources_header => 'Data Sources';
+  String get settings_dataSources_header => 'שילוב Apple HealthKit';
 
   @override
   String get settings_dataSources_appleHealth_title => 'Apple Health';
@@ -26805,7 +26805,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_dataSources_noSources =>
-      'No data source integrations are available on this platform.';
+      'אין שילובים זמינים של מקורות נתונים בפלטפורמה זו.';
 
   @override
   String get diveLog_edit_section_environment => 'סביבה';

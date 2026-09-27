@@ -27218,7 +27218,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_siteMatch_relaxed => 'Soepel';
 
   @override
-  String get settings_dataSources_header => 'Data Sources';
+  String get settings_dataSources_header => 'Apple HealthKit-integratie';
 
   @override
   String get settings_dataSources_appleHealth_title => 'Apple Health';
@@ -27269,7 +27269,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_dataSources_noSources =>
-      'No data source integrations are available on this platform.';
+      'Er zijn geen databronintegraties beschikbaar op dit platform.';
 
   @override
   String get diveLog_edit_section_environment => 'Omgeving';

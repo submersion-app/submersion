@@ -27334,7 +27334,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_siteMatch_relaxed => 'Laza';
 
   @override
-  String get settings_dataSources_header => 'Data Sources';
+  String get settings_dataSources_header => 'Apple HealthKit-integráció';
 
   @override
   String get settings_dataSources_appleHealth_title => 'Apple Health';
@@ -27385,7 +27385,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_dataSources_noSources =>
-      'No data source integrations are available on this platform.';
+      'Ezen a platformon nem érhető el adatforrás-integráció.';
 
   @override
   String get diveLog_edit_section_environment => 'Környezet';
