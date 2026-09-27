@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 
-/// Schema v240 (issue #2440) gave tank pressure series a real foreign key to
+/// Schema v241 (issue #2440) gave tank pressure series a real foreign key to
 /// their data source. Sync must guard it like the profile series' own, or a
 /// series whose source was deleted on a peer keeps pointing at nothing.
 void main() {

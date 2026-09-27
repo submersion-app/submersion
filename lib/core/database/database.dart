@@ -4074,7 +4074,7 @@ class TankPressureSeries extends Table {
     onDelete: KeyAction.setNull,
   )();
 
-  /// The data source whose recording this series is (v240, issue #2440).
+  /// The data source whose recording this series is (v241, issue #2440).
   /// Two file-imported sources both carry a null [computerId], so without
   /// this their series of one cylinder cannot be told apart. Null on a
   /// series whose source could not be determined.
@@ -4663,7 +4663,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 240;
+  static const int currentSchemaVersion = 241;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4739,7 +4739,17 @@ class AppDatabase extends _$AppDatabase {
   /// payloads still arrive here, and this build's merge reads a missing fact
   /// clock as the row clock, so an old peer's writes still order correctly
   /// (media sync program spec 5.1).
-  static const int minimumCompatibleSchemaVersion = 224;
+  ///
+  /// Raised 224 -> 240 by scoped event tombstones (#1926): this build
+  /// replaces the per-row tombstones a split, re-import or re-parse wrote for
+  /// a dive's events with one tombstone for the whole set. An older reader
+  /// knows nothing of the scope type and stores it as an inert unknown
+  /// entity, so the events it names stay on that device for good. That is an
+  /// old reader misapplying our payload, which is what this floor exists to
+  /// prevent. Peers below 240 are held until they update; their own payloads
+  /// still arrive here, and the merge's scope guard keeps their copies of
+  /// deleted events from coming back.
+  static const int minimumCompatibleSchemaVersion = 240;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -5376,12 +5386,16 @@ class AppDatabase extends _$AppDatabase {
     // built-in rows, which sync never exports, so the floor stays. 235 to
     // 238 were claimed by open branches when this was taken.
     239,
-    // v240: tank_pressure_series.source_id (issue #2440), backfilled where
-    // the source is unambiguous. Additive nullable column, so the floor
-    // stays at 224. Renumbered from 232 while in review: trip cylinders
-    // (#2325) took 232, the dive source diver key (#1921) 233, equipment
-    // sharing (#2046) 234 and the regulator part service kinds (#2275) 239.
+    // v240: idx_dive_profile_events_dive_id for scoped event tombstones
+    // (#1926), which delete and match events by dive; also raises the floor
+    // to 240. Renumbered from 233 and then 235: main shipped 233 (#1921),
+    // 234 (#2046) and 239 (#2275) while this was open.
     240,
+    // v241: tank_pressure_series.source_id (issue #2440), backfilled where
+    // the source is unambiguous. Additive nullable column, so the floor
+    // stays at 240. Renumbered from 232 and then 240 while in review: main
+    // shipped 232 to 234, 239 (#2275) and 240 (#1926) while this was open.
+    241,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -5804,6 +5818,17 @@ class AppDatabase extends _$AppDatabase {
         ') WHERE updated_at IS NULL',
       );
     }
+  }
+
+  /// v240: scoped event tombstones select events by dive (#1926). Guarded
+  /// on the table, as the other backstops are, for migration fixtures that
+  /// build only part of the schema.
+  Future<void> _assertProfileEventsDiveIdIndex() async {
+    if (!await _tableExists('dive_profile_events')) return;
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_dive_profile_events_dive_id '
+      'ON dive_profile_events (dive_id)',
+    );
   }
 
   /// v230: the nav_tracks table for measured underwater routes (spec
@@ -8868,7 +8893,7 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// Idempotent DDL for tank_pressure_series.source_id (v240, issue #2440).
+  /// Idempotent DDL for tank_pressure_series.source_id (v241, issue #2440).
   Future<void> _assertTankSeriesSourceIdColumn() async {
     final cols = await customSelect(
       "PRAGMA table_info('tank_pressure_series')",
@@ -8883,7 +8908,7 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// v240: attribute existing tank pressure series to their data source
+  /// v241: attribute existing tank pressure series to their data source
   /// wherever that is unambiguous: the dive has a single source, or exactly
   /// one of its sources is the computer that recorded the series. Series of
   /// two file imports on one dive (both with a null computer) stay null,
@@ -13289,15 +13314,26 @@ class AppDatabase extends _$AppDatabase {
           await _backfillRegulatorPartServiceKinds();
         }
         if (from < 239) await reportProgress();
-        // v240: tank_pressure_series.source_id (issue #2440), backfilled
-        // where the source is unambiguous.
+        // v240: index dive_profile_events by dive (#1926). Scoped event
+        // tombstones delete and match events by dive, and the table had no
+        // index on it. Index-only rung; the floor rise it ships with is for
+        // the tombstones, not for this. Re-asserted in beforeOpen.
         if (from < 240) {
+          await _assertProfileEventsDiveIdIndex();
+        }
+        if (from < 240) await reportProgress();
+        // v241: tank_pressure_series.source_id (issue #2440), backfilled
+        // where the source is unambiguous.
+        if (from < 241) {
           await _assertTankSeriesSourceIdColumn();
           await _backfillTankSeriesSourceIds();
         }
-        if (from < 240) await reportProgress();
+        if (from < 241) await reportProgress();
       },
       beforeOpen: (details) async {
+        // v240 backstop: the events-by-dive index.
+        await _assertProfileEventsDiveIdIndex();
+
         // v229 backstop: the per-set diver figure switch.
         await _assertEquipmentSetShowFigureColumn();
 
@@ -13826,7 +13862,7 @@ class AppDatabase extends _$AppDatabase {
         // only, so it cannot touch diver data.
         await _assertCcrPpO2LimitColumns();
 
-        // v240 backstop: re-assert tank_pressure_series.source_id
+        // v241 backstop: re-assert tank_pressure_series.source_id
         // (parallel-branch version-collision self-heal). Column only; the
         // backfill stays in the rung.
         await _assertTankSeriesSourceIdColumn();

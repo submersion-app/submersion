@@ -2262,7 +2262,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_detail_label_agency => 'Verband';
 
   @override
-  String get certifications_detail_label_alsoRecognized => 'Also recognized as';
+  String get certifications_detail_label_alsoRecognized => 'Auch anerkannt als';
 
   @override
   String get certifications_detail_label_cardNumber => 'Kartennummer';
@@ -2382,7 +2382,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String certifications_ecard_alsoRecognized(String recognitions) {
-    return 'Also: $recognitions';
+    return 'Auch: $recognitions';
   }
 
   @override
@@ -2488,10 +2488,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_edit_label_agency => 'Verband *';
 
   @override
-  String get certifications_edit_addRecognition => 'Add another recognition';
+  String get certifications_edit_addRecognition =>
+      'Weitere Anerkennung hinzufügen';
 
   @override
-  String get certifications_edit_removeRecognition => 'Remove this recognition';
+  String get certifications_edit_removeRecognition =>
+      'Diese Anerkennung entfernen';
 
   @override
   String get certifications_edit_label_cardNumber => 'Kartennummer';
@@ -17486,11 +17488,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get planning_card_gasCalculators_description =>
-      'Vier spezialisierte Gasrechner:\n- MOD - Maximale Einsatztiefe für ein Gasgemisch\n- Beste Mischung - Idealer O₂-Anteil für eine Zieltiefe\n- Verbrauch - Schätzung des Gasverbrauchs\n- Mindrestreserve - Berechnung der Notfallreserve';
+      'Vier spezialisierte Gasrechner:\n- MOD - Maximale Einsatztiefe für ein Gasgemisch\n- Beste Mischung - Idealer O₂-Anteil für eine Zieltiefe\n- Verbrauch - Schätzung des Gasverbrauchs\n- Mindestreserve - Berechnung der Notfallreserve';
 
   @override
   String get planning_card_gasCalculators_subtitle =>
-      'MOD, Beste Mischung, Verbrauch, Mindrestreserve';
+      'MOD, Beste Mischung, Verbrauch, Mindestreserve';
 
   @override
   String get planning_card_gasCalculators_title => 'Gasrechner';
@@ -17735,7 +17737,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_appearance_diveDetails_sectionOrderVisibility =>
-      'Abschnittsreihenfolge &amp; Sichtbarkeit';
+      'Abschnittsreihenfolge & Sichtbarkeit';
 
   @override
   String get settings_appearance_diveDetails_sectionOrderVisibility_subtitle =>
@@ -17743,7 +17745,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_diveDetailSections_title =>
-      'Abschnittsreihenfolge &amp; Sichtbarkeit';
+      'Abschnittsreihenfolge & Sichtbarkeit';
 
   @override
   String get settings_diveDetailSections_resetToDefault =>
@@ -26238,7 +26240,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveImport_healthkit_accessDescription =>
-      'Submersion uses Apple HealthKit to read underwater diving workout data, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+      'Submersion verwendet Apple HealthKit, um Daten von Unterwasser-Tauchtrainings zu lesen, einschließlich Tiefe, Dauer, Wassertemperatur und Herzfrequenz, und daraus detaillierte Tauchlogbucheinträge zu erstellen.';
 
   @override
   String get diveImport_healthkit_accessRequired => 'Apple HealthKit';
@@ -27466,11 +27468,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tools_weight_yourWeight => 'Ihr Gewicht';
 
   @override
-  String get settings_section_dataSources_title => 'Data Sources';
+  String get settings_section_dataSources_title => 'Apple HealthKit';
 
   @override
   String get settings_section_dataSources_subtitle =>
-      'Connected services & integrations';
+      'Integration von Gesundheitsdaten';
 
   @override
   String get settings_siteMatch_title => 'Automatische Tauchplatzzuordnung';
@@ -27497,7 +27499,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_siteMatch_relaxed => 'Locker';
 
   @override
-  String get settings_dataSources_header => 'Data Sources';
+  String get settings_dataSources_header => 'Apple HealthKit-Integration';
 
   @override
   String get settings_dataSources_appleHealth_title => 'Apple Health';
@@ -27508,7 +27510,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_description =>
-      'Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+      'Submersion verwendet Apple HealthKit, um Daten von Unterwasser-Tauchtrainings aus Apple Health zu lesen. Aus diesen Daten werden detaillierte Tauchlogbucheinträge für Ihre Tauchgänge mit der Apple Watch erstellt.';
 
   @override
   String get settings_dataSources_appleHealth_dataTypesHeader =>
@@ -27536,11 +27538,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_importAction =>
-      'Import from Apple Watch';
+      'Tauchgänge per HealthKit von der Apple Watch importieren';
 
   @override
   String get settings_dataSources_appleHealth_privacy =>
-      'Your health data is stored locally and is never shared with third parties.';
+      'Ihre Gesundheitsdaten werden lokal auf diesem Gerät gespeichert und niemals an Dritte weitergegeben. Submersion liest nur Daten aus Apple HealthKit und schreibt keine Daten in HealthKit zurück.';
 
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
@@ -27548,7 +27550,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_dataSources_noSources =>
-      'No data source integrations are available on this platform.';
+      'Auf dieser Plattform sind keine Datenquellen-Integrationen verfügbar.';
 
   @override
   String get diveLog_edit_section_environment => 'Umgebung';
@@ -27920,7 +27922,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get maps3d_other_reset_confirmMessage =>
-      'Gecachte Daten aller Anbieter ausser swissBATHY3D werden entfernt und beim nächsten Öffnen der 3D-Ansicht eines Tauchplatzes neu geladen.';
+      'Gecachte Daten aller Anbieter außer swissBATHY3D werden entfernt und beim nächsten Öffnen der 3D-Ansicht eines Tauchplatzes neu geladen.';
 
   @override
   String get maps3d_other_reset_done =>
@@ -36983,7 +36985,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Goldoliv gefärbter Barschverwandter mit großen reflektierenden Augen, jagt in der Dämmerung über Fels- und Sandgrund.';
 
   @override
-  String get species_sauger_name => 'Kanadische Zander';
+  String get species_sauger_name => 'Kanadischer Zander';
 
   @override
   String get species_sauger_desc =>
@@ -37425,7 +37427,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Gedrungener Felsenbuntbarsch des Tanganjikasees in Dutzenden Farbformen, jede auf ihren eigenen Uferabschnitt beschränkt.';
 
   @override
-  String get species_arapaima_name => 'Piracurù';
+  String get species_arapaima_name => 'Pirarucu';
 
   @override
   String get species_arapaima_desc =>
@@ -37579,7 +37581,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Robuster olivfarbener Fisch, der Luft atmet und auf seinen stacheligen Kiemendeckeln über Land zwischen austrocknenden Tümpeln kriecht.';
 
   @override
-  String get species_golden_mahseer_name => 'Riesen barbe';
+  String get species_golden_mahseer_name => 'Riesenbarbe';
 
   @override
   String get species_golden_mahseer_desc =>

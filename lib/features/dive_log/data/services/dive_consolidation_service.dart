@@ -122,12 +122,16 @@ class DiveConsolidationService {
           targetRow.computerId!,
           now: now,
         );
+        // With a fresh clock: stamping moves these events into any scope
+        // tombstone the computer already has on this dive (#1926), and with
+        // their old clocks a relayed copy of that scope would delete them.
         await (_db.update(_db.diveProfileEvents)..where(
               (t) => t.diveId.equals(targetDiveId) & t.computerId.isNull(),
             ))
             .write(
               DiveProfileEventsCompanion(
                 computerId: Value(targetRow.computerId),
+                hlc: Value(await _sync.issueRowClock()),
               ),
             );
       }
@@ -369,7 +373,7 @@ class DiveConsolidationService {
             // computer, and without it their series of one cylinder merge
             // into one. An unattributed series of a secondary holding
             // several sources stays unattributed, as in the merge and the
-            // v240 backfill: handing it to one of them would group it with
+            // v241 backfill: handing it to one of them would group it with
             // another source's recording.
             sourceId: s.sourceId == null && secSources.length > 1
                 ? null

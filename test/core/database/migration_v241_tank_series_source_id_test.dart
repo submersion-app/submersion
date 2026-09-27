@@ -2,11 +2,11 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v240: tank_pressure_series.source_id (issue #2440). Two
+/// Schema v241: tank_pressure_series.source_id (issue #2440). Two
 /// file-imported sources of one dive both carry a null computer, so their
 /// series of the same cylinder could not be told apart.
 void main() {
-  /// A v239 database with the tables the rung and the beforeOpen backstops
+  /// A v240 database with the tables the rung and the beforeOpen backstops
   /// touch, and tank series for three dives:
   ///
   /// * d1 has one source: its series takes that source.
@@ -14,7 +14,7 @@ void main() {
   ///   source of the computer that recorded it.
   /// * d3 has two file-imported sources (no computer): nothing tells the
   ///   series apart, so they stay unattributed.
-  NativeDatabase setupDb({int userVersion = 239}) {
+  NativeDatabase setupDb({int userVersion = 240}) {
     return NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = $userVersion');
@@ -91,19 +91,19 @@ void main() {
     };
   }
 
-  test('v240 is the current schema version and is in the ladder', () {
+  test('v241 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 240);
-    expect(AppDatabase.migrationVersions, contains(240));
-    expect(AppDatabase.migrationStepCount(239), 1);
+    expect(AppDatabase.currentSchemaVersion, 241);
+    expect(AppDatabase.migrationVersions, contains(241));
+    expect(AppDatabase.migrationStepCount(240), 1);
   });
 
   test('the column is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 
-  test('upgrading from v239 attributes the unambiguous series', () async {
+  test('upgrading from v240 attributes the unambiguous series', () async {
     final db = AppDatabase(setupDb());
     addTearDown(db.close);
     expect(await columnsOf(db, 'tank_pressure_series'), contains('source_id'));
