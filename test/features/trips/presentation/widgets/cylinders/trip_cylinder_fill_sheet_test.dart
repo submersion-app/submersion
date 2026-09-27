@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/database/database.dart'
+    show AppDatabase, DiveCentersCompanion;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -26,12 +29,13 @@ import '../../../../../helpers/mock_providers.dart';
 import '../../../../../helpers/test_database.dart';
 
 void main() {
+  late AppDatabase db;
   late TripCylinderRepository repo;
   late List<TripCylinder> cylinders;
   late List<TripCylinderState> states;
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     repo = TripCylinderRepository();
     final now = DateTime.now();
     final trip = await TripRepository().createTrip(
@@ -72,6 +76,7 @@ void main() {
     TripCylinderEvent? editing,
     MockSettingsNotifier? settings,
     TripFillPassportCopier? copier,
+    List<DiveCenter> centers = const [],
   }) async {
     tester.view.physicalSize = const Size(800, 2000);
     tester.view.devicePixelRatio = 1.0;
@@ -84,7 +89,7 @@ void main() {
                 settings ??
                 MockSettingsNotifier(const AppSettings(defaultCurrency: 'EUR')),
           ),
-          allDiveCentersProvider.overrideWith((ref) async => const []),
+          allDiveCentersProvider.overrideWith((ref) async => centers),
           currentDiverIdProvider.overrideWith(
             (ref) => MockCurrentDiverIdNotifier(),
           ),
@@ -358,6 +363,183 @@ void main() {
     await pumpAndOpen(tester, several: true);
     expect(find.text('Cost per cylinder'), findsOneWidget);
     expect(find.text('Cost'), findsNothing);
+  });
+  final station = DiveCenter(
+    id: 'dc1',
+    name: 'Budget Marine',
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  );
+
+  testWidgets('the station defaults to the last one, and can be cleared', (
+    tester,
+  ) async {
+    final first = cylinders.first;
+    final at = DateTime.utc(2026, 3, 9, 8);
+    states = [
+      foldCylinderState(
+        cylinder: first,
+        events: [
+          TripCylinderEvent(
+            id: 'f0',
+            tripCylinderId: first.id,
+            kind: TripCylinderEventKind.fill,
+            occurredAt: at,
+            diveCenterId: 'dc1',
+            createdAt: at,
+            updatedAt: at,
+          ),
+        ],
+        uses: const [],
+      ),
+      ...states.skip(1),
+    ];
+    await pumpAndOpen(tester, centers: [station]);
+    expect(find.text('Budget Marine'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Remove'));
+    await tester.pumpAndSettle();
+    expect(find.text('Not set'), findsOneWidget);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final e = (await repo.getEventsForCylinder(first.id)).single;
+    expect(e.diveCenterId, isNull);
+  });
+
+  testWidgets('a named station is saved with the fill', (tester) async {
+    await db
+        .into(db.diveCenters)
+        .insert(
+          DiveCentersCompanion.insert(
+            id: 'dc1',
+            name: 'Budget Marine',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    final first = cylinders.first;
+    final at = DateTime.utc(2026, 3, 9, 8);
+    states = [
+      foldCylinderState(
+        cylinder: first,
+        events: [
+          TripCylinderEvent(
+            id: 'f0',
+            tripCylinderId: first.id,
+            kind: TripCylinderEventKind.fill,
+            occurredAt: at,
+            diveCenterId: 'dc1',
+            createdAt: at,
+            updatedAt: at,
+          ),
+        ],
+        uses: const [],
+      ),
+      ...states.skip(1),
+    ];
+    await pumpAndOpen(tester, centers: [station]);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final e = (await repo.getEventsForCylinder(first.id)).single;
+    expect(e.diveCenterId, 'dc1');
+  });
+
+  testWidgets('the date and time pickers set when the fill happened', (
+    tester,
+  ) async {
+    final id = cylinders.first.id;
+    await pumpAndOpen(tester);
+
+    await tester.tap(find.byKey(const Key('fill-when')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('15'));
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final e = (await repo.getEventsForCylinder(id)).single;
+    expect(e.occurredAt.day, 15);
+    expect(e.occurredAt.isUtc, isTrue);
+  });
+
+  testWidgets('cancelling the date picker keeps the time', (tester) async {
+    await pumpAndOpen(tester);
+    final before = tester
+        .widget<ListTile>(find.byKey(const Key('fill-when')))
+        .subtitle;
+
+    await tester.tap(find.byKey(const Key('fill-when')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel').last);
+    await tester.pumpAndSettle();
+
+    final after = tester
+        .widget<ListTile>(find.byKey(const Key('fill-when')))
+        .subtitle;
+    expect((after! as Text).data, (before! as Text).data);
+  });
+
+  testWidgets('a quick mix sets the oxygen and clears the helium', (
+    tester,
+  ) async {
+    final id = cylinders.first.id;
+    await pumpAndOpen(tester);
+    await type(tester, 'fill-he', '20');
+    await tester.tap(find.text('EAN36'));
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final e = (await repo.getEventsForCylinder(id)).single;
+    expect(e.o2Percent, 36);
+    expect(e.hePercent, 0);
+  });
+
+  testWidgets('checking another slot, a currency and a package are saved', (
+    tester,
+  ) async {
+    await pumpAndOpen(tester, several: true);
+    await tester.tap(find.byKey(Key('fill-slot-${cylinders.last.id}')));
+    await tester.pump();
+    await type(tester, 'fill-cost', '10');
+    await tester.tap(find.byKey(const Key('fill-currency')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('USD').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('fill-package')));
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    for (final c in [cylinders.first, cylinders.last]) {
+      final e = (await repo.getEventsForCylinder(c.id)).single;
+      expect(e.currency, 'USD');
+      expect(e.isPackage, isTrue);
+    }
+  });
+
+  testWidgets('an unreadable number is refused', (tester) async {
+    await pumpAndOpen(tester);
+    await type(tester, 'fill-pressure', 'lots');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enter a valid number'), findsOneWidget);
+    expect(await repo.getEventsForCylinder(cylinders.first.id), isEmpty);
+  });
+
+  testWidgets('cancel closes the sheet without saving', (tester) async {
+    await pumpAndOpen(tester);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Save'), findsNothing);
+    expect(await repo.getEventsForCylinder(cylinders.first.id), isEmpty);
   });
 }
 
