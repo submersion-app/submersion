@@ -121,4 +121,57 @@ void main() {
       FieldPath(['buddies', 'certifications']),
     ]);
   });
+
+  test('a renamed ref shows its current name once loaded', () {
+    final stored = ConditionNode(
+      FieldPath(['site']),
+      QueryOp.eq,
+      const RefValue('s1', 'Old Pier'),
+    );
+    final load = loadSavedQuery(saved(encode(stored)), appQueryRegistry, names);
+    expect(load.problem, isNull);
+    expect(
+      load.node,
+      ConditionNode(
+        FieldPath(['site']),
+        QueryOp.eq,
+        const RefValue('s1', 'Salt Pier'),
+      ),
+    );
+  });
+
+  test('labels refresh inside NOT, lists and scoped groups; a missing ref '
+      'keeps its stored name', () {
+    const index = QueryNameIndex({
+      QuerySubject.sites: [RefValue('s1', 'Salt Pier')],
+      QuerySubject.certifications: [RefValue('c1', 'Rescue Diver')],
+    });
+    QueryNode tree(String siteLabel, String certLabel) => AndNode([
+      NotNode(
+        ConditionNode(
+          FieldPath(['site']),
+          QueryOp.inList,
+          ListValue([
+            RefValue('s1', siteLabel),
+            const RefValue('s-gone', 'Old Wall'),
+          ]),
+        ),
+      ),
+      ScopedNode(
+        FieldPath(['buddies']),
+        ConditionNode(
+          FieldPath(['certifications']),
+          QueryOp.eq,
+          RefValue('c1', certLabel),
+        ),
+      ),
+    ]);
+    final refreshed = refreshRefLabels(
+      tree('Old Pier', 'Rescue'),
+      appQueryRegistry.entityFor(QuerySubject.dives),
+      appQueryRegistry,
+      index,
+    );
+    expect(refreshed, tree('Salt Pier', 'Rescue Diver'));
+  });
 }
