@@ -43,7 +43,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_sharing_dialogTitle => 'שיתוף עם';
 
   @override
-  String get equipment_sharing_dialogBody => 'הפרופילים שתבחר יכולים להוסיף ציוד זה לצלילות שלהם ולתעד את הטיפולים בו. רק הבעלים יכול למחוק אותו או לשנות עם מי הוא משותף.';
+  String get equipment_sharing_dialogBody =>
+      'הפרופילים שתבחר יכולים להוסיף ציוד זה לצלילות שלהם ולתעד את הטיפולים בו. רק הבעלים יכול למחוק אותו או לשנות עם מי הוא משותף.';
 
   @override
   String get equipment_bulkShare_action => 'שיתוף עם...';
@@ -162,7 +163,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_oauth_connect_browserFailed => 'לא ניתן לפתוח את הדפדפן. השתמש בהעתקת קישור והדבק את הכתובת בדפדפן שלך.';
+  String get settings_oauth_connect_browserFailed =>
+      'לא ניתן לפתוח את הדפדפן. השתמש בהעתקת קישור והדבק את הכתובת בדפדפן שלך.';
 
   @override
   String equipment_assemblyChip_label(Object count, Object name) {
@@ -213,16 +215,19 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get equipment_components_cycleError => 'הפריט הזה כבר מכיל את זה, ולכן אי אפשר להוסיף אותו כרכיב.';
+  String get equipment_components_cycleError =>
+      'הפריט הזה כבר מכיל את זה, ולכן אי אפשר להוסיף אותו כרכיב.';
 
   @override
   String get equipment_components_editRole => 'עריכת תפקיד';
 
   @override
-  String get equipment_components_empty => 'אין רכיבים. הוסיפו את החלקים שמהם מורכב הפריט.';
+  String get equipment_components_empty =>
+      'אין רכיבים. הוסיפו את החלקים שמהם מורכב הפריט.';
 
   @override
-  String get equipment_components_emptyLeaf => 'אין לו חלקים משלו. הוסיפו אותם אם הפריט מורכב מפריטים אחרים.';
+  String get equipment_components_emptyLeaf =>
+      'אין לו חלקים משלו. הוסיפו אותם אם הפריט מורכב מפריטים אחרים.';
 
   @override
   String equipment_components_historyAlsoPast(num count) {
@@ -236,13 +241,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get equipment_components_historyAskAdded => 'להוסיף את החלק החדש גם לצלילות האלה, או רק מעכשיו?';
+  String get equipment_components_historyAskAdded =>
+      'להוסיף את החלק החדש גם לצלילות האלה, או רק מעכשיו?';
 
   @override
-  String get equipment_components_historyAskRemoved => 'להסיר את החלק גם מהצלילות האלה, או רק מעכשיו?';
+  String get equipment_components_historyAskRemoved =>
+      'להסיר את החלק גם מהצלילות האלה, או רק מעכשיו?';
 
   @override
-  String get equipment_components_historyAskReplaced => 'להחליף את החלק גם בצלילות האלה, או רק מעכשיו?';
+  String get equipment_components_historyAskReplaced =>
+      'להחליף את החלק גם בצלילות האלה, או רק מעכשיו?';
 
   @override
   String get equipment_components_historyFutureOnly => 'מעכשיו';
@@ -298,7 +306,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get equipment_components_pickerEmpty => 'אין ציוד פעיל נוסף שאפשר להוסיף כאן.';
+  String get equipment_components_pickerEmpty =>
+      'אין ציוד פעיל נוסף שאפשר להוסיף כאן.';
 
   @override
   String get equipment_components_pickerReplaceConfirm => 'החלפה';
@@ -347,7 +356,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_oauth_connect_copyLink => 'העתקת קישור';
 
   @override
-  String get settings_oauth_connect_linkCopied => 'הקישור הועתק. הדבק אותו בדפדפן שלך כדי לאשר.';
+  String get settings_oauth_connect_linkCopied =>
+      'הקישור הועתק. הדבק אותו בדפדפן שלך כדי לאשר.';
 
   @override
   String get universalImport_action_importFromGarmin => 'ייבוא מהתקן Garmin';
@@ -380,19 +390,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_setEdit_defaultSwitch_title => 'ערכת ברירת מחדל';
 
   @override
-  String get equipment_setEdit_defaultSwitch_subtitle => 'מוחלת אוטומטית על צלילות חדשות שאין בהן ציוד עדיין';
+  String get equipment_setEdit_defaultSwitch_subtitle =>
+      'מוחלת אוטומטית על צלילות חדשות שאין בהן ציוד עדיין';
 
   @override
-  String get equipment_setEdit_computerAutoApplySwitch_title => 'החל בעת ייבוא המחשב של סט זה';
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'החל בעת ייבוא המחשב של סט זה';
 
   @override
-  String get equipment_setEdit_computerAutoApplySwitch_subtitle => 'אם סט זה כולל מחשב צלילה, הסט כולו יתווסף אוטומטית לצלילה שהורדה או יובאה ממנו';
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'אם סט זה כולל מחשב צלילה, הסט כולו יתווסף אוטומטית לצלילה שהורדה או יובאה ממנו';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'גדרות גאוגרפיות';
 
   @override
-  String get equipment_setEdit_geofencesSubtitle => 'הצע ערכה זו אוטומטית לצלילות ליד מיקומים אלה';
+  String get equipment_setEdit_geofencesSubtitle =>
+      'הצע ערכה זו אוטומטית לצלילות ליד מיקומים אלה';
 
   @override
   String get equipment_setEdit_addGeofence => 'הוסף גדר גאוגרפית';
@@ -499,7 +513,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_bestMix_nearestStandard => 'התערובת התקנית הקרובה ביותר המכסה עומק זה';
+  String get gasCalculators_bestMix_nearestStandard =>
+      'התערובת התקנית הקרובה ביותר המכסה עומק זה';
 
   @override
   String get gasCalculators_bestMix_recommendedMix => 'תערובת מומלצת';
@@ -508,7 +523,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_bestMix_withoutHelium => 'ללא הליום';
 
   @override
-  String get gasCalculators_planningCaveat => 'הערכת תכנון. מניחה עלייה ישירה. ודא מול ההכשרה שלך והוסף מרווח לתנאים.';
+  String get gasCalculators_planningCaveat =>
+      'הערכת תכנון. מניחה עלייה ישירה. ודא מול ההכשרה שלך והוסף מרווח לתנאים.';
 
   @override
   String gasCalculators_rockBottom_solveGas(Object depth, Object unit) {
@@ -519,7 +535,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_rockBottom_solveTime => 'זמן לפתרון תקלה';
 
   @override
-  String get gasCalculators_rockBottom_solveTimeHint => 'הזמן בעומק לפתרון החירום לפני תחילת העלייה.';
+  String get gasCalculators_rockBottom_solveTimeHint =>
+      'הזמן בעומק לפתרון החירום לפני תחילת העלייה.';
 
   @override
   String o2Toxicity_addedThisDive(Object value) {
@@ -535,7 +552,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get o2Toxicity_daily => 'יומי';
 
   @override
-  String o2Toxicity_otuSemantics(Object label, Object value, Object limit, Object percent) {
+  String o2Toxicity_otuSemantics(
+    Object label,
+    Object value,
+    Object limit,
+    Object percent,
+  ) {
     return '$label: $value מתוך $limit OTU, $percent אחוזים';
   }
 
@@ -630,7 +652,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_story_empty_title => 'אין עדיין צלילות או מסלול';
 
   @override
-  String get trips_story_empty_subtitle => 'הוסף צלילות לטיול או תכנן את הימים כדי לראות את הסיפור.';
+  String get trips_story_empty_subtitle =>
+      'הוסף צלילות לטיול או תכנן את הימים כדי לראות את הסיפור.';
 
   @override
   String trips_story_history_dives(int count) {
@@ -678,7 +701,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_bulkEdit_fieldScrubberDuration => 'משך המסנן';
 
   @override
-  String get diveLog_bulkEdit_contradiction => 'מצב מעגל פתוח אינו תומך בהגדרות ריבריא\'תר. כבה שדות אלה או שנה את המצב.';
+  String get diveLog_bulkEdit_contradiction =>
+      'מצב מעגל פתוח אינו תומך בהגדרות ריבריא\'תר. כבה שדות אלה או שנה את המצב.';
 
   @override
   String diveLog_bulkEdit_appBarTitle(int count) {
@@ -731,10 +755,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_bulkEdit_tankOnlyIfEmpty => 'רק צלילות ללא מכל קיים';
 
   @override
-  String get diveLog_bulkEdit_tankSpecsHint => 'בחר אילו מאפיינים לדרוס במיכלים שכבר קיימים בצלילות אלה. לחצי ההתחלה והסיום לעולם אינם משתנים.';
+  String get diveLog_bulkEdit_tankSpecsHint =>
+      'בחר אילו מאפיינים לדרוס במיכלים שכבר קיימים בצלילות אלה. לחצי ההתחלה והסיום לעולם אינם משתנים.';
 
   @override
-  String get diveLog_bulkEdit_tankSpecsNoFields => 'בחר לפחות מאפיין אחד של מיכל לעדכון.';
+  String get diveLog_bulkEdit_tankSpecsNoFields =>
+      'בחר לפחות מאפיין אחד של מיכל לעדכון.';
 
   @override
   String get diveLog_bulkEdit_tankFieldPreset => 'הגדרה מראש';
@@ -797,7 +823,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_bulkEdit_nothingSelected => 'הפעל לפחות שדה אחד כדי להחיל שינויים.';
+  String get diveLog_bulkEdit_nothingSelected =>
+      'הפעל לפחות שדה אחד כדי להחיל שינויים.';
 
   @override
   String diveLog_bulkEdit_applied(int count) {
@@ -805,25 +832,31 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_error_icloudSignedOut => 'iCloud אינו זמין. היכנס ל-iCloud דרך הגדרות המכשיר.';
+  String get settings_cloudSync_error_icloudSignedOut =>
+      'iCloud אינו זמין. היכנס ל-iCloud דרך הגדרות המכשיר.';
 
   @override
-  String get settings_cloudSync_error_icloudUnknown => 'לא ניתן היה להגיע ל-iCloud. נסה שוב.';
+  String get settings_cloudSync_error_icloudUnknown =>
+      'לא ניתן היה להגיע ל-iCloud. נסה שוב.';
 
   @override
-  String get settings_cloudSync_error_icloudUnsupported => 'סנכרון iCloud אינו זמין בגרסה זו של Submersion. השתמש בסנכרון S3 או בגרסת App Store.';
+  String get settings_cloudSync_error_icloudUnsupported =>
+      'סנכרון iCloud אינו זמין בגרסה זו של Submersion. השתמש בסנכרון S3 או בגרסת App Store.';
 
   @override
-  String get settings_cloudSync_provider_icloud_unsupportedSubtitle => 'לא זמין בגרסה זו — השתמש ב-S3 או בגרסת App Store';
+  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
+      'לא זמין בגרסה זו — השתמש ב-S3 או בגרסת App Store';
 
   @override
   String get settings_cloudSync_encryption_title => 'הצפנה מקצה לקצה';
 
   @override
-  String get settings_cloudSync_encryption_subtitleOff => 'הצפנת כל נתוני הסנכרון והגיבויים בענן לפני ההעלאה';
+  String get settings_cloudSync_encryption_subtitleOff =>
+      'הצפנת כל נתוני הסנכרון והגיבויים בענן לפני ההעלאה';
 
   @override
-  String get settings_cloudSync_encryption_subtitleNeedsProvider => 'בחרו קודם ספק ענן';
+  String get settings_cloudSync_encryption_subtitleNeedsProvider =>
+      'בחרו קודם ספק ענן';
 
   @override
   String get settings_cloudSync_encryption_statusOff => 'ההצפנה כבויה';
@@ -832,13 +865,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_encryption_statusOn => 'ההצפנה פועלת';
 
   @override
-  String get settings_cloudSync_encryption_statusOnSubtitle => 'נתוני סנכרון וגיבויים בענן מוצפנים לפני ההעלאה';
+  String get settings_cloudSync_encryption_statusOnSubtitle =>
+      'נתוני סנכרון וגיבויים בענן מוצפנים לפני ההעלאה';
 
   @override
-  String get settings_cloudSync_encryption_statusLocked => 'מוצפן — נדרש משפט סיסמה';
+  String get settings_cloudSync_encryption_statusLocked =>
+      'מוצפן — נדרש משפט סיסמה';
 
   @override
-  String get settings_cloudSync_encryption_statusLockedSubtitle => 'הזינו את משפט הסיסמה כדי לסנכרן במכשיר זה';
+  String get settings_cloudSync_encryption_statusLockedSubtitle =>
+      'הזינו את משפט הסיסמה כדי לסנכרן במכשיר זה';
 
   @override
   String get settings_cloudSync_encryption_enable => 'הפעלת הצפנה';
@@ -850,61 +886,77 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_encryption_passphrase => 'משפט סיסמה';
 
   @override
-  String get settings_cloudSync_encryption_passphraseConfirm => 'אישור משפט הסיסמה';
+  String get settings_cloudSync_encryption_passphraseConfirm =>
+      'אישור משפט הסיסמה';
 
   @override
-  String get settings_cloudSync_encryption_passphraseMismatch => 'משפטי הסיסמה אינם תואמים';
+  String get settings_cloudSync_encryption_passphraseMismatch =>
+      'משפטי הסיסמה אינם תואמים';
 
   @override
-  String get settings_cloudSync_encryption_passphraseTooShort => 'השתמשו ב-8 תווים לפחות';
+  String get settings_cloudSync_encryption_passphraseTooShort =>
+      'השתמשו ב-8 תווים לפחות';
 
   @override
-  String get settings_cloudSync_encryption_wrongPassphrase => 'משפט סיסמה או קוד שחזור שגויים';
+  String get settings_cloudSync_encryption_wrongPassphrase =>
+      'משפט סיסמה או קוד שחזור שגויים';
 
   @override
-  String get settings_cloudSync_encryption_warnUpdateDevices => 'יש לעדכן את כל שאר המכשירים לגרסת האפליקציה האחרונה והם יורידו מחדש את הספרייה.';
+  String get settings_cloudSync_encryption_warnUpdateDevices =>
+      'יש לעדכן את כל שאר המכשירים לגרסת האפליקציה האחרונה והם יורידו מחדש את הספרייה.';
 
   @override
-  String get settings_cloudSync_encryption_warnLoss => 'אם תאבדו גם את משפט הסיסמה וגם את קוד השחזור, לא ניתן יהיה לשחזר את הנתונים בענן. הנתונים במכשירים שלכם לעולם אינם בסיכון.';
+  String get settings_cloudSync_encryption_warnLoss =>
+      'אם תאבדו גם את משפט הסיסמה וגם את קוד השחזור, לא ניתן יהיה לשחזר את הנתונים בענן. הנתונים במכשירים שלכם לעולם אינם בסיכון.';
 
   @override
-  String get settings_cloudSync_encryption_deletePlaintextBackups => 'מחיקת גיבויי ענן לא מוצפנים קיימים';
+  String get settings_cloudSync_encryption_deletePlaintextBackups =>
+      'מחיקת גיבויי ענן לא מוצפנים קיימים';
 
   @override
   String get settings_cloudSync_encryption_recoveryTitle => 'קוד שחזור';
 
   @override
-  String get settings_cloudSync_encryption_recoveryExplain => 'רשמו את הקוד הזה ושמרו אותו במקום בטוח. זו הדרך היחידה לחזור אם תשכחו את משפט הסיסמה.';
+  String get settings_cloudSync_encryption_recoveryExplain =>
+      'רשמו את הקוד הזה ושמרו אותו במקום בטוח. זו הדרך היחידה לחזור אם תשכחו את משפט הסיסמה.';
 
   @override
-  String get settings_cloudSync_encryption_recoverySavedConfirm => 'שמרתי את קוד השחזור שלי';
+  String get settings_cloudSync_encryption_recoverySavedConfirm =>
+      'שמרתי את קוד השחזור שלי';
 
   @override
-  String get settings_cloudSync_encryption_changePassphrase => 'שינוי משפט סיסמה';
+  String get settings_cloudSync_encryption_changePassphrase =>
+      'שינוי משפט סיסמה';
 
   @override
-  String get settings_cloudSync_encryption_currentPassphrase => 'משפט הסיסמה הנוכחי';
+  String get settings_cloudSync_encryption_currentPassphrase =>
+      'משפט הסיסמה הנוכחי';
 
   @override
   String get settings_cloudSync_encryption_newPassphrase => 'משפט סיסמה חדש';
 
   @override
-  String get settings_cloudSync_encryption_regenerateRecovery => 'יצירת קוד שחזור חדש';
+  String get settings_cloudSync_encryption_regenerateRecovery =>
+      'יצירת קוד שחזור חדש';
 
   @override
-  String get settings_cloudSync_encryption_regenerateRecoveryWarn => 'קוד השחזור הישן מפסיק לפעול מיד.';
+  String get settings_cloudSync_encryption_regenerateRecoveryWarn =>
+      'קוד השחזור הישן מפסיק לפעול מיד.';
 
   @override
   String get settings_cloudSync_encryption_disable => 'כיבוי ההצפנה';
 
   @override
-  String get settings_cloudSync_encryption_disableWarn => 'הספרייה תועלה מחדש ללא הצפנה ושאר המכשירים יורידו אותה שוב. גיבויים מוצפנים קיימים יישארו ניתנים לשחזור עם משפט הסיסמה.';
+  String get settings_cloudSync_encryption_disableWarn =>
+      'הספרייה תועלה מחדש ללא הצפנה ושאר המכשירים יורידו אותה שוב. גיבויים מוצפנים קיימים יישארו ניתנים לשחזור עם משפט הסיסמה.';
 
   @override
-  String get settings_cloudSync_encryption_unlockTitle => 'הזינו את משפט הסיסמה של ההצפנה';
+  String get settings_cloudSync_encryption_unlockTitle =>
+      'הזינו את משפט הסיסמה של ההצפנה';
 
   @override
-  String get settings_cloudSync_encryption_unlockHint => 'משפט סיסמה או קוד שחזור';
+  String get settings_cloudSync_encryption_unlockHint =>
+      'משפט סיסמה או קוד שחזור';
 
   @override
   String get settings_cloudSync_encryption_unlock => 'ביטול נעילה';
@@ -922,10 +974,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_backupEncryption_title => 'הצפנת גיבוי';
 
   @override
-  String get settings_backupEncryption_subtitleOff => 'הגן על הגיבויים שלך באמצעות סיסמה';
+  String get settings_backupEncryption_subtitleOff =>
+      'הגן על הגיבויים שלך באמצעות סיסמה';
 
   @override
-  String get settings_backupEncryption_subtitleOn => 'הגיבויים מוצפנים באמצעות הסיסמה שלך';
+  String get settings_backupEncryption_subtitleOn =>
+      'הגיבויים מוצפנים באמצעות הסיסמה שלך';
 
   @override
   String get settings_backupEncryption_enable => 'הצפן גיבויים';
@@ -937,13 +991,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_backupEncryption_turnOffTitle => 'לכבות את הצפנת הגיבוי?';
 
   @override
-  String get settings_backupEncryption_turnOffBody => 'גיבויים חדשים לא יוצפנו עוד. גיבויים מוצפנים קיימים עדיין דורשים את הסיסמה שלך לשחזור.';
+  String get settings_backupEncryption_turnOffBody =>
+      'גיבויים חדשים לא יוצפנו עוד. גיבויים מוצפנים קיימים עדיין דורשים את הסיסמה שלך לשחזור.';
 
   @override
   String get settings_backupEncryption_changePassword => 'שנה סיסמה';
 
   @override
-  String get settings_backupEncryption_regenerateRecovery => 'צור מחדש קוד שחזור';
+  String get settings_backupEncryption_regenerateRecovery =>
+      'צור מחדש קוד שחזור';
 
   @override
   String get settings_backupEncryption_password => 'סיסמה';
@@ -952,10 +1008,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_backupEncryption_passwordConfirm => 'אימות סיסמה';
 
   @override
-  String get settings_backupEncryption_passwordTooShort => 'השתמש בלפחות 8 תווים';
+  String get settings_backupEncryption_passwordTooShort =>
+      'השתמש בלפחות 8 תווים';
 
   @override
-  String get settings_backupEncryption_passwordMismatch => 'הסיסמאות אינן תואמות';
+  String get settings_backupEncryption_passwordMismatch =>
+      'הסיסמאות אינן תואמות';
 
   @override
   String get settings_backupEncryption_currentPassword => 'סיסמה נוכחית';
@@ -964,31 +1022,38 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_backupEncryption_newPassword => 'סיסמה חדשה';
 
   @override
-  String get settings_backupEncryption_changePasswordWarn => 'במכשיר אחר, כל גיבוי נפתח באמצעות הסיסמה או קוד השחזור שהיו פעילים בעת יצירתו.';
+  String get settings_backupEncryption_changePasswordWarn =>
+      'במכשיר אחר, כל גיבוי נפתח באמצעות הסיסמה או קוד השחזור שהיו פעילים בעת יצירתו.';
 
   @override
-  String get settings_backupEncryption_warnLoss => 'אם תשכח את הסיסמה שלך ותאבד את קוד השחזור, לא ניתן יהיה לשחזר גיבויים מוצפנים.';
+  String get settings_backupEncryption_warnLoss =>
+      'אם תשכח את הסיסמה שלך ותאבד את קוד השחזור, לא ניתן יהיה לשחזר גיבויים מוצפנים.';
 
   @override
   String get settings_backupEncryption_recoveryTitle => 'קוד השחזור שלך';
 
   @override
-  String get settings_backupEncryption_recoveryExplain => 'שמור קוד זה במקום בטוח. הוא יכול לבטל את נעילת הגיבויים שלך אם תשכח את הסיסמה.';
+  String get settings_backupEncryption_recoveryExplain =>
+      'שמור קוד זה במקום בטוח. הוא יכול לבטל את נעילת הגיבויים שלך אם תשכח את הסיסמה.';
 
   @override
-  String get settings_backupEncryption_recoverySavedConfirm => 'שמרתי את קוד השחזור שלי';
+  String get settings_backupEncryption_recoverySavedConfirm =>
+      'שמרתי את קוד השחזור שלי';
 
   @override
   String get settings_backupEncryption_unlockTitle => 'הזן סיסמת גיבוי';
 
   @override
-  String get settings_backupEncryption_unlockHint => 'הזן את סיסמת הגיבוי או קוד השחזור שלך';
+  String get settings_backupEncryption_unlockHint =>
+      'הזן את סיסמת הגיבוי או קוד השחזור שלך';
 
   @override
-  String get settings_backupEncryption_restoreUnlockTitle => 'פתיחת גיבוי מוצפן';
+  String get settings_backupEncryption_restoreUnlockTitle =>
+      'פתיחת גיבוי מוצפן';
 
   @override
-  String get settings_backupEncryption_restoreUnlockHint => 'הזן את הסיסמה או קוד השחזור עבור גיבוי זה';
+  String get settings_backupEncryption_restoreUnlockHint =>
+      'הזן את הסיסמה או קוד השחזור עבור גיבוי זה';
 
   @override
   String get settings_backupEncryption_continue => 'המשך';
@@ -1000,10 +1065,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_backupEncryption_done => 'סיום';
 
   @override
-  String get settings_backupEncryption_reencryptTitle => 'להצפין גיבויים קיימים?';
+  String get settings_backupEncryption_reencryptTitle =>
+      'להצפין גיבויים קיימים?';
 
   @override
-  String get settings_backupEncryption_reencryptBody => 'הגיבויים הקיימים שלך עדיין אינם מוצפנים. להצפין אותם מחדש כעת באמצעות הסיסמה החדשה שלך?';
+  String get settings_backupEncryption_reencryptBody =>
+      'הגיבויים הקיימים שלך עדיין אינם מוצפנים. להצפין אותם מחדש כעת באמצעות הסיסמה החדשה שלך?';
 
   @override
   String get settings_backupEncryption_reencryptNow => 'הצפן מחדש כעת';
@@ -1022,7 +1089,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_backupEncryption_wrongPassword => 'סיסמה או קוד שחזור שגויים';
+  String get settings_backupEncryption_wrongPassword =>
+      'סיסמה או קוד שחזור שגויים';
 
   @override
   String settings_cloudSync_replace_globalBanner(String deviceName) {
@@ -1030,10 +1098,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_postRestore_syncing => 'מסנכרן את הספרייה המשוחזרת שלך עם הענן…';
+  String get settings_cloudSync_postRestore_syncing =>
+      'מסנכרן את הספרייה המשוחזרת שלך עם הענן…';
 
   @override
-  String get settings_cloudSync_postRestore_synced => 'הספרייה המשוחזרת סונכרנה.';
+  String get settings_cloudSync_postRestore_synced =>
+      'הספרייה המשוחזרת סונכרנה.';
 
   @override
   String get settings_cloudSync_replace_reviewAction => 'סקירה';
@@ -1066,7 +1136,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get accessibility_keyLabel_up => 'למעלה';
 
   @override
-  String accessibility_label_chartSummary(Object chartType, Object description) {
+  String accessibility_label_chartSummary(
+    Object chartType,
+    Object description,
+  ) {
     return 'תרשים $chartType. $description';
   }
 
@@ -1095,10 +1168,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get accessibility_label_resizeMasterPane => 'שינוי גודל החלונית הראשית';
+  String get accessibility_label_resizeMasterPane =>
+      'שינוי גודל החלונית הראשית';
 
   @override
-  String get accessibility_label_sharedWithAllProfiles => 'משותף עם כל פרופילי הצלילה';
+  String get accessibility_label_sharedWithAllProfiles =>
+      'משותף עם כל פרופילי הצלילה';
 
   @override
   String get accessibility_label_showList => 'הצגת רשימה';
@@ -1204,7 +1279,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_delete_dialog_cancel => 'ביטול';
 
   @override
-  String get backup_delete_dialog_content => 'גיבוי זה יימחק לצמיתות. לא ניתן לבטל פעולה זו.';
+  String get backup_delete_dialog_content =>
+      'גיבוי זה יימחק לצמיתות. לא ניתן לבטל פעולה זו.';
 
   @override
   String get backup_delete_dialog_delete => 'מחיקה';
@@ -1219,13 +1295,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_export_saveToFile => 'שמירה לקובץ';
 
   @override
-  String get backup_export_saveToFile_subtitle => 'בחר היכן לשמור את קובץ הגיבוי';
+  String get backup_export_saveToFile_subtitle =>
+      'בחר היכן לשמור את קובץ הגיבוי';
 
   @override
   String get backup_export_share => 'שיתוף';
 
   @override
-  String get backup_export_share_subtitle => 'שליחה דרך AirDrop, דוא\"ל או אפליקציות אחרות';
+  String get backup_export_share_subtitle =>
+      'שליחה דרך AirDrop, דוא\"ל או אפליקציות אחרות';
 
   @override
   String get backup_export_subtitle => 'שמור את נתוני הצלילה שלך לקובץ';
@@ -1274,7 +1352,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get backup_import_invalidFile => 'נראה שקובץ זה אינו גיבוי תקין של Submersion';
+  String get backup_import_invalidFile =>
+      'נראה שקובץ זה אינו גיבוי תקין של Submersion';
 
   @override
   String get backup_import_subtitle => 'ייבא גיבוי מכל מיקום';
@@ -1298,7 +1377,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_replaceConfirm_confirm => 'החלפה בכל מקום';
 
   @override
-  String get backup_replaceConfirm_content => 'הספרייה בכל המכשירים המסונכרנים תוחלף בגיבוי זה. כל מכשיר יוצר תחילה גיבוי בטיחות של הנתונים הנוכחיים שלו. לא ניתן לבטל פעולה זו.';
+  String get backup_replaceConfirm_content =>
+      'הספרייה בכל המכשירים המסונכרנים תוחלף בגיבוי זה. כל מכשיר יוצר תחילה גיבוי בטיחות של הנתונים הנוכחיים שלו. לא ניתן לבטל פעולה זו.';
 
   @override
   String get backup_replaceConfirm_title => 'להחליף את הספרייה בכל מקום?';
@@ -1307,13 +1387,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_restore_dialog_cancel => 'ביטול';
 
   @override
-  String get backup_restore_dialog_modeMerge_subtitle => 'שחזור במכשיר זה. הסנכרון הבא ישלב את הנתונים המשוחזרים עם ספריית הענן.';
+  String get backup_restore_dialog_modeMerge_subtitle =>
+      'שחזור במכשיר זה. הסנכרון הבא ישלב את הנתונים המשוחזרים עם ספריית הענן.';
 
   @override
   String get backup_restore_dialog_modeMerge_title => 'מיזוג בסנכרון הבא';
 
   @override
-  String get backup_restore_dialog_modeReplace_subtitle => 'הגיבוי הופך לספרייה במכשיר זה, בענן ובכל מכשיר מסונכרן.';
+  String get backup_restore_dialog_modeReplace_subtitle =>
+      'הגיבוי הופך לספרייה במכשיר זה, בענן ובכל מכשיר מסונכרן.';
 
   @override
   String get backup_restore_dialog_modeReplace_title => 'החלפה בכל מקום';
@@ -1325,13 +1407,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_restore_dialog_restoreReplace => 'שחזור והחלפה בכל מקום';
 
   @override
-  String get backup_restore_dialog_safetyNote => 'גיבוי בטיחות של הנתונים הנוכחיים שלך ייווצר אוטומטית לפני השחזור.';
+  String get backup_restore_dialog_safetyNote =>
+      'גיבוי בטיחות של הנתונים הנוכחיים שלך ייווצר אוטומטית לפני השחזור.';
 
   @override
   String get backup_restore_dialog_title => 'שחזור גיבוי';
 
   @override
-  String get backup_restore_dialog_warning => 'פעולה זו תחליף את כל הנתונים הנוכחיים בנתוני הגיבוי. לא ניתן לבטל פעולה זו.';
+  String get backup_restore_dialog_warning =>
+      'פעולה זו תחליף את כל הנתונים הנוכחיים בנתוני הגיבוי. לא ניתן לבטל פעולה זו.';
 
   @override
   String backup_restore_safetyReview_progress(int done, int total) {
@@ -1348,7 +1432,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_restoreComplete_continue => 'המשך';
 
   @override
-  String get backup_restoreComplete_description => 'הנתונים שלך שוחזרו בהצלחה. הקש על המשך כדי לטעון מחדש את האפליקציה עם הנתונים המשוחזרים.';
+  String get backup_restoreComplete_description =>
+      'הנתונים שלך שוחזרו בהצלחה. הקש על המשך כדי לטעון מחדש את האפליקציה עם הנתונים המשוחזרים.';
 
   @override
   String get backup_restoreComplete_title => 'השחזור הושלם';
@@ -1366,7 +1451,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_schedule_retention => 'שמור גיבויים';
 
   @override
-  String get backup_schedule_retention_subtitle => 'גיבויים ישנים יותר מוסרים אוטומטית';
+  String get backup_schedule_retention_subtitle =>
+      'גיבויים ישנים יותר מוסרים אוטומטית';
 
   @override
   String get backup_section_auto => 'גיבויים אוטומטיים';
@@ -1392,7 +1478,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_status_neverBackedUp => 'מעולם לא גובה';
 
   @override
-  String get backup_status_noBackupsYet => 'צור את הגיבוי הראשון שלך כדי להגן על הנתונים שלך';
+  String get backup_status_noBackupsYet =>
+      'צור את הגיבוי הראשון שלך כדי להגן על הנתונים שלך';
 
   @override
   String get backup_status_overdue => 'גיבוי באיחור';
@@ -1488,7 +1575,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_dialog_discard => 'בטל';
 
   @override
-  String get buddies_dialog_discardMessage => 'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לבטל אותם?';
+  String get buddies_dialog_discardMessage =>
+      'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לבטל אותם?';
 
   @override
   String get buddies_dialog_discardTitle => 'לבטל שינויים?';
@@ -1497,7 +1585,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_dialog_keepEditing => 'המשך עריכה';
 
   @override
-  String get buddies_empty_subtitle => 'הוסף את חבר הצוללים הראשון שלך כדי להתחיל';
+  String get buddies_empty_subtitle =>
+      'הוסף את חבר הצוללים הראשון שלך כדי להתחיל';
 
   @override
   String get buddies_empty_title => 'עדיין אין חברי צוללים';
@@ -1529,7 +1618,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_field_linkedProfile => 'פרופיל מקושר';
 
   @override
-  String get buddies_field_linkedProfileHint => 'הפרופיל המקומי שהוא חבר צוללים זה';
+  String get buddies_field_linkedProfileHint =>
+      'הפרופיל המקומי שהוא חבר צוללים זה';
 
   @override
   String get buddies_field_linkedProfileNone => 'לא מקושר';
@@ -1631,7 +1721,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get buddies_linkText_page_empty => 'כל שמות חברי הצוללים מקושרים לרשומה';
+  String get buddies_linkText_page_empty =>
+      'כל שמות חברי הצוללים מקושרים לרשומה';
 
   @override
   String buddies_linkText_page_errorLoading(String error) {
@@ -1661,7 +1752,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get buddies_linkText_page_subtitle => 'המרת שמות חברי צוללים מצלילות מיובאות לרשומות';
+  String get buddies_linkText_page_subtitle =>
+      'המרת שמות חברי צוללים מצלילות מיובאות לרשומות';
 
   @override
   String buddies_linkText_page_summaryDives(int count) {
@@ -1759,7 +1851,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_linkedProfile_pickerTitle => 'קישור לפרופיל';
 
   @override
-  String get buddies_linkedProfile_refusedSelf => 'לא ניתן לקשר חבר צוללים לפרופיל של עצמו.';
+  String get buddies_linkedProfile_refusedSelf =>
+      'לא ניתן לקשר חבר צוללים לפרופיל של עצמו.';
 
   @override
   String buddies_linkedProfile_refusedTaken(String buddyName) {
@@ -1772,19 +1865,22 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get buddies_merge_refusedDifferentLinks => 'חברי צוללים אלה מקושרים לפרופילים שונים. יש למזג את הפרופילים תחילה.';
+  String get buddies_merge_refusedDifferentLinks =>
+      'חברי צוללים אלה מקושרים לפרופילים שונים. יש למזג את הפרופילים תחילה.';
 
   @override
   String get buddies_message_added => 'חבר צוללים נוסף בהצלחה';
 
   @override
-  String get buddies_message_contactImportUnavailable => 'ייבוא אנשי קשר אינו זמין בפלטפורמה זו';
+  String get buddies_message_contactImportUnavailable =>
+      'ייבוא אנשי קשר אינו זמין בפלטפורמה זו';
 
   @override
   String get buddies_message_contactLoadFailed => 'נכשל בטעינת אנשי קשר';
 
   @override
-  String get buddies_message_contactPermissionRequired => 'נדרשת הרשאת אנשי קשר לייבוא חברי צוללים';
+  String get buddies_message_contactPermissionRequired =>
+      'נדרשת הרשאת אנשי קשר לייבוא חברי צוללים';
 
   @override
   String get buddies_message_deleted => 'חבר צוללים נמחק';
@@ -1813,7 +1909,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_message_noDivesFound => 'לא נמצאו צלילות לייצוא';
 
   @override
-  String get buddies_message_noDivesToShare => 'אין צלילות לשיתוף עם חבר צוללים זה';
+  String get buddies_message_noDivesToShare =>
+      'אין צלילות לשיתוף עם חבר צוללים זה';
 
   @override
   String get buddies_message_preparingExport => 'מכין ייצוא...';
@@ -1919,7 +2016,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_summary_recentBuddies => 'חברי צוללים אחרונים';
 
   @override
-  String get buddies_summary_selectHint => 'בחר חבר צוללים מהרשימה כדי להציג פרטים';
+  String get buddies_summary_selectHint =>
+      'בחר חבר צוללים מהרשימה כדי להציג פרטים';
 
   @override
   String get buddies_summary_title => 'חברי צוללים';
@@ -2020,10 +2118,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_edit_merge_title => 'מזג חברי צוללים';
 
   @override
-  String get buddies_edit_merge_fieldSourceCycleTooltip => 'השתמש בערך מחבר הצוללים הנבחר הבא';
+  String get buddies_edit_merge_fieldSourceCycleTooltip =>
+      'השתמש בערך מחבר הצוללים הנבחר הבא';
 
   @override
-  String buddies_edit_merge_fieldSourceLabel(String buddyName, int current, int total) {
+  String buddies_edit_merge_fieldSourceLabel(
+    String buddyName,
+    int current,
+    int total,
+  ) {
     return 'מ-$buddyName ($current/$total)';
   }
 
@@ -2047,7 +2150,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_edit_merge_notEnoughTitle => 'מזג חברי צוללים';
 
   @override
-  String get buddies_edit_merge_notEnoughBody => 'אין מספיק חברי צוללים למיזוג.';
+  String get buddies_edit_merge_notEnoughBody =>
+      'אין מספיק חברי צוללים למיזוג.';
 
   @override
   String get buddies_instructorPicker_label => 'מדריך מתוך חברי הצוללים';
@@ -2136,7 +2240,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_detail_photoLabel_front => 'קדמי';
 
   @override
-  String certifications_detail_photo_fullscreenTitle(Object label, Object name) {
+  String certifications_detail_photo_fullscreenTitle(
+    Object label,
+    Object name,
+  ) {
     return '$label - $name';
   }
 
@@ -2162,7 +2269,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_detail_sectionTitle_trainingCourse => 'קורס הכשרה';
 
   @override
-  String certifications_detail_semanticLabel_photoTapToView(Object label, Object name) {
+  String certifications_detail_semanticLabel_photoTapToView(
+    Object label,
+    Object name,
+  ) {
     return 'תמונת $label של $name. הקש לצפייה במסך מלא';
   }
 
@@ -2197,7 +2307,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_detail_tooltip_moreOptions => 'אפשרויות נוספות';
 
   @override
-  String get certifications_ecardStack_empty_subtitle => 'הוסף את ההסמכה הראשונה שלך כדי לראות אותה כאן';
+  String get certifications_ecardStack_empty_subtitle =>
+      'הוסף את ההסמכה הראשונה שלך כדי לראות אותה כאן';
 
   @override
   String get certifications_ecardStack_empty_title => 'אין עדיין הסמכות';
@@ -2266,7 +2377,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_edit_dialog_discard => 'מחק';
 
   @override
-  String get certifications_edit_dialog_discardContent => 'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לצאת?';
+  String get certifications_edit_dialog_discardContent =>
+      'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לצאת?';
 
   @override
   String get certifications_edit_dialog_discardTitle => 'למחוק שינויים?';
@@ -2281,7 +2393,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_edit_group_specialties => 'התמחויות';
 
   @override
-  String get certifications_edit_help_expiryDate => 'השאר ריק להסמכות ללא תפוגה';
+  String get certifications_edit_help_expiryDate =>
+      'השאר ריק להסמכות ללא תפוגה';
 
   @override
   String get certifications_edit_helper_nameOnCard => 'אופציונלי';
@@ -2386,7 +2499,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_edit_snackBar_updated => 'ההסמכה עודכנה בהצלחה';
 
   @override
-  String get certifications_edit_validation_certificationOrNameRequired => 'יש לבחור הסמכה או להזין שם';
+  String get certifications_edit_validation_certificationOrNameRequired =>
+      'יש לבחור הסמכה או להזין שם';
 
   @override
   String get certifications_list_button_retry => 'נסה שוב';
@@ -2395,7 +2509,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_list_empty_button => 'הוסף את ההסמכה הראשונה שלך';
 
   @override
-  String get certifications_list_empty_subtitle => 'הוסף את הסמכות הצלילה שלך כדי לעקוב\nאחר ההכשרה והכישורים שלך';
+  String get certifications_list_empty_subtitle =>
+      'הוסף את הסמכות הצלילה שלך כדי לעקוב\nאחר ההכשרה והכישורים שלך';
 
   @override
   String get certifications_list_empty_title => 'עדיין לא נוספו הסמכות';
@@ -2478,7 +2593,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get certifications_renderer_label_hasCompletedTraining => 'השלים/ה הכשרה בתור';
+  String get certifications_renderer_label_hasCompletedTraining =>
+      'השלים/ה הכשרה בתור';
 
   @override
   String certifications_renderer_label_instructor(Object name) {
@@ -2486,7 +2602,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String certifications_renderer_label_instructorWithNumber(Object name, Object number) {
+  String certifications_renderer_label_instructorWithNumber(
+    Object name,
+    Object number,
+  ) {
     return 'מדריך: $name ($number)';
   }
 
@@ -2499,7 +2618,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_renderer_label_thisCertifies => 'בזאת מאושר כי';
 
   @override
-  String get certifications_search_empty_hint => 'חיפוש לפי שם, ארגון או מספר כרטיס';
+  String get certifications_search_empty_hint =>
+      'חיפוש לפי שם, ארגון או מספר כרטיס';
 
   @override
   String get certifications_search_fieldLabel => 'חיפוש הסמכות...';
@@ -2526,13 +2646,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get certifications_share_option_card_subtitle => 'תמונת הסמכה בסגנון כרטיס אשראי';
+  String get certifications_share_option_card_subtitle =>
+      'תמונת הסמכה בסגנון כרטיס אשראי';
 
   @override
   String get certifications_share_option_card_title => 'שתף ככרטיס';
 
   @override
-  String get certifications_share_option_certificate_subtitle => 'מסמך תעודה רשמי';
+  String get certifications_share_option_certificate_subtitle =>
+      'מסמך תעודה רשמי';
 
   @override
   String get certifications_share_option_certificate_title => 'שתף כתעודה';
@@ -2541,7 +2663,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_share_title => 'שיתוף הסמכה';
 
   @override
-  String get certifications_summary_header_subtitle => 'בחר הסמכה מהרשימה כדי לצפות בפרטים';
+  String get certifications_summary_header_subtitle =>
+      'בחר הסמכה מהרשימה כדי לצפות בפרטים';
 
   @override
   String get certifications_summary_header_title => 'הסמכות';
@@ -2606,7 +2729,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get checklists_empty_upcoming => 'תכנן את הטיול שלך - הוסף משימות או החל תבנית';
+  String get checklists_empty_upcoming =>
+      'תכנן את הטיול שלך - הוסף משימות או החל תבנית';
 
   @override
   String get checklists_empty_past => 'אין פריטים ברשימת המשימות';
@@ -2685,7 +2809,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get checklists_applySheet_title => 'החלת תבנית';
 
   @override
-  String get checklists_applySheet_empty => 'עדיין אין תבניות. ניתן ליצור אותן בהגדרות.';
+  String get checklists_applySheet_empty =>
+      'עדיין אין תבניות. ניתן ליצור אותן בהגדרות.';
 
   @override
   String checklists_applySheet_itemCount(int count) {
@@ -2794,7 +2919,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_templates_delete => 'מחיקה';
 
   @override
-  String get preDive_templates_deleteConfirm => 'למחוק את תבנית רשימת הבדיקה הזו?';
+  String get preDive_templates_deleteConfirm =>
+      'למחוק את תבנית רשימת הבדיקה הזו?';
 
   @override
   String get preDive_templates_strictOrderBadge => 'סדר מחייב';
@@ -2869,7 +2995,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_item_sourceItem => 'קריאת אוויר מתוך';
 
   @override
-  String get preDive_item_sourceItemRequired => 'בחר את הפריט שמכיל את קריאת האוויר';
+  String get preDive_item_sourceItemRequired =>
+      'בחר את הפריט שמכיל את קריאת האוויר';
 
   @override
   String get preDive_item_linearityMin => 'ליניאריות מזערית % (אזהרה)';
@@ -2902,7 +3029,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_runner_abort => 'ביטול רשימת הבדיקה';
 
   @override
-  String get preDive_runner_abortConfirm => 'לבטל את רשימת הבדיקה הזו? היא תישמר בהיסטוריה כמבוטלת.';
+  String get preDive_runner_abortConfirm =>
+      'לבטל את רשימת הבדיקה הזו? היא תישמר בהיסטוריה כמבוטלת.';
 
   @override
   String get preDive_runner_skip => 'דלג';
@@ -2940,7 +3068,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String preDive_runner_linearityLine(String air, String expected, String percent) {
+  String preDive_runner_linearityLine(
+    String air,
+    String expected,
+    String percent,
+  ) {
     return 'אוויר $air mV, צפוי $expected mV, ליניאריות $percent%';
   }
 
@@ -2989,7 +3121,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_link_linkChecklist => 'קישור רשימת בדיקה לפני צלילה';
 
   @override
-  String get preDive_link_unlinkChecklist => 'ביטול קישור רשימת בדיקה לפני צלילה';
+  String get preDive_link_unlinkChecklist =>
+      'ביטול קישור רשימת בדיקה לפני צלילה';
 
   @override
   String get preDive_link_searchDives => 'חיפוש צלילות';
@@ -3003,7 +3136,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get preDive_link_noUnlinkedSessions => 'אין הרצות רשימת בדיקה ללא קישור';
+  String get preDive_link_noUnlinkedSessions =>
+      'אין הרצות רשימת בדיקה ללא קישור';
 
   @override
   String get preDive_link_linked => 'רשימת הבדיקה קושרה לצלילה זו';
@@ -3015,7 +3149,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_sessions_delete => 'מחיקה';
 
   @override
-  String get preDive_sessions_deleteConfirm => 'למחוק את רשומת רשימת הבדיקה הזו?';
+  String get preDive_sessions_deleteConfirm =>
+      'למחוק את רשומת רשימת הבדיקה הזו?';
 
   @override
   String get preDive_sessions_filter => 'סינון';
@@ -3048,7 +3183,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_sessions_filterFlaggedChip => 'מסומנות בלבד';
 
   @override
-  String get preDive_sessions_emptyFiltered => 'אין רשימות בדיקה התואמות למסננים אלה';
+  String get preDive_sessions_emptyFiltered =>
+      'אין רשימות בדיקה התואמות למסננים אלה';
 
   @override
   String get preDive_sessions_export => 'ייצוא ל-Excel';
@@ -3101,7 +3237,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_gear_unknownSet => 'סט';
 
   @override
-  String get diveLog_listPage_bottomSheet_preDiveChecklist => 'התחל רשימת בדיקה לפני צלילה';
+  String get diveLog_listPage_bottomSheet_preDiveChecklist =>
+      'התחל רשימת בדיקה לפני צלילה';
 
   @override
   String get preDive_dashboard_title => 'בדיקה לפני צלילה';
@@ -3121,7 +3258,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_edit_titleView => 'הצגת רשימת בדיקה לפני צלילה';
 
   @override
-  String get preDive_edit_builtInNotice => 'רשימת בדיקה מובנית. שכפלו אותה כדי ליצור עותק הניתן לעריכה.';
+  String get preDive_edit_builtInNotice =>
+      'רשימת בדיקה מובנית. שכפלו אותה כדי ליצור עותק הניתן לעריכה.';
 
   @override
   String get dashboard_checklists_title => 'רשימות בדיקה';
@@ -3156,7 +3294,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_manage_preDiveChecklists => 'רשימות בדיקה לפני צלילה';
 
   @override
-  String get settings_manage_preDiveChecklists_subtitle => 'בדיקות באדי, רשימות הרכבת CCR, אריזת ציוד';
+  String get settings_manage_preDiveChecklists_subtitle =>
+      'בדיקות באדי, רשימות הרכבת CCR, אריזת ציוד';
 
   @override
   String get common_action_back => 'חזרה';
@@ -3294,7 +3433,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_dialog_deleteTitle => 'למחוק קורס?';
 
   @override
-  String get courses_dialog_markCompletedMessage => 'פעולה זו תסמן את הקורס כהושלם עם תאריך היום. להמשיך?';
+  String get courses_dialog_markCompletedMessage =>
+      'פעולה זו תסמן את הקורס כהושלם עם תאריך היום. להמשיך?';
 
   @override
   String get courses_dialog_markCompletedTitle => 'לסמן כהושלם?';
@@ -3436,7 +3576,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_requirement_suggestions => 'צלילות מוצעות';
 
   @override
-  String get courses_requirements_empty => 'עקוב אחר צלילות הרפתקה, דרישות קדם ופריטים לסימון עבור קורס זה.';
+  String get courses_requirements_empty =>
+      'עקוב אחר צלילות הרפתקה, דרישות קדם ופריטים לסימון עבור קורס זה.';
 
   @override
   String courses_requirements_progress(int satisfied, int total) {
@@ -3567,7 +3708,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dashboard_alerts_actionView => 'הצגה';
 
   @override
-  String get dashboard_alerts_checkInsuranceExpiry => 'בדוק את תאריך תפוגת הביטוח';
+  String get dashboard_alerts_checkInsuranceExpiry =>
+      'בדוק את תאריך תפוגת הביטוח';
 
   @override
   String get dashboard_alerts_daysOverdueOne => 'יום אחד באיחור';
@@ -3599,7 +3741,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dashboard_alerts_insuranceExpired => 'הביטוח פג תוקף';
 
   @override
-  String get dashboard_alerts_insuranceExpiredGeneric => 'ביטוח הצלילה שלך פג תוקף';
+  String get dashboard_alerts_insuranceExpiredGeneric =>
+      'ביטוח הצלילה שלך פג תוקף';
 
   @override
   String dashboard_alerts_insuranceExpiredProvider(Object provider) {
@@ -3782,7 +3925,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get dashboard_gauges_flightWindowClosed => 'אין יותר צלילות לפני הטיסה';
+  String get dashboard_gauges_flightWindowClosed =>
+      'אין יותר צלילות לפני הטיסה';
 
   @override
   String dashboard_gauges_noFlyRemaining(String hours, String minutes) {
@@ -3804,7 +3948,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_homeChips_pageTitle => 'מסך הבית';
 
   @override
-  String get settings_homeChips_description => 'בחר אילו שבבי מצב יופיעו בראש לשונית הבית.';
+  String get settings_homeChips_description =>
+      'בחר אילו שבבי מצב יופיעו בראש לשונית הבית.';
 
   @override
   String get settings_homeChips_sectionTitle => 'שבבי מצב';
@@ -3813,7 +3958,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_homeCards_sectionTitle => 'כרטיסי דף הבית';
 
   @override
-  String get settings_homeCards_description => 'בחר אילו כרטיסים יופיעו בלשונית הבית וגרור כדי לסדר מחדש.';
+  String get settings_homeCards_description =>
+      'בחר אילו כרטיסים יופיעו בלשונית הבית וגרור כדי לסדר מחדש.';
 
   @override
   String get settings_homeCards_autoHides => 'מוסתר אוטומטית כשהוא ריק';
@@ -3825,7 +3971,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_homeCards_resetDialog_title => 'לאפס את פריסת דף הבית?';
 
   @override
-  String get settings_homeCards_resetDialog_message => 'משחזר את סדר הכרטיסים המוגדר כברירת מחדל ומציג את כולם מחדש.';
+  String get settings_homeCards_resetDialog_message =>
+      'משחזר את סדר הכרטיסים המוגדר כברירת מחדל ומציג את כולם מחדש.';
 
   @override
   String get settings_homeCards_resetDialog_cancel => 'ביטול';
@@ -4084,13 +4231,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dashboard_recentDives_errorLoading => 'נכשל טעינת צלילות';
 
   @override
-  String get dashboard_recentDives_latestProfileTitle => 'פרופיל הצלילה האחרונה';
+  String get dashboard_recentDives_latestProfileTitle =>
+      'פרופיל הצלילה האחרונה';
 
   @override
-  String get dashboard_recentDives_noProfileData => 'אין נתוני פרופיל לצלילה זו';
+  String get dashboard_recentDives_noProfileData =>
+      'אין נתוני פרופיל לצלילה זו';
 
   @override
-  String get dashboard_recentDives_profileLoadError => 'לא ניתן לטעון את פרופיל הצלילה';
+  String get dashboard_recentDives_profileLoadError =>
+      'לא ניתן לטעון את פרופיל הצלילה';
 
   @override
   String dashboard_recentDives_profileMinutes(int minutes) {
@@ -4115,10 +4265,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get dashboard_semantics_errorLoadingRecentDives => 'שגיאה: נכשל טעינת צלילות אחרונות';
+  String get dashboard_semantics_errorLoadingRecentDives =>
+      'שגיאה: נכשל טעינת צלילות אחרונות';
 
   @override
-  String get dashboard_semantics_errorLoadingStatistics => 'שגיאה: נכשל טעינת סטטיסטיקות';
+  String get dashboard_semantics_errorLoadingStatistics =>
+      'שגיאה: נכשל טעינת סטטיסטיקות';
 
   @override
   String get dashboard_semantics_greetingBanner => 'באנר ברכה בלוח המחוונים';
@@ -4147,10 +4299,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get decoCalculator_createPlanTooltip => 'צור תכנית צלילה מהפרמטרים הנוכחיים';
+  String get decoCalculator_createPlanTooltip =>
+      'צור תכנית צלילה מהפרמטרים הנוכחיים';
 
   @override
-  String decoCalculator_createdPlanSnackbar(Object depth, Object depthSymbol, Object time, Object gasMixName) {
+  String decoCalculator_createdPlanSnackbar(
+    Object depth,
+    Object depthSymbol,
+    Object time,
+    Object gasMixName,
+  ) {
     return 'נוצרה תכנית: $depth$depthSymbol למשך $time דקות על $gasMixName';
   }
 
@@ -4190,7 +4348,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get decoCalculator_hideCustomMix => 'הסתר תערובת מותאמת';
 
   @override
-  String get decoCalculator_hideCustomMixSemantics => 'הסתר בורר תערובת גז מותאמת';
+  String get decoCalculator_hideCustomMixSemantics =>
+      'הסתר בורר תערובת גז מותאמת';
 
   @override
   String get decoCalculator_modExceeded => 'MOD חרג';
@@ -4214,7 +4373,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get decoCalculator_resetToDefaults => 'אפס לברירת מחדל';
 
   @override
-  String get decoCalculator_showCustomMixSemantics => 'הצג בורר תערובת גז מותאמת';
+  String get decoCalculator_showCustomMixSemantics =>
+      'הצג בורר תערובת גז מותאמת';
 
   @override
   String decoCalculator_timeValueMin(Object time) {
@@ -4336,7 +4496,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_dialog_discard => 'בטל';
 
   @override
-  String get diveCenters_dialog_discardMessage => 'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לבטל אותם?';
+  String get diveCenters_dialog_discardMessage =>
+      'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לבטל אותם?';
 
   @override
   String get diveCenters_dialog_discardTitle => 'לבטל שינויים?';
@@ -4348,7 +4509,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_empty_button => 'הוסף את מרכז הצלילה הראשון שלך';
 
   @override
-  String get diveCenters_empty_subtitle => 'הוסף את חנויות הצלילה והמפעילים המועדפים עליך';
+  String get diveCenters_empty_subtitle =>
+      'הוסף את חנויות הצלילה והמפעילים המועדפים עליך';
 
   @override
   String get diveCenters_empty_title => 'עדיין אין מרכזי צלילה';
@@ -4359,7 +4521,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveCenters_error_geocodeFailed => 'לא ניתן למצוא קואורדינטות עבור כתובת זו';
+  String get diveCenters_error_geocodeFailed =>
+      'לא ניתן למצוא קואורדינטות עבור כתובת זו';
 
   @override
   String get diveCenters_error_importFailed => 'נכשל בייבוא מרכז צלילה';
@@ -4370,13 +4533,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveCenters_error_locationPermission => 'לא ניתן לקבל מיקום. נא לבדוק הרשאות.';
+  String get diveCenters_error_locationPermission =>
+      'לא ניתן לקבל מיקום. נא לבדוק הרשאות.';
 
   @override
-  String get diveCenters_error_locationUnavailable => 'לא ניתן לקבל מיקום. שירותי מיקום עשויים להיות לא זמינים.';
+  String get diveCenters_error_locationUnavailable =>
+      'לא ניתן לקבל מיקום. שירותי מיקום עשויים להיות לא זמינים.';
 
   @override
-  String get diveCenters_error_noAddressForLookup => 'נא להזין כתובת כדי לחפש קואורדינטות';
+  String get diveCenters_error_noAddressForLookup =>
+      'נא להזין כתובת כדי לחפש קואורדינטות';
 
   @override
   String get diveCenters_error_notFound => 'מרכז צלילה לא נמצא';
@@ -4417,10 +4583,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_field_street => 'כתובת רחוב';
 
   @override
-  String get diveCenters_hint_addressDescription => 'כתובת רחוב אופציונלית לניווט';
+  String get diveCenters_hint_addressDescription =>
+      'כתובת רחוב אופציונלית לניווט';
 
   @override
-  String get diveCenters_hint_affiliationsDescription => 'בחר גופי הכשרה שהמרכז מזוהה איתם';
+  String get diveCenters_hint_affiliationsDescription =>
+      'בחר גופי הכשרה שהמרכז מזוהה איתם';
 
   @override
   String get diveCenters_hint_city => 'לדוגמה: פוקט';
@@ -4432,10 +4600,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_hint_email => 'info@divecenter.com';
 
   @override
-  String get diveCenters_hint_gpsDescription => 'בחר שיטת מיקום או הזן קואורדינטות ידנית';
+  String get diveCenters_hint_gpsDescription =>
+      'בחר שיטת מיקום או הזן קואורדינטות ידנית';
 
   @override
-  String get diveCenters_hint_importSearch => 'חפש מרכזי צלילה (לדוגמה: \"PADI\", \"תאילנד\")';
+  String get diveCenters_hint_importSearch =>
+      'חפש מרכזי צלילה (לדוגמה: \"PADI\", \"תאילנד\")';
 
   @override
   String get diveCenters_hint_latitude => 'לדוגמה: 10.4613';
@@ -4483,13 +4653,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveCenters_import_searchDescription => 'חפש מרכזי צלילה, חנויות ומועדונים ממאגר הנתונים שלנו של מפעילים ברחבי העולם.';
+  String get diveCenters_import_searchDescription =>
+      'חפש מרכזי צלילה, חנויות ומועדונים ממאגר הנתונים שלנו של מפעילים ברחבי העולם.';
 
   @override
   String get diveCenters_import_searchError => 'שגיאת חיפוש';
 
   @override
-  String get diveCenters_import_searchHint => 'נסה לחפש לפי שם, מדינה או גוף הסמכה.';
+  String get diveCenters_import_searchHint =>
+      'נסה לחפש לפי שם, מדינה או גוף הסמכה.';
 
   @override
   String get diveCenters_import_searchTitle => 'חפש מרכזי צלילה';
@@ -4535,7 +4707,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_label_website => 'אתר אינטרנט';
 
   @override
-  String get diveCenters_map_addCoordinatesHint => 'הוסף קואורדינטות למרכזי הצלילה שלך כדי לראות אותם במפה';
+  String get diveCenters_map_addCoordinatesHint =>
+      'הוסף קואורדינטות למרכזי הצלילה שלך כדי לראות אותם במפה';
 
   @override
   String get diveCenters_map_noCoordinates => 'אין מרכזי צלילה עם קואורדינטות';
@@ -4576,7 +4749,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_section_notes => 'הערות';
 
   @override
-  String get diveCenters_snackbar_coordinatesFound => 'קואורדינטות נמצאו מהכתובת';
+  String get diveCenters_snackbar_coordinatesFound =>
+      'קואורדינטות נמצאו מהכתובת';
 
   @override
   String get diveCenters_snackbar_copiedToClipboard => 'הועתק ללוח';
@@ -4616,7 +4790,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_summary_recentCenters => 'מרכזי צלילה אחרונים';
 
   @override
-  String get diveCenters_summary_selectPrompt => 'בחר מרכז צלילה מהרשימה כדי להציג פרטים';
+  String get diveCenters_summary_selectPrompt =>
+      'בחר מרכז צלילה מהרשימה כדי להציג פרטים';
 
   @override
   String get diveCenters_summary_totalCenters => 'סה\"כ מרכזים';
@@ -4664,7 +4839,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_tooltip_sort => 'מיין';
 
   @override
-  String get diveCenters_validation_invalidEmail => 'נא להזין כתובת דוא\"ל תקינה';
+  String get diveCenters_validation_invalidEmail =>
+      'נא להזין כתובת דוא\"ל תקינה';
 
   @override
   String get diveCenters_validation_invalidLatitude => 'קו רוחב לא תקין';
@@ -4727,7 +4903,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_bulkEdit_addTags => 'הוספת תגיות';
 
   @override
-  String get diveLog_bulkEdit_addTagsDescription => 'הוספת תגיות לצלילות שנבחרו';
+  String get diveLog_bulkEdit_addTagsDescription =>
+      'הוספת תגיות לצלילות שנבחרו';
 
   @override
   String diveLog_bulkEdit_addedTags(int tagCount, int diveCount) {
@@ -4750,7 +4927,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_bulkEdit_changeTrip => 'שינוי טיול';
 
   @override
-  String get diveLog_bulkEdit_changeTripDescription => 'העברת צלילות שנבחרו לטיול';
+  String get diveLog_bulkEdit_changeTripDescription =>
+      'העברת צלילות שנבחרו לטיול';
 
   @override
   String get diveLog_bulkEdit_errorLoadingTrips => 'שגיאה בטעינת טיולים';
@@ -4780,7 +4958,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_bulkEdit_noTagsAvailable => 'אין תגיות זמינות.';
 
   @override
-  String get diveLog_bulkEdit_noTagsAvailableCreate => 'אין תגיות זמינות. צור תגיות תחילה.';
+  String get diveLog_bulkEdit_noTagsAvailableCreate =>
+      'אין תגיות זמינות. צור תגיות תחילה.';
 
   @override
   String get diveLog_bulkEdit_noTrip => 'ללא טיול';
@@ -4792,7 +4971,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_bulkEdit_removeTags => 'הסרת תגיות';
 
   @override
-  String get diveLog_bulkEdit_removeTagsDescription => 'הסרת תגיות מצלילות שנבחרו';
+  String get diveLog_bulkEdit_removeTagsDescription =>
+      'הסרת תגיות מצלילות שנבחרו';
 
   @override
   String diveLog_bulkEdit_removedFromTrip(int count) {
@@ -4862,7 +5042,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_bulkExport_uddf => 'UDDF';
 
   @override
-  String get diveLog_bulkExport_uddfDescription => 'פורמט נתוני צלילה אוניברסלי';
+  String get diveLog_bulkExport_uddfDescription =>
+      'פורמט נתוני צלילה אוניברסלי';
 
   @override
   String get diveLog_ccr_diluent_air => 'אוויר';
@@ -4929,10 +5110,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_combine_confirm => 'מיזוג לצלילה אחת';
 
   @override
-  String get diveLog_combine_dataNote => 'הפרטים מגיעים מהצלילה המוקדמת ביותר, והשדות הריקים מתמלאים מצלילות מאוחרות יותר. ההערות מתמזגות. כל הבלונים, הציוד, השותפים, התגיות והתצפיות נשמרים.';
+  String get diveLog_combine_dataNote =>
+      'הפרטים מגיעים מהצלילה המוקדמת ביותר, והשדות הריקים מתמלאים מצלילות מאוחרות יותר. ההערות מתמזגות. כל הבלונים, הציוד, השותפים, התגיות והתצפיות נשמרים.';
 
   @override
-  String get diveLog_combine_error => 'לא ניתן היה למזג את הצלילות. שום דבר לא השתנה.';
+  String get diveLog_combine_error =>
+      'לא ניתן היה למזג את הצלילות. שום דבר לא השתנה.';
 
   @override
   String diveLog_combine_gapLabel(String duration) {
@@ -4940,10 +5123,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_combine_longSurfaceWarning => 'מרווח פני שטח אחד או יותר ארוך מ-30 דקות. ייתכן שאלה צלילות נפרדות ולא צלילה אחת רציפה.';
+  String get diveLog_combine_longSurfaceWarning =>
+      'מרווח פני שטח אחד או יותר ארוך מ-30 דקות. ייתכן שאלה צלילות נפרדות ולא צלילה אחת רציפה.';
 
   @override
-  String get diveLog_combine_mixedDivers => 'הצלילות שנבחרו שייכות לצוללנים שונים ולא ניתן למזג אותן.';
+  String get diveLog_combine_mixedDivers =>
+      'הצלילות שנבחרו שייכות לצוללנים שונים ולא ניתן למזג אותן.';
 
   @override
   String get diveLog_combine_profilePreview => 'פרופיל ממוזג';
@@ -4954,7 +5139,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveLog_combine_resultSummary(String runtime, String maxDepth, String bottomTime) {
+  String diveLog_combine_resultSummary(
+    String runtime,
+    String maxDepth,
+    String bottomTime,
+  ) {
     return 'תוצאה: $runtime בסך הכול, עומק מרבי $maxDepth, זמן תחתית $bottomTime';
   }
 
@@ -4985,13 +5174,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_consolidate_confirm => 'לשמור כצלילה אחת עם שני המחשבים';
 
   @override
-  String get diveLog_consolidate_error_generic => 'לא ניתן היה למזג את הצלילות. שום דבר לא השתנה.';
+  String get diveLog_consolidate_error_generic =>
+      'לא ניתן היה למזג את הצלילות. שום דבר לא השתנה.';
 
   @override
-  String get diveLog_consolidate_error_notOverlapping => 'הצלילות האלה אינן חופפות בזמן, ולכן לא ניתן למזג אותן כצלילה אחת.';
+  String get diveLog_consolidate_error_notOverlapping =>
+      'הצלילות האלה אינן חופפות בזמן, ולכן לא ניתן למזג אותן כצלילה אחת.';
 
   @override
-  String get diveLog_consolidate_error_sameComputer => 'הצלילות האלה מגיעות מאותו מחשב צלילה ולא ניתן למזג אותן בדרך זו.';
+  String get diveLog_consolidate_error_sameComputer =>
+      'הצלילות האלה מגיעות מאותו מחשב צלילה ולא ניתן למזג אותן בדרך זו.';
 
   @override
   String get diveLog_consolidate_selectPrimary => 'מחשב הצלילה הראשי';
@@ -5006,7 +5198,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_consolidate_undone => 'המיזוג בוטל';
 
   @override
-  String get diveLog_computerSheet_description => 'בחר מאיזה פרופיל מחשב לערוך.';
+  String get diveLog_computerSheet_description =>
+      'בחר מאיזה פרופיל מחשב לערוך.';
 
   @override
   String get diveLog_computerSheet_title => 'בחירת פרופיל התחלתי';
@@ -5026,7 +5219,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_cylinderSac_noSac => 'SAC: --';
 
   @override
-  String get diveLog_cylinderSac_tooltip_aiData => 'שימוש בנתוני משדר AI לדיוק גבוה יותר';
+  String get diveLog_cylinderSac_tooltip_aiData =>
+      'שימוש בנתוני משדר AI לדיוק גבוה יותר';
 
   @override
   String get diveLog_cylinderSac_tooltip_basicData => 'חושב מלחצי התחלה/סיום';
@@ -5066,7 +5260,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveLog_deco_gf_chipRecordedAlgorithm(Object algorithm, Object low, Object high) {
+  String diveLog_deco_gf_chipRecordedAlgorithm(
+    Object algorithm,
+    Object low,
+    Object high,
+  ) {
     return '$algorithm · נותחה עם GF $low/$high';
   }
 
@@ -5076,7 +5274,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_gf_tooltipFromSettings => 'מחשב הצלילה הזה לא תיעד את מקדמי המדרון שלו, ולכן הצלילה מנותחת עם אלה שבהגדרות שלך.';
+  String get diveLog_deco_gf_tooltipFromSettings =>
+      'מחשב הצלילה הזה לא תיעד את מקדמי המדרון שלו, ולכן הצלילה מנותחת עם אלה שבהגדרות שלך.';
 
   @override
   String diveLog_deco_gf_tooltipRecordedAlgorithm(Object algorithm) {
@@ -5113,7 +5312,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_delete_cancel => 'ביטול';
 
   @override
-  String get diveLog_delete_confirm => 'פעולה זו אינה ניתנת לביטול. הצלילה וכל הנתונים המשויכים (פרופיל, בלונים, תצפיות) יימחקו לצמיתות.';
+  String get diveLog_delete_confirm =>
+      'פעולה זו אינה ניתנת לביטול. הצלילה וכל הנתונים המשויכים (פרופיל, בלונים, תצפיות) יימחקו לצמיתות.';
 
   @override
   String get diveLog_delete_delete => 'מחיקה';
@@ -5162,7 +5362,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_collapsed_atTimeInfo(Object timestamp, Object baseInfo) {
+  String diveLog_detail_collapsed_atTimeInfo(
+    Object timestamp,
+    Object baseInfo,
+  ) {
     return 'ב-$timestamp • $baseInfo';
   }
 
@@ -5177,7 +5380,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_collapsed_cnsMaxPpO2AtTime(Object cns, Object maxPpO2, Object timestamp, Object ppO2) {
+  String diveLog_detail_collapsed_cnsMaxPpO2AtTime(
+    Object cns,
+    Object maxPpO2,
+    Object timestamp,
+    Object ppO2,
+  ) {
     return 'CNS: $cns • Max ppO₂: $maxPpO2 • ב-$timestamp: $ppO2 בר';
   }
 
@@ -5384,7 +5592,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_section_weight => 'משקולות';
 
   @override
-  String get diveLog_detail_signatureDescription => 'הקש להוספת אימות מדריך לצלילת הכשרה זו';
+  String get diveLog_detail_signatureDescription =>
+      'הקש להוספת אימות מדריך לצלילת הכשרה זו';
 
   @override
   String get diveLog_detail_soloDive => 'צלילה יחידה או ללא שותפים רשומים';
@@ -5445,16 +5654,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_viewSite => 'הצגת אתר';
 
   @override
-  String get diveLog_diveMode_ccrDescription => 'ריברידר מעגל סגור עם ppO₂ קבוע';
+  String get diveLog_diveMode_ccrDescription =>
+      'ריברידר מעגל סגור עם ppO₂ קבוע';
 
   @override
-  String get diveLog_diveMode_gaugeDescription => 'עומק וזמן בלבד; ללא מעקב גז או דקומפרסיה';
+  String get diveLog_diveMode_gaugeDescription =>
+      'עומק וזמן בלבד; ללא מעקב גז או דקומפרסיה';
 
   @override
-  String get diveLog_diveMode_ocDescription => 'סקובה מעגל פתוח סטנדרטי עם בלונים';
+  String get diveLog_diveMode_ocDescription =>
+      'סקובה מעגל פתוח סטנדרטי עם בלונים';
 
   @override
-  String get diveLog_diveMode_scrDescription => 'ריברידר חצי סגור עם ppO₂ משתנה';
+  String get diveLog_diveMode_scrDescription =>
+      'ריברידר חצי סגור עם ppO₂ משתנה';
 
   @override
   String get diveLog_diveMode_title => 'מצב צלילה';
@@ -5534,7 +5747,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_edit_equipmentHint => 'הקש \"שימוש בסט\" או \"הוספה\" לבחירת ציוד';
+  String get diveLog_edit_equipmentHint =>
+      'הקש \"שימוש בסט\" או \"הוספה\" לבחירת ציוד';
 
   @override
   String diveLog_edit_errorLoadingDiveTypes(Object error) {
@@ -5569,13 +5783,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_invite_buddies => 'הוספת שותפים';
 
   @override
-  String get diveLog_edit_invite_conditions => 'הוספת תנאים - מים, ראות, מזג אוויר';
+  String get diveLog_edit_invite_conditions =>
+      'הוספת תנאים - מים, ראות, מזג אוויר';
 
   @override
-  String get diveLog_edit_invite_experience => 'הוספת דירוג, תצפיות, הערות או תגיות';
+  String get diveLog_edit_invite_experience =>
+      'הוספת דירוג, תצפיות, הערות או תגיות';
 
   @override
-  String get diveLog_edit_invite_gasGear => 'הוספת גז וציוד - מצב, מיכלים, ציוד, משקולות';
+  String get diveLog_edit_invite_gasGear =>
+      'הוספת גז וציוד - מצב, מיכלים, ציוד, משקולות';
 
   @override
   String get diveLog_edit_invite_trip => 'הוספת טיול או מרכז צלילה';
@@ -5671,7 +5888,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_planned_switch => 'צלילה מתוכננת';
 
   @override
-  String get diveLog_edit_planned_switchSubtitle => 'ממתין לנתוני מחשב הצלילה. אין מספר צלילה עד שהיא נרשמת.';
+  String get diveLog_edit_planned_switchSubtitle =>
+      'ממתין לנתוני מחשב הצלילה. אין מספר צלילה עד שהיא נרשמת.';
 
   @override
   String get diveLog_edit_profile_draw => 'שרטוט פרופיל';
@@ -5749,7 +5967,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_saveAsSetDialog_description => 'תיאור (אופציונלי)';
 
   @override
-  String get diveLog_edit_saveAsSetDialog_descriptionHint => 'למשל, ציוד קל למים חמים';
+  String get diveLog_edit_saveAsSetDialog_descriptionHint =>
+      'למשל, ציוד קל למים חמים';
 
   @override
   String diveLog_edit_saveAsSetDialog_error(Object error) {
@@ -5856,7 +6075,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_edit_snackbar_noProfileData => 'אין נתוני פרופיל צלילה זמינים';
+  String get diveLog_edit_snackbar_noProfileData =>
+      'אין נתוני פרופיל צלילה זמינים';
 
   @override
   String diveLog_edit_snackbar_runtimeCalculated(Object minutes) {
@@ -5864,16 +6084,20 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_edit_snackbar_unableToCalculateAvgDepth => 'לא ניתן לחשב עומק ממוצע מהפרופיל';
+  String get diveLog_edit_snackbar_unableToCalculateAvgDepth =>
+      'לא ניתן לחשב עומק ממוצע מהפרופיל';
 
   @override
-  String get diveLog_edit_snackbar_unableToCalculate => 'לא ניתן לחשב זמן תחתית מהפרופיל';
+  String get diveLog_edit_snackbar_unableToCalculate =>
+      'לא ניתן לחשב זמן תחתית מהפרופיל';
 
   @override
-  String get diveLog_edit_snackbar_unableToCalculateMaxDepth => 'לא ניתן לחשב עומק מרבי מהפרופיל';
+  String get diveLog_edit_snackbar_unableToCalculateMaxDepth =>
+      'לא ניתן לחשב עומק מרבי מהפרופיל';
 
   @override
-  String get diveLog_edit_snackbar_unableToCalculateRuntime => 'לא ניתן לחשב זמן ריצה מהפרופיל';
+  String get diveLog_edit_snackbar_unableToCalculateRuntime =>
+      'לא ניתן לחשב זמן ריצה מהפרופיל';
 
   @override
   String diveLog_edit_summary_items(int count) {
@@ -5920,7 +6144,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_surfacePressureDefault => '1013';
 
   @override
-  String get diveLog_edit_surfacePressureHint => 'סטנדרטי: 1013 mbar בגובה פני הים';
+  String get diveLog_edit_surfacePressureHint =>
+      'סטנדרטי: 1013 mbar בגובה פני הים';
 
   @override
   String get diveLog_edit_tankCard_done => 'סיום';
@@ -5943,7 +6168,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_tankCard_volume => 'נפח';
 
   @override
-  String get diveLog_edit_tooltip_calculateFromProfile => 'חישוב מפרופיל הצלילה';
+  String get diveLog_edit_tooltip_calculateFromProfile =>
+      'חישוב מפרופיל הצלילה';
 
   @override
   String get diveLog_edit_tooltip_clearDiveCenter => 'ניקוי מועדון צלילה';
@@ -6001,7 +6227,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_edit_weightPreset_applied => 'קבוע המשקולות הוחל. התאם את הרשומות לפי הצורך.';
+  String get diveLog_edit_weightPreset_applied =>
+      'קבוע המשקולות הוחל. התאם את הרשומות לפי הצורך.';
 
   @override
   String get diveLog_edit_weightPreset_saveTitle => 'שמירת המשקולות כקבוע';
@@ -6032,7 +6259,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_empty_logFirstDive => 'רשום את הצלילה הראשונה';
 
   @override
-  String get diveLog_empty_subtitle => 'הקש על הכפתור למטה לרישום הצלילה הראשונה';
+  String get diveLog_empty_subtitle =>
+      'הקש על הכפתור למטה לרישום הצלילה הראשונה';
 
   @override
   String get diveLog_empty_title => 'אין צלילות רשומות עדיין';
@@ -6058,7 +6286,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_equipmentPicker_removeToAdd => 'הסר פריטים להוספת אחרים';
 
   @override
-  String get diveLog_equipmentPicker_spareHint => 'שנה את סטטוס הפריט לפעיל כדי להוסיף אותו לצלילה';
+  String get diveLog_equipmentPicker_spareHint =>
+      'שנה את סטטוס הפריט לפעיל כדי להוסיף אותו לצלילה';
 
   @override
   String get diveLog_equipmentPicker_title => 'הוספת ציוד';
@@ -6119,13 +6348,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_exportImage_saveToFiles => 'שמירה לקבצים';
 
   @override
-  String get diveLog_exportImage_saveToFilesDescription => 'בחר מיקום לשמירת הקובץ';
+  String get diveLog_exportImage_saveToFilesDescription =>
+      'בחר מיקום לשמירת הקובץ';
 
   @override
   String get diveLog_exportImage_saveToPhotos => 'שמירה לתמונות';
 
   @override
-  String get diveLog_exportImage_saveToPhotosDescription => 'שמירת תמונה לספריית התמונות';
+  String get diveLog_exportImage_saveToPhotosDescription =>
+      'שמירת תמונה לספריית התמונות';
 
   @override
   String get diveLog_exportImage_savedToFiles => 'התמונה נשמרה';
@@ -6137,7 +6368,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_exportImage_share => 'שיתוף';
 
   @override
-  String get diveLog_exportImage_shareDescription => 'שיתוף דרך אפליקציות אחרות';
+  String get diveLog_exportImage_shareDescription =>
+      'שיתוף דרך אפליקציות אחרות';
 
   @override
   String get diveLog_exportImage_titleDetails => 'ייצוא תמונת פרטי צלילה';
@@ -6166,7 +6398,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_export_pageAsImage => 'עמוד כתמונה';
 
   @override
-  String get diveLog_export_pageAsImageDescription => 'צילום מסך של כל פרטי הצלילה';
+  String get diveLog_export_pageAsImageDescription =>
+      'צילום מסך של כל פרטי הצלילה';
 
   @override
   String get diveLog_export_pdfDescription => 'דף יומן צלילה להדפסה';
@@ -6178,7 +6411,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_export_profileAsImage => 'פרופיל כתמונה';
 
   @override
-  String get diveLog_export_profileAsImageDescription => 'צילום מסך של גרף פרופיל הצלילה';
+  String get diveLog_export_profileAsImageDescription =>
+      'צילום מסך של גרף פרופיל הצלילה';
 
   @override
   String get diveLog_export_success => 'הצלילה יוצאה בהצלחה';
@@ -6480,10 +6714,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'לחצי מיכלים';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport => 'שמירת שכבות העל בתצוגה';
+  String get diveLog_chartOption_metricsFollowViewport =>
+      'שמירת שכבות העל בתצוגה';
 
   @override
-  String get diveLog_chartOption_tooltipFollowsCursor => 'הרמז הצף עוקב אחר הסמן';
+  String get diveLog_chartOption_tooltipFollowsCursor =>
+      'הרמז הצף עוקב אחר הסמן';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(משוער)';
@@ -6500,10 +6736,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_listPage_bottomSheet_importFromComputer => 'ייבוא ממחשב צלילה';
+  String get diveLog_listPage_bottomSheet_importFromComputer =>
+      'ייבוא ממחשב צלילה';
 
   @override
-  String get diveLog_listPage_bottomSheet_scanPaperLog => 'סריקת יומן צלילה מנייר';
+  String get diveLog_listPage_bottomSheet_scanPaperLog =>
+      'סריקת יומן צלילה מנייר';
 
   @override
   String get ocrImport_scanPage_processing => 'קורא את העמוד...';
@@ -6515,13 +6753,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get ocrImport_scanPage_takePhoto => 'צילום תמונה';
 
   @override
-  String get ocrImport_scanPage_nothingRead => 'לא ניתן היה לקרוא הרבה מהעמוד הזה - השדות נותרו ריקים';
+  String get ocrImport_scanPage_nothingRead =>
+      'לא ניתן היה לקרוא הרבה מהעמוד הזה - השדות נותרו ריקים';
 
   @override
-  String get ocrImport_scanPage_engineMissing => 'זיהוי טקסט אינו זמין. התקינו את Tesseract כדי לסרוק יומנים מנייר (לדוגמה: sudo apt install tesseract-ocr).';
+  String get ocrImport_scanPage_engineMissing =>
+      'זיהוי טקסט אינו זמין. התקינו את Tesseract כדי לסרוק יומנים מנייר (לדוגמה: sudo apt install tesseract-ocr).';
 
   @override
-  String get ocrImport_editPage_photoAttachFailed => 'הצלילה נשמרה, אך צירוף העמוד הסרוק נכשל';
+  String get ocrImport_editPage_photoAttachFailed =>
+      'הצלילה נשמרה, אך צירוף העמוד הסרוק נכשל';
 
   @override
   String get diveLog_listPage_bottomSheet_logManually => 'רישום צלילה ידנית';
@@ -6530,7 +6771,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_listPage_bottomSheet_planDive => 'תכנון צלילה';
 
   @override
-  String get diveLog_listPage_bottomSheet_planDiveSubtitle => 'מלאו את הפרטים עכשיו והוסיפו את נתוני מחשב הצלילה מאוחר יותר';
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'מלאו את הפרטים עכשיו והוסיפו את נתוני מחשב הצלילה מאוחר יותר';
 
   @override
   String get diveLog_listPage_fab_addDive => 'הוספת צלילה';
@@ -6761,10 +7003,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_typeTags_typesLabel => 'סוגי אתר';
 
   @override
-  String get diveSites_edit_invite_accessSafety => 'הוספת גישה, חניה, עגינה או סכנות';
+  String get diveSites_edit_invite_accessSafety =>
+      'הוספת גישה, חניה, עגינה או סכנות';
 
   @override
-  String get diveSites_edit_invite_diveInfo => 'הוספת טווח עומק, רמת קושי או דירוג';
+  String get diveSites_edit_invite_diveInfo =>
+      'הוספת טווח עומק, רמת קושי או דירוג';
 
   @override
   String get diveSites_edit_invite_lifeNotes => 'הוספת מינים, הערות או שיתוף';
@@ -6782,7 +7026,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get forms_cancel => 'ביטול';
 
   @override
-  String get forms_discard_body => 'יש לך שינויים שלא נשמרו. אם תצא עכשיו הם יאבדו.';
+  String get forms_discard_body =>
+      'יש לך שינויים שלא נשמרו. אם תצא עכשיו הם יאבדו.';
 
   @override
   String get forms_discard_discard => 'ביטול שינויים';
@@ -6811,7 +7056,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_manage_setupAssistant => 'אשף ההגדרה';
 
   @override
-  String get settings_manage_setupAssistant_subtitle => 'עיון מחדש ביחידות, במראה ובאפשרויות הגיבוי';
+  String get settings_manage_setupAssistant_subtitle =>
+      'עיון מחדש ביחידות, במראה ובאפשרויות הגיבוי';
 
   @override
   String get setup_backup_cloudCopy => 'אחסון גיבויים בענן';
@@ -6850,22 +7096,26 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_common_skip => 'דילוג';
 
   @override
-  String get setup_existing_folder_subtitle => 'הפנו את Submersion לתיקייה שכבר מכילה ספרייה';
+  String get setup_existing_folder_subtitle =>
+      'הפנו את Submersion לתיקייה שכבר מכילה ספרייה';
 
   @override
   String get setup_existing_folder_title => 'פתיחת תיקייה קיימת';
 
   @override
-  String get setup_existing_restore_subtitle => 'בחרו קובץ גיבוי שיוצא מ-Submersion';
+  String get setup_existing_restore_subtitle =>
+      'בחרו קובץ גיבוי שיוצא מ-Submersion';
 
   @override
   String get setup_existing_restore_title => 'שחזור קובץ גיבוי';
 
   @override
-  String get setup_existing_subtitle => 'בחרו כיצד לטעון את ספריית Submersion הקיימת שלכם';
+  String get setup_existing_subtitle =>
+      'בחרו כיצד לטעון את ספריית Submersion הקיימת שלכם';
 
   @override
-  String get setup_existing_sync_subtitle => 'משכו את הספרייה שלכם מ-iCloud, מ-Dropbox או מ-S3';
+  String get setup_existing_sync_subtitle =>
+      'משכו את הספרייה שלכם מ-iCloud, מ-Dropbox או מ-S3';
 
   @override
   String get setup_existing_sync_title => 'חיבור סנכרון ענן';
@@ -6888,7 +7138,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_finish_feature_gear => 'מעקב אחר ציוד ומועדי טיפולים';
 
   @override
-  String get setup_finish_feature_import => 'ייבוא יומנים מקבצים ומאפליקציות אחרות';
+  String get setup_finish_feature_import =>
+      'ייבוא יומנים מקבצים ומאפליקציות אחרות';
 
   @override
   String get setup_finish_feature_sites => 'מיפוי אתרי הצלילה שלכם';
@@ -6906,7 +7157,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_finish_title => 'הכול מוכן';
 
   @override
-  String get setup_folder_notFound_message => 'התיקייה שנבחרה אינה מכילה מסד נתונים של Submersion.';
+  String get setup_folder_notFound_message =>
+      'התיקייה שנבחרה אינה מכילה מסד נתונים של Submersion.';
 
   @override
   String get setup_folder_notFound_title => 'אין ספרייה בתיקייה זו';
@@ -6930,7 +7182,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_profile_nameValidation => 'נא להזין את שמך';
 
   @override
-  String get setup_profile_subtitle => 'הזן את שמך כדי להתחיל. תוכל להוסיף פרטים נוספים מאוחר יותר.';
+  String get setup_profile_subtitle =>
+      'הזן את שמך כדי להתחיל. תוכל להוסיף פרטים נוספים מאוחר יותר.';
 
   @override
   String get setup_profile_title => 'צור את הפרופיל שלך';
@@ -6960,7 +7213,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_syncPull_continue => 'המשך';
 
   @override
-  String get setup_syncPull_incomplete_message => 'בחשבון זה קיימת ספריית Submersion שהעלאתה מעולם לא הושלמה. אפשרו למכשיר האחר לסיים את הסנכרון ונסו שוב.';
+  String get setup_syncPull_incomplete_message =>
+      'בחשבון זה קיימת ספריית Submersion שהעלאתה מעולם לא הושלמה. אפשרו למכשיר האחר לסיים את הסנכרון ונסו שוב.';
 
   @override
   String get setup_syncPull_incomplete_retry => 'בדיקה חוזרת';
@@ -6969,13 +7223,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_syncPull_incomplete_title => 'העלאת הספרייה לא הושלמה';
 
   @override
-  String get setup_syncPull_locked_message => 'הזינו את משפט הסיסמה של ההצפנה כדי לפתוח את הספרייה ולהוריד אותה למכשיר זה.';
+  String get setup_syncPull_locked_message =>
+      'הזינו את משפט הסיסמה של ההצפנה כדי לפתוח את הספרייה ולהוריד אותה למכשיר זה.';
 
   @override
   String get setup_syncPull_locked_title => 'הספרייה הזו מוצפנת';
 
   @override
-  String get setup_syncPull_noLibrary_message => 'לא נמצאה ספריית Submersion בחשבון זה. להתחיל מחדש? החיבור יישמר.';
+  String get setup_syncPull_noLibrary_message =>
+      'לא נמצאה ספריית Submersion בחשבון זה. להתחיל מחדש? החיבור יישמר.';
 
   @override
   String get setup_syncPull_noLibrary_title => 'לא נמצאה ספרייה';
@@ -7012,7 +7268,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_sync_libraryFound_keepFresh => 'התחלה חדשה';
 
   @override
-  String get setup_sync_libraryFound_message => 'חשבון זה כבר מכיל ספריית Submersion. לאמץ אותה במקום להתחיל מחדש?';
+  String get setup_sync_libraryFound_message =>
+      'חשבון זה כבר מכיל ספריית Submersion. לאמץ אותה במקום להתחיל מחדש?';
 
   @override
   String get setup_sync_libraryFound_title => 'נמצאה ספרייה קיימת';
@@ -7051,7 +7308,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_units_gasConsumption => 'צריכת גז';
 
   @override
-  String get setup_units_subtitle => 'בחרו כיצד יוצגו המדידות. ניתן לכוונן כל יחידה.';
+  String get setup_units_subtitle =>
+      'בחרו כיצד יוצגו המדידות. ניתן לכוונן כל יחידה.';
 
   @override
   String get setup_units_temperature => 'טמפרטורה';
@@ -7069,7 +7327,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_units_weight => 'משקל';
 
   @override
-  String get setup_welcome_existingData_subtitle => 'שחזרו גיבוי, חברו סנכרון ענן או פתחו תיקייה קיימת';
+  String get setup_welcome_existingData_subtitle =>
+      'שחזרו גיבוי, חברו סנכרון ענן או פתחו תיקייה קיימת';
 
   @override
   String get setup_welcome_existingData_title => 'יש לי כבר נתוני Submersion';
@@ -7078,7 +7337,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_welcome_skipSetup => 'דילוג על ההגדרה';
 
   @override
-  String get setup_welcome_startFresh_subtitle => 'צרו פרופיל צולל והגדירו את האפליקציה';
+  String get setup_welcome_startFresh_subtitle =>
+      'צרו פרופיל צולל והגדירו את האפליקציה';
 
   @override
   String get setup_welcome_startFresh_title => 'הגדרת פרופיל חדש';
@@ -7382,7 +7642,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_listPage_searchSuggestion => 'חיפוש לפי אתר, שותף או הערות';
+  String get diveLog_listPage_searchSuggestion =>
+      'חיפוש לפי אתר, שותף או הערות';
 
   @override
   String get diveLog_listPage_tooltip_back => 'חזרה';
@@ -7412,7 +7673,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_listPage_unknownSite => 'אתר לא ידוע';
 
   @override
-  String get diveLog_map_emptySubtitle => 'רשום צלילות עם נתוני מיקום כדי לראות את הפעילות שלך על המפה';
+  String get diveLog_map_emptySubtitle =>
+      'רשום צלילות עם נתוני מיקום כדי לראות את הפעילות שלך על המפה';
 
   @override
   String get diveLog_map_emptyTitle => 'אין פעילות צלילה להצגה';
@@ -7435,7 +7697,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_numbering_assignMissing => 'הקצאת מספרים חסרים';
 
   @override
-  String get diveLog_numbering_assignMissingDesc => 'מספור צלילות ללא מספר החל מאחרי הצלילה הממוספרת האחרונה';
+  String get diveLog_numbering_assignMissingDesc =>
+      'מספור צלילות ללא מספר החל מאחרי הצלילה הממוספרת האחרונה';
 
   @override
   String get diveLog_numbering_close => 'סגירה';
@@ -7455,13 +7718,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_numbering_renumberAll => 'מספור מחדש של כל הצלילות';
 
   @override
-  String get diveLog_numbering_renumberAllDesc => 'הקצאת מספרים רציפים על פי תאריך/שעת הצלילה';
+  String get diveLog_numbering_renumberAllDesc =>
+      'הקצאת מספרים רציפים על פי תאריך/שעת הצלילה';
 
   @override
   String get diveLog_numbering_renumberDialog_cancel => 'ביטול';
 
   @override
-  String get diveLog_numbering_renumberDialog_content => 'פעולה זו תמספר מחדש את כל הצלילות ברצף לפי תאריך/שעת הכניסה. פעולה זו אינה ניתנת לביטול.';
+  String get diveLog_numbering_renumberDialog_content =>
+      'פעולה זו תמספר מחדש את כל הצלילות ברצף לפי תאריך/שעת הכניסה. פעולה זו אינה ניתנת לביטול.';
 
   @override
   String get diveLog_numbering_renumberDialog_renumber => 'מספור מחדש';
@@ -7470,7 +7735,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_numbering_renumberDialog_startFrom => 'התחל ממספר';
 
   @override
-  String get diveLog_numbering_renumberDialog_title => 'מספור מחדש של כל הצלילות';
+  String get diveLog_numbering_renumberDialog_title =>
+      'מספור מחדש של כל הצלילות';
 
   @override
   String get diveLog_numbering_snackbar_assigned => 'מספרי צלילה חסרים הוקצו';
@@ -7544,7 +7810,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_o2tox_semantics_criticalWarning => 'אזהרת רעילות חמצן קריטית';
+  String get diveLog_o2tox_semantics_criticalWarning =>
+      'אזהרת רעילות חמצן קריטית';
 
   @override
   String diveLog_o2tox_semantics_otu(Object value, Object percent) {
@@ -7841,7 +8108,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_selection_tooltip_selectAll => 'בחר הכל';
 
   @override
-  String get diveLog_selection_tooltip_selectDateRange => 'בחירה לפי טווח תאריכים';
+  String get diveLog_selection_tooltip_selectDateRange =>
+      'בחירה לפי טווח תאריכים';
 
   @override
   String get diveLog_sighting_add => 'הוסף';
@@ -7869,7 +8137,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_sitePicker_sortedByDiveDistance => 'ממוין לפי מרחק מהצלילה הזו';
+  String get diveLog_sitePicker_sortedByDiveDistance =>
+      'ממוין לפי מרחק מהצלילה הזו';
 
   @override
   String diveLog_sitePicker_distanceMeters(Object distance) {
@@ -8228,7 +8497,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sources_splitDialog_title => 'לפצל לצלילה נפרדת?';
 
   @override
-  String get diveLog_sources_splitDialog_body => 'הפרופיל, האירועים והמיכלים של מקור זה יועברו לצלילה חדשה. רישום היומן נשאר בצלילה זו.';
+  String get diveLog_sources_splitDialog_body =>
+      'הפרופיל, האירועים והמיכלים של מקור זה יועברו לצלילה חדשה. רישום היומן נשאר בצלילה זו.';
 
   @override
   String get diveLog_sources_splitDialog_confirm => 'פצל';
@@ -8243,7 +8513,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sources_menu_separate => 'הפרדת צלילות ממוזגות';
 
   @override
-  String get diveLog_sources_separateDialog_title => 'להפריד את הצלילות הממוזגות?';
+  String get diveLog_sources_separateDialog_title =>
+      'להפריד את הצלילות הממוזגות?';
 
   @override
   String diveLog_sources_separateDialog_body(int count) {
@@ -8265,7 +8536,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_sources_separateFailed => 'לא ניתן היה להפריד את הצלילה הזו';
+  String get diveLog_sources_separateFailed =>
+      'לא ניתן היה להפריד את הצלילה הזו';
 
   @override
   String get divePlanner_action_addTank => 'הוסף מיכל';
@@ -8298,7 +8570,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_action_savePlan => 'שמור תכנית';
 
   @override
-  String get divePlanner_error_cannotConvert => 'לא ניתן להמיר: לתכנית יש אזהרות קריטיות';
+  String get divePlanner_error_cannotConvert =>
+      'לא ניתן להמיר: לתכנית יש אזהרות קריטיות';
 
   @override
   String get divePlanner_error_reserveExceedsTank => 'חורג מלחץ המיכל';
@@ -8315,7 +8588,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_field_bailoutGas => 'גז חילוץ';
 
   @override
-  String get divePlanner_field_bailoutGasHint => 'גז מעגל פתוח הנישא למקרה של תקלה במעגל';
+  String get divePlanner_field_bailoutGasHint =>
+      'גז מעגל פתוח הנישא למקרה של תקלה במעגל';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -8435,7 +8709,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'RMV factor';
 
   @override
-  String get divePlanner_gasOptions_problemSolvingMinutes => 'Problem solving time';
+  String get divePlanner_gasOptions_problemSolvingMinutes =>
+      'Problem solving time';
 
   @override
   String get divePlanner_gasOptions_ppO2Bottom => 'Bottom ppO₂';
@@ -8447,7 +8722,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_gasOptions_bestMixEnd => 'Best mix END';
 
   @override
-  String get divePlanner_gasOptions_o2Narcotic => 'Treat O₂ as narcotic for this plan';
+  String get divePlanner_gasOptions_o2Narcotic =>
+      'Treat O₂ as narcotic for this plan';
 
   @override
   String get divePlanner_label_status => 'סטטוס';
@@ -8474,7 +8750,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_savedTanks_manage => 'ניהול';
 
   @override
-  String get divePlanner_savedTanks_empty => 'אין עדיין מכלים שמורים. שמור מכל מתוכנית זו לשימוש חוזר בתוכניות אחרות.';
+  String get divePlanner_savedTanks_empty =>
+      'אין עדיין מכלים שמורים. שמור מכל מתוכנית זו לשימוש חוזר בתוכניות אחרות.';
 
   @override
   String get divePlanner_label_time => 'זמן';
@@ -8507,10 +8784,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_legend_safety => 'בטיחות';
 
   @override
-  String get divePlanner_message_addSegmentsForGas => 'הוסף קטעים כדי לראות תחזיות גז';
+  String get divePlanner_message_addSegmentsForGas =>
+      'הוסף קטעים כדי לראות תחזיות גז';
 
   @override
-  String get divePlanner_message_addSegmentsForProfile => 'הוסף קטעים כדי לראות את פרופיל הצלילה';
+  String get divePlanner_message_addSegmentsForProfile =>
+      'הוסף קטעים כדי לראות את פרופיל הצלילה';
 
   @override
   String get divePlanner_message_convertingPlan => 'ממיר תכנית לצלילה...';
@@ -8530,7 +8809,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_message_planSaved => 'תכנית נשמרה';
 
   @override
-  String get divePlanner_message_resetConfirmation => 'האם אתה בטוח שברצונך לאפס את התכנית?';
+  String get divePlanner_message_resetConfirmation =>
+      'האם אתה בטוח שברצונך לאפס את התכנית?';
 
   @override
   String divePlanner_semantics_criticalWarning(Object message) {
@@ -8538,17 +8818,30 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String divePlanner_semantics_decoStop(Object depth, Object duration, Object gasMix) {
+  String divePlanner_semantics_decoStop(
+    Object depth,
+    Object duration,
+    Object gasMix,
+  ) {
     return 'עצירת דקו ב-$depth למשך $duration על $gasMix';
   }
 
   @override
-  String divePlanner_semantics_gasConsumption(Object tankName, Object gasUsed, Object remaining, Object percent, Object warning) {
+  String divePlanner_semantics_gasConsumption(
+    Object tankName,
+    Object gasUsed,
+    Object remaining,
+    Object percent,
+    Object warning,
+  ) {
     return '$tankName: $gasUsed נוצל, $remaining נותר, $percent נוצל$warning';
   }
 
   @override
-  String divePlanner_semantics_profileChart(Object maxDepth, Object totalMinutes) {
+  String divePlanner_semantics_profileChart(
+    Object maxDepth,
+    Object totalMinutes,
+  ) {
     return 'תכנית צלילה, עומק מקסימלי $maxDepth, זמן כולל $totalMinutes דקות';
   }
 
@@ -8567,7 +8860,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_tab_results => 'תוצאות';
 
   @override
-  String get divePlanner_warning_ascentRateHigh => 'קצב עלייה חורג מהמגבלה הבטוחה';
+  String get divePlanner_warning_ascentRateHigh =>
+      'קצב עלייה חורג מהמגבלה הבטוחה';
 
   @override
   String divePlanner_warning_ascentRateHighWithRate(Object rate) {
@@ -8677,7 +8971,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_detail_deleteDialog_confirm => 'מחק';
 
   @override
-  String get diveSites_detail_deleteDialog_content => 'האם אתה בטוח שברצונך למחוק אתר זה? פעולה זו אינה ניתנת לביטול.';
+  String get diveSites_detail_deleteDialog_content =>
+      'האם אתה בטוח שברצונך למחוק אתר זה? פעולה זו אינה ניתנת לביטול.';
 
   @override
   String get diveSites_detail_deleteDialog_title => 'מחק אתר';
@@ -8839,10 +9134,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveSites_detail_semantics_viewDivesAtSite => 'צפה בצלילות באתר זה';
+  String get diveSites_detail_semantics_viewDivesAtSite =>
+      'צפה בצלילות באתר זה';
 
   @override
-  String get diveSites_detail_semantics_viewFullscreenMap => 'צפה במפה במסך מלא';
+  String get diveSites_detail_semantics_viewFullscreenMap =>
+      'צפה במפה במסך מלא';
 
   @override
   String get diveSites_detail_siteNotFound_body => 'אתר זה כבר לא קיים.';
@@ -8863,7 +9160,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_difficulty_technical => 'טכני';
 
   @override
-  String get diveSites_edit_access_accessNotes_hint => 'איך להגיע לאתר, נקודות כניסה/יציאה, גישה מהחוף/מסירה';
+  String get diveSites_edit_access_accessNotes_hint =>
+      'איך להגיע לאתר, נקודות כניסה/יציאה, גישה מהחוף/מסירה';
 
   @override
   String get diveSites_edit_access_accessNotes_label => 'הערות גישה';
@@ -8875,7 +9173,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_access_mooringNumber_label => 'מספר עגינה';
 
   @override
-  String get diveSites_edit_access_parkingInfo_hint => 'זמינות חניה, עלויות, טיפים';
+  String get diveSites_edit_access_parkingInfo_hint =>
+      'זמינות חניה, עלויות, טיפים';
 
   @override
   String get diveSites_edit_access_parkingInfo_label => 'מידע על חניה';
@@ -8887,7 +9186,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_access_exitMethod_label => 'שיטת יציאה';
 
   @override
-  String diveSites_edit_access_entrySuggestionPair(int count, String entry, String exit) {
+  String diveSites_edit_access_entrySuggestionPair(
+    int count,
+    String entry,
+    String exit,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -8898,7 +9201,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveSites_edit_access_entrySuggestionEntryOnly(int count, String entry) {
+  String diveSites_edit_access_entrySuggestionEntryOnly(
+    int count,
+    String entry,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -8915,7 +9221,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_detail_access_exitMethod => 'יציאה';
 
   @override
-  String get diveSites_edit_altitude_helperText => 'גובה האתר מעל פני הים (לצלילת גובה)';
+  String get diveSites_edit_altitude_helperText =>
+      'גובה האתר מעל פני הים (לצלילת גובה)';
 
   @override
   String get diveSites_edit_altitude_hint => 'לדוגמה, 2000';
@@ -8959,7 +9266,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_cancel => 'ביטול';
 
   @override
-  String get diveSites_edit_depth_helperText => 'מהנקודה הרדודה ביותר עד העמוקה ביותר';
+  String get diveSites_edit_depth_helperText =>
+      'מהנקודה הרדודה ביותר עד העמוקה ביותר';
 
   @override
   String get diveSites_edit_depth_maxHint => 'לדוגמה, 30';
@@ -8981,7 +9289,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_depth_separator => 'עד';
 
   @override
-  String get diveSites_edit_discardDialog_content => 'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לצאת?';
+  String get diveSites_edit_discardDialog_content =>
+      'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לצאת?';
 
   @override
   String get diveSites_edit_discardDialog_discard => 'מחק';
@@ -9042,7 +9351,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_gps_gettingLocation => 'מאתר...';
 
   @override
-  String get diveSites_edit_gps_helperText => 'בחרו שיטת מיקום או חפשו את הקואורדינטות כדי למלא אוטומטית מדינה, אזור, עיר וגוף מים';
+  String get diveSites_edit_gps_helperText =>
+      'בחרו שיטת מיקום או חפשו את הקואורדינטות כדי למלא אוטומטית מדינה, אזור, עיר וגוף מים';
 
   @override
   String get diveSites_edit_gps_latitude_hint => 'לדוגמה, 21.4225';
@@ -9066,19 +9376,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_gps_pickFromMap => 'בחר מהמפה';
 
   @override
-  String get diveSites_edit_gps_lookupFromCoordinates => 'חיפוש לפי קואורדינטות';
+  String get diveSites_edit_gps_lookupFromCoordinates =>
+      'חיפוש לפי קואורדינטות';
 
   @override
-  String get diveSites_edit_snackbar_lookupNothingFound => 'לא נמצאו פרטי מיקום לקואורדינטות אלה';
+  String get diveSites_edit_snackbar_lookupNothingFound =>
+      'לא נמצאו פרטי מיקום לקואורדינטות אלה';
 
   @override
-  String get diveSites_edit_snackbar_lookupFailed => 'חיפוש המיקום נכשל. בדקו את החיבור ונסו שוב.';
+  String get diveSites_edit_snackbar_lookupFailed =>
+      'חיפוש המיקום נכשל. בדקו את החיבור ונסו שוב.';
 
   @override
   String get diveSites_edit_lookupReplace_title => 'להחליף את פרטי המיקום?';
 
   @override
-  String get diveSites_edit_lookupReplace_body => 'החיפוש מצא ערכים שונים לשדות אלה:';
+  String get diveSites_edit_lookupReplace_body =>
+      'החיפוש מצא ערכים שונים לשדות אלה:';
 
   @override
   String get diveSites_edit_lookupReplace_replace => 'החלפה';
@@ -9093,7 +9407,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_hazards_helperText => 'רשום סכנות או שיקולי בטיחות';
 
   @override
-  String get diveSites_edit_hazards_hint => 'לדוגמה, זרמים חזקים, תנועת סירות, מדוזות, אלמוגים חדים';
+  String get diveSites_edit_hazards_hint =>
+      'לדוגמה, זרמים חזקים, תנועת סירות, מדוזות, אלמוגים חדים';
 
   @override
   String get diveSites_edit_hazards_label => 'סכנות';
@@ -9105,7 +9420,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_marineLife_empty => 'לא נוספו מינים צפויים';
 
   @override
-  String get diveSites_edit_marineLife_helperText => 'מינים שאתה מצפה לראות באתר זה';
+  String get diveSites_edit_marineLife_helperText =>
+      'מינים שאתה מצפה לראות באתר זה';
 
   @override
   String diveSites_edit_merge_confirmBody(int count) {
@@ -9116,18 +9432,25 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_merge_confirmTitle => 'מיזוג אתרי צלילה';
 
   @override
-  String get diveSites_edit_merge_fieldSourceCycleTooltip => 'השתמש בערך מהאתר הנבחר הבא';
+  String get diveSites_edit_merge_fieldSourceCycleTooltip =>
+      'השתמש בערך מהאתר הנבחר הבא';
 
   @override
-  String diveSites_edit_merge_fieldSourceLabel(Object siteName, int current, int total) {
+  String diveSites_edit_merge_fieldSourceLabel(
+    Object siteName,
+    int current,
+    int total,
+  ) {
     return 'מתוך $siteName ($current/$total)';
   }
 
   @override
-  String get diveSites_edit_merge_fieldSourceMenuTooltip => 'בחר ערך מהאתר הנבחר';
+  String get diveSites_edit_merge_fieldSourceMenuTooltip =>
+      'בחר ערך מהאתר הנבחר';
 
   @override
-  String get diveSites_edit_merge_marineLifeHelperText => 'משולב מכל האתרים שנבחרו';
+  String get diveSites_edit_merge_marineLifeHelperText =>
+      'משולב מכל האתרים שנבחרו';
 
   @override
   String diveSites_edit_merge_loadingErrorBody(Object error) {
@@ -9203,16 +9526,19 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveSites_edit_snackbar_locationSelectedFromMap => 'המיקום נבחר מהמפה';
+  String get diveSites_edit_snackbar_locationSelectedFromMap =>
+      'המיקום נבחר מהמפה';
 
   @override
   String get diveSites_edit_snackbar_locationSettings => 'הגדרות';
 
   @override
-  String get diveSites_edit_snackbar_locationUnavailableDesktop => 'לא ניתן לקבל מיקום. שירותי המיקום עשויים שלא להיות זמינים.';
+  String get diveSites_edit_snackbar_locationUnavailableDesktop =>
+      'לא ניתן לקבל מיקום. שירותי המיקום עשויים שלא להיות זמינים.';
 
   @override
-  String get diveSites_edit_snackbar_locationUnavailableMobile => 'לא ניתן לקבל מיקום. אנא בדוק הרשאות.';
+  String get diveSites_edit_snackbar_locationUnavailableMobile =>
+      'לא ניתן לקבל מיקום. אנא בדוק הרשאות.';
 
   @override
   String get diveSites_edit_snackbar_siteAdded => 'האתר נוסף';
@@ -9260,13 +9586,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_filter_difficulty_any => 'כלשהו';
 
   @override
-  String get diveSites_filter_option_hasCoordinates_subtitle => 'הצג רק אתרים עם מיקום GPS';
+  String get diveSites_filter_option_hasCoordinates_subtitle =>
+      'הצג רק אתרים עם מיקום GPS';
 
   @override
   String get diveSites_filter_option_hasCoordinates_title => 'יש קואורדינטות';
 
   @override
-  String get diveSites_filter_option_hasDives_subtitle => 'הצג רק אתרים עם צלילות רשומות';
+  String get diveSites_filter_option_hasDives_subtitle =>
+      'הצג רק אתרים עם צלילות רשומות';
 
   @override
   String get diveSites_filter_option_hasDives_title => 'יש צלילות';
@@ -9333,10 +9661,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveSites_import_empty_description => 'חפש אתרי צלילה ממאגר הנתונים שלנו\nשל יעדי צלילה פופולריים ברחבי העולם.';
+  String get diveSites_import_empty_description =>
+      'חפש אתרי צלילה ממאגר הנתונים שלנו\nשל יעדי צלילה פופולריים ברחבי העולם.';
 
   @override
-  String get diveSites_import_empty_hint => 'נסה לחפש לפי שם אתר, מדינה או אזור.';
+  String get diveSites_import_empty_hint =>
+      'נסה לחפש לפי שם אתר, מדינה או אזור.';
 
   @override
   String get diveSites_import_empty_title => 'חפש אתרי צלילה';
@@ -9389,7 +9719,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_import_search_clearTooltip => 'נקה חיפוש';
 
   @override
-  String get diveSites_import_search_hint => 'חפש אתרי צלילה (לדוגמה, \"Blue Hole\", \"תאילנד\")';
+  String get diveSites_import_search_hint =>
+      'חפש אתרי צלילה (לדוגמה, \"Blue Hole\", \"תאילנד\")';
 
   @override
   String diveSites_import_section_importFromDatabase(Object count) {
@@ -9522,7 +9853,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_list_emptyFiltered_clearAll => 'נקה את כל המסננים';
 
   @override
-  String get diveSites_list_emptyFiltered_subtitle => 'נסה לשנות או לנקות את המסננים';
+  String get diveSites_list_emptyFiltered_subtitle =>
+      'נסה לשנות או לנקות את המסננים';
 
   @override
   String get diveSites_list_emptyFiltered_title => 'אין אתרים התואמים למסננים';
@@ -9534,7 +9866,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_list_empty_import => 'ייבא';
 
   @override
-  String get diveSites_list_empty_subtitle => 'הוסף אתרי צלילה כדי לעקוב אחר המיקומים האהובים עליך';
+  String get diveSites_list_empty_subtitle =>
+      'הוסף אתרי צלילה כדי לעקוב אחר המיקומים האהובים עליך';
 
   @override
   String get diveSites_list_empty_title => 'אין עדיין אתרי צלילה';
@@ -9554,7 +9887,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_list_menu_select => 'בחירת אתרים';
 
   @override
-  String get diveSites_list_menu_fillLocationDetails => 'השלמת פרטי מיקום חסרים';
+  String get diveSites_list_menu_fillLocationDetails =>
+      'השלמת פרטי מיקום חסרים';
 
   @override
   String get diveSites_backfill_confirm_title => 'להשלים פרטי מיקום חסרים?';
@@ -9580,7 +9914,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_backfill_confirm_start => 'התחלה';
 
   @override
-  String get diveSites_backfill_nothingToFill => 'לכל האתרים עם קואורדינטות כבר יש פרטי מיקום.';
+  String get diveSites_backfill_nothingToFill =>
+      'לכל האתרים עם קואורדינטות כבר יש פרטי מיקום.';
 
   @override
   String get diveSites_backfill_progress_title => 'משלים פרטי מיקום';
@@ -9599,7 +9934,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveSites_backfill_offline => 'חיפוש המיקום אינו זמין. בדקו את החיבור ונסו שוב.';
+  String get diveSites_backfill_offline =>
+      'חיפוש המיקום אינו זמין. בדקו את החיבור ונסו שוב.';
 
   @override
   String get diveSites_list_menu_refreshPlaceNames => 'עדכון שמות המקומות';
@@ -9608,7 +9944,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_refresh_confirm_title => 'לעדכן את שמות המקומות?';
 
   @override
-  String diveSites_refresh_confirm_body(int count, String language, int minutes) {
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -9716,13 +10056,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_locationPicker_fab_tooltip => 'השתמש במיקום שלי';
 
   @override
-  String get diveSites_locationPicker_instruction_locationSelected => 'המיקום נבחר';
+  String get diveSites_locationPicker_instruction_locationSelected =>
+      'המיקום נבחר';
 
   @override
   String get diveSites_locationPicker_instruction_lookingUp => 'מחפש מיקום...';
 
   @override
-  String get diveSites_locationPicker_instruction_tapToSelect => 'הקש על המפה כדי לבחור מיקום';
+  String get diveSites_locationPicker_instruction_tapToSelect =>
+      'הקש על המפה כדי לבחור מיקום';
 
   @override
   String get diveSites_locationPicker_label_latitude => 'קו רוחב';
@@ -9731,7 +10073,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_locationPicker_label_longitude => 'קו אורך';
 
   @override
-  String diveSites_locationPicker_semantics_coordinates(Object latitude, Object longitude) {
+  String diveSites_locationPicker_semantics_coordinates(
+    Object latitude,
+    Object longitude,
+  ) {
     return 'קואורדינטות נבחרות: קו רוחב $latitude, קו אורך $longitude';
   }
 
@@ -9739,7 +10084,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_locationPicker_semantics_lookingUp => 'מחפש מיקום';
 
   @override
-  String get diveSites_locationPicker_semantics_map => 'מפה אינטראקטיבית לבחירת מיקום אתר צלילה. הקש על המפה כדי לבחור מיקום.';
+  String get diveSites_locationPicker_semantics_map =>
+      'מפה אינטראקטיבית לבחירת מיקום אתר צלילה. הקש על המפה כדי לבחור מיקום.';
 
   @override
   String diveSites_mapContent_error_loadingDiveSites(Object error) {
@@ -9753,7 +10099,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_map_builtInSites_add => 'הוסף לאתרים שלי';
 
   @override
-  String get diveSites_map_builtInSites_addError => 'לא ניתן להוסיף את האתר. נסה שוב.';
+  String get diveSites_map_builtInSites_addError =>
+      'לא ניתן להוסיף את האתר. נסה שוב.';
 
   @override
   String get diveSites_map_builtInSites_added => 'נוסף לאתרים שלך';
@@ -9771,7 +10118,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_map_builtInSites_show => 'הצג אתרים מובנים';
 
   @override
-  String get diveSites_map_empty_description => 'הוסף קואורדינטות לאתרי הצלילה שלך כדי לראות אותם על המפה';
+  String get diveSites_map_empty_description =>
+      'הוסף קואורדינטות לאתרי הצלילה שלך כדי לראות אותם על המפה';
 
   @override
   String get diveSites_map_empty_title => 'אין אתרים עם קואורדינטות';
@@ -9826,7 +10174,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveSites_summary_header_subtitle => 'בחר אתר מהרשימה כדי לצפות בפרטים';
+  String get diveSites_summary_header_subtitle =>
+      'בחר אתר מהרשימה כדי לצפות בפרטים';
 
   @override
   String get diveSites_summary_header_title => 'אתרי צלילה';
@@ -9975,7 +10324,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveTypes_addDialog_nameValidation => 'נא להזין שם';
 
   @override
-  String get diveTypes_addDialog_shortNameHelper => 'מוצג בכותרת פרטי הצלילה כשאין הרבה מקום';
+  String get diveTypes_addDialog_shortNameHelper =>
+      'מוצג בכותרת פרטי הצלילה כשאין הרבה מקום';
 
   @override
   String get diveTypes_addDialog_shortNameHint => 'לדוגמה: ח.ש';
@@ -10016,7 +10366,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveTypes_deleteTooltip => 'מחק סוג צלילה';
 
   @override
-  String get diveTypes_editDialog_builtInNameHelper => 'לא ניתן לשנות שמות מובנים';
+  String get diveTypes_editDialog_builtInNameHelper =>
+      'לא ניתן לשנות שמות מובנים';
 
   @override
   String get diveTypes_editDialog_saveButton => 'שמירה';
@@ -10028,13 +10379,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveTypes_showInHeaderLabel => 'כותרת';
 
   @override
-  String get diveTypes_showInHeaderTooltip => 'הצג את התג של סוג זה בכותרת פרטי הצלילה';
+  String get diveTypes_showInHeaderTooltip =>
+      'הצג את התג של סוג זה בכותרת פרטי הצלילה';
 
   @override
   String get diveTypes_showInListLabel => 'רשימה';
 
   @override
-  String get diveTypes_showInListTooltip => 'הצג את התג של סוג זה ברשימת הצלילות';
+  String get diveTypes_showInListTooltip =>
+      'הצג את התג של סוג זה ברשימת הצלילות';
 
   @override
   String diveTypes_snackbar_added(Object name) {
@@ -10075,10 +10428,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divelogsImport_fetch_button => 'הורדת היומן';
 
   @override
-  String get divelogsImport_fetch_certificationsUnavailable => 'לא ניתן היה להוריד את ההסמכות, והן לא ייובאו.';
+  String get divelogsImport_fetch_certificationsUnavailable =>
+      'לא ניתן היה להוריד את ההסמכות, והן לא ייובאו.';
 
   @override
-  String get divelogsImport_fetch_empty => 'ביומן divelogs.de שלך אין מה לייבא.';
+  String get divelogsImport_fetch_empty =>
+      'ביומן divelogs.de שלך אין מה לייבא.';
 
   @override
   String get divelogsImport_fetch_failedTitle => 'לא ניתן להוריד את היומן שלך';
@@ -10110,13 +10465,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get divelogsImport_fetch_gearUnavailable => 'לא ניתן היה להוריד את הציוד; הצלילות ייובאו ללא קישורים לציוד.';
+  String get divelogsImport_fetch_gearUnavailable =>
+      'לא ניתן היה להוריד את הציוד; הצלילות ייובאו ללא קישורים לציוד.';
 
   @override
   String get divelogsImport_fetch_includePhotos => 'הכללת תמונות';
 
   @override
-  String get divelogsImport_fetch_includePhotosHint => 'התמונות מורדות במהלך הייבוא לתיקייה שתבחרו.';
+  String get divelogsImport_fetch_includePhotosHint =>
+      'התמונות מורדות במהלך הייבוא לתיקייה שתבחרו.';
 
   @override
   String divelogsImport_fetch_listingPhotos(int current, int total) {
@@ -10138,7 +10495,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divelogsImport_fetch_retry => 'נסה שוב';
 
   @override
-  String get divelogsImport_fetch_sessionExpired => 'ההפעלה שלך ב-divelogs.de פגה. חזרו אחורה והתחברו שוב.';
+  String get divelogsImport_fetch_sessionExpired =>
+      'ההפעלה שלך ב-divelogs.de פגה. חזרו אחורה והתחברו שוב.';
 
   @override
   String divelogsImport_fetch_skippedDives(int count) {
@@ -10152,13 +10510,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get divelogsImport_signIn_badCredentials => 'divelogs.de דחה את שם המשתמש או הסיסמה.';
+  String get divelogsImport_signIn_badCredentials =>
+      'divelogs.de דחה את שם המשתמש או הסיסמה.';
 
   @override
   String get divelogsImport_signIn_button => 'התחברות';
 
   @override
-  String get divelogsImport_signIn_description => 'התחברו עם חשבון divelogs.de שלך כדי לייבא את היומן שלך. הסיסמה שלך לעולם אינה נשמרת; רק ההפעלה שנוצרת ממנה נשמרת במטמון.';
+  String get divelogsImport_signIn_description =>
+      'התחברו עם חשבון divelogs.de שלך כדי לייבא את היומן שלך. הסיסמה שלך לעולם אינה נשמרת; רק ההפעלה שנוצרת ממנה נשמרת במטמון.';
 
   @override
   String get divelogsImport_signIn_passwordLabel => 'סיסמה';
@@ -10181,10 +10541,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divelogsImport_signIn_title => 'התחברות ל-divelogs.de';
 
   @override
-  String get divelogsImport_signIn_unexpected => 'divelogs.de שלח תגובה לא צפויה. נסו שוב מאוחר יותר.';
+  String get divelogsImport_signIn_unexpected =>
+      'divelogs.de שלח תגובה לא צפויה. נסו שוב מאוחר יותר.';
 
   @override
-  String get divelogsImport_signIn_unreachable => 'לא ניתן להתחבר ל-divelogs.de. בדקו את החיבור ונסו שוב.';
+  String get divelogsImport_signIn_unreachable =>
+      'לא ניתן להתחבר ל-divelogs.de. בדקו את החיבור ונסו שוב.';
 
   @override
   String get divelogsImport_signIn_usernameLabel => 'שם משתמש';
@@ -10326,7 +10688,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divers_edit_clearInsuranceExpiryTooltip => 'נקה תאריך תפוגת ביטוח';
 
   @override
-  String get divers_edit_clearMedicalClearanceTooltip => 'נקה תאריך אישור רפואי';
+  String get divers_edit_clearMedicalClearanceTooltip =>
+      'נקה תאריך אישור רפואי';
 
   @override
   String get divers_edit_contactNameLabel => 'שם איש קשר';
@@ -10338,7 +10701,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divers_edit_discardButton => 'מחיקה';
 
   @override
-  String get divers_edit_discardDialogContent => 'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לבטל אותם?';
+  String get divers_edit_discardDialogContent =>
+      'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לבטל אותם?';
 
   @override
   String get divers_edit_discardDialogTitle => 'לבטל שינויים?';
@@ -10378,13 +10742,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divers_edit_expiryDateTitle => 'תאריך תפוגה';
 
   @override
-  String get divers_edit_insuranceEmergencyPhoneHelper => 'מוצג ראשון בכרטיס החירום שלך.';
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'מוצג ראשון בכרטיס החירום שלך.';
 
   @override
-  String get divers_edit_insuranceEmergencyPhoneHint => 'לדוגמה, +1 919 684 9111';
+  String get divers_edit_insuranceEmergencyPhoneHint =>
+      'לדוגמה, +1 919 684 9111';
 
   @override
-  String get divers_edit_insuranceEmergencyPhoneLabel => 'מספר סיוע חירום 24 שעות';
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      'מספר סיוע חירום 24 שעות';
 
   @override
   String get divers_edit_insurancePhoneLabel => 'מספר משרד חברת הביטוח';
@@ -10462,10 +10829,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divers_edit_secondaryContactTitle => 'איש קשר משני';
 
   @override
-  String get divers_edit_selectInsuranceExpiryTooltip => 'בחר תאריך תפוגת ביטוח';
+  String get divers_edit_selectInsuranceExpiryTooltip =>
+      'בחר תאריך תפוגת ביטוח';
 
   @override
-  String get divers_edit_selectMedicalClearanceTooltip => 'בחר תאריך אישור רפואי';
+  String get divers_edit_selectMedicalClearanceTooltip =>
+      'בחר תאריך אישור רפואי';
 
   @override
   String get divers_edit_updateButton => 'עדכן צולל';
@@ -10485,7 +10854,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get divers_list_emptySubtitle => 'הוסף פרופילי צוללים כדי לעקוב אחר יומני צלילה למספר אנשים';
+  String get divers_list_emptySubtitle =>
+      'הוסף פרופילי צוללים כדי לעקוב אחר יומני צלילה למספר אנשים';
 
   @override
   String get divers_list_emptyTitle => 'עדיין אין צוללים';
@@ -10679,10 +11049,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_certificationLevel_cmas4StarDiver => 'צוללן כוכב 4';
 
   @override
-  String get enum_certificationLevel_cmas3StarDiverAssistantInstructor => 'צוללן כוכב 3 - עוזר מדריך';
+  String get enum_certificationLevel_cmas3StarDiverAssistantInstructor =>
+      'צוללן כוכב 3 - עוזר מדריך';
 
   @override
-  String get enum_certificationLevel_cmas4StarDiverAssistantInstructor => 'צוללן כוכב 4 - עוזר מדריך';
+  String get enum_certificationLevel_cmas4StarDiverAssistantInstructor =>
+      'צוללן כוכב 4 - עוזר מדריך';
 
   @override
   String get enum_certificationLevel_cmas1StarInstructor => 'מדריך כוכב 1';
@@ -10709,13 +11081,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_certificationLevel_bsacFirstClassDiver => 'First Class Diver';
 
   @override
-  String get enum_certificationLevel_bsacOpenWaterInstructor => 'Open Water Instructor';
+  String get enum_certificationLevel_bsacOpenWaterInstructor =>
+      'Open Water Instructor';
 
   @override
-  String get enum_certificationLevel_bsacAdvancedInstructor => 'Advanced Instructor';
+  String get enum_certificationLevel_bsacAdvancedInstructor =>
+      'Advanced Instructor';
 
   @override
-  String get enum_certificationLevel_bsacNationalInstructor => 'National Instructor';
+  String get enum_certificationLevel_bsacNationalInstructor =>
+      'National Instructor';
 
   @override
   String get enum_certificationLevel_gueFundamentals => 'Fundamentals';
@@ -11039,25 +11414,29 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_pdfTemplate_detailed => 'מפורט';
 
   @override
-  String get enum_pdfTemplate_detailed_description => 'מידע מלא על הצלילה עם הערות ודירוגים';
+  String get enum_pdfTemplate_detailed_description =>
+      'מידע מלא על הצלילה עם הערות ודירוגים';
 
   @override
   String get enum_pdfTemplate_nauiStyle => 'סגנון NAUI';
 
   @override
-  String get enum_pdfTemplate_nauiStyle_description => 'פריסה בהתאם לפורמט יומן NAUI';
+  String get enum_pdfTemplate_nauiStyle_description =>
+      'פריסה בהתאם לפורמט יומן NAUI';
 
   @override
   String get enum_pdfTemplate_padiStyle => 'סגנון PADI';
 
   @override
-  String get enum_pdfTemplate_padiStyle_description => 'פריסה בהתאם לפורמט יומן PADI';
+  String get enum_pdfTemplate_padiStyle_description =>
+      'פריסה בהתאם לפורמט יומן PADI';
 
   @override
   String get enum_pdfTemplate_simple => 'פשוט';
 
   @override
-  String get enum_pdfTemplate_simple_description => 'פורמט טבלה קומפקטי, צלילות רבות בעמוד';
+  String get enum_pdfTemplate_simple_description =>
+      'פורמט טבלה קומפקטי, צלילות רבות בעמוד';
 
   @override
   String get enum_profileEvent_alert => 'התראה';
@@ -11559,7 +11938,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_service_trackO2Clean => 'מעקב אחר ניקוי O2';
 
   @override
-  String get passport_service_trackFailed => 'לא ניתן היה להתחיל מעקב אחר ניקוי O2. נסו שוב.';
+  String get passport_service_trackFailed =>
+      'לא ניתן היה להתחיל מעקב אחר ניקוי O2. נסו שוב.';
 
   @override
   String passport_service_lastDone(String date) {
@@ -11648,7 +12028,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get passport_tag_stale => 'התג נכתב לפני הטיפול או שינוי המפרט האחרון. יש להדפיסו מחדש.';
+  String get passport_tag_stale =>
+      'התג נכתב לפני הטיפול או שינוי המפרט האחרון. יש להדפיסו מחדש.';
 
   @override
   String get passport_tag_printLabel => 'הדפסת תווית';
@@ -11660,7 +12041,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_tag_qrSemantics => 'קוד QR של הדרכון';
 
   @override
-  String get passport_tag_printFailed => 'לא ניתן היה ליצור את התוויות. נסו שוב.';
+  String get passport_tag_printFailed =>
+      'לא ניתן היה ליצור את התוויות. נסו שוב.';
 
   @override
   String get passport_tag_linkExisting => 'קישור תג קיים';
@@ -11710,57 +12092,60 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_logFill_notes => 'הערות';
 
   @override
-  String get passport_logFill_invalidMix => 'O2 ו-He חייבים להיות בין 0 ל-100 וסכומם עד 100';
+  String get passport_logFill_invalidMix =>
+      'O2 ו-He חייבים להיות בין 0 ל-100 וסכומם עד 100';
 
   @override
-  String get passport_logFill_saveFailed => 'לא ניתן היה לשמור את המילוי. נסו שוב.';
+  String get passport_logFill_saveFailed =>
+      'לא ניתן היה לשמור את המילוי. נסו שוב.';
 
   @override
-  String get pdf_unknownSite => 'Unknown Site';
+  String get pdf_unknownSite => 'אתר לא ידוע';
 
   @override
-  String get pdf_signaturePlaceholder => '[Signature]';
+  String get pdf_signaturePlaceholder => '[חתימה]';
 
   @override
-  String get pdf_signerBuddy => 'Buddy';
+  String get pdf_signerBuddy => 'שותף';
 
   @override
-  String get pdf_signerInstructor => 'Instructor';
+  String get pdf_signerInstructor => 'מדריך';
 
   @override
-  String get pdf_officialStamp => 'Official Stamp';
+  String get pdf_officialStamp => 'חותמת רשמית';
 
   @override
-  String get pdf_certifications => 'Certifications';
+  String get pdf_certifications => 'הסמכות';
 
   @override
   String pdf_cardNumber(String number) {
-    return 'Card #: $number';
+    return 'מספר כרטיס: $number';
   }
 
   @override
   String pdf_certIssued(String date) {
-    return 'Issued: $date';
+    return 'הונפק: $date';
   }
 
   @override
   String pdf_certExpires(String date) {
-    return 'Expires: $date';
+    return 'תפוגה: $date';
   }
 
   @override
-  String get pdf_cardFront => 'Front';
+  String get pdf_cardFront => 'קדמי';
 
   @override
-  String get pdf_cardBack => 'Back';
+  String get pdf_cardBack => 'אחורי';
 
   @override
   String pdf_coverDiveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count Dives',
-      one: '$count Dive',
+      other: '$count צלילות',
+      two: '$count צלילות',
+      one: 'צלילה אחת',
     );
     return '$_temp0';
   }
@@ -11770,165 +12155,166 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dives',
-      one: '$count dive',
+      other: '$count צלילות',
+      two: '$count צלילות',
+      one: 'צלילה אחת',
     );
     return '$_temp0';
   }
 
   @override
   String pdf_generatedOn(String dateTime) {
-    return 'Generated on $dateTime';
+    return 'נוצר ב-$dateTime';
   }
 
   @override
   String pdf_generated(String dateTime) {
-    return 'Generated $dateTime';
+    return 'נוצר $dateTime';
   }
 
   @override
-  String get pdf_noDivesToSummarize => 'No dives to summarize';
+  String get pdf_noDivesToSummarize => 'אין צלילות לסיכום';
 
   @override
-  String get pdf_noDivesToDisplay => 'No dives to display';
+  String get pdf_noDivesToDisplay => 'אין צלילות להצגה';
 
   @override
-  String get pdf_summary => 'Summary';
+  String get pdf_summary => 'סיכום';
 
   @override
-  String get pdf_totalDives => 'Total Dives';
+  String get pdf_totalDives => 'סה\"כ צלילות';
 
   @override
-  String get pdf_firstDive => 'First Dive';
+  String get pdf_firstDive => 'צלילה ראשונה';
 
   @override
-  String get pdf_lastDive => 'Last Dive';
+  String get pdf_lastDive => 'צלילה אחרונה';
 
   @override
-  String get pdf_totalDiveTime => 'Total Dive Time';
+  String get pdf_totalDiveTime => 'סה\"כ זמן צלילה';
 
   @override
-  String get pdf_deepestDive => 'Deepest Dive';
+  String get pdf_deepestDive => 'הצלילה העמוקה ביותר';
 
   @override
-  String get pdf_averageDepth => 'Average Depth';
+  String get pdf_averageDepth => 'עומק ממוצע';
 
   @override
-  String get pdf_uniqueSites => 'Unique Sites';
+  String get pdf_uniqueSites => 'אתרים שונים';
 
   @override
   String pdf_hoursMinutes(String hours, String minutes) {
-    return '${hours}h ${minutes}m';
+    return '$hours שע\' $minutes דק\'';
   }
 
   @override
   String pdf_minutesShort(String minutes) {
-    return '${minutes}m';
+    return '$minutes דק\'';
   }
 
   @override
   String pdf_minutes(String minutes) {
-    return '$minutes min';
+    return '$minutes דק\'';
   }
 
   @override
   String pdf_minutesCompact(String minutes) {
-    return '${minutes}min';
+    return '$minutes דק\'';
   }
 
   @override
-  String get pdf_diverProfile => 'Diver Profile';
+  String get pdf_diverProfile => 'פרופיל צולל';
 
   @override
-  String get pdf_name => 'Name';
+  String get pdf_name => 'שם';
 
   @override
-  String get pdf_email => 'Email';
+  String get pdf_email => 'דוא\"ל';
 
   @override
-  String get pdf_photo => 'Photo';
+  String get pdf_photo => 'תמונה';
 
   @override
   String pdf_depthProfileHeading(String depthUnit) {
-    return 'Depth Profile ($depthUnit vs min)';
+    return 'פרופיל עומק ($depthUnit מול דקות)';
   }
 
   @override
-  String get pdf_columnDate => 'Date';
+  String get pdf_columnDate => 'תאריך';
 
   @override
-  String get pdf_columnSite => 'Site';
+  String get pdf_columnSite => 'אתר';
 
   @override
-  String get pdf_columnDepth => 'Depth';
+  String get pdf_columnDepth => 'עומק';
 
   @override
-  String get pdf_columnTime => 'Time';
+  String get pdf_columnTime => 'זמן';
 
   @override
-  String get pdf_columnTemp => 'Temp';
+  String get pdf_columnTemp => 'טמפ\'';
 
   @override
   String pdf_pageOf(String page, String total) {
-    return 'Page $page of $total';
+    return 'עמוד $page מתוך $total';
   }
 
   @override
-  String get pdf_sectionProfile => 'Profile';
+  String get pdf_sectionProfile => 'פרופיל';
 
   @override
-  String get pdf_sectionCylinders => 'Cylinders';
+  String get pdf_sectionCylinders => 'בלונים';
 
   @override
-  String get pdf_sectionConditions => 'Conditions';
+  String get pdf_sectionConditions => 'תנאים';
 
   @override
-  String get pdf_sectionWeather => 'Weather';
+  String get pdf_sectionWeather => 'מזג אוויר';
 
   @override
-  String get pdf_sectionTeam => 'Team';
+  String get pdf_sectionTeam => 'צוות';
 
   @override
-  String get pdf_sectionEquipment => 'Equipment';
+  String get pdf_sectionEquipment => 'ציוד';
 
   @override
-  String get pdf_sectionTechnical => 'Technical';
+  String get pdf_sectionTechnical => 'טכני';
 
   @override
-  String get pdf_sectionMarineLife => 'Marine Life';
+  String get pdf_sectionMarineLife => 'חיים ימיים';
 
   @override
-  String get pdf_sectionNotes => 'Notes';
+  String get pdf_sectionNotes => 'הערות';
 
   @override
-  String get pdf_sectionAdditionalFields => 'Additional Fields';
+  String get pdf_sectionAdditionalFields => 'שדות נוספים';
 
   @override
-  String get pdf_sectionVerifiedBy => 'Verified By';
+  String get pdf_sectionVerifiedBy => 'אומת על ידי';
 
   @override
-  String get pdf_sectionVerification => 'Verification';
+  String get pdf_sectionVerification => 'אימות';
 
   @override
-  String get pdf_maxDepth => 'Max Depth';
+  String get pdf_maxDepth => 'עומק מרבי';
 
   @override
-  String get pdf_avgDepth => 'Avg Depth';
+  String get pdf_avgDepth => 'עומק ממוצע';
 
   @override
-  String get pdf_runtime => 'Runtime';
+  String get pdf_runtime => 'זמן ריצה';
 
   @override
-  String get pdf_bottomTime => 'Bottom Time';
+  String get pdf_bottomTime => 'זמן תחתית';
 
   @override
-  String get pdf_timeIn => 'In';
+  String get pdf_timeIn => 'כניסה';
 
   @override
-  String get pdf_timeOut => 'Out';
+  String get pdf_timeOut => 'יציאה';
 
   @override
-  String get pdf_surfaceInterval => 'Surface Interval';
+  String get pdf_surfaceInterval => 'מרווח פני שטח';
 
   @override
   String get pdf_sac => 'SAC';
@@ -11938,172 +12324,173 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String pdf_pressureUsed(String pressure) {
-    return '$pressure used';
+    return 'נוצלו $pressure';
   }
 
   @override
   String pdf_cylinderNumber(String number) {
-    return 'Cylinder $number';
+    return 'בלון $number';
   }
 
   @override
-  String get pdf_waterTemp => 'Water Temp';
+  String get pdf_waterTemp => 'טמפ\' מים';
 
   @override
-  String get pdf_airTemp => 'Air Temp';
+  String get pdf_airTemp => 'טמפ\' אוויר';
 
   @override
-  String get pdf_visibility => 'Visibility';
+  String get pdf_visibility => 'ראות';
 
   @override
-  String get pdf_current => 'Current';
+  String get pdf_current => 'זרם';
 
   @override
-  String get pdf_currentDirection => 'Current Dir';
+  String get pdf_currentDirection => 'כיוון זרם';
 
   @override
-  String get pdf_waterType => 'Water Type';
+  String get pdf_waterType => 'סוג מים';
 
   @override
-  String get pdf_entry => 'Entry';
+  String get pdf_entry => 'כניסה';
 
   @override
-  String get pdf_exit => 'Exit';
+  String get pdf_exit => 'יציאה';
 
   @override
-  String get pdf_altitude => 'Altitude';
+  String get pdf_altitude => 'גובה';
 
   @override
-  String get pdf_buddy => 'Buddy';
+  String get pdf_buddy => 'שותף';
 
   @override
-  String get pdf_diveMaster => 'Dive Master';
+  String get pdf_diveMaster => 'דייבמאסטר';
 
   @override
-  String get pdf_diveCenter => 'Dive Center';
+  String get pdf_diveCenter => 'מרכז צלילה';
 
   @override
-  String get pdf_trip => 'Trip';
+  String get pdf_trip => 'טיול';
 
   @override
-  String get pdf_weight => 'Weight';
+  String get pdf_weight => 'משקולות';
 
   @override
-  String get pdf_weightType => 'Weight Type';
+  String get pdf_weightType => 'סוג משקולות';
 
   @override
-  String pdf_equipmentSets(int count, String Set, String Sets) {
+  String pdf_equipmentSets(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Sets',
-      one: 'Set',
+      other: 'סטים',
+      two: 'סטים',
+      one: 'סט',
     );
     return '$_temp0';
   }
 
   @override
-  String get pdf_computer => 'Computer';
+  String get pdf_computer => 'מחשב';
 
   @override
-  String get pdf_diveMode => 'Dive Mode';
+  String get pdf_diveMode => 'מצב צלילה';
 
   @override
-  String get pdf_algorithm => 'Algorithm';
+  String get pdf_algorithm => 'אלגוריתם';
 
   @override
-  String get pdf_gradientFactors => 'Gradient Factors';
+  String get pdf_gradientFactors => 'מקדמי שיפוע';
 
   @override
-  String get pdf_setpoint => 'Setpoint';
+  String get pdf_setpoint => 'נקודת כוונון';
 
   @override
-  String get pdf_diveType => 'Dive Type';
+  String get pdf_diveType => 'סוג צלילה';
 
   @override
-  String get pdf_weatherConditions => 'Conditions';
+  String get pdf_weatherConditions => 'תנאים';
 
   @override
-  String get pdf_wind => 'Wind';
+  String get pdf_wind => 'רוח';
 
   @override
-  String get pdf_windDirection => 'Wind Dir';
+  String get pdf_windDirection => 'כיוון רוח';
 
   @override
-  String get pdf_cloud => 'Cloud';
+  String get pdf_cloud => 'עננות';
 
   @override
-  String get pdf_precipitation => 'Precipitation';
+  String get pdf_precipitation => 'משקעים';
 
   @override
-  String get pdf_humidity => 'Humidity';
+  String get pdf_humidity => 'לחות';
 
   @override
-  String get pdf_swell => 'Swell';
+  String get pdf_swell => 'גלים';
 
   @override
-  String get pdf_instructorSignature => 'Instructor Signature';
+  String get pdf_instructorSignature => 'חתימת מדריך';
 
   @override
-  String get pdf_buddySignature => 'Buddy Signature';
+  String get pdf_buddySignature => 'חתימת שותף';
 
   @override
-  String get pdf_diveLogBanner => 'DIVE LOG';
+  String get pdf_diveLogBanner => 'יומן צלילות';
 
   @override
-  String get pdf_loggedDives => 'Logged Dives';
+  String get pdf_loggedDives => 'צלילות מתועדות';
 
   @override
   String pdf_diveNumber(String number) {
-    return 'Dive #$number';
+    return 'צלילה #$number';
   }
 
   @override
-  String get pdf_trainingBadge => 'TRAINING';
+  String get pdf_trainingBadge => 'הכשרה';
 
   @override
-  String get pdf_gas => 'Gas';
+  String get pdf_gas => 'גז';
 
   @override
-  String get pdf_visibilityShort => 'Vis';
+  String get pdf_visibilityShort => 'ראות';
 
   @override
-  String get pdf_air => 'Air';
+  String get pdf_air => 'אוויר';
 
   @override
-  String get pdf_water => 'Water';
+  String get pdf_water => 'מים';
 
   @override
-  String get pdf_verifiedBy => 'Verified by';
+  String get pdf_verifiedBy => 'אומת על ידי';
 
   @override
-  String get pdf_nauiDiveLogBanner => 'NAUI DIVE LOG';
+  String get pdf_nauiDiveLogBanner => 'יומן צלילות NAUI';
 
   @override
-  String get pdf_statDives => 'Dives';
+  String get pdf_statDives => 'צלילות';
 
   @override
-  String get pdf_statHours => 'Hours';
+  String get pdf_statHours => 'שעות';
 
   @override
-  String get pdf_avgShort => 'Avg';
+  String get pdf_avgShort => 'ממוצע';
 
   @override
-  String get pdf_pressureStart => 'Start';
+  String get pdf_pressureStart => 'התחלה';
 
   @override
-  String get pdf_pressureEnd => 'End';
+  String get pdf_pressureEnd => 'סיום';
 
   @override
   String pdf_surfaceIntervalShort(String minutes) {
-    return 'SI: ${minutes}min';
+    return 'מרווח: $minutes דק\'';
   }
 
   @override
-  String get pdf_diveDataHeading => 'DIVE DATA';
+  String get pdf_diveDataHeading => 'נתוני צלילה';
 
   @override
-  String get pdf_verificationHeading => 'VERIFICATION';
+  String get pdf_verificationHeading => 'אימות';
 
   @override
   String pdf_labelValue(String label, String value) {
@@ -12111,69 +12498,69 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get pdf_resort => 'Resort';
+  String get pdf_resort => 'אתר נופש';
 
   @override
-  String get pdf_liveaboard => 'Liveaboard';
+  String get pdf_liveaboard => 'ספינת צלילה';
 
   @override
-  String get pdf_totalRuntime => 'Total Runtime';
+  String get pdf_totalRuntime => 'סה\"כ זמן ריצה';
 
   @override
   String pdf_tripDiveTitle(String number) {
-    return 'Dive $number';
+    return 'צלילה $number';
   }
 
   @override
-  String get pdf_date => 'Date';
+  String get pdf_date => 'תאריך';
 
   @override
-  String get pdf_site => 'Site';
+  String get pdf_site => 'אתר';
 
   @override
-  String get pdf_duration => 'Duration';
+  String get pdf_duration => 'משך';
 
   @override
-  String get pdf_notesLabel => 'Notes:';
+  String get pdf_notesLabel => 'הערות:';
 
   @override
-  String get pdf_trainingLog => 'Training Log';
+  String get pdf_trainingLog => 'יומן אימונים';
 
   @override
-  String get pdf_instructor => 'Instructor';
+  String get pdf_instructor => 'מדריך';
 
   @override
-  String get pdf_instructorNumber => 'Instructor #';
+  String get pdf_instructorNumber => 'מספר מדריך';
 
   @override
-  String get pdf_location => 'Location';
+  String get pdf_location => 'מיקום';
 
   @override
-  String get pdf_startDate => 'Start Date';
+  String get pdf_startDate => 'תאריך התחלה';
 
   @override
-  String get pdf_completionDate => 'Completion Date';
+  String get pdf_completionDate => 'תאריך השלמה';
 
   @override
-  String get pdf_status => 'Status';
+  String get pdf_status => 'סטטוס';
 
   @override
-  String get pdf_statusCompleted => 'Completed';
+  String get pdf_statusCompleted => 'הושלם';
 
   @override
-  String get pdf_statusInProgress => 'In Progress';
+  String get pdf_statusInProgress => 'בתהליך';
 
   @override
-  String get pdf_trainingDives => 'Training Dives';
+  String get pdf_trainingDives => 'צלילות אימון';
 
   @override
-  String get pdf_totalMinutes => 'Total Minutes';
+  String get pdf_totalMinutes => 'סה\"כ דקות';
 
   @override
-  String get pdf_courseNotes => 'Course Notes';
+  String get pdf_courseNotes => 'הערות קורס';
 
   @override
-  String get pdf_slateMax => 'max';
+  String get pdf_slateMax => 'מרבי';
 
   @override
   String equipment_bulkTags_confirmAdding(int count) {
@@ -12248,7 +12635,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_deleteDialog_confirm => 'מחק';
 
   @override
-  String get equipment_deleteDialog_content => 'האם אתה בטוח שברצונך למחוק ציוד זה? פעולה זו אינה ניתנת לביטול.';
+  String get equipment_deleteDialog_content =>
+      'האם אתה בטוח שברצונך למחוק ציוד זה? פעולה זו אינה ניתנת לביטול.';
 
   @override
   String get equipment_deleteDialog_title => 'מחק ציוד';
@@ -12283,7 +12671,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_detail_divesLabel => 'צלילות';
 
   @override
-  String get equipment_detail_divesSemanticLabel => 'צפה בצלילות המשתמשות בציוד זה';
+  String get equipment_detail_divesSemanticLabel =>
+      'צפה בצלילות המשתמשות בציוד זה';
 
   @override
   String equipment_detail_durationDays(Object days) {
@@ -12296,22 +12685,34 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String equipment_detail_durationYearsMonthsPluralPlural(Object years, Object months) {
+  String equipment_detail_durationYearsMonthsPluralPlural(
+    Object years,
+    Object months,
+  ) {
     return '$years שנים, $months חודשים';
   }
 
   @override
-  String equipment_detail_durationYearsMonthsPluralSingular(Object years, Object months) {
+  String equipment_detail_durationYearsMonthsPluralSingular(
+    Object years,
+    Object months,
+  ) {
     return '$years שנים, $months חודש';
   }
 
   @override
-  String equipment_detail_durationYearsMonthsSingularPlural(Object years, Object months) {
+  String equipment_detail_durationYearsMonthsSingularPlural(
+    Object years,
+    Object months,
+  ) {
     return '$years שנה, $months חודשים';
   }
 
   @override
-  String equipment_detail_durationYearsMonthsSingularSingular(Object years, Object months) {
+  String equipment_detail_durationYearsMonthsSingularSingular(
+    Object years,
+    Object months,
+  ) {
     return '$years שנה, $months חודש';
   }
 
@@ -12414,7 +12815,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceClocks_empty => 'אין שעוני טיפולים';
 
   @override
-  String get equipment_serviceClocks_unconfigured => 'לא הוגדר מרווח - הקישו כדי להגדיר';
+  String get equipment_serviceClocks_unconfigured =>
+      'לא הוגדר מרווח - הקישו כדי להגדיר';
 
   @override
   String equipment_serviceClocks_dueOn(String date) {
@@ -12440,7 +12842,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_divesUsedAndLeft(int used, int remaining, int total) {
+  String equipment_serviceClocks_divesUsedAndLeft(
+    int used,
+    int remaining,
+    int total,
+  ) {
     return '$used צלילות, נותרו $remaining מתוך $total';
   }
 
@@ -12451,7 +12857,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get cylinderConfigs_empty => 'אין עדיין תצורות';
 
   @override
-  String get cylinderConfigs_emptyBody => 'שמור פעם אחת מערך מדלל וביילאאוט, ואז החל אותו על כל צלילה.';
+  String get cylinderConfigs_emptyBody =>
+      'שמור פעם אחת מערך מדלל וביילאאוט, ואז החל אותו על כל צלילה.';
 
   @override
   String get cylinderConfigs_new => 'תצורה חדשה';
@@ -12490,7 +12897,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get cylinderConfigs_deleteTitle => 'למחוק את התצורה?';
 
   @override
-  String get cylinderConfigs_deleteBody => 'צלילות שהתצורה כבר הוחלה עליהן לא ישתנו.';
+  String get cylinderConfigs_deleteBody =>
+      'צלילות שהתצורה כבר הוחלה עליהן לא ישתנו.';
 
   @override
   String get cylinderConfigs_applyAction => 'החל תצורה';
@@ -12532,7 +12940,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_hoursUsedAndLeft(String used, String remaining, String total) {
+  String equipment_serviceClocks_hoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
     return '$used שעות, נותרו $remaining מתוך $total';
   }
 
@@ -12542,7 +12954,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_saltHoursUsedAndLeft(String used, String remaining, String total) {
+  String equipment_serviceClocks_saltHoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
     return '$used שעות במים מלוחים, נותרו $remaining מתוך $total';
   }
 
@@ -12552,7 +12968,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_coldDivesUsedAndLeft(String used, String remaining, String total) {
+  String equipment_serviceClocks_coldDivesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
     return '$used צלילות במים קרים, נותרו $remaining מתוך $total';
   }
 
@@ -12562,17 +12982,28 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_o2HoursUsedAndLeft(String used, String remaining, String total) {
+  String equipment_serviceClocks_o2HoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
     return '$used שעות בחמצן גבוה, נותרו $remaining מתוך $total';
   }
 
   @override
-  String equipment_serviceClocks_deepCyclesLeft(String remaining, String total) {
+  String equipment_serviceClocks_deepCyclesLeft(
+    String remaining,
+    String total,
+  ) {
     return 'נותרו $remaining מתוך $total צלילות עמוקות';
   }
 
   @override
-  String equipment_serviceClocks_deepCyclesUsedAndLeft(String used, String remaining, String total) {
+  String equipment_serviceClocks_deepCyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
     return '$used צלילות עמוקות, נותרו $remaining מתוך $total';
   }
 
@@ -12582,7 +13013,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_cyclesUsedAndLeft(String used, String remaining, String total) {
+  String equipment_serviceClocks_cyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
     return '$used מחזורי סוללה, נותרו $remaining מתוך $total';
   }
 
@@ -12608,16 +13043,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_scheduleDialog_intervalHours => 'מרווח (שעות)';
 
   @override
-  String get equipment_scheduleDialog_intervalSaltHours => 'מרווח (שעות במים מלוחים)';
+  String get equipment_scheduleDialog_intervalSaltHours =>
+      'מרווח (שעות במים מלוחים)';
 
   @override
-  String get equipment_scheduleDialog_intervalColdDives => 'מרווח (צלילות במים קרים)';
+  String get equipment_scheduleDialog_intervalColdDives =>
+      'מרווח (צלילות במים קרים)';
 
   @override
-  String get equipment_scheduleDialog_intervalO2Hours => 'מרווח (שעות בחמצן גבוה)';
+  String get equipment_scheduleDialog_intervalO2Hours =>
+      'מרווח (שעות בחמצן גבוה)';
 
   @override
-  String get equipment_scheduleDialog_intervalDeepCycles => 'מרווח (צלילות עמוקות)';
+  String get equipment_scheduleDialog_intervalDeepCycles =>
+      'מרווח (צלילות עמוקות)';
 
   @override
   String get equipment_scheduleDialog_intervalCycles => 'מרווח (מחזורי סוללה)';
@@ -12631,7 +13070,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_scheduleDialog_anchorDate => 'תאריך בסיס';
 
   @override
-  String get equipment_scheduleDialog_anchorHint => 'השעון סופר מתאריך זה עד שתתעד טיפול חדש יותר.';
+  String get equipment_scheduleDialog_anchorHint =>
+      'השעון סופר מתאריך זה עד שתתעד טיפול חדש יותר.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => 'ניקוי תאריך הבסיס';
@@ -12670,10 +13110,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceKinds_autoAttach => 'צירוף אוטומטי לציוד חדש';
 
   @override
-  String get equipment_serviceKinds_deleteConfirmTitle => 'למחוק את סוג הטיפול?';
+  String get equipment_serviceKinds_deleteConfirmTitle =>
+      'למחוק את סוג הטיפול?';
 
   @override
-  String get equipment_serviceKinds_deleteConfirmBody => 'שעונים המשתמשים בסוג טיפול זה יוסרו.';
+  String get equipment_serviceKinds_deleteConfirmBody =>
+      'שעונים המשתמשים בסוג טיפול זה יוסרו.';
 
   @override
   String get equipment_serviceKinds_delete => 'מחיקה';
@@ -12685,7 +13127,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceKinds_save => 'שמירה';
 
   @override
-  String get equipment_serviceKinds_emptyCustom => 'אין עדיין סוגי טיפול מותאמים אישית';
+  String get equipment_serviceKinds_emptyCustom =>
+      'אין עדיין סוגי טיפול מותאמים אישית';
 
   @override
   String equipment_serviceKinds_everyDays(int days) {
@@ -12804,7 +13247,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_notifications_tripLeadTitle => 'זמן התראה לטיפול לפני טיול';
+  String get settings_notifications_tripLeadTitle =>
+      'זמן התראה לטיפול לפני טיול';
 
   @override
   String settings_notifications_tripLeadDays(int days) {
@@ -12847,7 +13291,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_detail_tripsLabel => 'טיולים';
 
   @override
-  String get equipment_detail_tripsSemanticLabel => 'צפה בטיולים המשתמשים בציוד זה';
+  String get equipment_detail_tripsSemanticLabel =>
+      'צפה בטיולים המשתמשים בציוד זה';
 
   @override
   String get equipment_detail_wasInstalledInLabel => 'היה מותקן ב';
@@ -12877,10 +13322,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_edit_disableReminders => 'השבת תזכורות';
 
   @override
-  String get equipment_edit_disableRemindersSubtitle => 'כבה את כל ההתראות עבור פריט זה';
+  String get equipment_edit_disableRemindersSubtitle =>
+      'כבה את כל ההתראות עבור פריט זה';
 
   @override
-  String get equipment_edit_discardDialog_content => 'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לצאת?';
+  String get equipment_edit_discardDialog_content =>
+      'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לצאת?';
 
   @override
   String get equipment_edit_discardDialog_discard => 'מחק';
@@ -12904,7 +13351,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_edit_embeddedHeader_saveButton => 'שמור';
 
   @override
-  String get equipment_edit_embeddedHeader_saveTooltip_edit => 'שמור שינויי ציוד';
+  String get equipment_edit_embeddedHeader_saveTooltip_edit =>
+      'שמור שינויי ציוד';
 
   @override
   String get equipment_edit_embeddedHeader_saveTooltip_new => 'הוסף ציוד חדש';
@@ -12948,7 +13396,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_edit_notesLabel => 'הערות';
 
   @override
-  String get equipment_edit_notificationsSubtitle => 'עקוף הגדרות התראה גלובליות עבור פריט זה';
+  String get equipment_edit_notificationsSubtitle =>
+      'עקוף הגדרות התראה גלובליות עבור פריט זה';
 
   @override
   String get equipment_edit_notificationsTitle => 'התראות (אופציונלי)';
@@ -12963,7 +13412,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_edit_purchasePriceLabel => 'מחיר רכישה';
 
   @override
-  String get equipment_edit_remindMeBeforeServiceDue => 'הזכר לי לפני מועד הטיפול:';
+  String get equipment_edit_remindMeBeforeServiceDue =>
+      'הזכר לי לפני מועד הטיפול:';
 
   @override
   String equipment_edit_reminderDays(Object days) {
@@ -13045,7 +13495,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_edit_useCustomReminders => 'השתמש בתזכורות מותאמות';
 
   @override
-  String get equipment_edit_useCustomRemindersSubtitle => 'הגדר ימי תזכורת שונים לפריט זה';
+  String get equipment_edit_useCustomRemindersSubtitle =>
+      'הגדר ימי תזכורת שונים לפריט זה';
 
   @override
   String get equipment_fab_addEquipment => 'הוסף ציוד';
@@ -13054,22 +13505,27 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_fab_addSet => 'הוסף ערכה';
 
   @override
-  String get equipment_list_emptyState_addFirstButton => 'הוסף את הציוד הראשון שלך';
+  String get equipment_list_emptyState_addFirstButton =>
+      'הוסף את הציוד הראשון שלך';
 
   @override
-  String get equipment_list_emptyState_addPrompt => 'הוסף את ציוד הצלילה שלך כדי לעקוב אחר שימוש וטיפול';
+  String get equipment_list_emptyState_addPrompt =>
+      'הוסף את ציוד הצלילה שלך כדי לעקוב אחר שימוש וטיפול';
 
   @override
   String get equipment_list_emptyState_filterText_equipment => 'ציוד';
 
   @override
-  String get equipment_list_emptyState_filterText_serviceDue => 'ציוד הדורש טיפול';
+  String get equipment_list_emptyState_filterText_serviceDue =>
+      'ציוד הדורש טיפול';
 
   @override
-  String get equipment_list_emptyState_filterText_serviceDueSoon => 'ציוד הדורש טיפול בקרוב';
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'ציוד הדורש טיפול בקרוב';
 
   @override
-  String get equipment_list_emptyState_filterText_serviceOverdue => 'ציוד באיחור בטיפול';
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'ציוד באיחור בטיפול';
 
   @override
   String equipment_list_emptyState_filterText_status(Object status) {
@@ -13096,13 +13552,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_list_emptyState_noTypeMatch => 'אין ציוד בקטגוריה זו';
 
   @override
-  String get equipment_list_emptyState_serviceDueUpToDate => 'כל הציוד שלך מעודכן בטיפול!';
+  String get equipment_list_emptyState_serviceDueUpToDate =>
+      'כל הציוד שלך מעודכן בטיפול!';
 
   @override
-  String get equipment_list_emptyState_serviceNoneDueSoon => 'שום דבר לא דורש טיפול בקרוב.';
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'שום דבר לא דורש טיפול בקרוב.';
 
   @override
-  String get equipment_list_emptyState_serviceNoneOverdue => 'שום דבר לא באיחור בטיפול.';
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'שום דבר לא באיחור בטיפול.';
 
   @override
   String equipment_list_errorLoading(Object error) {
@@ -13222,7 +13681,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String equipment_retypeOther_becomesWithThickness(String type, String thickness) {
+  String equipment_retypeOther_becomesWithThickness(
+    String type,
+    String thickness,
+  ) {
     return 'סוג חדש: $type, $thickness';
   }
 
@@ -13230,7 +13692,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_retypeOther_deselectAll => 'בטל בחירת הכל';
 
   @override
-  String get equipment_retypeOther_empty => 'אין ציוד המסומן כאחר ששמו מציין את סוגו';
+  String get equipment_retypeOther_empty =>
+      'אין ציוד המסומן כאחר ששמו מציין את סוגו';
 
   @override
   String equipment_retypeOther_errorLoading(String error) {
@@ -13249,7 +13712,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get equipment_retypeOther_intro => 'פריטים אלה מסומנים כאחר, אך השם שלהם מציין מה הם. בטלו את הסימון של הפריטים השגויים.';
+  String get equipment_retypeOther_intro =>
+      'פריטים אלה מסומנים כאחר, אך השם שלהם מציין מה הם. בטלו את הסימון של הפריטים השגויים.';
 
   @override
   String equipment_retypeOther_retypedSnackbar(int count) {
@@ -13266,7 +13730,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_retypeOther_selectAll => 'בחר הכל';
 
   @override
-  String get equipment_retypeOther_subtitle => 'מתן הסוג ששמו מציין לציוד מיובא';
+  String get equipment_retypeOther_subtitle =>
+      'מתן הסוג ששמו מציין לציוד מיובא';
 
   @override
   String get equipment_retypeOther_title => 'תיקון ציוד שסומן כאחר';
@@ -13323,7 +13788,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceDialog_cancelButton => 'ביטול';
 
   @override
-  String get equipment_serviceDialog_clearNextServiceDateTooltip => 'נקה תאריך טיפול הבא';
+  String get equipment_serviceDialog_clearNextServiceDateTooltip =>
+      'נקה תאריך טיפול הבא';
 
   @override
   String get equipment_serviceDialog_costHint => '0.00';
@@ -13344,7 +13810,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceDialog_nextServiceDueLabel => 'הטיפול הבא';
 
   @override
-  String get equipment_serviceDialog_nextServiceDueSemanticLabel => 'בחר תאריך לטיפול הבא';
+  String get equipment_serviceDialog_nextServiceDueSemanticLabel =>
+      'בחר תאריך לטיפול הבא';
 
   @override
   String get equipment_serviceDialog_nextServiceNotSet => 'לא הוגדר';
@@ -13362,13 +13829,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceDialog_serviceDateLabel => 'תאריך טיפול';
 
   @override
-  String get equipment_serviceDialog_serviceDateSemanticLabel => 'בחר תאריך טיפול';
+  String get equipment_serviceDialog_serviceDateSemanticLabel =>
+      'בחר תאריך טיפול';
 
   @override
   String get equipment_serviceDialog_serviceTypeLabel => 'סוג טיפול';
 
   @override
-  String get equipment_serviceDialog_serviceTypeHelper => 'רישום מאפס את השעון של סוג טיפול זה';
+  String get equipment_serviceDialog_serviceTypeHelper =>
+      'רישום מאפס את השעון של סוג טיפול זה';
 
   @override
   String get equipment_serviceDialog_serviceTypeRequired => 'בחר סוג טיפול';
@@ -13383,7 +13852,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceDialog_manageServiceTypes => 'ניהול סוגי טיפול';
 
   @override
-  String get equipment_serviceDialog_filterToConfiguredTypes => 'הצג רק סוגי טיפול מוגדרים';
+  String get equipment_serviceDialog_filterToConfiguredTypes =>
+      'הצג רק סוגי טיפול מוגדרים';
 
   @override
   String get equipment_serviceDialog_categoryLabel => 'קטגוריה';
@@ -13504,7 +13974,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_service_showFewer => 'הצג פחות';
 
   @override
-  String get equipment_serviceKinds_defaultCategoryLabel => 'קטגוריית ברירת מחדל';
+  String get equipment_serviceKinds_defaultCategoryLabel =>
+      'קטגוריית ברירת מחדל';
 
   @override
   String get equipment_serviceKinds_defaultCategoryNone => 'ללא ברירת מחדל';
@@ -13513,10 +13984,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceKinds_defaultCostLabel => 'מחיר ברירת מחדל';
 
   @override
-  String get equipment_serviceKinds_defaultCostHint => 'השאירו ריק ללא ברירת מחדל';
+  String get equipment_serviceKinds_defaultCostHint =>
+      'השאירו ריק ללא ברירת מחדל';
 
   @override
-  String get equipment_scheduleDialog_defaultCostLabel => 'מחיר ברירת מחדל לפריט זה';
+  String get equipment_scheduleDialog_defaultCostLabel =>
+      'מחיר ברירת מחדל לפריט זה';
 
   @override
   String get equipment_serviceKinds_defaultCurrencyLabel => 'מטבע';
@@ -13528,7 +14001,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_export_maintenanceTitle => 'יומן תחזוקה';
 
   @override
-  String get transfer_export_maintenanceSubtitle => 'היסטוריית הטיפולים של כל הציוד כגיליון אלקטרוני';
+  String get transfer_export_maintenanceSubtitle =>
+      'היסטוריית הטיפולים של כל הציוד כגיליון אלקטרוני';
 
   @override
   String get settings_export_progress_maintenance => 'מייצא את יומן התחזוקה...';
@@ -13540,7 +14014,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_export_saved_maintenance => 'יומן התחזוקה נשמר';
 
   @override
-  String get equipment_serviceKinds_defaultCurrencyInherit => 'שימוש במטבע ברירת המחדל';
+  String get equipment_serviceKinds_defaultCurrencyInherit =>
+      'שימוש במטבע ברירת המחדל';
 
   @override
   String get equipment_scheduleDialog_defaultCurrencyLabel => 'מטבע לפריט זה';
@@ -13563,7 +14038,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_setDetail_deleteDialog_confirm => 'מחק';
 
   @override
-  String get equipment_setDetail_deleteDialog_content => 'האם אתה בטוח שברצונך למחוק סט ציוד זה? פריטי הציוד בסט לא יימחקו.';
+  String get equipment_setDetail_deleteDialog_content =>
+      'האם אתה בטוח שברצונך למחוק סט ציוד זה? פריטי הציוד בסט לא יימחקו.';
 
   @override
   String get equipment_setDetail_deleteDialog_title => 'מחק סט ציוד';
@@ -13601,7 +14077,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_setDetail_snackbar_deleted => 'סט הציוד נמחק';
 
   @override
-  String get equipment_setEdit_addEquipmentFirst => 'הוסף ציוד תחילה לפני יצירת סט.';
+  String get equipment_setEdit_addEquipmentFirst =>
+      'הוסף ציוד תחילה לפני יצירת סט.';
 
   @override
   String get equipment_setEdit_appBar_editTitle => 'ערוך סט';
@@ -13657,7 +14134,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_setEdit_saveTooltip_new => 'צור סט ציוד חדש';
 
   @override
-  String get equipment_setEdit_selectEquipmentSubtitle => 'בחר את פריטי הציוד לכלול בסט זה.';
+  String get equipment_setEdit_selectEquipmentSubtitle =>
+      'בחר את פריטי הציוד לכלול בסט זה.';
 
   @override
   String get equipment_setEdit_selectEquipmentTitle => 'בחר ציוד';
@@ -13677,10 +14155,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_sets_appBar_title => 'סטי ציוד';
 
   @override
-  String get equipment_sets_emptyState_createFirstButton => 'צור את הסט הראשון שלך';
+  String get equipment_sets_emptyState_createFirstButton =>
+      'צור את הסט הראשון שלך';
 
   @override
-  String get equipment_sets_emptyState_description => 'צור סטי ציוד כדי להוסיף במהירות שילובי ציוד נפוצים לצלילות שלך.';
+  String get equipment_sets_emptyState_description =>
+      'צור סטי ציוד כדי להוסיף במהירות שילובי ציוד נפוצים לצלילות שלך.';
 
   @override
   String get equipment_sets_emptyState_title => 'אין סטי ציוד';
@@ -13750,7 +14230,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get equipment_summary_selectPrompt => 'בחר ציוד מהרשימה כדי לצפות בפרטים';
+  String get equipment_summary_selectPrompt =>
+      'בחר ציוד מהרשימה כדי לצפות בפרטים';
 
   @override
   String get equipment_summary_serviceDue => 'טיפול נדרש';
@@ -13906,7 +14387,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_bestMix_targetDive => 'צלילת יעד';
 
   @override
-  String gasCalculators_consumption_ambientPressure(Object depth, Object depthSymbol) {
+  String gasCalculators_consumption_ambientPressure(
+    Object depth,
+    Object depthSymbol,
+  ) {
     return 'לחץ סביבה ב-$depth$depthSymbol';
   }
 
@@ -13920,7 +14404,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_consumption_diveTime => 'זמן צלילה';
 
   @override
-  String gasCalculators_consumption_exceedsTank(Object pressure, Object symbol) {
+  String gasCalculators_consumption_exceedsTank(
+    Object pressure,
+    Object symbol,
+  ) {
     return 'חורג מקיבולת המיכל ($pressure $symbol)';
   }
 
@@ -13934,7 +14421,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_consumption_remainingGas => 'גז נותר';
 
   @override
-  String gasCalculators_consumption_tankCapacity(Object tankSize, Object volumeSymbol, Object fillPressure, Object pressureSymbol) {
+  String gasCalculators_consumption_tankCapacity(
+    Object tankSize,
+    Object volumeSymbol,
+    Object fillPressure,
+    Object pressureSymbol,
+  ) {
     return 'קיבולת מיכל ($tankSize$volumeSymbol @ $fillPressure $pressureSymbol)';
   }
 
@@ -13956,13 +14448,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_mod_mode => 'מצב';
 
   @override
-  String get gasCalculators_mod_modeRecHint => 'ניטרוקס לצלילת פנאי: MOD ו-EAD, לפי 1 בר לכל 10 מ׳ כמו ביומן.';
+  String get gasCalculators_mod_modeRecHint =>
+      'ניטרוקס לצלילת פנאי: MOD ו-EAD, לפי 1 בר לכל 10 מ׳ כמו ביומן.';
 
   @override
-  String get gasCalculators_mod_modeOcTecHint => 'טרימיקס במעגל פתוח: MOD, עומק מינימלי, נרקוזיס וצפיפות גז.';
+  String get gasCalculators_mod_modeOcTecHint =>
+      'טרימיקס במעגל פתוח: MOD, עומק מינימלי, נרקוזיס וצפיפות גז.';
 
   @override
-  String get gasCalculators_mod_modeCcrTecHint => 'מעגל סגור: התערובת היא גז המדלל. ה-MOD הוא של המדלל בשטיפה; הלולאה שומרת על ה-setpoint.';
+  String get gasCalculators_mod_modeCcrTecHint =>
+      'מעגל סגור: התערובת היא גז המדלל. ה-MOD הוא של המדלל בשטיפה; הלולאה שומרת על ה-setpoint.';
 
   @override
   String get gasCalculators_mod_heliumHe => 'הליום (He)';
@@ -14080,7 +14575,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_mod_targetAboveMinDepth => 'עומק היעד רדוד מהעומק המינימלי: התערובת היפוקסית שם.';
+  String get gasCalculators_mod_targetAboveMinDepth =>
+      'עומק היעד רדוד מהעומק המינימלי: התערובת היפוקסית שם.';
 
   @override
   String gasCalculators_mod_hypoxic(String depth) {
@@ -14088,17 +14584,29 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String gasCalculators_mod_narcosisExceeded(String where, String depth, String limit) {
+  String gasCalculators_mod_narcosisExceeded(
+    String where,
+    String depth,
+    String limit,
+  ) {
     return '$where: עומק נרקוטי $depth חורג ממגבלת ה-END שלך, $limit.';
   }
 
   @override
-  String gasCalculators_mod_densityWarn(String where, String density, String limit) {
+  String gasCalculators_mod_densityWarn(
+    String where,
+    String density,
+    String limit,
+  ) {
     return '$where: צפיפות הגז $density ג/ל מעל $limit ג/ל המומלצים.';
   }
 
   @override
-  String gasCalculators_mod_densityCritical(String where, String density, String limit) {
+  String gasCalculators_mod_densityCritical(
+    String where,
+    String density,
+    String limit,
+  ) {
     return '$where: צפיפות הגז $density ג/ל מעל הגבול המוחלט של $limit ג/ל.';
   }
 
@@ -14118,10 +14626,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_mod_allClear => 'בתוך מגבלות ה-ppO₂, END והצפיפות שלך בעומקים שנבדקו.';
+  String get gasCalculators_mod_allClear =>
+      'בתוך מגבלות ה-ppO₂, END והצפיפות שלך בעומקים שנבדקו.';
 
   @override
-  String get gasCalculators_mod_aboutModesBody => 'ה-MOD הוא העומק שבו התערובת מגיעה למגבלת ה-ppO₂. הוא תמיד מעוגל כלפי מטה, לעולם לא כלפי מעלה.\n\nRec משתמש ב-1 בר לכל 10 מ׳, כמו היומן. OC Tec ו-CCR Tec לוקחים את לחץ הסביבה מסוג המים, כמו מחשבון צפיפות הגז, ולכן אותה תערובת עשויה להציג שם MOD רדוד מעט יותר.\n\nEAD מחשיב חנקן כנרקוטי, END חנקן וחמצן. מגבלת ה-END שלך, האם חמצן נחשב נרקוטי ומגבלות ה-ppO₂ ברירת המחדל מגיעים מפרופיל הצולל שלך.';
+  String get gasCalculators_mod_aboutModesBody =>
+      'ה-MOD הוא העומק שבו התערובת מגיעה למגבלת ה-ppO₂. הוא תמיד מעוגל כלפי מטה, לעולם לא כלפי מעלה.\n\nRec משתמש ב-1 בר לכל 10 מ׳, כמו היומן. OC Tec ו-CCR Tec לוקחים את לחץ הסביבה מסוג המים, כמו מחשבון צפיפות הגז, ולכן אותה תערובת עשויה להציג שם MOD רדוד מעט יותר.\n\nEAD מחשיב חנקן כנרקוטי, END חנקן וחמצן. מגבלת ה-END שלך, האם חמצן נחשב נרקוטי ומגבלות ה-ppO₂ ברירת המחדל מגיעים מפרופיל הצולל שלך.';
 
   @override
   String get gasCalculators_mod_modeRec => 'Rec';
@@ -14139,7 +14649,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_mod_maximumOperatingDepth => 'עומק הפעלה מקסימלי';
 
   @override
-  String gasCalculators_mod_semanticsLabel(String depth, String unit, String ppo2, String o2) {
+  String gasCalculators_mod_semanticsLabel(
+    String depth,
+    String unit,
+    String ppo2,
+    String o2,
+  ) {
     return 'עומק תפעול מרבי: $depth $unit ב-$ppo2 בר ppO2 עם $o2% חמצן';
   }
 
@@ -14147,13 +14662,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_mod_oxygenO2 => 'חמצן (O₂)';
 
   @override
-  String get gasCalculators_mod_ppO2Conservative => 'מגבלה שמרנית לזמן תחתית ממושך';
+  String get gasCalculators_mod_ppO2Conservative =>
+      'מגבלה שמרנית לזמן תחתית ממושך';
 
   @override
-  String get gasCalculators_mod_ppO2Maximum => 'מגבלה מקסימלית לעצירות דקומפרסיה בלבד';
+  String get gasCalculators_mod_ppO2Maximum =>
+      'מגבלה מקסימלית לעצירות דקומפרסיה בלבד';
 
   @override
-  String get gasCalculators_mod_ppO2Standard => 'מגבלת עבודה סטנדרטית לצלילה פנאי';
+  String get gasCalculators_mod_ppO2Standard =>
+      'מגבלת עבודה סטנדרטית לצלילה פנאי';
 
   @override
   String get gasCalculators_mnd_depthInput => 'עומק';
@@ -14168,7 +14686,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_mnd_hePercent => 'He %';
 
   @override
-  String get gasCalculators_mnd_infoContent => 'עומק נרקוטי מרבי (MND) הוא העומק הגדול ביותר שאליו אפשר לצלול לפני שהנרקוזה חורגת ממגבלת ה-END שלך. עומק נרקוטי שווה ערך (END) מציין את ההשפעה הנרקוטית של הגז שלך בעומק נתון.\n\nכאשר \'O2 נרקוטי\' מופעל, גם חמצן וגם חנקן תורמים לנרקוזה (שמרני יותר). כאשר מושבת, רק חנקן נחשב נרקוטי.';
+  String get gasCalculators_mnd_infoContent =>
+      'עומק נרקוטי מרבי (MND) הוא העומק הגדול ביותר שאליו אפשר לצלול לפני שהנרקוזה חורגת ממגבלת ה-END שלך. עומק נרקוטי שווה ערך (END) מציין את ההשפעה הנרקוטית של הגז שלך בעומק נתון.\n\nכאשר \'O2 נרקוטי\' מופעל, גם חמצן וגם חנקן תורמים לנרקוזה (שמרני יותר). כאשר מושבת, רק חנקן נחשב נרקוטי.';
 
   @override
   String get gasCalculators_mnd_infoTitle => 'אודות MND/END';
@@ -14264,24 +14783,33 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String gasCalculators_blender_stepFill(String gas, String pressure, String mix) {
+  String gasCalculators_blender_stepFill(
+    String gas,
+    String pressure,
+    String mix,
+  ) {
     return 'מלא $gas עד $pressure → $mix';
   }
 
   @override
-  String get gasCalculators_blender_error_targetPressure => 'לחץ היעד חייב להיות גבוה מלחץ ההתחלה.';
+  String get gasCalculators_blender_error_targetPressure =>
+      'לחץ היעד חייב להיות גבוה מלחץ ההתחלה.';
 
   @override
-  String get gasCalculators_blender_error_invalidMix => 'O₂ + He של תערובת לא יכול לעלות על 100%.';
+  String get gasCalculators_blender_error_invalidMix =>
+      'O₂ + He של תערובת לא יכול לעלות על 100%.';
 
   @override
-  String get gasCalculators_blender_error_identicalGases => 'שני גזי המילוי זהים — אין מה לערבב.';
+  String get gasCalculators_blender_error_identicalGases =>
+      'שני גזי המילוי זהים — אין מה לערבב.';
 
   @override
-  String get gasCalculators_blender_error_linearlyDependent => 'גזי המילוי האלה לא יכולים לייצר את תערובת היעד — יעד טרימיקס דורש מקור הליום.';
+  String get gasCalculators_blender_error_linearlyDependent =>
+      'גזי המילוי האלה לא יכולים לייצר את תערובת היעד — יעד טרימיקס דורש מקור הליום.';
 
   @override
-  String get gasCalculators_blender_error_negativeAmount => 'לא ניתן להשיג את התערובת הזו עם הגזים האלה — יידרש להוציא גז.';
+  String get gasCalculators_blender_error_negativeAmount =>
+      'לא ניתן להשיג את התערובת הזו עם הגזים האלה — יידרש להוציא גז.';
 
   @override
   String gasCalculators_blender_error_drainTo(String pressure) {
@@ -14289,25 +14817,31 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_blender_error_drainEmpty => 'הגז שבבלון אינו מתאים לתערובת הזו. רוקנו אותו לגמרי ואז מלאו.';
+  String get gasCalculators_blender_error_drainEmpty =>
+      'הגז שבבלון אינו מתאים לתערובת הזו. רוקנו אותו לגמרי ואז מלאו.';
 
   @override
-  String get gasCalculators_blender_error_cannotRemoveHelium => 'הבלון מכיל הליום והתערובת המבוקשת לא. מילוי נוסף מדלל את ההליום אך אינו מסלק אותו, ולכן יש לרוקן את הבלון תחילה.';
+  String get gasCalculators_blender_error_cannotRemoveHelium =>
+      'הבלון מכיל הליום והתערובת המבוקשת לא. מילוי נוסף מדלל את ההליום אך אינו מסלק אותו, ולכן יש לרוקן את הבלון תחילה.';
 
   @override
-  String get gasCalculators_blender_error_insufficientGases => 'יעד ללא הליום דורש שני גזי מילוי ללא הליום עם תכולת O₂ שונה.';
+  String get gasCalculators_blender_error_insufficientGases =>
+      'יעד ללא הליום דורש שני גזי מילוי ללא הליום עם תכולת O₂ שונה.';
 
   @override
-  String get gasCalculators_blender_error_targetNotReached => 'גזי המילוי האלה לא מגיעים בדיוק לתערובת היעד. בדקו את הגזים ואת סדרם.';
+  String get gasCalculators_blender_error_targetNotReached =>
+      'גזי המילוי האלה לא מגיעים בדיוק לתערובת היעד. בדקו את הגזים ואת סדרם.';
 
   @override
-  String get gasCalculators_blender_error_implausibleStartMix => 'הבלון תחת לחץ אך ללא חמצן וללא הליום, כלומר חנקן טהור. בדוק את התערובת שכבר נמצאת בבלון.';
+  String get gasCalculators_blender_error_implausibleStartMix =>
+      'הבלון תחת לחץ אך ללא חמצן וללא הליום, כלומר חנקן טהור. בדוק את התערובת שכבר נמצאת בבלון.';
 
   @override
   String get gasCalculators_blender_about => 'על הערבוב';
 
   @override
-  String get gasCalculators_blender_aboutBody => 'ערבוב בלחצים חלקיים לתערובת היעד. הוסף כל גז מילוי לפי הסדר עד ללחץ המוצג, ואז תן לבלון להתייצב. גזי המילוי וסדרם ניתנים להגדרה, כך שקביעת הגז האחרון ל-32/0 משלימה את המילוי ב-EAN32 במקום באוויר. תמיד נתח את התערובת הסופית לפני צלילה איתה.';
+  String get gasCalculators_blender_aboutBody =>
+      'ערבוב בלחצים חלקיים לתערובת היעד. הוסף כל גז מילוי לפי הסדר עד ללחץ המוצג, ואז תן לבלון להתייצב. גזי המילוי וסדרם ניתנים להגדרה, כך שקביעת הגז האחרון ל-32/0 משלימה את המילוי ב-EAN32 במקום באוויר. תמיד נתח את התערובת הסופית לפני צלילה איתה.';
 
   @override
   String get gasCalculators_blender_conditions => 'תנאי הערבוב';
@@ -14316,13 +14850,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_blender_fillTemp => 'טמפרטורת המילוי';
 
   @override
-  String get gasCalculators_blender_fillTempHelp => 'טמפרטורת הבלון בזמן המילוי. כל לחץ בסדר המילוי הוא הקריאה במד הלחץ בטמפרטורה הזו.';
+  String get gasCalculators_blender_fillTempHelp =>
+      'טמפרטורת הבלון בזמן המילוי. כל לחץ בסדר המילוי הוא הקריאה במד הלחץ בטמפרטורה הזו.';
 
   @override
   String get gasCalculators_blender_settledTemp => 'טמפרטורה לאחר התייצבות';
 
   @override
-  String get gasCalculators_blender_settledTempHelp => 'הטמפרטורה שאליה הבלון מגיע בסוף. לחץ היעד הוא מה שהוא מראה כשהוא שם.';
+  String get gasCalculators_blender_settledTempHelp =>
+      'הטמפרטורה שאליה הבלון מגיע בסוף. לחץ היעד הוא מה שהוא מראה כשהוא שם.';
 
   @override
   String get gasCalculators_blender_gasModel => 'מודל הגז';
@@ -14340,7 +14876,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_blender_modelRecommended => 'מומלץ';
 
   @override
-  String get gasCalculators_blender_modelHelp => 'גז ממשי (מקדם Z) הוא המדויק ביותר בלחצי בלון. גז אידיאלי תואם את רוב טבלאות הערבוב המפורסמות. ואן דר ואלס מוצע להשוואה מול תוכנות ערבוב אחרות וסוטה באחוזים בודדים בלחץ המילוי.';
+  String get gasCalculators_blender_modelHelp =>
+      'גז ממשי (מקדם Z) הוא המדויק ביותר בלחצי בלון. גז אידיאלי תואם את רוב טבלאות הערבוב המפורסמות. ואן דר ואלס מוצע להשוואה מול תוכנות ערבוב אחרות וסוטה באחוזים בודדים בלחץ המילוי.';
 
   @override
   String gasCalculators_blender_stepAdd(String gas) {
@@ -14388,10 +14925,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_blender_templateExists => 'התערובת הזו כבר שמורה.';
 
   @override
-  String get gasCalculators_blender_templateInvalid => '‏O₂ + He לא יכולים לעלות על 100%.';
+  String get gasCalculators_blender_templateInvalid =>
+      '‏O₂ + He לא יכולים לעלות על 100%.';
 
   @override
-  String get gasCalculators_blender_templateNeedsNumbers => 'הזן גם O₂ וגם He כמספרים.';
+  String get gasCalculators_blender_templateNeedsNumbers =>
+      'הזן גם O₂ וגם He כמספרים.';
 
   @override
   String gasCalculators_blender_templateLimit(int count) {
@@ -14399,7 +14938,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_blender_templateNone => 'אין עדיין תבניות. שמור תערובת יעד כדי להשתמש בה כאן שוב.';
+  String get gasCalculators_blender_templateNone =>
+      'אין עדיין תבניות. שמור תערובת יעד כדי להשתמש בה כאן שוב.';
 
   @override
   String gasCalculators_blender_templateDelete(String mix) {
@@ -14430,7 +14970,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_blender_currency => 'מטבע';
 
   @override
-  String get gasCalculators_blender_currencyFollowsUnits => 'בהתאם להגדרות > יחידות > מטבע ברירת מחדל';
+  String get gasCalculators_blender_currencyFollowsUnits =>
+      'בהתאם להגדרות > יחידות > מטבע ברירת מחדל';
 
   @override
   String get gasCalculators_blender_manageCylinderSizes => 'ניהול גדלי בלונים';
@@ -14439,19 +14980,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_blender_costTotal => 'סה\"כ';
 
   @override
-  String get gasCalculators_blender_costBasis => 'החיוב הוא לפי הלחץ שסופק (נפח המים של הבלון × בר שהוסף), כפי שתחנת המילוי מודדת.';
+  String get gasCalculators_blender_costBasis =>
+      'החיוב הוא לפי הלחץ שסופק (נפח המים של הבלון × בר שהוסף), כפי שתחנת המילוי מודדת.';
 
   @override
-  String get gasCalculators_blender_costMissingPrice => 'הזן מחיר לכל גז כדי לראות את הסכום הכולל.';
+  String get gasCalculators_blender_costMissingPrice =>
+      'הזן מחיר לכל גז כדי לראות את הסכום הכולל.';
 
   @override
   String get gasCalculators_blender_saveFill => 'שמור את המילוי הזה';
 
   @override
-  String get gasCalculators_blender_flushFeeEnable => 'גבה עמלה על שטיפת צינור המילוי';
+  String get gasCalculators_blender_flushFeeEnable =>
+      'גבה עמלה על שטיפת צינור המילוי';
 
   @override
-  String get gasCalculators_blender_flushFeeModePerInvoice => 'פעם אחת לחשבונית';
+  String get gasCalculators_blender_flushFeeModePerInvoice =>
+      'פעם אחת לחשבונית';
 
   @override
   String get gasCalculators_blender_flushFeeModePerFill => 'פעם אחת לכל מילוי';
@@ -14488,7 +15033,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_blender_tariff => 'תעריף נוכחי';
 
   @override
-  String get gasCalculators_blender_billedNone => 'עדיין אין חיובים. סיים מילוי ושמור אותו כאן.';
+  String get gasCalculators_blender_billedNone =>
+      'עדיין אין חיובים. סיים מילוי ושמור אותו כאן.';
 
   @override
   String get gasCalculators_blender_billedTo => 'החיוב על שם';
@@ -14531,19 +15077,23 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_blender_lineNoPrice => 'לא הוגדר מחיר לגז זה, ולכן הוא מחויב ב-0.';
+  String get gasCalculators_blender_lineNoPrice =>
+      'לא הוגדר מחיר לגז זה, ולכן הוא מחויב ב-0.';
 
   @override
-  String get gasCalculators_blender_lineInvalidPressure => 'הלחץ הסופי חייב להיות גבוה מהלחץ ההתחלתי.';
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'הלחץ הסופי חייב להיות גבוה מהלחץ ההתחלתי.';
 
   @override
-  String get gasCalculators_blender_lineNeedsPressure => 'יש להזין לחץ התחלתי ולחץ סופי.';
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'יש להזין לחץ התחלתי ולחץ סופי.';
 
   @override
   String get gasCalculators_blender_lineNeedsCylinder => 'יש להזין נפח מכל.';
 
   @override
-  String get gasCalculators_blender_lineDescriptionOptional => 'אופציונלי. אם יישאר ריק, הוא ייווצר מתוך המילוי.';
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'אופציונלי. אם יישאר ריק, הוא ייווצר מתוך המילוי.';
 
   @override
   String get gasCalculators_blender_export => 'ייצוא';
@@ -14594,7 +15144,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_blender_billedIncomplete => 'לשורה אחת או יותר אין מחיר, ולכן הסכום חלקי.';
+  String get gasCalculators_blender_billedIncomplete =>
+      'לשורה אחת או יותר אין מחיר, ולכן הסכום חלקי.';
 
   @override
   String get gasCalculators_blender_billedTotal => 'סה\"כ';
@@ -14612,10 +15163,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_blender_invoiceArchiveAllMonths => 'כל החודשים';
 
   @override
-  String get gasCalculators_blender_invoiceArchiveEmpty => 'אין עדיין חשבוניות ששולמו.';
+  String get gasCalculators_blender_invoiceArchiveEmpty =>
+      'אין עדיין חשבוניות ששולמו.';
 
   @override
-  String get gasCalculators_blender_invoiceArchiveEmptyFiltered => 'אין חשבוניות בטווח התאריכים הזה.';
+  String get gasCalculators_blender_invoiceArchiveEmptyFiltered =>
+      'אין חשבוניות בטווח התאריכים הזה.';
 
   @override
   String gasCalculators_blender_invoiceArchiveFillCount(int count) {
@@ -14629,16 +15182,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_blender_invoiceArchiveUntitled => 'ללא כותרת';
 
   @override
-  String get gasCalculators_blender_invoiceArchiveNotFound => 'החשבונית לא נמצאה.';
+  String get gasCalculators_blender_invoiceArchiveNotFound =>
+      'החשבונית לא נמצאה.';
 
   @override
   String get gasCalculators_blender_invoiceArchiveDelete => 'מחק חשבונית זו';
 
   @override
-  String get gasCalculators_blender_invoiceArchiveDeleteTitle => 'למחוק את החשבונית?';
+  String get gasCalculators_blender_invoiceArchiveDeleteTitle =>
+      'למחוק את החשבונית?';
 
   @override
-  String get gasCalculators_blender_invoiceArchiveDeleteBody => 'לא ניתן לבטל פעולה זו.';
+  String get gasCalculators_blender_invoiceArchiveDeleteBody =>
+      'לא ניתן לבטל פעולה זו.';
 
   @override
   String get gasCalculators_blender_defaults => 'הגדרות ברירת מחדל וחיוב';
@@ -14701,7 +15257,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_density_setpoint => 'Setpoint (bar)';
 
   @override
-  String get gasCalculators_density_diluentHint => 'ב-CCR, התערובת שלמעלה היא הגז המדלל.';
+  String get gasCalculators_density_diluentHint =>
+      'ב-CCR, התערובת שלמעלה היא הגז המדלל.';
 
   @override
   String get gasCalculators_density_temperature => 'טמפרטורת הגז';
@@ -14715,21 +15272,28 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_density_eaddLabel => 'עומק שקול לצפיפות אוויר (EADD)';
+  String get gasCalculators_density_eaddLabel =>
+      'עומק שקול לצפיפות אוויר (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo => 'EADD הוא העומק שבו אוויר היה צפוף כמו הגז הזה. בניגוד לצפיפות ב-g/L, הוא אינו תלוי בטמפרטורה.';
+  String get gasCalculators_density_eaddInfo =>
+      'EADD הוא העומק שבו אוויר היה צפוף כמו הגז הזה. בניגוד לצפיפות ב-g/L, הוא אינו תלוי בטמפרטורה.';
 
   @override
   String get gasCalculators_density_loopGasTitle => 'גז הלולאה בעומק';
 
   @override
-  String gasCalculators_density_loopComposition(Object o2, Object he, Object n2) {
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
     return 'O2 $o2 % · He $he % · N2 $n2 %';
   }
 
   @override
-  String get gasCalculators_density_setpointCapped => 'כאן ה-Setpoint גבוה מהלחץ הסביבתי, ולכן הלולאה מכילה חמצן טהור.';
+  String get gasCalculators_density_setpointCapped =>
+      'כאן ה-Setpoint גבוה מהלחץ הסביבתי, ולכן הלולאה מכילה חמצן טהור.';
 
   @override
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
@@ -14754,10 +15318,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_siteSection_editExpectedTooltip => 'ערוך מינים צפויים';
 
   @override
-  String get marineLife_siteSection_errorLoadingExpected => 'שגיאה בטעינת מינים צפויים';
+  String get marineLife_siteSection_errorLoadingExpected =>
+      'שגיאה בטעינת מינים צפויים';
 
   @override
-  String get marineLife_siteSection_errorLoadingSightings => 'שגיאה בטעינת תצפיות';
+  String get marineLife_siteSection_errorLoadingSightings =>
+      'שגיאה בטעינת תצפיות';
 
   @override
   String get marineLife_siteSection_expectedSpecies => 'מינים צפויים';
@@ -14769,7 +15335,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_siteSection_noSpotted => 'עדיין לא נצפו מינים';
 
   @override
-  String marineLife_siteSection_spottedCountSemantics(Object name, Object count) {
+  String marineLife_siteSection_spottedCountSemantics(
+    Object name,
+    Object count,
+  ) {
     return '$name, נצפה $count פעמים';
   }
 
@@ -14826,7 +15395,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => 'אתרים';
 
   @override
-  String get marineLife_speciesDetail_statsError => 'לא ניתן לטעון את סטטיסטיקת התצפיות';
+  String get marineLife_speciesDetail_statsError =>
+      'לא ניתן לטעון את סטטיסטיקת התצפיות';
 
   @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
@@ -14888,13 +15458,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesEdit_saveButton => 'שמירה';
 
   @override
-  String get marineLife_speciesEdit_scientificNameHint => 'לדוגמה, Amphiprion ocellaris';
+  String get marineLife_speciesEdit_scientificNameHint =>
+      'לדוגמה, Amphiprion ocellaris';
 
   @override
   String get marineLife_speciesEdit_scientificNameLabel => 'שם מדעי';
 
   @override
-  String get marineLife_speciesEdit_taxonomyClassHint => 'לדוגמה, Actinopterygii';
+  String get marineLife_speciesEdit_taxonomyClassHint =>
+      'לדוגמה, Actinopterygii';
 
   @override
   String get marineLife_speciesEdit_taxonomyClassLabel => 'מחלקה טקסונומית';
@@ -14973,13 +15545,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesManage_resetButton => 'איפוס';
 
   @override
-  String get marineLife_speciesManage_resetDialogContent => 'פעולה זו תשחזר את כל המינים המובנים לערכים המקוריים שלהם. מינים מותאמים אישית לא יושפעו. מינים מובנים עם תצפיות קיימות יעודכנו אך יישמרו.';
+  String get marineLife_speciesManage_resetDialogContent =>
+      'פעולה זו תשחזר את כל המינים המובנים לערכים המקוריים שלהם. מינים מותאמים אישית לא יושפעו. מינים מובנים עם תצפיות קיימות יעודכנו אך יישמרו.';
 
   @override
   String get marineLife_speciesManage_resetDialogTitle => 'לאפס לברירת מחדל?';
 
   @override
-  String get marineLife_speciesManage_resetSuccess => 'המינים המובנים שוחזרו לברירת מחדל';
+  String get marineLife_speciesManage_resetSuccess =>
+      'המינים המובנים שוחזרו לברירת מחדל';
 
   @override
   String get marineLife_speciesManage_resetToDefaults => 'איפוס לברירת מחדל';
@@ -15003,7 +15577,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_lookup_createWithout => 'יצירה ללא חיפוש';
 
   @override
-  String get marineLife_lookup_attribution => 'נתוני מינים ותמונות מ-iNaturalist';
+  String get marineLife_lookup_attribution =>
+      'נתוני מינים ותמונות מ-iNaturalist';
 
   @override
   String get marineLife_lookup_idle => 'הקלידו שם והקישו על חיפוש.';
@@ -15020,10 +15595,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_lookup_errorTimeout => 'תם הזמן המוקצב לחיפוש.';
 
   @override
-  String get marineLife_lookup_errorServer => 'iNaturalist החזיר שגיאה. נסו שוב מאוחר יותר.';
+  String get marineLife_lookup_errorServer =>
+      'iNaturalist החזיר שגיאה. נסו שוב מאוחר יותר.';
 
   @override
-  String get marineLife_lookup_errorMalformed => 'תגובה לא צפויה מ-iNaturalist.';
+  String get marineLife_lookup_errorMalformed =>
+      'תגובה לא צפויה מ-iNaturalist.';
 
   @override
   String get marineLife_lookup_retry => 'ניסיון חוזר';
@@ -15059,7 +15636,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get marineLife_speciesPhotos_empty => 'תמונות שתויגו במין זה יופיעו כאן.';
+  String get marineLife_speciesPhotos_empty =>
+      'תמונות שתויגו במין זה יופיעו כאן.';
 
   @override
   String get marineLife_speciesPhotos_tagPhotos => 'תיוג תמונות';
@@ -15107,10 +15685,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_tagPicker_title => 'תיוג תמונות';
 
   @override
-  String get marineLife_tagPicker_empty => 'אין תמונות ללא תגית בצלילות שבהן תיעדתם מין זה.';
+  String get marineLife_tagPicker_empty =>
+      'אין תמונות ללא תגית בצלילות שבהן תיעדתם מין זה.';
 
   @override
-  String get marineLife_tagPicker_emptyHint => 'השתמשו בהוספת תמונות כדי לייבא תמונות מגלריית המצלמה.';
+  String get marineLife_tagPicker_emptyHint =>
+      'השתמשו בהוספת תמונות כדי לייבא תמונות מגלריית המצלמה.';
 
   @override
   String get marineLife_tagPicker_selectAll => 'בחירת הכול';
@@ -15211,7 +15791,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesPage_emptyTitle => 'אין מינים עדיין';
 
   @override
-  String get marineLife_speciesPage_emptyHint => 'תצפיות של מינים שנוספו לצלילה יופיעו כאן.';
+  String get marineLife_speciesPage_emptyHint =>
+      'תצפיות של מינים שנוספו לצלילה יופיעו כאן.';
 
   @override
   String get marineLife_speciesPage_noMatch => 'אין מינים שתואמים לחיפוש';
@@ -15308,7 +15889,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get media_diveMediaSection_thumbnailLabel => 'הצג תמונה. לחיצה ארוכה לביטול קישור';
+  String get media_diveMediaSection_thumbnailLabel =>
+      'הצג תמונה. לחיצה ארוכה לביטול קישור';
 
   @override
   String get media_diveMediaSection_title => 'תמונות וסרטונים';
@@ -15317,7 +15899,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_diveMediaSection_replaceButton => 'קישור מחדש';
 
   @override
-  String get media_diveMediaSection_replaceEditedContent => 'תוכן הקובץ שונה מהמקור. קישור מחדש יעלה אותו שוב למאגר המדיה שלך.';
+  String get media_diveMediaSection_replaceEditedContent =>
+      'תוכן הקובץ שונה מהמקור. קישור מחדש יעלה אותו שוב למאגר המדיה שלך.';
 
   @override
   String get media_diveMediaSection_replaceEditedTitle => 'תוכן הקובץ שונה';
@@ -15361,15 +15944,18 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get media_library_unlinkConfirmBody => 'הם יוסרו מהספרייה שלך, יחד עם העותקים בענן והתמונות הממוזערות. קובצי המקור שלך לא ייפגעו. לא ניתן לבטל זאת.';
+  String get media_library_unlinkConfirmBody =>
+      'הם יוסרו מהספרייה שלך, יחד עם העותקים בענן והתמונות הממוזערות. קובצי המקור שלך לא ייפגעו. לא ניתן לבטל זאת.';
 
   @override
   String media_library_unlinkMetadataNote(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'ל-$count מהם יש כיתוב או סימון מועדף השמורים ב-Submersion, והפרטים האלה יאבדו.',
-      one: 'לאחד מהם יש כיתוב או סימון מועדף השמורים ב-Submersion, והפרטים האלה יאבדו.',
+      other:
+          'ל-$count מהם יש כיתוב או סימון מועדף השמורים ב-Submersion, והפרטים האלה יאבדו.',
+      one:
+          'לאחד מהם יש כיתוב או סימון מועדף השמורים ב-Submersion, והפרטים האלה יאבדו.',
     );
     return '$_temp0';
   }
@@ -15384,7 +15970,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_siteMediaSection_addDocument => 'הוספת מסמך';
 
   @override
-  String get media_siteMediaSection_emptyState => 'אין מפות, תמונות או מסמכים המצורפים לאתר זה';
+  String get media_siteMediaSection_emptyState =>
+      'אין מפות, תמונות או מסמכים המצורפים לאתר זה';
 
   @override
   String media_siteMediaSection_divePhotosGroup(int count) {
@@ -15416,7 +16003,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_documentViewer_unavailable => 'מסמך זה אינו זמין במכשיר זה';
 
   @override
-  String get media_documentViewer_availableOnOriginDevice => 'הוא זמין במכשיר שממנו נוסף, או דרך אחסון מדיה מוגדר.';
+  String get media_documentViewer_availableOnOriginDevice =>
+      'הוא זמין במכשיר שממנו נוסף, או דרך אחסון מדיה מוגדר.';
 
   @override
   String media_documentViewer_attached(int count) {
@@ -15427,10 +16015,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_diveScan_scanTooltip => 'סרוק גלריה לחיפוש תמונות';
 
   @override
-  String get media_diveScan_noPhotosFound => 'לא נמצאו תמונות חדשות ליד צלילה זו';
+  String get media_diveScan_noPhotosFound =>
+      'לא נמצאו תמונות חדשות ליד צלילה זו';
 
   @override
-  String get media_diveScan_accessDenied => 'נדרשת גישה לספריית התמונות כדי לסרוק תמונות';
+  String get media_diveScan_accessDenied =>
+      'נדרשת גישה לספריית התמונות כדי לסרוק תמונות';
 
   @override
   String media_diveScan_foundPhotos(int count) {
@@ -15600,7 +16190,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String media_photoPicker_emptyMessage(Object startDate, Object startTime, Object endDate, Object endTime) {
+  String media_photoPicker_emptyMessage(
+    Object startDate,
+    Object startTime,
+    Object endDate,
+    Object endTime,
+  ) {
     return 'לא נמצאו תמונות בין $startDate $startTime לבין $endDate $endTime.';
   }
 
@@ -15614,10 +16209,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => 'פתח הגדרות';
 
   @override
-  String get media_photoPicker_permissionDeniedMessage => 'הגישה לספריית התמונות נדחתה. נא לאפשר אותה בהגדרות כדי להוסיף תמונות צלילה.';
+  String get media_photoPicker_permissionDeniedMessage =>
+      'הגישה לספריית התמונות נדחתה. נא לאפשר אותה בהגדרות כדי להוסיף תמונות צלילה.';
 
   @override
-  String get media_photoPicker_permissionRequestMessage => 'Submersion זקוקה לגישה לספריית התמונות שלך כדי להוסיף תמונות צלילה.';
+  String get media_photoPicker_permissionRequestMessage =>
+      'Submersion זקוקה לגישה לספריית התמונות שלך כדי להוסיף תמונות צלילה.';
 
   @override
   String get media_photoPicker_permissionTitle => 'תמונות צלילה';
@@ -15639,7 +16236,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoPicker_thumbnailToggleLabel => 'החלף מצב בחירה לתמונה';
 
   @override
-  String get media_photoPicker_thumbnailToggleSelectedLabel => 'החלף מצב בחירה לתמונה, נבחרה';
+  String get media_photoPicker_thumbnailToggleSelectedLabel =>
+      'החלף מצב בחירה לתמונה, נבחרה';
 
   @override
   String get media_photoPicker_files_pickFilesButton => 'בחירת קבצים…';
@@ -15648,10 +16246,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoPicker_files_pickFolderButton => 'בחירת תיקייה…';
 
   @override
-  String get media_photoPicker_files_autoMatchLabel => 'התאמה אוטומטית של תמונות וסרטונים לצלילות לפי תאריך';
+  String get media_photoPicker_files_autoMatchLabel =>
+      'התאמה אוטומטית של תמונות וסרטונים לצלילות לפי תאריך';
 
   @override
-  String get media_photoPicker_files_emptyHint => 'בחר קבצים או תיקייה כדי להתחיל.';
+  String get media_photoPicker_files_emptyHint =>
+      'בחר קבצים או תיקייה כדי להתחיל.';
 
   @override
   String media_photoPicker_files_linkButton(int count) {
@@ -15676,7 +16276,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String media_photoPicker_files_summary(int fileCount, int diveCount, Object unmatchedCount) {
+  String media_photoPicker_files_summary(
+    int fileCount,
+    int diveCount,
+    Object unmatchedCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       fileCount,
       locale: localeName,
@@ -15760,7 +16364,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get media_photoPicker_files_reasonNoTimestamp => 'לא ניתן לקרוא את זמן הצילום';
+  String get media_photoPicker_files_reasonNoTimestamp =>
+      'לא ניתן לקרוא את זמן הצילום';
 
   @override
   String media_photoPicker_files_reasonBeforeDive(String gap) {
@@ -15817,7 +16422,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoPicker_files_undo => 'ביטול';
 
   @override
-  String get media_photoPicker_thumbnailAlreadyLinkedLabel => 'תמונה כבר מקושרת לצלילה זו';
+  String get media_photoPicker_thumbnailAlreadyLinkedLabel =>
+      'תמונה כבר מקושרת לצלילה זו';
 
   @override
   String get media_perdixOverlay_labelCns => 'CNS';
@@ -15859,13 +16465,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoViewer_cannotShare => 'לא ניתן לשתף תמונה זו';
 
   @override
-  String get media_photoViewer_cannotWriteMetadata => 'לא ניתן לכתוב מטא-נתונים - המדיה אינה מקושרת לספרייה';
+  String get media_photoViewer_cannotWriteMetadata =>
+      'לא ניתן לכתוב מטא-נתונים - המדיה אינה מקושרת לספרייה';
 
   @override
   String get media_photoViewer_closeTooltip => 'סגור מציג תמונות';
 
   @override
-  String get media_photoViewer_diveDataWrittenToPhoto => 'נתוני צלילה נכתבו לתמונה';
+  String get media_photoViewer_diveDataWrittenToPhoto =>
+      'נתוני צלילה נכתבו לתמונה';
 
   @override
   String media_photoViewer_errorLoadingPhotos(Object error) {
@@ -15884,7 +16492,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get media_photoViewer_failedToWriteMetadata => 'כתיבת המטא-נתונים נכשלה';
+  String get media_photoViewer_failedToWriteMetadata =>
+      'כתיבת המטא-נתונים נכשלה';
 
   @override
   String media_photoViewer_failedToWriteMetadataError(Object error) {
@@ -15924,7 +16533,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoViewer_videoNotLinked => 'הסרטון אינו מקושר לספרייה';
 
   @override
-  String get media_photoViewer_writeDiveDataTooltip => 'כתוב נתוני צלילה לתמונה';
+  String get media_photoViewer_writeDiveDataTooltip =>
+      'כתוב נתוני צלילה לתמונה';
 
   @override
   String get media_quickSiteDialog_cancelButton => 'ביטול';
@@ -15933,7 +16543,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_quickSiteDialog_createButton => 'צור אתר';
 
   @override
-  String get media_quickSiteDialog_description => 'צור אתר צלילה חדש באמצעות קואורדינטות GPS מהתמונה שלך.';
+  String get media_quickSiteDialog_description =>
+      'צור אתר צלילה חדש באמצעות קואורדינטות GPS מהתמונה שלך.';
 
   @override
   String get media_quickSiteDialog_siteNameError => 'נא להזין שם אתר';
@@ -15999,7 +16610,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_unavailablePlaceholder_fileNotFound => 'File not found';
 
   @override
-  String get media_unavailablePlaceholder_fromOtherDevice => 'From another device';
+  String get media_unavailablePlaceholder_fromOtherDevice =>
+      'From another device';
 
   @override
   String media_unavailablePlaceholder_fromOtherDeviceLabel(String device) {
@@ -16022,7 +16634,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_writeMetadata_depthLabel => 'עומק';
 
   @override
-  String get media_writeMetadata_descriptionPhoto => 'המטא-נתונים הבאים ייכתבו לתמונה:';
+  String get media_writeMetadata_descriptionPhoto =>
+      'המטא-נתונים הבאים ייכתבו לתמונה:';
 
   @override
   String get media_writeMetadata_diveTimeLabel => 'זמן צלילה';
@@ -16031,10 +16644,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_writeMetadata_gpsLabel => 'GPS';
 
   @override
-  String get media_writeMetadata_livePhotoUnsupported => '‏Live Photos עדיין אינן נתמכות. שכפל תמונה זו כתמונת סטילס, ולאחר מכן כתוב את נתוני הצלילה בעותק.';
+  String get media_writeMetadata_livePhotoUnsupported =>
+      '‏Live Photos עדיין אינן נתמכות. שכפל תמונה זו כתמונת סטילס, ולאחר מכן כתוב את נתוני הצלילה בעותק.';
 
   @override
-  String get media_writeMetadata_noDataAvailable => 'אין נתוני צלילה זמינים לכתיבה.';
+  String get media_writeMetadata_noDataAvailable =>
+      'אין נתוני צלילה זמינים לכתיבה.';
 
   @override
   String get media_writeMetadata_siteLabel => 'אתר';
@@ -16046,10 +16661,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_writeMetadata_titlePhoto => 'כתוב נתוני צלילה לתמונה';
 
   @override
-  String get media_writeMetadata_videoUnsupported => '‏ניתן לכתוב נתוני צלילה רק לתמונות, לא לסרטונים.';
+  String get media_writeMetadata_videoUnsupported =>
+      '‏ניתן לכתוב נתוני צלילה רק לתמונות, לא לסרטונים.';
 
   @override
-  String get media_writeMetadata_warningPhotoText => 'פעולה זו תשנה את התמונה המקורית.';
+  String get media_writeMetadata_warningPhotoText =>
+      'פעולה זו תשנה את התמונה המקורית.';
 
   @override
   String get media_writeMetadata_writeButton => 'כתוב';
@@ -16130,7 +16747,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_import_review_chooseDive => 'בחירת צלילה';
 
   @override
-  String get media_import_intro => 'תמונות מקושרות לצלילה או לאתר צלילה בעת הייבוא.';
+  String get media_import_intro =>
+      'תמונות מקושרות לצלילה או לאתר צלילה בעת הייבוא.';
 
   @override
   String get media_console_sources => 'מקורות';
@@ -16292,7 +16910,13 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String media_repair_summary(int relinked, int cloudBacked, int reuploads, int failed, int skipped) {
+  String media_repair_summary(
+    int relinked,
+    int cloudBacked,
+    int reuploads,
+    int failed,
+    int skipped,
+  ) {
     return '$relinked קושרו מחדש, $cloudBacked מגובים בענן, $reuploads העלאות חוזרות בתור, $failed נכשלו, $skipped דולגו';
   }
 
@@ -16399,7 +17023,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get media_map_emptyHint => 'תמונות וסרטונים ממוקמים לפי ה-GPS שלהם, נקודת הכניסה של הצלילה או אתר הצלילה.';
+  String get media_map_emptyHint =>
+      'תמונות וסרטונים ממוקמים לפי ה-GPS שלהם, נקודת הכניסה של הצלילה או אתר הצלילה.';
 
   @override
   String get media_map_emptyTitle => 'אין מדיה עם מיקום';
@@ -16485,7 +17110,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get plannerCanvas_bailout_insufficient => 'גז חילוץ אינו מספיק למקרה הגרוע ביותר';
+  String get plannerCanvas_bailout_insufficient =>
+      'גז חילוץ אינו מספיק למקרה הגרוע ביותר';
 
   @override
   String plannerCanvas_bailout_required(String liters) {
@@ -16518,7 +17144,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_pscr_ratio => 'יחס pSCR';
 
   @override
-  String get plannerCanvas_pscr_ratio_hint => 'גדול יותר = יותר גז טרי, ירידת חמצן קטנה יותר';
+  String get plannerCanvas_pscr_ratio_hint =>
+      'גדול יותר = יותר גז טרי, ירידת חמצן קטנה יותר';
 
   @override
   String plannerCanvas_chip_cns(String value) {
@@ -16593,7 +17220,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_follow_empty => 'אין עדיין צלילות מתועדות';
 
   @override
-  String get plannerCanvas_follow_noTissues => 'אין נתוני פרופיל לצלילה זו — מרווח הפנים נקבע ללא העמסת רקמות';
+  String get plannerCanvas_follow_noTissues =>
+      'אין נתוני פרופיל לצלילה זו — מרווח הפנים נקבע ללא העמסת רקמות';
 
   @override
   String get plannerCanvas_follow_title => 'עקוב אחרי צלילה';
@@ -16639,16 +17267,19 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get plannerCanvas_issue_noBailout => 'תוכנית דקומפרסיה CCR ללא גז חילוץ (bailout)';
+  String get plannerCanvas_issue_noBailout =>
+      'תוכנית דקומפרסיה CCR ללא גז חילוץ (bailout)';
 
   @override
-  String get plannerCanvas_issue_noDecoGas => 'נדרשת דקומפרסיה אך לא נלקח גז דקו';
+  String get plannerCanvas_issue_noDecoGas =>
+      'נדרשת דקומפרסיה אך לא נלקח גז דקו';
 
   @override
   String get plannerCanvas_range_base => 'בסיס';
 
   @override
-  String get plannerCanvas_range_legend => 'התאים מציגים את זמן העלייה לפני המים; אדום = לא ניתן לצלול כמתוכנן';
+  String get plannerCanvas_range_legend =>
+      'התאים מציגים את זמן העלייה לפני המים; אדום = לא ניתן לצלול כמתוכנן';
 
   @override
   String get plannerCanvas_pane_collapse => 'כווץ חלונית';
@@ -16666,7 +17297,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_rates_ascent => 'קצב עלייה';
 
   @override
-  String get plannerCanvas_rates_intermediateAscent => 'קצב עלייה בין עצירות בינוניות';
+  String get plannerCanvas_rates_intermediateAscent =>
+      'קצב עלייה בין עצירות בינוניות';
 
   @override
   String get plannerCanvas_rates_lastStop => 'עצירה אחרונה';
@@ -16780,43 +17412,52 @@ class AppLocalizationsHe extends AppLocalizations {
   String get planning_appBar_title => 'תכנון';
 
   @override
-  String get planning_card_decoCalculator_description => 'חשב מגבלות ללא דקומפרסיה, עצירות דקו נדרשות וחשיפת CNS/OTU עבור פרופילי צלילה רב-שלביים.';
+  String get planning_card_decoCalculator_description =>
+      'חשב מגבלות ללא דקומפרסיה, עצירות דקו נדרשות וחשיפת CNS/OTU עבור פרופילי צלילה רב-שלביים.';
 
   @override
-  String get planning_card_decoCalculator_subtitle => 'תכנן צלילות עם עצירות דקומפרסיה';
+  String get planning_card_decoCalculator_subtitle =>
+      'תכנן צלילות עם עצירות דקומפרסיה';
 
   @override
   String get planning_card_decoCalculator_title => 'מחשבון דקו';
 
   @override
-  String get planning_card_divePlanner_description => 'תכנן צלילות מורכבות עם רמות עומק מרובות, החלפות גז וחישובי עצירות דקומפרסיה אוטומטיים.';
+  String get planning_card_divePlanner_description =>
+      'תכנן צלילות מורכבות עם רמות עומק מרובות, החלפות גז וחישובי עצירות דקומפרסיה אוטומטיים.';
 
   @override
-  String get planning_card_divePlanner_subtitle => 'צור תוכניות צלילה רב-שלביות';
+  String get planning_card_divePlanner_subtitle =>
+      'צור תוכניות צלילה רב-שלביות';
 
   @override
   String get planning_card_divePlanner_title => 'מתכנן צלילות';
 
   @override
-  String get planning_card_gasCalculators_description => 'ארבעה מחשבוני גז מתמחים:\n• MOD - עומק הפעלה מרבי לתערובת גז\n• תערובת אופטימלית - אחוז O₂ אידיאלי לעומק יעד\n• צריכה - הערכת צריכת גז\n• Rock Bottom - חישוב רזרבת חירום';
+  String get planning_card_gasCalculators_description =>
+      'ארבעה מחשבוני גז מתמחים:\n• MOD - עומק הפעלה מרבי לתערובת גז\n• תערובת אופטימלית - אחוז O₂ אידיאלי לעומק יעד\n• צריכה - הערכת צריכת גז\n• Rock Bottom - חישוב רזרבת חירום';
 
   @override
-  String get planning_card_gasCalculators_subtitle => 'MOD, תערובת אופטימלית, צריכה, Rock Bottom';
+  String get planning_card_gasCalculators_subtitle =>
+      'MOD, תערובת אופטימלית, צריכה, Rock Bottom';
 
   @override
   String get planning_card_gasCalculators_title => 'מחשבוני גז';
 
   @override
-  String get planning_card_surfaceInterval_description => 'חשב את מרווח השטח המינימלי הנדרש בין צלילות בהתבסס על עומס הרקמות. צפה כיצד 16 תאי הרקמה שלך פורקים גז לאורך זמן.';
+  String get planning_card_surfaceInterval_description =>
+      'חשב את מרווח השטח המינימלי הנדרש בין צלילות בהתבסס על עומס הרקמות. צפה כיצד 16 תאי הרקמה שלך פורקים גז לאורך זמן.';
 
   @override
-  String get planning_card_surfaceInterval_subtitle => 'תכנן מרווחי צלילות חוזרות';
+  String get planning_card_surfaceInterval_subtitle =>
+      'תכנן מרווחי צלילות חוזרות';
 
   @override
   String get planning_card_surfaceInterval_title => 'מרווח שטח';
 
   @override
-  String get planning_card_weightCalculator_description => 'הערך את המשקל הנדרש בהתבסס על חליפת הצלילה, חומר הבלון, סוג המים ומשקל הגוף שלך.';
+  String get planning_card_weightCalculator_description =>
+      'הערך את המשקל הנדרש בהתבסס על חליפת הצלילה, חומר הבלון, סוג המים ומשקל הגוף שלך.';
 
   @override
   String get planning_card_weightCalculator_subtitle => 'משקל מומלץ להגדרה שלך';
@@ -16825,7 +17466,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'מחשבון משקל';
 
   @override
-  String get planning_info_disclaimer => 'כלים אלה מיועדים למטרות תכנון בלבד. תמיד אמת חישובים ופעל לפי הכשרת הצלילה שלך.';
+  String get planning_info_disclaimer =>
+      'כלים אלה מיועדים למטרות תכנון בלבד. תמיד אמת חישובים ופעל לפי הכשרת הצלילה שלך.';
 
   @override
   String get planning_newPlan => 'תוכנית חדשה';
@@ -16858,13 +17500,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get planning_sidebar_divePlanner_title => 'מתכנן צלילות';
 
   @override
-  String get planning_sidebar_gasCalculators_subtitle => 'MOD, תערובת אופטימלית ועוד';
+  String get planning_sidebar_gasCalculators_subtitle =>
+      'MOD, תערובת אופטימלית ועוד';
 
   @override
   String get planning_sidebar_gasCalculators_title => 'מחשבוני גז';
 
   @override
-  String get planning_sidebar_info_disclaimer => 'כלי התכנון מיועדים להתייחסות בלבד. תמיד אמת חישובים.';
+  String get planning_sidebar_info_disclaimer =>
+      'כלי התכנון מיועדים להתייחסות בלבד. תמיד אמת חישובים.';
 
   @override
   String get planning_sidebar_surfaceInterval_subtitle => 'תכנון צלילות חוזרות';
@@ -16885,13 +17529,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get planning_welcome_subtitle => 'בחר כלי מסרגל הצד כדי להתחיל';
 
   @override
-  String get planning_welcome_tip_decoCalculator => 'מחשבון דקו ל-NDL וזמני עצירה';
+  String get planning_welcome_tip_decoCalculator =>
+      'מחשבון דקו ל-NDL וזמני עצירה';
 
   @override
-  String get planning_welcome_tip_divePlanner => 'מתכנן צלילות לתכנון צלילות רב-שלביות';
+  String get planning_welcome_tip_divePlanner =>
+      'מתכנן צלילות לתכנון צלילות רב-שלביות';
 
   @override
-  String get planning_welcome_tip_gasCalculators => 'מחשבוני גז ל-MOD ותכנון גז';
+  String get planning_welcome_tip_gasCalculators =>
+      'מחשבוני גז ל-MOD ותכנון גז';
 
   @override
   String get planning_welcome_tip_weightCalculator => 'מחשבון משקל להגדרת ציפה';
@@ -16921,7 +17568,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_about_reportIssue_copy => 'העתקת קישור';
 
   @override
-  String get settings_about_reportIssue_snackbar => 'בקר ב-github.com/submersion-app/submersion/issues';
+  String get settings_about_reportIssue_snackbar =>
+      'בקר ב-github.com/submersion-app/submersion/issues';
 
   @override
   String settings_about_version(String version) {
@@ -16952,16 +17600,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_displaySize_larger => 'גדול יותר';
 
   @override
-  String get settings_appearance_depthColoredCards => 'כרטיסי צלילה צבועים לפי עומק';
+  String get settings_appearance_depthColoredCards =>
+      'כרטיסי צלילה צבועים לפי עומק';
 
   @override
-  String get settings_appearance_depthColoredCards_subtitle => 'הצג כרטיסי צלילה עם רקעים בצבעי אוקיינוס לפי עומק';
+  String get settings_appearance_depthColoredCards_subtitle =>
+      'הצג כרטיסי צלילה עם רקעים בצבעי אוקיינוס לפי עומק';
 
   @override
   String get settings_appearance_cardColorAttribute => 'צבע כרטיסים לפי';
 
   @override
-  String get settings_appearance_cardColorAttribute_subtitle => 'בחר איזה מאפיין קובע את צבע הרקע של הכרטיסים';
+  String get settings_appearance_cardColorAttribute_subtitle =>
+      'בחר איזה מאפיין קובע את צבע הרקע של הכרטיסים';
 
   @override
   String get settings_appearance_cardColorAttribute_none => 'ללא';
@@ -16979,7 +17630,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_colorGradient => 'מעבר צבעים';
 
   @override
-  String get settings_appearance_colorGradient_subtitle => 'בחר את טווח הצבעים לרקעי הכרטיסים';
+  String get settings_appearance_colorGradient_subtitle =>
+      'בחר את טווח הצבעים לרקעי הכרטיסים';
 
   @override
   String get settings_appearance_colorGradient_ocean => 'אוקיינוס';
@@ -17003,13 +17655,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_gasSwitchMarkers => 'סמני החלפת גז';
 
   @override
-  String get settings_appearance_gasSwitchMarkers_subtitle => 'הצג סמנים להחלפות גז';
+  String get settings_appearance_gasSwitchMarkers_subtitle =>
+      'הצג סמנים להחלפות גז';
 
   @override
   String get settings_appearance_gasTimeline => 'ציר זמן של הגז';
 
   @override
-  String get settings_appearance_gasTimeline_subtitle => 'הצג את רצועת צריכת הגז מתחת לפרופיל הצלילה כברירת מחדל';
+  String get settings_appearance_gasTimeline_subtitle =>
+      'הצג את רצועת צריכת הגז מתחת לפרופיל הצלילה כברירת מחדל';
 
   @override
   String get settings_appearance_header_diveDetails => 'פרטי צלילה';
@@ -17024,10 +17678,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_header_diveSites => 'אתרי צלילה';
 
   @override
-  String get settings_appearance_diveDetails_sectionOrderVisibility => 'סדר וחשיפת סעיפים';
+  String get settings_appearance_diveDetails_sectionOrderVisibility =>
+      'סדר וחשיפת סעיפים';
 
   @override
-  String get settings_appearance_diveDetails_sectionOrderVisibility_subtitle => 'בחר אילו סעיפים יוצגו ובאיזה סדר';
+  String get settings_appearance_diveDetails_sectionOrderVisibility_subtitle =>
+      'בחר אילו סעיפים יוצגו ובאיזה סדר';
 
   @override
   String get settings_diveDetailSections_title => 'סדר וחשיפת סעיפים';
@@ -17039,25 +17695,29 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_diveDetailSections_fixedSections => 'סעיף קבוע: כותרת';
 
   @override
-  String get settings_diveDetailSections_configurableSections => 'סעיפים הניתנים להגדרה (גרור לסידור מחדש)';
+  String get settings_diveDetailSections_configurableSections =>
+      'סעיפים הניתנים להגדרה (גרור לסידור מחדש)';
 
   @override
   String get diveDetailSection_profile_name => 'פרופיל הצלילה';
 
   @override
-  String get diveDetailSection_profile_description => 'גרף עומק/זמן, נגינה, בחירת טווח';
+  String get diveDetailSection_profile_description =>
+      'גרף עומק/זמן, נגינה, בחירת טווח';
 
   @override
   String get diveDetailSection_decoStatus_name => 'סטטוס דקו';
 
   @override
-  String get diveDetailSection_decoStatus_description => 'NDL, תקרה, עצירות, רעילות O2';
+  String get diveDetailSection_decoStatus_description =>
+      'NDL, תקרה, עצירות, רעילות O2';
 
   @override
   String get diveDetailSection_tissueLoading_name => 'עומס רקמות';
 
   @override
-  String get diveDetailSection_tissueLoading_description => 'רוויה לפי תא ומפת חום';
+  String get diveDetailSection_tissueLoading_description =>
+      'רוויה לפי תא ומפת חום';
 
   @override
   String get diveLog_detail_displayOptions_tooltip => 'אפשרויות תצוגה';
@@ -17084,7 +17744,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveDetailSection_safetyReview_name => 'סקירת בטיחות';
 
   @override
-  String get diveDetailSection_safetyReview_description => 'תצפיות אוטומטיות על פרופיל הצלילה לאחר הצלילה';
+  String get diveDetailSection_safetyReview_description =>
+      'תצפיות אוטומטיות על פרופיל הצלילה לאחר הצלילה';
 
   @override
   String get safetyReview_sectionTitle => 'סקירת בטיחות';
@@ -17146,13 +17807,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetySettings_dismissAll => 'התעלם מכל התצפיות';
 
   @override
-  String get safetySettings_dismissAll_subtitle => 'סמן את כל התצפיות ביומן זה כנסקרו';
+  String get safetySettings_dismissAll_subtitle =>
+      'סמן את כל התצפיות ביומן זה כנסקרו';
 
   @override
   String get safetySettings_dismissAll_confirmTitle => 'להתעלם מכל התצפיות?';
 
   @override
-  String get safetySettings_dismissAll_confirmBody => 'כל תצפית בכל צלילה שנותחה תסומן כנסקרה. אפשר לשחזר אותן צלילה אחר צלילה במקטע סקירת הבטיחות שלה.';
+  String get safetySettings_dismissAll_confirmBody =>
+      'כל תצפית בכל צלילה שנותחה תסומן כנסקרה. אפשר לשחזר אותן צלילה אחר צלילה במקטע סקירת הבטיחות שלה.';
 
   @override
   String get safetySettings_dismissAll_confirm => 'התעלם מהכול';
@@ -17196,7 +17859,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get safetySettings_dismissAll_failed => 'לא ניתן לקרוא את רשימת הצלילות. דבר לא שונה.';
+  String get safetySettings_dismissAll_failed =>
+      'לא ניתן לקרוא את רשימת הצלילות. דבר לא שונה.';
 
   @override
   String get safetySettings_analyzeAll_failed => 'לא ניתן לנתח את הצלילות.';
@@ -17228,7 +17892,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetySettings_masterToggle => 'סקירת בטיחות לאחר הצלילה';
 
   @override
-  String get safetySettings_masterToggle_subtitle => 'רישום אוטומטי של תצפיות עלייה, עצירות ופרופיל בצלילות שנותחו';
+  String get safetySettings_masterToggle_subtitle =>
+      'רישום אוטומטי של תצפיות עלייה, עצירות ופרופיל בצלילות שנותחו';
 
   @override
   String get safetySettings_rulesHeader => 'כללים';
@@ -17237,7 +17902,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetySettings_rule_rapidAscent => 'עליות מהירות';
 
   @override
-  String get safetySettings_rule_missedDecoStop => 'עצירות דקו שהוחמצו או קוצרו';
+  String get safetySettings_rule_missedDecoStop =>
+      'עצירות דקו שהוחמצו או קוצרו';
 
   @override
   String get safetySettings_rule_omittedSafetyStop => 'עצירות בטיחות שהושמטו';
@@ -17246,13 +17912,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetySettings_rule_sawtoothProfile => 'פרופילי שן מסור';
 
   @override
-  String get safetySettings_rule_highSurfaceGf => 'פקטור גרדיאנט גבוה בעלייה לפני השטח';
+  String get safetySettings_rule_highSurfaceGf =>
+      'פקטור גרדיאנט גבוה בעלייה לפני השטח';
 
   @override
   String get safetySettings_analyzeAll => 'נתח את כל הצלילות';
 
   @override
-  String get safetySettings_analyzeAll_subtitle => 'הרצת סקירת הבטיחות על כל צלילה עם פרופיל שטרם נותחה';
+  String get safetySettings_analyzeAll_subtitle =>
+      'הרצת סקירת הבטיחות על כל צלילה עם פרופיל שטרם נותחה';
 
   @override
   String safetySettings_analyzeAll_progress(int done, int total) {
@@ -17288,25 +17956,29 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveDetailSection_sacSegments_name => 'צריכת גז לפי מקטע';
 
   @override
-  String get diveDetailSection_sacSegments_description => 'SAC ו-RMV לפי שלב או זמן';
+  String get diveDetailSection_sacSegments_description =>
+      'SAC ו-RMV לפי שלב או זמן';
 
   @override
   String get diveDetailSection_details_name => 'פרטים';
 
   @override
-  String get diveDetailSection_details_description => 'סוג, מיקום, טיול, מרכז צלילה, מרווח';
+  String get diveDetailSection_details_description =>
+      'סוג, מיקום, טיול, מרכז צלילה, מרווח';
 
   @override
   String get diveDetailSection_environment_name => 'סביבה';
 
   @override
-  String get diveDetailSection_environment_description => 'טמפרטורת אוויר/מים, ראות, זרם';
+  String get diveDetailSection_environment_description =>
+      'טמפרטורת אוויר/מים, ראות, זרם';
 
   @override
   String get diveDetailSection_altitude_name => 'גובה';
 
   @override
-  String get diveDetailSection_altitude_description => 'ערך גובה, קטגוריה, דרישת דקומפרסיה';
+  String get diveDetailSection_altitude_description =>
+      'ערך גובה, קטגוריה, דרישת דקומפרסיה';
 
   @override
   String get diveDetailSection_tide_name => 'גאות ושפל';
@@ -17318,13 +17990,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveDetailSection_reefHealth_name => 'תנאי המים';
 
   @override
-  String get diveDetailSection_reefHealth_description => 'תנאי מים לווייניים בתאריך הצלילה';
+  String get diveDetailSection_reefHealth_description =>
+      'תנאי מים לווייניים בתאריך הצלילה';
 
   @override
   String get diveDetailSection_surfaceGps_name => 'GPS פני המים';
 
   @override
-  String get diveDetailSection_surfaceGps_description => 'נקודות כניסה/יציאה ב-GPS וסחף פני המים';
+  String get diveDetailSection_surfaceGps_description =>
+      'נקודות כניסה/יציאה ב-GPS וסחף פני המים';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'GPS פני המים';
@@ -17378,16 +18052,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveDetailSection_weights_name => 'משקולות';
 
   @override
-  String get diveDetailSection_weights_description => 'פירוט משקולות, משקל כולל';
+  String get diveDetailSection_weights_description =>
+      'פירוט משקולות, משקל כולל';
 
   @override
   String get diveDetailSection_buoyancy_name => 'ציפה';
 
   @override
-  String get diveDetailSection_buoyancy_description => 'ציפה לאורך הצלילה, שינוי ומשקל הניתן להשלכה';
+  String get diveDetailSection_buoyancy_description =>
+      'ציפה לאורך הצלילה, שינוי ומשקל הניתן להשלכה';
 
   @override
-  String get buoyancy_tooltip => 'ציפה נטו מודלת לאורך הצלילה מהפרופיל, צריכת הגז והציוד.';
+  String get buoyancy_tooltip =>
+      'ציפה נטו מודלת לאורך הצלילה מהפרופיל, צריכת הגז והציוד.';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -17400,10 +18077,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get buoyancy_verdictNeutral => 'התצורה שלך הייתה קרובה לניטרלית בעצירה האחרונה';
+  String get buoyancy_verdictNeutral =>
+      'התצורה שלך הייתה קרובה לניטרלית בעצירה האחרונה';
 
   @override
-  String get buoyancy_verdictConvention => 'מוערך לפי מוסכמת עצירת הבטיחות ב-5 מ\'';
+  String get buoyancy_verdictConvention =>
+      'מוערך לפי מוסכמת עצירת הבטיחות ב-5 מ\'';
 
   @override
   String get buoyancy_breakdownTitle => 'פירוט מרכיבים';
@@ -17445,10 +18124,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buoyancy_estimatedPressures => 'לחצי המכלים משוערים';
 
   @override
-  String get buoyancy_linkSuitHint => 'קשר חליפת חשיפה לצלילה זו לתמונה מלאה יותר';
+  String get buoyancy_linkSuitHint =>
+      'קשר חליפת חשיפה לצלילה זו לתמונה מלאה יותר';
 
   @override
-  String get buoyancy_noLeadHint => 'לא נרשמו משקולות: הוסף משקולות לצלילה זו או משקל יבש לציוד המשקולות שלך';
+  String get buoyancy_noLeadHint =>
+      'לא נרשמו משקולות: הוסף משקולות לצלילה זו או משקל יבש לציוד המשקולות שלך';
 
   @override
   String get buoyancy_chartNet => 'נטו';
@@ -17505,19 +18186,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveDetailSection_tanks_name => 'בלונים';
 
   @override
-  String get diveDetailSection_tanks_description => 'רשימת בלונים, תערובות גז, לחצים, צריכה לבלון';
+  String get diveDetailSection_tanks_description =>
+      'רשימת בלונים, תערובות גז, לחצים, צריכה לבלון';
 
   @override
   String get diveDetailSection_buddies_name => 'חברי צלילה';
 
   @override
-  String get diveDetailSection_buddies_description => 'רשימת חברי צלילה עם תפקידים';
+  String get diveDetailSection_buddies_description =>
+      'רשימת חברי צלילה עם תפקידים';
 
   @override
   String get diveDetailSection_signatures_name => 'חתימות';
 
   @override
-  String get diveDetailSection_signatures_description => 'הצגה ולכידה של חתימות חבר/מדריך';
+  String get diveDetailSection_signatures_description =>
+      'הצגה ולכידה של חתימות חבר/מדריך';
 
   @override
   String get diveDetailSection_equipment_name => 'ציוד';
@@ -17529,7 +18213,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveDetailSection_sightings_name => 'תצפיות מינים';
 
   @override
-  String get diveDetailSection_sightings_description => 'מינים שנצפו, פרטי תצפית';
+  String get diveDetailSection_sightings_description =>
+      'מינים שנצפו, פרטי תצפית';
 
   @override
   String get diveDetailSection_media_name => 'מדיה';
@@ -17553,43 +18238,52 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveDetailSection_customFields_name => 'שדות מותאמים אישית';
 
   @override
-  String get diveDetailSection_customFields_description => 'שדות מותאמים אישית שהוגדרו על ידי המשתמש';
+  String get diveDetailSection_customFields_description =>
+      'שדות מותאמים אישית שהוגדרו על ידי המשתמש';
 
   @override
   String get diveDetailSection_dataSources_name => 'מקורות נתונים';
 
   @override
-  String get diveDetailSection_dataSources_description => 'מחשבי צלילה מחוברים, ניהול מקורות';
+  String get diveDetailSection_dataSources_description =>
+      'מחשבי צלילה מחוברים, ניהול מקורות';
 
   @override
-  String get siteDetailSection_diveStatistics_description => 'מספר צלילות, עומקים שהושגו, הצלילות הארוכות והאחרונות';
+  String get siteDetailSection_diveStatistics_description =>
+      'מספר צלילות, עומקים שהושגו, הצלילות הארוכות והאחרונות';
 
   @override
   String get siteDetailSection_description_description => 'תיאור האתר';
 
   @override
-  String get siteDetailSection_location_description => 'מדינה, אזור, מקווה מים, קואורדינטות GPS';
+  String get siteDetailSection_location_description =>
+      'מדינה, אזור, מקווה מים, קואורדינטות GPS';
 
   @override
-  String get siteDetailSection_depth_description => 'טווח עומק מדורג ועומקים שהושגו בצלילות';
+  String get siteDetailSection_depth_description =>
+      'טווח עומק מדורג ועומקים שהושגו בצלילות';
 
   @override
-  String get siteDetailSection_altitude_description => 'גובה וקטגוריית צלילת גובה';
+  String get siteDetailSection_altitude_description =>
+      'גובה וקטגוריית צלילת גובה';
 
   @override
-  String get siteDetailSection_features_description => 'מאפיינים שסומנו במפת האתר';
+  String get siteDetailSection_features_description =>
+      'מאפיינים שסומנו במפת האתר';
 
   @override
   String get siteDetailSection_tide_description => 'גרף מחזור גאות ושפל וזמן';
 
   @override
-  String get siteDetailSection_reefHealth_description => 'תנאי מים לווייניים באתר';
+  String get siteDetailSection_reefHealth_description =>
+      'תנאי מים לווייניים באתר';
 
   @override
   String get siteDetailSection_marineLife_description => 'מינים שנצפו באתר זה';
 
   @override
-  String get siteDetailSection_media_description => 'תמונות, סרטונים ומסמכים של האתר';
+  String get siteDetailSection_media_description =>
+      'תמונות, סרטונים ומסמכים של האתר';
 
   @override
   String get siteDetailSection_tags_description => 'תגיות של אתר זה';
@@ -17604,7 +18298,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get siteDetailSection_hazards_description => 'סכנות והערות בטיחות';
 
   @override
-  String get siteDetailSection_access_description => 'כניסה ויציאה, חניה, עגינה, הערות גישה';
+  String get siteDetailSection_access_description =>
+      'כניסה ויציאה, חניה, עגינה, הערות גישה';
 
   @override
   String get siteDetailSection_notes_description => 'ההערות שלך על האתר';
@@ -17646,31 +18341,39 @@ class AppLocalizationsHe extends AppLocalizations {
   String get theme_deep => 'מעמקים';
 
   @override
-  String get settings_appearance_mapBackgroundDiveCards => 'רקע מפה בכרטיסי צלילה';
+  String get settings_appearance_mapBackgroundDiveCards =>
+      'רקע מפה בכרטיסי צלילה';
 
   @override
-  String get settings_appearance_mapBackgroundDiveCards_subtitle => 'הצג מפת אתר צלילה כרקע בכרטיסי צלילה';
+  String get settings_appearance_mapBackgroundDiveCards_subtitle =>
+      'הצג מפת אתר צלילה כרקע בכרטיסי צלילה';
 
   @override
-  String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote => 'הצג מפת אתר צלילה כרקע בכרטיסי צלילה (דורש מיקום אתר)';
+  String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote =>
+      'הצג מפת אתר צלילה כרקע בכרטיסי צלילה (דורש מיקום אתר)';
 
   @override
-  String get settings_appearance_mapBackgroundSiteCards => 'רקע מפה בכרטיסי אתרים';
+  String get settings_appearance_mapBackgroundSiteCards =>
+      'רקע מפה בכרטיסי אתרים';
 
   @override
-  String get settings_appearance_mapBackgroundSiteCards_subtitle => 'הצג מפה כרקע בכרטיסי אתרי צלילה';
+  String get settings_appearance_mapBackgroundSiteCards_subtitle =>
+      'הצג מפה כרקע בכרטיסי אתרי צלילה';
 
   @override
-  String get settings_appearance_mapBackgroundSiteCards_subtitleWithNote => 'הצג מפה כרקע בכרטיסי אתרי צלילה (דורש מיקום אתר)';
+  String get settings_appearance_mapBackgroundSiteCards_subtitleWithNote =>
+      'הצג מפה כרקע בכרטיסי אתרי צלילה (דורש מיקום אתר)';
 
   @override
   String get settings_appearance_maxDepthMarker => 'סמן עומק מרבי';
 
   @override
-  String get settings_appearance_maxDepthMarker_subtitle => 'הצג סמן בנקודת העומק המרבי';
+  String get settings_appearance_maxDepthMarker_subtitle =>
+      'הצג סמן בנקודת העומק המרבי';
 
   @override
-  String get settings_appearance_maxDepthMarker_subtitleFull => 'הצג סמן בנקודת העומק המרבי בפרופילי צלילה';
+  String get settings_appearance_maxDepthMarker_subtitleFull =>
+      'הצג סמן בנקודת העומק המרבי בפרופילי צלילה';
 
   @override
   String get settings_appearance_metric_ascentRateColors => 'צבעי קצב עלייה';
@@ -17682,7 +18385,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_metric_events => 'אירועים';
 
   @override
-  String get settings_appearance_metric_estimatedTankPressure => 'לחץ בלון משוער';
+  String get settings_appearance_metric_estimatedTankPressure =>
+      'לחץ בלון משוער';
 
   @override
   String get settings_appearance_metric_gasDensity => 'צפיפות גז';
@@ -17744,37 +18448,47 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_pressureThresholdMarkers => 'סמני סף לחץ';
 
   @override
-  String get settings_appearance_pressureThresholdMarkers_subtitle => 'הצג סמנים כאשר לחץ הבלון חוצה ספים';
+  String get settings_appearance_pressureThresholdMarkers_subtitle =>
+      'הצג סמנים כאשר לחץ הבלון חוצה ספים';
 
   @override
-  String get settings_appearance_pressureThresholdMarkers_subtitleFull => 'הצג סמנים כאשר לחץ הבלון חוצה ספי 2/3, 1/2 ו-1/3';
+  String get settings_appearance_pressureThresholdMarkers_subtitleFull =>
+      'הצג סמנים כאשר לחץ הבלון חוצה ספי 2/3, 1/2 ו-1/3';
 
   @override
-  String get settings_appearance_metricsFollowViewport => 'שמירת שכבות העל בתצוגה בעת זום';
+  String get settings_appearance_metricsFollowViewport =>
+      'שמירת שכבות העל בתצוגה בעת זום';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle => 'התאמת שכבות על כגון NDL ו-ppO2 לאזור הנראה במקום להגדיל אותן יחד עם ציר העומק';
+  String get settings_appearance_metricsFollowViewport_subtitle =>
+      'התאמת שכבות על כגון NDL ו-ppO2 לאזור הנראה במקום להגדיל אותן יחד עם ציר העומק';
 
   @override
   String get settings_appearance_rightYAxisMetric => 'מדד ציר Y ימני';
 
   @override
-  String get settings_appearance_rightYAxisMetric_subtitle => 'מדד ברירת מחדל המוצג בציר הימני';
+  String get settings_appearance_rightYAxisMetric_subtitle =>
+      'מדד ברירת מחדל המוצג בציר הימני';
 
   @override
-  String get settings_appearance_subsection_decompressionMetrics => 'מדדי דקומפרסיה';
+  String get settings_appearance_subsection_decompressionMetrics =>
+      'מדדי דקומפרסיה';
 
   @override
-  String get settings_appearance_subsection_defaultVisibleMetrics => 'מדדים גלויים כברירת מחדל';
+  String get settings_appearance_subsection_defaultVisibleMetrics =>
+      'מדדים גלויים כברירת מחדל';
 
   @override
-  String get settings_appearance_subsection_standardMetrics => 'Standard Metrics';
+  String get settings_appearance_subsection_standardMetrics =>
+      'Standard Metrics';
 
   @override
-  String get settings_appearance_subsection_gasAnalysisMetrics => 'מדדי ניתוח גז';
+  String get settings_appearance_subsection_gasAnalysisMetrics =>
+      'מדדי ניתוח גז';
 
   @override
-  String get settings_appearance_subsection_gradientFactorMetrics => 'מדדי גורם שיפוע';
+  String get settings_appearance_subsection_gradientFactorMetrics =>
+      'מדדי גורם שיפוע';
 
   @override
   String get settings_appearance_theme_dark => 'כהה';
@@ -17789,16 +18503,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_navCustomization_title => 'פריסת הניווט';
 
   @override
-  String get settings_navCustomization_description => 'גררו פריטים כדי לסדר אותם מחדש. הפריטים העליונים מופיעים בסרגל הניווט התחתון; מספרם תלוי בגודל המסך, לא בכיוון שלו.';
+  String get settings_navCustomization_description =>
+      'גררו פריטים כדי לסדר אותם מחדש. הפריטים העליונים מופיעים בסרגל הניווט התחתון; מספרם תלוי בגודל המסך, לא בכיוון שלו.';
 
   @override
-  String get settings_navCustomization_alwaysHideLabels_title => 'הסתר תוויות תמיד';
+  String get settings_navCustomization_alwaysHideLabels_title =>
+      'הסתר תוויות תמיד';
 
   @override
-  String get settings_navCustomization_alwaysHideLabels_subtitle => 'סמלים בלבד, גם כשיש מקום לתוויות';
+  String get settings_navCustomization_alwaysHideLabels_subtitle =>
+      'סמלים בלבד, גם כשיש מקום לתוויות';
 
   @override
-  String get settings_navCustomization_descriptionDesktop => 'גררו פריטים כדי לסדר מחדש את סרגל הצד. דף הבית תמיד נשאר למעלה.';
+  String get settings_navCustomization_descriptionDesktop =>
+      'גררו פריטים כדי לסדר מחדש את סרגל הצד. דף הבית תמיד נשאר למעלה.';
 
   @override
   String get settings_navCustomization_scopePhone => 'טלפון';
@@ -17807,7 +18525,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_navCustomization_scopeDesktop => 'מחשב שולחני';
 
   @override
-  String get settings_navCustomization_dividerLabel => 'פריטים שמתחת עוברים לתפריט עוד כשאין להם מקום בסרגל';
+  String get settings_navCustomization_dividerLabel =>
+      'פריטים שמתחת עוברים לתפריט עוד כשאין להם מקום בסרגל';
 
   @override
   String get settings_navCustomization_resetButton => 'Reset to defaults';
@@ -17826,12 +18545,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String settings_navCustomization_subtitlePreview(String first, String second, String third) {
+  String settings_navCustomization_subtitlePreview(
+    String first,
+    String second,
+    String third,
+  ) {
     return '$first · $second · $third';
   }
 
   @override
-  String get settings_navCustomization_saveError => 'Could not save navigation layout. Please try again.';
+  String get settings_navCustomization_saveError =>
+      'Could not save navigation layout. Please try again.';
 
   @override
   String get settings_backToSettings_tooltip => 'חזרה להגדרות';
@@ -17843,7 +18567,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_autoSync => 'סנכרון אוטומטי';
 
   @override
-  String get settings_cloudSync_autoSync_subtitle => 'סנכרן אוטומטית לאחר שינויים';
+  String get settings_cloudSync_autoSync_subtitle =>
+      'סנכרן אוטומטית לאחר שינויים';
 
   @override
   String settings_cloudSync_conflictItems(int count) {
@@ -17857,7 +18582,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_disabledBanner_content => 'סנכרון ענן מנוהל אפליקציה מושבת כי אתה משתמש בתיקייה מותאמת אישית. שירות הסנכרון של התיקייה שלך (Dropbox, Google Drive, OneDrive וכו\') מטפל בסנכרון.';
+  String get settings_cloudSync_disabledBanner_content =>
+      'סנכרון ענן מנוהל אפליקציה מושבת כי אתה משתמש בתיקייה מותאמת אישית. שירות הסנכרון של התיקייה שלך (Dropbox, Google Drive, OneDrive וכו\') מטפל בסנכרון.';
 
   @override
   String get settings_cloudSync_disabledBanner_title => 'סנכרון ענן מושבת';
@@ -17869,12 +18595,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_adopt_confirm => 'אימוץ הספרייה המשוחזרת';
 
   @override
-  String settings_cloudSync_adopt_dialogContent(String deviceName, String date) {
+  String settings_cloudSync_adopt_dialogContent(
+    String deviceName,
+    String date,
+  ) {
     return 'הספרייה הוחלפה מגיבוי במכשיר \"$deviceName\" ($date). אימוץ יחליף את נתוני מכשיר זה בספרייה המשוחזרת. תחילה ייווצר גיבוי בטיחות של הנתונים הנוכחיים של מכשיר זה.';
   }
 
   @override
-  String get settings_cloudSync_adopt_dialogTitle => 'לאמץ את הספרייה המשוחזרת?';
+  String get settings_cloudSync_adopt_dialogTitle =>
+      'לאמץ את הספרייה המשוחזרת?';
 
   @override
   String get settings_cloudSync_adopt_notNow => 'לא עכשיו';
@@ -17886,13 +18616,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_replaceLibrary_tile => 'החלפת ספריית הענן';
 
   @override
-  String get settings_cloudSync_replaceLibrary_tileSubtitle => 'להפוך את הספרייה של מכשיר זה לספרייה שכל המכשירים משתמשים בה';
+  String get settings_cloudSync_replaceLibrary_tileSubtitle =>
+      'להפוך את הספרייה של מכשיר זה לספרייה שכל המכשירים משתמשים בה';
 
   @override
-  String get settings_cloudSync_replaceLibrary_dialogTitle => 'להחליף את ספריית הענן?';
+  String get settings_cloudSync_replaceLibrary_dialogTitle =>
+      'להחליף את ספריית הענן?';
 
   @override
-  String get settings_cloudSync_replaceLibrary_dialogIntro => 'הספרייה של מכשיר זה הופכת לספרייה שכל המכשירים משתמשים בה.';
+  String get settings_cloudSync_replaceLibrary_dialogIntro =>
+      'הספרייה של מכשיר זה הופכת לספרייה שכל המכשירים משתמשים בה.';
 
   @override
   String settings_cloudSync_replaceLibrary_dialogBody(num diveCount) {
@@ -17910,7 +18643,8 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       peerCount,
       locale: localeName,
-      other: '$peerCount מכשירים נוספים יתבקשו לאמץ אותה; עד אז השינויים שלהם לא ימוזגו.',
+      other:
+          '$peerCount מכשירים נוספים יתבקשו לאמץ אותה; עד אז השינויים שלהם לא ימוזגו.',
       one: 'מכשיר אחד נוסף יתבקש לאמץ אותה; עד אז השינויים שלו לא ימוזגו.',
       zero: 'אף מכשיר אחר עדיין לא מסתנכרן, ולכן אין מה לאמץ.',
     );
@@ -17918,31 +18652,39 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_replaceLibrary_peersUnknown => 'כל שאר המכשירים יתבקשו לאמץ אותה; עד אז השינויים שלהם לא ימוזגו.';
+  String get settings_cloudSync_replaceLibrary_peersUnknown =>
+      'כל שאר המכשירים יתבקשו לאמץ אותה; עד אז השינויים שלהם לא ימוזגו.';
 
   @override
-  String get settings_cloudSync_replaceLibrary_backupNote => 'תחילה נוצר גיבוי של מכשיר זה. לא ניתן לבטל פעולה זו.';
+  String get settings_cloudSync_replaceLibrary_backupNote =>
+      'תחילה נוצר גיבוי של מכשיר זה. לא ניתן לבטל פעולה זו.';
 
   @override
   String get settings_cloudSync_replaceLibrary_confirmWord => 'החלפה';
 
   @override
-  String get settings_cloudSync_replaceLibrary_confirmHint => 'הקלד \"החלפה\" לאישור';
+  String get settings_cloudSync_replaceLibrary_confirmHint =>
+      'הקלד \"החלפה\" לאישור';
 
   @override
   String get settings_cloudSync_replaceLibrary_confirm => 'החלפה';
 
   @override
-  String get settings_cloudSync_firstSync_banner => 'הסנכרון הראשון ממתין לאישור. הקש על \'סנכרן עכשיו\' כדי לבדוק מה ישולב.';
+  String get settings_cloudSync_firstSync_banner =>
+      'הסנכרון הראשון ממתין לאישור. הקש על \'סנכרן עכשיו\' כדי לבדוק מה ישולב.';
 
   @override
   String get settings_cloudSync_firstSync_dialogConfirm => 'מזג וסנכרן';
 
   @override
-  String get settings_cloudSync_firstSync_replaceHint => 'אם במקום זאת הספרייה של מכשיר זה אמורה להחליף את מה שנמצא בענן, בטל והשתמש בהגדרות > סנכרון ענן > החלפת ספריית הענן.';
+  String get settings_cloudSync_firstSync_replaceHint =>
+      'אם במקום זאת הספרייה של מכשיר זה אמורה להחליף את מה שנמצא בענן, בטל והשתמש בהגדרות > סנכרון ענן > החלפת ספריית הענן.';
 
   @override
-  String settings_cloudSync_firstSync_dialogContent(int deviceCount, int diveCount) {
+  String settings_cloudSync_firstSync_dialogContent(
+    int deviceCount,
+    int diveCount,
+  ) {
     return 'נמצאו נתוני סנכרון קיימים בענן ($deviceCount קובצי סנכרון). הסנכרון הראשון ישלב נתונים אלה עם $diveCount הצלילות שבמכשיר זה, בכל המכשירים המסונכרנים.\n\nאם אותן צלילות נוספו בנפרד בכל מכשיר, הן יופיעו פעמיים.';
   }
 
@@ -17958,7 +18700,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_switch_dialogTitle => 'להחליף שירות סנכרון?';
 
   @override
-  String settings_cloudSync_switch_dialogContent(String fromName, String toName) {
+  String settings_cloudSync_switch_dialogContent(
+    String fromName,
+    String toName,
+  ) {
     return 'הנתונים שלך לא יועברו מ-$fromName -- הם יישארו שם עד שתמחק אותם. לאחר ההחלפה, הסנכרון הבא של מכשיר זה ישלב את הנתונים שלו עם מה שכבר קיים ב-$toName. המכשירים האחרים שלך ימשיכו להשתמש ב-$fromName עד שתחליף גם כל אחד מהם.';
   }
 
@@ -17966,7 +18711,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_switch_confirm => 'החלף';
 
   @override
-  String settings_cloudSync_moved_banner(String deviceName, String destination) {
+  String settings_cloudSync_moved_banner(
+    String deviceName,
+    String destination,
+  ) {
     return '$deviceName העביר ספרייה זו אל $destination. שירות זה כבר אינו מתעדכן על ידיו. בחר $destination למטה כדי לעקוב אחר ההעברה.';
   }
 
@@ -17988,7 +18736,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_header_advanced => 'מתקדם';
 
   @override
-  String get settings_cloudSync_signOut_backupWarning => 'גיבוי הענן יכובה והגיבויים יישמרו במיקום ברירת המחדל.';
+  String get settings_cloudSync_signOut_backupWarning =>
+      'גיבוי הענן יכובה והגיבויים יישמרו במיקום ברירת המחדל.';
 
   @override
   String get settings_cloudSync_header_cloudProvider => 'ספק ענן';
@@ -18054,15 +18803,19 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String settings_cloudSync_peerRequiresUpdate_bannerNamedPlural(Object deviceList) {
+  String settings_cloudSync_peerRequiresUpdate_bannerNamedPlural(
+    Object deviceList,
+  ) {
     return '$deviceList מסתנכרנים מגרסה חדשה יותר של Submersion, ולכן השינויים האחרונים שלהם מוחזקים בינתיים.';
   }
 
   @override
-  String get settings_cloudSync_peerRequiresUpdate_updateAction => 'עדכן מכשיר זה כדי לקבל אותם.';
+  String get settings_cloudSync_peerRequiresUpdate_updateAction =>
+      'עדכן מכשיר זה כדי לקבל אותם.';
 
   @override
-  String get settings_cloudSync_peerRequiresUpdate_storeAction => 'הם יוחלו אוטומטית ברגע שעדכון חנות האפליקציות של מכשיר זה יגיע; ייתכן שהעדכון עדיין בבדיקה.';
+  String get settings_cloudSync_peerRequiresUpdate_storeAction =>
+      'הם יוחלו אוטומטית ברגע שעדכון חנות האפליקציות של מכשיר זה יגיע; ייתכן שהעדכון עדיין בבדיקה.';
 
   @override
   String get settings_cloudSync_provider_connected => 'מחובר';
@@ -18073,7 +18826,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String settings_cloudSync_provider_connectionFailed(Object providerName, Object error) {
+  String settings_cloudSync_provider_connectionFailed(
+    Object providerName,
+    Object error,
+  ) {
     return 'החיבור אל $providerName נכשל: $error';
   }
 
@@ -18084,7 +18840,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_dropbox_connect_codeLabel => 'קוד הרשאה';
 
   @override
-  String get settings_cloudSync_dropbox_connect_emptyCode => 'הזן את קוד ההרשאה המוצג בדפדפן שלך';
+  String get settings_cloudSync_dropbox_connect_emptyCode =>
+      'הזן את קוד ההרשאה המוצג בדפדפן שלך';
 
   @override
   String settings_cloudSync_dropbox_connect_failed(Object error) {
@@ -18092,10 +18849,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_dropbox_connect_instructions => 'הדפדפן שלך פתח דף הרשאה של Dropbox. אשר את הגישה, ולאחר מכן הדבק כאן את הקוד שמוצג על ידי Dropbox.';
+  String get settings_cloudSync_dropbox_connect_instructions =>
+      'הדפדפן שלך פתח דף הרשאה של Dropbox. אשר את הגישה, ולאחר מכן הדבק כאן את הקוד שמוצג על ידי Dropbox.';
 
   @override
-  String get settings_cloudSync_dropbox_connect_reopenBrowser => 'פתח מחדש את הדפדפן';
+  String get settings_cloudSync_dropbox_connect_reopenBrowser =>
+      'פתח מחדש את הדפדפן';
 
   @override
   String get settings_cloudSync_dropbox_connect_submit => 'התחבר';
@@ -18115,7 +18874,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_dropbox_disconnect => 'התנתק';
 
   @override
-  String get settings_cloudSync_provider_dropbox_subtitle => 'סנכרון באמצעות Dropbox (Apps/Submersion)';
+  String get settings_cloudSync_provider_dropbox_subtitle =>
+      'סנכרון באמצעות Dropbox (Apps/Submersion)';
 
   @override
   String get settings_cloudSync_provider_dropbox_title => 'Dropbox';
@@ -18124,16 +18884,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_provider_googleDrive => 'Google Drive';
 
   @override
-  String get settings_cloudSync_provider_googleDrive_subtitle => 'סנכרון באמצעות Google Drive';
+  String get settings_cloudSync_provider_googleDrive_subtitle =>
+      'סנכרון באמצעות Google Drive';
 
   @override
-  String get settings_cloudSync_googleDrive_desktopNotConfigured => 'לא זמין בגרסה זו';
+  String get settings_cloudSync_googleDrive_desktopNotConfigured =>
+      'לא זמין בגרסה זו';
 
   @override
   String get settings_cloudSync_googleDrive_browserWait_title => 'המשך בדפדפן';
 
   @override
-  String get settings_cloudSync_googleDrive_browserWait_message => 'סיים את ההתחברות לחשבון Google בדפדפן האינטרנט שלך, ולאחר מכן חזור אל Submersion.';
+  String get settings_cloudSync_googleDrive_browserWait_message =>
+      'סיים את ההתחברות לחשבון Google בדפדפן האינטרנט שלך, ולאחר מכן חזור אל Submersion.';
 
   @override
   String get settings_cloudSync_provider_icloud => 'iCloud';
@@ -18150,7 +18913,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_provider_s3_edit => 'עריכת תצורת S3';
 
   @override
-  String get settings_cloudSync_provider_s3_subtitle => 'עובד עם כל שירות אחסון תואם S3';
+  String get settings_cloudSync_provider_s3_subtitle =>
+      'עובד עם כל שירות אחסון תואם S3';
 
   @override
   String get settings_cloudSync_provider_s3_title => 'אחסון תואם S3';
@@ -18159,7 +18923,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_resetDialog_cancel => 'ביטול';
 
   @override
-  String get settings_cloudSync_resetDialog_content => 'פעולה זו תנקה את כל היסטוריית הסנכרון ותתחיל מחדש. הנתונים שלך לא יימחקו, אך ייתכן שתצטרך לפתור התנגשויות בסנכרון הבא.';
+  String get settings_cloudSync_resetDialog_content =>
+      'פעולה זו תנקה את כל היסטוריית הסנכרון ותתחיל מחדש. הנתונים שלך לא יימחקו, אך ייתכן שתצטרך לפתור התנגשויות בסנכרון הבא.';
 
   @override
   String get settings_cloudSync_resetDialog_reset => 'איפוס';
@@ -18174,13 +18939,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_resetSyncState => 'אפס מצב סנכרון';
 
   @override
-  String get settings_cloudSync_resetSyncState_subtitle => 'נקה היסטוריית סנכרון והתחל מחדש';
+  String get settings_cloudSync_resetSyncState_subtitle =>
+      'נקה היסטוריית סנכרון והתחל מחדש';
 
   @override
   String get settings_cloudSync_resolveConflicts => 'פתור התנגשויות';
 
   @override
-  String get settings_cloudSync_selectProviderHint => 'בחר ספק ענן כדי לאפשר סנכרון';
+  String get settings_cloudSync_selectProviderHint =>
+      'בחר ספק ענן כדי לאפשר סנכרון';
 
   @override
   String get settings_cloudSync_signOut => 'התנתק';
@@ -18189,7 +18956,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_signOutDialog_cancel => 'ביטול';
 
   @override
-  String get settings_cloudSync_signOutDialog_content => 'פעולה זו תנתק מספק הענן. הנתונים המקומיים שלך יישארו ללא שינוי.';
+  String get settings_cloudSync_signOutDialog_content =>
+      'פעולה זו תנתק מספק הענן. הנתונים המקומיים שלך יישארו ללא שינוי.';
 
   @override
   String get settings_cloudSync_signOutDialog_signOut => 'התנתק';
@@ -18234,7 +19002,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_syncOnResume => 'סנכרון בחזרה';
 
   @override
-  String get settings_cloudSync_syncOnResume_subtitle => 'בדוק עדכונים כשהאפליקציה נהיית פעילה';
+  String get settings_cloudSync_syncOnResume_subtitle =>
+      'בדוק עדכונים כשהאפליקציה נהיית פעילה';
 
   @override
   String settings_cloudSync_syncProgressPercent(Object percent) {
@@ -18323,7 +19092,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_next_tooltip => 'ההתנגשות הבאה';
 
   @override
-  String get settings_conflict_noConflicts_message => 'כל התנגשויות הסנכרון נפתרו.';
+  String get settings_conflict_noConflicts_message =>
+      'כל התנגשויות הסנכרון נפתרו.';
 
   @override
   String get settings_conflict_noConflicts_title => 'אין התנגשויות';
@@ -18415,7 +19185,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_plannedTank => 'בלון מתוכנן';
 
   @override
-  String get settings_conflict_ref_preDiveChecklistTemplate => 'תבנית רשימת בדיקות לפני צלילה';
+  String get settings_conflict_ref_preDiveChecklistTemplate =>
+      'תבנית רשימת בדיקות לפני צלילה';
 
   @override
   String get settings_conflict_ref_preDiveSession => 'רשימת בדיקות לפני צלילה';
@@ -18471,7 +19242,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_title => 'פתרון התנגשויות';
 
   @override
-  String get settings_data_appDefaultLocation => 'מיקום ברירת מחדל של האפליקציה';
+  String get settings_data_appDefaultLocation =>
+      'מיקום ברירת מחדל של האפליקציה';
 
   @override
   String get settings_data_backup => 'גיבוי ושחזור';
@@ -18517,7 +19289,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_data_offlineMaps => 'מפות לא מקוונות';
 
   @override
-  String get settings_data_offlineMaps_subtitle => 'אריחי מפה ונתוני פני שטח בתלת-ממד';
+  String get settings_data_offlineMaps_subtitle =>
+      'אריחי מפה ונתוני פני שטח בתלת-ממד';
 
   @override
   String get settings_data_restore => 'שחזור';
@@ -18526,7 +19299,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_data_restoreDialog_cancel => 'ביטול';
 
   @override
-  String get settings_data_restoreDialog_content => 'אזהרה: שחזור מגיבוי יחליף את כל הנתונים הנוכחיים בנתוני הגיבוי. לא ניתן לבטל פעולה זו.\n\nהאם אתה בטוח שברצונך להמשיך?';
+  String get settings_data_restoreDialog_content =>
+      'אזהרה: שחזור מגיבוי יחליף את כל הנתונים הנוכחיים בנתוני הגיבוי. לא ניתן לבטל פעולה זו.\n\nהאם אתה בטוח שברצונך להמשיך?';
 
   @override
   String get settings_data_restoreDialog_restore => 'שחזור';
@@ -18567,7 +19341,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_data_sync_syncing => 'מסנכרן...';
 
   @override
-  String get settings_decompression_aboutContent => 'גורמי שיפוע (GF) קובעים עד כמה שמרניים חישובי הדקומפרסיה שלך. GF Low משפיע על עצירות עמוקות, בעוד GF High משפיע על עצירות רדודות.\n\nערכים נמוכים יותר = שמרני יותר = עצירות דקו ארוכות יותר\nערכים גבוהים יותר = פחות שמרני = עצירות דקו קצרות יותר';
+  String get settings_decompression_aboutContent =>
+      'גורמי שיפוע (GF) קובעים עד כמה שמרניים חישובי הדקומפרסיה שלך. GF Low משפיע על עצירות עמוקות, בעוד GF High משפיע על עצירות רדודות.\n\nערכים נמוכים יותר = שמרני יותר = עצירות דקו ארוכות יותר\nערכים גבוהים יותר = פחות שמרני = עצירות דקו קצרות יותר';
 
   @override
   String get settings_decompression_aboutTitle => 'אודות גורמי שיפוע';
@@ -18579,10 +19354,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_decompression_dialog_cancel => 'ביטול';
 
   @override
-  String get settings_decompression_dialog_conservatismHint => 'ערכים נמוכים יותר = שמרני יותר (NDL ארוך יותר / יותר דקו)';
+  String get settings_decompression_dialog_conservatismHint =>
+      'ערכים נמוכים יותר = שמרני יותר (NDL ארוך יותר / יותר דקו)';
 
   @override
-  String get settings_decompression_dialog_customValues => 'ערכים מותאמים אישית';
+  String get settings_decompression_dialog_customValues =>
+      'ערכים מותאמים אישית';
 
   @override
   String get settings_decompression_dialog_gfHigh => 'GF High';
@@ -18591,7 +19368,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_decompression_dialog_gfLow => 'GF Low';
 
   @override
-  String get settings_decompression_dialog_info => 'GF Low/High קובעים עד כמה שמרניים חישובי ה-NDL והדקו שלך.';
+  String get settings_decompression_dialog_info =>
+      'GF Low/High קובעים עד כמה שמרניים חישובי ה-NDL והדקו שלך.';
 
   @override
   String get settings_decompression_dialog_presets => 'הגדרות מוכנות';
@@ -18628,18 +19406,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_decompression_ccrPpO2LimitsTitle => 'מגבלות ppO2 CCR';
 
   @override
-  String settings_decompression_ccrPpO2LimitsSubtitle(String low, String high, String dil) {
+  String settings_decompression_ccrPpO2LimitsSubtitle(
+    String low,
+    String high,
+    String dil,
+  ) {
     return 'Setpoint נמוך $low · גבוה $high · MOD מדלל $dil בר';
   }
 
   @override
-  String get settings_decompression_ccrDialog_info => 'ערכי ברירת מחדל לצלילות במעגל סגור. מצב CCR במחשבון ה-MOD מתחיל מערכים אלה.';
+  String get settings_decompression_ccrDialog_info =>
+      'ערכי ברירת מחדל לצלילות במעגל סגור. מצב CCR במחשבון ה-MOD מתחיל מערכים אלה.';
 
   @override
   String get settings_decompression_ccrDialog_setpointLow => 'Setpoint נמוך';
 
   @override
-  String get settings_decompression_ccrDialog_setpointLowHint => 'קרוב לפני המים, בירידה ובעלייה';
+  String get settings_decompression_ccrDialog_setpointLowHint =>
+      'קרוב לפני המים, בירידה ובעלייה';
 
   @override
   String get settings_decompression_ccrDialog_setpointHigh => 'Setpoint גבוה';
@@ -18651,22 +19435,26 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_decompression_ccrDialog_diluentMod => 'MOD מדלל';
 
   @override
-  String get settings_decompression_ccrDialog_diluentModHint => 'ה-ppO2 שהמדלל רשאי להגיע אליו בשטיפה; קובע את ה-MOD שלו';
+  String get settings_decompression_ccrDialog_diluentModHint =>
+      'ה-ppO2 שהמדלל רשאי להגיע אליו בשטיפה; קובע את ה-MOD שלו';
 
   @override
-  String get settings_decompression_ppO2Dialog_info => 'תקרות ה-ppO2 המשמשות לחישוב MOD, לתכנון גזים ולהתראות רעילות חמצן. הגדר אותן כך שיתאמו למגבלות שהוגדרו במחשב הצלילה שלך.';
+  String get settings_decompression_ppO2Dialog_info =>
+      'תקרות ה-ppO2 המשמשות לחישוב MOD, לתכנון גזים ולהתראות רעילות חמצן. הגדר אותן כך שיתאמו למגבלות שהוגדרו במחשב הצלילה שלך.';
 
   @override
   String get settings_decompression_ppO2Dialog_working => 'ppO2 בעבודה';
 
   @override
-  String get settings_decompression_ppO2Dialog_workingHint => 'גז תחתית, החלק הפעיל של הצלילה';
+  String get settings_decompression_ppO2Dialog_workingHint =>
+      'גז תחתית, החלק הפעיל של הצלילה';
 
   @override
   String get settings_decompression_ppO2Dialog_max => 'ppO2 מרבי';
 
   @override
-  String get settings_decompression_ppO2Dialog_maxHint => 'דקומפרסיה ומצבי חירום';
+  String get settings_decompression_ppO2Dialog_maxHint =>
+      'דקומפרסיה ומצבי חירום';
 
   @override
   String settings_decompression_preset_selectLabel(Object presetName) {
@@ -18680,13 +19468,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_decompression_o2Narcotic => 'O2 נרקוטי';
 
   @override
-  String get settings_decompression_o2Narcotic_subtitle => 'כאשר מופעל, גם O2 וגם N2 נחשבים נרקוטיים (שמרני יותר). כאשר מושבת, רק N2 תורם לנרקוזה.';
+  String get settings_decompression_o2Narcotic_subtitle =>
+      'כאשר מופעל, גם O2 וגם N2 נחשבים נרקוטיים (שמרני יותר). כאשר מושבת, רק N2 תורם לנרקוזה.';
 
   @override
   String get settings_decompression_endLimit => 'מגבלת END';
 
   @override
-  String get settings_decompression_endLimit_subtitle => 'עומק נרקוטי שווה ערך מרבי המשמש לחישובי MND';
+  String get settings_decompression_endLimit_subtitle =>
+      'עומק נרקוטי שווה ערך מרבי המשמש לחישובי MND';
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'מגבלת END';
@@ -18695,31 +19485,39 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_decompression_cnsMethodTitle => 'חישוב CNS';
 
   @override
-  String get settings_decompression_cnsMethodClassic => 'טבלת NOAA, מדורגת (קלאסי)';
+  String get settings_decompression_cnsMethodClassic =>
+      'טבלת NOAA, מדורגת (קלאסי)';
 
   @override
-  String get settings_decompression_cnsMethodClassicDesc => 'מחשב כל תחום של 0.1 bar לפי הקצה המחמיר שלו. השיטה המקורית של Submersion.';
+  String get settings_decompression_cnsMethodClassicDesc =>
+      'מחשב כל תחום של 0.1 bar לפי הקצה המחמיר שלו. השיטה המקורית של Submersion.';
 
   @override
-  String get settings_decompression_cnsMethodShearwater => 'אינטרפולציה לינארית (בסגנון Shearwater)';
+  String get settings_decompression_cnsMethodShearwater =>
+      'אינטרפולציה לינארית (בסגנון Shearwater)';
 
   @override
-  String get settings_decompression_cnsMethodShearwaterDesc => 'מבצע אינטרפולציה בין גבולות NOAA כפי שמתועד על ידי Shearwater. תואם את רוב מחשבי הצלילה.';
+  String get settings_decompression_cnsMethodShearwaterDesc =>
+      'מבצע אינטרפולציה בין גבולות NOAA כפי שמתועד על ידי Shearwater. תואם את רוב מחשבי הצלילה.';
 
   @override
-  String get settings_decompression_cnsMethodSubsurface => 'התאמה מעריכית (כמו Subsurface)';
+  String get settings_decompression_cnsMethodSubsurface =>
+      'התאמה מעריכית (כמו Subsurface)';
 
   @override
-  String get settings_decompression_cnsMethodSubsurfaceDesc => 'התאמת עקומה חלקה לטבלת NOAA. תואם את ה-CNS המחושב של Subsurface.';
+  String get settings_decompression_cnsMethodSubsurfaceDesc =>
+      'התאמת עקומה חלקה לטבלת NOAA. תואם את ה-CNS המחושב של Subsurface.';
 
   @override
   String get settings_decompression_cnsMethodAboutTitle => 'אודות שיטות אלה';
 
   @override
-  String get settings_decompression_cnsMethodAboutBody => 'שלוש השיטות מבוססות על גבולות החשיפה לחמצן שבמדריך הצלילה של NOAA (300 דקות ב-ppO2 של 1.0 bar, 45 דקות ב-1.6 bar). הטבלה מגדירה גבולות רק בצעדים של 0.1 bar: השיטה הקלאסית מחשבת את כל מה שנמצא בתוך תחום לפי הקצה המחמיר של התחום, ובכך מעריכה ביתר באופן שיטתי את החשיפה שבין הערכים. מחשבי הצלילה של Shearwater מתעדים אינטרפולציה לינארית בין גבולות NOAA, עם 15% קבועים לדקה מעל 1.65 bar. בשנת 2019 החליפה Subsurface את חיפוש הטבלה שלה בהתאמה מעריכית חלקה בשני מקטעים לאותם נתוני NOAA (Robert C. Helling), שגם מתרחבת באופן טבעי מעבר ל-1.6 bar. בין ערכי הטבלה שתי השיטות החלקות תואמות זו את זו בהפרש של כנקודת CNS אחת בקירוב; השיטה הקלאסית מציגה ערכים גבוהים יותר.';
+  String get settings_decompression_cnsMethodAboutBody =>
+      'שלוש השיטות מבוססות על גבולות החשיפה לחמצן שבמדריך הצלילה של NOAA (300 דקות ב-ppO2 של 1.0 bar, 45 דקות ב-1.6 bar). הטבלה מגדירה גבולות רק בצעדים של 0.1 bar: השיטה הקלאסית מחשבת את כל מה שנמצא בתוך תחום לפי הקצה המחמיר של התחום, ובכך מעריכה ביתר באופן שיטתי את החשיפה שבין הערכים. מחשבי הצלילה של Shearwater מתעדים אינטרפולציה לינארית בין גבולות NOAA, עם 15% קבועים לדקה מעל 1.65 bar. בשנת 2019 החליפה Subsurface את חיפוש הטבלה שלה בהתאמה מעריכית חלקה בשני מקטעים לאותם נתוני NOAA (Robert C. Helling), שגם מתרחבת באופן טבעי מעבר ל-1.6 bar. בין ערכי הטבלה שתי השיטות החלקות תואמות זו את זו בהפרש של כנקודת CNS אחת בקירוב; השיטה הקלאסית מציגה ערכים גבוהים יותר.';
 
   @override
-  String get settings_decompression_cnsMethodDisclaimer => 'השמות מתייחסים לשיטות שפורסמו של הפרויקטים והיצרנים המתאימים; אין בכך כדי לרמז על שיוך או חסות. ערכים מחושבים עשויים להיות שונים מהקריאות בפועל של מחשב הצלילה.';
+  String get settings_decompression_cnsMethodDisclaimer =>
+      'השמות מתייחסים לשיטות שפורסמו של הפרויקטים והיצרנים המתאימים; אין בכך כדי לרמז על שיוך או חסות. ערכים מחושבים עשויים להיות שונים מהקריאות בפועל של מחשב הצלילה.';
 
   @override
   String get settings_decompression_cnsMethodSourcesTitle => 'מקורות';
@@ -18728,16 +19526,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_linkOpenFailed => 'לא ניתן לפתוח את הקישור.';
 
   @override
-  String get settings_decompression_cnsMethodSourceNoaa => 'NOAA: Diving Program (המוציא לאור של NOAA Diving Manual)';
+  String get settings_decompression_cnsMethodSourceNoaa =>
+      'NOAA: Diving Program (המוציא לאור של NOAA Diving Manual)';
 
   @override
-  String get settings_decompression_cnsMethodSourceShearwater => 'Shearwater: שעון החמצן של CNS';
+  String get settings_decompression_cnsMethodSourceShearwater =>
+      'Shearwater: שעון החמצן של CNS';
 
   @override
-  String get settings_decompression_cnsMethodSourceTheoreticalDiver => 'The Theoretical Diver: חישוב רעילות חמצן CNS';
+  String get settings_decompression_cnsMethodSourceTheoreticalDiver =>
+      'The Theoretical Diver: חישוב רעילות חמצן CNS';
 
   @override
-  String get settings_decompression_cnsMethodSourceSubsurface => 'Subsurface: מימוש (divelist.cpp)';
+  String get settings_decompression_cnsMethodSourceSubsurface =>
+      'Subsurface: מימוש (divelist.cpp)';
 
   @override
   String get settings_existingDb_cancel => 'ביטול';
@@ -18749,7 +19551,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_existingDb_current => 'נוכחי';
 
   @override
-  String get settings_existingDb_dialog_message => 'מסד נתונים של Submersion כבר קיים בתיקייה זו.';
+  String get settings_existingDb_dialog_message =>
+      'מסד נתונים של Submersion כבר קיים בתיקייה זו.';
 
   @override
   String get settings_existingDb_dialog_title => 'נמצא מסד נתונים קיים';
@@ -18758,13 +19561,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_existingDb_existing => 'קיים';
 
   @override
-  String get settings_existingDb_replaceWarning => 'מסד הנתונים הקיים יגובה לפני ההחלפה.';
+  String get settings_existingDb_replaceWarning =>
+      'מסד הנתונים הקיים יגובה לפני ההחלפה.';
 
   @override
   String get settings_existingDb_replaceWithMyData => 'החלף בנתונים שלי';
 
   @override
-  String get settings_existingDb_replaceWithMyData_subtitle => 'דרוס במסד הנתונים הנוכחי שלך';
+  String get settings_existingDb_replaceWithMyData_subtitle =>
+      'דרוס במסד הנתונים הנוכחי שלך';
 
   @override
   String get settings_existingDb_stat_buddies => 'חברי צלילה';
@@ -18788,7 +19593,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_existingDb_useExisting => 'השתמש במסד הנתונים הקיים';
 
   @override
-  String get settings_existingDb_useExisting_subtitle => 'עבור למסד הנתונים בתיקייה זו';
+  String get settings_existingDb_useExisting_subtitle =>
+      'עבור למסד הנתונים בתיקייה זו';
 
   @override
   String get settings_gfPreset_custom_description => 'הגדר ערכים משלך';
@@ -18797,13 +19603,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_gfPreset_custom_name => 'מותאם אישית';
 
   @override
-  String get settings_gfPreset_high_description => 'הכי שמרני, עצירות דקו ארוכות יותר';
+  String get settings_gfPreset_high_description =>
+      'הכי שמרני, עצירות דקו ארוכות יותר';
 
   @override
   String get settings_gfPreset_high_name => 'גבוה';
 
   @override
-  String get settings_gfPreset_low_description => 'הכי פחות שמרני, דקו קצר יותר';
+  String get settings_gfPreset_low_description =>
+      'הכי פחות שמרני, דקו קצר יותר';
 
   @override
   String get settings_gfPreset_low_name => 'נמוך';
@@ -18875,7 +19683,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_lightroom_albumFilter_title => 'אלבומים לסריקה';
 
   @override
-  String get settings_lightroom_autoPoll_title => 'בדיקה אוטומטית של תמונות חדשות';
+  String get settings_lightroom_autoPoll_title =>
+      'בדיקה אוטומטית של תמונות חדשות';
 
   @override
   String settings_lightroom_clientId_help(String redirectUri) {
@@ -18904,7 +19713,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_lightroom_connect_codeLabel => 'כתובת URL מופנית או קוד';
 
   @override
-  String get settings_lightroom_connect_emptyCode => 'הדביקו את כתובת ה-URL המופנית או את קוד ההרשאה';
+  String get settings_lightroom_connect_emptyCode =>
+      'הדביקו את כתובת ה-URL המופנית או את קוד ההרשאה';
 
   @override
   String settings_lightroom_connect_failed(String error) {
@@ -18912,7 +19722,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_lightroom_connect_instructions => 'התחברו ל-Adobe בחלון הדפדפן, ואז הדביקו את הכתובת המלאה של הדף שאליו הגעתם (היא מכילה את קוד ההרשאה).';
+  String get settings_lightroom_connect_instructions =>
+      'התחברו ל-Adobe בחלון הדפדפן, ואז הדביקו את הכתובת המלאה של הדף שאליו הגעתם (היא מכילה את קוד ההרשאה).';
 
   @override
   String get settings_lightroom_connect_reopenBrowser => 'פתיחת הדפדפן מחדש';
@@ -18932,7 +19743,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_lightroom_disconnect => 'ניתוק';
 
   @override
-  String get settings_lightroom_disconnect_confirmBody => 'תמונות מקושרות נשארות בצלילות שלכם וממשיכות להיות מוצגות מאחסון המדיה. תמונות חדשות לא יותאמו יותר.';
+  String get settings_lightroom_disconnect_confirmBody =>
+      'תמונות מקושרות נשארות בצלילות שלכם וממשיכות להיות מוצגות מאחסון המדיה. תמונות חדשות לא יותאמו יותר.';
 
   @override
   String get settings_lightroom_disconnect_confirmTitle => 'לנתק את Lightroom?';
@@ -18952,12 +19764,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_lightroom_scan_running => 'סורק את Lightroom...';
 
   @override
-  String settings_lightroom_scan_summary(int attached, int suggested, int skipped) {
+  String settings_lightroom_scan_summary(
+    int attached,
+    int suggested,
+    int skipped,
+  ) {
     return '$attached קושרו, $suggested הוצעו, $skipped כבר מקושרות';
   }
 
   @override
-  String get settings_lightroom_subtitle => 'קישור אוטומטי של תמונות וסרטונים לצלילות';
+  String get settings_lightroom_subtitle =>
+      'קישור אוטומטי של תמונות וסרטונים לצלילות';
 
   @override
   String get settings_lightroom_title => 'Adobe Lightroom';
@@ -18966,25 +19783,29 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_manage_checklistTemplates => 'תבניות רשימות משימות לטיול';
 
   @override
-  String get settings_manage_checklistTemplates_subtitle => 'רשימות משימות לשימוש חוזר לתכנון טיולים';
+  String get settings_manage_checklistTemplates_subtitle =>
+      'רשימות משימות לשימוש חוזר לתכנון טיולים';
 
   @override
   String get settings_manage_diveRoles => 'תפקידי צלילה';
 
   @override
-  String get settings_manage_diveRoles_subtitle => 'ניהול תפקידי צלילה מותאמים אישית';
+  String get settings_manage_diveRoles_subtitle =>
+      'ניהול תפקידי צלילה מותאמים אישית';
 
   @override
   String get settings_manage_diveTypes => 'סוגי צלילה';
 
   @override
-  String get settings_manage_diveTypes_subtitle => 'ניהול סוגי צלילה מותאמים אישית';
+  String get settings_manage_diveTypes_subtitle =>
+      'ניהול סוגי צלילה מותאמים אישית';
 
   @override
   String get settings_manage_siteTypes => 'סוגי אתרים';
 
   @override
-  String get settings_manage_siteTypes_subtitle => 'סוגי אתרי צלילה מובנים ומותאמים';
+  String get settings_manage_siteTypes_subtitle =>
+      'סוגי אתרי צלילה מובנים ומותאמים';
 
   @override
   String get settings_manage_header_manageData => 'ניהול נתונים';
@@ -19005,19 +19826,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_manage_tankPresets => 'הגדרות בלון מוכנות';
 
   @override
-  String get settings_manage_tankPresets_subtitle => 'ניהול תצורות בלון מותאמות אישית';
+  String get settings_manage_tankPresets_subtitle =>
+      'ניהול תצורות בלון מותאמות אישית';
 
   @override
   String get settings_manage_weightPresets => 'קבועי משקולות';
 
   @override
-  String get settings_manage_weightPresets_subtitle => 'סטים של משקולות לשימוש חוזר בצלילה';
+  String get settings_manage_weightPresets_subtitle =>
+      'סטים של משקולות לשימוש חוזר בצלילה';
 
   @override
   String get weightPresets_page_title => 'קבועי משקולות';
 
   @override
-  String get weightPresets_page_empty => 'שמור משקולות מעורך הצלילה והן יופיעו כאן לשימוש חוזר.';
+  String get weightPresets_page_empty =>
+      'שמור משקולות מעורך הצלילה והן יופיעו כאן לשימוש חוזר.';
 
   @override
   String get weightPresets_action_rename => 'שנה שם';
@@ -19044,7 +19868,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get weightPresets_editor_needWeight => 'Add at least one weight';
 
   @override
-  String get weightPresets_editor_notFound => 'This weighting rig no longer exists.';
+  String get weightPresets_editor_notFound =>
+      'This weighting rig no longer exists.';
 
   @override
   String get weightPresets_rename_title => 'שנה שם קבוע';
@@ -19061,19 +19886,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_manage_serviceTypes => 'סוגי טיפול';
 
   @override
-  String get settings_manage_serviceTypes_subtitle => 'הטיפולים שהציוד שלך צריך, ובאיזו תדירות';
+  String get settings_manage_serviceTypes_subtitle =>
+      'הטיפולים שהציוד שלך צריך, ובאיזו תדירות';
 
   @override
-  String get settings_migrationProgress_doNotClose => 'נא לא לסגור את האפליקציה';
+  String get settings_migrationProgress_doNotClose =>
+      'נא לא לסגור את האפליקציה';
 
   @override
-  String get settings_migration_backupInfo => 'ייווצר גיבוי לפני ההעברה. הנתונים שלך לא יאבדו.';
+  String get settings_migration_backupInfo =>
+      'ייווצר גיבוי לפני ההעברה. הנתונים שלך לא יאבדו.';
 
   @override
   String get settings_migration_cancel => 'ביטול';
 
   @override
-  String get settings_migration_cloudSyncWarning => 'סנכרון ענן מנוהל אפליקציה יושבת. שירות הסנכרון של התיקייה שלך יטפל בסנכרון.';
+  String get settings_migration_cloudSyncWarning =>
+      'סנכרון ענן מנוהל אפליקציה יושבת. שירות הסנכרון של התיקייה שלך יטפל בסנכרון.';
 
   @override
   String get settings_migration_dialog_message => 'מסד הנתונים שלך יועבר:';
@@ -19102,37 +19931,45 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_notifications_disabled_openSettingsButton => 'פתח הגדרות';
 
   @override
-  String get settings_notifications_disabled_subtitleUnrequested => 'תזכורות שירות דורשות הרשאה לשליחת התראות';
+  String get settings_notifications_disabled_subtitleUnrequested =>
+      'תזכורות שירות דורשות הרשאה לשליחת התראות';
 
   @override
-  String get settings_notifications_disabled_subtitle => 'אפשר בהגדרות המערכת כדי לקבל תזכורות';
+  String get settings_notifications_disabled_subtitle =>
+      'אפשר בהגדרות המערכת כדי לקבל תזכורות';
 
   @override
   String get settings_notifications_disabled_title => 'התראות מושבתות';
 
   @override
-  String get settings_notifications_enableServiceReminders => 'אפשר תזכורות תחזוקה';
+  String get settings_notifications_enableServiceReminders =>
+      'אפשר תזכורות תחזוקה';
 
   @override
-  String get settings_notifications_enableServiceReminders_subtitle => 'קבל התראה כאשר תחזוקת ציוד נדרשת';
+  String get settings_notifications_enableServiceReminders_subtitle =>
+      'קבל התראה כאשר תחזוקת ציוד נדרשת';
 
   @override
-  String get settings_notifications_header_reminderSchedule => 'לוח זמנים לתזכורות';
+  String get settings_notifications_header_reminderSchedule =>
+      'לוח זמנים לתזכורות';
 
   @override
   String get settings_notifications_header_serviceReminders => 'תזכורות תחזוקה';
 
   @override
-  String get settings_notifications_howItWorks_content => 'התראות מתוזמנות בעת הפעלת האפליקציה ומתעדכנות מעת לעת ברקע. ניתן להתאים אישית תזכורות לפריטי ציוד בודדים במסך העריכה שלהם.';
+  String get settings_notifications_howItWorks_content =>
+      'התראות מתוזמנות בעת הפעלת האפליקציה ומתעדכנות מעת לעת ברקע. ניתן להתאים אישית תזכורות לפריטי ציוד בודדים במסך העריכה שלהם.';
 
   @override
   String get settings_notifications_howItWorks_title => 'איך זה עובד';
 
   @override
-  String get settings_notifications_permissionRequired => 'נא לאפשר התראות בהגדרות המערכת';
+  String get settings_notifications_permissionRequired =>
+      'נא לאפשר התראות בהגדרות המערכת';
 
   @override
-  String get settings_notifications_remindBeforeDue => 'הזכר לי לפני שתחזוקה נדרשת:';
+  String get settings_notifications_remindBeforeDue =>
+      'הזכר לי לפני שתחזוקה נדרשת:';
 
   @override
   String get settings_notifications_reminderTime => 'שעת תזכורת';
@@ -19156,7 +19993,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_profile_noDiverProfile => 'אין פרופיל צולל';
 
   @override
-  String get settings_profile_noDiverProfile_subtitle => 'הקש ליצירת הפרופיל שלך';
+  String get settings_profile_noDiverProfile_subtitle =>
+      'הקש ליצירת הפרופיל שלך';
 
   @override
   String get settings_profile_switchDiver_title => 'החלף צולל';
@@ -19170,13 +20008,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_profile_viewAllDivers => 'הצג את כל הצוללים';
 
   @override
-  String get settings_profile_viewAllDivers_subtitle => 'הוסף או ערוך פרופילי צוללים';
+  String get settings_profile_viewAllDivers_subtitle =>
+      'הוסף או ערוך פרופילי צוללים';
 
   @override
   String get settings_profileHub_addNewDiver => 'הוסף צולל חדש';
 
   @override
-  String get settings_profileHub_cannotDeleteOnly => 'לא ניתן למחוק את פרופיל הצולל היחיד';
+  String get settings_profileHub_cannotDeleteOnly =>
+      'לא ניתן למחוק את פרופיל הצולל היחיד';
 
   @override
   String get settings_profileHub_createDiverTitle => 'צור צולל';
@@ -19256,7 +20096,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_s3Config_appBar_title => 'אחסון תואם S3';
 
   @override
-  String get settings_s3Config_error_secureStorage => 'לא ניתן לגשת לאחסון המאובטח';
+  String get settings_s3Config_error_secureStorage =>
+      'לא ניתן לגשת לאחסון המאובטח';
 
   @override
   String get settings_s3Config_field_accessKeyId_label => 'Access Key ID';
@@ -19265,16 +20106,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_s3Config_field_bucket_label => 'Bucket';
 
   @override
-  String get settings_s3Config_field_endpoint_helper => 'לדוגמה: https://s3.example.com';
+  String get settings_s3Config_field_endpoint_helper =>
+      'לדוגמה: https://s3.example.com';
 
   @override
-  String get settings_s3Config_field_endpoint_label => 'כתובת URL של נקודת הקצה';
+  String get settings_s3Config_field_endpoint_label =>
+      'כתובת URL של נקודת הקצה';
 
   @override
-  String get settings_s3Config_field_pathStyle_label => 'שימוש במיעון path-style';
+  String get settings_s3Config_field_pathStyle_label =>
+      'שימוש במיעון path-style';
 
   @override
-  String get settings_s3Config_field_pathStyle_subtitle => 'נדרש על ידי רוב השרתים באירוח עצמי';
+  String get settings_s3Config_field_pathStyle_subtitle =>
+      'נדרש על ידי רוב השרתים באירוח עצמי';
 
   @override
   String get settings_s3Config_field_prefix_label => 'קידומת מפתחות';
@@ -19288,13 +20133,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_s3Config_field_region_label => 'אזור';
 
   @override
-  String get settings_s3Config_field_secretAccessKey_label => 'Secret Access Key';
+  String get settings_s3Config_field_secretAccessKey_label =>
+      'Secret Access Key';
 
   @override
   String get settings_s3Config_remove_confirm_action => 'הסרה';
 
   @override
-  String get settings_s3Config_remove_confirm_body => 'הסנכרון דרך S3 ייפסק במכשיר זה. הנתונים שלכם ב-bucket לא יימחקו.';
+  String get settings_s3Config_remove_confirm_body =>
+      'הסנכרון דרך S3 ייפסק במכשיר זה. הנתונים שלכם ב-bucket לא יימחקו.';
 
   @override
   String get settings_s3Config_remove_confirm_title => 'להסיר את תצורת S3?';
@@ -19314,16 +20161,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_s3Config_test_success => 'החיבור הצליח';
 
   @override
-  String get settings_s3Config_validation_endpointInvalid => 'יש להזין כתובת http:// או https:// תקינה';
+  String get settings_s3Config_validation_endpointInvalid =>
+      'יש להזין כתובת http:// או https:// תקינה';
 
   @override
-  String get settings_s3Config_validation_endpointPath => 'כתובת ה-URL של נקודת הקצה לא יכולה לכלול נתיב';
+  String get settings_s3Config_validation_endpointPath =>
+      'כתובת ה-URL של נקודת הקצה לא יכולה לכלול נתיב';
 
   @override
   String get settings_s3Config_validation_required => 'שדה חובה';
 
   @override
-  String get settings_s3Config_warning_http => 'נקודת קצה זו משתמשת ב-HTTP לא מוצפן. פרטי הגישה ונתוני הצלילה יועברו ללא הצפנה; השתמשו רק ברשת מהימנה.';
+  String get settings_s3Config_warning_http =>
+      'נקודת קצה זו משתמשת ב-HTTP לא מוצפן. פרטי הגישה ונתוני הצלילה יועברו ללא הצפנה; השתמשו רק ברשת מהימנה.';
 
   @override
   String get settings_section_about_subtitle => 'מידע על האפליקציה ורישיונות';
@@ -19380,10 +20230,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_storage_appDefault => 'ברירת מחדל של האפליקציה';
 
   @override
-  String get settings_storage_appDefaultLocation => 'מיקום ברירת מחדל של האפליקציה';
+  String get settings_storage_appDefaultLocation =>
+      'מיקום ברירת מחדל של האפליקציה';
 
   @override
-  String get settings_storage_appDefault_subtitle => 'מיקום אחסון סטנדרטי של האפליקציה';
+  String get settings_storage_appDefault_subtitle =>
+      'מיקום אחסון סטנדרטי של האפליקציה';
 
   @override
   String get settings_storage_currentLocation => 'מיקום נוכחי';
@@ -19398,16 +20250,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_storage_customFolder_change => 'שנה';
 
   @override
-  String get settings_storage_customFolder_subtitle => 'בחר תיקייה מסונכרנת (Dropbox, Google Drive וכו\')';
+  String get settings_storage_customFolder_subtitle =>
+      'בחר תיקייה מסונכרנת (Dropbox, Google Drive וכו\')';
 
   @override
-  String get settings_storage_customFolder_subtitleDeviceOnly => 'העברת מסד הנתונים לאחסון הפנימי או לכרטיס SD';
+  String get settings_storage_customFolder_subtitleDeviceOnly =>
+      'העברת מסד הנתונים לאחסון הפנימי או לכרטיס SD';
 
   @override
-  String get settings_storage_customFolder_deviceOnly_noCloudSync => 'סנכרון הענן המנוהל על ידי האפליקציה מושבת כל עוד מסד הנתונים נמצא באחסון המכשיר. ב-Android אף שירות סנכרון אינו יכול להגיע לתיקייה הזו, לכן השתמשו בגיבוי ושחזור כדי לשמור עותקים במקום אחר.';
+  String get settings_storage_customFolder_deviceOnly_noCloudSync =>
+      'סנכרון הענן המנוהל על ידי האפליקציה מושבת כל עוד מסד הנתונים נמצא באחסון המכשיר. ב-Android אף שירות סנכרון אינו יכול להגיע לתיקייה הזו, לכן השתמשו בגיבוי ושחזור כדי לשמור עותקים במקום אחר.';
 
   @override
-  String settings_storage_dbStats(Object fileSize, Object diveCount, Object siteCount) {
+  String settings_storage_dbStats(
+    Object fileSize,
+    Object diveCount,
+    Object siteCount,
+  ) {
     return '$fileSize • $diveCount צלילות • $siteCount אתרים';
   }
 
@@ -19421,28 +20280,34 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_storage_header_storageLocation => 'מיקום אחסון';
 
   @override
-  String get settings_storage_info_customActive => 'סנכרון ענן מנוהל אפליקציה מושבת. שירות הסנכרון של התיקייה שלך (Dropbox, Google Drive וכו\') מטפל בסנכרון.';
+  String get settings_storage_info_customActive =>
+      'סנכרון ענן מנוהל אפליקציה מושבת. שירות הסנכרון של התיקייה שלך (Dropbox, Google Drive וכו\') מטפל בסנכרון.';
 
   @override
-  String get settings_storage_info_customAvailable => 'שימוש בתיקייה מותאמת אישית משבית סנכרון ענן מנוהל אפליקציה. שירות הסנכרון של התיקייה שלך יטפל בסנכרון במקום.';
+  String get settings_storage_info_customAvailable =>
+      'שימוש בתיקייה מותאמת אישית משבית סנכרון ענן מנוהל אפליקציה. שירות הסנכרון של התיקייה שלך יטפל בסנכרון במקום.';
 
   @override
   String get settings_storage_loading => 'טוען...';
 
   @override
-  String get settings_storage_migrating_doNotClose => 'נא לא לסגור את האפליקציה';
+  String get settings_storage_migrating_doNotClose =>
+      'נא לא לסגור את האפליקציה';
 
   @override
   String get settings_storage_migrating_movingDatabase => 'מעביר מסד נתונים...';
 
   @override
-  String get settings_storage_migrating_movingToAppDefault => 'מעביר לברירת מחדל של האפליקציה...';
+  String get settings_storage_migrating_movingToAppDefault =>
+      'מעביר לברירת מחדל של האפליקציה...';
 
   @override
-  String get settings_storage_migrating_replacingExisting => 'מחליף מסד נתונים קיים...';
+  String get settings_storage_migrating_replacingExisting =>
+      'מחליף מסד נתונים קיים...';
 
   @override
-  String get settings_storage_migrating_switchingToExisting => 'עובר למסד נתונים קיים...';
+  String get settings_storage_migrating_switchingToExisting =>
+      'עובר למסד נתונים קיים...';
 
   @override
   String get settings_storage_notSet => 'לא הוגדר';
@@ -19462,25 +20327,29 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_storage_resetDatabase => 'איפוס מסד נתונים';
 
   @override
-  String get settings_storage_resetDatabase_subtitle => 'מחק את כל הנתונים במכשיר זה והתחל מחדש';
+  String get settings_storage_resetDatabase_subtitle =>
+      'מחק את כל הנתונים במכשיר זה והתחל מחדש';
 
   @override
   String get settings_storage_resetDialog_title => 'לאפס את מסד הנתונים?';
 
   @override
-  String get settings_storage_resetDialog_body => 'פעולה זו מוחקת לצמיתות את כל הנתונים במכשיר הזה, כולל צלילות, אתרים, ציוד והגדרות. גיבוי נוצר אוטומטית לפני האיפוס.\n\nספריית הענן שלך לא נמחקת, ומכשירים אחרים שומרים על הנתונים שלהם. סנכרון הענן ינותק כדי שהאיפוס לא יבוטל; ניתן לחבר אותו מחדש בהגדרות > סנכרון ענן.';
+  String get settings_storage_resetDialog_body =>
+      'פעולה זו מוחקת לצמיתות את כל הנתונים במכשיר הזה, כולל צלילות, אתרים, ציוד והגדרות. גיבוי נוצר אוטומטית לפני האיפוס.\n\nספריית הענן שלך לא נמחקת, ומכשירים אחרים שומרים על הנתונים שלהם. סנכרון הענן ינותק כדי שהאיפוס לא יבוטל; ניתן לחבר אותו מחדש בהגדרות > סנכרון ענן.';
 
   @override
   String get settings_storage_resetDialog_confirmWord => 'מחיקה';
 
   @override
-  String get settings_storage_resetDialog_confirmHint => 'הקלד \"מחיקה\" לאישור';
+  String get settings_storage_resetDialog_confirmHint =>
+      'הקלד \"מחיקה\" לאישור';
 
   @override
   String get settings_storage_resetDialog_confirmButton => 'איפוס';
 
   @override
-  String get settings_storage_resetDialog_backupFailed => 'הגיבוי נכשל. האיפוס בוטל כדי להגן על הנתונים שלך.';
+  String get settings_storage_resetDialog_backupFailed =>
+      'הגיבוי נכשל. האיפוס בוטל כדי להגן על הנתונים שלך.';
 
   @override
   String settings_storage_resetDialog_resetFailed(Object error) {
@@ -19491,7 +20360,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_storage_resetComplete_title => 'איפוס מסד נתונים';
 
   @override
-  String get settings_storage_resetComplete_description => 'הנתונים במכשיר זה נמחקו וגיבוי נשמר. סנכרון הענן מנותק כעת כדי שהאיפוס לא יבוטל; ניתן לחבר אותו מחדש בהגדרות > סנכרון ענן. הקש על המשך כדי לטעון מחדש את האפליקציה.';
+  String get settings_storage_resetComplete_description =>
+      'הנתונים במכשיר זה נמחקו וגיבוי נשמר. סנכרון הענן מנותק כעת כדי שהאיפוס לא יבוטל; ניתן לחבר אותו מחדש בהגדרות > סנכרון ענן. הקש על המשך כדי לטעון מחדש את האפליקציה.';
 
   @override
   String get settings_summary_activeDiver => 'צולל פעיל';
@@ -19536,7 +20406,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_summary_theme_system => 'מערכת';
 
   @override
-  String get settings_summary_tip => 'טיפ: השתמש בסעיף נתונים כדי לגבות את יומני הצלילה שלך באופן קבוע.';
+  String get settings_summary_tip =>
+      'טיפ: השתמש בסעיף נתונים כדי לגבות את יומני הצלילה שלך באופן קבוע.';
 
   @override
   String get settings_summary_title => 'הגדרות';
@@ -19587,16 +20458,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_units_gasModel_real => 'גז ממשי';
 
   @override
-  String get settings_units_gasModel_real_subtitle => 'מתחשב בדחיסות. מיכל 12 ליטר ב-200 בר מכיל כ-2317 ליטר.';
+  String get settings_units_gasModel_real_subtitle =>
+      'מתחשב בדחיסות. מיכל 12 ליטר ב-200 בר מכיל כ-2317 ליטר.';
 
   @override
   String get settings_units_gasModel_ideal => 'גז אידיאלי';
 
   @override
-  String get settings_units_gasModel_ideal_subtitle => 'תואם לחישוב ידני ולטבלאות צלילה. מיכל 12 ליטר ב-200 בר מכיל 2400 ליטר.';
+  String get settings_units_gasModel_ideal_subtitle =>
+      'תואם לחישוב ידני ולטבלאות צלילה. מיכל 12 ליטר ב-200 בר מכיל 2400 ליטר.';
 
   @override
-  String get settings_units_gasModel_explanation => 'כיצד לחץ המיכל מומר לנפח גז. משפיע על קצב צריכת האוויר, סטטיסטיקות הגז, המתכנן ומחשבוני הגז. גז אידיאלי תואם לחישוב שמלמדים ארגוני ההסמכה; גז ממשי מדויק פיזיקלית ומציג קצב צריכה נמוך בכ-5%.';
+  String get settings_units_gasModel_explanation =>
+      'כיצד לחץ המיכל מומר לנפח גז. משפיע על קצב צריכת האוויר, סטטיסטיקות הגז, המתכנן ומחשבוני הגז. גז אידיאלי תואם לחישוב שמלמדים ארגוני ההסמכה; גז ממשי מדויק פיזיקלית ומציג קצב צריכה נמוך בכ-5%.';
 
   @override
   String get settings_units_dialog_gasModel => 'חישובי גז';
@@ -19644,7 +20518,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_units_quickSelect => 'בחירה מהירה';
 
   @override
-  String get settings_units_gasConsumption_both_subtitle => 'הצג SAC ו-RMV זה לצד זה.';
+  String get settings_units_gasConsumption_both_subtitle =>
+      'הצג SAC ו-RMV זה לצד זה.';
 
   @override
   String get settings_units_gasConsumption_both => 'שניהם';
@@ -19705,10 +20580,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_updates_automaticUpdates => 'עדכונים אוטומטיים';
 
   @override
-  String get settings_updates_automaticUpdatesSubtitle => 'בדיקת עדכונים מעת לעת';
+  String get settings_updates_automaticUpdatesSubtitle =>
+      'בדיקת עדכונים מעת לעת';
 
   @override
-  String get settings_updates_betaDialogBody => 'גרסאות בטא מתפרסמות מכל שינוי ועשויות לשדרג את מסד הנתונים של יומן הצלילה שלך לפני הגרסה היציבה. חזרה מאוחר יותר לערוץ היציב לא תחזיר את האפליקציה לגרסה קודמת, וכל המכשירים שמסתנכרנים יחד צריכים להשתמש באותו ערוץ. גיבוי נוצר אוטומטית לפני כל שדרוג של מסד הנתונים.';
+  String get settings_updates_betaDialogBody =>
+      'גרסאות בטא מתפרסמות מכל שינוי ועשויות לשדרג את מסד הנתונים של יומן הצלילה שלך לפני הגרסה היציבה. חזרה מאוחר יותר לערוץ היציב לא תחזיר את האפליקציה לגרסה קודמת, וכל המכשירים שמסתנכרנים יחד צריכים להשתמש באותו ערוץ. גיבוי נוצר אוטומטית לפני כל שדרוג של מסד הנתונים.';
 
   @override
   String get settings_updates_betaDialogConfirm => 'מעבר לבטא';
@@ -19728,7 +20605,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_updates_channelBeta => 'בטא';
 
   @override
-  String get settings_updates_channelBetaSubtitle => 'גרסאות חדשות מכל שינוי, לפני היציבה';
+  String get settings_updates_channelBetaSubtitle =>
+      'גרסאות חדשות מכל שינוי, לפני היציבה';
 
   @override
   String get settings_updates_channelStable => 'יציב';
@@ -19759,7 +20637,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_updates_joinBeta => 'הצטרפות לבטא';
 
   @override
-  String get settings_updates_joinBetaSubtitle => 'קבל תכונות חדשות מוקדם דרך תוכנית הבטא';
+  String get settings_updates_joinBetaSubtitle =>
+      'קבל תכונות חדשות מוקדם דרך תוכנית הבטא';
 
   @override
   String get settings_updates_lastChecked => 'בדיקה אחרונה';
@@ -19773,7 +20652,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice => 'תישאר בגרסת הבטא הזו עד שהגרסה היציבה הבאה תהיה חדשה ממנה.';
+  String get settings_updates_stableSwitchNotice =>
+      'תישאר בגרסת הבטא הזו עד שהגרסה היציבה הבאה תהיה חדשה ממנה.';
 
   @override
   String get settings_updates_upToDate => 'מעודכן';
@@ -19829,7 +20709,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get signatures_drawSignatureHint => 'שרטט את החתימה שלך למעלה';
 
   @override
-  String get signatures_drawSignatureHintDetailed => 'שרטט חתימה למעלה באמצעות אצבע או עט';
+  String get signatures_drawSignatureHintDetailed =>
+      'שרטט חתימה למעלה באמצעות אצבע או עט';
 
   @override
   String get signatures_drawSignatureSemantics => 'שרטט חתימה';
@@ -19841,7 +20722,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get signatures_error_enterSignerName => 'נא להזין שם החותם';
 
   @override
-  String get signatures_error_saveFailed => 'לא ניתן היה לשמור את החתימה. נסו שוב.';
+  String get signatures_error_saveFailed =>
+      'לא ניתן היה לשמור את החתימה. נסו שוב.';
 
   @override
   String get signatures_field_instructorName => 'שם המדריך';
@@ -19929,7 +20811,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_category_overview_title => 'Overview';
 
   @override
-  String get insights_category_overview_subtitle => 'Totals, records, and breakdowns at a glance';
+  String get insights_category_overview_subtitle =>
+      'Totals, records, and breakdowns at a glance';
 
   @override
   String get insights_category_profile_subtitle => 'קצבי עלייה ודקו';
@@ -19988,7 +20871,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String insights_chart_trendSemanticLabelWithAxis(Object count, Object yAxisLabel) {
+  String insights_chart_trendSemanticLabelWithAxis(
+    Object count,
+    Object yAxisLabel,
+  ) {
     return 'תרשים קו מגמה המציג $count נקודות נתונים עבור $yAxisLabel';
   }
 
@@ -19996,10 +20882,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_conditions_appBar_title => 'תנאים';
 
   @override
-  String get insights_conditions_entryMethod_empty => 'אין נתוני שיטת כניסה זמינים';
+  String get insights_conditions_entryMethod_empty =>
+      'אין נתוני שיטת כניסה זמינים';
 
   @override
-  String get insights_conditions_entryMethod_error => 'שגיאה בטעינת נתוני שיטת כניסה';
+  String get insights_conditions_entryMethod_error =>
+      'שגיאה בטעינת נתוני שיטת כניסה';
 
   @override
   String get insights_conditions_entryMethod_subtitle => 'חוף, סירה וכו\'';
@@ -20008,10 +20896,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_conditions_entryMethod_title => 'שיטת כניסה';
 
   @override
-  String get insights_conditions_temperature_empty => 'אין נתוני טמפרטורה זמינים';
+  String get insights_conditions_temperature_empty =>
+      'אין נתוני טמפרטורה זמינים';
 
   @override
-  String get insights_conditions_temperature_error => 'שגיאה בטעינת נתוני טמפרטורה';
+  String get insights_conditions_temperature_error =>
+      'שגיאה בטעינת נתוני טמפרטורה';
 
   @override
   String get insights_conditions_temperature_seriesAvg => 'ממוצע';
@@ -20023,7 +20913,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_conditions_temperature_seriesMin => 'מינימום';
 
   @override
-  String get insights_conditions_temperature_subtitle => 'מינימום, ממוצע ומקסימום לפי חודש קלנדרי, על פני כל השנים';
+  String get insights_conditions_temperature_subtitle =>
+      'מינימום, ממוצע ומקסימום לפי חודש קלנדרי, על פני כל השנים';
 
   @override
   String get insights_conditions_temperature_title => 'טמפרטורת מים עונתית';
@@ -20038,7 +20929,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_conditions_visibility_title => 'התפלגות ראות';
 
   @override
-  String get insights_conditions_siteType_error => 'טעינת נתוני סוגי האתרים נכשלה';
+  String get insights_conditions_siteType_error =>
+      'טעינת נתוני סוגי האתרים נכשלה';
 
   @override
   String insights_conditions_siteType_semanticLabel(String description) {
@@ -20046,16 +20938,19 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get insights_conditions_siteType_subtitle => 'צלילות לפי סוג אתר. צלילה באתר עם כמה סוגים נספרת לכל אחד מהם; אתרים ללא סוג אינם מוצגים.';
+  String get insights_conditions_siteType_subtitle =>
+      'צלילות לפי סוג אתר. צלילה באתר עם כמה סוגים נספרת לכל אחד מהם; אתרים ללא סוג אינם מוצגים.';
 
   @override
   String get insights_conditions_siteType_title => 'סוגי אתרים';
 
   @override
-  String get insights_conditions_waterType_error => 'שגיאה בטעינת נתוני סוג מים';
+  String get insights_conditions_waterType_error =>
+      'שגיאה בטעינת נתוני סוג מים';
 
   @override
-  String get insights_conditions_waterType_subtitle => 'צלילות במים מלוחים לעומת מתוקים';
+  String get insights_conditions_waterType_subtitle =>
+      'צלילות במים מלוחים לעומת מתוקים';
 
   @override
   String get insights_conditions_waterType_title => 'סוג מים';
@@ -20094,7 +20989,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_equipment_issues_error => 'טעינת התקלות שדווחו נכשלה';
 
   @override
-  String get insights_equipment_exposure_subtitle => 'סיכומים לכל פריט לפי הספים שלך';
+  String get insights_equipment_exposure_subtitle =>
+      'סיכומים לכל פריט לפי הספים שלך';
 
   @override
   String get insights_equipment_exposure_empty => 'אין עדיין צלילות עם ציוד';
@@ -20106,7 +21002,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_equipment_findings_subtitle => 'ממצאים פתוחים לפי כלל';
 
   @override
-  String get insights_equipment_findings_subtitleAllDives => 'ממצאים פתוחים לפי כלל, בכל הצלילות';
+  String get insights_equipment_findings_subtitleAllDives =>
+      'ממצאים פתוחים לפי כלל, בכל הצלילות';
 
   @override
   String get insights_equipment_findings_empty => 'אין ממצאים פתוחים';
@@ -20237,7 +21134,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_sacRecords_bestSac => 'SAC הטוב ביותר';
 
   @override
-  String get insights_gas_sacRecords_subtitle => 'צריכת אוויר הטובה והגרועה ביותר';
+  String get insights_gas_sacRecords_subtitle =>
+      'צריכת אוויר הטובה והגרועה ביותר';
 
   @override
   String get insights_gas_sacRecords_title => 'שיאי צריכת גז';
@@ -20291,7 +21189,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_geographic_countries_subtitle => 'צלילות לפי מדינה';
 
   @override
-  String insights_geographic_countries_summary(Object count, Object topName, Object topCount) {
+  String insights_geographic_countries_summary(
+    Object count,
+    Object topName,
+    Object topCount,
+  ) {
     return '$count מדינות. מוביל: $topName עם $topCount צלילות';
   }
 
@@ -20308,7 +21210,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_geographic_regions_subtitle => 'צלילות לפי אזור';
 
   @override
-  String insights_geographic_regions_summary(Object count, Object topName, Object topCount) {
+  String insights_geographic_regions_summary(
+    Object count,
+    Object topName,
+    Object topCount,
+  ) {
     return '$count אזורים. מוביל: $topName עם $topCount צלילות';
   }
 
@@ -20325,7 +21231,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_geographic_trips_subtitle => 'הטיולים הפוריים ביותר';
 
   @override
-  String insights_geographic_trips_summary(Object count, Object topName, Object topCount) {
+  String insights_geographic_trips_summary(
+    Object count,
+    Object topName,
+    Object topCount,
+  ) {
     return '$count טיולים. מוביל: $topName עם $topCount צלילות';
   }
 
@@ -20345,10 +21255,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_marineLife_bestSites_error => 'שגיאה בטעינת נתוני אתרים';
 
   @override
-  String get insights_marineLife_bestSites_subtitle => 'אתרים עם מגוון המינים הגדול ביותר';
+  String get insights_marineLife_bestSites_subtitle =>
+      'אתרים עם מגוון המינים הגדול ביותר';
 
   @override
-  String insights_marineLife_bestSites_summary(Object count, Object topName, Object topCount) {
+  String insights_marineLife_bestSites_summary(
+    Object count,
+    Object topName,
+    Object topCount,
+  ) {
     return '$count אתרים. הטוב ביותר: $topName עם $topCount מינים';
   }
 
@@ -20359,13 +21274,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_marineLife_mostCommon_empty => 'אין נתוני תצפיות';
 
   @override
-  String get insights_marineLife_mostCommon_error => 'שגיאה בטעינת נתוני תצפיות';
+  String get insights_marineLife_mostCommon_error =>
+      'שגיאה בטעינת נתוני תצפיות';
 
   @override
-  String get insights_marineLife_mostCommon_subtitle => 'המינים שנצפו בתדירות הגבוהה ביותר';
+  String get insights_marineLife_mostCommon_subtitle =>
+      'המינים שנצפו בתדירות הגבוהה ביותר';
 
   @override
-  String insights_marineLife_mostCommon_summary(Object count, Object topName, Object topCount) {
+  String insights_marineLife_mostCommon_summary(
+    Object count,
+    Object topName,
+    Object topCount,
+  ) {
     return '$count מינים. הנפוץ ביותר: $topName עם $topCount תצפיות';
   }
 
@@ -20379,7 +21300,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_marineLife_seeAllSpecies_title => 'הצגת כל המינים';
 
   @override
-  String get insights_marineLife_seeAllSpecies_subtitle => 'כל המינים שתיעדת, עם חיפוש';
+  String get insights_marineLife_seeAllSpecies_subtitle =>
+      'כל המינים שתיעדת, עם חיפוש';
 
   @override
   String get insights_profile_appBar_title => 'ניתוח פרופיל';
@@ -20394,7 +21316,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_profile_ascentDescent_subtitle => 'מנתוני פרופיל הצלילה';
 
   @override
-  String get insights_profile_ascentDescent_title => 'קצבי עלייה וירידה ממוצעים';
+  String get insights_profile_ascentDescent_title =>
+      'קצבי עלייה וירידה ממוצעים';
 
   @override
   String get insights_profile_avgAscent => 'עלייה ממוצעת';
@@ -20443,7 +21366,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_profile_timeAtDepth_empty => 'אין נתוני עומק זמינים';
 
   @override
-  String get insights_profile_timeAtDepth_error => 'שגיאה בטעינת נתוני טווח עומק';
+  String get insights_profile_timeAtDepth_error =>
+      'שגיאה בטעינת נתוני טווח עומק';
 
   @override
   String get insights_profile_timeAtDepth_subtitle => 'זמן משוער בכל עומק';
@@ -20460,7 +21384,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_progression_appBar_title => 'התקדמות צלילה';
 
   @override
-  String get insights_progression_bottomTime_error => 'שגיאה בטעינת מגמת זמן תחתית';
+  String get insights_progression_bottomTime_error =>
+      'שגיאה בטעינת מגמת זמן תחתית';
 
   @override
   String get insights_progression_bottomTime_subtitle => 'כל צלילה בטווח';
@@ -20469,31 +21394,38 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_progression_bottomTime_title => 'מגמת זמן תחתית';
 
   @override
-  String get insights_progression_cumulative_error => 'שגיאה בטעינת נתונים מצטברים';
+  String get insights_progression_cumulative_error =>
+      'שגיאה בטעינת נתונים מצטברים';
 
   @override
-  String get insights_progression_cumulative_subtitle => 'סה\"כ צלילות לאורך זמן';
+  String get insights_progression_cumulative_subtitle =>
+      'סה\"כ צלילות לאורך זמן';
 
   @override
   String get insights_progression_cumulative_title => 'ספירת צלילות מצטברת';
 
   @override
-  String get insights_progression_depthProgression_error => 'שגיאה בטעינת התקדמות עומק';
+  String get insights_progression_depthProgression_error =>
+      'שגיאה בטעינת התקדמות עומק';
 
   @override
   String get insights_progression_depthProgression_subtitle => 'כל צלילה בטווח';
 
   @override
-  String get insights_progression_depthProgression_title => 'התקדמות עומק מקסימלי';
+  String get insights_progression_depthProgression_title =>
+      'התקדמות עומק מקסימלי';
 
   @override
-  String get insights_progression_divesPerYear_empty => 'אין נתונים שנתיים זמינים';
+  String get insights_progression_divesPerYear_empty =>
+      'אין נתונים שנתיים זמינים';
 
   @override
-  String get insights_progression_divesPerYear_error => 'שגיאה בטעינת נתונים שנתיים';
+  String get insights_progression_divesPerYear_error =>
+      'שגיאה בטעינת נתונים שנתיים';
 
   @override
-  String get insights_progression_divesPerYear_subtitle => 'השוואת ספירת צלילות שנתית';
+  String get insights_progression_divesPerYear_subtitle =>
+      'השוואת ספירת צלילות שנתית';
 
   @override
   String get insights_progression_divesPerYear_title => 'צלילות לפי שנה';
@@ -20521,7 +21453,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String insights_ranking_semanticLabel(Object name, Object rank, Object count, Object label) {
+  String insights_ranking_semanticLabel(
+    Object name,
+    Object rank,
+    Object count,
+    Object label,
+  ) {
     return '$name, דירוג $rank, $count $label';
   }
 
@@ -20540,7 +21477,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get insights_records_emptySubtitle => 'התחל לרשום צלילות כדי לראות את השיאים שלך כאן';
+  String get insights_records_emptySubtitle =>
+      'התחל לרשום צלילות כדי לראות את השיאים שלך כאן';
 
   @override
   String get insights_records_emptyTitle => 'אין עדיין שיאים';
@@ -20560,7 +21498,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String insights_records_milestoneSemanticLabel(Object title, Object siteName) {
+  String insights_records_milestoneSemanticLabel(
+    Object title,
+    Object siteName,
+  ) {
     return '$title: $siteName';
   }
 
@@ -20571,7 +21512,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_records_mostRecentDive => 'הצלילה האחרונה';
 
   @override
-  String insights_records_recordSemanticLabel(Object title, Object value, Object siteName) {
+  String insights_records_recordSemanticLabel(
+    Object title,
+    Object value,
+    Object siteName,
+  ) {
     return '$title: $value ב-$siteName';
   }
 
@@ -20617,13 +21562,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_social_topBuddies_error => 'שגיאה בטעינת דירוג שותפים';
 
   @override
-  String get insights_social_topBuddies_subtitle => 'שותפי הצלילה השכיחים ביותר';
+  String get insights_social_topBuddies_subtitle =>
+      'שותפי הצלילה השכיחים ביותר';
 
   @override
   String get insights_social_topBuddies_title => 'שותפי הצלילה המובילים';
 
   @override
-  String get insights_social_topDiveCenters_error => 'שגיאה בטעינת דירוג מרכזי צלילה';
+  String get insights_social_topDiveCenters_error =>
+      'שגיאה בטעינת דירוג מרכזי צלילה';
 
   @override
   String get insights_social_topDiveCenters_subtitle => 'המפעילים הנצפים ביותר';
@@ -20638,10 +21585,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_summary_avgTemp => 'טמפ\' ממוצעת';
 
   @override
-  String get insights_summary_depthDistribution_empty => 'התרשים יופיע כשתרשום צלילות';
+  String get insights_summary_depthDistribution_empty =>
+      'התרשים יופיע כשתרשום צלילות';
 
   @override
-  String get insights_summary_depthDistribution_semanticLabel => 'תרשים עוגה המציג התפלגות עומק';
+  String get insights_summary_depthDistribution_semanticLabel =>
+      'תרשים עוגה המציג התפלגות עומק';
 
   @override
   String get insights_summary_depthDistribution_title => 'התפלגות עומק';
@@ -20655,16 +21604,19 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get insights_summary_diveTypes_semanticLabel => 'תרשים עוגה המציג התפלגות סוגי צלילה';
+  String get insights_summary_diveTypes_semanticLabel =>
+      'תרשים עוגה המציג התפלגות סוגי צלילה';
 
   @override
   String get insights_summary_diveTypes_title => 'סוגי צלילה';
 
   @override
-  String get insights_summary_divesByMonth_empty => 'התרשים יופיע כשתרשום צלילות';
+  String get insights_summary_divesByMonth_empty =>
+      'התרשים יופיע כשתרשום צלילות';
 
   @override
-  String get insights_summary_divesByMonth_semanticLabel => 'תרשים עמודות המציג צלילות לפי חודש';
+  String get insights_summary_divesByMonth_semanticLabel =>
+      'תרשים עמודות המציג צלילות לפי חודש';
 
   @override
   String get insights_summary_divesByMonth_title => 'צלילות לפי חודש';
@@ -20675,7 +21627,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get insights_summary_header_subtitle => 'בחר קטגוריה כדי לחקור תובנות מפורטות';
+  String get insights_summary_header_subtitle =>
+      'בחר קטגוריה כדי לחקור תובנות מפורטות';
 
   @override
   String get insights_summary_header_title => 'סקירת תובנות';
@@ -20701,7 +21654,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_summary_tagUsage_empty => 'לא נוצרו עדיין תגיות';
 
   @override
-  String get insights_summary_tagUsage_emptyHint => 'הוסף תגיות לצלילות כדי לראות סטטיסטיקות';
+  String get insights_summary_tagUsage_emptyHint =>
+      'הוסף תגיות לצלילות כדי לראות סטטיסטיקות';
 
   @override
   String insights_summary_tagUsage_moreTags(Object count) {
@@ -20745,7 +21699,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_timePatterns_dayOfWeek_empty => 'אין נתונים זמינים';
 
   @override
-  String get insights_timePatterns_dayOfWeek_error => 'שגיאה בטעינת נתוני ימי השבוע';
+  String get insights_timePatterns_dayOfWeek_error =>
+      'שגיאה בטעינת נתוני ימי השבוע';
 
   @override
   String get insights_timePatterns_dayOfWeek_fri => 'שישי';
@@ -20757,7 +21712,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_timePatterns_dayOfWeek_sat => 'שבת';
 
   @override
-  String get insights_timePatterns_dayOfWeek_subtitle => 'מתי אתה צולל הכי הרבה?';
+  String get insights_timePatterns_dayOfWeek_subtitle =>
+      'מתי אתה צולל הכי הרבה?';
 
   @override
   String get insights_timePatterns_dayOfWeek_sun => 'ראשון';
@@ -20814,10 +21770,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_timePatterns_seasonal_empty => 'אין נתונים זמינים';
 
   @override
-  String get insights_timePatterns_seasonal_error => 'שגיאה בטעינת נתונים עונתיים';
+  String get insights_timePatterns_seasonal_error =>
+      'שגיאה בטעינת נתונים עונתיים';
 
   @override
-  String get insights_timePatterns_seasonal_subtitle => 'צלילות לפי חודש (כל השנים)';
+  String get insights_timePatterns_seasonal_subtitle =>
+      'צלילות לפי חודש (כל השנים)';
 
   @override
   String get insights_timePatterns_seasonal_title => 'דפוסים עונתיים';
@@ -20826,13 +21784,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_timePatterns_surfaceInterval_average => 'ממוצע';
 
   @override
-  String get insights_timePatterns_surfaceInterval_empty => 'אין נתוני מרווח שטח זמינים';
+  String get insights_timePatterns_surfaceInterval_empty =>
+      'אין נתוני מרווח שטח זמינים';
 
   @override
-  String get insights_timePatterns_surfaceInterval_error => 'שגיאה בטעינת נתוני מרווח שטח';
+  String get insights_timePatterns_surfaceInterval_error =>
+      'שגיאה בטעינת נתוני מרווח שטח';
 
   @override
-  String insights_timePatterns_surfaceInterval_formatHoursMinutes(Object hours, Object minutes) {
+  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
+    Object hours,
+    Object minutes,
+  ) {
     return '${hours}h ${minutes}m';
   }
 
@@ -20851,13 +21814,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_timePatterns_surfaceInterval_subtitle => 'זמן בין צלילות';
 
   @override
-  String get insights_timePatterns_surfaceInterval_title => 'סטטיסטיקות מרווח שטח';
+  String get insights_timePatterns_surfaceInterval_title =>
+      'סטטיסטיקות מרווח שטח';
 
   @override
-  String get insights_timePatterns_timeOfDay_error => 'שגיאה בטעינת נתוני שעות היום';
+  String get insights_timePatterns_timeOfDay_error =>
+      'שגיאה בטעינת נתוני שעות היום';
 
   @override
-  String get insights_timePatterns_timeOfDay_subtitle => 'בוקר, צהריים, ערב או לילה';
+  String get insights_timePatterns_timeOfDay_subtitle =>
+      'בוקר, צהריים, ערב או לילה';
 
   @override
   String get insights_timePatterns_timeOfDay_title => 'צלילות לפי שעה ביום';
@@ -20880,7 +21846,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get surfaceInterval_aboutTissueLoading_body => 'לגופך יש 16 תאי רקמה הקולטים ומשחררים חנקן בקצבים שונים. רקמות מהירות (כמו דם) נספגות במהירות אך גם משחררות גז במהירות. רקמות איטיות (כמו עצם ושומן) לוקחות יותר זמן גם לספיגה וגם לפריקה. \"תא מוביל\" הוא התא הכי רווי הקובע בדרך כלל את מגבלת הזמן ללא דקומפרסיה (NDL) שלך. במהלך מרווח שטח, כל הרקמות משחררות גז לעבר רמות רוויה של פני השטח (~40% העמסה).';
+  String get surfaceInterval_aboutTissueLoading_body =>
+      'לגופך יש 16 תאי רקמה הקולטים ומשחררים חנקן בקצבים שונים. רקמות מהירות (כמו דם) נספגות במהירות אך גם משחררות גז במהירות. רקמות איטיות (כמו עצם ושומן) לוקחות יותר זמן גם לספיגה וגם לפריקה. \"תא מוביל\" הוא התא הכי רווי הקובע בדרך כלל את מגבלת הזמן ללא דקומפרסיה (NDL) שלך. במהלך מרווח שטח, כל הרקמות משחררות גז לעבר רמות רוויה של פני השטח (~40% העמסה).';
 
   @override
   String get surfaceInterval_aboutTissueLoading_title => 'אודות העמסת רקמות';
@@ -20889,7 +21856,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get surfaceInterval_action_resetDefaults => 'אפס לברירת מחדל';
 
   @override
-  String get surfaceInterval_disclaimer => 'כלי זה מיועד למטרות תכנון בלבד. השתמש תמיד במחשב צלילה ופעל לפי ההכשרה שלך. התוצאות מבוססות על אלגוריתם Buhlmann ZH-L16C ועשויות להיות שונות מהמחשב שלך.';
+  String get surfaceInterval_disclaimer =>
+      'כלי זה מיועד למטרות תכנון בלבד. השתמש תמיד במחשב צלילה ופעל לפי ההכשרה שלך. התוצאות מבוססות על אלגוריתם Buhlmann ZH-L16C ועשויות להיות שונות מהמחשב שלך.';
 
   @override
   String get surfaceInterval_field_depth => 'עומק';
@@ -20943,7 +21911,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String surfaceInterval_gasWarning_modExceeded(Object ppO2, Object depth, Object limit, Object mod) {
+  String surfaceInterval_gasWarning_modExceeded(
+    Object ppO2,
+    Object depth,
+    Object limit,
+    Object mod,
+  ) {
     return 'ppO₂ $ppO2 בעומק $depth חורג מ-$limit. ה-MOD של תערובת זו הוא $mod.';
   }
 
@@ -20977,7 +21950,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get surfaceInterval_result_inDeco => 'בדקו';
 
   @override
-  String get surfaceInterval_result_increaseInterval => 'הגדל מרווח שטח או הקטן עומק/זמן צלילה שנייה';
+  String get surfaceInterval_result_increaseInterval =>
+      'הגדל מרווח שטח או הקטן עומק/זמן צלילה שנייה';
 
   @override
   String get surfaceInterval_result_minimumInterval => 'מרווח שטח מינימלי';
@@ -20996,16 +21970,23 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get surfaceInterval_result_notAchievable => 'לא ניתן להשגה בשום מרווח שטח';
+  String get surfaceInterval_result_notAchievable =>
+      'לא ניתן להשגה בשום מרווח שטח';
 
   @override
-  String get surfaceInterval_result_notYetSafe => 'עדיין לא בטוח, הגדל מרווח שטח';
+  String get surfaceInterval_result_notYetSafe =>
+      'עדיין לא בטוח, הגדל מרווח שטח';
 
   @override
   String get surfaceInterval_result_safeToDive => 'בטוח לצלול';
 
   @override
-  String surfaceInterval_result_semantics(Object interval, Object current, Object ndl, Object status) {
+  String surfaceInterval_result_semantics(
+    Object interval,
+    Object current,
+    Object ndl,
+    Object status,
+  ) {
     return 'מרווח שטח מינימלי: $interval. מרווח נוכחי: $current. NDL לצלילה שנייה: $ndl. $status';
   }
 
@@ -21038,10 +22019,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get surfaceInterval_tissueRecovery_compartmentsLabel => 'תאים (לפי מהירות זמן מחצית)';
+  String get surfaceInterval_tissueRecovery_compartmentsLabel =>
+      'תאים (לפי מהירות זמן מחצית)';
 
   @override
-  String get surfaceInterval_tissueRecovery_description => 'מציג כיצד כל אחד מ-16 תאי הרקמה משחרר גז במהלך מרווח השטח';
+  String get surfaceInterval_tissueRecovery_description =>
+      'מציג כיצד כל אחד מ-16 תאי הרקמה משחרר גז במהלך מרווח השטח';
 
   @override
   String get surfaceInterval_tissueRecovery_fast => 'מהיר (C1-5)';
@@ -21087,7 +22070,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_picker_title => 'בחירת תגיות';
 
   @override
-  String get tags_picker_empty => 'אין עדיין תגיות. הקלד שם תגית כדי ליצור את הראשונה.';
+  String get tags_picker_empty =>
+      'אין עדיין תגיות. הקלד שם תגית כדי ליצור את הראשונה.';
 
   @override
   String tags_picker_errorLoading(String error) {
@@ -21158,7 +22142,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get importWizard_photos_scanning => 'סורק את התיקייה...';
 
   @override
-  String importWizard_photos_matchSummary(int matched, int byName, int missing) {
+  String importWizard_photos_matchSummary(
+    int matched,
+    int byName,
+    int missing,
+  ) {
     return '$matched הותאמו, $byName לפי שם קובץ בלבד, $missing לא נמצאו';
   }
 
@@ -21166,7 +22154,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get importWizard_photos_skip => 'דלג על התמונות';
 
   @override
-  String get importWizard_photos_mobileUnsupported => 'ייבוא תמונות מחייב תיקייה בדיסק של המכשיר הזה. הרץ את הייבוא במחשב כדי לכלול אותן. צלילות ואתרים מיובאים כרגיל.';
+  String get importWizard_photos_mobileUnsupported =>
+      'ייבוא תמונות מחייב תיקייה בדיסק של המכשיר הזה. הרץ את הייבוא במחשב כדי לכלול אותן. צלילות ואתרים מיובאים כרגיל.';
 
   @override
   String importWizard_photos_bundledCount(int count) {
@@ -21180,13 +22169,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get importWizard_photos_chooseDestination => 'בחרו היכן לשמור את התמונות...';
+  String get importWizard_photos_chooseDestination =>
+      'בחרו היכן לשמור את התמונות...';
 
   @override
-  String get importWizard_photos_destinationNote => 'התמונות נשמרות בתיקייה זו ומקושרות משם. Submersion לעולם אינו שומר עותק משלו.';
+  String get importWizard_photos_destinationNote =>
+      'התמונות נשמרות בתיקייה זו ומקושרות משם. Submersion לעולם אינו שומר עותק משלו.';
 
   @override
-  String get importWizard_photos_destinationUnwritable => 'לא ניתן לכתוב לתיקייה זו. בחרו תיקייה אחרת.';
+  String get importWizard_photos_destinationUnwritable =>
+      'לא ניתן לכתוב לתיקייה זו. בחרו תיקייה אחרת.';
 
   @override
   String importWizard_photos_downloadCount(int count) {
@@ -21223,7 +22215,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_manage_autoTagImports => 'תיוג אוטומטי של ייבואים';
 
   @override
-  String get tags_manage_autoTagImports_subtitle => 'כל ייבוא חדש מתחיל עם תגית הנושאת את שם המקור והתאריך. אפשר לשנות זאת לייבוא בודד באפשרויות אותו ייבוא.';
+  String get tags_manage_autoTagImports_subtitle =>
+      'כל ייבוא חדש מתחיל עם תגית הנושאת את שם המקור והתאריך. אפשר לשנות זאת לייבוא בודד באפשרויות אותו ייבוא.';
 
   @override
   String get tags_manage_searchHint => 'חיפוש תגיות...';
@@ -21268,8 +22261,10 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'התגית הזו מופיעה ב-$count צלילות. כיבוי \"שימוש לצלילות\" יסיר אותה מצלילות אלה.',
-      one: 'התגית הזו מופיעה בצלילה אחת. כיבוי \"שימוש לצלילות\" יסיר אותה מצלילה זו.',
+      other:
+          'התגית הזו מופיעה ב-$count צלילות. כיבוי \"שימוש לצלילות\" יסיר אותה מצלילות אלה.',
+      one:
+          'התגית הזו מופיעה בצלילה אחת. כיבוי \"שימוש לצלילות\" יסיר אותה מצלילה זו.',
     );
     return '$_temp0';
   }
@@ -21279,8 +22274,10 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'התגית הזו מופיעה ב-$count פריטי ציוד. כיבוי \"שימוש לציוד\" יסיר אותה מפריטים אלה.',
-      one: 'התגית הזו מופיעה בפריט ציוד אחד. כיבוי \"שימוש לציוד\" יסיר אותה מפריט זה.',
+      other:
+          'התגית הזו מופיעה ב-$count פריטי ציוד. כיבוי \"שימוש לציוד\" יסיר אותה מפריטים אלה.',
+      one:
+          'התגית הזו מופיעה בפריט ציוד אחד. כיבוי \"שימוש לציוד\" יסיר אותה מפריט זה.',
     );
     return '$_temp0';
   }
@@ -21290,8 +22287,10 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'התגית הזו מופיעה ב-$count אתרים. כיבוי \"שימוש לאתרים\" יסיר אותה מאתרים אלה.',
-      one: 'התגית הזו מופיעה באתר אחד. כיבוי \"שימוש לאתרים\" יסיר אותה מאתר זה.',
+      other:
+          'התגית הזו מופיעה ב-$count אתרים. כיבוי \"שימוש לאתרים\" יסיר אותה מאתרים אלה.',
+      one:
+          'התגית הזו מופיעה באתר אחד. כיבוי \"שימוש לאתרים\" יסיר אותה מאתר זה.',
     );
     return '$_temp0';
   }
@@ -21300,7 +22299,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_manage_narrowDialog_title => 'להסיר את התגית מפריטים קיימים?';
 
   @override
-  String get tags_manage_scopeRequired => 'בחר לפחות אחד: צלילות, אתרים או ציוד';
+  String get tags_manage_scopeRequired =>
+      'בחר לפחות אחד: צלילות, אתרים או ציוד';
 
   @override
   String get tags_manage_scope_dives => 'צלילות';
@@ -21374,7 +22374,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String tags_manage_deleteMessage_divesAndSites(String tagName, int diveCount, int siteCount) {
+  String tags_manage_deleteMessage_divesAndSites(
+    String tagName,
+    int diveCount,
+    int siteCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -21402,7 +22406,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String tags_manage_deleteMessage_divesAndEquipment(String tagName, int diveCount, int equipmentCount) {
+  String tags_manage_deleteMessage_divesAndEquipment(
+    String tagName,
+    int diveCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -21419,7 +22427,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String tags_manage_deleteMessage_sitesAndEquipment(String tagName, int siteCount, int equipmentCount) {
+  String tags_manage_deleteMessage_sitesAndEquipment(
+    String tagName,
+    int siteCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
@@ -21436,7 +22448,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String tags_manage_deleteMessage_all(String tagName, int diveCount, int siteCount, int equipmentCount) {
+  String tags_manage_deleteMessage_all(
+    String tagName,
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -21492,7 +22509,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String tags_manage_bulkDeleteMessage_divesAndSites(int diveCount, int siteCount) {
+  String tags_manage_bulkDeleteMessage_divesAndSites(
+    int diveCount,
+    int siteCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -21520,7 +22540,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String tags_manage_bulkDeleteMessage_divesAndEquipment(int diveCount, int equipmentCount) {
+  String tags_manage_bulkDeleteMessage_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -21537,7 +22560,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String tags_manage_bulkDeleteMessage_sitesAndEquipment(int siteCount, int equipmentCount) {
+  String tags_manage_bulkDeleteMessage_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
@@ -21554,7 +22580,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String tags_manage_bulkDeleteMessage_all(int diveCount, int siteCount, int equipmentCount) {
+  String tags_manage_bulkDeleteMessage_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -21577,7 +22607,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get tags_manage_bulkDeleteMessage_unused => 'תגיות אלו אינן בשימוש באף צלילה, אתר או פריט ציוד. לא ניתן לבטל פעולה זו.';
+  String get tags_manage_bulkDeleteMessage_unused =>
+      'תגיות אלו אינן בשימוש באף צלילה, אתר או פריט ציוד. לא ניתן לבטל פעולה זו.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -21642,7 +22673,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String tags_manage_mergeAffected_divesAndEquipment(int diveCount, int equipmentCount) {
+  String tags_manage_mergeAffected_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -21659,7 +22693,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String tags_manage_mergeAffected_sitesAndEquipment(int siteCount, int equipmentCount) {
+  String tags_manage_mergeAffected_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
@@ -21676,7 +22713,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String tags_manage_mergeAffected_all(int diveCount, int siteCount, int equipmentCount) {
+  String tags_manage_mergeAffected_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -21699,7 +22740,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get tags_manage_mergeAffected_unused => 'תגיות אלו אינן בשימוש באף צלילה, אתר או פריט ציוד.';
+  String get tags_manage_mergeAffected_unused =>
+      'תגיות אלו אינן בשימוש באף צלילה, אתר או פריט ציוד.';
 
   @override
   String get tags_manage_mergeAction => 'מיזוג';
@@ -21885,12 +22927,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tides_noTideTimesAvailable => 'אין זמני גאות זמינים';
 
   @override
-  String tides_semantic_currentTide(Object tideState, Object height, Object depthSymbol, Object nextExtreme) {
+  String tides_semantic_currentTide(
+    Object tideState,
+    Object height,
+    Object depthSymbol,
+    Object nextExtreme,
+  ) {
     return 'גאות $tideState, $height$depthSymbol$nextExtreme';
   }
 
   @override
-  String tides_semantic_extremeItem(Object typeLabel, Object time, Object height, Object depthSymbol) {
+  String tides_semantic_extremeItem(
+    Object typeLabel,
+    Object time,
+    Object height,
+    Object depthSymbol,
+  ) {
     return 'גאות $typeLabel ב-$time, $height$depthSymbol';
   }
 
@@ -21913,7 +22965,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tides_source_modelEstimate => 'אומדן מודל אוקיינוס';
 
   @override
-  String get tides_source_modelCaveat => 'מבוסס על נתוני לוויין. זמנים וגבהים עשויים להיות שונים ליד קווי חוף מורכבים.';
+  String get tides_source_modelCaveat =>
+      'מבוסס על נתוני לוויין. זמנים וגבהים עשויים להיות שונים ליד קווי חוף מורכבים.';
 
   @override
   String get tides_source_sheetTitle => 'מקור נתוני הגאות';
@@ -21931,7 +22984,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_appBar_title => 'העברה';
 
   @override
-  String get transfer_computers_aboutContent => 'חבר את מחשב הצלילה שלך באמצעות Bluetooth כדי להוריד יומני צלילה ישירות לאפליקציה. מחשבים נתמכים כוללים Suunto, Shearwater, Garmin, Mares ועוד מותגים פופולריים רבים.\n\nמשתמשי Apple Watch Ultra יכולים לייבא נתוני צלילה ישירות מאפליקציית הבריאות, כולל עומק, משך וקצב לב.';
+  String get transfer_computers_aboutContent =>
+      'חבר את מחשב הצלילה שלך באמצעות Bluetooth כדי להוריד יומני צלילה ישירות לאפליקציה. מחשבים נתמכים כוללים Suunto, Shearwater, Garmin, Mares ועוד מותגים פופולריים רבים.\n\nמשתמשי Apple Watch Ultra יכולים לייבא נתוני צלילה ישירות מאפליקציית הבריאות, כולל עומק, משך וקצב לב.';
 
   @override
   String get transfer_computers_aboutTitle => 'אודות מחשבי צלילה';
@@ -21940,7 +22994,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_computers_appleWatchHeader => 'Apple Watch';
 
   @override
-  String get transfer_computers_appleWatchSubtitle => 'Import dives via Apple HealthKit';
+  String get transfer_computers_appleWatchSubtitle =>
+      'Import dives via Apple HealthKit';
 
   @override
   String get transfer_computers_appleWatchTitle => 'ייבוא מ-Apple Watch';
@@ -22028,16 +23083,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_csvExport_dataTypeHeader => 'סוג נתונים';
 
   @override
-  String get transfer_csvExport_descriptionDives => 'ייצא את כל יומני הצלילה כגיליון אלקטרוני';
+  String get transfer_csvExport_descriptionDives =>
+      'ייצא את כל יומני הצלילה כגיליון אלקטרוני';
 
   @override
-  String get transfer_csvExport_descriptionEquipment => 'ייצא מלאי ציוד ופרטי תחזוקה';
+  String get transfer_csvExport_descriptionEquipment =>
+      'ייצא מלאי ציוד ופרטי תחזוקה';
 
   @override
-  String get transfer_csvExport_descriptionObservations => 'כל בדיקה תקינה וכל בעיה שדווחה, עם הצלילה, התגיות וההערה';
+  String get transfer_csvExport_descriptionObservations =>
+      'כל בדיקה תקינה וכל בעיה שדווחה, עם הצלילה, התגיות וההערה';
 
   @override
-  String get transfer_csvExport_descriptionSites => 'ייצא מיקומי אתרי צלילה ופרטים';
+  String get transfer_csvExport_descriptionSites =>
+      'ייצא מיקומי אתרי צלילה ופרטים';
 
   @override
   String get transfer_csvExport_dialogTitle => 'ייצוא CSV';
@@ -22081,19 +23140,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_csvExport_unitsMetric => 'מטרי';
 
   @override
-  String get transfer_csvExport_unitsMetricDescription => 'ערכים מטריים ותאריכי ISO, באותו פורמט כמו ייצואים קודמים';
+  String get transfer_csvExport_unitsMetricDescription =>
+      'ערכים מטריים ותאריכי ISO, באותו פורמט כמו ייצואים קודמים';
 
   @override
   String get transfer_csvExport_unitsMine => 'היחידות שלי';
 
   @override
-  String get transfer_csvExport_unitsMineDescription => 'ערכים לפי הגדרות היחידות, התאריך והשעה שלך, עם ציון בכותרת כל עמודה';
+  String get transfer_csvExport_unitsMineDescription =>
+      'ערכים לפי הגדרות היחידות, התאריך והשעה שלך, עם ציון בכותרת כל עמודה';
 
   @override
   String get transfer_detail_backTooltip => 'חזרה להעברה';
 
   @override
-  String get transfer_export_aboutContent => 'ייצא את נתוני הצלילה שלך בפורמטים שונים. PDF יוצר יומן צלילות להדפסה. UDDF הוא פורמט אוניברסלי התואם לרוב תוכנות יומני הצלילה. ניתן לפתוח קבצי CSV ביישומי גיליונות אלקטרוניים.';
+  String get transfer_export_aboutContent =>
+      'ייצא את נתוני הצלילה שלך בפורמטים שונים. PDF יוצר יומן צלילות להדפסה. UDDF הוא פורמט אוניברסלי התואם לרוב תוכנות יומני הצלילה. ניתן לפתוח קבצי CSV ביישומי גיליונות אלקטרוניים.';
 
   @override
   String get transfer_export_backupLink => 'עבור לגיבוי ושחזור';
@@ -22111,7 +23173,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_export_csvTitle => 'ייצוא CSV';
 
   @override
-  String get transfer_export_excelSubtitle => 'כל הנתונים בקובץ אחד (צלילות, אתרים, ציוד, סטטיסטיקות)';
+  String get transfer_export_excelSubtitle =>
+      'כל הנתונים בקובץ אחד (צלילות, אתרים, ציוד, סטטיסטיקות)';
 
   @override
   String get transfer_export_excelTitle => 'חוברת עבודה של Excel';
@@ -22137,25 +23200,30 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_export_includeGear => 'כלול ציוד';
 
   @override
-  String get transfer_export_includeGearSubtitle => 'מוסיף את הציוד ואת מחשב הצלילה ששימשו בכל צלילה. פרטי הרכישה אינם נכללים.';
+  String get transfer_export_includeGearSubtitle =>
+      'מוסיף את הציוד ואת מחשב הצלילה ששימשו בכל צלילה. פרטי הרכישה אינם נכללים.';
 
   @override
   String get transfer_export_includeParticipants => 'כלול משתתפי צלילה';
 
   @override
-  String get transfer_export_includeParticipantsSubtitle => 'מוסיף שותפים, מדריכים ואת תפקידיהם בכל צלילה, לפי שם והסמכה. פרטי הקשר אינם נכללים.';
+  String get transfer_export_includeParticipantsSubtitle =>
+      'מוסיף שותפים, מדריכים ואת תפקידיהם בכל צלילה, לפי שם והסמכה. פרטי הקשר אינם נכללים.';
 
   @override
-  String get transfer_export_includeRawData => 'כלול נתונים גולמיים ממחשב הצלילה';
+  String get transfer_export_includeRawData =>
+      'כלול נתונים גולמיים ממחשב הצלילה';
 
   @override
-  String get transfer_export_includeRawDataSubtitle => 'שומר את הנתונים המקוריים ממחשב הצלילה כדי שניתן יהיה לנתח את הקובץ מחדש בהמשך. מגדיל את הקובץ.';
+  String get transfer_export_includeRawDataSubtitle =>
+      'שומר את הנתונים המקוריים ממחשב הצלילה כדי שניתן יהיה לנתח את הקובץ מחדש בהמשך. מגדיל את הקובץ.';
 
   @override
   String get transfer_export_optionSaveTitle => 'שמור לקובץ';
 
   @override
-  String get transfer_export_optionShareSubtitle => 'שלח באמצעות דוא\"ל, הודעות או אפליקציות אחרות';
+  String get transfer_export_optionShareSubtitle =>
+      'שלח באמצעות דוא\"ל, הודעות או אפליקציות אחרות';
 
   @override
   String get transfer_export_optionShareTitle => 'שיתוף';
@@ -22179,16 +23247,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_export_uddfTitle => 'ייצוא UDDF';
 
   @override
-  String get transfer_import_aboutContent => 'השתמש ב\"ייבוא נתונים\" לחוויה הטובה ביותר -- מזהה אוטומטית את פורמט הקובץ ואפליקציית המקור שלך. אפשרויות הפורמט הבודדות למטה זמינות גם לגישה ישירה.';
+  String get transfer_import_aboutContent =>
+      'השתמש ב\"ייבוא נתונים\" לחוויה הטובה ביותר -- מזהה אוטומטית את פורמט הקובץ ואפליקציית המקור שלך. אפשרויות הפורמט הבודדות למטה זמינות גם לגישה ישירה.';
 
   @override
   String get transfer_import_aboutTitle => 'אודות ייבוא';
 
   @override
-  String get transfer_import_fileImportSemanticLabel => 'ייבא נתונים עם זיהוי אוטומטי';
+  String get transfer_import_fileImportSemanticLabel =>
+      'ייבא נתונים עם זיהוי אוטומטי';
 
   @override
-  String get transfer_import_fileImportSubtitle => 'מזהה אוטומטית CSV, UDDF, FIT ועוד';
+  String get transfer_import_fileImportSubtitle =>
+      'מזהה אוטומטית CSV, UDDF, FIT ועוד';
 
   @override
   String get transfer_import_fileImportTitle => 'ייבוא נתונים';
@@ -22209,16 +23280,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_pdfExport_includeCertCards => 'כלול כרטיסי הסמכה';
 
   @override
-  String get transfer_pdfExport_includeCertCardsSubtitle => 'הוסף תמונות כרטיסי הסמכה סרוקים ל-PDF';
+  String get transfer_pdfExport_includeCertCardsSubtitle =>
+      'הוסף תמונות כרטיסי הסמכה סרוקים ל-PDF';
 
   @override
   String get transfer_pdfExport_includeVerificationAreas => 'כלול אזורי אימות';
 
   @override
-  String get transfer_pdfExport_includeVerificationAreasSubtitle => 'הוסף תיבות חותמת וחתימה לאימות';
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      'הוסף תיבות חותמת וחתימה לאימות';
 
   @override
-  String get transfer_pdfExport_languageHeader => 'Language';
+  String get transfer_pdfExport_languageHeader => 'שפה';
 
   @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
@@ -22239,7 +23312,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_pdfExport_templateDetailed => 'מפורט';
 
   @override
-  String get transfer_pdfExport_templateDetailedDesc => 'מידע מלא על הצלילה עם הערות ודירוגים';
+  String get transfer_pdfExport_templateDetailedDesc =>
+      'מידע מלא על הצלילה עם הערות ודירוגים';
 
   @override
   String get transfer_pdfExport_templateHeader => 'תבנית';
@@ -22248,13 +23322,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_pdfExport_templateNauiStyle => 'סגנון NAUI';
 
   @override
-  String get transfer_pdfExport_templateNauiStyleDesc => 'פריסה התואמת לפורמט יומן NAUI';
+  String get transfer_pdfExport_templateNauiStyleDesc =>
+      'פריסה התואמת לפורמט יומן NAUI';
 
   @override
   String get transfer_pdfExport_templatePadiStyle => 'סגנון PADI';
 
   @override
-  String get transfer_pdfExport_templatePadiStyleDesc => 'פריסה התואמת לפורמט יומן PADI';
+  String get transfer_pdfExport_templatePadiStyleDesc =>
+      'פריסה התואמת לפורמט יומן PADI';
 
   @override
   String transfer_pdfExport_templateSemanticLabel(Object templateName) {
@@ -22265,7 +23341,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_pdfExport_templateSimple => 'פשוט';
 
   @override
-  String get transfer_pdfExport_templateSimpleDesc => 'פורמט טבלה קומפקטי, צלילות רבות בעמוד';
+  String get transfer_pdfExport_templateSimpleDesc =>
+      'פורמט טבלה קומפקטי, צלילות רבות בעמוד';
 
   @override
   String get transfer_section_computersSubtitle => 'הורדה ממכשיר';
@@ -22378,7 +23455,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_detail_scan_accessDenied => 'הגישה לספריית התמונות נדחתה';
 
   @override
-  String get trips_detail_scan_addDivesFirst => 'הוסף צלילות תחילה כדי לקשר תמונות';
+  String get trips_detail_scan_addDivesFirst =>
+      'הוסף צלילות תחילה כדי לקשר תמונות';
 
   @override
   String trips_detail_scan_errorLinking(Object error) {
@@ -22521,7 +23599,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_dialog_discard => 'מחיקה';
 
   @override
-  String get trips_edit_dialog_discardContent => 'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לצאת?';
+  String get trips_edit_dialog_discardContent =>
+      'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לצאת?';
 
   @override
   String get trips_edit_dialog_discardTitle => 'לבטל שינויים?';
@@ -22636,7 +23715,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get trips_gallery_empty_subtitle => 'הקש על סמל המצלמה כדי לסרוק את הגלריה שלך';
+  String get trips_gallery_empty_subtitle =>
+      'הקש על סמל המצלמה כדי לסרוק את הגלריה שלך';
 
   @override
   String get trips_gallery_empty_title => 'אין תמונות בטיול זה';
@@ -22689,13 +23769,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_list_empty_button => 'הוסף את הטיול הראשון שלך';
 
   @override
-  String get trips_list_empty_filtered_subtitle => 'נסה להתאים או לנקות את המסננים שלך';
+  String get trips_list_empty_filtered_subtitle =>
+      'נסה להתאים או לנקות את המסננים שלך';
 
   @override
-  String get trips_list_empty_filtered_title => 'אין טיולים התואמים למסננים שלך';
+  String get trips_list_empty_filtered_title =>
+      'אין טיולים התואמים למסננים שלך';
 
   @override
-  String get trips_list_empty_subtitle => 'צור טיולים כדי לקבץ את הצלילות שלך לפי יעד';
+  String get trips_list_empty_subtitle =>
+      'צור טיולים כדי לקבץ את הצלילות שלך לפי יעד';
 
   @override
   String get trips_list_empty_title => 'עדיין לא נוספו טיולים';
@@ -22817,7 +23900,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_search_tooltip_clear => 'נקה חיפוש';
 
   @override
-  String get trips_summary_header_subtitle => 'בחר טיול מהרשימה כדי לצפות בפרטים';
+  String get trips_summary_header_subtitle =>
+      'בחר טיול מהרשימה כדי לצפות בפרטים';
 
   @override
   String get trips_summary_header_title => 'טיולים';
@@ -22908,13 +23992,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_label_expectedDives => 'צלילות צפויות';
 
   @override
-  String get trips_edit_hint_expectedDives => 'השאר ריק כדי להעריך מהטיולים האחרונים שלך';
+  String get trips_edit_hint_expectedDives =>
+      'השאר ריק כדי להעריך מהטיולים האחרונים שלך';
 
   @override
-  String get trips_edit_label_expectedRuntime => 'זמן ריצה צפוי לכל צלילה (דקות)';
+  String get trips_edit_label_expectedRuntime =>
+      'זמן ריצה צפוי לכל צלילה (דקות)';
 
   @override
-  String get trips_edit_hint_expectedRuntime => 'השאר ריק כדי להעריך מצלילות הריברידר האחרונות שלך';
+  String get trips_edit_hint_expectedRuntime =>
+      'השאר ריק כדי להעריך מצלילות הריברידר האחרונות שלך';
 
   @override
   String get trips_scrubber_title => 'מרווח הסופג';
@@ -22925,12 +24012,20 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String trips_scrubber_remaining(String minutes, String rated, String consumed) {
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
     return '$minutes דק\' נותרו לפני הטיול (נקוב $rated דק\', $consumed דק\' נוצלו מאז המילוי האחרון)';
   }
 
   @override
-  String trips_scrubber_remainingNoRepack(String minutes, String rated, String consumed) {
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
     return '$minutes דק\' נותרו לפני הטיול (נקוב $rated דק\', $consumed דק\' נוצלו, לא נרשם מילוי)';
   }
 
@@ -22986,10 +24081,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get trips_scrubber_caution => 'מתחת ל-20 אחוז מהמשך הנקוב. תכננו מילוי או קחו סופג רזרבי.';
+  String get trips_scrubber_caution =>
+      'מתחת ל-20 אחוז מהמשך הנקוב. תכננו מילוי או קחו סופג רזרבי.';
 
   @override
-  String get trips_scrubber_noRating => 'אין משך נקוב לריברידר זה; הוסיפו את משך הסופג למאפיינים או לוח זמנים למילוי.';
+  String get trips_scrubber_noRating =>
+      'אין משך נקוב לריברידר זה; הוסיפו את משך הסופג למאפיינים או לוח זמנים למילוי.';
 
   @override
   String trips_scrubber_bannerMargin(String minutes) {
@@ -23017,7 +24114,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_hint_disembarkPort => 'e.g. Hurghada Marina';
 
   @override
-  String get trips_edit_validation_vesselRequired => 'Vessel name is required for liveaboard trips';
+  String get trips_edit_validation_vesselRequired =>
+      'Vessel name is required for liveaboard trips';
 
   @override
   String get trips_detail_tab_overview => 'Overview';
@@ -23282,13 +24380,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_triage_cancelParsing => 'ביטול';
 
   @override
-  String get universalImport_triage_allExcluded => 'לא ניתן לייבא יחד את הקבצים שנבחרו. יש לייבא קובצי CSV אחד אחד.';
+  String get universalImport_triage_allExcluded =>
+      'לא ניתן לייבא יחד את הקבצים שנבחרו. יש לייבא קובצי CSV אחד אחד.';
 
   @override
-  String get universalImport_triage_noneImportable => 'לא ניתן לייבא אף אחד מהקבצים שנבחרו.';
+  String get universalImport_triage_noneImportable =>
+      'לא ניתן לייבא אף אחד מהקבצים שנבחרו.';
 
   @override
-  String get universalImport_review_inBatchDuplicate => 'כפילות של צלילה אחרת באצוות הייבוא הזו.';
+  String get universalImport_review_inBatchDuplicate =>
+      'כפילות של צלילה אחרת באצוות הייבוא הזו.';
 
   @override
   String get universalImport_summary_filesTitle => 'קבצים';
@@ -23298,7 +24399,8 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'יומן זה מכיל צלילות של $count צוללים. בחר לאן ייובאו הצלילות וההסמכות של כל צולל.',
+      other:
+          'יומן זה מכיל צלילות של $count צוללים. בחר לאן ייובאו הצלילות וההסמכות של כל צולל.',
     );
     return '$_temp0';
   }
@@ -23359,10 +24461,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_summary_noticesTitle => 'הערות ייבוא';
 
   @override
-  String get universalImport_summary_noticeNoTankPressureTitle => 'לחץ המכל לא נרשם';
+  String get universalImport_summary_noticeNoTankPressureTitle =>
+      'לחץ המכל לא נרשם';
 
   @override
-  String get universalImport_summary_noticeNoTankPressureBody => 'לא ניתן לחשב צריכת אוויר ו-SAC. אפשר להוסיף לחץ התחלה וסיום בעריכת הצלילה.';
+  String get universalImport_summary_noticeNoTankPressureBody =>
+      'לא ניתן לחשב צריכת אוויר ו-SAC. אפשר להוסיף לחץ התחלה וסיום בעריכת הצלילה.';
 
   @override
   String universalImport_summary_noticeAffectedDives(int count) {
@@ -23376,10 +24480,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeDivesSkippedTitle => 'לא ניתן היה לקרוא חלק מהצלילות';
+  String get universalImport_summary_noticeDivesSkippedTitle =>
+      'לא ניתן היה לקרוא חלק מהצלילות';
 
   @override
-  String get universalImport_summary_noticeDivesSkippedBody => 'הצלילות האלה דולגו כי לא ניתן היה לקרוא את הנתונים שלהן בקובץ.';
+  String get universalImport_summary_noticeDivesSkippedBody =>
+      'הצלילות האלה דולגו כי לא ניתן היה לקרוא את הנתונים שלהן בקובץ.';
 
   @override
   String universalImport_summary_noticeDivesSkippedCount(int count) {
@@ -23393,25 +24499,32 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeProfileUnreadableTitle => 'לא ניתן היה לקרוא חלק מהפרופילים';
+  String get universalImport_summary_noticeProfileUnreadableTitle =>
+      'לא ניתן היה לקרוא חלק מהפרופילים';
 
   @override
-  String get universalImport_summary_noticeProfileUnreadableBody => 'הצלילות האלה יובאו ללא פרופיל עומק כי נתוני הפרופיל בקובץ חסרים או שלא ניתן היה לקרוא אותם.';
+  String get universalImport_summary_noticeProfileUnreadableBody =>
+      'הצלילות האלה יובאו ללא פרופיל עומק כי נתוני הפרופיל בקובץ חסרים או שלא ניתן היה לקרוא אותם.';
 
   @override
-  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle => 'פרופילי MacDive לא פוענחו';
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
+      'פרופילי MacDive לא פוענחו';
 
   @override
-  String get universalImport_summary_noticeMacdiveProfileUndecodableBody => 'MacDive שמר את הפרופילים האלה בפורמט ש-Submersion לא יכול לקרוא. כדי לייבא אותם, יש לייצא מ-MacDive כ-XML (File > Export > MacDive XML) ולייבא את הקובץ הזה במקום.';
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
+      'MacDive שמר את הפרופילים האלה בפורמט ש-Submersion לא יכול לקרוא. כדי לייבא אותם, יש לייצא מ-MacDive כ-XML (File > Export > MacDive XML) ולייבא את הקובץ הזה במקום.';
 
   @override
-  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle => 'פרופילים לא פוענחו במכשיר זה';
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
+      'פרופילים לא פוענחו במכשיר זה';
 
   @override
-  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody => 'המכשיר הזה לא הצליח לפענח את נתוני מחשב הצלילה שבקובץ, ולכן הצלילות האלה יובאו ללא פרופיל עומק.';
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
+      'המכשיר הזה לא הצליח לפענח את נתוני מחשב הצלילה שבקובץ, ולכן הצלילות האלה יובאו ללא פרופיל עומק.';
 
   @override
-  String get universalImport_summary_noticeColumnsNotImportedTitle => 'חלק מהעמודות לא יובאו';
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'חלק מהעמודות לא יובאו';
 
   @override
   String universalImport_summary_noticeColumnsNotImportedBody(String names) {
@@ -23419,21 +24532,25 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeValuesNotConvertedTitle => 'חלק מהערכים נשארו ריקים';
+  String get universalImport_summary_noticeValuesNotConvertedTitle =>
+      'חלק מהערכים נשארו ריקים';
 
   @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count ערכים לא הומרו ונשארו ריקים. אם שדה נראה שגוי, יש לבדוק את מיפוי העמודות ולייבא שוב.',
-      one: 'ערך אחד לא הומר ונשאר ריק. אם שדה נראה שגוי, יש לבדוק את מיפוי העמודות ולייבא שוב.',
+      other:
+          '$count ערכים לא הומרו ונשארו ריקים. אם שדה נראה שגוי, יש לבדוק את מיפוי העמודות ולייבא שוב.',
+      one:
+          'ערך אחד לא הומר ונשאר ריק. אם שדה נראה שגוי, יש לבדוק את מיפוי העמודות ולייבא שוב.',
     );
     return '$_temp0';
   }
 
   @override
-  String get universalImport_summary_noticePhotosSkippedTitle => 'חלק מהתמונות דולגו';
+  String get universalImport_summary_noticePhotosSkippedTitle =>
+      'חלק מהתמונות דולגו';
 
   @override
   String universalImport_summary_noticePhotosSkippedBody(int count) {
@@ -23447,59 +24564,74 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeSitesUnresolvedTitle => 'לחלק מהצלילות אין אתר צלילה';
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'לחלק מהצלילות אין אתר צלילה';
 
   @override
-  String get universalImport_summary_noticeSitesUnresolvedBody => 'צלילות אלה הפנו לאתר צלילה שהקובץ אינו מתאר, ולכן יובאו ללא אתר. אפשר להגדיר אתר בעריכת הצלילה.';
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'צלילות אלה הפנו לאתר צלילה שהקובץ אינו מתאר, ולכן יובאו ללא אתר. אפשר להגדיר אתר בעריכת הצלילה.';
 
   @override
-  String get universalImport_summary_noticeGearUnavailableTitle => 'הציוד לא יובא';
+  String get universalImport_summary_noticeGearUnavailableTitle =>
+      'הציוד לא יובא';
 
   @override
-  String get universalImport_summary_noticeGearUnavailableBody => 'לא ניתן היה להוריד את רשימת הציוד, ולכן לא יובא ציוד והצלילות לא קושרו לציוד שלהן. ייבאו שוב מאוחר יותר כדי להוסיף אותו.';
+  String get universalImport_summary_noticeGearUnavailableBody =>
+      'לא ניתן היה להוריד את רשימת הציוד, ולכן לא יובא ציוד והצלילות לא קושרו לציוד שלהן. ייבאו שוב מאוחר יותר כדי להוסיף אותו.';
 
   @override
-  String get universalImport_summary_noticeCertificationsUnavailableTitle => 'ההסמכות לא יובאו';
+  String get universalImport_summary_noticeCertificationsUnavailableTitle =>
+      'ההסמכות לא יובאו';
 
   @override
-  String get universalImport_summary_noticeCertificationsUnavailableBody => 'לא ניתן היה להוריד את רשימת ההסמכות, ולכן לא יובאו הסמכות. ייבאו שוב מאוחר יותר כדי להוסיף אותן.';
+  String get universalImport_summary_noticeCertificationsUnavailableBody =>
+      'לא ניתן היה להוריד את רשימת ההסמכות, ולכן לא יובאו הסמכות. ייבאו שוב מאוחר יותר כדי להוסיף אותן.';
 
   @override
-  String get universalImport_summary_noticePhotoListingsUnavailableTitle => 'רשימת חלק מהתמונות לא התקבלה';
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
+      'רשימת חלק מהתמונות לא התקבלה';
 
   @override
   String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'לא ניתן היה לקבל את רשימת התמונות של $count צלילות, ולכן הן לא יובאו.',
-      one: 'לא ניתן היה לקבל את רשימת התמונות של $count צלילה, ולכן הן לא יובאו.',
+      other:
+          'לא ניתן היה לקבל את רשימת התמונות של $count צלילות, ולכן הן לא יובאו.',
+      one:
+          'לא ניתן היה לקבל את רשימת התמונות של $count צלילה, ולכן הן לא יובאו.',
     );
     return '$_temp0';
   }
 
   @override
-  String get universalImport_summary_noticePhotosNotDownloadedTitle => 'חלק מהתמונות לא הורדו';
+  String get universalImport_summary_noticePhotosNotDownloadedTitle =>
+      'חלק מהתמונות לא הורדו';
 
   @override
   String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'לא ניתן היה להוריד $count תמונות. ייבאו שוב כדי לנסות שוב; תמונות שכבר נשמרו לא ישוכפלו.',
-      one: 'לא ניתן היה להוריד $count תמונה. ייבאו שוב כדי לנסות שוב; תמונות שכבר נשמרו לא ישוכפלו.',
+      other:
+          'לא ניתן היה להוריד $count תמונות. ייבאו שוב כדי לנסות שוב; תמונות שכבר נשמרו לא ישוכפלו.',
+      one:
+          'לא ניתן היה להוריד $count תמונה. ייבאו שוב כדי לנסות שוב; תמונות שכבר נשמרו לא ישוכפלו.',
     );
     return '$_temp0';
   }
 
   @override
-  String get universalImport_summary_noticeMacdiveXmlCertsTitle => 'הסמכות ורשומות טיפול לא נמצאות בקובץ';
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
+      'הסמכות ורשומות טיפול לא נמצאות בקובץ';
 
   @override
-  String get universalImport_summary_noticeMacdiveXmlCertsBody => 'MacDive משמיט הסמכות ורשומות טיפול בציוד מייצוא ה-XML שלו. כדי להביא אותן, יש לייבא את מסד הנתונים MacDive.sqlite.';
+  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
+      'MacDive משמיט הסמכות ורשומות טיפול בציוד מייצוא ה-XML שלו. כדי להביא אותן, יש לייבא את מסד הנתונים MacDive.sqlite.';
 
   @override
-  String get universalImport_summary_noticeMacdiveLogbooksTitle => 'יומני MacDive לא יובאו';
+  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
+      'יומני MacDive לא יובאו';
 
   @override
   String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
@@ -23507,10 +24639,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_unreadableDatesTitle => 'חלק מהשורות לא יובאו';
+  String get universalImport_summary_unreadableDatesTitle =>
+      'חלק מהשורות לא יובאו';
 
   @override
-  String get universalImport_summary_unreadableDatesBody => 'לא ניתן היה לקרוא את התאריך בשורות אלה. בדקו את עמודת התאריך בקובץ, תקנו את השורות האלה וייבאו את הקובץ שוב.';
+  String get universalImport_summary_unreadableDatesBody =>
+      'לא ניתן היה לקרוא את התאריך בשורות אלה. בדקו את עמודת התאריך בקובץ, תקנו את השורות האלה וייבאו את הקובץ שוב.';
 
   @override
   String universalImport_summary_unreadableDatesCount(int count) {
@@ -23535,7 +24669,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String universalImport_summary_unreadableDatesRowsMore(int count, String rows) {
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -23560,7 +24697,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_summary_importAsRoute => 'ייבוא כמסלול';
 
   @override
-  String get universalImport_summary_fileNeedsIndividualImport => 'נדרש ייבוא נפרד';
+  String get universalImport_summary_fileNeedsIndividualImport =>
+      'נדרש ייבוא נפרד';
 
   @override
   String get universalImport_summary_fileUnsupported => 'פורמט לא נתמך';
@@ -23594,19 +24732,23 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_description_supportedFormats => 'בחר קובץ יומן צלילה לייבוא. פורמטים נתמכים כוללים CSV, UDDF, Subsurface XML ו-Garmin FIT.';
+  String get universalImport_description_supportedFormats =>
+      'בחר קובץ יומן צלילה לייבוא. פורמטים נתמכים כוללים CSV, UDDF, Subsurface XML ו-Garmin FIT.';
 
   @override
   String get universalImport_dive_decideAction => 'החלט';
 
   @override
-  String get universalImport_error_unsupportedFormat => 'פורמט זה אינו נתמך עדיין. נא לייצא כ-UDDF או CSV.';
+  String get universalImport_error_unsupportedFormat =>
+      'פורמט זה אינו נתמך עדיין. נא לייצא כ-UDDF או CSV.';
 
   @override
-  String get universalImport_error_duplicateCheckFailed => 'לא ניתן היה להריץ זיהוי כפילויות, ולכן שום פריט ברשימה הזו אינו מסומן כקיים כבר ביומן. בדוק את הרשימה לפני הייבוא.';
+  String get universalImport_error_duplicateCheckFailed =>
+      'לא ניתן היה להריץ זיהוי כפילויות, ולכן שום פריט ברשימה הזו אינו מסומן כקיים כבר ביומן. בדוק את הרשימה לפני הייבוא.';
 
   @override
-  String get universalImport_error_noColumnsToMap => 'לקובץ הזה אין עמודות למיפוי. חזור אחורה ובחר את הקובץ שוב, או בחר מקור אחר.';
+  String get universalImport_error_noColumnsToMap =>
+      'לקובץ הזה אין עמודות למיפוי. חזור אחורה ובחר את הקובץ שוב, או בחר מקור אחר.';
 
   @override
   String universalImport_error_stepFailed(Object details) {
@@ -23625,13 +24767,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_error_unreadableDatesHint => 'בדוק שעמודות התאריך והשעה ממופות בשלב זה ושהן מכילות תאריכים.';
+  String get universalImport_error_unreadableDatesHint =>
+      'בדוק שעמודות התאריך והשעה ממופות בשלב זה ושהן מכילות תאריכים.';
 
   @override
-  String get universalImport_error_unreadableDatesHintNoMapping => 'בדוק שעמודת התאריך מכילה תאריכים בתבנית שמצוינת בכותרת שלה.';
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'בדוק שעמודת התאריך מכילה תאריכים בתבנית שמצוינת בכותרת שלה.';
 
   @override
-  String get universalImport_error_noDataInFile => 'לא נמצאו בקובץ הזה נתונים שניתן לייבא.';
+  String get universalImport_error_noDataInFile =>
+      'לא נמצאו בקובץ הזה נתונים שניתן לייבא.';
 
   @override
   String universalImport_error_noDataInFileWithDetails(String details) {
@@ -23639,10 +24784,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_error_noDataInFiles => 'לא נמצאו בקבצים שנבחרו נתונים שניתן לייבא.';
+  String get universalImport_error_noDataInFiles =>
+      'לא נמצאו בקבצים שנבחרו נתונים שניתן לייבא.';
 
   @override
-  String get universalImport_error_fileUnreadable => 'לא ניתן היה לקרוא את הקובץ שנבחר. בחר אותו שוב.';
+  String get universalImport_error_fileUnreadable =>
+      'לא ניתן היה לקרוא את הקובץ שנבחר. בחר אותו שוב.';
 
   @override
   String universalImport_error_parseFailed(String details) {
@@ -23650,10 +24797,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_error_noFilesInArchive => 'לא נמצאו בארכיון קבצים שניתן לייבא.';
+  String get universalImport_error_noFilesInArchive =>
+      'לא נמצאו בארכיון קבצים שניתן לייבא.';
 
   @override
-  String get universalImport_error_noFilesInFolder => 'לא נמצאו בתיקייה שנבחרה קבצים שניתן לייבא.';
+  String get universalImport_error_noFilesInFolder =>
+      'לא נמצאו בתיקייה שנבחרה קבצים שניתן לייבא.';
 
   @override
   String universalImport_error_loadFailed(String details) {
@@ -23671,7 +24820,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_error_garminNotFound => 'לא נמצא מכשיר Garmin מחובר. חבר אותו בכבל, או השתמש ב״בחירת תיקייה״ כדי לבחור את תיקיית GARMIN/Activity של המכשיר.';
+  String get universalImport_error_garminNotFound =>
+      'לא נמצא מכשיר Garmin מחובר. חבר אותו בכבל, או השתמש ב״בחירת תיקייה״ כדי לבחור את תיקיית GARMIN/Activity של המכשיר.';
 
   @override
   String universalImport_error_garminReadFailed(String details) {
@@ -23679,7 +24829,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_error_garminNoDives => 'לא נמצאו צלילות במכשיר ה-Garmin המחובר.';
+  String get universalImport_error_garminNoDives =>
+      'לא נמצאו צלילות במכשיר ה-Garmin המחובר.';
 
   @override
   String universalImport_error_additionalFilePickFailed(String details) {
@@ -23736,7 +24887,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_label_possibleMatch => 'התאמה אפשרית';
 
   @override
-  String get universalImport_label_selectCorrectSource => 'לא נכון? בחר את המקור הנכון:';
+  String get universalImport_label_selectCorrectSource =>
+      'לא נכון? בחר את המקור הנכון:';
 
   @override
   String universalImport_label_selected(Object count) {
@@ -23750,7 +24902,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_label_fillPlanned => 'השלמת צלילה מתוכננת';
 
   @override
-  String get universalImport_compare_fillPlannedSubtitle => 'שיוך ההורדה הזו לצלילה שתכננתם';
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'שיוך ההורדה הזו לצלילה שתכננתם';
 
   @override
   String get universalImport_label_filledPlanned => 'צלילות מתוכננות שהושלמו';
@@ -23761,7 +24914,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_fillPlanned_replacesProfile => 'הפרופיל המשורטט שלה יוחלף.';
+  String get universalImport_fillPlanned_replacesProfile =>
+      'הפרופיל המשורטט שלה יוחלף.';
 
   @override
   String get universalImport_fillPlanned_change => 'שינוי';
@@ -23770,7 +24924,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_fillPlanned_pickerTitle => 'בחירת צלילה מתוכננת';
 
   @override
-  String get universalImport_fillPlanned_importAsNew => 'ייבוא כצלילה חדשה במקום';
+  String get universalImport_fillPlanned_importAsNew =>
+      'ייבוא כצלילה חדשה במקום';
 
   @override
   String get universalImport_fillPlanned_undo => 'ביטול ההשלמות';
@@ -23779,7 +24934,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_fillPlanned_undone => 'צלילות מתוכננות שוחזרו';
 
   @override
-  String get universalImport_fillPlanned_undoFailed => 'לא ניתן היה לשחזר את כל הצלילות המתוכננות. נסו שוב.';
+  String get universalImport_fillPlanned_undoFailed =>
+      'לא ניתן היה לשחזר את כל הצלילות המתוכננות. נסו שוב.';
 
   @override
   String universalImport_label_taggedAs(Object tag) {
@@ -23809,7 +24965,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_entityAction_linkExisting => 'קישור לקיים';
 
   @override
-  String get universalImport_entityAction_linkExistingSubtitle => 'שימוש ברשומה התואמת';
+  String get universalImport_entityAction_linkExistingSubtitle =>
+      'שימוש ברשומה התואמת';
 
   @override
   String get universalImport_entityAction_replaceBadge => 'החלפה';
@@ -23818,7 +24975,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_entityAction_replaceExisting => 'החלף את הקיים';
 
   @override
-  String get universalImport_entityAction_replaceExistingSubtitle => 'דרוס בנתונים המיובאים';
+  String get universalImport_entityAction_replaceExistingSubtitle =>
+      'דרוס בנתונים המיובאים';
 
   @override
   String get universalImport_entityAction_skip => 'דלג';
@@ -23830,7 +24988,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_entityAction_importAsNew => 'ייבוא כחדש';
 
   @override
-  String get universalImport_entityAction_importAsNewSubtitle => 'צור רשומה נפרדת';
+  String get universalImport_entityAction_importAsNewSubtitle =>
+      'צור רשומה נפרדת';
 
   @override
   String get universalImport_pending_chooseAction => 'בחר פעולה';
@@ -23847,10 +25006,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_pending_reviewAction => 'סקור';
 
   @override
-  String get universalImport_rowHint_tapCompareToDecide => 'הקש על החלט כדי לבחור';
+  String get universalImport_rowHint_tapCompareToDecide =>
+      'הקש על החלט כדי לבחור';
 
   @override
-  String universalImport_semantics_entitySelection(Object selected, Object total, Object entityType) {
+  String universalImport_semantics_entitySelection(
+    Object selected,
+    Object total,
+    Object entityType,
+  ) {
     return '$selected מתוך $total $entityType נבחרו';
   }
 
@@ -23870,7 +25034,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_semantics_needsDecision => 'כפילות חשודה, נדרשת החלטה';
+  String get universalImport_semantics_needsDecision =>
+      'כפילות חשודה, נדרשת החלטה';
 
   @override
   String get universalImport_semantics_possibleDuplicate => 'כפילות אפשרית';
@@ -23911,7 +25076,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_step_select => 'בחר';
 
   @override
-  String get universalImport_summary_decidesRequired => 'כל אחד דורש החלטה לפני הייבוא.';
+  String get universalImport_summary_decidesRequired =>
+      'כל אחד דורש החלטה לפני הייבוא.';
 
   @override
   String get universalImport_title => 'ייבא נתונים';
@@ -24064,7 +25230,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_certificate_footer => 'תעודת צלילה רשמית';
 
   @override
-  String get certifications_certificate_hasCompletedTraining => 'השלים/ה הכשרה כ';
+  String get certifications_certificate_hasCompletedTraining =>
+      'השלים/ה הכשרה כ';
 
   @override
   String certifications_certificate_instructor(Object name) {
@@ -24092,7 +25259,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_clockSync_checkAgain => 'בדיקה חוזרת';
 
   @override
-  String get diveComputer_clockSync_globalSubtitle => 'מכוון את השעון לשעת המכשיר הזה אחרי כל הורדה. חל על מכשיר זה בלבד.';
+  String get diveComputer_clockSync_globalSubtitle =>
+      'מכוון את השעון לשעת המכשיר הזה אחרי כל הורדה. חל על מכשיר זה בלבד.';
 
   @override
   String get diveComputer_clockSync_globalTitle => 'סנכרון שעוני מחשבי צלילה';
@@ -24110,7 +25278,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_clockSync_supported => 'נתמך בדגם זה';
 
   @override
-  String get diveComputer_clockSync_unsupported => 'דגם זה אינו תומך בסנכרון שעון';
+  String get diveComputer_clockSync_unsupported =>
+      'דגם זה אינו תומך בסנכרון שעון';
 
   @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
@@ -24183,7 +25352,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_detail_reimportDialogTitle => 'לייבא מחדש את כל הצלילות?';
+  String get diveComputer_detail_reimportDialogTitle =>
+      'לייבא מחדש את כל הצלילות?';
 
   @override
   String get diveComputer_detail_statisticsTitle => 'סטטיסטיקה';
@@ -24221,7 +25391,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_discovery_exitDialogConfirm => 'יציאה';
 
   @override
-  String get diveComputer_discovery_exitDialogContent => 'האם אתה בטוח שברצונך לצאת? ההתקדמות תאבד.';
+  String get diveComputer_discovery_exitDialogContent =>
+      'האם אתה בטוח שברצונך לצאת? ההתקדמות תאבד.';
 
   @override
   String get diveComputer_discovery_exitDialogTitle => 'לצאת מההגדרה?';
@@ -24233,13 +25404,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_discovery_noDeviceSelected => 'לא נבחר מכשיר';
 
   @override
-  String get diveComputer_discovery_pleaseWaitConnection => 'אנא המתן בזמן יצירת החיבור';
+  String get diveComputer_discovery_pleaseWaitConnection =>
+      'אנא המתן בזמן יצירת החיבור';
 
   @override
   String get diveComputer_discovery_recognizedDevice => 'מכשיר מזוהה';
 
   @override
-  String get diveComputer_discovery_recognizedDeviceDescription => 'מכשיר זה נמצא בספריית המכשירים הנתמכים. הורדת צלילות אמורה לפעול אוטומטית.';
+  String get diveComputer_discovery_recognizedDeviceDescription =>
+      'מכשיר זה נמצא בספריית המכשירים הנתמכים. הורדת צלילות אמורה לפעול אוטומטית.';
 
   @override
   String get diveComputer_discovery_stepConnect => 'חיבור';
@@ -24272,10 +25445,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_discovery_unknownDevice => 'מכשיר לא מוכר';
 
   @override
-  String get diveComputer_discovery_unknownDeviceDescription => 'מכשיר זה אינו בספרייה שלנו. ננסה להתחבר, אך ייתכן שההורדה לא תעבוד.';
+  String get diveComputer_discovery_unknownDeviceDescription =>
+      'מכשיר זה אינו בספרייה שלנו. ננסה להתחבר, אך ייתכן שההורדה לא תעבוד.';
 
   @override
-  String get diveComputer_discovery_usbInstructions => 'חבר את מחשב הצלילה שלך באמצעות כבל USB, ואז בחר אותו למטה.';
+  String get diveComputer_discovery_usbInstructions =>
+      'חבר את מחשב הצלילה שלך באמצעות כבל USB, ואז בחר אותו למטה.';
 
   @override
   String diveComputer_discovery_usbNoResults(String query) {
@@ -24286,7 +25461,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_discovery_usbSearchHint => 'חיפוש לפי יצרן או דגם...';
 
   @override
-  String get diveComputer_downloadExit_content => 'יציאה תבטל את ההורדה הנוכחית ממחשב הצלילה. האם אתה בטוח?';
+  String get diveComputer_downloadExit_content =>
+      'יציאה תבטל את ההורדה הנוכחית ממחשב הצלילה. האם אתה בטוח?';
 
   @override
   String get diveComputer_downloadExit_leave => 'עזוב';
@@ -24312,7 +25488,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_downloadStep_clockSyncFailed => 'סנכרון השעון נכשל';
 
   @override
-  String get diveComputer_downloadStep_clockSyncUnsupported => 'סנכרון שעון אינו נתמך בדגם זה';
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'סנכרון שעון אינו נתמך בדגם זה';
 
   @override
   String get diveComputer_downloadStep_clockSynced => 'השעון סונכרן';
@@ -24348,10 +25525,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_downloadStep_firstSyncBody => 'ביומן הצלילות שלך כבר יש צלילות. אפשר לדלג על הורדת הצלילות שכבר יש לך.';
+  String get diveComputer_downloadStep_firstSyncBody =>
+      'ביומן הצלילות שלך כבר יש צלילות. אפשר לדלג על הורדת הצלילות שכבר יש לך.';
 
   @override
-  String get diveComputer_downloadStep_firstSyncTitle => 'הורדה ראשונה ממחשב הצלילה הזה';
+  String get diveComputer_downloadStep_firstSyncTitle =>
+      'הורדה ראשונה ממחשב הצלילה הזה';
 
   @override
   String diveComputer_downloadStep_onlyAfterDate(String date) {
@@ -24372,7 +25551,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveComputer_downloadStep_progressSemanticLabel(Object status, Object percent) {
+  String diveComputer_downloadStep_progressSemanticLabel(
+    Object status,
+    Object percent,
+  ) {
     return 'התקדמות הורדה: $status$percent';
   }
 
@@ -24433,7 +25615,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_download_errorOccurred => 'אירעה שגיאה';
 
   @override
-  String get diveComputer_download_noSerialPortsFound => 'לא נמצאו חיבורי USB טוריים. האם מחשב הצלילה מחובר ופועל?';
+  String get diveComputer_download_noSerialPortsFound =>
+      'לא נמצאו חיבורי USB טוריים. האם מחשב הצלילה מחובר ופועל?';
 
   @override
   String diveComputer_download_noUsbDeviceFound(Object model) {
@@ -24441,10 +25624,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_download_stalePairing => 'התאמת ה-Bluetooth של מחשב הצלילה הזה אינה עדכנית. שכח את מחשב הצלילה בהגדרות ה-Bluetooth של המכשיר שלך, ולאחר מכן התאם אותו מחדש מתפריט ה-Bluetooth של מחשב הצלילה.';
+  String get diveComputer_download_stalePairing =>
+      'התאמת ה-Bluetooth של מחשב הצלילה הזה אינה עדכנית. שכח את מחשב הצלילה בהגדרות ה-Bluetooth של המכשיר שלך, ולאחר מכן התאם אותו מחדש מתפריט ה-Bluetooth של מחשב הצלילה.';
 
   @override
-  String get diveComputer_download_discoveryStalled => 'ההתחברות למחשב הצלילה הצליחה, אך הוא הפסיק להגיב לפני תחילת ההורדה. בדרך כלל המשמעות היא שהתאמת ה-Bluetooth אינה עדכנית: שכח את מחשב הצלילה בהגדרות ה-Bluetooth של המכשיר שלך ונסה שוב.';
+  String get diveComputer_download_discoveryStalled =>
+      'ההתחברות למחשב הצלילה הצליחה, אך הוא הפסיק להגיב לפני תחילת ההורדה. בדרך כלל המשמעות היא שהתאמת ה-Bluetooth אינה עדכנית: שכח את מחשב הצלילה בהגדרות ה-Bluetooth של המכשיר שלך ונסה שוב.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
@@ -24482,10 +25667,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_download_newDivesImported => 'צלילות חדשות יובאו';
 
   @override
-  String get diveComputer_download_newDivesOnlySubtitle => 'מוריד רק צלילות שנוספו מאז הסנכרון האחרון';
+  String get diveComputer_download_newDivesOnlySubtitle =>
+      'מוריד רק צלילות שנוספו מאז הסנכרון האחרון';
 
   @override
-  String get diveComputer_download_newDivesOnlyTitle => 'הורד צלילות חדשות בלבד';
+  String get diveComputer_download_newDivesOnlyTitle =>
+      'הורד צלילות חדשות בלבד';
 
   @override
   String get diveComputer_download_preparing => 'מכין...';
@@ -24496,7 +25683,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_download_reimportHint => 'מחפש צלילות ישנות או שנמחקו? ייבא מחדש את הכול';
+  String get diveComputer_download_reimportHint =>
+      'מחפש צלילות ישנות או שנמחקו? ייבא מחדש את הכול';
 
   @override
   String get diveComputer_download_retry => 'נסה שוב';
@@ -24512,7 +25700,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_download_searchingInstructions => 'ודא שהמכשיר קרוב ובמצב העברה';
+  String get diveComputer_download_searchingInstructions =>
+      'ודא שהמכשיר קרוב ובמצב העברה';
 
   @override
   String get diveComputer_download_title => 'הורדת צלילות';
@@ -24521,7 +25710,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_download_tryAgain => 'נסה שוב';
 
   @override
-  String get diveComputer_download_upToDate => 'לא נמצאו צלילות חדשות -- היומן שלך מעודכן';
+  String get diveComputer_download_upToDate =>
+      'לא נמצאו צלילות חדשות -- היומן שלך מעודכן';
 
   @override
   String get diveComputer_list_addComputer => 'הוסף מחשב';
@@ -24540,7 +25730,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_list_downloadTooltip => 'הורד צלילות';
 
   @override
-  String get diveComputer_list_emptyMessage => 'חבר את מחשב הצלילה שלך כדי להוריד צלילות ישירות לאפליקציה.';
+  String get diveComputer_list_emptyMessage =>
+      'חבר את מחשב הצלילה שלך כדי להוריד צלילות ישירות לאפליקציה.';
 
   @override
   String get diveComputer_list_emptyTitle => 'אין מחשבי צלילה';
@@ -24549,13 +25740,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_list_findComputers => 'חפש מחשבים';
 
   @override
-  String get diveComputer_list_helpBluetooth => 'Bluetooth LE (רוב המחשבים המודרניים) •';
+  String get diveComputer_list_helpBluetooth =>
+      'Bluetooth LE (רוב המחשבים המודרניים) •';
 
   @override
-  String get diveComputer_list_helpBluetoothClassic => 'Bluetooth Classic (דגמים ישנים) •';
+  String get diveComputer_list_helpBluetoothClassic =>
+      'Bluetooth Classic (דגמים ישנים) •';
 
   @override
-  String get diveComputer_list_helpBrandsList => 'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi, ועוד 50+ דגמים.';
+  String get diveComputer_list_helpBrandsList =>
+      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi, ועוד 50+ דגמים.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'מותגים נתמכים';
@@ -24573,7 +25767,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_list_helpTip1 => '• ודא שהמחשב במצב העברה';
 
   @override
-  String get diveComputer_list_helpTip2 => '• שמור את המכשירים קרובים בזמן ההורדה';
+  String get diveComputer_list_helpTip2 =>
+      '• שמור את המכשירים קרובים בזמן ההורדה';
 
   @override
   String get diveComputer_list_helpTip3 => '• ודא שה-Bluetooth מופעל';
@@ -24597,7 +25792,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_list_title => 'מחשבי צלילה';
 
   @override
-  String get diveComputer_pinCode_instructions => 'הזן את הקוד המוצג במחשב הצלילה.';
+  String get diveComputer_pinCode_instructions =>
+      'הזן את הקוד המוצג במחשב הצלילה.';
 
   @override
   String get diveComputer_pinCode_label => 'קוד PIN';
@@ -24614,7 +25810,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_scan_emptyStateInstructions => 'ודא שמחשב הצלילה שלך:\n• דלוק\n• במצב התאמת Bluetooth\n• קרוב למכשיר שלך';
+  String get diveComputer_scan_emptyStateInstructions =>
+      'ודא שמחשב הצלילה שלך:\n• דלוק\n• במצב התאמת Bluetooth\n• קרוב למכשיר שלך';
 
   @override
   String get diveComputer_scan_knownBadge => 'מוכר';
@@ -24731,7 +25928,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveImport_fit_closeTooltip => 'סגור ייבוא FIT';
 
   @override
-  String get diveImport_fit_noDivesDescription => 'בחר קובץ .fit אחד או יותר שיוצא מ-Garmin Connect או הועתק ממכשיר Garmin Descent.';
+  String get diveImport_fit_noDivesDescription =>
+      'בחר קובץ .fit אחד או יותר שיוצא מ-Garmin Connect או הועתק ממכשיר Garmin Descent.';
 
   @override
   String get diveImport_fit_noDivesLoaded => 'לא נטענו צלילות';
@@ -24754,7 +25952,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveImport_fit_parsedWithSkipped(int diveCount, int fileCount, Object skippedCount) {
+  String diveImport_fit_parsedWithSkipped(
+    int diveCount,
+    int fileCount,
+    Object skippedCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -24780,7 +25982,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveImport_fit_title => 'ייבוא מקובץ FIT';
 
   @override
-  String get diveImport_healthkit_accessDescription => 'Submersion uses Apple HealthKit to read underwater diving workout data, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+  String get diveImport_healthkit_accessDescription =>
+      'Submersion uses Apple HealthKit to read underwater diving workout data, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
 
   @override
   String get diveImport_healthkit_accessRequired => 'Apple HealthKit';
@@ -24792,7 +25995,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveImport_healthkit_closeTooltip => 'סגור ייבוא Apple Watch';
 
   @override
-  String get diveImport_healthkit_dataUsage => 'קורא פעילויות צלילה תת-ימיות מ-Apple Health, כולל עומק, משך, טמפרטורת מים ודופק. נתונים אלה מאוחסנים מקומית ביומן הצלילה שלך ולעולם אינם משותפים עם צדדים שלישיים.';
+  String get diveImport_healthkit_dataUsage =>
+      'קורא פעילויות צלילה תת-ימיות מ-Apple Health, כולל עומק, משך, טמפרטורת מים ודופק. נתונים אלה מאוחסנים מקומית ביומן הצלילה שלך ולעולם אינם משותפים עם צדדים שלישיים.';
 
   @override
   String get diveImport_healthkit_dateFrom => 'מתאריך';
@@ -24818,13 +26022,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveImport_healthkit_noDivesFound => 'לא נמצאו צלילות';
 
   @override
-  String get diveImport_healthkit_noDivesFoundDescription => 'לא נמצאו פעילויות צלילה תת-ימיות בטווח התאריכים שנבחר.';
+  String get diveImport_healthkit_noDivesFoundDescription =>
+      'לא נמצאו פעילויות צלילה תת-ימיות בטווח התאריכים שנבחר.';
 
   @override
   String get diveImport_healthkit_notAvailable => 'לא זמין';
 
   @override
-  String get diveImport_healthkit_notAvailableDescription => 'ייבוא מ-Apple Watch מחייב אייפון עם אפליקציית הבריאות.';
+  String get diveImport_healthkit_notAvailableDescription =>
+      'ייבוא מ-Apple Watch מחייב אייפון עם אפליקציית הבריאות.';
 
   @override
   String get diveImport_healthkit_permissionCheckFailed => 'בדיקת הרשאות נכשלה';
@@ -24860,7 +26066,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveImport_reviewSelectedDives => 'סקירת צלילות נבחרות';
 
   @override
-  String diveImport_reviewSummary(Object newCount, int possibleCount, int skipCount) {
+  String diveImport_reviewSummary(
+    Object newCount,
+    int possibleCount,
+    int skipCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       possibleCount,
       locale: localeName,
@@ -24955,7 +26165,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveImport_uddf_likelyDuplicate => 'כפילות סבירה';
 
   @override
-  String get diveImport_uddf_noFileDescription => 'בחר קובץ .uddf או .xml שיוצא מאפליקציית יומן צלילה אחרת.';
+  String get diveImport_uddf_noFileDescription =>
+      'בחר קובץ .uddf או .xml שיוצא מאפליקציית יומן צלילה אחרת.';
 
   @override
   String get diveImport_uddf_noFileSelected => 'לא נבחר קובץ';
@@ -25042,7 +26253,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String divePlanner_segmentEditor_derivedAscent(Object from, Object to, Object rate) {
+  String divePlanner_segmentEditor_derivedAscent(
+    Object from,
+    Object to,
+    Object rate,
+  ) {
     return 'עלייה $from → $to בקצב $rate';
   }
 
@@ -25052,12 +26267,19 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String divePlanner_segmentEditor_derivedDescent(Object from, Object to, Object rate) {
+  String divePlanner_segmentEditor_derivedDescent(
+    Object from,
+    Object to,
+    Object rate,
+  ) {
     return 'ירידה $from → $to בקצב $rate';
   }
 
   @override
-  String divePlanner_segmentEditor_derivedDescentNoRate(Object from, Object to) {
+  String divePlanner_segmentEditor_derivedDescentNoRate(
+    Object from,
+    Object to,
+  ) {
     return 'ירידה $from → $to';
   }
 
@@ -25105,7 +26327,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_segmentList_editSegment => 'ערוך קטע';
 
   @override
-  String get divePlanner_segmentList_emptyMessage => 'הוסף קטעים ידנית או צור תוכנית מהירה';
+  String get divePlanner_segmentList_emptyMessage =>
+      'הוסף קטעים ידנית או צור תוכנית מהירה';
 
   @override
   String get divePlanner_segmentList_emptyTitle => 'אין קטעים עדיין';
@@ -25125,7 +26348,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_undo => 'בטל';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription => 'Rock Bottom הוא מינימום עתודת הגז הנדרש לעלייה חירומית תוך שיתוף אוויר עם השותף שלך.\n\n• משתמש בקצבי RMV במצב לחץ (2-3 כפול מהרגיל)\n• מניח ששני הצוללים על מיכל אחד\n• כולל עצירת בטיחות כשמופעלת\n\nתמיד סיים את הצלילה לפני שמגיעים ל-Rock Bottom!';
+  String get gasCalculators_rockBottom_aboutDescription =>
+      'Rock Bottom הוא מינימום עתודת הגז הנדרש לעלייה חירומית תוך שיתוף אוויר עם השותף שלך.\n\n• משתמש בקצבי RMV במצב לחץ (2-3 כפול מהרגיל)\n• מניח ששני הצוללים על מיכל אחד\n• כולל עצירת בטיחות כשמופעלת\n\nתמיד סיים את הצלילה לפני שמגיעים ל-Rock Bottom!';
 
   @override
   String get gasCalculators_rockBottom_aboutTitle => 'אודות Rock Bottom';
@@ -25137,21 +26361,27 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_rockBottom_ascentRate => 'קצב עלייה';
 
   @override
-  String gasCalculators_rockBottom_ascentTimeToDepth(Object depth, Object unit) {
+  String gasCalculators_rockBottom_ascentTimeToDepth(
+    Object depth,
+    Object unit,
+  ) {
     return 'זמן עלייה ל-$depth$unit';
   }
 
   @override
-  String get gasCalculators_rockBottom_ascentTimeToSurface => 'זמן עלייה לפני השטח';
+  String get gasCalculators_rockBottom_ascentTimeToSurface =>
+      'זמן עלייה לפני השטח';
 
   @override
   String get gasCalculators_rockBottom_buddySac => 'RMV השותף';
 
   @override
-  String get gasCalculators_rockBottom_combinedStressedSac => 'RMV משולב במצב לחץ';
+  String get gasCalculators_rockBottom_combinedStressedSac =>
+      'RMV משולב במצב לחץ';
 
   @override
-  String get gasCalculators_rockBottom_emergencyAscentBreakdown => 'פירוט עלייה חירומית';
+  String get gasCalculators_rockBottom_emergencyAscentBreakdown =>
+      'פירוט עלייה חירומית';
 
   @override
   String get gasCalculators_rockBottom_emergencyScenario => 'תרחיש חירום';
@@ -25166,12 +26396,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_rockBottom_minimumReserve => 'עתודה מינימלית';
 
   @override
-  String gasCalculators_rockBottom_resultSemantics(Object pressure, Object pressureUnit, Object volume, Object volumeUnit) {
+  String gasCalculators_rockBottom_resultSemantics(
+    Object pressure,
+    Object pressureUnit,
+    Object volume,
+    Object volumeUnit,
+  ) {
     return 'עתודה מינימלית: $pressure $pressureUnit, $volume $volumeUnit. סיים את הצלילה כשנשארים $pressure $pressureUnit';
   }
 
   @override
-  String gasCalculators_rockBottom_safetyStopDuration(Object depth, Object unit) {
+  String gasCalculators_rockBottom_safetyStopDuration(
+    Object depth,
+    Object unit,
+  ) {
     return '3 דקות ב-$depth$unit';
   }
 
@@ -25181,7 +26419,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_rockBottom_stressedSacHint => 'השתמש ב-RMV גבוה יותר לפיצוי על לחץ במצב חירום';
+  String get gasCalculators_rockBottom_stressedSacHint =>
+      'השתמש ב-RMV גבוה יותר לפיצוי על לחץ במצב חירום';
 
   @override
   String get gasCalculators_rockBottom_stressedSacRates => 'RMV במצב לחץ';
@@ -25193,7 +26432,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_rockBottom_totalReserveNeeded => 'סך עתודה נדרשת';
 
   @override
-  String gasCalculators_rockBottom_turnDive(Object pressure, Object pressureUnit) {
+  String gasCalculators_rockBottom_turnDive(
+    Object pressure,
+    Object pressureUnit,
+  ) {
     return 'סיים את הצלילה כשנשארים $pressure $pressureUnit';
   }
 
@@ -25207,7 +26449,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gpsLogger_androidNotificationTitle => 'מקליט ה-GPS של Submersion';
 
   @override
-  String get gpsLogger_deleteTrackMessage => 'פעולה זו תסיר את מסלול ה-GPS שהוקלט. מיקומים שכבר הוצמדו לצלילות יישמרו.';
+  String get gpsLogger_deleteTrackMessage =>
+      'פעולה זו תסיר את מסלול ה-GPS שהוקלט. מיקומים שכבר הוצמדו לצלילות יישמרו.';
 
   @override
   String get gpsLogger_deleteTrackTitle => 'למחוק את המסלול?';
@@ -25241,7 +26484,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gpsLogger_noTracks => 'עדיין לא הוקלטו מסלולי GPS';
 
   @override
-  String get gpsLogger_permissionDenied => 'נדרשת הרשאת מיקום כדי להקליט מסלול GPS. יש להפעיל אותה בהגדרות המערכת.';
+  String get gpsLogger_permissionDenied =>
+      'נדרשת הרשאת מיקום כדי להקליט מסלול GPS. יש להפעיל אותה בהגדרות המערכת.';
 
   @override
   String gpsLogger_recordingStatus(num count) {
@@ -25321,7 +26565,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gpsTrack_edit_confirmSplit => 'פצל כאן';
 
   @override
-  String get gpsTrack_edit_splitWarning => 'פיצול יוצר שני מסלולים ומוחק את המקורי. לא ניתן לבטל פעולה זו.';
+  String get gpsTrack_edit_splitWarning =>
+      'פיצול יוצר שני מסלולים ומוחק את המקורי. לא ניתן לבטל פעולה זו.';
 
   @override
   String get gpsTrack_edit_cancel => 'ביטול';
@@ -25336,7 +26581,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gpsTrack_import_timezone => 'הוקלט באזור';
 
   @override
-  String get gpsTrack_import_timezoneHint => 'הזמנים בקובץ הם UTC. בחר את אזור הזמן שבו הוקלט המסלול כדי שיתאים לצלילות שלך.';
+  String get gpsTrack_import_timezoneHint =>
+      'הזמנים בקובץ הם UTC. בחר את אזור הזמן שבו הוקלט המסלול כדי שיתאים לצלילות שלך.';
 
   @override
   String get gpsTrack_import_duplicate => 'נראה שזהו כפיל של מסלול קיים.';
@@ -25368,19 +26614,24 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get gpsTrack_importError_unsupportedFormat => 'סוג הקובץ אינו נתמך. ייבא קובץ GPX, KML, CSV או FIT.';
+  String get gpsTrack_importError_unsupportedFormat =>
+      'סוג הקובץ אינו נתמך. ייבא קובץ GPX, KML, CSV או FIT.';
 
   @override
-  String get gpsTrack_importError_unreadable => 'לא ניתן לקרוא את הקובץ. ייתכן שהוא פגום או חלקי.';
+  String get gpsTrack_importError_unreadable =>
+      'לא ניתן לקרוא את הקובץ. ייתכן שהוא פגום או חלקי.';
 
   @override
-  String get gpsTrack_importError_noPositions => 'בקובץ אין מיקומי GPS עם חותמת זמן.';
+  String get gpsTrack_importError_noPositions =>
+      'בקובץ אין מיקומי GPS עם חותמת זמן.';
 
   @override
-  String get gpsTrack_importError_badData => 'בקובץ יש מיקום או חותמת זמן שהאפליקציה אינה יכולה לקרוא.';
+  String get gpsTrack_importError_badData =>
+      'בקובץ יש מיקום או חותמת זמן שהאפליקציה אינה יכולה לקרוא.';
 
   @override
-  String get gpsTrack_importError_tooLarge => 'בקובץ יש יותר מדי מיקומים מכדי לשמור אותו כמסלול אחד. פצל אותו למסלולים קצרים יותר וייבא אותם בנפרד.';
+  String get gpsTrack_importError_tooLarge =>
+      'בקובץ יש יותר מדי מיקומים מכדי לשמור אותו כמסלול אחד. פצל אותו למסלולים קצרים יותר וייבא אותם בנפרד.';
 
   @override
   String get gpsTrack_export_saved => 'המסלול נשמר';
@@ -25528,7 +26779,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps_offline_clearAll => 'נקה הכל';
 
   @override
-  String get maps_offline_clearAllCacheMessage => 'למחוק את כל אזורי המפה שהורדו ואריחים שמורים?';
+  String get maps_offline_clearAllCacheMessage =>
+      'למחוק את כל אזורי המפה שהורדו ואריחים שמורים?';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'לנקות את כל המטמון?';
@@ -25555,7 +26807,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String maps_offline_deleteRegionMessage(Object name, Object count, Object size) {
+  String maps_offline_deleteRegionMessage(
+    Object name,
+    Object count,
+    Object size,
+  ) {
     return 'למחוק את \"$name\" ואת $count האריחים שלו?\n\nפעולה זו תפנה $size של אחסון.';
   }
 
@@ -25574,7 +26830,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String maps_offline_downloadingAccessibility(Object regionName, Object percent, Object downloaded, Object total) {
+  String maps_offline_downloadingAccessibility(
+    Object regionName,
+    Object percent,
+    Object downloaded,
+    Object total,
+  ) {
     return 'מוריד $regionName, $percent אחוז הושלם, $downloaded מתוך $total אריחים';
   }
 
@@ -25605,7 +26866,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps_offline_noRegions => 'אין אזורים לא-מקוונים';
 
   @override
-  String get maps_offline_noRegionsDescription => 'הורד אזורי מפה מדף פרטי האתר לשימוש במפות ללא חיבור.';
+  String get maps_offline_noRegionsDescription =>
+      'הורד אזורי מפה מדף פרטי האתר לשימוש במפות ללא חיבור.';
 
   @override
   String get maps_offline_refresh => 'רענן';
@@ -25614,12 +26876,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps_offline_region => 'אזור';
 
   @override
-  String maps_offline_regionInfo(Object size, Object count, Object minZoom, Object maxZoom) {
+  String maps_offline_regionInfo(
+    Object size,
+    Object count,
+    Object minZoom,
+    Object maxZoom,
+  ) {
     return '$size | $count אריחים | זום $minZoom-$maxZoom';
   }
 
   @override
-  String maps_offline_regionSubtitle(Object size, Object count, Object minZoom, Object maxZoom) {
+  String maps_offline_regionSubtitle(
+    Object size,
+    Object count,
+    Object minZoom,
+    Object maxZoom,
+  ) {
     return '$size, $count אריחים, זום $minZoom עד $maxZoom';
   }
 
@@ -25673,7 +26945,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tankPresets_builtInPresets => 'תבניות מובנות';
 
   @override
-  String get tankPresets_builtInPresets_description => 'כבה תבניות שאינך משתמש בהן כדי להסתיר אותן מבוררי הבלונים. תבנית ברירת המחדל מוצגת תמיד.';
+  String get tankPresets_builtInPresets_description =>
+      'כבה תבניות שאינך משתמש בהן כדי להסתיר אותן מבוררי הבלונים. תבנית ברירת המחדל מוצגת תמיד.';
 
   @override
   String get tankPresets_currentDefault => 'ברירת מחדל נוכחית';
@@ -25685,7 +26958,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tankPresets_defaultSettings => 'מיכל ברירת מחדל';
 
   @override
-  String get tankPresets_defaultSettings_description => 'התבנית המסומנת בכוכב משמשת כמיכל ברירת מחדל בעת רישום צלילות חדשות.';
+  String get tankPresets_defaultSettings_description =>
+      'התבנית המסומנת בכוכב משמשת כמיכל ברירת מחדל בעת רישום צלילות חדשות.';
 
   @override
   String tankPresets_deleteDefaultMessage(String name) {
@@ -25717,7 +26991,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get tankPresets_edit_descriptionHint => 'לדוגמה, מיכל שכור מחנות הצלילה';
+  String get tankPresets_edit_descriptionHint =>
+      'לדוגמה, מיכל שכור מחנות הצלילה';
 
   @override
   String get tankPresets_edit_descriptionOptional => 'תיאור (אופציונלי)';
@@ -25811,7 +27086,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tankPresets_applyToImports => 'החל גם על צלילות מיובאות';
 
   @override
-  String get tankPresets_applyToImports_subtitle => 'השלם נתוני מיכל חסרים בצלילות מיובאות באמצעות תבנית ברירת המחדל';
+  String get tankPresets_applyToImports_subtitle =>
+      'השלם נתוני מיכל חסרים בצלילות מיובאות באמצעות תבנית ברירת המחדל';
 
   @override
   String get tankPresets_new_title => 'תבנית מיכל חדשה';
@@ -25829,7 +27105,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tankPresets_title => 'תבניות מיכל';
 
   @override
-  String get tools_gpsLogger_description => 'הקלט את מיקומך במהלך יום צלילה והתאם אוטומטית צלילות מיובאות למיקומי GPS.';
+  String get tools_gpsLogger_description =>
+      'הקלט את מיקומך במהלך יום צלילה והתאם אוטומטית צלילות מיובאות למיקומי GPS.';
 
   @override
   String get tools_gpsLogger_subtitle => 'הקלטת מסלול פני המים';
@@ -25853,7 +27130,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tools_weight_carbonFiberMetric => 'ציפה מאוד (+3 kg)';
 
   @override
-  String get tools_weight_disclaimer => 'זוהי הערכה בלבד. תמיד בצע בדיקת ציפה בתחילת הצלילה והתאם לפי הצורך. גורמים כמו BCD, ציפה אישית ודפוסי נשימה ישפיעו על דרישות המשקל בפועל.';
+  String get tools_weight_disclaimer =>
+      'זוהי הערכה בלבד. תמיד בצע בדיקת ציפה בתחילת הצלילה והתאם לפי הצורך. גורמים כמו BCD, ציפה אישית ודפוסי נשימה ישפיעו על דרישות המשקל בפועל.';
 
   @override
   String get tools_weight_exposureSuit => 'חליפת חשיפה';
@@ -25864,7 +27142,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get tools_weight_helperImperial => 'מוסיף ~2 lbs לכל 22 lbs מעל 154 lbs';
+  String get tools_weight_helperImperial =>
+      'מוסיף ~2 lbs לכל 22 lbs מעל 154 lbs';
 
   @override
   String get tools_weight_helperMetric => 'מוסיף ~1 kg לכל 10 kg מעל 70 kg';
@@ -25915,19 +27194,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_section_dataSources_title => 'Data Sources';
 
   @override
-  String get settings_section_dataSources_subtitle => 'Connected services & integrations';
+  String get settings_section_dataSources_subtitle =>
+      'Connected services & integrations';
 
   @override
   String get settings_siteMatch_title => 'התאמת אתרים אוטומטית';
 
   @override
-  String get settings_siteMatch_subtitle => 'באיזו מידה צלילות שהורדו מותאמות לאתרים';
+  String get settings_siteMatch_subtitle =>
+      'באיזו מידה צלילות שהורדו מותאמות לאתרים';
 
   @override
-  String get settings_tankPressureAtSurfacing_title => 'לחץ המיכל בעלייה לפני השטח';
+  String get settings_tankPressureAtSurfacing_title =>
+      'לחץ המיכל בעלייה לפני השטח';
 
   @override
-  String get settings_tankPressureAtSurfacing_subtitle => 'קריאת לחץ הסיום ברגע ההגעה לפני השטח, ולא בסוף ההקלטה';
+  String get settings_tankPressureAtSurfacing_subtitle =>
+      'קריאת לחץ הסיום ברגע ההגעה לפני השטח, ולא בסוף ההקלטה';
 
   @override
   String get settings_siteMatch_strict => 'קפדני';
@@ -25948,37 +27231,48 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_dataSources_appleHealth_subtitle => 'נתוני צלילה תת-ימית';
 
   @override
-  String get settings_dataSources_appleHealth_description => 'Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+  String get settings_dataSources_appleHealth_description =>
+      'Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
 
   @override
-  String get settings_dataSources_appleHealth_dataTypesHeader => 'נתונים הנקראים מ-HealthKit';
+  String get settings_dataSources_appleHealth_dataTypesHeader =>
+      'נתונים הנקראים מ-HealthKit';
 
   @override
-  String get settings_dataSources_appleHealth_dataTypeWorkouts => 'אימוני צלילה תת-ימית - שעת התחלה, משך ונתוני פעילות של הצלילה';
+  String get settings_dataSources_appleHealth_dataTypeWorkouts =>
+      'אימוני צלילה תת-ימית - שעת התחלה, משך ונתוני פעילות של הצלילה';
 
   @override
-  String get settings_dataSources_appleHealth_dataTypeHeartRate => 'דופק - דגימות דופק שנרשמו במהלך צלילות';
+  String get settings_dataSources_appleHealth_dataTypeHeartRate =>
+      'דופק - דגימות דופק שנרשמו במהלך צלילות';
 
   @override
-  String get settings_dataSources_appleHealth_permissionGranted => 'גישה ל-HealthKit אושרה';
+  String get settings_dataSources_appleHealth_permissionGranted =>
+      'גישה ל-HealthKit אושרה';
 
   @override
-  String get settings_dataSources_appleHealth_permissionNotGranted => 'גישה ל-HealthKit לא אושרה';
+  String get settings_dataSources_appleHealth_permissionNotGranted =>
+      'גישה ל-HealthKit לא אושרה';
 
   @override
-  String get settings_dataSources_appleHealth_permissionChecking => 'בודק גישה ל-HealthKit...';
+  String get settings_dataSources_appleHealth_permissionChecking =>
+      'בודק גישה ל-HealthKit...';
 
   @override
-  String get settings_dataSources_appleHealth_importAction => 'Import from Apple Watch';
+  String get settings_dataSources_appleHealth_importAction =>
+      'Import from Apple Watch';
 
   @override
-  String get settings_dataSources_appleHealth_privacy => 'Your health data is stored locally and is never shared with third parties.';
+  String get settings_dataSources_appleHealth_privacy =>
+      'Your health data is stored locally and is never shared with third parties.';
 
   @override
-  String get settings_dataSources_appleHealth_poweredBy => 'מופעל על ידי Apple HealthKit';
+  String get settings_dataSources_appleHealth_poweredBy =>
+      'מופעל על ידי Apple HealthKit';
 
   @override
-  String get settings_dataSources_noSources => 'No data source integrations are available on this platform.';
+  String get settings_dataSources_noSources =>
+      'No data source integrations are available on this platform.';
 
   @override
   String get diveLog_edit_section_environment => 'סביבה';
@@ -26023,16 +27317,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_fetchWeatherNoConnection => 'No internet connection';
 
   @override
-  String get diveLog_edit_fetchWeatherUnavailable => 'Weather data unavailable for this date';
+  String get diveLog_edit_fetchWeatherUnavailable =>
+      'Weather data unavailable for this date';
 
   @override
-  String get diveLog_edit_fetchWeatherNotYetAvailable => 'Weather data not yet available for this date';
+  String get diveLog_edit_fetchWeatherNotYetAvailable =>
+      'Weather data not yet available for this date';
 
   @override
   String get diveLog_edit_fetchWeatherHint => 'Add a date and dive site first';
 
   @override
-  String get diveLog_edit_fetchWeatherConfirm => 'Replace existing weather data with fetched data?';
+  String get diveLog_edit_fetchWeatherConfirm =>
+      'Replace existing weather data with fetched data?';
 
   @override
   String get diveLog_detail_section_environment => 'סביבה';
@@ -26131,7 +27428,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get columnConfig_extraFields => 'שדות נוספים';
 
   @override
-  String get columnConfig_extraFields_description => 'מוצגים מתחת לתוכן הכרטיס הראשי';
+  String get columnConfig_extraFields_description =>
+      'מוצגים מתחת לתוכן הכרטיס הראשי';
 
   @override
   String get columnConfig_slotAssignments => 'הקצאות משבצות';
@@ -26167,7 +27465,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_columnConfig => 'שדות רשימת פרטי צלילות';
 
   @override
-  String get settings_appearance_columnConfig_subtitle => 'התאמה אישית של שדות המוצגים בתצוגות רשימת הצלילות';
+  String get settings_appearance_columnConfig_subtitle =>
+      'התאמה אישית של שדות המוצגים בתצוגות רשימת הצלילות';
 
   @override
   String get diveField_category_core => 'ליבה';
@@ -26227,31 +27526,38 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_accentNavIcons => 'סמלי ניווט צבעוניים';
 
   @override
-  String get settings_appearance_accentNavIcons_subtitle => 'צביעת סמלי התפריט הראשי בצבע של כל מדור';
+  String get settings_appearance_accentNavIcons_subtitle =>
+      'צביעת סמלי התפריט הראשי בצבע של כל מדור';
 
   @override
-  String get settings_appearance_accentSectionHeaders => 'כותרות מדורים צבעוניות';
+  String get settings_appearance_accentSectionHeaders =>
+      'כותרות מדורים צבעוניות';
 
   @override
-  String get settings_appearance_accentSectionHeaders_subtitle => 'הצגת סמל מדור צבעוני לצד כותרות הדפים';
+  String get settings_appearance_accentSectionHeaders_subtitle =>
+      'הצגת סמל מדור צבעוני לצד כותרות הדפים';
 
   @override
   String get settings_appearance_accentListIcons => 'סמלי רשימה צבעוניים';
 
   @override
-  String get settings_appearance_accentListIcons_subtitle => 'צביעת סמלים ברשימות ובדפי ההגדרות';
+  String get settings_appearance_accentListIcons_subtitle =>
+      'צביעת סמלים ברשימות ובדפי ההגדרות';
 
   @override
   String get settings_appearance_showDetailsPane => 'הצג חלונית פרטים';
 
   @override
-  String get settings_appearance_showDetailsPane_subtitle => 'הצג חלונית פרטים לצד הטבלה';
+  String get settings_appearance_showDetailsPane_subtitle =>
+      'הצג חלונית פרטים לצד הטבלה';
 
   @override
-  String get settings_appearance_showProfilePanel => 'הצג חלונית פרופיל בתצוגת טבלה';
+  String get settings_appearance_showProfilePanel =>
+      'הצג חלונית פרופיל בתצוגת טבלה';
 
   @override
-  String get settings_appearance_showProfilePanel_subtitle => 'הצג תרשים פרופיל צלילה מעל הטבלה כברירת מחדל';
+  String get settings_appearance_showProfilePanel_subtitle =>
+      'הצג תרשים פרופיל צלילה מעל הטבלה כברירת מחדל';
 
   @override
   String get settings_appearance_mapStyle => 'סגנון מפה';
@@ -26269,7 +27575,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_bathymetryRefresh => 'טען מחדש נתוני מפה';
 
   @override
-  String get settings_appearance_bathymetryRefresh_subtitle => 'בדיקת עדכונים לנתוני עומק swissBATHY3D';
+  String get settings_appearance_bathymetryRefresh_subtitle =>
+      'בדיקת עדכונים לנתוני עומק swissBATHY3D';
 
   @override
   String settings_appearance_bathymetryRefresh_resultUpdated(int count) {
@@ -26283,13 +27590,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_appearance_bathymetryRefresh_resultUpToDate => 'כל הנתונים מעודכנים';
+  String get settings_appearance_bathymetryRefresh_resultUpToDate =>
+      'כל הנתונים מעודכנים';
 
   @override
-  String get settings_appearance_bathymetryRefresh_resultFailed => 'לא ניתן היה לבדוק את כל הנתונים; הערכים הקיימים נשמרו';
+  String get settings_appearance_bathymetryRefresh_resultFailed =>
+      'לא ניתן היה לבדוק את כל הנתונים; הערכים הקיימים נשמרו';
 
   @override
-  String get settings_appearance_bathymetryRefresh_resultNothingCached => 'עדיין לא נשמרו נתוני עומק אגמים';
+  String get settings_appearance_bathymetryRefresh_resultNothingCached =>
+      'עדיין לא נשמרו נתוני עומק אגמים';
 
   @override
   String get maps3d_section_all => 'כל הספקים';
@@ -26301,13 +27611,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps3d_swissBathy_delete => 'מחיקת נתונים';
 
   @override
-  String get maps3d_swissBathy_delete_subtitle => 'מסיר אריחי עומק ורשתות אגמים של swissBATHY3D מהמטמון';
+  String get maps3d_swissBathy_delete_subtitle =>
+      'מסיר אריחי עומק ורשתות אגמים של swissBATHY3D מהמטמון';
 
   @override
-  String get maps3d_swissBathy_delete_confirmTitle => 'למחוק את נתוני swissBATHY3D?';
+  String get maps3d_swissBathy_delete_confirmTitle =>
+      'למחוק את נתוני swissBATHY3D?';
 
   @override
-  String get maps3d_swissBathy_delete_confirmMessage => 'נתוני העומק השמורים במטמון עבור אגמים בשווייץ יימחקו וייטענו מחדש בפעם הבאה שתיפתח תצוגת התלת-ממד של אתר צלילה.';
+  String get maps3d_swissBathy_delete_confirmMessage =>
+      'נתוני העומק השמורים במטמון עבור אגמים בשווייץ יימחקו וייטענו מחדש בפעם הבאה שתיפתח תצוגת התלת-ממד של אתר צלילה.';
 
   @override
   String get maps3d_swissBathy_delete_done => 'נתוני swissBATHY3D נמחקו';
@@ -26319,13 +27632,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps3d_other_reset => 'איפוס נתוני הבתימטריה הנותרים';
 
   @override
-  String get maps3d_other_reset_subtitle => 'מסיר נתונים שמורים במטמון מ-EMODnet, NOAA DEM, GMRT ו-ETOPO';
+  String get maps3d_other_reset_subtitle =>
+      'מסיר נתונים שמורים במטמון מ-EMODnet, NOAA DEM, GMRT ו-ETOPO';
 
   @override
-  String get maps3d_other_reset_confirmTitle => 'לאפס את נתוני הבתימטריה הנותרים?';
+  String get maps3d_other_reset_confirmTitle =>
+      'לאפס את נתוני הבתימטריה הנותרים?';
 
   @override
-  String get maps3d_other_reset_confirmMessage => 'נתונים שמורים במטמון מכל הספקים מלבד swissBATHY3D יימחקו וייטענו מחדש בפעם הבאה שתיפתח תצוגת התלת-ממד של אתר צלילה.';
+  String get maps3d_other_reset_confirmMessage =>
+      'נתונים שמורים במטמון מכל הספקים מלבד swissBATHY3D יימחקו וייטענו מחדש בפעם הבאה שתיפתח תצוגת התלת-ממד של אתר צלילה.';
 
   @override
   String get maps3d_other_reset_done => 'נתוני הבתימטריה הנותרים אופסו';
@@ -26334,10 +27650,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps3d_reload => 'טעינת נתוני המפות מחדש';
 
   @override
-  String get maps3d_reload_subtitle => 'מוחק את כל נתוני הבתימטריה השמורים במטמון ומוריד אותם מחדש עבור כל אתר צלילה';
+  String get maps3d_reload_subtitle =>
+      'מוחק את כל נתוני הבתימטריה השמורים במטמון ומוריד אותם מחדש עבור כל אתר צלילה';
 
   @override
-  String get maps3d_reload_confirmTitle => 'לטעון מחדש את נתוני המפות עבור כל אתרי הצלילה?';
+  String get maps3d_reload_confirmTitle =>
+      'לטעון מחדש את נתוני המפות עבור כל אתרי הצלילה?';
 
   @override
   String maps3d_reload_confirm_siteCount(int count) {
@@ -26360,7 +27678,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps3d_reload_confirm_duration => 'הפעולה עשויה להימשך כמה דקות.';
 
   @override
-  String get maps3d_reload_confirm_wifiHint => 'יורדו נתונים רבים, ולכן מומלץ חיבור Wi-Fi מהיר.';
+  String get maps3d_reload_confirm_wifiHint =>
+      'יורדו נתונים רבים, ולכן מומלץ חיבור Wi-Fi מהיר.';
 
   @override
   String get maps3d_reload_start => 'טעינה מחדש';
@@ -26380,10 +27699,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps3d_reload_cancelled => 'הטעינה מחדש בוטלה';
 
   @override
-  String get maps3d_reload_failed => 'הטעינה מחדש נכשלה; ייתכן שחלק מאתרי הצלילה לא נטענו מחדש';
+  String get maps3d_reload_failed =>
+      'הטעינה מחדש נכשלה; ייתכן שחלק מאתרי הצלילה לא נטענו מחדש';
 
   @override
-  String get maps3d_busy_notice => 'פעולה אחרת של פני שטח בתלת-ממד פועלת כעת. יש להמתין עד לסיומה.';
+  String get maps3d_busy_notice =>
+      'פעולה אחרת של פני שטח בתלת-ממד פועלת כעת. יש להמתין עד לסיומה.';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {
@@ -26459,7 +27780,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllPartial(int succeeded, int total, int failed) {
+  String diveComputer_detail_reparseAllPartial(
+    int succeeded,
+    int total,
+    int failed,
+  ) {
     return 'נותחו מחדש $succeeded מתוך $total צלילות. $failed נכשלו.';
   }
 
@@ -26469,7 +27794,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseRawDataCountWithout(int count, int without) {
+  String diveComputer_detail_reparseRawDataCountWithout(
+    int count,
+    int without,
+  ) {
     return '$count צלילות עם נתונים גולמיים ($without ללא)';
   }
 
@@ -26480,7 +27808,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_reparseSuccess => 'הצלילה נותחה מחדש בהצלחה';
 
   @override
-  String get diveLog_detail_reparseProfilePreserved => 'פרטי המקור רועננו. צלילה זו אוחדה מצלילות אחרות, ולכן הפרופיל שלה נותר ללא שינוי.';
+  String get diveLog_detail_reparseProfilePreserved =>
+      'פרטי המקור רועננו. צלילה זו אוחדה מצלילות אחרות, ולכן הפרופיל שלה נותר ללא שינוי.';
 
   @override
   String diveLog_detail_reparseFailed(String error) {
@@ -26488,31 +27817,39 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_detail_menu_resyncImportedFile => 'סנכרן מחדש מהקובץ המקורי';
+  String get diveLog_detail_menu_resyncImportedFile =>
+      'סנכרן מחדש מהקובץ המקורי';
 
   @override
   String get diveLog_detail_resyncSuccess => 'הצלילה עודכנה מהקובץ המקורי';
 
   @override
-  String get diveLog_detail_resyncFailed_diveMissing => 'לא ניתן היה לסנכרן מחדש: הצלילה הזו כבר לא קיימת';
+  String get diveLog_detail_resyncFailed_diveMissing =>
+      'לא ניתן היה לסנכרן מחדש: הצלילה הזו כבר לא קיימת';
 
   @override
-  String get diveLog_detail_resyncFailed_noStoredFile => 'לא ניתן היה לסנכרן מחדש: לא נשמר קובץ מקורי לצלילה הזו';
+  String get diveLog_detail_resyncFailed_noStoredFile =>
+      'לא ניתן היה לסנכרן מחדש: לא נשמר קובץ מקורי לצלילה הזו';
 
   @override
-  String get diveLog_detail_resyncFailed_unsupportedFormat => 'לא ניתן היה לסנכרן מחדש: תבנית הקובץ הזו אינה נתמכת';
+  String get diveLog_detail_resyncFailed_unsupportedFormat =>
+      'לא ניתן היה לסנכרן מחדש: תבנית הקובץ הזו אינה נתמכת';
 
   @override
-  String get diveLog_detail_resyncFailed_storedFileMissing => 'לא ניתן היה לסנכרן מחדש: הקובץ המקורי אינו נמצא במכשיר הזה';
+  String get diveLog_detail_resyncFailed_storedFileMissing =>
+      'לא ניתן היה לסנכרן מחדש: הקובץ המקורי אינו נמצא במכשיר הזה';
 
   @override
-  String get diveLog_detail_resyncFailed_noMatchingDive => 'לא ניתן היה לסנכרן מחדש: הקובץ המקורי כבר לא מכיל צלילה תואמת';
+  String get diveLog_detail_resyncFailed_noMatchingDive =>
+      'לא ניתן היה לסנכרן מחדש: הקובץ המקורי כבר לא מכיל צלילה תואמת';
 
   @override
-  String get diveLog_detail_resyncFailed_ambiguousDiver => 'לא ניתן היה לסנכרן מחדש: בקובץ המקורי יש צלילה תואמת ליותר מצולל אחד, ובצלילה הזו לא נשמר מאיזו מהן היא הגיעה';
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'לא ניתן היה לסנכרן מחדש: בקובץ המקורי יש צלילה תואמת ליותר מצולל אחד, ובצלילה הזו לא נשמר מאיזו מהן היא הגיעה';
 
   @override
-  String get diveLog_detail_resyncFailed_unexpectedError => 'לא ניתן היה לסנכרן מחדש: אירעה שגיאה בלתי צפויה בעת קריאת הקובץ המקורי';
+  String get diveLog_detail_resyncFailed_unexpectedError =>
+      'לא ניתן היה לסנכרן מחדש: אירעה שגיאה בלתי צפויה בעת קריאת הקובץ המקורי';
 
   @override
   String get universalImport_label_replaceSource => 'החלף מקור';
@@ -26527,19 +27864,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_label_options => 'אפשרויות';
 
   @override
-  String get universalImport_label_retainDiveNumbers => 'שמור על מספרי הצלילה מהמקור';
+  String get universalImport_label_retainDiveNumbers =>
+      'שמור על מספרי הצלילה מהמקור';
 
   @override
-  String get universalImport_label_retainDiveNumbersSubtitle => 'השתמש במספרי הצלילה מהקובץ המיובא במקום להקצות אוטומטית';
+  String get universalImport_label_retainDiveNumbersSubtitle =>
+      'השתמש במספרי הצלילה מהקובץ המיובא במקום להקצות אוטומטית';
 
   @override
-  String get universalImport_label_retainDiveNumbersUnavailable => 'מקור זה אינו מספק מספרי צלילה, ולכן הצלילות ממוספרות אוטומטית';
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'מקור זה אינו מספק מספרי צלילה, ולכן הצלילות ממוספרות אוטומטית';
 
   @override
-  String get universalImport_label_autoTagThisImport => 'תיוג אוטומטי של ייבוא זה';
+  String get universalImport_label_autoTagThisImport =>
+      'תיוג אוטומטי של ייבוא זה';
 
   @override
-  String get universalImport_label_autoTagThisImportSubtitle => 'מתחיל מההעדפה השמורה שלך בהגדרות התגיות. שינוי כאן משפיע רק על ייבוא זה.';
+  String get universalImport_label_autoTagThisImportSubtitle =>
+      'מתחיל מההעדפה השמורה שלך בהגדרות התגיות. שינוי כאן משפיע רק על ייבוא זה.';
 
   @override
   String get universalImport_title_successImported => 'יובאו בהצלחה';
@@ -26572,7 +27914,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_label_shareWithAllProfiles => 'שיתוף עם כל פרופילי הצלילה';
 
   @override
-  String get settings_shareByDefault_title => 'שתף אתרים וטיולים חדשים כברירת מחדל';
+  String get settings_shareByDefault_title =>
+      'שתף אתרים וטיולים חדשים כברירת מחדל';
 
   @override
   String get settings_shareAllSites_title => 'שתף את כל האתרים שלי';
@@ -26607,7 +27950,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_sharedData_sectionTitle => 'נתונים משותפים';
 
   @override
-  String get settings_sharedData_sectionSubtitle => 'שיתוף אתרים, טיולים וציוד בין פרופילים';
+  String get settings_sharedData_sectionSubtitle =>
+      'שיתוף אתרים, טיולים וציוד בין פרופילים';
 
   @override
   String get common_action_unshare => 'ביטול שיתוף';
@@ -26662,10 +28006,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_duplicateDivers_title => 'פרופילי צוללים כפולים';
+  String get settings_cloudSync_duplicateDivers_title =>
+      'פרופילי צוללים כפולים';
 
   @override
-  String get settings_cloudSync_duplicateDivers_description => 'המזכור מצא יותר מפרופיל אחד עם אותו שם. זה קורה בדרך כלל כשכל מכשיר יצר פרופיל משלו לפני הסנכרון. המיזוג מעביר את כל הצלילות והנתונים לפרופיל אחד.';
+  String get settings_cloudSync_duplicateDivers_description =>
+      'המזכור מצא יותר מפרופיל אחד עם אותו שם. זה קורה בדרך כלל כשכל מכשיר יצר פרופיל משלו לפני הסנכרון. המיזוג מעביר את כל הצלילות והנתונים לפרופיל אחד.';
 
   @override
   String settings_cloudSync_duplicateDivers_groupLabel(String name, int count) {
@@ -26676,10 +28022,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_duplicateDivers_mergeButton => 'מזג';
 
   @override
-  String get settings_cloudSync_duplicateDivers_confirmTitle => 'למזג פרופילי צוללים?';
+  String get settings_cloudSync_duplicateDivers_confirmTitle =>
+      'למזג פרופילי צוללים?';
 
   @override
-  String settings_cloudSync_duplicateDivers_confirmBody(int count, String name) {
+  String settings_cloudSync_duplicateDivers_confirmBody(
+    int count,
+    String name,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -26712,7 +28062,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divers_edit_priorExperienceSection => 'ניסיון קודם';
 
   @override
-  String get divers_edit_priorExperienceHelp => 'צלילות וזמן מהתקופה שלפני שהתחלת לתעד ב-Submersion.';
+  String get divers_edit_priorExperienceHelp =>
+      'צלילות וזמן מהתקופה שלפני שהתחלת לתעד ב-Submersion.';
 
   @override
   String get divers_edit_priorDivesLabel => 'צלילות קודמות';
@@ -26755,10 +28106,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get db_location_sd_card => 'כרטיס SD';
 
   @override
-  String get db_location_external_note => 'הקבצים כאן נמחקים אם מסירים את האפליקציה.';
+  String get db_location_external_note =>
+      'הקבצים כאן נמחקים אם מסירים את האפליקציה.';
 
   @override
-  String get db_location_backup_note => 'Android אינו יכול להריץ את מסד הנתונים מתיקייה המסונכרנת בענן. כדי לשמור עותק ב-Dropbox, ב-Nextcloud או ב-Google Drive, הגדירו את מיקום הגיבוי תחת גיבוי ושחזור.';
+  String get db_location_backup_note =>
+      'Android אינו יכול להריץ את מסד הנתונים מתיקייה המסונכרנת בענן. כדי לשמור עותק ב-Dropbox, ב-Nextcloud או ב-Google Drive, הגדירו את מיקום הגיבוי תחת גיבוי ושחזור.';
 
   @override
   String diveLog_bulkEdit_membership_onAll(int count) {
@@ -26779,16 +28132,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_bulkEdit_membership_removing => 'מסיר מהכול';
 
   @override
-  String get diveLog_bulkEdit_membership_empty => 'אין עדיין פריטים בצלילות שנבחרו';
+  String get diveLog_bulkEdit_membership_empty =>
+      'אין עדיין פריטים בצלילות שנבחרו';
 
   @override
   String get settings_mediaStorage_entry_title => 'אחסון מדיה';
 
   @override
-  String get settings_mediaStorage_entry_subtitle => 'שמור מקורות של תמונות ווידאו באחסון הענן שלך';
+  String get settings_mediaStorage_entry_subtitle =>
+      'שמור מקורות של תמונות ווידאו באחסון הענן שלך';
 
   @override
-  String get settings_mediaStorage_status_notConfigured => 'לא מחובר אחסון מדיה במכשיר זה';
+  String get settings_mediaStorage_status_notConfigured =>
+      'לא מחובר אחסון מדיה במכשיר זה';
 
   @override
   String settings_mediaStorage_status_connected(String hint) {
@@ -26802,19 +28158,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_mediaStorage_saved => 'אחסון המדיה חובר';
 
   @override
-  String get settings_mediaStorage_error_notReady => 'עדיין לא ניתן היה לקרוא את אחסון הענן. המתינו רגע ונסו שוב.';
+  String get settings_mediaStorage_error_notReady =>
+      'עדיין לא ניתן היה לקרוא את אחסון הענן. המתינו רגע ונסו שוב.';
 
   @override
   String get settings_mediaStorage_action_disconnect => 'התנתק';
 
   @override
-  String get settings_mediaStorage_disconnect_confirm_title => 'לנתק את אחסון המדיה?';
+  String get settings_mediaStorage_disconnect_confirm_title =>
+      'לנתק את אחסון המדיה?';
 
   @override
-  String get settings_mediaStorage_disconnect_confirm_body => 'מכשיר זה יפסיק להעלות ולהוריד מדיה. שום דבר לא יימחק מהדלי שלך.';
+  String get settings_mediaStorage_disconnect_confirm_body =>
+      'מכשיר זה יפסיק להעלות ולהוריד מדיה. שום דבר לא יימחק מהדלי שלך.';
 
   @override
-  String get settings_mediaStorage_action_copyFromSync => 'העתק הגדרות מהסנכרון';
+  String get settings_mediaStorage_action_copyFromSync =>
+      'העתק הגדרות מהסנכרון';
 
   @override
   String get settings_mediaStorage_transfers_title => 'העברות';
@@ -26847,16 +28207,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'נכשל';
 
   @override
-  String get settings_mediaStorage_transfers_suspended_title => 'ההעברות מושהות';
+  String get settings_mediaStorage_transfers_suspended_title =>
+      'ההעברות מושהות';
 
   @override
-  String get settings_mediaStorage_transfers_suspended_subtitle => 'המכשיר הזה ואחסון הענן כבר לא מסכימים על המאגר שבשימוש. חיבור מחדש של אחסון המדיה מאמץ את המאגר שנמצא כעת בענן.';
+  String get settings_mediaStorage_transfers_suspended_subtitle =>
+      'המכשיר הזה ואחסון הענן כבר לא מסכימים על המאגר שבשימוש. חיבור מחדש של אחסון המדיה מאמץ את המאגר שנמצא כעת בענן.';
 
   @override
-  String get settings_mediaStorage_transfers_suspended_detached => 'המכשיר הזה כבר לא מחובר לאחסון המדיה הזה. אפשר לחבר אותו מחדש בהגדרות אחסון המדיה.';
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      'המכשיר הזה כבר לא מחובר לאחסון המדיה הזה. אפשר לחבר אותו מחדש בהגדרות אחסון המדיה.';
 
   @override
-  String get settings_mediaStorage_transfers_suspended_unreachable => 'לא ניתן היה לבדוק את אחסון המדיה. ההעברות ינוסו שוב באופן אוטומטי.';
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      'לא ניתן היה לבדוק את אחסון המדיה. ההעברות ינוסו שוב באופן אוטומטי.';
 
   @override
   String settings_mediaStorage_transfers_queued(int count) {
@@ -26869,7 +28233,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_mediaStorage_transfers_waitingConnection => 'ממתין לחיבור';
+  String get settings_mediaStorage_transfers_waitingConnection =>
+      'ממתין לחיבור';
 
   @override
   String get settings_mediaStorage_report_action => 'ייצוא דוח מדיה';
@@ -26878,7 +28243,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_mediaStorage_report_done => 'דוח המדיה יוצא';
 
   @override
-  String get settings_mediaStorage_report_note => 'הדוח מפרט נתיבי קבצים ושמות מכשירים. שום דבר לא נשלח.';
+  String get settings_mediaStorage_report_note =>
+      'הדוח מפרט נתיבי קבצים ושמות מכשירים. שום דבר לא נשלח.';
 
   @override
   String get settings_mediaStorage_report_running => 'בונה את דוח המדיה...';
@@ -26890,7 +28256,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_mediaStorage_verify_running => 'מאמת את ספריית המדיה...';
 
   @override
-  String settings_mediaStorage_verify_summary(int checked, int originals, int thumbs, int renditions, int removed, int repaired, int aborted) {
+  String settings_mediaStorage_verify_summary(
+    int checked,
+    int originals,
+    int thumbs,
+    int renditions,
+    int removed,
+    int repaired,
+    int aborted,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       originals,
       locale: localeName,
@@ -26924,19 +28298,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_mediaStorage_policy_autoUpload => 'העלה תמונות אוטומטית';
 
   @override
-  String get settings_mediaStorage_policy_photosOnCellular => 'העלה תמונות ברשת סלולרית';
+  String get settings_mediaStorage_policy_photosOnCellular =>
+      'העלה תמונות ברשת סלולרית';
 
   @override
   String get settings_mediaStorage_provider_label => 'ספק';
 
   @override
-  String get settings_mediaStorage_connect_dropbox_hint => 'משתמש בחיבור Dropbox מסנכרון הענן. המדיה נשמרת בתיקיית האפליקציה ב-Dropbox.';
+  String get settings_mediaStorage_connect_dropbox_hint =>
+      'משתמש בחיבור Dropbox מסנכרון הענן. המדיה נשמרת בתיקיית האפליקציה ב-Dropbox.';
 
   @override
-  String get settings_mediaStorage_connect_gdrive_hint => 'מתחבר עם Google. המדיה נשמרת בשטח ה-Drive הפרטי של האפליקציה.';
+  String get settings_mediaStorage_connect_gdrive_hint =>
+      'מתחבר עם Google. המדיה נשמרת בשטח ה-Drive הפרטי של האפליקציה.';
 
   @override
-  String get settings_mediaStorage_connect_icloud_hint => 'המדיה נשמרת במיכל ה-iCloud של האפליקציה ומסתנכרנת דרך ה-Apple ID שלך.';
+  String get settings_mediaStorage_connect_icloud_hint =>
+      'המדיה נשמרת במיכל ה-iCloud של האפליקציה ומסתנכרנת דרך ה-Apple ID שלך.';
 
   @override
   String settings_mediaStorage_connect_action(String provider) {
@@ -26999,7 +28377,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_edit_buoyancyHint_generic => 'שלילי אם הוא שוקע';
 
   @override
-  String get equipment_edit_buoyancyHint_tank => 'השאר ריק - מכלים משתמשים במפרט משלהם';
+  String get equipment_edit_buoyancyHint_tank =>
+      'השאר ריק - מכלים משתמשים במפרט משלהם';
 
   @override
   String equipment_edit_buoyancyLabel(String unit) {
@@ -27017,7 +28396,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get equipment_edit_liftCapacityHint => 'כוח הציפה הנקוב של האגף או המצוף';
+  String get equipment_edit_liftCapacityHint =>
+      'כוח הציפה הנקוב של האגף או המצוף';
 
   @override
   String get planner_gearWeights_accept => 'השתמש כמשקל מתוכנן';
@@ -27084,7 +28464,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tools_weight_heightOptional => 'גובה (אופציונלי)';
 
   @override
-  String get tools_weight_noGear => 'הוסף את הציוד שאיתו תצלול כדי להתאים אישית את החיזוי.';
+  String get tools_weight_noGear =>
+      'הוסף את הציוד שאיתו תצלול כדי להתאים אישית את החיזוי.';
 
   @override
   String get tools_weight_personalTerm => 'בסיס אישי';
@@ -27296,7 +28677,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dive3d_seascape_appearance_wallAngle => 'זווית קיר תלול';
 
   @override
-  String get dive3d_seascape_appearance_wallAngleNote => 'תאי מדידת עומק ממצעים את השיפוע שבתוכם, ולכן קירות אמיתיים נראים מתונים יותר. יש להישאר הרבה מתחת ל-45 מעלות.';
+  String get dive3d_seascape_appearance_wallAngleNote =>
+      'תאי מדידת עומק ממצעים את השיפוע שבתוכם, ולכן קירות אמיתיים נראים מתונים יותר. יש להישאר הרבה מתחת ל-45 מעלות.';
 
   @override
   String get dive3d_seascape_siteTitle => 'נוף ימי של האתר';
@@ -27310,7 +28692,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dive3d_seascape_noCoordinates => 'לאתר זה אין נקודות ציון GPS';
 
   @override
-  String get dive3d_seascape_detailLimitReached => 'This is the most detail available for this location';
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
 
   @override
   String dive3d_seascape_lodStageLabel(String stage, String span) {
@@ -27470,7 +28853,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dive3d_tissue_legendLimit => 'מישור אדום = גבול דקו';
 
   @override
-  String get dive3d_tissue_legendAxes => 'שמאל→ימין: זמן · קדימה→אחורה: רקמות מהירות→איטיות';
+  String get dive3d_tissue_legendAxes =>
+      'שמאל→ימין: זמן · קדימה→אחורה: רקמות מהירות→איטיות';
 
   @override
   String get dive3d_tissue_legendDepth => 'עקומה כחולה: העומק שלך';
@@ -27532,7 +28916,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dive3d_compare_layout_overlay => 'חופף';
 
   @override
-  String get dive3d_compare_empty => 'נדרשים לפחות 2 פרופילים עם נתוני עומק להשוואה';
+  String get dive3d_compare_empty =>
+      'נדרשים לפחות 2 פרופילים עם נתוני עומק להשוואה';
 
   @override
   String dive3d_compare_showing(Object shown, Object total) {
@@ -27594,13 +28979,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_photosMedia_photoSources_title => 'ספריית תמונות ומקורות';
 
   @override
-  String get settings_photosMedia_photoSources_subtitle => 'גלריה, קבצים ואפשרויות ייבוא';
+  String get settings_photosMedia_photoSources_subtitle =>
+      'גלריה, קבצים ואפשרויות ייבוא';
 
   @override
   String get settings_photosMedia_networkSources_title => 'מקורות רשת';
 
   @override
-  String get settings_photosMedia_networkSources_subtitle => 'כתובות URL והזנות מניפסט (מתקדם)';
+  String get settings_photosMedia_networkSources_subtitle =>
+      'כתובות URL והזנות מניפסט (מתקדם)';
 
   @override
   String get settings_connectedAccounts_title => 'חשבונות מחוברים';
@@ -27618,7 +29005,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_connectedAccounts_status_needsSignIn => 'נדרשת כניסה';
 
   @override
-  String get settings_connectedAccounts_status_unavailable => 'לא זמין במכשיר זה';
+  String get settings_connectedAccounts_status_unavailable =>
+      'לא זמין במכשיר זה';
 
   @override
   String get settings_connectedAccounts_disconnectDevice => 'התנתק במכשיר זה';
@@ -27627,34 +29015,40 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_connectedAccounts_removeFromLibrary => 'הסר מהספרייה';
 
   @override
-  String get settings_connectedAccounts_removeConfirmTitle => 'להסיר את החשבון?';
+  String get settings_connectedAccounts_removeConfirmTitle =>
+      'להסיר את החשבון?';
 
   @override
-  String get settings_connectedAccounts_removeConfirmBody => 'החשבון מוסר מכל המכשירים המסונכרנים. אישורים השמורים במכשירים אחרים אינם נמחקים.';
+  String get settings_connectedAccounts_removeConfirmBody =>
+      'החשבון מוסר מכל המכשירים המסונכרנים. אישורים השמורים במכשירים אחרים אינם נמחקים.';
 
   @override
   String get settings_setupGuide_title => 'הגדרת תמונות ומדיה';
 
   @override
-  String get settings_setupGuide_intro => 'חבר את מקורות התמונות ואת מקום שמירת העותקים. אפשר להריץ זאת שוב בכל עת.';
+  String get settings_setupGuide_intro =>
+      'חבר את מקורות התמונות ואת מקום שמירת העותקים. אפשר להריץ זאת שוב בכל עת.';
 
   @override
   String get settings_setupGuide_stepSources => 'מקורות תמונות';
 
   @override
-  String get settings_setupGuide_stepSources_desc => 'צרף תמונות מספריית התמונות, מקבצים או מ-Lightroom.';
+  String get settings_setupGuide_stepSources_desc =>
+      'צרף תמונות מספריית התמונות, מקבצים או מ-Lightroom.';
 
   @override
   String get settings_setupGuide_stepStorage => 'אחסון מדיה';
 
   @override
-  String get settings_setupGuide_stepStorage_desc => 'שמור עותקים של התמונות בענן שלך כדי שכל מכשיר יוכל להציגן.';
+  String get settings_setupGuide_stepStorage_desc =>
+      'שמור עותקים של התמונות בענן שלך כדי שכל מכשיר יוכל להציגן.';
 
   @override
   String get settings_setupGuide_stepSync => 'סנכרון ענן';
 
   @override
-  String get settings_setupGuide_stepSync_desc => 'סנכרן נתוני צלילה בין מכשירים.';
+  String get settings_setupGuide_stepSync_desc =>
+      'סנכרן נתוני צלילה בין מכשירים.';
 
   @override
   String get settings_setupGuide_statusDone => 'מוגדר';
@@ -27672,13 +29066,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_unavailablePlaceholder_volumeOffline => 'הכונן אינו מחובר';
 
   @override
-  String get media_unavailablePlaceholder_stillFetching => 'עדיין נטען. הקש כדי לנסות שוב.';
+  String get media_unavailablePlaceholder_stillFetching =>
+      'עדיין נטען. הקש כדי לנסות שוב.';
 
   @override
-  String get media_unavailablePlaceholder_accessDenied => 'אין גישה לספריית התמונות';
+  String get media_unavailablePlaceholder_accessDenied =>
+      'אין גישה לספריית התמונות';
 
   @override
-  String get media_unavailablePlaceholder_limitedAccess => 'לא בין התמונות המורשות';
+  String get media_unavailablePlaceholder_limitedAccess =>
+      'לא בין התמונות המורשות';
 
   @override
   String get media_limitedAccess_allowFullAccess => 'אפשר גישה מלאה';
@@ -28311,19 +29708,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_edit_invalidThickness => 'השתמשו ב-5, 5/4 או 7/5/3';
 
   @override
-  String get equipment_edit_invalidWebLink => 'הזן כתובת אינטרנט, למשל shop.example.com';
+  String get equipment_edit_invalidWebLink =>
+      'הזן כתובת אינטרנט, למשל shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title => 'צלילות לפי עובי חליפה';
+  String get insights_progression_divesBySuitThickness_title =>
+      'צלילות לפי עובי חליפה';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle => 'העובי העיקרי של חליפת הצלילה על פני הצלילות';
+  String get insights_progression_divesBySuitThickness_subtitle =>
+      'העובי העיקרי של חליפת הצלילה על פני הצלילות';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty => 'אין צלילות המקושרות לחליפת צלילה או לחליפה יבשה';
+  String get insights_progression_divesBySuitThickness_empty =>
+      'אין צלילות המקושרות לחליפת צלילה או לחליפה יבשה';
 
   @override
-  String get insights_progression_divesBySuitThickness_error => 'לא ניתן לטעון נתוני עובי חליפה';
+  String get insights_progression_divesBySuitThickness_error =>
+      'לא ניתן לטעון נתוני עובי חליפה';
 
   @override
   String get insights_progression_divesBySuitThickness_unknown => 'לא ידוע';
@@ -28356,7 +29758,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'מחמיר (18/24/48 ש\')';
 
   @override
-  String get safetySettings_noFlyPreset_subtitle => 'מרווחים מנחים אחרי צלילה בודדת ללא דקו, צלילות חוזרות וצלילות דקומפרסיה';
+  String get safetySettings_noFlyPreset_subtitle =>
+      'מרווחים מנחים אחרי צלילה בודדת ללא דקו, צלילות חוזרות וצלילות דקומפרסיה';
 
   @override
   String get flightWindow_closed => 'אין יותר צלילות לפני הטיסה';
@@ -28411,13 +29814,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get safetyHub_noFly_disclaimer => 'הנחיות DAN/UHMS מאז הצלילה האחרונה. אינו תחליף לזמן איסור הטיסה של מחשב הצלילה שלך.';
+  String get safetyHub_noFly_disclaimer =>
+      'הנחיות DAN/UHMS מאז הצלילה האחרונה. אינו תחליף לזמן איסור הטיסה של מחשב הצלילה שלך.';
 
   @override
   String get diveLog_detail_altitudeMismatch_title => 'אתר הצלילה נמצא בגובה';
 
   @override
-  String get diveLog_detail_altitudeMismatch_subtitle => 'לאתר זה רשום גובה אך לצלילה אין, ולכן ניתוח הדקומפרסיה הניח גובה פני הים. הגדר את גובה הצלילה כדי לתקן.';
+  String get diveLog_detail_altitudeMismatch_subtitle =>
+      'לאתר זה רשום גובה אך לצלילה אין, ולכן ניתוח הדקומפרסיה הניח גובה פני הים. הגדר את גובה הצלילה כדי לתקן.';
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
@@ -28438,13 +29843,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get emergencyCard_callDan_subtitle => 'קו חירום לצוללים. התקשר אליו קודם: הם מתאמים פינוי והפניה לתא לחץ.';
+  String get emergencyCard_callDan_subtitle =>
+      'קו חירום לצוללים. התקשר אליו קודם: הם מתאמים פינוי והפניה לתא לחץ.';
 
   @override
-  String get emergencyCard_callInsurer_subtitle => 'קו החירום של ביטוח הצלילה שלך. התקשר אליו קודם: המבטח מאשר את הפינוי ומתאם את ההפניה לתא לחץ.';
+  String get emergencyCard_callInsurer_subtitle =>
+      'קו החירום של ביטוח הצלילה שלך. התקשר אליו קודם: המבטח מאשר את הפינוי ומתאם את ההפניה לתא לחץ.';
 
   @override
-  String get emergencyCard_hotlineSecondary_subtitle => 'קו חירום אזורי לצוללים. התקשר אליו אם קו המבטח אינו עונה.';
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'קו חירום אזורי לצוללים. התקשר אליו אם קו המבטח אינו עונה.';
 
   @override
   String get emergencyCard_insuranceEmergencyLine => 'קו חירום 24 שעות';
@@ -28453,7 +29861,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get emergencyCard_insuranceOfficeLine => 'קו המשרד';
 
   @override
-  String get emergencyCard_insuranceNoPhone => 'לא נשמר מספר חירום של המבטח. הוסף אותו בהגדרות פרופיל הצולל כדי שהכרטיס יתחיל בו.';
+  String get emergencyCard_insuranceNoPhone =>
+      'לא נשמר מספר חירום של המבטח. הוסף אותו בהגדרות פרופיל הצולל כדי שהכרטיס יתחיל בו.';
 
   @override
   String emergencyCard_ems(String number) {
@@ -28493,7 +29902,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get emergencyCard_chambersSection => 'תאי לחץ';
 
   @override
-  String get emergencyCard_chambersNote => 'הזמינות משתנה. תמיד התקשר קודם לקו החירום לצוללים להפניה.';
+  String get emergencyCard_chambersNote =>
+      'הזמינות משתנה. תמיד התקשר קודם לקו החירום לצוללים להפניה.';
 
   @override
   String emergencyCard_chamberVerified(String date) {
@@ -28509,13 +29919,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get emergencyCard_chambersNoneNearby => 'אין תא לחץ בטווח. התקשר לקו החירום לצוללנים: הם יפנו אותך למתקן הקרוב ביותר שיכול לטפל בך.';
+  String get emergencyCard_chambersNoneNearby =>
+      'אין תא לחץ בטווח. התקשר לקו החירום לצוללנים: הם יפנו אותך למתקן הקרוב ביותר שיכול לטפל בך.';
 
   @override
-  String get emergencyCard_chamberCapability_divingEmergency => 'מטפל בתאונות צלילה';
+  String get emergencyCard_chamberCapability_divingEmergency =>
+      'מטפל בתאונות צלילה';
 
   @override
-  String get emergencyCard_chamberCapability_hyperbaricUnit => 'יחידה היפרברית בבית חולים';
+  String get emergencyCard_chamberCapability_hyperbaricUnit =>
+      'יחידה היפרברית בבית חולים';
 
   @override
   String get emergencyCard_chamberCapability_elective => 'טיפול אלקטיבי בלבד';
@@ -28576,10 +29989,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get emergencyCard_regionUnknown => 'אזור לא ידוע - נעשה שימוש בקו העולמי';
+  String get emergencyCard_regionUnknown =>
+      'אזור לא ידוע - נעשה שימוש בקו העולמי';
 
   @override
-  String get emergencyCard_noDiverData => 'אין נתוני פרופיל צולל. הוסף אנשי קשר לחירום, נתונים רפואיים וביטוח בפרופיל הצולל.';
+  String get emergencyCard_noDiverData =>
+      'אין נתוני פרופיל צולל. הוסף אנשי קשר לחירום, נתונים רפואיים וביטוח בפרופיל הצולל.';
 
   @override
   String get addChamber_title => 'הוסף תא לחץ';
@@ -28615,7 +30030,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetyHub_emergencyCardLink => 'כרטיס חירום';
 
   @override
-  String get safetyHub_emergencyCardLink_subtitle => 'לא מקוון: קו חם, חירום, תאי לחץ, הנתונים הרפואיים והביטוחיים שלך';
+  String get safetyHub_emergencyCardLink_subtitle =>
+      'לא מקוון: קו חם, חירום, תאי לחץ, הנתונים הרפואיים והביטוחיים שלך';
 
   @override
   String get dashboard_quickAction_emergency => 'כרטיס חירום';
@@ -28624,7 +30040,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get incidents_title => 'יומן כמעט-תאונות';
 
   @override
-  String get incidents_empty => 'לא נרשמו כמעט-תאונות. תיעוד של מה שכמעט השתבש - ללא שיפוטיות - חושף דפוסים לפני שהם הופכים לתאונות.';
+  String get incidents_empty =>
+      'לא נרשמו כמעט-תאונות. תיעוד של מה שכמעט השתבש - ללא שיפוטיות - חושף דפוסים לפני שהם הופכים לתאונות.';
 
   @override
   String get incidents_add => 'רישום כמעט-תאונה';
@@ -28666,7 +30083,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get incidentEdit_narrative => 'מה קרה';
 
   @override
-  String get incidentEdit_narrative_hint => 'רק העובדות, במילים שלך. זה נשאר פרטי.';
+  String get incidentEdit_narrative_hint =>
+      'רק העובדות, במילים שלך. זה נשאר פרטי.';
 
   @override
   String get incidentEdit_narrative_required => 'תאר מה קרה';
@@ -28681,7 +30099,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get incidentEdit_save => 'שמור';
 
   @override
-  String get incidentEdit_privacyNote => 'דוחות כמעט-תאונה מסתנכרנים בין המכשירים שלך ונכללים בגיבויים, אך לעולם לא בייצוא או בדפי יומן משותפים.';
+  String get incidentEdit_privacyNote =>
+      'דוחות כמעט-תאונה מסתנכרנים בין המכשירים שלך ונכללים בגיבויים, אך לעולם לא בייצוא או בדפי יומן משותפים.';
 
   @override
   String get incidentEdit_equipment => 'ציוד מעורב';
@@ -28726,7 +30145,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetyHub_incidentsLink => 'יומן כמעט-תאונות';
 
   @override
-  String get safetyHub_incidentsLink_subtitle => 'הערות אירועים פרטיות ולא ענישתיות';
+  String get safetyHub_incidentsLink_subtitle =>
+      'הערות אירועים פרטיות ולא ענישתיות';
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'רישום כמעט-תאונה';
@@ -28738,7 +30158,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_planned_bannerTitle => 'צלילה מתוכננת';
 
   @override
-  String get diveLog_planned_bannerBody => 'ממתין לנתוני מחשב הצלילה. סמנו כנרשמה אם צללתם בלי מחשב.';
+  String get diveLog_planned_bannerBody =>
+      'ממתין לנתוני מחשב הצלילה. סמנו כנרשמה אם צללתם בלי מחשב.';
 
   @override
   String get diveLog_detail_menu_markLogged => 'סימון כנרשמה';
@@ -28747,13 +30168,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'סומנה כנרשמה';
 
   @override
-  String get diveLog_planned_markLoggedFailed => 'לא ניתן היה לסמן את הצלילה כרשומה.';
+  String get diveLog_planned_markLoggedFailed =>
+      'לא ניתן היה לסמן את הצלילה כרשומה.';
 
   @override
-  String get diveLog_mirror_dialogTitle => 'לרשום את הצלילה הזו גם בפרופיל אחר?';
+  String get diveLog_mirror_dialogTitle =>
+      'לרשום את הצלילה הזו גם בפרופיל אחר?';
 
   @override
-  String get diveLog_mirror_dialogBody => 'לחברי צוללים אלה יש פרופילים במכשיר זה. הצלילה מתווספת ליומן שלהם כצלילה מתוכננת עד שנתוני מחשב הצלילה שלהם ימלאו אותה.';
+  String get diveLog_mirror_dialogBody =>
+      'לחברי צוללים אלה יש פרופילים במכשיר זה. הצלילה מתווספת ליומן שלהם כצלילה מתוכננת עד שנתוני מחשב הצלילה שלהם ימלאו אותה.';
 
   @override
   String get diveLog_mirror_log => 'רישום';
@@ -28770,7 +30194,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_mirror_undone => 'צלילות משוכפלות הוסרו';
 
   @override
-  String get diveLog_mirror_undoFailed => 'לא ניתן היה להסיר את הצלילות המשוכפלות.';
+  String get diveLog_mirror_undoFailed =>
+      'לא ניתן היה להסיר את הצלילות המשוכפלות.';
 
   @override
   String diveLog_mirror_failed(String names) {
@@ -28798,7 +30223,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get planning_card_noFly_subtitle => 'ספירה לאחור מנחה מהצלילות האחרונות שלך';
+  String get planning_card_noFly_subtitle =>
+      'ספירה לאחור מנחה מהצלילות האחרונות שלך';
 
   @override
   String get settings_section_safety_title => 'בטיחות';
@@ -28810,7 +30236,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_section_equipmentCondition_title => 'מצב הציוד';
 
   @override
-  String get settings_section_equipmentCondition_subtitle => 'ספי חשיפה לשעוני תחזוקה';
+  String get settings_section_equipmentCondition_subtitle =>
+      'ספי חשיפה לשעוני תחזוקה';
 
   @override
   String get equipmentConditionSettings_title => 'מצב הציוד';
@@ -28944,7 +30371,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipmentCondition_trend_title_scrubber => 'שימוש בסופג לכל צלילה';
 
   @override
-  String get equipmentCondition_trend_title_temperature => 'טמפרטורה מזערית לכל צלילה';
+  String get equipmentCondition_trend_title_temperature =>
+      'טמפרטורה מזערית לכל צלילה';
 
   @override
   String equipmentCondition_trend_cell(int slot) {
@@ -29043,47 +30471,88 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String equipmentCondition_finding_cellOutputDeclining(int slot, String percent, int n, String since) {
+  String equipmentCondition_finding_cellOutputDeclining(
+    int slot,
+    String percent,
+    int n,
+    String since,
+  ) {
     return 'פלט תא $slot ירד ב-$percent אחוזים לאורך $n צלילות מאז $since';
   }
 
   @override
-  String equipmentCondition_finding_cellOutputLow(int slot, String gain, int n) {
+  String equipmentCondition_finding_cellOutputLow(
+    int slot,
+    String gain,
+    int n,
+  ) {
     return 'פלט תא $slot הוא $gain mV לבר ב-$n הצלילות האחרונות';
   }
 
   @override
-  String equipmentCondition_finding_cellDivergent(int slot, String bar, int count, int n) {
+  String equipmentCondition_finding_cellDivergent(
+    int slot,
+    String bar,
+    int count,
+    int n,
+  ) {
     return 'תא $slot חרג מהאחרים בעד $bar בר ב-$count מתוך $n הצלילות האחרונות';
   }
 
   @override
-  String equipmentCondition_finding_cellCurrentLimited(int slot, int count, int n, String percent) {
+  String equipmentCondition_finding_cellCurrentLimited(
+    int slot,
+    int count,
+    int n,
+    String percent,
+  ) {
     return 'תא $slot קרא נמוך ב-ppO2 גבוה ב-$count מתוך $n הצלילות האחרונות, עד $percent אחוזים מהדגימות';
   }
 
   @override
-  String equipmentCondition_finding_transmitterDropoutRising(String recent, String prior, int priorCount) {
+  String equipmentCondition_finding_transmitterDropoutRising(
+    String recent,
+    String prior,
+    int priorCount,
+  ) {
     return 'קריאת הלחץ נפלה ב-$recent אחוזים מ-5 הצלילות האחרונות, לעומת $prior אחוזים ב-$priorCount שלפניהן';
   }
 
   @override
-  String equipmentCondition_finding_transmitterDropoutHigh(String recent, int n, int count) {
+  String equipmentCondition_finding_transmitterDropoutHigh(
+    String recent,
+    int n,
+    int count,
+  ) {
     return 'קריאת הלחץ נפלה בממוצע ב-$recent אחוזים מ-$n הצלילות האחרונות, $count מהן מעל 10 אחוזים';
   }
 
   @override
-  String equipmentCondition_finding_issueRecurring(String tag, int count, int n) {
+  String equipmentCondition_finding_issueRecurring(
+    String tag,
+    int count,
+    int n,
+  ) {
     return '$tag דווח $count פעמים ב-$n הצלילות האחרונות';
   }
 
   @override
-  String equipmentCondition_finding_issueColdCorrelated(int insideIssue, int totalIssue, String threshold, int n) {
+  String equipmentCondition_finding_issueColdCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
     return '$insideIssue מתוך $totalIssue צלילות עם תקלה היו קרות מ-$threshold, מתוך $n צלילות עם פריט זה';
   }
 
   @override
-  String equipmentCondition_finding_issueDeepCorrelated(int insideIssue, int totalIssue, String threshold, int n) {
+  String equipmentCondition_finding_issueDeepCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
     return '$insideIssue מתוך $totalIssue צלילות עם תקלה היו עמוקות מ-$threshold, מתוך $n צלילות עם פריט זה';
   }
 
@@ -29113,7 +30582,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipmentConditionSettings_thresholdsHeader => 'ספי חשיפה';
 
   @override
-  String get equipmentConditionSettings_thresholdsHelp => 'צלילה נחשבת קרה, עמוקה או בחמצן גבוה לשעוני התחזוקה כאשר היא חוצה ספים אלה.';
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'צלילה נחשבת קרה, עמוקה או בחמצן גבוה לשעוני התחזוקה כאשר היא חוצה ספים אלה.';
 
   @override
   String get equipmentConditionSettings_coldLabel => 'מים קרים מתחת ל';
@@ -29122,7 +30592,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipmentConditionSettings_deepLabel => 'צלילה עמוקה החל מ';
 
   @override
-  String get equipmentConditionSettings_o2Label => 'תערובת בחמצן גבוה מעל (% O2)';
+  String get equipmentConditionSettings_o2Label =>
+      'תערובת בחמצן גבוה מעל (% O2)';
 
   @override
   String get equipmentConditionSettings_saveFailed => 'השמירה נכשלה. נסו שוב.';
@@ -29131,13 +30602,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipmentConditionSettings_sensorHeader => 'סיכומי חיישנים';
 
   @override
-  String get equipmentConditionSettings_sensorHelp => 'פרופיל כל צלילה מסוכם פעם אחת עבור פלט התאים, נפילות המשדר ושימוש בסופג. צלילות חדשות ונערכות מסוכמות מעצמן.';
+  String get equipmentConditionSettings_sensorHelp =>
+      'פרופיל כל צלילה מסוכם פעם אחת עבור פלט התאים, נפילות המשדר ושימוש בסופג. צלילות חדשות ונערכות מסוכמות מעצמן.';
 
   @override
-  String get equipmentConditionSettings_rebuild => 'בנייה מחדש של סיכומי חיישנים';
+  String get equipmentConditionSettings_rebuild =>
+      'בנייה מחדש של סיכומי חיישנים';
 
   @override
-  String get equipmentConditionSettings_rebuild_subtitle => 'חישוב מחדש של סיכום כל צלילה מהפרופיל שלה';
+  String get equipmentConditionSettings_rebuild_subtitle =>
+      'חישוב מחדש של סיכום כל צלילה מהפרופיל שלה';
 
   @override
   String equipmentConditionSettings_rebuild_progress(int done, int total) {
@@ -29145,10 +30619,14 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get equipmentConditionSettings_rebuild_done => 'סיכומי החיישנים נבנו מחדש';
+  String get equipmentConditionSettings_rebuild_done =>
+      'סיכומי החיישנים נבנו מחדש';
 
   @override
-  String equipmentConditionSettings_rebuild_doneWithBothErrors(int dives, int items) {
+  String equipmentConditionSettings_rebuild_doneWithBothErrors(
+    int dives,
+    int items,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       dives,
       locale: localeName,
@@ -29187,46 +30665,56 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get equipmentConditionSettings_rebuild_failed => 'לא ניתן היה לבנות מחדש את סיכומי החיישנים.';
+  String get equipmentConditionSettings_rebuild_failed =>
+      'לא ניתן היה לבנות מחדש את סיכומי החיישנים.';
 
   @override
   String get equipmentConditionSettings_masterToggle => 'ממצאי מצב';
 
   @override
-  String get equipmentConditionSettings_masterToggle_subtitle => 'מדווח על מגמות בפלט התאים, בנפילות המשדר ובתקלות שדווחו, עם המספרים שמאחוריהן';
+  String get equipmentConditionSettings_masterToggle_subtitle =>
+      'מדווח על מגמות בפלט התאים, בנפילות המשדר ובתקלות שדווחו, עם המספרים שמאחוריהן';
 
   @override
   String get equipmentConditionSettings_rulesHeader => 'כללים';
 
   @override
-  String get equipmentConditionSettings_rule_cellOutputDeclining => 'פלט התא יורד';
+  String get equipmentConditionSettings_rule_cellOutputDeclining =>
+      'פלט התא יורד';
 
   @override
   String get equipmentConditionSettings_rule_cellOutputLow => 'פלט התא נמוך';
 
   @override
-  String get equipmentConditionSettings_rule_cellDivergent => 'התא חורג מהאחרים';
+  String get equipmentConditionSettings_rule_cellDivergent =>
+      'התא חורג מהאחרים';
 
   @override
-  String get equipmentConditionSettings_rule_cellCurrentLimited => 'התא מוגבל זרם ב-ppO2 גבוה';
+  String get equipmentConditionSettings_rule_cellCurrentLimited =>
+      'התא מוגבל זרם ב-ppO2 גבוה';
 
   @override
-  String get equipmentConditionSettings_rule_transmitterDropoutRising => 'נפילות המשדר במגמת עלייה';
+  String get equipmentConditionSettings_rule_transmitterDropoutRising =>
+      'נפילות המשדר במגמת עלייה';
 
   @override
-  String get equipmentConditionSettings_rule_transmitterDropoutHigh => 'נפילות המשדר רבות';
+  String get equipmentConditionSettings_rule_transmitterDropoutHigh =>
+      'נפילות המשדר רבות';
 
   @override
   String get equipmentConditionSettings_rule_issueRecurring => 'תקלה חוזרת';
 
   @override
-  String get equipmentConditionSettings_rule_issueColdCorrelated => 'תקלות בצלילות קרות';
+  String get equipmentConditionSettings_rule_issueColdCorrelated =>
+      'תקלות בצלילות קרות';
 
   @override
-  String get equipmentConditionSettings_rule_issueDeepCorrelated => 'תקלות בצלילות עמוקות';
+  String get equipmentConditionSettings_rule_issueDeepCorrelated =>
+      'תקלות בצלילות עמוקות';
 
   @override
-  String get equipmentConditionSettings_rule_incidentLinked => 'אירועים מקושרים';
+  String get equipmentConditionSettings_rule_incidentLinked =>
+      'אירועים מקושרים';
 
   @override
   String get equipmentObservation_tag_freeFlow => 'זרימה חופשית';
@@ -29387,7 +30875,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipmentObservation_sheet_cancel => 'ביטול';
 
   @override
-  String get equipmentObservation_sheet_tagRequired => 'בחרו לפחות תגית אחת לבעיה';
+  String get equipmentObservation_sheet_tagRequired =>
+      'בחרו לפחות תגית אחת לבעיה';
 
   @override
   String get equipmentObservation_chip_ok => 'נבדק, תקין';
@@ -29419,19 +30908,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_section_security_title => 'אבטחת האפליקציה';
 
   @override
-  String get settings_section_security_subtitle => 'נעילת אפליקציה והצפנת מסד הנתונים';
+  String get settings_section_security_subtitle =>
+      'נעילת אפליקציה והצפנת מסד הנתונים';
 
   @override
   String get settings_section_trimixMixer_title => 'מערבל טרימיקס';
 
   @override
-  String get settings_section_trimixMixer_subtitle => 'גזי מילוי, תנאים וברירות מחדל לחיוב';
+  String get settings_section_trimixMixer_subtitle =>
+      'גזי מילוי, תנאים וברירות מחדל לחיוב';
 
   @override
   String get settings_security_appLock => 'נעילת אפליקציה';
 
   @override
-  String get settings_security_appLock_subtitle => 'דרישת סיסמה או ביומטריה לפתיחת האפליקציה';
+  String get settings_security_appLock_subtitle =>
+      'דרישת סיסמה או ביומטריה לפתיחת האפליקציה';
 
   @override
   String get settings_security_biometrics => 'ביטול נעילה באמצעות ביומטריה';
@@ -29460,19 +30952,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_security_encryption => 'הצפנת מסד הנתונים';
 
   @override
-  String get settings_security_encryption_subtitle => 'הגנו על קובץ יומן הצלילות שלכם באמצעות הצפנה במנוחה. הצפנה עשויה להשפיע על הביצועים.';
+  String get settings_security_encryption_subtitle =>
+      'הגנו על קובץ יומן הצלילות שלכם באמצעות הצפנה במנוחה. הצפנה עשויה להשפיע על הביצועים.';
 
   @override
-  String get settings_security_encryption_progress_backup => 'יוצר גיבוי בטיחות...';
+  String get settings_security_encryption_progress_backup =>
+      'יוצר גיבוי בטיחות...';
 
   @override
-  String get settings_security_encryption_progress_encrypt => 'מצפין את מסד הנתונים...';
+  String get settings_security_encryption_progress_encrypt =>
+      'מצפין את מסד הנתונים...';
 
   @override
-  String get settings_security_encryption_progress_decrypt => 'מפענח את מסד הנתונים...';
+  String get settings_security_encryption_progress_decrypt =>
+      'מפענח את מסד הנתונים...';
 
   @override
-  String get settings_security_encryption_progress_reopen => 'פותח מחדש את מסד הנתונים...';
+  String get settings_security_encryption_progress_reopen =>
+      'פותח מחדש את מסד הנתונים...';
 
   @override
   String get settings_security_changePassword => 'שינוי סיסמה';
@@ -29496,7 +30993,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_security_newPassword => 'סיסמה חדשה';
 
   @override
-  String get settings_security_passwordTooShort => 'הסיסמה חייבת להכיל לפחות 4 תווים.';
+  String get settings_security_passwordTooShort =>
+      'הסיסמה חייבת להכיל לפחות 4 תווים.';
 
   @override
   String get settings_security_passwordMismatch => 'הסיסמאות אינן תואמות.';
@@ -29508,34 +31006,43 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_security_recoveryCode_title => 'קוד השחזור שלכם';
 
   @override
-  String get settings_security_recoveryCode_explain => 'רשמו אותו ושמרו אותו במקום בטוח. זו הדרך היחידה לפתוח את האפליקציה אם תשכחו את הסיסמה, והוא מחליף כל קוד שחזור קודם.';
+  String get settings_security_recoveryCode_explain =>
+      'רשמו אותו ושמרו אותו במקום בטוח. זו הדרך היחידה לפתוח את האפליקציה אם תשכחו את הסיסמה, והוא מחליף כל קוד שחזור קודם.';
 
   @override
-  String get settings_security_recoveryCode_savedConfirm => 'שמרתי את קוד השחזור שלי';
+  String get settings_security_recoveryCode_savedConfirm =>
+      'שמרתי את קוד השחזור שלי';
 
   @override
-  String get settings_security_disableBlockedByEncryption_title => 'ההצפנה פעילה';
+  String get settings_security_disableBlockedByEncryption_title =>
+      'ההצפנה פעילה';
 
   @override
-  String get settings_security_disableBlockedByEncryption_body => 'כבו תחילה את הצפנת מסד הנתונים לפני כיבוי נעילת האפליקציה. מסד הנתונים המוצפן דורש אמצעי אימות.';
+  String get settings_security_disableBlockedByEncryption_body =>
+      'כבו תחילה את הצפנת מסד הנתונים לפני כיבוי נעילת האפליקציה. מסד הנתונים המוצפן דורש אמצעי אימות.';
 
   @override
-  String get settings_security_enableEncryption_title => 'להצפין את מסד הנתונים?';
+  String get settings_security_enableEncryption_title =>
+      'להצפין את מסד הנתונים?';
 
   @override
-  String get settings_security_enableEncryption_body => 'תחילה נוצר גיבוי בטיחות ואז קובץ מסד הנתונים מוצפן מחדש במקומו. זה עשוי להימשך זמן מה ביומנים גדולים. הצפנה עשויה להשפיע על הביצועים.';
+  String get settings_security_enableEncryption_body =>
+      'תחילה נוצר גיבוי בטיחות ואז קובץ מסד הנתונים מוצפן מחדש במקומו. זה עשוי להימשך זמן מה ביומנים גדולים. הצפנה עשויה להשפיע על הביצועים.';
 
   @override
   String get settings_security_disableEncryption_title => 'לכבות את ההצפנה?';
 
   @override
-  String get settings_security_disableEncryption_body => 'קובץ מסד הנתונים יישמר שוב ללא הצפנה בדיסק.';
+  String get settings_security_disableEncryption_body =>
+      'קובץ מסד הנתונים יישמר שוב ללא הצפנה בדיסק.';
 
   @override
-  String get settings_security_turnOffAppLock_title => 'לכבות את נעילת האפליקציה?';
+  String get settings_security_turnOffAppLock_title =>
+      'לכבות את נעילת האפליקציה?';
 
   @override
-  String get settings_security_turnOffAppLock_body => 'האפליקציה תיפתח מבלי לבקש את הסיסמה.';
+  String get settings_security_turnOffAppLock_body =>
+      'האפליקציה תיפתח מבלי לבקש את הסיסמה.';
 
   @override
   String get settings_security_unlock_title => 'הזינו את הסיסמה';
@@ -29616,7 +31123,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataQuality_empty_title => 'הכול תקין';
 
   @override
-  String get dataQuality_empty_subtitle => 'אין ממצאים לגבי איכות הנתונים. סרוק את הספרייה כדי לבדוק אם יש בעיות בצלילות המיובאות.';
+  String get dataQuality_empty_subtitle =>
+      'אין ממצאים לגבי איכות הנתונים. סרוק את הספרייה כדי לבדוק אם יש בעיות בצלילות המיובאות.';
 
   @override
   String get dataQuality_banner_newChecks => 'זמינות בדיקות איכות חדשות';
@@ -29643,7 +31151,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataQuality_repair_noChange => 'אין כאן מה לתקן';
 
   @override
-  String get dataQuality_repair_needsReview => 'אין תיקון אוטומטי. פתח את הצלילה כדי לתקן זאת.';
+  String get dataQuality_repair_needsReview =>
+      'אין תיקון אוטומטי. פתח את הצלילה כדי לתקן זאת.';
 
   @override
   String get dataQuality_repair_failed => 'התיקון נכשל';
@@ -29769,7 +31278,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get dataQuality_msg_tempUnitBug => 'הערכים נראים כמו תקלה ביחידת הטמפרטורה';
+  String get dataQuality_msg_tempUnitBug =>
+      'הערכים נראים כמו תקלה ביחידת הטמפרטורה';
 
   @override
   String dataQuality_msg_tempJump(String delta) {
@@ -29830,7 +31340,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get dataQuality_msg_salinityHint => 'היחס הקבוע מרמז על הבדל בהגדרת מים מלוחים/מתוקים';
+  String get dataQuality_msg_salinityHint =>
+      'היחס הקבוע מרמז על הבדל בהגדרת מים מלוחים/מתוקים';
 
   @override
   String get dataQuality_msg_sourceDuration => 'המקורות חלוקים לגבי משך הצלילה';
@@ -29856,7 +31367,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataQuality_deleteDuplicate_title => 'למחוק את העותק המיותר?';
 
   @override
-  String get dataQuality_deleteDuplicate_body => 'שניהם הוקלטו על ידי אותו מחשב צלילה. העותק עם פחות נתוני צלילה יימחק. ניתן לבטל זאת לאחר מכן.';
+  String get dataQuality_deleteDuplicate_body =>
+      'שניהם הוקלטו על ידי אותו מחשב צלילה. העותק עם פחות נתוני צלילה יימחק. ניתן לבטל זאת לאחר מכן.';
 
   @override
   String dataQuality_deleteDuplicate_keep(String dive) {
@@ -29975,7 +31487,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataQuality_repairLabel_despike => 'הסרת הקפיצה';
 
   @override
-  String get dataQuality_repairLabel_clampNegative => 'הגבלת עומקים מעל פני המים';
+  String get dataQuality_repairLabel_clampNegative =>
+      'הגבלת עומקים מעל פני המים';
 
   @override
   String get dataQuality_repairLabel_smoothRates => 'החלקת קצבים בלתי אפשריים';
@@ -30063,19 +31576,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_mediaStorage_quality_small => 'קטנה';
 
   @override
-  String get settings_mediaStorage_quality_caveat => 'כאשר נקבעת רמת דחיסה, קבצי המקור ברזולוציה מלאה אינם מועלים; הם נשארים במכשיר זה בלבד.';
+  String get settings_mediaStorage_quality_caveat =>
+      'כאשר נקבעת רמת דחיסה, קבצי המקור ברזולוציה מלאה אינם מועלים; הם נשארים במכשיר זה בלבד.';
 
   @override
   String get settings_mediaStorage_quality_reuploadQueued => 'העלאה מחדש בתור';
 
   @override
-  String get settings_mediaStorage_quality_linuxFfmpegHint => 'התקן ffmpeg כדי לאפשר דחיסת וידאו. עד אז מועלים קבצי המקור.';
+  String get settings_mediaStorage_quality_linuxFfmpegHint =>
+      'התקן ffmpeg כדי לאפשר דחיסת וידאו. עד אז מועלים קבצי המקור.';
 
   @override
-  String get settings_mediaStorage_quality_saveFailed => 'לא ניתן היה לשמור את איכות ההעלאה. נסה שוב.';
+  String get settings_mediaStorage_quality_saveFailed =>
+      'לא ניתן היה לשמור את איכות ההעלאה. נסה שוב.';
 
   @override
-  String get settings_mediaStorage_quality_noTranscoderHint => 'מכשיר זה אינו יכול לדחוס וידאו. ממנו מועלים הקבצים המקוריים.';
+  String get settings_mediaStorage_quality_noTranscoderHint =>
+      'מכשיר זה אינו יכול לדחוס וידאו. ממנו מועלים הקבצים המקוריים.';
 
   @override
   String get reef_section_title => 'מערכת אקולוגית';
@@ -30084,7 +31601,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'מקורות נתונים';
 
   @override
-  String get reef_section_loadError => 'לא ניתן לטעון נתוני מערכת אקולוגית כרגע';
+  String get reef_section_loadError =>
+      'לא ניתן לטעון נתוני מערכת אקולוגית כרגע';
 
   @override
   String get reef_habitat_title => 'בית גידול השונית';
@@ -30113,7 +31631,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get water_conditions_noData => 'אין נתוני לוויין על המים למיקום זה';
 
   @override
-  String get water_conditions_freshwater => 'טמפרטורת מים לוויינית מכסה אוקיינוסים בלבד';
+  String get water_conditions_freshwater =>
+      'טמפרטורת מים לוויינית מכסה אוקיינוסים בלבד';
 
   @override
   String water_conditions_anomaly(String value) {
@@ -30203,10 +31722,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get reef_attribution_noaa => 'טמפרטורת פני הים ועקת חום. נחלת הכלל.';
 
   @override
-  String get reef_attribution_gbif => 'רשומות תצפית מינים, מסוננות ל-CC0 ו-CC BY 4.0.';
+  String get reef_attribution_gbif =>
+      'רשומות תצפית מינים, מסוננות ל-CC0 ו-CC BY 4.0.';
 
   @override
-  String get reef_attribution_protectedSeas => 'גבולות אזורים ימיים מוגנים. CC BY 4.0.';
+  String get reef_attribution_protectedSeas =>
+      'גבולות אזורים ימיים מוגנים. CC BY 4.0.';
 
   @override
   String get enum_visibilityBand_excellent => 'מצוינת';
@@ -30244,22 +31765,26 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_coordinateFormat_title => 'פורמט קואורדינטות';
 
   @override
-  String get settings_coordinateFormat_subtitle => 'כיצד מוצגים ומוזנים מיקומי GPS';
+  String get settings_coordinateFormat_subtitle =>
+      'כיצד מוצגים ומוזנים מיקומי GPS';
 
   @override
   String get settings_placeNameLanguage_title => 'שפת שמות המקומות';
 
   @override
-  String get settings_placeNameLanguage_subtitle => 'בשימוש כאשר מדינה, אזור, עיר וגוף מים נשלפים מהקואורדינטות. אתרים קיימים אינם משתנים.';
+  String get settings_placeNameLanguage_subtitle =>
+      'בשימוש כאשר מדינה, אזור, עיר וגוף מים נשלפים מהקואורדינטות. אתרים קיימים אינם משתנים.';
 
   @override
   String get settings_coordinateFormat_decimalDegrees => 'מעלות עשרוניות';
 
   @override
-  String get settings_coordinateFormat_degreesDecimalMinutes => 'מעלות ודקות עשרוניות';
+  String get settings_coordinateFormat_degreesDecimalMinutes =>
+      'מעלות ודקות עשרוניות';
 
   @override
-  String get settings_coordinateFormat_degreesMinutesSeconds => 'מעלות, דקות, שניות';
+  String get settings_coordinateFormat_degreesMinutesSeconds =>
+      'מעלות, דקות, שניות';
 
   @override
   String get settings_coordinateFormat_utm => 'UTM';
@@ -30271,10 +31796,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_visibilityScale_title => 'סולם ראות';
 
   @override
-  String get settings_visibilityScale_subtitle => 'כיצד פרטי הצלילה והסטטיסטיקה מתארים את הראות שמדדת';
+  String get settings_visibilityScale_subtitle =>
+      'כיצד פרטי הצלילה והסטטיסטיקה מתארים את הראות שמדדת';
 
   @override
-  String get settings_visibilityScale_intro => 'בחר אילו מרחקים שנמדדו ייחשבו מצוינת, טובה, בינונית או ירודה בפרטי הצלילה ובסטטיסטיקה. שינוי ההגדרה משנה רק את התוויות של הצלילות; הוא לעולם לא משנה את המרחקים שתיעדת.';
+  String get settings_visibilityScale_intro =>
+      'בחר אילו מרחקים שנמדדו ייחשבו מצוינת, טובה, בינונית או ירודה בפרטי הצלילה ובסטטיסטיקה. שינוי ההגדרה משנה רק את התוויות של הצלילות; הוא לעולם לא משנה את המרחקים שתיעדת.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'טרופי';
@@ -30298,7 +31825,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_visibilityScale_customModerate => 'בינונית מ-';
 
   @override
-  String get settings_visibilityScale_invalidOrder => 'כל ערך חייב להיות קטן מזה שמעליו וגדול מאפס';
+  String get settings_visibilityScale_invalidOrder =>
+      'כל ערך חייב להיות קטן מזה שמעליו וגדול מאפס';
 
   @override
   String settings_visibilityScale_bandRange(String band, String range) {
@@ -30309,7 +31837,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_visibilityScale_customUnset => 'הגדר מרחקים משלך';
 
   @override
-  String get settings_visibilityScale_customHelp => 'הזן לכל דרגה את המרחק הקצר ביותר שעדיין נחשב לה.';
+  String get settings_visibilityScale_customHelp =>
+      'הזן לכל דרגה את המרחק הקצר ביותר שעדיין נחשב לה.';
 
   @override
   String insights_conditions_visibility_legacySuffix(String band) {
@@ -31442,4111 +32971,4799 @@ class AppLocalizationsHe extends AppLocalizations {
   String get species_whale_shark_name => 'כריש לווייתן';
 
   @override
-  String get species_whale_shark_desc => 'הדג הגדול ביותר באוקיינוס, מסנן מזון עדין בעל דוגמת נקודות ייחודית.';
+  String get species_whale_shark_desc =>
+      'הדג הגדול ביותר באוקיינוס, מסנן מזון עדין בעל דוגמת נקודות ייחודית.';
 
   @override
   String get species_great_white_shark_name => 'כריש לבן';
 
   @override
-  String get species_great_white_shark_desc => 'טורף-על אייקוני שנצפה מדי פעם על ידי צוללני כלוב במים ממוזגים.';
+  String get species_great_white_shark_desc =>
+      'טורף-על אייקוני שנצפה מדי פעם על ידי צוללני כלוב במים ממוזגים.';
 
   @override
   String get species_great_hammerhead_shark_name => 'כריש פטיש גדול';
 
   @override
-  String get species_great_hammerhead_shark_desc => 'מין כריש הפטיש הגדול ביותר, בעל ראש רחב ושטוח וסנפיר גב גבוה.';
+  String get species_great_hammerhead_shark_desc =>
+      'מין כריש הפטיש הגדול ביותר, בעל ראש רחב ושטוח וסנפיר גב גבוה.';
 
   @override
   String get species_scalloped_hammerhead_shark_name => 'כריש פטיש משונן';
 
   @override
-  String get species_scalloped_hammerhead_shark_desc => 'נצפה לעיתים קרובות בלהקות גדולות סביב הרי ים ותחנות ניקוי.';
+  String get species_scalloped_hammerhead_shark_desc =>
+      'נצפה לעיתים קרובות בלהקות גדולות סביב הרי ים ותחנות ניקוי.';
 
   @override
   String get species_smooth_hammerhead_shark_name => 'כריש פטיש חלק';
 
   @override
-  String get species_smooth_hammerhead_shark_desc => 'כריש פטיש בעל שולי ראש חלקים ומעוגלים, מצוי בימים ממוזגים.';
+  String get species_smooth_hammerhead_shark_desc =>
+      'כריש פטיש בעל שולי ראש חלקים ומעוגלים, מצוי בימים ממוזגים.';
 
   @override
   String get species_whitetip_reef_shark_name => 'כריש שונית לבן-קצה';
 
   @override
-  String get species_whitetip_reef_shark_desc => 'דייר שונית נוח שנמצא לרוב נח במערות ומתחת למדפי סלע במהלך היום.';
+  String get species_whitetip_reef_shark_desc =>
+      'דייר שונית נוח שנמצא לרוב נח במערות ומתחת למדפי סלע במהלך היום.';
 
   @override
   String get species_blacktip_reef_shark_name => 'כריש שונית שחור-קצה';
 
   @override
-  String get species_blacktip_reef_shark_desc => 'כריש שונית נפוץ במים רדודים, בעל קצות סנפירים שחורים אופייניים.';
+  String get species_blacktip_reef_shark_desc =>
+      'כריש שונית נפוץ במים רדודים, בעל קצות סנפירים שחורים אופייניים.';
 
   @override
   String get species_grey_reef_shark_name => 'כריש שונית אפור';
 
   @override
-  String get species_grey_reef_shark_desc => 'טורף שונית פעיל שנפגשים בו לרוב בקבוצות לאורך מדרונות תלולים ותעלות.';
+  String get species_grey_reef_shark_desc =>
+      'טורף שונית פעיל שנפגשים בו לרוב בקבוצות לאורך מדרונות תלולים ותעלות.';
 
   @override
   String get species_caribbean_reef_shark_name => 'כריש שונית קריבי';
 
   @override
-  String get species_caribbean_reef_shark_desc => 'כריש השונית הנפוץ ביותר בקריביים, חסון וסקרן.';
+  String get species_caribbean_reef_shark_desc =>
+      'כריש השונית הנפוץ ביותר בקריביים, חסון וסקרן.';
 
   @override
   String get species_nurse_shark_name => 'כריש אומנת';
 
   @override
-  String get species_nurse_shark_desc => 'דייר קרקעית איטי שנמצא לרוב נח מתחת למדפי אלמוגים.';
+  String get species_nurse_shark_desc =>
+      'דייר קרקעית איטי שנמצא לרוב נח מתחת למדפי אלמוגים.';
 
   @override
   String get species_tawny_nurse_shark_name => 'כריש אומנת שחום';
 
   @override
-  String get species_tawny_nurse_shark_desc => 'דייר קרקעית הודו-פסיפי הנח במערות שונית ובאזורי חול.';
+  String get species_tawny_nurse_shark_desc =>
+      'דייר קרקעית הודו-פסיפי הנח במערות שונית ובאזורי חול.';
 
   @override
   String get species_bull_shark_name => 'כריש שור';
 
   @override
-  String get species_bull_shark_desc => 'כריש חסון ורב-עוצמה המצוי בסביבות חוף ובמים מתוקים בכל העולם.';
+  String get species_bull_shark_desc =>
+      'כריש חסון ורב-עוצמה המצוי בסביבות חוף ובמים מתוקים בכל העולם.';
 
   @override
   String get species_tiger_shark_name => 'כריש טיגריס';
 
   @override
-  String get species_tiger_shark_desc => 'טורף גדול בעל דוגמת פסים אופיינית, נפגש בצלילות שונית עמוקות.';
+  String get species_tiger_shark_desc =>
+      'טורף גדול בעל דוגמת פסים אופיינית, נפגש בצלילות שונית עמוקות.';
 
   @override
   String get species_oceanic_whitetip_shark_name => 'כריש לבן-קצה אוקייני';
 
   @override
-  String get species_oceanic_whitetip_shark_desc => 'כריש פלגי בעל סנפירים מעוגלים לבני-קצה, נצפה בצלילות באוקיינוס הפתוח.';
+  String get species_oceanic_whitetip_shark_desc =>
+      'כריש פלגי בעל סנפירים מעוגלים לבני-קצה, נצפה בצלילות באוקיינוס הפתוח.';
 
   @override
   String get species_thresher_shark_name => 'כריש שועל';
 
   @override
-  String get species_thresher_shark_desc => 'ניכר בסנפיר הזנב הארוך במיוחד שלו, ולעיתים נצפה בתחנות ניקוי.';
+  String get species_thresher_shark_desc =>
+      'ניכר בסנפיר הזנב הארוך במיוחד שלו, ולעיתים נצפה בתחנות ניקוי.';
 
   @override
   String get species_pelagic_thresher_shark_name => 'כריש שועל פלגי';
 
   @override
-  String get species_pelagic_thresher_shark_desc => 'המין הקטן ביותר בקרב כרישי השועל, מפורסם בתצפיות במונאד שול שבפיליפינים.';
+  String get species_pelagic_thresher_shark_desc =>
+      'המין הקטן ביותר בקרב כרישי השועל, מפורסם בתצפיות במונאד שול שבפיליפינים.';
 
   @override
   String get species_shortfin_mako_shark_name => 'כריש מאקו קצר-סנפיר';
 
   @override
-  String get species_shortfin_mako_shark_desc => 'הכריש המהיר ביותר באוקיינוס, טורף מים פתוחים חלקלק בגוון כחול מתכתי.';
+  String get species_shortfin_mako_shark_desc =>
+      'הכריש המהיר ביותר באוקיינוס, טורף מים פתוחים חלקלק בגוון כחול מתכתי.';
 
   @override
   String get species_blue_shark_name => 'כריש כחול';
 
   @override
-  String get species_blue_shark_desc => 'כריש פלגי תמיר בגוון כחול עמוק, נפגש לעיתים קרובות בצלילות מים כחולים.';
+  String get species_blue_shark_desc =>
+      'כריש פלגי תמיר בגוון כחול עמוק, נפגש לעיתים קרובות בצלילות מים כחולים.';
 
   @override
   String get species_spotted_wobbegong_name => 'וובגונג מנוקד';
 
   @override
-  String get species_spotted_wobbegong_desc => 'כריש שטיח שטוח ומוסווה השוכב ללא תנועה על שוניות סלע באוסטרליה.';
+  String get species_spotted_wobbegong_desc =>
+      'כריש שטיח שטוח ומוסווה השוכב ללא תנועה על שוניות סלע באוסטרליה.';
 
   @override
   String get species_tasselled_wobbegong_name => 'וובגונג מצויץ';
 
   @override
-  String get species_tasselled_wobbegong_desc => 'כריש שטיח מקושט בעל אונות משוננות סביב הראש, מצוי בשוניות אלמוגים.';
+  String get species_tasselled_wobbegong_desc =>
+      'כריש שטיח מקושט בעל אונות משוננות סביב הראש, מצוי בשוניות אלמוגים.';
 
   @override
   String get species_epaulette_shark_name => 'כריש כתפייה';
 
   @override
-  String get species_epaulette_shark_desc => 'כריש קטן הצועד על קרקעית השונית בעזרת סנפירי החזה שלו.';
+  String get species_epaulette_shark_desc =>
+      'כריש קטן הצועד על קרקעית השונית בעזרת סנפירי החזה שלו.';
 
   @override
   String get species_horn_shark_name => 'כריש קרן';
 
   @override
-  String get species_horn_shark_desc => 'דייר קרקעית לילי בעל רכסים מעל העיניים, מצוי מול חופי קליפורניה.';
+  String get species_horn_shark_desc =>
+      'דייר קרקעית לילי בעל רכסים מעל העיניים, מצוי מול חופי קליפורניה.';
 
   @override
   String get species_leopard_shark_name => 'כריש נמר';
 
   @override
-  String get species_leopard_shark_desc => 'כריש בעל דוגמה יפהפייה המצוי במפרצים רדודים לאורך חופי האוקיינוס השקט של ארצות הברית.';
+  String get species_leopard_shark_desc =>
+      'כריש בעל דוגמה יפהפייה המצוי במפרצים רדודים לאורך חופי האוקיינוס השקט של ארצות הברית.';
 
   @override
   String get species_pacific_angel_shark_name => 'כריש מלאך פסיפי';
 
   @override
-  String get species_pacific_angel_shark_desc => 'טורף מארב שטוח-גוף השוכב טמון בחול על קרקעית הים.';
+  String get species_pacific_angel_shark_desc =>
+      'טורף מארב שטוח-גוף השוכב טמון בחול על קרקעית הים.';
 
   @override
   String get species_sand_tiger_shark_name => 'כריש חול';
 
   @override
-  String get species_sand_tiger_shark_desc => 'כריש בעל מראה מאיים אך אופי נוח, נצפה לעיתים קרובות מרחף במערות ובספינות טרופות.';
+  String get species_sand_tiger_shark_desc =>
+      'כריש בעל מראה מאיים אך אופי נוח, נצפה לעיתים קרובות מרחף במערות ובספינות טרופות.';
 
   @override
   String get species_zebra_shark_name => 'כריש זברה';
 
   @override
-  String get species_zebra_shark_desc => 'כריש שונית מנוקד הנח על קרקעיות חול, נפוץ בהודו-פסיפי.';
+  String get species_zebra_shark_desc =>
+      'כריש שונית מנוקד הנח על קרקעיות חול, נפוץ בהודו-פסיפי.';
 
   @override
   String get species_blacktip_shark_name => 'כריש שחור-קצה';
 
   @override
-  String get species_blacktip_shark_desc => 'כריש חופי מהיר הידוע בקפיצות המסתובבות שלו, מצוי במים חמים בכל העולם.';
+  String get species_blacktip_shark_desc =>
+      'כריש חופי מהיר הידוע בקפיצות המסתובבות שלו, מצוי במים חמים בכל העולם.';
 
   @override
   String get species_silvertip_shark_name => 'כריש כסוף-קצה';
 
   @override
-  String get species_silvertip_shark_desc => 'כריש שונית נועז בעל סנפירים לבני-שוליים, מצוי ליד מדרונות עמוקים ואטולים.';
+  String get species_silvertip_shark_desc =>
+      'כריש שונית נועז בעל סנפירים לבני-שוליים, מצוי ליד מדרונות עמוקים ואטולים.';
 
   @override
   String get species_silky_shark_name => 'כריש משיי';
 
   @override
-  String get species_silky_shark_desc => 'כריש פלגי חלקלק בעל עור חלק, מצוי לרוב סמוך לשוניות מרוחקות מהחוף.';
+  String get species_silky_shark_desc =>
+      'כריש פלגי חלקלק בעל עור חלק, מצוי לרוב סמוך לשוניות מרוחקות מהחוף.';
 
   @override
   String get species_lemon_shark_name => 'כריש לימון';
 
   @override
-  String get species_lemon_shark_desc => 'כריש בגוון חום-צהבהב הנצפה לרוב במנגרובים רדודים ובמישורי חול.';
+  String get species_lemon_shark_desc =>
+      'כריש בגוון חום-צהבהב הנצפה לרוב במנגרובים רדודים ובמישורי חול.';
 
   @override
   String get species_galapagos_shark_name => 'כריש גלפגוס';
 
   @override
-  String get species_galapagos_shark_desc => 'כריש שונית גדול המצוי סביב איים אוקייניים, סקרן כלפי צוללנים.';
+  String get species_galapagos_shark_desc =>
+      'כריש שונית גדול המצוי סביב איים אוקייניים, סקרן כלפי צוללנים.';
 
   @override
   String get species_port_jackson_shark_name => 'כריש פורט ג\'קסון';
 
   @override
-  String get species_port_jackson_shark_desc => 'דייר קרקעית לילי בעל סימנים דמויי רתמה, אנדמי לאוסטרליה.';
+  String get species_port_jackson_shark_desc =>
+      'דייר קרקעית לילי בעל סימנים דמויי רתמה, אנדמי לאוסטרליה.';
 
   @override
   String get species_bamboo_shark_name => 'כריש במבוק חום-פסים';
 
   @override
-  String get species_bamboo_shark_desc => 'כריש קרקעית קטן ונוח, נפוץ בשוניות האלמוגים של ההודו-פסיפי.';
+  String get species_bamboo_shark_desc =>
+      'כריש קרקעית קטן ונוח, נפוץ בשוניות האלמוגים של ההודו-פסיפי.';
 
   @override
   String get species_basking_shark_name => 'כריש מתחמם';
 
   @override
-  String get species_basking_shark_desc => 'הדג השני בגודלו בעולם, מסנן מזון הנצפה במים ממוזגים סמוך לפני השטח.';
+  String get species_basking_shark_desc =>
+      'הדג השני בגודלו בעולם, מסנן מזון הנצפה במים ממוזגים סמוך לפני השטח.';
 
   @override
   String get species_greenland_shark_name => 'כריש גרינלנד';
 
   @override
-  String get species_greenland_shark_desc => 'כריש מים עמוקים איטי, אחד מבעלי החוליות המאריכים ימים ביותר על פני כדור הארץ.';
+  String get species_greenland_shark_desc =>
+      'כריש מים עמוקים איטי, אחד מבעלי החוליות המאריכים ימים ביותר על פני כדור הארץ.';
 
   @override
   String get species_cookiecutter_shark_name => 'כריש חותך העוגיות';
 
   @override
-  String get species_cookiecutter_shark_desc => 'כריש מים עמוקים קטן הנוגס נגיסות עגולות מבעלי חיים ימיים גדולים ממנו.';
+  String get species_cookiecutter_shark_desc =>
+      'כריש מים עמוקים קטן הנוגס נגיסות עגולות מבעלי חיים ימיים גדולים ממנו.';
 
   @override
   String get species_sevengill_shark_name => 'כריש שבעת הזימים רחב-חוטם';
 
   @override
-  String get species_sevengill_shark_desc => 'כריש קדום בעל שבעה חריצי זימים, נפגש בצלילות ביערות קלפ ממוזגים.';
+  String get species_sevengill_shark_desc =>
+      'כריש קדום בעל שבעה חריצי זימים, נפגש בצלילות ביערות קלפ ממוזגים.';
 
   @override
   String get species_pyjama_shark_name => 'כריש פיג\'מה';
 
   @override
-  String get species_pyjama_shark_desc => 'כריש חתול מפוספס האנדמי לדרום אפריקה, מצוי בשוניות סלע וביערות קלפ.';
+  String get species_pyjama_shark_desc =>
+      'כריש חתול מפוספס האנדמי לדרום אפריקה, מצוי בשוניות סלע וביערות קלפ.';
 
   @override
   String get species_spiny_dogfish_name => 'כלבתן קוצני';
 
   @override
-  String get species_spiny_dogfish_desc => 'כריש קטן ונפוץ בעל קוצי גב ארסיים, מצוי במים ממוזגים.';
+  String get species_spiny_dogfish_desc =>
+      'כריש קטן ונפוץ בעל קוצי גב ארסיים, מצוי במים ממוזגים.';
 
   @override
   String get species_swell_shark_name => 'כריש מתנפח';
 
   @override
-  String get species_swell_shark_desc => 'כריש חתול לילי המנפח את גופו כשהוא מאוים, מצוי מול חופי קליפורניה.';
+  String get species_swell_shark_desc =>
+      'כריש חתול לילי המנפח את גופו כשהוא מאוים, מצוי מול חופי קליפורניה.';
 
   @override
   String get species_giant_oceanic_manta_ray_name => 'מנטה אוקיינית ענקית';
 
   @override
-  String get species_giant_oceanic_manta_ray_desc => 'מין הטריגון הגדול ביותר, מסנן מזון מלכותי בעל מוטת כנפיים של עד 7 מטרים.';
+  String get species_giant_oceanic_manta_ray_desc =>
+      'מין הטריגון הגדול ביותר, מסנן מזון מלכותי בעל מוטת כנפיים של עד 7 מטרים.';
 
   @override
   String get species_reef_manta_ray_name => 'מנטת שונית';
 
   @override
-  String get species_reef_manta_ray_desc => 'מין מנטה קטן יותר הנצפה לרוב בתחנות ניקוי בשוניות טרופיות.';
+  String get species_reef_manta_ray_desc =>
+      'מין מנטה קטן יותר הנצפה לרוב בתחנות ניקוי בשוניות טרופיות.';
 
   @override
   String get species_spotted_eagle_ray_name => 'טריגון נשר מנוקד';
 
   @override
-  String get species_spotted_eagle_ray_desc => 'טריגון אלגנטי בעל נקודות לבנות וזנב ארוך דמוי שוט, נצפה לרוב באמצע המים.';
+  String get species_spotted_eagle_ray_desc =>
+      'טריגון אלגנטי בעל נקודות לבנות וזנב ארוך דמוי שוט, נצפה לרוב באמצע המים.';
 
   @override
   String get species_common_eagle_ray_name => 'טריגון נשר מצוי';
 
   @override
-  String get species_common_eagle_ray_desc => 'טריגון בצורת מעוין המצוי במים הממוזגים של מזרח האוקיינוס האטלנטי ושל הים התיכון.';
+  String get species_common_eagle_ray_desc =>
+      'טריגון בצורת מעוין המצוי במים הממוזגים של מזרח האוקיינוס האטלנטי ושל הים התיכון.';
 
   @override
-  String get species_blue_spotted_ribbontail_ray_name => 'טריגון סרט-זנב כחול-נקודות';
+  String get species_blue_spotted_ribbontail_ray_name =>
+      'טריגון סרט-זנב כחול-נקודות';
 
   @override
-  String get species_blue_spotted_ribbontail_ray_desc => 'טריגון עז-צבעים בעל נקודות כחולות זוהרות, נפוץ בשוניות ההודו-פסיפי.';
+  String get species_blue_spotted_ribbontail_ray_desc =>
+      'טריגון עז-צבעים בעל נקודות כחולות זוהרות, נפוץ בשוניות ההודו-פסיפי.';
 
   @override
   String get species_blue_spotted_stingray_name => 'טריגון כחול-נקודות';
 
   @override
-  String get species_blue_spotted_stingray_desc => 'טריגון שונית קטן בעל נקודות כחולות פזורות, טמון לעיתים קרובות בכתמי חול.';
+  String get species_blue_spotted_stingray_desc =>
+      'טריגון שונית קטן בעל נקודות כחולות פזורות, טמון לעיתים קרובות בכתמי חול.';
 
   @override
   String get species_southern_stingray_name => 'טריגון דרומי';
 
   @override
-  String get species_southern_stingray_desc => 'טריגון גדול המצוי במישורי החול של הקריביים, מפורסם באתר סטינגריי סיטי.';
+  String get species_southern_stingray_desc =>
+      'טריגון גדול המצוי במישורי החול של הקריביים, מפורסם באתר סטינגריי סיטי.';
 
   @override
   String get species_round_stingray_name => 'טריגון עגול';
 
   @override
-  String get species_round_stingray_desc => 'טריגון עגול קטן, נפוץ באזורי חול רדודים במזרח האוקיינוס השקט.';
+  String get species_round_stingray_desc =>
+      'טריגון עגול קטן, נפוץ באזורי חול רדודים במזרח האוקיינוס השקט.';
 
   @override
   String get species_short_tail_stingray_name => 'טריגון קצר-זנב';
 
   @override
-  String get species_short_tail_stingray_desc => 'אחד הטריגונים הגדולים בעולם, מצוי במים ממוזגים של חצי הכדור הדרומי.';
+  String get species_short_tail_stingray_desc =>
+      'אחד הטריגונים הגדולים בעולם, מצוי במים ממוזגים של חצי הכדור הדרומי.';
 
   @override
   String get species_cowtail_stingray_name => 'טריגון זנב-פרה';
 
   @override
-  String get species_cowtail_stingray_desc => 'טריגון כהה וגדול בעל קפל זנב אופייני דמוי דגל, מצוי בשוניות חוליות.';
+  String get species_cowtail_stingray_desc =>
+      'טריגון כהה וגדול בעל קפל זנב אופייני דמוי דגל, מצוי בשוניות חוליות.';
 
   @override
   String get species_atlantic_torpedo_ray_name => 'טריגון חשמלי אטלנטי';
 
   @override
-  String get species_atlantic_torpedo_ray_desc => 'טריגון חשמלי המסוגל לייצר מכות חשמל חזקות, מצוי בקרקעיות חול באוקיינוס האטלנטי.';
+  String get species_atlantic_torpedo_ray_desc =>
+      'טריגון חשמלי המסוגל לייצר מכות חשמל חזקות, מצוי בקרקעיות חול באוקיינוס האטלנטי.';
 
   @override
   String get species_marbled_electric_ray_name => 'טריגון חשמלי משויש';
 
   @override
-  String get species_marbled_electric_ray_desc => 'טריגון חשמלי ים-תיכוני בעל דוגמת שיש, ומכת החשמל שלו מורגשת היטב.';
+  String get species_marbled_electric_ray_desc =>
+      'טריגון חשמלי ים-תיכוני בעל דוגמת שיש, ומכת החשמל שלו מורגשת היטב.';
 
   @override
   String get species_giant_guitarfish_name => 'דג גיטרה ענק';
 
   @override
-  String get species_giant_guitarfish_desc => 'טריגון בעל צורת כריש המצוי בקרקעיות חול בהודו-פסיפי סמוך לשוניות אלמוגים.';
+  String get species_giant_guitarfish_desc =>
+      'טריגון בעל צורת כריש המצוי בקרקעיות חול בהודו-פסיפי סמוך לשוניות אלמוגים.';
 
   @override
   String get species_shovelnose_guitarfish_name => 'דג גיטרה חוטם-את';
 
   @override
-  String get species_shovelnose_guitarfish_desc => 'בעל מבנה שטוח המשלב מראה של כריש וטריגון, נפוץ ברדודי החול של מזרח האוקיינוס השקט.';
+  String get species_shovelnose_guitarfish_desc =>
+      'בעל מבנה שטוח המשלב מראה של כריש וטריגון, נפוץ ברדודי החול של מזרח האוקיינוס השקט.';
 
   @override
   String get species_smalltooth_sawfish_name => 'דג מסור קטן-שיניים';
 
   @override
-  String get species_smalltooth_sawfish_desc => 'טריגון בסכנת הכחדה חמורה בעל מסור משונן בקדמת הראש, מצוי במים חופיים טרופיים.';
+  String get species_smalltooth_sawfish_desc =>
+      'טריגון בסכנת הכחדה חמורה בעל מסור משונן בקדמת הראש, מצוי במים חופיים טרופיים.';
 
   @override
   String get species_green_sawfish_name => 'דג מסור ירוק';
 
   @override
-  String get species_green_sawfish_desc => 'דג מסור גדול בעל גוף ירוק-זית, החי בשפכי נהרות בהודו-מערב פסיפי.';
+  String get species_green_sawfish_desc =>
+      'דג מסור גדול בעל גוף ירוק-זית, החי בשפכי נהרות בהודו-מערב פסיפי.';
 
   @override
   String get species_devil_ray_name => 'טריגון שטן ענק';
 
   @override
-  String get species_devil_ray_desc => 'מובולה גדולה בעלת סנפירי ראש, נצפית קופצת מהמים בקבוצות.';
+  String get species_devil_ray_desc =>
+      'מובולה גדולה בעלת סנפירי ראש, נצפית קופצת מהמים בקבוצות.';
 
   @override
   String get species_spinetail_devil_ray_name => 'טריגון שטן קוץ-זנב';
 
   @override
-  String get species_spinetail_devil_ray_desc => 'טריגון שטן פלגי הנצפה לעיתים קרובות בהתקהלויות גדולות סמוך לפני המים.';
+  String get species_spinetail_devil_ray_desc =>
+      'טריגון שטן פלגי הנצפה לעיתים קרובות בהתקהלויות גדולות סמוך לפני המים.';
 
   @override
   String get species_lesser_devil_ray_name => 'טריגון שטן גמדי';
 
   @override
-  String get species_lesser_devil_ray_desc => 'מין המובולה הקטן ביותר, יוצר להקות גדולות במפרץ קליפורניה.';
+  String get species_lesser_devil_ray_desc =>
+      'מין המובולה הקטן ביותר, יוצר להקות גדולות במפרץ קליפורניה.';
 
   @override
   String get species_bat_ray_name => 'טריגון עטלף';
 
   @override
-  String get species_bat_ray_desc => 'טריגון בצורת מעוין, נפוץ ביערות הקלפ ובמפרצי החול של קליפורניה.';
+  String get species_bat_ray_desc =>
+      'טריגון בצורת מעוין, נפוץ ביערות הקלפ ובמפרצי החול של קליפורניה.';
 
   @override
   String get species_undulate_ray_name => 'טריגון גלי';
 
   @override
-  String get species_undulate_ray_desc => 'טריגון בעל דוגמת קווים גליים יפהפייה, מצוי במזרח האוקיינוס האטלנטי.';
+  String get species_undulate_ray_desc =>
+      'טריגון בעל דוגמת קווים גליים יפהפייה, מצוי במזרח האוקיינוס האטלנטי.';
 
   @override
   String get species_thornback_ray_name => 'טריגון קוצני';
 
   @override
-  String get species_thornback_ray_desc => 'טריגון אירופי נפוץ בעל קוצים חדים לאורך הגב והזנב.';
+  String get species_thornback_ray_desc =>
+      'טריגון אירופי נפוץ בעל קוצים חדים לאורך הגב והזנב.';
 
   @override
   String get species_cownose_ray_name => 'טריגון אף-פרה';
 
   @override
-  String get species_cownose_ray_desc => 'ניכר בראשו המחורץ, ונצפה לרוב בלהקות גדולות בעת נדידות עונתיות.';
+  String get species_cownose_ray_desc =>
+      'ניכר בראשו המחורץ, ונצפה לרוב בלהקות גדולות בעת נדידות עונתיות.';
 
   @override
   String get species_marble_ray_name => 'טריגון משויש';
 
   @override
-  String get species_marble_ray_desc => 'טריגון כהה וגדול בעל נקודות לבנות, נצפה תכופות בתחנות ניקוי בהודו-פסיפי.';
+  String get species_marble_ray_desc =>
+      'טריגון כהה וגדול בעל נקודות לבנות, נצפה תכופות בתחנות ניקוי בהודו-פסיפי.';
 
   @override
   String get species_ocellate_river_stingray_name => 'טריגון נהרות עינוני';
 
   @override
-  String get species_ocellate_river_stingray_desc => 'טריגון מים מתוקים בעל נקודות מוקפות טבעות כתומות בולטות, מקורו בנהרות דרום אמריקה.';
+  String get species_ocellate_river_stingray_desc =>
+      'טריגון מים מתוקים בעל נקודות מוקפות טבעות כתומות בולטות, מקורו בנהרות דרום אמריקה.';
 
   @override
   String get species_ocellaris_clownfish_name => 'דג ליצן מצוי';
 
   @override
-  String get species_ocellaris_clownfish_desc => 'דג קטן בפסים כתומים ולבנים החי בסימביוזה עם שושנות ים בשוניות אלמוגים.';
+  String get species_ocellaris_clownfish_desc =>
+      'דג קטן בפסים כתומים ולבנים החי בסימביוזה עם שושנות ים בשוניות אלמוגים.';
 
   @override
   String get species_clarkii_clownfish_name => 'דג ליצן של קלארק';
 
   @override
-  String get species_clarkii_clownfish_desc => 'דג שושנון עמיד בעל גוף כהה ושני פסים לבנים, מצוי ברחבי ההודו-פסיפי במגוון מיני שושנות ים.';
+  String get species_clarkii_clownfish_desc =>
+      'דג שושנון עמיד בעל גוף כהה ושני פסים לבנים, מצוי ברחבי ההודו-פסיפי במגוון מיני שושנות ים.';
 
   @override
   String get species_tomato_clownfish_name => 'דג ליצן עגבנייה';
 
   @override
-  String get species_tomato_clownfish_desc => 'דג שושנון בגוון אדום-כתום עז עם פס לבן יחיד בראש, נפוץ בשוניות ההודו-פסיפי.';
+  String get species_tomato_clownfish_desc =>
+      'דג שושנון בגוון אדום-כתום עז עם פס לבן יחיד בראש, נפוץ בשוניות ההודו-פסיפי.';
 
   @override
   String get species_regal_blue_tang_name => 'דג כירורג כחול מלכותי';
 
   @override
-  String get species_regal_blue_tang_desc => 'דג כירורג בכחול עז בעל סימן שחור דמוי לוח צבעים וזנב צהוב, מצוי בשוניות האלמוגים של ההודו-פסיפי.';
+  String get species_regal_blue_tang_desc =>
+      'דג כירורג בכחול עז בעל סימן שחור דמוי לוח צבעים וזנב צהוב, מצוי בשוניות האלמוגים של ההודו-פסיפי.';
 
   @override
   String get species_yellow_tang_name => 'דג כירורג צהוב';
 
   @override
-  String get species_yellow_tang_desc => 'דג כירורג בצהוב עז הנפוץ בשוניות הוואי והאוקיינוס השקט, נצפה לרוב רועה אצות בקבוצות.';
+  String get species_yellow_tang_desc =>
+      'דג כירורג בצהוב עז הנפוץ בשוניות הוואי והאוקיינוס השקט, נצפה לרוב רועה אצות בקבוצות.';
 
   @override
   String get species_powder_blue_surgeonfish_name => 'דג כירורג תכול';
 
   @override
-  String get species_powder_blue_surgeonfish_desc => 'דג כירורג תכול ומרשים בעל פנים שחורות וסנפיר גב צהוב, מצוי באוקיינוס ההודי.';
+  String get species_powder_blue_surgeonfish_desc =>
+      'דג כירורג תכול ומרשים בעל פנים שחורות וסנפיר גב צהוב, מצוי באוקיינוס ההודי.';
 
   @override
   String get species_sohal_surgeonfish_name => 'דג כירורג ים סוף';
 
   @override
-  String get species_sohal_surgeonfish_desc => 'דג כירורג מפוספס ונועז בעל קוץ אזמל כתום, אנדמי לשוניות ים סוף והמפרץ הערבי.';
+  String get species_sohal_surgeonfish_desc =>
+      'דג כירורג מפוספס ונועז בעל קוץ אזמל כתום, אנדמי לשוניות ים סוף והמפרץ הערבי.';
 
   @override
   String get species_blue_tang_name => 'דג כירורג כחול';
 
   @override
-  String get species_blue_tang_desc => 'דג כירורג בגוון כחול עמוק הנפוץ בשוניות הקריביים; הצעירים צהובים בוהקים.';
+  String get species_blue_tang_desc =>
+      'דג כירורג בגוון כחול עמוק הנפוץ בשוניות הקריביים; הצעירים צהובים בוהקים.';
 
   @override
   String get species_emperor_angelfish_name => 'דג מלאך קיסרי';
 
   @override
-  String get species_emperor_angelfish_desc => 'דג מלאך גדול בעל פסים אופקיים כחולים וצהובים מרשימים; הצעירים מציגים מעגלים קונצנטריים כחולים ולבנים.';
+  String get species_emperor_angelfish_desc =>
+      'דג מלאך גדול בעל פסים אופקיים כחולים וצהובים מרשימים; הצעירים מציגים מעגלים קונצנטריים כחולים ולבנים.';
 
   @override
   String get species_french_angelfish_name => 'דג מלאך צרפתי';
 
   @override
-  String get species_french_angelfish_desc => 'דג מלאך גדול וכהה בעל קשקשים משוליים בזהב, נצפה לרוב בזוגות בשוניות הקריביים ומערב האטלנטי.';
+  String get species_french_angelfish_desc =>
+      'דג מלאך גדול וכהה בעל קשקשים משוליים בזהב, נצפה לרוב בזוגות בשוניות הקריביים ומערב האטלנטי.';
 
   @override
   String get species_queen_angelfish_name => 'דג מלאך מלכה';
 
   @override
-  String get species_queen_angelfish_desc => 'דג מלאך מרהיב בכחול וצהוב בעל כתם כתר אופייני, מצוי בשוניות האלמוגים של הקריביים.';
+  String get species_queen_angelfish_desc =>
+      'דג מלאך מרהיב בכחול וצהוב בעל כתם כתר אופייני, מצוי בשוניות האלמוגים של הקריביים.';
 
   @override
   String get species_regal_angelfish_name => 'דג מלאך מלכותי';
 
   @override
-  String get species_regal_angelfish_desc => 'דג מלאך אלגנטי בעל פסים אנכיים לסירוגין בכתום-לבן ובכחול, מצוי בשוניות ההודו-פסיפי.';
+  String get species_regal_angelfish_desc =>
+      'דג מלאך אלגנטי בעל פסים אנכיים לסירוגין בכתום-לבן ובכחול, מצוי בשוניות ההודו-פסיפי.';
 
   @override
   String get species_rock_beauty_name => 'יפהפיית הסלעים';
 
   @override
-  String get species_rock_beauty_desc => 'דג מלאך קריבי מרשים שחציו הקדמי צהוב וחציו האחורי שחור, מצוי ליד שוניות סלע ומדפי סלע.';
+  String get species_rock_beauty_desc =>
+      'דג מלאך קריבי מרשים שחציו הקדמי צהוב וחציו האחורי שחור, מצוי ליד שוניות סלע ומדפי סלע.';
 
   @override
   String get species_gray_angelfish_name => 'דג מלאך אפור';
 
   @override
-  String get species_gray_angelfish_desc => 'דג מלאך אפור וגדול בעל פנים בהירות וצדם הפנימי הצהוב של סנפירי החזה, נפוץ בשוניות הקריביים.';
+  String get species_gray_angelfish_desc =>
+      'דג מלאך אפור וגדול בעל פנים בהירות וצדם הפנימי הצהוב של סנפירי החזה, נפוץ בשוניות הקריביים.';
 
   @override
   String get species_copperband_butterflyfish_name => 'דג פרפר נחושת-פסים';
 
   @override
-  String get species_copperband_butterflyfish_desc => 'דג פרפר ייחודי בעל פסים אנכיים כתומים וחרטום מוארך, מצוי בשוניות ההודו-פסיפי.';
+  String get species_copperband_butterflyfish_desc =>
+      'דג פרפר ייחודי בעל פסים אנכיים כתומים וחרטום מוארך, מצוי בשוניות ההודו-פסיפי.';
 
   @override
   String get species_raccoon_butterflyfish_name => 'דג פרפר רקון';
 
   @override
-  String get species_raccoon_butterflyfish_desc => 'דג פרפר צהוב בעל מסכת עיניים כהה דמוית רקון, נפוץ בשוניות ההודו-פסיפי והוואי.';
+  String get species_raccoon_butterflyfish_desc =>
+      'דג פרפר צהוב בעל מסכת עיניים כהה דמוית רקון, נפוץ בשוניות ההודו-פסיפי והוואי.';
 
   @override
   String get species_longnose_butterflyfish_name => 'דג פרפר ארוך-חרטום';
 
   @override
-  String get species_longnose_butterflyfish_desc => 'דג פרפר צהוב בוהק בעל חרטום ארוך במיוחד שבעזרתו הוא לוקט מזון מנקיקים בשוניות ההודו-פסיפי.';
+  String get species_longnose_butterflyfish_desc =>
+      'דג פרפר צהוב בוהק בעל חרטום ארוך במיוחד שבעזרתו הוא לוקט מזון מנקיקים בשוניות ההודו-פסיפי.';
 
   @override
   String get species_threadfin_butterflyfish_name => 'דג פרפר חוטי-סנפיר';
 
   @override
-  String get species_threadfin_butterflyfish_desc => 'דג פרפר לבן בעל דוגמת שברונים וחוט נגרר בסנפיר הגב, נפוץ ברחבי ההודו-פסיפי.';
+  String get species_threadfin_butterflyfish_desc =>
+      'דג פרפר לבן בעל דוגמת שברונים וחוט נגרר בסנפיר הגב, נפוץ ברחבי ההודו-פסיפי.';
 
   @override
   String get species_foureye_butterflyfish_name => 'דג פרפר ארבע-עיניים';
 
   @override
-  String get species_foureye_butterflyfish_desc => 'דג פרפר בהיר בעל כתם עין מדומה בולט סמוך לזנב, נפוץ בשוניות הקריביים.';
+  String get species_foureye_butterflyfish_desc =>
+      'דג פרפר בהיר בעל כתם עין מדומה בולט סמוך לזנב, נפוץ בשוניות הקריביים.';
 
   @override
   String get species_spotfin_butterflyfish_name => 'דג פרפר מנוקד-סנפיר';
 
   @override
-  String get species_spotfin_butterflyfish_desc => 'דג פרפר לבן-צהוב בעל כתם כהה קטן על סנפיר הגב, מצוי במערב האוקיינוס האטלנטי.';
+  String get species_spotfin_butterflyfish_desc =>
+      'דג פרפר לבן-צהוב בעל כתם כהה קטן על סנפיר הגב, מצוי במערב האוקיינוס האטלנטי.';
 
   @override
   String get species_banner_butterflyfish_name => 'דגלן ים סוף';
 
   @override
-  String get species_banner_butterflyfish_desc => 'דגלן שחור-לבן בעל סנפיר גב מוארך ובטן צהובה, אנדמי לים סוף.';
+  String get species_banner_butterflyfish_desc =>
+      'דגלן שחור-לבן בעל סנפיר גב מוארך ובטן צהובה, אנדמי לים סוף.';
 
   @override
   String get species_moorish_idol_name => 'אליל מורי';
 
   @override
-  String get species_moorish_idol_desc => 'דג שונית אייקוני בעל פסים נועזים בשחור, לבן וצהוב וחוט ארוך נגרר בסנפיר הגב.';
+  String get species_moorish_idol_desc =>
+      'דג שונית אייקוני בעל פסים נועזים בשחור, לבן וצהוב וחוט ארוך נגרר בסנפיר הגב.';
 
   @override
   String get species_green_moray_eel_name => 'מורנה ירוקה';
 
   @override
-  String get species_green_moray_eel_desc => 'מורנה ירוקה גדולה המגיעה ל-2.5 מטר, נצפית לרוב בפה פעור בנקיקי שונית ברחבי מערב האטלנטי.';
+  String get species_green_moray_eel_desc =>
+      'מורנה ירוקה גדולה המגיעה ל-2.5 מטר, נצפית לרוב בפה פעור בנקיקי שונית ברחבי מערב האטלנטי.';
 
   @override
   String get species_giant_moray_eel_name => 'מורנה ענקית';
 
   @override
-  String get species_giant_moray_eel_desc => 'מין המורנה הגדול ביותר, מגיע ליותר מ-3 מטרים ומעוטר בכתמים דמויי נמר, ומצוי בשוניות האלמוגים של ההודו-פסיפי.';
+  String get species_giant_moray_eel_desc =>
+      'מין המורנה הגדול ביותר, מגיע ליותר מ-3 מטרים ומעוטר בכתמים דמויי נמר, ומצוי בשוניות האלמוגים של ההודו-פסיפי.';
 
   @override
   String get species_spotted_moray_eel_name => 'מורנה מנוקדת';
 
   @override
-  String get species_spotted_moray_eel_desc => 'מורנה לבנה בעלת נקודות חום כהה, נצפית לרוב מציצה מחורי השונית בקריביים.';
+  String get species_spotted_moray_eel_desc =>
+      'מורנה לבנה בעלת נקודות חום כהה, נצפית לרוב מציצה מחורי השונית בקריביים.';
 
   @override
   String get species_ribbon_eel_name => 'צלופח סרט';
 
   @override
-  String get species_ribbon_eel_desc => 'צלופח תמיר בעל נחיריים מתרחבים; הזכרים כחולים עזים והנקבות צהובות, והוא מצוי בלגונות חול בהודו-פסיפי.';
+  String get species_ribbon_eel_desc =>
+      'צלופח תמיר בעל נחיריים מתרחבים; הזכרים כחולים עזים והנקבות צהובות, והוא מצוי בלגונות חול בהודו-פסיפי.';
 
   @override
   String get species_spotted_garden_eel_name => 'צלופח גן מנוקד';
 
   @override
-  String get species_spotted_garden_eel_desc => 'צלופח דק ולבן בנקודות שחורות החי במושבות בקרקעית חול ומתנועע בזרם כדי ללכוד פלנקטון.';
+  String get species_spotted_garden_eel_desc =>
+      'צלופח דק ולבן בנקודות שחורות החי במושבות בקרקעית חול ומתנועע בזרם כדי ללכוד פלנקטון.';
 
   @override
   String get species_splendid_garden_eel_name => 'צלופח גן מפואר';
 
   @override
-  String get species_splendid_garden_eel_desc => 'צלופח גן בפסים כתומים ולבנים, מצוי במושבות חול גדולות במערב האוקיינוס השקט.';
+  String get species_splendid_garden_eel_desc =>
+      'צלופח גן בפסים כתומים ולבנים, מצוי במושבות חול גדולות במערב האוקיינוס השקט.';
 
   @override
   String get species_snowflake_moray_name => 'מורנת פתית שלג';
 
   @override
-  String get species_snowflake_moray_desc => 'מורנה קטנה בעלת גוף לבן וסימנים שחורים דמויי פתיתי שלג, נפוצה בשברי אלמוגים בהודו-פסיפי.';
+  String get species_snowflake_moray_desc =>
+      'מורנה קטנה בעלת גוף לבן וסימנים שחורים דמויי פתיתי שלג, נפוצה בשברי אלמוגים בהודו-פסיפי.';
 
   @override
   String get species_mandarin_dragonet_name => 'דרקונית מנדרין';
 
   @override
-  String get species_mandarin_dragonet_desc => 'דג זעיר וצבעוני להפליא בדוגמאות פסיכדליות של כחול וכתום, מצוי באזורי שברי אלמוגים במערב האוקיינוס השקט.';
+  String get species_mandarin_dragonet_desc =>
+      'דג זעיר וצבעוני להפליא בדוגמאות פסיכדליות של כחול וכתום, מצוי באזורי שברי אלמוגים במערב האוקיינוס השקט.';
 
   @override
   String get species_common_lionfish_name => 'דג אריה מצוי';
 
   @override
-  String get species_common_lionfish_desc => 'דג עקרב ארסי בעל סנפירי חזה מרהיבים דמויי מניפה ופסים אדומים ולבנים, ומין פולש בקריביים.';
+  String get species_common_lionfish_desc =>
+      'דג עקרב ארסי בעל סנפירי חזה מרהיבים דמויי מניפה ופסים אדומים ולבנים, ומין פולש בקריביים.';
 
   @override
   String get species_leaf_scorpionfish_name => 'דג עקרב עלה';
 
   @override
-  String get species_leaf_scorpionfish_desc => 'דג עקרב שטוח מאוד בצורת עלה, מתנועע עם הזרם כדי להיראות כשריד צמחי נסחף בשוניות ההודו-פסיפי.';
+  String get species_leaf_scorpionfish_desc =>
+      'דג עקרב שטוח מאוד בצורת עלה, מתנועע עם הזרם כדי להיראות כשריד צמחי נסחף בשוניות ההודו-פסיפי.';
 
   @override
   String get species_stonefish_name => 'דג אבן';
 
   @override
-  String get species_stonefish_desc => 'הדג הארסי ביותר בעולם, מוסווה להפליא כסלע על קרקעיות השונית בהודו-פסיפי ומסוכן ביותר.';
+  String get species_stonefish_desc =>
+      'הדג הארסי ביותר בעולם, מוסווה להפליא כסלע על קרקעיות השונית בהודו-פסיפי ומסוכן ביותר.';
 
   @override
   String get species_painted_frogfish_name => 'דג צפרדע מצויר';
 
   @override
-  String get species_painted_frogfish_desc => 'טורף מארב מגושם בעל פתיון על ראשו, צבעו משתנה מאוד, והוא מצוי בשוניות ההודו-פסיפי.';
+  String get species_painted_frogfish_desc =>
+      'טורף מארב מגושם בעל פתיון על ראשו, צבעו משתנה מאוד, והוא מצוי בשוניות ההודו-פסיפי.';
 
   @override
   String get species_giant_frogfish_name => 'דג צפרדע ענק';
 
   @override
-  String get species_giant_frogfish_desc => 'מין דג הצפרדע הגדול ביותר, מגיע ל-40 ס\"מ ומצטיין בהסוואה בין ספוגים ושברי אלמוגים.';
+  String get species_giant_frogfish_desc =>
+      'מין דג הצפרדע הגדול ביותר, מגיע ל-40 ס\"מ ומצטיין בהסוואה בין ספוגים ושברי אלמוגים.';
 
   @override
   String get species_hairy_frogfish_name => 'דג צפרדע שעיר';
 
   @override
-  String get species_hairy_frogfish_desc => 'דג צפרדע המכוסה בתוספות בשרניות דמויות תולעים המחקות אצות, מציאה נחשקת לצלמי תת-מים.';
+  String get species_hairy_frogfish_desc =>
+      'דג צפרדע המכוסה בתוספות בשרניות דמויות תולעים המחקות אצות, מציאה נחשקת לצלמי תת-מים.';
 
   @override
   String get species_clown_triggerfish_name => 'דג הדק ליצן';
 
   @override
-  String get species_clown_triggerfish_desc => 'דג הדק בעל דוגמה נועזת של נקודות לבנות גדולות על גוף כהה ושפתיים צהובות, מצוי בשוניות ההודו-פסיפי.';
+  String get species_clown_triggerfish_desc =>
+      'דג הדק בעל דוגמה נועזת של נקודות לבנות גדולות על גוף כהה ושפתיים צהובות, מצוי בשוניות ההודו-פסיפי.';
 
   @override
   String get species_titan_triggerfish_name => 'דג הדק טיטאן';
 
   @override
-  String get species_titan_triggerfish_desc => 'דג הדק גדול ותוקפני הידוע בהסתערות על צוללנים בקרבת הקן שלו, ונפוץ בשוניות האלמוגים של ההודו-פסיפי.';
+  String get species_titan_triggerfish_desc =>
+      'דג הדק גדול ותוקפני הידוע בהסתערות על צוללנים בקרבת הקן שלו, ונפוץ בשוניות האלמוגים של ההודו-פסיפי.';
 
   @override
   String get species_queen_triggerfish_name => 'דג הדק מלכותי';
 
   @override
-  String get species_queen_triggerfish_desc => 'דג הדק קריבי צבעוני בעל סימנים כחולים בפנים וסרטי זנב ארוכים.';
+  String get species_queen_triggerfish_desc =>
+      'דג הדק קריבי צבעוני בעל סימנים כחולים בפנים וסרטי זנב ארוכים.';
 
   @override
   String get species_picasso_triggerfish_name => 'דג הדק פיקאסו';
 
   @override
-  String get species_picasso_triggerfish_desc => 'דג הדק בעל דוגמה מופשטת של פסים כחולים, צהובים ושחורים, נפוץ במישורי השונית של ההודו-פסיפי.';
+  String get species_picasso_triggerfish_desc =>
+      'דג הדק בעל דוגמה מופשטת של פסים כחולים, צהובים ושחורים, נפוץ במישורי השונית של ההודו-פסיפי.';
 
   @override
   String get species_yellowmargin_triggerfish_name => 'דג הדק צהוב-שוליים';
 
   @override
-  String get species_yellowmargin_triggerfish_desc => 'דג הדק גדול בגוון חום בהיר ובעל סנפירים משוליים בצהוב, ידוע בשמירה תוקפנית על הקן בשוניות ההודו-פסיפי.';
+  String get species_yellowmargin_triggerfish_desc =>
+      'דג הדק גדול בגוון חום בהיר ובעל סנפירים משוליים בצהוב, ידוע בשמירה תוקפנית על הקן בשוניות ההודו-פסיפי.';
 
   @override
   String get species_porcupinefish_name => 'דג דורבן';
 
   @override
-  String get species_porcupinefish_desc => 'דג קוצני גדול המתנפח לכדור כשהוא מאוים, מצוי בשוניות טרופיות בכל העולם.';
+  String get species_porcupinefish_desc =>
+      'דג קוצני גדול המתנפח לכדור כשהוא מאוים, מצוי בשוניות טרופיות בכל העולם.';
 
   @override
   String get species_guineafowl_pufferfish_name => 'דג נפוח פנינייה';
 
   @override
-  String get species_guineafowl_pufferfish_desc => 'דג נפוח כהה המכוסה בנקודות לבנות קטנות, ולעיתים מופיע בגוון זהוב-צהוב בשוניות ההודו-פסיפי.';
+  String get species_guineafowl_pufferfish_desc =>
+      'דג נפוח כהה המכוסה בנקודות לבנות קטנות, ולעיתים מופיע בגוון זהוב-צהוב בשוניות ההודו-פסיפי.';
 
   @override
   String get species_map_pufferfish_name => 'דג נפוח מפה';
 
   @override
-  String get species_map_pufferfish_desc => 'דג נפוח בהיר וגדול בעל סימנים כהים ומורכבים דמויי מפה על גופו, מצוי בשוניות ההודו-פסיפי.';
+  String get species_map_pufferfish_desc =>
+      'דג נפוח בהיר וגדול בעל סימנים כהים ומורכבים דמויי מפה על גופו, מצוי בשוניות ההודו-פסיפי.';
 
   @override
   String get species_sharpnose_pufferfish_name => 'דג נפוח חד-חרטום';
 
   @override
-  String get species_sharpnose_pufferfish_desc => 'דג נפוח זעיר בעל קווים כחולים בפנים וזנב כתום, נצפה לרוב בשוניות הקריביים.';
+  String get species_sharpnose_pufferfish_desc =>
+      'דג נפוח זעיר בעל קווים כחולים בפנים וזנב כתום, נצפה לרוב בשוניות הקריביים.';
 
   @override
   String get species_boxfish_name => 'דג קופסה צהוב';
 
   @override
-  String get species_boxfish_desc => 'הצעירים הם קוביות צהובות בוהקות בנקודות שחורות והבוגרים מכהים לכחול-אפור, והמין מצוי ברחבי ההודו-פסיפי.';
+  String get species_boxfish_desc =>
+      'הצעירים הם קוביות צהובות בוהקות בנקודות שחורות והבוגרים מכהים לכחול-אפור, והמין מצוי ברחבי ההודו-פסיפי.';
 
   @override
   String get species_cowfish_name => 'דג פרה ארוך-קרניים';
 
   @override
-  String get species_cowfish_desc => 'דג צהוב ומרובע בעל בליטות אופייניות דמויות קרניים מעל כל עין, מצוי בשוניות ההודו-פסיפי.';
+  String get species_cowfish_desc =>
+      'דג צהוב ומרובע בעל בליטות אופייניות דמויות קרניים מעל כל עין, מצוי בשוניות ההודו-פסיפי.';
 
   @override
   String get species_napoleon_wrasse_name => 'דג נפוליאון';
 
   @override
-  String get species_napoleon_wrasse_desc => 'דג נסיכה ענק המגיע ל-2 מטרים ובעל גבשושית מצח בולטת, נמצא בסכנת הכחדה ומוגן, ומצוי בשוניות ההודו-פסיפי.';
+  String get species_napoleon_wrasse_desc =>
+      'דג נסיכה ענק המגיע ל-2 מטרים ובעל גבשושית מצח בולטת, נמצא בסכנת הכחדה ומוגן, ומצוי בשוניות ההודו-פסיפי.';
 
   @override
   String get species_cleaner_wrasse_name => 'דג מנקה כחול-פס';
 
   @override
-  String get species_cleaner_wrasse_desc => 'דג נסיכה קטן בפס כחול המפעיל תחנות ניקוי ומסיר טפילים מדגים גדולים ממנו בשוניות ההודו-פסיפי.';
+  String get species_cleaner_wrasse_desc =>
+      'דג נסיכה קטן בפס כחול המפעיל תחנות ניקוי ומסיר טפילים מדגים גדולים ממנו בשוניות ההודו-פסיפי.';
 
   @override
   String get species_yellowtail_coris_name => 'קוריס צהוב-זנב';
 
   @override
-  String get species_yellowtail_coris_desc => 'דג נסיכה צבעוני בעל גוף מנוקד וזנב צהוב; הצעירים כתומים-אדומים בוהקים עם סימנים לבנים.';
+  String get species_yellowtail_coris_desc =>
+      'דג נסיכה צבעוני בעל גוף מנוקד וזנב צהוב; הצעירים כתומים-אדומים בוהקים עם סימנים לבנים.';
 
   @override
   String get species_bluehead_wrasse_name => 'דג נסיכה כחול-ראש';
 
   @override
-  String get species_bluehead_wrasse_desc => 'דג נסיכה נפוץ בקריביים; לזכרים הבוגרים ראש כחול עז וגוף ירוק עם פסים שחורים ולבנים.';
+  String get species_bluehead_wrasse_desc =>
+      'דג נסיכה נפוץ בקריביים; לזכרים הבוגרים ראש כחול עז וגוף ירוק עם פסים שחורים ולבנים.';
 
   @override
   String get species_spanish_hogfish_name => 'דג חזיר ספרדי';
 
   @override
-  String get species_spanish_hogfish_desc => 'דג נסיכה סגול-צהוב הנפוץ בשוניות הקריביים; הצעירים משמשים כדגי ניקוי.';
+  String get species_spanish_hogfish_desc =>
+      'דג נסיכה סגול-צהוב הנפוץ בשוניות הקריביים; הצעירים משמשים כדגי ניקוי.';
 
   @override
   String get species_bumphead_parrotfish_name => 'דג תוכי גבנוני';
 
   @override
-  String get species_bumphead_parrotfish_desc => 'מין דג התוכי הגדול ביותר, מגיע ל-1.3 מטר ובעל גבשושית מצח עצומה, ונע בלהקות בשוניות ההודו-פסיפי.';
+  String get species_bumphead_parrotfish_desc =>
+      'מין דג התוכי הגדול ביותר, מגיע ל-1.3 מטר ובעל גבשושית מצח עצומה, ונע בלהקות בשוניות ההודו-פסיפי.';
 
   @override
   String get species_stoplight_parrotfish_name => 'דג תוכי רמזור';
 
   @override
-  String get species_stoplight_parrotfish_desc => 'דג תוכי נפוץ בקריביים שצבעיו משתנים באופן דרמטי בין שלב הצעירות לשלב הבגרות.';
+  String get species_stoplight_parrotfish_desc =>
+      'דג תוכי נפוץ בקריביים שצבעיו משתנים באופן דרמטי בין שלב הצעירות לשלב הבגרות.';
 
   @override
   String get species_queen_parrotfish_name => 'דג תוכי מלכותי';
 
   @override
-  String get species_queen_parrotfish_desc => 'דג תוכי גדול בגוון כחול-ירוק המצוי בשוניות הקריביים, ונצפה לרוב נוגס באלמוגים כדי לאכול אצות.';
+  String get species_queen_parrotfish_desc =>
+      'דג תוכי גדול בגוון כחול-ירוק המצוי בשוניות הקריביים, ונצפה לרוב נוגס באלמוגים כדי לאכול אצות.';
 
   @override
   String get species_yellowtail_damselfish_name => 'דג עלמה צהוב-זנב';
 
   @override
-  String get species_yellowtail_damselfish_desc => 'דג עלמה כחול כהה בעל זנב צהוב בוהק, נפוץ בפסגות שוניות הקריביים.';
+  String get species_yellowtail_damselfish_desc =>
+      'דג עלמה כחול כהה בעל זנב צהוב בוהק, נפוץ בפסגות שוניות הקריביים.';
 
   @override
   String get species_sergeant_major_name => 'דג סמל';
 
   @override
-  String get species_sergeant_major_desc => 'דג עלמה כסוף-צהוב בעל חמישה פסים שחורים בולטים, מצוי בהתקהלויות גדולות בשוניות האטלנטי הטרופי.';
+  String get species_sergeant_major_desc =>
+      'דג עלמה כסוף-צהוב בעל חמישה פסים שחורים בולטים, מצוי בהתקהלויות גדולות בשוניות האטלנטי הטרופי.';
 
   @override
   String get species_three_spot_damselfish_name => 'דג עלמה תלת-נקודה';
 
   @override
-  String get species_three_spot_damselfish_desc => 'דג עלמה חום כהה וטריטוריאלי המגן בתוקפנות על גינת האצות שלו בשוניות הקריביים.';
+  String get species_three_spot_damselfish_desc =>
+      'דג עלמה חום כהה וטריטוריאלי המגן בתוקפנות על גינת האצות שלו בשוניות הקריביים.';
 
   @override
   String get species_chromis_viridis_name => 'כרומיס כחול-ירוק';
 
   @override
-  String get species_chromis_viridis_desc => 'דג עלמה ירוק ונוצץ קטן הנצפה בלהקות גדולות המרחפות מעל אלמוגים מסועפים בשוניות ההודו-פסיפי.';
+  String get species_chromis_viridis_desc =>
+      'דג עלמה ירוק ונוצץ קטן הנצפה בלהקות גדולות המרחפות מעל אלמוגים מסועפים בשוניות ההודו-פסיפי.';
 
   @override
   String get species_blue_chromis_name => 'כרומיס כחול';
 
   @override
-  String get species_blue_chromis_desc => 'דג עלמה כחול וזוהר הניזון מפלנקטון, מצוי בהתקהלויות גדולות באמצע המים מעל קירות השונית בקריביים.';
+  String get species_blue_chromis_desc =>
+      'דג עלמה כחול וזוהר הניזון מפלנקטון, מצוי בהתקהלויות גדולות באמצע המים מעל קירות השונית בקריביים.';
 
   @override
   String get species_nassau_grouper_name => 'דקר נסאו';
 
   @override
-  String get species_nassau_grouper_desc => 'דקר קריבי גדול בעל פס עין כהה אופייני ודוגמת פסים, וכיום בסכנת הכחדה בשל דיג יתר.';
+  String get species_nassau_grouper_desc =>
+      'דקר קריבי גדול בעל פס עין כהה אופייני ודוגמת פסים, וכיום בסכנת הכחדה בשל דיג יתר.';
 
   @override
   String get species_giant_grouper_name => 'דקר ענק';
 
   @override
-  String get species_giant_grouper_desc => 'דג השונית הגרמי הגדול ביותר, מגיע ל-2.7 מטרים ו-400 ק\"ג, ומצוי במערות ובספינות טרופות ברחבי ההודו-פסיפי.';
+  String get species_giant_grouper_desc =>
+      'דג השונית הגרמי הגדול ביותר, מגיע ל-2.7 מטרים ו-400 ק\"ג, ומצוי במערות ובספינות טרופות ברחבי ההודו-פסיפי.';
 
   @override
   String get species_coral_grouper_name => 'דקר אלמוגים';
 
   @override
-  String get species_coral_grouper_desc => 'דקר בגוון אדום-כתום בוהק המכוסה בנקודות כחולות, מין מובהק של שוניות האלמוגים בהודו-פסיפי.';
+  String get species_coral_grouper_desc =>
+      'דקר בגוון אדום-כתום בוהק המכוסה בנקודות כחולות, מין מובהק של שוניות האלמוגים בהודו-פסיפי.';
 
   @override
   String get species_goliath_grouper_name => 'דקר גוליית';
 
   @override
-  String get species_goliath_grouper_desc => 'דקר אטלנטי ענק המגיע ל-2.5 מטרים, נפגש לרוב סמוך לספינות טרופות ולמדפי סלע בפלורידה ובקריביים.';
+  String get species_goliath_grouper_desc =>
+      'דקר אטלנטי ענק המגיע ל-2.5 מטרים, נפגש לרוב סמוך לספינות טרופות ולמדפי סלע בפלורידה ובקריביים.';
 
   @override
   String get species_potato_grouper_name => 'דקר תפוח אדמה';
 
   @override
-  String get species_potato_grouper_desc => 'דקר גדול וידידותי בעל כתמים כהים בצורת תפוח אדמה, מפורסם באתר קוד הול שבשונית המחסום הגדולה.';
+  String get species_potato_grouper_desc =>
+      'דקר גדול וידידותי בעל כתמים כהים בצורת תפוח אדמה, מפורסם באתר קוד הול שבשונית המחסום הגדולה.';
 
   @override
   String get species_peacock_grouper_name => 'דקר טווס';
 
   @override
-  String get species_peacock_grouper_desc => 'דקר חום כהה בעל נקודות כחולות בוהקות ופסים אנכיים בהירים בחלקו האחורי, נפוץ בשוניות ההודו-פסיפי.';
+  String get species_peacock_grouper_desc =>
+      'דקר חום כהה בעל נקודות כחולות בוהקות ופסים אנכיים בהירים בחלקו האחורי, נפוץ בשוניות ההודו-פסיפי.';
 
   @override
   String get species_yellowfin_tuna_name => 'טונה צהובת-סנפיר';
 
   @override
-  String get species_yellowfin_tuna_desc => 'טורף פלגי מהיר בעל סנפירי גב ופי הטבעת צהובים וארוכים, נצפה מדי פעם על ידי צוללנים באתרים מרוחקים מהחוף.';
+  String get species_yellowfin_tuna_desc =>
+      'טורף פלגי מהיר בעל סנפירי גב ופי הטבעת צהובים וארוכים, נצפה מדי פעם על ידי צוללנים באתרים מרוחקים מהחוף.';
 
   @override
   String get species_dogtooth_tuna_name => 'טונה שיני-כלב';
 
   @override
-  String get species_dogtooth_tuna_desc => 'טונה חזקה הקשורה לשוניות ובעלת שיניים בולטות, נפגשת במדרונות שונית עמוקים בהודו-פסיפי.';
+  String get species_dogtooth_tuna_desc =>
+      'טונה חזקה הקשורה לשוניות ובעלת שיניים בולטות, נפגשת במדרונות שונית עמוקים בהודו-פסיפי.';
 
   @override
   String get species_great_barracuda_name => 'ברקודה גדולה';
 
   @override
-  String get species_great_barracuda_desc => 'טורף כסוף וחלקלק באורך של עד 1.8 מטרים בעל שיניים בולטות, נצפה לרוב מרחף ללא תנועה סמוך לשוניות טרופיות.';
+  String get species_great_barracuda_desc =>
+      'טורף כסוף וחלקלק באורך של עד 1.8 מטרים בעל שיניים בולטות, נצפה לרוב מרחף ללא תנועה סמוך לשוניות טרופיות.';
 
   @override
   String get species_blackfin_barracuda_name => 'ברקודה שחורת-סנפיר';
 
   @override
-  String get species_blackfin_barracuda_desc => 'ברקודה הודו-פסיפית הידועה בלהקות ענק דמויות טורנדו באתרי צלילה כמו ברקודה פוינט.';
+  String get species_blackfin_barracuda_desc =>
+      'ברקודה הודו-פסיפית הידועה בלהקות ענק דמויות טורנדו באתרי צלילה כמו ברקודה פוינט.';
 
   @override
   String get species_mahi_mahi_name => 'מהי-מהי';
 
   @override
-  String get species_mahi_mahi_desc => 'דג פלגי מסנוור בגוני כחול-ירוק וזהב בעל מצח קהה, נצפה מדי פעם באתרי צלילה מרוחקים מהחוף.';
+  String get species_mahi_mahi_desc =>
+      'דג פלגי מסנוור בגוני כחול-ירוק וזהב בעל מצח קהה, נצפה מדי פעם באתרי צלילה מרוחקים מהחוף.';
 
   @override
   String get species_giant_trevally_name => 'טרוואלי ענק';
 
   @override
-  String get species_giant_trevally_desc => 'טורף כסוף רב-עוצמה באורך של עד 1.7 מטרים, ידוע בציד בתעלות ובמדרונות שונית ברחבי ההודו-פסיפי.';
+  String get species_giant_trevally_desc =>
+      'טורף כסוף רב-עוצמה באורך של עד 1.7 מטרים, ידוע בציד בתעלות ובמדרונות שונית ברחבי ההודו-פסיפי.';
 
   @override
   String get species_bluefin_trevally_name => 'טרוואלי כחול-סנפיר';
 
   @override
-  String get species_bluefin_trevally_desc => 'טרוואלי חלקלק בנקודות כחולות הנצפה לרוב סורק את שולי השוניות בהודו-פסיפי בקבוצות ציד קטנות.';
+  String get species_bluefin_trevally_desc =>
+      'טרוואלי חלקלק בנקודות כחולות הנצפה לרוב סורק את שולי השוניות בהודו-פסיפי בקבוצות ציד קטנות.';
 
   @override
   String get species_bigeye_trevally_name => 'טרוואלי גדול-עין';
 
   @override
-  String get species_bigeye_trevally_desc => 'טרוואלי כסוף בעל עיניים גדולות היוצר להקות מסתחררות ומרשימות סמוך לקירות שונית ולתחנות ניקוי.';
+  String get species_bigeye_trevally_desc =>
+      'טרוואלי כסוף בעל עיניים גדולות היוצר להקות מסתחררות ומרשימות סמוך לקירות שונית ולתחנות ניקוי.';
 
   @override
   String get species_bar_jack_name => 'ג\'ק מפוספס';
 
   @override
-  String get species_bar_jack_desc => 'ג\'ק קריבי כסוף וחלקלק בעל פס כחול כהה אופייני לאורך הגב ועד לאונה התחתונה של הזנב.';
+  String get species_bar_jack_desc =>
+      'ג\'ק קריבי כסוף וחלקלק בעל פס כחול כהה אופייני לאורך הגב ועד לאונה התחתונה של הזנב.';
 
   @override
   String get species_horse_eye_jack_name => 'ג\'ק עין-סוס';
 
   @override
-  String get species_horse_eye_jack_desc => 'ג\'ק כסוף בעל עיניים גדולות היוצר להקות סמוך לשוניות ולספינות טרופות בקריביים ובמערב האטלנטי.';
+  String get species_horse_eye_jack_desc =>
+      'ג\'ק כסוף בעל עיניים גדולות היוצר להקות סמוך לשוניות ולספינות טרופות בקריביים ובמערב האטלנטי.';
 
   @override
   String get species_yellowtail_snapper_name => 'לוציאן צהוב-זנב';
 
   @override
-  String get species_yellowtail_snapper_desc => 'לוציאן חלקלק בעל פס וזנב צהובים, נצפה לרוב בלהקות באמצע המים בשוניות הקריביים.';
+  String get species_yellowtail_snapper_desc =>
+      'לוציאן חלקלק בעל פס וזנב צהובים, נצפה לרוב בלהקות באמצע המים בשוניות הקריביים.';
 
   @override
   String get species_schoolmaster_snapper_name => 'לוציאן מורה';
 
   @override
-  String get species_schoolmaster_snapper_desc => 'לוציאן צהוב-כסוף בעל קווים כחולים מתחת לעין, מצוי בקבוצות מתחת למדפי סלע בשוניות הקריביים.';
+  String get species_schoolmaster_snapper_desc =>
+      'לוציאן צהוב-כסוף בעל קווים כחולים מתחת לעין, מצוי בקבוצות מתחת למדפי סלע בשוניות הקריביים.';
 
   @override
   String get species_bluestripe_snapper_name => 'לוציאן כחול-פסים';
 
   @override
-  String get species_bluestripe_snapper_desc => 'לוציאן צהוב בוהק בעל ארבעה פסים כחולים אופקיים, יוצר להקות צפופות בשוניות ההודו-פסיפי.';
+  String get species_bluestripe_snapper_desc =>
+      'לוציאן צהוב בוהק בעל ארבעה פסים כחולים אופקיים, יוצר להקות צפופות בשוניות ההודו-פסיפי.';
 
   @override
   String get species_twinspot_snapper_name => 'לוציאן דו-כתמי';
 
   @override
-  String get species_twinspot_snapper_desc => 'לוציאן אדום גדול המצוי בשוניות חיצוניות בהודו-פסיפי, ולעיתים יוצר להקות בקירות עמוקים ובתעלות.';
+  String get species_twinspot_snapper_desc =>
+      'לוציאן אדום גדול המצוי בשוניות חיצוניות בהודו-פסיפי, ולעיתים יוצר להקות בקירות עמוקים ובתעלות.';
 
   @override
   String get species_humphead_snapper_name => 'לוציאן חצות';
 
   @override
-  String get species_humphead_snapper_desc => 'לוציאן כהה וגדול המצוי בלהקות ליד מדרונות תלולים בהודו-פסיפי; הצעירים שחורים ולבנים בניגוד חד.';
+  String get species_humphead_snapper_desc =>
+      'לוציאן כהה וגדול המצוי בלהקות ליד מדרונות תלולים בהודו-פסיפי; הצעירים שחורים ולבנים בניגוד חד.';
 
   @override
   String get species_longfin_bannerfish_name => 'דגלן ארוך-סנפיר';
 
   @override
-  String get species_longfin_bannerfish_desc => 'דג שחור-לבן בעל סנפיר גב ארוך ונגרר וזנב צהוב, נצפה לרוב בזוגות בשוניות ההודו-פסיפי.';
+  String get species_longfin_bannerfish_desc =>
+      'דג שחור-לבן בעל סנפיר גב ארוך ונגרר וזנב צהוב, נצפה לרוב בזוגות בשוניות ההודו-פסיפי.';
 
   @override
   String get species_batfish_orbicular_name => 'דג עטלף עגול';
 
   @override
-  String get species_batfish_orbicular_desc => 'דג כסוף בצורת דיסקה בעל סנפירים גבוהים המתקרב לצוללנים בסקרנות, נפוץ בספינות טרופות ובשוניות בהודו-פסיפי.';
+  String get species_batfish_orbicular_desc =>
+      'דג כסוף בצורת דיסקה בעל סנפירים גבוהים המתקרב לצוללנים בסקרנות, נפוץ בספינות טרופות ובשוניות בהודו-פסיפי.';
 
   @override
   String get species_batfish_teira_name => 'דג עטלף ארוך-סנפיר';
 
   @override
-  String get species_batfish_teira_desc => 'דג עטלף בעל סנפירים גבוהים וכתם כהה סמוך לסנפיר החזה, נצפה לרוב בתחנות ניקוי ובספינות טרופות.';
+  String get species_batfish_teira_desc =>
+      'דג עטלף בעל סנפירים גבוהים וכתם כהה סמוך לסנפיר החזה, נצפה לרוב בתחנות ניקוי ובספינות טרופות.';
 
   @override
   String get species_batfish_pinnatus_name => 'דג עטלף מכונף';
 
   @override
-  String get species_batfish_pinnatus_desc => 'הצעירים שחורים כפחם עם שוליים כתומים עזים המזכירים תולעת שטוחה רעילה, והמין מצוי במערב האוקיינוס השקט.';
+  String get species_batfish_pinnatus_desc =>
+      'הצעירים שחורים כפחם עם שוליים כתומים עזים המזכירים תולעת שטוחה רעילה, והמין מצוי במערב האוקיינוס השקט.';
 
   @override
   String get species_banggai_cardinalfish_name => 'דג חשמן בנגאי';
 
   @override
-  String get species_banggai_cardinalfish_desc => 'דג חשמן מרשים בכסוף ושחור בעל סנפירים מוארכים, אנדמי לאיי בנגאי שבאינדונזיה.';
+  String get species_banggai_cardinalfish_desc =>
+      'דג חשמן מרשים בכסוף ושחור בעל סנפירים מוארכים, אנדמי לאיי בנגאי שבאינדונזיה.';
 
   @override
   String get species_pajama_cardinalfish_name => 'דג חשמן פיג\'מה';
 
   @override
-  String get species_pajama_cardinalfish_desc => 'דג חשמן יוצא דופן בעל פנים צהובות, פס מותניים כהה וחלק אחורי מנוקד, מצוי בין אלמוגים בהודו-פסיפי.';
+  String get species_pajama_cardinalfish_desc =>
+      'דג חשמן יוצא דופן בעל פנים צהובות, פס מותניים כהה וחלק אחורי מנוקד, מצוי בין אלמוגים בהודו-פסיפי.';
 
   @override
   String get species_longnose_hawkfish_name => 'דג נץ ארוך-חרטום';
 
   @override
-  String get species_longnose_hawkfish_desc => 'דג לבן קטן בעל דוגמת רשת אדומה וחרטום מוארך, נח על גורגוניות ואלמוגים שחורים.';
+  String get species_longnose_hawkfish_desc =>
+      'דג לבן קטן בעל דוגמת רשת אדומה וחרטום מוארך, נח על גורגוניות ואלמוגים שחורים.';
 
   @override
   String get species_arc_eye_hawkfish_name => 'דג נץ קשת-עין';
 
   @override
-  String get species_arc_eye_hawkfish_desc => 'דג נץ קטן בעל קשת כתומה אופיינית מאחורי העין, נח לרוב על ראשי אלמוג בשוניות ההודו-פסיפי.';
+  String get species_arc_eye_hawkfish_desc =>
+      'דג נץ קטן בעל קשת כתומה אופיינית מאחורי העין, נח לרוב על ראשי אלמוג בשוניות ההודו-פסיפי.';
 
   @override
   String get species_flame_hawkfish_name => 'דג נץ להבה';
 
   @override
-  String get species_flame_hawkfish_desc => 'דג נץ אדום זוהר בעל סימנים כהים סביב העין, נח בין אלמוגי Pocillopora ברחבי מערב האוקיינוס השקט.';
+  String get species_flame_hawkfish_desc =>
+      'דג נץ אדום זוהר בעל סימנים כהים סביב העין, נח בין אלמוגי Pocillopora ברחבי מערב האוקיינוס השקט.';
 
   @override
   String get species_fire_goby_name => 'גובי אש';
 
   @override
-  String get species_fire_goby_desc => 'גובי לבן אלגנטי בעל סנפיר גב קדמי גבוה וזנב אדום-כתום, מרחף מעל שברי אלמוגים בהודו-פסיפי.';
+  String get species_fire_goby_desc =>
+      'גובי לבן אלגנטי בעל סנפיר גב קדמי גבוה וזנב אדום-כתום, מרחף מעל שברי אלמוגים בהודו-פסיפי.';
 
   @override
   String get species_purple_firefish_name => 'דג אש סגול';
 
   @override
-  String get species_purple_firefish_desc => 'גובי עדין בעל סנפירים סגולים וקוץ גב גבוה, מרחף סמוך למחילות בשוניות החיצוניות של ההודו-פסיפי.';
+  String get species_purple_firefish_desc =>
+      'גובי עדין בעל סנפירים סגולים וקוץ גב גבוה, מרחף סמוך למחילות בשוניות החיצוניות של ההודו-פסיפי.';
 
   @override
   String get species_yellownose_goby_name => 'גובי צהוב-חרטום';
 
   @override
-  String get species_yellownose_goby_desc => 'גובי מנקה קריבי זעיר בעל חרטום צהוב ופס צדדי כחול, מצוי על ספוגים וראשי אלמוג.';
+  String get species_yellownose_goby_desc =>
+      'גובי מנקה קריבי זעיר בעל חרטום צהוב ופס צדדי כחול, מצוי על ספוגים וראשי אלמוג.';
 
   @override
   String get species_citron_goby_name => 'גובי לימוני';
 
   @override
-  String get species_citron_goby_desc => 'גובי זעיר בצהוב בוהק החי בין ענפי אלמוגי Acropora בשוניות ההודו-פסיפי.';
+  String get species_citron_goby_desc =>
+      'גובי זעיר בצהוב בוהק החי בין ענפי אלמוגי Acropora בשוניות ההודו-פסיפי.';
 
   @override
   String get species_shrimp_goby_name => 'גובי חסילונים של שטייניץ';
 
   @override
-  String get species_shrimp_goby_desc => 'גובי בגוון חול החולק מחילה עם חסילון אלפאידי ביחסי גומלין, במישורי החול של ההודו-פסיפי.';
+  String get species_shrimp_goby_desc =>
+      'גובי בגוון חול החולק מחילה עם חסילון אלפאידי ביחסי גומלין, במישורי החול של ההודו-פסיפי.';
 
   @override
   String get species_neon_goby_name => 'גובי ניאון';
 
   @override
-  String get species_neon_goby_desc => 'גובי כהה וזעיר בעל פס כחול ניאוני זוהר, מפעיל תחנות ניקוי על ראשי אלמוג בקריביים.';
+  String get species_neon_goby_desc =>
+      'גובי כהה וזעיר בעל פס כחול ניאוני זוהר, מפעיל תחנות ניקוי על ראשי אלמוג בקריביים.';
 
   @override
   String get species_bluestriped_fangblenny_name => 'בלני ניבים כחול-פס';
 
   @override
-  String get species_bluestriped_fangblenny_desc => 'בלני קטן בפס כחול המחקה דגי ניקוי כדי לנשוך קשקשים מדגים תמימים.';
+  String get species_bluestriped_fangblenny_desc =>
+      'בלני קטן בפס כחול המחקה דגי ניקוי כדי לנשוך קשקשים מדגים תמימים.';
 
   @override
   String get species_sailfin_blenny_name => 'בלני מפרשי';
 
   @override
-  String get species_sailfin_blenny_desc => 'בלני קריבי זעיר המרים סנפיר גב גדול דמוי מפרש מתוך מחילתו כדי למשוך בנות זוג.';
+  String get species_sailfin_blenny_desc =>
+      'בלני קריבי זעיר המרים סנפיר גב גדול דמוי מפרש מתוך מחילתו כדי למשוך בנות זוג.';
 
   @override
   String get species_bicolor_blenny_name => 'בלני דו-גוני';
 
   @override
-  String get species_bicolor_blenny_desc => 'בלני קטן שחציו הקדמי חום כהה וחציו האחורי כתום, מציץ מחורים בשוניות ההודו-פסיפי.';
+  String get species_bicolor_blenny_desc =>
+      'בלני קטן שחציו הקדמי חום כהה וחציו האחורי כתום, מציץ מחורים בשוניות ההודו-פסיפי.';
 
   @override
   String get species_redlip_blenny_name => 'בלני אדום-שפתיים';
 
   @override
-  String get species_redlip_blenny_desc => 'בלני כהה בעל שפתיים אדומות-כתומות בולטות המגן על כתמי אצות בפסגות השוניות בקריביים.';
+  String get species_redlip_blenny_desc =>
+      'בלני כהה בעל שפתיים אדומות-כתומות בולטות המגן על כתמי אצות בפסגות השוניות בקריביים.';
 
   @override
   String get species_pygmy_seahorse_name => 'סוסון ים גמדי של ברגיבנט';
 
   @override
-  String get species_pygmy_seahorse_desc => 'סוסון ים זעיר באורך של פחות מ-2 ס\"מ המתמזג באופן מושלם עם הגורגוניה המארחת, נושא מבוקש לצילומי מאקרו.';
+  String get species_pygmy_seahorse_desc =>
+      'סוסון ים זעיר באורך של פחות מ-2 ס\"מ המתמזג באופן מושלם עם הגורגוניה המארחת, נושא מבוקש לצילומי מאקרו.';
 
   @override
   String get species_common_seahorse_name => 'סוסון ים מצוי';
 
   @override
-  String get species_common_seahorse_desc => 'סוסון ים בינוני המצוי בערוגות עשב ים ובשברי אלמוגים ברחבי ההודו-פסיפי, וצבעו משתנה.';
+  String get species_common_seahorse_desc =>
+      'סוסון ים בינוני המצוי בערוגות עשב ים ובשברי אלמוגים ברחבי ההודו-פסיפי, וצבעו משתנה.';
 
   @override
   String get species_thorny_seahorse_name => 'סוסון ים קוצני';
 
   @override
-  String get species_thorny_seahorse_desc => 'סוסון ים המכוסה בקוצים ארוכים, מצוי בערוגות עשב ים ובקרקעיות רכות ברחבי ההודו-פסיפי.';
+  String get species_thorny_seahorse_desc =>
+      'סוסון ים המכוסה בקוצים ארוכים, מצוי בערוגות עשב ים ובקרקעיות רכות ברחבי ההודו-פסיפי.';
 
   @override
   String get species_ornate_ghost_pipefish_name => 'דג צינור רפאים מקושט';
 
   @override
-  String get species_ornate_ghost_pipefish_desc => 'דג צינור מוסווה להפליא המרחף עם הראש כלפי מטה סמוך לקרינואידים ולאלמוגים רכים בהודו-פסיפי.';
+  String get species_ornate_ghost_pipefish_desc =>
+      'דג צינור מוסווה להפליא המרחף עם הראש כלפי מטה סמוך לקרינואידים ולאלמוגים רכים בהודו-פסיפי.';
 
   @override
   String get species_robust_ghost_pipefish_name => 'דג צינור רפאים חסון';
 
   @override
-  String get species_robust_ghost_pipefish_desc => 'דג צינור רפאים גדול המחקה עשב ים או אצות, ונמצא לרוב בזוגות במים חופיים בהודו-פסיפי.';
+  String get species_robust_ghost_pipefish_desc =>
+      'דג צינור רפאים גדול המחקה עשב ים או אצות, ונמצא לרוב בזוגות במים חופיים בהודו-פסיפי.';
 
   @override
   String get species_trumpetfish_name => 'דג חצוצרה';
 
   @override
-  String get species_trumpetfish_desc => 'דג ארוך ותמיר הצד בהסתתרות בצל דגים גדולים, מצוי בשוניות הקריביים והאטלנטי במגוון צבעים.';
+  String get species_trumpetfish_desc =>
+      'דג ארוך ותמיר הצד בהסתתרות בצל דגים גדולים, מצוי בשוניות הקריביים והאטלנטי במגוון צבעים.';
 
   @override
   String get species_cornetfish_name => 'דג חליל';
 
   @override
-  String get species_cornetfish_desc => 'דג מוארך במיוחד באורך של עד 1.5 מטרים בעל חוט זנב נגרר, נצפה לרוב גולש מעל מישורי שונית.';
+  String get species_cornetfish_desc =>
+      'דג מוארך במיוחד באורך של עד 1.5 מטרים בעל חוט זנב נגרר, נצפה לרוב גולש מעל מישורי שונית.';
 
   @override
   String get species_yellowhead_jawfish_name => 'דג לסת צהוב-ראש';
 
   @override
-  String get species_yellowhead_jawfish_desc => 'דג קטן בעל גוף כחול וראש צהוב המרחף מעל מחילת החול שלו בשוניות הקריביים, והזכרים דוגרים על הביצים בפיהם.';
+  String get species_yellowhead_jawfish_desc =>
+      'דג קטן בעל גוף כחול וראש צהוב המרחף מעל מחילת החול שלו בשוניות הקריביים, והזכרים דוגרים על הביצים בפיהם.';
 
   @override
   String get species_flamefish_name => 'דג להבה';
 
   @override
-  String get species_flamefish_desc => 'דג חשמן קטן ואדום בוהק בעל כתם כהה מתחת לסנפיר הגב השני, מסתתר בנקיקי שונית בקריביים במשך היום.';
+  String get species_flamefish_desc =>
+      'דג חשמן קטן ואדום בוהק בעל כתם כהה מתחת לסנפיר הגב השני, מסתתר בנקיקי שונית בקריביים במשך היום.';
 
   @override
   String get species_longspine_squirrelfish_name => 'דג סנאי ארוך-קוץ';
 
   @override
-  String get species_longspine_squirrelfish_desc => 'דג לילי אדום בעל עיניים גדולות וקוץ גב ארוך, מצוי ביום מתחת למדפי סלע בשוניות הקריביים.';
+  String get species_longspine_squirrelfish_desc =>
+      'דג לילי אדום בעל עיניים גדולות וקוץ גב ארוך, מצוי ביום מתחת למדפי סלע בשוניות הקריביים.';
 
   @override
   String get species_soldierfish_name => 'דג חייל גדול-קשקש';
 
   @override
-  String get species_soldierfish_desc => 'דג לילי אדום בעל עיניים כהות ענקיות וקשקשים גדולים, מתקבץ ביום במערות ומתחת לגגונים.';
+  String get species_soldierfish_desc =>
+      'דג לילי אדום בעל עיניים כהות ענקיות וקשקשים גדולים, מתקבץ ביום במערות ומתחת לגגונים.';
 
   @override
   String get species_flame_angelfish_name => 'דג מלאך להבה';
 
   @override
-  String get species_flame_angelfish_desc => 'דג מלאך ננסי באדום-כתום זוהר בעל פסים אנכיים שחורים וסנפירים כחולי-קצה, מצוי ברחבי האוקיינוס השקט.';
+  String get species_flame_angelfish_desc =>
+      'דג מלאך ננסי באדום-כתום זוהר בעל פסים אנכיים שחורים וסנפירים כחולי-קצה, מצוי ברחבי האוקיינוס השקט.';
 
   @override
   String get species_royal_gramma_name => 'גרמה מלכותית';
 
   @override
-  String get species_royal_gramma_desc => 'דג בסלט קריבי קטן ודו-גוני שחציו הקדמי סגול וחציו האחורי צהוב, מצוי מתחת למדפי סלע.';
+  String get species_royal_gramma_desc =>
+      'דג בסלט קריבי קטן ודו-גוני שחציו הקדמי סגול וחציו האחורי צהוב, מצוי מתחת למדפי סלע.';
 
   @override
   String get species_anthias_lyretail_name => 'אנתיאס נבל-זנב';
 
   @override
-  String get species_anthias_lyretail_desc => 'דג שונית נפוץ היוצר ענני כתום וורוד גדולים מעל מבני אלמוג בהודו-פסיפי, והזכרים סגולים.';
+  String get species_anthias_lyretail_desc =>
+      'דג שונית נפוץ היוצר ענני כתום וורוד גדולים מעל מבני אלמוג בהודו-פסיפי, והזכרים סגולים.';
 
   @override
   String get species_mediterranean_grouper_name => 'לוקוס';
 
   @override
-  String get species_mediterranean_grouper_desc => 'דקר גדול בחום כהה עם כתמים בהירים, הטורף האייקוני של שוניות הסלע בים התיכון.';
+  String get species_mediterranean_grouper_desc =>
+      'דקר גדול בחום כהה עם כתמים בהירים, הטורף האייקוני של שוניות הסלע בים התיכון.';
 
   @override
   String get species_mediterranean_moray_name => 'מורנה ים-תיכונית';
 
   @override
-  String get species_mediterranean_moray_desc => 'מורנה בחום כהה עם כתמים צהובים, נצפית לרוב מציצה מנקיקי סלע בים התיכון.';
+  String get species_mediterranean_moray_desc =>
+      'מורנה בחום כהה עם כתמים צהובים, נצפית לרוב מציצה מנקיקי סלע בים התיכון.';
 
   @override
   String get species_ornate_wrasse_name => 'דג נסיכה מקושט';
 
   @override
-  String get species_ornate_wrasse_desc => 'דג נסיכה ירוק וצבעוני בעל סימנים אדומים בראש, אחד מדגי הנסיכה הנפוצים ביותר בשוניות הים התיכון.';
+  String get species_ornate_wrasse_desc =>
+      'דג נסיכה ירוק וצבעוני בעל סימנים אדומים בראש, אחד מדגי הנסיכה הנפוצים ביותר בשוניות הים התיכון.';
 
   @override
   String get species_red_sea_bannerfish_name => 'דג פרפר ממוסך';
 
   @override
-  String get species_red_sea_bannerfish_desc => 'דג פרפר צהוב בוהק בעל כתם עין כהה, אנדמי לים סוף ונצפה לרוב בזוגות.';
+  String get species_red_sea_bannerfish_desc =>
+      'דג פרפר צהוב בוהק בעל כתם עין כהה, אנדמי לים סוף ונצפה לרוב בזוגות.';
 
   @override
   String get species_red_sea_anemonefish_name => 'דג שושנון ים סוף';
 
   @override
-  String get species_red_sea_anemonefish_desc => 'דג שושנון בגוון כתום-צהוב עם שני פסים לבנים, אנדמי לים סוף ולמפרץ עדן.';
+  String get species_red_sea_anemonefish_desc =>
+      'דג שושנון בגוון כתום-צהוב עם שני פסים לבנים, אנדמי לים סוף ולמפרץ עדן.';
 
   @override
   String get species_arabian_angelfish_name => 'דג מלאך ערבי';
 
   @override
-  String get species_arabian_angelfish_desc => 'דג מלאך גדול בכחול כהה בעל פס אנכי וזנב צהובים ובולטים, אנדמי למערב האוקיינוס ההודי.';
+  String get species_arabian_angelfish_desc =>
+      'דג מלאך גדול בכחול כהה בעל פס אנכי וזנב צהובים ובולטים, אנדמי למערב האוקיינוס ההודי.';
 
   @override
   String get species_king_angelfish_name => 'דג מלאך מלך';
 
   @override
-  String get species_king_angelfish_desc => 'דג מלאך גדול בכחול כהה בעל פס אנכי לבן וזנב צהוב, מצוי במזרח האוקיינוס השקט ובגלפגוס.';
+  String get species_king_angelfish_desc =>
+      'דג מלאך גדול בכחול כהה בעל פס אנכי לבן וזנב צהוב, מצוי במזרח האוקיינוס השקט ובגלפגוס.';
 
   @override
   String get species_ocean_sunfish_name => 'דג שמש';
 
   @override
-  String get species_ocean_sunfish_desc => 'הדג הגרמי הכבד ביותר, מגיע למשקל של יותר משני טונות ונצפה מדי פעם על ידי צוללנים בתחנות ניקוי בבאלי ובגלפגוס.';
+  String get species_ocean_sunfish_desc =>
+      'הדג הגרמי הכבד ביותר, מגיע למשקל של יותר משני טונות ונצפה מדי פעם על ידי צוללנים בתחנות ניקוי בבאלי ובגלפגוס.';
 
   @override
   String get species_lingcod_name => 'לינגקוד';
 
   @override
-  String get species_lingcod_desc => 'דג טורף גדול ומנומר ממשפחת הגרינלינגים, מצוי בשוניות סלע בצפון-מערב האוקיינוס השקט ולרוב שומר על גושי ביצים.';
+  String get species_lingcod_desc =>
+      'דג טורף גדול ומנומר ממשפחת הגרינלינגים, מצוי בשוניות סלע בצפון-מערב האוקיינוס השקט ולרוב שומר על גושי ביצים.';
 
   @override
   String get species_wolf_eel_name => 'צלופח זאב';
 
   @override
-  String get species_wolf_eel_desc => 'צלופח זאב אפור וגדול בעל ראש בולבוסי ולסתות חזקות, מצוי במאורות סלע בצפון-מערב האוקיינוס השקט.';
+  String get species_wolf_eel_desc =>
+      'צלופח זאב אפור וגדול בעל ראש בולבוסי ולסתות חזקות, מצוי במאורות סלע בצפון-מערב האוקיינוס השקט.';
 
   @override
   String get species_giant_sea_bass_name => 'בס ים ענק';
 
   @override
-  String get species_giant_sea_bass_desc => 'בס ענק המגיע ליותר מ-2 מטרים ו-250 ק\"ג, מצוי בשוניות סלע וביערות קלפ מול חופי דרום קליפורניה.';
+  String get species_giant_sea_bass_desc =>
+      'בס ענק המגיע ליותר מ-2 מטרים ו-250 ק\"ג, מצוי בשוניות סלע וביערות קלפ מול חופי דרום קליפורניה.';
 
   @override
   String get species_garibaldi_name => 'גריבלדי';
 
   @override
-  String get species_garibaldi_desc => 'דג עלמה כתום בוהק והדג הימי הרשמי של קליפורניה, טריטוריאלי בשוניות שביערות הקלפ.';
+  String get species_garibaldi_desc =>
+      'דג עלמה כתום בוהק והדג הימי הרשמי של קליפורניה, טריטוריאלי בשוניות שביערות הקלפ.';
 
   @override
   String get species_sheephead_name => 'דג ראש-כבש קליפורני';
 
   @override
-  String get species_sheephead_desc => 'דג נסיכה גדול בעל ראש וזנב שחורים, גוף אמצעי אדום וסנטר לבן, מצוי ביערות הקלפ של קליפורניה.';
+  String get species_sheephead_desc =>
+      'דג נסיכה גדול בעל ראש וזנב שחורים, גוף אמצעי אדום וסנטר לבן, מצוי ביערות הקלפ של קליפורניה.';
 
   @override
   String get species_copper_rockfish_name => 'דג סלע נחושתי';
 
   @override
-  String get species_copper_rockfish_desc => 'דג סלע בגוון נחושת-כתום עם כתמים בהירים, מראה נפוץ בשוניות הסלע וביערות הקלפ של צפון-מערב האוקיינוס השקט.';
+  String get species_copper_rockfish_desc =>
+      'דג סלע בגוון נחושת-כתום עם כתמים בהירים, מראה נפוץ בשוניות הסלע וביערות הקלפ של צפון-מערב האוקיינוס השקט.';
 
   @override
   String get species_oriental_sweetlips_name => 'דג שפתיים מתוקות מזרחי';
 
   @override
-  String get species_oriental_sweetlips_desc => 'דג שונית הודו-פסיפי גדול בעל פסים שחורים ולבנים נועזים וסנפירים צהובים, והצעירים מבצעים ריקוד מתפתל.';
+  String get species_oriental_sweetlips_desc =>
+      'דג שונית הודו-פסיפי גדול בעל פסים שחורים ולבנים נועזים וסנפירים צהובים, והצעירים מבצעים ריקוד מתפתל.';
 
   @override
   String get species_harlequin_sweetlips_name => 'דג שפתיים מתוקות הרלקין';
 
   @override
-  String get species_harlequin_sweetlips_desc => 'הבוגרים אפורים עם נקודות כהות והצעירים חומים עם נקודות לבנות גדולות ושוחים בתנועה גלית.';
+  String get species_harlequin_sweetlips_desc =>
+      'הבוגרים אפורים עם נקודות כהות והצעירים חומים עם נקודות לבנות גדולות ושוחים בתנועה גלית.';
 
   @override
   String get species_blue_ringed_angelfish_name => 'דג מלאך כחול-טבעת';
 
   @override
-  String get species_blue_ringed_angelfish_desc => 'דג מלאך חום וגדול בעל קווים כחולים מעוקלים וטבעת כחולה אופיינית מעל מכסה הזימים.';
+  String get species_blue_ringed_angelfish_desc =>
+      'דג מלאך חום וגדול בעל קווים כחולים מעוקלים וטבעת כחולה אופיינית מעל מכסה הזימים.';
 
   @override
   String get species_yellowbar_angelfish_name => 'דג מלאך צהוב-פס';
 
   @override
-  String get species_yellowbar_angelfish_desc => 'דג מלאך גדול בגוון אפור-כחול בעל כתם גוף צהוב בולט, מצוי בים סוף ובמערב האוקיינוס ההודי.';
+  String get species_yellowbar_angelfish_desc =>
+      'דג מלאך גדול בגוון אפור-כחול בעל כתם גוף צהוב בולט, מצוי בים סוף ובמערב האוקיינוס ההודי.';
 
   @override
   String get species_filefish_scrawled_name => 'דג פצירה משורבט';
 
   @override
-  String get species_filefish_scrawled_desc => 'דג פצירה גדול בגוון חום-זית בעל סימנים כחולים דמויי שרבוט וזפק כתום, מצוי בשוניות טרופיות בכל העולם.';
+  String get species_filefish_scrawled_desc =>
+      'דג פצירה גדול בגוון חום-זית בעל סימנים כחולים דמויי שרבוט וזפק כתום, מצוי בשוניות טרופיות בכל העולם.';
 
   @override
   String get species_clown_filefish_name => 'דג פצירה כתום-נקודות';
 
   @override
-  String get species_clown_filefish_desc => 'דג פצירה ירוק וקטן בעל נקודות כתומות וחרטום ארוך, ניזון אך ורק מפוליפים של אלמוגי Acropora.';
+  String get species_clown_filefish_desc =>
+      'דג פצירה ירוק וקטן בעל נקודות כתומות וחרטום ארוך, ניזון אך ורק מפוליפים של אלמוגי Acropora.';
 
   @override
   String get species_unicornfish_name => 'דג חד-קרן כחול-קוץ';
 
   @override
-  String get species_unicornfish_desc => 'דג כירורג אפור בעל קרן מצח בולטת ושני קוצי זנב כחולים, נפוץ במישורי השונית של ההודו-פסיפי.';
+  String get species_unicornfish_desc =>
+      'דג כירורג אפור בעל קרן מצח בולטת ושני קוצי זנב כחולים, נפוץ במישורי השונית של ההודו-פסיפי.';
 
   @override
   String get species_surgeonfish_sailfin_name => 'דג כירורג מפרשי';
 
   @override
-  String get species_surgeonfish_sailfin_desc => 'דג כירורג בעל פסים נועזים וסנפירי גב ופי הטבעת מורחבים מאוד, מצוי ברחבי ההודו-פסיפי.';
+  String get species_surgeonfish_sailfin_desc =>
+      'דג כירורג בעל פסים נועזים וסנפירי גב ופי הטבעת מורחבים מאוד, מצוי ברחבי ההודו-פסיפי.';
 
   @override
   String get species_achilles_tang_name => 'דג כירורג אכילס';
 
   @override
-  String get species_achilles_tang_desc => 'דג כירורג בחום כהה בעל כתם דמעה כתום בולט סמוך לזנב, מצוי באזורי גלים סוערים במרכז האוקיינוס השקט.';
+  String get species_achilles_tang_desc =>
+      'דג כירורג בחום כהה בעל כתם דמעה כתום בולט סמוך לזנב, מצוי באזורי גלים סוערים במרכז האוקיינוס השקט.';
 
   @override
   String get species_doctorfish_name => 'דג רופא';
 
   @override
-  String get species_doctorfish_desc => 'דג כירורג בגוון אפרפר-חום בעל פסים כהים עדינים ואזמל זנב בולט, נפוץ בשוניות הקריביים.';
+  String get species_doctorfish_desc =>
+      'דג כירורג בגוון אפרפר-חום בעל פסים כהים עדינים ואזמל זנב בולט, נפוץ בשוניות הקריביים.';
 
   @override
   String get species_checkerboard_wrasse_name => 'דג נסיכה משבצות';
 
   @override
-  String get species_checkerboard_wrasse_desc => 'דג נסיכה צבעוני בעל דוגמת משבצות ירוקות, ורודות ושחורות לאורך הגוף.';
+  String get species_checkerboard_wrasse_desc =>
+      'דג נסיכה צבעוני בעל דוגמת משבצות ירוקות, ורודות ושחורות לאורך הגוף.';
 
   @override
   String get species_bird_wrasse_name => 'דג נסיכה ציפור';
 
   @override
-  String get species_bird_wrasse_desc => 'דג נסיכה בעל חרטום מוארך במיוחד המזכיר מקור של ציפור; הזכרים ירוקים כהים והנקבות חומות.';
+  String get species_bird_wrasse_desc =>
+      'דג נסיכה בעל חרטום מוארך במיוחד המזכיר מקור של ציפור; הזכרים ירוקים כהים והנקבות חומות.';
 
   @override
   String get species_sling_jaw_wrasse_name => 'דג נסיכה מקלע-לסת';
 
   @override
-  String get species_sling_jaw_wrasse_desc => 'דג נסיכה בעל לסת נשלפת הנורית קדימה כדי ללכוד טרף, ומופיע בגרסאות צבע צהובה או חומה.';
+  String get species_sling_jaw_wrasse_desc =>
+      'דג נסיכה בעל לסת נשלפת הנורית קדימה כדי ללכוד טרף, ומופיע בגרסאות צבע צהובה או חומה.';
 
   @override
   String get species_peacock_flounder_name => 'דג שטוח טווסי';
 
   @override
-  String get species_peacock_flounder_desc => 'דג קרקעית שטוח בעל טבעות ונקודות כחולות המסוגל לשנות את צבעו כדי להתמזג עם קרקעית הים.';
+  String get species_peacock_flounder_desc =>
+      'דג קרקעית שטוח בעל טבעות ונקודות כחולות המסוגל לשנות את צבעו כדי להתמזג עם קרקעית הים.';
 
   @override
   String get species_hogfish_name => 'דג חזיר';
 
   @override
-  String get species_hogfish_desc => 'דג נסיכה גדול ממערב האטלנטי בעל חרטום דמוי חזיר וקוצי גב מוארכים, מצוי סמוך לשוניות ולספינות טרופות.';
+  String get species_hogfish_desc =>
+      'דג נסיכה גדול ממערב האטלנטי בעל חרטום דמוי חזיר וקוצי גב מוארכים, מצוי סמוך לשוניות ולספינות טרופות.';
 
   @override
   String get species_tarpon_name => 'טרפון אטלנטי';
 
   @override
-  String get species_tarpon_desc => 'דג כסוף ענק בעל קשקשים גדולים דמויי מראה, נפגש לעיתים על ידי צוללנים במערות ובתעלות בקריביים.';
+  String get species_tarpon_desc =>
+      'דג כסוף ענק בעל קשקשים גדולים דמויי מראה, נפגש לעיתים על ידי צוללנים במערות ובתעלות בקריביים.';
 
   @override
   String get species_permit_name => 'פרמיט';
 
   @override
-  String get species_permit_desc => 'דג ג\'ק כסוף בעל גוף גבוה וזנב מפוצל כהה, מצוי במישורי החול של הקריביים וסמוך לשוניות.';
+  String get species_permit_desc =>
+      'דג ג\'ק כסוף בעל גוף גבוה וזנב מפוצל כהה, מצוי במישורי החול של הקריביים וסמוך לשוניות.';
 
   @override
   String get species_spotted_drum_name => 'דג תוף מנוקד';
 
   @override
-  String get species_spotted_drum_desc => 'דג קריבי מרשים בעל סנפיר גב גבוה ומוארך ודוגמת נקודות נועזת בשחור ולבן.';
+  String get species_spotted_drum_desc =>
+      'דג קריבי מרשים בעל סנפיר גב גבוה ומוארך ודוגמת נקודות נועזת בשחור ולבן.';
 
   @override
   String get species_jackknife_fish_name => 'דג אולר';
 
   @override
-  String get species_jackknife_fish_desc => 'דג קריבי אלגנטי בעל פס שחור גבוה בסנפיר הגב ופס אלכסוני בגוף, מצוי מתחת למדפי סלע.';
+  String get species_jackknife_fish_desc =>
+      'דג קריבי אלגנטי בעל פס שחור גבוה בסנפיר הגב ופס אלכסוני בגוף, מצוי מתחת למדפי סלע.';
 
   @override
   String get species_bigeye_name => 'עין-זכוכית';
 
   @override
-  String get species_bigeye_desc => 'דג לילי אדום בוהק בעל עיניים גדולות ומחזירות אור, מסתתר במערות בשוניות הקריביים והאטלנטי.';
+  String get species_bigeye_desc =>
+      'דג לילי אדום בוהק בעל עיניים גדולות ומחזירות אור, מסתתר במערות בשוניות הקריביים והאטלנטי.';
 
   @override
   String get species_remora_name => 'רמורה';
 
   @override
-  String get species_remora_desc => 'דג תמיר בעל דיסקת יניקה על ראשו הנטפל לכרישים, לטריגונים, לצבים ולבעלי חיים גדולים אחרים.';
+  String get species_remora_desc =>
+      'דג תמיר בעל דיסקת יניקה על ראשו הנטפל לכרישים, לטריגונים, לצבים ולבעלי חיים גדולים אחרים.';
 
   @override
   String get species_tilefish_sand_name => 'דג אריח חולי';
 
   @override
-  String get species_tilefish_sand_desc => 'דג מוארך בכחול בהיר הבונה תלוליות משברי אלמוגים מעל אזורי חול בשוניות הקריביים.';
+  String get species_tilefish_sand_desc =>
+      'דג מוארך בכחול בהיר הבונה תלוליות משברי אלמוגים מעל אזורי חול בשוניות הקריביים.';
 
   @override
   String get species_weedy_seadragon_name => 'דרקון ים עשבי';
 
   @override
-  String get species_weedy_seadragon_desc => 'קרוב משפחה מקושט של סוסוני הים בעל תוספות דמויות עלים, אנדמי למים הממוזגים של דרום אוסטרליה.';
+  String get species_weedy_seadragon_desc =>
+      'קרוב משפחה מקושט של סוסוני הים בעל תוספות דמויות עלים, אנדמי למים הממוזגים של דרום אוסטרליה.';
 
   @override
   String get species_leafy_seadragon_name => 'דרקון ים עלים';
 
   @override
-  String get species_leafy_seadragon_desc => 'דרקון ים מרהיב המכוסה בבליטות מורכבות דמויות עלים, אנדמי לדרום אוסטרליה ותצפית שכל צוללן חולם עליה.';
+  String get species_leafy_seadragon_desc =>
+      'דרקון ים מרהיב המכוסה בבליטות מורכבות דמויות עלים, אנדמי לדרום אוסטרליה ותצפית שכל צוללן חולם עליה.';
 
   @override
   String get species_sailfin_snapper_name => 'לוציאן מפרשי';
 
   @override
-  String get species_sailfin_snapper_desc => 'לוציאן אלגנטי בצהוב וכחול בעל סנפירי גב ופי הטבעת מוארכים, מצוי במדרונות שונית בהודו-פסיפי.';
+  String get species_sailfin_snapper_desc =>
+      'לוציאן אלגנטי בצהוב וכחול בעל סנפירי גב ופי הטבעת מוארכים, מצוי במדרונות שונית בהודו-פסיפי.';
 
   @override
   String get species_sweetlip_emperor_name => 'דג קיסר מנצנץ';
 
   @override
-  String get species_sweetlip_emperor_desc => 'דג קיסר כסוף וגדול בעל קווים כחולים בפנים ושולי סנפירים צהובים, נפוץ מעל אזורי חול סמוך לשוניות בהודו-פסיפי.';
+  String get species_sweetlip_emperor_desc =>
+      'דג קיסר כסוף וגדול בעל קווים כחולים בפנים ושולי סנפירים צהובים, נפוץ מעל אזורי חול סמוך לשוניות בהודו-פסיפי.';
 
   @override
   String get species_crocodilefish_name => 'דג תנין';
 
   @override
-  String get species_crocodilefish_desc => 'טורף מארב שטוח-ראש בעל גדילים מורכבים סביב העיניים, שוכב מוסווה להפליא על קרקעיות השונית בהודו-פסיפי.';
+  String get species_crocodilefish_desc =>
+      'טורף מארב שטוח-ראש בעל גדילים מורכבים סביב העיניים, שוכב מוסווה להפליא על קרקעיות השונית בהודו-פסיפי.';
 
   @override
   String get species_devil_scorpionfish_name => 'דג עקרב שטן';
 
   @override
-  String get species_devil_scorpionfish_desc => 'דג עקרב חסון ומוסווה החושף צבעים עזים בצדם הפנימי של סנפירי החזה כאזהרה לטורפים.';
+  String get species_devil_scorpionfish_desc =>
+      'דג עקרב חסון ומוסווה החושף צבעים עזים בצדם הפנימי של סנפירי החזה כאזהרה לטורפים.';
 
   @override
   String get species_spiny_devilfish_name => 'עוקצן שד';
 
   @override
-  String get species_spiny_devilfish_desc => 'דייר קרקעית ארסי הצועד על קרני סנפיר מותאמות וחושף סנפירי חזה בוהקים כשמפריעים לו.';
+  String get species_spiny_devilfish_desc =>
+      'דייר קרקעית ארסי הצועד על קרני סנפיר מותאמות וחושף סנפירי חזה בוהקים כשמפריעים לו.';
 
   @override
   String get species_waspfish_name => 'דג צרעה קקדו';
 
   @override
-  String get species_waspfish_desc => 'דג עקרב קטן ושטוח המתנועע בזרם כמו עלה מת מעל קרקעיות בוציות בהודו-פסיפי.';
+  String get species_waspfish_desc =>
+      'דג עקרב קטן ושטוח המתנועע בזרם כמו עלה מת מעל קרקעיות בוציות בהודו-פסיפי.';
 
   @override
   String get species_stargazer_name => 'צופה בכוכבים לבן-שוליים';
 
   @override
-  String get species_stargazer_desc => 'טורף מארב הטומן את עצמו בחול כשרק עיניו גלויות, ומסוגל לתת מכות חשמל; מצוי בהודו-פסיפי.';
+  String get species_stargazer_desc =>
+      'טורף מארב הטומן את עצמו בחול כשרק עיניו גלויות, ומסוגל לתת מכות חשמל; מצוי בהודו-פסיפי.';
 
   @override
   String get species_striped_catfish_name => 'שפמנון ים מפוספס';
 
   @override
-  String get species_striped_catfish_desc => 'שפמנון בעל קוצים ארסיים; הצעירים יוצרים להקות כדוריות צפופות המתגלגלות על קרקעיות השונית בהודו-פסיפי.';
+  String get species_striped_catfish_desc =>
+      'שפמנון בעל קוצים ארסיים; הצעירים יוצרים להקות כדוריות צפופות המתגלגלות על קרקעיות השונית בהודו-פסיפי.';
 
   @override
   String get species_red_emperor_name => 'קיסר אדום';
 
   @override
-  String get species_red_emperor_desc => 'לוציאן גדול; הבוגרים בגוון אדום-ורדרד והצעירים בעלי פסים אדומים ולבנים בולטים, והמין מצוי בשוניות ההודו-פסיפי.';
+  String get species_red_emperor_desc =>
+      'לוציאן גדול; הבוגרים בגוון אדום-ורדרד והצעירים בעלי פסים אדומים ולבנים בולטים, והמין מצוי בשוניות ההודו-פסיפי.';
 
   @override
   String get species_mangrove_snapper_name => 'לוציאן מנגרובים';
 
   @override
-  String get species_mangrove_snapper_desc => 'לוציאן אפור המצוי במנגרובים, בערוגות עשב ים ובשוניות בקריביים, ולרוב מתקבץ סמוך למבנים.';
+  String get species_mangrove_snapper_desc =>
+      'לוציאן אפור המצוי במנגרובים, בערוגות עשב ים ובשוניות בקריביים, ולרוב מתקבץ סמוך למבנים.';
 
   @override
   String get species_dottyback_orchid_name => 'דוטיבק סחלב';
 
   @override
-  String get species_dottyback_orchid_desc => 'דג קטן בסגול עז האנדמי לים סוף, מזנק פנימה והחוצה מנקיקים בקירות שונית תלולים.';
+  String get species_dottyback_orchid_desc =>
+      'דג קטן בסגול עז האנדמי לים סוף, מזנק פנימה והחוצה מנקיקים בקירות שונית תלולים.';
 
   @override
   String get species_dottyback_royal_name => 'דוטיבק מלכותי';
 
   @override
-  String get species_dottyback_royal_desc => 'דג קטן ודו-גוני שחלקו הקדמי מג\'נטה וחלקו האחורי צהוב בוהק, מצוי בקירות שונית בהודו-פסיפי.';
+  String get species_dottyback_royal_desc =>
+      'דג קטן ודו-גוני שחלקו הקדמי מג\'נטה וחלקו האחורי צהוב בוהק, מצוי בקירות שונית בהודו-פסיפי.';
 
   @override
   String get species_coral_trout_name => 'דקר נמרי';
 
   @override
-  String get species_coral_trout_desc => 'טורף נחשק של שונית המחסום הגדולה, בעל גוף אדום-כתום המכוסה בנקודות כחולות.';
+  String get species_coral_trout_desc =>
+      'טורף נחשק של שונית המחסום הגדולה, בעל גוף אדום-כתום המכוסה בנקודות כחולות.';
 
   @override
   String get species_barramundi_cod_name => 'דקר ברמונדי';
 
   @override
-  String get species_barramundi_cod_desc => 'דקר ייחודי בעל ראש קטן, גוף גבנוני ונקודות כהות גדולות על רקע בהיר.';
+  String get species_barramundi_cod_desc =>
+      'דקר ייחודי בעל ראש קטן, גוף גבנוני ונקודות כהות גדולות על רקע בהיר.';
 
   @override
   String get species_spadefish_atlantic_name => 'דג את אטלנטי';
 
   @override
-  String get species_spadefish_atlantic_desc => 'דג כסוף בצורת דיסקה בעל פסים אנכיים כהים, נצפה לרוב בלהקות גדולות סביב ספינות טרופות בקריביים.';
+  String get species_spadefish_atlantic_desc =>
+      'דג כסוף בצורת דיסקה בעל פסים אנכיים כהים, נצפה לרוב בלהקות גדולות סביב ספינות טרופות בקריביים.';
 
   @override
   String get species_fusilier_yellowback_name => 'פוזיליר צהוב-גב';
 
   @override
-  String get species_fusilier_yellowback_desc => 'דג כחול וחלקלק הניזון מפלנקטון ובעל גב צהוב, יוצר להקות ענק מעל מדרונות שונית בהודו-פסיפי.';
+  String get species_fusilier_yellowback_desc =>
+      'דג כחול וחלקלק הניזון מפלנקטון ובעל גב צהוב, יוצר להקות ענק מעל מדרונות שונית בהודו-פסיפי.';
 
   @override
   String get species_fusilier_bluestreak_name => 'פוזיליר כחול-פס';
 
   @override
-  String get species_fusilier_bluestreak_desc => 'פוזיליר כחול קטן בעל פס צדדי כהה, נצפה בלהקות מהירות לאורך קירות שונית בהודו-פסיפי.';
+  String get species_fusilier_bluestreak_desc =>
+      'פוזיליר כחול קטן בעל פס צדדי כהה, נצפה בלהקות מהירות לאורך קירות שונית בהודו-פסיפי.';
 
   @override
   String get species_porkfish_name => 'דג נוהם חזירי';
 
   @override
-  String get species_porkfish_desc => 'דג נוהם קריבי צבעוני בעל פסים כחולים וצהובים ושני פסי ראש שחורים, מצוי סמוך לשוניות ולספינות טרופות.';
+  String get species_porkfish_desc =>
+      'דג נוהם קריבי צבעוני בעל פסים כחולים וצהובים ושני פסי ראש שחורים, מצוי סמוך לשוניות ולספינות טרופות.';
 
   @override
   String get species_blue_striped_grunt_name => 'דג נוהם כחול-פסים';
 
   @override
-  String get species_blue_striped_grunt_desc => 'דג נוהם קריבי צהוב בעל פסים אופקיים כחולים עזים, יוצר ביום להקות מנוחה גדולות מתחת למדפי סלע.';
+  String get species_blue_striped_grunt_desc =>
+      'דג נוהם קריבי צהוב בעל פסים אופקיים כחולים עזים, יוצר ביום להקות מנוחה גדולות מתחת למדפי סלע.';
 
   @override
   String get species_french_grunt_name => 'דג נוהם צרפתי';
 
   @override
-  String get species_french_grunt_desc => 'דג נוהם קטן בפסים צהובים היוצר להקות מנוחה צפופות בשוניות הקריביים בשעות היום.';
+  String get species_french_grunt_desc =>
+      'דג נוהם קטן בפסים צהובים היוצר להקות מנוחה צפופות בשוניות הקריביים בשעות היום.';
 
   @override
   String get species_convict_tang_name => 'דג כירורג אסיר';
 
   @override
-  String get species_convict_tang_desc => 'דג כירורג בהיר בעל שישה פסים שחורים אנכיים, נצפה לרוב רועה בלהקות גדולות במישורי השונית של ההודו-פסיפי.';
+  String get species_convict_tang_desc =>
+      'דג כירורג בהיר בעל שישה פסים שחורים אנכיים, נצפה לרוב רועה בלהקות גדולות במישורי השונית של ההודו-פסיפי.';
 
   @override
   String get species_great_hammerhead_name => 'כריש פטיש משונן';
 
   @override
-  String get species_great_hammerhead_desc => 'כריש ייחודי בעל ראש משונן בצורת פטיש, יוצר להקות גדולות סביב הרי ים ואיים מרוחקים מהחוף.';
+  String get species_great_hammerhead_desc =>
+      'כריש ייחודי בעל ראש משונן בצורת פטיש, יוצר להקות גדולות סביב הרי ים ואיים מרוחקים מהחוף.';
 
   @override
   String get species_wobbegong_name => 'וובגונג מנוקד';
 
   @override
-  String get species_wobbegong_desc => 'כריש שטיח שטוח ומוסווה היטב בעל אונות משוננות סביב הפה, מצוי בשוניות ממוזגות באוסטרליה.';
+  String get species_wobbegong_desc =>
+      'כריש שטיח שטוח ומוסווה היטב בעל אונות משוננות סביב הפה, מצוי בשוניות ממוזגות באוסטרליה.';
 
   @override
   String get species_manta_ray_name => 'מנטת שונית';
 
   @override
-  String get species_manta_ray_desc => 'ענק חינני במוטת כנפיים של עד 5 מטרים המבקר בתחנות ניקוי וניזון מפלנקטון בשוניות ההודו-פסיפי.';
+  String get species_manta_ray_desc =>
+      'ענק חינני במוטת כנפיים של עד 5 מטרים המבקר בתחנות ניקוי וניזון מפלנקטון בשוניות ההודו-פסיפי.';
 
   @override
   String get species_oceanic_manta_name => 'מנטה אוקיינית';
 
   @override
-  String get species_oceanic_manta_desc => 'מין הטריגון הגדול ביותר, במוטת כנפיים של יותר מ-7 מטרים, נפגש בהרי ים מרוחקים מהחוף ובתחנות ניקוי.';
+  String get species_oceanic_manta_desc =>
+      'מין הטריגון הגדול ביותר, במוטת כנפיים של יותר מ-7 מטרים, נפגש בהרי ים מרוחקים מהחוף ובתחנות ניקוי.';
 
   @override
   String get species_undulated_moray_name => 'מורנה גלית';
 
   @override
-  String get species_undulated_moray_desc => 'מורנה בגוון ירוק-צהבהב עם סימנים גליים כהים, נצפית לרוב צדה בלילה בשוניות ההודו-פסיפי.';
+  String get species_undulated_moray_desc =>
+      'מורנה בגוון ירוק-צהבהב עם סימנים גליים כהים, נצפית לרוב צדה בלילה בשוניות ההודו-פסיפי.';
 
   @override
   String get species_whitemouth_moray_name => 'מורנה לבנת-פה';
 
   @override
-  String get species_whitemouth_moray_desc => 'מורנה בחום כהה עם נקודות לבנות קטנות וחלל פה לבן אופייני, מצויה ברחבי ההודו-פסיפי.';
+  String get species_whitemouth_moray_desc =>
+      'מורנה בחום כהה עם נקודות לבנות קטנות וחלל פה לבן אופייני, מצויה ברחבי ההודו-פסיפי.';
 
   @override
   String get species_dragon_moray_name => 'מורנת דרקון';
 
   @override
-  String get species_dragon_moray_desc => 'מורנה מרשימה בעלת קרניים דמויות דרקון מעל הנחיריים וכתמי נמר אדומים-כתומים, מצויה בהודו-פסיפי.';
+  String get species_dragon_moray_desc =>
+      'מורנה מרשימה בעלת קרניים דמויות דרקון מעל הנחיריים וכתמי נמר אדומים-כתומים, מצויה בהודו-פסיפי.';
 
   @override
   String get species_lyretail_grouper_name => 'דקר נבל-זנב';
 
   @override
-  String get species_lyretail_grouper_desc => 'דקר בגוון אדום-ורוד בעל נקודות כחולות וזנב אופייני בצורת סהר, מצוי בקירות שונית חיצוניים בהודו-פסיפי.';
+  String get species_lyretail_grouper_desc =>
+      'דקר בגוון אדום-ורוד בעל נקודות כחולות וזנב אופייני בצורת סהר, מצוי בקירות שונית חיצוניים בהודו-פסיפי.';
 
   @override
   String get species_banded_butterflyfish_name => 'דג פרפר מפוספס';
 
   @override
-  String get species_banded_butterflyfish_desc => 'דג פרפר לבן בעל ארבעה פסים אנכיים שחורים בולטים, אחד מדגי הפרפר הנפוצים ביותר בשוניות הקריביים.';
+  String get species_banded_butterflyfish_desc =>
+      'דג פרפר לבן בעל ארבעה פסים אנכיים שחורים בולטים, אחד מדגי הפרפר הנפוצים ביותר בשוניות הקריביים.';
 
   @override
   String get species_ringed_pipefish_name => 'דג צינור טבעות';
 
   @override
-  String get species_ringed_pipefish_desc => 'דג צינור תמיר בטבעות אדומות ולבנות לסירוגין, מצוי במערות ומתחת למדפי סלע בשוניות ההודו-פסיפי.';
+  String get species_ringed_pipefish_desc =>
+      'דג צינור תמיר בטבעות אדומות ולבנות לסירוגין, מצוי במערות ומתחת למדפי סלע בשוניות ההודו-פסיפי.';
 
   @override
   String get species_razorfish_name => 'דג תער';
 
   @override
-  String get species_razorfish_desc => 'דג זעיר השוחה בקבוצות במאונך כשראשו כלפי מטה, ומסתתר לרוב בין קוצי קיפודי ים בשוניות ההודו-פסיפי.';
+  String get species_razorfish_desc =>
+      'דג זעיר השוחה בקבוצות במאונך כשראשו כלפי מטה, ומסתתר לרוב בין קוצי קיפודי ים בשוניות ההודו-פסיפי.';
 
   @override
   String get species_harlequin_tuskfish_name => 'דג ניבים הרלקין';
 
   @override
-  String get species_harlequin_tuskfish_desc => 'דג נסיכה צבעוני בעל ניבים כחולים בוהקים, פסים אדומים-כתומים וכתמים לבנים, מצוי בשוניות מערב האוקיינוס השקט.';
+  String get species_harlequin_tuskfish_desc =>
+      'דג נסיכה צבעוני בעל ניבים כחולים בוהקים, פסים אדומים-כתומים וכתמים לבנים, מצוי בשוניות מערב האוקיינוס השקט.';
 
   @override
   String get species_blue_groper_name => 'גרופר כחול';
 
   @override
-  String get species_blue_groper_desc => 'דג נסיכה כחול וגדול האנדמי למזרח אוסטרליה, ידידותי ומתקרב לעיתים קרובות לצוללנים בשוניות ממוזגות.';
+  String get species_blue_groper_desc =>
+      'דג נסיכה כחול וגדול האנדמי למזרח אוסטרליה, ידידותי ומתקרב לעיתים קרובות לצוללנים בשוניות ממוזגות.';
 
   @override
   String get species_red_lipped_batfish_name => 'דג עטלף אדום-שפתיים';
 
   @override
-  String get species_red_lipped_batfish_desc => 'דג מוזר ושטוח-גוף בעל שפתיים אדומות בוהקות הצועד על סנפירים מותאמים על קרקעית הים בגלפגוס.';
+  String get species_red_lipped_batfish_desc =>
+      'דג מוזר ושטוח-גוף בעל שפתיים אדומות בוהקות הצועד על סנפירים מותאמים על קרקעית הים בגלפגוס.';
 
   @override
   String get species_orangeband_surgeonfish_name => 'דג כירורג כתום-פס';
 
   @override
-  String get species_orangeband_surgeonfish_desc => 'דג כירורג בגוון אפור-חום בעל פס אופקי כתום מאחורי העין, מצוי במדרונות שונית באוקיינוס השקט.';
+  String get species_orangeband_surgeonfish_desc =>
+      'דג כירורג בגוון אפור-חום בעל פס אופקי כתום מאחורי העין, מצוי במדרונות שונית באוקיינוס השקט.';
 
   @override
   String get species_maori_wrasse_name => 'דג נסיכה מאורי';
 
   @override
-  String get species_maori_wrasse_desc => 'דג נסיכה בינוני בעל פס כהה מאחורי סנפיר החזה, נפוץ בשוניות האוקיינוס השקט והאוקיינוס ההודי.';
+  String get species_maori_wrasse_desc =>
+      'דג נסיכה בינוני בעל פס כהה מאחורי סנפיר החזה, נפוץ בשוניות האוקיינוס השקט והאוקיינוס ההודי.';
 
   @override
   String get species_blue_ringed_octopus_name => 'תמנון כחול-טבעות';
 
   @override
-  String get species_blue_ringed_octopus_desc => 'תמנון קטן אך ארסי ביותר בעל טבעות כחולות בוהקות המהבהבות כשהוא מאוים.';
+  String get species_blue_ringed_octopus_desc =>
+      'תמנון קטן אך ארסי ביותר בעל טבעות כחולות בוהקות המהבהבות כשהוא מאוים.';
 
   @override
   String get species_common_octopus_name => 'תמנון מצוי';
 
   @override
-  String get species_common_octopus_desc => 'תמנון אינטליגנטי מאוד הידוע בשינויי צבע מהירים וביכולות פתרון בעיות.';
+  String get species_common_octopus_desc =>
+      'תמנון אינטליגנטי מאוד הידוע בשינויי צבע מהירים וביכולות פתרון בעיות.';
 
   @override
   String get species_giant_pacific_octopus_name => 'תמנון פסיפי ענק';
 
   @override
-  String get species_giant_pacific_octopus_desc => 'מין התמנון הגדול ביותר, מוטת זרועותיו מגיעה ליותר מ-4 מטרים במים הקרים של האוקיינוס השקט.';
+  String get species_giant_pacific_octopus_desc =>
+      'מין התמנון הגדול ביותר, מוטת זרועותיו מגיעה ליותר מ-4 מטרים במים הקרים של האוקיינוס השקט.';
 
   @override
   String get species_mimic_octopus_name => 'תמנון מחקה';
 
   @override
-  String get species_mimic_octopus_desc => 'תמנון יוצא דופן המחקה את מראם ואת התנהגותם של מינים ימיים אחרים.';
+  String get species_mimic_octopus_desc =>
+      'תמנון יוצא דופן המחקה את מראם ואת התנהגותם של מינים ימיים אחרים.';
 
   @override
   String get species_coconut_octopus_name => 'תמנון קוקוס';
 
   @override
-  String get species_coconut_octopus_desc => 'תמנון קטן המפורסם בנשיאת קליפות קוקוס ובשימוש בהן כמחסה נייד.';
+  String get species_coconut_octopus_desc =>
+      'תמנון קטן המפורסם בנשיאת קליפות קוקוס ובשימוש בהן כמחסה נייד.';
 
   @override
   String get species_day_octopus_name => 'תמנון יום';
 
   @override
-  String get species_day_octopus_desc => 'צייד פעיל בשעות היום, נפוץ בשוניות ההודו-פסיפי ובעל יכולות הסוואה מרשימות.';
+  String get species_day_octopus_desc =>
+      'צייד פעיל בשעות היום, נפוץ בשוניות ההודו-פסיפי ובעל יכולות הסוואה מרשימות.';
 
   @override
   String get species_wonderpus_octopus_name => 'תמנון וונדרפוס';
 
   @override
-  String get species_wonderpus_octopus_desc => 'תמנון מרשים בעל פסים לבנים וחומים ייחודיים, מצוי באתרי צלילת מאק חוליים.';
+  String get species_wonderpus_octopus_desc =>
+      'תמנון מרשים בעל פסים לבנים וחומים ייחודיים, מצוי באתרי צלילת מאק חוליים.';
 
   @override
   String get species_broadclub_cuttlefish_name => 'ספיה רחבת-אלה';
 
   @override
-  String get species_broadclub_cuttlefish_desc => 'ספיה גדולה בעלת מופעי צבע מהפנטים, נצפית לרוב בשוניות ההודו-פסיפי.';
+  String get species_broadclub_cuttlefish_desc =>
+      'ספיה גדולה בעלת מופעי צבע מהפנטים, נצפית לרוב בשוניות ההודו-פסיפי.';
 
   @override
   String get species_pharaoh_cuttlefish_name => 'ספיית פרעה';
 
   @override
-  String get species_pharaoh_cuttlefish_desc => 'ספיה גדולה המצויה ברחבי האוקיינוס ההודי, ידועה בדוגמאות צבע פועמות.';
+  String get species_pharaoh_cuttlefish_desc =>
+      'ספיה גדולה המצויה ברחבי האוקיינוס ההודי, ידועה בדוגמאות צבע פועמות.';
 
   @override
   String get species_flamboyant_cuttlefish_name => 'ספיה ראוותנית';
 
   @override
-  String get species_flamboyant_cuttlefish_desc => 'ספיה זעירה הצועדת על קרקעית הים ומציגה פעימות עזות של סגול, ורוד וצהוב.';
+  String get species_flamboyant_cuttlefish_desc =>
+      'ספיה זעירה הצועדת על קרקעית הים ומציגה פעימות עזות של סגול, ורוד וצהוב.';
 
   @override
   String get species_giant_cuttlefish_name => 'ספיה ענקית';
 
   @override
-  String get species_giant_cuttlefish_desc => 'הספיה הגדולה בעולם, מפורסמת בהתקהלויות הרבייה ההמוניות בדרום אוסטרליה.';
+  String get species_giant_cuttlefish_desc =>
+      'הספיה הגדולה בעולם, מפורסמת בהתקהלויות הרבייה ההמוניות בדרום אוסטרליה.';
 
   @override
   String get species_bigfin_reef_squid_name => 'דיונון שונית גדול-סנפיר';
 
   @override
-  String get species_bigfin_reef_squid_desc => 'דיונון להקתי הנפגש תכופות בצלילות לילה ונמשך אל פנסי הצוללנים.';
+  String get species_bigfin_reef_squid_desc =>
+      'דיונון להקתי הנפגש תכופות בצלילות לילה ונמשך אל פנסי הצוללנים.';
 
   @override
   String get species_caribbean_reef_squid_name => 'דיונון שונית קריבי';
 
   @override
-  String get species_caribbean_reef_squid_desc => 'דיונון סקרן המרחף לרוב בקבוצות קטנות סמוך לשולי השוניות בקריביים.';
+  String get species_caribbean_reef_squid_desc =>
+      'דיונון סקרן המרחף לרוב בקבוצות קטנות סמוך לשולי השוניות בקריביים.';
 
   @override
   String get species_bobtail_squid_name => 'דיונון קטום-זנב';
 
   @override
-  String get species_bobtail_squid_desc => 'דיונון לילי זעיר הטומן את עצמו בחול ביום, מציאה נחשקת בצלילות מאק.';
+  String get species_bobtail_squid_desc =>
+      'דיונון לילי זעיר הטומן את עצמו בחול ביום, מציאה נחשקת בצלילות מאק.';
 
   @override
   String get species_chambered_nautilus_name => 'נאוטילוס תאי';
 
   @override
-  String get species_chambered_nautilus_desc => 'מאובן חי קדום בעל קונכייה מסולסלת, נצפה לעיתים רחוקות בידי צוללנים במים עמוקים עם שחר.';
+  String get species_chambered_nautilus_desc =>
+      'מאובן חי קדום בעל קונכייה מסולסלת, נצפה לעיתים רחוקות בידי צוללנים במים עמוקים עם שחר.';
 
   @override
   String get species_spanish_dancer_name => 'הרקדנית הספרדייה';
 
   @override
-  String get species_spanish_dancer_desc => 'מין חשופית הים הגדול ביותר, שוחה בתנועות גליות של מעטפת אדומה המזכירות רקדנית פלמנקו.';
+  String get species_spanish_dancer_desc =>
+      'מין חשופית הים הגדול ביותר, שוחה בתנועות גליות של מעטפת אדומה המזכירות רקדנית פלמנקו.';
 
   @override
   String get species_chromodoris_willani_name => 'כרומודוריס של וילן';
 
   @override
-  String get species_chromodoris_willani_desc => 'חשופית ים מרשימה בכחול ושחור עם שוליים לבנים, נפוצה בהודו-פסיפי.';
+  String get species_chromodoris_willani_desc =>
+      'חשופית ים מרשימה בכחול ושחור עם שוליים לבנים, נפוצה בהודו-פסיפי.';
 
   @override
   String get species_chromodoris_lochi_name => 'כרומודוריס של לוך';
 
   @override
-  String get species_chromodoris_lochi_desc => 'חשופית ים כחולה בעלת קווים כהים ומסגרת לבנה, מצויה ברחבי האוקיינוס השקט הטרופי.';
+  String get species_chromodoris_lochi_desc =>
+      'חשופית ים כחולה בעלת קווים כהים ומסגרת לבנה, מצויה ברחבי האוקיינוס השקט הטרופי.';
 
   @override
   String get species_chromodoris_magnifica_name => 'כרומודוריס מפואר';
 
   @override
-  String get species_chromodoris_magnifica_desc => 'חשופית ים זוהרת בכחול, לבן וכתום, מצויה בשוניות האלמוגים של ההודו-פסיפי.';
+  String get species_chromodoris_magnifica_desc =>
+      'חשופית ים זוהרת בכחול, לבן וכתום, מצויה בשוניות האלמוגים של ההודו-פסיפי.';
 
   @override
   String get species_chromodoris_annae_name => 'כרומודוריס של אנה';
 
   @override
-  String get species_chromodoris_annae_desc => 'חשופית ים בכחול עמוק בעלת קווים שחורים וקרנוני חוש וזימים כתומי-קצה.';
+  String get species_chromodoris_annae_desc =>
+      'חשופית ים בכחול עמוק בעלת קווים שחורים וקרנוני חוש וזימים כתומי-קצה.';
 
   @override
   String get species_nembrotha_kubaryana_name => 'חשופית ניאון משתנה';
 
   @override
-  String get species_nembrotha_kubaryana_desc => 'חשופית ים ירוקה כהה בעלת סימנים כתומים או אדומים עזים, ניזונה מנרתיקיות.';
+  String get species_nembrotha_kubaryana_desc =>
+      'חשופית ים ירוקה כהה בעלת סימנים כתומים או אדומים עזים, ניזונה מנרתיקיות.';
 
   @override
   String get species_nembrotha_cristata_name => 'נמברותה מצויצת';
 
   @override
-  String get species_nembrotha_cristata_desc => 'חשופית ים שחורה בעלת יבלות ופסים בירוק זוהר, מצויה בשוניות ההודו-פסיפי.';
+  String get species_nembrotha_cristata_desc =>
+      'חשופית ים שחורה בעלת יבלות ופסים בירוק זוהר, מצויה בשוניות ההודו-פסיפי.';
 
   @override
   String get species_phyllidia_varicosa_name => 'פילידיה מגובששת';
 
   @override
-  String get species_phyllidia_varicosa_desc => 'חשופית ים בגוון כחול-אפור בעלת יבלות מורמות צהובות-קצה, רעילה לטורפים.';
+  String get species_phyllidia_varicosa_desc =>
+      'חשופית ים בגוון כחול-אפור בעלת יבלות מורמות צהובות-קצה, רעילה לטורפים.';
 
   @override
   String get species_phyllidia_ocellata_name => 'פילידיה עינונית';
 
   @override
-  String get species_phyllidia_ocellata_desc => 'חשופית ים לבנה בעלת יבלות מורמות מוקפות טבעות ורודות, מצויה בשוניות טרופיות.';
+  String get species_phyllidia_ocellata_desc =>
+      'חשופית ים לבנה בעלת יבלות מורמות מוקפות טבעות ורודות, מצויה בשוניות טרופיות.';
 
   @override
   String get species_pikachu_nudibranch_name => 'חשופית פיקאצ\'ו';
 
   @override
-  String get species_pikachu_nudibranch_desc => 'חשופית ים זעירה בצהוב ושחור המזכירה דמות מצוירת, מצויה באוקיינוס השקט.';
+  String get species_pikachu_nudibranch_desc =>
+      'חשופית ים זעירה בצהוב ושחור המזכירה דמות מצוירת, מצויה באוקיינוס השקט.';
 
   @override
   String get species_anna_rosefieldi_name => 'חשופית רובואסטרה';
 
   @override
-  String get species_anna_rosefieldi_desc => 'חשופית ים טורפת בעלת גוף כהה ופסים אורכיים בוהקים, הצדה חשופיות אחרות.';
+  String get species_anna_rosefieldi_desc =>
+      'חשופית ים טורפת בעלת גוף כהה ופסים אורכיים בוהקים, הצדה חשופיות אחרות.';
 
   @override
   String get species_lettuce_sea_slug_name => 'חשופית חסה';
 
   @override
-  String get species_lettuce_sea_slug_desc => 'חשופית ים ירוקה ומקומטת השומרת בגופה כלורופלסטים מאצות לצורך פוטוסינתזה.';
+  String get species_lettuce_sea_slug_desc =>
+      'חשופית ים ירוקה ומקומטת השומרת בגופה כלורופלסטים מאצות לצורך פוטוסינתזה.';
 
   @override
   String get species_blue_dragon_nudibranch_name => 'חשופית דרקון כחול';
 
   @override
-  String get species_blue_dragon_nudibranch_desc => 'חשופית ים ארוכה ממשפחת האאוליד בעלת בליטות כחולות-קצה המאכסנות אצות סימביוטיות.';
+  String get species_blue_dragon_nudibranch_desc =>
+      'חשופית ים ארוכה ממשפחת האאוליד בעלת בליטות כחולות-קצה המאכסנות אצות סימביוטיות.';
 
   @override
   String get species_gloomy_nudibranch_name => 'חשופית קודרת';
 
   @override
-  String get species_gloomy_nudibranch_desc => 'חשופית ים בגוון כחול-ירוק כהה בעלת רכסים כחולי-שוליים, נפוצה בשוניות ההודו-פסיפי.';
+  String get species_gloomy_nudibranch_desc =>
+      'חשופית ים בגוון כחול-ירוק כהה בעלת רכסים כחולי-שוליים, נפוצה בשוניות ההודו-פסיפי.';
 
   @override
   String get species_ocellined_nudibranch_name => 'חשופית מקווקוות';
 
   @override
-  String get species_ocellined_nudibranch_desc => 'חשופית ים לבנה בעלת רכסים בקווים כתומים היוצרים דוגמאות גיאומטריות על המעטפת.';
+  String get species_ocellined_nudibranch_desc =>
+      'חשופית ים לבנה בעלת רכסים בקווים כתומים היוצרים דוגמאות גיאומטריות על המעטפת.';
 
   @override
   String get species_glossodoris_cincta_name => 'חשופית גלוסודוריס';
 
   @override
-  String get species_glossodoris_cincta_desc => 'חשופית ים בגוון שמנת בעלת מסגרת חומה כהה ושוליים כתומים במעטפת.';
+  String get species_glossodoris_cincta_desc =>
+      'חשופית ים בגוון שמנת בעלת מסגרת חומה כהה ושוליים כתומים במעטפת.';
 
   @override
   String get species_jorunna_funebris_name => 'חשופית מנוקדת';
 
   @override
-  String get species_jorunna_funebris_desc => 'חשופית ים לבנה המכוסה בפקעיות שחורות-קצה, ומזכירה ארנבון פרוותי.';
+  String get species_jorunna_funebris_desc =>
+      'חשופית ים לבנה המכוסה בפקעיות שחורות-קצה, ומזכירה ארנבון פרוותי.';
 
   @override
   String get species_ceratosoma_trilobatum_name => 'חשופית תלת-אונתית';
 
   @override
-  String get species_ceratosoma_trilobatum_desc => 'חשופית ים גדולה בעלת קרן גב גבוהה ואונות צדדיות בגווני סגול וצהוב.';
+  String get species_ceratosoma_trilobatum_desc =>
+      'חשופית ים גדולה בעלת קרן גב גבוהה ואונות צדדיות בגווני סגול וצהוב.';
 
   @override
   String get species_hypselodoris_apolegma_name => 'היפסלודוריס סגולה';
 
   @override
-  String get species_hypselodoris_apolegma_desc => 'חשופית ים סגולה ואלגנטית בעלת שוליים לבנים במעטפת, מצויה בשוניות ההודו-פסיפי.';
+  String get species_hypselodoris_apolegma_desc =>
+      'חשופית ים סגולה ואלגנטית בעלת שוליים לבנים במעטפת, מצויה בשוניות ההודו-פסיפי.';
 
   @override
   String get species_hypselodoris_bullockii_name => 'היפסלודוריס של בולוק';
 
   @override
-  String get species_hypselodoris_bullockii_desc => 'חשופית ים בוורוד וסגול בעלת קרנוני חוש צהובי-קצה, בשוניות ההודו-פסיפי.';
+  String get species_hypselodoris_bullockii_desc =>
+      'חשופית ים בוורוד וסגול בעלת קרנוני חוש צהובי-קצה, בשוניות ההודו-פסיפי.';
 
   @override
   String get species_flabellina_exoptata_name => 'פלבלינה נחשקת';
 
   @override
-  String get species_flabellina_exoptata_desc => 'חשופית ים שקופה למחצה ממשפחת האאוליד בעלת בליטות כתומות סגולות-קצה, מצויה במים טרופיים.';
+  String get species_flabellina_exoptata_desc =>
+      'חשופית ים שקופה למחצה ממשפחת האאוליד בעלת בליטות כתומות סגולות-קצה, מצויה במים טרופיים.';
 
   @override
   String get species_risbecia_tryoni_name => 'ריסבקיה של טריון';
 
   @override
-  String get species_risbecia_tryoni_desc => 'חשופית ים גדולה בחום וכחול, נמצאת לרוב בזוגות הזדווגות בשוניות ההודו-פסיפי.';
+  String get species_risbecia_tryoni_desc =>
+      'חשופית ים גדולה בחום וכחול, נמצאת לרוב בזוגות הזדווגות בשוניות ההודו-פסיפי.';
 
   @override
   String get species_goniobranchus_kuniei_name => 'חשופית של קוניה';
 
   @override
-  String get species_goniobranchus_kuniei_desc => 'חשופית ים לבנה בנקודות כתומות ובעלת שולי מעטפת סגולים, מצויה במערב האוקיינוס השקט.';
+  String get species_goniobranchus_kuniei_desc =>
+      'חשופית ים לבנה בנקודות כתומות ובעלת שולי מעטפת סגולים, מצויה במערב האוקיינוס השקט.';
 
   @override
   String get species_mexichromis_multituberculata_name => 'חשופית רבת-פקעיות';
 
   @override
-  String get species_mexichromis_multituberculata_desc => 'חשופית ים בסגול ולבן בעלת פקעיות מורמות ותוספות כתומות-קצה.';
+  String get species_mexichromis_multituberculata_desc =>
+      'חשופית ים בסגול ולבן בעלת פקעיות מורמות ותוספות כתומות-קצה.';
 
   @override
   String get species_chromodoris_dianae_name => 'כרומודוריס של דיאנה';
 
   @override
-  String get species_chromodoris_dianae_desc => 'חשופית ים כחולה בוהקת בעלת פסים שחורים וזימים כתומים, מצויה במערב האוקיינוס השקט.';
+  String get species_chromodoris_dianae_desc =>
+      'חשופית ים כחולה בוהקת בעלת פסים שחורים וזימים כתומים, מצויה במערב האוקיינוס השקט.';
 
   @override
   String get species_phyllodesmium_poindimiei_name => 'חשופית סולארית';
 
   @override
-  String get species_phyllodesmium_poindimiei_desc => 'חשופית ים שקופה למחצה ממשפחת האאוליד בעלת בליטות מסועפות המאכסנות אצות סימביוטיות.';
+  String get species_phyllodesmium_poindimiei_desc =>
+      'חשופית ים שקופה למחצה ממשפחת האאוליד בעלת בליטות מסועפות המאכסנות אצות סימביוטיות.';
 
   @override
   String get species_chromodoris_elisabethina_name => 'כרומודוריס של אליזבת';
 
   @override
-  String get species_chromodoris_elisabethina_desc => 'חשופית ים בעלת קווים כחולים וצהובים ושוליים לבנים במעטפת, נפוצה בדרום-מזרח אסיה.';
+  String get species_chromodoris_elisabethina_desc =>
+      'חשופית ים בעלת קווים כחולים וצהובים ושוליים לבנים במעטפת, נפוצה בדרום-מזרח אסיה.';
 
   @override
   String get species_doridella_batava_name => 'דורית בטאבית';
 
   @override
-  String get species_doridella_batava_desc => 'חשופית ים ממשפחת הדורידים שצבעה משתנה משחור לחום, מצויה מתחת לסלעים ולשברי אלמוגים בשוניות ההודו-פסיפי.';
+  String get species_doridella_batava_desc =>
+      'חשופית ים ממשפחת הדורידים שצבעה משתנה משחור לחום, מצויה מתחת לסלעים ולשברי אלמוגים בשוניות ההודו-פסיפי.';
 
   @override
   String get species_tiger_cowrie_name => 'קאורית טיגריס';
 
   @override
-  String get species_tiger_cowrie_desc => 'קונכיית קאורי גדולה ומנוקדת המצויה בשוניות טרופיות, ולרוב מכוסה חלקית במעטפת שלה.';
+  String get species_tiger_cowrie_desc =>
+      'קונכיית קאורי גדולה ומנוקדת המצויה בשוניות טרופיות, ולרוב מכוסה חלקית במעטפת שלה.';
 
   @override
   String get species_tritons_trumpet_name => 'חצוצרת טריטון';
 
   @override
-  String get species_tritons_trumpet_desc => 'חילזון טורף גדול ואויבו הטבעי של כוכב ים כתר הקוצים.';
+  String get species_tritons_trumpet_desc =>
+      'חילזון טורף גדול ואויבו הטבעי של כוכב ים כתר הקוצים.';
 
   @override
   String get species_queen_conch_name => 'קונכיית המלכה';
 
   @override
-  String get species_queen_conch_desc => 'קונכייה גדולה ואייקונית של ערוגות עשב הים בקריביים, בעלת שפה פנימית ורודה אופיינית.';
+  String get species_queen_conch_desc =>
+      'קונכייה גדולה ואייקונית של ערוגות עשב הים בקריביים, בעלת שפה פנימית ורודה אופיינית.';
 
   @override
   String get species_banded_coral_shrimp_name => 'חסילון אלמוגים מפוספס';
 
   @override
-  String get species_banded_coral_shrimp_desc => 'חסילון מנקה בפסים אדומים ולבנים ובעל מחושים לבנים ארוכים, מצוי בנקיקי שונית.';
+  String get species_banded_coral_shrimp_desc =>
+      'חסילון מנקה בפסים אדומים ולבנים ובעל מחושים לבנים ארוכים, מצוי בנקיקי שונית.';
 
   @override
   String get species_mantis_shrimp_name => 'חסילון גמל שלמה טווסי';
 
   @override
-  String get species_mantis_shrimp_desc => 'טורף צבעוני בעל תוספות חזקות דמויות אלה המסוגלות לנפץ קונכיות.';
+  String get species_mantis_shrimp_desc =>
+      'טורף צבעוני בעל תוספות חזקות דמויות אלה המסוגלות לנפץ קונכיות.';
 
   @override
   String get species_cleaner_shrimp_name => 'חסילון מנקה ארגמן';
 
   @override
-  String get species_cleaner_shrimp_desc => 'חסילון אדום ולבן בוהק המקים תחנות ניקוי לשירות דגי השונית.';
+  String get species_cleaner_shrimp_desc =>
+      'חסילון אדום ולבן בוהק המקים תחנות ניקוי לשירות דגי השונית.';
 
   @override
   String get species_pederson_cleaner_shrimp_name => 'חסילון מנקה של פדרסון';
 
   @override
-  String get species_pederson_cleaner_shrimp_desc => 'חסילון מנקה קריבי שקוף למחצה החי בין זרועות שושנות ים.';
+  String get species_pederson_cleaner_shrimp_desc =>
+      'חסילון מנקה קריבי שקוף למחצה החי בין זרועות שושנות ים.';
 
   @override
   String get species_harlequin_shrimp_name => 'חסילון הרלקין';
 
   @override
-  String get species_harlequin_shrimp_desc => 'חסילון בעל דוגמה מרהיבה וצבתות שטוחות הניזון אך ורק מכוכבי ים.';
+  String get species_harlequin_shrimp_desc =>
+      'חסילון בעל דוגמה מרהיבה וצבתות שטוחות הניזון אך ורק מכוכבי ים.';
 
   @override
   String get species_coleman_shrimp_name => 'חסילון קולמן';
 
   @override
-  String get species_coleman_shrimp_desc => 'חסילון זעיר החי בזוגות על קיפודי אש, נחשק מאוד בקרב צלמי תת-מים.';
+  String get species_coleman_shrimp_desc =>
+      'חסילון זעיר החי בזוגות על קיפודי אש, נחשק מאוד בקרב צלמי תת-מים.';
 
   @override
   String get species_emperor_shrimp_name => 'חסילון קיסרי';
 
   @override
-  String get species_emperor_shrimp_desc => 'חסילון קומנסלי צבעוני הרוכב על מלפפוני ים ועל חשופיות ים.';
+  String get species_emperor_shrimp_desc =>
+      'חסילון קומנסלי צבעוני הרוכב על מלפפוני ים ועל חשופיות ים.';
 
   @override
   String get species_sexy_shrimp_name => 'חסילון סקסי';
 
   @override
-  String get species_sexy_shrimp_desc => 'חסילון שושנות ים זעיר הידוע בריקוד נענוע הזנב שלו, פופולרי בצילומי מאקרו.';
+  String get species_sexy_shrimp_desc =>
+      'חסילון שושנות ים זעיר הידוע בריקוד נענוע הזנב שלו, פופולרי בצילומי מאקרו.';
 
   @override
   String get species_marble_shrimp_name => 'חסילון שיש';
 
   @override
-  String get species_marble_shrimp_desc => 'חסילון לילי מנומר בעל רגליים נוצתיות, מסתתר ביום בנקיקי שונית.';
+  String get species_marble_shrimp_desc =>
+      'חסילון לילי מנומר בעל רגליים נוצתיות, מסתתר ביום בנקיקי שונית.';
 
   @override
   String get species_spiny_lobster_name => 'לובסטר קוצני קריבי';
 
   @override
-  String get species_spiny_lobster_desc => 'לובסטר גדול נטול צבתות בעל מחושים ארוכים, מסתתר מתחת למדפי שונית.';
+  String get species_spiny_lobster_desc =>
+      'לובסטר גדול נטול צבתות בעל מחושים ארוכים, מסתתר מתחת למדפי שונית.';
 
   @override
   String get species_painted_spiny_lobster_name => 'לובסטר קוצני מצויר';
 
   @override
-  String get species_painted_spiny_lobster_desc => 'לובסטר צבעוני להפליא בעל רגליים מפוספסות בכחול, ירוק ולבן בשוניות ההודו-פסיפי.';
+  String get species_painted_spiny_lobster_desc =>
+      'לובסטר צבעוני להפליא בעל רגליים מפוספסות בכחול, ירוק ולבן בשוניות ההודו-פסיפי.';
 
   @override
   String get species_slipper_lobster_name => 'לובסטר נעל';
 
   @override
-  String get species_slipper_lobster_desc => 'לובסטר לילי שטוח-גוף בעל לוחות מחושים רחבים במקום שוטים ארוכים.';
+  String get species_slipper_lobster_desc =>
+      'לובסטר לילי שטוח-גוף בעל לוחות מחושים רחבים במקום שוטים ארוכים.';
 
   @override
   String get species_squat_lobster_name => 'לובסטר גוץ';
 
   @override
-  String get species_squat_lobster_desc => 'סרטן זעיר בגוון ורוד-סגול החי על ספוגי חבית ענקיים, אהוב על צלמי מאקרו.';
+  String get species_squat_lobster_desc =>
+      'סרטן זעיר בגוון ורוד-סגול החי על ספוגי חבית ענקיים, אהוב על צלמי מאקרו.';
 
   @override
   String get species_hermit_crab_name => 'סרטן נזיר כחול-רגליים';
 
   @override
-  String get species_hermit_crab_desc => 'סרטן נזיר קטן בעל רגליים כחולות בוהקות, נצפה לרוב בשוניות הקריביים.';
+  String get species_hermit_crab_desc =>
+      'סרטן נזיר קטן בעל רגליים כחולות בוהקות, נצפה לרוב בשוניות הקריביים.';
 
   @override
   String get species_orangutan_crab_name => 'סרטן אורנגאוטן';
 
   @override
-  String get species_orangutan_crab_desc => 'סרטן שעיר וזעיר החי באלמוג בועות, ושמו ניתן לו בשל דמיונו לאורנגאוטן.';
+  String get species_orangutan_crab_desc =>
+      'סרטן שעיר וזעיר החי באלמוג בועות, ושמו ניתן לו בשל דמיונו לאורנגאוטן.';
 
   @override
   String get species_decorator_crab_name => 'סרטן מקשט';
 
   @override
-  String get species_decorator_crab_desc => 'אמן התחפושות המצמיד ספוגים, אצות והידרואידים אל שריון הגב שלו.';
+  String get species_decorator_crab_desc =>
+      'אמן התחפושות המצמיד ספוגים, אצות והידרואידים אל שריון הגב שלו.';
 
   @override
   String get species_porcelain_crab_name => 'סרטן חרסינה של שושנות ים';
 
   @override
-  String get species_porcelain_crab_desc => 'סרטן שטוח ומנוקד החי בשושנות ים ומסנן מזון בעזרת איברי פה נוצתיים.';
+  String get species_porcelain_crab_desc =>
+      'סרטן שטוח ומנוקד החי בשושנות ים ומסנן מזון בעזרת איברי פה נוצתיים.';
 
   @override
   String get species_arrow_crab_name => 'סרטן חץ';
 
   @override
-  String get species_arrow_crab_desc => 'סרטן קריבי דקיק בעל חרטום מחודד ארוך ורגליים מפוספסות.';
+  String get species_arrow_crab_desc =>
+      'סרטן קריבי דקיק בעל חרטום מחודד ארוך ורגליים מפוספסות.';
 
   @override
   String get species_channel_clinging_crab_name => 'סרטן נאחז';
 
   @override
-  String get species_channel_clinging_crab_desc => 'סרטן שונית קריבי גדול בעל גוף כהה וצבתות אדומות-כתומות, מצוי בנקיקים.';
+  String get species_channel_clinging_crab_desc =>
+      'סרטן שונית קריבי גדול בעל גוף כהה וצבתות אדומות-כתומות, מצוי בנקיקים.';
 
   @override
   String get species_coral_crab_name => 'סרטן שומר אלמוגים';
 
   @override
-  String get species_coral_crab_desc => 'סרטן קטן ומנוקד החי בסימביוזה באלמוגי Pocillopora ומגן על מארחו.';
+  String get species_coral_crab_desc =>
+      'סרטן קטן ומנוקד החי בסימביוזה באלמוגי Pocillopora ומגן על מארחו.';
 
   @override
   String get species_crown_of_thorns_starfish_name => 'כוכב ים כתר הקוצים';
 
   @override
-  String get species_crown_of_thorns_starfish_desc => 'כוכב ים ארסי רב-זרועות הניזון מאלמוגים ומסוגל להחריב שוניות בעת התפרצויות.';
+  String get species_crown_of_thorns_starfish_desc =>
+      'כוכב ים ארסי רב-זרועות הניזון מאלמוגים ומסוגל להחריב שוניות בעת התפרצויות.';
 
   @override
   String get species_blue_linckia_starfish_name => 'כוכב ים לינקיה כחול';
 
   @override
-  String get species_blue_linckia_starfish_desc => 'כוכב ים בכחול עז הנצפה לרוב במישורי ובמדרונות השוניות של ההודו-פסיפי.';
+  String get species_blue_linckia_starfish_desc =>
+      'כוכב ים בכחול עז הנצפה לרוב במישורי ובמדרונות השוניות של ההודו-פסיפי.';
 
   @override
   String get species_red_knob_starfish_name => 'כוכב ים אדום-פקעות';
 
   @override
-  String get species_red_knob_starfish_desc => 'כוכב ים אפור וגדול בעל קוצים בולטים אדומי-קצה, מצוי באזורי חול בשוניות.';
+  String get species_red_knob_starfish_desc =>
+      'כוכב ים אפור וגדול בעל קוצים בולטים אדומי-קצה, מצוי באזורי חול בשוניות.';
 
   @override
   String get species_chocolate_chip_starfish_name => 'כוכב ים שוקולד צ\'יפס';
 
   @override
-  String get species_chocolate_chip_starfish_desc => 'כוכב ים בגוון חול בעל פקעות כהות מורמות המזכירות שבבי שוקולד, מצוי במצעים חוליים.';
+  String get species_chocolate_chip_starfish_desc =>
+      'כוכב ים בגוון חול בעל פקעות כהות מורמות המזכירות שבבי שוקולד, מצוי במצעים חוליים.';
 
   @override
   String get species_cushion_star_name => 'כוכב ים כרית';
 
   @override
-  String get species_cushion_star_desc => 'כוכב ים תפוח ומחומש בעל זרועות מקוצרות, מצוי במישורי השונית של ההודו-פסיפי.';
+  String get species_cushion_star_desc =>
+      'כוכב ים תפוח ומחומש בעל זרועות מקוצרות, מצוי במישורי השונית של ההודו-פסיפי.';
 
   @override
   String get species_fromia_starfish_name => 'כוכב ים אלגנטי';
 
   @override
-  String get species_fromia_starfish_desc => 'כוכב ים קטן בגוון כתום-אדום בעל שולי לוחיות בהירים היוצרים דוגמה דמויית ריצוף.';
+  String get species_fromia_starfish_desc =>
+      'כוכב ים קטן בגוון כתום-אדום בעל שולי לוחיות בהירים היוצרים דוגמה דמויית ריצוף.';
 
   @override
   String get species_basket_star_name => 'כוכב סל';
 
   @override
-  String get species_basket_star_desc => 'זרועותיו המסועפות להפליא נפרשות בלילה כדי לסנן מזון מן הזרם.';
+  String get species_basket_star_desc =>
+      'זרועותיו המסועפות להפליא נפרשות בלילה כדי לסנן מזון מן הזרם.';
 
   @override
   String get species_brittle_star_name => 'כוכב שביר מפוספס';
 
   @override
-  String get species_brittle_star_desc => 'כוכב שביר מפוספס המצוי מתחת לסלעים ובנקיקים, בעל זרועות זריזות דמויות נחש.';
+  String get species_brittle_star_desc =>
+      'כוכב שביר מפוספס המצוי מתחת לסלעים ובנקיקים, בעל זרועות זריזות דמויות נחש.';
 
   @override
   String get species_feather_star_name => 'כוכב נוצה';
 
   @override
-  String get species_feather_star_desc => 'קרינואיד רב-זרועות הנח על בליטות בשונית ומסנן מזון בעזרת זרועותיו הנוצתיות.';
+  String get species_feather_star_desc =>
+      'קרינואיד רב-זרועות הנח על בליטות בשונית ומסנן מזון בעזרת זרועותיו הנוצתיות.';
 
   @override
   String get species_black_feather_star_name => 'כוכב נוצה שחור';
 
   @override
-  String get species_black_feather_star_desc => 'קרינואיד כהה המסוגל לשחות למרחקים קצרים בנפנוף קצבי של זרועותיו הרבות.';
+  String get species_black_feather_star_desc =>
+      'קרינואיד כהה המסוגל לשחות למרחקים קצרים בנפנוף קצבי של זרועותיו הרבות.';
 
   @override
   String get species_long_spined_sea_urchin_name => 'קיפוד ים ארוך-קוצים';
 
   @override
-  String get species_long_spined_sea_urchin_desc => 'קיפוד ים שחור בעל קוצים ארוכים וארסיים, רועה חיוני בשוניות הקריביים.';
+  String get species_long_spined_sea_urchin_desc =>
+      'קיפוד ים שחור בעל קוצים ארוכים וארסיים, רועה חיוני בשוניות הקריביים.';
 
   @override
   String get species_fire_urchin_name => 'קיפוד ים אש';
 
   @override
-  String get species_fire_urchin_desc => 'קיפוד ים רך-גוף בעל קוצים ארסיים הגורמים לעקיצות כואבות במגע.';
+  String get species_fire_urchin_desc =>
+      'קיפוד ים רך-גוף בעל קוצים ארסיים הגורמים לעקיצות כואבות במגע.';
 
   @override
   String get species_pencil_urchin_name => 'קיפוד ים עיפרון';
 
   @override
-  String get species_pencil_urchin_desc => 'קיפוד ים חסון בעל קוצים עבים וקהים, נתקע בנקיקי השונית.';
+  String get species_pencil_urchin_desc =>
+      'קיפוד ים חסון בעל קוצים עבים וקהים, נתקע בנקיקי השונית.';
 
   @override
   String get species_collector_urchin_name => 'קיפוד ים אספן';
 
   @override
-  String get species_collector_urchin_desc => 'קיפוד ים המכסה את עצמו בשברי פסולת ובקטעי אצות לצורך הסוואה.';
+  String get species_collector_urchin_desc =>
+      'קיפוד ים המכסה את עצמו בשברי פסולת ובקטעי אצות לצורך הסוואה.';
 
   @override
   String get species_sea_apple_name => 'תפוח ים';
 
   @override
-  String get species_sea_apple_desc => 'מלפפון ים צבעוני להפליא בעל זרועות פה המשמשות לסינון מזון.';
+  String get species_sea_apple_desc =>
+      'מלפפון ים צבעוני להפליא בעל זרועות פה המשמשות לסינון מזון.';
 
   @override
   String get species_pineapple_sea_cucumber_name => 'מלפפון ים אננס';
 
   @override
-  String get species_pineapple_sea_cucumber_desc => 'מלפפון ים גדול בגוון כתום-אדום בעל פטמיות בצורת כוכב, מצוי במדרונות שונית.';
+  String get species_pineapple_sea_cucumber_desc =>
+      'מלפפון ים גדול בגוון כתום-אדום בעל פטמיות בצורת כוכב, מצוי במדרונות שונית.';
 
   @override
   String get species_black_sea_cucumber_name => 'מלפפון ים שחור';
 
   @override
-  String get species_black_sea_cucumber_desc => 'מלפפון ים שחור ונפוץ המצוי במישורי חול בשוניות ברחבי ההודו-פסיפי.';
+  String get species_black_sea_cucumber_desc =>
+      'מלפפון ים שחור ונפוץ המצוי במישורי חול בשוניות ברחבי ההודו-פסיפי.';
 
   @override
   String get species_leopard_sea_cucumber_name => 'מלפפון ים מנומר';
 
   @override
-  String get species_leopard_sea_cucumber_desc => 'מלפפון ים מנוקד הפולט צינוריות קובייריאניות לבנות ודביקות כשמפריעים לו.';
+  String get species_leopard_sea_cucumber_desc =>
+      'מלפפון ים מנוקד הפולט צינוריות קובייריאניות לבנות ודביקות כשמפריעים לו.';
 
   @override
   String get species_sand_dollar_name => 'דולר החול';
 
   @override
-  String get species_sand_dollar_desc => 'קיפוד ים שטוח בצורת דיסקה, מצוי טמון חלקית במצעים חוליים.';
+  String get species_sand_dollar_desc =>
+      'קיפוד ים שטוח בצורת דיסקה, מצוי טמון חלקית במצעים חוליים.';
 
   @override
   String get species_moon_jellyfish_name => 'מדוזת ירח';
 
   @override
-  String get species_moon_jellyfish_desc => 'מדוזה שקופה למחצה בצורת פעמון שארבע בלוטות המין שלה, בצורת פרסה, נראות דרך גופה.';
+  String get species_moon_jellyfish_desc =>
+      'מדוזה שקופה למחצה בצורת פעמון שארבע בלוטות המין שלה, בצורת פרסה, נראות דרך גופה.';
 
   @override
   String get species_lions_mane_jellyfish_name => 'מדוזת רעמת האריה';
 
   @override
-  String get species_lions_mane_jellyfish_desc => 'אחד ממיני המדוזות הגדולים בעולם, בעל זרועות ארוכות ונגררות במים קרים.';
+  String get species_lions_mane_jellyfish_desc =>
+      'אחד ממיני המדוזות הגדולים בעולם, בעל זרועות ארוכות ונגררות במים קרים.';
 
   @override
   String get species_box_jellyfish_name => 'מדוזת קופסה';
 
   @override
-  String get species_box_jellyfish_desc => 'מדוזה מסוכנת ביותר בעלת ארס רב-עוצמה, מצויה במים הטרופיים של ההודו-פסיפי.';
+  String get species_box_jellyfish_desc =>
+      'מדוזה מסוכנת ביותר בעלת ארס רב-עוצמה, מצויה במים הטרופיים של ההודו-פסיפי.';
 
   @override
   String get species_upside_down_jellyfish_name => 'מדוזה הפוכה';
 
   @override
-  String get species_upside_down_jellyfish_desc => 'מדוזה יוצאת דופן הנחה על קרקעיות חול כשפעמונה כלפי מטה כדי לאפשר פוטוסינתזה לאצות שבגופה.';
+  String get species_upside_down_jellyfish_desc =>
+      'מדוזה יוצאת דופן הנחה על קרקעיות חול כשפעמונה כלפי מטה כדי לאפשר פוטוסינתזה לאצות שבגופה.';
 
   @override
   String get species_blue_blubber_jellyfish_name => 'מדוזה כחולה אוסטרלית';
 
   @override
-  String get species_blue_blubber_jellyfish_desc => 'מדוזה בכחול-לבן בעלת פעמון מוצק וזרועות פה מסולסלות, נפוצה במים האוסטרליים.';
+  String get species_blue_blubber_jellyfish_desc =>
+      'מדוזה בכחול-לבן בעלת פעמון מוצק וזרועות פה מסולסלות, נפוצה במים האוסטרליים.';
 
   @override
   String get species_fried_egg_jellyfish_name => 'מדוזת ביצת עין';
 
   @override
-  String get species_fried_egg_jellyfish_desc => 'מדוזה ים-תיכונית בעלת כיפה צהובה המזכירה ביצת עין, ועקיצתה קלה.';
+  String get species_fried_egg_jellyfish_desc =>
+      'מדוזה ים-תיכונית בעלת כיפה צהובה המזכירה ביצת עין, ועקיצתה קלה.';
 
   @override
   String get species_pacific_sea_nettle_name => 'סרפד ים פסיפי';
 
   @override
-  String get species_pacific_sea_nettle_desc => 'מדוזה בגוון חום-זהוב בעלת זרועות ארוכות ונגררות, מצויה לאורך חופי האוקיינוס השקט.';
+  String get species_pacific_sea_nettle_desc =>
+      'מדוזה בגוון חום-זהוב בעלת זרועות ארוכות ונגררות, מצויה לאורך חופי האוקיינוס השקט.';
 
   @override
   String get species_compass_jellyfish_name => 'מדוזת מצפן';
 
   @override
-  String get species_compass_jellyfish_desc => 'מדוזה חומה-לבנה בעלת סימנים בצורת V המתפצלים כמו שושנת רוחות.';
+  String get species_compass_jellyfish_desc =>
+      'מדוזה חומה-לבנה בעלת סימנים בצורת V המתפצלים כמו שושנת רוחות.';
 
   @override
   String get species_spotted_jellyfish_name => 'מדוזה מנוקדת';
 
   @override
-  String get species_spotted_jellyfish_desc => 'מדוזה זהובה בנקודות לבנות, מפורסמת במילוי אגם המדוזות שבפלאו.';
+  String get species_spotted_jellyfish_desc =>
+      'מדוזה זהובה בנקודות לבנות, מפורסמת במילוי אגם המדוזות שבפלאו.';
 
   @override
   String get species_barrel_jellyfish_name => 'מדוזת חבית';
 
   @override
-  String get species_barrel_jellyfish_desc => 'מדוזה גדולה בצורת כיפה בעלת זרועות פה מסולסלות ועקיצה קלה, נפוצה באוקיינוס האטלנטי.';
+  String get species_barrel_jellyfish_desc =>
+      'מדוזה גדולה בצורת כיפה בעלת זרועות פה מסולסלות ועקיצה קלה, נפוצה באוקיינוס האטלנטי.';
 
   @override
   String get species_persian_carpet_flatworm_name => 'תולעת שטוחה שטיח פרסי';
 
   @override
-  String get species_persian_carpet_flatworm_desc => 'תולעת שטוחה שחורה ומקושטת בעלת שוליים צהובים-כתומים, ולרוב מבלבלים בינה לבין חשופית ים.';
+  String get species_persian_carpet_flatworm_desc =>
+      'תולעת שטוחה שחורה ומקושטת בעלת שוליים צהובים-כתומים, ולרוב מבלבלים בינה לבין חשופית ים.';
 
   @override
   String get species_leopard_flatworm_name => 'תולעת שטוחה מנומרת';
 
   @override
-  String get species_leopard_flatworm_desc => 'תולעת שטוחה שקופה למחצה בעלת כתמים דמויי נמר, גולשת על מצעי השונית.';
+  String get species_leopard_flatworm_desc =>
+      'תולעת שטוחה שקופה למחצה בעלת כתמים דמויי נמר, גולשת על מצעי השונית.';
 
   @override
   String get species_divided_flatworm_name => 'תולעת שטוחה מחולקת';
 
   @override
-  String get species_divided_flatworm_desc => 'תולעת שטוחה מרשימה בשחור וכתום המחקה חשופיות ים רעילות לשם הגנה.';
+  String get species_divided_flatworm_desc =>
+      'תולעת שטוחה מרשימה בשחור וכתום המחקה חשופיות ים רעילות לשם הגנה.';
 
   @override
-  String get species_blue_pseudoceros_flatworm_name => 'תולעת שטוחה פסאודוצרוס כחולה';
+  String get species_blue_pseudoceros_flatworm_name =>
+      'תולעת שטוחה פסאודוצרוס כחולה';
 
   @override
-  String get species_blue_pseudoceros_flatworm_desc => 'תולעת שטוחה בכחול עמוק בעלת שוליים כתומים, גולשת על פני השונית בהודו-פסיפי.';
+  String get species_blue_pseudoceros_flatworm_desc =>
+      'תולעת שטוחה בכחול עמוק בעלת שוליים כתומים, גולשת על פני השונית בהודו-פסיפי.';
 
   @override
   String get species_racing_stripe_flatworm_name => 'תולעת שטוחה פס מרוץ';
 
   @override
-  String get species_racing_stripe_flatworm_desc => 'תולעת שטוחה בגוון שמנת בעלת פס מרכזי כהה ובולט ושוליים מסולסלים.';
+  String get species_racing_stripe_flatworm_desc =>
+      'תולעת שטוחה בגוון שמנת בעלת פס מרכזי כהה ובולט ושוליים מסולסלים.';
 
   @override
   String get species_christmas_tree_worm_name => 'תולעת עץ חג המולד';
 
   @override
-  String get species_christmas_tree_worm_desc => 'תולעת צבעונית בעלת כתר לולייני הנעוצה באלמוג ונסוגה מיד עם התקרבות.';
+  String get species_christmas_tree_worm_desc =>
+      'תולעת צבעונית בעלת כתר לולייני הנעוצה באלמוג ונסוגה מיד עם התקרבות.';
 
   @override
   String get species_feather_duster_worm_name => 'תולעת מטאטא נוצות';
 
   @override
-  String get species_feather_duster_worm_desc => 'תולעת החיה בצינור ובעלת כתר מניפתי של שערות נוצתיות לסינון מזון.';
+  String get species_feather_duster_worm_desc =>
+      'תולעת החיה בצינור ובעלת כתר מניפתי של שערות נוצתיות לסינון מזון.';
 
   @override
   String get species_fire_worm_name => 'תולעת אש מזוקנת';
 
   @override
-  String get species_fire_worm_desc => 'תולעת זיפים בעלת זיפים עוקצניים לבנים הגורמים לגירוי כואב במגע.';
+  String get species_fire_worm_desc =>
+      'תולעת זיפים בעלת זיפים עוקצניים לבנים הגורמים לגירוי כואב במגע.';
 
   @override
   String get species_bobbit_worm_name => 'תולעת בוביט';
 
   @override
-  String get species_bobbit_worm_desc => 'טורף מארב המסתתר בחול ובעל לסתות חזקות המכות במהירות הבזק.';
+  String get species_bobbit_worm_desc =>
+      'טורף מארב המסתתר בחול ובעל לסתות חזקות המכות במהירות הבזק.';
 
   @override
   String get species_social_feather_duster_name => 'תולעת מטאטא נוצות חברתית';
 
   @override
-  String get species_social_feather_duster_desc => 'תולעת צינור מושבתית היוצרת אשכולות של כתרים עדינים ומפוספסים בשוניות הקריביים.';
+  String get species_social_feather_duster_desc =>
+      'תולעת צינור מושבתית היוצרת אשכולות של כתרים עדינים ומפוספסים בשוניות הקריביים.';
 
   @override
   String get species_giant_clam_name => 'צדפת ענק';
 
   @override
-  String get species_giant_clam_desc => 'הצדפה הדו-קשוותית הגדולה ביותר בעולם, ורקמת המעטפת הנוצצת שלה מאכסנת אצות סימביוטיות.';
+  String get species_giant_clam_desc =>
+      'הצדפה הדו-קשוותית הגדולה ביותר בעולם, ורקמת המעטפת הנוצצת שלה מאכסנת אצות סימביוטיות.';
 
   @override
   String get species_boring_clam_name => 'צדפה קודחת';
 
   @override
-  String get species_boring_clam_desc => 'צדפה קטנה וצבעונית הקודחת אל תוך סלע האלמוג וחושפת רק את מעטפתה העזה.';
+  String get species_boring_clam_desc =>
+      'צדפה קטנה וצבעונית הקודחת אל תוך סלע האלמוג וחושפת רק את מעטפתה העזה.';
 
   @override
   String get species_maxima_clam_name => 'צדפת מקסימה';
 
   @override
-  String get species_maxima_clam_desc => 'צדפה צבעונית להפליא הנעוצה בסלע השונית ובעלת מעטפת בכחול וירוק חשמליים.';
+  String get species_maxima_clam_desc =>
+      'צדפה צבעונית להפליא הנעוצה בסלע השונית ובעלת מעטפת בכחול וירוק חשמליים.';
 
   @override
   String get species_flame_scallop_name => 'צדפת להבה';
 
   @override
-  String get species_flame_scallop_desc => 'צדפה דו-קשוותית אדומה ובה הבזקי אור לבנים לאורך שולי המעטפת, מצויה בנקיקי שונית.';
+  String get species_flame_scallop_desc =>
+      'צדפה דו-קשוותית אדומה ובה הבזקי אור לבנים לאורך שולי המעטפת, מצויה בנקיקי שונית.';
 
   @override
   String get species_thorny_oyster_name => 'צדפת קוצים';
 
   @override
-  String get species_thorny_oyster_desc => 'צדפה דו-קשוותית קוצנית המחוברת לסלע השונית, ולרוב מכוסה בספוגים ובאצות.';
+  String get species_thorny_oyster_desc =>
+      'צדפה דו-קשוותית קוצנית המחוברת לסלע השונית, ולרוב מכוסה בספוגים ובאצות.';
 
   @override
   String get species_magnificent_sea_anemone_name => 'שושנת ים מפוארת';
 
   @override
-  String get species_magnificent_sea_anemone_desc => 'שושנת ים גדולה וצבעונית המארחת דגי ליצן, בעלת עמוד בולט וזרועות מתנופפות.';
+  String get species_magnificent_sea_anemone_desc =>
+      'שושנת ים גדולה וצבעונית המארחת דגי ליצן, בעלת עמוד בולט וזרועות מתנופפות.';
 
   @override
   String get species_bubble_tip_anemone_name => 'שושנת ים בועות';
 
   @override
-  String get species_bubble_tip_anemone_desc => 'מארחת פופולרית של דגי ליצן, בעלת זרועות עם קצוות בולבוסיים בירוק, חום או ורוד.';
+  String get species_bubble_tip_anemone_desc =>
+      'מארחת פופולרית של דגי ליצן, בעלת זרועות עם קצוות בולבוסיים בירוק, חום או ורוד.';
 
   @override
   String get species_giant_carpet_anemone_name => 'שושנת ים שטיח ענקית';
 
   @override
-  String get species_giant_carpet_anemone_desc => 'שושנת ים ענקית בעלת זרועות קצרות ודביקות, שקוטרה עשוי לעלות על מטר.';
+  String get species_giant_carpet_anemone_desc =>
+      'שושנת ים ענקית בעלת זרועות קצרות ודביקות, שקוטרה עשוי לעלות על מטר.';
 
   @override
   String get species_haddon_carpet_anemone_name => 'שושנת ים שטיח של האדון';
 
   @override
-  String get species_haddon_carpet_anemone_desc => 'שושנת שטיח שטוחה במצעים חוליים המארחת מגוון דגי ליצן וסרטני חרסינה.';
+  String get species_haddon_carpet_anemone_desc =>
+      'שושנת שטיח שטוחה במצעים חוליים המארחת מגוון דגי ליצן וסרטני חרסינה.';
 
   @override
   String get species_long_tentacle_anemone_name => 'שושנת ים ארוכת-זרועות';
 
   @override
-  String get species_long_tentacle_anemone_desc => 'שושנת ים של קרקעיות חול בעלת זרועות ארוכות ומתנופפות, ולרוב מארחת דגי ליצן.';
+  String get species_long_tentacle_anemone_desc =>
+      'שושנת ים של קרקעיות חול בעלת זרועות ארוכות ומתנופפות, ולרוב מארחת דגי ליצן.';
 
   @override
   String get species_tube_anemone_name => 'שושנת ים צינורית';
 
   @override
-  String get species_tube_anemone_desc => 'שושנת ים אלגנטית החיה בצינור קלפי בחול ובעלת שני מעגלי זרועות.';
+  String get species_tube_anemone_desc =>
+      'שושנת ים אלגנטית החיה בצינור קלפי בחול ובעלת שני מעגלי זרועות.';
 
   @override
   String get species_hell_fire_anemone_name => 'שושנת ים אש הגיהינום';
 
   @override
-  String get species_hell_fire_anemone_desc => 'שושנת ים עוקצנית ביותר בעלת זרועות מסועפות הדומות לאלמוג רך.';
+  String get species_hell_fire_anemone_desc =>
+      'שושנת ים עוקצנית ביותר בעלת זרועות מסועפות הדומות לאלמוג רך.';
 
   @override
   String get species_beaded_sea_anemone_name => 'שושנת ים חרוזים';
 
   @override
-  String get species_beaded_sea_anemone_desc => 'שושנת ים בעלת קצות זרועות תפוחים דמויי חרוזים, מצויה באזורי חול בשוניות ההודו-פסיפי.';
+  String get species_beaded_sea_anemone_desc =>
+      'שושנת ים בעלת קצות זרועות תפוחים דמויי חרוזים, מצויה באזורי חול בשוניות ההודו-פסיפי.';
 
   @override
   String get species_condylactis_anemone_name => 'שושנת ים קריבית ענקית';
 
   @override
-  String get species_condylactis_anemone_desc => 'שושנת ים קריבית גדולה בעלת זרועות סגולות-קצה, מצויה על מצעי שונית סלעיים.';
+  String get species_condylactis_anemone_desc =>
+      'שושנת ים קריבית גדולה בעלת זרועות סגולות-קצה, מצויה על מצעי שונית סלעיים.';
 
   @override
   String get species_sand_anemone_name => 'שושנת ים חולית';
 
   @override
-  String get species_sand_anemone_desc => 'שושנת ים עדינה הטמונה חלקית בחול ובעלת זרועות סגולות-קצה.';
+  String get species_sand_anemone_desc =>
+      'שושנת ים עדינה הטמונה חלקית בחול ובעלת זרועות סגולות-קצה.';
 
   @override
   String get species_barrel_sponge_name => 'ספוג חבית ענק';
 
   @override
-  String get species_barrel_sponge_desc => 'ספוג עצום בצורת חבית המסוגל לחיות מאות שנים על קירות השונית בקריביים.';
+  String get species_barrel_sponge_desc =>
+      'ספוג עצום בצורת חבית המסוגל לחיות מאות שנים על קירות השונית בקריביים.';
 
   @override
   String get species_azure_vase_sponge_name => 'ספוג אגרטל תכול';
 
   @override
-  String get species_azure_vase_sponge_desc => 'ספוג תוסס בצורת אגרטל בגוון כחול-סגול, מצוי על קירות השונית בקריביים.';
+  String get species_azure_vase_sponge_desc =>
+      'ספוג תוסס בצורת אגרטל בגוון כחול-סגול, מצוי על קירות השונית בקריביים.';
 
   @override
   String get species_yellow_tube_sponge_name => 'ספוג צינור צהוב';
 
   @override
-  String get species_yellow_tube_sponge_desc => 'ספוג צינורי בצהוב בוהק הגדל באשכולות על קירות השונית בקריביים.';
+  String get species_yellow_tube_sponge_desc =>
+      'ספוג צינורי בצהוב בוהק הגדל באשכולות על קירות השונית בקריביים.';
 
   @override
   String get species_elephant_ear_sponge_name => 'ספוג אוזן פיל';
 
   @override
-  String get species_elephant_ear_sponge_desc => 'ספוג כתום גדול בצורת מניפה הגדל על קירות ומתחת לגגונים בקריביים.';
+  String get species_elephant_ear_sponge_desc =>
+      'ספוג כתום גדול בצורת מניפה הגדל על קירות ומתחת לגגונים בקריביים.';
 
   @override
   String get species_rope_sponge_name => 'ספוג חבל';
 
   @override
-  String get species_rope_sponge_desc => 'ספוג אדום זקוף ומסועף הגדל במבנים דמויי חבל בשוניות הקריביים.';
+  String get species_rope_sponge_desc =>
+      'ספוג אדום זקוף ומסועף הגדל במבנים דמויי חבל בשוניות הקריביים.';
 
   @override
   String get species_portuguese_man_o_war_name => 'ספינת המלחמה הפורטוגזית';
 
   @override
-  String get species_portuguese_man_o_war_desc => 'מושבת הידרוזואה בעלת מצוף מלא גז וזרועות נגררות שעקיצתן כואבת ביותר.';
+  String get species_portuguese_man_o_war_desc =>
+      'מושבת הידרוזואה בעלת מצוף מלא גז וזרועות נגררות שעקיצתן כואבת ביותר.';
 
   @override
   String get species_fire_coral_name => 'אלמוג אש';
 
   @override
-  String get species_fire_coral_desc => 'אינו אלמוג אמיתי אלא הידרוזואה הגורמת לצוללנים עקיצות כואבות במגע.';
+  String get species_fire_coral_desc =>
+      'אינו אלמוג אמיתי אלא הידרוזואה הגורמת לצוללנים עקיצות כואבות במגע.';
 
   @override
   String get species_by_the_wind_sailor_name => 'מפרשן הרוח';
 
   @override
-  String get species_by_the_wind_sailor_desc => 'מושבת הידרוזואה כחולה וצפה בעלת מפרש אלכסוני התופס את הרוח.';
+  String get species_by_the_wind_sailor_desc =>
+      'מושבת הידרוזואה כחולה וצפה בעלת מפרש אלכסוני התופס את הרוח.';
 
   @override
   String get species_blue_button_name => 'כפתור כחול';
 
   @override
-  String get species_blue_button_desc => 'מושבת הידרוזואה צפה בעלת דיסקה שטוחה והידרואידים כחולים דמויי זרועות.';
+  String get species_blue_button_desc =>
+      'מושבת הידרוזואה צפה בעלת דיסקה שטוחה והידרואידים כחולים דמויי זרועות.';
 
   @override
   String get species_giant_sea_hare_name => 'ארנבת ים ענקית';
 
   @override
-  String get species_giant_sea_hare_desc => 'אחת מחשופיות הים הגדולות בעולם, בגוון חום כהה עד שחור, מצויה בערוגות קלפ.';
+  String get species_giant_sea_hare_desc =>
+      'אחת מחשופיות הים הגדולות בעולם, בגוון חום כהה עד שחור, מצויה בערוגות קלפ.';
 
   @override
   String get species_sea_hare_name => 'ארנבת ים מנוקדת';
 
   @override
-  String get species_sea_hare_desc => 'ארנבת ים גדולה בנקודות ירוקות הפולטת דיו סגול כשמפריעים לה.';
+  String get species_sea_hare_desc =>
+      'ארנבת ים גדולה בנקודות ירוקות הפולטת דיו סגול כשמפריעים לה.';
 
   @override
   String get species_nudibranch_berghia_name => 'חשופית ברגיה';
 
   @override
-  String get species_nudibranch_berghia_desc => 'חשופית ים שקופה למחצה ממשפחת האאוליד בעלת בליטות לבנות-קצה, ניזונה משושנות ים.';
+  String get species_nudibranch_berghia_desc =>
+      'חשופית ים שקופה למחצה ממשפחת האאוליד בעלת בליטות לבנות-קצה, ניזונה משושנות ים.';
 
   @override
   String get species_sea_pen_name => 'עט ים';
 
   @override
-  String get species_sea_pen_desc => 'אלמוג רך מושבתי בצורת נוצה המעוגן בחול ונסוג פנימה כשמפריעים לו.';
+  String get species_sea_pen_desc =>
+      'אלמוג רך מושבתי בצורת נוצה המעוגן בחול ונסוג פנימה כשמפריעים לו.';
 
   @override
   String get species_blue_sea_star_name => 'כוכב ים כחול';
 
   @override
-  String get species_blue_sea_star_desc => 'כוכב ים רב-גוני המתחדש משבר של זרוע בודדת, מצוי בשוניות ההודו-פסיפי.';
+  String get species_blue_sea_star_desc =>
+      'כוכב ים רב-גוני המתחדש משבר של זרוע בודדת, מצוי בשוניות ההודו-פסיפי.';
 
   @override
   String get species_reef_squid_name => 'דיונון שונית';
 
   @override
-  String get species_reef_squid_desc => 'דיונון שונית דרומי הנפגש לרוב במים הממוזגים של אוסטרליה.';
+  String get species_reef_squid_desc =>
+      'דיונון שונית דרומי הנפגש לרוב במים הממוזגים של אוסטרליה.';
 
   @override
   String get species_tiger_shrimp_name => 'חסילון טיגריס';
 
   @override
-  String get species_tiger_shrimp_desc => 'חסילון גדול ומפוספס המצוי בקרקעיות חול ובערוגות עשב ים בהודו-פסיפי.';
+  String get species_tiger_shrimp_desc =>
+      'חסילון גדול ומפוספס המצוי בקרקעיות חול ובערוגות עשב ים בהודו-פסיפי.';
 
   @override
   String get species_candy_crab_name => 'סרטן סוכריות';
 
   @override
-  String get species_candy_crab_desc => 'סרטן זעיר וצבעוני המתמזג עם האלמוג הרך המארח בעזרת בליטות קוצניות ורודות או צהובות.';
+  String get species_candy_crab_desc =>
+      'סרטן זעיר וצבעוני המתמזג עם האלמוג הרך המארח בעזרת בליטות קוצניות ורודות או צהובות.';
 
   @override
   String get species_spider_crab_name => 'סרטן עכביש מקשט';
 
   @override
-  String get species_spider_crab_desc => 'סרטן איטי המכוסה בספוגים ובאצות שהצמיד לגופו לצורך הסוואה.';
+  String get species_spider_crab_desc =>
+      'סרטן איטי המכוסה בספוגים ובאצות שהצמיד לגופו לצורך הסוואה.';
 
   @override
   String get species_anemone_shrimp_name => 'חסילון שושנת ים מפואר';
 
   @override
-  String get species_anemone_shrimp_desc => 'חסילון שקוף בעל סימנים לבנים וסגולים החי בין זרועות שושנות ים.';
+  String get species_anemone_shrimp_desc =>
+      'חסילון שקוף בעל סימנים לבנים וסגולים החי בין זרועות שושנות ים.';
 
   @override
   String get species_snapping_shrimp_name => 'חסילון מקיש';
 
   @override
-  String get species_snapping_shrimp_desc => 'חסילון קטן המפיק נקישה רועמת בעזרת צבתו הענקית, ולרוב חי בשותפות עם גוביים.';
+  String get species_snapping_shrimp_desc =>
+      'חסילון קטן המפיק נקישה רועמת בעזרת צבתו הענקית, ולרוב חי בשותפות עם גוביים.';
 
   @override
   String get species_glass_sponge_name => 'סל הפרחים של ונוס';
 
   @override
-  String get species_glass_sponge_desc => 'ספוג זכוכית עדין בעל שלד צורן מורכב, מצוי במים עמוקים.';
+  String get species_glass_sponge_desc =>
+      'ספוג זכוכית עדין בעל שלד צורן מורכב, מצוי במים עמוקים.';
 
   @override
   String get species_toxic_sea_urchin_name => 'קיפוד ים פרח';
 
   @override
-  String get species_toxic_sea_urchin_desc => 'קיפוד ים מושך למראה אך מטעה, מכוסה בצבתונים דמויי פרחים ובעל ארס רב-עוצמה.';
+  String get species_toxic_sea_urchin_desc =>
+      'קיפוד ים מושך למראה אך מטעה, מכוסה בצבתונים דמויי פרחים ובעל ארס רב-עוצמה.';
 
   @override
   String get species_slate_pencil_urchin_name => 'קיפוד ים עיפרון צפחה';
 
   @override
-  String get species_slate_pencil_urchin_desc => 'קיפוד ים בעל קוצים עבים ומעוגלים, מצוי על מצעי שונית בקריביים ובאוקיינוס האטלנטי.';
+  String get species_slate_pencil_urchin_desc =>
+      'קיפוד ים בעל קוצים עבים ומעוגלים, מצוי על מצעי שונית בקריביים ובאוקיינוס האטלנטי.';
 
   @override
   String get species_spiny_sea_star_name => 'כוכב ים קוצני';
 
   @override
-  String get species_spiny_sea_star_desc => 'כוכב ים ממוזג וגדול בעל קוצים בולטים, מצוי במים האירופיים והאטלנטיים.';
+  String get species_spiny_sea_star_desc =>
+      'כוכב ים ממוזג וגדול בעל קוצים בולטים, מצוי במים האירופיים והאטלנטיים.';
 
   @override
   String get species_bat_star_name => 'כוכב ים עטלף';
 
   @override
-  String get species_bat_star_desc => 'כוכב ים פסיפי בעל זרועות מחוברות בקרום, בגוני כתום, אדום או סגול, מצוי ביערות קלפ.';
+  String get species_bat_star_desc =>
+      'כוכב ים פסיפי בעל זרועות מחוברות בקרום, בגוני כתום, אדום או סגול, מצוי ביערות קלפ.';
 
   @override
   String get species_sunflower_star_name => 'כוכב ים חמנייה';
 
   @override
-  String get species_sunflower_star_desc => 'כוכב ים ענק ומהיר בעל עד 24 זרועות, מצוי ביערות הקלפ של האוקיינוס השקט.';
+  String get species_sunflower_star_desc =>
+      'כוכב ים ענק ומהיר בעל עד 24 זרועות, מצוי ביערות הקלפ של האוקיינוס השקט.';
 
   @override
   String get species_blood_star_name => 'כוכב ים דם';
 
   @override
-  String get species_blood_star_desc => 'כוכב ים בגוון אדום-כתום בוהק בעל זרועות דקות, מצוי במים הממוזגים של האוקיינוס השקט.';
+  String get species_blood_star_desc =>
+      'כוכב ים בגוון אדום-כתום בוהק בעל זרועות דקות, מצוי במים הממוזגים של האוקיינוס השקט.';
 
   @override
   String get species_common_cuttlefish_name => 'ספיה מצויה';
 
   @override
-  String get species_common_cuttlefish_desc => 'אמנית הסוואה המצויה במים האירופיים ובים התיכון, ואישוניה בצורת האות W.';
+  String get species_common_cuttlefish_desc =>
+      'אמנית הסוואה המצויה במים האירופיים ובים התיכון, ואישוניה בצורת האות W.';
 
   @override
   String get species_blue_spotted_crab_name => 'סרטן שחייה כחול-נקודות';
 
   @override
-  String get species_blue_spotted_crab_desc => 'סרטן שחייה פעיל בעל נקודות כחולות על שריון הגב, מצוי במצעים חוליים בהודו-פסיפי.';
+  String get species_blue_spotted_crab_desc =>
+      'סרטן שחייה פעיל בעל נקודות כחולות על שריון הגב, מצוי במצעים חוליים בהודו-פסיפי.';
 
   @override
   String get species_sponge_crab_name => 'סרטן ספוג';
 
   @override
-  String get species_sponge_crab_desc => 'סרטן החוצב ספוג חי ונושא אותו על גבו לצורך הסוואה.';
+  String get species_sponge_crab_desc =>
+      'סרטן החוצב ספוג חי ונושא אותו על גבו לצורך הסוואה.';
 
   @override
   String get species_horseshoe_crab_name => 'סרטן פרסה';
 
   @override
-  String get species_horseshoe_crab_desc => 'פרוק רגליים קדום ממערכת הצבתניים בעל שריון דמוי קסדה, מצוי בקרקעיות חול באוקיינוס האטלנטי.';
+  String get species_horseshoe_crab_desc =>
+      'פרוק רגליים קדום ממערכת הצבתניים בעל שריון דמוי קסדה, מצוי בקרקעיות חול באוקיינוס האטלנטי.';
 
   @override
   String get species_sea_spider_name => 'עכביש ים';
 
   @override
-  String get species_sea_spider_desc => 'פרוק רגליים ימי עדין בעל רגליים ארוכות, נצפה זוחל על הידרואידים ועל טחביתנים.';
+  String get species_sea_spider_desc =>
+      'פרוק רגליים ימי עדין בעל רגליים ארוכות, נצפה זוחל על הידרואידים ועל טחביתנים.';
 
   @override
   String get species_sea_lily_name => 'שושן ים';
 
   @override
-  String get species_sea_lily_desc => 'קרינואיד מגובעל ומאובן חי המצוי במים עמוקים ומסנן מזון בזרועותיו הנוצתיות.';
+  String get species_sea_lily_desc =>
+      'קרינואיד מגובעל ומאובן חי המצוי במים עמוקים ומסנן מזון בזרועותיו הנוצתיות.';
 
   @override
   String get species_mantis_shrimp_lysiosquilla_name => 'חסילון גמל שלמה דוקרן';
 
   @override
-  String get species_mantis_shrimp_lysiosquilla_desc => 'חסילון גמל שלמה גדול וחופר בעל תוספות דוקרניות, מצוי במצעים חוליים.';
+  String get species_mantis_shrimp_lysiosquilla_desc =>
+      'חסילון גמל שלמה גדול וחופר בעל תוספות דוקרניות, מצוי במצעים חוליים.';
 
   @override
   String get species_purple_sea_urchin_name => 'קיפוד ים סגול';
 
   @override
-  String get species_purple_sea_urchin_desc => 'קיפוד ים סגול ונפוץ המצוי ביערות הקלפ ובשלוליות הסלע של האוקיינוס השקט.';
+  String get species_purple_sea_urchin_desc =>
+      'קיפוד ים סגול ונפוץ המצוי ביערות הקלפ ובשלוליות הסלע של האוקיינוס השקט.';
 
   @override
   String get species_crown_jellyfish_name => 'מדוזת כתר';
 
   @override
-  String get species_crown_jellyfish_desc => 'מדוזה בסגול עמוק בעלת פעמון מורם דמוי כתר, מצויה בהודו-פסיפי.';
+  String get species_crown_jellyfish_desc =>
+      'מדוזה בסגול עמוק בעלת פעמון מורם דמוי כתר, מצויה בהודו-פסיפי.';
 
   @override
   String get species_comb_jelly_name => 'דומדמנית ים';
 
   @override
-  String get species_comb_jelly_desc => 'מסרקן זעיר וזוהר-ביולוגית בעל טורי מסרק נוצצים ושתי זרועות ארוכות.';
+  String get species_comb_jelly_desc =>
+      'מסרקן זעיר וזוהר-ביולוגית בעל טורי מסרק נוצצים ושתי זרועות ארוכות.';
 
   @override
   String get species_warty_sea_slug_name => 'חשופית ים יבלולית';
 
   @override
-  String get species_warty_sea_slug_desc => 'חשופית ים בכחול ושחור בעלת יבלות בכיפות צהובות, נצפית לרוב בשוניות ההודו-פסיפי.';
+  String get species_warty_sea_slug_desc =>
+      'חשופית ים בכחול ושחור בעלת יבלות בכיפות צהובות, נצפית לרוב בשוניות ההודו-פסיפי.';
 
   @override
   String get species_doris_nudibranch_name => 'לימון ים';
 
   @override
-  String get species_doris_nudibranch_desc => 'חשופית ים צהובה ומנוקדת ממשפחת הדורידים, מצויה במים הממוזגים של האוקיינוס השקט וניזונה מספוגים.';
+  String get species_doris_nudibranch_desc =>
+      'חשופית ים צהובה ומנוקדת ממשפחת הדורידים, מצויה במים הממוזגים של האוקיינוס השקט וניזונה מספוגים.';
 
   @override
   String get species_opalescent_nudibranch_name => 'חשופית אופלית';
 
   @override
-  String get species_opalescent_nudibranch_desc => 'חשופית שקופה למחצה ממשפחת האאוליד בעלת בליטות כתומות בוהקות וקווי גב כחולים, במימי האוקיינוס השקט.';
+  String get species_opalescent_nudibranch_desc =>
+      'חשופית שקופה למחצה ממשפחת האאוליד בעלת בליטות כתומות בוהקות וקווי גב כחולים, במימי האוקיינוס השקט.';
 
   @override
   String get species_clown_nudibranch_name => 'חשופית ליצן';
 
   @override
-  String get species_clown_nudibranch_desc => 'חשופית ים בגוון ורוד-כתום בעלת נקודות כחולות ולבנות, מצויה במים הממוזגים של אוסטרליה.';
+  String get species_clown_nudibranch_desc =>
+      'חשופית ים בגוון ורוד-כתום בעלת נקודות כחולות ולבנות, מצויה במים הממוזגים של אוסטרליה.';
 
   @override
   String get species_bottlenose_dolphin_name => 'דולפין אף-בקבוק';
 
   @override
-  String get species_bottlenose_dolphin_desc => 'דולפין סקרן ושובב הנפגש תכופות על ידי צוללנים במים טרופיים וממוזגים.';
+  String get species_bottlenose_dolphin_desc =>
+      'דולפין סקרן ושובב הנפגש תכופות על ידי צוללנים במים טרופיים וממוזגים.';
 
   @override
   String get species_spinner_dolphin_name => 'דולפין מסתחרר';
 
   @override
-  String get species_spinner_dolphin_desc => 'דולפין אקרובטי הידוע בסיבובי האוויר שלו, נצפה לרוב בעדרים גדולים סמוך לשוניות אלמוגים.';
+  String get species_spinner_dolphin_desc =>
+      'דולפין אקרובטי הידוע בסיבובי האוויר שלו, נצפה לרוב בעדרים גדולים סמוך לשוניות אלמוגים.';
 
   @override
   String get species_common_dolphin_name => 'דולפין מצוי';
 
   @override
-  String get species_common_dolphin_desc => 'דולפין מהיר בעל דוגמת שעון חול אופיינית, מצוי באוקיינוס הפתוח ובמים חופיים.';
+  String get species_common_dolphin_desc =>
+      'דולפין מהיר בעל דוגמת שעון חול אופיינית, מצוי באוקיינוס הפתוח ובמים חופיים.';
 
   @override
   String get species_spotted_dolphin_name => 'דולפין מנוקד אטלנטי';
 
   @override
-  String get species_spotted_dolphin_desc => 'דולפין מנוקד וידידותי המתקרב תכופות לצוללנים באיי בהאמה ובקריביים.';
+  String get species_spotted_dolphin_desc =>
+      'דולפין מנוקד וידידותי המתקרב תכופות לצוללנים באיי בהאמה ובקריביים.';
 
   @override
   String get species_rissos_dolphin_name => 'דולפין של ריסו';
 
   @override
-  String get species_rissos_dolphin_desc => 'דולפין גדול בעל גוף אפור מצולק היטב, מצוי במים עמוקים ומרוחקים מהחוף בכל העולם.';
+  String get species_rissos_dolphin_desc =>
+      'דולפין גדול בעל גוף אפור מצולק היטב, מצוי במים עמוקים ומרוחקים מהחוף בכל העולם.';
 
   @override
   String get species_humpback_whale_name => 'לווייתן גדול-סנפיר';
 
   @override
-  String get species_humpback_whale_desc => 'לווייתן מלכותי הידוע בקפיצותיו מהמים ובשירים מורכבים, נצפה בנדידות עונתיות.';
+  String get species_humpback_whale_desc =>
+      'לווייתן מלכותי הידוע בקפיצותיו מהמים ובשירים מורכבים, נצפה בנדידות עונתיות.';
 
   @override
   String get species_grey_whale_name => 'לווייתן אפור';
 
   @override
-  String get species_grey_whale_desc => 'לווייתן מזיפים הניזון מהקרקעית ונודד לאורך חופי האוקיינוס השקט, ולרוב מכוסה בברנקלים.';
+  String get species_grey_whale_desc =>
+      'לווייתן מזיפים הניזון מהקרקעית ונודד לאורך חופי האוקיינוס השקט, ולרוב מכוסה בברנקלים.';
 
   @override
   String get species_blue_whale_name => 'לווייתן כחול';
 
   @override
-  String get species_blue_whale_desc => 'בעל החיים הגדול ביותר שחי אי פעם, נפגש מדי פעם על ידי צוללנים במים כחולים עמוקים.';
+  String get species_blue_whale_desc =>
+      'בעל החיים הגדול ביותר שחי אי פעם, נפגש מדי פעם על ידי צוללנים במים כחולים עמוקים.';
 
   @override
   String get species_sperm_whale_name => 'לווייתן הזרע';
 
   @override
-  String get species_sperm_whale_desc => 'לווייתן צולל עמוק בעל ראש עצום, נצפה לעיתים נח על פני המים בין צלילה לצלילה.';
+  String get species_sperm_whale_desc =>
+      'לווייתן צולל עמוק בעל ראש עצום, נצפה לעיתים נח על פני המים בין צלילה לצלילה.';
 
   @override
   String get species_orca_name => 'לווייתן קטלן';
 
   @override
-  String get species_orca_desc => 'טורף-על בעל סימנים אופייניים בשחור ולבן, מצוי בכל אגני האוקיינוס.';
+  String get species_orca_desc =>
+      'טורף-על בעל סימנים אופייניים בשחור ולבן, מצוי בכל אגני האוקיינוס.';
 
   @override
   String get species_minke_whale_name => 'לווייתן מינקי';
 
   @override
-  String get species_minke_whale_desc => 'לווייתן מזיפים קטן יחסית המגלה סקרנות כלפי צוללנים, במיוחד בשונית המחסום הגדולה.';
+  String get species_minke_whale_desc =>
+      'לווייתן מזיפים קטן יחסית המגלה סקרנות כלפי צוללנים, במיוחד בשונית המחסום הגדולה.';
 
   @override
   String get species_beluga_whale_name => 'בלוגה';
 
   @override
-  String get species_beluga_whale_desc => 'לווייתן ארקטי לבן הידוע בקולותיו ובהתנהגותו החברתית במים קרים.';
+  String get species_beluga_whale_desc =>
+      'לווייתן ארקטי לבן הידוע בקולותיו ובהתנהגותו החברתית במים קרים.';
 
   @override
   String get species_pilot_whale_name => 'לווייתן טייס קצר-סנפיר';
 
   @override
-  String get species_pilot_whale_desc => 'לווייתן חברתי הצולל לעומק ונצפה לרוב בעדרים גדולים בימים טרופיים וממוזגים-חמים.';
+  String get species_pilot_whale_desc =>
+      'לווייתן חברתי הצולל לעומק ונצפה לרוב בעדרים גדולים בימים טרופיים וממוזגים-חמים.';
 
   @override
   String get species_false_killer_whale_name => 'לווייתן קטלן מדומה';
 
   @override
-  String get species_false_killer_whale_desc => 'דולפין אוקייני גדול המתקרב מדי פעם לצוללנים במים פתוחים.';
+  String get species_false_killer_whale_desc =>
+      'דולפין אוקייני גדול המתקרב מדי פעם לצוללנים במים פתוחים.';
 
   @override
   String get species_dugong_name => 'דוגונג';
 
   @override
-  String get species_dugong_desc => 'אוכל עשב עדין הרועה בערוגות עשב ים בהודו-פסיפי, קרוב משפחה של פרות הים.';
+  String get species_dugong_desc =>
+      'אוכל עשב עדין הרועה בערוגות עשב ים בהודו-פסיפי, קרוב משפחה של פרות הים.';
 
   @override
   String get species_west_indian_manatee_name => 'פרת ים מערב-הודית';
 
   @override
-  String get species_west_indian_manatee_desc => 'אוכל עשב איטי המצוי במים חמים ורדודים, בשפכי נהרות ובמעיינות של הקריביים.';
+  String get species_west_indian_manatee_desc =>
+      'אוכל עשב איטי המצוי במים חמים ורדודים, בשפכי נהרות ובמעיינות של הקריביים.';
 
   @override
   String get species_sea_otter_name => 'לוטרת ים';
 
   @override
-  String get species_sea_otter_desc => 'יונק ימי כריזמטי המצוי ביערות הקלפ לאורך חופי צפון האוקיינוס השקט.';
+  String get species_sea_otter_desc =>
+      'יונק ימי כריזמטי המצוי ביערות הקלפ לאורך חופי צפון האוקיינוס השקט.';
 
   @override
   String get species_california_sea_lion_name => 'אריה ים קליפורני';
 
   @override
-  String get species_california_sea_lion_desc => 'יונק סנפירי שובב וזריז המשחק לא פעם עם צוללנים לאורך חופי האוקיינוס השקט.';
+  String get species_california_sea_lion_desc =>
+      'יונק סנפירי שובב וזריז המשחק לא פעם עם צוללנים לאורך חופי האוקיינוס השקט.';
 
   @override
   String get species_steller_sea_lion_name => 'אריה ים של שטלר';
 
   @override
-  String get species_steller_sea_lion_desc => 'מין אריה הים הגדול ביותר, מצוי במים הקרים של צפון האוקיינוס השקט סמוך לחופים סלעיים.';
+  String get species_steller_sea_lion_desc =>
+      'מין אריה הים הגדול ביותר, מצוי במים הקרים של צפון האוקיינוס השקט סמוך לחופים סלעיים.';
 
   @override
   String get species_harbor_seal_name => 'כלב ים נמל';
 
   @override
-  String get species_harbor_seal_desc => 'כלב ים סקרן הנצפה לרוב במים חופיים ממוזגים, ולעיתים נח על סלעים סמוך לאתרי צלילה.';
+  String get species_harbor_seal_desc =>
+      'כלב ים סקרן הנצפה לרוב במים חופיים ממוזגים, ולעיתים נח על סלעים סמוך לאתרי צלילה.';
 
   @override
   String get species_grey_seal_name => 'כלב ים אפור';
 
   @override
-  String get species_grey_seal_desc => 'כלב ים גדול ושובב המצוי בצפון האוקיינוס האטלנטי, ידוע בהתקרבותו לצוללנים מתחת למים.';
+  String get species_grey_seal_desc =>
+      'כלב ים גדול ושובב המצוי בצפון האוקיינוס האטלנטי, ידוע בהתקרבותו לצוללנים מתחת למים.';
 
   @override
   String get species_northern_elephant_seal_name => 'פיל ים צפוני';
 
   @override
-  String get species_northern_elephant_seal_desc => 'כלב ים ענק הצולל לעומק רב, ולזכרים חדק גדול; מצוי לאורך חופי מזרח האוקיינוס השקט.';
+  String get species_northern_elephant_seal_desc =>
+      'כלב ים ענק הצולל לעומק רב, ולזכרים חדק גדול; מצוי לאורך חופי מזרח האוקיינוס השקט.';
 
   @override
   String get species_hawaiian_monk_seal_name => 'כלב ים נזירי הוואי';
 
   @override
-  String get species_hawaiian_monk_seal_desc => 'כלב ים בסכנת הכחדה חמורה האנדמי להוואי, נצפה מדי פעם על ידי צוללנים בשוניות.';
+  String get species_hawaiian_monk_seal_desc =>
+      'כלב ים בסכנת הכחדה חמורה האנדמי להוואי, נצפה מדי פעם על ידי צוללנים בשוניות.';
 
   @override
   String get species_leopard_seal_name => 'כלב ים מנומר';
 
   @override
-  String get species_leopard_seal_desc => 'טורף אנטארקטי רב-עוצמה בעל פרווה מנוקדת, נפגש על ידי צוללני מים קרים.';
+  String get species_leopard_seal_desc =>
+      'טורף אנטארקטי רב-עוצמה בעל פרווה מנוקדת, נפגש על ידי צוללני מים קרים.';
 
   @override
   String get species_narwhal_name => 'נרוול';
 
   @override
-  String get species_narwhal_desc => 'לווייתן ארקטי בעל חט לולייני ארוך, נצפה לעיתים רחוקות אך אייקוני בקרב היונקים הימיים.';
+  String get species_narwhal_desc =>
+      'לווייתן ארקטי בעל חט לולייני ארוך, נצפה לעיתים רחוקות אך אייקוני בקרב היונקים הימיים.';
 
   @override
   String get species_green_sea_turtle_name => 'צב ים ירוק';
 
   @override
-  String get species_green_sea_turtle_desc => 'צב ים גדול הנצפה לרוב רועה עשב ים במים טרופיים.';
+  String get species_green_sea_turtle_desc =>
+      'צב ים גדול הנצפה לרוב רועה עשב ים במים טרופיים.';
 
   @override
   String get species_hawksbill_sea_turtle_name => 'צב ים חד-מקור';
 
   @override
-  String get species_hawksbill_sea_turtle_desc => 'צב דייר שונית בעל מקור מחודד, ניזון מספוגים בין מבני האלמוגים.';
+  String get species_hawksbill_sea_turtle_desc =>
+      'צב דייר שונית בעל מקור מחודד, ניזון מספוגים בין מבני האלמוגים.';
 
   @override
   String get species_loggerhead_sea_turtle_name => 'צב ים חום';
 
   @override
-  String get species_loggerhead_sea_turtle_desc => 'צב בעל ראש גדול המצוי בימים ממוזגים וטרופיים, לרוב סמוך לשוניות סלע.';
+  String get species_loggerhead_sea_turtle_desc =>
+      'צב בעל ראש גדול המצוי בימים ממוזגים וטרופיים, לרוב סמוך לשוניות סלע.';
 
   @override
   String get species_leatherback_sea_turtle_name => 'צב ים עורי';
 
   @override
-  String get species_leatherback_sea_turtle_desc => 'הצב הגדול ביותר החי כיום, בעל שריון עורי וגמיש, וצולל לעומקים קיצוניים.';
+  String get species_leatherback_sea_turtle_desc =>
+      'הצב הגדול ביותר החי כיום, בעל שריון עורי וגמיש, וצולל לעומקים קיצוניים.';
 
   @override
   String get species_olive_ridley_sea_turtle_name => 'צב ים זיתי';
 
   @override
-  String get species_olive_ridley_sea_turtle_desc => 'מין צב הים הקטן ביותר, ידוע באירועי הטלה המוניים ומתואמים המכונים arribadas.';
+  String get species_olive_ridley_sea_turtle_desc =>
+      'מין צב הים הקטן ביותר, ידוע באירועי הטלה המוניים ומתואמים המכונים arribadas.';
 
   @override
   String get species_kemps_ridley_sea_turtle_name => 'צב ים של קמפ';
 
   @override
-  String get species_kemps_ridley_sea_turtle_desc => 'צב ים בסכנת הכחדה חמורה המצוי בעיקר במפרץ מקסיקו.';
+  String get species_kemps_ridley_sea_turtle_desc =>
+      'צב ים בסכנת הכחדה חמורה המצוי בעיקר במפרץ מקסיקו.';
 
   @override
   String get species_flatback_sea_turtle_name => 'צב ים שטוח-גב';
 
   @override
-  String get species_flatback_sea_turtle_desc => 'אנדמי למים האוסטרליים, ניכר בשריונו השטוח ובבית הגידול החופי שלו.';
+  String get species_flatback_sea_turtle_desc =>
+      'אנדמי למים האוסטרליים, ניכר בשריונו השטוח ובבית הגידול החופי שלו.';
 
   @override
   String get species_brain_coral_name => 'אלמוג מוח';
 
   @override
-  String get species_brain_coral_desc => 'אלמוג בונה שונית מסיבי בעל פני שטח מחורצים המזכירים מוח, נפוץ בשוניות הקריביים.';
+  String get species_brain_coral_desc =>
+      'אלמוג בונה שונית מסיבי בעל פני שטח מחורצים המזכירים מוח, נפוץ בשוניות הקריביים.';
 
   @override
   String get species_staghorn_coral_name => 'אלמוג קרן צבי';
 
   @override
-  String get species_staghorn_coral_desc => 'אלמוג מסועף מהיר צמיחה היוצר סבכים צפופים, בית גידול קריטי לדגי השונית.';
+  String get species_staghorn_coral_desc =>
+      'אלמוג מסועף מהיר צמיחה היוצר סבכים צפופים, בית גידול קריטי לדגי השונית.';
 
   @override
   String get species_elkhorn_coral_name => 'אלמוג קרן איל';
 
   @override
-  String get species_elkhorn_coral_desc => 'אלמוג מסועף גדול בעל ענפים שטוחים ומורחבים, בונה שונית מרכזי בקריביים.';
+  String get species_elkhorn_coral_desc =>
+      'אלמוג מסועף גדול בעל ענפים שטוחים ומורחבים, בונה שונית מרכזי בקריביים.';
 
   @override
   String get species_table_coral_name => 'אלמוג שולחן';
 
   @override
-  String get species_table_coral_desc => 'אלמוג שטוח היוצר לוחות, מצוי בשוניות ההודו-פסיפי ומספק מחסה למיני דגים רבים.';
+  String get species_table_coral_desc =>
+      'אלמוג שטוח היוצר לוחות, מצוי בשוניות ההודו-פסיפי ומספק מחסה למיני דגים רבים.';
 
   @override
   String get species_mushroom_coral_name => 'אלמוג פטרייה';
 
   @override
-  String get species_mushroom_coral_desc => 'אלמוג בודד וחופשי בצורת דיסקה, מצוי באזורי חול סמוך לשוניות ההודו-פסיפי.';
+  String get species_mushroom_coral_desc =>
+      'אלמוג בודד וחופשי בצורת דיסקה, מצוי באזורי חול סמוך לשוניות ההודו-פסיפי.';
 
   @override
   String get species_bubble_coral_name => 'אלמוג בועות';
 
   @override
-  String get species_bubble_coral_desc => 'אלמוג ייחודי בעל שלפוחיות דמויות ענבים המתנפחות ביום כדי לקלוט אור.';
+  String get species_bubble_coral_desc =>
+      'אלמוג ייחודי בעל שלפוחיות דמויות ענבים המתנפחות ביום כדי לקלוט אור.';
 
   @override
   String get species_plate_coral_name => 'אלמוג צלחת';
 
   @override
-  String get species_plate_coral_desc => 'אלמוג לוחי דק היוצר מדפים מסולסלים, נפוץ במדרונות השונית של ההודו-פסיפי.';
+  String get species_plate_coral_desc =>
+      'אלמוג לוחי דק היוצר מדפים מסולסלים, נפוץ במדרונות השונית של ההודו-פסיפי.';
 
   @override
   String get species_pillar_coral_name => 'אלמוג עמוד';
 
   @override
-  String get species_pillar_coral_desc => 'אלמוג נדיר הצומח כלפי מעלה ויוצר עמודים גבוהים, מצוי בקריביים.';
+  String get species_pillar_coral_desc =>
+      'אלמוג נדיר הצומח כלפי מעלה ויוצר עמודים גבוהים, מצוי בקריביים.';
 
   @override
   String get species_star_coral_name => 'אלמוג כוכב';
 
   @override
-  String get species_star_coral_desc => 'בונה שונית מרכזי בקריביים היוצר מושבות גדולות בצורת גוש ופוליפים בצורת כוכב.';
+  String get species_star_coral_desc =>
+      'בונה שונית מרכזי בקריביים היוצר מושבות גדולות בצורת גוש ופוליפים בצורת כוכב.';
 
   @override
   String get species_lettuce_coral_name => 'אלמוג חסה';
 
   @override
-  String get species_lettuce_coral_desc => 'אלמוג לוחי דק בעל קפלים דמויי עלים, נפוץ בקירות ובמדרונות השונית בקריביים.';
+  String get species_lettuce_coral_desc =>
+      'אלמוג לוחי דק בעל קפלים דמויי עלים, נפוץ בקירות ובמדרונות השונית בקריביים.';
 
   @override
   String get species_finger_coral_name => 'אלמוג אצבע';
 
   @override
-  String get species_finger_coral_desc => 'אלמוג מסועף וחסון בעל בליטות עבות דמויות אצבעות, מצוי בשוניות רדודות.';
+  String get species_finger_coral_desc =>
+      'אלמוג מסועף וחסון בעל בליטות עבות דמויות אצבעות, מצוי בשוניות רדודות.';
 
   @override
   String get species_massive_porites_name => 'אלמוג פוריטס מסיבי';
 
   @override
-  String get species_massive_porites_desc => 'אלמוג גושי גדול שיכול לגדול במשך מאות שנים, בונה שונית דומיננטי בהודו-פסיפי.';
+  String get species_massive_porites_desc =>
+      'אלמוג גושי גדול שיכול לגדול במשך מאות שנים, בונה שונית דומיננטי בהודו-פסיפי.';
 
   @override
   String get species_cauliflower_coral_name => 'אלמוג כרובית';
 
   @override
-  String get species_cauliflower_coral_desc => 'אלמוג מסועף וקומפקטי בצורת כרובית, נפוץ ברדודי השוניות הטרופיות.';
+  String get species_cauliflower_coral_desc =>
+      'אלמוג מסועף וקומפקטי בצורת כרובית, נפוץ ברדודי השוניות הטרופיות.';
 
   @override
   String get species_flower_pot_coral_name => 'אלמוג עציץ';
 
   @override
-  String get species_flower_pot_coral_desc => 'מושבה של פוליפים ארוכי זרועות הנפרשים ביום ומזכירים זר פרחים.';
+  String get species_flower_pot_coral_desc =>
+      'מושבה של פוליפים ארוכי זרועות הנפרשים ביום ומזכירים זר פרחים.';
 
   @override
   String get species_cup_coral_name => 'אלמוג גביע כתום';
 
   @override
-  String get species_cup_coral_desc => 'אלמוג כתום בוהק שאינו מבצע פוטוסינתזה, מצוי על קירות ומתחת לגגונים במים טרופיים.';
+  String get species_cup_coral_desc =>
+      'אלמוג כתום בוהק שאינו מבצע פוטוסינתזה, מצוי על קירות ומתחת לגגונים במים טרופיים.';
 
   @override
   String get species_scroll_coral_name => 'אלמוג מגילה';
 
   @override
-  String get species_scroll_coral_desc => 'אלמוג היוצר לוחות מגולגלים גדולים, נפוץ במדרונות השונית ובלגונות של ההודו-פסיפי.';
+  String get species_scroll_coral_desc =>
+      'אלמוג היוצר לוחות מגולגלים גדולים, נפוץ במדרונות השונית ובלגונות של ההודו-פסיפי.';
 
   @override
   String get species_cabbage_coral_name => 'אלמוג כרוב';
 
   @override
-  String get species_cabbage_coral_desc => 'אלמוג לוחי בצורת דיסקה המזכיר עלי כרוב, מצוי באזורי שונית מוגנים.';
+  String get species_cabbage_coral_desc =>
+      'אלמוג לוחי בצורת דיסקה המזכיר עלי כרוב, מצוי באזורי שונית מוגנים.';
 
   @override
   String get species_hammer_coral_name => 'אלמוג פטיש';
 
   @override
-  String get species_hammer_coral_desc => 'אלמוג בעל פוליפים גדולים וקצות זרועות בצורת עוגן או פטיש, פופולרי בשוניות ההודו-פסיפי.';
+  String get species_hammer_coral_desc =>
+      'אלמוג בעל פוליפים גדולים וקצות זרועות בצורת עוגן או פטיש, פופולרי בשוניות ההודו-פסיפי.';
 
   @override
   String get species_torch_coral_name => 'אלמוג לפיד';
 
   @override
-  String get species_torch_coral_desc => 'אלמוג מסועף בעל זרועות ארוכות ומתנופפות שקצותיהן זוהרים כנורות.';
+  String get species_torch_coral_desc =>
+      'אלמוג מסועף בעל זרועות ארוכות ומתנופפות שקצותיהן זוהרים כנורות.';
 
   @override
   String get species_frogspawn_coral_name => 'אלמוג ביצי צפרדע';
 
   @override
-  String get species_frogspawn_coral_desc => 'אלמוג בעל פוליפים גדולים וקצות זרועות מסועפים המזכירים ביצי צפרדע.';
+  String get species_frogspawn_coral_desc =>
+      'אלמוג בעל פוליפים גדולים וקצות זרועות מסועפים המזכירים ביצי צפרדע.';
 
   @override
   String get species_sea_fan_name => 'מניפת ים מצויה';
 
   @override
-  String get species_sea_fan_desc => 'גורגוניה שטוחה בצורת מניפה הניצבת בניצב לזרם, אייקונית בשוניות הקריביים.';
+  String get species_sea_fan_desc =>
+      'גורגוניה שטוחה בצורת מניפה הניצבת בניצב לזרם, אייקונית בשוניות הקריביים.';
 
   @override
   String get species_venus_sea_fan_name => 'מניפת ים של ונוס';
 
   @override
-  String get species_venus_sea_fan_desc => 'גורגוניה עדינה בצורת מניפה, מצויה בשוניות רדודות בקריביים באזורי זרם מתון.';
+  String get species_venus_sea_fan_desc =>
+      'גורגוניה עדינה בצורת מניפה, מצויה בשוניות רדודות בקריביים באזורי זרם מתון.';
 
   @override
   String get species_deepwater_sea_fan_name => 'מניפת ים של מים עמוקים';
 
   @override
-  String get species_deepwater_sea_fan_desc => 'גורגוניה גדולה ושיחנית המצויה בקירות שונית עמוקים בקריביים.';
+  String get species_deepwater_sea_fan_desc =>
+      'גורגוניה גדולה ושיחנית המצויה בקירות שונית עמוקים בקריביים.';
 
   @override
   String get species_sea_whip_name => 'שוט ים';
 
   @override
-  String get species_sea_whip_desc => 'גורגוניה תמירה בצורת מוט, נצפית מתנועעת בזרם בשוניות האטלנטי והקריביים.';
+  String get species_sea_whip_desc =>
+      'גורגוניה תמירה בצורת מוט, נצפית מתנועעת בזרם בשוניות האטלנטי והקריביים.';
 
   @override
   String get species_sea_plume_name => 'נוצת ים';
 
   @override
-  String get species_sea_plume_desc => 'גורגוניה גבוהה ונוצתית היוצרת מושבות דמויות נוצה בפסגות השוניות בקריביים.';
+  String get species_sea_plume_desc =>
+      'גורגוניה גבוהה ונוצתית היוצרת מושבות דמויות נוצה בפסגות השוניות בקריביים.';
 
   @override
   String get species_organ_pipe_coral_name => 'אלמוג עוגב';
 
   @override
-  String get species_organ_pipe_coral_desc => 'צינורות שלד אדומים בוהקים עם פוליפים עדינים, מצוי בשוניות מוגנות בהודו-פסיפי.';
+  String get species_organ_pipe_coral_desc =>
+      'צינורות שלד אדומים בוהקים עם פוליפים עדינים, מצוי בשוניות מוגנות בהודו-פסיפי.';
 
   @override
   String get species_leather_coral_name => 'אלמוג עור';
 
   @override
-  String get species_leather_coral_desc => 'אלמוג רך בעל פני שטח חלקים ועוריים היוצר מושבות גדולות בצורת פטרייה.';
+  String get species_leather_coral_desc =>
+      'אלמוג רך בעל פני שטח חלקים ועוריים היוצר מושבות גדולות בצורת פטרייה.';
 
   @override
   String get species_toadstool_leather_coral_name => 'אלמוג עור פטרייה';
 
   @override
-  String get species_toadstool_leather_coral_desc => 'אלמוג רך בעל גבעול עבה וכיפה שטוחה, נפוץ במישורי השונית של ההודו-פסיפי.';
+  String get species_toadstool_leather_coral_desc =>
+      'אלמוג רך בעל גבעול עבה וכיפה שטוחה, נפוץ במישורי השונית של ההודו-פסיפי.';
 
   @override
   String get species_pulsing_xenia_name => 'קסניה פועמת';
 
   @override
-  String get species_pulsing_xenia_desc => 'אלמוג רך בעל פוליפים הפועמים בקצב, מצוי במים מוגנים בהודו-פסיפי.';
+  String get species_pulsing_xenia_desc =>
+      'אלמוג רך בעל פוליפים הפועמים בקצב, מצוי במים מוגנים בהודו-פסיפי.';
 
   @override
   String get species_tree_coral_name => 'אלמוג עץ';
 
   @override
-  String get species_tree_coral_desc => 'אלמוג רך ותוסס היוצר אשכולות דמויי עץ על קירות ומתחת לגגונים בים סוף.';
+  String get species_tree_coral_desc =>
+      'אלמוג רך ותוסס היוצר אשכולות דמויי עץ על קירות ומתחת לגגונים בים סוף.';
 
   @override
   String get species_blue_coral_name => 'אלמוג כחול';
 
   @override
-  String get species_blue_coral_desc => 'אלמוג רך ייחודי בעל שלד כחול, מצוי במישורי שונית רדודים בהודו-פסיפי.';
+  String get species_blue_coral_desc =>
+      'אלמוג רך ייחודי בעל שלד כחול, מצוי במישורי שונית רדודים בהודו-פסיפי.';
 
   @override
   String get species_black_coral_name => 'אלמוג שחור';
 
   @override
-  String get species_black_coral_desc => 'אלמוג מים עמוקים בעל שלד כהה, מצוי בקירות ובמדרונות תלולים מתחת ל-30 מטרים.';
+  String get species_black_coral_desc =>
+      'אלמוג מים עמוקים בעל שלד כהה, מצוי בקירות ובמדרונות תלולים מתחת ל-30 מטרים.';
 
   @override
   String get species_carnation_coral_name => 'אלמוג ציפורן';
 
   @override
-  String get species_carnation_coral_desc => 'אלמוג רך וצבעוני להפליא המצוי מתחת למדפי סלע ועל קירות בהודו-פסיפי.';
+  String get species_carnation_coral_desc =>
+      'אלמוג רך וצבעוני להפליא המצוי מתחת למדפי סלע ועל קירות בהודו-פסיפי.';
 
   @override
   String get species_wire_coral_name => 'אלמוג חוט';
 
   @override
-  String get species_wire_coral_desc => 'אלמוג שחור וארוך היוצר שוטים מסולסלים, ומארח גוביים וחסילונים.';
+  String get species_wire_coral_desc =>
+      'אלמוג שחור וארוך היוצר שוטים מסולסלים, ומארח גוביים וחסילונים.';
 
   @override
   String get species_dead_mans_fingers_name => 'אצבעות המת';
 
   @override
-  String get species_dead_mans_fingers_desc => 'אלמוג רך ובשרני בעל אונות דמויות אצבעות, נפוץ בשוניות ממוזגות בצפון האטלנטי.';
+  String get species_dead_mans_fingers_desc =>
+      'אלמוג רך ובשרני בעל אונות דמויות אצבעות, נפוץ בשוניות ממוזגות בצפון האטלנטי.';
 
   @override
   String get species_sun_coral_name => 'אלמוג שמש';
 
   @override
-  String get species_sun_coral_desc => 'אלמוג בגוון צהוב-כתום שאינו מבצע פוטוסינתזה ופורש את פוליפיו בלילה על קירות בהודו-פסיפי.';
+  String get species_sun_coral_desc =>
+      'אלמוג בגוון צהוב-כתום שאינו מבצע פוטוסינתזה ופורש את פוליפיו בלילה על קירות בהודו-פסיפי.';
 
   @override
   String get species_lace_coral_name => 'אלמוג תחרה';
 
   @override
-  String get species_lace_coral_desc => 'הידרו-אלמוג ורוד ועדין בעל ענפים דמויי תחרה, מצוי בנקיקים ומתחת למדפי סלע.';
+  String get species_lace_coral_desc =>
+      'הידרו-אלמוג ורוד ועדין בעל ענפים דמויי תחרה, מצוי בנקיקים ומתחת למדפי סלע.';
 
   @override
   String get species_kenya_tree_coral_name => 'אלמוג עץ קניה';
 
   @override
-  String get species_kenya_tree_coral_desc => 'אלמוג רך ועמיד בעל ענפים דמויי עץ, נפוץ בהודו-פסיפי.';
+  String get species_kenya_tree_coral_desc =>
+      'אלמוג רך ועמיד בעל ענפים דמויי עץ, נפוץ בהודו-פסיפי.';
 
   @override
   String get species_colt_coral_name => 'אלמוג סייח';
 
   @override
-  String get species_colt_coral_desc => 'אלמוג רך בעל ענפים עבים וגמישים המכוסים בפוליפים קטנים, בשוניות ההודו-פסיפי.';
+  String get species_colt_coral_desc =>
+      'אלמוג רך בעל ענפים עבים וגמישים המכוסים בפוליפים קטנים, בשוניות ההודו-פסיפי.';
 
   @override
   String get species_turtle_grass_name => 'עשב צבים';
 
   @override
-  String get species_turtle_grass_desc => 'עשב הים הדומיננטי בקריביים, בעל עלים רחבים ושטוחים ומקור מזון חיוני לצבי ים.';
+  String get species_turtle_grass_desc =>
+      'עשב הים הדומיננטי בקריביים, בעל עלים רחבים ושטוחים ומקור מזון חיוני לצבי ים.';
 
   @override
   String get species_eelgrass_name => 'זוסטרה';
 
   @override
-  String get species_eelgrass_desc => 'עשב ים ממוזג היוצר אחווי מים צפופים המשמשים בית גידול לגידול צאצאים.';
+  String get species_eelgrass_desc =>
+      'עשב ים ממוזג היוצר אחווי מים צפופים המשמשים בית גידול לגידול צאצאים.';
 
   @override
   String get species_manatee_grass_name => 'עשב פרות ים';
 
   @override
-  String get species_manatee_grass_desc => 'עשב ים בעל עלים גליליים המצוי באזורי חול בקריביים, לרוב סמוך לערוגות עשב צבים.';
+  String get species_manatee_grass_desc =>
+      'עשב ים בעל עלים גליליים המצוי באזורי חול בקריביים, לרוב סמוך לערוגות עשב צבים.';
 
   @override
   String get species_shoal_grass_name => 'עשב שרטון';
 
   @override
-  String get species_shoal_grass_desc => 'עשב ים חלוץ בעל עלים צרים המאכלס אזורי חול שהופרו בקריביים.';
+  String get species_shoal_grass_desc =>
+      'עשב ים חלוץ בעל עלים צרים המאכלס אזורי חול שהופרו בקריביים.';
 
   @override
   String get species_paddle_grass_name => 'עשב משוט';
 
   @override
-  String get species_paddle_grass_desc => 'עשב ים קטן ועדין בעל עלים סגלגלים, מצוי במים עמוקים יותר ברחבי האזורים הטרופיים.';
+  String get species_paddle_grass_desc =>
+      'עשב ים קטן ועדין בעל עלים סגלגלים, מצוי במים עמוקים יותר ברחבי האזורים הטרופיים.';
 
   @override
   String get species_neptune_grass_name => 'עשב נפטון';
 
   @override
-  String get species_neptune_grass_desc => 'עשב ים ים-תיכוני היוצר אחווים נרחבים החיוניים למערכות האקולוגיות של החוף.';
+  String get species_neptune_grass_desc =>
+      'עשב ים ים-תיכוני היוצר אחווים נרחבים החיוניים למערכות האקולוגיות של החוף.';
 
   @override
   String get species_giant_kelp_name => 'קלפ ענק';
 
   @override
-  String get species_giant_kelp_desc => 'מין היוצר יערות תת-מימיים מתנשאים לגובה של עד 60 מטרים, אייקוני לצלילה בקליפורניה.';
+  String get species_giant_kelp_desc =>
+      'מין היוצר יערות תת-מימיים מתנשאים לגובה של עד 60 מטרים, אייקוני לצלילה בקליפורניה.';
 
   @override
   String get species_bull_kelp_name => 'קלפ שור';
 
   @override
-  String get species_bull_kelp_desc => 'קלפ של האוקיינוס השקט בעל גבעול ארוך יחיד ומצוף בולבוסי, יוצר יערות בעלי חופה צפופה.';
+  String get species_bull_kelp_desc =>
+      'קלפ של האוקיינוס השקט בעל גבעול ארוך יחיד ומצוף בולבוסי, יוצר יערות בעלי חופה צפופה.';
 
   @override
   String get species_bladder_wrack_name => 'פוקוס שלפוחי';
 
   @override
-  String get species_bladder_wrack_desc => 'אצה חומה נפוצה בעלת שלפוחיות אוויר בזוגות, מצויה באזורי הגאות והשפל של צפון האטלנטי.';
+  String get species_bladder_wrack_desc =>
+      'אצה חומה נפוצה בעלת שלפוחיות אוויר בזוגות, מצויה באזורי הגאות והשפל של צפון האטלנטי.';
 
   @override
   String get species_sargassum_name => 'סרגסום';
 
   @override
-  String get species_sargassum_desc => 'אצה חומה צפה חופשית היוצרת רפסודות המספקות מחסה לדגים צעירים ולחסרי חוליות.';
+  String get species_sargassum_desc =>
+      'אצה חומה צפה חופשית היוצרת רפסודות המספקות מחסה לדגים צעירים ולחסרי חוליות.';
 
   @override
   String get species_kelp_forest_ecklonia_name => 'קלפ אקלוניה';
 
   @override
-  String get species_kelp_forest_ecklonia_desc => 'הקלפ הדומיננטי במימי חצי הכדור הדרומי, יוצר יערות תת-מימיים חשובים.';
+  String get species_kelp_forest_ecklonia_desc =>
+      'הקלפ הדומיננטי במימי חצי הכדור הדרומי, יוצר יערות תת-מימיים חשובים.';
 
   @override
   String get species_coralline_algae_name => 'אצות גיריות';
 
   @override
-  String get species_coralline_algae_desc => 'אצה אדומה קשה ומצפה המלכדת את מבני השונית ומעניקה לשוניות גוון ורדרד.';
+  String get species_coralline_algae_desc =>
+      'אצה אדומה קשה ומצפה המלכדת את מבני השונית ומעניקה לשוניות גוון ורדרד.';
 
   @override
   String get species_irish_moss_name => 'טחב אירי';
 
   @override
-  String get species_irish_moss_desc => 'אצה אדומה בצורת מניפה המצויה בחופי הסלע של אזור הגאות והשפל בצפון האטלנטי.';
+  String get species_irish_moss_desc =>
+      'אצה אדומה בצורת מניפה המצויה בחופי הסלע של אזור הגאות והשפל בצפון האטלנטי.';
 
   @override
   String get species_dulse_name => 'דולסה';
 
   @override
-  String get species_dulse_desc => 'אצה שטוחה בגוון אדמדם-סגול הגדלה על סלעים ועל גבעולי קלפ במים צפוניים קרים.';
+  String get species_dulse_desc =>
+      'אצה שטוחה בגוון אדמדם-סגול הגדלה על סלעים ועל גבעולי קלפ במים צפוניים קרים.';
 
   @override
   String get species_halimeda_name => 'הלימדה';
 
   @override
-  String get species_halimeda_desc => 'אצה ירוקה מסויידת בעלת פרקים בצורת דיסקה, תורמת מרכזית לחול השונית.';
+  String get species_halimeda_desc =>
+      'אצה ירוקה מסויידת בעלת פרקים בצורת דיסקה, תורמת מרכזית לחול השונית.';
 
   @override
   String get species_sea_lettuce_name => 'חסת ים';
 
   @override
-  String get species_sea_lettuce_desc => 'אצה ירוקה בוהקת דמוית יריעה, מצויה במים חופיים רדודים בכל העולם.';
+  String get species_sea_lettuce_desc =>
+      'אצה ירוקה בוהקת דמוית יריעה, מצויה במים חופיים רדודים בכל העולם.';
 
   @override
   String get species_caulerpa_name => 'אצת ענבי ים';
 
   @override
-  String get species_caulerpa_desc => 'אצה ירוקה זוחלת בעלת גבעולונים דמויי ענבים, מצויה על שברי אלמוגים וחול בשוניות טרופיות.';
+  String get species_caulerpa_desc =>
+      'אצה ירוקה זוחלת בעלת גבעולונים דמויי ענבים, מצויה על שברי אלמוגים וחול בשוניות טרופיות.';
 
   @override
   String get species_mermaid_fan_name => 'מניפת בת הים';
 
   @override
-  String get species_mermaid_fan_desc => 'אצה ירוקה מסויידת בצורת מניפה קטנה, נפוצה בקרקעיות החול של הקריביים.';
+  String get species_mermaid_fan_desc =>
+      'אצה ירוקה מסויידת בצורת מניפה קטנה, נפוצה בקרקעיות החול של הקריביים.';
 
   @override
   String get species_shaving_brush_algae_name => 'אצת מברשת גילוח';
 
   @override
-  String get species_shaving_brush_algae_desc => 'אצה ירוקה מסויידת בעלת ציצית דמוית מברשת על גבעול, מצויה בקרקעיות החול של הקריביים.';
+  String get species_shaving_brush_algae_desc =>
+      'אצה ירוקה מסויידת בעלת ציצית דמוית מברשת על גבעול, מצויה בקרקעיות החול של הקריביים.';
 
   @override
   String get species_finger_kelp_name => 'אצת משוט';
 
   @override
-  String get species_finger_kelp_desc => 'אצה חומה בעלת גבעולונים דמויי אצבעות היוצרת ערוגות קלפ במים החופיים של צפון האטלנטי.';
+  String get species_finger_kelp_desc =>
+      'אצה חומה בעלת גבעולונים דמויי אצבעות היוצרת ערוגות קלפ במים החופיים של צפון האטלנטי.';
 
   @override
   String get species_banded_sea_krait_name => 'נחש ים מפוספס';
 
   @override
-  String get species_banded_sea_krait_desc => 'נחש ים ארסי בעל טבעות בכחול-אפור ושחור, נוח אופי ונצפה לרוב בשוניות ההודו-פסיפי.';
+  String get species_banded_sea_krait_desc =>
+      'נחש ים ארסי בעל טבעות בכחול-אפור ושחור, נוח אופי ונצפה לרוב בשוניות ההודו-פסיפי.';
 
   @override
   String get species_olive_sea_snake_name => 'נחש ים זיתי';
 
   @override
-  String get species_olive_sea_snake_desc => 'נחש ים סקרן המצוי בשוניות אוסטרליה, ידוע בהתקרבותו לצוללנים.';
+  String get species_olive_sea_snake_desc =>
+      'נחש ים סקרן המצוי בשוניות אוסטרליה, ידוע בהתקרבותו לצוללנים.';
 
   @override
   String get species_yellow_bellied_sea_snake_name => 'נחש ים צהוב-בטן';
 
   @override
-  String get species_yellow_bellied_sea_snake_desc => 'נחש ים פלגי בעל בטן צהובה, מין הנחשים הנפוץ ביותר בעולם.';
+  String get species_yellow_bellied_sea_snake_desc =>
+      'נחש ים פלגי בעל בטן צהובה, מין הנחשים הנפוץ ביותר בעולם.';
 
   @override
   String get species_marine_iguana_name => 'איגואנה ימית';
 
   @override
-  String get species_marine_iguana_desc => 'אנדמית לאיי גלפגוס, והלטאה היחידה המלקטת אצות מתחת למים.';
+  String get species_marine_iguana_desc =>
+      'אנדמית לאיי גלפגוס, והלטאה היחידה המלקטת אצות מתחת למים.';
 
   @override
   String get species_saltwater_crocodile_name => 'תנין ימי';
 
   @override
-  String get species_saltwater_crocodile_desc => 'הזוחל הגדול ביותר החי כיום, מצוי במים חופיים ובשפכי נהרות בהודו-פסיפי.';
+  String get species_saltwater_crocodile_desc =>
+      'הזוחל הגדול ביותר החי כיום, מצוי במים חופיים ובשפכי נהרות בהודו-פסיפי.';
 
   @override
   String get species_northern_pike_name => 'זאב מים צפוני';
 
   @override
-  String get species_northern_pike_desc => 'טורף ארוך גוף עם חרטום דמוי מקור ברווז, אורב ללא תנועה בין צמחי המים בשולי האגם.';
+  String get species_northern_pike_desc =>
+      'טורף ארוך גוף עם חרטום דמוי מקור ברווז, אורב ללא תנועה בין צמחי המים בשולי האגם.';
 
   @override
   String get species_muskellunge_name => 'מסקלנג\'';
 
   @override
-  String get species_muskellunge_desc => 'הגדול שבזאבי המים, ענק מפוספס או מנוקד של אגמים צפוניים צלולים, נדיר לראייה ובלתי נשכח.';
+  String get species_muskellunge_desc =>
+      'הגדול שבזאבי המים, ענק מפוספס או מנוקד של אגמים צפוניים צלולים, נדיר לראייה ובלתי נשכח.';
 
   @override
   String get species_chain_pickerel_name => 'זאב מים שרשרת';
 
   @override
-  String get species_chain_pickerel_desc => 'זאב מים דק של בריכות עשירות בצמחייה במזרח צפון אמריקה, שנקרא על שם דוגמת השרשרת שעל צדדיו.';
+  String get species_chain_pickerel_desc =>
+      'זאב מים דק של בריכות עשירות בצמחייה במזרח צפון אמריקה, שנקרא על שם דוגמת השרשרת שעל צדדיו.';
 
   @override
   String get species_walleye_name => 'וואליי';
 
   @override
-  String get species_walleye_desc => 'קרוב של הדקר בצבע זית זהוב ועיניים גדולות מחזירות אור, צד בדמדומים מעל קרקעיות סלעיות וחוליות.';
+  String get species_walleye_desc =>
+      'קרוב של הדקר בצבע זית זהוב ועיניים גדולות מחזירות אור, צד בדמדומים מעל קרקעיות סלעיות וחוליות.';
 
   @override
   String get species_sauger_name => 'סאוגר';
 
   @override
-  String get species_sauger_desc => 'בן דוד קטן ומנומר יותר של הוואליי, מעדיף נהרות עכורים ומאגרים.';
+  String get species_sauger_desc =>
+      'בן דוד קטן ומנומר יותר של הוואליי, מעדיף נהרות עכורים ומאגרים.';
 
   @override
   String get species_yellow_perch_name => 'דקר צהוב';
 
   @override
-  String get species_yellow_perch_desc => 'דקר זהוב החי בלהקות עם פסים אנכיים כהים, נפוץ ליד מזחים ומצעי צמחייה ברחבי צפון אמריקה.';
+  String get species_yellow_perch_desc =>
+      'דקר זהוב החי בלהקות עם פסים אנכיים כהים, נפוץ ליד מזחים ומצעי צמחייה ברחבי צפון אמריקה.';
 
   @override
   String get species_european_perch_name => 'דקר אירופי';
 
   @override
-  String get species_european_perch_desc => 'דקר מפוספס עם סנפירים קוצניים וסנפירים תחתונים אדומים-כתומים, מצוי כמעט בכל אגם ונהר איטי באירופה.';
+  String get species_european_perch_desc =>
+      'דקר מפוספס עם סנפירים קוצניים וסנפירים תחתונים אדומים-כתומים, מצוי כמעט בכל אגם ונהר איטי באירופה.';
 
   @override
   String get species_zander_name => 'זנדר';
 
   @override
-  String get species_zander_desc => 'טורף גדול וחיוור עם עיניים זגוגיות ולסתות עם ניבים, מסייר באגמים ובנהרות עכורים באירופה אחרי רדת החשכה.';
+  String get species_zander_desc =>
+      'טורף גדול וחיוור עם עיניים זגוגיות ולסתות עם ניבים, מסייר באגמים ובנהרות עכורים באירופה אחרי רדת החשכה.';
 
   @override
   String get species_ruffe_name => 'רוף';
 
   @override
-  String get species_ruffe_desc => 'דקר קטן ומנומר עם סנפיר גב קוצני מחובר, שכיח על קרקעיות רכות של אגמים אירופיים.';
+  String get species_ruffe_desc =>
+      'דקר קטן ומנומר עם סנפיר גב קוצני מחובר, שכיח על קרקעיות רכות של אגמים אירופיים.';
 
   @override
   String get species_largemouth_bass_name => 'בס גדול פה';
 
   @override
-  String get species_largemouth_bass_desc => 'בס ירוק גב עם פס צד כהה ופה עצום, אורב ליד גזעים ושולי צמחייה באגמים חמימים.';
+  String get species_largemouth_bass_desc =>
+      'בס ירוק גב עם פס צד כהה ופה עצום, אורב ליד גזעים ושולי צמחייה באגמים חמימים.';
 
   @override
   String get species_smallmouth_bass_name => 'בס קטן פה';
 
   @override
-  String get species_smallmouth_bass_desc => 'בס ארדי עם פסים אנכיים עדינים, שוהה מעל סלע וחצץ באגמים ובנהרות צלולים וקרירים.';
+  String get species_smallmouth_bass_desc =>
+      'בס ארדי עם פסים אנכיים עדינים, שוהה מעל סלע וחצץ באגמים ובנהרות צלולים וקרירים.';
 
   @override
   String get species_rock_bass_name => 'בס סלעים';
 
   @override
-  String get species_rock_bass_desc => 'דג שמש גוץ אדום עיניים עם שורות כתמים כהים, מסתתר בין סלעים גדולים בנחלים ובאגמים צלולים.';
+  String get species_rock_bass_desc =>
+      'דג שמש גוץ אדום עיניים עם שורות כתמים כהים, מסתתר בין סלעים גדולים בנחלים ובאגמים צלולים.';
 
   @override
   String get species_bluegill_name => 'דג שמש כחול זימים';
 
   @override
-  String get species_bluegill_desc => 'דג שמש דמוי דיסקה עם דש זימים כחול-שחור וחזה כתום, מקנן במושבות על קרקעיות חוליות רדודות.';
+  String get species_bluegill_desc =>
+      'דג שמש דמוי דיסקה עם דש זימים כחול-שחור וחזה כתום, מקנן במושבות על קרקעיות חוליות רדודות.';
 
   @override
   String get species_pumpkinseed_name => 'דג שמש זרע דלעת';
 
   @override
-  String get species_pumpkinseed_desc => 'דג שמש מנוקד בצבעים עזים עם דש זימים בקצה אדום וקווי לחי כחולים גליים, נפוץ ברדודים עשירי צמחייה.';
+  String get species_pumpkinseed_desc =>
+      'דג שמש מנוקד בצבעים עזים עם דש זימים בקצה אדום וקווי לחי כחולים גליים, נפוץ ברדודים עשירי צמחייה.';
 
   @override
   String get species_black_crappie_name => 'קראפי שחור';
 
   @override
-  String get species_black_crappie_desc => 'דג כסוף וגבוה גוף מנוקד בשחור, נע בלהקות סביב ענפים שקועים ועמודים.';
+  String get species_black_crappie_desc =>
+      'דג כסוף וגבוה גוף מנוקד בשחור, נע בלהקות סביב ענפים שקועים ועמודים.';
 
   @override
   String get species_white_crappie_name => 'קראפי לבן';
 
   @override
-  String get species_white_crappie_desc => 'קראפי חיוור יותר עם פסים אנכיים עדינים, מעדיף מאגרים עכורים ונהרות איטיים.';
+  String get species_white_crappie_desc =>
+      'קראפי חיוור יותר עם פסים אנכיים עדינים, מעדיף מאגרים עכורים ונהרות איטיים.';
 
   @override
   String get species_brown_trout_name => 'פורל חום';
 
   @override
-  String get species_brown_trout_desc => 'פורל חום-זהוב עם נקודות אדומות ושחורות, שוהה בזרם של נהרות ואגמים קרירים וצלולים.';
+  String get species_brown_trout_desc =>
+      'פורל חום-זהוב עם נקודות אדומות ושחורות, שוהה בזרם של נהרות ואגמים קרירים וצלולים.';
 
   @override
   String get species_rainbow_trout_name => 'טרוטת עין-הקשת';
 
   @override
-  String get species_rainbow_trout_desc => 'פורל כסוף עם פס צד ורוד ונקודות שחורות עדינות, מאוכלס ופראי במים קרים ברחבי העולם.';
+  String get species_rainbow_trout_desc =>
+      'פורל כסוף עם פס צד ורוד ונקודות שחורות עדינות, מאוכלס ופראי במים קרים ברחבי העולם.';
 
   @override
   String get species_brook_trout_name => 'פורל נחלים';
 
   @override
-  String get species_brook_trout_desc => 'שאר עם סימנים דמויי תולעים על הגב, נקודות אדומות בהילות כחולות וסנפירים בשוליים לבנים, בנחלי מקור קרים.';
+  String get species_brook_trout_desc =>
+      'שאר עם סימנים דמויי תולעים על הגב, נקודות אדומות בהילות כחולות וסנפירים בשוליים לבנים, בנחלי מקור קרים.';
 
   @override
   String get species_lake_trout_name => 'פורל אגמים';
 
   @override
-  String get species_lake_trout_desc => 'שאר אפור גדול מכוסה כתמים בהירים עם זנב מפוצל, משייט במים העמוקים והקרים של אגמים צפוניים.';
+  String get species_lake_trout_desc =>
+      'שאר אפור גדול מכוסה כתמים בהירים עם זנב מפוצל, משייט במים העמוקים והקרים של אגמים צפוניים.';
 
   @override
   String get species_arctic_char_name => 'שאר ארקטי';
 
   @override
-  String get species_arctic_char_desc => 'דג המים המתוקים הצפוני ביותר, שאר דק שבטנו מסמיקה לכתום-אדום בצבעי ההטלה של הסתיו.';
+  String get species_arctic_char_desc =>
+      'דג המים המתוקים הצפוני ביותר, שאר דק שבטנו מסמיקה לכתום-אדום בצבעי ההטלה של הסתיו.';
 
   @override
   String get species_atlantic_salmon_name => 'סלמון אטלנטי';
 
   @override
-  String get species_atlantic_salmon_desc => 'סלמון כסוף נודד בים עם נקודות שחורות בצורת X, מזנק מעל מפלים בדרכו חזרה לנהרות הולדתו להטלה.';
+  String get species_atlantic_salmon_desc =>
+      'סלמון כסוף נודד בים עם נקודות שחורות בצורת X, מזנק מעל מפלים בדרכו חזרה לנהרות הולדתו להטלה.';
 
   @override
   String get species_chinook_salmon_name => 'סלמון צ\'ינוק';
 
   @override
-  String get species_chinook_salmon_desc => 'הסלמון הגדול ביותר של האוקיינוס השקט, בעל גב כחול-ירוק וחניכיים שחורות, עולה בנהרות המערב הגדולים להטלה.';
+  String get species_chinook_salmon_desc =>
+      'הסלמון הגדול ביותר של האוקיינוס השקט, בעל גב כחול-ירוק וחניכיים שחורות, עולה בנהרות המערב הגדולים להטלה.';
 
   @override
   String get species_sockeye_salmon_name => 'סלמון אדום';
 
   @override
-  String get species_sockeye_salmon_desc => 'סלמון שהופך אדום בוהק עם ראש ירוק בעת ההטלה, וממלא את מצעי החצץ של נהרות הניזונים מאגמים.';
+  String get species_sockeye_salmon_desc =>
+      'סלמון שהופך אדום בוהק עם ראש ירוק בעת ההטלה, וממלא את מצעי החצץ של נהרות הניזונים מאגמים.';
 
   @override
   String get species_coho_salmon_name => 'סלמון קוהו';
 
   @override
-  String get species_coho_salmon_desc => 'סלמון כסוף עם חניכיים לבנות ונקודות רק בחלק העליון של הזנב, מטיל בנחלי חוף קטנים.';
+  String get species_coho_salmon_desc =>
+      'סלמון כסוף עם חניכיים לבנות ונקודות רק בחלק העליון של הזנב, מטיל בנחלי חוף קטנים.';
 
   @override
   String get species_lake_whitefish_name => 'דג לבן אגמים';
 
   @override
-  String get species_lake_whitefish_desc => 'דג לבן כסוף קטן פה של אגמים קרים ועמוקים, ניזון על הקרקעית בלהקות גדולות.';
+  String get species_lake_whitefish_desc =>
+      'דג לבן כסוף קטן פה של אגמים קרים ועמוקים, ניזון על הקרקעית בלהקות גדולות.';
 
   @override
   String get species_cisco_name => 'סיסקו';
 
   @override
-  String get species_cisco_desc => 'דג לבן דק דמוי הרינג שנע בלהקות במים הפתוחים של אגמים צפוניים קרים, טרף לפורל האגמים.';
+  String get species_cisco_desc =>
+      'דג לבן דק דמוי הרינג שנע בלהקות במים הפתוחים של אגמים צפוניים קרים, טרף לפורל האגמים.';
 
   @override
   String get species_european_grayling_name => 'גרייילינג אירופי';
 
   @override
-  String get species_european_grayling_desc => 'דג נהר אפור-כסוף עם סנפיר גב גבוה דמוי מפרש בשוליים סגולים, שוהה בקטעי חצץ נקיים ומהירים.';
+  String get species_european_grayling_desc =>
+      'דג נהר אפור-כסוף עם סנפיר גב גבוה דמוי מפרש בשוליים סגולים, שוהה בקטעי חצץ נקיים ומהירים.';
 
   @override
   String get species_common_carp_name => 'קרפיון מצוי';
 
   @override
-  String get species_common_carp_desc => 'קרפיון כבד בצבע ארד עם קשקשים גדולים ושני זיפי חישה, נובר בקרקעיות רכות של אגמים ונהרות חמימים.';
+  String get species_common_carp_desc =>
+      'קרפיון כבד בצבע ארד עם קשקשים גדולים ושני זיפי חישה, נובר בקרקעיות רכות של אגמים ונהרות חמימים.';
 
   @override
   String get species_grass_carp_name => 'קרפיון עשב';
 
   @override
-  String get species_grass_carp_desc => 'קרפיון אסייתי דמוי טורפדו שהוכנס ברחבי העולם כדי לרעות צמחי מים, נראה לעיתים קרובות באגמי מחצבה צלולים.';
+  String get species_grass_carp_desc =>
+      'קרפיון אסייתי דמוי טורפדו שהוכנס ברחבי העולם כדי לרעות צמחי מים, נראה לעיתים קרובות באגמי מחצבה צלולים.';
 
   @override
   String get species_tench_name => 'טנץ\'';
 
   @override
-  String get species_tench_desc => 'דג ירוק-זית עם קשקשים זעירים, עיניים אדומות וסנפירים מעוגלים, מחליק בבוץ ובקנים של מים עומדים.';
+  String get species_tench_desc =>
+      'דג ירוק-זית עם קשקשים זעירים, עיניים אדומות וסנפירים מעוגלים, מחליק בבוץ ובקנים של מים עומדים.';
 
   @override
   String get species_common_bream_name => 'אברמיס מצוי';
 
   @override
-  String get species_common_bream_desc => 'דג ארד גבוה ושטוח מהצדדים שניזון בראש כלפי מטה בלהקות על קרקעיות בוציות, נפוץ בשפלות אירופה.';
+  String get species_common_bream_desc =>
+      'דג ארד גבוה ושטוח מהצדדים שניזון בראש כלפי מטה בלהקות על קרקעיות בוציות, נפוץ בשפלות אירופה.';
 
   @override
   String get species_roach_name => 'רואץ\'';
 
   @override
-  String get species_roach_desc => 'דג כסוף החי בלהקות עם סנפירים אדומים וקשתית אדומה, הדג השכיח ביותר באגמים ובתעלות רבים באירופה.';
+  String get species_roach_desc =>
+      'דג כסוף החי בלהקות עם סנפירים אדומים וקשתית אדומה, הדג השכיח ביותר באגמים ובתעלות רבים באירופה.';
 
   @override
   String get species_rudd_name => 'ראד';
 
   @override
-  String get species_rudd_desc => 'קרוב של הרואץ\' עם צדדים זהובים, סנפירים אדומים בוהקים ופה מופנה כלפי מעלה, ניזון ממש מתחת לפני המים.';
+  String get species_rudd_desc =>
+      'קרוב של הרואץ\' עם צדדים זהובים, סנפירים אדומים בוהקים ופה מופנה כלפי מעלה, ניזון ממש מתחת לפני המים.';
 
   @override
   String get species_chub_name => 'צ\'אב אירופי';
 
   @override
-  String get species_chub_desc => 'דג נהר מוצק עם ראש רחב, קשקשים גדולים בשוליים כהים ופה גדול, שוהה מתחת לעצים הנוטים מעל המים.';
+  String get species_chub_desc =>
+      'דג נהר מוצק עם ראש רחב, קשקשים גדולים בשוליים כהים ופה גדול, שוהה מתחת לעצים הנוטים מעל המים.';
 
   @override
   String get species_barbel_name => 'ברבל מצוי';
 
   @override
-  String get species_barbel_desc => 'דג קרקעית זרים עם ארבעה זיפי חישה ופה תחתון, נצמד לחצץ בנהרות אירופיים מהירים.';
+  String get species_barbel_desc =>
+      'דג קרקעית זרים עם ארבעה זיפי חישה ופה תחתון, נצמד לחצץ בנהרות אירופיים מהירים.';
 
   @override
   String get species_european_eel_name => 'צלופח אירופי';
 
   @override
-  String get species_european_eel_desc => 'דג דמוי נחש המבלה עשרות שנים בנהרות ובאגמים לפני שהוא נודד לים הסרגסו להטלה אחת ויחידה.';
+  String get species_european_eel_desc =>
+      'דג דמוי נחש המבלה עשרות שנים בנהרות ובאגמים לפני שהוא נודד לים הסרגסו להטלה אחת ויחידה.';
 
   @override
   String get species_american_eel_name => 'צלופח אמריקאי';
 
   @override
-  String get species_american_eel_desc => 'צלופח צפון אמריקאי המסתתר ביום מתחת לסלעים בנהרות ובאגמים וחוזר לים הסרגסו להתרבות.';
+  String get species_american_eel_desc =>
+      'צלופח צפון אמריקאי המסתתר ביום מתחת לסלעים בנהרות ובאגמים וחוזר לים הסרגסו להתרבות.';
 
   @override
   String get species_burbot_name => 'בורבוט';
 
   @override
-  String get species_burbot_desc => 'דג הבקלה היחיד במים מתוקים, דג מנומר דמוי צלופח עם זיף חישה בודד בסנטר, מסתתר ביום במים קרים ועמוקים.';
+  String get species_burbot_desc =>
+      'דג הבקלה היחיד במים מתוקים, דג מנומר דמוי צלופח עם זיף חישה בודד בסנטר, מסתתר ביום במים קרים ועמוקים.';
 
   @override
   String get species_channel_catfish_name => 'שפמנון תעלות';
 
   @override
-  String get species_channel_catfish_desc => 'שפמנון אפור עם כתמים כהים פזורים, זנב מפוצל ושמונה זיפי חישה, נפוץ בנהרות ובמאגרים ברחבי צפון אמריקה.';
+  String get species_channel_catfish_desc =>
+      'שפמנון אפור עם כתמים כהים פזורים, זנב מפוצל ושמונה זיפי חישה, נפוץ בנהרות ובמאגרים ברחבי צפון אמריקה.';
 
   @override
   String get species_flathead_catfish_name => 'שפמנון שטוח ראש';
 
   @override
-  String get species_flathead_catfish_desc => 'שפמנון חום מנומר ענק עם ראש שטוח ולסת תחתונה בולטת, רובץ בבורות עמוקים בנהרות.';
+  String get species_flathead_catfish_desc =>
+      'שפמנון חום מנומר ענק עם ראש שטוח ולסת תחתונה בולטת, רובץ בבורות עמוקים בנהרות.';
 
   @override
   String get species_brown_bullhead_name => 'בולהד חום';
 
   @override
-  String get species_brown_bullhead_desc => 'שפמנון קטן וגוץ עם זיפי חישה כהים וזנב ישר, סובל בריכות בוציות, חמות ודלות חמצן.';
+  String get species_brown_bullhead_desc =>
+      'שפמנון קטן וגוץ עם זיפי חישה כהים וזנב ישר, סובל בריכות בוציות, חמות ודלות חמצן.';
 
   @override
   String get species_wels_catfish_name => 'שפמנון אירופי';
 
   @override
-  String get species_wels_catfish_desc => 'דג המים המתוקים הגדול ביותר באירופה, ענק חסר קשקשים עם ראש רחב ושטוח ושפמים ארוכים, רובץ בבורות עמוקים בנהרות.';
+  String get species_wels_catfish_desc =>
+      'דג המים המתוקים הגדול ביותר באירופה, ענק חסר קשקשים עם ראש רחב ושטוח ושפמים ארוכים, רובץ בבורות עמוקים בנהרות.';
 
   @override
   String get species_white_sturgeon_name => 'חדקן לבן';
 
   @override
-  String get species_white_sturgeon_desc => 'דג המים המתוקים הגדול ביותר בצפון אמריקה, ענק אפור משוריין עם זנב דמוי כריש המשייט בנהרות המערב הגדולים.';
+  String get species_white_sturgeon_desc =>
+      'דג המים המתוקים הגדול ביותר בצפון אמריקה, ענק אפור משוריין עם זנב דמוי כריש המשייט בנהרות המערב הגדולים.';
 
   @override
   String get species_lake_sturgeon_name => 'חדקן אגמים';
 
   @override
-  String get species_lake_sturgeon_desc => 'חדקן משוריין איטי גדילה מהאגמים הגדולים ואגן המיסיסיפי, שואב את הקרקעית בפיו הצינורי.';
+  String get species_lake_sturgeon_desc =>
+      'חדקן משוריין איטי גדילה מהאגמים הגדולים ואגן המיסיסיפי, שואב את הקרקעית בפיו הצינורי.';
 
   @override
   String get species_european_sturgeon_name => 'חדקן אירופי';
 
   @override
-  String get species_european_sturgeon_desc => 'חדקן משוריין בסכנת הכחדה חמורה מנהרות האטלנטי, כיום מגודל ומשוחרר בגארון ובאלבה.';
+  String get species_european_sturgeon_desc =>
+      'חדקן משוריין בסכנת הכחדה חמורה מנהרות האטלנטי, כיום מגודל ומשוחרר בגארון ובאלבה.';
 
   @override
   String get species_alligator_gar_name => 'גאר תנין';
 
   @override
-  String get species_alligator_gar_desc => 'ענק פרהיסטורי עם חרטום רחב ומשונן וקשקשי שריון בצורת מעוין, עולה לבלוע אוויר בנהרות הדרום.';
+  String get species_alligator_gar_desc =>
+      'ענק פרהיסטורי עם חרטום רחב ומשונן וקשקשי שריון בצורת מעוין, עולה לבלוע אוויר בנהרות הדרום.';
 
   @override
   String get species_longnose_gar_name => 'גאר ארוך חרטום';
 
   @override
-  String get species_longnose_gar_desc => 'דג משוריין דק עם חרטום דמוי מחט, תלוי ללא תנועה ממש מתחת לפני נהרות חמימים.';
+  String get species_longnose_gar_desc =>
+      'דג משוריין דק עם חרטום דמוי מחט, תלוי ללא תנועה ממש מתחת לפני נהרות חמימים.';
 
   @override
   String get species_bowfin_name => 'בואופין';
 
   @override
-  String get species_bowfin_desc => 'מאובן חי עם סנפיר גב ארוך ומתנועע וראש גרמי, שומר על צאצאיו במים אחוריים עשירי צמחייה.';
+  String get species_bowfin_desc =>
+      'מאובן חי עם סנפיר גב ארוך ומתנועע וראש גרמי, שומר על צאצאיו במים אחוריים עשירי צמחייה.';
 
   @override
   String get species_american_paddlefish_name => 'דג משוט אמריקאי';
 
   @override
-  String get species_american_paddlefish_desc => 'ענק מסנן מזון עם חרטום דמוי משוט באורך שליש מגופו, שוחה בפה פתוח בנהרות גדולים.';
+  String get species_american_paddlefish_desc =>
+      'ענק מסנן מזון עם חרטום דמוי משוט באורך שליש מגופו, שוחה בפה פתוח בנהרות גדולים.';
 
   @override
   String get species_sea_lamprey_name => 'לימפרית ים';
 
   @override
-  String get species_sea_lamprey_desc => 'טפיל חסר לסתות דמוי צלופח עם פה מצץ מוקף שיניים, מטיל בנחלי חצץ לאחר שניזון בים או באגמים.';
+  String get species_sea_lamprey_desc =>
+      'טפיל חסר לסתות דמוי צלופח עם פה מצץ מוקף שיניים, מטיל בנחלי חצץ לאחר שניזון בים או באגמים.';
 
   @override
   String get species_freshwater_drum_name => 'דג תוף מים מתוקים';
 
   @override
-  String get species_freshwater_drum_desc => 'דג כסוף גבנוני שמשמיע נהמות נשמעות ומועך צדפות בשיני לוע, נפוץ בנהרות גדולים ובאגמים.';
+  String get species_freshwater_drum_desc =>
+      'דג כסוף גבנוני שמשמיע נהמות נשמעות ומועך צדפות בשיני לוע, נפוץ בנהרות גדולים ובאגמים.';
 
   @override
   String get species_white_sucker_name => 'מוצץ לבן';
 
   @override
-  String get species_white_sucker_desc => 'דג קרקעית גלילי עם פה בשרני מופנה מטה, עולה בנחלים באביב בהמוני הטלה.';
+  String get species_white_sucker_desc =>
+      'דג קרקעית גלילי עם פה בשרני מופנה מטה, עולה בנחלים באביב בהמוני הטלה.';
 
   @override
   String get species_common_minnow_name => 'מינו אירופי';
 
   @override
-  String get species_common_minnow_desc => 'דג זעיר מפוספס החי בלהקות בנחלים ובאגמים צלולים וקרירים, הזכרים מאדימים ומוריקים באביב.';
+  String get species_common_minnow_desc =>
+      'דג זעיר מפוספס החי בלהקות בנחלים ובאגמים צלולים וקרירים, הזכרים מאדימים ומוריקים באביב.';
 
   @override
   String get species_three_spined_stickleback_name => 'דג הקוצים תלת קוצי';
 
   @override
-  String get species_three_spined_stickleback_desc => 'דג זעיר משוריין עם שלושה קוצי גב, שזכריו אדומי הגרון בונים ושומרים על קנים מסיבי צמחים.';
+  String get species_three_spined_stickleback_desc =>
+      'דג זעיר משוריין עם שלושה קוצי גב, שזכריו אדומי הגרון בונים ושומרים על קנים מסיבי צמחים.';
 
   @override
   String get species_alewife_name => 'אלווייף';
 
   @override
-  String get species_alewife_desc => 'הרינג כסוף שעולה בנהרות באביב וממלא כיום את האגמים הגדולים בלהקות עצומות.';
+  String get species_alewife_desc =>
+      'הרינג כסוף שעולה בנהרות באביב וממלא כיום את האגמים הגדולים בלהקות עצומות.';
 
   @override
   String get species_nile_perch_name => 'נסיכת הנילוס';
 
   @override
-  String get species_nile_perch_desc => 'טורף כסוף עצום עם עין בשוליים שחורים, שהוכנס לאגם ויקטוריה ושולט שם במים הפתוחים.';
+  String get species_nile_perch_desc =>
+      'טורף כסוף עצום עם עין בשוליים שחורים, שהוכנס לאגם ויקטוריה ושולט שם במים הפתוחים.';
 
   @override
   String get species_nile_tilapia_name => 'אמנון הנילוס';
 
   @override
-  String get species_nile_tilapia_desc => 'ציקליד אפור עם פסים אנכיים בזנב הדוגר על צאצאיו בפיו, מגודל ומשוטט חופשי במים חמים ברחבי העולם.';
+  String get species_nile_tilapia_desc =>
+      'ציקליד אפור עם פסים אנכיים בזנב הדוגר על צאצאיו בפיו, מגודל ומשוטט חופשי במים חמים ברחבי העולם.';
 
   @override
   String get species_african_tigerfish_name => 'דג נמר אפריקאי';
 
   @override
-  String get species_african_tigerfish_desc => 'טורף כסוף מפוספס עם שיני פגיון משתלבות, צד בנהרות אפריקאיים מהירים כמו הזמבזי.';
+  String get species_african_tigerfish_desc =>
+      'טורף כסוף מפוספס עם שיני פגיון משתלבות, צד בנהרות אפריקאיים מהירים כמו הזמבזי.';
 
   @override
   String get species_marbled_lungfish_name => 'דג ריאות משויש';
 
   @override
-  String get species_marbled_lungfish_desc => 'דג דמוי צלופח הנושם אוויר עם סנפירים דמויי חוט, השורד בצורת חתום בפקעת בוץ.';
+  String get species_marbled_lungfish_desc =>
+      'דג דמוי צלופח הנושם אוויר עם סנפירים דמויי חוט, השורד בצורת חתום בפקעת בוץ.';
 
   @override
   String get species_electric_catfish_name => 'שפמנון חשמלי';
 
   @override
-  String get species_electric_catfish_desc => 'שפמנון אפור שמנמן מהנילוס ומהקונגו המהמם את טרפו במכות חשמל של מאות וולטים.';
+  String get species_electric_catfish_desc =>
+      'שפמנון אפור שמנמן מהנילוס ומהקונגו המהמם את טרפו במכות חשמל של מאות וולטים.';
 
   @override
   String get species_zebra_mbuna_name => 'מבונה זברה';
 
   @override
-  String get species_zebra_mbuna_desc => 'ציקליד סלעים כחול פסים מאגם מלאווי, רועה אצות מסלעים בהמונים טריטוריאליים צפופים.';
+  String get species_zebra_mbuna_desc =>
+      'ציקליד סלעים כחול פסים מאגם מלאווי, רועה אצות מסלעים בהמונים טריטוריאליים צפופים.';
 
   @override
   String get species_malawi_butterfly_peacock_name => 'ציקליד טווס פרפר';
 
   @override
-  String get species_malawi_butterfly_peacock_desc => 'ציקליד טווס כחול נוצץ ממערות אגם מלאווי, הזכרים זוהרים בסנפירים בשוליים לבנים.';
+  String get species_malawi_butterfly_peacock_desc =>
+      'ציקליד טווס כחול נוצץ ממערות אגם מלאווי, הזכרים זוהרים בסנפירים בשוליים לבנים.';
 
   @override
   String get species_fuelleborn_cichlid_name => 'ציקליד פילבורן';
 
   @override
-  String get species_fuelleborn_cichlid_desc => 'מבונה מאגם מלאווי עם חרטום קהה ובשרני בולט לגירוד אצות באזור הגלים.';
+  String get species_fuelleborn_cichlid_desc =>
+      'מבונה מאגם מלאווי עם חרטום קהה ובשרני בולט לגירוד אצות באזור הגלים.';
 
   @override
   String get species_princess_of_burundi_name => 'נסיכת בורונדי';
 
   @override
-  String get species_princess_of_burundi_desc => 'ציקליד אלגנטי מאגם טנגנייקה עם סנפירים דמויי נבל, חי במשפחות מורחבות החולקות את הטיפול בקן.';
+  String get species_princess_of_burundi_desc =>
+      'ציקליד אלגנטי מאגם טנגנייקה עם סנפירים דמויי נבל, חי במשפחות מורחבות החולקות את הטיפול בקן.';
 
   @override
   String get species_frontosa_name => 'פרונטוזה';
 
   @override
-  String get species_frontosa_desc => 'ציקליד מים עמוקים מטנגנייקה עם פסים כחולים-לבנים בולטים ומצח גבנוני, נע לאט בקבוצות מעל סלעים.';
+  String get species_frontosa_desc =>
+      'ציקליד מים עמוקים מטנגנייקה עם פסים כחולים-לבנים בולטים ומצח גבנוני, נע לאט בקבוצות מעל סלעים.';
 
   @override
   String get species_tropheus_moorii_name => 'טרופאוס מורי';
 
   @override
-  String get species_tropheus_moorii_desc => 'ציקליד סלעים גוץ מטנגנייקה בעשרות צורות צבע, כל אחת מוגבלת לרצועת החוף שלה.';
+  String get species_tropheus_moorii_desc =>
+      'ציקליד סלעים גוץ מטנגנייקה בעשרות צורות צבע, כל אחת מוגבלת לרצועת החוף שלה.';
 
   @override
   String get species_arapaima_name => 'פיררוקו';
 
   @override
-  String get species_arapaima_desc => 'מדגי המים המתוקים הגדולים ביותר, ענק משוריין מהאמזונס עם זנב מנוקד באדום העולה לבלוע אוויר.';
+  String get species_arapaima_desc =>
+      'מדגי המים המתוקים הגדולים ביותר, ענק משוריין מהאמזונס עם זנב מנוקד באדום העולה לבלוע אוויר.';
 
   @override
   String get species_silver_arowana_name => 'ארוואנה כסופה';
 
   @override
-  String get species_silver_arowana_desc => 'דג כסוף דמוי סרט מהאמזונס עם שני זיפי חישה בסנטר, מזנק מעל המים לחטוף חרקים מענפים.';
+  String get species_silver_arowana_desc =>
+      'דג כסוף דמוי סרט מהאמזונס עם שני זיפי חישה בסנטר, מזנק מעל המים לחטוף חרקים מענפים.';
 
   @override
   String get species_red_bellied_piranha_name => 'פיראנה אדומת בטן';
 
   @override
-  String get species_red_bellied_piranha_desc => 'דג כסוף גבוה גוף עם בטן ארגמנית ושיניים חדות כתער, נע בלהקות במים אחוריים של האמזונס.';
+  String get species_red_bellied_piranha_desc =>
+      'דג כסוף גבוה גוף עם בטן ארגמנית ושיניים חדות כתער, נע בלהקות במים אחוריים של האמזונס.';
 
   @override
   String get species_black_piranha_name => 'פיראנה שחורה';
 
   @override
-  String get species_black_piranha_desc => 'פיראנה גדולה ובודדת עם עיניים אדומות וגוף כהה בצורת מעוין, אורבת ביובלים צלולים וסלעיים של האמזונס.';
+  String get species_black_piranha_desc =>
+      'פיראנה גדולה ובודדת עם עיניים אדומות וגוף כהה בצורת מעוין, אורבת ביובלים צלולים וסלעיים של האמזונס.';
 
   @override
   String get species_red_bellied_pacu_name => 'פאקו אדום בטן';
 
   @override
-  String get species_red_bellied_pacu_desc => 'אוכל פירות דמוי פיראנה עם שיניים שטוחות מועכות ובטן אדומה, מתקבץ מתחת לעצי יער מוצף.';
+  String get species_red_bellied_pacu_desc =>
+      'אוכל פירות דמוי פיראנה עם שיניים שטוחות מועכות ובטן אדומה, מתקבץ מתחת לעצי יער מוצף.';
 
   @override
   String get species_tambaqui_name => 'טמבקי';
 
   @override
-  String get species_tambaqui_desc => 'פאקו כהה וענק מהאמזונס המפצח אגוזים וזרעים שנשרו מתחת לחופת יער מוצף.';
+  String get species_tambaqui_desc =>
+      'פאקו כהה וענק מהאמזונס המפצח אגוזים וזרעים שנשרו מתחת לחופת יער מוצף.';
 
   @override
   String get species_electric_eel_name => 'צלופח חשמלי';
 
   @override
-  String get species_electric_eel_desc => 'לא צלופח אלא דג סכין, נושם אוויר ארוך וכהה המהמם טרף במכות חשמל של עד 600 וולט.';
+  String get species_electric_eel_desc =>
+      'לא צלופח אלא דג סכין, נושם אוויר ארוך וכהה המהמם טרף במכות חשמל של עד 600 וולט.';
 
   @override
   String get species_redtail_catfish_name => 'שפמנון אדום זנב';
 
   @override
-  String get species_redtail_catfish_desc => 'שפמנון אמזונס גדול עם גב כהה, בטן לבנה וזנב כתום-אדום בוהק, נח בבריכות נהר עמוקות.';
+  String get species_redtail_catfish_desc =>
+      'שפמנון אמזונס גדול עם גב כהה, בטן לבנה וזנב כתום-אדום בוהק, נח בבריכות נהר עמוקות.';
 
   @override
   String get species_tiger_shovelnose_catfish_name => 'שפמנון נמר';
 
   @override
-  String get species_tiger_shovelnose_catfish_desc => 'שפמנון מפוספס וחלק עם חרטום ארוך ושטוח, צד בלילה לאורך ערוצי נהר חוליים בדרום אמריקה.';
+  String get species_tiger_shovelnose_catfish_desc =>
+      'שפמנון מפוספס וחלק עם חרטום ארוך ושטוח, צד בלילה לאורך ערוצי נהר חוליים בדרום אמריקה.';
 
   @override
   String get species_peacock_bass_name => 'בס טווס';
 
   @override
-  String get species_peacock_bass_desc => 'ציקליד אמזונס תוקפני עם שלושה פסים כהים וכתם עין בזנב, אורב לדגים לאורך עצים שקועים.';
+  String get species_peacock_bass_desc =>
+      'ציקליד אמזונס תוקפני עם שלושה פסים כהים וכתם עין בזנב, אורב לדגים לאורך עצים שקועים.';
 
   @override
   String get species_oscar_name => 'אוסקר';
 
   @override
-  String get species_oscar_desc => 'ציקליד כהה ומוצק עם שיוש כתום וכתם עין בזנב, מסייר במימי אמזונס איטיים ובשוליים מוצפים.';
+  String get species_oscar_desc =>
+      'ציקליד כהה ומוצק עם שיוש כתום וכתם עין בזנב, מסייר במימי אמזונס איטיים ובשוליים מוצפים.';
 
   @override
   String get species_freshwater_angelfish_name => 'דג מלאך מים מתוקים';
 
   @override
-  String get species_freshwater_angelfish_desc => 'ציקליד אמזונס גבוה ודמוי דיסקה עם סנפירים ארוכים ופסים אנכיים, נסחף בין שורשים שקועים.';
+  String get species_freshwater_angelfish_desc =>
+      'ציקליד אמזונס גבוה ודמוי דיסקה עם סנפירים ארוכים ופסים אנכיים, נסחף בין שורשים שקועים.';
 
   @override
   String get species_discus_name => 'דיסקוס';
 
   @override
-  String get species_discus_desc => 'ציקליד עגול ושטוח מהצדדים עם קווים כחולים גליים המאכיל את צאצאיו בריר מעורו שלו.';
+  String get species_discus_desc =>
+      'ציקליד עגול ושטוח מהצדדים עם קווים כחולים גליים המאכיל את צאצאיו בריר מעורו שלו.';
 
   @override
   String get species_sailfin_pleco_name => 'פלקו מפרש';
 
   @override
-  String get species_sailfin_pleco_desc => 'שפמנון משוריין עם פה מצץ, סנפיר גב גבוה וכתמי נמר, מגרד אצות מעץ ומסלע.';
+  String get species_sailfin_pleco_desc =>
+      'שפמנון משוריין עם פה מצץ, סנפיר גב גבוה וכתמי נמר, מגרד אצות מעץ ומסלע.';
 
   @override
   String get species_cardinal_tetra_name => 'טטרה קרדינל';
 
   @override
-  String get species_cardinal_tetra_desc => 'טטרה זעירה עם פס כחול ניאון מעל רצועה אדומה לכל האורך, נעה בלהקות במים הכהים של ריו נגרו.';
+  String get species_cardinal_tetra_desc =>
+      'טטרה זעירה עם פס כחול ניאון מעל רצועה אדומה לכל האורך, נעה בלהקות במים הכהים של ריו נגרו.';
 
   @override
   String get species_mexican_tetra_name => 'טטרה מקסיקנית';
 
   @override
-  String get species_mexican_tetra_desc => 'טטרה כסופה מנהרות מקסיקו שאוכלוסיות המערות שלה עיוורות וחיוורות, אהובה על צוללני הסנוטות.';
+  String get species_mexican_tetra_desc =>
+      'טטרה כסופה מנהרות מקסיקו שאוכלוסיות המערות שלה עיוורות וחיוורות, אהובה על צוללני הסנוטות.';
 
   @override
   String get species_mekong_giant_catfish_name => 'שפמנון המקונג הענק';
 
   @override
-  String get species_mekong_giant_catfish_desc => 'ענק חסר שיניים מהמקונג בסכנת הכחדה חמורה, אפור וללא זיפי חישה, שהגיע בעבר לשלושה מטרים.';
+  String get species_mekong_giant_catfish_desc =>
+      'ענק חסר שיניים מהמקונג בסכנת הכחדה חמורה, אפור וללא זיפי חישה, שהגיע בעבר לשלושה מטרים.';
 
   @override
   String get species_giant_barb_name => 'ברבל ענק';
 
   @override
-  String get species_giant_barb_desc => 'הקרפיון הגדול בעולם, ענק מהמקונג עם קשקשים גדולים וראש עצום, נדיר כיום בבריכות נהר עמוקות.';
+  String get species_giant_barb_desc =>
+      'הקרפיון הגדול בעולם, ענק מהמקונג עם קשקשים גדולים וראש עצום, נדיר כיום בבריכות נהר עמוקות.';
 
   @override
   String get species_asian_arowana_name => 'ארוואנה אסייתית';
 
   @override
-  String get species_asian_arowana_desc => 'דג דרקון אדום או זהוב מתכתי מנהרות מים שחורים בדרום-מזרח אסיה, מחליק ממש מתחת לפני המים.';
+  String get species_asian_arowana_desc =>
+      'דג דרקון אדום או זהוב מתכתי מנהרות מים שחורים בדרום-מזרח אסיה, מחליק ממש מתחת לפני המים.';
 
   @override
   String get species_striped_snakehead_name => 'ראש נחש מפוספס';
 
   @override
-  String get species_striped_snakehead_desc => 'טורף דמוי טורפדו הנושם אוויר עם ראש שטוח דמוי נחש, שומר על צאצאיו בבריכות אסייתיות עשירות בצמחייה.';
+  String get species_striped_snakehead_desc =>
+      'טורף דמוי טורפדו הנושם אוויר עם ראש שטוח דמוי נחש, שומר על צאצאיו בבריכות אסייתיות עשירות בצמחייה.';
 
   @override
   String get species_giant_snakehead_name => 'ראש נחש ענק';
 
   @override
-  String get species_giant_snakehead_desc => 'ראש נחש גדול ופראי, מפוספס בצעירותו וכהה בבגרותו, מגן על צאצאיו האדומים הבוהקים באגמי דרום-מזרח אסיה.';
+  String get species_giant_snakehead_desc =>
+      'ראש נחש גדול ופראי, מפוספס בצעירותו וכהה בבגרותו, מגן על צאצאיו האדומים הבוהקים באגמי דרום-מזרח אסיה.';
 
   @override
   String get species_climbing_perch_name => 'דקר מטפס';
 
   @override
-  String get species_climbing_perch_desc => 'דג זית עמיד הנושם אוויר וזוחל ביבשה על מכסי הזימים הקוצניים שלו בין שלוליות מתייבשות.';
+  String get species_climbing_perch_desc =>
+      'דג זית עמיד הנושם אוויר וזוחל ביבשה על מכסי הזימים הקוצניים שלו בין שלוליות מתייבשות.';
 
   @override
   String get species_golden_mahseer_name => 'מהסיר זהוב';
 
   @override
-  String get species_golden_mahseer_desc => 'קרפיון זהוב קשקשים מנהרות ההימלאיה, שחיין חזק השוהה בבריכות צלולות ומהירות מתחת לאשדות.';
+  String get species_golden_mahseer_desc =>
+      'קרפיון זהוב קשקשים מנהרות ההימלאיה, שחיין חזק השוהה בבריכות צלולות ומהירות מתחת לאשדות.';
 
   @override
   String get species_koi_name => 'קוי';
 
   @override
-  String get species_koi_desc => 'קרפיון נוי שטופח ביפן בדוגמאות לבנות, אדומות, שחורות וזהובות, חי בבריכות ובאגמים חמימים וצלולים.';
+  String get species_koi_desc =>
+      'קרפיון נוי שטופח ביפן בדוגמאות לבנות, אדומות, שחורות וזהובות, חי בבריכות ובאגמים חמימים וצלולים.';
 
   @override
   String get species_goldfish_name => 'דג זהב';
 
   @override
-  String get species_goldfish_desc => 'קרפיון אסייתי מבוית שחוזר לגוון זית-ארד בטבע ויוצר להקות פראיות גדולות באגמים חמימים.';
+  String get species_goldfish_desc =>
+      'קרפיון אסייתי מבוית שחוזר לגוון זית-ארד בטבע ויוצר להקות פראיות גדולות באגמים חמימים.';
 
   @override
   String get species_giant_gourami_name => 'גוראמי ענק';
 
   @override
-  String get species_giant_gourami_desc => 'דג רחב וגבנוני מדרום-מזרח אסיה עם סנפירי אגן דמויי חוט הבונה קני בועות במים איטיים ועשירי צמחייה.';
+  String get species_giant_gourami_desc =>
+      'דג רחב וגבנוני מדרום-מזרח אסיה עם סנפירי אגן דמויי חוט הבונה קני בועות במים איטיים ועשירי צמחייה.';
 
   @override
   String get species_clown_knifefish_name => 'דג סכין ליצן';
 
   @override
-  String get species_clown_knifefish_desc => 'דג כסוף דמוי להב עם כתמי עין לאורך סנפיר שת ארוך וגלי, מרחף מתחת לגזעים בנהרות אסיה.';
+  String get species_clown_knifefish_desc =>
+      'דג כסוף דמוי להב עם כתמי עין לאורך סנפיר שת ארוך וגלי, מרחף מתחת לגזעים בנהרות אסיה.';
 
   @override
   String get species_walking_catfish_name => 'שפמנון מהלך';
 
   @override
-  String get species_walking_catfish_desc => 'שפמנון דק הנושם אוויר ומתפתל על קרקע רטובה בין בריכות, כיום משוטט חופשי בפלורידה.';
+  String get species_walking_catfish_desc =>
+      'שפמנון דק הנושם אוויר ומתפתל על קרקע רטובה בין בריכות, כיום משוטט חופשי בפלורידה.';
 
   @override
   String get species_japanese_eel_name => 'צלופח יפני';
 
   @override
-  String get species_japanese_eel_desc => 'צלופח מזרח אסייתי הגדל בנהרות ובאגמים ונודד למערב האוקיינוס השקט להטלה.';
+  String get species_japanese_eel_desc =>
+      'צלופח מזרח אסייתי הגדל בנהרות ובאגמים ונודד למערב האוקיינוס השקט להטלה.';
 
   @override
   String get species_ayu_name => 'איו';
 
   @override
-  String get species_ayu_desc => 'דג יפני כסוף ודק הרועה אצות מאבנים בנהרות צלולים ומגן על טריטוריית האכלה.';
+  String get species_ayu_desc =>
+      'דג יפני כסוף ודק הרועה אצות מאבנים בנהרות צלולים ומגן על טריטוריית האכלה.';
 
   @override
   String get species_baikal_omul_name => 'אומול באיקל';
 
   @override
-  String get species_baikal_omul_desc => 'דג לבן כסוף המצוי רק באגם באיקל, נע בלהקות במים הפתוחים הקרים ועולה בנהרות להטלה.';
+  String get species_baikal_omul_desc =>
+      'דג לבן כסוף המצוי רק באגם באיקל, נע בלהקות במים הפתוחים הקרים ועולה בנהרות להטלה.';
 
   @override
   String get species_baikal_oilfish_name => 'גולומיאנקה';
 
   @override
-  String get species_baikal_oilfish_desc => 'דג שקוף למחצה וחסר קשקשים ממעמקי באיקל, עשיר בשמן עד שכמעט רואים דרכו, ומשריץ צאצאים חיים.';
+  String get species_baikal_oilfish_desc =>
+      'דג שקוף למחצה וחסר קשקשים ממעמקי באיקל, עשיר בשמן עד שכמעט רואים דרכו, ומשריץ צאצאים חיים.';
 
   @override
   String get species_murray_cod_name => 'קוד המורי';
 
   @override
-  String get species_murray_cod_desc => 'דג המים המתוקים הגדול ביותר באוסטרליה, ענק ירוק מנומר עם בטן לבנה, שוהה ליד גזעים במורי-דארלינג.';
+  String get species_murray_cod_desc =>
+      'דג המים המתוקים הגדול ביותר באוסטרליה, ענק ירוק מנומר עם בטן לבנה, שוהה ליד גזעים במורי-דארלינג.';
 
   @override
   String get species_golden_perch_name => 'דקר זהוב';
 
   @override
-  String get species_golden_perch_desc => 'דקר זהוב-זית גבוה גוף מנהרות פנים אוסטרליה, מסתתר ליד עצים שנפלו ומדפי סלע.';
+  String get species_golden_perch_desc =>
+      'דקר זהוב-זית גבוה גוף מנהרות פנים אוסטרליה, מסתתר ליד עצים שנפלו ומדפי סלע.';
 
   @override
   String get species_australian_bass_name => 'בס אוסטרלי';
 
   @override
-  String get species_australian_bass_desc => 'בס ירוק-ארד מנהרות החוף של מזרח אוסטרליה הנודד במורד הזרם להטיל בשפכים מליחים.';
+  String get species_australian_bass_desc =>
+      'בס ירוק-ארד מנהרות החוף של מזרח אוסטרליה הנודד במורד הזרם להטיל בשפכים מליחים.';
 
   @override
   String get species_barramundi_name => 'ברמונדי';
 
   @override
-  String get species_barramundi_desc => 'דקר כסוף גבנוני מנהרות ושפכים בצפון אוסטרליה, המשנה את מינו מזכר לנקבה עם הגיל.';
+  String get species_barramundi_desc =>
+      'דקר כסוף גבנוני מנהרות ושפכים בצפון אוסטרליה, המשנה את מינו מזכר לנקבה עם הגיל.';
 
   @override
   String get species_silver_perch_name => 'דקר כסוף';
 
   @override
-  String get species_silver_perch_desc => 'דג אפור-כסוף ממורי-דארלינג עם פה קטן וזנב מפוצל, שנע בעבר בלהקות עצומות.';
+  String get species_silver_perch_desc =>
+      'דג אפור-כסוף ממורי-דארלינג עם פה קטן וזנב מפוצל, שנע בעבר בלהקות עצומות.';
 
   @override
   String get species_gulf_saratoga_name => 'סרטוגה צפונית';
 
   @override
-  String get species_gulf_saratoga_desc => 'ארוואנה אוסטרלית ארדית עם קשקשים מנוקדים באדום הדוגרת על ביציה בפיה בבילבונגים הצפוניים.';
+  String get species_gulf_saratoga_desc =>
+      'ארוואנה אוסטרלית ארדית עם קשקשים מנוקדים באדום הדוגרת על ביציה בפיה בבילבונגים הצפוניים.';
 
   @override
   String get species_sooty_grunter_name => 'נוהם שחור';
 
   @override
-  String get species_sooty_grunter_desc => 'דג כהה ומוצק מנהרות צפון אוסטרליה, רועה אצות ופירות סביב סלעים ואשדות.';
+  String get species_sooty_grunter_desc =>
+      'דג כהה ומוצק מנהרות צפון אוסטרליה, רועה אצות ופירות סביב סלעים ואשדות.';
 
   @override
   String get species_eel_tailed_catfish_name => 'שפמנון זנב צלופח';
 
   @override
-  String get species_eel_tailed_catfish_desc => 'שפמנון אוסטרלי עם זנב מתחדד דמוי צלופח הבונה ושומר על קן חצץ ברדודים צלולים של נהרות.';
+  String get species_eel_tailed_catfish_desc =>
+      'שפמנון אוסטרלי עם זנב מתחדד דמוי צלופח הבונה ושומר על קן חצץ ברדודים צלולים של נהרות.';
 
   @override
   String get species_spangled_perch_name => 'דקר נוצץ';
 
   @override
-  String get species_spangled_perch_desc => 'דג קטן מנוקד בכסף המצוי ברחבי פנים אוסטרליה, מאכלס כל בור מים ששיטפון מחבר אליו.';
+  String get species_spangled_perch_desc =>
+      'דג קטן מנוקד בכסף המצוי ברחבי פנים אוסטרליה, מאכלס כל בור מים ששיטפון מחבר אליו.';
 
   @override
   String get species_eastern_rainbowfish_name => 'דג קשת מזרחי';
 
   @override
-  String get species_eastern_rainbowfish_desc => 'דג קטן ונוצץ מנחלי מזרח אוסטרליה, הזכרים מבזיקים פסים אדומים וכחולים בשמש.';
+  String get species_eastern_rainbowfish_desc =>
+      'דג קטן ונוצץ מנחלי מזרח אוסטרליה, הזכרים מבזיקים פסים אדומים וכחולים בשמש.';
 
   @override
   String get species_signal_crayfish_name => 'סרטן נהרות סימן';
 
   @override
-  String get species_signal_crayfish_desc => 'סרטן נהרות חום גדול עם כתם לבן במפרק הצבת, מין פולש צפון אמריקאי המתפשט בנהרות אירופה.';
+  String get species_signal_crayfish_desc =>
+      'סרטן נהרות חום גדול עם כתם לבן במפרק הצבת, מין פולש צפון אמריקאי המתפשט בנהרות אירופה.';
 
   @override
   String get species_red_swamp_crayfish_name => 'סרטן ביצות אדום';
 
   @override
-  String get species_red_swamp_crayfish_desc => 'סרטן נהרות אדום כהה עם צבתות מחוספסות מביצות לואיזיאנה, חופר כיום באזורי ביצה חמים בכל יבשת.';
+  String get species_red_swamp_crayfish_desc =>
+      'סרטן נהרות אדום כהה עם צבתות מחוספסות מביצות לואיזיאנה, חופר כיום באזורי ביצה חמים בכל יבשת.';
 
   @override
   String get species_noble_crayfish_name => 'סרטן נהרות אציל';
 
   @override
-  String get species_noble_crayfish_desc => 'סרטן הנהרות המקומי של אירופה, חום כהה עם צבתות אדומות מלמטה, מסתתר במחילות גדה של נחלים ואגמים נקיים וקרירים.';
+  String get species_noble_crayfish_desc =>
+      'סרטן הנהרות המקומי של אירופה, חום כהה עם צבתות אדומות מלמטה, מסתתר במחילות גדה של נחלים ואגמים נקיים וקרירים.';
 
   @override
   String get species_white_clawed_crayfish_name => 'סרטן נהרות לבן צבתות';
 
   @override
-  String get species_white_clawed_crayfish_desc => 'סרטן נהרות קטן בצבע זית עם צבתות חיוורות מלמטה, מין מקומי מאוים של נחלי גיר נקיים במערב אירופה.';
+  String get species_white_clawed_crayfish_desc =>
+      'סרטן נהרות קטן בצבע זית עם צבתות חיוורות מלמטה, מין מקומי מאוים של נחלי גיר נקיים במערב אירופה.';
 
   @override
-  String get species_tasmanian_giant_freshwater_crayfish_name => 'סרטן הנהרות הענק של טסמניה';
+  String get species_tasmanian_giant_freshwater_crayfish_name =>
+      'סרטן הנהרות הענק של טסמניה';
 
   @override
-  String get species_tasmanian_giant_freshwater_crayfish_desc => 'חסר החוליות הגדול ביותר במים מתוקים בעולם, סרטן נהרות כחול-חום איטי גדילה מנהרות מוצלים בטסמניה.';
+  String get species_tasmanian_giant_freshwater_crayfish_desc =>
+      'חסר החוליות הגדול ביותר במים מתוקים בעולם, סרטן נהרות כחול-חום איטי גדילה מנהרות מוצלים בטסמניה.';
 
   @override
   String get species_zebra_mussel_name => 'צדפת זברה';
 
   @override
-  String get species_zebra_mussel_desc => 'צדפה מפוספסת בגודל ציפורן המכסה סלעים, ספינות טרופות וצינורות באלפים ומצלילה את המים תוך התפשטותה.';
+  String get species_zebra_mussel_desc =>
+      'צדפה מפוספסת בגודל ציפורן המכסה סלעים, ספינות טרופות וצינורות באלפים ומצלילה את המים תוך התפשטותה.';
 
   @override
   String get species_quagga_mussel_name => 'צדפת קוואגה';
 
   @override
-  String get species_quagga_mussel_desc => 'קרוב עגול וחיוור יותר של צדפת הזברה המאכלס קרקעיות רכות ומים עמוקים וקרים שהזברה אינה יכולה.';
+  String get species_quagga_mussel_desc =>
+      'קרוב עגול וחיוור יותר של צדפת הזברה המאכלס קרקעיות רכות ומים עמוקים וקרים שהזברה אינה יכולה.';
 
   @override
   String get species_freshwater_pearl_mussel_name => 'צדפת פנינים מים מתוקים';
 
   @override
-  String get species_freshwater_pearl_mussel_desc => 'צדפה כהה ומוארכת שיכולה לחיות יותר ממאה שנה חצי קבורה בחצץ נקי של נהרות סלמון מהירים.';
+  String get species_freshwater_pearl_mussel_desc =>
+      'צדפה כהה ומוארכת שיכולה לחיות יותר ממאה שנה חצי קבורה בחצץ נקי של נהרות סלמון מהירים.';
 
   @override
   String get species_swan_mussel_name => 'צדפת ברבור';
 
   @override
-  String get species_swan_mussel_desc => 'צדפה גדולה דקת קונכייה מאגמים ותעלות בוציים, מסננת מים בסיפונים שלה ממש מעל הטין.';
+  String get species_swan_mussel_desc =>
+      'צדפה גדולה דקת קונכייה מאגמים ותעלות בוציים, מסננת מים בסיפונים שלה ממש מעל הטין.';
 
   @override
   String get species_chinese_pond_mussel_name => 'צדפת בריכות סינית';
 
   @override
-  String get species_chinese_pond_mussel_desc => 'צדפה אסייתית פולשת גדולה מאוד עם קונכייה חומה מבריקה, הגיעה עם דגי חווה ומתפשטת באגמים חמימים.';
+  String get species_chinese_pond_mussel_desc =>
+      'צדפה אסייתית פולשת גדולה מאוד עם קונכייה חומה מבריקה, הגיעה עם דגי חווה ומתפשטת באגמים חמימים.';
 
   @override
   String get species_freshwater_sponge_name => 'ספוג מים מתוקים';
 
   @override
-  String get species_freshwater_sponge_desc => 'ספוג מסתעף ירוק או אפור המצפה ענפים ואבנים באגמים צלולים, צבוע על ידי אצות החיות בתוכו.';
+  String get species_freshwater_sponge_desc =>
+      'ספוג מסתעף ירוק או אפור המצפה ענפים ואבנים באגמים צלולים, צבוע על ידי אצות החיות בתוכו.';
 
   @override
   String get species_freshwater_jellyfish_name => 'מדוזת מים מתוקים';
 
   @override
-  String get species_freshwater_jellyfish_desc => 'מדוזה שקופה בגודל מטבע המופיעה בנחילים באגמי מחצבה חמימים ובמאגרים בסוף הקיץ.';
+  String get species_freshwater_jellyfish_desc =>
+      'מדוזה שקופה בגודל מטבע המופיעה בנחילים באגמי מחצבה חמימים ובמאגרים בסוף הקיץ.';
 
   @override
   String get species_great_pond_snail_name => 'חילזון בריכות גדול';
 
   @override
-  String get species_great_pond_snail_desc => 'חילזון גדול עם קונכייה מחודדת המחליק על צמחים במים עומדים באירופה ונושם אוויר על פני המים.';
+  String get species_great_pond_snail_desc =>
+      'חילזון גדול עם קונכייה מחודדת המחליק על צמחים במים עומדים באירופה ונושם אוויר על פני המים.';
 
   @override
   String get species_great_ramshorn_snail_name => 'חילזון קרן איל גדול';
 
   @override
-  String get species_great_ramshorn_snail_desc => 'חילזון שטוח ומפותל כמו קרן איל זעירה, רועה אצות מעלים ואבנים בבריכות עשירות בצמחייה.';
+  String get species_great_ramshorn_snail_desc =>
+      'חילזון שטוח ומפותל כמו קרן איל זעירה, רועה אצות מעלים ואבנים בבריכות עשירות בצמחייה.';
 
   @override
   String get species_channeled_apple_snail_name => 'חילזון תפוח';
 
   @override
-  String get species_channeled_apple_snail_desc => 'חילזון גדול חום-זהוב המטיל אשכולות ביצים ורודות בוהקות מעל קו המים, פולש באזורי ביצה חמים ובשדות אורז.';
+  String get species_channeled_apple_snail_desc =>
+      'חילזון גדול חום-זהוב המטיל אשכולות ביצים ורודות בוהקות מעל קו המים, פולש באזורי ביצה חמים ובשדות אורז.';
 
   @override
   String get species_magnificent_bryozoan_name => 'טחביון מפואר';
 
   @override
-  String get species_magnificent_bryozoan_desc => 'מושבה דמוית ג\'לי בגודל כדורגל, משובצת בבעלי חיים זעירים, נצמדת לענפים ולחבלים במים חמים ושקטים.';
+  String get species_magnificent_bryozoan_desc =>
+      'מושבה דמוית ג\'לי בגודל כדורגל, משובצת בבעלי חיים זעירים, נצמדת לענפים ולחבלים במים חמים ושקטים.';
 
   @override
   String get species_chinese_mitten_crab_name => 'סרטן כפפות סיני';
 
   @override
-  String get species_chinese_mitten_crab_desc => 'סרטן חופר עם צבתות שעירות המבלה שנים בנהרות לפני שהוא הולך במורד הזרם להתרבות בשפכים.';
+  String get species_chinese_mitten_crab_desc =>
+      'סרטן חופר עם צבתות שעירות המבלה שנים בנהרות לפני שהוא הולך במורד הזרם להתרבות בשפכים.';
 
   @override
   String get species_giant_freshwater_prawn_name => 'שרימפס נהר ענק';
 
   @override
-  String get species_giant_freshwater_prawn_desc => 'שרימפס גדול עם צבתות כחולות מנהרות אסיה ואוסטרליה, שצבתותיהם של הזכרים הזקנים ארוכות מגופם.';
+  String get species_giant_freshwater_prawn_desc =>
+      'שרימפס גדול עם צבתות כחולות מנהרות אסיה ואוסטרליה, שצבתותיהם של הזכרים הזקנים ארוכות מגופם.';
 
   @override
   String get species_common_snapping_turtle_name => 'צב נושך מצוי';
 
   @override
-  String get species_common_snapping_turtle_desc => 'צב כבד עם שריון מחוספס וזנב ארוך משונן, רובץ בבוץ של בריכות ונהרות איטיים כשראשו בחוץ.';
+  String get species_common_snapping_turtle_desc =>
+      'צב כבד עם שריון מחוספס וזנב ארוך משונן, רובץ בבוץ של בריכות ונהרות איטיים כשראשו בחוץ.';
 
   @override
   String get species_alligator_snapping_turtle_name => 'צב נושך תנין';
 
   @override
-  String get species_alligator_snapping_turtle_desc => 'ענק בעל מראה פרהיסטורי עם שלוש שדרות משוננות ופיתיון לשון דמוי תולעת, ממתין בפה פתוח על קרקעיות נהרות הדרום.';
+  String get species_alligator_snapping_turtle_desc =>
+      'ענק בעל מראה פרהיסטורי עם שלוש שדרות משוננות ופיתיון לשון דמוי תולעת, ממתין בפה פתוח על קרקעיות נהרות הדרום.';
 
   @override
   String get species_painted_turtle_name => 'צב מצויר';
 
   @override
-  String get species_painted_turtle_desc => 'צב כהה וחלק עם פסים אדומים וצהובים על הצוואר ושולי השריון, מתחמם בשורות על גזעים ברחבי צפון אמריקה.';
+  String get species_painted_turtle_desc =>
+      'צב כהה וחלק עם פסים אדומים וצהובים על הצוואר ושולי השריון, מתחמם בשורות על גזעים ברחבי צפון אמריקה.';
 
   @override
   String get species_red_eared_slider_name => 'צב אדום אוזן';
 
   @override
-  String get species_red_eared_slider_desc => 'צב בריכות מפוספס ירוק עם פס אדום מאחורי כל עין, צב חיות המחמד שכיום משוטט חופשי במים חמים ברחבי העולם.';
+  String get species_red_eared_slider_desc =>
+      'צב בריכות מפוספס ירוק עם פס אדום מאחורי כל עין, צב חיות המחמד שכיום משוטט חופשי במים חמים ברחבי העולם.';
 
   @override
   String get species_northern_map_turtle_name => 'צב מפה צפוני';
 
   @override
-  String get species_northern_map_turtle_desc => 'צב זית עם קווים צהובים דמויי מפה על שריונו ושדרה נמוכה, מתחמם על סלעים לאורך נהרות צלולים ואגמים גדולים.';
+  String get species_northern_map_turtle_desc =>
+      'צב זית עם קווים צהובים דמויי מפה על שריונו ושדרה נמוכה, מתחמם על סלעים לאורך נהרות צלולים ואגמים גדולים.';
 
   @override
   String get species_spiny_softshell_turtle_name => 'צב רך קוצני';
 
   @override
-  String get species_spiny_softshell_turtle_desc => 'צב שטוח ועורי כפנקייק עם חרטום דמוי שנורקל, קבור בחול בנהרות רדודים כשרק ראשו נראה.';
+  String get species_spiny_softshell_turtle_desc =>
+      'צב שטוח ועורי כפנקייק עם חרטום דמוי שנורקל, קבור בחול בנהרות רדודים כשרק ראשו נראה.';
 
   @override
   String get species_florida_softshell_turtle_name => 'צב רך פלורידה';
 
   @override
-  String get species_florida_softshell_turtle_desc => 'צב רך שריון גדול וכהה עם חרטום צינורי ארוך, נפוץ במעיינות, בתעלות ובאגמים של פלורידה.';
+  String get species_florida_softshell_turtle_desc =>
+      'צב רך שריון גדול וכהה עם חרטום צינורי ארוך, נפוץ במעיינות, בתעלות ובאגמים של פלורידה.';
 
   @override
   String get species_pig_nosed_turtle_name => 'צב אף החזיר';
 
   @override
-  String get species_pig_nosed_turtle_desc => 'צב נהר ייחודי מגינאה החדשה וצפון אוסטרליה עם סנפירי צב ים וחרטום בשרני דמוי חזיר.';
+  String get species_pig_nosed_turtle_desc =>
+      'צב נהר ייחודי מגינאה החדשה וצפון אוסטרליה עם סנפירי צב ים וחרטום בשרני דמוי חזיר.';
 
   @override
   String get species_mary_river_turtle_name => 'צב נהר מרי';
 
   @override
-  String get species_mary_river_turtle_desc => 'צב אוסטרלי נדיר הנושם דרך הביב שלו ומגדל ציצת אצות ירוקה, מצוי בנהר יחיד בקווינסלנד.';
+  String get species_mary_river_turtle_desc =>
+      'צב אוסטרלי נדיר הנושם דרך הביב שלו ומגדל ציצת אצות ירוקה, מצוי בנהר יחיד בקווינסלנד.';
 
   @override
   String get species_yellow_spotted_river_turtle_name => 'צב נהר צהוב כתמים';
 
   @override
-  String get species_yellow_spotted_river_turtle_desc => 'צב אמזונס מטה צוואר עם כתמים צהובים בראש, מתחמם בקבוצות על גזעים ושרטונות חול של נהרות גדולים.';
+  String get species_yellow_spotted_river_turtle_desc =>
+      'צב אמזונס מטה צוואר עם כתמים צהובים בראש, מתחמם בקבוצות על גזעים ושרטונות חול של נהרות גדולים.';
 
   @override
   String get species_european_pond_turtle_name => 'צב-אגמים אירופי';
 
   @override
-  String get species_european_pond_turtle_desc => 'צב כהה מנוקד בנקודות צהובות, צב המים המתוקים המקומי של אירופה, מחליק מגדות שטופות שמש לבריכות עשירות בצמחייה.';
+  String get species_european_pond_turtle_desc =>
+      'צב כהה מנוקד בנקודות צהובות, צב המים המתוקים המקומי של אירופה, מחליק מגדות שטופות שמש לבריכות עשירות בצמחייה.';
 
   @override
   String get species_american_alligator_name => 'אליגטור אמריקאי';
 
   @override
-  String get species_american_alligator_desc => 'זוחל משוריין רחב חרטום מביצות, מעיינות ונהרות בדרום-מזרח ארה\"ב, צף כשרק עיניו ונחיריו נראים.';
+  String get species_american_alligator_desc =>
+      'זוחל משוריין רחב חרטום מביצות, מעיינות ונהרות בדרום-מזרח ארה\"ב, צף כשרק עיניו ונחיריו נראים.';
 
   @override
   String get species_spectacled_caiman_name => 'קיימן משקפיים';
 
   @override
-  String get species_spectacled_caiman_desc => 'קיימן זית קטן עם רכס גרמי בין עיניו, שכיח בנהרות איטיים ובלגונות ברחבי מרכז ודרום אמריקה.';
+  String get species_spectacled_caiman_desc =>
+      'קיימן זית קטן עם רכס גרמי בין עיניו, שכיח בנהרות איטיים ובלגונות ברחבי מרכז ודרום אמריקה.';
 
   @override
   String get species_black_caiman_name => 'קיימן שחור';
 
   @override
-  String get species_black_caiman_desc => 'הטורף הגדול ביותר באמזונס, קיימן שחור משוריין באורך עד חמישה מטרים, צד בלילה באגמים וביער מוצף.';
+  String get species_black_caiman_desc =>
+      'הטורף הגדול ביותר באמזונס, קיימן שחור משוריין באורך עד חמישה מטרים, צד בלילה באגמים וביער מוצף.';
 
   @override
   String get species_freshwater_crocodile_name => 'תנין מים מתוקים';
 
   @override
-  String get species_freshwater_crocodile_desc => 'תנין אוסטרלי צר חרטום מנהרות ומקניונים בצפון, ביישן וקטן בהרבה מתנין המים המלוחים.';
+  String get species_freshwater_crocodile_desc =>
+      'תנין אוסטרלי צר חרטום מנהרות ומקניונים בצפון, ביישן וקטן בהרבה מתנין המים המלוחים.';
 
   @override
   String get species_northern_water_snake_name => 'נחש מים צפוני';
 
   @override
-  String get species_northern_water_snake_desc => 'נחש חום עבה גוף ומפוספס המתחמם על סלעים וענפים מעל נחלים במזרח צפון אמריקה, לא מסוכן אך מהיר לנשוך.';
+  String get species_northern_water_snake_desc =>
+      'נחש חום עבה גוף ומפוספס המתחמם על סלעים וענפים מעל נחלים במזרח צפון אמריקה, לא מסוכן אך מהיר לנשוך.';
 
   @override
   String get species_green_anaconda_name => 'אנקונדה ירוקה';
 
   @override
-  String get species_green_anaconda_desc => 'הנחש הכבד ביותר על פני האדמה, ענק בצבע זית עם כתמים שחורים, רובץ שקוע בביצות האמזונס ובנהרות איטיים.';
+  String get species_green_anaconda_desc =>
+      'הנחש הכבד ביותר על פני האדמה, ענק בצבע זית עם כתמים שחורים, רובץ שקוע בביצות האמזונס ובנהרות איטיים.';
 
   @override
   String get species_hellbender_name => 'סלמנדרת ענק אמריקנית';
 
   @override
-  String get species_hellbender_desc => 'סלמנדרה ענקית שטוחת ראש עם קפלי עור מקומטים, מסתתרת מתחת לסלעים גדולים בנהרות קרים וצלולים בהרי האפלצ\'ים.';
+  String get species_hellbender_desc =>
+      'סלמנדרה ענקית שטוחת ראש עם קפלי עור מקומטים, מסתתרת מתחת לסלעים גדולים בנהרות קרים וצלולים בהרי האפלצ\'ים.';
 
   @override
   String get species_mudpuppy_name => 'כלב בוץ';
 
   @override
-  String get species_mudpuppy_desc => 'סלמנדרה חומה מנוקדת השומרת על זימיה האדומים הנוצתיים לכל חייה, זוחלת בלילה על קרקעיות אגמים ונהרות.';
+  String get species_mudpuppy_desc =>
+      'סלמנדרה חומה מנוקדת השומרת על זימיה האדומים הנוצתיים לכל חייה, זוחלת בלילה על קרקעיות אגמים ונהרות.';
 
   @override
   String get species_axolotl_name => 'אמביסטומה מקסיקנית';
 
   @override
-  String get species_axolotl_desc => 'סלמנדרה מחייכת עם זימים שלעולם אינה עוזבת את המים, בסכנת הכחדה חמורה בתעלות שוצ\'ימילקו ליד מקסיקו סיטי.';
+  String get species_axolotl_desc =>
+      'סלמנדרה מחייכת עם זימים שלעולם אינה עוזבת את המים, בסכנת הכחדה חמורה בתעלות שוצ\'ימילקו ליד מקסיקו סיטי.';
 
   @override
   String get species_chinese_giant_salamander_name => 'סלמנדרת ענק סינית';
 
   @override
-  String get species_chinese_giant_salamander_desc => 'הדו-חי הגדול ביותר החי כיום, ענק חום מקומט באורך כמעט שני מטרים, מסתתר בנחלי הרים קרירים וסלעיים.';
+  String get species_chinese_giant_salamander_desc =>
+      'הדו-חי הגדול ביותר החי כיום, ענק חום מקומט באורך כמעט שני מטרים, מסתתר בנחלי הרים קרירים וסלעיים.';
 
   @override
   String get species_smooth_newt_name => 'טריטון חלק';
 
   @override
-  String get species_smooth_newt_desc => 'טריטון זית קטן החוזר לבריכות בכל אביב, הזכרים מגדלים ציצה גלית ובטן כתומה מנוקדת.';
+  String get species_smooth_newt_desc =>
+      'טריטון זית קטן החוזר לבריכות בכל אביב, הזכרים מגדלים ציצה גלית ובטן כתומה מנוקדת.';
 
   @override
   String get species_great_crested_newt_name => 'טריטון הרכס';
 
   @override
-  String get species_great_crested_newt_desc => 'טריטון שחור גדול ומיובל עם בטן כתומה לוהטת, הזכרים בעונת הרבייה נושאים ציצה משוננת דמוית דרקון.';
+  String get species_great_crested_newt_desc =>
+      'טריטון שחור גדול ומיובל עם בטן כתומה לוהטת, הזכרים בעונת הרבייה נושאים ציצה משוננת דמוית דרקון.';
 
   @override
   String get species_american_bullfrog_name => 'צפרדע השור';
 
   @override
-  String get species_american_bullfrog_desc => 'צפרדע ירוקה ענקית עם געייה עמוקה, יושבת בין עלי נופר בבריכות חמימות וכיום פולשת בכמה יבשות.';
+  String get species_american_bullfrog_desc =>
+      'צפרדע ירוקה ענקית עם געייה עמוקה, יושבת בין עלי נופר בבריכות חמימות וכיום פולשת בכמה יבשות.';
 
   @override
   String get species_common_frog_name => 'צפרדע מצויה';
 
   @override
-  String get species_common_frog_desc => 'צפרדע חומה עם מסכת עין כהה המתקבצת בהמונים רועשים באביב להטיל בבריכות ובתעלות באירופה.';
+  String get species_common_frog_desc =>
+      'צפרדע חומה עם מסכת עין כהה המתקבצת בהמונים רועשים באביב להטיל בבריכות ובתעלות באירופה.';
 
   @override
   String get species_north_american_river_otter_name => 'לוטרה צפון-אמריקנית';
 
   @override
-  String get species_north_american_river_otter_desc => 'לוטרה חלקה ושובבה הצדה דגים וסרטני נהרות בנהרות ובאגמים ברחבי צפון אמריקה ומשאירה מגלשות בוץ על הגדות.';
+  String get species_north_american_river_otter_desc =>
+      'לוטרה חלקה ושובבה הצדה דגים וסרטני נהרות בנהרות ובאגמים ברחבי צפון אמריקה ומשאירה מגלשות בוץ על הגדות.';
 
   @override
   String get species_eurasian_otter_name => 'לוטרה אירופית';
 
   @override
-  String get species_eurasian_otter_desc => 'לוטרה חומה ביישנית מנהרות, אגמים וחופים באירופה, המתאוששת בכל תחום תפוצתה אחרי עשורים של דעיכה.';
+  String get species_eurasian_otter_desc =>
+      'לוטרה חומה ביישנית מנהרות, אגמים וחופים באירופה, המתאוששת בכל תחום תפוצתה אחרי עשורים של דעיכה.';
 
   @override
   String get species_giant_otter_name => 'לוטרה ענקית';
 
   @override
-  String get species_giant_otter_desc => 'לוטרה באורך כמעט שני מטרים עם כתם קרם בגרון, החיה בקבוצות משפחתיות רועשות בנהרות האמזונס ובאגמי פרסה.';
+  String get species_giant_otter_desc =>
+      'לוטרה באורך כמעט שני מטרים עם כתם קרם בגרון, החיה בקבוצות משפחתיות רועשות בנהרות האמזונס ובאגמי פרסה.';
 
   @override
   String get species_north_american_beaver_name => 'בונה קנדי';
 
   @override
-  String get species_north_american_beaver_desc => 'מכרסם גדול שטוח זנב הסוכר נחלים לבריכות ושוחה מתחת לקרח, עם מאורת ענפים למחסה.';
+  String get species_north_american_beaver_desc =>
+      'מכרסם גדול שטוח זנב הסוכר נחלים לבריכות ושוחה מתחת לקרח, עם מאורת ענפים למחסה.';
 
   @override
   String get species_eurasian_beaver_name => 'בונה אירופי';
 
   @override
-  String get species_eurasian_beaver_desc => 'המכרסם הגדול ביותר באירופה, שהושב לרחבי היבשת, מפיל עצי גדה ובונה סכרים ומאורות.';
+  String get species_eurasian_beaver_desc =>
+      'המכרסם הגדול ביותר באירופה, שהושב לרחבי היבשת, מפיל עצי גדה ובונה סכרים ומאורות.';
 
   @override
   String get species_muskrat_name => 'אונדטרה';
 
   @override
-  String get species_muskrat_desc => 'מכרסם חום בגודל חולדה עם זנב קשקשי ושטוח, שוחה בביצות סוף ובונה מאורות קנים כיפתיות.';
+  String get species_muskrat_desc =>
+      'מכרסם חום בגודל חולדה עם זנב קשקשי ושטוח, שוחה בביצות סוף ובונה מאורות קנים כיפתיות.';
 
   @override
   String get species_platypus_name => 'ברווזן';
 
   @override
-  String get species_platypus_desc => 'יונק מטיל ביצים עם מקור ברווז ורגליים בעלות קרום שחייה, מלקט מזון בעיניים עצומות לאורך נחלי מזרח אוסטרליה עם שחר ודמדומים.';
+  String get species_platypus_desc =>
+      'יונק מטיל ביצים עם מקור ברווז ורגליים בעלות קרום שחייה, מלקט מזון בעיניים עצומות לאורך נחלי מזרח אוסטרליה עם שחר ודמדומים.';
 
   @override
   String get species_amazonian_manatee_name => 'פרת ים אמזונית';
 
   @override
-  String get species_amazonian_manatee_desc => 'פרת הים הקטנה ביותר, אוכלת עשב חלקה וכהה עם כתם לבן בחזה, הרועה צמחי מים באגמים ובנהרות האמזונס.';
+  String get species_amazonian_manatee_desc =>
+      'פרת הים הקטנה ביותר, אוכלת עשב חלקה וכהה עם כתם לבן בחזה, הרועה צמחי מים באגמים ובנהרות האמזונס.';
 
   @override
   String get species_amazon_river_dolphin_name => 'דולפין נהר האמזונס';
 
   @override
-  String get species_amazon_river_dolphin_desc => 'דולפין ורוד ארוך מקור עם צוואר גמיש, מתפתל בין גזעי יער מוצף באמזונס ובאורינוקו.';
+  String get species_amazon_river_dolphin_desc =>
+      'דולפין ורוד ארוך מקור עם צוואר גמיש, מתפתל בין גזעי יער מוצף באמזונס ובאורינוקו.';
 
   @override
   String get species_baikal_seal_name => 'כלב ים באיקל';
 
   @override
-  String get species_baikal_seal_desc => 'כלב הים היחיד בעולם במים מתוקים, כלב ים קטן אפור-כסוף העולה לנוח על הקרח והחופים הסלעיים של אגם באיקל.';
+  String get species_baikal_seal_desc =>
+      'כלב הים היחיד בעולם במים מתוקים, כלב ים קטן אפור-כסוף העולה לנוח על הקרח והחופים הסלעיים של אגם באיקל.';
 
   @override
   String get species_capybara_name => 'קפיבארה מצויה';
 
   @override
-  String get species_capybara_desc => 'המכרסם הגדול ביותר, אוכל עשב דמוי חבית הבוסס ושוחה בנהרות ובאזורי ביצה בדרום אמריקה בעדרים רגועים.';
+  String get species_capybara_desc =>
+      'המכרסם הגדול ביותר, אוכל עשב דמוי חבית הבוסס ושוחה בנהרות ובאזורי ביצה בדרום אמריקה בעדרים רגועים.';
 
   @override
   String get species_hippopotamus_name => 'היפופוטם';
 
   @override
-  String get species_hippopotamus_desc => 'ענק נהרות אפריקאי עצום המבלה את היום שקוע בלהקות והולך על הקרקעית במקום לשחות; מסוכן להתקרב אליו.';
+  String get species_hippopotamus_desc =>
+      'ענק נהרות אפריקאי עצום המבלה את היום שקוע בלהקות והולך על הקרקעית במקום לשחות; מסוכן להתקרב אליו.';
 
   @override
   String get species_white_water_lily_name => 'נימפאה לבנה';
 
   @override
-  String get species_white_water_lily_desc => 'עלים עגולים צפים ופרחים לבנים גדולים העולים מקני שורש עבים המושרשים בבוץ של מים עומדים באירופה.';
+  String get species_white_water_lily_desc =>
+      'עלים עגולים צפים ופרחים לבנים גדולים העולים מקני שורש עבים המושרשים בבוץ של מים עומדים באירופה.';
 
   @override
   String get species_yellow_pond_lily_name => 'נופר צהוב';
 
   @override
-  String get species_yellow_pond_lily_desc => 'עלים צפים בצורת לב ופרחים צהובים דמויי גביע, עם עלים תת-מימיים גדולים ושקופים למחצה הנראים לצוללנים מלמטה.';
+  String get species_yellow_pond_lily_desc =>
+      'עלים צפים בצורת לב ופרחים צהובים דמויי גביע, עם עלים תת-מימיים גדולים ושקופים למחצה הנראים לצוללנים מלמטה.';
 
   @override
   String get species_american_eelgrass_name => 'ואליסנריה אמריקאית';
 
   @override
-  String get species_american_eelgrass_desc => 'עלים דמויי סרט באורך עד שני מטרים המתנועעים בזרם של נהרות ומעיינות צלולים, מאכל אהוב על פרות ים.';
+  String get species_american_eelgrass_desc =>
+      'עלים דמויי סרט באורך עד שני מטרים המתנועעים בזרם של נהרות ומעיינות צלולים, מאכל אהוב על פרות ים.';
 
   @override
   String get species_coontail_name => 'קרנן טבוע';
 
   @override
-  String get species_coontail_desc => 'צמח שקוע חסר שורשים עם דורים של עלים קשיחים ומפוצלים כזנב דביבון, נסחף בגושים צפופים במים עומדים.';
+  String get species_coontail_desc =>
+      'צמח שקוע חסר שורשים עם דורים של עלים קשיחים ומפוצלים כזנב דביבון, נסחף בגושים צפופים במים עומדים.';
 
   @override
   String get species_eurasian_watermilfoil_name => 'אלף-עלה משובל';
 
   @override
-  String get species_eurasian_watermilfoil_desc => 'צמח שקוע נוצתי עם דורים של עלים מחולקים דק היוצר מחצלות עבות ליד פני המים, פולש באגמים רבים.';
+  String get species_eurasian_watermilfoil_desc =>
+      'צמח שקוע נוצתי עם דורים של עלים מחולקים דק היוצר מחצלות עבות ליד פני המים, פולש באגמים רבים.';
 
   @override
   String get species_muskgrass_name => 'כארה';
 
   @override
-  String get species_muskgrass_desc => 'אצה ירוקה שבירה בעלת ריח מושק עם ענפים דוריים, לעיתים קרובות מצופה בגיר, מרפדת את קרקעית אגמים צלולים בעלי מים קשים.';
+  String get species_muskgrass_desc =>
+      'אצה ירוקה שבירה בעלת ריח מושק עם ענפים דוריים, לעיתים קרובות מצופה בגיר, מרפדת את קרקעית אגמים צלולים בעלי מים קשים.';
 
   @override
   String get species_canadian_waterweed_name => 'אלודאה קנדית';
 
   @override
-  String get species_canadian_waterweed_desc => 'צמח שקוע צפוף עם דורים של שלושה עלים קטנים ירוקים כהים, מתפשט בשברים באגמים ובתעלות קרירים ברחבי העולם.';
+  String get species_canadian_waterweed_desc =>
+      'צמח שקוע צפוף עם דורים של שלושה עלים קטנים ירוקים כהים, מתפשט בשברים באגמים ובתעלות קרירים ברחבי העולם.';
 
   @override
   String get species_curly_leaf_pondweed_name => 'נהרונית מסולסלת';
 
   @override
-  String get species_curly_leaf_pondweed_desc => 'צמח שקוע עם עלים ירוקים-אדמדמים בשוליים גליים כמו לזניה מקומטת, הצומח מוקדם באביב לפני צמחי מים אחרים.';
+  String get species_curly_leaf_pondweed_desc =>
+      'צמח שקוע עם עלים ירוקים-אדמדמים בשוליים גליים כמו לזניה מקומטת, הצומח מוקדם באביב לפני צמחי מים אחרים.';
 
   @override
   String get species_water_hyacinth_name => 'איכהורניה עבת-רגל';
 
   @override
-  String get species_water_hyacinth_desc => 'צמח צף עם עלים מבריקים על גבעולים מלאי אוויר ושיבולים של פרחי לבנדר, החונק נתיבי מים חמים ברחבי העולם.';
+  String get species_water_hyacinth_desc =>
+      'צמח צף עם עלים מבריקים על גבעולים מלאי אוויר ושיבולים של פרחי לבנדר, החונק נתיבי מים חמים ברחבי העולם.';
 
   @override
   String get species_common_reed_name => 'קנה מצוי';
 
   @override
-  String get species_common_reed_desc => 'עשב גבוה בעל ראשים נוצתיים היוצר סבכים צפופים לאורך חופי אגמים, וגבעוליו השקועים מספקים מחסה לדגיגים ולזחלי שפיריות.';
+  String get species_common_reed_desc =>
+      'עשב גבוה בעל ראשים נוצתיים היוצר סבכים צפופים לאורך חופי אגמים, וגבעוליו השקועים מספקים מחסה לדגיגים ולזחלי שפיריות.';
 
   @override
   String get common_action_done => 'סיום';
@@ -35667,7 +37884,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_cache_clearAction => 'ניקוי מטמון';
 
   @override
-  String get media_cache_clearBody => 'מסיר תמונות ממוזערות ותמונות רשת בגודל מלא שהורדו. פריטי המדיה המקושרים נשמרים; התמונות יורדו מחדש בצפייה הבאה.';
+  String get media_cache_clearBody =>
+      'מסיר תמונות ממוזערות ותמונות רשת בגודל מלא שהורדו. פריטי המדיה המקושרים נשמרים; התמונות יורדו מחדש בצפייה הבאה.';
 
   @override
   String get media_cache_clearConfirm => 'ניקוי';
@@ -35700,7 +37918,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get media_credentials_deleteBody => 'מסיר את פרטי ההתחברות השמורים. פריטים המקושרים דרך מארח זה יציגו \"נדרשת כניסה\" עד שתוסיף אותם מחדש.';
+  String get media_credentials_deleteBody =>
+      'מסיר את פרטי ההתחברות השמורים. פריטים המקושרים דרך מארח זה יציגו \"נדרשת כניסה\" עד שתוסיף אותם מחדש.';
 
   @override
   String media_credentials_deleteError(String error) {
@@ -35723,7 +37942,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get media_credentials_emptySubtitle => 'פרטי התחברות לכל מארח שנוספו במהלך ייבוא מכתובת URL או ממניפסט מופיעים כאן.';
+  String get media_credentials_emptySubtitle =>
+      'פרטי התחברות לכל מארח שנוספו במהלך ייבוא מכתובת URL או ממניפסט מופיעים כאן.';
 
   @override
   String get media_credentials_emptyTitle => 'אין פרטי התחברות שמורים';
@@ -35769,7 +37989,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_manifest_cardTitle => 'מנויי מניפסט';
 
   @override
-  String get media_manifest_deleteBody => 'מסיר את המנוי. הרשומות שכבר יובאו יישארו (אפשר לנקות אותן דרך תור הפריטים היתומים).';
+  String get media_manifest_deleteBody =>
+      'מסיר את המנוי. הרשומות שכבר יובאו יישארו (אפשר לנקות אותן דרך תור הפריטים היתומים).';
 
   @override
   String media_manifest_deleteError(String error) {
@@ -35785,7 +38006,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_manifest_editTitle => 'עריכת מנוי';
 
   @override
-  String get media_manifest_emptySubtitle => 'הירשם למניפסט Atom/RSS, JSON או CSV מלשונית ה-URL כדי לשמור על סנכרון הספרייה.';
+  String get media_manifest_emptySubtitle =>
+      'הירשם למניפסט Atom/RSS, JSON או CSV מלשונית ה-URL כדי לשמור על סנכרון הספרייה.';
 
   @override
   String get media_manifest_emptyTitle => 'אין מנויי מניפסט';
@@ -35861,14 +38083,23 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String media_scan_summary(int total, String seconds, int available, int unreachable) {
+  String media_scan_summary(
+    int total,
+    String seconds,
+    int available,
+    int unreachable,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       total,
       locale: localeName,
-      other: 'נסרקו $total פריטים ב-$seconds שניות: $available נגישים, $unreachable לא נגישים',
-      many: 'נסרקו $total פריטים ב-$seconds שניות: $available נגישים, $unreachable לא נגישים',
-      two: 'נסרקו שני פריטים ב-$seconds שניות: $available נגישים, $unreachable לא נגישים',
-      one: 'נסרק פריט אחד ב-$seconds שניות: $available נגישים, $unreachable לא נגישים',
+      other:
+          'נסרקו $total פריטים ב-$seconds שניות: $available נגישים, $unreachable לא נגישים',
+      many:
+          'נסרקו $total פריטים ב-$seconds שניות: $available נגישים, $unreachable לא נגישים',
+      two:
+          'נסרקו שני פריטים ב-$seconds שניות: $available נגישים, $unreachable לא נגישים',
+      one:
+          'נסרק פריט אחד ב-$seconds שניות: $available נגישים, $unreachable לא נגישים',
     );
     return '$_temp0';
   }
@@ -35909,15 +38140,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_mediaSources_loading => 'טוען…';
 
   @override
-  String settings_mediaSources_localFilesCounts(int available, int unavailable) {
+  String settings_mediaSources_localFilesCounts(
+    int available,
+    int unavailable,
+  ) {
     return '$available זמינים, $unavailable לא זמינים';
   }
 
   @override
-  String get settings_mediaSources_photoLibrarySubtitle => 'Apple Photos / Google Photos / iCloud';
+  String get settings_mediaSources_photoLibrarySubtitle =>
+      'Apple Photos / Google Photos / iCloud';
 
   @override
-  String get settings_mediaSources_reverifyAll => 'אימות מחדש של כל הקבצים המקומיים';
+  String get settings_mediaSources_reverifyAll =>
+      'אימות מחדש של כל הקבצים המקומיים';
 
   @override
   String settings_mediaSources_reverifyFailed(String error) {
@@ -35958,9 +38194,12 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'לא ניתן היה לבדוק אף אחד מ-$count הפריטים. המקורות שלהם אינם זמינים כרגע.',
-      many: 'לא ניתן היה לבדוק אף אחד מ-$count הפריטים. המקורות שלהם אינם זמינים כרגע.',
-      two: 'לא ניתן היה לבדוק אף אחד מ-$count הפריטים. המקורות שלהם אינם זמינים כרגע.',
+      other:
+          'לא ניתן היה לבדוק אף אחד מ-$count הפריטים. המקורות שלהם אינם זמינים כרגע.',
+      many:
+          'לא ניתן היה לבדוק אף אחד מ-$count הפריטים. המקורות שלהם אינם זמינים כרגע.',
+      two:
+          'לא ניתן היה לבדוק אף אחד מ-$count הפריטים. המקורות שלהם אינם זמינים כרגע.',
       one: 'לא ניתן היה לבדוק את הפריט. המקור שלו אינו זמין כרגע.',
     );
     return '$_temp0';
@@ -35970,7 +38209,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_mediaSources_title => 'מקורות מדיה';
 
   @override
-  String get settings_networkSources_scanDescription => 'בודק מחדש כל תמונה שיובאה מכתובת URL או ממניפסט מול המארח שלה. מסמן פריטים לא נגישים כך שיוצגו כ\"חסרים\" בספרייה וניתן יהיה לנקות אותם.';
+  String get settings_networkSources_scanDescription =>
+      'בודק מחדש כל תמונה שיובאה מכתובת URL או ממניפסט מול המארח שלה. מסמן פריטים לא נגישים כך שיוצגו כ\"חסרים\" בספרייה וניתן יהיה לנקות אותם.';
 
   @override
   String insights_conditions_entryMethod_semanticLabel(String description) {
@@ -35988,7 +38228,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(String description) {
+  String insights_progression_divesBySuitThickness_semanticLabel(
+    String description,
+  ) {
     return 'תרשים עמודות. צלילות לפי עובי חליפה. $description';
   }
 
@@ -36019,7 +38261,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String insights_summary_depthBucket_range(String min, String max, String unit) {
+  String insights_summary_depthBucket_range(
+    String min,
+    String max,
+    String unit,
+  ) {
     return '$min-$max$unit';
   }
 
@@ -36027,7 +38273,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_summary_distributions_title => 'התפלגויות';
 
   @override
-  String get insights_summary_diveTypes_error => 'לא ניתן לטעון נתוני סוגי צלילה';
+  String get insights_summary_diveTypes_error =>
+      'לא ניתן לטעון נתוני סוגי צלילה';
 
   @override
   String get insights_summary_diveTypes_unknown => 'לא ידוע';
@@ -36049,7 +38296,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String insights_timePatterns_surfaceInterval_statLabel(String label, String value) {
+  String insights_timePatterns_surfaceInterval_statLabel(
+    String label,
+    String value,
+  ) {
     return 'מרווח פני שטח $label: $value';
   }
 
@@ -36074,7 +38324,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get columnConfig_displayOptions => 'אפשרויות תצוגה';
 
   @override
-  String get columnConfig_noExtraFields => 'לא הוגדרו שדות נוספים. הוסיפו שדות למטה.';
+  String get columnConfig_noExtraFields =>
+      'לא הוגדרו שדות נוספים. הוסיפו שדות למטה.';
 
   @override
   String get columnConfig_savePresetTitle => 'שמירת הגדרה';
@@ -36086,7 +38337,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get columnConfig_showTags => 'הצגת תגיות';
 
   @override
-  String get columnConfig_showTags_subtitle => 'הצגת תגיות על כרטיסי צלילה מפורטים';
+  String get columnConfig_showTags_subtitle =>
+      'הצגת תגיות על כרטיסי צלילה מפורטים';
 
   @override
   String get columnConfig_slot_date => 'תאריך / כותרת משנה';
@@ -36143,7 +38395,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_documents_removeTitle => 'להסיר את המסמך?';
 
   @override
-  String get equipment_documents_removeContent => 'המסמך יפסיק להיות מצורף לפריט זה. הקובץ המקורי שלך לא ייגע.';
+  String get equipment_documents_removeContent =>
+      'המסמך יפסיק להיות מצורף לפריט זה. הקובץ המקורי שלך לא ייגע.';
 
   @override
   String get equipment_documents_removed => 'המסמך הוסר';
@@ -36235,16 +38488,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_header_tableMode => 'מצב טבלה';
 
   @override
-  String get settings_appearance_listFields_buddies => 'שדות רשימת חברי הצוללים';
+  String get settings_appearance_listFields_buddies =>
+      'שדות רשימת חברי הצוללים';
 
   @override
-  String get settings_appearance_listFields_certifications => 'שדות רשימת ההסמכות';
+  String get settings_appearance_listFields_certifications =>
+      'שדות רשימת ההסמכות';
 
   @override
   String get settings_appearance_listFields_courses => 'שדות רשימת הקורסים';
 
   @override
-  String get settings_appearance_listFields_diveCenters => 'שדות רשימת מרכזי הצלילה';
+  String get settings_appearance_listFields_diveCenters =>
+      'שדות רשימת מרכזי הצלילה';
 
   @override
   String get settings_appearance_listFields_dives => 'שדות רשימת הצלילות';
@@ -36256,7 +38512,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_listFields_sites => 'שדות רשימת האתרים';
 
   @override
-  String get settings_appearance_listFields_subtitle => 'התאמת השדות המוצגים בתצוגות הרשימה';
+  String get settings_appearance_listFields_subtitle =>
+      'התאמת השדות המוצגים בתצוגות הרשימה';
 
   @override
   String get settings_appearance_listFields_trips => 'שדות רשימת הטיולים';
@@ -36265,55 +38522,67 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_listView_buddies => 'תצוגת רשימת חברי הצוללים';
 
   @override
-  String get settings_appearance_listView_buddies_subtitle => 'פריסת ברירת המחדל לרשימת חברי הצוללים';
+  String get settings_appearance_listView_buddies_subtitle =>
+      'פריסת ברירת המחדל לרשימת חברי הצוללים';
 
   @override
-  String get settings_appearance_listView_certifications => 'תצוגת רשימת ההסמכות';
+  String get settings_appearance_listView_certifications =>
+      'תצוגת רשימת ההסמכות';
 
   @override
-  String get settings_appearance_listView_certifications_subtitle => 'פריסת ברירת המחדל לרשימת ההסמכות';
+  String get settings_appearance_listView_certifications_subtitle =>
+      'פריסת ברירת המחדל לרשימת ההסמכות';
 
   @override
   String get settings_appearance_listView_courses => 'תצוגת רשימת הקורסים';
 
   @override
-  String get settings_appearance_listView_courses_subtitle => 'פריסת ברירת המחדל לרשימת הקורסים';
+  String get settings_appearance_listView_courses_subtitle =>
+      'פריסת ברירת המחדל לרשימת הקורסים';
 
   @override
-  String get settings_appearance_listView_diveCenters => 'תצוגת רשימת מרכזי הצלילה';
+  String get settings_appearance_listView_diveCenters =>
+      'תצוגת רשימת מרכזי הצלילה';
 
   @override
-  String get settings_appearance_listView_diveCenters_subtitle => 'פריסת ברירת המחדל לרשימת מרכזי הצלילה';
+  String get settings_appearance_listView_diveCenters_subtitle =>
+      'פריסת ברירת המחדל לרשימת מרכזי הצלילה';
 
   @override
   String get settings_appearance_listView_dives => 'תצוגת רשימת הצלילות';
 
   @override
-  String get settings_appearance_listView_dives_subtitle => 'פריסת ברירת המחדל לרשימת הצלילות';
+  String get settings_appearance_listView_dives_subtitle =>
+      'פריסת ברירת המחדל לרשימת הצלילות';
 
   @override
   String get settings_appearance_listView_equipment => 'תצוגת רשימת הציוד';
 
   @override
-  String get settings_appearance_listView_equipment_subtitle => 'פריסת ברירת המחדל לרשימת הציוד';
+  String get settings_appearance_listView_equipment_subtitle =>
+      'פריסת ברירת המחדל לרשימת הציוד';
 
   @override
   String get settings_appearance_listView_sites => 'תצוגת רשימת האתרים';
 
   @override
-  String get settings_appearance_listView_sites_subtitle => 'פריסת ברירת המחדל לרשימת האתרים';
+  String get settings_appearance_listView_sites_subtitle =>
+      'פריסת ברירת המחדל לרשימת האתרים';
 
   @override
   String get settings_appearance_listView_trips => 'תצוגת רשימת הטיולים';
 
   @override
-  String get settings_appearance_listView_trips_subtitle => 'פריסת ברירת המחדל לרשימת הטיולים';
+  String get settings_appearance_listView_trips_subtitle =>
+      'פריסת ברירת המחדל לרשימת הטיולים';
 
   @override
-  String get settings_appearance_showDataSourceBadges => 'הצגת תגי מקור הנתונים';
+  String get settings_appearance_showDataSourceBadges =>
+      'הצגת תגי מקור הנתונים';
 
   @override
-  String get settings_appearance_showDataSourceBadges_subtitle => 'הצגת ייחוס המקור על מדדי הצלילה';
+  String get settings_appearance_showDataSourceBadges_subtitle =>
+      'הצגת ייחוס המקור על מדדי הצלילה';
 
   @override
   String get settings_appearance_title_buddies => 'מראה חברי הצוללים';
@@ -36340,7 +38609,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_title_trips => 'מראה הטיולים';
 
   @override
-  String get settings_cloudSync_troubleshoot_tileSubtitle => 'תיקון סנכרון תקוע או פינוי שטח בענן';
+  String get settings_cloudSync_troubleshoot_tileSubtitle =>
+      'תיקון סנכרון תקוע או פינוי שטח בענן';
 
   @override
   String get settings_data_header_dataTools => 'כלי נתונים';
@@ -36349,10 +38619,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_decompression_ascentGasLabel => 'תכנון העלייה עם';
 
   @override
-  String get settings_decompression_ascentGas_allCarried => 'כל הבלונים הנישאים';
+  String get settings_decompression_ascentGas_allCarried =>
+      'כל הבלונים הנישאים';
 
   @override
-  String get settings_decompression_ascentGas_decoStage => 'בלוני דקו/סטייג + גז גב';
+  String get settings_decompression_ascentGas_decoStage =>
+      'בלוני דקו/סטייג + גז גב';
 
   @override
   String get settings_decompression_cnsSource => 'מקור CNS';
@@ -36364,13 +38636,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_decompression_header_ascent => 'תכנון העלייה';
 
   @override
-  String get settings_decompression_header_ascent_subtitle => 'לאילו בלונים נישאים העלייה המדומה (TTS, תקרה ועצירות) יכולה לעבור בכל עומק. נלקחים בחשבון רק גזים שנרשמו בצלילה.';
+  String get settings_decompression_header_ascent_subtitle =>
+      'לאילו בלונים נישאים העלייה המדומה (TTS, תקרה ועצירות) יכולה לעבור בכל עומק. נלקחים בחשבון רק גזים שנרשמו בצלילה.';
 
   @override
   String get settings_decompression_header_dataSources => 'העדפות מקור נתונים';
 
   @override
-  String get settings_decompression_header_dataSources_subtitle => 'כאשר ההגדרה היא מחשב צלילה, האפליקציה משתמשת בנתונים שמדווח מחשב הצלילה כשהם זמינים. בהיעדר נתוני מחשב, היא חוזרת לערכים המחושבים.';
+  String get settings_decompression_header_dataSources_subtitle =>
+      'כאשר ההגדרה היא מחשב צלילה, האפליקציה משתמשת בנתונים שמדווח מחשב הצלילה כשהם זמינים. בהיעדר נתוני מחשב, היא חוזרת לערכים המחושבים.';
 
   @override
   String get settings_decompression_ndlSource => 'מקור NDL';
@@ -36391,7 +38665,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_decompression_gtrReserve => 'לחץ רזרבה GTR';
 
   @override
-  String get settings_decompression_gtrReserve_subtitle => 'לחץ המיכל שאליו זמן הגז שנותר סופר לאחור. ה-GTR המחושב מניח עלייה ישירה בקצב 10 מ׳/דקה ללא עצירות.';
+  String get settings_decompression_gtrReserve_subtitle =>
+      'לחץ המיכל שאליו זמן הגז שנותר סופר לאחור. ה-GTR המחושב מניח עלייה ישירה בקצב 10 מ׳/דקה ללא עצירות.';
 
   @override
   String settings_fixDiveTimes_applied(int count, String hours, int hoursAbs) {
@@ -36434,7 +38709,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_fixDiveTimes_confirmApply => 'החל';
 
   @override
-  String settings_fixDiveTimes_confirmBody(int count, String hours, int hoursAbs) {
+  String settings_fixDiveTimes_confirmBody(
+    int count,
+    String hours,
+    int hoursAbs,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -36475,7 +38754,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_fixDiveTimes_empty => 'לא נמצאו צלילות.';
 
   @override
-  String get settings_fixDiveTimes_emptyFiltered => 'לא נמצאו צלילות בטווח תאריכים זה.';
+  String get settings_fixDiveTimes_emptyFiltered =>
+      'לא נמצאו צלילות בטווח תאריכים זה.';
 
   @override
   String get settings_fixDiveTimes_enterOffsetHint => 'הזינו היסט בשעות';
@@ -36498,7 +38778,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_fixDiveTimes_noSelection => 'לא נבחרו צלילות.';
 
   @override
-  String get settings_fixDiveTimes_offsetHint => 'הזינו מספר שלם חיובי או שלילי כדי להזיז את זמני הצלילות.';
+  String get settings_fixDiveTimes_offsetHint =>
+      'הזינו מספר שלם חיובי או שלילי כדי להזיז את זמני הצלילות.';
 
   @override
   String settings_fixDiveTimes_preview(int count, String hours, int hoursAbs) {
@@ -36537,7 +38818,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_fixDiveTimes_to => 'עד תאריך';
 
   @override
-  String get settings_fixDiveTimes_zeroOffset => 'היסט השעות הוא 0, אין מה לשנות.';
+  String get settings_fixDiveTimes_zeroOffset =>
+      'היסט השעות הוא 0, אין מה לשנות.';
 
   @override
   String get settings_syncDevices_appBar_refreshTooltip => 'רענון';
@@ -36557,30 +38839,47 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_syncDevices_removal_noBackend => 'לא הוגדר שירות ענן';
 
   @override
-  String get settings_syncDevices_removal_unreachable => 'לא ניתן היה להגיע לשירות. דבר לא הוסר.';
+  String get settings_syncDevices_removal_unreachable =>
+      'לא ניתן היה להגיע לשירות. דבר לא הוסר.';
 
   @override
-  String settings_syncDevices_removeDialog_bodyRisky(int count, String name, String size) {
+  String settings_syncDevices_removeDialog_bodyRisky(
+    int count,
+    String name,
+    String size,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'פעולה זו תמחק $count קבצים ($size) השייכים ל-$name.\n\nהמכשיר הזה עדיין חלק מהסנכרון הזה. אם הוא יחזור לחיבור, הוא ייבנה מחדש מהשירות במקום להחיות נתונים ישנים, אך כל שינוי שטרם פרסם יאבד. נתוני הצלילה שלך במכשיר הזה אינם מושפעים.',
-      many: 'פעולה זו תמחק $count קבצים ($size) השייכים ל-$name.\n\nהמכשיר הזה עדיין חלק מהסנכרון הזה. אם הוא יחזור לחיבור, הוא ייבנה מחדש מהשירות במקום להחיות נתונים ישנים, אך כל שינוי שטרם פרסם יאבד. נתוני הצלילה שלך במכשיר הזה אינם מושפעים.',
-      two: 'פעולה זו תמחק שני קבצים ($size) השייכים ל-$name.\n\nהמכשיר הזה עדיין חלק מהסנכרון הזה. אם הוא יחזור לחיבור, הוא ייבנה מחדש מהשירות במקום להחיות נתונים ישנים, אך כל שינוי שטרם פרסם יאבד. נתוני הצלילה שלך במכשיר הזה אינם מושפעים.',
-      one: 'פעולה זו תמחק קובץ אחד ($size) השייכים ל-$name.\n\nהמכשיר הזה עדיין חלק מהסנכרון הזה. אם הוא יחזור לחיבור, הוא ייבנה מחדש מהשירות במקום להחיות נתונים ישנים, אך כל שינוי שטרם פרסם יאבד. נתוני הצלילה שלך במכשיר הזה אינם מושפעים.',
+      other:
+          'פעולה זו תמחק $count קבצים ($size) השייכים ל-$name.\n\nהמכשיר הזה עדיין חלק מהסנכרון הזה. אם הוא יחזור לחיבור, הוא ייבנה מחדש מהשירות במקום להחיות נתונים ישנים, אך כל שינוי שטרם פרסם יאבד. נתוני הצלילה שלך במכשיר הזה אינם מושפעים.',
+      many:
+          'פעולה זו תמחק $count קבצים ($size) השייכים ל-$name.\n\nהמכשיר הזה עדיין חלק מהסנכרון הזה. אם הוא יחזור לחיבור, הוא ייבנה מחדש מהשירות במקום להחיות נתונים ישנים, אך כל שינוי שטרם פרסם יאבד. נתוני הצלילה שלך במכשיר הזה אינם מושפעים.',
+      two:
+          'פעולה זו תמחק שני קבצים ($size) השייכים ל-$name.\n\nהמכשיר הזה עדיין חלק מהסנכרון הזה. אם הוא יחזור לחיבור, הוא ייבנה מחדש מהשירות במקום להחיות נתונים ישנים, אך כל שינוי שטרם פרסם יאבד. נתוני הצלילה שלך במכשיר הזה אינם מושפעים.',
+      one:
+          'פעולה זו תמחק קובץ אחד ($size) השייכים ל-$name.\n\nהמכשיר הזה עדיין חלק מהסנכרון הזה. אם הוא יחזור לחיבור, הוא ייבנה מחדש מהשירות במקום להחיות נתונים ישנים, אך כל שינוי שטרם פרסם יאבד. נתוני הצלילה שלך במכשיר הזה אינם מושפעים.',
     );
     return '$_temp0';
   }
 
   @override
-  String settings_syncDevices_removeDialog_bodySafe(int count, String name, String size) {
+  String settings_syncDevices_removeDialog_bodySafe(
+    int count,
+    String name,
+    String size,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'פעולה זו תמחק $count קבצים ($size) השייכים ל-$name. הם שרידים מספרייה שאף מכשיר כבר אינו מסנכרן ממנה. נתוני הצלילה שלך אינם מושפעים.',
-      many: 'פעולה זו תמחק $count קבצים ($size) השייכים ל-$name. הם שרידים מספרייה שאף מכשיר כבר אינו מסנכרן ממנה. נתוני הצלילה שלך אינם מושפעים.',
-      two: 'פעולה זו תמחק שני קבצים ($size) השייכים ל-$name. הם שרידים מספרייה שאף מכשיר כבר אינו מסנכרן ממנה. נתוני הצלילה שלך אינם מושפעים.',
-      one: 'פעולה זו תמחק קובץ אחד ($size) השייכים ל-$name. הם שרידים מספרייה שאף מכשיר כבר אינו מסנכרן ממנה. נתוני הצלילה שלך אינם מושפעים.',
+      other:
+          'פעולה זו תמחק $count קבצים ($size) השייכים ל-$name. הם שרידים מספרייה שאף מכשיר כבר אינו מסנכרן ממנה. נתוני הצלילה שלך אינם מושפעים.',
+      many:
+          'פעולה זו תמחק $count קבצים ($size) השייכים ל-$name. הם שרידים מספרייה שאף מכשיר כבר אינו מסנכרן ממנה. נתוני הצלילה שלך אינם מושפעים.',
+      two:
+          'פעולה זו תמחק שני קבצים ($size) השייכים ל-$name. הם שרידים מספרייה שאף מכשיר כבר אינו מסנכרן ממנה. נתוני הצלילה שלך אינם מושפעים.',
+      one:
+          'פעולה זו תמחק קובץ אחד ($size) השייכים ל-$name. הם שרידים מספרייה שאף מכשיר כבר אינו מסנכרן ממנה. נתוני הצלילה שלך אינם מושפעים.',
     );
     return '$_temp0';
   }
@@ -36605,16 +38904,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_syncDevices_state_retired => 'הוצא משימוש';
 
   @override
-  String get settings_syncDevices_state_staleEpoch => 'שריד מספרייה קודמת; אף מכשיר אינו קורא אותו';
+  String get settings_syncDevices_state_staleEpoch =>
+      'שריד מספרייה קודמת; אף מכשיר אינו קורא אותו';
 
   @override
   String get settings_syncDevices_state_thisDevice => 'המכשיר הזה';
 
   @override
-  String get settings_syncDevices_state_unreadable => 'אין מניפסט קריא; העלאה שלא הושלמה או מוצפנת';
+  String get settings_syncDevices_state_unreadable =>
+      'אין מניפסט קריא; העלאה שלא הושלמה או מוצפנת';
 
   @override
-  String settings_syncDevices_summary(int deviceCount, int fileCount, String size) {
+  String settings_syncDevices_summary(
+    int deviceCount,
+    int fileCount,
+    String size,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       deviceCount,
       locale: localeName,
@@ -36661,7 +38966,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String settings_syncDevices_tile_filesSizeSeen(int count, String size, String when) {
+  String settings_syncDevices_tile_filesSizeSeen(
+    int count,
+    String size,
+    String when,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -36679,22 +38988,27 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_syncMaintenance_keepAppOpen => 'השאירו את האפליקציה פתוחה עד לסיום. סגירה עכשיו תשאיר את השירות מנוקה חלקית, והסנכרון הבא ייאלץ להתחיל מחדש.';
+  String get settings_syncMaintenance_keepAppOpen =>
+      'השאירו את האפליקציה פתוחה עד לסיום. סגירה עכשיו תשאיר את השירות מנוקה חלקית, והסנכרון הבא ייאלץ להתחיל מחדש.';
 
   @override
-  String get settings_syncMaintenance_phase_clearingOldFiles => 'מנקה קבצים ישנים';
+  String get settings_syncMaintenance_phase_clearingOldFiles =>
+      'מנקה קבצים ישנים';
 
   @override
   String get settings_syncMaintenance_phase_deleting => 'מוחק';
 
   @override
-  String get settings_syncMaintenance_phase_publishingLibrary => 'מפרסם את הספרייה';
+  String get settings_syncMaintenance_phase_publishingLibrary =>
+      'מפרסם את הספרייה';
 
   @override
-  String get settings_cloudSync_adopt_progressTitle => 'מאמץ את הספרייה ששוחזרה';
+  String get settings_cloudSync_adopt_progressTitle =>
+      'מאמץ את הספרייה ששוחזרה';
 
   @override
-  String get settings_cloudSync_replaceLibrary_progressTitle => 'מחליף את ספריית הענן';
+  String get settings_cloudSync_replaceLibrary_progressTitle =>
+      'מחליף את ספריית הענן';
 
   @override
   String settings_syncDevices_nameWithId(String name, String shortId) {
@@ -36702,16 +39016,19 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_syncMaintenance_phase_applyingLibrary => 'מחיל את הספרייה';
+  String get settings_syncMaintenance_phase_applyingLibrary =>
+      'מחיל את הספרייה';
 
   @override
   String get settings_syncMaintenance_phase_backingUp => 'מגבה את המכשיר הזה';
 
   @override
-  String get settings_syncMaintenance_phase_repairing => 'מנקה את מצב הסנכרון המקומי';
+  String get settings_syncMaintenance_phase_repairing =>
+      'מנקה את מצב הסנכרון המקומי';
 
   @override
-  String get settings_troubleshootSync_repair_progressTitle => 'מתקן את הסנכרון';
+  String get settings_troubleshootSync_repair_progressTitle =>
+      'מתקן את הסנכרון';
 
   @override
   String get settings_syncMaintenance_phase_working => 'מעבד...';
@@ -36743,7 +39060,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String settings_syncMaintenance_removedFilesPartial(int count, String trouble) {
+  String settings_syncMaintenance_removedFilesPartial(
+    int count,
+    String trouble,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -36769,7 +39089,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_syncMaintenance_trouble_listIncomplete => 'לא ניתן היה להציג חלק מהקבצים';
+  String get settings_syncMaintenance_trouble_listIncomplete =>
+      'לא ניתן היה להציג חלק מהקבצים';
 
   @override
   String settings_syncMaintenance_wipedFiles(int count) {
@@ -36801,61 +39122,77 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_troubleshootSync_appBar_title => 'פתרון תקלות סנכרון';
 
   @override
-  String get settings_troubleshootSync_devices_subtitle => 'צפו בכל מכשיר שמחזיק כאן קבצים, בכמות השטח שכל אחד תופס, והסירו שרידים מספריות שאף מכשיר כבר אינו מסנכרן מהן. נתוני הצלילה שלכם אינם מושפעים.';
+  String get settings_troubleshootSync_devices_subtitle =>
+      'צפו בכל מכשיר שמחזיק כאן קבצים, בכמות השטח שכל אחד תופס, והסירו שרידים מספריות שאף מכשיר כבר אינו מסנכרן מהן. נתוני הצלילה שלכם אינם מושפעים.';
 
   @override
   String get settings_troubleshootSync_rebuild_confirm => 'בנייה מחדש';
 
   @override
-  String get settings_troubleshootSync_rebuild_confirmBody => 'פעולה זו הופכת את הספרייה של מכשיר זה לספרייה הנוכחית בשירות ומפרסמת אותה מחדש, כך שמכשירים אחרים יסתנכרנו ממך. השתמשו בה כאשר החלפה ממכשיר אחר תקועה. נתוני הצלילה שלכם אינם מושפעים.';
+  String get settings_troubleshootSync_rebuild_confirmBody =>
+      'פעולה זו הופכת את הספרייה של מכשיר זה לספרייה הנוכחית בשירות ומפרסמת אותה מחדש, כך שמכשירים אחרים יסתנכרנו ממך. השתמשו בה כאשר החלפה ממכשיר אחר תקועה. נתוני הצלילה שלכם אינם מושפעים.';
 
   @override
-  String get settings_troubleshootSync_rebuild_confirmTitle => 'לבנות מחדש את השירות ממכשיר זה?';
+  String get settings_troubleshootSync_rebuild_confirmTitle =>
+      'לבנות מחדש את השירות ממכשיר זה?';
 
   @override
-  String get settings_troubleshootSync_rebuild_doneSnack => 'השירות נבנה מחדש ממכשיר זה';
+  String get settings_troubleshootSync_rebuild_doneSnack =>
+      'השירות נבנה מחדש ממכשיר זה';
 
   @override
-  String get settings_troubleshootSync_rebuild_failedSnack => 'הבנייה מחדש נכשלה';
+  String get settings_troubleshootSync_rebuild_failedSnack =>
+      'הבנייה מחדש נכשלה';
 
   @override
-  String get settings_troubleshootSync_rebuild_progressTitle => 'בונה מחדש את השירות';
+  String get settings_troubleshootSync_rebuild_progressTitle =>
+      'בונה מחדש את השירות';
 
   @override
-  String get settings_troubleshootSync_rebuild_subtitle => 'השתמשו בכך אם הסנכרון תקוע בהמתנה לספרייה שמכשיר אחר החליף אך מעולם לא סיים להעלות (ייתכן שאותו מכשיר מנותק). פעולה זו מפרסמת את הספרייה של מכשיר זה כספרייה הנוכחית.';
+  String get settings_troubleshootSync_rebuild_subtitle =>
+      'השתמשו בכך אם הסנכרון תקוע בהמתנה לספרייה שמכשיר אחר החליף אך מעולם לא סיים להעלות (ייתכן שאותו מכשיר מנותק). פעולה זו מפרסמת את הספרייה של מכשיר זה כספרייה הנוכחית.';
 
   @override
-  String get settings_troubleshootSync_rebuild_title => 'בנייה מחדש של השירות ממכשיר זה';
+  String get settings_troubleshootSync_rebuild_title =>
+      'בנייה מחדש של השירות ממכשיר זה';
 
   @override
-  String get settings_troubleshootSync_removeThisDevice_confirmBody => 'פעולה זו מוחקת מהשירות רק את קובצי הסנכרון של מכשיר זה. מכשירים אחרים ימשיכו להסתנכרן, ונתוני הצלילה שלכם אינם מושפעים.';
+  String get settings_troubleshootSync_removeThisDevice_confirmBody =>
+      'פעולה זו מוחקת מהשירות רק את קובצי הסנכרון של מכשיר זה. מכשירים אחרים ימשיכו להסתנכרן, ונתוני הצלילה שלכם אינם מושפעים.';
 
   @override
-  String get settings_troubleshootSync_removeThisDevice_confirmTitle => 'להסיר את קובצי הענן של מכשיר זה?';
+  String get settings_troubleshootSync_removeThisDevice_confirmTitle =>
+      'להסיר את קובצי הענן של מכשיר זה?';
 
   @override
-  String get settings_troubleshootSync_removeThisDevice_progressTitle => 'מסיר את קובצי הענן של מכשיר זה';
+  String get settings_troubleshootSync_removeThisDevice_progressTitle =>
+      'מסיר את קובצי הענן של מכשיר זה';
 
   @override
-  String get settings_troubleshootSync_removeThisDevice_subtitle => 'פינוי השטח של מכשיר זה בשירות. מכשירים אחרים ימשיכו להסתנכרן. נתוני הצלילה שלכם אינם מושפעים.';
+  String get settings_troubleshootSync_removeThisDevice_subtitle =>
+      'פינוי השטח של מכשיר זה בשירות. מכשירים אחרים ימשיכו להסתנכרן. נתוני הצלילה שלכם אינם מושפעים.';
 
   @override
-  String get settings_troubleshootSync_removeThisDevice_title => 'הסרת קובצי הענן של מכשיר זה';
+  String get settings_troubleshootSync_removeThisDevice_title =>
+      'הסרת קובצי הענן של מכשיר זה';
 
   @override
   String get settings_troubleshootSync_repair_confirm => 'תיקון';
 
   @override
-  String get settings_troubleshootSync_repair_confirmBody => 'פעולה זו מנקה את כל מצב הסנכרון המקומי ומעניקה למכשיר זה זהות סנכרון חדשה, ואז מתחברת מחדש מאפס בסנכרון הבא. נתוני הצלילה שלכם בטוחים ואינם נמחקים.';
+  String get settings_troubleshootSync_repair_confirmBody =>
+      'פעולה זו מנקה את כל מצב הסנכרון המקומי ומעניקה למכשיר זה זהות סנכרון חדשה, ואז מתחברת מחדש מאפס בסנכרון הבא. נתוני הצלילה שלכם בטוחים ואינם נמחקים.';
 
   @override
-  String get settings_troubleshootSync_repair_confirmTitle => 'לתקן את הסנכרון?';
+  String get settings_troubleshootSync_repair_confirmTitle =>
+      'לתקן את הסנכרון?';
 
   @override
   String get settings_troubleshootSync_repair_doneSnack => 'הסנכרון תוקן';
 
   @override
-  String get settings_troubleshootSync_repair_subtitle => 'תיקון סנכרון תקוע. מנקה את מצב הסנכרון של מכשיר זה ומעניק לו זהות סנכרון חדשה, ואז מתחבר מחדש בסנכרון הבא. נתוני הצלילה שלכם אינם מושפעים.';
+  String get settings_troubleshootSync_repair_subtitle =>
+      'תיקון סנכרון תקוע. מנקה את מצב הסנכרון של מכשיר זה ומעניק לו זהות סנכרון חדשה, ואז מתחבר מחדש בסנכרון הבא. נתוני הצלילה שלכם אינם מושפעים.';
 
   @override
   String get settings_troubleshootSync_repair_title => 'תיקון הסנכרון';
@@ -36869,16 +39206,20 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_troubleshootSync_wipeAll_confirmTitle => 'למחוק את כל נתוני הסנכרון?';
+  String get settings_troubleshootSync_wipeAll_confirmTitle =>
+      'למחוק את כל נתוני הסנכרון?';
 
   @override
-  String get settings_troubleshootSync_wipeAll_progressTitle => 'מוחק את נתוני הסנכרון';
+  String get settings_troubleshootSync_wipeAll_progressTitle =>
+      'מוחק את נתוני הסנכרון';
 
   @override
-  String get settings_troubleshootSync_wipeAll_subtitle => 'מחיקת נתוני הסנכרון של כל מכשיר מהשירות הזה, כולל סמני הספרייה. כל מכשיר יקים את הסנכרון מחדש מאפס. נתוני הצלילה שלכם אינם מושפעים.';
+  String get settings_troubleshootSync_wipeAll_subtitle =>
+      'מחיקת נתוני הסנכרון של כל מכשיר מהשירות הזה, כולל סמני הספרייה. כל מכשיר יקים את הסנכרון מחדש מאפס. נתוני הצלילה שלכם אינם מושפעים.';
 
   @override
-  String get settings_troubleshootSync_wipeAll_title => 'מחיקת כל נתוני הסנכרון בשירות זה';
+  String get settings_troubleshootSync_wipeAll_title =>
+      'מחיקת כל נתוני הסנכרון בשירות זה';
 
   @override
   String get tableMode_tooltip_toggleDetailPane => 'הצגת חלונית הפרטים';
@@ -36902,7 +39243,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps_regionDownload_zoomLevels => 'רמות זום';
 
   @override
-  String get maps_regionDownload_zoomHint => 'זום גבוה יותר = יותר פרטים, הורדה גדולה יותר';
+  String get maps_regionDownload_zoomHint =>
+      'זום גבוה יותר = יותר פרטים, הורדה גדולה יותר';
 
   @override
   String maps_regionDownload_minZoom(int zoom) {
@@ -36933,7 +39275,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get maps_regionDownload_estimateUnavailableSemantics => 'לא ניתן להעריך את גודל ההורדה';
+  String get maps_regionDownload_estimateUnavailableSemantics =>
+      'לא ניתן להעריך את גודל ההורדה';
 
   @override
   String get maps_regionDownload_estimating => 'מעריך...';
@@ -36947,10 +39290,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps_regionDownload_estimateUnavailable => 'לא ניתן להעריך';
 
   @override
-  String get maps_regionDownload_largeWarningSemantics => 'אזהרה: הורדה גדולה. כדאי להקטין את רמות הזום או לבחור אזור קטן יותר.';
+  String get maps_regionDownload_largeWarningSemantics =>
+      'אזהרה: הורדה גדולה. כדאי להקטין את רמות הזום או לבחור אזור קטן יותר.';
 
   @override
-  String get maps_regionDownload_largeWarning => 'הורדה גדולה. כדאי להקטין את רמות הזום או לבחור אזור קטן יותר.';
+  String get maps_regionDownload_largeWarning =>
+      'הורדה גדולה. כדאי להקטין את רמות הזום או לבחור אזור קטן יותר.';
 
   @override
   String get maps_regionDownload_downloadButton => 'הורדה';
@@ -36964,21 +39309,29 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String trips_gallery_diveSection_subtitle(Object date, int count, Object photoLabel) {
+  String trips_gallery_diveSection_subtitle(
+    Object date,
+    int count,
+    Object photoLabel,
+  ) {
     return '$date ($count $photoLabel)';
   }
 
   @override
-  String get trips_gallery_thumbnail_photo => 'תמונה ממוזערת של תמונה. הקש לצפייה במסך מלא';
+  String get trips_gallery_thumbnail_photo =>
+      'תמונה ממוזערת של תמונה. הקש לצפייה במסך מלא';
 
   @override
-  String get trips_gallery_thumbnail_video => 'תמונה ממוזערת של סרטון. הקש לצפייה במסך מלא';
+  String get trips_gallery_thumbnail_video =>
+      'תמונה ממוזערת של סרטון. הקש לצפייה במסך מלא';
 
   @override
-  String get trips_photos_thumbnail_photo => 'תמונה ממוזערת של תמונה. הקש לפתיחת הגלריה';
+  String get trips_photos_thumbnail_photo =>
+      'תמונה ממוזערת של תמונה. הקש לפתיחת הגלריה';
 
   @override
-  String get trips_photos_thumbnail_video => 'תמונה ממוזערת של סרטון. הקש לפתיחת הגלריה';
+  String get trips_photos_thumbnail_video =>
+      'תמונה ממוזערת של סרטון. הקש לפתיחת הגלריה';
 
   @override
   String trips_picker_suggestedSemantics(Object name) {
@@ -36986,12 +39339,20 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String trips_picker_tileSemantics(Object name, Object startDate, Object endDate) {
+  String trips_picker_tileSemantics(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
     return '$name, מ-$startDate עד $endDate';
   }
 
   @override
-  String trips_picker_tileSemanticsSelected(Object name, Object startDate, Object endDate) {
+  String trips_picker_tileSemanticsSelected(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
     return '$name, מ-$startDate עד $endDate, נבחר';
   }
 
@@ -37075,7 +39436,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_provider_icloud_subtitle => 'סנכרון באמצעות Apple iCloud';
+  String get settings_cloudSync_provider_icloud_subtitle =>
+      'סנכרון באמצעות Apple iCloud';
 
   @override
   String get settings_debugLog_search_hint => 'חיפוש ביומנים...';
@@ -37090,7 +39452,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_debugLog_clearLogs => 'ניקוי יומנים';
 
   @override
-  String get settings_debugLog_empty => 'אין רשומות יומן התואמות למסננים הנוכחיים';
+  String get settings_debugLog_empty =>
+      'אין רשומות יומן התואמות למסננים הנוכחיים';
 
   @override
   String settings_debugLog_loadError(Object error) {
@@ -37109,7 +39472,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_action_copy => 'העתקה';
 
   @override
-  String get settings_appearance_customGradient_title => 'מעבר צבעים מותאם אישית';
+  String get settings_appearance_customGradient_title =>
+      'מעבר צבעים מותאם אישית';
 
   @override
   String get settings_appearance_customGradient_start => 'התחלה';
@@ -37138,31 +39502,39 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_message_noProviderConfigured => 'לא הוגדר ספק ענן';
+  String get settings_cloudSync_message_noProviderConfigured =>
+      'לא הוגדר ספק ענן';
 
   @override
-  String get settings_cloudSync_message_adopting => 'מאמץ את הספרייה ששוחזרה...';
+  String get settings_cloudSync_message_adopting =>
+      'מאמץ את הספרייה ששוחזרה...';
 
   @override
-  String get settings_cloudSync_message_adoptFailed => 'אימוץ הספרייה ששוחזרה נכשל';
+  String get settings_cloudSync_message_adoptFailed =>
+      'אימוץ הספרייה ששוחזרה נכשל';
 
   @override
-  String get settings_cloudSync_message_firstSyncNeedsConfirm => 'הסנכרון הראשון דורש אישור. הקש על סנכרן עכשיו לבדיקה.';
+  String get settings_cloudSync_message_firstSyncNeedsConfirm =>
+      'הסנכרון הראשון דורש אישור. הקש על סנכרן עכשיו לבדיקה.';
 
   @override
   String get settings_cloudSync_message_startingSync => 'מתחיל סנכרון...';
 
   @override
-  String get settings_cloudSync_message_replacePaused => 'הסנכרון מושהה: הספרייה הוחלפה מגיבוי. הקש על סנכרן עכשיו לבדיקה.';
+  String get settings_cloudSync_message_replacePaused =>
+      'הסנכרון מושהה: הספרייה הוחלפה מגיבוי. הקש על סנכרן עכשיו לבדיקה.';
 
   @override
-  String get settings_cloudSync_message_encryptedPaused => 'הסנכרון מושהה: ספרייה זו מוצפנת. הזן את משפט הסיסמה כדי להמשיך.';
+  String get settings_cloudSync_message_encryptedPaused =>
+      'הסנכרון מושהה: ספרייה זו מוצפנת. הזן את משפט הסיסמה כדי להמשיך.';
 
   @override
-  String get settings_cloudSync_message_completedWithConflicts => 'הסנכרון הושלם עם התנגשויות';
+  String get settings_cloudSync_message_completedWithConflicts =>
+      'הסנכרון הושלם עם התנגשויות';
 
   @override
-  String get settings_cloudSync_message_completedSuccessfully => 'הסנכרון הושלם בהצלחה';
+  String get settings_cloudSync_message_completedSuccessfully =>
+      'הסנכרון הושלם בהצלחה';
 
   @override
   String get settings_cloudSync_message_syncFailed => 'הסנכרון נכשל';
@@ -37171,7 +39543,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_message_phaseDefault => 'סנכרון';
 
   @override
-  String settings_cloudSync_message_syncErrorDuring(String phase, Object error) {
+  String settings_cloudSync_message_syncErrorDuring(
+    String phase,
+    Object error,
+  ) {
     return 'שגיאת סנכרון במהלך $phase: $error';
   }
 
@@ -37185,7 +39560,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_debugLog_minSeverityLabel => 'חומרה מינימלית:';
 
   @override
-  String get settings_debugLog_shareSubject => 'יומני ניפוי באגים של Submersion';
+  String get settings_debugLog_shareSubject =>
+      'יומני ניפוי באגים של Submersion';
 
   @override
   String get settings_debugLog_saveDialogTitle => 'שמירת יומני ניפוי באגים';
@@ -37197,13 +39573,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_diagnostics_viewLog => 'הצגת היומן';
 
   @override
-  String get settings_diagnostics_viewLogSubtitle => 'אזהרות ושגיאות נרשמות באופן אוטומטי';
+  String get settings_diagnostics_viewLogSubtitle =>
+      'אזהרות ושגיאות נרשמות באופן אוטומטי';
 
   @override
   String get settings_diagnostics_copy => 'העתקת נתוני אבחון';
 
   @override
-  String get settings_diagnostics_copySubtitle => 'גרסת האפליקציה, המכשיר ושורות יומן אחרונות לדיווח על באג';
+  String get settings_diagnostics_copySubtitle =>
+      'גרסת האפליקציה, המכשיר ושורות יומן אחרונות לדיווח על באג';
 
   @override
   String get settings_diagnostics_copiedSnack => 'נתוני האבחון הועתקו ללוח';
@@ -37228,7 +39606,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_preset_nameLabel => 'שם התבנית';
 
   @override
-  String get universalImport_preset_nameHint => 'לדוגמה, CSV של יומן הצלילה שלי';
+  String get universalImport_preset_nameHint =>
+      'לדוגמה, CSV של יומן הצלילה שלי';
 
   @override
   String get universalImport_preset_nameRequired => 'שם הוא שדה חובה';
@@ -37246,7 +39625,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_preset_matchThresholdLabel => 'סף התאמה';
 
   @override
-  String get universalImport_preset_matchThresholdHelp => 'עד כמה כותרות ה-CSV חייבות להתאים לזיהוי אוטומטי';
+  String get universalImport_preset_matchThresholdHelp =>
+      'עד כמה כותרות ה-CSV חייבות להתאים לזיהוי אוטומטי';
 
   @override
   String universalImport_preset_signatureHeaders(int count) {
@@ -37284,7 +39664,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String universalImport_preset_headersMatched(int matched, int total, int percent) {
+  String universalImport_preset_headersMatched(
+    int matched,
+    int total,
+    int percent,
+  ) {
     return '$matched/$total כותרות תואמות ($percent%)';
   }
 
@@ -37309,13 +39693,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_cancel_inProgressTitle => 'מבטל';
 
   @override
-  String get universalImport_cancel_inProgressBody => 'מסיים את הצלילה הנוכחית לפני העצירה. צלילות שכבר יובאו יישמרו.';
+  String get universalImport_cancel_inProgressBody =>
+      'מסיים את הצלילה הנוכחית לפני העצירה. צלילות שכבר יובאו יישמרו.';
 
   @override
   String get universalImport_cancel_confirmTitle => 'לבטל את הייבוא?';
 
   @override
-  String get universalImport_cancel_confirmBody => 'עצירה לאחר סיום הצלילה הנוכחית. צלילות שכבר יובאו יישמרו.';
+  String get universalImport_cancel_confirmBody =>
+      'עצירה לאחר סיום הצלילה הנוכחית. צלילות שכבר יובאו יישמרו.';
 
   @override
   String get universalImport_cancel_keepImporting => 'המשך הייבוא';
@@ -37324,7 +39710,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_cancel_confirmAction => 'ביטול הייבוא';
 
   @override
-  String get universalImport_cancel_discardSelections => 'להשליך את הבחירות ולבטל?';
+  String get universalImport_cancel_discardSelections =>
+      'להשליך את הבחירות ולבטל?';
 
   @override
   String get universalImport_action_importSelected => 'ייבוא הנבחרים';
@@ -37388,7 +39775,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_counts_nothingSelected => 'לא נבחר דבר';
 
   @override
-  String get universalImport_section_potentialDuplicates => 'כפילויות פוטנציאליות';
+  String get universalImport_section_potentialDuplicates =>
+      'כפילויות פוטנציאליות';
 
   @override
   String get universalImport_section_possibleDuplicates => 'כפילויות אפשריות';
@@ -37437,10 +39825,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveImport_healthkit_selectDateRange => 'בחירת טווח תאריכים';
 
   @override
-  String get diveImport_healthkit_selectDateRangeBody => 'בחר את טווח התאריכים לחיפוש צלילות ב-Apple Health.';
+  String get diveImport_healthkit_selectDateRangeBody =>
+      'בחר את טווח התאריכים לחיפוש צלילות ב-Apple Health.';
 
   @override
-  String get diveImport_healthkit_fetchingDives => 'מאחזר צלילות מ-Apple Health...';
+  String get diveImport_healthkit_fetchingDives =>
+      'מאחזר צלילות מ-Apple Health...';
 
   @override
   String get diveImport_healthkit_fetchFailed => 'האחזור נכשל';
@@ -37478,10 +39868,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get importWizard_dc_noNewDives => 'אין צלילות חדשות להורדה';
 
   @override
-  String get importWizard_dc_noNewDivesBody => 'כל הצלילות ממחשב הצלילה הזה כבר יובאו.';
+  String get importWizard_dc_noNewDivesBody =>
+      'כל הצלילות ממחשב הצלילה הזה כבר יובאו.';
 
   @override
-  String get universalImport_compare_noDiveData => 'נתוני הצלילה אינם זמינים להשוואה.';
+  String get universalImport_compare_noDiveData =>
+      'נתוני הצלילה אינם זמינים להשוואה.';
 
   @override
   String get universalImport_entityAction_consolidateBadge => 'איחוד';
@@ -37499,7 +39891,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get lock_recoveryCode_title => 'שימוש בקוד שחזור';
 
   @override
-  String get lock_recoveryCode_body => 'הזינו את קוד השחזור בן 8 המילים ששמרתם בעת הגדרת סיסמת האפליקציה.';
+  String get lock_recoveryCode_body =>
+      'הזינו את קוד השחזור בן 8 המילים ששמרתם בעת הגדרת סיסמת האפליקציה.';
 
   @override
   String get lock_recoveryCode_error => 'קוד השחזור שגוי.';
@@ -37508,19 +39901,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get lock_forcedReset_title => 'הגדרת סיסמה חדשה';
 
   @override
-  String get lock_forcedReset_body => 'ביטלתם את הנעילה באמצעות קוד השחזור, ולכן הסיסמה הישנה שלכם אינה אמינה עוד. בחרו סיסמה חדשה כעת.';
+  String get lock_forcedReset_body =>
+      'ביטלתם את הנעילה באמצעות קוד השחזור, ולכן הסיסמה הישנה שלכם אינה אמינה עוד. בחרו סיסמה חדשה כעת.';
 
   @override
   String get lock_forcedReset_submit => 'הגדרת סיסמה';
 
   @override
-  String get lock_forcedReset_error => 'לא ניתן היה להגדיר את הסיסמה החדשה. נסו שוב.';
+  String get lock_forcedReset_error =>
+      'לא ניתן היה להגדיר את הסיסמה החדשה. נסו שוב.';
 
   @override
   String get lock_sidecarRepair_title => 'תיקון קובץ מפתח האבטחה';
 
   @override
-  String get lock_sidecarRepair_body => 'קובץ מפתח האבטחה שלכם היה חסר, ומחזיק המפתחות של מכשיר זה עדיין מחזיק את המפתח. אשרו את הסיסמה שלכם כדי לכתוב קובץ מפתח חדש. שימו לב: הסיסמה שתזינו כאן הופכת לסיסמת האפליקציה מכאן ואילך, ותקבלו קוד שחזור חדש.';
+  String get lock_sidecarRepair_body =>
+      'קובץ מפתח האבטחה שלכם היה חסר, ומחזיק המפתחות של מכשיר זה עדיין מחזיק את המפתח. אשרו את הסיסמה שלכם כדי לכתוב קובץ מפתח חדש. שימו לב: הסיסמה שתזינו כאן הופכת לסיסמת האפליקציה מכאן ואילך, ותקבלו קוד שחזור חדש.';
 
   @override
   String get lock_sidecarRepair_submit => 'תיקון';
@@ -37554,34 +39950,42 @@ class AppLocalizationsHe extends AppLocalizations {
   String get startup_error_title => 'Submersion לא הצליחה להיפתח';
 
   @override
-  String get startup_error_body => 'משהו השתבש לפני שיומן הצלילה שלך נפתח במלואו. הנתונים שלך עדיין על הדיסק ואין צורך בהתקנה מחדש. נסה להפעיל מחדש את האפליקציה; אם התקלה נמשכת, פנה לתמיכה.';
+  String get startup_error_body =>
+      'משהו השתבש לפני שיומן הצלילה שלך נפתח במלואו. הנתונים שלך עדיין על הדיסק ואין צורך בהתקנה מחדש. נסה להפעיל מחדש את האפליקציה; אם התקלה נמשכת, פנה לתמיכה.';
 
   @override
-  String get startup_engineUnavailable_title => 'גרסה זו אינה יכולה לפתוח מסד נתונים';
+  String get startup_engineUnavailable_title =>
+      'גרסה זו אינה יכולה לפתוח מסד נתונים';
 
   @override
-  String get startup_engineUnavailable_body => 'מנוע מסד הנתונים של Submersion חסר בגרסה הזו, ולכן יומן הצלילה שלך מעולם לא נפתח. שום דבר על הדיסק לא השתנה ואין נתונים בסיכון.';
+  String get startup_engineUnavailable_body =>
+      'מנוע מסד הנתונים של Submersion חסר בגרסה הזו, ולכן יומן הצלילה שלך מעולם לא נפתח. שום דבר על הדיסק לא השתנה ואין נתונים בסיכון.';
 
   @override
-  String get startup_engineUnavailable_guidance => 'התקנה מחדש או שחזור גיבוי לא יעזרו כאן. התקן גרסה תקינה של Submersion, ונשמח אם תדווח על כך: זו תקלה בחבילת האפליקציה, לא בנתונים שלך.';
+  String get startup_engineUnavailable_guidance =>
+      'התקנה מחדש או שחזור גיבוי לא יעזרו כאן. התקן גרסה תקינה של Submersion, ונשמח אם תדווח על כך: זו תקלה בחבילת האפליקציה, לא בנתונים שלך.';
 
   @override
   String get startup_migrationFailed_title => 'שדרוג מסד הנתונים נכשל';
 
   @override
-  String get startup_migrationFailed_body => 'לא ניתן היה לשדרג את יומן הצלילה שלך לתבנית שגרסה זו דורשת. עותק בטיחות נוצר לפני תחילת השדרוג, כך ששום דבר לא אבד.';
+  String get startup_migrationFailed_body =>
+      'לא ניתן היה לשדרג את יומן הצלילה שלך לתבנית שגרסה זו דורשת. עותק בטיחות נוצר לפני תחילת השדרוג, כך ששום דבר לא אבד.';
 
   @override
-  String get startup_dataUnreadable_title => 'לא ניתן היה לקרוא את יומן הצלילה שלך';
+  String get startup_dataUnreadable_title =>
+      'לא ניתן היה לקרוא את יומן הצלילה שלך';
 
   @override
-  String get startup_dataUnreadable_body => 'קובץ מסד הנתונים קיים, אבל Submersion לא מצליחה לקרוא אותו. בדרך כלל המשמעות היא שהקובץ פגום. שחזור גיבוי הוא הדרך המהירה ביותר לחזור.';
+  String get startup_dataUnreadable_body =>
+      'קובץ מסד הנתונים קיים, אבל Submersion לא מצליחה לקרוא אותו. בדרך כלל המשמעות היא שהקובץ פגום. שחזור גיבוי הוא הדרך המהירה ביותר לחזור.';
 
   @override
   String get startup_databaseBusy_title => 'יומן הצלילה שלך היה תפוס';
 
   @override
-  String get startup_databaseBusy_body => 'משהו אחר עדיין השתמש בקובץ מסד הנתונים, ולכן Submersion עצר במקום לכתוב אליו. שום דבר לא השתנה ושום דבר לא ניזוק. סגור את Submersion לגמרי ופתח אותו שוב.';
+  String get startup_databaseBusy_body =>
+      'משהו אחר עדיין השתמש בקובץ מסד הנתונים, ולכן Submersion עצר במקום לכתוב אליו. שום דבר לא השתנה ושום דבר לא ניזוק. סגור את Submersion לגמרי ופתח אותו שוב.';
 
   @override
   String get startup_failure_technicalDetails => 'פרטים טכניים';
@@ -37595,7 +39999,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String startup_failure_backupAvailable_preMigration(Object fromVersion, Object toVersion) {
+  String startup_failure_backupAvailable_preMigration(
+    Object fromVersion,
+    Object toVersion,
+  ) {
     return 'עותק בטיחות שנוצר לפני השדרוג מסכימה v$fromVersion ל-v$toVersion.';
   }
 
@@ -37606,7 +40013,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get startup_failure_restoring => 'משחזר את יומן הצלילה...';
 
   @override
-  String get startup_failure_restoreFailed => 'לא ניתן היה לשחזר את הגיבוי. יומן הצלילה שלך נשאר בדיוק כפי שהיה.';
+  String get startup_failure_restoreFailed =>
+      'לא ניתן היה לשחזר את הגיבוי. יומן הצלילה שלך נשאר בדיוק כפי שהיה.';
 
   @override
   String get startup_failure_backupsFolder => 'הגיבויים שלך נמצאים ב:';
@@ -37618,28 +40026,33 @@ class AppLocalizationsHe extends AppLocalizations {
   String get startup_failure_moreWays_title => 'דרכים נוספות לחזור';
 
   @override
-  String get startup_failure_useAnotherFolder => 'שימוש ביומן צלילה בתיקייה אחרת';
+  String get startup_failure_useAnotherFolder =>
+      'שימוש ביומן צלילה בתיקייה אחרת';
 
   @override
-  String get startup_failure_useAnotherFolder_subtitle => 'עברו ליומן צלילה ששמור אצלכם כבר במקום אחר, למשל בתיקיית iCloud Drive או Dropbox.';
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'עברו ליומן צלילה ששמור אצלכם כבר במקום אחר, למשל בתיקיית iCloud Drive או Dropbox.';
 
   @override
   String get startup_failure_restoreFromFile => 'שחזור מקובץ גיבוי';
 
   @override
-  String get startup_failure_restoreFromFile_subtitle => 'בחרו גיבוי של Submersion מכל מקום במכשיר הזה או בתיקייה מסונכרנת.';
+  String get startup_failure_restoreFromFile_subtitle =>
+      'בחרו גיבוי של Submersion מכל מקום במכשיר הזה או בתיקייה מסונכרנת.';
 
   @override
   String get startup_failure_startFresh => 'התחלה עם יומן צלילה ריק';
 
   @override
-  String get startup_failure_startFresh_subtitle => 'הניחו את הקובץ הפגום בצד והתחילו מחדש. שום דבר לא נמחק.';
+  String get startup_failure_startFresh_subtitle =>
+      'הניחו את הקובץ הפגום בצד והתחילו מחדש. שום דבר לא נמחק.';
 
   @override
   String get startup_recovery_adopt_title => 'להשתמש ביומן הצלילה הזה?';
 
   @override
-  String get startup_recovery_adopt_body => 'מעכשיו Submersion יפתח את יומן הצלילה הזה. הקובץ שלא נפתח נשאר במקומו.';
+  String get startup_recovery_adopt_body =>
+      'מעכשיו Submersion יפתח את יומן הצלילה הזה. הקובץ שלא נפתח נשאר במקומו.';
 
   @override
   String startup_recovery_adopt_contents(Object dives, Object sites) {
@@ -37653,7 +40066,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get startup_recovery_startFresh_title => 'להתחיל עם יומן צלילה ריק?';
 
   @override
-  String get startup_recovery_startFresh_body => 'Submersion מעביר את הקובץ הפגום לתיקייה נפרדת ופותח יומן צלילה חדש וריק. שום דבר לא נמחק, כך שתוכלו לנסות שוב את הקובץ הישן או לשלוח אותו לתמיכה.';
+  String get startup_recovery_startFresh_body =>
+      'Submersion מעביר את הקובץ הפגום לתיקייה נפרדת ופותח יומן צלילה חדש וריק. שום דבר לא נמחק, כך שתוכלו לנסות שוב את הקובץ הישן או לשלוח אותו לתמיכה.';
 
   @override
   String get startup_recovery_startFresh_confirm => 'להתחיל מחדש';
@@ -37682,13 +40096,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get startup_recovery_encryptedBackup_body => 'הגיבוי הזה מוצפן. Submersion יכול לפתוח גיבוי מוצפן רק כשהאפליקציה פתוחה, ולכן השתמשו קודם באחת הדרכים האחרות כאן ואז שחזרו אותו מההגדרות, תחת גיבוי ושחזור.';
+  String get startup_recovery_encryptedBackup_body =>
+      'הגיבוי הזה מוצפן. Submersion יכול לפתוח גיבוי מוצפן רק כשהאפליקציה פתוחה, ולכן השתמשו קודם באחת הדרכים האחרות כאן ואז שחזרו אותו מההגדרות, תחת גיבוי ושחזור.';
 
   @override
   String get startup_failure_downgrade_title => 'חזרה לגרסה הקודמת';
 
   @override
-  String get startup_failure_downgrade_body => 'אם השדרוג ממשיך להיכשל, התקן את גרסת Submersion שהשתמשת בה קודם, ואז שחזר את עותק הבטיחות מתוך אותה גרסה. שחזור כאן רק יריץ שוב את אותו שדרוג. Submersion לעולם אינה חוזרת לגרסה ישנה מעצמה: העברה אוטומטית לגרסאות ישנות הייתה משאירה אותך בשקט על גרסאות עם בעיות ידועות.';
+  String get startup_failure_downgrade_body =>
+      'אם השדרוג ממשיך להיכשל, התקן את גרסת Submersion שהשתמשת בה קודם, ואז שחזר את עותק הבטיחות מתוך אותה גרסה. שחזור כאן רק יריץ שוב את אותו שדרוג. Submersion לעולם אינה חוזרת לגרסה ישנה מעצמה: העברה אוטומטית לגרסאות ישנות הייתה משאירה אותך בשקט על גרסאות עם בעיות ידועות.';
 
   @override
   String get startup_failure_downgrade_action => 'הצג גרסאות קודמות';
@@ -37697,19 +40113,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get startup_recovering_title => 'משחזר את מסד הנתונים...';
 
   @override
-  String get startup_recovering_body => 'מבטל את הפעולה שנקטעה. זה נמשך בדרך כלל כמה שניות.';
+  String get startup_recovering_body =>
+      'מבטל את הפעולה שנקטעה. זה נמשך בדרך כלל כמה שניות.';
 
   @override
   String get startup_recoveryFailed_title => 'השחזור לא הושלם';
 
   @override
-  String get startup_recoveryFailed_body => 'לא ניתן היה לבטל את השינויים במסד הנתונים באופן אוטומטי. הנתונים שלכם עדיין בדיסק; פנו לתמיכה לפני התקנה מחדש כדי שנוכל לעזור לכם לשחזר אותם.';
+  String get startup_recoveryFailed_body =>
+      'לא ניתן היה לבטל את השינויים במסד הנתונים באופן אוטומטי. הנתונים שלכם עדיין בדיסק; פנו לתמיכה לפני התקנה מחדש כדי שנוכל לעזור לכם לשחזר אותם.';
 
   @override
   String get startup_recoveryRequired_title => 'מסד הנתונים זקוק לשחזור';
 
   @override
-  String get startup_recoveryRequired_body => 'הפעלה קודמת נקטעה בזמן כתיבה למסד הנתונים. הנתונים שלכם עדיין בדיסק; עלינו רק להשלים את ביטול השינוי שבוטל לפני שהאפליקציה תוכל להיפתח.';
+  String get startup_recoveryRequired_body =>
+      'הפעלה קודמת נקטעה בזמן כתיבה למסד הנתונים. הנתונים שלכם עדיין בדיסק; עלינו רק להשלים את ביטול השינוי שבוטל לפני שהאפליקציה תוכל להיפתח.';
 
   @override
   String startup_recovery_sqliteCode(Object code) {
@@ -37741,13 +40160,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get startup_backup_title => 'מגבה את הנתונים שלכם';
 
   @override
-  String get startup_backup_body => 'אנחנו שומרים עותק של יומן הצלילות שלכם לפני עדכון מסד הנתונים.';
+  String get startup_backup_body =>
+      'אנחנו שומרים עותק של יומן הצלילות שלכם לפני עדכון מסד הנתונים.';
 
   @override
   String get startup_backupFailed_title => 'לא ניתן היה לגבות את הנתונים שלכם';
 
   @override
-  String get startup_backupFailed_body => 'יומן הצלילות שלכם לא השתנה; לא עדכנו אותו. פנו מקום (או תקנו את התקלה) ונסו שוב.';
+  String get startup_backupFailed_body =>
+      'יומן הצלילות שלכם לא השתנה; לא עדכנו אותו. פנו מקום (או תקנו את התקלה) ונסו שוב.';
 
   @override
   String get startup_backupFailed_quit => 'יציאה';
@@ -37759,10 +40180,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_action_retry => 'נסה שוב';
 
   @override
-  String get startup_versionMismatch_title => 'הנתונים שלכם חדשים יותר מהאפליקציה הזו';
+  String get startup_versionMismatch_title =>
+      'הנתונים שלכם חדשים יותר מהאפליקציה הזו';
 
   @override
-  String startup_versionMismatch_body(Object databaseVersion, Object appVersion) {
+  String startup_versionMismatch_body(
+    Object databaseVersion,
+    Object appVersion,
+  ) {
     return 'יומן הצלילה שלכם נשמר בסכמה v$databaseVersion על ידי גרסה חדשה יותר של Submersion. גרסה זו פותחת קבצים עד סכמה v$appVersion.';
   }
 
@@ -37773,16 +40198,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get startup_versionMismatch_cause_beta => 'גרסת בטא שדרגה את הקובץ.';
 
   @override
-  String get startup_versionMismatch_cause_restored => 'שוחזר גיבוי מגרסה חדשה יותר.';
+  String get startup_versionMismatch_cause_restored =>
+      'שוחזר גיבוי מגרסה חדשה יותר.';
 
   @override
-  String get startup_versionMismatch_cause_shared => 'הקובץ משותף עם מכשיר בערוץ עדכונים אחר.';
+  String get startup_versionMismatch_cause_shared =>
+      'הקובץ משותף עם מכשיר בערוץ עדכונים אחר.';
 
   @override
-  String get startup_versionMismatch_instructions => 'הנתונים שלכם לא שונו. פתחו אותם עם הגרסה שכתבה אותם, או עם גרסה מאוחרת יותר.';
+  String get startup_versionMismatch_instructions =>
+      'הנתונים שלכם לא שונו. פתחו אותם עם הגרסה שכתבה אותם, או עם גרסה מאוחרת יותר.';
 
   @override
-  String get startup_versionMismatch_storeInstructions => 'אפליקציה זו הגיעה מחנות אפליקציות והיא ישנה יותר מהגרסה ששמרה את הנתונים שלך. הנתונים שלך לא שונו. עדכן את Submersion כשהגרסה החדשה תופיע בחנות, ואז פתח אותה מחדש.';
+  String get startup_versionMismatch_storeInstructions =>
+      'אפליקציה זו הגיעה מחנות אפליקציות והיא ישנה יותר מהגרסה ששמרה את הנתונים שלך. הנתונים שלך לא שונו. עדכן את Submersion כשהגרסה החדשה תופיע בחנות, ואז פתח אותה מחדש.';
 
   @override
   String get startup_versionMismatch_download => 'חיפוש גרסה יציבה חדשה יותר';
@@ -37791,16 +40220,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get startup_versionMismatch_betaAction => 'הורדת גרסת בטא';
 
   @override
-  String get startup_versionMismatch_betaNote => 'גרסאות בטא הן גרסאות מקדימות. בחרו באפשרות זו רק אם גרסת בטא כתבה את הנתונים שלכם.';
+  String get startup_versionMismatch_betaNote =>
+      'גרסאות בטא הן גרסאות מקדימות. בחרו באפשרות זו רק אם גרסת בטא כתבה את הנתונים שלכם.';
 
   @override
-  String get startup_versionMismatch_manualLink => 'אם הכפתורים אינם פותחים דפדפן:';
+  String get startup_versionMismatch_manualLink =>
+      'אם הכפתורים אינם פותחים דפדפן:';
 
   @override
   String get universalImport_compare_downloaded => 'הורד';
 
   @override
-  String get universalImport_compare_errorLoading => 'שגיאה בטעינת נתוני הצלילה';
+  String get universalImport_compare_errorLoading =>
+      'שגיאה בטעינת נתוני הצלילה';
 
   @override
   String get universalImport_compare_diveNotFound => 'הצלילה הקיימת לא נמצאה';
@@ -37825,10 +40257,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_compare_skipSubtitle => 'השלכת הורדה זו';
 
   @override
-  String get universalImport_compare_importAsNewSubtitle => 'שמירה כצלילה נפרדת';
+  String get universalImport_compare_importAsNewSubtitle =>
+      'שמירה כצלילה נפרדת';
 
   @override
-  String get universalImport_compare_consolidateSubtitle => 'הוספה כקריאה של מחשב שני';
+  String get universalImport_compare_consolidateSubtitle =>
+      'הוספה כקריאה של מחשב שני';
 
   @override
   String get diveLog_tooltip_ndlOverMax => '>60 min';
@@ -37851,7 +40285,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_profileEditor_rangeOperations => 'פעולות על טווח';
 
   @override
-  String get diveLog_profileEditor_selectRangeHint => 'בחרו טווח בגרף כדי לאפשר פעולות';
+  String get diveLog_profileEditor_selectRangeHint =>
+      'בחרו טווח בגרף כדי לאפשר פעולות';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'עומק +1m';
@@ -37909,7 +40344,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_profileEditor_manualDrawing => 'ציור ידני';
 
   @override
-  String get diveLog_profileEditor_drawHint => 'הקישו על הגרף כדי למקם נקודות ציון';
+  String get diveLog_profileEditor_drawHint =>
+      'הקישו על הגרף כדי למקם נקודות ציון';
 
   @override
   String get diveLog_profileEditor_clearWaypoints => 'ניקוי';
@@ -37933,13 +40369,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_profileEditor_title => 'עריכת פרופיל';
 
   @override
-  String get diveLog_profileEditor_discardBody => 'יש לכם שינויים שלא נשמרו בפרופיל הצלילה הזה. בטוחים שברצונכם לבטל אותם?';
+  String get diveLog_profileEditor_discardBody =>
+      'יש לכם שינויים שלא נשמרו בפרופיל הצלילה הזה. בטוחים שברצונכם לבטל אותם?';
 
   @override
   String get diveLog_profileEditor_saveTitle => 'לשמור את הפרופיל?';
 
   @override
-  String get diveLog_profileEditor_saveBody => 'פעולה זו תשמור את הפרופיל הערוך כפרופיל הראשי של הצלילה הזו. הפרופיל המקורי יישמר וניתן יהיה לשחזר אותו מאוחר יותר.';
+  String get diveLog_profileEditor_saveBody =>
+      'פעולה זו תשמור את הפרופיל הערוך כפרופיל הראשי של הצלילה הזו. הפרופיל המקורי יישמר וניתן יהיה לשחזר אותו מאוחר יותר.';
 
   @override
   String diveLog_profileEditor_saveFailed(String error) {
@@ -38042,7 +40480,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_profilePanel_selectDive => 'בחרו צלילה כדי לראות את הפרופיל שלה';
+  String get diveLog_profilePanel_selectDive =>
+      'בחרו צלילה כדי לראות את הפרופיל שלה';
 
   @override
   String get diveLog_profilePanel_noProfileData => 'אין נתוני פרופיל לצלילה זו';
@@ -38057,7 +40496,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_export_progress_equipmentCsv => 'מייצא ציוד ל-CSV...';
 
   @override
-  String get settings_export_progress_observationsCsv => 'מייצא בדיקות ציוד ל-CSV...';
+  String get settings_export_progress_observationsCsv =>
+      'מייצא בדיקות ציוד ל-CSV...';
 
   @override
   String get settings_export_progress_pdf => 'יוצר יומן צלילות בפורמט PDF...';
@@ -38066,7 +40506,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_export_progress_loadingSignatures => 'טוען חתימות...';
 
   @override
-  String get settings_export_progress_loadingProfiles => 'טוען פרופילי צלילה...';
+  String get settings_export_progress_loadingProfiles =>
+      'טוען פרופילי צלילה...';
 
   @override
   String get settings_export_progress_loadingCertifications => 'טוען הסמכות...';
@@ -38089,7 +40530,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_export_progress_excel => 'יוצר קובץ Excel...';
 
   @override
-  String get settings_export_progress_buildingExcel => 'בונה חוברת עבודה של Excel...';
+  String get settings_export_progress_buildingExcel =>
+      'בונה חוברת עבודה של Excel...';
 
   @override
   String get settings_export_progress_kml => 'יוצר קובץ KML...';
@@ -38107,16 +40549,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_export_progress_chooseLocation => 'בחר מיקום לשמירה...';
 
   @override
-  String get settings_export_progress_preparingDivesCsv => 'מכין CSV של צלילות...';
+  String get settings_export_progress_preparingDivesCsv =>
+      'מכין CSV של צלילות...';
 
   @override
-  String get settings_export_progress_preparingSitesCsv => 'מכין CSV של אתרים...';
+  String get settings_export_progress_preparingSitesCsv =>
+      'מכין CSV של אתרים...';
 
   @override
-  String get settings_export_progress_preparingEquipmentCsv => 'מכין CSV של ציוד...';
+  String get settings_export_progress_preparingEquipmentCsv =>
+      'מכין CSV של ציוד...';
 
   @override
-  String get settings_export_progress_preparingObservationsCsv => 'מכין CSV של בדיקות ציוד...';
+  String get settings_export_progress_preparingObservationsCsv =>
+      'מכין CSV של בדיקות ציוד...';
 
   @override
   String get settings_export_progress_preparingUddf => 'מכין קובץ UDDF...';
@@ -38160,7 +40606,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_export_success_observations => 'בדיקות הציוד יוצאו';
 
   @override
-  String get settings_export_success_pdf => 'יומן הצלילות בפורמט PDF נוצר בהצלחה';
+  String get settings_export_success_pdf =>
+      'יומן הצלילות בפורמט PDF נוצר בהצלחה';
 
   @override
   String get settings_export_success_uddf => 'קובץ UDDF נוצר בהצלחה';
@@ -38209,7 +40656,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_export_saved_equipmentCsv => 'CSV של הציוד נשמר בהצלחה';
 
   @override
-  String get settings_export_saved_observationsCsv => 'קובץ ה-CSV של בדיקות הציוד נשמר';
+  String get settings_export_saved_observationsCsv =>
+      'קובץ ה-CSV של בדיקות הציוד נשמר';
 
   @override
   String get settings_export_saved_uddf => 'קובץ UDDF נשמר בהצלחה';
@@ -38230,10 +40678,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_export_saveSitesCsvDialogTitle => 'שמירת CSV של האתרים';
 
   @override
-  String get settings_export_saveEquipmentCsvDialogTitle => 'שמירת CSV של הציוד';
+  String get settings_export_saveEquipmentCsvDialogTitle =>
+      'שמירת CSV של הציוד';
 
   @override
-  String get settings_export_saveObservationsCsvDialogTitle => 'שמירת קובץ ה-CSV של בדיקות הציוד';
+  String get settings_export_saveObservationsCsvDialogTitle =>
+      'שמירת קובץ ה-CSV של בדיקות הציוד';
 
   @override
   String backup_operation_created(String size) {
@@ -38254,7 +40704,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get backup_operation_restoreSourceMissing => 'לא שוחזר דבר: קובץ הגיבוי לא נמצא. הנתונים הנוכחיים שלך לא השתנו.';
+  String get backup_operation_restoreSourceMissing =>
+      'לא שוחזר דבר: קובץ הגיבוי לא נמצא. הנתונים הנוכחיים שלך לא השתנו.';
 
   @override
   String get backup_operation_deleting => 'מוחק גיבוי...';
@@ -38313,7 +40764,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get backup_restore_preMigration_title => 'שחזור גיבוי שנוצר לפני המיגרציה';
+  String get backup_restore_preMigration_title =>
+      'שחזור גיבוי שנוצר לפני המיגרציה';
 
   @override
   String get backup_restore_preMigration_unknownVersion => 'גרסה לא ידועה';
@@ -38322,22 +40774,40 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_restore_preMigration_restoreAnyway => 'שחזר בכל זאת';
 
   @override
-  String backup_restore_preMigration_incompleteMetadata(String timestamp, String appVersion) {
+  String backup_restore_preMigration_incompleteMetadata(
+    String timestamp,
+    String appVersion,
+  ) {
     return 'גיבוי זה נוצר בתאריך $timestamp על ידי גרסת האפליקציה $appVersion, אך מטא-הנתונים של מיגרציית מסד הנתונים שלו חסרים.\n\nהאפליקציה אינה יכולה לוודא אם שחזור הגיבוי הזה בטוח, ולכן השחזור מושבת.';
   }
 
   @override
-  String backup_restore_preMigration_newerApp(String timestamp, String appVersion, int fromVersion) {
+  String backup_restore_preMigration_newerApp(
+    String timestamp,
+    String appVersion,
+    int fromVersion,
+  ) {
     return 'גיבוי זה חדש יותר מהאפליקציה שלך. התקן גרסת אפליקציה חדשה יותר כדי לשחזר אותו.\n\nהגיבוי נוצר בתאריך $timestamp על ידי גרסת האפליקציה $appVersion (מסד נתונים v$fromVersion).';
   }
 
   @override
-  String backup_restore_preMigration_safe(String timestamp, String appVersion, int fromVersion, int toVersion) {
+  String backup_restore_preMigration_safe(
+    String timestamp,
+    String appVersion,
+    int fromVersion,
+    int toVersion,
+  ) {
     return 'גיבוי זה נוצר בתאריך $timestamp על ידי גרסת האפליקציה $appVersion, ממש לפני שדרוג מסד הנתונים מגרסה v$fromVersion לגרסה v$toVersion.\n\nסכמת מסד הנתונים של האפליקציה שלך תואמת לגיבוי הזה, ולכן השחזור בטוח.';
   }
 
   @override
-  String backup_restore_preMigration_warning(String timestamp, String appVersion, int fromVersion, int toVersion, int currentVersion) {
+  String backup_restore_preMigration_warning(
+    String timestamp,
+    String appVersion,
+    int fromVersion,
+    int toVersion,
+    int currentVersion,
+  ) {
     return 'גיבוי זה נוצר בתאריך $timestamp על ידי גרסת האפליקציה $appVersion, ממש לפני שדרוג מסד הנתונים מגרסה v$fromVersion לגרסה v$toVersion.\n\nאתה מריץ אפליקציה חדשה יותר (מסד נתונים v$currentVersion).\n\nשחזור עכשיו יריץ מחדש את שדרוג מסד הנתונים v$fromVersion → v$toVersion על הנתונים המשוחזרים: בדיוק אותו שדרוג שעמד לרוץ במקור. אם השדרוג הזה גרם לבעיה, תיתקל באותה תקלה שוב.\n\nכדי לשחזר בבטחה: התקן את האפליקציה בגרסה $appVersion או קודמת לה, ואז שחזר את הגיבוי הזה מאותה אפליקציה ישנה יותר.';
   }
 
@@ -38356,7 +40826,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String settings_cloudSync_progress_downloadingLibrary(int downloaded, int total) {
+  String settings_cloudSync_progress_downloadingLibrary(
+    int downloaded,
+    int total,
+  ) {
     return 'מוריד את הספרייה ($downloaded מתוך $total)';
   }
 
@@ -38369,25 +40842,31 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_result_noProvider => 'לא הוגדר ספק ענן';
 
   @override
-  String get settings_cloudSync_result_notAuthenticated => 'אין אימות מול ספק הענן';
+  String get settings_cloudSync_result_notAuthenticated =>
+      'אין אימות מול ספק הענן';
 
   @override
   String get settings_cloudSync_result_timedOut => 'תם הזמן המוקצב לסנכרון';
 
   @override
-  String get settings_cloudSync_result_epochMarkerUnreadable => 'לא ניתן היה לקרוא את סמן העידן של הספרייה';
+  String get settings_cloudSync_result_epochMarkerUnreadable =>
+      'לא ניתן היה לקרוא את סמן העידן של הספרייה';
 
   @override
-  String get settings_cloudSync_result_epochMarkerEncrypted => 'סמן העידן של הספרייה מוצפן';
+  String get settings_cloudSync_result_epochMarkerEncrypted =>
+      'סמן העידן של הספרייה מוצפן';
 
   @override
-  String get settings_cloudSync_result_libraryReplacedRemotely => 'ספריית הענן הוחלפה מגיבוי';
+  String get settings_cloudSync_result_libraryReplacedRemotely =>
+      'ספריית הענן הוחלפה מגיבוי';
 
   @override
-  String get settings_cloudSync_result_noReplacementToRebuild => 'אין החלפת ספרייה שניתן לבנות ממנה מחדש';
+  String get settings_cloudSync_result_noReplacementToRebuild =>
+      'אין החלפת ספרייה שניתן לבנות ממנה מחדש';
 
   @override
-  String get settings_cloudSync_result_rebuiltFromThisDevice => 'השירות הזה נבנה מחדש מהספרייה של מכשיר זה';
+  String get settings_cloudSync_result_rebuiltFromThisDevice =>
+      'השירות הזה נבנה מחדש מהספרייה של מכשיר זה';
 
   @override
   String settings_cloudSync_result_rebuildFailed(String error) {
@@ -38403,10 +40882,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_result_noReplacementMarker => 'לא נמצא סמן להחלפת ספרייה';
+  String get settings_cloudSync_result_noReplacementMarker =>
+      'לא נמצא סמן להחלפת ספרייה';
 
   @override
-  String get settings_cloudSync_result_adoptedRestoredLibrary => 'הספרייה המשוחזרת אומצה';
+  String get settings_cloudSync_result_adoptedRestoredLibrary =>
+      'הספרייה המשוחזרת אומצה';
 
   @override
   String settings_cloudSync_result_adoptFailed(String error) {
@@ -38414,13 +40895,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_result_previousLibraryUnreadable => 'לא ניתן היה לקרוא את הספרייה הקודמת; השירות הזה הוקם מחדש מהספרייה של מכשיר זה.';
+  String get settings_cloudSync_result_previousLibraryUnreadable =>
+      'לא ניתן היה לקרוא את הספרייה הקודמת; השירות הזה הוקם מחדש מהספרייה של מכשיר זה.';
 
   @override
-  String get settings_cloudSync_result_replacementStillUploading => 'הספרייה שהוחלפה עדיין בהעלאה. נסה שוב בעוד רגע.';
+  String get settings_cloudSync_result_replacementStillUploading =>
+      'הספרייה שהוחלפה עדיין בהעלאה. נסה שוב בעוד רגע.';
 
   @override
-  String get settings_cloudSync_result_cloudLibraryNewerSchema => 'ספריית הענן פורסמה על ידי גרסה חדשה יותר של Submersion. עדכן מכשיר זה ונסה שוב.';
+  String get settings_cloudSync_result_cloudLibraryNewerSchema =>
+      'ספריית הענן פורסמה על ידי גרסה חדשה יותר של Submersion. עדכן מכשיר זה ונסה שוב.';
 
   @override
   String settings_cloudSync_result_recordsFailed(int count) {
@@ -38436,7 +40920,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_result_adoptedFreshIdentity => 'מכשיר אחר סנכרן באמצעות הזהות של מכשיר זה. מכשיר זה אימץ זהות חדשה ומיזג את נתוני הענן.';
+  String get settings_cloudSync_result_adoptedFreshIdentity =>
+      'מכשיר אחר סנכרן באמצעות הזהות של מכשיר זה. מכשיר זה אימץ זהות חדשה ומיזג את נתוני הענן.';
 
   @override
   String settings_cloudSync_launchCheck_unavailable(String provider) {
@@ -38462,13 +40947,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_launchCheck_noRemoteData => 'לא נמצאו נתוני סנכרון בענן';
+  String get settings_cloudSync_launchCheck_noRemoteData =>
+      'לא נמצאו נתוני סנכרון בענן';
 
   @override
-  String get settings_cloudSync_launchCheck_cloudDataAvailable => 'נתוני ענן זמינים';
+  String get settings_cloudSync_launchCheck_cloudDataAvailable =>
+      'נתוני ענן זמינים';
 
   @override
-  String get settings_cloudSync_launchCheck_updatesAvailable => 'יש עדכונים זמינים מהענן';
+  String get settings_cloudSync_launchCheck_updatesAvailable =>
+      'יש עדכונים זמינים מהענן';
 
   @override
   String get settings_cloudSync_launchCheck_upToDate => 'הכול מעודכן';
@@ -38503,7 +40991,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_species_otherSpecies => 'מינים אחרים...';
 
   @override
-  String get media_species_noDiveHint => 'התמונה אינה מקושרת לצלילה. חפשו מין כדי לתייג אותה.';
+  String get media_species_noDiveHint =>
+      'התמונה אינה מקושרת לצלילה. חפשו מין כדי לתייג אותה.';
 
   @override
   String get media_species_chipsLabel => 'תגיות מינים';
@@ -38680,7 +41169,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_info_servedEmbedded => 'מאוחסן ביומן זה';
 
   @override
-  String get media_info_servingFallbackNote => 'לא ניתן היה להגיע למקור המקורי, ולכן האחסון בענן סיפק זאת.';
+  String get media_info_servingFallbackNote =>
+      'לא ניתן היה להגיע למקור המקורי, ולכן האחסון בענן סיפק זאת.';
 
   @override
   String get media_info_servingTierThumbnail => 'תמונה ממוזערת';
@@ -38776,10 +41266,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_servedFrom_embedded => 'שמור ביומן הזה';
 
   @override
-  String get settings_media_provenanceBadges => 'הצגת תגי מקור על תמונות ממוזערות';
+  String get settings_media_provenanceBadges =>
+      'הצגת תגי מקור על תמונות ממוזערות';
 
   @override
-  String get settings_media_provenanceBadgesSubtitle => 'סמל קטן שמראה מאיפה כל פריט מוגש. תגי בעיה מוצגים תמיד.';
+  String get settings_media_provenanceBadgesSubtitle =>
+      'סמל קטן שמראה מאיפה כל פריט מוגש. תגי בעיה מוצגים תמיד.';
 
   @override
   String get media_status_transferFailed => 'ההעלאה נכשלה';
@@ -38800,22 +41292,28 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_tile_infoMenuItem => 'פרטי מדיה';
 
   @override
-  String get diveImport_healthkit_accessGrantedHint => 'אפליקציית הבריאות של Apple לעולם אינה מגלה ליישומים אם ניתנה הרשאת קריאה. אם לא מופיעות צלילות, פתחו את אפליקציית הבריאות, ואז שיתוף, יישומים, Submersion, והפעילו אימונים, עומק מתחת למים, טמפרטורת מים ודופק.';
+  String get diveImport_healthkit_accessGrantedHint =>
+      'אפליקציית הבריאות של Apple לעולם אינה מגלה ליישומים אם ניתנה הרשאת קריאה. אם לא מופיעות צלילות, פתחו את אפליקציית הבריאות, ואז שיתוף, יישומים, Submersion, והפעילו אימונים, עומק מתחת למים, טמפרטורת מים ודופק.';
 
   @override
-  String get diveImport_healthkit_foundNoDivesHint => 'אין אימוני צלילה בטווח הזה. ודאו שהתאריכים כוללים את הצלילה ושבאפליקציית הבריאות, בשיתוף, יישומים, Submersion, מופעלים אימונים ועומק מתחת למים.';
+  String get diveImport_healthkit_foundNoDivesHint =>
+      'אין אימוני צלילה בטווח הזה. ודאו שהתאריכים כוללים את הצלילה ושבאפליקציית הבריאות, בשיתוף, יישומים, Submersion, מופעלים אימונים ועומק מתחת למים.';
 
   @override
-  String get settings_dataSources_appleHealth_dataTypeDepth => 'עומק מתחת למים - דגימות עומק שנרשמו במהלך צלילות';
+  String get settings_dataSources_appleHealth_dataTypeDepth =>
+      'עומק מתחת למים - דגימות עומק שנרשמו במהלך צלילות';
 
   @override
-  String get settings_dataSources_appleHealth_dataTypeWaterTemp => 'טמפרטורת מים - דגימות טמפרטורה שנרשמו במהלך צלילות';
+  String get settings_dataSources_appleHealth_dataTypeWaterTemp =>
+      'טמפרטורת מים - דגימות טמפרטורה שנרשמו במהלך צלילות';
 
   @override
-  String get settings_dataSources_appleHealth_permissionManagedInHealth => 'הגישה ל-HealthKit מנוהלת באפליקציית הבריאות';
+  String get settings_dataSources_appleHealth_permissionManagedInHealth =>
+      'הגישה ל-HealthKit מנוהלת באפליקציית הבריאות';
 
   @override
-  String get settings_dataSources_appleHealth_permissionUnsupported => 'HealthKit אינו זמין במכשיר הזה';
+  String get settings_dataSources_appleHealth_permissionUnsupported =>
+      'HealthKit אינו זמין במכשיר הזה';
 
   @override
   String get insights_trend_aggregation_monthly => 'ממוצע חודשי';
@@ -38830,7 +41328,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_trend_aggregation_weekly => 'ממוצע שבועי';
 
   @override
-  String get insights_trend_band_semanticLabel => 'הרצועה המוצללת משתרעת בין הערך הנמוך לגבוה ביותר בכל קבוצה';
+  String get insights_trend_band_semanticLabel =>
+      'הרצועה המוצללת משתרעת בין הערך הנמוך לגבוה ביותר בכל קבוצה';
 
   @override
   String get insights_trend_legend_rate => 'מגמה כללית';
@@ -38853,19 +41352,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_conditions_tempTrend_empty => 'אין נתוני טמפרטורה זמינים';
 
   @override
-  String get insights_conditions_tempTrend_error => 'טעינת מגמת הטמפרטורה נכשלה';
+  String get insights_conditions_tempTrend_error =>
+      'טעינת מגמת הטמפרטורה נכשלה';
 
   @override
-  String get insights_conditions_waterTempBands_title => 'צלילות לפי טמפרטורת מים';
+  String get insights_conditions_waterTempBands_title =>
+      'צלילות לפי טמפרטורת מים';
 
   @override
-  String get insights_conditions_waterTempBands_subtitle => 'חלוקת הצלילות שלך לפי טווחי טמפרטורת מים';
+  String get insights_conditions_waterTempBands_subtitle =>
+      'חלוקת הצלילות שלך לפי טווחי טמפרטורת מים';
 
   @override
-  String get insights_conditions_waterTempBands_empty => 'אין נתוני טמפרטורת מים זמינים';
+  String get insights_conditions_waterTempBands_empty =>
+      'אין נתוני טמפרטורת מים זמינים';
 
   @override
-  String get insights_conditions_waterTempBands_error => 'לא ניתן לטעון את טווחי טמפרטורת המים';
+  String get insights_conditions_waterTempBands_error =>
+      'לא ניתן לטעון את טווחי טמפרטורת המים';
 
   @override
   String insights_conditions_waterTempBands_semanticLabel(String description) {
@@ -38885,13 +41389,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_conditions_waterTempBands_table_avgRmv => 'RMV ממוצע';
 
   @override
-  String get insights_conditions_waterTempBands_table_avgBottomTime => 'זמן תחתית ממוצע';
+  String get insights_conditions_waterTempBands_table_avgBottomTime =>
+      'זמן תחתית ממוצע';
 
   @override
-  String get insights_conditions_waterTempBands_table_error => 'טעינת הממוצעים לפי טווח נכשלה';
+  String get insights_conditions_waterTempBands_table_error =>
+      'טעינת הממוצעים לפי טווח נכשלה';
 
   @override
-  String insights_conditions_waterTempBands_table_averageOver(String value, String dives) {
+  String insights_conditions_waterTempBands_table_averageOver(
+    String value,
+    String dives,
+  ) {
     return '$value מתוך $dives';
   }
 
@@ -38899,7 +41408,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_conditions_waterTempBands_table_noData => 'אין נתונים';
 
   @override
-  String insights_conditions_waterTempBands_table_rowSemanticLabel(String band, String dives, String lane, String consumption, String bottomTime) {
+  String insights_conditions_waterTempBands_table_rowSemanticLabel(
+    String band,
+    String dives,
+    String lane,
+    String consumption,
+    String bottomTime,
+  ) {
     return '$band: $dives. $lane ממוצע: $consumption. זמן תחתית ממוצע: $bottomTime.';
   }
 
@@ -38919,13 +41434,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_excludeFromStats => 'החרג מהסטטיסטיקות';
 
   @override
-  String get diveLog_edit_excludeFromStatsHelp => 'השאר את הצלילה ביומן, אך החרג אותה מכל סטטיסטיקה, כולל מספר הצלילות שלך.';
+  String get diveLog_edit_excludeFromStatsHelp =>
+      'השאר את הצלילה ביומן, אך החרג אותה מכל סטטיסטיקה, כולל מספר הצלילות שלך.';
 
   @override
   String get diveLog_edit_excludeFromGasStats => 'החרג מסטטיסטיקות הגז';
 
   @override
-  String get diveLog_edit_excludeFromGasStatsHelp => 'החרג את הצלילה מסטטיסטיקות SAC, RMV ותערובת גז בלבד. שימושי כאשר ערך הגז אינו מייצג.';
+  String get diveLog_edit_excludeFromGasStatsHelp =>
+      'החרג את הצלילה מסטטיסטיקות SAC, RMV ותערובת גז בלבד. שימושי כאשר ערך הגז אינו מייצג.';
 
   @override
   String get diveLog_badge_excludedFromStats => 'מוחרגת מהסטטיסטיקות';
@@ -38937,7 +41454,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_bulkEdit_fieldExcludeFromStats => 'החרג מהסטטיסטיקות';
 
   @override
-  String get diveLog_bulkEdit_fieldExcludeFromGasStats => 'החרג מסטטיסטיקות הגז';
+  String get diveLog_bulkEdit_fieldExcludeFromGasStats =>
+      'החרג מסטטיסטיקות הגז';
 
   @override
   String get diveLog_filter_excludedOnly => 'רק המוחרגות מהסטטיסטיקות';
@@ -38971,7 +41489,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get suuntoCloud_signIn_title => 'התחברות ל-Suunto';
 
   @override
-  String get suuntoCloud_signIn_description => 'התחבר עם חשבון app.suunto.com שלך כדי לייבא את הצלילות שלך ישירות. הסיסמה שלך לעולם אינה נשמרת, רק ההפעלה שנוצרת ממנה.';
+  String get suuntoCloud_signIn_description =>
+      'התחבר עם חשבון app.suunto.com שלך כדי לייבא את הצלילות שלך ישירות. הסיסמה שלך לעולם אינה נשמרת, רק ההפעלה שנוצרת ממנה.';
 
   @override
   String get suuntoCloud_signIn_emailLabel => 'דוא\"ל';
@@ -39055,7 +41574,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get garminConnect_signIn_title => 'התחברות ל-Garmin Connect';
 
   @override
-  String get garminConnect_signIn_description => 'התחבר עם חשבון Garmin Connect שלך כדי לייבא את הצלילות שלך ישירות. הסיסמה שלך לעולם אינה נשמרת, רק ההפעלה שנוצרת ממנה.';
+  String get garminConnect_signIn_description =>
+      'התחבר עם חשבון Garmin Connect שלך כדי לייבא את הצלילות שלך ישירות. הסיסמה שלך לעולם אינה נשמרת, רק ההפעלה שנוצרת ממנה.';
 
   @override
   String get garminConnect_signIn_emailLabel => 'דוא\"ל';
@@ -39171,19 +41691,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_importCloud_suuntoTitle => 'Suunto';
 
   @override
-  String get transfer_importCloud_suuntoSubtitle => 'ייבוא צלילות מאפליקציית Suunto או מחשבון app.suunto.com';
+  String get transfer_importCloud_suuntoSubtitle =>
+      'ייבוא צלילות מאפליקציית Suunto או מחשבון app.suunto.com';
 
   @override
   String get transfer_importCloud_garminTitle => 'Garmin';
 
   @override
-  String get transfer_importCloud_garminSubtitle => 'ייבוא צלילות מחשבון Garmin Connect שלך';
+  String get transfer_importCloud_garminSubtitle =>
+      'ייבוא צלילות מחשבון Garmin Connect שלך';
 
   @override
   String get transfer_importCloud_divelogsTitle => 'divelogs.de';
 
   @override
-  String get transfer_importCloud_divelogsSubtitle => 'ייבוא היומן, האתרים, הציוד, ההסמכות והתמונות שלך מ-divelogs.de';
+  String get transfer_importCloud_divelogsSubtitle =>
+      'ייבוא היומן, האתרים, הציוד, ההסמכות והתמונות שלך מ-divelogs.de';
 
   @override
   String get transfer_section_cloudTitle => 'ענן';
@@ -39198,7 +41721,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_storageUsage_tile_title => 'שימוש באחסון';
 
   @override
-  String get settings_storageUsage_tile_subtitle => 'ראה מה תופס מקום במכשיר הזה';
+  String get settings_storageUsage_tile_subtitle =>
+      'ראה מה תופס מקום במכשיר הזה';
 
   @override
   String get settings_storageUsage_total => 'סך הכול';
@@ -39237,25 +41761,32 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_storageUsage_group_importedFiles => 'נתוני ייבוא גולמיים';
 
   @override
-  String get settings_storageUsage_category_database => 'מסד נתונים של יומן הצלילה';
+  String get settings_storageUsage_category_database =>
+      'מסד נתונים של יומן הצלילה';
 
   @override
-  String get settings_storageUsage_category_localCache => 'מסד נתונים של מטמון מקומי';
+  String get settings_storageUsage_category_localCache =>
+      'מסד נתונים של מטמון מקומי';
 
   @override
-  String get settings_storageUsage_category_mediaCacheOriginals => 'תמונות וסרטונים מקוריים';
+  String get settings_storageUsage_category_mediaCacheOriginals =>
+      'תמונות וסרטונים מקוריים';
 
   @override
-  String get settings_storageUsage_category_mediaCacheThumbs => 'תמונות ממוזערות';
+  String get settings_storageUsage_category_mediaCacheThumbs =>
+      'תמונות ממוזערות';
 
   @override
-  String get settings_storageUsage_category_mediaCacheRenditions => 'גרסאות וידאו';
+  String get settings_storageUsage_category_mediaCacheRenditions =>
+      'גרסאות וידאו';
 
   @override
-  String get settings_storageUsage_category_mediaCacheStaging => 'העברות מוכנות';
+  String get settings_storageUsage_category_mediaCacheStaging =>
+      'העברות מוכנות';
 
   @override
-  String get settings_storageUsage_category_mediaCacheTranscode => 'וידאו מקודד';
+  String get settings_storageUsage_category_mediaCacheTranscode =>
+      'וידאו מקודד';
 
   @override
   String get settings_storageUsage_category_mapTiles => 'אריחי מפה';
@@ -39264,10 +41795,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_storageUsage_category_networkImages => 'תמונות רשת';
 
   @override
-  String get settings_storageUsage_category_videoThumbnails => 'תמונות ממוזערות של וידאו';
+  String get settings_storageUsage_category_videoThumbnails =>
+      'תמונות ממוזערות של וידאו';
 
   @override
-  String get settings_storageUsage_category_pdfThumbnails => 'תמונות ממוזערות של מסמכים';
+  String get settings_storageUsage_category_pdfThumbnails =>
+      'תמונות ממוזערות של מסמכים';
 
   @override
   String get settings_storageUsage_category_backups => 'קובצי גיבוי';
@@ -39279,7 +41812,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_storageUsage_category_exports => 'קבצים שיוצאו';
 
   @override
-  String get settings_storageUsage_category_importedFiles => 'קובצי הייבוא המקוריים';
+  String get settings_storageUsage_category_importedFiles =>
+      'קובצי הייבוא המקוריים';
 
   @override
   String get profilePhoto_sheet_title => 'תמונת פרופיל';
@@ -39306,16 +41840,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get profilePhoto_crop_hint => 'גררו כדי להזיז, צבטו כדי לשנות מרחק';
 
   @override
-  String get profilePhoto_error_tooLarge => 'התמונה הזו גדולה מדי. נסו תמונה קטנה יותר.';
+  String get profilePhoto_error_tooLarge =>
+      'התמונה הזו גדולה מדי. נסו תמונה קטנה יותר.';
 
   @override
-  String get profilePhoto_error_undecodable => 'לא ניתן היה לקרוא את הקובץ הזה כתמונה.';
+  String get profilePhoto_error_undecodable =>
+      'לא ניתן היה לקרוא את הקובץ הזה כתמונה.';
 
   @override
   String get profilePhoto_error_contactNoPhoto => 'לאיש הקשר הזה אין תמונה.';
 
   @override
-  String get profilePhoto_error_contactPermission => 'נדרשת הרשאת גישה לאנשי הקשר כדי לבחור תמונה.';
+  String get profilePhoto_error_contactPermission =>
+      'נדרשת הרשאת גישה לאנשי הקשר כדי לבחור תמונה.';
 
   @override
   String get diveComputer_merge_title => 'מיזוג מחשבי צלילה';
@@ -39349,7 +41886,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_merge_serialMismatchWarning => 'רשומות אלו מדווחות על מספרים סידוריים שונים. ייתכן שמדובר במחשבים שונים.';
+  String get diveComputer_merge_serialMismatchWarning =>
+      'רשומות אלו מדווחות על מספרים סידוריים שונים. ייתכן שמדובר במחשבים שונים.';
 
   @override
   String get diveComputer_merge_action => 'מיזוג';
@@ -39399,10 +41937,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_detail_duplicateBannerAction => 'מיזוג';
 
   @override
-  String get startup_versionMismatch_restore_title => 'שחזור הגיבוי שלפני העדכון';
+  String get startup_versionMismatch_restore_title =>
+      'שחזור הגיבוי שלפני העדכון';
 
   @override
-  String get startup_versionMismatch_restore_warning => 'צלילות שתועדו אחרי העדכון קיימות רק בקובץ החדש יותר. הוא נשמר כגיבוי מוצמד, כך שהתקנה מחדש של הגרסה החדשה תחזיר אותן.';
+  String get startup_versionMismatch_restore_warning =>
+      'צלילות שתועדו אחרי העדכון קיימות רק בקובץ החדש יותר. הוא נשמר כגיבוי מוצמד, כך שהתקנה מחדש של הגרסה החדשה תחזיר אותן.';
 
   @override
   String get startup_interruptedRestore_title => 'שחזור לא הושלם';
@@ -39413,22 +41953,27 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get startup_interruptedRestore_body => 'Submersion הייתה באמצע שחזור גיבוי כשהתהליך נעצר. יומן הצלילה שלך מלפני השחזור עדיין נמצא במכשיר הזה, והגרסה הזו יכולה לפתוח אותו.';
+  String get startup_interruptedRestore_body =>
+      'Submersion הייתה באמצע שחזור גיבוי כשהתהליך נעצר. יומן הצלילה שלך מלפני השחזור עדיין נמצא במכשיר הזה, והגרסה הזו יכולה לפתוח אותו.';
 
   @override
-  String get startup_interruptedRestore_recoverAction => 'שחזור יומן הצלילה הקודם שלי';
+  String get startup_interruptedRestore_recoverAction =>
+      'שחזור יומן הצלילה הקודם שלי';
 
   @override
-  String get startup_interruptedRestore_recoverNote => 'הקובץ שנמצא עכשיו במקומו נשמר ואינו נמחק. אפשר לשחזר או למחוק אותו מאוחר יותר דרך גיבוי ושחזור בהגדרות.';
+  String get startup_interruptedRestore_recoverNote =>
+      'הקובץ שנמצא עכשיו במקומו נשמר ואינו נמחק. אפשר לשחזר או למחוק אותו מאוחר יותר דרך גיבוי ושחזור בהגדרות.';
 
   @override
   String get startup_interruptedRestore_keepAction => 'להשאיר את מה שיש עכשיו';
 
   @override
-  String get startup_interruptedRestore_keepNote => 'יומן הצלילה הקודם שלך נשמר ואינו נמחק. אפשר לשחזר או למחוק אותו מאוחר יותר דרך גיבוי ושחזור בהגדרות.';
+  String get startup_interruptedRestore_keepNote =>
+      'יומן הצלילה הקודם שלך נשמר ואינו נמחק. אפשר לשחזר או למחוק אותו מאוחר יותר דרך גיבוי ושחזור בהגדרות.';
 
   @override
-  String get startup_interruptedRestore_failed => 'השחזור לא הושלם. שום דבר לא נמחק; שני הקבצים עדיין נמצאים במכשיר הזה.';
+  String get startup_interruptedRestore_failed =>
+      'השחזור לא הושלם. שום דבר לא נמחק; שני הקבצים עדיין נמצאים במכשיר הזה.';
 
   @override
   String backup_history_preDowngradeSubtitle(String size) {
@@ -39436,7 +41981,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String backup_history_manualSubtitle(int diveCount, int siteCount, String size) {
+  String backup_history_manualSubtitle(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -39453,7 +42002,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String backup_history_manualSubtitleAuto(int diveCount, int siteCount, String size) {
+  String backup_history_manualSubtitleAuto(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -39488,7 +42041,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transmitters_header_unassigned => 'נראו בהורדות, לא משויכים';
 
   @override
-  String get transmitters_empty => 'אין משדרים עדיין. הוסיפו אחד, או שייכו מספר סידורי אחרי ההורדה הבאה.';
+  String get transmitters_empty =>
+      'אין משדרים עדיין. הוסיפו אחד, או שייכו מספר סידורי אחרי ההורדה הבאה.';
 
   @override
   String get transmitters_action_assign => 'שיוך';
@@ -39560,7 +42114,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transmitters_field_serial => 'מספר סידורי של המשדר';
 
   @override
-  String get transmitters_field_computer => 'מחשב צלילה (כשלא מדווח מספר סידורי)';
+  String get transmitters_field_computer =>
+      'מחשב צלילה (כשלא מדווח מספר סידורי)';
 
   @override
   String get transmitters_field_channel => 'ערוץ';
@@ -39581,7 +42136,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transmitters_gear_none => 'ללא';
 
   @override
-  String get transmitters_validation_key => 'הזינו מספר סידורי, או בחרו מחשב צלילה וערוץ';
+  String get transmitters_validation_key =>
+      'הזינו מספר סידורי, או בחרו מחשב צלילה וערוץ';
 
   @override
   String get transmitters_validation_positive => 'הזינו ערך גדול מאפס';
@@ -39635,19 +42191,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_reassignSheet_applied => 'סדרת הלחץ שויכה מחדש';
 
   @override
-  String get universalImport_summary_noticeUnknownTransmitterTitle => 'משדרים לא משויכים';
+  String get universalImport_summary_noticeUnknownTransmitterTitle =>
+      'משדרים לא משויכים';
 
   @override
-  String get universalImport_summary_noticeUnknownTransmitterBody => 'משדר אחד או יותר בהורדה זו אינם משויכים למיכל. שייכו אותם כדי שהורדות עתידיות יקבלו את הנפח והתפקיד הנכונים.';
+  String get universalImport_summary_noticeUnknownTransmitterBody =>
+      'משדר אחד או יותר בהורדה זו אינם משויכים למיכל. שייכו אותם כדי שהורדות עתידיות יקבלו את הנפח והתפקיד הנכונים.';
 
   @override
   String get universalImport_summary_noticeAssignTransmitters => 'שיוך משדרים';
 
   @override
-  String get universalImport_summary_noticeDiveNumberConflictTitle => 'מספרי צלילה כבר בשימוש';
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'מספרי צלילה כבר בשימוש';
 
   @override
-  String get universalImport_summary_noticeDiveNumberConflictBody => 'הצלילות האלה שמרו על המספר מהמקור שלהן, אבל צלילות אחרות ביומן שלך כבר משתמשות באותם מספרים. פתחו את „מספור צלילות” מתפריט רשימת הצלילות כדי למספר אותן מחדש.';
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'הצלילות האלה שמרו על המספר מהמקור שלהן, אבל צלילות אחרות ביומן שלך כבר משתמשות באותם מספרים. פתחו את „מספור צלילות” מתפריט רשימת הצלילות כדי למספר אותן מחדש.';
 
   @override
   String get dataQuality_detector_unknown_transmitter => 'משדר לא משויך';
@@ -39664,16 +42224,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_unrecognized_appBar_title => 'גיבויים לא מזוהים';
 
   @override
-  String get backup_unrecognized_explanation => 'הקבצים האלה נמצאים בתיקיית הגיבויים שלך אך לא בהיסטוריית הגיבויים של המכשיר הזה. אפשר למחוק כאן רק קובץ שהמכשיר הזה כתב: כל קובץ אחר עלול להיות העותק היחיד של מכשיר אחר.';
+  String get backup_unrecognized_explanation =>
+      'הקבצים האלה נמצאים בתיקיית הגיבויים שלך אך לא בהיסטוריית הגיבויים של המכשיר הזה. אפשר למחוק כאן רק קובץ שהמכשיר הזה כתב: כל קובץ אחר עלול להיות העותק היחיד של מכשיר אחר.';
 
   @override
   String get backup_unrecognized_empty => 'אין קובצי גיבוי לא מזוהים.';
 
   @override
-  String get backup_unrecognized_loadFailed => 'לא ניתן לקרוא את תיקיית הגיבויים.';
+  String get backup_unrecognized_loadFailed =>
+      'לא ניתן לקרוא את תיקיית הגיבויים.';
 
   @override
-  String get backup_unrecognized_unavailable => 'המכשיר הזה אינו יכול להציג את תוכן תיקיית הגיבויים שבחרת, ולכן לא ניתן לאתר קבצים לא מזוהים.';
+  String get backup_unrecognized_unavailable =>
+      'המכשיר הזה אינו יכול להציג את תוכן תיקיית הגיבויים שבחרת, ולכן לא ניתן לאתר קבצים לא מזוהים.';
 
   @override
   String get backup_unrecognized_ownership_otherDevice => 'מכשיר אחר';
@@ -39712,7 +42275,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get backup_unrecognized_deleteFailed => 'לא ניתן היה למחוק את הקבצים שנבחרו.';
+  String get backup_unrecognized_deleteFailed =>
+      'לא ניתן היה למחוק את הקבצים שנבחרו.';
 
   @override
   String backup_unrecognized_freed(String size) {
@@ -39723,13 +42287,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_quarantined_sectionTitle => 'מסדי נתונים שהועברו הצידה';
 
   @override
-  String get backup_quarantined_explanation => 'שחזור שלא הצליח להסתיים כראוי שמר את העותקים האלה של מסד הנתונים שלך במקום למחוק אותם. שחזר אחד מהם כדי להשתמש בו שוב, או מחק אותו כדי לפנות מקום.';
+  String get backup_quarantined_explanation =>
+      'שחזור שלא הצליח להסתיים כראוי שמר את העותקים האלה של מסד הנתונים שלך במקום למחוק אותם. שחזר אחד מהם כדי להשתמש בו שוב, או מחק אותו כדי לפנות מקום.';
 
   @override
   String get backup_quarantined_kind_preRestore => 'יומן צלילה מלפני שחזור';
 
   @override
-  String get backup_quarantined_kind_restoreRejected => 'יומן צלילה שהוחלף במהלך שחזור';
+  String get backup_quarantined_kind_restoreRejected =>
+      'יומן צלילה שהוחלף במהלך שחזור';
 
   @override
   String backup_quarantined_detail(String date, String size) {
@@ -39737,33 +42303,44 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String backup_quarantined_detailWithVersion(String date, String size, int version) {
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
     return '$date • $size • מסד נתונים v$version';
   }
 
   @override
-  String get backup_quarantined_status_needsNewerApp => 'נדרשת גרסה חדשה יותר של Submersion';
+  String get backup_quarantined_status_needsNewerApp =>
+      'נדרשת גרסה חדשה יותר של Submersion';
 
   @override
-  String get backup_quarantined_status_unreadable => 'לא ניתן לפתוח אותו כאן. ייתכן שהוא פגום, או מוגן בסיסמה שאין למכשיר הזה.';
+  String get backup_quarantined_status_unreadable =>
+      'לא ניתן לפתוח אותו כאן. ייתכן שהוא פגום, או מוגן בסיסמה שאין למכשיר הזה.';
 
   @override
-  String get backup_quarantined_status_incomplete => 'נותרו רק קובצי יומן; קובץ מסד הנתונים עצמו אינו קיים.';
+  String get backup_quarantined_status_incomplete =>
+      'נותרו רק קובצי יומן; קובץ מסד הנתונים עצמו אינו קיים.';
 
   @override
-  String get backup_quarantined_delete_title => 'למחוק את עותק מסד הנתונים הזה?';
+  String get backup_quarantined_delete_title =>
+      'למחוק את עותק מסד הנתונים הזה?';
 
   @override
-  String get backup_quarantined_delete_message => 'העותק וקובצי היומן שלו יימחקו לצמיתות מהמכשיר הזה. לא ניתן לבטל פעולה זו.';
+  String get backup_quarantined_delete_message =>
+      'העותק וקובצי היומן שלו יימחקו לצמיתות מהמכשיר הזה. לא ניתן לבטל פעולה זו.';
 
   @override
   String get backup_quarantined_deleted => 'עותק מסד הנתונים נמחק';
 
   @override
-  String get backup_quarantined_deleteFailed => 'לא ניתן היה למחוק את עותק מסד הנתונים.';
+  String get backup_quarantined_deleteFailed =>
+      'לא ניתן היה למחוק את עותק מסד הנתונים.';
 
   @override
-  String get backup_quarantined_loadFailed => 'לא ניתן היה לבדוק את תיקיית מסד הנתונים לאיתור עותקים שהועברו הצידה.';
+  String get backup_quarantined_loadFailed =>
+      'לא ניתן היה לבדוק את תיקיית מסד הנתונים לאיתור עותקים שהועברו הצידה.';
 
   @override
   String settings_storageUsage_unrecognized_title(int count) {
@@ -39831,7 +42408,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_gearArrangement => 'סידור הציוד';
 
   @override
-  String get settings_appearance_gearArrangementSubtitle => 'כיצד הציוד מקובץ וממוין בצלילה';
+  String get settings_appearance_gearArrangementSubtitle =>
+      'כיצד הציוד מקובץ וממוין בצלילה';
 
   @override
   String get navTrack_common_loadError => 'לא ניתן היה לטעון את המסלול הזה.';
@@ -39923,7 +42501,14 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String navTrack_terrain_summary(int onLand, int below, int total, int unknown, String maxPart, String coarsePart) {
+  String navTrack_terrain_summary(
+    int onLand,
+    int below,
+    int total,
+    int unknown,
+    String maxPart,
+    String coarsePart,
+  ) {
     return '$onLand נקודות ביבשה, $below מתוך $total מתחת לקרקעית הים$maxPart, $unknown לא ידועות$coarsePart';
   }
 
@@ -39933,7 +42518,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get navTrack_terrain_coarsePart => ' (בתימטריה גסה: נבדקו רק התנגשויות ביבשה)';
+  String get navTrack_terrain_coarsePart =>
+      ' (בתימטריה גסה: נבדקו רק התנגשויות ביבשה)';
 
   @override
   String get navTrack_detail_renameTitle => 'שינוי שם המסלול';
@@ -39954,19 +42540,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_detail_menuChangeSite => 'שינוי אתר';
 
   @override
-  String get navTrack_detail_noMapYet => 'קבע את נקודת ההתחלה כדי לראות זאת על מפה.';
+  String get navTrack_detail_noMapYet =>
+      'קבע את נקודת ההתחלה כדי לראות זאת על מפה.';
 
   @override
   String get navTrack_detail_correctionStatus_none => 'טרם הוחל תיקון.';
 
   @override
-  String get navTrack_detail_correctionStatus_sameAsStart => 'הסיום נקבע כזהה להתחלה.';
+  String get navTrack_detail_correctionStatus_sameAsStart =>
+      'הסיום נקבע כזהה להתחלה.';
 
   @override
-  String get navTrack_detail_correctionStatus_point => 'נקודת הסיום נקבעה על המפה.';
+  String get navTrack_detail_correctionStatus_point =>
+      'נקודת הסיום נקבעה על המפה.';
 
   @override
-  String get navTrack_detail_correctionStatus_gpsFix => 'הסיום נקבע מתיקון ה-GPS של ההקלטה.';
+  String get navTrack_detail_correctionStatus_gpsFix =>
+      'הסיום נקבע מתיקון ה-GPS של ההקלטה.';
 
   @override
   String navTrack_detail_device(String name) {
@@ -40029,7 +42619,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String navTrack_review_segmentSummaryWithFix(int underwater, int surface, String vector) {
+  String navTrack_review_segmentSummaryWithFix(
+    int underwater,
+    int surface,
+    String vector,
+  ) {
     return '$underwater דגימות מתחת למים, $surface דגימות פני שטח, תיקון GPS במרחק $vector מהסיום המשוער.';
   }
 
@@ -40050,10 +42644,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_review_nameHint => 'שם (אופציונלי)';
 
   @override
-  String get navTrack_review_warningNoMovement => 'לא נרשמה תנועה: המרחק והמהירות נשארים באפס לאורך כל הקובץ.';
+  String get navTrack_review_warningNoMovement =>
+      'לא נרשמה תנועה: המרחק והמהירות נשארים באפס לאורך כל הקובץ.';
 
   @override
-  String get navTrack_review_warningDuplicate => 'זה נראה כמו מסלול שכבר יובא מאותו קובץ.';
+  String get navTrack_review_warningDuplicate =>
+      'זה נראה כמו מסלול שכבר יובא מאותו קובץ.';
 
   @override
   String get navTrack_review_replaceLabel => 'החלפה';
@@ -40135,7 +42731,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_handoff_recognized => 'זוהה יומן ניווט Seacraft ENC';
 
   @override
-  String get navTrack_handoff_description => 'זהו מסלול תת-ימי, לא יומן צלילה. יש לו מקום משלו ב-Submersion, נפרד מייבוא הצלילות שלך.';
+  String get navTrack_handoff_description =>
+      'זהו מסלול תת-ימי, לא יומן צלילה. יש לו מקום משלו ב-Submersion, נפרד מייבוא הצלילות שלך.';
 
   @override
   String get navTrack_handoff_reviewButton => 'בדיקת המסלול';
@@ -40177,25 +42774,31 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_section_menuMakePrimary => 'הגדרה כראשי';
 
   @override
-  String get navTrack_importError_unsupportedFormat => 'קובץ זה אינו יומן ניווט Seacraft ENC.';
+  String get navTrack_importError_unsupportedFormat =>
+      'קובץ זה אינו יומן ניווט Seacraft ENC.';
 
   @override
-  String get navTrack_importError_unreadable => 'לא ניתן היה לקרוא את הקובץ הזה כיומן ניווט Seacraft ENC.';
+  String get navTrack_importError_unreadable =>
+      'לא ניתן היה לקרוא את הקובץ הזה כיומן ניווט Seacraft ENC.';
 
   @override
-  String get navTrack_importError_tooShort => 'בהקלטה זו יש מעט מדי דגימות כדי להיות מסלול שמיש.';
+  String get navTrack_importError_tooShort =>
+      'בהקלטה זו יש מעט מדי דגימות כדי להיות מסלול שמיש.';
 
   @override
-  String get navTrack_importError_badData => 'בקובץ זה יש נתונים ש-Submersion לא הצליחה לפענח.';
+  String get navTrack_importError_badData =>
+      'בקובץ זה יש נתונים ש-Submersion לא הצליחה לפענח.';
 
   @override
-  String get navTrack_importError_tooLarge => 'בהקלטה זו יש יותר דגימות ממה שמסלול יכול לאחסן.';
+  String get navTrack_importError_tooLarge =>
+      'בהקלטה זו יש יותר דגימות ממה שמסלול יכול לאחסן.';
 
   @override
   String get diveDetailSection_navTrack_name => 'מסלול תת-ימי';
 
   @override
-  String get diveDetailSection_navTrack_description => 'מסלול תת-ימי שנמדד ממסוף ניווט';
+  String get diveDetailSection_navTrack_description =>
+      'מסלול תת-ימי שנמדד ממסוף ניווט';
 
   @override
   String get dashboard_quickActions_navRoutes => 'מסלולים תת-ימיים';
@@ -40245,7 +42848,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_whatIf_detailLabel => 'Detail';
 
   @override
-  String get diveLog_whatIf_engineNote => 'The plan covers the descent and working levels. The planner computes the ascent and deco so you can compare them with the logged dive.';
+  String get diveLog_whatIf_engineNote =>
+      'The plan covers the descent and working levels. The planner computes the ascent and deco so you can compare them with the logged dive.';
 
   @override
   String get diveLog_whatIf_seedTissues => 'Seed tissues from previous dive';
@@ -40318,10 +42922,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveCenters_rental_noHistory => 'עדיין לא נרשמו כאן צלילות נוספות.';
+  String get diveCenters_rental_noHistory =>
+      'עדיין לא נרשמו כאן צלילות נוספות.';
 
   @override
-  String get diveCenters_rental_empty => 'עדיין אין הערות על ציוד מושכר במרכז הזה.';
+  String get diveCenters_rental_empty =>
+      'עדיין אין הערות על ציוד מושכר במרכז הזה.';
 
   @override
   String get diveCenters_rental_addNote => 'הוספת הערת השכרה';
@@ -40330,13 +42936,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_rental_applyLastDive => 'החלת הצלילה האחרונה';
 
   @override
-  String get diveCenters_rental_applied => 'המשקולות והמכלים הועתקו מהצלילה האחרונה שלך כאן.';
+  String get diveCenters_rental_applied =>
+      'המשקולות והמכלים הועתקו מהצלילה האחרונה שלך כאן.';
 
   @override
   String get diveCenters_rental_applyConfirmTitle => 'להחליף משקולות ומכלים?';
 
   @override
-  String get diveCenters_rental_applyConfirmBody => 'לצלילה הזו כבר יש משקולות או מכלים. להחליף אותם באלה מהצלילה האחרונה שלך כאן?';
+  String get diveCenters_rental_applyConfirmBody =>
+      'לצלילה הזו כבר יש משקולות או מכלים. להחליף אותם באלה מהצלילה האחרונה שלך כאן?';
 
   @override
   String get diveCenters_rental_applyConfirmReplace => 'החלפה';

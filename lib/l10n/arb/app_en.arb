@@ -7314,12 +7314,6 @@
     "placeholders": {
       "count": {
         "type": "int"
-      },
-      "Set": {
-        "type": "String"
-      },
-      "Sets": {
-        "type": "String"
       }
     }
   },

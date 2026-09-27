@@ -43,7 +43,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_sharing_dialogTitle => '共享给';
 
   @override
-  String get equipment_sharing_dialogBody => '所选资料可以将此装备添加到自己的潜水记录并记录保养。只有所有者可以删除它或更改共享对象。';
+  String get equipment_sharing_dialogBody =>
+      '所选资料可以将此装备添加到自己的潜水记录并记录保养。只有所有者可以删除它或更改共享对象。';
 
   @override
   String get equipment_bulkShare_action => '共享给...';
@@ -162,7 +163,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_oauth_connect_browserFailed => '无法打开浏览器。请使用“复制链接”，并将地址粘贴到浏览器中。';
+  String get settings_oauth_connect_browserFailed =>
+      '无法打开浏览器。请使用“复制链接”，并将地址粘贴到浏览器中。';
 
   @override
   String equipment_assemblyChip_label(Object count, Object name) {
@@ -386,7 +388,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_computerAutoApplySwitch_title => '导入该套装的电脑时自动应用';
 
   @override
-  String get equipment_setEdit_computerAutoApplySwitch_subtitle => '如果该套装包含潜水电脑，则从该电脑下载或导入的潜水记录会自动添加整个套装';
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      '如果该套装包含潜水电脑，则从该电脑下载或导入的潜水记录会自动添加整个套装';
 
   @override
   String get equipment_setEdit_geofencesTitle => '地理围栏';
@@ -508,7 +511,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_bestMix_withoutHelium => '不含氦气';
 
   @override
-  String get gasCalculators_planningCaveat => '规划估算值。假设直接上升。请结合你的训练核实，并为实际条件预留余量。';
+  String get gasCalculators_planningCaveat =>
+      '规划估算值。假设直接上升。请结合你的训练核实，并为实际条件预留余量。';
 
   @override
   String gasCalculators_rockBottom_solveGas(Object depth, Object unit) {
@@ -535,7 +539,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get o2Toxicity_daily => '每日';
 
   @override
-  String o2Toxicity_otuSemantics(Object label, Object value, Object limit, Object percent) {
+  String o2Toxicity_otuSemantics(
+    Object label,
+    Object value,
+    Object limit,
+    Object percent,
+  ) {
     return '$label：$limit OTU 中的 $value，$percent 百分比';
   }
 
@@ -729,7 +738,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_bulkEdit_tankOnlyIfEmpty => '仅没有气瓶的潜水';
 
   @override
-  String get diveLog_bulkEdit_tankSpecsHint => '选择要覆盖这些潜水已有气瓶的哪些属性。起始和结束压力不会被更改。';
+  String get diveLog_bulkEdit_tankSpecsHint =>
+      '选择要覆盖这些潜水已有气瓶的哪些属性。起始和结束压力不会被更改。';
 
   @override
   String get diveLog_bulkEdit_tankSpecsNoFields => '请至少选择一个要更新的气瓶属性。';
@@ -803,16 +813,19 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_error_icloudSignedOut => 'iCloud 不可用。请在设备设置中登录 iCloud。';
+  String get settings_cloudSync_error_icloudSignedOut =>
+      'iCloud 不可用。请在设备设置中登录 iCloud。';
 
   @override
   String get settings_cloudSync_error_icloudUnknown => '无法连接 iCloud。请重试。';
 
   @override
-  String get settings_cloudSync_error_icloudUnsupported => '此 Submersion 版本不支持 iCloud 同步。请使用 S3 同步或 App Store 版本。';
+  String get settings_cloudSync_error_icloudUnsupported =>
+      '此 Submersion 版本不支持 iCloud 同步。请使用 S3 同步或 App Store 版本。';
 
   @override
-  String get settings_cloudSync_provider_icloud_unsupportedSubtitle => '此版本不可用 — 请使用 S3 或 App Store 版本';
+  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
+      '此版本不可用 — 请使用 S3 或 App Store 版本';
 
   @override
   String get settings_cloudSync_encryption_title => '端到端加密';
@@ -830,13 +843,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_encryption_statusOn => '加密已开启';
 
   @override
-  String get settings_cloudSync_encryption_statusOnSubtitle => '同步数据和云备份在上传前会被加密';
+  String get settings_cloudSync_encryption_statusOnSubtitle =>
+      '同步数据和云备份在上传前会被加密';
 
   @override
   String get settings_cloudSync_encryption_statusLocked => '已加密 — 需要口令';
 
   @override
-  String get settings_cloudSync_encryption_statusLockedSubtitle => '输入口令以在此设备上同步';
+  String get settings_cloudSync_encryption_statusLockedSubtitle =>
+      '输入口令以在此设备上同步';
 
   @override
   String get settings_cloudSync_encryption_enable => '开启加密';
@@ -860,19 +875,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_encryption_wrongPassphrase => '口令或恢复码不正确';
 
   @override
-  String get settings_cloudSync_encryption_warnUpdateDevices => '所有其他设备都必须更新到最新版应用，并将重新下载资料库。';
+  String get settings_cloudSync_encryption_warnUpdateDevices =>
+      '所有其他设备都必须更新到最新版应用，并将重新下载资料库。';
 
   @override
-  String get settings_cloudSync_encryption_warnLoss => '如果口令和恢复码都丢失，云端数据将无法恢复。设备上的数据永远不会有风险。';
+  String get settings_cloudSync_encryption_warnLoss =>
+      '如果口令和恢复码都丢失，云端数据将无法恢复。设备上的数据永远不会有风险。';
 
   @override
-  String get settings_cloudSync_encryption_deletePlaintextBackups => '删除现有的未加密云备份';
+  String get settings_cloudSync_encryption_deletePlaintextBackups =>
+      '删除现有的未加密云备份';
 
   @override
   String get settings_cloudSync_encryption_recoveryTitle => '恢复码';
 
   @override
-  String get settings_cloudSync_encryption_recoveryExplain => '请抄写此恢复码并妥善保管。如果忘记口令，这是唯一的恢复途径。';
+  String get settings_cloudSync_encryption_recoveryExplain =>
+      '请抄写此恢复码并妥善保管。如果忘记口令，这是唯一的恢复途径。';
 
   @override
   String get settings_cloudSync_encryption_recoverySavedConfirm => '我已保存恢复码';
@@ -890,13 +909,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_encryption_regenerateRecovery => '生成新的恢复码';
 
   @override
-  String get settings_cloudSync_encryption_regenerateRecoveryWarn => '旧的恢复码将立即失效。';
+  String get settings_cloudSync_encryption_regenerateRecoveryWarn =>
+      '旧的恢复码将立即失效。';
 
   @override
   String get settings_cloudSync_encryption_disable => '关闭加密';
 
   @override
-  String get settings_cloudSync_encryption_disableWarn => '资料库将以未加密方式重新上传，其他设备将重新下载。现有的加密备份仍可用口令恢复。';
+  String get settings_cloudSync_encryption_disableWarn =>
+      '资料库将以未加密方式重新上传，其他设备将重新下载。现有的加密备份仍可用口令恢复。';
 
   @override
   String get settings_cloudSync_encryption_unlockTitle => '输入您的加密口令';
@@ -935,7 +956,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_backupEncryption_turnOffTitle => '关闭备份加密？';
 
   @override
-  String get settings_backupEncryption_turnOffBody => '新的备份将不再加密。现有的加密备份仍需使用您的密码才能恢复。';
+  String get settings_backupEncryption_turnOffBody =>
+      '新的备份将不再加密。现有的加密备份仍需使用您的密码才能恢复。';
 
   @override
   String get settings_backupEncryption_changePassword => '更改密码';
@@ -962,7 +984,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_backupEncryption_newPassword => '新密码';
 
   @override
-  String get settings_backupEncryption_changePasswordWarn => '在其他设备上，每个备份都使用其创建时处于活动状态的密码或恢复代码打开。';
+  String get settings_backupEncryption_changePasswordWarn =>
+      '在其他设备上，每个备份都使用其创建时处于活动状态的密码或恢复代码打开。';
 
   @override
   String get settings_backupEncryption_warnLoss => '如果您忘记密码并丢失恢复代码，加密备份将无法恢复。';
@@ -971,7 +994,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_backupEncryption_recoveryTitle => '您的恢复代码';
 
   @override
-  String get settings_backupEncryption_recoveryExplain => '请将此代码保存在安全的地方。如果您忘记密码，它可以解锁您的备份。';
+  String get settings_backupEncryption_recoveryExplain =>
+      '请将此代码保存在安全的地方。如果您忘记密码，它可以解锁您的备份。';
 
   @override
   String get settings_backupEncryption_recoverySavedConfirm => '我已保存我的恢复代码';
@@ -1001,7 +1025,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_backupEncryption_reencryptTitle => '加密现有备份？';
 
   @override
-  String get settings_backupEncryption_reencryptBody => '您现有的备份仍未加密。现在使用您的新密码重新加密它们吗？';
+  String get settings_backupEncryption_reencryptBody =>
+      '您现有的备份仍未加密。现在使用您的新密码重新加密它们吗？';
 
   @override
   String get settings_backupEncryption_reencryptNow => '立即重新加密';
@@ -1064,7 +1089,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get accessibility_keyLabel_up => '上';
 
   @override
-  String accessibility_label_chartSummary(Object chartType, Object description) {
+  String accessibility_label_chartSummary(
+    Object chartType,
+    Object description,
+  ) {
     return '$chartType图表。$description';
   }
 
@@ -1296,7 +1324,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_replaceConfirm_confirm => '全部替换';
 
   @override
-  String get backup_replaceConfirm_content => '所有已同步设备上的资料库都将被此备份替换。每台设备会先为其当前数据创建安全备份。此操作无法撤销。';
+  String get backup_replaceConfirm_content =>
+      '所有已同步设备上的资料库都将被此备份替换。每台设备会先为其当前数据创建安全备份。此操作无法撤销。';
 
   @override
   String get backup_replaceConfirm_title => '在所有设备上替换资料库？';
@@ -1305,13 +1334,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_restore_dialog_cancel => '取消';
 
   @override
-  String get backup_restore_dialog_modeMerge_subtitle => '恢复到此设备。下次同步时会将恢复的数据与云端资料库合并。';
+  String get backup_restore_dialog_modeMerge_subtitle =>
+      '恢复到此设备。下次同步时会将恢复的数据与云端资料库合并。';
 
   @override
   String get backup_restore_dialog_modeMerge_title => '下次同步时合并';
 
   @override
-  String get backup_restore_dialog_modeReplace_subtitle => '此备份将成为本设备、云端及所有已同步设备上的资料库。';
+  String get backup_restore_dialog_modeReplace_subtitle =>
+      '此备份将成为本设备、云端及所有已同步设备上的资料库。';
 
   @override
   String get backup_restore_dialog_modeReplace_title => '全部替换';
@@ -1346,7 +1377,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_restoreComplete_continue => '继续';
 
   @override
-  String get backup_restoreComplete_description => '您的数据已成功恢复。点击继续以使用恢复的数据重新加载应用。';
+  String get backup_restoreComplete_description =>
+      '您的数据已成功恢复。点击继续以使用恢复的数据重新加载应用。';
 
   @override
   String get backup_restoreComplete_title => '恢复完成';
@@ -2013,7 +2045,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_edit_merge_fieldSourceCycleTooltip => '使用下一位已选潜伴的值';
 
   @override
-  String buddies_edit_merge_fieldSourceLabel(String buddyName, int current, int total) {
+  String buddies_edit_merge_fieldSourceLabel(
+    String buddyName,
+    int current,
+    int total,
+  ) {
     return '来自 $buddyName（$current/$total）';
   }
 
@@ -2126,7 +2162,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_detail_photoLabel_front => '正面';
 
   @override
-  String certifications_detail_photo_fullscreenTitle(Object label, Object name) {
+  String certifications_detail_photo_fullscreenTitle(
+    Object label,
+    Object name,
+  ) {
     return '$label - $name';
   }
 
@@ -2152,7 +2191,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_detail_sectionTitle_trainingCourse => '培训课程';
 
   @override
-  String certifications_detail_semanticLabel_photoTapToView(Object label, Object name) {
+  String certifications_detail_semanticLabel_photoTapToView(
+    Object label,
+    Object name,
+  ) {
     return '$name的$label照片。点击查看全屏';
   }
 
@@ -2376,7 +2418,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_edit_snackBar_updated => '证书更新成功';
 
   @override
-  String get certifications_edit_validation_certificationOrNameRequired => '请选择证书或输入名称';
+  String get certifications_edit_validation_certificationOrNameRequired =>
+      '请选择证书或输入名称';
 
   @override
   String get certifications_list_button_retry => '重试';
@@ -2476,7 +2519,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String certifications_renderer_label_instructorWithNumber(Object name, Object number) {
+  String certifications_renderer_label_instructorWithNumber(
+    Object name,
+    Object number,
+  ) {
     return '教练：$name（$number）';
   }
 
@@ -2928,7 +2974,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String preDive_runner_linearityLine(String air, String expected, String percent) {
+  String preDive_runner_linearityLine(
+    String air,
+    String expected,
+    String percent,
+  ) {
     return '空气 $air mV，预期 $expected mV，线性度 $percent%';
   }
 
@@ -4136,7 +4186,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get decoCalculator_createPlanTooltip => '根据当前参数创建潜水计划';
 
   @override
-  String decoCalculator_createdPlanSnackbar(Object depth, Object depthSymbol, Object time, Object gasMixName) {
+  String decoCalculator_createdPlanSnackbar(
+    Object depth,
+    Object depthSymbol,
+    Object time,
+    Object gasMixName,
+  ) {
     return '已创建计划：$depth$depthSymbol，$time分钟，使用 $gasMixName';
   }
 
@@ -4469,7 +4524,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveCenters_import_searchDescription => '从我们的全球运营商数据库中搜索潜水中心、潜水店和俱乐部。';
+  String get diveCenters_import_searchDescription =>
+      '从我们的全球运营商数据库中搜索潜水中心、潜水店和俱乐部。';
 
   @override
   String get diveCenters_import_searchError => '搜索错误';
@@ -4915,7 +4971,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_combine_confirm => '合并为一次潜水';
 
   @override
-  String get diveLog_combine_dataNote => '详细信息取自最早的潜水，空白项由后续潜水填补。备注将被合并。气瓶、装备、潜伴、标签和目击记录都会保留。';
+  String get diveLog_combine_dataNote =>
+      '详细信息取自最早的潜水，空白项由后续潜水填补。备注将被合并。气瓶、装备、潜伴、标签和目击记录都会保留。';
 
   @override
   String get diveLog_combine_error => '无法合并这些潜水。未做任何更改。';
@@ -4926,7 +4983,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLog_combine_longSurfaceWarning => '一个或多个水面间隔超过 30 分钟。这些可能是独立的潜水，而非一次连续潜水。';
+  String get diveLog_combine_longSurfaceWarning =>
+      '一个或多个水面间隔超过 30 分钟。这些可能是独立的潜水，而非一次连续潜水。';
 
   @override
   String get diveLog_combine_mixedDivers => '所选潜水属于不同的潜水员，无法合并。';
@@ -4940,7 +4998,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String diveLog_combine_resultSummary(String runtime, String maxDepth, String bottomTime) {
+  String diveLog_combine_resultSummary(
+    String runtime,
+    String maxDepth,
+    String bottomTime,
+  ) {
     return '结果：总计 $runtime，最大深度 $maxDepth，底部时间 $bottomTime';
   }
 
@@ -4974,10 +5036,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_consolidate_error_generic => '无法合并这些潜水。未做任何更改。';
 
   @override
-  String get diveLog_consolidate_error_notOverlapping => '这些潜水在时间上不重叠，因此无法合并为同一次潜水。';
+  String get diveLog_consolidate_error_notOverlapping =>
+      '这些潜水在时间上不重叠，因此无法合并为同一次潜水。';
 
   @override
-  String get diveLog_consolidate_error_sameComputer => '这些潜水来自同一台潜水电脑，无法以这种方式合并。';
+  String get diveLog_consolidate_error_sameComputer =>
+      '这些潜水来自同一台潜水电脑，无法以这种方式合并。';
 
   @override
   String get diveLog_consolidate_selectPrimary => '主潜水电脑';
@@ -5052,7 +5116,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String diveLog_deco_gf_chipRecordedAlgorithm(Object algorithm, Object low, Object high) {
+  String diveLog_deco_gf_chipRecordedAlgorithm(
+    Object algorithm,
+    Object low,
+    Object high,
+  ) {
     return '$algorithm · 以 GF $low/$high 分析';
   }
 
@@ -5062,7 +5130,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_gf_tooltipFromSettings => '这台潜水电脑没有记录它的梯度因子，因此本次潜水使用你设置中的梯度因子进行分析。';
+  String get diveLog_deco_gf_tooltipFromSettings =>
+      '这台潜水电脑没有记录它的梯度因子，因此本次潜水使用你设置中的梯度因子进行分析。';
 
   @override
   String diveLog_deco_gf_tooltipRecordedAlgorithm(Object algorithm) {
@@ -5148,7 +5217,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_collapsed_atTimeInfo(Object timestamp, Object baseInfo) {
+  String diveLog_detail_collapsed_atTimeInfo(
+    Object timestamp,
+    Object baseInfo,
+  ) {
     return '$timestamp • $baseInfo';
   }
 
@@ -5163,7 +5235,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_collapsed_cnsMaxPpO2AtTime(Object cns, Object maxPpO2, Object timestamp, Object ppO2) {
+  String diveLog_detail_collapsed_cnsMaxPpO2AtTime(
+    Object cns,
+    Object maxPpO2,
+    Object timestamp,
+    Object ppO2,
+  ) {
     return '中枢神经系统毒性：$cns · 最大氧分压：$maxPpO2 · 在 $timestamp：$ppO2 bar';
   }
 
@@ -6502,7 +6579,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ocrImport_scanPage_nothingRead => '无法从此页面读取太多内容 - 字段留空';
 
   @override
-  String get ocrImport_scanPage_engineMissing => '文本识别不可用。请安装 Tesseract 以扫描纸质日志（例如：sudo apt install tesseract-ocr）。';
+  String get ocrImport_scanPage_engineMissing =>
+      '文本识别不可用。请安装 Tesseract 以扫描纸质日志（例如：sudo apt install tesseract-ocr）。';
 
   @override
   String get ocrImport_editPage_photoAttachFailed => '潜水已保存，但附加扫描页面失败';
@@ -6514,7 +6592,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_listPage_bottomSheet_planDive => '计划一次潜水';
 
   @override
-  String get diveLog_listPage_bottomSheet_planDiveSubtitle => '现在填写详情，稍后添加潜水电脑数据';
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      '现在填写详情，稍后添加潜水电脑数据';
 
   @override
   String get diveLog_listPage_fab_addDive => '添加潜水';
@@ -6939,7 +7018,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setup_syncPull_continue => '继续';
 
   @override
-  String get setup_syncPull_incomplete_message => '此账户中的 Submersion 资料库尚未上传完成。请让另一台设备完成同步后重试。';
+  String get setup_syncPull_incomplete_message =>
+      '此账户中的 Submersion 资料库尚未上传完成。请让另一台设备完成同步后重试。';
 
   @override
   String get setup_syncPull_incomplete_retry => '重新检查';
@@ -6954,7 +7034,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setup_syncPull_locked_title => '此资料库已加密';
 
   @override
-  String get setup_syncPull_noLibrary_message => '此账户中未找到 Submersion 资料库。要重新开始吗？你的连接将被保留。';
+  String get setup_syncPull_noLibrary_message =>
+      '此账户中未找到 Submersion 资料库。要重新开始吗？你的连接将被保留。';
 
   @override
   String get setup_syncPull_noLibrary_title => '未找到资料库';
@@ -6991,7 +7072,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setup_sync_libraryFound_keepFresh => '重新开始';
 
   @override
-  String get setup_sync_libraryFound_message => '此账户已包含 Submersion 资料库。要采用它而不是重新开始吗？';
+  String get setup_sync_libraryFound_message =>
+      '此账户已包含 Submersion 资料库。要采用它而不是重新开始吗？';
 
   @override
   String get setup_sync_libraryFound_title => '发现现有资料库';
@@ -7440,7 +7522,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_numbering_renumberDialog_cancel => '取消';
 
   @override
-  String get diveLog_numbering_renumberDialog_content => '这将根据入水日期/时间对所有潜水进行顺序重新编号。此操作无法撤消。';
+  String get diveLog_numbering_renumberDialog_content =>
+      '这将根据入水日期/时间对所有潜水进行顺序重新编号。此操作无法撤消。';
 
   @override
   String get diveLog_numbering_renumberDialog_renumber => '重新编号';
@@ -8207,7 +8290,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_sources_splitDialog_title => '拆分为单独潜水？';
 
   @override
-  String get diveLog_sources_splitDialog_body => '此来源的曲线、事件和气瓶将移至新的潜水记录。日志条目保留在当前潜水中。';
+  String get diveLog_sources_splitDialog_body =>
+      '此来源的曲线、事件和气瓶将移至新的潜水记录。日志条目保留在当前潜水中。';
 
   @override
   String get diveLog_sources_splitDialog_confirm => '拆分';
@@ -8414,7 +8498,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'RMV factor';
 
   @override
-  String get divePlanner_gasOptions_problemSolvingMinutes => 'Problem solving time';
+  String get divePlanner_gasOptions_problemSolvingMinutes =>
+      'Problem solving time';
 
   @override
   String get divePlanner_gasOptions_ppO2Bottom => 'Bottom ppO₂';
@@ -8426,7 +8511,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_gasOptions_bestMixEnd => 'Best mix END';
 
   @override
-  String get divePlanner_gasOptions_o2Narcotic => 'Treat O₂ as narcotic for this plan';
+  String get divePlanner_gasOptions_o2Narcotic =>
+      'Treat O₂ as narcotic for this plan';
 
   @override
   String get divePlanner_label_status => '状态';
@@ -8517,17 +8603,30 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String divePlanner_semantics_decoStop(Object depth, Object duration, Object gasMix) {
+  String divePlanner_semantics_decoStop(
+    Object depth,
+    Object duration,
+    Object gasMix,
+  ) {
     return '减压停留在 $depth，$duration，使用 $gasMix';
   }
 
   @override
-  String divePlanner_semantics_gasConsumption(Object tankName, Object gasUsed, Object remaining, Object percent, Object warning) {
+  String divePlanner_semantics_gasConsumption(
+    Object tankName,
+    Object gasUsed,
+    Object remaining,
+    Object percent,
+    Object warning,
+  ) {
     return '$tankName：已用 $gasUsed，剩余 $remaining，已用 $percent$warning';
   }
 
   @override
-  String divePlanner_semantics_profileChart(Object maxDepth, Object totalMinutes) {
+  String divePlanner_semantics_profileChart(
+    Object maxDepth,
+    Object totalMinutes,
+  ) {
     return '潜水计划，最大深度 $maxDepth，总时间 $totalMinutes 分钟';
   }
 
@@ -8866,7 +8965,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_access_exitMethod_label => '出水方式';
 
   @override
-  String diveSites_edit_access_entrySuggestionPair(int count, String entry, String exit) {
+  String diveSites_edit_access_entrySuggestionPair(
+    int count,
+    String entry,
+    String exit,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -8877,7 +8980,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String diveSites_edit_access_entrySuggestionEntryOnly(int count, String entry) {
+  String diveSites_edit_access_entrySuggestionEntryOnly(
+    int count,
+    String entry,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -9098,7 +9204,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_merge_fieldSourceCycleTooltip => '使用下一个已选潜水点的值';
 
   @override
-  String diveSites_edit_merge_fieldSourceLabel(Object siteName, int current, int total) {
+  String diveSites_edit_merge_fieldSourceLabel(
+    Object siteName,
+    int current,
+    int total,
+  ) {
     return '来自 $siteName ($current/$total)';
   }
 
@@ -9188,10 +9298,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_snackbar_locationSettings => '设置';
 
   @override
-  String get diveSites_edit_snackbar_locationUnavailableDesktop => '无法获取位置。定位服务可能不可用。';
+  String get diveSites_edit_snackbar_locationUnavailableDesktop =>
+      '无法获取位置。定位服务可能不可用。';
 
   @override
-  String get diveSites_edit_snackbar_locationUnavailableMobile => '无法获取位置。请检查权限设置。';
+  String get diveSites_edit_snackbar_locationUnavailableMobile =>
+      '无法获取位置。请检查权限设置。';
 
   @override
   String get diveSites_edit_snackbar_siteAdded => '潜水点已添加';
@@ -9239,7 +9351,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_filter_difficulty_any => '任意';
 
   @override
-  String get diveSites_filter_option_hasCoordinates_subtitle => '仅显示潜水点与 GPS 位置';
+  String get diveSites_filter_option_hasCoordinates_subtitle =>
+      '仅显示潜水点与 GPS 位置';
 
   @override
   String get diveSites_filter_option_hasCoordinates_title => '有坐标';
@@ -9368,7 +9481,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_import_search_clearTooltip => '清除搜索';
 
   @override
-  String get diveSites_import_search_hint => '搜索潜水点（例如 \"Blue Hole\"、\"Thailand\"）';
+  String get diveSites_import_search_hint =>
+      '搜索潜水点（例如 \"Blue Hole\"、\"Thailand\"）';
 
   @override
   String diveSites_import_section_importFromDatabase(Object count) {
@@ -9581,7 +9695,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_refresh_confirm_title => '刷新地名？';
 
   @override
-  String diveSites_refresh_confirm_body(int count, String language, int minutes) {
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -9704,7 +9822,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_locationPicker_label_longitude => '经度';
 
   @override
-  String diveSites_locationPicker_semantics_coordinates(Object latitude, Object longitude) {
+  String diveSites_locationPicker_semantics_coordinates(
+    Object latitude,
+    Object longitude,
+  ) {
     return '已选坐标：纬度 $latitude，经度 $longitude';
   }
 
@@ -9712,7 +9833,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_locationPicker_semantics_lookingUp => '正在查询位置';
 
   @override
-  String get diveSites_locationPicker_semantics_map => '用于选择潜水点位置的互动地图。点击地图选择位置。';
+  String get diveSites_locationPicker_semantics_map =>
+      '用于选择潜水点位置的互动地图。点击地图选择位置。';
 
   @override
   String diveSites_mapContent_error_loadingDiveSites(Object error) {
@@ -10048,7 +10170,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divelogsImport_fetch_button => '获取日志';
 
   @override
-  String get divelogsImport_fetch_certificationsUnavailable => '无法获取证书，证书将不会被导入。';
+  String get divelogsImport_fetch_certificationsUnavailable =>
+      '无法获取证书，证书将不会被导入。';
 
   @override
   String get divelogsImport_fetch_empty => '您的 divelogs.de 日志中没有可导入的内容。';
@@ -10081,7 +10204,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get divelogsImport_fetch_gearUnavailable => '无法获取装备；潜水记录将在不关联装备的情况下导入。';
+  String get divelogsImport_fetch_gearUnavailable =>
+      '无法获取装备；潜水记录将在不关联装备的情况下导入。';
 
   @override
   String get divelogsImport_fetch_includePhotos => '包含照片';
@@ -10108,7 +10232,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divelogsImport_fetch_retry => '重试';
 
   @override
-  String get divelogsImport_fetch_sessionExpired => '您的 divelogs.de 会话已过期。请返回并重新登录。';
+  String get divelogsImport_fetch_sessionExpired =>
+      '您的 divelogs.de 会话已过期。请返回并重新登录。';
 
   @override
   String divelogsImport_fetch_skippedDives(int count) {
@@ -10127,7 +10252,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divelogsImport_signIn_button => '登录';
 
   @override
-  String get divelogsImport_signIn_description => '使用您的 divelogs.de 账户登录，即可导入您的日志。您的密码不会被保存；仅缓存由此生成的会话。';
+  String get divelogsImport_signIn_description =>
+      '使用您的 divelogs.de 账户登录，即可导入您的日志。您的密码不会被保存；仅缓存由此生成的会话。';
 
   @override
   String get divelogsImport_signIn_passwordLabel => '密码';
@@ -10153,7 +10279,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divelogsImport_signIn_unexpected => 'divelogs.de 返回了意外的响应。请稍后重试。';
 
   @override
-  String get divelogsImport_signIn_unreachable => '无法连接到 divelogs.de。请检查网络连接后重试。';
+  String get divelogsImport_signIn_unreachable =>
+      '无法连接到 divelogs.de。请检查网络连接后重试。';
 
   @override
   String get divelogsImport_signIn_usernameLabel => '用户名';
@@ -10648,10 +10775,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_certificationLevel_cmas4StarDiver => '四星潜水员';
 
   @override
-  String get enum_certificationLevel_cmas3StarDiverAssistantInstructor => '三星潜水员 - 助理教练';
+  String get enum_certificationLevel_cmas3StarDiverAssistantInstructor =>
+      '三星潜水员 - 助理教练';
 
   @override
-  String get enum_certificationLevel_cmas4StarDiverAssistantInstructor => '四星潜水员 - 助理教练';
+  String get enum_certificationLevel_cmas4StarDiverAssistantInstructor =>
+      '四星潜水员 - 助理教练';
 
   @override
   String get enum_certificationLevel_cmas1StarInstructor => '一星教练';
@@ -10678,13 +10807,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_certificationLevel_bsacFirstClassDiver => 'First Class Diver';
 
   @override
-  String get enum_certificationLevel_bsacOpenWaterInstructor => 'Open Water Instructor';
+  String get enum_certificationLevel_bsacOpenWaterInstructor =>
+      'Open Water Instructor';
 
   @override
-  String get enum_certificationLevel_bsacAdvancedInstructor => 'Advanced Instructor';
+  String get enum_certificationLevel_bsacAdvancedInstructor =>
+      'Advanced Instructor';
 
   @override
-  String get enum_certificationLevel_bsacNationalInstructor => 'National Instructor';
+  String get enum_certificationLevel_bsacNationalInstructor =>
+      'National Instructor';
 
   @override
   String get enum_certificationLevel_gueFundamentals => 'Fundamentals';
@@ -11685,51 +11817,50 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_logFill_saveFailed => '无法保存充气记录。请重试。';
 
   @override
-  String get pdf_unknownSite => 'Unknown Site';
+  String get pdf_unknownSite => '未知潜水点';
 
   @override
-  String get pdf_signaturePlaceholder => '[Signature]';
+  String get pdf_signaturePlaceholder => '[签名]';
 
   @override
-  String get pdf_signerBuddy => 'Buddy';
+  String get pdf_signerBuddy => '潜伴';
 
   @override
-  String get pdf_signerInstructor => 'Instructor';
+  String get pdf_signerInstructor => '教练';
 
   @override
-  String get pdf_officialStamp => 'Official Stamp';
+  String get pdf_officialStamp => '官方印章';
 
   @override
-  String get pdf_certifications => 'Certifications';
+  String get pdf_certifications => '证书';
 
   @override
   String pdf_cardNumber(String number) {
-    return 'Card #: $number';
+    return '卡号：$number';
   }
 
   @override
   String pdf_certIssued(String date) {
-    return 'Issued: $date';
+    return '签发日期：$date';
   }
 
   @override
   String pdf_certExpires(String date) {
-    return 'Expires: $date';
+    return '到期日期：$date';
   }
 
   @override
-  String get pdf_cardFront => 'Front';
+  String get pdf_cardFront => '正面';
 
   @override
-  String get pdf_cardBack => 'Back';
+  String get pdf_cardBack => '背面';
 
   @override
   String pdf_coverDiveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count Dives',
-      one: '$count Dive',
+      other: '$count 次潜水',
     );
     return '$_temp0';
   }
@@ -11739,165 +11870,164 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dives',
-      one: '$count dive',
+      other: '$count 次潜水',
     );
     return '$_temp0';
   }
 
   @override
   String pdf_generatedOn(String dateTime) {
-    return 'Generated on $dateTime';
+    return '生成于 $dateTime';
   }
 
   @override
   String pdf_generated(String dateTime) {
-    return 'Generated $dateTime';
+    return '生成于 $dateTime';
   }
 
   @override
-  String get pdf_noDivesToSummarize => 'No dives to summarize';
+  String get pdf_noDivesToSummarize => '没有可汇总的潜水记录';
 
   @override
-  String get pdf_noDivesToDisplay => 'No dives to display';
+  String get pdf_noDivesToDisplay => '没有可显示的潜水记录';
 
   @override
-  String get pdf_summary => 'Summary';
+  String get pdf_summary => '汇总';
 
   @override
-  String get pdf_totalDives => 'Total Dives';
+  String get pdf_totalDives => '潜水总次数';
 
   @override
-  String get pdf_firstDive => 'First Dive';
+  String get pdf_firstDive => '首次潜水';
 
   @override
-  String get pdf_lastDive => 'Last Dive';
+  String get pdf_lastDive => '最后一次潜水';
 
   @override
-  String get pdf_totalDiveTime => 'Total Dive Time';
+  String get pdf_totalDiveTime => '潜水总时间';
 
   @override
-  String get pdf_deepestDive => 'Deepest Dive';
+  String get pdf_deepestDive => '最深潜水';
 
   @override
-  String get pdf_averageDepth => 'Average Depth';
+  String get pdf_averageDepth => '平均深度';
 
   @override
-  String get pdf_uniqueSites => 'Unique Sites';
+  String get pdf_uniqueSites => '不同潜水点';
 
   @override
   String pdf_hoursMinutes(String hours, String minutes) {
-    return '${hours}h ${minutes}m';
+    return '$hours小时$minutes分钟';
   }
 
   @override
   String pdf_minutesShort(String minutes) {
-    return '${minutes}m';
+    return '$minutes分钟';
   }
 
   @override
   String pdf_minutes(String minutes) {
-    return '$minutes min';
+    return '$minutes 分钟';
   }
 
   @override
   String pdf_minutesCompact(String minutes) {
-    return '${minutes}min';
+    return '$minutes分钟';
   }
 
   @override
-  String get pdf_diverProfile => 'Diver Profile';
+  String get pdf_diverProfile => '潜水员档案';
 
   @override
-  String get pdf_name => 'Name';
+  String get pdf_name => '姓名';
 
   @override
-  String get pdf_email => 'Email';
+  String get pdf_email => '电子邮件';
 
   @override
-  String get pdf_photo => 'Photo';
+  String get pdf_photo => '照片';
 
   @override
   String pdf_depthProfileHeading(String depthUnit) {
-    return 'Depth Profile ($depthUnit vs min)';
+    return '深度轮廓（$depthUnit / 分钟）';
   }
 
   @override
-  String get pdf_columnDate => 'Date';
+  String get pdf_columnDate => '日期';
 
   @override
-  String get pdf_columnSite => 'Site';
+  String get pdf_columnSite => '潜水点';
 
   @override
-  String get pdf_columnDepth => 'Depth';
+  String get pdf_columnDepth => '深度';
 
   @override
-  String get pdf_columnTime => 'Time';
+  String get pdf_columnTime => '时间';
 
   @override
-  String get pdf_columnTemp => 'Temp';
+  String get pdf_columnTemp => '温度';
 
   @override
   String pdf_pageOf(String page, String total) {
-    return 'Page $page of $total';
+    return '第 $page 页，共 $total 页';
   }
 
   @override
-  String get pdf_sectionProfile => 'Profile';
+  String get pdf_sectionProfile => '潜水轮廓';
 
   @override
-  String get pdf_sectionCylinders => 'Cylinders';
+  String get pdf_sectionCylinders => '气瓶';
 
   @override
-  String get pdf_sectionConditions => 'Conditions';
+  String get pdf_sectionConditions => '环境条件';
 
   @override
-  String get pdf_sectionWeather => 'Weather';
+  String get pdf_sectionWeather => '天气';
 
   @override
-  String get pdf_sectionTeam => 'Team';
+  String get pdf_sectionTeam => '团队';
 
   @override
-  String get pdf_sectionEquipment => 'Equipment';
+  String get pdf_sectionEquipment => '装备';
 
   @override
-  String get pdf_sectionTechnical => 'Technical';
+  String get pdf_sectionTechnical => '技术参数';
 
   @override
-  String get pdf_sectionMarineLife => 'Marine Life';
+  String get pdf_sectionMarineLife => '海洋生物';
 
   @override
-  String get pdf_sectionNotes => 'Notes';
+  String get pdf_sectionNotes => '备注';
 
   @override
-  String get pdf_sectionAdditionalFields => 'Additional Fields';
+  String get pdf_sectionAdditionalFields => '附加字段';
 
   @override
-  String get pdf_sectionVerifiedBy => 'Verified By';
+  String get pdf_sectionVerifiedBy => '验证人';
 
   @override
-  String get pdf_sectionVerification => 'Verification';
+  String get pdf_sectionVerification => '验证';
 
   @override
-  String get pdf_maxDepth => 'Max Depth';
+  String get pdf_maxDepth => '最大深度';
 
   @override
-  String get pdf_avgDepth => 'Avg Depth';
+  String get pdf_avgDepth => '平均深度';
 
   @override
-  String get pdf_runtime => 'Runtime';
+  String get pdf_runtime => '运行时间';
 
   @override
-  String get pdf_bottomTime => 'Bottom Time';
+  String get pdf_bottomTime => '底部时间';
 
   @override
-  String get pdf_timeIn => 'In';
+  String get pdf_timeIn => '入水';
 
   @override
-  String get pdf_timeOut => 'Out';
+  String get pdf_timeOut => '出水';
 
   @override
-  String get pdf_surfaceInterval => 'Surface Interval';
+  String get pdf_surfaceInterval => '水面间隔';
 
   @override
   String get pdf_sac => 'SAC';
@@ -11907,242 +12037,241 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String pdf_pressureUsed(String pressure) {
-    return '$pressure used';
+    return '已用 $pressure';
   }
 
   @override
   String pdf_cylinderNumber(String number) {
-    return 'Cylinder $number';
+    return '气瓶 $number';
   }
 
   @override
-  String get pdf_waterTemp => 'Water Temp';
+  String get pdf_waterTemp => '水温';
 
   @override
-  String get pdf_airTemp => 'Air Temp';
+  String get pdf_airTemp => '气温';
 
   @override
-  String get pdf_visibility => 'Visibility';
+  String get pdf_visibility => '能见度';
 
   @override
-  String get pdf_current => 'Current';
+  String get pdf_current => '水流';
 
   @override
-  String get pdf_currentDirection => 'Current Dir';
+  String get pdf_currentDirection => '流向';
 
   @override
-  String get pdf_waterType => 'Water Type';
+  String get pdf_waterType => '水类型';
 
   @override
-  String get pdf_entry => 'Entry';
+  String get pdf_entry => '入水';
 
   @override
-  String get pdf_exit => 'Exit';
+  String get pdf_exit => '出水';
 
   @override
-  String get pdf_altitude => 'Altitude';
+  String get pdf_altitude => '海拔';
 
   @override
-  String get pdf_buddy => 'Buddy';
+  String get pdf_buddy => '潜伴';
 
   @override
-  String get pdf_diveMaster => 'Dive Master';
+  String get pdf_diveMaster => '潜水长';
 
   @override
-  String get pdf_diveCenter => 'Dive Center';
+  String get pdf_diveCenter => '潜水中心';
 
   @override
-  String get pdf_trip => 'Trip';
+  String get pdf_trip => '行程';
 
   @override
-  String get pdf_weight => 'Weight';
+  String get pdf_weight => '配重';
 
   @override
-  String get pdf_weightType => 'Weight Type';
+  String get pdf_weightType => '配重类型';
 
   @override
-  String pdf_equipmentSets(int count, String Set, String Sets) {
+  String pdf_equipmentSets(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Sets',
-      one: 'Set',
+      other: '套装',
     );
     return '$_temp0';
   }
 
   @override
-  String get pdf_computer => 'Computer';
+  String get pdf_computer => '潜水电脑';
 
   @override
-  String get pdf_diveMode => 'Dive Mode';
+  String get pdf_diveMode => '潜水模式';
 
   @override
-  String get pdf_algorithm => 'Algorithm';
+  String get pdf_algorithm => '算法';
 
   @override
-  String get pdf_gradientFactors => 'Gradient Factors';
+  String get pdf_gradientFactors => '梯度因子';
 
   @override
-  String get pdf_setpoint => 'Setpoint';
+  String get pdf_setpoint => '设定点';
 
   @override
-  String get pdf_diveType => 'Dive Type';
+  String get pdf_diveType => '潜水类型';
 
   @override
-  String get pdf_weatherConditions => 'Conditions';
+  String get pdf_weatherConditions => '天气状况';
 
   @override
-  String get pdf_wind => 'Wind';
+  String get pdf_wind => '风速';
 
   @override
-  String get pdf_windDirection => 'Wind Dir';
+  String get pdf_windDirection => '风向';
 
   @override
-  String get pdf_cloud => 'Cloud';
+  String get pdf_cloud => '云量';
 
   @override
-  String get pdf_precipitation => 'Precipitation';
+  String get pdf_precipitation => '降水';
 
   @override
-  String get pdf_humidity => 'Humidity';
+  String get pdf_humidity => '湿度';
 
   @override
-  String get pdf_swell => 'Swell';
+  String get pdf_swell => '涌浪';
 
   @override
-  String get pdf_instructorSignature => 'Instructor Signature';
+  String get pdf_instructorSignature => '教练签名';
 
   @override
-  String get pdf_buddySignature => 'Buddy Signature';
+  String get pdf_buddySignature => '潜伴签名';
 
   @override
-  String get pdf_diveLogBanner => 'DIVE LOG';
+  String get pdf_diveLogBanner => '潜水日志';
 
   @override
-  String get pdf_loggedDives => 'Logged Dives';
+  String get pdf_loggedDives => '已记录潜水';
 
   @override
   String pdf_diveNumber(String number) {
-    return 'Dive #$number';
+    return '潜水 #$number';
   }
 
   @override
-  String get pdf_trainingBadge => 'TRAINING';
+  String get pdf_trainingBadge => '培训';
 
   @override
-  String get pdf_gas => 'Gas';
+  String get pdf_gas => '气体';
 
   @override
-  String get pdf_visibilityShort => 'Vis';
+  String get pdf_visibilityShort => '能见度';
 
   @override
-  String get pdf_air => 'Air';
+  String get pdf_air => '气压';
 
   @override
-  String get pdf_water => 'Water';
+  String get pdf_water => '水体';
 
   @override
-  String get pdf_verifiedBy => 'Verified by';
+  String get pdf_verifiedBy => '验证人';
 
   @override
-  String get pdf_nauiDiveLogBanner => 'NAUI DIVE LOG';
+  String get pdf_nauiDiveLogBanner => 'NAUI 潜水日志';
 
   @override
-  String get pdf_statDives => 'Dives';
+  String get pdf_statDives => '潜水次数';
 
   @override
-  String get pdf_statHours => 'Hours';
+  String get pdf_statHours => '小时';
 
   @override
-  String get pdf_avgShort => 'Avg';
+  String get pdf_avgShort => '平均';
 
   @override
-  String get pdf_pressureStart => 'Start';
+  String get pdf_pressureStart => '开始';
 
   @override
-  String get pdf_pressureEnd => 'End';
+  String get pdf_pressureEnd => '结束';
 
   @override
   String pdf_surfaceIntervalShort(String minutes) {
-    return 'SI: ${minutes}min';
+    return '间隔：$minutes分钟';
   }
 
   @override
-  String get pdf_diveDataHeading => 'DIVE DATA';
+  String get pdf_diveDataHeading => '潜水数据';
 
   @override
-  String get pdf_verificationHeading => 'VERIFICATION';
+  String get pdf_verificationHeading => '验证';
 
   @override
   String pdf_labelValue(String label, String value) {
-    return '$label: $value';
+    return '$label：$value';
   }
 
   @override
-  String get pdf_resort => 'Resort';
+  String get pdf_resort => '度假村';
 
   @override
-  String get pdf_liveaboard => 'Liveaboard';
+  String get pdf_liveaboard => '船宿';
 
   @override
-  String get pdf_totalRuntime => 'Total Runtime';
+  String get pdf_totalRuntime => '总运行时间';
 
   @override
   String pdf_tripDiveTitle(String number) {
-    return 'Dive $number';
+    return '潜水 $number';
   }
 
   @override
-  String get pdf_date => 'Date';
+  String get pdf_date => '日期';
 
   @override
-  String get pdf_site => 'Site';
+  String get pdf_site => '潜水点';
 
   @override
-  String get pdf_duration => 'Duration';
+  String get pdf_duration => '时长';
 
   @override
-  String get pdf_notesLabel => 'Notes:';
+  String get pdf_notesLabel => '备注：';
 
   @override
-  String get pdf_trainingLog => 'Training Log';
+  String get pdf_trainingLog => '训练日志';
 
   @override
-  String get pdf_instructor => 'Instructor';
+  String get pdf_instructor => '教练';
 
   @override
-  String get pdf_instructorNumber => 'Instructor #';
+  String get pdf_instructorNumber => '教练编号';
 
   @override
-  String get pdf_location => 'Location';
+  String get pdf_location => '地点';
 
   @override
-  String get pdf_startDate => 'Start Date';
+  String get pdf_startDate => '开始日期';
 
   @override
-  String get pdf_completionDate => 'Completion Date';
+  String get pdf_completionDate => '完成日期';
 
   @override
-  String get pdf_status => 'Status';
+  String get pdf_status => '状态';
 
   @override
-  String get pdf_statusCompleted => 'Completed';
+  String get pdf_statusCompleted => '已完成';
 
   @override
-  String get pdf_statusInProgress => 'In Progress';
+  String get pdf_statusInProgress => '进行中';
 
   @override
-  String get pdf_trainingDives => 'Training Dives';
+  String get pdf_trainingDives => '训练潜水';
 
   @override
-  String get pdf_totalMinutes => 'Total Minutes';
+  String get pdf_totalMinutes => '总分钟数';
 
   @override
-  String get pdf_courseNotes => 'Course Notes';
+  String get pdf_courseNotes => '课程备注';
 
   @override
-  String get pdf_slateMax => 'max';
+  String get pdf_slateMax => '最大';
 
   @override
   String equipment_bulkTags_confirmAdding(int count) {
@@ -12265,22 +12394,34 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String equipment_detail_durationYearsMonthsPluralPlural(Object years, Object months) {
+  String equipment_detail_durationYearsMonthsPluralPlural(
+    Object years,
+    Object months,
+  ) {
     return '$years 年 $months 个月';
   }
 
   @override
-  String equipment_detail_durationYearsMonthsPluralSingular(Object years, Object months) {
+  String equipment_detail_durationYearsMonthsPluralSingular(
+    Object years,
+    Object months,
+  ) {
     return '$years 年 $months 个月';
   }
 
   @override
-  String equipment_detail_durationYearsMonthsSingularPlural(Object years, Object months) {
+  String equipment_detail_durationYearsMonthsSingularPlural(
+    Object years,
+    Object months,
+  ) {
     return '$years 年 $months 个月';
   }
 
   @override
-  String equipment_detail_durationYearsMonthsSingularSingular(Object years, Object months) {
+  String equipment_detail_durationYearsMonthsSingularSingular(
+    Object years,
+    Object months,
+  ) {
     return '$years 年, $months 月';
   }
 
@@ -12409,7 +12550,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_divesUsedAndLeft(int used, int remaining, int total) {
+  String equipment_serviceClocks_divesUsedAndLeft(
+    int used,
+    int remaining,
+    int total,
+  ) {
     return '已用 $used 次，剩余 $remaining/$total 次潜水';
   }
 
@@ -12499,7 +12644,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_hoursUsedAndLeft(String used, String remaining, String total) {
+  String equipment_serviceClocks_hoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
     return '已用 $used 小时，剩余 $remaining/$total 小时';
   }
 
@@ -12509,7 +12658,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_saltHoursUsedAndLeft(String used, String remaining, String total) {
+  String equipment_serviceClocks_saltHoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
     return '海水小时数已用 $used，剩余 $remaining / $total';
   }
 
@@ -12519,7 +12672,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_coldDivesUsedAndLeft(String used, String remaining, String total) {
+  String equipment_serviceClocks_coldDivesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
     return '冷水潜水已用 $used 次，剩余 $remaining / $total 次';
   }
 
@@ -12529,17 +12686,28 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_o2HoursUsedAndLeft(String used, String remaining, String total) {
+  String equipment_serviceClocks_o2HoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
     return '高氧小时数已用 $used，剩余 $remaining / $total';
   }
 
   @override
-  String equipment_serviceClocks_deepCyclesLeft(String remaining, String total) {
+  String equipment_serviceClocks_deepCyclesLeft(
+    String remaining,
+    String total,
+  ) {
     return '深潜剩余 $remaining / $total 次';
   }
 
   @override
-  String equipment_serviceClocks_deepCyclesUsedAndLeft(String used, String remaining, String total) {
+  String equipment_serviceClocks_deepCyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
     return '深潜已用 $used 次，剩余 $remaining / $total 次';
   }
 
@@ -12549,7 +12717,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_cyclesUsedAndLeft(String used, String remaining, String total) {
+  String equipment_serviceClocks_cyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
     return '电池循环已用 $used 次，剩余 $remaining / $total 次';
   }
 
@@ -13185,7 +13357,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String equipment_retypeOther_becomesWithThickness(String type, String thickness) {
+  String equipment_retypeOther_becomesWithThickness(
+    String type,
+    String thickness,
+  ) {
     return '改为$type，$thickness';
   }
 
@@ -13211,7 +13386,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get equipment_retypeOther_intro => '这些物品被标为“其他”，但名称已表明其类型。请取消勾选不正确的项目。';
+  String get equipment_retypeOther_intro =>
+      '这些物品被标为“其他”，但名称已表明其类型。请取消勾选不正确的项目。';
 
   @override
   String equipment_retypeOther_retypedSnackbar(int count) {
@@ -13521,7 +13697,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setDetail_deleteDialog_confirm => '删除';
 
   @override
-  String get equipment_setDetail_deleteDialog_content => '确定要删除此装备套装吗？套装中的装备不会被删除。';
+  String get equipment_setDetail_deleteDialog_content =>
+      '确定要删除此装备套装吗？套装中的装备不会被删除。';
 
   @override
   String get equipment_setDetail_deleteDialog_title => '删除装备套装';
@@ -13638,7 +13815,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_sets_emptyState_createFirstButton => '创建您的第一个套装';
 
   @override
-  String get equipment_sets_emptyState_description => '创建装备套装以快速将常用装备组合添加到您的潜水中。';
+  String get equipment_sets_emptyState_description =>
+      '创建装备套装以快速将常用装备组合添加到您的潜水中。';
 
   @override
   String get equipment_sets_emptyState_title => '没有装备套装';
@@ -13864,7 +14042,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_bestMix_targetDive => '目标潜水';
 
   @override
-  String gasCalculators_consumption_ambientPressure(Object depth, Object depthSymbol) {
+  String gasCalculators_consumption_ambientPressure(
+    Object depth,
+    Object depthSymbol,
+  ) {
     return '在 $depth$depthSymbol 处的环境压力';
   }
 
@@ -13878,7 +14059,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_consumption_diveTime => '潜水时间';
 
   @override
-  String gasCalculators_consumption_exceedsTank(Object pressure, Object symbol) {
+  String gasCalculators_consumption_exceedsTank(
+    Object pressure,
+    Object symbol,
+  ) {
     return '超过气瓶容量 ($pressure $symbol)';
   }
 
@@ -13892,7 +14076,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_consumption_remainingGas => '剩余气体';
 
   @override
-  String gasCalculators_consumption_tankCapacity(Object tankSize, Object volumeSymbol, Object fillPressure, Object pressureSymbol) {
+  String gasCalculators_consumption_tankCapacity(
+    Object tankSize,
+    Object volumeSymbol,
+    Object fillPressure,
+    Object pressureSymbol,
+  ) {
     return '气瓶容量 ($tankSize$volumeSymbol @ $fillPressure $pressureSymbol)';
   }
 
@@ -13914,13 +14103,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_mod_mode => '模式';
 
   @override
-  String get gasCalculators_mod_modeRecHint => '休闲潜水高氧：MOD 与 EAD，按每 10 米 1 bar 计算，与日志一致。';
+  String get gasCalculators_mod_modeRecHint =>
+      '休闲潜水高氧：MOD 与 EAD，按每 10 米 1 bar 计算，与日志一致。';
 
   @override
   String get gasCalculators_mod_modeOcTecHint => '开放式三混气：MOD、最小深度、麻醉与气体密度。';
 
   @override
-  String get gasCalculators_mod_modeCcrTecHint => '密闭式循环呼吸器：混合气为稀释气。MOD 为冲洗时稀释气的 MOD；回路保持设定点。';
+  String get gasCalculators_mod_modeCcrTecHint =>
+      '密闭式循环呼吸器：混合气为稀释气。MOD 为冲洗时稀释气的 MOD；回路保持设定点。';
 
   @override
   String get gasCalculators_mod_heliumHe => '氦气 (He)';
@@ -14046,17 +14237,29 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String gasCalculators_mod_narcosisExceeded(String where, String depth, String limit) {
+  String gasCalculators_mod_narcosisExceeded(
+    String where,
+    String depth,
+    String limit,
+  ) {
     return '$where：麻醉深度 $depth 超过你的 END 限值 $limit。';
   }
 
   @override
-  String gasCalculators_mod_densityWarn(String where, String density, String limit) {
+  String gasCalculators_mod_densityWarn(
+    String where,
+    String density,
+    String limit,
+  ) {
     return '$where：气体密度 $density g/L 高于建议的 $limit g/L。';
   }
 
   @override
-  String gasCalculators_mod_densityCritical(String where, String density, String limit) {
+  String gasCalculators_mod_densityCritical(
+    String where,
+    String density,
+    String limit,
+  ) {
     return '$where：气体密度 $density g/L 高于 $limit g/L 的硬性限值。';
   }
 
@@ -14079,7 +14282,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_mod_allClear => '在所检查的深度内，均在你的 ppO₂、END 和密度限值之内。';
 
   @override
-  String get gasCalculators_mod_aboutModesBody => 'MOD 是混合气达到 ppO₂ 限值的深度。它始终向下取整，从不向上。\n\nRec 按每 10 米 1 bar 计算，与日志一致。OC Tec 和 CCR Tec 按水类型计算环境压力，与气体密度计算器一致，因此同一混合气在那里的 MOD 可能略浅。\n\nEAD 将氮气视为致麻醉，END 将氮气和氧气都视为致麻醉。你的 END 限值、氧气是否致麻醉以及默认 ppO₂ 限值均来自你的潜水员档案。';
+  String get gasCalculators_mod_aboutModesBody =>
+      'MOD 是混合气达到 ppO₂ 限值的深度。它始终向下取整，从不向上。\n\nRec 按每 10 米 1 bar 计算，与日志一致。OC Tec 和 CCR Tec 按水类型计算环境压力，与气体密度计算器一致，因此同一混合气在那里的 MOD 可能略浅。\n\nEAD 将氮气视为致麻醉，END 将氮气和氧气都视为致麻醉。你的 END 限值、氧气是否致麻醉以及默认 ppO₂ 限值均来自你的潜水员档案。';
 
   @override
   String get gasCalculators_mod_modeRec => 'Rec';
@@ -14097,7 +14301,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_mod_maximumOperatingDepth => '最大作业深度';
 
   @override
-  String gasCalculators_mod_semanticsLabel(String depth, String unit, String ppo2, String o2) {
+  String gasCalculators_mod_semanticsLabel(
+    String depth,
+    String unit,
+    String ppo2,
+    String o2,
+  ) {
     return '最大操作深度：$depth $unit，ppO2 为 $ppo2 巴，氧气 $o2%';
   }
 
@@ -14126,7 +14335,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_mnd_hePercent => 'He %';
 
   @override
-  String get gasCalculators_mnd_infoContent => '最大麻醉深度 (MND) 是指在麻醉效应超过您的等效麻醉深度限制之前可以到达的最大深度。等效麻醉深度 (END) 表示您的气体在给定深度的麻醉效应。\n\n启用「氧气具有麻醉性」时，氧气和氮气都会导致麻醉（更保守）。禁用时，仅考虑氮气的麻醉作用。';
+  String get gasCalculators_mnd_infoContent =>
+      '最大麻醉深度 (MND) 是指在麻醉效应超过您的等效麻醉深度限制之前可以到达的最大深度。等效麻醉深度 (END) 表示您的气体在给定深度的麻醉效应。\n\n启用「氧气具有麻醉性」时，氧气和氮气都会导致麻醉（更保守）。禁用时，仅考虑氮气的麻醉作用。';
 
   @override
   String get gasCalculators_mnd_infoTitle => '关于最大麻醉深度/等效麻醉深度';
@@ -14222,7 +14432,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String gasCalculators_blender_stepFill(String gas, String pressure, String mix) {
+  String gasCalculators_blender_stepFill(
+    String gas,
+    String pressure,
+    String mix,
+  ) {
     return '充 $gas 至 $pressure → $mix';
   }
 
@@ -14230,16 +14444,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_blender_error_targetPressure => '目标压力必须高于初始压力。';
 
   @override
-  String get gasCalculators_blender_error_invalidMix => '混合气的 O₂ + He 不能超过 100%。';
+  String get gasCalculators_blender_error_invalidMix =>
+      '混合气的 O₂ + He 不能超过 100%。';
 
   @override
   String get gasCalculators_blender_error_identicalGases => '两种充填气体相同——无需混合。';
 
   @override
-  String get gasCalculators_blender_error_linearlyDependent => '这些充填气体无法配出目标混合气——三混目标需要氦气源。';
+  String get gasCalculators_blender_error_linearlyDependent =>
+      '这些充填气体无法配出目标混合气——三混目标需要氦气源。';
 
   @override
-  String get gasCalculators_blender_error_negativeAmount => '用这些气体无法配成此混合气——需要放出气体。';
+  String get gasCalculators_blender_error_negativeAmount =>
+      '用这些气体无法配成此混合气——需要放出气体。';
 
   @override
   String gasCalculators_blender_error_drainTo(String pressure) {
@@ -14247,25 +14464,31 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_blender_error_drainEmpty => '瓶内现有气体无法用于此混合气。请先完全排空，再充填。';
+  String get gasCalculators_blender_error_drainEmpty =>
+      '瓶内现有气体无法用于此混合气。请先完全排空，再充填。';
 
   @override
-  String get gasCalculators_blender_error_cannotRemoveHelium => '瓶内含氦气，而目标混合气不含。补充充填只会稀释氦气而无法去除，需先排空气瓶。';
+  String get gasCalculators_blender_error_cannotRemoveHelium =>
+      '瓶内含氦气，而目标混合气不含。补充充填只会稀释氦气而无法去除，需先排空气瓶。';
 
   @override
-  String get gasCalculators_blender_error_insufficientGases => '无氦目标需要两种不含氦、含氧量不同的充填气体。';
+  String get gasCalculators_blender_error_insufficientGases =>
+      '无氦目标需要两种不含氦、含氧量不同的充填气体。';
 
   @override
-  String get gasCalculators_blender_error_targetNotReached => '这些充填气体无法精确达到目标混合气。请检查充填气体及其顺序。';
+  String get gasCalculators_blender_error_targetNotReached =>
+      '这些充填气体无法精确达到目标混合气。请检查充填气体及其顺序。';
 
   @override
-  String get gasCalculators_blender_error_implausibleStartMix => '气瓶有压力，但既无氧气也无氦气，那将是纯氮气。请检查瓶内现有的混合气。';
+  String get gasCalculators_blender_error_implausibleStartMix =>
+      '气瓶有压力，但既无氧气也无氦气，那将是纯氮气。请检查瓶内现有的混合气。';
 
   @override
   String get gasCalculators_blender_about => '关于配气';
 
   @override
-  String get gasCalculators_blender_aboutBody => '按分压法配制目标混合气。依次充入每种充填气体至显示的压力，然后让气瓶静置。充填气体及其顺序可自行设置：将最后一种气体设为 32/0，即以 EAN32 而非空气收尾。下水前务必分析配好的混合气。';
+  String get gasCalculators_blender_aboutBody =>
+      '按分压法配制目标混合气。依次充入每种充填气体至显示的压力，然后让气瓶静置。充填气体及其顺序可自行设置：将最后一种气体设为 32/0，即以 EAN32 而非空气收尾。下水前务必分析配好的混合气。';
 
   @override
   String get gasCalculators_blender_conditions => '配气条件';
@@ -14274,13 +14497,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_blender_fillTemp => '充填温度';
 
   @override
-  String get gasCalculators_blender_fillTempHelp => '充填过程中气瓶的温度。步骤中的每个压力都是该温度下的压力表读数。';
+  String get gasCalculators_blender_fillTempHelp =>
+      '充填过程中气瓶的温度。步骤中的每个压力都是该温度下的压力表读数。';
 
   @override
   String get gasCalculators_blender_settledTemp => '静置温度';
 
   @override
-  String get gasCalculators_blender_settledTempHelp => '气瓶最终稳定到的温度。目标压力就是达到该温度后的读数。';
+  String get gasCalculators_blender_settledTempHelp =>
+      '气瓶最终稳定到的温度。目标压力就是达到该温度后的读数。';
 
   @override
   String get gasCalculators_blender_gasModel => '气体模型';
@@ -14298,7 +14523,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_blender_modelRecommended => '推荐';
 
   @override
-  String get gasCalculators_blender_modelHelp => '真实气体（Z 因子）在气瓶压力下最为准确。理想气体与大多数已发布的配气表一致。范德华模型用于与其他配气软件对比，在充填压力下有百分之几的偏差。';
+  String get gasCalculators_blender_modelHelp =>
+      '真实气体（Z 因子）在气瓶压力下最为准确。理想气体与大多数已发布的配气表一致。范德华模型用于与其他配气软件对比，在充填压力下有百分之几的偏差。';
 
   @override
   String gasCalculators_blender_stepAdd(String gas) {
@@ -14397,7 +14623,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_blender_costTotal => '合计';
 
   @override
-  String get gasCalculators_blender_costBasis => '按实际充入的压力计费（气瓶水容积 × 充入的 bar），与充气站的计量方式一致。';
+  String get gasCalculators_blender_costBasis =>
+      '按实际充入的压力计费（气瓶水容积 × 充入的 bar），与充气站的计量方式一致。';
 
   @override
   String get gasCalculators_blender_costMissingPrice => '为每种气体输入价格后即可看到合计。';
@@ -14501,7 +14728,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_blender_lineNeedsCylinder => '请输入气瓶容积。';
 
   @override
-  String get gasCalculators_blender_lineDescriptionOptional => '可选。留空时根据充填自动生成。';
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      '可选。留空时根据充填自动生成。';
 
   @override
   String get gasCalculators_blender_export => '导出';
@@ -14676,13 +14904,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_density_eaddLabel => '等效空气密度深度 (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo => 'EADD 是空气密度与该气体相同时所处的深度。与以 g/L 表示的密度不同，它不受温度影响。';
+  String get gasCalculators_density_eaddInfo =>
+      'EADD 是空气密度与该气体相同时所处的深度。与以 g/L 表示的密度不同，它不受温度影响。';
 
   @override
   String get gasCalculators_density_loopGasTitle => '深度处的回路气体';
 
   @override
-  String gasCalculators_density_loopComposition(Object o2, Object he, Object n2) {
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
     return 'O2 $o2 % · He $he % · N2 $n2 %';
   }
 
@@ -14727,7 +14960,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_siteSection_noSpotted => '尚无物种目击记录';
 
   @override
-  String marineLife_siteSection_spottedCountSemantics(Object name, Object count) {
+  String marineLife_siteSection_spottedCountSemantics(
+    Object name,
+    Object count,
+  ) {
     return '$name，目击 $count 次';
   }
 
@@ -14846,7 +15082,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesEdit_saveButton => '保存';
 
   @override
-  String get marineLife_speciesEdit_scientificNameHint => '例如 Amphiprion ocellaris';
+  String get marineLife_speciesEdit_scientificNameHint =>
+      '例如 Amphiprion ocellaris';
 
   @override
   String get marineLife_speciesEdit_scientificNameLabel => '学名';
@@ -14931,7 +15168,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesManage_resetButton => '重置';
 
   @override
-  String get marineLife_speciesManage_resetDialogContent => '这将把所有内置物种恢复为默认值。自定义物种不受影响。有目击记录的内置物种将被更新但保留。';
+  String get marineLife_speciesManage_resetDialogContent =>
+      '这将把所有内置物种恢复为默认值。自定义物种不受影响。有目击记录的内置物种将被更新但保留。';
 
   @override
   String get marineLife_speciesManage_resetDialogTitle => '恢复默认设置？';
@@ -15275,7 +15513,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_diveMediaSection_replaceButton => '重新关联';
 
   @override
-  String get media_diveMediaSection_replaceEditedContent => '此文件的内容与原始文件不同。重新关联会将其重新上传到您的媒体存储。';
+  String get media_diveMediaSection_replaceEditedContent =>
+      '此文件的内容与原始文件不同。重新关联会将其重新上传到您的媒体存储。';
 
   @override
   String get media_diveMediaSection_replaceEditedTitle => '文件内容不同';
@@ -15319,7 +15558,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get media_library_unlinkConfirmBody => '它们将从您的媒体库中移除，包括其云端副本和缩略图。您的原始文件不受影响。此操作无法撤销。';
+  String get media_library_unlinkConfirmBody =>
+      '它们将从您的媒体库中移除，包括其云端副本和缩略图。您的原始文件不受影响。此操作无法撤销。';
 
   @override
   String media_library_unlinkMetadataNote(int count) {
@@ -15374,7 +15614,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_documentViewer_unavailable => '此文档在本设备上不可用';
 
   @override
-  String get media_documentViewer_availableOnOriginDevice => '它可在添加它的设备上使用，或通过已配置的媒体存储获取。';
+  String get media_documentViewer_availableOnOriginDevice =>
+      '它可在添加它的设备上使用，或通过已配置的媒体存储获取。';
 
   @override
   String media_documentViewer_attached(int count) {
@@ -15564,7 +15805,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String media_photoPicker_emptyMessage(Object startDate, Object startTime, Object endDate, Object endTime) {
+  String media_photoPicker_emptyMessage(
+    Object startDate,
+    Object startTime,
+    Object endDate,
+    Object endTime,
+  ) {
     return '在 $startDate $startTime 到 $endDate $endTime 之间未找到照片。';
   }
 
@@ -15578,10 +15824,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => '打开设置';
 
   @override
-  String get media_photoPicker_permissionDeniedMessage => '照片库访问被拒绝。请在设置中启用以添加潜水照片。';
+  String get media_photoPicker_permissionDeniedMessage =>
+      '照片库访问被拒绝。请在设置中启用以添加潜水照片。';
 
   @override
-  String get media_photoPicker_permissionRequestMessage => 'Submersion 需要访问您的照片库以添加潜水照片。';
+  String get media_photoPicker_permissionRequestMessage =>
+      'Submersion 需要访问您的照片库以添加潜水照片。';
 
   @override
   String get media_photoPicker_permissionTitle => '潜水照片';
@@ -15638,7 +15886,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String media_photoPicker_files_summary(int fileCount, int diveCount, Object unmatchedCount) {
+  String media_photoPicker_files_summary(
+    int fileCount,
+    int diveCount,
+    Object unmatchedCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       fileCount,
       locale: localeName,
@@ -15954,7 +16206,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_unavailablePlaceholder_fileNotFound => 'File not found';
 
   @override
-  String get media_unavailablePlaceholder_fromOtherDevice => 'From another device';
+  String get media_unavailablePlaceholder_fromOtherDevice =>
+      'From another device';
 
   @override
   String media_unavailablePlaceholder_fromOtherDeviceLabel(String device) {
@@ -15986,7 +16239,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_writeMetadata_gpsLabel => 'GPS';
 
   @override
-  String get media_writeMetadata_livePhotoUnsupported => '尚不支持实况照片。请将其复制为静态照片，然后将潜水数据写入副本。';
+  String get media_writeMetadata_livePhotoUnsupported =>
+      '尚不支持实况照片。请将其复制为静态照片，然后将潜水数据写入副本。';
 
   @override
   String get media_writeMetadata_noDataAvailable => '没有可写入的潜水数据。';
@@ -16247,7 +16501,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String media_repair_summary(int relinked, int cloudBacked, int reuploads, int failed, int skipped) {
+  String media_repair_summary(
+    int relinked,
+    int cloudBacked,
+    int reuploads,
+    int failed,
+    int skipped,
+  ) {
     return '$relinked 个已重新关联，$cloudBacked 个云端备份，$reuploads 个重新上传已排队，$failed 个失败，$skipped 个已跳过';
   }
 
@@ -16731,7 +16991,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get planning_appBar_title => '计划';
 
   @override
-  String get planning_card_decoCalculator_description => '计算免减压极限、所需减压停留以及多层潜水轮廓的中枢神经系统毒性/氧毒性单位暴露量。';
+  String get planning_card_decoCalculator_description =>
+      '计算免减压极限、所需减压停留以及多层潜水轮廓的中枢神经系统毒性/氧毒性单位暴露量。';
 
   @override
   String get planning_card_decoCalculator_subtitle => '规划需要减压停留的潜水';
@@ -16740,7 +17001,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get planning_card_decoCalculator_title => '减压计算器';
 
   @override
-  String get planning_card_divePlanner_description => '规划多深度层次的复杂潜水，包括气体切换和自动减压停留计算。';
+  String get planning_card_divePlanner_description =>
+      '规划多深度层次的复杂潜水，包括气体切换和自动减压停留计算。';
 
   @override
   String get planning_card_divePlanner_subtitle => '创建多层潜水计划';
@@ -16749,7 +17011,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get planning_card_divePlanner_title => '潜水计划器';
 
   @override
-  String get planning_card_gasCalculators_description => '四种专用气体计算器：• 最大作业深度 - 气体混合物的最大作业深度 • 最佳混合气 - 目标深度的理想氧气百分比 • 耗气量 - 气体使用量估算 • 底限储备 - 紧急储备计算';
+  String get planning_card_gasCalculators_description =>
+      '四种专用气体计算器：• 最大作业深度 - 气体混合物的最大作业深度 • 最佳混合气 - 目标深度的理想氧气百分比 • 耗气量 - 气体使用量估算 • 底限储备 - 紧急储备计算';
 
   @override
   String get planning_card_gasCalculators_subtitle => '最大作业深度、最佳混合气、耗气量、底限储备';
@@ -16758,7 +17021,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get planning_card_gasCalculators_title => '气体计算器';
 
   @override
-  String get planning_card_surfaceInterval_description => '根据组织负荷计算两次潜水之间所需的最短水面间隔。可视化您的16个组织隔间随时间的排气过程。';
+  String get planning_card_surfaceInterval_description =>
+      '根据组织负荷计算两次潜水之间所需的最短水面间隔。可视化您的16个组织隔间随时间的排气过程。';
 
   @override
   String get planning_card_surfaceInterval_subtitle => '规划重复潜水间隔';
@@ -16767,7 +17031,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get planning_card_surfaceInterval_title => '水面间隔';
 
   @override
-  String get planning_card_weightCalculator_description => '根据您的防寒服、气瓶材质、水型和体重估算所需配重。';
+  String get planning_card_weightCalculator_description =>
+      '根据您的防寒服、气瓶材质、水型和体重估算所需配重。';
 
   @override
   String get planning_card_weightCalculator_subtitle => '适合您装备配置的推荐配重';
@@ -16872,7 +17137,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_about_reportIssue_copy => '复制链接';
 
   @override
-  String get settings_about_reportIssue_snackbar => '请访问 github.com/submersion-app/submersion/issues';
+  String get settings_about_reportIssue_snackbar =>
+      '请访问 github.com/submersion-app/submersion/issues';
 
   @override
   String settings_about_version(String version) {
@@ -16906,7 +17172,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_depthColoredCards => '按深度着色的潜水卡片';
 
   @override
-  String get settings_appearance_depthColoredCards_subtitle => '根据深度显示海洋色调背景的潜水卡片';
+  String get settings_appearance_depthColoredCards_subtitle =>
+      '根据深度显示海洋色调背景的潜水卡片';
 
   @override
   String get settings_appearance_cardColorAttribute => '卡片颜色依据';
@@ -16975,10 +17242,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_header_diveSites => '潜水点';
 
   @override
-  String get settings_appearance_diveDetails_sectionOrderVisibility => '区块顺序与可见性';
+  String get settings_appearance_diveDetails_sectionOrderVisibility =>
+      '区块顺序与可见性';
 
   @override
-  String get settings_appearance_diveDetails_sectionOrderVisibility_subtitle => '选择显示哪些区块及其顺序';
+  String get settings_appearance_diveDetails_sectionOrderVisibility_subtitle =>
+      '选择显示哪些区块及其顺序';
 
   @override
   String get settings_diveDetailSections_title => '区块顺序与可见性';
@@ -16990,7 +17259,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_diveDetailSections_fixedSections => '固定区块：头部信息';
 
   @override
-  String get settings_diveDetailSections_configurableSections => '可配置区块（拖动以重新排序）';
+  String get settings_diveDetailSections_configurableSections =>
+      '可配置区块（拖动以重新排序）';
 
   @override
   String get diveDetailSection_profile_name => '潜水曲线';
@@ -17103,7 +17373,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get safetySettings_dismissAll_confirmTitle => '忽略所有观察？';
 
   @override
-  String get safetySettings_dismissAll_confirmBody => '所有已分析潜水的每一条观察都会被标记为已查看。你可以在各次潜水的安全回顾部分逐条恢复。';
+  String get safetySettings_dismissAll_confirmBody =>
+      '所有已分析潜水的每一条观察都会被标记为已查看。你可以在各次潜水的安全回顾部分逐条恢复。';
 
   @override
   String get safetySettings_dismissAll_confirm => '全部忽略';
@@ -17511,7 +17782,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveDetailSection_dataSources_description => '已连接的潜水电脑、数据源管理';
 
   @override
-  String get siteDetailSection_diveStatistics_description => '潜水次数、到达深度、最长和最近的潜水';
+  String get siteDetailSection_diveStatistics_description =>
+      '潜水次数、到达深度、最长和最近的潜水';
 
   @override
   String get siteDetailSection_description_description => '潜水点描述';
@@ -17598,19 +17870,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_mapBackgroundDiveCards => '潜水卡片地图背景';
 
   @override
-  String get settings_appearance_mapBackgroundDiveCards_subtitle => '在潜水卡片上显示潜水点地图作为背景';
+  String get settings_appearance_mapBackgroundDiveCards_subtitle =>
+      '在潜水卡片上显示潜水点地图作为背景';
 
   @override
-  String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote => '在潜水卡片上显示潜水点地图作为背景（需要潜水点位置信息）';
+  String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote =>
+      '在潜水卡片上显示潜水点地图作为背景（需要潜水点位置信息）';
 
   @override
   String get settings_appearance_mapBackgroundSiteCards => '潜水点卡片地图背景';
 
   @override
-  String get settings_appearance_mapBackgroundSiteCards_subtitle => '在潜水点卡片上显示地图作为背景';
+  String get settings_appearance_mapBackgroundSiteCards_subtitle =>
+      '在潜水点卡片上显示地图作为背景';
 
   @override
-  String get settings_appearance_mapBackgroundSiteCards_subtitleWithNote => '在潜水点卡片上显示地图作为背景（需要潜水点位置信息）';
+  String get settings_appearance_mapBackgroundSiteCards_subtitleWithNote =>
+      '在潜水点卡片上显示地图作为背景（需要潜水点位置信息）';
 
   @override
   String get settings_appearance_maxDepthMarker => '最大深度标记';
@@ -17619,7 +17895,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_maxDepthMarker_subtitle => '在最大深度点显示标记';
 
   @override
-  String get settings_appearance_maxDepthMarker_subtitleFull => '在潜水轮廓上最大深度点显示标记';
+  String get settings_appearance_maxDepthMarker_subtitleFull =>
+      '在潜水轮廓上最大深度点显示标记';
 
   @override
   String get settings_appearance_metric_ascentRateColors => '上升速率颜色';
@@ -17693,16 +17970,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_pressureThresholdMarkers => '压力阈值标记';
 
   @override
-  String get settings_appearance_pressureThresholdMarkers_subtitle => '当气瓶压力超过阈值时显示标记';
+  String get settings_appearance_pressureThresholdMarkers_subtitle =>
+      '当气瓶压力超过阈值时显示标记';
 
   @override
-  String get settings_appearance_pressureThresholdMarkers_subtitleFull => '当气瓶压力超过 2/3、1/2 和 1/3 阈值时显示标记';
+  String get settings_appearance_pressureThresholdMarkers_subtitleFull =>
+      '当气瓶压力超过 2/3、1/2 和 1/3 阈值时显示标记';
 
   @override
   String get settings_appearance_metricsFollowViewport => '缩放时保持叠加层在视图内';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle => '将 NDL、ppO2 等叠加层适配到可见区域，而不是随深度轴一起放大';
+  String get settings_appearance_metricsFollowViewport_subtitle =>
+      '将 NDL、ppO2 等叠加层适配到可见区域，而不是随深度轴一起放大';
 
   @override
   String get settings_appearance_rightYAxisMetric => '右Y轴指标';
@@ -17738,16 +18018,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_navCustomization_title => '导航布局';
 
   @override
-  String get settings_navCustomization_description => '拖动项目以重新排列。顶部的项目会显示在底部导航栏中；显示数量取决于屏幕尺寸，而非屏幕方向。';
+  String get settings_navCustomization_description =>
+      '拖动项目以重新排列。顶部的项目会显示在底部导航栏中；显示数量取决于屏幕尺寸，而非屏幕方向。';
 
   @override
   String get settings_navCustomization_alwaysHideLabels_title => '始终隐藏标签';
 
   @override
-  String get settings_navCustomization_alwaysHideLabels_subtitle => '仅显示图标,即使有空间显示标签';
+  String get settings_navCustomization_alwaysHideLabels_subtitle =>
+      '仅显示图标,即使有空间显示标签';
 
   @override
-  String get settings_navCustomization_descriptionDesktop => '拖动项目以重新排列侧边栏。主页始终位于顶部。';
+  String get settings_navCustomization_descriptionDesktop =>
+      '拖动项目以重新排列侧边栏。主页始终位于顶部。';
 
   @override
   String get settings_navCustomization_scopePhone => '手机';
@@ -17775,12 +18058,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String settings_navCustomization_subtitlePreview(String first, String second, String third) {
+  String settings_navCustomization_subtitlePreview(
+    String first,
+    String second,
+    String third,
+  ) {
     return '$first · $second · $third';
   }
 
   @override
-  String get settings_navCustomization_saveError => 'Could not save navigation layout. Please try again.';
+  String get settings_navCustomization_saveError =>
+      'Could not save navigation layout. Please try again.';
 
   @override
   String get settings_backToSettings_tooltip => '返回设置';
@@ -17806,7 +18094,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_disabledBanner_content => '由于您正在使用自定义存储文件夹，应用管理的云同步已禁用。您文件夹的同步服务（Dropbox、Google Drive、OneDrive 等）将负责同步。';
+  String get settings_cloudSync_disabledBanner_content =>
+      '由于您正在使用自定义存储文件夹，应用管理的云同步已禁用。您文件夹的同步服务（Dropbox、Google Drive、OneDrive 等）将负责同步。';
 
   @override
   String get settings_cloudSync_disabledBanner_title => '云同步已禁用';
@@ -17818,7 +18107,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_adopt_confirm => '采用恢复的资料库';
 
   @override
-  String settings_cloudSync_adopt_dialogContent(String deviceName, String date) {
+  String settings_cloudSync_adopt_dialogContent(
+    String deviceName,
+    String date,
+  ) {
     return '资料库已被 \"$deviceName\" 上的备份替换（$date）。采用后，此设备的数据将被恢复的资料库替换。系统会先为此设备的当前数据创建安全备份。';
   }
 
@@ -17835,13 +18127,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_replaceLibrary_tile => '替换云端库';
 
   @override
-  String get settings_cloudSync_replaceLibrary_tileSubtitle => '让本设备的库成为所有设备共用的库';
+  String get settings_cloudSync_replaceLibrary_tileSubtitle =>
+      '让本设备的库成为所有设备共用的库';
 
   @override
   String get settings_cloudSync_replaceLibrary_dialogTitle => '替换云端库？';
 
   @override
-  String get settings_cloudSync_replaceLibrary_dialogIntro => '本设备的库将成为所有设备共用的库。';
+  String get settings_cloudSync_replaceLibrary_dialogIntro =>
+      '本设备的库将成为所有设备共用的库。';
 
   @override
   String settings_cloudSync_replaceLibrary_dialogBody(num diveCount) {
@@ -17867,10 +18161,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_replaceLibrary_peersUnknown => '系统将请求所有其他设备采用；在此之前，它们的更改不会合并。';
+  String get settings_cloudSync_replaceLibrary_peersUnknown =>
+      '系统将请求所有其他设备采用；在此之前，它们的更改不会合并。';
 
   @override
-  String get settings_cloudSync_replaceLibrary_backupNote => '系统会先创建本设备的备份。此操作无法撤销。';
+  String get settings_cloudSync_replaceLibrary_backupNote =>
+      '系统会先创建本设备的备份。此操作无法撤销。';
 
   @override
   String get settings_cloudSync_replaceLibrary_confirmWord => '替换';
@@ -17882,16 +18178,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_replaceLibrary_confirm => '替换';
 
   @override
-  String get settings_cloudSync_firstSync_banner => '首次同步正在等待确认。点击「立即同步」以查看将要合并的内容。';
+  String get settings_cloudSync_firstSync_banner =>
+      '首次同步正在等待确认。点击「立即同步」以查看将要合并的内容。';
 
   @override
   String get settings_cloudSync_firstSync_dialogConfirm => '合并并同步';
 
   @override
-  String get settings_cloudSync_firstSync_replaceHint => '如果您希望本设备的库替换云端的内容，请取消并使用「设置 > 云同步 > 替换云端库」。';
+  String get settings_cloudSync_firstSync_replaceHint =>
+      '如果您希望本设备的库替换云端的内容，请取消并使用「设置 > 云同步 > 替换云端库」。';
 
   @override
-  String settings_cloudSync_firstSync_dialogContent(int deviceCount, int diveCount) {
+  String settings_cloudSync_firstSync_dialogContent(
+    int deviceCount,
+    int diveCount,
+  ) {
     return '在云端发现了已有的同步数据（$deviceCount 个同步文件）。首次同步会将这些数据与此设备上的 $diveCount 次潜水合并，并应用到所有已同步的设备。\n\n如果相同的潜水是在每台设备上分别添加的，它们将出现两次。';
   }
 
@@ -17907,7 +18208,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_switch_dialogTitle => '切换同步后端？';
 
   @override
-  String settings_cloudSync_switch_dialogContent(String fromName, String toName) {
+  String settings_cloudSync_switch_dialogContent(
+    String fromName,
+    String toName,
+  ) {
     return '您的数据不会从 $fromName 移走：在您删除之前它会一直保留在那里。切换后，此设备的下次同步会将其数据与 $toName 上已有的内容合并。您的其他设备会继续使用 $fromName，直到您也逐一切换它们。';
   }
 
@@ -17915,7 +18219,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_switch_confirm => '切换';
 
   @override
-  String settings_cloudSync_moved_banner(String deviceName, String destination) {
+  String settings_cloudSync_moved_banner(
+    String deviceName,
+    String destination,
+  ) {
     return '$deviceName 已将此资料库移至 $destination。该后端不再由它更新。请在下方选择 $destination 以跟随此次移动。';
   }
 
@@ -18003,15 +18310,19 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String settings_cloudSync_peerRequiresUpdate_bannerNamedPlural(Object deviceList) {
+  String settings_cloudSync_peerRequiresUpdate_bannerNamedPlural(
+    Object deviceList,
+  ) {
     return '$deviceList 正在从更新版本的 Submersion 同步，因此它们的最新更改暂时被保留。';
   }
 
   @override
-  String get settings_cloudSync_peerRequiresUpdate_updateAction => '更新此设备即可接收这些更改。';
+  String get settings_cloudSync_peerRequiresUpdate_updateAction =>
+      '更新此设备即可接收这些更改。';
 
   @override
-  String get settings_cloudSync_peerRequiresUpdate_storeAction => '此设备的应用商店更新到达后，这些更改将自动应用；该更新可能仍在审核中。';
+  String get settings_cloudSync_peerRequiresUpdate_storeAction =>
+      '此设备的应用商店更新到达后，这些更改将自动应用；该更新可能仍在审核中。';
 
   @override
   String get settings_cloudSync_provider_connected => '已连接';
@@ -18022,7 +18333,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String settings_cloudSync_provider_connectionFailed(Object providerName, Object error) {
+  String settings_cloudSync_provider_connectionFailed(
+    Object providerName,
+    Object error,
+  ) {
     return '$providerName 连接失败：$error';
   }
 
@@ -18041,7 +18355,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_dropbox_connect_instructions => '浏览器已打开 Dropbox 授权页面。请批准访问权限，然后将 Dropbox 显示的代码粘贴到此处。';
+  String get settings_cloudSync_dropbox_connect_instructions =>
+      '浏览器已打开 Dropbox 授权页面。请批准访问权限，然后将 Dropbox 显示的代码粘贴到此处。';
 
   @override
   String get settings_cloudSync_dropbox_connect_reopenBrowser => '重新打开浏览器';
@@ -18064,7 +18379,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_dropbox_disconnect => '断开连接';
 
   @override
-  String get settings_cloudSync_provider_dropbox_subtitle => '通过 Dropbox 同步（Apps/Submersion）';
+  String get settings_cloudSync_provider_dropbox_subtitle =>
+      '通过 Dropbox 同步（Apps/Submersion）';
 
   @override
   String get settings_cloudSync_provider_dropbox_title => 'Dropbox';
@@ -18073,7 +18389,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_provider_googleDrive => 'Google Drive';
 
   @override
-  String get settings_cloudSync_provider_googleDrive_subtitle => '通过 Google Drive 同步';
+  String get settings_cloudSync_provider_googleDrive_subtitle =>
+      '通过 Google Drive 同步';
 
   @override
   String get settings_cloudSync_googleDrive_desktopNotConfigured => '此版本不可用';
@@ -18082,7 +18399,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_googleDrive_browserWait_title => '请在浏览器中继续';
 
   @override
-  String get settings_cloudSync_googleDrive_browserWait_message => '请在网页浏览器中完成 Google 登录，然后返回 Submersion。';
+  String get settings_cloudSync_googleDrive_browserWait_message =>
+      '请在网页浏览器中完成 Google 登录，然后返回 Submersion。';
 
   @override
   String get settings_cloudSync_provider_icloud => 'iCloud';
@@ -18108,7 +18426,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_resetDialog_cancel => '取消';
 
   @override
-  String get settings_cloudSync_resetDialog_content => '这将清除所有同步历史记录并重新开始。您的数据不会被删除，但下次同步时可能需要解决冲突。';
+  String get settings_cloudSync_resetDialog_content =>
+      '这将清除所有同步历史记录并重新开始。您的数据不会被删除，但下次同步时可能需要解决冲突。';
 
   @override
   String get settings_cloudSync_resetDialog_reset => '重置';
@@ -18138,7 +18457,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_signOutDialog_cancel => '取消';
 
   @override
-  String get settings_cloudSync_signOutDialog_content => '这将断开与云服务提供商的连接。您的本地数据将保持不变。';
+  String get settings_cloudSync_signOutDialog_content =>
+      '这将断开与云服务提供商的连接。您的本地数据将保持不变。';
 
   @override
   String get settings_cloudSync_signOutDialog_signOut => '退出登录';
@@ -18475,7 +18795,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_data_restoreDialog_cancel => '取消';
 
   @override
-  String get settings_data_restoreDialog_content => '警告：从备份恢复将用备份数据替换所有当前数据。此操作无法撤销。确定要继续吗？';
+  String get settings_data_restoreDialog_content =>
+      '警告：从备份恢复将用备份数据替换所有当前数据。此操作无法撤销。确定要继续吗？';
 
   @override
   String get settings_data_restoreDialog_restore => '恢复';
@@ -18516,7 +18837,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_data_sync_syncing => '同步中...';
 
   @override
-  String get settings_decompression_aboutContent => '梯度因子（GF）控制减压计算的保守程度。GF Low 影响深停留，而 GF High 影响浅停留。数值越低 = 越保守 = 更长的减压停留；数值越高 = 越不保守 = 更短的减压停留';
+  String get settings_decompression_aboutContent =>
+      '梯度因子（GF）控制减压计算的保守程度。GF Low 影响深停留，而 GF High 影响浅停留。数值越低 = 越保守 = 更长的减压停留；数值越高 = 越不保守 = 更短的减压停留';
 
   @override
   String get settings_decompression_aboutTitle => '关于梯度因子';
@@ -18528,7 +18850,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_decompression_dialog_cancel => '取消';
 
   @override
-  String get settings_decompression_dialog_conservatismHint => '数值越低 = 越保守（更长的免减压极限/更多减压停留）';
+  String get settings_decompression_dialog_conservatismHint =>
+      '数值越低 = 越保守（更长的免减压极限/更多减压停留）';
 
   @override
   String get settings_decompression_dialog_customValues => '自定义值';
@@ -18540,7 +18863,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_decompression_dialog_gfLow => '梯度因子低值';
 
   @override
-  String get settings_decompression_dialog_info => 'GF Low/High 控制免减压极限和减压计算的保守程度。';
+  String get settings_decompression_dialog_info =>
+      'GF Low/High 控制免减压极限和减压计算的保守程度。';
 
   @override
   String get settings_decompression_dialog_presets => '预设';
@@ -18577,18 +18901,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_decompression_ccrPpO2LimitsTitle => '氧分压上限 CCR';
 
   @override
-  String settings_decompression_ccrPpO2LimitsSubtitle(String low, String high, String dil) {
+  String settings_decompression_ccrPpO2LimitsSubtitle(
+    String low,
+    String high,
+    String dil,
+  ) {
     return '低设定点 $low · 高设定点 $high · 稀释气 MOD $dil bar';
   }
 
   @override
-  String get settings_decompression_ccrDialog_info => '循环呼吸器潜水的默认值。MOD 计算器的 CCR 模式以这些值为起点。';
+  String get settings_decompression_ccrDialog_info =>
+      '循环呼吸器潜水的默认值。MOD 计算器的 CCR 模式以这些值为起点。';
 
   @override
   String get settings_decompression_ccrDialog_setpointLow => '低设定点';
 
   @override
-  String get settings_decompression_ccrDialog_setpointLowHint => '靠近水面时，下潜和上升期间';
+  String get settings_decompression_ccrDialog_setpointLowHint =>
+      '靠近水面时，下潜和上升期间';
 
   @override
   String get settings_decompression_ccrDialog_setpointHigh => '高设定点';
@@ -18600,10 +18930,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_decompression_ccrDialog_diluentMod => '稀释气 MOD';
 
   @override
-  String get settings_decompression_ccrDialog_diluentModHint => '冲洗时稀释气可达到的 ppO2；决定其 MOD';
+  String get settings_decompression_ccrDialog_diluentModHint =>
+      '冲洗时稀释气可达到的 ppO2；决定其 MOD';
 
   @override
-  String get settings_decompression_ppO2Dialog_info => '用于计算最大工作深度、气体规划和氧中毒警告的氧分压上限。请将其设置为与你的潜水电脑上配置的限值一致。';
+  String get settings_decompression_ppO2Dialog_info =>
+      '用于计算最大工作深度、气体规划和氧中毒警告的氧分压上限。请将其设置为与你的潜水电脑上配置的限值一致。';
 
   @override
   String get settings_decompression_ppO2Dialog_working => '工作氧分压';
@@ -18629,7 +18961,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_decompression_o2Narcotic => 'O2 有麻醉性';
 
   @override
-  String get settings_decompression_o2Narcotic_subtitle => '启用后，氧气和氮气均被视为具有麻醉性（更保守）。禁用后，仅氮气导致麻醉。';
+  String get settings_decompression_o2Narcotic_subtitle =>
+      '启用后，氧气和氮气均被视为具有麻醉性（更保守）。禁用后，仅氮气导致麻醉。';
 
   @override
   String get settings_decompression_endLimit => 'END 限制';
@@ -18647,28 +18980,35 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_decompression_cnsMethodClassic => 'NOAA 表格，分级（经典）';
 
   @override
-  String get settings_decompression_cnsMethodClassicDesc => '在每个 0.1 bar 区间按其更严格的边缘计算。Submersion 最初采用的方法。';
+  String get settings_decompression_cnsMethodClassicDesc =>
+      '在每个 0.1 bar 区间按其更严格的边缘计算。Submersion 最初采用的方法。';
 
   @override
-  String get settings_decompression_cnsMethodShearwater => '线性插值（Shearwater 风格）';
+  String get settings_decompression_cnsMethodShearwater =>
+      '线性插值（Shearwater 风格）';
 
   @override
-  String get settings_decompression_cnsMethodShearwaterDesc => '按照 Shearwater 的记载在 NOAA 限值之间进行插值。与大多数潜水电脑一致。';
+  String get settings_decompression_cnsMethodShearwaterDesc =>
+      '按照 Shearwater 的记载在 NOAA 限值之间进行插值。与大多数潜水电脑一致。';
 
   @override
-  String get settings_decompression_cnsMethodSubsurface => '指数拟合（与 Subsurface 相同）';
+  String get settings_decompression_cnsMethodSubsurface =>
+      '指数拟合（与 Subsurface 相同）';
 
   @override
-  String get settings_decompression_cnsMethodSubsurfaceDesc => '对 NOAA 表格进行平滑曲线拟合。与 Subsurface 计算的 CNS 一致。';
+  String get settings_decompression_cnsMethodSubsurfaceDesc =>
+      '对 NOAA 表格进行平滑曲线拟合。与 Subsurface 计算的 CNS 一致。';
 
   @override
   String get settings_decompression_cnsMethodAboutTitle => '关于这些方法';
 
   @override
-  String get settings_decompression_cnsMethodAboutBody => '这三种方法都基于 NOAA 潜水手册中的氧气暴露限值（ppO2 为 1.0 bar 时 300 分钟，1.6 bar 时 45 分钟）。该表格仅以 0.1 bar 为步长定义限值：经典方法将某一区间内的所有情况都按该区间更严格的边缘计算，这会系统性地高估各条目之间的暴露量。Shearwater 的潜水电脑记载了在 NOAA 限值之间进行线性插值，并在 1.65 bar 以上采用固定的每分钟 15%。Subsurface 于 2019 年将其表格查找替换为对同一 NOAA 数据的平滑两段式指数拟合（Robert C. Helling），该拟合在 1.6 bar 以上也能自然延伸。在各表格条目之间，两种平滑方法的结果相差约一个 CNS 点以内；经典方法给出的数值更高。';
+  String get settings_decompression_cnsMethodAboutBody =>
+      '这三种方法都基于 NOAA 潜水手册中的氧气暴露限值（ppO2 为 1.0 bar 时 300 分钟，1.6 bar 时 45 分钟）。该表格仅以 0.1 bar 为步长定义限值：经典方法将某一区间内的所有情况都按该区间更严格的边缘计算，这会系统性地高估各条目之间的暴露量。Shearwater 的潜水电脑记载了在 NOAA 限值之间进行线性插值，并在 1.65 bar 以上采用固定的每分钟 15%。Subsurface 于 2019 年将其表格查找替换为对同一 NOAA 数据的平滑两段式指数拟合（Robert C. Helling），该拟合在 1.6 bar 以上也能自然延伸。在各表格条目之间，两种平滑方法的结果相差约一个 CNS 点以内；经典方法给出的数值更高。';
 
   @override
-  String get settings_decompression_cnsMethodDisclaimer => '这些名称指相应项目和制造商已公开发布的方法，并不暗示任何隶属或认可关系。计算得出的数值可能与潜水电脑的实际读数有所不同。';
+  String get settings_decompression_cnsMethodDisclaimer =>
+      '这些名称指相应项目和制造商已公开发布的方法，并不暗示任何隶属或认可关系。计算得出的数值可能与潜水电脑的实际读数有所不同。';
 
   @override
   String get settings_decompression_cnsMethodSourcesTitle => '资料来源';
@@ -18677,16 +19017,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_linkOpenFailed => '无法打开链接。';
 
   @override
-  String get settings_decompression_cnsMethodSourceNoaa => 'NOAA: Diving Program（NOAA Diving Manual 出版方）';
+  String get settings_decompression_cnsMethodSourceNoaa =>
+      'NOAA: Diving Program（NOAA Diving Manual 出版方）';
 
   @override
-  String get settings_decompression_cnsMethodSourceShearwater => 'Shearwater：CNS 氧钟';
+  String get settings_decompression_cnsMethodSourceShearwater =>
+      'Shearwater：CNS 氧钟';
 
   @override
-  String get settings_decompression_cnsMethodSourceTheoreticalDiver => 'The Theoretical Diver：计算氧气 CNS 毒性';
+  String get settings_decompression_cnsMethodSourceTheoreticalDiver =>
+      'The Theoretical Diver：计算氧气 CNS 毒性';
 
   @override
-  String get settings_decompression_cnsMethodSourceSubsurface => 'Subsurface：实现（divelist.cpp）';
+  String get settings_decompression_cnsMethodSourceSubsurface =>
+      'Subsurface：实现（divelist.cpp）';
 
   @override
   String get settings_existingDb_cancel => '取消';
@@ -18861,7 +19205,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_lightroom_connect_instructions => '在浏览器窗口中登录 Adobe，然后粘贴你到达页面的完整地址（其中包含授权码）。';
+  String get settings_lightroom_connect_instructions =>
+      '在浏览器窗口中登录 Adobe，然后粘贴你到达页面的完整地址（其中包含授权码）。';
 
   @override
   String get settings_lightroom_connect_reopenBrowser => '重新打开浏览器';
@@ -18881,7 +19226,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_lightroom_disconnect => '断开连接';
 
   @override
-  String get settings_lightroom_disconnect_confirmBody => '已关联的照片会保留在你的潜水记录中，并继续从媒体存储中显示。新照片将不再自动匹配。';
+  String get settings_lightroom_disconnect_confirmBody =>
+      '已关联的照片会保留在你的潜水记录中，并继续从媒体存储中显示。新照片将不再自动匹配。';
 
   @override
   String get settings_lightroom_disconnect_confirmTitle => '断开 Lightroom 连接？';
@@ -18901,7 +19247,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_lightroom_scan_running => '正在扫描 Lightroom...';
 
   @override
-  String settings_lightroom_scan_summary(int attached, int suggested, int skipped) {
+  String settings_lightroom_scan_summary(
+    int attached,
+    int suggested,
+    int skipped,
+  ) {
     return '已关联 $attached 张，建议 $suggested 张，$skipped 张已关联';
   }
 
@@ -18993,7 +19343,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get weightPresets_editor_needWeight => 'Add at least one weight';
 
   @override
-  String get weightPresets_editor_notFound => 'This weighting rig no longer exists.';
+  String get weightPresets_editor_notFound =>
+      'This weighting rig no longer exists.';
 
   @override
   String get weightPresets_rename_title => '重命名预设';
@@ -19022,7 +19373,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_migration_cancel => '取消';
 
   @override
-  String get settings_migration_cloudSyncWarning => '应用管理的云同步将被禁用。您文件夹的同步服务将负责同步。';
+  String get settings_migration_cloudSyncWarning =>
+      '应用管理的云同步将被禁用。您文件夹的同步服务将负责同步。';
 
   @override
   String get settings_migration_dialog_message => '您的数据库将被迁移：';
@@ -19051,7 +19403,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_notifications_disabled_openSettingsButton => '打开设置';
 
   @override
-  String get settings_notifications_disabled_subtitleUnrequested => '服务提醒需要发送通知的权限';
+  String get settings_notifications_disabled_subtitleUnrequested =>
+      '服务提醒需要发送通知的权限';
 
   @override
   String get settings_notifications_disabled_subtitle => '在系统设置中启用以接收提醒';
@@ -19063,7 +19416,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_notifications_enableServiceReminders => '启用维护提醒';
 
   @override
-  String get settings_notifications_enableServiceReminders_subtitle => '当装备需要维护时获得通知';
+  String get settings_notifications_enableServiceReminders_subtitle =>
+      '当装备需要维护时获得通知';
 
   @override
   String get settings_notifications_header_reminderSchedule => '提醒计划';
@@ -19072,7 +19426,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_notifications_header_serviceReminders => '维护提醒';
 
   @override
-  String get settings_notifications_howItWorks_content => '通知在应用启动时计划，并在后台定期刷新。您可以在每件装备的编辑界面中自定义提醒。';
+  String get settings_notifications_howItWorks_content =>
+      '通知在应用启动时计划，并在后台定期刷新。您可以在每件装备的编辑界面中自定义提醒。';
 
   @override
   String get settings_notifications_howItWorks_title => '工作原理';
@@ -19214,7 +19569,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_s3Config_field_bucket_label => '存储桶';
 
   @override
-  String get settings_s3Config_field_endpoint_helper => '例如：https://s3.example.com';
+  String get settings_s3Config_field_endpoint_helper =>
+      '例如：https://s3.example.com';
 
   @override
   String get settings_s3Config_field_endpoint_label => '终端节点 URL';
@@ -19237,13 +19593,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_s3Config_field_region_label => '区域';
 
   @override
-  String get settings_s3Config_field_secretAccessKey_label => 'Secret Access Key';
+  String get settings_s3Config_field_secretAccessKey_label =>
+      'Secret Access Key';
 
   @override
   String get settings_s3Config_remove_confirm_action => '移除';
 
   @override
-  String get settings_s3Config_remove_confirm_body => '此设备上将停止通过 S3 同步。存储桶中的数据不会被删除。';
+  String get settings_s3Config_remove_confirm_body =>
+      '此设备上将停止通过 S3 同步。存储桶中的数据不会被删除。';
 
   @override
   String get settings_s3Config_remove_confirm_title => '移除 S3 配置？';
@@ -19263,7 +19621,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_s3Config_test_success => '连接成功';
 
   @override
-  String get settings_s3Config_validation_endpointInvalid => '请输入有效的 http:// 或 https:// URL';
+  String get settings_s3Config_validation_endpointInvalid =>
+      '请输入有效的 http:// 或 https:// URL';
 
   @override
   String get settings_s3Config_validation_endpointPath => '终端节点 URL 不能包含路径';
@@ -19272,7 +19631,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_s3Config_validation_required => '必填';
 
   @override
-  String get settings_s3Config_warning_http => '此终端节点使用未加密的 HTTP。凭证和潜水数据将以明文传输；仅在可信网络中使用。';
+  String get settings_s3Config_warning_http =>
+      '此终端节点使用未加密的 HTTP。凭证和潜水数据将以明文传输；仅在可信网络中使用。';
 
   @override
   String get settings_section_about_subtitle => '应用信息与许可证';
@@ -19347,16 +19707,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_storage_customFolder_change => '更改';
 
   @override
-  String get settings_storage_customFolder_subtitle => '选择同步文件夹（Dropbox、Google Drive 等）';
+  String get settings_storage_customFolder_subtitle =>
+      '选择同步文件夹（Dropbox、Google Drive 等）';
 
   @override
-  String get settings_storage_customFolder_subtitleDeviceOnly => '将数据库移至内部存储或 SD 卡';
+  String get settings_storage_customFolder_subtitleDeviceOnly =>
+      '将数据库移至内部存储或 SD 卡';
 
   @override
-  String get settings_storage_customFolder_deviceOnly_noCloudSync => '当数据库位于设备存储卷上时，应用管理的云同步将停用。在 Android 上没有任何同步服务能访问该文件夹，请使用“备份与恢复”在其他位置保留副本。';
+  String get settings_storage_customFolder_deviceOnly_noCloudSync =>
+      '当数据库位于设备存储卷上时，应用管理的云同步将停用。在 Android 上没有任何同步服务能访问该文件夹，请使用“备份与恢复”在其他位置保留副本。';
 
   @override
-  String settings_storage_dbStats(Object fileSize, Object diveCount, Object siteCount) {
+  String settings_storage_dbStats(
+    Object fileSize,
+    Object diveCount,
+    Object siteCount,
+  ) {
     return '$fileSize • $diveCount 次潜水 • $siteCount 个潜水点';
   }
 
@@ -19370,10 +19737,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_storage_header_storageLocation => '存储位置';
 
   @override
-  String get settings_storage_info_customActive => '应用管理的云同步已禁用。您文件夹的同步服务（Dropbox、Google Drive 等）将负责同步。';
+  String get settings_storage_info_customActive =>
+      '应用管理的云同步已禁用。您文件夹的同步服务（Dropbox、Google Drive 等）将负责同步。';
 
   @override
-  String get settings_storage_info_customAvailable => '使用自定义文件夹将禁用应用管理的云同步。您文件夹的同步服务将代替进行同步。';
+  String get settings_storage_info_customAvailable =>
+      '使用自定义文件夹将禁用应用管理的云同步。您文件夹的同步服务将代替进行同步。';
 
   @override
   String get settings_storage_loading => '加载中...';
@@ -19417,7 +19786,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_storage_resetDialog_title => '重置数据库？';
 
   @override
-  String get settings_storage_resetDialog_body => '这将永久删除本设备上的所有数据，包括潜水、潜水点、装备和设置。重置前将自动创建备份。\n\n您的云端库不会被删除，其他设备也会保留各自的数据。云同步将被断开，以免重置被撤销；您可以在「设置 > 云同步」中重新连接。';
+  String get settings_storage_resetDialog_body =>
+      '这将永久删除本设备上的所有数据，包括潜水、潜水点、装备和设置。重置前将自动创建备份。\n\n您的云端库不会被删除，其他设备也会保留各自的数据。云同步将被断开，以免重置被撤销；您可以在「设置 > 云同步」中重新连接。';
 
   @override
   String get settings_storage_resetDialog_confirmWord => 'Delete';
@@ -19440,7 +19810,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_storage_resetComplete_title => '数据库已重置';
 
   @override
-  String get settings_storage_resetComplete_description => '本设备的数据已清除并已保存备份。云同步现已断开，以免重置被撤销；您可以在「设置 > 云同步」中重新连接。点击继续以重新加载应用。';
+  String get settings_storage_resetComplete_description =>
+      '本设备的数据已清除并已保存备份。云同步现已断开，以免重置被撤销；您可以在「设置 > 云同步」中重新连接。点击继续以重新加载应用。';
 
   @override
   String get settings_summary_activeDiver => '当前潜水员';
@@ -19536,16 +19907,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_units_gasModel_real => '真实气体';
 
   @override
-  String get settings_units_gasModel_real_subtitle => '考虑压缩性。12 升气瓶在 200 巴下约装 2317 升。';
+  String get settings_units_gasModel_real_subtitle =>
+      '考虑压缩性。12 升气瓶在 200 巴下约装 2317 升。';
 
   @override
   String get settings_units_gasModel_ideal => '理想气体';
 
   @override
-  String get settings_units_gasModel_ideal_subtitle => '与手工计算和潜水表一致。12 升气瓶在 200 巴下装 2400 升。';
+  String get settings_units_gasModel_ideal_subtitle =>
+      '与手工计算和潜水表一致。12 升气瓶在 200 巴下装 2400 升。';
 
   @override
-  String get settings_units_gasModel_explanation => '如何将气瓶压力换算为气体体积。这会影响 RMV 耗气率、气体统计、计划器和气体计算器。理想气体与各潜水机构教授的算法一致；真实气体在物理上更准确，RMV 约低 5%。';
+  String get settings_units_gasModel_explanation =>
+      '如何将气瓶压力换算为气体体积。这会影响 RMV 耗气率、气体统计、计划器和气体计算器。理想气体与各潜水机构教授的算法一致；真实气体在物理上更准确，RMV 约低 5%。';
 
   @override
   String get settings_units_dialog_gasModel => '气体计算';
@@ -19657,7 +20031,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_updates_automaticUpdatesSubtitle => '定期检查更新';
 
   @override
-  String get settings_updates_betaDialogBody => 'Beta 版本会随每次更改发布，可能会先于稳定版升级您的潜水日志数据库。之后切换回稳定版不会降级应用，并且所有相互同步的设备应使用相同的更新渠道。每次数据库升级前都会自动创建备份。';
+  String get settings_updates_betaDialogBody =>
+      'Beta 版本会随每次更改发布，可能会先于稳定版升级您的潜水日志数据库。之后切换回稳定版不会降级应用，并且所有相互同步的设备应使用相同的更新渠道。每次数据库升级前都会自动创建备份。';
 
   @override
   String get settings_updates_betaDialogConfirm => '切换到 Beta';
@@ -19722,7 +20097,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice => '在下一个稳定版比当前 Beta 版更新之前，将保持在此 Beta 版上。';
+  String get settings_updates_stableSwitchNotice =>
+      '在下一个稳定版比当前 Beta 版更新之前，将保持在此 Beta 版上。';
 
   @override
   String get settings_updates_upToDate => '已是最新版本';
@@ -19878,7 +20254,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_category_overview_title => 'Overview';
 
   @override
-  String get insights_category_overview_subtitle => 'Totals, records, and breakdowns at a glance';
+  String get insights_category_overview_subtitle =>
+      'Totals, records, and breakdowns at a glance';
 
   @override
   String get insights_category_profile_subtitle => '上升速率与减压';
@@ -19937,7 +20314,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String insights_chart_trendSemanticLabelWithAxis(Object count, Object yAxisLabel) {
+  String insights_chart_trendSemanticLabelWithAxis(
+    Object count,
+    Object yAxisLabel,
+  ) {
     return '显示 $yAxisLabel 的 $count 个数据点的趋势折线图';
   }
 
@@ -19972,7 +20352,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_conditions_temperature_seriesMin => '最低';
 
   @override
-  String get insights_conditions_temperature_subtitle => '按日历月份统计的最低、平均和最高值，涵盖所有年份';
+  String get insights_conditions_temperature_subtitle =>
+      '按日历月份统计的最低、平均和最高值，涵盖所有年份';
 
   @override
   String get insights_conditions_temperature_title => '季节性水温';
@@ -19995,7 +20376,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get insights_conditions_siteType_subtitle => '各潜水点类型的潜水次数。在具有多个类型的潜水点的潜水计入每个类型；未设置类型的潜水点不显示。';
+  String get insights_conditions_siteType_subtitle =>
+      '各潜水点类型的潜水次数。在具有多个类型的潜水点的潜水计入每个类型；未设置类型的潜水点不显示。';
 
   @override
   String get insights_conditions_siteType_title => '潜水点类型';
@@ -20055,7 +20437,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_equipment_findings_subtitle => '按规则统计的未处理发现';
 
   @override
-  String get insights_equipment_findings_subtitleAllDives => '按规则统计的未处理发现（涵盖所有潜水）';
+  String get insights_equipment_findings_subtitleAllDives =>
+      '按规则统计的未处理发现（涵盖所有潜水）';
 
   @override
   String get insights_equipment_findings_empty => '没有未处理的发现';
@@ -20240,7 +20623,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_geographic_countries_subtitle => '按国家分类的潜水';
 
   @override
-  String insights_geographic_countries_summary(Object count, Object topName, Object topCount) {
+  String insights_geographic_countries_summary(
+    Object count,
+    Object topName,
+    Object topCount,
+  ) {
     return '$count 个国家。最多：$topName，$topCount 次潜水';
   }
 
@@ -20257,7 +20644,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_geographic_regions_subtitle => '按区域分类的潜水';
 
   @override
-  String insights_geographic_regions_summary(Object count, Object topName, Object topCount) {
+  String insights_geographic_regions_summary(
+    Object count,
+    Object topName,
+    Object topCount,
+  ) {
     return '$count 个区域。最多：$topName，$topCount 次潜水';
   }
 
@@ -20274,7 +20665,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_geographic_trips_subtitle => '潜水次数最多的旅行';
 
   @override
-  String insights_geographic_trips_summary(Object count, Object topName, Object topCount) {
+  String insights_geographic_trips_summary(
+    Object count,
+    Object topName,
+    Object topCount,
+  ) {
     return '$count 次旅行。最多：$topName，$topCount 次潜水';
   }
 
@@ -20297,7 +20692,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_marineLife_bestSites_subtitle => '物种种类最多的潜水点';
 
   @override
-  String insights_marineLife_bestSites_summary(Object count, Object topName, Object topCount) {
+  String insights_marineLife_bestSites_summary(
+    Object count,
+    Object topName,
+    Object topCount,
+  ) {
     return '$count 个潜水点。最佳：$topName，$topCount 种物种';
   }
 
@@ -20314,7 +20713,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_marineLife_mostCommon_subtitle => '最常见的物种';
 
   @override
-  String insights_marineLife_mostCommon_summary(Object count, Object topName, Object topCount) {
+  String insights_marineLife_mostCommon_summary(
+    Object count,
+    Object topName,
+    Object topCount,
+  ) {
     return '$count 种物种。最常见：$topName，$topCount 次目击';
   }
 
@@ -20470,7 +20873,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String insights_ranking_semanticLabel(Object name, Object rank, Object count, Object label) {
+  String insights_ranking_semanticLabel(
+    Object name,
+    Object rank,
+    Object count,
+    Object label,
+  ) {
     return '$name，排名第 $rank，$count $label';
   }
 
@@ -20509,7 +20917,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String insights_records_milestoneSemanticLabel(Object title, Object siteName) {
+  String insights_records_milestoneSemanticLabel(
+    Object title,
+    Object siteName,
+  ) {
     return '$title: $siteName';
   }
 
@@ -20520,7 +20931,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_records_mostRecentDive => '最近一次潜水';
 
   @override
-  String insights_records_recordSemanticLabel(Object title, Object value, Object siteName) {
+  String insights_records_recordSemanticLabel(
+    Object title,
+    Object value,
+    Object siteName,
+  ) {
     return '$title：$value，潜水点 $siteName';
   }
 
@@ -20781,7 +21196,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_timePatterns_surfaceInterval_error => '加载水面间隔数据失败';
 
   @override
-  String insights_timePatterns_surfaceInterval_formatHoursMinutes(Object hours, Object minutes) {
+  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
+    Object hours,
+    Object minutes,
+  ) {
     return '${hours}h ${minutes}m';
   }
 
@@ -20829,7 +21247,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get surfaceInterval_aboutTissueLoading_body => '您的身体有16个组织隔间，以不同速率吸收和释放氮气。快组织（如血液）饱和快但排气也快。慢组织（如骨骼和脂肪）吸收和排放都需要更长时间。「前导隔间」是饱和度最高的组织，通常控制您的免减压极限。在水面间隔期间，所有组织向水面饱和水平（约40%负荷）排气。';
+  String get surfaceInterval_aboutTissueLoading_body =>
+      '您的身体有16个组织隔间，以不同速率吸收和释放氮气。快组织（如血液）饱和快但排气也快。慢组织（如骨骼和脂肪）吸收和排放都需要更长时间。「前导隔间」是饱和度最高的组织，通常控制您的免减压极限。在水面间隔期间，所有组织向水面饱和水平（约40%负荷）排气。';
 
   @override
   String get surfaceInterval_aboutTissueLoading_title => '关于组织负荷';
@@ -20838,7 +21257,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get surfaceInterval_action_resetDefaults => '恢复默认值';
 
   @override
-  String get surfaceInterval_disclaimer => '此工具仅供计划参考。请务必使用潜水电脑并遵循您的训练。结果基于 Buhlmann ZH-L16C 算法，可能与您的潜水电脑有所不同。';
+  String get surfaceInterval_disclaimer =>
+      '此工具仅供计划参考。请务必使用潜水电脑并遵循您的训练。结果基于 Buhlmann ZH-L16C 算法，可能与您的潜水电脑有所不同。';
 
   @override
   String get surfaceInterval_field_depth => '深度';
@@ -20892,7 +21312,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String surfaceInterval_gasWarning_modExceeded(Object ppO2, Object depth, Object limit, Object mod) {
+  String surfaceInterval_gasWarning_modExceeded(
+    Object ppO2,
+    Object depth,
+    Object limit,
+    Object mod,
+  ) {
     return '$depth 处 ppO₂ $ppO2 超过 $limit。此混合气的最大工作深度为 $mod。';
   }
 
@@ -20954,7 +21379,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get surfaceInterval_result_safeToDive => '安全到潜水';
 
   @override
-  String surfaceInterval_result_semantics(Object interval, Object current, Object ndl, Object status) {
+  String surfaceInterval_result_semantics(
+    Object interval,
+    Object current,
+    Object ndl,
+    Object status,
+  ) {
     return '最短水面间隔：$interval。当前间隔：$current。第二次潜水的免减压极限：$ndl。$status';
   }
 
@@ -20990,7 +21420,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get surfaceInterval_tissueRecovery_compartmentsLabel => '隔间（按半衰期速度排序）';
 
   @override
-  String get surfaceInterval_tissueRecovery_description => '显示16个组织隔间在水面间隔期间的排气过程';
+  String get surfaceInterval_tissueRecovery_description =>
+      '显示16个组织隔间在水面间隔期间的排气过程';
 
   @override
   String get surfaceInterval_tissueRecovery_fast => '快速 (C1-5)';
@@ -21105,7 +21536,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importWizard_photos_scanning => '正在扫描文件夹...';
 
   @override
-  String importWizard_photos_matchSummary(int matched, int byName, int missing) {
+  String importWizard_photos_matchSummary(
+    int matched,
+    int byName,
+    int missing,
+  ) {
     return '已匹配 $matched 张，仅按文件名匹配 $byName 张，未找到 $missing 张';
   }
 
@@ -21113,7 +21548,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importWizard_photos_skip => '跳过照片';
 
   @override
-  String get importWizard_photos_mobileUnsupported => '导入照片需要此设备磁盘上的文件夹。请在电脑上运行此导入以包含照片。潜水记录和潜点会正常导入。';
+  String get importWizard_photos_mobileUnsupported =>
+      '导入照片需要此设备磁盘上的文件夹。请在电脑上运行此导入以包含照片。潜水记录和潜点会正常导入。';
 
   @override
   String importWizard_photos_bundledCount(int count) {
@@ -21130,7 +21566,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importWizard_photos_chooseDestination => '选择照片保存位置...';
 
   @override
-  String get importWizard_photos_destinationNote => '照片将保存到此文件夹并从此处链接。Submersion 绝不会保留自己的副本。';
+  String get importWizard_photos_destinationNote =>
+      '照片将保存到此文件夹并从此处链接。Submersion 绝不会保留自己的副本。';
 
   @override
   String get importWizard_photos_destinationUnwritable => '无法写入该文件夹。请选择其他文件夹。';
@@ -21168,7 +21605,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_manage_autoTagImports => '自动为导入的记录打标签';
 
   @override
-  String get tags_manage_autoTagImports_subtitle => '每次新的导入都会以包含来源和日期的标签开始。可以在该次导入的选项中为单次导入更改此设置。';
+  String get tags_manage_autoTagImports_subtitle =>
+      '每次新的导入都会以包含来源和日期的标签开始。可以在该次导入的选项中为单次导入更改此设置。';
 
   @override
   String get tags_manage_searchHint => '搜索标签...';
@@ -21319,7 +21757,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String tags_manage_deleteMessage_divesAndSites(String tagName, int diveCount, int siteCount) {
+  String tags_manage_deleteMessage_divesAndSites(
+    String tagName,
+    int diveCount,
+    int siteCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -21347,7 +21789,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String tags_manage_deleteMessage_divesAndEquipment(String tagName, int diveCount, int equipmentCount) {
+  String tags_manage_deleteMessage_divesAndEquipment(
+    String tagName,
+    int diveCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -21364,7 +21810,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String tags_manage_deleteMessage_sitesAndEquipment(String tagName, int siteCount, int equipmentCount) {
+  String tags_manage_deleteMessage_sitesAndEquipment(
+    String tagName,
+    int siteCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
@@ -21381,7 +21831,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String tags_manage_deleteMessage_all(String tagName, int diveCount, int siteCount, int equipmentCount) {
+  String tags_manage_deleteMessage_all(
+    String tagName,
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -21437,7 +21892,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String tags_manage_bulkDeleteMessage_divesAndSites(int diveCount, int siteCount) {
+  String tags_manage_bulkDeleteMessage_divesAndSites(
+    int diveCount,
+    int siteCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -21465,7 +21923,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String tags_manage_bulkDeleteMessage_divesAndEquipment(int diveCount, int equipmentCount) {
+  String tags_manage_bulkDeleteMessage_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -21482,7 +21943,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String tags_manage_bulkDeleteMessage_sitesAndEquipment(int siteCount, int equipmentCount) {
+  String tags_manage_bulkDeleteMessage_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
@@ -21499,7 +21963,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String tags_manage_bulkDeleteMessage_all(int diveCount, int siteCount, int equipmentCount) {
+  String tags_manage_bulkDeleteMessage_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -21522,7 +21990,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get tags_manage_bulkDeleteMessage_unused => '这些标签未用于任何潜水、潜水点或装备。此操作无法撤销。';
+  String get tags_manage_bulkDeleteMessage_unused =>
+      '这些标签未用于任何潜水、潜水点或装备。此操作无法撤销。';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -21587,7 +22056,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String tags_manage_mergeAffected_divesAndEquipment(int diveCount, int equipmentCount) {
+  String tags_manage_mergeAffected_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -21604,7 +22076,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String tags_manage_mergeAffected_sitesAndEquipment(int siteCount, int equipmentCount) {
+  String tags_manage_mergeAffected_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
@@ -21621,7 +22096,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String tags_manage_mergeAffected_all(int diveCount, int siteCount, int equipmentCount) {
+  String tags_manage_mergeAffected_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -21830,12 +22309,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tides_noTideTimesAvailable => '无可用潮汐时间';
 
   @override
-  String tides_semantic_currentTide(Object tideState, Object height, Object depthSymbol, Object nextExtreme) {
+  String tides_semantic_currentTide(
+    Object tideState,
+    Object height,
+    Object depthSymbol,
+    Object nextExtreme,
+  ) {
     return '$tideState 潮汐, $height$depthSymbol$nextExtreme';
   }
 
   @override
-  String tides_semantic_extremeItem(Object typeLabel, Object time, Object height, Object depthSymbol) {
+  String tides_semantic_extremeItem(
+    Object typeLabel,
+    Object time,
+    Object height,
+    Object depthSymbol,
+  ) {
     return '$typeLabel 潮汐在 $time, $height$depthSymbol';
   }
 
@@ -21876,7 +22365,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_appBar_title => '传输';
 
   @override
-  String get transfer_computers_aboutContent => '通过蓝牙连接您的潜水电脑以直接下载潜水日志到应用。支持的潜水电脑包括 Suunto、Shearwater、Garmin、Mares 以及许多其他热门品牌。Apple Watch Ultra 用户可以直接从健康应用导入潜水数据，包括深度、持续时间和心率。';
+  String get transfer_computers_aboutContent =>
+      '通过蓝牙连接您的潜水电脑以直接下载潜水日志到应用。支持的潜水电脑包括 Suunto、Shearwater、Garmin、Mares 以及许多其他热门品牌。Apple Watch Ultra 用户可以直接从健康应用导入潜水数据，包括深度、持续时间和心率。';
 
   @override
   String get transfer_computers_aboutTitle => '关于潜水电脑';
@@ -21977,7 +22467,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_csvExport_descriptionEquipment => '导出装备库存和维护信息';
 
   @override
-  String get transfer_csvExport_descriptionObservations => '每条正常检查和报告的问题，含潜水、标签和备注';
+  String get transfer_csvExport_descriptionObservations =>
+      '每条正常检查和报告的问题，含潜水、标签和备注';
 
   @override
   String get transfer_csvExport_descriptionSites => '导出潜水点位置和详情';
@@ -22024,19 +22515,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_csvExport_unitsMetric => '公制';
 
   @override
-  String get transfer_csvExport_unitsMetricDescription => '公制数值和 ISO 日期，与以前的导出格式相同';
+  String get transfer_csvExport_unitsMetricDescription =>
+      '公制数值和 ISO 日期，与以前的导出格式相同';
 
   @override
   String get transfer_csvExport_unitsMine => '我的单位';
 
   @override
-  String get transfer_csvExport_unitsMineDescription => '按你的单位、日期和时间设置输出，并在每列标题中注明';
+  String get transfer_csvExport_unitsMineDescription =>
+      '按你的单位、日期和时间设置输出，并在每列标题中注明';
 
   @override
   String get transfer_detail_backTooltip => '返回传输';
 
   @override
-  String get transfer_export_aboutContent => '以多种格式导出您的潜水数据。PDF 可创建可打印的潜水日志。UDDF 是与大多数潜水日志软件兼容的通用格式。CSV 文件可在电子表格应用中打开。';
+  String get transfer_export_aboutContent =>
+      '以多种格式导出您的潜水数据。PDF 可创建可打印的潜水日志。UDDF 是与大多数潜水日志软件兼容的通用格式。CSV 文件可在电子表格应用中打开。';
 
   @override
   String get transfer_export_backupLink => '前往备份与恢复';
@@ -22086,13 +22580,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_export_includeParticipants => '包含潜水参与者';
 
   @override
-  String get transfer_export_includeParticipantsSubtitle => '添加每次潜水的潜伴、导潜及其角色，仅含姓名和证书。不包含联系方式。';
+  String get transfer_export_includeParticipantsSubtitle =>
+      '添加每次潜水的潜伴、导潜及其角色，仅含姓名和证书。不包含联系方式。';
 
   @override
   String get transfer_export_includeRawData => '包含潜水电脑原始数据';
 
   @override
-  String get transfer_export_includeRawDataSubtitle => '保留潜水电脑的原始字节，以便日后重新解析该文件。会使文件变大。';
+  String get transfer_export_includeRawDataSubtitle =>
+      '保留潜水电脑的原始字节，以便日后重新解析该文件。会使文件变大。';
 
   @override
   String get transfer_export_optionSaveTitle => '保存到文件';
@@ -22122,7 +22618,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_export_uddfTitle => 'UDDF 导出';
 
   @override
-  String get transfer_import_aboutContent => '使用「导入数据」以获得最佳体验——它会自动检测您的文件格式和来源应用。下方的各格式选项也可直接使用。';
+  String get transfer_import_aboutContent =>
+      '使用「导入数据」以获得最佳体验——它会自动检测您的文件格式和来源应用。下方的各格式选项也可直接使用。';
 
   @override
   String get transfer_import_aboutTitle => '关于导入';
@@ -22158,10 +22655,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_pdfExport_includeVerificationAreas => '包含验证区域';
 
   @override
-  String get transfer_pdfExport_includeVerificationAreasSubtitle => '添加机构验证所需的印章和签名框';
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      '添加机构验证所需的印章和签名框';
 
   @override
-  String get transfer_pdfExport_languageHeader => 'Language';
+  String get transfer_pdfExport_languageHeader => '语言';
 
   @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
@@ -22868,12 +23366,20 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String trips_scrubber_remaining(String minutes, String rated, String consumed) {
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
     return '行程前剩余 $minutes 分钟（额定 $rated 分钟，自上次更换以来已使用 $consumed 分钟）';
   }
 
   @override
-  String trips_scrubber_remainingNoRepack(String minutes, String rated, String consumed) {
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
     return '行程前剩余 $minutes 分钟（额定 $rated 分钟，已使用 $consumed 分钟，未记录更换）';
   }
 
@@ -23288,7 +23794,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_summary_noticeNoTankPressureTitle => '未记录气瓶压力';
 
   @override
-  String get universalImport_summary_noticeNoTankPressureBody => '无法计算耗气量和 SAC。您可以通过编辑潜水记录添加起始和结束压力。';
+  String get universalImport_summary_noticeNoTankPressureBody =>
+      '无法计算耗气量和 SAC。您可以通过编辑潜水记录添加起始和结束压力。';
 
   @override
   String universalImport_summary_noticeAffectedDives(int count) {
@@ -23304,7 +23811,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_summary_noticeDivesSkippedTitle => '部分潜水无法读取';
 
   @override
-  String get universalImport_summary_noticeDivesSkippedBody => '这些潜水已跳过，因为无法读取文件中的相关数据。';
+  String get universalImport_summary_noticeDivesSkippedBody =>
+      '这些潜水已跳过，因为无法读取文件中的相关数据。';
 
   @override
   String universalImport_summary_noticeDivesSkippedCount(int count) {
@@ -23320,19 +23828,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_summary_noticeProfileUnreadableTitle => '部分剖面无法读取';
 
   @override
-  String get universalImport_summary_noticeProfileUnreadableBody => '这些潜水已在没有深度剖面的情况下导入，因为文件中的剖面数据缺失或无法读取。';
+  String get universalImport_summary_noticeProfileUnreadableBody =>
+      '这些潜水已在没有深度剖面的情况下导入，因为文件中的剖面数据缺失或无法读取。';
 
   @override
-  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle => '未解码的 MacDive 剖面';
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
+      '未解码的 MacDive 剖面';
 
   @override
-  String get universalImport_summary_noticeMacdiveProfileUndecodableBody => 'MacDive 以 Submersion 无法读取的格式存储了这些剖面。要导入它们，请从 MacDive 导出为 XML（File > Export > MacDive XML），然后改为导入该文件。';
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
+      'MacDive 以 Submersion 无法读取的格式存储了这些剖面。要导入它们，请从 MacDive 导出为 XML（File > Export > MacDive XML），然后改为导入该文件。';
 
   @override
-  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle => '此设备无法解码剖面';
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
+      '此设备无法解码剖面';
 
   @override
-  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody => '此设备无法解码文件中的潜水电脑数据，因此这些潜水在没有深度剖面的情况下导入。';
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
+      '此设备无法解码文件中的潜水电脑数据，因此这些潜水在没有深度剖面的情况下导入。';
 
   @override
   String get universalImport_summary_noticeColumnsNotImportedTitle => '部分列未导入';
@@ -23372,22 +23885,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_summary_noticeSitesUnresolvedTitle => '部分潜水没有潜水点';
 
   @override
-  String get universalImport_summary_noticeSitesUnresolvedBody => '这些潜水引用了文件中没有描述的潜水点，因此导入时没有潜水点。您可以通过编辑潜水来设置潜水点。';
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      '这些潜水引用了文件中没有描述的潜水点，因此导入时没有潜水点。您可以通过编辑潜水来设置潜水点。';
 
   @override
   String get universalImport_summary_noticeGearUnavailableTitle => '未导入装备';
 
   @override
-  String get universalImport_summary_noticeGearUnavailableBody => '无法获取装备列表，因此未导入任何装备，潜水记录也未关联到其装备。请稍后重新导入以添加装备。';
+  String get universalImport_summary_noticeGearUnavailableBody =>
+      '无法获取装备列表，因此未导入任何装备，潜水记录也未关联到其装备。请稍后重新导入以添加装备。';
 
   @override
-  String get universalImport_summary_noticeCertificationsUnavailableTitle => '未导入证书';
+  String get universalImport_summary_noticeCertificationsUnavailableTitle =>
+      '未导入证书';
 
   @override
-  String get universalImport_summary_noticeCertificationsUnavailableBody => '无法获取证书列表，因此未导入任何证书。请稍后重新导入以添加证书。';
+  String get universalImport_summary_noticeCertificationsUnavailableBody =>
+      '无法获取证书列表，因此未导入任何证书。请稍后重新导入以添加证书。';
 
   @override
-  String get universalImport_summary_noticePhotoListingsUnavailableTitle => '部分照片未能列出';
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
+      '部分照片未能列出';
 
   @override
   String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
@@ -23400,7 +23918,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticePhotosNotDownloadedTitle => '部分照片未下载';
+  String get universalImport_summary_noticePhotosNotDownloadedTitle =>
+      '部分照片未下载';
 
   @override
   String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
@@ -23413,13 +23932,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeMacdiveXmlCertsTitle => '文件中没有证书和维护记录';
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
+      '文件中没有证书和维护记录';
 
   @override
-  String get universalImport_summary_noticeMacdiveXmlCertsBody => 'MacDive 的 XML 导出不包含证书和装备维护记录。要导入它们，请导入您的 MacDive.sqlite 数据库。';
+  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
+      'MacDive 的 XML 导出不包含证书和装备维护记录。要导入它们，请导入您的 MacDive.sqlite 数据库。';
 
   @override
-  String get universalImport_summary_noticeMacdiveLogbooksTitle => '未导入 MacDive 日志簿';
+  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
+      '未导入 MacDive 日志簿';
 
   @override
   String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
@@ -23430,7 +23952,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_summary_unreadableDatesTitle => '部分行未导入';
 
   @override
-  String get universalImport_summary_unreadableDatesBody => '无法读取这些行中的日期。请检查文件中的日期列，更正这些行后重新导入该文件。';
+  String get universalImport_summary_unreadableDatesBody =>
+      '无法读取这些行中的日期。请检查文件中的日期列，更正这些行后重新导入该文件。';
 
   @override
   String universalImport_summary_unreadableDatesCount(int count) {
@@ -23453,7 +23976,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String universalImport_summary_unreadableDatesRowsMore(int count, String rows) {
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -23505,19 +24031,23 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get universalImport_description_supportedFormats => '选择一个潜水日志文件进行导入。支持的格式包括 CSV、UDDF、Subsurface XML 和 Garmin FIT。';
+  String get universalImport_description_supportedFormats =>
+      '选择一个潜水日志文件进行导入。支持的格式包括 CSV、UDDF、Subsurface XML 和 Garmin FIT。';
 
   @override
   String get universalImport_dive_decideAction => '决定';
 
   @override
-  String get universalImport_error_unsupportedFormat => '暂不支持此格式。请导出为 UDDF 或 CSV。';
+  String get universalImport_error_unsupportedFormat =>
+      '暂不支持此格式。请导出为 UDDF 或 CSV。';
 
   @override
-  String get universalImport_error_duplicateCheckFailed => '重复检测未能运行，因此此列表中没有任何条目被标记为日志中已存在。导入前请先核对列表。';
+  String get universalImport_error_duplicateCheckFailed =>
+      '重复检测未能运行，因此此列表中没有任何条目被标记为日志中已存在。导入前请先核对列表。';
 
   @override
-  String get universalImport_error_noColumnsToMap => '此文件没有可映射的列。请返回重新选择文件，或改用其他来源。';
+  String get universalImport_error_noColumnsToMap =>
+      '此文件没有可映射的列。请返回重新选择文件，或改用其他来源。';
 
   @override
   String universalImport_error_stepFailed(Object details) {
@@ -23535,10 +24065,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get universalImport_error_unreadableDatesHint => '请检查此步骤中是否已映射日期和时间列，以及这些列是否包含日期。';
+  String get universalImport_error_unreadableDatesHint =>
+      '请检查此步骤中是否已映射日期和时间列，以及这些列是否包含日期。';
 
   @override
-  String get universalImport_error_unreadableDatesHintNoMapping => '请检查日期列中的日期是否采用其列标题所指明的格式。';
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      '请检查日期列中的日期是否采用其列标题所指明的格式。';
 
   @override
   String get universalImport_error_noDataInFile => '此文件中未找到可导入的数据。';
@@ -23581,7 +24113,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get universalImport_error_garminNotFound => '未找到已连接的 Garmin 设备。请用数据线连接设备，或使用“选择文件夹”选择设备的 GARMIN/Activity 文件夹。';
+  String get universalImport_error_garminNotFound =>
+      '未找到已连接的 Garmin 设备。请用数据线连接设备，或使用“选择文件夹”选择设备的 GARMIN/Activity 文件夹。';
 
   @override
   String universalImport_error_garminReadFailed(String details) {
@@ -23760,7 +24293,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_rowHint_tapCompareToDecide => '点击决定进行选择';
 
   @override
-  String universalImport_semantics_entitySelection(Object selected, Object total, Object entityType) {
+  String universalImport_semantics_entitySelection(
+    Object selected,
+    Object total,
+    Object entityType,
+  ) {
     return '已选择 $selected/$total 个$entityType';
   }
 
@@ -24002,7 +24539,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveComputer_clockSync_checkAgain => '重新检查';
 
   @override
-  String get diveComputer_clockSync_globalSubtitle => '每次下载后将时钟设为本设备的时间。仅适用于本设备。';
+  String get diveComputer_clockSync_globalSubtitle =>
+      '每次下载后将时钟设为本设备的时间。仅适用于本设备。';
 
   @override
   String get diveComputer_clockSync_globalTitle => '同步潜水电脑时钟';
@@ -24149,7 +24687,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveComputer_discovery_recognizedDevice => '已识别设备';
 
   @override
-  String get diveComputer_discovery_recognizedDeviceDescription => '此设备在我们的支持设备库中。潜水下载应能自动进行。';
+  String get diveComputer_discovery_recognizedDeviceDescription =>
+      '此设备在我们的支持设备库中。潜水下载应能自动进行。';
 
   @override
   String get diveComputer_discovery_stepConnect => '连接';
@@ -24182,10 +24721,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveComputer_discovery_unknownDevice => '未知设备';
 
   @override
-  String get diveComputer_discovery_unknownDeviceDescription => '此设备不在我们的设备库中。我们将尝试连接，但下载可能无法正常工作。';
+  String get diveComputer_discovery_unknownDeviceDescription =>
+      '此设备不在我们的设备库中。我们将尝试连接，但下载可能无法正常工作。';
 
   @override
-  String get diveComputer_discovery_usbInstructions => '通过 USB 线连接您的潜水电脑，然后在下方选择。';
+  String get diveComputer_discovery_usbInstructions =>
+      '通过 USB 线连接您的潜水电脑，然后在下方选择。';
 
   @override
   String diveComputer_discovery_usbNoResults(String query) {
@@ -24258,7 +24799,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_downloadStep_firstSyncBody => '您的潜水日志中已有潜水记录。您可以跳过下载已有的潜水记录。';
+  String get diveComputer_downloadStep_firstSyncBody =>
+      '您的潜水日志中已有潜水记录。您可以跳过下载已有的潜水记录。';
 
   @override
   String get diveComputer_downloadStep_firstSyncTitle => '首次从此潜水电脑下载';
@@ -24282,7 +24824,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String diveComputer_downloadStep_progressSemanticLabel(Object status, Object percent) {
+  String diveComputer_downloadStep_progressSemanticLabel(
+    Object status,
+    Object percent,
+  ) {
     return '下载进度：$status$percent';
   }
 
@@ -24342,7 +24887,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveComputer_download_errorOccurred => '发生错误';
 
   @override
-  String get diveComputer_download_noSerialPortsFound => '未找到 USB 串行端口。潜水电脑是否已连接并开机？';
+  String get diveComputer_download_noSerialPortsFound =>
+      '未找到 USB 串行端口。潜水电脑是否已连接并开机？';
 
   @override
   String diveComputer_download_noUsbDeviceFound(Object model) {
@@ -24350,10 +24896,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_download_stalePairing => '此潜水电脑的蓝牙配对已失效。请在设备的蓝牙设置中忽略该潜水电脑，然后从潜水电脑的蓝牙菜单重新配对。';
+  String get diveComputer_download_stalePairing =>
+      '此潜水电脑的蓝牙配对已失效。请在设备的蓝牙设置中忽略该潜水电脑，然后从潜水电脑的蓝牙菜单重新配对。';
 
   @override
-  String get diveComputer_download_discoveryStalled => '已连接到潜水电脑，但在下载开始前它停止响应。这通常表示蓝牙配对已失效：请在设备的蓝牙设置中忽略该潜水电脑，然后重试。';
+  String get diveComputer_download_discoveryStalled =>
+      '已连接到潜水电脑，但在下载开始前它停止响应。这通常表示蓝牙配对已失效：请在设备的蓝牙设置中忽略该潜水电脑，然后重试。';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
@@ -24464,7 +25012,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveComputer_list_helpBluetoothClassic => '• 经典蓝牙（较旧型号）';
 
   @override
-  String get diveComputer_list_helpBrandsList => 'Shearwater、Suunto、Garmin、Mares、Scubapro、Oceanic、Aqualung、Cressi 及 50 多种其他型号。';
+  String get diveComputer_list_helpBrandsList =>
+      'Shearwater、Suunto、Garmin、Mares、Scubapro、Oceanic、Aqualung、Cressi 及 50 多种其他型号。';
 
   @override
   String get diveComputer_list_helpBrandsTitle => '支持的品牌';
@@ -24523,7 +25072,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_scan_emptyStateInstructions => '请确保您的潜水电脑:\n• 已开启\n• 处于蓝牙配对模式\n• 靠近您的设备';
+  String get diveComputer_scan_emptyStateInstructions =>
+      '请确保您的潜水电脑:\n• 已开启\n• 处于蓝牙配对模式\n• 靠近您的设备';
 
   @override
   String get diveComputer_scan_knownBadge => '已知';
@@ -24640,7 +25190,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveImport_fit_closeTooltip => '关闭 FIT 导入';
 
   @override
-  String get diveImport_fit_noDivesDescription => '选择一个或多个从 Garmin Connect 导出或从 Garmin Descent 设备复制的 .fit 文件。';
+  String get diveImport_fit_noDivesDescription =>
+      '选择一个或多个从 Garmin Connect 导出或从 Garmin Descent 设备复制的 .fit 文件。';
 
   @override
   String get diveImport_fit_noDivesLoaded => '未加载潜水记录';
@@ -24663,7 +25214,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String diveImport_fit_parsedWithSkipped(int diveCount, int fileCount, Object skippedCount) {
+  String diveImport_fit_parsedWithSkipped(
+    int diveCount,
+    int fileCount,
+    Object skippedCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       fileCount,
       locale: localeName,
@@ -24689,7 +25244,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveImport_fit_title => '从 FIT 文件导入';
 
   @override
-  String get diveImport_healthkit_accessDescription => 'Submersion 使用 Apple HealthKit 读取水下潜水运动数据，包括深度、持续时间、水温和心率，以创建详细的潜水日志。';
+  String get diveImport_healthkit_accessDescription =>
+      'Submersion 使用 Apple HealthKit 读取水下潜水运动数据，包括深度、持续时间、水温和心率，以创建详细的潜水日志。';
 
   @override
   String get diveImport_healthkit_accessRequired => 'Apple HealthKit';
@@ -24701,7 +25257,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveImport_healthkit_closeTooltip => '关闭 Apple Watch 导入';
 
   @override
-  String get diveImport_healthkit_dataUsage => '从 Apple Health 读取水下潜水活动，包括深度、持续时间、水温和心率。此数据存储在您的本地潜水日志中，绝不会与第三方共享。';
+  String get diveImport_healthkit_dataUsage =>
+      '从 Apple Health 读取水下潜水活动，包括深度、持续时间、水温和心率。此数据存储在您的本地潜水日志中，绝不会与第三方共享。';
 
   @override
   String get diveImport_healthkit_dateFrom => '从';
@@ -24727,13 +25284,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveImport_healthkit_noDivesFound => '未找到潜水记录';
 
   @override
-  String get diveImport_healthkit_noDivesFoundDescription => '在所选日期范围内未找到水下潜水活动。';
+  String get diveImport_healthkit_noDivesFoundDescription =>
+      '在所选日期范围内未找到水下潜水活动。';
 
   @override
   String get diveImport_healthkit_notAvailable => '不可用';
 
   @override
-  String get diveImport_healthkit_notAvailableDescription => '从 Apple Watch 导入需要装有“健康”App 的 iPhone。';
+  String get diveImport_healthkit_notAvailableDescription =>
+      '从 Apple Watch 导入需要装有“健康”App 的 iPhone。';
 
   @override
   String get diveImport_healthkit_permissionCheckFailed => '权限检查失败';
@@ -24769,7 +25328,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveImport_reviewSelectedDives => '审核已选潜水记录';
 
   @override
-  String diveImport_reviewSummary(Object newCount, int possibleCount, int skipCount) {
+  String diveImport_reviewSummary(
+    Object newCount,
+    int possibleCount,
+    int skipCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       possibleCount,
       locale: localeName,
@@ -24864,7 +25427,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveImport_uddf_likelyDuplicate => '可能重复';
 
   @override
-  String get diveImport_uddf_noFileDescription => '选择一个从其他潜水日志应用导出的 .uddf 或 .xml 文件。';
+  String get diveImport_uddf_noFileDescription =>
+      '选择一个从其他潜水日志应用导出的 .uddf 或 .xml 文件。';
 
   @override
   String get diveImport_uddf_noFileSelected => '未选择文件';
@@ -24951,7 +25515,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String divePlanner_segmentEditor_derivedAscent(Object from, Object to, Object rate) {
+  String divePlanner_segmentEditor_derivedAscent(
+    Object from,
+    Object to,
+    Object rate,
+  ) {
     return '上升 $from → $to，$rate';
   }
 
@@ -24961,12 +25529,19 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String divePlanner_segmentEditor_derivedDescent(Object from, Object to, Object rate) {
+  String divePlanner_segmentEditor_derivedDescent(
+    Object from,
+    Object to,
+    Object rate,
+  ) {
     return '下降 $from → $to，$rate';
   }
 
   @override
-  String divePlanner_segmentEditor_derivedDescentNoRate(Object from, Object to) {
+  String divePlanner_segmentEditor_derivedDescentNoRate(
+    Object from,
+    Object to,
+  ) {
     return '下降 $from → $to';
   }
 
@@ -25034,7 +25609,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_undo => '撤销';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription => '最低气量是在与潜伴共用气源进行紧急上升时所需的最低气体储备。\n\n• 使用应激耗气率（正常的 2-3 倍）\n• 假设两位潜水员共用一个气瓶\n• 启用时包含安全停留\n\n务必在到达最低气量之前折返！';
+  String get gasCalculators_rockBottom_aboutDescription =>
+      '最低气量是在与潜伴共用气源进行紧急上升时所需的最低气体储备。\n\n• 使用应激耗气率（正常的 2-3 倍）\n• 假设两位潜水员共用一个气瓶\n• 启用时包含安全停留\n\n务必在到达最低气量之前折返！';
 
   @override
   String get gasCalculators_rockBottom_aboutTitle => '关于最低气量';
@@ -25046,7 +25622,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_rockBottom_ascentRate => '上升速率';
 
   @override
-  String gasCalculators_rockBottom_ascentTimeToDepth(Object depth, Object unit) {
+  String gasCalculators_rockBottom_ascentTimeToDepth(
+    Object depth,
+    Object unit,
+  ) {
     return '上升时间到 $depth$unit';
   }
 
@@ -25075,12 +25654,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_rockBottom_minimumReserve => '最小储备';
 
   @override
-  String gasCalculators_rockBottom_resultSemantics(Object pressure, Object pressureUnit, Object volume, Object volumeUnit) {
+  String gasCalculators_rockBottom_resultSemantics(
+    Object pressure,
+    Object pressureUnit,
+    Object volume,
+    Object volumeUnit,
+  ) {
     return '最低储备量：$pressure $pressureUnit，$volume $volumeUnit。在剩余 $pressure $pressureUnit 时折返';
   }
 
   @override
-  String gasCalculators_rockBottom_safetyStopDuration(Object depth, Object unit) {
+  String gasCalculators_rockBottom_safetyStopDuration(
+    Object depth,
+    Object unit,
+  ) {
     return '在 $depth$unit 处 3 分钟';
   }
 
@@ -25090,7 +25677,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_rockBottom_stressedSacHint => '使用较高的 RMV 以应对紧急情况下的压力';
+  String get gasCalculators_rockBottom_stressedSacHint =>
+      '使用较高的 RMV 以应对紧急情况下的压力';
 
   @override
   String get gasCalculators_rockBottom_stressedSacRates => '应激 RMV';
@@ -25102,7 +25690,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_rockBottom_totalReserveNeeded => '所需总储备量';
 
   @override
-  String gasCalculators_rockBottom_turnDive(Object pressure, Object pressureUnit) {
+  String gasCalculators_rockBottom_turnDive(
+    Object pressure,
+    Object pressureUnit,
+  ) {
     return '在剩余 $pressure $pressureUnit 时折返';
   }
 
@@ -25239,7 +25830,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsTrack_import_timezone => '记录时区';
 
   @override
-  String get gpsTrack_import_timezoneHint => '文件中的时间为 UTC。请设置记录轨迹时所在的时区，以便与您的潜水记录对应。';
+  String get gpsTrack_import_timezoneHint =>
+      '文件中的时间为 UTC。请设置记录轨迹时所在的时区，以便与您的潜水记录对应。';
 
   @override
   String get gpsTrack_import_duplicate => '这看起来与已有轨迹重复。';
@@ -25270,7 +25862,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get gpsTrack_importError_unsupportedFormat => '不支持该文件类型。请导入 GPX、KML、CSV 或 FIT 文件。';
+  String get gpsTrack_importError_unsupportedFormat =>
+      '不支持该文件类型。请导入 GPX、KML、CSV 或 FIT 文件。';
 
   @override
   String get gpsTrack_importError_unreadable => '无法读取该文件。它可能已损坏或不完整。';
@@ -25282,7 +25875,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsTrack_importError_badData => '该文件包含本应用无法读取的位置或时间戳。';
 
   @override
-  String get gpsTrack_importError_tooLarge => '该文件的位置点过多，无法保存为单条轨迹。请将其拆分为较短的轨迹后分别导入。';
+  String get gpsTrack_importError_tooLarge =>
+      '该文件的位置点过多，无法保存为单条轨迹。请将其拆分为较短的轨迹后分别导入。';
 
   @override
   String get gpsTrack_export_saved => '轨迹已保存';
@@ -25457,7 +26051,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String maps_offline_deleteRegionMessage(Object name, Object count, Object size) {
+  String maps_offline_deleteRegionMessage(
+    Object name,
+    Object count,
+    Object size,
+  ) {
     return '删除 \"$name\" 及其 $count 个缓存瓦片吗？\n\n这将释放 $size 的存储空间。';
   }
 
@@ -25476,7 +26074,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String maps_offline_downloadingAccessibility(Object regionName, Object percent, Object downloaded, Object total) {
+  String maps_offline_downloadingAccessibility(
+    Object regionName,
+    Object percent,
+    Object downloaded,
+    Object total,
+  ) {
     return '正在下载 $regionName，已完成 $percent%，$downloaded/$total 个瓦片';
   }
 
@@ -25516,12 +26119,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get maps_offline_region => '地区';
 
   @override
-  String maps_offline_regionInfo(Object size, Object count, Object minZoom, Object maxZoom) {
+  String maps_offline_regionInfo(
+    Object size,
+    Object count,
+    Object minZoom,
+    Object maxZoom,
+  ) {
     return '$size | $count 个图块 | 缩放 $minZoom-$maxZoom';
   }
 
   @override
-  String maps_offline_regionSubtitle(Object size, Object count, Object minZoom, Object maxZoom) {
+  String maps_offline_regionSubtitle(
+    Object size,
+    Object count,
+    Object minZoom,
+    Object maxZoom,
+  ) {
     return '$size，$count 个图块，缩放 $minZoom 至 $maxZoom';
   }
 
@@ -25575,7 +26188,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tankPresets_builtInPresets => '内置预设';
 
   @override
-  String get tankPresets_builtInPresets_description => '关闭不使用的预设，即可在气瓶选择列表中隐藏它们。默认预设始终显示。';
+  String get tankPresets_builtInPresets_description =>
+      '关闭不使用的预设，即可在气瓶选择列表中隐藏它们。默认预设始终显示。';
 
   @override
   String get tankPresets_currentDefault => '当前默认';
@@ -25755,7 +26369,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tools_weight_carbonFiberMetric => '浮力很大（+3 kg）';
 
   @override
-  String get tools_weight_disclaimer => '这仅为估算值。请务必在潜水开始时进行浮力检查并根据需要调整。浮力控制装置、个人浮力和呼吸模式等因素都会影响您的实际配重需求。';
+  String get tools_weight_disclaimer =>
+      '这仅为估算值。请务必在潜水开始时进行浮力检查并根据需要调整。浮力控制装置、个人浮力和呼吸模式等因素都会影响您的实际配重需求。';
 
   @override
   String get tools_weight_exposureSuit => '防寒服';
@@ -25766,7 +26381,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get tools_weight_helperImperial => '体重每超过 154 lbs 增加 22 lbs，约增加 2 lbs 配重';
+  String get tools_weight_helperImperial =>
+      '体重每超过 154 lbs 增加 22 lbs，约增加 2 lbs 配重';
 
   @override
   String get tools_weight_helperMetric => '体重每超过 70 kg 增加 10 kg，约增加 1 kg 配重';
@@ -25829,7 +26445,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_tankPressureAtSurfacing_title => '出水时的气瓶压力';
 
   @override
-  String get settings_tankPressureAtSurfacing_subtitle => '以到达水面时的压力作为结束压力，而不是记录结束时的压力';
+  String get settings_tankPressureAtSurfacing_subtitle =>
+      '以到达水面时的压力作为结束压力，而不是记录结束时的压力';
 
   @override
   String get settings_siteMatch_strict => '严格';
@@ -25850,34 +26467,44 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_dataSources_appleHealth_subtitle => '水下潜水数据';
 
   @override
-  String get settings_dataSources_appleHealth_description => 'Submersion 使用 Apple HealthKit 从 Apple Health 读取水下潜水运动数据。此数据用于从您的 Apple Watch 潜水中创建详细的潜水日志。';
+  String get settings_dataSources_appleHealth_description =>
+      'Submersion 使用 Apple HealthKit 从 Apple Health 读取水下潜水运动数据。此数据用于从您的 Apple Watch 潜水中创建详细的潜水日志。';
 
   @override
-  String get settings_dataSources_appleHealth_dataTypesHeader => '数据读取从 HealthKit';
+  String get settings_dataSources_appleHealth_dataTypesHeader =>
+      '数据读取从 HealthKit';
 
   @override
-  String get settings_dataSources_appleHealth_dataTypeWorkouts => '水下潜水运动 - 潜水开始时间、持续时间和活动数据';
+  String get settings_dataSources_appleHealth_dataTypeWorkouts =>
+      '水下潜水运动 - 潜水开始时间、持续时间和活动数据';
 
   @override
-  String get settings_dataSources_appleHealth_dataTypeHeartRate => '心率 - 潜水期间记录的心率样本';
+  String get settings_dataSources_appleHealth_dataTypeHeartRate =>
+      '心率 - 潜水期间记录的心率样本';
 
   @override
-  String get settings_dataSources_appleHealth_permissionGranted => '已授予 HealthKit 访问权限';
+  String get settings_dataSources_appleHealth_permissionGranted =>
+      '已授予 HealthKit 访问权限';
 
   @override
-  String get settings_dataSources_appleHealth_permissionNotGranted => '未授予 HealthKit 访问权限';
+  String get settings_dataSources_appleHealth_permissionNotGranted =>
+      '未授予 HealthKit 访问权限';
 
   @override
-  String get settings_dataSources_appleHealth_permissionChecking => '正在检查 HealthKit 访问权限...';
+  String get settings_dataSources_appleHealth_permissionChecking =>
+      '正在检查 HealthKit 访问权限...';
 
   @override
-  String get settings_dataSources_appleHealth_importAction => '通过 HealthKit 从 Apple Watch 导入潜水';
+  String get settings_dataSources_appleHealth_importAction =>
+      '通过 HealthKit 从 Apple Watch 导入潜水';
 
   @override
-  String get settings_dataSources_appleHealth_privacy => '您的健康数据存储在本设备上，绝不会与第三方共享。Submersion 仅从 Apple HealthKit 读取数据，不会向 HealthKit 写入任何数据。';
+  String get settings_dataSources_appleHealth_privacy =>
+      '您的健康数据存储在本设备上，绝不会与第三方共享。Submersion 仅从 Apple HealthKit 读取数据，不会向 HealthKit 写入任何数据。';
 
   @override
-  String get settings_dataSources_appleHealth_poweredBy => '提供支持按 Apple HealthKit';
+  String get settings_dataSources_appleHealth_poweredBy =>
+      '提供支持按 Apple HealthKit';
 
   @override
   String get settings_dataSources_noSources => '此平台上没有可用的数据源集成。';
@@ -26135,7 +26762,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_accentSectionHeaders => '彩色分区标题';
 
   @override
-  String get settings_appearance_accentSectionHeaders_subtitle => '在页面标题旁显示彩色功能图标';
+  String get settings_appearance_accentSectionHeaders_subtitle =>
+      '在页面标题旁显示彩色功能图标';
 
   @override
   String get settings_appearance_accentListIcons => '彩色列表图标';
@@ -26171,7 +26799,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_bathymetryRefresh => '重新加载地图数据';
 
   @override
-  String get settings_appearance_bathymetryRefresh_subtitle => '检查 swissBATHY3D 湖泊深度数据是否有更新';
+  String get settings_appearance_bathymetryRefresh_subtitle =>
+      '检查 swissBATHY3D 湖泊深度数据是否有更新';
 
   @override
   String settings_appearance_bathymetryRefresh_resultUpdated(int count) {
@@ -26188,10 +26817,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_bathymetryRefresh_resultUpToDate => '所有数据均为最新';
 
   @override
-  String get settings_appearance_bathymetryRefresh_resultFailed => '无法检查所有数据；已保留现有数值';
+  String get settings_appearance_bathymetryRefresh_resultFailed =>
+      '无法检查所有数据；已保留现有数值';
 
   @override
-  String get settings_appearance_bathymetryRefresh_resultNothingCached => '尚未缓存湖泊深度数据';
+  String get settings_appearance_bathymetryRefresh_resultNothingCached =>
+      '尚未缓存湖泊深度数据';
 
   @override
   String get maps3d_section_all => '所有数据源';
@@ -26203,13 +26834,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get maps3d_swissBathy_delete => '删除数据';
 
   @override
-  String get maps3d_swissBathy_delete_subtitle => '删除已缓存的 swissBATHY3D 深度瓦片和湖泊网格';
+  String get maps3d_swissBathy_delete_subtitle =>
+      '删除已缓存的 swissBATHY3D 深度瓦片和湖泊网格';
 
   @override
   String get maps3d_swissBathy_delete_confirmTitle => '删除 swissBATHY3D 数据？';
 
   @override
-  String get maps3d_swissBathy_delete_confirmMessage => '已缓存的瑞士湖泊深度数据将被删除，并在下次打开潜水点的 3D 视图时重新加载。';
+  String get maps3d_swissBathy_delete_confirmMessage =>
+      '已缓存的瑞士湖泊深度数据将被删除，并在下次打开潜水点的 3D 视图时重新加载。';
 
   @override
   String get maps3d_swissBathy_delete_done => '已删除 swissBATHY3D 数据';
@@ -26221,13 +26854,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get maps3d_other_reset => '重置其余测深数据';
 
   @override
-  String get maps3d_other_reset_subtitle => '删除来自 EMODnet、NOAA DEM、GMRT 和 ETOPO 的缓存数据';
+  String get maps3d_other_reset_subtitle =>
+      '删除来自 EMODnet、NOAA DEM、GMRT 和 ETOPO 的缓存数据';
 
   @override
   String get maps3d_other_reset_confirmTitle => '重置其余测深数据？';
 
   @override
-  String get maps3d_other_reset_confirmMessage => '除 swissBATHY3D 以外所有数据源的缓存数据将被删除，并在下次打开潜水点的 3D 视图时重新加载。';
+  String get maps3d_other_reset_confirmMessage =>
+      '除 swissBATHY3D 以外所有数据源的缓存数据将被删除，并在下次打开潜水点的 3D 视图时重新加载。';
 
   @override
   String get maps3d_other_reset_done => '已重置其余测深数据';
@@ -26361,7 +26996,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllPartial(int succeeded, int total, int failed) {
+  String diveComputer_detail_reparseAllPartial(
+    int succeeded,
+    int total,
+    int failed,
+  ) {
     return '已重新解析 $total 次潜水中的 $succeeded 次。$failed 次失败。';
   }
 
@@ -26371,7 +27010,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseRawDataCountWithout(int count, int without) {
+  String diveComputer_detail_reparseRawDataCountWithout(
+    int count,
+    int without,
+  ) {
     return '$count 次潜水有原始数据（$without 次没有）';
   }
 
@@ -26382,7 +27024,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_reparseSuccess => '潜水已成功重新解析';
 
   @override
-  String get diveLog_detail_reparseProfilePreserved => '已刷新数据源详情。此潜水由多次潜水合并而成，因此其剖面保持不变。';
+  String get diveLog_detail_reparseProfilePreserved =>
+      '已刷新数据源详情。此潜水由多次潜水合并而成，因此其剖面保持不变。';
 
   @override
   String diveLog_detail_reparseFailed(String error) {
@@ -26405,16 +27048,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_resyncFailed_unsupportedFormat => '无法重新同步：不支持此文件格式';
 
   @override
-  String get diveLog_detail_resyncFailed_storedFileMissing => '无法重新同步：本设备上已找不到原始文件';
+  String get diveLog_detail_resyncFailed_storedFileMissing =>
+      '无法重新同步：本设备上已找不到原始文件';
 
   @override
-  String get diveLog_detail_resyncFailed_noMatchingDive => '无法重新同步：原始文件中已没有匹配的潜水记录';
+  String get diveLog_detail_resyncFailed_noMatchingDive =>
+      '无法重新同步：原始文件中已没有匹配的潜水记录';
 
   @override
-  String get diveLog_detail_resyncFailed_ambiguousDiver => '无法重新同步：原始文件中有多位潜水员的匹配潜水记录，而此潜水记录未保存它来自哪一位';
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      '无法重新同步：原始文件中有多位潜水员的匹配潜水记录，而此潜水记录未保存它来自哪一位';
 
   @override
-  String get diveLog_detail_resyncFailed_unexpectedError => '无法重新同步：读取原始文件时发生意外错误';
+  String get diveLog_detail_resyncFailed_unexpectedError =>
+      '无法重新同步：读取原始文件时发生意外错误';
 
   @override
   String get universalImport_label_replaceSource => '替换源数据';
@@ -26432,16 +27079,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_label_retainDiveNumbers => '保留源潜水编号';
 
   @override
-  String get universalImport_label_retainDiveNumbersSubtitle => '使用导入文件中的潜水编号而不是自动分配';
+  String get universalImport_label_retainDiveNumbersSubtitle =>
+      '使用导入文件中的潜水编号而不是自动分配';
 
   @override
-  String get universalImport_label_retainDiveNumbersUnavailable => '此来源不提供潜水编号，因此潜水将自动编号';
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      '此来源不提供潜水编号，因此潜水将自动编号';
 
   @override
   String get universalImport_label_autoTagThisImport => '自动为此次导入打标签';
 
   @override
-  String get universalImport_label_autoTagThisImportSubtitle => '从你在标签设置中保存的偏好开始。在此处更改仅影响此次导入。';
+  String get universalImport_label_autoTagThisImportSubtitle =>
+      '从你在标签设置中保存的偏好开始。在此处更改仅影响此次导入。';
 
   @override
   String get universalImport_title_successImported => '导入成功';
@@ -26567,7 +27217,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_duplicateDivers_title => '重复的潜水员档案';
 
   @override
-  String get settings_cloudSync_duplicateDivers_description => '同步发现多个同名档案。这通常发生在每台设备在同步之前各自创建了档案时。合并会将所有潜水记录和数据迁移到一个档案中。';
+  String get settings_cloudSync_duplicateDivers_description =>
+      '同步发现多个同名档案。这通常发生在每台设备在同步之前各自创建了档案时。合并会将所有潜水记录和数据迁移到一个档案中。';
 
   @override
   String settings_cloudSync_duplicateDivers_groupLabel(String name, int count) {
@@ -26581,7 +27232,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_duplicateDivers_confirmTitle => '合并潜水员档案？';
 
   @override
-  String settings_cloudSync_duplicateDivers_confirmBody(int count, String name) {
+  String settings_cloudSync_duplicateDivers_confirmBody(
+    int count,
+    String name,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -26614,7 +27268,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divers_edit_priorExperienceSection => '既往经验';
 
   @override
-  String get divers_edit_priorExperienceHelp => '在开始使用 Submersion 记录之前的潜水次数和时间。';
+  String get divers_edit_priorExperienceHelp =>
+      '在开始使用 Submersion 记录之前的潜水次数和时间。';
 
   @override
   String get divers_edit_priorDivesLabel => '既往潜水次数';
@@ -26660,7 +27315,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get db_location_external_note => '卸载应用后，此处的文件将被删除。';
 
   @override
-  String get db_location_backup_note => 'Android 无法从云同步文件夹运行数据库。若要在 Dropbox、Nextcloud 或 Google Drive 中保留副本，请在“备份与恢复”中设置“备份位置”。';
+  String get db_location_backup_note =>
+      'Android 无法从云同步文件夹运行数据库。若要在 Dropbox、Nextcloud 或 Google Drive 中保留副本，请在“备份与恢复”中设置“备份位置”。';
 
   @override
   String diveLog_bulkEdit_membership_onAll(int count) {
@@ -26713,7 +27369,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_mediaStorage_disconnect_confirm_title => '断开媒体存储？';
 
   @override
-  String get settings_mediaStorage_disconnect_confirm_body => '此设备将停止上传和获取媒体。您的存储桶中的内容不会被删除。';
+  String get settings_mediaStorage_disconnect_confirm_body =>
+      '此设备将停止上传和获取媒体。您的存储桶中的内容不会被删除。';
 
   @override
   String get settings_mediaStorage_action_copyFromSync => '从同步复制设置';
@@ -26752,13 +27409,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_mediaStorage_transfers_suspended_title => '传输已暂停';
 
   @override
-  String get settings_mediaStorage_transfers_suspended_subtitle => '此设备与云存储对正在使用的存储库不再一致。重新连接媒体存储将采用云端当前保存的存储库。';
+  String get settings_mediaStorage_transfers_suspended_subtitle =>
+      '此设备与云存储对正在使用的存储库不再一致。重新连接媒体存储将采用云端当前保存的存储库。';
 
   @override
-  String get settings_mediaStorage_transfers_suspended_detached => '此设备已不再连接到此媒体存储。可在媒体存储中重新连接。';
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      '此设备已不再连接到此媒体存储。可在媒体存储中重新连接。';
 
   @override
-  String get settings_mediaStorage_transfers_suspended_unreachable => '无法检查媒体存储。传输将自动重试。';
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      '无法检查媒体存储。传输将自动重试。';
 
   @override
   String settings_mediaStorage_transfers_queued(int count) {
@@ -26792,7 +27452,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_mediaStorage_verify_running => '正在验证媒体库...';
 
   @override
-  String settings_mediaStorage_verify_summary(int checked, int originals, int thumbs, int renditions, int removed, int repaired, int aborted) {
+  String settings_mediaStorage_verify_summary(
+    int checked,
+    int originals,
+    int thumbs,
+    int renditions,
+    int removed,
+    int repaired,
+    int aborted,
+  ) {
     return '已检查 $checked 个云端对象（$originals 个原图、$thumbs 个缩略图、$renditions 个压缩版本）：移除 $removed 个孤立文件，排队 $repaired 个修复，中止 $aborted 个过期上传';
   }
 
@@ -26814,13 +27482,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_mediaStorage_provider_label => '服务商';
 
   @override
-  String get settings_mediaStorage_connect_dropbox_hint => '使用云同步中的 Dropbox 连接。媒体存储在您的 Dropbox 应用文件夹中。';
+  String get settings_mediaStorage_connect_dropbox_hint =>
+      '使用云同步中的 Dropbox 连接。媒体存储在您的 Dropbox 应用文件夹中。';
 
   @override
-  String get settings_mediaStorage_connect_gdrive_hint => '使用 Google 登录。媒体存储在此应用的私有云端硬盘空间中。';
+  String get settings_mediaStorage_connect_gdrive_hint =>
+      '使用 Google 登录。媒体存储在此应用的私有云端硬盘空间中。';
 
   @override
-  String get settings_mediaStorage_connect_icloud_hint => '媒体存储在此应用的 iCloud 容器中，并通过您的 Apple ID 同步。';
+  String get settings_mediaStorage_connect_icloud_hint =>
+      '媒体存储在此应用的 iCloud 容器中，并通过您的 Apple ID 同步。';
 
   @override
   String settings_mediaStorage_connect_action(String provider) {
@@ -27180,7 +27851,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dive3d_seascape_appearance_wallAngle => '陡壁角度';
 
   @override
-  String get dive3d_seascape_appearance_wallAngleNote => '水深网格会平均单元内的坡度，实际陡壁看起来更平缓。请保持远低于 45 度。';
+  String get dive3d_seascape_appearance_wallAngleNote =>
+      '水深网格会平均单元内的坡度，实际陡壁看起来更平缓。请保持远低于 45 度。';
 
   @override
   String get dive3d_seascape_siteTitle => '潜点海景';
@@ -27194,7 +27866,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dive3d_seascape_noCoordinates => '该潜点没有GPS坐标';
 
   @override
-  String get dive3d_seascape_detailLimitReached => 'This is the most detail available for this location';
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
 
   @override
   String dive3d_seascape_lodStageLabel(String stage, String span) {
@@ -27514,7 +28187,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_connectedAccounts_removeConfirmTitle => '移除账户？';
 
   @override
-  String get settings_connectedAccounts_removeConfirmBody => '该账户将从所有同步设备中移除。存储在其他设备上的凭据不会被删除。';
+  String get settings_connectedAccounts_removeConfirmBody =>
+      '该账户将从所有同步设备中移除。存储在其他设备上的凭据不会被删除。';
 
   @override
   String get settings_setupGuide_title => '设置照片与媒体';
@@ -27526,13 +28200,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_setupGuide_stepSources => '照片来源';
 
   @override
-  String get settings_setupGuide_stepSources_desc => '从照片图库、文件或 Lightroom 附加照片。';
+  String get settings_setupGuide_stepSources_desc =>
+      '从照片图库、文件或 Lightroom 附加照片。';
 
   @override
   String get settings_setupGuide_stepStorage => '媒体存储';
 
   @override
-  String get settings_setupGuide_stepStorage_desc => '将照片副本保存在你自己的云端，让每台设备都能显示。';
+  String get settings_setupGuide_stepStorage_desc =>
+      '将照片副本保存在你自己的云端，让每台设备都能显示。';
 
   @override
   String get settings_setupGuide_stepSync => '云同步';
@@ -28201,7 +28877,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_progression_divesBySuitThickness_title => '按潜水服厚度统计';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle => '您潜水时所穿潜水服的主要厚度';
+  String get insights_progression_divesBySuitThickness_subtitle =>
+      '您潜水时所穿潜水服的主要厚度';
 
   @override
   String get insights_progression_divesBySuitThickness_empty => '没有关联湿衣或干衣的潜水';
@@ -28295,13 +28972,15 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get safetyHub_noFly_disclaimer => '自最后一次潜水起的 DAN/UHMS 指导值。不能替代潜水电脑的禁飞时间。';
+  String get safetyHub_noFly_disclaimer =>
+      '自最后一次潜水起的 DAN/UHMS 指导值。不能替代潜水电脑的禁飞时间。';
 
   @override
   String get diveLog_detail_altitudeMismatch_title => '潜点位于高海拔';
 
   @override
-  String get diveLog_detail_altitudeMismatch_subtitle => '该潜点记录了海拔,但此次潜水未设置海拔,因此减压分析按海平面计算。请设置潜水海拔以更正。';
+  String get diveLog_detail_altitudeMismatch_subtitle =>
+      '该潜点记录了海拔,但此次潜水未设置海拔,因此减压分析按海平面计算。请设置潜水海拔以更正。';
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
@@ -28325,10 +29004,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get emergencyCard_callDan_subtitle => '潜水员紧急热线。请先拨打:他们负责协调撤离和减压舱转诊。';
 
   @override
-  String get emergencyCard_callInsurer_subtitle => '你的潜水保险紧急专线。请先拨打:保险公司负责批准撤离并协调减压舱转诊。';
+  String get emergencyCard_callInsurer_subtitle =>
+      '你的潜水保险紧急专线。请先拨打:保险公司负责批准撤离并协调减压舱转诊。';
 
   @override
-  String get emergencyCard_hotlineSecondary_subtitle => '区域潜水员紧急热线。若保险公司专线无人接听,请拨打此号码。';
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      '区域潜水员紧急热线。若保险公司专线无人接听,请拨打此号码。';
 
   @override
   String get emergencyCard_insuranceEmergencyLine => '24 小时紧急专线';
@@ -28337,7 +29018,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get emergencyCard_insuranceOfficeLine => '办公电话';
 
   @override
-  String get emergencyCard_insuranceNoPhone => '尚未保存保险公司紧急电话。请在潜水员资料设置中添加,以便此卡优先显示该号码。';
+  String get emergencyCard_insuranceNoPhone =>
+      '尚未保存保险公司紧急电话。请在潜水员资料设置中添加,以便此卡优先显示该号码。';
 
   @override
   String emergencyCard_ems(String number) {
@@ -28393,7 +29075,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get emergencyCard_chambersNoneNearby => '范围内没有收录的高压氧舱。请拨打潜水员紧急热线：他们会为您转介最近的可救治机构。';
+  String get emergencyCard_chambersNoneNearby =>
+      '范围内没有收录的高压氧舱。请拨打潜水员紧急热线：他们会为您转介最近的可救治机构。';
 
   @override
   String get emergencyCard_chamberCapability_divingEmergency => '可处理潜水伤病';
@@ -28564,7 +29247,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get incidentEdit_save => '保存';
 
   @override
-  String get incidentEdit_privacyNote => '未遂事件报告在你的设备之间同步并包含在备份中,但绝不会包含在导出或共享的日志页面中。';
+  String get incidentEdit_privacyNote =>
+      '未遂事件报告在你的设备之间同步并包含在备份中,但绝不会包含在导出或共享的日志页面中。';
 
   @override
   String get incidentEdit_equipment => '涉及的装备';
@@ -28636,7 +29320,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_mirror_dialogTitle => '也在其他个人资料中记录此次潜水？';
 
   @override
-  String get diveLog_mirror_dialogBody => '这些潜伴在此设备上有个人资料。此次潜水将作为计划的潜水添加到他们的日志中，直到他们自己的潜水电脑数据填充为止。';
+  String get diveLog_mirror_dialogBody =>
+      '这些潜伴在此设备上有个人资料。此次潜水将作为计划的潜水添加到他们的日志中，直到他们自己的潜水电脑数据填充为止。';
 
   @override
   String get diveLog_mirror_log => '记录';
@@ -28926,47 +29611,88 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String equipmentCondition_finding_cellOutputDeclining(int slot, String percent, int n, String since) {
+  String equipmentCondition_finding_cellOutputDeclining(
+    int slot,
+    String percent,
+    int n,
+    String since,
+  ) {
     return '自 $since 起，$n 次潜水中电池 $slot 的输出下降了 $percent%';
   }
 
   @override
-  String equipmentCondition_finding_cellOutputLow(int slot, String gain, int n) {
+  String equipmentCondition_finding_cellOutputLow(
+    int slot,
+    String gain,
+    int n,
+  ) {
     return '最近 $n 次潜水中电池 $slot 的输出为 $gain mV/bar';
   }
 
   @override
-  String equipmentCondition_finding_cellDivergent(int slot, String bar, int count, int n) {
+  String equipmentCondition_finding_cellDivergent(
+    int slot,
+    String bar,
+    int count,
+    int n,
+  ) {
     return '最近 $n 次潜水中有 $count 次电池 $slot 与其他电池的偏差达 $bar bar';
   }
 
   @override
-  String equipmentCondition_finding_cellCurrentLimited(int slot, int count, int n, String percent) {
+  String equipmentCondition_finding_cellCurrentLimited(
+    int slot,
+    int count,
+    int n,
+    String percent,
+  ) {
     return '最近 $n 次潜水中有 $count 次电池 $slot 在高 ppO2 下读数偏低，最多占样本的 $percent%';
   }
 
   @override
-  String equipmentCondition_finding_transmitterDropoutRising(String recent, String prior, int priorCount) {
+  String equipmentCondition_finding_transmitterDropoutRising(
+    String recent,
+    String prior,
+    int priorCount,
+  ) {
     return '最近 5 次潜水中压力信号中断占 $recent%，此前 $priorCount 次为 $prior%';
   }
 
   @override
-  String equipmentCondition_finding_transmitterDropoutHigh(String recent, int n, int count) {
+  String equipmentCondition_finding_transmitterDropoutHigh(
+    String recent,
+    int n,
+    int count,
+  ) {
     return '最近 $n 次潜水中压力信号中断平均占 $recent%，其中 $count 次超过 10%';
   }
 
   @override
-  String equipmentCondition_finding_issueRecurring(String tag, int count, int n) {
+  String equipmentCondition_finding_issueRecurring(
+    String tag,
+    int count,
+    int n,
+  ) {
     return '最近 $n 次潜水中 $tag 被记录了 $count 次';
   }
 
   @override
-  String equipmentCondition_finding_issueColdCorrelated(int insideIssue, int totalIssue, String threshold, int n) {
+  String equipmentCondition_finding_issueColdCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
     return '$totalIssue 次出现问题的潜水中有 $insideIssue 次低于 $threshold，基于使用此装备的 $n 次潜水';
   }
 
   @override
-  String equipmentCondition_finding_issueDeepCorrelated(int insideIssue, int totalIssue, String threshold, int n) {
+  String equipmentCondition_finding_issueDeepCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
     return '$totalIssue 次出现问题的潜水中有 $insideIssue 次超过 $threshold，基于使用此装备的 $n 次潜水';
   }
 
@@ -28996,7 +29722,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipmentConditionSettings_thresholdsHeader => '暴露阈值';
 
   @override
-  String get equipmentConditionSettings_thresholdsHelp => '潜水越过这些界线时，保养计时将其计为冷水、深潜或高氧。';
+  String get equipmentConditionSettings_thresholdsHelp =>
+      '潜水越过这些界线时，保养计时将其计为冷水、深潜或高氧。';
 
   @override
   String get equipmentConditionSettings_coldLabel => '冷水低于';
@@ -29014,7 +29741,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipmentConditionSettings_sensorHeader => '传感器摘要';
 
   @override
-  String get equipmentConditionSettings_sensorHelp => '每次潜水的剖面只汇总一次，用于电池输出、发射器断连和吸收剂用量。新增和编辑的潜水会自动汇总。';
+  String get equipmentConditionSettings_sensorHelp =>
+      '每次潜水的剖面只汇总一次，用于电池输出、发射器断连和吸收剂用量。新增和编辑的潜水会自动汇总。';
 
   @override
   String get equipmentConditionSettings_rebuild => '重建传感器摘要';
@@ -29031,7 +29759,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipmentConditionSettings_rebuild_done => '传感器摘要已重建';
 
   @override
-  String equipmentConditionSettings_rebuild_doneWithBothErrors(int dives, int items) {
+  String equipmentConditionSettings_rebuild_doneWithBothErrors(
+    int dives,
+    int items,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       dives,
       locale: localeName,
@@ -29076,7 +29807,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipmentConditionSettings_masterToggle => '状态发现';
 
   @override
-  String get equipmentConditionSettings_masterToggle_subtitle => '报告电池输出、发射器断连和已记录问题的趋势，并附上背后的数据';
+  String get equipmentConditionSettings_masterToggle_subtitle =>
+      '报告电池输出、发射器断连和已记录问题的趋势，并附上背后的数据';
 
   @override
   String get equipmentConditionSettings_rulesHeader => '规则';
@@ -29091,13 +29823,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipmentConditionSettings_rule_cellDivergent => '电池与其他电池不一致';
 
   @override
-  String get equipmentConditionSettings_rule_cellCurrentLimited => '高 ppO2 下电池电流受限';
+  String get equipmentConditionSettings_rule_cellCurrentLimited =>
+      '高 ppO2 下电池电流受限';
 
   @override
-  String get equipmentConditionSettings_rule_transmitterDropoutRising => '发射器断连增多';
+  String get equipmentConditionSettings_rule_transmitterDropoutRising =>
+      '发射器断连增多';
 
   @override
-  String get equipmentConditionSettings_rule_transmitterDropoutHigh => '发射器断连频繁';
+  String get equipmentConditionSettings_rule_transmitterDropoutHigh =>
+      '发射器断连频繁';
 
   @override
   String get equipmentConditionSettings_rule_issueRecurring => '反复出现的问题';
@@ -29343,7 +30078,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_security_encryption => '加密数据库';
 
   @override
-  String get settings_security_encryption_subtitle => '使用静态加密保护您的潜水日志文件。加密可能会影响性能。';
+  String get settings_security_encryption_subtitle =>
+      '使用静态加密保护您的潜水日志文件。加密可能会影响性能。';
 
   @override
   String get settings_security_encryption_progress_backup => '正在创建安全备份...';
@@ -29391,7 +30127,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_security_recoveryCode_title => '您的恢复代码';
 
   @override
-  String get settings_security_recoveryCode_explain => '请抄写并妥善保管。如果忘记密码，它是解锁应用的唯一方式，并会替换之前的任何恢复代码。';
+  String get settings_security_recoveryCode_explain =>
+      '请抄写并妥善保管。如果忘记密码，它是解锁应用的唯一方式，并会替换之前的任何恢复代码。';
 
   @override
   String get settings_security_recoveryCode_savedConfirm => '我已保存恢复代码';
@@ -29400,19 +30137,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_security_disableBlockedByEncryption_title => '加密已启用';
 
   @override
-  String get settings_security_disableBlockedByEncryption_body => '请先关闭数据库加密，再关闭应用锁定。加密的数据库需要凭据。';
+  String get settings_security_disableBlockedByEncryption_body =>
+      '请先关闭数据库加密，再关闭应用锁定。加密的数据库需要凭据。';
 
   @override
   String get settings_security_enableEncryption_title => '要加密数据库吗？';
 
   @override
-  String get settings_security_enableEncryption_body => '首先会创建安全备份，然后就地重新加密数据库文件。日志较大时可能需要一些时间。加密可能会影响性能。';
+  String get settings_security_enableEncryption_body =>
+      '首先会创建安全备份，然后就地重新加密数据库文件。日志较大时可能需要一些时间。加密可能会影响性能。';
 
   @override
   String get settings_security_disableEncryption_title => '要关闭加密吗？';
 
   @override
-  String get settings_security_disableEncryption_body => '数据库文件将重新以未加密形式存储在磁盘上。';
+  String get settings_security_disableEncryption_body =>
+      '数据库文件将重新以未加密形式存储在磁盘上。';
 
   @override
   String get settings_security_turnOffAppLock_title => '要关闭应用锁定吗？';
@@ -29739,7 +30479,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataQuality_deleteDuplicate_title => '删除多余的副本？';
 
   @override
-  String get dataQuality_deleteDuplicate_body => '两条记录来自同一台潜水电脑。包含较少潜水数据的副本将被删除。之后可以撤销此操作。';
+  String get dataQuality_deleteDuplicate_body =>
+      '两条记录来自同一台潜水电脑。包含较少潜水数据的副本将被删除。之后可以撤销此操作。';
 
   @override
   String dataQuality_deleteDuplicate_keep(String dive) {
@@ -29946,19 +30687,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_mediaStorage_quality_small => '小';
 
   @override
-  String get settings_mediaStorage_quality_caveat => '设置压缩级别后，不会上传全分辨率原图，它们仅保留在本设备上。';
+  String get settings_mediaStorage_quality_caveat =>
+      '设置压缩级别后，不会上传全分辨率原图，它们仅保留在本设备上。';
 
   @override
   String get settings_mediaStorage_quality_reuploadQueued => '重新上传已加入队列';
 
   @override
-  String get settings_mediaStorage_quality_linuxFfmpegHint => '安装 ffmpeg 以启用视频压缩。在此之前将上传原始文件。';
+  String get settings_mediaStorage_quality_linuxFfmpegHint =>
+      '安装 ffmpeg 以启用视频压缩。在此之前将上传原始文件。';
 
   @override
   String get settings_mediaStorage_quality_saveFailed => '无法保存上传质量。请重试。';
 
   @override
-  String get settings_mediaStorage_quality_noTranscoderHint => '此设备无法压缩视频。将从此设备上传原始文件。';
+  String get settings_mediaStorage_quality_noTranscoderHint =>
+      '此设备无法压缩视频。将从此设备上传原始文件。';
 
   @override
   String get reef_section_title => '生态系统';
@@ -30133,7 +30877,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_placeNameLanguage_title => '地名语言';
 
   @override
-  String get settings_placeNameLanguage_subtitle => '根据坐标查找国家、地区、城镇和水域时使用。现有潜点不会更改。';
+  String get settings_placeNameLanguage_subtitle =>
+      '根据坐标查找国家、地区、城镇和水域时使用。现有潜点不会更改。';
 
   @override
   String get settings_coordinateFormat_decimalDegrees => '十进制度';
@@ -30157,7 +30902,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_visibilityScale_subtitle => '潜水详情和统计中如何描述你测得的能见度';
 
   @override
-  String get settings_visibilityScale_intro => '选择在潜水详情和统计中，多远的实测距离算作极佳、良好、一般或较差。更改此设置只会重新标注你的潜水，绝不会改动你记录的距离。';
+  String get settings_visibilityScale_intro =>
+      '选择在潜水详情和统计中，多远的实测距离算作极佳、良好、一般或较差。更改此设置只会重新标注你的潜水，绝不会改动你记录的距离。';
 
   @override
   String get settings_visibilityScale_preset_tropical => '热带';
@@ -31397,7 +32143,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_oceanic_whitetip_shark_name => '远洋白鳍鲨';
 
   @override
-  String get species_oceanic_whitetip_shark_desc => '大洋性鲨鱼，鳍端圆钝并呈白色，常在开阔水域潜水时出现。';
+  String get species_oceanic_whitetip_shark_desc =>
+      '大洋性鲨鱼，鳍端圆钝并呈白色，常在开阔水域潜水时出现。';
 
   @override
   String get species_thresher_shark_name => '长尾鲨';
@@ -31409,13 +32156,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_pelagic_thresher_shark_name => '浅海长尾鲨';
 
   @override
-  String get species_pelagic_thresher_shark_desc => '体型最小的长尾鲨，以在菲律宾莫纳德浅滩的目击而闻名。';
+  String get species_pelagic_thresher_shark_desc =>
+      '体型最小的长尾鲨，以在菲律宾莫纳德浅滩的目击而闻名。';
 
   @override
   String get species_shortfin_mako_shark_name => '尖吻鲭鲨';
 
   @override
-  String get species_shortfin_mako_shark_desc => '海洋中游速最快的鲨鱼，体形流线，体色泛金属蓝的开阔水域掠食者。';
+  String get species_shortfin_mako_shark_desc =>
+      '海洋中游速最快的鲨鱼，体形流线，体色泛金属蓝的开阔水域掠食者。';
 
   @override
   String get species_blue_shark_name => '大青鲨';
@@ -31559,7 +32308,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_giant_oceanic_manta_ray_name => '双吻前口蝠鲼';
 
   @override
-  String get species_giant_oceanic_manta_ray_desc => '体型最大的鳐类，姿态雄伟的滤食者，翼展可达 7 米。';
+  String get species_giant_oceanic_manta_ray_desc =>
+      '体型最大的鳐类，姿态雄伟的滤食者，翼展可达 7 米。';
 
   @override
   String get species_reef_manta_ray_name => '珊瑚礁蝠鲼';
@@ -31583,7 +32333,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_blue_spotted_ribbontail_ray_name => '蓝斑条尾魟';
 
   @override
-  String get species_blue_spotted_ribbontail_ray_desc => '体色鲜艳、布满亮蓝色斑点的魟鱼，常见于印度洋至太平洋的珊瑚礁。';
+  String get species_blue_spotted_ribbontail_ray_desc =>
+      '体色鲜艳、布满亮蓝色斑点的魟鱼，常见于印度洋至太平洋的珊瑚礁。';
 
   @override
   String get species_blue_spotted_stingray_name => '蓝点魟';
@@ -31595,7 +32346,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_southern_stingray_name => '美洲魟';
 
   @override
-  String get species_southern_stingray_desc => '大型魟鱼，栖息于加勒比海的沙质浅滩，以 Stingray City 而闻名。';
+  String get species_southern_stingray_desc =>
+      '大型魟鱼，栖息于加勒比海的沙质浅滩，以 Stingray City 而闻名。';
 
   @override
   String get species_round_stingray_name => '圆魟';
@@ -31625,7 +32377,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_marbled_electric_ray_name => '云纹电鳐';
 
   @override
-  String get species_marbled_electric_ray_desc => '地中海的电鳐，体表有云石般的花纹，可释放相当明显的电击。';
+  String get species_marbled_electric_ray_desc =>
+      '地中海的电鳐，体表有云石般的花纹，可释放相当明显的电击。';
 
   @override
   String get species_giant_guitarfish_name => '及达尖犁头鳐';
@@ -31637,7 +32390,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_shovelnose_guitarfish_name => '铲吻犁头鳐';
 
   @override
-  String get species_shovelnose_guitarfish_desc => '体形扁平，兼具鳐与鲨的轮廓，常见于东太平洋的浅水沙地。';
+  String get species_shovelnose_guitarfish_desc =>
+      '体形扁平，兼具鳐与鲨的轮廓，常见于东太平洋的浅水沙地。';
 
   @override
   String get species_smalltooth_sawfish_name => '小齿锯鳐';
@@ -31703,7 +32457,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_ocellate_river_stingray_name => '珍珠魟';
 
   @override
-  String get species_ocellate_river_stingray_desc => '淡水魟鱼，体表有醒目的橙环斑点，原产于南美洲的河流。';
+  String get species_ocellate_river_stingray_desc =>
+      '淡水魟鱼，体表有醒目的橙环斑点，原产于南美洲的河流。';
 
   @override
   String get species_ocellaris_clownfish_name => '眼斑双锯鱼';
@@ -31715,19 +32470,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_clarkii_clownfish_name => '克氏双锯鱼';
 
   @override
-  String get species_clarkii_clownfish_desc => '体质强健的海葵鱼，体色深并有两道白带，广布印度洋至太平洋，可与多种海葵共生。';
+  String get species_clarkii_clownfish_desc =>
+      '体质强健的海葵鱼，体色深并有两道白带，广布印度洋至太平洋，可与多种海葵共生。';
 
   @override
   String get species_tomato_clownfish_name => '白条双锯鱼';
 
   @override
-  String get species_tomato_clownfish_desc => '体色橙红鲜艳的海葵鱼，头部有一道白带，常见于印度洋至太平洋的珊瑚礁。';
+  String get species_tomato_clownfish_desc =>
+      '体色橙红鲜艳的海葵鱼，头部有一道白带，常见于印度洋至太平洋的珊瑚礁。';
 
   @override
   String get species_regal_blue_tang_name => '拟刺尾鲷';
 
   @override
-  String get species_regal_blue_tang_desc => '体色亮蓝的刺尾鱼，身上有黑色调色板状斑纹，尾鳍黄色，见于印度洋至太平洋的珊瑚礁。';
+  String get species_regal_blue_tang_desc =>
+      '体色亮蓝的刺尾鱼，身上有黑色调色板状斑纹，尾鳍黄色，见于印度洋至太平洋的珊瑚礁。';
 
   @override
   String get species_yellow_tang_name => '黄高鳍刺尾鱼';
@@ -31739,13 +32497,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_powder_blue_surgeonfish_name => '白面刺尾鱼';
 
   @override
-  String get species_powder_blue_surgeonfish_desc => '体色淡蓝醒目的刺尾鱼，脸部黑色、背鳍黄色，分布于印度洋。';
+  String get species_powder_blue_surgeonfish_desc =>
+      '体色淡蓝醒目的刺尾鱼，脸部黑色、背鳍黄色，分布于印度洋。';
 
   @override
   String get species_sohal_surgeonfish_name => '索哈尔刺尾鱼';
 
   @override
-  String get species_sohal_surgeonfish_desc => '条纹醒目的刺尾鱼，尾柄有橙色的手术刀状棘刺，为红海和阿拉伯湾礁区特有种。';
+  String get species_sohal_surgeonfish_desc =>
+      '条纹醒目的刺尾鱼，尾柄有橙色的手术刀状棘刺，为红海和阿拉伯湾礁区特有种。';
 
   @override
   String get species_blue_tang_name => '蓝刺尾鱼';
@@ -31757,25 +32517,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_emperor_angelfish_name => '主刺盖鱼';
 
   @override
-  String get species_emperor_angelfish_desc => '大型神仙鱼，体侧有醒目的蓝黄相间横纹。幼鱼则呈蓝白相间的同心圆花纹。';
+  String get species_emperor_angelfish_desc =>
+      '大型神仙鱼，体侧有醒目的蓝黄相间横纹。幼鱼则呈蓝白相间的同心圆花纹。';
 
   @override
   String get species_french_angelfish_name => '法国神仙鱼';
 
   @override
-  String get species_french_angelfish_desc => '体色深、鳞片镶金边的大型神仙鱼，常成对出现在加勒比海和西大西洋礁区。';
+  String get species_french_angelfish_desc =>
+      '体色深、鳞片镶金边的大型神仙鱼，常成对出现在加勒比海和西大西洋礁区。';
 
   @override
   String get species_queen_angelfish_name => '女王神仙鱼';
 
   @override
-  String get species_queen_angelfish_desc => '蓝黄相间、色彩绚丽的神仙鱼，头顶有独特的王冠状斑点，见于加勒比珊瑚礁。';
+  String get species_queen_angelfish_desc =>
+      '蓝黄相间、色彩绚丽的神仙鱼，头顶有独特的王冠状斑点，见于加勒比珊瑚礁。';
 
   @override
   String get species_regal_angelfish_name => '双棘甲尻鱼';
 
   @override
-  String get species_regal_angelfish_desc => '体态优雅的神仙鱼，体侧有橙白与蓝色交替的竖带，见于印度洋至太平洋的礁区。';
+  String get species_regal_angelfish_desc =>
+      '体态优雅的神仙鱼，体侧有橙白与蓝色交替的竖带，见于印度洋至太平洋的礁区。';
 
   @override
   String get species_rock_beauty_name => '三色刺蝶鱼';
@@ -31793,43 +32557,50 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_copperband_butterflyfish_name => '长吻钻嘴鱼';
 
   @override
-  String get species_copperband_butterflyfish_desc => '特征鲜明的蝴蝶鱼，体侧有橙色竖带、吻部细长，见于印度洋至太平洋的礁区。';
+  String get species_copperband_butterflyfish_desc =>
+      '特征鲜明的蝴蝶鱼，体侧有橙色竖带、吻部细长，见于印度洋至太平洋的礁区。';
 
   @override
   String get species_raccoon_butterflyfish_name => '月斑蝴蝶鱼';
 
   @override
-  String get species_raccoon_butterflyfish_desc => '体色偏黄的蝴蝶鱼，眼部有似浣熊面罩的黑斑，常见于印度洋至太平洋及夏威夷礁区。';
+  String get species_raccoon_butterflyfish_desc =>
+      '体色偏黄的蝴蝶鱼，眼部有似浣熊面罩的黑斑，常见于印度洋至太平洋及夏威夷礁区。';
 
   @override
   String get species_longnose_butterflyfish_name => '黄镊口鱼';
 
   @override
-  String get species_longnose_butterflyfish_desc => '通体亮黄的蝴蝶鱼，吻部极长，可从印度洋至太平洋礁石的缝隙中取食。';
+  String get species_longnose_butterflyfish_desc =>
+      '通体亮黄的蝴蝶鱼，吻部极长，可从印度洋至太平洋礁石的缝隙中取食。';
 
   @override
   String get species_threadfin_butterflyfish_name => '扬幡蝴蝶鱼';
 
   @override
-  String get species_threadfin_butterflyfish_desc => '体色偏白的蝴蝶鱼，具人字形斑纹和延长的背鳍丝，广布印度洋至太平洋。';
+  String get species_threadfin_butterflyfish_desc =>
+      '体色偏白的蝴蝶鱼，具人字形斑纹和延长的背鳍丝，广布印度洋至太平洋。';
 
   @override
   String get species_foureye_butterflyfish_name => '四眼蝴蝶鱼';
 
   @override
-  String get species_foureye_butterflyfish_desc => '体色浅淡的蝴蝶鱼，近尾部有醒目的假眼斑，常见于加勒比礁区。';
+  String get species_foureye_butterflyfish_desc =>
+      '体色浅淡的蝴蝶鱼，近尾部有醒目的假眼斑，常见于加勒比礁区。';
 
   @override
   String get species_spotfin_butterflyfish_name => '斑鳍蝴蝶鱼';
 
   @override
-  String get species_spotfin_butterflyfish_desc => '白黄相间的蝴蝶鱼，背鳍上有一个小黑点，分布于西大西洋。';
+  String get species_spotfin_butterflyfish_desc =>
+      '白黄相间的蝴蝶鱼，背鳍上有一个小黑点，分布于西大西洋。';
 
   @override
   String get species_banner_butterflyfish_name => '红海马夫鱼';
 
   @override
-  String get species_banner_butterflyfish_desc => '黑白相间的马夫鱼，背鳍延长如旗，腹部黄色，为红海特有种。';
+  String get species_banner_butterflyfish_desc =>
+      '黑白相间的马夫鱼，背鳍延长如旗，腹部黄色，为红海特有种。';
 
   @override
   String get species_moorish_idol_name => '镰鱼';
@@ -31841,13 +32612,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_green_moray_eel_name => '绿裸胸鳝';
 
   @override
-  String get species_green_moray_eel_desc => '大型绿色海鳝，体长可达 2.5 米，常张着口栖息于西大西洋的礁石缝隙中。';
+  String get species_green_moray_eel_desc =>
+      '大型绿色海鳝，体长可达 2.5 米，常张着口栖息于西大西洋的礁石缝隙中。';
 
   @override
   String get species_giant_moray_eel_name => '爪哇裸胸鳝';
 
   @override
-  String get species_giant_moray_eel_desc => '体型最大的海鳝，体长超过 3 米，体表有豹纹般的斑点。见于印度洋至太平洋的珊瑚礁。';
+  String get species_giant_moray_eel_desc =>
+      '体型最大的海鳝，体长超过 3 米，体表有豹纹般的斑点。见于印度洋至太平洋的珊瑚礁。';
 
   @override
   String get species_spotted_moray_eel_name => '斑点裸胸鳝';
@@ -31859,13 +32632,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_ribbon_eel_name => '丝带鳗';
 
   @override
-  String get species_ribbon_eel_desc => '体形细长、鼻孔呈叶片状的鳗鱼；雄鱼呈鲜蓝色，雌鱼呈黄色。见于印度洋至太平洋的沙质潟湖。';
+  String get species_ribbon_eel_desc =>
+      '体形细长、鼻孔呈叶片状的鳗鱼；雄鱼呈鲜蓝色，雌鱼呈黄色。见于印度洋至太平洋的沙质潟湖。';
 
   @override
   String get species_spotted_garden_eel_name => '斑点花园鳗';
 
   @override
-  String get species_spotted_garden_eel_desc => '白色细长并带黑色斑点的鳗鱼，成群栖息于沙地，随水流摆动以捕食浮游生物。';
+  String get species_spotted_garden_eel_desc =>
+      '白色细长并带黑色斑点的鳗鱼，成群栖息于沙地，随水流摆动以捕食浮游生物。';
 
   @override
   String get species_splendid_garden_eel_name => '华丽花园鳗';
@@ -31877,25 +32652,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_snowflake_moray_name => '雪花斑裸胸鳝';
 
   @override
-  String get species_snowflake_moray_desc => '小型海鳝，体色白并带雪花状黑斑，常见于印度洋至太平洋的礁区碎石带。';
+  String get species_snowflake_moray_desc =>
+      '小型海鳝，体色白并带雪花状黑斑，常见于印度洋至太平洋的礁区碎石带。';
 
   @override
   String get species_mandarin_dragonet_name => '花斑连鳍䲗';
 
   @override
-  String get species_mandarin_dragonet_desc => '体型极小、色彩绚丽的鱼类，身上有迷幻般的蓝橙花纹，见于西太平洋的碎石区。';
+  String get species_mandarin_dragonet_desc =>
+      '体型极小、色彩绚丽的鱼类，身上有迷幻般的蓝橙花纹，见于西太平洋的碎石区。';
 
   @override
   String get species_common_lionfish_name => '翱翔蓑鲉';
 
   @override
-  String get species_common_lionfish_desc => '有毒的鲉科鱼类，胸鳍如折扇般展开，体表红白相间。在加勒比海属入侵物种。';
+  String get species_common_lionfish_desc =>
+      '有毒的鲉科鱼类，胸鳍如折扇般展开，体表红白相间。在加勒比海属入侵物种。';
 
   @override
   String get species_leaf_scorpionfish_name => '叶鲉';
 
   @override
-  String get species_leaf_scorpionfish_desc => '身体高度侧扁、形如落叶的鲉鱼，会随水流摆动以模仿印度洋至太平洋礁区的碎屑。';
+  String get species_leaf_scorpionfish_desc =>
+      '身体高度侧扁、形如落叶的鲉鱼，会随水流摆动以模仿印度洋至太平洋礁区的碎屑。';
 
   @override
   String get species_stonefish_name => '玫瑰毒鲉';
@@ -31907,7 +32686,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_painted_frogfish_name => '大斑躄鱼';
 
   @override
-  String get species_painted_frogfish_desc => '体形粗短的伏击型掠食者，头部有诱饵状钓竿，体色变化极大。见于印度洋至太平洋的礁区。';
+  String get species_painted_frogfish_desc =>
+      '体形粗短的伏击型掠食者，头部有诱饵状钓竿，体色变化极大。见于印度洋至太平洋的礁区。';
 
   @override
   String get species_giant_frogfish_name => '巨躄鱼';
@@ -31925,13 +32705,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_clown_triggerfish_name => '花斑拟鳞鲀';
 
   @override
-  String get species_clown_triggerfish_desc => '花纹醒目的鳞鲀，深色身体上有大块白斑，嘴唇黄色，见于印度洋至太平洋的礁区。';
+  String get species_clown_triggerfish_desc =>
+      '花纹醒目的鳞鲀，深色身体上有大块白斑，嘴唇黄色，见于印度洋至太平洋的礁区。';
 
   @override
   String get species_titan_triggerfish_name => '褐拟鳞鲀';
 
   @override
-  String get species_titan_triggerfish_desc => '体型大、攻击性强的鳞鲀，护巢时会冲撞潜水员。常见于印度洋至太平洋的珊瑚礁。';
+  String get species_titan_triggerfish_desc =>
+      '体型大、攻击性强的鳞鲀，护巢时会冲撞潜水员。常见于印度洋至太平洋的珊瑚礁。';
 
   @override
   String get species_queen_triggerfish_name => '妪鳞鲀';
@@ -31943,13 +32725,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_picasso_triggerfish_name => '毕加索鳞鲀';
 
   @override
-  String get species_picasso_triggerfish_desc => '体表有蓝、黄、黑抽象条纹的鳞鲀，常见于印度洋至太平洋的礁坪。';
+  String get species_picasso_triggerfish_desc =>
+      '体表有蓝、黄、黑抽象条纹的鳞鲀，常见于印度洋至太平洋的礁坪。';
 
   @override
   String get species_yellowmargin_triggerfish_name => '黄缘副鳞鲀';
 
   @override
-  String get species_yellowmargin_triggerfish_desc => '体色黄褐的大型鳞鲀，各鳍边缘呈黄色，在印度洋至太平洋礁区护巢时颇具攻击性。';
+  String get species_yellowmargin_triggerfish_desc =>
+      '体色黄褐的大型鳞鲀，各鳍边缘呈黄色，在印度洋至太平洋礁区护巢时颇具攻击性。';
 
   @override
   String get species_porcupinefish_name => '刺鲀';
@@ -31961,19 +32745,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_guineafowl_pufferfish_name => '白点叉鼻鲀';
 
   @override
-  String get species_guineafowl_pufferfish_desc => '体色深并布满细小白点的河鲀，在印度洋至太平洋礁区偶见通体金黄的色型。';
+  String get species_guineafowl_pufferfish_desc =>
+      '体色深并布满细小白点的河鲀，在印度洋至太平洋礁区偶见通体金黄的色型。';
 
   @override
   String get species_map_pufferfish_name => '网纹叉鼻鲀';
 
   @override
-  String get species_map_pufferfish_desc => '体色浅淡的大型河鲀，全身有繁复的深色地图状纹路，见于印度洋至太平洋的礁区。';
+  String get species_map_pufferfish_desc =>
+      '体色浅淡的大型河鲀，全身有繁复的深色地图状纹路，见于印度洋至太平洋的礁区。';
 
   @override
   String get species_sharpnose_pufferfish_name => '尖鼻河鲀';
 
   @override
-  String get species_sharpnose_pufferfish_desc => '体型极小的河鲀，脸部有蓝色纹路、尾鳍橙色，加勒比礁区常见。';
+  String get species_sharpnose_pufferfish_desc =>
+      '体型极小的河鲀，脸部有蓝色纹路、尾鳍橙色，加勒比礁区常见。';
 
   @override
   String get species_boxfish_name => '黄箱鲀';
@@ -31991,25 +32778,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_napoleon_wrasse_name => '波纹唇鱼';
 
   @override
-  String get species_napoleon_wrasse_desc => '体型巨大的隆头鱼，可达 2 米，额头有明显隆起。已濒危并受保护，见于印度洋至太平洋的礁区。';
+  String get species_napoleon_wrasse_desc =>
+      '体型巨大的隆头鱼，可达 2 米，额头有明显隆起。已濒危并受保护，见于印度洋至太平洋的礁区。';
 
   @override
   String get species_cleaner_wrasse_name => '裂唇鱼';
 
   @override
-  String get species_cleaner_wrasse_desc => '带蓝色纵纹的小型隆头鱼，在印度洋至太平洋的礁区经营清洁站，为大型鱼类清除寄生虫。';
+  String get species_cleaner_wrasse_desc =>
+      '带蓝色纵纹的小型隆头鱼，在印度洋至太平洋的礁区经营清洁站，为大型鱼类清除寄生虫。';
 
   @override
   String get species_yellowtail_coris_name => '黄尾盔鱼';
 
   @override
-  String get species_yellowtail_coris_desc => '色彩鲜艳的隆头鱼，体表布满斑点、尾鳍黄色，幼鱼呈橙红色并带白色斑纹。';
+  String get species_yellowtail_coris_desc =>
+      '色彩鲜艳的隆头鱼，体表布满斑点、尾鳍黄色，幼鱼呈橙红色并带白色斑纹。';
 
   @override
   String get species_bluehead_wrasse_name => '蓝头锦鱼';
 
   @override
-  String get species_bluehead_wrasse_desc => '加勒比海数量众多的隆头鱼；终期雄鱼头部亮蓝、身体绿色，中间有黑白相间的横带。';
+  String get species_bluehead_wrasse_desc =>
+      '加勒比海数量众多的隆头鱼；终期雄鱼头部亮蓝、身体绿色，中间有黑白相间的横带。';
 
   @override
   String get species_spanish_hogfish_name => '西班牙猪齿鱼';
@@ -32021,7 +32812,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_bumphead_parrotfish_name => '隆头鹦哥鱼';
 
   @override
-  String get species_bumphead_parrotfish_desc => '体型最大的鹦嘴鱼，可达 1.3 米，额头有巨大隆起。常成群巡游于印度洋至太平洋的礁区。';
+  String get species_bumphead_parrotfish_desc =>
+      '体型最大的鹦嘴鱼，可达 1.3 米，额头有巨大隆起。常成群巡游于印度洋至太平洋的礁区。';
 
   @override
   String get species_stoplight_parrotfish_name => '绿鹦嘴鱼';
@@ -32033,7 +32825,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_queen_parrotfish_name => '女王鹦嘴鱼';
 
   @override
-  String get species_queen_parrotfish_desc => '体色蓝绿的大型鹦嘴鱼，见于加勒比礁区，常见其啃咬珊瑚以刮食藻类。';
+  String get species_queen_parrotfish_desc =>
+      '体色蓝绿的大型鹦嘴鱼，见于加勒比礁区，常见其啃咬珊瑚以刮食藻类。';
 
   @override
   String get species_yellowtail_damselfish_name => '黄尾雀鲷';
@@ -32051,13 +32844,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_three_spot_damselfish_name => '三点雀鲷';
 
   @override
-  String get species_three_spot_damselfish_desc => '深褐色的领域性雀鲷，会激烈守卫自己在加勒比礁区的藻园。';
+  String get species_three_spot_damselfish_desc =>
+      '深褐色的领域性雀鲷，会激烈守卫自己在加勒比礁区的藻园。';
 
   @override
   String get species_chromis_viridis_name => '蓝绿光鳃鱼';
 
   @override
-  String get species_chromis_viridis_desc => '闪着绿色金属光泽的小型雀鲷，常成大群悬停在印度洋至太平洋礁区的分枝珊瑚上方。';
+  String get species_chromis_viridis_desc =>
+      '闪着绿色金属光泽的小型雀鲷，常成大群悬停在印度洋至太平洋礁区的分枝珊瑚上方。';
 
   @override
   String get species_blue_chromis_name => '蓝光鳃鱼';
@@ -32069,61 +32864,71 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_nassau_grouper_name => '拿骚石斑鱼';
 
   @override
-  String get species_nassau_grouper_desc => '加勒比海的大型石斑鱼，眼部有明显深色条纹、体侧有横带，因过度捕捞现已濒危。';
+  String get species_nassau_grouper_desc =>
+      '加勒比海的大型石斑鱼，眼部有明显深色条纹、体侧有横带，因过度捕捞现已濒危。';
 
   @override
   String get species_giant_grouper_name => '鞍带石斑鱼';
 
   @override
-  String get species_giant_grouper_desc => '体型最大的礁栖硬骨鱼，可达 2.7 米、400 公斤。见于印度洋至太平洋的洞穴和沉船中。';
+  String get species_giant_grouper_desc =>
+      '体型最大的礁栖硬骨鱼，可达 2.7 米、400 公斤。见于印度洋至太平洋的洞穴和沉船中。';
 
   @override
   String get species_coral_grouper_name => '青星九棘鲈';
 
   @override
-  String get species_coral_grouper_desc => '体色橙红鲜艳、布满蓝色斑点的石斑鱼，是印度洋至太平洋珊瑚礁的代表性鱼种。';
+  String get species_coral_grouper_desc =>
+      '体色橙红鲜艳、布满蓝色斑点的石斑鱼，是印度洋至太平洋珊瑚礁的代表性鱼种。';
 
   @override
   String get species_goliath_grouper_name => '伊氏石斑鱼';
 
   @override
-  String get species_goliath_grouper_desc => '大西洋的巨型石斑鱼，可达 2.5 米，常在佛罗里达和加勒比海的沉船与岩檐附近遇见。';
+  String get species_goliath_grouper_desc =>
+      '大西洋的巨型石斑鱼，可达 2.5 米，常在佛罗里达和加勒比海的沉船与岩檐附近遇见。';
 
   @override
   String get species_potato_grouper_name => '蓝身大斑石斑鱼';
 
   @override
-  String get species_potato_grouper_desc => '体型大、性情友善的石斑鱼，体表有马铃薯状的深色斑块，以大堡礁的 Cod Hole 潜点而闻名。';
+  String get species_potato_grouper_desc =>
+      '体型大、性情友善的石斑鱼，体表有马铃薯状的深色斑块，以大堡礁的 Cod Hole 潜点而闻名。';
 
   @override
   String get species_peacock_grouper_name => '眼斑九棘鲈';
 
   @override
-  String get species_peacock_grouper_desc => '深褐色的石斑鱼，体表布满亮蓝色斑点，后半身有浅色竖带，常见于印度洋至太平洋的礁区。';
+  String get species_peacock_grouper_desc =>
+      '深褐色的石斑鱼，体表布满亮蓝色斑点，后半身有浅色竖带，常见于印度洋至太平洋的礁区。';
 
   @override
   String get species_yellowfin_tuna_name => '黄鳍金枪鱼';
 
   @override
-  String get species_yellowfin_tuna_desc => '游速极快的大洋掠食者，背鳍和臀鳍呈黄色且明显延长，离岸潜点偶有遇见。';
+  String get species_yellowfin_tuna_desc =>
+      '游速极快的大洋掠食者，背鳍和臀鳍呈黄色且明显延长，离岸潜点偶有遇见。';
 
   @override
   String get species_dogtooth_tuna_name => '裸狐鲣';
 
   @override
-  String get species_dogtooth_tuna_desc => '力量强劲、依礁而居的金枪鱼，牙齿粗大显眼，多见于印度洋至太平洋的深水礁壁。';
+  String get species_dogtooth_tuna_desc =>
+      '力量强劲、依礁而居的金枪鱼，牙齿粗大显眼，多见于印度洋至太平洋的深水礁壁。';
 
   @override
   String get species_great_barracuda_name => '大梭鱼';
 
   @override
-  String get species_great_barracuda_desc => '体形流线的银色掠食者，可达 1.8 米，牙齿显眼，常一动不动地悬停在热带礁区附近。';
+  String get species_great_barracuda_desc =>
+      '体形流线的银色掠食者，可达 1.8 米，牙齿显眼，常一动不动地悬停在热带礁区附近。';
 
   @override
   String get species_blackfin_barracuda_name => '黑鳍梭鱼';
 
   @override
-  String get species_blackfin_barracuda_desc => '印度洋至太平洋的梭鱼，以在 Barracuda Point 等潜点结成龙卷风般的巨大鱼群著称。';
+  String get species_blackfin_barracuda_desc =>
+      '印度洋至太平洋的梭鱼，以在 Barracuda Point 等潜点结成龙卷风般的巨大鱼群著称。';
 
   @override
   String get species_mahi_mahi_name => '鲯鳅';
@@ -32135,13 +32940,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_giant_trevally_name => '珍鲹';
 
   @override
-  String get species_giant_trevally_desc => '力量强劲的银色掠食者，可达 1.7 米，以在印度洋至太平洋的礁区水道和陡坡捕猎而著称。';
+  String get species_giant_trevally_desc =>
+      '力量强劲的银色掠食者，可达 1.7 米，以在印度洋至太平洋的礁区水道和陡坡捕猎而著称。';
 
   @override
   String get species_bluefin_trevally_name => '蓝鳍鲹';
 
   @override
-  String get species_bluefin_trevally_desc => '体形流线、带蓝色斑点的鲹鱼，常成小群沿印度洋至太平洋的礁缘巡猎。';
+  String get species_bluefin_trevally_desc =>
+      '体形流线、带蓝色斑点的鲹鱼，常成小群沿印度洋至太平洋的礁缘巡猎。';
 
   @override
   String get species_bigeye_trevally_name => '六带鲹';
@@ -32165,43 +32972,50 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_yellowtail_snapper_name => '黄尾笛鲷';
 
   @override
-  String get species_yellowtail_snapper_desc => '体形流线的笛鲷，体侧有黄色纵带、尾鳍黄色，常在加勒比礁区的中层水域成群游动。';
+  String get species_yellowtail_snapper_desc =>
+      '体形流线的笛鲷，体侧有黄色纵带、尾鳍黄色，常在加勒比礁区的中层水域成群游动。';
 
   @override
   String get species_schoolmaster_snapper_name => '黄笛鲷';
 
   @override
-  String get species_schoolmaster_snapper_desc => '黄银相间的笛鲷，眼下有蓝色纹路，常成群栖息在加勒比礁区的岩檐下。';
+  String get species_schoolmaster_snapper_desc =>
+      '黄银相间的笛鲷，眼下有蓝色纹路，常成群栖息在加勒比礁区的岩檐下。';
 
   @override
   String get species_bluestripe_snapper_name => '四带笛鲷';
 
   @override
-  String get species_bluestripe_snapper_desc => '体色亮黄的笛鲷，体侧有四道蓝色纵纹，在印度洋至太平洋的礁区结成密集鱼群。';
+  String get species_bluestripe_snapper_desc =>
+      '体色亮黄的笛鲷，体侧有四道蓝色纵纹，在印度洋至太平洋的礁区结成密集鱼群。';
 
   @override
   String get species_twinspot_snapper_name => '红鳍笛鲷';
 
   @override
-  String get species_twinspot_snapper_desc => '大型红色笛鲷，见于印度洋至太平洋的外礁，有时会在深水礁壁和水道结群。';
+  String get species_twinspot_snapper_desc =>
+      '大型红色笛鲷，见于印度洋至太平洋的外礁，有时会在深水礁壁和水道结群。';
 
   @override
   String get species_humphead_snapper_name => '斑点羽鳃笛鲷';
 
   @override
-  String get species_humphead_snapper_desc => '体色深的大型笛鲷，常成群出现在印度洋至太平洋的陡峭落差附近，幼鱼为醒目的黑白花纹。';
+  String get species_humphead_snapper_desc =>
+      '体色深的大型笛鲷，常成群出现在印度洋至太平洋的陡峭落差附近，幼鱼为醒目的黑白花纹。';
 
   @override
   String get species_longfin_bannerfish_name => '马夫鱼';
 
   @override
-  String get species_longfin_bannerfish_desc => '黑白相间的鱼类，背鳍延长如飘带、尾鳍黄色，常成对出现在印度洋至太平洋的礁区。';
+  String get species_longfin_bannerfish_desc =>
+      '黑白相间的鱼类，背鳍延长如飘带、尾鳍黄色，常成对出现在印度洋至太平洋的礁区。';
 
   @override
   String get species_batfish_orbicular_name => '圆燕鱼';
 
   @override
-  String get species_batfish_orbicular_desc => '体形如银色圆盘、鳍高耸的鱼类，会好奇地靠近潜水员。常见于印度洋至太平洋的沉船和礁区。';
+  String get species_batfish_orbicular_desc =>
+      '体形如银色圆盘、鳍高耸的鱼类，会好奇地靠近潜水员。常见于印度洋至太平洋的沉船和礁区。';
 
   @override
   String get species_batfish_teira_name => '弯鳍燕鱼';
@@ -32219,55 +33033,64 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_banggai_cardinalfish_name => '邦盖天竺鲷';
 
   @override
-  String get species_banggai_cardinalfish_desc => '银黑相间、鳍条延长的醒目天竺鲷，为印度尼西亚邦盖群岛特有种。';
+  String get species_banggai_cardinalfish_desc =>
+      '银黑相间、鳍条延长的醒目天竺鲷，为印度尼西亚邦盖群岛特有种。';
 
   @override
   String get species_pajama_cardinalfish_name => '考氏鳍天竺鲷';
 
   @override
-  String get species_pajama_cardinalfish_desc => '外形奇特的天竺鲷，脸部黄色、腰部有深色宽带、后半身布满斑点，栖息于印度洋至太平洋的珊瑚间。';
+  String get species_pajama_cardinalfish_desc =>
+      '外形奇特的天竺鲷，脸部黄色、腰部有深色宽带、后半身布满斑点，栖息于印度洋至太平洋的珊瑚间。';
 
   @override
   String get species_longnose_hawkfish_name => '长吻鹰鲷';
 
   @override
-  String get species_longnose_hawkfish_desc => '体色白并有红色网格花纹的小型鱼类，吻部细长，常停栖在柳珊瑚和黑珊瑚上。';
+  String get species_longnose_hawkfish_desc =>
+      '体色白并有红色网格花纹的小型鱼类，吻部细长，常停栖在柳珊瑚和黑珊瑚上。';
 
   @override
   String get species_arc_eye_hawkfish_name => '弧眼鹰鲷';
 
   @override
-  String get species_arc_eye_hawkfish_desc => '小型鹰鲷，眼后有醒目的橙色弧纹，常停栖在印度洋至太平洋礁区的珊瑚头上。';
+  String get species_arc_eye_hawkfish_desc =>
+      '小型鹰鲷，眼后有醒目的橙色弧纹，常停栖在印度洋至太平洋礁区的珊瑚头上。';
 
   @override
   String get species_flame_hawkfish_name => '火焰鹰鲷';
 
   @override
-  String get species_flame_hawkfish_desc => '体色鲜红的鹰鲷，眼周有深色斑纹，常停栖在西太平洋的 Pocillopora 珊瑚丛中。';
+  String get species_flame_hawkfish_desc =>
+      '体色鲜红的鹰鲷，眼周有深色斑纹，常停栖在西太平洋的 Pocillopora 珊瑚丛中。';
 
   @override
   String get species_fire_goby_name => '华丽线塘鳢';
 
   @override
-  String get species_fire_goby_desc => '体态优雅的白色虾虎鱼，第一背鳍高耸、尾部红橙色，常悬停在印度洋至太平洋的礁区碎石上方。';
+  String get species_fire_goby_desc =>
+      '体态优雅的白色虾虎鱼，第一背鳍高耸、尾部红橙色，常悬停在印度洋至太平洋的礁区碎石上方。';
 
   @override
   String get species_purple_firefish_name => '紫焰线塘鳢';
 
   @override
-  String get species_purple_firefish_desc => '体形纤细的虾虎鱼，鳍呈紫色、背鳍高耸如尖刺，常在印度洋至太平洋外礁的洞口附近悬停。';
+  String get species_purple_firefish_desc =>
+      '体形纤细的虾虎鱼，鳍呈紫色、背鳍高耸如尖刺，常在印度洋至太平洋外礁的洞口附近悬停。';
 
   @override
   String get species_yellownose_goby_name => '黄鼻虾虎鱼';
 
   @override
-  String get species_yellownose_goby_desc => '加勒比海的小型清洁虾虎鱼，吻部黄色、体侧有蓝色纵纹，常见于海绵和珊瑚头上。';
+  String get species_yellownose_goby_desc =>
+      '加勒比海的小型清洁虾虎鱼，吻部黄色、体侧有蓝色纵纹，常见于海绵和珊瑚头上。';
 
   @override
   String get species_citron_goby_name => '柠檬虾虎鱼';
 
   @override
-  String get species_citron_goby_desc => '体型极小、通体亮黄的虾虎鱼，栖息于印度洋至太平洋礁区的 Acropora 珊瑚枝间。';
+  String get species_citron_goby_desc =>
+      '体型极小、通体亮黄的虾虎鱼，栖息于印度洋至太平洋礁区的 Acropora 珊瑚枝间。';
 
   @override
   String get species_shrimp_goby_name => '斯氏钝塘鳢';
@@ -32279,13 +33102,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_neon_goby_name => '霓虹虾虎鱼';
 
   @override
-  String get species_neon_goby_desc => '体色深的极小型虾虎鱼，体侧有一道亮蓝色霓虹纵纹，在加勒比海的珊瑚头上经营清洁站。';
+  String get species_neon_goby_desc =>
+      '体色深的极小型虾虎鱼，体侧有一道亮蓝色霓虹纵纹，在加勒比海的珊瑚头上经营清洁站。';
 
   @override
   String get species_bluestriped_fangblenny_name => '蓝纹牙鳚';
 
   @override
-  String get species_bluestriped_fangblenny_desc => '带蓝色纵纹的小型鳚鱼，会模仿清洁鱼，趁其他鱼不备咬下它们的鳞片。';
+  String get species_bluestriped_fangblenny_desc =>
+      '带蓝色纵纹的小型鳚鱼，会模仿清洁鱼，趁其他鱼不备咬下它们的鳞片。';
 
   @override
   String get species_sailfin_blenny_name => '帆鳍鳚';
@@ -32297,7 +33122,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_bicolor_blenny_name => '双色异齿鳚';
 
   @override
-  String get species_bicolor_blenny_desc => '小型鳚鱼，前半身深褐、后半身橙色，常从印度洋至太平洋礁区的孔洞中探头张望。';
+  String get species_bicolor_blenny_desc =>
+      '小型鳚鱼，前半身深褐、后半身橙色，常从印度洋至太平洋礁区的孔洞中探头张望。';
 
   @override
   String get species_redlip_blenny_name => '红唇鳚';
@@ -32309,13 +33135,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_pygmy_seahorse_name => '巴氏豆丁海马';
 
   @override
-  String get species_pygmy_seahorse_desc => '体长不足 2 厘米的迷你海马，与寄主柳珊瑚完美融为一体，是微距摄影梦寐以求的题材。';
+  String get species_pygmy_seahorse_desc =>
+      '体长不足 2 厘米的迷你海马，与寄主柳珊瑚完美融为一体，是微距摄影梦寐以求的题材。';
 
   @override
   String get species_common_seahorse_name => '库达海马';
 
   @override
-  String get species_common_seahorse_desc => '中等体型的海马，见于印度洋至太平洋的海草床和珊瑚碎石区，体色变化多端。';
+  String get species_common_seahorse_desc =>
+      '中等体型的海马，见于印度洋至太平洋的海草床和珊瑚碎石区，体色变化多端。';
 
   @override
   String get species_thorny_seahorse_name => '刺海马';
@@ -32327,49 +33155,57 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_ornate_ghost_pipefish_name => '华丽剃刀鱼';
 
   @override
-  String get species_ornate_ghost_pipefish_desc => '伪装极为精巧的剃刀鱼，常头朝下悬停在印度洋至太平洋的海百合和软珊瑚旁。';
+  String get species_ornate_ghost_pipefish_desc =>
+      '伪装极为精巧的剃刀鱼，常头朝下悬停在印度洋至太平洋的海百合和软珊瑚旁。';
 
   @override
   String get species_robust_ghost_pipefish_name => '蓝鳍剃刀鱼';
 
   @override
-  String get species_robust_ghost_pipefish_desc => '体型较大的剃刀鱼，会模仿海草或藻类，常成对出现在印度洋至太平洋的近岸水域。';
+  String get species_robust_ghost_pipefish_desc =>
+      '体型较大的剃刀鱼，会模仿海草或藻类，常成对出现在印度洋至太平洋的近岸水域。';
 
   @override
   String get species_trumpetfish_name => '管口鱼';
 
   @override
-  String get species_trumpetfish_desc => '体形细长的鱼类，会紧贴大型鱼类的身影伺机捕猎，见于加勒比海和大西洋礁区，体色多样。';
+  String get species_trumpetfish_desc =>
+      '体形细长的鱼类，会紧贴大型鱼类的身影伺机捕猎，见于加勒比海和大西洋礁区，体色多样。';
 
   @override
   String get species_cornetfish_name => '烟管鱼';
 
   @override
-  String get species_cornetfish_desc => '体形极度细长的鱼类，可达 1.5 米，尾部拖着一根丝状鳍条，常见其在礁坪上方滑行。';
+  String get species_cornetfish_desc =>
+      '体形极度细长的鱼类，可达 1.5 米，尾部拖着一根丝状鳍条，常见其在礁坪上方滑行。';
 
   @override
   String get species_yellowhead_jawfish_name => '黄头后颌䲗';
 
   @override
-  String get species_yellowhead_jawfish_desc => '身体蓝色、头部黄色的小型鱼类，常悬停在加勒比礁区的沙穴上方。雄鱼用口孵卵。';
+  String get species_yellowhead_jawfish_desc =>
+      '身体蓝色、头部黄色的小型鱼类，常悬停在加勒比礁区的沙穴上方。雄鱼用口孵卵。';
 
   @override
   String get species_flamefish_name => '火焰天竺鲷';
 
   @override
-  String get species_flamefish_desc => '体色鲜红的小型天竺鲷，第二背鳍下方有一个深色斑点，白天躲藏在加勒比礁区的缝隙中。';
+  String get species_flamefish_desc =>
+      '体色鲜红的小型天竺鲷，第二背鳍下方有一个深色斑点，白天躲藏在加勒比礁区的缝隙中。';
 
   @override
   String get species_longspine_squirrelfish_name => '长棘鳂';
 
   @override
-  String get species_longspine_squirrelfish_desc => '体色红、眼睛大的夜行性鱼类，背鳍棘明显延长，白天躲在加勒比礁区的岩檐下。';
+  String get species_longspine_squirrelfish_desc =>
+      '体色红、眼睛大的夜行性鱼类，背鳍棘明显延长，白天躲在加勒比礁区的岩檐下。';
 
   @override
   String get species_soldierfish_name => '大鳞锯鳞鱼';
 
   @override
-  String get species_soldierfish_desc => '体色红的夜行性鱼类，眼睛巨大而深色、鳞片粗大，白天在洞穴和岩檐下成群栖息。';
+  String get species_soldierfish_desc =>
+      '体色红的夜行性鱼类，眼睛巨大而深色、鳞片粗大，白天在洞穴和岩檐下成群栖息。';
 
   @override
   String get species_flame_angelfish_name => '火焰神仙鱼';
@@ -32387,19 +33223,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_anthias_lyretail_name => '丝鳍拟花鮨';
 
   @override
-  String get species_anthias_lyretail_desc => '数量极多的礁区鱼类，在印度洋至太平洋的珊瑚上方汇成橙粉相间的云雾。雄鱼呈紫色。';
+  String get species_anthias_lyretail_desc =>
+      '数量极多的礁区鱼类，在印度洋至太平洋的珊瑚上方汇成橙粉相间的云雾。雄鱼呈紫色。';
 
   @override
   String get species_mediterranean_grouper_name => '褐石斑鱼';
 
   @override
-  String get species_mediterranean_grouper_desc => '体色深褐、带浅色斑驳的大型石斑鱼，是地中海岩礁的标志性掠食者。';
+  String get species_mediterranean_grouper_desc =>
+      '体色深褐、带浅色斑驳的大型石斑鱼，是地中海岩礁的标志性掠食者。';
 
   @override
   String get species_mediterranean_moray_name => '欧洲海鳝';
 
   @override
-  String get species_mediterranean_moray_desc => '深褐色并带黄色斑驳的海鳝，常见其从地中海的岩缝中探头张望。';
+  String get species_mediterranean_moray_desc =>
+      '深褐色并带黄色斑驳的海鳝，常见其从地中海的岩缝中探头张望。';
 
   @override
   String get species_ornate_wrasse_name => '孔雀锦鱼';
@@ -32411,7 +33250,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_red_sea_bannerfish_name => '假面蝴蝶鱼';
 
   @override
-  String get species_red_sea_bannerfish_desc => '体色亮黄的蝴蝶鱼，眼部有深色斑块，为红海特有种。常成对出现。';
+  String get species_red_sea_bannerfish_desc =>
+      '体色亮黄的蝴蝶鱼，眼部有深色斑块，为红海特有种。常成对出现。';
 
   @override
   String get species_red_sea_anemonefish_name => '双带双锯鱼';
@@ -32423,19 +33263,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_arabian_angelfish_name => '阿拉伯神仙鱼';
 
   @override
-  String get species_arabian_angelfish_desc => '体色深蓝的大型神仙鱼，体侧有醒目的黄色竖带且尾鳍黄色，为西印度洋特有种。';
+  String get species_arabian_angelfish_desc =>
+      '体色深蓝的大型神仙鱼，体侧有醒目的黄色竖带且尾鳍黄色，为西印度洋特有种。';
 
   @override
   String get species_king_angelfish_name => '国王神仙鱼';
 
   @override
-  String get species_king_angelfish_desc => '体色深蓝的大型神仙鱼，体侧有一道白色竖带、尾鳍黄色，见于东太平洋和加拉帕戈斯。';
+  String get species_king_angelfish_desc =>
+      '体色深蓝的大型神仙鱼，体侧有一道白色竖带、尾鳍黄色，见于东太平洋和加拉帕戈斯。';
 
   @override
   String get species_ocean_sunfish_name => '翻车鱼';
 
   @override
-  String get species_ocean_sunfish_desc => '体重最大的硬骨鱼，可超过 2 吨。潜水员偶尔可在巴厘岛和加拉帕戈斯的清洁站遇见。';
+  String get species_ocean_sunfish_desc =>
+      '体重最大的硬骨鱼，可超过 2 吨。潜水员偶尔可在巴厘岛和加拉帕戈斯的清洁站遇见。';
 
   @override
   String get species_lingcod_name => '长条蛇齿单线鱼';
@@ -32453,7 +33296,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_giant_sea_bass_name => '巨鲈';
 
   @override
-  String get species_giant_sea_bass_desc => '体型巨大的鲈类，可超过 2 米、250 公斤，见于南加州的岩礁和海藻林。';
+  String get species_giant_sea_bass_desc =>
+      '体型巨大的鲈类，可超过 2 米、250 公斤，见于南加州的岩礁和海藻林。';
 
   @override
   String get species_garibaldi_name => '加里波第雀鲷';
@@ -32471,67 +33315,78 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_copper_rockfish_name => '铜平鲉';
 
   @override
-  String get species_copper_rockfish_desc => '体色铜橙并带浅色斑块的平鲉，是北美太平洋西北岸岩礁和海藻林的常客。';
+  String get species_copper_rockfish_desc =>
+      '体色铜橙并带浅色斑块的平鲉，是北美太平洋西北岸岩礁和海藻林的常客。';
 
   @override
   String get species_oriental_sweetlips_name => '东方胡椒鲷';
 
   @override
-  String get species_oriental_sweetlips_desc => '印度洋至太平洋的大型礁鱼，体侧有醒目的黑白条纹、鳍呈黄色。幼鱼会以扭动的姿态游动。';
+  String get species_oriental_sweetlips_desc =>
+      '印度洋至太平洋的大型礁鱼，体侧有醒目的黑白条纹、鳍呈黄色。幼鱼会以扭动的姿态游动。';
 
   @override
   String get species_harlequin_sweetlips_name => '斑胡椒鲷';
 
   @override
-  String get species_harlequin_sweetlips_desc => '成鱼体色灰并带深色斑点；幼鱼呈褐色并有大块白斑，游动时身体波浪般起伏。';
+  String get species_harlequin_sweetlips_desc =>
+      '成鱼体色灰并带深色斑点；幼鱼呈褐色并有大块白斑，游动时身体波浪般起伏。';
 
   @override
   String get species_blue_ringed_angelfish_name => '环纹刺盖鱼';
 
   @override
-  String get species_blue_ringed_angelfish_desc => '体色褐的大型神仙鱼，体侧有蓝色弧线，鳃盖上方有一个醒目的蓝色环纹。';
+  String get species_blue_ringed_angelfish_desc =>
+      '体色褐的大型神仙鱼，体侧有蓝色弧线，鳃盖上方有一个醒目的蓝色环纹。';
 
   @override
   String get species_yellowbar_angelfish_name => '黄斑刺盖鱼';
 
   @override
-  String get species_yellowbar_angelfish_desc => '体色灰蓝的大型神仙鱼，体侧有一块醒目的黄色斑块，见于红海和西印度洋。';
+  String get species_yellowbar_angelfish_desc =>
+      '体色灰蓝的大型神仙鱼，体侧有一块醒目的黄色斑块，见于红海和西印度洋。';
 
   @override
   String get species_filefish_scrawled_name => '拟态革鲀';
 
   @override
-  String get species_filefish_scrawled_desc => '体色橄榄褐的大型单棘鲀，体表有蓝色涂鸦般的纹路、喉部有橙色垂皮，遍布全球热带礁区。';
+  String get species_filefish_scrawled_desc =>
+      '体色橄榄褐的大型单棘鲀，体表有蓝色涂鸦般的纹路、喉部有橙色垂皮，遍布全球热带礁区。';
 
   @override
   String get species_clown_filefish_name => '长吻单棘鲀';
 
   @override
-  String get species_clown_filefish_desc => '体色绿的小型单棘鲀，体表有橙色斑点、吻部细长，专食 Acropora 珊瑚的水螅体。';
+  String get species_clown_filefish_desc =>
+      '体色绿的小型单棘鲀，体表有橙色斑点、吻部细长，专食 Acropora 珊瑚的水螅体。';
 
   @override
   String get species_unicornfish_name => '突角鼻鱼';
 
   @override
-  String get species_unicornfish_desc => '体色灰的刺尾鱼，额头有明显的角状突起，尾柄有两枚蓝色棘板，常见于印度洋至太平洋的礁坪。';
+  String get species_unicornfish_desc =>
+      '体色灰的刺尾鱼，额头有明显的角状突起，尾柄有两枚蓝色棘板，常见于印度洋至太平洋的礁坪。';
 
   @override
   String get species_surgeonfish_sailfin_name => '高鳍刺尾鱼';
 
   @override
-  String get species_surgeonfish_sailfin_desc => '条带醒目的刺尾鱼，背鳍和臀鳍可极度张开，广布印度洋至太平洋。';
+  String get species_surgeonfish_sailfin_desc =>
+      '条带醒目的刺尾鱼，背鳍和臀鳍可极度张开，广布印度洋至太平洋。';
 
   @override
   String get species_achilles_tang_name => '红印刺尾鱼';
 
   @override
-  String get species_achilles_tang_desc => '体色深褐的刺尾鱼，近尾部有一块醒目的橙色泪滴形斑，见于中太平洋的浪涌带。';
+  String get species_achilles_tang_desc =>
+      '体色深褐的刺尾鱼，近尾部有一块醒目的橙色泪滴形斑，见于中太平洋的浪涌带。';
 
   @override
   String get species_doctorfish_name => '医生刺尾鱼';
 
   @override
-  String get species_doctorfish_desc => '体色灰褐的刺尾鱼，体侧有淡淡的深色横带，尾柄的手术刀状棘刺十分显眼，加勒比礁区常见。';
+  String get species_doctorfish_desc =>
+      '体色灰褐的刺尾鱼，体侧有淡淡的深色横带，尾柄的手术刀状棘刺十分显眼，加勒比礁区常见。';
 
   @override
   String get species_checkerboard_wrasse_name => '花斑拟唇鱼';
@@ -32585,7 +33440,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_jackknife_fish_name => '折刀鱼';
 
   @override
-  String get species_jackknife_fish_desc => '体态优雅的加勒比鱼类，背鳍高耸并带黑色条纹，体侧有一道斜带，常见于岩檐下。';
+  String get species_jackknife_fish_desc =>
+      '体态优雅的加勒比鱼类，背鳍高耸并带黑色条纹，体侧有一道斜带，常见于岩檐下。';
 
   @override
   String get species_bigeye_name => '玻璃大眼鲷';
@@ -32615,31 +33471,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_leafy_seadragon_name => '叶海龙';
 
   @override
-  String get species_leafy_seadragon_desc => '外形惊艳的海龙，全身覆满精致的叶状突起，为澳大利亚南部特有种。是潜水员心愿清单上的目击目标。';
+  String get species_leafy_seadragon_desc =>
+      '外形惊艳的海龙，全身覆满精致的叶状突起，为澳大利亚南部特有种。是潜水员心愿清单上的目击目标。';
 
   @override
   String get species_sailfin_snapper_name => '帆鳍笛鲷';
 
   @override
-  String get species_sailfin_snapper_desc => '黄蓝相间、体态优雅的笛鲷，背鳍和臀鳍明显延长，见于印度洋至太平洋的礁坡。';
+  String get species_sailfin_snapper_desc =>
+      '黄蓝相间、体态优雅的笛鲷，背鳍和臀鳍明显延长，见于印度洋至太平洋的礁坡。';
 
   @override
   String get species_sweetlip_emperor_name => '星斑裸颊鲷';
 
   @override
-  String get species_sweetlip_emperor_desc => '体色银亮的大型裸颊鲷，脸部有蓝色纹路、鳍缘泛黄，常见于印度洋至太平洋的沙质礁区。';
+  String get species_sweetlip_emperor_desc =>
+      '体色银亮的大型裸颊鲷，脸部有蓝色纹路、鳍缘泛黄，常见于印度洋至太平洋的沙质礁区。';
 
   @override
   String get species_crocodilefish_name => '鳄形牛尾鱼';
 
   @override
-  String get species_crocodilefish_desc => '头部扁平的伏击型掠食者，眼部有精致的流苏，在印度洋至太平洋的礁底伪装得天衣无缝。';
+  String get species_crocodilefish_desc =>
+      '头部扁平的伏击型掠食者，眼部有精致的流苏，在印度洋至太平洋的礁底伪装得天衣无缝。';
 
   @override
   String get species_devil_scorpionfish_name => '魔鬼鲉';
 
   @override
-  String get species_devil_scorpionfish_desc => '体形粗壮、伪装极佳的鲉鱼，会张开色彩鲜艳的胸鳍内侧向掠食者示警。';
+  String get species_devil_scorpionfish_desc =>
+      '体形粗壮、伪装极佳的鲉鱼，会张开色彩鲜艳的胸鳍内侧向掠食者示警。';
 
   @override
   String get species_spiny_devilfish_name => '双指鬼鲉';
@@ -32663,25 +33524,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_striped_catfish_name => '线纹鳗鲇';
 
   @override
-  String get species_striped_catfish_desc => '鳍棘有毒的鲇鱼；幼鱼会结成密集的球状鱼群，在印度洋至太平洋的礁底翻滚移动。';
+  String get species_striped_catfish_desc =>
+      '鳍棘有毒的鲇鱼；幼鱼会结成密集的球状鱼群，在印度洋至太平洋的礁底翻滚移动。';
 
   @override
   String get species_red_emperor_name => '川纹笛鲷';
 
   @override
-  String get species_red_emperor_desc => '大型笛鲷；成鱼体色粉红偏红，幼鱼有醒目的红白宽带。见于印度洋至太平洋的礁区。';
+  String get species_red_emperor_desc =>
+      '大型笛鲷；成鱼体色粉红偏红，幼鱼有醒目的红白宽带。见于印度洋至太平洋的礁区。';
 
   @override
   String get species_mangrove_snapper_name => '灰笛鲷';
 
   @override
-  String get species_mangrove_snapper_desc => '体色灰的笛鲷，见于加勒比海的红树林、海草床和礁区，常聚集在礁石结构附近。';
+  String get species_mangrove_snapper_desc =>
+      '体色灰的笛鲷，见于加勒比海的红树林、海草床和礁区，常聚集在礁石结构附近。';
 
   @override
   String get species_dottyback_orchid_name => '兰花拟雀鲷';
 
   @override
-  String get species_dottyback_orchid_desc => '体色亮紫的小型鱼类，为红海特有种，常在陡峭礁壁的缝隙间快速穿进穿出。';
+  String get species_dottyback_orchid_desc =>
+      '体色亮紫的小型鱼类，为红海特有种，常在陡峭礁壁的缝隙间快速穿进穿出。';
 
   @override
   String get species_dottyback_royal_name => '皇家拟雀鲷';
@@ -32705,31 +33570,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_spadefish_atlantic_name => '大西洋铲鱼';
 
   @override
-  String get species_spadefish_atlantic_desc => '体形如银色圆盘并带深色竖带的鱼类，常在加勒比海的沉船周围成大群出现。';
+  String get species_spadefish_atlantic_desc =>
+      '体形如银色圆盘并带深色竖带的鱼类，常在加勒比海的沉船周围成大群出现。';
 
   @override
   String get species_fusilier_yellowback_name => '黄背梅鲷';
 
   @override
-  String get species_fusilier_yellowback_desc => '体形流线、以浮游生物为食的蓝色鱼类，背部黄色，在印度洋至太平洋的礁坡上方结成庞大鱼群。';
+  String get species_fusilier_yellowback_desc =>
+      '体形流线、以浮游生物为食的蓝色鱼类，背部黄色，在印度洋至太平洋的礁坡上方结成庞大鱼群。';
 
   @override
   String get species_fusilier_bluestreak_name => '蓝纹梅鲷';
 
   @override
-  String get species_fusilier_bluestreak_desc => '带深色纵纹的小型蓝色梅鲷，常沿印度洋至太平洋的礁壁快速成群游动。';
+  String get species_fusilier_bluestreak_desc =>
+      '带深色纵纹的小型蓝色梅鲷，常沿印度洋至太平洋的礁壁快速成群游动。';
 
   @override
   String get species_porkfish_name => '黄纹石鲈';
 
   @override
-  String get species_porkfish_desc => '色彩鲜艳的加勒比石鲈，体侧有蓝黄相间的纵纹，头部有两道黑带，见于礁区和沉船附近。';
+  String get species_porkfish_desc =>
+      '色彩鲜艳的加勒比石鲈，体侧有蓝黄相间的纵纹，头部有两道黑带，见于礁区和沉船附近。';
 
   @override
   String get species_blue_striped_grunt_name => '蓝纹石鲈';
 
   @override
-  String get species_blue_striped_grunt_desc => '体色黄的加勒比石鲈，体侧有鲜蓝色纵纹，白天在岩檐下结成大群休息。';
+  String get species_blue_striped_grunt_desc =>
+      '体色黄的加勒比石鲈，体侧有鲜蓝色纵纹，白天在岩檐下结成大群休息。';
 
   @override
   String get species_french_grunt_name => '法国石鲈';
@@ -32741,7 +33611,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_convict_tang_name => '横带刺尾鱼';
 
   @override
-  String get species_convict_tang_desc => '体色浅淡的刺尾鱼，体侧有六道黑色竖带，常成大群在印度洋至太平洋的礁坪上啃食藻类。';
+  String get species_convict_tang_desc =>
+      '体色浅淡的刺尾鱼，体侧有六道黑色竖带，常成大群在印度洋至太平洋的礁坪上啃食藻类。';
 
   @override
   String get species_great_hammerhead_name => '路氏双髻鲨';
@@ -32759,7 +33630,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_manta_ray_name => '珊瑚礁蝠鲼';
 
   @override
-  String get species_manta_ray_desc => '姿态优雅的巨型鳐类，翼展可达 5 米，会造访清洁站并在印度洋至太平洋的礁区滤食浮游生物。';
+  String get species_manta_ray_desc =>
+      '姿态优雅的巨型鳐类，翼展可达 5 米，会造访清洁站并在印度洋至太平洋的礁区滤食浮游生物。';
 
   @override
   String get species_oceanic_manta_name => '大洋蝠鲼';
@@ -32771,37 +33643,43 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_undulated_moray_name => '波纹裸胸鳝';
 
   @override
-  String get species_undulated_moray_desc => '体色黄绿并带深色波状斑纹的海鳝，常见其夜间在印度洋至太平洋的礁区捕猎。';
+  String get species_undulated_moray_desc =>
+      '体色黄绿并带深色波状斑纹的海鳝，常见其夜间在印度洋至太平洋的礁区捕猎。';
 
   @override
   String get species_whitemouth_moray_name => '白口裸胸鳝';
 
   @override
-  String get species_whitemouth_moray_desc => '深褐色的海鳝，体表有细小白点，口腔内部呈醒目的白色，广布印度洋至太平洋。';
+  String get species_whitemouth_moray_desc =>
+      '深褐色的海鳝，体表有细小白点，口腔内部呈醒目的白色，广布印度洋至太平洋。';
 
   @override
   String get species_dragon_moray_name => '龙海鳝';
 
   @override
-  String get species_dragon_moray_desc => '外形夺目的海鳝，鼻孔上方有龙角般的突起，体表布满橙红色豹纹，见于印度洋至太平洋。';
+  String get species_dragon_moray_desc =>
+      '外形夺目的海鳝，鼻孔上方有龙角般的突起，体表布满橙红色豹纹，见于印度洋至太平洋。';
 
   @override
   String get species_lyretail_grouper_name => '侧牙鲈';
 
   @override
-  String get species_lyretail_grouper_desc => '体色红粉、布满蓝色斑点的石斑鱼，尾鳍呈独特的新月形，见于印度洋至太平洋的外礁壁。';
+  String get species_lyretail_grouper_desc =>
+      '体色红粉、布满蓝色斑点的石斑鱼，尾鳍呈独特的新月形，见于印度洋至太平洋的外礁壁。';
 
   @override
   String get species_banded_butterflyfish_name => '带纹蝴蝶鱼';
 
   @override
-  String get species_banded_butterflyfish_desc => '体色白的蝴蝶鱼，体侧有四道醒目的黑色竖带，是加勒比礁区最常见的蝴蝶鱼之一。';
+  String get species_banded_butterflyfish_desc =>
+      '体色白的蝴蝶鱼，体侧有四道醒目的黑色竖带，是加勒比礁区最常见的蝴蝶鱼之一。';
 
   @override
   String get species_ringed_pipefish_name => '环纹海龙';
 
   @override
-  String get species_ringed_pipefish_desc => '体形细长的海龙，全身有红白相间的环纹，见于印度洋至太平洋礁区的洞穴和岩檐下。';
+  String get species_ringed_pipefish_desc =>
+      '体形细长的海龙，全身有红白相间的环纹，见于印度洋至太平洋礁区的洞穴和岩檐下。';
 
   @override
   String get species_razorfish_name => '条纹虾鱼';
@@ -32813,7 +33691,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_harlequin_tuskfish_name => '横带猪齿鱼';
 
   @override
-  String get species_harlequin_tuskfish_desc => '色彩鲜艳的隆头鱼，长有亮蓝色的獠牙，体侧有红橙色横带和白色斑块，见于西太平洋礁区。';
+  String get species_harlequin_tuskfish_desc =>
+      '色彩鲜艳的隆头鱼，长有亮蓝色的獠牙，体侧有红橙色横带和白色斑块，见于西太平洋礁区。';
 
   @override
   String get species_blue_groper_name => '东澳蓝隆头鱼';
@@ -32825,13 +33704,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_red_lipped_batfish_name => '红唇蝙蝠鱼';
 
   @override
-  String get species_red_lipped_batfish_desc => '体形扁平、外形怪异的鱼类，嘴唇鲜红，用特化的鳍在加拉帕戈斯的海底行走。';
+  String get species_red_lipped_batfish_desc =>
+      '体形扁平、外形怪异的鱼类，嘴唇鲜红，用特化的鳍在加拉帕戈斯的海底行走。';
 
   @override
   String get species_orangeband_surgeonfish_name => '橙斑刺尾鱼';
 
   @override
-  String get species_orangeband_surgeonfish_desc => '体色灰褐的刺尾鱼，眼后有一道橙色横带，见于太平洋的礁坡。';
+  String get species_orangeband_surgeonfish_desc =>
+      '体色灰褐的刺尾鱼，眼后有一道橙色横带，见于太平洋的礁坡。';
 
   @override
   String get species_maori_wrasse_name => '双线尖唇鱼';
@@ -32855,7 +33736,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_giant_pacific_octopus_name => '北太平洋巨型章鱼';
 
   @override
-  String get species_giant_pacific_octopus_desc => '体型最大的章鱼，在寒冷的太平洋海域腕展可超过 4 米。';
+  String get species_giant_pacific_octopus_desc =>
+      '体型最大的章鱼，在寒冷的太平洋海域腕展可超过 4 米。';
 
   @override
   String get species_mimic_octopus_name => '拟态章鱼';
@@ -32879,25 +33761,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_wonderpus_octopus_name => '神奇章鱼';
 
   @override
-  String get species_wonderpus_octopus_desc => '体色醒目的章鱼，有独特的白褐相间环纹，常见于沙泥质的泥潜潜点。';
+  String get species_wonderpus_octopus_desc =>
+      '体色醒目的章鱼，有独特的白褐相间环纹，常见于沙泥质的泥潜潜点。';
 
   @override
   String get species_broadclub_cuttlefish_name => '虎斑乌贼';
 
   @override
-  String get species_broadclub_cuttlefish_desc => '体型较大的乌贼，能变换出令人目眩的体色，常见于印度洋至太平洋的礁区。';
+  String get species_broadclub_cuttlefish_desc =>
+      '体型较大的乌贼，能变换出令人目眩的体色，常见于印度洋至太平洋的礁区。';
 
   @override
   String get species_pharaoh_cuttlefish_name => '法老乌贼';
 
   @override
-  String get species_pharaoh_cuttlefish_desc => '体型较大的乌贼，分布于整个印度洋，以体表脉动般变换的花纹著称。';
+  String get species_pharaoh_cuttlefish_desc =>
+      '体型较大的乌贼，分布于整个印度洋，以体表脉动般变换的花纹著称。';
 
   @override
   String get species_flamboyant_cuttlefish_name => '火焰乌贼';
 
   @override
-  String get species_flamboyant_cuttlefish_desc => '体型极小的乌贼，会在海底行走，同时闪现鲜艳的紫、粉、黄色脉动。';
+  String get species_flamboyant_cuttlefish_desc =>
+      '体型极小的乌贼，会在海底行走，同时闪现鲜艳的紫、粉、黄色脉动。';
 
   @override
   String get species_giant_cuttlefish_name => '澳洲巨乌贼';
@@ -32927,7 +33813,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_chambered_nautilus_name => '鹦鹉螺';
 
   @override
-  String get species_chambered_nautilus_desc => '拥有螺旋壳的古老活化石，潜水员偶尔可在破晓时分的深水中见到。';
+  String get species_chambered_nautilus_desc =>
+      '拥有螺旋壳的古老活化石，潜水员偶尔可在破晓时分的深水中见到。';
 
   @override
   String get species_spanish_dancer_name => '西班牙舞娘';
@@ -32951,7 +33838,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_chromodoris_magnifica_name => '华丽多彩海蛞蝓';
 
   @override
-  String get species_chromodoris_magnifica_desc => '蓝、白、橙三色鲜艳的海蛞蝓，见于印度洋至太平洋的珊瑚礁。';
+  String get species_chromodoris_magnifica_desc =>
+      '蓝、白、橙三色鲜艳的海蛞蝓，见于印度洋至太平洋的珊瑚礁。';
 
   @override
   String get species_chromodoris_annae_name => '安娜多彩海蛞蝓';
@@ -32969,7 +33857,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_nembrotha_cristata_name => '冠状多角海蛞蝓';
 
   @override
-  String get species_nembrotha_cristata_desc => '体色黑的海蛞蝓，体表有亮绿色疣突和条纹，见于印度洋至太平洋的礁区。';
+  String get species_nembrotha_cristata_desc =>
+      '体色黑的海蛞蝓，体表有亮绿色疣突和条纹，见于印度洋至太平洋的礁区。';
 
   @override
   String get species_phyllidia_varicosa_name => '曲纹叶海蛞蝓';
@@ -33005,7 +33894,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_blue_dragon_nudibranch_name => '蓝龙海蛞蝓';
 
   @override
-  String get species_blue_dragon_nudibranch_desc => '体形细长的蓑海牛，背突尖端呈蓝色，体内共生着虫黄藻。';
+  String get species_blue_dragon_nudibranch_desc =>
+      '体形细长的蓑海牛，背突尖端呈蓝色，体内共生着虫黄藻。';
 
   @override
   String get species_gloomy_nudibranch_name => '暗色海蛞蝓';
@@ -33029,25 +33919,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_jorunna_funebris_name => '斑点海蛞蝓';
 
   @override
-  String get species_jorunna_funebris_desc => '体色白的海蛞蝓，全身覆盖尖端呈黑色的细小突起，看上去像一只毛茸茸的兔子。';
+  String get species_jorunna_funebris_desc =>
+      '体色白的海蛞蝓，全身覆盖尖端呈黑色的细小突起，看上去像一只毛茸茸的兔子。';
 
   @override
   String get species_ceratosoma_trilobatum_name => '三叶海蛞蝓';
 
   @override
-  String get species_ceratosoma_trilobatum_desc => '体型较大的海蛞蝓，背部有高耸的角突和侧叶，呈紫黄色调。';
+  String get species_ceratosoma_trilobatum_desc =>
+      '体型较大的海蛞蝓，背部有高耸的角突和侧叶，呈紫黄色调。';
 
   @override
   String get species_hypselodoris_apolegma_name => '紫色多彩海蛞蝓';
 
   @override
-  String get species_hypselodoris_apolegma_desc => '体态优雅的紫色海蛞蝓，外套膜边缘镶白，见于印度洋至太平洋的礁区。';
+  String get species_hypselodoris_apolegma_desc =>
+      '体态优雅的紫色海蛞蝓，外套膜边缘镶白，见于印度洋至太平洋的礁区。';
 
   @override
   String get species_hypselodoris_bullockii_name => '布洛克多彩海蛞蝓';
 
   @override
-  String get species_hypselodoris_bullockii_desc => '粉紫相间的海蛞蝓，触角尖端呈黄色，见于印度洋至太平洋的礁区。';
+  String get species_hypselodoris_bullockii_desc =>
+      '粉紫相间的海蛞蝓，触角尖端呈黄色，见于印度洋至太平洋的礁区。';
 
   @override
   String get species_flabellina_exoptata_name => '华丽蓑海牛';
@@ -33065,13 +33959,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_goniobranchus_kuniei_name => '库尼海蛞蝓';
 
   @override
-  String get species_goniobranchus_kuniei_desc => '体色白并布满橙色斑点的海蛞蝓，外套膜边缘呈紫色，见于西太平洋。';
+  String get species_goniobranchus_kuniei_desc =>
+      '体色白并布满橙色斑点的海蛞蝓，外套膜边缘呈紫色，见于西太平洋。';
 
   @override
   String get species_mexichromis_multituberculata_name => '多疣海蛞蝓';
 
   @override
-  String get species_mexichromis_multituberculata_desc => '紫白相间的海蛞蝓，体表有隆起的疣突，附属器官尖端呈橙色。';
+  String get species_mexichromis_multituberculata_desc =>
+      '紫白相间的海蛞蝓，体表有隆起的疣突，附属器官尖端呈橙色。';
 
   @override
   String get species_chromodoris_dianae_name => '戴安娜多彩海蛞蝓';
@@ -33083,19 +33979,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_phyllodesmium_poindimiei_name => '太阳能海蛞蝓';
 
   @override
-  String get species_phyllodesmium_poindimiei_desc => '身体半透明的蓑海牛，背突分枝繁复，体内共生着虫黄藻。';
+  String get species_phyllodesmium_poindimiei_desc =>
+      '身体半透明的蓑海牛，背突分枝繁复，体内共生着虫黄藻。';
 
   @override
   String get species_chromodoris_elisabethina_name => '伊丽莎白多彩海蛞蝓';
 
   @override
-  String get species_chromodoris_elisabethina_desc => '体色蓝并有黄色纵线的海蛞蝓，外套膜镶白边，在东南亚十分常见。';
+  String get species_chromodoris_elisabethina_desc =>
+      '体色蓝并有黄色纵线的海蛞蝓，外套膜镶白边，在东南亚十分常见。';
 
   @override
   String get species_doridella_batava_name => '巴达维亚海蛞蝓';
 
   @override
-  String get species_doridella_batava_desc => '体色由黑至褐变化不定的海蛞蝓，见于印度洋至太平洋礁区的石块和碎石下。';
+  String get species_doridella_batava_desc =>
+      '体色由黑至褐变化不定的海蛞蝓，见于印度洋至太平洋礁区的石块和碎石下。';
 
   @override
   String get species_tiger_cowrie_name => '虎斑宝贝';
@@ -33179,7 +34078,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_painted_spiny_lobster_name => '花纹龙虾';
 
   @override
-  String get species_painted_spiny_lobster_desc => '体色艳丽的龙虾，步足有蓝、绿、白相间的条纹，见于印度洋至太平洋的礁区。';
+  String get species_painted_spiny_lobster_desc =>
+      '体色艳丽的龙虾，步足有蓝、绿、白相间的条纹，见于印度洋至太平洋的礁区。';
 
   @override
   String get species_slipper_lobster_name => '蝉虾';
@@ -33227,7 +34127,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_channel_clinging_crab_name => '加勒比礁蟹';
 
   @override
-  String get species_channel_clinging_crab_desc => '加勒比礁区的大型蟹类，身体深色、螯呈红橙色，常见于缝隙中。';
+  String get species_channel_clinging_crab_desc =>
+      '加勒比礁区的大型蟹类，身体深色、螯呈红橙色，常见于缝隙中。';
 
   @override
   String get species_coral_crab_name => '珊瑚守卫蟹';
@@ -33239,7 +34140,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_crown_of_thorns_starfish_name => '棘冠海星';
 
   @override
-  String get species_crown_of_thorns_starfish_desc => '多腕的有毒海星，以珊瑚为食，暴发时可摧毁整片礁区。';
+  String get species_crown_of_thorns_starfish_desc =>
+      '多腕的有毒海星，以珊瑚为食，暴发时可摧毁整片礁区。';
 
   @override
   String get species_blue_linckia_starfish_name => '蓝指海星';
@@ -33257,7 +34159,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_chocolate_chip_starfish_name => '巧克力豆海星';
 
   @override
-  String get species_chocolate_chip_starfish_desc => '体色浅褐的海星，背面有形似巧克力碎粒的深色隆起瘤突，见于沙质海底。';
+  String get species_chocolate_chip_starfish_desc =>
+      '体色浅褐的海星，背面有形似巧克力碎粒的深色隆起瘤突，见于沙质海底。';
 
   @override
   String get species_cushion_star_name => '面包海星';
@@ -33299,7 +34202,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_long_spined_sea_urchin_name => '长刺海胆';
 
   @override
-  String get species_long_spined_sea_urchin_desc => '体色黑、棘刺细长有毒的海胆，是加勒比礁区关键的啃藻者。';
+  String get species_long_spined_sea_urchin_desc =>
+      '体色黑、棘刺细长有毒的海胆，是加勒比礁区关键的啃藻者。';
 
   @override
   String get species_fire_urchin_name => '火海胆';
@@ -33371,13 +34275,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_upside_down_jellyfish_name => '倒立水母';
 
   @override
-  String get species_upside_down_jellyfish_desc => '习性奇特的水母，伞体朝下卧在沙底，让体内的藻类进行光合作用。';
+  String get species_upside_down_jellyfish_desc =>
+      '习性奇特的水母，伞体朝下卧在沙底，让体内的藻类进行光合作用。';
 
   @override
   String get species_blue_blubber_jellyfish_name => '蓝伞水母';
 
   @override
-  String get species_blue_blubber_jellyfish_desc => '蓝白色的水母，伞体结实、口腕呈褶皱状，在澳大利亚海域十分常见。';
+  String get species_blue_blubber_jellyfish_desc =>
+      '蓝白色的水母，伞体结实、口腕呈褶皱状，在澳大利亚海域十分常见。';
 
   @override
   String get species_fried_egg_jellyfish_name => '荷包蛋水母';
@@ -33413,7 +34319,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_persian_carpet_flatworm_name => '波斯地毯扁虫';
 
   @override
-  String get species_persian_carpet_flatworm_desc => '花纹华丽的黑色扁虫，边缘呈黄橙色，常被误认为海蛞蝓。';
+  String get species_persian_carpet_flatworm_desc =>
+      '花纹华丽的黑色扁虫，边缘呈黄橙色，常被误认为海蛞蝓。';
 
   @override
   String get species_leopard_flatworm_name => '豹纹扁虫';
@@ -33431,13 +34338,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_blue_pseudoceros_flatworm_name => '蓝色伪角扁虫';
 
   @override
-  String get species_blue_pseudoceros_flatworm_desc => '体色深蓝、边缘镶橙的扁虫，常在印度洋至太平洋的礁面上滑行。';
+  String get species_blue_pseudoceros_flatworm_desc =>
+      '体色深蓝、边缘镶橙的扁虫，常在印度洋至太平洋的礁面上滑行。';
 
   @override
   String get species_racing_stripe_flatworm_name => '赛道条纹扁虫';
 
   @override
-  String get species_racing_stripe_flatworm_desc => '体色乳白的扁虫，背部中央有一道明显的深色条纹，边缘呈波褶状。';
+  String get species_racing_stripe_flatworm_desc =>
+      '体色乳白的扁虫，背部中央有一道明显的深色条纹，边缘呈波褶状。';
 
   @override
   String get species_christmas_tree_worm_name => '圣诞树蠕虫';
@@ -33467,7 +34376,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_social_feather_duster_name => '群居缨鳃虫';
 
   @override
-  String get species_social_feather_duster_desc => '群居的管栖蠕虫，在加勒比礁区形成一丛丛精致的带纹鳃冠。';
+  String get species_social_feather_duster_desc =>
+      '群居的管栖蠕虫，在加勒比礁区形成一丛丛精致的带纹鳃冠。';
 
   @override
   String get species_giant_clam_name => '巨砗磲';
@@ -33503,13 +34413,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_magnificent_sea_anemone_name => '华丽海葵';
 
   @override
-  String get species_magnificent_sea_anemone_desc => '色彩艳丽的大型海葵，体柱醒目、触手飘逸，是小丑鱼的寄主。';
+  String get species_magnificent_sea_anemone_desc =>
+      '色彩艳丽的大型海葵，体柱醒目、触手飘逸，是小丑鱼的寄主。';
 
   @override
   String get species_bubble_tip_anemone_name => '奶嘴海葵';
 
   @override
-  String get species_bubble_tip_anemone_desc => '广受欢迎的小丑鱼寄主，触手尖端膨大呈泡状，有绿、褐或玫瑰等色。';
+  String get species_bubble_tip_anemone_desc =>
+      '广受欢迎的小丑鱼寄主，触手尖端膨大呈泡状，有绿、褐或玫瑰等色。';
 
   @override
   String get species_giant_carpet_anemone_name => '巨型地毯海葵';
@@ -33521,7 +34433,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_haddon_carpet_anemone_name => '哈氏地毯海葵';
 
   @override
-  String get species_haddon_carpet_anemone_desc => '生长在沙质底上的扁平地毯海葵，寄宿着多种小丑鱼和瓷蟹。';
+  String get species_haddon_carpet_anemone_desc =>
+      '生长在沙质底上的扁平地毯海葵，寄宿着多种小丑鱼和瓷蟹。';
 
   @override
   String get species_long_tentacle_anemone_name => '长触手海葵';
@@ -33731,7 +34644,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_blue_spotted_crab_name => '蓝斑梭子蟹';
 
   @override
-  String get species_blue_spotted_crab_desc => '活跃的游泳蟹，头胸甲上有蓝色斑点，见于印度洋至太平洋的沙质底质。';
+  String get species_blue_spotted_crab_desc =>
+      '活跃的游泳蟹，头胸甲上有蓝色斑点，见于印度洋至太平洋的沙质底质。';
 
   @override
   String get species_sponge_crab_name => '绵蟹';
@@ -33761,7 +34675,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_mantis_shrimp_lysiosquilla_name => '刺矛螳螂虾';
 
   @override
-  String get species_mantis_shrimp_lysiosquilla_desc => '体型较大的穴居螳螂虾，捕肢呈矛刺状，见于沙质底质。';
+  String get species_mantis_shrimp_lysiosquilla_desc =>
+      '体型较大的穴居螳螂虾，捕肢呈矛刺状，见于沙质底质。';
 
   @override
   String get species_purple_sea_urchin_name => '紫海胆';
@@ -33797,7 +34712,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_opalescent_nudibranch_name => '蛋白石蓑海牛';
 
   @override
-  String get species_opalescent_nudibranch_desc => '身体半透明的蓑海牛，背突鲜橙、背部有蓝色纵线，见于太平洋海域。';
+  String get species_opalescent_nudibranch_desc =>
+      '身体半透明的蓑海牛，背突鲜橙、背部有蓝色纵线，见于太平洋海域。';
 
   @override
   String get species_clown_nudibranch_name => '小丑海蛞蝓';
@@ -33899,7 +34815,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_west_indian_manatee_name => '西印度海牛';
 
   @override
-  String get species_west_indian_manatee_desc => '行动缓慢的草食动物，见于加勒比地区温暖的浅水、河口和泉水中。';
+  String get species_west_indian_manatee_desc =>
+      '行动缓慢的草食动物，见于加勒比地区温暖的浅水、河口和泉水中。';
 
   @override
   String get species_sea_otter_name => '海獭';
@@ -33935,7 +34852,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_northern_elephant_seal_name => '北象海豹';
 
   @override
-  String get species_northern_elephant_seal_desc => '体型庞大、擅长深潜的海豹，雄兽有硕大的鼻突。见于东太平洋沿岸。';
+  String get species_northern_elephant_seal_desc =>
+      '体型庞大、擅长深潜的海豹，雄兽有硕大的鼻突。见于东太平洋沿岸。';
 
   @override
   String get species_hawaiian_monk_seal_name => '夏威夷僧海豹';
@@ -33971,7 +34889,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_loggerhead_sea_turtle_name => '蠵龟';
 
   @override
-  String get species_loggerhead_sea_turtle_desc => '头部硕大的海龟，见于温带和热带海域，常出现在岩礁附近。';
+  String get species_loggerhead_sea_turtle_desc =>
+      '头部硕大的海龟，见于温带和热带海域，常出现在岩礁附近。';
 
   @override
   String get species_leatherback_sea_turtle_name => '棱皮龟';
@@ -33983,7 +34902,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_olive_ridley_sea_turtle_name => '太平洋丽龟';
 
   @override
-  String get species_olive_ridley_sea_turtle_desc => '体型最小的海龟，以称为 arribada 的同步大规模上岸产卵而闻名。';
+  String get species_olive_ridley_sea_turtle_desc =>
+      '体型最小的海龟，以称为 arribada 的同步大规模上岸产卵而闻名。';
 
   @override
   String get species_kemps_ridley_sea_turtle_name => '肯氏丽龟';
@@ -33995,7 +34915,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_flatback_sea_turtle_name => '平背龟';
 
   @override
-  String get species_flatback_sea_turtle_desc => '澳大利亚水域的特有种，以扁平的背甲和近岸栖息习性与其他海龟相区别。';
+  String get species_flatback_sea_turtle_desc =>
+      '澳大利亚水域的特有种，以扁平的背甲和近岸栖息习性与其他海龟相区别。';
 
   @override
   String get species_brain_coral_name => '脑珊瑚';
@@ -34151,7 +35072,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_organ_pipe_coral_name => '管风琴珊瑚';
 
   @override
-  String get species_organ_pipe_coral_desc => '骨骼为鲜红色的管状结构，水螅体纤柔，见于印度洋至太平洋水流平缓的礁区。';
+  String get species_organ_pipe_coral_desc =>
+      '骨骼为鲜红色的管状结构，水螅体纤柔，见于印度洋至太平洋水流平缓的礁区。';
 
   @override
   String get species_leather_coral_name => '皮革软珊瑚';
@@ -34163,7 +35085,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_toadstool_leather_coral_name => '蘑菇皮革软珊瑚';
 
   @override
-  String get species_toadstool_leather_coral_desc => '柄部粗厚、顶盖扁平的软珊瑚，常见于印度洋至太平洋的礁坪。';
+  String get species_toadstool_leather_coral_desc =>
+      '柄部粗厚、顶盖扁平的软珊瑚，常见于印度洋至太平洋的礁坪。';
 
   @override
   String get species_pulsing_xenia_name => '脉冲珊瑚';
@@ -34355,7 +35278,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_banded_sea_krait_name => '蓝灰扁尾海蛇';
 
   @override
-  String get species_banded_sea_krait_desc => '有毒的海蛇，体表有蓝灰与黑色相间的环带，性情温和，在印度洋至太平洋的礁区十分常见。';
+  String get species_banded_sea_krait_desc =>
+      '有毒的海蛇，体表有蓝灰与黑色相间的环带，性情温和，在印度洋至太平洋的礁区十分常见。';
 
   @override
   String get species_olive_sea_snake_name => '橄榄海蛇';
@@ -34367,7 +35291,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_yellow_bellied_sea_snake_name => '长吻海蛇';
 
   @override
-  String get species_yellow_bellied_sea_snake_desc => '大洋性海蛇，腹面呈黄色，是地球上分布最广的蛇类。';
+  String get species_yellow_bellied_sea_snake_desc =>
+      '大洋性海蛇，腹面呈黄色，是地球上分布最广的蛇类。';
 
   @override
   String get species_marine_iguana_name => '海鬣蜥';
@@ -34421,7 +35346,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_european_perch_name => '河鲈';
 
   @override
-  String get species_european_perch_desc => '带条纹、鳍有硬棘的鲈鱼，下鳍呈红橙色，几乎遍布欧洲所有湖泊和缓流河流。';
+  String get species_european_perch_desc =>
+      '带条纹、鳍有硬棘的鲈鱼，下鳍呈红橙色，几乎遍布欧洲所有湖泊和缓流河流。';
 
   @override
   String get species_zander_name => '梭鲈';
@@ -34439,7 +35365,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_largemouth_bass_name => '大口黑鲈';
 
   @override
-  String get species_largemouth_bass_desc => '背部绿色的黑鲈，体侧有深色条纹，嘴巴极大，潜伏在温暖湖泊的倒木和水草边缘。';
+  String get species_largemouth_bass_desc =>
+      '背部绿色的黑鲈，体侧有深色条纹，嘴巴极大，潜伏在温暖湖泊的倒木和水草边缘。';
 
   @override
   String get species_smallmouth_bass_name => '小口黑鲈';
@@ -34451,7 +35378,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_rock_bass_name => '岩钝鲈';
 
   @override
-  String get species_rock_bass_desc => '体型粗壮、眼睛发红的太阳鱼，体侧有成排深色斑点，藏身于清澈溪流和湖泊的巨石间。';
+  String get species_rock_bass_desc =>
+      '体型粗壮、眼睛发红的太阳鱼，体侧有成排深色斑点，藏身于清澈溪流和湖泊的巨石间。';
 
   @override
   String get species_bluegill_name => '蓝鳃太阳鱼';
@@ -34463,7 +35391,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_pumpkinseed_name => '太阳鱼';
 
   @override
-  String get species_pumpkinseed_desc => '色彩斑斓的太阳鱼，耳片末端红色，面颊有波浪状蓝纹，常见于水草茂密的浅水区。';
+  String get species_pumpkinseed_desc =>
+      '色彩斑斓的太阳鱼，耳片末端红色，面颊有波浪状蓝纹，常见于水草茂密的浅水区。';
 
   @override
   String get species_black_crappie_name => '黑莓鲈';
@@ -34487,13 +35416,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_rainbow_trout_name => '虹鳟';
 
   @override
-  String get species_rainbow_trout_desc => '银色的鳟鱼，体侧有粉红色带，布满细小黑斑，在全球冷水中既有放流也有野生种群。';
+  String get species_rainbow_trout_desc =>
+      '银色的鳟鱼，体侧有粉红色带，布满细小黑斑，在全球冷水中既有放流也有野生种群。';
 
   @override
   String get species_brook_trout_name => '美洲红点鲑';
 
   @override
-  String get species_brook_trout_desc => '背部有蠕虫状花纹的红点鲑，红点外有蓝色光晕，鳍缘白色，栖息于寒冷的源头溪流。';
+  String get species_brook_trout_desc =>
+      '背部有蠕虫状花纹的红点鲑，红点外有蓝色光晕，鳍缘白色，栖息于寒冷的源头溪流。';
 
   @override
   String get species_lake_trout_name => '突吻红点鲑';
@@ -34511,7 +35442,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_atlantic_salmon_name => '大西洋鲑';
 
   @override
-  String get species_atlantic_salmon_desc => '银色的溯河洄游鲑鱼，身上有X形黑斑，返回出生河流产卵时会跃过瀑布。';
+  String get species_atlantic_salmon_desc =>
+      '银色的溯河洄游鲑鱼，身上有X形黑斑，返回出生河流产卵时会跃过瀑布。';
 
   @override
   String get species_chinook_salmon_name => '帝王鲑';
@@ -34523,7 +35455,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_sockeye_salmon_name => '红鲑';
 
   @override
-  String get species_sockeye_salmon_desc => '产卵期体色变为鲜红、头部呈绿色的鲑鱼，成群聚集在湖泊补给河流的砾石床上。';
+  String get species_sockeye_salmon_desc =>
+      '产卵期体色变为鲜红、头部呈绿色的鲑鱼，成群聚集在湖泊补给河流的砾石床上。';
 
   @override
   String get species_coho_salmon_name => '银鲑';
@@ -34547,7 +35480,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_european_grayling_name => '茴鱼';
 
   @override
-  String get species_european_grayling_desc => '银灰色的河鱼，背鳍高耸如帆且边缘泛紫，栖息于水流湍急、砾石洁净的河段。';
+  String get species_european_grayling_desc =>
+      '银灰色的河鱼，背鳍高耸如帆且边缘泛紫，栖息于水流湍急、砾石洁净的河段。';
 
   @override
   String get species_common_carp_name => '欧洲鲤';
@@ -34619,7 +35553,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_channel_catfish_name => '斑点叉尾鮰';
 
   @override
-  String get species_channel_catfish_desc => '灰色的鲶鱼，体表散布深色斑点，尾鳍分叉，有八根须，常见于北美的河流和水库。';
+  String get species_channel_catfish_desc =>
+      '灰色的鲶鱼，体表散布深色斑点，尾鳍分叉，有八根须，常见于北美的河流和水库。';
 
   @override
   String get species_flathead_catfish_name => '铲鮰';
@@ -34649,13 +35584,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_lake_sturgeon_name => '湖鲟';
 
   @override
-  String get species_lake_sturgeon_desc => '生长缓慢的披甲鲟鱼，分布于五大湖和密西西比流域，用管状口吸食底部食物。';
+  String get species_lake_sturgeon_desc =>
+      '生长缓慢的披甲鲟鱼，分布于五大湖和密西西比流域，用管状口吸食底部食物。';
 
   @override
   String get species_european_sturgeon_name => '欧洲鲟';
 
   @override
-  String get species_european_sturgeon_desc => '极度濒危的披甲鲟鱼，原产大西洋沿岸河流，如今在加龙河和易北河进行人工繁育放流。';
+  String get species_european_sturgeon_desc =>
+      '极度濒危的披甲鲟鱼，原产大西洋沿岸河流，如今在加龙河和易北河进行人工繁育放流。';
 
   @override
   String get species_alligator_gar_name => '鳄雀鳝';
@@ -34685,13 +35622,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_sea_lamprey_name => '海七鳃鳗';
 
   @override
-  String get species_sea_lamprey_desc => '无颌、形似鳗鱼的寄生鱼，口为环形齿盘状吸盘，在海洋或湖泊觅食后到砾石溪流产卵。';
+  String get species_sea_lamprey_desc =>
+      '无颌、形似鳗鱼的寄生鱼，口为环形齿盘状吸盘，在海洋或湖泊觅食后到砾石溪流产卵。';
 
   @override
   String get species_freshwater_drum_name => '淡水石首鱼';
 
   @override
-  String get species_freshwater_drum_desc => '银色驼背鱼，能发出可闻的咕噜声，用咽齿碾碎贻贝，常见于大河和湖泊。';
+  String get species_freshwater_drum_desc =>
+      '银色驼背鱼，能发出可闻的咕噜声，用咽齿碾碎贻贝，常见于大河和湖泊。';
 
   @override
   String get species_white_sucker_name => '康氏亚口鱼';
@@ -34709,7 +35648,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_three_spined_stickleback_name => '三刺鱼';
 
   @override
-  String get species_three_spined_stickleback_desc => '微小的披甲鱼，背部有三根硬棘，喉部红色的雄鱼会用植物纤维筑巢并守护。';
+  String get species_three_spined_stickleback_desc =>
+      '微小的披甲鱼，背部有三根硬棘，喉部红色的雄鱼会用植物纤维筑巢并守护。';
 
   @override
   String get species_alewife_name => '淡水大眼鲱';
@@ -34733,7 +35673,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_african_tigerfish_name => '饰纹狗脂鲤';
 
   @override
-  String get species_african_tigerfish_desc => '带条纹的银色掠食鱼，牙齿如匕首般交错，在赞比西河等湍急的非洲河流中捕食。';
+  String get species_african_tigerfish_desc =>
+      '带条纹的银色掠食鱼，牙齿如匕首般交错，在赞比西河等湍急的非洲河流中捕食。';
 
   @override
   String get species_marbled_lungfish_name => '维多利亚肺鱼';
@@ -34757,19 +35698,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_malawi_butterfly_peacock_name => '蝴蝶孔雀慈鲷';
 
   @override
-  String get species_malawi_butterfly_peacock_desc => '马拉维湖洞穴中的虹彩蓝色孔雀慈鲷，雄鱼的鳍缘发白闪亮。';
+  String get species_malawi_butterfly_peacock_desc =>
+      '马拉维湖洞穴中的虹彩蓝色孔雀慈鲷，雄鱼的鳍缘发白闪亮。';
 
   @override
   String get species_fuelleborn_cichlid_name => '蓝岩栖慈鲷';
 
   @override
-  String get species_fuelleborn_cichlid_desc => '马拉维湖的钝吻岩栖慈鲷，肉质突出的吻部用于在浪击带刮食藻类。';
+  String get species_fuelleborn_cichlid_desc =>
+      '马拉维湖的钝吻岩栖慈鲷，肉质突出的吻部用于在浪击带刮食藻类。';
 
   @override
   String get species_princess_of_burundi_name => '布隆迪公主慈鲷';
 
   @override
-  String get species_princess_of_burundi_desc => '坦噶尼喀湖的优雅慈鲷，鳍呈琴形，以大家庭群体生活并共同照料巢穴。';
+  String get species_princess_of_burundi_desc =>
+      '坦噶尼喀湖的优雅慈鲷，鳍呈琴形，以大家庭群体生活并共同照料巢穴。';
 
   @override
   String get species_frontosa_name => '六间慈鲷';
@@ -34781,7 +35725,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_tropheus_moorii_name => '蓝岩慈鲷';
 
   @override
-  String get species_tropheus_moorii_desc => '坦噶尼喀湖的粗壮岩栖慈鲷，有数十种色型，每种仅限于自己的一段湖岸。';
+  String get species_tropheus_moorii_desc =>
+      '坦噶尼喀湖的粗壮岩栖慈鲷，有数十种色型，每种仅限于自己的一段湖岸。';
 
   @override
   String get species_arapaima_name => '巨骨舌鱼';
@@ -34799,19 +35744,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_red_bellied_piranha_name => '纳氏臀点脂鲤';
 
   @override
-  String get species_red_bellied_piranha_desc => '体高的银色鱼，腹部深红，牙齿锋利，成群在亚马逊回水区活动。';
+  String get species_red_bellied_piranha_desc =>
+      '体高的银色鱼，腹部深红，牙齿锋利，成群在亚马逊回水区活动。';
 
   @override
   String get species_black_piranha_name => '菱锯脂鲤';
 
   @override
-  String get species_black_piranha_desc => '大型独居的食人鱼，眼睛红色，身体深色呈菱形，潜伏在亚马逊清澈多岩的支流中。';
+  String get species_black_piranha_desc =>
+      '大型独居的食人鱼，眼睛红色，身体深色呈菱形，潜伏在亚马逊清澈多岩的支流中。';
 
   @override
   String get species_red_bellied_pacu_name => '短盖肥脂鲤';
 
   @override
-  String get species_red_bellied_pacu_desc => '外形似食人鱼的食果鱼，牙齿扁平善于碾碎，腹部红色，聚集在被淹没的森林树下。';
+  String get species_red_bellied_pacu_desc =>
+      '外形似食人鱼的食果鱼，牙齿扁平善于碾碎，腹部红色，聚集在被淹没的森林树下。';
 
   @override
   String get species_tambaqui_name => '黑盖巨脂鲤';
@@ -34823,19 +35771,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_electric_eel_name => '电鳗';
 
   @override
-  String get species_electric_eel_desc => '并非真正的鳗鱼而是裸背电鳗，体长而深色，能呼吸空气，以高达600伏的电击麻痹猎物。';
+  String get species_electric_eel_desc =>
+      '并非真正的鳗鱼而是裸背电鳗，体长而深色，能呼吸空气，以高达600伏的电击麻痹猎物。';
 
   @override
   String get species_redtail_catfish_name => '红尾护头鲿';
 
   @override
-  String get species_redtail_catfish_desc => '大型亚马逊鲶鱼，背部深色，腹部白色，尾鳍鲜橙红色，栖息于河流深潭。';
+  String get species_redtail_catfish_desc =>
+      '大型亚马逊鲶鱼，背部深色，腹部白色，尾鳍鲜橙红色，栖息于河流深潭。';
 
   @override
   String get species_tiger_shovelnose_catfish_name => '虎皮鸭嘴鲶';
 
   @override
-  String get species_tiger_shovelnose_catfish_desc => '流线型的条纹鲶鱼，吻长而扁平，夜间沿南美河流的沙质河道捕食。';
+  String get species_tiger_shovelnose_catfish_desc =>
+      '流线型的条纹鲶鱼，吻长而扁平，夜间沿南美河流的沙质河道捕食。';
 
   @override
   String get species_peacock_bass_name => '眼点丽鱼';
@@ -34853,7 +35804,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_freshwater_angelfish_name => '神仙鱼';
 
   @override
-  String get species_freshwater_angelfish_desc => '体高呈圆盘状的亚马逊慈鲷，鳍长而飘逸，体侧有竖纹，在沉没的树根间漂游。';
+  String get species_freshwater_angelfish_desc =>
+      '体高呈圆盘状的亚马逊慈鲷，鳍长而飘逸，体侧有竖纹，在沉没的树根间漂游。';
 
   @override
   String get species_discus_name => '七彩神仙鱼';
@@ -34871,19 +35823,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_cardinal_tetra_name => '阿氏霓虹脂鲤';
 
   @override
-  String get species_cardinal_tetra_desc => '微小的脂鲤，霓虹蓝色条纹下是贯穿全身的红带，成群游弋在内格罗河的黑水中。';
+  String get species_cardinal_tetra_desc =>
+      '微小的脂鲤，霓虹蓝色条纹下是贯穿全身的红带，成群游弋在内格罗河的黑水中。';
 
   @override
   String get species_mexican_tetra_name => '墨西哥麗脂鯉';
 
   @override
-  String get species_mexican_tetra_desc => '墨西哥河流中的银色脂鲤，其洞穴种群失明且体色苍白，深受天然井潜水者喜爱。';
+  String get species_mexican_tetra_desc =>
+      '墨西哥河流中的银色脂鲤，其洞穴种群失明且体色苍白，深受天然井潜水者喜爱。';
 
   @override
   String get species_mekong_giant_catfish_name => '湄公河巨鲶';
 
   @override
-  String get species_mekong_giant_catfish_desc => '湄公河中极度濒危的无齿巨型鲶鱼，灰色无须，曾可长达三米。';
+  String get species_mekong_giant_catfish_desc =>
+      '湄公河中极度濒危的无齿巨型鲶鱼，灰色无须，曾可长达三米。';
 
   @override
   String get species_giant_barb_name => '巨暹罗鲤';
@@ -34901,13 +35856,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_striped_snakehead_name => '线鳢';
 
   @override
-  String get species_striped_snakehead_desc => '鱼雷形的呼吸空气的掠食鱼，头扁平似蛇，在水草茂密的亚洲池塘中守护幼鱼。';
+  String get species_striped_snakehead_desc =>
+      '鱼雷形的呼吸空气的掠食鱼，头扁平似蛇，在水草茂密的亚洲池塘中守护幼鱼。';
 
   @override
   String get species_giant_snakehead_name => '小盾鳢';
 
   @override
-  String get species_giant_snakehead_desc => '大型凶猛的鳢鱼，幼时带条纹，成年后体色变深，在东南亚湖泊中保护鲜红色的幼鱼。';
+  String get species_giant_snakehead_desc =>
+      '大型凶猛的鳢鱼，幼时带条纹，成年后体色变深，在东南亚湖泊中保护鲜红色的幼鱼。';
 
   @override
   String get species_climbing_perch_name => '攀鲈';
@@ -34919,7 +35876,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_golden_mahseer_name => '黄鳍结鱼';
 
   @override
-  String get species_golden_mahseer_desc => '喜马拉雅河流中的金鳞鲤科鱼，游泳有力，栖息在急流下方清澈湍急的水潭中。';
+  String get species_golden_mahseer_desc =>
+      '喜马拉雅河流中的金鳞鲤科鱼，游泳有力，栖息在急流下方清澈湍急的水潭中。';
 
   @override
   String get species_koi_name => '华南鲤';
@@ -34949,7 +35907,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_walking_catfish_name => '胡鲶';
 
   @override
-  String get species_walking_catfish_desc => '细长的呼吸空气的鲶鱼，能在池塘间的湿地上蠕动前行，如今在佛罗里达已野化。';
+  String get species_walking_catfish_desc =>
+      '细长的呼吸空气的鲶鱼，能在池塘间的湿地上蠕动前行，如今在佛罗里达已野化。';
 
   @override
   String get species_japanese_eel_name => '鳗鲡';
@@ -35021,55 +35980,64 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_eel_tailed_catfish_name => '鳗尾鲶';
 
   @override
-  String get species_eel_tailed_catfish_desc => '澳大利亚鲶鱼，尾部渐细似鳗鱼，在清澈河流的浅水区筑砾石巢并守护。';
+  String get species_eel_tailed_catfish_desc =>
+      '澳大利亚鲶鱼，尾部渐细似鳗鱼，在清澈河流的浅水区筑砾石巢并守护。';
 
   @override
   String get species_spangled_perch_name => '亮片鲈';
 
   @override
-  String get species_spangled_perch_desc => '体小、带银色斑点的鱼，遍布澳大利亚内陆，洪水连通的任何水潭都会被它占据。';
+  String get species_spangled_perch_desc =>
+      '体小、带银色斑点的鱼，遍布澳大利亚内陆，洪水连通的任何水潭都会被它占据。';
 
   @override
   String get species_eastern_rainbowfish_name => '东部彩虹鱼';
 
   @override
-  String get species_eastern_rainbowfish_desc => '澳大利亚东部溪流中的小型虹彩鱼，雄鱼在阳光下闪现红蓝条纹。';
+  String get species_eastern_rainbowfish_desc =>
+      '澳大利亚东部溪流中的小型虹彩鱼，雄鱼在阳光下闪现红蓝条纹。';
 
   @override
   String get species_signal_crayfish_name => '信号小龙虾';
 
   @override
-  String get species_signal_crayfish_desc => '大型褐色螯虾，螯关节处有白斑，是正在欧洲河流中蔓延的北美入侵物种。';
+  String get species_signal_crayfish_desc =>
+      '大型褐色螯虾，螯关节处有白斑，是正在欧洲河流中蔓延的北美入侵物种。';
 
   @override
   String get species_red_swamp_crayfish_name => '克氏原螯虾';
 
   @override
-  String get species_red_swamp_crayfish_desc => '来自路易斯安那沼泽的深红色螯虾，螯上有瘤突，如今在各大洲的温暖湿地中掘穴扩散。';
+  String get species_red_swamp_crayfish_desc =>
+      '来自路易斯安那沼泽的深红色螯虾，螯上有瘤突，如今在各大洲的温暖湿地中掘穴扩散。';
 
   @override
   String get species_noble_crayfish_name => '奥斯塔欧洲螯虾';
 
   @override
-  String get species_noble_crayfish_desc => '欧洲本土螯虾，深褐色，螯的下面呈红色，藏身于洁净凉爽溪流湖泊的岸边洞穴中。';
+  String get species_noble_crayfish_desc =>
+      '欧洲本土螯虾，深褐色，螯的下面呈红色，藏身于洁净凉爽溪流湖泊的岸边洞穴中。';
 
   @override
   String get species_white_clawed_crayfish_name => '白掌南溪虾';
 
   @override
-  String get species_white_clawed_crayfish_desc => '小型橄榄色螯虾，螯下面颜色淡，是西欧洁净石灰岩溪流中受威胁的本土物种。';
+  String get species_white_clawed_crayfish_desc =>
+      '小型橄榄色螯虾，螯下面颜色淡，是西欧洁净石灰岩溪流中受威胁的本土物种。';
 
   @override
   String get species_tasmanian_giant_freshwater_crayfish_name => '古氏巨螯虾';
 
   @override
-  String get species_tasmanian_giant_freshwater_crayfish_desc => '世界上最大的淡水无脊椎动物，塔斯马尼亚荫蔽河流中生长缓慢的蓝褐色螯虾。';
+  String get species_tasmanian_giant_freshwater_crayfish_desc =>
+      '世界上最大的淡水无脊椎动物，塔斯马尼亚荫蔽河流中生长缓慢的蓝褐色螯虾。';
 
   @override
   String get species_zebra_mussel_name => '多型饰贝';
 
   @override
-  String get species_zebra_mussel_desc => '指甲大小的条纹贻贝，成千上万地覆盖岩石、沉船和管道，扩散的同时使水变清。';
+  String get species_zebra_mussel_desc =>
+      '指甲大小的条纹贻贝，成千上万地覆盖岩石、沉船和管道，扩散的同时使水变清。';
 
   @override
   String get species_quagga_mussel_name => '布格河饰贝';
@@ -35081,7 +36049,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_freshwater_pearl_mussel_name => '珍珠蚌';
 
   @override
-  String get species_freshwater_pearl_mussel_desc => '深色长形的贻贝，可在湍急鲑鱼河流的洁净砾石中半埋生活一个多世纪。';
+  String get species_freshwater_pearl_mussel_desc =>
+      '深色长形的贻贝，可在湍急鲑鱼河流的洁净砾石中半埋生活一个多世纪。';
 
   @override
   String get species_swan_mussel_name => '无齿蚌';
@@ -35093,19 +36062,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_chinese_pond_mussel_name => '背角华无齿蚌';
 
   @override
-  String get species_chinese_pond_mussel_desc => '体型极大的亚洲入侵贻贝，壳呈亮褐色，随养殖鱼类传入并在温暖湖泊中扩散。';
+  String get species_chinese_pond_mussel_desc =>
+      '体型极大的亚洲入侵贻贝，壳呈亮褐色，随养殖鱼类传入并在温暖湖泊中扩散。';
 
   @override
   String get species_freshwater_sponge_name => '湖针海绵';
 
   @override
-  String get species_freshwater_sponge_desc => '绿色或灰色的分枝状海绵，附着在清澈湖泊的树枝和石头上，颜色来自体内共生的藻类。';
+  String get species_freshwater_sponge_desc =>
+      '绿色或灰色的分枝状海绵，附着在清澈湖泊的树枝和石头上，颜色来自体内共生的藻类。';
 
   @override
   String get species_freshwater_jellyfish_name => '索氏桃花水母';
 
   @override
-  String get species_freshwater_jellyfish_desc => '硬币大小的透明水母，夏末在温暖的采石场湖泊和水库中成群出现。';
+  String get species_freshwater_jellyfish_desc =>
+      '硬币大小的透明水母，夏末在温暖的采石场湖泊和水库中成群出现。';
 
   @override
   String get species_great_pond_snail_name => '静水椎实螺';
@@ -35117,133 +36089,155 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_great_ramshorn_snail_name => '平角卷螺';
 
   @override
-  String get species_great_ramshorn_snail_desc => '扁平盘曲如小羊角的螺，在水草茂密的池塘中刮食叶片和石头上的藻类。';
+  String get species_great_ramshorn_snail_desc =>
+      '扁平盘曲如小羊角的螺，在水草茂密的池塘中刮食叶片和石头上的藻类。';
 
   @override
   String get species_channeled_apple_snail_name => '小管福寿螺';
 
   @override
-  String get species_channeled_apple_snail_desc => '大型金褐色螺，在水线上方产下亮粉色卵块，在温暖湿地和稻田中为入侵物种。';
+  String get species_channeled_apple_snail_desc =>
+      '大型金褐色螺，在水线上方产下亮粉色卵块，在温暖湿地和稻田中为入侵物种。';
 
   @override
   String get species_magnificent_bryozoan_name => '大型梳苔虫';
 
   @override
-  String get species_magnificent_bryozoan_desc => '足球大小的胶状群体，表面布满微小动物，附着在温暖静水中的树枝和绳索上。';
+  String get species_magnificent_bryozoan_desc =>
+      '足球大小的胶状群体，表面布满微小动物，附着在温暖静水中的树枝和绳索上。';
 
   @override
   String get species_chinese_mitten_crab_name => '中华绒螯蟹';
 
   @override
-  String get species_chinese_mitten_crab_desc => '掘穴的螃蟹，螯上长有绒毛，在河流中生活数年后顺流而下到河口繁殖。';
+  String get species_chinese_mitten_crab_desc =>
+      '掘穴的螃蟹，螯上长有绒毛，在河流中生活数年后顺流而下到河口繁殖。';
 
   @override
   String get species_giant_freshwater_prawn_name => '罗氏沼虾';
 
   @override
-  String get species_giant_freshwater_prawn_desc => '亚洲和澳大利亚河流中的大型蓝螯虾，老年雄性的螯比身体还长。';
+  String get species_giant_freshwater_prawn_desc =>
+      '亚洲和澳大利亚河流中的大型蓝螯虾，老年雄性的螯比身体还长。';
 
   @override
   String get species_common_snapping_turtle_name => '拟鳄龟';
 
   @override
-  String get species_common_snapping_turtle_desc => '体重壳糙的龟，尾长带锯齿，伏在池塘和缓流河流的泥中，头部露出。';
+  String get species_common_snapping_turtle_desc =>
+      '体重壳糙的龟，尾长带锯齿，伏在池塘和缓流河流的泥中，头部露出。';
 
   @override
   String get species_alligator_snapping_turtle_name => '大鳄龟';
 
   @override
-  String get species_alligator_snapping_turtle_desc => '外形似史前生物的巨龟，背甲有三道脊棱，舌上有蠕虫状诱饵，张口静待于南方河底。';
+  String get species_alligator_snapping_turtle_desc =>
+      '外形似史前生物的巨龟，背甲有三道脊棱，舌上有蠕虫状诱饵，张口静待于南方河底。';
 
   @override
   String get species_painted_turtle_name => '锦龟';
 
   @override
-  String get species_painted_turtle_desc => '壳光滑的深色龟，颈部和甲缘有红黄条纹，在北美各地成排趴在倒木上晒太阳。';
+  String get species_painted_turtle_desc =>
+      '壳光滑的深色龟，颈部和甲缘有红黄条纹，在北美各地成排趴在倒木上晒太阳。';
 
   @override
   String get species_red_eared_slider_name => '红耳龟';
 
   @override
-  String get species_red_eared_slider_desc => '带绿色条纹的池龟，每只眼后有一道红纹，作为宠物流行，如今在全球温暖水域野化。';
+  String get species_red_eared_slider_desc =>
+      '带绿色条纹的池龟，每只眼后有一道红纹，作为宠物流行，如今在全球温暖水域野化。';
 
   @override
   String get species_northern_map_turtle_name => '地图龟';
 
   @override
-  String get species_northern_map_turtle_desc => '橄榄色的龟，甲壳上有地图状黄线，脊棱较低，在清澈河流和大湖的岩石上晒太阳。';
+  String get species_northern_map_turtle_desc =>
+      '橄榄色的龟，甲壳上有地图状黄线，脊棱较低，在清澈河流和大湖的岩石上晒太阳。';
 
   @override
   String get species_spiny_softshell_turtle_name => '角鳖';
 
   @override
-  String get species_spiny_softshell_turtle_desc => '扁平如薄饼的软壳龟，吻部如呼吸管，埋在浅河的沙中只露出头部。';
+  String get species_spiny_softshell_turtle_desc =>
+      '扁平如薄饼的软壳龟，吻部如呼吸管，埋在浅河的沙中只露出头部。';
 
   @override
   String get species_florida_softshell_turtle_name => '佛罗里达鳖';
 
   @override
-  String get species_florida_softshell_turtle_desc => '大型深色软壳龟，吻部长而呈管状，常见于佛罗里达的泉水、运河和湖泊。';
+  String get species_florida_softshell_turtle_desc =>
+      '大型深色软壳龟，吻部长而呈管状，常见于佛罗里达的泉水、运河和湖泊。';
 
   @override
   String get species_pig_nosed_turtle_name => '猪鼻龟';
 
   @override
-  String get species_pig_nosed_turtle_desc => '新几内亚和澳大利亚北部特有的河龟，具有海龟般的鳍足和肉质猪鼻状吻部。';
+  String get species_pig_nosed_turtle_desc =>
+      '新几内亚和澳大利亚北部特有的河龟，具有海龟般的鳍足和肉质猪鼻状吻部。';
 
   @override
   String get species_mary_river_turtle_name => '巨尾隐龟';
 
   @override
-  String get species_mary_river_turtle_desc => '稀有的澳大利亚龟，能通过泄殖腔呼吸，头顶长着绿藻莫西干发型，仅见于昆士兰的一条河流。';
+  String get species_mary_river_turtle_desc =>
+      '稀有的澳大利亚龟，能通过泄殖腔呼吸，头顶长着绿藻莫西干发型，仅见于昆士兰的一条河流。';
 
   @override
   String get species_yellow_spotted_river_turtle_name => '黄头侧颈龟';
 
   @override
-  String get species_yellow_spotted_river_turtle_desc => '亚马逊侧颈龟，头部有黄斑，成群在大河的倒木和沙洲上晒太阳。';
+  String get species_yellow_spotted_river_turtle_desc =>
+      '亚马逊侧颈龟，头部有黄斑，成群在大河的倒木和沙洲上晒太阳。';
 
   @override
   String get species_european_pond_turtle_name => '欧洲泽龟';
 
   @override
-  String get species_european_pond_turtle_desc => '布满黄色斑点的深色龟，欧洲本土淡水龟，从向阳的岸边滑入水草茂密的池塘。';
+  String get species_european_pond_turtle_desc =>
+      '布满黄色斑点的深色龟，欧洲本土淡水龟，从向阳的岸边滑入水草茂密的池塘。';
 
   @override
   String get species_american_alligator_name => '美国短吻鳄';
 
   @override
-  String get species_american_alligator_desc => '美国东南部沼泽、泉水和河流中的宽吻披甲爬行动物，漂浮时仅露出眼睛和鼻孔。';
+  String get species_american_alligator_desc =>
+      '美国东南部沼泽、泉水和河流中的宽吻披甲爬行动物，漂浮时仅露出眼睛和鼻孔。';
 
   @override
   String get species_spectacled_caiman_name => '眼镜凯门鳄';
 
   @override
-  String get species_spectacled_caiman_desc => '小型橄榄色凯门鳄，两眼间有骨质脊，在中南美洲的缓流河流和潟湖中数量众多。';
+  String get species_spectacled_caiman_desc =>
+      '小型橄榄色凯门鳄，两眼间有骨质脊，在中南美洲的缓流河流和潟湖中数量众多。';
 
   @override
   String get species_black_caiman_name => '黑凯门鳄';
 
   @override
-  String get species_black_caiman_desc => '亚马逊最大的掠食者，黑色披甲凯门鳄，体长可达五米，夜间在湖泊和淹没森林中捕食。';
+  String get species_black_caiman_desc =>
+      '亚马逊最大的掠食者，黑色披甲凯门鳄，体长可达五米，夜间在湖泊和淹没森林中捕食。';
 
   @override
   String get species_freshwater_crocodile_name => '澳洲淡水鳄';
 
   @override
-  String get species_freshwater_crocodile_desc => '吻部细长的澳大利亚鳄鱼，栖息于北部河流和峡谷，性情胆怯，体型远小于湾鳄。';
+  String get species_freshwater_crocodile_desc =>
+      '吻部细长的澳大利亚鳄鱼，栖息于北部河流和峡谷，性情胆怯，体型远小于湾鳄。';
 
   @override
   String get species_northern_water_snake_name => '北部美洲水蛇';
 
   @override
-  String get species_northern_water_snake_desc => '身体粗壮、带环纹的褐色蛇，在北美东部溪流上方的岩石和树枝上晒太阳，无毒但易咬人。';
+  String get species_northern_water_snake_desc =>
+      '身体粗壮、带环纹的褐色蛇，在北美东部溪流上方的岩石和树枝上晒太阳，无毒但易咬人。';
 
   @override
   String get species_green_anaconda_name => '森蚺';
 
   @override
-  String get species_green_anaconda_desc => '世界上最重的蛇，橄榄色巨蟒，身上有黑斑，潜伏在亚马逊沼泽和缓流河流中。';
+  String get species_green_anaconda_desc =>
+      '世界上最重的蛇，橄榄色巨蟒，身上有黑斑，潜伏在亚马逊沼泽和缓流河流中。';
 
   @override
   String get species_hellbender_name => '美洲大鲵';
@@ -35267,7 +36261,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_chinese_giant_salamander_name => '中国大鲵';
 
   @override
-  String get species_chinese_giant_salamander_desc => '现存最大的两栖动物，皮肤褶皱的褐色巨物，体长近两米，藏身于凉爽多石的山溪中。';
+  String get species_chinese_giant_salamander_desc =>
+      '现存最大的两栖动物，皮肤褶皱的褐色巨物，体长近两米，藏身于凉爽多石的山溪中。';
 
   @override
   String get species_smooth_newt_name => '滑螈';
@@ -35279,13 +36274,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_great_crested_newt_name => '冠欧螈';
 
   @override
-  String get species_great_crested_newt_desc => '大型黑色疣皮蝾螈，腹部呈火橙色，繁殖期雄性长出锯齿状的龙形背嵴。';
+  String get species_great_crested_newt_desc =>
+      '大型黑色疣皮蝾螈，腹部呈火橙色，繁殖期雄性长出锯齿状的龙形背嵴。';
 
   @override
   String get species_american_bullfrog_name => '美洲牛蛙';
 
   @override
-  String get species_american_bullfrog_desc => '体型巨大的绿色蛙，叫声低沉如牛吼，栖息在温暖池塘的睡莲叶间，如今在多个大洲成为入侵物种。';
+  String get species_american_bullfrog_desc =>
+      '体型巨大的绿色蛙，叫声低沉如牛吼，栖息在温暖池塘的睡莲叶间，如今在多个大洲成为入侵物种。';
 
   @override
   String get species_common_frog_name => '欧洲林蛙';
@@ -35297,31 +36294,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_north_american_river_otter_name => '北美水獭';
 
   @override
-  String get species_north_american_river_otter_desc => '身姿矫健、爱嬉戏的水獭，在北美的河流湖泊中捕食鱼类和螯虾，在岸边留下泥滑道。';
+  String get species_north_american_river_otter_desc =>
+      '身姿矫健、爱嬉戏的水獭，在北美的河流湖泊中捕食鱼类和螯虾，在岸边留下泥滑道。';
 
   @override
   String get species_eurasian_otter_name => '水獭';
 
   @override
-  String get species_eurasian_otter_desc => '胆怯的褐色水獭，栖息于欧洲的河流、湖泊和海岸，在数十年衰退后正于整个分布区恢复。';
+  String get species_eurasian_otter_desc =>
+      '胆怯的褐色水獭，栖息于欧洲的河流、湖泊和海岸，在数十年衰退后正于整个分布区恢复。';
 
   @override
   String get species_giant_otter_name => '巨獭';
 
   @override
-  String get species_giant_otter_desc => '体长近两米的水獭，喉部有乳白色斑块，在亚马逊河流和牛轭湖中以喧闹的家族群体生活。';
+  String get species_giant_otter_desc =>
+      '体长近两米的水獭，喉部有乳白色斑块，在亚马逊河流和牛轭湖中以喧闹的家族群体生活。';
 
   @override
   String get species_north_american_beaver_name => '北美河貍';
 
   @override
-  String get species_north_american_beaver_desc => '尾巴扁平的大型啮齿动物，筑坝将溪流变成池塘，在冰下游动，以树枝巢穴为庇护。';
+  String get species_north_american_beaver_desc =>
+      '尾巴扁平的大型啮齿动物，筑坝将溪流变成池塘，在冰下游动，以树枝巢穴为庇护。';
 
   @override
   String get species_eurasian_beaver_name => '欧亚河狸';
 
   @override
-  String get species_eurasian_beaver_desc => '欧洲最大的啮齿动物，已在全洲重新引入，啃倒河边树木，修筑水坝和巢穴。';
+  String get species_eurasian_beaver_desc =>
+      '欧洲最大的啮齿动物，已在全洲重新引入，啃倒河边树木，修筑水坝和巢穴。';
 
   @override
   String get species_muskrat_name => '麝鼠';
@@ -35339,13 +36341,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_amazonian_manatee_name => '南美海牛';
 
   @override
-  String get species_amazonian_manatee_desc => '最小的海牛，皮肤光滑深色，胸部有白斑，在亚马逊湖河中啃食水生植物。';
+  String get species_amazonian_manatee_desc =>
+      '最小的海牛，皮肤光滑深色，胸部有白斑，在亚马逊湖河中啃食水生植物。';
 
   @override
   String get species_amazon_river_dolphin_name => '亚马逊河豚';
 
   @override
-  String get species_amazon_river_dolphin_desc => '长喙的粉红色河豚，颈部灵活，在亚马逊和奥里诺科河淹没森林的树干间穿梭。';
+  String get species_amazon_river_dolphin_desc =>
+      '长喙的粉红色河豚，颈部灵活，在亚马逊和奥里诺科河淹没森林的树干间穿梭。';
 
   @override
   String get species_baikal_seal_name => '贝加尔海豹';
@@ -35363,7 +36367,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_hippopotamus_name => '河马';
 
   @override
-  String get species_hippopotamus_desc => '庞大的非洲河流巨兽，白天成群潜伏水中，在水底行走而非游泳；靠近极为危险。';
+  String get species_hippopotamus_desc =>
+      '庞大的非洲河流巨兽，白天成群潜伏水中，在水底行走而非游泳；靠近极为危险。';
 
   @override
   String get species_white_water_lily_name => '白睡莲';
@@ -35381,7 +36386,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_american_eelgrass_name => '美洲苦草';
 
   @override
-  String get species_american_eelgrass_desc => '带状叶片可长达两米，在清澈河流和泉水的水流中摇曳，是海牛最爱的食物。';
+  String get species_american_eelgrass_desc =>
+      '带状叶片可长达两米，在清澈河流和泉水的水流中摇曳，是海牛最爱的食物。';
 
   @override
   String get species_coontail_name => '金鱼藻';
@@ -35393,7 +36399,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_eurasian_watermilfoil_name => '穗状狐尾藻';
 
   @override
-  String get species_eurasian_watermilfoil_desc => '羽状沉水植物，细裂的叶片轮生，在水面附近形成厚垫，在许多湖泊中为入侵物种。';
+  String get species_eurasian_watermilfoil_desc =>
+      '羽状沉水植物，细裂的叶片轮生，在水面附近形成厚垫，在许多湖泊中为入侵物种。';
 
   @override
   String get species_muskgrass_name => '普生轮藻';
@@ -35405,25 +36412,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get species_canadian_waterweed_name => '伊乐藻';
 
   @override
-  String get species_canadian_waterweed_desc => '茂密的沉水植物，三片深绿色小叶轮生，靠断枝在全球凉爽的湖泊和运河中扩散。';
+  String get species_canadian_waterweed_desc =>
+      '茂密的沉水植物，三片深绿色小叶轮生，靠断枝在全球凉爽的湖泊和运河中扩散。';
 
   @override
   String get species_curly_leaf_pondweed_name => '菹草';
 
   @override
-  String get species_curly_leaf_pondweed_desc => '沉水植物，叶缘波状呈红绿色，形似皱褶的千层面，早春时先于其他水草生长。';
+  String get species_curly_leaf_pondweed_desc =>
+      '沉水植物，叶缘波状呈红绿色，形似皱褶的千层面，早春时先于其他水草生长。';
 
   @override
   String get species_water_hyacinth_name => '水葫芦';
 
   @override
-  String get species_water_hyacinth_desc => '浮水植物，叶片光亮、叶柄膨大充气，开淡紫色穗状花，在全球温暖水道中大量堵塞水面。';
+  String get species_water_hyacinth_desc =>
+      '浮水植物，叶片光亮、叶柄膨大充气，开淡紫色穗状花，在全球温暖水道中大量堵塞水面。';
 
   @override
   String get species_common_reed_name => '芦苇';
 
   @override
-  String get species_common_reed_desc => '高大的芦苇草，顶端有羽状花序，在湖岸形成茂密苇丛，水下茎干为幼鱼和蜻蜓幼虫提供庇护。';
+  String get species_common_reed_desc =>
+      '高大的芦苇草，顶端有羽状花序，在湖岸形成茂密苇丛，水下茎干为幼鱼和蜻蜓幼虫提供庇护。';
 
   @override
   String get common_action_done => '完成';
@@ -35523,7 +36534,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_cache_clearAction => '清除缓存';
 
   @override
-  String get media_cache_clearBody => '将删除已下载的缩略图和完整尺寸的网络图片。已关联的媒体条目会保留；下次查看时图片会重新下载。';
+  String get media_cache_clearBody =>
+      '将删除已下载的缩略图和完整尺寸的网络图片。已关联的媒体条目会保留；下次查看时图片会重新下载。';
 
   @override
   String get media_cache_clearConfirm => '清除';
@@ -35556,7 +36568,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get media_credentials_deleteBody => '将删除已保存的凭据。通过此主机关联的项目会显示“需要登录”，直到您重新添加凭据。';
+  String get media_credentials_deleteBody =>
+      '将删除已保存的凭据。通过此主机关联的项目会显示“需要登录”，直到您重新添加凭据。';
 
   @override
   String media_credentials_deleteError(String error) {
@@ -35641,7 +36654,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_manifest_editTitle => '编辑订阅';
 
   @override
-  String get media_manifest_emptySubtitle => '在 URL 标签页订阅 Atom/RSS、JSON 或 CSV 清单，即可让媒体库保持同步。';
+  String get media_manifest_emptySubtitle =>
+      '在 URL 标签页订阅 Atom/RSS、JSON 或 CSV 清单，即可让媒体库保持同步。';
 
   @override
   String get media_manifest_emptyTitle => '没有清单订阅';
@@ -35717,7 +36731,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String media_scan_summary(int total, String seconds, int available, int unreachable) {
+  String media_scan_summary(
+    int total,
+    String seconds,
+    int available,
+    int unreachable,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       total,
       locale: localeName,
@@ -35759,12 +36778,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_mediaSources_loading => '正在加载…';
 
   @override
-  String settings_mediaSources_localFilesCounts(int available, int unavailable) {
+  String settings_mediaSources_localFilesCounts(
+    int available,
+    int unavailable,
+  ) {
     return '$available 个可用，$unavailable 个不可用';
   }
 
   @override
-  String get settings_mediaSources_photoLibrarySubtitle => 'Apple Photos / Google Photos / iCloud';
+  String get settings_mediaSources_photoLibrarySubtitle =>
+      'Apple Photos / Google Photos / iCloud';
 
   @override
   String get settings_mediaSources_reverifyAll => '重新校验所有本地文件';
@@ -35811,7 +36834,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_mediaSources_title => '媒体来源';
 
   @override
-  String get settings_networkSources_scanDescription => '重新检查每张通过 URL 或清单导入的照片能否从其主机访问。不可访问的项目会被标记，在媒体库中显示为“缺失”，以便清理。';
+  String get settings_networkSources_scanDescription =>
+      '重新检查每张通过 URL 或清单导入的照片能否从其主机访问。不可访问的项目会被标记，在媒体库中显示为“缺失”，以便清理。';
 
   @override
   String insights_conditions_entryMethod_semanticLabel(String description) {
@@ -35829,7 +36853,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(String description) {
+  String insights_progression_divesBySuitThickness_semanticLabel(
+    String description,
+  ) {
     return '柱状图。按潜水服厚度统计的潜水次数。$description';
   }
 
@@ -35857,7 +36883,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String insights_summary_depthBucket_range(String min, String max, String unit) {
+  String insights_summary_depthBucket_range(
+    String min,
+    String max,
+    String unit,
+  ) {
     return '$min-$max$unit';
   }
 
@@ -35887,7 +36917,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String insights_timePatterns_surfaceInterval_statLabel(String label, String value) {
+  String insights_timePatterns_surfaceInterval_statLabel(
+    String label,
+    String value,
+  ) {
     return '$label水面间隔：$value';
   }
 
@@ -36109,7 +37142,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_listView_certifications => '证书列表视图';
 
   @override
-  String get settings_appearance_listView_certifications_subtitle => '证书列表的默认布局';
+  String get settings_appearance_listView_certifications_subtitle =>
+      '证书列表的默认布局';
 
   @override
   String get settings_appearance_listView_courses => '课程列表视图';
@@ -36151,7 +37185,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_showDataSourceBadges => '显示数据来源标记';
 
   @override
-  String get settings_appearance_showDataSourceBadges_subtitle => '在潜水指标上显示来源归属';
+  String get settings_appearance_showDataSourceBadges_subtitle =>
+      '在潜水指标上显示来源归属';
 
   @override
   String get settings_appearance_title_buddies => '潜伴外观';
@@ -36202,13 +37237,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_decompression_header_ascent => '上升规划';
 
   @override
-  String get settings_decompression_header_ascent_subtitle => '模拟上升（TTS、天花板和停留）在各深度可切换到哪些携带的气瓶。仅考虑本次潜水中记录的气体。';
+  String get settings_decompression_header_ascent_subtitle =>
+      '模拟上升（TTS、天花板和停留）在各深度可切换到哪些携带的气瓶。仅考虑本次潜水中记录的气体。';
 
   @override
   String get settings_decompression_header_dataSources => '数据来源首选项';
 
   @override
-  String get settings_decompression_header_dataSources_subtitle => '设置为“潜水电脑”时，应用会在可用时使用潜水电脑报告的数据。若没有电脑数据，则回退到计算值。';
+  String get settings_decompression_header_dataSources_subtitle =>
+      '设置为“潜水电脑”时，应用会在可用时使用潜水电脑报告的数据。若没有电脑数据，则回退到计算值。';
 
   @override
   String get settings_decompression_ndlSource => 'NDL 来源';
@@ -36229,7 +37266,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_decompression_gtrReserve => 'GTR 储备压力';
 
   @override
-  String get settings_decompression_gtrReserve_subtitle => '剩余气体时间倒计时到的气瓶压力。计算的 GTR 假设以 10 米/分钟直接上升且不停留。';
+  String get settings_decompression_gtrReserve_subtitle =>
+      '剩余气体时间倒计时到的气瓶压力。计算的 GTR 假设以 10 米/分钟直接上升且不停留。';
 
   @override
   String settings_fixDiveTimes_applied(int count, String hours, int hoursAbs) {
@@ -36263,7 +37301,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_fixDiveTimes_confirmApply => '应用';
 
   @override
-  String settings_fixDiveTimes_confirmBody(int count, String hours, int hoursAbs) {
+  String settings_fixDiveTimes_confirmBody(
+    int count,
+    String hours,
+    int hoursAbs,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -36377,21 +37419,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_syncDevices_removal_unreachable => '无法连接后端。未移除任何内容。';
 
   @override
-  String settings_syncDevices_removeDialog_bodyRisky(int count, String name, String size) {
+  String settings_syncDevices_removeDialog_bodyRisky(
+    int count,
+    String name,
+    String size,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '这将删除属于 $name 的 $count 个文件（$size）。\n\n该设备仍是此同步的一部分。如果它重新上线，它会从后端重建，而不会恢复旧数据，但它尚未发布的任何更改都将丢失。本设备上的潜水数据不受影响。',
+      other:
+          '这将删除属于 $name 的 $count 个文件（$size）。\n\n该设备仍是此同步的一部分。如果它重新上线，它会从后端重建，而不会恢复旧数据，但它尚未发布的任何更改都将丢失。本设备上的潜水数据不受影响。',
     );
     return '$_temp0';
   }
 
   @override
-  String settings_syncDevices_removeDialog_bodySafe(int count, String name, String size) {
+  String settings_syncDevices_removeDialog_bodySafe(
+    int count,
+    String name,
+    String size,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '这将删除属于 $name 的 $count 个文件（$size）。它们是某个已无任何设备再同步的资料库的残留。您的潜水数据不受影响。',
+      other:
+          '这将删除属于 $name 的 $count 个文件（$size）。它们是某个已无任何设备再同步的资料库的残留。您的潜水数据不受影响。',
     );
     return '$_temp0';
   }
@@ -36425,7 +37477,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_syncDevices_state_unreadable => '没有可读的清单；上传未完成或已加密';
 
   @override
-  String settings_syncDevices_summary(int deviceCount, int fileCount, String size) {
+  String settings_syncDevices_summary(
+    int deviceCount,
+    int fileCount,
+    String size,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       deviceCount,
       locale: localeName,
@@ -36460,7 +37516,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String settings_syncDevices_tile_filesSizeSeen(int count, String size, String when) {
+  String settings_syncDevices_tile_filesSizeSeen(
+    int count,
+    String size,
+    String when,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -36475,7 +37535,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_syncMaintenance_keepAppOpen => '请在此过程完成前保持应用打开。现在关闭会使后端只被部分清除，下次同步必须重新开始。';
+  String get settings_syncMaintenance_keepAppOpen =>
+      '请在此过程完成前保持应用打开。现在关闭会使后端只被部分清除，下次同步必须重新开始。';
 
   @override
   String get settings_syncMaintenance_phase_clearingOldFiles => '正在清除旧文件';
@@ -36533,7 +37594,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String settings_syncMaintenance_removedFilesPartial(int count, String trouble) {
+  String settings_syncMaintenance_removedFilesPartial(
+    int count,
+    String trouble,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -36579,13 +37643,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_troubleshootSync_appBar_title => '同步故障排查';
 
   @override
-  String get settings_troubleshootSync_devices_subtitle => '查看在此存有文件的每一台设备及其占用的空间，并移除已无任何设备再同步的资料库残留。您的潜水数据不受影响。';
+  String get settings_troubleshootSync_devices_subtitle =>
+      '查看在此存有文件的每一台设备及其占用的空间，并移除已无任何设备再同步的资料库残留。您的潜水数据不受影响。';
 
   @override
   String get settings_troubleshootSync_rebuild_confirm => '重建';
 
   @override
-  String get settings_troubleshootSync_rebuild_confirmBody => '这会将本设备的资料库设为后端上的当前资料库并重新发布，使其他设备从您这里同步。当来自其他设备的替换卡住时可使用此功能。您的潜水数据不受影响。';
+  String get settings_troubleshootSync_rebuild_confirmBody =>
+      '这会将本设备的资料库设为后端上的当前资料库并重新发布，使其他设备从您这里同步。当来自其他设备的替换卡住时可使用此功能。您的潜水数据不受影响。';
 
   @override
   String get settings_troubleshootSync_rebuild_confirmTitle => '从本设备重建后端？';
@@ -36600,22 +37666,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_troubleshootSync_rebuild_progressTitle => '正在重建后端';
 
   @override
-  String get settings_troubleshootSync_rebuild_subtitle => '如果同步卡在等待某个已被其他设备替换但从未上传完成的资料库（该设备可能处于离线状态），可使用此功能。它会将本设备的资料库发布为当前资料库。';
+  String get settings_troubleshootSync_rebuild_subtitle =>
+      '如果同步卡在等待某个已被其他设备替换但从未上传完成的资料库（该设备可能处于离线状态），可使用此功能。它会将本设备的资料库发布为当前资料库。';
 
   @override
   String get settings_troubleshootSync_rebuild_title => '从本设备重建后端';
 
   @override
-  String get settings_troubleshootSync_removeThisDevice_confirmBody => '这只会从后端删除本设备的同步文件。其他设备继续同步，您的潜水数据不受影响。';
+  String get settings_troubleshootSync_removeThisDevice_confirmBody =>
+      '这只会从后端删除本设备的同步文件。其他设备继续同步，您的潜水数据不受影响。';
 
   @override
-  String get settings_troubleshootSync_removeThisDevice_confirmTitle => '移除本设备的云端文件？';
+  String get settings_troubleshootSync_removeThisDevice_confirmTitle =>
+      '移除本设备的云端文件？';
 
   @override
-  String get settings_troubleshootSync_removeThisDevice_progressTitle => '正在移除本设备的云端文件';
+  String get settings_troubleshootSync_removeThisDevice_progressTitle =>
+      '正在移除本设备的云端文件';
 
   @override
-  String get settings_troubleshootSync_removeThisDevice_subtitle => '释放本设备在后端占用的空间。其他设备继续同步。您的潜水数据不受影响。';
+  String get settings_troubleshootSync_removeThisDevice_subtitle =>
+      '释放本设备在后端占用的空间。其他设备继续同步。您的潜水数据不受影响。';
 
   @override
   String get settings_troubleshootSync_removeThisDevice_title => '移除本设备的云端文件';
@@ -36624,7 +37695,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_troubleshootSync_repair_confirm => '修复';
 
   @override
-  String get settings_troubleshootSync_repair_confirmBody => '这会清除所有本地同步状态，并为本设备分配新的同步标识，然后在下次同步时重新连接。您的潜水数据是安全的，不会被删除。';
+  String get settings_troubleshootSync_repair_confirmBody =>
+      '这会清除所有本地同步状态，并为本设备分配新的同步标识，然后在下次同步时重新连接。您的潜水数据是安全的，不会被删除。';
 
   @override
   String get settings_troubleshootSync_repair_confirmTitle => '修复同步？';
@@ -36633,7 +37705,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_troubleshootSync_repair_doneSnack => '同步已修复';
 
   @override
-  String get settings_troubleshootSync_repair_subtitle => '修复卡住的同步。清除本设备的同步状态并为其分配新的同步标识，然后在下次同步时重新连接。您的潜水数据不受影响。';
+  String get settings_troubleshootSync_repair_subtitle =>
+      '修复卡住的同步。清除本设备的同步状态并为其分配新的同步标识，然后在下次同步时重新连接。您的潜水数据不受影响。';
 
   @override
   String get settings_troubleshootSync_repair_title => '修复同步';
@@ -36653,7 +37726,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_troubleshootSync_wipeAll_progressTitle => '正在清除同步数据';
 
   @override
-  String get settings_troubleshootSync_wipeAll_subtitle => '从此后端删除每一台设备的同步数据，包括资料库标记。每台设备都会从头重新建立同步。您的潜水数据不受影响。';
+  String get settings_troubleshootSync_wipeAll_subtitle =>
+      '从此后端删除每一台设备的同步数据，包括资料库标记。每台设备都会从头重新建立同步。您的潜水数据不受影响。';
 
   @override
   String get settings_troubleshootSync_wipeAll_title => '清除此后端上的所有同步数据';
@@ -36725,7 +37799,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get maps_regionDownload_estimateUnavailable => '无法估算';
 
   @override
-  String get maps_regionDownload_largeWarningSemantics => '警告：下载量较大。建议降低缩放级别或选择更小的区域。';
+  String get maps_regionDownload_largeWarningSemantics =>
+      '警告：下载量较大。建议降低缩放级别或选择更小的区域。';
 
   @override
   String get maps_regionDownload_largeWarning => '下载量较大。建议降低缩放级别或选择更小的区域。';
@@ -36742,7 +37817,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String trips_gallery_diveSection_subtitle(Object date, int count, Object photoLabel) {
+  String trips_gallery_diveSection_subtitle(
+    Object date,
+    int count,
+    Object photoLabel,
+  ) {
     return '$date（$count $photoLabel）';
   }
 
@@ -36764,12 +37843,20 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String trips_picker_tileSemantics(Object name, Object startDate, Object endDate) {
+  String trips_picker_tileSemantics(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
     return '$name，$startDate 至 $endDate';
   }
 
   @override
-  String trips_picker_tileSemanticsSelected(Object name, Object startDate, Object endDate) {
+  String trips_picker_tileSemanticsSelected(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
     return '$name，$startDate 至 $endDate，已选择';
   }
 
@@ -36850,7 +37937,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_provider_icloud_subtitle => '通过 Apple iCloud 同步';
+  String get settings_cloudSync_provider_icloud_subtitle =>
+      '通过 Apple iCloud 同步';
 
   @override
   String get settings_debugLog_search_hint => '搜索日志...';
@@ -36922,16 +38010,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_message_adoptFailed => '接管已恢复的资料库失败';
 
   @override
-  String get settings_cloudSync_message_firstSyncNeedsConfirm => '首次同步需要确认。点按「立即同步」以查看。';
+  String get settings_cloudSync_message_firstSyncNeedsConfirm =>
+      '首次同步需要确认。点按「立即同步」以查看。';
 
   @override
   String get settings_cloudSync_message_startingSync => '正在开始同步...';
 
   @override
-  String get settings_cloudSync_message_replacePaused => '同步已暂停：资料库已从备份中替换。点按「立即同步」以查看。';
+  String get settings_cloudSync_message_replacePaused =>
+      '同步已暂停：资料库已从备份中替换。点按「立即同步」以查看。';
 
   @override
-  String get settings_cloudSync_message_encryptedPaused => '同步已暂停：此资料库已加密。请输入口令以继续。';
+  String get settings_cloudSync_message_encryptedPaused =>
+      '同步已暂停：此资料库已加密。请输入口令以继续。';
 
   @override
   String get settings_cloudSync_message_completedWithConflicts => '同步完成，但存在冲突';
@@ -36946,7 +38037,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_message_phaseDefault => '同步';
 
   @override
-  String settings_cloudSync_message_syncErrorDuring(String phase, Object error) {
+  String settings_cloudSync_message_syncErrorDuring(
+    String phase,
+    Object error,
+  ) {
     return '$phase期间同步出错：$error';
   }
 
@@ -37056,7 +38150,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String universalImport_preset_headersMatched(int matched, int total, int percent) {
+  String universalImport_preset_headersMatched(
+    int matched,
+    int total,
+    int percent,
+  ) {
     return '$matched/$total 个表头匹配（$percent%）';
   }
 
@@ -37200,7 +38298,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveImport_healthkit_selectDateRange => '选择日期范围';
 
   @override
-  String get diveImport_healthkit_selectDateRangeBody => '选择在 Apple Health 中搜索潜水记录的日期范围。';
+  String get diveImport_healthkit_selectDateRangeBody =>
+      '选择在 Apple Health 中搜索潜水记录的日期范围。';
 
   @override
   String get diveImport_healthkit_fetchingDives => '正在从 Apple Health 获取潜水记录...';
@@ -37280,7 +38379,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get lock_sidecarRepair_title => '修复安全密钥文件';
 
   @override
-  String get lock_sidecarRepair_body => '您的安全密钥文件已丢失，而本设备的钥匙串中仍保存着该密钥。请确认您的密码以写入新的密钥文件。注意：您在此处输入的密码将成为今后的应用密码，并且您会收到一个新的恢复代码。';
+  String get lock_sidecarRepair_body =>
+      '您的安全密钥文件已丢失，而本设备的钥匙串中仍保存着该密钥。请确认您的密码以写入新的密钥文件。注意：您在此处输入的密码将成为今后的应用密码，并且您会收到一个新的恢复代码。';
 
   @override
   String get lock_sidecarRepair_submit => '修复';
@@ -37314,34 +38414,40 @@ class AppLocalizationsZh extends AppLocalizations {
   String get startup_error_title => 'Submersion 无法启动';
 
   @override
-  String get startup_error_body => '在潜水日志完全打开之前出现了问题。您的数据仍在磁盘上，无需重新安装。请尝试重启应用；如果问题持续存在，请联系支持人员。';
+  String get startup_error_body =>
+      '在潜水日志完全打开之前出现了问题。您的数据仍在磁盘上，无需重新安装。请尝试重启应用；如果问题持续存在，请联系支持人员。';
 
   @override
   String get startup_engineUnavailable_title => '此版本无法打开数据库';
 
   @override
-  String get startup_engineUnavailable_body => '此版本缺少 Submersion 的数据库引擎，因此您的潜水日志从未被打开。磁盘上没有任何变化，也没有数据面临风险。';
+  String get startup_engineUnavailable_body =>
+      '此版本缺少 Submersion 的数据库引擎，因此您的潜水日志从未被打开。磁盘上没有任何变化，也没有数据面临风险。';
 
   @override
-  String get startup_engineUnavailable_guidance => '重新安装或恢复备份都无济于事。请安装可正常工作的 Submersion 版本，并请报告此问题：这是应用安装包的缺陷，而非您的数据问题。';
+  String get startup_engineUnavailable_guidance =>
+      '重新安装或恢复备份都无济于事。请安装可正常工作的 Submersion 版本，并请报告此问题：这是应用安装包的缺陷，而非您的数据问题。';
 
   @override
   String get startup_migrationFailed_title => '数据库升级失败';
 
   @override
-  String get startup_migrationFailed_body => '无法将您的潜水日志升级到此版本所需的格式。升级开始前已创建安全副本，因此没有丢失任何内容。';
+  String get startup_migrationFailed_body =>
+      '无法将您的潜水日志升级到此版本所需的格式。升级开始前已创建安全副本，因此没有丢失任何内容。';
 
   @override
   String get startup_dataUnreadable_title => '无法读取您的潜水日志';
 
   @override
-  String get startup_dataUnreadable_body => '数据库文件存在，但 Submersion 无法读取它。这通常意味着文件已损坏。恢复备份是最快的解决办法。';
+  String get startup_dataUnreadable_body =>
+      '数据库文件存在，但 Submersion 无法读取它。这通常意味着文件已损坏。恢复备份是最快的解决办法。';
 
   @override
   String get startup_databaseBusy_title => '您的潜水日志正忙';
 
   @override
-  String get startup_databaseBusy_body => '有其他程序仍在使用数据库文件，因此 Submersion 停止了操作，没有写入。没有任何内容被更改或损坏。请完全关闭 Submersion，然后重新打开。';
+  String get startup_databaseBusy_body =>
+      '有其他程序仍在使用数据库文件，因此 Submersion 停止了操作，没有写入。没有任何内容被更改或损坏。请完全关闭 Submersion，然后重新打开。';
 
   @override
   String get startup_failure_technicalDetails => '技术详情';
@@ -37355,7 +38461,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String startup_failure_backupAvailable_preMigration(Object fromVersion, Object toVersion) {
+  String startup_failure_backupAvailable_preMigration(
+    Object fromVersion,
+    Object toVersion,
+  ) {
     return '在从架构 v$fromVersion 升级到 v$toVersion 之前创建的安全副本。';
   }
 
@@ -37381,13 +38490,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get startup_failure_useAnotherFolder => '使用其他文件夹中的潜水日志';
 
   @override
-  String get startup_failure_useAnotherFolder_subtitle => '切换到你已经存放在别处的潜水日志，例如 iCloud 云盘或 Dropbox 文件夹中的日志。';
+  String get startup_failure_useAnotherFolder_subtitle =>
+      '切换到你已经存放在别处的潜水日志，例如 iCloud 云盘或 Dropbox 文件夹中的日志。';
 
   @override
   String get startup_failure_restoreFromFile => '从备份文件恢复';
 
   @override
-  String get startup_failure_restoreFromFile_subtitle => '从本设备的任意位置或同步文件夹中选择一个 Submersion 备份。';
+  String get startup_failure_restoreFromFile_subtitle =>
+      '从本设备的任意位置或同步文件夹中选择一个 Submersion 备份。';
 
   @override
   String get startup_failure_startFresh => '以空白潜水日志开始';
@@ -37399,7 +38510,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get startup_recovery_adopt_title => '使用这个潜水日志？';
 
   @override
-  String get startup_recovery_adopt_body => 'Submersion 今后将打开这个潜水日志。无法打开的那个文件会留在原处。';
+  String get startup_recovery_adopt_body =>
+      'Submersion 今后将打开这个潜水日志。无法打开的那个文件会留在原处。';
 
   @override
   String startup_recovery_adopt_contents(Object dives, Object sites) {
@@ -37413,7 +38525,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get startup_recovery_startFresh_title => '以空白潜水日志开始？';
 
   @override
-  String get startup_recovery_startFresh_body => 'Submersion 会把损坏的文件移入单独的文件夹，并打开一个全新的空白潜水日志。不会删除任何内容，你之后仍可再试旧文件或将其发送给支持人员。';
+  String get startup_recovery_startFresh_body =>
+      'Submersion 会把损坏的文件移入单独的文件夹，并打开一个全新的空白潜水日志。不会删除任何内容，你之后仍可再试旧文件或将其发送给支持人员。';
 
   @override
   String get startup_recovery_startFresh_confirm => '重新开始';
@@ -37442,13 +38555,15 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get startup_recovery_encryptedBackup_body => '该备份已加密。Submersion 只有在应用打开后才能解锁加密备份，因此请先使用这里的其他方式，然后在设置的备份与恢复中恢复它。';
+  String get startup_recovery_encryptedBackup_body =>
+      '该备份已加密。Submersion 只有在应用打开后才能解锁加密备份，因此请先使用这里的其他方式，然后在设置的备份与恢复中恢复它。';
 
   @override
   String get startup_failure_downgrade_title => '回到上一个版本';
 
   @override
-  String get startup_failure_downgrade_body => '如果升级持续失败，请安装您之前使用的 Submersion 版本，然后在该版本中恢复安全副本。在这里恢复只会再次运行同一次升级。Submersion 不会自动降级：自动把您切换到旧版本会在您不知情的情况下让您停留在存在已知问题的版本上。';
+  String get startup_failure_downgrade_body =>
+      '如果升级持续失败，请安装您之前使用的 Submersion 版本，然后在该版本中恢复安全副本。在这里恢复只会再次运行同一次升级。Submersion 不会自动降级：自动把您切换到旧版本会在您不知情的情况下让您停留在存在已知问题的版本上。';
 
   @override
   String get startup_failure_downgrade_action => '查看以往版本';
@@ -37463,13 +38578,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get startup_recoveryFailed_title => '恢复未完成';
 
   @override
-  String get startup_recoveryFailed_body => '无法自动回滚数据库。您的数据仍在磁盘上；请在重新安装前联系支持人员，以便我们帮助您恢复数据。';
+  String get startup_recoveryFailed_body =>
+      '无法自动回滚数据库。您的数据仍在磁盘上；请在重新安装前联系支持人员，以便我们帮助您恢复数据。';
 
   @override
   String get startup_recoveryRequired_title => '数据库需要恢复';
 
   @override
-  String get startup_recoveryRequired_body => '上一次会话在写入数据库时被中断。您的数据仍在磁盘上；我们只需完成对已取消更改的回滚，应用即可打开。';
+  String get startup_recoveryRequired_body =>
+      '上一次会话在写入数据库时被中断。您的数据仍在磁盘上；我们只需完成对已取消更改的回滚，应用即可打开。';
 
   @override
   String startup_recovery_sqliteCode(Object code) {
@@ -37507,7 +38624,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get startup_backupFailed_title => '无法备份您的数据';
 
   @override
-  String get startup_backupFailed_body => '您的潜水日志未发生更改；我们没有更新它。请释放空间（或解决该问题）后重试。';
+  String get startup_backupFailed_body =>
+      '您的潜水日志未发生更改；我们没有更新它。请释放空间（或解决该问题）后重试。';
 
   @override
   String get startup_backupFailed_quit => '退出';
@@ -37522,7 +38640,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get startup_versionMismatch_title => '您的数据比此应用更新';
 
   @override
-  String startup_versionMismatch_body(Object databaseVersion, Object appVersion) {
+  String startup_versionMismatch_body(
+    Object databaseVersion,
+    Object appVersion,
+  ) {
     return '您的潜水日志由较新版本的 Submersion 以架构 v$databaseVersion 保存。此版本可打开架构不高于 v$appVersion 的文件。';
   }
 
@@ -37539,10 +38660,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get startup_versionMismatch_cause_shared => '该文件与其他更新通道上的设备共享。';
 
   @override
-  String get startup_versionMismatch_instructions => '您的数据未被修改。请使用写入它的构建版本或更高版本打开。';
+  String get startup_versionMismatch_instructions =>
+      '您的数据未被修改。请使用写入它的构建版本或更高版本打开。';
 
   @override
-  String get startup_versionMismatch_storeInstructions => '此应用来自应用商店，版本低于保存您数据的版本。您的数据未被修改。当新版本在商店上架后，请更新 Submersion 并重新打开。';
+  String get startup_versionMismatch_storeInstructions =>
+      '此应用来自应用商店，版本低于保存您数据的版本。您的数据未被修改。当新版本在商店上架后，请更新 Submersion 并重新打开。';
 
   @override
   String get startup_versionMismatch_download => '查找更新的稳定版';
@@ -37551,7 +38674,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get startup_versionMismatch_betaAction => '获取测试版构建';
 
   @override
-  String get startup_versionMismatch_betaNote => '测试版构建为预发布版本。仅当测试版构建写入了您的数据时才选择此项。';
+  String get startup_versionMismatch_betaNote =>
+      '测试版构建为预发布版本。仅当测试版构建写入了您的数据时才选择此项。';
 
   @override
   String get startup_versionMismatch_manualLink => '如果按钮未打开浏览器：';
@@ -37696,7 +38820,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_saveTitle => '保存轮廓？';
 
   @override
-  String get diveLog_profileEditor_saveBody => '这会将编辑后的轮廓保存为此次潜水的主轮廓。原始轮廓将被保留，之后可以恢复。';
+  String get diveLog_profileEditor_saveBody =>
+      '这会将编辑后的轮廓保存为此次潜水的主轮廓。原始轮廓将被保留，之后可以恢复。';
 
   @override
   String diveLog_profileEditor_saveFailed(String error) {
@@ -37869,7 +38994,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_export_progress_preparingEquipmentCsv => '正在准备装备 CSV...';
 
   @override
-  String get settings_export_progress_preparingObservationsCsv => '正在准备装备检查记录 CSV...';
+  String get settings_export_progress_preparingObservationsCsv =>
+      '正在准备装备检查记录 CSV...';
 
   @override
   String get settings_export_progress_preparingUddf => '正在准备 UDDF 文件...';
@@ -38003,7 +39129,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get backup_operation_restoreSourceMissing => '未恢复任何内容：找不到备份文件。当前数据未发生变化。';
+  String get backup_operation_restoreSourceMissing =>
+      '未恢复任何内容：找不到备份文件。当前数据未发生变化。';
 
   @override
   String get backup_operation_deleting => '正在删除备份...';
@@ -38065,22 +39192,40 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_restore_preMigration_restoreAnyway => '仍要恢复';
 
   @override
-  String backup_restore_preMigration_incompleteMetadata(String timestamp, String appVersion) {
+  String backup_restore_preMigration_incompleteMetadata(
+    String timestamp,
+    String appVersion,
+  ) {
     return '此备份由应用 $appVersion 于 $timestamp 创建，但其数据库迁移元数据不完整。\n\n应用无法确认恢复此备份是否安全，因此恢复功能已停用。';
   }
 
   @override
-  String backup_restore_preMigration_newerApp(String timestamp, String appVersion, int fromVersion) {
+  String backup_restore_preMigration_newerApp(
+    String timestamp,
+    String appVersion,
+    int fromVersion,
+  ) {
     return '此备份比您的应用更新。请安装更新版本的应用以进行恢复。\n\n备份由应用 $appVersion 于 $timestamp 创建（数据库 v$fromVersion）。';
   }
 
   @override
-  String backup_restore_preMigration_safe(String timestamp, String appVersion, int fromVersion, int toVersion) {
+  String backup_restore_preMigration_safe(
+    String timestamp,
+    String appVersion,
+    int fromVersion,
+    int toVersion,
+  ) {
     return '此备份由应用 $appVersion 于 $timestamp 创建，就在数据库从 v$fromVersion 升级到 v$toVersion 之前。\n\n您的应用的数据库架构与此备份一致，因此恢复是安全的。';
   }
 
   @override
-  String backup_restore_preMigration_warning(String timestamp, String appVersion, int fromVersion, int toVersion, int currentVersion) {
+  String backup_restore_preMigration_warning(
+    String timestamp,
+    String appVersion,
+    int fromVersion,
+    int toVersion,
+    int currentVersion,
+  ) {
     return '此备份由应用 $appVersion 于 $timestamp 创建，就在数据库从 v$fromVersion 升级到 v$toVersion 之前。\n\n您正在运行更新的应用（数据库 v$currentVersion）。\n\n现在恢复会在恢复后的数据上重新执行 v$fromVersion → v$toVersion 数据库升级：也就是当初即将执行的那次升级。如果问题正是由该升级引起的，您会再次遇到同样的问题。\n\n若要安全恢复：请安装应用 $appVersion 或更早版本，然后在那个较旧的应用中恢复此备份。';
   }
 
@@ -38099,7 +39244,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String settings_cloudSync_progress_downloadingLibrary(int downloaded, int total) {
+  String settings_cloudSync_progress_downloadingLibrary(
+    int downloaded,
+    int total,
+  ) {
     return '正在下载资料库（$downloaded/$total）';
   }
 
@@ -38127,10 +39275,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_result_libraryReplacedRemotely => '云端资料库已从备份替换';
 
   @override
-  String get settings_cloudSync_result_noReplacementToRebuild => '没有可用于重建的资料库替换记录';
+  String get settings_cloudSync_result_noReplacementToRebuild =>
+      '没有可用于重建的资料库替换记录';
 
   @override
-  String get settings_cloudSync_result_rebuiltFromThisDevice => '已根据本设备的资料库重建此后端';
+  String get settings_cloudSync_result_rebuiltFromThisDevice =>
+      '已根据本设备的资料库重建此后端';
 
   @override
   String settings_cloudSync_result_rebuildFailed(String error) {
@@ -38157,13 +39307,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_result_previousLibraryUnreadable => '无法读取先前的资料库；已根据本设备的资料库重新建立此后端。';
+  String get settings_cloudSync_result_previousLibraryUnreadable =>
+      '无法读取先前的资料库；已根据本设备的资料库重新建立此后端。';
 
   @override
-  String get settings_cloudSync_result_replacementStillUploading => '被替换的资料库仍在上传中。请稍后重试。';
+  String get settings_cloudSync_result_replacementStillUploading =>
+      '被替换的资料库仍在上传中。请稍后重试。';
 
   @override
-  String get settings_cloudSync_result_cloudLibraryNewerSchema => '云端资料库由较新版本的 Submersion 发布。请更新此设备后重试。';
+  String get settings_cloudSync_result_cloudLibraryNewerSchema =>
+      '云端资料库由较新版本的 Submersion 发布。请更新此设备后重试。';
 
   @override
   String settings_cloudSync_result_recordsFailed(int count) {
@@ -38176,7 +39329,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_result_adoptedFreshIdentity => '另一台设备正在使用本设备的身份同步。本设备已采用新身份，并合并了云端数据。';
+  String get settings_cloudSync_result_adoptedFreshIdentity =>
+      '另一台设备正在使用本设备的身份同步。本设备已采用新身份，并合并了云端数据。';
 
   @override
   String settings_cloudSync_launchCheck_unavailable(String provider) {
@@ -38516,7 +39670,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_media_provenanceBadges => '在缩略图上显示来源徽章';
 
   @override
-  String get settings_media_provenanceBadgesSubtitle => '一个小图标，显示每个项目的来源。问题徽章始终显示。';
+  String get settings_media_provenanceBadgesSubtitle =>
+      '一个小图标，显示每个项目的来源。问题徽章始终显示。';
 
   @override
   String get media_status_transferFailed => '上传失败';
@@ -38537,22 +39692,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_tile_infoMenuItem => '媒体信息';
 
   @override
-  String get diveImport_healthkit_accessGrantedHint => 'Apple 健康从不告知 App 是否已获得读取权限。如果没有出现潜水记录，请打开“健康”，依次进入“共享”“App”“Submersion”，并开启“体能训练”“水下深度”“水温”和“心率”。';
+  String get diveImport_healthkit_accessGrantedHint =>
+      'Apple 健康从不告知 App 是否已获得读取权限。如果没有出现潜水记录，请打开“健康”，依次进入“共享”“App”“Submersion”，并开启“体能训练”“水下深度”“水温”和“心率”。';
 
   @override
-  String get diveImport_healthkit_foundNoDivesHint => '此时间范围内没有潜水体能训练。请确认日期涵盖该次潜水，并在“健康”“共享”“App”“Submersion”中开启“体能训练”和“水下深度”。';
+  String get diveImport_healthkit_foundNoDivesHint =>
+      '此时间范围内没有潜水体能训练。请确认日期涵盖该次潜水，并在“健康”“共享”“App”“Submersion”中开启“体能训练”和“水下深度”。';
 
   @override
-  String get settings_dataSources_appleHealth_dataTypeDepth => '水下深度 - 潜水过程中记录的深度采样';
+  String get settings_dataSources_appleHealth_dataTypeDepth =>
+      '水下深度 - 潜水过程中记录的深度采样';
 
   @override
-  String get settings_dataSources_appleHealth_dataTypeWaterTemp => '水温 - 潜水过程中记录的水温采样';
+  String get settings_dataSources_appleHealth_dataTypeWaterTemp =>
+      '水温 - 潜水过程中记录的水温采样';
 
   @override
-  String get settings_dataSources_appleHealth_permissionManagedInHealth => 'HealthKit 访问权限在“健康”App 中管理';
+  String get settings_dataSources_appleHealth_permissionManagedInHealth =>
+      'HealthKit 访问权限在“健康”App 中管理';
 
   @override
-  String get settings_dataSources_appleHealth_permissionUnsupported => '此设备不支持 HealthKit';
+  String get settings_dataSources_appleHealth_permissionUnsupported =>
+      '此设备不支持 HealthKit';
 
   @override
   String get insights_trend_aggregation_monthly => '每月平均';
@@ -38628,7 +39789,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_conditions_waterTempBands_table_error => '无法加载各范围的平均值';
 
   @override
-  String insights_conditions_waterTempBands_table_averageOver(String value, String dives) {
+  String insights_conditions_waterTempBands_table_averageOver(
+    String value,
+    String dives,
+  ) {
     return '$value（$dives）';
   }
 
@@ -38636,7 +39800,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_conditions_waterTempBands_table_noData => '无数据';
 
   @override
-  String insights_conditions_waterTempBands_table_rowSemanticLabel(String band, String dives, String lane, String consumption, String bottomTime) {
+  String insights_conditions_waterTempBands_table_rowSemanticLabel(
+    String band,
+    String dives,
+    String lane,
+    String consumption,
+    String bottomTime,
+  ) {
     return '$band：$dives。平均 $lane：$consumption。平均底部时间：$bottomTime。';
   }
 
@@ -38656,13 +39826,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_excludeFromStats => '从统计中排除';
 
   @override
-  String get diveLog_edit_excludeFromStatsHelp => '将此潜水保留在日志中，但将其排除在所有统计之外，包括潜水次数。';
+  String get diveLog_edit_excludeFromStatsHelp =>
+      '将此潜水保留在日志中，但将其排除在所有统计之外，包括潜水次数。';
 
   @override
   String get diveLog_edit_excludeFromGasStats => '从气体统计中排除';
 
   @override
-  String get diveLog_edit_excludeFromGasStatsHelp => '仅将此潜水排除在 SAC、RMV 和气体混合统计之外。当气体数值不具代表性时很有用。';
+  String get diveLog_edit_excludeFromGasStatsHelp =>
+      '仅将此潜水排除在 SAC、RMV 和气体混合统计之外。当气体数值不具代表性时很有用。';
 
   @override
   String get diveLog_badge_excludedFromStats => '已从统计中排除';
@@ -38705,7 +39877,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get suuntoCloud_signIn_title => '登录 Suunto';
 
   @override
-  String get suuntoCloud_signIn_description => '使用您的 app.suunto.com 账户登录，即可直接导入潜水记录。您的密码不会被保存，仅缓存由此生成的会话。';
+  String get suuntoCloud_signIn_description =>
+      '使用您的 app.suunto.com 账户登录，即可直接导入潜水记录。您的密码不会被保存，仅缓存由此生成的会话。';
 
   @override
   String get suuntoCloud_signIn_emailLabel => '电子邮件';
@@ -38789,7 +39962,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get garminConnect_signIn_title => '登录 Garmin Connect';
 
   @override
-  String get garminConnect_signIn_description => '使用您的 Garmin Connect 账户登录，即可直接导入潜水记录。您的密码不会被保存，仅缓存由此生成的会话。';
+  String get garminConnect_signIn_description =>
+      '使用您的 Garmin Connect 账户登录，即可直接导入潜水记录。您的密码不会被保存，仅缓存由此生成的会话。';
 
   @override
   String get garminConnect_signIn_emailLabel => '电子邮件';
@@ -38905,19 +40079,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_importCloud_suuntoTitle => 'Suunto';
 
   @override
-  String get transfer_importCloud_suuntoSubtitle => '从您的 Suunto 应用或 app.suunto.com 账户导入潜水记录';
+  String get transfer_importCloud_suuntoSubtitle =>
+      '从您的 Suunto 应用或 app.suunto.com 账户导入潜水记录';
 
   @override
   String get transfer_importCloud_garminTitle => 'Garmin';
 
   @override
-  String get transfer_importCloud_garminSubtitle => '从您的 Garmin Connect 账户导入潜水记录';
+  String get transfer_importCloud_garminSubtitle =>
+      '从您的 Garmin Connect 账户导入潜水记录';
 
   @override
   String get transfer_importCloud_divelogsTitle => 'divelogs.de';
 
   @override
-  String get transfer_importCloud_divelogsSubtitle => '从 divelogs.de 导入您的日志、潜水点、装备、证书和照片';
+  String get transfer_importCloud_divelogsSubtitle =>
+      '从 divelogs.de 导入您的日志、潜水点、装备、证书和照片';
 
   @override
   String get transfer_section_cloudTitle => '云端';
@@ -39136,7 +40313,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get startup_versionMismatch_restore_title => '恢复升级前的备份';
 
   @override
-  String get startup_versionMismatch_restore_warning => '升级之后记录的潜水只存在于较新的文件中。该文件会作为已固定的备份保留，重新安装较新版本即可取回。';
+  String get startup_versionMismatch_restore_warning =>
+      '升级之后记录的潜水只存在于较新的文件中。该文件会作为已固定的备份保留，重新安装较新版本即可取回。';
 
   @override
   String get startup_interruptedRestore_title => '有一次恢复未完成';
@@ -39147,19 +40325,22 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get startup_interruptedRestore_body => 'Submersion 在恢复备份时中断了。恢复之前的潜水日志仍在此设备上，且此版本可以打开它。';
+  String get startup_interruptedRestore_body =>
+      'Submersion 在恢复备份时中断了。恢复之前的潜水日志仍在此设备上，且此版本可以打开它。';
 
   @override
   String get startup_interruptedRestore_recoverAction => '恢复我之前的潜水日志';
 
   @override
-  String get startup_interruptedRestore_recoverNote => '当前位于其位置的文件会保留，不会被删除。您之后可以在设置中的“备份与恢复”里恢复或删除它。';
+  String get startup_interruptedRestore_recoverNote =>
+      '当前位于其位置的文件会保留，不会被删除。您之后可以在设置中的“备份与恢复”里恢复或删除它。';
 
   @override
   String get startup_interruptedRestore_keepAction => '保留当前内容';
 
   @override
-  String get startup_interruptedRestore_keepNote => '您之前的潜水日志会保留，不会被删除。您之后可以在设置中的“备份与恢复”里恢复或删除它。';
+  String get startup_interruptedRestore_keepNote =>
+      '您之前的潜水日志会保留，不会被删除。您之后可以在设置中的“备份与恢复”里恢复或删除它。';
 
   @override
   String get startup_interruptedRestore_failed => '恢复未完成。没有删除任何内容；两个文件仍在此设备上。';
@@ -39170,7 +40351,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String backup_history_manualSubtitle(int diveCount, int siteCount, String size) {
+  String backup_history_manualSubtitle(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -39187,7 +40372,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String backup_history_manualSubtitleAuto(int diveCount, int siteCount, String size) {
+  String backup_history_manualSubtitleAuto(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -39372,16 +40561,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_summary_noticeUnknownTransmitterTitle => '未分配的发射器';
 
   @override
-  String get universalImport_summary_noticeUnknownTransmitterBody => '此次下载中有一个或多个发射器未分配到气瓶。分配后，今后的下载将获得正确的容量和用途。';
+  String get universalImport_summary_noticeUnknownTransmitterBody =>
+      '此次下载中有一个或多个发射器未分配到气瓶。分配后，今后的下载将获得正确的容量和用途。';
 
   @override
   String get universalImport_summary_noticeAssignTransmitters => '分配发射器';
 
   @override
-  String get universalImport_summary_noticeDiveNumberConflictTitle => '潜水编号已被使用';
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      '潜水编号已被使用';
 
   @override
-  String get universalImport_summary_noticeDiveNumberConflictBody => '这些潜水保留了来源中的编号，但您的日志中已有其他潜水使用相同的编号。请在潜水列表菜单中打开“潜水编号”重新编号。';
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      '这些潜水保留了来源中的编号，但您的日志中已有其他潜水使用相同的编号。请在潜水列表菜单中打开“潜水编号”重新编号。';
 
   @override
   String get dataQuality_detector_unknown_transmitter => '未分配的发射器';
@@ -39398,7 +40590,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_unrecognized_appBar_title => '无法识别的备份';
 
   @override
-  String get backup_unrecognized_explanation => '这些文件位于您的备份文件夹中，但不在本设备的备份历史记录内。此处只能删除本设备写入的文件：其他文件可能是另一台设备的唯一副本。';
+  String get backup_unrecognized_explanation =>
+      '这些文件位于您的备份文件夹中，但不在本设备的备份历史记录内。此处只能删除本设备写入的文件：其他文件可能是另一台设备的唯一副本。';
 
   @override
   String get backup_unrecognized_empty => '没有无法识别的备份文件。';
@@ -39407,7 +40600,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_unrecognized_loadFailed => '无法读取备份文件夹。';
 
   @override
-  String get backup_unrecognized_unavailable => '本设备无法列出您选择的备份文件夹，因此找不到无法识别的文件。';
+  String get backup_unrecognized_unavailable =>
+      '本设备无法列出您选择的备份文件夹，因此找不到无法识别的文件。';
 
   @override
   String get backup_unrecognized_ownership_otherDevice => '其他设备';
@@ -39457,7 +40651,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_quarantined_sectionTitle => '已搁置的数据库';
 
   @override
-  String get backup_quarantined_explanation => '一次未能正常完成的恢复保留了这些数据库副本，而没有删除它们。恢复其中一个即可再次使用，或将其删除以释放空间。';
+  String get backup_quarantined_explanation =>
+      '一次未能正常完成的恢复保留了这些数据库副本，而没有删除它们。恢复其中一个即可再次使用，或将其删除以释放空间。';
 
   @override
   String get backup_quarantined_kind_preRestore => '恢复之前的潜水日志';
@@ -39471,7 +40666,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String backup_quarantined_detailWithVersion(String date, String size, int version) {
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
     return '$date • $size • 数据库 v$version';
   }
 
@@ -39479,7 +40678,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_quarantined_status_needsNewerApp => '需要更新版本的 Submersion';
 
   @override
-  String get backup_quarantined_status_unreadable => '无法在此打开。它可能已损坏，或受本设备没有的密码保护。';
+  String get backup_quarantined_status_unreadable =>
+      '无法在此打开。它可能已损坏，或受本设备没有的密码保护。';
 
   @override
   String get backup_quarantined_status_incomplete => '只剩下日志文件；数据库文件本身已不存在。';
@@ -39657,7 +40857,14 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String navTrack_terrain_summary(int onLand, int below, int total, int unknown, String maxPart, String coarsePart) {
+  String navTrack_terrain_summary(
+    int onLand,
+    int below,
+    int total,
+    int unknown,
+    String maxPart,
+    String coarsePart,
+  ) {
     return '$onLand 个点在陆地上，$below/$total 个点在海底以下$maxPart，$unknown 个未知$coarsePart';
   }
 
@@ -39763,7 +40970,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String navTrack_review_segmentSummaryWithFix(int underwater, int surface, String vector) {
+  String navTrack_review_segmentSummaryWithFix(
+    int underwater,
+    int surface,
+    String vector,
+  ) {
     return '$underwater 个水下采样点，$surface 个水面采样点，GPS 定位距推算终点 $vector。';
   }
 
@@ -39869,7 +41080,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_handoff_recognized => '已识别 Seacraft ENC 导航日志';
 
   @override
-  String get navTrack_handoff_description => '这是一条水下路线，不是潜水日志。它在 Submersion 中有自己的位置，与你的潜水记录导入分开。';
+  String get navTrack_handoff_description =>
+      '这是一条水下路线，不是潜水日志。它在 Submersion 中有自己的位置，与你的潜水记录导入分开。';
 
   @override
   String get navTrack_handoff_reviewButton => '查看路线';
@@ -39909,7 +41121,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_section_menuMakePrimary => '设为主要';
 
   @override
-  String get navTrack_importError_unsupportedFormat => '此文件不是 Seacraft ENC 导航日志。';
+  String get navTrack_importError_unsupportedFormat =>
+      '此文件不是 Seacraft ENC 导航日志。';
 
   @override
   String get navTrack_importError_unreadable => '无法将此文件作为 Seacraft ENC 导航日志读取。';
@@ -39977,7 +41190,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_whatIf_detailLabel => 'Detail';
 
   @override
-  String get diveLog_whatIf_engineNote => 'The plan covers the descent and working levels. The planner computes the ascent and deco so you can compare them with the logged dive.';
+  String get diveLog_whatIf_engineNote =>
+      'The plan covers the descent and working levels. The planner computes the ascent and deco so you can compare them with the logged dive.';
 
   @override
   String get diveLog_whatIf_seedTissues => 'Seed tissues from previous dive';
@@ -40068,7 +41282,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveCenters_rental_applyConfirmTitle => '替换配重和气瓶？';
 
   @override
-  String get diveCenters_rental_applyConfirmBody => '此次潜水已有配重或气瓶。是否替换为你上次在此潜水的配置？';
+  String get diveCenters_rental_applyConfirmBody =>
+      '此次潜水已有配重或气瓶。是否替换为你上次在此潜水的配置？';
 
   @override
   String get diveCenters_rental_applyConfirmReplace => '替换';
