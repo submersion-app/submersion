@@ -13,6 +13,10 @@ final equipmentHistoryProvider =
       final repository = ref.watch(equipmentRepositoryProvider);
       final shares = ref.watch(equipmentShareRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+      // Usage is the service clocks' dive set, and an install date decides
+      // which of a parent's dives count for a part, so an attribute write
+      // (which touches only equipment_attributes) refreshes it too.
+      ref.invalidateSelfWhen(repository.watchAttributeChanges());
       // Usage comes from the dives and their gear and tank links, so putting
       // the item on (or off) a dive refreshes the card.
       ref.invalidateSelfWhen(

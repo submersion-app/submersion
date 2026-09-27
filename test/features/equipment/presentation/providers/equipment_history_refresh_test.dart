@@ -62,4 +62,29 @@ void main() {
 
     expect(await diveCount(container), 2);
   });
+
+  test('an attribute write refreshes the history', () async {
+    // An install date decides which of a parent's dives count for a part,
+    // and saving attributes writes only equipment_attributes.
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    var builds = 0;
+    final sub = container.listen(equipmentHistoryProvider('cyl'), (_, next) {
+      if (next.hasValue && !next.isLoading) builds++;
+    });
+    addTearDown(sub.close);
+    await container.read(equipmentHistoryProvider('cyl').future);
+    final before = builds;
+
+    await db.customInsert(
+      'INSERT INTO equipment_attributes (id, equipment_id, attr_key, '
+      "value_text, created_at, updated_at) VALUES ('a1', 'cyl', "
+      "'installedDate', '2026-01-01', 0, 0)",
+      updates: {db.equipmentAttributes},
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    await container.read(equipmentHistoryProvider('cyl').future);
+
+    expect(builds, greaterThan(before));
+  });
 }
