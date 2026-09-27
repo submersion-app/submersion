@@ -12,20 +12,20 @@ env:
 
 jobs:
   probe:
-    name: ${{ matrix.variant }} heap=${{ matrix.heap }}
+    name: ${{ matrix.variant }} heap=${{ matrix.heap }} swap=${{ matrix.swap }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Proof the cap reaches the build script: this one must fail.
-          - {variant: baseline, heap: 800, rep: 1}
-          - {variant: baseline, heap: 6000, rep: 1}
-          - {variant: baseline, heap: 4000, rep: 1}
-          - {variant: db_mocklist, heap: 6000, rep: 1}
-          - {variant: db_mocklist, heap: 4000, rep: 1}
-          - {variant: db_mocklist, heap: 2500, rep: 1}
+          - {variant: db_mocklist, heap: 8000, swap: 0}
+          - {variant: db_mocklist, heap: 10000, swap: 0}
+          - {variant: db_mocklist, heap: 12000, swap: 0}
+          - {variant: baseline, heap: 10000, swap: 0}
+          - {variant: baseline, heap: 12000, swap: 0}
+          - {variant: db_mocklist, heap: 0, swap: 12}
+          - {variant: baseline, heap: 0, swap: 12}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -58,6 +58,12 @@ jobs:
             cp .github/codegen-probe/${{ matrix.variant }}.yaml build.yaml
           fi
           echo "--- build.yaml:"; cat build.yaml 2>/dev/null || echo "(none)"
+          if [ "${{ matrix.swap }}" != 0 ]; then
+            sudo fallocate -l ${{ matrix.swap }}G /mnt/extra.swap
+            sudo chmod 600 /mnt/extra.swap
+            sudo mkswap /mnt/extra.swap
+            sudo swapon /mnt/extra.swap
+          fi
           echo "--- machine:"; nproc; free -m; swapon --show || true
 
       - name: Cold build with memory sampling
@@ -69,7 +75,7 @@ jobs:
               ps -eo rss=,args= | awk '/build\.dart\.aot/ && !/awk/ {r+=$1} END{printf "script_rss=%d\n", r/1024}'
               sleep 2
             done
-          ) > mem.log 2>&1 &
+          ) 2>&1 | awk '{print > "mem.log"; fflush("mem.log")} NR % 15 == 1 {print "MEM " $0; fflush()}' &
           sampler=$!
           start=$(date +%s)
           set +e
@@ -77,14 +83,17 @@ jobs:
           # sits beside the dart executable; wrap it to pass the heap cap.
           bin="$(dirname "$(readlink -f "$(dirname "$(readlink -f "$(command -v flutter)")")/cache/dart-sdk/bin/dart")")"
           echo "sdk bin: $bin"; ls -la "$bin" | head -20
+          if [ "${{ matrix.heap }}" != 0 ]; then
           mv "$bin/dartaotruntime" "$bin/dartaotruntime.real"
           printf '#!/bin/sh\nexec "$(dirname "$0")/dartaotruntime.real" --old_gen_heap_size=%s "$@"\n' "${{ matrix.heap }}" > "$bin/dartaotruntime"
           chmod +x "$bin/dartaotruntime"; cat "$bin/dartaotruntime"
-          /usr/bin/time -v dart run build_runner build --delete-conflicting-outputs > run.log 2> time.log
-          rc=$?
+          fi
+          timeout 1500 /usr/bin/time -v -o time.log dart run build_runner build --delete-conflicting-outputs 2>&1 \
+            | tee run.log | grep --line-buffered -E "on [0-9]+ inputs: .*spent" | awk 'NR % 20 == 1 {print; fflush()}'
+          rc=${PIPESTATUS[0]}
           set -e
           end=$(date +%s)
-          kill $sampler || true
+          pkill -f "free -m" || true; kill $sampler 2>/dev/null || true
           tail -5 run.log
           grep -iE "out of memory|exhausted heap|OutOfMemory" run.log time.log | head -5 || true
           echo "PROBE_RESULT variant=${{ matrix.variant }} heap=${{ matrix.heap }} rc=$rc seconds=$((end - start))" \
