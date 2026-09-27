@@ -26625,6 +26625,7 @@
   "numberInput_invalidWholeNumber": "Enter a whole number",
   "numberInput_required": "Required",
   "numberInput_notNegative": "Enter 0 or more",
+  "numberInput_atLeastOne": "Enter 1 or more",
   "numberInput_percentRange": "Enter 0 to 100",
   "diveCenters_rental_sectionTitle": "Rental gear",
   "diveCenters_rental_lastTimeAt": "Last time at {center}",

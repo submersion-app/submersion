@@ -88,9 +88,10 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
 
   /// A body-measurement field's number, or null when blank or unreadable,
   /// so the prediction falls back to the profile and the field shows its
-  /// own error.
+  /// own error. A negative is unreadable too, as its field says, so it never
+  /// reaches the prediction or the diver's profile.
   static double? _typed(TextEditingController controller) =>
-      switch (readNumber(controller.text)) {
+      switch (readNumber(controller.text, allowNegative: false)) {
         NumberValue(:final value) => value,
         NumberBlank() || NumberInvalid() => null,
       };

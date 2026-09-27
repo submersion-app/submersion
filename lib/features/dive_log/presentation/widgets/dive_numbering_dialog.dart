@@ -305,38 +305,48 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
   }
 
   Future<void> _showRenumberDialog(BuildContext context) async {
+    final formKey = GlobalKey<FormState>();
     final result = await showDialog<int>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(context.l10n.diveLog_numbering_renumberDialog_title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(context.l10n.diveLog_numbering_renumberDialog_content),
-            const SizedBox(height: 16),
-            TextFormField(
-              decoration: InputDecoration(
-                labelText:
-                    context.l10n.diveLog_numbering_renumberDialog_startFrom,
-                border: const OutlineInputBorder(),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(context.l10n.diveLog_numbering_renumberDialog_content),
+              const SizedBox(height: 16),
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText:
+                      context.l10n.diveLog_numbering_renumberDialog_startFrom,
+                  border: const OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                initialValue: _startFrom.toString(),
+                inputFormatters: numberInputFormatters(),
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                // Negatives read as numbers so they get the same "1 or more"
+                // message as 0, rather than the shared "0 or more".
+                validator: numberValidator(
+                  context,
+                  integer: true,
+                  required: true,
+                  check: (value) =>
+                      value < 1 ? context.l10n.numberInput_atLeastOne : null,
+                ),
+                onChanged: (value) {
+                  if (readNumber(value, integer: true) case NumberValue(
+                    :final value,
+                  ) when value > 0) {
+                    _startFrom = value.toInt();
+                  }
+                },
               ),
-              keyboardType: TextInputType.number,
-              initialValue: _startFrom.toString(),
-              inputFormatters: numberInputFormatters(),
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              validator: numberValidator(context, integer: true),
-              onChanged: (value) {
-                // Blank or unreadable keeps the last number the diver typed;
-                // the field shows why.
-                if (readNumber(value, integer: true) case NumberValue(
-                  :final value,
-                ) when value > 0) {
-                  _startFrom = value.toInt();
-                }
-              },
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -344,7 +354,13 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
             child: Text(context.l10n.diveLog_numbering_renumberDialog_cancel),
           ),
           FilledButton(
-            onPressed: () => Navigator.of(context).pop(_startFrom),
+            // Renumbering cannot be undone, so it never runs from a number
+            // other than the one the field shows (#1900).
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.of(context).pop(_startFrom);
+              }
+            },
             child: Text(context.l10n.diveLog_numbering_renumberDialog_renumber),
           ),
         ],

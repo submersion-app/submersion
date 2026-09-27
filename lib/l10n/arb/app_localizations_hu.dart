@@ -42916,6 +42916,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get numberInput_notNegative => 'Adjon meg 0-t vagy többet';
 
   @override
+  String get numberInput_atLeastOne => 'Adjon meg 1-et vagy többet';
+
+  @override
   String get numberInput_percentRange => 'Adjon meg 0 és 100 közötti értéket';
 
   @override

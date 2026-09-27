@@ -12803,6 +12803,7 @@
   "numberInput_invalidWholeNumber": "أدخل عددًا صحيحًا",
   "numberInput_required": "مطلوب",
   "numberInput_notNegative": "أدخل 0 أو أكثر",
+  "numberInput_atLeastOne": "أدخل 1 أو أكثر",
   "numberInput_percentRange": "أدخل قيمة من 0 إلى 100",
   "diveCenters_rental_sectionTitle": "معدات مستأجرة",
   "diveCenters_rental_lastTimeAt": "آخر مرة في {center}",

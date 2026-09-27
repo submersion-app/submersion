@@ -40578,6 +40578,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get numberInput_notNegative => '请输入 0 或更大的数';
 
   @override
+  String get numberInput_atLeastOne => '请输入 1 或更大的数';
+
+  @override
   String get numberInput_percentRange => '请输入 0 到 100 之间的数';
 
   @override

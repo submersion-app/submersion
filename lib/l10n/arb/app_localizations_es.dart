@@ -43130,6 +43130,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get numberInput_notNegative => 'Introduce 0 o más';
 
   @override
+  String get numberInput_atLeastOne => 'Introduce 1 o más';
+
+  @override
   String get numberInput_percentRange => 'Introduce un valor de 0 a 100';
 
   @override

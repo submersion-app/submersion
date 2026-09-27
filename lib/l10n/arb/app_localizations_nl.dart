@@ -42803,6 +42803,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get numberInput_notNegative => 'Voer 0 of meer in';
 
   @override
+  String get numberInput_atLeastOne => 'Voer 1 of meer in';
+
+  @override
   String get numberInput_percentRange => 'Voer 0 tot 100 in';
 
   @override

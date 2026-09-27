@@ -43102,6 +43102,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get numberInput_notNegative => 'Insira 0 ou mais';
 
   @override
+  String get numberInput_atLeastOne => 'Insira 1 ou mais';
+
+  @override
   String get numberInput_percentRange => 'Insira um valor de 0 a 100';
 
   @override

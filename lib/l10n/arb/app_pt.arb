@@ -12803,6 +12803,7 @@
   "numberInput_invalidWholeNumber": "Insira um número inteiro",
   "numberInput_required": "Obrigatório",
   "numberInput_notNegative": "Insira 0 ou mais",
+  "numberInput_atLeastOne": "Insira 1 ou mais",
   "numberInput_percentRange": "Insira um valor de 0 a 100",
   "diveCenters_rental_sectionTitle": "Equipamento alugado",
   "diveCenters_rental_lastTimeAt": "Da última vez em {center}",

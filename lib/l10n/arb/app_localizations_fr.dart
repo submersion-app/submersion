@@ -43200,6 +43200,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get numberInput_notNegative => 'Saisissez 0 ou plus';
 
   @override
+  String get numberInput_atLeastOne => 'Saisissez 1 ou plus';
+
+  @override
   String get numberInput_percentRange => 'Saisissez une valeur de 0 à 100';
 
   @override

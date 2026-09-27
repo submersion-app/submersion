@@ -283,10 +283,19 @@ class _TemplateEditDialogState extends State<_TemplateEditDialog> {
       autofocus: controller == _o2,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: numberInputFormatters(),
+      // Redraw so the box explains a typo as it is typed, rather than only
+      // the generic "needs numbers" message after the button is pressed.
+      onChanged: (_) => setState(() {}),
       onSubmitted: (_) => _submit(),
       decoration: InputDecoration(
         labelText: '$label (%)',
         isDense: true,
+        errorText: invalidNumberText(
+          context,
+          controller.text,
+          allowNegative: false,
+        ),
+        errorMaxLines: 3,
         border: const OutlineInputBorder(),
       ),
     );

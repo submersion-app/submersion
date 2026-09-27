@@ -42451,6 +42451,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get numberInput_notNegative => 'Enter 0 or more';
 
   @override
+  String get numberInput_atLeastOne => 'Enter 1 or more';
+
+  @override
   String get numberInput_percentRange => 'Enter 0 to 100';
 
   @override

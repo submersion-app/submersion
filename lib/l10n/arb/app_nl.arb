@@ -12803,6 +12803,7 @@
   "numberInput_invalidWholeNumber": "Voer een geheel getal in",
   "numberInput_required": "Verplicht",
   "numberInput_notNegative": "Voer 0 of meer in",
+  "numberInput_atLeastOne": "Voer 1 of meer in",
   "numberInput_percentRange": "Voer 0 tot 100 in",
   "diveCenters_rental_sectionTitle": "Huuruitrusting",
   "diveCenters_rental_lastTimeAt": "Vorige keer bij {center}",

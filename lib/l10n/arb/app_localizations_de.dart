@@ -43007,6 +43007,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get numberInput_notNegative => 'Geben Sie 0 oder mehr ein';
 
   @override
+  String get numberInput_atLeastOne => 'Geben Sie 1 oder mehr ein';
+
+  @override
   String get numberInput_percentRange => 'Geben Sie 0 bis 100 ein';
 
   @override

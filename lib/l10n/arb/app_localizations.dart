@@ -68928,6 +68928,12 @@ abstract class AppLocalizations {
   /// **'Enter 0 or more'**
   String get numberInput_notNegative;
 
+  /// No description provided for @numberInput_atLeastOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter 1 or more'**
+  String get numberInput_atLeastOne;
+
   /// No description provided for @numberInput_percentRange.
   ///
   /// In en, this message translates to:

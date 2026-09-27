@@ -42762,6 +42762,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get numberInput_notNegative => 'أدخل 0 أو أكثر';
 
   @override
+  String get numberInput_atLeastOne => 'أدخل 1 أو أكثر';
+
+  @override
   String get numberInput_percentRange => 'أدخل قيمة من 0 إلى 100';
 
   @override
