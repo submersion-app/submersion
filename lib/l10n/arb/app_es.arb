@@ -2879,7 +2879,7 @@
   "diveLog_sources_row_metric": "Medida",
   "diveLog_sources_row_maxDepth": "Prof. máxima",
   "diveLog_sources_row_avgDepth": "Prof. media",
-  "diveLog_sources_row_bottomTime": "Tiempo de fondo",
+  "diveLog_sources_row_duration": "Duración",
   "diveLog_sources_row_waterTemp": "Temp. agua",
   "diveLog_sources_row_cns": "CNS",
   "diveLog_sources_row_otu": "OTU",

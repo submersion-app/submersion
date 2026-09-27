@@ -13917,11 +13917,11 @@ abstract class AppLocalizations {
   /// **'Avg Depth'**
   String get diveLog_sources_row_avgDepth;
 
-  /// No description provided for @diveLog_sources_row_bottomTime.
+  /// No description provided for @diveLog_sources_row_duration.
   ///
   /// In en, this message translates to:
-  /// **'Bottom Time'**
-  String get diveLog_sources_row_bottomTime;
+  /// **'Duration'**
+  String get diveLog_sources_row_duration;
 
   /// No description provided for @diveLog_sources_row_waterTemp.
   ///

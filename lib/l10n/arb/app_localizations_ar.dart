@@ -8335,7 +8335,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_sources_row_avgDepth => 'متوسط العمق';
 
   @override
-  String get diveLog_sources_row_bottomTime => 'وقت القاع';
+  String get diveLog_sources_row_duration => 'المدة';
 
   @override
   String get diveLog_sources_row_waterTemp => 'حرارة الماء';

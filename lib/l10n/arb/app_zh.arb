@@ -3013,7 +3013,7 @@
   "diveLog_sources_row_metric": "指标",
   "diveLog_sources_row_maxDepth": "最大深度",
   "diveLog_sources_row_avgDepth": "平均深度",
-  "diveLog_sources_row_bottomTime": "底部时间",
+  "diveLog_sources_row_duration": "时长",
   "diveLog_sources_row_waterTemp": "水温",
   "diveLog_sources_row_cns": "CNS",
   "diveLog_sources_row_otu": "OTU",

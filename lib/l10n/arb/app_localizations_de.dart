@@ -8491,7 +8491,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_sources_row_avgDepth => 'Ø Tiefe';
 
   @override
-  String get diveLog_sources_row_bottomTime => 'Grundzeit';
+  String get diveLog_sources_row_duration => 'Dauer';
 
   @override
   String get diveLog_sources_row_waterTemp => 'Wassertemp.';

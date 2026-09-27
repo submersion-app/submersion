@@ -8080,7 +8080,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_sources_row_avgDepth => '平均深度';
 
   @override
-  String get diveLog_sources_row_bottomTime => '底部时间';
+  String get diveLog_sources_row_duration => '时长';
 
   @override
   String get diveLog_sources_row_waterTemp => '水温';

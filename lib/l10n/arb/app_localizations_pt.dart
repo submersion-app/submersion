@@ -8498,7 +8498,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_sources_row_avgDepth => 'Prof. Média';
 
   @override
-  String get diveLog_sources_row_bottomTime => 'Tempo de Fundo';
+  String get diveLog_sources_row_duration => 'Duração';
 
   @override
   String get diveLog_sources_row_waterTemp => 'Temp. Água';

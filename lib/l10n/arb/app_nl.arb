@@ -2879,7 +2879,7 @@
   "diveLog_sources_row_metric": "Meting",
   "diveLog_sources_row_maxDepth": "Max diepte",
   "diveLog_sources_row_avgDepth": "Gem. diepte",
-  "diveLog_sources_row_bottomTime": "Bodemtijd",
+  "diveLog_sources_row_duration": "Duur",
   "diveLog_sources_row_waterTemp": "Watertemp.",
   "diveLog_sources_row_cns": "CNS",
   "diveLog_sources_row_otu": "OTU",

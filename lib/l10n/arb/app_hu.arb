@@ -2777,7 +2777,7 @@
   "diveLog_sources_row_metric": "Adat",
   "diveLog_sources_row_maxDepth": "Max mélység",
   "diveLog_sources_row_avgDepth": "Átl. mélység",
-  "diveLog_sources_row_bottomTime": "Fenékidő",
+  "diveLog_sources_row_duration": "Időtartam",
   "diveLog_sources_row_waterTemp": "Víz hőm.",
   "diveLog_sources_row_cns": "CNS",
   "diveLog_sources_row_otu": "OTU",
