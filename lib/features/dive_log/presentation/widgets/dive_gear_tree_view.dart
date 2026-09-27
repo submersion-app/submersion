@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/services/dive_figure_inputs.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/services/assembly_snapshot.dart';
-import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/presentation/providers/assembly_snapshot_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
@@ -114,9 +114,10 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
             onRemove: widget.onRemoveSet,
           ),
         // The arrangement sees every top-level item on the dive at once;
-        // parts keep template order underneath their assembly.
-        for (final group in arrangeEquipment(
-          [for (final n in roots) n.link.item],
+        // parts keep template order underneath their assembly. The dive
+        // figure numbers the same rows in the same order.
+        for (final group in arrangedDiveGear(
+          widget.links,
           arrangement,
           typeLabel: (type) => type.localizedName(l10n),
         )) ...[
