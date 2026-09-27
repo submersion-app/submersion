@@ -277,7 +277,7 @@ class GasConsumptionCalculator extends ConsumerWidget {
                       _buildBreakdownRow(
                         context,
                         context.l10n.gasCalculators_consumption_gasAtDepth,
-                        '${units.convertVolume(result.gasAtDepthLitersPerMin).toStringAsFixed(isMetricVolume ? 1 : 2)} $volumeSymbol/min',
+                        '${units.convertVolume(result.gasAtDepthLitersPerMin).toStringAsFixed(isMetricVolume ? 1 : 2)} ${units.rmvSymbol}',
                       ),
                       _buildBreakdownRow(
                         context,

@@ -153,6 +153,7 @@ add_library(${PLUGIN_NAME} SHARED
     dive_converter.c
     ble_scanner.c
     ble_io_stream.c
+    ble_read_poll.c
     serial_scanner.c
     serial_io_stream.c
     usbhid_enumerator.c

@@ -187,6 +187,164 @@ class AppLocalizationsPt extends AppLocalizations {
   String get connections_tab_view => 'Vista';
 
   @override
+  String get equipment_filter_owner_all => 'Todos';
+
+  @override
+  String get equipment_delete_notOwner =>
+      'Só o proprietário pode eliminar este item';
+
+  @override
+  String get equipment_sharedWithMe => 'Partilhado comigo';
+
+  @override
+  String get equipment_owner_unknown => 'Outro perfil';
+
+  @override
+  String equipment_ownerChip_semanticLabel(String name) {
+    return 'Pertence a $name';
+  }
+
+  @override
+  String equipment_picker_ownerHeader(String name) {
+    return 'De $name';
+  }
+
+  @override
+  String get equipment_sharing_sharedWithLabel => 'Partilhado com';
+
+  @override
+  String get equipment_sharing_notShared => 'Não partilhado';
+
+  @override
+  String get equipment_sharing_ownedByLabel => 'Proprietário';
+
+  @override
+  String get equipment_sharing_dialogTitle => 'Partilhar com';
+
+  @override
+  String get equipment_sharing_dialogBody =>
+      'Os perfis escolhidos podem adicionar este equipamento aos seus mergulhos e registar a sua manutenção. Só o proprietário o pode eliminar ou alterar com quem é partilhado.';
+
+  @override
+  String get equipment_bulkShare_action => 'Partilhar com...';
+
+  @override
+  String equipment_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens partilhados',
+      one: '$count item partilhado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens partilhados',
+      one: '$count item partilhado',
+    );
+    return '$_temp0, $skipped ignorados que não são seus';
+  }
+
+  @override
+  String equipment_bulkDelete_partial(int deleted, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      deleted,
+      locale: localeName,
+      other: '$deleted itens eliminados',
+      one: '$deleted item eliminado',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other:
+          '$skipped itens partilhados foram mantidos: só os proprietários os podem eliminar',
+      one:
+          '$skipped item partilhado foi mantido: só o proprietário o pode eliminar',
+    );
+    return '$_temp0. $_temp1';
+  }
+
+  @override
+  String get equipment_filter_section_owner => 'Proprietário';
+
+  @override
+  String get equipment_filter_owner_mine => 'Meus';
+
+  @override
+  String get enum_equipmentField_owner => 'Proprietário';
+
+  @override
+  String get enum_equipmentField_owner_short => 'Proprietário';
+
+  @override
+  String get equipment_set_noLongerShared => 'Já não é partilhado';
+
+  @override
+  String get equipment_history_title => 'Histórico';
+
+  @override
+  String get equipment_history_empty => 'Ainda não usado em nenhum mergulho';
+
+  @override
+  String get equipment_history_deletedProfile => 'um perfil eliminado';
+
+  @override
+  String equipment_history_runDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '$count mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_history_dateRange(String from, String to) {
+    return '$from a $to';
+  }
+
+  @override
+  String equipment_history_added(String name) {
+    return 'Adicionado por $name';
+  }
+
+  @override
+  String equipment_history_shared(String name) {
+    return 'Partilhado com $name';
+  }
+
+  @override
+  String equipment_history_unshared(String name) {
+    return 'Deixou de ser partilhado com $name';
+  }
+
+  @override
+  String equipment_history_transferred(String from, String to) {
+    return 'Transferido de $from para $to';
+  }
+
+  @override
+  String get settings_shareAllEquipment_title =>
+      'Partilhar todo o meu equipamento...';
+
+  @override
+  String settings_shareAllEquipment_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Partilhe os seus $count itens com os perfis escolhidos.',
+      one: 'Partilhe o seu item com os perfis escolhidos.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'Não foi possível abrir o navegador. Use Copiar link e cole o endereço no navegador.';
 
@@ -9273,13 +9431,13 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh =>
-      'Profundidade Narcótica Equivalente muito alta';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END de $depth excede o limite de $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END de $depth excede o limite seguro';
-  }
+  String get divePlanner_warning_endHigh =>
+      'Profundidade Narcótica Equivalente muito alta';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -15483,6 +15641,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get marineLife_speciesDetail_sitesLabel => 'Pontos';
+
+  @override
+  String get marineLife_speciesDetail_statsError =>
+      'Não foi possível carregar as estatísticas de avistamentos';
 
   @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
@@ -26620,7 +26782,7 @@ class AppLocalizationsPt extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Subida $from -> $to a $rate/min';
+    return 'Subida $from -> $to a $rate';
   }
 
   @override
@@ -26634,7 +26796,7 @@ class AppLocalizationsPt extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Descida $from -> $to a $rate/min';
+    return 'Descida $from -> $to a $rate';
   }
 
   @override
@@ -28356,7 +28518,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_sharedData_sectionSubtitle =>
-      'Partilhar locais e viagens entre perfis';
+      'Partilhar locais, viagens e equipamento entre perfis';
 
   @override
   String get common_action_unshare => 'Deixar de partilhar';
@@ -30264,7 +30426,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Adicione o volume do cilindro para mostrar o RMV em $unit/min';
+    return 'Adicione o volume do cilindro para mostrar o RMV em $unit';
   }
 
   @override
@@ -42541,14 +42703,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'O ficheiro que está agora no seu lugar é guardado ao lado, não eliminado.';
+      'O ficheiro que está agora no seu lugar é guardado, não eliminado. Pode restaurá-lo ou eliminá-lo mais tarde em Backup e restauração, nas Definições.';
 
   @override
   String get startup_interruptedRestore_keepAction => 'Manter o que está agora';
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'O seu diário de mergulho anterior fica guardado como ficheiro na pasta da base de dados.';
+      'O seu diário de mergulho anterior fica guardado, não eliminado. Pode restaurá-lo ou eliminá-lo mais tarde em Backup e restauração, nas Definições.';
 
   @override
   String get startup_interruptedRestore_failed =>
@@ -42874,6 +43036,67 @@ class AppLocalizationsPt extends AppLocalizations {
   String backup_unrecognized_freed(String size) {
     return '$size libertados';
   }
+
+  @override
+  String get backup_quarantined_sectionTitle =>
+      'Bases de dados postas de parte';
+
+  @override
+  String get backup_quarantined_explanation =>
+      'Um restauro que não terminou corretamente guardou estas cópias da sua base de dados em vez de as eliminar. Restaure uma para a voltar a usar, ou elimine-a para libertar espaço.';
+
+  @override
+  String get backup_quarantined_kind_preRestore =>
+      'Diário de mergulho de antes de um restauro';
+
+  @override
+  String get backup_quarantined_kind_restoreRejected =>
+      'Diário de mergulho substituído durante uma recuperação';
+
+  @override
+  String backup_quarantined_detail(String date, String size) {
+    return '$date • $size';
+  }
+
+  @override
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
+    return '$date • $size • base de dados v$version';
+  }
+
+  @override
+  String get backup_quarantined_status_needsNewerApp =>
+      'Precisa de uma versão mais recente do Submersion';
+
+  @override
+  String get backup_quarantined_status_unreadable =>
+      'Não pode ser aberta aqui. Pode estar danificada, ou protegida com uma palavra-passe que este dispositivo não tem.';
+
+  @override
+  String get backup_quarantined_status_incomplete =>
+      'Só restam ficheiros de diário; o ficheiro da base de dados desapareceu.';
+
+  @override
+  String get backup_quarantined_delete_title =>
+      'Eliminar esta cópia da base de dados?';
+
+  @override
+  String get backup_quarantined_delete_message =>
+      'A cópia e os seus ficheiros de diário serão eliminados permanentemente deste dispositivo. Esta ação não pode ser anulada.';
+
+  @override
+  String get backup_quarantined_deleted => 'Cópia da base de dados eliminada';
+
+  @override
+  String get backup_quarantined_deleteFailed =>
+      'Não foi possível eliminar a cópia da base de dados.';
+
+  @override
+  String get backup_quarantined_loadFailed =>
+      'Não foi possível verificar a pasta da base de dados à procura de cópias postas de parte.';
 
   @override
   String settings_storageUsage_unrecognized_title(int count) {

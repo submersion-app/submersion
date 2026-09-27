@@ -277,6 +277,17 @@ class GattDiagnosticsTest {
     }
 
     @Test
+    fun unusableDiscoverySaysNoReadPollServiceMatched() {
+        val message = GattDiagnostics.describeNoUsableService(
+            listOf("00001800-0000-1000-8000-00805f9b34fb")
+        )
+
+        // Read-poll services (issue #1454) are the other way a service can
+        // qualify; saying so tells a maintainer where a new entry would go.
+        assertTrue(message.contains("read-poll"))
+    }
+
+    @Test
     fun aRefusedDataSubscriptionNamesTheAttReasonForIt() {
         // onDescriptorWrite is an ATT callback, so status 8 here is an
         // authorization failure, not the connection timeout the same number

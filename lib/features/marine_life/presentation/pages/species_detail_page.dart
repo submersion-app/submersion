@@ -232,7 +232,32 @@ class SpeciesDetailPage extends ConsumerWidget {
           child: Center(child: CircularProgressIndicator()),
         ),
       ),
-      error: (_, _) => const SizedBox.shrink(),
+      // Says so rather than dropping the section: a failed query is not a
+      // species with nothing to show (issue #1930).
+      error: (_, _) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: Column(
+              children: [
+                ExcludeSemantics(
+                  child: Icon(
+                    Icons.error_outline,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  context.l10n.marineLife_speciesDetail_statsError,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
       data: (stats) {
         if (stats.isEmpty) {
           return Card(

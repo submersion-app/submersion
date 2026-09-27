@@ -188,10 +188,22 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
             .valueOrNull ??
         const <ServiceSchedule>[];
 
+    // The diver's own kinds plus any kind this item's schedules use: a
+    // shared item's schedule can use its owner's custom kind (issue #2046).
+    final allKinds = ref.watch(allServiceKindsByIdProvider).value ?? const {};
+    List<ServiceKind> offered(List<ServiceKind> scoped) => [
+      ...scoped,
+      for (final s in schedules)
+        if (allKinds[s.serviceKindId] case final k?)
+          if (!scoped.any((e) => e.id == k.id)) k,
+    ];
+
     // Resolved every build while the field is untouched, so switching the
     // clock re-prices the record.
     _maybePrefillFromKind(
-      ref.watch(serviceKindsProvider).valueOrNull ?? const <ServiceKind>[],
+      offered(
+        ref.watch(serviceKindsProvider).valueOrNull ?? const <ServiceKind>[],
+      ),
       schedules,
     );
 
@@ -227,6 +239,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                 // diver must choose, and the category below follows from it.
                 ref
                     .watch(serviceKindsProvider)
+                    .whenData(offered)
                     .maybeWhen(
                       data: (kinds) => Column(
                         mainAxisSize: MainAxisSize.min,

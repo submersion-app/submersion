@@ -170,4 +170,24 @@ void main() {
       expect(rows.map((r) => r.id).toSet(), equals({'s1', 's2'}));
     });
   });
+
+  group('equipmentSqlFragment', () {
+    test('is empty for a null diver', () {
+      final f = VisibilityFilter.equipmentSqlFragment(
+        tableAlias: 'e',
+        diverId: null,
+        conjunction: 'AND',
+      );
+      expect(f.isEmpty, isTrue);
+    });
+    test('binds the diver twice', () {
+      final f = VisibilityFilter.equipmentSqlFragment(
+        tableAlias: 'e',
+        diverId: 'd1',
+        conjunction: 'WHERE',
+      );
+      expect(f.whereClause, contains('WHERE (e.diver_id = ? OR e.id IN'));
+      expect(f.variables, hasLength(2));
+    });
+  });
 }

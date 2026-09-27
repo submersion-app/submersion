@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -64,6 +65,13 @@ class EquipmentSetDetailPage extends ConsumerWidget {
       ref,
       set.items ?? const <EquipmentItem>[],
     );
+    // Members the diver can no longer see (a share was removed, issue
+    // #2046) stay in the set, marked. Null until the list loads.
+    final visibleIds = ref
+        .watch(allEquipmentProvider)
+        .value
+        ?.map((e) => e.id)
+        .toSet();
     return Scaffold(
       appBar: AppBar(
         title: Text(set.name),
@@ -235,7 +243,13 @@ class EquipmentSetDetailPage extends ConsumerWidget {
               )) ...[
                 if (group.type != null) EquipmentGroupHeader(type: group.type!),
                 ...group.items.map(
-                  (item) => _buildEquipmentTile(context, item, labels),
+                  (item) => _buildEquipmentTile(
+                    context,
+                    item,
+                    labels,
+                    noLongerShared:
+                        visibleIds != null && !visibleIds.contains(item.id),
+                  ),
                 ),
               ],
             const SizedBox(height: 24),
@@ -280,8 +294,9 @@ class EquipmentSetDetailPage extends ConsumerWidget {
   Widget _buildEquipmentTile(
     BuildContext context,
     EquipmentItem item,
-    Map<String, EquipmentRowLabel> labels,
-  ) {
+    Map<String, EquipmentRowLabel> labels, {
+    bool noLongerShared = false,
+  }) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -307,6 +322,7 @@ class EquipmentSetDetailPage extends ConsumerWidget {
                 if (item.fullName == item.name)
                   item.type.localizedName(context.l10n),
                 ...?labels[item.id]?.subtitleParts,
+                if (noLongerShared) context.l10n.equipment_set_noLongerShared,
               ].join(' · '),
             ),
             AssemblyChips(itemId: item.id),

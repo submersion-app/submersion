@@ -98,18 +98,23 @@ class EquipmentFindingsPass {
       _equipment.getActiveEquipment(diverId: diverId);
 
   /// The items named by [ids] that still exist, for a pass over just
-  /// the gear a write touched. With [diverId], only that diver's, as
-  /// [activeItems] scopes them: the pass runs with one diver's thresholds,
-  /// and must not recompute another diver's gear with them.
+  /// the gear a write touched. With [diverId], only the items visible to
+  /// that diver (owned or shared, issue #2046), as [activeItems] scopes
+  /// them: the pass runs with one diver's thresholds, and must not
+  /// recompute gear that diver cannot see with them.
   Future<List<EquipmentItem>> itemsById(
     Iterable<String> ids, {
     String? diverId,
-  }) async => [
-    for (final id in ids)
-      if (await _equipment.getEquipmentById(id) case final item?
-          when diverId == null || item.diverId == diverId)
-        item,
-  ];
+  }) async {
+    final visible = diverId == null
+        ? null
+        : await _equipment.visibleIdsAmong(ids, diverId);
+    return [
+      for (final id in ids)
+        if (visible == null || visible.contains(id))
+          ?await _equipment.getEquipmentById(id),
+    ];
+  }
 
   /// Visits [items] in order. [onProgress] fires once with (0, total),
   /// then after each item. [isCancelled] is polled before each item.

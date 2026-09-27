@@ -29,7 +29,7 @@ void main() {
   );
 
   test('v233 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v234 (saved Connections maps, #2322) landed on top; the
+    // Relaxed once v234 (equipment sharing, issue #2046) landed on top; the
     // newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(233));
     expect(AppDatabase.migrationVersions, contains(233));

@@ -1,6 +1,6 @@
 # Connections Explorer Revision 2 Implementation Plan
 
-> **Renumbered at merge (2026-09-26):** the saved-maps rung this plan calls 232 shipped as **234**, because `main` took 232 (trip cylinders, #2331) and 233 (MacDive source diver key, #1921) first. The test file is `migration_v234_connection_maps_test.dart`.
+> **Renumbered at merge (2026-09-26):** the saved-maps rung this plan calls 232 shipped as **235**, because `main` took 232 (trip cylinders, #2331), 233 (MacDive source diver key, #1921) and 234 (equipment sharing, #2046) first. The test file is `migration_v235_connection_maps_test.dart`.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

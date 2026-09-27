@@ -201,6 +201,20 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_equipment_components_parent '
         'ON equipment_components(parent_equipment_id)',
   ),
+  // Visibility subquery "items shared with this diver" (v234, issue #2046).
+  (
+    name: 'idx_equipment_shares_diver',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_equipment_shares_diver '
+        'ON equipment_shares(diver_id)',
+  ),
+  // An item's history, oldest first (v234, issue #2046).
+  (
+    name: 'idx_equipment_ownership_events_equipment',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_equipment_ownership_events_equipment '
+        'ON equipment_ownership_events(equipment_id, occurred_at)',
+  ),
   (
     name: 'idx_equipment_components_component',
     ddl:
@@ -418,7 +432,7 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_equipment '
         'ON cylinder_fills(equipment_id)',
   ),
-  // Saved Connections maps and the sightings dive join (v234, issue #2322).
+  // Saved Connections maps and the sightings dive join (v235, issue #2322).
   (
     name: 'idx_connection_maps_diver',
     ddl:
