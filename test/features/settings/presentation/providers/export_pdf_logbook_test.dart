@@ -151,6 +151,15 @@ List<String> _allTexts(List<int> bytes) => [
   ...pdfSubsetTexts(bytes),
 ];
 
+/// Pins date formatting to en_US for a test that matches ISO digits
+/// literally, so a locale with its own numerals cannot change what the
+/// stamps print; the previous locale is restored afterwards.
+void _pinEnglishDates() {
+  final previous = Intl.defaultLocale;
+  Intl.defaultLocale = 'en_US';
+  addTearDown(() => Intl.defaultLocale = previous);
+}
+
 /// The ISO date an export's file name carries.
 String _fileNameDate(String fileName) =>
     RegExp(r'_(\d{4}-\d{2}-\d{2})\.pdf$').firstMatch(fileName)!.group(1)!;
@@ -422,6 +431,7 @@ void main() {
     test(
       'stamps the cover and the file name with one instant (#2490)',
       () async {
+        _pinEnglishDates();
         final container = makeContainer(
           settings: const AppSettings(
             dateFormat: DateFormatPreference.yyyymmdd,
@@ -523,6 +533,7 @@ void main() {
     test(
       'stamps the cover and the file name with one instant (#2490)',
       () async {
+        _pinEnglishDates();
         final target = p.join(workDir.path, 'saved_clock.pdf');
         picker.saveFileResult = Uri.file(target);
 
