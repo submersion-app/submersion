@@ -88,6 +88,43 @@ void main() {
       expect(scan.glitchIndices, {3});
     });
 
+    test('a dip that wobbles on its way down is still one glitch', () {
+      // 100 -> 80 -> 87 -> 80 -> 100: the jump to 87 stays well below the
+      // level, so it is the dip wobbling, not its end.
+      final series = [
+        ...draining(start: 101.5, count: 5),
+        (t: 50, bar: 100.0),
+        (t: 60, bar: 80.0),
+        (t: 70, bar: 87.0),
+        (t: 80, bar: 80.0),
+        (t: 90, bar: 100.0),
+        (t: 100, bar: 99.8),
+      ];
+      final scan = scanPressureGlitches(series);
+      expect(scan.episodeCount, 1);
+      expect(scan.glitchIndices, {6, 7, 8});
+    });
+
+    test(
+      'a dropout right after the valve opened does not undo the lead-in',
+      () {
+        // 8 -> 200 -> 200 -> 0 -> 199: the lead-in is still the 8 bar, and the
+        // dropout is a glitch of its own.
+        final series = [
+          (t: 0, bar: 8.0),
+          (t: 10, bar: 200.0),
+          (t: 20, bar: 200.0),
+          (t: 30, bar: 0.0),
+          (t: 40, bar: 199.0),
+          (t: 50, bar: 198.8),
+          (t: 60, bar: 198.6),
+        ];
+        final scan = scanPressureGlitches(series);
+        expect(scan.glitchIndices, {0, 3});
+        expect(scan.episodeCount, 2);
+      },
+    );
+
     test('a single reading spiking above the level is a glitch', () {
       // 61.4 -> 80.1 -> 59.7, as logged.
       final series = withValues(draining(start: 70), {12: 80.1});

@@ -232,15 +232,20 @@ int _leadInLength(List<PressureReading> readings) {
 const int _leadInStableReadings = 3;
 
 /// Whether the readings after [q] (up to [_leadInStableReadings] of them)
-/// all stay within [kPressureGlitchMinDipBar] of `readings[q]`.
+/// all stay within [kPressureGlitchMinDipBar] of `readings[q]`. A near-zero
+/// dropout among them is passed over: it says nothing about the cylinder.
 bool _startsStableStretch(List<PressureReading> readings, int q) {
-  final last = q + _leadInStableReadings < readings.length
-      ? q + _leadInStableReadings
-      : readings.length - 1;
-  for (var j = q + 1; j <= last; j++) {
+  var checked = 0;
+  for (
+    var j = q + 1;
+    j < readings.length && checked < _leadInStableReadings;
+    j++
+  ) {
+    if (readings[j].bar < kPressureGlitchNearZeroBar) continue;
     if ((readings[j].bar - readings[q].bar).abs() > kPressureGlitchMinDipBar) {
       return false;
     }
+    checked++;
   }
   return true;
 }
@@ -266,11 +271,18 @@ int _dipEnd(List<PressureReading> readings, int start, double level) {
   var k = start + 1;
   while (k < readings.length &&
       readings[k].bar < level - kPressureGlitchMinDipBar &&
-      readings[k].bar - readings[k - 1].bar <= kPressureGlitchMinDipBar) {
+      !_recoversFromDip(readings, k, level)) {
     k++;
   }
   return k;
 }
+
+/// Whether `readings[k]` is the recovery from a dip below [level]: a jump
+/// up of more than [kPressureGlitchMinDipBar] that lands within reach of the
+/// level. A jump that stays well below it is the dip wobbling, not ending.
+bool _recoversFromDip(List<PressureReading> readings, int k, double level) =>
+    readings[k].bar - readings[k - 1].bar > kPressureGlitchMinDipBar &&
+    readings[k].bar >= level - kPressureGlitchReturnBelowBar;
 
 /// The index just past the spike starting at [start] above [level]: where
 /// the reading falls back to within [kPressureGlitchMinDipBar] of the level,

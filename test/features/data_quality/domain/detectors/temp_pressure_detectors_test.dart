@@ -604,6 +604,29 @@ void main() {
         expect(start.params['seriesBar'], closeTo(110.6, 1e-9));
       });
 
+      test('a mid-dive glitch matching the start says nothing about it', () {
+        // The series began logging late; a dropout mid-dive happens to read
+        // what the record says the start was. That is no evidence the start
+        // came from this series, so no start check is made against it.
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 0.5, end: 60)]),
+          samples: flatProfile(depth: 20, durationSeconds: 3000),
+          pressures: {
+            't1': [
+              for (var t = 600; t <= 2400; t += 10)
+                QualityPressureSample(
+                  t: t,
+                  bar: t == 1500 ? 0.5 : 150 - (t - 600) / 20,
+                ),
+            ],
+          },
+        );
+        expect(
+          det.detect(ctx).where((f) => f.params['endpoint'] == 'start'),
+          isEmpty,
+        );
+      });
+
       test('a swap is still flagged past a post-surfacing bleed-down', () {
         // A rebreather O2 cylinder: 200 bar at the start, 120 at surfacing,
         // then the tail bleeds down to 90. The record is entered the wrong

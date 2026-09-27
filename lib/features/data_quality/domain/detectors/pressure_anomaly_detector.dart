@@ -90,15 +90,20 @@ class PressureAnomalyDetector extends QualityDetector {
       // (#2220). Measured on the series without its glitches, so a lead-in
       // or a dropout never stands in for either end (#2441).
       final hasSeries = series.length >= 2;
-      // A recorded start that matches one of the series' glitch readings
-      // was taken from them (a pre-valve lead-in), so the series speaks to
-      // it however late it began.
+      // A recorded start that matches a reading of the series' lead-in (the
+      // glitches before its first clean reading) was taken from it, so the
+      // series speaks to the start however late it began. A glitch later in
+      // the dive says nothing about the start.
+      var firstClean = 0;
+      while (firstClean < raw.length &&
+          glitches.glitchIndices.contains(firstClean)) {
+        firstClean++;
+      }
       final startFromGlitch =
           sp != null &&
-          glitches.glitchIndices.any(
-            (i) =>
-                (raw[i].bar - sp).abs() <=
-                QualityThresholds.pressureGlitchMatchBar,
+          [for (var i = 0; i < firstClean; i++) raw[i]].any(
+            (p) =>
+                (p.bar - sp).abs() <= QualityThresholds.pressureGlitchMatchBar,
           );
       final startReferenceBar =
           hasSeries &&
