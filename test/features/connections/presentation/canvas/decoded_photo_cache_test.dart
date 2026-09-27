@@ -79,4 +79,32 @@ void main() {
     expect(cache.images, isEmpty);
     expect(disposed.toSet(), {'v1', 'v2'});
   });
+
+  test('a changed photo is decoded again and the old image disposed', () async {
+    final disposed = <String>[];
+    final cache = DecodedPhotoCache<String>(dispose: disposed.add);
+    await cache.sync({_b('a'): _bytes(1)}, (b) async => 'img${b.first}');
+    await cache.sync({_b('a'): _bytes(2)}, (b) async => 'img${b.first}');
+    expect(cache.images, {_b('a'): 'img2'});
+    expect(disposed, ['img1']);
+  });
+
+  test('the same photo reloaded is not decoded again', () async {
+    final cache = DecodedPhotoCache<String>(dispose: (_) {});
+    var decodes = 0;
+    Future<String> decode(Uint8List b) async => 'img${++decodes}';
+    await cache.sync({_b('a'): _bytes(1)}, decode);
+    // A reload reads the same bytes into a new buffer.
+    await cache.sync({_b('a'): _bytes(1)}, decode);
+    expect(decodes, 1);
+  });
+
+  test('a changed photo that fails to decode drops the old image', () async {
+    final disposed = <String>[];
+    final cache = DecodedPhotoCache<String>(dispose: disposed.add);
+    await cache.sync({_b('a'): _bytes(1)}, (b) async => 'img1');
+    await cache.sync({_b('a'): _bytes(2)}, (b) => Future.error('corrupt'));
+    expect(cache.images, isEmpty, reason: 'initials, not the stale photo');
+    expect(disposed, ['img1']);
+  });
 }

@@ -11,7 +11,10 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 /// enabled kinds (the focus's own kind is always present).
 ///
 /// Discovery is breadth-first: each hop joins the previous hop's frontier to
-/// every enabled kind, excluding what is already placed. Edges are then one
+/// every enabled kind, excluding what is already placed. It stops once the
+/// hops so far hold [nodeBudget] entities: the budget ranks by hop first, so
+/// nothing further out could be kept, and expanding a large frontier would
+/// only fetch the neighbourhood to discard it. Edges are then one
 /// pass over every pair of kinds among the placed entities, so lines between
 /// neighbours are drawn as well as the spokes.
 class AroundLoader {
@@ -36,7 +39,15 @@ class AroundLoader {
       focus.kind: {focus.id},
     };
 
-    for (var hop = 1; hop <= hops && frontier.isNotEmpty; hop++) {
+    bool budgetFull() =>
+        nodeBudget > 0 &&
+        placed.values.fold(0, (n, ids) => n + ids.length) >= nodeBudget;
+
+    for (
+      var hop = 1;
+      hop <= hops && frontier.isNotEmpty && !budgetFull();
+      hop++
+    ) {
       final next = <ConnectionKind, Set<String>>{};
       for (final entry in frontier.entries) {
         for (final kind in enabled) {
@@ -72,7 +83,10 @@ class AroundLoader {
       nodes.addAll(rows.map((n) => n.copyWith(hop: hopOf[n.ref])));
     }
     if (!nodes.any((n) => n.ref == focus)) {
-      nodes.insert(0, (await _reader.labelOnly(focus)).copyWith(hop: 0));
+      nodes.insert(
+        0,
+        (await _reader.labelOnly(focus, diverId: diverId)).copyWith(hop: 0),
+      );
     }
 
     // Cut to the budget before the chord pass (see nodesWithinBudget), so

@@ -122,6 +122,25 @@ Future<void> seedStar(
   );
 }
 
+/// Buddy `f` dives with `b1` to `bn` (b<i> on i dives), and each `b<i>`
+/// dives once with its own `o<i>`, one hop further out.
+Future<void> seedTwoRings(db.AppDatabase d, int n) async {
+  await _diver(d);
+  await _buddiesAndDives(
+    d,
+    [
+      'f',
+      for (var i = 1; i <= n; i++) 'b$i',
+      for (var i = 1; i <= n; i++) 'o$i',
+    ],
+    [
+      for (var i = 1; i <= n; i++)
+        for (var k = 0; k < i; k++) ['f', 'b$i'],
+      for (var i = 1; i <= n; i++) ['b$i', 'o$i'],
+    ],
+  );
+}
+
 /// A chain f, c1, c2, c3: each consecutive pair shares one dive, so `c<k>` is
 /// exactly k hops from f.
 Future<void> seedChain(db.AppDatabase d) async {

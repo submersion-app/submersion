@@ -91,4 +91,27 @@ void main() {
     final two = await _load(reader, budget: 80, hops: 2);
     expect(two.nodes.map((n) => n.ref), isNot(contains(_b('c3'))));
   });
+
+  test('a hop the budget cannot reach is never discovered', () async {
+    final d = DatabaseService.instance.database;
+    await seedTwoRings(d, 10);
+    final spy = SpyReader(d);
+    final g = await _load(spy, budget: 4, hops: 2);
+    // Hop 1 alone outranks the budget, so hop 2 could never be kept and
+    // is not fetched at all.
+    final discovery = spy.edgeCalls.where((c) => c.$2 == null);
+    expect(discovery, [(1, null)], reason: 'only the focus is expanded');
+    final whole = await _load(ConnectionsReader(d), budget: 1000, hops: 2);
+    expect(
+      g.nodes.map((n) => n.ref).toSet(),
+      whole.trimmed(4, keep: _focus).nodes.map((n) => n.ref).toSet(),
+    );
+  });
+
+  test('a hop is still discovered while the budget has room', () async {
+    final d = DatabaseService.instance.database;
+    await seedTwoRings(d, 3);
+    final g = await _load(ConnectionsReader(d), budget: 80, hops: 2);
+    expect(g.nodes.where((n) => n.hop == 2), hasLength(3));
+  });
 }

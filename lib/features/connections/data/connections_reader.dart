@@ -103,12 +103,22 @@ class ConnectionsReader {
   }
 
   /// The focus when it has no dive in scope: label only, zero dives.
-  Future<ConnectionNode> labelOnly(NodeRef ref) async {
+  ///
+  /// Reads only what [diverId] can see (their own entities, ownerless ones,
+  /// gear shared with them, and the species catalogue), so a link to another
+  /// profile's entity is not found rather than labelled. With no active
+  /// diver everything is visible, as before profiles existed.
+  Future<ConnectionNode> labelOnly(
+    NodeRef ref, {
+    required String? diverId,
+  }) async {
     final t = kindTable(ref.kind);
+    final visible = _visibleTo(ref.kind, t.table, diverId);
     final rows = await _db
         .customSelect(
-          'SELECT ${t.labelColumn} AS label FROM ${t.table} WHERE id = ?',
-          variables: [Variable(ref.id)],
+          'SELECT ${t.labelColumn} AS label FROM ${t.table} '
+          'WHERE id = ?${visible.sql}',
+          variables: [Variable(ref.id), ...visible.params.map(Variable.new)],
         )
         .get();
     if (rows.isEmpty) throw FocusNotFoundException(ref);
@@ -117,6 +127,27 @@ class ConnectionsReader {
       label: rows.single.read<String>('label'),
       diveCount: 0,
     );
+  }
+
+  /// The `AND ...` clause limiting [table] to what [diverId] can see.
+  static ({String sql, List<Object?> params}) _visibleTo(
+    ConnectionKind kind,
+    String table,
+    String? diverId,
+  ) {
+    if (diverId == null || kind == ConnectionKind.species) {
+      return (sql: '', params: const []);
+    }
+    if (kind == ConnectionKind.equipment) {
+      return (
+        sql:
+            ' AND (diver_id IS NULL OR diver_id = ? OR EXISTS ('
+            'SELECT 1 FROM equipment_shares s '
+            'WHERE s.equipment_id = $table.id AND s.diver_id = ?))',
+        params: [diverId, diverId],
+      );
+    }
+    return (sql: ' AND (diver_id IS NULL OR diver_id = ?)', params: [diverId]);
   }
 
   Future<Map<String, String>> _unanimousRoles(
