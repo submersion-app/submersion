@@ -23,6 +23,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_picker_sheet.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 
@@ -259,6 +260,21 @@ void main() {
         tester.getTopLeft(chip).dy,
         greaterThan(tester.getBottomLeft(find.text('Lens')).dy),
       );
+
+      // Plain gear builds no chip slot at all, so its subtitle is the status
+      // line alone, as before the chips moved there.
+      expect(
+        find.descendant(
+          of: editorFor('Equipment'),
+          matching: find.byType(AssemblyChips),
+        ),
+        findsOneWidget,
+      );
+      final finsTile = find.ancestor(
+        of: find.text('Fins'),
+        matching: find.byType(ListTile),
+      );
+      expect(tester.widget<ListTile>(finsTile).subtitle, isA<Text>());
     });
 
     testWidgets('toggling seeded members off applies remove ops on save', (

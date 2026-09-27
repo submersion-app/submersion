@@ -42,6 +42,7 @@ import 'package:submersion/features/equipment/presentation/helpers/gear_expansio
 import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_tree_view.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_set_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/geofence_suggestion_banner.dart';
@@ -1456,6 +1457,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final total = widget.bulkDiveIds!.length;
     final labels = diveBulkMembershipLabels(l10n);
     const ownedModes = [BulkCollectionMode.add, BulkCollectionMode.replace];
+    // Only an assembly or a part gets a chip row, as on the equipment list;
+    // plain gear keeps the status line as its whole subtitle.
+    final componentIndex = ref.watch(equipmentComponentsIndexProvider).value;
     return FormSection(
       label: context.l10n.diveLog_bulkEdit_groupCollections,
       expanded: true,
@@ -1496,7 +1500,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           // Assembly and part-of chips, as on the equipment list (#1487). They
           // go under the name, not in the trailing slot: a long assembly name
           // there squeezed the row to one character per line (#2276).
-          detailBuilder: (item) => AssemblyChips(itemId: item.id),
+          detailBuilder: (item) =>
+              componentIndex != null &&
+                  (componentIndex.isAssembly(item.id) ||
+                      componentIndex.parentIdsOf(item.id).isNotEmpty)
+              ? AssemblyChips(itemId: item.id)
+              : null,
         ),
         BulkMembershipEditor(
           title: l10n.diveLog_edit_group_buddies,
