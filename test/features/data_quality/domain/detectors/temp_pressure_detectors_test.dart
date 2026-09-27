@@ -472,6 +472,26 @@ void main() {
       expect(sac.params['surfaceLpm'], closeTo(120.0, 1e-6));
     });
 
+    test('without a reported average depth, ambient pressure comes from the '
+        'same underwater window, not the surface tail', () {
+      // 110 bar in 7 minutes at 10 m: 110*12/7/2 = 94.3 L/min, under the
+      // ceiling. Averaging the depth samples through the tail as well
+      // (10, 10, 0.3, 0.2) gives 5.1 m, and dividing by that shallower
+      // ambient pressure reads 124.7 L/min.
+      final ctx = makeContext(
+        dive: makeTestDive(tanks: [tank(end: 90)]),
+        samples: surfacedAt420,
+        pressures: {
+          't1': const [
+            QualityPressureSample(t: 0, bar: 200),
+            QualityPressureSample(t: 420, bar: 90),
+            QualityPressureSample(t: 540, bar: 40),
+          ],
+        },
+      );
+      expect(sacFindings(det.detect(ctx)), isEmpty);
+    });
+
     test('an underwater stretch shorter than the minimum window is not '
         'measured, even when the tail makes the series long enough', () {
       // Only 4 minutes of the series fall underwater, below
