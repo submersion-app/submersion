@@ -1910,7 +1910,7 @@
   "diveImport_fit_parsing": "Analizando...",
   "diveImport_fit_selectFiles": "Seleccionar archivos FIT",
   "diveImport_fit_title": "Importar desde archivo FIT",
-  "diveImport_healthkit_accessDescription": "Submersion usa Apple HealthKit para leer los datos de entrenamientos de buceo subacuático, incluidos profundidad, duración, temperatura del agua y frecuencia cardiaca, y crear registros de buceo detallados.",
+  "diveImport_healthkit_accessDescription": "Submersion usa Apple HealthKit para leer los datos de entrenamientos de buceo subacuático, incluidos profundidad, duración, temperatura del agua y frecuencia cardíaca, y crear registros de buceo detallados.",
   "diveImport_healthkit_accessRequired": "Apple HealthKit",
   "diveImport_healthkit_closeTooltip": "Cerrar importación de Apple Watch",
   "diveImport_healthkit_dateFrom": "Desde",

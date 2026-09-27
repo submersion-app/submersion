@@ -26181,7 +26181,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveImport_healthkit_accessDescription =>
-      'Submersion usa Apple HealthKit para leer los datos de entrenamientos de buceo subacuático, incluidos profundidad, duración, temperatura del agua y frecuencia cardiaca, y crear registros de buceo detallados.';
+      'Submersion usa Apple HealthKit para leer los datos de entrenamientos de buceo subacuático, incluidos profundidad, duración, temperatura del agua y frecuencia cardíaca, y crear registros de buceo detallados.';
 
   @override
   String get diveImport_healthkit_accessRequired => 'Apple HealthKit';
