@@ -749,7 +749,9 @@ Decided in the whole-branch review of PR 1:
   visible to every diver, so they list after the diver's own rows, carry
   no drag handle, and are never renumbered or stamped by a drag. Each
   diver's rows are numbered in their own block, so a drag lands exactly
-  where it was dropped and a new row goes last in that block.
+  where it was dropped and a new row goes last in that block. Blocks are
+  per subject too: the Manage page lists each subject together, and a drag
+  stays within, and renumbers only, its own subject's rows.
 - **The builder guards its edges.** Negation is a labelled "Not" chip; the
   last selected value of an enum list cannot be deselected; an emptied
   text row keeps its words and says it needs one; a condition naming a

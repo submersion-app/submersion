@@ -87,18 +87,24 @@ class _SavedQueryListState extends ConsumerState<_SavedQueryList> {
   }
 
   Future<void> _reorder(int oldIndex, int newIndex) async {
-    // The diver's own rows list first and rows no diver owns after them
-    // (the repository sorts them so), so a drop past the boundary is
-    // pulled back to the end of the diver's block rather than shown where
-    // it cannot persist.
-    final ownedCount = _loads.where((l) => l.saved.diverId != null).length;
+    // A drag moves one query within its own block: the diver's queries for
+    // the same subject. The repository lists each subject together, with
+    // the diver's own before rows no diver owns, and each subject numbers
+    // its own rows, so a drop outside the block is pulled back to its edge
+    // rather than shown where it cannot persist.
+    final moved = _loads[oldIndex];
+    bool inBlock(SavedQueryLoad l) =>
+        l.saved.subject == moved.saved.subject && l.saved.diverId != null;
+    final first = _loads.indexWhere(inBlock);
+    final last = _loads.lastIndexWhere(inBlock);
     setState(() {
-      final moved = _loads.removeAt(oldIndex);
-      _loads.insert(newIndex.clamp(0, ownedCount - 1), moved);
+      _loads.removeAt(oldIndex);
+      _loads.insert(newIndex.clamp(first, last), moved);
     });
     try {
       await ref.read(savedQueryRepositoryProvider).reorder([
-        for (final l in _loads) l.saved.id,
+        for (final l in _loads)
+          if (inBlock(l)) l.saved.id,
       ]);
     } catch (e, st) {
       if (mounted) _showError(e, st);

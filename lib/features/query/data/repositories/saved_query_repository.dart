@@ -31,10 +31,13 @@ class SavedQueryRepository {
 
   /// The diver's own rows first, in their sort order, then rows no diver
   /// owns. Unowned rows are shared by every diver, so they sit in a block
-  /// of their own rather than in any one diver's numbering.
+  /// of their own rather than in any one diver's numbering. Across every
+  /// subject (a null [subject]), each subject's rows stay together, since
+  /// each subject numbers its own rows.
   Future<List<SavedQuery>> getAll({String? subject, String? diverId}) async {
     final query = _db.select(_db.savedQueries)
       ..orderBy([
+        (t) => OrderingTerm.asc(t.subject),
         (t) => OrderingTerm.asc(t.diverId.isNull()),
         (t) => OrderingTerm.asc(t.sortOrder),
         (t) => OrderingTerm.asc(t.name),

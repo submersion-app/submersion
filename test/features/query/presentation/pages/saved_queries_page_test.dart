@@ -278,7 +278,58 @@ void main() {
         tester.getTopLeft(find.widgetWithText(ListTile, name)).dy;
     expect(top('B'), lessThan(top('A')));
     expect(top('A'), lessThan(top('Shared')));
-    expect(written.orders.single, [b.id, a.id, 'shared']);
+    // Only the diver's own queries are renumbered; the shared one is not sent.
+    expect(written.orders.single, [b.id, a.id]);
+  });
+
+  testWidgets('a drag reorders only its own subject\'s queries', (
+    tester,
+  ) async {
+    final a = await repo.create(
+      subject: QuerySubject.dives,
+      name: 'A',
+      node: depth,
+      diverId: 'me',
+    );
+    final b = await repo.create(
+      subject: QuerySubject.dives,
+      name: 'B',
+      node: depth,
+      diverId: 'me',
+    );
+    await repo.create(
+      subject: QuerySubject.sites,
+      name: 'C',
+      node: TextNode(const ['reef']),
+      diverId: 'me',
+    );
+    final written = _PendingReorderRepository();
+    await pump(
+      tester,
+      extraOverrides: [savedQueryRepositoryProvider.overrideWithValue(written)],
+    );
+    Finder handleOf(String name) => find.descendant(
+      of: find.widgetWithText(ListTile, name),
+      matching: find.byIcon(Icons.drag_handle),
+    );
+    double top(String name) =>
+        tester.getTopLeft(find.widgetWithText(ListTile, name)).dy;
+    // The sites query dragged to the top stays after the dives queries.
+    await tester.timedDrag(
+      handleOf('C'),
+      const Offset(0, -400),
+      const Duration(milliseconds: 500),
+    );
+    await tester.pumpAndSettle();
+    expect(top('B'), lessThan(top('C')));
+    // A dives drag renumbers the dives queries only.
+    await tester.timedDrag(
+      handleOf('B'),
+      const Offset(0, -150),
+      const Duration(milliseconds: 500),
+    );
+    await tester.pumpAndSettle();
+    expect(written.orders.last, [b.id, a.id]);
   });
 }
 

@@ -218,4 +218,29 @@ void main() {
       expect(names, ['B', 'A', 'Aaa shared']);
     },
   );
+
+  test('the all-subjects list keeps each subject together', () async {
+    // Each subject numbers its own rows from 0, so sort_order alone would
+    // interleave them.
+    final d0 = await repo.create(
+      subject: QuerySubject.dives,
+      name: 'Dive one',
+      node: node,
+      diverId: 'me',
+    );
+    final s0 = await repo.create(
+      subject: QuerySubject.sites,
+      name: 'Site one',
+      node: node,
+      diverId: 'me',
+    );
+    final d1 = await repo.create(
+      subject: QuerySubject.dives,
+      name: 'Dive two',
+      node: node,
+      diverId: 'me',
+    );
+    final ids = (await repo.getAll(diverId: 'me')).map((q) => q.id);
+    expect(ids, [d0.id, d1.id, s0.id]);
+  });
 }
