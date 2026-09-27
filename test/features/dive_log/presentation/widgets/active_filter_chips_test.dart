@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chips.dart';
@@ -88,5 +93,66 @@ void main() {
     expect(label.indexOf('2023'), isNonNegative, reason: label);
     expect(label.indexOf('2025'), greaterThan(label.indexOf('2023')));
     expect(label.indexOf('Jan'), lessThan(label.indexOf('Dec')));
+  });
+
+  group('every axis renders one chip that clears only that axis', () {
+    final axes = <String, DiveFilterState>{
+      'dates': DiveFilterState(startDate: DateTime(2023)),
+      'until': DiveFilterState(endDate: DateTime(2023, 6, 30)),
+      'range': DiveFilterState(
+        startDate: DateTime(2023),
+        endDate: DateTime(2023, 6, 30),
+      ),
+      'dive type': const DiveFilterState(diveTypeId: 'wreck'),
+      'site': const DiveFilterState(siteId: 's1'),
+      'trip': const DiveFilterState(tripId: 't1'),
+      'dive center': const DiveFilterState(diveCenterId: 'c1'),
+      'one gear item': const DiveFilterState(equipmentIds: ['e1']),
+      'several gear items': const DiveFilterState(equipmentIds: ['e1', 'e2']),
+      'min depth': const DiveFilterState(minDepth: 10),
+      'max depth': const DiveFilterState(maxDepth: 30),
+      'depth range': const DiveFilterState(minDepth: 10, maxDepth: 30),
+      'favourites': const DiveFilterState(favoritesOnly: true),
+      'no buddy': const DiveFilterState(noBuddyOnly: true),
+      'tags': const DiveFilterState(tagIds: ['a', 'b']),
+      'buddy name': const DiveFilterState(buddyNameFilter: 'Jane'),
+    };
+    for (final MapEntry(key: name, value: filter) in axes.entries) {
+      testWidgets(name, (tester) async {
+        final provider = StateProvider<DiveFilterState>((ref) => filter);
+        final overrides = await getBaseOverrides();
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              diveTypeProvider.overrideWith((ref, id) async => null),
+              siteProvider.overrideWith((ref, id) async => null),
+              tripByIdProvider.overrideWith((ref, id) async => null),
+              diveCenterByIdProvider.overrideWith((ref, id) async => null),
+              equipmentItemProvider.overrideWith((ref, id) async => null),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: Consumer(
+                  builder: (context, ref, _) => Wrap(
+                    children: activeDiveFilterChips(context, ref, provider),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        expect(find.byType(Chip), findsOneWidget);
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(Scaffold)),
+        );
+        await tester.tap(find.byIcon(Icons.close));
+        await tester.pump();
+        expect(container.read(provider).hasActiveFilters, isFalse);
+      });
+    }
   });
 }

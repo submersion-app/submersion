@@ -245,6 +245,108 @@ void main() {
     await tester.pump(const Duration(milliseconds: 225));
     expect(_painter(tester).viewport.scale, first);
   });
+
+  group('input', () {
+    Future<List<GraphSelection?>> pumpHost(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(400, 400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final selections = <GraphSelection?>[];
+      await tester.pumpWidget(_Host(onSelect: selections.add, onFocus: (_) {}));
+      await tester.pump();
+      return selections;
+    }
+
+    Offset screenOf(WidgetTester tester, NodeRef ref) {
+      final painter = _painter(tester);
+      final origin = tester.getTopLeft(find.byType(ConnectionsCanvas));
+      return origin + painter.viewport.toScreen(painter.frame.positions[ref]!);
+    }
+
+    Offset centre(WidgetTester tester) =>
+        tester.getCenter(find.byType(ConnectionsCanvas));
+
+    testWidgets('the mouse wheel zooms in', (tester) async {
+      await pumpHost(tester);
+      final before = _painter(tester).viewport.scale;
+      final mouse = TestPointer(1, PointerDeviceKind.mouse);
+      await tester.sendEventToBinding(mouse.hover(centre(tester)));
+      await tester.sendEventToBinding(mouse.scroll(const Offset(0, -20)));
+      await tester.pump();
+      expect(_painter(tester).viewport.scale, greaterThan(before));
+    });
+
+    testWidgets('a trackpad pinch zooms in', (tester) async {
+      await pumpHost(tester);
+      final before = _painter(tester).viewport.scale;
+      final pad = TestPointer(2, PointerDeviceKind.trackpad);
+      await tester.sendEventToBinding(pad.panZoomStart(centre(tester)));
+      await tester.sendEventToBinding(
+        pad.panZoomUpdate(centre(tester), scale: 1.5, pan: const Offset(8, 0)),
+      );
+      await tester.sendEventToBinding(pad.panZoomEnd());
+      await tester.pump();
+      expect(_painter(tester).viewport.scale, greaterThan(before));
+    });
+
+    testWidgets('a two-finger pinch zooms in', (tester) async {
+      await pumpHost(tester);
+      final before = _painter(tester).viewport.scale;
+      final c = centre(tester) + const Offset(0, 120);
+      final a = await tester.startGesture(c - const Offset(20, 0), pointer: 7);
+      final b = await tester.startGesture(c + const Offset(20, 0), pointer: 8);
+      await tester.pump();
+      for (var i = 0; i < 4; i++) {
+        await a.moveBy(const Offset(-10, 0));
+        await b.moveBy(const Offset(10, 0));
+        await tester.pump();
+      }
+      await a.up();
+      await b.up();
+      // Let the tap and long-press recognizers' timers run out.
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(_painter(tester).viewport.scale, greaterThan(before));
+    });
+
+    testWidgets('a long press selects the node and the drag does not pan', (
+      tester,
+    ) async {
+      final selections = await pumpHost(tester);
+      final before = _painter(tester).viewport.offset;
+      final g = await tester.startGesture(screenOf(tester, _b('jane')));
+      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+      await g.moveBy(const Offset(30, 0));
+      await tester.pump();
+      await g.up();
+      await tester.pump();
+      expect(selections, contains(NodeSelection(_b('jane'))));
+      // The radial layout fixes node positions; the drag belongs to the
+      // node, so the camera stays put.
+      expect(_painter(tester).viewport.offset, before);
+    });
+
+    testWidgets('a tap on a line selects the edge', (tester) async {
+      final selections = await pumpHost(tester);
+      final mid =
+          (screenOf(tester, _b('me')) + screenOf(tester, _b('jane'))) / 2;
+      await tester.tapAt(mid);
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(selections.last, isA<EdgeSelection>());
+    });
+
+    testWidgets('the hover tooltip leaves with the pointer', (tester) async {
+      await pumpHost(tester);
+      final mouse = TestPointer(3, PointerDeviceKind.mouse);
+      await tester.sendEventToBinding(
+        mouse.hover(screenOf(tester, _b('jane'))),
+      );
+      await tester.pump();
+      expect(find.text('Jane (3)'), findsOneWidget);
+      await tester.sendEventToBinding(mouse.hover(const Offset(600, 600)));
+      await tester.pump();
+      expect(find.text('Jane (3)'), findsNothing);
+    });
+  });
 }
 
 /// Owns its controller like ConnectionsPage does, so the ticker is disposed

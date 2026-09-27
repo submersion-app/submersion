@@ -522,4 +522,98 @@ void main() {
     expect(find.text('Whale Shark'), findsWidgets);
     expect(find.text('WS'), findsNothing);
   });
+
+  testWidgets('Retry after a failed first load asks again', (tester) async {
+    var calls = 0;
+    await _pump(
+      tester,
+      graph: (ref, budget) {
+        calls++;
+        throw StateError('boom');
+      },
+    );
+    final before = calls;
+    await tester.tap(find.text('Retry'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(calls, greaterThan(before));
+  });
+
+  testWidgets('Retry on the reload bar asks again', (tester) async {
+    var calls = 0;
+    final c = await _pump(
+      tester,
+      graph: (ref, budget) {
+        ref.watch(connectionsViewProvider);
+        calls++;
+        if (calls > 1) throw StateError('boom');
+        return _graph;
+      },
+    );
+    await c
+        .read(connectionsViewProvider.notifier)
+        .update((s) => s.applyPreset(ConnectionPresets.byId('reef')!));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    final before = calls;
+    await tester.tap(find.text('Retry'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(calls, greaterThan(before));
+  });
+
+  testWidgets('tapping and double-tapping a node select and centre it', (
+    tester,
+  ) async {
+    final c = await _pump(tester);
+    for (var i = 0; i < 60; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    final paint = find.byKey(const ValueKey('connections-canvas-paint'));
+    final painter =
+        tester.widget<CustomPaint>(paint).painter! as ConnectionsPainter;
+    final at =
+        tester.getTopLeft(paint) +
+        painter.viewport.toScreen(painter.frame.positions[_b('ken')]!);
+    await tester.tapAt(at);
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(c.read(connectionsSelectionProvider), NodeSelection(_b('ken')));
+    await tester.tapAt(at);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tapAt(at);
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(c.read(connectionsViewProvider).focus, _b('ken'));
+    expect(c.read(connectionsViewProvider).mode, ConnectionsMode.around);
+  });
+
+  testWidgets('Back to the whole map leaves Around and clears the selection', (
+    tester,
+  ) async {
+    final c = await _pump(
+      tester,
+      location: '/connections?mode=around&focus=buddy:jane',
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(find.byTooltip('Back to the whole map'));
+    await tester.pump();
+    expect(c.read(connectionsViewProvider).mode, ConnectionsMode.map);
+    expect(c.read(connectionsSelectionProvider), isNull);
+  });
+
+  testWidgets('cancelling Show all keeps the budget', (tester) async {
+    final budgets = <int>[];
+    await _pump(
+      tester,
+      size: _phone,
+      graph: (ref, budget) {
+        budgets.add(budget);
+        return _graph.copyWith(hiddenNodeCount: 500);
+      },
+    );
+    await tester.tap(find.text('500 more not shown'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(budgets.toSet(), {ConnectionsPage.compactBudget});
+  });
 }
