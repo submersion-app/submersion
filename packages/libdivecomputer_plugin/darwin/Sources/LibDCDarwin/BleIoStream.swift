@@ -776,6 +776,12 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
                      error: Error?) {
         // A characteristic read reply (issue #422) arrives here too. Claim it
         // before the notification path can buffer it as download data.
+        // CoreBluetooth gives a read reply and a notification the same shape,
+        // so if the characteristic being read were also the data-notify line,
+        // a notification landing mid-read would be taken as the reply. That
+        // cannot happen at the one point libdivecomputer reads (the Cressi
+        // version handshake, before any command is sent), and 6E400003 is a
+        // read-only field on Cressi, so no further disambiguation is attempted.
         if pendingRead.complete(uuid: characteristic.uuid.uuidString,
                                 value: error == nil ? characteristic.value : nil) {
             return
