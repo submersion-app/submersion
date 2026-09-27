@@ -227,6 +227,8 @@ flutter:
   assets:
     - assets/data/
     - assets/data/tide/
+    - assets/data/tide/fes/
+    - assets/data/tide/fes/coastal/
     - assets/icon/
 
   shaders:
