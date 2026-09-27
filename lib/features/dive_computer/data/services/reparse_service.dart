@@ -533,16 +533,7 @@ class ReparseService {
         avgDepth: Value(
           parsed.avgDepthMeters != 0.0 ? parsed.avgDepthMeters : null,
         ),
-        // The source's bottom time, derived the same way the download path
-        // derives it, since readers (split, uncombine, field attribution)
-        // take this column as one. Null when the samples yield none; the
-        // runtime lives in the exitTime window below.
-        duration: Value(
-          _calculateBottomTimeFromSamples(
-            parsed.samples,
-            totalDurationSeconds: parsed.durationSeconds,
-          ),
-        ),
+        duration: Value(parsed.durationSeconds),
         waterTemp: Value(_minWaterTemp(parsed)),
         // Derived from the samples, matching how the download path fills this
         // column. Written unconditionally so a parser change that drops CNS

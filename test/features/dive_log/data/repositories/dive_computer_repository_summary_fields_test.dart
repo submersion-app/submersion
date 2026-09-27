@@ -91,8 +91,8 @@ void main() {
     expect((await getDive(diveId)).bottomTime, 3600);
   });
 
-  test('the source row carries the reported bottom time, since split and '
-      'attribution read its duration as bottom time', () async {
+  test('the source row keeps the measured runtime even when the source '
+      'reports a bottom time (issue #2421)', () async {
     final reportedId = await computers.importProfile(
       computerId: 'comp-1',
       profileStartTime: DateTime(2026, 1, 1, 10),
@@ -109,12 +109,11 @@ void main() {
       maxDepth: 20.0,
     );
 
-    expect((await getSource(reportedId)).duration, 3600);
-    // A download that reports none carries the bottom time derived from its
-    // profile, the same value its dive row gets, not the runtime (#2421).
-    final derivedDive = await getDive(derivedId);
-    expect(derivedDive.bottomTime, 3000);
-    expect((await getSource(derivedId)).duration, derivedDive.bottomTime);
+    // The reported bottom time goes on the dive only; bottom time is never
+    // stored in place of the runtime the source measured.
+    expect((await getDive(reportedId)).bottomTime, 3600);
+    expect((await getSource(reportedId)).duration, 3700);
+    expect((await getSource(derivedId)).duration, 3700);
   });
 
   test('stores the reported surface interval and water type', () async {
@@ -192,7 +191,8 @@ void main() {
     expect(source.cns, 14.0);
     expect(source.otu, 38.0);
     expect(source.surfaceInterval, 5400);
-    expect(source.duration, 3300);
+    // The runtime it measured, not its reported 3300 s bottom time (#2421).
+    expect(source.duration, 3600);
   });
 
   test('a download attached to an existing dive without a summary takes its '

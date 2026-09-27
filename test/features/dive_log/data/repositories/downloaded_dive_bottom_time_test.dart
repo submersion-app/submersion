@@ -9,12 +9,12 @@ import 'package:submersion/features/dive_log/data/services/dive_uncombine_servic
 
 import '../../../../helpers/test_database.dart';
 
-/// Every reader of `dive_data_sources.duration` (field attribution, split,
-/// uncombine) takes it as the source's bottom time, and every other writer
-/// stores one there. A libdivecomputer download reports no bottom time, so
-/// the download path has to store the one it derives from the profile, not
-/// the dive's runtime; otherwise splitting or uncombining the dive replaces
-/// its bottom time with the runtime.
+/// `dive_data_sources.duration` holds what the computer measured: the dive's
+/// runtime. Bottom time is not measured; it is derived from a profile with a
+/// depth threshold, so it never replaces a runtime in storage. Operations that
+/// rebuild a dive from one of its sources (split, uncombine, a primary swap)
+/// derive that dive's bottom time from the profile they carry, and must never
+/// copy the source's runtime into it (issue #2421).
 void main() {
   late AppDatabase db;
   late DiveComputerRepository computers;
@@ -60,6 +60,7 @@ void main() {
     String computerId, {
     DateTime? start,
     bool forceNew = false,
+    int? reportedBottomTimeSeconds,
   }) => computers.importProfile(
     computerId: computerId,
     profileStartTime: start ?? DateTime.utc(2026, 3, 1, 10),
@@ -67,6 +68,7 @@ void main() {
     durationSeconds: runtimeSeconds,
     maxDepth: 30.0,
     forceNew: forceNew,
+    bottomTimeSeconds: reportedBottomTimeSeconds,
   );
 
   setUp(() async {
@@ -92,46 +94,27 @@ void main() {
     },
   );
 
-  group('importProfile source row', () {
-    test(
-      'a new dive stores the derived bottom time, not the runtime',
-      () async {
-        final diveId = await download('comp-1');
-
-        final source = await getSource(diveId, 'comp-1');
-        expect(source.duration, derivedBottomTimeSeconds);
-        // The provenance window still spans the whole runtime.
-        expect(
-          source.exitTime!.difference(source.entryTime!).inSeconds,
-          runtimeSeconds,
-        );
-      },
-    );
-
-    test('a download attached to an existing dive stores its own derived '
-        'bottom time', () async {
+  group('importProfile source row stores the runtime', () {
+    test('on a new dive', () async {
       final diveId = await download('comp-1');
-      final attachedTo = await download('comp-2');
-      expect(attachedTo, diveId);
 
-      final source = await getSource(diveId, 'comp-2');
-      expect(source.duration, derivedBottomTimeSeconds);
+      expect((await getSource(diveId, 'comp-1')).duration, runtimeSeconds);
     });
 
-    test('a profile too short to yield a bottom time stores none', () async {
-      final diveId = await computers.importProfile(
-        computerId: 'comp-1',
-        profileStartTime: DateTime.utc(2026, 3, 1, 10),
-        points: const [
-          ProfilePointData(timestamp: 0, depth: 0.0),
-          ProfilePointData(timestamp: 60, depth: 10.0),
-        ],
-        durationSeconds: 600,
-        maxDepth: 10.0,
-      );
+    test('on a download attached to an existing dive', () async {
+      final diveId = await download('comp-1');
+      expect(await download('comp-2'), diveId);
 
-      final source = await getSource(diveId, 'comp-1');
-      expect(source.duration, isNull);
+      expect((await getSource(diveId, 'comp-2')).duration, runtimeSeconds);
+    });
+
+    test('even when the source reports a bottom time of its own', () async {
+      final diveId = await download('comp-1', reportedBottomTimeSeconds: 900);
+
+      // The reported bottom time lands on the dive, never in place of the
+      // runtime the source measured.
+      expect((await getDive(diveId)).bottomTime, 900);
+      expect((await getSource(diveId, 'comp-1')).duration, runtimeSeconds);
     });
   });
 
@@ -144,10 +127,8 @@ void main() {
       diveRepo,
     ).split(diveId: diveId, sourceId: secondary.id);
 
-    final newDive = await getDive(newDiveId);
-    expect(newDive.bottomTime, derivedBottomTimeSeconds);
-    final kept = await getDive(diveId);
-    expect(kept.bottomTime, derivedBottomTimeSeconds);
+    expect((await getDive(newDiveId)).bottomTime, derivedBottomTimeSeconds);
+    expect((await getDive(diveId)).bottomTime, derivedBottomTimeSeconds);
   });
 
   test('splitting the primary out keeps the promoted bottom time', () async {
@@ -159,8 +140,20 @@ void main() {
       diveRepo,
     ).split(diveId: diveId, sourceId: primary.id);
 
-    final kept = await getDive(diveId);
-    expect(kept.bottomTime, derivedBottomTimeSeconds);
+    expect((await getDive(diveId)).bottomTime, derivedBottomTimeSeconds);
+  });
+
+  test('making the other computer primary keeps the bottom time', () async {
+    final diveId = await download('comp-1');
+    await download('comp-2');
+    final secondary = await getSource(diveId, 'comp-2');
+
+    await diveRepo.setPrimaryDataSource(
+      diveId: diveId,
+      computerReadingId: secondary.id,
+    );
+
+    expect((await getDive(diveId)).bottomTime, derivedBottomTimeSeconds);
   });
 
   test('uncombining two downloaded dives keeps each bottom time', () async {
@@ -177,9 +170,10 @@ void main() {
     ).separate(diveId: merged.mergedDive.id);
 
     expect(newIds, hasLength(1));
-    final kept = await getDive(merged.mergedDive.id);
-    final restored = await getDive(newIds.single);
-    expect(kept.bottomTime, derivedBottomTimeSeconds);
-    expect(restored.bottomTime, derivedBottomTimeSeconds);
+    expect(
+      (await getDive(merged.mergedDive.id)).bottomTime,
+      derivedBottomTimeSeconds,
+    );
+    expect((await getDive(newIds.single)).bottomTime, derivedBottomTimeSeconds);
   });
 }

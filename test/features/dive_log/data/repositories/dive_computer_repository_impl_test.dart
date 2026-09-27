@@ -1358,9 +1358,7 @@ void main() {
       expect(dataSources.first.isPrimary, isTrue);
       expect(dataSources.first.maxDepth, equals(25.0));
       expect(dataSources.first.avgDepth, equals(15.0));
-      // The source's bottom time derived from the samples (the final ascent
-      // starts at t=120), not the 45 min runtime (issue #2421).
-      expect(dataSources.first.duration, equals(120));
+      expect(dataSources.first.duration, equals(45 * 60));
     });
 
     test('data source derives min water temp from profile samples', () async {

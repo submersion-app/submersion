@@ -798,11 +798,9 @@ class DiveComputerRepository {
     required domain.DiveComputer? computer,
     required DateTime profileStartTime,
     required int durationSeconds,
-    required int? derivedBottomTimeSeconds,
     required double? maxDepth,
     required double? effectiveAvgDepth,
     required double? minWaterTemp,
-    required int? reportedBottomTimeSeconds,
     required double? cns,
     required double? otu,
     required int? surfaceIntervalSeconds,
@@ -832,11 +830,10 @@ class DiveComputerRepository {
       sourceFormat: const Value('dive_computer'),
       maxDepth: Value(maxDepth),
       avgDepth: Value(effectiveAvgDepth),
-      // Readers (field attribution, split, uncombine) take this column as the
-      // source's bottom time, not its runtime; exitTime below carries that. A
-      // bottom time the source reported wins (issue #1798); otherwise the one
-      // derived from this download's profile (issue #2421).
-      duration: Value(reportedBottomTimeSeconds ?? derivedBottomTimeSeconds),
+      // What the computer measured: the runtime. Bottom time is derived from a
+      // profile and never stored in its place, even when the source reports
+      // one; that lands on the dive row only (issues #1798, #2421).
+      duration: Value(durationSeconds),
       waterTemp: Value(minWaterTemp),
       entryLatitude: Value(entryLatitude),
       entryLongitude: Value(entryLongitude),
@@ -1333,7 +1330,8 @@ class DiveComputerRepository {
     // A dive summary the source reported itself rather than one derived from
     // the profile (Garmin's FIT dive_summary, issue #1798). Like the diluent
     // above, the dive row only takes them when it is brand new; the
-    // download's own data source row takes them either way.
+    // download's own data source row takes them either way, except the
+    // bottom time: that row keeps the measured runtime (issue #2421).
     int? bottomTimeSeconds,
     int? surfaceIntervalSeconds,
     WaterType? waterType,
@@ -1401,12 +1399,12 @@ class DiveComputerRepository {
         // not bottom time. A bottom time the source reported wins (#1798);
         // otherwise calculate it from the profile, bounded by that runtime
         // so it cannot come out longer than the dive (issue #1642).
-        final derivedBottomTimeSeconds = _calculateBottomTimeFromPoints(
-          points,
-          totalDurationSeconds: durationSeconds,
-        );
         final effectiveBottomTimeSeconds =
-            reportedBottomTimeSeconds ?? derivedBottomTimeSeconds;
+            reportedBottomTimeSeconds ??
+            _calculateBottomTimeFromPoints(
+              points,
+              totalDurationSeconds: durationSeconds,
+            );
 
         // The source's own end-of-dive CNS wins over the highest sample.
         final effectiveCnsEnd = cnsEnd ?? maxCns;
@@ -1560,11 +1558,9 @@ class DiveComputerRepository {
                 computer: computer,
                 profileStartTime: profileStartTime,
                 durationSeconds: durationSeconds,
-                derivedBottomTimeSeconds: derivedBottomTimeSeconds,
                 maxDepth: maxDepth,
                 effectiveAvgDepth: effectiveAvgDepth,
                 minWaterTemp: minWaterTemp,
-                reportedBottomTimeSeconds: reportedBottomTimeSeconds,
                 cns: effectiveCnsEnd,
                 otu: otu,
                 surfaceIntervalSeconds: surfaceIntervalSeconds,
@@ -1634,12 +1630,6 @@ class DiveComputerRepository {
                 computer: await getComputerById(computerId),
                 profileStartTime: profileStartTime,
                 durationSeconds: durationSeconds,
-                // This download's own reading, not the dive row's bottom
-                // time, which may come from another computer or a hand edit.
-                derivedBottomTimeSeconds: _calculateBottomTimeFromPoints(
-                  points,
-                  totalDurationSeconds: durationSeconds,
-                ),
                 maxDepth: maxDepth,
                 effectiveAvgDepth:
                     avgDepth ??
@@ -1652,7 +1642,6 @@ class DiveComputerRepository {
                     (existingSampleTemps.isNotEmpty
                         ? existingSampleTemps.reduce((a, b) => a < b ? a : b)
                         : null),
-                reportedBottomTimeSeconds: reportedBottomTimeSeconds,
                 cns:
                     cnsEnd ??
                     (existingSampleCns.isNotEmpty
