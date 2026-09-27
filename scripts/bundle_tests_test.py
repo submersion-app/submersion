@@ -35,9 +35,21 @@ class PackTest(unittest.TestCase):
         a, b = names("test/a", 3), names("test/b", 3)
         self.assertEqual(bundler.pack("test", a + b, 4), [a, b])
 
-    def test_neighbouring_small_pieces_merge_up_to_the_limit(self):
+    def test_sibling_directories_are_not_merged_by_size(self):
         a, b, c = names("test/a", 2), names("test/b", 2), names("test/c", 3)
-        self.assertEqual(bundler.pack("test", a + b + c, 4), [a + b, c])
+        self.assertEqual(bundler.pack("test", a + b + c, 4), [a, b, c])
+
+    def test_small_subdirectories_share_a_pool_with_the_parent_files(self):
+        direct = ["test/x/f_test.dart"]
+        a, b, c = names("test/x/a", 2), names("test/x/b", 5), names("test/x/c", 1)
+        packed = bundler.pack("test/x", sorted(direct + a + b + c), 6, 3)
+        self.assertEqual(packed, [sorted(direct + a + c), b])
+
+    def test_a_pool_too_large_for_one_bundle_splits_in_sorted_order(self):
+        a, b, c = names("test/x/a", 2), names("test/x/b", 2), names("test/x/c", 2)
+        big = names("test/x/d", 7)
+        packed = bundler.pack("test/x", sorted(a + b + c + big), 4, 3)
+        self.assertEqual(packed, [a + b, c, big[0:4], big[4:7]])
 
     def test_an_oversized_leaf_splits_in_sorted_order(self):
         files = names("test/a", 5)
@@ -67,6 +79,22 @@ class PackTest(unittest.TestCase):
         before = bundler.pack("test", a + b + c, 4)
         after = bundler.pack("test", a + b + c + ["test/c/new_test.dart"], 4)
         self.assertEqual(before[:2], after[:2])
+
+    def test_growing_one_directory_does_not_move_its_neighbours(self):
+        dirs = [names("test/%s" % d, 2) for d in "abcd"]
+        files = [f for group in dirs for f in group]
+        before = bundler.pack("test", files, 4)
+        after = bundler.pack("test", sorted(files + ["test/a/new_test.dart"]), 4)
+        untouched = [bundle for bundle in before if "test/a/" not in bundle[0]]
+        for bundle in untouched:
+            self.assertIn(bundle, after)
+
+    def test_growing_a_large_subdirectory_leaves_the_pool_alone(self):
+        pool = names("test/x/a", 2) + names("test/x/b", 2)
+        big = names("test/x/c", 5)
+        before = bundler.pack("test/x", sorted(pool + big), 6, 3)
+        after = bundler.pack("test/x", sorted(pool + big + ["test/x/c/zz_test.dart"]), 6, 3)
+        self.assertEqual(before[0], after[0])
 
 
 class RunAloneTest(unittest.TestCase):
@@ -121,7 +149,7 @@ class RunAloneTest(unittest.TestCase):
 
 
 class WeightTest(unittest.TestCase):
-    def test_counts_declared_cases(self):
+    def test_counts_setup_unit_and_widget_cases(self):
         source = (
             "void main() {\n"
             "  test('a', () {});\n"
@@ -131,10 +159,16 @@ class WeightTest(unittest.TestCase):
             "  });\n"
             "}\n"
         )
-        self.assertEqual(bundler.weight(source), 3)
+        expected = bundler.FILE_COST + 2 + bundler.WIDGET_COST
+        self.assertEqual(bundler.weight(source), expected)
 
-    def test_is_never_zero(self):
-        self.assertEqual(bundler.weight("void main() {}\n"), 1)
+    def test_a_widget_case_costs_more_than_a_unit_case(self):
+        unit = bundler.weight("void main() {\n  test('a', () {});\n}\n")
+        widget = bundler.weight("void main() {\n  testWidgets('a', (t) async {});\n}\n")
+        self.assertGreater(widget, unit)
+
+    def test_a_file_with_no_cases_still_costs_its_setup(self):
+        self.assertEqual(bundler.weight("void main() {}\n"), bundler.FILE_COST)
 
 
 class AssignTest(unittest.TestCase):
@@ -173,14 +207,37 @@ class RenderTest(unittest.TestCase):
         )
         self.assertIn("import '../features/a/x_test.dart' as t0;", source)
         self.assertIn("group('features/a/x_test.dart', () {", source)
-        self.assertIn("    t0.main();", source)
+        self.assertIn("      t0.main();", source)
 
     def test_the_harness_defaults_are_reapplied_per_file(self):
         source = bundler.render(["test/a_test.dart"], "test/.bundles")
         self.assertIn(
             "import '../helpers/global_test_defaults.dart';", source
         )
-        self.assertIn("    setUpAll(applyGlobalTestDefaults);", source)
+        self.assertIn("      applyGlobalTestDefaults();", source)
+
+    def test_each_file_must_put_back_what_it_found(self):
+        source = bundler.render(["test/a_test.dart"], "test/.bundles")
+        self.assertIn(
+            "import '../helpers/global_state_snapshot.dart';", source
+        )
+        self.assertIn("      before = GlobalStateSnapshot.take();", source)
+        self.assertIn(
+            "    tearDownAll(() => before.expectRestored());", source
+        )
+
+    def test_the_check_is_registered_before_the_files_own_tests(self):
+        source = bundler.render(["test/a_test.dart"], "test/.bundles")
+        self.assertLess(
+            source.index("tearDownAll(() => before.expectRestored());"),
+            source.index("t0.main();"),
+        )
+
+    def test_a_file_that_throws_while_declaring_fails_on_its_own(self):
+        source = bundler.render(["test/a_test.dart"], "test/.bundles")
+        self.assertIn("    try {\n      t0.main();\n    } catch", source)
+        self.assertIn("(error, stack) {", source)
+        self.assertIn("Error.throwWithStackTrace(error, stack)", source)
 
     def test_files_keep_the_order_they_were_given(self):
         source = bundler.render(
