@@ -66,6 +66,12 @@ enum ImportNoticeKind {
   /// imported dives affected.
   sitesUnresolved,
 
+  /// MacDive saved dives with no time zone and their sites have no GPS
+  /// position, so their times were read in the importing device's zone and
+  /// may be off. [ImportNotice.count] is the number of imported dives
+  /// affected.
+  macdiveDeviceTimeZone,
+
   /// A remote source's gear list could not be fetched, so no gear was
   /// imported. [ImportNotice.count] is always 1.
   gearUnavailable,
@@ -107,6 +113,7 @@ enum ImportNoticeKind {
     noTankPressure ||
     unknownTransmitter ||
     sitesUnresolved ||
+    macdiveDeviceTimeZone ||
     diveNumberConflict => true,
     divesSkipped ||
     unreadableDates ||

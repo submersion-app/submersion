@@ -162,6 +162,8 @@ void main() {
       ImportWarningCode.macdiveLogbooksNotImported:
           ImportNoticeKind.macdiveLogbooksNotImported,
       ImportWarningCode.sitesUnresolved: ImportNoticeKind.sitesUnresolved,
+      ImportWarningCode.macdiveDeviceTimeZone:
+          ImportNoticeKind.macdiveDeviceTimeZone,
       ImportWarningCode.gearUnavailable: ImportNoticeKind.gearUnavailable,
       ImportWarningCode.certificationsUnavailable:
           ImportNoticeKind.certificationsUnavailable,

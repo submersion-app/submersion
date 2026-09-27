@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/features/universal_import/data/services/macdive_raw_types.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_time_zone.dart';
 
 void main() {
@@ -21,19 +23,8 @@ void main() {
   /// The wall-clock digits [instant] shows on the device running the test,
   /// as wall-clock-UTC. Keeps the fallback assertions independent of the
   /// machine's zone.
-  DateTime deviceWallClock(DateTime instant) {
-    final local = instant.toLocal();
-    return DateTime.utc(
-      local.year,
-      local.month,
-      local.day,
-      local.hour,
-      local.minute,
-      local.second,
-      local.millisecond,
-      local.microsecond,
-    );
-  }
+  DateTime deviceWallClock(DateTime instant) =>
+      asWallClockUtc(instant.toLocal());
 
   group('MacDiveTimeZone.nameFromBplist', () {
     test('reads NS.name from a real MacDive ZTIMEZONE BLOB', () {
@@ -52,6 +43,60 @@ void main() {
         MacDiveTimeZone.nameFromBplist(Uint8List.fromList([1, 2, 3, 4])),
         isNull,
       );
+    });
+
+    test('returns null for a corrupt archive rather than throwing', () {
+      // A zero reference size in the trailer makes every reference point
+      // at the root, which the decoder used to follow until the stack
+      // overflowed, aborting the whole import.
+      final corrupt = Uint8List.fromList(losAngelesBplist);
+      corrupt[corrupt.length - 32 + 7] = 0;
+      expect(MacDiveTimeZone.nameFromBplist(corrupt), isNull);
+    });
+  });
+
+  group('MacDiveTimeZone.locationNamed', () {
+    test('resolves an IANA zone name', () {
+      expect(
+        MacDiveTimeZone.locationNamed('America/Los_Angeles')?.name,
+        'America/Los_Angeles',
+      );
+    });
+
+    test('resolves the fixed-offset names NSTimeZone archives', () {
+      // `NSTimeZone(forSecondsFromGMT:)` is named like this, and the tz
+      // database has no such zones.
+      final instant = DateTime.utc(2025, 6, 1, 12);
+      expect(
+        MacDiveTimeZone.toWallClockUtc(
+          instant,
+          MacDiveTimeZone.locationNamed('GMT+0100'),
+        ),
+        DateTime.utc(2025, 6, 1, 13),
+      );
+      expect(
+        MacDiveTimeZone.toWallClockUtc(
+          instant,
+          MacDiveTimeZone.locationNamed('GMT-0530'),
+        ),
+        DateTime.utc(2025, 6, 1, 6, 30),
+      );
+      expect(
+        MacDiveTimeZone.toWallClockUtc(
+          instant,
+          MacDiveTimeZone.locationNamed('GMT+05:45'),
+        ),
+        DateTime.utc(2025, 6, 1, 17, 45),
+      );
+    });
+
+    test('returns null for a name it cannot resolve', () {
+      expect(MacDiveTimeZone.locationNamed(null), isNull);
+      expect(MacDiveTimeZone.locationNamed(''), isNull);
+      expect(MacDiveTimeZone.locationNamed('Not/AZone'), isNull);
+      expect(MacDiveTimeZone.locationNamed('unknown'), isNull);
+      expect(MacDiveTimeZone.locationNamed('GMT+2500'), isNull);
+      expect(MacDiveTimeZone.locationNamed('GMT+0175'), isNull);
     });
   });
 
@@ -88,14 +133,14 @@ void main() {
       expect(
         MacDiveTimeZone.toWallClockUtc(
           DateTime.utc(2026, 9, 15, 15, 54),
-          'America/Curacao',
+          MacDiveTimeZone.locationNamed('America/Curacao'),
         ),
         DateTime.utc(2026, 9, 15, 11, 54),
       );
     });
 
     test('applies daylight saving for the dive date', () {
-      const zone = 'America/Los_Angeles';
+      final zone = MacDiveTimeZone.locationNamed('America/Los_Angeles');
       expect(
         MacDiveTimeZone.toWallClockUtc(DateTime.utc(2024, 7, 1, 17), zone),
         DateTime.utc(2024, 7, 1, 10),
@@ -112,7 +157,7 @@ void main() {
       expect(
         MacDiveTimeZone.toWallClockUtc(
           DateTime.utc(2026, 9, 16, 2, 30),
-          'America/Curacao',
+          MacDiveTimeZone.locationNamed('America/Curacao'),
         ),
         DateTime.utc(2026, 9, 15, 22, 30),
       );
@@ -120,7 +165,13 @@ void main() {
 
     test('leaves a GMT dive unchanged', () {
       final instant = DateTime.utc(2025, 3, 1, 9, 15);
-      expect(MacDiveTimeZone.toWallClockUtc(instant, 'GMT'), instant);
+      expect(
+        MacDiveTimeZone.toWallClockUtc(
+          instant,
+          MacDiveTimeZone.locationNamed('GMT'),
+        ),
+        instant,
+      );
     });
 
     test('falls back to the device zone when the dive has no zone', () {
@@ -131,17 +182,11 @@ void main() {
       );
     });
 
-    test('falls back to the device zone for an unknown zone name', () {
-      final instant = DateTime.utc(2025, 6, 1, 12);
-      expect(
-        MacDiveTimeZone.toWallClockUtc(instant, 'Not/AZone'),
-        deviceWallClock(instant),
-      );
-    });
-
     test('applies daylight saving for a zone found from a site', () {
       // A Maine dive: EDT (UTC-4) in July, EST (UTC-5) in January.
-      final zone = MacDiveTimeZone.nameForLocation(43.179, -70.602);
+      final zone = MacDiveTimeZone.locationNamed(
+        MacDiveTimeZone.nameForLocation(43.179, -70.602),
+      );
       expect(
         MacDiveTimeZone.toWallClockUtc(DateTime.utc(2012, 7, 14, 14), zone),
         DateTime.utc(2012, 7, 14, 10),
@@ -156,9 +201,73 @@ void main() {
       expect(
         MacDiveTimeZone.toWallClockUtc(
           DateTime.utc(2026, 9, 15, 15, 54),
-          'America/Curacao',
+          MacDiveTimeZone.locationNamed('America/Curacao'),
         ).isUtc,
         isTrue,
+      );
+    });
+  });
+  group('MacDiveZoneResolver', () {
+    const tahiti = MacDiveRawSite(
+      pk: 7,
+      uuid: 'site-7',
+      latitude: -17.536,
+      longitude: -149.829,
+    );
+    // 12:00Z: 05:00 PDT, 02:00 in Tahiti.
+    final instant = DateTime.utc(2024, 7, 1, 12);
+
+    test('uses the stored zone first', () {
+      final zones = MacDiveZoneResolver();
+      expect(
+        zones.wallClockUtc(instant, archive: losAngelesBplist, site: tahiti),
+        DateTime.utc(2024, 7, 1, 5),
+      );
+      expect(zones.deviceZoneDives, 0);
+    });
+
+    test('falls back to the site zone when there is no stored zone', () {
+      final zones = MacDiveZoneResolver();
+      expect(
+        zones.wallClockUtc(instant, site: tahiti),
+        DateTime.utc(2024, 7, 1, 2),
+      );
+      expect(zones.deviceZoneDives, 0);
+    });
+
+    test('falls back to the site zone when the stored zone is unreadable', () {
+      final zones = MacDiveZoneResolver();
+      expect(
+        zones.wallClockUtc(
+          instant,
+          archive: Uint8List.fromList([1, 2, 3, 4]),
+          site: tahiti,
+        ),
+        DateTime.utc(2024, 7, 1, 2),
+      );
+    });
+
+    test('uses the device zone, and counts the dive, with neither', () {
+      final zones = MacDiveZoneResolver();
+      const noFix = MacDiveRawSite(pk: 8, uuid: 'site-8', name: 'Somewhere');
+      expect(zones.wallClockUtc(instant), deviceWallClock(instant));
+      expect(
+        zones.wallClockUtc(instant, site: noFix),
+        deviceWallClock(instant),
+      );
+      expect(zones.deviceZoneDives, 2);
+    });
+
+    test('gives the same answer for a repeated archive and site', () {
+      // Every dive in a logbook carries its own copy of the archive, and
+      // most sites are shared by several dives; both are resolved once.
+      final zones = MacDiveZoneResolver();
+      final copy = Uint8List.fromList(losAngelesBplist);
+      final first = zones.wallClockUtc(instant, archive: losAngelesBplist);
+      expect(zones.wallClockUtc(instant, archive: copy), first);
+      expect(
+        zones.wallClockUtc(instant, site: tahiti),
+        zones.wallClockUtc(instant, site: tahiti),
       );
     });
   });

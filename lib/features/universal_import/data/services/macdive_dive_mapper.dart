@@ -180,9 +180,10 @@ class MacDiveDiveMapper {
     // carry, or carries with neither a name nor coordinates. They import
     // without a site, and used to do so in silence (#2213, #2232).
     var divesMissingSite = 0;
+    final zones = MacDiveZoneResolver();
 
     for (final d in logbook.dives) {
-      final map = _buildDiveMap(d, logbook, converter);
+      final map = _buildDiveMap(d, logbook, converter, zones);
       if (d.diveSiteFk != null && map['site'] == null) divesMissingSite++;
       var attached = false;
       if (ffiAvailable && _hasRawProfile(d)) {
@@ -227,6 +228,23 @@ class MacDiveDiveMapper {
     // produce 500 identical summary lines.
     if (divesMissingSite > 0) {
       warnings.add(ImportSiteLocation.sitesUnresolved(divesMissingSite));
+    }
+    // The device zone is a guess that holds only if the diver imports from
+    // the zone they dove in, so say which dives it was used for.
+    final deviceZoneDives = zones.deviceZoneDives;
+    if (deviceZoneDives > 0) {
+      warnings.add(
+        ImportWarning(
+          severity: ImportWarningSeverity.info,
+          code: ImportWarningCode.macdiveDeviceTimeZone,
+          count: deviceZoneDives,
+          message:
+              '$deviceZoneDives dive(s) had no time zone in MacDive and no '
+              "site GPS position, so their times were read in this device's "
+              'time zone.',
+          entityType: ImportEntityType.dives,
+        ),
+      );
     }
     if (unreadable > 0) {
       warnings.add(
@@ -860,6 +878,7 @@ class MacDiveDiveMapper {
     MacDiveRawDive d,
     MacDiveRawLogbook logbook,
     MacDiveUnitConverter c,
+    MacDiveZoneResolver zones,
   ) {
     final map = <String, dynamic>{};
 
@@ -869,17 +888,13 @@ class MacDiveDiveMapper {
     // `rawDate` is the absolute instant from ZRAWDATE; the zone the dive
     // was logged in lives in `ZTIMEZONE`. Emit the wall clock of that zone
     // as UTC components, the convention the MacDive XML reader and every
-    // other importer use. The stored zone comes first: MacDive derived
-    // ZRAWDATE from the dive computer's clock with it, so it alone gives
-    // back the time MacDive shows. A dive saved without one falls back to
-    // the zone its site lies in.
+    // other importer use. [MacDiveZoneResolver] documents which zone wins.
     final rawDate = d.rawDate;
     if (rawDate != null) {
-      final site = logbook.sitesByPk[d.diveSiteFk];
-      map['dateTime'] = MacDiveTimeZone.toWallClockUtc(
+      map['dateTime'] = zones.wallClockUtc(
         rawDate,
-        MacDiveTimeZone.nameFromBplist(d.timezoneBplist) ??
-            MacDiveTimeZone.nameForLocation(site?.latitude, site?.longitude),
+        archive: d.timezoneBplist,
+        site: logbook.sitesByPk[d.diveSiteFk],
       );
     }
     if (d.diveNumber != null) map['diveNumber'] = d.diveNumber;
