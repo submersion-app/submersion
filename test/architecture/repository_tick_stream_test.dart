@@ -171,46 +171,51 @@ void main() {
     //
     // Covers every tick this file already exercises for firing, so the two
     // halves of the contract are checked over the same set.
+    // Each entry builds its repository when the test runs, not while the
+    // file is declared: a repository may create an HTTP client, and by then
+    // another file in the isolate may have set up the test binding, whose
+    // HTTP layer only works inside a test.
     final ticks = <String, Stream<void> Function()>{
-      'MediaLibraryRepository.watchMediaChanges':
-          MediaLibraryRepository().watchMediaChanges,
-      'MediaRepository.watchMediaChanges': MediaRepository().watchMediaChanges,
-      'MediaLibraryRepository.watchMapChanges':
-          MediaLibraryRepository().watchMapChanges,
-      'InsightsRepository.watchInsightsChanges':
-          InsightsRepository().watchInsightsChanges,
-      'ServiceRecordRepository.watchServiceRecordsChanges':
-          ServiceRecordRepository().watchServiceRecordsChanges,
-      'ServiceKindRepository.watchServiceKindsChanges':
-          ServiceKindRepository().watchServiceKindsChanges,
-      'EquipmentShareRepository.watchChanges':
-          EquipmentShareRepository().watchChanges,
-      'ServiceScheduleRepository.watchSchedulesChanges':
-          ServiceScheduleRepository().watchSchedulesChanges,
-      'CylinderConfigRepository.watchConfigsChanges':
-          CylinderConfigRepository().watchConfigsChanges,
-      'CylinderFillRepository.watchFillsChanges':
-          CylinderFillRepository().watchFillsChanges,
-      'DiveComputerRepository.watchComputersChanges':
-          DiveComputerRepository().watchComputersChanges,
-      'OfflineMapRepository.watchRegionsChanges':
-          OfflineMapRepository().watchRegionsChanges,
-      'AppSettingsRepository.watchSettingsChanges':
-          AppSettingsRepository().watchSettingsChanges,
-      'ManifestSubscriptionRepository.watchSubscriptionsChanges':
-          ManifestSubscriptionRepository().watchSubscriptionsChanges,
-      'WeightHistoryRepository.watchGearLeadChanges':
-          WeightHistoryRepository().watchGearLeadChanges,
-      'CsvPresetRepository.watchPresetsChanges':
-          CsvPresetRepository().watchPresetsChanges,
-      'DiveRepository.watchAnalysisInputChanges':
-          DiveRepository().watchAnalysisInputChanges,
+      'MediaLibraryRepository.watchMediaChanges': () =>
+          MediaLibraryRepository().watchMediaChanges(),
+      'MediaRepository.watchMediaChanges': () =>
+          MediaRepository().watchMediaChanges(),
+      'MediaLibraryRepository.watchMapChanges': () =>
+          MediaLibraryRepository().watchMapChanges(),
+      'InsightsRepository.watchInsightsChanges': () =>
+          InsightsRepository().watchInsightsChanges(),
+      'ServiceRecordRepository.watchServiceRecordsChanges': () =>
+          ServiceRecordRepository().watchServiceRecordsChanges(),
+      'ServiceKindRepository.watchServiceKindsChanges': () =>
+          ServiceKindRepository().watchServiceKindsChanges(),
+      'EquipmentShareRepository.watchChanges': () =>
+          EquipmentShareRepository().watchChanges(),
+      'ServiceScheduleRepository.watchSchedulesChanges': () =>
+          ServiceScheduleRepository().watchSchedulesChanges(),
+      'CylinderConfigRepository.watchConfigsChanges': () =>
+          CylinderConfigRepository().watchConfigsChanges(),
+      'CylinderFillRepository.watchFillsChanges': () =>
+          CylinderFillRepository().watchFillsChanges(),
+      'DiveComputerRepository.watchComputersChanges': () =>
+          DiveComputerRepository().watchComputersChanges(),
+      'OfflineMapRepository.watchRegionsChanges': () =>
+          OfflineMapRepository().watchRegionsChanges(),
+      'AppSettingsRepository.watchSettingsChanges': () =>
+          AppSettingsRepository().watchSettingsChanges(),
+      'ManifestSubscriptionRepository.watchSubscriptionsChanges': () =>
+          ManifestSubscriptionRepository().watchSubscriptionsChanges(),
+      'WeightHistoryRepository.watchGearLeadChanges': () =>
+          WeightHistoryRepository().watchGearLeadChanges(),
+      'CsvPresetRepository.watchPresetsChanges': () =>
+          CsvPresetRepository().watchPresetsChanges(),
+      'DiveRepository.watchAnalysisInputChanges': () =>
+          DiveRepository().watchAnalysisInputChanges(),
       'DiveRepository.watchTables': () =>
           DiveRepository().watchTables({'equipment_attributes'}),
-      'DiveRepository.watchDiveListChangesWithBuddyLinks':
-          DiveRepository().watchDiveListChangesWithBuddyLinks,
-      'DiveRepository.watchDivesChangesWithBuddyLinks':
-          DiveRepository().watchDivesChangesWithBuddyLinks,
+      'DiveRepository.watchDiveListChangesWithBuddyLinks': () =>
+          DiveRepository().watchDiveListChangesWithBuddyLinks(),
+      'DiveRepository.watchDivesChangesWithBuddyLinks': () =>
+          DiveRepository().watchDivesChangesWithBuddyLinks(),
     };
 
     for (final entry in ticks.entries) {
@@ -600,10 +605,10 @@ void main() {
     // of a buddy link writes only dive_buddies, never the parent dive, and a
     // rename writes only buddies (#1769, #1915).
     final buddyAwareTicks = <String, Stream<void> Function()>{
-      'watchDiveListChangesWithBuddyLinks':
-          DiveRepository().watchDiveListChangesWithBuddyLinks,
-      'watchDivesChangesWithBuddyLinks':
-          DiveRepository().watchDivesChangesWithBuddyLinks,
+      'watchDiveListChangesWithBuddyLinks': () =>
+          DiveRepository().watchDiveListChangesWithBuddyLinks(),
+      'watchDivesChangesWithBuddyLinks': () =>
+          DiveRepository().watchDivesChangesWithBuddyLinks(),
     };
     for (final entry in buddyAwareTicks.entries) {
       test('${entry.key} fires on a dive_buddies write', () async {
