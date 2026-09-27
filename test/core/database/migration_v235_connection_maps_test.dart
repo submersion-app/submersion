@@ -89,7 +89,12 @@ void main() {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(235));
     expect(AppDatabase.migrationVersions, contains(235));
     expect(AppDatabase.migrationStepCount(234), greaterThanOrEqualTo(1));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
+    // Additive rung: it never moves the sync compatibility floor, though
+    // other rungs may raise it.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(224),
+    );
   });
 
   test('adds the connection_maps table', () async {
