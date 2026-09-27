@@ -36699,6 +36699,16 @@ class AppLocalizationsZh extends AppLocalizations {
       '在潜水指标上显示来源归属';
 
   @override
+  String get settings_appearance_showDiveFigure => '在潜水记录中显示潜水员图';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      '在装备卡片中将每次潜水的装备显示在潜水员图上';
+
+  @override
+  String get diveLog_detail_gearFigureName => '本次潜水的装备';
+
+  @override
   String get settings_appearance_title_buddies => '潜伴外观';
 
   @override

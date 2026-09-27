@@ -38810,6 +38810,17 @@ class AppLocalizationsDe extends AppLocalizations {
       'Quellenangabe bei Tauchgangswerten anzeigen';
 
   @override
+  String get settings_appearance_showDiveFigure =>
+      'Taucherfigur bei Tauchgängen zeigen';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'Die Ausrüstung jedes Tauchgangs in seiner Ausrüstungskarte an einem Taucher zeigen';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'Ausrüstung dieses Tauchgangs';
+
+  @override
   String get settings_appearance_title_buddies => 'Darstellung Tauchpartner';
 
   @override

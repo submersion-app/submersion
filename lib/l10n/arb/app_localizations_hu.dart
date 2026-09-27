@@ -38726,6 +38726,17 @@ class AppLocalizationsHu extends AppLocalizations {
       'Forrásmegjelölés megjelenítése a merülési mutatókon';
 
   @override
+  String get settings_appearance_showDiveFigure =>
+      'Búváralak megjelenítése a merüléseknél';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'Minden merülés felszerelésének megjelenítése egy búváron a felszerelés kártyán';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'A merülés felszerelése';
+
+  @override
   String get settings_appearance_title_buddies => 'Búvártársak megjelenése';
 
   @override

@@ -38090,6 +38090,16 @@ class AppLocalizationsHe extends AppLocalizations {
       'הצגת ייחוס המקור על מדדי הצלילה';
 
   @override
+  String get settings_appearance_showDiveFigure => 'הצגת דמות הצוללן בצלילות';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'הצגת הציוד של כל צלילה על צוללן בכרטיס הציוד';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'הציוד בצלילה זו';
+
+  @override
   String get settings_appearance_title_buddies => 'מראה חברי הצוללים';
 
   @override

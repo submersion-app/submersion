@@ -38898,6 +38898,17 @@ class AppLocalizationsPt extends AppLocalizations {
       'Exibir a atribuição de fonte nas métricas de mergulho';
 
   @override
+  String get settings_appearance_showDiveFigure =>
+      'Mostrar a figura do mergulhador nos mergulhos';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'Mostrar o equipamento de cada mergulho num mergulhador no cartão de equipamento';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'Equipamento deste mergulho';
+
+  @override
   String get settings_appearance_title_buddies => 'Aparência dos companheiros';
 
   @override

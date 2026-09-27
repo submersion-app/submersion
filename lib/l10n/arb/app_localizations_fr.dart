@@ -38993,6 +38993,17 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher l’origine des données sur les mesures de plongée';
 
   @override
+  String get settings_appearance_showDiveFigure =>
+      'Afficher la silhouette du plongeur sur les plongées';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'Représenter l’équipement de chaque plongée sur un plongeur dans sa carte Équipement';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'Équipement de cette plongée';
+
+  @override
   String get settings_appearance_title_buddies => 'Apparence des binômes';
 
   @override

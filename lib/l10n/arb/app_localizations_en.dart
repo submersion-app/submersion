@@ -38345,6 +38345,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Display source attribution on dive metrics';
 
   @override
+  String get settings_appearance_showDiveFigure => 'Show diver figure on dives';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'Draw each dive\'s gear on a diver in its equipment card';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'Gear on this dive';
+
+  @override
   String get settings_appearance_title_buddies => 'Buddies Appearance';
 
   @override

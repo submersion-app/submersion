@@ -62762,6 +62762,24 @@ abstract class AppLocalizations {
   /// **'Display source attribution on dive metrics'**
   String get settings_appearance_showDataSourceBadges_subtitle;
 
+  /// No description provided for @settings_appearance_showDiveFigure.
+  ///
+  /// In en, this message translates to:
+  /// **'Show diver figure on dives'**
+  String get settings_appearance_showDiveFigure;
+
+  /// No description provided for @settings_appearance_showDiveFigure_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw each dive\'s gear on a diver in its equipment card'**
+  String get settings_appearance_showDiveFigure_subtitle;
+
+  /// No description provided for @diveLog_detail_gearFigureName.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear on this dive'**
+  String get diveLog_detail_gearFigureName;
+
   /// No description provided for @settings_appearance_title_buddies.
   ///
   /// In en, this message translates to:

@@ -38623,6 +38623,17 @@ class AppLocalizationsNl extends AppLocalizations {
       'Bronvermelding tonen bij duikgegevens';
 
   @override
+  String get settings_appearance_showDiveFigure =>
+      'Duikerfiguur bij duiken tonen';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'De uitrusting van elke duik op een duiker tonen in de uitrustingskaart';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'Uitrusting van deze duik';
+
+  @override
   String get settings_appearance_title_buddies => 'Uiterlijk van buddies';
 
   @override

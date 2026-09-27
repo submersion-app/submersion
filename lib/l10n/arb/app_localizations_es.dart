@@ -38912,6 +38912,17 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mostrar la atribución de origen en las métricas de inmersión';
 
   @override
+  String get settings_appearance_showDiveFigure =>
+      'Mostrar la figura del buceador en las inmersiones';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'Mostrar el equipo de cada inmersión sobre un buceador en su tarjeta de equipo';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'Equipo de esta inmersión';
+
+  @override
   String get settings_appearance_title_buddies => 'Apariencia de compañeros';
 
   @override

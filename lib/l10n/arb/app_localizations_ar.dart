@@ -38505,6 +38505,17 @@ class AppLocalizationsAr extends AppLocalizations {
       'عرض نسبة المصدر على مقاييس الغوص';
 
   @override
+  String get settings_appearance_showDiveFigure =>
+      'إظهار شكل الغوّاص في الغطسات';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'عرض معدات كل غطسة على غوّاص في بطاقة المعدات';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'معدات هذه الغطسة';
+
+  @override
   String get settings_appearance_title_buddies => 'مظهر الرفاق';
 
   @override

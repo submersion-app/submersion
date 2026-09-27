@@ -38882,6 +38882,18 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mostra l’attribuzione della fonte sui valori dell’immersione';
 
   @override
+  String get settings_appearance_showDiveFigure =>
+      'Mostra la figura del subacqueo nelle immersioni';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'Mostra l’attrezzatura di ogni immersione su un subacqueo nella scheda Attrezzatura';
+
+  @override
+  String get diveLog_detail_gearFigureName =>
+      'Attrezzatura di questa immersione';
+
+  @override
   String get settings_appearance_title_buddies => 'Aspetto dei compagni';
 
   @override
