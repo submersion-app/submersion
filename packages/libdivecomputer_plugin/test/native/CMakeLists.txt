@@ -71,6 +71,40 @@ target_include_directories(test_usbhid_descriptor_match PRIVATE
     ${CONFIG_DIR}
 )
 
+# Issue #422: the Cressi Goa BLE backend reads its version block through
+# DC_IOCTL_BLE_CHARACTERISTIC_READ. Every platform bridge decodes and fills
+# that request with the shared helpers pinned here.
+add_executable(test_ble_characteristic_read
+    test_ble_characteristic_read.c
+    ${WRAPPER_DIR}/libdc_wrapper.c
+    ${LIBDC_DIR}/src/descriptor.c
+    ${LIBDC_DIR}/src/iterator.c
+    ${LIBDC_DIR}/src/array.c
+    ${LIBDC_DIR}/src/platform.c
+    ${LIBDC_DIR}/src/version.c
+)
+target_include_directories(test_ble_characteristic_read PRIVATE
+    ${WRAPPER_DIR}
+    ${LIBDC_DIR}/include
+    ${CONFIG_DIR}
+)
+
+# Issue #422: which self-reported DEVINFO models may relabel a computer.
+add_executable(test_reported_product
+    test_reported_product.c
+    ${WRAPPER_DIR}/libdc_wrapper.c
+    ${LIBDC_DIR}/src/descriptor.c
+    ${LIBDC_DIR}/src/iterator.c
+    ${LIBDC_DIR}/src/array.c
+    ${LIBDC_DIR}/src/platform.c
+    ${LIBDC_DIR}/src/version.c
+)
+target_include_directories(test_reported_product PRIVATE
+    ${WRAPPER_DIR}
+    ${LIBDC_DIR}/include
+    ${CONFIG_DIR}
+)
+
 # Regression test for issue #280: hw_ostc3_read must accumulate the bytes each
 # read actually returns, not assume every dc_iostream_read filled the full
 # request (false for the one-notification-per-read BLE transport). The test
@@ -256,6 +290,26 @@ if(WIN32)
     target_link_libraries(test_download_clock_sync PRIVATE SetupAPI.lib ws2_32.lib)
 endif()
 
+# Issue #422: the real Cressi Goa backend over a scripted BLE iostream that
+# answers the characteristic read ioctl the way every platform bridge does.
+add_executable(test_cressi_goa_ble_download
+    test_cressi_goa_ble_download.c
+    ${WRAPPER_DIR}/libdc_wrapper.c
+    ${WRAPPER_DIR}/libdc_download.c
+    ${LIBDC_ALL_SOURCES}
+)
+target_include_directories(test_cressi_goa_ble_download PRIVATE
+    ${WRAPPER_DIR}
+    ${LIBDC_DIR}/include
+    ${LIBDC_DIR}/src
+    ${PLATFORM_CONFIG_DIR}
+)
+target_compile_definitions(test_cressi_goa_ble_download PRIVATE HAVE_CONFIG_H)
+if(WIN32)
+    target_compile_definitions(test_cressi_goa_ble_download PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_link_libraries(test_cressi_goa_ble_download PRIVATE SetupAPI.lib ws2_32.lib)
+endif()
+
 # Regression test for issue #810: the Shearwater parser must report the raw O2
 # cell output even when the logged calibration value cannot be trusted. Exercises
 # the parser through the public API only, so it needs the full library but not
@@ -367,12 +421,15 @@ add_test(NAME test_serial_callbacks COMMAND test_serial_callbacks)
 add_test(NAME test_descriptor_matcher COMMAND test_descriptor_matcher)
 add_test(NAME test_descriptor_match_integration COMMAND test_descriptor_match_integration)
 add_test(NAME test_usbhid_descriptor_match COMMAND test_usbhid_descriptor_match)
+add_test(NAME test_ble_characteristic_read COMMAND test_ble_characteristic_read)
+add_test(NAME test_reported_product COMMAND test_reported_product)
 add_test(NAME test_hw_ostc3_read COMMAND test_hw_ostc3_read)
 add_test(NAME test_shearwater_petrel_foreach COMMAND test_shearwater_petrel_foreach)
 add_test(NAME test_shearwater_common_download COMMAND test_shearwater_common_download)
 add_test(NAME test_uwatec_smart_ble_download COMMAND test_uwatec_smart_ble_download)
 add_test(NAME test_event_type_names COMMAND test_event_type_names)
 add_test(NAME test_download_clock_sync COMMAND test_download_clock_sync)
+add_test(NAME test_cressi_goa_ble_download COMMAND test_cressi_goa_ble_download)
 add_test(NAME test_parse_raw_dive COMMAND test_parse_raw_dive
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )

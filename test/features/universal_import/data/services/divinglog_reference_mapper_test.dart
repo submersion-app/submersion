@@ -211,6 +211,62 @@ void main() {
     });
   });
 
+  group('site detail (#2271)', () {
+    Map<String, dynamic> siteFor(DivingLogRawPlace place) =>
+        DivingLogReferenceMapper.sites(
+          logbook(
+            places: {place.id: place},
+            dives: [DivingLogRawDive(id: 1, placeId: place.id)],
+          ),
+        ).values.single;
+
+    test('carries the Place fields into their own site fields', () {
+      final site = siteFor(
+        const DivingLogRawPlace(
+          id: 10,
+          place: 'Salt Pier',
+          waterName: 'Caribbean Sea',
+          difficulty: 'Easy',
+          rating: 4,
+          water: 1,
+          altitude: 'Sea Level',
+          comments: 'pier dive',
+        ),
+      );
+      expect(site['bodyOfWater'], 'Caribbean Sea');
+      expect(site['waterType'], 'salt');
+      expect(site['difficulty'], 'beginner');
+      expect(site['rating'], 4.0);
+      expect(site['altitude'], 0.0);
+      // Mapped values are no longer repeated as description text.
+      expect(site['description'], 'pier dive');
+    });
+
+    test('keeps a difficulty it cannot map in the description', () {
+      final site = siteFor(
+        const DivingLogRawPlace(id: 10, place: 'Reef', difficulty: 'Spicy'),
+      );
+      expect(site.containsKey('difficulty'), isFalse);
+      expect(site['description'], 'Difficulty: Spicy');
+    });
+
+    test('omits fields the Place left unset', () {
+      final site = siteFor(
+        const DivingLogRawPlace(id: 10, place: 'Reef', rating: 0, water: 0),
+      );
+      for (final key in [
+        'bodyOfWater',
+        'waterType',
+        'difficulty',
+        'rating',
+        'altitude',
+        'description',
+      ]) {
+        expect(site.containsKey(key), isFalse, reason: key);
+      }
+    });
+  });
+
   group('zero sentinels', () {
     test('omits a zero max depth rather than storing it as a depth', () {
       final book = logbook(

@@ -330,4 +330,24 @@ class BleCharacteristicSelectorTest {
         val services = listOf(service(SEAC_SERVICE, char(SEAC_DATA, R, W, N)))
         assertEquals(ResponseMode.NOTIFY, BleCharacteristicSelector.select(services)?.responseMode)
     }
+
+    // Issue #422: the Cressi service (Goa family) is preferred, as in
+    // Subsurface. A plain service with the higher raw score must still lose.
+    @Test
+    fun cressiServiceIsPreferred() {
+        val services = listOf(
+            service(
+                "0000cccc-0000-1000-8000-00805f9b34fb",
+                char("0000ccc1-0000-1000-8000-00805f9b34fb", WNR),
+                char("0000ccc2-0000-1000-8000-00805f9b34fb", N)
+            ),
+            service(
+                "6e400001-b5a3-f393-e0a9-e50e24dc10b8",
+                char("6e400002-b5a3-f393-e0a9-e50e24dc10b8", W),
+                char("6e400006-b5a3-f393-e0a9-e50e24dc10b8", I)
+            )
+        )
+        val result = resolve(services, BleCharacteristicSelector.select(services))
+        assertEquals(1, result?.serviceIndex)
+    }
 }

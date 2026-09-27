@@ -41,9 +41,19 @@ void main() {
   test('built-in kinds surface their seeded defaults', () async {
     final reg = await ServiceKindRepository().getKindById('regulator-service');
     expect(reg!.exposureIntervals, {ExposureUnit.coldDives: 50.0});
-    expect(reg.applicableTypes, [EquipmentType.regulator]);
+    // v239 (issue #2275): both also name the first and second stages.
+    expect(reg.applicableTypes, [
+      EquipmentType.regulator,
+      EquipmentType.firstStage,
+      EquipmentType.secondStage,
+    ]);
     final o2 = await ServiceKindRepository().getKindById('o2-clean');
-    expect(o2!.applicableTypes, [EquipmentType.tank, EquipmentType.regulator]);
+    expect(o2!.applicableTypes, [
+      EquipmentType.tank,
+      EquipmentType.regulator,
+      EquipmentType.firstStage,
+      EquipmentType.secondStage,
+    ]);
   });
 
   test('a schedule round-trips its exposure map', () async {

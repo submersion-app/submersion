@@ -87,12 +87,12 @@ void main() {
   }
 
   test('v234 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v235 (scoped event tombstones, #1926) landed on top; the
+    // Relaxed once v239 (#2275) and v240 (#1926) landed on top; the
     // newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(234));
     expect(AppDatabase.migrationVersions, contains(234));
     expect(AppDatabase.migrationStepCount(233), greaterThanOrEqualTo(1));
-    // Additive rung: it did not move the floor (v235 raised it later).
+    // Additive rung: it did not move the floor (v240 raised it later).
     expect(
       AppDatabase.minimumCompatibleSchemaVersion,
       greaterThanOrEqualTo(224),

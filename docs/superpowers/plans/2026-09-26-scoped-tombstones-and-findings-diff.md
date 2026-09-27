@@ -12,8 +12,8 @@
 
 ## Global Constraints
 
-- Schema rung: **v235** (#2438 and #2443 claim 233 and 234; main was at 231; #2331 has since shipped 232). Re-scan open PRs for `currentSchemaVersion` right before pushing and renumber upward if 235 is taken.
-- `minimumCompatibleSchemaVersion`: **224 -> 235**.
+- Schema rung: **v240** (main shipped 232, 233, 234 and 239 while this was open). Re-scan open PRs for `currentSchemaVersion` right before pushing and renumber upward if 240 is taken.
+- `minimumCompatibleSchemaVersion`: **224 -> 240**.
 - Scope entity type string: `diveProfileEventsScope`. recordId `<diveId>` or `<diveId>|<computerId>`.
 - Safety finding id namespace (never change once shipped): `kSafetyFindingNamespace = '4d0c8a52-6b1e-4f3a-9a27-c5e1d7b3f906'`.
 - No em-dashes anywhere (code, comments, commits, PR). No mention of Claude or Anthropic in any commit or PR text.
@@ -1196,7 +1196,7 @@ git commit -m "feat(sync): apply scoped event tombstones and block stale events 
 
 ---
 
-### Task 6: Schema v235 and the compat floor
+### Task 6: Schema v240 and the compat floor
 
 **Files:**
 - Modify: `lib/core/database/database.dart` (`currentSchemaVersion`, `minimumCompatibleSchemaVersion` and its history comment, `migrationVersions`, `onUpgrade` tail, `beforeOpen` backstops, a new `_assertProfileEventsDiveIdIndex` beside `_assertNavTracksSchema`)
@@ -1204,7 +1204,7 @@ git commit -m "feat(sync): apply scoped event tombstones and block stale events 
 - Test: a migration test modelled on the nearest rung test (`ls test/core/database | grep -i -E "v2[23][0-9]|nav_track|migration"`)
 
 **Interfaces:**
-- Produces: `AppDatabase.currentSchemaVersion == 235`, `AppDatabase.minimumCompatibleSchemaVersion == 235`, index `idx_dive_profile_events_dive_id`.
+- Produces: `AppDatabase.currentSchemaVersion == 240`, `AppDatabase.minimumCompatibleSchemaVersion == 240`, index `idx_dive_profile_events_dive_id`.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1214,7 +1214,7 @@ Migration test (in the style of the nearest rung test found above): open a fresh
 In `cross_version_roundtrip_test.dart`, add a header paragraph:
 
 ```dart
-// The floor moved 224 -> 235 with scoped event tombstones (#1926): this
+// The floor moved 224 -> 240 with scoped event tombstones (#1926): this
 // build replaces a dive's event tombstones with one tombstone for the whole
 // set, which an older reader stores as an inert unknown type, leaving the
 // events on that device for good. The direction the floor cannot reach, an
@@ -1225,10 +1225,10 @@ In `cross_version_roundtrip_test.dart`, add a header paragraph:
 and a group:
 
 ```dart
-  group('pre-v235 peer and scoped event tombstones', () {
-    test('the floor is at least 235', () {
+  group('pre-v240 peer and scoped event tombstones', () {
+    test('the floor is at least 240', () {
       expect(AppDatabase.minimumCompatibleSchemaVersion,
-          greaterThanOrEqualTo(235));
+          greaterThanOrEqualTo(240));
     });
     // An older peer republishes a dive's events we scope-deleted: they
     // stay deleted; an event it creates after the delete applies.
@@ -1261,37 +1261,37 @@ Expected: FAIL (floor 224, index missing).
 `onUpgrade` tail:
 
 ```dart
-        // v235: index dive_profile_events by dive (#1926). Scoped event
+        // v240: index dive_profile_events by dive (#1926). Scoped event
         // tombstones delete and match events by dive, and the table had no
         // index on it. Index-only rung; the floor rise it ships with is for
         // the tombstones, not for this.
-        if (from < 235) {
+        if (from < 240) {
           await _assertProfileEventsDiveIdIndex();
         }
-        if (from < 235) await reportProgress();
+        if (from < 240) await reportProgress();
 ```
 
-`beforeOpen`, first line: `// v235 backstop: the events-by-dive index.` then `await _assertProfileEventsDiveIdIndex();`.
+`beforeOpen`, first line: `// v240 backstop: the events-by-dive index.` then `await _assertProfileEventsDiveIdIndex();`.
 
 `migrationVersions`: append
 
 ```dart
-    // v235: idx_dive_profile_events_dive_id for scoped event tombstones
-    // (#1926); raises the floor to 235. 232 is claimed by open PRs #2411,
+    // v240: idx_dive_profile_events_dive_id for scoped event tombstones
+    // (#1926); raises the floor to 240. 232 is claimed by open PRs #2411,
     // #2407 and #2331.
-    235,
+    240,
 ```
 
-Set `currentSchemaVersion = 235` and `minimumCompatibleSchemaVersion = 235`, adding to the floor's doc comment:
+Set `currentSchemaVersion = 240` and `minimumCompatibleSchemaVersion = 240`, adding to the floor's doc comment:
 
 ```dart
-  /// Raised 224 -> 235 by scoped event tombstones (#1926): this build
+  /// Raised 224 -> 240 by scoped event tombstones (#1926): this build
   /// replaces the per-row tombstones a split, re-import or re-parse wrote
   /// for a dive's events with one tombstone for the whole set. An older
   /// reader knows nothing of the scope type and stores it as an inert
   /// unknown entity, so the events it names stay on that device for good.
   /// That is an old reader misapplying our payload, which is what this floor
-  /// exists to prevent. Peers below 235 are held until they update; their
+  /// exists to prevent. Peers below 240 are held until they update; their
   /// own payloads still arrive here, and the merge's scope guard keeps their
   /// copies of deleted events from coming back.
 ```
@@ -1307,7 +1307,7 @@ Expected: PASS.
 
 ```bash
 git add lib/core/database/database.dart test/core/
-git commit -m "feat(db): v235 events-by-dive index; raise the sync floor to 235"
+git commit -m "feat(db): v240 events-by-dive index; raise the sync floor to 240"
 ```
 
 ---

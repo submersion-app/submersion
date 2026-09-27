@@ -658,7 +658,42 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     if (p.waterTempCelsius != null || p.airTempCelsius != null) {
       _expanded['conditions'] = true;
     }
-    if (p.startPressureBar != null ||
+    if (p.tank case final t?) {
+      final base = _tanks.isNotEmpty ? _tanks.first : null;
+      // A tag that gives a volume describes the cylinder itself: its spec is
+      // taken whole, never mixed with the default tank's. A tag with no
+      // volume keeps the default cylinder, preset and all.
+      final describesCylinder = t.volume != null;
+      _tanks = [
+        DiveTank(
+          id: base?.id ?? _uuid.v4(),
+          name: t.name,
+          volume: describesCylinder ? t.volume : base?.volume,
+          workingPressure: describesCylinder
+              ? t.workingPressure
+              : t.workingPressure ?? base?.workingPressure,
+          startPressure: t.startPressure ?? base?.startPressure,
+          endPressure: t.endPressure ?? base?.endPressure,
+          gasMix: t.gasMix,
+          role: t.role,
+          material: describesCylinder
+              ? t.material
+              : t.material ?? base?.material,
+          order: 0,
+          presetName: describesCylinder ? t.presetName : base?.presetName,
+        ),
+        ..._tanks.skip(1),
+      ];
+      // A custom default preset loads asynchronously and replaces an
+      // untouched first tank. A cylinder described by its tag must survive
+      // that; a tag that describes nothing leaves the default free to load.
+      if (t.name != null ||
+          t.volume != null ||
+          t.workingPressure != null ||
+          t.material != null) {
+        _tanksDirty = true;
+      }
+    } else if (p.startPressureBar != null ||
         p.endPressureBar != null ||
         p.o2Percent != null ||
         p.cylinderVolumeLiters != null) {
@@ -3071,6 +3106,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             },
             onRemove: _tanks.length > 1 ? () => _removeTank(i) : null,
             canRemove: _tanks.length > 1,
+            // A scanned own cylinder joins this dive's gear; the tank row
+            // itself never links to it (issue #2335).
+            onCylinderScanned: (item) => _addGear([item]),
+            onScanPending: _trackTankScan,
           ),
       ],
       onAddTank: _addTank,
@@ -3626,10 +3665,40 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// Every way gear reaches this page funnels here so an assembly expands
   /// identically whether it came from the picker, a set, a geofence
   /// suggestion or the on-empty default (issue #1487).
+  /// The latest gear add, if one may still be running. Adds run one at a
+  /// time (each merges into the list the one before it produced), and Save
+  /// waits for them, so gear added a moment before Save (a scanned cylinder,
+  /// a set) is not left out of the saved dive.
+  Future<void>? _pendingGearAdd;
+
+  /// Tank tag scans still resolving. Save waits for them before the gear
+  /// adds, since a scan's gear add only starts once its lookup finishes.
+  final Set<Future<void>> _pendingTankScans = {};
+
+  void _trackTankScan(Future<void> scan) {
+    _pendingTankScans.add(scan);
+    unawaited(scan.whenComplete(() => _pendingTankScans.remove(scan)));
+  }
+
   Future<void> _addGear(
     List<EquipmentItem> items, {
     String? viaSetId,
     bool markDirty = true,
+  }) {
+    final previous = _pendingGearAdd;
+    final run = () async {
+      // The previous add's failure is its own caller's to report.
+      if (previous != null) await previous.then((_) {}, onError: (_) {});
+      await _addGearNow(items, viaSetId: viaSetId, markDirty: markDirty);
+    }();
+    _pendingGearAdd = run;
+    return run;
+  }
+
+  Future<void> _addGearNow(
+    List<EquipmentItem> items, {
+    String? viaSetId,
+    required bool markDirty,
   }) async {
     if (items.isEmpty) return;
     // A set can list gear no longer shared with this dive's diver; it stays
@@ -5261,6 +5330,21 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final pendingSnap = _pendingDiveTypeSnap;
     if (pendingSnap != null) {
       await pendingSnap;
+      if (!mounted) return;
+    }
+    // Wait for tank scans still resolving (each ends with its gear add),
+    // then for gear still being added; work started meanwhile is waited for
+    // too. A failed add was reported by its caller and adds nothing.
+    while (_pendingTankScans.isNotEmpty) {
+      await Future.wait(_pendingTankScans.toList());
+      if (!mounted) return;
+    }
+    for (
+      var pending = _pendingGearAdd;
+      pending != null;
+      pending = identical(pending, _pendingGearAdd) ? null : _pendingGearAdd
+    ) {
+      await pending.then((_) {}, onError: (_) {});
       if (!mounted) return;
     }
     // Collapsed sections un-mount their fields, hiding them from

@@ -3311,11 +3311,15 @@ const String kSeedBuiltInServiceKindsSql = '''
            365, NULL, NULL, 1, 'inspection', '{}'
     -- v202: O2 cleaning applies to regulators too now that a cylinder can
     -- name the regulator breathed from it; 50 high-O2 hours is a starting
-    -- point, not a manufacturer figure.
-    UNION ALL SELECT 'o2-clean', 'O2 clean', '["tank","regulator"]', 365,
+    -- point, not a manufacturer figure. v239 (issue #2275): both regulator
+    -- kinds also name the first and second stages a regulator splits into
+    -- (#1487); kBackfillRegulatorPartServiceKindsSql holds the same lists.
+    UNION ALL SELECT 'o2-clean', 'O2 clean',
+           '["tank","regulator","firstStage","secondStage"]', 365,
            NULL, NULL, 0, 'cleaning', '{"o2Hours":50}'
     UNION ALL SELECT 'regulator-service', 'Regulator service',
-           '["regulator"]', 365, 100, NULL, 1, 'annual', '{"coldDives":50}'
+           '["regulator","firstStage","secondStage"]', 365, 100, NULL, 1,
+           'annual', '{"coldDives":50}'
     UNION ALL SELECT 'computer-battery', 'Computer battery',
            '["computer","battery"]', 730, NULL, NULL, 1, 'replacement', '{}'
     -- v202: 250 h sits below the roughly 300 h published for common
@@ -3341,6 +3345,28 @@ const String kSeedBuiltInServiceKindsSql = '''
            NULL, NULL, NULL, 0, 'annual', '{}'
   ) t
   CROSS JOIN (SELECT CAST(strftime('%s','now') AS INTEGER) * 1000 AS now_ms) n
+''';
+
+/// v239 (issue #2275): the built-in regulator service and O2 clean kinds
+/// also apply to first and second stages. Issue #1487 split a regulator into
+/// part types, but these two kinds still named only `regulator`, so a new
+/// second stage could be offered nothing but "General service". A hose is
+/// left out: it is inspected or replaced, not serviced.
+///
+/// One-time, from the v239 rung only (fresh installs get the same lists from
+/// [kSeedBuiltInServiceKindsSql]). Gated on is_built_in, so a diver's own
+/// kind keeps the types they chose. updated_at is left alone: built-ins are
+/// reference data that sync never exports. Held in step with the seed by
+/// migration_v239_regulator_part_service_kinds_test.
+const String kBackfillRegulatorPartServiceKindsSql = '''
+  UPDATE service_kinds SET
+    applicable_types = CASE id
+      WHEN 'regulator-service'
+        THEN '["regulator","firstStage","secondStage"]'
+      WHEN 'o2-clean'
+        THEN '["tank","regulator","firstStage","secondStage"]'
+      ELSE applicable_types END
+  WHERE is_built_in = 1 AND id IN ('regulator-service', 'o2-clean')
 ''';
 
 /// v202: exposure defaults for the built-in kinds on existing installs.
@@ -4627,7 +4653,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 235;
+  static const int currentSchemaVersion = 240;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4704,16 +4730,16 @@ class AppDatabase extends _$AppDatabase {
   /// clock as the row clock, so an old peer's writes still order correctly
   /// (media sync program spec 5.1).
   ///
-  /// Raised 224 -> 235 by scoped event tombstones (#1926): this build
+  /// Raised 224 -> 240 by scoped event tombstones (#1926): this build
   /// replaces the per-row tombstones a split, re-import or re-parse wrote for
   /// a dive's events with one tombstone for the whole set. An older reader
   /// knows nothing of the scope type and stores it as an inert unknown
   /// entity, so the events it names stay on that device for good. That is an
   /// old reader misapplying our payload, which is what this floor exists to
-  /// prevent. Peers below 235 are held until they update; their own payloads
+  /// prevent. Peers below 240 are held until they update; their own payloads
   /// still arrive here, and the merge's scope guard keeps their copies of
   /// deleted events from coming back.
-  static const int minimumCompatibleSchemaVersion = 235;
+  static const int minimumCompatibleSchemaVersion = 240;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -5345,11 +5371,16 @@ class AppDatabase extends _$AppDatabase {
     // took 231, trip cylinders (#2325) took 232 and the dive source diver
     // key (#1921) took 233 while this was open.
     234,
-    // v235: idx_dive_profile_events_dive_id for scoped event tombstones
+    // v239: the built-in regulator service and O2 clean kinds also apply to
+    // first and second stages (issue #2275). A one-time UPDATE of two
+    // built-in rows, which sync never exports, so the floor stays. 235 to
+    // 238 were claimed by open branches when this was taken.
+    239,
+    // v240: idx_dive_profile_events_dive_id for scoped event tombstones
     // (#1926), which delete and match events by dive; also raises the floor
-    // to 235. Renumbered from 233 while main shipped 233 (#1921) and 234
-    // (#2046).
-    235,
+    // to 240. Renumbered from 233 and then 235: main shipped 233 (#1921),
+    // 234 (#2046) and 239 (#2275) while this was open.
+    240,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -5601,6 +5632,15 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(kBackfillBuiltInExposureDefaultsSql);
   }
 
+  /// v239 one-time backfill (issue #2275). Keyed on built-in ids and gated
+  /// on is_built_in, so a custom kind is never touched. Runs from the v239
+  /// onUpgrade block ONLY, as the v202 backfill does (fresh installs get the
+  /// same lists from the seed).
+  Future<void> _backfillRegulatorPartServiceKinds() async {
+    if (!await _tableExists('service_kinds')) return;
+    await customStatement(kBackfillRegulatorPartServiceKindsSql);
+  }
+
   /// Transmitter registry (issue #1365, v200). Idempotent so a database that
   /// arrives by restore or sync-adopt (never runs onUpgrade) also gets it.
   Future<void> _assertTransmitterTables() async {
@@ -5765,7 +5805,7 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// v235: scoped event tombstones select events by dive (#1926). Guarded
+  /// v240: scoped event tombstones select events by dive (#1926). Guarded
   /// on the table, as the other backstops are, for migration fixtures that
   /// build only part of the schema.
   Future<void> _assertProfileEventsDiveIdIndex() async {
@@ -13187,17 +13227,24 @@ class AppDatabase extends _$AppDatabase {
           await _assertEquipmentSharingSchema();
         }
         if (from < 234) await reportProgress();
-        // v235: index dive_profile_events by dive (#1926). Scoped event
+        // v239: regulator service and O2 clean apply to first and second
+        // stages (issue #2275). A one-time UPDATE of two built-in rows; not
+        // in the backstop, as v202's built-in backfill is not.
+        if (from < 239) {
+          await _backfillRegulatorPartServiceKinds();
+        }
+        if (from < 239) await reportProgress();
+        // v240: index dive_profile_events by dive (#1926). Scoped event
         // tombstones delete and match events by dive, and the table had no
         // index on it. Index-only rung; the floor rise it ships with is for
         // the tombstones, not for this. Re-asserted in beforeOpen.
-        if (from < 235) {
+        if (from < 240) {
           await _assertProfileEventsDiveIdIndex();
         }
-        if (from < 235) await reportProgress();
+        if (from < 240) await reportProgress();
       },
       beforeOpen: (details) async {
-        // v235 backstop: the events-by-dive index.
+        // v240 backstop: the events-by-dive index.
         await _assertProfileEventsDiveIdIndex();
 
         // v229 backstop: the per-set diver figure switch.

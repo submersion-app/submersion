@@ -85,7 +85,7 @@ object BleCharacteristicSelector {
         // service the same devices also advertise, which can tie on raw score.
         TIO_SERVICE_UUID,
         UBLOX_SERVICE_UUID
-    )
+    ) + BleCharacteristicRead.CRESSI_SERVICE_UUIDS
     private val PREFERRED_WRITE_UUIDS = setOf(
         UUID.fromString("6606ab42-89d5-4a00-a8ce-4eb5e1414ee0"),
         // Telit UART Data RX. Raw scoring already prefers it over UART Credits

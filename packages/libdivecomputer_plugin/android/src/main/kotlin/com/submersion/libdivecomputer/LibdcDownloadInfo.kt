@@ -22,3 +22,12 @@ internal fun libdcClockSyncStatusName(status: Int): String = when (status) {
  */
 internal fun libdcUnsignedOrNull(value: Int): String? =
     if (value == 0) null else (value.toLong() and 0xFFFFFFFFL).toString()
+
+// Decodes nativeDownloadSessionReportedDevice's [product, model] pair.
+internal data class ReportedDevice(val product: String, val model: Long)
+
+internal fun reportedDeviceOrNull(raw: Array<String>?): ReportedDevice? {
+    if (raw == null || raw.size != 2 || raw[0].isEmpty()) return null
+    val model = raw[1].toLongOrNull() ?: return null
+    return ReportedDevice(raw[0], model)
+}

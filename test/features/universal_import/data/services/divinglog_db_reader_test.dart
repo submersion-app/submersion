@@ -185,11 +185,12 @@ CREATE TABLE Buddy (
   db.execute("""
 CREATE TABLE Place (
   ID INTEGER PRIMARY KEY, CountryID INTEGER, Place TEXT, Lat REAL, Lon REAL,
-  MaxDepth REAL, WaterName TEXT, Difficulty TEXT, Comments TEXT
+  MaxDepth REAL, WaterName TEXT, Difficulty TEXT, Comments TEXT,
+  Rating INTEGER, Water INTEGER, Altitude TEXT
 )""");
   db.execute(
     "INSERT INTO Place VALUES (10, 30, 'Salt Pier', 12.13, -68.28, 24.0, "
-    "'Caribbean', 'Easy', 'pier dive')",
+    "'Caribbean', 'Easy', 'pier dive', 4, 1, 'Sea Level')",
   );
   db.execute(
     'CREATE TABLE City (ID INTEGER PRIMARY KEY, CountryID INTEGER, City TEXT)',
@@ -681,6 +682,16 @@ void main() {
       expect(place.maxDepthMeters, closeTo(24.0, 1e-9));
       expect(book.cityNamesById[20], 'Kralendijk');
       expect(book.countryNamesById[30], 'Bonaire');
+    });
+
+    test('reads the site detail columns (#2271)', () async {
+      final book = await DivingLogDbReader.readAll(buildReferenceLogbook());
+      final place = book.placesById[10]!;
+      expect(place.waterName, 'Caribbean');
+      expect(place.difficulty, 'Easy');
+      expect(place.rating, 4);
+      expect(place.water, 1);
+      expect(place.altitude, 'Sea Level');
     });
 
     test('reads equipment including the retired flag and weight', () async {

@@ -184,7 +184,11 @@ void main() {
       decodeExposureIntervals(await col('drysuit-seals', 'exposure_intervals')),
       {ExposureUnit.saltHours: 200.0},
     );
-    expect(await col('o2-clean', 'applicable_types'), '["tank","regulator"]');
+    // v239 (issue #2275) added the first and second stages on top.
+    expect(
+      await col('o2-clean', 'applicable_types'),
+      '["tank","regulator","firstStage","secondStage"]',
+    );
     expect(
       await col('computer-battery', 'applicable_types'),
       '["computer","battery"]',
@@ -234,7 +238,11 @@ void main() {
         ),
         {ExposureUnit.coldDives: 50.0},
       );
-      expect(await col('o2-clean', 'applicable_types'), '["tank","regulator"]');
+      // The v239 rung (issue #2275) widens it again on the way up.
+      expect(
+        await col('o2-clean', 'applicable_types'),
+        '["tank","regulator","firstStage","secondStage"]',
+      );
       expect(
         await col('transmitter-battery', 'applicable_types'),
         '["transmitter","battery"]',
