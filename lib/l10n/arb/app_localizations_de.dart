@@ -17374,11 +17374,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get planning_card_gasCalculators_description =>
-      'Vier spezialisierte Gasrechner:\n- MOD - Maximale Einsatztiefe für ein Gasgemisch\n- Beste Mischung - Idealer O₂-Anteil für eine Zieltiefe\n- Verbrauch - Schätzung des Gasverbrauchs\n- Mindrestreserve - Berechnung der Notfallreserve';
+      'Vier spezialisierte Gasrechner:\n- MOD - Maximale Einsatztiefe für ein Gasgemisch\n- Beste Mischung - Idealer O₂-Anteil für eine Zieltiefe\n- Verbrauch - Schätzung des Gasverbrauchs\n- Mindestreserve - Berechnung der Notfallreserve';
 
   @override
   String get planning_card_gasCalculators_subtitle =>
-      'MOD, Beste Mischung, Verbrauch, Mindrestreserve';
+      'MOD, Beste Mischung, Verbrauch, Mindestreserve';
 
   @override
   String get planning_card_gasCalculators_title => 'Gasrechner';
@@ -17623,7 +17623,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_appearance_diveDetails_sectionOrderVisibility =>
-      'Abschnittsreihenfolge &amp; Sichtbarkeit';
+      'Abschnittsreihenfolge & Sichtbarkeit';
 
   @override
   String get settings_appearance_diveDetails_sectionOrderVisibility_subtitle =>
@@ -17631,7 +17631,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_diveDetailSections_title =>
-      'Abschnittsreihenfolge &amp; Sichtbarkeit';
+      'Abschnittsreihenfolge & Sichtbarkeit';
 
   @override
   String get settings_diveDetailSections_resetToDefault =>
@@ -27808,7 +27808,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get maps3d_other_reset_confirmMessage =>
-      'Gecachte Daten aller Anbieter ausser swissBATHY3D werden entfernt und beim nächsten Öffnen der 3D-Ansicht eines Tauchplatzes neu geladen.';
+      'Gecachte Daten aller Anbieter außer swissBATHY3D werden entfernt und beim nächsten Öffnen der 3D-Ansicht eines Tauchplatzes neu geladen.';
 
   @override
   String get maps3d_other_reset_done =>
@@ -36857,7 +36857,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Goldoliv gefärbter Barschverwandter mit großen reflektierenden Augen, jagt in der Dämmerung über Fels- und Sandgrund.';
 
   @override
-  String get species_sauger_name => 'Kanadische Zander';
+  String get species_sauger_name => 'Kanadischer Zander';
 
   @override
   String get species_sauger_desc =>
@@ -37299,7 +37299,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Gedrungener Felsenbuntbarsch des Tanganjikasees in Dutzenden Farbformen, jede auf ihren eigenen Uferabschnitt beschränkt.';
 
   @override
-  String get species_arapaima_name => 'Piracurù';
+  String get species_arapaima_name => 'Pirarucu';
 
   @override
   String get species_arapaima_desc =>
@@ -37453,7 +37453,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Robuster olivfarbener Fisch, der Luft atmet und auf seinen stacheligen Kiemendeckeln über Land zwischen austrocknenden Tümpeln kriecht.';
 
   @override
-  String get species_golden_mahseer_name => 'Riesen barbe';
+  String get species_golden_mahseer_name => 'Riesenbarbe';
 
   @override
   String get species_golden_mahseer_desc =>

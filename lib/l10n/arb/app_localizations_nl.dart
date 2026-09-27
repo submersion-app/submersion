@@ -5208,7 +5208,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_combine_longSurfaceWarning =>
-      'Een of meer oppervlakte-intervallen zijn langer dan 30 minuten. Dit kunnen aparte duiken zijn in plaats van één doorlopende duik.';
+      'Eén of meer oppervlakte-intervallen zijn langer dan 30 minuten. Dit kunnen aparte duiken zijn in plaats van één doorlopende duik.';
 
   @override
   String get diveLog_combine_mixedDivers =>
@@ -5588,7 +5588,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_detail_label_surfacePressure => 'Oppervlaktedruk';
 
   @override
-  String get diveLog_detail_label_swellHeight => 'Deiningsahoogte';
+  String get diveLog_detail_label_swellHeight => 'Deiningshoogte';
 
   @override
   String get diveLog_detail_label_total => 'Totaal:';
@@ -14933,7 +14933,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_billedIncomplete =>
-      'Een of meer regels hebben geen prijs, dus dit totaal is onvolledig.';
+      'Eén of meer regels hebben geen prijs, dus dit totaal is onvolledig.';
 
   @override
   String get gasCalculators_blender_billedTotal => 'Totaal';
@@ -15769,7 +15769,7 @@ class AppLocalizationsNl extends AppLocalizations {
       other:
           '$count daarvan hebben een bijschrift of favoriet opgeslagen in Submersion, en die details gaan verloren.',
       one:
-          'Een daarvan heeft een bijschrift of favoriet opgeslagen in Submersion, en die details gaan verloren.',
+          'Eén daarvan heeft een bijschrift of favoriet opgeslagen in Submersion, en die details gaan verloren.',
     );
     return '$_temp0';
   }
@@ -17516,7 +17516,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_appearance_diveDetails_sectionOrderVisibility =>
-      'Sectievolgorde &amp; zichtbaarheid';
+      'Sectievolgorde & zichtbaarheid';
 
   @override
   String get settings_appearance_diveDetails_sectionOrderVisibility_subtitle =>
@@ -17524,7 +17524,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_diveDetailSections_title =>
-      'Sectievolgorde &amp; zichtbaarheid';
+      'Sectievolgorde & zichtbaarheid';
 
   @override
   String get settings_diveDetailSections_resetToDefault =>
@@ -20780,7 +20780,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get insights_conditions_entryMethod_empty =>
-      'Geen gegevens over instaptmethode beschikbaar';
+      'Geen gegevens over instapmethode beschikbaar';
 
   @override
   String get insights_conditions_entryMethod_error =>
@@ -23122,7 +23122,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get transfer_export_excelSubtitle =>
-      'Alle gegevens in een bestand (duiken, stekken, uitrusting, statistieken)';
+      'Alle gegevens in één bestand (duiken, stekken, uitrusting, statistieken)';
 
   @override
   String get transfer_export_excelTitle => 'Excel-werkmap';
@@ -25919,7 +25919,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveImport_fit_noDivesDescription =>
-      'Selecteer een of meer .fit-bestanden die zijn geëxporteerd vanuit Garmin Connect of gekopieerd van een Garmin Descent-apparaat.';
+      'Selecteer één of meer .fit-bestanden die zijn geëxporteerd vanuit Garmin Connect of gekopieerd van een Garmin Descent-apparaat.';
 
   @override
   String get diveImport_fit_noDivesLoaded => 'Geen duiken geladen';
@@ -26342,7 +26342,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_rockBottom_aboutDescription =>
-      'Rock bottom is de minimale gasreserve voor een noodopstijging terwijl je lucht deelt met je buddy.\n\n• Gebruikt verhoogde RMV-waarden (2-3x normaal)\n• Gaat ervan uit dat beide duikers op een fles zitten\n• Inclusief veiligheidsstop indien ingeschakeld\n\nKeer de duik altijd om VOOR je rock bottom bereikt!';
+      'Rock bottom is de minimale gasreserve voor een noodopstijging terwijl je lucht deelt met je buddy.\n\n• Gebruikt verhoogde RMV-waarden (2-3x normaal)\n• Gaat ervan uit dat beide duikers op één fles zitten\n• Inclusief veiligheidsstop indien ingeschakeld\n\nKeer de duik altijd om VOOR je rock bottom bereikt!';
 
   @override
   String get gasCalculators_rockBottom_aboutTitle => 'Over Rock Bottom';
@@ -37069,7 +37069,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Palingvormige luchtademende vis met draadvormige vinnen die droogtes overleeft in een moddercocon.';
 
   @override
-  String get species_electric_catfish_name => 'Sidderemeerval';
+  String get species_electric_catfish_name => 'Siddermeerval';
 
   @override
   String get species_electric_catfish_desc =>
@@ -42317,7 +42317,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeUnknownTransmitterBody =>
-      'Een of meer zenders in deze download zijn niet aan een fles toegewezen. Wijs ze toe zodat toekomstige downloads de juiste inhoud en rol krijgen.';
+      'Eén of meer zenders in deze download zijn niet aan een fles toegewezen. Wijs ze toe zodat toekomstige downloads de juiste inhoud en rol krijgen.';
 
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
