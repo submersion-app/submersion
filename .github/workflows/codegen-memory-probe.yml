@@ -1,7 +1,7 @@
 # Throwaway measurement workflow (scratch branch only, never merged).
 # Cold build_runner build per variant on ubuntu-latest, with a memory sampler
 # that prints straight to the step log so the curve survives a runner kill.
-name: Codegen memory probe v2
+name: Codegen memory probe v3
 
 on:
   push:
@@ -12,19 +12,19 @@ env:
 
 jobs:
   probe:
-    name: ${{ matrix.variant }} swap=${{ matrix.swap }} rep=${{ matrix.rep }}
+    name: ${{ matrix.variant }} heap=${{ matrix.heap }} rep=${{ matrix.rep }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {variant: baseline, swap: 0, rep: 1}
-          - {variant: baseline, swap: 0, rep: 2}
-          - {variant: baseline, swap: 12, rep: 1}
-          - {variant: baseline, swap: 12, rep: 2}
-          - {variant: tight, swap: 0, rep: 1}
-          - {variant: tight, swap: 0, rep: 2}
+          - {variant: baseline, heap: 8000, swap: 0, rep: 1}
+          - {variant: baseline, heap: 8000, swap: 0, rep: 2}
+          - {variant: baseline, heap: 8000, swap: 0, rep: 3}
+          - {variant: baseline, heap: 10000, swap: 0, rep: 1}
+          - {variant: baseline, heap: 10000, swap: 0, rep: 2}
+          - {variant: tight, heap: 8000, swap: 0, rep: 1}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -77,6 +77,8 @@ jobs:
           sampler=$!
           start=$(date +%s)
           set +e
+          if [ "${{ matrix.heap }}" != 0 ]; then export DART_VM_OPTIONS=--old_gen_heap_size=${{ matrix.heap }}; fi
+          echo "DART_VM_OPTIONS=${DART_VM_OPTIONS:-}"
           /usr/bin/time -v -o time.log dart run build_runner build --delete-conflicting-outputs 2>&1 \
             | tee run.log | grep --line-buffered -E "on [0-9]+ inputs: .*spent" | awk 'NR % 25 == 1 {print; fflush()}'
           rc=${PIPESTATUS[0]}
@@ -84,7 +86,7 @@ jobs:
           end=$(date +%s)
           kill $sampler 2>/dev/null || true
           tail -5 run.log
-          echo "PROBE_RESULT variant=${{ matrix.variant }} swap=${{ matrix.swap }} rep=${{ matrix.rep }} rc=$rc seconds=$((end - start))" \
+          echo "PROBE_RESULT variant=${{ matrix.variant }} heap=${{ matrix.heap }} rep=${{ matrix.rep }} rc=$rc seconds=$((end - start))" \
             "peak_used_mb=$(sed -E 's/.*used=([0-9]+).*/\1/' mem.log | sort -n | tail -1)" \
             "min_avail_mb=$(sed -E 's/.*avail=([0-9]+).*/\1/' mem.log | sort -n | head -1)" \
             "peak_swap_mb=$(sed -E 's/.*swap=([0-9]+).*/\1/' mem.log | sort -n | tail -1)" \
