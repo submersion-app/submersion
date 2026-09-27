@@ -29,7 +29,7 @@ void main() {
   );
 
   test('v233 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v234 (#2046) and v235 (#1926) landed on top; the
+    // Relaxed once v234 (#2046) and v240 (#1926) landed on top; the
     // newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(233));
     expect(AppDatabase.migrationVersions, contains(233));
@@ -38,7 +38,7 @@ void main() {
 
   test('this rung is additive and did not move the sync floor', () {
     // An older reader ignores the column, and its resync falls back to the
-    // ambiguity check. v235 raised the floor later, for its own reasons.
+    // ambiguity check. v240 raised the floor later, for its own reasons.
     expect(
       AppDatabase.minimumCompatibleSchemaVersion,
       greaterThanOrEqualTo(224),

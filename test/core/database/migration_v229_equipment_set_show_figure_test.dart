@@ -46,7 +46,7 @@ void main() {
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    // v235 (scoped event tombstones, #1926) raised the floor later; this
+    // v240 (scoped event tombstones, #1926) raised the floor later; this
     // rung only needs it never to fall below where it stood.
     expect(
       AppDatabase.minimumCompatibleSchemaVersion,
