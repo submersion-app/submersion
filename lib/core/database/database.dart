@@ -3306,11 +3306,15 @@ const String kSeedBuiltInServiceKindsSql = '''
            365, NULL, NULL, 1, 'inspection', '{}'
     -- v202: O2 cleaning applies to regulators too now that a cylinder can
     -- name the regulator breathed from it; 50 high-O2 hours is a starting
-    -- point, not a manufacturer figure.
-    UNION ALL SELECT 'o2-clean', 'O2 clean', '["tank","regulator"]', 365,
+    -- point, not a manufacturer figure. v239 (issue #2275): both regulator
+    -- kinds also name the first and second stages a regulator splits into
+    -- (#1487); kBackfillRegulatorPartServiceKindsSql holds the same lists.
+    UNION ALL SELECT 'o2-clean', 'O2 clean',
+           '["tank","regulator","firstStage","secondStage"]', 365,
            NULL, NULL, 0, 'cleaning', '{"o2Hours":50}'
     UNION ALL SELECT 'regulator-service', 'Regulator service',
-           '["regulator"]', 365, 100, NULL, 1, 'annual', '{"coldDives":50}'
+           '["regulator","firstStage","secondStage"]', 365, 100, NULL, 1,
+           'annual', '{"coldDives":50}'
     UNION ALL SELECT 'computer-battery', 'Computer battery',
            '["computer","battery"]', 730, NULL, NULL, 1, 'replacement', '{}'
     -- v202: 250 h sits below the roughly 300 h published for common
@@ -3336,6 +3340,28 @@ const String kSeedBuiltInServiceKindsSql = '''
            NULL, NULL, NULL, 0, 'annual', '{}'
   ) t
   CROSS JOIN (SELECT CAST(strftime('%s','now') AS INTEGER) * 1000 AS now_ms) n
+''';
+
+/// v239 (issue #2275): the built-in regulator service and O2 clean kinds
+/// also apply to first and second stages. Issue #1487 split a regulator into
+/// part types, but these two kinds still named only `regulator`, so a new
+/// second stage could be offered nothing but "General service". A hose is
+/// left out: it is inspected or replaced, not serviced.
+///
+/// One-time, from the v239 rung only (fresh installs get the same lists from
+/// [kSeedBuiltInServiceKindsSql]). Gated on is_built_in, so a diver's own
+/// kind keeps the types they chose. updated_at is left alone: built-ins are
+/// reference data that sync never exports. Held in step with the seed by
+/// migration_v239_regulator_part_service_kinds_test.
+const String kBackfillRegulatorPartServiceKindsSql = '''
+  UPDATE service_kinds SET
+    applicable_types = CASE id
+      WHEN 'regulator-service'
+        THEN '["regulator","firstStage","secondStage"]'
+      WHEN 'o2-clean'
+        THEN '["tank","regulator","firstStage","secondStage"]'
+      ELSE applicable_types END
+  WHERE is_built_in = 1 AND id IN ('regulator-service', 'o2-clean')
 ''';
 
 /// v202: exposure defaults for the built-in kinds on existing installs.
@@ -4622,7 +4648,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 234;
+  static const int currentSchemaVersion = 239;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -5324,6 +5350,11 @@ class AppDatabase extends _$AppDatabase {
     // took 231, trip cylinders (#2325) took 232 and the dive source diver
     // key (#1921) took 233 while this was open.
     234,
+    // v239: the built-in regulator service and O2 clean kinds also apply to
+    // first and second stages (issue #2275). A one-time UPDATE of two
+    // built-in rows, which sync never exports, so the floor stays. 235 to
+    // 238 were claimed by open branches when this was taken.
+    239,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -5573,6 +5604,15 @@ class AppDatabase extends _$AppDatabase {
     final cols = await customSelect("PRAGMA table_info('service_kinds')").get();
     if (cols.isEmpty) return;
     await customStatement(kBackfillBuiltInExposureDefaultsSql);
+  }
+
+  /// v239 one-time backfill (issue #2275). Keyed on built-in ids and gated
+  /// on is_built_in, so a custom kind is never touched. Runs from the v239
+  /// onUpgrade block ONLY, as the v202 backfill does (fresh installs get the
+  /// same lists from the seed).
+  Future<void> _backfillRegulatorPartServiceKinds() async {
+    if (!await _tableExists('service_kinds')) return;
+    await customStatement(kBackfillRegulatorPartServiceKindsSql);
   }
 
   /// Transmitter registry (issue #1365, v200). Idempotent so a database that
@@ -13126,6 +13166,13 @@ class AppDatabase extends _$AppDatabase {
           await _assertEquipmentSharingSchema();
         }
         if (from < 234) await reportProgress();
+        // v239: regulator service and O2 clean apply to first and second
+        // stages (issue #2275). A one-time UPDATE of two built-in rows; not
+        // in the backstop, as v202's built-in backfill is not.
+        if (from < 239) {
+          await _backfillRegulatorPartServiceKinds();
+        }
+        if (from < 239) await reportProgress();
       },
       beforeOpen: (details) async {
         // v227 backstop: the hidden built-in tank presets.
