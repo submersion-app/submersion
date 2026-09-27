@@ -17163,7 +17163,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_issue_noDecoGas =>
-      'Dekompresszió szükséges, de nincs deco gáz';
+      'Dekompresszió szükséges, de nincs dekó gáz';
 
   @override
   String get plannerCanvas_range_base => 'Alap';

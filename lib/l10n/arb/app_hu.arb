@@ -5176,7 +5176,7 @@
   "plannerCanvas_issue_hypoxic": "Hipoxiás gáz {depth} mélységben (ppO₂ {value} bar)",
   "plannerCanvas_issue_minGas": "A palack a rock-bottom minimum ({pressure}) alatt végez",
   "plannerCanvas_issue_noBailout": "A CCR dekompressziós terv nem tartalmaz bailout gázt",
-  "plannerCanvas_issue_noDecoGas": "Dekompresszió szükséges, de nincs deco gáz",
+  "plannerCanvas_issue_noDecoGas": "Dekompresszió szükséges, de nincs dekó gáz",
   "plannerCanvas_range_base": "Alap",
   "plannerCanvas_range_legend": "A cellák a felszínre érés idejét mutatják; piros = a terv szerint nem merülhető",
   "plannerCanvas_pane_collapse": "Panel összecsukása",
