@@ -239,10 +239,12 @@ class ShearwaterDiveMapper {
           site['notes'] = dive.location;
         }
 
-        final coords = _parseGnssLocation(dive.gnssEntryLocation);
-        if (coords != null) {
-          site['latitude'] = coords.$1;
-          site['longitude'] = coords.$2;
+        // Judged by the same contract as the dive's own fix, so a named site
+        // never carries the 0,0 sentinel or an off-globe pair the dive drops.
+        final fix = _gnssFix(dive.gnssEntryLocation);
+        if (fix != null) {
+          site['latitude'] = fix.latitude;
+          site['longitude'] = fix.longitude;
         }
 
         // A suggestion only (issue #1765): the importer applies it while the
