@@ -679,4 +679,83 @@ void main() {
       expect(on.copyWith(showSac: true).showComputedEvents, isTrue);
     });
   });
+
+  group('per-tank pressure visibility (issue #1999)', () {
+    ProviderContainer containerWith(AppSettings settings) {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(settings),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      return container;
+    }
+
+    test('an untouched tank follows the Pressure default', () {
+      expect(
+        const ProfileLegendState(
+          showPressure: true,
+        ).isTankPressureVisible('tank-1'),
+        isTrue,
+      );
+      expect(
+        const ProfileLegendState(
+          showPressure: false,
+        ).isTankPressureVisible('tank-1'),
+        isFalse,
+      );
+    });
+
+    test('a per-tank choice overrides the Pressure default', () {
+      const state = ProfileLegendState(
+        showPressure: false,
+        showTankPressure: {'tank-1': true, 'tank-2': false},
+      );
+      expect(state.isTankPressureVisible('tank-1'), isTrue);
+      expect(state.isTankPressureVisible('tank-2'), isFalse);
+    });
+
+    test('tanks start hidden when defaultShowPressure is off', () {
+      final container = containerWith(
+        const AppSettings(defaultShowPressure: false),
+      );
+      expect(
+        container.read(profileLegendProvider).isTankPressureVisible('tank-1'),
+        isFalse,
+      );
+    });
+
+    test('toggling an untouched tank flips it from its default', () {
+      final container = containerWith(
+        const AppSettings(defaultShowPressure: false),
+      );
+      final notifier = container.read(profileLegendProvider.notifier);
+
+      notifier.toggleTankPressure('tank-1', visibleByDefault: false);
+      expect(container.read(profileLegendProvider).showTankPressure, {
+        'tank-1': true,
+      });
+
+      notifier.toggleTankPressure('tank-1', visibleByDefault: false);
+      expect(container.read(profileLegendProvider).showTankPressure, {
+        'tank-1': false,
+      });
+    });
+
+    test('a cylinder toggle defaults to visible regardless of Pressure', () {
+      // The Cylinders section on gas-switch dives governs switch markers,
+      // which the Pressure default does not touch.
+      final container = containerWith(
+        const AppSettings(defaultShowPressure: false),
+      );
+      container
+          .read(profileLegendProvider.notifier)
+          .toggleTankPressure('tank-1');
+      expect(container.read(profileLegendProvider).showTankPressure, {
+        'tank-1': false,
+      });
+    });
+  });
 }

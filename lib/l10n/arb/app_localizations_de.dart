@@ -15291,6 +15291,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => 'Tauchplätze';
 
   @override
+  String get marineLife_speciesDetail_statsError =>
+      'Sichtungsstatistiken konnten nicht geladen werden';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'Klasse: $className';
   }
@@ -26402,7 +26406,7 @@ class AppLocalizationsDe extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Aufstieg $from -> $to mit $rate/min';
+    return 'Aufstieg $from -> $to mit $rate';
   }
 
   @override
@@ -26416,7 +26420,7 @@ class AppLocalizationsDe extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Abstieg $from -> $to mit $rate/min';
+    return 'Abstieg $from -> $to mit $rate';
   }
 
   @override
@@ -30037,7 +30041,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Flaschenvolumen eintragen, um den AMV in $unit/min anzuzeigen';
+    return 'Flaschenvolumen eintragen, um den AMV in $unit anzuzeigen';
   }
 
   @override

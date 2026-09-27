@@ -103,7 +103,7 @@ void main() {
       });
       expect(
         () => source.fetch(alpsPoint, spanMeters: 1000),
-        throwsA(isA<BathymetryFetchException>()),
+        throwsA(isA<BathymetryNoDataException>()),
       );
       expect(calls, 0);
     });
@@ -949,7 +949,7 @@ nodata_value -9999
 
       await expectLater(
         source.fetch(zurichseePoint, spanMeters: 100),
-        throwsA(isA<BathymetryFetchException>()),
+        throwsA(isA<BathymetryNoDataException>()),
       );
       // Both candidates' real content was checked before giving up.
       expect(downloadCalls, 2);

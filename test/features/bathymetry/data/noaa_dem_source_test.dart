@@ -190,24 +190,76 @@ void main() {
       expect(await source.probe(keys), isNull);
     });
 
-    test('declines on a non-200', () async {
-      final source = NoaaDemSource(
-        client: MockClient((req) async => http.Response('nope', 503)),
-      );
-      expect(await source.probe(keys), isNull);
-    });
+    group('a failed probe (issue #1770)', () {
+      // Inside NOAA's coverage, "could not ask" is not "has nothing": the
+      // resolver must hear it as a transient failure, or a lower-tier grid
+      // gets cached forever over the DEM that would have won. Outside it, a
+      // NOAA outage must not stop every other site worldwide from caching.
+      test('throws a transient failure on a non-200 inside US coverage', () {
+        final source = NoaaDemSource(
+          client: MockClient((req) async => http.Response('nope', 503)),
+        );
+        expect(source.probe(keys), throwsA(isA<BathymetryFetchException>()));
+      });
 
-    test(
-      'declines rather than throwing when the service is unreachable',
-      () async {
-        // A probe must never throw: one unreachable source cannot be allowed
-        // to block the others.
+      test('throws a transient failure when the service is unreachable '
+          'inside US coverage', () {
         final source = NoaaDemSource(
           client: MockClient((req) async => throw const SocketishError()),
         );
+        expect(source.probe(keys), throwsA(isA<BathymetryFetchException>()));
+      });
+
+      test('declines on a non-200 outside US coverage', () async {
+        final source = NoaaDemSource(
+          client: MockClient((req) async => http.Response('nope', 503)),
+        );
+        expect(await source.probe(bonaire), isNull);
+      });
+
+      test('declines when the service is unreachable outside US '
+          'coverage', () async {
+        final source = NoaaDemSource(
+          client: MockClient((req) async => throw const SocketishError()),
+        );
+        expect(await source.probe(bonaire), isNull);
+      });
+
+      test('an unparseable 200 is still a decline, not a failure', () async {
+        // The service answered; the answer just holds nothing usable.
+        final source = NoaaDemSource(
+          client: MockClient((req) async => http.Response('{not json', 200)),
+        );
         expect(await source.probe(keys), isNull);
-      },
-    );
+      });
+
+      test('US coverage spans the states and territories NOAA maps', () {
+        const inside = [
+          GeoPoint(25.010, -80.376), // Florida Keys
+          GeoPoint(32.85, -117.27), // La Jolla
+          GeoPoint(47.6, -122.4), // Puget Sound
+          GeoPoint(45.0, -87.0), // Great Lakes
+          GeoPoint(60.0, -149.0), // Alaska, Kenai
+          GeoPoint(52.0, 175.0), // Aleutians, west of the antimeridian
+          GeoPoint(20.8, -156.3), // Hawaii, Maui
+          GeoPoint(18.3, -64.9), // US Virgin Islands
+          GeoPoint(13.4, 144.7), // Guam
+          GeoPoint(-14.3, -170.7), // American Samoa
+        ];
+        const outside = [
+          GeoPoint(12.093, -68.287), // Bonaire
+          GeoPoint(47.135503, 9.144546), // Walensee
+          GeoPoint(-16.5, 145.8), // Great Barrier Reef
+          GeoPoint(20.5, -87.0), // Cozumel
+        ];
+        for (final p in inside) {
+          expect(NoaaDemSource.plausiblyCovers(p), isTrue, reason: '$p');
+        }
+        for (final p in outside) {
+          expect(NoaaDemSource.plausiblyCovers(p), isFalse, reason: '$p');
+        }
+      });
+    });
 
     test(
       'reports the coarser axis, so latitude cannot flatter a DEM',

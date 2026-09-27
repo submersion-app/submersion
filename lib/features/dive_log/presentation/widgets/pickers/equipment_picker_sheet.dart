@@ -19,6 +19,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_own
 import 'package:submersion/features/equipment/presentation/widgets/equipment_picker_filter_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/max_width_fraction.dart';
 
 /// Equipment picker bottom sheet
 class EquipmentPickerSheet extends ConsumerWidget {
@@ -59,12 +60,28 @@ class EquipmentPickerSheet extends ConsumerWidget {
     List<String> parts,
     EquipmentItem item, {
     required bool showTypeLabel,
+    required bool showOwner,
   }) {
     final all = [
       if (showTypeLabel) item.type.localizedName(context.l10n),
       ...parts,
     ];
-    return all.isEmpty ? null : Text(all.join(' · '));
+    final text = all.isEmpty ? null : Text(all.join(' · '));
+    if (!showOwner) return text;
+    // Another profile's shared gear names its owner (issue #2046). Below the
+    // text, as on the equipment list, so the width-capped trailing column
+    // keeps only the service indicator (issue #1981).
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ?text,
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: EquipmentOwnerChip(ownerId: item.diverId),
+        ),
+      ],
+    );
   }
 
   @override
@@ -276,23 +293,20 @@ class EquipmentPickerSheet extends ConsumerWidget {
                       labels[item.id]?.subtitleParts ?? const [],
                       item,
                       showTypeLabel: showTypeLabel,
+                      showOwner: showsOwnerChip(
+                        item,
+                        activeDiverId,
+                        multipleDivers: multipleDivers,
+                      ),
                     ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (showsOwnerChip(
-                          item,
-                          activeDiverId,
-                          multipleDivers: multipleDivers,
-                        )) ...[
-                          EquipmentOwnerChip(ownerId: item.diverId),
-                          const SizedBox(width: 8),
-                        ],
-                        ServiceStatusIndicatorFor(
-                          equipmentId: item.id,
-                          density: ServiceIndicatorDensity.compact,
-                        ),
-                      ],
+                    // Capped so a rollup label naming a long part cannot
+                    // take the row from the title (issue #1981).
+                    trailing: MaxWidthFraction(
+                      fraction: kListTileTrailingMaxWidthFraction,
+                      child: ServiceStatusIndicatorFor(
+                        equipmentId: item.id,
+                        density: ServiceIndicatorDensity.compact,
+                      ),
                     ),
                     onTap: () => onEquipmentSelected(item),
                   ),

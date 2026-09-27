@@ -187,7 +187,7 @@ List<ActiveLegendEntry> activeLegendEntries(
           : l10n.diveLog_tank_title(i + 1);
       add(
         true,
-        state.showTankPressure[tankId] ?? true,
+        state.isTankPressureVisible(tankId),
         config.estimatedTankIds.contains(tankId)
             ? '$baseLabel ${l10n.diveLog_pressure_estimatedSuffix}'
             : baseLabel,
