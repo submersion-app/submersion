@@ -67,33 +67,52 @@ class QueryNameIndexLoader {
     QuerySubject.species,
   ];
 
-  /// The tables a change tick must follow.
+  /// The tables a change tick must follow: the ref tables, and the share
+  /// table that makes another diver's equipment visible.
   static Set<String> get tables => {
     for (final s in refSubjects) appQueryRegistry.entityFor(s).table,
+    'equipment_shares',
   };
 
-  /// Every row the diver can see: their own plus rows with no owner. A
-  /// subject with no diver column (species) is global. Table and column
-  /// names come from the registry's declared constants; the diver id is
-  /// bound.
+  /// Every row the diver can see: their own, rows with no owner, and rows
+  /// another diver shares, by the rules `VisibilityFilter` applies to the
+  /// lists (#2046): an `is_shared` flag on sites and trips, an
+  /// `equipment_shares` row for equipment. A subject with no diver column
+  /// (species) is global. Table and column names come from the registry's
+  /// declared constants; the diver id is bound.
   Future<QueryNameIndex> load({String? diverId}) async {
     final out = <QuerySubject, List<RefValue>>{};
     for (final subject in refSubjects) {
       final entity = appQueryRegistry.entityFor(subject);
       final nameSql = entity.field('name')!.sql.replaceAll('{r}', 't');
       final scope = entity.diverScopeColumn;
-      final where = scope == null
-          ? ''
-          : diverId == null
-          ? 'WHERE t.$scope IS NULL'
-          : 'WHERE (t.$scope = ? OR t.$scope IS NULL)';
+      final visible = <String>[];
+      final variables = <Variable<Object>>[];
+      if (scope != null) {
+        if (diverId != null) {
+          visible.add('t.$scope = ?');
+          variables.add(Variable<String>(diverId));
+        }
+        visible.add('t.$scope IS NULL');
+        switch (subject) {
+          case QuerySubject.sites || QuerySubject.trips:
+            visible.add('t.is_shared = 1');
+          case QuerySubject.equipment when diverId != null:
+            visible.add(
+              't.${entity.idColumn} IN (SELECT equipment_id '
+              'FROM equipment_shares WHERE diver_id = ?)',
+            );
+            variables.add(Variable<String>(diverId));
+          default:
+            break;
+        }
+      }
+      final where = visible.isEmpty ? '' : 'WHERE ${visible.join(' OR ')}';
       final rows = await _db
           .customSelect(
             'SELECT t.${entity.idColumn} AS id, $nameSql AS label '
             'FROM ${entity.table} t $where ORDER BY label',
-            variables: [
-              if (scope != null && diverId != null) Variable<String>(diverId),
-            ],
+            variables: variables,
           )
           .get();
       out[subject] = [

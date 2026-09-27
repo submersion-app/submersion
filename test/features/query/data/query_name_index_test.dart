@@ -74,8 +74,39 @@ void main() {
       expect(theirs.labelOf(QuerySubject.buddies, 'b-other'), 'Zed');
     });
 
-    test('the tables it reads are the ten ref tables', () {
+    test('rows another diver shares are in the index, like the lists', () async {
+      final now = DateTime(2025, 6, 1).millisecondsSinceEpoch;
+      // Shared with every profile by flag (sites and trips) or with one
+      // profile by a share row (equipment), as VisibilityFilter reads them.
+      await db.customStatement(
+        "INSERT INTO dive_sites (id, diver_id, name, is_shared, created_at, "
+        "updated_at) VALUES ('s-shared', 'other', 'Blue Hole', 1, $now, $now), "
+        "('s-private', 'other', 'Secret Reef', 0, $now, $now)",
+      );
+      await db.customStatement(
+        "INSERT INTO trips (id, diver_id, name, start_date, end_date, "
+        "is_shared, created_at, updated_at) VALUES ('t-shared', 'other', "
+        "'Club Trip', $now, $now, 1, $now, $now)",
+      );
+      await db.customStatement(
+        "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+        "updated_at) VALUES ('g-lent', 'other', 'Loaner BCD', 'bcd', $now, "
+        "$now)",
+      );
+      await db.customStatement(
+        "INSERT INTO equipment_shares (id, equipment_id, diver_id, "
+        "created_at) VALUES ('sh1', 'g-lent', 'me', $now)",
+      );
+      final index = await QueryNameIndexLoader(db).load(diverId: 'me');
+      expect(index.resolve(QuerySubject.sites, 'blue hole')?.id, 's-shared');
+      expect(index.labelOf(QuerySubject.sites, 's-private'), isNull);
+      expect(index.resolve(QuerySubject.trips, 'club trip')?.id, 't-shared');
+      expect(index.resolve(QuerySubject.equipment, 'loaner bcd')?.id, 'g-lent');
+    });
+
+    test('the tables it reads are the ten ref tables and the share table', () {
       expect(QueryNameIndexLoader.tables, {
+        'equipment_shares',
         'dive_sites',
         'trips',
         'dive_centers',
