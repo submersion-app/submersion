@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/connections/presentation/connection_labels.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/connections/data/repositories/connections_repository.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
@@ -53,6 +55,22 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   /// The last graph shown, held while a different budget loads (a new family
   /// key has no previous value of its own), so the canvas never unmounts.
   ConnectionGraph? _lastGraph;
+
+  /// The last graph localized, keyed by source graph and localizations, so
+  /// a rebuild hands the layout the same instance (it relays out on a new
+  /// one).
+  ConnectionGraph? _localizedFrom;
+  AppLocalizations? _localizedIn;
+  ConnectionGraph? _localized;
+
+  ConnectionGraph _localize(ConnectionGraph source, AppLocalizations l10n) {
+    if (identical(source, _localizedFrom) && identical(l10n, _localizedIn)) {
+      return _localized!;
+    }
+    _localizedFrom = source;
+    _localizedIn = l10n;
+    return _localized = localizeGraph(source, l10n);
+  }
 
   /// The phone sheet's height as a fraction of the body; the canvas fits
   /// the graph into the space above it.
@@ -254,7 +272,8 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     // page holds the last graph itself while any load is running.
     final held = graphAsync.value ?? (graphAsync.isLoading ? _lastGraph : null);
     if (graphAsync.hasValue) _lastGraph = graphAsync.value;
-    final graph = held ?? ConnectionGraph.empty;
+    // Built-in species and dive types read in the diver's language.
+    final graph = held == null ? ConnectionGraph.empty : _localize(held, l10n);
     final showCanvas =
         held != null && !view.isAroundWithoutFocus && !graph.isEmpty;
     final animate = _hadGraph && !MediaQuery.disableAnimationsOf(context);

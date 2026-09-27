@@ -492,4 +492,34 @@ void main() {
       expect(painter.viewport.toScreen(p).dy, lessThan(sheetTop));
     }
   });
+
+  testWidgets('a built-in species shows its translated name', (tester) async {
+    const shark = NodeRef(ConnectionKind.species, 'sp_whale_shark');
+    final c = await _pump(
+      tester,
+      graph: (ref, budget) => ConnectionGraph(
+        nodes: [
+          ConnectionNode(ref: _b('jane'), label: 'Jane', diveCount: 3),
+          // A stored name unlike the English translation proves the label
+          // comes from the catalog, not the row.
+          const ConnectionNode(ref: shark, label: 'WS', diveCount: 2),
+        ],
+        edges: [
+          ConnectionEdge(
+            source: _b('jane'),
+            target: shark,
+            weight: 2,
+            firstDiveAt: DateTime.utc(2024),
+            lastDiveAt: DateTime.utc(2024),
+          ),
+        ],
+      ),
+    );
+    c.read(connectionsSelectionProvider.notifier).state = const NodeSelection(
+      shark,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Whale Shark'), findsWidgets);
+    expect(find.text('WS'), findsNothing);
+  });
 }

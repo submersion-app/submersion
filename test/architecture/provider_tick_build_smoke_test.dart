@@ -235,6 +235,10 @@ void main() {
       ),
     ),
     (
+      name: 'connectionsNodesByWireProvider',
+      read: (c) => c.read(connectionsNodesByWireProvider('buddy:$_id').future),
+    ),
+    (
       name: 'connectionsSearchProvider',
       read: (c) => c.read(connectionsSearchProvider('a').future),
     ),

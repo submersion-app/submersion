@@ -60,6 +60,29 @@ class ConnectionsRepository {
     });
   }
 
+  /// The entities [refs] name, with their dive counts for [diverId]; an
+  /// entity without a dive in scope is left out. Used for search hits found
+  /// by a translated name rather than the stored one.
+  Future<List<ConnectionNode>> nodesFor(
+    Iterable<NodeRef> refs, {
+    required String? diverId,
+  }) async {
+    final byKind = <ConnectionKind, Set<String>>{};
+    for (final r in refs) {
+      byKind.putIfAbsent(r.kind, () => {}).add(r.id);
+    }
+    final reader = ConnectionsReader(_db);
+    return [
+      for (final entry in byKind.entries)
+        ...await reader.nodes(
+          entry.key,
+          diverId: diverId,
+          filter: const DiveFilterState(),
+          onlyIds: entry.value,
+        ),
+    ];
+  }
+
   /// Entities of every kind whose label contains [text], limited to those
   /// with at least one dive in scope for [diverId], busiest first.
   Future<List<ConnectionNode>> searchEntities(

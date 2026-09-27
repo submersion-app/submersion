@@ -3,6 +3,7 @@ import 'package:submersion/features/connections/data/repositories/connections_re
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
@@ -49,6 +50,18 @@ final connectionsSearchProvider = FutureProvider.autoDispose
       ref.invalidateSelfWhen(repository.watchConnectionsChanges());
       final diverId = ref.watch(currentDiverIdProvider);
       return repository.searchEntities(text, diverId: diverId);
+    });
+
+/// The entities named by [wires] (comma-separated `kind:id`), for search
+/// hits matched on a translated name. A String key keeps the family stable.
+final connectionsNodesByWireProvider = FutureProvider.autoDispose
+    .family<List<ConnectionNode>, String>((ref, wires) async {
+      final repository = ref.watch(connectionsRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchConnectionsChanges());
+      final diverId = ref.watch(currentDiverIdProvider);
+      final refs = [for (final w in wires.split(',')) ?NodeRef.parse(w)];
+      if (refs.isEmpty) return const [];
+      return repository.nodesFor(refs, diverId: diverId);
     });
 
 /// First and last dive year for the current diver, for the year slider.
