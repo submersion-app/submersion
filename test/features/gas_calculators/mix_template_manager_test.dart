@@ -134,6 +134,19 @@ void main() {
     expect(find.textContaining('cannot exceed 100%'), findsNothing);
   });
 
+  testWidgets('an unreadable box says why under the box (#1900 review)', (
+    tester,
+  ) async {
+    await _pump(tester);
+    await tester.enterText(find.byType(TextField).first, '2..1');
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Enter a valid number (decimal separator: ".")'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('the cap is refused with a reason', (tester) async {
     final ref = await _pump(tester);
     ref.read(blenderTemplatesProvider.notifier).state = List.generate(

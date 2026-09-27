@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_links/app_links.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -28,9 +29,28 @@ class AppLinksSource implements IncomingLinkSource {
 
 final _log = LoggerService.forClass(PassportLinkDispatcher);
 
-final incomingLinkSourceProvider = Provider<IncomingLinkSource>(
-  (ref) => AppLinksSource(),
-);
+/// A source with no links: the platforms where no passport link can reach
+/// the app, and tests of the app root.
+class NoIncomingLinks implements IncomingLinkSource {
+  const NoIncomingLinks();
+
+  @override
+  Stream<String> get links => const Stream<String>.empty();
+}
+
+/// Where passport links arrive: `app_links` on iOS, Android and macOS, which
+/// register the scheme and app link. Windows and Linux register no protocol
+/// for passport links (spec 13.5 gives them Paste link), so nothing listens
+/// there, nor on the web.
+final incomingLinkSourceProvider = Provider<IncomingLinkSource>((ref) {
+  if (kIsWeb) return const NoIncomingLinks();
+  return switch (defaultTargetPlatform) {
+    TargetPlatform.iOS ||
+    TargetPlatform.android ||
+    TargetPlatform.macOS => AppLinksSource(),
+    _ => const NoIncomingLinks(),
+  };
+});
 
 /// Turns incoming links into opened passports (spec 13.2): passport tags
 /// only, each once, and none before the app can show one.

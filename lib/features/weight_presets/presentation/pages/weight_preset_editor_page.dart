@@ -14,6 +14,8 @@ import 'package:submersion/features/weight_presets/presentation/providers/weight
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Create or edit a weighting rig from Settings → Management → Weight Presets
 /// (issue #1663). Editing a preset never touches dives that already used it --
@@ -108,17 +110,21 @@ class _WeightPresetEditorPageState
     super.dispose();
   }
 
+  static double _amount(_Row row) => switch (readNumber(row.amount.text)) {
+    NumberValue(:final value) => value,
+    NumberBlank() => 0,
+    NumberInvalid() => 0, // unreachable: validate() ran first
+  };
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     final units = UnitFormatter(ref.read(settingsProvider));
+    // A blank or zero row is left out, as before; validate() above stopped
+    // unreadable text, which used to drop its row silently (#1900).
     final entries = <WeightEntryDraft>[
       for (final r in _rows)
-        if ((parseUserDecimal(r.amount.text) ?? 0) > 0)
-          (
-            weightType: r.type,
-            amountKg: units.weightToKg(parseUserDecimal(r.amount.text) ?? 0),
-            notes: '',
-          ),
+        if (_amount(r) case final amount when amount > 0)
+          (weightType: r.type, amountKg: units.weightToKg(amount), notes: ''),
     ];
     if (entries.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -263,6 +269,8 @@ class _WeightPresetEditorPageState
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
+              inputFormatters: numberInputFormatters(),
+              validator: numberValidator(context),
             ),
           ),
           IconButton(

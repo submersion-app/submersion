@@ -193,14 +193,16 @@ void main() {
       final host = await _pumpHost(tester, VolumeUnit.liters, 8.0);
       await tester.enterText(_fieldWithLabel('Injection Rate'), '1..');
       await tester.pump();
-      expect(host.injectionRate, isNull);
+      // A typo keeps the last readable rate rather than clearing it (#1900).
+      expect(host.injectionRate, 8.0);
 
       await host.settings.setVolumeUnit(VolumeUnit.cubicFeet);
       await tester.pump();
 
-      // Left for the diver to correct rather than silently cleared.
+      // Left for the diver to correct rather than silently cleared, and
+      // still reporting the rate in L/min whatever unit is on screen.
       expect(_textOf(tester, 'Injection Rate'), '1..');
-      expect(host.injectionRate, isNull);
+      expect(host.injectionRate, 8.0);
 
       await tester.enterText(_fieldWithLabel('Injection Rate'), '0.3');
       await tester.pump();

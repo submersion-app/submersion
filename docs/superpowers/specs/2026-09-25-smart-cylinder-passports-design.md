@@ -601,6 +601,11 @@ them). They get Paste link, `.sfr` files through `GlobalDropTarget` and
 because a shop PC at the fill panel is the likeliest station. macOS gets
 everything except NFC.
 
+Passport links do not open the app on Windows or Linux: neither installer
+registers the `submersion` protocol or the https app link, so the app does
+not listen for links there, and a label read on those machines goes through
+Paste link (decided 2026-09-27).
+
 ### 13.6 Website deliverable
 
 Outside this repository, on submersion.app, and live before the release that

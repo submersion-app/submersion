@@ -402,6 +402,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'אם סט זה כולל מחשב צלילה, הסט כולו יתווסף אוטומטית לצלילה שהורדה או יובאה ממנו';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'הצגת הציוד של הערכה על צולל בדף שלה';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title => 'הצגת דמות הצולל';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'גדרות גאוגרפיות';
 
   @override
@@ -442,6 +449,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'ברירת מחדל';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'הסתרת דמות הצולל';
+
+  @override
+  String get equipment_setDetail_showFigure => 'הצגת דמות הצולל';
 
   @override
   String get equipment_setDetail_setAsDefault => 'הגדר כברירת מחדל';
@@ -12164,9 +12177,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'O2 ו-He חייבים להיות בין 0 ל-100 וסכומם עד 100';
 
   @override
-  String get passport_logFill_invalidNumber => 'יש להזין מספר';
-
-  @override
   String get passport_logFill_saveFailed =>
       'לא ניתן היה לשמור את המילוי. נסו שוב.';
 
@@ -13020,9 +13030,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_edit_purchasePriceLabel => 'מחיר רכישה';
 
   @override
-  String get equipment_edit_purchasePriceValidation => 'הזן סכום חוקי';
-
-  @override
   String get equipment_edit_remindMeBeforeServiceDue =>
       'הזכר לי לפני מועד הטיפול:';
 
@@ -13114,6 +13121,35 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'הוסף ערכה';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'גב · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'חזית · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים',
+      one: 'פריט אחד',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'נלקח גם';
 
   @override
   String get equipment_list_emptyState_addFirstButton =>
@@ -14575,11 +14611,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'מחיר ל-100 $unit';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'הזן מספר תקין (מפריד עשרוני: \"$separator\")';
   }
 
   @override
@@ -30209,9 +30240,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'תערובת בחמצן גבוה מעל (% O2)';
 
   @override
-  String get equipmentConditionSettings_invalid => 'יש להזין מספר';
-
-  @override
   String get equipmentConditionSettings_saveFailed => 'השמירה נכשלה. נסו שוב.';
 
   @override
@@ -40662,7 +40690,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_info_statusFound => 'נמצא במכשיר זה';
 
   @override
+  String get media_info_statusFoundElsewhere => 'נמצא במכשיר אחר';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'נמצא ב-$device';
+  }
+
+  @override
   String get media_info_statusMissing => 'חסר במכשיר זה';
+
+  @override
+  String get media_info_statusMissingElsewhere => 'חסר במכשיר אחר';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'חסר ב-$device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'טרם נבדק';
@@ -42513,7 +42557,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => 'הזן מספר תקין';
+  String numberInput_invalidNumber(String separator) {
+    return 'הזן מספר תקין (מפריד עשרוני: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'הזן מספר שלם';
+
+  @override
+  String get numberInput_required => 'שדה חובה';
+
+  @override
+  String get numberInput_notNegative => 'הזן 0 או יותר';
+
+  @override
+  String get numberInput_atLeastOne => 'הזן 1 או יותר';
+
+  @override
+  String get numberInput_percentRange => 'הזן ערך בין 0 ל-100';
 
   @override
   String get diveCenters_rental_sectionTitle => 'ציוד מושכר';

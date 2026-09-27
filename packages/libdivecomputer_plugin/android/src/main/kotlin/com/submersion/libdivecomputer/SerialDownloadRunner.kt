@@ -143,6 +143,11 @@ class SerialDownloadRunner(private val context: Context) {
         }
         for (dive in divesToFlush) cb.onDive(DiveMarshaling.encode(dive))
 
+        // The model the device named about itself during the last run
+        // (issue #422), read before the session is freed.
+        val reported = reportedDeviceOrNull(
+            LibdcWrapper.nativeDownloadSessionReportedDevice(session)
+        )
         when {
             !anyOpened ->
                 cb.onError("connect_failed", "No dive computer found. Ports tried:\n$probeLog")
@@ -152,6 +157,8 @@ class SerialDownloadRunner(private val context: Context) {
                     libdcUnsignedOrNull(lastInfo[0]),
                     libdcUnsignedOrNull(lastInfo[1]),
                     libdcClockSyncStatusName(lastInfo[2]).takeIf { it != "not_requested" },
+                    reported?.product,
+                    reported?.model ?: -1L,
                 )
             drivers.size > 1 ->
                 cb.onError("connect_failed", "No dive computer found. Ports tried:\n$probeLog")

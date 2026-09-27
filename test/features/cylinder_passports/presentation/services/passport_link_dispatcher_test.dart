@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
 
@@ -123,5 +125,34 @@ void main() {
     await send(tag);
     expect(calls, 2);
     expect(opened, contains(tag));
+  });
+
+  group('the incoming link source by platform', () {
+    tearDown(() => debugDefaultTargetPlatformOverride = null);
+
+    IncomingLinkSource sourceOn(TargetPlatform platform) {
+      debugDefaultTargetPlatformOverride = platform;
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      return container.read(incomingLinkSourceProvider);
+    }
+
+    // Spec 13.5: Windows and Linux get Paste link, with no protocol
+    // registered for passport links, so nothing may listen there.
+    for (final platform in [TargetPlatform.windows, TargetPlatform.linux]) {
+      test('${platform.name} does not listen for links', () {
+        expect(sourceOn(platform), isA<NoIncomingLinks>());
+      });
+    }
+
+    for (final platform in [
+      TargetPlatform.iOS,
+      TargetPlatform.android,
+      TargetPlatform.macOS,
+    ]) {
+      test('${platform.name} listens through app_links', () {
+        expect(sourceOn(platform), isA<AppLinksSource>());
+      });
+    }
   });
 }

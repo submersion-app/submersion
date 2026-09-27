@@ -568,6 +568,8 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
           device: device,
           serialNumber: state.serialNumber,
           firmwareVersion: state.firmwareVersion,
+          reportedProduct: state.reportedProduct,
+          reportedModel: state.reportedModel,
         );
         if (!mounted) return;
 

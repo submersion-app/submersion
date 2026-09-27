@@ -353,6 +353,42 @@ void main() {
       expect(find.text('Please enter a trip name'), findsOneWidget);
     });
 
+    testWidgets('a fractional expected dive count blocks save (#1900 review)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(_MockTripRepository()),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Trip Name *'),
+        'Red Sea',
+      );
+      final expected = find.widgetWithText(TextFormField, 'Expected dives');
+      await tester.ensureVisible(expected);
+      await tester.enterText(expected, '1.5');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Enter a whole number'), findsOneWidget);
+    });
+
     testWidgets('should accept input in name field', (tester) async {
       await tester.pumpWidget(
         ProviderScope(

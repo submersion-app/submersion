@@ -8,6 +8,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 const _uuid = Uuid();
 
@@ -76,6 +78,30 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
     _selectedTankId = segment?.tankId ?? widget.availableTanks.first.id;
   }
 
+  final _formKey = GlobalKey<FormState>();
+
+  /// A field's value for the summary line: blank or unreadable text reads
+  /// as 0, the same as before, and the field shows its own error.
+  double _summaryValue(
+    TextEditingController controller, {
+    bool integer = false,
+  }) => switch (readNumber(controller.text, integer: integer)) {
+    NumberValue(:final value) => value,
+    NumberBlank() || NumberInvalid() => 0,
+  };
+
+  /// A field's value for saving. Blank is 0 (a surface target, or an
+  /// instantaneous leg), as before; unreadable text never gets here because
+  /// [_save] validates first.
+  double _savedValue(
+    TextEditingController controller, {
+    bool integer = false,
+  }) => switch (readNumber(controller.text, integer: integer)) {
+    NumberValue(:final value) => value,
+    NumberBlank() => 0,
+    NumberInvalid() => 0, // unreachable: validate() blocked the save
+  };
+
   @override
   void dispose() {
     _depthController.dispose();
@@ -102,64 +128,66 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
             : context.l10n.divePlanner_segmentEditor_editTitle,
       ),
       content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // What the numbers below add up to. Shown rather than asked, so
-            // the inference is visible instead of magic.
-            _DerivedPhaseLine(summary: _phaseSummary(units)),
-            const SizedBox(height: 16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // What the numbers below add up to. Shown rather than asked, so
+              // the inference is visible instead of magic.
+              _DerivedPhaseLine(summary: _phaseSummary(units)),
+              const SizedBox(height: 16),
 
-            // Target depth
-            TextField(
-              controller: _depthController,
-              decoration: InputDecoration(
-                labelText: context.l10n.divePlanner_segmentEditor_depth(
-                  units.depthSymbol,
+              // Target depth
+              NumberField(
+                controller: _depthController,
+                decoration: InputDecoration(
+                  labelText: context.l10n.divePlanner_segmentEditor_depth(
+                    units.depthSymbol,
+                  ),
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: 16),
+
+              // Duration input
+              NumberField(
+                controller: _durationController,
+                integer: true,
+                decoration: InputDecoration(
+                  labelText: context.l10n.divePlanner_segmentEditor_duration,
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: 16),
+
+              // Tank selection
+              InputDecorator(
+                decoration: InputDecoration(
+                  labelText: context.l10n.divePlanner_segmentEditor_tankGas,
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _selectedTankId,
+                    isExpanded: true,
+                    isDense: true,
+                    items: widget.availableTanks.map((tank) {
+                      return DropdownMenuItem(
+                        value: tank.id,
+                        child: Text(tank.name ?? tank.gasMix.name),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => _selectedTankId = value);
+                      }
+                    },
+                  ),
                 ),
               ),
-              keyboardType: TextInputType.number,
-              onChanged: (_) => setState(() {}),
-            ),
-            const SizedBox(height: 16),
-
-            // Duration input
-            TextField(
-              controller: _durationController,
-              decoration: InputDecoration(
-                labelText: context.l10n.divePlanner_segmentEditor_duration,
-              ),
-              keyboardType: TextInputType.number,
-              onChanged: (_) => setState(() {}),
-            ),
-            const SizedBox(height: 16),
-
-            // Tank selection
-            InputDecorator(
-              decoration: InputDecoration(
-                labelText: context.l10n.divePlanner_segmentEditor_tankGas,
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: _selectedTankId,
-                  isExpanded: true,
-                  isDense: true,
-                  items: widget.availableTanks.map((tank) {
-                    return DropdownMenuItem(
-                      value: tank.id,
-                      child: Text(tank.name ?? tank.gasMix.name),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _selectedTankId = value);
-                    }
-                  },
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       actions: [
@@ -182,9 +210,12 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
   /// makes that call, not this dialog.
   String _phaseSummary(UnitFormatter units) {
     final l10n = context.l10n;
-    final targetUserUnits = parseUserDecimal(_depthController.text) ?? 0;
+    final targetUserUnits = _summaryValue(_depthController);
     final targetMeters = units.depthToMeters(targetUserUnits);
-    final durationMinutes = parseUserInt(_durationController.text) ?? 0;
+    final durationMinutes = _summaryValue(
+      _durationController,
+      integer: true,
+    ).toInt();
     final startDisplay = units.formatDepth(widget.startDepth, decimals: 0);
     final targetDisplay = units.formatDepth(targetMeters, decimals: 0);
 
@@ -227,13 +258,15 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
 
   /// Convert controller values from meters to user's preferred units.
   void _convertControllersToUserUnits(UnitFormatter units) {
-    final depthMeters = parseUserDecimal(_depthController.text) ?? 0;
+    // The seed is always readable; it came from formatDecimalForInput.
+    final depthMeters = _summaryValue(_depthController);
     _depthController.text = formatDecimalForInput(
       units.convertDepth(depthMeters).roundToDouble(),
     );
   }
 
   void _save() {
+    if (!_formKey.currentState!.validate()) return;
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
 
@@ -242,8 +275,11 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
     );
 
     // Parse values in user's units and convert to meters for storage
-    final depthUserUnits = parseUserDecimal(_depthController.text) ?? 0;
-    final durationMinutes = parseUserInt(_durationController.text) ?? 0;
+    final depthUserUnits = _savedValue(_depthController);
+    final durationMinutes = _savedValue(
+      _durationController,
+      integer: true,
+    ).toInt();
 
     final existing = widget.segment;
     final segment = PlanSegment(

@@ -133,6 +133,8 @@
   "equipment_setEdit_defaultSwitch_subtitle": "Auto-applied to new dives that have no equipment yet",
   "equipment_setEdit_computerAutoApplySwitch_title": "Apply when this set's computer is imported",
   "equipment_setEdit_computerAutoApplySwitch_subtitle": "If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it",
+  "equipment_setEdit_figureSwitch_subtitle": "Draw this set's gear on a diver on the set page",
+  "equipment_setEdit_figureSwitch_title": "Show diver figure",
   "equipment_setEdit_geofencesTitle": "Geofences",
   "equipment_setEdit_geofencesSubtitle": "Auto-suggest this set for dives near these locations",
   "equipment_setEdit_addGeofence": "Add geofence",
@@ -153,6 +155,8 @@
   "equipment_geofenceEditor_noCenter": "Choose a center point",
   "equipment_geofenceEditor_save": "Save geofence",
   "equipment_sets_defaultBadge": "Default",
+  "equipment_setDetail_hideFigure": "Hide diver figure",
+  "equipment_setDetail_showFigure": "Show diver figure",
   "equipment_setDetail_setAsDefault": "Set as default",
   "equipment_setDetail_setAsDefaultSnackbar": "\"{name}\" is now your default set",
   "@equipment_setDetail_setAsDefaultSnackbar": {
@@ -7098,7 +7102,6 @@
   "passport_logFill_analyzer": "Analyzer",
   "passport_logFill_notes": "Notes",
   "passport_logFill_invalidMix": "O2 and He must each be 0 to 100 and total 100 or less",
-  "passport_logFill_invalidNumber": "Enter a number",
   "passport_logFill_saveFailed": "Could not save the fill. Try again.",
   "equipment_bulkTags_confirmAdding": "{count, plural, =1{Adding to 1 equipment item} other{Adding to all {count} equipment items}}",
   "@equipment_bulkTags_confirmAdding": {
@@ -7714,7 +7717,6 @@
   "equipment_edit_purchaseDateLabel": "Purchase Date",
   "equipment_edit_purchaseInfoTitle": "Purchase Information",
   "equipment_edit_purchasePriceLabel": "Purchase Price",
-  "equipment_edit_purchasePriceValidation": "Enter a valid amount",
   "equipment_edit_remindMeBeforeServiceDue": "Remind me before service is due:",
   "equipment_edit_reminderDays": "{days} days",
   "equipment_edit_saveButton_edit": "Save Changes",
@@ -7744,6 +7746,34 @@
   "equipment_edit_useCustomRemindersSubtitle": "Set different reminder days for this item",
   "equipment_fab_addEquipment": "Add Equipment",
   "equipment_fab_addSet": "Add Set",
+  "equipment_figure_backCount": "Back · {count}",
+  "@equipment_figure_backCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "equipment_figure_frontCount": "Front · {count}",
+  "@equipment_figure_frontCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "equipment_figure_itemLabel": "{number}, {type}, {name}",
+  "@equipment_figure_itemLabel": {
+    "placeholders": {
+      "number": {"type": "int"},
+      "type": {"type": "String"},
+      "name": {"type": "String"}
+    }
+  },
+  "equipment_figure_summary": "{name}, {count, plural, =1{{count} item} other{{count} items}}",
+  "@equipment_figure_summary": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "count": {"type": "int"}
+    }
+  },
+  "equipment_figure_trayTitle": "Also carried",
   "equipment_list_emptyState_addFirstButton": "Add Your First Equipment",
   "equipment_list_emptyState_addPrompt": "Add your diving equipment to track usage and service",
   "equipment_list_emptyState_filterText_equipment": "equipment",
@@ -8739,14 +8769,6 @@
   "gasCalculators_blender_cylinderVolume": "Cylinder water capacity",
   "gasCalculators_blender_cylinderPresets": "Presets",
   "gasCalculators_blender_unitPrice": "Price per 100 {unit}",
-  "gasCalculators_blender_invalidNumber": "Enter a valid number (decimal separator: \"{separator}\")",
-  "@gasCalculators_blender_invalidNumber": {
-    "placeholders": {
-      "separator": {
-        "type": "String"
-      }
-    }
-  },
   "gasCalculators_blender_currency": "Currency",
   "gasCalculators_blender_currencyFollowsUnits": "Follows Settings > Units > Default currency",
   "gasCalculators_blender_manageCylinderSizes": "Manage cylinder sizes",
@@ -20013,7 +20035,6 @@
   "equipmentConditionSettings_coldLabel": "Cold water below",
   "equipmentConditionSettings_deepLabel": "Deep dive at or beyond",
   "equipmentConditionSettings_o2Label": "High-O2 mix above (% O2)",
-  "equipmentConditionSettings_invalid": "Enter a number",
   "equipmentConditionSettings_saveFailed": "Could not save. Try again.",
   "equipmentConditionSettings_sensorHeader": "Sensor summaries",
   "equipmentConditionSettings_sensorHelp": "Each dive's profile is summarised once for cell output, transmitter dropouts and scrubber use. New and edited dives are summarised on their own.",
@@ -25485,7 +25506,33 @@
   "media_info_otherDevice": "Another device",
   "media_info_status": "Status",
   "media_info_statusFound": "Found on this device",
+  "media_info_statusFoundElsewhere": "Found on another device",
+  "@media_info_statusFoundElsewhere": {
+    "description": "Origin block status: the source was verified present on the device that linked it, which is not this one and has no known name"
+  },
+  "media_info_statusFoundOn": "Found on {device}",
+  "@media_info_statusFoundOn": {
+    "description": "Origin block status: the source was verified present on the named device that linked it, which is not this one",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "media_info_statusMissing": "Missing from this device",
+  "media_info_statusMissingElsewhere": "Missing from another device",
+  "@media_info_statusMissingElsewhere": {
+    "description": "Origin block status: the source was found missing on the device that linked it, which is not this one and has no known name"
+  },
+  "media_info_statusMissingFrom": "Missing from {device}",
+  "@media_info_statusMissingFrom": {
+    "description": "Origin block status: the source was found missing on the named device that linked it, which is not this one",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "media_info_statusUnchecked": "Not checked yet",
   "media_info_lastChecked": "Last checked {date}",
   "@media_info_lastChecked": {
@@ -26723,7 +26770,19 @@
   "plannerCanvas_compare_planned": "Plan",
   "plannerCanvas_compare_actual": "Actual",
   "plannerCanvas_compare_showOnChart": "Show on chart",
-  "numberInput_invalidValue": "Enter a valid number",
+  "numberInput_invalidNumber": "Enter a valid number (decimal separator: \"{separator}\")",
+  "@numberInput_invalidNumber": {
+    "placeholders": {
+      "separator": {
+        "type": "String"
+      }
+    }
+  },
+  "numberInput_invalidWholeNumber": "Enter a whole number",
+  "numberInput_required": "Required",
+  "numberInput_notNegative": "Enter 0 or more",
+  "numberInput_atLeastOne": "Enter 1 or more",
+  "numberInput_percentRange": "Enter 0 to 100",
   "diveCenters_rental_sectionTitle": "Rental gear",
   "diveCenters_rental_lastTimeAt": "Last time at {center}",
   "@diveCenters_rental_lastTimeAt": {"placeholders": {"center": {"type": "Object"}}},
