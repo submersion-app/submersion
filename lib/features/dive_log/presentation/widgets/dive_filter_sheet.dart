@@ -762,40 +762,46 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                       Row(
                         children: [
                           Expanded(
-                            child: TextField(
+                            child: NumberField(
                               key: const ValueKey('filter-water-temp-min'),
                               controller: _minWaterTempController,
+                              // Below zero is real: water under ice is colder than 0 C.
+                              allowNegative: true,
                               decoration: InputDecoration(
                                 labelText: context.l10n.diveLog_filter_min,
                                 prefixIcon: const Icon(Icons.thermostat),
                                 suffixText: units.temperatureSymbol,
                               ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                final entered = parseUserDecimal(value);
-                                _minWaterTemp = entered == null
-                                    ? null
-                                    : units.temperatureToCelsius(entered);
-                              },
+                              onChanged: (read) =>
+                                  _minWaterTemp = switch (read) {
+                                    NumberValue(:final value) =>
+                                      units.temperatureToCelsius(value),
+                                    NumberBlank() => null,
+                                    // Keep the bound; the field shows the error.
+                                    NumberInvalid() => _minWaterTemp,
+                                  },
                             ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: TextField(
+                            child: NumberField(
                               key: const ValueKey('filter-water-temp-max'),
                               controller: _maxWaterTempController,
+                              // Below zero is real: water under ice is colder than 0 C.
+                              allowNegative: true,
                               decoration: InputDecoration(
                                 labelText: context.l10n.diveLog_filter_max,
                                 prefixIcon: const Icon(Icons.thermostat),
                                 suffixText: units.temperatureSymbol,
                               ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                final entered = parseUserDecimal(value);
-                                _maxWaterTemp = entered == null
-                                    ? null
-                                    : units.temperatureToCelsius(entered);
-                              },
+                              onChanged: (read) =>
+                                  _maxWaterTemp = switch (read) {
+                                    NumberValue(:final value) =>
+                                      units.temperatureToCelsius(value),
+                                    NumberBlank() => null,
+                                    // Keep the bound; the field shows the error.
+                                    NumberInvalid() => _maxWaterTemp,
+                                  },
                             ),
                           ),
                         ],
@@ -813,7 +819,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                       Row(
                         children: [
                           Expanded(
-                            child: TextField(
+                            child: NumberField(
                               key: const ValueKey('filter-visibility-min'),
                               controller: _minVisibilityController,
                               decoration: InputDecoration(
@@ -821,18 +827,19 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                                 prefixIcon: const Icon(Icons.visibility),
                                 suffixText: units.depthSymbol,
                               ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                final entered = parseUserDecimal(value);
-                                _minVisibility = entered == null
-                                    ? null
-                                    : units.depthToMeters(entered);
-                              },
+                              onChanged: (read) =>
+                                  _minVisibility = switch (read) {
+                                    NumberValue(:final value) =>
+                                      units.depthToMeters(value),
+                                    NumberBlank() => null,
+                                    // Keep the bound; the field shows the error.
+                                    NumberInvalid() => _minVisibility,
+                                  },
                             ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: TextField(
+                            child: NumberField(
                               key: const ValueKey('filter-visibility-max'),
                               controller: _maxVisibilityController,
                               decoration: InputDecoration(
@@ -840,13 +847,14 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                                 prefixIcon: const Icon(Icons.visibility),
                                 suffixText: units.depthSymbol,
                               ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                final entered = parseUserDecimal(value);
-                                _maxVisibility = entered == null
-                                    ? null
-                                    : units.depthToMeters(entered);
-                              },
+                              onChanged: (read) =>
+                                  _maxVisibility = switch (read) {
+                                    NumberValue(:final value) =>
+                                      units.depthToMeters(value),
+                                    NumberBlank() => null,
+                                    // Keep the bound; the field shows the error.
+                                    NumberInvalid() => _maxVisibility,
+                                  },
                             ),
                           ),
                         ],
