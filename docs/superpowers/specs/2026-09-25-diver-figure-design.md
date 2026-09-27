@@ -2,8 +2,8 @@
 
 Tracking issue: #2326. Status: approved 2026-09-25; labelling revised the same day after
 the first build showed numbered discs could not be read at a glance (section 8);
-scope cut on 2026-09-26 to the set page, the set edit page, and item colour
-(section 13).
+scope cut on 2026-09-26 to the set page, the set edit page, the dive detail
+page, and item colour (section 14).
 
 ## 1. Summary
 
@@ -12,7 +12,8 @@ illustrated diver, drawn front and back from the set's items, with every item
 named on the figure and each name led by a small number that matches the item
 list. Items may carry an optional colour that tints their artwork. The figure
 is opt-in per set and appears on the set page and, while the set is being
-edited, on the set edit page.
+edited, on the set edit page. A diver-wide setting, also off by default, adds
+it to the equipment card on the dive detail page.
 
 The artwork is authored as SVG files under `tool/figure/` and compiled to Dart
 path strings, drawn by a `CustomPainter`.
@@ -23,6 +24,7 @@ Goals, in the diver's words:
 
 1. Open a set and see at once what it contains.
 2. See each piece of gear in its own colour.
+3. See what was worn on a given dive.
 
 Non-goals for this program:
 
@@ -32,9 +34,9 @@ Non-goals for this program:
 - Animation.
 - Any required list, completeness check, or missing-gear warning. A set holds
   whatever the diver puts in it, with no required number or type of items.
-- Figures anywhere other than the set page and the set edit page: none on the
-  dive detail page, the set list, the item page, the pre-dive runner, or the
-  statistics pages.
+- Figures anywhere other than the set page, the set edit page, and the dive
+  detail page: none on the set list, the item page, the pre-dive runner, or
+  the statistics pages.
 - Sharing the figure as an image, and the figure in any PDF export.
 
 ## 3. Decisions made during design
@@ -49,7 +51,7 @@ Non-goals for this program:
 | How far the drawing adapts | Type, the choice attributes that already exist, and a new per-item colour |
 | Base body | Neutral mannequin drawn from theme tones, no skin, no face |
 | Artwork pipeline | SVG sources compiled to Dart path data, drawn by a CustomPainter |
-| Delivery | Two PRs under one tracking issue (section 13) |
+| Delivery | Two PRs under one tracking issue (section 14) |
 
 Rejected alternatives: a schematic silhouette (theme-safe but not what the
 diver wanted), a kit layout with no person, a three-quarter view (hides the far
@@ -218,7 +220,7 @@ view, every path parses, every path's bounds lie inside the figure box, every
 role name is known, and every piece id in the manifest matches a source file.
 Any failure exits 1. The check that every piece the placement table names
 exists lives on the Dart side, where both the table and the generated map are
-in scope (section 12).
+in scope (section 13).
 
 The header digest is what keeps the checked-in artwork honest in CI, where
 Python does not run: a Dart test recomputes the digest from `tool/figure/` and
@@ -267,6 +269,7 @@ class FigureItemInput {
   final String name;
   final Map<String, String?> attributes; // choice keys and the colour hex
   final bool isChild;                     // parent link or assembly part
+  final TankRole? tankRole;               // dive detail page only
 }
 
 class FigureModel {
@@ -287,7 +290,9 @@ FigureModel composeFigure(List<FigureItemInput> items);
 ```
 
 `composeFigure` numbers top-level items in input order, places them in
-placement priority order, and reports the tray.
+placement priority order, and reports the tray. On the dive detail page a
+tank with a `tankRole` of sidemount left or right, or stage, is placed by that
+role instead of the set rule.
 
 ## 8. Widget and interaction
 
@@ -365,8 +370,8 @@ overflows it, and pill widths are measured at that text size.
 
 ### 8.5 Mode
 
-The figure has one mode, the pair described above, used on the set page and
-on the set edit page (section 10).
+The figure has one mode, the pair described above, used on the set page, the
+set edit page (section 10), and the dive detail page (section 11).
 
 ### 8.6 Accessibility
 
@@ -412,10 +417,32 @@ semantics read "3, BCD, Hollis SMS75".
   item groups, composed from the items currently ticked, so it redraws on
   every tick and untick before the set is saved.
 - It is the same pair widget as on the set page, with the same numbering,
-  labels, and tray. When the switch is off, the edit page is exactly as it was
-  before the figure.
+  labels, and tray, drawn from the ticked items that have a checkbox row (a
+  retired member has none), in the order the page lists them. Each ticked
+  row gets the matching number badge; tapping a name on the figure scrolls
+  to and flashes that item's checkbox row, and tapping a row's badge brings
+  the figure into view. When the switch is off, the edit page is exactly as
+  it was before the figure.
 
-## 11. Localization
+## 11. Dive detail page
+
+- A diver-wide switch, "Show diver figure on dives" under Settings >
+  Appearance > Dives, stored as `diver_settings.show_dive_figure`: not null,
+  default 0, so it is off for every diver, new and existing, and added in its
+  own schema rung by an idempotent helper called from the upgrade step and the
+  `beforeOpen` backstop. Off, the dive page is exactly as it was.
+- On, the figure sits inside the collapsible equipment card, above the gear
+  tree, composed from the tree's top-level rows in the tree's order (the
+  diver's arrangement), so the sort button renumbers both. An assembly's parts
+  sit inside its row and are not drawn.
+- A dive tank linked to a tank gear item (`dive_tanks.equipment_id`) passes
+  its role, so sidemount, stage, and back-gas tanks sit where the dive used
+  them. Dive tanks with no gear link are not drawn.
+- The tree's top-level rows get the matching number badge. Tapping a name on
+  the figure scrolls to and flashes its row; tapping a row's badge brings the
+  figure into view.
+
+## 12. Localization
 
 All new strings land in all eleven locales. Plural strings use CLDR categories
 (the `=1` branch is the `one` category, so zero is spelled out where a locale
@@ -428,8 +455,9 @@ needs it):
   figure" / "Hide diver figure" in the set page menu
 - Item colour: the attribute's name, "None", and a screen-reader name for each
   swatch
+- The dive switch's title and subtitle, and the dive figure's summary name
 
-## 12. Testing
+## 13. Testing
 
 - **Artwork:** digest staleness test; every type has a placement; every piece
   a placement names exists; every path parses; every path stays in the box.
@@ -448,15 +476,19 @@ needs it):
   views, phone versus wide by width, tap selects and flashes the row, badge
   selects the label, 40 pt targets on both platforms, the set page figure
   follows the per-set switch, the edit page figure redraws on tick and follows
-  the form's switch, the colour swatch sheet sets and clears the colour. Page
+  the form's switch, the colour swatch sheet sets and clears the colour, the
+  dive figure follows the diver-wide switch, dive tank roles place linked
+  tanks, and the dive tree's badges match the figure after a sort. Page
   tests use the same provider overrides as the existing set detail tests.
 - **Rendering:** goldens are macOS-only here and skipped in CI. Visual review
   during development uses the throwaway-golden screenshot method.
-- **Schema:** a migration test for the `show_figure` rung, including the
-  `beforeOpen` backstop for a database already past it.
+- **Schema:** a migration test for each rung (`equipment_sets.show_figure`
+  and `diver_settings.show_dive_figure`), including the `beforeOpen` backstop
+  for a database already past it, and the sync fallback for a peer's payload
+  that predates the dive switch.
 - **Architecture guards:** run `test/architecture/` after adding files.
 
-## 13. Delivery
+## 14. Delivery
 
 Two PRs under issue #2326, each saying `Part of #2326` and the last
 `Closes #2326`, each built from its own implementation plan written just
@@ -466,17 +498,18 @@ before it against the code as it then stands.
    `tool/figure/` sources for the mannequin and every piece, generator with
    verify, generated artwork, path cache, palette, composer, painter, widget,
    set page figure, legend badges, tap linking, and the per-set switch.
-2. **Item colour and the set edit page figure.** Attribute kind, swatch
-   sheet, per-type defaults, tinting, and the live figure on the edit page.
+2. **Item colour, the set edit page figure, and the dive figure.** Attribute
+   kind, swatch sheet, per-type defaults, tinting, the live figure on the edit
+   page, and the dive detail figure with its diver-wide switch.
 
-Scope history: the design first planned six phases. On 2026-09-26 four were
-dropped: the gaps phase (a per-diver and per-set required-types list with
-"Missing" labels and warnings), the other surfaces (the dive detail figure,
-set list thumbnails, and the item page's "where it sits" card), the share
-image, and the PDFs (a gear sheet and the figure in the logbook). A set
-carries no required number or type of items, and the figure lives only on
-the set pages. The live figure on the set edit page, first planned with the
-gaps, moved to the colour phase.
+Scope history: the design first planned six phases. On 2026-09-26 the gaps
+phase (a per-diver and per-set required-types list with "Missing" labels and
+warnings), the set list thumbnails, the item page's "where it sits" card, the
+share image, and the PDFs (a gear sheet and the figure in the logbook) were
+dropped: a set carries no required number or type of items. The dive detail
+figure was dropped and restored the same day. The live figure on the set edit
+page, first planned with the gaps, and the dive figure joined the colour
+phase.
 
 File layout:
 
@@ -488,7 +521,7 @@ lib/features/equipment/figure/artwork/         figure_artwork.gen.dart (generate
 lib/features/equipment/figure/presentation/    painter, widget, labels, badge
 ```
 
-## 14. Risks and open points
+## 15. Risks and open points
 
 - **Artwork volume.** 65 SVG pieces for 41 types, their variants, and the
   back-view pieces. Mitigation: the placement table, mannequin, and pipeline
