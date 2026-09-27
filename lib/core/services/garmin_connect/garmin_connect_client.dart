@@ -498,7 +498,11 @@ class GarminConnectClient {
     if (typeKey == null || !_isDiveType(typeKey)) return null;
 
     final activityId = (item['activityId'] as num?)?.toInt();
-    final startTime = _parseGarminUtc(item['startTimeGMT'] as String?);
+    final localStartTime = _parseGarminUtc(_stringOf(item['startTimeLocal']));
+    // The local start stands in for a missing GMT one, rather than the item
+    // being dropped: a summary-only import uses the local start anyway.
+    final startTime =
+        _parseGarminUtc(_stringOf(item['startTimeGMT'])) ?? localStartTime;
     if (activityId == null || startTime == null) return null;
 
     return GarminActivitySummary(
@@ -512,12 +516,14 @@ class GarminConnectClient {
       longitude: (item['startLongitude'] as num?)?.toDouble(),
       exitLatitude: (item['endLatitude'] as num?)?.toDouble(),
       exitLongitude: (item['endLongitude'] as num?)?.toDouble(),
-      localStartTime: _parseGarminUtc(item['startTimeLocal'] as String?),
+      localStartTime: localStartTime,
       notes: _notesOf(item['description']),
       isManual: item['manualActivity'] == true,
       weightKg: _diveWeightKg(item['summarizedDiveInfo']),
     );
   }
+
+  static String? _stringOf(Object? value) => value is String ? value : null;
 
   /// Connect sends "no notes" as an absent key, a null or an empty string.
   static String? _notesOf(Object? description) {
@@ -539,14 +545,17 @@ class GarminConnectClient {
   /// It is accepted as a plain string or a `{unitKey}` object, and only for
   /// kilograms or pounds; anything else is dropped rather than guessed at.
   static double? _diveWeightKg(Object? diveInfo) {
+    // Every value is type-checked rather than cast: a shape this client did
+    // not expect must drop the weight, not throw and lose the listing page.
     if (diveInfo is! Map<String, dynamic>) return null;
-    final weight = (diveInfo['weight'] as num?)?.toDouble();
-    if (weight == null || weight <= 0) return null;
+    final rawWeight = diveInfo['weight'];
+    if (rawWeight is! num || rawWeight <= 0) return null;
+    final weight = rawWeight.toDouble();
 
     final unit = diveInfo['weightUnit'];
     final unitKey = switch (unit) {
       String() => unit,
-      Map<String, dynamic>() => unit['unitKey'] as String?,
+      Map<String, dynamic>() => _stringOf(unit['unitKey']),
       _ => null,
     }?.toLowerCase();
     final kg = switch (unitKey) {

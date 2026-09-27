@@ -400,6 +400,8 @@ class GarminCloudAdapter implements ImportSourceAdapter {
             descriptorProduct: parsed.deviceModel,
           );
           updated++;
+          // The replaced source is the summary's, with no profile.
+          if (parsed.profileMissing) importedWithoutProfile++;
           await _applyConnectExtras(matchResult.diveId, parsed);
         }
       } else {

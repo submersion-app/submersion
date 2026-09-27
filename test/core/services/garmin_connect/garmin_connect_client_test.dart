@@ -841,6 +841,22 @@ void main() {
       expect(summary.startTime, DateTime.utc(2026, 3, 15, 10));
     });
 
+    test('keeps an activity that carries only a local start', () async {
+      final server = _FakeGarminServer()
+        ..activities.add(
+          _diveActivity(id: 1)
+            ..remove('startTimeGMT')
+            ..['startTimeLocal'] = '2026-03-15 05:00:00',
+        );
+      final client = GarminConnectClient(httpClient: server.client);
+      await client.login('diver@example.com', 'hunter2');
+
+      final summary = (await client.fetchDivePage()).dives.single;
+
+      expect(summary.localStartTime, DateTime.utc(2026, 3, 15, 5));
+      expect(summary.startTime, DateTime.utc(2026, 3, 15, 5));
+    });
+
     test('flags an activity entered by hand', () async {
       expect((await _summaryWith({'manualActivity': true})).isManual, isTrue);
       expect((await _summaryWith({'manualActivity': false})).isManual, isFalse);
@@ -873,6 +889,17 @@ void main() {
         expect(await weightFor(4000, 'gram'), isNull);
         expect(await weightFor(4.5, null), isNull);
         expect(await weightFor(4.5, {'unitId': 8}), isNull);
+      });
+
+      test('drops a unit or weight of an unexpected type without failing '
+          'the listing', () async {
+        expect(await weightFor(4.5, {'unitKey': 8}), isNull);
+        expect(await weightFor(4.5, 8), isNull);
+        expect(await weightFor('4.5', 'kilogram'), isNull);
+        expect(
+          (await _summaryWith({'summarizedDiveInfo': 'unexpected'})).weightKg,
+          isNull,
+        );
       });
 
       test('skips a zero or implausible weight', () async {

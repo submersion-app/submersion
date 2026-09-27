@@ -356,6 +356,26 @@ void main() {
       );
     });
 
+    test('raise the profile notice when one replaces a source', () async {
+      adapter.setParsedDives([parsed(profileMissing: true)]);
+      final bundle = await bundleMatching('existing-dive');
+
+      final result = await adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {0},
+        },
+        {
+          ImportEntityType.dives: {0: DuplicateAction.replaceSource},
+        },
+      );
+
+      final notice = result.notices.singleWhere(
+        (n) => n.kind == ImportNoticeKind.profileUnreadable,
+      );
+      expect(notice.count, 1);
+    });
+
     test('raise no profile notice for one the diver skipped', () async {
       adapter.setParsedDives([parsed(profileMissing: true)]);
       final bundle = await bundleMatching('existing-dive');
