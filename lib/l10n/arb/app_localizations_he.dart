@@ -9,6 +9,160 @@ class AppLocalizationsHe extends AppLocalizations {
   AppLocalizationsHe([String locale = 'he']) : super(locale);
 
   @override
+  String get equipment_filter_owner_all => 'הכל';
+
+  @override
+  String get equipment_delete_notOwner => 'רק הבעלים יכול למחוק פריט זה';
+
+  @override
+  String get equipment_sharedWithMe => 'משותף איתי';
+
+  @override
+  String get equipment_owner_unknown => 'פרופיל אחר';
+
+  @override
+  String equipment_ownerChip_semanticLabel(String name) {
+    return 'בבעלות $name';
+  }
+
+  @override
+  String equipment_picker_ownerHeader(String name) {
+    return 'מאת $name';
+  }
+
+  @override
+  String get equipment_sharing_sharedWithLabel => 'משותף עם';
+
+  @override
+  String get equipment_sharing_notShared => 'לא משותף';
+
+  @override
+  String get equipment_sharing_ownedByLabel => 'בעלים';
+
+  @override
+  String get equipment_sharing_dialogTitle => 'שיתוף עם';
+
+  @override
+  String get equipment_sharing_dialogBody =>
+      'הפרופילים שתבחר יכולים להוסיף ציוד זה לצלילות שלהם ולתעד את הטיפולים בו. רק הבעלים יכול למחוק אותו או לשנות עם מי הוא משותף.';
+
+  @override
+  String get equipment_bulkShare_action => 'שיתוף עם...';
+
+  @override
+  String equipment_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים שותפו',
+      one: 'פריט אחד שותף',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים שותפו',
+      one: 'פריט אחד שותף',
+    );
+    return '$_temp0, דולגו $skipped שאינם בבעלותך';
+  }
+
+  @override
+  String equipment_bulkDelete_partial(int deleted, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      deleted,
+      locale: localeName,
+      other: '$deleted פריטים נמחקו',
+      one: 'פריט אחד נמחק',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other: '$skipped פריטים משותפים נשמרו: רק הבעלים שלהם יכולים למחוק אותם',
+      one: 'פריט משותף אחד נשמר: רק הבעלים יכול למחוק אותו',
+    );
+    return '$_temp0. $_temp1';
+  }
+
+  @override
+  String get equipment_filter_section_owner => 'בעלים';
+
+  @override
+  String get equipment_filter_owner_mine => 'שלי';
+
+  @override
+  String get enum_equipmentField_owner => 'בעלים';
+
+  @override
+  String get enum_equipmentField_owner_short => 'בעלים';
+
+  @override
+  String get equipment_set_noLongerShared => 'כבר לא משותף';
+
+  @override
+  String get equipment_history_title => 'היסטוריה';
+
+  @override
+  String get equipment_history_empty => 'עדיין לא שימש באף צלילה';
+
+  @override
+  String get equipment_history_deletedProfile => 'פרופיל שנמחק';
+
+  @override
+  String equipment_history_runDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_history_dateRange(String from, String to) {
+    return '$from עד $to';
+  }
+
+  @override
+  String equipment_history_added(String name) {
+    return 'נוסף על ידי $name';
+  }
+
+  @override
+  String equipment_history_shared(String name) {
+    return 'שותף עם $name';
+  }
+
+  @override
+  String equipment_history_unshared(String name) {
+    return 'השיתוף עם $name הופסק';
+  }
+
+  @override
+  String equipment_history_transferred(String from, String to) {
+    return 'הועבר מ$from אל $to';
+  }
+
+  @override
+  String get settings_shareAllEquipment_title => 'שיתוף כל הציוד שלי...';
+
+  @override
+  String settings_shareAllEquipment_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'שתף את $count הפריטים שלך עם הפרופילים שתבחר.',
+      one: 'שתף את הפריט שלך עם הפרופילים שתבחר.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'לא ניתן לפתוח את הדפדפן. השתמש בהעתקת קישור והדבק את הכתובת בדפדפן שלך.';
 
@@ -248,6 +402,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'אם סט זה כולל מחשב צלילה, הסט כולו יתווסף אוטומטית לצלילה שהורדה או יובאה ממנו';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'הצגת הציוד של הערכה על צולל בדף שלה';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title => 'הצגת דמות הצולל';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'גדרות גאוגרפיות';
 
   @override
@@ -288,6 +449,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'ברירת מחדל';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'הסתרת דמות הצולל';
+
+  @override
+  String get equipment_setDetail_showFigure => 'הצגת דמות הצולל';
 
   @override
   String get equipment_setDetail_setAsDefault => 'הגדר כברירת מחדל';
@@ -8728,12 +8895,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh => 'עומק נרקוטי שווה ערך גבוה מדי';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END של $depth חורג מהמגבלה של $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END של $depth חורג מהמגבלה הבטוחה';
-  }
+  String get divePlanner_warning_endHigh => 'עומק נרקוטי שווה ערך גבוה מדי';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -11942,9 +12109,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'O2 ו-He חייבים להיות בין 0 ל-100 וסכומם עד 100';
 
   @override
-  String get passport_logFill_invalidNumber => 'יש להזין מספר';
-
-  @override
   String get passport_logFill_saveFailed =>
       'לא ניתן היה לשמור את המילוי. נסו שוב.';
 
@@ -12798,9 +12962,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_edit_purchasePriceLabel => 'מחיר רכישה';
 
   @override
-  String get equipment_edit_purchasePriceValidation => 'הזן סכום חוקי';
-
-  @override
   String get equipment_edit_remindMeBeforeServiceDue =>
       'הזכר לי לפני מועד הטיפול:';
 
@@ -12892,6 +13053,35 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'הוסף ערכה';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'גב · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'חזית · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים',
+      one: 'פריט אחד',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'נלקח גם';
 
   @override
   String get equipment_list_emptyState_addFirstButton =>
@@ -14356,11 +14546,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'הזן מספר תקין (מפריד עשרוני: \"$separator\")';
-  }
-
-  @override
   String get gasCalculators_blender_currency => 'מטבע';
 
   @override
@@ -14787,6 +14972,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get marineLife_speciesDetail_sitesLabel => 'אתרים';
+
+  @override
+  String get marineLife_speciesDetail_statsError =>
+      'לא ניתן לטעון את סטטיסטיקת התצפיות';
 
   @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
@@ -25645,7 +25834,7 @@ class AppLocalizationsHe extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'עלייה $from → $to בקצב $rate/דקה';
+    return 'עלייה $from → $to בקצב $rate';
   }
 
   @override
@@ -25659,7 +25848,7 @@ class AppLocalizationsHe extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'ירידה $from → $to בקצב $rate/דקה';
+    return 'ירידה $from → $to בקצב $rate';
   }
 
   @override
@@ -27231,6 +27420,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן היה לסנכרן מחדש: הקובץ המקורי כבר לא מכיל צלילה תואמת';
 
   @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'לא ניתן היה לסנכרן מחדש: בקובץ המקורי יש צלילה תואמת ליותר מצולל אחד, ובצלילה הזו לא נשמר מאיזו מהן היא הגיעה';
+
+  @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
       'לא ניתן היה לסנכרן מחדש: אירעה שגיאה בלתי צפויה בעת קריאת הקובץ המקורי';
 
@@ -27334,7 +27527,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_sharedData_sectionSubtitle =>
-      'שיתוף אתרים וטיולים בין פרופילים';
+      'שיתוף אתרים, טיולים וציוד בין פרופילים';
 
   @override
   String get common_action_unshare => 'ביטול שיתוף';
@@ -29209,7 +29402,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'הוסף נפח בלון כדי להציג RMV ב-$unit/min';
+    return 'הוסף נפח בלון כדי להציג RMV ב-$unit';
   }
 
   @override
@@ -29977,9 +30170,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get equipmentConditionSettings_o2Label =>
       'תערובת בחמצן גבוה מעל (% O2)';
-
-  @override
-  String get equipmentConditionSettings_invalid => 'יש להזין מספר';
 
   @override
   String get equipmentConditionSettings_saveFailed => 'השמירה נכשלה. נסו שוב.';
@@ -40432,7 +40622,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_info_statusFound => 'נמצא במכשיר זה';
 
   @override
+  String get media_info_statusFoundElsewhere => 'נמצא במכשיר אחר';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'נמצא ב-$device';
+  }
+
+  @override
   String get media_info_statusMissing => 'חסר במכשיר זה';
+
+  @override
+  String get media_info_statusMissingElsewhere => 'חסר במכשיר אחר';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'חסר ב-$device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'טרם נבדק';
@@ -41348,14 +41554,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'הקובץ שנמצא עכשיו במקומו נשמר לצידו ואינו נמחק.';
+      'הקובץ שנמצא עכשיו במקומו נשמר ואינו נמחק. אפשר לשחזר או למחוק אותו מאוחר יותר דרך גיבוי ושחזור בהגדרות.';
 
   @override
   String get startup_interruptedRestore_keepAction => 'להשאיר את מה שיש עכשיו';
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'יומן הצלילה הקודם שלך נשמר כקובץ בתיקיית מסד הנתונים.';
+      'יומן הצלילה הקודם שלך נשמר ואינו נמחק. אפשר לשחזר או למחוק אותו מאוחר יותר דרך גיבוי ושחזור בהגדרות.';
 
   @override
   String get startup_interruptedRestore_failed =>
@@ -41668,6 +41874,65 @@ class AppLocalizationsHe extends AppLocalizations {
   String backup_unrecognized_freed(String size) {
     return '$size פונו';
   }
+
+  @override
+  String get backup_quarantined_sectionTitle => 'מסדי נתונים שהועברו הצידה';
+
+  @override
+  String get backup_quarantined_explanation =>
+      'שחזור שלא הצליח להסתיים כראוי שמר את העותקים האלה של מסד הנתונים שלך במקום למחוק אותם. שחזר אחד מהם כדי להשתמש בו שוב, או מחק אותו כדי לפנות מקום.';
+
+  @override
+  String get backup_quarantined_kind_preRestore => 'יומן צלילה מלפני שחזור';
+
+  @override
+  String get backup_quarantined_kind_restoreRejected =>
+      'יומן צלילה שהוחלף במהלך שחזור';
+
+  @override
+  String backup_quarantined_detail(String date, String size) {
+    return '$date • $size';
+  }
+
+  @override
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
+    return '$date • $size • מסד נתונים v$version';
+  }
+
+  @override
+  String get backup_quarantined_status_needsNewerApp =>
+      'נדרשת גרסה חדשה יותר של Submersion';
+
+  @override
+  String get backup_quarantined_status_unreadable =>
+      'לא ניתן לפתוח אותו כאן. ייתכן שהוא פגום, או מוגן בסיסמה שאין למכשיר הזה.';
+
+  @override
+  String get backup_quarantined_status_incomplete =>
+      'נותרו רק קובצי יומן; קובץ מסד הנתונים עצמו אינו קיים.';
+
+  @override
+  String get backup_quarantined_delete_title =>
+      'למחוק את עותק מסד הנתונים הזה?';
+
+  @override
+  String get backup_quarantined_delete_message =>
+      'העותק וקובצי היומן שלו יימחקו לצמיתות מהמכשיר הזה. לא ניתן לבטל פעולה זו.';
+
+  @override
+  String get backup_quarantined_deleted => 'עותק מסד הנתונים נמחק';
+
+  @override
+  String get backup_quarantined_deleteFailed =>
+      'לא ניתן היה למחוק את עותק מסד הנתונים.';
+
+  @override
+  String get backup_quarantined_loadFailed =>
+      'לא ניתן היה לבדוק את תיקיית מסד הנתונים לאיתור עותקים שהועברו הצידה.';
 
   @override
   String settings_storageUsage_unrecognized_title(int count) {
@@ -42216,7 +42481,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => 'הזן מספר תקין';
+  String numberInput_invalidNumber(String separator) {
+    return 'הזן מספר תקין (מפריד עשרוני: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'הזן מספר שלם';
+
+  @override
+  String get numberInput_required => 'שדה חובה';
+
+  @override
+  String get numberInput_notNegative => 'הזן 0 או יותר';
+
+  @override
+  String get numberInput_atLeastOne => 'הזן 1 או יותר';
+
+  @override
+  String get numberInput_percentRange => 'הזן ערך בין 0 ל-100';
 
   @override
   String get diveCenters_rental_sectionTitle => 'ציוד מושכר';

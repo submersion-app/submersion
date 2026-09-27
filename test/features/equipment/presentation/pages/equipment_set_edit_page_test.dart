@@ -87,6 +87,12 @@ void main() {
   }
 
   Future<void> addGeofenceViaSheet(WidgetTester tester) async {
+    // The form is a lazily built list; scroll the button into existence.
+    await tester.scrollUntilVisible(
+      find.text('Add geofence'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text('Add geofence'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('From dive site'));
@@ -181,6 +187,35 @@ void main() {
     expect(sets, hasLength(1));
     expect(sets.first.isDefault, isTrue);
     expect(await repo.getGeofencesForSet(sets.first.id), hasLength(1));
+  });
+
+  testWidgets('the diver figure switch starts off and saves with the set', (
+    tester,
+  ) async {
+    await tester.pumpWidget(await buildPage());
+    await tester.pumpAndSettle();
+
+    final figureSwitch = find.widgetWithText(
+      SwitchListTile,
+      'Show diver figure',
+    );
+    expect(tester.widget<SwitchListTile>(figureSwitch).value, isFalse);
+
+    await tester.enterText(find.byType(TextFormField).first, 'Reef set');
+    await tester.tap(figureSwitch);
+    await tester.pump();
+    expect(tester.widget<SwitchListTile>(figureSwitch).value, isTrue);
+
+    await tester.scrollUntilVisible(
+      find.widgetWithText(FilledButton, 'Create Set'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Create Set'));
+    await tester.pumpAndSettle();
+
+    final sets = await EquipmentSetRepository().getAllSets(diverId: 'd1');
+    expect(sets.single.showFigure, isTrue);
   });
 
   testWidgets('saving a set survives a member being deleted while the form is '

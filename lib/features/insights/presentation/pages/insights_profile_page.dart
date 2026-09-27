@@ -69,7 +69,7 @@ class InsightsProfilePage extends ConsumerWidget {
                   child: _buildRateStat(
                     context,
                     context.l10n.insights_profile_avgAscent,
-                    '${units.convertDepth(data.avgAscent!).toStringAsFixed(1)} ${units.depthSymbol}/min',
+                    '${units.convertDepth(data.avgAscent!).toStringAsFixed(1)} ${units.depthRateSymbol}',
                     Icons.arrow_upward,
                     Colors.green,
                   ),
@@ -81,7 +81,7 @@ class InsightsProfilePage extends ConsumerWidget {
                   child: _buildRateStat(
                     context,
                     context.l10n.insights_profile_avgDescent,
-                    '${units.convertDepth(data.avgDescent!).toStringAsFixed(1)} ${units.depthSymbol}/min',
+                    '${units.convertDepth(data.avgDescent!).toStringAsFixed(1)} ${units.depthRateSymbol}',
                     Icons.arrow_downward,
                     Colors.blue,
                   ),

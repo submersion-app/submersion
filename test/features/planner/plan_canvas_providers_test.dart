@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_backdrop_painter.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
@@ -13,8 +14,14 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   // Null means "leave at the AppSettings default", so these fixtures cannot
   // drift away from the real defaults.
-  _TestSettingsNotifier({int? gfLow, int? gfHigh})
-    : super(const AppSettings().copyWith(gfLow: gfLow, gfHigh: gfHigh));
+  _TestSettingsNotifier({int? gfLow, int? gfHigh, double? endLimit})
+    : super(
+        const AppSettings().copyWith(
+          gfLow: gfLow,
+          gfHigh: gfHigh,
+          endLimit: endLimit,
+        ),
+      );
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
@@ -24,11 +31,15 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-ProviderContainer _container({int? gfLow, int? gfHigh}) {
+ProviderContainer _container({int? gfLow, int? gfHigh, double? endLimit}) {
   final container = ProviderContainer(
     overrides: [
       settingsProvider.overrideWith(
-        (ref) => _TestSettingsNotifier(gfLow: gfLow, gfHigh: gfHigh),
+        (ref) => _TestSettingsNotifier(
+          gfLow: gfLow,
+          gfHigh: gfHigh,
+          endLimit: endLimit,
+        ),
       ),
     ],
   );
@@ -213,5 +224,23 @@ void main() {
     final config = container.read(planEngineConfigProvider);
     expect(config.ppO2Working, 1.4);
     expect(config.ppO2Deco, 1.6);
+  });
+
+  test('planEngineConfig carries the Settings END limit (issue #1499)', () {
+    final container = _container(endLimit: 40.0);
+    expect(container.read(planEngineConfigProvider).endLimitMeters, 40.0);
+  });
+
+  test('an air leg at 32 m raises no END warning under a 40 m END limit '
+      '(issue #1499)', () {
+    final container = _container(endLimit: 40.0);
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 32, bottomTimeMinutes: 10);
+    final issues = container.read(planOutcomeProvider).issues;
+    expect(
+      issues.map((i) => i.type),
+      isNot(contains(PlanIssueType.endExceeded)),
+    );
   });
 }

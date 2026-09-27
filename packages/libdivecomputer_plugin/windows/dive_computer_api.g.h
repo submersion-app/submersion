@@ -860,6 +860,8 @@ class DiveComputerFlutterApi {
     const std::string* serial_number,
     const std::string* firmware_version,
     const std::string* clock_sync_status,
+    const std::string* reported_product,
+    const int64_t* reported_model,
     std::function<void(void)>&& on_success,
     std::function<void(const FlutterError&)>&& on_error);
   void OnError(

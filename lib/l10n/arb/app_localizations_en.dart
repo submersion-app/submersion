@@ -9,6 +9,161 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get equipment_filter_owner_all => 'All';
+
+  @override
+  String get equipment_delete_notOwner => 'Only its owner can delete this item';
+
+  @override
+  String get equipment_sharedWithMe => 'Shared with me';
+
+  @override
+  String get equipment_owner_unknown => 'Another profile';
+
+  @override
+  String equipment_ownerChip_semanticLabel(String name) {
+    return 'Owned by $name';
+  }
+
+  @override
+  String equipment_picker_ownerHeader(String name) {
+    return 'From $name';
+  }
+
+  @override
+  String get equipment_sharing_sharedWithLabel => 'Shared with';
+
+  @override
+  String get equipment_sharing_notShared => 'Not shared';
+
+  @override
+  String get equipment_sharing_ownedByLabel => 'Owned by';
+
+  @override
+  String get equipment_sharing_dialogTitle => 'Share with';
+
+  @override
+  String get equipment_sharing_dialogBody =>
+      'Profiles you choose can add this gear to their dives and log its servicing. Only the owner can delete it or change who it is shared with.';
+
+  @override
+  String get equipment_bulkShare_action => 'Share with...';
+
+  @override
+  String equipment_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Shared $count items',
+      one: 'Shared 1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Shared $count items',
+      one: 'Shared 1 item',
+    );
+    return '$_temp0, skipped $skipped you do not own';
+  }
+
+  @override
+  String equipment_bulkDelete_partial(int deleted, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      deleted,
+      locale: localeName,
+      other: 'Deleted $deleted items',
+      one: 'Deleted 1 item',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other:
+          '$skipped shared items were kept: only their owners can delete them',
+      one: '1 shared item was kept: only its owner can delete it',
+    );
+    return '$_temp0. $_temp1';
+  }
+
+  @override
+  String get equipment_filter_section_owner => 'Owner';
+
+  @override
+  String get equipment_filter_owner_mine => 'Mine';
+
+  @override
+  String get enum_equipmentField_owner => 'Owner';
+
+  @override
+  String get enum_equipmentField_owner_short => 'Owner';
+
+  @override
+  String get equipment_set_noLongerShared => 'No longer shared';
+
+  @override
+  String get equipment_history_title => 'History';
+
+  @override
+  String get equipment_history_empty => 'Not used on any dive yet';
+
+  @override
+  String get equipment_history_deletedProfile => 'a deleted profile';
+
+  @override
+  String equipment_history_runDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_history_dateRange(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String equipment_history_added(String name) {
+    return 'Added by $name';
+  }
+
+  @override
+  String equipment_history_shared(String name) {
+    return 'Shared with $name';
+  }
+
+  @override
+  String equipment_history_unshared(String name) {
+    return 'Stopped sharing with $name';
+  }
+
+  @override
+  String equipment_history_transferred(String from, String to) {
+    return 'Transferred from $from to $to';
+  }
+
+  @override
+  String get settings_shareAllEquipment_title => 'Share all my equipment...';
+
+  @override
+  String settings_shareAllEquipment_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Share your $count items with the profiles you choose.',
+      one: 'Share your 1 item with the profiles you choose.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'Could not open your browser. Use Copy link and paste the address into your browser.';
 
@@ -249,6 +404,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'Draw this set\'s gear on a diver on the set page';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title => 'Show diver figure';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
 
   @override
@@ -289,6 +451,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Default';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'Hide diver figure';
+
+  @override
+  String get equipment_setDetail_showFigure => 'Show diver figure';
 
   @override
   String get equipment_setDetail_setAsDefault => 'Set as default';
@@ -8790,13 +8958,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh =>
-      'Equivalent Narcotic Depth too high';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END of $depth exceeds the $limit limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END of $depth exceeds safe limit';
-  }
+  String get divePlanner_warning_endHigh =>
+      'Equivalent Narcotic Depth too high';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -12025,9 +12193,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'O2 and He must each be 0 to 100 and total 100 or less';
 
   @override
-  String get passport_logFill_invalidNumber => 'Enter a number';
-
-  @override
   String get passport_logFill_saveFailed =>
       'Could not save the fill. Try again.';
 
@@ -12890,9 +13055,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_edit_purchasePriceLabel => 'Purchase Price';
 
   @override
-  String get equipment_edit_purchasePriceValidation => 'Enter a valid amount';
-
-  @override
   String get equipment_edit_remindMeBeforeServiceDue =>
       'Remind me before service is due:';
 
@@ -12984,6 +13146,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'Add Set';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'Back · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'Front · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'Also carried';
 
   @override
   String get equipment_list_emptyState_addFirstButton =>
@@ -14468,11 +14659,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'Enter a valid number (decimal separator: \"$separator\")';
-  }
-
-  @override
   String get gasCalculators_blender_currency => 'Currency';
 
   @override
@@ -14907,6 +15093,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get marineLife_speciesDetail_sitesLabel => 'Sites';
+
+  @override
+  String get marineLife_speciesDetail_statsError =>
+      'Failed to load sighting statistics';
 
   @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
@@ -25863,7 +26053,7 @@ class AppLocalizationsEn extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Ascent $from → $to at $rate/min';
+    return 'Ascent $from → $to at $rate';
   }
 
   @override
@@ -25877,7 +26067,7 @@ class AppLocalizationsEn extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Descent $from → $to at $rate/min';
+    return 'Descent $from → $to at $rate';
   }
 
   @override
@@ -27458,6 +27648,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not resync: the original file no longer contains a matching dive';
 
   @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Could not resync: the original file has a matching dive for more than one diver, and this dive does not record which one it came from';
+
+  @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
       'Could not resync: an unexpected error occurred while reading the original file';
 
@@ -27565,7 +27759,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_sharedData_sectionSubtitle =>
-      'Share sites and trips across profiles';
+      'Share sites, trips and equipment across profiles';
 
   @override
   String get common_action_unshare => 'Unshare';
@@ -29454,7 +29648,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Add a cylinder volume to show RMV in $unit/min';
+    return 'Add a cylinder volume to show RMV in $unit';
   }
 
   @override
@@ -30230,9 +30424,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipmentConditionSettings_o2Label => 'High-O2 mix above (% O2)';
-
-  @override
-  String get equipmentConditionSettings_invalid => 'Enter a number';
 
   @override
   String get equipmentConditionSettings_saveFailed =>
@@ -40644,7 +40835,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_info_statusFound => 'Found on this device';
 
   @override
+  String get media_info_statusFoundElsewhere => 'Found on another device';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'Found on $device';
+  }
+
+  @override
   String get media_info_statusMissing => 'Missing from this device';
+
+  @override
+  String get media_info_statusMissingElsewhere => 'Missing from another device';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'Missing from $device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'Not checked yet';
@@ -41565,14 +41772,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'The file that is in its place now is kept beside it, not deleted.';
+      'The file in its place now is kept, not deleted. You can restore or delete it later in Backup & Restore in Settings.';
 
   @override
   String get startup_interruptedRestore_keepAction => 'Keep what is there now';
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'Your previous dive log is kept as a file in the database folder.';
+      'Your previous dive log is kept, not deleted. You can restore or delete it later in Backup & Restore in Settings.';
 
   @override
   String get startup_interruptedRestore_failed =>
@@ -41892,6 +42099,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String backup_unrecognized_freed(String size) {
     return 'Freed $size';
   }
+
+  @override
+  String get backup_quarantined_sectionTitle => 'Set-aside databases';
+
+  @override
+  String get backup_quarantined_explanation =>
+      'A restore that could not finish cleanly kept these copies of your database instead of deleting them. Restore one to use it again, or delete it to free up space.';
+
+  @override
+  String get backup_quarantined_kind_preRestore =>
+      'Dive log from before a restore';
+
+  @override
+  String get backup_quarantined_kind_restoreRejected =>
+      'Dive log replaced during a recovery';
+
+  @override
+  String backup_quarantined_detail(String date, String size) {
+    return '$date • $size';
+  }
+
+  @override
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
+    return '$date • $size • database v$version';
+  }
+
+  @override
+  String get backup_quarantined_status_needsNewerApp =>
+      'Needs a newer version of Submersion';
+
+  @override
+  String get backup_quarantined_status_unreadable =>
+      'Cannot be opened here. It may be damaged, or protected with a password this device does not have.';
+
+  @override
+  String get backup_quarantined_status_incomplete =>
+      'Only journal files remain; the database file itself is gone.';
+
+  @override
+  String get backup_quarantined_delete_title => 'Delete this database copy?';
+
+  @override
+  String get backup_quarantined_delete_message =>
+      'The copy and its journal files will be permanently deleted from this device. This cannot be undone.';
+
+  @override
+  String get backup_quarantined_deleted => 'Database copy deleted';
+
+  @override
+  String get backup_quarantined_deleteFailed =>
+      'Could not delete the database copy.';
+
+  @override
+  String get backup_quarantined_loadFailed =>
+      'Could not check the database folder for set-aside copies.';
 
   @override
   String settings_storageUsage_unrecognized_title(int count) {
@@ -42443,7 +42709,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => 'Enter a valid number';
+  String numberInput_invalidNumber(String separator) {
+    return 'Enter a valid number (decimal separator: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'Enter a whole number';
+
+  @override
+  String get numberInput_required => 'Required';
+
+  @override
+  String get numberInput_notNegative => 'Enter 0 or more';
+
+  @override
+  String get numberInput_atLeastOne => 'Enter 1 or more';
+
+  @override
+  String get numberInput_percentRange => 'Enter 0 to 100';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Rental gear';

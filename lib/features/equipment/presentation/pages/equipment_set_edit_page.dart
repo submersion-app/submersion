@@ -44,6 +44,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
   bool _isInitialized = false;
   bool _isDefault = false;
   bool _autoApplyOnComputerImport = false;
+  bool _showFigure = false;
   List<EquipmentSetGeofence> _geofences = [];
 
   @override
@@ -62,6 +63,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
     _selectedEquipmentIds.addAll(set.equipmentIds);
     _isDefault = set.isDefault;
     _autoApplyOnComputerImport = set.autoApplyOnComputerImport;
+    _showFigure = set.showFigure;
     _geofences = List.of(set.geofences);
   }
 
@@ -204,6 +206,18 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
               value: _autoApplyOnComputerImport,
               onChanged: (v) => setState(() => _autoApplyOnComputerImport = v),
             ),
+            const SizedBox(height: 8),
+
+            // The diver figure on the set page (issue #2326), off by default.
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(context.l10n.equipment_setEdit_figureSwitch_title),
+              subtitle: Text(
+                context.l10n.equipment_setEdit_figureSwitch_subtitle,
+              ),
+              value: _showFigure,
+              onChanged: (v) => setState(() => _showFigure = v),
+            ),
             const SizedBox(height: 16),
 
             // Geofences
@@ -330,27 +344,66 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                 // Labelled as one list, so identical items read differently
                 // from each other (#1549).
                 final labels = equipmentRowLabelsOf(context, ref, equipment);
+                // Members the diver can no longer see (a share was removed,
+                // issue #2046) stay selected, so saving keeps them; they are
+                // listed without a checkbox and marked.
+                final visibleIds = ref
+                    .watch(allEquipmentProvider)
+                    .value
+                    ?.map((e) => e.id)
+                    .toSet();
+                final unshared = [
+                  if (visibleIds != null)
+                    for (final item in existingSet?.items ?? const [])
+                      if (!visibleIds.contains(item.id)) item,
+                ];
 
                 return Column(
-                  children: groups.map((group) {
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (group.type != null)
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                              child: EquipmentGroupHeader(type: group.type!),
-                            ),
-                          ...group.items.map(
-                            (item) =>
-                                _buildEquipmentCheckbox(context, item, labels),
-                          ),
-                        ],
+                  children: [
+                    if (unshared.isNotEmpty)
+                      Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: Column(
+                          children: [
+                            for (final item in unshared)
+                              ListTile(
+                                enabled: false,
+                                title: Text(item.name),
+                                subtitle: Text(
+                                  context.l10n.equipment_set_noLongerShared,
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                    );
-                  }).toList(),
+                    ...groups.map((group) {
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (group.type != null)
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  12,
+                                  16,
+                                  0,
+                                ),
+                                child: EquipmentGroupHeader(type: group.type!),
+                              ),
+                            ...group.items.map(
+                              (item) => _buildEquipmentCheckbox(
+                                context,
+                                item,
+                                labels,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -504,6 +557,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
         description: _descriptionController.text.trim(),
         equipmentIds: _selectedEquipmentIds.toList(),
         autoApplyOnComputerImport: _autoApplyOnComputerImport,
+        showFigure: _showFigure,
         createdAt: existingSet?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );

@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -29,6 +31,8 @@ Future<void> _pump(
   EquipmentPickerFilter filter = EquipmentPickerFilter.none,
   EquipmentArrangement? arrangement,
   void Function(EquipmentItem)? onSelected,
+  List<Diver> divers = const [],
+  String? activeDiverId,
 }) async {
   // Tall enough to render every row without scrolling. The picker groups
   // by type (#1486, #1576) and this fixture gives every type exactly one
@@ -45,6 +49,10 @@ Future<void> _pump(
         if (arrangement != null)
           equipmentArrangementProvider.overrideWithValue(arrangement),
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        allDiversProvider.overrideWith((ref) async => divers),
+        validatedCurrentDiverIdProvider.overrideWith(
+          (ref) async => activeDiverId,
+        ),
       ],
       child: MaterialApp(
         locale: const Locale('en'),
@@ -65,6 +73,71 @@ Future<void> _pump(
 }
 
 void main() {
+  group('shared gear (issue #2046)', () {
+    const own = EquipmentItem(
+      id: 'mine',
+      diverId: 'owner',
+      name: 'My BCD',
+      type: EquipmentType.bcd,
+    );
+    const hers = EquipmentItem(
+      id: 'hers',
+      diverId: 'wife',
+      name: 'Her Reg',
+      type: EquipmentType.regulator,
+    );
+    final t = DateTime(2026);
+    final bill = Diver(id: 'owner', name: 'Bill', createdAt: t, updatedAt: t);
+    final anna = Diver(id: 'wife', name: 'Anna', createdAt: t, updatedAt: t);
+
+    testWidgets('lists shared gear under Shared with me and its owner', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        equipment: [hers, own],
+        divers: [bill, anna],
+        activeDiverId: 'owner',
+      );
+      expect(find.text('Shared with me'), findsOneWidget);
+      expect(find.text('From Anna'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('equipment-owner-chip-wife')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('equipment-owner-chip-owner')),
+        findsNothing,
+      );
+      expect(
+        tester.getTopLeft(find.text('My BCD')).dy,
+        lessThan(tester.getTopLeft(find.text('Her Reg')).dy),
+      );
+    });
+
+    testWidgets('only shared gear still gets the section header', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        equipment: [hers],
+        divers: [bill, anna],
+        activeDiverId: 'owner',
+      );
+      expect(find.text('Shared with me'), findsOneWidget);
+    });
+
+    testWidgets('no section with a single profile', (tester) async {
+      await _pump(
+        tester,
+        equipment: [own],
+        divers: [bill],
+        activeDiverId: 'owner',
+      );
+      expect(find.text('Shared with me'), findsNothing);
+    });
+  });
+
   testWidgets('lists equipment of every type with icons', (tester) async {
     // One item per type exercises the full icon mapping.
     final equipment = [
