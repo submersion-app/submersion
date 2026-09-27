@@ -12,14 +12,20 @@ env:
 
 jobs:
   probe:
-    name: ${{ matrix.variant }} (${{ matrix.rep }})
+    name: ${{ matrix.variant }} heap=${{ matrix.heap }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        variant: [baseline, lib_mocklist, db_mockdefault, db_mocklist]
-        rep: [1, 2]
+        include:
+          # Proof the cap reaches the build script: this one must fail.
+          - {variant: baseline, heap: 1000, rep: 1}
+          - {variant: baseline, heap: 6000, rep: 1}
+          - {variant: baseline, heap: 4000, rep: 1}
+          - {variant: db_mocklist, heap: 6000, rep: 1}
+          - {variant: db_mocklist, heap: 4000, rep: 1}
+          - {variant: db_mocklist, heap: 3000, rep: 1}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -67,13 +73,16 @@ jobs:
           sampler=$!
           start=$(date +%s)
           set +e
+          export DART_VM_OPTIONS="--old_gen_heap_size=${{ matrix.heap }}"
+          echo "DART_VM_OPTIONS=$DART_VM_OPTIONS"; dart --version
           /usr/bin/time -v dart run build_runner build --delete-conflicting-outputs > run.log 2> time.log
           rc=$?
           set -e
           end=$(date +%s)
           kill $sampler || true
           tail -5 run.log
-          echo "PROBE_RESULT variant=${{ matrix.variant }} rep=${{ matrix.rep }} rc=$rc seconds=$((end - start))" \
+          grep -iE "out of memory|exhausted heap|OutOfMemory" run.log time.log | head -5 || true
+          echo "PROBE_RESULT variant=${{ matrix.variant }} heap=${{ matrix.heap }} rc=$rc seconds=$((end - start))" \
             "peak_used_mb=$(sed -E 's/.*used=([0-9]+).*/\1/' mem.log | sort -n | tail -1)" \
             "min_avail_mb=$(sed -E 's/.*avail=([0-9]+).*/\1/' mem.log | sort -n | head -1)" \
             "peak_swap_mb=$(sed -E 's/.*swap=([0-9]+).*/\1/' mem.log | sort -n | tail -1)" \
