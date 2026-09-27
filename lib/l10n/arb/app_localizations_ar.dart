@@ -12792,6 +12792,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String trips_gearAlerts_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تنبيه معدات لهذه الرحلة',
+      many: '$count تنبيهًا للمعدات لهذه الرحلة',
+      few: '$count تنبيهات معدات لهذه الرحلة',
+      two: '$count تنبيها معدات لهذه الرحلة',
+      one: '$count تنبيه معدات لهذه الرحلة',
+      zero: '$count تنبيهات معدات لهذه الرحلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

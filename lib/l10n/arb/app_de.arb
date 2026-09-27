@@ -4290,6 +4290,7 @@
   "dashboard_serviceDue_more": "+{count} weitere",
   "dashboard_alerts_clockDue": "{name}: {kind} fällig",
   "dashboard_alerts_clockOverdue": "{name}: {kind} überfällig",
+  "trips_gearAlerts_count": "{count, plural, one{{count} Ausrüstungshinweis für diese Reise} other{{count} Ausrüstungshinweise für diese Reise}}",
   "trips_serviceAlert_count": "{count, plural, =1{1 Ausrüstungsteil muss vor dieser Reise gewartet werden} other{{count} Ausrüstungsteile müssen vor dieser Reise gewartet werden}}",
   "trips_serviceAlert_dueBefore": "{kind} fällig am {date}",
   "equipment_service_overdue": "{kind} überfällig",
