@@ -63,6 +63,28 @@ void main() {
     );
   });
 
+  test('reads its clock once, so the stamp and file name agree', () async {
+    // Each read lands a day later, as reads either side of midnight would.
+    var reads = 0;
+    final service = PdfExportService(
+      now: () => DateTime(2199, 7, 14 + reads++, 23, 59),
+    );
+
+    final result = await service.generateDivePdfBytes(
+      [dive],
+      dates: dates,
+      units: units,
+      options: const PdfExportOptions(template: PdfTemplate.detailed),
+    );
+
+    expect(reads, 1);
+    expect(result.fileName, 'dive_logbook_detailed_2199-07-14.pdf');
+    expect(
+      pdfSubsetTexts(result.bytes),
+      anyElement(contains('Generated on 14/07/2199 23:59')),
+    );
+  });
+
   test('names the file after the same instant', () async {
     final result = await exportAt(DateTime(2199, 7, 14, 10, 59));
 
