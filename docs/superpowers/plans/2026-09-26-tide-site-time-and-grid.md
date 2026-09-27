@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Never write an em-dash, or an en-dash or double hyphen used as punctuation, in any file, comment, commit message or PR text.
-- No commit, PR, issue or comment text may mention Claude, Claude Code or Anthropic. No `Co-Authored-By` trailers.
+- No commit, PR, issue or comment text may carry tool attribution, session links or `Co-Authored-By` trailers.
 - Test paths are built with `p.join(...)` (`package:path/path.dart as p`), never with a literal `/`.
 - Imports are grouped: dart, flutter, packages, local.
 - Distances shown to the diver go through `UnitFormatter.formatGeoDistance` so they follow unit settings.
@@ -3588,7 +3588,7 @@ Expected: all pass. If a failure is in a file this branch never touched, check w
 Run:
 ```bash
 git diff origin/main...HEAD | python3.14 -c "import sys; t = sys.stdin.read(); print('DASHES FOUND' if chr(0x2014) in t or chr(0x2013) in t else 'no dashes')"
-git log origin/main..HEAD --format=%B | grep -i -E "claude|anthropic|co-authored" || echo "no attribution"
+git log origin/main..HEAD --format=%B | grep -i -E "co-authored|generated with|session_" || echo "no attribution"
 ```
 Expected: `no dashes` and `no attribution`.
 
