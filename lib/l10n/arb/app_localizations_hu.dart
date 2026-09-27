@@ -42337,6 +42337,52 @@ class AppLocalizationsHu extends AppLocalizations {
       'A helyreállítás nem fejeződött be. Semmi sem törlődött; mindkét fájl még ezen az eszközön van.';
 
   @override
+  String get startup_diveLogUnavailable_downloading =>
+      'Merülési napló letöltése az iCloudból';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'A merülési naplója még az iCloudban van';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'A(z) $folder mappában lévő merülési naplója az iCloudban van tárolva, de még nincs ezen az eszközön, és nem sikerült letölteni. Az iCloudban biztonságban van, és semmi sem változott. Ellenőrizze az internetkapcsolatot, vagy töltse le a Fájlok appban vagy a Finderben, majd próbálja újra.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'A merülési napló nem található';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'A Submersion a(z) $folder mappában tárolja a merülési naplóját, de most nincs ott $filename nevű fájl. Ha a mappa egy nem csatlakoztatott meghajtón van, vagy egy még nem szinkronizált mappában, csatlakoztassa vagy szinkronizálja, majd próbálja újra. Semmi sem jött létre és semmi sem változott.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'Új merülési napló indítása ebben a mappában';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'Csak ha a régi merülési napló végleg elveszett. Az új üresen indul.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      'Új merülési naplót indít itt?';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'A(z) $folder mappában egy üres merülési napló jön létre. Ha a régi merülési napló később visszakerül, például egy szinkronizálás befejeztével, ütközni fog az újjal.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm =>
+      'Új merülési napló indítása';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Újabb adatbázis, visszalépéskor megőrizve - $size';
   }
