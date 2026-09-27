@@ -404,6 +404,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'Draw this set\'s gear on a diver on the set page';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title => 'Show diver figure';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
 
   @override
@@ -444,6 +451,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Default';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'Hide diver figure';
+
+  @override
+  String get equipment_setDetail_showFigure => 'Show diver figure';
 
   @override
   String get equipment_setDetail_setAsDefault => 'Set as default';
@@ -12180,9 +12193,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'O2 and He must each be 0 to 100 and total 100 or less';
 
   @override
-  String get passport_logFill_invalidNumber => 'Enter a number';
-
-  @override
   String get passport_logFill_saveFailed =>
       'Could not save the fill. Try again.';
 
@@ -13045,9 +13055,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_edit_purchasePriceLabel => 'Purchase Price';
 
   @override
-  String get equipment_edit_purchasePriceValidation => 'Enter a valid amount';
-
-  @override
   String get equipment_edit_remindMeBeforeServiceDue =>
       'Remind me before service is due:';
 
@@ -13139,6 +13146,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'Add Set';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'Back · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'Front · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'Also carried';
 
   @override
   String get equipment_list_emptyState_addFirstButton =>
@@ -14620,11 +14656,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'Price per 100 $unit';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'Enter a valid number (decimal separator: \"$separator\")';
   }
 
   @override
@@ -30395,9 +30426,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipmentConditionSettings_o2Label => 'High-O2 mix above (% O2)';
 
   @override
-  String get equipmentConditionSettings_invalid => 'Enter a number';
-
-  @override
   String get equipmentConditionSettings_saveFailed =>
       'Could not save. Try again.';
 
@@ -40807,7 +40835,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_info_statusFound => 'Found on this device';
 
   @override
+  String get media_info_statusFoundElsewhere => 'Found on another device';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'Found on $device';
+  }
+
+  @override
   String get media_info_statusMissing => 'Missing from this device';
+
+  @override
+  String get media_info_statusMissingElsewhere => 'Missing from another device';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'Missing from $device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'Not checked yet';
@@ -42665,7 +42709,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => 'Enter a valid number';
+  String numberInput_invalidNumber(String separator) {
+    return 'Enter a valid number (decimal separator: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'Enter a whole number';
+
+  @override
+  String get numberInput_required => 'Required';
+
+  @override
+  String get numberInput_notNegative => 'Enter 0 or more';
+
+  @override
+  String get numberInput_atLeastOne => 'Enter 1 or more';
+
+  @override
+  String get numberInput_percentRange => 'Enter 0 to 100';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Rental gear';

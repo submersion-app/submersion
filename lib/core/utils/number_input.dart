@@ -92,6 +92,12 @@ bool _groupingIsWellFormed(String text) {
   if (groupSep.isEmpty) return true;
 
   final decimalIndex = text.indexOf(symbols.DECIMAL_SEP);
+  // Grouping never follows the decimal separator, yet intl skips one there
+  // too, reading de "12,5.6" as 12.56.
+  if (decimalIndex >= 0 &&
+      text.substring(decimalIndex + 1).contains(groupSep)) {
+    return false;
+  }
   var integerPart = decimalIndex >= 0 ? text.substring(0, decimalIndex) : text;
 
   // Where the locale groups with a space it is a narrow no-break one, but a
@@ -119,6 +125,15 @@ bool _groupingIsWellFormed(String text) {
 /// they never typed.
 int? parseUserInt(String text) {
   final value = parseUserDecimal(text);
+  if (value == null || value != value.roundToDouble()) return null;
+  return value.toInt();
+}
+
+/// [parseUserInt], with [smartParseUserDecimal]'s correction of one
+/// unambiguous wrong-separator keystroke. A fraction is still rejected, not
+/// rounded, for the same reason as [parseUserInt].
+int? smartParseUserInt(String text) {
+  final value = smartParseUserDecimal(text);
   if (value == null || value != value.roundToDouble()) return null;
   return value.toInt();
 }

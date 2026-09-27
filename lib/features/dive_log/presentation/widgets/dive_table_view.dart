@@ -4,6 +4,7 @@ import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/core/utils/table_value_compare.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
@@ -166,18 +167,14 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
       if (va == null) return 1;
       if (vb == null) return -1;
 
-      int cmp;
-      if (va is String && vb is String) {
-        cmp = collator.compare(va, vb);
-      } else if (va is Comparable && vb is Comparable) {
-        cmp = va.compareTo(vb);
-      } else {
-        // Fall back to string comparison of formatted values
-        cmp = collator.compare(
-          field.formatValue(va, units),
-          field.formatValue(vb, units),
-        );
-      }
+      // Visibility mixes measured distances with legacy bucket labels, so a
+      // column's values can differ in kind (issue #2444).
+      final cmp = compareTableValues(
+        va,
+        vb,
+        collator: collator,
+        formatted: (value) => field.formatValue(value, units),
+      );
 
       return ascending ? cmp : -cmp;
     });

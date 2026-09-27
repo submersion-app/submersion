@@ -408,6 +408,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Enthält dieses Set einen Tauchcomputer, wird das ganze Set automatisch zu einem von diesem heruntergeladenen oder importierten Tauchgang hinzugefügt';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'Die Ausrüstung dieses Sets auf der Set-Seite an einer Taucherfigur zeigen';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title => 'Taucherfigur anzeigen';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
 
   @override
@@ -448,6 +455,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Standard';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'Taucherfigur ausblenden';
+
+  @override
+  String get equipment_setDetail_showFigure => 'Taucherfigur anzeigen';
 
   @override
   String get equipment_setDetail_setAsDefault => 'Als Standard festlegen';
@@ -12366,9 +12379,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'O2 und He müssen jeweils 0 bis 100 sein und zusammen höchstens 100 ergeben';
 
   @override
-  String get passport_logFill_invalidNumber => 'Zahl eingeben';
-
-  @override
   String get passport_logFill_saveFailed =>
       'Die Füllung konnte nicht gespeichert werden. Bitte erneut versuchen.';
 
@@ -13236,10 +13246,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_edit_purchasePriceLabel => 'Kaufpreis';
 
   @override
-  String get equipment_edit_purchasePriceValidation =>
-      'Geben Sie einen gültigen Betrag ein';
-
-  @override
   String get equipment_edit_remindMeBeforeServiceDue =>
       'Erinnern Sie mich vor der fälligen Wartung:';
 
@@ -13334,6 +13340,35 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'Set hinzufügen';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'Hinten · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'Vorne · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Gegenstände',
+      one: '$count Gegenstand',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'Außerdem dabei';
 
   @override
   String get equipment_list_emptyState_addFirstButton =>
@@ -14837,11 +14872,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'Preis pro 100 $unit';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'Gib eine gültige Zahl ein (Dezimaltrennzeichen: \"$separator\")';
   }
 
   @override
@@ -30828,9 +30858,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'O2-reiches Gemisch über (% O2)';
 
   @override
-  String get equipmentConditionSettings_invalid => 'Bitte eine Zahl eingeben';
-
-  @override
   String get equipmentConditionSettings_saveFailed =>
       'Speichern fehlgeschlagen. Bitte erneut versuchen.';
 
@@ -41329,7 +41356,25 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_info_statusFound => 'Auf diesem Gerät gefunden';
 
   @override
+  String get media_info_statusFoundElsewhere =>
+      'Auf einem anderen Gerät gefunden';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'Auf $device gefunden';
+  }
+
+  @override
   String get media_info_statusMissing => 'Auf diesem Gerät nicht vorhanden';
+
+  @override
+  String get media_info_statusMissingElsewhere =>
+      'Auf einem anderen Gerät nicht vorhanden';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'Auf $device nicht vorhanden';
+  }
 
   @override
   String get media_info_statusUnchecked => 'Noch nicht geprüft';
@@ -43224,7 +43269,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => 'Geben Sie eine gültige Zahl ein';
+  String numberInput_invalidNumber(String separator) {
+    return 'Gib eine gültige Zahl ein (Dezimaltrennzeichen: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'Geben Sie eine ganze Zahl ein';
+
+  @override
+  String get numberInput_required => 'Erforderlich';
+
+  @override
+  String get numberInput_notNegative => 'Geben Sie 0 oder mehr ein';
+
+  @override
+  String get numberInput_atLeastOne => 'Geben Sie 1 oder mehr ein';
+
+  @override
+  String get numberInput_percentRange => 'Geben Sie 0 bis 100 ein';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Leihausrüstung';
