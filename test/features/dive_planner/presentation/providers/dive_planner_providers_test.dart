@@ -292,6 +292,23 @@ void main() {
       expect(dive.isPlanned, isTrue);
     });
 
+    test('toDive dates the dive at the plan start time', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      final start = DateTime(2026, 10, 3, 9, 30);
+      notifier.loadPlan(
+        container.read(divePlanNotifierProvider).copyWith(startDateTime: start),
+      );
+
+      expect(notifier.toDive().dateTime, start);
+    });
+
     test(
       'updateWaterType stores water type, marks dirty, and toDive copies it',
       () {

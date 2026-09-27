@@ -8789,12 +8789,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh => 'العمق المخدر المكافئ مرتفع جداً';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END عند $depth يتجاوز الحد البالغ $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END عند $depth يتجاوز الحد الآمن';
-  }
+  String get divePlanner_warning_endHigh => 'العمق المخدر المكافئ مرتفع جداً';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -14950,6 +14950,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => 'المواقع';
 
   @override
+  String get marineLife_speciesDetail_statsError =>
+      'تعذر تحميل إحصائيات المشاهدات';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'الصنف: $className';
   }
@@ -18809,6 +18813,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_trip => 'الرحلة';
+
+  @override
+  String get settings_conflict_ref_tripCylinder => 'أسطوانة الرحلة';
 
   @override
   String get settings_conflict_remoteVersion => 'النسخة البعيدة';
@@ -25991,7 +25998,7 @@ class AppLocalizationsAr extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'صعود $from ← $to بمعدل $rate/دقيقة';
+    return 'صعود $from ← $to بمعدل $rate';
   }
 
   @override
@@ -26005,7 +26012,7 @@ class AppLocalizationsAr extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'نزول $from ← $to بمعدل $rate/دقيقة';
+    return 'نزول $from ← $to بمعدل $rate';
   }
 
   @override
@@ -27589,6 +27596,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       'تعذّرت إعادة المزامنة: لم يعد الملف الأصلي يحتوي على غطسة مطابقة';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'تعذّرت إعادة المزامنة: يحتوي الملف الأصلي على غطسة مطابقة لأكثر من غوّاص، ولا تسجّل هذه الغطسة من أيّها جاءت';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
@@ -29581,7 +29592,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'أضف حجم الأسطوانة لعرض RMV بوحدة $unit/min';
+    return 'أضف حجم الأسطوانة لعرض RMV بوحدة $unit';
   }
 
   @override

@@ -5338,8 +5338,8 @@
   "divePlanner_warning_belowMinReserve": "Below minimum reserve ({reserve})",
   "divePlanner_warning_cnsCritical": "CNS% exceeds 100%",
   "divePlanner_warning_cnsWarning": "CNS% exceeds {threshold}%",
+  "divePlanner_warning_endExceedsLimit": "END of {depth} exceeds the {limit} limit",
   "divePlanner_warning_endHigh": "Equivalent Narcotic Depth too high",
-  "divePlanner_warning_endHighWithDepth": "END of {depth} exceeds safe limit",
   "divePlanner_warning_gasLow": "Tank below {threshold} reserve",
   "divePlanner_warning_gasOut": "Tank will be empty",
   "divePlanner_warning_minGasViolation": "Minimum gas reserve not maintained",
@@ -8980,6 +8980,7 @@
   "marineLife_speciesDetail_sightingPeriodTitle": "Sighting Period",
   "marineLife_speciesDetail_sightingStatsTitle": "Sighting Statistics",
   "marineLife_speciesDetail_sitesLabel": "Sites",
+  "marineLife_speciesDetail_statsError": "Failed to load sighting statistics",
   "marineLife_speciesDetail_taxonomyClassLabel": "Class: {className}",
   "marineLife_speciesDetail_topSitesTitle": "Top Sites",
   "marineLife_speciesDetail_totalSightingsLabel": "Total Sightings",
@@ -11647,6 +11648,7 @@
   "settings_conflict_ref_tag": "Tag",
   "settings_conflict_ref_tank": "Tank",
   "settings_conflict_ref_trip": "Trip",
+  "settings_conflict_ref_tripCylinder": "Trip cylinder",
   "settings_conflict_remoteVersion": "Remote Version",
   "settings_conflict_resolved": "Resolved {count, plural, =1{1 conflict} other{{count} conflicts}}",
   "settings_conflict_title": "Resolve Conflicts",
@@ -16111,9 +16113,12 @@
       }
     }
   },
-  "@divePlanner_warning_endHighWithDepth": {
+  "@divePlanner_warning_endExceedsLimit": {
     "placeholders": {
       "depth": {
+        "type": "Object"
+      },
+      "limit": {
         "type": "Object"
       }
     }
@@ -16969,7 +16974,7 @@
       }
     }
   },
-  "divePlanner_segmentEditor_derivedAscent": "Ascent {from} → {to} at {rate}/min",
+  "divePlanner_segmentEditor_derivedAscent": "Ascent {from} → {to} at {rate}",
   "@divePlanner_segmentEditor_derivedAscent": {
     "placeholders": {
       "from": {
@@ -16979,7 +16984,8 @@
         "type": "Object"
       },
       "rate": {
-        "type": "Object"
+        "type": "Object",
+        "description": "Rate with its unit already attached, e.g. 9m/min"
       }
     }
   },
@@ -16994,7 +17000,7 @@
       }
     }
   },
-  "divePlanner_segmentEditor_derivedDescent": "Descent {from} → {to} at {rate}/min",
+  "divePlanner_segmentEditor_derivedDescent": "Descent {from} → {to} at {rate}",
   "@divePlanner_segmentEditor_derivedDescent": {
     "placeholders": {
       "from": {
@@ -17004,7 +17010,8 @@
         "type": "Object"
       },
       "rate": {
-        "type": "Object"
+        "type": "Object",
+        "description": "Rate with its unit already attached, e.g. 9m/min"
       }
     }
   },
@@ -18074,6 +18081,10 @@
   "diveLog_detail_resyncFailed_noMatchingDive": "Could not resync: the original file no longer contains a matching dive",
   "@diveLog_detail_resyncFailed_noMatchingDive": {
     "description": "Snackbar shown when the re-parsed original file no longer contains a dive matching this one"
+  },
+  "diveLog_detail_resyncFailed_ambiguousDiver": "Could not resync: the original file has a matching dive for more than one diver, and this dive does not record which one it came from",
+  "@diveLog_detail_resyncFailed_ambiguousDiver": {
+    "description": "Snackbar shown when the original file holds a matching dive for several divers and this dive, imported before its diver was recorded, cannot say which copy is its own"
   },
   "diveLog_detail_resyncFailed_unexpectedError": "Could not resync: an unexpected error occurred while reading the original file",
   "@diveLog_detail_resyncFailed_unexpectedError": {
@@ -19375,7 +19386,15 @@
   "safetyHub_noFly_disclaimer": "DAN/UHMS guideline intervals from your last dive. Not a substitute for your dive computer's no-fly time.",
   "diveLog_detail_altitudeMismatch_title": "Site is at altitude",
   "diveLog_detail_altitudeMismatch_subtitle": "This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive's altitude to correct it.",
-  "diveLog_detail_sacVolumeHint": "Add a cylinder volume to show RMV in {unit}/min",
+  "diveLog_detail_sacVolumeHint": "Add a cylinder volume to show RMV in {unit}",
+  "@diveLog_detail_sacVolumeHint": {
+    "placeholders": {
+      "unit": {
+        "type": "String",
+        "description": "Rate unit, e.g. L/min or cuft/min"
+      }
+    }
+  },
   "safetyHub_alert_noFly": "No-fly: {remaining} remaining",
   "@safetyHub_alert_noFly": {
     "placeholders": {
@@ -25635,13 +25654,6 @@
     }
   },
   "@settings_units_gasConsumption_rmv_subtitle": {
-    "placeholders": {
-      "unit": {
-        "type": "String"
-      }
-    }
-  },
-  "@diveLog_detail_sacVolumeHint": {
     "placeholders": {
       "unit": {
         "type": "String"

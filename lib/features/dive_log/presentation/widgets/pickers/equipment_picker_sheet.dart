@@ -15,6 +15,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_gro
 import 'package:submersion/features/equipment/presentation/widgets/equipment_picker_filter_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/max_width_fraction.dart';
 
 /// Equipment picker bottom sheet
 class EquipmentPickerSheet extends ConsumerWidget {
@@ -238,9 +239,14 @@ class EquipmentPickerSheet extends ConsumerWidget {
                       item,
                       showTypeLabel: showTypeLabel,
                     ),
-                    trailing: ServiceStatusIndicatorFor(
-                      equipmentId: item.id,
-                      density: ServiceIndicatorDensity.compact,
+                    // Capped so a rollup label naming a long part cannot
+                    // take the row from the title (issue #1981).
+                    trailing: MaxWidthFraction(
+                      fraction: kListTileTrailingMaxWidthFraction,
+                      child: ServiceStatusIndicatorFor(
+                        equipmentId: item.id,
+                        density: ServiceIndicatorDensity.compact,
+                      ),
                     ),
                     onTap: () => onEquipmentSelected(item),
                   ),

@@ -8956,13 +8956,13 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh =>
-      'Profundidade Narcótica Equivalente muito alta';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END de $depth excede o limite de $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END de $depth excede o limite seguro';
-  }
+  String get divePlanner_warning_endHigh =>
+      'Profundidade Narcótica Equivalente muito alta';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -15197,6 +15197,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => 'Pontos';
 
   @override
+  String get marineLife_speciesDetail_statsError =>
+      'Não foi possível carregar as estatísticas de avistamentos';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'Classe: $className';
   }
@@ -19121,6 +19125,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_trip => 'Viagem';
+
+  @override
+  String get settings_conflict_ref_tripCylinder => 'Cilindro da viagem';
 
   @override
   String get settings_conflict_remoteVersion => 'Versão Remota';
@@ -26326,7 +26333,7 @@ class AppLocalizationsPt extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Subida $from -> $to a $rate/min';
+    return 'Subida $from -> $to a $rate';
   }
 
   @override
@@ -26340,7 +26347,7 @@ class AppLocalizationsPt extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Descida $from -> $to a $rate/min';
+    return 'Descida $from -> $to a $rate';
   }
 
   @override
@@ -27945,6 +27952,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       'Não foi possível ressincronizar: o arquivo original não contém mais um mergulho correspondente';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Não foi possível ressincronizar: o arquivo original tem um mergulho correspondente para mais de um mergulhador, e este mergulho não registra de qual deles veio';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
@@ -29966,7 +29977,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Adicione o volume do cilindro para mostrar o RMV em $unit/min';
+    return 'Adicione o volume do cilindro para mostrar o RMV em $unit';
   }
 
   @override

@@ -9000,13 +9000,13 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh =>
-      'Profondeur narcotique équivalente trop élevée';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END de $depth dépasse la limite de $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END de $depth dépasse la limite de sécurité';
-  }
+  String get divePlanner_warning_endHigh =>
+      'Profondeur narcotique équivalente trop élevée';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -15251,6 +15251,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => 'Sites';
 
   @override
+  String get marineLife_speciesDetail_statsError =>
+      'Impossible de charger les statistiques d\'observation';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'Classe : $className';
   }
@@ -19186,6 +19190,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_trip => 'Voyage';
+
+  @override
+  String get settings_conflict_ref_tripCylinder => 'Bouteille du voyage';
 
   @override
   String get settings_conflict_remoteVersion => 'Version distante';
@@ -26430,7 +26437,7 @@ class AppLocalizationsFr extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Remontée $from -> $to a $rate/min';
+    return 'Remontée $from -> $to a $rate';
   }
 
   @override
@@ -26444,7 +26451,7 @@ class AppLocalizationsFr extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Descente $from -> $to a $rate/min';
+    return 'Descente $from -> $to a $rate';
   }
 
   @override
@@ -28049,6 +28056,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       'Impossible de resynchroniser : le fichier original ne contient plus de plongée correspondante';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Impossible de resynchroniser : le fichier original contient une plongée correspondante pour plusieurs plongeurs, et cette plongée n\'indique pas de laquelle elle provient';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
@@ -30076,7 +30087,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Ajoutez le volume du bloc pour afficher le RMV en $unit/min';
+    return 'Ajoutez le volume du bloc pour afficher le RMV en $unit';
   }
 
   @override

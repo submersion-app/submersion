@@ -14698,17 +14698,17 @@ abstract class AppLocalizations {
   /// **'CNS% exceeds {threshold}%'**
   String divePlanner_warning_cnsWarning(Object threshold);
 
+  /// No description provided for @divePlanner_warning_endExceedsLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'END of {depth} exceeds the {limit} limit'**
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit);
+
   /// No description provided for @divePlanner_warning_endHigh.
   ///
   /// In en, this message translates to:
   /// **'Equivalent Narcotic Depth too high'**
   String get divePlanner_warning_endHigh;
-
-  /// No description provided for @divePlanner_warning_endHighWithDepth.
-  ///
-  /// In en, this message translates to:
-  /// **'END of {depth} exceeds safe limit'**
-  String divePlanner_warning_endHighWithDepth(Object depth);
 
   /// No description provided for @divePlanner_warning_gasLow.
   ///
@@ -24923,6 +24923,12 @@ abstract class AppLocalizations {
   /// **'Sites'**
   String get marineLife_speciesDetail_sitesLabel;
 
+  /// No description provided for @marineLife_speciesDetail_statsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load sighting statistics'**
+  String get marineLife_speciesDetail_statsError;
+
   /// No description provided for @marineLife_speciesDetail_taxonomyClassLabel.
   ///
   /// In en, this message translates to:
@@ -30904,6 +30910,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trip'**
   String get settings_conflict_ref_trip;
+
+  /// No description provided for @settings_conflict_ref_tripCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip cylinder'**
+  String get settings_conflict_ref_tripCylinder;
 
   /// No description provided for @settings_conflict_remoteVersion.
   ///
@@ -41955,7 +41967,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_segmentEditor_derivedAscent.
   ///
   /// In en, this message translates to:
-  /// **'Ascent {from} → {to} at {rate}/min'**
+  /// **'Ascent {from} → {to} at {rate}'**
   String divePlanner_segmentEditor_derivedAscent(
     Object from,
     Object to,
@@ -41971,7 +41983,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_segmentEditor_derivedDescent.
   ///
   /// In en, this message translates to:
-  /// **'Descent {from} → {to} at {rate}/min'**
+  /// **'Descent {from} → {to} at {rate}'**
   String divePlanner_segmentEditor_derivedDescent(
     Object from,
     Object to,
@@ -44513,6 +44525,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not resync: the original file no longer contains a matching dive'**
   String get diveLog_detail_resyncFailed_noMatchingDive;
+
+  /// Snackbar shown when the original file holds a matching dive for several divers and this dive, imported before its diver was recorded, cannot say which copy is its own
+  ///
+  /// In en, this message translates to:
+  /// **'Could not resync: the original file has a matching dive for more than one diver, and this dive does not record which one it came from'**
+  String get diveLog_detail_resyncFailed_ambiguousDiver;
 
   /// Snackbar shown when reading or parsing the stored original file threw
   ///
@@ -48041,7 +48059,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_detail_sacVolumeHint.
   ///
   /// In en, this message translates to:
-  /// **'Add a cylinder volume to show RMV in {unit}/min'**
+  /// **'Add a cylinder volume to show RMV in {unit}'**
   String diveLog_detail_sacVolumeHint(String unit);
 
   /// No description provided for @safetyHub_alert_noFly.

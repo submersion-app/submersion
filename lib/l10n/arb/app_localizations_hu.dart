@@ -8938,13 +8938,13 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh =>
-      'Ekvivalens narkotikus mélység túl magas';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END $depth meghaladja a limitet ($limit)';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END $depth meghaladja a biztonságos limitet';
-  }
+  String get divePlanner_warning_endHigh =>
+      'Ekvivalens narkotikus mélység túl magas';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -15151,6 +15151,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => 'Merülőhelyek';
 
   @override
+  String get marineLife_speciesDetail_statsError =>
+      'Nem sikerült betölteni az észlelési statisztikákat';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'Osztály: $className';
   }
@@ -19063,6 +19067,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_trip => 'Utazás';
+
+  @override
+  String get settings_conflict_ref_tripCylinder => 'Utazási palack';
 
   @override
   String get settings_conflict_remoteVersion => 'Távoli változat';
@@ -26247,7 +26254,7 @@ class AppLocalizationsHu extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Emelkedés $from -> $to, $rate/perc';
+    return 'Emelkedés $from -> $to, $rate';
   }
 
   @override
@@ -26261,7 +26268,7 @@ class AppLocalizationsHu extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Süllyedés $from -> $to, $rate/perc';
+    return 'Süllyedés $from -> $to, $rate';
   }
 
   @override
@@ -27852,6 +27859,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       'Nem sikerült újraszinkronizálni: az eredeti fájl már nem tartalmaz megfelelő merülést';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Nem sikerült újraszinkronizálni: az eredeti fájlban több búvárnak is van megfelelő merülése, és ennél a merülésnél nincs rögzítve, melyiktől származik';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
@@ -29850,7 +29861,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Add meg a palack térfogatát, hogy az RMV $unit/min-ben jelenjen meg';
+    return 'Add meg a palack térfogatát, hogy az RMV $unit-ben jelenjen meg';
   }
 
   @override

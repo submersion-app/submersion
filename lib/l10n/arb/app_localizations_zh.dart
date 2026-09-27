@@ -8524,12 +8524,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh => '等效麻醉深度过高';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return '等效麻醉深度 $depth 超过极限 $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return '等效麻醉深度 $depth 超过安全极限';
-  }
+  String get divePlanner_warning_endHigh => '等效麻醉深度过高';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -14461,6 +14461,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => '潜水点';
 
   @override
+  String get marineLife_speciesDetail_statsError => '无法加载目击统计';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return '分类纲：$className';
   }
@@ -18156,6 +18159,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_trip => '行程';
+
+  @override
+  String get settings_conflict_ref_tripCylinder => '行程气瓶';
 
   @override
   String get settings_conflict_remoteVersion => '远程版本';
@@ -24952,7 +24958,7 @@ class AppLocalizationsZh extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return '上升 $from → $to，$rate/分钟';
+    return '上升 $from → $to，$rate';
   }
 
   @override
@@ -24966,7 +24972,7 @@ class AppLocalizationsZh extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return '下降 $from → $to，$rate/分钟';
+    return '下降 $from → $to，$rate';
   }
 
   @override
@@ -26486,6 +26492,10 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       '无法重新同步：原始文件中已没有匹配的潜水记录';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      '无法重新同步：原始文件中有多位潜水员的匹配潜水记录，而此潜水记录未保存它来自哪一位';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
@@ -28412,7 +28422,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return '添加气瓶容积以按 $unit/min 显示 RMV';
+    return '添加气瓶容积以按 $unit 显示 RMV';
   }
 
   @override
