@@ -38,7 +38,39 @@ void main() {
   });
 
   group('PdfFonts.themeFor', () {
-    tearDown(() => PdfFonts.debugScriptFontLoader = null);
+    tearDown(() {
+      PdfFonts.debugScriptFontLoader = null;
+      PdfFonts.instance.reset();
+    });
+
+    test('a failed download is retried by the next export', () async {
+      // An export made offline must not leave every later export in the
+      // session without the script font.
+      PdfFonts.debugScriptFontLoader = (_, {required bold}) async =>
+          throw Exception('offline');
+      await PdfFonts.instance.themeFor(PdfLocalization.forLanguageCode('ar'));
+
+      final arabic = pw.Font.courier();
+      PdfFonts.debugScriptFontLoader = (_, {required bold}) async => arabic;
+      final theme = await PdfFonts.instance.themeFor(
+        PdfLocalization.forLanguageCode('ar'),
+      );
+
+      expect(theme.defaultTextStyle.fontNormal, same(arabic));
+    });
+
+    test('a loaded script font is fetched once per session', () async {
+      var fetches = 0;
+      PdfFonts.debugScriptFontLoader = (_, {required bold}) async {
+        fetches++;
+        return pw.Font.courier();
+      };
+
+      await PdfFonts.instance.themeFor(PdfLocalization.forLanguageCode('zh'));
+      await PdfFonts.instance.themeFor(PdfLocalization.forLanguageCode('zh'));
+
+      expect(fetches, 2, reason: 'regular and bold, once each');
+    });
 
     test('asks for a script font only for non-Latin scripts', () async {
       final requested = <String>[];

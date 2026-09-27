@@ -631,7 +631,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       dates: PdfDateFormatter(
         dateFormat: settings.dateFormat,
         timeFormat: settings.timeFormat,
-      ),
+      ).inLanguage(localization.languageCode),
       units: UnitFormatter(settings),
       // The language picked in the export sheet, or the app language when
       // the caller offered no choice (#2252). The title follows it too, so

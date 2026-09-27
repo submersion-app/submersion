@@ -51,6 +51,11 @@ class PdfExportService {
   }) async {
     final loc = localization ?? PdfLocalization.english();
     final l10n = loc.l10n;
+    // Month names and AM/PM in the report's language (#2252).
+    final localDates = dates.inLanguage(loc.languageCode);
+    // Roboto, not the built-in Helvetica: Helvetica stops at U+00FF, so a
+    // translated label such as Hungarian "Időtartam" would print boxes.
+    await PdfFonts.instance.initialize();
     final pdf = pw.Document(theme: await PdfFonts.instance.themeFor(loc));
 
     // Title page
@@ -71,7 +76,7 @@ class PdfExportService {
               ),
               pw.SizedBox(height: 20),
               pw.Text(
-                '${dates.date(trip.startDate)} - ${dates.date(trip.endDate)}',
+                '${localDates.date(trip.startDate)} - ${localDates.date(trip.endDate)}',
                 style: const pw.TextStyle(fontSize: 18),
               ),
               if (trip.location != null) ...[
@@ -140,7 +145,10 @@ class PdfExportService {
             ),
             pw.SizedBox(height: 10),
             pw.Text(
-              l10n.pdf_labelValue(l10n.pdf_date, dates.dateTime(dive.dateTime)),
+              l10n.pdf_labelValue(
+                l10n.pdf_date,
+                localDates.dateTime(dive.dateTime),
+              ),
             ),
             if (dive.site != null)
               pw.Text(l10n.pdf_labelValue(l10n.pdf_site, dive.site!.name)),
@@ -234,14 +242,16 @@ class PdfExportService {
     );
 
     final builder = _templateFor(options.template);
+    // The language picked in the export sheet (#2252). A null title lets the
+    // template head the document in that language, and dates name months in
+    // it too.
+    final localization = PdfLocalization.forLanguageCode(options.languageCode);
     final pdfBytes = await builder.buildPdf(
-      // The language picked in the export sheet (#2252). A null title lets
-      // the template head the document in that language.
       gearArrangement: gearArrangement,
       equipmentSetNamesById: equipmentSetNamesById,
       dives: dives,
       pageSize: options.pageSize,
-      dates: dates,
+      dates: dates.inLanguage(localization.languageCode),
       units: units,
       title: title,
       diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
@@ -253,7 +263,7 @@ class PdfExportService {
       diverPhoto: diverPhoto,
       includeVerificationAreas: options.includeVerificationAreas,
       diveTypesById: diveTypesById,
-      localization: PdfLocalization.forLanguageCode(options.languageCode),
+      localization: localization,
     );
 
     final fileName =

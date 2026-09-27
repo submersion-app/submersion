@@ -86,9 +86,10 @@ class PdfFonts {
   static Future<pw.Font?> Function(String languageCode, {required bool bold})?
   debugScriptFontLoader;
 
-  /// Script fonts by language code, loaded once per run. A failed load is
-  /// cached as null so an offline export does not retry on every page.
-  final Map<String, ({pw.Font regular, pw.Font? bold})?> _scriptFonts = {};
+  /// Script fonts by language code. Only a complete load is kept: a
+  /// download that failed (offline) is tried again by the next export, so
+  /// one offline export does not cost the rest of the session its script.
+  final Map<String, ({pw.Font regular, pw.Font? bold})> _scriptFonts = {};
 
   /// The theme for a PDF printed in [localization]'s language (#2252).
   ///
@@ -148,9 +149,8 @@ class PdfFonts {
       _ => null,
     };
     if (load == null) return null;
-    if (_scriptFonts.containsKey(languageCode)) {
-      return _scriptFonts[languageCode];
-    }
+    final cached = _scriptFonts[languageCode];
+    if (cached != null) return cached;
 
     Future<pw.Font?> fetch({required bool bold}) async {
       try {
@@ -163,11 +163,12 @@ class PdfFonts {
     }
 
     final regularFont = await fetch(bold: false);
-    final fonts = regularFont == null
-        ? null
-        : (regular: regularFont, bold: await fetch(bold: true));
-    // A test override is not cached, so each test sees its own loader.
-    if (debugScriptFontLoader == null) _scriptFonts[languageCode] = fonts;
+    if (regularFont == null) return null;
+    final boldFont = await fetch(bold: true);
+    final fonts = (regular: regularFont, bold: boldFont);
+    // Without the bold weight the document still prints, in the regular one;
+    // leaving it uncached lets the next export try for the bold again.
+    if (boldFont != null) _scriptFonts[languageCode] = fonts;
     return fonts;
   }
 

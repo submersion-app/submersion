@@ -39,6 +39,11 @@ class PdfCourseExportService {
   }) async {
     final loc = localization ?? PdfLocalization.english();
     final l10n = loc.l10n;
+    // Month names and AM/PM in the log's language (#2252).
+    final localDates = dates.inLanguage(loc.languageCode);
+    // Roboto, not the built-in Helvetica: Helvetica stops at U+00FF, so a
+    // translated label such as Hungarian "Időtartam" would print boxes.
+    await PdfFonts.instance.initialize();
     final pdf = pw.Document(theme: await PdfFonts.instance.themeFor(loc));
 
     // Load signatures for all training dives in one read
@@ -113,12 +118,12 @@ class PdfCourseExportService {
                     pw.SizedBox(height: 10),
                     _buildInfoRow(
                       l10n.pdf_startDate,
-                      dates.date(course.startDate),
+                      localDates.date(course.startDate),
                     ),
                     if (course.completionDate != null)
                       _buildInfoRow(
                         l10n.pdf_completionDate,
-                        dates.date(course.completionDate!),
+                        localDates.date(course.completionDate!),
                       ),
                     _buildInfoRow(
                       l10n.pdf_status,
@@ -191,7 +196,7 @@ class PdfCourseExportService {
                 (dive) => _buildDiveEntry(
                   dive,
                   diveSignatures[dive.id],
-                  dates,
+                  localDates,
                   units,
                   l10n,
                 ),

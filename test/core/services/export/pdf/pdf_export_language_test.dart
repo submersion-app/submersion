@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/pdf/pdf_export_service.dart';
@@ -23,6 +24,7 @@ import '../../../../helpers/test_database.dart';
 class _RecordingSimple extends PdfTemplateSimple {
   PdfLocalization? localization;
   String? title;
+  PdfDateFormatter? dates;
 
   @override
   Future<List<int>> buildPdf({
@@ -44,6 +46,7 @@ class _RecordingSimple extends PdfTemplateSimple {
   }) {
     this.localization = localization;
     this.title = title;
+    this.dates = dates;
     return super.buildPdf(
       dives: dives,
       pageSize: pageSize,
@@ -97,6 +100,24 @@ void main() {
       isNull,
       reason: 'the template titles the document in its own language',
     );
+  });
+
+  test('dates use the chosen language\'s month names', () async {
+    await initializeDateFormatting('fr');
+    await service.generateDivePdfBytes(
+      dives,
+      dates: PdfDateFormatter(
+        dateFormat: DateFormatPreference.mmmDYYYY,
+        timeFormat: TimeFormat.twentyFourHour,
+      ),
+      units: units,
+      options: const PdfExportOptions(
+        template: PdfTemplate.simple,
+        languageCode: 'fr',
+      ),
+    );
+
+    expect(template.dates!.date(DateTime(2026, 8, 17)), contains('août'));
   });
 
   test('no language prints English, as before', () async {

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 
 import 'package:submersion/core/services/export/models/blender_invoice_export_data.dart';
@@ -9,7 +10,16 @@ import '../../../../helpers/pdf_text.dart';
 void main() {
   late BlenderInvoicePdfExportService service;
 
-  setUp(() => service = BlenderInvoicePdfExportService());
+  // Helvetica keeps the text readable by pdfVisibleText; production embeds
+  // Roboto (asserted by the Unicode font test below).
+  setUp(
+    () => service = BlenderInvoicePdfExportService(
+      loadTheme: (_) async => pw.ThemeData.withFont(
+        base: pw.Font.helvetica(),
+        bold: pw.Font.helveticaBold(),
+      ),
+    ),
+  );
 
   BlenderInvoiceExportData data({bool incomplete = false}) =>
       BlenderInvoiceExportData(
@@ -87,5 +97,19 @@ void main() {
 
     expect(text, contains(de.l10n.pdf_blenderIncomplete));
     expect(text, isNot(contains('Incomplete')));
+  });
+
+  test('embeds a Unicode font, so Hungarian ő and ű print (#2252)', () async {
+    // Built-in Helvetica stops at U+00FF and prints a box for anything past
+    // it, which Hungarian labels such as "Időtartam" need.
+    final bytes = await BlenderInvoicePdfExportService().generateBytes(
+      data(incomplete: true),
+      localization: PdfLocalization.forLanguageCode('hu'),
+    );
+
+    expect(
+      String.fromCharCodes(bytes.map((b) => b & 0xFF)),
+      contains('FontFile'),
+    );
   });
 }
