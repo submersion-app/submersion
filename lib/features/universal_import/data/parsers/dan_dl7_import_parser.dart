@@ -171,11 +171,13 @@ class DanDl7Parser implements ImportParser {
 
   /// Which ZAR block describes which dive, keyed by the dive's index.
   ///
-  /// A block goes to the first dive not yet claimed whose start falls in the
-  /// same minute as the block's `DIVE_DT`: `ZDH` may record the start to the
-  /// minute while `DIVE_DT` carries seconds, and no two dives start within
-  /// one minute. A single-dive file takes a block that matched nothing,
-  /// since DiveCloud's one block is that dive's whatever its clock says.
+  /// A block goes to a dive not yet claimed whose start equals its
+  /// `DIVE_DT`. Blocks left over then take one whose start falls in the same
+  /// minute, since `ZDH` may record the start to the minute while `DIVE_DT`
+  /// carries seconds. Exact matches go first so that two records started
+  /// within one minute cannot swap blocks. A single-dive file takes a block
+  /// that matched nothing, since DiveCloud's one block is that dive's
+  /// whatever its clock says.
   static Map<int, AqualungZarData> _attributeZar(
     List<Dl7DiveRecord> records,
     List<AqualungZarData> zars,
@@ -184,18 +186,27 @@ class DanDl7Parser implements ImportParser {
         ? null
         : DateTime.utc(time.year, time.month, time.day, time.hour, time.minute);
 
-    final starts = [for (final record in records) minuteOf(_startOf(record))];
+    final starts = [for (final record in records) _startOf(record)];
     final byDive = <int, AqualungZarData>{};
-    for (final zar in zars) {
-      final minute = minuteOf(zar.diveDateTime);
-      if (minute == null) continue;
-      for (var i = 0; i < starts.length; i++) {
-        if (!byDive.containsKey(i) && starts[i] == minute) {
-          byDive[i] = zar;
-          break;
+    final claimed = Set<AqualungZarData>.identity();
+
+    void claim(DateTime? Function(DateTime? time) key) {
+      for (final zar in zars) {
+        if (claimed.contains(zar)) continue;
+        final target = key(zar.diveDateTime);
+        if (target == null) continue;
+        for (var i = 0; i < starts.length; i++) {
+          if (!byDive.containsKey(i) && key(starts[i]) == target) {
+            byDive[i] = zar;
+            claimed.add(zar);
+            break;
+          }
         }
       }
     }
+
+    claim((time) => time);
+    claim(minuteOf);
 
     if (records.length == 1 && byDive.isEmpty && zars.isNotEmpty) {
       byDive[0] = zars.first;

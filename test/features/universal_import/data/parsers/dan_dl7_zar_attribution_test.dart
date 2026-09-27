@@ -139,6 +139,21 @@ void main() {
       expect(unresolved(payload), isEmpty);
     });
 
+    test('prefers an exact start over a same-minute one', () async {
+      // Two records in one minute: the block for 10:00:30 comes first and
+      // would take the 10:00:00 dive if the minute alone decided.
+      final payload = await parse([
+        zar(diveDt: '20240301100030', rating: 5),
+        zar(diveDt: '20240301100000', rating: 3),
+        dive(1, '20240301100000'),
+        dive(2, '20240301100030'),
+      ]);
+
+      final dives = divesOf(payload);
+      expect(dives[0]['rating'], 3);
+      expect(dives[1]['rating'], 5);
+    });
+
     test(
       'gives each dive its own block when the file has one per dive',
       () async {
