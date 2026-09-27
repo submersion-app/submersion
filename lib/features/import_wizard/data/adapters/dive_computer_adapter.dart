@@ -418,8 +418,40 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     ];
   }
 
+  /// Retries a computer save that failed on the download step (issue #2439).
+  ///
+  /// The download step lets the diver past that failure, so the adapter can
+  /// reach [buildBundle] and [performImport] with no computer record. Returns
+  /// the error when the retry fails too, and null when there was nothing to
+  /// retry or the save now succeeded.
+  Future<Object?> _retryPendingComputerSave() async {
+    final pending = _pendingComputerSave;
+    if (computer != null || pending == null) return null;
+    try {
+      await ensureComputer(
+        device: pending.device,
+        serialNumber: pending.serialNumber,
+        firmwareVersion: pending.firmwareVersion,
+      );
+      return null;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Could not save ${pending.device.displayName} after its download',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return e;
+    }
+  }
+
   @override
   Future<ImportBundle> buildBundle() async {
+    // Resolve the computer before the bundle records its id: duplicate
+    // detection runs on this bundle next and keys its same-computer checks
+    // (contained segments, cross-computer consolidation) on that id. A
+    // failure here is left for performImport to retry and report.
+    await _retryPendingComputerSave();
+
     final items = _downloadedDives.map(_diveToEntityItem).toList();
 
     final cutoff = _sinceCutoff;
@@ -538,29 +570,16 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     ImportProgressCallback? onProgress,
     ImportCancellationToken? cancelToken,
   }) async {
-    // The download step lets the diver past a failed computer save (issue
-    // #2439), so try once more here before giving up on the import.
-    final pending = _pendingComputerSave;
-    if (computer == null && pending != null) {
-      try {
-        await ensureComputer(
-          device: pending.device,
-          serialNumber: pending.serialNumber,
-          firmwareVersion: pending.firmwareVersion,
-        );
-      } catch (e, stackTrace) {
-        _log.error(
-          'Could not save ${pending.device.displayName} before import',
-          error: e,
-          stackTrace: stackTrace,
-        );
-        return UnifiedImportResult(
-          importedCounts: const {},
-          consolidatedCount: 0,
-          skippedCount: 0,
-          errorMessage: 'Could not save the dive computer: $e',
-        );
-      }
+    // Last chance for a computer save that failed on the download step and
+    // again in buildBundle: the import cannot run without the record.
+    final saveError = await _retryPendingComputerSave();
+    if (saveError != null) {
+      return UnifiedImportResult(
+        importedCounts: const {},
+        consolidatedCount: 0,
+        skippedCount: 0,
+        errorMessage: 'Could not save the dive computer: $saveError',
+      );
     }
 
     final comp = computer;

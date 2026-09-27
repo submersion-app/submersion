@@ -1643,6 +1643,47 @@ void main() {
       );
     });
 
+    // Duplicate detection runs on the bundle before import and keys its
+    // same-computer checks on the computer id, so the retry has to land
+    // before the bundle is built, not only at import.
+    test('resolves the computer before building the bundle', () async {
+      final createdComputer = makeComputer(id: 'new-computer-id');
+      var attempts = 0;
+      when(mockComputerRepo.createComputer(any)).thenAnswer((_) async {
+        attempts++;
+        if (attempts == 1) throw StateError('database is locked');
+        return createdComputer;
+      });
+
+      await expectLater(
+        discoveryAdapter.ensureComputer(device: device),
+        throwsStateError,
+      );
+
+      discoveryAdapter.setDownloadedDives([makeDownloadedDive()]);
+      final bundle = await discoveryAdapter.buildBundle();
+
+      expect(bundle.source.currentComputerId, equals('new-computer-id'));
+      expect(discoveryAdapter.computer, equals(createdComputer));
+    });
+
+    test('still builds the bundle when the retry fails', () async {
+      when(
+        mockComputerRepo.createComputer(any),
+      ).thenThrow(StateError('database is locked'));
+
+      await expectLater(
+        discoveryAdapter.ensureComputer(device: device),
+        throwsStateError,
+      );
+
+      discoveryAdapter.setDownloadedDives([makeDownloadedDive()]);
+      final bundle = await discoveryAdapter.buildBundle();
+
+      expect(bundle.source.currentComputerId, isNull);
+      expect(bundle.groups[ImportEntityType.dives]?.items, hasLength(1));
+    });
+
     test('retries the save and imports when it succeeds', () async {
       final createdComputer = makeComputer(id: 'new-computer-id');
       var attempts = 0;
@@ -1707,7 +1748,8 @@ void main() {
 
       expect(result.errorMessage, contains('database is locked'));
       expect(result.importedCounts, isEmpty);
-      verify(mockComputerRepo.createComputer(any)).called(2);
+      // The download step, the bundle build and the import each tried.
+      verify(mockComputerRepo.createComputer(any)).called(3);
       verifyNever(
         mockImportService.importSingleDiveAsNew(
           any,
