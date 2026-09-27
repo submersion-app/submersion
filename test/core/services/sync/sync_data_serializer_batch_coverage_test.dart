@@ -157,6 +157,7 @@ void main() {
           (type: 'tankPresets', table: db.tankPresets.actualTableName),
           (type: 'diveComputers', table: db.diveComputers.actualTableName),
           (type: 'cylinderFills', table: db.cylinderFills.actualTableName),
+          (type: 'savedQueries', table: db.savedQueries.actualTableName),
           (
             type: 'mediaSmartAlbums',
             table: db.mediaSmartAlbums.actualTableName,

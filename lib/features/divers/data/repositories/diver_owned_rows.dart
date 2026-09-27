@@ -58,6 +58,12 @@ const List<_OwnedTable> _ownedTables = [
     children: [],
   ),
   (
+    table: 'saved_queries',
+    entityType: 'savedQueries',
+    hasBuiltIns: false,
+    children: [],
+  ),
+  (
     table: 'dive_roles',
     entityType: 'diveRoles',
     hasBuiltIns: true,

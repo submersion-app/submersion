@@ -140,7 +140,13 @@ void main() {
         await tester.pumpAndSettle();
 
         // Every section starts collapsed, so the buddy controls are not in the
-        // tree until Social is opened.
+        // tree until Social is opened. The Query section above the others
+        // pushes Social below the fold of the test viewport.
+        await tester.scrollUntilVisible(
+          find.text('Social'),
+          100,
+          scrollable: find.byType(Scrollable).first,
+        );
         await tester.tap(find.text('Social'));
         await tester.pumpAndSettle();
 

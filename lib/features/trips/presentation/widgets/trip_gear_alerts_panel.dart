@@ -1,10 +1,9 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
-import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_scrubber_margin_details.dart';
@@ -27,8 +26,8 @@ typedef _Section = ({
   Widget details,
 });
 
-/// The gear alerts pinned above a trip: service falling due before the
-/// trip ends, and the scrubber margin on each rebreather.
+/// The gear alerts pinned above a trip that has not ended: service falling
+/// due before the trip ends, and the scrubber margin on each rebreather.
 ///
 /// It opens collapsed to a single line and expands on tap. Each alert used
 /// to sit above the page in full, and on a phone together they took half
@@ -65,6 +64,12 @@ class _TripGearAlertsPanelState extends ConsumerState<TripGearAlertsPanel> {
 
   @override
   Widget build(BuildContext context) {
+    // Both sections plan for a trip still ahead: service falling due before
+    // it ends, absorbent to last it. A trip already dived has nothing left
+    // to plan, and today's gear and service state say nothing about it
+    // (#2485). Checked before any provider is watched, so a past trip
+    // computes nothing either.
+    if (widget.trip.endsBefore(clock.now())) return const SizedBox.shrink();
     final sections = [?_serviceSection(), ?_scrubberSection()];
     if (sections.isEmpty) return const SizedBox.shrink();
     final l10n = context.l10n;
@@ -174,14 +179,10 @@ class _TripGearAlertsPanelState extends ConsumerState<TripGearAlertsPanel> {
     );
   }
 
-  /// Gear whose service falls due before an upcoming or in-progress trip
-  /// ends. A past trip has none: today's service state says nothing about
-  /// a trip already dived.
+  /// Gear whose service falls due before the trip ends.
   _Section? _serviceSection() {
-    final trip = widget.trip;
-    if (!trip.isUpcoming && !trip.isInProgress) return null;
     final alerts =
-        ref.watch(tripServiceAlertsProvider(trip.id)).value ??
+        ref.watch(tripServiceAlertsProvider(widget.trip.id)).value ??
         const <DueClock>[];
     if (alerts.isEmpty) return null;
     final count = context.l10n.trips_serviceAlert_count(
@@ -203,20 +204,12 @@ class _TripGearAlertsPanelState extends ConsumerState<TripGearAlertsPanel> {
   /// The scrubber margin on each active rebreather. A comfortable margin
   /// is information, not a warning; one under 20 percent is an alert.
   _Section? _scrubberSection() {
-    final trip = widget.trip;
     final margins =
-        ref.watch(tripScrubberMarginsProvider(trip.id)).value ?? const [];
+        ref.watch(tripScrubberMarginsProvider(widget.trip.id)).value ??
+        const [];
     if (margins.isEmpty) return null;
     final l10n = context.l10n;
-    // One clock read: the two getters each read it, and a build crossing
-    // midnight between them could misclassify a trip that just ended.
-    final isPast = trip.endsBefore(DateTime.now());
-    final title = tripScrubberMarginTitle(
-      l10n,
-      UnitFormatter(ref.watch(settingsProvider)),
-      trip,
-      isPast: isPast,
-    );
+    final title = l10n.trips_scrubber_title;
     return (
       // With no unit rated there is no margin to summarise, so the line
       // names the section and the details carry the no-rating hint.
@@ -226,7 +219,7 @@ class _TripGearAlertsPanelState extends ConsumerState<TripGearAlertsPanel> {
       severity: margins.any((m) => m.caution)
           ? _Severity.alert
           : _Severity.info,
-      details: TripScrubberMarginDetails(margins: margins, isPast: isPast),
+      details: TripScrubberMarginDetails(margins: margins),
     );
   }
 }

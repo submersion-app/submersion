@@ -1,3 +1,4 @@
+import 'package:submersion/core/query/domain/query_error_code.dart';
 import 'package:meta/meta.dart';
 
 import 'package:submersion/core/query/domain/query_errors.dart';
@@ -65,7 +66,7 @@ PathResolution resolvePath(
 ) {
   if (path.segments.isEmpty) {
     return const PathResolution(
-      error: QueryError('empty path'),
+      error: QueryError(QueryErrorCode.emptyPath),
       errorSegment: 0,
     );
   }
@@ -82,9 +83,9 @@ PathResolution resolvePath(
           hops: hops,
           entities: entities,
           error: QueryError(
-            '"$seg" is a field and cannot be followed by '
-            '".${path.segments[i + 1]}"',
+            QueryErrorCode.fieldNotPath,
             path: path,
+            args: {'name': seg, 'next': path.segments[i + 1]},
           ),
           errorSegment: i + 1,
         );
@@ -97,9 +98,10 @@ PathResolution resolvePath(
         hops: hops,
         entities: entities,
         error: QueryError(
-          'unknown field "$seg"',
+          QueryErrorCode.unknownField,
           path: path,
           suggestions: suggestNames(seg, current.segmentNames),
+          args: {'name': seg},
         ),
         errorSegment: i,
       );
@@ -110,8 +112,9 @@ PathResolution resolvePath(
         hops: hops,
         entities: entities,
         error: QueryError(
-          'a path may cross at most $kMaxPathHops relations',
+          QueryErrorCode.pathTooLong,
           path: path,
+          args: {'max': '$kMaxPathHops'},
         ),
         errorSegment: i,
       );
