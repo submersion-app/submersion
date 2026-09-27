@@ -248,7 +248,7 @@ every path. The whole-suite bundled run is what proves the suite is safe.
 existing script conventions (standard library only, `unittest`, run by the
 Script Tests job with coverage). Compatible with Python 3.9.
 
-```
+```bash
 python3 scripts/bundle_tests.py --shard 2 --total-shards 6 --out test/.bundles
 ```
 

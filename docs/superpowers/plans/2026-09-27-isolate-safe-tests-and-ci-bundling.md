@@ -744,7 +744,7 @@ Expected: about 48 lines (41 bundles and 7 files that run alone; the count moves
 
 Append to `.gitignore`:
 
-```
+```text
 # Test bundles, generated per run by scripts/bundle_tests.py (issue #2500)
 test/.bundles/
 ```
@@ -1513,7 +1513,7 @@ Expected: `All tests passed!`
 Run: `flutter test test/architecture/test_global_state_restored_test.dart`
 Expected: FAIL in `every allowlisted file still needs its entry`, listing exactly these seven:
 
-```
+```text
 test/features/data_quality/data/quality_scan_service_test.dart
 test/features/data_quality/presentation/data_quality_inbox_page_test.dart
 test/features/data_quality/presentation/quality_inbox_providers_test.dart
@@ -1770,7 +1770,7 @@ Run the command from Step 1 once more. Expected: `+24: All tests passed!`
 Run: `flutter test test/architecture/test_global_state_restored_test.dart`
 Expected: FAIL in `every allowlisted file still needs its entry`, listing exactly:
 
-```
+```text
 test/features/media/presentation/media_selection_test.dart
 test/features/media/presentation/media_share_helper_test.dart
 ```
