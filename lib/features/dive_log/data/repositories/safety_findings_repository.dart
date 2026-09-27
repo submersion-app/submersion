@@ -99,16 +99,29 @@ class SafetyFindingsRepository {
           ),
       ]);
 
+      // The stored row each computed finding keeps, decided before any
+      // metadata moves between rows.
+      final keptRows = [
+        for (var i = 0; i < review.findings.length; i++)
+          storedByKey[computedKeys[i]],
+      ];
+      final keptIds = {
+        for (final r in keptRows)
+          if (r != null) r.id,
+      };
+
       // Two devices that reviewed a dive before ids were deterministic left
       // the same finding under two random ids. The diff keeps one (the
-      // lowest id, so every device keeps the same one) and drops the other;
-      // a dismissal made on either survives on the one kept.
-      final dismissedBySpan = <(String, int?, int?), int>{};
+      // lowest id, so every device keeps the same one) and drops the other,
+      // and a dismissal made on the dropped copy moves to the kept one. Only
+      // from a copy of the same finding (rule, span, value and severity): a
+      // separate finding that happens to share the span keeps its own state.
+      final droppedDismissals = <(String, int?, int?, double?, String), int>{};
       for (final r in known) {
         final at = r.dismissedAt;
-        if (at == null) continue;
-        dismissedBySpan.update(
-          (r.ruleId, r.startTimestamp, r.endTimestamp),
+        if (at == null || keptIds.contains(r.id)) continue;
+        droppedDismissals.update(
+          (r.ruleId, r.startTimestamp, r.endTimestamp, r.value, r.severity),
           (earliest) => at < earliest ? at : earliest,
           ifAbsent: () => at,
         );
@@ -122,7 +135,7 @@ class SafetyFindingsRepository {
       final insertSlots = <int>[];
       for (var i = 0; i < review.findings.length; i++) {
         final computed = review.findings[i];
-        final old = storedByKey[computedKeys[i]];
+        final old = keptRows[i];
         if (old == null) {
           inserts.add(computed);
           insertSlots.add(persisted.length);
@@ -132,7 +145,13 @@ class SafetyFindingsRepository {
         matched.add(old.id);
         final dismissedAt =
             old.dismissedAt ??
-            dismissedBySpan[(old.ruleId, old.startTimestamp, old.endTimestamp)];
+            droppedDismissals[(
+              old.ruleId,
+              old.startTimestamp,
+              old.endTimestamp,
+              old.value,
+              old.severity,
+            )];
         persisted.add(
           SafetyFinding(
             id: old.id,

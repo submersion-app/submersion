@@ -464,6 +464,42 @@ void main() {
     });
   });
 
+  test(
+    'a dismissal stays on its own finding, not every one on its span',
+    () async {
+      await repo.saveReview(
+        SafetyReview(
+          diveId: 'dive-1',
+          engineVersion: 1,
+          reviewedAt: now,
+          findings: [
+            finding('low').copyWith(value: 10),
+            finding('high').copyWith(value: 20),
+          ],
+        ),
+      );
+      await repo.setDismissed(findingId: 'high', dismissed: true, now: now);
+
+      await repo.saveReview(
+        SafetyReview(
+          diveId: 'dive-1',
+          engineVersion: 2,
+          reviewedAt: now,
+          findings: [
+            finding('x').copyWith(value: 10),
+            finding('y').copyWith(value: 20),
+          ],
+        ),
+      );
+
+      final dismissed = {
+        for (final f in (await repo.getReview('dive-1'))!.findings)
+          f.id: f.isDismissed,
+      };
+      expect(dismissed, {'low': false, 'high': true});
+    },
+  );
+
   group('two findings on one span', () {
     SafetyFinding at(String id, double value) =>
         finding(id).copyWith(value: value);
