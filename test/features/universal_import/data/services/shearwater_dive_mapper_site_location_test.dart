@@ -108,6 +108,44 @@ void main() {
       expect(sites.single.containsKey('longitude'), isFalse);
     });
 
+    test('a later dive\'s usable fix fills a site the first dive left '
+        'without one', () {
+      final sites = ShearwaterDiveMapper.mapSites([
+        rawDive(
+          diveId: 'd1',
+          site: 'Maclearie Park',
+          gnssEntryLocation: '0, 0',
+        ),
+        rawDive(
+          diveId: 'd2',
+          site: 'Maclearie Park',
+          gnssEntryLocation: '40.1900, -74.0300',
+        ),
+      ]);
+
+      expect(sites, hasLength(1));
+      expect(sites.single['latitude'], 40.19);
+      expect(sites.single['longitude'], -74.03);
+    });
+
+    test('a later dive does not move a site that already has a fix', () {
+      final sites = ShearwaterDiveMapper.mapSites([
+        rawDive(
+          diveId: 'd1',
+          site: 'Maclearie Park',
+          gnssEntryLocation: '40.1900, -74.0300',
+        ),
+        rawDive(
+          diveId: 'd2',
+          site: 'Maclearie Park',
+          gnssEntryLocation: '40.2500, -74.1000',
+        ),
+      ]);
+
+      expect(sites.single['latitude'], 40.19);
+      expect(sites.single['longitude'], -74.03);
+    });
+
     test('an off-globe pair is not written onto the site', () {
       final sites = ShearwaterDiveMapper.mapSites([
         rawDive(site: 'Maclearie Park', gnssEntryLocation: '91.5, -74.03'),
