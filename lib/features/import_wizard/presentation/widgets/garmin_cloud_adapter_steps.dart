@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -381,9 +383,11 @@ class _GarminCloudSignInStepState extends ConsumerState<GarminCloudSignInStep> {
 /// Fetch step for the Garmin Connect import wizard.
 ///
 /// Lists every diving/apnea activity, then downloads and parses each page's
-/// FIT files, a few at a time. A single dive's fetch/parse failure is skipped
-/// rather than aborting the whole fetch, matching how a single corrupt file
-/// is handled elsewhere in the import pipeline. Paging, Fetch All, retrying
+/// FIT files, a few at a time. A dive Connect has no FIT file for is built
+/// from its activity summary instead, with no profile. Any other single
+/// dive's fetch/parse failure is skipped rather than aborting the whole
+/// fetch, matching how a single corrupt file is handled elsewhere in the
+/// import pipeline. Paging, Fetch All, retrying
 /// the skipped dives and the selection list live in [CloudImportFetchStep].
 class GarminCloudFetchStep extends StatelessWidget {
   const GarminCloudFetchStep({
@@ -423,18 +427,36 @@ class GarminCloudFetchStep extends StatelessWidget {
         var completed = 0;
 
         Future<void> downloadOne(int i) async {
+          final summary = page[i];
           try {
-            final activityId = page[i].activityId;
-            final bytes = await client!.downloadActivityFit(activityId);
+            // An activity entered by hand in Connect has no FIT file, so it
+            // is imported from its summary without asking (issue #2410).
+            if (summary.isManual) {
+              results[i] = GarminDiveMapper.fromSummary(summary);
+              return;
+            }
+            final Uint8List bytes;
+            try {
+              bytes = await client!.downloadActivityFit(summary.activityId);
+            } on GarminNoFitException {
+              // Garmin's final answer, not a fault worth retrying. A failed
+              // download of any other kind stays a failure the diver can
+              // try again, so a bad connection never costs a dive its
+              // profile.
+              results[i] = GarminDiveMapper.fromSummary(summary);
+              return;
+            }
             final imported = await _fitParser.parseFitFile(bytes);
             if (imported != null) {
               results[i] = GarminDiveMapper.map(
                 imported,
-                activityId: activityId,
-                fallbackLatitude: page[i].latitude,
-                fallbackLongitude: page[i].longitude,
-                fallbackExitLatitude: page[i].exitLatitude,
-                fallbackExitLongitude: page[i].exitLongitude,
+                activityId: summary.activityId,
+                fallbackLatitude: summary.latitude,
+                fallbackLongitude: summary.longitude,
+                fallbackExitLatitude: summary.exitLatitude,
+                fallbackExitLongitude: summary.exitLongitude,
+                notes: summary.notes,
+                weightKg: summary.weightKg,
               );
             }
           } catch (_) {

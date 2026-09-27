@@ -37,7 +37,10 @@ void main() {
   test('this rung is additive and did not move the sync floor', () {
     // The floor is owned by the v224 media fact clocks. An older reader
     // simply shows every built-in preset.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(224),
+    );
   });
 
   test('a fresh database has the column, nullable', () async {

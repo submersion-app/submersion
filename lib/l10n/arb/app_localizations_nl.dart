@@ -2246,7 +2246,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_detail_label_agency => 'Organisatie';
 
   @override
-  String get certifications_detail_label_alsoRecognized => 'Also recognized as';
+  String get certifications_detail_label_alsoRecognized => 'Ook erkend als';
 
   @override
   String get certifications_detail_label_cardNumber => 'Kaartnummer';
@@ -2366,7 +2366,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String certifications_ecard_alsoRecognized(String recognitions) {
-    return 'Also: $recognitions';
+    return 'Ook: $recognitions';
   }
 
   @override
@@ -2471,10 +2471,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_edit_label_agency => 'Organisatie *';
 
   @override
-  String get certifications_edit_addRecognition => 'Add another recognition';
+  String get certifications_edit_addRecognition =>
+      'Nog een erkenning toevoegen';
 
   @override
-  String get certifications_edit_removeRecognition => 'Remove this recognition';
+  String get certifications_edit_removeRecognition =>
+      'Deze erkenning verwijderen';
 
   @override
   String get certifications_edit_label_cardNumber => 'Kaartnummer';
@@ -5221,7 +5223,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_combine_longSurfaceWarning =>
-      'Een of meer oppervlakte-intervallen zijn langer dan 30 minuten. Dit kunnen aparte duiken zijn in plaats van één doorlopende duik.';
+      'Eén of meer oppervlakte-intervallen zijn langer dan 30 minuten. Dit kunnen aparte duiken zijn in plaats van één doorlopende duik.';
 
   @override
   String get diveLog_combine_mixedDivers =>
@@ -5601,7 +5603,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_detail_label_surfacePressure => 'Oppervlaktedruk';
 
   @override
-  String get diveLog_detail_label_swellHeight => 'Deiningsahoogte';
+  String get diveLog_detail_label_swellHeight => 'Deiningshoogte';
 
   @override
   String get diveLog_detail_label_total => 'Totaal:';
@@ -15509,7 +15511,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_billedIncomplete =>
-      'Een of meer regels hebben geen prijs, dus dit totaal is onvolledig.';
+      'Eén of meer regels hebben geen prijs, dus dit totaal is onvolledig.';
 
   @override
   String get gasCalculators_blender_billedTotal => 'Totaal';
@@ -16345,7 +16347,7 @@ class AppLocalizationsNl extends AppLocalizations {
       other:
           '$count daarvan hebben een bijschrift of favoriet opgeslagen in Submersion, en die details gaan verloren.',
       one:
-          'Een daarvan heeft een bijschrift of favoriet opgeslagen in Submersion, en die details gaan verloren.',
+          'Eén daarvan heeft een bijschrift of favoriet opgeslagen in Submersion, en die details gaan verloren.',
     );
     return '$_temp0';
   }
@@ -18092,7 +18094,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_appearance_diveDetails_sectionOrderVisibility =>
-      'Sectievolgorde &amp; zichtbaarheid';
+      'Sectievolgorde & zichtbaarheid';
 
   @override
   String get settings_appearance_diveDetails_sectionOrderVisibility_subtitle =>
@@ -18100,7 +18102,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_diveDetailSections_title =>
-      'Sectievolgorde &amp; zichtbaarheid';
+      'Sectievolgorde & zichtbaarheid';
 
   @override
   String get settings_diveDetailSections_resetToDefault =>
@@ -21356,7 +21358,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get insights_conditions_entryMethod_empty =>
-      'Geen gegevens over instaptmethode beschikbaar';
+      'Geen gegevens over instapmethode beschikbaar';
 
   @override
   String get insights_conditions_entryMethod_error =>
@@ -23698,7 +23700,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get transfer_export_excelSubtitle =>
-      'Alle gegevens in een bestand (duiken, stekken, uitrusting, statistieken)';
+      'Alle gegevens in één bestand (duiken, stekken, uitrusting, statistieken)';
 
   @override
   String get transfer_export_excelTitle => 'Excel-werkmap';
@@ -26498,7 +26500,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveImport_fit_noDivesDescription =>
-      'Selecteer een of meer .fit-bestanden die zijn geëxporteerd vanuit Garmin Connect of gekopieerd van een Garmin Descent-apparaat.';
+      'Selecteer één of meer .fit-bestanden die zijn geëxporteerd vanuit Garmin Connect of gekopieerd van een Garmin Descent-apparaat.';
 
   @override
   String get diveImport_fit_noDivesLoaded => 'Geen duiken geladen';
@@ -26552,7 +26554,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveImport_healthkit_accessDescription =>
-      'Submersion uses Apple HealthKit to read underwater diving workout data, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+      'Submersion gebruikt Apple HealthKit om gegevens van onderwaterduiktrainingen te lezen, inclusief diepte, duur, watertemperatuur en hartslag, en daarmee gedetailleerde duiklogs te maken.';
 
   @override
   String get diveImport_healthkit_accessRequired => 'Apple HealthKit';
@@ -26921,7 +26923,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_rockBottom_aboutDescription =>
-      'Rock bottom is de minimale gasreserve voor een noodopstijging terwijl je lucht deelt met je buddy.\n\n• Gebruikt verhoogde RMV-waarden (2-3x normaal)\n• Gaat ervan uit dat beide duikers op een fles zitten\n• Inclusief veiligheidsstop indien ingeschakeld\n\nKeer de duik altijd om VOOR je rock bottom bereikt!';
+      'Rock bottom is de minimale gasreserve voor een noodopstijging terwijl je lucht deelt met je buddy.\n\n• Gebruikt verhoogde RMV-waarden (2-3x normaal)\n• Gaat ervan uit dat beide duikers op één fles zitten\n• Inclusief veiligheidsstop indien ingeschakeld\n\nKeer de duik altijd om VOOR je rock bottom bereikt!';
 
   @override
   String get gasCalculators_rockBottom_aboutTitle => 'Over Rock Bottom';
@@ -27776,11 +27778,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get tools_weight_yourWeight => 'Jouw gewicht';
 
   @override
-  String get settings_section_dataSources_title => 'Data Sources';
+  String get settings_section_dataSources_title => 'Apple HealthKit';
 
   @override
   String get settings_section_dataSources_subtitle =>
-      'Connected services & integrations';
+      'Integratie van gezondheidsgegevens';
 
   @override
   String get settings_siteMatch_title => 'Automatisch stekken koppelen';
@@ -27807,7 +27809,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_siteMatch_relaxed => 'Soepel';
 
   @override
-  String get settings_dataSources_header => 'Data Sources';
+  String get settings_dataSources_header => 'Apple HealthKit-integratie';
 
   @override
   String get settings_dataSources_appleHealth_title => 'Apple Health';
@@ -27818,7 +27820,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_description =>
-      'Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+      'Submersion gebruikt Apple HealthKit om gegevens van onderwaterduiktrainingen uit Apple Health te lezen. Met deze gegevens worden gedetailleerde duiklogs gemaakt van uw duiken met de Apple Watch.';
 
   @override
   String get settings_dataSources_appleHealth_dataTypesHeader =>
@@ -27846,11 +27848,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_importAction =>
-      'Import from Apple Watch';
+      'Duiken importeren van de Apple Watch via HealthKit';
 
   @override
   String get settings_dataSources_appleHealth_privacy =>
-      'Your health data is stored locally and is never shared with third parties.';
+      'Uw gezondheidsgegevens worden lokaal op dit apparaat opgeslagen en nooit gedeeld met derden. Submersion leest alleen gegevens uit Apple HealthKit en schrijft geen gegevens terug naar HealthKit.';
 
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
@@ -27858,7 +27860,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_dataSources_noSources =>
-      'No data source integrations are available on this platform.';
+      'Er zijn geen databronintegraties beschikbaar op dit platform.';
 
   @override
   String get diveLog_edit_section_environment => 'Omgeving';
@@ -29308,24 +29310,24 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dive3d_seascape_detailLimitReached =>
-      'This is the most detail available for this location';
+      'Dit is het hoogste detailniveau dat voor deze locatie beschikbaar is';
 
   @override
   String dive3d_seascape_lodStageLabel(String stage, String span) {
-    return 'Level of detail: $stage ($span)';
+    return 'Detailniveau: $stage ($span)';
   }
 
   @override
-  String get dive3d_seascape_lodStageOverview => 'Overview';
+  String get dive3d_seascape_lodStageOverview => 'Overzicht';
 
   @override
-  String get dive3d_seascape_lodStageMedium => 'Medium';
+  String get dive3d_seascape_lodStageMedium => 'Gemiddeld';
 
   @override
-  String get dive3d_seascape_lodStageFine => 'Fine';
+  String get dive3d_seascape_lodStageFine => 'Fijn';
 
   @override
-  String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
+  String get dive3d_seascape_lodStageSuperFine => 'Zeer fijn';
 
   @override
   String get dive3d_seascape_noData =>
@@ -37645,7 +37647,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Palingvormige luchtademende vis met draadvormige vinnen die droogtes overleeft in een moddercocon.';
 
   @override
-  String get species_electric_catfish_name => 'Sidderemeerval';
+  String get species_electric_catfish_name => 'Siddermeerval';
 
   @override
   String get species_electric_catfish_desc =>
@@ -42919,7 +42921,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeUnknownTransmitterBody =>
-      'Een of meer zenders in deze download zijn niet aan een fles toegewezen. Wijs ze toe zodat toekomstige downloads de juiste inhoud en rol krijgen.';
+      'Eén of meer zenders in deze download zijn niet aan een fles toegewezen. Wijs ze toe zodat toekomstige downloads de juiste inhoud en rol krijgen.';
 
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
