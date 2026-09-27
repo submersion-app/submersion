@@ -10,7 +10,7 @@ import 'package:submersion/features/cylinder_passports/presentation/widgets/pass
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-final _log = LoggerService.forClass(PassportResolver);
+const _log = LoggerService('scanCylinderTag');
 
 /// Resolves [text] against the active diver's cylinders.
 Future<PassportResolution> resolveScannedTag(WidgetRef ref, String text) async {

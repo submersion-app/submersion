@@ -74,7 +74,21 @@ class PassportLinkDispatcher {
     final pending = _pending;
     if (!ready || pending == null) return;
     _pending = null;
-    unawaited(_open(pending));
+    _openContained(pending);
+  }
+
+  /// Opens [text] without letting a failure escape as an unhandled error:
+  /// the link is logged and the next one still opens.
+  void _openContained(String text) {
+    unawaited(
+      _open(text).catchError((Object e, StackTrace stackTrace) {
+        _log.error(
+          'Failed to open an incoming link',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }),
+    );
   }
 
   void _onLink(String text) {
@@ -90,7 +104,7 @@ class PassportLinkDispatcher {
     _lastText = text;
     _lastAt = now;
     if (_ready) {
-      unawaited(_open(text));
+      _openContained(text);
     } else {
       _pending = text;
     }

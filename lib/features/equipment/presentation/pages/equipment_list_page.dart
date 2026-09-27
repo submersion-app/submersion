@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/scan_tag_menu_entries.dart';
@@ -306,7 +308,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         icon: Icon(Icons.more_vert, size: iconSize),
         onSelected: (value) {
           if (value == scanTagMenuValue) {
-            scanAndOpenCylinderTag(context, ref);
+            unawaited(scanAndOpenCylinderTag(context, ref));
           } else if (value == _selectMenuValue) {
             onSelect?.call();
           } else if (value.startsWith('view_')) {

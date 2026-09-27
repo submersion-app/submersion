@@ -151,7 +151,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     _linkRouter.routeInformationProvider.removeListener(
       _updatePassportLinkReady,
     );
-    _passportLinks.dispose();
+    unawaited(_passportLinks.dispose());
     _fileShareHandler.dispose();
     _lifecycleListener.dispose();
     WidgetsBinding.instance.removeObserver(this);

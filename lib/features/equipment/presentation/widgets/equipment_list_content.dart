@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -467,7 +469,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                       icon: const Icon(Icons.more_vert),
                       onSelected: (value) {
                         if (value == scanTagMenuValue) {
-                          scanAndOpenCylinderTag(context, ref);
+                          unawaited(scanAndOpenCylinderTag(context, ref));
                           return;
                         }
                         if (value.startsWith('view_')) {
@@ -868,7 +870,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           padding: dense ? EdgeInsets.zero : const EdgeInsets.all(8),
           onSelected: (value) {
             if (value == scanTagMenuValue) {
-              scanAndOpenCylinderTag(context, ref);
+              unawaited(scanAndOpenCylinderTag(context, ref));
               return;
             }
             if (value.startsWith('view_')) {

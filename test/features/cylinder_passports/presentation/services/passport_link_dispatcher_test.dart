@@ -104,4 +104,24 @@ void main() {
     await send(broken);
     expect(opened, [broken]);
   });
+
+  test('an open that fails is contained, and later links still open', () async {
+    var calls = 0;
+    final failing = PassportLinkDispatcher(
+      source: source,
+      open: (text) async {
+        calls++;
+        if (calls == 1) throw StateError('navigator gone');
+        opened.add(text);
+      },
+      clock: () => now,
+    )..start();
+    addTearDown(failing.dispose);
+    failing.setReady(true);
+    await send(tag);
+    now = now.add(const Duration(seconds: 5));
+    await send(tag);
+    expect(calls, 2);
+    expect(opened, contains(tag));
+  });
 }
