@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/router/app_router.dart';
+import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_template_edit_page.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_templates_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_search_page.dart';
@@ -194,7 +195,7 @@ void main() {
     test('connections lives under Insights and accepts query params', () {
       final routes = router.configuration.routes;
       expect(_findRouteByName(routes, 'connections'), isNotNull);
-      expect(_locationOfRoute(routes, 'connections'), '/insights/connections');
+      expect(_locationOfRoute(routes, 'connections'), kConnectionsLocation);
       final match = router.configuration.findMatch(
         Uri.parse('/insights/connections?mode=around&focus=buddy:abc'),
       );

@@ -2,15 +2,23 @@ import 'package:flutter/material.dart';
 
 /// Curated per-feature-area accent colors, exposed as a [ThemeExtension] so
 /// lookups resolve against the active theme brightness and animate across
-/// theme changes. Keys are the stable `NavDestination.id` strings plus
-/// `settings-<sectionId>` entries for the settings root sections. A missing
-/// key means "no accent" -- callers fall back to the ambient icon color.
+/// theme changes. Keys are the stable `NavDestination.id` strings, plus
+/// `settings-<sectionId>` entries for the settings root sections, plus
+/// `connections` for the Connections explorer (reached from Insights rather
+/// than the nav). A missing key means "no accent" -- callers fall back to the
+/// ambient icon color.
 class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
   const FeatureAccentColors({required this.colors});
 
   final Map<String, Color> colors;
 
   Color? of(String featureId) => colors[featureId];
+
+  /// The palette [theme] carries, or the built-in one for its brightness
+  /// when the theme has no extension.
+  static FeatureAccentColors resolve(ThemeData theme) =>
+      theme.extension<FeatureAccentColors>() ??
+      (theme.brightness == Brightness.dark ? dark : light);
 
   static const FeatureAccentColors light = FeatureAccentColors(
     colors: {

@@ -4,6 +4,7 @@ import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
+import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_action.dart';
@@ -29,6 +30,18 @@ class InsightsCategory {
     required this.color,
     this.route,
   });
+
+  /// Where tapping the category goes on its own: its full page when it has
+  /// one, otherwise its Insights detail page.
+  String get location => route ?? '/insights/$id';
+}
+
+/// The explorer's own accent, so the tile matches the explorer in both
+/// brightnesses (the dark shade stays legible on a dark surface).
+Color _connectionsAccent(BuildContext context) {
+  final theme = Theme.of(context);
+  return FeatureAccentColors.resolve(theme).of('connections') ??
+      theme.colorScheme.primary;
 }
 
 /// List of all statistics categories (static structure, titles filled at build time).
@@ -45,7 +58,7 @@ List<InsightsCategory> insightsCategoriesOf(BuildContext context) => [
     icon: Icons.hub_outlined,
     title: context.l10n.connections_title,
     subtitle: context.l10n.insights_category_connections_subtitle,
-    color: Colors.cyan.shade800,
+    color: _connectionsAccent(context),
     route: kConnectionsLocation,
   ),
   InsightsCategory(

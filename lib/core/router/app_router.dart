@@ -937,7 +937,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
               // Connections opens from Insights as its own full page.
               GoRoute(
-                path: 'connections',
+                path: kConnectionsSegment,
                 name: 'connections',
                 builder: (context, state) => ConnectionsPage(
                   args: ConnectionsRouteArgs.fromQuery(

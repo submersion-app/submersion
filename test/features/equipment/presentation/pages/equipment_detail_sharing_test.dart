@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_exposure_totals.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -99,6 +100,12 @@ void main() {
           builder: (context, state) =>
               const EquipmentDetailPage(equipmentId: id),
         ),
+        GoRoute(
+          path: kConnectionsLocation,
+          builder: (context, state) => Scaffold(
+            body: Text('CONNECTIONS ${state.uri.queryParameters['focus']}'),
+          ),
+        ),
       ],
     );
     await tester.pumpWidget(
@@ -182,6 +189,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Open in Connections'), findsOneWidget);
     expect(find.text('Delete'), findsNothing);
+    await tester.tap(find.text('Open in Connections'));
+    await tester.pumpAndSettle();
+    expect(find.text('CONNECTIONS equipment:$id'), findsOneWidget);
   });
 
   testWidgets('the History card shows with two or more profiles', (

@@ -13,11 +13,7 @@ class ConnectionKindColors {
 
   factory ConnectionKindColors.of(BuildContext context) {
     final theme = Theme.of(context);
-    final palette =
-        theme.extension<FeatureAccentColors>() ??
-        (theme.brightness == Brightness.dark
-            ? FeatureAccentColors.dark
-            : FeatureAccentColors.light);
+    final palette = FeatureAccentColors.resolve(theme);
     final fallback = palette.of('connections') ?? theme.colorScheme.primary;
     return ConnectionKindColors({
       for (final kind in ConnectionKind.values)
