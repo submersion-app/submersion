@@ -81,6 +81,7 @@ void main() {
     List<Diver>? divers,
     bool refuseDelete = false,
     bool diverLoading = false,
+    bool sharesLoading = false,
     EquipmentItem item = wing,
   }) async {
     tester.view.devicePixelRatio = 1.0;
@@ -139,7 +140,11 @@ void main() {
                 ? Completer<String?>().future
                 : Future.value(activeDiverId),
           ),
-          equipmentSharesProvider(id).overrideWith((ref) async => shares),
+          equipmentSharesProvider(id).overrideWith(
+            (ref) => sharesLoading
+                ? Completer<List<EquipmentShare>>().future
+                : Future.value(shares),
+          ),
           if (refuseDelete)
             equipmentListNotifierProvider.overrideWith(
               (ref) => _RefusingEquipmentNotifier(),
@@ -218,6 +223,14 @@ void main() {
     expect(find.text('Owned by'), findsNothing);
     expect(find.text('Shared with'), findsNothing);
     expect(find.byKey(overflow), findsNothing);
+  });
+
+  testWidgets('the owner cannot edit shares before they load', (tester) async {
+    // Opening the checklist on an unread share list would start it empty,
+    // and saving it would remove every existing share.
+    await pump(tester, activeDiverId: 'owner', sharesLoading: true);
+    expect(find.text('Shared with'), findsNothing);
+    expect(find.text('Not shared'), findsNothing);
   });
 
   testWidgets('one profile shows no sharing rows', (tester) async {

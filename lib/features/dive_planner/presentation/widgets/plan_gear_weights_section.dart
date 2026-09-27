@@ -40,10 +40,11 @@ class PlanGearWeightsSection extends ConsumerWidget {
     final byId = {for (final e in catalog) e.id: e};
     // A set member no longer shared with this diver stays in the set but is
     // not applied (issue #2046).
+    final diverId = ref.read(validatedCurrentDiverIdProvider).value;
     if (viaSetId != null) {
       items = setItemsUsableBy(
         items,
-        diverId: ref.read(validatedCurrentDiverIdProvider).value,
+        diverId: diverId,
         visibleIds: byId.keys.toSet(),
       );
       if (items.isEmpty) return;
@@ -60,6 +61,7 @@ class PlanGearWeightsSection extends ConsumerWidget {
       ],
       existing: state.fullGearProvenance,
       existingItems: existingItems,
+      diverId: diverId,
     );
     ref.read(divePlanNotifierProvider.notifier).setGear([
       for (final p in expansion.provenance) p.equipmentId,

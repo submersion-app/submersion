@@ -30,8 +30,12 @@ class EquipmentSharingRow extends ConsumerWidget {
     if (!activeDiver.hasValue) return const SizedBox.shrink();
     final activeDiverId = activeDiver.value;
     final names = ref.watch(diverNamesByIdProvider).value ?? const {};
-    final shares =
-        ref.watch(equipmentSharesProvider(equipment.id)).value ?? const [];
+    // Likewise until the shares are read: an unread list is not "Not shared",
+    // and editing from it would start the checklist empty and save that,
+    // removing every existing share.
+    final sharesAsync = ref.watch(equipmentSharesProvider(equipment.id));
+    if (!sharesAsync.hasValue) return const SizedBox.shrink();
+    final shares = sharesAsync.requireValue;
     final isOwner = canShareEquipment(equipment, activeDiverId);
     String nameOf(String id) => names[id] ?? l10n.equipment_owner_unknown;
 

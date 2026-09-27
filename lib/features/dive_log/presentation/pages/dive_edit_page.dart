@@ -3566,13 +3566,21 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }) async {
     if (items.isEmpty) return;
     // A set can list gear no longer shared with this dive's diver; it stays
-    // in the set but is not applied (issue #2046).
+    // in the set but is not applied (issue #2046). The same diver scopes the
+    // parts an added assembly brings along.
     var toAdd = items;
-    if (viaSetId != null) {
-      final diverId =
-          _existingDive?.diverId ??
-          await ref.read(validatedCurrentDiverIdProvider.future);
+    String? diverId = _existingDive?.diverId;
+    if (diverId == null) {
+      // An unreadable diver adds unscoped, as before sharing, rather than
+      // failing the add.
+      try {
+        diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      } catch (_) {
+        diverId = null;
+      }
       if (!mounted) return;
+    }
+    if (viaSetId != null) {
       if (diverId != null) {
         final usable = await EquipmentRepository().usableSetMemberIds([
           for (final i in items) i.id,
@@ -3594,6 +3602,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       ],
       existing: _gearRows,
       existingItems: merged,
+      diverId: diverId,
     );
     if (!mounted) return;
     setState(() {
