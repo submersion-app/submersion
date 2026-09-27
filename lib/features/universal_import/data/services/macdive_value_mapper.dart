@@ -70,6 +70,9 @@ class MacDiveValueMapper {
   /// result as a tag name.
   static String normalizeDiveType(String raw) => raw.trim();
 
+  /// "Shear" or "shears" as a whole word, for [equipmentType].
+  static final _shearWord = RegExp(r'\bshears?\b');
+
   /// Maps MacDive's free-text equipment type onto [EquipmentType].
   ///
   /// MacDive lets the diver type anything into the field, so real libraries
@@ -236,7 +239,9 @@ class MacDiveValueMapper {
       return EquipmentType.smb;
     }
     if (s.contains('reel') || s.contains('spool')) return EquipmentType.reel;
-    if (s.contains('knife') || s.contains('shear') || s.contains('cutter')) {
+    // "Shear" only as a word: as a substring it sits inside "Shearwater",
+    // and every Shearwater computer read as a knife (#2299).
+    if (s.contains('knife') || _shearWord.hasMatch(s) || s.contains('cutter')) {
       return EquipmentType.knife;
     }
     if (s.contains('tool') ||
