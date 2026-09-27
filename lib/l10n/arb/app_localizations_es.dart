@@ -12468,6 +12468,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get pdf_deepestDive => 'Inmersión más profunda';
 
   @override
+  String get pdf_blenderIncomplete =>
+      'Incompleto: una o más líneas no tienen precio.';
+
+  @override
   String get pdf_averageDepth => 'Profundidad media';
 
   @override

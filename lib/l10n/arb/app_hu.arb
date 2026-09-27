@@ -12258,6 +12258,7 @@
   "pdf_lastDive": "Utolsó merülés",
   "pdf_totalDiveTime": "Teljes merülési idő",
   "pdf_deepestDive": "Legmélyebb merülés",
+  "pdf_blenderIncomplete": "Hiányos: egy vagy több tételnek nincs ára.",
   "pdf_averageDepth": "Átlagos mélység",
   "pdf_uniqueSites": "Különböző merülőhelyek",
   "pdf_hoursMinutes": "{hours} ó {minutes} p",

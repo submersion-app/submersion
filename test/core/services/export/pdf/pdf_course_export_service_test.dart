@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/pdf/pdf_course_export_service.dart';
@@ -99,12 +100,14 @@ void main() {
   Future<String> exportText(
     List<Dive> dives, {
     UnitFormatter units = metric,
+    PdfLocalization? localization,
   }) async {
     final path = await service.exportCourseTrainingLogToPdf(
       course,
       dives,
       dates: isoDates,
       units: units,
+      localization: localization,
     );
     final bytes = await File(path).readAsBytes();
     expect(String.fromCharCodes(bytes.take(4)), '%PDF');
@@ -272,5 +275,17 @@ void main() {
       expect(text, isNot(contains('ft')));
       expect(text, isNot(contains('°F')));
     });
+  });
+
+  test('prints in the app language (#2252)', () async {
+    final fr = PdfLocalization.forLanguageCode('fr');
+
+    final text = await exportText([
+      trainingDive(id: 'fr1', number: 1, runtime: const Duration(minutes: 40)),
+    ], localization: fr);
+
+    expect(text, contains(fr.l10n.pdf_trainingLog));
+    expect(text, isNot(contains('Training Log')));
+    expect(text, contains(fr.l10n.pdf_trainingDives));
   });
 }

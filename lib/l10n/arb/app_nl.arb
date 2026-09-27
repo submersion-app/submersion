@@ -12258,6 +12258,7 @@
   "pdf_lastDive": "Laatste duik",
   "pdf_totalDiveTime": "Totale duiktijd",
   "pdf_deepestDive": "Diepste duik",
+  "pdf_blenderIncomplete": "Onvolledig: een of meer regels hebben geen prijs.",
   "pdf_averageDepth": "Gemiddelde diepte",
   "pdf_uniqueSites": "Unieke duikstekken",
   "pdf_hoursMinutes": "{hours}u {minutes}m",

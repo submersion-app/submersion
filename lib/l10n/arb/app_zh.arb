@@ -12258,6 +12258,7 @@
   "pdf_lastDive": "最后一次潜水",
   "pdf_totalDiveTime": "潜水总时间",
   "pdf_deepestDive": "最深潜水",
+  "pdf_blenderIncomplete": "不完整：有一行或多行没有价格。",
   "pdf_averageDepth": "平均深度",
   "pdf_uniqueSites": "不同潜水点",
   "pdf_hoursMinutes": "{hours}小时{minutes}分钟",

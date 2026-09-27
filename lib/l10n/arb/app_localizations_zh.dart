@@ -11910,6 +11910,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pdf_deepestDive => '最深潜水';
 
   @override
+  String get pdf_blenderIncomplete => '不完整：有一行或多行没有价格。';
+
+  @override
   String get pdf_averageDepth => '平均深度';
 
   @override

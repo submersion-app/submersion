@@ -12441,6 +12441,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get pdf_deepestDive => 'Legmélyebb merülés';
 
   @override
+  String get pdf_blenderIncomplete =>
+      'Hiányos: egy vagy több tételnek nincs ára.';
+
+  @override
   String get pdf_averageDepth => 'Átlagos mélység';
 
   @override

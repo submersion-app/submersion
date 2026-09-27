@@ -12282,6 +12282,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pdf_deepestDive => 'أعمق غطسة';
 
   @override
+  String get pdf_blenderIncomplete => 'غير مكتمل: سطر واحد أو أكثر بلا سعر.';
+
+  @override
   String get pdf_averageDepth => 'متوسط العمق';
 
   @override

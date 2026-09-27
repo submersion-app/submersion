@@ -12370,6 +12370,7 @@
   "pdf_lastDive": "Letzter Tauchgang",
   "pdf_totalDiveTime": "Gesamttauchzeit",
   "pdf_deepestDive": "Tiefster Tauchgang",
+  "pdf_blenderIncomplete": "Unvollständig: Mindestens eine Position hat keinen Preis.",
   "pdf_averageDepth": "Durchschnittstiefe",
   "pdf_uniqueSites": "Verschiedene Tauchplätze",
   "pdf_hoursMinutes": "{hours} h {minutes} min",

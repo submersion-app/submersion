@@ -12258,6 +12258,7 @@
   "pdf_lastDive": "Último Mergulho",
   "pdf_totalDiveTime": "Tempo Total de Mergulho",
   "pdf_deepestDive": "Mergulho Mais Profundo",
+  "pdf_blenderIncomplete": "Incompleto: uma ou mais linhas não têm preço.",
   "pdf_averageDepth": "Profundidade Média",
   "pdf_uniqueSites": "Pontos Distintos",
   "pdf_hoursMinutes": "{hours}h {minutes}min",

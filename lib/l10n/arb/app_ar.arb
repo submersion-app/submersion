@@ -12258,6 +12258,7 @@
   "pdf_lastDive": "آخر غطسة",
   "pdf_totalDiveTime": "إجمالي وقت الغوص",
   "pdf_deepestDive": "أعمق غطسة",
+  "pdf_blenderIncomplete": "غير مكتمل: سطر واحد أو أكثر بلا سعر.",
   "pdf_averageDepth": "متوسط العمق",
   "pdf_uniqueSites": "المواقع المختلفة",
   "pdf_hoursMinutes": "{hours} س {minutes} د",

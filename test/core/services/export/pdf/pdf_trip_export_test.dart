@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/pdf/pdf_export_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -71,12 +72,14 @@ void main() {
     List<Dive> dives, {
     PdfDateFormatter? dates,
     UnitFormatter units = metric,
+    PdfLocalization? localization,
   }) async {
     final path = await service.exportTripToPdf(
       trip,
       dives,
       dates: dates ?? isoDates,
       units: units,
+      localization: localization,
     );
     final bytes = await File(path).readAsBytes();
     expect(String.fromCharCodes(bytes.take(4)), '%PDF');
@@ -219,5 +222,26 @@ void main() {
       expect(text, isNot(contains('ft')));
       expect(text, isNot(contains('°F')));
     });
+  });
+
+  test('prints in the app language (#2252)', () async {
+    final fr = PdfLocalization.forLanguageCode('fr');
+
+    final text = await exportText([
+      Dive(
+        id: 'fr1',
+        diveNumber: 3,
+        dateTime: DateTime(2026, 5, 2, 9),
+        maxDepth: 20,
+        notes: 'Calme',
+      ),
+    ], localization: fr);
+
+    expect(text, contains(fr.l10n.pdf_coverDiveCount(1)));
+    // French sets a non-breaking space before the colon; the pdf package
+    // lays words out on any whitespace, so it reads back as a plain space.
+    expect(text, contains(fr.l10n.pdf_notesLabel.replaceAll('\u00a0', ' ')));
+    expect(text, isNot(contains('Notes:')));
+    expect(text, isNot(contains('Max Depth')));
   });
 }

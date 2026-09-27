@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 
 import 'package:submersion/core/services/export/models/blender_invoice_export_data.dart';
 import 'package:submersion/core/services/export/pdf/blender_invoice_pdf_export_service.dart';
@@ -75,5 +76,16 @@ void main() {
     final text = pdfVisibleText(bytes);
 
     expect(text, contains('Incomplete'));
+  });
+
+  test('prints its own labels in the app language (#2252)', () async {
+    final de = PdfLocalization.forLanguageCode('de');
+
+    final text = pdfVisibleText(
+      await service.generateBytes(data(incomplete: true), localization: de),
+    );
+
+    expect(text, contains(de.l10n.pdf_blenderIncomplete));
+    expect(text, isNot(contains('Incomplete')));
   });
 }

@@ -12465,6 +12465,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pdf_deepestDive => 'Tiefster Tauchgang';
 
   @override
+  String get pdf_blenderIncomplete =>
+      'Unvollständig: Mindestens eine Position hat keinen Preis.';
+
+  @override
   String get pdf_averageDepth => 'Durchschnittstiefe';
 
   @override

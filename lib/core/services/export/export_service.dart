@@ -24,6 +24,7 @@ import 'package:submersion/core/services/export/uddf/uddf_full_export_service.da
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -216,12 +217,14 @@ class ExportService {
     required PdfDateFormatter dates,
     required UnitFormatter units,
     TripWithStats? stats,
+    PdfLocalization? localization,
   }) => _pdf.exportTripToPdf(
     trip,
     dives,
     dates: dates,
     units: units,
     stats: stats,
+    localization: localization,
   );
 
   Future<({List<int> bytes, String fileName})> generateDivePdfBytes(
@@ -302,15 +305,18 @@ class ExportService {
   // ==================== Blender Invoice Export ====================
 
   Future<List<int>> generateBlenderInvoicePdfBytes(
-    BlenderInvoiceExportData data,
-  ) => _blenderInvoicePdf.generateBytes(data);
+    BlenderInvoiceExportData data, {
+    PdfLocalization? localization,
+  }) => _blenderInvoicePdf.generateBytes(data, localization: localization);
 
   Future<String> exportBlenderInvoiceToPdf(
     BlenderInvoiceExportData data, {
     Rect? sharePositionOrigin,
+    PdfLocalization? localization,
   }) => _blenderInvoicePdf.exportToPdf(
     data,
     sharePositionOrigin: sharePositionOrigin,
+    localization: localization,
   );
 
   List<int> generateBlenderInvoiceExcelBytes(BlenderInvoiceExportData data) =>
@@ -331,11 +337,13 @@ class ExportService {
     List<Dive> trainingDives, {
     required PdfDateFormatter dates,
     required UnitFormatter units,
+    PdfLocalization? localization,
   }) => _pdfCourse.exportCourseTrainingLogToPdf(
     course,
     trainingDives,
     dates: dates,
     units: units,
+    localization: localization,
   );
 
   // ==================== Excel Export ====================

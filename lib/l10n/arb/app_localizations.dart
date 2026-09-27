@@ -20596,6 +20596,12 @@ abstract class AppLocalizations {
   /// **'Deepest Dive'**
   String get pdf_deepestDive;
 
+  /// No description provided for @pdf_blenderIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete: one or more lines have no price.'**
+  String get pdf_blenderIncomplete;
+
   /// No description provided for @pdf_averageDepth.
   ///
   /// In en, this message translates to:

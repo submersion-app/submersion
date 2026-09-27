@@ -39,20 +39,25 @@ class PdfExportService {
 
   // ==================== Trip PDF ====================
 
-  /// Export trip with dives to PDF.
+  /// Export trip with dives to PDF, in [localization]'s language (#2252).
+  /// Null prints English.
   Future<String> exportTripToPdf(
     Trip trip,
     List<Dive> dives, {
     required PdfDateFormatter dates,
     required UnitFormatter units,
     TripWithStats? stats,
+    PdfLocalization? localization,
   }) async {
-    final pdf = pw.Document();
+    final loc = localization ?? PdfLocalization.english();
+    final l10n = loc.l10n;
+    final pdf = pw.Document(theme: await PdfFonts.instance.themeFor(loc));
 
     // Title page
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
+        textDirection: loc.textDirection,
         build: (context) => pw.Center(
           child: pw.Column(
             mainAxisAlignment: pw.MainAxisAlignment.center,
@@ -79,20 +84,23 @@ class PdfExportService {
               if (trip.resortName != null) ...[
                 pw.SizedBox(height: 10),
                 pw.Text(
-                  'Resort: ${trip.resortName}',
+                  l10n.pdf_labelValue(l10n.pdf_resort, trip.resortName!),
                   style: const pw.TextStyle(fontSize: 14),
                 ),
               ],
               if (trip.liveaboardName != null) ...[
                 pw.SizedBox(height: 10),
                 pw.Text(
-                  'Liveaboard: ${trip.liveaboardName}',
+                  l10n.pdf_labelValue(
+                    l10n.pdf_liveaboard,
+                    trip.liveaboardName!,
+                  ),
                   style: const pw.TextStyle(fontSize: 14),
                 ),
               ],
               pw.SizedBox(height: 30),
               pw.Text(
-                '${dives.length} Dives',
+                l10n.pdf_coverDiveCount(dives.length),
                 style: const pw.TextStyle(
                   fontSize: 24,
                   fontWeight: pw.FontWeight.bold,
@@ -101,7 +109,10 @@ class PdfExportService {
               if (stats != null) ...[
                 pw.SizedBox(height: 10),
                 pw.Text(
-                  'Total Runtime: ${stats.formattedRuntime}',
+                  l10n.pdf_labelValue(
+                    l10n.pdf_totalRuntime,
+                    stats.formattedRuntime,
+                  ),
                   style: const pw.TextStyle(fontSize: 14),
                 ),
               ],
@@ -118,32 +129,51 @@ class PdfExportService {
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
           crossAxisAlignment: pw.CrossAxisAlignment.start,
+          textDirection: loc.textDirection,
           build: (context) => [
             pw.Text(
-              'Dive ${dive.diveNumber ?? ""}',
+              l10n.pdf_tripDiveTitle('${dive.diveNumber ?? ""}'),
               style: const pw.TextStyle(
                 fontSize: 24,
                 fontWeight: pw.FontWeight.bold,
               ),
             ),
             pw.SizedBox(height: 10),
-            pw.Text('Date: ${dates.dateTime(dive.dateTime)}'),
-            if (dive.site != null) pw.Text('Site: ${dive.site!.name}'),
+            pw.Text(
+              l10n.pdf_labelValue(l10n.pdf_date, dates.dateTime(dive.dateTime)),
+            ),
+            if (dive.site != null)
+              pw.Text(l10n.pdf_labelValue(l10n.pdf_site, dive.site!.name)),
             pw.SizedBox(height: 10),
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 if (dive.maxDepth != null)
-                  pw.Text('Max Depth: ${units.formatDepth(dive.maxDepth)}'),
+                  pw.Text(
+                    l10n.pdf_labelValue(
+                      l10n.pdf_maxDepth,
+                      units.formatDepth(dive.maxDepth),
+                    ),
+                  ),
                 if (dive.effectiveRuntime != null)
-                  pw.Text('Duration: ${dive.effectiveRuntime!.inMinutes} min'),
+                  pw.Text(
+                    l10n.pdf_labelValue(
+                      l10n.pdf_duration,
+                      l10n.pdf_minutes('${dive.effectiveRuntime!.inMinutes}'),
+                    ),
+                  ),
               ],
             ),
             if (dive.waterTemp != null)
-              pw.Text('Water Temp: ${units.formatTemperature(dive.waterTemp)}'),
+              pw.Text(
+                l10n.pdf_labelValue(
+                  l10n.pdf_waterTemp,
+                  units.formatTemperature(dive.waterTemp),
+                ),
+              ),
             if (dive.notes.isNotEmpty) ...[
               pw.SizedBox(height: 10),
-              pw.Text('Notes:'),
+              pw.Text(l10n.pdf_notesLabel),
               // TextOverflow.span is what lets MultiPage break the notes
               // across sheets.
               pw.Text(dive.notes, overflow: pw.TextOverflow.span),

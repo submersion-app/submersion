@@ -12258,6 +12258,7 @@
   "pdf_lastDive": "צלילה אחרונה",
   "pdf_totalDiveTime": "סה\"כ זמן צלילה",
   "pdf_deepestDive": "הצלילה העמוקה ביותר",
+  "pdf_blenderIncomplete": "לא שלם: לשורה אחת או יותר אין מחיר.",
   "pdf_averageDepth": "עומק ממוצע",
   "pdf_uniqueSites": "אתרים שונים",
   "pdf_hoursMinutes": "{hours} שע' {minutes} דק'",

@@ -12258,6 +12258,7 @@
   "pdf_lastDive": "Dernière plongée",
   "pdf_totalDiveTime": "Temps de plongée total",
   "pdf_deepestDive": "Plongée la plus profonde",
+  "pdf_blenderIncomplete": "Incomplet : au moins une ligne n'a pas de prix.",
   "pdf_averageDepth": "Profondeur moyenne",
   "pdf_uniqueSites": "Sites différents",
   "pdf_hoursMinutes": "{hours} h {minutes} min",

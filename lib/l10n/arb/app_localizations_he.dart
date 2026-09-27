@@ -12197,6 +12197,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get pdf_deepestDive => 'הצלילה העמוקה ביותר';
 
   @override
+  String get pdf_blenderIncomplete => 'לא שלם: לשורה אחת או יותר אין מחיר.';
+
+  @override
   String get pdf_averageDepth => 'עומק ממוצע';
 
   @override

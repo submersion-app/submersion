@@ -7088,6 +7088,7 @@
   "pdf_lastDive": "Last Dive",
   "pdf_totalDiveTime": "Total Dive Time",
   "pdf_deepestDive": "Deepest Dive",
+  "pdf_blenderIncomplete": "Incomplete: one or more lines have no price.",
   "pdf_averageDepth": "Average Depth",
   "pdf_uniqueSites": "Unique Sites",
   "pdf_hoursMinutes": "{hours}h {minutes}m",

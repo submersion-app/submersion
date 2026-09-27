@@ -12375,6 +12375,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get pdf_deepestDive => 'Diepste duik';
 
   @override
+  String get pdf_blenderIncomplete =>
+      'Onvolledig: een of meer regels hebben geen prijs.';
+
+  @override
   String get pdf_averageDepth => 'Gemiddelde diepte';
 
   @override
