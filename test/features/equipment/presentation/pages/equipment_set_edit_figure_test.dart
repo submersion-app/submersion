@@ -98,6 +98,18 @@ void main() {
     expect(find.byType(FigureNumberBadge), findsNothing);
   });
 
+  testWidgets('with the switch off the form stays a lazily built list', (
+    tester,
+  ) async {
+    // Every row is built only while the figure shows (so a tap on it can
+    // scroll to any row); off, a long inventory builds as it always did.
+    await pumpPage(tester, showFigure: false);
+    expect(find.byType(ListView), findsOneWidget);
+    await tester.tap(find.widgetWithText(SwitchListTile, 'Show diver figure'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ListView), findsNothing);
+  });
+
   testWidgets('with it on the ticked items with a row are drawn and numbered', (
     tester,
   ) async {
