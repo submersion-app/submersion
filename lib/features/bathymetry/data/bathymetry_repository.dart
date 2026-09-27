@@ -22,8 +22,10 @@ const _log = LoggerService('BathymetryRepository');
 /// while [SwissBathyTileCacheRepository] still dedupes the actual tile
 /// downloads (see swissbathy3d_source.dart), so this never multiplies
 /// network requests. Definitive negatives cache as 'empty'; transient
-/// failures write NO row so the next visit retries. Never throws: null
-/// simply means "no real terrain available right now".
+/// failures write NO row so the next visit retries, and so does a grid the
+/// resolver only reached because a better source failed transiently (a
+/// provisional [BathymetryResolution]). Never throws: null simply means
+/// "no real terrain available right now".
 ///
 /// Known trade-off, deliberately deferred to issue #1511: keying Swiss
 /// coordinates raw also gives up the outer cache's coalescing for them, so
@@ -62,7 +64,13 @@ class BathymetryRepository {
   /// them) changes what some ALREADY-v4-cached Rotsee/Vierwaldstättersee-
   /// area coordinates should have resolved to, so those rows need one
   /// more forced re-resolution too.
-  static const String selectionGeneration = 'v5';
+  ///
+  /// v6 (#1770): before that fix, a grid won only because a better source
+  /// failed transiently was cached as a final answer. Those rows look
+  /// exactly like legitimate ones and `_load` serves them before the
+  /// resolver runs, so without this bump a site already downgraded by one
+  /// network hiccup would stay downgraded forever.
+  static const String selectionGeneration = 'v6';
   static const double quantumDeg = 0.02;
 
   final LocalCacheDatabase _db;
@@ -295,6 +303,11 @@ class BathymetryRepository {
         fetchCenter,
         spanMeters,
       ).downsampleTo(maxDim);
+      // A provisional grid won only because a better source failed
+      // transiently (issue #1770): show it, but write no row, so the next
+      // resolve retries the preferred source instead of the cache pinning
+      // this fallback forever.
+      if (!res.definitive) return grid;
       await _db
           .into(_db.bathymetryCache)
           .insertOnConflictUpdate(

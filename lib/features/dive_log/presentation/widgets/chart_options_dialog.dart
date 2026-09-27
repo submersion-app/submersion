@@ -319,8 +319,11 @@ class ChartOptionsDialog extends StatelessWidget {
             context,
             label: label,
             color: color,
-            isEnabled: legendState.showTankPressure[tankId] ?? true,
-            onTap: () => legendNotifier.toggleTankPressure(tankId),
+            isEnabled: legendState.isTankPressureVisible(tankId),
+            onTap: () => legendNotifier.toggleTankPressure(
+              tankId,
+              visibleByDefault: legendState.showPressure,
+            ),
             sourceColor: config.tankSourceColors?[tankId],
           ),
         );

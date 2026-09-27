@@ -14420,6 +14420,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => '潜水点';
 
   @override
+  String get marineLife_speciesDetail_statsError => '无法加载目击统计';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return '分类纲：$className';
   }
@@ -24914,7 +24917,7 @@ class AppLocalizationsZh extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return '上升 $from → $to，$rate/分钟';
+    return '上升 $from → $to，$rate';
   }
 
   @override
@@ -24928,7 +24931,7 @@ class AppLocalizationsZh extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return '下降 $from → $to，$rate/分钟';
+    return '下降 $from → $to，$rate';
   }
 
   @override
@@ -28378,7 +28381,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return '添加气瓶容积以按 $unit/min 显示 RMV';
+    return '添加气瓶容积以按 $unit 显示 RMV';
   }
 
   @override
