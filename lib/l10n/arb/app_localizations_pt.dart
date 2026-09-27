@@ -259,6 +259,72 @@ class AppLocalizationsPt extends AppLocalizations {
       'Mostrar figura do mergulhador';
 
   @override
+  String get equipment_color_red => 'Vermelho';
+
+  @override
+  String get equipment_color_orange => 'Laranja';
+
+  @override
+  String get equipment_color_amber => 'Âmbar';
+
+  @override
+  String get equipment_color_yellow => 'Amarelo';
+
+  @override
+  String get equipment_color_lime => 'Lima';
+
+  @override
+  String get equipment_color_green => 'Verde';
+
+  @override
+  String get equipment_color_emerald => 'Esmeralda';
+
+  @override
+  String get equipment_color_teal => 'Verde-azulado';
+
+  @override
+  String get equipment_color_cyan => 'Ciano';
+
+  @override
+  String get equipment_color_sky => 'Azul-celeste';
+
+  @override
+  String get equipment_color_blue => 'Azul';
+
+  @override
+  String get equipment_color_indigo => 'Índigo';
+
+  @override
+  String get equipment_color_violet => 'Violeta';
+
+  @override
+  String get equipment_color_purple => 'Roxo';
+
+  @override
+  String get equipment_color_fuchsia => 'Fúcsia';
+
+  @override
+  String get equipment_color_pink => 'Rosa';
+
+  @override
+  String get equipment_color_rose => 'Rosa-choque';
+
+  @override
+  String get equipment_color_stone => 'Pedra';
+
+  @override
+  String get equipment_color_zinc => 'Zinco';
+
+  @override
+  String get equipment_color_slate => 'Ardósia';
+
+  @override
+  String get equipment_color_none => 'Nenhuma';
+
+  @override
+  String get equipment_color_sheetTitle => 'Escolha uma cor';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geocercas';
 
   @override
@@ -29415,6 +29481,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get attrLabel_product_url => 'Link web';
+
+  @override
+  String get attrLabel_color => 'Cor';
 
   @override
   String get attrLabel_sleeve_length => 'Mangas';

@@ -244,6 +244,72 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => '显示潜水员图示';
 
   @override
+  String get equipment_color_red => '红色';
+
+  @override
+  String get equipment_color_orange => '橙色';
+
+  @override
+  String get equipment_color_amber => '琥珀色';
+
+  @override
+  String get equipment_color_yellow => '黄色';
+
+  @override
+  String get equipment_color_lime => '青柠色';
+
+  @override
+  String get equipment_color_green => '绿色';
+
+  @override
+  String get equipment_color_emerald => '翡翠绿';
+
+  @override
+  String get equipment_color_teal => '蓝绿色';
+
+  @override
+  String get equipment_color_cyan => '青色';
+
+  @override
+  String get equipment_color_sky => '天蓝色';
+
+  @override
+  String get equipment_color_blue => '蓝色';
+
+  @override
+  String get equipment_color_indigo => '靛蓝色';
+
+  @override
+  String get equipment_color_violet => '紫罗兰色';
+
+  @override
+  String get equipment_color_purple => '紫色';
+
+  @override
+  String get equipment_color_fuchsia => '品红色';
+
+  @override
+  String get equipment_color_pink => '粉色';
+
+  @override
+  String get equipment_color_rose => '玫瑰红';
+
+  @override
+  String get equipment_color_stone => '岩石灰';
+
+  @override
+  String get equipment_color_zinc => '锌灰色';
+
+  @override
+  String get equipment_color_slate => '石板灰';
+
+  @override
+  String get equipment_color_none => '无';
+
+  @override
+  String get equipment_color_sheetTitle => '选择颜色';
+
+  @override
   String get equipment_setEdit_geofencesTitle => '地理围栏';
 
   @override
@@ -27872,6 +27938,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrLabel_product_url => '网页链接';
+
+  @override
+  String get attrLabel_color => '颜色';
 
   @override
   String get attrLabel_sleeve_length => '袖长';

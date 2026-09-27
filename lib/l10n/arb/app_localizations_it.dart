@@ -260,6 +260,72 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mostra figura del subacqueo';
 
   @override
+  String get equipment_color_red => 'Rosso';
+
+  @override
+  String get equipment_color_orange => 'Arancione';
+
+  @override
+  String get equipment_color_amber => 'Ambra';
+
+  @override
+  String get equipment_color_yellow => 'Giallo';
+
+  @override
+  String get equipment_color_lime => 'Lime';
+
+  @override
+  String get equipment_color_green => 'Verde';
+
+  @override
+  String get equipment_color_emerald => 'Smeraldo';
+
+  @override
+  String get equipment_color_teal => 'Verde acqua';
+
+  @override
+  String get equipment_color_cyan => 'Ciano';
+
+  @override
+  String get equipment_color_sky => 'Azzurro';
+
+  @override
+  String get equipment_color_blue => 'Blu';
+
+  @override
+  String get equipment_color_indigo => 'Indaco';
+
+  @override
+  String get equipment_color_violet => 'Viola';
+
+  @override
+  String get equipment_color_purple => 'Porpora';
+
+  @override
+  String get equipment_color_fuchsia => 'Fucsia';
+
+  @override
+  String get equipment_color_pink => 'Rosa';
+
+  @override
+  String get equipment_color_rose => 'Rosa acceso';
+
+  @override
+  String get equipment_color_stone => 'Pietra';
+
+  @override
+  String get equipment_color_zinc => 'Zinco';
+
+  @override
+  String get equipment_color_slate => 'Ardesia';
+
+  @override
+  String get equipment_color_none => 'Nessuno';
+
+  @override
+  String get equipment_color_sheetTitle => 'Scegli un colore';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofence';
 
   @override
@@ -29413,6 +29479,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrLabel_product_url => 'Link web';
+
+  @override
+  String get attrLabel_color => 'Colore';
 
   @override
   String get attrLabel_sleeve_length => 'Maniche';

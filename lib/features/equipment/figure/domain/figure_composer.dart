@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_model.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_placement.dart';
@@ -8,14 +9,11 @@ import 'package:submersion/features/equipment/figure/domain/figure_zone.dart';
 /// the catalog; the composer honours it from the start).
 const String kFigureColorAttribute = 'color';
 
-final RegExp _hexColor = RegExp(r'^#[0-9A-Fa-f]{6}$');
-
-/// `#RRGGBB` to ARGB, or null for anything else. The pattern is checked
-/// first because `int.tryParse` accepts a sign, which would turn `#-00001`
-/// into a negative colour instead of the type default.
+/// `#RRGGBB` to ARGB, or null for anything else.
 int? parseFigureColor(String? hex) {
-  if (hex == null || !_hexColor.hasMatch(hex)) return null;
-  return 0xFF000000 | int.parse(hex.substring(1), radix: 16);
+  final code = normalizeEquipmentColor(hex);
+  if (code == null) return null;
+  return 0xFF000000 | int.parse(code.substring(1), radix: 16);
 }
 
 /// Places [items] on the figure and numbers them (spec sections 4.2 to 4.4).

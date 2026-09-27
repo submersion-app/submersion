@@ -440,6 +440,138 @@ abstract class AppLocalizations {
   /// **'Show diver figure'**
   String get equipment_setEdit_figureSwitch_title;
 
+  /// No description provided for @equipment_color_red.
+  ///
+  /// In en, this message translates to:
+  /// **'Red'**
+  String get equipment_color_red;
+
+  /// No description provided for @equipment_color_orange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get equipment_color_orange;
+
+  /// No description provided for @equipment_color_amber.
+  ///
+  /// In en, this message translates to:
+  /// **'Amber'**
+  String get equipment_color_amber;
+
+  /// No description provided for @equipment_color_yellow.
+  ///
+  /// In en, this message translates to:
+  /// **'Yellow'**
+  String get equipment_color_yellow;
+
+  /// No description provided for @equipment_color_lime.
+  ///
+  /// In en, this message translates to:
+  /// **'Lime'**
+  String get equipment_color_lime;
+
+  /// No description provided for @equipment_color_green.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get equipment_color_green;
+
+  /// No description provided for @equipment_color_emerald.
+  ///
+  /// In en, this message translates to:
+  /// **'Emerald'**
+  String get equipment_color_emerald;
+
+  /// No description provided for @equipment_color_teal.
+  ///
+  /// In en, this message translates to:
+  /// **'Teal'**
+  String get equipment_color_teal;
+
+  /// No description provided for @equipment_color_cyan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cyan'**
+  String get equipment_color_cyan;
+
+  /// No description provided for @equipment_color_sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Sky'**
+  String get equipment_color_sky;
+
+  /// No description provided for @equipment_color_blue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get equipment_color_blue;
+
+  /// No description provided for @equipment_color_indigo.
+  ///
+  /// In en, this message translates to:
+  /// **'Indigo'**
+  String get equipment_color_indigo;
+
+  /// No description provided for @equipment_color_violet.
+  ///
+  /// In en, this message translates to:
+  /// **'Violet'**
+  String get equipment_color_violet;
+
+  /// No description provided for @equipment_color_purple.
+  ///
+  /// In en, this message translates to:
+  /// **'Purple'**
+  String get equipment_color_purple;
+
+  /// No description provided for @equipment_color_fuchsia.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuchsia'**
+  String get equipment_color_fuchsia;
+
+  /// No description provided for @equipment_color_pink.
+  ///
+  /// In en, this message translates to:
+  /// **'Pink'**
+  String get equipment_color_pink;
+
+  /// No description provided for @equipment_color_rose.
+  ///
+  /// In en, this message translates to:
+  /// **'Rose'**
+  String get equipment_color_rose;
+
+  /// No description provided for @equipment_color_stone.
+  ///
+  /// In en, this message translates to:
+  /// **'Stone'**
+  String get equipment_color_stone;
+
+  /// No description provided for @equipment_color_zinc.
+  ///
+  /// In en, this message translates to:
+  /// **'Zinc'**
+  String get equipment_color_zinc;
+
+  /// No description provided for @equipment_color_slate.
+  ///
+  /// In en, this message translates to:
+  /// **'Slate'**
+  String get equipment_color_slate;
+
+  /// No description provided for @equipment_color_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get equipment_color_none;
+
+  /// No description provided for @equipment_color_sheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a color'**
+  String get equipment_color_sheetTitle;
+
   /// No description provided for @equipment_setEdit_geofencesTitle.
   ///
   /// In en, this message translates to:
@@ -46999,6 +47131,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Web link'**
   String get attrLabel_product_url;
+
+  /// No description provided for @attrLabel_color.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get attrLabel_color;
 
   /// No description provided for @attrLabel_sleeve_length.
   ///

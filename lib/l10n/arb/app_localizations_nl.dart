@@ -256,6 +256,72 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => 'Duikerfiguur tonen';
 
   @override
+  String get equipment_color_red => 'Rood';
+
+  @override
+  String get equipment_color_orange => 'Oranje';
+
+  @override
+  String get equipment_color_amber => 'Amber';
+
+  @override
+  String get equipment_color_yellow => 'Geel';
+
+  @override
+  String get equipment_color_lime => 'Limoen';
+
+  @override
+  String get equipment_color_green => 'Groen';
+
+  @override
+  String get equipment_color_emerald => 'Smaragd';
+
+  @override
+  String get equipment_color_teal => 'Blauwgroen';
+
+  @override
+  String get equipment_color_cyan => 'Cyaan';
+
+  @override
+  String get equipment_color_sky => 'Hemelsblauw';
+
+  @override
+  String get equipment_color_blue => 'Blauw';
+
+  @override
+  String get equipment_color_indigo => 'Indigo';
+
+  @override
+  String get equipment_color_violet => 'Violet';
+
+  @override
+  String get equipment_color_purple => 'Paars';
+
+  @override
+  String get equipment_color_fuchsia => 'Fuchsia';
+
+  @override
+  String get equipment_color_pink => 'Roze';
+
+  @override
+  String get equipment_color_rose => 'Rozerood';
+
+  @override
+  String get equipment_color_stone => 'Steen';
+
+  @override
+  String get equipment_color_zinc => 'Zink';
+
+  @override
+  String get equipment_color_slate => 'Leisteen';
+
+  @override
+  String get equipment_color_none => 'Geen';
+
+  @override
+  String get equipment_color_sheetTitle => 'Kies een kleur';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
 
   @override
@@ -29206,6 +29272,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrLabel_product_url => 'Weblink';
+
+  @override
+  String get attrLabel_color => 'Kleur';
 
   @override
   String get attrLabel_sleeve_length => 'Mouwen';
