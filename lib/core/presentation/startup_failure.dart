@@ -115,19 +115,18 @@ const List<String> _unreadableDataMarkers = [
 /// Whether an unreachable custom folder can be what stopped startup.
 ///
 /// Only before the file was reached: the folder probe proves the folder is
-/// unreachable NOW, not that nothing touched the file. [databaseOpened] means
-/// a connection was made, after which the ladder or any later service may
-/// have written to it; the upgrade writes to it by definition; and an engine
-/// failure never got as far as the file. Also decides whether the probe runs
-/// at all, since on a dead network mount it can block for the whole timeout.
+/// unreachable NOW, not that nothing touched the file. [fileReached] is
+/// tracked, not inferred from the phase: the preflight schema probe opens an
+/// existing file read-write, and an open touches the file long before it
+/// succeeds. The upgrade writes to it by definition, and an engine failure
+/// never got as far as the file. Also decides whether the probe runs at all,
+/// since on a dead network mount it can block for the whole timeout.
 bool canBlameUnreachableFolder(
   Object error,
   StartupPhase phase, {
-  required bool databaseOpened,
+  required bool fileReached,
 }) =>
-    !databaseOpened &&
-    phase != StartupPhase.upgrading &&
-    !_isEngineFailure(error);
+    !fileReached && phase != StartupPhase.upgrading && !_isEngineFailure(error);
 
 bool _isEngineFailure(Object error) =>
     error is DatabaseEngineUnavailableException ||
@@ -151,12 +150,12 @@ StartupFailureKind classifyStartupFailure(
   Object error,
   StartupPhase phase, {
   bool locationUnreachable = false,
-  bool databaseOpened = false,
+  bool fileReached = false,
 }) {
   if (_isEngineFailure(error)) return StartupFailureKind.engineUnavailable;
 
   if (locationUnreachable &&
-      canBlameUnreachableFolder(error, phase, databaseOpened: databaseOpened)) {
+      canBlameUnreachableFolder(error, phase, fileReached: fileReached)) {
     return StartupFailureKind.locationUnreachable;
   }
 

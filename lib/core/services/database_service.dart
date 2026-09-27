@@ -113,9 +113,15 @@ class DatabaseService {
   /// The current database file path (set after initialization)
   String? get currentPath => _currentDatabasePath;
 
-  /// Whether a connection is open. Set only once the open itself succeeded,
-  /// so true proves the file was reached.
-  bool get isOpen => _database != null;
+  /// Whether the last [initialize] reached the database file: an open was
+  /// attempted, even one that failed part way, or a connection is open.
+  ///
+  /// The connection is only recorded once the open fully succeeds, but the
+  /// open touches the file well before that (the background connection, the
+  /// forcing query, the schema ladder). False therefore means the file was
+  /// never reached, as when its folder could not even be created.
+  bool get hasReachedFile => _database != null || _openAttempted;
+  bool _openAttempted = false;
 
   /// For testing only: allows injecting a test database
   @visibleForTesting
@@ -136,6 +142,7 @@ class DatabaseService {
   @visibleForTesting
   void resetForTesting() {
     _database = null;
+    _openAttempted = false;
     _background = null;
     _locationService = null;
     _currentDatabasePath = null;
@@ -177,6 +184,7 @@ class DatabaseService {
     bool allowSchemaUpgrade = true,
   }) async {
     if (_database != null) return;
+    _openAttempted = false;
 
     // Keep an already-registered service when called without one. [restore]
     // reopens via a bare `initialize()`, and clearing the location service
@@ -192,6 +200,7 @@ class DatabaseService {
       await dbDir.create(recursive: true);
     }
 
+    _openAttempted = true;
     _database = await _openDatabase(
       dbPath,
       onMigrationProgress: onMigrationProgress,

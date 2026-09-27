@@ -283,7 +283,7 @@ void main() {
             Exception('notifications blew up'),
             phase,
             locationUnreachable: true,
-            databaseOpened: true,
+            fileReached: true,
           );
           expect(
             kind,
@@ -305,7 +305,7 @@ void main() {
           canBlameUnreachableFolder(
             fileError,
             StartupPhase.preflight,
-            databaseOpened: false,
+            fileReached: false,
           ),
           isTrue,
         );
@@ -313,7 +313,7 @@ void main() {
           canBlameUnreachableFolder(
             fileError,
             StartupPhase.opening,
-            databaseOpened: false,
+            fileReached: false,
           ),
           isTrue,
         );
@@ -321,7 +321,7 @@ void main() {
           canBlameUnreachableFolder(
             fileError,
             StartupPhase.opening,
-            databaseOpened: true,
+            fileReached: true,
           ),
           isFalse,
         );
@@ -329,7 +329,7 @@ void main() {
           canBlameUnreachableFolder(
             fileError,
             StartupPhase.upgrading,
-            databaseOpened: false,
+            fileReached: false,
           ),
           isFalse,
         );
@@ -337,7 +337,7 @@ void main() {
           canBlameUnreachableFolder(
             const DatabaseEngineUnavailableException('missing library'),
             StartupPhase.preflight,
-            databaseOpened: false,
+            fileReached: false,
           ),
           isFalse,
         );

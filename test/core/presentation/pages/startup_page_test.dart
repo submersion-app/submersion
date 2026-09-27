@@ -216,7 +216,8 @@ Widget _buildStartupWrapper({
   RestoreJournal Function(String dbPath)? restoreJournalFactory,
   StartupRecoveryService? recoveryServiceOverride,
   Future<String?> Function()? pickBackupFileOverride,
-  bool Function()? databaseOpenedOverride,
+  bool Function()? fileReachedOverride,
+  Future<void> Function()? closeDatabaseOverride,
 }) {
   return StartupWrapper(
     prefs: prefs,
@@ -239,7 +240,8 @@ Widget _buildStartupWrapper({
         restoreJournalFactory ?? (_) => _FakeRestoreJournal(),
     recoveryServiceOverride: recoveryServiceOverride,
     pickBackupFileOverride: pickBackupFileOverride,
-    databaseOpenedOverride: databaseOpenedOverride,
+    fileReachedOverride: fileReachedOverride,
+    closeDatabaseOverride: closeDatabaseOverride,
   );
 }
 
@@ -3273,7 +3275,8 @@ void main() {
       required DatabaseLocationService locationService,
       required ServiceInitializer initializer,
       StartupRecoveryService? recoveryServiceOverride,
-      bool databaseOpened = false,
+      bool fileReached = false,
+      List<String>? journal,
     }) async {
       await tester.pumpWidget(
         _buildStartupWrapper(
@@ -3286,7 +3289,8 @@ void main() {
           recoveryServiceOverride: recoveryServiceOverride,
           // Stated rather than read from the process-wide DatabaseService,
           // so a connection another test left open cannot leak in here.
-          databaseOpenedOverride: () => databaseOpened,
+          fileReachedOverride: () => fileReached,
+          closeDatabaseOverride: () async => journal?.add('close'),
         ),
       );
       await tester.pump(const Duration(seconds: 2));
@@ -3509,7 +3513,7 @@ void main() {
           dbPath,
           folder: folder,
         ),
-        databaseOpened: true,
+        fileReached: true,
         initializer: (_) async => throw revokedAccess,
       );
 
@@ -3520,6 +3524,123 @@ void main() {
       expect(find.text('Go back to the app default location'), findsNothing);
       expect(find.text('Submersion could not start'), findsOneWidget);
       expect(find.text('Start with an empty dive log'), findsOneWidget);
+    });
+
+    // Copilot on PR 2497: the schema probe opens an EXISTING file
+    // read-write, which can roll back a hot journal, so a failure after it
+    // may have changed the file whatever the folder looks like now.
+    testWidgets('a file the schema probe reached is not blamed on the folder', (
+      tester,
+    ) async {
+      File(dbPath).writeAsStringSync('reached');
+      final location = _UnreachableLocationService(
+        prefs,
+        dbPath,
+        folder: folder,
+      );
+      await pumpUnreachable(
+        tester,
+        locationService: location,
+        initializer: (_) async => throw revokedAccess,
+      );
+
+      expect(location.probeCalls, 0);
+      expect(find.text('Submersion could not start'), findsOneWidget);
+      expect(find.text('Go back to the app default location'), findsNothing);
+    });
+
+    // Copilot on PR 2497: a relaunch reuses whatever connection is still
+    // open (initialize() returns early), and setting aside moves the open
+    // file out from under it. So the connection goes first.
+    testWidgets('starting fresh closes the database before moving it', (
+      tester,
+    ) async {
+      final journal = <String>[];
+      final recovery = _FakeStartupRecoveryService(journal: journal);
+      var initializerCalls = 0;
+      final secondAttempt = Completer<void>();
+
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+        ),
+        recoveryServiceOverride: recovery,
+        fileReached: true,
+        journal: journal,
+        initializer: (_) async {
+          initializerCalls++;
+          if (initializerCalls == 1) throw Exception('notifications blew up');
+          await secondAttempt.future;
+        },
+      );
+
+      await tester.ensureVisible(find.text('Start with an empty dive log'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start with an empty dive log'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start fresh'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pump();
+      await tester.pump();
+
+      expect(journal.first, 'close');
+      expect(journal.indexOf('setAside'), greaterThan(0));
+      expect(initializerCalls, 2);
+
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('adopting another folder closes the database first', (
+      tester,
+    ) async {
+      final journal = <String>[];
+      final recovery = _FakeStartupRecoveryService(
+        journal: journal,
+        inspection: AdoptableDiveLog(
+          path: p.join(folder, DatabaseLocationService.databaseFilename),
+          diveCount: 1,
+          siteCount: 1,
+          sizeBytes: 4096,
+          lastModified: DateTime.utc(2026, 9, 18),
+        ),
+      );
+      var initializerCalls = 0;
+      final secondAttempt = Completer<void>();
+
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+          picks: folder,
+        ),
+        recoveryServiceOverride: recovery,
+        fileReached: true,
+        journal: journal,
+        initializer: (_) async {
+          initializerCalls++;
+          if (initializerCalls == 1) throw Exception('notifications blew up');
+          await secondAttempt.future;
+        },
+      );
+
+      await tester.ensureVisible(find.text('Use a dive log in another folder'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Use a dive log in another folder'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Use this dive log'));
+      await tester.pump();
+      await tester.pump();
+
+      expect(journal, containsAllInOrder(['close', 'adopt']));
+      expect(initializerCalls, 2);
+
+      await tester.pump(const Duration(seconds: 2));
     });
 
     // Its answer could not change the screen, and on a dead network mount
@@ -3535,7 +3656,7 @@ void main() {
       await pumpUnreachable(
         tester,
         locationService: location,
-        databaseOpened: true,
+        fileReached: true,
         initializer: (_) async => throw revokedAccess,
       );
 
@@ -3598,7 +3719,11 @@ class _FakeStartupRecoveryService implements StartupRecoveryService {
     this.inspection = const NoDiveLogInFolder(),
     this.backupChoice,
     this.useDefaultError,
+    this.journal,
   });
+
+  /// Shared with the page's close hook, so a test can assert ORDER.
+  final List<String>? journal;
 
   final String setAsideResult;
   final FolderInspection inspection;
@@ -3623,6 +3748,7 @@ class _FakeStartupRecoveryService implements StartupRecoveryService {
   @override
   Future<String> setAsideUnreadableDatabase() async {
     setAsideCalls++;
+    journal?.add('setAside');
     return setAsideResult;
   }
 
@@ -3633,7 +3759,10 @@ class _FakeStartupRecoveryService implements StartupRecoveryService {
   }
 
   @override
-  Future<void> adopt(AdoptableDiveLog found) async => adoptCalls++;
+  Future<void> adopt(AdoptableDiveLog found) async {
+    adoptCalls++;
+    journal?.add('adopt');
+  }
 
   @override
   Future<BackupFileChoice> classifyBackupFile(
