@@ -502,6 +502,17 @@ test/${rel%.dart}_test.dart"
                     ;;
                 *)
                     printf 'package:submersion/%s\n' "$rel" >> "$code_pattern"
+                    case "$rel" in
+                        core/database/tables/*|core/database/migrations/*)
+                            # No test imports these directly: tables and the
+                            # migration library reach every test through
+                            # database.dart, which exports them (#2502). Treat
+                            # the change as a change to database.dart, near the
+                            # migration tests in test/core/database/.
+                            printf 'package:submersion/core/database/database.dart\n' >> "$code_pattern"
+                            printf 'core/database\n' >> "$near_dirs"
+                            ;;
+                    esac
                     dir=$(dirname "$rel")
                     if [ "$dir" = "." ]; then
                         near_everything=1

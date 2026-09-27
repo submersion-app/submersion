@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
@@ -15,66 +17,113 @@ import 'package:path/path.dart' as p;
 /// 3.5 GB and under 4 minutes, with byte-identical generated code.
 void main() {
   final databaseDir = p.join(Directory.current.path, 'lib', 'core', 'database');
-  final tableClass = RegExp(r'^class \w+ extends Table\b', multiLine: true);
+  final databaseFile = File(p.join(databaseDir, 'database.dart'));
 
-  test('database.dart declares no table classes', () {
-    final database = File(p.join(databaseDir, 'database.dart'));
+  CompilationUnit parseDatabase() {
     expect(
-      database.existsSync(),
+      databaseFile.existsSync(),
       isTrue,
       reason:
           'the check must read the real database.dart; a wrong working '
           'directory would make this test pass vacuously',
     );
+    return parseString(
+      content: databaseFile.readAsStringSync(),
+      path: databaseFile.path,
+    ).unit;
+  }
 
-    final declared = tableClass
-        .allMatches(database.readAsStringSync())
-        .map((match) => match.group(0))
-        .toList();
+  test('database.dart declares nothing at top level but AppDatabase', () {
+    const allowed = {
+      'AppDatabase',
+      'kLegacyDataSourceIdPrefix',
+      'legacyDataSourceId',
+    };
+    final unit = parseDatabase();
 
+    final names = [
+      for (final declaration in unit.declarations)
+        switch (declaration) {
+          ClassDeclaration(:final namePart) => namePart.typeName.lexeme,
+          FunctionDeclaration(:final name) => name.lexeme,
+          TopLevelVariableDeclaration(:final variables) =>
+            variables.variables.map((v) => v.name.lexeme).join(', '),
+          _ => declaration.toSource().split('\n').first,
+        },
+    ];
+
+    expect(names, contains('AppDatabase'));
     expect(
-      declared,
+      names.where((name) => !allowed.contains(name)).toList(),
       isEmpty,
       reason:
-          'Declare tables in a library under lib/core/database/tables/ and '
-          'list them in @DriftDatabase. A table declared in database.dart '
-          'makes drift_dev resolve all of database.dart once per column, '
-          'which is what exhausted the CI runner (issue #2502).',
+          'Declare tables and their seed SQL in a library under '
+          'lib/core/database/tables/ and list the tables in @DriftDatabase. '
+          'drift_dev resolves all of database.dart once per column declared '
+          'there, which is what exhausted the CI runner (issue #2502).',
     );
   });
 
-  test('database.dart holds no migration code', () {
-    final source = File(
-      p.join(databaseDir, 'database.dart'),
-    ).readAsStringSync();
-    final migrationCode = RegExp(
-      r'customStatement\(|customSelect\(|if \(from < \d+\)',
-    );
+  test('AppDatabase holds no migration code', () {
+    const allowed = {
+      '<constructor>',
+      'onMigrationProgress',
+      'currentSchemaVersion',
+      'minimumCompatibleSchemaVersion',
+      'migrationVersions',
+      'migrationStepCount',
+      'schemaVersion',
+      'migration',
+    };
+    final unit = parseDatabase();
+    final appDatabase = unit.declarations
+        .whereType<ClassDeclaration>()
+        .singleWhere((c) => c.namePart.typeName.lexeme == 'AppDatabase');
 
+    final members = [
+      for (final member in (appDatabase.body as BlockClassBody).members)
+        switch (member) {
+          ConstructorDeclaration() => '<constructor>',
+          MethodDeclaration(:final name) => name.lexeme,
+          FieldDeclaration(:final fields) =>
+            fields.variables.map((v) => v.name.lexeme).join(', '),
+          _ => member.toSource().split('\n').first,
+        },
+    ];
+
+    expect(members, contains('migration'));
     expect(
-      migrationCode.allMatches(source).map((match) => match.group(0)).toSet(),
+      members.where((name) => !allowed.contains(name)).toList(),
       isEmpty,
       reason:
           'Put rungs under lib/core/database/migrations/ladder/ and the '
-          'helpers they call under migrations/helpers/. drift_dev resolves '
-          'all of database.dart while it generates code, so migration code '
+          'helpers they call, test hooks included, under migrations/helpers/ '
+          'as public extension members; database.dart exports them. drift_dev '
+          'resolves all of database.dart while it generates code, so code '
           'declared there is paid for on every build (issue #2502).',
     );
   });
 
-  test('every table library stays small', () {
+  test('every table and migration file stays under 800 lines', () {
     const maxLines = 800;
-    final libraries =
-        Directory(p.join(databaseDir, 'tables'))
-            .listSync()
+    final files =
+        [
+              ...Directory(p.join(databaseDir, 'tables')).listSync(),
+              ...Directory(
+                p.join(databaseDir, 'migrations'),
+              ).listSync(recursive: true),
+            ]
             .whereType<File>()
             .where((file) => file.path.endsWith('.dart'))
             .toList()
           ..sort((a, b) => a.path.compareTo(b.path));
+    final lines = {for (final file in files) file: file.readAsLinesSync()};
 
-    final tableCount = libraries
-        .map((file) => tableClass.allMatches(file.readAsStringSync()).length)
-        .fold<int>(0, (sum, count) => sum + count);
+    final tableClass = RegExp(r'^class \w+ extends Table\b');
+    final tableCount = lines.values
+        .expand((fileLines) => fileLines)
+        .where(tableClass.hasMatch)
+        .length;
     expect(
       tableCount,
       greaterThan(100),
@@ -84,18 +133,21 @@ void main() {
     );
 
     final oversized = [
-      for (final file in libraries)
-        if (file.readAsLinesSync().length > maxLines)
-          '${p.basename(file.path)}: ${file.readAsLinesSync().length} lines',
+      for (final MapEntry(key: file, value: fileLines) in lines.entries)
+        if (fileLines.length > maxLines)
+          '${p.relative(file.path, from: databaseDir)}: '
+              '${fileLines.length} lines',
     ];
 
     expect(
       oversized,
       isEmpty,
       reason:
-          'Split these into smaller libraries. Each column getter costs one '
-          'resolution of its whole library during code generation, so a '
-          'large table library multiplies build memory (issue #2502).',
+          'Split these files. A table library costs one resolution of the '
+          'whole library per column during code generation, so a large one '
+          'multiplies build memory (issue #2502). A ladder file that is full '
+          'is closed and a new onward file started, as '
+          'docs/developer/database.md describes.',
     );
   });
 }
