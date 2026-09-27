@@ -3255,8 +3255,10 @@ void main() {
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       prefs = await SharedPreferences.getInstance();
-      logFileService = LogFileService(logDirectory: '/tmp/test-logs');
       tempDir = Directory.systemTemp.createTempSync('startup_unreachable_');
+      logFileService = LogFileService(
+        logDirectory: p.join(tempDir.path, 'logs'),
+      );
       dbPath = p.join(tempDir.path, DatabaseLocationService.databaseFilename);
     });
 

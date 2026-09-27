@@ -243,7 +243,7 @@ void main() {
         Exception('database disk image is malformed'),
       ];
       for (final error in errors) {
-        for (final phase in StartupPhase.values) {
+        for (final phase in [StartupPhase.preflight, StartupPhase.opening]) {
           expect(
             classifyStartupFailure(error, phase, locationUnreachable: true),
             StartupFailureKind.locationUnreachable,
@@ -251,6 +251,25 @@ void main() {
           );
         }
       }
+    });
+
+    // Copilot on PR 2497: the probe only proves the folder is unreachable
+    // NOW. Once the ladder has run it may have written to the file before
+    // the folder went away, so "nothing changed" would be a false promise
+    // and the safety-copy routes must stay on offer.
+    test('a failure during the upgrade stays a failed migration', () {
+      expect(
+        classifyStartupFailure(
+          const FileSystemException(
+            'Cannot open file',
+            '/Volumes/DiveDrive/submersion.db',
+            OSError('Input/output error', 5),
+          ),
+          StartupPhase.upgrading,
+          locationUnreachable: true,
+        ),
+        StartupFailureKind.migrationFailed,
+      );
     });
 
     test('an engine failure still outranks an unreachable folder', () {

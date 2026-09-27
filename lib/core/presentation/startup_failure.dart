@@ -125,6 +125,9 @@ const List<String> _unreadableDataMarkers = [
 /// surfaces as a plain file error, or as SQLite failing to open or read the
 /// file, none of which names the folder. It outranks everything but an engine
 /// failure, because until the folder can be reached no other answer helps.
+/// Except during the upgrade: the probe only proves the folder is unreachable
+/// NOW, and the ladder may already have written to the file, so the screen
+/// that keeps the safety copy on offer is the honest one.
 StartupFailureKind classifyStartupFailure(
   Object error,
   StartupPhase phase, {
@@ -140,7 +143,9 @@ StartupFailureKind classifyStartupFailure(
     return StartupFailureKind.engineUnavailable;
   }
 
-  if (locationUnreachable) return StartupFailureKind.locationUnreachable;
+  if (locationUnreachable && phase != StartupPhase.upgrading) {
+    return StartupFailureKind.locationUnreachable;
+  }
 
   if (error is sqlite3.SqliteException &&
       (error.resultCode == _sqliteCorrupt ||

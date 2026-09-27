@@ -79,9 +79,10 @@ void main() {
       );
     });
 
-    /// Makes the database path exist but be impossible to open for
-    /// reading, which is the real "sandbox revoked access" shape. A merely
-    /// absent file is a different case (first launch) and must not reset.
+    /// Makes the database path exist but be impossible to open for reading,
+    /// in a folder that is itself perfectly readable: the FILE is the
+    /// problem. A merely absent file is a different case (first launch) and
+    /// must not reset.
     Future<Directory> folderWithUnreadableDatabase() async {
       final dir = await Directory.systemTemp.createTemp('submersion218');
       addTearDown(() => dir.delete(recursive: true));
@@ -141,7 +142,7 @@ void main() {
 
         expect(
           check,
-          StartupLocationCheck.keptInaccessible,
+          StartupLocationCheck.keptDatabaseUnreadable,
           reason:
               'without a sandbox there is nothing to recover from; wiping '
               'the user choice made the setting appear to never persist',
@@ -171,7 +172,7 @@ void main() {
         isBookmarkPlatform: true,
       );
 
-      expect(check, StartupLocationCheck.keptInaccessible);
+      expect(check, StartupLocationCheck.keptDatabaseUnreadable);
       final config = await service.getStorageConfig();
       expect(config.mode, StorageLocationMode.customFolder);
       expect(config.customFolderPath, dir.path);
@@ -200,7 +201,7 @@ void main() {
 
         final check = await service.validateCustomLocationAtStartup();
 
-        expect(check, StartupLocationCheck.keptInaccessible);
+        expect(check, StartupLocationCheck.keptDatabaseUnreadable);
         expect(
           (await service.getStorageConfig()).mode,
           StorageLocationMode.customFolder,
@@ -318,15 +319,91 @@ void main() {
     });
   });
 
+  /// A folder whose contents can be stat-ed but not read: the shape a
+  /// sandbox leaves behind once it takes a folder back, which permits
+  /// metadata and refuses data. [mode] is the folder's own permission bits.
+  ///
+  /// POSIX-only, like the other chmod-based tests in this suite. The
+  /// permissions are restored before the delete, which a 000 folder refuses.
+  Future<Directory> lockedFolder({required String mode}) async {
+    final dir = await Directory.systemTemp.createTemp('submersion2178');
+    addTearDown(() async {
+      await Process.run('chmod', ['-R', 'u+rwX', dir.path]);
+      await dir.delete(recursive: true);
+    });
+    final db = File(p.join(dir.path, 'submersion.db'));
+    await db.writeAsBytes(List.filled(32, 1));
+    await Process.run('chmod', ['000', db.path]);
+    await Process.run('chmod', [mode, dir.path]);
+    return dir;
+  }
+
+  const posixOnly = 'chmod-based permission tests are POSIX-only';
+
+  group('checkCustomLocation tells the folder from the file (#2178)', () {
+    // Copilot on PR 2497: an open failure alone does not mean the FOLDER is
+    // unreachable. A readable folder with a bad file in it is a file problem,
+    // and the failure screen must keep the routes that repair the file.
+    test(
+      'a readable folder with an unreadable database is a file problem',
+      () async {
+        final dir = await Directory.systemTemp.createTemp('submersion2178');
+        addTearDown(() => dir.delete(recursive: true));
+        await Directory(p.join(dir.path, 'submersion.db')).create();
+
+        final service = await serviceWithCustomFolder(dir.path);
+
+        expect(
+          await service.checkCustomLocation(),
+          StartupLocationCheck.keptDatabaseUnreadable,
+        );
+      },
+    );
+
+    test('a folder that can be stat-ed but not read is inaccessible', () async {
+      final dir = await lockedFolder(mode: '111');
+      final service = await serviceWithCustomFolder(dir.path);
+
+      expect(
+        await service.checkCustomLocation(),
+        StartupLocationCheck.keptInaccessible,
+      );
+    }, skip: Platform.isWindows ? posixOnly : null);
+
+    // With traversal refused too, the database reads as absent. That must
+    // not pass for a first launch, or startup would try to create a fresh
+    // dive log in a folder it cannot even list.
+    test(
+      'a folder that cannot be entered is not mistaken for a first launch',
+      () async {
+        final dir = await lockedFolder(mode: '000');
+        final service = await serviceWithCustomFolder(dir.path);
+
+        expect(
+          await service.checkCustomLocation(),
+          StartupLocationCheck.keptInaccessible,
+        );
+      },
+      skip: Platform.isWindows ? posixOnly : null,
+    );
+  });
+
   group('unreachableCustomFolder (#2178)', () {
-    test('names the folder whose database cannot be read', () async {
+    test('names a folder that cannot be read', () async {
+      final dir = await lockedFolder(mode: '111');
+      final service = await serviceWithCustomFolder(dir.path);
+
+      expect(await service.unreachableCustomFolder(), dir.path);
+    }, skip: Platform.isWindows ? posixOnly : null);
+
+    test('is null when only the database file cannot be read', () async {
       final dir = await Directory.systemTemp.createTemp('submersion2178');
       addTearDown(() => dir.delete(recursive: true));
       await Directory(p.join(dir.path, 'submersion.db')).create();
 
       final service = await serviceWithCustomFolder(dir.path);
 
-      expect(await service.unreachableCustomFolder(), dir.path);
+      expect(await service.unreachableCustomFolder(), isNull);
     });
 
     test('names a folder that is not there at all', () async {

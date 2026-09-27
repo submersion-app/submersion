@@ -47,10 +47,15 @@ enum StartupLocationCheck {
   /// chosen path.
   keptDatabaseMissing,
 
-  /// Something occupies the database path and cannot be read: a folder the
-  /// sandbox no longer grants, a file still on its way down from iCloud, a
-  /// permissions fault. The open surfaces a real error (#218).
+  /// The folder itself cannot be read: one the sandbox no longer grants, a
+  /// permissions fault on the folder. The open surfaces a real error (#218).
   keptInaccessible,
+
+  /// The folder can be read but the database in it cannot be opened: a
+  /// permissions fault on the file, or something that is not a file at all.
+  /// The folder is fine, so this is not [isUnreachable]; the failure screen
+  /// keeps the routes that repair or replace the file.
+  keptDatabaseUnreadable,
 
   /// The configured folder itself is not there: an unplugged drive, a share
   /// that is not mounted, a folder that was moved or deleted.
@@ -316,9 +321,14 @@ class DatabaseLocationService {
     // occupy the path (including a directory) has to be opened to decide, so
     // test the entity type rather than File.exists().
     if (await FileSystemEntity.type(dbPath) == FileSystemEntityType.notFound) {
-      return await Directory(folder).exists()
+      if (!await Directory(folder).exists()) {
+        return StartupLocationCheck.keptFolderMissing;
+      }
+      // A folder that cannot be entered hides its contents, so the database
+      // reads as absent. That is lost access, not a first launch.
+      return await _canList(folder)
           ? StartupLocationCheck.keptDatabaseMissing
-          : StartupLocationCheck.keptFolderMissing;
+          : StartupLocationCheck.keptInaccessible;
     }
 
     RandomAccessFile? handle;
@@ -327,7 +337,12 @@ class DatabaseLocationService {
       await handle.read(16);
       return StartupLocationCheck.accessible;
     } catch (_) {
-      return StartupLocationCheck.keptInaccessible;
+      // Only the folder's own readability says whether the FOLDER is the
+      // problem. A sandbox that takes a folder back refuses the listing too;
+      // a bad file in a readable folder is a problem with the file.
+      return await _canList(folder)
+          ? StartupLocationCheck.keptDatabaseUnreadable
+          : StartupLocationCheck.keptInaccessible;
     } finally {
       // Close even when the read throws, or the handle leaks on every
       // launch that hits a revoked-permission folder. Guarded, because an
@@ -337,6 +352,16 @@ class DatabaseLocationService {
       } catch (_) {
         // Nothing to do: the probe's answer is already decided.
       }
+    }
+  }
+
+  /// Whether [folder]'s contents can be listed. Never throws.
+  static Future<bool> _canList(String folder) async {
+    try {
+      await Directory(folder).list().isEmpty;
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
