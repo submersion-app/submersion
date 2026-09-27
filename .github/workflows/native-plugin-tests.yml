@@ -201,6 +201,8 @@ jobs:
             && sudo swapon /mnt/codegen.swap; then
             swapon --show
           else
+            sudo swapoff /mnt/codegen.swap 2>/dev/null || true
+            sudo rm -f /mnt/codegen.swap
             echo "::warning::Could not add swap; build_runner may run out of memory on a cold build"
           fi
           free -m
