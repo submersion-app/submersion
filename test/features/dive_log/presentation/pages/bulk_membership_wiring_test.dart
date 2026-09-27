@@ -17,9 +17,13 @@ import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_picker_sheet.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 
@@ -103,6 +107,7 @@ void main() {
       WidgetTester tester,
       List<String> ids, {
       List<EquipmentSet> sets = const [],
+      List<Override> extraOverrides = const [],
     }) async {
       final overrides = await getBaseOverrides();
       await tester.pumpWidget(
@@ -123,6 +128,7 @@ void main() {
                 (ref, id) async => sets.firstWhere((s) => s.id == id),
               ),
             ],
+            ...extraOverrides,
           ],
           child: DiveEditPage(bulkDiveIds: ids, embedded: true),
         ),
@@ -180,6 +186,96 @@ void main() {
         expect(find.text('adding to all 2'), findsWidgets);
       },
     );
+
+    // A part of an assembly with a long name used to render its "Part of"
+    // chip in the row's trailing slot. ListTile sizes trailing before the
+    // title, so the chip took nearly the whole width and the name and status
+    // line wrapped one character per line (#2276).
+    testWidgets('a long "Part of" chip does not squeeze the gear row', (
+      tester,
+    ) async {
+      const rig = EquipmentItem(
+        id: 'rig',
+        name:
+            'Camera Assembly - DJI Osmo Action 5 Pro / Wide & Macro Lens / '
+            'Red Tray / Lens Mounts',
+        type: EquipmentType.camera,
+      );
+      const lens = EquipmentItem(
+        id: 'lens',
+        name: 'Lens',
+        type: EquipmentType.camera,
+      );
+      const fins = EquipmentItem(
+        id: 'fins',
+        name: 'Fins',
+        type: EquipmentType.fins,
+      );
+      for (final item in [rig, lens, fins]) {
+        await EquipmentRepository().createEquipment(item);
+      }
+      await seedDive('d1');
+      await seedDive('d2');
+      await repository.bulkAddEquipment(['d1'], ['lens', 'fins']);
+
+      final t0 = DateTime(2026, 1, 1);
+      await pump(
+        tester,
+        ['d1', 'd2'],
+        extraOverrides: [
+          equipmentComponentsIndexProvider.overrideWith(
+            (ref) async => ComponentsIndex.fromRows([
+              EquipmentComponent(
+                id: 'c1',
+                parentEquipmentId: 'rig',
+                componentEquipmentId: 'lens',
+                createdAt: t0,
+                updatedAt: t0,
+              ),
+            ]),
+          ),
+          activeEquipmentProvider.overrideWith(
+            (ref) async => [rig, lens, fins],
+          ),
+        ],
+      );
+
+      final chip = find.text('Part of ${rig.name}');
+      expect(chip, findsOneWidget);
+
+      // Both rows read "on 1 of 2"; the one carrying the chip must lay it
+      // out on a single line just like the row without one.
+      final statuses = find.descendant(
+        of: editorFor('Equipment'),
+        matching: find.text('on 1 of 2'),
+      );
+      expect(statuses, findsNWidgets(2));
+      expect(
+        tester.getSize(statuses.at(0)).height,
+        tester.getSize(statuses.at(1)).height,
+      );
+
+      // The chip sits under the item's name, not beside it.
+      expect(
+        tester.getTopLeft(chip).dy,
+        greaterThan(tester.getBottomLeft(find.text('Lens')).dy),
+      );
+
+      // Plain gear builds no chip slot at all, so its subtitle is the status
+      // line alone, as before the chips moved there.
+      expect(
+        find.descendant(
+          of: editorFor('Equipment'),
+          matching: find.byType(AssemblyChips),
+        ),
+        findsOneWidget,
+      );
+      final finsTile = find.ancestor(
+        of: find.text('Fins'),
+        matching: find.byType(ListTile),
+      );
+      expect(tester.widget<ListTile>(finsTile).subtitle, isA<Text>());
+    });
 
     testWidgets('toggling seeded members off applies remove ops on save', (
       tester,

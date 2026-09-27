@@ -384,8 +384,33 @@ void main() {
     expect(byRecord[movedProfile], 'diveProfileSeries');
     expect(byRecord[movedTank], 'diveTanks');
     expect(byRecord[movedPressure], 'tankPressureSeries');
-    expect(byRecord[movedEvent], 'diveProfileEvents');
+    expect(byRecord.containsKey(movedEvent), isFalse);
+    expect(byRecord['dive-1|dc-b'], 'diveProfileEventsScope');
     expect(byRecord['src-b'], 'diveDataSources');
+  });
+
+  test('split writes one events tombstone however many events move', () async {
+    await insertDive('dive-1', computerId: 'dc-a');
+    await insertSource('src-a', 'dive-1', 'dc-a', isPrimary: true);
+    await insertSource('src-b', 'dive-1', 'dc-b', isPrimary: false);
+    await insertProfileSeriesRow('dive-1', 'dc-a', isPrimary: true);
+    await insertProfileSeriesRow('dive-1', 'dc-b', isPrimary: false);
+    for (var i = 0; i < 50; i++) {
+      await insertEvent('dive-1', 'dc-b');
+    }
+    final keptEvent = await insertEvent('dive-1', 'dc-a');
+
+    await service.split(diveId: 'dive-1', sourceId: 'src-b');
+
+    final tombstones = await db.select(db.deletionLog).get();
+    expect(
+      tombstones.where((t) => t.entityType.startsWith('diveProfileEvents')),
+      hasLength(1),
+    );
+    final events = await db.select(db.diveProfileEvents).get();
+    expect(events.where((e) => e.diveId == 'dive-1').map((e) => e.id), [
+      keptEvent,
+    ]);
   });
 
   test(

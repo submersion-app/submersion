@@ -47,7 +47,9 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
     EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, String> equipmentSetNamesById = const {},
+    DateTime? generatedAt,
   }) async {
+    final stamp = generatedAt ?? DateTime.now();
     final pdf = pw.Document(theme: PdfFonts.instance.theme);
     final pageFormat = getPageFormat(pageSize);
 
@@ -59,6 +61,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
           title: title,
           diveCount: dives.length,
           dates: dates,
+          generatedAt: stamp,
           units: units,
           diver: diver,
           dives: dives,
@@ -123,6 +126,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
     required String title,
     required int diveCount,
     required PdfDateFormatter dates,
+    required DateTime generatedAt,
     required UnitFormatter units,
     Diver? diver,
     required List<Dive> dives,
@@ -194,7 +198,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
           ),
           pw.Spacer(),
           pw.Text(
-            'Generated ${dates.dateTime(DateTime.now())}',
+            'Generated ${dates.dateTime(generatedAt)}',
             style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey500),
           ),
           pw.SizedBox(height: 20),

@@ -177,21 +177,30 @@ jobs:
           restore-keys: |
             build-runner-${{ runner.os }}-${{ steps.flutter-ver.outputs.version }}-${{ hashFiles('pubspec.lock', 'build.yaml') }}-
 
-      # A near-full rebuild (a branch that regenerates widely imported code,
-      # such as the l10n hub, on top of a cache from another commit) peaks
-      # around 18 GB of analyzer memory, above the runner's 16 GB, and the job
-      # is then killed with exit 143 and no build error. Swap lets that rare
-      # large rebuild finish, slower, instead of dying; the usual incremental
-      # build never touches it.
-      - name: Add swap for large build_runner rebuilds
+      # On a cold or stale-cache build, drift_dev's analysis of
+      # lib/core/database/database.dart drives the build script to ~15 GB RSS
+      # on this 16 GB runner (the Dart VM collects lazily and grows toward
+      # physical RAM; the live set is ~6 GB). Measured cold builds left only
+      # 70-300 MB of the runner's 3 GB swap, and slightly heavier rebuilds
+      # were killed with exit 143 (#2498). A 12 GB swapfile absorbs the peak
+      # (measured cold builds used 4.5-5.5 GB of swap with it); warm
+      # incremental builds never reach it. Heap caps do not work here:
+      # DART_VM_OPTIONS never reaches the AOT build script on Linux, and a
+      # capped heap stalls on 4 vCPUs. Best-effort, so a runner image without
+      # room on /mnt still builds as before, with a warning.
+      - name: Add swap for build_runner
         run: |
-          sudo swapoff -a || true
-          sudo rm -f /swapfile
-          sudo fallocate -l 12G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
-          free -h
+          if sudo fallocate -l 12G /mnt/codegen.swap \
+            && sudo chmod 600 /mnt/codegen.swap \
+            && sudo mkswap /mnt/codegen.swap >/dev/null \
+            && sudo swapon /mnt/codegen.swap; then
+            swapon --show
+          else
+            sudo swapoff /mnt/codegen.swap 2>/dev/null || true
+            sudo rm -f /mnt/codegen.swap
+            echo "::warning::Could not add swap; build_runner may run out of memory on a cold build"
+          fi
+          free -m
 
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs

@@ -55,6 +55,10 @@ abstract class PdfTemplateBuilder {
   /// - [equipmentSetNamesById]: Every equipment set's name by id, so a dive
   ///   names the sets its gear came from (#2031). A set with no entry is
   ///   left unnamed.
+  /// - [generatedAt]: The moment the logbook is stamped as generated,
+  ///   defaulting to now. Passed in so two exports of the same data can be
+  ///   made identical: a stamp that ticks over a minute can change the
+  ///   embedded font subset, and with it the document's size (#2446).
   ///
   /// Returns the PDF document as a byte array.
   Future<List<int>> buildPdf({
@@ -72,6 +76,7 @@ abstract class PdfTemplateBuilder {
     EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, String> equipmentSetNamesById = const {},
+    DateTime? generatedAt,
   });
 
   /// Convert [PdfPageSize] to the pdf package's [PdfPageFormat].

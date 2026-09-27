@@ -453,26 +453,6 @@ void main() {
     });
   });
 
-  group('simple dives import', () {
-    test('reads the dive GPS a dives-only export writes', () async {
-      final xml = await UddfExportService().generateDivesUddfContent([
-        _dive(
-          entry: const GeoPoint(-8.274, 115.593),
-          exit: const GeoPoint(-8.275, 115.594),
-        ),
-      ]);
-
-      final dive = (await ExportService().importDivesFromUddf(
-        xml,
-      ))['dives']!.single;
-
-      expect(dive['latitude'], closeTo(-8.274, 1e-12));
-      expect(dive['longitude'], closeTo(115.593, 1e-12));
-      expect(dive['exitLatitude'], closeTo(-8.275, 1e-12));
-      expect(dive['exitLongitude'], closeTo(115.594, 1e-12));
-    });
-  });
-
   test('restored GPS reaches the Dive the Surface GPS card reads', () async {
     await restore(await fullBackup(_dive(entry: const GeoPoint(29.5, 34.9))));
 

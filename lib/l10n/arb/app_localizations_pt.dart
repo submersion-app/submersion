@@ -2437,7 +2437,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_detail_label_agency => 'Agência';
 
   @override
-  String get certifications_detail_label_alsoRecognized => 'Also recognized as';
+  String get certifications_detail_label_alsoRecognized =>
+      'Também reconhecida como';
 
   @override
   String get certifications_detail_label_cardNumber => 'Número do Cartão';
@@ -2556,7 +2557,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String certifications_ecard_alsoRecognized(String recognitions) {
-    return 'Also: $recognitions';
+    return 'Também: $recognitions';
   }
 
   @override
@@ -2662,10 +2663,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_edit_label_agency => 'Agência *';
 
   @override
-  String get certifications_edit_addRecognition => 'Add another recognition';
+  String get certifications_edit_addRecognition =>
+      'Adicionar outro reconhecimento';
 
   @override
-  String get certifications_edit_removeRecognition => 'Remove this recognition';
+  String get certifications_edit_removeRecognition =>
+      'Remover este reconhecimento';
 
   @override
   String get certifications_edit_label_cardNumber => 'Número do Cartão';
@@ -26617,7 +26620,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveImport_healthkit_accessDescription =>
-      'Submersion uses Apple HealthKit to read underwater diving workout data, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+      'O Submersion usa o Apple HealthKit para ler dados de treinos de mergulho subaquático, incluindo profundidade, duração, temperatura da água e frequência cardíaca, e criar registros de mergulho detalhados.';
 
   @override
   String get diveImport_healthkit_accessRequired => 'Apple HealthKit';
@@ -27848,11 +27851,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get tools_weight_yourWeight => 'Seu peso';
 
   @override
-  String get settings_section_dataSources_title => 'Data Sources';
+  String get settings_section_dataSources_title => 'Apple HealthKit';
 
   @override
   String get settings_section_dataSources_subtitle =>
-      'Connected services & integrations';
+      'Integração de dados de saúde';
 
   @override
   String get settings_siteMatch_title => 'Associação automática de pontos';
@@ -27879,7 +27882,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_siteMatch_relaxed => 'Flexível';
 
   @override
-  String get settings_dataSources_header => 'Data Sources';
+  String get settings_dataSources_header => 'Integração com o Apple HealthKit';
 
   @override
   String get settings_dataSources_appleHealth_title => 'Apple Health';
@@ -27890,7 +27893,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_description =>
-      'Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+      'O Submersion usa o Apple HealthKit para ler dados de treinos de mergulho subaquático do Apple Health. Esses dados são usados para criar registros de mergulho detalhados dos seus mergulhos com o Apple Watch.';
 
   @override
   String get settings_dataSources_appleHealth_dataTypesHeader =>
@@ -27918,11 +27921,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_importAction =>
-      'Import from Apple Watch';
+      'Importar mergulhos do Apple Watch via HealthKit';
 
   @override
   String get settings_dataSources_appleHealth_privacy =>
-      'Your health data is stored locally and is never shared with third parties.';
+      'Seus dados de saúde são armazenados localmente neste dispositivo e nunca são compartilhados com terceiros. O Submersion apenas lê dados do Apple HealthKit e não grava nenhum dado no HealthKit.';
 
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
@@ -27930,7 +27933,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_dataSources_noSources =>
-      'No data source integrations are available on this platform.';
+      'Nenhuma integração de fonte de dados está disponível nesta plataforma.';
 
   @override
   String get diveLog_edit_section_environment => 'Ambiente';
@@ -29388,24 +29391,24 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get dive3d_seascape_detailLimitReached =>
-      'This is the most detail available for this location';
+      'Este é o máximo de detalhe disponível para este local';
 
   @override
   String dive3d_seascape_lodStageLabel(String stage, String span) {
-    return 'Level of detail: $stage ($span)';
+    return 'Nível de detalhe: $stage ($span)';
   }
 
   @override
-  String get dive3d_seascape_lodStageOverview => 'Overview';
+  String get dive3d_seascape_lodStageOverview => 'Visão geral';
 
   @override
-  String get dive3d_seascape_lodStageMedium => 'Medium';
+  String get dive3d_seascape_lodStageMedium => 'Médio';
 
   @override
-  String get dive3d_seascape_lodStageFine => 'Fine';
+  String get dive3d_seascape_lodStageFine => 'Fino';
 
   @override
-  String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
+  String get dive3d_seascape_lodStageSuperFine => 'Muito fino';
 
   @override
   String get dive3d_seascape_noData =>

@@ -153,13 +153,16 @@ void main() {
   ];
 
   test('v232 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v233 (dive source diver key, #1921) landed on top; the
-    // newest rung owns the exact assertion.
+    // Relaxed once v233 (#1921) and v240 (#1926) landed on top; the newest
+    // rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(232));
     expect(AppDatabase.migrationVersions, contains(232));
     expect(AppDatabase.migrationStepCount(231), greaterThanOrEqualTo(1));
-    // Additive rung: the sync compatibility floor must not move.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
+    // Additive rung: it did not move the floor (v240 raised it later).
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(224),
+    );
   });
 
   test('adds trip_cylinders and trip_cylinder_events', () async {

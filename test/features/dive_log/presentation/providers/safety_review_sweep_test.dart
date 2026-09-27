@@ -22,8 +22,10 @@ class _RecordingRepo extends SafetyFindingsRepository {
   Future<SafetyReview?> getReview(String diveId) async => null;
 
   @override
-  Future<void> saveReview(SafetyReview review) async =>
-      saved.add(review.diveId);
+  Future<SafetyReview> saveReview(SafetyReview review) async {
+    saved.add(review.diveId);
+    return review;
+  }
 }
 
 void main() {
