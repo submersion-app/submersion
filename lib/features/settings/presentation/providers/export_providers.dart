@@ -20,6 +20,7 @@ import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_factory.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -602,6 +603,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
     );
     final factory = PdfTemplateFactory();
     final builder = factory.getBuilder(exportOptions.template);
+    final localization = PdfLocalization.forLanguageCode(
+      exportOptions.languageCode ?? _l10n.localeName,
+    );
 
     // The logbook is a document the diver prints or shares, so its dates and
     // times follow the diver's preferences (#964); the file name stays ISO.
@@ -629,7 +633,11 @@ class ExportNotifier extends StateNotifier<ExportState> {
         timeFormat: settings.timeFormat,
       ),
       units: UnitFormatter(settings),
-      title: _l10n.settings_export_pdfDocumentTitle,
+      // The language picked in the export sheet, or the app language when
+      // the caller offered no choice (#2252). The title follows it too, so
+      // a French logbook is not headed in English.
+      localization: localization,
+      title: localization.l10n.settings_export_pdfDocumentTitle,
       diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
       certifications: certifications,
       diver: diver,

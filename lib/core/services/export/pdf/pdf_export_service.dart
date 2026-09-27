@@ -14,6 +14,8 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_factory.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -24,6 +26,13 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 /// Handles PDF export for dive logbooks and trip reports.
 class PdfExportService {
+  /// [templateFor] picks the builder for a template; tests pass one that
+  /// records what it was handed.
+  PdfExportService({PdfTemplateBuilder Function(PdfTemplate)? templateFor})
+    : _templateFor = templateFor ?? PdfTemplateFactory().getBuilder;
+
+  final PdfTemplateBuilder Function(PdfTemplate) _templateFor;
+
   /// File names stay ISO no matter what the diver reads in the document, so a
   /// folder of exports still sorts chronologically (#964).
   static final _fileNameDate = DateFormat('yyyy-MM-dd');
@@ -162,7 +171,7 @@ class PdfExportService {
     required PdfDateFormatter dates,
     required UnitFormatter units,
     PdfExportOptions options = const PdfExportOptions(),
-    String title = 'Dive Logbook',
+    String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
     Diver? diver,
@@ -194,8 +203,10 @@ class PdfExportService {
       EquipmentSetRepository(),
     );
 
-    final builder = PdfTemplateFactory().getBuilder(options.template);
+    final builder = _templateFor(options.template);
     final pdfBytes = await builder.buildPdf(
+      // The language picked in the export sheet (#2252). A null title lets
+      // the template head the document in that language.
       gearArrangement: gearArrangement,
       equipmentSetNamesById: equipmentSetNamesById,
       dives: dives,
@@ -212,6 +223,7 @@ class PdfExportService {
       diverPhoto: diverPhoto,
       includeVerificationAreas: options.includeVerificationAreas,
       diveTypesById: diveTypesById,
+      localization: PdfLocalization.forLanguageCode(options.languageCode),
     );
 
     final fileName =
@@ -226,7 +238,7 @@ class PdfExportService {
     required PdfDateFormatter dates,
     required UnitFormatter units,
     PdfExportOptions options = const PdfExportOptions(),
-    String title = 'Dive Logbook',
+    String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
     Diver? diver,
@@ -258,7 +270,7 @@ class PdfExportService {
     required PdfDateFormatter dates,
     required UnitFormatter units,
     PdfExportOptions options = const PdfExportOptions(),
-    String title = 'Dive Logbook',
+    String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
     Diver? diver,
