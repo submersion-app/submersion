@@ -17,8 +17,9 @@ import 'package:submersion/features/universal_import/data/csv/transforms/dive_ty
 ///
 /// Orchestrates parsing of all entity types (dives, sites, buddies,
 /// equipment, certifications, etc.) from a full Submersion UDDF export.
-/// Delegates base parsing to [UddfImportService] and entity parsing
-/// to [UddfImportParsers].
+/// Walks the document and parses each dive itself; the per-element parsers
+/// for every other entity (sites, gas mixes, buddies, equipment and so on)
+/// live in [UddfImportParsers].
 class UddfFullImportService {
   /// Private marker `_parseFullDive` leaves on a dive whose `<link ref>`
   /// matched nothing the parser knows about, so the caller can count it and
@@ -1036,7 +1037,7 @@ class UddfFullImportService {
   }
 
   Map<String, dynamic> _parseFullSite(XmlElement siteElement) {
-    // Parse base site fields using simple import service
+    // Standard UDDF site fields first, then the Submersion extensions.
     final baseSite = _parseUddfSite(siteElement);
     return UddfImportParsers.parseFullSite(siteElement, baseSite);
   }
@@ -1137,7 +1138,7 @@ class UddfFullImportService {
     Map<String, Map<String, int>> decoModels,
     Map<String, Map<String, String>> diveComputers,
   ) {
-    // Start with base dive parse (same logic as simple import)
+    // Standard UDDF dive fields first, then the Submersion extensions.
     final diveData = _parseUddfDive(
       diveElement,
       sites,

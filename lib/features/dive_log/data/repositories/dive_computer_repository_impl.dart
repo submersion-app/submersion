@@ -808,7 +808,6 @@ class DiveComputerRepository {
     required double? maxDepth,
     required double? effectiveAvgDepth,
     required double? minWaterTemp,
-    required int? reportedBottomTimeSeconds,
     required double? cns,
     required double? otu,
     required int? surfaceIntervalSeconds,
@@ -838,10 +837,10 @@ class DiveComputerRepository {
       sourceFormat: const Value('dive_computer'),
       maxDepth: Value(maxDepth),
       avgDepth: Value(effectiveAvgDepth),
-      // Readers (field attribution, split, uncombine) take this column as the
-      // source's bottom time. Only a source that reports one has a better
-      // value than the runtime to put here (issue #1798).
-      duration: Value(reportedBottomTimeSeconds ?? durationSeconds),
+      // What the computer measured: the runtime. Bottom time is derived from a
+      // profile and never stored in its place, even when the source reports
+      // one; that lands on the dive row only (issues #1798, #2421).
+      duration: Value(durationSeconds),
       waterTemp: Value(minWaterTemp),
       entryLatitude: Value(entryLatitude),
       entryLongitude: Value(entryLongitude),
@@ -1338,7 +1337,8 @@ class DiveComputerRepository {
     // A dive summary the source reported itself rather than one derived from
     // the profile (Garmin's FIT dive_summary, issue #1798). Like the diluent
     // above, the dive row only takes them when it is brand new; the
-    // download's own data source row takes them either way.
+    // download's own data source row takes them either way, except the
+    // bottom time: that row keeps the measured runtime (issue #2421).
     int? bottomTimeSeconds,
     int? surfaceIntervalSeconds,
     WaterType? waterType,
@@ -1568,7 +1568,6 @@ class DiveComputerRepository {
                 maxDepth: maxDepth,
                 effectiveAvgDepth: effectiveAvgDepth,
                 minWaterTemp: minWaterTemp,
-                reportedBottomTimeSeconds: reportedBottomTimeSeconds,
                 cns: effectiveCnsEnd,
                 otu: otu,
                 surfaceIntervalSeconds: surfaceIntervalSeconds,
@@ -1650,7 +1649,6 @@ class DiveComputerRepository {
                     (existingSampleTemps.isNotEmpty
                         ? existingSampleTemps.reduce((a, b) => a < b ? a : b)
                         : null),
-                reportedBottomTimeSeconds: reportedBottomTimeSeconds,
                 cns:
                     cnsEnd ??
                     (existingSampleCns.isNotEmpty

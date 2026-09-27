@@ -689,7 +689,9 @@ class DiveReimportService {
       DiveDataSourcesCompanion(
         maxDepth: Value(_asDouble(diveData['maxDepth'])),
         avgDepth: Value(avgDepth == 0.0 ? null : avgDepth),
-        duration: Value(_deriveBottomTimeSeconds(diveData)),
+        // The runtime the parse reports, never the bottom time derived from
+        // it (issue #2421).
+        duration: Value(runtime?.inSeconds),
         waterTemp: Value(_asDouble(diveData['waterTemp'])),
         entryTime: Value(entryTime),
         exitTime: Value(exitTime),

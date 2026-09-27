@@ -1388,11 +1388,12 @@ void main() {
       expect(source.gradientFactorHigh, isNull);
     });
 
-    test('snapshots the derived bottom time, not the absent duration '
-        'key', () async {
+    test('snapshots the runtime, not the absent duration key or a derived '
+        'bottom time', () async {
       // UDDF never sets `duration`, so reading it alone left the Sources panel
       // advertising the duration of the profile the resync had just deleted.
-      // The synthesised source row stores the derived bottom time.
+      // The source row stores the runtime the parse reports, never a bottom
+      // time derived from the profile (issue #2421).
       final diveId = await seedDive(notes: '', buddy: '');
       await db
           .into(db.diveDataSources)
@@ -1420,7 +1421,7 @@ void main() {
       final source = await (db.select(
         db.diveDataSources,
       )..where((t) => t.id.equals('src-1'))).getSingle();
-      expect(source.duration, 1200);
+      expect(source.duration, 25 * 60);
     });
 
     test('derives the snapshot window the way the first import '

@@ -49,6 +49,7 @@ void main() {
     double? maxDepth,
     double? avgDepth,
     int? duration,
+    int? runtime,
     double? waterTemp,
     int? entryTime,
     int? exitTime,
@@ -78,6 +79,7 @@ void main() {
             maxDepth: Value(maxDepth),
             avgDepth: Value(avgDepth),
             bottomTime: Value(duration),
+            runtime: Value(runtime),
             waterTemp: Value(waterTemp),
             entryTime: Value(entryTime),
             exitTime: Value(exitTime),
@@ -947,6 +949,7 @@ void main() {
         maxDepth: 42.0,
         avgDepth: 22.0,
         duration: 3600,
+        runtime: 4200,
         waterTemp: 15.5,
         surfaceIntervalSeconds: 7200,
         cnsEnd: 55.0,
@@ -967,7 +970,8 @@ void main() {
       expect(s.computerSerial, equals('SN-TERIC-001'));
       expect(s.maxDepth, equals(42.0));
       expect(s.avgDepth, equals(22.0));
-      expect(s.duration, equals(3600));
+      // The runtime, not the 3600 s bottom time (issue #2421).
+      expect(s.duration, equals(4200));
       expect(s.waterTemp, equals(15.5));
       expect(s.surfaceInterval, equals(7200));
       expect(s.cns, equals(55.0));
@@ -1704,6 +1708,7 @@ void main() {
         id: 'dive-meta-update',
         diveComputerModel: 'Computer A',
         maxDepth: 30.0,
+        duration: 1800,
       );
 
       await repository.saveComputerReading(
@@ -1743,7 +1748,10 @@ void main() {
       expect(diveRow.diveComputerSerial, equals('SN-NEW'));
       expect(diveRow.maxDepth, equals(45.0));
       expect(diveRow.avgDepth, equals(25.0));
-      expect(diveRow.bottomTime, equals(3600));
+      // The reading's duration is the runtime it measured, never a bottom
+      // time; with no profile to derive one from, the dive keeps its own
+      // (issue #2421).
+      expect(diveRow.bottomTime, equals(1800));
       expect(diveRow.waterTemp, equals(18.0));
     });
 

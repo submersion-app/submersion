@@ -48,7 +48,9 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, String> equipmentSetNamesById = const {},
+    DateTime? generatedAt,
   }) async {
+    final stamp = generatedAt ?? DateTime.now();
     final pdf = pw.Document(theme: PdfFonts.instance.theme);
     final pageFormat = getPageFormat(pageSize);
 
@@ -60,6 +62,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
           diveCount: dives.length,
           pageFormat: pageFormat,
           dates: dates,
+          generatedAt: stamp,
           firstDiveDate: dives.isNotEmpty ? dives.last.dateTime : null,
           lastDiveDate: dives.isNotEmpty ? dives.first.dateTime : null,
           diver: diver,

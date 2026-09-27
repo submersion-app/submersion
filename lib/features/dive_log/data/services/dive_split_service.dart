@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
     as series;
+import 'package:submersion/features/dive_log/domain/services/source_bottom_time.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 
 /// Splits one data source's computer data out of a dive into a new dive —
@@ -142,7 +143,17 @@ class DiveSplitService {
                   diveComputerSerial: Value(source.computerSerial),
                   maxDepth: Value(source.maxDepth ?? diveRow.maxDepth),
                   avgDepth: Value(source.avgDepth ?? diveRow.avgDepth),
-                  bottomTime: Value(source.duration ?? diveRow.bottomTime),
+                  // Derived from the series that move with the source; its
+                  // duration is the runtime it measured, never a bottom time.
+                  bottomTime: Value(
+                    sourceBottomTimeSeconds(
+                          movingProfiles,
+                          sourceId: source.id,
+                          computerId: source.computerId,
+                          runtimeSeconds: source.duration,
+                        ) ??
+                        diveRow.bottomTime,
+                  ),
                   waterTemp: Value(source.waterTemp ?? diveRow.waterTemp),
                   entryTime: Value(
                     source.entryTime?.millisecondsSinceEpoch ??
@@ -414,7 +425,15 @@ class DiveSplitService {
           diveComputerSerial: Value(promoted.computerSerial),
           maxDepth: Value(promoted.maxDepth ?? diveRow.maxDepth),
           avgDepth: Value(promoted.avgDepth ?? diveRow.avgDepth),
-          bottomTime: Value(promoted.duration ?? diveRow.bottomTime),
+          bottomTime: Value(
+            sourceBottomTimeSeconds(
+                  allProfileSeries.where((s) => !movingProfiles.contains(s)),
+                  sourceId: promoted.id,
+                  computerId: promoted.computerId,
+                  runtimeSeconds: promoted.duration,
+                ) ??
+                diveRow.bottomTime,
+          ),
           waterTemp: Value(promoted.waterTemp ?? diveRow.waterTemp),
           entryTime: Value(
             promoted.entryTime?.millisecondsSinceEpoch ?? diveRow.entryTime,

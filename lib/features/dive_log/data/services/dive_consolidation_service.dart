@@ -219,7 +219,8 @@ class DiveConsolidationService {
                   computerSerial: Value(secRow.diveComputerSerial),
                   maxDepth: Value(secRow.maxDepth),
                   avgDepth: Value(secRow.avgDepth),
-                  duration: Value(secRow.bottomTime),
+                  // The runtime, never the derived bottom time (#2421).
+                  duration: Value(secRow.runtime),
                   waterTemp: Value(secRow.waterTemp),
                   entryTime: Value(
                     secRow.entryTime != null
