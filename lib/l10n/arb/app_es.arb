@@ -6949,14 +6949,6 @@
   "trips_edit_label_expectedRuntime": "Duración prevista por inmersión (minutos)",
   "trips_edit_hint_expectedRuntime": "Déjalo vacío para estimar a partir de tus inmersiones con rebreather recientes",
   "trips_scrubber_title": "Margen del absorbente",
-  "trips_scrubber_asOfStart": "a fecha de {date}",
-  "@trips_scrubber_asOfStart": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
   "trips_scrubber_remaining": "{minutes} min restantes antes del viaje (nominal {rated} min, {consumed} min usados desde el último cambio)",
   "@trips_scrubber_remaining": {
     "placeholders": {

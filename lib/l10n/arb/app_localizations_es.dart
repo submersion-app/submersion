@@ -24755,11 +24755,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_scrubber_title => 'Margen del absorbente';
 
   @override
-  String trips_scrubber_asOfStart(String date) {
-    return 'a fecha de $date';
-  }
-
-  @override
   String trips_scrubber_remaining(
     String minutes,
     String rated,

@@ -14926,14 +14926,6 @@
   "trips_edit_label_expectedRuntime": "Expected runtime per dive (minutes)",
   "trips_edit_hint_expectedRuntime": "Leave empty to estimate from your recent rebreather dives",
   "trips_scrubber_title": "Scrubber margin",
-  "trips_scrubber_asOfStart": "as of {date}",
-  "@trips_scrubber_asOfStart": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
   "trips_scrubber_remaining": "{minutes} min left before the trip (rated {rated} min, {consumed} min used since the last repack)",
   "@trips_scrubber_remaining": {
     "placeholders": {

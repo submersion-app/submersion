@@ -6949,14 +6949,6 @@
   "trips_edit_label_expectedRuntime": "مدة التشغيل المتوقعة لكل غطسة (بالدقائق)",
   "trips_edit_hint_expectedRuntime": "اتركه فارغًا للتقدير من غطساتك الأخيرة بجهاز إعادة التنفس",
   "trips_scrubber_title": "هامش المنظّف",
-  "trips_scrubber_asOfStart": "حتى {date}",
-  "@trips_scrubber_asOfStart": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
   "trips_scrubber_remaining": "{minutes} دقيقة متبقية قبل الرحلة (المقدّر {rated} دقيقة، استُهلك {consumed} دقيقة منذ آخر إعادة تعبئة)",
   "@trips_scrubber_remaining": {
     "placeholders": {

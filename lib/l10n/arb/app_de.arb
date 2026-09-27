@@ -7052,14 +7052,6 @@
   "trips_edit_label_expectedRuntime": "Erwartete Laufzeit je Tauchgang (Minuten)",
   "trips_edit_hint_expectedRuntime": "Leer lassen, um aus deinen letzten Rebreather-Tauchgängen zu schätzen",
   "trips_scrubber_title": "Atemkalkreserve",
-  "trips_scrubber_asOfStart": "Stand {date}",
-  "@trips_scrubber_asOfStart": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
   "trips_scrubber_remaining": "{minutes} min übrig vor der Reise (nominell {rated} min, {consumed} min seit dem letzten Wechsel verbraucht)",
   "@trips_scrubber_remaining": {
     "placeholders": {

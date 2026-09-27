@@ -24660,11 +24660,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_scrubber_title => 'Szűrőtartalék';
 
   @override
-  String trips_scrubber_asOfStart(String date) {
-    return '$date állapot szerint';
-  }
-
-  @override
   String trips_scrubber_remaining(
     String minutes,
     String rated,

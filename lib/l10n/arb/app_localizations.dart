@@ -39616,12 +39616,6 @@ abstract class AppLocalizations {
   /// **'Scrubber margin'**
   String get trips_scrubber_title;
 
-  /// No description provided for @trips_scrubber_asOfStart.
-  ///
-  /// In en, this message translates to:
-  /// **'as of {date}'**
-  String trips_scrubber_asOfStart(String date);
-
   /// No description provided for @trips_scrubber_remaining.
   ///
   /// In en, this message translates to:

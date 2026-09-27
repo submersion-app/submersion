@@ -6949,14 +6949,6 @@
   "trips_edit_label_expectedRuntime": "Verwachte looptijd per duik (minuten)",
   "trips_edit_hint_expectedRuntime": "Laat leeg om te schatten op basis van je recente rebreatherduiken",
   "trips_scrubber_title": "Scrubbermarge",
-  "trips_scrubber_asOfStart": "per {date}",
-  "@trips_scrubber_asOfStart": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
   "trips_scrubber_remaining": "{minutes} min over voor de reis (nominaal {rated} min, {consumed} min gebruikt sinds de laatste vulling)",
   "@trips_scrubber_remaining": {
     "placeholders": {

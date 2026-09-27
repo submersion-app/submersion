@@ -6843,14 +6843,6 @@
   "trips_edit_label_expectedRuntime": "Durata prevista per immersione (minuti)",
   "trips_edit_hint_expectedRuntime": "Lascia vuoto per stimare dalle tue immersioni in rebreather recenti",
   "trips_scrubber_title": "Margine della calce",
-  "trips_scrubber_asOfStart": "al {date}",
-  "@trips_scrubber_asOfStart": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
   "trips_scrubber_remaining": "{minutes} min rimasti prima del viaggio (nominale {rated} min, {consumed} min usati dall'ultimo ricambio)",
   "@trips_scrubber_remaining": {
     "placeholders": {

@@ -24740,11 +24740,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_scrubber_title => 'Margem do absorvente';
 
   @override
-  String trips_scrubber_asOfStart(String date) {
-    return 'à data de $date';
-  }
-
-  @override
   String trips_scrubber_remaining(
     String minutes,
     String rated,

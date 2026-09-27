@@ -24732,11 +24732,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get trips_scrubber_title => 'Margine della calce';
 
   @override
-  String trips_scrubber_asOfStart(String date) {
-    return 'al $date';
-  }
-
-  @override
   String trips_scrubber_remaining(
     String minutes,
     String rated,

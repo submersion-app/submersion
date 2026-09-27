@@ -6847,14 +6847,6 @@
   "trips_edit_label_expectedRuntime": "Durée prévue par plongée (minutes)",
   "trips_edit_hint_expectedRuntime": "Laisser vide pour estimer d'après vos plongées en recycleur récentes",
   "trips_scrubber_title": "Marge de chaux",
-  "trips_scrubber_asOfStart": "au {date}",
-  "@trips_scrubber_asOfStart": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
   "trips_scrubber_remaining": "{minutes} min restantes avant le voyage (nominal {rated} min, {consumed} min utilisées depuis le dernier remplissage)",
   "@trips_scrubber_remaining": {
     "placeholders": {

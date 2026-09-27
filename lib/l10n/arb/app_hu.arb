@@ -6847,14 +6847,6 @@
   "trips_edit_label_expectedRuntime": "Várható futásidő merülésenként (perc)",
   "trips_edit_hint_expectedRuntime": "Hagyd üresen, hogy a legutóbbi visszalélegeztetős merüléseidből becsüljük",
   "trips_scrubber_title": "Szűrőtartalék",
-  "trips_scrubber_asOfStart": "{date} állapot szerint",
-  "@trips_scrubber_asOfStart": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
   "trips_scrubber_remaining": "{minutes} perc maradt az utazás előtt (névleges {rated} perc, {consumed} perc elhasználva a legutóbbi csere óta)",
   "@trips_scrubber_remaining": {
     "placeholders": {
