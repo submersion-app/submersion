@@ -133,6 +133,31 @@ void main() {
       );
     });
 
+    test('keys with a non-finite or out-of-range value, without throwing', () {
+      // The sweep checks every cached key, and a throw here would abort it on
+      // every launch, so a nonsense key has to read as dead, not as an error.
+      const generation = BathymetryRepository.selectionGeneration;
+      final hugeSpan = '9' * 400; // parses to infinity
+      for (final key in [
+        '47.135503,9.144546@$hugeSpan$generation@419.07',
+        '12.160000,-68.290000@$hugeSpan$generation',
+        '12.16,-68.30@$hugeSpan$generation',
+        'NaN,NaN@8000$generation',
+        'NaN,NaN@500$generation',
+        'Infinity,0.000000@500$generation',
+        '91.000000,0.000000@500$generation',
+        '0.000000,181.000000@500$generation',
+        '-90.01,0.00@8000$generation',
+      ]) {
+        expect(
+          () => BathymetryRepository.isCurrentKey(key),
+          returnsNormally,
+          reason: key,
+        );
+        expect(BathymetryRepository.isCurrentKey(key), isFalse, reason: key);
+      }
+    });
+
     test('keys keyFor could never have built', () {
       const generation = BathymetryRepository.selectionGeneration;
       for (final key in [

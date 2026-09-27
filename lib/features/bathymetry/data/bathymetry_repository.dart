@@ -170,12 +170,18 @@ class BathymetryRepository {
     final spanGeneration = _currentSpanGeneration.firstMatch(parts[1]);
     if (spanGeneration == null) return false;
     final span = double.parse(spanGeneration.group(1)!);
+    // A long enough digit run parses to infinity, which keyFor's round()
+    // throws on. The sweep checks every cached key and must not abort on one.
+    if (!span.isFinite || span <= 0) return false;
 
     final coordinate = parts[0].split(',');
     if (coordinate.length != 2) return false;
     final lat = double.tryParse(coordinate[0]);
     final lon = double.tryParse(coordinate[1]);
-    if (lat == null || lon == null) return false;
+    // tryParse accepts NaN and Infinity, which keyFor would format back into
+    // an identical key; no real coordinate produces either.
+    if (lat == null || !lat.isFinite || lat.abs() > 90) return false;
+    if (lon == null || !lon.isFinite || lon.abs() > 180) return false;
 
     if (parts.length == 2 && coordinate.every(_hasTwoDecimals)) {
       return !_isPatchSpan(span);
