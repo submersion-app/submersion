@@ -151,9 +151,13 @@ void main() {
   });
 
   group('shortcuts help catalog entries', () {
-    // No clear() first: the widget tests above already registered through
-    // globalBindings, and AppShortcuts' static flag would stop a re-register.
-    setUpAll(AppShortcuts.ensureRegistered);
+    // Another file in the isolate may have cleared the catalog after the
+    // shortcuts were registered. Start from a known state.
+    setUpAll(() {
+      ShortcutCatalog.instance.clear();
+      AppShortcuts.debugReset();
+      AppShortcuts.ensureRegistered();
+    });
 
     test('lists both "?" and Ctrl+/ for the keyboard shortcuts help', () {
       final helpKeys = ShortcutCatalog.instance.entries
