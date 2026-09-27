@@ -87,6 +87,9 @@ abstract interface class BathymetrySource {
   Future<SourceCapability?> probe(GeoPoint center);
 
   /// Fetches a depth grid roughly [spanMeters] across centered on [center].
-  /// Throws [BathymetryFetchException] on transient failure.
+  /// Throws [BathymetryFetchException] on transient failure, and
+  /// [BathymetryNoDataException] when the source answered but confirmed it
+  /// has no data here. The resolver caches nothing past the first, and
+  /// treats the second as a plain decline.
   Future<BathymetryGrid> fetch(GeoPoint center, {required double spanMeters});
 }
