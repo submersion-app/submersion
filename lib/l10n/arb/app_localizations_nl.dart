@@ -41142,7 +41142,25 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_info_statusFound => 'Gevonden op dit apparaat';
 
   @override
+  String get media_info_statusFoundElsewhere =>
+      'Gevonden op een ander apparaat';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'Gevonden op $device';
+  }
+
+  @override
   String get media_info_statusMissing => 'Ontbreekt op dit apparaat';
+
+  @override
+  String get media_info_statusMissingElsewhere =>
+      'Ontbreekt op een ander apparaat';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'Ontbreekt op $device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'Nog niet gecontroleerd';

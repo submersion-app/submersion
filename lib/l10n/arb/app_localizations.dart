@@ -66266,11 +66266,35 @@ abstract class AppLocalizations {
   /// **'Found on this device'**
   String get media_info_statusFound;
 
+  /// Origin block status: the source was verified present on the device that linked it, which is not this one and has no known name
+  ///
+  /// In en, this message translates to:
+  /// **'Found on another device'**
+  String get media_info_statusFoundElsewhere;
+
+  /// Origin block status: the source was verified present on the named device that linked it, which is not this one
+  ///
+  /// In en, this message translates to:
+  /// **'Found on {device}'**
+  String media_info_statusFoundOn(String device);
+
   /// No description provided for @media_info_statusMissing.
   ///
   /// In en, this message translates to:
   /// **'Missing from this device'**
   String get media_info_statusMissing;
+
+  /// Origin block status: the source was found missing on the device that linked it, which is not this one and has no known name
+  ///
+  /// In en, this message translates to:
+  /// **'Missing from another device'**
+  String get media_info_statusMissingElsewhere;
+
+  /// Origin block status: the source was found missing on the named device that linked it, which is not this one
+  ///
+  /// In en, this message translates to:
+  /// **'Missing from {device}'**
+  String media_info_statusMissingFrom(String device);
 
   /// No description provided for @media_info_statusUnchecked.
   ///

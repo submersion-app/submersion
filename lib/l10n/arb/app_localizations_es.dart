@@ -41460,7 +41460,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_info_statusFound => 'Encontrada en este dispositivo';
 
   @override
+  String get media_info_statusFoundElsewhere =>
+      'Encontrada en otro dispositivo';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'Encontrada en $device';
+  }
+
+  @override
   String get media_info_statusMissing => 'No está en este dispositivo';
+
+  @override
+  String get media_info_statusMissingElsewhere => 'Falta en otro dispositivo';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'Falta en $device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'Aún sin comprobar';

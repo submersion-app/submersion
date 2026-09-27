@@ -25451,7 +25451,33 @@
   "media_info_otherDevice": "Another device",
   "media_info_status": "Status",
   "media_info_statusFound": "Found on this device",
+  "media_info_statusFoundElsewhere": "Found on another device",
+  "@media_info_statusFoundElsewhere": {
+    "description": "Origin block status: the source was verified present on the device that linked it, which is not this one and has no known name"
+  },
+  "media_info_statusFoundOn": "Found on {device}",
+  "@media_info_statusFoundOn": {
+    "description": "Origin block status: the source was verified present on the named device that linked it, which is not this one",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "media_info_statusMissing": "Missing from this device",
+  "media_info_statusMissingElsewhere": "Missing from another device",
+  "@media_info_statusMissingElsewhere": {
+    "description": "Origin block status: the source was found missing on the device that linked it, which is not this one and has no known name"
+  },
+  "media_info_statusMissingFrom": "Missing from {device}",
+  "@media_info_statusMissingFrom": {
+    "description": "Origin block status: the source was found missing on the named device that linked it, which is not this one",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "media_info_statusUnchecked": "Not checked yet",
   "media_info_lastChecked": "Last checked {date}",
   "@media_info_lastChecked": {

@@ -41406,7 +41406,25 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_info_statusFound => 'Trovata su questo dispositivo';
 
   @override
+  String get media_info_statusFoundElsewhere =>
+      'Trovata su un altro dispositivo';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'Trovata su $device';
+  }
+
+  @override
   String get media_info_statusMissing => 'Assente da questo dispositivo';
+
+  @override
+  String get media_info_statusMissingElsewhere =>
+      'Assente da un altro dispositivo';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'Assente da $device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'Non ancora verificata';

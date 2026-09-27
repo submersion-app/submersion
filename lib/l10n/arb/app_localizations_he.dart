@@ -40594,7 +40594,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_info_statusFound => 'נמצא במכשיר זה';
 
   @override
+  String get media_info_statusFoundElsewhere => 'נמצא במכשיר אחר';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'נמצא ב-$device';
+  }
+
+  @override
   String get media_info_statusMissing => 'חסר במכשיר זה';
+
+  @override
+  String get media_info_statusMissingElsewhere => 'חסר במכשיר אחר';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'חסר ב-$device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'טרם נבדק';

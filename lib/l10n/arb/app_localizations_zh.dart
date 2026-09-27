@@ -39002,7 +39002,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_info_statusFound => '在此设备上找到';
 
   @override
+  String get media_info_statusFoundElsewhere => '在其他设备上找到';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return '在 $device 上找到';
+  }
+
+  @override
   String get media_info_statusMissing => '此设备上缺失';
+
+  @override
+  String get media_info_statusMissingElsewhere => '其他设备上缺失';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return '$device 上缺失';
+  }
 
   @override
   String get media_info_statusUnchecked => '尚未检查';

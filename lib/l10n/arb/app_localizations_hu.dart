@@ -41246,7 +41246,25 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_info_statusFound => 'Megtalálható ezen az eszközön';
 
   @override
+  String get media_info_statusFoundElsewhere =>
+      'Megtalálható egy másik eszközön';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'Megtalálható ezen: $device';
+  }
+
+  @override
   String get media_info_statusMissing => 'Hiányzik erről az eszközről';
+
+  @override
+  String get media_info_statusMissingElsewhere =>
+      'Hiányzik egy másik eszközről';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'Hiányzik innen: $device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'Még nincs ellenőrizve';

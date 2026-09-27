@@ -41112,7 +41112,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_info_statusFound => 'موجود على هذا الجهاز';
 
   @override
+  String get media_info_statusFoundElsewhere => 'موجود على جهاز آخر';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'موجود على $device';
+  }
+
+  @override
   String get media_info_statusMissing => 'غير موجود على هذا الجهاز';
+
+  @override
+  String get media_info_statusMissingElsewhere => 'غير موجود على جهاز آخر';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'غير موجود على $device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'لم يتم التحقق بعد';
