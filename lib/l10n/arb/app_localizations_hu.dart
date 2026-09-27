@@ -566,7 +566,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String o2Toxicity_cnsProgressSemantics(Object percent) {
-    return 'CNS előrehalads $percent százalék';
+    return 'CNS előrehaladás $percent százalék';
   }
 
   @override
@@ -2253,7 +2253,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_detail_label_agency => 'Szervezet';
 
   @override
-  String get certifications_detail_label_alsoRecognized => 'Also recognized as';
+  String get certifications_detail_label_alsoRecognized =>
+      'Más néven is elismert';
 
   @override
   String get certifications_detail_label_cardNumber => 'Kártyaszám';
@@ -2371,7 +2372,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String certifications_ecard_alsoRecognized(String recognitions) {
-    return 'Also: $recognitions';
+    return 'Továbbá: $recognitions';
   }
 
   @override
@@ -2475,10 +2476,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_edit_label_agency => 'Szervezet *';
 
   @override
-  String get certifications_edit_addRecognition => 'Add another recognition';
+  String get certifications_edit_addRecognition => 'Újabb elismerés hozzáadása';
 
   @override
-  String get certifications_edit_removeRecognition => 'Remove this recognition';
+  String get certifications_edit_removeRecognition => 'Elismerés eltávolítása';
 
   @override
   String get certifications_edit_label_cardNumber => 'Kártyaszám';
@@ -5179,7 +5180,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_ccr_hint_type => 'pl. Sofnolime';
 
   @override
-  String get diveLog_ccr_label_deco => 'Deko';
+  String get diveLog_ccr_label_deco => 'Dekó';
 
   @override
   String get diveLog_ccr_label_he => 'He';
@@ -5355,10 +5356,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Kezdő/vég nyomásokból számítva';
 
   @override
-  String get diveLog_deco_badge_deco => 'DEKO';
+  String get diveLog_deco_badge_deco => 'DEKÓ';
 
   @override
-  String get diveLog_deco_badge_noDeco => 'NINCS DEKO';
+  String get diveLog_deco_badge_noDeco => 'NINCS DEKÓ';
 
   @override
   String get diveLog_deco_label_ceiling => 'Plafon';
@@ -5458,10 +5459,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_detail_badge_critical => 'KRITIKUS';
 
   @override
-  String get diveLog_detail_badge_deco => 'DEKO';
+  String get diveLog_detail_badge_deco => 'DEKÓ';
 
   @override
-  String get diveLog_detail_badge_noDeco => 'NINCS DEKO';
+  String get diveLog_detail_badge_noDeco => 'NINCS DEKÓ';
 
   @override
   String get diveLog_detail_badge_warning => 'FIGYELMEZTETÉS';
@@ -6475,7 +6476,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_equipmentSetPicker_noSets =>
-      'Meg nincsenek felszereléskészletek';
+      'Még nincsenek felszereléskészletek';
 
   @override
   String get diveLog_equipmentSetPicker_title =>
@@ -6635,7 +6636,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_clearWeekdays => 'Hét napjai törlése';
 
   @override
-  String get diveLog_filter_dateSeparator => 'tol';
+  String get diveLog_filter_dateSeparator => '–';
 
   @override
   String get diveLog_filter_endDate => 'Zárás dátuma';
@@ -6906,7 +6907,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_listPage_bottomSheet_importFromComputer =>
-      'Importálás merülőszámítógéből';
+      'Importálás merülőszámítógépből';
 
   @override
   String get diveLog_listPage_bottomSheet_scanPaperLog =>
@@ -8023,7 +8024,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_o2tox_title => 'Oxigén toxicitás';
 
   @override
-  String get diveLog_playbackStats_deco => 'DEKO';
+  String get diveLog_playbackStats_deco => 'DEKÓ';
 
   @override
   String get diveLog_playback_tooltip_pause => 'Szünet';
@@ -8080,7 +8081,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String diveLog_profile_zoomHint(Object level) {
-    return 'Nagyítás: ${level}x - Csípje össze vagy görgetjen a nagyításhoz, húzza a panorámázáshoz';
+    return 'Nagyítás: ${level}x - Csípje össze vagy görgessen a nagyításhoz, húzza a panorámázáshoz';
   }
 
   @override
@@ -8853,7 +8854,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_label_consumption => 'Fogyasztás';
 
   @override
-  String get divePlanner_label_deco => 'DEKO';
+  String get divePlanner_label_deco => 'DEKÓ';
 
   @override
   String get divePlanner_label_decoSchedule => 'Dekompressziós menetrend';
@@ -9391,7 +9392,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Megközelítési megjegyzések';
 
   @override
-  String get diveSites_edit_access_mooringNumber_hint => 'pl. Boja #12';
+  String get diveSites_edit_access_mooringNumber_hint => 'pl. Bója #12';
 
   @override
   String get diveSites_edit_access_mooringNumber_label => 'Kikötő szám';
@@ -9491,7 +9492,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_edit_depth_helperText =>
-      'A legséklyebb ponttól a legmélyebb pontig';
+      'A legsekélyebb ponttól a legmélyebb pontig';
 
   @override
   String get diveSites_edit_depth_maxHint => 'pl. 30';
@@ -9766,7 +9767,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_edit_snackbar_locationUnavailableDesktop =>
-      'Nem sikerült a helyzet lekérdezés. A helymeghatározoási szolgáltatások nem lehetnek elérhetőek.';
+      'Nem sikerült a helyzet lekérdezés. A helymeghatározási szolgáltatások nem lehetnek elérhetőek.';
 
   @override
   String get diveSites_edit_snackbar_locationUnavailableMobile =>
@@ -11072,7 +11073,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divers_edit_primaryContactTitle => 'Elsődleges kapcsolattartó';
 
   @override
-  String get divers_edit_relationshipHint => 'pl. Hazastars, Szülo, Barat';
+  String get divers_edit_relationshipHint => 'pl. Házastárs, Szülő, Barát';
 
   @override
   String get divers_edit_relationshipLabel => 'Kapcsolat';
@@ -11592,7 +11593,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentType_hood => 'Csuklya';
 
   @override
-  String get enum_equipmentType_knife => 'Kes';
+  String get enum_equipmentType_knife => 'Kés';
 
   @override
   String get enum_equipmentType_light => 'Lámpa';
@@ -11724,7 +11725,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_profileEvent_decoStopStart => 'Dekó megálló kezdete';
 
   @override
-  String get enum_profileEvent_decoViolation => 'Deko megszegés';
+  String get enum_profileEvent_decoViolation => 'Dekó megszegés';
 
   @override
   String get enum_profileEvent_gasSwitch => 'Gázcserélés';
@@ -12015,7 +12016,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_tankRole_bailout => 'Bailout';
 
   @override
-  String get enum_tankRole_deco => 'Deko';
+  String get enum_tankRole_deco => 'Dekó';
 
   @override
   String get enum_tankRole_diluent => 'Hígítógáz';
@@ -12514,7 +12515,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String equipment_detail_daysOverdue(Object days) {
-    return '$days napja lejártt';
+    return '$days napja lejárt';
   }
 
   @override
@@ -13202,7 +13203,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_edit_currencyLabel => 'Pénznem';
 
   @override
-  String get equipment_edit_disableReminders => 'Emlékeztetsek kikapcsolása';
+  String get equipment_edit_disableReminders => 'Emlékeztetők kikapcsolása';
 
   @override
   String get equipment_edit_disableRemindersSubtitle =>
@@ -13301,7 +13302,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
-      'Emlékeztetss a szerviz esedékesség előtt:';
+      'Emlékeztess a szerviz esedékesség előtt:';
 
   @override
   String equipment_edit_reminderDays(Object days) {
@@ -13382,7 +13383,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_edit_useCustomReminders =>
-      'Egyedi emlékeztetsek használata';
+      'Egyedi emlékeztetők használata';
 
   @override
   String get equipment_edit_useCustomRemindersSubtitle =>
@@ -13494,7 +13495,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_list_filterAll => 'Összes felszerelés';
 
   @override
-  String get equipment_list_filterServiceDue => 'Szerviz esedék';
+  String get equipment_list_filterServiceDue => 'Szerviz esedékes';
 
   @override
   String get equipment_list_filterServiceDueSoon => 'Hamarosan';
@@ -13569,7 +13570,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get equipment_list_tile_serviceDueChip => 'Szerviz esedék';
+  String get equipment_list_tile_serviceDueChip => 'Szerviz esedékes';
 
   @override
   String get equipment_list_tile_serviceIn => 'Szerviz';
@@ -13578,7 +13579,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_menu_delete => 'Törlés';
 
   @override
-  String get equipment_menu_markAsServiced => 'Megjelölés szervizeltkéntt';
+  String get equipment_menu_markAsServiced => 'Megjelölés szervizeltként';
 
   @override
   String get equipment_menu_reactivate => 'Újraaktiválás';
@@ -14184,15 +14185,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'Válasszon felszerelést a listából a részletek megtekIntéséhez';
 
   @override
-  String get equipment_summary_serviceDue => 'Szerviz esedék';
+  String get equipment_summary_serviceDue => 'Szerviz esedékes';
 
   @override
   String equipment_summary_serviceDueSemanticLabel(Object name, Object type) {
-    return '$name, $type, szerviz esedék';
+    return '$name, $type, szerviz esedékes';
   }
 
   @override
-  String get equipment_summary_serviceDueTitle => 'Szerviz esedék';
+  String get equipment_summary_serviceDueTitle => 'Szerviz esedékes';
 
   @override
   String get equipment_summary_title => 'Felszerelés';
@@ -14231,20 +14232,21 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gas_diluentAir_description =>
-      'Standard levegő higigaz sekély CCR-hez';
+      'Standard levegő hígítógáz sekély CCR-hez';
 
   @override
-  String get gas_diluentAir_displayName => 'Levegő higigaz';
+  String get gas_diluentAir_displayName => 'Levegő hígítógáz';
 
   @override
   String get gas_diluentTx1070_description =>
-      'Hipoxikus higigaz nagyon mély CCR-hez';
+      'Hipoxikus hígítógáz nagyon mély CCR-hez';
 
   @override
   String get gas_diluentTx1070_displayName => 'Tx 10/70';
 
   @override
-  String get gas_diluentTx1260_description => 'Hipoxikus higigaz mély CCR-hez';
+  String get gas_diluentTx1260_description =>
+      'Hipoxikus hígítógáz mély CCR-hez';
 
   @override
   String get gas_diluentTx1260_displayName => 'Tx 12/60';
@@ -14274,8 +14276,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gas_ean50_displayName => 'EAN50';
 
   @override
-  String get gas_helitrox2525_description =>
-      'Helitrox 25/25 (rekreacciós tech)';
+  String get gas_helitrox2525_description => 'Helitrox 25/25 (rekreációs tech)';
 
   @override
   String get gas_helitrox2525_displayName => 'Helitrox 25/25';
@@ -14427,7 +14428,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_mod_workingPpO2 => 'Munka-ppO₂';
 
   @override
-  String get gasCalculators_mod_decoPpO2 => 'Deko-ppO₂';
+  String get gasCalculators_mod_decoPpO2 => 'Dekó-ppO₂';
 
   @override
   String get gasCalculators_mod_flushPpO2 =>
@@ -14464,7 +14465,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String gasCalculators_mod_decoMod(String ppO2) {
-    return 'MOD deko-ppO₂ $ppO2 barnál';
+    return 'MOD dekó-ppO₂ $ppO2 barnál';
   }
 
   @override
@@ -15452,7 +15453,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get marineLife_speciesEdit_taxonomyClassHint => 'pl. Actinopterygii';
 
   @override
-  String get marineLife_speciesEdit_taxonomyClassLabel => 'Taxonómiai osztaly';
+  String get marineLife_speciesEdit_taxonomyClassLabel => 'Taxonómiai osztály';
 
   @override
   String marineLife_speciesEdit_updatedSnackbar(Object name) {
@@ -17286,7 +17287,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_issue_noDecoGas =>
-      'Dekompresszió szükséges, de nincs deco gáz';
+      'Dekompresszió szükséges, de nincs dekó gáz';
 
   @override
   String get plannerCanvas_range_base => 'Alap';
@@ -17428,14 +17429,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get planning_card_decoCalculator_description =>
-      'Számítsa ki a dekompressziós limiteket, a szükséges dekó megállóket és a CNS/OTU terhelést többszintű merülési profilokhoz.';
+      'Számítsa ki a dekompressziós limiteket, a szükséges dekó megállókat és a CNS/OTU terhelést többszintű merülési profilokhoz.';
 
   @override
   String get planning_card_decoCalculator_subtitle =>
       'Merülések tervezése dekompressziós megállókkal';
 
   @override
-  String get planning_card_decoCalculator_title => 'Deko kalkulátor';
+  String get planning_card_decoCalculator_title => 'Dekó kalkulátor';
 
   @override
   String get planning_card_divePlanner_description =>
@@ -17507,7 +17508,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get planning_sidebar_decoCalculator_subtitle => 'NDL és dekó megállók';
 
   @override
-  String get planning_sidebar_decoCalculator_title => 'Deko kalkulátor';
+  String get planning_sidebar_decoCalculator_title => 'Dekó kalkulátor';
 
   @override
   String get planning_sidebar_divePlanner_subtitle =>
@@ -17731,7 +17732,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Mélység-/idődiagram, lejátszás, tartománykijelölés';
 
   @override
-  String get diveDetailSection_decoStatus_name => 'Deko állapot';
+  String get diveDetailSection_decoStatus_name => 'Dekó állapot';
 
   @override
   String get diveDetailSection_decoStatus_description =>
@@ -17934,7 +17935,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get safetySettings_rule_missedDecoStop =>
-      'Kihagyott vagy lerövidített deko megállók';
+      'Kihagyott vagy lerövidített dekó megállók';
 
   @override
   String get safetySettings_rule_omittedSafetyStop =>
@@ -18011,7 +18012,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveDetailSection_altitude_description =>
-      'Magassági érték, kategória, deko követelmény';
+      'Magassági érték, kategória, dekó követelmény';
 
   @override
   String get diveDetailSection_tide_name => 'Árapály';
@@ -19022,7 +19023,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_cloudSync_signOutDialog_content =>
-      'Ez leválasztja a felhő szolgáltatóról. A helyi adatok sértetetlenek maradnak.';
+      'Ez leválasztja a felhő szolgáltatóról. A helyi adatok sértetlenek maradnak.';
 
   @override
   String get settings_cloudSync_signOutDialog_signOut => 'Kijelentkezés';
@@ -19419,7 +19420,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_decompression_aboutContent =>
-      'A Gradiens Faktorok (GF) szabályozzák, mennyire konzervatív a dekompressziós számítás. A GF Low a mély megállókra, míg a GF High a sekély megállókra hat.\n\nAlacsonyabb értékek = konzervatívabb = hosszabb deko megállók\nMagasabb értékek = kevésbé konzervatív = rövidebb deko megállók';
+      'A Gradiens Faktorok (GF) szabályozzák, mennyire konzervatív a dekompressziós számítás. A GF Low a mély megállókra, míg a GF High a sekély megállókra hat.\n\nAlacsonyabb értékek = konzervatívabb = hosszabb dekó megállók\nMagasabb értékek = kevésbé konzervatív = rövidebb dekó megállók';
 
   @override
   String get settings_decompression_aboutTitle => 'Gradiens Faktorokról';
@@ -19432,7 +19433,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_decompression_dialog_conservatismHint =>
-      'Alacsonyabb értékek = konzervatívabb (hosszabb NDL/több deko)';
+      'Alacsonyabb értékek = konzervatívabb (hosszabb NDL/több dekó)';
 
   @override
   String get settings_decompression_dialog_customValues => 'Egyedi értékek';
@@ -19445,7 +19446,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_decompression_dialog_info =>
-      'A GF Low/High szabályozza, mennyire konzervatívak az NDL és deko számítások.';
+      'A GF Low/High szabályozza, mennyire konzervatívak az NDL és dekó számítások.';
 
   @override
   String get settings_decompression_dialog_presets =>
@@ -19685,14 +19686,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_gfPreset_high_description =>
-      'Legkonzervatívabb, hosszabb deko megállók';
+      'Legkonzervatívabb, hosszabb dekó megállók';
 
   @override
   String get settings_gfPreset_high_name => 'Magas';
 
   @override
   String get settings_gfPreset_low_description =>
-      'Legkevésbé konzervatív, rövidebb deko';
+      'Legkevésbé konzervatív, rövidebb dekó';
 
   @override
   String get settings_gfPreset_low_name => 'Alacsony';
@@ -19834,7 +19835,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_lightroom_disconnect_confirmBody =>
-      'A összekapcsolt fotók a merüléseidnél maradnak, és továbbra is a médiatárolóból jelennek meg. Az új fotók már nem lesznek párosítva.';
+      'Az összekapcsolt fotók a merüléseidnél maradnak, és továbbra is a médiatárolóból jelennek meg. Az új fotók már nem lesznek párosítva.';
 
   @override
   String get settings_lightroom_disconnect_confirmTitle =>
@@ -20054,7 +20055,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_notifications_howItWorks_content =>
-      'Az értesítések az alkalmazás indításakor kerülnek ütemezerésre, és rendszeresen frissülnek a háttérben. Az egyes felszerelések emlékeztetőit a szerkesztési képernyőjükön szabhatja testre.';
+      'Az értesítések az alkalmazás indításakor kerülnek ütemezésre, és rendszeresen frissülnek a háttérben. Az egyes felszerelések emlékeztetőit a szerkesztési képernyőjükön szabhatja testre.';
 
   @override
   String get settings_notifications_howItWorks_title => 'Hogyan működik';
@@ -20511,7 +20512,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_summary_tip =>
-      'Tipp: Hasznája az Adatok szekciót a merülési naplói rendszeres biztonsági mentéséhez.';
+      'Tipp: Használja az Adatok szekciót a merülési naplói rendszeres biztonsági mentéséhez.';
 
   @override
   String get settings_summary_title => 'Beállítások';
@@ -20538,7 +20539,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_units_depth => 'Mélység';
 
   @override
-  String get settings_units_depth_feet => 'Lab (ft)';
+  String get settings_units_depth_feet => 'Láb (ft)';
 
   @override
   String get settings_units_depth_meters => 'Méter (m)';
@@ -20667,7 +20668,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_units_volume => 'Térfogat';
 
   @override
-  String get settings_units_volume_cubicFeet => 'Köblab (cuft)';
+  String get settings_units_volume_cubicFeet => 'Köbláb (cuft)';
 
   @override
   String get settings_units_volume_liters => 'Liter (L)';
@@ -20925,7 +20926,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_category_profile_subtitle =>
-      'Felszállási sebesség és deko';
+      'Felszállási sebesség és dekó';
 
   @override
   String get insights_category_profile_title => 'Profil elemzés';
@@ -21288,7 +21289,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
-  String get insights_gas_tankRole_deco => 'Deko';
+  String get insights_gas_tankRole_deco => 'Dekó';
 
   @override
   String get insights_gas_tankRole_diluent => 'Hígító';
@@ -21469,23 +21470,23 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_profile_avgDescent => 'Átl. lesüllyedés';
 
   @override
-  String get insights_profile_deco_decoDives => 'Deko merülések';
+  String get insights_profile_deco_decoDives => 'Dekó merülések';
 
   @override
-  String get insights_profile_deco_decoLabel => 'Deko';
+  String get insights_profile_deco_decoLabel => 'Dekó';
 
   @override
-  String get insights_profile_deco_decoRate => 'Deko arány';
+  String get insights_profile_deco_decoRate => 'Dekó arány';
 
   @override
-  String get insights_profile_deco_empty => 'Nincsenek deko adatok';
+  String get insights_profile_deco_empty => 'Nincsenek dekó adatok';
 
   @override
   String get insights_profile_deco_error =>
-      'Nem sikerült a deko adatok betöltése';
+      'Nem sikerült a dekó adatok betöltése';
 
   @override
-  String get insights_profile_deco_noDeco => 'Nincs deko';
+  String get insights_profile_deco_noDeco => 'Nincs dekó';
 
   @override
   String get insights_profile_deco_notRecorded => 'Nincs rögzítve';
@@ -21497,15 +21498,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String insights_profile_deco_semanticLabel(Object percentage) {
-    return 'Dekompressziós arány: $percentage% a merüléseknek deko megállóást igényelt';
+    return 'Dekompressziós arány: $percentage% a merüléseknek dekó megállást igényelt';
   }
 
   @override
   String get insights_profile_deco_subtitle =>
-      'Merülések amelyek deko megállóást igényeltek';
+      'Merülések amelyek dekó megállást igényeltek';
 
   @override
-  String get insights_profile_deco_title => 'Dekompressziós kötelezetség';
+  String get insights_profile_deco_title => 'Dekompressziós kötelezettség';
 
   @override
   String get insights_profile_timeAtDepth_empty => 'Nincsenek mélység adatok';
@@ -21519,7 +21520,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Közelítő idő az egyes mélységekben';
 
   @override
-  String get insights_profile_timeAtDepth_title => 'Idő mélység tartományoként';
+  String get insights_profile_timeAtDepth_title =>
+      'Idő mélység tartományonként';
 
   @override
   String insights_profile_timeAtDepth_valueFormat(Object value) {
@@ -21625,7 +21627,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_records_emptySubtitle =>
-      'Kezdjen el merüléseket rögzíteni, hogy lássa rekordJait';
+      'Kezdjen el merüléseket rögzíteni, hogy lássa rekordjait';
 
   @override
   String get insights_records_emptyTitle => 'Még nincsenek rekordok';
@@ -21656,7 +21658,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_records_milestones => 'Mérföldkövek';
 
   @override
-  String get insights_records_mostRecentDive => 'Legutóbbl merülés';
+  String get insights_records_mostRecentDive => 'Legutóbbi merülés';
 
   @override
   String insights_records_recordSemanticLabel(
@@ -21767,7 +21769,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_summary_divesByMonth_semanticLabel =>
-      'Oszlopdiagram a hayl merülésekről';
+      'Oszlopdiagram a havi merülésekről';
 
   @override
   String get insights_summary_divesByMonth_title => 'Merülések hónaponként';
@@ -21856,10 +21858,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült a heti nap adatok betöltése';
 
   @override
-  String get insights_timePatterns_dayOfWeek_fri => 'Pe';
+  String get insights_timePatterns_dayOfWeek_fri => 'Pé';
 
   @override
-  String get insights_timePatterns_dayOfWeek_mon => 'He';
+  String get insights_timePatterns_dayOfWeek_mon => 'Hé';
 
   @override
   String get insights_timePatterns_dayOfWeek_sat => 'Szo';
@@ -23154,7 +23156,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get transfer_computers_aboutContent =>
-      'Csatlakoztassa merülési számítógépéjét Bluetooth-on keresztül, és töltse le a merülési naplókat közvetlenül az alkalmazásba. Támogatott számítógépek: Suunto, Shearwater, Garmin, Mares és sok más népszerű márka.\n\nAz Apple Watch Ultra felhasználók közvetlenül importálhatják a merülési adatokat a Health alkalmazásból, beleértve a mélység, időtartam és szívfrekvencia adatokat.';
+      'Csatlakoztassa merülési számítógépét Bluetooth-on keresztül, és töltse le a merülési naplókat közvetlenül az alkalmazásba. Támogatott számítógépek: Suunto, Shearwater, Garmin, Mares és sok más népszerű márka.\n\nAz Apple Watch Ultra felhasználók közvetlenül importálhatják a merülési adatokat a Health alkalmazásból, beleértve a mélység, időtartam és szívfrekvencia adatokat.';
 
   @override
   String get transfer_computers_aboutTitle => 'Merülési számítógépek';
@@ -23695,7 +23697,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_detail_tooltip_moreOptions => 'Több lehetőség';
 
   @override
-  String get trips_detail_tooltip_viewOnMap => 'Megtekindés a térképen';
+  String get trips_detail_tooltip_viewOnMap => 'Megtekintés a térképen';
 
   @override
   String trips_diveScan_addButton(int count) {
@@ -24488,7 +24490,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_action_consolidate =>
-      'Egyesíetés második számítógépi adatként';
+      'Egyesítés második számítógépi adatként';
 
   @override
   String get universalImport_action_continue => 'Folytatás';
@@ -25304,10 +25306,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get weather_wmo_fog => 'Köd';
 
   @override
-  String get weather_wmo_freezingDrizzle => 'Onodo szitáló eső';
+  String get weather_wmo_freezingDrizzle => 'Ónos szitáló eső';
 
   @override
-  String get weather_wmo_freezingRain => 'Onodo eső';
+  String get weather_wmo_freezingRain => 'Ónos eső';
 
   @override
   String get weather_wmo_mainlyClear => 'Túlnyomóan derült';
@@ -25417,7 +25419,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get certifications_certificate_footer =>
-      'Hivatalos búvárképesíte tanúsítvány';
+      'Hivatalos búvárképesítési tanúsítvány';
 
   @override
   String get certifications_certificate_hasCompletedTraining =>
@@ -25493,7 +25495,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String diveComputer_detail_deleteDialogContent(String name) {
-    return 'Biztosan eltávolítod a(z) \"$name\" eszközt? Ez nem törli az erről a számítógépről importált merülseket.';
+    return 'Biztosan eltávolítod a(z) \"$name\" eszközt? Ez nem törli az erről a számítógépről importált merüléseket.';
   }
 
   @override
@@ -26043,7 +26045,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Merülő számítógépek keresése...';
 
   @override
-  String get diveComputer_scan_stopScanning => 'Keres leállítása';
+  String get diveComputer_scan_stopScanning => 'Keresés leállítása';
 
   @override
   String get diveComputer_scan_supportedBadge => 'Támogatott';
@@ -26052,10 +26054,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveComputer_scan_tabBluetooth => 'Bluetooth';
 
   @override
-  String get diveComputer_scan_tabUsb => 'USB-kabel';
+  String get diveComputer_scan_tabUsb => 'USB-kábel';
 
   @override
-  String get diveComputer_scan_usbCableLabel => 'USB-kabel';
+  String get diveComputer_scan_usbCableLabel => 'USB-kábel';
 
   @override
   String diveComputer_scan_usbSemanticLabel(String model) {
@@ -26195,7 +26197,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveImport_healthkit_accessDescription =>
-      'Submersion uses Apple HealthKit to read underwater diving workout data, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+      'A Submersion az Apple HealthKit segítségével olvassa be a víz alatti merülési edzések adatait, beleértve a mélységet, az időtartamot, a vízhőmérsékletet és a pulzust, hogy részletes merülésnaplókat hozzon létre.';
 
   @override
   String get diveImport_healthkit_accessRequired => 'Apple HealthKit';
@@ -26210,7 +26212,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveImport_healthkit_dataUsage =>
-      'Vízalatti merüléseket olvas az Apple Health-ből, beleértve a mélység, időtartam, vízhőmérséklet és pulzusszám adatokat. Ezek az adatok helyben tárolódnak a merülésnaplóbajában, és soha nem kerülnek megosztásra harmadik felekkel.';
+      'Vízalatti merüléseket olvas az Apple Health-ből, beleértve a mélység, időtartam, vízhőmérséklet és pulzusszám adatokat. Ezek az adatok helyben tárolódnak a merülésnaplójában, és soha nem kerülnek megosztásra harmadik felekkel.';
 
   @override
   String get diveImport_healthkit_dateFrom => 'Ettől';
@@ -26237,7 +26239,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveImport_healthkit_noDivesFoundDescription =>
-      'A kiválasztott időszakban nem található vízalatti merülési tevékenyse.';
+      'A kiválasztott időszakban nem található vízalatti merülési tevékenység.';
 
   @override
   String get diveImport_healthkit_notAvailable => 'Nem elérhető';
@@ -26599,7 +26601,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gasCalculators_rockBottom_emergencyAscentBreakdown =>
-      'Veszélyzeti emelkedés részletei';
+      'Vészhelyzeti emelkedés részletei';
 
   @override
   String get gasCalculators_rockBottom_emergencyScenario =>
@@ -27004,7 +27006,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get maps_offline_clearAllCacheMessage =>
-      'Törli az összes letöltött térképrégiit és gyorsított csempét?';
+      'Törli az összes letöltött térképrégiót és gyorsított csempét?';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'Teljes gyorstár törlése?';
@@ -27036,7 +27038,7 @@ class AppLocalizationsHu extends AppLocalizations {
     Object count,
     Object size,
   ) {
-    return 'Törli a(z) \"$name\" régiót és a(z) $count gyorsított csempéjéet?\n\nEz $size tárolót szabadít fel.';
+    return 'Törli a(z) \"$name\" régiót és a(z) $count gyorsított csempéjét?\n\nEz $size tárolót szabadít fel.';
   }
 
   @override
@@ -27343,10 +27345,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tools_gpsLogger_title => 'GPS-naplózó';
 
   @override
-  String get tools_weight_aluminumImperial => 'Üresbben pozitívabb (+4 lbs)';
+  String get tools_weight_aluminumImperial => 'Üresen pozitívabb (+4 lbs)';
 
   @override
-  String get tools_weight_aluminumMetric => 'Üresbben pozitívabb (+2 kg)';
+  String get tools_weight_aluminumMetric => 'Üresen pozitívabb (+2 kg)';
 
   @override
   String get tools_weight_bodyWeightOptional => 'Testtömeg (opcionális)';
@@ -27359,7 +27361,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tools_weight_disclaimer =>
-      'Ez csak becslés. Mindig végezzen felhajtóerőpróbát a merülés elején, és szükség szerint módosítsa. A BCD, egyéni felhajtóerőe és légzési szokások befolyásolhatják a tényleges súlyigényeket.';
+      'Ez csak becslés. Mindig végezzen felhajtóerőpróbát a merülés elején, és szükség szerint módosítsa. A BCD, egyéni felhajtóerő és légzési szokások befolyásolhatják a tényleges súlyigényeket.';
 
   @override
   String get tools_weight_exposureSuit => 'Merülési ruha';
@@ -27389,10 +27391,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get tools_weight_steelImperial => 'Negatív felhajtóerőe (-4 lbs)';
+  String get tools_weight_steelImperial => 'Negatív felhajtóerő (-4 lbs)';
 
   @override
-  String get tools_weight_steelMetric => 'Negatív felhajtóerőe (-2 kg)';
+  String get tools_weight_steelMetric => 'Negatív felhajtóerő (-2 kg)';
 
   @override
   String get tools_weight_tankMaterial => 'Palack anyag';
@@ -27417,14 +27419,14 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get tools_weight_yourWeight => 'Az Ön sulya';
+  String get tools_weight_yourWeight => 'Az Ön súlya';
 
   @override
-  String get settings_section_dataSources_title => 'Data Sources';
+  String get settings_section_dataSources_title => 'Apple HealthKit';
 
   @override
   String get settings_section_dataSources_subtitle =>
-      'Connected services & integrations';
+      'Egészségügyi adatok integrációja';
 
   @override
   String get settings_siteMatch_title => 'Automatikus helyhozzárendelés';
@@ -27451,7 +27453,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_siteMatch_relaxed => 'Laza';
 
   @override
-  String get settings_dataSources_header => 'Data Sources';
+  String get settings_dataSources_header => 'Apple HealthKit-integráció';
 
   @override
   String get settings_dataSources_appleHealth_title => 'Apple Health';
@@ -27462,7 +27464,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_description =>
-      'Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+      'A Submersion az Apple HealthKit segítségével olvassa be a víz alatti merülési edzések adatait az Apple Health alkalmazásból. Ezekből az adatokból részletes merülésnaplók készülnek az Apple Watch-csal végzett merüléseiről.';
 
   @override
   String get settings_dataSources_appleHealth_dataTypesHeader =>
@@ -27470,7 +27472,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_dataTypeWorkouts =>
-      'Vízalatti merülési edzéseek - merülés kezdési ideje, időtartama és tevékenységeadatai';
+      'Vízalatti merülési edzések - merülés kezdési ideje, időtartama és tevékenységadatai';
 
   @override
   String get settings_dataSources_appleHealth_dataTypeHeartRate =>
@@ -27490,11 +27492,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_importAction =>
-      'Import from Apple Watch';
+      'Merülések importálása Apple Watch-ról a HealthKit segítségével';
 
   @override
   String get settings_dataSources_appleHealth_privacy =>
-      'Your health data is stored locally and is never shared with third parties.';
+      'Egészségügyi adatait helyben, ezen az eszközön tároljuk, és soha nem osztjuk meg harmadik felekkel. A Submersion csak olvassa az Apple HealthKit adatait, és nem ír vissza adatot a HealthKitbe.';
 
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
@@ -27502,7 +27504,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_dataSources_noSources =>
-      'No data source integrations are available on this platform.';
+      'Ezen a platformon nem érhető el adatforrás-integráció.';
 
   @override
   String get diveLog_edit_section_environment => 'Környezet';
@@ -28932,24 +28934,24 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dive3d_seascape_detailLimitReached =>
-      'This is the most detail available for this location';
+      'Ennél a helynél ez a legnagyobb elérhető részletesség';
 
   @override
   String dive3d_seascape_lodStageLabel(String stage, String span) {
-    return 'Level of detail: $stage ($span)';
+    return 'Részletességi szint: $stage ($span)';
   }
 
   @override
-  String get dive3d_seascape_lodStageOverview => 'Overview';
+  String get dive3d_seascape_lodStageOverview => 'Áttekintés';
 
   @override
-  String get dive3d_seascape_lodStageMedium => 'Medium';
+  String get dive3d_seascape_lodStageMedium => 'Közepes';
 
   @override
-  String get dive3d_seascape_lodStageFine => 'Fine';
+  String get dive3d_seascape_lodStageFine => 'Finom';
 
   @override
-  String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
+  String get dive3d_seascape_lodStageSuperFine => 'Nagyon finom';
 
   @override
   String get dive3d_seascape_noData =>
@@ -33513,7 +33515,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get species_greenland_shark_desc =>
-      'Lassú mozgású mélyvízi cápa, a Föld egyik leghosszabb életű gerince.';
+      'Lassú mozgású mélyvízi cápa, a Föld egyik leghosszabb életű gerincese.';
 
   @override
   String get species_cookiecutter_shark_name => 'Szivarcápa';
@@ -34334,7 +34336,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get species_pajama_cardinalfish_desc =>
-      'Szokatlan kardinálishal sárga arccal, sötét derékpánttal és pettyes hátsó testfélével, az Indo-csendes-óceán korallja között él.';
+      'Szokatlan kardinálishal sárga arccal, sötét derékpánttal és pettyes hátsó testfélével, az Indo-csendes-óceán koralljai között él.';
 
   @override
   String get species_longnose_hawkfish_name => 'Hosszúorrú sólyomhal';
@@ -38917,7 +38919,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_decompression_ascentGas_decoStage =>
-      'Deko/stage + háti gáz';
+      'Dekó/stage + háti gáz';
 
   @override
   String get settings_decompression_cnsSource => 'CNS forrása';
