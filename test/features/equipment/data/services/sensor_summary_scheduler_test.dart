@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/data/services/sensor_summary_sched
 import 'package:submersion/features/equipment/data/services/sensor_summary_worker.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_thresholds.dart';
 
+import '../../../../helpers/global_test_defaults.dart';
 import '../../../../helpers/test_database.dart';
 
 void main() {
@@ -29,7 +30,7 @@ void main() {
           },
         );
     addTearDown(() {
-      SensorSummaryScheduler.enabled = false;
+      applyGlobalTestDefaults();
       SensorSummaryScheduler.instance.repositoryFactory =
           SensorSummaryScheduler.defaultRepositoryFactory;
       SensorSummaryScheduler.instance.conditionInputsLoader =

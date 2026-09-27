@@ -8,6 +8,7 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 
+import '../../../../helpers/global_test_defaults.dart';
 import '../../../../helpers/mock_file_picker_platform.dart';
 
 /// share_plus has no file sharing on Linux: `share` throws UnimplementedError
@@ -55,7 +56,7 @@ void main() {
   });
 
   tearDown(() {
-    debugCanShareFiles = true;
+    applyGlobalTestDefaults();
     FilePickerPlatform.instance = originalPicker;
     documents.deleteSync(recursive: true);
     chosen.deleteSync(recursive: true);

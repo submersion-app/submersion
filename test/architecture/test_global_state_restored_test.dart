@@ -85,18 +85,6 @@ void main() {
         'pending repair, issue #2500',
     'test/features/courses/presentation/pages/course_detail_export_units_test.dart':
         'pending repair, issue #2500',
-    'test/features/data_quality/data/quality_scan_service_test.dart':
-        'pending repair, issue #2500',
-    'test/features/data_quality/presentation/data_quality_inbox_page_test.dart':
-        'pending repair, issue #2500',
-    'test/features/data_quality/presentation/quality_inbox_providers_test.dart':
-        'pending repair, issue #2500',
-    'test/features/data_quality/repairs/profile_repair_service_test.dart':
-        'pending repair, issue #2500',
-    'test/features/data_quality/repairs/quality_repair_executor_test.dart':
-        'pending repair, issue #2500',
-    'test/features/equipment/data/services/sensor_summary_scheduler_test.dart':
-        'pending repair, issue #2500',
     'test/features/gas_calculators/blender_invoice_test.dart':
         'pending repair, issue #2500',
     'test/features/media/presentation/media_selection_test.dart':
@@ -125,7 +113,6 @@ void main() {
         'pending repair, issue #2500',
     'test/features/settings/presentation/providers/storage_usage_wiring_test.dart':
         'pending repair, issue #2500',
-    'test/flutter_test_config.dart': 'pending repair, issue #2500',
     'test/integration/uddf_round_trip_test.dart': 'pending repair, issue #2500',
   };
 
