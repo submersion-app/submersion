@@ -25,9 +25,14 @@ Submersion uses Drift ORM with SQLite, containing 43 tables organized into logic
 
 ### Table Definitions
 
-Tables are defined in `lib/core/database/database.dart`:
+Tables are defined in per-domain libraries under
+`lib/core/database/tables/` (`dive_tables.dart`, `equipment_tables.dart`,
+and so on). `lib/core/database/database.dart` imports and exports each of
+them and lists every table in `@DriftDatabase(tables: [...])`, so importing
+`database.dart` is still all a consumer needs.
 
 ```dart
+// lib/core/database/tables/dive_tables.dart
 class Dives extends Table {
   TextColumn get id => text()();
   TextColumn get diverId => text().nullable().references(Divers, #id)();
@@ -39,6 +44,19 @@ class Dives extends Table {
   Set<Column> get primaryKey => {id};
 }
 ```
+
+To add a table, declare it in the table library for its domain (or a new
+library under `tables/`, imported and exported from `database.dart`), then add
+it to the `@DriftDatabase` list. Do not declare tables in `database.dart`
+itself, and keep each table library under 800 lines:
+`test/core/database/database_table_libraries_test.dart` enforces both.
+
+The reason is build memory. During code generation drift_dev resolves the
+whole library that declares a column, once per column, and nothing caches the
+result. With every table inside `database.dart`, next to the migration ladder,
+a cold build peaked at 15 GB on the 16 GB CI runner and was killed whenever
+it needed slightly more. Split into small libraries the same build peaks at
+3.5 GB and produces identical output (issue #2502).
 
 ### Generated Code
 
@@ -56,32 +74,45 @@ Generates `database.g.dart` with:
 
 ## Schema Version
 
-Current version: **47**
+The current version is `AppDatabase.currentSchemaVersion` in
+`lib/core/database/database.dart`.
 
-Migrations handle schema evolution:
+Migrations handle schema evolution. `AppDatabase` declares only the schema
+and its version; the migration code lives in the library
+`lib/core/database/migrations/app_database_migrations.dart`, as extensions on
+`AppDatabase` spread over part files:
+
+| File | Holds |
+| ---- | ----- |
+| `migration_strategy.dart` | `onCreate`, and `onUpgrade` calling each ladder file in order |
+| `ladder/rungs_v<first>_to_v<last>.dart` | The `if (from < N)` rungs, oldest first |
+| `helpers/<domain>_migrations.dart` | The `_assert...` and `_backfill...` helpers the rungs call, grouped like the table libraries |
+| `before_open.dart` | The backstops that run on every open |
+| `migration_versions.dart` | `appMigrationVersions`, the list behind the progress bar |
 
 ```dart
-@override
-int get schemaVersion => 47;
-
-@override
-MigrationStrategy get migration {
-  return MigrationStrategy(
-    onCreate: (m) async {
-      await m.createAll();
-      // Seed data
-    },
-    onUpgrade: (m, from, to) async {
-      if (from < 2) {
-        // Add column
-      }
-      if (from < 3) {
-        // Add table
-      }
-    },
-  );
+// lib/core/database/migrations/ladder/rungs_v231_to_v240.dart
+if (from < 240) {
+  await _assertProfileEventsDiveIdIndex();
 }
+if (from < 240) await reportProgress();
 ```
+
+To add a migration:
+
+1. Raise `AppDatabase.currentSchemaVersion`.
+2. Append the version to `appMigrationVersions`, with a note on what it does.
+3. Append the rung to the newest file under `ladder/`. When that file nears
+   800 lines, start a new one and call it from `_onUpgrade`.
+4. Put any helper in the file under `helpers/` for its domain. A helper a
+   test must reach needs a public name there and an instance member of the
+   same name on `AppDatabase` that forwards to it.
+5. If the change must also hold for a database that arrives by restore or
+   sync, assert it in `before_open.dart`.
+
+Keep migration code out of `database.dart`: drift_dev resolves that whole
+library while it generates code. The same test that guards the table
+libraries enforces this.
 
 ## Core Tables
 

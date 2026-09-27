@@ -43,6 +43,25 @@ void main() {
     );
   });
 
+  test('database.dart holds no migration code', () {
+    final source = File(
+      p.join(databaseDir, 'database.dart'),
+    ).readAsStringSync();
+    final migrationCode = RegExp(
+      r'customStatement\(|customSelect\(|if \(from < \d+\)',
+    );
+
+    expect(
+      migrationCode.allMatches(source).map((match) => match.group(0)).toSet(),
+      isEmpty,
+      reason:
+          'Put rungs under lib/core/database/migrations/ladder/ and the '
+          'helpers they call under migrations/helpers/. drift_dev resolves '
+          'all of database.dart while it generates code, so migration code '
+          'declared there is paid for on every build (issue #2502).',
+    );
+  });
+
   test('every table library stays small', () {
     const maxLines = 800;
     final libraries =

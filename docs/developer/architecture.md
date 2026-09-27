@@ -100,8 +100,10 @@ lib/
 │   ├── constants/               # Enums, app constants
 │   │   └── enums.dart           # All enum definitions
 │   ├── database/                # Drift ORM
-│   │   ├── database.dart        # Table definitions
-│   │   └── database.g.dart      # Generated code
+│   │   ├── database.dart        # AppDatabase: the schema and its version
+│   │   ├── database.g.dart      # Generated code
+│   │   ├── migrations/          # Upgrade ladder, helpers, beforeOpen backstops
+│   │   └── tables/              # Table definitions, one library per domain
 │   ├── deco/                    # Decompression algorithms
 │   │   ├── buhlmann_algorithm.dart
 │   │   ├── o2_toxicity_calculator.dart
