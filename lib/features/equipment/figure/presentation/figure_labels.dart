@@ -126,12 +126,16 @@ List<FigureLabelSlot> _stack(
   return slots;
 }
 
-/// Wide layout (spec 8.3): a pill beside every placed item on the outward
-/// side of its anchor, placed in number order at the nearest row, above or
-/// below its anchor, that clears the pills already placed. [widthOf] is the pill's natural width;
-/// it is capped at [maxWidth] and at the room between the anchor and the
-/// edge of the box, or the edge of the other figure when that is nearer, so
-/// a pill never lies across the other view.
+/// Wide layout (spec 8.3): a pill beside every placed item, placed in number
+/// order at the free spot nearest its anchor that clears the pills already
+/// placed. A pill sits on the outward side of its anchor (the right for a
+/// centred item) unless its natural width does not fit there and the other
+/// side has more room, in which case it moves across.
+///
+/// [widthOf] is the pill's natural width. It is capped at [maxWidth] and at
+/// the room between the anchor and the edge of the box, or the edge of the
+/// other figure when that is nearer, so a pill never lies across the other
+/// view; a pill with less room than its name needs ends in an ellipsis.
 List<FigureLabelSlot> labelPills({
   required FigureModel model,
   required FigureLayout layout,
