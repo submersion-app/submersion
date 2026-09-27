@@ -325,6 +325,30 @@ void main() {
     expect(call.note, 'looks good');
   });
 
+  testWidgets('an unreadable value keeps the dialog open and says why '
+      '(#1900)', (tester) async {
+    final repo = await pumpRunner(
+      tester,
+      s: session(),
+      items: [
+        item(0, itemType: PreDiveItemType.value, valueLabel: 'Set point'),
+      ],
+    );
+
+    await tester.tap(find.text('Item 0'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).at(0), '1..2');
+    await tester.tap(find.widgetWithText(FilledButton, 'OK'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    expect(
+      repo.calls,
+      isEmpty,
+      reason: 'used to record the item with no value',
+    );
+  });
+
   testWidgets('value entry dialog cancel writes nothing', (tester) async {
     final repo = await pumpRunner(
       tester,

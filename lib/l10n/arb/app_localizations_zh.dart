@@ -392,6 +392,12 @@ class AppLocalizationsZh extends AppLocalizations {
       '如果该套装包含潜水电脑，则从该电脑下载或导入的潜水记录会自动添加整个套装';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle => '在套装页面上把此套装的装备画在潜水员身上';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title => '显示潜水员图示';
+
+  @override
   String get equipment_setEdit_geofencesTitle => '地理围栏';
 
   @override
@@ -431,6 +437,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => '默认';
+
+  @override
+  String get equipment_setDetail_hideFigure => '隐藏潜水员图示';
+
+  @override
+  String get equipment_setDetail_showFigure => '显示潜水员图示';
 
   @override
   String get equipment_setDetail_setAsDefault => '设为默认';
@@ -11784,6 +11796,69 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_tag_linked => '标签已关联';
 
   @override
+  String get passport_scan_title => '扫描气瓶标签';
+
+  @override
+  String get passport_scan_hint => '将相机对准标签，或粘贴标签链接。';
+
+  @override
+  String get passport_scan_cameraUnavailable => '此处无法使用相机。请改为粘贴标签链接。';
+
+  @override
+  String get passport_scan_linkLabel => '标签链接';
+
+  @override
+  String get passport_scan_paste => '粘贴';
+
+  @override
+  String get passport_scan_open => '打开';
+
+  @override
+  String get passport_scan_openFailed => '无法打开标签。请重试。';
+
+  @override
+  String get passport_scan_newerFormat => '此标签由较新版本的 Submersion 写入，部分信息可能缺失。';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return '已从 $name 填入';
+  }
+
+  @override
+  String get passport_foreign_title => '气瓶标签';
+
+  @override
+  String get passport_foreign_notInGear => '此气瓶不在您的装备中。';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return '标签于 $date 写入时的内容';
+  }
+
+  @override
+  String get passport_foreign_noDetails => '该标签除标识外不含其他信息。';
+
+  @override
+  String get passport_foreign_o2Clean => '写入标签时为氧清洁';
+
+  @override
+  String get passport_foreign_useOnDive => '用于一次潜水';
+
+  @override
+  String get passport_foreign_addToGear => '添加到我的装备';
+
+  @override
+  String get passport_foreign_addFailed => '无法添加气瓶。请重试。';
+
+  @override
+  String get passport_foreign_defaultName => '气瓶';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return '序列号 $serial';
+  }
+
+  @override
   String get passport_logFill_date => '充气日期';
 
   @override
@@ -11812,9 +11887,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get passport_logFill_invalidMix => 'O2 和 He 须各在 0 到 100 之间，且总和不超过 100';
-
-  @override
-  String get passport_logFill_invalidNumber => '请输入数字';
 
   @override
   String get passport_logFill_saveFailed => '无法保存充气记录。请重试。';
@@ -12406,6 +12478,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String trips_gearAlerts_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此行程有 $count 条装备提醒',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -12645,9 +12727,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_purchasePriceLabel => '购买价格';
 
   @override
-  String get equipment_edit_purchasePriceValidation => '请输入有效金额';
-
-  @override
   String get equipment_edit_remindMeBeforeServiceDue => '在维护到期前提醒我：';
 
   @override
@@ -12737,6 +12816,35 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => '添加套装';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return '背面 · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return '正面 · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件',
+      one: '$count 件',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => '另外携带';
 
   @override
   String get equipment_list_emptyState_addFirstButton => '添加您的第一件装备';
@@ -14157,11 +14265,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return '每 100 $unit 价格';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return '请输入有效数字（小数点分隔符：\"$separator\"）';
   }
 
   @override
@@ -29286,9 +29389,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipmentConditionSettings_o2Label => '高氧混合气高于（% O2）';
 
   @override
-  String get equipmentConditionSettings_invalid => '请输入数字';
-
-  @override
   String get equipmentConditionSettings_saveFailed => '无法保存。请重试。';
 
   @override
@@ -39002,7 +39102,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_info_statusFound => '在此设备上找到';
 
   @override
+  String get media_info_statusFoundElsewhere => '在其他设备上找到';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return '在 $device 上找到';
+  }
+
+  @override
   String get media_info_statusMissing => '此设备上缺失';
+
+  @override
+  String get media_info_statusMissingElsewhere => '其他设备上缺失';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return '$device 上缺失';
+  }
 
   @override
   String get media_info_statusUnchecked => '尚未检查';
@@ -40243,6 +40359,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profilePhoto_source_camera => '拍照';
 
   @override
+  String get common_camera_unavailable => '无法打开相机。请在设置中允许访问相机。';
+
+  @override
+  String get common_photo_pickFailed => '无法打开这张照片。请尝试另一张。';
+
+  @override
   String get profilePhoto_source_library => '从图库中选择';
 
   @override
@@ -41275,7 +41397,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => '请输入有效的数字';
+  String numberInput_invalidNumber(String separator) {
+    return '请输入有效数字（小数点分隔符：\"$separator\"）';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => '请输入整数';
+
+  @override
+  String get numberInput_required => '必填';
+
+  @override
+  String get numberInput_notNegative => '请输入 0 或更大的数';
+
+  @override
+  String get numberInput_atLeastOne => '请输入 1 或更大的数';
+
+  @override
+  String get numberInput_percentRange => '请输入 0 到 100 之间的数';
 
   @override
   String get diveCenters_rental_sectionTitle => '租赁装备';

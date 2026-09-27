@@ -27,6 +27,12 @@ DatabaseConnection Function() _openerFor(String path, String? keyHex) {
   };
 }
 
+/// The opener for [BackgroundDatabaseConnection.openPlain], minted in its own
+/// scope for the same reason as [_openerFor].
+DatabaseConnection Function() _plainOpenerFor(String path) {
+  return () => DatabaseConnection(NativeDatabase(File(path)));
+}
+
 /// Closes [db] for process shutdown, tolerating the two ways a plain
 /// `db.close()` fails at exit:
 ///
@@ -125,7 +131,22 @@ class BackgroundDatabaseConnection {
     File file, {
     String? keyHex,
     @visibleForTesting DatabaseConnection Function()? debugOpener,
-  }) async {
+  }) => _spawn(file, debugOpener ?? _openerFor(file.absolute.path, keyHex));
+
+  /// Opens [file] on a dedicated worker isolate with none of the main
+  /// database's connection setup: no SQLCipher key, no busy timeout, and no
+  /// switch to WAL, so the file keeps whatever journal mode it already has.
+  ///
+  /// For the per-device local cache database, which is never encrypted and has
+  /// a single connection. WAL would buy it nothing, and under WAL a VACUUM does
+  /// not shrink the file until a checkpoint.
+  static Future<BackgroundDatabaseConnection> openPlain(File file) =>
+      _spawn(file, _plainOpenerFor(file.absolute.path));
+
+  static Future<BackgroundDatabaseConnection> _spawn(
+    File file,
+    DatabaseConnection Function() opener,
+  ) async {
     final exitPort = ReceivePort('submersion drift worker exit');
     final exited = Completer<void>();
     exitPort.listen((_) {
@@ -135,7 +156,7 @@ class BackgroundDatabaseConnection {
     Isolate? worker;
     try {
       final driftIsolate = await DriftIsolate.spawn(
-        debugOpener ?? _openerFor(file.absolute.path, keyHex),
+        opener,
         isolateSpawn: <T>(entrypoint, message) async {
           final isolate = await Isolate.spawn(
             entrypoint,

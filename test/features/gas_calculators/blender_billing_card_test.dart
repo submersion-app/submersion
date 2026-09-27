@@ -128,6 +128,23 @@ void main() {
     expect(ref.read(blenderCurrencyProvider), 'CHF');
   });
 
+  testWidgets('an unreadable cylinder volume says why and keeps the volume '
+      '(#1900)', (tester) async {
+    final ref = await _pump(tester);
+    final volumeField = find.byType(TextField).first;
+    await tester.enterText(volumeField, '12');
+    await tester.pump();
+    await tester.enterText(volumeField, '1..2');
+    await tester.pump();
+
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    expect(
+      ref.read(blenderCylinderLitersProvider),
+      closeTo(12, 0.01),
+      reason: 'unreadable text used to read as a 0 L cylinder',
+    );
+  });
+
   testWidgets('a cylinder preset fills the volume field', (tester) async {
     final ref = await _pump(tester);
     await tester.tap(find.byKey(const Key('blender-cylinder-presets')));

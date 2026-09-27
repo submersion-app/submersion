@@ -7,7 +7,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// to English silently, so a locale that never got the keys would ship
 /// looking fine in CI and wrong to the user.
 void main() {
-  /// The 68 strings this feature introduced, resolved for one locale.
+  /// The strings this feature introduced, resolved for one locale.
   List<String> mediaInfoStrings(AppLocalizations l10n) => <String>[
     l10n.media_info_title,
     l10n.media_info_fileSection,
@@ -30,7 +30,11 @@ void main() {
     l10n.media_info_otherDevice,
     l10n.media_info_status,
     l10n.media_info_statusFound,
+    l10n.media_info_statusFoundElsewhere,
+    l10n.media_info_statusFoundOn('Mac'),
     l10n.media_info_statusMissing,
+    l10n.media_info_statusMissingElsewhere,
+    l10n.media_info_statusMissingFrom('Mac'),
     l10n.media_info_statusUnchecked,
     l10n.media_info_lastChecked('1 Jan 2026'),
     l10n.media_info_backupSection,
@@ -130,6 +134,16 @@ void main() {
         l10n.media_info_queueFailed('SENTINEL'),
         contains('SENTINEL'),
         reason: 'locale $locale dropped the error placeholder',
+      );
+      expect(
+        l10n.media_info_statusFoundOn('SENTINEL'),
+        contains('SENTINEL'),
+        reason: 'locale $locale dropped the device placeholder',
+      );
+      expect(
+        l10n.media_info_statusMissingFrom('SENTINEL'),
+        contains('SENTINEL'),
+        reason: 'locale $locale dropped the device placeholder',
       );
     }
   });

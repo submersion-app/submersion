@@ -615,23 +615,41 @@ static gpointer download_thread_func(gpointer data) {
     gchar* clock_sync_str = (clock_sync != LIBDC_CLOCK_SYNC_NOT_REQUESTED)
         ? g_strdup(libdc_clock_sync_status_name(clock_sync)) : nullptr;
 
+    // The model the device named about itself (issue #422), read before the
+    // session is freed.
+    char reported_product[64] = {0};
+    unsigned int reported_model = 0;
+    gboolean has_reported = libdc_download_session_reported_device(
+        ctx->session, reported_product, sizeof(reported_product),
+        &reported_model) != 0;
+
     struct CompleteData {
         LibdivecomputerPluginDiveComputerFlutterApi* api;
         gchar* serial;
         gchar* firmware;
         gchar* clock_sync;
+        gchar* reported_product;
+        gboolean has_reported;
+        int64_t reported_model;
     };
     auto* cd = new CompleteData{ctx->flutter_api,
                                 g_strdup(serial_str), g_strdup(firmware_str),
-                                g_strdup(clock_sync_str)};
+                                g_strdup(clock_sync_str),
+                                has_reported ? g_strdup(reported_product)
+                                             : nullptr,
+                                has_reported,
+                                static_cast<int64_t>(reported_model)};
     g_idle_add([](gpointer data) -> gboolean {
         auto* d = static_cast<CompleteData*>(data);
         libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete(
             d->api, 0, d->serial, d->firmware, d->clock_sync,
+            d->reported_product,
+            d->has_reported ? &d->reported_model : nullptr,
             nullptr, nullptr, nullptr);
         g_free(d->serial);
         g_free(d->firmware);
         g_free(d->clock_sync);
+        g_free(d->reported_product);
         delete d;
         return G_SOURCE_REMOVE;
     }, cd);

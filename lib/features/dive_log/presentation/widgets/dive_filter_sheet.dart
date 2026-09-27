@@ -24,6 +24,8 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Filter sheet for dive list
 class DiveFilterSheet extends ConsumerStatefulWidget {
@@ -163,10 +165,17 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
     return formatDecimalForInput(value);
   }
 
-  /// Parse a user-entered thickness bound in the diver's locale. Empty or
-  /// invalid input clears the bound. A blanket replaceAll(',', '.') would
-  /// misread the en_US thousands separator, turning "1,250" into 1.25 (#1091).
-  double? _parseThicknessBound(String value) => parseUserDecimal(value);
+  /// Parse a user-entered thickness bound in the diver's locale. Empty input
+  /// clears the bound; unreadable input keeps [previous] while the field
+  /// shows its error, rather than silently dropping the bound (#1900). A
+  /// blanket replaceAll(',', '.') would misread the en_US thousands
+  /// separator, turning "1,250" into 1.25 (#1091).
+  double? _parseThicknessBound(String value, double? previous) =>
+      switch (readNumber(value)) {
+        NumberValue(:final value) => value,
+        NumberBlank() => null,
+        NumberInvalid() => previous,
+      };
 
   /// The selected computer, or null when [computers] no longer contains it.
   String? _computerIdWithin(List<DiveComputer> computers) =>
@@ -623,37 +632,37 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                       Row(
                         children: [
                           Expanded(
-                            child: TextField(
+                            child: NumberField(
                               controller: _minDepthController,
                               decoration: InputDecoration(
                                 labelText: context.l10n.diveLog_filter_min,
                                 prefixIcon: const Icon(Icons.arrow_downward),
                                 suffixText: units.depthSymbol,
                               ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                final entered = parseUserDecimal(value);
-                                _minDepth = entered == null
-                                    ? null
-                                    : units.depthToMeters(entered);
+                              onChanged: (read) => _minDepth = switch (read) {
+                                NumberValue(:final value) =>
+                                  units.depthToMeters(value),
+                                NumberBlank() => null,
+                                // Keep the bound; the field shows the error.
+                                NumberInvalid() => _minDepth,
                               },
                             ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: TextField(
+                            child: NumberField(
                               controller: _maxDepthController,
                               decoration: InputDecoration(
                                 labelText: context.l10n.diveLog_filter_max,
                                 prefixIcon: const Icon(Icons.arrow_downward),
                                 suffixText: units.depthSymbol,
                               ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                final entered = parseUserDecimal(value);
-                                _maxDepth = entered == null
-                                    ? null
-                                    : units.depthToMeters(entered);
+                              onChanged: (read) => _maxDepth = switch (read) {
+                                NumberValue(:final value) =>
+                                  units.depthToMeters(value),
+                                NumberBlank() => null,
+                                // Keep the bound; the field shows the error.
+                                NumberInvalid() => _maxDepth,
                               },
                             ),
                           ),
@@ -711,9 +720,14 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                                   const TextInputType.numberWithOptions(
                                     decimal: true,
                                   ),
+                              inputFormatters: numberInputFormatters(),
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
+                              validator: numberValidator(context),
                               onChanged: (value) => setState(
                                 () => _suitThicknessMin = _parseThicknessBound(
                                   value,
+                                  _suitThicknessMin,
                                 ),
                               ),
                             ),
@@ -732,9 +746,14 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                                   const TextInputType.numberWithOptions(
                                     decimal: true,
                                   ),
+                              inputFormatters: numberInputFormatters(),
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
+                              validator: numberValidator(context),
                               onChanged: (value) => setState(
                                 () => _suitThicknessMax = _parseThicknessBound(
                                   value,
+                                  _suitThicknessMax,
                                 ),
                               ),
                             ),
@@ -1070,34 +1089,40 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                       Row(
                         children: [
                           Expanded(
-                            child: TextField(
+                            child: NumberField(
                               controller: _minDurationController,
+                              integer: true,
                               decoration: InputDecoration(
                                 labelText: context.l10n.diveLog_filter_min,
                                 prefixIcon: const Icon(Icons.timer),
                                 suffixText:
                                     context.l10n.units_profileMetric_min,
                               ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                _minDurationMinutes = parseUserInt(value);
-                              },
+                              onChanged: (read) =>
+                                  _minDurationMinutes = switch (read) {
+                                    NumberValue(:final value) => value.toInt(),
+                                    NumberBlank() => null,
+                                    NumberInvalid() => _minDurationMinutes,
+                                  },
                             ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: TextField(
+                            child: NumberField(
                               controller: _maxDurationController,
+                              integer: true,
                               decoration: InputDecoration(
                                 labelText: context.l10n.diveLog_filter_max,
                                 prefixIcon: const Icon(Icons.timer),
                                 suffixText:
                                     context.l10n.units_profileMetric_min,
                               ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                _maxDurationMinutes = parseUserInt(value);
-                              },
+                              onChanged: (read) =>
+                                  _maxDurationMinutes = switch (read) {
+                                    NumberValue(:final value) => value.toInt(),
+                                    NumberBlank() => null,
+                                    NumberInvalid() => _maxDurationMinutes,
+                                  },
                             ),
                           ),
                         ],

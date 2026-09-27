@@ -322,6 +322,14 @@ void main() {
               as GoRoute;
       expect(downloadRoute.path, equals('download'));
     });
+
+    test('a scanned foreign tag has its own route, not an equipment id', () {
+      final match = router.configuration.findMatch(
+        Uri.parse('/equipment/tag?t=x'),
+      );
+      expect(match.isError, isFalse);
+      expect(match.last.route.name, 'foreignPassport');
+    });
   });
 
   group('appearance section routes', () {

@@ -87,8 +87,8 @@ void main() {
   }
 
   test('v234 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
+    // Relaxed once v239 (regulator part service kinds) landed on top; the
+    // newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(234));
     expect(AppDatabase.migrationVersions, contains(234));
     expect(AppDatabase.migrationStepCount(233), greaterThanOrEqualTo(1));

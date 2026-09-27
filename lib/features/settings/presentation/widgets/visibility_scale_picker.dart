@@ -8,6 +8,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// The visibility calibration picker, split out of `settings_page.dart` so it
 /// can be pumped directly in tests and so that file stops growing.
@@ -402,12 +403,23 @@ class _CustomVisibilityScaleFormState extends State<CustomVisibilityScaleForm> {
   /// the diver can see: a whole-unit seed of "7" ft must not be described as
   /// the 6.6 ft it was rounded from.
   double? _typedMetersFrom(TextEditingController c) {
-    final parsed = parseUserDecimal(c.text);
-    return parsed == null ? null : widget.units.depthToMeters(parsed);
+    return switch (readNumber(c.text)) {
+      NumberValue(:final value) => widget.units.depthToMeters(value),
+      // [_submit] reports unreadable text before it gets here.
+      NumberBlank() || NumberInvalid() => null,
+    };
   }
 
   void _submit() {
     final l10n = AppLocalizations.of(context);
+    // An unreadable number is a typo, not an ordering problem; saying the
+    // bands are out of order would send the diver looking in the wrong place.
+    for (final c in [_excellent, _good, _moderate]) {
+      if (invalidNumberText(context, c.text) case final message?) {
+        setState(() => _error = message);
+        return;
+      }
+    }
     final e = _metersFrom(_excellent);
     final g = _metersFrom(_good);
     final m = _metersFrom(_moderate);

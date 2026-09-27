@@ -72,7 +72,7 @@ void main() {
     expect(AppDatabase.migrationVersions, contains(236));
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.migrationStepCount(234), 1);
+    expect(AppDatabase.migrationStepCount(234), greaterThanOrEqualTo(1));
     // A new table is additive: the compatibility floor stays put.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });

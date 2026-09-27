@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -557,6 +558,47 @@ void main() {
       expect(repository.lastCorrection?.headingOffsetDeg, 12.5);
     },
   );
+
+  testWidgets('a comma decimal is read under a comma locale (#1900)', (
+    tester,
+  ) async {
+    final previousLocale = Intl.defaultLocale;
+    addTearDown(() => Intl.defaultLocale = previousLocale);
+    Intl.defaultLocale = 'de';
+    final repository = await _pump(tester, route: _route());
+
+    final fieldFinder = find.byKey(
+      const ValueKey('nav-track-align-rotation-field'),
+    );
+    await tester.enterText(fieldFinder, '12,5');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+    await tester.pumpAndSettle();
+
+    expect(
+      repository.lastCorrection?.headingOffsetDeg,
+      12.5,
+      reason: 'double.tryParse rejected "12,5" and silently reverted it',
+    );
+  });
+
+  testWidgets('unreadable rotation text says why before it is reverted '
+      '(#1900)', (tester) async {
+    final previousLocale = Intl.defaultLocale;
+    addTearDown(() => Intl.defaultLocale = previousLocale);
+    Intl.defaultLocale = 'en_US';
+    await _pump(tester, route: _route());
+
+    await tester.enterText(
+      find.byKey(const ValueKey('nav-track-align-rotation-field')),
+      '1..5',
+    );
+    await tester.pump();
+
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+  });
 
   testWidgets(
     'entering garbage text into the rotation field leaves the prior value '
