@@ -511,6 +511,7 @@ class PdfSharedComponents {
     required int diveCount,
     required PdfPageFormat pageFormat,
     required PdfDateFormatter dates,
+    required DateTime generatedAt,
     DateTime? firstDiveDate,
     DateTime? lastDiveDate,
     Diver? diver,
@@ -557,7 +558,7 @@ class PdfSharedComponents {
             ),
           pw.SizedBox(height: 40),
           pw.Text(
-            'Generated on ${dates.dateTime(DateTime.now())}',
+            'Generated on ${dates.dateTime(generatedAt)}',
             style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey600),
           ),
         ],

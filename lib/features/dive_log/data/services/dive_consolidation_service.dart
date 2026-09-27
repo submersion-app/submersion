@@ -106,12 +106,16 @@ class DiveConsolidationService {
           targetRow.computerId!,
           now: now,
         );
+        // With a fresh clock: stamping moves these events into any scope
+        // tombstone the computer already has on this dive (#1926), and with
+        // their old clocks a relayed copy of that scope would delete them.
         await (_db.update(_db.diveProfileEvents)..where(
               (t) => t.diveId.equals(targetDiveId) & t.computerId.isNull(),
             ))
             .write(
               DiveProfileEventsCompanion(
                 computerId: Value(targetRow.computerId),
+                hlc: Value(await _sync.issueRowClock()),
               ),
             );
       }
@@ -219,7 +223,8 @@ class DiveConsolidationService {
                   computerSerial: Value(secRow.diveComputerSerial),
                   maxDepth: Value(secRow.maxDepth),
                   avgDepth: Value(secRow.avgDepth),
-                  duration: Value(secRow.bottomTime),
+                  // The runtime, never the derived bottom time (#2421).
+                  duration: Value(secRow.runtime),
                   waterTemp: Value(secRow.waterTemp),
                   entryTime: Value(
                     secRow.entryTime != null

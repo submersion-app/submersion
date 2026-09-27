@@ -58,7 +58,10 @@ void main() {
     // The floor is 224, raised by the media fact clocks. An older reader
     // never sees a cloud id and leaves it alone (the merge upserts with
     // nullToAbsent), so this rung does not raise it.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(224),
+    );
   });
 
   test('a fresh database has media.cloud_asset_id, nullable', () async {

@@ -24,6 +24,10 @@ import '../../../../helpers/test_database.dart';
 /// text is written as a TrueType subset and no longer extracts as literal
 /// strings (see pdf_export_template_routing_test.dart). Nor bytes: each
 /// document carries its own id, so two exports of the same dive differ.
+///
+/// The service's clock is pinned: the cover stamps the generation minute, and
+/// a minute ticking over between two exports can change their sizes (#2446,
+/// see pdf_export_generated_at_test.dart).
 void main() {
   late PdfExportService service;
 
@@ -36,7 +40,7 @@ void main() {
 
   setUp(() async {
     final db = await setUpTestDatabase();
-    service = PdfExportService();
+    service = PdfExportService(now: () => DateTime(2026, 3, 28, 10, 59));
     final t = DateTime.now().millisecondsSinceEpoch;
     await db
         .into(db.divers)
