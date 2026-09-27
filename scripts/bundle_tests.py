@@ -203,9 +203,11 @@ def render(files, out_dir):
 
     Each file runs in a group named after its path. Before its tests the group
     reapplies the harness defaults and records the process-wide state, and
-    after them it fails if the file left any of that state changed. A file
-    that throws while declaring its tests fails in a test of its own, so the
-    other files in the bundle still run.
+    after them it fails if the file left any of that state changed.
+    declareIsolated does the same around the file's main(), which runs while
+    the bundle is declared: from the defaults, and failing in a test of the
+    file's own if main() throws or leaves a global changed. The other files in
+    the bundle still run.
     """
     out = to_posix(out_dir)
     lines = [
@@ -229,14 +231,7 @@ def render(files, out_dir):
             "      before = GlobalStateSnapshot.take();",
             "    });",
             "    tearDownAll(() => before.expectRestored());",
-            "    try {",
-            "      t%d.main();" % index,
-            "    } catch (error, stack) {",
-            "      test(",
-            "        'declares its tests',",
-            "        () => Error.throwWithStackTrace(error, stack),",
-            "      );",
-            "    }",
+            "    declareIsolated(t%d.main);" % index,
             "  });",
         ]
     lines.append("}")

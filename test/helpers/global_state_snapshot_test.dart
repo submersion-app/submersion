@@ -173,6 +173,46 @@ void main() {
     });
   });
 
+  group('declareAndCheck', () {
+    test('a clean declaration reports no error and no change', () {
+      var ran = false;
+
+      final result = declareAndCheck(() => ran = true);
+
+      expect(ran, isTrue);
+      expect(result.error, isNull);
+      expect(result.changed, isEmpty);
+    });
+
+    test('a declaration that throws hands back the error and its stack', () {
+      final result = declareAndCheck(() => throw StateError('boom'));
+
+      expect(result.error, isA<StateError>());
+      expect(result.stack, isNotNull);
+    });
+
+    test('a declaration that replaces a global reports it', () {
+      final original = PathProviderPlatform.instance;
+      addTearDown(() => PathProviderPlatform.instance = original);
+
+      final result = declareAndCheck(
+        () => PathProviderPlatform.instance = _FakePathProvider(),
+      );
+
+      expect(result.changed, ['PathProviderPlatform.instance']);
+    });
+
+    test('the harness defaults are applied before declaring', () {
+      addTearDown(applyGlobalTestDefaults);
+      QualityScanScheduler.enabled = true;
+      bool? seen;
+
+      declareAndCheck(() => seen = QualityScanScheduler.enabled);
+
+      expect(seen, isFalse);
+    });
+  });
+
   test('expectRestored passes when nothing changed', () {
     GlobalStateSnapshot.take().expectRestored();
   });

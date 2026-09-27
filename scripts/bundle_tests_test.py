@@ -207,7 +207,7 @@ class RenderTest(unittest.TestCase):
         )
         self.assertIn("import '../features/a/x_test.dart' as t0;", source)
         self.assertIn("group('features/a/x_test.dart', () {", source)
-        self.assertIn("      t0.main();", source)
+        self.assertIn("    declareIsolated(t0.main);", source)
 
     def test_the_harness_defaults_are_reapplied_per_file(self):
         source = bundler.render(["test/a_test.dart"], "test/.bundles")
@@ -230,14 +230,16 @@ class RenderTest(unittest.TestCase):
         source = bundler.render(["test/a_test.dart"], "test/.bundles")
         self.assertLess(
             source.index("tearDownAll(() => before.expectRestored());"),
-            source.index("t0.main();"),
+            source.index("declareIsolated(t0.main);"),
         )
 
-    def test_a_file_that_throws_while_declaring_fails_on_its_own(self):
-        source = bundler.render(["test/a_test.dart"], "test/.bundles")
-        self.assertIn("    try {\n      t0.main();\n    } catch", source)
-        self.assertIn("(error, stack) {", source)
-        self.assertIn("Error.throwWithStackTrace(error, stack)", source)
+    def test_each_file_is_declared_through_the_isolating_helper(self):
+        source = bundler.render(
+            ["test/a_test.dart", "test/b_test.dart"], "test/.bundles"
+        )
+        self.assertIn("    declareIsolated(t0.main);", source)
+        self.assertIn("    declareIsolated(t1.main);", source)
+        self.assertNotIn("    t0.main();", source)
 
     def test_files_keep_the_order_they_were_given(self):
         source = bundler.render(
@@ -246,6 +248,10 @@ class RenderTest(unittest.TestCase):
         self.assertLess(
             source.index("z_test.dart' as t0"),
             source.index("a_test.dart' as t1"),
+        )
+        self.assertLess(
+            source.index("declareIsolated(t0.main);"),
+            source.index("declareIsolated(t1.main);"),
         )
 
     def test_quotes_and_dollars_in_a_path_are_escaped(self):

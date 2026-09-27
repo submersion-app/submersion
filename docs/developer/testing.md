@@ -429,8 +429,11 @@ Two checks enforce the rule:
   tests (`test/helpers/global_state_snapshot.dart`) and fails that file's group
   if anything is left changed afterwards, whatever shape the code took.
 
-A file that throws while its tests are being declared fails in a test of its
-own, named `declares its tests`, and the other files in the bundle still run.
+The bundle also checks each file's `main()`, which runs while the bundle is
+declared, before any test. Each file is declared from the harness defaults. A
+file that throws while declaring fails in a test named `declares its tests`,
+and one that leaves a global changed fails in `declares its tests without
+changing global state`. The other files in the bundle still run.
 
 A shared isolate exposes two more things:
 

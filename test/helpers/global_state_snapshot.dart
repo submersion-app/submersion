@@ -14,6 +14,8 @@ import 'package:submersion/features/equipment/data/services/sensor_summary_sched
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 
+import 'global_test_defaults.dart';
+
 /// Channels whose mock handlers answer for every file that runs afterwards.
 const _watchedChannels = [
   'plugins.flutter.io/path_provider',
@@ -115,6 +117,65 @@ class GlobalStateSnapshot {
       '${changed.join(', ')}. The file that runs next in the same isolate '
       'starts from that state. See "Shared Isolates in CI" in '
       'docs/developer/testing.md for how to restore each one.',
+    );
+  }
+}
+
+/// What happened while a test file declared its tests.
+typedef DeclarationResult = ({
+  Object? error,
+  StackTrace? stack,
+  List<String> changed,
+});
+
+/// Runs [declare], a test file's `main()`, from the harness defaults, and
+/// reports what it threw and what process-wide state it left changed.
+///
+/// A generated bundle calls every file's `main()` while the bundle itself is
+/// being declared, before any `setUpAll` runs. Without this, a file that
+/// changes a global while declaring would hand that change to the next
+/// file's declaration, and the per-file check in [GlobalStateSnapshot] would
+/// never see it.
+DeclarationResult declareAndCheck(void Function() declare) {
+  applyGlobalTestDefaults();
+  final before = GlobalStateSnapshot.take();
+  Object? error;
+  StackTrace? stack;
+  try {
+    declare();
+  } catch (caught, trace) {
+    error = caught;
+    stack = trace;
+  }
+  return (
+    error: error,
+    stack: stack,
+    changed: GlobalStateSnapshot.take().changedSince(before),
+  );
+}
+
+/// Declares a test file's tests in a generated bundle.
+///
+/// What [declareAndCheck] finds becomes a failing test of the file's own,
+/// so the other files in the bundle still run and the failure names the file.
+void declareIsolated(void Function() declare) {
+  final result = declareAndCheck(declare);
+  final error = result.error;
+  if (error != null) {
+    test(
+      'declares its tests',
+      () => Error.throwWithStackTrace(error, result.stack!),
+    );
+  }
+  if (result.changed.isNotEmpty) {
+    test(
+      'declares its tests without changing global state',
+      () => fail(
+        'Declaring this file changed process-wide state: '
+        '${result.changed.join(', ')}. Code in the body of main() or group() '
+        'runs before any test, so it reaches every file declared after this '
+        'one. Move it into setUp or the test.',
+      ),
     );
   }
 }
