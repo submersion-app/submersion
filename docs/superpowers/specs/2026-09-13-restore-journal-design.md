@@ -5,8 +5,9 @@ Issue: #1901
 Delivery: one PR, based on `main`
 Related: PR #1856 (open, fork `urbamax/submersion`, `fix/restore-cleanup-resilience`)
 
-> **Update (issue #1924):** the `stale` classification below no longer
-> exists. An unmarked `.pre-restore` beside a live file this build opens is
+> **Update (issue #1924):** the `stale` classification no longer exists,
+> and the design sections below are revised to match (each change is marked
+> #1924). An unmarked `.pre-restore` beside a live file this build opens is
 > now `unproven`: a restore quarantines it like a `precious` one, the
 > missing-source sweep leaves it alone, and `findInterrupted()` does not offer
 > it. Nothing deletes a leftover of an earlier restore; the only delete left
@@ -103,7 +104,7 @@ Members:
 | `begin()` | Writes the marker with `flush: true`. Content is `{"startedAt": "<UTC ISO-8601>"}`. |
 | `commit()` | Deletes the marker. |
 | `hasMarker` | Marker exists. Presence is the whole signal; unparseable content still counts as present. |
-| `classifyPreRestore()` | Returns `none`, `stale` or `precious` (rules below). |
+| `classifyPreRestore()` | Returns `none`, `unproven` or `precious` (rules below). |
 | `quarantine(path)` | Renames `path` and its `-wal`/`-shm` to `<path>.<yyyyMMddTHHmmssZ>` (sidecars as `<path>.<ts>-wal` so SQLite still pairs them). If the target exists, appends `-1`, `-2`, and so on. Returns the new main path. |
 | `findInterrupted()` | Synchronous startup query, returns `InterruptedRestore?`. |
 | `recover()` | Puts the original back (below). |
@@ -119,8 +120,11 @@ Classification of an existing `.pre-restore`:
   without the journal), the live file is missing, `readSchemaVersion` throws
   (including `DatabaseLockedException`), returns null or 0, or returns a
   version above `AppDatabase.currentSchemaVersion`.
-- `stale`: no marker, and the live file reports a version in
-  `1..currentSchemaVersion`.
+- `unproven` (was `stale` until #1924): no marker, and the live file reports
+  a version in `1..currentSchemaVersion`. Usually the leftover of a completed
+  restore, but a build without the journal could strand the only copy here
+  and then create a fresh empty database at the live path, which reports the
+  same thing. Nothing on disk tells the two apart, so it is never deleted.
 
 `findInterrupted()` returns a value only when `.pre-restore` exists, is
 `precious`, and is itself recoverable: `readSchemaVersion(.pre-restore)`
@@ -149,15 +153,15 @@ no-op.
 ### 2. `DatabaseService.restore()` changes
 
 1. **Missing source.** `_sweepRestoreTempFiles` still deletes
-   `.restore-staging`. It deletes `.pre-restore` and its sidecars only when
-   `classifyPreRestore()` returns `stale`, leaves a `precious` one untouched,
-   and never touches the marker.
+   `.restore-staging`. It never touches `.pre-restore`, its sidecars or the
+   marker (#1924: it used to delete a leftover classified `stale`).
 2. **Staging copy.** Unchanged.
 3. **Leftover handling, before `close()`.** New. With the database still open:
-   a `stale` leftover is deleted strictly (with sidecars); a `precious` one is
-   quarantined and a warning logged (an old marker needs no separate commit:
-   `begin()` in step 4 overwrites it). A
-   failure of either aborts the restore: the staging copy is cleaned up
+   any leftover is quarantined, never deleted; a `precious` one logs a
+   warning and an `unproven` one an info line (#1924: a `stale` leftover used
+   to be deleted strictly here). An old marker needs no separate commit:
+   `begin()` in step 4 overwrites it. A
+   failure to quarantine aborts the restore: the staging copy is cleaned up
    best-effort, the error propagates, and the live database was never closed.
    This replaces the unconditional `_deleteIfExists(asidePath)` inside the
    unavailable window, and so also covers the concern PR #1856 fixes by moving
@@ -180,14 +184,16 @@ no-op.
 
 Ordering rationale: step 3 before step 4 means a new marker is only ever
 paired with the `.pre-restore` its own swap creates. If the marker were
-written first, a crash between writing it and clearing an old stale leftover
+written first, a crash between writing it and clearing an old leftover
 would pair them, and the next launch would offer to recover a database the
 user replaced long ago.
 
 Failure directions: a marker that cannot be committed after a success costs
 one unnecessary recovery prompt. A committed marker whose `.pre-restore`
-delete failed leaves a leftover the probe later classifies as `stale`. No
-ordering of crashes or failures deletes a `precious` file.
+delete failed leaves a leftover the probe later classifies as `unproven`,
+which the next restore quarantines: it costs disk space until #1923 surfaces
+quarantined copies. No ordering of crashes or failures deletes a leftover of
+an earlier restore.
 
 `DatabaseService` gains `debugFailDeleteFor` with PR #1856's exact name,
 shape and semantics (a `Set<String>?` checked before the existence test in
@@ -276,12 +282,15 @@ neighbouring key; then regenerate):
    - end to end: a newer-schema restore whose rollback delete fails through
      `debugFailDeleteFor` leaves the marker and `.pre-restore`; a second
      restore then quarantines rather than deletes;
-   - the missing-source sweep leaves a `precious` `.pre-restore` untouched;
-   - a locked `stale` leftover aborts the restore with the database still
-     open and queryable;
+   - the missing-source sweep leaves a `precious` `.pre-restore` untouched,
+     and (#1924) an `unproven` one too;
+   - (#1924) an unmarked leftover beside a fresh empty database is
+     quarantined with its rows intact;
+   - a leftover that cannot be quarantined aborts the restore with the
+     database still open and queryable;
    - the marker is committed on success and on both successful rollbacks.
-   - The existing sweep tests stay green unchanged: their `'stale'` files sit
-     next to a healthy database, so the probe classifies them `stale`.
+   - The existing sweep tests now expect their `'stale'` `.pre-restore`
+     files kept, since the probe classifies them `unproven` (#1924).
 3. Widgets:
    - `test/core/presentation/widgets/interrupted_restore_view_test.dart`:
      buttons per `liveExists`, running and failed states, date and no date;
