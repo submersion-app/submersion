@@ -177,6 +177,22 @@ jobs:
           restore-keys: |
             build-runner-${{ runner.os }}-${{ steps.flutter-ver.outputs.version }}-${{ hashFiles('pubspec.lock', 'build.yaml') }}-
 
+      # A near-full rebuild (a branch that regenerates widely imported code,
+      # such as the l10n hub, on top of a cache from another commit) peaks
+      # around 18 GB of analyzer memory, above the runner's 16 GB, and the job
+      # is then killed with exit 143 and no build error. Swap lets that rare
+      # large rebuild finish, slower, instead of dying; the usual incremental
+      # build never touches it.
+      - name: Add swap for large build_runner rebuilds
+        run: |
+          sudo swapoff -a || true
+          sudo rm -f /swapfile
+          sudo fallocate -l 12G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
+
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs
 
