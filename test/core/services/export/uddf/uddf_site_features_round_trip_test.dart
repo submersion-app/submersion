@@ -6,7 +6,6 @@ import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
-import 'package:submersion/core/services/export/uddf/uddf_import_service.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -169,8 +168,8 @@ void main() {
     final restored = await SiteFeatureRepository().getFeaturesForSite(site.id);
     expect(restored.map((f) => f.typeName), ['mooring']);
   });
-  test('the dives-only export carries a site feature and its paired importer '
-      'reads it back', () async {
+  test('the dives-only export carries a site feature and the import reads it '
+      'back', () async {
     final diverId = await createTestDiver();
     final site = await SiteRepository().createSite(
       DiveSite(id: '', name: 'Lake wreck', diverId: diverId),
@@ -194,8 +193,8 @@ void main() {
       ),
     );
 
-    final parsed = await UddfImportService().importDivesFromUddf(xml);
-    final parsedSite = parsed['sites']!.single;
+    final parsed = await parseLikeTheWizard(xml);
+    final parsedSite = parsed.sites.single;
     final features = parsedSite['siteFeatures'] as List?;
     expect(features, isNotNull, reason: 'dives-only export writes features');
     expect(features, hasLength(1));
