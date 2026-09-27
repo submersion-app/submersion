@@ -250,7 +250,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'Draw this set\'s gear on a diver on the set page';
+      'Draw this set\'s gear on a diver';
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'Show diver figure';

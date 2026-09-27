@@ -252,7 +252,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'Muestra el equipo de este conjunto sobre un buceador en su página';
+      'Mostrar el equipo de este conjunto sobre un buceador';
 
   @override
   String get equipment_setEdit_figureSwitch_title =>

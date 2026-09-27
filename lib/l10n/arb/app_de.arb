@@ -259,7 +259,7 @@
   "equipment_color_slate": "Schiefer",
   "equipment_color_none": "Keine",
   "equipment_color_sheetTitle": "Farbe wählen",
-  "equipment_setEdit_figureSwitch_subtitle": "Die Ausrüstung dieses Sets auf der Set-Seite an einer Taucherfigur zeigen",
+  "equipment_setEdit_figureSwitch_subtitle": "Die Ausrüstung dieses Sets an einem Taucher zeigen",
   "equipment_setEdit_computerAutoApplySwitch_title": "Anwenden, wenn dieser Tauchcomputer importiert wird",
   "equipment_setEdit_computerAutoApplySwitch_subtitle": "Enthält dieses Set einen Tauchcomputer, wird das ganze Set automatisch zu einem von diesem heruntergeladenen oder importierten Tauchgang hinzugefügt",
   "equipment_setEdit_geofencesTitle": "Geofences",

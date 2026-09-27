@@ -250,7 +250,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'عرض معدات هذه المجموعة على غواص في صفحتها';
+      'عرض معدات هذه المجموعة على غوّاص';
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'إظهار رسم الغواص';

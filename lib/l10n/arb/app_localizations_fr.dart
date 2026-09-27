@@ -253,7 +253,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'Montre l\'équipement de cet ensemble sur un plongeur dans sa page';
+      'Représenter l’équipement de ce jeu sur un plongeur';
 
   @override
   String get equipment_setEdit_figureSwitch_title =>

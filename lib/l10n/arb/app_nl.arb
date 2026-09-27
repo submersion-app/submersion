@@ -247,7 +247,7 @@
   "equipment_color_slate": "Leisteen",
   "equipment_color_none": "Geen",
   "equipment_color_sheetTitle": "Kies een kleur",
-  "equipment_setEdit_figureSwitch_subtitle": "Toont de uitrusting van deze set op een duiker op de setpagina",
+  "equipment_setEdit_figureSwitch_subtitle": "De uitrusting van deze set op een duiker tonen",
   "equipment_setEdit_computerAutoApplySwitch_title": "Toepassen wanneer de computer van deze set wordt geïmporteerd",
   "equipment_setEdit_computerAutoApplySwitch_subtitle": "Als deze set een duikcomputer bevat, wordt de hele set automatisch toegevoegd aan een duik die van deze computer is gedownload of geïmporteerd",
   "equipment_setEdit_geofencesTitle": "Geofences",

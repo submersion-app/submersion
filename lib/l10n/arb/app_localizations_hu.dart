@@ -252,7 +252,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'A készlet felszerelését egy búváron mutatja a készlet oldalán';
+      'A készlet felszerelésének megjelenítése egy búváron';
 
   @override
   String get equipment_setEdit_figureSwitch_title =>

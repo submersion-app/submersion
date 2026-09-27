@@ -247,7 +247,7 @@
   "equipment_color_slate": "Ardósia",
   "equipment_color_none": "Nenhuma",
   "equipment_color_sheetTitle": "Escolha uma cor",
-  "equipment_setEdit_figureSwitch_subtitle": "Mostra o equipamento deste conjunto num mergulhador na sua página",
+  "equipment_setEdit_figureSwitch_subtitle": "Mostrar o equipamento deste conjunto num mergulhador",
   "equipment_setEdit_computerAutoApplySwitch_title": "Aplicar quando o computador deste conjunto for importado",
   "equipment_setEdit_computerAutoApplySwitch_subtitle": "Se este conjunto incluir um computador de mergulho, adiciona automaticamente todo o conjunto a uma imersão descarregada ou importada dele",
   "equipment_setEdit_geofencesTitle": "Geocercas",

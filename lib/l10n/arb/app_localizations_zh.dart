@@ -238,7 +238,7 @@ class AppLocalizationsZh extends AppLocalizations {
       '如果该套装包含潜水电脑，则从该电脑下载或导入的潜水记录会自动添加整个套装';
 
   @override
-  String get equipment_setEdit_figureSwitch_subtitle => '在套装页面上把此套装的装备画在潜水员身上';
+  String get equipment_setEdit_figureSwitch_subtitle => '在潜水员图上显示此套装的装备';
 
   @override
   String get equipment_setEdit_figureSwitch_title => '显示潜水员图示';

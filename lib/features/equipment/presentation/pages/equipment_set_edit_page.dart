@@ -20,6 +20,14 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/figure/domain/figure_composer.dart';
+import 'package:submersion/features/equipment/figure/domain/figure_inputs.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_model_memo.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_selection.dart';
+import 'package:submersion/features/equipment/figure/presentation/gear_figure.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:uuid/uuid.dart';
 
 class EquipmentSetEditPage extends ConsumerStatefulWidget {
@@ -34,8 +42,12 @@ class EquipmentSetEditPage extends ConsumerStatefulWidget {
       _EquipmentSetEditPageState();
 }
 
-class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
+class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
+    with FigureSelection<EquipmentSetEditPage> {
   final _formKey = GlobalKey<FormState>();
+
+  /// The live figure's model, reused while the ticked items are unchanged.
+  final _memo = FigureModelMemo();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
 
@@ -150,297 +162,408 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
       ),
       body: Form(
         key: _formKey,
-        child: ListView(
+        // A scroll view rather than a ListView, so every row is built and a
+        // tap on the figure can scroll to any of them (issue #2326).
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          children: [
-            // Name
-            TextFormField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: context.l10n.equipment_setEdit_nameLabel,
-                prefixIcon: const Icon(Icons.folder),
-                hintText: context.l10n.equipment_setEdit_nameHint,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Name
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: context.l10n.equipment_setEdit_nameLabel,
+                  prefixIcon: const Icon(Icons.folder),
+                  hintText: context.l10n.equipment_setEdit_nameHint,
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return context.l10n.equipment_setEdit_nameValidation;
+                  }
+                  return null;
+                },
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return context.l10n.equipment_setEdit_nameValidation;
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Description
-            TextFormField(
-              controller: _descriptionController,
-              decoration: InputDecoration(
-                labelText: context.l10n.equipment_setEdit_descriptionLabel,
-                prefixIcon: const Icon(Icons.description),
-                hintText: context.l10n.equipment_setEdit_descriptionHint,
+              // Description
+              TextFormField(
+                controller: _descriptionController,
+                decoration: InputDecoration(
+                  labelText: context.l10n.equipment_setEdit_descriptionLabel,
+                  prefixIcon: const Icon(Icons.description),
+                  hintText: context.l10n.equipment_setEdit_descriptionHint,
+                ),
+                maxLines: 2,
               ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // Default set
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(context.l10n.equipment_setEdit_defaultSwitch_title),
-              subtitle: Text(
-                context.l10n.equipment_setEdit_defaultSwitch_subtitle,
-              ),
-              value: _isDefault,
-              onChanged: (v) => setState(() => _isDefault = v),
-            ),
-            const SizedBox(height: 8),
-
-            // Auto-apply when this set's computer is imported (issue #1020)
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(
-                context.l10n.equipment_setEdit_computerAutoApplySwitch_title,
-              ),
-              subtitle: Text(
-                context.l10n.equipment_setEdit_computerAutoApplySwitch_subtitle,
-              ),
-              value: _autoApplyOnComputerImport,
-              onChanged: (v) => setState(() => _autoApplyOnComputerImport = v),
-            ),
-            const SizedBox(height: 8),
-
-            // The diver figure on the set page (issue #2326), off by default.
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(context.l10n.equipment_setEdit_figureSwitch_title),
-              subtitle: Text(
-                context.l10n.equipment_setEdit_figureSwitch_subtitle,
-              ),
-              value: _showFigure,
-              onChanged: (v) => setState(() => _showFigure = v),
-            ),
-            const SizedBox(height: 16),
-
-            // Geofences
-            Text(
-              context.l10n.equipment_setEdit_geofencesTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              context.l10n.equipment_setEdit_geofencesSubtitle,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 8),
-            ..._geofences.asMap().entries.map((entry) {
-              final i = entry.key;
-              final g = entry.value;
-              final formatter = UnitFormatter(ref.watch(settingsProvider));
-              return ListTile(
+              // Default set
+              SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.place_outlined),
+                title: Text(context.l10n.equipment_setEdit_defaultSwitch_title),
+                subtitle: Text(
+                  context.l10n.equipment_setEdit_defaultSwitch_subtitle,
+                ),
+                value: _isDefault,
+                onChanged: (v) => setState(() => _isDefault = v),
+              ),
+              const SizedBox(height: 8),
+
+              // Auto-apply when this set's computer is imported (issue #1020)
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
                 title: Text(
-                  g.label ?? context.l10n.equipment_geofenceEditor_title,
+                  context.l10n.equipment_setEdit_computerAutoApplySwitch_title,
                 ),
                 subtitle: Text(
-                  context.l10n.equipment_setEdit_geofenceRadius(
-                    formatter.formatGeoDistance(g.radiusMeters),
-                  ),
+                  context
+                      .l10n
+                      .equipment_setEdit_computerAutoApplySwitch_subtitle,
                 ),
-                onTap: () => _editGeofence(i, g),
-                trailing: IconButton(
-                  icon: const Icon(Icons.close),
-                  tooltip: context.l10n.equipment_setEdit_removeGeofence,
-                  onPressed: () => setState(() {
-                    _geofences = [
-                      for (var idx = 0; idx < _geofences.length; idx++)
-                        if (idx != i) _geofences[idx],
-                    ];
-                  }),
-                ),
-              );
-            }),
-            OutlinedButton.icon(
-              onPressed: _addGeofence,
-              icon: const Icon(Icons.add_location_alt_outlined),
-              label: Text(context.l10n.equipment_setEdit_addGeofence),
-            ),
-            const SizedBox(height: 24),
-
-            // Equipment selection
-            Text(
-              context.l10n.equipment_setEdit_selectEquipmentTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              context.l10n.equipment_setEdit_selectEquipmentSubtitle,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                value: _autoApplyOnComputerImport,
+                onChanged: (v) =>
+                    setState(() => _autoApplyOnComputerImport = v),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 8),
 
-            equipmentAsync.when(
-              data: (equipment) {
-                if (equipment.isEmpty) {
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            ExcludeSemantics(
-                              child: Icon(
-                                Icons.backpack_outlined,
-                                size: 48,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant
-                                    .withValues(alpha: 0.5),
+              // The diver figure on the set page (issue #2326), off by default.
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(context.l10n.equipment_setEdit_figureSwitch_title),
+                subtitle: Text(
+                  context.l10n.equipment_setEdit_figureSwitch_subtitle,
+                ),
+                value: _showFigure,
+                onChanged: (v) => setState(() => _showFigure = v),
+              ),
+              const SizedBox(height: 16),
+
+              // Geofences
+              Text(
+                context.l10n.equipment_setEdit_geofencesTitle,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                context.l10n.equipment_setEdit_geofencesSubtitle,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ..._geofences.asMap().entries.map((entry) {
+                final i = entry.key;
+                final g = entry.value;
+                final formatter = UnitFormatter(ref.watch(settingsProvider));
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.place_outlined),
+                  title: Text(
+                    g.label ?? context.l10n.equipment_geofenceEditor_title,
+                  ),
+                  subtitle: Text(
+                    context.l10n.equipment_setEdit_geofenceRadius(
+                      formatter.formatGeoDistance(g.radiusMeters),
+                    ),
+                  ),
+                  onTap: () => _editGeofence(i, g),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.close),
+                    tooltip: context.l10n.equipment_setEdit_removeGeofence,
+                    onPressed: () => setState(() {
+                      _geofences = [
+                        for (var idx = 0; idx < _geofences.length; idx++)
+                          if (idx != i) _geofences[idx],
+                      ];
+                    }),
+                  ),
+                );
+              }),
+              OutlinedButton.icon(
+                onPressed: _addGeofence,
+                icon: const Icon(Icons.add_location_alt_outlined),
+                label: Text(context.l10n.equipment_setEdit_addGeofence),
+              ),
+              const SizedBox(height: 24),
+
+              // Equipment selection
+              Text(
+                context.l10n.equipment_setEdit_selectEquipmentTitle,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                context.l10n.equipment_setEdit_selectEquipmentSubtitle,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              equipmentAsync.when(
+                data: (equipment) {
+                  if (equipment.isEmpty) {
+                    return Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              ExcludeSemantics(
+                                child: Icon(
+                                  Icons.backpack_outlined,
+                                  size: 48,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant
+                                      .withValues(alpha: 0.5),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              context
-                                  .l10n
-                                  .equipment_setEdit_noEquipmentAvailable,
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              context.l10n.equipment_setEdit_addEquipmentFirst,
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+                              const SizedBox(height: 8),
+                              Text(
+                                context
+                                    .l10n
+                                    .equipment_setEdit_noEquipmentAvailable,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                context
+                                    .l10n
+                                    .equipment_setEdit_addEquipmentFirst,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                }
-
-                // This grouped by type but ordered neither the groups nor the
-                // items inside them, so the picker had the same unspecified
-                // order the dive surfaces did (#1486, #1576). Selection is
-                // held in a Set of ids, so reordering the render cannot
-                // disturb what is ticked.
-                final groups = arrangeEquipment(
-                  equipment,
-                  ref.watch(equipmentArrangementProvider),
-                  typeLabel: (type) => type.localizedName(context.l10n),
-                );
-                // Labelled as one list, so identical items read differently
-                // from each other (#1549).
-                final labels = equipmentRowLabelsOf(context, ref, equipment);
-
-                return Column(
-                  children: groups.map((group) {
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (group.type != null)
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                              child: EquipmentGroupHeader(type: group.type!),
-                            ),
-                          ...group.items.map(
-                            (item) =>
-                                _buildEquipmentCheckbox(context, item, labels),
-                          ),
-                        ],
-                      ),
                     );
-                  }).toList(),
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Center(
-                child: Text(
-                  context.l10n.equipment_setEdit_errorMessage('$error'),
+                  }
+
+                  // This grouped by type but ordered neither the groups nor the
+                  // items inside them, so the picker had the same unspecified
+                  // order the dive surfaces did (#1486, #1576). Selection is
+                  // held in a Set of ids, so reordering the render cannot
+                  // disturb what is ticked.
+                  final groups = arrangeEquipment(
+                    equipment,
+                    ref.watch(equipmentArrangementProvider),
+                    typeLabel: (type) => type.localizedName(context.l10n),
+                  );
+                  // Labelled as one list, so identical items read differently
+                  // from each other (#1549).
+                  final labels = equipmentRowLabelsOf(context, ref, equipment);
+
+                  // The live figure (issue #2326): the ticked items that have
+                  // a row here, in the order the page lists them, so its
+                  // numbers run down the rows. A retired member has no row,
+                  // so it is not drawn. Parts wait for the components index,
+                  // as on the set page.
+                  final ordered = [
+                    for (final group in groups)
+                      for (final item in group.items)
+                        if (_selectedEquipmentIds.contains(item.id)) item,
+                  ];
+                  final componentsAsync = ref.watch(
+                    equipmentComponentsIndexProvider,
+                  );
+                  final components = componentsAsync.hasError
+                      ? ComponentsIndex.empty
+                      : componentsAsync.value;
+                  final model =
+                      _showFigure && components != null && ordered.isNotEmpty
+                      ? _memo.of(
+                          (
+                            equipment,
+                            [for (final item in ordered) item.id].join('|'),
+                            components,
+                            ref.watch(equipmentArrangementProvider),
+                            Localizations.localeOf(context),
+                          ),
+                          () => composeFigure(
+                            figureInputsFromItems(
+                              ordered,
+                              components: components,
+                            ),
+                          ),
+                        )
+                      : null;
+                  final numberById = model == null
+                      ? const <String, int>{}
+                      : {for (final p in model.numbered) p.item.id: p.number};
+                  final name = _nameController.text.trim();
+
+                  return Column(
+                    children: [
+                      if (model != null) ...[
+                        Card(
+                          key: figureKey,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: GearFigure(
+                              model: model,
+                              title: name.isEmpty
+                                  ? context
+                                        .l10n
+                                        .equipment_setEdit_appBar_newTitle
+                                  : name,
+                              selectedItemId: selectedFigureItemId,
+                              selectionSerial: figureSelectionSerial,
+                              onItemTap: (placed) =>
+                                  selectFigureItem(placed.item.id),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                      for (final group in groups)
+                        Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (group.type != null)
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    12,
+                                    16,
+                                    0,
+                                  ),
+                                  child: EquipmentGroupHeader(
+                                    type: group.type!,
+                                  ),
+                                ),
+                              for (final item in group.items)
+                                _buildEquipmentCheckbox(
+                                  context,
+                                  item,
+                                  labels,
+                                  numberById[item.id],
+                                ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, _) => Center(
+                  child: Text(
+                    context.l10n.equipment_setEdit_errorMessage('$error'),
+                  ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-            // Save Button
-            Tooltip(
-              message: widget.isEditing
-                  ? context.l10n.equipment_setEdit_saveTooltip_edit
-                  : context.l10n.equipment_setEdit_saveTooltip_new,
-              child: FilledButton(
-                onPressed: _isLoading ? null : () => _saveSet(existingSet),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(
-                        widget.isEditing
-                            ? context.l10n.equipment_setEdit_saveButton_edit
-                            : context.l10n.equipment_setEdit_saveButton_new,
-                      ),
+              // Save Button
+              Tooltip(
+                message: widget.isEditing
+                    ? context.l10n.equipment_setEdit_saveTooltip_edit
+                    : context.l10n.equipment_setEdit_saveTooltip_new,
+                child: FilledButton(
+                  onPressed: _isLoading ? null : () => _saveSet(existingSet),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(
+                          widget.isEditing
+                              ? context.l10n.equipment_setEdit_saveButton_edit
+                              : context.l10n.equipment_setEdit_saveButton_new,
+                        ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
+  /// One row of the picker. [number] is the item's figure number while the
+  /// figure shows; it leads the row as a badge that brings the figure into
+  /// view.
   Widget _buildEquipmentCheckbox(
     BuildContext context,
     EquipmentItem item,
     Map<String, EquipmentRowLabel> labels,
+    int? number,
   ) {
     final isSelected = _selectedEquipmentIds.contains(item.id);
+    final scheme = Theme.of(context).colorScheme;
+    final flashing = number != null && item.id == selectedFigureItemId;
+    final highlight = flashing ? figureHighlightFor(scheme) : null;
+    final icon = Icon(
+      equipmentTypeIcon(item.type),
+      color: highlight?.onFill ?? scheme.onSurfaceVariant,
+    );
 
-    return CheckboxListTile(
-      value: isSelected,
-      onChanged: (value) {
-        setState(() {
-          if (value == true) {
-            _selectedEquipmentIds.add(item.id);
-          } else {
-            _selectedEquipmentIds.remove(item.id);
-          }
-        });
-      },
-      title: Text(item.name),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          switch (labels[item.id]?.subtitle) {
-            final detail? => Text(detail),
-            null => const SizedBox.shrink(),
+    return KeyedSubtree(
+      key: figureRowKey(item.id),
+      child: ListTileTheme.merge(
+        textColor: highlight?.onFill,
+        iconColor: highlight?.onFill,
+        child: CheckboxListTile(
+          tileColor: highlight?.fill,
+          value: isSelected,
+          onChanged: (value) {
+            setState(() {
+              if (value == true) {
+                _selectedEquipmentIds.add(item.id);
+              } else {
+                _selectedEquipmentIds.remove(item.id);
+              }
+            });
           },
-          ServiceStatusIndicatorFor(
-            equipmentId: item.id,
-            density: ServiceIndicatorDensity.compact,
+          title: Text(item.name),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              switch (labels[item.id]?.subtitle) {
+                final detail? => Text(detail),
+                null => const SizedBox.shrink(),
+              },
+              ServiceStatusIndicatorFor(
+                equipmentId: item.id,
+                density: ServiceIndicatorDensity.compact,
+              ),
+            ],
           ),
-        ],
+          secondary: number == null
+              ? icon
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FigureNumberBadge(
+                      number: number,
+                      selected: flashing,
+                      onTap: () =>
+                          selectFigureItem(item.id, revealFigure: true),
+                    ),
+                    const SizedBox(width: 8),
+                    icon,
+                  ],
+                ),
+          controlAffinity: ListTileControlAffinity.trailing,
+        ),
       ),
-      secondary: Icon(
-        equipmentTypeIcon(item.type),
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-      controlAffinity: ListTileControlAffinity.trailing,
     );
   }
 

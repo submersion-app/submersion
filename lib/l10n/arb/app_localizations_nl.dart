@@ -250,7 +250,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'Toont de uitrusting van deze set op een duiker op de setpagina';
+      'De uitrusting van deze set op een duiker tonen';
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'Duikerfiguur tonen';

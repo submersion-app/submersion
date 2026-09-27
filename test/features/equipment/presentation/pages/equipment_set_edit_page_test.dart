@@ -127,6 +127,11 @@ void main() {
   testWidgets('toggles default and manages geofences before saving', (
     tester,
   ) async {
+    // Tall enough that the geofence rows sit on screen wherever the form
+    // scrolls to.
+    tester.view.physicalSize = const Size(900, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(await buildPage());
     await tester.pumpAndSettle();
 

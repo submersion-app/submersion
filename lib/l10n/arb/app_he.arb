@@ -247,7 +247,7 @@
   "equipment_color_slate": "צפחה",
   "equipment_color_none": "ללא",
   "equipment_color_sheetTitle": "בחירת צבע",
-  "equipment_setEdit_figureSwitch_subtitle": "הצגת הציוד של הערכה על צולל בדף שלה",
+  "equipment_setEdit_figureSwitch_subtitle": "הצגת הציוד של הערכה על צוללן",
   "equipment_setEdit_computerAutoApplySwitch_title": "החל בעת ייבוא המחשב של סט זה",
   "equipment_setEdit_computerAutoApplySwitch_subtitle": "אם סט זה כולל מחשב צלילה, הסט כולו יתווסף אוטומטית לצלילה שהורדה או יובאה ממנו",
   "equipment_setEdit_geofencesTitle": "גדרות גאוגרפיות",

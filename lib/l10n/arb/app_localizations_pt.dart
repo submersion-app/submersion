@@ -252,7 +252,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'Mostra o equipamento deste conjunto num mergulhador na sua página';
+      'Mostrar o equipamento deste conjunto num mergulhador';
 
   @override
   String get equipment_setEdit_figureSwitch_title =>

@@ -252,7 +252,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'Die Ausrüstung dieses Sets auf der Set-Seite an einer Taucherfigur zeigen';
+      'Die Ausrüstung dieses Sets an einem Taucher zeigen';
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'Taucherfigur anzeigen';

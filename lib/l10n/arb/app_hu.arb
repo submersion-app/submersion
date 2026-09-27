@@ -247,7 +247,7 @@
   "equipment_color_slate": "Pala",
   "equipment_color_none": "Nincs",
   "equipment_color_sheetTitle": "Szín választása",
-  "equipment_setEdit_figureSwitch_subtitle": "A készlet felszerelését egy búváron mutatja a készlet oldalán",
+  "equipment_setEdit_figureSwitch_subtitle": "A készlet felszerelésének megjelenítése egy búváron",
   "equipment_setEdit_computerAutoApplySwitch_title": "Alkalmazás, ha ennek a készletnek a számítógépét importálják",
   "equipment_setEdit_computerAutoApplySwitch_subtitle": "Ha ez a készlet tartalmaz egy merülőkomputert, a teljes készlet automatikusan hozzáadódik egy erről letöltött vagy importált merüléshez",
   "equipment_setEdit_geofencesTitle": "Geokerítések",

@@ -253,7 +253,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'Mostra l\'attrezzatura di questo set su un subacqueo nella sua pagina';
+      'Mostra l’attrezzatura di questo set su un subacqueo';
 
   @override
   String get equipment_setEdit_figureSwitch_title =>

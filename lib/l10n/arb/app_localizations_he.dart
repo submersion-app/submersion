@@ -249,7 +249,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'הצגת הציוד של הערכה על צולל בדף שלה';
+      'הצגת הציוד של הערכה על צוללן';
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'הצגת דמות הצולל';

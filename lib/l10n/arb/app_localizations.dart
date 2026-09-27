@@ -431,7 +431,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_setEdit_figureSwitch_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Draw this set\'s gear on a diver on the set page'**
+  /// **'Draw this set\'s gear on a diver'**
   String get equipment_setEdit_figureSwitch_subtitle;
 
   /// No description provided for @equipment_setEdit_figureSwitch_title.
