@@ -3277,6 +3277,7 @@ void main() {
       StartupRecoveryService? recoveryServiceOverride,
       bool fileReached = false,
       List<String>? journal,
+      Object? closeError,
     }) async {
       await tester.pumpWidget(
         _buildStartupWrapper(
@@ -3290,7 +3291,10 @@ void main() {
           // Stated rather than read from the process-wide DatabaseService,
           // so a connection another test left open cannot leak in here.
           fileReachedOverride: () => fileReached,
-          closeDatabaseOverride: () async => journal?.add('close'),
+          closeDatabaseOverride: () async {
+            journal?.add('close');
+            if (closeError != null) throw closeError;
+          },
         ),
       );
       await tester.pump(const Duration(seconds: 2));
@@ -3641,6 +3645,29 @@ void main() {
       expect(initializerCalls, 2);
 
       await tester.pump(const Duration(seconds: 2));
+    });
+
+    // Releasing the connection is housekeeping on the way to a screen the
+    // diver reached because something already failed. A close that fails too
+    // must leave that failure on screen, not replace it.
+    testWidgets('a connection that will not close leaves the failure shown', (
+      tester,
+    ) async {
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+        ),
+        fileReached: true,
+        closeError: StateError('connection is stuck'),
+        initializer: (_) async => throw Exception('notifications blew up'),
+      );
+
+      expect(find.text('Submersion could not start'), findsOneWidget);
+      expect(find.textContaining('notifications blew up'), findsOneWidget);
+      expect(find.textContaining('connection is stuck'), findsNothing);
     });
 
     // Its answer could not change the screen, and on a dead network mount
