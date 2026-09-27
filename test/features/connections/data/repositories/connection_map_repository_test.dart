@@ -82,4 +82,28 @@ void main() {
     )..where((t) => t.id.equals(m.id))).getSingle();
     expect(row.hlc, isNotNull, reason: 'markRecordPending stamps the hlc');
   });
+
+  test('undo after delete clears the tombstone', () async {
+    final m = await repo.create(
+      diverId: 'me',
+      name: 'Undo me',
+      spec: ConnectionPresets.byId('where')!.spec,
+    );
+    await repo.delete(m.id);
+    await repo.restore(m);
+    final tombstones = await (d.select(
+      d.deletionLog,
+    )..where((t) => t.recordId.equals(m.id))).get();
+    expect(tombstones, isEmpty);
+    expect((await repo.getAll('me')).single.id, m.id);
+  });
+
+  test('renaming or updating a missing map records nothing pending', () async {
+    await repo.rename('gone', 'New name');
+    await repo.updateSpec('gone', ConnectionPresets.byId('where')!.spec);
+    final pending = await (d.select(
+      d.syncRecords,
+    )..where((t) => t.recordId.equals('gone'))).get();
+    expect(pending, isEmpty);
+  });
 }

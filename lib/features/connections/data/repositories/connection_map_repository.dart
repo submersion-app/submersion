@@ -82,30 +82,42 @@ class ConnectionMapRepository {
     SyncEventBus.notifyLocalChange();
   }
 
-  /// Puts a just-deleted map back with its id (the undo snackbar).
+  /// Puts a just-deleted map back with its id (the undo snackbar). The
+  /// delete logged a tombstone; left in place it would ride the next
+  /// changeset beside the upsert, so it goes in the same transaction.
   Future<void> restore(SavedConnectionMap map) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await _db
-        .into(_db.connectionMaps)
-        .insertOnConflictUpdate(
-          ConnectionMapsCompanion(
-            id: Value(map.id),
-            diverId: Value(map.diverId),
-            name: Value(map.name),
-            spec: Value(jsonEncode(map.spec.toJson())),
-            sortOrder: Value(map.sortOrder),
-            createdAt: Value(map.createdAt.millisecondsSinceEpoch),
-            updatedAt: Value(now),
-          ),
-        );
+    await _db.transaction(() async {
+      await _db
+          .into(_db.connectionMaps)
+          .insertOnConflictUpdate(
+            ConnectionMapsCompanion(
+              id: Value(map.id),
+              diverId: Value(map.diverId),
+              name: Value(map.name),
+              spec: Value(jsonEncode(map.spec.toJson())),
+              sortOrder: Value(map.sortOrder),
+              createdAt: Value(map.createdAt.millisecondsSinceEpoch),
+              updatedAt: Value(now),
+            ),
+          );
+      await _syncRepository.removeDeletion(
+        entityType: entity,
+        recordId: map.id,
+      );
+    });
     await _markPending(map.id, now);
   }
 
+  /// Writes [changes] to the map with [id]. A map another device already
+  /// deleted is left alone: marking it pending would queue a record that
+  /// no longer exists.
   Future<void> _write(String id, ConnectionMapsCompanion changes) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.connectionMaps)..where((t) => t.id.equals(id))).write(
-      changes.copyWith(updatedAt: Value(now)),
-    );
+    final updated =
+        await (_db.update(_db.connectionMaps)..where((t) => t.id.equals(id)))
+            .write(changes.copyWith(updatedAt: Value(now)));
+    if (updated == 0) return;
     await _markPending(id, now);
   }
 

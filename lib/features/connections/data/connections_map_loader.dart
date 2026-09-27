@@ -1,3 +1,4 @@
+import 'package:submersion/features/connections/data/connections_budget.dart';
 import 'package:submersion/features/connections/data/connections_reader.dart';
 import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
@@ -16,6 +17,7 @@ class MapLoader {
     MapSpec spec, {
     required String? diverId,
     required DiveFilterState filter,
+    required int nodeBudget,
   }) async {
     final kinds = spec.kinds.toList()
       ..sort((a, b) => a.index.compareTo(b.index));
@@ -23,17 +25,30 @@ class MapLoader {
       for (final k in kinds)
         ...await _reader.nodes(k, diverId: diverId, filter: filter),
     ];
+    // Cut to the budget before the edge queries (see nodesWithinBudget), so
+    // a map of every kind and link costs what the budget shows, not the log.
+    final kept = nodesWithinBudget(nodes, nodeBudget);
+    final keptIds = idsByKind(kept);
     final links = spec.links.toList()..sort((a, b) => a.wire.compareTo(b.wire));
     final edges = <ConnectionEdge>[
       for (final l in links)
-        ...await _reader.edges(
-          l.a,
-          l.b,
-          diverId: diverId,
-          filter: filter,
-          minShared: spec.minSharedDives,
-        ),
+        if (keptIds[l.a] != null && keptIds[l.b] != null)
+          ...await _reader.edges(
+            l.a,
+            l.b,
+            diverId: diverId,
+            filter: filter,
+            restrictA: keptIds[l.a],
+            restrictB: keptIds[l.b],
+            minShared: spec.minSharedDives,
+          ),
     ];
-    return ConnectionGraph(nodes: nodes, edges: edges);
+    final graph = ConnectionGraph(
+      nodes: kept,
+      edges: edges,
+    ).trimmed(nodeBudget);
+    return graph.copyWith(
+      hiddenNodeCount: graph.hiddenNodeCount + nodes.length - kept.length,
+    );
   }
 }

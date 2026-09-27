@@ -33,10 +33,9 @@ class ConnectionsRepository {
     int nodeBudget = 80,
   }) {
     return _db.transaction(() async {
-      final graph = await MapLoader(
+      return MapLoader(
         ConnectionsReader(_db),
-      ).load(spec, diverId: diverId, filter: filter);
-      return graph.trimmed(nodeBudget);
+      ).load(spec, diverId: diverId, filter: filter, nodeBudget: nodeBudget);
     });
   }
 
