@@ -9598,7 +9598,7 @@
   "dataQuality_msg_pressureSwap": "ضغط النهاية {end} أعلى من ضغط البداية {start}",
   "dataQuality_msg_pressureEndpoint": "يذكر سجل الأسطوانة {record} لكن سلسلة المستشعر تُظهر {series}",
   "dataQuality_msg_pressureRise": "ارتفع الضغط {rise} في منتصف الغوصة دون تبديل للغاز",
-  "dataQuality_msg_pressureDropout": "{count, plural, =1{انقطعت إشارة الضغط مرة واحدة} other{انقطعت إشارة الضغط {count} مرات}}",
+  "dataQuality_msg_pressureDropout": "{count, plural, =1{سجّل مستشعر الضغط قراءة خاطئة مرة واحدة (انقطاع أو قفزة)} other{سجّل مستشعر الضغط قراءات خاطئة {count} مرات (انقطاعات أو قفزات)}}",
   "dataQuality_msg_pressureMixed": "تمزج سلسلة الضغط قراءات مصدرين",
   "dataQuality_msg_sac": "معدل الاستهلاك السطحي الضمني {sac} غير معقول",
   "dataQuality_msg_ppo2": "بلغ ppO2 القيمة {ppo2} على {gas} عند {depth}",

@@ -30952,8 +30952,9 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'The pressure signal dropped out $count times',
-      one: 'The pressure signal dropped out once',
+      other:
+          'The pressure sensor logged false readings $count times (dropouts or spikes)',
+      one: 'The pressure sensor logged a false reading once (dropout or spike)',
     );
     return '$_temp0';
   }

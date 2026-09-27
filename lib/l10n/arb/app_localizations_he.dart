@@ -30694,8 +30694,8 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'אות הלחץ נותק $count פעמים',
-      one: 'אות הלחץ נותק פעם אחת',
+      other: 'חיישן הלחץ רשם קריאות שגויות $count פעמים (נפילות או קפיצות)',
+      one: 'חיישן הלחץ רשם קריאה שגויה פעם אחת (נפילה או קפיצה)',
     );
     return '$_temp0';
   }

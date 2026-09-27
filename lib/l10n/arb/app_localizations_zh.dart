@@ -29814,8 +29814,8 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '压力信号中断了 $count 次',
-      one: '压力信号中断了 1 次',
+      other: '压力传感器记录了 $count 次错误读数（中断或尖峰）',
+      one: '压力传感器记录了 1 次错误读数（中断或尖峰）',
     );
     return '$_temp0';
   }

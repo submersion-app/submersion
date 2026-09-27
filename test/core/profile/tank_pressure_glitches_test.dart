@@ -70,6 +70,61 @@ void main() {
       expect(scanPressureGlitches(series).episodeCount, 0);
     });
 
+    test('a dip that returns a little below the prior level ends there', () {
+      // 191.7 -> 170.2 -> 185.1: the reading after the dip sits 6.6 bar
+      // below the level before it (gas breathed meanwhile), which must not
+      // keep the dip open for the rest of the dive.
+      final series = [
+        (t: 190, bar: 191.7),
+        (t: 200, bar: 191.7),
+        (t: 210, bar: 191.7),
+        (t: 220, bar: 170.2),
+        (t: 230, bar: 185.1),
+        (t: 240, bar: 183.4),
+        (t: 250, bar: 183.0),
+        (t: 260, bar: 182.0),
+      ];
+      final scan = scanPressureGlitches(series);
+      expect(scan.glitchIndices, {3});
+    });
+
+    test('a single reading spiking above the level is a glitch', () {
+      // 61.4 -> 80.1 -> 59.7, as logged.
+      final series = withValues(draining(start: 70), {12: 80.1});
+      final scan = scanPressureGlitches(series);
+      expect(scan.episodeCount, 1);
+      expect(scan.glitchIndices, {12});
+    });
+
+    test('a two-reading spike above the level is one glitch', () {
+      final series = withValues(draining(start: 50), {10: 104.0, 11: 104.0});
+      expect(scanPressureGlitches(series).glitchIndices, {10, 11});
+    });
+
+    test('a jump up that stays is not a glitch', () {
+      // A lasting step up is no misread; the rise check reports it.
+      final series = [
+        ...draining(start: 100, count: 15),
+        for (var i = 15; i < 30; i++) (t: i * 10, bar: 140.0 - i * 0.3),
+      ];
+      expect(scanPressureGlitches(series).episodeCount, 0);
+    });
+
+    test('a dip that returns a few bar above the prior level is a glitch', () {
+      // 108 -> 96.3 -> 88.1 -> 93.1 -> 93.1 -> 111.1, as logged.
+      final series = [
+        ...draining(start: 110, count: 5),
+        (t: 50, bar: 108.0),
+        (t: 60, bar: 96.3),
+        (t: 70, bar: 88.1),
+        (t: 80, bar: 93.1),
+        (t: 90, bar: 93.1),
+        (t: 100, bar: 111.1),
+        (t: 110, bar: 111.0),
+      ];
+      expect(scanPressureGlitches(series).glitchIndices, {6, 7, 8, 9});
+    });
+
     test('a dip across a long sampling gap is not a glitch', () {
       // One reading every ten minutes: the lower reading may be real
       // consumption at any point of the gap, not a misread.

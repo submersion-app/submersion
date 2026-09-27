@@ -31393,8 +31393,10 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Das Drucksignal ist $count-mal ausgefallen',
-      one: 'Das Drucksignal ist einmal ausgefallen',
+      other:
+          'Der Drucksensor lieferte $count-mal Fehlwerte (Aussetzer oder Ausreisser)',
+      one:
+          'Der Drucksensor lieferte einmal Fehlwerte (Aussetzer oder Ausreisser)',
     );
     return '$_temp0';
   }

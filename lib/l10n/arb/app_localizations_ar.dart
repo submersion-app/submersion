@@ -31037,8 +31037,8 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'انقطعت إشارة الضغط $count مرات',
-      one: 'انقطعت إشارة الضغط مرة واحدة',
+      other: 'سجّل مستشعر الضغط قراءات خاطئة $count مرات (انقطاعات أو قفزات)',
+      one: 'سجّل مستشعر الضغط قراءة خاطئة مرة واحدة (انقطاع أو قفزة)',
     );
     return '$_temp0';
   }

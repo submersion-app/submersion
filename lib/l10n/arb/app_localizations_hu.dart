@@ -31321,8 +31321,9 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'A nyomásjel $count alkalommal kiesett',
-      one: 'A nyomásjel egyszer kiesett',
+      other:
+          'A nyomásérzékelő $count alkalommal adott hibás értéket (kiesés vagy tüske)',
+      one: 'A nyomásérzékelő egyszer hibás értéket adott (kiesés vagy tüske)',
     );
     return '$_temp0';
   }

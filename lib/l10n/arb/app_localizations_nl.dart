@@ -31222,8 +31222,8 @@ class AppLocalizationsNl extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Het druksignaal viel $count keer weg',
-      one: 'Het druksignaal viel één keer weg',
+      other: 'De druksensor gaf $count keer foute metingen (uitval of pieken)',
+      one: 'De druksensor gaf één keer een foute meting (uitval of piek)',
     );
     return '$_temp0';
   }

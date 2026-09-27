@@ -22,8 +22,9 @@ const double kPressureGlitchNearZeroBar = 5.0;
 const double kPressureGlitchReturnBelowBar = 10.0;
 
 /// How far the reading after a dip may sit above the level before it, in bar.
-/// A dip that returns much higher is no misread of one cylinder.
-const double kPressureGlitchReturnAboveBar = 3.0;
+/// A dip that returns much higher is no misread of one cylinder. Real
+/// logbooks show dips coming back a little over 3 bar higher.
+const double kPressureGlitchReturnAboveBar = 5.0;
 
 /// The same allowance after a near-zero dropout, in bar. A dropout can last
 /// minutes, over which a cylinder warming in the water gains a few bar, and
@@ -69,7 +70,8 @@ class PressureGlitchScan {
 /// * a transient dip: readings more than [kPressureGlitchMinDipBar] below
 ///   both the reading before and the reading after them, lasting at most
 ///   [kPressureGlitchMaxSeconds], after which the pressure returns to the
-///   prior level.
+///   prior level;
+/// * a transient spike: the same above both neighbours.
 ///
 /// A drop with no recovery after it is left alone: nothing in the series
 /// shows it to be a misread. The series is not changed.
@@ -91,25 +93,26 @@ PressureGlitchScan scanPressureGlitches(List<PressureReading> readings) {
   var i = leadIn + 1;
   while (i < n) {
     final level = readings[previous].bar;
-    if (readings[i].bar >= level - kPressureGlitchMinDipBar) {
+    final bar = readings[i].bar;
+    final dips = bar < level - kPressureGlitchMinDipBar;
+    final spikes = bar > level + kPressureGlitchMinDipBar;
+    if (!dips && !spikes) {
       previous = i;
       i++;
       continue;
     }
-    // A dropout lasts as long as the reading stays near zero. Measuring it
-    // against the prior level instead would swallow the first good reading
-    // after a long dropout, which by then sits several bar lower from the
-    // gas breathed meanwhile.
-    final ceiling = readings[i].bar < kPressureGlitchNearZeroBar
-        ? kPressureGlitchNearZeroBar
-        : level - kPressureGlitchMinDipBar;
-    var k = i;
-    while (k < n && readings[k].bar < ceiling) {
-      k++;
-    }
-    // No reading after the dip means nothing shows it was not real; it is
-    // taken as the new level like any other drop, and the scan goes on.
-    if (k < n && _isGlitch(readings, previous, i, k)) {
+    final k = spikes
+        ? _spikeEnd(readings, i, level)
+        : _dipEnd(readings, i, level);
+    // No reading after the excursion means nothing shows it was not real;
+    // it is taken as the new level like any other change, and the scan goes
+    // on.
+    final isGlitch =
+        k < n &&
+        (spikes
+            ? _isSpike(readings, previous, i, k)
+            : _isGlitch(readings, previous, i, k));
+    if (isGlitch) {
       glitches.addAll([for (var j = i; j < k; j++) j]);
       episodes++;
       previous = k;
@@ -208,6 +211,10 @@ int _leadInLength(List<PressureReading> readings) {
         allNearZero && readings[q - 1].bar < kPressureGlitchNearZeroBar;
     final span = readings[q - 1].t - readings.first.t;
     if (span > kPressureGlitchMaxSeconds && !allNearZero) break;
+    // The reading the lead-in ends at must start a stable stretch, or a
+    // spike early in the dive would pass for it and take every reading
+    // before it along.
+    if (!_startsStableStretch(readings, q)) continue;
     final ceiling = readings[q].bar - kPressureGlitchLeadInGapBar;
     var below = true;
     for (var j = 0; j < q; j++) {
@@ -219,6 +226,81 @@ int _leadInLength(List<PressureReading> readings) {
     if (below) best = q;
   }
   return best;
+}
+
+/// How many readings after the end of a lead-in must stay near it.
+const int _leadInStableReadings = 3;
+
+/// Whether the readings after [q] (up to [_leadInStableReadings] of them)
+/// all stay within [kPressureGlitchMinDipBar] of `readings[q]`.
+bool _startsStableStretch(List<PressureReading> readings, int q) {
+  final last = q + _leadInStableReadings < readings.length
+      ? q + _leadInStableReadings
+      : readings.length - 1;
+  for (var j = q + 1; j <= last; j++) {
+    if ((readings[j].bar - readings[q].bar).abs() > kPressureGlitchMinDipBar) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/// The index just past the dip starting at [start] below [level].
+///
+/// A dropout lasts as long as the reading stays near zero: measuring it
+/// against the prior level instead would swallow the first good reading
+/// after a long dropout, which by then sits several bar lower from the gas
+/// breathed meanwhile. Any other dip ends where the reading climbs back to
+/// within [kPressureGlitchMinDipBar] of the level, or jumps up by more than
+/// that from the reading before, which is the recovery even when it lands a
+/// few bar short of the prior level.
+int _dipEnd(List<PressureReading> readings, int start, double level) {
+  if (readings[start].bar < kPressureGlitchNearZeroBar) {
+    var k = start;
+    while (k < readings.length &&
+        readings[k].bar < kPressureGlitchNearZeroBar) {
+      k++;
+    }
+    return k;
+  }
+  var k = start + 1;
+  while (k < readings.length &&
+      readings[k].bar < level - kPressureGlitchMinDipBar &&
+      readings[k].bar - readings[k - 1].bar <= kPressureGlitchMinDipBar) {
+    k++;
+  }
+  return k;
+}
+
+/// The index just past the spike starting at [start] above [level]: where
+/// the reading falls back to within [kPressureGlitchMinDipBar] of the level,
+/// or drops by more than that from the reading before.
+int _spikeEnd(List<PressureReading> readings, int start, double level) {
+  var k = start + 1;
+  while (k < readings.length &&
+      readings[k].bar > level + kPressureGlitchMinDipBar &&
+      readings[k - 1].bar - readings[k].bar <= kPressureGlitchMinDipBar) {
+    k++;
+  }
+  return k;
+}
+
+/// Whether the spike at `readings[start, end)`, entered from the good
+/// reading at [before] and left at `readings[end]`, is a misread: short,
+/// well above both neighbours, and followed by the pressure the cylinder
+/// held before it. A step up that stays is no misread.
+bool _isSpike(List<PressureReading> readings, int before, int start, int end) {
+  final level = readings[before].bar;
+  final after = readings[end].bar;
+  if (after > level + kPressureGlitchReturnAboveBar ||
+      after < level - kPressureGlitchReturnBelowBar) {
+    return false;
+  }
+  final ceiling = (after > level ? after : level) + kPressureGlitchMinDipBar;
+  for (var j = start; j < end; j++) {
+    if (readings[j].bar <= ceiling) return false;
+  }
+  return readings[end].t - readings[before].t <= kPressureGlitchMaxSeconds;
 }
 
 /// Whether the dip at `readings[start, end)`, entered from the good reading

@@ -9711,7 +9711,7 @@
   "dataQuality_msg_pressureSwap": "Enddruck {end} liegt über dem Anfangsdruck {start}",
   "dataQuality_msg_pressureEndpoint": "Der Flaschendatensatz nennt {record}, aber die Sensorreihe zeigt {series}",
   "dataQuality_msg_pressureRise": "Druck stieg mitten im Tauchgang um {rise} ohne Gaswechsel",
-  "dataQuality_msg_pressureDropout": "{count, plural, =1{Das Drucksignal ist einmal ausgefallen} other{Das Drucksignal ist {count}-mal ausgefallen}}",
+  "dataQuality_msg_pressureDropout": "{count, plural, =1{Der Drucksensor lieferte einmal Fehlwerte (Aussetzer oder Ausreisser)} other{Der Drucksensor lieferte {count}-mal Fehlwerte (Aussetzer oder Ausreisser)}}",
   "dataQuality_msg_pressureMixed": "Die Druckreihe vermischt die Messwerte zweier Quellen",
   "dataQuality_msg_sac": "Der abgeleitete Oberflächenverbrauch von {sac} ist unplausibel",
   "dataQuality_msg_ppo2": "ppO2 erreichte {ppo2} mit {gas} auf {depth}",

@@ -53,6 +53,11 @@ abstract final class QualityThresholds {
   static const double pressureRiseAlwaysFlagBar = 20.0;
   static const double pressureEndpointMismatchBar = 10.0;
   static const double pressureSwapMinDiffBar = 1.0;
+  // How close a recorded pressure must sit to a glitch reading of the series
+  // to count as taken from it (#2441). Sources quantize before converting
+  // (Shearwater logs 2 psi units), so the two can differ by a fraction of a
+  // bar.
+  static const double pressureGlitchMatchBar = 0.5;
   static const double sacSurfaceLpmMax = 100.0;
   static const int sacMinSeriesSeconds = 300;
   static const int switchProximitySeconds = 60;

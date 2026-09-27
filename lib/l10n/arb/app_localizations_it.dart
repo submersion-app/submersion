@@ -31441,8 +31441,10 @@ class AppLocalizationsIt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Il segnale di pressione si è interrotto $count volte',
-      one: 'Il segnale di pressione si è interrotto una volta',
+      other:
+          'Il sensore di pressione ha registrato letture errate $count volte (interruzioni o picchi)',
+      one:
+          'Il sensore di pressione ha registrato una lettura errata una volta (interruzione o picco)',
     );
     return '$_temp0';
   }

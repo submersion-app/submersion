@@ -581,6 +581,29 @@ void main() {
         expect(out.where((f) => f.params.containsKey('startBar')), isEmpty);
       });
 
+      test('a start recorded from the lead-in of a late series is no swap', () {
+        // A stage cylinder whose transmitter logged 11.7 bar before its
+        // valve was opened, 27 minutes in; the record took that as the
+        // start. The series begins too late and ends too early to describe
+        // either end of the dive, but the start plainly came from its
+        // lead-in, so its first real reading stands for the start.
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 11.7, end: 98.3)]),
+          samples: flatProfile(depth: 20, durationSeconds: 3000),
+          pressures: {
+            't1': [
+              const QualityPressureSample(t: 1608, bar: 11.7),
+              for (var t = 1778; t <= 2088; t += 10)
+                QualityPressureSample(t: t, bar: 110.6 - (t - 1778) * 0.04),
+            ],
+          },
+        );
+        final out = det.detect(ctx);
+        expect(out.where((f) => f.params.containsKey('startBar')), isEmpty);
+        final start = out.singleWhere((f) => f.params['endpoint'] == 'start');
+        expect(start.params['seriesBar'], closeTo(110.6, 1e-9));
+      });
+
       test('a swap is still flagged past a post-surfacing bleed-down', () {
         // A rebreather O2 cylinder: 200 bar at the start, 120 at surfacing,
         // then the tail bleeds down to 90. The record is entered the wrong

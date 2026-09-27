@@ -50235,7 +50235,7 @@ abstract class AppLocalizations {
   /// No description provided for @dataQuality_msg_pressureDropout.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{The pressure signal dropped out once} other{The pressure signal dropped out {count} times}}'**
+  /// **'{count, plural, =1{The pressure sensor logged a false reading once (dropout or spike)} other{The pressure sensor logged false readings {count} times (dropouts or spikes)}}'**
   String dataQuality_msg_pressureDropout(int count);
 
   /// No description provided for @dataQuality_msg_pressureMixed.

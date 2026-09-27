@@ -20363,7 +20363,7 @@
       }
     }
   },
-  "dataQuality_msg_pressureDropout": "{count, plural, =1{The pressure signal dropped out once} other{The pressure signal dropped out {count} times}}",
+  "dataQuality_msg_pressureDropout": "{count, plural, =1{The pressure sensor logged a false reading once (dropout or spike)} other{The pressure sensor logged false readings {count} times (dropouts or spikes)}}",
   "@dataQuality_msg_pressureDropout": {
     "placeholders": {
       "count": {
