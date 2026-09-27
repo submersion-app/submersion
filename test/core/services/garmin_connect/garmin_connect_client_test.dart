@@ -1202,6 +1202,36 @@ void main() {
       },
     );
 
+    test('does not take a body that merely starts with PK for a ZIP', () async {
+      final server = _FakeGarminServer();
+      final client = GarminConnectClient(httpClient: server.client);
+      await client.login('diver@example.com', 'hunter2');
+      server.rawDownloadBytes[7] = 'PKG error: try again later'.codeUnits;
+
+      await expectLater(
+        client.downloadActivityFit(7),
+        throwsA(
+          isA<GarminApiException>().having(
+            (e) => e is GarminNoFitException,
+            'is GarminNoFitException',
+            isFalse,
+          ),
+        ),
+      );
+    });
+
+    test('reads an empty ZIP archive as the activity having no FIT', () async {
+      final server = _FakeGarminServer();
+      final client = GarminConnectClient(httpClient: server.client);
+      await client.login('diver@example.com', 'hunter2');
+      server.rawDownloadBytes[10] = ZipEncoder().encode(Archive());
+
+      await expectLater(
+        client.downloadActivityFit(10),
+        throwsA(isA<GarminNoFitException>()),
+      );
+    });
+
     test(
       'does not report a server error as the activity having no FIT',
       () async {

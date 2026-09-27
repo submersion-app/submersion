@@ -280,6 +280,20 @@ void main() {
       expect(weight.weightType, WeightType.belt);
     });
 
+    test('is still added when the notes write fails', () async {
+      adapter.setParsedDives([parsed(notes: 'Drift', weightKg: 4.5)]);
+      final bundle = await adapter.buildBundle();
+      when(
+        mockDiveRepo.fillNotesIfEmpty(any, any),
+      ).thenThrow(StateError('database is locked'));
+
+      await adapter.performImport(bundle, {
+        ImportEntityType.dives: {0},
+      }, {});
+
+      verify(mockDiveRepo.addWeightIfNone('new-dive-id', any)).called(1);
+    });
+
     test('is not added when Connect has none', () async {
       adapter.setParsedDives([parsed()]);
       final bundle = await adapter.buildBundle();

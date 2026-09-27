@@ -464,19 +464,26 @@ class GarminCloudAdapter implements ImportSourceAdapter {
   ///
   /// The dive itself is already saved by now, so a failure here is logged
   /// rather than thrown: losing the notes must not fail the import or stop
-  /// the dives after this one.
+  /// the dives after this one. Each write is tried on its own, so one that
+  /// fails does not cost the dive the other.
   Future<void> _applyConnectExtras(
     String diveId,
     GarminParsedDive parsed,
   ) async {
-    try {
-      final notes = parsed.notes;
-      if (notes != null) {
-        await _diveRepository.fillNotesIfEmpty(diveId, notes);
-      }
-      final weightKg = parsed.weightKg;
-      if (weightKg != null) {
-        await _diveRepository.addWeightIfNone(
+    final notes = parsed.notes;
+    if (notes != null) {
+      await _tryExtra(
+        'notes',
+        diveId,
+        () => _diveRepository.fillNotesIfEmpty(diveId, notes),
+      );
+    }
+    final weightKg = parsed.weightKg;
+    if (weightKg != null) {
+      await _tryExtra(
+        'weight',
+        diveId,
+        () => _diveRepository.addWeightIfNone(
           diveId,
           // Connect does not say what kind of weight it is; a belt is the
           // plainest reading, and the diver can change it.
@@ -486,11 +493,21 @@ class GarminCloudAdapter implements ImportSourceAdapter {
             weightType: WeightType.belt,
             amountKg: weightKg,
           ),
-        );
-      }
+        ),
+      );
+    }
+  }
+
+  Future<void> _tryExtra(
+    String what,
+    String diveId,
+    Future<void> Function() write,
+  ) async {
+    try {
+      await write();
     } catch (e, st) {
       _log.error(
-        'Could not bring Garmin Connect notes or weight onto dive $diveId',
+        'Could not bring Garmin Connect $what onto dive $diveId',
         error: e,
         stackTrace: st,
       );

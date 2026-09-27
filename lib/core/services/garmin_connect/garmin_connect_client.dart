@@ -487,10 +487,19 @@ class GarminConnectClient {
     );
   }
 
-  /// Whether [bytes] open with `PK`, which every ZIP record header (local
-  /// file, central directory, end of archive) starts with.
-  static bool _hasZipSignature(Uint8List bytes) =>
-      bytes.length >= 4 && bytes[0] == 0x50 && bytes[1] == 0x4B;
+  /// Whether [bytes] open with a full ZIP record signature: a local file
+  /// header (`PK 03 04`), the end record of an empty archive (`PK 05 06`),
+  /// or a spanned-archive marker (`PK 07 08`). `PK` alone is not enough,
+  /// since a plain-text error body can start with it.
+  static bool _hasZipSignature(Uint8List bytes) {
+    if (bytes.length < 4 || bytes[0] != 0x50 || bytes[1] != 0x4B) {
+      return false;
+    }
+    final (third, fourth) = (bytes[2], bytes[3]);
+    return (third == 0x03 && fourth == 0x04) ||
+        (third == 0x05 && fourth == 0x06) ||
+        (third == 0x07 && fourth == 0x08);
+  }
 
   GarminActivitySummary? _toActivitySummary(Map<String, dynamic> item) {
     final typeKey =
