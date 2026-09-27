@@ -43,8 +43,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_sharing_dialogTitle => 'مشاركة مع';
 
   @override
-  String get equipment_sharing_dialogBody =>
-      'يمكن للملفات التي تختارها إضافة هذه المعدات إلى غطساتها وتسجيل صيانتها. يمكن للمالك وحده حذفها أو تغيير من تُشارَك معه.';
+  String get equipment_sharing_dialogBody => 'يمكن للملفات التي تختارها إضافة هذه المعدات إلى غطساتها وتسجيل صيانتها. يمكن للمالك وحده حذفها أو تغيير من تُشارَك معه.';
 
   @override
   String get equipment_bulkShare_action => 'مشاركة مع...';
@@ -82,8 +81,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp1 = intl.Intl.pluralLogic(
       skipped,
       locale: localeName,
-      other:
-          'تم الإبقاء على $skipped عناصر مُشارَكة: يمكن لمالكيها وحدهم حذفها',
+      other: 'تم الإبقاء على $skipped عناصر مُشارَكة: يمكن لمالكيها وحدهم حذفها',
       one: 'تم الإبقاء على عنصر مُشارَك واحد: يمكن لمالكه وحده حذفه',
     );
     return '$_temp0. $_temp1';
@@ -164,8 +162,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_oauth_connect_browserFailed =>
-      'تعذر فتح المتصفح. استخدم نسخ الرابط والصق العنوان في متصفحك.';
+  String get settings_oauth_connect_browserFailed => 'تعذر فتح المتصفح. استخدم نسخ الرابط والصق العنوان في متصفحك.';
 
   @override
   String equipment_assemblyChip_label(Object count, Object name) {
@@ -216,19 +213,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get equipment_components_cycleError =>
-      'هذا العنصر يحتوي بالفعل على هذا، لذا لا يمكن إضافته كمكوّن.';
+  String get equipment_components_cycleError => 'هذا العنصر يحتوي بالفعل على هذا، لذا لا يمكن إضافته كمكوّن.';
 
   @override
   String get equipment_components_editRole => 'تعديل الدور';
 
   @override
-  String get equipment_components_empty =>
-      'لا توجد مكوّنات. أضف الأجزاء التي يتكوّن منها هذا العنصر.';
+  String get equipment_components_empty => 'لا توجد مكوّنات. أضف الأجزاء التي يتكوّن منها هذا العنصر.';
 
   @override
-  String get equipment_components_emptyLeaf =>
-      'لا يحتوي على أجزاء خاصة به. أضفها إذا كان هذا العنصر يتكوّن من عناصر أخرى.';
+  String get equipment_components_emptyLeaf => 'لا يحتوي على أجزاء خاصة به. أضفها إذا كان هذا العنصر يتكوّن من عناصر أخرى.';
 
   @override
   String equipment_components_historyAlsoPast(num count) {
@@ -242,16 +236,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get equipment_components_historyAskAdded =>
-      'إضافة الجزء الجديد إلى تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟';
+  String get equipment_components_historyAskAdded => 'إضافة الجزء الجديد إلى تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟';
 
   @override
-  String get equipment_components_historyAskRemoved =>
-      'إزالة الجزء من تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟';
+  String get equipment_components_historyAskRemoved => 'إزالة الجزء من تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟';
 
   @override
-  String get equipment_components_historyAskReplaced =>
-      'تبديل الجزء في تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟';
+  String get equipment_components_historyAskReplaced => 'تبديل الجزء في تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟';
 
   @override
   String get equipment_components_historyFutureOnly => 'من الآن فصاعدًا';
@@ -307,8 +298,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get equipment_components_pickerEmpty =>
-      'لا توجد معدات نشطة أخرى يمكن إضافتها هنا.';
+  String get equipment_components_pickerEmpty => 'لا توجد معدات نشطة أخرى يمكن إضافتها هنا.';
 
   @override
   String get equipment_components_pickerReplaceConfirm => 'استبدال';
@@ -357,12 +347,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_oauth_connect_copyLink => 'نسخ الرابط';
 
   @override
-  String get settings_oauth_connect_linkCopied =>
-      'تم نسخ الرابط. الصقه في متصفحك للتفويض.';
+  String get settings_oauth_connect_linkCopied => 'تم نسخ الرابط. الصقه في متصفحك للتفويض.';
 
   @override
-  String get universalImport_action_importFromGarmin =>
-      'استيراد من جهاز Garmin';
+  String get universalImport_action_importFromGarmin => 'استيراد من جهاز Garmin';
 
   @override
   String diveLog_edit_flightWindowWarning(String time) {
@@ -392,23 +380,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_setEdit_defaultSwitch_title => 'المجموعة الافتراضية';
 
   @override
-  String get equipment_setEdit_defaultSwitch_subtitle =>
-      'تُطبَّق تلقائيًا على الغطسات الجديدة التي لا تحتوي على معدات بعد';
+  String get equipment_setEdit_defaultSwitch_subtitle => 'تُطبَّق تلقائيًا على الغطسات الجديدة التي لا تحتوي على معدات بعد';
 
   @override
-  String get equipment_setEdit_computerAutoApplySwitch_title =>
-      'التطبيق عند استيراد كمبيوتر هذه المجموعة';
+  String get equipment_setEdit_computerAutoApplySwitch_title => 'التطبيق عند استيراد كمبيوتر هذه المجموعة';
 
   @override
-  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
-      'إذا كانت هذه المجموعة تتضمن كمبيوتر غوص، تتم إضافة المجموعة كاملة تلقائيًا إلى الغطسة التي يتم تنزيلها أو استيرادها منه';
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle => 'إذا كانت هذه المجموعة تتضمن كمبيوتر غوص، تتم إضافة المجموعة كاملة تلقائيًا إلى الغطسة التي يتم تنزيلها أو استيرادها منه';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'الأسوار الجغرافية';
 
   @override
-  String get equipment_setEdit_geofencesSubtitle =>
-      'اقترح هذه المجموعة تلقائيًا للغطسات القريبة من هذه المواقع';
+  String get equipment_setEdit_geofencesSubtitle => 'اقترح هذه المجموعة تلقائيًا للغطسات القريبة من هذه المواقع';
 
   @override
   String get equipment_setEdit_addGeofence => 'إضافة سياج جغرافي';
@@ -515,8 +499,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_bestMix_nearestStandard =>
-      'أقرب خليط قياسي يغطي هذا العمق';
+  String get gasCalculators_bestMix_nearestStandard => 'أقرب خليط قياسي يغطي هذا العمق';
 
   @override
   String get gasCalculators_bestMix_recommendedMix => 'الخليط الموصى به';
@@ -525,8 +508,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_bestMix_withoutHelium => 'بدون هيليوم';
 
   @override
-  String get gasCalculators_planningCaveat =>
-      'تقدير تخطيطي. يفترض صعودًا مباشرًا. تحقق منه وفق تدريبك وأضف هامشًا للظروف.';
+  String get gasCalculators_planningCaveat => 'تقدير تخطيطي. يفترض صعودًا مباشرًا. تحقق منه وفق تدريبك وأضف هامشًا للظروف.';
 
   @override
   String gasCalculators_rockBottom_solveGas(Object depth, Object unit) {
@@ -537,8 +519,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_rockBottom_solveTime => 'زمن حل المشكلة';
 
   @override
-  String get gasCalculators_rockBottom_solveTimeHint =>
-      'الوقت المستغرق في العمق لحل الطارئ قبل بدء الصعود.';
+  String get gasCalculators_rockBottom_solveTimeHint => 'الوقت المستغرق في العمق لحل الطارئ قبل بدء الصعود.';
 
   @override
   String o2Toxicity_addedThisDive(Object value) {
@@ -554,12 +535,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get o2Toxicity_daily => 'يومي';
 
   @override
-  String o2Toxicity_otuSemantics(
-    Object label,
-    Object value,
-    Object limit,
-    Object percent,
-  ) {
+  String o2Toxicity_otuSemantics(Object label, Object value, Object limit, Object percent) {
     return '$label: $value من $limit OTU، $percent بالمئة';
   }
 
@@ -654,8 +630,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_story_empty_title => 'لا توجد غطسات أو خط سير بعد';
 
   @override
-  String get trips_story_empty_subtitle =>
-      'أضف غطسات إلى هذه الرحلة أو خطط أيامها لرؤية القصة.';
+  String get trips_story_empty_subtitle => 'أضف غطسات إلى هذه الرحلة أو خطط أيامها لرؤية القصة.';
 
   @override
   String trips_story_history_dives(int count) {
@@ -682,8 +657,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'أوقات الغطس في هذا اليوم';
 
   @override
-  String get trips_story_map_semantics =>
-      'خريطة الرحلة. مواقع اليوم المعروض مميزة.';
+  String get trips_story_map_semantics => 'خريطة الرحلة. مواقع اليوم المعروض مميزة.';
 
   @override
   String get diveLog_bulkEdit_groupRebreather => 'وضع الغوص وجهاز التنفس';
@@ -695,8 +669,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_bulkEdit_fieldSetpointHigh => 'النقطة المحددة العالية';
 
   @override
-  String get diveLog_bulkEdit_fieldSetpointDeco =>
-      'النقطة المحددة لإزالة الضغط';
+  String get diveLog_bulkEdit_fieldSetpointDeco => 'النقطة المحددة لإزالة الضغط';
 
   @override
   String get diveLog_bulkEdit_fieldScrubberType => 'نوع الفلتر';
@@ -705,8 +678,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_bulkEdit_fieldScrubberDuration => 'مدة الفلتر';
 
   @override
-  String get diveLog_bulkEdit_contradiction =>
-      'وضع الدائرة المفتوحة لا يدعم إعدادات جهاز التنفس. عطّل تلك الحقول أو غيّر الوضع.';
+  String get diveLog_bulkEdit_contradiction => 'وضع الدائرة المفتوحة لا يدعم إعدادات جهاز التنفس. عطّل تلك الحقول أو غيّر الوضع.';
 
   @override
   String diveLog_bulkEdit_appBarTitle(int count) {
@@ -756,16 +728,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_bulkEdit_modeUpdate => 'تحديث';
 
   @override
-  String get diveLog_bulkEdit_tankOnlyIfEmpty =>
-      'الغطسات التي لا تحتوي على أسطوانة فقط';
+  String get diveLog_bulkEdit_tankOnlyIfEmpty => 'الغطسات التي لا تحتوي على أسطوانة فقط';
 
   @override
-  String get diveLog_bulkEdit_tankSpecsHint =>
-      'اختر السمات التي سيتم استبدالها في الأسطوانات الموجودة بالفعل في هذه الغطسات. لا يتغير ضغط البداية والنهاية أبدًا.';
+  String get diveLog_bulkEdit_tankSpecsHint => 'اختر السمات التي سيتم استبدالها في الأسطوانات الموجودة بالفعل في هذه الغطسات. لا يتغير ضغط البداية والنهاية أبدًا.';
 
   @override
-  String get diveLog_bulkEdit_tankSpecsNoFields =>
-      'اختر سمة واحدة على الأقل للأسطوانة لتحديثها.';
+  String get diveLog_bulkEdit_tankSpecsNoFields => 'اختر سمة واحدة على الأقل للأسطوانة لتحديثها.';
 
   @override
   String get diveLog_bulkEdit_tankFieldPreset => 'إعداد مسبق';
@@ -828,8 +797,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_bulkEdit_nothingSelected =>
-      'فعّل حقلاً واحداً على الأقل لتطبيق التغييرات.';
+  String get diveLog_bulkEdit_nothingSelected => 'فعّل حقلاً واحداً على الأقل لتطبيق التغييرات.';
 
   @override
   String diveLog_bulkEdit_applied(int count) {
@@ -837,31 +805,25 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_error_icloudSignedOut =>
-      'iCloud غير متوفر. يُرجى تسجيل الدخول إلى iCloud من إعدادات جهازك.';
+  String get settings_cloudSync_error_icloudSignedOut => 'iCloud غير متوفر. يُرجى تسجيل الدخول إلى iCloud من إعدادات جهازك.';
 
   @override
-  String get settings_cloudSync_error_icloudUnknown =>
-      'تعذّر الوصول إلى iCloud. حاول مرة أخرى.';
+  String get settings_cloudSync_error_icloudUnknown => 'تعذّر الوصول إلى iCloud. حاول مرة أخرى.';
 
   @override
-  String get settings_cloudSync_error_icloudUnsupported =>
-      'مزامنة iCloud غير متوفرة في هذا الإصدار من Submersion. استخدم مزامنة S3 أو نسخة App Store.';
+  String get settings_cloudSync_error_icloudUnsupported => 'مزامنة iCloud غير متوفرة في هذا الإصدار من Submersion. استخدم مزامنة S3 أو نسخة App Store.';
 
   @override
-  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
-      'غير متوفر في هذا الإصدار — استخدم S3 أو نسخة App Store';
+  String get settings_cloudSync_provider_icloud_unsupportedSubtitle => 'غير متوفر في هذا الإصدار — استخدم S3 أو نسخة App Store';
 
   @override
   String get settings_cloudSync_encryption_title => 'التشفير من طرف إلى طرف';
 
   @override
-  String get settings_cloudSync_encryption_subtitleOff =>
-      'تشفير جميع بيانات المزامنة والنسخ الاحتياطية السحابية قبل الرفع';
+  String get settings_cloudSync_encryption_subtitleOff => 'تشفير جميع بيانات المزامنة والنسخ الاحتياطية السحابية قبل الرفع';
 
   @override
-  String get settings_cloudSync_encryption_subtitleNeedsProvider =>
-      'اختر مزود التخزين السحابي أولاً';
+  String get settings_cloudSync_encryption_subtitleNeedsProvider => 'اختر مزود التخزين السحابي أولاً';
 
   @override
   String get settings_cloudSync_encryption_statusOff => 'التشفير معطّل';
@@ -870,100 +832,79 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_encryption_statusOn => 'التشفير مفعّل';
 
   @override
-  String get settings_cloudSync_encryption_statusOnSubtitle =>
-      'يتم تشفير بيانات المزامنة والنسخ الاحتياطية السحابية قبل الرفع';
+  String get settings_cloudSync_encryption_statusOnSubtitle => 'يتم تشفير بيانات المزامنة والنسخ الاحتياطية السحابية قبل الرفع';
 
   @override
-  String get settings_cloudSync_encryption_statusLocked =>
-      'مشفّر — مطلوب عبارة المرور';
+  String get settings_cloudSync_encryption_statusLocked => 'مشفّر — مطلوب عبارة المرور';
 
   @override
-  String get settings_cloudSync_encryption_statusLockedSubtitle =>
-      'أدخل عبارة المرور للمزامنة على هذا الجهاز';
+  String get settings_cloudSync_encryption_statusLockedSubtitle => 'أدخل عبارة المرور للمزامنة على هذا الجهاز';
 
   @override
   String get settings_cloudSync_encryption_enable => 'تفعيل التشفير';
 
   @override
-  String get settings_cloudSync_encryption_enterPassphrase =>
-      'إدخال عبارة المرور';
+  String get settings_cloudSync_encryption_enterPassphrase => 'إدخال عبارة المرور';
 
   @override
   String get settings_cloudSync_encryption_passphrase => 'عبارة المرور';
 
   @override
-  String get settings_cloudSync_encryption_passphraseConfirm =>
-      'تأكيد عبارة المرور';
+  String get settings_cloudSync_encryption_passphraseConfirm => 'تأكيد عبارة المرور';
 
   @override
-  String get settings_cloudSync_encryption_passphraseMismatch =>
-      'عبارتا المرور غير متطابقتين';
+  String get settings_cloudSync_encryption_passphraseMismatch => 'عبارتا المرور غير متطابقتين';
 
   @override
-  String get settings_cloudSync_encryption_passphraseTooShort =>
-      'استخدم 8 أحرف على الأقل';
+  String get settings_cloudSync_encryption_passphraseTooShort => 'استخدم 8 أحرف على الأقل';
 
   @override
-  String get settings_cloudSync_encryption_wrongPassphrase =>
-      'عبارة مرور أو رمز استرداد غير صحيح';
+  String get settings_cloudSync_encryption_wrongPassphrase => 'عبارة مرور أو رمز استرداد غير صحيح';
 
   @override
-  String get settings_cloudSync_encryption_warnUpdateDevices =>
-      'يجب تحديث جميع الأجهزة الأخرى إلى أحدث إصدار من التطبيق وستعيد تنزيل المكتبة.';
+  String get settings_cloudSync_encryption_warnUpdateDevices => 'يجب تحديث جميع الأجهزة الأخرى إلى أحدث إصدار من التطبيق وستعيد تنزيل المكتبة.';
 
   @override
-  String get settings_cloudSync_encryption_warnLoss =>
-      'إذا فقدت عبارة المرور ورمز الاسترداد معًا، فلا يمكن استرداد البيانات في السحابة. بيانات أجهزتك ليست في خطر أبدًا.';
+  String get settings_cloudSync_encryption_warnLoss => 'إذا فقدت عبارة المرور ورمز الاسترداد معًا، فلا يمكن استرداد البيانات في السحابة. بيانات أجهزتك ليست في خطر أبدًا.';
 
   @override
-  String get settings_cloudSync_encryption_deletePlaintextBackups =>
-      'حذف النسخ الاحتياطية السحابية غير المشفرة الموجودة';
+  String get settings_cloudSync_encryption_deletePlaintextBackups => 'حذف النسخ الاحتياطية السحابية غير المشفرة الموجودة';
 
   @override
   String get settings_cloudSync_encryption_recoveryTitle => 'رمز الاسترداد';
 
   @override
-  String get settings_cloudSync_encryption_recoveryExplain =>
-      'دوّن هذا الرمز واحفظه في مكان آمن. إنه الطريقة الوحيدة للعودة إذا نسيت عبارة المرور.';
+  String get settings_cloudSync_encryption_recoveryExplain => 'دوّن هذا الرمز واحفظه في مكان آمن. إنه الطريقة الوحيدة للعودة إذا نسيت عبارة المرور.';
 
   @override
-  String get settings_cloudSync_encryption_recoverySavedConfirm =>
-      'لقد حفظت رمز الاسترداد الخاص بي';
+  String get settings_cloudSync_encryption_recoverySavedConfirm => 'لقد حفظت رمز الاسترداد الخاص بي';
 
   @override
-  String get settings_cloudSync_encryption_changePassphrase =>
-      'تغيير عبارة المرور';
+  String get settings_cloudSync_encryption_changePassphrase => 'تغيير عبارة المرور';
 
   @override
-  String get settings_cloudSync_encryption_currentPassphrase =>
-      'عبارة المرور الحالية';
+  String get settings_cloudSync_encryption_currentPassphrase => 'عبارة المرور الحالية';
 
   @override
-  String get settings_cloudSync_encryption_newPassphrase =>
-      'عبارة المرور الجديدة';
+  String get settings_cloudSync_encryption_newPassphrase => 'عبارة المرور الجديدة';
 
   @override
-  String get settings_cloudSync_encryption_regenerateRecovery =>
-      'إنشاء رمز استرداد جديد';
+  String get settings_cloudSync_encryption_regenerateRecovery => 'إنشاء رمز استرداد جديد';
 
   @override
-  String get settings_cloudSync_encryption_regenerateRecoveryWarn =>
-      'يتوقف رمز الاسترداد القديم عن العمل فورًا.';
+  String get settings_cloudSync_encryption_regenerateRecoveryWarn => 'يتوقف رمز الاسترداد القديم عن العمل فورًا.';
 
   @override
   String get settings_cloudSync_encryption_disable => 'إيقاف التشفير';
 
   @override
-  String get settings_cloudSync_encryption_disableWarn =>
-      'سيُعاد رفع المكتبة دون تشفير وستعيد الأجهزة الأخرى تنزيلها. تظل النسخ الاحتياطية المشفرة الموجودة قابلة للاستعادة بعبارة المرور.';
+  String get settings_cloudSync_encryption_disableWarn => 'سيُعاد رفع المكتبة دون تشفير وستعيد الأجهزة الأخرى تنزيلها. تظل النسخ الاحتياطية المشفرة الموجودة قابلة للاستعادة بعبارة المرور.';
 
   @override
-  String get settings_cloudSync_encryption_unlockTitle =>
-      'أدخل عبارة مرور التشفير';
+  String get settings_cloudSync_encryption_unlockTitle => 'أدخل عبارة مرور التشفير';
 
   @override
-  String get settings_cloudSync_encryption_unlockHint =>
-      'عبارة المرور أو رمز الاسترداد';
+  String get settings_cloudSync_encryption_unlockHint => 'عبارة المرور أو رمز الاسترداد';
 
   @override
   String get settings_cloudSync_encryption_unlock => 'فتح';
@@ -981,12 +922,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_backupEncryption_title => 'تشفير النسخ الاحتياطي';
 
   @override
-  String get settings_backupEncryption_subtitleOff =>
-      'احمِ نسخك الاحتياطية بكلمة مرور';
+  String get settings_backupEncryption_subtitleOff => 'احمِ نسخك الاحتياطية بكلمة مرور';
 
   @override
-  String get settings_backupEncryption_subtitleOn =>
-      'النسخ الاحتياطية مشفّرة بكلمة مرورك';
+  String get settings_backupEncryption_subtitleOn => 'النسخ الاحتياطية مشفّرة بكلمة مرورك';
 
   @override
   String get settings_backupEncryption_enable => 'تشفير النسخ الاحتياطية';
@@ -995,19 +934,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_backupEncryption_turnOff => 'إيقاف التشفير';
 
   @override
-  String get settings_backupEncryption_turnOffTitle =>
-      'إيقاف تشفير النسخ الاحتياطي؟';
+  String get settings_backupEncryption_turnOffTitle => 'إيقاف تشفير النسخ الاحتياطي؟';
 
   @override
-  String get settings_backupEncryption_turnOffBody =>
-      'لن يتم تشفير النسخ الاحتياطية الجديدة بعد الآن. لا تزال النسخ الاحتياطية المشفّرة الحالية بحاجة إلى كلمة مرورك للاستعادة.';
+  String get settings_backupEncryption_turnOffBody => 'لن يتم تشفير النسخ الاحتياطية الجديدة بعد الآن. لا تزال النسخ الاحتياطية المشفّرة الحالية بحاجة إلى كلمة مرورك للاستعادة.';
 
   @override
   String get settings_backupEncryption_changePassword => 'تغيير كلمة المرور';
 
   @override
-  String get settings_backupEncryption_regenerateRecovery =>
-      'إعادة إنشاء رمز الاسترداد';
+  String get settings_backupEncryption_regenerateRecovery => 'إعادة إنشاء رمز الاسترداد';
 
   @override
   String get settings_backupEncryption_password => 'كلمة المرور';
@@ -1016,12 +952,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_backupEncryption_passwordConfirm => 'تأكيد كلمة المرور';
 
   @override
-  String get settings_backupEncryption_passwordTooShort =>
-      'استخدم 8 أحرف على الأقل';
+  String get settings_backupEncryption_passwordTooShort => 'استخدم 8 أحرف على الأقل';
 
   @override
-  String get settings_backupEncryption_passwordMismatch =>
-      'كلمتا المرور غير متطابقتين';
+  String get settings_backupEncryption_passwordMismatch => 'كلمتا المرور غير متطابقتين';
 
   @override
   String get settings_backupEncryption_currentPassword => 'كلمة المرور الحالية';
@@ -1030,40 +964,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_backupEncryption_newPassword => 'كلمة المرور الجديدة';
 
   @override
-  String get settings_backupEncryption_changePasswordWarn =>
-      'على جهاز آخر، تُفتح كل نسخة احتياطية باستخدام كلمة المرور أو رمز الاسترداد الذي كان نشطًا عند إنشائها.';
+  String get settings_backupEncryption_changePasswordWarn => 'على جهاز آخر، تُفتح كل نسخة احتياطية باستخدام كلمة المرور أو رمز الاسترداد الذي كان نشطًا عند إنشائها.';
 
   @override
-  String get settings_backupEncryption_warnLoss =>
-      'إذا نسيت كلمة المرور وفقدت رمز الاسترداد، فلن يمكن استعادة النسخ الاحتياطية المشفّرة.';
+  String get settings_backupEncryption_warnLoss => 'إذا نسيت كلمة المرور وفقدت رمز الاسترداد، فلن يمكن استعادة النسخ الاحتياطية المشفّرة.';
 
   @override
-  String get settings_backupEncryption_recoveryTitle =>
-      'رمز الاسترداد الخاص بك';
+  String get settings_backupEncryption_recoveryTitle => 'رمز الاسترداد الخاص بك';
 
   @override
-  String get settings_backupEncryption_recoveryExplain =>
-      'احفظ هذا الرمز في مكان آمن. يمكنه فتح نسخك الاحتياطية إذا نسيت كلمة مرورك.';
+  String get settings_backupEncryption_recoveryExplain => 'احفظ هذا الرمز في مكان آمن. يمكنه فتح نسخك الاحتياطية إذا نسيت كلمة مرورك.';
 
   @override
-  String get settings_backupEncryption_recoverySavedConfirm =>
-      'لقد حفظت رمز الاسترداد الخاص بي';
+  String get settings_backupEncryption_recoverySavedConfirm => 'لقد حفظت رمز الاسترداد الخاص بي';
 
   @override
-  String get settings_backupEncryption_unlockTitle =>
-      'أدخل كلمة مرور النسخ الاحتياطي';
+  String get settings_backupEncryption_unlockTitle => 'أدخل كلمة مرور النسخ الاحتياطي';
 
   @override
-  String get settings_backupEncryption_unlockHint =>
-      'أدخل كلمة مرور النسخ الاحتياطي أو رمز الاسترداد';
+  String get settings_backupEncryption_unlockHint => 'أدخل كلمة مرور النسخ الاحتياطي أو رمز الاسترداد';
 
   @override
-  String get settings_backupEncryption_restoreUnlockTitle =>
-      'فتح النسخة الاحتياطية المشفّرة';
+  String get settings_backupEncryption_restoreUnlockTitle => 'فتح النسخة الاحتياطية المشفّرة';
 
   @override
-  String get settings_backupEncryption_restoreUnlockHint =>
-      'أدخل كلمة المرور أو رمز الاسترداد لهذه النسخة الاحتياطية';
+  String get settings_backupEncryption_restoreUnlockHint => 'أدخل كلمة المرور أو رمز الاسترداد لهذه النسخة الاحتياطية';
 
   @override
   String get settings_backupEncryption_continue => 'متابعة';
@@ -1075,12 +1000,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_backupEncryption_done => 'تم';
 
   @override
-  String get settings_backupEncryption_reencryptTitle =>
-      'تشفير النسخ الاحتياطية الحالية؟';
+  String get settings_backupEncryption_reencryptTitle => 'تشفير النسخ الاحتياطية الحالية؟';
 
   @override
-  String get settings_backupEncryption_reencryptBody =>
-      'لا تزال نسخك الاحتياطية الحالية غير مشفّرة. هل تريد إعادة تشفيرها الآن بكلمة مرورك الجديدة؟';
+  String get settings_backupEncryption_reencryptBody => 'لا تزال نسخك الاحتياطية الحالية غير مشفّرة. هل تريد إعادة تشفيرها الآن بكلمة مرورك الجديدة؟';
 
   @override
   String get settings_backupEncryption_reencryptNow => 'إعادة التشفير الآن';
@@ -1099,8 +1022,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_backupEncryption_wrongPassword =>
-      'كلمة المرور أو رمز الاسترداد غير صحيح';
+  String get settings_backupEncryption_wrongPassword => 'كلمة المرور أو رمز الاسترداد غير صحيح';
 
   @override
   String settings_cloudSync_replace_globalBanner(String deviceName) {
@@ -1108,19 +1030,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_postRestore_syncing =>
-      'تتم مزامنة مكتبتك المستعادة مع السحابة…';
+  String get settings_cloudSync_postRestore_syncing => 'تتم مزامنة مكتبتك المستعادة مع السحابة…';
 
   @override
-  String get settings_cloudSync_postRestore_synced =>
-      'تمت مزامنة المكتبة المستعادة.';
+  String get settings_cloudSync_postRestore_synced => 'تمت مزامنة المكتبة المستعادة.';
 
   @override
   String get settings_cloudSync_replace_reviewAction => 'مراجعة';
 
   @override
-  String get accessibility_dialog_keyboardShortcutsTitle =>
-      'اختصارات لوحة المفاتيح';
+  String get accessibility_dialog_keyboardShortcutsTitle => 'اختصارات لوحة المفاتيح';
 
   @override
   String get accessibility_keyLabel_backspace => 'Backspace';
@@ -1147,10 +1066,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accessibility_keyLabel_up => 'أعلى';
 
   @override
-  String accessibility_label_chartSummary(
-    Object chartType,
-    Object description,
-  ) {
+  String accessibility_label_chartSummary(Object chartType, Object description) {
     return 'مخطط $chartType. $description';
   }
 
@@ -1179,12 +1095,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get accessibility_label_resizeMasterPane =>
-      'تغيير حجم اللوحة الرئيسية';
+  String get accessibility_label_resizeMasterPane => 'تغيير حجم اللوحة الرئيسية';
 
   @override
-  String get accessibility_label_sharedWithAllProfiles =>
-      'مشترك مع جميع ملفات الغوص';
+  String get accessibility_label_sharedWithAllProfiles => 'مشترك مع جميع ملفات الغوص';
 
   @override
   String get accessibility_label_showList => 'عرض القائمة';
@@ -1250,8 +1164,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accessibility_shortcut_goToInsights => 'الانتقال إلى الرؤى';
 
   @override
-  String get accessibility_shortcut_keyboardShortcuts =>
-      'اختصارات لوحة المفاتيح';
+  String get accessibility_shortcut_keyboardShortcuts => 'اختصارات لوحة المفاتيح';
 
   @override
   String get accessibility_shortcut_newDive => 'غوصة جديدة';
@@ -1285,15 +1198,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_cloud_enabled => 'نسخ احتياطي سحابي';
 
   @override
-  String get backup_cloud_enabled_subtitle =>
-      'رفع النسخ الاحتياطية إلى التخزين السحابي';
+  String get backup_cloud_enabled_subtitle => 'رفع النسخ الاحتياطية إلى التخزين السحابي';
 
   @override
   String get backup_delete_dialog_cancel => 'إلغاء';
 
   @override
-  String get backup_delete_dialog_content =>
-      'سيتم حذف هذه النسخة الاحتياطية نهائياً. لا يمكن التراجع عن هذا الإجراء.';
+  String get backup_delete_dialog_content => 'سيتم حذف هذه النسخة الاحتياطية نهائياً. لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String get backup_delete_dialog_delete => 'حذف';
@@ -1308,15 +1219,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_export_saveToFile => 'حفظ في ملف';
 
   @override
-  String get backup_export_saveToFile_subtitle =>
-      'اختر مكان حفظ ملف النسخة الاحتياطية';
+  String get backup_export_saveToFile_subtitle => 'اختر مكان حفظ ملف النسخة الاحتياطية';
 
   @override
   String get backup_export_share => 'مشاركة';
 
   @override
-  String get backup_export_share_subtitle =>
-      'إرسال عبر AirDrop أو البريد الإلكتروني أو تطبيقات أخرى';
+  String get backup_export_share_subtitle => 'إرسال عبر AirDrop أو البريد الإلكتروني أو تطبيقات أخرى';
 
   @override
   String get backup_export_subtitle => 'حفظ بيانات الغوص في ملف';
@@ -1365,8 +1274,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get backup_import_invalidFile =>
-      'لا يبدو أن هذا الملف نسخة احتياطية صالحة من Submersion';
+  String get backup_import_invalidFile => 'لا يبدو أن هذا الملف نسخة احتياطية صالحة من Submersion';
 
   @override
   String get backup_import_subtitle => 'استيراد نسخة احتياطية من أي مكان';
@@ -1375,8 +1283,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_import_title => 'الاستعادة من ملف';
 
   @override
-  String get backup_import_validating =>
-      'جارٍ التحقق من ملف النسخة الاحتياطية...';
+  String get backup_import_validating => 'جارٍ التحقق من ملف النسخة الاحتياطية...';
 
   @override
   String get backup_location_change => 'تغيير';
@@ -1391,8 +1298,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_replaceConfirm_confirm => 'استبدال في كل مكان';
 
   @override
-  String get backup_replaceConfirm_content =>
-      'سيتم استبدال المكتبة على جميع الأجهزة المتزامنة بهذه النسخة الاحتياطية. يقوم كل جهاز أولاً بإنشاء نسخة احتياطية آمنة من بياناته الحالية. لا يمكن التراجع عن هذا الإجراء.';
+  String get backup_replaceConfirm_content => 'سيتم استبدال المكتبة على جميع الأجهزة المتزامنة بهذه النسخة الاحتياطية. يقوم كل جهاز أولاً بإنشاء نسخة احتياطية آمنة من بياناته الحالية. لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String get backup_replaceConfirm_title => 'استبدال المكتبة في كل مكان؟';
@@ -1401,16 +1307,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_restore_dialog_cancel => 'إلغاء';
 
   @override
-  String get backup_restore_dialog_modeMerge_subtitle =>
-      'الاستعادة على هذا الجهاز. ستدمج المزامنة التالية البيانات المستعادة مع مكتبة السحابة.';
+  String get backup_restore_dialog_modeMerge_subtitle => 'الاستعادة على هذا الجهاز. ستدمج المزامنة التالية البيانات المستعادة مع مكتبة السحابة.';
 
   @override
-  String get backup_restore_dialog_modeMerge_title =>
-      'الدمج عند المزامنة التالية';
+  String get backup_restore_dialog_modeMerge_title => 'الدمج عند المزامنة التالية';
 
   @override
-  String get backup_restore_dialog_modeReplace_subtitle =>
-      'تصبح النسخة الاحتياطية هي المكتبة على هذا الجهاز وفي السحابة وعلى كل جهاز متزامن.';
+  String get backup_restore_dialog_modeReplace_subtitle => 'تصبح النسخة الاحتياطية هي المكتبة على هذا الجهاز وفي السحابة وعلى كل جهاز متزامن.';
 
   @override
   String get backup_restore_dialog_modeReplace_title => 'استبدال في كل مكان';
@@ -1419,19 +1322,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_restore_dialog_restore => 'استعادة';
 
   @override
-  String get backup_restore_dialog_restoreReplace =>
-      'استعادة واستبدال في كل مكان';
+  String get backup_restore_dialog_restoreReplace => 'استعادة واستبدال في كل مكان';
 
   @override
-  String get backup_restore_dialog_safetyNote =>
-      'سيتم إنشاء نسخة احتياطية آمنة من بياناتك الحالية تلقائياً قبل الاستعادة.';
+  String get backup_restore_dialog_safetyNote => 'سيتم إنشاء نسخة احتياطية آمنة من بياناتك الحالية تلقائياً قبل الاستعادة.';
 
   @override
   String get backup_restore_dialog_title => 'استعادة النسخة الاحتياطية';
 
   @override
-  String get backup_restore_dialog_warning =>
-      'سيؤدي هذا إلى استبدال جميع البيانات الحالية ببيانات النسخة الاحتياطية. لا يمكن التراجع عن هذا الإجراء.';
+  String get backup_restore_dialog_warning => 'سيؤدي هذا إلى استبدال جميع البيانات الحالية ببيانات النسخة الاحتياطية. لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String backup_restore_safetyReview_progress(int done, int total) {
@@ -1448,8 +1348,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_restoreComplete_continue => 'متابعة';
 
   @override
-  String get backup_restoreComplete_description =>
-      'تمت استعادة بياناتك بنجاح. اضغط على متابعة لإعادة تحميل التطبيق ببياناتك المستعادة.';
+  String get backup_restoreComplete_description => 'تمت استعادة بياناتك بنجاح. اضغط على متابعة لإعادة تحميل التطبيق ببياناتك المستعادة.';
 
   @override
   String get backup_restoreComplete_title => 'اكتملت الاستعادة';
@@ -1458,8 +1357,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_schedule_enabled => 'نسخ احتياطي تلقائي';
 
   @override
-  String get backup_schedule_enabled_subtitle =>
-      'نسخ البيانات احتياطياً وفقاً لجدول زمني';
+  String get backup_schedule_enabled_subtitle => 'نسخ البيانات احتياطياً وفقاً لجدول زمني';
 
   @override
   String get backup_schedule_frequency => 'التكرار';
@@ -1468,8 +1366,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_schedule_retention => 'الاحتفاظ بالنسخ';
 
   @override
-  String get backup_schedule_retention_subtitle =>
-      'تتم إزالة النسخ الاحتياطية القديمة تلقائياً';
+  String get backup_schedule_retention_subtitle => 'تتم إزالة النسخ الاحتياطية القديمة تلقائياً';
 
   @override
   String get backup_section_auto => 'النسخ الاحتياطي التلقائي';
@@ -1495,8 +1392,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_status_neverBackedUp => 'لم يتم النسخ الاحتياطي مطلقاً';
 
   @override
-  String get backup_status_noBackupsYet =>
-      'أنشئ أول نسخة احتياطية لحماية بياناتك';
+  String get backup_status_noBackupsYet => 'أنشئ أول نسخة احتياطية لحماية بياناتك';
 
   @override
   String get backup_status_overdue => 'النسخ الاحتياطي متأخر';
@@ -1592,8 +1488,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_dialog_discard => 'تجاهل';
 
   @override
-  String get buddies_dialog_discardMessage =>
-      'لديك تغييرات غير محفوظة. هل تريد تجاهلها؟';
+  String get buddies_dialog_discardMessage => 'لديك تغييرات غير محفوظة. هل تريد تجاهلها؟';
 
   @override
   String get buddies_dialog_discardTitle => 'تجاهل التغييرات؟';
@@ -1634,8 +1529,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_field_linkedProfile => 'الملف الشخصي المرتبط';
 
   @override
-  String get buddies_field_linkedProfileHint =>
-      'الملف الشخصي المحلي الذي يمثل هذا الرفيق';
+  String get buddies_field_linkedProfileHint => 'الملف الشخصي المحلي الذي يمثل هذا الرفيق';
 
   @override
   String get buddies_field_linkedProfileNone => 'غير مرتبط';
@@ -1767,8 +1661,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get buddies_linkText_page_subtitle =>
-      'تحويل أسماء الرفاق في الغطسات المستوردة إلى سجلات رفاق';
+  String get buddies_linkText_page_subtitle => 'تحويل أسماء الرفاق في الغطسات المستوردة إلى سجلات رفاق';
 
   @override
   String buddies_linkText_page_summaryDives(int count) {
@@ -1866,8 +1759,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_linkedProfile_pickerTitle => 'الربط بملف شخصي';
 
   @override
-  String get buddies_linkedProfile_refusedSelf =>
-      'لا يمكن ربط الرفيق بملفه الشخصي.';
+  String get buddies_linkedProfile_refusedSelf => 'لا يمكن ربط الرفيق بملفه الشخصي.';
 
   @override
   String buddies_linkedProfile_refusedTaken(String buddyName) {
@@ -1880,22 +1772,19 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get buddies_merge_refusedDifferentLinks =>
-      'هؤلاء الرفاق مرتبطون بملفات شخصية مختلفة. ادمج الملفات الشخصية أولاً.';
+  String get buddies_merge_refusedDifferentLinks => 'هؤلاء الرفاق مرتبطون بملفات شخصية مختلفة. ادمج الملفات الشخصية أولاً.';
 
   @override
   String get buddies_message_added => 'تمت إضافة الرفيق بنجاح';
 
   @override
-  String get buddies_message_contactImportUnavailable =>
-      'استيراد جهات الاتصال غير متوفر على هذا النظام';
+  String get buddies_message_contactImportUnavailable => 'استيراد جهات الاتصال غير متوفر على هذا النظام';
 
   @override
   String get buddies_message_contactLoadFailed => 'فشل تحميل جهات الاتصال';
 
   @override
-  String get buddies_message_contactPermissionRequired =>
-      'يجب الحصول على إذن جهات الاتصال لاستيراد الرفاق';
+  String get buddies_message_contactPermissionRequired => 'يجب الحصول على إذن جهات الاتصال لاستيراد الرفاق';
 
   @override
   String get buddies_message_deleted => 'تم حذف الرفيق';
@@ -1924,8 +1813,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_message_noDivesFound => 'لم يتم العثور على غطسات للتصدير';
 
   @override
-  String get buddies_message_noDivesToShare =>
-      'لا توجد غطسات لمشاركتها مع هذا الرفيق';
+  String get buddies_message_noDivesToShare => 'لا توجد غطسات لمشاركتها مع هذا الرفيق';
 
   @override
   String get buddies_message_preparingExport => 'جارٍ تحضير التصدير...';
@@ -1981,8 +1869,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_picker_tapToAdd => 'اضغط على \'إضافة\' لاختيار رفاق الغوص';
 
   @override
-  String get buddies_search_hint =>
-      'البحث بالاسم أو البريد الإلكتروني أو الهاتف';
+  String get buddies_search_hint => 'البحث بالاسم أو البريد الإلكتروني أو الهاتف';
 
   @override
   String buddies_search_noResults(Object query) {
@@ -2032,8 +1919,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_summary_recentBuddies => 'الرفاق الأخيرون';
 
   @override
-  String get buddies_summary_selectHint =>
-      'اختر رفيقاً من القائمة لعرض التفاصيل';
+  String get buddies_summary_selectHint => 'اختر رفيقاً من القائمة لعرض التفاصيل';
 
   @override
   String get buddies_summary_title => 'رفاق الغوص';
@@ -2057,8 +1943,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_title_singular => 'رفيق';
 
   @override
-  String get buddies_validation_emailInvalid =>
-      'الرجاء إدخال بريد إلكتروني صحيح';
+  String get buddies_validation_emailInvalid => 'الرجاء إدخال بريد إلكتروني صحيح';
 
   @override
   String get buddies_validation_nameRequired => 'الرجاء إدخال الاسم';
@@ -2135,15 +2020,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_edit_merge_title => 'دمج الرفاق';
 
   @override
-  String get buddies_edit_merge_fieldSourceCycleTooltip =>
-      'استخدام القيمة من الرفيق المحدد التالي';
+  String get buddies_edit_merge_fieldSourceCycleTooltip => 'استخدام القيمة من الرفيق المحدد التالي';
 
   @override
-  String buddies_edit_merge_fieldSourceLabel(
-    String buddyName,
-    int current,
-    int total,
-  ) {
+  String buddies_edit_merge_fieldSourceLabel(String buddyName, int current, int total) {
     return 'من $buddyName ($current/$total)';
   }
 
@@ -2167,8 +2047,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_edit_merge_notEnoughTitle => 'دمج الرفاق';
 
   @override
-  String get buddies_edit_merge_notEnoughBody =>
-      'لا يوجد عدد كافٍ من الرفاق للدمج.';
+  String get buddies_edit_merge_notEnoughBody => 'لا يوجد عدد كافٍ من الرفاق للدمج.';
 
   @override
   String get buddies_instructorPicker_label => 'المدرب من قائمة الرفاق';
@@ -2257,10 +2136,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_detail_photoLabel_front => 'الأمام';
 
   @override
-  String certifications_detail_photo_fullscreenTitle(
-    Object label,
-    Object name,
-  ) {
+  String certifications_detail_photo_fullscreenTitle(Object label, Object name) {
     return '$label - $name';
   }
 
@@ -2283,14 +2159,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_detail_sectionTitle_notes => 'ملاحظات';
 
   @override
-  String get certifications_detail_sectionTitle_trainingCourse =>
-      'الدورة التدريبية';
+  String get certifications_detail_sectionTitle_trainingCourse => 'الدورة التدريبية';
 
   @override
-  String certifications_detail_semanticLabel_photoTapToView(
-    Object label,
-    Object name,
-  ) {
+  String certifications_detail_semanticLabel_photoTapToView(Object label, Object name) {
     return 'صورة $label لـ $name. اضغط لعرض ملء الشاشة';
   }
 
@@ -2325,8 +2197,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_detail_tooltip_moreOptions => 'خيارات إضافية';
 
   @override
-  String get certifications_ecardStack_empty_subtitle =>
-      'أضف شهادتك الأولى لرؤيتها هنا';
+  String get certifications_ecardStack_empty_subtitle => 'أضف شهادتك الأولى لرؤيتها هنا';
 
   @override
   String get certifications_ecardStack_empty_title => 'لا توجد شهادات بعد';
@@ -2395,8 +2266,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_edit_dialog_discard => 'تجاهل';
 
   @override
-  String get certifications_edit_dialog_discardContent =>
-      'لديك تغييرات غير محفوظة. هل أنت متأكد من المغادرة؟';
+  String get certifications_edit_dialog_discardContent => 'لديك تغييرات غير محفوظة. هل أنت متأكد من المغادرة؟';
 
   @override
   String get certifications_edit_dialog_discardTitle => 'تجاهل التغييرات؟';
@@ -2411,8 +2281,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_edit_group_specialties => 'التخصصات';
 
   @override
-  String get certifications_edit_help_expiryDate =>
-      'اتركه فارغاً للشهادات التي لا تنتهي صلاحيتها';
+  String get certifications_edit_help_expiryDate => 'اتركه فارغاً للشهادات التي لا تنتهي صلاحيتها';
 
   @override
   String get certifications_edit_helper_nameOnCard => 'اختياري';
@@ -2490,8 +2359,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_edit_sectionTitle_dates => 'التواريخ';
 
   @override
-  String get certifications_edit_sectionTitle_instructorInfo =>
-      'معلومات المدرب';
+  String get certifications_edit_sectionTitle_instructorInfo => 'معلومات المدرب';
 
   @override
   String get certifications_edit_sectionTitle_notes => 'ملاحظات';
@@ -2518,8 +2386,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_edit_snackBar_updated => 'تم تحديث الشهادة بنجاح';
 
   @override
-  String get certifications_edit_validation_certificationOrNameRequired =>
-      'اختر شهادة أو أدخل اسمًا';
+  String get certifications_edit_validation_certificationOrNameRequired => 'اختر شهادة أو أدخل اسمًا';
 
   @override
   String get certifications_list_button_retry => 'إعادة المحاولة';
@@ -2528,8 +2395,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_list_empty_button => 'أضف شهادتك الأولى';
 
   @override
-  String get certifications_list_empty_subtitle =>
-      'أضف شهادات الغوص الخاصة بك لتتبع\nتدريبك ومؤهلاتك';
+  String get certifications_list_empty_subtitle => 'أضف شهادات الغوص الخاصة بك لتتبع\nتدريبك ومؤهلاتك';
 
   @override
   String get certifications_list_empty_title => 'لم تتم إضافة شهادات بعد';
@@ -2612,8 +2478,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get certifications_renderer_label_hasCompletedTraining =>
-      'قد أتم التدريب بصفته';
+  String get certifications_renderer_label_hasCompletedTraining => 'قد أتم التدريب بصفته';
 
   @override
   String certifications_renderer_label_instructor(Object name) {
@@ -2621,10 +2486,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String certifications_renderer_label_instructorWithNumber(
-    Object name,
-    Object number,
-  ) {
+  String certifications_renderer_label_instructorWithNumber(Object name, Object number) {
     return 'المدرب: $name ($number)';
   }
 
@@ -2634,12 +2496,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get certifications_renderer_label_thisCertifies =>
-      'تشهد هذه الوثيقة بأن';
+  String get certifications_renderer_label_thisCertifies => 'تشهد هذه الوثيقة بأن';
 
   @override
-  String get certifications_search_empty_hint =>
-      'البحث بالاسم أو الوكالة أو رقم البطاقة';
+  String get certifications_search_empty_hint => 'البحث بالاسم أو الوكالة أو رقم البطاقة';
 
   @override
   String get certifications_search_fieldLabel => 'البحث في الشهادات...';
@@ -2666,15 +2526,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get certifications_share_option_card_subtitle =>
-      'صورة شهادة بنمط بطاقة الائتمان';
+  String get certifications_share_option_card_subtitle => 'صورة شهادة بنمط بطاقة الائتمان';
 
   @override
   String get certifications_share_option_card_title => 'مشاركة كبطاقة';
 
   @override
-  String get certifications_share_option_certificate_subtitle =>
-      'وثيقة شهادة رسمية';
+  String get certifications_share_option_certificate_subtitle => 'وثيقة شهادة رسمية';
 
   @override
   String get certifications_share_option_certificate_title => 'مشاركة كشهادة';
@@ -2683,8 +2541,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_share_title => 'مشاركة الشهادة';
 
   @override
-  String get certifications_summary_header_subtitle =>
-      'اختر شهادة من القائمة لعرض التفاصيل';
+  String get certifications_summary_header_subtitle => 'اختر شهادة من القائمة لعرض التفاصيل';
 
   @override
   String get certifications_summary_header_title => 'الشهادات';
@@ -2749,8 +2606,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get checklists_empty_upcoming =>
-      'خطط لرحلتك - أضف مهامًا أو طبّق قالبًا';
+  String get checklists_empty_upcoming => 'خطط لرحلتك - أضف مهامًا أو طبّق قالبًا';
 
   @override
   String get checklists_empty_past => 'لا توجد عناصر في قائمة التحقق';
@@ -2805,8 +2661,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'هل تريد حذف جميع العناصر البالغ عددها $count من قائمة التحقق هذه؟ لن تتأثر القوالب.',
+      other: 'هل تريد حذف جميع العناصر البالغ عددها $count من قائمة التحقق هذه؟ لن تتأثر القوالب.',
       one: 'هل تريد حذف العنصر الوحيد من قائمة التحقق هذه؟ لن تتأثر القوالب.',
     );
     return '$_temp0';
@@ -2830,8 +2685,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checklists_applySheet_title => 'تطبيق القالب';
 
   @override
-  String get checklists_applySheet_empty =>
-      'لا توجد قوالب بعد. يمكنك إنشاؤها من الإعدادات.';
+  String get checklists_applySheet_empty => 'لا توجد قوالب بعد. يمكنك إنشاؤها من الإعدادات.';
 
   @override
   String checklists_applySheet_itemCount(int count) {
@@ -2940,8 +2794,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get preDive_templates_delete => 'حذف';
 
   @override
-  String get preDive_templates_deleteConfirm =>
-      'هل تريد حذف قالب قائمة التحقق هذا؟';
+  String get preDive_templates_deleteConfirm => 'هل تريد حذف قالب قائمة التحقق هذا؟';
 
   @override
   String get preDive_templates_strictOrderBadge => 'ترتيب صارم';
@@ -2965,8 +2818,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get preDive_edit_strictOrder => 'ترتيب صارم';
 
   @override
-  String get preDive_edit_strictOrderHelp =>
-      'يجب إكمال العناصر من الأعلى إلى الأسفل';
+  String get preDive_edit_strictOrderHelp => 'يجب إكمال العناصر من الأعلى إلى الأسفل';
 
   @override
   String get preDive_edit_addItem => 'إضافة عنصر';
@@ -3017,8 +2869,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get preDive_item_sourceItem => 'قراءة الهواء من';
 
   @override
-  String get preDive_item_sourceItemRequired =>
-      'اختر العنصر الذي يحتوي على قراءة الهواء';
+  String get preDive_item_sourceItemRequired => 'اختر العنصر الذي يحتوي على قراءة الهواء';
 
   @override
   String get preDive_item_linearityMin => 'أدنى خطية % (تحذير)';
@@ -3032,8 +2883,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get preDive_item_sourceBelow =>
-      'يقرأ قيمة مسجلة لاحقًا في هذه القائمة';
+  String get preDive_item_sourceBelow => 'يقرأ قيمة مسجلة لاحقًا في هذه القائمة';
 
   @override
   String preDive_runner_progress(int done, int total) {
@@ -3052,8 +2902,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get preDive_runner_abort => 'إلغاء قائمة التحقق';
 
   @override
-  String get preDive_runner_abortConfirm =>
-      'هل تريد إلغاء قائمة التحقق هذه؟ سيتم الاحتفاظ بها في السجل كملغاة.';
+  String get preDive_runner_abortConfirm => 'هل تريد إلغاء قائمة التحقق هذه؟ سيتم الاحتفاظ بها في السجل كملغاة.';
 
   @override
   String get preDive_runner_skip => 'تخطي';
@@ -3091,11 +2940,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String preDive_runner_linearityLine(
-    String air,
-    String expected,
-    String percent,
-  ) {
+  String preDive_runner_linearityLine(String air, String expected, String percent) {
     return 'الهواء $air mV، المتوقع $expected mV، الخطية $percent%';
   }
 
@@ -3144,8 +2989,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get preDive_link_linkChecklist => 'ربط قائمة تحقق ما قبل الغوص';
 
   @override
-  String get preDive_link_unlinkChecklist =>
-      'إلغاء ربط قائمة تحقق ما قبل الغوص';
+  String get preDive_link_unlinkChecklist => 'إلغاء ربط قائمة تحقق ما قبل الغوص';
 
   @override
   String get preDive_link_searchDives => 'البحث في الغطسات';
@@ -3171,8 +3015,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get preDive_sessions_delete => 'حذف';
 
   @override
-  String get preDive_sessions_deleteConfirm =>
-      'هل تريد حذف سجل قائمة التحقق هذا؟';
+  String get preDive_sessions_deleteConfirm => 'هل تريد حذف سجل قائمة التحقق هذا؟';
 
   @override
   String get preDive_sessions_filter => 'تصفية';
@@ -3205,15 +3048,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get preDive_sessions_filterFlaggedChip => 'المعلَّمة فقط';
 
   @override
-  String get preDive_sessions_emptyFiltered =>
-      'لا توجد عمليات قوائم تحقق تطابق هذه المرشحات';
+  String get preDive_sessions_emptyFiltered => 'لا توجد عمليات قوائم تحقق تطابق هذه المرشحات';
 
   @override
   String get preDive_sessions_export => 'تصدير إلى Excel';
 
   @override
-  String get preDive_sessions_exportEmpty =>
-      'لا توجد عمليات قوائم تحقق للتصدير';
+  String get preDive_sessions_exportEmpty => 'لا توجد عمليات قوائم تحقق للتصدير';
 
   @override
   String preDive_sessions_exportFailed(String error) {
@@ -3260,8 +3101,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_gear_unknownSet => 'طقم';
 
   @override
-  String get diveLog_listPage_bottomSheet_preDiveChecklist =>
-      'بدء قائمة تحقق ما قبل الغوص';
+  String get diveLog_listPage_bottomSheet_preDiveChecklist => 'بدء قائمة تحقق ما قبل الغوص';
 
   @override
   String get preDive_dashboard_title => 'فحص ما قبل الغوص';
@@ -3281,8 +3121,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get preDive_edit_titleView => 'عرض قائمة تحقق ما قبل الغوص';
 
   @override
-  String get preDive_edit_builtInNotice =>
-      'قائمة تحقق مدمجة. استنسخها للحصول على نسخة قابلة للتعديل.';
+  String get preDive_edit_builtInNotice => 'قائمة تحقق مدمجة. استنسخها للحصول على نسخة قابلة للتعديل.';
 
   @override
   String get dashboard_checklists_title => 'قوائم التحقق';
@@ -3317,8 +3156,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_manage_preDiveChecklists => 'قوائم تحقق ما قبل الغوص';
 
   @override
-  String get settings_manage_preDiveChecklists_subtitle =>
-      'فحوصات رفيق الغوص، قوائم تجهيز CCR، توضيب المعدات';
+  String get settings_manage_preDiveChecklists_subtitle => 'فحوصات رفيق الغوص، قوائم تجهيز CCR، توضيب المعدات';
 
   @override
   String get common_action_back => 'رجوع';
@@ -3439,8 +3277,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_detail_certificationNotFound => 'الاعتماد غير موجود';
 
   @override
-  String get courses_detail_noTrainingDives =>
-      'لا توجد غطسات تدريبية مربوطة بعد';
+  String get courses_detail_noTrainingDives => 'لا توجد غطسات تدريبية مربوطة بعد';
 
   @override
   String get courses_detail_notFound => 'الدورة غير موجودة';
@@ -3457,8 +3294,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_dialog_deleteTitle => 'حذف الدورة؟';
 
   @override
-  String get courses_dialog_markCompletedMessage =>
-      'سيتم وضع علامة على الدورة كمكتملة بتاريخ اليوم. هل تريد المتابعة؟';
+  String get courses_dialog_markCompletedMessage => 'سيتم وضع علامة على الدورة كمكتملة بتاريخ اليوم. هل تريد المتابعة؟';
 
   @override
   String get courses_dialog_markCompletedTitle => 'وضع علامة كمكتمل؟';
@@ -3502,8 +3338,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_field_instructorNumber => 'رقم المدرب';
 
   @override
-  String get courses_field_linkCertificationHint =>
-      'ربط الاعتماد المكتسب من هذه الدورة';
+  String get courses_field_linkCertificationHint => 'ربط الاعتماد المكتسب من هذه الدورة';
 
   @override
   String get courses_field_location => 'الموقع';
@@ -3601,8 +3436,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_requirement_suggestions => 'غطسات مقترحة';
 
   @override
-  String get courses_requirements_empty =>
-      'تتبع غطسات المغامرة والمتطلبات المسبقة وعناصر التحقق لهذه الدورة.';
+  String get courses_requirements_empty => 'تتبع غطسات المغامرة والمتطلبات المسبقة وعناصر التحقق لهذه الدورة.';
 
   @override
   String courses_requirements_progress(int satisfied, int total) {
@@ -3733,8 +3567,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_alerts_actionView => 'عرض';
 
   @override
-  String get dashboard_alerts_checkInsuranceExpiry =>
-      'تحقق من تاريخ انتهاء التأمين';
+  String get dashboard_alerts_checkInsuranceExpiry => 'تحقق من تاريخ انتهاء التأمين';
 
   @override
   String get dashboard_alerts_daysOverdueOne => 'متأخر يوم واحد';
@@ -3766,8 +3599,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_alerts_insuranceExpired => 'انتهى التأمين';
 
   @override
-  String get dashboard_alerts_insuranceExpiredGeneric =>
-      'انتهت صلاحية تأمين الغوص الخاص بك';
+  String get dashboard_alerts_insuranceExpiredGeneric => 'انتهت صلاحية تأمين الغوص الخاص بك';
 
   @override
   String dashboard_alerts_insuranceExpiredProvider(Object provider) {
@@ -3952,8 +3784,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get dashboard_gauges_flightWindowClosed =>
-      'لا مزيد من الغوص قبل الرحلة';
+  String get dashboard_gauges_flightWindowClosed => 'لا مزيد من الغوص قبل الرحلة';
 
   @override
   String dashboard_gauges_noFlyRemaining(String hours, String minutes) {
@@ -3975,8 +3806,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_homeChips_pageTitle => 'الشاشة الرئيسية';
 
   @override
-  String get settings_homeChips_description =>
-      'اختر شرائح الحالة التي تظهر أعلى تبويب الرئيسية.';
+  String get settings_homeChips_description => 'اختر شرائح الحالة التي تظهر أعلى تبويب الرئيسية.';
 
   @override
   String get settings_homeChips_sectionTitle => 'شرائح الحالة';
@@ -3985,8 +3815,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_homeCards_sectionTitle => 'بطاقات الرئيسية';
 
   @override
-  String get settings_homeCards_description =>
-      'اختر البطاقات التي تظهر في تبويب الرئيسية واسحبها لإعادة ترتيبها.';
+  String get settings_homeCards_description => 'اختر البطاقات التي تظهر في تبويب الرئيسية واسحبها لإعادة ترتيبها.';
 
   @override
   String get settings_homeCards_autoHides => 'تُخفى تلقائيًا عندما تكون فارغة';
@@ -3995,12 +3824,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_homeCards_resetToDefault => 'إعادة التعيين إلى الافتراضي';
 
   @override
-  String get settings_homeCards_resetDialog_title =>
-      'إعادة تعيين تخطيط الرئيسية؟';
+  String get settings_homeCards_resetDialog_title => 'إعادة تعيين تخطيط الرئيسية؟';
 
   @override
-  String get settings_homeCards_resetDialog_message =>
-      'يستعيد الترتيب الافتراضي للبطاقات ويعرضها جميعًا من جديد.';
+  String get settings_homeCards_resetDialog_message => 'يستعيد الترتيب الافتراضي للبطاقات ويعرضها جميعًا من جديد.';
 
   @override
   String get settings_homeCards_resetDialog_cancel => 'إلغاء';
@@ -4140,8 +3967,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get dashboard_gauges_retry =>
-      'الحالة غير متاحة - انقر لإعادة المحاولة';
+  String get dashboard_gauges_retry => 'الحالة غير متاحة - انقر لإعادة المحاولة';
 
   @override
   String get dashboard_media_title => 'أحدث الوسائط';
@@ -4198,8 +4024,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_personalRecords_longest => 'الأطول';
 
   @override
-  String get dashboard_personalRecords_sectionTitle =>
-      'الأرقام القياسية الشخصية';
+  String get dashboard_personalRecords_sectionTitle => 'الأرقام القياسية الشخصية';
 
   @override
   String get dashboard_personalRecords_warmest => 'الأدفأ';
@@ -4264,8 +4089,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_recentDives_latestProfileTitle => 'مخطط آخر غطسة';
 
   @override
-  String get dashboard_recentDives_noProfileData =>
-      'لا توجد بيانات مخطط لهذه الغطسة';
+  String get dashboard_recentDives_noProfileData => 'لا توجد بيانات مخطط لهذه الغطسة';
 
   @override
   String get dashboard_recentDives_profileLoadError => 'تعذر تحميل مخطط الغطسة';
@@ -4293,12 +4117,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get dashboard_semantics_errorLoadingRecentDives =>
-      'خطأ: فشل تحميل الغوصات الأخيرة';
+  String get dashboard_semantics_errorLoadingRecentDives => 'خطأ: فشل تحميل الغوصات الأخيرة';
 
   @override
-  String get dashboard_semantics_errorLoadingStatistics =>
-      'خطأ: فشل تحميل الإحصائيات';
+  String get dashboard_semantics_errorLoadingStatistics => 'خطأ: فشل تحميل الإحصائيات';
 
   @override
   String get dashboard_semantics_greetingBanner => 'شعار ترحيب لوحة التحكم';
@@ -4327,16 +4149,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get decoCalculator_createPlanTooltip =>
-      'إنشاء خطة غوص من المعاملات الحالية';
+  String get decoCalculator_createPlanTooltip => 'إنشاء خطة غوص من المعاملات الحالية';
 
   @override
-  String decoCalculator_createdPlanSnackbar(
-    Object depth,
-    Object depthSymbol,
-    Object time,
-    Object gasMixName,
-  ) {
+  String decoCalculator_createdPlanSnackbar(Object depth, Object depthSymbol, Object time, Object gasMixName) {
     return 'تم إنشاء خطة: $depth$depthSymbol لـ $time دقيقة على $gasMixName';
   }
 
@@ -4376,8 +4192,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get decoCalculator_hideCustomMix => 'إخفاء الخليط المخصص';
 
   @override
-  String get decoCalculator_hideCustomMixSemantics =>
-      'إخفاء محدد خليط الغاز المخصص';
+  String get decoCalculator_hideCustomMixSemantics => 'إخفاء محدد خليط الغاز المخصص';
 
   @override
   String get decoCalculator_modExceeded => 'تجاوز MOD';
@@ -4398,12 +4213,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get decoCalculator_ppO2Safe => 'ppO2 آمن';
 
   @override
-  String get decoCalculator_resetToDefaults =>
-      'إعادة تعيين إلى الإعدادات الافتراضية';
+  String get decoCalculator_resetToDefaults => 'إعادة تعيين إلى الإعدادات الافتراضية';
 
   @override
-  String get decoCalculator_showCustomMixSemantics =>
-      'إظهار محدد خليط الغاز المخصص';
+  String get decoCalculator_showCustomMixSemantics => 'إظهار محدد خليط الغاز المخصص';
 
   @override
   String decoCalculator_timeValueMin(Object time) {
@@ -4439,8 +4252,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_accessibility_viewDives => 'عرض الغطسات مع هذا المركز';
 
   @override
-  String get diveCenters_accessibility_viewFullscreenMap =>
-      'عرض الخريطة بملء الشاشة';
+  String get diveCenters_accessibility_viewFullscreenMap => 'عرض الخريطة بملء الشاشة';
 
   @override
   String diveCenters_accessibility_viewSavedCenter(Object name) {
@@ -4526,8 +4338,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_dialog_discard => 'تجاهل';
 
   @override
-  String get diveCenters_dialog_discardMessage =>
-      'لديك تغييرات غير محفوظة. هل تريد تجاهلها؟';
+  String get diveCenters_dialog_discardMessage => 'لديك تغييرات غير محفوظة. هل تريد تجاهلها؟';
 
   @override
   String get diveCenters_dialog_discardTitle => 'تجاهل التغييرات؟';
@@ -4539,8 +4350,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_empty_button => 'أضف أول مركز غوص';
 
   @override
-  String get diveCenters_empty_subtitle =>
-      'أضف متاجر ومشغلي الغوص المفضلين لديك';
+  String get diveCenters_empty_subtitle => 'أضف متاجر ومشغلي الغوص المفضلين لديك';
 
   @override
   String get diveCenters_empty_title => 'لا توجد مراكز غوص بعد';
@@ -4551,8 +4361,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveCenters_error_geocodeFailed =>
-      'تعذر العثور على الإحداثيات لهذا العنوان';
+  String get diveCenters_error_geocodeFailed => 'تعذر العثور على الإحداثيات لهذا العنوان';
 
   @override
   String get diveCenters_error_importFailed => 'فشل استيراد مركز الغوص';
@@ -4563,16 +4372,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveCenters_error_locationPermission =>
-      'تعذر الحصول على الموقع. يرجى التحقق من الأذونات.';
+  String get diveCenters_error_locationPermission => 'تعذر الحصول على الموقع. يرجى التحقق من الأذونات.';
 
   @override
-  String get diveCenters_error_locationUnavailable =>
-      'تعذر الحصول على الموقع. قد لا تكون خدمات الموقع متاحة.';
+  String get diveCenters_error_locationUnavailable => 'تعذر الحصول على الموقع. قد لا تكون خدمات الموقع متاحة.';
 
   @override
-  String get diveCenters_error_noAddressForLookup =>
-      'الرجاء إدخال عنوان للبحث عن الإحداثيات';
+  String get diveCenters_error_noAddressForLookup => 'الرجاء إدخال عنوان للبحث عن الإحداثيات';
 
   @override
   String get diveCenters_error_notFound => 'مركز الغوص غير موجود';
@@ -4613,12 +4419,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_field_street => 'عنوان الشارع';
 
   @override
-  String get diveCenters_hint_addressDescription =>
-      'عنوان الشارع الاختياري للملاحة';
+  String get diveCenters_hint_addressDescription => 'عنوان الشارع الاختياري للملاحة';
 
   @override
-  String get diveCenters_hint_affiliationsDescription =>
-      'اختر وكالات التدريب التي يرتبط بها هذا المركز';
+  String get diveCenters_hint_affiliationsDescription => 'اختر وكالات التدريب التي يرتبط بها هذا المركز';
 
   @override
   String get diveCenters_hint_city => 'مثال: بوكيت';
@@ -4630,12 +4434,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_hint_email => 'info@divecenter.com';
 
   @override
-  String get diveCenters_hint_gpsDescription =>
-      'اختر طريقة تحديد الموقع أو أدخل الإحداثيات يدوياً';
+  String get diveCenters_hint_gpsDescription => 'اختر طريقة تحديد الموقع أو أدخل الإحداثيات يدوياً';
 
   @override
-  String get diveCenters_hint_importSearch =>
-      'البحث عن مراكز الغوص (مثال: \"PADI\"، \"تايلاند\")';
+  String get diveCenters_hint_importSearch => 'البحث عن مراكز الغوص (مثال: \"PADI\"، \"تايلاند\")';
 
   @override
   String get diveCenters_hint_latitude => 'مثال: 10.4613';
@@ -4683,15 +4485,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveCenters_import_searchDescription =>
-      'البحث عن مراكز الغوص والمتاجر والنوادي من قاعدة بيانات المشغلين حول العالم.';
+  String get diveCenters_import_searchDescription => 'البحث عن مراكز الغوص والمتاجر والنوادي من قاعدة بيانات المشغلين حول العالم.';
 
   @override
   String get diveCenters_import_searchError => 'خطأ في البحث';
 
   @override
-  String get diveCenters_import_searchHint =>
-      'جرب البحث بالاسم أو البلد أو وكالة الاعتماد.';
+  String get diveCenters_import_searchHint => 'جرب البحث بالاسم أو البلد أو وكالة الاعتماد.';
 
   @override
   String get diveCenters_import_searchTitle => 'البحث عن مراكز الغوص';
@@ -4737,8 +4537,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_label_website => 'الموقع الإلكتروني';
 
   @override
-  String get diveCenters_map_addCoordinatesHint =>
-      'أضف الإحداثيات إلى مراكز الغوص لرؤيتها على الخريطة';
+  String get diveCenters_map_addCoordinatesHint => 'أضف الإحداثيات إلى مراكز الغوص لرؤيتها على الخريطة';
 
   @override
   String get diveCenters_map_noCoordinates => 'لا توجد مراكز غوص مع إحداثيات';
@@ -4779,8 +4578,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_section_notes => 'ملاحظات';
 
   @override
-  String get diveCenters_snackbar_coordinatesFound =>
-      'تم العثور على الإحداثيات من العنوان';
+  String get diveCenters_snackbar_coordinatesFound => 'تم العثور على الإحداثيات من العنوان';
 
   @override
   String get diveCenters_snackbar_copiedToClipboard => 'تم النسخ إلى الحافظة';
@@ -4799,8 +4597,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveCenters_snackbar_locationSelectedFromMap =>
-      'تم اختيار الموقع من الخريطة';
+  String get diveCenters_snackbar_locationSelectedFromMap => 'تم اختيار الموقع من الخريطة';
 
   @override
   String get diveCenters_sort_title => 'ترتيب مراكز الغوص';
@@ -4821,8 +4618,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_summary_recentCenters => 'مراكز الغوص الأخيرة';
 
   @override
-  String get diveCenters_summary_selectPrompt =>
-      'اختر مركز غوص من القائمة لعرض التفاصيل';
+  String get diveCenters_summary_selectPrompt => 'اختر مركز غوص من القائمة لعرض التفاصيل';
 
   @override
   String get diveCenters_summary_totalCenters => 'إجمالي المراكز';
@@ -4870,8 +4666,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_tooltip_sort => 'ترتيب';
 
   @override
-  String get diveCenters_validation_invalidEmail =>
-      'الرجاء إدخال بريد إلكتروني صحيح';
+  String get diveCenters_validation_invalidEmail => 'الرجاء إدخال بريد إلكتروني صحيح';
 
   @override
   String get diveCenters_validation_invalidLatitude => 'خط العرض غير صحيح';
@@ -4934,8 +4729,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_bulkEdit_addTags => 'إضافة وسوم';
 
   @override
-  String get diveLog_bulkEdit_addTagsDescription =>
-      'إضافة وسوم إلى الغوصات المحددة';
+  String get diveLog_bulkEdit_addTagsDescription => 'إضافة وسوم إلى الغوصات المحددة';
 
   @override
   String diveLog_bulkEdit_addedTags(int tagCount, int diveCount) {
@@ -4958,8 +4752,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_bulkEdit_changeTrip => 'تغيير الرحلة';
 
   @override
-  String get diveLog_bulkEdit_changeTripDescription =>
-      'نقل الغوصات المحددة إلى رحلة';
+  String get diveLog_bulkEdit_changeTripDescription => 'نقل الغوصات المحددة إلى رحلة';
 
   @override
   String get diveLog_bulkEdit_errorLoadingTrips => 'خطأ في تحميل الرحلات';
@@ -4989,8 +4782,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_bulkEdit_noTagsAvailable => 'لا توجد وسوم متاحة.';
 
   @override
-  String get diveLog_bulkEdit_noTagsAvailableCreate =>
-      'لا توجد وسوم متاحة. قم بإنشاء الوسوم أولاً.';
+  String get diveLog_bulkEdit_noTagsAvailableCreate => 'لا توجد وسوم متاحة. قم بإنشاء الوسوم أولاً.';
 
   @override
   String get diveLog_bulkEdit_noTrip => 'بدون رحلة';
@@ -5002,8 +4794,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_bulkEdit_removeTags => 'إزالة الوسوم';
 
   @override
-  String get diveLog_bulkEdit_removeTagsDescription =>
-      'إزالة الوسوم من الغوصات المحددة';
+  String get diveLog_bulkEdit_removeTagsDescription => 'إزالة الوسوم من الغوصات المحددة';
 
   @override
   String diveLog_bulkEdit_removedFromTrip(int count) {
@@ -5140,8 +4931,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_combine_confirm => 'دمج في غوصة واحدة';
 
   @override
-  String get diveLog_combine_dataNote =>
-      'تُؤخذ التفاصيل من أقدم غوصة، مع تعبئة الفراغات من الغوصات اللاحقة. يتم دمج الملاحظات. يتم الاحتفاظ بجميع الأسطوانات والمعدات ورفقاء الغوص والوسوم والمشاهدات.';
+  String get diveLog_combine_dataNote => 'تُؤخذ التفاصيل من أقدم غوصة، مع تعبئة الفراغات من الغوصات اللاحقة. يتم دمج الملاحظات. يتم الاحتفاظ بجميع الأسطوانات والمعدات ورفقاء الغوص والوسوم والمشاهدات.';
 
   @override
   String get diveLog_combine_error => 'تعذّر دمج الغوصات. لم يتغيّر شيء.';
@@ -5152,12 +4942,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_combine_longSurfaceWarning =>
-      'قد تتجاوز فترة سطح واحدة أو أكثر 30 دقيقة. قد تكون هذه غوصات منفصلة بدلاً من غوصة واحدة متواصلة.';
+  String get diveLog_combine_longSurfaceWarning => 'قد تتجاوز فترة سطح واحدة أو أكثر 30 دقيقة. قد تكون هذه غوصات منفصلة بدلاً من غوصة واحدة متواصلة.';
 
   @override
-  String get diveLog_combine_mixedDivers =>
-      'الغوصات المحددة تخص غواصين مختلفين ولا يمكن دمجها.';
+  String get diveLog_combine_mixedDivers => 'الغوصات المحددة تخص غواصين مختلفين ولا يمكن دمجها.';
 
   @override
   String get diveLog_combine_profilePreview => 'الملف المدمج';
@@ -5168,11 +4956,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String diveLog_combine_resultSummary(
-    String runtime,
-    String maxDepth,
-    String bottomTime,
-  ) {
+  String diveLog_combine_resultSummary(String runtime, String maxDepth, String bottomTime) {
     return 'النتيجة: $runtime إجمالاً، أقصى عمق $maxDepth، ووقت القاع $bottomTime';
   }
 
@@ -5200,27 +4984,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => 'أساسي';
 
   @override
-  String get diveLog_consolidate_confirm =>
-      'الاحتفاظ بها كغوصة واحدة بجهازي كمبيوتر';
+  String get diveLog_consolidate_confirm => 'الاحتفاظ بها كغوصة واحدة بجهازي كمبيوتر';
 
   @override
-  String get diveLog_consolidate_error_generic =>
-      'تعذّر دمج الغوصات. لم يتغيّر أي شيء.';
+  String get diveLog_consolidate_error_generic => 'تعذّر دمج الغوصات. لم يتغيّر أي شيء.';
 
   @override
-  String get diveLog_consolidate_error_notOverlapping =>
-      'هاتان الغوصتان لا تتداخلان زمنيًا، لذا لا يمكن دمجهما كغوصة واحدة.';
+  String get diveLog_consolidate_error_notOverlapping => 'هاتان الغوصتان لا تتداخلان زمنيًا، لذا لا يمكن دمجهما كغوصة واحدة.';
 
   @override
-  String get diveLog_consolidate_error_sameComputer =>
-      'هاتان الغوصتان من نفس كمبيوتر الغوص ولا يمكن دمجهما بهذه الطريقة.';
+  String get diveLog_consolidate_error_sameComputer => 'هاتان الغوصتان من نفس كمبيوتر الغوص ولا يمكن دمجهما بهذه الطريقة.';
 
   @override
   String get diveLog_consolidate_selectPrimary => 'كمبيوتر الغوص الأساسي';
 
   @override
-  String get diveLog_consolidate_snackbar =>
-      'تم دمج الغوصة كجهاز كمبيوتر إضافي.';
+  String get diveLog_consolidate_snackbar => 'تم دمج الغوصة كجهاز كمبيوتر إضافي.';
 
   @override
   String get diveLog_consolidate_undoError => 'تعذّر التراجع عن الدمج.';
@@ -5229,8 +5008,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_consolidate_undone => 'تم التراجع عن الدمج';
 
   @override
-  String get diveLog_computerSheet_description =>
-      'اختر ملف أي كمبيوتر تريد التحرير منه.';
+  String get diveLog_computerSheet_description => 'اختر ملف أي كمبيوتر تريد التحرير منه.';
 
   @override
   String get diveLog_computerSheet_title => 'اختيار الملف الأولي';
@@ -5250,12 +5028,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_cylinderSac_noSac => 'SAC: --';
 
   @override
-  String get diveLog_cylinderSac_tooltip_aiData =>
-      'استخدام بيانات جهاز الإرسال AI لدقة أعلى';
+  String get diveLog_cylinderSac_tooltip_aiData => 'استخدام بيانات جهاز الإرسال AI لدقة أعلى';
 
   @override
-  String get diveLog_cylinderSac_tooltip_basicData =>
-      'محسوب من ضغط البداية والنهاية';
+  String get diveLog_cylinderSac_tooltip_basicData => 'محسوب من ضغط البداية والنهاية';
 
   @override
   String get diveLog_deco_badge_deco => 'تخفيف ضغط';
@@ -5292,11 +5068,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String diveLog_deco_gf_chipRecordedAlgorithm(
-    Object algorithm,
-    Object low,
-    Object high,
-  ) {
+  String diveLog_deco_gf_chipRecordedAlgorithm(Object algorithm, Object low, Object high) {
     return '$algorithm · جرى تحليلها بـ GF $low/$high';
   }
 
@@ -5306,8 +5078,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_gf_tooltipFromSettings =>
-      'لم يسجّل حاسوب الغوص هذا معاملات التدرج الخاصة به، لذا تُحلَّل هذه الغطسة باستخدام المعاملات من إعداداتك.';
+  String get diveLog_deco_gf_tooltipFromSettings => 'لم يسجّل حاسوب الغوص هذا معاملات التدرج الخاصة به، لذا تُحلَّل هذه الغطسة باستخدام المعاملات من إعداداتك.';
 
   @override
   String diveLog_deco_gf_tooltipRecordedAlgorithm(Object algorithm) {
@@ -5344,8 +5115,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_delete_cancel => 'إلغاء';
 
   @override
-  String get diveLog_delete_confirm =>
-      'لا يمكن التراجع عن هذا الإجراء. سيتم حذف الغوصة وجميع البيانات المرتبطة بها (الملف الشخصي، الأسطوانات، المشاهدات) نهائياً.';
+  String get diveLog_delete_confirm => 'لا يمكن التراجع عن هذا الإجراء. سيتم حذف الغوصة وجميع البيانات المرتبطة بها (الملف الشخصي، الأسطوانات، المشاهدات) نهائياً.';
 
   @override
   String get diveLog_delete_delete => 'حذف';
@@ -5394,10 +5164,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_collapsed_atTimeInfo(
-    Object timestamp,
-    Object baseInfo,
-  ) {
+  String diveLog_detail_collapsed_atTimeInfo(Object timestamp, Object baseInfo) {
     return 'عند $timestamp • $baseInfo';
   }
 
@@ -5412,12 +5179,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_collapsed_cnsMaxPpO2AtTime(
-    Object cns,
-    Object maxPpO2,
-    Object timestamp,
-    Object ppO2,
-  ) {
+  String diveLog_detail_collapsed_cnsMaxPpO2AtTime(Object cns, Object maxPpO2, Object timestamp, Object ppO2) {
     return 'CNS: $cns • أقصى ppO₂: $maxPpO2 • عند $timestamp: $ppO2 بار';
   }
 
@@ -5606,8 +5368,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_section_oxygenToxicity => 'سمية الأكسجين';
 
   @override
-  String get diveLog_detail_section_sacRateBySegment =>
-      'استهلاك الغاز حسب المقطع';
+  String get diveLog_detail_section_sacRateBySegment => 'استهلاك الغاز حسب المقطع';
 
   @override
   String get diveLog_detail_section_tags => 'الوسوم';
@@ -5625,8 +5386,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_section_weight => 'الأثقال';
 
   @override
-  String get diveLog_detail_signatureDescription =>
-      'انقر لإضافة توثيق المدرب لهذه الغوصة التدريبية';
+  String get diveLog_detail_signatureDescription => 'انقر لإضافة توثيق المدرب لهذه الغوصة التدريبية';
 
   @override
   String get diveLog_detail_soloDive => 'غوصة منفردة أو لم يتم تسجيل زملاء غوص';
@@ -5687,20 +5447,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_viewSite => 'عرض الموقع';
 
   @override
-  String get diveLog_diveMode_ccrDescription =>
-      'جهاز إعادة تنفس دائرة مغلقة بضغط ppO₂ ثابت';
+  String get diveLog_diveMode_ccrDescription => 'جهاز إعادة تنفس دائرة مغلقة بضغط ppO₂ ثابت';
 
   @override
-  String get diveLog_diveMode_gaugeDescription =>
-      'العمق والوقت فقط؛ بدون تتبع الغاز أو تخفيف الضغط';
+  String get diveLog_diveMode_gaugeDescription => 'العمق والوقت فقط؛ بدون تتبع الغاز أو تخفيف الضغط';
 
   @override
-  String get diveLog_diveMode_ocDescription =>
-      'غوص دائرة مفتوحة قياسي مع أسطوانات';
+  String get diveLog_diveMode_ocDescription => 'غوص دائرة مفتوحة قياسي مع أسطوانات';
 
   @override
-  String get diveLog_diveMode_scrDescription =>
-      'جهاز إعادة تنفس شبه مغلق بضغط ppO₂ متغير';
+  String get diveLog_diveMode_scrDescription => 'جهاز إعادة تنفس شبه مغلق بضغط ppO₂ متغير';
 
   @override
   String get diveLog_diveMode_title => 'وضع الغوص';
@@ -5780,8 +5536,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_edit_equipmentHint =>
-      'انقر \"استخدام طقم\" أو \"إضافة\" لاختيار المعدات';
+  String get diveLog_edit_equipmentHint => 'انقر \"استخدام طقم\" أو \"إضافة\" لاختيار المعدات';
 
   @override
   String diveLog_edit_errorLoadingDiveTypes(Object error) {
@@ -5816,16 +5571,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_invite_buddies => 'إضافة رفاق';
 
   @override
-  String get diveLog_edit_invite_conditions =>
-      'إضافة الظروف - الماء والرؤية والطقس';
+  String get diveLog_edit_invite_conditions => 'إضافة الظروف - الماء والرؤية والطقس';
 
   @override
-  String get diveLog_edit_invite_experience =>
-      'إضافة تقييم أو مشاهدات أو ملاحظات أو وسوم';
+  String get diveLog_edit_invite_experience => 'إضافة تقييم أو مشاهدات أو ملاحظات أو وسوم';
 
   @override
-  String get diveLog_edit_invite_gasGear =>
-      'إضافة الغاز والمعدات - الوضع والأسطوانات والمعدات والأثقال';
+  String get diveLog_edit_invite_gasGear => 'إضافة الغاز والمعدات - الوضع والأسطوانات والمعدات والأثقال';
 
   @override
   String get diveLog_edit_invite_trip => 'إضافة رحلة أو مركز غوص';
@@ -5921,8 +5673,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_planned_switch => 'غوصة مخططة';
 
   @override
-  String get diveLog_edit_planned_switchSubtitle =>
-      'في انتظار بيانات كمبيوتر الغوص. لا رقم للغوصة حتى يتم تسجيلها.';
+  String get diveLog_edit_planned_switchSubtitle => 'في انتظار بيانات كمبيوتر الغوص. لا رقم للغوصة حتى يتم تسجيلها.';
 
   @override
   String get diveLog_edit_profile_draw => 'رسم ملف الغوص';
@@ -6000,8 +5751,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_saveAsSetDialog_description => 'الوصف (اختياري)';
 
   @override
-  String get diveLog_edit_saveAsSetDialog_descriptionHint =>
-      'مثال: معدات خفيفة للمياه الدافئة';
+  String get diveLog_edit_saveAsSetDialog_descriptionHint => 'مثال: معدات خفيفة للمياه الدافئة';
 
   @override
   String diveLog_edit_saveAsSetDialog_error(Object error) {
@@ -6108,8 +5858,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_edit_snackbar_noProfileData =>
-      'لا تتوفر بيانات ملف الغوصة';
+  String get diveLog_edit_snackbar_noProfileData => 'لا تتوفر بيانات ملف الغوصة';
 
   @override
   String diveLog_edit_snackbar_runtimeCalculated(Object minutes) {
@@ -6117,20 +5866,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_edit_snackbar_unableToCalculateAvgDepth =>
-      'تعذر حساب متوسط العمق من الملف';
+  String get diveLog_edit_snackbar_unableToCalculateAvgDepth => 'تعذر حساب متوسط العمق من الملف';
 
   @override
-  String get diveLog_edit_snackbar_unableToCalculate =>
-      'تعذر حساب وقت القاع من الملف';
+  String get diveLog_edit_snackbar_unableToCalculate => 'تعذر حساب وقت القاع من الملف';
 
   @override
-  String get diveLog_edit_snackbar_unableToCalculateMaxDepth =>
-      'تعذر حساب أقصى عمق من الملف';
+  String get diveLog_edit_snackbar_unableToCalculateMaxDepth => 'تعذر حساب أقصى عمق من الملف';
 
   @override
-  String get diveLog_edit_snackbar_unableToCalculateRuntime =>
-      'تعذر حساب وقت التشغيل من الملف';
+  String get diveLog_edit_snackbar_unableToCalculateRuntime => 'تعذر حساب وقت التشغيل من الملف';
 
   @override
   String diveLog_edit_summary_items(int count) {
@@ -6177,8 +5922,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_surfacePressureDefault => '1013';
 
   @override
-  String get diveLog_edit_surfacePressureHint =>
-      'القياسي: 1013 mbar عند مستوى سطح البحر';
+  String get diveLog_edit_surfacePressureHint => 'القياسي: 1013 mbar عند مستوى سطح البحر';
 
   @override
   String get diveLog_edit_tankCard_done => 'تم';
@@ -6245,8 +5989,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_weightPreset_pickerTitle => 'تطبيق إعداد أوزان مسبق';
 
   @override
-  String get diveLog_edit_weightPreset_empty =>
-      'لم تحفظ أي إعدادات أوزان مسبقة بعد.';
+  String get diveLog_edit_weightPreset_empty => 'لم تحفظ أي إعدادات أوزان مسبقة بعد.';
 
   @override
   String diveLog_edit_weightPreset_summary(int count, Object total) {
@@ -6260,8 +6003,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_edit_weightPreset_applied =>
-      'تم تطبيق إعداد الأوزان. عدّل المدخلات حسب الحاجة.';
+  String get diveLog_edit_weightPreset_applied => 'تم تطبيق إعداد الأوزان. عدّل المدخلات حسب الحاجة.';
 
   @override
   String get diveLog_edit_weightPreset_saveTitle => 'حفظ الأوزان كإعداد مسبق';
@@ -6283,8 +6025,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_emptyFiltered_clearFilters => 'مسح عوامل التصفية';
 
   @override
-  String get diveLog_emptyFiltered_subtitle =>
-      'حاول تعديل أو مسح عوامل التصفية';
+  String get diveLog_emptyFiltered_subtitle => 'حاول تعديل أو مسح عوامل التصفية';
 
   @override
   String get diveLog_emptyFiltered_title => 'لا توجد غوصات تطابق عوامل التصفية';
@@ -6302,12 +6043,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_equipmentPicker_addFromTab => 'أضف معدات من تبويب المعدات';
 
   @override
-  String get diveLog_equipmentPicker_allSelected =>
-      'تم اختيار جميع المعدات بالفعل';
+  String get diveLog_equipmentPicker_allSelected => 'تم اختيار جميع المعدات بالفعل';
 
   @override
-  String get diveLog_equipmentPicker_allSpare =>
-      'المعدات المتبقية مصنفة كاحتياطية';
+  String get diveLog_equipmentPicker_allSpare => 'المعدات المتبقية مصنفة كاحتياطية';
 
   @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
@@ -6318,19 +6057,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_equipmentPicker_noEquipment => 'لا توجد معدات بعد';
 
   @override
-  String get diveLog_equipmentPicker_removeToAdd =>
-      'أزل عناصر لإضافة عناصر مختلفة';
+  String get diveLog_equipmentPicker_removeToAdd => 'أزل عناصر لإضافة عناصر مختلفة';
 
   @override
-  String get diveLog_equipmentPicker_spareHint =>
-      'غيّر حالة العنصر إلى نشط لإضافته إلى غطسة';
+  String get diveLog_equipmentPicker_spareHint => 'غيّر حالة العنصر إلى نشط لإضافته إلى غطسة';
 
   @override
   String get diveLog_equipmentPicker_title => 'إضافة معدات';
 
   @override
-  String get diveLog_equipmentSetPicker_createHint =>
-      'أنشئ أطقم في المعدات > الأطقم';
+  String get diveLog_equipmentSetPicker_createHint => 'أنشئ أطقم في المعدات > الأطقم';
 
   @override
   String get diveLog_equipmentSetPicker_emptySet => 'طقم فارغ';
@@ -6385,15 +6121,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_exportImage_saveToFiles => 'حفظ في الملفات';
 
   @override
-  String get diveLog_exportImage_saveToFilesDescription =>
-      'اختر موقعاً لحفظ الملف';
+  String get diveLog_exportImage_saveToFilesDescription => 'اختر موقعاً لحفظ الملف';
 
   @override
   String get diveLog_exportImage_saveToPhotos => 'حفظ في الصور';
 
   @override
-  String get diveLog_exportImage_saveToPhotosDescription =>
-      'حفظ الصورة في مكتبة الصور';
+  String get diveLog_exportImage_saveToPhotosDescription => 'حفظ الصورة في مكتبة الصور';
 
   @override
   String get diveLog_exportImage_savedToFiles => 'تم حفظ الصورة';
@@ -6434,8 +6168,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_export_pageAsImage => 'الصفحة كصورة';
 
   @override
-  String get diveLog_export_pageAsImageDescription =>
-      'لقطة شاشة لتفاصيل الغوصة بالكامل';
+  String get diveLog_export_pageAsImageDescription => 'لقطة شاشة لتفاصيل الغوصة بالكامل';
 
   @override
   String get diveLog_export_pdfDescription => 'صفحة سجل غوص قابلة للطباعة';
@@ -6447,8 +6180,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_export_profileAsImage => 'الملف كصورة';
 
   @override
-  String get diveLog_export_profileAsImageDescription =>
-      'لقطة شاشة لمخطط ملف الغوصة';
+  String get diveLog_export_profileAsImageDescription => 'لقطة شاشة لمخطط ملف الغوصة';
 
   @override
   String get diveLog_export_success => 'تم تصدير الغوصة بنجاح';
@@ -6628,8 +6360,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_fullscreenProfile_close => 'إغلاق ملء الشاشة';
 
   @override
-  String get diveLog_fullscreenProfile_readoutHint =>
-      'مرر المؤشر أو اسحب فوق ملف الغوصة';
+  String get diveLog_fullscreenProfile_readoutHint => 'مرر المؤشر أو اسحب فوق ملف الغوصة';
 
   @override
   String diveLog_fullscreenProfile_title(Object number) {
@@ -6751,12 +6482,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'ضغوط الأسطوانات';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport =>
-      'إبقاء الطبقات الإضافية ضمن العرض';
+  String get diveLog_chartOption_metricsFollowViewport => 'إبقاء الطبقات الإضافية ضمن العرض';
 
   @override
-  String get diveLog_chartOption_tooltipFollowsCursor =>
-      'تلميح الأداة يتبع المؤشر';
+  String get diveLog_chartOption_tooltipFollowsCursor => 'تلميح الأداة يتبع المؤشر';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(تقديري)';
@@ -6773,12 +6502,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_listPage_bottomSheet_importFromComputer =>
-      'استيراد من حاسوب الغوص';
+  String get diveLog_listPage_bottomSheet_importFromComputer => 'استيراد من حاسوب الغوص';
 
   @override
-  String get diveLog_listPage_bottomSheet_scanPaperLog =>
-      'مسح دفتر السجل الورقي';
+  String get diveLog_listPage_bottomSheet_scanPaperLog => 'مسح دفتر السجل الورقي';
 
   @override
   String get ocrImport_scanPage_processing => 'جارٍ قراءة الصفحة...';
@@ -6790,16 +6517,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ocrImport_scanPage_takePhoto => 'التقاط صورة';
 
   @override
-  String get ocrImport_scanPage_nothingRead =>
-      'تعذرت قراءة الكثير من هذه الصفحة - تُركت الحقول فارغة';
+  String get ocrImport_scanPage_nothingRead => 'تعذرت قراءة الكثير من هذه الصفحة - تُركت الحقول فارغة';
 
   @override
-  String get ocrImport_scanPage_engineMissing =>
-      'التعرف على النص غير متوفر. ثبّت Tesseract لمسح السجلات الورقية (مثلاً: sudo apt install tesseract-ocr).';
+  String get ocrImport_scanPage_engineMissing => 'التعرف على النص غير متوفر. ثبّت Tesseract لمسح السجلات الورقية (مثلاً: sudo apt install tesseract-ocr).';
 
   @override
-  String get ocrImport_editPage_photoAttachFailed =>
-      'تم حفظ الغطسة، لكن فشل إرفاق الصفحة الممسوحة';
+  String get ocrImport_editPage_photoAttachFailed => 'تم حفظ الغطسة، لكن فشل إرفاق الصفحة الممسوحة';
 
   @override
   String get diveLog_listPage_bottomSheet_logManually => 'تسجيل غوصة يدويا';
@@ -6808,8 +6532,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_listPage_bottomSheet_planDive => 'التخطيط لغوصة';
 
   @override
-  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
-      'أدخل التفاصيل الآن وأضف بيانات كمبيوتر الغوص لاحقا';
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle => 'أدخل التفاصيل الآن وأضف بيانات كمبيوتر الغوص لاحقا';
 
   @override
   String get diveLog_listPage_fab_addDive => 'اضافة غوصة';
@@ -6847,8 +6570,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_fetchConditions_confirmAction => 'جلب';
 
   @override
-  String get diveLog_fetchConditions_noneNeeded =>
-      'لا توجد غطسات تنقصها الظروف.';
+  String get diveLog_fetchConditions_noneNeeded => 'لا توجد غطسات تنقصها الظروف.';
 
   @override
   String get diveLog_fetchConditions_progressTitle => 'جارٍ جلب الظروف';
@@ -7041,16 +6763,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_typeTags_typesLabel => 'أنواع الموقع';
 
   @override
-  String get diveSites_edit_invite_accessSafety =>
-      'إضافة الوصول أو المواقف أو المرساة أو المخاطر';
+  String get diveSites_edit_invite_accessSafety => 'إضافة الوصول أو المواقف أو المرساة أو المخاطر';
 
   @override
-  String get diveSites_edit_invite_diveInfo =>
-      'إضافة نطاق العمق أو الصعوبة أو التقييم';
+  String get diveSites_edit_invite_diveInfo => 'إضافة نطاق العمق أو الصعوبة أو التقييم';
 
   @override
-  String get diveSites_edit_invite_lifeNotes =>
-      'إضافة الأنواع أو الملاحظات أو المشاركة';
+  String get diveSites_edit_invite_lifeNotes => 'إضافة الأنواع أو الملاحظات أو المشاركة';
 
   @override
   String get diveSites_edit_invite_location => 'إضافة إحداثيات GPS أو الارتفاع';
@@ -7065,8 +6784,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get forms_cancel => 'إلغاء';
 
   @override
-  String get forms_discard_body =>
-      'لديك تغييرات غير محفوظة. إذا غادرت الآن فستفقد.';
+  String get forms_discard_body => 'لديك تغييرات غير محفوظة. إذا غادرت الآن فستفقد.';
 
   @override
   String get forms_discard_discard => 'تجاهل';
@@ -7095,8 +6813,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_manage_setupAssistant => 'مساعد الإعداد';
 
   @override
-  String get settings_manage_setupAssistant_subtitle =>
-      'مراجعة الوحدات والمظهر وخيارات النسخ الاحتياطي';
+  String get settings_manage_setupAssistant_subtitle => 'مراجعة الوحدات والمظهر وخيارات النسخ الاحتياطي';
 
   @override
   String get setup_backup_cloudCopy => 'تخزين النسخ الاحتياطية في السحابة';
@@ -7114,8 +6831,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setup_backup_frequency_weekly => 'أسبوعيًا';
 
   @override
-  String get setup_backup_scheduleSubtitle =>
-      'انسخ بياناتك احتياطيًا وفق جدول زمني';
+  String get setup_backup_scheduleSubtitle => 'انسخ بياناتك احتياطيًا وفق جدول زمني';
 
   @override
   String get setup_backup_scheduleToggle => 'نسخ احتياطي تلقائي';
@@ -7136,26 +6852,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setup_common_skip => 'تخطي';
 
   @override
-  String get setup_existing_folder_subtitle =>
-      'وجّه Submersion إلى مجلد يحتوي بالفعل على مكتبة';
+  String get setup_existing_folder_subtitle => 'وجّه Submersion إلى مجلد يحتوي بالفعل على مكتبة';
 
   @override
   String get setup_existing_folder_title => 'فتح مجلد موجود';
 
   @override
-  String get setup_existing_restore_subtitle =>
-      'اختر ملف نسخ احتياطي تم تصديره من Submersion';
+  String get setup_existing_restore_subtitle => 'اختر ملف نسخ احتياطي تم تصديره من Submersion';
 
   @override
   String get setup_existing_restore_title => 'استعادة ملف نسخ احتياطي';
 
   @override
-  String get setup_existing_subtitle =>
-      'اختر طريقة تحميل مكتبة Submersion الحالية';
+  String get setup_existing_subtitle => 'اختر طريقة تحميل مكتبة Submersion الحالية';
 
   @override
-  String get setup_existing_sync_subtitle =>
-      'اسحب مكتبتك من iCloud أو Dropbox أو S3';
+  String get setup_existing_sync_subtitle => 'اسحب مكتبتك من iCloud أو Dropbox أو S3';
 
   @override
   String get setup_existing_sync_title => 'توصيل مزامنة السحابة';
@@ -7172,15 +6884,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get setup_finish_feature_diveComputer =>
-      'نزّل الغوصات من كمبيوتر الغوص';
+  String get setup_finish_feature_diveComputer => 'نزّل الغوصات من كمبيوتر الغوص';
 
   @override
   String get setup_finish_feature_gear => 'تتبّع المعدات ومواعيد الصيانة';
 
   @override
-  String get setup_finish_feature_import =>
-      'استورد السجلات من الملفات والتطبيقات الأخرى';
+  String get setup_finish_feature_import => 'استورد السجلات من الملفات والتطبيقات الأخرى';
 
   @override
   String get setup_finish_feature_sites => 'اعرض مواقع الغوص على الخريطة';
@@ -7198,8 +6908,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setup_finish_title => 'كل شيء جاهز';
 
   @override
-  String get setup_folder_notFound_message =>
-      'المجلد المحدد لا يحتوي على قاعدة بيانات Submersion.';
+  String get setup_folder_notFound_message => 'المجلد المحدد لا يحتوي على قاعدة بيانات Submersion.';
 
   @override
   String get setup_folder_notFound_title => 'لا توجد مكتبة في هذا المجلد';
@@ -7223,8 +6932,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setup_profile_nameValidation => 'الرجاء إدخال اسمك';
 
   @override
-  String get setup_profile_subtitle =>
-      'أدخل اسمك للبدء. يمكنك إضافة المزيد من التفاصيل لاحقاً.';
+  String get setup_profile_subtitle => 'أدخل اسمك للبدء. يمكنك إضافة المزيد من التفاصيل لاحقاً.';
 
   @override
   String get setup_profile_title => 'إنشاء ملفك الشخصي';
@@ -7254,8 +6962,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setup_syncPull_continue => 'متابعة';
 
   @override
-  String get setup_syncPull_incomplete_message =>
-      'يحتوي هذا الحساب على مكتبة Submersion لم يكتمل رفعها. دع جهازك الآخر ينهي المزامنة ثم أعد المحاولة.';
+  String get setup_syncPull_incomplete_message => 'يحتوي هذا الحساب على مكتبة Submersion لم يكتمل رفعها. دع جهازك الآخر ينهي المزامنة ثم أعد المحاولة.';
 
   @override
   String get setup_syncPull_incomplete_retry => 'تحقق مرة أخرى';
@@ -7264,15 +6971,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setup_syncPull_incomplete_title => 'لم يكتمل رفع المكتبة';
 
   @override
-  String get setup_syncPull_locked_message =>
-      'أدخل عبارة مرور التشفير لفتح هذه المكتبة وتنزيلها على هذا الجهاز.';
+  String get setup_syncPull_locked_message => 'أدخل عبارة مرور التشفير لفتح هذه المكتبة وتنزيلها على هذا الجهاز.';
 
   @override
   String get setup_syncPull_locked_title => 'هذه المكتبة مشفّرة';
 
   @override
-  String get setup_syncPull_noLibrary_message =>
-      'لم يتم العثور على مكتبة Submersion في هذا الحساب. هل تبدأ من جديد؟ سيتم الاحتفاظ باتصالك.';
+  String get setup_syncPull_noLibrary_message => 'لم يتم العثور على مكتبة Submersion في هذا الحساب. هل تبدأ من جديد؟ سيتم الاحتفاظ باتصالك.';
 
   @override
   String get setup_syncPull_noLibrary_title => 'لم يتم العثور على مكتبة';
@@ -7309,8 +7014,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setup_sync_libraryFound_keepFresh => 'البدء من جديد';
 
   @override
-  String get setup_sync_libraryFound_message =>
-      'يحتوي هذا الحساب بالفعل على مكتبة Submersion. هل تريد اعتمادها بدلًا من البدء من جديد؟';
+  String get setup_sync_libraryFound_message => 'يحتوي هذا الحساب بالفعل على مكتبة Submersion. هل تريد اعتمادها بدلًا من البدء من جديد؟';
 
   @override
   String get setup_sync_libraryFound_title => 'تم العثور على مكتبة موجودة';
@@ -7349,8 +7053,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setup_units_gasConsumption => 'استهلاك الغاز';
 
   @override
-  String get setup_units_subtitle =>
-      'اختر كيفية عرض القياسات. يمكنك ضبط كل وحدة.';
+  String get setup_units_subtitle => 'اختر كيفية عرض القياسات. يمكنك ضبط كل وحدة.';
 
   @override
   String get setup_units_temperature => 'درجة الحرارة';
@@ -7368,19 +7071,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setup_units_weight => 'الوزن';
 
   @override
-  String get setup_welcome_existingData_subtitle =>
-      'استعد نسخة احتياطية، أو صِل مزامنة السحابة، أو افتح مجلدًا موجودًا';
+  String get setup_welcome_existingData_subtitle => 'استعد نسخة احتياطية، أو صِل مزامنة السحابة، أو افتح مجلدًا موجودًا';
 
   @override
-  String get setup_welcome_existingData_title =>
-      'لديّ بيانات Submersion موجودة';
+  String get setup_welcome_existingData_title => 'لديّ بيانات Submersion موجودة';
 
   @override
   String get setup_welcome_skipSetup => 'تخطي الإعداد';
 
   @override
-  String get setup_welcome_startFresh_subtitle =>
-      'أنشئ ملف الغواص الخاص بك واضبط التطبيق';
+  String get setup_welcome_startFresh_subtitle => 'أنشئ ملف الغواص الخاص بك واضبط التطبيق';
 
   @override
   String get setup_welcome_startFresh_title => 'إعداد ملف تعريف جديد';
@@ -7447,8 +7147,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'يستخدم $count مواقع \"$name\". سيؤدي حذفه إلى إزالته من تلك المواقع.',
+      other: 'يستخدم $count مواقع \"$name\". سيؤدي حذفه إلى إزالته من تلك المواقع.',
       one: 'يستخدم موقع واحد \"$name\". سيؤدي حذفه إلى إزالته من ذلك الموقع.',
     );
     return '$_temp0';
@@ -7685,15 +7384,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_listPage_searchSuggestion =>
-      'البحث حسب الموقع أو زميل الغوص أو الملاحظات';
+  String get diveLog_listPage_searchSuggestion => 'البحث حسب الموقع أو زميل الغوص أو الملاحظات';
 
   @override
   String get diveLog_listPage_tooltip_back => 'رجوع';
 
   @override
-  String get diveLog_listPage_tooltip_backToDiveList =>
-      'العودة إلى قائمة الغوصات';
+  String get diveLog_listPage_tooltip_backToDiveList => 'العودة إلى قائمة الغوصات';
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'مسح البحث';
@@ -7717,8 +7414,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_listPage_unknownSite => 'موقع غير معروف';
 
   @override
-  String get diveLog_map_emptySubtitle =>
-      'سجّل غوصات مع بيانات الموقع لرؤية نشاطك على الخريطة';
+  String get diveLog_map_emptySubtitle => 'سجّل غوصات مع بيانات الموقع لرؤية نشاطك على الخريطة';
 
   @override
   String get diveLog_map_emptyTitle => 'لا يوجد نشاط غوص لعرضه';
@@ -7741,8 +7437,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_numbering_assignMissing => 'تعيين الأرقام المفقودة';
 
   @override
-  String get diveLog_numbering_assignMissingDesc =>
-      'ترقيم الغوصات غير المرقمة بدءاً من بعد آخر غوصة مرقمة';
+  String get diveLog_numbering_assignMissingDesc => 'ترقيم الغوصات غير المرقمة بدءاً من بعد آخر غوصة مرقمة';
 
   @override
   String get diveLog_numbering_close => 'إغلاق';
@@ -7762,15 +7457,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_numbering_renumberAll => 'إعادة ترقيم جميع الغوصات';
 
   @override
-  String get diveLog_numbering_renumberAllDesc =>
-      'تعيين أرقام متسلسلة بناءً على تاريخ/وقت الغوصة';
+  String get diveLog_numbering_renumberAllDesc => 'تعيين أرقام متسلسلة بناءً على تاريخ/وقت الغوصة';
 
   @override
   String get diveLog_numbering_renumberDialog_cancel => 'إلغاء';
 
   @override
-  String get diveLog_numbering_renumberDialog_content =>
-      'سيتم إعادة ترقيم جميع الغوصات بشكل متسلسل بناءً على تاريخ/وقت الدخول. لا يمكن التراجع عن هذا الإجراء.';
+  String get diveLog_numbering_renumberDialog_content => 'سيتم إعادة ترقيم جميع الغوصات بشكل متسلسل بناءً على تاريخ/وقت الدخول. لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String get diveLog_numbering_renumberDialog_renumber => 'إعادة الترقيم';
@@ -7779,12 +7472,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_numbering_renumberDialog_startFrom => 'البدء من الرقم';
 
   @override
-  String get diveLog_numbering_renumberDialog_title =>
-      'إعادة ترقيم جميع الغوصات';
+  String get diveLog_numbering_renumberDialog_title => 'إعادة ترقيم جميع الغوصات';
 
   @override
-  String get diveLog_numbering_snackbar_assigned =>
-      'تم تعيين أرقام الغوصات المفقودة';
+  String get diveLog_numbering_snackbar_assigned => 'تم تعيين أرقام الغوصات المفقودة';
 
   @override
   String diveLog_numbering_snackbar_renumbered(Object number) {
@@ -7855,8 +7546,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_o2tox_semantics_criticalWarning =>
-      'تحذير حرج لسمية الأكسجين';
+  String get diveLog_o2tox_semantics_criticalWarning => 'تحذير حرج لسمية الأكسجين';
 
   @override
   String diveLog_o2tox_semantics_otu(Object value, Object percent) {
@@ -7907,12 +7597,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_profile_rightAxis_none => 'لا شيء';
 
   @override
-  String get diveLog_profile_semantics_changeRightAxis =>
-      'تغيير مقياس المحور الأيمن';
+  String get diveLog_profile_semantics_changeRightAxis => 'تغيير مقياس المحور الأيمن';
 
   @override
-  String get diveLog_profile_semantics_chart =>
-      'مخطط ملف الغوصة، قم بالتكبير بالضم';
+  String get diveLog_profile_semantics_chart => 'مخطط ملف الغوصة، قم بالتكبير بالضم';
 
   @override
   String get diveLog_profile_semantics_photoMarker => 'علامة صورة';
@@ -8155,8 +7843,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_selection_tooltip_selectAll => 'تحديد الكل';
 
   @override
-  String get diveLog_selection_tooltip_selectDateRange =>
-      'التحديد حسب نطاق التاريخ';
+  String get diveLog_selection_tooltip_selectDateRange => 'التحديد حسب نطاق التاريخ';
 
   @override
   String get diveLog_sighting_add => 'إضافة';
@@ -8184,8 +7871,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_sitePicker_sortedByDiveDistance =>
-      'مرتبة حسب المسافة من هذه الغطسة';
+  String get diveLog_sitePicker_sortedByDiveDistance => 'مرتبة حسب المسافة من هذه الغطسة';
 
   @override
   String diveLog_sitePicker_distanceMeters(Object distance) {
@@ -8358,12 +8044,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_saveAsPreset => 'حفظ كإعداد مسبق';
 
   @override
-  String get diveLog_tank_saveAsPreset_needSpecs =>
-      'أدخل الحجم وضغط العمل أولاً';
+  String get diveLog_tank_saveAsPreset_needSpecs => 'أدخل الحجم وضغط العمل أولاً';
 
   @override
-  String get diveLog_tank_saveAsPreset_nameTitle =>
-      'حفظ إعداد الأسطوانة المسبق';
+  String get diveLog_tank_saveAsPreset_nameTitle => 'حفظ إعداد الأسطوانة المسبق';
 
   @override
   String get diveLog_tank_saveAsPreset_nameHint => 'مثال: AL80 خاصتي';
@@ -8546,8 +8230,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_sources_splitDialog_title => 'فصل إلى غطسة منفصلة؟';
 
   @override
-  String get diveLog_sources_splitDialog_body =>
-      'سيتم نقل ملف العمق والأحداث والأسطوانات الخاصة بهذا المصدر إلى غطسة جديدة. يبقى سجل الغطسة على هذه الغطسة.';
+  String get diveLog_sources_splitDialog_body => 'سيتم نقل ملف العمق والأحداث والأسطوانات الخاصة بهذا المصدر إلى غطسة جديدة. يبقى سجل الغطسة على هذه الغطسة.';
 
   @override
   String get diveLog_sources_splitDialog_confirm => 'فصل';
@@ -8617,8 +8300,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_action_savePlan => 'حفظ الخطة';
 
   @override
-  String get divePlanner_error_cannotConvert =>
-      'لا يمكن التحويل: الخطة تحتوي على تحذيرات حرجة';
+  String get divePlanner_error_cannotConvert => 'لا يمكن التحويل: الخطة تحتوي على تحذيرات حرجة';
 
   @override
   String get divePlanner_error_reserveExceedsTank => 'يتجاوز ضغط الأسطوانة';
@@ -8635,8 +8317,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_field_bailoutGas => 'غاز الطوارئ';
 
   @override
-  String get divePlanner_field_bailoutGasHint =>
-      'غاز الدائرة المفتوحة المحمول في حال تعطل الدائرة';
+  String get divePlanner_field_bailoutGasHint => 'غاز الدائرة المفتوحة المحمول في حال تعطل الدائرة';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -8679,8 +8360,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_label_altitude => 'الارتفاع:';
 
   @override
-  String get divePlanner_label_belowMinReserve =>
-      'أقل من الحد الأدنى للاحتياطي';
+  String get divePlanner_label_belowMinReserve => 'أقل من الحد الأدنى للاحتياطي';
 
   @override
   String get divePlanner_label_ceiling => 'السقف';
@@ -8757,8 +8437,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'RMV factor';
 
   @override
-  String get divePlanner_gasOptions_problemSolvingMinutes =>
-      'Problem solving time';
+  String get divePlanner_gasOptions_problemSolvingMinutes => 'Problem solving time';
 
   @override
   String get divePlanner_gasOptions_ppO2Bottom => 'Bottom ppO₂';
@@ -8770,8 +8449,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_gasOptions_bestMixEnd => 'Best mix END';
 
   @override
-  String get divePlanner_gasOptions_o2Narcotic =>
-      'Treat O₂ as narcotic for this plan';
+  String get divePlanner_gasOptions_o2Narcotic => 'Treat O₂ as narcotic for this plan';
 
   @override
   String get divePlanner_label_status => 'الحالة';
@@ -8798,8 +8476,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_savedTanks_manage => 'إدارة';
 
   @override
-  String get divePlanner_savedTanks_empty =>
-      'لا توجد أسطوانات محفوظة بعد. احفظ أسطوانة من هذه الخطة لإعادة استخدامها في خطط أخرى.';
+  String get divePlanner_savedTanks_empty => 'لا توجد أسطوانات محفوظة بعد. احفظ أسطوانة من هذه الخطة لإعادة استخدامها في خطط أخرى.';
 
   @override
   String get divePlanner_label_time => 'الوقت';
@@ -8832,16 +8509,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_legend_safety => 'السلامة';
 
   @override
-  String get divePlanner_message_addSegmentsForGas =>
-      'أضف مقاطع لرؤية توقعات الغاز';
+  String get divePlanner_message_addSegmentsForGas => 'أضف مقاطع لرؤية توقعات الغاز';
 
   @override
-  String get divePlanner_message_addSegmentsForProfile =>
-      'أضف مقاطع لرؤية ملف الغطسة';
+  String get divePlanner_message_addSegmentsForProfile => 'أضف مقاطع لرؤية ملف الغطسة';
 
   @override
-  String get divePlanner_message_convertingPlan =>
-      'جارٍ تحويل الخطة إلى غطسة...';
+  String get divePlanner_message_convertingPlan => 'جارٍ تحويل الخطة إلى غطسة...';
 
   @override
   String get divePlanner_message_noProfile => 'لا يوجد ملف للعرض';
@@ -8858,8 +8532,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_message_planSaved => 'تم حفظ الخطة';
 
   @override
-  String get divePlanner_message_resetConfirmation =>
-      'هل أنت متأكد من إعادة تعيين الخطة؟';
+  String get divePlanner_message_resetConfirmation => 'هل أنت متأكد من إعادة تعيين الخطة؟';
 
   @override
   String divePlanner_semantics_criticalWarning(Object message) {
@@ -8867,30 +8540,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String divePlanner_semantics_decoStop(
-    Object depth,
-    Object duration,
-    Object gasMix,
-  ) {
+  String divePlanner_semantics_decoStop(Object depth, Object duration, Object gasMix) {
     return 'توقف تخفيف ضغط عند $depth لمدة $duration على $gasMix';
   }
 
   @override
-  String divePlanner_semantics_gasConsumption(
-    Object tankName,
-    Object gasUsed,
-    Object remaining,
-    Object percent,
-    Object warning,
-  ) {
+  String divePlanner_semantics_gasConsumption(Object tankName, Object gasUsed, Object remaining, Object percent, Object warning) {
     return '$tankName: $gasUsed مستخدم، $remaining متبقي، $percent مستخدم$warning';
   }
 
   @override
-  String divePlanner_semantics_profileChart(
-    Object maxDepth,
-    Object totalMinutes,
-  ) {
+  String divePlanner_semantics_profileChart(Object maxDepth, Object totalMinutes) {
     return 'خطة الغوص، أقصى عمق $maxDepth، إجمالي الوقت $totalMinutes دقيقة';
   }
 
@@ -8909,8 +8569,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_tab_results => 'النتائج';
 
   @override
-  String get divePlanner_warning_ascentRateHigh =>
-      'معدل الصعود يتجاوز الحد الآمن';
+  String get divePlanner_warning_ascentRateHigh => 'معدل الصعود يتجاوز الحد الآمن';
 
   @override
   String divePlanner_warning_ascentRateHighWithRate(Object rate) {
@@ -8947,16 +8606,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_warning_gasOut => 'الأسطوانة ستكون فارغة';
 
   @override
-  String get divePlanner_warning_minGasViolation =>
-      'لم يتم الحفاظ على الحد الأدنى للغاز الاحتياطي';
+  String get divePlanner_warning_minGasViolation => 'لم يتم الحفاظ على الحد الأدنى للغاز الاحتياطي';
 
   @override
-  String get divePlanner_warning_modViolation =>
-      'تم محاولة تبديل الغاز فوق MOD';
+  String get divePlanner_warning_modViolation => 'تم محاولة تبديل الغاز فوق MOD';
 
   @override
-  String get divePlanner_warning_ndlExceeded =>
-      'الغطسة تدخل التزام تخفيف الضغط';
+  String get divePlanner_warning_ndlExceeded => 'الغطسة تدخل التزام تخفيف الضغط';
 
   @override
   String get divePlanner_warning_otuWarning => 'تراكم OTU مرتفع';
@@ -9014,8 +8670,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_detail_altitude_pressure => 'الضغط';
 
   @override
-  String get diveSites_detail_coordinatesCopied =>
-      'تم نسخ الإحداثيات إلى الحافظة';
+  String get diveSites_detail_coordinatesCopied => 'تم نسخ الإحداثيات إلى الحافظة';
 
   @override
   String get diveSites_detail_deleteDialog_cancel => 'إلغاء';
@@ -9024,8 +8679,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_detail_deleteDialog_confirm => 'حذف';
 
   @override
-  String get diveSites_detail_deleteDialog_content =>
-      'هل أنت متأكد من حذف هذا الموقع؟ لا يمكن التراجع عن هذا الإجراء.';
+  String get diveSites_detail_deleteDialog_content => 'هل أنت متأكد من حذف هذا الموقع؟ لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String get diveSites_detail_deleteDialog_title => 'حذف الموقع';
@@ -9187,12 +8841,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveSites_detail_semantics_viewDivesAtSite =>
-      'عرض الغوصات في هذا الموقع';
+  String get diveSites_detail_semantics_viewDivesAtSite => 'عرض الغوصات في هذا الموقع';
 
   @override
-  String get diveSites_detail_semantics_viewFullscreenMap =>
-      'عرض الخريطة بملء الشاشة';
+  String get diveSites_detail_semantics_viewFullscreenMap => 'عرض الخريطة بملء الشاشة';
 
   @override
   String get diveSites_detail_siteNotFound_body => 'هذا الموقع لم يعد موجوداً.';
@@ -9213,8 +8865,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_difficulty_technical => 'تقني';
 
   @override
-  String get diveSites_edit_access_accessNotes_hint =>
-      'كيفية الوصول إلى الموقع، نقاط الدخول والخروج، الوصول من الشاطئ أو القارب';
+  String get diveSites_edit_access_accessNotes_hint => 'كيفية الوصول إلى الموقع، نقاط الدخول والخروج، الوصول من الشاطئ أو القارب';
 
   @override
   String get diveSites_edit_access_accessNotes_label => 'ملاحظات الوصول';
@@ -9226,8 +8877,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_access_mooringNumber_label => 'رقم المرسى';
 
   @override
-  String get diveSites_edit_access_parkingInfo_hint =>
-      'توفر مواقف السيارات، الرسوم، النصائح';
+  String get diveSites_edit_access_parkingInfo_hint => 'توفر مواقف السيارات، الرسوم، النصائح';
 
   @override
   String get diveSites_edit_access_parkingInfo_label => 'معلومات موقف السيارات';
@@ -9239,11 +8889,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_access_exitMethod_label => 'طريقة الخروج';
 
   @override
-  String diveSites_edit_access_entrySuggestionPair(
-    int count,
-    String entry,
-    String exit,
-  ) {
+  String diveSites_edit_access_entrySuggestionPair(int count, String entry, String exit) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -9254,10 +8900,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String diveSites_edit_access_entrySuggestionEntryOnly(
-    int count,
-    String entry,
-  ) {
+  String diveSites_edit_access_entrySuggestionEntryOnly(int count, String entry) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -9274,8 +8917,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_detail_access_exitMethod => 'الخروج';
 
   @override
-  String get diveSites_edit_altitude_helperText =>
-      'ارتفاع الموقع فوق مستوى سطح البحر (للغوص على ارتفاعات)';
+  String get diveSites_edit_altitude_helperText => 'ارتفاع الموقع فوق مستوى سطح البحر (للغوص على ارتفاعات)';
 
   @override
   String get diveSites_edit_altitude_hint => 'مثال: 2000';
@@ -9319,8 +8961,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_cancel => 'إلغاء';
 
   @override
-  String get diveSites_edit_depth_helperText =>
-      'من أقل نقطة عمقاً إلى أعمق نقطة';
+  String get diveSites_edit_depth_helperText => 'من أقل نقطة عمقاً إلى أعمق نقطة';
 
   @override
   String get diveSites_edit_depth_maxHint => 'مثال: 30';
@@ -9342,8 +8983,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_depth_separator => 'إلى';
 
   @override
-  String get diveSites_edit_discardDialog_content =>
-      'لديك تغييرات غير محفوظة. هل أنت متأكد من المغادرة؟';
+  String get diveSites_edit_discardDialog_content => 'لديك تغييرات غير محفوظة. هل أنت متأكد من المغادرة؟';
 
   @override
   String get diveSites_edit_discardDialog_discard => 'تجاهل';
@@ -9388,8 +9028,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_field_siteName_label => 'اسم الموقع *';
 
   @override
-  String get diveSites_edit_field_siteName_validation =>
-      'يرجى إدخال اسم الموقع';
+  String get diveSites_edit_field_siteName_validation => 'يرجى إدخال اسم الموقع';
 
   @override
   String diveSites_similarSite_useHint(Object siteName) {
@@ -9405,8 +9044,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_gps_gettingLocation => 'جارٍ الحصول على الموقع...';
 
   @override
-  String get diveSites_edit_gps_helperText =>
-      'اختر طريقة لتحديد الموقع أو ابحث عن الإحداثيات لملء البلد والمنطقة والبلدة والمسطح المائي تلقائيًا';
+  String get diveSites_edit_gps_helperText => 'اختر طريقة لتحديد الموقع أو ابحث عن الإحداثيات لملء البلد والمنطقة والبلدة والمسطح المائي تلقائيًا';
 
   @override
   String get diveSites_edit_gps_latitude_hint => 'مثال: 21.4225';
@@ -9433,19 +9071,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_gps_lookupFromCoordinates => 'البحث من الإحداثيات';
 
   @override
-  String get diveSites_edit_snackbar_lookupNothingFound =>
-      'لم يتم العثور على تفاصيل موقع لهذه الإحداثيات';
+  String get diveSites_edit_snackbar_lookupNothingFound => 'لم يتم العثور على تفاصيل موقع لهذه الإحداثيات';
 
   @override
-  String get diveSites_edit_snackbar_lookupFailed =>
-      'فشل البحث عن الموقع. تحقق من الاتصال وحاول مرة أخرى.';
+  String get diveSites_edit_snackbar_lookupFailed => 'فشل البحث عن الموقع. تحقق من الاتصال وحاول مرة أخرى.';
 
   @override
   String get diveSites_edit_lookupReplace_title => 'استبدال تفاصيل الموقع؟';
 
   @override
-  String get diveSites_edit_lookupReplace_body =>
-      'عثر البحث على قيم مختلفة لهذه الحقول:';
+  String get diveSites_edit_lookupReplace_body => 'عثر البحث على قيم مختلفة لهذه الحقول:';
 
   @override
   String get diveSites_edit_lookupReplace_replace => 'استبدال';
@@ -9457,12 +9092,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_gps_useMyLocation => 'استخدام موقعي';
 
   @override
-  String get diveSites_edit_hazards_helperText =>
-      'أدرج أي مخاطر أو اعتبارات سلامة';
+  String get diveSites_edit_hazards_helperText => 'أدرج أي مخاطر أو اعتبارات سلامة';
 
   @override
-  String get diveSites_edit_hazards_hint =>
-      'مثال: تيارات قوية، حركة قوارب، قناديل بحر، شعاب مرجانية حادة';
+  String get diveSites_edit_hazards_hint => 'مثال: تيارات قوية، حركة قوارب، قناديل بحر، شعاب مرجانية حادة';
 
   @override
   String get diveSites_edit_hazards_label => 'المخاطر';
@@ -9474,8 +9107,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_marineLife_empty => 'لم يتم إضافة أنواع متوقعة';
 
   @override
-  String get diveSites_edit_marineLife_helperText =>
-      'الأنواع التي تتوقع رؤيتها في هذا الموقع';
+  String get diveSites_edit_marineLife_helperText => 'الأنواع التي تتوقع رؤيتها في هذا الموقع';
 
   @override
   String diveSites_edit_merge_confirmBody(int count) {
@@ -9486,25 +9118,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_merge_confirmTitle => 'دمج المواقع';
 
   @override
-  String get diveSites_edit_merge_fieldSourceCycleTooltip =>
-      'استخدام القيمة من الموقع المحدد التالي';
+  String get diveSites_edit_merge_fieldSourceCycleTooltip => 'استخدام القيمة من الموقع المحدد التالي';
 
   @override
-  String diveSites_edit_merge_fieldSourceLabel(
-    Object siteName,
-    int current,
-    int total,
-  ) {
+  String diveSites_edit_merge_fieldSourceLabel(Object siteName, int current, int total) {
     return 'من $siteName ($current/$total)';
   }
 
   @override
-  String get diveSites_edit_merge_fieldSourceMenuTooltip =>
-      'حدد القيمة من الموقع المحدد';
+  String get diveSites_edit_merge_fieldSourceMenuTooltip => 'حدد القيمة من الموقع المحدد';
 
   @override
-  String get diveSites_edit_merge_marineLifeHelperText =>
-      'مجمّعة من جميع المواقع المحددة';
+  String get diveSites_edit_merge_marineLifeHelperText => 'مجمّعة من جميع المواقع المحددة';
 
   @override
   String diveSites_edit_merge_loadingErrorBody(Object error) {
@@ -9515,8 +9140,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_merge_loadingErrorTitle => 'دمج المواقع';
 
   @override
-  String get diveSites_edit_merge_notEnoughBody =>
-      'عدد المواقع غير كافٍ للدمج.';
+  String get diveSites_edit_merge_notEnoughBody => 'عدد المواقع غير كافٍ للدمج.';
 
   @override
   String get diveSites_edit_merge_notEnoughTitle => 'دمج المواقع';
@@ -9581,19 +9205,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveSites_edit_snackbar_locationSelectedFromMap =>
-      'تم اختيار الموقع من الخريطة';
+  String get diveSites_edit_snackbar_locationSelectedFromMap => 'تم اختيار الموقع من الخريطة';
 
   @override
   String get diveSites_edit_snackbar_locationSettings => 'الإعدادات';
 
   @override
-  String get diveSites_edit_snackbar_locationUnavailableDesktop =>
-      'تعذر الحصول على الموقع. قد لا تكون خدمات الموقع متاحة.';
+  String get diveSites_edit_snackbar_locationUnavailableDesktop => 'تعذر الحصول على الموقع. قد لا تكون خدمات الموقع متاحة.';
 
   @override
-  String get diveSites_edit_snackbar_locationUnavailableMobile =>
-      'تعذر الحصول على الموقع. يرجى التحقق من الأذونات.';
+  String get diveSites_edit_snackbar_locationUnavailableMobile => 'تعذر الحصول على الموقع. يرجى التحقق من الأذونات.';
 
   @override
   String get diveSites_edit_snackbar_siteAdded => 'تمت إضافة الموقع';
@@ -9641,16 +9262,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_filter_difficulty_any => 'أي مستوى';
 
   @override
-  String get diveSites_filter_option_hasCoordinates_subtitle =>
-      'إظهار المواقع ذات الإحداثيات فقط';
+  String get diveSites_filter_option_hasCoordinates_subtitle => 'إظهار المواقع ذات الإحداثيات فقط';
 
   @override
-  String get diveSites_filter_option_hasCoordinates_title =>
-      'يحتوي على إحداثيات';
+  String get diveSites_filter_option_hasCoordinates_title => 'يحتوي على إحداثيات';
 
   @override
-  String get diveSites_filter_option_hasDives_subtitle =>
-      'إظهار المواقع ذات الغوصات المسجلة فقط';
+  String get diveSites_filter_option_hasDives_subtitle => 'إظهار المواقع ذات الغوصات المسجلة فقط';
 
   @override
   String get diveSites_filter_option_hasDives_title => 'يحتوي على غوصات';
@@ -9717,12 +9335,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveSites_import_empty_description =>
-      'ابحث عن مواقع الغوص من قاعدة بياناتنا لوجهات\nالغوص الشهيرة حول العالم.';
+  String get diveSites_import_empty_description => 'ابحث عن مواقع الغوص من قاعدة بياناتنا لوجهات\nالغوص الشهيرة حول العالم.';
 
   @override
-  String get diveSites_import_empty_hint =>
-      'جرّب البحث باسم الموقع أو الدولة أو المنطقة.';
+  String get diveSites_import_empty_hint => 'جرّب البحث باسم الموقع أو الدولة أو المنطقة.';
 
   @override
   String get diveSites_import_empty_title => 'البحث عن مواقع الغوص';
@@ -9737,8 +9353,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_import_error_unknown => 'خطأ غير معروف';
 
   @override
-  String get diveSites_import_externalSite_locationUnknown =>
-      'الموقع غير معروف';
+  String get diveSites_import_externalSite_locationUnknown => 'الموقع غير معروف';
 
   @override
   String get diveSites_import_label_gps => 'GPS';
@@ -9776,8 +9391,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_import_search_clearTooltip => 'مسح البحث';
 
   @override
-  String get diveSites_import_search_hint =>
-      'البحث عن مواقع الغوص (مثال: \"الحفرة الزرقاء\"، \"تايلاند\")';
+  String get diveSites_import_search_hint => 'البحث عن مواقع الغوص (مثال: \"الحفرة الزرقاء\"، \"تايلاند\")';
 
   @override
   String diveSites_import_section_importFromDatabase(Object count) {
@@ -9910,12 +9524,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_list_emptyFiltered_clearAll => 'مسح جميع الفلاتر';
 
   @override
-  String get diveSites_list_emptyFiltered_subtitle =>
-      'جرّب تعديل أو مسح الفلاتر';
+  String get diveSites_list_emptyFiltered_subtitle => 'جرّب تعديل أو مسح الفلاتر';
 
   @override
-  String get diveSites_list_emptyFiltered_title =>
-      'لا توجد مواقع تطابق الفلاتر';
+  String get diveSites_list_emptyFiltered_title => 'لا توجد مواقع تطابق الفلاتر';
 
   @override
   String get diveSites_list_empty_addFirstSite => 'أضف موقعك الأول';
@@ -9924,8 +9536,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_list_empty_import => 'استيراد';
 
   @override
-  String get diveSites_list_empty_subtitle =>
-      'أضف مواقع الغوص لتتبع أماكنك المفضلة';
+  String get diveSites_list_empty_subtitle => 'أضف مواقع الغوص لتتبع أماكنك المفضلة';
 
   @override
   String get diveSites_list_empty_title => 'لا توجد مواقع غوص بعد';
@@ -9945,8 +9556,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_list_menu_select => 'تحديد المواقع';
 
   @override
-  String get diveSites_list_menu_fillLocationDetails =>
-      'إكمال تفاصيل الموقع الناقصة';
+  String get diveSites_list_menu_fillLocationDetails => 'إكمال تفاصيل الموقع الناقصة';
 
   @override
   String get diveSites_backfill_confirm_title => 'إكمال تفاصيل الموقع الناقصة؟';
@@ -9956,10 +9566,8 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          '$count مواقع غوص لها إحداثيات ينقصها البلد أو المنطقة أو البلدة أو المسطح المائي.',
-      one:
-          'موقع غوص واحد له إحداثيات ينقصه البلد أو المنطقة أو البلدة أو المسطح المائي.',
+      other: '$count مواقع غوص لها إحداثيات ينقصها البلد أو المنطقة أو البلدة أو المسطح المائي.',
+      one: 'موقع غوص واحد له إحداثيات ينقصه البلد أو المنطقة أو البلدة أو المسطح المائي.',
     );
     String _temp1 = intl.Intl.pluralLogic(
       minutes,
@@ -9975,8 +9583,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_backfill_confirm_start => 'بدء';
 
   @override
-  String get diveSites_backfill_nothingToFill =>
-      'كل مواقع الغوص التي لها إحداثيات لديها تفاصيل الموقع بالفعل.';
+  String get diveSites_backfill_nothingToFill => 'كل مواقع الغوص التي لها إحداثيات لديها تفاصيل الموقع بالفعل.';
 
   @override
   String get diveSites_backfill_progress_title => 'جارٍ إكمال تفاصيل الموقع';
@@ -9995,8 +9602,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveSites_backfill_offline =>
-      'البحث عن الموقع غير متاح. تحقق من الاتصال وحاول مرة أخرى.';
+  String get diveSites_backfill_offline => 'البحث عن الموقع غير متاح. تحقق من الاتصال وحاول مرة أخرى.';
 
   @override
   String get diveSites_list_menu_refreshPlaceNames => 'تحديث أسماء الأماكن';
@@ -10005,11 +9611,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_refresh_confirm_title => 'تحديث أسماء الأماكن؟';
 
   @override
-  String diveSites_refresh_confirm_body(
-    int count,
-    String language,
-    int minutes,
-  ) {
+  String diveSites_refresh_confirm_body(int count, String language, int minutes) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -10038,8 +9640,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_list_search_clearTooltip => 'مسح البحث';
 
   @override
-  String get diveSites_list_search_emptyHint =>
-      'البحث باسم الموقع أو الدولة أو المنطقة';
+  String get diveSites_list_search_emptyHint => 'البحث باسم الموقع أو الدولة أو المنطقة';
 
   @override
   String diveSites_list_search_error(Object error) {
@@ -10118,16 +9719,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_locationPicker_fab_tooltip => 'استخدام موقعي';
 
   @override
-  String get diveSites_locationPicker_instruction_locationSelected =>
-      'تم تحديد الموقع';
+  String get diveSites_locationPicker_instruction_locationSelected => 'تم تحديد الموقع';
 
   @override
-  String get diveSites_locationPicker_instruction_lookingUp =>
-      'جارٍ البحث عن الموقع...';
+  String get diveSites_locationPicker_instruction_lookingUp => 'جارٍ البحث عن الموقع...';
 
   @override
-  String get diveSites_locationPicker_instruction_tapToSelect =>
-      'اضغط على الخريطة لتحديد موقع';
+  String get diveSites_locationPicker_instruction_tapToSelect => 'اضغط على الخريطة لتحديد موقع';
 
   @override
   String get diveSites_locationPicker_label_latitude => 'خط العرض';
@@ -10136,20 +9734,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_locationPicker_label_longitude => 'خط الطول';
 
   @override
-  String diveSites_locationPicker_semantics_coordinates(
-    Object latitude,
-    Object longitude,
-  ) {
+  String diveSites_locationPicker_semantics_coordinates(Object latitude, Object longitude) {
     return 'الإحداثيات المحددة: خط العرض $latitude، خط الطول $longitude';
   }
 
   @override
-  String get diveSites_locationPicker_semantics_lookingUp =>
-      'جارٍ البحث عن الموقع';
+  String get diveSites_locationPicker_semantics_lookingUp => 'جارٍ البحث عن الموقع';
 
   @override
-  String get diveSites_locationPicker_semantics_map =>
-      'خريطة تفاعلية لاختيار موقع غوص. اضغط على الخريطة لتحديد موقع.';
+  String get diveSites_locationPicker_semantics_map => 'خريطة تفاعلية لاختيار موقع غوص. اضغط على الخريطة لتحديد موقع.';
 
   @override
   String diveSites_mapContent_error_loadingDiveSites(Object error) {
@@ -10163,8 +9756,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_map_builtInSites_add => 'إضافة إلى مواقعي';
 
   @override
-  String get diveSites_map_builtInSites_addError =>
-      'تعذّر إضافة الموقع. يرجى المحاولة مرة أخرى.';
+  String get diveSites_map_builtInSites_addError => 'تعذّر إضافة الموقع. يرجى المحاولة مرة أخرى.';
 
   @override
   String get diveSites_map_builtInSites_added => 'تمت الإضافة إلى مواقعك';
@@ -10182,8 +9774,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_map_builtInSites_show => 'إظهار المواقع المدمجة';
 
   @override
-  String get diveSites_map_empty_description =>
-      'أضف إحداثيات لمواقع الغوص لرؤيتها على الخريطة';
+  String get diveSites_map_empty_description => 'أضف إحداثيات لمواقع الغوص لرؤيتها على الخريطة';
 
   @override
   String get diveSites_map_empty_title => 'لا توجد مواقع بإحداثيات';
@@ -10238,8 +9829,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveSites_summary_header_subtitle =>
-      'اختر موقعاً من القائمة لعرض التفاصيل';
+  String get diveSites_summary_header_subtitle => 'اختر موقعاً من القائمة لعرض التفاصيل';
 
   @override
   String get diveSites_summary_header_title => 'مواقع الغوص';
@@ -10388,8 +9978,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveTypes_addDialog_nameValidation => 'الرجاء إدخال اسم';
 
   @override
-  String get diveTypes_addDialog_shortNameHelper =>
-      'يظهر في رأس تفاصيل الغطسة عند ضيق المساحة';
+  String get diveTypes_addDialog_shortNameHelper => 'يظهر في رأس تفاصيل الغطسة عند ضيق المساحة';
 
   @override
   String get diveTypes_addDialog_shortNameHint => 'مثال: ب.إ';
@@ -10430,8 +10019,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveTypes_deleteTooltip => 'حذف نوع الغوص';
 
   @override
-  String get diveTypes_editDialog_builtInNameHelper =>
-      'لا يمكن تغيير الأسماء المدمجة';
+  String get diveTypes_editDialog_builtInNameHelper => 'لا يمكن تغيير الأسماء المدمجة';
 
   @override
   String get diveTypes_editDialog_saveButton => 'حفظ';
@@ -10443,15 +10031,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveTypes_showInHeaderLabel => 'الترويسة';
 
   @override
-  String get diveTypes_showInHeaderTooltip =>
-      'إظهار شارة هذا النوع في ترويسة تفاصيل الغطسة';
+  String get diveTypes_showInHeaderTooltip => 'إظهار شارة هذا النوع في ترويسة تفاصيل الغطسة';
 
   @override
   String get diveTypes_showInListLabel => 'القائمة';
 
   @override
-  String get diveTypes_showInListTooltip =>
-      'إظهار شارة هذا النوع في قائمة الغطسات';
+  String get diveTypes_showInListTooltip => 'إظهار شارة هذا النوع في قائمة الغطسات';
 
   @override
   String diveTypes_snackbar_added(Object name) {
@@ -10492,12 +10078,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divelogsImport_fetch_button => 'جلب سجل الغوص';
 
   @override
-  String get divelogsImport_fetch_certificationsUnavailable =>
-      'تعذّر جلب الشهادات ولن يتم استيرادها.';
+  String get divelogsImport_fetch_certificationsUnavailable => 'تعذّر جلب الشهادات ولن يتم استيرادها.';
 
   @override
-  String get divelogsImport_fetch_empty =>
-      'لا يوجد في سجل divelogs.de الخاص بك ما يمكن استيراده.';
+  String get divelogsImport_fetch_empty => 'لا يوجد في سجل divelogs.de الخاص بك ما يمكن استيراده.';
 
   @override
   String get divelogsImport_fetch_failedTitle => 'تعذّر جلب سجلك';
@@ -10536,15 +10120,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get divelogsImport_fetch_gearUnavailable =>
-      'تعذّر جلب المعدات؛ سيتم استيراد الغوصات بدون روابط المعدات.';
+  String get divelogsImport_fetch_gearUnavailable => 'تعذّر جلب المعدات؛ سيتم استيراد الغوصات بدون روابط المعدات.';
 
   @override
   String get divelogsImport_fetch_includePhotos => 'تضمين الصور';
 
   @override
-  String get divelogsImport_fetch_includePhotosHint =>
-      'يتم تنزيل الصور أثناء الاستيراد إلى مجلد تختاره.';
+  String get divelogsImport_fetch_includePhotosHint => 'يتم تنزيل الصور أثناء الاستيراد إلى مجلد تختاره.';
 
   @override
   String divelogsImport_fetch_listingPhotos(int current, int total) {
@@ -10569,8 +10151,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divelogsImport_fetch_retry => 'إعادة المحاولة';
 
   @override
-  String get divelogsImport_fetch_sessionExpired =>
-      'انتهت صلاحية جلستك على divelogs.de. عُد وسجّل الدخول مرة أخرى.';
+  String get divelogsImport_fetch_sessionExpired => 'انتهت صلاحية جلستك على divelogs.de. عُد وسجّل الدخول مرة أخرى.';
 
   @override
   String divelogsImport_fetch_skippedDives(int count) {
@@ -10587,15 +10168,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get divelogsImport_signIn_badCredentials =>
-      'رفض divelogs.de اسم المستخدم أو كلمة المرور.';
+  String get divelogsImport_signIn_badCredentials => 'رفض divelogs.de اسم المستخدم أو كلمة المرور.';
 
   @override
   String get divelogsImport_signIn_button => 'تسجيل الدخول';
 
   @override
-  String get divelogsImport_signIn_description =>
-      'سجّل الدخول بحساب divelogs.de الخاص بك لاستيراد سجلك. لا يتم تخزين كلمة المرور مطلقًا، بل يتم تخزين الجلسة الناتجة مؤقتًا فقط.';
+  String get divelogsImport_signIn_description => 'سجّل الدخول بحساب divelogs.de الخاص بك لاستيراد سجلك. لا يتم تخزين كلمة المرور مطلقًا، بل يتم تخزين الجلسة الناتجة مؤقتًا فقط.';
 
   @override
   String get divelogsImport_signIn_passwordLabel => 'كلمة المرور';
@@ -10618,12 +10197,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divelogsImport_signIn_title => 'تسجيل الدخول إلى divelogs.de';
 
   @override
-  String get divelogsImport_signIn_unexpected =>
-      'أرسل divelogs.de استجابة غير متوقعة. حاول مرة أخرى لاحقًا.';
+  String get divelogsImport_signIn_unexpected => 'أرسل divelogs.de استجابة غير متوقعة. حاول مرة أخرى لاحقًا.';
 
   @override
-  String get divelogsImport_signIn_unreachable =>
-      'تعذّر الوصول إلى divelogs.de. تحقق من الاتصال وحاول مرة أخرى.';
+  String get divelogsImport_signIn_unreachable => 'تعذّر الوصول إلى divelogs.de. تحقق من الاتصال وحاول مرة أخرى.';
 
   @override
   String get divelogsImport_signIn_usernameLabel => 'اسم المستخدم';
@@ -10762,12 +10339,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divers_edit_cancelButton => 'إلغاء';
 
   @override
-  String get divers_edit_clearInsuranceExpiryTooltip =>
-      'مسح تاريخ انتهاء التأمين';
+  String get divers_edit_clearInsuranceExpiryTooltip => 'مسح تاريخ انتهاء التأمين';
 
   @override
-  String get divers_edit_clearMedicalClearanceTooltip =>
-      'مسح تاريخ التصريح الطبي';
+  String get divers_edit_clearMedicalClearanceTooltip => 'مسح تاريخ التصريح الطبي';
 
   @override
   String get divers_edit_contactNameLabel => 'اسم جهة الاتصال';
@@ -10779,8 +10354,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divers_edit_discardButton => 'تجاهل';
 
   @override
-  String get divers_edit_discardDialogContent =>
-      'لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد تجاهلها؟';
+  String get divers_edit_discardDialogContent => 'لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد تجاهلها؟';
 
   @override
   String get divers_edit_discardDialogTitle => 'تجاهل التغييرات؟';
@@ -10820,15 +10394,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divers_edit_expiryDateTitle => 'تاريخ الانتهاء';
 
   @override
-  String get divers_edit_insuranceEmergencyPhoneHelper =>
-      'يظهر أولاً في بطاقة الطوارئ الخاصة بك.';
+  String get divers_edit_insuranceEmergencyPhoneHelper => 'يظهر أولاً في بطاقة الطوارئ الخاصة بك.';
 
   @override
   String get divers_edit_insuranceEmergencyPhoneHint => 'مثال: +1 919 684 9111';
 
   @override
-  String get divers_edit_insuranceEmergencyPhoneLabel =>
-      'رقم المساعدة الطارئة على مدار 24 ساعة';
+  String get divers_edit_insuranceEmergencyPhoneLabel => 'رقم المساعدة الطارئة على مدار 24 ساعة';
 
   @override
   String get divers_edit_insurancePhoneLabel => 'رقم مكتب شركة التأمين';
@@ -10894,8 +10466,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divers_edit_primaryContactTitle => 'جهة الاتصال الأساسية';
 
   @override
-  String get divers_edit_relationshipHint =>
-      'مثال: زوج/زوجة، أحد الوالدين، صديق';
+  String get divers_edit_relationshipHint => 'مثال: زوج/زوجة، أحد الوالدين، صديق';
 
   @override
   String get divers_edit_relationshipLabel => 'صلة القرابة';
@@ -10907,12 +10478,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divers_edit_secondaryContactTitle => 'جهة الاتصال الثانوية';
 
   @override
-  String get divers_edit_selectInsuranceExpiryTooltip =>
-      'اختيار تاريخ انتهاء التأمين';
+  String get divers_edit_selectInsuranceExpiryTooltip => 'اختيار تاريخ انتهاء التأمين';
 
   @override
-  String get divers_edit_selectMedicalClearanceTooltip =>
-      'اختيار تاريخ التصريح الطبي';
+  String get divers_edit_selectMedicalClearanceTooltip => 'اختيار تاريخ التصريح الطبي';
 
   @override
   String get divers_edit_updateButton => 'تحديث الغواص';
@@ -10932,8 +10501,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get divers_list_emptySubtitle =>
-      'أضف ملفات غواصين لتتبع سجلات الغوص لعدة أشخاص';
+  String get divers_list_emptySubtitle => 'أضف ملفات غواصين لتتبع سجلات الغوص لعدة أشخاص';
 
   @override
   String get divers_list_emptyTitle => 'لا يوجد غواصون بعد';
@@ -11127,12 +10695,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_certificationLevel_cmas4StarDiver => 'غواص أربع نجمات';
 
   @override
-  String get enum_certificationLevel_cmas3StarDiverAssistantInstructor =>
-      'غواص ثلاث نجمات - مساعد مدرب';
+  String get enum_certificationLevel_cmas3StarDiverAssistantInstructor => 'غواص ثلاث نجمات - مساعد مدرب';
 
   @override
-  String get enum_certificationLevel_cmas4StarDiverAssistantInstructor =>
-      'غواص أربع نجمات - مساعد مدرب';
+  String get enum_certificationLevel_cmas4StarDiverAssistantInstructor => 'غواص أربع نجمات - مساعد مدرب';
 
   @override
   String get enum_certificationLevel_cmas1StarInstructor => 'مدرب نجمة واحدة';
@@ -11159,16 +10725,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_certificationLevel_bsacFirstClassDiver => 'First Class Diver';
 
   @override
-  String get enum_certificationLevel_bsacOpenWaterInstructor =>
-      'Open Water Instructor';
+  String get enum_certificationLevel_bsacOpenWaterInstructor => 'Open Water Instructor';
 
   @override
-  String get enum_certificationLevel_bsacAdvancedInstructor =>
-      'Advanced Instructor';
+  String get enum_certificationLevel_bsacAdvancedInstructor => 'Advanced Instructor';
 
   @override
-  String get enum_certificationLevel_bsacNationalInstructor =>
-      'National Instructor';
+  String get enum_certificationLevel_bsacNationalInstructor => 'National Instructor';
 
   @override
   String get enum_certificationLevel_gueFundamentals => 'Fundamentals';
@@ -11492,29 +11055,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_pdfTemplate_detailed => 'مفصّل';
 
   @override
-  String get enum_pdfTemplate_detailed_description =>
-      'معلومات غوصة كاملة مع ملاحظات وتقييمات';
+  String get enum_pdfTemplate_detailed_description => 'معلومات غوصة كاملة مع ملاحظات وتقييمات';
 
   @override
   String get enum_pdfTemplate_nauiStyle => 'نمط NAUI';
 
   @override
-  String get enum_pdfTemplate_nauiStyle_description =>
-      'تخطيط مطابق لتنسيق سجل NAUI';
+  String get enum_pdfTemplate_nauiStyle_description => 'تخطيط مطابق لتنسيق سجل NAUI';
 
   @override
   String get enum_pdfTemplate_padiStyle => 'نمط PADI';
 
   @override
-  String get enum_pdfTemplate_padiStyle_description =>
-      'تخطيط مطابق لتنسيق سجل PADI';
+  String get enum_pdfTemplate_padiStyle_description => 'تخطيط مطابق لتنسيق سجل PADI';
 
   @override
   String get enum_pdfTemplate_simple => 'بسيط';
 
   @override
-  String get enum_pdfTemplate_simple_description =>
-      'تنسيق جدول مضغوط، غوصات عديدة في كل صفحة';
+  String get enum_pdfTemplate_simple_description => 'تنسيق جدول مضغوط، غوصات عديدة في كل صفحة';
 
   @override
   String get enum_profileEvent_alert => 'تنبيه';
@@ -12019,8 +11578,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_service_trackO2Clean => 'متابعة تنظيف الأكسجين';
 
   @override
-  String get passport_service_trackFailed =>
-      'تعذّر بدء متابعة تنظيف الأكسجين. حاول مرة أخرى.';
+  String get passport_service_trackFailed => 'تعذّر بدء متابعة تنظيف الأكسجين. حاول مرة أخرى.';
 
   @override
   String passport_service_lastDone(String date) {
@@ -12109,8 +11667,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get passport_tag_stale =>
-      'كُتبت البطاقة قبل آخر صيانة أو تغيير في المواصفات. أعد طباعتها.';
+  String get passport_tag_stale => 'كُتبت البطاقة قبل آخر صيانة أو تغيير في المواصفات. أعد طباعتها.';
 
   @override
   String get passport_tag_printLabel => 'طباعة الملصق';
@@ -12172,11 +11729,470 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_logFill_notes => 'ملاحظات';
 
   @override
-  String get passport_logFill_invalidMix =>
-      'يجب أن يكون كل من O2 وHe بين 0 و100 وألا يتجاوز مجموعهما 100';
+  String get passport_logFill_invalidMix => 'يجب أن يكون كل من O2 وHe بين 0 و100 وألا يتجاوز مجموعهما 100';
 
   @override
   String get passport_logFill_saveFailed => 'تعذّر حفظ التعبئة. حاول مرة أخرى.';
+
+  @override
+  String get pdf_unknownSite => 'Unknown Site';
+
+  @override
+  String get pdf_signaturePlaceholder => '[Signature]';
+
+  @override
+  String get pdf_signerBuddy => 'Buddy';
+
+  @override
+  String get pdf_signerInstructor => 'Instructor';
+
+  @override
+  String get pdf_officialStamp => 'Official Stamp';
+
+  @override
+  String get pdf_certifications => 'Certifications';
+
+  @override
+  String pdf_cardNumber(String number) {
+    return 'Card #: $number';
+  }
+
+  @override
+  String pdf_certIssued(String date) {
+    return 'Issued: $date';
+  }
+
+  @override
+  String pdf_certExpires(String date) {
+    return 'Expires: $date';
+  }
+
+  @override
+  String get pdf_cardFront => 'Front';
+
+  @override
+  String get pdf_cardBack => 'Back';
+
+  @override
+  String pdf_coverDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Dives',
+      one: '$count Dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_headerDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '$count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_generatedOn(String dateTime) {
+    return 'Generated on $dateTime';
+  }
+
+  @override
+  String pdf_generated(String dateTime) {
+    return 'Generated $dateTime';
+  }
+
+  @override
+  String get pdf_noDivesToSummarize => 'No dives to summarize';
+
+  @override
+  String get pdf_noDivesToDisplay => 'No dives to display';
+
+  @override
+  String get pdf_summary => 'Summary';
+
+  @override
+  String get pdf_totalDives => 'Total Dives';
+
+  @override
+  String get pdf_firstDive => 'First Dive';
+
+  @override
+  String get pdf_lastDive => 'Last Dive';
+
+  @override
+  String get pdf_totalDiveTime => 'Total Dive Time';
+
+  @override
+  String get pdf_deepestDive => 'Deepest Dive';
+
+  @override
+  String get pdf_averageDepth => 'Average Depth';
+
+  @override
+  String get pdf_uniqueSites => 'Unique Sites';
+
+  @override
+  String pdf_hoursMinutes(String hours, String minutes) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String pdf_minutesShort(String minutes) {
+    return '${minutes}m';
+  }
+
+  @override
+  String pdf_minutes(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String pdf_minutesCompact(String minutes) {
+    return '${minutes}min';
+  }
+
+  @override
+  String get pdf_diverProfile => 'Diver Profile';
+
+  @override
+  String get pdf_name => 'Name';
+
+  @override
+  String get pdf_email => 'Email';
+
+  @override
+  String get pdf_photo => 'Photo';
+
+  @override
+  String pdf_depthProfileHeading(String depthUnit) {
+    return 'Depth Profile ($depthUnit vs min)';
+  }
+
+  @override
+  String get pdf_columnDate => 'Date';
+
+  @override
+  String get pdf_columnSite => 'Site';
+
+  @override
+  String get pdf_columnDepth => 'Depth';
+
+  @override
+  String get pdf_columnTime => 'Time';
+
+  @override
+  String get pdf_columnTemp => 'Temp';
+
+  @override
+  String pdf_pageOf(String page, String total) {
+    return 'Page $page of $total';
+  }
+
+  @override
+  String get pdf_sectionProfile => 'Profile';
+
+  @override
+  String get pdf_sectionCylinders => 'Cylinders';
+
+  @override
+  String get pdf_sectionConditions => 'Conditions';
+
+  @override
+  String get pdf_sectionWeather => 'Weather';
+
+  @override
+  String get pdf_sectionTeam => 'Team';
+
+  @override
+  String get pdf_sectionEquipment => 'Equipment';
+
+  @override
+  String get pdf_sectionTechnical => 'Technical';
+
+  @override
+  String get pdf_sectionMarineLife => 'Marine Life';
+
+  @override
+  String get pdf_sectionNotes => 'Notes';
+
+  @override
+  String get pdf_sectionAdditionalFields => 'Additional Fields';
+
+  @override
+  String get pdf_sectionVerifiedBy => 'Verified By';
+
+  @override
+  String get pdf_sectionVerification => 'Verification';
+
+  @override
+  String get pdf_maxDepth => 'Max Depth';
+
+  @override
+  String get pdf_avgDepth => 'Avg Depth';
+
+  @override
+  String get pdf_runtime => 'Runtime';
+
+  @override
+  String get pdf_bottomTime => 'Bottom Time';
+
+  @override
+  String get pdf_timeIn => 'In';
+
+  @override
+  String get pdf_timeOut => 'Out';
+
+  @override
+  String get pdf_surfaceInterval => 'Surface Interval';
+
+  @override
+  String get pdf_sac => 'SAC';
+
+  @override
+  String get pdf_rmv => 'RMV';
+
+  @override
+  String pdf_pressureUsed(String pressure) {
+    return '$pressure used';
+  }
+
+  @override
+  String pdf_cylinderNumber(String number) {
+    return 'Cylinder $number';
+  }
+
+  @override
+  String get pdf_waterTemp => 'Water Temp';
+
+  @override
+  String get pdf_airTemp => 'Air Temp';
+
+  @override
+  String get pdf_visibility => 'Visibility';
+
+  @override
+  String get pdf_current => 'Current';
+
+  @override
+  String get pdf_currentDirection => 'Current Dir';
+
+  @override
+  String get pdf_waterType => 'Water Type';
+
+  @override
+  String get pdf_entry => 'Entry';
+
+  @override
+  String get pdf_exit => 'Exit';
+
+  @override
+  String get pdf_altitude => 'Altitude';
+
+  @override
+  String get pdf_buddy => 'Buddy';
+
+  @override
+  String get pdf_diveMaster => 'Dive Master';
+
+  @override
+  String get pdf_diveCenter => 'Dive Center';
+
+  @override
+  String get pdf_trip => 'Trip';
+
+  @override
+  String get pdf_weight => 'Weight';
+
+  @override
+  String get pdf_weightType => 'Weight Type';
+
+  @override
+  String pdf_equipmentSets(int count, String Set, String Sets) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Sets',
+      one: 'Set',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pdf_computer => 'Computer';
+
+  @override
+  String get pdf_diveMode => 'Dive Mode';
+
+  @override
+  String get pdf_algorithm => 'Algorithm';
+
+  @override
+  String get pdf_gradientFactors => 'Gradient Factors';
+
+  @override
+  String get pdf_setpoint => 'Setpoint';
+
+  @override
+  String get pdf_diveType => 'Dive Type';
+
+  @override
+  String get pdf_weatherConditions => 'Conditions';
+
+  @override
+  String get pdf_wind => 'Wind';
+
+  @override
+  String get pdf_windDirection => 'Wind Dir';
+
+  @override
+  String get pdf_cloud => 'Cloud';
+
+  @override
+  String get pdf_precipitation => 'Precipitation';
+
+  @override
+  String get pdf_humidity => 'Humidity';
+
+  @override
+  String get pdf_swell => 'Swell';
+
+  @override
+  String get pdf_instructorSignature => 'Instructor Signature';
+
+  @override
+  String get pdf_buddySignature => 'Buddy Signature';
+
+  @override
+  String get pdf_diveLogBanner => 'DIVE LOG';
+
+  @override
+  String get pdf_loggedDives => 'Logged Dives';
+
+  @override
+  String pdf_diveNumber(String number) {
+    return 'Dive #$number';
+  }
+
+  @override
+  String get pdf_trainingBadge => 'TRAINING';
+
+  @override
+  String get pdf_gas => 'Gas';
+
+  @override
+  String get pdf_visibilityShort => 'Vis';
+
+  @override
+  String get pdf_air => 'Air';
+
+  @override
+  String get pdf_water => 'Water';
+
+  @override
+  String get pdf_verifiedBy => 'Verified by';
+
+  @override
+  String get pdf_nauiDiveLogBanner => 'NAUI DIVE LOG';
+
+  @override
+  String get pdf_statDives => 'Dives';
+
+  @override
+  String get pdf_statHours => 'Hours';
+
+  @override
+  String get pdf_avgShort => 'Avg';
+
+  @override
+  String get pdf_pressureStart => 'Start';
+
+  @override
+  String get pdf_pressureEnd => 'End';
+
+  @override
+  String pdf_surfaceIntervalShort(String minutes) {
+    return 'SI: ${minutes}min';
+  }
+
+  @override
+  String get pdf_diveDataHeading => 'DIVE DATA';
+
+  @override
+  String get pdf_verificationHeading => 'VERIFICATION';
+
+  @override
+  String pdf_labelValue(String label, String value) {
+    return '$label: $value';
+  }
+
+  @override
+  String get pdf_resort => 'Resort';
+
+  @override
+  String get pdf_liveaboard => 'Liveaboard';
+
+  @override
+  String get pdf_totalRuntime => 'Total Runtime';
+
+  @override
+  String pdf_tripDiveTitle(String number) {
+    return 'Dive $number';
+  }
+
+  @override
+  String get pdf_date => 'Date';
+
+  @override
+  String get pdf_site => 'Site';
+
+  @override
+  String get pdf_duration => 'Duration';
+
+  @override
+  String get pdf_notesLabel => 'Notes:';
+
+  @override
+  String get pdf_trainingLog => 'Training Log';
+
+  @override
+  String get pdf_instructor => 'Instructor';
+
+  @override
+  String get pdf_instructorNumber => 'Instructor #';
+
+  @override
+  String get pdf_location => 'Location';
+
+  @override
+  String get pdf_startDate => 'Start Date';
+
+  @override
+  String get pdf_completionDate => 'Completion Date';
+
+  @override
+  String get pdf_status => 'Status';
+
+  @override
+  String get pdf_statusCompleted => 'Completed';
+
+  @override
+  String get pdf_statusInProgress => 'In Progress';
+
+  @override
+  String get pdf_trainingDives => 'Training Dives';
+
+  @override
+  String get pdf_totalMinutes => 'Total Minutes';
+
+  @override
+  String get pdf_courseNotes => 'Course Notes';
+
+  @override
+  String get pdf_slateMax => 'max';
 
   @override
   String equipment_bulkTags_confirmAdding(int count) {
@@ -12260,8 +12276,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_deleteDialog_confirm => 'حذف';
 
   @override
-  String get equipment_deleteDialog_content =>
-      'هل أنت متأكد من حذف هذه المعدات؟ لا يمكن التراجع عن هذا الإجراء.';
+  String get equipment_deleteDialog_content => 'هل أنت متأكد من حذف هذه المعدات؟ لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String get equipment_deleteDialog_title => 'حذف المعدات';
@@ -12296,8 +12311,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_divesLabel => 'الغوصات';
 
   @override
-  String get equipment_detail_divesSemanticLabel =>
-      'عرض الغوصات باستخدام هذه المعدات';
+  String get equipment_detail_divesSemanticLabel => 'عرض الغوصات باستخدام هذه المعدات';
 
   @override
   String equipment_detail_durationDays(Object days) {
@@ -12310,34 +12324,22 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String equipment_detail_durationYearsMonthsPluralPlural(
-    Object years,
-    Object months,
-  ) {
+  String equipment_detail_durationYearsMonthsPluralPlural(Object years, Object months) {
     return '$years سنوات، $months أشهر';
   }
 
   @override
-  String equipment_detail_durationYearsMonthsPluralSingular(
-    Object years,
-    Object months,
-  ) {
+  String equipment_detail_durationYearsMonthsPluralSingular(Object years, Object months) {
     return '$years سنوات، $months شهر';
   }
 
   @override
-  String equipment_detail_durationYearsMonthsSingularPlural(
-    Object years,
-    Object months,
-  ) {
+  String equipment_detail_durationYearsMonthsSingularPlural(Object years, Object months) {
     return '$years سنة، $months أشهر';
   }
 
   @override
-  String equipment_detail_durationYearsMonthsSingularSingular(
-    Object years,
-    Object months,
-  ) {
+  String equipment_detail_durationYearsMonthsSingularSingular(Object years, Object months) {
     return '$years سنة، $months شهر';
   }
 
@@ -12381,8 +12383,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_nextServiceDueLabel => 'موعد الصيانة القادمة';
 
   @override
-  String get equipment_detail_notFoundMessage =>
-      'عنصر المعدات هذا لم يعد موجوداً.';
+  String get equipment_detail_notFoundMessage => 'عنصر المعدات هذا لم يعد موجوداً.';
 
   @override
   String get equipment_detail_notFoundTitle => 'المعدات غير موجودة';
@@ -12441,8 +12442,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_serviceClocks_empty => 'لا توجد عدادات صيانة';
 
   @override
-  String get equipment_serviceClocks_unconfigured =>
-      'لم يتم تعيين فترة - انقر للإعداد';
+  String get equipment_serviceClocks_unconfigured => 'لم يتم تعيين فترة - انقر للإعداد';
 
   @override
   String equipment_serviceClocks_dueOn(String date) {
@@ -12468,11 +12468,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_divesUsedAndLeft(
-    int used,
-    int remaining,
-    int total,
-  ) {
+  String equipment_serviceClocks_divesUsedAndLeft(int used, int remaining, int total) {
     return '$used غوصة، متبقٍ $remaining من $total غوصة';
   }
 
@@ -12483,8 +12479,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cylinderConfigs_empty => 'لا توجد إعدادات بعد';
 
   @override
-  String get cylinderConfigs_emptyBody =>
-      'احفظ إعداد المخفف والبديل مرة واحدة ثم طبّقه على أي غوصة.';
+  String get cylinderConfigs_emptyBody => 'احفظ إعداد المخفف والبديل مرة واحدة ثم طبّقه على أي غوصة.';
 
   @override
   String get cylinderConfigs_new => 'إعداد جديد';
@@ -12523,8 +12518,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cylinderConfigs_deleteTitle => 'حذف الإعداد؟';
 
   @override
-  String get cylinderConfigs_deleteBody =>
-      'لن تتغير الغوصات التي طُبّق عليها بالفعل.';
+  String get cylinderConfigs_deleteBody => 'لن تتغير الغوصات التي طُبّق عليها بالفعل.';
 
   @override
   String get cylinderConfigs_applyAction => 'تطبيق إعداد';
@@ -12552,8 +12546,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get cylinderConfigs_applyNothingToDo =>
-      'هذه الغوصة تطابق الإعداد بالفعل';
+  String get cylinderConfigs_applyNothingToDo => 'هذه الغوصة تطابق الإعداد بالفعل';
 
   @override
   String get cylinderConfigs_sectionTitle => 'الإعدادات';
@@ -12567,11 +12560,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_hoursUsedAndLeft(
-    String used,
-    String remaining,
-    String total,
-  ) {
+  String equipment_serviceClocks_hoursUsedAndLeft(String used, String remaining, String total) {
     return '$used ساعة، متبقٍ $remaining من $total ساعة';
   }
 
@@ -12581,11 +12570,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_saltHoursUsedAndLeft(
-    String used,
-    String remaining,
-    String total,
-  ) {
+  String equipment_serviceClocks_saltHoursUsedAndLeft(String used, String remaining, String total) {
     return '$used ساعة في الماء المالح، تبقى $remaining من $total ساعة في الماء المالح';
   }
 
@@ -12595,11 +12580,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_coldDivesUsedAndLeft(
-    String used,
-    String remaining,
-    String total,
-  ) {
+  String equipment_serviceClocks_coldDivesUsedAndLeft(String used, String remaining, String total) {
     return '$used غطسة في الماء البارد، تبقى $remaining من $total غطسة في الماء البارد';
   }
 
@@ -12609,28 +12590,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_o2HoursUsedAndLeft(
-    String used,
-    String remaining,
-    String total,
-  ) {
+  String equipment_serviceClocks_o2HoursUsedAndLeft(String used, String remaining, String total) {
     return '$used ساعة بأكسجين مرتفع، تبقى $remaining من $total ساعة بأكسجين مرتفع';
   }
 
   @override
-  String equipment_serviceClocks_deepCyclesLeft(
-    String remaining,
-    String total,
-  ) {
+  String equipment_serviceClocks_deepCyclesLeft(String remaining, String total) {
     return 'تبقى $remaining من $total غطسة عميقة';
   }
 
   @override
-  String equipment_serviceClocks_deepCyclesUsedAndLeft(
-    String used,
-    String remaining,
-    String total,
-  ) {
+  String equipment_serviceClocks_deepCyclesUsedAndLeft(String used, String remaining, String total) {
     return '$used غطسة عميقة، تبقى $remaining من $total غطسة عميقة';
   }
 
@@ -12640,11 +12610,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_cyclesUsedAndLeft(
-    String used,
-    String remaining,
-    String total,
-  ) {
+  String equipment_serviceClocks_cyclesUsedAndLeft(String used, String remaining, String total) {
     return '$used دورة بطارية، تبقى $remaining من $total دورة بطارية';
   }
 
@@ -12670,24 +12636,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_scheduleDialog_intervalHours => 'الفترة (ساعات)';
 
   @override
-  String get equipment_scheduleDialog_intervalSaltHours =>
-      'الفاصل (ساعات في الماء المالح)';
+  String get equipment_scheduleDialog_intervalSaltHours => 'الفاصل (ساعات في الماء المالح)';
 
   @override
-  String get equipment_scheduleDialog_intervalColdDives =>
-      'الفاصل (غطسات في الماء البارد)';
+  String get equipment_scheduleDialog_intervalColdDives => 'الفاصل (غطسات في الماء البارد)';
 
   @override
-  String get equipment_scheduleDialog_intervalO2Hours =>
-      'الفاصل (ساعات بأكسجين مرتفع)';
+  String get equipment_scheduleDialog_intervalO2Hours => 'الفاصل (ساعات بأكسجين مرتفع)';
 
   @override
-  String get equipment_scheduleDialog_intervalDeepCycles =>
-      'الفاصل (غطسات عميقة)';
+  String get equipment_scheduleDialog_intervalDeepCycles => 'الفاصل (غطسات عميقة)';
 
   @override
-  String get equipment_scheduleDialog_intervalCycles =>
-      'الفاصل (دورات البطارية)';
+  String get equipment_scheduleDialog_intervalCycles => 'الفاصل (دورات البطارية)';
 
   @override
   String equipment_scheduleDialog_inheritHint(String value) {
@@ -12698,8 +12659,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_scheduleDialog_anchorDate => 'تاريخ الأساس';
 
   @override
-  String get equipment_scheduleDialog_anchorHint =>
-      'تعدّ الساعة من هذا التاريخ حتى تسجّل صيانة أحدث.';
+  String get equipment_scheduleDialog_anchorHint => 'تعدّ الساعة من هذا التاريخ حتى تسجّل صيانة أحدث.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => 'مسح تاريخ الأساس';
@@ -12735,15 +12695,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_serviceKinds_appliesTo => 'ينطبق على';
 
   @override
-  String get equipment_serviceKinds_autoAttach =>
-      'إرفاق تلقائيًا بالمعدات الجديدة';
+  String get equipment_serviceKinds_autoAttach => 'إرفاق تلقائيًا بالمعدات الجديدة';
 
   @override
   String get equipment_serviceKinds_deleteConfirmTitle => 'حذف نوع الصيانة؟';
 
   @override
-  String get equipment_serviceKinds_deleteConfirmBody =>
-      'ستتم إزالة العدادات التي تستخدم هذا النوع من الصيانة.';
+  String get equipment_serviceKinds_deleteConfirmBody => 'ستتم إزالة العدادات التي تستخدم هذا النوع من الصيانة.';
 
   @override
   String get equipment_serviceKinds_delete => 'حذف';
@@ -12755,8 +12713,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_serviceKinds_save => 'حفظ';
 
   @override
-  String get equipment_serviceKinds_emptyCustom =>
-      'لا توجد أنواع صيانة مخصصة بعد';
+  String get equipment_serviceKinds_emptyCustom => 'لا توجد أنواع صيانة مخصصة بعد';
 
   @override
   String equipment_serviceKinds_everyDays(int days) {
@@ -12877,8 +12834,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_notifications_tripLeadTitle =>
-      'مهلة التنبيه لصيانة الرحلة';
+  String get settings_notifications_tripLeadTitle => 'مهلة التنبيه لصيانة الرحلة';
 
   @override
   String settings_notifications_tripLeadDays(int days) {
@@ -12921,8 +12877,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_tripsLabel => 'الرحلات';
 
   @override
-  String get equipment_detail_tripsSemanticLabel =>
-      'عرض الرحلات باستخدام هذه المعدات';
+  String get equipment_detail_tripsSemanticLabel => 'عرض الرحلات باستخدام هذه المعدات';
 
   @override
   String get equipment_detail_wasInstalledInLabel => 'كان مركّبًا في';
@@ -12952,12 +12907,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_edit_disableReminders => 'تعطيل التذكيرات';
 
   @override
-  String get equipment_edit_disableRemindersSubtitle =>
-      'إيقاف جميع الإشعارات لهذا العنصر';
+  String get equipment_edit_disableRemindersSubtitle => 'إيقاف جميع الإشعارات لهذا العنصر';
 
   @override
-  String get equipment_edit_discardDialog_content =>
-      'لديك تغييرات غير محفوظة. هل أنت متأكد من المغادرة؟';
+  String get equipment_edit_discardDialog_content => 'لديك تغييرات غير محفوظة. هل أنت متأكد من المغادرة؟';
 
   @override
   String get equipment_edit_discardDialog_discard => 'تجاهل';
@@ -12981,12 +12934,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_edit_embeddedHeader_saveButton => 'حفظ';
 
   @override
-  String get equipment_edit_embeddedHeader_saveTooltip_edit =>
-      'حفظ تغييرات المعدات';
+  String get equipment_edit_embeddedHeader_saveTooltip_edit => 'حفظ تغييرات المعدات';
 
   @override
-  String get equipment_edit_embeddedHeader_saveTooltip_new =>
-      'إضافة معدات جديدة';
+  String get equipment_edit_embeddedHeader_saveTooltip_new => 'إضافة معدات جديدة';
 
   @override
   String equipment_edit_errorMessage(Object error) {
@@ -13015,8 +12966,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_edit_nameValidation => 'يرجى إدخال اسم';
 
   @override
-  String get equipment_edit_notFoundMessage =>
-      'عنصر المعدات هذا لم يعد موجوداً.';
+  String get equipment_edit_notFoundMessage => 'عنصر المعدات هذا لم يعد موجوداً.';
 
   @override
   String get equipment_edit_notFoundTitle => 'المعدات غير موجودة';
@@ -13028,8 +12978,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_edit_notesLabel => 'ملاحظات';
 
   @override
-  String get equipment_edit_notificationsSubtitle =>
-      'تجاوز إعدادات الإشعارات العامة لهذا العنصر';
+  String get equipment_edit_notificationsSubtitle => 'تجاوز إعدادات الإشعارات العامة لهذا العنصر';
 
   @override
   String get equipment_edit_notificationsTitle => 'الإشعارات (اختياري)';
@@ -13044,8 +12993,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_edit_purchasePriceLabel => 'سعر الشراء';
 
   @override
-  String get equipment_edit_remindMeBeforeServiceDue =>
-      'ذكّرني قبل موعد الصيانة:';
+  String get equipment_edit_remindMeBeforeServiceDue => 'ذكّرني قبل موعد الصيانة:';
 
   @override
   String equipment_edit_reminderDays(Object days) {
@@ -13127,8 +13075,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_edit_useCustomReminders => 'استخدام تذكيرات مخصصة';
 
   @override
-  String get equipment_edit_useCustomRemindersSubtitle =>
-      'تعيين أيام تذكير مختلفة لهذا العنصر';
+  String get equipment_edit_useCustomRemindersSubtitle => 'تعيين أيام تذكير مختلفة لهذا العنصر';
 
   @override
   String get equipment_fab_addEquipment => 'إضافة معدات';
@@ -13140,23 +13087,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_list_emptyState_addFirstButton => 'أضف معداتك الأولى';
 
   @override
-  String get equipment_list_emptyState_addPrompt =>
-      'أضف معدات الغوص لتتبع الاستخدام والصيانة';
+  String get equipment_list_emptyState_addPrompt => 'أضف معدات الغوص لتتبع الاستخدام والصيانة';
 
   @override
   String get equipment_list_emptyState_filterText_equipment => 'معدات';
 
   @override
-  String get equipment_list_emptyState_filterText_serviceDue =>
-      'معدات تحتاج صيانة';
+  String get equipment_list_emptyState_filterText_serviceDue => 'معدات تحتاج صيانة';
 
   @override
-  String get equipment_list_emptyState_filterText_serviceDueSoon =>
-      'معدات تحتاج صيانة قريبًا';
+  String get equipment_list_emptyState_filterText_serviceDueSoon => 'معدات تحتاج صيانة قريبًا';
 
   @override
-  String get equipment_list_emptyState_filterText_serviceOverdue =>
-      'معدات متأخرة عن الصيانة';
+  String get equipment_list_emptyState_filterText_serviceOverdue => 'معدات متأخرة عن الصيانة';
 
   @override
   String equipment_list_emptyState_filterText_status(Object status) {
@@ -13174,28 +13117,22 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get equipment_list_emptyState_noStatusMatch =>
-      'لا توجد معدات بهذه الحالة';
+  String get equipment_list_emptyState_noStatusMatch => 'لا توجد معدات بهذه الحالة';
 
   @override
-  String get equipment_list_emptyState_noTagMatch =>
-      'لا توجد معدات بهذه الوسوم';
+  String get equipment_list_emptyState_noTagMatch => 'لا توجد معدات بهذه الوسوم';
 
   @override
-  String get equipment_list_emptyState_noTypeMatch =>
-      'لا توجد معدات في هذه الفئة';
+  String get equipment_list_emptyState_noTypeMatch => 'لا توجد معدات في هذه الفئة';
 
   @override
-  String get equipment_list_emptyState_serviceDueUpToDate =>
-      'جميع معداتك محدثة الصيانة!';
+  String get equipment_list_emptyState_serviceDueUpToDate => 'جميع معداتك محدثة الصيانة!';
 
   @override
-  String get equipment_list_emptyState_serviceNoneDueSoon =>
-      'لا شيء يحتاج صيانة قريبًا.';
+  String get equipment_list_emptyState_serviceNoneDueSoon => 'لا شيء يحتاج صيانة قريبًا.';
 
   @override
-  String get equipment_list_emptyState_serviceNoneOverdue =>
-      'لا شيء متأخر عن الصيانة.';
+  String get equipment_list_emptyState_serviceNoneOverdue => 'لا شيء متأخر عن الصيانة.';
 
   @override
   String equipment_list_errorLoading(Object error) {
@@ -13315,10 +13252,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String equipment_retypeOther_becomesWithThickness(
-    String type,
-    String thickness,
-  ) {
+  String equipment_retypeOther_becomesWithThickness(String type, String thickness) {
     return 'النوع الجديد: $type، $thickness';
   }
 
@@ -13326,8 +13260,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_retypeOther_deselectAll => 'إلغاء تحديد الكل';
 
   @override
-  String get equipment_retypeOther_empty =>
-      'لا توجد معدات مصنفة كأخرى يذكر اسمها نوعها';
+  String get equipment_retypeOther_empty => 'لا توجد معدات مصنفة كأخرى يذكر اسمها نوعها';
 
   @override
   String equipment_retypeOther_errorLoading(String error) {
@@ -13346,8 +13279,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get equipment_retypeOther_intro =>
-      'هذه العناصر مصنفة كأخرى، لكن أسماءها تبين ما هي. ألغِ تحديد العناصر الخاطئة.';
+  String get equipment_retypeOther_intro => 'هذه العناصر مصنفة كأخرى، لكن أسماءها تبين ما هي. ألغِ تحديد العناصر الخاطئة.';
 
   @override
   String equipment_retypeOther_retypedSnackbar(int count) {
@@ -13364,8 +13296,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_retypeOther_selectAll => 'تحديد الكل';
 
   @override
-  String get equipment_retypeOther_subtitle =>
-      'منح المعدات المستوردة النوع الذي يذكره اسمها';
+  String get equipment_retypeOther_subtitle => 'منح المعدات المستوردة النوع الذي يذكره اسمها';
 
   @override
   String get equipment_retypeOther_title => 'تصحيح المعدات المصنفة كأخرى';
@@ -13405,8 +13336,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_search_fieldLabel => 'البحث في المعدات...';
 
   @override
-  String get equipment_search_hint =>
-      'البحث بالاسم أو العلامة التجارية أو الطراز أو الرقم التسلسلي';
+  String get equipment_search_hint => 'البحث بالاسم أو العلامة التجارية أو الطراز أو الرقم التسلسلي';
 
   @override
   String equipment_search_noResults(Object query) {
@@ -13423,8 +13353,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_serviceDialog_cancelButton => 'إلغاء';
 
   @override
-  String get equipment_serviceDialog_clearNextServiceDateTooltip =>
-      'مسح تاريخ الصيانة القادمة';
+  String get equipment_serviceDialog_clearNextServiceDateTooltip => 'مسح تاريخ الصيانة القادمة';
 
   @override
   String get equipment_serviceDialog_costHint => '0.00';
@@ -13442,12 +13371,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_serviceDialog_editTitle => 'تعديل سجل الصيانة';
 
   @override
-  String get equipment_serviceDialog_nextServiceDueLabel =>
-      'موعد الصيانة القادمة';
+  String get equipment_serviceDialog_nextServiceDueLabel => 'موعد الصيانة القادمة';
 
   @override
-  String get equipment_serviceDialog_nextServiceDueSemanticLabel =>
-      'اختيار تاريخ الصيانة القادمة';
+  String get equipment_serviceDialog_nextServiceDueSemanticLabel => 'اختيار تاريخ الصيانة القادمة';
 
   @override
   String get equipment_serviceDialog_nextServiceNotSet => 'غير محدد';
@@ -13465,15 +13392,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_serviceDialog_serviceDateLabel => 'تاريخ الصيانة';
 
   @override
-  String get equipment_serviceDialog_serviceDateSemanticLabel =>
-      'اختيار تاريخ الصيانة';
+  String get equipment_serviceDialog_serviceDateSemanticLabel => 'اختيار تاريخ الصيانة';
 
   @override
   String get equipment_serviceDialog_serviceTypeLabel => 'نوع الصيانة';
 
   @override
-  String get equipment_serviceDialog_serviceTypeHelper =>
-      'تسجيل هذا يعيد ضبط مؤقت نوع الصيانة هذا';
+  String get equipment_serviceDialog_serviceTypeHelper => 'تسجيل هذا يعيد ضبط مؤقت نوع الصيانة هذا';
 
   @override
   String get equipment_serviceDialog_serviceTypeRequired => 'اختر نوع الصيانة';
@@ -13482,16 +13407,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_serviceDialog_serviceTypeNotSet => 'غير محدد';
 
   @override
-  String get equipment_serviceDialog_categoryHelper =>
-      'تستخدم للتصفية والتصدير';
+  String get equipment_serviceDialog_categoryHelper => 'تستخدم للتصفية والتصدير';
 
   @override
-  String get equipment_serviceDialog_manageServiceTypes =>
-      'إدارة أنواع الصيانة';
+  String get equipment_serviceDialog_manageServiceTypes => 'إدارة أنواع الصيانة';
 
   @override
-  String get equipment_serviceDialog_filterToConfiguredTypes =>
-      'إظهار أنواع الصيانة المهيأة فقط';
+  String get equipment_serviceDialog_filterToConfiguredTypes => 'إظهار أنواع الصيانة المهيأة فقط';
 
   @override
   String get equipment_serviceDialog_categoryLabel => 'الفئة';
@@ -13590,8 +13512,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_service_filterClear => 'مسح عامل التصفية';
 
   @override
-  String get equipment_service_filterNoMatches =>
-      'لا توجد صيانة تطابق عامل التصفية';
+  String get equipment_service_filterNoMatches => 'لا توجد صيانة تطابق عامل التصفية';
 
   @override
   String equipment_service_filterMatchCount(int count, int total) {
@@ -13622,12 +13543,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_serviceKinds_defaultCostLabel => 'السعر الافتراضي';
 
   @override
-  String get equipment_serviceKinds_defaultCostHint =>
-      'اتركه فارغًا لعدم وجود قيمة افتراضية';
+  String get equipment_serviceKinds_defaultCostHint => 'اتركه فارغًا لعدم وجود قيمة افتراضية';
 
   @override
-  String get equipment_scheduleDialog_defaultCostLabel =>
-      'السعر الافتراضي لهذه المعدة';
+  String get equipment_scheduleDialog_defaultCostLabel => 'السعر الافتراضي لهذه المعدة';
 
   @override
   String get equipment_serviceKinds_defaultCurrencyLabel => 'العملة';
@@ -13639,12 +13558,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_export_maintenanceTitle => 'سجل الصيانة';
 
   @override
-  String get transfer_export_maintenanceSubtitle =>
-      'سجل صيانة جميع المعدات كجدول بيانات';
+  String get transfer_export_maintenanceSubtitle => 'سجل صيانة جميع المعدات كجدول بيانات';
 
   @override
-  String get settings_export_progress_maintenance =>
-      'جارٍ تصدير سجل الصيانة...';
+  String get settings_export_progress_maintenance => 'جارٍ تصدير سجل الصيانة...';
 
   @override
   String get settings_export_success_maintenance => 'تم تصدير سجل الصيانة';
@@ -13653,8 +13570,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_export_saved_maintenance => 'تم حفظ سجل الصيانة';
 
   @override
-  String get equipment_serviceKinds_defaultCurrencyInherit =>
-      'استخدام العملة الافتراضية';
+  String get equipment_serviceKinds_defaultCurrencyInherit => 'استخدام العملة الافتراضية';
 
   @override
   String get equipment_scheduleDialog_defaultCurrencyLabel => 'عملة هذه المعدة';
@@ -13677,8 +13593,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_setDetail_deleteDialog_confirm => 'حذف';
 
   @override
-  String get equipment_setDetail_deleteDialog_content =>
-      'هل أنت متأكد من حذف مجموعة المعدات هذه؟ لن يتم حذف عناصر المعدات الموجودة في المجموعة.';
+  String get equipment_setDetail_deleteDialog_content => 'هل أنت متأكد من حذف مجموعة المعدات هذه؟ لن يتم حذف عناصر المعدات الموجودة في المجموعة.';
 
   @override
   String get equipment_setDetail_deleteDialog_title => 'حذف مجموعة المعدات';
@@ -13693,8 +13608,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_setDetail_emptySet => 'لا توجد معدات في هذه المجموعة';
 
   @override
-  String get equipment_setDetail_equipmentInSetTitle =>
-      'المعدات في هذه المجموعة';
+  String get equipment_setDetail_equipmentInSetTitle => 'المعدات في هذه المجموعة';
 
   @override
   String equipment_setDetail_errorMessage(Object error) {
@@ -13708,8 +13622,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_setDetail_loadingTitle => 'جارٍ التحميل...';
 
   @override
-  String get equipment_setDetail_notFoundMessage =>
-      'مجموعة المعدات هذه لم تعد موجودة.';
+  String get equipment_setDetail_notFoundMessage => 'مجموعة المعدات هذه لم تعد موجودة.';
 
   @override
   String get equipment_setDetail_notFoundTitle => 'المجموعة غير موجودة';
@@ -13718,8 +13631,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_setDetail_snackbar_deleted => 'تم حذف مجموعة المعدات';
 
   @override
-  String get equipment_setEdit_addEquipmentFirst =>
-      'أضف معدات أولاً قبل إنشاء مجموعة.';
+  String get equipment_setEdit_addEquipmentFirst => 'أضف معدات أولاً قبل إنشاء مجموعة.';
 
   @override
   String get equipment_setEdit_appBar_editTitle => 'تعديل المجموعة';
@@ -13757,8 +13669,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_setEdit_noEquipmentAvailable => 'لا توجد معدات متاحة';
 
   @override
-  String get equipment_setEdit_notFoundMessage =>
-      'مجموعة المعدات هذه لم تعد موجودة.';
+  String get equipment_setEdit_notFoundMessage => 'مجموعة المعدات هذه لم تعد موجودة.';
 
   @override
   String get equipment_setEdit_notFoundTitle => 'المجموعة غير موجودة';
@@ -13776,8 +13687,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_setEdit_saveTooltip_new => 'إنشاء مجموعة معدات جديدة';
 
   @override
-  String get equipment_setEdit_selectEquipmentSubtitle =>
-      'اختر عناصر المعدات لتضمينها في هذه المجموعة.';
+  String get equipment_setEdit_selectEquipmentSubtitle => 'اختر عناصر المعدات لتضمينها في هذه المجموعة.';
 
   @override
   String get equipment_setEdit_selectEquipmentTitle => 'اختيار المعدات';
@@ -13797,12 +13707,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_sets_appBar_title => 'مجموعات المعدات';
 
   @override
-  String get equipment_sets_emptyState_createFirstButton =>
-      'أنشئ مجموعتك الأولى';
+  String get equipment_sets_emptyState_createFirstButton => 'أنشئ مجموعتك الأولى';
 
   @override
-  String get equipment_sets_emptyState_description =>
-      'أنشئ مجموعات معدات لإضافة تجهيزات شائعة الاستخدام بسرعة إلى غوصاتك.';
+  String get equipment_sets_emptyState_description => 'أنشئ مجموعات معدات لإضافة تجهيزات شائعة الاستخدام بسرعة إلى غوصاتك.';
 
   @override
   String get equipment_sets_emptyState_title => 'لا توجد مجموعات معدات';
@@ -13872,8 +13780,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get equipment_summary_selectPrompt =>
-      'اختر معدات من القائمة لعرض التفاصيل';
+  String get equipment_summary_selectPrompt => 'اختر معدات من القائمة لعرض التفاصيل';
 
   @override
   String get equipment_summary_serviceDue => 'الصيانة مستحقة';
@@ -13922,22 +13829,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gas_air_displayName => 'هواء';
 
   @override
-  String get gas_diluentAir_description =>
-      'مخفف هواء قياسي لأجهزة إعادة التنفس المغلقة الضحلة';
+  String get gas_diluentAir_description => 'مخفف هواء قياسي لأجهزة إعادة التنفس المغلقة الضحلة';
 
   @override
   String get gas_diluentAir_displayName => 'مخفف هواء';
 
   @override
-  String get gas_diluentTx1070_description =>
-      'مخفف ناقص الأكسجين لأجهزة إعادة التنفس المغلقة العميقة جداً';
+  String get gas_diluentTx1070_description => 'مخفف ناقص الأكسجين لأجهزة إعادة التنفس المغلقة العميقة جداً';
 
   @override
   String get gas_diluentTx1070_displayName => 'Tx 10/70';
 
   @override
-  String get gas_diluentTx1260_description =>
-      'مخفف ناقص الأكسجين لأجهزة إعادة التنفس المغلقة العميقة';
+  String get gas_diluentTx1260_description => 'مخفف ناقص الأكسجين لأجهزة إعادة التنفس المغلقة العميقة';
 
   @override
   String get gas_diluentTx1260_displayName => 'Tx 12/60';
@@ -13997,8 +13901,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gas_scrEan60_displayName => 'SCR EAN60';
 
   @override
-  String get gas_tmx1555_description =>
-      'ترايمكس ناقص الأكسجين 15/55 (عميق جداً)';
+  String get gas_tmx1555_description => 'ترايمكس ناقص الأكسجين 15/55 (عميق جداً)';
 
   @override
   String get gas_tmx1555_displayName => 'Tx 15/55';
@@ -14033,10 +13936,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_bestMix_targetDive => 'الغطسة المستهدفة';
 
   @override
-  String gasCalculators_consumption_ambientPressure(
-    Object depth,
-    Object depthSymbol,
-  ) {
+  String gasCalculators_consumption_ambientPressure(Object depth, Object depthSymbol) {
     return 'الضغط المحيط عند $depth$depthSymbol';
   }
 
@@ -14050,10 +13950,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_consumption_diveTime => 'وقت الغوص';
 
   @override
-  String gasCalculators_consumption_exceedsTank(
-    Object pressure,
-    Object symbol,
-  ) {
+  String gasCalculators_consumption_exceedsTank(Object pressure, Object symbol) {
     return 'يتجاوز سعة الأسطوانة ($pressure $symbol)';
   }
 
@@ -14067,12 +13964,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_consumption_remainingGas => 'الغاز المتبقي';
 
   @override
-  String gasCalculators_consumption_tankCapacity(
-    Object tankSize,
-    Object volumeSymbol,
-    Object fillPressure,
-    Object pressureSymbol,
-  ) {
+  String gasCalculators_consumption_tankCapacity(Object tankSize, Object volumeSymbol, Object fillPressure, Object pressureSymbol) {
     return 'سعة الأسطوانة ($tankSize$volumeSymbol @ $fillPressure $pressureSymbol)';
   }
 
@@ -14094,16 +13986,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_mod_mode => 'الوضع';
 
   @override
-  String get gasCalculators_mod_modeRecHint =>
-      'نيتروكس للغوص الترفيهي: MOD و EAD، بمعدل 1 بار لكل 10 م كما في السجل.';
+  String get gasCalculators_mod_modeRecHint => 'نيتروكس للغوص الترفيهي: MOD و EAD، بمعدل 1 بار لكل 10 م كما في السجل.';
 
   @override
-  String get gasCalculators_mod_modeOcTecHint =>
-      'ترايمكس في الدائرة المفتوحة: MOD والعمق الأدنى والتخدير وكثافة الغاز.';
+  String get gasCalculators_mod_modeOcTecHint => 'ترايمكس في الدائرة المفتوحة: MOD والعمق الأدنى والتخدير وكثافة الغاز.';
 
   @override
-  String get gasCalculators_mod_modeCcrTecHint =>
-      'الدائرة المغلقة: الخليط هو غاز التخفيف. الـ MOD هو لغاز التخفيف عند الشطف؛ والحلقة تحافظ على نقطة الضبط.';
+  String get gasCalculators_mod_modeCcrTecHint => 'الدائرة المغلقة: الخليط هو غاز التخفيف. الـ MOD هو لغاز التخفيف عند الشطف؛ والحلقة تحافظ على نقطة الضبط.';
 
   @override
   String get gasCalculators_mod_heliumHe => 'الهيليوم (He)';
@@ -14124,8 +14013,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_mod_flushPpO2 => 'ppO₂ لـ MOD غاز التخفيف (الشطف)';
 
   @override
-  String get gasCalculators_mod_minPpO2 =>
-      'الحد الأدنى لـ ppO₂ (الخلائط ناقصة الأكسجين)';
+  String get gasCalculators_mod_minPpO2 => 'الحد الأدنى لـ ppO₂ (الخلائط ناقصة الأكسجين)';
 
   @override
   String get gasCalculators_mod_fromProfile => 'من ملف الغواص الخاص بك';
@@ -14222,8 +14110,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_mod_targetAboveMinDepth =>
-      'العمق المستهدف أقل من العمق الأدنى: الخليط ناقص الأكسجين هناك.';
+  String get gasCalculators_mod_targetAboveMinDepth => 'العمق المستهدف أقل من العمق الأدنى: الخليط ناقص الأكسجين هناك.';
 
   @override
   String gasCalculators_mod_hypoxic(String depth) {
@@ -14231,29 +14118,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String gasCalculators_mod_narcosisExceeded(
-    String where,
-    String depth,
-    String limit,
-  ) {
+  String gasCalculators_mod_narcosisExceeded(String where, String depth, String limit) {
     return '$where: العمق المخدر $depth يتجاوز حد END لديك البالغ $limit.';
   }
 
   @override
-  String gasCalculators_mod_densityWarn(
-    String where,
-    String density,
-    String limit,
-  ) {
+  String gasCalculators_mod_densityWarn(String where, String density, String limit) {
     return '$where: كثافة الغاز $density غ/ل أعلى من $limit غ/ل الموصى بها.';
   }
 
   @override
-  String gasCalculators_mod_densityCritical(
-    String where,
-    String density,
-    String limit,
-  ) {
+  String gasCalculators_mod_densityCritical(String where, String density, String limit) {
     return '$where: كثافة الغاز $density غ/ل أعلى من الحد الأقصى البالغ $limit غ/ل.';
   }
 
@@ -14273,12 +14148,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_mod_allClear =>
-      'ضمن حدود ppO₂ و END والكثافة لديك في الأعماق المفحوصة.';
+  String get gasCalculators_mod_allClear => 'ضمن حدود ppO₂ و END والكثافة لديك في الأعماق المفحوصة.';
 
   @override
-  String get gasCalculators_mod_aboutModesBody =>
-      'الـ MOD هو العمق الذي يبلغ فيه الخليط حد ppO₂. يُقرَّب دائمًا للأسفل، ولا يُقرَّب للأعلى أبدًا.\n\nيستخدم Rec بارًا واحدًا لكل 10 م، مثل السجل. يأخذ OC Tec و CCR Tec الضغط المحيط من نوع الماء، مثل حاسبة كثافة الغاز، لذلك قد يظهر الخليط نفسه هناك بـ MOD أقل عمقًا بقليل.\n\nتعد EAD النيتروجين مخدرًا، و END النيتروجين والأكسجين. حد END لديك، واعتبار الأكسجين مخدرًا، وحدود ppO₂ الافتراضية تأتي من ملف الغواص الخاص بك.';
+  String get gasCalculators_mod_aboutModesBody => 'الـ MOD هو العمق الذي يبلغ فيه الخليط حد ppO₂. يُقرَّب دائمًا للأسفل، ولا يُقرَّب للأعلى أبدًا.\n\nيستخدم Rec بارًا واحدًا لكل 10 م، مثل السجل. يأخذ OC Tec و CCR Tec الضغط المحيط من نوع الماء، مثل حاسبة كثافة الغاز، لذلك قد يظهر الخليط نفسه هناك بـ MOD أقل عمقًا بقليل.\n\nتعد EAD النيتروجين مخدرًا، و END النيتروجين والأكسجين. حد END لديك، واعتبار الأكسجين مخدرًا، وحدود ppO₂ الافتراضية تأتي من ملف الغواص الخاص بك.';
 
   @override
   String get gasCalculators_mod_modeRec => 'Rec';
@@ -14293,16 +14166,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_mod_inputParameters => 'معاملات الإدخال';
 
   @override
-  String get gasCalculators_mod_maximumOperatingDepth =>
-      'العمق التشغيلي الأقصى';
+  String get gasCalculators_mod_maximumOperatingDepth => 'العمق التشغيلي الأقصى';
 
   @override
-  String gasCalculators_mod_semanticsLabel(
-    String depth,
-    String unit,
-    String ppo2,
-    String o2,
-  ) {
+  String gasCalculators_mod_semanticsLabel(String depth, String unit, String ppo2, String o2) {
     return 'أقصى عمق تشغيلي: $depth $unit عند $ppo2 بار ppO2 مع $o2% أكسجين';
   }
 
@@ -14310,16 +14177,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_mod_oxygenO2 => 'الأكسجين (O₂)';
 
   @override
-  String get gasCalculators_mod_ppO2Conservative =>
-      'الحد المحافظ لوقت القاع الممتد';
+  String get gasCalculators_mod_ppO2Conservative => 'الحد المحافظ لوقت القاع الممتد';
 
   @override
-  String get gasCalculators_mod_ppO2Maximum =>
-      'الحد الأقصى لتوقفات تخفيف الضغط فقط';
+  String get gasCalculators_mod_ppO2Maximum => 'الحد الأقصى لتوقفات تخفيف الضغط فقط';
 
   @override
-  String get gasCalculators_mod_ppO2Standard =>
-      'حد التشغيل القياسي للغوص الترفيهي';
+  String get gasCalculators_mod_ppO2Standard => 'حد التشغيل القياسي للغوص الترفيهي';
 
   @override
   String get gasCalculators_mnd_depthInput => 'العمق';
@@ -14334,8 +14198,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_mnd_hePercent => 'He %';
 
   @override
-  String get gasCalculators_mnd_infoContent =>
-      'العمق المخدر الأقصى (MND) هو أعمق نقطة يمكنك الوصول إليها قبل أن يتجاوز التخدير حد END الخاص بك. العمق المخدر المكافئ (END) يخبرك بالتأثير المخدر لغازك عند عمق معين.\n\nعند تفعيل \'O2 مخدر\'، يساهم كل من الأكسجين والنيتروجين في التخدير (أكثر تحفظاً). عند التعطيل، يُعتبر النيتروجين فقط مخدراً.';
+  String get gasCalculators_mnd_infoContent => 'العمق المخدر الأقصى (MND) هو أعمق نقطة يمكنك الوصول إليها قبل أن يتجاوز التخدير حد END الخاص بك. العمق المخدر المكافئ (END) يخبرك بالتأثير المخدر لغازك عند عمق معين.\n\nعند تفعيل \'O2 مخدر\'، يساهم كل من الأكسجين والنيتروجين في التخدير (أكثر تحفظاً). عند التعطيل، يُعتبر النيتروجين فقط مخدراً.';
 
   @override
   String get gasCalculators_mnd_infoTitle => 'حول MND/END';
@@ -14344,8 +14207,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_mnd_unlimited => 'غير محدود';
 
   @override
-  String get gasCalculators_mnd_inputParameters =>
-      'خليط الغاز وإعدادات التخدير';
+  String get gasCalculators_mnd_inputParameters => 'خليط الغاز وإعدادات التخدير';
 
   @override
   String get gasCalculators_mnd_o2Narcotic => 'O2 مخدر';
@@ -14432,33 +14294,24 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String gasCalculators_blender_stepFill(
-    String gas,
-    String pressure,
-    String mix,
-  ) {
+  String gasCalculators_blender_stepFill(String gas, String pressure, String mix) {
     return 'املأ $gas حتى $pressure → $mix';
   }
 
   @override
-  String get gasCalculators_blender_error_targetPressure =>
-      'يجب أن يكون الضغط المستهدف أعلى من الضغط الابتدائي.';
+  String get gasCalculators_blender_error_targetPressure => 'يجب أن يكون الضغط المستهدف أعلى من الضغط الابتدائي.';
 
   @override
-  String get gasCalculators_blender_error_invalidMix =>
-      'لا يمكن أن يتجاوز O₂ + He لأي خليط 100%.';
+  String get gasCalculators_blender_error_invalidMix => 'لا يمكن أن يتجاوز O₂ + He لأي خليط 100%.';
 
   @override
-  String get gasCalculators_blender_error_identicalGases =>
-      'غازا التعبئة متطابقان — لا شيء للخلط.';
+  String get gasCalculators_blender_error_identicalGases => 'غازا التعبئة متطابقان — لا شيء للخلط.';
 
   @override
-  String get gasCalculators_blender_error_linearlyDependent =>
-      'لا يمكن لهذه الغازات إنتاج الخليط المستهدف — هدف الترايمكس يحتاج مصدر هيليوم.';
+  String get gasCalculators_blender_error_linearlyDependent => 'لا يمكن لهذه الغازات إنتاج الخليط المستهدف — هدف الترايمكس يحتاج مصدر هيليوم.';
 
   @override
-  String get gasCalculators_blender_error_negativeAmount =>
-      'هذا الخليط غير قابل للتحقيق بهذه الغازات — سيتطلب إخراج غاز.';
+  String get gasCalculators_blender_error_negativeAmount => 'هذا الخليط غير قابل للتحقيق بهذه الغازات — سيتطلب إخراج غاز.';
 
   @override
   String gasCalculators_blender_error_drainTo(String pressure) {
@@ -14466,31 +14319,25 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_blender_error_drainEmpty =>
-      'الغاز الموجود في الأسطوانة لا يصلح لهذا الخليط. أفرغها بالكامل أولاً ثم عبِّئ.';
+  String get gasCalculators_blender_error_drainEmpty => 'الغاز الموجود في الأسطوانة لا يصلح لهذا الخليط. أفرغها بالكامل أولاً ثم عبِّئ.';
 
   @override
-  String get gasCalculators_blender_error_cannotRemoveHelium =>
-      'الأسطوانة تحتوي على هيليوم بينما الخليط المستهدف لا يحتوي عليه. التعبئة تخفف الهيليوم لكنها لا تزيله، لذا يجب إفراغ الأسطوانة أولاً.';
+  String get gasCalculators_blender_error_cannotRemoveHelium => 'الأسطوانة تحتوي على هيليوم بينما الخليط المستهدف لا يحتوي عليه. التعبئة تخفف الهيليوم لكنها لا تزيله، لذا يجب إفراغ الأسطوانة أولاً.';
 
   @override
-  String get gasCalculators_blender_error_insufficientGases =>
-      'الهدف الخالي من الهيليوم يحتاج غازي تعبئة خاليين من الهيليوم بنسبتي O₂ مختلفتين.';
+  String get gasCalculators_blender_error_insufficientGases => 'الهدف الخالي من الهيليوم يحتاج غازي تعبئة خاليين من الهيليوم بنسبتي O₂ مختلفتين.';
 
   @override
-  String get gasCalculators_blender_error_targetNotReached =>
-      'غازات التعبئة هذه لا تصل إلى الخليط المستهدف بدقة. تحقق من الغازات وترتيبها.';
+  String get gasCalculators_blender_error_targetNotReached => 'غازات التعبئة هذه لا تصل إلى الخليط المستهدف بدقة. تحقق من الغازات وترتيبها.';
 
   @override
-  String get gasCalculators_blender_error_implausibleStartMix =>
-      'الأسطوانة تحت ضغط لكنها لا تحتوي على أكسجين ولا هيليوم، أي نيتروجين نقي. تحقّق من الخليط الموجود في الأسطوانة.';
+  String get gasCalculators_blender_error_implausibleStartMix => 'الأسطوانة تحت ضغط لكنها لا تحتوي على أكسجين ولا هيليوم، أي نيتروجين نقي. تحقّق من الخليط الموجود في الأسطوانة.';
 
   @override
   String get gasCalculators_blender_about => 'حول الخلط';
 
   @override
-  String get gasCalculators_blender_aboutBody =>
-      'خلط بالضغط الجزئي للوصول إلى الخليط المستهدف. أضف كل غاز تعبئة بالترتيب حتى الضغط المعروض، ثم اترك الأسطوانة تستقر. غازات التعبئة وترتيبها قابلة للتعديل، فضبط الغاز الأخير على 32/0 يجعل الاستكمال بـ EAN32 بدلاً من الهواء. حلّل الخليط النهائي دائمًا قبل الغوص به.';
+  String get gasCalculators_blender_aboutBody => 'خلط بالضغط الجزئي للوصول إلى الخليط المستهدف. أضف كل غاز تعبئة بالترتيب حتى الضغط المعروض، ثم اترك الأسطوانة تستقر. غازات التعبئة وترتيبها قابلة للتعديل، فضبط الغاز الأخير على 32/0 يجعل الاستكمال بـ EAN32 بدلاً من الهواء. حلّل الخليط النهائي دائمًا قبل الغوص به.';
 
   @override
   String get gasCalculators_blender_conditions => 'ظروف الخلط';
@@ -14499,15 +14346,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_blender_fillTemp => 'درجة حرارة التعبئة';
 
   @override
-  String get gasCalculators_blender_fillTempHelp =>
-      'درجة حرارة الأسطوانة أثناء التعبئة. كل ضغط في الخطوات هو قراءة المقياس عند هذه الدرجة.';
+  String get gasCalculators_blender_fillTempHelp => 'درجة حرارة الأسطوانة أثناء التعبئة. كل ضغط في الخطوات هو قراءة المقياس عند هذه الدرجة.';
 
   @override
   String get gasCalculators_blender_settledTemp => 'درجة الحرارة بعد الاستقرار';
 
   @override
-  String get gasCalculators_blender_settledTempHelp =>
-      'درجة الحرارة التي تستقر عليها الأسطوانة في النهاية. الضغط المستهدف هو ما تقرأه عندها.';
+  String get gasCalculators_blender_settledTempHelp => 'درجة الحرارة التي تستقر عليها الأسطوانة في النهاية. الضغط المستهدف هو ما تقرأه عندها.';
 
   @override
   String get gasCalculators_blender_gasModel => 'نموذج الغاز';
@@ -14525,8 +14370,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_blender_modelRecommended => 'موصى به';
 
   @override
-  String get gasCalculators_blender_modelHelp =>
-      'الغاز الحقيقي (معامل Z) هو الأدق عند ضغوط الأسطوانات. الغاز المثالي يطابق معظم جداول الخلط المنشورة. أما فان دير فالس فيُتاح للمقارنة مع برامج الخلط الأخرى، ويحيد بعدة نقاط مئوية عند ضغط التعبئة.';
+  String get gasCalculators_blender_modelHelp => 'الغاز الحقيقي (معامل Z) هو الأدق عند ضغوط الأسطوانات. الغاز المثالي يطابق معظم جداول الخلط المنشورة. أما فان دير فالس فيُتاح للمقارنة مع برامج الخلط الأخرى، ويحيد بعدة نقاط مئوية عند ضغط التعبئة.';
 
   @override
   String gasCalculators_blender_stepAdd(String gas) {
@@ -14571,16 +14415,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_blender_templateExists =>
-      'هذا الخليط محفوظ بالفعل.';
+  String get gasCalculators_blender_templateExists => 'هذا الخليط محفوظ بالفعل.';
 
   @override
-  String get gasCalculators_blender_templateInvalid =>
-      'لا يمكن أن يتجاوز O₂ + He‏ 100%.';
+  String get gasCalculators_blender_templateInvalid => 'لا يمكن أن يتجاوز O₂ + He‏ 100%.';
 
   @override
-  String get gasCalculators_blender_templateNeedsNumbers =>
-      'أدخل كلًا من O₂ وHe كأرقام.';
+  String get gasCalculators_blender_templateNeedsNumbers => 'أدخل كلًا من O₂ وHe كأرقام.';
 
   @override
   String gasCalculators_blender_templateLimit(int count) {
@@ -14588,8 +14429,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_blender_templateNone =>
-      'لا توجد قوالب بعد. احفظ خليطًا مستهدفًا لإعادة استخدامه هنا.';
+  String get gasCalculators_blender_templateNone => 'لا توجد قوالب بعد. احفظ خليطًا مستهدفًا لإعادة استخدامه هنا.';
 
   @override
   String gasCalculators_blender_templateDelete(String mix) {
@@ -14620,38 +14460,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_blender_currency => 'العملة';
 
   @override
-  String get gasCalculators_blender_currencyFollowsUnits =>
-      'يتبع الإعدادات > الوحدات > العملة الافتراضية';
+  String get gasCalculators_blender_currencyFollowsUnits => 'يتبع الإعدادات > الوحدات > العملة الافتراضية';
 
   @override
-  String get gasCalculators_blender_manageCylinderSizes =>
-      'إدارة أحجام الأسطوانات';
+  String get gasCalculators_blender_manageCylinderSizes => 'إدارة أحجام الأسطوانات';
 
   @override
   String get gasCalculators_blender_costTotal => 'الإجمالي';
 
   @override
-  String get gasCalculators_blender_costBasis =>
-      'تُحتسب التكلفة على الضغط المُعبأ (السعة المائية للأسطوانة × البار المضافة)، بالطريقة نفسها التي تقيس بها محطة التعبئة.';
+  String get gasCalculators_blender_costBasis => 'تُحتسب التكلفة على الضغط المُعبأ (السعة المائية للأسطوانة × البار المضافة)، بالطريقة نفسها التي تقيس بها محطة التعبئة.';
 
   @override
-  String get gasCalculators_blender_costMissingPrice =>
-      'أدخل سعرًا لكل غاز لعرض الإجمالي.';
+  String get gasCalculators_blender_costMissingPrice => 'أدخل سعرًا لكل غاز لعرض الإجمالي.';
 
   @override
   String get gasCalculators_blender_saveFill => 'حفظ هذه التعبئة';
 
   @override
-  String get gasCalculators_blender_flushFeeEnable =>
-      'فرض رسوم لتنظيف خرطوم التعبئة';
+  String get gasCalculators_blender_flushFeeEnable => 'فرض رسوم لتنظيف خرطوم التعبئة';
 
   @override
-  String get gasCalculators_blender_flushFeeModePerInvoice =>
-      'مرة واحدة لكل فاتورة';
+  String get gasCalculators_blender_flushFeeModePerInvoice => 'مرة واحدة لكل فاتورة';
 
   @override
-  String get gasCalculators_blender_flushFeeModePerFill =>
-      'مرة واحدة لكل تعبئة';
+  String get gasCalculators_blender_flushFeeModePerFill => 'مرة واحدة لكل تعبئة';
 
   @override
   String get gasCalculators_blender_flushFeeVolume => 'حجم التنظيف';
@@ -14685,8 +14518,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_blender_tariff => 'التعرفة الحالية';
 
   @override
-  String get gasCalculators_blender_billedNone =>
-      'لا شيء في الفاتورة بعد. أكمل تعبئة واحفظها هنا.';
+  String get gasCalculators_blender_billedNone => 'لا شيء في الفاتورة بعد. أكمل تعبئة واحفظها هنا.';
 
   @override
   String get gasCalculators_blender_billedTo => 'الفاتورة باسم';
@@ -14729,23 +14561,19 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_blender_lineNoPrice =>
-      'لم يُحدَّد سعر لهذا الغاز، لذا يُحتسب بصفر.';
+  String get gasCalculators_blender_lineNoPrice => 'لم يُحدَّد سعر لهذا الغاز، لذا يُحتسب بصفر.';
 
   @override
-  String get gasCalculators_blender_lineInvalidPressure =>
-      'يجب أن يكون الضغط النهائي أعلى من الضغط الابتدائي.';
+  String get gasCalculators_blender_lineInvalidPressure => 'يجب أن يكون الضغط النهائي أعلى من الضغط الابتدائي.';
 
   @override
-  String get gasCalculators_blender_lineNeedsPressure =>
-      'أدخل ضغطًا ابتدائيًا وضغطًا نهائيًا.';
+  String get gasCalculators_blender_lineNeedsPressure => 'أدخل ضغطًا ابتدائيًا وضغطًا نهائيًا.';
 
   @override
   String get gasCalculators_blender_lineNeedsCylinder => 'أدخل سعة الأسطوانة.';
 
   @override
-  String get gasCalculators_blender_lineDescriptionOptional =>
-      'اختياري. إذا تُرك فارغًا، يُنشأ من التعبئة.';
+  String get gasCalculators_blender_lineDescriptionOptional => 'اختياري. إذا تُرك فارغًا، يُنشأ من التعبئة.';
 
   @override
   String get gasCalculators_blender_export => 'تصدير';
@@ -14768,8 +14596,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_blender_pay => 'دفع';
 
   @override
-  String get gasCalculators_blender_payTitle =>
-      'وضع علامة على الفاتورة كمدفوعة؟';
+  String get gasCalculators_blender_payTitle => 'وضع علامة على الفاتورة كمدفوعة؟';
 
   @override
   String gasCalculators_blender_payBody(int count) {
@@ -14797,8 +14624,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_blender_billedIncomplete =>
-      'أحد البنود بلا سعر، لذا فالإجمالي غير مكتمل.';
+  String get gasCalculators_blender_billedIncomplete => 'أحد البنود بلا سعر، لذا فالإجمالي غير مكتمل.';
 
   @override
   String get gasCalculators_blender_billedTotal => 'الإجمالي';
@@ -14816,12 +14642,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_blender_invoiceArchiveAllMonths => 'كل الأشهر';
 
   @override
-  String get gasCalculators_blender_invoiceArchiveEmpty =>
-      'لا توجد فواتير مدفوعة بعد.';
+  String get gasCalculators_blender_invoiceArchiveEmpty => 'لا توجد فواتير مدفوعة بعد.';
 
   @override
-  String get gasCalculators_blender_invoiceArchiveEmptyFiltered =>
-      'لا توجد فواتير ضمن هذا النطاق الزمني.';
+  String get gasCalculators_blender_invoiceArchiveEmptyFiltered => 'لا توجد فواتير ضمن هذا النطاق الزمني.';
 
   @override
   String gasCalculators_blender_invoiceArchiveFillCount(int count) {
@@ -14835,19 +14659,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_blender_invoiceArchiveUntitled => 'بدون عنوان';
 
   @override
-  String get gasCalculators_blender_invoiceArchiveNotFound =>
-      'الفاتورة غير موجودة.';
+  String get gasCalculators_blender_invoiceArchiveNotFound => 'الفاتورة غير موجودة.';
 
   @override
   String get gasCalculators_blender_invoiceArchiveDelete => 'حذف هذه الفاتورة';
 
   @override
-  String get gasCalculators_blender_invoiceArchiveDeleteTitle =>
-      'حذف الفاتورة؟';
+  String get gasCalculators_blender_invoiceArchiveDeleteTitle => 'حذف الفاتورة؟';
 
   @override
-  String get gasCalculators_blender_invoiceArchiveDeleteBody =>
-      'لا يمكن التراجع عن هذا الإجراء.';
+  String get gasCalculators_blender_invoiceArchiveDeleteBody => 'لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String get gasCalculators_blender_defaults => 'الإعدادات الافتراضية والفوترة';
@@ -14871,8 +14692,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_desc_bestMix => 'أغنى خليط لعمق مستهدف';
 
   @override
-  String get gasCalculators_desc_consumption =>
-      'الغاز الذي ستستهلكه غطسة مخططة';
+  String get gasCalculators_desc_consumption => 'الغاز الذي ستستهلكه غطسة مخططة';
 
   @override
   String get gasCalculators_desc_rockBottom => 'احتياطي لصعود غطاسين';
@@ -14884,8 +14704,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_tab_density => 'كثافة الغاز';
 
   @override
-  String get gasCalculators_desc_density =>
-      'كثافة غاز التنفس على العمق، OC أو CCR';
+  String get gasCalculators_desc_density => 'كثافة غاز التنفس على العمق، OC أو CCR';
 
   @override
   String get gasCalculators_density_inputParameters => 'خليط الغاز والظروف';
@@ -14912,8 +14731,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_density_setpoint => 'نقطة الضبط (bar)';
 
   @override
-  String get gasCalculators_density_diluentHint =>
-      'في وضع CCR، الخليط أعلاه هو غاز المخفف.';
+  String get gasCalculators_density_diluentHint => 'في وضع CCR، الخليط أعلاه هو غاز المخفف.';
 
   @override
   String get gasCalculators_density_temperature => 'درجة حرارة الغاز';
@@ -14927,28 +14745,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_density_eaddLabel =>
-      'العمق المكافئ لكثافة الهواء (EADD)';
+  String get gasCalculators_density_eaddLabel => 'العمق المكافئ لكثافة الهواء (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo =>
-      'EADD هو العمق الذي يكون فيه الهواء بكثافة هذا الغاز. وعلى خلاف الكثافة بوحدة g/L، لا يعتمد على درجة الحرارة.';
+  String get gasCalculators_density_eaddInfo => 'EADD هو العمق الذي يكون فيه الهواء بكثافة هذا الغاز. وعلى خلاف الكثافة بوحدة g/L، لا يعتمد على درجة الحرارة.';
 
   @override
   String get gasCalculators_density_loopGasTitle => 'غاز الدائرة على العمق';
 
   @override
-  String gasCalculators_density_loopComposition(
-    Object o2,
-    Object he,
-    Object n2,
-  ) {
+  String gasCalculators_density_loopComposition(Object o2, Object he, Object n2) {
     return 'O2 $o2 % · He $he % · N2 $n2 %';
   }
 
   @override
-  String get gasCalculators_density_setpointCapped =>
-      'نقطة الضبط هنا أعلى من الضغط المحيط، لذا فإن الدائرة أكسجين نقي.';
+  String get gasCalculators_density_setpointCapped => 'نقطة الضبط هنا أعلى من الضغط المحيط، لذا فإن الدائرة أكسجين نقي.';
 
   @override
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
@@ -14970,16 +14781,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_summary_prompt => 'اختر حاسبة للبدء';
 
   @override
-  String get marineLife_siteSection_editExpectedTooltip =>
-      'تعديل الأنواع المتوقعة';
+  String get marineLife_siteSection_editExpectedTooltip => 'تعديل الأنواع المتوقعة';
 
   @override
-  String get marineLife_siteSection_errorLoadingExpected =>
-      'خطأ في تحميل الأنواع المتوقعة';
+  String get marineLife_siteSection_errorLoadingExpected => 'خطأ في تحميل الأنواع المتوقعة';
 
   @override
-  String get marineLife_siteSection_errorLoadingSightings =>
-      'خطأ في تحميل المشاهدات';
+  String get marineLife_siteSection_errorLoadingSightings => 'خطأ في تحميل المشاهدات';
 
   @override
   String get marineLife_siteSection_expectedSpecies => 'الأنواع المتوقعة';
@@ -14991,10 +14799,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_siteSection_noSpotted => 'لم يتم رصد أنواع بعد';
 
   @override
-  String marineLife_siteSection_spottedCountSemantics(
-    Object name,
-    Object count,
-  ) {
+  String marineLife_siteSection_spottedCountSemantics(Object name, Object count) {
     return '$name، شوهد $count مرات';
   }
 
@@ -15045,15 +14850,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesDetail_sightingPeriodTitle => 'فترة المشاهدة';
 
   @override
-  String get marineLife_speciesDetail_sightingStatsTitle =>
-      'إحصائيات المشاهدات';
+  String get marineLife_speciesDetail_sightingStatsTitle => 'إحصائيات المشاهدات';
 
   @override
   String get marineLife_speciesDetail_sitesLabel => 'المواقع';
 
   @override
-  String get marineLife_speciesDetail_statsError =>
-      'تعذر تحميل إحصائيات المشاهدات';
+  String get marineLife_speciesDetail_statsError => 'تعذر تحميل إحصائيات المشاهدات';
 
   @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
@@ -15081,8 +14884,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesEdit_categoryLabel => 'الفئة';
 
   @override
-  String get marineLife_speciesEdit_commonNameError =>
-      'يرجى إدخال الاسم الشائع';
+  String get marineLife_speciesEdit_commonNameError => 'يرجى إدخال الاسم الشائع';
 
   @override
   String get marineLife_speciesEdit_commonNameHint => 'مثال: سمكة المهرج';
@@ -15110,15 +14912,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get marineLife_speciesEdit_notFoundMessage =>
-      'لم يعد هذا النوع موجودًا.';
+  String get marineLife_speciesEdit_notFoundMessage => 'لم يعد هذا النوع موجودًا.';
 
   @override
   String get marineLife_speciesEdit_saveButton => 'حفظ';
 
   @override
-  String get marineLife_speciesEdit_scientificNameHint =>
-      'مثال: Amphiprion ocellaris';
+  String get marineLife_speciesEdit_scientificNameHint => 'مثال: Amphiprion ocellaris';
 
   @override
   String get marineLife_speciesEdit_scientificNameLabel => 'الاسم العلمي';
@@ -15197,27 +14997,22 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get marineLife_speciesManage_noSpeciesFound =>
-      'لم يتم العثور على أنواع';
+  String get marineLife_speciesManage_noSpeciesFound => 'لم يتم العثور على أنواع';
 
   @override
   String get marineLife_speciesManage_resetButton => 'إعادة تعيين';
 
   @override
-  String get marineLife_speciesManage_resetDialogContent =>
-      'سيؤدي هذا إلى استعادة جميع الأنواع المدمجة إلى قيمها الأصلية. لن تتأثر الأنواع المخصصة. سيتم تحديث الأنواع المدمجة التي لديها مشاهدات حالية مع الحفاظ عليها.';
+  String get marineLife_speciesManage_resetDialogContent => 'سيؤدي هذا إلى استعادة جميع الأنواع المدمجة إلى قيمها الأصلية. لن تتأثر الأنواع المخصصة. سيتم تحديث الأنواع المدمجة التي لديها مشاهدات حالية مع الحفاظ عليها.';
 
   @override
-  String get marineLife_speciesManage_resetDialogTitle =>
-      'إعادة التعيين إلى الافتراضي؟';
+  String get marineLife_speciesManage_resetDialogTitle => 'إعادة التعيين إلى الافتراضي؟';
 
   @override
-  String get marineLife_speciesManage_resetSuccess =>
-      'تمت استعادة الأنواع المدمجة إلى الإعدادات الافتراضية';
+  String get marineLife_speciesManage_resetSuccess => 'تمت استعادة الأنواع المدمجة إلى الإعدادات الافتراضية';
 
   @override
-  String get marineLife_speciesManage_resetToDefaults =>
-      'إعادة التعيين إلى الافتراضي';
+  String get marineLife_speciesManage_resetToDefaults => 'إعادة التعيين إلى الافتراضي';
 
   @override
   String get marineLife_speciesManage_searchHint => 'البحث في الأنواع...';
@@ -15238,8 +15033,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_lookup_createWithout => 'إنشاء بدون بحث';
 
   @override
-  String get marineLife_lookup_attribution =>
-      'بيانات الأنواع والصور من iNaturalist';
+  String get marineLife_lookup_attribution => 'بيانات الأنواع والصور من iNaturalist';
 
   @override
   String get marineLife_lookup_idle => 'اكتب اسمًا ثم اضغط بحث.';
@@ -15256,12 +15050,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_lookup_errorTimeout => 'انتهت مهلة البحث.';
 
   @override
-  String get marineLife_lookup_errorServer =>
-      'أعاد iNaturalist خطأ. حاول مرة أخرى لاحقًا.';
+  String get marineLife_lookup_errorServer => 'أعاد iNaturalist خطأ. حاول مرة أخرى لاحقًا.';
 
   @override
-  String get marineLife_lookup_errorMalformed =>
-      'استجابة غير متوقعة من iNaturalist.';
+  String get marineLife_lookup_errorMalformed => 'استجابة غير متوقعة من iNaturalist.';
 
   @override
   String get marineLife_lookup_retry => 'إعادة المحاولة';
@@ -15297,8 +15089,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get marineLife_speciesPhotos_empty =>
-      'الصور الموسومة بهذا النوع تظهر هنا.';
+  String get marineLife_speciesPhotos_empty => 'الصور الموسومة بهذا النوع تظهر هنا.';
 
   @override
   String get marineLife_speciesPhotos_tagPhotos => 'وسم الصور';
@@ -15346,12 +15137,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_tagPicker_title => 'وسم الصور';
 
   @override
-  String get marineLife_tagPicker_empty =>
-      'لا توجد صور غير موسومة في الغوصات التي سجلت فيها هذا النوع.';
+  String get marineLife_tagPicker_empty => 'لا توجد صور غير موسومة في الغوصات التي سجلت فيها هذا النوع.';
 
   @override
-  String get marineLife_tagPicker_emptyHint =>
-      'استخدم إضافة صور لاستيراد الصور من ألبوم الكاميرا.';
+  String get marineLife_tagPicker_emptyHint => 'استخدم إضافة صور لاستيراد الصور من ألبوم الكاميرا.';
 
   @override
   String get marineLife_tagPicker_selectAll => 'تحديد الكل';
@@ -15452,8 +15241,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesPage_emptyTitle => 'لا توجد أنواع بعد';
 
   @override
-  String get marineLife_speciesPage_emptyHint =>
-      'مشاهدات الأنواع المضافة إلى غوصة ستظهر هنا.';
+  String get marineLife_speciesPage_emptyHint => 'مشاهدات الأنواع المضافة إلى غوصة ستظهر هنا.';
 
   @override
   String get marineLife_speciesPage_noMatch => 'لا توجد أنواع تطابق بحثك';
@@ -15513,8 +15301,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get marineLife_speciesPicker_noSpeciesFound =>
-      'لم يتم العثور على أنواع';
+  String get marineLife_speciesPicker_noSpeciesFound => 'لم يتم العثور على أنواع';
 
   @override
   String get marineLife_speciesPicker_searchHint => 'البحث في الأنواع...';
@@ -15551,8 +15338,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get media_diveMediaSection_thumbnailLabel =>
-      'عرض الصورة. اضغط مطولًا لإلغاء الربط';
+  String get media_diveMediaSection_thumbnailLabel => 'عرض الصورة. اضغط مطولًا لإلغاء الربط';
 
   @override
   String get media_diveMediaSection_title => 'الصور والفيديو';
@@ -15561,8 +15347,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_diveMediaSection_replaceButton => 'إعادة الربط';
 
   @override
-  String get media_diveMediaSection_replaceEditedContent =>
-      'محتوى هذا الملف يختلف عن الأصل. إعادة الربط ستعيد رفعه إلى مخزن الوسائط الخاص بك.';
+  String get media_diveMediaSection_replaceEditedContent => 'محتوى هذا الملف يختلف عن الأصل. إعادة الربط ستعيد رفعه إلى مخزن الوسائط الخاص بك.';
 
   @override
   String get media_diveMediaSection_replaceEditedTitle => 'محتوى الملف مختلف';
@@ -15606,18 +15391,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get media_library_unlinkConfirmBody =>
-      'ستغادر مكتبتك، مع نسخها السحابية والصور المصغرة. لن تتأثر ملفاتك الأصلية. لا يمكن التراجع عن هذا.';
+  String get media_library_unlinkConfirmBody => 'ستغادر مكتبتك، مع نسخها السحابية والصور المصغرة. لن تتأثر ملفاتك الأصلية. لا يمكن التراجع عن هذا.';
 
   @override
   String media_library_unlinkMetadataNote(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'يحتوي $count منها على تعليق أو علامة مفضلة محفوظة في Submersion، وستُفقد هذه التفاصيل.',
-      one:
-          'يحتوي واحد منها على تعليق أو علامة مفضلة محفوظة في Submersion، وستُفقد هذه التفاصيل.',
+      other: 'يحتوي $count منها على تعليق أو علامة مفضلة محفوظة في Submersion، وستُفقد هذه التفاصيل.',
+      one: 'يحتوي واحد منها على تعليق أو علامة مفضلة محفوظة في Submersion، وستُفقد هذه التفاصيل.',
     );
     return '$_temp0';
   }
@@ -15632,8 +15414,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_siteMediaSection_addDocument => 'إضافة مستند';
 
   @override
-  String get media_siteMediaSection_emptyState =>
-      'لا توجد خرائط أو صور أو مستندات مرفقة بهذا الموقع';
+  String get media_siteMediaSection_emptyState => 'لا توجد خرائط أو صور أو مستندات مرفقة بهذا الموقع';
 
   @override
   String media_siteMediaSection_divePhotosGroup(int count) {
@@ -15662,12 +15443,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_documentViewer_title => 'مستند';
 
   @override
-  String get media_documentViewer_unavailable =>
-      'هذا المستند غير متاح على هذا الجهاز';
+  String get media_documentViewer_unavailable => 'هذا المستند غير متاح على هذا الجهاز';
 
   @override
-  String get media_documentViewer_availableOnOriginDevice =>
-      'وهو متاح على الجهاز الذي أُضيف منه، أو عبر مخزن وسائط مُهيأ.';
+  String get media_documentViewer_availableOnOriginDevice => 'وهو متاح على الجهاز الذي أُضيف منه، أو عبر مخزن وسائط مُهيأ.';
 
   @override
   String media_documentViewer_attached(int count) {
@@ -15678,12 +15457,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_diveScan_scanTooltip => 'مسح المعرض بحثا عن الصور';
 
   @override
-  String get media_diveScan_noPhotosFound =>
-      'لم يتم العثور على صور جديدة بالقرب من هذه الغوصة';
+  String get media_diveScan_noPhotosFound => 'لم يتم العثور على صور جديدة بالقرب من هذه الغوصة';
 
   @override
-  String get media_diveScan_accessDenied =>
-      'يلزم الوصول إلى مكتبة الصور للبحث عن الصور';
+  String get media_diveScan_accessDenied => 'يلزم الوصول إلى مكتبة الصور للبحث عن الصور';
 
   @override
   String media_diveScan_foundPhotos(int count) {
@@ -15853,12 +15630,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String media_photoPicker_emptyMessage(
-    Object startDate,
-    Object startTime,
-    Object endDate,
-    Object endTime,
-  ) {
+  String media_photoPicker_emptyMessage(Object startDate, Object startTime, Object endDate, Object endTime) {
     return 'لم يتم العثور على صور بين $startDate $startTime و $endDate $endTime.';
   }
 
@@ -15872,12 +15644,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoPicker_openSettingsButton => 'فتح الإعدادات';
 
   @override
-  String get media_photoPicker_permissionDeniedMessage =>
-      'تم رفض الوصول إلى مكتبة الصور. يرجى تمكينه في الإعدادات لإضافة صور الغوص.';
+  String get media_photoPicker_permissionDeniedMessage => 'تم رفض الوصول إلى مكتبة الصور. يرجى تمكينه في الإعدادات لإضافة صور الغوص.';
 
   @override
-  String get media_photoPicker_permissionRequestMessage =>
-      'يحتاج Submersion إلى الوصول إلى مكتبة الصور لإضافة صور الغوص.';
+  String get media_photoPicker_permissionRequestMessage => 'يحتاج Submersion إلى الوصول إلى مكتبة الصور لإضافة صور الغوص.';
 
   @override
   String get media_photoPicker_permissionTitle => 'صور الغوص';
@@ -15899,8 +15669,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoPicker_thumbnailToggleLabel => 'تبديل اختيار الصورة';
 
   @override
-  String get media_photoPicker_thumbnailToggleSelectedLabel =>
-      'تبديل اختيار الصورة، محددة';
+  String get media_photoPicker_thumbnailToggleSelectedLabel => 'تبديل اختيار الصورة، محددة';
 
   @override
   String get media_photoPicker_files_pickFilesButton => 'اختيار الملفات…';
@@ -15909,8 +15678,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoPicker_files_pickFolderButton => 'اختيار مجلد…';
 
   @override
-  String get media_photoPicker_files_autoMatchLabel =>
-      'مطابقة الصور ومقاطع الفيديو تلقائيًا مع الغوصات حسب التاريخ';
+  String get media_photoPicker_files_autoMatchLabel => 'مطابقة الصور ومقاطع الفيديو تلقائيًا مع الغوصات حسب التاريخ';
 
   @override
   String get media_photoPicker_files_emptyHint => 'اختر ملفات أو مجلدًا للبدء.';
@@ -15938,11 +15706,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String media_photoPicker_files_summary(
-    int fileCount,
-    int diveCount,
-    Object unmatchedCount,
-  ) {
+  String media_photoPicker_files_summary(int fileCount, int diveCount, Object unmatchedCount) {
     String _temp0 = intl.Intl.pluralLogic(
       fileCount,
       locale: localeName,
@@ -16012,8 +15776,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoPicker_files_sourceExif => 'من EXIF';
 
   @override
-  String get media_photoPicker_files_sourceContainer =>
-      'من بيانات الملف الوصفية';
+  String get media_photoPicker_files_sourceContainer => 'من بيانات الملف الوصفية';
 
   @override
   String get media_photoPicker_files_sourceFileDate => 'من تاريخ الملف';
@@ -16027,8 +15790,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get media_photoPicker_files_reasonNoTimestamp =>
-      'تعذّرت قراءة وقت الالتقاط';
+  String get media_photoPicker_files_reasonNoTimestamp => 'تعذّرت قراءة وقت الالتقاط';
 
   @override
   String media_photoPicker_files_reasonBeforeDive(String gap) {
@@ -16041,16 +15803,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get media_photoPicker_files_reasonNoDives =>
-      'لا توجد غوصات للمطابقة معها';
+  String get media_photoPicker_files_reasonNoDives => 'لا توجد غوصات للمطابقة معها';
 
   @override
-  String get media_photoPicker_files_offsetLabel =>
-      'إزاحة أوقات الالتقاط بمقدار';
+  String get media_photoPicker_files_offsetLabel => 'إزاحة أوقات الالتقاط بمقدار';
 
   @override
-  String get media_photoPicker_files_offsetResetTooltip =>
-      'إعادة تعيين الإزاحة';
+  String get media_photoPicker_files_offsetResetTooltip => 'إعادة تعيين الإزاحة';
 
   @override
   String media_photoPicker_files_offsetBackTooltip(String amount) {
@@ -16088,8 +15847,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoPicker_files_undo => 'تراجع';
 
   @override
-  String get media_photoPicker_thumbnailAlreadyLinkedLabel =>
-      'الصورة مرتبطة بالفعل بهذه الغوصة';
+  String get media_photoPicker_thumbnailAlreadyLinkedLabel => 'الصورة مرتبطة بالفعل بهذه الغوصة';
 
   @override
   String get media_perdixOverlay_labelCns => 'CNS';
@@ -16131,15 +15889,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoViewer_cannotShare => 'لا يمكن مشاركة هذه الصورة';
 
   @override
-  String get media_photoViewer_cannotWriteMetadata =>
-      'لا يمكن كتابة البيانات الوصفية - الوسائط غير مرتبطة بالمكتبة';
+  String get media_photoViewer_cannotWriteMetadata => 'لا يمكن كتابة البيانات الوصفية - الوسائط غير مرتبطة بالمكتبة';
 
   @override
   String get media_photoViewer_closeTooltip => 'إغلاق عارض الصور';
 
   @override
-  String get media_photoViewer_diveDataWrittenToPhoto =>
-      'تمت كتابة بيانات الغوصة على الصورة';
+  String get media_photoViewer_diveDataWrittenToPhoto => 'تمت كتابة بيانات الغوصة على الصورة';
 
   @override
   String media_photoViewer_errorLoadingPhotos(Object error) {
@@ -16158,8 +15914,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get media_photoViewer_failedToWriteMetadata =>
-      'فشل في كتابة البيانات الوصفية';
+  String get media_photoViewer_failedToWriteMetadata => 'فشل في كتابة البيانات الوصفية';
 
   @override
   String media_photoViewer_failedToWriteMetadataError(Object error) {
@@ -16199,8 +15954,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoViewer_videoNotLinked => 'الفيديو غير مرتبط بالمكتبة';
 
   @override
-  String get media_photoViewer_writeDiveDataTooltip =>
-      'كتابة بيانات الغوصة على الصورة';
+  String get media_photoViewer_writeDiveDataTooltip => 'كتابة بيانات الغوصة على الصورة';
 
   @override
   String get media_quickSiteDialog_cancelButton => 'إلغاء';
@@ -16209,8 +15963,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_quickSiteDialog_createButton => 'إنشاء موقع غوص';
 
   @override
-  String get media_quickSiteDialog_description =>
-      'إنشاء موقع غوص جديد باستخدام إحداثيات GPS من صورتك.';
+  String get media_quickSiteDialog_description => 'إنشاء موقع غوص جديد باستخدام إحداثيات GPS من صورتك.';
 
   @override
   String get media_quickSiteDialog_siteNameError => 'يرجى إدخال اسم الموقع';
@@ -16276,8 +16029,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_unavailablePlaceholder_fileNotFound => 'File not found';
 
   @override
-  String get media_unavailablePlaceholder_fromOtherDevice =>
-      'From another device';
+  String get media_unavailablePlaceholder_fromOtherDevice => 'From another device';
 
   @override
   String media_unavailablePlaceholder_fromOtherDeviceLabel(String device) {
@@ -16288,8 +16040,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_unavailablePlaceholder_networkError => 'Couldn\'t connect';
 
   @override
-  String get media_unavailablePlaceholder_notOnDevice =>
-      'غير متوفر على هذا الجهاز';
+  String get media_unavailablePlaceholder_notOnDevice => 'غير متوفر على هذا الجهاز';
 
   @override
   String get media_unavailablePlaceholder_signInRequired => 'Sign in to view';
@@ -16301,8 +16052,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_writeMetadata_depthLabel => 'العمق';
 
   @override
-  String get media_writeMetadata_descriptionPhoto =>
-      'سيتم كتابة البيانات الوصفية التالية على الصورة:';
+  String get media_writeMetadata_descriptionPhoto => 'سيتم كتابة البيانات الوصفية التالية على الصورة:';
 
   @override
   String get media_writeMetadata_diveTimeLabel => 'وقت الغوصة';
@@ -16311,12 +16061,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_writeMetadata_gpsLabel => 'GPS';
 
   @override
-  String get media_writeMetadata_livePhotoUnsupported =>
-      'صور Live Photos غير مدعومة بعد. كرّر هذه الصورة كصورة ثابتة، ثم اكتب بيانات الغوص في النسخة.';
+  String get media_writeMetadata_livePhotoUnsupported => 'صور Live Photos غير مدعومة بعد. كرّر هذه الصورة كصورة ثابتة، ثم اكتب بيانات الغوص في النسخة.';
 
   @override
-  String get media_writeMetadata_noDataAvailable =>
-      'لا توجد بيانات غوص متاحة للكتابة.';
+  String get media_writeMetadata_noDataAvailable => 'لا توجد بيانات غوص متاحة للكتابة.';
 
   @override
   String get media_writeMetadata_siteLabel => 'الموقع';
@@ -16328,12 +16076,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_writeMetadata_titlePhoto => 'كتابة بيانات الغوصة على الصورة';
 
   @override
-  String get media_writeMetadata_videoUnsupported =>
-      'لا يمكن كتابة بيانات الغوص إلا في الصور، وليس في مقاطع الفيديو.';
+  String get media_writeMetadata_videoUnsupported => 'لا يمكن كتابة بيانات الغوص إلا في الصور، وليس في مقاطع الفيديو.';
 
   @override
-  String get media_writeMetadata_warningPhotoText =>
-      'سيؤدي هذا إلى تعديل الصورة الأصلية.';
+  String get media_writeMetadata_warningPhotoText => 'سيؤدي هذا إلى تعديل الصورة الأصلية.';
 
   @override
   String get media_writeMetadata_writeButton => 'كتابة';
@@ -16414,8 +16160,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_import_review_chooseDive => 'اختيار الغطسة';
 
   @override
-  String get media_import_intro =>
-      'تُربط الصور بغطسة أو موقع غطس أثناء استيرادها.';
+  String get media_import_intro => 'تُربط الصور بغطسة أو موقع غطس أثناء استيرادها.';
 
   @override
   String get media_console_sources => 'المصادر';
@@ -16577,13 +16322,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String media_repair_summary(
-    int relinked,
-    int cloudBacked,
-    int reuploads,
-    int failed,
-    int skipped,
-  ) {
+  String media_repair_summary(int relinked, int cloudBacked, int reuploads, int failed, int skipped) {
     return '$relinked أعيد ربطها، $cloudBacked مدعومة سحابيًا، $reuploads في قائمة إعادة الرفع، $failed فشلت، $skipped تم تخطيها';
   }
 
@@ -16691,8 +16430,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get media_map_emptyHint =>
-      'تُوضع الصور ومقاطع الفيديو حسب إحداثيات GPS الخاصة بها، أو نقطة دخول الغوصة، أو موقع الغوص.';
+  String get media_map_emptyHint => 'تُوضع الصور ومقاطع الفيديو حسب إحداثيات GPS الخاصة بها، أو نقطة دخول الغوصة، أو موقع الغوص.';
 
   @override
   String get media_map_emptyTitle => 'لا توجد وسائط لها موقع';
@@ -16780,8 +16518,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get plannerCanvas_bailout_insufficient =>
-      'غاز الإنقاذ غير كافٍ لأسوأ حالة';
+  String get plannerCanvas_bailout_insufficient => 'غاز الإنقاذ غير كافٍ لأسوأ حالة';
 
   @override
   String plannerCanvas_bailout_required(String liters) {
@@ -16814,8 +16551,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_pscr_ratio => 'نسبة pSCR';
 
   @override
-  String get plannerCanvas_pscr_ratio_hint =>
-      'أكبر = غاز طازج أكثر وانخفاض أقل في الأكسجين';
+  String get plannerCanvas_pscr_ratio_hint => 'أكبر = غاز طازج أكثر وانخفاض أقل في الأكسجين';
 
   @override
   String plannerCanvas_chip_cns(String value) {
@@ -16890,8 +16626,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_follow_empty => 'لا توجد غطسات مسجلة بعد';
 
   @override
-  String get plannerCanvas_follow_noTissues =>
-      'لا توجد بيانات ملف تعريف لهذه الغطسة — تم ضبط الفاصل السطحي دون تحميل الأنسجة';
+  String get plannerCanvas_follow_noTissues => 'لا توجد بيانات ملف تعريف لهذه الغطسة — تم ضبط الفاصل السطحي دون تحميل الأنسجة';
 
   @override
   String get plannerCanvas_follow_title => 'اتباع غطسة';
@@ -16937,19 +16672,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get plannerCanvas_issue_noBailout =>
-      'خطة تخفيف الضغط CCR لا تتضمن غاز إنقاذ (bailout)';
+  String get plannerCanvas_issue_noBailout => 'خطة تخفيف الضغط CCR لا تتضمن غاز إنقاذ (bailout)';
 
   @override
-  String get plannerCanvas_issue_noDecoGas =>
-      'يلزم تخفيف الضغط ولكن لا يوجد غاز تخفيف';
+  String get plannerCanvas_issue_noDecoGas => 'يلزم تخفيف الضغط ولكن لا يوجد غاز تخفيف';
 
   @override
   String get plannerCanvas_range_base => 'أساسي';
 
   @override
-  String get plannerCanvas_range_legend =>
-      'تعرض الخلايا زمن الصعود إلى السطح؛ الأحمر = غير قابلة للغطس كما هو مخطط';
+  String get plannerCanvas_range_legend => 'تعرض الخلايا زمن الصعود إلى السطح؛ الأحمر = غير قابلة للغطس كما هو مخطط';
 
   @override
   String get plannerCanvas_pane_collapse => 'طي اللوحة';
@@ -16967,15 +16699,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_rates_ascent => 'معدل الصعود';
 
   @override
-  String get plannerCanvas_rates_intermediateAscent =>
-      'معدل الصعود بين التوقفات المتوسطة';
+  String get plannerCanvas_rates_intermediateAscent => 'معدل الصعود بين التوقفات المتوسطة';
 
   @override
   String get plannerCanvas_rates_lastStop => 'آخر توقف';
 
   @override
-  String get plannerCanvas_rates_shallowAscent =>
-      'معدل الصعود بين التوقفات الضحلة';
+  String get plannerCanvas_rates_shallowAscent => 'معدل الصعود بين التوقفات الضحلة';
 
   @override
   String plannerCanvas_rates_finalAscent(String depth) {
@@ -17083,63 +16813,52 @@ class AppLocalizationsAr extends AppLocalizations {
   String get planning_appBar_title => 'التخطيط';
 
   @override
-  String get planning_card_decoCalculator_description =>
-      'احسب حدود عدم تخفيف الضغط، ومحطات تخفيف الضغط المطلوبة، والتعرض لـ CNS/OTU لملفات الغوص متعددة المستويات.';
+  String get planning_card_decoCalculator_description => 'احسب حدود عدم تخفيف الضغط، ومحطات تخفيف الضغط المطلوبة، والتعرض لـ CNS/OTU لملفات الغوص متعددة المستويات.';
 
   @override
-  String get planning_card_decoCalculator_subtitle =>
-      'خطط للغوصات مع محطات تخفيف الضغط';
+  String get planning_card_decoCalculator_subtitle => 'خطط للغوصات مع محطات تخفيف الضغط';
 
   @override
   String get planning_card_decoCalculator_title => 'حاسبة تخفيف الضغط';
 
   @override
-  String get planning_card_divePlanner_description =>
-      'خطط لغوصات معقدة مع مستويات عمق متعددة، وتبديل الغازات، وحسابات محطات تخفيف الضغط التلقائية.';
+  String get planning_card_divePlanner_description => 'خطط لغوصات معقدة مع مستويات عمق متعددة، وتبديل الغازات، وحسابات محطات تخفيف الضغط التلقائية.';
 
   @override
-  String get planning_card_divePlanner_subtitle =>
-      'إنشاء خطط غوص متعددة المستويات';
+  String get planning_card_divePlanner_subtitle => 'إنشاء خطط غوص متعددة المستويات';
 
   @override
   String get planning_card_divePlanner_title => 'مخطط الغوص';
 
   @override
-  String get planning_card_gasCalculators_description =>
-      'أربع حاسبات غاز متخصصة:\n• MOD - أقصى عمق تشغيلي لخليط غاز\n• أفضل خليط - نسبة O₂ المثالية لعمق مستهدف\n• الاستهلاك - تقدير استخدام الغاز\n• الاحتياطي الأدنى - حساب احتياطي الطوارئ';
+  String get planning_card_gasCalculators_description => 'أربع حاسبات غاز متخصصة:\n• MOD - أقصى عمق تشغيلي لخليط غاز\n• أفضل خليط - نسبة O₂ المثالية لعمق مستهدف\n• الاستهلاك - تقدير استخدام الغاز\n• الاحتياطي الأدنى - حساب احتياطي الطوارئ';
 
   @override
-  String get planning_card_gasCalculators_subtitle =>
-      'MOD، أفضل خليط، الاستهلاك، الاحتياطي الأدنى';
+  String get planning_card_gasCalculators_subtitle => 'MOD، أفضل خليط، الاستهلاك، الاحتياطي الأدنى';
 
   @override
   String get planning_card_gasCalculators_title => 'حاسبات الغاز';
 
   @override
-  String get planning_card_surfaceInterval_description =>
-      'احسب الحد الأدنى للفاصل الزمني على السطح المطلوب بين الغوصات بناءً على تحميل الأنسجة. تصور كيف تتخلص أنسجتك الـ 16 من الغاز بمرور الوقت.';
+  String get planning_card_surfaceInterval_description => 'احسب الحد الأدنى للفاصل الزمني على السطح المطلوب بين الغوصات بناءً على تحميل الأنسجة. تصور كيف تتخلص أنسجتك الـ 16 من الغاز بمرور الوقت.';
 
   @override
-  String get planning_card_surfaceInterval_subtitle =>
-      'تخطيط فترات الغوص المتكرر';
+  String get planning_card_surfaceInterval_subtitle => 'تخطيط فترات الغوص المتكرر';
 
   @override
   String get planning_card_surfaceInterval_title => 'الفاصل الزمني على السطح';
 
   @override
-  String get planning_card_weightCalculator_description =>
-      'قدّر الوزن الذي تحتاجه بناءً على بدلة الغوص، ومادة الأسطوانة، ونوع الماء، ووزن الجسم.';
+  String get planning_card_weightCalculator_description => 'قدّر الوزن الذي تحتاجه بناءً على بدلة الغوص، ومادة الأسطوانة، ونوع الماء، ووزن الجسم.';
 
   @override
-  String get planning_card_weightCalculator_subtitle =>
-      'الوزن الموصى به لإعدادك';
+  String get planning_card_weightCalculator_subtitle => 'الوزن الموصى به لإعدادك';
 
   @override
   String get planning_card_weightCalculator_title => 'حاسبة الأوزان';
 
   @override
-  String get planning_info_disclaimer =>
-      'هذه الأدوات لأغراض التخطيط فقط. تحقق دائمًا من الحسابات واتبع تدريبك على الغوص.';
+  String get planning_info_disclaimer => 'هذه الأدوات لأغراض التخطيط فقط. تحقق دائمًا من الحسابات واتبع تدريبك على الغوص.';
 
   @override
   String get planning_newPlan => 'خطة جديدة';
@@ -17160,36 +16879,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get planning_sidebar_appBar_title => 'التخطيط';
 
   @override
-  String get planning_sidebar_decoCalculator_subtitle =>
-      'NDL ومحطات تخفيف الضغط';
+  String get planning_sidebar_decoCalculator_subtitle => 'NDL ومحطات تخفيف الضغط';
 
   @override
   String get planning_sidebar_decoCalculator_title => 'حاسبة تخفيف الضغط';
 
   @override
-  String get planning_sidebar_divePlanner_subtitle =>
-      'خطط غوص متعددة المستويات';
+  String get planning_sidebar_divePlanner_subtitle => 'خطط غوص متعددة المستويات';
 
   @override
   String get planning_sidebar_divePlanner_title => 'مخطط الغوص';
 
   @override
-  String get planning_sidebar_gasCalculators_subtitle =>
-      'MOD، أفضل خليط، والمزيد';
+  String get planning_sidebar_gasCalculators_subtitle => 'MOD، أفضل خليط، والمزيد';
 
   @override
   String get planning_sidebar_gasCalculators_title => 'حاسبات الغاز';
 
   @override
-  String get planning_sidebar_info_disclaimer =>
-      'أدوات التخطيط للاستخدام المرجعي فقط. تحقق دائمًا من الحسابات.';
+  String get planning_sidebar_info_disclaimer => 'أدوات التخطيط للاستخدام المرجعي فقط. تحقق دائمًا من الحسابات.';
 
   @override
   String get planning_sidebar_surfaceInterval_subtitle => 'تخطيط الغوص المتكرر';
 
   @override
-  String get planning_sidebar_surfaceInterval_title =>
-      'الفاصل الزمني على السطح';
+  String get planning_sidebar_surfaceInterval_title => 'الفاصل الزمني على السطح';
 
   @override
   String get planning_sidebar_weightCalculator_subtitle => 'الوزن الموصى به';
@@ -17204,20 +16918,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get planning_welcome_subtitle => 'اختر أداة من الشريط الجانبي للبدء';
 
   @override
-  String get planning_welcome_tip_decoCalculator =>
-      'حاسبة تخفيف الضغط لحدود NDL وأوقات التوقف';
+  String get planning_welcome_tip_decoCalculator => 'حاسبة تخفيف الضغط لحدود NDL وأوقات التوقف';
 
   @override
-  String get planning_welcome_tip_divePlanner =>
-      'مخطط الغوص لتخطيط الغوص متعدد المستويات';
+  String get planning_welcome_tip_divePlanner => 'مخطط الغوص لتخطيط الغوص متعدد المستويات';
 
   @override
-  String get planning_welcome_tip_gasCalculators =>
-      'حاسبات الغاز لـ MOD وتخطيط الغاز';
+  String get planning_welcome_tip_gasCalculators => 'حاسبات الغاز لـ MOD وتخطيط الغاز';
 
   @override
-  String get planning_welcome_tip_weightCalculator =>
-      'حاسبة الأوزان لإعداد الطفو';
+  String get planning_welcome_tip_weightCalculator => 'حاسبة الأوزان لإعداد الطفو';
 
   @override
   String get planning_welcome_title => 'أدوات التخطيط';
@@ -17244,8 +16954,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_about_reportIssue_copy => 'نسخ الرابط';
 
   @override
-  String get settings_about_reportIssue_snackbar =>
-      'قم بزيارة github.com/submersion-app/submersion/issues';
+  String get settings_about_reportIssue_snackbar => 'قم بزيارة github.com/submersion-app/submersion/issues';
 
   @override
   String settings_about_version(String version) {
@@ -17279,15 +16988,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_depthColoredCards => 'بطاقات ملونة حسب العمق';
 
   @override
-  String get settings_appearance_depthColoredCards_subtitle =>
-      'عرض بطاقات الغوص بخلفيات ملونة بألوان المحيط حسب العمق';
+  String get settings_appearance_depthColoredCards_subtitle => 'عرض بطاقات الغوص بخلفيات ملونة بألوان المحيط حسب العمق';
 
   @override
   String get settings_appearance_cardColorAttribute => 'تلوين البطاقات حسب';
 
   @override
-  String get settings_appearance_cardColorAttribute_subtitle =>
-      'اختر السمة التي تحدد لون خلفية البطاقة';
+  String get settings_appearance_cardColorAttribute_subtitle => 'اختر السمة التي تحدد لون خلفية البطاقة';
 
   @override
   String get settings_appearance_cardColorAttribute_none => 'لا شيء';
@@ -17299,15 +17006,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_cardColorAttribute_duration => 'المدة';
 
   @override
-  String get settings_appearance_cardColorAttribute_temperature =>
-      'درجة الحرارة';
+  String get settings_appearance_cardColorAttribute_temperature => 'درجة الحرارة';
 
   @override
   String get settings_appearance_colorGradient => 'تدرج الألوان';
 
   @override
-  String get settings_appearance_colorGradient_subtitle =>
-      'اختر نطاق الألوان لخلفيات البطاقات';
+  String get settings_appearance_colorGradient_subtitle => 'اختر نطاق الألوان لخلفيات البطاقات';
 
   @override
   String get settings_appearance_colorGradient_ocean => 'محيط';
@@ -17331,15 +17036,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_gasSwitchMarkers => 'علامات تبديل الغاز';
 
   @override
-  String get settings_appearance_gasSwitchMarkers_subtitle =>
-      'عرض علامات لتبديل الغازات';
+  String get settings_appearance_gasSwitchMarkers_subtitle => 'عرض علامات لتبديل الغازات';
 
   @override
   String get settings_appearance_gasTimeline => 'الجدول الزمني للغاز';
 
   @override
-  String get settings_appearance_gasTimeline_subtitle =>
-      'عرض شريط استهلاك الغاز أسفل ملف الغوصة بشكل افتراضي';
+  String get settings_appearance_gasTimeline_subtitle => 'عرض شريط استهلاك الغاز أسفل ملف الغوصة بشكل افتراضي';
 
   @override
   String get settings_appearance_header_diveDetails => 'تفاصيل الغوصة';
@@ -17354,47 +17057,40 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_header_diveSites => 'مواقع الغوص';
 
   @override
-  String get settings_appearance_diveDetails_sectionOrderVisibility =>
-      'ترتيب الأقسام وظهورها';
+  String get settings_appearance_diveDetails_sectionOrderVisibility => 'ترتيب الأقسام وظهورها';
 
   @override
-  String get settings_appearance_diveDetails_sectionOrderVisibility_subtitle =>
-      'اختر الأقسام التي تظهر وترتيبها';
+  String get settings_appearance_diveDetails_sectionOrderVisibility_subtitle => 'اختر الأقسام التي تظهر وترتيبها';
 
   @override
   String get settings_diveDetailSections_title => 'ترتيب الأقسام وظهورها';
 
   @override
-  String get settings_diveDetailSections_resetToDefault =>
-      'إعادة تعيين إلى الافتراضي';
+  String get settings_diveDetailSections_resetToDefault => 'إعادة تعيين إلى الافتراضي';
 
   @override
   String get settings_diveDetailSections_fixedSections => 'القسم الثابت: الرأس';
 
   @override
-  String get settings_diveDetailSections_configurableSections =>
-      'الأقسام القابلة للتخصيص (اسحب لإعادة الترتيب)';
+  String get settings_diveDetailSections_configurableSections => 'الأقسام القابلة للتخصيص (اسحب لإعادة الترتيب)';
 
   @override
   String get diveDetailSection_profile_name => 'مخطط الغطسة';
 
   @override
-  String get diveDetailSection_profile_description =>
-      'مخطط العمق/الزمن، التشغيل، تحديد النطاق';
+  String get diveDetailSection_profile_description => 'مخطط العمق/الزمن، التشغيل، تحديد النطاق';
 
   @override
   String get diveDetailSection_decoStatus_name => 'حالة تخفيف الضغط';
 
   @override
-  String get diveDetailSection_decoStatus_description =>
-      'NDL، السقف، محطات التوقف، سمية O2';
+  String get diveDetailSection_decoStatus_description => 'NDL، السقف، محطات التوقف، سمية O2';
 
   @override
   String get diveDetailSection_tissueLoading_name => 'تحميل الأنسجة';
 
   @override
-  String get diveDetailSection_tissueLoading_description =>
-      'التشبع لكل حجيرة وخريطة حرارية';
+  String get diveDetailSection_tissueLoading_description => 'التشبع لكل حجيرة وخريطة حرارية';
 
   @override
   String get diveLog_detail_displayOptions_tooltip => 'خيارات العرض';
@@ -17421,8 +17117,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveDetailSection_safetyReview_name => 'مراجعة السلامة';
 
   @override
-  String get diveDetailSection_safetyReview_description =>
-      'ملاحظات تلقائية على ملف الغوص بعد الغطسة';
+  String get diveDetailSection_safetyReview_description => 'ملاحظات تلقائية على ملف الغوص بعد الغطسة';
 
   @override
   String get safetyReview_sectionTitle => 'مراجعة السلامة';
@@ -17484,15 +17179,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetySettings_dismissAll => 'تجاهل جميع الملاحظات';
 
   @override
-  String get safetySettings_dismissAll_subtitle =>
-      'وضع علامة مراجَعة على جميع الملاحظات في هذا السجل';
+  String get safetySettings_dismissAll_subtitle => 'وضع علامة مراجَعة على جميع الملاحظات في هذا السجل';
 
   @override
   String get safetySettings_dismissAll_confirmTitle => 'تجاهل جميع الملاحظات؟';
 
   @override
-  String get safetySettings_dismissAll_confirmBody =>
-      'ستوضع علامة مراجَعة على كل ملاحظة في كل غطسة تم تحليلها. يمكنك استعادتها غطسة بغطسة من قسم مراجعة السلامة الخاص بها.';
+  String get safetySettings_dismissAll_confirmBody => 'ستوضع علامة مراجَعة على كل ملاحظة في كل غطسة تم تحليلها. يمكنك استعادتها غطسة بغطسة من قسم مراجعة السلامة الخاص بها.';
 
   @override
   String get safetySettings_dismissAll_confirm => 'تجاهل الكل';
@@ -17536,8 +17229,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get safetySettings_dismissAll_failed =>
-      'تعذّرت قراءة قائمة الغطسات. لم يتم تغيير أي شيء.';
+  String get safetySettings_dismissAll_failed => 'تعذّرت قراءة قائمة الغطسات. لم يتم تغيير أي شيء.';
 
   @override
   String get safetySettings_analyzeAll_failed => 'تعذّر تحليل الغطسات.';
@@ -17569,8 +17261,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetySettings_masterToggle => 'مراجعة السلامة بعد الغطسة';
 
   @override
-  String get safetySettings_masterToggle_subtitle =>
-      'تدوين ملاحظات الصعود والتوقفات والملف تلقائيًا للغطسات المحللة';
+  String get safetySettings_masterToggle_subtitle => 'تدوين ملاحظات الصعود والتوقفات والملف تلقائيًا للغطسات المحللة';
 
   @override
   String get safetySettings_rulesHeader => 'القواعد';
@@ -17579,8 +17270,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetySettings_rule_rapidAscent => 'صعود سريع';
 
   @override
-  String get safetySettings_rule_missedDecoStop =>
-      'توقفات تخفيف الضغط الفائتة أو المختصرة';
+  String get safetySettings_rule_missedDecoStop => 'توقفات تخفيف الضغط الفائتة أو المختصرة';
 
   @override
   String get safetySettings_rule_omittedSafetyStop => 'توقفات السلامة المُغفلة';
@@ -17595,8 +17285,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetySettings_analyzeAll => 'تحليل جميع الغطسات';
 
   @override
-  String get safetySettings_analyzeAll_subtitle =>
-      'تشغيل مراجعة السلامة على كل غطسة ذات ملف لم تُحلل بعد';
+  String get safetySettings_analyzeAll_subtitle => 'تشغيل مراجعة السلامة على كل غطسة ذات ملف لم تُحلل بعد';
 
   @override
   String safetySettings_analyzeAll_progress(int done, int total) {
@@ -17632,50 +17321,43 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveDetailSection_sacSegments_name => 'استهلاك الغاز حسب المقطع';
 
   @override
-  String get diveDetailSection_sacSegments_description =>
-      'SAC و RMV حسب المرحلة أو الوقت';
+  String get diveDetailSection_sacSegments_description => 'SAC و RMV حسب المرحلة أو الوقت';
 
   @override
   String get diveDetailSection_details_name => 'التفاصيل';
 
   @override
-  String get diveDetailSection_details_description =>
-      'النوع، الموقع، الرحلة، مركز الغوص، الفترة الفاصلة';
+  String get diveDetailSection_details_description => 'النوع، الموقع، الرحلة، مركز الغوص، الفترة الفاصلة';
 
   @override
   String get diveDetailSection_environment_name => 'البيئة';
 
   @override
-  String get diveDetailSection_environment_description =>
-      'درجة حرارة الهواء/الماء، الرؤية، التيار';
+  String get diveDetailSection_environment_description => 'درجة حرارة الهواء/الماء، الرؤية، التيار';
 
   @override
   String get diveDetailSection_altitude_name => 'الارتفاع';
 
   @override
-  String get diveDetailSection_altitude_description =>
-      'قيمة الارتفاع، الفئة، متطلبات تخفيف الضغط';
+  String get diveDetailSection_altitude_description => 'قيمة الارتفاع، الفئة، متطلبات تخفيف الضغط';
 
   @override
   String get diveDetailSection_tide_name => 'المد والجزر';
 
   @override
-  String get diveDetailSection_tide_description =>
-      'رسم بياني لدورة المد والجزر والتوقيت';
+  String get diveDetailSection_tide_description => 'رسم بياني لدورة المد والجزر والتوقيت';
 
   @override
   String get diveDetailSection_reefHealth_name => 'أحوال المياه';
 
   @override
-  String get diveDetailSection_reefHealth_description =>
-      'أحوال المياه عبر الأقمار الصناعية في تاريخ الغطسة';
+  String get diveDetailSection_reefHealth_description => 'أحوال المياه عبر الأقمار الصناعية في تاريخ الغطسة';
 
   @override
   String get diveDetailSection_surfaceGps_name => 'GPS السطح';
 
   @override
-  String get diveDetailSection_surfaceGps_description =>
-      'نقاط الدخول/الخروج عبر GPS وانجراف السطح';
+  String get diveDetailSection_surfaceGps_description => 'نقاط الدخول/الخروج عبر GPS وانجراف السطح';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'GPS السطح';
@@ -17721,8 +17403,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_locationsMap_title => 'مواقع الغوص';
 
   @override
-  String get diveLog_detail_coordinatesCopied =>
-      'تم نسخ الإحداثيات إلى الحافظة';
+  String get diveLog_detail_coordinatesCopied => 'تم نسخ الإحداثيات إلى الحافظة';
 
   @override
   String get diveLog_detail_openInMaps => 'فتح في الخرائط';
@@ -17731,19 +17412,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveDetailSection_weights_name => 'الأوزان';
 
   @override
-  String get diveDetailSection_weights_description =>
-      'تفصيل الأوزان، إجمالي الوزن';
+  String get diveDetailSection_weights_description => 'تفصيل الأوزان، إجمالي الوزن';
 
   @override
   String get diveDetailSection_buoyancy_name => 'الطفو';
 
   @override
-  String get diveDetailSection_buoyancy_description =>
-      'الطفو خلال الغطسة، التغيّر، والوزن القابل للإسقاط';
+  String get diveDetailSection_buoyancy_description => 'الطفو خلال الغطسة، التغيّر، والوزن القابل للإسقاط';
 
   @override
-  String get buoyancy_tooltip =>
-      'الطفو الصافي المُنمذَج خلال الغطسة من المخطط واستهلاك الغاز والمعدات.';
+  String get buoyancy_tooltip => 'الطفو الصافي المُنمذَج خلال الغطسة من المخطط واستهلاك الغاز والمعدات.';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -17756,12 +17434,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get buoyancy_verdictNeutral =>
-      'كانت تهيئتك قريبة من التعادل عند المحطة الأخيرة';
+  String get buoyancy_verdictNeutral => 'كانت تهيئتك قريبة من التعادل عند المحطة الأخيرة';
 
   @override
-  String get buoyancy_verdictConvention =>
-      'مُقدَّر وفق اصطلاح محطة الأمان عند 5 أمتار';
+  String get buoyancy_verdictConvention => 'مُقدَّر وفق اصطلاح محطة الأمان عند 5 أمتار';
 
   @override
   String get buoyancy_breakdownTitle => 'تفصيل العناصر';
@@ -17803,12 +17479,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buoyancy_estimatedPressures => 'ضغوط الأسطوانات تقديرية';
 
   @override
-  String get buoyancy_linkSuitHint =>
-      'اربط بدلة تعرّض بهذه الغطسة للحصول على صورة أوفى';
+  String get buoyancy_linkSuitHint => 'اربط بدلة تعرّض بهذه الغطسة للحصول على صورة أوفى';
 
   @override
-  String get buoyancy_noLeadHint =>
-      'لم يتم تسجيل أي أثقال: أضف أثقالًا إلى هذه الغطسة أو وزنًا جافًا إلى معدات الأثقال';
+  String get buoyancy_noLeadHint => 'لم يتم تسجيل أي أثقال: أضف أثقالًا إلى هذه الغطسة أو وزنًا جافًا إلى معدات الأثقال';
 
   @override
   String get buoyancy_chartNet => 'الصافي';
@@ -17865,36 +17539,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveDetailSection_tanks_name => 'الأسطوانات';
 
   @override
-  String get diveDetailSection_tanks_description =>
-      'قائمة الأسطوانات، خلطات الغاز، الضغوط، الاستهلاك لكل أسطوانة';
+  String get diveDetailSection_tanks_description => 'قائمة الأسطوانات، خلطات الغاز، الضغوط، الاستهلاك لكل أسطوانة';
 
   @override
   String get diveDetailSection_buddies_name => 'الرفقاء';
 
   @override
-  String get diveDetailSection_buddies_description =>
-      'قائمة الرفقاء مع الأدوار';
+  String get diveDetailSection_buddies_description => 'قائمة الرفقاء مع الأدوار';
 
   @override
   String get diveDetailSection_signatures_name => 'التوقيعات';
 
   @override
-  String get diveDetailSection_signatures_description =>
-      'عرض توقيعات الرفيق/المدرب والتقاطها';
+  String get diveDetailSection_signatures_description => 'عرض توقيعات الرفيق/المدرب والتقاطها';
 
   @override
   String get diveDetailSection_equipment_name => 'المعدات';
 
   @override
-  String get diveDetailSection_equipment_description =>
-      'المعدات المستخدمة في الغوصة';
+  String get diveDetailSection_equipment_description => 'المعدات المستخدمة في الغوصة';
 
   @override
   String get diveDetailSection_sightings_name => 'مشاهدات الأنواع';
 
   @override
-  String get diveDetailSection_sightings_description =>
-      'الأنواع المرصودة، تفاصيل المشاهدات';
+  String get diveDetailSection_sightings_description => 'الأنواع المرصودة، تفاصيل المشاهدات';
 
   @override
   String get diveDetailSection_media_name => 'الوسائط';
@@ -17918,54 +17587,43 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveDetailSection_customFields_name => 'الحقول المخصصة';
 
   @override
-  String get diveDetailSection_customFields_description =>
-      'حقول مخصصة يحددها المستخدم';
+  String get diveDetailSection_customFields_description => 'حقول مخصصة يحددها المستخدم';
 
   @override
   String get diveDetailSection_dataSources_name => 'مصادر البيانات';
 
   @override
-  String get diveDetailSection_dataSources_description =>
-      'أجهزة الغوص المتصلة، إدارة المصادر';
+  String get diveDetailSection_dataSources_description => 'أجهزة الغوص المتصلة، إدارة المصادر';
 
   @override
-  String get siteDetailSection_diveStatistics_description =>
-      'عدد الغوصات، الأعماق التي تم بلوغها، أطول الغوصات وأحدثها';
+  String get siteDetailSection_diveStatistics_description => 'عدد الغوصات، الأعماق التي تم بلوغها، أطول الغوصات وأحدثها';
 
   @override
   String get siteDetailSection_description_description => 'وصف الموقع';
 
   @override
-  String get siteDetailSection_location_description =>
-      'الدولة، المنطقة، المسطح المائي، إحداثيات GPS';
+  String get siteDetailSection_location_description => 'الدولة، المنطقة، المسطح المائي، إحداثيات GPS';
 
   @override
-  String get siteDetailSection_depth_description =>
-      'نطاق العمق المصنف والأعماق التي تم بلوغها في الغوصات';
+  String get siteDetailSection_depth_description => 'نطاق العمق المصنف والأعماق التي تم بلوغها في الغوصات';
 
   @override
-  String get siteDetailSection_altitude_description =>
-      'الارتفاع وفئة الغوص على ارتفاع';
+  String get siteDetailSection_altitude_description => 'الارتفاع وفئة الغوص على ارتفاع';
 
   @override
-  String get siteDetailSection_features_description =>
-      'المعالم المحددة على خريطة الموقع';
+  String get siteDetailSection_features_description => 'المعالم المحددة على خريطة الموقع';
 
   @override
-  String get siteDetailSection_tide_description =>
-      'رسم بياني لدورة المد والجزر والتوقيت';
+  String get siteDetailSection_tide_description => 'رسم بياني لدورة المد والجزر والتوقيت';
 
   @override
-  String get siteDetailSection_reefHealth_description =>
-      'أحوال المياه عبر الأقمار الصناعية في الموقع';
+  String get siteDetailSection_reefHealth_description => 'أحوال المياه عبر الأقمار الصناعية في الموقع';
 
   @override
-  String get siteDetailSection_marineLife_description =>
-      'الأنواع التي شوهدت في هذا الموقع';
+  String get siteDetailSection_marineLife_description => 'الأنواع التي شوهدت في هذا الموقع';
 
   @override
-  String get siteDetailSection_media_description =>
-      'صور ومقاطع فيديو ومستندات الموقع';
+  String get siteDetailSection_media_description => 'صور ومقاطع فيديو ومستندات الموقع';
 
   @override
   String get siteDetailSection_tags_description => 'وسوم هذا الموقع';
@@ -17977,12 +17635,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get siteDetailSection_rating_description => 'تقييمك للموقع';
 
   @override
-  String get siteDetailSection_hazards_description =>
-      'المخاطر وملاحظات السلامة';
+  String get siteDetailSection_hazards_description => 'المخاطر وملاحظات السلامة';
 
   @override
-  String get siteDetailSection_access_description =>
-      'الدخول والخروج، مواقف السيارات، الرسو، ملاحظات الوصول';
+  String get siteDetailSection_access_description => 'الدخول والخروج، مواقف السيارات، الرسو، ملاحظات الوصول';
 
   @override
   String get siteDetailSection_notes_description => 'ملاحظاتك عن الموقع';
@@ -18024,39 +17680,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get theme_deep => 'الأعماق';
 
   @override
-  String get settings_appearance_mapBackgroundDiveCards =>
-      'خلفية خريطة على بطاقات الغوص';
+  String get settings_appearance_mapBackgroundDiveCards => 'خلفية خريطة على بطاقات الغوص';
 
   @override
-  String get settings_appearance_mapBackgroundDiveCards_subtitle =>
-      'عرض خريطة موقع الغوص كخلفية على بطاقات الغوص';
+  String get settings_appearance_mapBackgroundDiveCards_subtitle => 'عرض خريطة موقع الغوص كخلفية على بطاقات الغوص';
 
   @override
-  String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote =>
-      'عرض خريطة موقع الغوص كخلفية على بطاقات الغوص (يتطلب موقع الموقع)';
+  String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote => 'عرض خريطة موقع الغوص كخلفية على بطاقات الغوص (يتطلب موقع الموقع)';
 
   @override
-  String get settings_appearance_mapBackgroundSiteCards =>
-      'خلفية خريطة على بطاقات المواقع';
+  String get settings_appearance_mapBackgroundSiteCards => 'خلفية خريطة على بطاقات المواقع';
 
   @override
-  String get settings_appearance_mapBackgroundSiteCards_subtitle =>
-      'عرض الخريطة كخلفية على بطاقات مواقع الغوص';
+  String get settings_appearance_mapBackgroundSiteCards_subtitle => 'عرض الخريطة كخلفية على بطاقات مواقع الغوص';
 
   @override
-  String get settings_appearance_mapBackgroundSiteCards_subtitleWithNote =>
-      'عرض الخريطة كخلفية على بطاقات مواقع الغوص (يتطلب موقع الموقع)';
+  String get settings_appearance_mapBackgroundSiteCards_subtitleWithNote => 'عرض الخريطة كخلفية على بطاقات مواقع الغوص (يتطلب موقع الموقع)';
 
   @override
   String get settings_appearance_maxDepthMarker => 'علامة أقصى عمق';
 
   @override
-  String get settings_appearance_maxDepthMarker_subtitle =>
-      'عرض علامة عند نقطة أقصى عمق';
+  String get settings_appearance_maxDepthMarker_subtitle => 'عرض علامة عند نقطة أقصى عمق';
 
   @override
-  String get settings_appearance_maxDepthMarker_subtitleFull =>
-      'عرض علامة عند نقطة أقصى عمق على ملفات الغوص';
+  String get settings_appearance_maxDepthMarker_subtitleFull => 'عرض علامة عند نقطة أقصى عمق على ملفات الغوص';
 
   @override
   String get settings_appearance_metric_ascentRateColors => 'ألوان معدل الصعود';
@@ -18068,8 +17716,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_metric_events => 'الأحداث';
 
   @override
-  String get settings_appearance_metric_estimatedTankPressure =>
-      'ضغط الأسطوانة المقدر';
+  String get settings_appearance_metric_estimatedTankPressure => 'ضغط الأسطوانة المقدر';
 
   @override
   String get settings_appearance_metric_gasDensity => 'كثافة الغاز';
@@ -18128,51 +17775,40 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_appearance_pressureThresholdMarkers =>
-      'علامات عتبة الضغط';
+  String get settings_appearance_pressureThresholdMarkers => 'علامات عتبة الضغط';
 
   @override
-  String get settings_appearance_pressureThresholdMarkers_subtitle =>
-      'عرض علامات عندما يتجاوز ضغط الأسطوانة العتبات';
+  String get settings_appearance_pressureThresholdMarkers_subtitle => 'عرض علامات عندما يتجاوز ضغط الأسطوانة العتبات';
 
   @override
-  String get settings_appearance_pressureThresholdMarkers_subtitleFull =>
-      'عرض علامات عندما يتجاوز ضغط الأسطوانة عتبات 2/3 و 1/2 و 1/3';
+  String get settings_appearance_pressureThresholdMarkers_subtitleFull => 'عرض علامات عندما يتجاوز ضغط الأسطوانة عتبات 2/3 و 1/2 و 1/3';
 
   @override
-  String get settings_appearance_metricsFollowViewport =>
-      'إبقاء الطبقات الإضافية ضمن العرض عند التكبير';
+  String get settings_appearance_metricsFollowViewport => 'إبقاء الطبقات الإضافية ضمن العرض عند التكبير';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'ملاءمة الطبقات الإضافية مثل NDL وppO2 مع المنطقة المرئية بدلاً من تكبيرها مع محور العمق';
+  String get settings_appearance_metricsFollowViewport_subtitle => 'ملاءمة الطبقات الإضافية مثل NDL وppO2 مع المنطقة المرئية بدلاً من تكبيرها مع محور العمق';
 
   @override
   String get settings_appearance_rightYAxisMetric => 'مقياس المحور الأيمن';
 
   @override
-  String get settings_appearance_rightYAxisMetric_subtitle =>
-      'المقياس الافتراضي المعروض على المحور الأيمن';
+  String get settings_appearance_rightYAxisMetric_subtitle => 'المقياس الافتراضي المعروض على المحور الأيمن';
 
   @override
-  String get settings_appearance_subsection_decompressionMetrics =>
-      'مقاييس تخفيف الضغط';
+  String get settings_appearance_subsection_decompressionMetrics => 'مقاييس تخفيف الضغط';
 
   @override
-  String get settings_appearance_subsection_defaultVisibleMetrics =>
-      'المقاييس المرئية الافتراضية';
+  String get settings_appearance_subsection_defaultVisibleMetrics => 'المقاييس المرئية الافتراضية';
 
   @override
-  String get settings_appearance_subsection_standardMetrics =>
-      'Standard Metrics';
+  String get settings_appearance_subsection_standardMetrics => 'Standard Metrics';
 
   @override
-  String get settings_appearance_subsection_gasAnalysisMetrics =>
-      'مقاييس تحليل الغاز';
+  String get settings_appearance_subsection_gasAnalysisMetrics => 'مقاييس تحليل الغاز';
 
   @override
-  String get settings_appearance_subsection_gradientFactorMetrics =>
-      'مقاييس عامل التدرج';
+  String get settings_appearance_subsection_gradientFactorMetrics => 'مقاييس عامل التدرج';
 
   @override
   String get settings_appearance_theme_dark => 'داكن';
@@ -18187,20 +17823,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_navCustomization_title => 'تخطيط التنقل';
 
   @override
-  String get settings_navCustomization_description =>
-      'اسحب العناصر لإعادة ترتيبها. تظهر العناصر العلوية في شريط التنقل السفلي؛ ويعتمد عددها على حجم الشاشة وليس على اتجاهها.';
+  String get settings_navCustomization_description => 'اسحب العناصر لإعادة ترتيبها. تظهر العناصر العلوية في شريط التنقل السفلي؛ ويعتمد عددها على حجم الشاشة وليس على اتجاهها.';
 
   @override
-  String get settings_navCustomization_alwaysHideLabels_title =>
-      'إخفاء التسميات دائمًا';
+  String get settings_navCustomization_alwaysHideLabels_title => 'إخفاء التسميات دائمًا';
 
   @override
-  String get settings_navCustomization_alwaysHideLabels_subtitle =>
-      'أيقونات فقط، حتى عند توفر مساحة للتسميات';
+  String get settings_navCustomization_alwaysHideLabels_subtitle => 'أيقونات فقط، حتى عند توفر مساحة للتسميات';
 
   @override
-  String get settings_navCustomization_descriptionDesktop =>
-      'اسحب العناصر لإعادة ترتيب الشريط الجانبي. تبقى الصفحة الرئيسية دائمًا في الأعلى.';
+  String get settings_navCustomization_descriptionDesktop => 'اسحب العناصر لإعادة ترتيب الشريط الجانبي. تبقى الصفحة الرئيسية دائمًا في الأعلى.';
 
   @override
   String get settings_navCustomization_scopePhone => 'الهاتف';
@@ -18209,8 +17841,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_navCustomization_scopeDesktop => 'سطح المكتب';
 
   @override
-  String get settings_navCustomization_dividerLabel =>
-      'تنتقل العناصر أدناه إلى قائمة المزيد عندما لا يتسع لها الشريط';
+  String get settings_navCustomization_dividerLabel => 'تنتقل العناصر أدناه إلى قائمة المزيد عندما لا يتسع لها الشريط';
 
   @override
   String get settings_navCustomization_resetButton => 'Reset to defaults';
@@ -18229,31 +17860,24 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String settings_navCustomization_subtitlePreview(
-    String first,
-    String second,
-    String third,
-  ) {
+  String settings_navCustomization_subtitlePreview(String first, String second, String third) {
     return '$first · $second · $third';
   }
 
   @override
-  String get settings_navCustomization_saveError =>
-      'Could not save navigation layout. Please try again.';
+  String get settings_navCustomization_saveError => 'Could not save navigation layout. Please try again.';
 
   @override
   String get settings_backToSettings_tooltip => 'العودة إلى الإعدادات';
 
   @override
-  String get settings_cloudSync_appBar_title =>
-      'المزامنة السحابية لقاعدة البيانات';
+  String get settings_cloudSync_appBar_title => 'المزامنة السحابية لقاعدة البيانات';
 
   @override
   String get settings_cloudSync_autoSync => 'المزامنة التلقائية';
 
   @override
-  String get settings_cloudSync_autoSync_subtitle =>
-      'المزامنة تلقائيًا بعد التغييرات';
+  String get settings_cloudSync_autoSync_subtitle => 'المزامنة تلقائيًا بعد التغييرات';
 
   @override
   String settings_cloudSync_conflictItems(int count) {
@@ -18267,31 +17891,24 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_disabledBanner_content =>
-      'المزامنة السحابية المُدارة من التطبيق معطلة لأنك تستخدم مجلد تخزين مخصصًا. تتولى خدمة مزامنة المجلد (Dropbox، Google Drive، OneDrive، إلخ) عملية المزامنة.';
+  String get settings_cloudSync_disabledBanner_content => 'المزامنة السحابية المُدارة من التطبيق معطلة لأنك تستخدم مجلد تخزين مخصصًا. تتولى خدمة مزامنة المجلد (Dropbox، Google Drive، OneDrive، إلخ) عملية المزامنة.';
 
   @override
-  String get settings_cloudSync_disabledBanner_title =>
-      'المزامنة السحابية معطلة';
+  String get settings_cloudSync_disabledBanner_title => 'المزامنة السحابية معطلة';
 
   @override
-  String get settings_cloudSync_entry_subtitle =>
-      'المزامنة عبر التخزين السحابي';
+  String get settings_cloudSync_entry_subtitle => 'المزامنة عبر التخزين السحابي';
 
   @override
   String get settings_cloudSync_adopt_confirm => 'اعتماد المكتبة المستعادة';
 
   @override
-  String settings_cloudSync_adopt_dialogContent(
-    String deviceName,
-    String date,
-  ) {
+  String settings_cloudSync_adopt_dialogContent(String deviceName, String date) {
     return 'تم استبدال المكتبة من نسخة احتياطية على \"$deviceName\" ($date). عند الاعتماد، سيتم استبدال بيانات هذا الجهاز بالمكتبة المستعادة. سيتم أولاً إنشاء نسخة احتياطية آمنة من البيانات الحالية لهذا الجهاز.';
   }
 
   @override
-  String get settings_cloudSync_adopt_dialogTitle =>
-      'اعتماد المكتبة المستعادة؟';
+  String get settings_cloudSync_adopt_dialogTitle => 'اعتماد المكتبة المستعادة؟';
 
   @override
   String get settings_cloudSync_adopt_notNow => 'ليس الآن';
@@ -18303,26 +17920,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_replaceLibrary_tile => 'استبدال مكتبة السحابة';
 
   @override
-  String get settings_cloudSync_replaceLibrary_tileSubtitle =>
-      'اجعل مكتبة هذا الجهاز هي المكتبة التي تستخدمها جميع الأجهزة';
+  String get settings_cloudSync_replaceLibrary_tileSubtitle => 'اجعل مكتبة هذا الجهاز هي المكتبة التي تستخدمها جميع الأجهزة';
 
   @override
-  String get settings_cloudSync_replaceLibrary_dialogTitle =>
-      'استبدال مكتبة السحابة؟';
+  String get settings_cloudSync_replaceLibrary_dialogTitle => 'استبدال مكتبة السحابة؟';
 
   @override
-  String get settings_cloudSync_replaceLibrary_dialogIntro =>
-      'تصبح مكتبة هذا الجهاز هي المكتبة التي تستخدمها جميع الأجهزة.';
+  String get settings_cloudSync_replaceLibrary_dialogIntro => 'تصبح مكتبة هذا الجهاز هي المكتبة التي تستخدمها جميع الأجهزة.';
 
   @override
   String settings_cloudSync_replaceLibrary_dialogBody(num diveCount) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
-      other:
-          'تُمحى مكتبة السحابة ويحل محلها $diveCount غوصات الموجودة على هذا الجهاز.',
-      one:
-          'تُمحى مكتبة السحابة ويحل محلها الغوص الواحد الموجود على هذا الجهاز.',
+      other: 'تُمحى مكتبة السحابة ويحل محلها $diveCount غوصات الموجودة على هذا الجهاز.',
+      one: 'تُمحى مكتبة السحابة ويحل محلها الغوص الواحد الموجود على هذا الجهاز.',
     );
     return '$_temp0';
   }
@@ -18332,49 +17944,39 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       peerCount,
       locale: localeName,
-      other:
-          'سيُطلب من $peerCount أجهزة أخرى اعتمادها؛ وحتى ذلك الحين لن تُدمج تغييراتها.',
-      one:
-          'سيُطلب من جهاز واحد آخر اعتمادها؛ وحتى ذلك الحين لن تُدمج تغييراته.',
+      other: 'سيُطلب من $peerCount أجهزة أخرى اعتمادها؛ وحتى ذلك الحين لن تُدمج تغييراتها.',
+      one: 'سيُطلب من جهاز واحد آخر اعتمادها؛ وحتى ذلك الحين لن تُدمج تغييراته.',
       zero: 'لا يوجد جهاز آخر يتزامن بعد، لذا لا يوجد ما يمكن اعتماده.',
     );
     return '$_temp0';
   }
 
   @override
-  String get settings_cloudSync_replaceLibrary_peersUnknown =>
-      'سيُطلب من كل الأجهزة الأخرى اعتمادها؛ وحتى ذلك الحين لن تُدمج تغييراتها.';
+  String get settings_cloudSync_replaceLibrary_peersUnknown => 'سيُطلب من كل الأجهزة الأخرى اعتمادها؛ وحتى ذلك الحين لن تُدمج تغييراتها.';
 
   @override
-  String get settings_cloudSync_replaceLibrary_backupNote =>
-      'تُنشأ نسخة احتياطية من هذا الجهاز أولاً. لا يمكن التراجع عن هذا الإجراء.';
+  String get settings_cloudSync_replaceLibrary_backupNote => 'تُنشأ نسخة احتياطية من هذا الجهاز أولاً. لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String get settings_cloudSync_replaceLibrary_confirmWord => 'استبدال';
 
   @override
-  String get settings_cloudSync_replaceLibrary_confirmHint =>
-      'اكتب \"استبدال\" للتأكيد';
+  String get settings_cloudSync_replaceLibrary_confirmHint => 'اكتب \"استبدال\" للتأكيد';
 
   @override
   String get settings_cloudSync_replaceLibrary_confirm => 'استبدال';
 
   @override
-  String get settings_cloudSync_firstSync_banner =>
-      'المزامنة الأولى في انتظار التأكيد. اضغط على \'مزامنة الآن\' لمراجعة ما سيتم دمجه.';
+  String get settings_cloudSync_firstSync_banner => 'المزامنة الأولى في انتظار التأكيد. اضغط على \'مزامنة الآن\' لمراجعة ما سيتم دمجه.';
 
   @override
   String get settings_cloudSync_firstSync_dialogConfirm => 'دمج ومزامنة';
 
   @override
-  String get settings_cloudSync_firstSync_replaceHint =>
-      'إذا كنت تريد بدلاً من ذلك أن تحل مكتبة هذا الجهاز محل ما في السحابة، فألغِ العملية واستخدم الإعدادات > مزامنة السحابة > استبدال مكتبة السحابة.';
+  String get settings_cloudSync_firstSync_replaceHint => 'إذا كنت تريد بدلاً من ذلك أن تحل مكتبة هذا الجهاز محل ما في السحابة، فألغِ العملية واستخدم الإعدادات > مزامنة السحابة > استبدال مكتبة السحابة.';
 
   @override
-  String settings_cloudSync_firstSync_dialogContent(
-    int deviceCount,
-    int diveCount,
-  ) {
+  String settings_cloudSync_firstSync_dialogContent(int deviceCount, int diveCount) {
     return 'تم العثور على بيانات مزامنة موجودة في السحابة ($deviceCount من ملفات المزامنة). ستدمج المزامنة الأولى تلك البيانات مع $diveCount من الغطسات على هذا الجهاز، وذلك عبر جميع الأجهزة المتزامنة.\n\nإذا تمت إضافة الغطسات نفسها بشكل منفصل على كل جهاز، فستظهر مرتين.';
   }
 
@@ -18390,10 +17992,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_switch_dialogTitle => 'تبديل خدمة المزامنة؟';
 
   @override
-  String settings_cloudSync_switch_dialogContent(
-    String fromName,
-    String toName,
-  ) {
+  String settings_cloudSync_switch_dialogContent(String fromName, String toName) {
     return 'لن يتم نقل بياناتك من $fromName -- ستبقى هناك حتى تحذفها. بعد التبديل، ستدمج المزامنة التالية لهذا الجهاز بياناته مع ما هو موجود بالفعل على $toName. ستظل أجهزتك الأخرى تستخدم $fromName حتى تبدّل كلاً منها أيضًا.';
   }
 
@@ -18401,10 +18000,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_switch_confirm => 'تبديل';
 
   @override
-  String settings_cloudSync_moved_banner(
-    String deviceName,
-    String destination,
-  ) {
+  String settings_cloudSync_moved_banner(String deviceName, String destination) {
     return 'قام $deviceName بنقل هذه المكتبة إلى $destination. لم تعد هذه الخدمة تُحدَّث بواسطته. اختر $destination أدناه لمتابعة النقل.';
   }
 
@@ -18426,8 +18022,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_header_advanced => 'متقدم';
 
   @override
-  String get settings_cloudSync_signOut_backupWarning =>
-      'سيتم إيقاف النسخ الاحتياطي السحابي وسيتم حفظ النسخ الاحتياطية في الموقع الافتراضي.';
+  String get settings_cloudSync_signOut_backupWarning => 'سيتم إيقاف النسخ الاحتياطي السحابي وسيتم حفظ النسخ الاحتياطية في الموقع الافتراضي.';
 
   @override
   String get settings_cloudSync_header_cloudProvider => 'مزود السحابة';
@@ -18493,19 +18088,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String settings_cloudSync_peerRequiresUpdate_bannerNamedPlural(
-    Object deviceList,
-  ) {
+  String settings_cloudSync_peerRequiresUpdate_bannerNamedPlural(Object deviceList) {
     return '$deviceList تزامن من إصدار أحدث من Submersion، لذا يتم تعليق أحدث تغييراتها مؤقتًا.';
   }
 
   @override
-  String get settings_cloudSync_peerRequiresUpdate_updateAction =>
-      'حدّث هذا الجهاز لاستلامها.';
+  String get settings_cloudSync_peerRequiresUpdate_updateAction => 'حدّث هذا الجهاز لاستلامها.';
 
   @override
-  String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'سيتم تطبيقها تلقائيًا فور وصول تحديث متجر التطبيقات لهذا الجهاز؛ وقد يكون التحديث لا يزال قيد المراجعة.';
+  String get settings_cloudSync_peerRequiresUpdate_storeAction => 'سيتم تطبيقها تلقائيًا فور وصول تحديث متجر التطبيقات لهذا الجهاز؛ وقد يكون التحديث لا يزال قيد المراجعة.';
 
   @override
   String get settings_cloudSync_provider_connected => 'متصل';
@@ -18516,10 +18107,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String settings_cloudSync_provider_connectionFailed(
-    Object providerName,
-    Object error,
-  ) {
+  String settings_cloudSync_provider_connectionFailed(Object providerName, Object error) {
     return 'فشل الاتصال بـ $providerName: $error';
   }
 
@@ -18530,8 +18118,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_dropbox_connect_codeLabel => 'رمز التفويض';
 
   @override
-  String get settings_cloudSync_dropbox_connect_emptyCode =>
-      'أدخل رمز التفويض الظاهر في متصفحك';
+  String get settings_cloudSync_dropbox_connect_emptyCode => 'أدخل رمز التفويض الظاهر في متصفحك';
 
   @override
   String settings_cloudSync_dropbox_connect_failed(Object error) {
@@ -18539,12 +18126,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_dropbox_connect_instructions =>
-      'فتح متصفحك صفحة تفويض من Dropbox. وافق على الوصول، ثم الصق هنا الرمز الذي يعرضه Dropbox.';
+  String get settings_cloudSync_dropbox_connect_instructions => 'فتح متصفحك صفحة تفويض من Dropbox. وافق على الوصول، ثم الصق هنا الرمز الذي يعرضه Dropbox.';
 
   @override
-  String get settings_cloudSync_dropbox_connect_reopenBrowser =>
-      'إعادة فتح المتصفح';
+  String get settings_cloudSync_dropbox_connect_reopenBrowser => 'إعادة فتح المتصفح';
 
   @override
   String get settings_cloudSync_dropbox_connect_submit => 'اتصال';
@@ -18564,8 +18149,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_dropbox_disconnect => 'قطع الاتصال';
 
   @override
-  String get settings_cloudSync_provider_dropbox_subtitle =>
-      'المزامنة عبر Dropbox (Apps/Submersion)';
+  String get settings_cloudSync_provider_dropbox_subtitle => 'المزامنة عبر Dropbox (Apps/Submersion)';
 
   @override
   String get settings_cloudSync_provider_dropbox_title => 'Dropbox';
@@ -18574,20 +18158,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_provider_googleDrive => 'Google Drive';
 
   @override
-  String get settings_cloudSync_provider_googleDrive_subtitle =>
-      'المزامنة عبر Google Drive';
+  String get settings_cloudSync_provider_googleDrive_subtitle => 'المزامنة عبر Google Drive';
 
   @override
-  String get settings_cloudSync_googleDrive_desktopNotConfigured =>
-      'غير متوفر في هذا الإصدار';
+  String get settings_cloudSync_googleDrive_desktopNotConfigured => 'غير متوفر في هذا الإصدار';
 
   @override
-  String get settings_cloudSync_googleDrive_browserWait_title =>
-      'تابع في متصفحك';
+  String get settings_cloudSync_googleDrive_browserWait_title => 'تابع في متصفحك';
 
   @override
-  String get settings_cloudSync_googleDrive_browserWait_message =>
-      'أكمل تسجيل الدخول إلى Google في متصفح الويب الخاص بك، ثم عد إلى Submersion.';
+  String get settings_cloudSync_googleDrive_browserWait_message => 'أكمل تسجيل الدخول إلى Google في متصفح الويب الخاص بك، ثم عد إلى Submersion.';
 
   @override
   String get settings_cloudSync_provider_icloud => 'iCloud';
@@ -18598,15 +18178,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_provider_notAvailable =>
-      'غير متاح على هذه المنصة';
+  String get settings_cloudSync_provider_notAvailable => 'غير متاح على هذه المنصة';
 
   @override
   String get settings_cloudSync_provider_s3_edit => 'تحرير إعدادات S3';
 
   @override
-  String get settings_cloudSync_provider_s3_subtitle =>
-      'يعمل مع أي خدمة تخزين متوافقة مع S3';
+  String get settings_cloudSync_provider_s3_subtitle => 'يعمل مع أي خدمة تخزين متوافقة مع S3';
 
   @override
   String get settings_cloudSync_provider_s3_title => 'تخزين متوافق مع S3';
@@ -18615,15 +18193,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_resetDialog_cancel => 'إلغاء';
 
   @override
-  String get settings_cloudSync_resetDialog_content =>
-      'سيؤدي هذا إلى مسح جميع سجلات المزامنة والبدء من جديد. لن يتم حذف بياناتك، لكن قد تحتاج إلى حل التعارضات في المزامنة التالية.';
+  String get settings_cloudSync_resetDialog_content => 'سيؤدي هذا إلى مسح جميع سجلات المزامنة والبدء من جديد. لن يتم حذف بياناتك، لكن قد تحتاج إلى حل التعارضات في المزامنة التالية.';
 
   @override
   String get settings_cloudSync_resetDialog_reset => 'إعادة تعيين';
 
   @override
-  String get settings_cloudSync_resetDialog_title =>
-      'إعادة تعيين حالة المزامنة؟';
+  String get settings_cloudSync_resetDialog_title => 'إعادة تعيين حالة المزامنة؟';
 
   @override
   String get settings_cloudSync_resetSuccess => 'تمت إعادة تعيين حالة المزامنة';
@@ -18632,15 +18208,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_resetSyncState => 'إعادة تعيين حالة المزامنة';
 
   @override
-  String get settings_cloudSync_resetSyncState_subtitle =>
-      'مسح سجل المزامنة والبدء من جديد';
+  String get settings_cloudSync_resetSyncState_subtitle => 'مسح سجل المزامنة والبدء من جديد';
 
   @override
   String get settings_cloudSync_resolveConflicts => 'حل التعارضات';
 
   @override
-  String get settings_cloudSync_selectProviderHint =>
-      'اختر مزود سحابة لتمكين المزامنة';
+  String get settings_cloudSync_selectProviderHint => 'اختر مزود سحابة لتمكين المزامنة';
 
   @override
   String get settings_cloudSync_signOut => 'تسجيل الخروج';
@@ -18649,8 +18223,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_signOutDialog_cancel => 'إلغاء';
 
   @override
-  String get settings_cloudSync_signOutDialog_content =>
-      'سيؤدي هذا إلى قطع الاتصال بمزود السحابة. ستبقى بياناتك المحلية سليمة.';
+  String get settings_cloudSync_signOutDialog_content => 'سيؤدي هذا إلى قطع الاتصال بمزود السحابة. ستبقى بياناتك المحلية سليمة.';
 
   @override
   String get settings_cloudSync_signOutDialog_signOut => 'تسجيل الخروج';
@@ -18659,8 +18232,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_signOutDialog_title => 'تسجيل الخروج؟';
 
   @override
-  String get settings_cloudSync_signOutSuccess =>
-      'تم تسجيل الخروج من مزود السحابة';
+  String get settings_cloudSync_signOutSuccess => 'تم تسجيل الخروج من مزود السحابة';
 
   @override
   String get settings_cloudSync_signOut_subtitle => 'قطع الاتصال بمزود السحابة';
@@ -18690,15 +18262,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_syncOnLaunch => 'المزامنة عند التشغيل';
 
   @override
-  String get settings_cloudSync_syncOnLaunch_subtitle =>
-      'التحقق من التحديثات عند بدء التشغيل';
+  String get settings_cloudSync_syncOnLaunch_subtitle => 'التحقق من التحديثات عند بدء التشغيل';
 
   @override
   String get settings_cloudSync_syncOnResume => 'المزامنة عند الاستئناف';
 
   @override
-  String get settings_cloudSync_syncOnResume_subtitle =>
-      'التحقق من التحديثات عندما يصبح التطبيق نشطًا';
+  String get settings_cloudSync_syncOnResume_subtitle => 'التحقق من التحديثات عندما يصبح التطبيق نشطًا';
 
   @override
   String settings_cloudSync_syncProgressPercent(Object percent) {
@@ -18787,8 +18357,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_next_tooltip => 'التعارض التالي';
 
   @override
-  String get settings_conflict_noConflicts_message =>
-      'تم حل جميع تعارضات المزامنة.';
+  String get settings_conflict_noConflicts_message => 'تم حل جميع تعارضات المزامنة.';
 
   @override
   String get settings_conflict_noConflicts_title => 'لا توجد تعارضات';
@@ -18880,8 +18449,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_plannedTank => 'الأسطوانة المخططة';
 
   @override
-  String get settings_conflict_ref_preDiveChecklistTemplate =>
-      'قالب قائمة التحقق قبل الغوص';
+  String get settings_conflict_ref_preDiveChecklistTemplate => 'قالب قائمة التحقق قبل الغوص';
 
   @override
   String get settings_conflict_ref_preDiveSession => 'قائمة التحقق قبل الغوص';
@@ -18983,8 +18551,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_data_offlineMaps => 'الخرائط غير المتصلة';
 
   @override
-  String get settings_data_offlineMaps_subtitle =>
-      'بلاطات الخريطة وبيانات التضاريس ثلاثية الأبعاد';
+  String get settings_data_offlineMaps_subtitle => 'بلاطات الخريطة وبيانات التضاريس ثلاثية الأبعاد';
 
   @override
   String get settings_data_restore => 'استعادة';
@@ -18993,8 +18560,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_data_restoreDialog_cancel => 'إلغاء';
 
   @override
-  String get settings_data_restoreDialog_content =>
-      'تحذير: ستؤدي الاستعادة من نسخة احتياطية إلى استبدال جميع البيانات الحالية ببيانات النسخة الاحتياطية. لا يمكن التراجع عن هذا الإجراء.\n\nهل أنت متأكد أنك تريد المتابعة؟';
+  String get settings_data_restoreDialog_content => 'تحذير: ستؤدي الاستعادة من نسخة احتياطية إلى استبدال جميع البيانات الحالية ببيانات النسخة الاحتياطية. لا يمكن التراجع عن هذا الإجراء.\n\nهل أنت متأكد أنك تريد المتابعة؟';
 
   @override
   String get settings_data_restoreDialog_restore => 'استعادة';
@@ -19035,8 +18601,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_data_sync_syncing => 'جارٍ المزامنة...';
 
   @override
-  String get settings_decompression_aboutContent =>
-      'تتحكم عوامل التدرج (GF) في مدى تحفظ حسابات تخفيف الضغط. يؤثر GF المنخفض على محطات التوقف العميقة، بينما يؤثر GF المرتفع على محطات التوقف الضحلة.\n\nقيم أقل = أكثر تحفظًا = محطات تخفيف ضغط أطول\nقيم أعلى = أقل تحفظًا = محطات تخفيف ضغط أقصر';
+  String get settings_decompression_aboutContent => 'تتحكم عوامل التدرج (GF) في مدى تحفظ حسابات تخفيف الضغط. يؤثر GF المنخفض على محطات التوقف العميقة، بينما يؤثر GF المرتفع على محطات التوقف الضحلة.\n\nقيم أقل = أكثر تحفظًا = محطات تخفيف ضغط أطول\nقيم أعلى = أقل تحفظًا = محطات تخفيف ضغط أقصر';
 
   @override
   String get settings_decompression_aboutTitle => 'حول عوامل التدرج';
@@ -19048,8 +18613,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_decompression_dialog_cancel => 'إلغاء';
 
   @override
-  String get settings_decompression_dialog_conservatismHint =>
-      'قيم أقل = أكثر تحفظًا (NDL أطول / تخفيف ضغط أكثر)';
+  String get settings_decompression_dialog_conservatismHint => 'قيم أقل = أكثر تحفظًا (NDL أطول / تخفيف ضغط أكثر)';
 
   @override
   String get settings_decompression_dialog_customValues => 'قيم مخصصة';
@@ -19061,8 +18625,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_decompression_dialog_gfLow => 'GF المنخفض';
 
   @override
-  String get settings_decompression_dialog_info =>
-      'يتحكم GF المنخفض/المرتفع في مدى تحفظ حسابات NDL وتخفيف الضغط.';
+  String get settings_decompression_dialog_info => 'يتحكم GF المنخفض/المرتفع في مدى تحفظ حسابات NDL وتخفيف الضغط.';
 
   @override
   String get settings_decompression_dialog_presets => 'إعدادات مسبقة';
@@ -19085,8 +18648,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_decompression_header_oxygenToxicity => 'سمية الأكسجين';
 
   @override
-  String get settings_decompression_ppO2LimitsTitle =>
-      'حدود الضغط الجزئي للأكسجين OC';
+  String get settings_decompression_ppO2LimitsTitle => 'حدود الضغط الجزئي للأكسجين OC';
 
   @override
   String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
@@ -19094,37 +18656,27 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_ppO2Dialog_title =>
-      'حدود الضغط الجزئي للأكسجين OC';
+  String get settings_decompression_ppO2Dialog_title => 'حدود الضغط الجزئي للأكسجين OC';
 
   @override
-  String get settings_decompression_ccrPpO2LimitsTitle =>
-      'حدود الضغط الجزئي للأكسجين CCR';
+  String get settings_decompression_ccrPpO2LimitsTitle => 'حدود الضغط الجزئي للأكسجين CCR';
 
   @override
-  String settings_decompression_ccrPpO2LimitsSubtitle(
-    String low,
-    String high,
-    String dil,
-  ) {
+  String settings_decompression_ccrPpO2LimitsSubtitle(String low, String high, String dil) {
     return 'نقطة الضبط المنخفضة $low · المرتفعة $high · MOD التخفيف $dil بار';
   }
 
   @override
-  String get settings_decompression_ccrDialog_info =>
-      'القيم الافتراضية لغطسات الدائرة المغلقة. يبدأ وضع CCR في حاسبة MOD من هذه القيم.';
+  String get settings_decompression_ccrDialog_info => 'القيم الافتراضية لغطسات الدائرة المغلقة. يبدأ وضع CCR في حاسبة MOD من هذه القيم.';
 
   @override
-  String get settings_decompression_ccrDialog_setpointLow =>
-      'نقطة الضبط المنخفضة';
+  String get settings_decompression_ccrDialog_setpointLow => 'نقطة الضبط المنخفضة';
 
   @override
-  String get settings_decompression_ccrDialog_setpointLowHint =>
-      'قرب السطح، أثناء النزول والصعود';
+  String get settings_decompression_ccrDialog_setpointLowHint => 'قرب السطح، أثناء النزول والصعود';
 
   @override
-  String get settings_decompression_ccrDialog_setpointHigh =>
-      'نقطة الضبط المرتفعة';
+  String get settings_decompression_ccrDialog_setpointHigh => 'نقطة الضبط المرتفعة';
 
   @override
   String get settings_decompression_ccrDialog_setpointHighHint => 'على العمق';
@@ -19133,28 +18685,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_decompression_ccrDialog_diluentMod => 'MOD غاز التخفيف';
 
   @override
-  String get settings_decompression_ccrDialog_diluentModHint =>
-      'ppO2 الذي قد يبلغه غاز التخفيف عند الشطف؛ يحدد الـ MOD الخاص به';
+  String get settings_decompression_ccrDialog_diluentModHint => 'ppO2 الذي قد يبلغه غاز التخفيف عند الشطف؛ يحدد الـ MOD الخاص به';
 
   @override
-  String get settings_decompression_ppO2Dialog_info =>
-      'حدود الضغط الجزئي للأكسجين المستخدمة لحساب العمق الأقصى للتشغيل وتخطيط الغازات وتحذيرات تسمم الأكسجين. اضبطها لتطابق الحدود المضبوطة على جهاز الغوص الخاص بك.';
+  String get settings_decompression_ppO2Dialog_info => 'حدود الضغط الجزئي للأكسجين المستخدمة لحساب العمق الأقصى للتشغيل وتخطيط الغازات وتحذيرات تسمم الأكسجين. اضبطها لتطابق الحدود المضبوطة على جهاز الغوص الخاص بك.';
 
   @override
-  String get settings_decompression_ppO2Dialog_working =>
-      'الضغط الجزئي للأكسجين أثناء العمل';
+  String get settings_decompression_ppO2Dialog_working => 'الضغط الجزئي للأكسجين أثناء العمل';
 
   @override
-  String get settings_decompression_ppO2Dialog_workingHint =>
-      'غاز القاع، الجزء النشط من الغوص';
+  String get settings_decompression_ppO2Dialog_workingHint => 'غاز القاع، الجزء النشط من الغوص';
 
   @override
-  String get settings_decompression_ppO2Dialog_max =>
-      'الحد الأقصى للضغط الجزئي للأكسجين';
+  String get settings_decompression_ppO2Dialog_max => 'الحد الأقصى للضغط الجزئي للأكسجين';
 
   @override
-  String get settings_decompression_ppO2Dialog_maxHint =>
-      'إزالة الضغط والطوارئ';
+  String get settings_decompression_ppO2Dialog_maxHint => 'إزالة الضغط والطوارئ';
 
   @override
   String settings_decompression_preset_selectLabel(Object presetName) {
@@ -19168,15 +18714,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_decompression_o2Narcotic => 'O2 مخدر';
 
   @override
-  String get settings_decompression_o2Narcotic_subtitle =>
-      'عند التفعيل، يُعتبر كل من O2 و N2 مخدرين (أكثر تحفظاً). عند التعطيل، يساهم N2 فقط في التخدير.';
+  String get settings_decompression_o2Narcotic_subtitle => 'عند التفعيل، يُعتبر كل من O2 و N2 مخدرين (أكثر تحفظاً). عند التعطيل، يساهم N2 فقط في التخدير.';
 
   @override
   String get settings_decompression_endLimit => 'حد END';
 
   @override
-  String get settings_decompression_endLimit_subtitle =>
-      'أقصى عمق مخدر مكافئ مستخدم في حسابات MND';
+  String get settings_decompression_endLimit_subtitle => 'أقصى عمق مخدر مكافئ مستخدم في حسابات MND';
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'حد END';
@@ -19185,39 +18729,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_decompression_cnsMethodTitle => 'حساب الـ CNS';
 
   @override
-  String get settings_decompression_cnsMethodClassic =>
-      'جدول NOAA، متدرّج (كلاسيكي)';
+  String get settings_decompression_cnsMethodClassic => 'جدول NOAA، متدرّج (كلاسيكي)';
 
   @override
-  String get settings_decompression_cnsMethodClassicDesc =>
-      'يحسب كل نطاق 0.1 bar عند حدّه الأكثر صرامة. الطريقة الأصلية في Submersion.';
+  String get settings_decompression_cnsMethodClassicDesc => 'يحسب كل نطاق 0.1 bar عند حدّه الأكثر صرامة. الطريقة الأصلية في Submersion.';
 
   @override
-  String get settings_decompression_cnsMethodShearwater =>
-      'استيفاء خطي (بأسلوب Shearwater)';
+  String get settings_decompression_cnsMethodShearwater => 'استيفاء خطي (بأسلوب Shearwater)';
 
   @override
-  String get settings_decompression_cnsMethodShearwaterDesc =>
-      'يستوفي بين حدود NOAA كما توثّقها Shearwater. يتوافق مع معظم حواسيب الغوص.';
+  String get settings_decompression_cnsMethodShearwaterDesc => 'يستوفي بين حدود NOAA كما توثّقها Shearwater. يتوافق مع معظم حواسيب الغوص.';
 
   @override
-  String get settings_decompression_cnsMethodSubsurface =>
-      'ملاءمة أسّية (مثل Subsurface)';
+  String get settings_decompression_cnsMethodSubsurface => 'ملاءمة أسّية (مثل Subsurface)';
 
   @override
-  String get settings_decompression_cnsMethodSubsurfaceDesc =>
-      'ملاءمة منحنى سلس لجدول NOAA. يتوافق مع الـ CNS المحسوب في Subsurface.';
+  String get settings_decompression_cnsMethodSubsurfaceDesc => 'ملاءمة منحنى سلس لجدول NOAA. يتوافق مع الـ CNS المحسوب في Subsurface.';
 
   @override
   String get settings_decompression_cnsMethodAboutTitle => 'حول هذه الطرق';
 
   @override
-  String get settings_decompression_cnsMethodAboutBody =>
-      'تستند الطرق الثلاث جميعها إلى حدود التعرض للأكسجين في دليل الغوص من NOAA (300 دقيقة عند ppO2 يبلغ 1.0 bar، و45 دقيقة عند 1.6 bar). لا يحدد الجدول الحدود إلا بخطوات مقدارها 0.1 bar: تحسب الطريقة الكلاسيكية كل ما يقع ضمن نطاق عند حدّه الأكثر صرامة، مما يبالغ بشكل منهجي في تقدير التعرض بين القيم. توثّق حواسيب الغوص من Shearwater استيفاءً خطيًا بين حدود NOAA، بمعدل ثابت قدره 15% في الدقيقة فوق 1.65 bar. استبدلت Subsurface في عام 2019 بحثها في الجدول بملاءمة أسّية سلسة من جزأين على البيانات نفسها من NOAA (Robert C. Helling)، وهي تمتد أيضًا بشكل طبيعي إلى ما بعد 1.6 bar. بين قيم الجدول، تتوافق الطريقتان السلستان في حدود نقطة CNS واحدة تقريبًا؛ بينما تعطي الطريقة الكلاسيكية قيمًا أعلى.';
+  String get settings_decompression_cnsMethodAboutBody => 'تستند الطرق الثلاث جميعها إلى حدود التعرض للأكسجين في دليل الغوص من NOAA (300 دقيقة عند ppO2 يبلغ 1.0 bar، و45 دقيقة عند 1.6 bar). لا يحدد الجدول الحدود إلا بخطوات مقدارها 0.1 bar: تحسب الطريقة الكلاسيكية كل ما يقع ضمن نطاق عند حدّه الأكثر صرامة، مما يبالغ بشكل منهجي في تقدير التعرض بين القيم. توثّق حواسيب الغوص من Shearwater استيفاءً خطيًا بين حدود NOAA، بمعدل ثابت قدره 15% في الدقيقة فوق 1.65 bar. استبدلت Subsurface في عام 2019 بحثها في الجدول بملاءمة أسّية سلسة من جزأين على البيانات نفسها من NOAA (Robert C. Helling)، وهي تمتد أيضًا بشكل طبيعي إلى ما بعد 1.6 bar. بين قيم الجدول، تتوافق الطريقتان السلستان في حدود نقطة CNS واحدة تقريبًا؛ بينما تعطي الطريقة الكلاسيكية قيمًا أعلى.';
 
   @override
-  String get settings_decompression_cnsMethodDisclaimer =>
-      'تشير الأسماء إلى الطرق المنشورة للمشاريع والمصنّعين المعنيين؛ ولا يتضمن ذلك أي انتماء أو تأييد. قد تختلف القيم المحسوبة عن القراءات الفعلية لحاسوب الغوص.';
+  String get settings_decompression_cnsMethodDisclaimer => 'تشير الأسماء إلى الطرق المنشورة للمشاريع والمصنّعين المعنيين؛ ولا يتضمن ذلك أي انتماء أو تأييد. قد تختلف القيم المحسوبة عن القراءات الفعلية لحاسوب الغوص.';
 
   @override
   String get settings_decompression_cnsMethodSourcesTitle => 'المصادر';
@@ -19226,20 +18762,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_linkOpenFailed => 'تعذر فتح الرابط.';
 
   @override
-  String get settings_decompression_cnsMethodSourceNoaa =>
-      'NOAA: Diving Program (ناشر دليل الغوص NOAA Diving Manual)';
+  String get settings_decompression_cnsMethodSourceNoaa => 'NOAA: Diving Program (ناشر دليل الغوص NOAA Diving Manual)';
 
   @override
-  String get settings_decompression_cnsMethodSourceShearwater =>
-      'Shearwater: ساعة أكسجين CNS';
+  String get settings_decompression_cnsMethodSourceShearwater => 'Shearwater: ساعة أكسجين CNS';
 
   @override
-  String get settings_decompression_cnsMethodSourceTheoreticalDiver =>
-      'The Theoretical Diver: حساب سمّية أكسجين CNS';
+  String get settings_decompression_cnsMethodSourceTheoreticalDiver => 'The Theoretical Diver: حساب سمّية أكسجين CNS';
 
   @override
-  String get settings_decompression_cnsMethodSourceSubsurface =>
-      'Subsurface: التنفيذ (divelist.cpp)';
+  String get settings_decompression_cnsMethodSourceSubsurface => 'Subsurface: التنفيذ (divelist.cpp)';
 
   @override
   String get settings_existingDb_cancel => 'إلغاء';
@@ -19251,26 +18783,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_existingDb_current => 'الحالية';
 
   @override
-  String get settings_existingDb_dialog_message =>
-      'توجد بالفعل قاعدة بيانات Submersion في هذا المجلد.';
+  String get settings_existingDb_dialog_message => 'توجد بالفعل قاعدة بيانات Submersion في هذا المجلد.';
 
   @override
-  String get settings_existingDb_dialog_title =>
-      'تم العثور على قاعدة بيانات موجودة';
+  String get settings_existingDb_dialog_title => 'تم العثور على قاعدة بيانات موجودة';
 
   @override
   String get settings_existingDb_existing => 'الموجودة';
 
   @override
-  String get settings_existingDb_replaceWarning =>
-      'سيتم إنشاء نسخة احتياطية من قاعدة البيانات الموجودة قبل استبدالها.';
+  String get settings_existingDb_replaceWarning => 'سيتم إنشاء نسخة احتياطية من قاعدة البيانات الموجودة قبل استبدالها.';
 
   @override
   String get settings_existingDb_replaceWithMyData => 'استبدال ببياناتي';
 
   @override
-  String get settings_existingDb_replaceWithMyData_subtitle =>
-      'الكتابة فوقها بقاعدة بياناتك الحالية';
+  String get settings_existingDb_replaceWithMyData_subtitle => 'الكتابة فوقها بقاعدة بياناتك الحالية';
 
   @override
   String get settings_existingDb_stat_buddies => 'الرفاق';
@@ -19291,12 +18819,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_existingDb_unknown => 'غير معروف';
 
   @override
-  String get settings_existingDb_useExisting =>
-      'استخدام قاعدة البيانات الموجودة';
+  String get settings_existingDb_useExisting => 'استخدام قاعدة البيانات الموجودة';
 
   @override
-  String get settings_existingDb_useExisting_subtitle =>
-      'التبديل إلى قاعدة البيانات في هذا المجلد';
+  String get settings_existingDb_useExisting_subtitle => 'التبديل إلى قاعدة البيانات في هذا المجلد';
 
   @override
   String get settings_gfPreset_custom_description => 'تعيين القيم الخاصة بك';
@@ -19305,15 +18831,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_gfPreset_custom_name => 'مخصص';
 
   @override
-  String get settings_gfPreset_high_description =>
-      'الأكثر تحفظًا، محطات تخفيف ضغط أطول';
+  String get settings_gfPreset_high_description => 'الأكثر تحفظًا، محطات تخفيف ضغط أطول';
 
   @override
   String get settings_gfPreset_high_name => 'مرتفع';
 
   @override
-  String get settings_gfPreset_low_description =>
-      'الأقل تحفظًا، تخفيف ضغط أقصر';
+  String get settings_gfPreset_low_description => 'الأقل تحفظًا، تخفيف ضغط أقصر';
 
   @override
   String get settings_gfPreset_low_name => 'منخفض';
@@ -19349,8 +18873,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_import_phase_equipment => 'جارٍ استيراد المعدات...';
 
   @override
-  String get settings_import_phase_equipmentSets =>
-      'جارٍ استيراد مجموعات المعدات...';
+  String get settings_import_phase_equipmentSets => 'جارٍ استيراد مجموعات المعدات...';
 
   @override
   String get settings_import_phase_preparing => 'جارٍ التحضير...';
@@ -19386,8 +18909,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_lightroom_albumFilter_title => 'الألبومات المراد فحصها';
 
   @override
-  String get settings_lightroom_autoPoll_title =>
-      'التحقق من الصور الجديدة تلقائيًا';
+  String get settings_lightroom_autoPoll_title => 'التحقق من الصور الجديدة تلقائيًا';
 
   @override
   String settings_lightroom_clientId_help(String redirectUri) {
@@ -19401,8 +18923,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_lightroom_clientSecret_label => 'سر العميل (اختياري)';
 
   @override
-  String get settings_lightroom_redirectUri_label =>
-      'عنوان إعادة التوجيه (اختياري)';
+  String get settings_lightroom_redirectUri_label => 'عنوان إعادة التوجيه (اختياري)';
 
   @override
   String get settings_lightroom_connect => 'ربط Lightroom';
@@ -19411,16 +18932,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_lightroom_connectEmbedded => 'الاتصال عبر Adobe';
 
   @override
-  String get settings_lightroom_advancedByo =>
-      'استخدم بيانات اعتماد Adobe الخاصة بك';
+  String get settings_lightroom_advancedByo => 'استخدم بيانات اعتماد Adobe الخاصة بك';
 
   @override
-  String get settings_lightroom_connect_codeLabel =>
-      'عنوان URL المُعاد توجيهه أو الرمز';
+  String get settings_lightroom_connect_codeLabel => 'عنوان URL المُعاد توجيهه أو الرمز';
 
   @override
-  String get settings_lightroom_connect_emptyCode =>
-      'الصق عنوان URL المُعاد توجيهه أو رمز التفويض';
+  String get settings_lightroom_connect_emptyCode => 'الصق عنوان URL المُعاد توجيهه أو رمز التفويض';
 
   @override
   String settings_lightroom_connect_failed(String error) {
@@ -19428,8 +18946,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_lightroom_connect_instructions =>
-      'سجّل الدخول إلى Adobe في نافذة المتصفح، ثم الصق العنوان الكامل للصفحة التي تصل إليها (فهو يحتوي على رمز التفويض).';
+  String get settings_lightroom_connect_instructions => 'سجّل الدخول إلى Adobe في نافذة المتصفح، ثم الصق العنوان الكامل للصفحة التي تصل إليها (فهو يحتوي على رمز التفويض).';
 
   @override
   String get settings_lightroom_connect_reopenBrowser => 'إعادة فتح المتصفح';
@@ -19449,12 +18966,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_lightroom_disconnect => 'قطع الاتصال';
 
   @override
-  String get settings_lightroom_disconnect_confirmBody =>
-      'تبقى الصور المرتبطة في غطساتك وتستمر في الظهور من مخزن الوسائط. لن تتم مطابقة الصور الجديدة بعد الآن.';
+  String get settings_lightroom_disconnect_confirmBody => 'تبقى الصور المرتبطة في غطساتك وتستمر في الظهور من مخزن الوسائط. لن تتم مطابقة الصور الجديدة بعد الآن.';
 
   @override
-  String get settings_lightroom_disconnect_confirmTitle =>
-      'قطع الاتصال بـ Lightroom؟';
+  String get settings_lightroom_disconnect_confirmTitle => 'قطع الاتصال بـ Lightroom؟';
 
   @override
   String settings_lightroom_lastPoll(String when) {
@@ -19471,17 +18986,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_lightroom_scan_running => 'جارٍ فحص Lightroom...';
 
   @override
-  String settings_lightroom_scan_summary(
-    int attached,
-    int suggested,
-    int skipped,
-  ) {
+  String settings_lightroom_scan_summary(int attached, int suggested, int skipped) {
     return '$attached مرتبطة، $suggested مقترحة، $skipped مرتبطة بالفعل';
   }
 
   @override
-  String get settings_lightroom_subtitle =>
-      'ربط الصور ومقاطع الفيديو بالغطسات تلقائيًا';
+  String get settings_lightroom_subtitle => 'ربط الصور ومقاطع الفيديو بالغطسات تلقائيًا';
 
   @override
   String get settings_lightroom_title => 'Adobe Lightroom';
@@ -19490,8 +19000,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_manage_checklistTemplates => 'قوالب قوائم التحقق للرحلات';
 
   @override
-  String get settings_manage_checklistTemplates_subtitle =>
-      'قوائم مهام قابلة لإعادة الاستخدام للتخطيط للرحلات';
+  String get settings_manage_checklistTemplates_subtitle => 'قوائم مهام قابلة لإعادة الاستخدام للتخطيط للرحلات';
 
   @override
   String get settings_manage_diveRoles => 'أدوار الغوص';
@@ -19509,8 +19018,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_manage_siteTypes => 'أنواع المواقع';
 
   @override
-  String get settings_manage_siteTypes_subtitle =>
-      'أنواع مواقع الغوص المدمجة والمخصصة';
+  String get settings_manage_siteTypes_subtitle => 'أنواع مواقع الغوص المدمجة والمخصصة';
 
   @override
   String get settings_manage_header_manageData => 'إدارة البيانات';
@@ -19531,22 +19039,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_manage_tankPresets => 'إعدادات الأسطوانات المسبقة';
 
   @override
-  String get settings_manage_tankPresets_subtitle =>
-      'إدارة تهيئات الأسطوانات المخصصة';
+  String get settings_manage_tankPresets_subtitle => 'إدارة تهيئات الأسطوانات المخصصة';
 
   @override
   String get settings_manage_weightPresets => 'إعدادات الأوزان';
 
   @override
-  String get settings_manage_weightPresets_subtitle =>
-      'مجموعات أوزان قابلة لإعادة الاستخدام لغطسة';
+  String get settings_manage_weightPresets_subtitle => 'مجموعات أوزان قابلة لإعادة الاستخدام لغطسة';
 
   @override
   String get weightPresets_page_title => 'إعدادات الأوزان';
 
   @override
-  String get weightPresets_page_empty =>
-      'احفظ أوزانًا من محرر الغطسة وستظهر هنا لإعادة الاستخدام.';
+  String get weightPresets_page_empty => 'احفظ أوزانًا من محرر الغطسة وستظهر هنا لإعادة الاستخدام.';
 
   @override
   String get weightPresets_action_rename => 'إعادة تسمية';
@@ -19573,8 +19078,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get weightPresets_editor_needWeight => 'Add at least one weight';
 
   @override
-  String get weightPresets_editor_notFound =>
-      'This weighting rig no longer exists.';
+  String get weightPresets_editor_notFound => 'This weighting rig no longer exists.';
 
   @override
   String get weightPresets_rename_title => 'إعادة تسمية الإعداد';
@@ -19591,22 +19095,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_manage_serviceTypes => 'أنواع الصيانة';
 
   @override
-  String get settings_manage_serviceTypes_subtitle =>
-      'الصيانة التي تحتاجها معداتك، وعدد مراتها';
+  String get settings_manage_serviceTypes_subtitle => 'الصيانة التي تحتاجها معداتك، وعدد مراتها';
 
   @override
   String get settings_migrationProgress_doNotClose => 'يرجى عدم إغلاق التطبيق';
 
   @override
-  String get settings_migration_backupInfo =>
-      'سيتم إنشاء نسخة احتياطية قبل النقل. لن تُفقد بياناتك.';
+  String get settings_migration_backupInfo => 'سيتم إنشاء نسخة احتياطية قبل النقل. لن تُفقد بياناتك.';
 
   @override
   String get settings_migration_cancel => 'إلغاء';
 
   @override
-  String get settings_migration_cloudSyncWarning =>
-      'سيتم تعطيل المزامنة السحابية المُدارة من التطبيق. ستتولى خدمة مزامنة المجلد عملية المزامنة.';
+  String get settings_migration_cloudSyncWarning => 'سيتم تعطيل المزامنة السحابية المُدارة من التطبيق. ستتولى خدمة مزامنة المجلد عملية المزامنة.';
 
   @override
   String get settings_migration_dialog_message => 'سيتم نقل قاعدة البيانات:';
@@ -19632,56 +19133,46 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_notifications_disabled_continueButton => 'متابعة';
 
   @override
-  String get settings_notifications_disabled_openSettingsButton =>
-      'فتح الإعدادات';
+  String get settings_notifications_disabled_openSettingsButton => 'فتح الإعدادات';
 
   @override
-  String get settings_notifications_disabled_subtitleUnrequested =>
-      'تحتاج تذكيرات الخدمة إلى إذن لإرسال الإشعارات';
+  String get settings_notifications_disabled_subtitleUnrequested => 'تحتاج تذكيرات الخدمة إلى إذن لإرسال الإشعارات';
 
   @override
-  String get settings_notifications_disabled_subtitle =>
-      'قم بتمكينها في إعدادات النظام لتلقي التذكيرات';
+  String get settings_notifications_disabled_subtitle => 'قم بتمكينها في إعدادات النظام لتلقي التذكيرات';
 
   @override
   String get settings_notifications_disabled_title => 'الإشعارات معطلة';
 
   @override
-  String get settings_notifications_enableServiceReminders =>
-      'تمكين تذكيرات الصيانة';
+  String get settings_notifications_enableServiceReminders => 'تمكين تذكيرات الصيانة';
 
   @override
-  String get settings_notifications_enableServiceReminders_subtitle =>
-      'الحصول على إشعار عند استحقاق صيانة المعدات';
+  String get settings_notifications_enableServiceReminders_subtitle => 'الحصول على إشعار عند استحقاق صيانة المعدات';
 
   @override
   String get settings_notifications_header_reminderSchedule => 'جدول التذكيرات';
 
   @override
-  String get settings_notifications_header_serviceReminders =>
-      'تذكيرات الصيانة';
+  String get settings_notifications_header_serviceReminders => 'تذكيرات الصيانة';
 
   @override
-  String get settings_notifications_howItWorks_content =>
-      'تتم جدولة الإشعارات عند تشغيل التطبيق وتُحدّث دوريًا في الخلفية. يمكنك تخصيص التذكيرات لكل عنصر من المعدات في شاشة التعديل الخاصة به.';
+  String get settings_notifications_howItWorks_content => 'تتم جدولة الإشعارات عند تشغيل التطبيق وتُحدّث دوريًا في الخلفية. يمكنك تخصيص التذكيرات لكل عنصر من المعدات في شاشة التعديل الخاصة به.';
 
   @override
   String get settings_notifications_howItWorks_title => 'كيف يعمل';
 
   @override
-  String get settings_notifications_permissionRequired =>
-      'يرجى تمكين الإشعارات في إعدادات النظام';
+  String get settings_notifications_permissionRequired => 'يرجى تمكين الإشعارات في إعدادات النظام';
 
   @override
-  String get settings_notifications_remindBeforeDue =>
-      'ذكّرني قبل استحقاق الصيانة:';
+  String get settings_notifications_remindBeforeDue => 'ذكّرني قبل استحقاق الصيانة:';
 
   @override
   String get settings_notifications_reminderTime => 'وقت التذكير';
 
   @override
-  String get settings_profile_activeDiver_subtitle =>
-      'الغواص النشط - انقر للتبديل';
+  String get settings_profile_activeDiver_subtitle => 'الغواص النشط - انقر للتبديل';
 
   @override
   String get settings_profile_addNewDiver => 'إضافة غواص جديد';
@@ -19699,8 +19190,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_profile_noDiverProfile => 'لا يوجد ملف غواص';
 
   @override
-  String get settings_profile_noDiverProfile_subtitle =>
-      'انقر لإنشاء ملفك الشخصي';
+  String get settings_profile_noDiverProfile_subtitle => 'انقر لإنشاء ملفك الشخصي';
 
   @override
   String get settings_profile_switchDiver_title => 'تبديل الغواص';
@@ -19714,15 +19204,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_profile_viewAllDivers => 'عرض جميع الغواصين';
 
   @override
-  String get settings_profile_viewAllDivers_subtitle =>
-      'إضافة أو تعديل ملفات الغواصين';
+  String get settings_profile_viewAllDivers_subtitle => 'إضافة أو تعديل ملفات الغواصين';
 
   @override
   String get settings_profileHub_addNewDiver => 'إضافة غواص جديد';
 
   @override
-  String get settings_profileHub_cannotDeleteOnly =>
-      'لا يمكن حذف ملف الغواص الوحيد';
+  String get settings_profileHub_cannotDeleteOnly => 'لا يمكن حذف ملف الغواص الوحيد';
 
   @override
   String get settings_profileHub_createDiverTitle => 'إنشاء غواص';
@@ -19742,8 +19230,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_profileHub_deleted => 'تم حذف الغواص';
 
   @override
-  String get settings_profileHub_emergencyContacts =>
-      'جهات الاتصال في حالات الطوارئ';
+  String get settings_profileHub_emergencyContacts => 'جهات الاتصال في حالات الطوارئ';
 
   @override
   String settings_profileHub_emergencyContacts_count(int count) {
@@ -19803,8 +19290,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_s3Config_appBar_title => 'تخزين متوافق مع S3';
 
   @override
-  String get settings_s3Config_error_secureStorage =>
-      'تعذر الوصول إلى التخزين الآمن';
+  String get settings_s3Config_error_secureStorage => 'تعذر الوصول إلى التخزين الآمن';
 
   @override
   String get settings_s3Config_field_accessKeyId_label => 'Access Key ID';
@@ -19813,20 +19299,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_s3Config_field_bucket_label => 'الحاوية (Bucket)';
 
   @override
-  String get settings_s3Config_field_endpoint_helper =>
-      'على سبيل المثال: https://s3.example.com';
+  String get settings_s3Config_field_endpoint_helper => 'على سبيل المثال: https://s3.example.com';
 
   @override
-  String get settings_s3Config_field_endpoint_label =>
-      'عنوان URL لنقطة النهاية';
+  String get settings_s3Config_field_endpoint_label => 'عنوان URL لنقطة النهاية';
 
   @override
-  String get settings_s3Config_field_pathStyle_label =>
-      'استخدام العنونة بنمط المسار (path-style)';
+  String get settings_s3Config_field_pathStyle_label => 'استخدام العنونة بنمط المسار (path-style)';
 
   @override
-  String get settings_s3Config_field_pathStyle_subtitle =>
-      'مطلوب لمعظم الخوادم المستضافة ذاتيًا';
+  String get settings_s3Config_field_pathStyle_subtitle => 'مطلوب لمعظم الخوادم المستضافة ذاتيًا';
 
   @override
   String get settings_s3Config_field_prefix_label => 'بادئة المفاتيح';
@@ -19840,19 +19322,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_s3Config_field_region_label => 'المنطقة';
 
   @override
-  String get settings_s3Config_field_secretAccessKey_label =>
-      'Secret Access Key';
+  String get settings_s3Config_field_secretAccessKey_label => 'Secret Access Key';
 
   @override
   String get settings_s3Config_remove_confirm_action => 'إزالة';
 
   @override
-  String get settings_s3Config_remove_confirm_body =>
-      'ستتوقف المزامنة عبر S3 على هذا الجهاز. لن تُحذف بياناتك في الحاوية.';
+  String get settings_s3Config_remove_confirm_body => 'ستتوقف المزامنة عبر S3 على هذا الجهاز. لن تُحذف بياناتك في الحاوية.';
 
   @override
-  String get settings_s3Config_remove_confirm_title =>
-      'هل تريد إزالة إعدادات S3؟';
+  String get settings_s3Config_remove_confirm_title => 'هل تريد إزالة إعدادات S3؟';
 
   @override
   String get settings_s3Config_removed => 'تمت إزالة إعدادات S3';
@@ -19869,19 +19348,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_s3Config_test_success => 'نجح الاتصال';
 
   @override
-  String get settings_s3Config_validation_endpointInvalid =>
-      'أدخل عنوان URL صالحًا يبدأ بـ http:// أو https://';
+  String get settings_s3Config_validation_endpointInvalid => 'أدخل عنوان URL صالحًا يبدأ بـ http:// أو https://';
 
   @override
-  String get settings_s3Config_validation_endpointPath =>
-      'يجب ألا يتضمن عنوان URL لنقطة النهاية مسارًا';
+  String get settings_s3Config_validation_endpointPath => 'يجب ألا يتضمن عنوان URL لنقطة النهاية مسارًا';
 
   @override
   String get settings_s3Config_validation_required => 'مطلوب';
 
   @override
-  String get settings_s3Config_warning_http =>
-      'تستخدم نقطة النهاية هذه HTTP غير مشفّر. ستنتقل بيانات الاعتماد وبيانات الغوص دون تشفير؛ استخدمه فقط على شبكة موثوقة.';
+  String get settings_s3Config_warning_http => 'تستخدم نقطة النهاية هذه HTTP غير مشفّر. ستنتقل بيانات الاعتماد وبيانات الغوص دون تشفير؛ استخدمه فقط على شبكة موثوقة.';
 
   @override
   String get settings_section_about_subtitle => 'معلومات التطبيق والتراخيص';
@@ -19896,8 +19372,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_section_appearance_title => 'المظهر';
 
   @override
-  String get settings_section_data_subtitle =>
-      'النسخ الاحتياطي والاستعادة والتخزين';
+  String get settings_section_data_subtitle => 'النسخ الاحتياطي والاستعادة والتخزين';
 
   @override
   String get settings_section_data_title => 'البيانات';
@@ -19909,15 +19384,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_section_decompression_title => 'تخفيف الضغط';
 
   @override
-  String get settings_section_diverProfile_subtitle =>
-      'الغواص النشط والملفات الشخصية';
+  String get settings_section_diverProfile_subtitle => 'الغواص النشط والملفات الشخصية';
 
   @override
   String get settings_section_diverProfile_title => 'ملف الغواص';
 
   @override
-  String get settings_section_manage_subtitle =>
-      'أنواع الغوص وإعدادات الأسطوانات';
+  String get settings_section_manage_subtitle => 'أنواع الغوص وإعدادات الأسطوانات';
 
   @override
   String get settings_section_manage_title => 'الإدارة';
@@ -19944,8 +19417,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_storage_appDefaultLocation => 'موقع التطبيق الافتراضي';
 
   @override
-  String get settings_storage_appDefault_subtitle =>
-      'موقع تخزين التطبيق القياسي';
+  String get settings_storage_appDefault_subtitle => 'موقع تخزين التطبيق القياسي';
 
   @override
   String get settings_storage_currentLocation => 'الموقع الحالي';
@@ -19960,23 +19432,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_storage_customFolder_change => 'تغيير';
 
   @override
-  String get settings_storage_customFolder_subtitle =>
-      'اختر مجلدًا متزامنًا (Dropbox، Google Drive، إلخ)';
+  String get settings_storage_customFolder_subtitle => 'اختر مجلدًا متزامنًا (Dropbox، Google Drive، إلخ)';
 
   @override
-  String get settings_storage_customFolder_subtitleDeviceOnly =>
-      'نقل قاعدة البيانات إلى التخزين الداخلي أو بطاقة SD';
+  String get settings_storage_customFolder_subtitleDeviceOnly => 'نقل قاعدة البيانات إلى التخزين الداخلي أو بطاقة SD';
 
   @override
-  String get settings_storage_customFolder_deviceOnly_noCloudSync =>
-      'المزامنة السحابية التي يديرها التطبيق معطَّلة ما دامت قاعدة البيانات موجودة على وحدة تخزين في الجهاز. لا يمكن لأي خدمة مزامنة الوصول إلى هذا المجلد على Android، لذا استخدم النسخ الاحتياطي والاستعادة للاحتفاظ بنسخ في مكان آخر.';
+  String get settings_storage_customFolder_deviceOnly_noCloudSync => 'المزامنة السحابية التي يديرها التطبيق معطَّلة ما دامت قاعدة البيانات موجودة على وحدة تخزين في الجهاز. لا يمكن لأي خدمة مزامنة الوصول إلى هذا المجلد على Android، لذا استخدم النسخ الاحتياطي والاستعادة للاحتفاظ بنسخ في مكان آخر.';
 
   @override
-  String settings_storage_dbStats(
-    Object fileSize,
-    Object diveCount,
-    Object siteCount,
-  ) {
+  String settings_storage_dbStats(Object fileSize, Object diveCount, Object siteCount) {
     return '$fileSize • $diveCount غوصات • $siteCount مواقع';
   }
 
@@ -19990,12 +19455,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_storage_header_storageLocation => 'موقع التخزين';
 
   @override
-  String get settings_storage_info_customActive =>
-      'المزامنة السحابية المُدارة من التطبيق معطلة. تتولى خدمة مزامنة المجلد (Dropbox، Google Drive، إلخ) عملية المزامنة.';
+  String get settings_storage_info_customActive => 'المزامنة السحابية المُدارة من التطبيق معطلة. تتولى خدمة مزامنة المجلد (Dropbox، Google Drive، إلخ) عملية المزامنة.';
 
   @override
-  String get settings_storage_info_customAvailable =>
-      'استخدام مجلد مخصص يعطل المزامنة السحابية المُدارة من التطبيق. ستتولى خدمة مزامنة المجلد عملية المزامنة بدلًا من ذلك.';
+  String get settings_storage_info_customAvailable => 'استخدام مجلد مخصص يعطل المزامنة السحابية المُدارة من التطبيق. ستتولى خدمة مزامنة المجلد عملية المزامنة بدلًا من ذلك.';
 
   @override
   String get settings_storage_loading => 'جارٍ التحميل...';
@@ -20004,20 +19467,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_storage_migrating_doNotClose => 'يرجى عدم إغلاق التطبيق';
 
   @override
-  String get settings_storage_migrating_movingDatabase =>
-      'جارٍ نقل قاعدة البيانات...';
+  String get settings_storage_migrating_movingDatabase => 'جارٍ نقل قاعدة البيانات...';
 
   @override
-  String get settings_storage_migrating_movingToAppDefault =>
-      'جارٍ النقل إلى الموقع الافتراضي...';
+  String get settings_storage_migrating_movingToAppDefault => 'جارٍ النقل إلى الموقع الافتراضي...';
 
   @override
-  String get settings_storage_migrating_replacingExisting =>
-      'جارٍ استبدال قاعدة البيانات الموجودة...';
+  String get settings_storage_migrating_replacingExisting => 'جارٍ استبدال قاعدة البيانات الموجودة...';
 
   @override
-  String get settings_storage_migrating_switchingToExisting =>
-      'جارٍ التبديل إلى قاعدة البيانات الموجودة...';
+  String get settings_storage_migrating_switchingToExisting => 'جارٍ التبديل إلى قاعدة البيانات الموجودة...';
 
   @override
   String get settings_storage_notSet => 'غير محدد';
@@ -20037,16 +19496,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_storage_resetDatabase => 'إعادة تعيين قاعدة البيانات';
 
   @override
-  String get settings_storage_resetDatabase_subtitle =>
-      'حذف جميع البيانات على هذا الجهاز والبدء من جديد';
+  String get settings_storage_resetDatabase_subtitle => 'حذف جميع البيانات على هذا الجهاز والبدء من جديد';
 
   @override
-  String get settings_storage_resetDialog_title =>
-      'إعادة تعيين قاعدة البيانات؟';
+  String get settings_storage_resetDialog_title => 'إعادة تعيين قاعدة البيانات؟';
 
   @override
-  String get settings_storage_resetDialog_body =>
-      'سيؤدي هذا إلى حذف جميع البيانات الموجودة على هذا الجهاز نهائياً، بما في ذلك الغوصات والمواقع والمعدات والإعدادات. سيتم إنشاء نسخة احتياطية تلقائياً قبل إعادة التعيين.\n\nلن تُحذف مكتبتك السحابية، وتحتفظ الأجهزة الأخرى ببياناتها. سيتم فصل مزامنة السحابة حتى لا يُلغى أثر إعادة التعيين؛ يمكنك إعادة توصيلها من الإعدادات > مزامنة السحابة.';
+  String get settings_storage_resetDialog_body => 'سيؤدي هذا إلى حذف جميع البيانات الموجودة على هذا الجهاز نهائياً، بما في ذلك الغوصات والمواقع والمعدات والإعدادات. سيتم إنشاء نسخة احتياطية تلقائياً قبل إعادة التعيين.\n\nلن تُحذف مكتبتك السحابية، وتحتفظ الأجهزة الأخرى ببياناتها. سيتم فصل مزامنة السحابة حتى لا يُلغى أثر إعادة التعيين؛ يمكنك إعادة توصيلها من الإعدادات > مزامنة السحابة.';
 
   @override
   String get settings_storage_resetDialog_confirmWord => 'حذف';
@@ -20058,8 +19514,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_storage_resetDialog_confirmButton => 'إعادة تعيين';
 
   @override
-  String get settings_storage_resetDialog_backupFailed =>
-      'فشل النسخ الاحتياطي. تم إلغاء إعادة التعيين لحماية بياناتك.';
+  String get settings_storage_resetDialog_backupFailed => 'فشل النسخ الاحتياطي. تم إلغاء إعادة التعيين لحماية بياناتك.';
 
   @override
   String settings_storage_resetDialog_resetFailed(Object error) {
@@ -20067,12 +19522,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_storage_resetComplete_title =>
-      'إعادة تعيين قاعدة البيانات';
+  String get settings_storage_resetComplete_title => 'إعادة تعيين قاعدة البيانات';
 
   @override
-  String get settings_storage_resetComplete_description =>
-      'تم مسح بيانات هذا الجهاز وحفظ نسخة احتياطية. أصبحت مزامنة السحابة الآن غير متصلة حتى لا يُلغى أثر إعادة التعيين؛ يمكنك إعادة توصيلها من الإعدادات > مزامنة السحابة. اضغط على متابعة لإعادة تحميل التطبيق.';
+  String get settings_storage_resetComplete_description => 'تم مسح بيانات هذا الجهاز وحفظ نسخة احتياطية. أصبحت مزامنة السحابة الآن غير متصلة حتى لا يُلغى أثر إعادة التعيين؛ يمكنك إعادة توصيلها من الإعدادات > مزامنة السحابة. اضغط على متابعة لإعادة تحميل التطبيق.';
 
   @override
   String get settings_summary_activeDiver => 'الغواص النشط';
@@ -20117,8 +19570,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_summary_theme_system => 'النظام';
 
   @override
-  String get settings_summary_tip =>
-      'نصيحة: استخدم قسم البيانات لإجراء نسخ احتياطي لسجلات غوصك بانتظام.';
+  String get settings_summary_tip => 'نصيحة: استخدم قسم البيانات لإجراء نسخ احتياطي لسجلات غوصك بانتظام.';
 
   @override
   String get settings_summary_title => 'الإعدادات';
@@ -20169,19 +19621,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_units_gasModel_real => 'الغاز الحقيقي';
 
   @override
-  String get settings_units_gasModel_real_subtitle =>
-      'يأخذ الانضغاطية في الحسبان. أسطوانة سعة 12 لترًا عند 200 بار تحتوي نحو 2317 لترًا.';
+  String get settings_units_gasModel_real_subtitle => 'يأخذ الانضغاطية في الحسبان. أسطوانة سعة 12 لترًا عند 200 بار تحتوي نحو 2317 لترًا.';
 
   @override
   String get settings_units_gasModel_ideal => 'الغاز المثالي';
 
   @override
-  String get settings_units_gasModel_ideal_subtitle =>
-      'يطابق الحساب اليدوي وجداول الغوص. أسطوانة سعة 12 لترًا عند 200 بار تحتوي 2400 لتر.';
+  String get settings_units_gasModel_ideal_subtitle => 'يطابق الحساب اليدوي وجداول الغوص. أسطوانة سعة 12 لترًا عند 200 بار تحتوي 2400 لتر.';
 
   @override
-  String get settings_units_gasModel_explanation =>
-      'كيفية تحويل ضغط الأسطوانة إلى حجم غاز. يؤثر ذلك على معدل استهلاك الهواء والإحصاءات ومخطط الغوص وحاسبات الغاز. الغاز المثالي يطابق الحساب الذي تُعلّمه هيئات التدريب، أما الغاز الحقيقي فدقيق فيزيائيًا ويعطي معدل استهلاك أقل بنحو 5%.';
+  String get settings_units_gasModel_explanation => 'كيفية تحويل ضغط الأسطوانة إلى حجم غاز. يؤثر ذلك على معدل استهلاك الهواء والإحصاءات ومخطط الغوص وحاسبات الغاز. الغاز المثالي يطابق الحساب الذي تُعلّمه هيئات التدريب، أما الغاز الحقيقي فدقيق فيزيائيًا ويعطي معدل استهلاك أقل بنحو 5%.';
 
   @override
   String get settings_units_dialog_gasModel => 'حسابات الغاز';
@@ -20229,8 +19678,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_units_quickSelect => 'اختيار سريع';
 
   @override
-  String get settings_units_gasConsumption_both_subtitle =>
-      'عرض SAC و RMV جنبًا إلى جنب.';
+  String get settings_units_gasConsumption_both_subtitle => 'عرض SAC و RMV جنبًا إلى جنب.';
 
   @override
   String get settings_units_gasConsumption_both => 'كلاهما';
@@ -20291,12 +19739,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_updates_automaticUpdates => 'التحديثات التلقائية';
 
   @override
-  String get settings_updates_automaticUpdatesSubtitle =>
-      'التحقق من التحديثات بشكل دوري';
+  String get settings_updates_automaticUpdatesSubtitle => 'التحقق من التحديثات بشكل دوري';
 
   @override
-  String get settings_updates_betaDialogBody =>
-      'تُنشر إصدارات البيتا مع كل تغيير وقد تقوم بترقية قاعدة بيانات سجل الغوص قبل الإصدار المستقر. العودة لاحقًا إلى القناة المستقرة لن تعيد التطبيق إلى إصدار أقدم، وينبغي أن تستخدم جميع الأجهزة التي تتزامن معًا القناة نفسها. يتم إنشاء نسخة احتياطية تلقائيًا قبل أي ترقية لقاعدة البيانات.';
+  String get settings_updates_betaDialogBody => 'تُنشر إصدارات البيتا مع كل تغيير وقد تقوم بترقية قاعدة بيانات سجل الغوص قبل الإصدار المستقر. العودة لاحقًا إلى القناة المستقرة لن تعيد التطبيق إلى إصدار أقدم، وينبغي أن تستخدم جميع الأجهزة التي تتزامن معًا القناة نفسها. يتم إنشاء نسخة احتياطية تلقائيًا قبل أي ترقية لقاعدة البيانات.';
 
   @override
   String get settings_updates_betaDialogConfirm => 'التبديل إلى البيتا';
@@ -20316,8 +19762,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_updates_channelBeta => 'بيتا';
 
   @override
-  String get settings_updates_channelBetaSubtitle =>
-      'إصدارات جديدة مع كل تغيير، قبل الإصدار المستقر';
+  String get settings_updates_channelBetaSubtitle => 'إصدارات جديدة مع كل تغيير، قبل الإصدار المستقر';
 
   @override
   String get settings_updates_channelStable => 'مستقر';
@@ -20348,8 +19793,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_updates_joinBeta => 'الانضمام إلى البيتا';
 
   @override
-  String get settings_updates_joinBetaSubtitle =>
-      'احصل على الميزات الجديدة مبكرًا من خلال برنامج البيتا';
+  String get settings_updates_joinBetaSubtitle => 'احصل على الميزات الجديدة مبكرًا من خلال برنامج البيتا';
 
   @override
   String get settings_updates_lastChecked => 'آخر تحقق';
@@ -20363,8 +19807,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'ستبقى على إصدار البيتا هذا حتى يصبح الإصدار المستقر التالي أحدث منه.';
+  String get settings_updates_stableSwitchNotice => 'ستبقى على إصدار البيتا هذا حتى يصبح الإصدار المستقر التالي أحدث منه.';
 
   @override
   String get settings_updates_upToDate => 'محدّث';
@@ -20420,8 +19863,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get signatures_drawSignatureHint => 'ارسم توقيعك أعلاه';
 
   @override
-  String get signatures_drawSignatureHintDetailed =>
-      'ارسم التوقيع أعلاه باستخدام الإصبع أو القلم';
+  String get signatures_drawSignatureHintDetailed => 'ارسم التوقيع أعلاه باستخدام الإصبع أو القلم';
 
   @override
   String get signatures_drawSignatureSemantics => 'رسم التوقيع';
@@ -20433,8 +19875,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get signatures_error_enterSignerName => 'الرجاء إدخال اسم الموقع';
 
   @override
-  String get signatures_error_saveFailed =>
-      'تعذر حفظ التوقيع. يرجى المحاولة مرة أخرى.';
+  String get signatures_error_saveFailed => 'تعذر حفظ التوقيع. يرجى المحاولة مرة أخرى.';
 
   @override
   String get signatures_field_instructorName => 'اسم المدرب';
@@ -20522,8 +19963,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_category_overview_title => 'Overview';
 
   @override
-  String get insights_category_overview_subtitle =>
-      'Totals, records, and breakdowns at a glance';
+  String get insights_category_overview_subtitle => 'Totals, records, and breakdowns at a glance';
 
   @override
   String get insights_category_profile_subtitle => 'معدلات الصعود وتخفيف الضغط';
@@ -20582,10 +20022,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String insights_chart_trendSemanticLabelWithAxis(
-    Object count,
-    Object yAxisLabel,
-  ) {
+  String insights_chart_trendSemanticLabelWithAxis(Object count, Object yAxisLabel) {
     return 'مخطط خطي للاتجاه يعرض $count نقاط بيانات لـ $yAxisLabel';
   }
 
@@ -20593,27 +20030,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_conditions_appBar_title => 'الظروف';
 
   @override
-  String get insights_conditions_entryMethod_empty =>
-      'لا توجد بيانات طريقة الدخول متاحة';
+  String get insights_conditions_entryMethod_empty => 'لا توجد بيانات طريقة الدخول متاحة';
 
   @override
-  String get insights_conditions_entryMethod_error =>
-      'فشل تحميل بيانات طريقة الدخول';
+  String get insights_conditions_entryMethod_error => 'فشل تحميل بيانات طريقة الدخول';
 
   @override
-  String get insights_conditions_entryMethod_subtitle =>
-      'من الشاطئ، قارب، إلخ.';
+  String get insights_conditions_entryMethod_subtitle => 'من الشاطئ، قارب، إلخ.';
 
   @override
   String get insights_conditions_entryMethod_title => 'طريقة الدخول';
 
   @override
-  String get insights_conditions_temperature_empty =>
-      'لا توجد بيانات حرارة متاحة';
+  String get insights_conditions_temperature_empty => 'لا توجد بيانات حرارة متاحة';
 
   @override
-  String get insights_conditions_temperature_error =>
-      'فشل تحميل بيانات الحرارة';
+  String get insights_conditions_temperature_error => 'فشل تحميل بيانات الحرارة';
 
   @override
   String get insights_conditions_temperature_seriesAvg => 'المتوسط';
@@ -20625,26 +20057,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_conditions_temperature_seriesMin => 'الأدنى';
 
   @override
-  String get insights_conditions_temperature_subtitle =>
-      'الحد الأدنى والمتوسط والأقصى حسب الشهر الميلادي عبر كل السنوات';
+  String get insights_conditions_temperature_subtitle => 'الحد الأدنى والمتوسط والأقصى حسب الشهر الميلادي عبر كل السنوات';
 
   @override
-  String get insights_conditions_temperature_title =>
-      'درجة حرارة الماء الموسمية';
+  String get insights_conditions_temperature_title => 'درجة حرارة الماء الموسمية';
 
   @override
   String get insights_conditions_visibility_error => 'فشل تحميل بيانات الرؤية';
 
   @override
-  String get insights_conditions_visibility_subtitle =>
-      'الغوصات حسب حالة الرؤية';
+  String get insights_conditions_visibility_subtitle => 'الغوصات حسب حالة الرؤية';
 
   @override
   String get insights_conditions_visibility_title => 'توزيع الرؤية';
 
   @override
-  String get insights_conditions_siteType_error =>
-      'تعذر تحميل بيانات أنواع المواقع';
+  String get insights_conditions_siteType_error => 'تعذر تحميل بيانات أنواع المواقع';
 
   @override
   String insights_conditions_siteType_semanticLabel(String description) {
@@ -20652,19 +20080,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get insights_conditions_siteType_subtitle =>
-      'الغوصات حسب نوع الموقع. تُحتسب الغوصة في موقع متعدد الأنواع لكل نوع؛ لا تظهر المواقع التي بلا نوع.';
+  String get insights_conditions_siteType_subtitle => 'الغوصات حسب نوع الموقع. تُحتسب الغوصة في موقع متعدد الأنواع لكل نوع؛ لا تظهر المواقع التي بلا نوع.';
 
   @override
   String get insights_conditions_siteType_title => 'أنواع المواقع';
 
   @override
-  String get insights_conditions_waterType_error =>
-      'فشل تحميل بيانات نوع الماء';
+  String get insights_conditions_waterType_error => 'فشل تحميل بيانات نوع الماء';
 
   @override
-  String get insights_conditions_waterType_subtitle =>
-      'غوصات المياه المالحة مقابل العذبة';
+  String get insights_conditions_waterType_subtitle => 'غوصات المياه المالحة مقابل العذبة';
 
   @override
   String get insights_conditions_waterType_title => 'نوع الماء';
@@ -20673,23 +20098,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_equipment_appBar_title => 'المعدات';
 
   @override
-  String get insights_equipment_mostUsedGear_error =>
-      'فشل تحميل بيانات المعدات';
+  String get insights_equipment_mostUsedGear_error => 'فشل تحميل بيانات المعدات';
 
   @override
-  String get insights_equipment_mostUsedGear_subtitle =>
-      'المعدات حسب عدد الغوصات';
+  String get insights_equipment_mostUsedGear_subtitle => 'المعدات حسب عدد الغوصات';
 
   @override
-  String get insights_equipment_mostUsedGear_title =>
-      'المعدات الأكثر استخداماً';
+  String get insights_equipment_mostUsedGear_title => 'المعدات الأكثر استخداماً';
 
   @override
   String get insights_equipment_weightTrend_error => 'فشل تحميل اتجاه الأوزان';
 
   @override
-  String get insights_equipment_weightTrend_subtitle =>
-      'إجمالي الرصاص لكل غطسة';
+  String get insights_equipment_weightTrend_subtitle => 'إجمالي الرصاص لكل غطسة';
 
   @override
   String get insights_equipment_weightTrend_title => 'اتجاه الأوزان';
@@ -20704,12 +20125,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_equipment_findings_error => 'تعذّر تحميل نتائج الحالة';
 
   @override
-  String get insights_equipment_issues_error =>
-      'تعذّر تحميل المشكلات المبلّغ عنها';
+  String get insights_equipment_issues_error => 'تعذّر تحميل المشكلات المبلّغ عنها';
 
   @override
-  String get insights_equipment_exposure_subtitle =>
-      'الإجماليات لكل قطعة وفق حدودك';
+  String get insights_equipment_exposure_subtitle => 'الإجماليات لكل قطعة وفق حدودك';
 
   @override
   String get insights_equipment_exposure_empty => 'لا توجد غطسات بمعدات بعد';
@@ -20718,12 +20137,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_equipment_findings_title => 'نتائج الحالة';
 
   @override
-  String get insights_equipment_findings_subtitle =>
-      'النتائج المفتوحة حسب القاعدة';
+  String get insights_equipment_findings_subtitle => 'النتائج المفتوحة حسب القاعدة';
 
   @override
-  String get insights_equipment_findings_subtitleAllDives =>
-      'النتائج المفتوحة حسب القاعدة، عبر جميع الغطسات';
+  String get insights_equipment_findings_subtitleAllDives => 'النتائج المفتوحة حسب القاعدة، عبر جميع الغطسات';
 
   @override
   String get insights_equipment_findings_empty => 'لا توجد نتائج مفتوحة';
@@ -20762,8 +20179,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_equipment_countLabel_hours => 'ساعات';
 
   @override
-  String get insights_equipment_countLabel_saltHours =>
-      'ساعات في المياه المالحة';
+  String get insights_equipment_countLabel_saltHours => 'ساعات في المياه المالحة';
 
   @override
   String get insights_equipment_countLabel_coldDives => 'غطسات باردة';
@@ -20781,8 +20197,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_equipment_exposureUnit_hours => 'ساعات';
 
   @override
-  String get insights_equipment_exposureUnit_saltHours =>
-      'ساعات في المياه المالحة';
+  String get insights_equipment_exposureUnit_saltHours => 'ساعات في المياه المالحة';
 
   @override
   String get insights_equipment_exposureUnit_coldDives => 'غطسات باردة';
@@ -20826,15 +20241,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_gas_gasMix_title => 'توزيع خليط الغاز';
 
   @override
-  String get insights_gas_sacByRole_empty =>
-      'لا توجد بيانات أسطوانات متعددة متاحة';
+  String get insights_gas_sacByRole_empty => 'لا توجد بيانات أسطوانات متعددة متاحة';
 
   @override
   String get insights_gas_sacByRole_error => 'فشل تحميل الاستهلاك حسب الدور';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'متوسط الاستهلاك حسب نوع الأسطوانة';
+  String get insights_gas_sacByRole_subtitle => 'متوسط الاستهلاك حسب نوع الأسطوانة';
 
   @override
   String get insights_gas_sacByRole_title => 'استهلاك الغاز حسب دور الأسطوانة';
@@ -20912,11 +20325,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_geographic_countries_subtitle => 'الغوصات حسب الدولة';
 
   @override
-  String insights_geographic_countries_summary(
-    Object count,
-    Object topName,
-    Object topCount,
-  ) {
+  String insights_geographic_countries_summary(Object count, Object topName, Object topCount) {
     return '$count دول. الأكثر: $topName بـ $topCount غوصات';
   }
 
@@ -20933,11 +20342,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_geographic_regions_subtitle => 'الغوصات حسب المنطقة';
 
   @override
-  String insights_geographic_regions_summary(
-    Object count,
-    Object topName,
-    Object topCount,
-  ) {
+  String insights_geographic_regions_summary(Object count, Object topName, Object topCount) {
     return '$count مناطق. الأكثر: $topName بـ $topCount غوصات';
   }
 
@@ -20954,11 +20359,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_geographic_trips_subtitle => 'الرحلات الأكثر إنتاجية';
 
   @override
-  String insights_geographic_trips_summary(
-    Object count,
-    Object topName,
-    Object topCount,
-  ) {
+  String insights_geographic_trips_summary(Object count, Object topName, Object topCount) {
     return '$count رحلات. الأكثر: $topName بـ $topCount غوصات';
   }
 
@@ -20978,15 +20379,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_marineLife_bestSites_error => 'فشل تحميل بيانات المواقع';
 
   @override
-  String get insights_marineLife_bestSites_subtitle =>
-      'المواقع ذات أكبر تنوع في الأنواع';
+  String get insights_marineLife_bestSites_subtitle => 'المواقع ذات أكبر تنوع في الأنواع';
 
   @override
-  String insights_marineLife_bestSites_summary(
-    Object count,
-    Object topName,
-    Object topCount,
-  ) {
+  String insights_marineLife_bestSites_summary(Object count, Object topName, Object topCount) {
     return '$count مواقع. الأفضل: $topName بـ $topCount أنواع';
   }
 
@@ -21003,11 +20399,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_marineLife_mostCommon_subtitle => 'الأنواع الأكثر مشاهدة';
 
   @override
-  String insights_marineLife_mostCommon_summary(
-    Object count,
-    Object topName,
-    Object topCount,
-  ) {
+  String insights_marineLife_mostCommon_summary(Object count, Object topName, Object topCount) {
     return '$count أنواع. الأكثر شيوعاً: $topName بـ $topCount مشاهدات';
   }
 
@@ -21021,26 +20413,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_marineLife_seeAllSpecies_title => 'عرض كل الأنواع';
 
   @override
-  String get insights_marineLife_seeAllSpecies_subtitle =>
-      'كل الأنواع التي سجلتها، قابلة للبحث';
+  String get insights_marineLife_seeAllSpecies_subtitle => 'كل الأنواع التي سجلتها، قابلة للبحث';
 
   @override
   String get insights_profile_appBar_title => 'تحليل الملف الشخصي';
 
   @override
-  String get insights_profile_ascentDescent_empty =>
-      'لا توجد بيانات ملف شخصي متاحة';
+  String get insights_profile_ascentDescent_empty => 'لا توجد بيانات ملف شخصي متاحة';
 
   @override
-  String get insights_profile_ascentDescent_error =>
-      'فشل تحميل بيانات المعدلات';
+  String get insights_profile_ascentDescent_error => 'فشل تحميل بيانات المعدلات';
 
   @override
   String get insights_profile_ascentDescent_subtitle => 'من بيانات ملف الغوص';
 
   @override
-  String get insights_profile_ascentDescent_title =>
-      'متوسط معدلات الصعود والنزول';
+  String get insights_profile_ascentDescent_title => 'متوسط معدلات الصعود والنزول';
 
   @override
   String get insights_profile_avgAscent => 'متوسط الصعود';
@@ -21080,8 +20468,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get insights_profile_deco_subtitle =>
-      'الغوصات التي تطلبت توقفات تخفيف ضغط';
+  String get insights_profile_deco_subtitle => 'الغوصات التي تطلبت توقفات تخفيف ضغط';
 
   @override
   String get insights_profile_deco_title => 'التزام تخفيف الضغط';
@@ -21090,12 +20477,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_profile_timeAtDepth_empty => 'لا توجد بيانات عمق متاحة';
 
   @override
-  String get insights_profile_timeAtDepth_error =>
-      'فشل تحميل بيانات نطاق العمق';
+  String get insights_profile_timeAtDepth_error => 'فشل تحميل بيانات نطاق العمق';
 
   @override
-  String get insights_profile_timeAtDepth_subtitle =>
-      'الوقت التقريبي المقضي في كل عمق';
+  String get insights_profile_timeAtDepth_subtitle => 'الوقت التقريبي المقضي في كل عمق';
 
   @override
   String get insights_profile_timeAtDepth_title => 'الوقت في نطاقات العمق';
@@ -21109,8 +20494,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_progression_appBar_title => 'تقدم الغوص';
 
   @override
-  String get insights_progression_bottomTime_error =>
-      'فشل تحميل اتجاه وقت القاع';
+  String get insights_progression_bottomTime_error => 'فشل تحميل اتجاه وقت القاع';
 
   @override
   String get insights_progression_bottomTime_subtitle => 'كل غطسة ضمن النطاق';
@@ -21119,38 +20503,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_progression_bottomTime_title => 'اتجاه وقت القاع';
 
   @override
-  String get insights_progression_cumulative_error =>
-      'فشل تحميل البيانات التراكمية';
+  String get insights_progression_cumulative_error => 'فشل تحميل البيانات التراكمية';
 
   @override
-  String get insights_progression_cumulative_subtitle =>
-      'إجمالي الغوصات عبر الزمن';
+  String get insights_progression_cumulative_subtitle => 'إجمالي الغوصات عبر الزمن';
 
   @override
   String get insights_progression_cumulative_title => 'العدد التراكمي للغوصات';
 
   @override
-  String get insights_progression_depthProgression_error =>
-      'فشل تحميل تقدم العمق';
+  String get insights_progression_depthProgression_error => 'فشل تحميل تقدم العمق';
 
   @override
-  String get insights_progression_depthProgression_subtitle =>
-      'كل غطسة ضمن النطاق';
+  String get insights_progression_depthProgression_subtitle => 'كل غطسة ضمن النطاق';
 
   @override
   String get insights_progression_depthProgression_title => 'تقدم أقصى عمق';
 
   @override
-  String get insights_progression_divesPerYear_empty =>
-      'لا توجد بيانات سنوية متاحة';
+  String get insights_progression_divesPerYear_empty => 'لا توجد بيانات سنوية متاحة';
 
   @override
-  String get insights_progression_divesPerYear_error =>
-      'فشل تحميل البيانات السنوية';
+  String get insights_progression_divesPerYear_error => 'فشل تحميل البيانات السنوية';
 
   @override
-  String get insights_progression_divesPerYear_subtitle =>
-      'مقارنة عدد الغوصات السنوي';
+  String get insights_progression_divesPerYear_subtitle => 'مقارنة عدد الغوصات السنوي';
 
   @override
   String get insights_progression_divesPerYear_title => 'الغوصات لكل سنة';
@@ -21178,12 +20555,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String insights_ranking_semanticLabel(
-    Object name,
-    Object rank,
-    Object count,
-    Object label,
-  ) {
+  String insights_ranking_semanticLabel(Object name, Object rank, Object count, Object label) {
     return '$name، المرتبة $rank، $count $label';
   }
 
@@ -21202,8 +20574,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get insights_records_emptySubtitle =>
-      'ابدأ بتسجيل الغوصات لرؤية أرقامك القياسية هنا';
+  String get insights_records_emptySubtitle => 'ابدأ بتسجيل الغوصات لرؤية أرقامك القياسية هنا';
 
   @override
   String get insights_records_emptyTitle => 'لا توجد أرقام قياسية بعد';
@@ -21223,10 +20594,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String insights_records_milestoneSemanticLabel(
-    Object title,
-    Object siteName,
-  ) {
+  String insights_records_milestoneSemanticLabel(Object title, Object siteName) {
     return '$title: $siteName';
   }
 
@@ -21237,11 +20605,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_records_mostRecentDive => 'أحدث غوصة';
 
   @override
-  String insights_records_recordSemanticLabel(
-    Object title,
-    Object value,
-    Object siteName,
-  ) {
+  String insights_records_recordSemanticLabel(Object title, Object value, Object siteName) {
     return '$title: $value في $siteName';
   }
 
@@ -21293,8 +20657,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_social_topBuddies_title => 'أفضل رفاق الغوص';
 
   @override
-  String get insights_social_topDiveCenters_error =>
-      'فشل تحميل تصنيف مراكز الغوص';
+  String get insights_social_topDiveCenters_error => 'فشل تحميل تصنيف مراكز الغوص';
 
   @override
   String get insights_social_topDiveCenters_subtitle => 'المشغلون الأكثر زيارة';
@@ -21309,19 +20672,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_summary_avgTemp => 'متوسط الحرارة';
 
   @override
-  String get insights_summary_depthDistribution_empty =>
-      'سيظهر المخطط عند تسجيل الغوصات';
+  String get insights_summary_depthDistribution_empty => 'سيظهر المخطط عند تسجيل الغوصات';
 
   @override
-  String get insights_summary_depthDistribution_semanticLabel =>
-      'مخطط دائري يعرض توزيع العمق';
+  String get insights_summary_depthDistribution_semanticLabel => 'مخطط دائري يعرض توزيع العمق';
 
   @override
   String get insights_summary_depthDistribution_title => 'توزيع العمق';
 
   @override
-  String get insights_summary_diveTypes_empty =>
-      'سيظهر المخطط عند تسجيل الغوصات';
+  String get insights_summary_diveTypes_empty => 'سيظهر المخطط عند تسجيل الغوصات';
 
   @override
   String insights_summary_diveTypes_moreTypes(Object count) {
@@ -21329,19 +20689,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get insights_summary_diveTypes_semanticLabel =>
-      'مخطط دائري يعرض توزيع أنواع الغوص';
+  String get insights_summary_diveTypes_semanticLabel => 'مخطط دائري يعرض توزيع أنواع الغوص';
 
   @override
   String get insights_summary_diveTypes_title => 'أنواع الغوص';
 
   @override
-  String get insights_summary_divesByMonth_empty =>
-      'سيظهر المخطط عند تسجيل الغوصات';
+  String get insights_summary_divesByMonth_empty => 'سيظهر المخطط عند تسجيل الغوصات';
 
   @override
-  String get insights_summary_divesByMonth_semanticLabel =>
-      'مخطط أعمدة يعرض الغوصات حسب الشهر';
+  String get insights_summary_divesByMonth_semanticLabel => 'مخطط أعمدة يعرض الغوصات حسب الشهر';
 
   @override
   String get insights_summary_divesByMonth_title => 'الغوصات حسب الشهر';
@@ -21378,8 +20735,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_summary_tagUsage_empty => 'لم يتم إنشاء وسوم بعد';
 
   @override
-  String get insights_summary_tagUsage_emptyHint =>
-      'أضف وسوماً للغوصات لرؤية الإحصائيات';
+  String get insights_summary_tagUsage_emptyHint => 'أضف وسوماً للغوصات لرؤية الإحصائيات';
 
   @override
   String insights_summary_tagUsage_moreTags(Object count) {
@@ -21423,8 +20779,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_timePatterns_dayOfWeek_empty => 'لا توجد بيانات متاحة';
 
   @override
-  String get insights_timePatterns_dayOfWeek_error =>
-      'فشل تحميل بيانات أيام الأسبوع';
+  String get insights_timePatterns_dayOfWeek_error => 'فشل تحميل بيانات أيام الأسبوع';
 
   @override
   String get insights_timePatterns_dayOfWeek_fri => 'الجمعة';
@@ -21493,12 +20848,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_timePatterns_seasonal_empty => 'لا توجد بيانات متاحة';
 
   @override
-  String get insights_timePatterns_seasonal_error =>
-      'فشل تحميل البيانات الموسمية';
+  String get insights_timePatterns_seasonal_error => 'فشل تحميل البيانات الموسمية';
 
   @override
-  String get insights_timePatterns_seasonal_subtitle =>
-      'الغوصات حسب الشهر (جميع السنوات)';
+  String get insights_timePatterns_seasonal_subtitle => 'الغوصات حسب الشهر (جميع السنوات)';
 
   @override
   String get insights_timePatterns_seasonal_title => 'الأنماط الموسمية';
@@ -21507,18 +20860,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_timePatterns_surfaceInterval_average => 'المتوسط';
 
   @override
-  String get insights_timePatterns_surfaceInterval_empty =>
-      'لا توجد بيانات فترة السطح متاحة';
+  String get insights_timePatterns_surfaceInterval_empty => 'لا توجد بيانات فترة السطح متاحة';
 
   @override
-  String get insights_timePatterns_surfaceInterval_error =>
-      'فشل تحميل بيانات فترة السطح';
+  String get insights_timePatterns_surfaceInterval_error => 'فشل تحميل بيانات فترة السطح';
 
   @override
-  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
-    Object hours,
-    Object minutes,
-  ) {
+  String insights_timePatterns_surfaceInterval_formatHoursMinutes(Object hours, Object minutes) {
     return '${hours}h ${minutes}m';
   }
 
@@ -21534,20 +20882,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_timePatterns_surfaceInterval_minimum => 'الأدنى';
 
   @override
-  String get insights_timePatterns_surfaceInterval_subtitle =>
-      'الوقت بين الغوصات';
+  String get insights_timePatterns_surfaceInterval_subtitle => 'الوقت بين الغوصات';
 
   @override
-  String get insights_timePatterns_surfaceInterval_title =>
-      'إحصائيات فترة السطح';
+  String get insights_timePatterns_surfaceInterval_title => 'إحصائيات فترة السطح';
 
   @override
-  String get insights_timePatterns_timeOfDay_error =>
-      'فشل تحميل بيانات وقت اليوم';
+  String get insights_timePatterns_timeOfDay_error => 'فشل تحميل بيانات وقت اليوم';
 
   @override
-  String get insights_timePatterns_timeOfDay_subtitle =>
-      'صباحاً، بعد الظهر، مساءً، أو ليلاً';
+  String get insights_timePatterns_timeOfDay_subtitle => 'صباحاً، بعد الظهر، مساءً، أو ليلاً';
 
   @override
   String get insights_timePatterns_timeOfDay_title => 'الغوصات حسب وقت اليوم';
@@ -21570,19 +20914,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get surfaceInterval_aboutTissueLoading_body =>
-      'جسمك يحتوي على 16 حجرة نسيجية تمتص وتطلق النيتروجين بمعدلات مختلفة. الأنسجة السريعة (مثل الدم) تتشبع بسرعة ولكنها أيضاً تطلق الغاز بسرعة. الأنسجة البطيئة (مثل العظام والدهون) تستغرق وقتاً أطول للتحميل والتفريغ. \"الحجرة الرائدة\" هي أي نسيج أكثر تشبعاً وعادة ما تتحكم في حد عدم تخفيف الضغط (NDL). خلال فترة السطح، تطلق جميع الأنسجة الغاز نحو مستويات التشبع السطحي (~40% تحميل).';
+  String get surfaceInterval_aboutTissueLoading_body => 'جسمك يحتوي على 16 حجرة نسيجية تمتص وتطلق النيتروجين بمعدلات مختلفة. الأنسجة السريعة (مثل الدم) تتشبع بسرعة ولكنها أيضاً تطلق الغاز بسرعة. الأنسجة البطيئة (مثل العظام والدهون) تستغرق وقتاً أطول للتحميل والتفريغ. \"الحجرة الرائدة\" هي أي نسيج أكثر تشبعاً وعادة ما تتحكم في حد عدم تخفيف الضغط (NDL). خلال فترة السطح، تطلق جميع الأنسجة الغاز نحو مستويات التشبع السطحي (~40% تحميل).';
 
   @override
   String get surfaceInterval_aboutTissueLoading_title => 'حول تحميل الأنسجة';
 
   @override
-  String get surfaceInterval_action_resetDefaults =>
-      'إعادة تعيين إلى الإعدادات الافتراضية';
+  String get surfaceInterval_action_resetDefaults => 'إعادة تعيين إلى الإعدادات الافتراضية';
 
   @override
-  String get surfaceInterval_disclaimer =>
-      'هذه الأداة للتخطيط فقط. استخدم دائماً حاسوب الغوص واتبع تدريبك. النتائج مبنية على خوارزمية Buhlmann ZH-L16C وقد تختلف عن حاسوبك.';
+  String get surfaceInterval_disclaimer => 'هذه الأداة للتخطيط فقط. استخدم دائماً حاسوب الغوص واتبع تدريبك. النتائج مبنية على خوارزمية Buhlmann ZH-L16C وقد تختلف عن حاسوبك.';
 
   @override
   String get surfaceInterval_field_depth => 'العمق';
@@ -21636,12 +20977,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String surfaceInterval_gasWarning_modExceeded(
-    Object ppO2,
-    Object depth,
-    Object limit,
-    Object mod,
-  ) {
+  String surfaceInterval_gasWarning_modExceeded(Object ppO2, Object depth, Object limit, Object mod) {
     return 'ppO₂ $ppO2 على عمق $depth يتجاوز $limit. أقصى عمق تشغيل لهذا الخليط هو $mod.';
   }
 
@@ -21675,12 +21011,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get surfaceInterval_result_inDeco => 'في تخفيف الضغط';
 
   @override
-  String get surfaceInterval_result_increaseInterval =>
-      'زد فترة السطح أو قلل عمق/وقت الغطسة الثانية';
+  String get surfaceInterval_result_increaseInterval => 'زد فترة السطح أو قلل عمق/وقت الغطسة الثانية';
 
   @override
-  String get surfaceInterval_result_minimumInterval =>
-      'الحد الأدنى لفترة السطح';
+  String get surfaceInterval_result_minimumInterval => 'الحد الأدنى لفترة السطح';
 
   @override
   String get surfaceInterval_result_ndlForSecondDive => 'NDL للغطسة الثانية';
@@ -21696,23 +21030,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get surfaceInterval_result_notAchievable =>
-      'غير قابل للتحقيق بأي فترة سطح';
+  String get surfaceInterval_result_notAchievable => 'غير قابل للتحقيق بأي فترة سطح';
 
   @override
-  String get surfaceInterval_result_notYetSafe =>
-      'ليس آمناً بعد، زد فترة السطح';
+  String get surfaceInterval_result_notYetSafe => 'ليس آمناً بعد، زد فترة السطح';
 
   @override
   String get surfaceInterval_result_safeToDive => 'آمن للغوص';
 
   @override
-  String surfaceInterval_result_semantics(
-    Object interval,
-    Object current,
-    Object ndl,
-    Object status,
-  ) {
+  String surfaceInterval_result_semantics(Object interval, Object current, Object ndl, Object status) {
     return 'الحد الأدنى لفترة السطح: $interval. الفترة الحالية: $current. NDL للغطسة الثانية: $ndl. $status';
   }
 
@@ -21745,12 +21072,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get surfaceInterval_tissueRecovery_compartmentsLabel =>
-      'الحجرات (حسب سرعة نصف الوقت)';
+  String get surfaceInterval_tissueRecovery_compartmentsLabel => 'الحجرات (حسب سرعة نصف الوقت)';
 
   @override
-  String get surfaceInterval_tissueRecovery_description =>
-      'يوضح كيفية إطلاق كل من 16 حجرة نسيجية للغاز خلال فترة السطح';
+  String get surfaceInterval_tissueRecovery_description => 'يوضح كيفية إطلاق كل من 16 حجرة نسيجية للغاز خلال فترة السطح';
 
   @override
   String get surfaceInterval_tissueRecovery_fast => 'سريع (C1-5)';
@@ -21796,8 +21121,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags_picker_title => 'اختيار الوسوم';
 
   @override
-  String get tags_picker_empty =>
-      'لا توجد وسوم بعد. اكتب اسم وسم لإنشاء أول وسم لك.';
+  String get tags_picker_empty => 'لا توجد وسوم بعد. اكتب اسم وسم لإنشاء أول وسم لك.';
 
   @override
   String tags_picker_errorLoading(String error) {
@@ -21868,11 +21192,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get importWizard_photos_scanning => 'جارٍ فحص المجلد...';
 
   @override
-  String importWizard_photos_matchSummary(
-    int matched,
-    int byName,
-    int missing,
-  ) {
+  String importWizard_photos_matchSummary(int matched, int byName, int missing) {
     return '$matched مطابقة، $byName بالاسم فقط، $missing غير موجودة';
   }
 
@@ -21880,8 +21200,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get importWizard_photos_skip => 'تخطي الصور';
 
   @override
-  String get importWizard_photos_mobileUnsupported =>
-      'يتطلب استيراد الصور مجلدًا على قرص هذا الجهاز. شغّل هذا الاستيراد على جهاز كمبيوتر لتضمينها. تُستورد الغطسات والمواقع بشكل طبيعي.';
+  String get importWizard_photos_mobileUnsupported => 'يتطلب استيراد الصور مجلدًا على قرص هذا الجهاز. شغّل هذا الاستيراد على جهاز كمبيوتر لتضمينها. تُستورد الغطسات والمواقع بشكل طبيعي.';
 
   @override
   String importWizard_photos_bundledCount(int count) {
@@ -21898,12 +21217,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get importWizard_photos_chooseDestination => 'اختر مكان حفظ الصور...';
 
   @override
-  String get importWizard_photos_destinationNote =>
-      'تُحفظ الصور في هذا المجلد ويتم ربطها من هناك. لا يحتفظ Submersion بنسخة خاصة به أبدًا.';
+  String get importWizard_photos_destinationNote => 'تُحفظ الصور في هذا المجلد ويتم ربطها من هناك. لا يحتفظ Submersion بنسخة خاصة به أبدًا.';
 
   @override
-  String get importWizard_photos_destinationUnwritable =>
-      'لا يمكن الكتابة في هذا المجلد. اختر مجلدًا آخر.';
+  String get importWizard_photos_destinationUnwritable => 'لا يمكن الكتابة في هذا المجلد. اختر مجلدًا آخر.';
 
   @override
   String importWizard_photos_downloadCount(int count) {
@@ -21943,8 +21260,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags_manage_autoTagImports => 'وسم الاستيرادات تلقائيا';
 
   @override
-  String get tags_manage_autoTagImports_subtitle =>
-      'يبدأ كل استيراد جديد بوسم يحمل اسم المصدر والتاريخ. يمكن تغيير ذلك لعملية استيراد واحدة في خيارات تلك العملية.';
+  String get tags_manage_autoTagImports_subtitle => 'يبدأ كل استيراد جديد بوسم يحمل اسم المصدر والتاريخ. يمكن تغيير ذلك لعملية استيراد واحدة في خيارات تلك العملية.';
 
   @override
   String get tags_manage_searchHint => 'البحث في الوسوم...';
@@ -21989,10 +21305,8 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'هذا الوسم على $count غوصات. إيقاف \"استخدام للغوصات\" يزيله من تلك الغوصات.',
-      one:
-          'هذا الوسم على غوصة واحدة. إيقاف \"استخدام للغوصات\" يزيله من تلك الغوصة.',
+      other: 'هذا الوسم على $count غوصات. إيقاف \"استخدام للغوصات\" يزيله من تلك الغوصات.',
+      one: 'هذا الوسم على غوصة واحدة. إيقاف \"استخدام للغوصات\" يزيله من تلك الغوصة.',
     );
     return '$_temp0';
   }
@@ -22002,16 +21316,11 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'هذا الوسم على $count قطعة معدات. إيقاف \"استخدام للمعدات\" يزيله من تلك القطع.',
-      many:
-          'هذا الوسم على $count قطعة معدات. إيقاف \"استخدام للمعدات\" يزيله من تلك القطع.',
-      few:
-          'هذا الوسم على $count قطع معدات. إيقاف \"استخدام للمعدات\" يزيله من تلك القطع.',
-      two:
-          'هذا الوسم على قطعتي معدات. إيقاف \"استخدام للمعدات\" يزيله من هاتين القطعتين.',
-      one:
-          'هذا الوسم على قطعة معدات واحدة. إيقاف \"استخدام للمعدات\" يزيله من تلك القطعة.',
+      other: 'هذا الوسم على $count قطعة معدات. إيقاف \"استخدام للمعدات\" يزيله من تلك القطع.',
+      many: 'هذا الوسم على $count قطعة معدات. إيقاف \"استخدام للمعدات\" يزيله من تلك القطع.',
+      few: 'هذا الوسم على $count قطع معدات. إيقاف \"استخدام للمعدات\" يزيله من تلك القطع.',
+      two: 'هذا الوسم على قطعتي معدات. إيقاف \"استخدام للمعدات\" يزيله من هاتين القطعتين.',
+      one: 'هذا الوسم على قطعة معدات واحدة. إيقاف \"استخدام للمعدات\" يزيله من تلك القطعة.',
     );
     return '$_temp0';
   }
@@ -22021,21 +21330,17 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'هذا الوسم على $count مواقع. إيقاف \"استخدام للمواقع\" يزيله من تلك المواقع.',
-      one:
-          'هذا الوسم على موقع واحد. إيقاف \"استخدام للمواقع\" يزيله من ذلك الموقع.',
+      other: 'هذا الوسم على $count مواقع. إيقاف \"استخدام للمواقع\" يزيله من تلك المواقع.',
+      one: 'هذا الوسم على موقع واحد. إيقاف \"استخدام للمواقع\" يزيله من ذلك الموقع.',
     );
     return '$_temp0';
   }
 
   @override
-  String get tags_manage_narrowDialog_title =>
-      'إزالة الوسم من العناصر الحالية؟';
+  String get tags_manage_narrowDialog_title => 'إزالة الوسم من العناصر الحالية؟';
 
   @override
-  String get tags_manage_scopeRequired =>
-      'اختر واحدًا على الأقل: الغوصات أو المواقع أو المعدات';
+  String get tags_manage_scopeRequired => 'اختر واحدًا على الأقل: الغوصات أو المواقع أو المعدات';
 
   @override
   String get tags_manage_scope_dives => 'الغوصات';
@@ -22112,11 +21417,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String tags_manage_deleteMessage_divesAndSites(
-    String tagName,
-    int diveCount,
-    int siteCount,
-  ) {
+  String tags_manage_deleteMessage_divesAndSites(String tagName, int diveCount, int siteCount) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -22147,11 +21448,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String tags_manage_deleteMessage_divesAndEquipment(
-    String tagName,
-    int diveCount,
-    int equipmentCount,
-  ) {
+  String tags_manage_deleteMessage_divesAndEquipment(String tagName, int diveCount, int equipmentCount) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -22174,11 +21471,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String tags_manage_deleteMessage_sitesAndEquipment(
-    String tagName,
-    int siteCount,
-    int equipmentCount,
-  ) {
+  String tags_manage_deleteMessage_sitesAndEquipment(String tagName, int siteCount, int equipmentCount) {
     String _temp0 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
@@ -22201,12 +21494,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String tags_manage_deleteMessage_all(
-    String tagName,
-    int diveCount,
-    int siteCount,
-    int equipmentCount,
-  ) {
+  String tags_manage_deleteMessage_all(String tagName, int diveCount, int siteCount, int equipmentCount) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -22271,10 +21559,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String tags_manage_bulkDeleteMessage_divesAndSites(
-    int diveCount,
-    int siteCount,
-  ) {
+  String tags_manage_bulkDeleteMessage_divesAndSites(int diveCount, int siteCount) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -22305,10 +21590,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String tags_manage_bulkDeleteMessage_divesAndEquipment(
-    int diveCount,
-    int equipmentCount,
-  ) {
+  String tags_manage_bulkDeleteMessage_divesAndEquipment(int diveCount, int equipmentCount) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -22331,10 +21613,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String tags_manage_bulkDeleteMessage_sitesAndEquipment(
-    int siteCount,
-    int equipmentCount,
-  ) {
+  String tags_manage_bulkDeleteMessage_sitesAndEquipment(int siteCount, int equipmentCount) {
     String _temp0 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
@@ -22357,11 +21636,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String tags_manage_bulkDeleteMessage_all(
-    int diveCount,
-    int siteCount,
-    int equipmentCount,
-  ) {
+  String tags_manage_bulkDeleteMessage_all(int diveCount, int siteCount, int equipmentCount) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -22393,8 +21668,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get tags_manage_bulkDeleteMessage_unused =>
-      'هذه الوسوم غير مستخدمة في أي غوصة أو موقع أو قطعة معدات. لا يمكن التراجع عن هذا الإجراء.';
+  String get tags_manage_bulkDeleteMessage_unused => 'هذه الوسوم غير مستخدمة في أي غوصة أو موقع أو قطعة معدات. لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -22462,10 +21736,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String tags_manage_mergeAffected_divesAndEquipment(
-    int diveCount,
-    int equipmentCount,
-  ) {
+  String tags_manage_mergeAffected_divesAndEquipment(int diveCount, int equipmentCount) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -22488,10 +21759,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String tags_manage_mergeAffected_sitesAndEquipment(
-    int siteCount,
-    int equipmentCount,
-  ) {
+  String tags_manage_mergeAffected_sitesAndEquipment(int siteCount, int equipmentCount) {
     String _temp0 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
@@ -22514,11 +21782,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String tags_manage_mergeAffected_all(
-    int diveCount,
-    int siteCount,
-    int equipmentCount,
-  ) {
+  String tags_manage_mergeAffected_all(int diveCount, int siteCount, int equipmentCount) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -22550,8 +21814,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get tags_manage_mergeAffected_unused =>
-      'هذه الوسوم غير مستخدمة في أي غوصة أو موقع أو قطعة معدات.';
+  String get tags_manage_mergeAffected_unused => 'هذه الوسوم غير مستخدمة في أي غوصة أو موقع أو قطعة معدات.';
 
   @override
   String get tags_manage_mergeAction => 'دمج';
@@ -22566,15 +21829,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tank_al100_displayName => 'AL100';
 
   @override
-  String get tank_al30Stage_description =>
-      'أسطوانة ألومنيوم مرحلية 30 قدم مكعب';
+  String get tank_al30Stage_description => 'أسطوانة ألومنيوم مرحلية 30 قدم مكعب';
 
   @override
   String get tank_al30Stage_displayName => 'AL30 Stage';
 
   @override
-  String get tank_al40Stage_description =>
-      'أسطوانة ألومنيوم مرحلية 40 قدم مكعب';
+  String get tank_al40Stage_description => 'أسطوانة ألومنيوم مرحلية 40 قدم مكعب';
 
   @override
   String get tank_al40Stage_displayName => 'AL40 Stage';
@@ -22592,8 +21853,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tank_al63_displayName => 'AL63';
 
   @override
-  String get tank_al80_description =>
-      'أسطوانة ألومنيوم 80 قدم مكعب (الأكثر شيوعاً)';
+  String get tank_al80_description => 'أسطوانة ألومنيوم 80 قدم مكعب (الأكثر شيوعاً)';
 
   @override
   String get tank_al80_displayName => 'AL80';
@@ -22731,8 +21991,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tides_noDataAvailable => 'لا توجد بيانات مد وجزر متاحة';
 
   @override
-  String get tides_noDataForLocation =>
-      'بيانات المد والجزر غير متاحة لهذا الموقع';
+  String get tides_noDataForLocation => 'بيانات المد والجزر غير متاحة لهذا الموقع';
 
   @override
   String get tides_noExtremesData => 'لا توجد بيانات الحدود';
@@ -22741,22 +22000,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tides_noTideTimesAvailable => 'لا توجد أوقات مد وجزر متاحة';
 
   @override
-  String tides_semantic_currentTide(
-    Object tideState,
-    Object height,
-    Object depthSymbol,
-    Object nextExtreme,
-  ) {
+  String tides_semantic_currentTide(Object tideState, Object height, Object depthSymbol, Object nextExtreme) {
     return 'مد وجزر $tideState، $height$depthSymbol$nextExtreme';
   }
 
   @override
-  String tides_semantic_extremeItem(
-    Object typeLabel,
-    Object time,
-    Object height,
-    Object depthSymbol,
-  ) {
+  String tides_semantic_extremeItem(Object typeLabel, Object time, Object height, Object depthSymbol) {
     return 'مد وجزر $typeLabel في $time، $height$depthSymbol';
   }
 
@@ -22779,8 +22028,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tides_source_modelEstimate => 'تقدير نموذج المحيط';
 
   @override
-  String get tides_source_modelCaveat =>
-      'نموذج مبني على بيانات الأقمار الصناعية. قد تختلف الأوقات والارتفاعات قرب السواحل المعقدة.';
+  String get tides_source_modelCaveat => 'نموذج مبني على بيانات الأقمار الصناعية. قد تختلف الأوقات والارتفاعات قرب السواحل المعقدة.';
 
   @override
   String get tides_source_sheetTitle => 'مصدر بيانات المد والجزر';
@@ -22789,8 +22037,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tides_source_datumMllw => 'الارتفاعات نسبة إلى MLLW (مرجع المحطة)';
 
   @override
-  String get tides_source_datumMsl =>
-      'الارتفاعات نسبة إلى متوسط مستوى سطح البحر';
+  String get tides_source_datumMsl => 'الارتفاعات نسبة إلى متوسط مستوى سطح البحر';
 
   @override
   String get tides_title => 'المد والجزر';
@@ -22799,8 +22046,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_appBar_title => 'النقل';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'قم بتوصيل حاسوب الغوص عبر البلوتوث لتنزيل سجلات الغوص مباشرة إلى التطبيق. تشمل الحواسيب المدعومة Suunto و Shearwater و Garmin و Mares والعديد من العلامات التجارية الشهيرة الأخرى.\n\nيمكن لمستخدمي Apple Watch Ultra استيراد بيانات الغوص مباشرة من تطبيق الصحة، بما في ذلك العمق والمدة ومعدل ضربات القلب.';
+  String get transfer_computers_aboutContent => 'قم بتوصيل حاسوب الغوص عبر البلوتوث لتنزيل سجلات الغوص مباشرة إلى التطبيق. تشمل الحواسيب المدعومة Suunto و Shearwater و Garmin و Mares والعديد من العلامات التجارية الشهيرة الأخرى.\n\nيمكن لمستخدمي Apple Watch Ultra استيراد بيانات الغوص مباشرة من تطبيق الصحة، بما في ذلك العمق والمدة ومعدل ضربات القلب.';
 
   @override
   String get transfer_computers_aboutTitle => 'حول حواسيب الغوص';
@@ -22809,8 +22055,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_computers_appleWatchHeader => 'Apple Watch';
 
   @override
-  String get transfer_computers_appleWatchSubtitle =>
-      'Import dives via Apple HealthKit';
+  String get transfer_computers_appleWatchSubtitle => 'Import dives via Apple HealthKit';
 
   @override
   String get transfer_computers_appleWatchTitle => 'الاستيراد من Apple Watch';
@@ -22848,8 +22093,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_computers_downloadTooltip => 'تنزيل الغوصات';
 
   @override
-  String get transfer_computers_knownComputersHeader =>
-      'أجهزة الكمبيوتر المعروفة';
+  String get transfer_computers_knownComputersHeader => 'أجهزة الكمبيوتر المعروفة';
 
   @override
   String transfer_computers_lastDownloadDaysAgo(int days) {
@@ -22899,20 +22143,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_csvExport_dataTypeHeader => 'نوع البيانات';
 
   @override
-  String get transfer_csvExport_descriptionDives =>
-      'تصدير جميع سجلات الغوص كجدول بيانات';
+  String get transfer_csvExport_descriptionDives => 'تصدير جميع سجلات الغوص كجدول بيانات';
 
   @override
-  String get transfer_csvExport_descriptionEquipment =>
-      'تصدير جرد المعدات ومعلومات الصيانة';
+  String get transfer_csvExport_descriptionEquipment => 'تصدير جرد المعدات ومعلومات الصيانة';
 
   @override
-  String get transfer_csvExport_descriptionObservations =>
-      'كل فحص سليم وكل مشكلة مُبلَّغ عنها مع الغطسة والوسوم والملاحظة';
+  String get transfer_csvExport_descriptionObservations => 'كل فحص سليم وكل مشكلة مُبلَّغ عنها مع الغطسة والوسوم والملاحظة';
 
   @override
-  String get transfer_csvExport_descriptionSites =>
-      'تصدير مواقع الغوص وتفاصيلها';
+  String get transfer_csvExport_descriptionSites => 'تصدير مواقع الغوص وتفاصيلها';
 
   @override
   String get transfer_csvExport_dialogTitle => 'تصدير CSV';
@@ -22927,8 +22167,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'المعدات CSV';
 
   @override
-  String get transfer_csvExport_optionObservationsTitle =>
-      'ملف CSV لفحوصات المعدات';
+  String get transfer_csvExport_optionObservationsTitle => 'ملف CSV لفحوصات المعدات';
 
   @override
   String get transfer_csvExport_optionSitesTitle => 'المواقع CSV';
@@ -22957,26 +22196,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_csvExport_unitsMetric => 'متري';
 
   @override
-  String get transfer_csvExport_unitsMetricDescription =>
-      'قيم مترية وتواريخ ISO، بنفس تنسيق عمليات التصدير السابقة';
+  String get transfer_csvExport_unitsMetricDescription => 'قيم مترية وتواريخ ISO، بنفس تنسيق عمليات التصدير السابقة';
 
   @override
   String get transfer_csvExport_unitsMine => 'وحداتي';
 
   @override
-  String get transfer_csvExport_unitsMineDescription =>
-      'القيم بإعدادات الوحدات والتاريخ والوقت الخاصة بك، مع ذكرها في عنوان كل عمود';
+  String get transfer_csvExport_unitsMineDescription => 'القيم بإعدادات الوحدات والتاريخ والوقت الخاصة بك، مع ذكرها في عنوان كل عمود';
 
   @override
   String get transfer_detail_backTooltip => 'العودة إلى النقل';
 
   @override
-  String get transfer_export_aboutContent =>
-      'قم بتصدير بيانات الغوص بصيغ متعددة. ينشئ PDF سجل غوص قابل للطباعة. UDDF هو تنسيق عالمي متوافق مع معظم برامج تسجيل الغوص. يمكن فتح ملفات CSV في تطبيقات جداول البيانات.';
+  String get transfer_export_aboutContent => 'قم بتصدير بيانات الغوص بصيغ متعددة. ينشئ PDF سجل غوص قابل للطباعة. UDDF هو تنسيق عالمي متوافق مع معظم برامج تسجيل الغوص. يمكن فتح ملفات CSV في تطبيقات جداول البيانات.';
 
   @override
-  String get transfer_export_backupLink =>
-      'انتقال إلى النسخ الاحتياطي والاستعادة';
+  String get transfer_export_backupLink => 'انتقال إلى النسخ الاحتياطي والاستعادة';
 
   @override
   String get transfer_export_aboutTitle => 'حول التصدير';
@@ -22991,8 +22226,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_export_csvTitle => 'تصدير CSV';
 
   @override
-  String get transfer_export_excelSubtitle =>
-      'جميع البيانات في ملف واحد (غوصات، مواقع، معدات، إحصائيات)';
+  String get transfer_export_excelSubtitle => 'جميع البيانات في ملف واحد (غوصات، مواقع، معدات، إحصائيات)';
 
   @override
   String get transfer_export_excelTitle => 'مصنف Excel';
@@ -23003,8 +22237,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get transfer_export_kmlSubtitle =>
-      'عرض مواقع الغوص على كرة أرضية ثلاثية الأبعاد';
+  String get transfer_export_kmlSubtitle => 'عرض مواقع الغوص على كرة أرضية ثلاثية الأبعاد';
 
   @override
   String get transfer_export_kmlTitle => 'Google Earth KML';
@@ -23019,30 +22252,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_export_includeGear => 'تضمين المعدات';
 
   @override
-  String get transfer_export_includeGearSubtitle =>
-      'يضيف المعدات وكمبيوتر الغوص المستخدمة في كل غطسة. تُستبعد تفاصيل الشراء.';
+  String get transfer_export_includeGearSubtitle => 'يضيف المعدات وكمبيوتر الغوص المستخدمة في كل غطسة. تُستبعد تفاصيل الشراء.';
 
   @override
   String get transfer_export_includeParticipants => 'تضمين المشاركين في الغطس';
 
   @override
-  String get transfer_export_includeParticipantsSubtitle =>
-      'يضيف الرفاق والمرشدين وأدوارهم في كل غطسة، بالاسم والشهادة. تُستبعد بيانات الاتصال.';
+  String get transfer_export_includeParticipantsSubtitle => 'يضيف الرفاق والمرشدين وأدوارهم في كل غطسة، بالاسم والشهادة. تُستبعد بيانات الاتصال.';
 
   @override
-  String get transfer_export_includeRawData =>
-      'تضمين البيانات الخام لكمبيوتر الغوص';
+  String get transfer_export_includeRawData => 'تضمين البيانات الخام لكمبيوتر الغوص';
 
   @override
-  String get transfer_export_includeRawDataSubtitle =>
-      'يحتفظ بالبيانات الأصلية من كمبيوتر الغوص حتى يمكن تحليل الملف مرة أخرى لاحقًا. يزيد من حجم الملف.';
+  String get transfer_export_includeRawDataSubtitle => 'يحتفظ بالبيانات الأصلية من كمبيوتر الغوص حتى يمكن تحليل الملف مرة أخرى لاحقًا. يزيد من حجم الملف.';
 
   @override
   String get transfer_export_optionSaveTitle => 'حفظ كملف';
 
   @override
-  String get transfer_export_optionShareSubtitle =>
-      'إرسال عبر البريد الإلكتروني أو الرسائل أو تطبيقات أخرى';
+  String get transfer_export_optionShareSubtitle => 'إرسال عبر البريد الإلكتروني أو الرسائل أو تطبيقات أخرى';
 
   @override
   String get transfer_export_optionShareTitle => 'مشاركة';
@@ -23066,19 +22294,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_export_uddfTitle => 'تصدير UDDF';
 
   @override
-  String get transfer_import_aboutContent =>
-      'استخدم \"استيراد البيانات\" للحصول على أفضل تجربة -- يكتشف تلقائيًا صيغة الملف والتطبيق المصدر. تتوفر أيضًا خيارات الصيغ الفردية أدناه للوصول المباشر.';
+  String get transfer_import_aboutContent => 'استخدم \"استيراد البيانات\" للحصول على أفضل تجربة -- يكتشف تلقائيًا صيغة الملف والتطبيق المصدر. تتوفر أيضًا خيارات الصيغ الفردية أدناه للوصول المباشر.';
 
   @override
   String get transfer_import_aboutTitle => 'حول الاستيراد';
 
   @override
-  String get transfer_import_fileImportSemanticLabel =>
-      'استيراد البيانات مع الكشف التلقائي';
+  String get transfer_import_fileImportSemanticLabel => 'استيراد البيانات مع الكشف التلقائي';
 
   @override
-  String get transfer_import_fileImportSubtitle =>
-      'يكتشف تلقائيًا CSV و UDDF و FIT والمزيد';
+  String get transfer_import_fileImportSubtitle => 'يكتشف تلقائيًا CSV و UDDF و FIT والمزيد';
 
   @override
   String get transfer_import_fileImportTitle => 'استيراد البيانات';
@@ -23099,16 +22324,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_pdfExport_includeCertCards => 'تضمين بطاقات الشهادات';
 
   @override
-  String get transfer_pdfExport_includeCertCardsSubtitle =>
-      'إضافة صور بطاقات الشهادات الممسوحة ضوئيًا إلى ملف PDF';
+  String get transfer_pdfExport_includeCertCardsSubtitle => 'إضافة صور بطاقات الشهادات الممسوحة ضوئيًا إلى ملف PDF';
 
   @override
-  String get transfer_pdfExport_includeVerificationAreas =>
-      'تضمين مناطق التحقق';
+  String get transfer_pdfExport_includeVerificationAreas => 'تضمين مناطق التحقق';
 
   @override
-  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
-      'إضافة مربعات الختم والتوقيع للتحقق';
+  String get transfer_pdfExport_includeVerificationAreasSubtitle => 'إضافة مربعات الختم والتوقيع للتحقق';
+
+  @override
+  String get transfer_pdfExport_languageHeader => 'Language';
 
   @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
@@ -23129,8 +22354,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_pdfExport_templateDetailed => 'مفصل';
 
   @override
-  String get transfer_pdfExport_templateDetailedDesc =>
-      'معلومات الغوصة الكاملة مع الملاحظات والتقييمات';
+  String get transfer_pdfExport_templateDetailedDesc => 'معلومات الغوصة الكاملة مع الملاحظات والتقييمات';
 
   @override
   String get transfer_pdfExport_templateHeader => 'القالب';
@@ -23139,15 +22363,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_pdfExport_templateNauiStyle => 'نمط NAUI';
 
   @override
-  String get transfer_pdfExport_templateNauiStyleDesc =>
-      'تخطيط مطابق لتنسيق سجل NAUI';
+  String get transfer_pdfExport_templateNauiStyleDesc => 'تخطيط مطابق لتنسيق سجل NAUI';
 
   @override
   String get transfer_pdfExport_templatePadiStyle => 'نمط PADI';
 
   @override
-  String get transfer_pdfExport_templatePadiStyleDesc =>
-      'تخطيط مطابق لتنسيق سجل PADI';
+  String get transfer_pdfExport_templatePadiStyleDesc => 'تخطيط مطابق لتنسيق سجل PADI';
 
   @override
   String transfer_pdfExport_templateSemanticLabel(Object templateName) {
@@ -23158,8 +22380,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_pdfExport_templateSimple => 'بسيط';
 
   @override
-  String get transfer_pdfExport_templateSimpleDesc =>
-      'تنسيق جدول مضغوط، غوصات كثيرة في كل صفحة';
+  String get transfer_pdfExport_templateSimpleDesc => 'تنسيق جدول مضغوط، غوصات كثيرة في كل صفحة';
 
   @override
   String get transfer_section_computersSubtitle => 'التنزيل من الجهاز';
@@ -23254,8 +22475,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_detail_export_pdf_comingSoon => 'تصدير PDF قريبًا';
 
   @override
-  String get trips_detail_export_pdf_subtitle =>
-      'ملخص الرحلة مع تفاصيل الغوصات';
+  String get trips_detail_export_pdf_subtitle => 'ملخص الرحلة مع تفاصيل الغوصات';
 
   @override
   String get trips_detail_export_pdf_title => 'تصدير إلى PDF';
@@ -23416,8 +22636,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_edit_dialog_discard => 'تجاهل';
 
   @override
-  String get trips_edit_dialog_discardContent =>
-      'لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد المغادرة؟';
+  String get trips_edit_dialog_discardContent => 'لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد المغادرة؟';
 
   @override
   String get trips_edit_dialog_discardTitle => 'تجاهل التغييرات؟';
@@ -23532,8 +22751,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get trips_gallery_empty_subtitle =>
-      'انقر على أيقونة الكاميرا لمسح معرض الصور';
+  String get trips_gallery_empty_subtitle => 'انقر على أيقونة الكاميرا لمسح معرض الصور';
 
   @override
   String get trips_gallery_empty_title => 'لا توجد صور في هذه الرحلة';
@@ -23586,12 +22804,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_list_empty_button => 'أضف رحلتك الأولى';
 
   @override
-  String get trips_list_empty_filtered_subtitle =>
-      'حاول تعديل أو مسح عوامل التصفية';
+  String get trips_list_empty_filtered_subtitle => 'حاول تعديل أو مسح عوامل التصفية';
 
   @override
-  String get trips_list_empty_filtered_title =>
-      'لا توجد رحلات تطابق عوامل التصفية';
+  String get trips_list_empty_filtered_title => 'لا توجد رحلات تطابق عوامل التصفية';
 
   @override
   String get trips_list_empty_subtitle => 'أنشئ رحلات لتجميع غوصاتك حسب الوجهة';
@@ -23716,8 +22932,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_search_tooltip_clear => 'مسح البحث';
 
   @override
-  String get trips_summary_header_subtitle =>
-      'اختر رحلة من القائمة لعرض التفاصيل';
+  String get trips_summary_header_subtitle => 'اختر رحلة من القائمة لعرض التفاصيل';
 
   @override
   String get trips_summary_header_title => 'الرحلات';
@@ -23808,16 +23023,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_edit_label_expectedDives => 'الغطسات المتوقعة';
 
   @override
-  String get trips_edit_hint_expectedDives =>
-      'اتركه فارغًا للتقدير من رحلاتك الأخيرة';
+  String get trips_edit_hint_expectedDives => 'اتركه فارغًا للتقدير من رحلاتك الأخيرة';
 
   @override
-  String get trips_edit_label_expectedRuntime =>
-      'مدة التشغيل المتوقعة لكل غطسة (بالدقائق)';
+  String get trips_edit_label_expectedRuntime => 'مدة التشغيل المتوقعة لكل غطسة (بالدقائق)';
 
   @override
-  String get trips_edit_hint_expectedRuntime =>
-      'اتركه فارغًا للتقدير من غطساتك الأخيرة بجهاز إعادة التنفس';
+  String get trips_edit_hint_expectedRuntime => 'اتركه فارغًا للتقدير من غطساتك الأخيرة بجهاز إعادة التنفس';
 
   @override
   String get trips_scrubber_title => 'هامش المنظّف';
@@ -23828,20 +23040,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String trips_scrubber_remaining(
-    String minutes,
-    String rated,
-    String consumed,
-  ) {
+  String trips_scrubber_remaining(String minutes, String rated, String consumed) {
     return '$minutes دقيقة متبقية قبل الرحلة (المقدّر $rated دقيقة، استُهلك $consumed دقيقة منذ آخر إعادة تعبئة)';
   }
 
   @override
-  String trips_scrubber_remainingNoRepack(
-    String minutes,
-    String rated,
-    String consumed,
-  ) {
+  String trips_scrubber_remainingNoRepack(String minutes, String rated, String consumed) {
     return '$minutes دقيقة متبقية قبل الرحلة (المقدّر $rated دقيقة، استُهلك $consumed دقيقة، ولا توجد إعادة تعبئة مسجلة)';
   }
 
@@ -23906,12 +23110,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get trips_scrubber_caution =>
-      'أقل من 20 بالمئة من المدة المقدّرة. خطّط لإعادة تعبئة أو احمل مادة ماصّة احتياطية.';
+  String get trips_scrubber_caution => 'أقل من 20 بالمئة من المدة المقدّرة. خطّط لإعادة تعبئة أو احمل مادة ماصّة احتياطية.';
 
   @override
-  String get trips_scrubber_noRating =>
-      'لا توجد مدة مقدّرة لهذا الجهاز؛ أضف مدة المنظّف إلى سماته أو جدول إعادة تعبئة.';
+  String get trips_scrubber_noRating => 'لا توجد مدة مقدّرة لهذا الجهاز؛ أضف مدة المنظّف إلى سماته أو جدول إعادة تعبئة.';
 
   @override
   String trips_scrubber_bannerMargin(String minutes) {
@@ -23939,8 +23141,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_edit_hint_disembarkPort => 'e.g. Hurghada Marina';
 
   @override
-  String get trips_edit_validation_vesselRequired =>
-      'Vessel name is required for liveaboard trips';
+  String get trips_edit_validation_vesselRequired => 'Vessel name is required for liveaboard trips';
 
   @override
   String get trips_detail_tab_overview => 'Overview';
@@ -24205,16 +23406,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_triage_cancelParsing => 'إلغاء';
 
   @override
-  String get universalImport_triage_allExcluded =>
-      'لا يمكن استيراد الملفات المحددة معًا. يجب استيراد ملفات CSV واحدًا تلو الآخر.';
+  String get universalImport_triage_allExcluded => 'لا يمكن استيراد الملفات المحددة معًا. يجب استيراد ملفات CSV واحدًا تلو الآخر.';
 
   @override
-  String get universalImport_triage_noneImportable =>
-      'لا يمكن استيراد أي من الملفات المحددة.';
+  String get universalImport_triage_noneImportable => 'لا يمكن استيراد أي من الملفات المحددة.';
 
   @override
-  String get universalImport_review_inBatchDuplicate =>
-      'نسخة مكررة من غطسة أخرى في دفعة الاستيراد هذه.';
+  String get universalImport_review_inBatchDuplicate => 'نسخة مكررة من غطسة أخرى في دفعة الاستيراد هذه.';
 
   @override
   String get universalImport_summary_filesTitle => 'الملفات';
@@ -24224,8 +23422,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'يحتوي هذا السجل على غطسات لـ $count غواصين. اختر وجهة غطسات وشهادات كل غواص.',
+      other: 'يحتوي هذا السجل على غطسات لـ $count غواصين. اختر وجهة غطسات وشهادات كل غواص.',
     );
     return '$_temp0';
   }
@@ -24286,12 +23483,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_summary_noticesTitle => 'ملاحظات الاستيراد';
 
   @override
-  String get universalImport_summary_noticeNoTankPressureTitle =>
-      'لم يتم تسجيل ضغط الأسطوانة';
+  String get universalImport_summary_noticeNoTankPressureTitle => 'لم يتم تسجيل ضغط الأسطوانة';
 
   @override
-  String get universalImport_summary_noticeNoTankPressureBody =>
-      'لا يمكن حساب استهلاك الهواء و SAC. يمكنك إضافة ضغط البداية والنهاية بتعديل الغطسة.';
+  String get universalImport_summary_noticeNoTankPressureBody => 'لا يمكن حساب استهلاك الهواء و SAC. يمكنك إضافة ضغط البداية والنهاية بتعديل الغطسة.';
 
   @override
   String universalImport_summary_noticeAffectedDives(int count) {
@@ -24305,12 +23500,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeDivesSkippedTitle =>
-      'تعذّرت قراءة بعض الغطسات';
+  String get universalImport_summary_noticeDivesSkippedTitle => 'تعذّرت قراءة بعض الغطسات';
 
   @override
-  String get universalImport_summary_noticeDivesSkippedBody =>
-      'تم تخطي هذه الغطسات لأنه تعذّرت قراءة بياناتها في الملف.';
+  String get universalImport_summary_noticeDivesSkippedBody => 'تم تخطي هذه الغطسات لأنه تعذّرت قراءة بياناتها في الملف.';
 
   @override
   String universalImport_summary_noticeDivesSkippedCount(int count) {
@@ -24324,32 +23517,25 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeProfileUnreadableTitle =>
-      'تعذّرت قراءة بعض ملفات العمق';
+  String get universalImport_summary_noticeProfileUnreadableTitle => 'تعذّرت قراءة بعض ملفات العمق';
 
   @override
-  String get universalImport_summary_noticeProfileUnreadableBody =>
-      'تم استيراد هذه الغطسات بدون ملف العمق لأن بيانات ملف العمق في الملف مفقودة أو تعذّرت قراءتها.';
+  String get universalImport_summary_noticeProfileUnreadableBody => 'تم استيراد هذه الغطسات بدون ملف العمق لأن بيانات ملف العمق في الملف مفقودة أو تعذّرت قراءتها.';
 
   @override
-  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
-      'لم يُفك ترميز ملفات العمق من MacDive';
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle => 'لم يُفك ترميز ملفات العمق من MacDive';
 
   @override
-  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
-      'خزّن MacDive ملفات العمق هذه بصيغة لا يستطيع Submersion قراءتها. لاستيرادها، صدّر من MacDive بصيغة XML (File > Export > MacDive XML) ثم استورد ذلك الملف بدلاً من ذلك.';
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody => 'خزّن MacDive ملفات العمق هذه بصيغة لا يستطيع Submersion قراءتها. لاستيرادها، صدّر من MacDive بصيغة XML (File > Export > MacDive XML) ثم استورد ذلك الملف بدلاً من ذلك.';
 
   @override
-  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
-      'لم يُفك ترميز ملفات العمق على هذا الجهاز';
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle => 'لم يُفك ترميز ملفات العمق على هذا الجهاز';
 
   @override
-  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
-      'تعذّر على هذا الجهاز فك ترميز بيانات حاسوب الغوص في الملف، لذا تم استيراد هذه الغطسات بدون ملفات العمق.';
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody => 'تعذّر على هذا الجهاز فك ترميز بيانات حاسوب الغوص في الملف، لذا تم استيراد هذه الغطسات بدون ملفات العمق.';
 
   @override
-  String get universalImport_summary_noticeColumnsNotImportedTitle =>
-      'لم يتم استيراد بعض الأعمدة';
+  String get universalImport_summary_noticeColumnsNotImportedTitle => 'لم يتم استيراد بعض الأعمدة';
 
   @override
   String universalImport_summary_noticeColumnsNotImportedBody(String names) {
@@ -24357,25 +23543,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeValuesNotConvertedTitle =>
-      'تُركت بعض القيم فارغة';
+  String get universalImport_summary_noticeValuesNotConvertedTitle => 'تُركت بعض القيم فارغة';
 
   @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'تعذّر تحويل $count قيم فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.',
-      one:
-          'تعذّر تحويل قيمة واحدة فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.',
+      other: 'تعذّر تحويل $count قيم فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.',
+      one: 'تعذّر تحويل قيمة واحدة فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.',
     );
     return '$_temp0';
   }
 
   @override
-  String get universalImport_summary_noticePhotosSkippedTitle =>
-      'تم تخطي بعض الصور';
+  String get universalImport_summary_noticePhotosSkippedTitle => 'تم تخطي بعض الصور';
 
   @override
   String universalImport_summary_noticePhotosSkippedBody(int count) {
@@ -24389,32 +23571,25 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeSitesUnresolvedTitle =>
-      'بعض الغطسات بلا موقع غوص';
+  String get universalImport_summary_noticeSitesUnresolvedTitle => 'بعض الغطسات بلا موقع غوص';
 
   @override
-  String get universalImport_summary_noticeSitesUnresolvedBody =>
-      'أشارت هذه الغطسات إلى موقع غوص لا يصفه الملف، فاستُوردت بدون موقع. يمكنك تعيين موقع بتحرير الغطسة.';
+  String get universalImport_summary_noticeSitesUnresolvedBody => 'أشارت هذه الغطسات إلى موقع غوص لا يصفه الملف، فاستُوردت بدون موقع. يمكنك تعيين موقع بتحرير الغطسة.';
 
   @override
-  String get universalImport_summary_noticeGearUnavailableTitle =>
-      'لم يتم استيراد المعدات';
+  String get universalImport_summary_noticeGearUnavailableTitle => 'لم يتم استيراد المعدات';
 
   @override
-  String get universalImport_summary_noticeGearUnavailableBody =>
-      'تعذّر جلب قائمة المعدات، لذا لم يتم استيراد أي معدات ولم تُربط الغطسات بمعداتها. استورد مجددًا لاحقًا لإضافتها.';
+  String get universalImport_summary_noticeGearUnavailableBody => 'تعذّر جلب قائمة المعدات، لذا لم يتم استيراد أي معدات ولم تُربط الغطسات بمعداتها. استورد مجددًا لاحقًا لإضافتها.';
 
   @override
-  String get universalImport_summary_noticeCertificationsUnavailableTitle =>
-      'لم يتم استيراد الشهادات';
+  String get universalImport_summary_noticeCertificationsUnavailableTitle => 'لم يتم استيراد الشهادات';
 
   @override
-  String get universalImport_summary_noticeCertificationsUnavailableBody =>
-      'تعذّر جلب قائمة الشهادات، لذا لم يتم استيراد أي شهادات. استورد مجددًا لاحقًا لإضافتها.';
+  String get universalImport_summary_noticeCertificationsUnavailableBody => 'تعذّر جلب قائمة الشهادات، لذا لم يتم استيراد أي شهادات. استورد مجددًا لاحقًا لإضافتها.';
 
   @override
-  String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
-      'تعذّر سرد بعض الصور';
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle => 'تعذّر سرد بعض الصور';
 
   @override
   String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
@@ -24431,39 +23606,30 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticePhotosNotDownloadedTitle =>
-      'لم يتم تنزيل بعض الصور';
+  String get universalImport_summary_noticePhotosNotDownloadedTitle => 'لم يتم تنزيل بعض الصور';
 
   @override
   String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'تعذّر تنزيل $count صورة. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
-      many:
-          'تعذّر تنزيل $count صورة. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
-      few:
-          'تعذّر تنزيل $count صور. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
-      two:
-          'تعذّر تنزيل $count صورتين. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
-      one:
-          'تعذّر تنزيل $count صورة. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
+      other: 'تعذّر تنزيل $count صورة. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
+      many: 'تعذّر تنزيل $count صورة. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
+      few: 'تعذّر تنزيل $count صور. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
+      two: 'تعذّر تنزيل $count صورتين. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
+      one: 'تعذّر تنزيل $count صورة. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
     );
     return '$_temp0';
   }
 
   @override
-  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
-      'الشهادات وسجلات الصيانة غير موجودة في الملف';
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle => 'الشهادات وسجلات الصيانة غير موجودة في الملف';
 
   @override
-  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
-      'يستبعد MacDive الشهادات وسجلات صيانة المعدات من تصدير XML. لاستيرادها، استورد قاعدة بيانات MacDive.sqlite الخاصة بك.';
+  String get universalImport_summary_noticeMacdiveXmlCertsBody => 'يستبعد MacDive الشهادات وسجلات صيانة المعدات من تصدير XML. لاستيرادها، استورد قاعدة بيانات MacDive.sqlite الخاصة بك.';
 
   @override
-  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
-      'لم يتم استيراد دفاتر سجل MacDive';
+  String get universalImport_summary_noticeMacdiveLogbooksTitle => 'لم يتم استيراد دفاتر سجل MacDive';
 
   @override
   String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
@@ -24471,12 +23637,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_unreadableDatesTitle =>
-      'لم يتم استيراد بعض الصفوف';
+  String get universalImport_summary_unreadableDatesTitle => 'لم يتم استيراد بعض الصفوف';
 
   @override
-  String get universalImport_summary_unreadableDatesBody =>
-      'تعذّرت قراءة التاريخ في هذه الصفوف. تحقق من عمود التاريخ في الملف، وصحّح هذه الصفوف، ثم أعد استيراد الملف.';
+  String get universalImport_summary_unreadableDatesBody => 'تعذّرت قراءة التاريخ في هذه الصفوف. تحقق من عمود التاريخ في الملف، وصحّح هذه الصفوف، ثم أعد استيراد الملف.';
 
   @override
   String universalImport_summary_unreadableDatesCount(int count) {
@@ -24501,10 +23665,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String universalImport_summary_unreadableDatesRowsMore(
-    int count,
-    String rows,
-  ) {
+  String universalImport_summary_unreadableDatesRowsMore(int count, String rows) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -24529,8 +23690,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_summary_importAsRoute => 'استيراد كمسار';
 
   @override
-  String get universalImport_summary_fileNeedsIndividualImport =>
-      'يتطلب استيرادًا فرديًا';
+  String get universalImport_summary_fileNeedsIndividualImport => 'يتطلب استيرادًا فرديًا';
 
   @override
   String get universalImport_summary_fileUnsupported => 'تنسيق غير مدعوم';
@@ -24564,23 +23724,19 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_description_supportedFormats =>
-      'اختر ملف سجل غوص للاستيراد. الصيغ المدعومة تشمل CSV وUDDF وSubsurface XML وGarmin FIT.';
+  String get universalImport_description_supportedFormats => 'اختر ملف سجل غوص للاستيراد. الصيغ المدعومة تشمل CSV وUDDF وSubsurface XML وGarmin FIT.';
 
   @override
   String get universalImport_dive_decideAction => 'قرر';
 
   @override
-  String get universalImport_error_unsupportedFormat =>
-      'هذه الصيغة غير مدعومة بعد. يرجى التصدير كـ UDDF أو CSV.';
+  String get universalImport_error_unsupportedFormat => 'هذه الصيغة غير مدعومة بعد. يرجى التصدير كـ UDDF أو CSV.';
 
   @override
-  String get universalImport_error_duplicateCheckFailed =>
-      'تعذّر تشغيل كشف التكرارات، لذلك لم يُوسم أي عنصر في هذه القائمة بأنه موجود مسبقًا في سجلك. راجع القائمة قبل الاستيراد.';
+  String get universalImport_error_duplicateCheckFailed => 'تعذّر تشغيل كشف التكرارات، لذلك لم يُوسم أي عنصر في هذه القائمة بأنه موجود مسبقًا في سجلك. راجع القائمة قبل الاستيراد.';
 
   @override
-  String get universalImport_error_noColumnsToMap =>
-      'لا يحتوي هذا الملف على أعمدة لربطها. ارجع واختر الملف مرة أخرى، أو اختر مصدرًا آخر.';
+  String get universalImport_error_noColumnsToMap => 'لا يحتوي هذا الملف على أعمدة لربطها. ارجع واختر الملف مرة أخرى، أو اختر مصدرًا آخر.';
 
   @override
   String universalImport_error_stepFailed(Object details) {
@@ -24599,16 +23755,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_error_unreadableDatesHint =>
-      'تحقق من ربط عمودي التاريخ والوقت في هذه الخطوة، ومن أنهما يحتويان على تواريخ.';
+  String get universalImport_error_unreadableDatesHint => 'تحقق من ربط عمودي التاريخ والوقت في هذه الخطوة، ومن أنهما يحتويان على تواريخ.';
 
   @override
-  String get universalImport_error_unreadableDatesHintNoMapping =>
-      'تحقق من أن عمود التاريخ يحتوي على تواريخ مكتوبة بالصيغة التي يذكرها عنوانه.';
+  String get universalImport_error_unreadableDatesHintNoMapping => 'تحقق من أن عمود التاريخ يحتوي على تواريخ مكتوبة بالصيغة التي يذكرها عنوانه.';
 
   @override
-  String get universalImport_error_noDataInFile =>
-      'لم يتم العثور على بيانات قابلة للاستيراد في هذا الملف.';
+  String get universalImport_error_noDataInFile => 'لم يتم العثور على بيانات قابلة للاستيراد في هذا الملف.';
 
   @override
   String universalImport_error_noDataInFileWithDetails(String details) {
@@ -24616,12 +23769,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_error_noDataInFiles =>
-      'لم يتم العثور على بيانات قابلة للاستيراد في الملفات المحددة.';
+  String get universalImport_error_noDataInFiles => 'لم يتم العثور على بيانات قابلة للاستيراد في الملفات المحددة.';
 
   @override
-  String get universalImport_error_fileUnreadable =>
-      'تعذّرت قراءة الملف المحدد. اختره مرة أخرى.';
+  String get universalImport_error_fileUnreadable => 'تعذّرت قراءة الملف المحدد. اختره مرة أخرى.';
 
   @override
   String universalImport_error_parseFailed(String details) {
@@ -24629,12 +23780,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_error_noFilesInArchive =>
-      'لم يتم العثور على ملفات قابلة للاستيراد في الأرشيف.';
+  String get universalImport_error_noFilesInArchive => 'لم يتم العثور على ملفات قابلة للاستيراد في الأرشيف.';
 
   @override
-  String get universalImport_error_noFilesInFolder =>
-      'لم يتم العثور على ملفات قابلة للاستيراد في المجلد المحدد.';
+  String get universalImport_error_noFilesInFolder => 'لم يتم العثور على ملفات قابلة للاستيراد في المجلد المحدد.';
 
   @override
   String universalImport_error_loadFailed(String details) {
@@ -24652,8 +23801,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_error_garminNotFound =>
-      'لم يتم العثور على جهاز Garmin متصل. وصّله بالكابل، أو استخدم «اختيار مجلد» لتحديد مجلد GARMIN/Activity في الجهاز.';
+  String get universalImport_error_garminNotFound => 'لم يتم العثور على جهاز Garmin متصل. وصّله بالكابل، أو استخدم «اختيار مجلد» لتحديد مجلد GARMIN/Activity في الجهاز.';
 
   @override
   String universalImport_error_garminReadFailed(String details) {
@@ -24661,8 +23809,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_error_garminNoDives =>
-      'لم يتم العثور على غطسات في جهاز Garmin المتصل.';
+  String get universalImport_error_garminNoDives => 'لم يتم العثور على غطسات في جهاز Garmin المتصل.';
 
   @override
   String universalImport_error_additionalFilePickFailed(String details) {
@@ -24719,8 +23866,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_label_possibleMatch => 'تطابق محتمل';
 
   @override
-  String get universalImport_label_selectCorrectSource =>
-      'ليس صحيحاً؟ اختر المصدر الصحيح:';
+  String get universalImport_label_selectCorrectSource => 'ليس صحيحاً؟ اختر المصدر الصحيح:';
 
   @override
   String universalImport_label_selected(Object count) {
@@ -24734,8 +23880,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_label_fillPlanned => 'إكمال الغوصة المخططة';
 
   @override
-  String get universalImport_compare_fillPlannedSubtitle =>
-      'إرفاق هذا التنزيل بالغوصة التي خططت لها';
+  String get universalImport_compare_fillPlannedSubtitle => 'إرفاق هذا التنزيل بالغوصة التي خططت لها';
 
   @override
   String get universalImport_label_filledPlanned => 'الغوصات المخططة المكتملة';
@@ -24746,8 +23891,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_fillPlanned_replacesProfile =>
-      'سيتم استبدال ملفها التقريبي.';
+  String get universalImport_fillPlanned_replacesProfile => 'سيتم استبدال ملفها التقريبي.';
 
   @override
   String get universalImport_fillPlanned_change => 'تغيير';
@@ -24756,19 +23900,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_fillPlanned_pickerTitle => 'اختر غوصة مخططة';
 
   @override
-  String get universalImport_fillPlanned_importAsNew =>
-      'الاستيراد كغوصة جديدة بدلا من ذلك';
+  String get universalImport_fillPlanned_importAsNew => 'الاستيراد كغوصة جديدة بدلا من ذلك';
 
   @override
   String get universalImport_fillPlanned_undo => 'التراجع عن الإكمال';
 
   @override
-  String get universalImport_fillPlanned_undone =>
-      'تمت استعادة الغوصات المخططة';
+  String get universalImport_fillPlanned_undone => 'تمت استعادة الغوصات المخططة';
 
   @override
-  String get universalImport_fillPlanned_undoFailed =>
-      'تعذرت استعادة كل الغوصات المخططة. حاول مرة أخرى.';
+  String get universalImport_fillPlanned_undoFailed => 'تعذرت استعادة كل الغوصات المخططة. حاول مرة أخرى.';
 
   @override
   String universalImport_label_taggedAs(Object tag) {
@@ -24798,8 +23939,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_entityAction_linkExisting => 'الربط بالموجود';
 
   @override
-  String get universalImport_entityAction_linkExistingSubtitle =>
-      'استخدام السجل المطابق';
+  String get universalImport_entityAction_linkExistingSubtitle => 'استخدام السجل المطابق';
 
   @override
   String get universalImport_entityAction_replaceBadge => 'استبدال';
@@ -24808,8 +23948,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_entityAction_replaceExisting => 'استبدال الحالي';
 
   @override
-  String get universalImport_entityAction_replaceExistingSubtitle =>
-      'الكتابة فوقه بالبيانات المستوردة';
+  String get universalImport_entityAction_replaceExistingSubtitle => 'الكتابة فوقه بالبيانات المستوردة';
 
   @override
   String get universalImport_entityAction_skip => 'تخطي';
@@ -24821,8 +23960,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_entityAction_importAsNew => 'استيراد كجديد';
 
   @override
-  String get universalImport_entityAction_importAsNewSubtitle =>
-      'إنشاء إدخال منفصل';
+  String get universalImport_entityAction_importAsNewSubtitle => 'إنشاء إدخال منفصل';
 
   @override
   String get universalImport_pending_chooseAction => 'اختر إجراء';
@@ -24839,15 +23977,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_pending_reviewAction => 'مراجعة';
 
   @override
-  String get universalImport_rowHint_tapCompareToDecide =>
-      'اضغط على قرر للاختيار';
+  String get universalImport_rowHint_tapCompareToDecide => 'اضغط على قرر للاختيار';
 
   @override
-  String universalImport_semantics_entitySelection(
-    Object selected,
-    Object total,
-    Object entityType,
-  ) {
+  String universalImport_semantics_entitySelection(Object selected, Object total, Object entityType) {
     return '$selected من $total $entityType محدد';
   }
 
@@ -24867,8 +24000,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_semantics_needsDecision =>
-      'نسخة مكررة محتملة، يتطلب قرارا';
+  String get universalImport_semantics_needsDecision => 'نسخة مكررة محتملة، يتطلب قرارا';
 
   @override
   String get universalImport_semantics_possibleDuplicate => 'مكرر محتمل';
@@ -24909,8 +24041,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_step_select => 'اختيار';
 
   @override
-  String get universalImport_summary_decidesRequired =>
-      'يحتاج كل منها إلى قرار قبل الاستيراد.';
+  String get universalImport_summary_decidesRequired => 'يحتاج كل منها إلى قرار قبل الاستيراد.';
 
   @override
   String get universalImport_title => 'استيراد البيانات';
@@ -25063,8 +24194,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_certificate_footer => 'شهادة غوص رسمية';
 
   @override
-  String get certifications_certificate_hasCompletedTraining =>
-      'قد أتم التدريب بصفة';
+  String get certifications_certificate_hasCompletedTraining => 'قد أتم التدريب بصفة';
 
   @override
   String certifications_certificate_instructor(Object name) {
@@ -25092,12 +24222,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_clockSync_checkAgain => 'التحقق مرة أخرى';
 
   @override
-  String get diveComputer_clockSync_globalSubtitle =>
-      'يضبط الساعة على وقت هذا الجهاز بعد كل تنزيل. ينطبق على هذا الجهاز فقط.';
+  String get diveComputer_clockSync_globalSubtitle => 'يضبط الساعة على وقت هذا الجهاز بعد كل تنزيل. ينطبق على هذا الجهاز فقط.';
 
   @override
-  String get diveComputer_clockSync_globalTitle =>
-      'مزامنة ساعات كمبيوترات الغوص';
+  String get diveComputer_clockSync_globalTitle => 'مزامنة ساعات كمبيوترات الغوص';
 
   @override
   String get diveComputer_clockSync_overrideAlways => 'دائمًا';
@@ -25112,8 +24240,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_clockSync_supported => 'مدعومة في هذا الطراز';
 
   @override
-  String get diveComputer_clockSync_unsupported =>
-      'هذا الطراز لا يدعم مزامنة الساعة';
+  String get diveComputer_clockSync_unsupported => 'هذا الطراز لا يدعم مزامنة الساعة';
 
   @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
@@ -25178,8 +24305,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_detail_notesTitle => 'الملاحظات';
 
   @override
-  String get diveComputer_detail_reimportAllButton =>
-      'إعادة استيراد جميع الغطسات';
+  String get diveComputer_detail_reimportAllButton => 'إعادة استيراد جميع الغطسات';
 
   @override
   String diveComputer_detail_reimportDialogBody(String computerName) {
@@ -25187,8 +24313,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_detail_reimportDialogTitle =>
-      'إعادة استيراد جميع الغطسات؟';
+  String get diveComputer_detail_reimportDialogTitle => 'إعادة استيراد جميع الغطسات؟';
 
   @override
   String get diveComputer_detail_statisticsTitle => 'الإحصائيات';
@@ -25197,8 +24322,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_detail_unknown => 'غير معروف';
 
   @override
-  String get diveComputer_detail_viewDivesButton =>
-      'عرض الغطسات من هذا الكمبيوتر';
+  String get diveComputer_detail_viewDivesButton => 'عرض الغطسات من هذا الكمبيوتر';
 
   @override
   String get diveComputer_discovery_chooseDifferentDevice => 'اختيار جهاز آخر';
@@ -25210,8 +24334,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_discovery_connectAndDownload => 'اتصال وتنزيل';
 
   @override
-  String get diveComputer_discovery_connectingToDevice =>
-      'جارٍ الاتصال بالجهاز...';
+  String get diveComputer_discovery_connectingToDevice => 'جارٍ الاتصال بالجهاز...';
 
   @override
   String diveComputer_discovery_deviceNameHint(Object model) {
@@ -25228,8 +24351,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_discovery_exitDialogConfirm => 'خروج';
 
   @override
-  String get diveComputer_discovery_exitDialogContent =>
-      'هل أنت متأكد من الخروج؟ سيتم فقدان تقدمك.';
+  String get diveComputer_discovery_exitDialogContent => 'هل أنت متأكد من الخروج؟ سيتم فقدان تقدمك.';
 
   @override
   String get diveComputer_discovery_exitDialogTitle => 'الخروج من الإعداد؟';
@@ -25241,15 +24363,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_discovery_noDeviceSelected => 'لم يتم اختيار جهاز';
 
   @override
-  String get diveComputer_discovery_pleaseWaitConnection =>
-      'يرجى الانتظار أثناء إنشاء الاتصال';
+  String get diveComputer_discovery_pleaseWaitConnection => 'يرجى الانتظار أثناء إنشاء الاتصال';
 
   @override
   String get diveComputer_discovery_recognizedDevice => 'جهاز معروف';
 
   @override
-  String get diveComputer_discovery_recognizedDeviceDescription =>
-      'هذا الجهاز موجود في مكتبة الأجهزة المدعومة. يجب أن يعمل تنزيل الغطسات تلقائيًا.';
+  String get diveComputer_discovery_recognizedDeviceDescription => 'هذا الجهاز موجود في مكتبة الأجهزة المدعومة. يجب أن يعمل تنزيل الغطسات تلقائيًا.';
 
   @override
   String get diveComputer_discovery_stepConnect => 'اتصال';
@@ -25282,12 +24402,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_discovery_unknownDevice => 'جهاز غير معروف';
 
   @override
-  String get diveComputer_discovery_unknownDeviceDescription =>
-      'هذا الجهاز غير موجود في مكتبتنا. سنحاول الاتصال، لكن التنزيل قد لا يعمل.';
+  String get diveComputer_discovery_unknownDeviceDescription => 'هذا الجهاز غير موجود في مكتبتنا. سنحاول الاتصال، لكن التنزيل قد لا يعمل.';
 
   @override
-  String get diveComputer_discovery_usbInstructions =>
-      'قم بتوصيل حاسوب الغوص عبر كابل USB، ثم اختره أدناه.';
+  String get diveComputer_discovery_usbInstructions => 'قم بتوصيل حاسوب الغوص عبر كابل USB، ثم اختره أدناه.';
 
   @override
   String diveComputer_discovery_usbNoResults(String query) {
@@ -25295,12 +24413,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_discovery_usbSearchHint =>
-      'البحث حسب الشركة المصنعة أو الطراز...';
+  String get diveComputer_discovery_usbSearchHint => 'البحث حسب الشركة المصنعة أو الطراز...';
 
   @override
-  String get diveComputer_downloadExit_content =>
-      'سيؤدي المغادرة إلى إلغاء التنزيل الحالي من كمبيوتر الغوص. هل أنت متأكد؟';
+  String get diveComputer_downloadExit_content => 'سيؤدي المغادرة إلى إلغاء التنزيل الحالي من كمبيوتر الغوص. هل أنت متأكد؟';
 
   @override
   String get diveComputer_downloadExit_leave => 'مغادرة';
@@ -25326,8 +24442,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_downloadStep_clockSyncFailed => 'فشلت مزامنة الساعة';
 
   @override
-  String get diveComputer_downloadStep_clockSyncUnsupported =>
-      'مزامنة الساعة غير مدعومة في هذا الطراز';
+  String get diveComputer_downloadStep_clockSyncUnsupported => 'مزامنة الساعة غير مدعومة في هذا الطراز';
 
   @override
   String get diveComputer_downloadStep_clockSynced => 'تمت مزامنة الساعة';
@@ -25363,12 +24478,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_downloadStep_firstSyncBody =>
-      'يحتوي سجل الغطسات الخاص بك بالفعل على غطسات. يمكنك تخطي تنزيل الغطسات التي لديك بالفعل.';
+  String get diveComputer_downloadStep_firstSyncBody => 'يحتوي سجل الغطسات الخاص بك بالفعل على غطسات. يمكنك تخطي تنزيل الغطسات التي لديك بالفعل.';
 
   @override
-  String get diveComputer_downloadStep_firstSyncTitle =>
-      'أول تنزيل من كمبيوتر الغوص هذا';
+  String get diveComputer_downloadStep_firstSyncTitle => 'أول تنزيل من كمبيوتر الغوص هذا';
 
   @override
   String diveComputer_downloadStep_onlyAfterDate(String date) {
@@ -25389,10 +24502,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String diveComputer_downloadStep_progressSemanticLabel(
-    Object status,
-    Object percent,
-  ) {
+  String diveComputer_downloadStep_progressSemanticLabel(Object status, Object percent) {
     return 'تقدم التنزيل: $status$percent';
   }
 
@@ -25417,8 +24527,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_download_closeTooltip => 'إغلاق';
 
   @override
-  String get diveComputer_download_computerNotFound =>
-      'لم يتم العثور على الكمبيوتر';
+  String get diveComputer_download_computerNotFound => 'لم يتم العثور على الكمبيوتر';
 
   @override
   String diveComputer_download_depthMeters(Object depth) {
@@ -25431,8 +24540,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_download_deviceNotFoundTitle =>
-      'لم يتم العثور على الجهاز';
+  String get diveComputer_download_deviceNotFoundTitle => 'لم يتم العثور على الجهاز';
 
   @override
   String get diveComputer_download_divesUpdated => 'تم تحديث الغطسات';
@@ -25455,8 +24563,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_download_errorOccurred => 'حدث خطأ';
 
   @override
-  String get diveComputer_download_noSerialPortsFound =>
-      'لم يتم العثور على منافذ USB تسلسلية. هل حاسوب الغوص متصل وقيد التشغيل؟';
+  String get diveComputer_download_noSerialPortsFound => 'لم يتم العثور على منافذ USB تسلسلية. هل حاسوب الغوص متصل وقيد التشغيل؟';
 
   @override
   String diveComputer_download_noUsbDeviceFound(Object model) {
@@ -25464,12 +24571,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_download_stalePairing =>
-      'إقران البلوتوث لكمبيوتر الغوص هذا لم يعد صالحًا. انسَ كمبيوتر الغوص من إعدادات البلوتوث في جهازك، ثم أعد إقرانه من قائمة البلوتوث في كمبيوتر الغوص.';
+  String get diveComputer_download_stalePairing => 'إقران البلوتوث لكمبيوتر الغوص هذا لم يعد صالحًا. انسَ كمبيوتر الغوص من إعدادات البلوتوث في جهازك، ثم أعد إقرانه من قائمة البلوتوث في كمبيوتر الغوص.';
 
   @override
-  String get diveComputer_download_discoveryStalled =>
-      'تم الاتصال بكمبيوتر الغوص، لكنه توقف عن الاستجابة قبل بدء التنزيل. يعني هذا عادةً أن إقران البلوتوث لم يعد صالحًا: انسَ كمبيوتر الغوص من إعدادات البلوتوث في جهازك ثم حاول مرة أخرى.';
+  String get diveComputer_download_discoveryStalled => 'تم الاتصال بكمبيوتر الغوص، لكنه توقف عن الاستجابة قبل بدء التنزيل. يعني هذا عادةً أن إقران البلوتوث لم يعد صالحًا: انسَ كمبيوتر الغوص من إعدادات البلوتوث في جهازك ثم حاول مرة أخرى.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
@@ -25507,12 +24612,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_download_newDivesImported => 'تم استيراد غطسات جديدة';
 
   @override
-  String get diveComputer_download_newDivesOnlySubtitle =>
-      'يتم تنزيل الغطسات المضافة منذ آخر مزامنة فقط';
+  String get diveComputer_download_newDivesOnlySubtitle => 'يتم تنزيل الغطسات المضافة منذ آخر مزامنة فقط';
 
   @override
-  String get diveComputer_download_newDivesOnlyTitle =>
-      'تنزيل الغطسات الجديدة فقط';
+  String get diveComputer_download_newDivesOnlyTitle => 'تنزيل الغطسات الجديدة فقط';
 
   @override
   String get diveComputer_download_preparing => 'جارٍ التحضير...';
@@ -25523,8 +24626,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_download_reimportHint =>
-      'تبحث عن غطسات قديمة أو محذوفة؟ إعادة استيراد الجميع';
+  String get diveComputer_download_reimportHint => 'تبحث عن غطسات قديمة أو محذوفة؟ إعادة استيراد الجميع';
 
   @override
   String get diveComputer_download_retry => 'إعادة المحاولة';
@@ -25540,8 +24642,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_download_searchingInstructions =>
-      'تأكد أن الجهاز قريب وفي وضع النقل';
+  String get diveComputer_download_searchingInstructions => 'تأكد أن الجهاز قريب وفي وضع النقل';
 
   @override
   String get diveComputer_download_title => 'تنزيل الغطسات';
@@ -25550,8 +24651,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_download_tryAgain => 'حاول مرة أخرى';
 
   @override
-  String get diveComputer_download_upToDate =>
-      'لم يتم العثور على غطسات جديدة -- سجلك محدّث';
+  String get diveComputer_download_upToDate => 'لم يتم العثور على غطسات جديدة -- سجلك محدّث';
 
   @override
   String get diveComputer_list_addComputer => 'إضافة كمبيوتر';
@@ -25570,8 +24670,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_list_downloadTooltip => 'تنزيل الغطسات';
 
   @override
-  String get diveComputer_list_emptyMessage =>
-      'قم بتوصيل كمبيوتر الغوص لتنزيل الغطسات مباشرة في التطبيق.';
+  String get diveComputer_list_emptyMessage => 'قم بتوصيل كمبيوتر الغوص لتنزيل الغطسات مباشرة في التطبيق.';
 
   @override
   String get diveComputer_list_emptyTitle => 'لا توجد كمبيوترات غوص';
@@ -25580,16 +24679,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_list_findComputers => 'البحث عن كمبيوترات';
 
   @override
-  String get diveComputer_list_helpBluetooth =>
-      'Bluetooth LE (معظم الأجهزة الحديثة) •';
+  String get diveComputer_list_helpBluetooth => 'Bluetooth LE (معظم الأجهزة الحديثة) •';
 
   @override
-  String get diveComputer_list_helpBluetoothClassic =>
-      'Bluetooth Classic (الموديلات القديمة) •';
+  String get diveComputer_list_helpBluetoothClassic => 'Bluetooth Classic (الموديلات القديمة) •';
 
   @override
-  String get diveComputer_list_helpBrandsList =>
-      'Shearwater، Suunto، Garmin، Mares، Scubapro، Oceanic، Aqualung، Cressi، وأكثر من 50 موديلًا آخر.';
+  String get diveComputer_list_helpBrandsList => 'Shearwater، Suunto، Garmin، Mares، Scubapro، Oceanic، Aqualung، Cressi، وأكثر من 50 موديلًا آخر.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'العلامات التجارية المدعومة';
@@ -25631,8 +24727,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_list_title => 'كمبيوترات الغوص';
 
   @override
-  String get diveComputer_pinCode_instructions =>
-      'أدخل الرمز المعروض على كمبيوتر الغوص.';
+  String get diveComputer_pinCode_instructions => 'أدخل الرمز المعروض على كمبيوتر الغوص.';
 
   @override
   String get diveComputer_pinCode_label => 'رمز PIN';
@@ -25649,8 +24744,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_scan_emptyStateInstructions =>
-      'تأكد من أن كمبيوتر الغوص:\n• قيد التشغيل\n• في وضع إقران Bluetooth\n• قريب من جهازك';
+  String get diveComputer_scan_emptyStateInstructions => 'تأكد من أن كمبيوتر الغوص:\n• قيد التشغيل\n• في وضع إقران Bluetooth\n• قريب من جهازك';
 
   @override
   String get diveComputer_scan_knownBadge => 'معروف';
@@ -25659,8 +24753,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_scan_lookingForDevicesTitle => 'البحث عن الأجهزة';
 
   @override
-  String get diveComputer_scan_noUsbDevicesAvailable =>
-      'لا توجد أجهزة USB متاحة';
+  String get diveComputer_scan_noUsbDevicesAvailable => 'لا توجد أجهزة USB متاحة';
 
   @override
   String get diveComputer_scan_retry => 'إعادة المحاولة';
@@ -25669,8 +24762,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_scan_scanAgain => 'مسح مرة أخرى';
 
   @override
-  String get diveComputer_scan_scanningStatus =>
-      'البحث عن أجهزة كمبيوتر الغوص...';
+  String get diveComputer_scan_scanningStatus => 'البحث عن أجهزة كمبيوتر الغوص...';
 
   @override
   String get diveComputer_scan_stopScanning => 'إيقاف المسح';
@@ -25769,8 +24861,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveImport_fit_closeTooltip => 'إغلاق استيراد FIT';
 
   @override
-  String get diveImport_fit_noDivesDescription =>
-      'اختر ملفات .fit مصدّرة من Garmin Connect أو منسوخة من جهاز Garmin Descent.';
+  String get diveImport_fit_noDivesDescription => 'اختر ملفات .fit مصدّرة من Garmin Connect أو منسوخة من جهاز Garmin Descent.';
 
   @override
   String get diveImport_fit_noDivesLoaded => 'لم يتم تحميل غطسات';
@@ -25793,11 +24884,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String diveImport_fit_parsedWithSkipped(
-    int diveCount,
-    int fileCount,
-    Object skippedCount,
-  ) {
+  String diveImport_fit_parsedWithSkipped(int diveCount, int fileCount, Object skippedCount) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -25823,8 +24910,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveImport_fit_title => 'استيراد من ملف FIT';
 
   @override
-  String get diveImport_healthkit_accessDescription =>
-      'Submersion uses Apple HealthKit to read underwater diving workout data, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+  String get diveImport_healthkit_accessDescription => 'Submersion uses Apple HealthKit to read underwater diving workout data, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
 
   @override
   String get diveImport_healthkit_accessRequired => 'Apple HealthKit';
@@ -25836,8 +24922,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveImport_healthkit_closeTooltip => 'إغلاق استيراد Apple Watch';
 
   @override
-  String get diveImport_healthkit_dataUsage =>
-      'يقرأ أنشطة الغوص تحت الماء من Apple Health، بما في ذلك العمق والمدة ودرجة حرارة الماء ومعدل ضربات القلب. يتم تخزين هذه البيانات محليا في سجل الغوص الخاص بك ولا تتم مشاركتها مع أطراف ثالثة.';
+  String get diveImport_healthkit_dataUsage => 'يقرأ أنشطة الغوص تحت الماء من Apple Health، بما في ذلك العمق والمدة ودرجة حرارة الماء ومعدل ضربات القلب. يتم تخزين هذه البيانات محليا في سجل الغوص الخاص بك ولا تتم مشاركتها مع أطراف ثالثة.';
 
   @override
   String get diveImport_healthkit_dateFrom => 'من';
@@ -25863,19 +24948,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveImport_healthkit_noDivesFound => 'لم يتم العثور على غطسات';
 
   @override
-  String get diveImport_healthkit_noDivesFoundDescription =>
-      'لم يتم العثور على أنشطة غوص في النطاق الزمني المحدد.';
+  String get diveImport_healthkit_noDivesFoundDescription => 'لم يتم العثور على أنشطة غوص في النطاق الزمني المحدد.';
 
   @override
   String get diveImport_healthkit_notAvailable => 'غير متاح';
 
   @override
-  String get diveImport_healthkit_notAvailableDescription =>
-      'يتطلب الاستيراد من Apple Watch جهاز iPhone مزوّدًا بتطبيق صحة.';
+  String get diveImport_healthkit_notAvailableDescription => 'يتطلب الاستيراد من Apple Watch جهاز iPhone مزوّدًا بتطبيق صحة.';
 
   @override
-  String get diveImport_healthkit_permissionCheckFailed =>
-      'فشل التحقق من الأذونات';
+  String get diveImport_healthkit_permissionCheckFailed => 'فشل التحقق من الأذونات';
 
   @override
   String get diveImport_healthkit_title => 'استيراد من Apple Watch';
@@ -25908,11 +24990,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveImport_reviewSelectedDives => 'مراجعة الغطسات المحددة';
 
   @override
-  String diveImport_reviewSummary(
-    Object newCount,
-    int possibleCount,
-    int skipCount,
-  ) {
+  String diveImport_reviewSummary(Object newCount, int possibleCount, int skipCount) {
     String _temp0 = intl.Intl.pluralLogic(
       possibleCount,
       locale: localeName,
@@ -26007,8 +25085,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveImport_uddf_likelyDuplicate => 'مكرر مرجح';
 
   @override
-  String get diveImport_uddf_noFileDescription =>
-      'اختر ملف .uddf أو .xml مصدّر من تطبيق سجل غوص آخر.';
+  String get diveImport_uddf_noFileDescription => 'اختر ملف .uddf أو .xml مصدّر من تطبيق سجل غوص آخر.';
 
   @override
   String get diveImport_uddf_noFileSelected => 'لم يتم اختيار ملف';
@@ -26095,11 +25172,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String divePlanner_segmentEditor_derivedAscent(
-    Object from,
-    Object to,
-    Object rate,
-  ) {
+  String divePlanner_segmentEditor_derivedAscent(Object from, Object to, Object rate) {
     return 'صعود $from ← $to بمعدل $rate';
   }
 
@@ -26109,19 +25182,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String divePlanner_segmentEditor_derivedDescent(
-    Object from,
-    Object to,
-    Object rate,
-  ) {
+  String divePlanner_segmentEditor_derivedDescent(Object from, Object to, Object rate) {
     return 'نزول $from ← $to بمعدل $rate';
   }
 
   @override
-  String divePlanner_segmentEditor_derivedDescentNoRate(
-    Object from,
-    Object to,
-  ) {
+  String divePlanner_segmentEditor_derivedDescentNoRate(Object from, Object to) {
     return 'نزول $from ← $to';
   }
 
@@ -26169,8 +25235,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_segmentList_editSegment => 'تعديل المقطع';
 
   @override
-  String get divePlanner_segmentList_emptyMessage =>
-      'أضف مقاطع يدويًا أو أنشئ خطة سريعة';
+  String get divePlanner_segmentList_emptyMessage => 'أضف مقاطع يدويًا أو أنشئ خطة سريعة';
 
   @override
   String get divePlanner_segmentList_emptyTitle => 'لا توجد مقاطع بعد';
@@ -26190,41 +25255,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_undo => 'تراجع';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription =>
-      'الحد الأدنى للغاز هو أقل احتياطي غاز للصعود الطارئ أثناء مشاركة الهواء مع رفيقك.\n\n- يستخدم معدلات RMV تحت الضغط (2-3 أضعاف المعدل الطبيعي)\n- يفترض أن كلا الغواصين على أسطوانة واحدة\n- يشمل وقفة الأمان عند تفعيلها\n\nقم بإنهاء الغطسة دائمًا قبل الوصول إلى الحد الأدنى!';
+  String get gasCalculators_rockBottom_aboutDescription => 'الحد الأدنى للغاز هو أقل احتياطي غاز للصعود الطارئ أثناء مشاركة الهواء مع رفيقك.\n\n- يستخدم معدلات RMV تحت الضغط (2-3 أضعاف المعدل الطبيعي)\n- يفترض أن كلا الغواصين على أسطوانة واحدة\n- يشمل وقفة الأمان عند تفعيلها\n\nقم بإنهاء الغطسة دائمًا قبل الوصول إلى الحد الأدنى!';
 
   @override
   String get gasCalculators_rockBottom_aboutTitle => 'حول الحد الأدنى للغاز';
 
   @override
-  String get gasCalculators_rockBottom_ascentGasRequired =>
-      'الغاز المطلوب للصعود';
+  String get gasCalculators_rockBottom_ascentGasRequired => 'الغاز المطلوب للصعود';
 
   @override
   String get gasCalculators_rockBottom_ascentRate => 'معدل الصعود';
 
   @override
-  String gasCalculators_rockBottom_ascentTimeToDepth(
-    Object depth,
-    Object unit,
-  ) {
+  String gasCalculators_rockBottom_ascentTimeToDepth(Object depth, Object unit) {
     return 'وقت الصعود إلى $depth$unit';
   }
 
   @override
-  String get gasCalculators_rockBottom_ascentTimeToSurface =>
-      'وقت الصعود إلى السطح';
+  String get gasCalculators_rockBottom_ascentTimeToSurface => 'وقت الصعود إلى السطح';
 
   @override
   String get gasCalculators_rockBottom_buddySac => 'RMV الرفيق';
 
   @override
-  String get gasCalculators_rockBottom_combinedStressedSac =>
-      'RMV المشترك تحت الضغط';
+  String get gasCalculators_rockBottom_combinedStressedSac => 'RMV المشترك تحت الضغط';
 
   @override
-  String get gasCalculators_rockBottom_emergencyAscentBreakdown =>
-      'تفصيل الصعود الطارئ';
+  String get gasCalculators_rockBottom_emergencyAscentBreakdown => 'تفصيل الصعود الطارئ';
 
   @override
   String get gasCalculators_rockBottom_emergencyScenario => 'سيناريو الطوارئ';
@@ -26239,20 +25296,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_rockBottom_minimumReserve => 'الاحتياطي الأدنى';
 
   @override
-  String gasCalculators_rockBottom_resultSemantics(
-    Object pressure,
-    Object pressureUnit,
-    Object volume,
-    Object volumeUnit,
-  ) {
+  String gasCalculators_rockBottom_resultSemantics(Object pressure, Object pressureUnit, Object volume, Object volumeUnit) {
     return 'الاحتياطي الأدنى: $pressure $pressureUnit، $volume $volumeUnit. أنهِ الغطسة عند وصول الضغط إلى $pressure $pressureUnit المتبقي';
   }
 
   @override
-  String gasCalculators_rockBottom_safetyStopDuration(
-    Object depth,
-    Object unit,
-  ) {
+  String gasCalculators_rockBottom_safetyStopDuration(Object depth, Object unit) {
     return '3 دقائق عند $depth$unit';
   }
 
@@ -26262,8 +25311,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_rockBottom_stressedSacHint =>
-      'استخدم RMV أعلى لاحتساب الإجهاد أثناء الطوارئ';
+  String get gasCalculators_rockBottom_stressedSacHint => 'استخدم RMV أعلى لاحتساب الإجهاد أثناء الطوارئ';
 
   @override
   String get gasCalculators_rockBottom_stressedSacRates => 'RMV تحت الضغط';
@@ -26272,14 +25320,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_rockBottom_tankSize => 'حجم الأسطوانة';
 
   @override
-  String get gasCalculators_rockBottom_totalReserveNeeded =>
-      'إجمالي الاحتياطي المطلوب';
+  String get gasCalculators_rockBottom_totalReserveNeeded => 'إجمالي الاحتياطي المطلوب';
 
   @override
-  String gasCalculators_rockBottom_turnDive(
-    Object pressure,
-    Object pressureUnit,
-  ) {
+  String gasCalculators_rockBottom_turnDive(Object pressure, Object pressureUnit) {
     return 'أنهِ الغطسة عند وصول الضغط إلى $pressure $pressureUnit المتبقي';
   }
 
@@ -26293,15 +25337,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gpsLogger_androidNotificationTitle => 'مسجّل GPS في Submersion';
 
   @override
-  String get gpsLogger_deleteTrackMessage =>
-      'سيؤدي هذا إلى إزالة مسار GPS المسجّل. تبقى المواقع المسندة إلى الغطسات محفوظة.';
+  String get gpsLogger_deleteTrackMessage => 'سيؤدي هذا إلى إزالة مسار GPS المسجّل. تبقى المواقع المسندة إلى الغطسات محفوظة.';
 
   @override
   String get gpsLogger_deleteTrackTitle => 'حذف المسار؟';
 
   @override
-  String get gpsLogger_interruptedNotice =>
-      'توقف تسجيل سابق قبل اكتماله. تم حفظ المسار.';
+  String get gpsLogger_interruptedNotice => 'توقف تسجيل سابق قبل اكتماله. تم حفظ المسار.';
 
   @override
   String gpsLogger_lastFix(String age, String accuracy) {
@@ -26329,8 +25371,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gpsLogger_noTracks => 'لا توجد مسارات GPS مسجّلة بعد';
 
   @override
-  String get gpsLogger_permissionDenied =>
-      'يلزم إذن الموقع لتسجيل مسار GPS. فعّله من إعدادات النظام.';
+  String get gpsLogger_permissionDenied => 'يلزم إذن الموقع لتسجيل مسار GPS. فعّله من إعدادات النظام.';
 
   @override
   String gpsLogger_recordingStatus(num count) {
@@ -26413,8 +25454,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gpsTrack_edit_confirmSplit => 'قسّم هنا';
 
   @override
-  String get gpsTrack_edit_splitWarning =>
-      'ينشئ التقسيم مسارين ويحذف الأصل. لا يمكن التراجع عن ذلك.';
+  String get gpsTrack_edit_splitWarning => 'ينشئ التقسيم مسارين ويحذف الأصل. لا يمكن التراجع عن ذلك.';
 
   @override
   String get gpsTrack_edit_cancel => 'إلغاء';
@@ -26429,12 +25469,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gpsTrack_import_timezone => 'سُجّل في';
 
   @override
-  String get gpsTrack_import_timezoneHint =>
-      'الأوقات في الملف بتوقيت UTC. حدّد المنطقة الزمنية التي سُجّل فيها المسار ليتوافق مع غطساتك.';
+  String get gpsTrack_import_timezoneHint => 'الأوقات في الملف بتوقيت UTC. حدّد المنطقة الزمنية التي سُجّل فيها المسار ليتوافق مع غطساتك.';
 
   @override
-  String get gpsTrack_import_duplicate =>
-      'يبدو أن هذا نسخة مكررة من مسار موجود.';
+  String get gpsTrack_import_duplicate => 'يبدو أن هذا نسخة مكررة من مسار موجود.';
 
   @override
   String get gpsTrack_import_confirm => 'استيراد';
@@ -26464,24 +25502,19 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get gpsTrack_importError_unsupportedFormat =>
-      'نوع الملف هذا غير مدعوم. قم باستيراد ملف GPX أو KML أو CSV أو FIT.';
+  String get gpsTrack_importError_unsupportedFormat => 'نوع الملف هذا غير مدعوم. قم باستيراد ملف GPX أو KML أو CSV أو FIT.';
 
   @override
-  String get gpsTrack_importError_unreadable =>
-      'تعذرت قراءة هذا الملف. قد يكون تالفًا أو غير مكتمل.';
+  String get gpsTrack_importError_unreadable => 'تعذرت قراءة هذا الملف. قد يكون تالفًا أو غير مكتمل.';
 
   @override
-  String get gpsTrack_importError_noPositions =>
-      'لا يحتوي هذا الملف على مواقع GPS مؤرخة زمنيًا.';
+  String get gpsTrack_importError_noPositions => 'لا يحتوي هذا الملف على مواقع GPS مؤرخة زمنيًا.';
 
   @override
-  String get gpsTrack_importError_badData =>
-      'يحتوي هذا الملف على موقع أو طابع زمني يتعذر على التطبيق قراءته.';
+  String get gpsTrack_importError_badData => 'يحتوي هذا الملف على موقع أو طابع زمني يتعذر على التطبيق قراءته.';
 
   @override
-  String get gpsTrack_importError_tooLarge =>
-      'يحتوي هذا الملف على عدد كبير جدًا من المواقع بحيث لا يمكن تخزينه كمسار واحد. قسّمه إلى مسارات أقصر واستوردها بشكل منفصل.';
+  String get gpsTrack_importError_tooLarge => 'يحتوي هذا الملف على عدد كبير جدًا من المواقع بحيث لا يمكن تخزينه كمسار واحد. قسّمه إلى مسارات أقصر واستوردها بشكل منفصل.';
 
   @override
   String get gpsTrack_export_saved => 'تم حفظ المسار';
@@ -26579,8 +25612,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gpsTrack_detail_unreadable => 'تعذّرت قراءة بيانات المسار.';
 
   @override
-  String get gpsTrack_detail_noPoints =>
-      'لا يحتوي هذا المسار على مواقع مسجّلة.';
+  String get gpsTrack_detail_noPoints => 'لا يحتوي هذا المسار على مواقع مسجّلة.';
 
   @override
   String get maps_compass_resetLabel => 'إعادة ضبط اتجاه الخريطة نحو الشمال';
@@ -26630,8 +25662,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maps_offline_clearAll => 'مسح الكل';
 
   @override
-  String get maps_offline_clearAllCacheMessage =>
-      'حذف جميع مناطق الخرائط المنزّلة والبلاطات المخزنة مؤقتًا؟';
+  String get maps_offline_clearAllCacheMessage => 'حذف جميع مناطق الخرائط المنزّلة والبلاطات المخزنة مؤقتًا؟';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'مسح كل التخزين المؤقت؟';
@@ -26658,11 +25689,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String maps_offline_deleteRegionMessage(
-    Object name,
-    Object count,
-    Object size,
-  ) {
+  String maps_offline_deleteRegionMessage(Object name, Object count, Object size) {
     return 'حذف \"$name\" و$count بلاطة مخزنة مؤقتًا؟\n\nسيؤدي ذلك إلى تحرير $size من التخزين.';
   }
 
@@ -26681,12 +25708,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String maps_offline_downloadingAccessibility(
-    Object regionName,
-    Object percent,
-    Object downloaded,
-    Object total,
-  ) {
+  String maps_offline_downloadingAccessibility(Object regionName, Object percent, Object downloaded, Object total) {
     return 'جارٍ تنزيل $regionName، $percent بالمئة مكتمل، $downloaded من $total بلاطة';
   }
 
@@ -26717,8 +25739,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maps_offline_noRegions => 'لا توجد مناطق بدون اتصال';
 
   @override
-  String get maps_offline_noRegionsDescription =>
-      'نزّل مناطق الخرائط من صفحة تفاصيل الموقع لاستخدامها بدون اتصال.';
+  String get maps_offline_noRegionsDescription => 'نزّل مناطق الخرائط من صفحة تفاصيل الموقع لاستخدامها بدون اتصال.';
 
   @override
   String get maps_offline_refresh => 'تحديث';
@@ -26727,22 +25748,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maps_offline_region => 'المنطقة';
 
   @override
-  String maps_offline_regionInfo(
-    Object size,
-    Object count,
-    Object minZoom,
-    Object maxZoom,
-  ) {
+  String maps_offline_regionInfo(Object size, Object count, Object minZoom, Object maxZoom) {
     return '$size | $count بلاطة | تكبير $minZoom-$maxZoom';
   }
 
   @override
-  String maps_offline_regionSubtitle(
-    Object size,
-    Object count,
-    Object minZoom,
-    Object maxZoom,
-  ) {
+  String maps_offline_regionSubtitle(Object size, Object count, Object minZoom, Object maxZoom) {
     return '$size، $count بلاطة، تكبير $minZoom إلى $maxZoom';
   }
 
@@ -26781,8 +25792,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maps_regionSelector_dragToAdjust => 'اسحب لضبط التحديد';
 
   @override
-  String get maps_regionSelector_dragToSelect =>
-      'اسحب على الخريطة لتحديد منطقة';
+  String get maps_regionSelector_dragToSelect => 'اسحب على الخريطة لتحديد منطقة';
 
   @override
   String get maps_regionSelector_selectRegion => 'حدد منطقة على الخريطة';
@@ -26797,8 +25807,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tankPresets_builtInPresets => 'الإعدادات المدمجة';
 
   @override
-  String get tankPresets_builtInPresets_description =>
-      'أوقف الإعدادات التي لا تستخدمها لإخفائها من قوائم اختيار الأسطوانة. يظهر الإعداد الافتراضي دائمًا.';
+  String get tankPresets_builtInPresets_description => 'أوقف الإعدادات التي لا تستخدمها لإخفائها من قوائم اختيار الأسطوانة. يظهر الإعداد الافتراضي دائمًا.';
 
   @override
   String get tankPresets_currentDefault => 'الافتراضي الحالي';
@@ -26810,8 +25819,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tankPresets_defaultSettings => 'الخزان الافتراضي';
 
   @override
-  String get tankPresets_defaultSettings_description =>
-      'يُستخدم الإعداد المميز بنجمة كخزان افتراضي عند تسجيل غطسات جديدة.';
+  String get tankPresets_defaultSettings_description => 'يُستخدم الإعداد المميز بنجمة كخزان افتراضي عند تسجيل غطسات جديدة.';
 
   @override
   String tankPresets_deleteDefaultMessage(String name) {
@@ -26843,8 +25851,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get tankPresets_edit_descriptionHint =>
-      'مثال: أسطوانة الإيجار من متجر الغوص';
+  String get tankPresets_edit_descriptionHint => 'مثال: أسطوانة الإيجار من متجر الغوص';
 
   @override
   String get tankPresets_edit_descriptionOptional => 'الوصف (اختياري)';
@@ -26938,8 +25945,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tankPresets_applyToImports => 'تطبيق على الغطسات المستوردة أيضاً';
 
   @override
-  String get tankPresets_applyToImports_subtitle =>
-      'ملء بيانات الخزان المفقودة في الغطسات المستوردة باستخدام الإعداد الافتراضي';
+  String get tankPresets_applyToImports_subtitle => 'ملء بيانات الخزان المفقودة في الغطسات المستوردة باستخدام الإعداد الافتراضي';
 
   @override
   String get tankPresets_new_title => 'إعداد أسطوانة جديد';
@@ -26957,8 +25963,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tankPresets_title => 'إعدادات الأسطوانات';
 
   @override
-  String get tools_gpsLogger_description =>
-      'سجّل موقعك خلال يوم الغطس وتتم مطابقة الغطسات المستوردة مع مواقع GPS تلقائيًا.';
+  String get tools_gpsLogger_description => 'سجّل موقعك خلال يوم الغطس وتتم مطابقة الغطسات المستوردة مع مواقع GPS تلقائيًا.';
 
   @override
   String get tools_gpsLogger_subtitle => 'تسجيل مسار السطح';
@@ -26982,8 +25987,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tools_weight_carbonFiberMetric => 'طفو عالٍ جدًا (+3 kg)';
 
   @override
-  String get tools_weight_disclaimer =>
-      'هذا تقدير فقط. قم دائمًا بفحص الطفو في بداية الغطسة واضبط حسب الحاجة. عوامل مثل BCD والطفو الشخصي وأنماط التنفس تؤثر على متطلبات الوزن الفعلية.';
+  String get tools_weight_disclaimer => 'هذا تقدير فقط. قم دائمًا بفحص الطفو في بداية الغطسة واضبط حسب الحاجة. عوامل مثل BCD والطفو الشخصي وأنماط التنفس تؤثر على متطلبات الوزن الفعلية.';
 
   @override
   String get tools_weight_exposureSuit => 'بدلة الغوص';
@@ -26994,8 +25998,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get tools_weight_helperImperial =>
-      'يضيف ~2 lbs لكل 22 lbs فوق 154 lbs';
+  String get tools_weight_helperImperial => 'يضيف ~2 lbs لكل 22 lbs فوق 154 lbs';
 
   @override
   String get tools_weight_helperMetric => 'يضيف ~1 kg لكل 10 kg فوق 70 kg';
@@ -27046,23 +26049,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_section_dataSources_title => 'Data Sources';
 
   @override
-  String get settings_section_dataSources_subtitle =>
-      'Connected services & integrations';
+  String get settings_section_dataSources_subtitle => 'Connected services & integrations';
 
   @override
   String get settings_siteMatch_title => 'مطابقة المواقع تلقائيًا';
 
   @override
-  String get settings_siteMatch_subtitle =>
-      'مدى صرامة مطابقة الغوصات التي تم تنزيلها بالمواقع';
+  String get settings_siteMatch_subtitle => 'مدى صرامة مطابقة الغوصات التي تم تنزيلها بالمواقع';
 
   @override
-  String get settings_tankPressureAtSurfacing_title =>
-      'ضغط الأسطوانة عند الصعود إلى السطح';
+  String get settings_tankPressureAtSurfacing_title => 'ضغط الأسطوانة عند الصعود إلى السطح';
 
   @override
-  String get settings_tankPressureAtSurfacing_subtitle =>
-      'قراءة ضغط النهاية عند الوصول إلى السطح، وليس عند انتهاء التسجيل';
+  String get settings_tankPressureAtSurfacing_subtitle => 'قراءة ضغط النهاية عند الوصول إلى السطح، وليس عند انتهاء التسجيل';
 
   @override
   String get settings_siteMatch_strict => 'صارم';
@@ -27080,52 +26079,40 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_dataSources_appleHealth_title => 'Apple Health';
 
   @override
-  String get settings_dataSources_appleHealth_subtitle =>
-      'بيانات الغوص تحت الماء';
+  String get settings_dataSources_appleHealth_subtitle => 'بيانات الغوص تحت الماء';
 
   @override
-  String get settings_dataSources_appleHealth_description =>
-      'Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+  String get settings_dataSources_appleHealth_description => 'Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
 
   @override
-  String get settings_dataSources_appleHealth_dataTypesHeader =>
-      'البيانات المقروءة من HealthKit';
+  String get settings_dataSources_appleHealth_dataTypesHeader => 'البيانات المقروءة من HealthKit';
 
   @override
-  String get settings_dataSources_appleHealth_dataTypeWorkouts =>
-      'تمارين الغوص تحت الماء - وقت بدء الغوصة والمدة وبيانات النشاط';
+  String get settings_dataSources_appleHealth_dataTypeWorkouts => 'تمارين الغوص تحت الماء - وقت بدء الغوصة والمدة وبيانات النشاط';
 
   @override
-  String get settings_dataSources_appleHealth_dataTypeHeartRate =>
-      'معدل ضربات القلب - عينات معدل ضربات القلب المسجلة أثناء الغوصات';
+  String get settings_dataSources_appleHealth_dataTypeHeartRate => 'معدل ضربات القلب - عينات معدل ضربات القلب المسجلة أثناء الغوصات';
 
   @override
-  String get settings_dataSources_appleHealth_permissionGranted =>
-      'تم منح الوصول إلى HealthKit';
+  String get settings_dataSources_appleHealth_permissionGranted => 'تم منح الوصول إلى HealthKit';
 
   @override
-  String get settings_dataSources_appleHealth_permissionNotGranted =>
-      'لم يتم منح الوصول إلى HealthKit';
+  String get settings_dataSources_appleHealth_permissionNotGranted => 'لم يتم منح الوصول إلى HealthKit';
 
   @override
-  String get settings_dataSources_appleHealth_permissionChecking =>
-      'جارٍ التحقق من الوصول إلى HealthKit...';
+  String get settings_dataSources_appleHealth_permissionChecking => 'جارٍ التحقق من الوصول إلى HealthKit...';
 
   @override
-  String get settings_dataSources_appleHealth_importAction =>
-      'Import from Apple Watch';
+  String get settings_dataSources_appleHealth_importAction => 'Import from Apple Watch';
 
   @override
-  String get settings_dataSources_appleHealth_privacy =>
-      'Your health data is stored locally and is never shared with third parties.';
+  String get settings_dataSources_appleHealth_privacy => 'Your health data is stored locally and is never shared with third parties.';
 
   @override
-  String get settings_dataSources_appleHealth_poweredBy =>
-      'مدعوم من Apple HealthKit';
+  String get settings_dataSources_appleHealth_poweredBy => 'مدعوم من Apple HealthKit';
 
   @override
-  String get settings_dataSources_noSources =>
-      'No data source integrations are available on this platform.';
+  String get settings_dataSources_noSources => 'No data source integrations are available on this platform.';
 
   @override
   String get diveLog_edit_section_environment => 'البيئة';
@@ -27170,19 +26157,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_fetchWeatherNoConnection => 'No internet connection';
 
   @override
-  String get diveLog_edit_fetchWeatherUnavailable =>
-      'Weather data unavailable for this date';
+  String get diveLog_edit_fetchWeatherUnavailable => 'Weather data unavailable for this date';
 
   @override
-  String get diveLog_edit_fetchWeatherNotYetAvailable =>
-      'Weather data not yet available for this date';
+  String get diveLog_edit_fetchWeatherNotYetAvailable => 'Weather data not yet available for this date';
 
   @override
   String get diveLog_edit_fetchWeatherHint => 'Add a date and dive site first';
 
   @override
-  String get diveLog_edit_fetchWeatherConfirm =>
-      'Replace existing weather data with fetched data?';
+  String get diveLog_edit_fetchWeatherConfirm => 'Replace existing weather data with fetched data?';
 
   @override
   String get diveLog_detail_section_environment => 'البيئة';
@@ -27281,8 +26265,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get columnConfig_extraFields => 'حقول إضافية';
 
   @override
-  String get columnConfig_extraFields_description =>
-      'تظهر أسفل محتوى البطاقة الرئيسي';
+  String get columnConfig_extraFields_description => 'تظهر أسفل محتوى البطاقة الرئيسي';
 
   @override
   String get columnConfig_slotAssignments => 'تعيينات الخانات';
@@ -27318,8 +26301,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_columnConfig => 'حقول قائمة تفاصيل الغوصات';
 
   @override
-  String get settings_appearance_columnConfig_subtitle =>
-      'تخصيص الحقول المعروضة في عروض قائمة الغوصات';
+  String get settings_appearance_columnConfig_subtitle => 'تخصيص الحقول المعروضة في عروض قائمة الغوصات';
 
   @override
   String get diveField_category_core => 'أساسي';
@@ -27379,37 +26361,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_accentNavIcons => 'أيقونات تنقل ملونة';
 
   @override
-  String get settings_appearance_accentNavIcons_subtitle =>
-      'تلوين أيقونات القائمة الرئيسية بلون كل قسم';
+  String get settings_appearance_accentNavIcons_subtitle => 'تلوين أيقونات القائمة الرئيسية بلون كل قسم';
 
   @override
   String get settings_appearance_accentSectionHeaders => 'عناوين أقسام ملونة';
 
   @override
-  String get settings_appearance_accentSectionHeaders_subtitle =>
-      'إظهار أيقونة قسم ملونة بجانب عناوين الصفحات';
+  String get settings_appearance_accentSectionHeaders_subtitle => 'إظهار أيقونة قسم ملونة بجانب عناوين الصفحات';
 
   @override
   String get settings_appearance_accentListIcons => 'أيقونات قوائم ملونة';
 
   @override
-  String get settings_appearance_accentListIcons_subtitle =>
-      'تلوين الأيقونات في القوائم وصفحات الإعدادات';
+  String get settings_appearance_accentListIcons_subtitle => 'تلوين الأيقونات في القوائم وصفحات الإعدادات';
 
   @override
   String get settings_appearance_showDetailsPane => 'إظهار لوحة التفاصيل';
 
   @override
-  String get settings_appearance_showDetailsPane_subtitle =>
-      'عرض لوحة التفاصيل بجانب الجدول';
+  String get settings_appearance_showDetailsPane_subtitle => 'عرض لوحة التفاصيل بجانب الجدول';
 
   @override
-  String get settings_appearance_showProfilePanel =>
-      'إظهار لوحة الملف الشخصي في عرض الجدول';
+  String get settings_appearance_showProfilePanel => 'إظهار لوحة الملف الشخصي في عرض الجدول';
 
   @override
-  String get settings_appearance_showProfilePanel_subtitle =>
-      'عرض مخطط ملف الغوصة فوق الجدول بشكل افتراضي';
+  String get settings_appearance_showProfilePanel_subtitle => 'عرض مخطط ملف الغوصة فوق الجدول بشكل افتراضي';
 
   @override
   String get settings_appearance_mapStyle => 'نمط الخريطة';
@@ -27424,12 +26400,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_mapStyle_esriSatellite => 'قمر صناعي';
 
   @override
-  String get settings_appearance_bathymetryRefresh =>
-      'إعادة تحميل بيانات الخريطة';
+  String get settings_appearance_bathymetryRefresh => 'إعادة تحميل بيانات الخريطة';
 
   @override
-  String get settings_appearance_bathymetryRefresh_subtitle =>
-      'التحقق من تحديثات بيانات أعماق swissBATHY3D';
+  String get settings_appearance_bathymetryRefresh_subtitle => 'التحقق من تحديثات بيانات أعماق swissBATHY3D';
 
   @override
   String settings_appearance_bathymetryRefresh_resultUpdated(int count) {
@@ -27443,16 +26417,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_appearance_bathymetryRefresh_resultUpToDate =>
-      'جميع البيانات محدثة';
+  String get settings_appearance_bathymetryRefresh_resultUpToDate => 'جميع البيانات محدثة';
 
   @override
-  String get settings_appearance_bathymetryRefresh_resultFailed =>
-      'تعذر التحقق من جميع البيانات؛ تم الاحتفاظ بالقيم الحالية';
+  String get settings_appearance_bathymetryRefresh_resultFailed => 'تعذر التحقق من جميع البيانات؛ تم الاحتفاظ بالقيم الحالية';
 
   @override
-  String get settings_appearance_bathymetryRefresh_resultNothingCached =>
-      'لا توجد بيانات أعماق بحيرات مخزّنة بعد';
+  String get settings_appearance_bathymetryRefresh_resultNothingCached => 'لا توجد بيانات أعماق بحيرات مخزّنة بعد';
 
   @override
   String get maps3d_section_all => 'كل المزوّدين';
@@ -27464,16 +26435,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maps3d_swissBathy_delete => 'حذف البيانات';
 
   @override
-  String get maps3d_swissBathy_delete_subtitle =>
-      'يزيل بلاطات العمق وشبكات البحيرات المخزَّنة مؤقتًا من swissBATHY3D';
+  String get maps3d_swissBathy_delete_subtitle => 'يزيل بلاطات العمق وشبكات البحيرات المخزَّنة مؤقتًا من swissBATHY3D';
 
   @override
-  String get maps3d_swissBathy_delete_confirmTitle =>
-      'حذف بيانات swissBATHY3D؟';
+  String get maps3d_swissBathy_delete_confirmTitle => 'حذف بيانات swissBATHY3D؟';
 
   @override
-  String get maps3d_swissBathy_delete_confirmMessage =>
-      'ستتم إزالة بيانات العمق المخزَّنة مؤقتًا للبحيرات السويسرية وإعادة تحميلها عند فتح العرض ثلاثي الأبعاد لموقع غوص في المرة القادمة.';
+  String get maps3d_swissBathy_delete_confirmMessage => 'ستتم إزالة بيانات العمق المخزَّنة مؤقتًا للبحيرات السويسرية وإعادة تحميلها عند فتح العرض ثلاثي الأبعاد لموقع غوص في المرة القادمة.';
 
   @override
   String get maps3d_swissBathy_delete_done => 'تم حذف بيانات swissBATHY3D';
@@ -27485,31 +26453,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maps3d_other_reset => 'إعادة تعيين بيانات قياس الأعماق المتبقية';
 
   @override
-  String get maps3d_other_reset_subtitle =>
-      'يزيل البيانات المخزَّنة مؤقتًا من EMODnet وNOAA DEM وGMRT وETOPO';
+  String get maps3d_other_reset_subtitle => 'يزيل البيانات المخزَّنة مؤقتًا من EMODnet وNOAA DEM وGMRT وETOPO';
 
   @override
-  String get maps3d_other_reset_confirmTitle =>
-      'إعادة تعيين بيانات قياس الأعماق المتبقية؟';
+  String get maps3d_other_reset_confirmTitle => 'إعادة تعيين بيانات قياس الأعماق المتبقية؟';
 
   @override
-  String get maps3d_other_reset_confirmMessage =>
-      'ستتم إزالة البيانات المخزَّنة مؤقتًا من جميع المزوّدين باستثناء swissBATHY3D وإعادة تحميلها عند فتح العرض ثلاثي الأبعاد لموقع غوص في المرة القادمة.';
+  String get maps3d_other_reset_confirmMessage => 'ستتم إزالة البيانات المخزَّنة مؤقتًا من جميع المزوّدين باستثناء swissBATHY3D وإعادة تحميلها عند فتح العرض ثلاثي الأبعاد لموقع غوص في المرة القادمة.';
 
   @override
-  String get maps3d_other_reset_done =>
-      'تمت إعادة تعيين بيانات قياس الأعماق المتبقية';
+  String get maps3d_other_reset_done => 'تمت إعادة تعيين بيانات قياس الأعماق المتبقية';
 
   @override
   String get maps3d_reload => 'إعادة تحميل بيانات الخرائط';
 
   @override
-  String get maps3d_reload_subtitle =>
-      'يحذف جميع بيانات قياس الأعماق المخزَّنة مؤقتًا ويعيد تنزيلها لكل موقع غوص';
+  String get maps3d_reload_subtitle => 'يحذف جميع بيانات قياس الأعماق المخزَّنة مؤقتًا ويعيد تنزيلها لكل موقع غوص';
 
   @override
-  String get maps3d_reload_confirmTitle =>
-      'إعادة تحميل بيانات الخرائط لكل مواقع الغوص؟';
+  String get maps3d_reload_confirmTitle => 'إعادة تحميل بيانات الخرائط لكل مواقع الغوص؟';
 
   @override
   String maps3d_reload_confirm_siteCount(int count) {
@@ -27532,8 +26494,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maps3d_reload_confirm_duration => 'قد يستغرق ذلك عدة دقائق.';
 
   @override
-  String get maps3d_reload_confirm_wifiHint =>
-      'سيتم تنزيل كمية كبيرة من البيانات، لذا يُنصح باتصال Wi-Fi سريع.';
+  String get maps3d_reload_confirm_wifiHint => 'سيتم تنزيل كمية كبيرة من البيانات، لذا يُنصح باتصال Wi-Fi سريع.';
 
   @override
   String get maps3d_reload_start => 'إعادة تحميل';
@@ -27547,19 +26508,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maps3d_reload_cancel => 'إلغاء';
 
   @override
-  String get maps3d_reload_done =>
-      'تمت إعادة تحميل بيانات الخرائط لكل مواقع الغوص';
+  String get maps3d_reload_done => 'تمت إعادة تحميل بيانات الخرائط لكل مواقع الغوص';
 
   @override
   String get maps3d_reload_cancelled => 'تم إلغاء إعادة التحميل';
 
   @override
-  String get maps3d_reload_failed =>
-      'فشلت إعادة التحميل؛ قد لا تكون بعض مواقع الغوص قد أُعيد تحميلها';
+  String get maps3d_reload_failed => 'فشلت إعادة التحميل؛ قد لا تكون بعض مواقع الغوص قد أُعيد تحميلها';
 
   @override
-  String get maps3d_busy_notice =>
-      'هناك إجراء آخر للتضاريس ثلاثية الأبعاد قيد التنفيذ. يُرجى الانتظار حتى ينتهي.';
+  String get maps3d_busy_notice => 'هناك إجراء آخر للتضاريس ثلاثية الأبعاد قيد التنفيذ. يُرجى الانتظار حتى ينتهي.';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {
@@ -27635,11 +26593,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
+  String diveComputer_detail_reparseAllPartial(int succeeded, int total, int failed) {
     return 'تمت إعادة تحليل $succeeded من أصل $total غطسة. فشلت $failed.';
   }
 
@@ -27649,23 +26603,18 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseRawDataCountWithout(
-    int count,
-    int without,
-  ) {
+  String diveComputer_detail_reparseRawDataCountWithout(int count, int without) {
     return '$count غطسة بها بيانات أولية ($without بدون)';
   }
 
   @override
-  String get diveLog_detail_menu_reparseRawData =>
-      'إعادة تحليل البيانات الأولية';
+  String get diveLog_detail_menu_reparseRawData => 'إعادة تحليل البيانات الأولية';
 
   @override
   String get diveLog_detail_reparseSuccess => 'تمت إعادة تحليل الغطسة بنجاح';
 
   @override
-  String get diveLog_detail_reparseProfilePreserved =>
-      'تم تحديث تفاصيل المصدر. دُمجت هذه الغطسة من غطسات أخرى، لذلك بقي مخططها دون تغيير.';
+  String get diveLog_detail_reparseProfilePreserved => 'تم تحديث تفاصيل المصدر. دُمجت هذه الغطسة من غطسات أخرى، لذلك بقي مخططها دون تغيير.';
 
   @override
   String diveLog_detail_reparseFailed(String error) {
@@ -27673,46 +26622,37 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_detail_menu_resyncImportedFile =>
-      'إعادة المزامنة من الملف الأصلي';
+  String get diveLog_detail_menu_resyncImportedFile => 'إعادة المزامنة من الملف الأصلي';
 
   @override
   String get diveLog_detail_resyncSuccess => 'تم تحديث الغطسة من الملف الأصلي';
 
   @override
-  String get diveLog_detail_resyncFailed_diveMissing =>
-      'تعذّرت إعادة المزامنة: لم تعد هذه الغطسة موجودة';
+  String get diveLog_detail_resyncFailed_diveMissing => 'تعذّرت إعادة المزامنة: لم تعد هذه الغطسة موجودة';
 
   @override
-  String get diveLog_detail_resyncFailed_noStoredFile =>
-      'تعذّرت إعادة المزامنة: لا يوجد ملف أصلي محفوظ لهذه الغطسة';
+  String get diveLog_detail_resyncFailed_noStoredFile => 'تعذّرت إعادة المزامنة: لا يوجد ملف أصلي محفوظ لهذه الغطسة';
 
   @override
-  String get diveLog_detail_resyncFailed_unsupportedFormat =>
-      'تعذّرت إعادة المزامنة: تنسيق الملف هذا غير مدعوم';
+  String get diveLog_detail_resyncFailed_unsupportedFormat => 'تعذّرت إعادة المزامنة: تنسيق الملف هذا غير مدعوم';
 
   @override
-  String get diveLog_detail_resyncFailed_storedFileMissing =>
-      'تعذّرت إعادة المزامنة: الملف الأصلي غير موجود على هذا الجهاز';
+  String get diveLog_detail_resyncFailed_storedFileMissing => 'تعذّرت إعادة المزامنة: الملف الأصلي غير موجود على هذا الجهاز';
 
   @override
-  String get diveLog_detail_resyncFailed_noMatchingDive =>
-      'تعذّرت إعادة المزامنة: لم يعد الملف الأصلي يحتوي على غطسة مطابقة';
+  String get diveLog_detail_resyncFailed_noMatchingDive => 'تعذّرت إعادة المزامنة: لم يعد الملف الأصلي يحتوي على غطسة مطابقة';
 
   @override
-  String get diveLog_detail_resyncFailed_ambiguousDiver =>
-      'تعذّرت إعادة المزامنة: يحتوي الملف الأصلي على غطسة مطابقة لأكثر من غوّاص، ولا تسجّل هذه الغطسة من أيّها جاءت';
+  String get diveLog_detail_resyncFailed_ambiguousDiver => 'تعذّرت إعادة المزامنة: يحتوي الملف الأصلي على غطسة مطابقة لأكثر من غوّاص، ولا تسجّل هذه الغطسة من أيّها جاءت';
 
   @override
-  String get diveLog_detail_resyncFailed_unexpectedError =>
-      'تعذّرت إعادة المزامنة: حدث خطأ غير متوقع أثناء قراءة الملف الأصلي';
+  String get diveLog_detail_resyncFailed_unexpectedError => 'تعذّرت إعادة المزامنة: حدث خطأ غير متوقع أثناء قراءة الملف الأصلي';
 
   @override
   String get universalImport_label_replaceSource => 'استبدال المصدر';
 
   @override
-  String get universalImport_label_replaceSourceSubtitle =>
-      'تحديث من نفس الكمبيوتر';
+  String get universalImport_label_replaceSourceSubtitle => 'تحديث من نفس الكمبيوتر';
 
   @override
   String get universalImport_title_importOptions => 'خيارات الاستيراد';
@@ -27721,24 +26661,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_label_options => 'خيارات';
 
   @override
-  String get universalImport_label_retainDiveNumbers =>
-      'الاحتفاظ بأرقام الغطسات الأصلية';
+  String get universalImport_label_retainDiveNumbers => 'الاحتفاظ بأرقام الغطسات الأصلية';
 
   @override
-  String get universalImport_label_retainDiveNumbersSubtitle =>
-      'استخدام أرقام الغطسات من الملف المستورد بدلاً من تعيينها تلقائياً';
+  String get universalImport_label_retainDiveNumbersSubtitle => 'استخدام أرقام الغطسات من الملف المستورد بدلاً من تعيينها تلقائياً';
 
   @override
-  String get universalImport_label_retainDiveNumbersUnavailable =>
-      'لا يوفّر هذا المصدر أرقام الغطسات، لذا تُرقَّم الغطسات تلقائياً';
+  String get universalImport_label_retainDiveNumbersUnavailable => 'لا يوفّر هذا المصدر أرقام الغطسات، لذا تُرقَّم الغطسات تلقائياً';
 
   @override
-  String get universalImport_label_autoTagThisImport =>
-      'وسم هذا الاستيراد تلقائيا';
+  String get universalImport_label_autoTagThisImport => 'وسم هذا الاستيراد تلقائيا';
 
   @override
-  String get universalImport_label_autoTagThisImportSubtitle =>
-      'يبدأ من تفضيلك المحفوظ في إعدادات الوسوم. تغييره هنا يؤثر فقط على هذا الاستيراد.';
+  String get universalImport_label_autoTagThisImportSubtitle => 'يبدأ من تفضيلك المحفوظ في إعدادات الوسوم. تغييره هنا يؤثر فقط على هذا الاستيراد.';
 
   @override
   String get universalImport_title_successImported => 'تم الاستيراد بنجاح';
@@ -27756,8 +26691,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_label_allDivesSkipped => 'تم تخطي جميع الغطسات.';
 
   @override
-  String get universalImport_label_replacedSourceData =>
-      'تم استبدال بيانات المصدر';
+  String get universalImport_label_replacedSourceData => 'تم استبدال بيانات المصدر';
 
   @override
   String get universalImport_label_consolidated => 'مدمجة';
@@ -27769,12 +26703,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_label_photosUnmatched => 'صور لم تطابق أي غوصة';
 
   @override
-  String get common_label_shareWithAllProfiles =>
-      'المشاركة مع جميع ملفات الغوص';
+  String get common_label_shareWithAllProfiles => 'المشاركة مع جميع ملفات الغوص';
 
   @override
-  String get settings_shareByDefault_title =>
-      'مشاركة المواقع والرحلات الجديدة تلقائيًا';
+  String get settings_shareByDefault_title => 'مشاركة المواقع والرحلات الجديدة تلقائيًا';
 
   @override
   String get settings_shareAllSites_title => 'مشاركة جميع مواقعي';
@@ -27809,8 +26741,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_sharedData_sectionTitle => 'البيانات المشتركة';
 
   @override
-  String get settings_sharedData_sectionSubtitle =>
-      'مشاركة المواقع والرحلات والمعدات بين الملفات';
+  String get settings_sharedData_sectionSubtitle => 'مشاركة المواقع والرحلات والمعدات بين الملفات';
 
   @override
   String get common_action_unshare => 'إلغاء المشاركة';
@@ -27868,8 +26799,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_duplicateDivers_title => 'ملفات غواصين مكررة';
 
   @override
-  String get settings_cloudSync_duplicateDivers_description =>
-      'وجد المزامنة أكثر من ملف شخصي بالاسم نفسه. يحدث ذلك عادةً عندما أنشأ كل جهاز ملفه الشخصي قبل المزامنة. يؤدي الدمج إلى نقل جميع الغطسات والبيانات إلى ملف واحد.';
+  String get settings_cloudSync_duplicateDivers_description => 'وجد المزامنة أكثر من ملف شخصي بالاسم نفسه. يحدث ذلك عادةً عندما أنشأ كل جهاز ملفه الشخصي قبل المزامنة. يؤدي الدمج إلى نقل جميع الغطسات والبيانات إلى ملف واحد.';
 
   @override
   String settings_cloudSync_duplicateDivers_groupLabel(String name, int count) {
@@ -27880,14 +26810,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_duplicateDivers_mergeButton => 'دمج';
 
   @override
-  String get settings_cloudSync_duplicateDivers_confirmTitle =>
-      'دمج ملفات الغواصين؟';
+  String get settings_cloudSync_duplicateDivers_confirmTitle => 'دمج ملفات الغواصين؟';
 
   @override
-  String settings_cloudSync_duplicateDivers_confirmBody(
-    int count,
-    String name,
-  ) {
+  String settings_cloudSync_duplicateDivers_confirmBody(int count, String name) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -27920,8 +26846,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divers_edit_priorExperienceSection => 'خبرة سابقة';
 
   @override
-  String get divers_edit_priorExperienceHelp =>
-      'الغطسات والوقت من قبل أن تبدأ التسجيل في Submersion.';
+  String get divers_edit_priorExperienceHelp => 'الغطسات والوقت من قبل أن تبدأ التسجيل في Submersion.';
 
   @override
   String get divers_edit_priorDivesLabel => 'غطسات سابقة';
@@ -27964,12 +26889,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get db_location_sd_card => 'بطاقة SD';
 
   @override
-  String get db_location_external_note =>
-      'تُحذف الملفات هنا عند إلغاء تثبيت التطبيق.';
+  String get db_location_external_note => 'تُحذف الملفات هنا عند إلغاء تثبيت التطبيق.';
 
   @override
-  String get db_location_backup_note =>
-      'لا يمكن لنظام Android تشغيل قاعدة البيانات من مجلد مُزامَن مع السحابة. للاحتفاظ بنسخة في Dropbox أو Nextcloud أو Google Drive، حدِّد موقع النسخة الاحتياطية ضمن النسخ الاحتياطي والاستعادة.';
+  String get db_location_backup_note => 'لا يمكن لنظام Android تشغيل قاعدة البيانات من مجلد مُزامَن مع السحابة. للاحتفاظ بنسخة في Dropbox أو Nextcloud أو Google Drive، حدِّد موقع النسخة الاحتياطية ضمن النسخ الاحتياطي والاستعادة.';
 
   @override
   String diveLog_bulkEdit_membership_onAll(int count) {
@@ -27990,19 +26913,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_bulkEdit_membership_removing => 'إزالة من الكل';
 
   @override
-  String get diveLog_bulkEdit_membership_empty =>
-      'لا توجد عناصر في الغطسات المحددة بعد';
+  String get diveLog_bulkEdit_membership_empty => 'لا توجد عناصر في الغطسات المحددة بعد';
 
   @override
   String get settings_mediaStorage_entry_title => 'تخزين الوسائط';
 
   @override
-  String get settings_mediaStorage_entry_subtitle =>
-      'خزّن النسخ الأصلية للصور والفيديو في التخزين السحابي الخاص بك';
+  String get settings_mediaStorage_entry_subtitle => 'خزّن النسخ الأصلية للصور والفيديو في التخزين السحابي الخاص بك';
 
   @override
-  String get settings_mediaStorage_status_notConfigured =>
-      'لا يوجد مخزن وسائط متصل على هذا الجهاز';
+  String get settings_mediaStorage_status_notConfigured => 'لا يوجد مخزن وسائط متصل على هذا الجهاز';
 
   @override
   String settings_mediaStorage_status_connected(String hint) {
@@ -28016,23 +26936,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_mediaStorage_saved => 'تم توصيل مخزن الوسائط';
 
   @override
-  String get settings_mediaStorage_error_notReady =>
-      'تعذّرت قراءة التخزين السحابي حتى الآن. انتظر لحظة ثم أعد المحاولة.';
+  String get settings_mediaStorage_error_notReady => 'تعذّرت قراءة التخزين السحابي حتى الآن. انتظر لحظة ثم أعد المحاولة.';
 
   @override
   String get settings_mediaStorage_action_disconnect => 'قطع الاتصال';
 
   @override
-  String get settings_mediaStorage_disconnect_confirm_title =>
-      'قطع اتصال مخزن الوسائط؟';
+  String get settings_mediaStorage_disconnect_confirm_title => 'قطع اتصال مخزن الوسائط؟';
 
   @override
-  String get settings_mediaStorage_disconnect_confirm_body =>
-      'يتوقف هذا الجهاز عن رفع الوسائط وجلبها. لن يُحذف أي شيء من الحاوية الخاصة بك.';
+  String get settings_mediaStorage_disconnect_confirm_body => 'يتوقف هذا الجهاز عن رفع الوسائط وجلبها. لن يُحذف أي شيء من الحاوية الخاصة بك.';
 
   @override
-  String get settings_mediaStorage_action_copyFromSync =>
-      'نسخ الإعدادات من المزامنة';
+  String get settings_mediaStorage_action_copyFromSync => 'نسخ الإعدادات من المزامنة';
 
   @override
   String get settings_mediaStorage_transfers_title => 'عمليات النقل';
@@ -28056,8 +26972,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_transferring => 'جارٍ الرفع';
 
   @override
-  String get settings_mediaStorage_transfers_state_deleting =>
-      'جارٍ الإزالة من السحابة';
+  String get settings_mediaStorage_transfers_state_deleting => 'جارٍ الإزالة من السحابة';
 
   @override
   String get settings_mediaStorage_transfers_state_done => 'تم';
@@ -28066,20 +26981,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'فشل';
 
   @override
-  String get settings_mediaStorage_transfers_suspended_title =>
-      'تم إيقاف عمليات النقل مؤقتًا';
+  String get settings_mediaStorage_transfers_suspended_title => 'تم إيقاف عمليات النقل مؤقتًا';
 
   @override
-  String get settings_mediaStorage_transfers_suspended_subtitle =>
-      'لم يعد هذا الجهاز والتخزين السحابي متفقين على المخزن المستخدم. تؤدي إعادة توصيل تخزين الوسائط إلى اعتماد المخزن الموجود في السحابة الآن.';
+  String get settings_mediaStorage_transfers_suspended_subtitle => 'لم يعد هذا الجهاز والتخزين السحابي متفقين على المخزن المستخدم. تؤدي إعادة توصيل تخزين الوسائط إلى اعتماد المخزن الموجود في السحابة الآن.';
 
   @override
-  String get settings_mediaStorage_transfers_suspended_detached =>
-      'لم يعد هذا الجهاز متصلاً بتخزين الوسائط هذا. يمكن إعادة الاتصال به من إعدادات تخزين الوسائط.';
+  String get settings_mediaStorage_transfers_suspended_detached => 'لم يعد هذا الجهاز متصلاً بتخزين الوسائط هذا. يمكن إعادة الاتصال به من إعدادات تخزين الوسائط.';
 
   @override
-  String get settings_mediaStorage_transfers_suspended_unreachable =>
-      'تعذّر التحقق من تخزين الوسائط. تتم إعادة محاولة عمليات النقل تلقائيًا.';
+  String get settings_mediaStorage_transfers_suspended_unreachable => 'تعذّر التحقق من تخزين الوسائط. تتم إعادة محاولة عمليات النقل تلقائيًا.';
 
   @override
   String settings_mediaStorage_transfers_queued(int count) {
@@ -28092,8 +27003,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_mediaStorage_transfers_waitingConnection =>
-      'في انتظار الاتصال';
+  String get settings_mediaStorage_transfers_waitingConnection => 'في انتظار الاتصال';
 
   @override
   String get settings_mediaStorage_report_action => 'تصدير تقرير الوسائط';
@@ -28102,30 +27012,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_mediaStorage_report_done => 'تم تصدير تقرير الوسائط';
 
   @override
-  String get settings_mediaStorage_report_note =>
-      'يسرد التقرير مسارات الملفات وأسماء الأجهزة. لا يُرسل أي شيء.';
+  String get settings_mediaStorage_report_note => 'يسرد التقرير مسارات الملفات وأسماء الأجهزة. لا يُرسل أي شيء.';
 
   @override
-  String get settings_mediaStorage_report_running =>
-      'جارٍ إنشاء تقرير الوسائط...';
+  String get settings_mediaStorage_report_running => 'جارٍ إنشاء تقرير الوسائط...';
 
   @override
   String get settings_mediaStorage_verify_action => 'التحقق من المكتبة';
 
   @override
-  String get settings_mediaStorage_verify_running =>
-      'جارٍ التحقق من مكتبة الوسائط...';
+  String get settings_mediaStorage_verify_running => 'جارٍ التحقق من مكتبة الوسائط...';
 
   @override
-  String settings_mediaStorage_verify_summary(
-    int checked,
-    int originals,
-    int thumbs,
-    int renditions,
-    int removed,
-    int repaired,
-    int aborted,
-  ) {
+  String settings_mediaStorage_verify_summary(int checked, int originals, int thumbs, int renditions, int removed, int repaired, int aborted) {
     String _temp0 = intl.Intl.pluralLogic(
       originals,
       locale: localeName,
@@ -28159,23 +27058,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_mediaStorage_policy_autoUpload => 'رفع الصور تلقائيا';
 
   @override
-  String get settings_mediaStorage_policy_photosOnCellular =>
-      'رفع الصور عبر شبكة الجوال';
+  String get settings_mediaStorage_policy_photosOnCellular => 'رفع الصور عبر شبكة الجوال';
 
   @override
   String get settings_mediaStorage_provider_label => 'المزود';
 
   @override
-  String get settings_mediaStorage_connect_dropbox_hint =>
-      'يستخدم اتصال Dropbox من مزامنة السحابة. تُخزن الوسائط في مجلد التطبيق في Dropbox.';
+  String get settings_mediaStorage_connect_dropbox_hint => 'يستخدم اتصال Dropbox من مزامنة السحابة. تُخزن الوسائط في مجلد التطبيق في Dropbox.';
 
   @override
-  String get settings_mediaStorage_connect_gdrive_hint =>
-      'يسجل الدخول عبر Google. تُخزن الوسائط في مساحة Drive الخاصة بهذا التطبيق.';
+  String get settings_mediaStorage_connect_gdrive_hint => 'يسجل الدخول عبر Google. تُخزن الوسائط في مساحة Drive الخاصة بهذا التطبيق.';
 
   @override
-  String get settings_mediaStorage_connect_icloud_hint =>
-      'تُخزن الوسائط في حاوية iCloud لهذا التطبيق وتتزامن عبر Apple ID الخاص بك.';
+  String get settings_mediaStorage_connect_icloud_hint => 'تُخزن الوسائط في حاوية iCloud لهذا التطبيق وتتزامن عبر Apple ID الخاص بك.';
 
   @override
   String settings_mediaStorage_connect_action(String provider) {
@@ -28238,8 +27133,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_edit_buoyancyHint_generic => 'سالب إذا كان يغرق';
 
   @override
-  String get equipment_edit_buoyancyHint_tank =>
-      'اتركه فارغا - تستخدم الأسطوانات مواصفاتها الخاصة';
+  String get equipment_edit_buoyancyHint_tank => 'اتركه فارغا - تستخدم الأسطوانات مواصفاتها الخاصة';
 
   @override
   String equipment_edit_buoyancyLabel(String unit) {
@@ -28324,8 +27218,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tools_weight_heightOptional => 'الطول (اختياري)';
 
   @override
-  String get tools_weight_noGear =>
-      'أضف المعدات التي تخطط للغوص بها لتخصيص التنبؤ.';
+  String get tools_weight_noGear => 'أضف المعدات التي تخطط للغوص بها لتخصيص التنبؤ.';
 
   @override
   String get tools_weight_personalTerm => 'الأساس الشخصي';
@@ -28430,8 +27323,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dive3d_seascape_verticalExaggeration => 'المبالغة الرأسية';
 
   @override
-  String get dive3d_seascape_verticalExaggerationReset =>
-      'إعادة التعيين إلى تلقائي';
+  String get dive3d_seascape_verticalExaggerationReset => 'إعادة التعيين إلى تلقائي';
 
   @override
   String get dive3d_seascape_verticalExaggerationLabel => 'العمق';
@@ -28538,8 +27430,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dive3d_seascape_appearance_wallAngle => 'زاوية الجدار الشديد';
 
   @override
-  String get dive3d_seascape_appearance_wallAngleNote =>
-      'تحسب خلايا قياس الأعماق متوسط الميل داخلها، لذا تبدو الجدران الحقيقية أقل انحدارا. ابق أقل بكثير من 45 درجة.';
+  String get dive3d_seascape_appearance_wallAngleNote => 'تحسب خلايا قياس الأعماق متوسط الميل داخلها، لذا تبدو الجدران الحقيقية أقل انحدارا. ابق أقل بكثير من 45 درجة.';
 
   @override
   String get dive3d_seascape_siteTitle => 'المشهد البحري للموقع';
@@ -28550,12 +27441,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get dive3d_seascape_noCoordinates =>
-      'لا توجد إحداثيات GPS لهذا الموقع';
+  String get dive3d_seascape_noCoordinates => 'لا توجد إحداثيات GPS لهذا الموقع';
 
   @override
-  String get dive3d_seascape_detailLimitReached =>
-      'This is the most detail available for this location';
+  String get dive3d_seascape_detailLimitReached => 'This is the most detail available for this location';
 
   @override
   String dive3d_seascape_lodStageLabel(String stage, String span) {
@@ -28575,8 +27464,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
 
   @override
-  String get dive3d_seascape_noData =>
-      'لا توجد بيانات قياس أعماق متاحة لهذا الموقع';
+  String get dive3d_seascape_noData => 'لا توجد بيانات قياس أعماق متاحة لهذا الموقع';
 
   @override
   String dive3d_seascape_axis_distance(String unitSymbol) {
@@ -28716,8 +27604,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dive3d_tissue_legendLimit => 'المستوى الأحمر = حد تخفيف الضغط';
 
   @override
-  String get dive3d_tissue_legendAxes =>
-      'يسار→يمين: الوقت · أمام→خلف: أنسجة سريعة→بطيئة';
+  String get dive3d_tissue_legendAxes => 'يسار→يمين: الوقت · أمام→خلف: أنسجة سريعة→بطيئة';
 
   @override
   String get dive3d_tissue_legendDepth => 'المنحنى الأزرق: عمقك';
@@ -28779,8 +27666,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dive3d_compare_layout_overlay => 'متراكب';
 
   @override
-  String get dive3d_compare_empty =>
-      'يلزم وجود ملفَّي غوص على الأقل يحتويان على بيانات العمق للمقارنة';
+  String get dive3d_compare_empty => 'يلزم وجود ملفَّي غوص على الأقل يحتويان على بيانات العمق للمقارنة';
 
   @override
   String dive3d_compare_showing(Object shown, Object total) {
@@ -28842,22 +27728,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_photosMedia_photoSources_title => 'مكتبة الصور والمصادر';
 
   @override
-  String get settings_photosMedia_photoSources_subtitle =>
-      'المعرض والملفات وخيارات الاستيراد';
+  String get settings_photosMedia_photoSources_subtitle => 'المعرض والملفات وخيارات الاستيراد';
 
   @override
   String get settings_photosMedia_networkSources_title => 'مصادر الشبكة';
 
   @override
-  String get settings_photosMedia_networkSources_subtitle =>
-      'عناوين URL وتغذيات القوائم (متقدم)';
+  String get settings_photosMedia_networkSources_subtitle => 'عناوين URL وتغذيات القوائم (متقدم)';
 
   @override
   String get settings_connectedAccounts_title => 'الحسابات المتصلة';
 
   @override
-  String get settings_connectedAccounts_subtitle =>
-      'تسجيلات الدخول للسحابة والخدمات';
+  String get settings_connectedAccounts_subtitle => 'تسجيلات الدخول للسحابة والخدمات';
 
   @override
   String get settings_connectedAccounts_empty => 'لا توجد حسابات متصلة بعد';
@@ -28866,16 +27749,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_connectedAccounts_status_signedIn => 'تم تسجيل الدخول';
 
   @override
-  String get settings_connectedAccounts_status_needsSignIn =>
-      'يتطلب تسجيل الدخول';
+  String get settings_connectedAccounts_status_needsSignIn => 'يتطلب تسجيل الدخول';
 
   @override
-  String get settings_connectedAccounts_status_unavailable =>
-      'غير متاح على هذا الجهاز';
+  String get settings_connectedAccounts_status_unavailable => 'غير متاح على هذا الجهاز';
 
   @override
-  String get settings_connectedAccounts_disconnectDevice =>
-      'تسجيل الخروج على هذا الجهاز';
+  String get settings_connectedAccounts_disconnectDevice => 'تسجيل الخروج على هذا الجهاز';
 
   @override
   String get settings_connectedAccounts_removeFromLibrary => 'إزالة من المكتبة';
@@ -28884,36 +27764,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_connectedAccounts_removeConfirmTitle => 'إزالة الحساب؟';
 
   @override
-  String get settings_connectedAccounts_removeConfirmBody =>
-      'تتم إزالة الحساب من جميع الأجهزة المتزامنة. لا تُحذف بيانات الاعتماد المخزنة على الأجهزة الأخرى.';
+  String get settings_connectedAccounts_removeConfirmBody => 'تتم إزالة الحساب من جميع الأجهزة المتزامنة. لا تُحذف بيانات الاعتماد المخزنة على الأجهزة الأخرى.';
 
   @override
   String get settings_setupGuide_title => 'إعداد الصور والوسائط';
 
   @override
-  String get settings_setupGuide_intro =>
-      'اربط مصادر صورك وأماكن حفظ النسخ. يمكنك إعادة تشغيل هذا في أي وقت.';
+  String get settings_setupGuide_intro => 'اربط مصادر صورك وأماكن حفظ النسخ. يمكنك إعادة تشغيل هذا في أي وقت.';
 
   @override
   String get settings_setupGuide_stepSources => 'مصادر الصور';
 
   @override
-  String get settings_setupGuide_stepSources_desc =>
-      'أرفق الصور من مكتبة الصور أو الملفات أو Lightroom.';
+  String get settings_setupGuide_stepSources_desc => 'أرفق الصور من مكتبة الصور أو الملفات أو Lightroom.';
 
   @override
   String get settings_setupGuide_stepStorage => 'تخزين الوسائط';
 
   @override
-  String get settings_setupGuide_stepStorage_desc =>
-      'احفظ نسخًا من صورك في سحابتك الخاصة حتى تعرضها جميع أجهزتك.';
+  String get settings_setupGuide_stepStorage_desc => 'احفظ نسخًا من صورك في سحابتك الخاصة حتى تعرضها جميع أجهزتك.';
 
   @override
   String get settings_setupGuide_stepSync => 'مزامنة سحابية';
 
   @override
-  String get settings_setupGuide_stepSync_desc =>
-      'زامن بيانات الغوص بين الأجهزة.';
+  String get settings_setupGuide_stepSync_desc => 'زامن بيانات الغوص بين الأجهزة.';
 
   @override
   String get settings_setupGuide_statusDone => 'تم الإعداد';
@@ -28928,20 +27803,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_connectedAccounts_loadError => 'تعذر تحميل الحسابات';
 
   @override
-  String get media_unavailablePlaceholder_volumeOffline =>
-      'وحدة التخزين غير مثبتة';
+  String get media_unavailablePlaceholder_volumeOffline => 'وحدة التخزين غير مثبتة';
 
   @override
-  String get media_unavailablePlaceholder_stillFetching =>
-      'ما زال قيد التحميل. اضغط لإعادة المحاولة.';
+  String get media_unavailablePlaceholder_stillFetching => 'ما زال قيد التحميل. اضغط لإعادة المحاولة.';
 
   @override
-  String get media_unavailablePlaceholder_accessDenied =>
-      'لا يوجد وصول إلى مكتبة الصور';
+  String get media_unavailablePlaceholder_accessDenied => 'لا يوجد وصول إلى مكتبة الصور';
 
   @override
-  String get media_unavailablePlaceholder_limitedAccess =>
-      'ليست ضمن الصور المسموح بها';
+  String get media_unavailablePlaceholder_limitedAccess => 'ليست ضمن الصور المسموح بها';
 
   @override
   String get media_limitedAccess_allowFullAccess => 'السماح بالوصول الكامل';
@@ -29481,8 +28352,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrChoice_battery_type_alkaline => 'قلوية';
 
   @override
-  String get attrChoice_battery_type_lithium_primary =>
-      'ليثيوم (غير قابلة لإعادة الشحن)';
+  String get attrChoice_battery_type_lithium_primary => 'ليثيوم (غير قابلة لإعادة الشحن)';
 
   @override
   String get attrChoice_motor_type_brushless => 'بدون فرشات';
@@ -29575,24 +28445,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_edit_invalidThickness => 'استخدم 5 أو 5/4 أو 7/5/3';
 
   @override
-  String get equipment_edit_invalidWebLink =>
-      'أدخل عنوان ويب، مثل shop.example.com';
+  String get equipment_edit_invalidWebLink => 'أدخل عنوان ويب، مثل shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'الغطسات حسب سماكة البدلة';
+  String get insights_progression_divesBySuitThickness_title => 'الغطسات حسب سماكة البدلة';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'السماكة الأساسية لبدلة الغطس عبر غطساتك';
+  String get insights_progression_divesBySuitThickness_subtitle => 'السماكة الأساسية لبدلة الغطس عبر غطساتك';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
-      'لا توجد غطسات مرتبطة ببدلة غوص أو بدلة جافة';
+  String get insights_progression_divesBySuitThickness_empty => 'لا توجد غطسات مرتبطة ببدلة غوص أو بدلة جافة';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'تعذر تحميل بيانات سماكة البدلة';
+  String get insights_progression_divesBySuitThickness_error => 'تعذر تحميل بيانات سماكة البدلة';
 
   @override
   String get insights_progression_divesBySuitThickness_unknown => 'غير معروف';
@@ -29625,15 +28490,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'صارم (18/24/48 س)';
 
   @override
-  String get safetySettings_noFlyPreset_subtitle =>
-      'فترات إرشادية بعد غطسة واحدة بلا توقفات، وغطسات متكررة، وغطسات بتخفيف الضغط';
+  String get safetySettings_noFlyPreset_subtitle => 'فترات إرشادية بعد غطسة واحدة بلا توقفات، وغطسات متكررة، وغطسات بتخفيف الضغط';
 
   @override
   String get flightWindow_closed => 'لا مزيد من الغوص قبل رحلتك';
 
   @override
-  String get flightWindow_conflict =>
-      'تمتد فترة حظر الطيران إلى ما بعد إقلاع رحلتك';
+  String get flightWindow_conflict => 'تمتد فترة حظر الطيران إلى ما بعد إقلاع رحلتك';
 
   @override
   String flightWindow_departs(String time) {
@@ -29682,15 +28545,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get safetyHub_noFly_disclaimer =>
-      'إرشادات DAN/UHMS منذ آخر غطسة. ليست بديلاً عن وقت حظر الطيران في حاسوب الغوص الخاص بك.';
+  String get safetyHub_noFly_disclaimer => 'إرشادات DAN/UHMS منذ آخر غطسة. ليست بديلاً عن وقت حظر الطيران في حاسوب الغوص الخاص بك.';
 
   @override
   String get diveLog_detail_altitudeMismatch_title => 'موقع الغوص على ارتفاع';
 
   @override
-  String get diveLog_detail_altitudeMismatch_subtitle =>
-      'هذا الموقع مسجل له ارتفاع لكن الغطسة بلا ارتفاع، لذا افترض تحليل تخفيف الضغط مستوى سطح البحر. عيّن ارتفاع الغطسة للتصحيح.';
+  String get diveLog_detail_altitudeMismatch_subtitle => 'هذا الموقع مسجل له ارتفاع لكن الغطسة بلا ارتفاع، لذا افترض تحليل تخفيف الضغط مستوى سطح البحر. عيّن ارتفاع الغطسة للتصحيح.';
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
@@ -29711,27 +28572,22 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get emergencyCard_callDan_subtitle =>
-      'خط طوارئ الغواصين. اتصل به أولاً: فهم ينسقون الإخلاء والإحالة إلى غرفة الضغط.';
+  String get emergencyCard_callDan_subtitle => 'خط طوارئ الغواصين. اتصل به أولاً: فهم ينسقون الإخلاء والإحالة إلى غرفة الضغط.';
 
   @override
-  String get emergencyCard_callInsurer_subtitle =>
-      'خط الطوارئ الخاص بتأمين الغوص. اتصل به أولاً: شركة التأمين تعتمد الإخلاء وتنسق الإحالة إلى غرفة الضغط.';
+  String get emergencyCard_callInsurer_subtitle => 'خط الطوارئ الخاص بتأمين الغوص. اتصل به أولاً: شركة التأمين تعتمد الإخلاء وتنسق الإحالة إلى غرفة الضغط.';
 
   @override
-  String get emergencyCard_hotlineSecondary_subtitle =>
-      'خط طوارئ الغواصين الإقليمي. اتصل به إذا لم يرد خط شركة التأمين.';
+  String get emergencyCard_hotlineSecondary_subtitle => 'خط طوارئ الغواصين الإقليمي. اتصل به إذا لم يرد خط شركة التأمين.';
 
   @override
-  String get emergencyCard_insuranceEmergencyLine =>
-      'خط الطوارئ على مدار 24 ساعة';
+  String get emergencyCard_insuranceEmergencyLine => 'خط الطوارئ على مدار 24 ساعة';
 
   @override
   String get emergencyCard_insuranceOfficeLine => 'خط المكتب';
 
   @override
-  String get emergencyCard_insuranceNoPhone =>
-      'لم يتم حفظ رقم طوارئ شركة التأمين. أضفه في إعدادات ملف الغواص لتبدأ هذه البطاقة به.';
+  String get emergencyCard_insuranceNoPhone => 'لم يتم حفظ رقم طوارئ شركة التأمين. أضفه في إعدادات ملف الغواص لتبدأ هذه البطاقة به.';
 
   @override
   String emergencyCard_ems(String number) {
@@ -29771,8 +28627,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get emergencyCard_chambersSection => 'غرف الضغط العالي';
 
   @override
-  String get emergencyCard_chambersNote =>
-      'التوفر يتغير. اتصل دائمًا بخط طوارئ الغواصين أولاً للإحالة.';
+  String get emergencyCard_chambersNote => 'التوفر يتغير. اتصل دائمًا بخط طوارئ الغواصين أولاً للإحالة.';
 
   @override
   String emergencyCard_chamberVerified(String date) {
@@ -29788,16 +28643,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get emergencyCard_chambersNoneNearby =>
-      'لا توجد غرفة ضغط ضمن النطاق. اتصل بخط الطوارئ للغواصين: سيحيلونك إلى أقرب منشأة قادرة على علاجك.';
+  String get emergencyCard_chambersNoneNearby => 'لا توجد غرفة ضغط ضمن النطاق. اتصل بخط الطوارئ للغواصين: سيحيلونك إلى أقرب منشأة قادرة على علاجك.';
 
   @override
-  String get emergencyCard_chamberCapability_divingEmergency =>
-      'يعالج إصابات الغوص';
+  String get emergencyCard_chamberCapability_divingEmergency => 'يعالج إصابات الغوص';
 
   @override
-  String get emergencyCard_chamberCapability_hyperbaricUnit =>
-      'وحدة ضغط عالٍ بمستشفى';
+  String get emergencyCard_chamberCapability_hyperbaricUnit => 'وحدة ضغط عالٍ بمستشفى';
 
   @override
   String get emergencyCard_chamberCapability_elective => 'علاج مجدول فقط';
@@ -29858,12 +28710,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get emergencyCard_regionUnknown =>
-      'المنطقة غير معروفة - يُستخدم الخط العالمي';
+  String get emergencyCard_regionUnknown => 'المنطقة غير معروفة - يُستخدم الخط العالمي';
 
   @override
-  String get emergencyCard_noDiverData =>
-      'لا توجد بيانات ملف الغواص. أضف جهات اتصال الطوارئ والبيانات الطبية والتأمين في ملف الغواص.';
+  String get emergencyCard_noDiverData => 'لا توجد بيانات ملف الغواص. أضف جهات اتصال الطوارئ والبيانات الطبية والتأمين في ملف الغواص.';
 
   @override
   String get addChamber_title => 'إضافة غرفة';
@@ -29899,8 +28749,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetyHub_emergencyCardLink => 'بطاقة الطوارئ';
 
   @override
-  String get safetyHub_emergencyCardLink_subtitle =>
-      'دون اتصال: الخط الساخن، الطوارئ، الغرف، بياناتك الطبية والتأمينية';
+  String get safetyHub_emergencyCardLink_subtitle => 'دون اتصال: الخط الساخن، الطوارئ، الغرف، بياناتك الطبية والتأمينية';
 
   @override
   String get dashboard_quickAction_emergency => 'بطاقة الطوارئ';
@@ -29909,8 +28758,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get incidents_title => 'سجل الحوادث الوشيكة';
 
   @override
-  String get incidents_empty =>
-      'لا حوادث وشيكة مسجلة. تدوين ما كاد أن يسوء - دون إصدار أحكام - يجعل الأنماط مرئية قبل أن تتحول إلى حوادث.';
+  String get incidents_empty => 'لا حوادث وشيكة مسجلة. تدوين ما كاد أن يسوء - دون إصدار أحكام - يجعل الأنماط مرئية قبل أن تتحول إلى حوادث.';
 
   @override
   String get incidents_add => 'تسجيل حادث وشيك';
@@ -29952,8 +28800,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get incidentEdit_narrative => 'ماذا حدث';
 
   @override
-  String get incidentEdit_narrative_hint =>
-      'الحقائق فقط، بكلماتك. يبقى هذا خاصًا.';
+  String get incidentEdit_narrative_hint => 'الحقائق فقط، بكلماتك. يبقى هذا خاصًا.';
 
   @override
   String get incidentEdit_narrative_required => 'صف ما حدث';
@@ -29962,15 +28809,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get incidentEdit_contributingFactors => 'ما الذي ساهم (اختياري)';
 
   @override
-  String get incidentEdit_lessonsLearned =>
-      'ما الذي سيساعد المرة القادمة (اختياري)';
+  String get incidentEdit_lessonsLearned => 'ما الذي سيساعد المرة القادمة (اختياري)';
 
   @override
   String get incidentEdit_save => 'حفظ';
 
   @override
-  String get incidentEdit_privacyNote =>
-      'تتزامن تقارير الحوادث الوشيكة بين أجهزتك وتُضمَّن في النسخ الاحتياطية، لكنها لا تُضمَّن أبدًا في التصدير أو صفحات السجل المشتركة.';
+  String get incidentEdit_privacyNote => 'تتزامن تقارير الحوادث الوشيكة بين أجهزتك وتُضمَّن في النسخ الاحتياطية، لكنها لا تُضمَّن أبدًا في التصدير أو صفحات السجل المشتركة.';
 
   @override
   String get incidentEdit_equipment => 'المعدات المعنية';
@@ -30015,8 +28860,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetyHub_incidentsLink => 'سجل الحوادث الوشيكة';
 
   @override
-  String get safetyHub_incidentsLink_subtitle =>
-      'ملاحظات حوادث خاصة وغير عقابية';
+  String get safetyHub_incidentsLink_subtitle => 'ملاحظات حوادث خاصة وغير عقابية';
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'تسجيل حادث وشيك';
@@ -30028,8 +28872,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_planned_bannerTitle => 'غوصة مخططة';
 
   @override
-  String get diveLog_planned_bannerBody =>
-      'في انتظار بيانات كمبيوتر الغوص. ضع علامة مسجلة إذا غصت بدون كمبيوتر.';
+  String get diveLog_planned_bannerBody => 'في انتظار بيانات كمبيوتر الغوص. ضع علامة مسجلة إذا غصت بدون كمبيوتر.';
 
   @override
   String get diveLog_detail_menu_markLogged => 'وضع علامة مسجلة';
@@ -30038,16 +28881,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'تم وضع علامة مسجلة';
 
   @override
-  String get diveLog_planned_markLoggedFailed =>
-      'تعذّر وضع علامة على الغوصة كمسجّلة.';
+  String get diveLog_planned_markLoggedFailed => 'تعذّر وضع علامة على الغوصة كمسجّلة.';
 
   @override
-  String get diveLog_mirror_dialogTitle =>
-      'هل تريد تسجيل هذه الغوصة في ملف شخصي آخر أيضا؟';
+  String get diveLog_mirror_dialogTitle => 'هل تريد تسجيل هذه الغوصة في ملف شخصي آخر أيضا؟';
 
   @override
-  String get diveLog_mirror_dialogBody =>
-      'لدى هؤلاء الرفاق ملفات شخصية على هذا الجهاز. تضاف الغوصة إلى سجلاتهم كغوصة مخططة حتى تملأها بيانات كمبيوتر الغوص الخاص بهم.';
+  String get diveLog_mirror_dialogBody => 'لدى هؤلاء الرفاق ملفات شخصية على هذا الجهاز. تضاف الغوصة إلى سجلاتهم كغوصة مخططة حتى تملأها بيانات كمبيوتر الغوص الخاص بهم.';
 
   @override
   String get diveLog_mirror_log => 'تسجيل';
@@ -30078,8 +28918,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_loggedWith => 'مسجلة مع';
 
   @override
-  String get diveLog_detail_loggedWithPlanned =>
-      'في انتظار كمبيوتر الغوص الخاص بهم';
+  String get diveLog_detail_loggedWithPlanned => 'في انتظار كمبيوتر الغوص الخاص بهم';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -30099,15 +28938,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_section_safety_title => 'السلامة';
 
   @override
-  String get settings_section_safety_subtitle =>
-      'قواعد المراجعة والطيران بعد الغوص';
+  String get settings_section_safety_subtitle => 'قواعد المراجعة والطيران بعد الغوص';
 
   @override
   String get settings_section_equipmentCondition_title => 'حالة المعدات';
 
   @override
-  String get settings_section_equipmentCondition_subtitle =>
-      'حدود التعرض لساعات الصيانة';
+  String get settings_section_equipmentCondition_subtitle => 'حدود التعرض لساعات الصيانة';
 
   @override
   String get equipmentConditionSettings_title => 'حالة المعدات';
@@ -30176,8 +29013,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get equipmentCondition_children_empty =>
-      'لا توجد خلايا أو بطاريات مسجّلة';
+  String get equipmentCondition_children_empty => 'لا توجد خلايا أو بطاريات مسجّلة';
 
   @override
   String get equipmentCondition_children_add => 'إضافة';
@@ -30236,16 +29072,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipmentCondition_trend_title_cellGain => 'خرج الخلايا لكل غطسة';
 
   @override
-  String get equipmentCondition_trend_title_gap =>
-      'انقطاعات جهاز الإرسال لكل غطسة';
+  String get equipmentCondition_trend_title_gap => 'انقطاعات جهاز الإرسال لكل غطسة';
 
   @override
-  String get equipmentCondition_trend_title_scrubber =>
-      'استهلاك المنظّف لكل غطسة';
+  String get equipmentCondition_trend_title_scrubber => 'استهلاك المنظّف لكل غطسة';
 
   @override
-  String get equipmentCondition_trend_title_temperature =>
-      'أدنى درجة حرارة لكل غطسة';
+  String get equipmentCondition_trend_title_temperature => 'أدنى درجة حرارة لكل غطسة';
 
   @override
   String equipmentCondition_trend_cell(int slot) {
@@ -30271,8 +29104,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipmentCondition_exposure_title => 'التعرّض';
 
   @override
-  String get equipmentCondition_exposure_empty =>
-      'لا توجد غطسات بهذه القطعة بعد';
+  String get equipmentCondition_exposure_empty => 'لا توجد غطسات بهذه القطعة بعد';
 
   @override
   String equipmentCondition_exposure_footer(int n, String range) {
@@ -30345,88 +29177,47 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String equipmentCondition_finding_cellOutputDeclining(
-    int slot,
-    String percent,
-    int n,
-    String since,
-  ) {
+  String equipmentCondition_finding_cellOutputDeclining(int slot, String percent, int n, String since) {
     return 'انخفض خرج الخلية $slot بنسبة $percent بالمئة عبر $n غطسة منذ $since';
   }
 
   @override
-  String equipmentCondition_finding_cellOutputLow(
-    int slot,
-    String gain,
-    int n,
-  ) {
+  String equipmentCondition_finding_cellOutputLow(int slot, String gain, int n) {
     return 'خرج الخلية $slot هو $gain مللي فولت لكل بار خلال آخر $n غطسة';
   }
 
   @override
-  String equipmentCondition_finding_cellDivergent(
-    int slot,
-    String bar,
-    int count,
-    int n,
-  ) {
+  String equipmentCondition_finding_cellDivergent(int slot, String bar, int count, int n) {
     return 'اختلفت الخلية $slot عن نظيراتها بما يصل إلى $bar بار في $count من آخر $n غطسة';
   }
 
   @override
-  String equipmentCondition_finding_cellCurrentLimited(
-    int slot,
-    int count,
-    int n,
-    String percent,
-  ) {
+  String equipmentCondition_finding_cellCurrentLimited(int slot, int count, int n, String percent) {
     return 'قرأت الخلية $slot قيمة منخفضة عند ppO2 مرتفع في $count من آخر $n غطسة، بما يصل إلى $percent بالمئة من العينات';
   }
 
   @override
-  String equipmentCondition_finding_transmitterDropoutRising(
-    String recent,
-    String prior,
-    int priorCount,
-  ) {
+  String equipmentCondition_finding_transmitterDropoutRising(String recent, String prior, int priorCount) {
     return 'انقطعت قراءة الضغط في $recent بالمئة من آخر 5 غطسات، مقارنة بنسبة $prior بالمئة في الغطسات $priorCount السابقة';
   }
 
   @override
-  String equipmentCondition_finding_transmitterDropoutHigh(
-    String recent,
-    int n,
-    int count,
-  ) {
+  String equipmentCondition_finding_transmitterDropoutHigh(String recent, int n, int count) {
     return 'انقطعت قراءة الضغط في المتوسط في $recent بالمئة من آخر $n غطسة، منها $count فوق 10 بالمئة';
   }
 
   @override
-  String equipmentCondition_finding_issueRecurring(
-    String tag,
-    int count,
-    int n,
-  ) {
+  String equipmentCondition_finding_issueRecurring(String tag, int count, int n) {
     return 'تم الإبلاغ عن $tag $count مرات في آخر $n غطسة';
   }
 
   @override
-  String equipmentCondition_finding_issueColdCorrelated(
-    int insideIssue,
-    int totalIssue,
-    String threshold,
-    int n,
-  ) {
+  String equipmentCondition_finding_issueColdCorrelated(int insideIssue, int totalIssue, String threshold, int n) {
     return '$insideIssue من $totalIssue غطسات فيها مشكلة كانت أبرد من $threshold، على مدى $n غطسة بهذه القطعة';
   }
 
   @override
-  String equipmentCondition_finding_issueDeepCorrelated(
-    int insideIssue,
-    int totalIssue,
-    String threshold,
-    int n,
-  ) {
+  String equipmentCondition_finding_issueDeepCorrelated(int insideIssue, int totalIssue, String threshold, int n) {
     return '$insideIssue من $totalIssue غطسات فيها مشكلة كانت أعمق من $threshold، على مدى $n غطسة بهذه القطعة';
   }
 
@@ -30456,8 +29247,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipmentConditionSettings_thresholdsHeader => 'حدود التعرض';
 
   @override
-  String get equipmentConditionSettings_thresholdsHelp =>
-      'تُحتسب الغطسة باردة أو عميقة أو بأكسجين مرتفع لساعات الصيانة عندما تتجاوز هذه الحدود.';
+  String get equipmentConditionSettings_thresholdsHelp => 'تُحتسب الغطسة باردة أو عميقة أو بأكسجين مرتفع لساعات الصيانة عندما تتجاوز هذه الحدود.';
 
   @override
   String get equipmentConditionSettings_coldLabel => 'ماء بارد تحت';
@@ -30466,27 +29256,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipmentConditionSettings_deepLabel => 'غطسة عميقة من';
 
   @override
-  String get equipmentConditionSettings_o2Label =>
-      'خليط بأكسجين مرتفع فوق (% O2)';
+  String get equipmentConditionSettings_o2Label => 'خليط بأكسجين مرتفع فوق (% O2)';
 
   @override
-  String get equipmentConditionSettings_saveFailed =>
-      'تعذر الحفظ. حاول مرة أخرى.';
+  String get equipmentConditionSettings_saveFailed => 'تعذر الحفظ. حاول مرة أخرى.';
 
   @override
   String get equipmentConditionSettings_sensorHeader => 'ملخصات المستشعرات';
 
   @override
-  String get equipmentConditionSettings_sensorHelp =>
-      'يُلخَّص ملف كل غطسة مرة واحدة لقياس خرج الخلايا وانقطاعات جهاز الإرسال واستهلاك المنظّف. تُلخَّص الغطسات الجديدة والمعدّلة تلقائيًا.';
+  String get equipmentConditionSettings_sensorHelp => 'يُلخَّص ملف كل غطسة مرة واحدة لقياس خرج الخلايا وانقطاعات جهاز الإرسال واستهلاك المنظّف. تُلخَّص الغطسات الجديدة والمعدّلة تلقائيًا.';
 
   @override
-  String get equipmentConditionSettings_rebuild =>
-      'إعادة بناء ملخصات المستشعرات';
+  String get equipmentConditionSettings_rebuild => 'إعادة بناء ملخصات المستشعرات';
 
   @override
-  String get equipmentConditionSettings_rebuild_subtitle =>
-      'إعادة حساب ملخص كل غطسة من ملفها';
+  String get equipmentConditionSettings_rebuild_subtitle => 'إعادة حساب ملخص كل غطسة من ملفها';
 
   @override
   String equipmentConditionSettings_rebuild_progress(int done, int total) {
@@ -30494,14 +29279,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get equipmentConditionSettings_rebuild_done =>
-      'أُعيد بناء ملخصات المستشعرات';
+  String get equipmentConditionSettings_rebuild_done => 'أُعيد بناء ملخصات المستشعرات';
 
   @override
-  String equipmentConditionSettings_rebuild_doneWithBothErrors(
-    int dives,
-    int items,
-  ) {
+  String equipmentConditionSettings_rebuild_doneWithBothErrors(int dives, int items) {
     String _temp0 = intl.Intl.pluralLogic(
       dives,
       locale: localeName,
@@ -30540,53 +29321,43 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get equipmentConditionSettings_rebuild_failed =>
-      'تعذّرت إعادة بناء ملخصات المستشعرات.';
+  String get equipmentConditionSettings_rebuild_failed => 'تعذّرت إعادة بناء ملخصات المستشعرات.';
 
   @override
   String get equipmentConditionSettings_masterToggle => 'نتائج الحالة';
 
   @override
-  String get equipmentConditionSettings_masterToggle_subtitle =>
-      'يُبلغ عن اتجاهات خرج الخلايا وانقطاعات جهاز الإرسال والمشكلات المسجّلة، مع الأرقام التي تدعمها';
+  String get equipmentConditionSettings_masterToggle_subtitle => 'يُبلغ عن اتجاهات خرج الخلايا وانقطاعات جهاز الإرسال والمشكلات المسجّلة، مع الأرقام التي تدعمها';
 
   @override
   String get equipmentConditionSettings_rulesHeader => 'القواعد';
 
   @override
-  String get equipmentConditionSettings_rule_cellOutputDeclining =>
-      'خرج الخلية في انخفاض';
+  String get equipmentConditionSettings_rule_cellOutputDeclining => 'خرج الخلية في انخفاض';
 
   @override
-  String get equipmentConditionSettings_rule_cellOutputLow =>
-      'خرج الخلية منخفض';
+  String get equipmentConditionSettings_rule_cellOutputLow => 'خرج الخلية منخفض';
 
   @override
-  String get equipmentConditionSettings_rule_cellDivergent =>
-      'الخلية تختلف عن نظيراتها';
+  String get equipmentConditionSettings_rule_cellDivergent => 'الخلية تختلف عن نظيراتها';
 
   @override
-  String get equipmentConditionSettings_rule_cellCurrentLimited =>
-      'الخلية محدودة التيار عند ppO2 مرتفع';
+  String get equipmentConditionSettings_rule_cellCurrentLimited => 'الخلية محدودة التيار عند ppO2 مرتفع';
 
   @override
-  String get equipmentConditionSettings_rule_transmitterDropoutRising =>
-      'انقطاعات جهاز الإرسال في ازدياد';
+  String get equipmentConditionSettings_rule_transmitterDropoutRising => 'انقطاعات جهاز الإرسال في ازدياد';
 
   @override
-  String get equipmentConditionSettings_rule_transmitterDropoutHigh =>
-      'انقطاعات جهاز الإرسال مرتفعة';
+  String get equipmentConditionSettings_rule_transmitterDropoutHigh => 'انقطاعات جهاز الإرسال مرتفعة';
 
   @override
   String get equipmentConditionSettings_rule_issueRecurring => 'مشكلة متكررة';
 
   @override
-  String get equipmentConditionSettings_rule_issueColdCorrelated =>
-      'مشكلات في الغطسات الباردة';
+  String get equipmentConditionSettings_rule_issueColdCorrelated => 'مشكلات في الغطسات الباردة';
 
   @override
-  String get equipmentConditionSettings_rule_issueDeepCorrelated =>
-      'مشكلات في الغطسات العميقة';
+  String get equipmentConditionSettings_rule_issueDeepCorrelated => 'مشكلات في الغطسات العميقة';
 
   @override
   String get equipmentConditionSettings_rule_incidentLinked => 'حوادث مرتبطة';
@@ -30723,8 +29494,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipmentObservation_sheet_delete => 'حذف الفحص';
 
   @override
-  String get equipmentObservation_sheet_deleteConfirm =>
-      'هل تريد حذف هذا الفحص؟';
+  String get equipmentObservation_sheet_deleteConfirm => 'هل تريد حذف هذا الفحص؟';
 
   @override
   String get equipmentObservation_sheet_noteLabel => 'ملاحظة';
@@ -30751,8 +29521,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipmentObservation_sheet_cancel => 'إلغاء';
 
   @override
-  String get equipmentObservation_sheet_tagRequired =>
-      'اختر وسمًا واحدًا على الأقل للمشكلة';
+  String get equipmentObservation_sheet_tagRequired => 'اختر وسمًا واحدًا على الأقل للمشكلة';
 
   @override
   String get equipmentObservation_chip_ok => 'تم الفحص، سليم';
@@ -30784,22 +29553,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_section_security_title => 'أمان التطبيق';
 
   @override
-  String get settings_section_security_subtitle =>
-      'قفل التطبيق وتشفير قاعدة البيانات';
+  String get settings_section_security_subtitle => 'قفل التطبيق وتشفير قاعدة البيانات';
 
   @override
   String get settings_section_trimixMixer_title => 'خلاط ترايمكس';
 
   @override
-  String get settings_section_trimixMixer_subtitle =>
-      'غازات التعبئة، الظروف وإعدادات الفوترة الافتراضية';
+  String get settings_section_trimixMixer_subtitle => 'غازات التعبئة، الظروف وإعدادات الفوترة الافتراضية';
 
   @override
   String get settings_security_appLock => 'قفل التطبيق';
 
   @override
-  String get settings_security_appLock_subtitle =>
-      'طلب كلمة المرور أو القياسات الحيوية لفتح التطبيق';
+  String get settings_security_appLock_subtitle => 'طلب كلمة المرور أو القياسات الحيوية لفتح التطبيق';
 
   @override
   String get settings_security_biometrics => 'فتح القفل بالقياسات الحيوية';
@@ -30828,24 +29594,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_security_encryption => 'تشفير قاعدة البيانات';
 
   @override
-  String get settings_security_encryption_subtitle =>
-      'احمِ ملف سجل الغوص الخاص بك بالتشفير أثناء التخزين. قد يؤثر التشفير على الأداء.';
+  String get settings_security_encryption_subtitle => 'احمِ ملف سجل الغوص الخاص بك بالتشفير أثناء التخزين. قد يؤثر التشفير على الأداء.';
 
   @override
-  String get settings_security_encryption_progress_backup =>
-      'جارٍ إنشاء نسخة احتياطية...';
+  String get settings_security_encryption_progress_backup => 'جارٍ إنشاء نسخة احتياطية...';
 
   @override
-  String get settings_security_encryption_progress_encrypt =>
-      'جارٍ تشفير قاعدة البيانات...';
+  String get settings_security_encryption_progress_encrypt => 'جارٍ تشفير قاعدة البيانات...';
 
   @override
-  String get settings_security_encryption_progress_decrypt =>
-      'جارٍ فك تشفير قاعدة البيانات...';
+  String get settings_security_encryption_progress_decrypt => 'جارٍ فك تشفير قاعدة البيانات...';
 
   @override
-  String get settings_security_encryption_progress_reopen =>
-      'جارٍ إعادة فتح قاعدة البيانات...';
+  String get settings_security_encryption_progress_reopen => 'جارٍ إعادة فتح قاعدة البيانات...';
 
   @override
   String get settings_security_changePassword => 'تغيير كلمة المرور';
@@ -30869,12 +29630,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_security_newPassword => 'كلمة المرور الجديدة';
 
   @override
-  String get settings_security_passwordTooShort =>
-      'يجب أن تتكون كلمة المرور من 4 أحرف على الأقل.';
+  String get settings_security_passwordTooShort => 'يجب أن تتكون كلمة المرور من 4 أحرف على الأقل.';
 
   @override
-  String get settings_security_passwordMismatch =>
-      'كلمتا المرور غير متطابقتين.';
+  String get settings_security_passwordMismatch => 'كلمتا المرور غير متطابقتين.';
 
   @override
   String get settings_security_wrongPassword => 'كلمة المرور غير صحيحة.';
@@ -30883,44 +29642,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_security_recoveryCode_title => 'رمز الاسترداد الخاص بك';
 
   @override
-  String get settings_security_recoveryCode_explain =>
-      'دوّنه واحفظه في مكان آمن. إنه الطريقة الوحيدة لفتح التطبيق إذا نسيت كلمة المرور، وهو يحل محل أي رمز استرداد سابق.';
+  String get settings_security_recoveryCode_explain => 'دوّنه واحفظه في مكان آمن. إنه الطريقة الوحيدة لفتح التطبيق إذا نسيت كلمة المرور، وهو يحل محل أي رمز استرداد سابق.';
 
   @override
-  String get settings_security_recoveryCode_savedConfirm =>
-      'لقد حفظت رمز الاسترداد الخاص بي';
+  String get settings_security_recoveryCode_savedConfirm => 'لقد حفظت رمز الاسترداد الخاص بي';
 
   @override
-  String get settings_security_disableBlockedByEncryption_title =>
-      'التشفير مفعّل';
+  String get settings_security_disableBlockedByEncryption_title => 'التشفير مفعّل';
 
   @override
-  String get settings_security_disableBlockedByEncryption_body =>
-      'أوقف تشفير قاعدة البيانات أولاً قبل إيقاف قفل التطبيق. تحتاج قاعدة البيانات المشفرة إلى بيانات اعتماد.';
+  String get settings_security_disableBlockedByEncryption_body => 'أوقف تشفير قاعدة البيانات أولاً قبل إيقاف قفل التطبيق. تحتاج قاعدة البيانات المشفرة إلى بيانات اعتماد.';
 
   @override
-  String get settings_security_enableEncryption_title =>
-      'هل تريد تشفير قاعدة البيانات؟';
+  String get settings_security_enableEncryption_title => 'هل تريد تشفير قاعدة البيانات؟';
 
   @override
-  String get settings_security_enableEncryption_body =>
-      'يتم أولاً إنشاء نسخة احتياطية، ثم يُعاد تشفير ملف قاعدة البيانات في مكانه. قد يستغرق ذلك وقتًا مع السجلات الكبيرة. قد يؤثر التشفير على الأداء.';
+  String get settings_security_enableEncryption_body => 'يتم أولاً إنشاء نسخة احتياطية، ثم يُعاد تشفير ملف قاعدة البيانات في مكانه. قد يستغرق ذلك وقتًا مع السجلات الكبيرة. قد يؤثر التشفير على الأداء.';
 
   @override
-  String get settings_security_disableEncryption_title =>
-      'هل تريد إيقاف التشفير؟';
+  String get settings_security_disableEncryption_title => 'هل تريد إيقاف التشفير؟';
 
   @override
-  String get settings_security_disableEncryption_body =>
-      'سيُخزَّن ملف قاعدة البيانات على القرص من دون تشفير مرة أخرى.';
+  String get settings_security_disableEncryption_body => 'سيُخزَّن ملف قاعدة البيانات على القرص من دون تشفير مرة أخرى.';
 
   @override
-  String get settings_security_turnOffAppLock_title =>
-      'هل تريد إيقاف قفل التطبيق؟';
+  String get settings_security_turnOffAppLock_title => 'هل تريد إيقاف قفل التطبيق؟';
 
   @override
-  String get settings_security_turnOffAppLock_body =>
-      'سيُفتح التطبيق من دون طلب كلمة المرور.';
+  String get settings_security_turnOffAppLock_body => 'سيُفتح التطبيق من دون طلب كلمة المرور.';
 
   @override
   String get settings_security_unlock_title => 'أدخل كلمة المرور';
@@ -31001,8 +29750,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dataQuality_empty_title => 'كل شيء على ما يرام';
 
   @override
-  String get dataQuality_empty_subtitle =>
-      'لا توجد نتائج تخص جودة البيانات. افحص مكتبتك للتحقق من مشكلات الغوصات المستوردة.';
+  String get dataQuality_empty_subtitle => 'لا توجد نتائج تخص جودة البيانات. افحص مكتبتك للتحقق من مشكلات الغوصات المستوردة.';
 
   @override
   String get dataQuality_banner_newChecks => 'تتوفر فحوصات جودة جديدة';
@@ -31029,8 +29777,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dataQuality_repair_noChange => 'لا يوجد ما يمكن إصلاحه هنا';
 
   @override
-  String get dataQuality_repair_needsReview =>
-      'لا يوجد إصلاح تلقائي. افتح الغطسة لتصحيح ذلك.';
+  String get dataQuality_repair_needsReview => 'لا يوجد إصلاح تلقائي. افتح الغطسة لتصحيح ذلك.';
 
   @override
   String get dataQuality_repair_failed => 'فشل الإصلاح';
@@ -31156,8 +29903,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get dataQuality_msg_tempUnitBug =>
-      'تبدو القيم وكأنها خطأ في وحدة درجة الحرارة';
+  String get dataQuality_msg_tempUnitBug => 'تبدو القيم وكأنها خطأ في وحدة درجة الحرارة';
 
   @override
   String dataQuality_msg_tempJump(String delta) {
@@ -31210,8 +29956,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get dataQuality_msg_twinTanks =>
-      'تحمل أسطوانتان سلسلة ضغط شبه متطابقة';
+  String get dataQuality_msg_twinTanks => 'تحمل أسطوانتان سلسلة ضغط شبه متطابقة';
 
   @override
   String dataQuality_msg_sourceDepth(String primary, String source) {
@@ -31219,8 +29964,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get dataQuality_msg_salinityHint =>
-      'تشير النسبة الثابتة إلى اختلاف في إعداد الماء المالح/العذب';
+  String get dataQuality_msg_salinityHint => 'تشير النسبة الثابتة إلى اختلاف في إعداد الماء المالح/العذب';
 
   @override
   String get dataQuality_msg_sourceDuration => 'تختلف المصادر حول مدة الغوصة';
@@ -31234,8 +29978,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get dataQuality_repairLabel_shiftImport =>
-      'إزاحة كل الغوصات من هذا الاستيراد';
+  String get dataQuality_repairLabel_shiftImport => 'إزاحة كل الغوصات من هذا الاستيراد';
 
   @override
   String get dataQuality_repairLabel_consolidate => 'توحيد';
@@ -31247,8 +29990,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dataQuality_deleteDuplicate_title => 'حذف النسخة الزائدة؟';
 
   @override
-  String get dataQuality_deleteDuplicate_body =>
-      'تم تسجيل كلتيهما بواسطة كمبيوتر الغوص نفسه. سيتم حذف النسخة التي تحتوي على بيانات أقل من الغوصة. يمكنك التراجع عن ذلك لاحقًا.';
+  String get dataQuality_deleteDuplicate_body => 'تم تسجيل كلتيهما بواسطة كمبيوتر الغوص نفسه. سيتم حذف النسخة التي تحتوي على بيانات أقل من الغوصة. يمكنك التراجع عن ذلك لاحقًا.';
 
   @override
   String dataQuality_deleteDuplicate_keep(String dive) {
@@ -31385,8 +30127,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dataQuality_repairLabel_recompute => 'إعادة الحساب من المخطط';
 
   @override
-  String get dataQuality_repairLabel_swapPressures =>
-      'تبديل ضغط البداية/النهاية';
+  String get dataQuality_repairLabel_swapPressures => 'تبديل ضغط البداية/النهاية';
 
   @override
   String get dataQuality_repairLabel_setFromSeries => 'استخدام قيم المستشعر';
@@ -31395,8 +30136,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dataQuality_repairLabel_swapSeries => 'تبديل سلاسل الأسطوانات';
 
   @override
-  String get dataQuality_repairLabel_reassignSeries =>
-      'نقل السلسلة إلى أسطوانة أخرى';
+  String get dataQuality_repairLabel_reassignSeries => 'نقل السلسلة إلى أسطوانة أخرى';
 
   @override
   String get dataQuality_repairLabel_setPrimary => 'جعل هذا المصدر أساسيًا';
@@ -31411,8 +30151,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dataQuality_settings_title => 'جودة البيانات';
 
   @override
-  String get dataQuality_settings_subtitle =>
-      'اختر الفحوصات التي تُجرى أثناء الفحص';
+  String get dataQuality_settings_subtitle => 'اختر الفحوصات التي تُجرى أثناء الفحص';
 
   @override
   String dataQuality_summary_flagged(int count) {
@@ -31458,24 +30197,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_mediaStorage_quality_small => 'صغيرة';
 
   @override
-  String get settings_mediaStorage_quality_caveat =>
-      'عند تعيين مستوى ضغط، لا يتم رفع النسخ الأصلية بالدقة الكاملة؛ فهي تبقى على هذا الجهاز فقط.';
+  String get settings_mediaStorage_quality_caveat => 'عند تعيين مستوى ضغط، لا يتم رفع النسخ الأصلية بالدقة الكاملة؛ فهي تبقى على هذا الجهاز فقط.';
 
   @override
-  String get settings_mediaStorage_quality_reuploadQueued =>
-      'تمت إضافة إعادة الرفع إلى قائمة الانتظار';
+  String get settings_mediaStorage_quality_reuploadQueued => 'تمت إضافة إعادة الرفع إلى قائمة الانتظار';
 
   @override
-  String get settings_mediaStorage_quality_linuxFfmpegHint =>
-      'ثبّت ffmpeg لتمكين ضغط الفيديو. حتى ذلك الحين يتم رفع النسخ الأصلية.';
+  String get settings_mediaStorage_quality_linuxFfmpegHint => 'ثبّت ffmpeg لتمكين ضغط الفيديو. حتى ذلك الحين يتم رفع النسخ الأصلية.';
 
   @override
-  String get settings_mediaStorage_quality_saveFailed =>
-      'تعذّر حفظ جودة الرفع. حاول مرة أخرى.';
+  String get settings_mediaStorage_quality_saveFailed => 'تعذّر حفظ جودة الرفع. حاول مرة أخرى.';
 
   @override
-  String get settings_mediaStorage_quality_noTranscoderHint =>
-      'لا يمكن لهذا الجهاز ضغط الفيديو. يتم رفع الملفات الأصلية منه.';
+  String get settings_mediaStorage_quality_noTranscoderHint => 'لا يمكن لهذا الجهاز ضغط الفيديو. يتم رفع الملفات الأصلية منه.';
 
   @override
   String get reef_section_title => 'النظام البيئي';
@@ -31507,16 +30241,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get water_conditions_title => 'أحوال المياه';
 
   @override
-  String get water_conditions_unavailable =>
-      'تعذّر التحقق من أحوال المياه الآن';
+  String get water_conditions_unavailable => 'تعذّر التحقق من أحوال المياه الآن';
 
   @override
-  String get water_conditions_noData =>
-      'لا توجد بيانات مياه من الأقمار الصناعية لهذا الموقع';
+  String get water_conditions_noData => 'لا توجد بيانات مياه من الأقمار الصناعية لهذا الموقع';
 
   @override
-  String get water_conditions_freshwater =>
-      'درجة حرارة المياه عبر الأقمار الصناعية تغطي المحيطات فقط';
+  String get water_conditions_freshwater => 'درجة حرارة المياه عبر الأقمار الصناعية تغطي المحيطات فقط';
 
   @override
   String water_conditions_anomaly(String value) {
@@ -31603,16 +30334,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reef_attribution_wri => 'وجود الشعاب ومستوى التهديد. CC BY 3.0.';
 
   @override
-  String get reef_attribution_noaa =>
-      'درجة حرارة سطح البحر والإجهاد الحراري. ملكية عامة.';
+  String get reef_attribution_noaa => 'درجة حرارة سطح البحر والإجهاد الحراري. ملكية عامة.';
 
   @override
-  String get reef_attribution_gbif =>
-      'سجلات تواجد الأنواع، مصفاة على CC0 و CC BY 4.0.';
+  String get reef_attribution_gbif => 'سجلات تواجد الأنواع، مصفاة على CC0 و CC BY 4.0.';
 
   @override
-  String get reef_attribution_protectedSeas =>
-      'حدود المناطق البحرية المحمية. CC BY 4.0.';
+  String get reef_attribution_protectedSeas => 'حدود المناطق البحرية المحمية. CC BY 4.0.';
 
   @override
   String get enum_visibilityBand_excellent => 'ممتازة';
@@ -31650,26 +30378,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_coordinateFormat_title => 'تنسيق الإحداثيات';
 
   @override
-  String get settings_coordinateFormat_subtitle =>
-      'كيفية عرض مواقع GPS وإدخالها';
+  String get settings_coordinateFormat_subtitle => 'كيفية عرض مواقع GPS وإدخالها';
 
   @override
   String get settings_placeNameLanguage_title => 'لغة أسماء الأماكن';
 
   @override
-  String get settings_placeNameLanguage_subtitle =>
-      'تُستخدم عند البحث عن البلد والمنطقة والبلدة والمسطح المائي من الإحداثيات. لا يتم تغيير المواقع الحالية.';
+  String get settings_placeNameLanguage_subtitle => 'تُستخدم عند البحث عن البلد والمنطقة والبلدة والمسطح المائي من الإحداثيات. لا يتم تغيير المواقع الحالية.';
 
   @override
   String get settings_coordinateFormat_decimalDegrees => 'درجات عشرية';
 
   @override
-  String get settings_coordinateFormat_degreesDecimalMinutes =>
-      'درجات ودقائق عشرية';
+  String get settings_coordinateFormat_degreesDecimalMinutes => 'درجات ودقائق عشرية';
 
   @override
-  String get settings_coordinateFormat_degreesMinutesSeconds =>
-      'درجات ودقائق وثوانٍ';
+  String get settings_coordinateFormat_degreesMinutesSeconds => 'درجات ودقائق وثوانٍ';
 
   @override
   String get settings_coordinateFormat_utm => 'UTM';
@@ -31681,12 +30405,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_visibilityScale_title => 'مقياس الرؤية';
 
   @override
-  String get settings_visibilityScale_subtitle =>
-      'كيف تصف تفاصيل الغوص والإحصاءات مدى الرؤية الذي قسته';
+  String get settings_visibilityScale_subtitle => 'كيف تصف تفاصيل الغوص والإحصاءات مدى الرؤية الذي قسته';
 
   @override
-  String get settings_visibilityScale_intro =>
-      'اختر المسافات المقيسة التي تُعد ممتازة أو جيدة أو متوسطة أو ضعيفة في تفاصيل الغوص والإحصاءات. تغيير هذا الإعداد يعيد تسمية غطساتك فقط؛ ولا يغيّر أبدًا المسافات التي سجلتها.';
+  String get settings_visibilityScale_intro => 'اختر المسافات المقيسة التي تُعد ممتازة أو جيدة أو متوسطة أو ضعيفة في تفاصيل الغوص والإحصاءات. تغيير هذا الإعداد يعيد تسمية غطساتك فقط؛ ولا يغيّر أبدًا المسافات التي سجلتها.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'استوائية';
@@ -31710,8 +30432,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_visibilityScale_customModerate => 'متوسطة عند أو فوق';
 
   @override
-  String get settings_visibilityScale_invalidOrder =>
-      'يجب أن تكون كل قيمة أصغر من التي فوقها وأكبر من صفر';
+  String get settings_visibilityScale_invalidOrder => 'يجب أن تكون كل قيمة أصغر من التي فوقها وأكبر من صفر';
 
   @override
   String settings_visibilityScale_bandRange(String band, String range) {
@@ -31722,8 +30443,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_visibilityScale_customUnset => 'حدّد مسافاتك الخاصة';
 
   @override
-  String get settings_visibilityScale_customHelp =>
-      'أدخل لكل تصنيف أقصر مسافة لا تزال تُحتسب ضمنه.';
+  String get settings_visibilityScale_customHelp => 'أدخل لكل تصنيف أقصر مسافة لا تزال تُحتسب ضمنه.';
 
   @override
   String insights_conditions_visibility_legacySuffix(String band) {
@@ -32860,4834 +31580,4111 @@ class AppLocalizationsAr extends AppLocalizations {
   String get species_whale_shark_name => 'القرش الحوتي';
 
   @override
-  String get species_whale_shark_desc =>
-      'أكبر سمكة في المحيط، وهو مرشِّح لطيف يتغذى بالترشيح ويتميز بنمط منقّط فريد.';
+  String get species_whale_shark_desc => 'أكبر سمكة في المحيط، وهو مرشِّح لطيف يتغذى بالترشيح ويتميز بنمط منقّط فريد.';
 
   @override
   String get species_great_white_shark_name => 'القرش الأبيض الكبير';
 
   @override
-  String get species_great_white_shark_desc =>
-      'مفترس قمة أيقوني يشاهده أحيانًا الغواصون من داخل الأقفاص في المياه المعتدلة.';
+  String get species_great_white_shark_desc => 'مفترس قمة أيقوني يشاهده أحيانًا الغواصون من داخل الأقفاص في المياه المعتدلة.';
 
   @override
   String get species_great_hammerhead_shark_name => 'قرش المطرقة العظيم';
 
   @override
-  String get species_great_hammerhead_shark_desc =>
-      'أكبر أنواع أسماك المطرقة، برأس عريض مسطح وزعنفة ظهرية مرتفعة.';
+  String get species_great_hammerhead_shark_desc => 'أكبر أنواع أسماك المطرقة، برأس عريض مسطح وزعنفة ظهرية مرتفعة.';
 
   @override
   String get species_scalloped_hammerhead_shark_name => 'قرش المطرقة المسنن';
 
   @override
-  String get species_scalloped_hammerhead_shark_desc =>
-      'كثيرًا ما يُشاهد في أسراب كبيرة عند الجبال البحرية ومحطات التنظيف.';
+  String get species_scalloped_hammerhead_shark_desc => 'كثيرًا ما يُشاهد في أسراب كبيرة عند الجبال البحرية ومحطات التنظيف.';
 
   @override
   String get species_smooth_hammerhead_shark_name => 'قرش المطرقة الأملس';
 
   @override
-  String get species_smooth_hammerhead_shark_desc =>
-      'قرش مطرقة بحافة رأس ملساء مستديرة يعيش في البحار المعتدلة.';
+  String get species_smooth_hammerhead_shark_desc => 'قرش مطرقة بحافة رأس ملساء مستديرة يعيش في البحار المعتدلة.';
 
   @override
   String get species_whitetip_reef_shark_name => 'قرش الشعاب أبيض الأطراف';
 
   @override
-  String get species_whitetip_reef_shark_desc =>
-      'ساكن شعاب وديع يُشاهد غالبًا مستريحًا في الكهوف وتحت الحواف الصخرية نهارًا.';
+  String get species_whitetip_reef_shark_desc => 'ساكن شعاب وديع يُشاهد غالبًا مستريحًا في الكهوف وتحت الحواف الصخرية نهارًا.';
 
   @override
   String get species_blacktip_reef_shark_name => 'قرش الشعاب أسود الأطراف';
 
   @override
-  String get species_blacktip_reef_shark_desc =>
-      'قرش شعاب شائع في المياه الضحلة يتميز بزعانف سوداء الأطراف.';
+  String get species_blacktip_reef_shark_desc => 'قرش شعاب شائع في المياه الضحلة يتميز بزعانف سوداء الأطراف.';
 
   @override
   String get species_grey_reef_shark_name => 'قرش الشعاب الرمادي';
 
   @override
-  String get species_grey_reef_shark_desc =>
-      'مفترس شعاب نشط يُصادَف غالبًا في مجموعات على طول المنحدرات والقنوات.';
+  String get species_grey_reef_shark_desc => 'مفترس شعاب نشط يُصادَف غالبًا في مجموعات على طول المنحدرات والقنوات.';
 
   @override
   String get species_caribbean_reef_shark_name => 'قرش شعاب الكاريبي';
 
   @override
-  String get species_caribbean_reef_shark_desc =>
-      'أكثر أسماك قرش الشعاب مصادفةً في الكاريبي، متين البنية وفضولي تجاه الغواصين.';
+  String get species_caribbean_reef_shark_desc => 'أكثر أسماك قرش الشعاب مصادفةً في الكاريبي، متين البنية وفضولي تجاه الغواصين.';
 
   @override
   String get species_nurse_shark_name => 'القرش الممرض';
 
   @override
-  String get species_nurse_shark_desc =>
-      'ساكن قاع بطيء الحركة يُشاهد غالبًا مستريحًا تحت حواف المرجان.';
+  String get species_nurse_shark_desc => 'ساكن قاع بطيء الحركة يُشاهد غالبًا مستريحًا تحت حواف المرجان.';
 
   @override
   String get species_tawny_nurse_shark_name => 'القرش الممرض الأسمر';
 
   @override
-  String get species_tawny_nurse_shark_desc =>
-      'ساكن قاع من المحيطين الهندي والهادئ يستريح في كهوف الشعاب والمناطق الرملية.';
+  String get species_tawny_nurse_shark_desc => 'ساكن قاع من المحيطين الهندي والهادئ يستريح في كهوف الشعاب والمناطق الرملية.';
 
   @override
   String get species_bull_shark_name => 'القرش الثور';
 
   @override
-  String get species_bull_shark_desc =>
-      'قرش ممتلئ وقوي يوجد في البيئات الساحلية والمياه العذبة حول العالم.';
+  String get species_bull_shark_desc => 'قرش ممتلئ وقوي يوجد في البيئات الساحلية والمياه العذبة حول العالم.';
 
   @override
   String get species_tiger_shark_name => 'القرش النمر';
 
   @override
-  String get species_tiger_shark_desc =>
-      'مفترس كبير بنمط مخطط مميز، يُصادَف في غوصات الشعاب العميقة.';
+  String get species_tiger_shark_desc => 'مفترس كبير بنمط مخطط مميز، يُصادَف في غوصات الشعاب العميقة.';
 
   @override
-  String get species_oceanic_whitetip_shark_name =>
-      'القرش المحيطي أبيض الأطراف';
+  String get species_oceanic_whitetip_shark_name => 'القرش المحيطي أبيض الأطراف';
 
   @override
-  String get species_oceanic_whitetip_shark_desc =>
-      'قرش من أعالي البحار بزعانف مستديرة بيضاء الأطراف، يُشاهد في غوصات المحيط المفتوح.';
+  String get species_oceanic_whitetip_shark_desc => 'قرش من أعالي البحار بزعانف مستديرة بيضاء الأطراف، يُشاهد في غوصات المحيط المفتوح.';
 
   @override
   String get species_thresher_shark_name => 'القرش الدرّاس';
 
   @override
-  String get species_thresher_shark_desc =>
-      'يُعرف بزعنفة ذيله الطويلة للغاية، ويُشاهد أحيانًا عند محطات التنظيف.';
+  String get species_thresher_shark_desc => 'يُعرف بزعنفة ذيله الطويلة للغاية، ويُشاهد أحيانًا عند محطات التنظيف.';
 
   @override
   String get species_pelagic_thresher_shark_name => 'القرش الدرّاس المحيطي';
 
   @override
-  String get species_pelagic_thresher_shark_desc =>
-      'أصغر أنواع القرش الدرّاس، ويشتهر بمشاهدته عند ضحل موناد في الفلبين.';
+  String get species_pelagic_thresher_shark_desc => 'أصغر أنواع القرش الدرّاس، ويشتهر بمشاهدته عند ضحل موناد في الفلبين.';
 
   @override
   String get species_shortfin_mako_shark_name => 'قرش الماكو قصير الزعنفة';
 
   @override
-  String get species_shortfin_mako_shark_desc =>
-      'أسرع قرش في المحيط، مفترس أنيق في المياه المفتوحة بلون أزرق معدني.';
+  String get species_shortfin_mako_shark_desc => 'أسرع قرش في المحيط، مفترس أنيق في المياه المفتوحة بلون أزرق معدني.';
 
   @override
   String get species_blue_shark_name => 'القرش الأزرق';
 
   @override
-  String get species_blue_shark_desc =>
-      'قرش نحيل أزرق داكن من أعالي البحار يُصادَف غالبًا في غوصات المياه الزرقاء.';
+  String get species_blue_shark_desc => 'قرش نحيل أزرق داكن من أعالي البحار يُصادَف غالبًا في غوصات المياه الزرقاء.';
 
   @override
   String get species_spotted_wobbegong_name => 'قرش السجاد المرقّط';
 
   @override
-  String get species_spotted_wobbegong_desc =>
-      'قرش سجاد مسطح ومموّه يرقد بلا حراك على الشعاب الصخرية في أستراليا.';
+  String get species_spotted_wobbegong_desc => 'قرش سجاد مسطح ومموّه يرقد بلا حراك على الشعاب الصخرية في أستراليا.';
 
   @override
   String get species_tasselled_wobbegong_name => 'قرش السجاد المهدّب';
 
   @override
-  String get species_tasselled_wobbegong_desc =>
-      'قرش سجاد مزخرف بفصوص مهدّبة حول رأسه، يعيش في الشعاب المرجانية.';
+  String get species_tasselled_wobbegong_desc => 'قرش سجاد مزخرف بفصوص مهدّبة حول رأسه، يعيش في الشعاب المرجانية.';
 
   @override
   String get species_epaulette_shark_name => 'قرش الكتفية';
 
   @override
-  String get species_epaulette_shark_desc =>
-      'قرش صغير يسير على قاع الشعاب مستخدمًا زعانفه الصدرية.';
+  String get species_epaulette_shark_desc => 'قرش صغير يسير على قاع الشعاب مستخدمًا زعانفه الصدرية.';
 
   @override
   String get species_horn_shark_name => 'القرش القرني';
 
   @override
-  String get species_horn_shark_desc =>
-      'ساكن قاع ليلي النشاط بحواف بارزة فوق عينيه، يوجد قبالة كاليفورنيا.';
+  String get species_horn_shark_desc => 'ساكن قاع ليلي النشاط بحواف بارزة فوق عينيه، يوجد قبالة كاليفورنيا.';
 
   @override
   String get species_leopard_shark_name => 'قرش الفهد';
 
   @override
-  String get species_leopard_shark_desc =>
-      'قرش بنقوش جميلة يعيش في الخلجان الضحلة على طول ساحل المحيط الهادئ الأمريكي.';
+  String get species_leopard_shark_desc => 'قرش بنقوش جميلة يعيش في الخلجان الضحلة على طول ساحل المحيط الهادئ الأمريكي.';
 
   @override
   String get species_pacific_angel_shark_name => 'قرش الملاك الهادئي';
 
   @override
-  String get species_pacific_angel_shark_desc =>
-      'مفترس كمين مسطح الجسم يرقد مدفونًا في الرمال على قاع البحر.';
+  String get species_pacific_angel_shark_desc => 'مفترس كمين مسطح الجسم يرقد مدفونًا في الرمال على قاع البحر.';
 
   @override
   String get species_sand_tiger_shark_name => 'قرش نمر الرمال';
 
   @override
-  String get species_sand_tiger_shark_desc =>
-      'قرش مخيف المظهر لكنه وديع، يُشاهد غالبًا محلّقًا في الكهوف وحطام السفن.';
+  String get species_sand_tiger_shark_desc => 'قرش مخيف المظهر لكنه وديع، يُشاهد غالبًا محلّقًا في الكهوف وحطام السفن.';
 
   @override
   String get species_zebra_shark_name => 'قرش الزرد';
 
   @override
-  String get species_zebra_shark_desc =>
-      'قرش شعاب منقّط يستريح على القيعان الرملية، وشائع في المحيطين الهندي والهادئ.';
+  String get species_zebra_shark_desc => 'قرش شعاب منقّط يستريح على القيعان الرملية، وشائع في المحيطين الهندي والهادئ.';
 
   @override
   String get species_blacktip_shark_name => 'القرش أسود الأطراف';
 
   @override
-  String get species_blacktip_shark_desc =>
-      'قرش ساحلي سريع يشتهر بقفزاته الدوّارة، ويوجد في المياه الدافئة حول العالم.';
+  String get species_blacktip_shark_desc => 'قرش ساحلي سريع يشتهر بقفزاته الدوّارة، ويوجد في المياه الدافئة حول العالم.';
 
   @override
   String get species_silvertip_shark_name => 'القرش فضي الأطراف';
 
   @override
-  String get species_silvertip_shark_desc =>
-      'قرش شعاب جريء بزعانف بيضاء الحواف، يوجد قرب المنحدرات العميقة والجزر المرجانية.';
+  String get species_silvertip_shark_desc => 'قرش شعاب جريء بزعانف بيضاء الحواف، يوجد قرب المنحدرات العميقة والجزر المرجانية.';
 
   @override
   String get species_silky_shark_name => 'القرش الحريري';
 
   @override
-  String get species_silky_shark_desc =>
-      'قرش أنيق من أعالي البحار بجلد ناعم، يوجد غالبًا قرب الشعاب البعيدة عن الساحل.';
+  String get species_silky_shark_desc => 'قرش أنيق من أعالي البحار بجلد ناعم، يوجد غالبًا قرب الشعاب البعيدة عن الساحل.';
 
   @override
   String get species_lemon_shark_name => 'قرش الليمون';
 
   @override
-  String get species_lemon_shark_desc =>
-      'قرش بلون بني مصفرّ يُشاهد عادةً في غابات المانغروف الضحلة والسهول الرملية.';
+  String get species_lemon_shark_desc => 'قرش بلون بني مصفرّ يُشاهد عادةً في غابات المانغروف الضحلة والسهول الرملية.';
 
   @override
   String get species_galapagos_shark_name => 'قرش غالاباغوس';
 
   @override
-  String get species_galapagos_shark_desc =>
-      'قرش شعاب كبير يوجد حول الجزر المحيطية، وفضولي تجاه الغواصين.';
+  String get species_galapagos_shark_desc => 'قرش شعاب كبير يوجد حول الجزر المحيطية، وفضولي تجاه الغواصين.';
 
   @override
   String get species_port_jackson_shark_name => 'قرش بورت جاكسون';
 
   @override
-  String get species_port_jackson_shark_desc =>
-      'ساكن قاع ليلي النشاط بعلامات تشبه الحزام، متوطن في أستراليا.';
+  String get species_port_jackson_shark_desc => 'ساكن قاع ليلي النشاط بعلامات تشبه الحزام، متوطن في أستراليا.';
 
   @override
   String get species_bamboo_shark_name => 'قرش الخيزران بنّي الأشرطة';
 
   @override
-  String get species_bamboo_shark_desc =>
-      'قرش صغير وديع يعيش على القاع وينتشر في الشعاب المرجانية بالمحيطين الهندي والهادئ.';
+  String get species_bamboo_shark_desc => 'قرش صغير وديع يعيش على القاع وينتشر في الشعاب المرجانية بالمحيطين الهندي والهادئ.';
 
   @override
   String get species_basking_shark_name => 'القرش المتشمس';
 
   @override
-  String get species_basking_shark_desc =>
-      'ثاني أكبر سمكة في العالم، يتغذى بالترشيح ويُشاهد في المياه السطحية المعتدلة.';
+  String get species_basking_shark_desc => 'ثاني أكبر سمكة في العالم، يتغذى بالترشيح ويُشاهد في المياه السطحية المعتدلة.';
 
   @override
   String get species_greenland_shark_name => 'قرش غرينلاند';
 
   @override
-  String get species_greenland_shark_desc =>
-      'قرش أعماق بطيء الحركة، وأحد أطول الفقاريات عمرًا على وجه الأرض.';
+  String get species_greenland_shark_desc => 'قرش أعماق بطيء الحركة، وأحد أطول الفقاريات عمرًا على وجه الأرض.';
 
   @override
   String get species_cookiecutter_shark_name => 'القرش قاطع البسكويت';
 
   @override
-  String get species_cookiecutter_shark_desc =>
-      'قرش أعماق صغير يقتطع عضّات دائرية من الحيوانات البحرية الأكبر منه.';
+  String get species_cookiecutter_shark_desc => 'قرش أعماق صغير يقتطع عضّات دائرية من الحيوانات البحرية الأكبر منه.';
 
   @override
   String get species_sevengill_shark_name => 'القرش سباعي الخياشيم عريض الأنف';
 
   @override
-  String get species_sevengill_shark_desc =>
-      'قرش بدائي بسبعة شقوق خيشومية، يُصادَف في غوصات غابات عشب البحر المعتدلة.';
+  String get species_sevengill_shark_desc => 'قرش بدائي بسبعة شقوق خيشومية، يُصادَف في غوصات غابات عشب البحر المعتدلة.';
 
   @override
   String get species_pyjama_shark_name => 'قرش البيجاما';
 
   @override
-  String get species_pyjama_shark_desc =>
-      'قرش قطي مخطط متوطن في جنوب أفريقيا، يعيش في الشعاب الصخرية وغابات عشب البحر.';
+  String get species_pyjama_shark_desc => 'قرش قطي مخطط متوطن في جنوب أفريقيا، يعيش في الشعاب الصخرية وغابات عشب البحر.';
 
   @override
   String get species_spiny_dogfish_name => 'كلب البحر الشوكي';
 
   @override
-  String get species_spiny_dogfish_desc =>
-      'قرش صغير وفير العدد بأشواك ظهرية سامة، يوجد في المياه المعتدلة.';
+  String get species_spiny_dogfish_desc => 'قرش صغير وفير العدد بأشواك ظهرية سامة، يوجد في المياه المعتدلة.';
 
   @override
   String get species_swell_shark_name => 'القرش المنتفخ';
 
   @override
-  String get species_swell_shark_desc =>
-      'قرش قطي ليلي النشاط ينفخ جسمه عند شعوره بالتهديد، ويوجد قبالة كاليفورنيا.';
+  String get species_swell_shark_desc => 'قرش قطي ليلي النشاط ينفخ جسمه عند شعوره بالتهديد، ويوجد قبالة كاليفورنيا.';
 
   @override
-  String get species_giant_oceanic_manta_ray_name =>
-      'شفنين المانتا المحيطي العملاق';
+  String get species_giant_oceanic_manta_ray_name => 'شفنين المانتا المحيطي العملاق';
 
   @override
-  String get species_giant_oceanic_manta_ray_desc =>
-      'أكبر أنواع الشفنين، مرشِّح مهيب يتغذى بالترشيح ويبلغ باع جناحيه سبعة أمتار.';
+  String get species_giant_oceanic_manta_ray_desc => 'أكبر أنواع الشفنين، مرشِّح مهيب يتغذى بالترشيح ويبلغ باع جناحيه سبعة أمتار.';
 
   @override
   String get species_reef_manta_ray_name => 'شفنين المانتا الشعابي';
 
   @override
-  String get species_reef_manta_ray_desc =>
-      'نوع مانتا أصغر حجمًا يُشاهد عادةً عند محطات التنظيف في الشعاب الاستوائية.';
+  String get species_reef_manta_ray_desc => 'نوع مانتا أصغر حجمًا يُشاهد عادةً عند محطات التنظيف في الشعاب الاستوائية.';
 
   @override
   String get species_spotted_eagle_ray_name => 'الشفنين النسري المرقّط';
 
   @override
-  String get species_spotted_eagle_ray_desc =>
-      'شفنين أنيق ببقع بيضاء وذيل طويل يشبه السوط، يُشاهد غالبًا في وسط الماء.';
+  String get species_spotted_eagle_ray_desc => 'شفنين أنيق ببقع بيضاء وذيل طويل يشبه السوط، يُشاهد غالبًا في وسط الماء.';
 
   @override
   String get species_common_eagle_ray_name => 'الشفنين النسري الشائع';
 
   @override
-  String get species_common_eagle_ray_desc =>
-      'شفنين معيّن الشكل يوجد في المياه المعتدلة بشرق الأطلسي والبحر المتوسط.';
+  String get species_common_eagle_ray_desc => 'شفنين معيّن الشكل يوجد في المياه المعتدلة بشرق الأطلسي والبحر المتوسط.';
 
   @override
-  String get species_blue_spotted_ribbontail_ray_name =>
-      'الشفنين الشريطي الذيل ذو البقع الزرقاء';
+  String get species_blue_spotted_ribbontail_ray_name => 'الشفنين الشريطي الذيل ذو البقع الزرقاء';
 
   @override
-  String get species_blue_spotted_ribbontail_ray_desc =>
-      'شفنين زاهي الألوان ببقع زرقاء ساطعة، شائع في شعاب المحيطين الهندي والهادئ.';
+  String get species_blue_spotted_ribbontail_ray_desc => 'شفنين زاهي الألوان ببقع زرقاء ساطعة، شائع في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_blue_spotted_stingray_name => 'الشفنين اللاسع أزرق البقع';
 
   @override
-  String get species_blue_spotted_stingray_desc =>
-      'شفنين لاسع صغير من الشعاب ببقع زرقاء متناثرة، يُدفن غالبًا في الرقع الرملية.';
+  String get species_blue_spotted_stingray_desc => 'شفنين لاسع صغير من الشعاب ببقع زرقاء متناثرة، يُدفن غالبًا في الرقع الرملية.';
 
   @override
   String get species_southern_stingray_name => 'الشفنين اللاسع الجنوبي';
 
   @override
-  String get species_southern_stingray_desc =>
-      'شفنين لاسع كبير يعيش على السهول الرملية في الكاريبي، ويشتهر في موقع ستينغراي سيتي.';
+  String get species_southern_stingray_desc => 'شفنين لاسع كبير يعيش على السهول الرملية في الكاريبي، ويشتهر في موقع ستينغراي سيتي.';
 
   @override
   String get species_round_stingray_name => 'الشفنين اللاسع المستدير';
 
   @override
-  String get species_round_stingray_desc =>
-      'شفنين لاسع صغير دائري الشكل شائع في المناطق الرملية الضحلة بشرق المحيط الهادئ.';
+  String get species_round_stingray_desc => 'شفنين لاسع صغير دائري الشكل شائع في المناطق الرملية الضحلة بشرق المحيط الهادئ.';
 
   @override
   String get species_short_tail_stingray_name => 'الشفنين اللاسع قصير الذيل';
 
   @override
-  String get species_short_tail_stingray_desc =>
-      'أحد أكبر أنواع الشفنين اللاسع، ويوجد في المياه المعتدلة بنصف الكرة الجنوبي.';
+  String get species_short_tail_stingray_desc => 'أحد أكبر أنواع الشفنين اللاسع، ويوجد في المياه المعتدلة بنصف الكرة الجنوبي.';
 
   @override
   String get species_cowtail_stingray_name => 'الشفنين اللاسع ذو ذيل البقرة';
 
   @override
-  String get species_cowtail_stingray_desc =>
-      'شفنين لاسع كبير داكن بطية ذيل مميزة تشبه الراية، يوجد على الشعاب الرملية.';
+  String get species_cowtail_stingray_desc => 'شفنين لاسع كبير داكن بطية ذيل مميزة تشبه الراية، يوجد على الشعاب الرملية.';
 
   @override
   String get species_atlantic_torpedo_ray_name => 'الشفنين الرعّاد الأطلسي';
 
   @override
-  String get species_atlantic_torpedo_ray_desc =>
-      'شفنين كهربائي قادر على توليد صدمات قوية، يوجد على القيعان الرملية في الأطلسي.';
+  String get species_atlantic_torpedo_ray_desc => 'شفنين كهربائي قادر على توليد صدمات قوية، يوجد على القيعان الرملية في الأطلسي.';
 
   @override
   String get species_marbled_electric_ray_name => 'الشفنين الكهربائي المرمّري';
 
   @override
-  String get species_marbled_electric_ray_desc =>
-      'شفنين كهربائي متوسطي بنمط مرمّري، يُطلق صدمة كهربائية ملحوظة.';
+  String get species_marbled_electric_ray_desc => 'شفنين كهربائي متوسطي بنمط مرمّري، يُطلق صدمة كهربائية ملحوظة.';
 
   @override
   String get species_giant_guitarfish_name => 'سمكة الجيتار العملاقة';
 
   @override
-  String get species_giant_guitarfish_desc =>
-      'شفنين بهيئة القرش يوجد على القيعان الرملية قرب الشعاب المرجانية في المحيطين الهندي والهادئ.';
+  String get species_giant_guitarfish_desc => 'شفنين بهيئة القرش يوجد على القيعان الرملية قرب الشعاب المرجانية في المحيطين الهندي والهادئ.';
 
   @override
   String get species_shovelnose_guitarfish_name => 'سمكة الجيتار مجرفية الأنف';
 
   @override
-  String get species_shovelnose_guitarfish_desc =>
-      'هيئة مسطحة تجمع بين الشفنين والقرش، وتنتشر في الضحال الرملية بشرق المحيط الهادئ.';
+  String get species_shovelnose_guitarfish_desc => 'هيئة مسطحة تجمع بين الشفنين والقرش، وتنتشر في الضحال الرملية بشرق المحيط الهادئ.';
 
   @override
   String get species_smalltooth_sawfish_name => 'سمكة المنشار صغيرة الأسنان';
 
   @override
-  String get species_smalltooth_sawfish_desc =>
-      'شفنين مهدد بالانقراض بشدة بمنقار مسنن، يوجد في المياه الساحلية الاستوائية.';
+  String get species_smalltooth_sawfish_desc => 'شفنين مهدد بالانقراض بشدة بمنقار مسنن، يوجد في المياه الساحلية الاستوائية.';
 
   @override
   String get species_green_sawfish_name => 'سمكة المنشار الخضراء';
 
   @override
-  String get species_green_sawfish_desc =>
-      'سمكة منشار كبيرة بجسم أخضر زيتوني، تعيش في مصبات الأنهار بغرب المحيطين الهندي والهادئ.';
+  String get species_green_sawfish_desc => 'سمكة منشار كبيرة بجسم أخضر زيتوني، تعيش في مصبات الأنهار بغرب المحيطين الهندي والهادئ.';
 
   @override
   String get species_devil_ray_name => 'شفنين الشيطان العملاق';
 
   @override
-  String get species_devil_ray_desc =>
-      'شفنين موبولا كبير بزعانف رأسية، يُشاهد وهو يقفز من الماء في مجموعات.';
+  String get species_devil_ray_desc => 'شفنين موبولا كبير بزعانف رأسية، يُشاهد وهو يقفز من الماء في مجموعات.';
 
   @override
   String get species_spinetail_devil_ray_name => 'شفنين الشيطان شوكي الذيل';
 
   @override
-  String get species_spinetail_devil_ray_desc =>
-      'شفنين شيطاني من أعالي البحار يُشاهد غالبًا في تجمعات كبيرة قرب السطح.';
+  String get species_spinetail_devil_ray_desc => 'شفنين شيطاني من أعالي البحار يُشاهد غالبًا في تجمعات كبيرة قرب السطح.';
 
   @override
   String get species_lesser_devil_ray_name => 'شفنين الشيطان القزم';
 
   @override
-  String get species_lesser_devil_ray_desc =>
-      'أصغر أنواع الموبولا، ويشكّل أسرابًا كبيرة في خليج كاليفورنيا.';
+  String get species_lesser_devil_ray_desc => 'أصغر أنواع الموبولا، ويشكّل أسرابًا كبيرة في خليج كاليفورنيا.';
 
   @override
   String get species_bat_ray_name => 'شفنين الخفاش';
 
   @override
-  String get species_bat_ray_desc =>
-      'شفنين معيّن الشكل شائع في غابات عشب البحر والخلجان الرملية بكاليفورنيا.';
+  String get species_bat_ray_desc => 'شفنين معيّن الشكل شائع في غابات عشب البحر والخلجان الرملية بكاليفورنيا.';
 
   @override
   String get species_undulate_ray_name => 'الشفنين المتموّج';
 
   @override
-  String get species_undulate_ray_desc =>
-      'شفنين ذو نقوش جميلة بخطوط متموجة، يوجد في شرق المحيط الأطلسي.';
+  String get species_undulate_ray_desc => 'شفنين ذو نقوش جميلة بخطوط متموجة، يوجد في شرق المحيط الأطلسي.';
 
   @override
   String get species_thornback_ray_name => 'الشفنين الشوكي الظهر';
 
   @override
-  String get species_thornback_ray_desc =>
-      'شفنين أوروبي شائع بأشواك حادة على طول ظهره وذيله.';
+  String get species_thornback_ray_desc => 'شفنين أوروبي شائع بأشواك حادة على طول ظهره وذيله.';
 
   @override
   String get species_cownose_ray_name => 'الشفنين ذو أنف البقرة';
 
   @override
-  String get species_cownose_ray_desc =>
-      'يتميز برأس مشقوق مميز، ويُشاهد غالبًا في أسراب كبيرة خلال الهجرات الموسمية.';
+  String get species_cownose_ray_desc => 'يتميز برأس مشقوق مميز، ويُشاهد غالبًا في أسراب كبيرة خلال الهجرات الموسمية.';
 
   @override
   String get species_marble_ray_name => 'الشفنين المرمّري';
 
   @override
-  String get species_marble_ray_desc =>
-      'شفنين لاسع كبير داكن ببقع بيضاء، يُشاهد كثيرًا عند محطات التنظيف في المحيطين الهندي والهادئ.';
+  String get species_marble_ray_desc => 'شفنين لاسع كبير داكن ببقع بيضاء، يُشاهد كثيرًا عند محطات التنظيف في المحيطين الهندي والهادئ.';
 
   @override
   String get species_ocellate_river_stingray_name => 'شفنين النهر ذو العيون';
 
   @override
-  String get species_ocellate_river_stingray_desc =>
-      'شفنين لاسع من المياه العذبة ببقع لافتة محاطة بحلقات برتقالية، موطنه أنهار أمريكا الجنوبية.';
+  String get species_ocellate_river_stingray_desc => 'شفنين لاسع من المياه العذبة ببقع لافتة محاطة بحلقات برتقالية، موطنه أنهار أمريكا الجنوبية.';
 
   @override
   String get species_ocellaris_clownfish_name => 'سمكة المهرج';
 
   @override
-  String get species_ocellaris_clownfish_desc =>
-      'سمكة صغيرة برتقالية بخطوط بيضاء تعيش عادةً في تكافل مع شقائق النعمان البحرية على الشعاب المرجانية.';
+  String get species_ocellaris_clownfish_desc => 'سمكة صغيرة برتقالية بخطوط بيضاء تعيش عادةً في تكافل مع شقائق النعمان البحرية على الشعاب المرجانية.';
 
   @override
   String get species_clarkii_clownfish_name => 'سمكة مهرج كلارك';
 
   @override
-  String get species_clarkii_clownfish_desc =>
-      'سمكة شقائق قوية البنية بجسم داكن وشريطين أبيضين، توجد في أنحاء المحيطين الهندي والهادئ ضمن أنواع مختلفة من شقائق النعمان.';
+  String get species_clarkii_clownfish_desc => 'سمكة شقائق قوية البنية بجسم داكن وشريطين أبيضين، توجد في أنحاء المحيطين الهندي والهادئ ضمن أنواع مختلفة من شقائق النعمان.';
 
   @override
   String get species_tomato_clownfish_name => 'سمكة المهرج الطماطمية';
 
   @override
-  String get species_tomato_clownfish_desc =>
-      'سمكة شقائق حمراء برتقالية زاهية بشريط أبيض واحد على الرأس، شائعة في شعاب المحيطين الهندي والهادئ.';
+  String get species_tomato_clownfish_desc => 'سمكة شقائق حمراء برتقالية زاهية بشريط أبيض واحد على الرأس، شائعة في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_regal_blue_tang_name => 'سمكة الجراح الزرقاء الملكية';
 
   @override
-  String get species_regal_blue_tang_desc =>
-      'سمكة جراح زرقاء زاهية بعلامة سوداء تشبه لوحة الألوان وذيل أصفر، توجد في الشعاب المرجانية بالمحيطين الهندي والهادئ.';
+  String get species_regal_blue_tang_desc => 'سمكة جراح زرقاء زاهية بعلامة سوداء تشبه لوحة الألوان وذيل أصفر، توجد في الشعاب المرجانية بالمحيطين الهندي والهادئ.';
 
   @override
   String get species_yellow_tang_name => 'سمكة الجراح الصفراء';
 
   @override
-  String get species_yellow_tang_desc =>
-      'سمكة جراح صفراء زاهية شائعة في شعاب هاواي والمحيط الهادئ، وتُشاهد غالبًا وهي ترعى الطحالب في مجموعات.';
+  String get species_yellow_tang_desc => 'سمكة جراح صفراء زاهية شائعة في شعاب هاواي والمحيط الهادئ، وتُشاهد غالبًا وهي ترعى الطحالب في مجموعات.';
 
   @override
-  String get species_powder_blue_surgeonfish_name =>
-      'سمكة الجراح الزرقاء الفاتحة';
+  String get species_powder_blue_surgeonfish_name => 'سمكة الجراح الزرقاء الفاتحة';
 
   @override
-  String get species_powder_blue_surgeonfish_desc =>
-      'سمكة جراح لافتة بلون أزرق فاتح ووجه أسود وزعنفة ظهرية صفراء، توجد في المحيط الهندي.';
+  String get species_powder_blue_surgeonfish_desc => 'سمكة جراح لافتة بلون أزرق فاتح ووجه أسود وزعنفة ظهرية صفراء، توجد في المحيط الهندي.';
 
   @override
   String get species_sohal_surgeonfish_name => 'سمكة السوهال';
 
   @override
-  String get species_sohal_surgeonfish_desc =>
-      'سمكة جراح مخططة جريئة بشوكة برتقالية حادة، متوطنة في شعاب البحر الأحمر والخليج العربي.';
+  String get species_sohal_surgeonfish_desc => 'سمكة جراح مخططة جريئة بشوكة برتقالية حادة، متوطنة في شعاب البحر الأحمر والخليج العربي.';
 
   @override
   String get species_blue_tang_name => 'سمكة الجراح الزرقاء';
 
   @override
-  String get species_blue_tang_desc =>
-      'سمكة جراح زرقاء داكنة شائعة في شعاب الكاريبي، وصغارها صفراء زاهية.';
+  String get species_blue_tang_desc => 'سمكة جراح زرقاء داكنة شائعة في شعاب الكاريبي، وصغارها صفراء زاهية.';
 
   @override
   String get species_emperor_angelfish_name => 'سمكة الملاك الإمبراطور';
 
   @override
-  String get species_emperor_angelfish_desc =>
-      'سمكة ملاك كبيرة بخطوط أفقية زرقاء وصفراء لافتة. وتُظهر صغارها دوائر متحدة المركز بالأزرق والأبيض.';
+  String get species_emperor_angelfish_desc => 'سمكة ملاك كبيرة بخطوط أفقية زرقاء وصفراء لافتة. وتُظهر صغارها دوائر متحدة المركز بالأزرق والأبيض.';
 
   @override
   String get species_french_angelfish_name => 'سمكة الملاك الفرنسية';
 
   @override
-  String get species_french_angelfish_desc =>
-      'سمكة ملاك كبيرة داكنة بحراشف مذهّبة الحواف، تُشاهد عادةً في أزواج على شعاب الكاريبي وغرب الأطلسي.';
+  String get species_french_angelfish_desc => 'سمكة ملاك كبيرة داكنة بحراشف مذهّبة الحواف، تُشاهد عادةً في أزواج على شعاب الكاريبي وغرب الأطلسي.';
 
   @override
   String get species_queen_angelfish_name => 'سمكة الملاك الملكة';
 
   @override
-  String get species_queen_angelfish_desc =>
-      'سمكة ملاك مذهلة بالأزرق والأصفر مع بقعة تشبه التاج، توجد في الشعاب المرجانية بالكاريبي.';
+  String get species_queen_angelfish_desc => 'سمكة ملاك مذهلة بالأزرق والأصفر مع بقعة تشبه التاج، توجد في الشعاب المرجانية بالكاريبي.';
 
   @override
   String get species_regal_angelfish_name => 'سمكة الملاك الملكية';
 
   @override
-  String get species_regal_angelfish_desc =>
-      'سمكة ملاك أنيقة بأشرطة عمودية متناوبة برتقالية بيضاء وزرقاء، توجد في شعاب المحيطين الهندي والهادئ.';
+  String get species_regal_angelfish_desc => 'سمكة ملاك أنيقة بأشرطة عمودية متناوبة برتقالية بيضاء وزرقاء، توجد في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_rock_beauty_name => 'جميلة الصخور';
 
   @override
-  String get species_rock_beauty_desc =>
-      'سمكة ملاك كاريبية لافتة نصفها الأمامي أصفر ونصفها الخلفي أسود، توجد قرب الشعاب الصخرية والحواف.';
+  String get species_rock_beauty_desc => 'سمكة ملاك كاريبية لافتة نصفها الأمامي أصفر ونصفها الخلفي أسود، توجد قرب الشعاب الصخرية والحواف.';
 
   @override
   String get species_gray_angelfish_name => 'سمكة الملاك الرمادية';
 
   @override
-  String get species_gray_angelfish_desc =>
-      'سمكة ملاك رمادية كبيرة بوجه شاحب وزعنفة صدرية صفراء من الداخل، شائعة في شعاب الكاريبي.';
+  String get species_gray_angelfish_desc => 'سمكة ملاك رمادية كبيرة بوجه شاحب وزعنفة صدرية صفراء من الداخل، شائعة في شعاب الكاريبي.';
 
   @override
-  String get species_copperband_butterflyfish_name =>
-      'سمكة الفراشة نحاسية الأشرطة';
+  String get species_copperband_butterflyfish_name => 'سمكة الفراشة نحاسية الأشرطة';
 
   @override
-  String get species_copperband_butterflyfish_desc =>
-      'سمكة فراشة مميزة بأشرطة برتقالية عمودية وخطم مستطيل، توجد في شعاب المحيطين الهندي والهادئ.';
+  String get species_copperband_butterflyfish_desc => 'سمكة فراشة مميزة بأشرطة برتقالية عمودية وخطم مستطيل، توجد في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_raccoon_butterflyfish_name => 'سمكة الفراشة الراكونية';
 
   @override
-  String get species_raccoon_butterflyfish_desc =>
-      'سمكة فراشة صفراء بقناع داكن حول العينين يشبه قناع الراكون، شائعة في شعاب المحيطين الهندي والهادئ وهاواي.';
+  String get species_raccoon_butterflyfish_desc => 'سمكة فراشة صفراء بقناع داكن حول العينين يشبه قناع الراكون، شائعة في شعاب المحيطين الهندي والهادئ وهاواي.';
 
   @override
   String get species_longnose_butterflyfish_name => 'سمكة الفراشة طويلة الأنف';
 
   @override
-  String get species_longnose_butterflyfish_desc =>
-      'سمكة فراشة صفراء زاهية بخطم طويل جدًا تستخدمه لالتقاط الطعام من الشقوق في شعاب المحيطين الهندي والهادئ.';
+  String get species_longnose_butterflyfish_desc => 'سمكة فراشة صفراء زاهية بخطم طويل جدًا تستخدمه لالتقاط الطعام من الشقوق في شعاب المحيطين الهندي والهادئ.';
 
   @override
-  String get species_threadfin_butterflyfish_name =>
-      'سمكة الفراشة خيطية الزعنفة';
+  String get species_threadfin_butterflyfish_name => 'سمكة الفراشة خيطية الزعنفة';
 
   @override
-  String get species_threadfin_butterflyfish_desc =>
-      'سمكة فراشة بيضاء بنمط على شكل شارات وخيط ظهري متدلٍ، منتشرة في أنحاء المحيطين الهندي والهادئ.';
+  String get species_threadfin_butterflyfish_desc => 'سمكة فراشة بيضاء بنمط على شكل شارات وخيط ظهري متدلٍ، منتشرة في أنحاء المحيطين الهندي والهادئ.';
 
   @override
   String get species_foureye_butterflyfish_name => 'سمكة الفراشة رباعية العيون';
 
   @override
-  String get species_foureye_butterflyfish_desc =>
-      'سمكة فراشة شاحبة ببقعة عين كاذبة بارزة قرب الذيل، شائعة في شعاب الكاريبي.';
+  String get species_foureye_butterflyfish_desc => 'سمكة فراشة شاحبة ببقعة عين كاذبة بارزة قرب الذيل، شائعة في شعاب الكاريبي.';
 
   @override
-  String get species_spotfin_butterflyfish_name =>
-      'سمكة الفراشة منقّطة الزعنفة';
+  String get species_spotfin_butterflyfish_name => 'سمكة الفراشة منقّطة الزعنفة';
 
   @override
-  String get species_spotfin_butterflyfish_desc =>
-      'سمكة فراشة بيضاء وصفراء ببقعة داكنة صغيرة على الزعنفة الظهرية، توجد في غرب الأطلسي.';
+  String get species_spotfin_butterflyfish_desc => 'سمكة فراشة بيضاء وصفراء ببقعة داكنة صغيرة على الزعنفة الظهرية، توجد في غرب الأطلسي.';
 
   @override
   String get species_banner_butterflyfish_name => 'سمكة الراية في البحر الأحمر';
 
   @override
-  String get species_banner_butterflyfish_desc =>
-      'سمكة راية بيضاء وسوداء بزعنفة ظهرية مستطيلة وبطن أصفر، متوطنة في البحر الأحمر.';
+  String get species_banner_butterflyfish_desc => 'سمكة راية بيضاء وسوداء بزعنفة ظهرية مستطيلة وبطن أصفر، متوطنة في البحر الأحمر.';
 
   @override
   String get species_moorish_idol_name => 'سمكة المعبود المورية';
 
   @override
-  String get species_moorish_idol_desc =>
-      'سمكة شعاب أيقونية بأشرطة سوداء وبيضاء وصفراء جريئة وخيط ظهري طويل متدلٍ.';
+  String get species_moorish_idol_desc => 'سمكة شعاب أيقونية بأشرطة سوداء وبيضاء وصفراء جريئة وخيط ظهري طويل متدلٍ.';
 
   @override
   String get species_green_moray_eel_name => 'ثعبان البحر المورَي الأخضر';
 
   @override
-  String get species_green_moray_eel_desc =>
-      'مورَي أخضر كبير يبلغ طوله 2.5 متر، ويُشاهد غالبًا فاغرًا فمه في شقوق الشعاب عبر غرب الأطلسي.';
+  String get species_green_moray_eel_desc => 'مورَي أخضر كبير يبلغ طوله 2.5 متر، ويُشاهد غالبًا فاغرًا فمه في شقوق الشعاب عبر غرب الأطلسي.';
 
   @override
   String get species_giant_moray_eel_name => 'ثعبان البحر المورَي العملاق';
 
   @override
-  String get species_giant_moray_eel_desc =>
-      'أكبر أنواع المورَي، ويتجاوز طوله ثلاثة أمتار وله بقع تشبه بقع الفهد. يوجد في الشعاب المرجانية بالمحيطين الهندي والهادئ.';
+  String get species_giant_moray_eel_desc => 'أكبر أنواع المورَي، ويتجاوز طوله ثلاثة أمتار وله بقع تشبه بقع الفهد. يوجد في الشعاب المرجانية بالمحيطين الهندي والهادئ.';
 
   @override
   String get species_spotted_moray_eel_name => 'ثعبان البحر المورَي المرقّط';
 
   @override
-  String get species_spotted_moray_eel_desc =>
-      'مورَي أبيض ببقع بنية داكنة، يُصادَف عادةً وهو يطل من ثقوب الشعاب في الكاريبي.';
+  String get species_spotted_moray_eel_desc => 'مورَي أبيض ببقع بنية داكنة، يُصادَف عادةً وهو يطل من ثقوب الشعاب في الكاريبي.';
 
   @override
   String get species_ribbon_eel_name => 'ثعبان البحر الشريطي';
 
   @override
-  String get species_ribbon_eel_desc =>
-      'ثعبان بحر نحيل بمناخر متسعة؛ الذكور زرقاء زاهية والإناث صفراء. يوجد في البحيرات الرملية بالمحيطين الهندي والهادئ.';
+  String get species_ribbon_eel_desc => 'ثعبان بحر نحيل بمناخر متسعة؛ الذكور زرقاء زاهية والإناث صفراء. يوجد في البحيرات الرملية بالمحيطين الهندي والهادئ.';
 
   @override
   String get species_spotted_garden_eel_name => 'ثعبان البحر الحديقي المرقّط';
 
   @override
-  String get species_spotted_garden_eel_desc =>
-      'ثعبان بحر أبيض رفيع ببقع سوداء يعيش في مستعمرات رملية، ويتمايل مع التيار لالتقاط العوالق.';
+  String get species_spotted_garden_eel_desc => 'ثعبان بحر أبيض رفيع ببقع سوداء يعيش في مستعمرات رملية، ويتمايل مع التيار لالتقاط العوالق.';
 
   @override
   String get species_splendid_garden_eel_name => 'ثعبان البحر الحديقي البهي';
 
   @override
-  String get species_splendid_garden_eel_desc =>
-      'ثعبان بحر حديقي بأشرطة برتقالية وبيضاء يعيش في مستعمرات رملية كبيرة في غرب المحيط الهادئ.';
+  String get species_splendid_garden_eel_desc => 'ثعبان بحر حديقي بأشرطة برتقالية وبيضاء يعيش في مستعمرات رملية كبيرة في غرب المحيط الهادئ.';
 
   @override
   String get species_snowflake_moray_name => 'ثعبان البحر المورَي ندفي النقوش';
 
   @override
-  String get species_snowflake_moray_desc =>
-      'مورَي صغير بجسم أبيض وعلامات سوداء تشبه ندف الثلج، شائع في حطام الشعاب بالمحيطين الهندي والهادئ.';
+  String get species_snowflake_moray_desc => 'مورَي صغير بجسم أبيض وعلامات سوداء تشبه ندف الثلج، شائع في حطام الشعاب بالمحيطين الهندي والهادئ.';
 
   @override
   String get species_mandarin_dragonet_name => 'سمكة التنين المندرين';
 
   @override
-  String get species_mandarin_dragonet_desc =>
-      'سمكة صغيرة زاهية الألوان بنقوش زرقاء وبرتقالية مبهرة، توجد في مناطق الحطام المرجاني بغرب المحيط الهادئ.';
+  String get species_mandarin_dragonet_desc => 'سمكة صغيرة زاهية الألوان بنقوش زرقاء وبرتقالية مبهرة، توجد في مناطق الحطام المرجاني بغرب المحيط الهادئ.';
 
   @override
   String get species_common_lionfish_name => 'سمكة الأسد الشائعة';
 
   @override
-  String get species_common_lionfish_desc =>
-      'سمكة عقربية سامة بزعانف صدرية مروحية مذهلة وخطوط حمراء وبيضاء. وهي نوع غازٍ في الكاريبي.';
+  String get species_common_lionfish_desc => 'سمكة عقربية سامة بزعانف صدرية مروحية مذهلة وخطوط حمراء وبيضاء. وهي نوع غازٍ في الكاريبي.';
 
   @override
   String get species_leaf_scorpionfish_name => 'السمكة العقربية الورقية';
 
   @override
-  String get species_leaf_scorpionfish_desc =>
-      'سمكة عقربية شديدة التسطّح على شكل ورقة تتمايل مع التيار لتحاكي الحطام على شعاب المحيطين الهندي والهادئ.';
+  String get species_leaf_scorpionfish_desc => 'سمكة عقربية شديدة التسطّح على شكل ورقة تتمايل مع التيار لتحاكي الحطام على شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_stonefish_name => 'سمكة الحجر الشعابية';
 
   @override
-  String get species_stonefish_desc =>
-      'أشد أسماك العالم سُمّية، وتتمويه تام كصخرة على أرضيات الشعاب بالمحيطين الهندي والهادئ. خطيرة للغاية.';
+  String get species_stonefish_desc => 'أشد أسماك العالم سُمّية، وتتمويه تام كصخرة على أرضيات الشعاب بالمحيطين الهندي والهادئ. خطيرة للغاية.';
 
   @override
   String get species_painted_frogfish_name => 'سمكة الضفدع المرسومة';
 
   @override
-  String get species_painted_frogfish_desc =>
-      'مفترس كمين ممتلئ الجسم بطُعم على رأسه، شديد التباين في اللون. يوجد في شعاب المحيطين الهندي والهادئ.';
+  String get species_painted_frogfish_desc => 'مفترس كمين ممتلئ الجسم بطُعم على رأسه، شديد التباين في اللون. يوجد في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_giant_frogfish_name => 'سمكة الضفدع العملاقة';
 
   @override
-  String get species_giant_frogfish_desc =>
-      'أكبر أنواع سمك الضفدع، ويبلغ طولها 40 سم، وتتمتع بتمويه ممتاز بين الإسفنجيات وحطام المرجان.';
+  String get species_giant_frogfish_desc => 'أكبر أنواع سمك الضفدع، ويبلغ طولها 40 سم، وتتمتع بتمويه ممتاز بين الإسفنجيات وحطام المرجان.';
 
   @override
   String get species_hairy_frogfish_name => 'سمكة الضفدع الشعرية';
 
   @override
-  String get species_hairy_frogfish_desc =>
-      'سمكة ضفدع مغطاة بزوائد لحمية تشبه الديدان وتحاكي الطحالب، وهي صيد ثمين لمصوري ما تحت الماء.';
+  String get species_hairy_frogfish_desc => 'سمكة ضفدع مغطاة بزوائد لحمية تشبه الديدان وتحاكي الطحالب، وهي صيد ثمين لمصوري ما تحت الماء.';
 
   @override
   String get species_clown_triggerfish_name => 'سمكة الزناد المهرجة';
 
   @override
-  String get species_clown_triggerfish_desc =>
-      'سمكة زناد ذات نقوش جريئة ببقع بيضاء كبيرة على جسم داكن وشفاه صفراء، توجد في شعاب المحيطين الهندي والهادئ.';
+  String get species_clown_triggerfish_desc => 'سمكة زناد ذات نقوش جريئة ببقع بيضاء كبيرة على جسم داكن وشفاه صفراء، توجد في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_titan_triggerfish_name => 'سمكة الزناد التيتانية';
 
   @override
-  String get species_titan_triggerfish_desc =>
-      'سمكة زناد كبيرة عدوانية معروفة بمهاجمة الغواصين قرب عشها. وهي شائعة في الشعاب المرجانية بالمحيطين الهندي والهادئ.';
+  String get species_titan_triggerfish_desc => 'سمكة زناد كبيرة عدوانية معروفة بمهاجمة الغواصين قرب عشها. وهي شائعة في الشعاب المرجانية بالمحيطين الهندي والهادئ.';
 
   @override
   String get species_queen_triggerfish_name => 'سمكة الزناد الملكة';
 
   @override
-  String get species_queen_triggerfish_desc =>
-      'سمكة زناد كاريبية ملونة بعلامات زرقاء على الوجه وخيوط ذيل طويلة.';
+  String get species_queen_triggerfish_desc => 'سمكة زناد كاريبية ملونة بعلامات زرقاء على الوجه وخيوط ذيل طويلة.';
 
   @override
   String get species_picasso_triggerfish_name => 'سمكة زناد بيكاسو';
 
   @override
-  String get species_picasso_triggerfish_desc =>
-      'سمكة زناد بنمط تجريدي من الخطوط الزرقاء والصفراء والسوداء، شائعة على مسطحات الشعاب بالمحيطين الهندي والهادئ.';
+  String get species_picasso_triggerfish_desc => 'سمكة زناد بنمط تجريدي من الخطوط الزرقاء والصفراء والسوداء، شائعة على مسطحات الشعاب بالمحيطين الهندي والهادئ.';
 
   @override
-  String get species_yellowmargin_triggerfish_name =>
-      'سمكة الزناد صفراء الحواف';
+  String get species_yellowmargin_triggerfish_name => 'سمكة الزناد صفراء الحواف';
 
   @override
-  String get species_yellowmargin_triggerfish_desc =>
-      'سمكة زناد كبيرة بلون بيج وزعانف صفراء الحواف، معروفة بحراسة عشها بعدوانية في شعاب المحيطين الهندي والهادئ.';
+  String get species_yellowmargin_triggerfish_desc => 'سمكة زناد كبيرة بلون بيج وزعانف صفراء الحواف، معروفة بحراسة عشها بعدوانية في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_porcupinefish_name => 'سمكة النيص';
 
   @override
-  String get species_porcupinefish_desc =>
-      'سمكة شوكية كبيرة تنتفخ لتصير كرة عند شعورها بالتهديد، وتوجد في الشعاب الاستوائية حول العالم.';
+  String get species_porcupinefish_desc => 'سمكة شوكية كبيرة تنتفخ لتصير كرة عند شعورها بالتهديد، وتوجد في الشعاب الاستوائية حول العالم.';
 
   @override
   String get species_guineafowl_pufferfish_name => 'سمكة المنفاخ الغينية';
 
   @override
-  String get species_guineafowl_pufferfish_desc =>
-      'سمكة منفاخ داكنة مغطاة ببقع بيضاء صغيرة، وتظهر أحيانًا في طور لوني ذهبي أصفر على شعاب المحيطين الهندي والهادئ.';
+  String get species_guineafowl_pufferfish_desc => 'سمكة منفاخ داكنة مغطاة ببقع بيضاء صغيرة، وتظهر أحيانًا في طور لوني ذهبي أصفر على شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_map_pufferfish_name => 'سمكة المنفاخ الخريطية';
 
   @override
-  String get species_map_pufferfish_desc =>
-      'سمكة منفاخ كبيرة شاحبة بعلامات داكنة متشابكة تشبه الخرائط على جسمها، توجد في شعاب المحيطين الهندي والهادئ.';
+  String get species_map_pufferfish_desc => 'سمكة منفاخ كبيرة شاحبة بعلامات داكنة متشابكة تشبه الخرائط على جسمها، توجد في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_sharpnose_pufferfish_name => 'سمكة المنفاخ حادة الأنف';
 
   @override
-  String get species_sharpnose_pufferfish_desc =>
-      'سمكة منفاخ صغيرة بخطوط زرقاء على الوجه وذيل برتقالي، تُشاهد عادةً في شعاب الكاريبي.';
+  String get species_sharpnose_pufferfish_desc => 'سمكة منفاخ صغيرة بخطوط زرقاء على الوجه وذيل برتقالي، تُشاهد عادةً في شعاب الكاريبي.';
 
   @override
   String get species_boxfish_name => 'سمكة الصندوق الصفراء';
 
   @override
-  String get species_boxfish_desc =>
-      'الصغار مكعبات صفراء زاهية ببقع سوداء، وتتحول البالغة إلى الرمادي المزرق. توجد في أنحاء المحيطين الهندي والهادئ.';
+  String get species_boxfish_desc => 'الصغار مكعبات صفراء زاهية ببقع سوداء، وتتحول البالغة إلى الرمادي المزرق. توجد في أنحاء المحيطين الهندي والهادئ.';
 
   @override
   String get species_cowfish_name => 'سمكة البقرة طويلة القرون';
 
   @override
-  String get species_cowfish_desc =>
-      'سمكة صفراء صندوقية الشكل بنتوءات مميزة تشبه القرون فوق كل عين، توجد في شعاب المحيطين الهندي والهادئ.';
+  String get species_cowfish_desc => 'سمكة صفراء صندوقية الشكل بنتوءات مميزة تشبه القرون فوق كل عين، توجد في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_napoleon_wrasse_name => 'سمكة نابليون';
 
   @override
-  String get species_napoleon_wrasse_desc =>
-      'سمكة حريد ضخمة يبلغ طولها مترين بنتوء جبهي بارز. وهي مهددة بالانقراض ومحمية، وتوجد في شعاب المحيطين الهندي والهادئ.';
+  String get species_napoleon_wrasse_desc => 'سمكة حريد ضخمة يبلغ طولها مترين بنتوء جبهي بارز. وهي مهددة بالانقراض ومحمية، وتوجد في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_cleaner_wrasse_name => 'سمكة الحريد المنظفة زرقاء الخط';
 
   @override
-  String get species_cleaner_wrasse_desc =>
-      'سمكة حريد صغيرة مخططة بالأزرق تدير محطات التنظيف وتزيل الطفيليات عن الأسماك الأكبر في شعاب المحيطين الهندي والهادئ.';
+  String get species_cleaner_wrasse_desc => 'سمكة حريد صغيرة مخططة بالأزرق تدير محطات التنظيف وتزيل الطفيليات عن الأسماك الأكبر في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_yellowtail_coris_name => 'حريد الكوريس أصفر الذيل';
 
   @override
-  String get species_yellowtail_coris_desc =>
-      'سمكة حريد ملونة بجسم منقّط وذيل أصفر، وصغارها برتقالية حمراء زاهية بعلامات بيضاء.';
+  String get species_yellowtail_coris_desc => 'سمكة حريد ملونة بجسم منقّط وذيل أصفر، وصغارها برتقالية حمراء زاهية بعلامات بيضاء.';
 
   @override
   String get species_bluehead_wrasse_name => 'الحريد أزرق الرأس';
 
   @override
-  String get species_bluehead_wrasse_desc =>
-      'سمكة حريد وفيرة في الكاريبي؛ وللذكور في الطور النهائي رأس أزرق زاهٍ وجسم أخضر بأشرطة سوداء وبيضاء.';
+  String get species_bluehead_wrasse_desc => 'سمكة حريد وفيرة في الكاريبي؛ وللذكور في الطور النهائي رأس أزرق زاهٍ وجسم أخضر بأشرطة سوداء وبيضاء.';
 
   @override
   String get species_spanish_hogfish_name => 'سمكة الخنزير الإسبانية';
 
   @override
-  String get species_spanish_hogfish_desc =>
-      'سمكة حريد أرجوانية وصفراء شائعة في شعاب الكاريبي؛ وتعمل صغارها كأسماك منظفة.';
+  String get species_spanish_hogfish_desc => 'سمكة حريد أرجوانية وصفراء شائعة في شعاب الكاريبي؛ وتعمل صغارها كأسماك منظفة.';
 
   @override
-  String get species_bumphead_parrotfish_name =>
-      'سمكة الببغاء ذات الرأس الناتئ';
+  String get species_bumphead_parrotfish_name => 'سمكة الببغاء ذات الرأس الناتئ';
 
   @override
-  String get species_bumphead_parrotfish_desc =>
-      'أكبر أنواع سمك الببغاء ويبلغ طولها 1.3 متر، بنتوء جبهي ضخم. وتتنقل في أسراب على شعاب المحيطين الهندي والهادئ.';
+  String get species_bumphead_parrotfish_desc => 'أكبر أنواع سمك الببغاء ويبلغ طولها 1.3 متر، بنتوء جبهي ضخم. وتتنقل في أسراب على شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_stoplight_parrotfish_name => 'سمكة الببغاء إشارة المرور';
 
   @override
-  String get species_stoplight_parrotfish_desc =>
-      'سمكة ببغاء كاريبية شائعة بتغيرات لونية كبيرة بين الطورين الأولي والنهائي.';
+  String get species_stoplight_parrotfish_desc => 'سمكة ببغاء كاريبية شائعة بتغيرات لونية كبيرة بين الطورين الأولي والنهائي.';
 
   @override
   String get species_queen_parrotfish_name => 'سمكة الببغاء الملكة';
 
   @override
-  String get species_queen_parrotfish_desc =>
-      'سمكة ببغاء كبيرة زرقاء مخضرّة توجد في شعاب الكاريبي، وتُشاهد غالبًا وهي تقضم المرجان لتتغذى على الطحالب.';
+  String get species_queen_parrotfish_desc => 'سمكة ببغاء كبيرة زرقاء مخضرّة توجد في شعاب الكاريبي، وتُشاهد غالبًا وهي تقضم المرجان لتتغذى على الطحالب.';
 
   @override
   String get species_yellowtail_damselfish_name => 'سمكة الدمسل صفراء الذيل';
 
   @override
-  String get species_yellowtail_damselfish_desc =>
-      'سمكة دمسل زرقاء داكنة بذيل أصفر زاهٍ، شائعة على قمم وحواف شعاب الكاريبي.';
+  String get species_yellowtail_damselfish_desc => 'سمكة دمسل زرقاء داكنة بذيل أصفر زاهٍ، شائعة على قمم وحواف شعاب الكاريبي.';
 
   @override
   String get species_sergeant_major_name => 'سمكة الرقيب';
 
   @override
-  String get species_sergeant_major_desc =>
-      'سمكة دمسل فضية مصفرّة بخمسة أشرطة سوداء جريئة، توجد في تجمعات كبيرة على شعاب الأطلسي الاستوائي.';
+  String get species_sergeant_major_desc => 'سمكة دمسل فضية مصفرّة بخمسة أشرطة سوداء جريئة، توجد في تجمعات كبيرة على شعاب الأطلسي الاستوائي.';
 
   @override
   String get species_three_spot_damselfish_name => 'سمكة الدمسل ثلاثية البقع';
 
   @override
-  String get species_three_spot_damselfish_desc =>
-      'سمكة دمسل بنية داكنة شديدة التمسك بمنطقتها تدافع بشراسة عن حديقتها من الطحالب في شعاب الكاريبي.';
+  String get species_three_spot_damselfish_desc => 'سمكة دمسل بنية داكنة شديدة التمسك بمنطقتها تدافع بشراسة عن حديقتها من الطحالب في شعاب الكاريبي.';
 
   @override
   String get species_chromis_viridis_name => 'الكروميس الأزرق المخضرّ';
 
   @override
-  String get species_chromis_viridis_desc =>
-      'سمكة دمسل صغيرة خضراء لامعة تُشاهد في أسراب كبيرة تحوم فوق المرجان المتفرع في شعاب المحيطين الهندي والهادئ.';
+  String get species_chromis_viridis_desc => 'سمكة دمسل صغيرة خضراء لامعة تُشاهد في أسراب كبيرة تحوم فوق المرجان المتفرع في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_blue_chromis_name => 'الكروميس الأزرق';
 
   @override
-  String get species_blue_chromis_desc =>
-      'سمكة دمسل زرقاء لامعة تتغذى على العوالق وتوجد في تجمعات كبيرة في وسط الماء فوق جدران شعاب الكاريبي.';
+  String get species_blue_chromis_desc => 'سمكة دمسل زرقاء لامعة تتغذى على العوالق وتوجد في تجمعات كبيرة في وسط الماء فوق جدران شعاب الكاريبي.';
 
   @override
   String get species_nassau_grouper_name => 'هامور ناسو';
 
   @override
-  String get species_nassau_grouper_desc =>
-      'هامور كاريبي كبير بخط داكن مميز عبر العين ونمط مخطط، وهو الآن مهدد بالانقراض بسبب الصيد الجائر.';
+  String get species_nassau_grouper_desc => 'هامور كاريبي كبير بخط داكن مميز عبر العين ونمط مخطط، وهو الآن مهدد بالانقراض بسبب الصيد الجائر.';
 
   @override
   String get species_giant_grouper_name => 'الهامور العملاق';
 
   @override
-  String get species_giant_grouper_desc =>
-      'أكبر سمكة شعاب عظمية، يبلغ طولها 2.7 متر ووزنها 400 كغ. توجد في الكهوف وحطام السفن عبر المحيطين الهندي والهادئ.';
+  String get species_giant_grouper_desc => 'أكبر سمكة شعاب عظمية، يبلغ طولها 2.7 متر ووزنها 400 كغ. توجد في الكهوف وحطام السفن عبر المحيطين الهندي والهادئ.';
 
   @override
   String get species_coral_grouper_name => 'الهامور المرجاني';
 
   @override
-  String get species_coral_grouper_desc =>
-      'هامور أحمر برتقالي زاهٍ مغطى ببقع زرقاء، وهو نوع مميز لشعاب المحيطين الهندي والهادئ المرجانية.';
+  String get species_coral_grouper_desc => 'هامور أحمر برتقالي زاهٍ مغطى ببقع زرقاء، وهو نوع مميز لشعاب المحيطين الهندي والهادئ المرجانية.';
 
   @override
   String get species_goliath_grouper_name => 'الهامور الجالوتي';
 
   @override
-  String get species_goliath_grouper_desc =>
-      'هامور أطلسي ضخم يبلغ طوله 2.5 متر، ويُصادَف غالبًا قرب الحطام والحواف الصخرية في فلوريدا والكاريبي.';
+  String get species_goliath_grouper_desc => 'هامور أطلسي ضخم يبلغ طوله 2.5 متر، ويُصادَف غالبًا قرب الحطام والحواف الصخرية في فلوريدا والكاريبي.';
 
   @override
   String get species_potato_grouper_name => 'هامور البطاطا';
 
   @override
-  String get species_potato_grouper_desc =>
-      'هامور كبير ودود ببقع داكنة بحجم حبات البطاطا، ويشتهر في موقع كود هول بالحاجز المرجاني العظيم.';
+  String get species_potato_grouper_desc => 'هامور كبير ودود ببقع داكنة بحجم حبات البطاطا، ويشتهر في موقع كود هول بالحاجز المرجاني العظيم.';
 
   @override
   String get species_peacock_grouper_name => 'الهامور الطاووسي';
 
   @override
-  String get species_peacock_grouper_desc =>
-      'هامور بني داكن ببقع زرقاء زاهية وأشرطة عمودية فاتحة في المؤخرة، شائع في شعاب المحيطين الهندي والهادئ.';
+  String get species_peacock_grouper_desc => 'هامور بني داكن ببقع زرقاء زاهية وأشرطة عمودية فاتحة في المؤخرة، شائع في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_yellowfin_tuna_name => 'التونة صفراء الزعانف';
 
   @override
-  String get species_yellowfin_tuna_desc =>
-      'مفترس سريع من أعالي البحار بزعنفتين ظهرية وشرجية صفراوين طويلتين، يشاهده الغواصون أحيانًا في المواقع البعيدة عن الساحل.';
+  String get species_yellowfin_tuna_desc => 'مفترس سريع من أعالي البحار بزعنفتين ظهرية وشرجية صفراوين طويلتين، يشاهده الغواصون أحيانًا في المواقع البعيدة عن الساحل.';
 
   @override
   String get species_dogtooth_tuna_name => 'تونة ناب الكلب';
 
   @override
-  String get species_dogtooth_tuna_desc =>
-      'تونة قوية ملازمة للشعاب بأسنان بارزة، تُصادَف عند المنحدرات العميقة في المحيطين الهندي والهادئ.';
+  String get species_dogtooth_tuna_desc => 'تونة قوية ملازمة للشعاب بأسنان بارزة، تُصادَف عند المنحدرات العميقة في المحيطين الهندي والهادئ.';
 
   @override
   String get species_great_barracuda_name => 'الباراكودا الكبيرة';
 
   @override
-  String get species_great_barracuda_desc =>
-      'مفترس فضي انسيابي يبلغ طوله 1.8 متر بأسنان بارزة، ويُشاهد غالبًا محلّقًا بلا حراك قرب الشعاب الاستوائية.';
+  String get species_great_barracuda_desc => 'مفترس فضي انسيابي يبلغ طوله 1.8 متر بأسنان بارزة، ويُشاهد غالبًا محلّقًا بلا حراك قرب الشعاب الاستوائية.';
 
   @override
   String get species_blackfin_barracuda_name => 'الباراكودا سوداء الزعانف';
 
   @override
-  String get species_blackfin_barracuda_desc =>
-      'باراكودا من المحيطين الهندي والهادئ تشتهر بتشكيل أسراب ضخمة تشبه الإعصار في مواقع مثل باراكودا بوينت.';
+  String get species_blackfin_barracuda_desc => 'باراكودا من المحيطين الهندي والهادئ تشتهر بتشكيل أسراب ضخمة تشبه الإعصار في مواقع مثل باراكودا بوينت.';
 
   @override
   String get species_mahi_mahi_name => 'سمكة الماهي ماهي';
 
   @override
-  String get species_mahi_mahi_desc =>
-      'سمكة من أعالي البحار بألوان زرقاء مخضرّة وذهبية باهرة وجبهة عريضة، تُشاهد أحيانًا في مواقع الغوص البعيدة عن الساحل.';
+  String get species_mahi_mahi_desc => 'سمكة من أعالي البحار بألوان زرقاء مخضرّة وذهبية باهرة وجبهة عريضة، تُشاهد أحيانًا في مواقع الغوص البعيدة عن الساحل.';
 
   @override
   String get species_giant_trevally_name => 'التريفالي العملاق';
 
   @override
-  String get species_giant_trevally_desc =>
-      'مفترس فضي قوي يبلغ طوله 1.7 متر، ويشتهر بالصيد في قنوات الشعاب والمنحدرات عبر المحيطين الهندي والهادئ.';
+  String get species_giant_trevally_desc => 'مفترس فضي قوي يبلغ طوله 1.7 متر، ويشتهر بالصيد في قنوات الشعاب والمنحدرات عبر المحيطين الهندي والهادئ.';
 
   @override
   String get species_bluefin_trevally_name => 'التريفالي أزرق الزعانف';
 
   @override
-  String get species_bluefin_trevally_desc =>
-      'سمكة جاك انسيابية ببقع زرقاء تُشاهد عادةً وهي تجوب حواف الشعاب في المحيطين الهندي والهادئ ضمن مجموعات صيد صغيرة.';
+  String get species_bluefin_trevally_desc => 'سمكة جاك انسيابية ببقع زرقاء تُشاهد عادةً وهي تجوب حواف الشعاب في المحيطين الهندي والهادئ ضمن مجموعات صيد صغيرة.';
 
   @override
   String get species_bigeye_trevally_name => 'التريفالي كبير العينين';
 
   @override
-  String get species_bigeye_trevally_desc =>
-      'سمكة جاك فضية بعينين كبيرتين تشكّل أسرابًا دوّامية مذهلة قرب جدران الشعاب ومحطات التنظيف.';
+  String get species_bigeye_trevally_desc => 'سمكة جاك فضية بعينين كبيرتين تشكّل أسرابًا دوّامية مذهلة قرب جدران الشعاب ومحطات التنظيف.';
 
   @override
   String get species_bar_jack_name => 'سمكة الجاك المخططة';
 
   @override
-  String get species_bar_jack_desc =>
-      'سمكة جاك كاريبية فضية انسيابية بخط أزرق داكن مميز يمتد على طول الظهر حتى أسفل الذيل.';
+  String get species_bar_jack_desc => 'سمكة جاك كاريبية فضية انسيابية بخط أزرق داكن مميز يمتد على طول الظهر حتى أسفل الذيل.';
 
   @override
   String get species_horse_eye_jack_name => 'سمكة الجاك ذات عين الحصان';
 
   @override
-  String get species_horse_eye_jack_desc =>
-      'سمكة جاك فضية كبيرة العينين تشكّل أسرابًا قرب الشعاب والحطام في الكاريبي وغرب الأطلسي.';
+  String get species_horse_eye_jack_desc => 'سمكة جاك فضية كبيرة العينين تشكّل أسرابًا قرب الشعاب والحطام في الكاريبي وغرب الأطلسي.';
 
   @override
   String get species_yellowtail_snapper_name => 'النهّاش أصفر الذيل';
 
   @override
-  String get species_yellowtail_snapper_desc =>
-      'نهّاش انسيابي بخط جانبي وذيل أصفرين، يُشاهد غالبًا في أسراب وسط الماء على شعاب الكاريبي.';
+  String get species_yellowtail_snapper_desc => 'نهّاش انسيابي بخط جانبي وذيل أصفرين، يُشاهد غالبًا في أسراب وسط الماء على شعاب الكاريبي.';
 
   @override
   String get species_schoolmaster_snapper_name => 'النهّاش معلّم المدرسة';
 
   @override
-  String get species_schoolmaster_snapper_desc =>
-      'نهّاش أصفر فضي بخطوط زرقاء تحت العين، يوجد في مجموعات تحت الحواف الصخرية في شعاب الكاريبي.';
+  String get species_schoolmaster_snapper_desc => 'نهّاش أصفر فضي بخطوط زرقاء تحت العين، يوجد في مجموعات تحت الحواف الصخرية في شعاب الكاريبي.';
 
   @override
   String get species_bluestripe_snapper_name => 'النهّاش أزرق الخطوط';
 
   @override
-  String get species_bluestripe_snapper_desc =>
-      'نهّاش أصفر زاهٍ بأربعة خطوط أفقية زرقاء، يشكّل أسرابًا كثيفة في شعاب المحيطين الهندي والهادئ.';
+  String get species_bluestripe_snapper_desc => 'نهّاش أصفر زاهٍ بأربعة خطوط أفقية زرقاء، يشكّل أسرابًا كثيفة في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_twinspot_snapper_name => 'النهّاش ثنائي البقعة';
 
   @override
-  String get species_twinspot_snapper_desc =>
-      'نهّاش أحمر كبير يوجد في الشعاب الخارجية بالمحيطين الهندي والهادئ، ويشكّل أحيانًا أسرابًا على الجدران العميقة والقنوات.';
+  String get species_twinspot_snapper_desc => 'نهّاش أحمر كبير يوجد في الشعاب الخارجية بالمحيطين الهندي والهادئ، ويشكّل أحيانًا أسرابًا على الجدران العميقة والقنوات.';
 
   @override
   String get species_humphead_snapper_name => 'نهّاش منتصف الليل';
 
   @override
-  String get species_humphead_snapper_desc =>
-      'نهّاش داكن كبير يوجد في أسراب قرب المنحدرات الحادة بالمحيطين الهندي والهادئ، وصغاره بنقوش سوداء وبيضاء جريئة.';
+  String get species_humphead_snapper_desc => 'نهّاش داكن كبير يوجد في أسراب قرب المنحدرات الحادة بالمحيطين الهندي والهادئ، وصغاره بنقوش سوداء وبيضاء جريئة.';
 
   @override
   String get species_longfin_bannerfish_name => 'سمكة الراية طويلة الزعنفة';
 
   @override
-  String get species_longfin_bannerfish_desc =>
-      'سمكة بيضاء وسوداء بزعنفة ظهرية طويلة متدلية وذيل أصفر، تُشاهد غالبًا في أزواج على شعاب المحيطين الهندي والهادئ.';
+  String get species_longfin_bannerfish_desc => 'سمكة بيضاء وسوداء بزعنفة ظهرية طويلة متدلية وذيل أصفر، تُشاهد غالبًا في أزواج على شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_batfish_orbicular_name => 'سمكة الخفاش المستديرة';
 
   @override
-  String get species_batfish_orbicular_desc =>
-      'سمكة فضية قرصية الشكل بزعانف مرتفعة تقترب من الغواصين بفضول. شائعة في حطام السفن والشعاب بالمحيطين الهندي والهادئ.';
+  String get species_batfish_orbicular_desc => 'سمكة فضية قرصية الشكل بزعانف مرتفعة تقترب من الغواصين بفضول. شائعة في حطام السفن والشعاب بالمحيطين الهندي والهادئ.';
 
   @override
   String get species_batfish_teira_name => 'سمكة الخفاش طويلة الزعنفة';
 
   @override
-  String get species_batfish_teira_desc =>
-      'سمكة خفاش مرتفعة الزعانف ببقعة داكنة قرب الزعنفة الصدرية، تُشاهد غالبًا عند محطات التنظيف وحطام السفن.';
+  String get species_batfish_teira_desc => 'سمكة خفاش مرتفعة الزعانف ببقعة داكنة قرب الزعنفة الصدرية، تُشاهد غالبًا عند محطات التنظيف وحطام السفن.';
 
   @override
   String get species_batfish_pinnatus_name => 'سمكة الخفاش الريشية';
 
   @override
-  String get species_batfish_pinnatus_desc =>
-      'صغارها سوداء حالكة بحواف برتقالية زاهية تشبه الدودة المفلطحة السامة. توجد في غرب المحيط الهادئ.';
+  String get species_batfish_pinnatus_desc => 'صغارها سوداء حالكة بحواف برتقالية زاهية تشبه الدودة المفلطحة السامة. توجد في غرب المحيط الهادئ.';
 
   @override
   String get species_banggai_cardinalfish_name => 'سمكة الكاردينال البانغّاية';
 
   @override
-  String get species_banggai_cardinalfish_desc =>
-      'سمكة كاردينال لافتة بلونين فضي وأسود وزعانف مستطيلة، متوطنة في جزر بانغّاي بإندونيسيا.';
+  String get species_banggai_cardinalfish_desc => 'سمكة كاردينال لافتة بلونين فضي وأسود وزعانف مستطيلة، متوطنة في جزر بانغّاي بإندونيسيا.';
 
   @override
   String get species_pajama_cardinalfish_name => 'سمكة الكاردينال البيجامية';
 
   @override
-  String get species_pajama_cardinalfish_desc =>
-      'سمكة كاردينال غير مألوفة بوجه أصفر وحزام داكن في الوسط ومؤخرة منقّطة، توجد بين المرجان في المحيطين الهندي والهادئ.';
+  String get species_pajama_cardinalfish_desc => 'سمكة كاردينال غير مألوفة بوجه أصفر وحزام داكن في الوسط ومؤخرة منقّطة، توجد بين المرجان في المحيطين الهندي والهادئ.';
 
   @override
   String get species_longnose_hawkfish_name => 'سمكة الصقر طويلة الأنف';
 
   @override
-  String get species_longnose_hawkfish_desc =>
-      'سمكة بيضاء صغيرة بنمط شبكي أحمر وخطم مستطيل، ترتكز على المرجان المروحي والمرجان الأسود.';
+  String get species_longnose_hawkfish_desc => 'سمكة بيضاء صغيرة بنمط شبكي أحمر وخطم مستطيل، ترتكز على المرجان المروحي والمرجان الأسود.';
 
   @override
   String get species_arc_eye_hawkfish_name => 'سمكة الصقر ذات قوس العين';
 
   @override
-  String get species_arc_eye_hawkfish_desc =>
-      'سمكة صقر صغيرة بقوس برتقالي مميز خلف العين، ترتكز عادةً على رؤوس المرجان في شعاب المحيطين الهندي والهادئ.';
+  String get species_arc_eye_hawkfish_desc => 'سمكة صقر صغيرة بقوس برتقالي مميز خلف العين، ترتكز عادةً على رؤوس المرجان في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_flame_hawkfish_name => 'سمكة الصقر اللهبية';
 
   @override
-  String get species_flame_hawkfish_desc =>
-      'سمكة صقر حمراء زاهية بعلامات داكنة حول العين، ترتكز بين مرجان Pocillopora عبر غرب المحيط الهادئ.';
+  String get species_flame_hawkfish_desc => 'سمكة صقر حمراء زاهية بعلامات داكنة حول العين، ترتكز بين مرجان Pocillopora عبر غرب المحيط الهادئ.';
 
   @override
   String get species_fire_goby_name => 'سمكة القوبيون النارية';
 
   @override
-  String get species_fire_goby_desc =>
-      'سمكة قوبيون بيضاء أنيقة بزعنفة ظهرية أولى مرتفعة وذيل أحمر برتقالي، تحوم فوق حطام الشعاب في المحيطين الهندي والهادئ.';
+  String get species_fire_goby_desc => 'سمكة قوبيون بيضاء أنيقة بزعنفة ظهرية أولى مرتفعة وذيل أحمر برتقالي، تحوم فوق حطام الشعاب في المحيطين الهندي والهادئ.';
 
   @override
   String get species_purple_firefish_name => 'سمكة النار الأرجوانية';
 
   @override
-  String get species_purple_firefish_desc =>
-      'سمكة قوبيون رقيقة بزعانف أرجوانية وشوكة ظهرية مرتفعة، تحوم قرب جحورها في الشعاب الخارجية بالمحيطين الهندي والهادئ.';
+  String get species_purple_firefish_desc => 'سمكة قوبيون رقيقة بزعانف أرجوانية وشوكة ظهرية مرتفعة، تحوم قرب جحورها في الشعاب الخارجية بالمحيطين الهندي والهادئ.';
 
   @override
   String get species_yellownose_goby_name => 'سمكة القوبيون صفراء الأنف';
 
   @override
-  String get species_yellownose_goby_desc =>
-      'سمكة قوبيون منظفة كاريبية صغيرة بخطم أصفر وخط جانبي أزرق، توجد على الإسفنجيات ورؤوس المرجان.';
+  String get species_yellownose_goby_desc => 'سمكة قوبيون منظفة كاريبية صغيرة بخطم أصفر وخط جانبي أزرق، توجد على الإسفنجيات ورؤوس المرجان.';
 
   @override
   String get species_citron_goby_name => 'سمكة القوبيون الليمونية';
 
   @override
-  String get species_citron_goby_desc =>
-      'سمكة قوبيون صغيرة صفراء زاهية تعيش بين أفرع مرجان Acropora في شعاب المحيطين الهندي والهادئ.';
+  String get species_citron_goby_desc => 'سمكة قوبيون صغيرة صفراء زاهية تعيش بين أفرع مرجان Acropora في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_shrimp_goby_name => 'سمكة قوبيون الروبيان الشتاينيتزية';
 
   @override
-  String get species_shrimp_goby_desc =>
-      'سمكة قوبيون بلون الرمال تتشارك الجحر مع روبيان من فصيلة Alpheidae في علاقة تكافلية على السهول الرملية بالمحيطين الهندي والهادئ.';
+  String get species_shrimp_goby_desc => 'سمكة قوبيون بلون الرمال تتشارك الجحر مع روبيان من فصيلة Alpheidae في علاقة تكافلية على السهول الرملية بالمحيطين الهندي والهادئ.';
 
   @override
   String get species_neon_goby_name => 'سمكة القوبيون النيونية';
 
   @override
-  String get species_neon_goby_desc =>
-      'سمكة قوبيون داكنة صغيرة بخط أزرق نيوني لامع، تدير محطات التنظيف على رؤوس المرجان في الكاريبي.';
+  String get species_neon_goby_desc => 'سمكة قوبيون داكنة صغيرة بخط أزرق نيوني لامع، تدير محطات التنظيف على رؤوس المرجان في الكاريبي.';
 
   @override
-  String get species_bluestriped_fangblenny_name =>
-      'سمكة البليني نابية الأسنان زرقاء الخطوط';
+  String get species_bluestriped_fangblenny_name => 'سمكة البليني نابية الأسنان زرقاء الخطوط';
 
   @override
-  String get species_bluestriped_fangblenny_desc =>
-      'سمكة بليني صغيرة مخططة بالأزرق تحاكي أسماك الحريد المنظفة لتقتطع الحراشف من الأسماك الغافلة.';
+  String get species_bluestriped_fangblenny_desc => 'سمكة بليني صغيرة مخططة بالأزرق تحاكي أسماك الحريد المنظفة لتقتطع الحراشف من الأسماك الغافلة.';
 
   @override
   String get species_sailfin_blenny_name => 'سمكة البليني شراعية الزعنفة';
 
   @override
-  String get species_sailfin_blenny_desc =>
-      'سمكة بليني كاريبية صغيرة ترفع زعنفة ظهرية كبيرة تشبه الشراع من جحرها الأنبوبي لجذب الشريك.';
+  String get species_sailfin_blenny_desc => 'سمكة بليني كاريبية صغيرة ترفع زعنفة ظهرية كبيرة تشبه الشراع من جحرها الأنبوبي لجذب الشريك.';
 
   @override
   String get species_bicolor_blenny_name => 'سمكة البليني ثنائية اللون';
 
   @override
-  String get species_bicolor_blenny_desc =>
-      'سمكة بليني صغيرة نصفها الأمامي بني داكن ونصفها الخلفي برتقالي، تطل من الثقوب في شعاب المحيطين الهندي والهادئ.';
+  String get species_bicolor_blenny_desc => 'سمكة بليني صغيرة نصفها الأمامي بني داكن ونصفها الخلفي برتقالي، تطل من الثقوب في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_redlip_blenny_name => 'سمكة البليني حمراء الشفاه';
 
   @override
-  String get species_redlip_blenny_desc =>
-      'سمكة بليني داكنة بشفاه حمراء برتقالية بارزة تدافع عن رقع الطحالب على قمم شعاب الكاريبي.';
+  String get species_redlip_blenny_desc => 'سمكة بليني داكنة بشفاه حمراء برتقالية بارزة تدافع عن رقع الطحالب على قمم شعاب الكاريبي.';
 
   @override
   String get species_pygmy_seahorse_name => 'حصان البحر القزم البارغيباني';
 
   @override
-  String get species_pygmy_seahorse_desc =>
-      'حصان بحر ضئيل يقل طوله عن سنتيمترين ويطابق تمامًا المرجان المروحي الذي يعيش عليه، وهو هدف ثمين للتصوير الماكرو.';
+  String get species_pygmy_seahorse_desc => 'حصان بحر ضئيل يقل طوله عن سنتيمترين ويطابق تمامًا المرجان المروحي الذي يعيش عليه، وهو هدف ثمين للتصوير الماكرو.';
 
   @override
   String get species_common_seahorse_name => 'حصان البحر الشائع';
 
   @override
-  String get species_common_seahorse_desc =>
-      'حصان بحر متوسط الحجم يوجد في مروج الأعشاب البحرية وحطام المرجان عبر المحيطين الهندي والهادئ، ويتباين لونه كثيرًا.';
+  String get species_common_seahorse_desc => 'حصان بحر متوسط الحجم يوجد في مروج الأعشاب البحرية وحطام المرجان عبر المحيطين الهندي والهادئ، ويتباين لونه كثيرًا.';
 
   @override
   String get species_thorny_seahorse_name => 'حصان البحر الشوكي';
 
   @override
-  String get species_thorny_seahorse_desc =>
-      'حصان بحر مغطى بأشواك طويلة يوجد في مروج الأعشاب البحرية والقيعان الطرية عبر المحيطين الهندي والهادئ.';
+  String get species_thorny_seahorse_desc => 'حصان بحر مغطى بأشواك طويلة يوجد في مروج الأعشاب البحرية والقيعان الطرية عبر المحيطين الهندي والهادئ.';
 
   @override
-  String get species_ornate_ghost_pipefish_name =>
-      'السمكة الأنبوبية الشبح المزخرفة';
+  String get species_ornate_ghost_pipefish_name => 'السمكة الأنبوبية الشبح المزخرفة';
 
   @override
-  String get species_ornate_ghost_pipefish_desc =>
-      'سمكة أنبوبية بتمويه بديع تحوم ورأسها إلى الأسفل قرب زنابق البحر والمرجان الطري في المحيطين الهندي والهادئ.';
+  String get species_ornate_ghost_pipefish_desc => 'سمكة أنبوبية بتمويه بديع تحوم ورأسها إلى الأسفل قرب زنابق البحر والمرجان الطري في المحيطين الهندي والهادئ.';
 
   @override
-  String get species_robust_ghost_pipefish_name =>
-      'السمكة الأنبوبية الشبح القوية';
+  String get species_robust_ghost_pipefish_name => 'السمكة الأنبوبية الشبح القوية';
 
   @override
-  String get species_robust_ghost_pipefish_desc =>
-      'سمكة أنبوبية شبح كبيرة تحاكي الأعشاب البحرية أو الطحالب، وتوجد غالبًا في أزواج في المياه الساحلية بالمحيطين الهندي والهادئ.';
+  String get species_robust_ghost_pipefish_desc => 'سمكة أنبوبية شبح كبيرة تحاكي الأعشاب البحرية أو الطحالب، وتوجد غالبًا في أزواج في المياه الساحلية بالمحيطين الهندي والهادئ.';
 
   @override
   String get species_trumpetfish_name => 'سمكة البوق';
 
   @override
-  String get species_trumpetfish_desc =>
-      'سمكة طويلة نحيلة تصطاد بمرافقة الأسماك الأكبر والاختباء خلفها، وتوجد بألوان متعددة في شعاب الكاريبي والأطلسي.';
+  String get species_trumpetfish_desc => 'سمكة طويلة نحيلة تصطاد بمرافقة الأسماك الأكبر والاختباء خلفها، وتوجد بألوان متعددة في شعاب الكاريبي والأطلسي.';
 
   @override
   String get species_cornetfish_name => 'سمكة المزمار';
 
   @override
-  String get species_cornetfish_desc =>
-      'سمكة شديدة الاستطالة يبلغ طولها 1.5 متر بخيط ذيلي متدلٍ، وتُشاهد غالبًا وهي تنساب فوق مسطحات الشعاب.';
+  String get species_cornetfish_desc => 'سمكة شديدة الاستطالة يبلغ طولها 1.5 متر بخيط ذيلي متدلٍ، وتُشاهد غالبًا وهي تنساب فوق مسطحات الشعاب.';
 
   @override
   String get species_yellowhead_jawfish_name => 'سمكة الفك صفراء الرأس';
 
   @override
-  String get species_yellowhead_jawfish_desc =>
-      'سمكة صغيرة زرقاء الجسم برأس أصفر تحوم فوق جحرها الرملي في شعاب الكاريبي. وتحضن الذكور البيض داخل أفواهها.';
+  String get species_yellowhead_jawfish_desc => 'سمكة صغيرة زرقاء الجسم برأس أصفر تحوم فوق جحرها الرملي في شعاب الكاريبي. وتحضن الذكور البيض داخل أفواهها.';
 
   @override
   String get species_flamefish_name => 'سمكة اللهب';
 
   @override
-  String get species_flamefish_desc =>
-      'سمكة كاردينال صغيرة حمراء زاهية ببقعة داكنة تحت الزعنفة الظهرية الثانية، تختبئ نهارًا في شقوق شعاب الكاريبي.';
+  String get species_flamefish_desc => 'سمكة كاردينال صغيرة حمراء زاهية ببقعة داكنة تحت الزعنفة الظهرية الثانية، تختبئ نهارًا في شقوق شعاب الكاريبي.';
 
   @override
   String get species_longspine_squirrelfish_name => 'سمكة السنجاب طويلة الشوكة';
 
   @override
-  String get species_longspine_squirrelfish_desc =>
-      'سمكة حمراء ليلية النشاط بعينين كبيرتين وشوكة ظهرية طويلة، توجد نهارًا تحت الحواف الصخرية في شعاب الكاريبي.';
+  String get species_longspine_squirrelfish_desc => 'سمكة حمراء ليلية النشاط بعينين كبيرتين وشوكة ظهرية طويلة، توجد نهارًا تحت الحواف الصخرية في شعاب الكاريبي.';
 
   @override
   String get species_soldierfish_name => 'سمكة الجندي كبيرة الحراشف';
 
   @override
-  String get species_soldierfish_desc =>
-      'سمكة حمراء ليلية النشاط بعينين داكنتين ضخمتين وحراشف كبيرة، تتجمع نهارًا في الكهوف وتحت النتوءات الصخرية.';
+  String get species_soldierfish_desc => 'سمكة حمراء ليلية النشاط بعينين داكنتين ضخمتين وحراشف كبيرة، تتجمع نهارًا في الكهوف وتحت النتوءات الصخرية.';
 
   @override
   String get species_flame_angelfish_name => 'سمكة الملاك اللهبية';
 
   @override
-  String get species_flame_angelfish_desc =>
-      'سمكة ملاك قزمة حمراء برتقالية زاهية بأشرطة عمودية سوداء وزعانف زرقاء الأطراف، توجد عبر المحيط الهادئ.';
+  String get species_flame_angelfish_desc => 'سمكة ملاك قزمة حمراء برتقالية زاهية بأشرطة عمودية سوداء وزعانف زرقاء الأطراف، توجد عبر المحيط الهادئ.';
 
   @override
   String get species_royal_gramma_name => 'سمكة الغراما الملكية';
 
   @override
-  String get species_royal_gramma_desc =>
-      'سمكة باسليت كاريبية صغيرة ثنائية اللون نصفها الأمامي أرجواني ونصفها الخلفي أصفر، توجد تحت الحواف الصخرية.';
+  String get species_royal_gramma_desc => 'سمكة باسليت كاريبية صغيرة ثنائية اللون نصفها الأمامي أرجواني ونصفها الخلفي أصفر، توجد تحت الحواف الصخرية.';
 
   @override
   String get species_anthias_lyretail_name => 'الأنثياس قيثاري الذيل';
 
   @override
-  String get species_anthias_lyretail_desc =>
-      'سمكة شعاب وفيرة تشكّل سحبًا برتقالية ووردية كبيرة فوق التكوينات المرجانية بالمحيطين الهندي والهادئ. والذكور أرجوانية اللون.';
+  String get species_anthias_lyretail_desc => 'سمكة شعاب وفيرة تشكّل سحبًا برتقالية ووردية كبيرة فوق التكوينات المرجانية بالمحيطين الهندي والهادئ. والذكور أرجوانية اللون.';
 
   @override
   String get species_mediterranean_grouper_name => 'الهامور الداكن';
 
   @override
-  String get species_mediterranean_grouper_desc =>
-      'هامور كبير بني داكن ببقع فاتحة، وهو المفترس الأيقوني للشعاب الصخرية في البحر المتوسط.';
+  String get species_mediterranean_grouper_desc => 'هامور كبير بني داكن ببقع فاتحة، وهو المفترس الأيقوني للشعاب الصخرية في البحر المتوسط.';
 
   @override
   String get species_mediterranean_moray_name => 'المورَي المتوسطي';
 
   @override
-  String get species_mediterranean_moray_desc =>
-      'ثعبان بحر مورَي بني داكن ببقع صفراء، يُشاهد عادةً وهو يطل من الشقوق الصخرية في البحر المتوسط.';
+  String get species_mediterranean_moray_desc => 'ثعبان بحر مورَي بني داكن ببقع صفراء، يُشاهد عادةً وهو يطل من الشقوق الصخرية في البحر المتوسط.';
 
   @override
   String get species_ornate_wrasse_name => 'الحريد المزخرف';
 
   @override
-  String get species_ornate_wrasse_desc =>
-      'سمكة حريد خضراء ملونة بعلامات حمراء على الرأس، وهي من أكثر أسماك الحريد شيوعًا في شعاب البحر المتوسط.';
+  String get species_ornate_wrasse_desc => 'سمكة حريد خضراء ملونة بعلامات حمراء على الرأس، وهي من أكثر أسماك الحريد شيوعًا في شعاب البحر المتوسط.';
 
   @override
   String get species_red_sea_bannerfish_name => 'سمكة الفراشة المقنّعة';
 
   @override
-  String get species_red_sea_bannerfish_desc =>
-      'سمكة فراشة صفراء زاهية برقعة داكنة على العين، متوطنة في البحر الأحمر. وتُشاهد غالبًا في أزواج.';
+  String get species_red_sea_bannerfish_desc => 'سمكة فراشة صفراء زاهية برقعة داكنة على العين، متوطنة في البحر الأحمر. وتُشاهد غالبًا في أزواج.';
 
   @override
   String get species_red_sea_anemonefish_name => 'سمكة شقائق البحر الأحمر';
 
   @override
-  String get species_red_sea_anemonefish_desc =>
-      'سمكة شقائق برتقالية مصفرّة بشريطين أبيضين، متوطنة في البحر الأحمر وخليج عدن.';
+  String get species_red_sea_anemonefish_desc => 'سمكة شقائق برتقالية مصفرّة بشريطين أبيضين، متوطنة في البحر الأحمر وخليج عدن.';
 
   @override
   String get species_arabian_angelfish_name => 'سمكة الملاك العربية';
 
   @override
-  String get species_arabian_angelfish_desc =>
-      'سمكة ملاك كبيرة زرقاء داكنة بشريط عمودي أصفر جريء وذيل أصفر، متوطنة في غرب المحيط الهندي.';
+  String get species_arabian_angelfish_desc => 'سمكة ملاك كبيرة زرقاء داكنة بشريط عمودي أصفر جريء وذيل أصفر، متوطنة في غرب المحيط الهندي.';
 
   @override
   String get species_king_angelfish_name => 'سمكة الملاك الملك';
 
   @override
-  String get species_king_angelfish_desc =>
-      'سمكة ملاك كبيرة زرقاء داكنة بشريط عمودي أبيض وذيل أصفر، توجد في شرق المحيط الهادئ وجزر غالاباغوس.';
+  String get species_king_angelfish_desc => 'سمكة ملاك كبيرة زرقاء داكنة بشريط عمودي أبيض وذيل أصفر، توجد في شرق المحيط الهادئ وجزر غالاباغوس.';
 
   @override
   String get species_ocean_sunfish_name => 'سمكة الشمس المحيطية';
 
   @override
-  String get species_ocean_sunfish_desc =>
-      'أثقل سمكة عظمية في العالم ويتجاوز وزنها طنّين. ويشاهدها الغواصون أحيانًا عند محطات التنظيف في بالي وغالاباغوس.';
+  String get species_ocean_sunfish_desc => 'أثقل سمكة عظمية في العالم ويتجاوز وزنها طنّين. ويشاهدها الغواصون أحيانًا عند محطات التنظيف في بالي وغالاباغوس.';
 
   @override
   String get species_lingcod_name => 'سمكة اللينغكود';
 
   @override
-  String get species_lingcod_desc =>
-      'سمكة مفترسة كبيرة مبقّعة من فصيلة الغرينلينغ تعيش في الشعاب الصخرية بشمال غرب المحيط الهادئ، وتُشاهد غالبًا وهي تحرس كتل البيض.';
+  String get species_lingcod_desc => 'سمكة مفترسة كبيرة مبقّعة من فصيلة الغرينلينغ تعيش في الشعاب الصخرية بشمال غرب المحيط الهادئ، وتُشاهد غالبًا وهي تحرس كتل البيض.';
 
   @override
   String get species_wolf_eel_name => 'ثعبان الذئب';
 
   @override
-  String get species_wolf_eel_desc =>
-      'ثعبان ذئب رمادي كبير برأس منتفخ وفكين قويين، يعيش في أوكار صخرية بشمال غرب المحيط الهادئ.';
+  String get species_wolf_eel_desc => 'ثعبان ذئب رمادي كبير برأس منتفخ وفكين قويين، يعيش في أوكار صخرية بشمال غرب المحيط الهادئ.';
 
   @override
   String get species_giant_sea_bass_name => 'القاروص العملاق';
 
   @override
-  String get species_giant_sea_bass_desc =>
-      'سمكة قاروص ضخمة يتجاوز طولها مترين ووزنها 250 كغ، وتعيش في الشعاب الصخرية وغابات عشب البحر قبالة جنوب كاليفورنيا.';
+  String get species_giant_sea_bass_desc => 'سمكة قاروص ضخمة يتجاوز طولها مترين ووزنها 250 كغ، وتعيش في الشعاب الصخرية وغابات عشب البحر قبالة جنوب كاليفورنيا.';
 
   @override
   String get species_garibaldi_name => 'سمكة غاريبالدي';
 
   @override
-  String get species_garibaldi_desc =>
-      'سمكة دمسل برتقالية زاهية وهي السمكة البحرية الرسمية لولاية كاليفورنيا، شديدة التمسك بمنطقتها في شعاب غابات عشب البحر.';
+  String get species_garibaldi_desc => 'سمكة دمسل برتقالية زاهية وهي السمكة البحرية الرسمية لولاية كاليفورنيا، شديدة التمسك بمنطقتها في شعاب غابات عشب البحر.';
 
   @override
   String get species_sheephead_name => 'سمكة رأس الخروف الكاليفورنية';
 
   @override
-  String get species_sheephead_desc =>
-      'سمكة حريد كبيرة برأس وذيل أسودين ووسط أحمر وذقن بيضاء. توجد في غابات عشب البحر بكاليفورنيا.';
+  String get species_sheephead_desc => 'سمكة حريد كبيرة برأس وذيل أسودين ووسط أحمر وذقن بيضاء. توجد في غابات عشب البحر بكاليفورنيا.';
 
   @override
   String get species_copper_rockfish_name => 'سمكة الصخور النحاسية';
 
   @override
-  String get species_copper_rockfish_desc =>
-      'سمكة صخور برتقالية نحاسية برقع فاتحة، وهي مشهد مألوف في الشعاب الصخرية وغابات عشب البحر بشمال غرب المحيط الهادئ.';
+  String get species_copper_rockfish_desc => 'سمكة صخور برتقالية نحاسية برقع فاتحة، وهي مشهد مألوف في الشعاب الصخرية وغابات عشب البحر بشمال غرب المحيط الهادئ.';
 
   @override
   String get species_oriental_sweetlips_name => 'سمكة الشفاه الحلوة الشرقية';
 
   @override
-  String get species_oriental_sweetlips_desc =>
-      'سمكة شعاب كبيرة من المحيطين الهندي والهادئ بخطوط سوداء وبيضاء جريئة وزعانف صفراء. وتؤدي صغارها رقصة متلوّية.';
+  String get species_oriental_sweetlips_desc => 'سمكة شعاب كبيرة من المحيطين الهندي والهادئ بخطوط سوداء وبيضاء جريئة وزعانف صفراء. وتؤدي صغارها رقصة متلوّية.';
 
   @override
   String get species_harlequin_sweetlips_name => 'سمكة الشفاه الحلوة المهرجة';
 
   @override
-  String get species_harlequin_sweetlips_desc =>
-      'البالغة رمادية ببقع داكنة؛ أما الصغار فبنية ببقع بيضاء كبيرة وتسبح بحركة متموجة.';
+  String get species_harlequin_sweetlips_desc => 'البالغة رمادية ببقع داكنة؛ أما الصغار فبنية ببقع بيضاء كبيرة وتسبح بحركة متموجة.';
 
   @override
-  String get species_blue_ringed_angelfish_name =>
-      'سمكة الملاك ذات الحلقة الزرقاء';
+  String get species_blue_ringed_angelfish_name => 'سمكة الملاك ذات الحلقة الزرقاء';
 
   @override
-  String get species_blue_ringed_angelfish_desc =>
-      'سمكة ملاك بنية كبيرة بخطوط زرقاء منحنية وحلقة زرقاء مميزة فوق غطاء الخياشيم.';
+  String get species_blue_ringed_angelfish_desc => 'سمكة ملاك بنية كبيرة بخطوط زرقاء منحنية وحلقة زرقاء مميزة فوق غطاء الخياشيم.';
 
   @override
-  String get species_yellowbar_angelfish_name =>
-      'سمكة الملاك ذات الشريط الأصفر';
+  String get species_yellowbar_angelfish_name => 'سمكة الملاك ذات الشريط الأصفر';
 
   @override
-  String get species_yellowbar_angelfish_desc =>
-      'سمكة ملاك كبيرة رمادية مزرقّة برقعة صفراء بارزة على الجسم، توجد في البحر الأحمر وغرب المحيط الهندي.';
+  String get species_yellowbar_angelfish_desc => 'سمكة ملاك كبيرة رمادية مزرقّة برقعة صفراء بارزة على الجسم، توجد في البحر الأحمر وغرب المحيط الهندي.';
 
   @override
   String get species_filefish_scrawled_name => 'سمكة المبرد المخربشة';
 
   @override
-  String get species_filefish_scrawled_desc =>
-      'سمكة مبرد كبيرة بنية زيتونية بعلامات زرقاء تشبه الخربشات وزائدة جلدية برتقالية، توجد في الشعاب الاستوائية حول العالم.';
+  String get species_filefish_scrawled_desc => 'سمكة مبرد كبيرة بنية زيتونية بعلامات زرقاء تشبه الخربشات وزائدة جلدية برتقالية، توجد في الشعاب الاستوائية حول العالم.';
 
   @override
   String get species_clown_filefish_name => 'سمكة المبرد برتقالية البقع';
 
   @override
-  String get species_clown_filefish_desc =>
-      'سمكة مبرد خضراء صغيرة ببقع برتقالية وخطم طويل، تتغذى حصرًا على سلائل مرجان Acropora.';
+  String get species_clown_filefish_desc => 'سمكة مبرد خضراء صغيرة ببقع برتقالية وخطم طويل، تتغذى حصرًا على سلائل مرجان Acropora.';
 
   @override
   String get species_unicornfish_name => 'سمكة وحيد القرن زرقاء الشوكة';
 
   @override
-  String get species_unicornfish_desc =>
-      'سمكة جراح رمادية بقرن جبهي بارز وشوكتين زرقاوين عند الذيل، شائعة على مسطحات الشعاب بالمحيطين الهندي والهادئ.';
+  String get species_unicornfish_desc => 'سمكة جراح رمادية بقرن جبهي بارز وشوكتين زرقاوين عند الذيل، شائعة على مسطحات الشعاب بالمحيطين الهندي والهادئ.';
 
   @override
   String get species_surgeonfish_sailfin_name => 'سمكة الجراح الشراعية';
 
   @override
-  String get species_surgeonfish_sailfin_desc =>
-      'سمكة جراح بأشرطة جريئة وزعنفتين ظهرية وشرجية متسعتين للغاية، توجد عبر المحيطين الهندي والهادئ.';
+  String get species_surgeonfish_sailfin_desc => 'سمكة جراح بأشرطة جريئة وزعنفتين ظهرية وشرجية متسعتين للغاية، توجد عبر المحيطين الهندي والهادئ.';
 
   @override
   String get species_achilles_tang_name => 'سمكة جراح أخيل';
 
   @override
-  String get species_achilles_tang_desc =>
-      'سمكة جراح بنية داكنة ببقعة برتقالية جريئة على شكل دمعة قرب الذيل، توجد في مناطق الأمواج القوية بوسط المحيط الهادئ.';
+  String get species_achilles_tang_desc => 'سمكة جراح بنية داكنة ببقعة برتقالية جريئة على شكل دمعة قرب الذيل، توجد في مناطق الأمواج القوية بوسط المحيط الهادئ.';
 
   @override
   String get species_doctorfish_name => 'سمكة الطبيب';
 
   @override
-  String get species_doctorfish_desc =>
-      'سمكة جراح رمادية بنية بأشرطة داكنة خفيفة وشوكة ذيلية بارزة، شائعة في شعاب الكاريبي.';
+  String get species_doctorfish_desc => 'سمكة جراح رمادية بنية بأشرطة داكنة خفيفة وشوكة ذيلية بارزة، شائعة في شعاب الكاريبي.';
 
   @override
   String get species_checkerboard_wrasse_name => 'الحريد رقعة الشطرنج';
 
   @override
-  String get species_checkerboard_wrasse_desc =>
-      'سمكة حريد ملونة بنمط شبيه برقعة الشطرنج من المربعات الخضراء والوردية والسوداء على طول الجسم.';
+  String get species_checkerboard_wrasse_desc => 'سمكة حريد ملونة بنمط شبيه برقعة الشطرنج من المربعات الخضراء والوردية والسوداء على طول الجسم.';
 
   @override
   String get species_bird_wrasse_name => 'حريد الطائر';
 
   @override
-  String get species_bird_wrasse_desc =>
-      'سمكة حريد بخطم شديد الاستطالة يشبه منقار الطائر، والذكور خضراء داكنة والإناث بنية.';
+  String get species_bird_wrasse_desc => 'سمكة حريد بخطم شديد الاستطالة يشبه منقار الطائر، والذكور خضراء داكنة والإناث بنية.';
 
   @override
   String get species_sling_jaw_wrasse_name => 'الحريد ذو الفك المقذوف';
 
   @override
-  String get species_sling_jaw_wrasse_desc =>
-      'سمكة حريد بفك قابل للامتداد ينطلق إلى الأمام لالتقاط الفريسة، وتوجد بطورين لونيين أصفر أو بني.';
+  String get species_sling_jaw_wrasse_desc => 'سمكة حريد بفك قابل للامتداد ينطلق إلى الأمام لالتقاط الفريسة، وتوجد بطورين لونيين أصفر أو بني.';
 
   @override
   String get species_peacock_flounder_name => 'سمكة موسى الطاووسية';
 
   @override
-  String get species_peacock_flounder_desc =>
-      'سمكة مفلطحة تعيش على القاع بحلقات وبقع زرقاء، ويمكنها تغيير لونها لتطابق قاع البحر.';
+  String get species_peacock_flounder_desc => 'سمكة مفلطحة تعيش على القاع بحلقات وبقع زرقاء، ويمكنها تغيير لونها لتطابق قاع البحر.';
 
   @override
   String get species_hogfish_name => 'سمكة الخنزير';
 
   @override
-  String get species_hogfish_desc =>
-      'سمكة حريد كبيرة من غرب الأطلسي بخطم يشبه خطم الخنزير وأشواك ظهرية مستطيلة، توجد قرب الشعاب والحطام.';
+  String get species_hogfish_desc => 'سمكة حريد كبيرة من غرب الأطلسي بخطم يشبه خطم الخنزير وأشواك ظهرية مستطيلة، توجد قرب الشعاب والحطام.';
 
   @override
   String get species_tarpon_name => 'التاربون الأطلسي';
 
   @override
-  String get species_tarpon_desc =>
-      'سمكة فضية ضخمة بحراشف كبيرة تشبه المرايا، ويصادفها الغواصون أحيانًا في كهوف الكاريبي وقنواته.';
+  String get species_tarpon_desc => 'سمكة فضية ضخمة بحراشف كبيرة تشبه المرايا، ويصادفها الغواصون أحيانًا في كهوف الكاريبي وقنواته.';
 
   @override
   String get species_permit_name => 'سمكة البيرمِت';
 
   @override
-  String get species_permit_desc =>
-      'سمكة جاك فضية عميقة الجسم بذيل داكن مشقوق، توجد على السهول الرملية وقرب الشعاب في الكاريبي.';
+  String get species_permit_desc => 'سمكة جاك فضية عميقة الجسم بذيل داكن مشقوق، توجد على السهول الرملية وقرب الشعاب في الكاريبي.';
 
   @override
   String get species_spotted_drum_name => 'سمكة الطبل المرقّطة';
 
   @override
-  String get species_spotted_drum_desc =>
-      'سمكة كاريبية لافتة بزعنفة ظهرية مرتفعة مستطيلة ونمط منقّط جريء بالأسود والأبيض.';
+  String get species_spotted_drum_desc => 'سمكة كاريبية لافتة بزعنفة ظهرية مرتفعة مستطيلة ونمط منقّط جريء بالأسود والأبيض.';
 
   @override
   String get species_jackknife_fish_name => 'سمكة المطواة';
 
   @override
-  String get species_jackknife_fish_desc =>
-      'سمكة كاريبية أنيقة بخط أسود مرتفع على الزعنفة الظهرية وشريط مائل على الجسم، توجد تحت الحواف الصخرية.';
+  String get species_jackknife_fish_desc => 'سمكة كاريبية أنيقة بخط أسود مرتفع على الزعنفة الظهرية وشريط مائل على الجسم، توجد تحت الحواف الصخرية.';
 
   @override
   String get species_bigeye_name => 'سمكة العين الزجاجية';
 
   @override
-  String get species_bigeye_desc =>
-      'سمكة حمراء زاهية ليلية النشاط بعينين كبيرتين عاكستين، تختبئ في كهوف شعاب الكاريبي والأطلسي.';
+  String get species_bigeye_desc => 'سمكة حمراء زاهية ليلية النشاط بعينين كبيرتين عاكستين، تختبئ في كهوف شعاب الكاريبي والأطلسي.';
 
   @override
   String get species_remora_name => 'سمكة الريمورا';
 
   @override
-  String get species_remora_desc =>
-      'سمكة نحيلة بقرص ماص على رأسها تلتصق بأسماك القرش والشفنين والسلاحف وغيرها من الحيوانات الكبيرة.';
+  String get species_remora_desc => 'سمكة نحيلة بقرص ماص على رأسها تلتصق بأسماك القرش والشفنين والسلاحف وغيرها من الحيوانات الكبيرة.';
 
   @override
   String get species_tilefish_sand_name => 'سمكة البلاط الرملية';
 
   @override
-  String get species_tilefish_sand_desc =>
-      'سمكة مستطيلة زرقاء فاتحة تبني أكوامًا من الحطام فوق المناطق الرملية في شعاب الكاريبي.';
+  String get species_tilefish_sand_desc => 'سمكة مستطيلة زرقاء فاتحة تبني أكوامًا من الحطام فوق المناطق الرملية في شعاب الكاريبي.';
 
   @override
   String get species_weedy_seadragon_name => 'تنين البحر العشبي';
 
   @override
-  String get species_weedy_seadragon_desc =>
-      'قريب مزخرف لأحصنة البحر بزوائد تشبه الأوراق، متوطن في المياه المعتدلة بجنوب أستراليا.';
+  String get species_weedy_seadragon_desc => 'قريب مزخرف لأحصنة البحر بزوائد تشبه الأوراق، متوطن في المياه المعتدلة بجنوب أستراليا.';
 
   @override
   String get species_leafy_seadragon_name => 'تنين البحر الورقي';
 
   @override
-  String get species_leafy_seadragon_desc =>
-      'تنين بحر مذهل مغطى بنتوءات ورقية معقدة، متوطن في جنوب أستراليا. وهو من أبرز مشاهدات الغوص التي يحلم بها الغواصون.';
+  String get species_leafy_seadragon_desc => 'تنين بحر مذهل مغطى بنتوءات ورقية معقدة، متوطن في جنوب أستراليا. وهو من أبرز مشاهدات الغوص التي يحلم بها الغواصون.';
 
   @override
   String get species_sailfin_snapper_name => 'النهّاش الشراعي';
 
   @override
-  String get species_sailfin_snapper_desc =>
-      'نهّاش أنيق بلونين أصفر وأزرق وزعنفتين ظهرية وشرجية مستطيلتين، يوجد على منحدرات الشعاب في المحيطين الهندي والهادئ.';
+  String get species_sailfin_snapper_desc => 'نهّاش أنيق بلونين أصفر وأزرق وزعنفتين ظهرية وشرجية مستطيلتين، يوجد على منحدرات الشعاب في المحيطين الهندي والهادئ.';
 
   @override
   String get species_sweetlip_emperor_name => 'الشعري المرصّع';
 
   @override
-  String get species_sweetlip_emperor_desc =>
-      'سمكة شعري فضية كبيرة بخطوط زرقاء على الوجه وحواف زعانف صفراء، شائعة فوق المناطق الرملية للشعاب في المحيطين الهندي والهادئ.';
+  String get species_sweetlip_emperor_desc => 'سمكة شعري فضية كبيرة بخطوط زرقاء على الوجه وحواف زعانف صفراء، شائعة فوق المناطق الرملية للشعاب في المحيطين الهندي والهادئ.';
 
   @override
   String get species_crocodilefish_name => 'سمكة التمساح';
 
   @override
-  String get species_crocodilefish_desc =>
-      'مفترس كمين مسطح الرأس بأهداب عينية معقدة، يرقد بتمويه تام على أرضيات الشعاب في المحيطين الهندي والهادئ.';
+  String get species_crocodilefish_desc => 'مفترس كمين مسطح الرأس بأهداب عينية معقدة، يرقد بتمويه تام على أرضيات الشعاب في المحيطين الهندي والهادئ.';
 
   @override
   String get species_devil_scorpionfish_name => 'السمكة العقربية الشيطانية';
 
   @override
-  String get species_devil_scorpionfish_desc =>
-      'سمكة عقربية ممتلئة ومموّهة بزعانف صدرية ملونة من الداخل تكشفها كإنذار للمفترسات.';
+  String get species_devil_scorpionfish_desc => 'سمكة عقربية ممتلئة ومموّهة بزعانف صدرية ملونة من الداخل تكشفها كإنذار للمفترسات.';
 
   @override
   String get species_spiny_devilfish_name => 'لاسع الشيطان';
 
   @override
-  String get species_spiny_devilfish_desc =>
-      'ساكن قاع سام يمشي على أشعة زعنفية معدّلة ويكشف زعانفه الصدرية الزاهية عند إزعاجه.';
+  String get species_spiny_devilfish_desc => 'ساكن قاع سام يمشي على أشعة زعنفية معدّلة ويكشف زعانفه الصدرية الزاهية عند إزعاجه.';
 
   @override
   String get species_waspfish_name => 'سمكة الدبور الكوكاتو';
 
   @override
-  String get species_waspfish_desc =>
-      'سمكة عقربية صغيرة مضغوطة الجسم تتمايل مع التيار كورقة ذابلة فوق القيعان الطينية في المحيطين الهندي والهادئ.';
+  String get species_waspfish_desc => 'سمكة عقربية صغيرة مضغوطة الجسم تتمايل مع التيار كورقة ذابلة فوق القيعان الطينية في المحيطين الهندي والهادئ.';
 
   @override
   String get species_stargazer_name => 'سمكة راصد النجوم بيضاء الحواف';
 
   @override
-  String get species_stargazer_desc =>
-      'مفترس كمين يدفن نفسه في الرمال ولا تظهر منه سوى عينيه، ويمكنه إطلاق صدمات كهربائية. يوجد في المحيطين الهندي والهادئ.';
+  String get species_stargazer_desc => 'مفترس كمين يدفن نفسه في الرمال ولا تظهر منه سوى عينيه، ويمكنه إطلاق صدمات كهربائية. يوجد في المحيطين الهندي والهادئ.';
 
   @override
   String get species_striped_catfish_name => 'سمكة السلور المخططة';
 
   @override
-  String get species_striped_catfish_desc =>
-      'سمكة سلور بأشواك سامة؛ وتشكّل صغارها أسرابًا كثيفة كروية الشكل تتدحرج فوق أرضيات الشعاب في المحيطين الهندي والهادئ.';
+  String get species_striped_catfish_desc => 'سمكة سلور بأشواك سامة؛ وتشكّل صغارها أسرابًا كثيفة كروية الشكل تتدحرج فوق أرضيات الشعاب في المحيطين الهندي والهادئ.';
 
   @override
   String get species_red_emperor_name => 'الشعري الأحمر';
 
   @override
-  String get species_red_emperor_desc =>
-      'نهّاش كبير؛ البالغة حمراء وردية والصغار بأشرطة حمراء وبيضاء جريئة. يوجد في شعاب المحيطين الهندي والهادئ.';
+  String get species_red_emperor_desc => 'نهّاش كبير؛ البالغة حمراء وردية والصغار بأشرطة حمراء وبيضاء جريئة. يوجد في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_mangrove_snapper_name => 'نهّاش المانغروف';
 
   @override
-  String get species_mangrove_snapper_desc =>
-      'نهّاش رمادي يوجد في غابات المانغروف والأعشاب البحرية والشعاب بالكاريبي، ويتجمع غالبًا قرب البنى القائمة.';
+  String get species_mangrove_snapper_desc => 'نهّاش رمادي يوجد في غابات المانغروف والأعشاب البحرية والشعاب بالكاريبي، ويتجمع غالبًا قرب البنى القائمة.';
 
   @override
   String get species_dottyback_orchid_name => 'سمكة الدوتيباك الأوركيدية';
 
   @override
-  String get species_dottyback_orchid_desc =>
-      'سمكة صغيرة أرجوانية زاهية متوطنة في البحر الأحمر، تندفع داخل الشقوق وخارجها على الجدران المرجانية الحادة.';
+  String get species_dottyback_orchid_desc => 'سمكة صغيرة أرجوانية زاهية متوطنة في البحر الأحمر، تندفع داخل الشقوق وخارجها على الجدران المرجانية الحادة.';
 
   @override
   String get species_dottyback_royal_name => 'سمكة الدوتيباك الملكية';
 
   @override
-  String get species_dottyback_royal_desc =>
-      'سمكة صغيرة ثنائية اللون بمقدمة قرمزية ومؤخرة صفراء زاهية، توجد على جدران الشعاب في المحيطين الهندي والهادئ.';
+  String get species_dottyback_royal_desc => 'سمكة صغيرة ثنائية اللون بمقدمة قرمزية ومؤخرة صفراء زاهية، توجد على جدران الشعاب في المحيطين الهندي والهادئ.';
 
   @override
   String get species_coral_trout_name => 'التروتة المرجانية';
 
   @override
-  String get species_coral_trout_desc =>
-      'مفترس ثمين في الحاجز المرجاني العظيم بجسم أحمر برتقالي مغطى ببقع زرقاء.';
+  String get species_coral_trout_desc => 'مفترس ثمين في الحاجز المرجاني العظيم بجسم أحمر برتقالي مغطى ببقع زرقاء.';
 
   @override
   String get species_barramundi_cod_name => 'هامور البراموندي';
 
   @override
-  String get species_barramundi_cod_desc =>
-      'هامور مميز برأس صغير وجسم محدودب ونقاط داكنة على خلفية فاتحة.';
+  String get species_barramundi_cod_desc => 'هامور مميز برأس صغير وجسم محدودب ونقاط داكنة على خلفية فاتحة.';
 
   @override
   String get species_spadefish_atlantic_name => 'سمكة المجرفة الأطلسية';
 
   @override
-  String get species_spadefish_atlantic_desc =>
-      'سمكة فضية قرصية الشكل بأشرطة عمودية داكنة، تُشاهد غالبًا في أسراب كبيرة حول حطام السفن في الكاريبي.';
+  String get species_spadefish_atlantic_desc => 'سمكة فضية قرصية الشكل بأشرطة عمودية داكنة، تُشاهد غالبًا في أسراب كبيرة حول حطام السفن في الكاريبي.';
 
   @override
   String get species_fusilier_yellowback_name => 'سمكة الفوزلير صفراء الظهر';
 
   @override
-  String get species_fusilier_yellowback_desc =>
-      'سمكة زرقاء انسيابية تتغذى على العوالق وظهرها أصفر، وتشكّل أسرابًا ضخمة فوق منحدرات الشعاب في المحيطين الهندي والهادئ.';
+  String get species_fusilier_yellowback_desc => 'سمكة زرقاء انسيابية تتغذى على العوالق وظهرها أصفر، وتشكّل أسرابًا ضخمة فوق منحدرات الشعاب في المحيطين الهندي والهادئ.';
 
   @override
   String get species_fusilier_bluestreak_name => 'سمكة الفوزلير زرقاء الخط';
 
   @override
-  String get species_fusilier_bluestreak_desc =>
-      'سمكة فوزلير زرقاء صغيرة بخط جانبي داكن، تُشاهد في أسراب سريعة الحركة على طول جدران الشعاب في المحيطين الهندي والهادئ.';
+  String get species_fusilier_bluestreak_desc => 'سمكة فوزلير زرقاء صغيرة بخط جانبي داكن، تُشاهد في أسراب سريعة الحركة على طول جدران الشعاب في المحيطين الهندي والهادئ.';
 
   @override
   String get species_porkfish_name => 'سمكة الخنزير الهادرة';
 
   @override
-  String get species_porkfish_desc =>
-      'سمكة هدير كاريبية ملونة بخطوط زرقاء وصفراء وشريطين أسودين على الرأس، توجد قرب الشعاب والحطام.';
+  String get species_porkfish_desc => 'سمكة هدير كاريبية ملونة بخطوط زرقاء وصفراء وشريطين أسودين على الرأس، توجد قرب الشعاب والحطام.';
 
   @override
   String get species_blue_striped_grunt_name => 'سمكة الهدير زرقاء الخطوط';
 
   @override
-  String get species_blue_striped_grunt_desc =>
-      'سمكة هدير كاريبية صفراء بخطوط أفقية زرقاء زاهية، تشكّل نهارًا أسرابًا كبيرة ساكنة تحت الحواف الصخرية.';
+  String get species_blue_striped_grunt_desc => 'سمكة هدير كاريبية صفراء بخطوط أفقية زرقاء زاهية، تشكّل نهارًا أسرابًا كبيرة ساكنة تحت الحواف الصخرية.';
 
   @override
   String get species_french_grunt_name => 'سمكة الهدير الفرنسية';
 
   @override
-  String get species_french_grunt_desc =>
-      'سمكة هدير صغيرة بخطوط صفراء تشكّل أسرابًا ساكنة كثيفة على شعاب الكاريبي خلال ساعات النهار.';
+  String get species_french_grunt_desc => 'سمكة هدير صغيرة بخطوط صفراء تشكّل أسرابًا ساكنة كثيفة على شعاب الكاريبي خلال ساعات النهار.';
 
   @override
   String get species_convict_tang_name => 'سمكة الجراح السجينة';
 
   @override
-  String get species_convict_tang_desc =>
-      'سمكة جراح فاتحة اللون بستة أشرطة عمودية سوداء، تُشاهد غالبًا وهي ترعى في أسراب كبيرة على مسطحات الشعاب بالمحيطين الهندي والهادئ.';
+  String get species_convict_tang_desc => 'سمكة جراح فاتحة اللون بستة أشرطة عمودية سوداء، تُشاهد غالبًا وهي ترعى في أسراب كبيرة على مسطحات الشعاب بالمحيطين الهندي والهادئ.';
 
   @override
   String get species_great_hammerhead_name => 'قرش المطرقة المسنن';
 
   @override
-  String get species_great_hammerhead_desc =>
-      'قرش مميز برأس مطرقي مسنن الحواف، يشكّل أسرابًا كبيرة عند الجبال البحرية والجزر البعيدة عن الساحل.';
+  String get species_great_hammerhead_desc => 'قرش مميز برأس مطرقي مسنن الحواف، يشكّل أسرابًا كبيرة عند الجبال البحرية والجزر البعيدة عن الساحل.';
 
   @override
   String get species_wobbegong_name => 'قرش السجاد المرقّط';
 
   @override
-  String get species_wobbegong_desc =>
-      'قرش سجاد مسطح جيد التمويه بفصوص مهدّبة حول الفم، يوجد في الشعاب المعتدلة بأستراليا.';
+  String get species_wobbegong_desc => 'قرش سجاد مسطح جيد التمويه بفصوص مهدّبة حول الفم، يوجد في الشعاب المعتدلة بأستراليا.';
 
   @override
   String get species_manta_ray_name => 'شفنين المانتا الشعابي';
 
   @override
-  String get species_manta_ray_desc =>
-      'عملاق رشيق يبلغ باع جناحيه خمسة أمتار، يزور محطات التنظيف ويتغذى على العوالق في شعاب المحيطين الهندي والهادئ.';
+  String get species_manta_ray_desc => 'عملاق رشيق يبلغ باع جناحيه خمسة أمتار، يزور محطات التنظيف ويتغذى على العوالق في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_oceanic_manta_name => 'شفنين المانتا المحيطي';
 
   @override
-  String get species_oceanic_manta_desc =>
-      'أكبر أنواع الشفنين ويتجاوز باع جناحيه سبعة أمتار، ويُصادَف عند الجبال البحرية البعيدة عن الساحل ومحطات التنظيف.';
+  String get species_oceanic_manta_desc => 'أكبر أنواع الشفنين ويتجاوز باع جناحيه سبعة أمتار، ويُصادَف عند الجبال البحرية البعيدة عن الساحل ومحطات التنظيف.';
 
   @override
   String get species_undulated_moray_name => 'ثعبان البحر المورَي المتموّج';
 
   @override
-  String get species_undulated_moray_desc =>
-      'مورَي أخضر مصفرّ بعلامات داكنة متموجة، يُشاهد عادةً وهو يصطاد ليلًا في شعاب المحيطين الهندي والهادئ.';
+  String get species_undulated_moray_desc => 'مورَي أخضر مصفرّ بعلامات داكنة متموجة، يُشاهد عادةً وهو يصطاد ليلًا في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_whitemouth_moray_name => 'ثعبان البحر المورَي أبيض الفم';
 
   @override
-  String get species_whitemouth_moray_desc =>
-      'مورَي بني داكن ببقع بيضاء صغيرة وداخل فم أبيض مميز، يوجد عبر المحيطين الهندي والهادئ.';
+  String get species_whitemouth_moray_desc => 'مورَي بني داكن ببقع بيضاء صغيرة وداخل فم أبيض مميز، يوجد عبر المحيطين الهندي والهادئ.';
 
   @override
   String get species_dragon_moray_name => 'ثعبان البحر المورَي التنيني';
 
   @override
-  String get species_dragon_moray_desc =>
-      'مورَي لافت بقرون تشبه قرون التنين فوق منخريه وبقع برتقالية حمراء تشبه بقع الفهد، يوجد في المحيطين الهندي والهادئ.';
+  String get species_dragon_moray_desc => 'مورَي لافت بقرون تشبه قرون التنين فوق منخريه وبقع برتقالية حمراء تشبه بقع الفهد، يوجد في المحيطين الهندي والهادئ.';
 
   @override
   String get species_lyretail_grouper_name => 'الهامور قيثاري الذيل';
 
   @override
-  String get species_lyretail_grouper_desc =>
-      'هامور أحمر وردي ببقع زرقاء وذيل هلالي مميز، يوجد على جدران الشعاب الخارجية في المحيطين الهندي والهادئ.';
+  String get species_lyretail_grouper_desc => 'هامور أحمر وردي ببقع زرقاء وذيل هلالي مميز، يوجد على جدران الشعاب الخارجية في المحيطين الهندي والهادئ.';
 
   @override
   String get species_banded_butterflyfish_name => 'سمكة الفراشة المخططة';
 
   @override
-  String get species_banded_butterflyfish_desc =>
-      'سمكة فراشة بيضاء بأربعة أشرطة عمودية سوداء جريئة، وهي من أكثر أسماك الفراشة شيوعًا في شعاب الكاريبي.';
+  String get species_banded_butterflyfish_desc => 'سمكة فراشة بيضاء بأربعة أشرطة عمودية سوداء جريئة، وهي من أكثر أسماك الفراشة شيوعًا في شعاب الكاريبي.';
 
   @override
   String get species_ringed_pipefish_name => 'السمكة الأنبوبية ذات الحلقات';
 
   @override
-  String get species_ringed_pipefish_desc =>
-      'سمكة أنبوبية نحيلة بحلقات حمراء وبيضاء متناوبة، توجد في الكهوف وتحت الحواف الصخرية في شعاب المحيطين الهندي والهادئ.';
+  String get species_ringed_pipefish_desc => 'سمكة أنبوبية نحيلة بحلقات حمراء وبيضاء متناوبة، توجد في الكهوف وتحت الحواف الصخرية في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_razorfish_name => 'سمكة الموسى';
 
   @override
-  String get species_razorfish_desc =>
-      'سمكة ضئيلة تسبح عموديًا ورأسها إلى الأسفل ضمن مجموعات، وتختبئ غالبًا بين أشواك قنافذ البحر في شعاب المحيطين الهندي والهادئ.';
+  String get species_razorfish_desc => 'سمكة ضئيلة تسبح عموديًا ورأسها إلى الأسفل ضمن مجموعات، وتختبئ غالبًا بين أشواك قنافذ البحر في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_harlequin_tuskfish_name => 'سمكة الناب المهرجة';
 
   @override
-  String get species_harlequin_tuskfish_desc =>
-      'سمكة حريد ملونة بأنياب زرقاء زاهية وأشرطة حمراء برتقالية ورقع بيضاء، توجد في شعاب غرب المحيط الهادئ.';
+  String get species_harlequin_tuskfish_desc => 'سمكة حريد ملونة بأنياب زرقاء زاهية وأشرطة حمراء برتقالية ورقع بيضاء، توجد في شعاب غرب المحيط الهادئ.';
 
   @override
   String get species_blue_groper_name => 'الحريد الأزرق الأسترالي';
 
   @override
-  String get species_blue_groper_desc =>
-      'سمكة حريد زرقاء كبيرة متوطنة في شرق أستراليا، وديعة وكثيرًا ما تقترب من الغواصين في الشعاب المعتدلة.';
+  String get species_blue_groper_desc => 'سمكة حريد زرقاء كبيرة متوطنة في شرق أستراليا، وديعة وكثيرًا ما تقترب من الغواصين في الشعاب المعتدلة.';
 
   @override
   String get species_red_lipped_batfish_name => 'سمكة الخفاش حمراء الشفاه';
 
   @override
-  String get species_red_lipped_batfish_desc =>
-      'سمكة غريبة مسطحة الجسم بشفاه حمراء زاهية تمشي على زعانف معدّلة على قاع بحر غالاباغوس.';
+  String get species_red_lipped_batfish_desc => 'سمكة غريبة مسطحة الجسم بشفاه حمراء زاهية تمشي على زعانف معدّلة على قاع بحر غالاباغوس.';
 
   @override
-  String get species_orangeband_surgeonfish_name =>
-      'سمكة الجراح ذات الشريط البرتقالي';
+  String get species_orangeband_surgeonfish_name => 'سمكة الجراح ذات الشريط البرتقالي';
 
   @override
-  String get species_orangeband_surgeonfish_desc =>
-      'سمكة جراح رمادية بنية بشريط أفقي برتقالي خلف العين، توجد على منحدرات الشعاب في المحيط الهادئ.';
+  String get species_orangeband_surgeonfish_desc => 'سمكة جراح رمادية بنية بشريط أفقي برتقالي خلف العين، توجد على منحدرات الشعاب في المحيط الهادئ.';
 
   @override
   String get species_maori_wrasse_name => 'الحريد الماوري';
 
   @override
-  String get species_maori_wrasse_desc =>
-      'سمكة حريد متوسطة الحجم بشريط داكن خلف الزعنفة الصدرية، شائعة في شعاب المحيط الهادئ والمحيط الهندي.';
+  String get species_maori_wrasse_desc => 'سمكة حريد متوسطة الحجم بشريط داكن خلف الزعنفة الصدرية، شائعة في شعاب المحيط الهادئ والمحيط الهندي.';
 
   @override
   String get species_blue_ringed_octopus_name => 'الأخطبوط ذو الحلقات الزرقاء';
 
   @override
-  String get species_blue_ringed_octopus_desc =>
-      'أخطبوط صغير لكنه شديد السمّية بحلقات زرقاء زاهية تتوهج عند شعوره بالتهديد.';
+  String get species_blue_ringed_octopus_desc => 'أخطبوط صغير لكنه شديد السمّية بحلقات زرقاء زاهية تتوهج عند شعوره بالتهديد.';
 
   @override
   String get species_common_octopus_name => 'الأخطبوط الشائع';
 
   @override
-  String get species_common_octopus_desc =>
-      'أخطبوط عالي الذكاء يشتهر بتغيير ألوانه السريع وقدرته على حل المشكلات.';
+  String get species_common_octopus_desc => 'أخطبوط عالي الذكاء يشتهر بتغيير ألوانه السريع وقدرته على حل المشكلات.';
 
   @override
   String get species_giant_pacific_octopus_name => 'الأخطبوط الهادئي العملاق';
 
   @override
-  String get species_giant_pacific_octopus_desc =>
-      'أكبر أنواع الأخطبوط، ويتجاوز امتداد أذرعه أربعة أمتار في مياه المحيط الهادئ الباردة.';
+  String get species_giant_pacific_octopus_desc => 'أكبر أنواع الأخطبوط، ويتجاوز امتداد أذرعه أربعة أمتار في مياه المحيط الهادئ الباردة.';
 
   @override
   String get species_mimic_octopus_name => 'الأخطبوط المحاكي';
 
   @override
-  String get species_mimic_octopus_desc =>
-      'أخطبوط مذهل يقلّد مظهر أنواع بحرية أخرى وسلوكها.';
+  String get species_mimic_octopus_desc => 'أخطبوط مذهل يقلّد مظهر أنواع بحرية أخرى وسلوكها.';
 
   @override
   String get species_coconut_octopus_name => 'أخطبوط جوز الهند';
 
   @override
-  String get species_coconut_octopus_desc =>
-      'أخطبوط صغير يشتهر بحمل قشور جوز الهند واستخدامها ملاجئ متنقلة.';
+  String get species_coconut_octopus_desc => 'أخطبوط صغير يشتهر بحمل قشور جوز الهند واستخدامها ملاجئ متنقلة.';
 
   @override
   String get species_day_octopus_name => 'الأخطبوط النهاري';
 
   @override
-  String get species_day_octopus_desc =>
-      'صياد نشط في النهار شائع في شعاب المحيطين الهندي والهادئ ويتمتع بقدرات تمويه مذهلة.';
+  String get species_day_octopus_desc => 'صياد نشط في النهار شائع في شعاب المحيطين الهندي والهادئ ويتمتع بقدرات تمويه مذهلة.';
 
   @override
   String get species_wonderpus_octopus_name => 'الأخطبوط العجيب';
 
   @override
-  String get species_wonderpus_octopus_desc =>
-      'أخطبوط لافت بأشرطة بيضاء وبنية فريدة يوجد في مواقع الغوص الرملية الطينية.';
+  String get species_wonderpus_octopus_desc => 'أخطبوط لافت بأشرطة بيضاء وبنية فريدة يوجد في مواقع الغوص الرملية الطينية.';
 
   @override
   String get species_broadclub_cuttlefish_name => 'السبيدج عريض المجسّات';
 
   @override
-  String get species_broadclub_cuttlefish_desc =>
-      'سبيدج كبير بعروض لونية آسرة، ويُشاهد عادةً في شعاب المحيطين الهندي والهادئ.';
+  String get species_broadclub_cuttlefish_desc => 'سبيدج كبير بعروض لونية آسرة، ويُشاهد عادةً في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_pharaoh_cuttlefish_name => 'السبيدج الفرعوني';
 
   @override
-  String get species_pharaoh_cuttlefish_desc =>
-      'سبيدج كبير يوجد في أنحاء المحيط الهندي ويشتهر بأنماطه اللونية النابضة.';
+  String get species_pharaoh_cuttlefish_desc => 'سبيدج كبير يوجد في أنحاء المحيط الهندي ويشتهر بأنماطه اللونية النابضة.';
 
   @override
   String get species_flamboyant_cuttlefish_name => 'السبيدج المتباهي';
 
   @override
-  String get species_flamboyant_cuttlefish_desc =>
-      'سبيدج ضئيل الحجم يمشي على قاع البحر عارضًا نبضات أرجوانية ووردية وصفراء زاهية.';
+  String get species_flamboyant_cuttlefish_desc => 'سبيدج ضئيل الحجم يمشي على قاع البحر عارضًا نبضات أرجوانية ووردية وصفراء زاهية.';
 
   @override
   String get species_giant_cuttlefish_name => 'السبيدج العملاق';
 
   @override
-  String get species_giant_cuttlefish_desc =>
-      'أكبر سبيدج في العالم، ويشتهر بتجمعات التكاثر الجماعية في جنوب أستراليا.';
+  String get species_giant_cuttlefish_desc => 'أكبر سبيدج في العالم، ويشتهر بتجمعات التكاثر الجماعية في جنوب أستراليا.';
 
   @override
   String get species_bigfin_reef_squid_name => 'حبّار الشعاب كبير الزعانف';
 
   @override
-  String get species_bigfin_reef_squid_desc =>
-      'حبّار يعيش في أسراب ويُصادَف كثيرًا في الغوصات الليلية، وتجذبه أضواء الغواصين.';
+  String get species_bigfin_reef_squid_desc => 'حبّار يعيش في أسراب ويُصادَف كثيرًا في الغوصات الليلية، وتجذبه أضواء الغواصين.';
 
   @override
   String get species_caribbean_reef_squid_name => 'حبّار شعاب الكاريبي';
 
   @override
-  String get species_caribbean_reef_squid_desc =>
-      'حبّار فضولي يُشاهد غالبًا وهو يحوم في مجموعات صغيرة قرب حواف الشعاب في الكاريبي.';
+  String get species_caribbean_reef_squid_desc => 'حبّار فضولي يُشاهد غالبًا وهو يحوم في مجموعات صغيرة قرب حواف الشعاب في الكاريبي.';
 
   @override
   String get species_bobtail_squid_name => 'الحبّار قصير الذيل';
 
   @override
-  String get species_bobtail_squid_desc =>
-      'حبّار ضئيل ليلي النشاط يدفن نفسه في الرمال نهارًا، وهو صيد ثمين في غوصات القيعان الطينية.';
+  String get species_bobtail_squid_desc => 'حبّار ضئيل ليلي النشاط يدفن نفسه في الرمال نهارًا، وهو صيد ثمين في غوصات القيعان الطينية.';
 
   @override
   String get species_chambered_nautilus_name => 'النوتيلوس ذو الحجرات';
 
   @override
-  String get species_chambered_nautilus_desc =>
-      'أحفورة حية قديمة بصدفة ملتفة، نادرًا ما يراها الغواصون في المياه العميقة عند الفجر.';
+  String get species_chambered_nautilus_desc => 'أحفورة حية قديمة بصدفة ملتفة، نادرًا ما يراها الغواصون في المياه العميقة عند الفجر.';
 
   @override
   String get species_spanish_dancer_name => 'الراقصة الإسبانية';
 
   @override
-  String get species_spanish_dancer_desc =>
-      'أكبر أنواع الرخويات عارية الخياشيم، تسبح بتموّج عباءتها الحمراء كراقصة فلامنكو.';
+  String get species_spanish_dancer_desc => 'أكبر أنواع الرخويات عارية الخياشيم، تسبح بتموّج عباءتها الحمراء كراقصة فلامنكو.';
 
   @override
   String get species_chromodoris_willani_name => 'كروموذوريس ويلان';
 
   @override
-  String get species_chromodoris_willani_desc =>
-      'رخوية عارية الخياشيم لافتة بلونين أزرق وأسود وحافة بيضاء، شائعة في المحيطين الهندي والهادئ.';
+  String get species_chromodoris_willani_desc => 'رخوية عارية الخياشيم لافتة بلونين أزرق وأسود وحافة بيضاء، شائعة في المحيطين الهندي والهادئ.';
 
   @override
   String get species_chromodoris_lochi_name => 'كروموذوريس لوخ';
 
   @override
-  String get species_chromodoris_lochi_desc =>
-      'رخوية زرقاء عارية الخياشيم بخطوط داكنة وحافة بيضاء، توجد في أنحاء المحيط الهادئ الاستوائي.';
+  String get species_chromodoris_lochi_desc => 'رخوية زرقاء عارية الخياشيم بخطوط داكنة وحافة بيضاء، توجد في أنحاء المحيط الهادئ الاستوائي.';
 
   @override
   String get species_chromodoris_magnifica_name => 'الكروموذوريس البديع';
 
   @override
-  String get species_chromodoris_magnifica_desc =>
-      'رخوية عارية الخياشيم زاهية بالأزرق والأبيض والبرتقالي، توجد في الشعاب المرجانية بالمحيطين الهندي والهادئ.';
+  String get species_chromodoris_magnifica_desc => 'رخوية عارية الخياشيم زاهية بالأزرق والأبيض والبرتقالي، توجد في الشعاب المرجانية بالمحيطين الهندي والهادئ.';
 
   @override
   String get species_chromodoris_annae_name => 'كروموذوريس آنا';
 
   @override
-  String get species_chromodoris_annae_desc =>
-      'رخوية عارية الخياشيم زرقاء داكنة بخطوط سوداء وقرون شمية وخياشيم برتقالية الأطراف.';
+  String get species_chromodoris_annae_desc => 'رخوية عارية الخياشيم زرقاء داكنة بخطوط سوداء وقرون شمية وخياشيم برتقالية الأطراف.';
 
   @override
   String get species_nembrotha_kubaryana_name => 'بزاقة النيون المتغيّرة';
 
   @override
-  String get species_nembrotha_kubaryana_desc =>
-      'رخوية عارية الخياشيم خضراء داكنة بعلامات برتقالية أو حمراء زاهية، تتغذى على البخّاسات.';
+  String get species_nembrotha_kubaryana_desc => 'رخوية عارية الخياشيم خضراء داكنة بعلامات برتقالية أو حمراء زاهية، تتغذى على البخّاسات.';
 
   @override
   String get species_nembrotha_cristata_name => 'النمبروثا المعرّفة';
 
   @override
-  String get species_nembrotha_cristata_desc =>
-      'رخوية عارية الخياشيم سوداء ببثرات وخطوط خضراء زاهية، توجد في شعاب المحيطين الهندي والهادئ.';
+  String get species_nembrotha_cristata_desc => 'رخوية عارية الخياشيم سوداء ببثرات وخطوط خضراء زاهية، توجد في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_phyllidia_varicosa_name => 'الفيليديا الدوالية';
 
   @override
-  String get species_phyllidia_varicosa_desc =>
-      'رخوية عارية الخياشيم رمادية مزرقّة بحديبات ناتئة صفراء الأطراف، وهي سامة للمفترسات.';
+  String get species_phyllidia_varicosa_desc => 'رخوية عارية الخياشيم رمادية مزرقّة بحديبات ناتئة صفراء الأطراف، وهي سامة للمفترسات.';
 
   @override
   String get species_phyllidia_ocellata_name => 'الفيليديا ذات العيون';
 
   @override
-  String get species_phyllidia_ocellata_desc =>
-      'رخوية عارية الخياشيم بيضاء بحديبات ناتئة محاطة بحلقات وردية، توجد في الشعاب الاستوائية.';
+  String get species_phyllidia_ocellata_desc => 'رخوية عارية الخياشيم بيضاء بحديبات ناتئة محاطة بحلقات وردية، توجد في الشعاب الاستوائية.';
 
   @override
   String get species_pikachu_nudibranch_name => 'رخوية بيكاتشو عارية الخياشيم';
 
   @override
-  String get species_pikachu_nudibranch_desc =>
-      'بزاقة بحر ضئيلة صفراء وسوداء تشبه شخصية كرتونية، توجد في المحيط الهادئ.';
+  String get species_pikachu_nudibranch_desc => 'بزاقة بحر ضئيلة صفراء وسوداء تشبه شخصية كرتونية، توجد في المحيط الهادئ.';
 
   @override
   String get species_anna_rosefieldi_name => 'رخوية الروبوأسترا';
 
   @override
-  String get species_anna_rosefieldi_desc =>
-      'رخوية عارية الخياشيم مفترسة بجسم داكن وخطوط طولية زاهية تصطاد البزاقات الأخرى.';
+  String get species_anna_rosefieldi_desc => 'رخوية عارية الخياشيم مفترسة بجسم داكن وخطوط طولية زاهية تصطاد البزاقات الأخرى.';
 
   @override
   String get species_lettuce_sea_slug_name => 'بزاقة البحر الخسّية';
 
   @override
-  String get species_lettuce_sea_slug_desc =>
-      'بزاقة بحر خضراء مكشكشة تحتفظ بالصانعات الخضراء من الطحالب لإجراء التمثيل الضوئي.';
+  String get species_lettuce_sea_slug_desc => 'بزاقة بحر خضراء مكشكشة تحتفظ بالصانعات الخضراء من الطحالب لإجراء التمثيل الضوئي.';
 
   @override
   String get species_blue_dragon_nudibranch_name => 'رخوية التنين الأزرق';
 
   @override
-  String get species_blue_dragon_nudibranch_desc =>
-      'رخوية عارية الخياشيم طويلة بزوائد ظهرية زرقاء الأطراف تحتضن طحالب زوزانثيلا متكافلة.';
+  String get species_blue_dragon_nudibranch_desc => 'رخوية عارية الخياشيم طويلة بزوائد ظهرية زرقاء الأطراف تحتضن طحالب زوزانثيلا متكافلة.';
 
   @override
   String get species_gloomy_nudibranch_name => 'الرخوية الكئيبة عارية الخياشيم';
 
   @override
-  String get species_gloomy_nudibranch_desc =>
-      'رخوية عارية الخياشيم زرقاء مخضرّة داكنة بحواف زرقاء بارزة، شائعة في شعاب المحيطين الهندي والهادئ.';
+  String get species_gloomy_nudibranch_desc => 'رخوية عارية الخياشيم زرقاء مخضرّة داكنة بحواف زرقاء بارزة، شائعة في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_ocellined_nudibranch_name => 'الرخوية ذات الحواف المعيّنة';
 
   @override
-  String get species_ocellined_nudibranch_desc =>
-      'رخوية عارية الخياشيم بيضاء بحواف مبطنة بالبرتقالي تشكّل أنماطًا هندسية على عباءتها.';
+  String get species_ocellined_nudibranch_desc => 'رخوية عارية الخياشيم بيضاء بحواف مبطنة بالبرتقالي تشكّل أنماطًا هندسية على عباءتها.';
 
   @override
   String get species_glossodoris_cincta_name => 'رخوية الغلوسودوريس';
 
   @override
-  String get species_glossodoris_cincta_desc =>
-      'رخوية عارية الخياشيم بلون كريمي بإطار بني داكن وحافة برتقالية على العباءة.';
+  String get species_glossodoris_cincta_desc => 'رخوية عارية الخياشيم بلون كريمي بإطار بني داكن وحافة برتقالية على العباءة.';
 
   @override
   String get species_jorunna_funebris_name => 'الرخوية المنقّطة';
 
   @override
-  String get species_jorunna_funebris_desc =>
-      'رخوية عارية الخياشيم بيضاء مغطاة بحُليمات caryophyllidia سوداء الأطراف، تشبه أرنبًا وبريًا.';
+  String get species_jorunna_funebris_desc => 'رخوية عارية الخياشيم بيضاء مغطاة بحُليمات caryophyllidia سوداء الأطراف، تشبه أرنبًا وبريًا.';
 
   @override
   String get species_ceratosoma_trilobatum_name => 'الرخوية ثلاثية الفصوص';
 
   @override
-  String get species_ceratosoma_trilobatum_desc =>
-      'رخوية عارية الخياشيم كبيرة بقرن ظهري مرتفع وفصوص جانبية بدرجات أرجوانية وصفراء.';
+  String get species_ceratosoma_trilobatum_desc => 'رخوية عارية الخياشيم كبيرة بقرن ظهري مرتفع وفصوص جانبية بدرجات أرجوانية وصفراء.';
 
   @override
   String get species_hypselodoris_apolegma_name => 'الهيبسيلودوريس الأرجواني';
 
   @override
-  String get species_hypselodoris_apolegma_desc =>
-      'رخوية عارية الخياشيم أرجوانية أنيقة بحافة عباءة بيضاء، توجد في شعاب المحيطين الهندي والهادئ.';
+  String get species_hypselodoris_apolegma_desc => 'رخوية عارية الخياشيم أرجوانية أنيقة بحافة عباءة بيضاء، توجد في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_hypselodoris_bullockii_name => 'هيبسيلودوريس بولوك';
 
   @override
-  String get species_hypselodoris_bullockii_desc =>
-      'رخوية عارية الخياشيم وردية وأرجوانية بقرون شمية صفراء الأطراف في شعاب المحيطين الهندي والهادئ.';
+  String get species_hypselodoris_bullockii_desc => 'رخوية عارية الخياشيم وردية وأرجوانية بقرون شمية صفراء الأطراف في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_flabellina_exoptata_name => 'الفلابيلينا المرغوبة';
 
   @override
-  String get species_flabellina_exoptata_desc =>
-      'رخوية عارية الخياشيم شفافة بزوائد ظهرية برتقالية أرجوانية الأطراف، توجد في المياه الاستوائية.';
+  String get species_flabellina_exoptata_desc => 'رخوية عارية الخياشيم شفافة بزوائد ظهرية برتقالية أرجوانية الأطراف، توجد في المياه الاستوائية.';
 
   @override
   String get species_risbecia_tryoni_name => 'ريسبيسيا ترايون';
 
   @override
-  String get species_risbecia_tryoni_desc =>
-      'رخوية عارية الخياشيم كبيرة بنية وزرقاء تُشاهد غالبًا في أزواج متزاوجة على شعاب المحيطين الهندي والهادئ.';
+  String get species_risbecia_tryoni_desc => 'رخوية عارية الخياشيم كبيرة بنية وزرقاء تُشاهد غالبًا في أزواج متزاوجة على شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_goniobranchus_kuniei_name => 'رخوية كوني';
 
   @override
-  String get species_goniobranchus_kuniei_desc =>
-      'رخوية عارية الخياشيم بيضاء ببقع برتقالية وحافة عباءة أرجوانية، توجد في غرب المحيط الهادئ.';
+  String get species_goniobranchus_kuniei_desc => 'رخوية عارية الخياشيم بيضاء ببقع برتقالية وحافة عباءة أرجوانية، توجد في غرب المحيط الهادئ.';
 
   @override
-  String get species_mexichromis_multituberculata_name =>
-      'الرخوية متعددة الحديبات';
+  String get species_mexichromis_multituberculata_name => 'الرخوية متعددة الحديبات';
 
   @override
-  String get species_mexichromis_multituberculata_desc =>
-      'رخوية عارية الخياشيم أرجوانية وبيضاء بحديبات ناتئة وزوائد برتقالية الأطراف.';
+  String get species_mexichromis_multituberculata_desc => 'رخوية عارية الخياشيم أرجوانية وبيضاء بحديبات ناتئة وزوائد برتقالية الأطراف.';
 
   @override
   String get species_chromodoris_dianae_name => 'كروموذوريس ديانا';
 
   @override
-  String get species_chromodoris_dianae_desc =>
-      'رخوية عارية الخياشيم زرقاء زاهية بخطوط سوداء وخياشيم برتقالية، توجد في غرب المحيط الهادئ.';
+  String get species_chromodoris_dianae_desc => 'رخوية عارية الخياشيم زرقاء زاهية بخطوط سوداء وخياشيم برتقالية، توجد في غرب المحيط الهادئ.';
 
   @override
-  String get species_phyllodesmium_poindimiei_name =>
-      'الرخوية العاملة بالطاقة الشمسية';
+  String get species_phyllodesmium_poindimiei_name => 'الرخوية العاملة بالطاقة الشمسية';
 
   @override
-  String get species_phyllodesmium_poindimiei_desc =>
-      'رخوية عارية الخياشيم شفافة بزوائد ظهرية متفرعة تحتضن طحالب الزوزانثيلا.';
+  String get species_phyllodesmium_poindimiei_desc => 'رخوية عارية الخياشيم شفافة بزوائد ظهرية متفرعة تحتضن طحالب الزوزانثيلا.';
 
   @override
   String get species_chromodoris_elisabethina_name => 'كروموذوريس إليزابيث';
 
   @override
-  String get species_chromodoris_elisabethina_desc =>
-      'رخوية عارية الخياشيم بخطوط زرقاء وصفراء وحافة عباءة بيضاء، شائعة في جنوب شرق آسيا.';
+  String get species_chromodoris_elisabethina_desc => 'رخوية عارية الخياشيم بخطوط زرقاء وصفراء وحافة عباءة بيضاء، شائعة في جنوب شرق آسيا.';
 
   @override
   String get species_doridella_batava_name => 'الدوريد الباتافي';
 
   @override
-  String get species_doridella_batava_desc =>
-      'رخوية دوريدية عارية الخياشيم يتراوح لونها بين الأسود والبني، توجد تحت الصخور وبين الحطام في شعاب المحيطين الهندي والهادئ.';
+  String get species_doridella_batava_desc => 'رخوية دوريدية عارية الخياشيم يتراوح لونها بين الأسود والبني، توجد تحت الصخور وبين الحطام في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_tiger_cowrie_name => 'ودع النمر';
 
   @override
-  String get species_tiger_cowrie_desc =>
-      'صدفة ودع كبيرة منقّطة توجد في الشعاب الاستوائية، وتغطيها عباءتها جزئيًا في الغالب.';
+  String get species_tiger_cowrie_desc => 'صدفة ودع كبيرة منقّطة توجد في الشعاب الاستوائية، وتغطيها عباءتها جزئيًا في الغالب.';
 
   @override
   String get species_tritons_trumpet_name => 'بوق ترايتون';
 
   @override
-  String get species_tritons_trumpet_desc =>
-      'حلزون مفترس كبير وهو العدو الطبيعي لنجم البحر إكليل الشوك.';
+  String get species_tritons_trumpet_desc => 'حلزون مفترس كبير وهو العدو الطبيعي لنجم البحر إكليل الشوك.';
 
   @override
   String get species_queen_conch_name => 'القوقع الملكي';
 
   @override
-  String get species_queen_conch_desc =>
-      'قوقع كبير أيقوني في مروج الأعشاب البحرية بالكاريبي بشفة داخلية وردية مميزة.';
+  String get species_queen_conch_desc => 'قوقع كبير أيقوني في مروج الأعشاب البحرية بالكاريبي بشفة داخلية وردية مميزة.';
 
   @override
   String get species_banded_coral_shrimp_name => 'روبيان المرجان المخطط';
 
   @override
-  String get species_banded_coral_shrimp_desc =>
-      'روبيان منظف بأشرطة حمراء وبيضاء وقرون استشعار بيضاء طويلة، يوجد في شقوق الشعاب.';
+  String get species_banded_coral_shrimp_desc => 'روبيان منظف بأشرطة حمراء وبيضاء وقرون استشعار بيضاء طويلة، يوجد في شقوق الشعاب.';
 
   @override
   String get species_mantis_shrimp_name => 'روبيان السرعوف الطاووسي';
 
   @override
-  String get species_mantis_shrimp_desc =>
-      'مفترس ملوّن بزوائد قوية تشبه الهراوات قادرة على تحطيم الأصداف.';
+  String get species_mantis_shrimp_desc => 'مفترس ملوّن بزوائد قوية تشبه الهراوات قادرة على تحطيم الأصداف.';
 
   @override
   String get species_cleaner_shrimp_name => 'الروبيان المنظف القرمزي';
 
   @override
-  String get species_cleaner_shrimp_desc =>
-      'روبيان أحمر وأبيض زاهٍ ينشئ محطات تنظيف لخدمة أسماك الشعاب.';
+  String get species_cleaner_shrimp_desc => 'روبيان أحمر وأبيض زاهٍ ينشئ محطات تنظيف لخدمة أسماك الشعاب.';
 
   @override
   String get species_pederson_cleaner_shrimp_name => 'روبيان بيدرسون المنظف';
 
   @override
-  String get species_pederson_cleaner_shrimp_desc =>
-      'روبيان منظف كاريبي شفاف يعيش بين مجسّات شقائق النعمان البحرية.';
+  String get species_pederson_cleaner_shrimp_desc => 'روبيان منظف كاريبي شفاف يعيش بين مجسّات شقائق النعمان البحرية.';
 
   @override
   String get species_harlequin_shrimp_name => 'الروبيان المهرج';
 
   @override
-  String get species_harlequin_shrimp_desc =>
-      'روبيان بنقوش لافتة وكلّابات مسطحة يتغذى حصرًا على نجوم البحر.';
+  String get species_harlequin_shrimp_desc => 'روبيان بنقوش لافتة وكلّابات مسطحة يتغذى حصرًا على نجوم البحر.';
 
   @override
   String get species_coleman_shrimp_name => 'روبيان كولمان';
 
   @override
-  String get species_coleman_shrimp_desc =>
-      'روبيان ضئيل يعيش في أزواج على قنافذ البحر النارية، وهو مطلب ثمين لمصوري ما تحت الماء.';
+  String get species_coleman_shrimp_desc => 'روبيان ضئيل يعيش في أزواج على قنافذ البحر النارية، وهو مطلب ثمين لمصوري ما تحت الماء.';
 
   @override
   String get species_emperor_shrimp_name => 'الروبيان الإمبراطور';
 
   @override
-  String get species_emperor_shrimp_desc =>
-      'روبيان متعايش ملوّن يمتطي خيار البحر والرخويات عارية الخياشيم.';
+  String get species_emperor_shrimp_desc => 'روبيان متعايش ملوّن يمتطي خيار البحر والرخويات عارية الخياشيم.';
 
   @override
   String get species_sexy_shrimp_name => 'الروبيان الراقص';
 
   @override
-  String get species_sexy_shrimp_desc =>
-      'روبيان شقائق ضئيل يشتهر برقصة تلويح ذيله، وهو مفضل في التصوير الماكرو.';
+  String get species_sexy_shrimp_desc => 'روبيان شقائق ضئيل يشتهر برقصة تلويح ذيله، وهو مفضل في التصوير الماكرو.';
 
   @override
   String get species_marble_shrimp_name => 'الروبيان المرمّري';
 
   @override
-  String get species_marble_shrimp_desc =>
-      'روبيان ليلي النشاط مبقّع بأرجل ريشية، يختبئ نهارًا في شقوق الشعاب.';
+  String get species_marble_shrimp_desc => 'روبيان ليلي النشاط مبقّع بأرجل ريشية، يختبئ نهارًا في شقوق الشعاب.';
 
   @override
   String get species_spiny_lobster_name => 'الكركند الشوكي الكاريبي';
 
   @override
-  String get species_spiny_lobster_desc =>
-      'كركند كبير بلا كلّابات وبقرون استشعار طويلة، يحتمي تحت حواف الشعاب.';
+  String get species_spiny_lobster_desc => 'كركند كبير بلا كلّابات وبقرون استشعار طويلة، يحتمي تحت حواف الشعاب.';
 
   @override
   String get species_painted_spiny_lobster_name => 'الكركند الشوكي المرسوم';
 
   @override
-  String get species_painted_spiny_lobster_desc =>
-      'كركند زاهي الألوان بأرجل مخططة بالأزرق والأخضر والأبيض في شعاب المحيطين الهندي والهادئ.';
+  String get species_painted_spiny_lobster_desc => 'كركند زاهي الألوان بأرجل مخططة بالأزرق والأخضر والأبيض في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_slipper_lobster_name => 'كركند النعل';
 
   @override
-  String get species_slipper_lobster_desc =>
-      'كركند ليلي النشاط مسطح الجسم بصفائح استشعار عريضة بدلًا من القرون الطويلة.';
+  String get species_slipper_lobster_desc => 'كركند ليلي النشاط مسطح الجسم بصفائح استشعار عريضة بدلًا من القرون الطويلة.';
 
   @override
   String get species_squat_lobster_name => 'الكركند القرفصائي';
 
   @override
-  String get species_squat_lobster_desc =>
-      'قشري ضئيل بلون وردي أرجواني يعيش على الإسفنج البرميلي العملاق، وهو مفضل في التصوير الماكرو.';
+  String get species_squat_lobster_desc => 'قشري ضئيل بلون وردي أرجواني يعيش على الإسفنج البرميلي العملاق، وهو مفضل في التصوير الماكرو.';
 
   @override
   String get species_hermit_crab_name => 'السرطان الناسك أزرق الأرجل';
 
   @override
-  String get species_hermit_crab_desc =>
-      'سرطان ناسك صغير بأرجل زرقاء زاهية يُشاهد عادةً في شعاب الكاريبي.';
+  String get species_hermit_crab_desc => 'سرطان ناسك صغير بأرجل زرقاء زاهية يُشاهد عادةً في شعاب الكاريبي.';
 
   @override
   String get species_orangutan_crab_name => 'سرطان الأورانغوتان';
 
   @override
-  String get species_orangutan_crab_desc =>
-      'سرطان ضئيل كثيف الشعر يعيش في المرجان الفقاعي، وسُمّي بذلك لشبهه بالأورانغوتان.';
+  String get species_orangutan_crab_desc => 'سرطان ضئيل كثيف الشعر يعيش في المرجان الفقاعي، وسُمّي بذلك لشبهه بالأورانغوتان.';
 
   @override
   String get species_decorator_crab_name => 'السرطان المزخرِف';
 
   @override
-  String get species_decorator_crab_desc =>
-      'سيد التنكّر الذي يثبّت الإسفنج والطحالب والهيدرات على درعه.';
+  String get species_decorator_crab_desc => 'سيد التنكّر الذي يثبّت الإسفنج والطحالب والهيدرات على درعه.';
 
   @override
   String get species_porcelain_crab_name => 'سرطان الشقائق الخزفي';
 
   @override
-  String get species_porcelain_crab_desc =>
-      'سرطان مسطح منقّط يعيش في شقائق النعمان البحرية ويتغذى بالترشيح بأجزاء فم ريشية.';
+  String get species_porcelain_crab_desc => 'سرطان مسطح منقّط يعيش في شقائق النعمان البحرية ويتغذى بالترشيح بأجزاء فم ريشية.';
 
   @override
   String get species_arrow_crab_name => 'سرطان السهم';
 
   @override
-  String get species_arrow_crab_desc =>
-      'سرطان كاريبي نحيل الأطراف بمنقار مدبب طويل وأرجل مخططة.';
+  String get species_arrow_crab_desc => 'سرطان كاريبي نحيل الأطراف بمنقار مدبب طويل وأرجل مخططة.';
 
   @override
   String get species_channel_clinging_crab_name => 'سرطان القنوات المتشبث';
 
   @override
-  String get species_channel_clinging_crab_desc =>
-      'سرطان شعاب كاريبي كبير بجسم داكن وكلّابات حمراء برتقالية، يوجد في الشقوق.';
+  String get species_channel_clinging_crab_desc => 'سرطان شعاب كاريبي كبير بجسم داكن وكلّابات حمراء برتقالية، يوجد في الشقوق.';
 
   @override
   String get species_coral_crab_name => 'سرطان حراسة المرجان';
 
   @override
-  String get species_coral_crab_desc =>
-      'سرطان صغير منقّط يعيش في تكافل داخل مرجان Pocillopora ويدافع عن مضيفه.';
+  String get species_coral_crab_desc => 'سرطان صغير منقّط يعيش في تكافل داخل مرجان Pocillopora ويدافع عن مضيفه.';
 
   @override
   String get species_crown_of_thorns_starfish_name => 'نجم البحر إكليل الشوك';
 
   @override
-  String get species_crown_of_thorns_starfish_desc =>
-      'نجم بحر سام متعدد الأذرع يتغذى على المرجان ويمكنه تدمير الشعاب عند تفشّيه.';
+  String get species_crown_of_thorns_starfish_desc => 'نجم بحر سام متعدد الأذرع يتغذى على المرجان ويمكنه تدمير الشعاب عند تفشّيه.';
 
   @override
   String get species_blue_linckia_starfish_name => 'نجم البحر لينكيا الأزرق';
 
   @override
-  String get species_blue_linckia_starfish_desc =>
-      'نجم بحر أزرق زاهٍ يُشاهد عادةً على مسطحات ومنحدرات الشعاب في المحيطين الهندي والهادئ.';
+  String get species_blue_linckia_starfish_desc => 'نجم بحر أزرق زاهٍ يُشاهد عادةً على مسطحات ومنحدرات الشعاب في المحيطين الهندي والهادئ.';
 
   @override
   String get species_red_knob_starfish_name => 'نجم البحر أحمر النتوءات';
 
   @override
-  String get species_red_knob_starfish_desc =>
-      'نجم بحر رمادي كبير بأشواك بارزة حمراء الأطراف، يوجد في المناطق الرملية من الشعاب.';
+  String get species_red_knob_starfish_desc => 'نجم بحر رمادي كبير بأشواك بارزة حمراء الأطراف، يوجد في المناطق الرملية من الشعاب.';
 
   @override
-  String get species_chocolate_chip_starfish_name =>
-      'نجم البحر برقائق الشوكولاتة';
+  String get species_chocolate_chip_starfish_name => 'نجم البحر برقائق الشوكولاتة';
 
   @override
-  String get species_chocolate_chip_starfish_desc =>
-      'نجم بحر بلون بيج بعقيدات داكنة ناتئة تشبه رقائق الشوكولاتة على القيعان الرملية.';
+  String get species_chocolate_chip_starfish_desc => 'نجم بحر بلون بيج بعقيدات داكنة ناتئة تشبه رقائق الشوكولاتة على القيعان الرملية.';
 
   @override
   String get species_cushion_star_name => 'نجم البحر الوسادي';
 
   @override
-  String get species_cushion_star_desc =>
-      'نجم بحر منتفخ خماسي الشكل بأذرع قصيرة، يوجد على مسطحات الشعاب في المحيطين الهندي والهادئ.';
+  String get species_cushion_star_desc => 'نجم بحر منتفخ خماسي الشكل بأذرع قصيرة، يوجد على مسطحات الشعاب في المحيطين الهندي والهادئ.';
 
   @override
   String get species_fromia_starfish_name => 'نجم البحر الأنيق';
 
   @override
-  String get species_fromia_starfish_desc =>
-      'نجم بحر صغير أحمر برتقالي بحواف صفائح فاتحة تشكّل نمطًا يشبه البلاط.';
+  String get species_fromia_starfish_desc => 'نجم بحر صغير أحمر برتقالي بحواف صفائح فاتحة تشكّل نمطًا يشبه البلاط.';
 
   @override
   String get species_basket_star_name => 'نجم السلة';
 
   @override
-  String get species_basket_star_desc =>
-      'أذرع شديدة التفرع تنفرد ليلًا للتغذي بالترشيح من التيار.';
+  String get species_basket_star_desc => 'أذرع شديدة التفرع تنفرد ليلًا للتغذي بالترشيح من التيار.';
 
   @override
   String get species_brittle_star_name => 'نجم البحر الهش المخطط';
 
   @override
-  String get species_brittle_star_desc =>
-      'نجم بحر هش مخطط يوجد تحت الصخور وفي الشقوق بأذرع رشيقة تشبه الأفاعي.';
+  String get species_brittle_star_desc => 'نجم بحر هش مخطط يوجد تحت الصخور وفي الشقوق بأذرع رشيقة تشبه الأفاعي.';
 
   @override
   String get species_feather_star_name => 'نجم الريش';
 
   @override
-  String get species_feather_star_desc =>
-      'زنبق بحر متعدد الأذرع يرتكز على نتوءات الشعاب ويتغذى بالترشيح بأذرعه الريشية.';
+  String get species_feather_star_desc => 'زنبق بحر متعدد الأذرع يرتكز على نتوءات الشعاب ويتغذى بالترشيح بأذرعه الريشية.';
 
   @override
   String get species_black_feather_star_name => 'نجم الريش الأسود';
 
   @override
-  String get species_black_feather_star_desc =>
-      'زنبق بحر داكن يمكنه السباحة لفترات قصيرة بتلويح أذرعه العديدة بإيقاع منتظم.';
+  String get species_black_feather_star_desc => 'زنبق بحر داكن يمكنه السباحة لفترات قصيرة بتلويح أذرعه العديدة بإيقاع منتظم.';
 
   @override
   String get species_long_spined_sea_urchin_name => 'قنفذ البحر طويل الأشواك';
 
   @override
-  String get species_long_spined_sea_urchin_desc =>
-      'قنفذ بحر أسود بأشواك طويلة سامة، وهو راعٍ أساسي للطحالب في شعاب الكاريبي.';
+  String get species_long_spined_sea_urchin_desc => 'قنفذ بحر أسود بأشواك طويلة سامة، وهو راعٍ أساسي للطحالب في شعاب الكاريبي.';
 
   @override
   String get species_fire_urchin_name => 'قنفذ البحر الناري';
 
   @override
-  String get species_fire_urchin_desc =>
-      'قنفذ بحر طري الجسم بأشواك سامة تسبب لسعات مؤلمة عند ملامستها.';
+  String get species_fire_urchin_desc => 'قنفذ بحر طري الجسم بأشواك سامة تسبب لسعات مؤلمة عند ملامستها.';
 
   @override
   String get species_pencil_urchin_name => 'قنفذ البحر القلمي';
 
   @override
-  String get species_pencil_urchin_desc =>
-      'قنفذ بحر متين بأشواك غليظة غير مدببة، يوجد محشورًا في شقوق الشعاب.';
+  String get species_pencil_urchin_desc => 'قنفذ بحر متين بأشواك غليظة غير مدببة، يوجد محشورًا في شقوق الشعاب.';
 
   @override
   String get species_collector_urchin_name => 'قنفذ البحر الجامع';
 
   @override
-  String get species_collector_urchin_desc =>
-      'قنفذ بحر يغطي نفسه بالحطام وشظايا الطحالب من أجل التمويه.';
+  String get species_collector_urchin_desc => 'قنفذ بحر يغطي نفسه بالحطام وشظايا الطحالب من أجل التمويه.';
 
   @override
   String get species_sea_apple_name => 'تفاحة البحر';
 
   @override
-  String get species_sea_apple_desc =>
-      'خيار بحر زاهي الألوان بمجسّات فموية يستخدمها للتغذي بالترشيح.';
+  String get species_sea_apple_desc => 'خيار بحر زاهي الألوان بمجسّات فموية يستخدمها للتغذي بالترشيح.';
 
   @override
   String get species_pineapple_sea_cucumber_name => 'خيار البحر الأناناسي';
 
   @override
-  String get species_pineapple_sea_cucumber_desc =>
-      'خيار بحر كبير أحمر برتقالي بحُليمات نجمية الشكل، يوجد على منحدرات الشعاب.';
+  String get species_pineapple_sea_cucumber_desc => 'خيار بحر كبير أحمر برتقالي بحُليمات نجمية الشكل، يوجد على منحدرات الشعاب.';
 
   @override
   String get species_black_sea_cucumber_name => 'خيار البحر الأسود';
 
   @override
-  String get species_black_sea_cucumber_desc =>
-      'خيار بحر أسود شائع يوجد على مسطحات الشعاب الرملية في أنحاء المحيطين الهندي والهادئ.';
+  String get species_black_sea_cucumber_desc => 'خيار بحر أسود شائع يوجد على مسطحات الشعاب الرملية في أنحاء المحيطين الهندي والهادئ.';
 
   @override
   String get species_leopard_sea_cucumber_name => 'خيار البحر الفهدي';
 
   @override
-  String get species_leopard_sea_cucumber_desc =>
-      'خيار بحر منقّط يقذف أنابيب كوفييه البيضاء اللزجة عند إزعاجه.';
+  String get species_leopard_sea_cucumber_desc => 'خيار بحر منقّط يقذف أنابيب كوفييه البيضاء اللزجة عند إزعاجه.';
 
   @override
   String get species_sand_dollar_name => 'دولار الرمل';
 
   @override
-  String get species_sand_dollar_desc =>
-      'قنفذ بحر مسطح قرصي الشكل يوجد مدفونًا جزئيًا في القيعان الرملية.';
+  String get species_sand_dollar_desc => 'قنفذ بحر مسطح قرصي الشكل يوجد مدفونًا جزئيًا في القيعان الرملية.';
 
   @override
   String get species_moon_jellyfish_name => 'قنديل البحر القمري';
 
   @override
-  String get species_moon_jellyfish_desc =>
-      'قنديل بحر شفاف جرسي الشكل بأربع غدد تناسلية على شكل حدوة حصان تُرى عبر جسمه.';
+  String get species_moon_jellyfish_desc => 'قنديل بحر شفاف جرسي الشكل بأربع غدد تناسلية على شكل حدوة حصان تُرى عبر جسمه.';
 
   @override
   String get species_lions_mane_jellyfish_name => 'قنديل بحر عرف الأسد';
 
   @override
-  String get species_lions_mane_jellyfish_desc =>
-      'أحد أكبر أنواع قناديل البحر بمجسّات طويلة متدلية، ويعيش في المياه الباردة.';
+  String get species_lions_mane_jellyfish_desc => 'أحد أكبر أنواع قناديل البحر بمجسّات طويلة متدلية، ويعيش في المياه الباردة.';
 
   @override
   String get species_box_jellyfish_name => 'قنديل البحر الصندوقي';
 
   @override
-  String get species_box_jellyfish_desc =>
-      'قنديل بحر شديد الخطورة بسم قوي، يوجد في المياه الاستوائية بالمحيطين الهندي والهادئ.';
+  String get species_box_jellyfish_desc => 'قنديل بحر شديد الخطورة بسم قوي، يوجد في المياه الاستوائية بالمحيطين الهندي والهادئ.';
 
   @override
   String get species_upside_down_jellyfish_name => 'قنديل البحر المقلوب';
 
   @override
-  String get species_upside_down_jellyfish_desc =>
-      'قنديل بحر غير مألوف يستقر وجرسه إلى الأسفل على القيعان الرملية ليتيح لطحالبه التمثيل الضوئي.';
+  String get species_upside_down_jellyfish_desc => 'قنديل بحر غير مألوف يستقر وجرسه إلى الأسفل على القيعان الرملية ليتيح لطحالبه التمثيل الضوئي.';
 
   @override
-  String get species_blue_blubber_jellyfish_name =>
-      'قنديل البحر الأزرق الهلامي';
+  String get species_blue_blubber_jellyfish_name => 'قنديل البحر الأزرق الهلامي';
 
   @override
-  String get species_blue_blubber_jellyfish_desc =>
-      'قنديل بحر أزرق مائل للبياض بجرس متماسك وأذرع فموية مكشكشة، شائع في المياه الأسترالية.';
+  String get species_blue_blubber_jellyfish_desc => 'قنديل بحر أزرق مائل للبياض بجرس متماسك وأذرع فموية مكشكشة، شائع في المياه الأسترالية.';
 
   @override
   String get species_fried_egg_jellyfish_name => 'قنديل البحر بيضة مقلية';
 
   @override
-  String get species_fried_egg_jellyfish_desc =>
-      'قنديل بحر متوسطي بقبة صفراء تشبه البيضة المقلية ولسعته خفيفة.';
+  String get species_fried_egg_jellyfish_desc => 'قنديل بحر متوسطي بقبة صفراء تشبه البيضة المقلية ولسعته خفيفة.';
 
   @override
   String get species_pacific_sea_nettle_name => 'قرّاص البحر الهادئي';
 
   @override
-  String get species_pacific_sea_nettle_desc =>
-      'قنديل بحر بني ذهبي بمجسّات طويلة متدلية، يوجد على طول ساحل المحيط الهادئ.';
+  String get species_pacific_sea_nettle_desc => 'قنديل بحر بني ذهبي بمجسّات طويلة متدلية، يوجد على طول ساحل المحيط الهادئ.';
 
   @override
   String get species_compass_jellyfish_name => 'قنديل البحر البوصلي';
 
   @override
-  String get species_compass_jellyfish_desc =>
-      'قنديل بحر بني وأبيض بعلامات على شكل حرف V تتشعع كوردة البوصلة.';
+  String get species_compass_jellyfish_desc => 'قنديل بحر بني وأبيض بعلامات على شكل حرف V تتشعع كوردة البوصلة.';
 
   @override
   String get species_spotted_jellyfish_name => 'قنديل البحر المنقّط';
 
   @override
-  String get species_spotted_jellyfish_desc =>
-      'قنديل بحر ذهبي ببقع بيضاء يشتهر بملء بحيرة قناديل البحر في بالاو.';
+  String get species_spotted_jellyfish_desc => 'قنديل بحر ذهبي ببقع بيضاء يشتهر بملء بحيرة قناديل البحر في بالاو.';
 
   @override
   String get species_barrel_jellyfish_name => 'قنديل البحر البرميلي';
 
   @override
-  String get species_barrel_jellyfish_desc =>
-      'قنديل بحر كبير قبّي الشكل بأذرع فموية مكشكشة ولسعة خفيفة، وهو شائع في المحيط الأطلسي.';
+  String get species_barrel_jellyfish_desc => 'قنديل بحر كبير قبّي الشكل بأذرع فموية مكشكشة ولسعة خفيفة، وهو شائع في المحيط الأطلسي.';
 
   @override
-  String get species_persian_carpet_flatworm_name =>
-      'الدودة المفلطحة السجادة الفارسية';
+  String get species_persian_carpet_flatworm_name => 'الدودة المفلطحة السجادة الفارسية';
 
   @override
-  String get species_persian_carpet_flatworm_desc =>
-      'دودة مفلطحة سوداء مزخرفة بحواف صفراء برتقالية، وكثيرًا ما تُخلط مع الرخويات عارية الخياشيم.';
+  String get species_persian_carpet_flatworm_desc => 'دودة مفلطحة سوداء مزخرفة بحواف صفراء برتقالية، وكثيرًا ما تُخلط مع الرخويات عارية الخياشيم.';
 
   @override
   String get species_leopard_flatworm_name => 'الدودة المفلطحة الفهدية';
 
   @override
-  String get species_leopard_flatworm_desc =>
-      'دودة مفلطحة شفافة ببقع تشبه بقع الفهد تنساب فوق أسطح الشعاب.';
+  String get species_leopard_flatworm_desc => 'دودة مفلطحة شفافة ببقع تشبه بقع الفهد تنساب فوق أسطح الشعاب.';
 
   @override
   String get species_divided_flatworm_name => 'الدودة المفلطحة المقسّمة';
 
   @override
-  String get species_divided_flatworm_desc =>
-      'دودة مفلطحة لافتة بالأسود والبرتقالي تحاكي الرخويات السامة عارية الخياشيم لحماية نفسها.';
+  String get species_divided_flatworm_desc => 'دودة مفلطحة لافتة بالأسود والبرتقالي تحاكي الرخويات السامة عارية الخياشيم لحماية نفسها.';
 
   @override
-  String get species_blue_pseudoceros_flatworm_name =>
-      'الدودة المفلطحة الزرقاء بسودوسيروس';
+  String get species_blue_pseudoceros_flatworm_name => 'الدودة المفلطحة الزرقاء بسودوسيروس';
 
   @override
-  String get species_blue_pseudoceros_flatworm_desc =>
-      'دودة مفلطحة زرقاء داكنة بحافة برتقالية تنساب فوق أسطح الشعاب في المحيطين الهندي والهادئ.';
+  String get species_blue_pseudoceros_flatworm_desc => 'دودة مفلطحة زرقاء داكنة بحافة برتقالية تنساب فوق أسطح الشعاب في المحيطين الهندي والهادئ.';
 
   @override
-  String get species_racing_stripe_flatworm_name =>
-      'الدودة المفلطحة ذات الخط السباقي';
+  String get species_racing_stripe_flatworm_name => 'الدودة المفلطحة ذات الخط السباقي';
 
   @override
-  String get species_racing_stripe_flatworm_desc =>
-      'دودة مفلطحة بلون كريمي بخط مركزي داكن واضح وحافة مكشكشة.';
+  String get species_racing_stripe_flatworm_desc => 'دودة مفلطحة بلون كريمي بخط مركزي داكن واضح وحافة مكشكشة.';
 
   @override
   String get species_christmas_tree_worm_name => 'دودة شجرة الميلاد';
 
   @override
-  String get species_christmas_tree_worm_desc =>
-      'دودة ملوّنة بتاج حلزوني مغروسة في المرجان وتنكمش فورًا عند الاقتراب منها.';
+  String get species_christmas_tree_worm_desc => 'دودة ملوّنة بتاج حلزوني مغروسة في المرجان وتنكمش فورًا عند الاقتراب منها.';
 
   @override
   String get species_feather_duster_worm_name => 'الدودة الريشية';
 
   @override
-  String get species_feather_duster_worm_desc =>
-      'دودة تعيش في أنبوب ولها تاج مروحي من الأشعة الريشية تستخدمه للتغذي بالترشيح.';
+  String get species_feather_duster_worm_desc => 'دودة تعيش في أنبوب ولها تاج مروحي من الأشعة الريشية تستخدمه للتغذي بالترشيح.';
 
   @override
   String get species_fire_worm_name => 'الدودة النارية الملتحية';
 
   @override
-  String get species_fire_worm_desc =>
-      'دودة ذات أشواك بيضاء لاسعة تسبب تهيّجًا مؤلمًا عند ملامستها.';
+  String get species_fire_worm_desc => 'دودة ذات أشواك بيضاء لاسعة تسبب تهيّجًا مؤلمًا عند ملامستها.';
 
   @override
   String get species_bobbit_worm_name => 'دودة بوبيت';
 
   @override
-  String get species_bobbit_worm_desc =>
-      'مفترس كمين يختبئ في الرمال بفكين قويين ينقضّان بسرعة البرق.';
+  String get species_bobbit_worm_desc => 'مفترس كمين يختبئ في الرمال بفكين قويين ينقضّان بسرعة البرق.';
 
   @override
   String get species_social_feather_duster_name => 'الدودة الريشية الاجتماعية';
 
   @override
-  String get species_social_feather_duster_desc =>
-      'دودة أنبوبية مستعمرة تشكّل تجمعات من التيجان الرقيقة المخططة في شعاب الكاريبي.';
+  String get species_social_feather_duster_desc => 'دودة أنبوبية مستعمرة تشكّل تجمعات من التيجان الرقيقة المخططة في شعاب الكاريبي.';
 
   @override
   String get species_giant_clam_name => 'المحار العملاق';
 
   @override
-  String get species_giant_clam_desc =>
-      'أكبر ذوات المصراعين الحية، وعباءتها متقزّحة الألوان وتحتضن طحالب متكافلة.';
+  String get species_giant_clam_desc => 'أكبر ذوات المصراعين الحية، وعباءتها متقزّحة الألوان وتحتضن طحالب متكافلة.';
 
   @override
   String get species_boring_clam_name => 'المحار الحافر';
 
   @override
-  String get species_boring_clam_desc =>
-      'محار صغير ملوّن يحفر داخل الصخر المرجاني ولا تظهر منه سوى عباءته الزاهية.';
+  String get species_boring_clam_desc => 'محار صغير ملوّن يحفر داخل الصخر المرجاني ولا تظهر منه سوى عباءته الزاهية.';
 
   @override
   String get species_maxima_clam_name => 'المحار الأقصى';
 
   @override
-  String get species_maxima_clam_desc =>
-      'محار زاهي الألوان مغروس في صخر الشعاب بعباءات زرقاء وخضراء براقة.';
+  String get species_maxima_clam_desc => 'محار زاهي الألوان مغروس في صخر الشعاب بعباءات زرقاء وخضراء براقة.';
 
   @override
   String get species_flame_scallop_name => 'الأسقلوب اللهبي';
 
   @override
-  String get species_flame_scallop_desc =>
-      'من ذوات المصراعين الحمراء بوميض ضوئي أبيض على طول حافة عباءتها، توجد في شقوق الشعاب.';
+  String get species_flame_scallop_desc => 'من ذوات المصراعين الحمراء بوميض ضوئي أبيض على طول حافة عباءتها، توجد في شقوق الشعاب.';
 
   @override
   String get species_thorny_oyster_name => 'المحار الشوكي';
 
   @override
-  String get species_thorny_oyster_desc =>
-      'من ذوات المصراعين بصدفة شوكية ملتصقة بصخر الشعاب، وغالبًا ما يكسوها الإسفنج والطحالب.';
+  String get species_thorny_oyster_desc => 'من ذوات المصراعين بصدفة شوكية ملتصقة بصخر الشعاب، وغالبًا ما يكسوها الإسفنج والطحالب.';
 
   @override
-  String get species_magnificent_sea_anemone_name =>
-      'شقائق النعمان البحرية البديعة';
+  String get species_magnificent_sea_anemone_name => 'شقائق النعمان البحرية البديعة';
 
   @override
-  String get species_magnificent_sea_anemone_desc =>
-      'شقائق نعمان كبيرة ملوّنة تستضيف أسماك المهرج، بعمود بارز ومجسّات منسابة.';
+  String get species_magnificent_sea_anemone_desc => 'شقائق نعمان كبيرة ملوّنة تستضيف أسماك المهرج، بعمود بارز ومجسّات منسابة.';
 
   @override
   String get species_bubble_tip_anemone_name => 'شقائق النعمان فقاعية الأطراف';
 
   @override
-  String get species_bubble_tip_anemone_desc =>
-      'مضيف شائع لأسماك المهرج بمجسّات منتفخة الأطراف بألوان خضراء أو بنية أو وردية.';
+  String get species_bubble_tip_anemone_desc => 'مضيف شائع لأسماك المهرج بمجسّات منتفخة الأطراف بألوان خضراء أو بنية أو وردية.';
 
   @override
-  String get species_giant_carpet_anemone_name =>
-      'شقائق النعمان السجادية العملاقة';
+  String get species_giant_carpet_anemone_name => 'شقائق النعمان السجادية العملاقة';
 
   @override
-  String get species_giant_carpet_anemone_desc =>
-      'شقائق نعمان ضخمة بمجسّات قصيرة لزجة يمكن أن يتجاوز عرضها المتر الواحد.';
+  String get species_giant_carpet_anemone_desc => 'شقائق نعمان ضخمة بمجسّات قصيرة لزجة يمكن أن يتجاوز عرضها المتر الواحد.';
 
   @override
-  String get species_haddon_carpet_anemone_name =>
-      'شقائق النعمان السجادية الهادونية';
+  String get species_haddon_carpet_anemone_name => 'شقائق النعمان السجادية الهادونية';
 
   @override
-  String get species_haddon_carpet_anemone_desc =>
-      'شقائق نعمان سجادية مسطحة على القيعان الرملية تستضيف أنواعًا مختلفة من أسماك المهرج والسرطانات الخزفية.';
+  String get species_haddon_carpet_anemone_desc => 'شقائق نعمان سجادية مسطحة على القيعان الرملية تستضيف أنواعًا مختلفة من أسماك المهرج والسرطانات الخزفية.';
 
   @override
-  String get species_long_tentacle_anemone_name =>
-      'شقائق النعمان طويلة المجسّات';
+  String get species_long_tentacle_anemone_name => 'شقائق النعمان طويلة المجسّات';
 
   @override
-  String get species_long_tentacle_anemone_desc =>
-      'شقائق نعمان تعيش في القيعان الرملية بمجسّات طويلة منسابة، وتستضيف أسماك المهرج غالبًا.';
+  String get species_long_tentacle_anemone_desc => 'شقائق نعمان تعيش في القيعان الرملية بمجسّات طويلة منسابة، وتستضيف أسماك المهرج غالبًا.';
 
   @override
   String get species_tube_anemone_name => 'شقائق النعمان الأنبوبية';
 
   @override
-  String get species_tube_anemone_desc =>
-      'شقائق نعمان أنيقة تسكن أنبوبًا رقّيًا في الرمال ولها حلقتان من المجسّات.';
+  String get species_tube_anemone_desc => 'شقائق نعمان أنيقة تسكن أنبوبًا رقّيًا في الرمال ولها حلقتان من المجسّات.';
 
   @override
   String get species_hell_fire_anemone_name => 'شقائق نعمان نار الجحيم';
 
   @override
-  String get species_hell_fire_anemone_desc =>
-      'شقائق نعمان شديدة اللسع بمجسّات متفرعة تشبه المرجان الطري.';
+  String get species_hell_fire_anemone_desc => 'شقائق نعمان شديدة اللسع بمجسّات متفرعة تشبه المرجان الطري.';
 
   @override
   String get species_beaded_sea_anemone_name => 'شقائق النعمان البحرية الخرزية';
 
   @override
-  String get species_beaded_sea_anemone_desc =>
-      'شقائق نعمان بأطراف مجسّات منتفخة تشبه الخرز، توجد في المناطق الرملية من شعاب المحيطين الهندي والهادئ.';
+  String get species_beaded_sea_anemone_desc => 'شقائق نعمان بأطراف مجسّات منتفخة تشبه الخرز، توجد في المناطق الرملية من شعاب المحيطين الهندي والهادئ.';
 
   @override
-  String get species_condylactis_anemone_name =>
-      'شقائق النعمان الكاريبية العملاقة';
+  String get species_condylactis_anemone_name => 'شقائق النعمان الكاريبية العملاقة';
 
   @override
-  String get species_condylactis_anemone_desc =>
-      'شقائق نعمان كاريبية كبيرة بمجسّات أرجوانية الأطراف، توجد على قيعان الشعاب الصخرية.';
+  String get species_condylactis_anemone_desc => 'شقائق نعمان كاريبية كبيرة بمجسّات أرجوانية الأطراف، توجد على قيعان الشعاب الصخرية.';
 
   @override
   String get species_sand_anemone_name => 'شقائق النعمان الرملية';
 
   @override
-  String get species_sand_anemone_desc =>
-      'شقائق نعمان رقيقة مدفونة جزئيًا في الرمال بمجسّات أرجوانية الأطراف.';
+  String get species_sand_anemone_desc => 'شقائق نعمان رقيقة مدفونة جزئيًا في الرمال بمجسّات أرجوانية الأطراف.';
 
   @override
   String get species_barrel_sponge_name => 'الإسفنج البرميلي العملاق';
 
   @override
-  String get species_barrel_sponge_desc =>
-      'إسفنج ضخم برميلي الشكل يمكن أن يعيش قرونًا على جدران الشعاب في الكاريبي.';
+  String get species_barrel_sponge_desc => 'إسفنج ضخم برميلي الشكل يمكن أن يعيش قرونًا على جدران الشعاب في الكاريبي.';
 
   @override
   String get species_azure_vase_sponge_name => 'الإسفنج المزهري اللازوردي';
 
   @override
-  String get species_azure_vase_sponge_desc =>
-      'إسفنج مزهري الشكل بلون أزرق أرجواني زاهٍ يوجد على جدران الشعاب في الكاريبي.';
+  String get species_azure_vase_sponge_desc => 'إسفنج مزهري الشكل بلون أزرق أرجواني زاهٍ يوجد على جدران الشعاب في الكاريبي.';
 
   @override
   String get species_yellow_tube_sponge_name => 'الإسفنج الأنبوبي الأصفر';
 
   @override
-  String get species_yellow_tube_sponge_desc =>
-      'إسفنج أنبوبي أصفر زاهٍ ينمو في تجمعات على جدران الشعاب في الكاريبي.';
+  String get species_yellow_tube_sponge_desc => 'إسفنج أنبوبي أصفر زاهٍ ينمو في تجمعات على جدران الشعاب في الكاريبي.';
 
   @override
   String get species_elephant_ear_sponge_name => 'إسفنج أذن الفيل';
 
   @override
-  String get species_elephant_ear_sponge_desc =>
-      'إسفنج برتقالي كبير مروحي الشكل ينمو على الجدران وتحت النتوءات الصخرية في الكاريبي.';
+  String get species_elephant_ear_sponge_desc => 'إسفنج برتقالي كبير مروحي الشكل ينمو على الجدران وتحت النتوءات الصخرية في الكاريبي.';
 
   @override
   String get species_rope_sponge_name => 'الإسفنج الحبلي';
 
   @override
-  String get species_rope_sponge_desc =>
-      'إسفنج أحمر منتصب متفرع ينمو في تكوينات تشبه الحبال على شعاب الكاريبي.';
+  String get species_rope_sponge_desc => 'إسفنج أحمر منتصب متفرع ينمو في تكوينات تشبه الحبال على شعاب الكاريبي.';
 
   @override
   String get species_portuguese_man_o_war_name => 'السفينة الحربية البرتغالية';
 
   @override
-  String get species_portuguese_man_o_war_desc =>
-      'مستعمرة هيدروزوية بعوّامة مملوءة بالغاز ومجسّات متدلية شديدة الإيلام.';
+  String get species_portuguese_man_o_war_desc => 'مستعمرة هيدروزوية بعوّامة مملوءة بالغاز ومجسّات متدلية شديدة الإيلام.';
 
   @override
   String get species_fire_coral_name => 'المرجان الناري';
 
   @override
-  String get species_fire_coral_desc =>
-      'ليس مرجانًا حقيقيًا بل كائن هيدروزوي يسبب لسعات مؤلمة للغواصين عند ملامسته.';
+  String get species_fire_coral_desc => 'ليس مرجانًا حقيقيًا بل كائن هيدروزوي يسبب لسعات مؤلمة للغواصين عند ملامسته.';
 
   @override
   String get species_by_the_wind_sailor_name => 'بحّار الريح';
 
   @override
-  String get species_by_the_wind_sailor_desc =>
-      'مستعمرة هيدروزوية زرقاء طافية بشراع مائل يلتقط الرياح.';
+  String get species_by_the_wind_sailor_desc => 'مستعمرة هيدروزوية زرقاء طافية بشراع مائل يلتقط الرياح.';
 
   @override
   String get species_blue_button_name => 'الزر الأزرق';
 
   @override
-  String get species_blue_button_desc =>
-      'مستعمرة هيدروزوية طافية بقرص مسطح وهيدرات زرقاء تشبه المجسّات.';
+  String get species_blue_button_desc => 'مستعمرة هيدروزوية طافية بقرص مسطح وهيدرات زرقاء تشبه المجسّات.';
 
   @override
   String get species_giant_sea_hare_name => 'أرنب البحر العملاق';
 
   @override
-  String get species_giant_sea_hare_desc =>
-      'أحد أكبر بزاقات البحر، لونه بني داكن إلى أسود، ويوجد في مروج عشب البحر.';
+  String get species_giant_sea_hare_desc => 'أحد أكبر بزاقات البحر، لونه بني داكن إلى أسود، ويوجد في مروج عشب البحر.';
 
   @override
   String get species_sea_hare_name => 'أرنب البحر المرقّط';
 
   @override
-  String get species_sea_hare_desc =>
-      'أرنب بحر كبير ببقع خضراء يطلق حبرًا أرجوانيًا عند إزعاجه.';
+  String get species_sea_hare_desc => 'أرنب بحر كبير ببقع خضراء يطلق حبرًا أرجوانيًا عند إزعاجه.';
 
   @override
   String get species_nudibranch_berghia_name => 'رخوية البيرغيا عارية الخياشيم';
 
   @override
-  String get species_nudibranch_berghia_desc =>
-      'رخوية عارية الخياشيم شفافة بزوائد ظهرية بيضاء الأطراف تتغذى على شقائق النعمان البحرية.';
+  String get species_nudibranch_berghia_desc => 'رخوية عارية الخياشيم شفافة بزوائد ظهرية بيضاء الأطراف تتغذى على شقائق النعمان البحرية.';
 
   @override
   String get species_sea_pen_name => 'قلم البحر';
 
   @override
-  String get species_sea_pen_desc =>
-      'مرجان ثماني مستعمر ريشي الشكل مثبّت في الرمال وينكمش عند إزعاجه.';
+  String get species_sea_pen_desc => 'مرجان ثماني مستعمر ريشي الشكل مثبّت في الرمال وينكمش عند إزعاجه.';
 
   @override
   String get species_blue_sea_star_name => 'نجم البحر الأزرق';
 
   @override
-  String get species_blue_sea_star_desc =>
-      'نجم بحر متعدد الألوان يتجدد من شظية ذراع واحدة في شعاب المحيطين الهندي والهادئ.';
+  String get species_blue_sea_star_desc => 'نجم بحر متعدد الألوان يتجدد من شظية ذراع واحدة في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_reef_squid_name => 'حبّار الشعاب';
 
   @override
-  String get species_reef_squid_desc =>
-      'حبّار الشعاب الجنوبي الذي يُصادَف عادةً في المياه الأسترالية المعتدلة.';
+  String get species_reef_squid_desc => 'حبّار الشعاب الجنوبي الذي يُصادَف عادةً في المياه الأسترالية المعتدلة.';
 
   @override
   String get species_tiger_shrimp_name => 'روبيان النمر';
 
   @override
-  String get species_tiger_shrimp_desc =>
-      'روبيان كبير مخطط يوجد على القيعان الرملية ومروج الأعشاب البحرية في المحيطين الهندي والهادئ.';
+  String get species_tiger_shrimp_desc => 'روبيان كبير مخطط يوجد على القيعان الرملية ومروج الأعشاب البحرية في المحيطين الهندي والهادئ.';
 
   @override
   String get species_candy_crab_name => 'سرطان الحلوى';
 
   @override
-  String get species_candy_crab_desc =>
-      'سرطان ضئيل ملوّن يطابق المرجان الطري الذي يسكنه بنتوءات شوكية وردية أو صفراء.';
+  String get species_candy_crab_desc => 'سرطان ضئيل ملوّن يطابق المرجان الطري الذي يسكنه بنتوءات شوكية وردية أو صفراء.';
 
   @override
   String get species_spider_crab_name => 'السرطان العنكبوتي المزخرِف';
 
   @override
-  String get species_spider_crab_desc =>
-      'سرطان بطيء الحركة مغطى بالإسفنج والطحالب التي يثبّتها على جسمه للتمويه.';
+  String get species_spider_crab_desc => 'سرطان بطيء الحركة مغطى بالإسفنج والطحالب التي يثبّتها على جسمه للتمويه.';
 
   @override
   String get species_anemone_shrimp_name => 'روبيان الشقائق البديعة';
 
   @override
-  String get species_anemone_shrimp_desc =>
-      'روبيان شفاف بعلامات بيضاء وأرجوانية يعيش بين مجسّات شقائق النعمان البحرية.';
+  String get species_anemone_shrimp_desc => 'روبيان شفاف بعلامات بيضاء وأرجوانية يعيش بين مجسّات شقائق النعمان البحرية.';
 
   @override
   String get species_snapping_shrimp_name => 'الروبيان الطقّاق';
 
   @override
-  String get species_snapping_shrimp_desc =>
-      'روبيان صغير يُصدر طقّة عالية بكلّابته الضخمة، وكثيرًا ما يقترن بأسماك القوبيون.';
+  String get species_snapping_shrimp_desc => 'روبيان صغير يُصدر طقّة عالية بكلّابته الضخمة، وكثيرًا ما يقترن بأسماك القوبيون.';
 
   @override
   String get species_glass_sponge_name => 'سلة زهرة فينوس';
 
   @override
-  String get species_glass_sponge_desc =>
-      'إسفنج زجاجي رقيق بهيكل سيليكوني معقد يوجد في المياه العميقة.';
+  String get species_glass_sponge_desc => 'إسفنج زجاجي رقيق بهيكل سيليكوني معقد يوجد في المياه العميقة.';
 
   @override
   String get species_toxic_sea_urchin_name => 'قنفذ البحر الزهري';
 
   @override
-  String get species_toxic_sea_urchin_desc =>
-      'قنفذ بحر خادع الجمال مغطى بزوائد كمّاشية تشبه الأزهار وتحمل سمًّا قويًا.';
+  String get species_toxic_sea_urchin_desc => 'قنفذ بحر خادع الجمال مغطى بزوائد كمّاشية تشبه الأزهار وتحمل سمًّا قويًا.';
 
   @override
   String get species_slate_pencil_urchin_name => 'قنفذ البحر قلم الأردواز';
 
   @override
-  String get species_slate_pencil_urchin_desc =>
-      'قنفذ بحر بأشواك غليظة مستديرة يوجد على قيعان الشعاب في الكاريبي والأطلسي.';
+  String get species_slate_pencil_urchin_desc => 'قنفذ بحر بأشواك غليظة مستديرة يوجد على قيعان الشعاب في الكاريبي والأطلسي.';
 
   @override
   String get species_spiny_sea_star_name => 'نجم البحر الشوكي';
 
   @override
-  String get species_spiny_sea_star_desc =>
-      'نجم بحر كبير من المياه المعتدلة بأشواك بارزة، يوجد في المياه الأوروبية والأطلسية.';
+  String get species_spiny_sea_star_desc => 'نجم بحر كبير من المياه المعتدلة بأشواك بارزة، يوجد في المياه الأوروبية والأطلسية.';
 
   @override
   String get species_bat_star_name => 'نجم البحر الخفاشي';
 
   @override
-  String get species_bat_star_desc =>
-      'نجم بحر هادئي بأذرع موصولة بغشاء بلون برتقالي أو أحمر أو أرجواني، يوجد في غابات عشب البحر.';
+  String get species_bat_star_desc => 'نجم بحر هادئي بأذرع موصولة بغشاء بلون برتقالي أو أحمر أو أرجواني، يوجد في غابات عشب البحر.';
 
   @override
   String get species_sunflower_star_name => 'نجم عبّاد الشمس';
 
   @override
-  String get species_sunflower_star_desc =>
-      'نجم بحر ضخم سريع الحركة له حتى 24 ذراعًا، يوجد في غابات عشب البحر بالمحيط الهادئ.';
+  String get species_sunflower_star_desc => 'نجم بحر ضخم سريع الحركة له حتى 24 ذراعًا، يوجد في غابات عشب البحر بالمحيط الهادئ.';
 
   @override
   String get species_blood_star_name => 'نجم الدم';
 
   @override
-  String get species_blood_star_desc =>
-      'نجم بحر أحمر برتقالي زاهٍ بأذرع نحيلة، يوجد في المياه المعتدلة بالمحيط الهادئ.';
+  String get species_blood_star_desc => 'نجم بحر أحمر برتقالي زاهٍ بأذرع نحيلة، يوجد في المياه المعتدلة بالمحيط الهادئ.';
 
   @override
   String get species_common_cuttlefish_name => 'السبيدج الشائع';
 
   @override
-  String get species_common_cuttlefish_desc =>
-      'سيد التمويه الذي يوجد في المياه الأوروبية والمتوسطية، وحدقتاه على شكل حرف W.';
+  String get species_common_cuttlefish_desc => 'سيد التمويه الذي يوجد في المياه الأوروبية والمتوسطية، وحدقتاه على شكل حرف W.';
 
   @override
   String get species_blue_spotted_crab_name => 'السرطان السابح أزرق البقع';
 
   @override
-  String get species_blue_spotted_crab_desc =>
-      'سرطان سابح نشط ببقع زرقاء على درعه، يوجد على القيعان الرملية في المحيطين الهندي والهادئ.';
+  String get species_blue_spotted_crab_desc => 'سرطان سابح نشط ببقع زرقاء على درعه، يوجد على القيعان الرملية في المحيطين الهندي والهادئ.';
 
   @override
   String get species_sponge_crab_name => 'سرطان الإسفنج';
 
   @override
-  String get species_sponge_crab_desc =>
-      'سرطان ينحت إسفنجة حية ويحملها على ظهره للتمويه.';
+  String get species_sponge_crab_desc => 'سرطان ينحت إسفنجة حية ويحملها على ظهره للتمويه.';
 
   @override
   String get species_horseshoe_crab_name => 'سرطان حدوة الحصان';
 
   @override
-  String get species_horseshoe_crab_desc =>
-      'مفصلي أرجل قديم من كلابيات القرون بصدفة تشبه الخوذة، يوجد على القيعان الرملية في الأطلسي.';
+  String get species_horseshoe_crab_desc => 'مفصلي أرجل قديم من كلابيات القرون بصدفة تشبه الخوذة، يوجد على القيعان الرملية في الأطلسي.';
 
   @override
   String get species_sea_spider_name => 'عنكبوت البحر';
 
   @override
-  String get species_sea_spider_desc =>
-      'مفصلي أرجل بحري رقيق طويل الأرجل يُشاهد وهو يزحف على الهيدرات والبريوزوا.';
+  String get species_sea_spider_desc => 'مفصلي أرجل بحري رقيق طويل الأرجل يُشاهد وهو يزحف على الهيدرات والبريوزوا.';
 
   @override
   String get species_sea_lily_name => 'زنبق البحر';
 
   @override
-  String get species_sea_lily_desc =>
-      'أحفورة حية من زنابق البحر المعنّقة توجد في المياه العميقة وتتغذى بالترشيح بأذرعها الريشية.';
+  String get species_sea_lily_desc => 'أحفورة حية من زنابق البحر المعنّقة توجد في المياه العميقة وتتغذى بالترشيح بأذرعها الريشية.';
 
   @override
   String get species_mantis_shrimp_lysiosquilla_name => 'روبيان السرعوف الرامح';
 
   @override
-  String get species_mantis_shrimp_lysiosquilla_desc =>
-      'روبيان سرعوف كبير حافر للجحور بزوائد رمحية، يوجد على القيعان الرملية.';
+  String get species_mantis_shrimp_lysiosquilla_desc => 'روبيان سرعوف كبير حافر للجحور بزوائد رمحية، يوجد على القيعان الرملية.';
 
   @override
   String get species_purple_sea_urchin_name => 'قنفذ البحر الأرجواني';
 
   @override
-  String get species_purple_sea_urchin_desc =>
-      'قنفذ بحر أرجواني وفير العدد يوجد في غابات عشب البحر وبرك المد الصخرية بالمحيط الهادئ.';
+  String get species_purple_sea_urchin_desc => 'قنفذ بحر أرجواني وفير العدد يوجد في غابات عشب البحر وبرك المد الصخرية بالمحيط الهادئ.';
 
   @override
   String get species_crown_jellyfish_name => 'قنديل البحر المتوّج';
 
   @override
-  String get species_crown_jellyfish_desc =>
-      'قنديل بحر أرجواني داكن بجرس مرتفع يشبه التاج، يوجد في المحيطين الهندي والهادئ.';
+  String get species_crown_jellyfish_desc => 'قنديل بحر أرجواني داكن بجرس مرتفع يشبه التاج، يوجد في المحيطين الهندي والهادئ.';
 
   @override
   String get species_comb_jelly_name => 'عنبة البحر';
 
   @override
-  String get species_comb_jelly_desc =>
-      'كائن مشطي صغير مضيء حيويًا بصفوف مشطية متقزّحة الألوان ومجسّين طويلين.';
+  String get species_comb_jelly_desc => 'كائن مشطي صغير مضيء حيويًا بصفوف مشطية متقزّحة الألوان ومجسّين طويلين.';
 
   @override
   String get species_warty_sea_slug_name => 'بزاقة البحر الثؤلولية';
 
   @override
-  String get species_warty_sea_slug_desc =>
-      'رخوية عارية الخياشيم زرقاء وسوداء بحديبات صفراء القمم، تُشاهد عادةً في شعاب المحيطين الهندي والهادئ.';
+  String get species_warty_sea_slug_desc => 'رخوية عارية الخياشيم زرقاء وسوداء بحديبات صفراء القمم، تُشاهد عادةً في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_doris_nudibranch_name => 'ليمونة البحر';
 
   @override
-  String get species_doris_nudibranch_desc =>
-      'رخوية دوريدية عارية الخياشيم صفراء منقّطة توجد في مياه المحيط الهادئ المعتدلة وتتغذى على الإسفنج.';
+  String get species_doris_nudibranch_desc => 'رخوية دوريدية عارية الخياشيم صفراء منقّطة توجد في مياه المحيط الهادئ المعتدلة وتتغذى على الإسفنج.';
 
   @override
-  String get species_opalescent_nudibranch_name =>
-      'الرخوية العقيقية عارية الخياشيم';
+  String get species_opalescent_nudibranch_name => 'الرخوية العقيقية عارية الخياشيم';
 
   @override
-  String get species_opalescent_nudibranch_desc =>
-      'رخوية شفافة بزوائد ظهرية برتقالية زاهية وخطوط ظهرية زرقاء في مياه المحيط الهادئ.';
+  String get species_opalescent_nudibranch_desc => 'رخوية شفافة بزوائد ظهرية برتقالية زاهية وخطوط ظهرية زرقاء في مياه المحيط الهادئ.';
 
   @override
   String get species_clown_nudibranch_name => 'الرخوية المهرجة عارية الخياشيم';
 
   @override
-  String get species_clown_nudibranch_desc =>
-      'رخوية عارية الخياشيم وردية برتقالية ببقع زرقاء وبيضاء، توجد في المياه الأسترالية المعتدلة.';
+  String get species_clown_nudibranch_desc => 'رخوية عارية الخياشيم وردية برتقالية ببقع زرقاء وبيضاء، توجد في المياه الأسترالية المعتدلة.';
 
   @override
   String get species_bottlenose_dolphin_name => 'الدلفين قاروري الأنف';
 
   @override
-  String get species_bottlenose_dolphin_desc =>
-      'دلفين فضولي ومرح يصادفه الغواصون كثيرًا في المياه الاستوائية والمعتدلة.';
+  String get species_bottlenose_dolphin_desc => 'دلفين فضولي ومرح يصادفه الغواصون كثيرًا في المياه الاستوائية والمعتدلة.';
 
   @override
   String get species_spinner_dolphin_name => 'الدلفين الدوّار';
 
   @override
-  String get species_spinner_dolphin_desc =>
-      'دلفين بهلواني يشتهر بدورانه في الهواء، ويُشاهد غالبًا في مجموعات كبيرة قرب الشعاب المرجانية.';
+  String get species_spinner_dolphin_desc => 'دلفين بهلواني يشتهر بدورانه في الهواء، ويُشاهد غالبًا في مجموعات كبيرة قرب الشعاب المرجانية.';
 
   @override
   String get species_common_dolphin_name => 'الدلفين الشائع';
 
   @override
-  String get species_common_dolphin_desc =>
-      'دلفين سريع السباحة بنمط مميز يشبه الساعة الرملية، يوجد في المحيط المفتوح والمياه الساحلية.';
+  String get species_common_dolphin_desc => 'دلفين سريع السباحة بنمط مميز يشبه الساعة الرملية، يوجد في المحيط المفتوح والمياه الساحلية.';
 
   @override
   String get species_spotted_dolphin_name => 'الدلفين المرقّط الأطلسي';
 
   @override
-  String get species_spotted_dolphin_desc =>
-      'دلفين مرقّط ودود كثيرًا ما يقترب من الغواصين في جزر البهاما والكاريبي.';
+  String get species_spotted_dolphin_desc => 'دلفين مرقّط ودود كثيرًا ما يقترب من الغواصين في جزر البهاما والكاريبي.';
 
   @override
   String get species_rissos_dolphin_name => 'دلفين ريسو';
 
   @override
-  String get species_rissos_dolphin_desc =>
-      'دلفين كبير بجسم رمادي تغطيه الندوب بكثافة، يوجد في المياه العميقة البعيدة عن الساحل حول العالم.';
+  String get species_rissos_dolphin_desc => 'دلفين كبير بجسم رمادي تغطيه الندوب بكثافة، يوجد في المياه العميقة البعيدة عن الساحل حول العالم.';
 
   @override
   String get species_humpback_whale_name => 'الحوت الأحدب';
 
   @override
-  String get species_humpback_whale_desc =>
-      'حوت مهيب يشتهر بقفزاته من الماء وأغانيه المعقدة، ويُشاهد خلال هجراته الموسمية.';
+  String get species_humpback_whale_desc => 'حوت مهيب يشتهر بقفزاته من الماء وأغانيه المعقدة، ويُشاهد خلال هجراته الموسمية.';
 
   @override
   String get species_grey_whale_name => 'الحوت الرمادي';
 
   @override
-  String get species_grey_whale_desc =>
-      'حوت بالييني يتغذى من القاع ويهاجر على طول ساحل المحيط الهادئ، وغالبًا ما تكسوه البرنقيلات.';
+  String get species_grey_whale_desc => 'حوت بالييني يتغذى من القاع ويهاجر على طول ساحل المحيط الهادئ، وغالبًا ما تكسوه البرنقيلات.';
 
   @override
   String get species_blue_whale_name => 'الحوت الأزرق';
 
   @override
-  String get species_blue_whale_desc =>
-      'أضخم حيوان عاش على الإطلاق، ويصادفه الغواصون أحيانًا في المياه الزرقاء العميقة.';
+  String get species_blue_whale_desc => 'أضخم حيوان عاش على الإطلاق، ويصادفه الغواصون أحيانًا في المياه الزرقاء العميقة.';
 
   @override
   String get species_sperm_whale_name => 'حوت العنبر';
 
   @override
-  String get species_sperm_whale_desc =>
-      'حوت غوّاص إلى الأعماق برأس ضخم، ويُشاهد أحيانًا مستريحًا عند السطح بين غوصاته.';
+  String get species_sperm_whale_desc => 'حوت غوّاص إلى الأعماق برأس ضخم، ويُشاهد أحيانًا مستريحًا عند السطح بين غوصاته.';
 
   @override
   String get species_orca_name => 'الأوركا';
 
   @override
-  String get species_orca_desc =>
-      'مفترس قمة بعلامات سوداء وبيضاء مميزة، يوجد في جميع أحواض المحيطات.';
+  String get species_orca_desc => 'مفترس قمة بعلامات سوداء وبيضاء مميزة، يوجد في جميع أحواض المحيطات.';
 
   @override
   String get species_minke_whale_name => 'حوت المنك';
 
   @override
-  String get species_minke_whale_desc =>
-      'حوت بالييني أصغر حجمًا يبدي فضولًا تجاه الغواصين، خصوصًا في الحاجز المرجاني العظيم.';
+  String get species_minke_whale_desc => 'حوت بالييني أصغر حجمًا يبدي فضولًا تجاه الغواصين، خصوصًا في الحاجز المرجاني العظيم.';
 
   @override
   String get species_beluga_whale_name => 'حوت البيلوغا';
 
   @override
-  String get species_beluga_whale_desc =>
-      'حوت قطبي أبيض يشتهر بأصواته وسلوكه الاجتماعي في المياه الباردة.';
+  String get species_beluga_whale_desc => 'حوت قطبي أبيض يشتهر بأصواته وسلوكه الاجتماعي في المياه الباردة.';
 
   @override
   String get species_pilot_whale_name => 'الحوت القائد قصير الزعانف';
 
   @override
-  String get species_pilot_whale_desc =>
-      'حوت اجتماعي غوّاص إلى الأعماق يُشاهد غالبًا في مجموعات كبيرة في البحار الاستوائية والدافئة المعتدلة.';
+  String get species_pilot_whale_desc => 'حوت اجتماعي غوّاص إلى الأعماق يُشاهد غالبًا في مجموعات كبيرة في البحار الاستوائية والدافئة المعتدلة.';
 
   @override
   String get species_false_killer_whale_name => 'الحوت القاتل الكاذب';
 
   @override
-  String get species_false_killer_whale_desc =>
-      'دلفين محيطي كبير يقترب أحيانًا من الغواصين في المياه المفتوحة.';
+  String get species_false_killer_whale_desc => 'دلفين محيطي كبير يقترب أحيانًا من الغواصين في المياه المفتوحة.';
 
   @override
   String get species_dugong_name => 'الأطوم';
 
   @override
-  String get species_dugong_desc =>
-      'عاشب وديع يرعى في مروج الأعشاب البحرية بالمحيطين الهندي والهادئ، وهو قريب الصلة بخراف البحر.';
+  String get species_dugong_desc => 'عاشب وديع يرعى في مروج الأعشاب البحرية بالمحيطين الهندي والهادئ، وهو قريب الصلة بخراف البحر.';
 
   @override
   String get species_west_indian_manatee_name => 'خروف بحر الهند الغربية';
 
   @override
-  String get species_west_indian_manatee_desc =>
-      'عاشب بطيء الحركة يوجد في المياه الضحلة الدافئة ومصبات الأنهار والينابيع في الكاريبي.';
+  String get species_west_indian_manatee_desc => 'عاشب بطيء الحركة يوجد في المياه الضحلة الدافئة ومصبات الأنهار والينابيع في الكاريبي.';
 
   @override
   String get species_sea_otter_name => 'قضاعة البحر';
 
   @override
-  String get species_sea_otter_desc =>
-      'ثديي بحري محبب يوجد في غابات عشب البحر على طول ساحل شمال المحيط الهادئ.';
+  String get species_sea_otter_desc => 'ثديي بحري محبب يوجد في غابات عشب البحر على طول ساحل شمال المحيط الهادئ.';
 
   @override
   String get species_california_sea_lion_name => 'أسد بحر كاليفورنيا';
 
   @override
-  String get species_california_sea_lion_desc =>
-      'من زعنفيات الأقدام المرحة والرشيقة التي كثيرًا ما تتفاعل مع الغواصين على طول ساحل المحيط الهادئ.';
+  String get species_california_sea_lion_desc => 'من زعنفيات الأقدام المرحة والرشيقة التي كثيرًا ما تتفاعل مع الغواصين على طول ساحل المحيط الهادئ.';
 
   @override
   String get species_steller_sea_lion_name => 'أسد بحر ستيلر';
 
   @override
-  String get species_steller_sea_lion_desc =>
-      'أكبر أنواع أسود البحر، يوجد في المياه الباردة بشمال المحيط الهادئ قرب السواحل الصخرية.';
+  String get species_steller_sea_lion_desc => 'أكبر أنواع أسود البحر، يوجد في المياه الباردة بشمال المحيط الهادئ قرب السواحل الصخرية.';
 
   @override
   String get species_harbor_seal_name => 'فقمة الموانئ';
 
   @override
-  String get species_harbor_seal_desc =>
-      'فقمة فضولية تُشاهد عادةً في المياه الساحلية المعتدلة، وغالبًا ما تستريح على الصخور قرب مواقع الغوص.';
+  String get species_harbor_seal_desc => 'فقمة فضولية تُشاهد عادةً في المياه الساحلية المعتدلة، وغالبًا ما تستريح على الصخور قرب مواقع الغوص.';
 
   @override
   String get species_grey_seal_name => 'الفقمة الرمادية';
 
   @override
-  String get species_grey_seal_desc =>
-      'فقمة كبيرة مرحة توجد في شمال الأطلسي، وتشتهر باقترابها من الغواصين تحت الماء.';
+  String get species_grey_seal_desc => 'فقمة كبيرة مرحة توجد في شمال الأطلسي، وتشتهر باقترابها من الغواصين تحت الماء.';
 
   @override
   String get species_northern_elephant_seal_name => 'فقمة الفيل الشمالية';
 
   @override
-  String get species_northern_elephant_seal_desc =>
-      'فقمة ضخمة تغوص إلى أعماق كبيرة، وللذكور خرطوم كبير. توجد على طول ساحل شرق المحيط الهادئ.';
+  String get species_northern_elephant_seal_desc => 'فقمة ضخمة تغوص إلى أعماق كبيرة، وللذكور خرطوم كبير. توجد على طول ساحل شرق المحيط الهادئ.';
 
   @override
   String get species_hawaiian_monk_seal_name => 'فقمة الراهب الهاوايية';
 
   @override
-  String get species_hawaiian_monk_seal_desc =>
-      'فقمة مهددة بالانقراض بشدة ومتوطنة في هاواي، ويراها الغواصون أحيانًا على الشعاب.';
+  String get species_hawaiian_monk_seal_desc => 'فقمة مهددة بالانقراض بشدة ومتوطنة في هاواي، ويراها الغواصون أحيانًا على الشعاب.';
 
   @override
   String get species_leopard_seal_name => 'الفقمة النمرية';
 
   @override
-  String get species_leopard_seal_desc =>
-      'مفترس قوي في القطب الجنوبي بفروة منقّطة، يصادفه غواصو المياه الباردة.';
+  String get species_leopard_seal_desc => 'مفترس قوي في القطب الجنوبي بفروة منقّطة، يصادفه غواصو المياه الباردة.';
 
   @override
   String get species_narwhal_name => 'النارويل';
 
   @override
-  String get species_narwhal_desc =>
-      'حوت قطبي بناب حلزوني طويل، نادر المشاهدة لكنه أيقوني بين الثدييات البحرية.';
+  String get species_narwhal_desc => 'حوت قطبي بناب حلزوني طويل، نادر المشاهدة لكنه أيقوني بين الثدييات البحرية.';
 
   @override
   String get species_green_sea_turtle_name => 'السلحفاة البحرية الخضراء';
 
   @override
-  String get species_green_sea_turtle_desc =>
-      'سلحفاة بحرية كبيرة تُشاهد عادةً وهي ترعى الأعشاب البحرية في المياه الاستوائية.';
+  String get species_green_sea_turtle_desc => 'سلحفاة بحرية كبيرة تُشاهد عادةً وهي ترعى الأعشاب البحرية في المياه الاستوائية.';
 
   @override
-  String get species_hawksbill_sea_turtle_name =>
-      'السلحفاة البحرية صقرية المنقار';
+  String get species_hawksbill_sea_turtle_name => 'السلحفاة البحرية صقرية المنقار';
 
   @override
-  String get species_hawksbill_sea_turtle_desc =>
-      'سلحفاة تسكن الشعاب بمنقار مدبب، وتتغذى على الإسفنج بين التكوينات المرجانية.';
+  String get species_hawksbill_sea_turtle_desc => 'سلحفاة تسكن الشعاب بمنقار مدبب، وتتغذى على الإسفنج بين التكوينات المرجانية.';
 
   @override
-  String get species_loggerhead_sea_turtle_name =>
-      'السلحفاة البحرية ضخمة الرأس';
+  String get species_loggerhead_sea_turtle_name => 'السلحفاة البحرية ضخمة الرأس';
 
   @override
-  String get species_loggerhead_sea_turtle_desc =>
-      'سلحفاة كبيرة الرأس توجد في البحار المعتدلة والاستوائية، وغالبًا قرب الشعاب الصخرية.';
+  String get species_loggerhead_sea_turtle_desc => 'سلحفاة كبيرة الرأس توجد في البحار المعتدلة والاستوائية، وغالبًا قرب الشعاب الصخرية.';
 
   @override
-  String get species_leatherback_sea_turtle_name =>
-      'السلحفاة البحرية جلدية الظهر';
+  String get species_leatherback_sea_turtle_name => 'السلحفاة البحرية جلدية الظهر';
 
   @override
-  String get species_leatherback_sea_turtle_desc =>
-      'أكبر سلحفاة حية بصدفة جلدية مرنة، وتغوص إلى أعماق سحيقة.';
+  String get species_leatherback_sea_turtle_desc => 'أكبر سلحفاة حية بصدفة جلدية مرنة، وتغوص إلى أعماق سحيقة.';
 
   @override
   String get species_olive_ridley_sea_turtle_name => 'سلحفاة ريدلي الزيتونية';
 
   @override
-  String get species_olive_ridley_sea_turtle_desc =>
-      'أصغر أنواع السلاحف البحرية، وتشتهر بمواسم التعشيش الجماعي المتزامن المعروفة باسم arribadas.';
+  String get species_olive_ridley_sea_turtle_desc => 'أصغر أنواع السلاحف البحرية، وتشتهر بمواسم التعشيش الجماعي المتزامن المعروفة باسم arribadas.';
 
   @override
   String get species_kemps_ridley_sea_turtle_name => 'سلحفاة كيمب ريدلي';
 
   @override
-  String get species_kemps_ridley_sea_turtle_desc =>
-      'سلحفاة بحرية مهددة بالانقراض بشدة توجد أساسًا في خليج المكسيك.';
+  String get species_kemps_ridley_sea_turtle_desc => 'سلحفاة بحرية مهددة بالانقراض بشدة توجد أساسًا في خليج المكسيك.';
 
   @override
   String get species_flatback_sea_turtle_name => 'السلحفاة البحرية مسطحة الظهر';
 
   @override
-  String get species_flatback_sea_turtle_desc =>
-      'متوطنة في المياه الأسترالية، وتتميز بدرعها المسطح وموطنها الساحلي.';
+  String get species_flatback_sea_turtle_desc => 'متوطنة في المياه الأسترالية، وتتميز بدرعها المسطح وموطنها الساحلي.';
 
   @override
   String get species_brain_coral_name => 'المرجان الدماغي';
 
   @override
-  String get species_brain_coral_desc =>
-      'مرجان ضخم بانٍ للشعاب بسطح محزّز يشبه الدماغ، وهو شائع في شعاب الكاريبي.';
+  String get species_brain_coral_desc => 'مرجان ضخم بانٍ للشعاب بسطح محزّز يشبه الدماغ، وهو شائع في شعاب الكاريبي.';
 
   @override
   String get species_staghorn_coral_name => 'مرجان قرن الأيل';
 
   @override
-  String get species_staghorn_coral_desc =>
-      'مرجان متفرع سريع النمو يشكّل أدغالًا كثيفة تمثّل موئلًا حيويًا لأسماك الشعاب.';
+  String get species_staghorn_coral_desc => 'مرجان متفرع سريع النمو يشكّل أدغالًا كثيفة تمثّل موئلًا حيويًا لأسماك الشعاب.';
 
   @override
   String get species_elkhorn_coral_name => 'مرجان قرن الموظ';
 
   @override
-  String get species_elkhorn_coral_desc =>
-      'مرجان متفرع كبير بأفرع مسطحة كفّية الشكل، وهو بانٍ رئيسي للشعاب في الكاريبي.';
+  String get species_elkhorn_coral_desc => 'مرجان متفرع كبير بأفرع مسطحة كفّية الشكل، وهو بانٍ رئيسي للشعاب في الكاريبي.';
 
   @override
   String get species_table_coral_name => 'المرجان الطاولي';
 
   @override
-  String get species_table_coral_desc =>
-      'مرجان يشكّل صفائح مسطحة في شعاب المحيطين الهندي والهادئ، ويوفر مأوى لأنواع كثيرة من الأسماك.';
+  String get species_table_coral_desc => 'مرجان يشكّل صفائح مسطحة في شعاب المحيطين الهندي والهادئ، ويوفر مأوى لأنواع كثيرة من الأسماك.';
 
   @override
   String get species_mushroom_coral_name => 'المرجان الفطري';
 
   @override
-  String get species_mushroom_coral_desc =>
-      'مرجان منفرد حر المعيشة على شكل قرص، يوجد في المناطق الرملية قرب شعاب المحيطين الهندي والهادئ.';
+  String get species_mushroom_coral_desc => 'مرجان منفرد حر المعيشة على شكل قرص، يوجد في المناطق الرملية قرب شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_bubble_coral_name => 'المرجان الفقاعي';
 
   @override
-  String get species_bubble_coral_desc =>
-      'مرجان مميز بحويصلات تشبه حبات العنب تنتفخ نهارًا لالتقاط الضوء.';
+  String get species_bubble_coral_desc => 'مرجان مميز بحويصلات تشبه حبات العنب تنتفخ نهارًا لالتقاط الضوء.';
 
   @override
   String get species_plate_coral_name => 'المرجان الصفائحي';
 
   @override
-  String get species_plate_coral_desc =>
-      'مرجان صفائحي رقيق يشكّل رفوفًا حلزونية، وهو شائع على منحدرات الشعاب في المحيطين الهندي والهادئ.';
+  String get species_plate_coral_desc => 'مرجان صفائحي رقيق يشكّل رفوفًا حلزونية، وهو شائع على منحدرات الشعاب في المحيطين الهندي والهادئ.';
 
   @override
   String get species_pillar_coral_name => 'المرجان العمودي';
 
   @override
-  String get species_pillar_coral_desc =>
-      'مرجان نادر ينمو إلى الأعلى مشكّلًا أعمدة مرتفعة، ويوجد في الكاريبي.';
+  String get species_pillar_coral_desc => 'مرجان نادر ينمو إلى الأعلى مشكّلًا أعمدة مرتفعة، ويوجد في الكاريبي.';
 
   @override
   String get species_star_coral_name => 'المرجان النجمي';
 
   @override
-  String get species_star_coral_desc =>
-      'بانٍ رئيسي لشعاب الكاريبي يشكّل مستعمرات كبيرة تشبه الصخور بسلائل نجمية الشكل.';
+  String get species_star_coral_desc => 'بانٍ رئيسي لشعاب الكاريبي يشكّل مستعمرات كبيرة تشبه الصخور بسلائل نجمية الشكل.';
 
   @override
   String get species_lettuce_coral_name => 'المرجان الخسّي';
 
   @override
-  String get species_lettuce_coral_desc =>
-      'مرجان صفائحي رقيق بطيّات تشبه الأوراق، وهو شائع على جدران ومنحدرات شعاب الكاريبي.';
+  String get species_lettuce_coral_desc => 'مرجان صفائحي رقيق بطيّات تشبه الأوراق، وهو شائع على جدران ومنحدرات شعاب الكاريبي.';
 
   @override
   String get species_finger_coral_name => 'المرجان الإصبعي';
 
   @override
-  String get species_finger_coral_desc =>
-      'مرجان متفرع متين بنتوءات غليظة تشبه الأصابع، يوجد في الشعاب الضحلة.';
+  String get species_finger_coral_desc => 'مرجان متفرع متين بنتوءات غليظة تشبه الأصابع، يوجد في الشعاب الضحلة.';
 
   @override
   String get species_massive_porites_name => 'مرجان Porites الضخم';
 
   @override
-  String get species_massive_porites_desc =>
-      'مرجان صخري كبير يمكن أن ينمو لقرون، وهو بانٍ مهيمن للشعاب في المحيطين الهندي والهادئ.';
+  String get species_massive_porites_desc => 'مرجان صخري كبير يمكن أن ينمو لقرون، وهو بانٍ مهيمن للشعاب في المحيطين الهندي والهادئ.';
 
   @override
   String get species_cauliflower_coral_name => 'مرجان القرنبيط';
 
   @override
-  String get species_cauliflower_coral_desc =>
-      'مرجان متفرع متراص على شكل القرنبيط، منتشر في ضحال الشعاب الاستوائية.';
+  String get species_cauliflower_coral_desc => 'مرجان متفرع متراص على شكل القرنبيط، منتشر في ضحال الشعاب الاستوائية.';
 
   @override
   String get species_flower_pot_coral_name => 'مرجان أصيص الزهور';
 
   @override
-  String get species_flower_pot_coral_desc =>
-      'مستعمرة من السلائل طويلة المجسّات تمتد نهارًا فتبدو كباقة من الزهور.';
+  String get species_flower_pot_coral_desc => 'مستعمرة من السلائل طويلة المجسّات تمتد نهارًا فتبدو كباقة من الزهور.';
 
   @override
   String get species_cup_coral_name => 'المرجان الكأسي البرتقالي';
 
   @override
-  String get species_cup_coral_desc =>
-      'مرجان برتقالي زاهٍ غير قائم على التمثيل الضوئي، يوجد على الجدران وتحت النتوءات في المياه الاستوائية.';
+  String get species_cup_coral_desc => 'مرجان برتقالي زاهٍ غير قائم على التمثيل الضوئي، يوجد على الجدران وتحت النتوءات في المياه الاستوائية.';
 
   @override
   String get species_scroll_coral_name => 'المرجان اللفائفي';
 
   @override
-  String get species_scroll_coral_desc =>
-      'مرجان يشكّل صفائح ملتفة كبيرة، وهو شائع على منحدرات الشعاب والبحيرات في المحيطين الهندي والهادئ.';
+  String get species_scroll_coral_desc => 'مرجان يشكّل صفائح ملتفة كبيرة، وهو شائع على منحدرات الشعاب والبحيرات في المحيطين الهندي والهادئ.';
 
   @override
   String get species_cabbage_coral_name => 'المرجان الملفوفي';
 
   @override
-  String get species_cabbage_coral_desc =>
-      'مرجان صفائحي قرصي الشكل يشبه أوراق الملفوف، يوجد في مناطق الشعاب المحمية.';
+  String get species_cabbage_coral_desc => 'مرجان صفائحي قرصي الشكل يشبه أوراق الملفوف، يوجد في مناطق الشعاب المحمية.';
 
   @override
   String get species_hammer_coral_name => 'المرجان المطرقي';
 
   @override
-  String get species_hammer_coral_desc =>
-      'مرجان كبير السلائل بأطراف مجسّات تشبه المرساة أو المطرقة، وهو مألوف في شعاب المحيطين الهندي والهادئ.';
+  String get species_hammer_coral_desc => 'مرجان كبير السلائل بأطراف مجسّات تشبه المرساة أو المطرقة، وهو مألوف في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_torch_coral_name => 'المرجان المشعلي';
 
   @override
-  String get species_torch_coral_desc =>
-      'مرجان متفرع بمجسّات طويلة منسابة تنتهي بأطراف منتفخة متوهجة.';
+  String get species_torch_coral_desc => 'مرجان متفرع بمجسّات طويلة منسابة تنتهي بأطراف منتفخة متوهجة.';
 
   @override
   String get species_frogspawn_coral_name => 'مرجان بيض الضفادع';
 
   @override
-  String get species_frogspawn_coral_desc =>
-      'مرجان كبير السلائل بأطراف مجسّات متفرعة تشبه بيض الضفادع.';
+  String get species_frogspawn_coral_desc => 'مرجان كبير السلائل بأطراف مجسّات متفرعة تشبه بيض الضفادع.';
 
   @override
   String get species_sea_fan_name => 'المروحة البحرية الشائعة';
 
   @override
-  String get species_sea_fan_desc =>
-      'مرجان مروحي مسطح يتخذ وضعًا عموديًا على اتجاه التيار، وهو أيقوني في شعاب الكاريبي.';
+  String get species_sea_fan_desc => 'مرجان مروحي مسطح يتخذ وضعًا عموديًا على اتجاه التيار، وهو أيقوني في شعاب الكاريبي.';
 
   @override
   String get species_venus_sea_fan_name => 'مروحة فينوس البحرية';
 
   @override
-  String get species_venus_sea_fan_desc =>
-      'مرجان مروحي رقيق يوجد في شعاب الكاريبي الضحلة ضمن مناطق التيار المعتدل.';
+  String get species_venus_sea_fan_desc => 'مرجان مروحي رقيق يوجد في شعاب الكاريبي الضحلة ضمن مناطق التيار المعتدل.';
 
   @override
   String get species_deepwater_sea_fan_name => 'المروحة البحرية عميقة المياه';
 
   @override
-  String get species_deepwater_sea_fan_desc =>
-      'مرجان مروحي كبير كثيف التفرع يوجد على جدران الشعاب العميقة في الكاريبي.';
+  String get species_deepwater_sea_fan_desc => 'مرجان مروحي كبير كثيف التفرع يوجد على جدران الشعاب العميقة في الكاريبي.';
 
   @override
   String get species_sea_whip_name => 'سوط البحر';
 
   @override
-  String get species_sea_whip_desc =>
-      'مرجان مروحي نحيل قضيبي الشكل يُشاهد وهو يتمايل مع التيارات في شعاب الأطلسي والكاريبي.';
+  String get species_sea_whip_desc => 'مرجان مروحي نحيل قضيبي الشكل يُشاهد وهو يتمايل مع التيارات في شعاب الأطلسي والكاريبي.';
 
   @override
   String get species_sea_plume_name => 'ريشة البحر';
 
   @override
-  String get species_sea_plume_desc =>
-      'مرجان مروحي مرتفع ريشي المظهر يشكّل مستعمرات تشبه الريش على قمم شعاب الكاريبي.';
+  String get species_sea_plume_desc => 'مرجان مروحي مرتفع ريشي المظهر يشكّل مستعمرات تشبه الريش على قمم شعاب الكاريبي.';
 
   @override
   String get species_organ_pipe_coral_name => 'مرجان أنابيب الأرغن';
 
   @override
-  String get species_organ_pipe_coral_desc =>
-      'أنابيب هيكلية حمراء زاهية بسلائل رقيقة، توجد في الشعاب المحمية بالمحيطين الهندي والهادئ.';
+  String get species_organ_pipe_coral_desc => 'أنابيب هيكلية حمراء زاهية بسلائل رقيقة، توجد في الشعاب المحمية بالمحيطين الهندي والهادئ.';
 
   @override
   String get species_leather_coral_name => 'المرجان الجلدي';
 
   @override
-  String get species_leather_coral_desc =>
-      'مرجان طري بسطح أملس يشبه الجلد يشكّل مستعمرات كبيرة على هيئة الفطر.';
+  String get species_leather_coral_desc => 'مرجان طري بسطح أملس يشبه الجلد يشكّل مستعمرات كبيرة على هيئة الفطر.';
 
   @override
   String get species_toadstool_leather_coral_name => 'المرجان الجلدي الفطري';
 
   @override
-  String get species_toadstool_leather_coral_desc =>
-      'مرجان طري بساق غليظة وقبعة مسطحة، وهو شائع على مسطحات الشعاب في المحيطين الهندي والهادئ.';
+  String get species_toadstool_leather_coral_desc => 'مرجان طري بساق غليظة وقبعة مسطحة، وهو شائع على مسطحات الشعاب في المحيطين الهندي والهادئ.';
 
   @override
   String get species_pulsing_xenia_name => 'الزينيا النابضة';
 
   @override
-  String get species_pulsing_xenia_desc =>
-      'مرجان طري بسلائل تنبض بإيقاع منتظم، يوجد في المياه المحمية بالمحيطين الهندي والهادئ.';
+  String get species_pulsing_xenia_desc => 'مرجان طري بسلائل تنبض بإيقاع منتظم، يوجد في المياه المحمية بالمحيطين الهندي والهادئ.';
 
   @override
   String get species_tree_coral_name => 'المرجان الشجري';
 
   @override
-  String get species_tree_coral_desc =>
-      'مرجان طري زاهي الألوان يشكّل تجمعات شجرية الشكل على الجدران وتحت النتوءات في البحر الأحمر.';
+  String get species_tree_coral_desc => 'مرجان طري زاهي الألوان يشكّل تجمعات شجرية الشكل على الجدران وتحت النتوءات في البحر الأحمر.';
 
   @override
   String get species_blue_coral_name => 'المرجان الأزرق';
 
   @override
-  String get species_blue_coral_desc =>
-      'مرجان ثماني فريد بهيكل أزرق، يوجد على مسطحات الشعاب الضحلة في المحيطين الهندي والهادئ.';
+  String get species_blue_coral_desc => 'مرجان ثماني فريد بهيكل أزرق، يوجد على مسطحات الشعاب الضحلة في المحيطين الهندي والهادئ.';
 
   @override
   String get species_black_coral_name => 'المرجان الأسود';
 
   @override
-  String get species_black_coral_desc =>
-      'مرجان أعماق بهيكل داكن، يوجد على الجدران والمنحدرات دون عمق 30 مترًا.';
+  String get species_black_coral_desc => 'مرجان أعماق بهيكل داكن، يوجد على الجدران والمنحدرات دون عمق 30 مترًا.';
 
   @override
   String get species_carnation_coral_name => 'مرجان القرنفل';
 
   @override
-  String get species_carnation_coral_desc =>
-      'مرجان طري زاهي الألوان يوجد تحت الحواف الصخرية وعلى الجدران في المحيطين الهندي والهادئ.';
+  String get species_carnation_coral_desc => 'مرجان طري زاهي الألوان يوجد تحت الحواف الصخرية وعلى الجدران في المحيطين الهندي والهادئ.';
 
   @override
   String get species_wire_coral_name => 'المرجان السلكي';
 
   @override
-  String get species_wire_coral_desc =>
-      'مرجان أسود طويل حلزوني يشكّل سياطًا ملتفة، ويستضيف أسماك القوبيون والروبيان.';
+  String get species_wire_coral_desc => 'مرجان أسود طويل حلزوني يشكّل سياطًا ملتفة، ويستضيف أسماك القوبيون والروبيان.';
 
   @override
   String get species_dead_mans_fingers_name => 'أصابع الرجل الميت';
 
   @override
-  String get species_dead_mans_fingers_desc =>
-      'مرجان طري لحمي بفصوص تشبه الأصابع، شائع في شعاب شمال الأطلسي المعتدلة.';
+  String get species_dead_mans_fingers_desc => 'مرجان طري لحمي بفصوص تشبه الأصابع، شائع في شعاب شمال الأطلسي المعتدلة.';
 
   @override
   String get species_sun_coral_name => 'المرجان الشمسي';
 
   @override
-  String get species_sun_coral_desc =>
-      'مرجان أصفر برتقالي غير قائم على التمثيل الضوئي يفتح سلائله ليلًا على جدران المحيطين الهندي والهادئ.';
+  String get species_sun_coral_desc => 'مرجان أصفر برتقالي غير قائم على التمثيل الضوئي يفتح سلائله ليلًا على جدران المحيطين الهندي والهادئ.';
 
   @override
   String get species_lace_coral_name => 'المرجان الدانتيلي';
 
   @override
-  String get species_lace_coral_desc =>
-      'مرجان هيدروزوي وردي رقيق بأفرع تشبه الدانتيل، يوجد في الشقوق وتحت الحواف الصخرية.';
+  String get species_lace_coral_desc => 'مرجان هيدروزوي وردي رقيق بأفرع تشبه الدانتيل، يوجد في الشقوق وتحت الحواف الصخرية.';
 
   @override
   String get species_kenya_tree_coral_name => 'مرجان كينيا الشجري';
 
   @override
-  String get species_kenya_tree_coral_desc =>
-      'مرجان طري قوي التحمل بأفرع شجرية الشكل، وهو شائع في المحيطين الهندي والهادئ.';
+  String get species_kenya_tree_coral_desc => 'مرجان طري قوي التحمل بأفرع شجرية الشكل، وهو شائع في المحيطين الهندي والهادئ.';
 
   @override
   String get species_colt_coral_name => 'مرجان الكولت';
 
   @override
-  String get species_colt_coral_desc =>
-      'مرجان طري بأفرع غليظة مطاطية مغطاة بسلائل صغيرة في شعاب المحيطين الهندي والهادئ.';
+  String get species_colt_coral_desc => 'مرجان طري بأفرع غليظة مطاطية مغطاة بسلائل صغيرة في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_turtle_grass_name => 'عشب السلاحف';
 
   @override
-  String get species_turtle_grass_desc =>
-      'العشب البحري المهيمن في الكاريبي بأنصال عريضة مسطحة، وهو مصدر غذاء حيوي للسلاحف البحرية.';
+  String get species_turtle_grass_desc => 'العشب البحري المهيمن في الكاريبي بأنصال عريضة مسطحة، وهو مصدر غذاء حيوي للسلاحف البحرية.';
 
   @override
   String get species_eelgrass_name => 'العشب الثعباني';
 
   @override
-  String get species_eelgrass_desc =>
-      'عشب بحري من المياه المعتدلة يشكّل مروجًا كثيفة تحت الماء تعمل موئلًا لتربية الصغار.';
+  String get species_eelgrass_desc => 'عشب بحري من المياه المعتدلة يشكّل مروجًا كثيفة تحت الماء تعمل موئلًا لتربية الصغار.';
 
   @override
   String get species_manatee_grass_name => 'عشب خروف البحر';
 
   @override
-  String get species_manatee_grass_desc =>
-      'عشب بحري بأنصال أسطوانية يوجد في المناطق الرملية بالكاريبي، وغالبًا قرب مروج عشب السلاحف.';
+  String get species_manatee_grass_desc => 'عشب بحري بأنصال أسطوانية يوجد في المناطق الرملية بالكاريبي، وغالبًا قرب مروج عشب السلاحف.';
 
   @override
   String get species_shoal_grass_name => 'عشب الضحال';
 
   @override
-  String get species_shoal_grass_desc =>
-      'عشب بحري رائد بأنصال ضيقة يستوطن المناطق الرملية المضطربة في الكاريبي.';
+  String get species_shoal_grass_desc => 'عشب بحري رائد بأنصال ضيقة يستوطن المناطق الرملية المضطربة في الكاريبي.';
 
   @override
   String get species_paddle_grass_name => 'العشب المجدافي';
 
   @override
-  String get species_paddle_grass_desc =>
-      'عشب بحري صغير رقيق بأوراق بيضوية، يوجد في المياه الأعمق عبر المناطق الاستوائية.';
+  String get species_paddle_grass_desc => 'عشب بحري صغير رقيق بأوراق بيضوية، يوجد في المياه الأعمق عبر المناطق الاستوائية.';
 
   @override
   String get species_neptune_grass_name => 'عشب نبتون';
 
   @override
-  String get species_neptune_grass_desc =>
-      'عشب بحري متوسطي يشكّل مروجًا شاسعة بالغة الأهمية للنظم البيئية البحرية الساحلية.';
+  String get species_neptune_grass_desc => 'عشب بحري متوسطي يشكّل مروجًا شاسعة بالغة الأهمية للنظم البيئية البحرية الساحلية.';
 
   @override
   String get species_giant_kelp_name => 'عشب البحر العملاق';
 
   @override
-  String get species_giant_kelp_desc =>
-      'نوع يشكّل غابات شاهقة تحت الماء ينمو حتى 60 مترًا، وهو أيقوني في غوصات كاليفورنيا.';
+  String get species_giant_kelp_desc => 'نوع يشكّل غابات شاهقة تحت الماء ينمو حتى 60 مترًا، وهو أيقوني في غوصات كاليفورنيا.';
 
   @override
   String get species_bull_kelp_name => 'عشب البحر الثوري';
 
   @override
-  String get species_bull_kelp_desc =>
-      'عشب بحر هادئي بساق واحدة طويلة وعوّامة منتفخة، يشكّل غابات كثيفة المظلة.';
+  String get species_bull_kelp_desc => 'عشب بحر هادئي بساق واحدة طويلة وعوّامة منتفخة، يشكّل غابات كثيفة المظلة.';
 
   @override
   String get species_bladder_wrack_name => 'الطحلب المثاني';
 
   @override
-  String get species_bladder_wrack_desc =>
-      'طحلب بني شائع بمثانات هوائية مزدوجة، يوجد في مناطق المد والجزر بشمال الأطلسي.';
+  String get species_bladder_wrack_desc => 'طحلب بني شائع بمثانات هوائية مزدوجة، يوجد في مناطق المد والجزر بشمال الأطلسي.';
 
   @override
   String get species_sargassum_name => 'السرغسوم';
 
   @override
-  String get species_sargassum_desc =>
-      'طحلب بني حر الطفو يشكّل أطوافًا تحتمي بها صغار الأسماك واللافقاريات.';
+  String get species_sargassum_desc => 'طحلب بني حر الطفو يشكّل أطوافًا تحتمي بها صغار الأسماك واللافقاريات.';
 
   @override
   String get species_kelp_forest_ecklonia_name => 'عشب البحر الإكلوني';
 
   @override
-  String get species_kelp_forest_ecklonia_desc =>
-      'عشب البحر المهيمن في مياه نصف الكرة الجنوبي، ويشكّل غابات مهمة تحت الماء.';
+  String get species_kelp_forest_ecklonia_desc => 'عشب البحر المهيمن في مياه نصف الكرة الجنوبي، ويشكّل غابات مهمة تحت الماء.';
 
   @override
   String get species_coralline_algae_name => 'الطحالب المرجانية';
 
   @override
-  String get species_coralline_algae_desc =>
-      'طحلب أحمر صلب يكسو الأسطح ويلحم بنى الشعاب ويمنحها لونًا ورديًا.';
+  String get species_coralline_algae_desc => 'طحلب أحمر صلب يكسو الأسطح ويلحم بنى الشعاب ويمنحها لونًا ورديًا.';
 
   @override
   String get species_irish_moss_name => 'الطحلب الإيرلندي';
 
   @override
-  String get species_irish_moss_desc =>
-      'طحلب أحمر مروحي الشكل يوجد على الشواطئ الصخرية في منطقة المد والجزر بشمال الأطلسي.';
+  String get species_irish_moss_desc => 'طحلب أحمر مروحي الشكل يوجد على الشواطئ الصخرية في منطقة المد والجزر بشمال الأطلسي.';
 
   @override
   String get species_dulse_name => 'الدلس';
 
   @override
-  String get species_dulse_desc =>
-      'طحلب مسطح أحمر أرجواني ينمو على الصخور وسيقان عشب البحر في المياه الشمالية الباردة.';
+  String get species_dulse_desc => 'طحلب مسطح أحمر أرجواني ينمو على الصخور وسيقان عشب البحر في المياه الشمالية الباردة.';
 
   @override
   String get species_halimeda_name => 'الهاليميدا';
 
   @override
-  String get species_halimeda_desc =>
-      'طحلب أخضر متكلّس بقطع قرصية الشكل، وهو مساهم رئيسي في تكوين رمال الشعاب.';
+  String get species_halimeda_desc => 'طحلب أخضر متكلّس بقطع قرصية الشكل، وهو مساهم رئيسي في تكوين رمال الشعاب.';
 
   @override
   String get species_sea_lettuce_name => 'خس البحر';
 
   @override
-  String get species_sea_lettuce_desc =>
-      'طحلب أخضر زاهٍ على هيئة صفائح يوجد في المياه الساحلية الضحلة حول العالم.';
+  String get species_sea_lettuce_desc => 'طحلب أخضر زاهٍ على هيئة صفائح يوجد في المياه الساحلية الضحلة حول العالم.';
 
   @override
   String get species_caulerpa_name => 'طحلب العنب الأخضر';
 
   @override
-  String get species_caulerpa_desc =>
-      'طحلب أخضر زاحف بسعوف تشبه حبات العنب، يوجد على الحطام المرجاني والرمال في الشعاب الاستوائية.';
+  String get species_caulerpa_desc => 'طحلب أخضر زاحف بسعوف تشبه حبات العنب، يوجد على الحطام المرجاني والرمال في الشعاب الاستوائية.';
 
   @override
   String get species_mermaid_fan_name => 'مروحة الحورية';
 
   @override
-  String get species_mermaid_fan_desc =>
-      'طحلب أخضر متكلّس على شكل مروحة صغيرة، وهو شائع على القيعان الرملية في الكاريبي.';
+  String get species_mermaid_fan_desc => 'طحلب أخضر متكلّس على شكل مروحة صغيرة، وهو شائع على القيعان الرملية في الكاريبي.';
 
   @override
   String get species_shaving_brush_algae_name => 'طحلب فرشاة الحلاقة';
 
   @override
-  String get species_shaving_brush_algae_desc =>
-      'طحلب أخضر متكلّس بخصلة تشبه الفرشاة فوق ساق، يوجد على القيعان الرملية في الكاريبي.';
+  String get species_shaving_brush_algae_desc => 'طحلب أخضر متكلّس بخصلة تشبه الفرشاة فوق ساق، يوجد على القيعان الرملية في الكاريبي.';
 
   @override
   String get species_finger_kelp_name => 'طحلب المجداف';
 
   @override
-  String get species_finger_kelp_desc =>
-      'طحلب بني بسعوف تشبه الأصابع يشكّل مروج عشب البحر في المياه الساحلية بشمال الأطلسي.';
+  String get species_finger_kelp_desc => 'طحلب بني بسعوف تشبه الأصابع يشكّل مروج عشب البحر في المياه الساحلية بشمال الأطلسي.';
 
   @override
   String get species_banded_sea_krait_name => 'ثعبان البحر المخطط';
 
   @override
-  String get species_banded_sea_krait_desc =>
-      'ثعبان بحر سام بأشرطة زرقاء رمادية وسوداء، وديع ويُشاهد عادةً في شعاب المحيطين الهندي والهادئ.';
+  String get species_banded_sea_krait_desc => 'ثعبان بحر سام بأشرطة زرقاء رمادية وسوداء، وديع ويُشاهد عادةً في شعاب المحيطين الهندي والهادئ.';
 
   @override
   String get species_olive_sea_snake_name => 'ثعبان البحر الزيتوني';
 
   @override
-  String get species_olive_sea_snake_desc =>
-      'ثعبان بحر فضولي يوجد في الشعاب الأسترالية ويشتهر باقترابه من الغواصين.';
+  String get species_olive_sea_snake_desc => 'ثعبان بحر فضولي يوجد في الشعاب الأسترالية ويشتهر باقترابه من الغواصين.';
 
   @override
   String get species_yellow_bellied_sea_snake_name => 'ثعبان البحر أصفر البطن';
 
   @override
-  String get species_yellow_bellied_sea_snake_desc =>
-      'ثعبان بحر من أعالي البحار ببطن أصفر، وهو أوسع أنواع الثعابين انتشارًا على وجه الأرض.';
+  String get species_yellow_bellied_sea_snake_desc => 'ثعبان بحر من أعالي البحار ببطن أصفر، وهو أوسع أنواع الثعابين انتشارًا على وجه الأرض.';
 
   @override
   String get species_marine_iguana_name => 'الإغوانا البحرية';
 
   @override
-  String get species_marine_iguana_desc =>
-      'متوطنة في جزر غالاباغوس، وهي السحلية الوحيدة التي ترعى الطحالب تحت الماء.';
+  String get species_marine_iguana_desc => 'متوطنة في جزر غالاباغوس، وهي السحلية الوحيدة التي ترعى الطحالب تحت الماء.';
 
   @override
   String get species_saltwater_crocodile_name => 'تمساح المياه المالحة';
 
   @override
-  String get species_saltwater_crocodile_desc =>
-      'أكبر الزواحف الحية، ويوجد في المياه الساحلية ومصبات الأنهار بالمحيطين الهندي والهادئ.';
+  String get species_saltwater_crocodile_desc => 'أكبر الزواحف الحية، ويوجد في المياه الساحلية ومصبات الأنهار بالمحيطين الهندي والهادئ.';
 
   @override
   String get species_northern_pike_name => 'الكراكي الشمالي';
 
   @override
-  String get species_northern_pike_desc =>
-      'مفترس طويل الجسم بخطم يشبه منقار البط، يترصد بلا حراك بين نباتات حواف البحيرات.';
+  String get species_northern_pike_desc => 'مفترس طويل الجسم بخطم يشبه منقار البط، يترصد بلا حراك بين نباتات حواف البحيرات.';
 
   @override
   String get species_muskellunge_name => 'ماسكلانج';
 
   @override
-  String get species_muskellunge_desc =>
-      'أكبر أنواع الكراكي، عملاق مخطط أو مرقط في البحيرات الشمالية الصافية، نادر الرؤية ولا يُنسى.';
+  String get species_muskellunge_desc => 'أكبر أنواع الكراكي، عملاق مخطط أو مرقط في البحيرات الشمالية الصافية، نادر الرؤية ولا يُنسى.';
 
   @override
   String get species_chain_pickerel_name => 'الكراكي المسلسل';
 
   @override
-  String get species_chain_pickerel_desc =>
-      'كراكي نحيل يعيش في برك شرق أمريكا الشمالية العشبية، سُمي بذلك بسبب النمط الشبيه بالسلسلة على جانبيه.';
+  String get species_chain_pickerel_desc => 'كراكي نحيل يعيش في برك شرق أمريكا الشمالية العشبية، سُمي بذلك بسبب النمط الشبيه بالسلسلة على جانبيه.';
 
   @override
   String get species_walleye_name => 'الوالاي';
 
   @override
-  String get species_walleye_desc =>
-      'قريب للفرخ بلون زيتوني ذهبي وعينين كبيرتين عاكستين، يصطاد عند الغسق فوق قيعان البحيرات الصخرية والرملية.';
+  String get species_walleye_desc => 'قريب للفرخ بلون زيتوني ذهبي وعينين كبيرتين عاكستين، يصطاد عند الغسق فوق قيعان البحيرات الصخرية والرملية.';
 
   @override
   String get species_sauger_name => 'الساوغر';
 
   @override
-  String get species_sauger_desc =>
-      'ابن عم أصغر وأكثر تبقعاً لسمك الوالاي، يفضل الأنهار العكرة والخزانات.';
+  String get species_sauger_desc => 'ابن عم أصغر وأكثر تبقعاً لسمك الوالاي، يفضل الأنهار العكرة والخزانات.';
 
   @override
   String get species_yellow_perch_name => 'الفرخ الأصفر';
 
   @override
-  String get species_yellow_perch_desc =>
-      'فرخ ذهبي يعيش في أسراب بخطوط عمودية داكنة، شائع حول الأرصفة ونباتات المياه في أمريكا الشمالية.';
+  String get species_yellow_perch_desc => 'فرخ ذهبي يعيش في أسراب بخطوط عمودية داكنة، شائع حول الأرصفة ونباتات المياه في أمريكا الشمالية.';
 
   @override
   String get species_european_perch_name => 'الفرخ الأوروبي';
 
   @override
-  String get species_european_perch_desc =>
-      'فرخ مخطط بزعانف شوكية وزعانف سفلية حمراء برتقالية، يوجد في كل بحيرة ونهر بطيء تقريباً في أوروبا.';
+  String get species_european_perch_desc => 'فرخ مخطط بزعانف شوكية وزعانف سفلية حمراء برتقالية، يوجد في كل بحيرة ونهر بطيء تقريباً في أوروبا.';
 
   @override
   String get species_zander_name => 'الزاندر';
 
   @override
-  String get species_zander_desc =>
-      'مفترس كبير شاحب اللون بعينين زجاجيتين وفكين ذوي أنياب، يجوب بحيرات وأنهار أوروبا العكرة بعد حلول الظلام.';
+  String get species_zander_desc => 'مفترس كبير شاحب اللون بعينين زجاجيتين وفكين ذوي أنياب، يجوب بحيرات وأنهار أوروبا العكرة بعد حلول الظلام.';
 
   @override
   String get species_ruffe_name => 'الرف';
 
   @override
-  String get species_ruffe_desc =>
-      'فرخ صغير مرقط بزعنفة ظهرية شوكية متصلة، وفير على القيعان الطرية في بحيرات أوروبا.';
+  String get species_ruffe_desc => 'فرخ صغير مرقط بزعنفة ظهرية شوكية متصلة، وفير على القيعان الطرية في بحيرات أوروبا.';
 
   @override
   String get species_largemouth_bass_name => 'القاروص كبير الفم';
 
   @override
-  String get species_largemouth_bass_desc =>
-      'قاروص أخضر الظهر بخط جانبي داكن وفم ضخم، يترصد قرب جذوع الأشجار وحواف النباتات في البحيرات الدافئة.';
+  String get species_largemouth_bass_desc => 'قاروص أخضر الظهر بخط جانبي داكن وفم ضخم، يترصد قرب جذوع الأشجار وحواف النباتات في البحيرات الدافئة.';
 
   @override
   String get species_smallmouth_bass_name => 'القاروص صغير الفم';
 
   @override
-  String get species_smallmouth_bass_desc =>
-      'قاروص برونزي بخطوط عمودية باهتة، يستقر فوق الصخور والحصى في البحيرات والأنهار الصافية الباردة.';
+  String get species_smallmouth_bass_desc => 'قاروص برونزي بخطوط عمودية باهتة، يستقر فوق الصخور والحصى في البحيرات والأنهار الصافية الباردة.';
 
   @override
   String get species_rock_bass_name => 'قاروص الصخور';
 
   @override
-  String get species_rock_bass_desc =>
-      'سمكة شمس ممتلئة بعينين حمراوين وصفوف من البقع الداكنة، تحتمي بين الصخور الكبيرة في الجداول والبحيرات الصافية.';
+  String get species_rock_bass_desc => 'سمكة شمس ممتلئة بعينين حمراوين وصفوف من البقع الداكنة، تحتمي بين الصخور الكبيرة في الجداول والبحيرات الصافية.';
 
   @override
   String get species_bluegill_name => 'البلوجيل';
 
   @override
-  String get species_bluegill_desc =>
-      'سمكة شمس قرصية الشكل بغطاء خيشومي أزرق مسوّد وصدر برتقالي، تعشش في مستعمرات على القيعان الرملية الضحلة.';
+  String get species_bluegill_desc => 'سمكة شمس قرصية الشكل بغطاء خيشومي أزرق مسوّد وصدر برتقالي، تعشش في مستعمرات على القيعان الرملية الضحلة.';
 
   @override
   String get species_pumpkinseed_name => 'سمكة الشمس القرعية';
 
   @override
-  String get species_pumpkinseed_desc =>
-      'سمكة شمس منقطة بألوان زاهية بغطاء خيشومي ذي طرف أحمر وخطوط زرقاء متموجة على الخدين، شائعة في المياه الضحلة العشبية.';
+  String get species_pumpkinseed_desc => 'سمكة شمس منقطة بألوان زاهية بغطاء خيشومي ذي طرف أحمر وخطوط زرقاء متموجة على الخدين، شائعة في المياه الضحلة العشبية.';
 
   @override
   String get species_black_crappie_name => 'الكرابي الأسود';
 
   @override
-  String get species_black_crappie_desc =>
-      'سمكة فضية عالية الجسم مرقطة بالأسود، تتجمع في أسراب حول الأغصان الغارقة والأعمدة.';
+  String get species_black_crappie_desc => 'سمكة فضية عالية الجسم مرقطة بالأسود، تتجمع في أسراب حول الأغصان الغارقة والأعمدة.';
 
   @override
   String get species_white_crappie_name => 'الكرابي الأبيض';
 
   @override
-  String get species_white_crappie_desc =>
-      'كرابي أكثر شحوباً بأشرطة عمودية باهتة، يفضل الخزانات العكرة والأنهار البطيئة.';
+  String get species_white_crappie_desc => 'كرابي أكثر شحوباً بأشرطة عمودية باهتة، يفضل الخزانات العكرة والأنهار البطيئة.';
 
   @override
   String get species_brown_trout_name => 'التروتة البنية';
 
   @override
-  String get species_brown_trout_desc =>
-      'تروتة بنية ذهبية ببقع حمراء وسوداء، تستقر في تيار الأنهار والبحيرات الباردة الصافية.';
+  String get species_brown_trout_desc => 'تروتة بنية ذهبية ببقع حمراء وسوداء، تستقر في تيار الأنهار والبحيرات الباردة الصافية.';
 
   @override
   String get species_rainbow_trout_name => 'تروات قوس قزح';
 
   @override
-  String get species_rainbow_trout_desc =>
-      'تروتة فضية بشريط جانبي وردي ونقاط سوداء دقيقة، تُستزرع وتعيش برياً في المياه الباردة حول العالم.';
+  String get species_rainbow_trout_desc => 'تروتة فضية بشريط جانبي وردي ونقاط سوداء دقيقة، تُستزرع وتعيش برياً في المياه الباردة حول العالم.';
 
   @override
   String get species_brook_trout_name => 'تروتة الجداول';
 
   @override
-  String get species_brook_trout_desc =>
-      'شار بعلامات دودية الشكل على ظهره وبقع حمراء بهالات زرقاء وزعانف بحواف بيضاء، في جداول المنبع الباردة.';
+  String get species_brook_trout_desc => 'شار بعلامات دودية الشكل على ظهره وبقع حمراء بهالات زرقاء وزعانف بحواف بيضاء، في جداول المنبع الباردة.';
 
   @override
   String get species_lake_trout_name => 'تروتة البحيرات';
 
   @override
-  String get species_lake_trout_desc =>
-      'شار رمادي كبير مغطى ببقع باهتة وذيل متشعب، يجوب المياه العميقة الباردة في البحيرات الشمالية.';
+  String get species_lake_trout_desc => 'شار رمادي كبير مغطى ببقع باهتة وذيل متشعب، يجوب المياه العميقة الباردة في البحيرات الشمالية.';
 
   @override
   String get species_arctic_char_name => 'الشار القطبي';
 
   @override
-  String get species_arctic_char_desc =>
-      'أقصى أسماك المياه العذبة شمالاً، شار نحيل يتورد بطنه باللون الأحمر البرتقالي في ألوان التزاوج الخريفية.';
+  String get species_arctic_char_desc => 'أقصى أسماك المياه العذبة شمالاً، شار نحيل يتورد بطنه باللون الأحمر البرتقالي في ألوان التزاوج الخريفية.';
 
   @override
   String get species_atlantic_salmon_name => 'سلمون الأطلسي';
 
   @override
-  String get species_atlantic_salmon_desc =>
-      'سلمون فضي مهاجر ببقع سوداء على شكل X، يقفز فوق الشلالات عند عودته إلى أنهار مولده للتكاثر.';
+  String get species_atlantic_salmon_desc => 'سلمون فضي مهاجر ببقع سوداء على شكل X، يقفز فوق الشلالات عند عودته إلى أنهار مولده للتكاثر.';
 
   @override
   String get species_chinook_salmon_name => 'سلمون الشينوك';
 
   @override
-  String get species_chinook_salmon_desc =>
-      'أكبر سلمون المحيط الهادئ، بظهر أزرق مخضر ولثة سوداء، يصعد الأنهار الغربية الكبيرة للتكاثر.';
+  String get species_chinook_salmon_desc => 'أكبر سلمون المحيط الهادئ، بظهر أزرق مخضر ولثة سوداء، يصعد الأنهار الغربية الكبيرة للتكاثر.';
 
   @override
   String get species_sockeye_salmon_name => 'السلمون الأحمر';
 
   @override
-  String get species_sockeye_salmon_desc =>
-      'سلمون يتحول عند التكاثر إلى الأحمر الزاهي برأس أخضر، ويزدحم على قيعان الحصى في الأنهار التي تغذيها البحيرات.';
+  String get species_sockeye_salmon_desc => 'سلمون يتحول عند التكاثر إلى الأحمر الزاهي برأس أخضر، ويزدحم على قيعان الحصى في الأنهار التي تغذيها البحيرات.';
 
   @override
   String get species_coho_salmon_name => 'سلمون الكوهو';
 
   @override
-  String get species_coho_salmon_desc =>
-      'سلمون فضي بلثة بيضاء وبقع على الجزء العلوي من الذيل فقط، يتكاثر في الجداول الساحلية الصغيرة.';
+  String get species_coho_salmon_desc => 'سلمون فضي بلثة بيضاء وبقع على الجزء العلوي من الذيل فقط، يتكاثر في الجداول الساحلية الصغيرة.';
 
   @override
   String get species_lake_whitefish_name => 'السمك الأبيض البحيري';
 
   @override
-  String get species_lake_whitefish_desc =>
-      'سمكة بيضاء فضية صغيرة الفم تعيش في البحيرات العميقة الباردة، تتغذى على القاع في أسراب كبيرة.';
+  String get species_lake_whitefish_desc => 'سمكة بيضاء فضية صغيرة الفم تعيش في البحيرات العميقة الباردة، تتغذى على القاع في أسراب كبيرة.';
 
   @override
   String get species_cisco_name => 'السيسكو';
 
   @override
-  String get species_cisco_desc =>
-      'سمكة بيضاء نحيلة تشبه الرنجة تتجمع في أسراب في المياه المفتوحة للبحيرات الشمالية الباردة، فريسة لتروتة البحيرات.';
+  String get species_cisco_desc => 'سمكة بيضاء نحيلة تشبه الرنجة تتجمع في أسراب في المياه المفتوحة للبحيرات الشمالية الباردة، فريسة لتروتة البحيرات.';
 
   @override
   String get species_european_grayling_name => 'الغرايلينغ الأوروبي';
 
   @override
-  String get species_european_grayling_desc =>
-      'سمكة نهرية رمادية فضية بزعنفة ظهرية عالية تشبه الشراع بحافة أرجوانية، تستقر في المجاري السريعة النظيفة ذات الحصى.';
+  String get species_european_grayling_desc => 'سمكة نهرية رمادية فضية بزعنفة ظهرية عالية تشبه الشراع بحافة أرجوانية، تستقر في المجاري السريعة النظيفة ذات الحصى.';
 
   @override
   String get species_common_carp_name => 'شبوط شائع';
 
   @override
-  String get species_common_carp_desc =>
-      'شبوط ثقيل برونزي اللون بحراشف كبيرة وزوجين من الزوائد اللمسية، ينبش القيعان الطرية في البحيرات والأنهار الدافئة.';
+  String get species_common_carp_desc => 'شبوط ثقيل برونزي اللون بحراشف كبيرة وزوجين من الزوائد اللمسية، ينبش القيعان الطرية في البحيرات والأنهار الدافئة.';
 
   @override
   String get species_grass_carp_name => 'شبوط الحشائش';
 
   @override
-  String get species_grass_carp_desc =>
-      'شبوط آسيوي على شكل طوربيد أُدخل حول العالم لرعي الأعشاب المائية، يُشاهد كثيراً في بحيرات المحاجر الصافية.';
+  String get species_grass_carp_desc => 'شبوط آسيوي على شكل طوربيد أُدخل حول العالم لرعي الأعشاب المائية، يُشاهد كثيراً في بحيرات المحاجر الصافية.';
 
   @override
   String get species_tench_name => 'التنش';
 
   @override
-  String get species_tench_desc =>
-      'سمكة خضراء زيتونية بحراشف دقيقة وعينين حمراوين وزعانف مستديرة، تنساب بين الطين والقصب في المياه الراكدة.';
+  String get species_tench_desc => 'سمكة خضراء زيتونية بحراشف دقيقة وعينين حمراوين وزعانف مستديرة، تنساب بين الطين والقصب في المياه الراكدة.';
 
   @override
   String get species_common_bream_name => 'أبراميس شائع';
 
   @override
-  String get species_common_bream_desc =>
-      'سمكة برونزية عالية الجسم مفلطحة الجانبين تتغذى ورأسها إلى الأسفل في أسراب على القيعان الطينية، شائعة في سهول أوروبا.';
+  String get species_common_bream_desc => 'سمكة برونزية عالية الجسم مفلطحة الجانبين تتغذى ورأسها إلى الأسفل في أسراب على القيعان الطينية، شائعة في سهول أوروبا.';
 
   @override
   String get species_roach_name => 'الروش';
 
   @override
-  String get species_roach_desc =>
-      'سمكة فضية تعيش في أسراب بزعانف حمراء وقزحية حمراء، أكثر الأسماك وفرة في كثير من بحيرات أوروبا وقنواتها.';
+  String get species_roach_desc => 'سمكة فضية تعيش في أسراب بزعانف حمراء وقزحية حمراء، أكثر الأسماك وفرة في كثير من بحيرات أوروبا وقنواتها.';
 
   @override
   String get species_rudd_name => 'الرود';
 
   @override
-  String get species_rudd_desc =>
-      'قريب للروش بجوانب ذهبية وزعانف حمراء زاهية وفم متجه للأعلى، يتغذى تحت السطح مباشرة.';
+  String get species_rudd_desc => 'قريب للروش بجوانب ذهبية وزعانف حمراء زاهية وفم متجه للأعلى، يتغذى تحت السطح مباشرة.';
 
   @override
   String get species_chub_name => 'الشوب الأوروبي';
 
   @override
-  String get species_chub_desc =>
-      'سمكة نهرية ممتلئة برأس عريض وحراشف كبيرة ذات حواف داكنة وفم كبير، تستقر تحت الأشجار المتدلية فوق الماء.';
+  String get species_chub_desc => 'سمكة نهرية ممتلئة برأس عريض وحراشف كبيرة ذات حواف داكنة وفم كبير، تستقر تحت الأشجار المتدلية فوق الماء.';
 
   @override
   String get species_barbel_name => 'بربل شائع';
 
   @override
-  String get species_barbel_desc =>
-      'سمكة قاعية انسيابية بأربع زوائد لمسية وفم سفلي، تلتصق بالحصى في أنهار أوروبا السريعة.';
+  String get species_barbel_desc => 'سمكة قاعية انسيابية بأربع زوائد لمسية وفم سفلي، تلتصق بالحصى في أنهار أوروبا السريعة.';
 
   @override
   String get species_european_eel_name => 'ثعبان الماء الأوروبي';
 
   @override
-  String get species_european_eel_desc =>
-      'سمكة تشبه الثعبان تقضي عقوداً في الأنهار والبحيرات قبل أن تهاجر إلى بحر سارجاسو لتتكاثر مرة واحدة.';
+  String get species_european_eel_desc => 'سمكة تشبه الثعبان تقضي عقوداً في الأنهار والبحيرات قبل أن تهاجر إلى بحر سارجاسو لتتكاثر مرة واحدة.';
 
   @override
   String get species_american_eel_name => 'ثعبان الماء الأمريكي';
 
   @override
-  String get species_american_eel_desc =>
-      'ثعبان ماء أمريكي شمالي يختبئ نهاراً تحت الصخور في الأنهار والبحيرات ويعود إلى بحر سارجاسو للتكاثر.';
+  String get species_american_eel_desc => 'ثعبان ماء أمريكي شمالي يختبئ نهاراً تحت الصخور في الأنهار والبحيرات ويعود إلى بحر سارجاسو للتكاثر.';
 
   @override
   String get species_burbot_name => 'البربوت';
 
   @override
-  String get species_burbot_desc =>
-      'سمك القد الوحيد في المياه العذبة، سمكة مرقطة تشبه ثعبان الماء بزائدة لمسية واحدة على الذقن، تختبئ نهاراً في المياه العميقة الباردة.';
+  String get species_burbot_desc => 'سمك القد الوحيد في المياه العذبة، سمكة مرقطة تشبه ثعبان الماء بزائدة لمسية واحدة على الذقن، تختبئ نهاراً في المياه العميقة الباردة.';
 
   @override
   String get species_channel_catfish_name => 'سلور القنوات';
 
   @override
-  String get species_channel_catfish_desc =>
-      'سمكة سلور رمادية ببقع داكنة متناثرة وذيل متشعب وثماني زوائد لمسية، شائعة في أنهار وخزانات أمريكا الشمالية.';
+  String get species_channel_catfish_desc => 'سمكة سلور رمادية ببقع داكنة متناثرة وذيل متشعب وثماني زوائد لمسية، شائعة في أنهار وخزانات أمريكا الشمالية.';
 
   @override
   String get species_flathead_catfish_name => 'السلور مسطح الرأس';
 
   @override
-  String get species_flathead_catfish_desc =>
-      'سلور بني مرقط ضخم برأس مسطح وفك سفلي بارز، يرقد في الحفر النهرية العميقة.';
+  String get species_flathead_catfish_desc => 'سلور بني مرقط ضخم برأس مسطح وفك سفلي بارز، يرقد في الحفر النهرية العميقة.';
 
   @override
   String get species_brown_bullhead_name => 'البولهيد البني';
 
   @override
-  String get species_brown_bullhead_desc =>
-      'سلور صغير ممتلئ بزوائد لمسية داكنة وذيل مربع، يتحمل البرك الطينية الدافئة قليلة الأكسجين.';
+  String get species_brown_bullhead_desc => 'سلور صغير ممتلئ بزوائد لمسية داكنة وذيل مربع، يتحمل البرك الطينية الدافئة قليلة الأكسجين.';
 
   @override
   String get species_wels_catfish_name => 'سلور ويلس';
 
   @override
-  String get species_wels_catfish_desc =>
-      'أكبر أسماك المياه العذبة في أوروبا، عملاق بلا حراشف برأس عريض مسطح وشوارب طويلة، يرقد في الحفر النهرية العميقة.';
+  String get species_wels_catfish_desc => 'أكبر أسماك المياه العذبة في أوروبا، عملاق بلا حراشف برأس عريض مسطح وشوارب طويلة، يرقد في الحفر النهرية العميقة.';
 
   @override
   String get species_white_sturgeon_name => 'الحفش الأبيض';
 
   @override
-  String get species_white_sturgeon_desc =>
-      'أكبر أسماك المياه العذبة في أمريكا الشمالية، عملاق رمادي مدرع بذيل يشبه ذيل القرش يجوب الأنهار الغربية الكبيرة.';
+  String get species_white_sturgeon_desc => 'أكبر أسماك المياه العذبة في أمريكا الشمالية، عملاق رمادي مدرع بذيل يشبه ذيل القرش يجوب الأنهار الغربية الكبيرة.';
 
   @override
   String get species_lake_sturgeon_name => 'حفش البحيرات';
 
   @override
-  String get species_lake_sturgeon_desc =>
-      'حفش مدرع بطيء النمو من البحيرات العظمى وحوض المسيسيبي، يكنس القاع بفمه الأنبوبي.';
+  String get species_lake_sturgeon_desc => 'حفش مدرع بطيء النمو من البحيرات العظمى وحوض المسيسيبي، يكنس القاع بفمه الأنبوبي.';
 
   @override
   String get species_european_sturgeon_name => 'حفش البحر الأوربي';
 
   @override
-  String get species_european_sturgeon_desc =>
-      'حفش مدرع مهدد بالانقراض بشدة من الأنهار الأطلسية، يُربى اليوم ويُطلق في نهري غارون وإلبه.';
+  String get species_european_sturgeon_desc => 'حفش مدرع مهدد بالانقراض بشدة من الأنهار الأطلسية، يُربى اليوم ويُطلق في نهري غارون وإلبه.';
 
   @override
   String get species_alligator_gar_name => 'سمكة التمساح';
 
   @override
-  String get species_alligator_gar_desc =>
-      'عملاق ما قبل التاريخ بخطم عريض مسنن وحراشف مدرعة معينية الشكل، يصعد لابتلاع الهواء في الأنهار الجنوبية.';
+  String get species_alligator_gar_desc => 'عملاق ما قبل التاريخ بخطم عريض مسنن وحراشف مدرعة معينية الشكل، يصعد لابتلاع الهواء في الأنهار الجنوبية.';
 
   @override
   String get species_longnose_gar_name => 'الغار طويل الأنف';
 
   @override
-  String get species_longnose_gar_desc =>
-      'سمكة مدرعة نحيلة بخطم يشبه الإبرة، تتعلق بلا حراك تحت سطح الأنهار الدافئة مباشرة.';
+  String get species_longnose_gar_desc => 'سمكة مدرعة نحيلة بخطم يشبه الإبرة، تتعلق بلا حراك تحت سطح الأنهار الدافئة مباشرة.';
 
   @override
   String get species_bowfin_name => 'البوفين';
 
   @override
-  String get species_bowfin_desc =>
-      'أحفورة حية بزعنفة ظهرية طويلة متموجة ورأس عظمي، يحرس صغاره في المياه الراكدة العشبية.';
+  String get species_bowfin_desc => 'أحفورة حية بزعنفة ظهرية طويلة متموجة ورأس عظمي، يحرس صغاره في المياه الراكدة العشبية.';
 
   @override
   String get species_american_paddlefish_name => 'سمك المجداف الأميريكي';
 
   @override
-  String get species_american_paddlefish_desc =>
-      'عملاق مرشح للغذاء بخطم يشبه المجداف يبلغ ثلث طوله، يسبح بفم مفتوح في الأنهار الكبيرة.';
+  String get species_american_paddlefish_desc => 'عملاق مرشح للغذاء بخطم يشبه المجداف يبلغ ثلث طوله، يسبح بفم مفتوح في الأنهار الكبيرة.';
 
   @override
   String get species_sea_lamprey_name => 'جلكى بحرية';
 
   @override
-  String get species_sea_lamprey_desc =>
-      'طفيلي عديم الفكين يشبه ثعبان الماء بفم ماص محاط بالأسنان، يتكاثر في جداول الحصى بعد التغذي في البحر أو البحيرات.';
+  String get species_sea_lamprey_desc => 'طفيلي عديم الفكين يشبه ثعبان الماء بفم ماص محاط بالأسنان، يتكاثر في جداول الحصى بعد التغذي في البحر أو البحيرات.';
 
   @override
   String get species_freshwater_drum_name => 'الطبال النهري';
 
   @override
-  String get species_freshwater_drum_desc =>
-      'سمكة فضية محدبة الظهر تصدر أصوات همهمة مسموعة وتسحق بلح البحر بأسنان بلعومية، شائعة في الأنهار والبحيرات الكبيرة.';
+  String get species_freshwater_drum_desc => 'سمكة فضية محدبة الظهر تصدر أصوات همهمة مسموعة وتسحق بلح البحر بأسنان بلعومية، شائعة في الأنهار والبحيرات الكبيرة.';
 
   @override
   String get species_white_sucker_name => 'الماص الأبيض';
 
   @override
-  String get species_white_sucker_desc =>
-      'سمكة قاعية أسطوانية بفم لحمي متجه للأسفل، تصعد الجداول في الربيع في حشود التكاثر.';
+  String get species_white_sucker_desc => 'سمكة قاعية أسطوانية بفم لحمي متجه للأسفل، تصعد الجداول في الربيع في حشود التكاثر.';
 
   @override
   String get species_common_minnow_name => 'المنوة الأوروبية';
 
   @override
-  String get species_common_minnow_desc =>
-      'سمكة صغيرة جداً مخططة تعيش في أسراب في الجداول والبحيرات الصافية الباردة، يتحول ذكورها إلى الأحمر والأخضر في الربيع.';
+  String get species_common_minnow_desc => 'سمكة صغيرة جداً مخططة تعيش في أسراب في الجداول والبحيرات الصافية الباردة، يتحول ذكورها إلى الأحمر والأخضر في الربيع.';
 
   @override
   String get species_three_spined_stickleback_name => 'أبو شوكة ثلاثي الأشواك';
 
   @override
-  String get species_three_spined_stickleback_desc =>
-      'سمكة صغيرة جداً مدرعة بثلاث أشواك ظهرية، يبني ذكورها ذوو الحلق الأحمر أعشاشاً من الألياف النباتية ويحرسونها.';
+  String get species_three_spined_stickleback_desc => 'سمكة صغيرة جداً مدرعة بثلاث أشواك ظهرية، يبني ذكورها ذوو الحلق الأحمر أعشاشاً من الألياف النباتية ويحرسونها.';
 
   @override
   String get species_alewife_name => 'الألوايف';
 
   @override
-  String get species_alewife_desc =>
-      'رنجة فضية تصعد الأنهار في الربيع وتملأ اليوم البحيرات العظمى بأسراب هائلة.';
+  String get species_alewife_desc => 'رنجة فضية تصعد الأنهار في الربيع وتملأ اليوم البحيرات العظمى بأسراب هائلة.';
 
   @override
   String get species_nile_perch_name => 'قشر البياض';
 
   @override
-  String get species_nile_perch_desc =>
-      'مفترس فضي ضخم بعين محاطة بحافة سوداء، أُدخل إلى بحيرة فيكتوريا حيث يهيمن على المياه المفتوحة.';
+  String get species_nile_perch_desc => 'مفترس فضي ضخم بعين محاطة بحافة سوداء، أُدخل إلى بحيرة فيكتوريا حيث يهيمن على المياه المفتوحة.';
 
   @override
   String get species_nile_tilapia_name => 'بلطي نيلي';
 
   @override
-  String get species_nile_tilapia_desc =>
-      'بلطي رمادي بخطوط عمودية على الذيل يحضن صغاره في فمه، يُستزرع ويعيش متوحشاً في المياه الدافئة حول العالم.';
+  String get species_nile_tilapia_desc => 'بلطي رمادي بخطوط عمودية على الذيل يحضن صغاره في فمه، يُستزرع ويعيش متوحشاً في المياه الدافئة حول العالم.';
 
   @override
   String get species_african_tigerfish_name => 'سمكة النمر الأفريقية';
 
   @override
-  String get species_african_tigerfish_desc =>
-      'مفترس فضي مخطط بأسنان خنجرية متشابكة، يصطاد في الأنهار الأفريقية السريعة مثل الزامبيزي.';
+  String get species_african_tigerfish_desc => 'مفترس فضي مخطط بأسنان خنجرية متشابكة، يصطاد في الأنهار الأفريقية السريعة مثل الزامبيزي.';
 
   @override
   String get species_marbled_lungfish_name => 'Samak el teen';
 
   @override
-  String get species_marbled_lungfish_desc =>
-      'سمكة ثعبانية الشكل تتنفس الهواء بزعانف خيطية، تنجو من الجفاف محبوسة في شرنقة طينية.';
+  String get species_marbled_lungfish_desc => 'سمكة ثعبانية الشكل تتنفس الهواء بزعانف خيطية، تنجو من الجفاف محبوسة في شرنقة طينية.';
 
   @override
   String get species_electric_catfish_name => 'السلور الكهربائي';
 
   @override
-  String get species_electric_catfish_desc =>
-      'سلور رمادي ممتلئ من النيل والكونغو يصعق فرائسه بصدمات تبلغ عدة مئات من الفولتات.';
+  String get species_electric_catfish_desc => 'سلور رمادي ممتلئ من النيل والكونغو يصعق فرائسه بصدمات تبلغ عدة مئات من الفولتات.';
 
   @override
   String get species_zebra_mbuna_name => 'مبونا الزرد';
 
   @override
-  String get species_zebra_mbuna_desc =>
-      'بلطي صخري بخطوط زرقاء من بحيرة ملاوي، يرعى الطحالب من الصخور الكبيرة في حشود إقليمية كثيفة.';
+  String get species_zebra_mbuna_desc => 'بلطي صخري بخطوط زرقاء من بحيرة ملاوي، يرعى الطحالب من الصخور الكبيرة في حشود إقليمية كثيفة.';
 
   @override
   String get species_malawi_butterfly_peacock_name => 'بلطي الطاووس الفراشي';
 
   @override
-  String get species_malawi_butterfly_peacock_desc =>
-      'بلطي طاووسي أزرق متقزح من كهوف بحيرة ملاوي، تتوهج ذكوره بزعانف ذات حواف بيضاء.';
+  String get species_malawi_butterfly_peacock_desc => 'بلطي طاووسي أزرق متقزح من كهوف بحيرة ملاوي، تتوهج ذكوره بزعانف ذات حواف بيضاء.';
 
   @override
   String get species_fuelleborn_cichlid_name => 'بلطي فولبورن';
 
   @override
-  String get species_fuelleborn_cichlid_desc =>
-      'مبونا من بحيرة ملاوي بأنف مسطح لحمي بارز لكشط الطحالب في منطقة الأمواج.';
+  String get species_fuelleborn_cichlid_desc => 'مبونا من بحيرة ملاوي بأنف مسطح لحمي بارز لكشط الطحالب في منطقة الأمواج.';
 
   @override
   String get species_princess_of_burundi_name => 'أميرة بوروندي';
 
   @override
-  String get species_princess_of_burundi_desc =>
-      'بلطي أنيق من بحيرة تنجانيقا بزعانف على شكل قيثارة، يعيش في عائلات ممتدة تتقاسم رعاية العش.';
+  String get species_princess_of_burundi_desc => 'بلطي أنيق من بحيرة تنجانيقا بزعانف على شكل قيثارة، يعيش في عائلات ممتدة تتقاسم رعاية العش.';
 
   @override
   String get species_frontosa_name => 'الفرونتوزا';
 
   @override
-  String get species_frontosa_desc =>
-      'بلطي من المياه العميقة في تنجانيقا بأشرطة زرقاء وبيضاء بارزة وجبهة محدبة، يتحرك ببطء في مجموعات فوق الصخور.';
+  String get species_frontosa_desc => 'بلطي من المياه العميقة في تنجانيقا بأشرطة زرقاء وبيضاء بارزة وجبهة محدبة، يتحرك ببطء في مجموعات فوق الصخور.';
 
   @override
   String get species_tropheus_moorii_name => 'تروفيوس موري';
 
   @override
-  String get species_tropheus_moorii_desc =>
-      'بلطي صخري ممتلئ من تنجانيقا بعشرات الأشكال اللونية، كل منها محصور في امتداد شاطئه الخاص.';
+  String get species_tropheus_moorii_desc => 'بلطي صخري ممتلئ من تنجانيقا بعشرات الأشكال اللونية، كل منها محصور في امتداد شاطئه الخاص.';
 
   @override
   String get species_arapaima_name => 'أربيمة عملاقة';
 
   @override
-  String get species_arapaima_desc =>
-      'من أكبر أسماك المياه العذبة، عملاق مدرع من الأمازون بذيل مرقط بالأحمر يصعد لابتلاع الهواء.';
+  String get species_arapaima_desc => 'من أكبر أسماك المياه العذبة، عملاق مدرع من الأمازون بذيل مرقط بالأحمر يصعد لابتلاع الهواء.';
 
   @override
   String get species_silver_arowana_name => 'أروانا فضية';
 
   @override
-  String get species_silver_arowana_desc =>
-      'سمكة فضية شريطية من الأمازون بزائدتين لمسيتين على الذقن، تقفز خارج الماء لخطف الحشرات من الأغصان.';
+  String get species_silver_arowana_desc => 'سمكة فضية شريطية من الأمازون بزائدتين لمسيتين على الذقن، تقفز خارج الماء لخطف الحشرات من الأغصان.';
 
   @override
   String get species_red_bellied_piranha_name => 'البيرانا حمراء البطن';
 
   @override
-  String get species_red_bellied_piranha_desc =>
-      'سمكة فضية عالية الجسم ببطن قرمزي وأسنان حادة كالشفرة، تتنقل في أسراب عبر المياه الراكدة للأمازون.';
+  String get species_red_bellied_piranha_desc => 'سمكة فضية عالية الجسم ببطن قرمزي وأسنان حادة كالشفرة، تتنقل في أسراب عبر المياه الراكدة للأمازون.';
 
   @override
   String get species_black_piranha_name => 'البيرانا السوداء';
 
   @override
-  String get species_black_piranha_desc =>
-      'بيرانا كبيرة انفرادية بعينين حمراوين وجسم داكن معيني الشكل، تترصد في روافد الأمازون الصافية الصخرية.';
+  String get species_black_piranha_desc => 'بيرانا كبيرة انفرادية بعينين حمراوين وجسم داكن معيني الشكل، تترصد في روافد الأمازون الصافية الصخرية.';
 
   @override
   String get species_red_bellied_pacu_name => 'الباكو أحمر البطن';
 
   @override
-  String get species_red_bellied_pacu_desc =>
-      'آكل فاكهة يشبه البيرانا بأسنان مسطحة ساحقة وبطن أحمر، يتجمع تحت أشجار الغابة المغمورة.';
+  String get species_red_bellied_pacu_desc => 'آكل فاكهة يشبه البيرانا بأسنان مسطحة ساحقة وبطن أحمر، يتجمع تحت أشجار الغابة المغمورة.';
 
   @override
   String get species_tambaqui_name => 'التامباكي';
 
   @override
-  String get species_tambaqui_desc =>
-      'باكو ضخم داكن من الأمازون يطحن المكسرات والبذور المتساقطة تحت مظلة الغابة المغمورة.';
+  String get species_tambaqui_desc => 'باكو ضخم داكن من الأمازون يطحن المكسرات والبذور المتساقطة تحت مظلة الغابة المغمورة.';
 
   @override
   String get species_electric_eel_name => 'أنقليس رعاد';
 
   @override
-  String get species_electric_eel_desc =>
-      'ليس ثعبان ماء بل سمكة سكين، طويلة داكنة تتنفس الهواء وتصعق فرائسها بصدمات تصل إلى 600 فولت.';
+  String get species_electric_eel_desc => 'ليس ثعبان ماء بل سمكة سكين، طويلة داكنة تتنفس الهواء وتصعق فرائسها بصدمات تصل إلى 600 فولت.';
 
   @override
   String get species_redtail_catfish_name => 'السلور أحمر الذيل';
 
   @override
-  String get species_redtail_catfish_desc =>
-      'سلور أمازوني كبير بظهر داكن وبطن أبيض وذيل برتقالي أحمر زاهٍ، يستريح في برك الأنهار العميقة.';
+  String get species_redtail_catfish_desc => 'سلور أمازوني كبير بظهر داكن وبطن أبيض وذيل برتقالي أحمر زاهٍ، يستريح في برك الأنهار العميقة.';
 
   @override
   String get species_tiger_shovelnose_catfish_name => 'السلور النمري';
 
   @override
-  String get species_tiger_shovelnose_catfish_desc =>
-      'سلور مخطط انسيابي بخطم طويل مسطح، يصطاد ليلاً على طول القنوات الرملية لأنهار أمريكا الجنوبية.';
+  String get species_tiger_shovelnose_catfish_desc => 'سلور مخطط انسيابي بخطم طويل مسطح، يصطاد ليلاً على طول القنوات الرملية لأنهار أمريكا الجنوبية.';
 
   @override
   String get species_peacock_bass_name => 'قاروص الطاووس';
 
   @override
-  String get species_peacock_bass_desc =>
-      'بلطي أمازوني عدواني بثلاثة أشرطة داكنة وبقعة عينية على الذيل، يكمن للأسماك بجوار الأخشاب الغارقة.';
+  String get species_peacock_bass_desc => 'بلطي أمازوني عدواني بثلاثة أشرطة داكنة وبقعة عينية على الذيل، يكمن للأسماك بجوار الأخشاب الغارقة.';
 
   @override
   String get species_oscar_name => 'أوسكار';
 
   @override
-  String get species_oscar_desc =>
-      'بلطي داكن ممتلئ برخامية برتقالية وبقعة عينية على الذيل، يجوب مياه الأمازون البطيئة والحواف المغمورة.';
+  String get species_oscar_desc => 'بلطي داكن ممتلئ برخامية برتقالية وبقعة عينية على الذيل، يجوب مياه الأمازون البطيئة والحواف المغمورة.';
 
   @override
   String get species_freshwater_angelfish_name => 'سمكة الملاك النهرية';
 
   @override
-  String get species_freshwater_angelfish_desc =>
-      'بلطي أمازوني عالٍ قرصي الشكل بزعانف طويلة وخطوط عمودية، ينساب بين الجذور المغمورة.';
+  String get species_freshwater_angelfish_desc => 'بلطي أمازوني عالٍ قرصي الشكل بزعانف طويلة وخطوط عمودية، ينساب بين الجذور المغمورة.';
 
   @override
   String get species_discus_name => 'سمكة الديسكس';
 
   @override
-  String get species_discus_desc =>
-      'بلطي دائري مفلطح الجانبين بخطوط زرقاء متموجة يطعم صغاره بالمخاط من جلده.';
+  String get species_discus_desc => 'بلطي دائري مفلطح الجانبين بخطوط زرقاء متموجة يطعم صغاره بالمخاط من جلده.';
 
   @override
   String get species_sailfin_pleco_name => 'البليكو الشراعي';
 
   @override
-  String get species_sailfin_pleco_desc =>
-      'سلور مدرع ذو فم ماص بزعنفة ظهرية عالية وبقع كالفهد، يكشط الطحالب عن الخشب والصخر.';
+  String get species_sailfin_pleco_desc => 'سلور مدرع ذو فم ماص بزعنفة ظهرية عالية وبقع كالفهد، يكشط الطحالب عن الخشب والصخر.';
 
   @override
   String get species_cardinal_tetra_name => 'التترا الكاردينال';
 
   @override
-  String get species_cardinal_tetra_desc =>
-      'تترا صغيرة جداً بخط أزرق نيوني فوق شريط أحمر على طول الجسم، تعيش في أسراب في مياه ريو نيغرو الداكنة.';
+  String get species_cardinal_tetra_desc => 'تترا صغيرة جداً بخط أزرق نيوني فوق شريط أحمر على طول الجسم، تعيش في أسراب في مياه ريو نيغرو الداكنة.';
 
   @override
   String get species_mexican_tetra_name => 'تترا مكسيكية';
 
   @override
-  String get species_mexican_tetra_desc =>
-      'تترا فضية من أنهار المكسيك، مجموعاتها الكهفية عمياء وشاحبة، مفضلة لدى غواصي السينوتي.';
+  String get species_mexican_tetra_desc => 'تترا فضية من أنهار المكسيك، مجموعاتها الكهفية عمياء وشاحبة، مفضلة لدى غواصي السينوتي.';
 
   @override
   String get species_mekong_giant_catfish_name => 'سلور الميكونغ العملاق';
 
   @override
-  String get species_mekong_giant_catfish_desc =>
-      'عملاق بلا أسنان من نهر الميكونغ مهدد بالانقراض بشدة، رمادي وبلا زوائد لمسية، كان يبلغ ثلاثة أمتار.';
+  String get species_mekong_giant_catfish_desc => 'عملاق بلا أسنان من نهر الميكونغ مهدد بالانقراض بشدة، رمادي وبلا زوائد لمسية، كان يبلغ ثلاثة أمتار.';
 
   @override
   String get species_giant_barb_name => 'البربل العملاق';
 
   @override
-  String get species_giant_barb_desc =>
-      'أكبر شبوط في العالم، عملاق الميكونغ بحراشف كبيرة ورأس ضخم، أصبح نادراً في برك الأنهار العميقة.';
+  String get species_giant_barb_desc => 'أكبر شبوط في العالم، عملاق الميكونغ بحراشف كبيرة ورأس ضخم، أصبح نادراً في برك الأنهار العميقة.';
 
   @override
   String get species_asian_arowana_name => 'أروانا آسيوية';
 
   @override
-  String get species_asian_arowana_desc =>
-      'سمكة التنين الحمراء أو الذهبية المعدنية من أنهار المياه السوداء في جنوب شرق آسيا، تنساب تحت السطح مباشرة.';
+  String get species_asian_arowana_desc => 'سمكة التنين الحمراء أو الذهبية المعدنية من أنهار المياه السوداء في جنوب شرق آسيا، تنساب تحت السطح مباشرة.';
 
   @override
   String get species_striped_snakehead_name => 'رأس الثعبان المخطط';
 
   @override
-  String get species_striped_snakehead_desc =>
-      'مفترس على شكل طوربيد يتنفس الهواء برأس مسطح يشبه الثعبان، يحرس صغاره في البرك الآسيوية العشبية.';
+  String get species_striped_snakehead_desc => 'مفترس على شكل طوربيد يتنفس الهواء برأس مسطح يشبه الثعبان، يحرس صغاره في البرك الآسيوية العشبية.';
 
   @override
   String get species_giant_snakehead_name => 'رأس الثعبان العملاق';
 
   @override
-  String get species_giant_snakehead_desc =>
-      'رأس ثعبان كبير شرس، مخطط في صغره وداكن عند البلوغ، يدافع عن صغاره الحمراء الزاهية في بحيرات جنوب شرق آسيا.';
+  String get species_giant_snakehead_desc => 'رأس ثعبان كبير شرس، مخطط في صغره وداكن عند البلوغ، يدافع عن صغاره الحمراء الزاهية في بحيرات جنوب شرق آسيا.';
 
   @override
   String get species_climbing_perch_name => 'فرخ متسلّق';
 
   @override
-  String get species_climbing_perch_desc =>
-      'سمكة زيتونية صلبة تتنفس الهواء وتزحف على اليابسة بأغطيتها الخيشومية الشوكية بين البرك الجافة.';
+  String get species_climbing_perch_desc => 'سمكة زيتونية صلبة تتنفس الهواء وتزحف على اليابسة بأغطيتها الخيشومية الشوكية بين البرك الجافة.';
 
   @override
   String get species_golden_mahseer_name => 'الماهسير الذهبي';
 
   @override
-  String get species_golden_mahseer_desc =>
-      'شبوط ذهبي الحراشف من أنهار الهيمالايا، سبّاح قوي يستقر في البرك الصافية السريعة أسفل المنحدرات.';
+  String get species_golden_mahseer_desc => 'شبوط ذهبي الحراشف من أنهار الهيمالايا، سبّاح قوي يستقر في البرك الصافية السريعة أسفل المنحدرات.';
 
   @override
   String get species_koi_name => 'كوي';
 
   @override
-  String get species_koi_desc =>
-      'شبوط للزينة استُولد في اليابان بأنماط بيضاء وحمراء وسوداء وذهبية، يعيش في البرك والبحيرات الدافئة الصافية.';
+  String get species_koi_desc => 'شبوط للزينة استُولد في اليابان بأنماط بيضاء وحمراء وسوداء وذهبية، يعيش في البرك والبحيرات الدافئة الصافية.';
 
   @override
   String get species_goldfish_name => 'سمك ذهبي';
 
   @override
-  String get species_goldfish_desc =>
-      'شبوط آسيوي مستأنس يعود إلى اللون الزيتوني البرونزي في البرية، مكوّناً أسراباً متوحشة كبيرة في البحيرات الدافئة.';
+  String get species_goldfish_desc => 'شبوط آسيوي مستأنس يعود إلى اللون الزيتوني البرونزي في البرية، مكوّناً أسراباً متوحشة كبيرة في البحيرات الدافئة.';
 
   @override
   String get species_giant_gourami_name => 'الغورامي العملاق';
 
   @override
-  String get species_giant_gourami_desc =>
-      'سمكة عريضة محدبة من جنوب شرق آسيا بزعانف حوضية خيطية تبني أعشاشاً من الفقاعات في المياه البطيئة العشبية.';
+  String get species_giant_gourami_desc => 'سمكة عريضة محدبة من جنوب شرق آسيا بزعانف حوضية خيطية تبني أعشاشاً من الفقاعات في المياه البطيئة العشبية.';
 
   @override
   String get species_clown_knifefish_name => 'سمكة السكين المهرج';
 
   @override
-  String get species_clown_knifefish_desc =>
-      'سمكة فضية على شكل نصل ببقع عينية على طول زعنفة شرجية طويلة متموجة، تحوم تحت جذوع أنهار آسيا.';
+  String get species_clown_knifefish_desc => 'سمكة فضية على شكل نصل ببقع عينية على طول زعنفة شرجية طويلة متموجة، تحوم تحت جذوع أنهار آسيا.';
 
   @override
   String get species_walking_catfish_name => 'السلور الماشي';
 
   @override
-  String get species_walking_catfish_desc =>
-      'سلور نحيل يتنفس الهواء ويتلوى عبر الأرض الرطبة بين البرك، أصبح الآن متوحشاً في فلوريدا.';
+  String get species_walking_catfish_desc => 'سلور نحيل يتنفس الهواء ويتلوى عبر الأرض الرطبة بين البرك، أصبح الآن متوحشاً في فلوريدا.';
 
   @override
   String get species_japanese_eel_name => 'ثعبان الماء الياباني';
 
   @override
-  String get species_japanese_eel_desc =>
-      'ثعبان ماء من شرق آسيا ينمو في الأنهار والبحيرات ويهاجر إلى غرب المحيط الهادئ للتكاثر.';
+  String get species_japanese_eel_desc => 'ثعبان ماء من شرق آسيا ينمو في الأنهار والبحيرات ويهاجر إلى غرب المحيط الهادئ للتكاثر.';
 
   @override
   String get species_ayu_name => 'الآيو';
 
   @override
-  String get species_ayu_desc =>
-      'سمكة يابانية فضية نحيلة ترعى الطحالب من الحجارة في الأنهار الصافية وتدافع عن منطقة تغذيتها.';
+  String get species_ayu_desc => 'سمكة يابانية فضية نحيلة ترعى الطحالب من الحجارة في الأنهار الصافية وتدافع عن منطقة تغذيتها.';
 
   @override
   String get species_baikal_omul_name => 'أومول بايكال';
 
   @override
-  String get species_baikal_omul_desc =>
-      'سمكة بيضاء فضية لا توجد إلا في بحيرة بايكال، تتجمع في أسراب في المياه المفتوحة الباردة وتصعد الأنهار للتكاثر.';
+  String get species_baikal_omul_desc => 'سمكة بيضاء فضية لا توجد إلا في بحيرة بايكال، تتجمع في أسراب في المياه المفتوحة الباردة وتصعد الأنهار للتكاثر.';
 
   @override
   String get species_baikal_oilfish_name => 'غولوميانكا';
 
   @override
-  String get species_baikal_oilfish_desc =>
-      'سمكة شفافة بلا حراشف من أعماق بايكال، غنية بالزيت لدرجة تكاد تكون شفافة، وتلد صغاراً أحياء.';
+  String get species_baikal_oilfish_desc => 'سمكة شفافة بلا حراشف من أعماق بايكال، غنية بالزيت لدرجة تكاد تكون شفافة، وتلد صغاراً أحياء.';
 
   @override
   String get species_murray_cod_name => 'قد نهر موراي';
 
   @override
-  String get species_murray_cod_desc =>
-      'أكبر أسماك المياه العذبة في أستراليا، عملاق أخضر مرقط ببطن أبيض، يستقر بجوار الجذوع في نهر موراي دارلينغ.';
+  String get species_murray_cod_desc => 'أكبر أسماك المياه العذبة في أستراليا، عملاق أخضر مرقط ببطن أبيض، يستقر بجوار الجذوع في نهر موراي دارلينغ.';
 
   @override
   String get species_golden_perch_name => 'الفرخ الذهبي';
 
   @override
-  String get species_golden_perch_desc =>
-      'فرخ ذهبي زيتوني عالي الجسم من أنهار أستراليا الداخلية، يحتمي بجوار الأخشاب الساقطة والحواف الصخرية.';
+  String get species_golden_perch_desc => 'فرخ ذهبي زيتوني عالي الجسم من أنهار أستراليا الداخلية، يحتمي بجوار الأخشاب الساقطة والحواف الصخرية.';
 
   @override
   String get species_australian_bass_name => 'القاروص الأسترالي';
 
   @override
-  String get species_australian_bass_desc =>
-      'قاروص أخضر برونزي من أنهار شرق أستراليا الساحلية يهاجر مع مجرى النهر للتكاثر في مصبات المياه المالحة قليلاً.';
+  String get species_australian_bass_desc => 'قاروص أخضر برونزي من أنهار شرق أستراليا الساحلية يهاجر مع مجرى النهر للتكاثر في مصبات المياه المالحة قليلاً.';
 
   @override
   String get species_barramundi_name => 'الباراموندي';
 
   @override
-  String get species_barramundi_desc =>
-      'فرخ فضي محدب الظهر من أنهار ومصبات شمال أستراليا، يتحول من ذكر إلى أنثى مع التقدم في العمر.';
+  String get species_barramundi_desc => 'فرخ فضي محدب الظهر من أنهار ومصبات شمال أستراليا، يتحول من ذكر إلى أنثى مع التقدم في العمر.';
 
   @override
   String get species_silver_perch_name => 'الفرخ الفضي';
 
   @override
-  String get species_silver_perch_desc =>
-      'سمكة رمادية فضية من نهر موراي دارلينغ بفم صغير وذيل متشعب، كانت تتجمع في أسراب هائلة.';
+  String get species_silver_perch_desc => 'سمكة رمادية فضية من نهر موراي دارلينغ بفم صغير وذيل متشعب، كانت تتجمع في أسراب هائلة.';
 
   @override
   String get species_gulf_saratoga_name => 'أروانا لؤلؤية';
 
   @override
-  String get species_gulf_saratoga_desc =>
-      'أروانا أسترالية برونزية بحراشف مرقطة بالأحمر تحضن بيضها في فمها في برك الشمال.';
+  String get species_gulf_saratoga_desc => 'أروانا أسترالية برونزية بحراشف مرقطة بالأحمر تحضن بيضها في فمها في برك الشمال.';
 
   @override
   String get species_sooty_grunter_name => 'المزمجر الأسود';
 
   @override
-  String get species_sooty_grunter_desc =>
-      'سمكة داكنة ممتلئة من أنهار شمال أستراليا، ترعى الطحالب والفاكهة حول الصخور والمنحدرات.';
+  String get species_sooty_grunter_desc => 'سمكة داكنة ممتلئة من أنهار شمال أستراليا، ترعى الطحالب والفاكهة حول الصخور والمنحدرات.';
 
   @override
   String get species_eel_tailed_catfish_name => 'السلور ثعباني الذيل';
 
   @override
-  String get species_eel_tailed_catfish_desc =>
-      'سلور أسترالي بذيل مدبب يشبه ثعبان الماء يبني عش حصى في المياه الضحلة الصافية ويحرسه.';
+  String get species_eel_tailed_catfish_desc => 'سلور أسترالي بذيل مدبب يشبه ثعبان الماء يبني عش حصى في المياه الضحلة الصافية ويحرسه.';
 
   @override
   String get species_spangled_perch_name => 'الفرخ المرصع';
 
   @override
-  String get species_spangled_perch_desc =>
-      'سمكة صغيرة مرقطة بالفضي منتشرة في أنحاء داخل أستراليا، تستوطن أي بركة يصلها الفيضان.';
+  String get species_spangled_perch_desc => 'سمكة صغيرة مرقطة بالفضي منتشرة في أنحاء داخل أستراليا، تستوطن أي بركة يصلها الفيضان.';
 
   @override
   String get species_eastern_rainbowfish_name => 'سمكة قوس قزح الشرقية';
 
   @override
-  String get species_eastern_rainbowfish_desc =>
-      'سمكة صغيرة متقزحة من جداول شرق أستراليا، تلمع ذكورها بخطوط حمراء وزرقاء تحت الشمس.';
+  String get species_eastern_rainbowfish_desc => 'سمكة صغيرة متقزحة من جداول شرق أستراليا، تلمع ذكورها بخطوط حمراء وزرقاء تحت الشمس.';
 
   @override
   String get species_signal_crayfish_name => 'جراد النهر الإشاري';
 
   @override
-  String get species_signal_crayfish_desc =>
-      'جراد نهر بني كبير ببقعة بيضاء عند مفصل المخلب، نوع غازٍ من أمريكا الشمالية ينتشر في أنهار أوروبا.';
+  String get species_signal_crayfish_desc => 'جراد نهر بني كبير ببقعة بيضاء عند مفصل المخلب، نوع غازٍ من أمريكا الشمالية ينتشر في أنهار أوروبا.';
 
   @override
   String get species_red_swamp_crayfish_name => 'جراد المستنقعات الأحمر';
 
   @override
-  String get species_red_swamp_crayfish_desc =>
-      'جراد نهر أحمر داكن بمخالب خشنة من مستنقعات لويزيانا، يحفر الآن في الأراضي الرطبة الدافئة في كل قارة.';
+  String get species_red_swamp_crayfish_desc => 'جراد نهر أحمر داكن بمخالب خشنة من مستنقعات لويزيانا، يحفر الآن في الأراضي الرطبة الدافئة في كل قارة.';
 
   @override
   String get species_noble_crayfish_name => 'جراد النهر النبيل';
 
   @override
-  String get species_noble_crayfish_desc =>
-      'جراد النهر الأصلي في أوروبا، بني داكن بمخالب حمراء من الأسفل، يختبئ في جحور الضفاف في الجداول والبحيرات النظيفة الباردة.';
+  String get species_noble_crayfish_desc => 'جراد النهر الأصلي في أوروبا، بني داكن بمخالب حمراء من الأسفل، يختبئ في جحور الضفاف في الجداول والبحيرات النظيفة الباردة.';
 
   @override
   String get species_white_clawed_crayfish_name => 'جراد النهر أبيض المخالب';
 
   @override
-  String get species_white_clawed_crayfish_desc =>
-      'جراد نهر زيتوني صغير بمخالب شاحبة من الأسفل، نوع مهدد أصلي في جداول الحجر الجيري النظيفة في غرب أوروبا.';
+  String get species_white_clawed_crayfish_desc => 'جراد نهر زيتوني صغير بمخالب شاحبة من الأسفل، نوع مهدد أصلي في جداول الحجر الجيري النظيفة في غرب أوروبا.';
 
   @override
-  String get species_tasmanian_giant_freshwater_crayfish_name =>
-      'جراد النهر التسماني العملاق';
+  String get species_tasmanian_giant_freshwater_crayfish_name => 'جراد النهر التسماني العملاق';
 
   @override
-  String get species_tasmanian_giant_freshwater_crayfish_desc =>
-      'أكبر لافقاريات المياه العذبة في العالم، جراد نهر أزرق بني بطيء النمو من أنهار تسمانيا المظللة.';
+  String get species_tasmanian_giant_freshwater_crayfish_desc => 'أكبر لافقاريات المياه العذبة في العالم، جراد نهر أزرق بني بطيء النمو من أنهار تسمانيا المظللة.';
 
   @override
   String get species_zebra_mussel_name => 'بلح البحر المخطط';
 
   @override
-  String get species_zebra_mussel_desc =>
-      'بلح بحر مخطط بحجم ظفر الإبهام يغطي الصخور والحطام والأنابيب بالآلاف، ويصفّي الماء مع انتشاره.';
+  String get species_zebra_mussel_desc => 'بلح بحر مخطط بحجم ظفر الإبهام يغطي الصخور والحطام والأنابيب بالآلاف، ويصفّي الماء مع انتشاره.';
 
   @override
   String get species_quagga_mussel_name => 'بلح البحر الكواجا';
 
   @override
-  String get species_quagga_mussel_desc =>
-      'قريب أكثر استدارة وشحوباً لبلح البحر المخطط، يستوطن القيعان الطرية والمياه العميقة الباردة التي لا يستطيع الآخر بلوغها.';
+  String get species_quagga_mussel_desc => 'قريب أكثر استدارة وشحوباً لبلح البحر المخطط، يستوطن القيعان الطرية والمياه العميقة الباردة التي لا يستطيع الآخر بلوغها.';
 
   @override
-  String get species_freshwater_pearl_mussel_name =>
-      'بلح المياه العذبة اللؤلؤي';
+  String get species_freshwater_pearl_mussel_name => 'بلح المياه العذبة اللؤلؤي';
 
   @override
-  String get species_freshwater_pearl_mussel_desc =>
-      'بلح بحر داكن مستطيل يمكنه العيش أكثر من قرن نصف مدفون في الحصى النظيف لأنهار السلمون السريعة.';
+  String get species_freshwater_pearl_mussel_desc => 'بلح بحر داكن مستطيل يمكنه العيش أكثر من قرن نصف مدفون في الحصى النظيف لأنهار السلمون السريعة.';
 
   @override
   String get species_swan_mussel_name => 'بلح البجع';
 
   @override
-  String get species_swan_mussel_desc =>
-      'بلح بحر كبير رقيق الصدفة يعيش في البحيرات والقنوات الطينية، يرشح الماء بسيفوناته فوق الطمي مباشرة.';
+  String get species_swan_mussel_desc => 'بلح بحر كبير رقيق الصدفة يعيش في البحيرات والقنوات الطينية، يرشح الماء بسيفوناته فوق الطمي مباشرة.';
 
   @override
   String get species_chinese_pond_mussel_name => 'بلح البحر البركة الصيني';
 
   @override
-  String get species_chinese_pond_mussel_desc =>
-      'بلح بحر آسيوي غازٍ كبير جداً بصدفة بنية لامعة، وصل مع الأسماك المستزرعة وينتشر في البحيرات الدافئة.';
+  String get species_chinese_pond_mussel_desc => 'بلح بحر آسيوي غازٍ كبير جداً بصدفة بنية لامعة، وصل مع الأسماك المستزرعة وينتشر في البحيرات الدافئة.';
 
   @override
   String get species_freshwater_sponge_name => 'الإسفنج النهري';
 
   @override
-  String get species_freshwater_sponge_desc =>
-      'إسفنج متفرع أخضر أو رمادي يغطي الأغصان والحجارة في البحيرات الصافية، تلوّنه الطحالب التي تعيش داخله.';
+  String get species_freshwater_sponge_desc => 'إسفنج متفرع أخضر أو رمادي يغطي الأغصان والحجارة في البحيرات الصافية، تلوّنه الطحالب التي تعيش داخله.';
 
   @override
-  String get species_freshwater_jellyfish_name =>
-      'قنديل البحر المياه العذبة الشائع';
+  String get species_freshwater_jellyfish_name => 'قنديل البحر المياه العذبة الشائع';
 
   @override
-  String get species_freshwater_jellyfish_desc =>
-      'قنديل بحر شفاف بحجم عملة معدنية يظهر في أسراب في بحيرات المحاجر الدافئة والخزانات في أواخر الصيف.';
+  String get species_freshwater_jellyfish_desc => 'قنديل بحر شفاف بحجم عملة معدنية يظهر في أسراب في بحيرات المحاجر الدافئة والخزانات في أواخر الصيف.';
 
   @override
   String get species_great_pond_snail_name => 'حلزون البرك الكبير';
 
   @override
-  String get species_great_pond_snail_desc =>
-      'حلزون كبير بصدفة مدببة ينساب فوق النباتات في المياه الراكدة الأوروبية ويتنفس الهواء عند السطح.';
+  String get species_great_pond_snail_desc => 'حلزون كبير بصدفة مدببة ينساب فوق النباتات في المياه الراكدة الأوروبية ويتنفس الهواء عند السطح.';
 
   @override
   String get species_great_ramshorn_snail_name => 'حلزون قرن الكبش الكبير';
 
   @override
-  String get species_great_ramshorn_snail_desc =>
-      'حلزون مسطح ملتف مثل قرن كبش صغير، يرعى الطحالب من الأوراق والحجارة في البرك العشبية.';
+  String get species_great_ramshorn_snail_desc => 'حلزون مسطح ملتف مثل قرن كبش صغير، يرعى الطحالب من الأوراق والحجارة في البرك العشبية.';
 
   @override
   String get species_channeled_apple_snail_name => 'حلزون التفاح الذهبي';
 
   @override
-  String get species_channeled_apple_snail_desc =>
-      'حلزون كبير بني ذهبي يضع عناقيد بيض وردية زاهية فوق خط الماء، غازٍ في الأراضي الرطبة الدافئة وحقول الأرز.';
+  String get species_channeled_apple_snail_desc => 'حلزون كبير بني ذهبي يضع عناقيد بيض وردية زاهية فوق خط الماء، غازٍ في الأراضي الرطبة الدافئة وحقول الأرز.';
 
   @override
   String get species_magnificent_bryozoan_name => 'الطحلبيات الرائعة';
 
   @override
-  String get species_magnificent_bryozoan_desc =>
-      'مستعمرة هلامية بحجم كرة القدم مرصعة بحيوانات دقيقة، تتشبث بالأغصان والحبال في المياه الدافئة الساكنة.';
+  String get species_magnificent_bryozoan_desc => 'مستعمرة هلامية بحجم كرة القدم مرصعة بحيوانات دقيقة، تتشبث بالأغصان والحبال في المياه الدافئة الساكنة.';
 
   @override
   String get species_chinese_mitten_crab_name => 'سرطان القفاز الصيني';
 
   @override
-  String get species_chinese_mitten_crab_desc =>
-      'سرطان حفّار بمخالب مشعرة يقضي سنوات في الأنهار قبل أن يسير مع مجرى النهر للتكاثر في المصبات.';
+  String get species_chinese_mitten_crab_desc => 'سرطان حفّار بمخالب مشعرة يقضي سنوات في الأنهار قبل أن يسير مع مجرى النهر للتكاثر في المصبات.';
 
   @override
   String get species_giant_freshwater_prawn_name => 'الروبيان النهري العملاق';
 
   @override
-  String get species_giant_freshwater_prawn_desc =>
-      'روبيان كبير بمخالب زرقاء من أنهار آسيا وأستراليا، مخالب الذكور المسنة أطول من أجسامها.';
+  String get species_giant_freshwater_prawn_desc => 'روبيان كبير بمخالب زرقاء من أنهار آسيا وأستراليا، مخالب الذكور المسنة أطول من أجسامها.';
 
   @override
   String get species_common_snapping_turtle_name => 'سلحفاة نهاشة شائعة';
 
   @override
-  String get species_common_snapping_turtle_desc =>
-      'سلحفاة ثقيلة خشنة الدرع بذيل طويل مسنن، ترقد في طين البرك والأنهار البطيئة ورأسها خارج الطين.';
+  String get species_common_snapping_turtle_desc => 'سلحفاة ثقيلة خشنة الدرع بذيل طويل مسنن، ترقد في طين البرك والأنهار البطيئة ورأسها خارج الطين.';
 
   @override
   String get species_alligator_snapping_turtle_name => 'سلحفاة القاطور النهاشة';
 
   @override
-  String get species_alligator_snapping_turtle_desc =>
-      'عملاق ذو مظهر ما قبل التاريخ بثلاثة أعراف مسننة وطعم لساني يشبه الدودة، ينتظر بفم مفتوح على قيعان الأنهار الجنوبية.';
+  String get species_alligator_snapping_turtle_desc => 'عملاق ذو مظهر ما قبل التاريخ بثلاثة أعراف مسننة وطعم لساني يشبه الدودة، ينتظر بفم مفتوح على قيعان الأنهار الجنوبية.';
 
   @override
   String get species_painted_turtle_name => 'سلحفاة مزركشة';
 
   @override
-  String get species_painted_turtle_desc =>
-      'سلحفاة داكنة ملساء بخطوط حمراء وصفراء على العنق وحافة الدرع، تتشمس في صفوف على جذوع الأشجار في أنحاء أمريكا الشمالية.';
+  String get species_painted_turtle_desc => 'سلحفاة داكنة ملساء بخطوط حمراء وصفراء على العنق وحافة الدرع، تتشمس في صفوف على جذوع الأشجار في أنحاء أمريكا الشمالية.';
 
   @override
   String get species_red_eared_slider_name => 'سلحفاة حمراء الأذنين';
 
   @override
-  String get species_red_eared_slider_desc =>
-      'سلحفاة برك بخطوط خضراء وشريط أحمر خلف كل عين، سلحفاة تجارة الحيوانات الأليفة التي باتت متوحشة في المياه الدافئة حول العالم.';
+  String get species_red_eared_slider_desc => 'سلحفاة برك بخطوط خضراء وشريط أحمر خلف كل عين، سلحفاة تجارة الحيوانات الأليفة التي باتت متوحشة في المياه الدافئة حول العالم.';
 
   @override
   String get species_northern_map_turtle_name => 'سلحفاة الخريطة الشمالية';
 
   @override
-  String get species_northern_map_turtle_desc =>
-      'سلحفاة زيتونية بخطوط صفراء تشبه الخريطة على درعها وعرف منخفض، تتشمس على الصخور بمحاذاة الأنهار الصافية والبحيرات الكبيرة.';
+  String get species_northern_map_turtle_desc => 'سلحفاة زيتونية بخطوط صفراء تشبه الخريطة على درعها وعرف منخفض، تتشمس على الصخور بمحاذاة الأنهار الصافية والبحيرات الكبيرة.';
 
   @override
-  String get species_spiny_softshell_turtle_name =>
-      'سلحفاة لينة الدرقة الشائكة';
+  String get species_spiny_softshell_turtle_name => 'سلحفاة لينة الدرقة الشائكة';
 
   @override
-  String get species_spiny_softshell_turtle_desc =>
-      'سلحفاة مسطحة جلدية كالفطيرة بخطم يشبه أنبوب التنفس، مدفونة في رمال الأنهار الضحلة ولا يظهر منها سوى رأسها.';
+  String get species_spiny_softshell_turtle_desc => 'سلحفاة مسطحة جلدية كالفطيرة بخطم يشبه أنبوب التنفس، مدفونة في رمال الأنهار الضحلة ولا يظهر منها سوى رأسها.';
 
   @override
-  String get species_florida_softshell_turtle_name =>
-      'سلحفاة لينة الدرقة الفلوريدية';
+  String get species_florida_softshell_turtle_name => 'سلحفاة لينة الدرقة الفلوريدية';
 
   @override
-  String get species_florida_softshell_turtle_desc =>
-      'سلحفاة كبيرة داكنة رخوة الدرع بخطم أنبوبي طويل، شائعة في ينابيع فلوريدا وقنواتها وبحيراتها.';
+  String get species_florida_softshell_turtle_desc => 'سلحفاة كبيرة داكنة رخوة الدرع بخطم أنبوبي طويل، شائعة في ينابيع فلوريدا وقنواتها وبحيراتها.';
 
   @override
   String get species_pig_nosed_turtle_name => 'سلحفاة ذات أنف الخنزير';
 
   @override
-  String get species_pig_nosed_turtle_desc =>
-      'سلحفاة نهرية فريدة من غينيا الجديدة وشمال أستراليا بزعانف كسلاحف البحر وخطم لحمي يشبه أنف الخنزير.';
+  String get species_pig_nosed_turtle_desc => 'سلحفاة نهرية فريدة من غينيا الجديدة وشمال أستراليا بزعانف كسلاحف البحر وخطم لحمي يشبه أنف الخنزير.';
 
   @override
   String get species_mary_river_turtle_name => 'سلحفاة نهر ماري';
 
   @override
-  String get species_mary_river_turtle_desc =>
-      'سلحفاة أسترالية نادرة تتنفس عبر المذرق وتنمو على رأسها عرف من الطحالب الخضراء، توجد في نهر واحد في كوينزلاند.';
+  String get species_mary_river_turtle_desc => 'سلحفاة أسترالية نادرة تتنفس عبر المذرق وتنمو على رأسها عرف من الطحالب الخضراء، توجد في نهر واحد في كوينزلاند.';
 
   @override
-  String get species_yellow_spotted_river_turtle_name =>
-      'سلحفاة النهر صفراء النقط';
+  String get species_yellow_spotted_river_turtle_name => 'سلحفاة النهر صفراء النقط';
 
   @override
-  String get species_yellow_spotted_river_turtle_desc =>
-      'سلحفاة أمازونية جانبية العنق ببقع صفراء على الرأس، تتشمس في مجموعات على الجذوع والضفاف الرملية للأنهار الكبيرة.';
+  String get species_yellow_spotted_river_turtle_desc => 'سلحفاة أمازونية جانبية العنق ببقع صفراء على الرأس، تتشمس في مجموعات على الجذوع والضفاف الرملية للأنهار الكبيرة.';
 
   @override
   String get species_european_pond_turtle_name => 'سلحفاة البرك الأوروبية';
 
   @override
-  String get species_european_pond_turtle_desc =>
-      'سلحفاة داكنة منقطة بنقاط صفراء، سلحفاة المياه العذبة الأصلية في أوروبا، تنزلق من الضفاف المشمسة إلى البرك العشبية.';
+  String get species_european_pond_turtle_desc => 'سلحفاة داكنة منقطة بنقاط صفراء، سلحفاة المياه العذبة الأصلية في أوروبا، تنزلق من الضفاف المشمسة إلى البرك العشبية.';
 
   @override
   String get species_american_alligator_name => 'قاطور أمريكي';
 
   @override
-  String get species_american_alligator_desc =>
-      'زاحف مدرع عريض الخطم من مستنقعات وينابيع وأنهار جنوب شرق الولايات المتحدة، يطفو ولا يظهر منه سوى العينين والمنخرين.';
+  String get species_american_alligator_desc => 'زاحف مدرع عريض الخطم من مستنقعات وينابيع وأنهار جنوب شرق الولايات المتحدة، يطفو ولا يظهر منه سوى العينين والمنخرين.';
 
   @override
   String get species_spectacled_caiman_name => 'كايمن ذو النظارات';
 
   @override
-  String get species_spectacled_caiman_desc =>
-      'كيمن زيتوني صغير بحافة عظمية بين عينيه، وفير في الأنهار البطيئة والبحيرات الساحلية في أمريكا الوسطى والجنوبية.';
+  String get species_spectacled_caiman_desc => 'كيمن زيتوني صغير بحافة عظمية بين عينيه، وفير في الأنهار البطيئة والبحيرات الساحلية في أمريكا الوسطى والجنوبية.';
 
   @override
   String get species_black_caiman_name => 'كايمن أسود';
 
   @override
-  String get species_black_caiman_desc =>
-      'أكبر مفترس في الأمازون، كيمن أسود مدرع يصل طوله إلى خمسة أمتار، يصطاد ليلاً في البحيرات والغابات المغمورة.';
+  String get species_black_caiman_desc => 'أكبر مفترس في الأمازون، كيمن أسود مدرع يصل طوله إلى خمسة أمتار، يصطاد ليلاً في البحيرات والغابات المغمورة.';
 
   @override
   String get species_freshwater_crocodile_name => 'تمساح أسترالي';
 
   @override
-  String get species_freshwater_crocodile_desc =>
-      'تمساح أسترالي نحيل الخطم من أنهار وأخاديد الشمال، خجول وأصغر بكثير من تمساح المياه المالحة.';
+  String get species_freshwater_crocodile_desc => 'تمساح أسترالي نحيل الخطم من أنهار وأخاديد الشمال، خجول وأصغر بكثير من تمساح المياه المالحة.';
 
   @override
   String get species_northern_water_snake_name => 'ثعبان الماء الشمالي';
 
   @override
-  String get species_northern_water_snake_desc =>
-      'ثعبان بني سميك الجسم بأشرطة يتشمس على الصخور والأغصان فوق جداول شرق أمريكا الشمالية، غير سام لكنه سريع العض.';
+  String get species_northern_water_snake_desc => 'ثعبان بني سميك الجسم بأشرطة يتشمس على الصخور والأغصان فوق جداول شرق أمريكا الشمالية، غير سام لكنه سريع العض.';
 
   @override
   String get species_green_anaconda_name => 'الأناكوندا الخضراء';
 
   @override
-  String get species_green_anaconda_desc =>
-      'أثقل ثعبان على وجه الأرض، عملاق زيتوني ببقع سوداء، يرقد مغموراً في مستنقعات الأمازون وأنهاره البطيئة.';
+  String get species_green_anaconda_desc => 'أثقل ثعبان على وجه الأرض، عملاق زيتوني ببقع سوداء، يرقد مغموراً في مستنقعات الأمازون وأنهاره البطيئة.';
 
   @override
   String get species_hellbender_name => 'هلبندر';
 
   @override
-  String get species_hellbender_desc =>
-      'سلمندر عملاق مسطح الرأس بطيات جلدية مجعدة، يختبئ تحت الصخور الكبيرة في أنهار الأبالاش الباردة الصافية.';
+  String get species_hellbender_desc => 'سلمندر عملاق مسطح الرأس بطيات جلدية مجعدة، يختبئ تحت الصخور الكبيرة في أنهار الأبالاش الباردة الصافية.';
 
   @override
   String get species_mudpuppy_name => 'جرو الطين الشائع';
 
   @override
-  String get species_mudpuppy_desc =>
-      'سلمندر بني مرقط يحتفظ بخياشيمه الحمراء الريشية طوال حياته، يزحف ليلاً فوق قيعان البحيرات والأنهار.';
+  String get species_mudpuppy_desc => 'سلمندر بني مرقط يحتفظ بخياشيمه الحمراء الريشية طوال حياته، يزحف ليلاً فوق قيعان البحيرات والأنهار.';
 
   @override
   String get species_axolotl_name => 'سمندل المكسيك';
 
   @override
-  String get species_axolotl_desc =>
-      'سلمندر مبتسم ذو خياشيم لا يغادر الماء أبداً، مهدد بالانقراض بشدة في قنوات خوتشيميلكو قرب مكسيكو سيتي.';
+  String get species_axolotl_desc => 'سلمندر مبتسم ذو خياشيم لا يغادر الماء أبداً، مهدد بالانقراض بشدة في قنوات خوتشيميلكو قرب مكسيكو سيتي.';
 
   @override
   String get species_chinese_giant_salamander_name => 'سمندل صيني عملاق';
 
   @override
-  String get species_chinese_giant_salamander_desc =>
-      'أكبر برمائي حي، عملاق بني مجعد يبلغ طوله نحو مترين، يختبئ في جداول الجبال الباردة الصخرية.';
+  String get species_chinese_giant_salamander_desc => 'أكبر برمائي حي، عملاق بني مجعد يبلغ طوله نحو مترين، يختبئ في جداول الجبال الباردة الصخرية.';
 
   @override
   String get species_smooth_newt_name => 'السمندل الأملس';
 
   @override
-  String get species_smooth_newt_desc =>
-      'سمندل زيتوني صغير يعود إلى البرك كل ربيع، تنمو للذكور قمة متموجة وبطن برتقالي مرقط.';
+  String get species_smooth_newt_desc => 'سمندل زيتوني صغير يعود إلى البرك كل ربيع، تنمو للذكور قمة متموجة وبطن برتقالي مرقط.';
 
   @override
   String get species_great_crested_newt_name => 'نيوط متوج كبير';
 
   @override
-  String get species_great_crested_newt_desc =>
-      'سمندل أسود كبير ثؤلولي ببطن برتقالي ناري، تحمل الذكور في موسم التزاوج قمة مسننة تشبه التنين.';
+  String get species_great_crested_newt_desc => 'سمندل أسود كبير ثؤلولي ببطن برتقالي ناري، تحمل الذكور في موسم التزاوج قمة مسننة تشبه التنين.';
 
   @override
   String get species_american_bullfrog_name => 'ضفدع الثور الأمريكي';
 
   @override
-  String get species_american_bullfrog_desc =>
-      'ضفدع أخضر ضخم بنقيق جهير عميق، يجلس بين أوراق زنابق الماء في البرك الدافئة وأصبح غازياً في عدة قارات.';
+  String get species_american_bullfrog_desc => 'ضفدع أخضر ضخم بنقيق جهير عميق، يجلس بين أوراق زنابق الماء في البرك الدافئة وأصبح غازياً في عدة قارات.';
 
   @override
   String get species_common_frog_name => 'الضفدع الشائع';
 
   @override
-  String get species_common_frog_desc =>
-      'ضفدع بني بقناع عيني داكن يتجمع في حشود ربيعية صاخبة للتكاثر في البرك والخنادق الأوروبية.';
+  String get species_common_frog_desc => 'ضفدع بني بقناع عيني داكن يتجمع في حشود ربيعية صاخبة للتكاثر في البرك والخنادق الأوروبية.';
 
   @override
-  String get species_north_american_river_otter_name =>
-      'قضاعة الأنهار الشمالية';
+  String get species_north_american_river_otter_name => 'قضاعة الأنهار الشمالية';
 
   @override
-  String get species_north_american_river_otter_desc =>
-      'قضاعة رشيقة مرحة تصطاد الأسماك وجراد النهر في أنهار وبحيرات أمريكا الشمالية، تاركة منزلقات طينية على الضفاف.';
+  String get species_north_american_river_otter_desc => 'قضاعة رشيقة مرحة تصطاد الأسماك وجراد النهر في أنهار وبحيرات أمريكا الشمالية، تاركة منزلقات طينية على الضفاف.';
 
   @override
   String get species_eurasian_otter_name => 'قضاعة أوراسية';
 
   @override
-  String get species_eurasian_otter_desc =>
-      'قضاعة بنية خجولة تعيش في أنهار وبحيرات وسواحل أوروبا، تتعافى في كامل نطاقها بعد عقود من التراجع.';
+  String get species_eurasian_otter_desc => 'قضاعة بنية خجولة تعيش في أنهار وبحيرات وسواحل أوروبا، تتعافى في كامل نطاقها بعد عقود من التراجع.';
 
   @override
   String get species_giant_otter_name => 'قضاعة عملاقة';
 
   @override
-  String get species_giant_otter_desc =>
-      'قضاعة يقارب طولها مترين ببقعة كريمية على الحلق، تعيش في مجموعات عائلية صاخبة على أنهار الأمازون وبحيراته الهلالية.';
+  String get species_giant_otter_desc => 'قضاعة يقارب طولها مترين ببقعة كريمية على الحلق، تعيش في مجموعات عائلية صاخبة على أنهار الأمازون وبحيراته الهلالية.';
 
   @override
   String get species_north_american_beaver_name => 'قندس أمريكي';
 
   @override
-  String get species_north_american_beaver_desc =>
-      'قارض كبير مسطح الذيل يسد الجداول ليحولها إلى برك ويسبح تحت الجليد، ويتخذ من كوخ الأغصان مأوى.';
+  String get species_north_american_beaver_desc => 'قارض كبير مسطح الذيل يسد الجداول ليحولها إلى برك ويسبح تحت الجليد، ويتخذ من كوخ الأغصان مأوى.';
 
   @override
   String get species_eurasian_beaver_name => 'قندس أوراسي';
 
   @override
-  String get species_eurasian_beaver_desc =>
-      'أكبر قوارض أوروبا، أعيد إدخاله في أنحاء القارة، يقطع أشجار ضفاف الأنهار ويبني السدود والأكواخ.';
+  String get species_eurasian_beaver_desc => 'أكبر قوارض أوروبا، أعيد إدخاله في أنحاء القارة، يقطع أشجار ضفاف الأنهار ويبني السدود والأكواخ.';
 
   @override
   String get species_muskrat_name => 'فأر المسك';
 
   @override
-  String get species_muskrat_desc =>
-      'قارض بني بحجم الجرذ بذيل حرشفي مفلطح، يسبح عبر مستنقعات البردي ويبني أكواخاً قبابية من القصب.';
+  String get species_muskrat_desc => 'قارض بني بحجم الجرذ بذيل حرشفي مفلطح، يسبح عبر مستنقعات البردي ويبني أكواخاً قبابية من القصب.';
 
   @override
   String get species_platypus_name => 'خلد الماء';
 
   @override
-  String get species_platypus_desc =>
-      'ثديي بيوض بمنقار بط وأقدام مكففة، يبحث عن الطعام مغمض العينين على طول جداول شرق أستراليا عند الفجر والغسق.';
+  String get species_platypus_desc => 'ثديي بيوض بمنقار بط وأقدام مكففة، يبحث عن الطعام مغمض العينين على طول جداول شرق أستراليا عند الفجر والغسق.';
 
   @override
   String get species_amazonian_manatee_name => 'خروف البحر الأمازوني';
 
   @override
-  String get species_amazonian_manatee_desc =>
-      'أصغر أنواع خراف البحر، عاشب أملس داكن ببقعة بيضاء على الصدر، يرعى النباتات المائية في بحيرات الأمازون وأنهاره.';
+  String get species_amazonian_manatee_desc => 'أصغر أنواع خراف البحر، عاشب أملس داكن ببقعة بيضاء على الصدر، يرعى النباتات المائية في بحيرات الأمازون وأنهاره.';
 
   @override
   String get species_amazon_river_dolphin_name => 'دلفين الأمازون';
 
   @override
-  String get species_amazon_river_dolphin_desc =>
-      'دلفين وردي طويل المنقار بعنق مرن، يتلوى بين جذوع الغابة المغمورة في الأمازون والأورينوكو.';
+  String get species_amazon_river_dolphin_desc => 'دلفين وردي طويل المنقار بعنق مرن، يتلوى بين جذوع الغابة المغمورة في الأمازون والأورينوكو.';
 
   @override
   String get species_baikal_seal_name => 'فقمة بايكال';
 
   @override
-  String get species_baikal_seal_desc =>
-      'الفقمة الوحيدة في المياه العذبة في العالم، فقمة صغيرة رمادية فضية تستلقي على جليد بحيرة بايكال وشواطئها الصخرية.';
+  String get species_baikal_seal_desc => 'الفقمة الوحيدة في المياه العذبة في العالم، فقمة صغيرة رمادية فضية تستلقي على جليد بحيرة بايكال وشواطئها الصخرية.';
 
   @override
   String get species_capybara_name => 'خنزير الماء';
 
   @override
-  String get species_capybara_desc =>
-      'أكبر القوارض، عاشب برميلي الشكل يخوض ويسبح في أنهار أمريكا الجنوبية وأراضيها الرطبة في قطعان هادئة.';
+  String get species_capybara_desc => 'أكبر القوارض، عاشب برميلي الشكل يخوض ويسبح في أنهار أمريكا الجنوبية وأراضيها الرطبة في قطعان هادئة.';
 
   @override
   String get species_hippopotamus_name => 'فرس النهر';
 
   @override
-  String get species_hippopotamus_desc =>
-      'عملاق نهري أفريقي ضخم يقضي النهار مغموراً في مجموعات ويمشي على القاع بدلاً من السباحة؛ الاقتراب منه خطير.';
+  String get species_hippopotamus_desc => 'عملاق نهري أفريقي ضخم يقضي النهار مغموراً في مجموعات ويمشي على القاع بدلاً من السباحة؛ الاقتراب منه خطير.';
 
   @override
   String get species_white_water_lily_name => 'زنبق الماء الأبيض';
 
   @override
-  String get species_white_water_lily_desc =>
-      'أوراق مستديرة طافية وأزهار بيضاء كبيرة تنبثق من جذامير سميكة متجذرة في طين المياه الراكدة الأوروبية.';
+  String get species_white_water_lily_desc => 'أوراق مستديرة طافية وأزهار بيضاء كبيرة تنبثق من جذامير سميكة متجذرة في طين المياه الراكدة الأوروبية.';
 
   @override
   String get species_yellow_pond_lily_name => 'زنبق الماء الأصفر';
 
   @override
-  String get species_yellow_pond_lily_desc =>
-      'أوراق طافية قلبية الشكل وأزهار صفراء كأسية، مع أوراق كبيرة شفافة تحت الماء يراها الغواصون من الأسفل.';
+  String get species_yellow_pond_lily_desc => 'أوراق طافية قلبية الشكل وأزهار صفراء كأسية، مع أوراق كبيرة شفافة تحت الماء يراها الغواصون من الأسفل.';
 
   @override
   String get species_american_eelgrass_name => 'الفاليسنيريا الأمريكية';
 
   @override
-  String get species_american_eelgrass_desc =>
-      'أوراق شريطية يصل طولها إلى مترين تتمايل في تيار الأنهار والينابيع الصافية، مفضلة لدى خراف البحر.';
+  String get species_american_eelgrass_desc => 'أوراق شريطية يصل طولها إلى مترين تتمايل في تيار الأنهار والينابيع الصافية، مفضلة لدى خراف البحر.';
 
   @override
   String get species_coontail_name => 'شمبلان مغمور';
 
   @override
-  String get species_coontail_desc =>
-      'نبات مغمور بلا جذور بحلقات من أوراق صلبة متشعبة تشبه ذيل الراكون، ينجرف في كتل كثيفة في المياه الساكنة.';
+  String get species_coontail_desc => 'نبات مغمور بلا جذور بحلقات من أوراق صلبة متشعبة تشبه ذيل الراكون، ينجرف في كتل كثيفة في المياه الساكنة.';
 
   @override
   String get species_eurasian_watermilfoil_name => 'عديد الورق الأوراسي';
 
   @override
-  String get species_eurasian_watermilfoil_desc =>
-      'نبات مغمور ريشي بحلقات من أوراق دقيقة التقسيم يشكل حصائر كثيفة قرب السطح، غازٍ في كثير من البحيرات.';
+  String get species_eurasian_watermilfoil_desc => 'نبات مغمور ريشي بحلقات من أوراق دقيقة التقسيم يشكل حصائر كثيفة قرب السطح، غازٍ في كثير من البحيرات.';
 
   @override
   String get species_muskgrass_name => 'الخارا';
 
   @override
-  String get species_muskgrass_desc =>
-      'طحلب أخضر هش برائحة المسك وفروع حلقية، غالباً مغطى بقشرة كلسية، يفرش قاع البحيرات الصافية ذات المياه العسرة.';
+  String get species_muskgrass_desc => 'طحلب أخضر هش برائحة المسك وفروع حلقية، غالباً مغطى بقشرة كلسية، يفرش قاع البحيرات الصافية ذات المياه العسرة.';
 
   @override
   String get species_canadian_waterweed_name => 'الإيلوديا الكندية';
 
   @override
-  String get species_canadian_waterweed_desc =>
-      'نبات مغمور كثيف بحلقات من ثلاث أوراق صغيرة خضراء داكنة، ينتشر بالشظايا في البحيرات والقنوات الباردة حول العالم.';
+  String get species_canadian_waterweed_desc => 'نبات مغمور كثيف بحلقات من ثلاث أوراق صغيرة خضراء داكنة، ينتشر بالشظايا في البحيرات والقنوات الباردة حول العالم.';
 
   @override
   String get species_curly_leaf_pondweed_name => 'عشب البرك مجعد الأوراق';
 
   @override
-  String get species_curly_leaf_pondweed_desc =>
-      'نبات مغمور بأوراق خضراء محمرة متموجة الحواف تشبه اللازانيا المجعدة، ينمو مبكراً في الربيع قبل الأعشاب الأخرى.';
+  String get species_curly_leaf_pondweed_desc => 'نبات مغمور بأوراق خضراء محمرة متموجة الحواف تشبه اللازانيا المجعدة، ينمو مبكراً في الربيع قبل الأعشاب الأخرى.';
 
   @override
   String get species_water_hyacinth_name => 'ورد النيل سميك الساق';
 
   @override
-  String get species_water_hyacinth_desc =>
-      'نبات طافٍ بأوراق لامعة على سيقان مملوءة بالهواء وسنابل من أزهار بنفسجية فاتحة، يخنق الممرات المائية الدافئة حول العالم.';
+  String get species_water_hyacinth_desc => 'نبات طافٍ بأوراق لامعة على سيقان مملوءة بالهواء وسنابل من أزهار بنفسجية فاتحة، يخنق الممرات المائية الدافئة حول العالم.';
 
   @override
   String get species_common_reed_name => 'قيصوب جنوبي';
 
   @override
-  String get species_common_reed_desc =>
-      'عشب طويل بعناقيد ريشية يشكل أحراشاً كثيفة على شواطئ البحيرات، وتؤوي سيقانه المغمورة صغار الأسماك ويرقات اليعسوب.';
+  String get species_common_reed_desc => 'عشب طويل بعناقيد ريشية يشكل أحراشاً كثيفة على شواطئ البحيرات، وتؤوي سيقانه المغمورة صغار الأسماك ويرقات اليعسوب.';
 
   @override
   String get common_action_done => 'تم';
@@ -37822,8 +35819,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_cache_clearAction => 'مسح التخزين المؤقت';
 
   @override
-  String get media_cache_clearBody =>
-      'يزيل الصور المصغرة وصور الشبكة بالحجم الكامل التي جرى تنزيلها. تبقى عناصر الوسائط المرتبطة كما هي، وسيعاد تنزيل الصور عند العرض التالي.';
+  String get media_cache_clearBody => 'يزيل الصور المصغرة وصور الشبكة بالحجم الكامل التي جرى تنزيلها. تبقى عناصر الوسائط المرتبطة كما هي، وسيعاد تنزيل الصور عند العرض التالي.';
 
   @override
   String get media_cache_clearConfirm => 'مسح';
@@ -37856,8 +35852,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get media_credentials_deleteBody =>
-      'يزيل بيانات الاعتماد المحفوظة. ستعرض العناصر المرتبطة عبر هذا المضيف عبارة \"يتطلب تسجيل الدخول\" إلى أن تعيد إضافتها.';
+  String get media_credentials_deleteBody => 'يزيل بيانات الاعتماد المحفوظة. ستعرض العناصر المرتبطة عبر هذا المضيف عبارة \"يتطلب تسجيل الدخول\" إلى أن تعيد إضافتها.';
 
   @override
   String media_credentials_deleteError(String error) {
@@ -37880,8 +35875,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get media_credentials_emptySubtitle =>
-      'تظهر هنا بيانات الاعتماد الخاصة بكل مضيف التي تُضاف أثناء الاستيراد من عنوان URL أو من قائمة.';
+  String get media_credentials_emptySubtitle => 'تظهر هنا بيانات الاعتماد الخاصة بكل مضيف التي تُضاف أثناء الاستيراد من عنوان URL أو من قائمة.';
 
   @override
   String get media_credentials_emptyTitle => 'لا توجد بيانات اعتماد محفوظة';
@@ -37927,8 +35921,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_manifest_cardTitle => 'اشتراكات القوائم';
 
   @override
-  String get media_manifest_deleteBody =>
-      'يزيل الاشتراك. ستبقى الإدخالات المستوردة بالفعل (يمكنك تنظيفها من قائمة العناصر اليتيمة).';
+  String get media_manifest_deleteBody => 'يزيل الاشتراك. ستبقى الإدخالات المستوردة بالفعل (يمكنك تنظيفها من قائمة العناصر اليتيمة).';
 
   @override
   String media_manifest_deleteError(String error) {
@@ -37944,8 +35937,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_manifest_editTitle => 'تعديل الاشتراك';
 
   @override
-  String get media_manifest_emptySubtitle =>
-      'اشترك في قائمة Atom/RSS أو JSON أو CSV من علامة تبويب URL للحفاظ على تزامن مكتبتك.';
+  String get media_manifest_emptySubtitle => 'اشترك في قائمة Atom/RSS أو JSON أو CSV من علامة تبويب URL للحفاظ على تزامن مكتبتك.';
 
   @override
   String get media_manifest_emptyTitle => 'لا توجد اشتراكات قوائم';
@@ -38021,27 +36013,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String media_scan_summary(
-    int total,
-    String seconds,
-    int available,
-    int unreachable,
-  ) {
+  String media_scan_summary(int total, String seconds, int available, int unreachable) {
     String _temp0 = intl.Intl.pluralLogic(
       total,
       locale: localeName,
-      other:
-          'تم فحص $total عنصر في $seconds ثانية: $available متاح، $unreachable غير متاح',
-      many:
-          'تم فحص $total عنصرًا في $seconds ثانية: $available متاح، $unreachable غير متاح',
-      few:
-          'تم فحص $total عناصر في $seconds ثانية: $available متاح، $unreachable غير متاح',
-      two:
-          'تم فحص عنصرين في $seconds ثانية: $available متاح، $unreachable غير متاح',
-      one:
-          'تم فحص عنصر واحد في $seconds ثانية: $available متاح، $unreachable غير متاح',
-      zero:
-          'تم فحص $total عنصر في $seconds ثانية: $available متاح، $unreachable غير متاح',
+      other: 'تم فحص $total عنصر في $seconds ثانية: $available متاح، $unreachable غير متاح',
+      many: 'تم فحص $total عنصرًا في $seconds ثانية: $available متاح، $unreachable غير متاح',
+      few: 'تم فحص $total عناصر في $seconds ثانية: $available متاح، $unreachable غير متاح',
+      two: 'تم فحص عنصرين في $seconds ثانية: $available متاح، $unreachable غير متاح',
+      one: 'تم فحص عنصر واحد في $seconds ثانية: $available متاح، $unreachable غير متاح',
+      zero: 'تم فحص $total عنصر في $seconds ثانية: $available متاح، $unreachable غير متاح',
     );
     return '$_temp0';
   }
@@ -38084,20 +36065,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_mediaSources_loading => 'جارٍ التحميل…';
 
   @override
-  String settings_mediaSources_localFilesCounts(
-    int available,
-    int unavailable,
-  ) {
+  String settings_mediaSources_localFilesCounts(int available, int unavailable) {
     return '$available متاح، $unavailable غير متاح';
   }
 
   @override
-  String get settings_mediaSources_photoLibrarySubtitle =>
-      'Apple Photos / Google Photos / iCloud';
+  String get settings_mediaSources_photoLibrarySubtitle => 'Apple Photos / Google Photos / iCloud';
 
   @override
-  String get settings_mediaSources_reverifyAll =>
-      'إعادة التحقق من جميع الملفات المحلية';
+  String get settings_mediaSources_reverifyAll => 'إعادة التحقق من جميع الملفات المحلية';
 
   @override
   String settings_mediaSources_reverifyFailed(String error) {
@@ -38156,8 +36132,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_mediaSources_title => 'مصادر الوسائط';
 
   @override
-  String get settings_networkSources_scanDescription =>
-      'يعيد فحص كل صورة مستوردة عبر عنوان URL أو قائمة مقابل مضيفها. ويضع علامة على العناصر غير المتاحة لتظهر بحالة \"مفقودة\" في مكتبتك ويمكن تنظيفها.';
+  String get settings_networkSources_scanDescription => 'يعيد فحص كل صورة مستوردة عبر عنوان URL أو قائمة مقابل مضيفها. ويضع علامة على العناصر غير المتاحة لتظهر بحالة \"مفقودة\" في مكتبتك ويمكن تنظيفها.';
 
   @override
   String insights_conditions_entryMethod_semanticLabel(String description) {
@@ -38175,9 +36150,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
-    String description,
-  ) {
+  String insights_progression_divesBySuitThickness_semanticLabel(String description) {
     return 'مخطط أعمدة. الغوصات حسب سماكة البدلة. $description';
   }
 
@@ -38210,11 +36183,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String insights_summary_depthBucket_range(
-    String min,
-    String max,
-    String unit,
-  ) {
+  String insights_summary_depthBucket_range(String min, String max, String unit) {
     return '$min-$max$unit';
   }
 
@@ -38222,8 +36191,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_summary_distributions_title => 'التوزيعات';
 
   @override
-  String get insights_summary_diveTypes_error =>
-      'تعذر تحميل بيانات أنواع الغوص';
+  String get insights_summary_diveTypes_error => 'تعذر تحميل بيانات أنواع الغوص';
 
   @override
   String get insights_summary_diveTypes_unknown => 'غير معروف';
@@ -38245,10 +36213,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String insights_timePatterns_surfaceInterval_statLabel(
-    String label,
-    String value,
-  ) {
+  String insights_timePatterns_surfaceInterval_statLabel(String label, String value) {
     return 'فترة السطح $label: $value';
   }
 
@@ -38273,8 +36238,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get columnConfig_displayOptions => 'خيارات العرض';
 
   @override
-  String get columnConfig_noExtraFields =>
-      'لم يتم إعداد أي حقول إضافية. أضف حقولاً أدناه.';
+  String get columnConfig_noExtraFields => 'لم يتم إعداد أي حقول إضافية. أضف حقولاً أدناه.';
 
   @override
   String get columnConfig_savePresetTitle => 'حفظ الإعداد المسبق';
@@ -38286,8 +36250,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get columnConfig_showTags => 'إظهار الوسوم';
 
   @override
-  String get columnConfig_showTags_subtitle =>
-      'عرض شارات الوسوم على بطاقات الغوص المفصّلة';
+  String get columnConfig_showTags_subtitle => 'عرض شارات الوسوم على بطاقات الغوص المفصّلة';
 
   @override
   String get columnConfig_slot_date => 'التاريخ / العنوان الفرعي';
@@ -38332,8 +36295,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_documents_title => 'المستندات';
 
   @override
-  String get equipment_documents_subtitle =>
-      'الفواتير والإيصالات وأوراق الضمان';
+  String get equipment_documents_subtitle => 'الفواتير والإيصالات وأوراق الضمان';
 
   @override
   String get equipment_documents_attachButton => 'إرفاق';
@@ -38345,8 +36307,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_documents_removeTitle => 'إزالة المستند؟';
 
   @override
-  String get equipment_documents_removeContent =>
-      'سيتوقف إرفاقه بهذا العنصر. لن يتم المساس بملفك الأصلي.';
+  String get equipment_documents_removeContent => 'سيتوقف إرفاقه بهذا العنصر. لن يتم المساس بملفك الأصلي.';
 
   @override
   String get equipment_documents_removed => 'تمت إزالة المستند';
@@ -38373,8 +36334,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_allComputers => 'جميع حواسيب الغوص';
 
   @override
-  String get diveLog_filter_noComputersRegistered =>
-      'لا توجد حواسيب غوص مسجَّلة';
+  String get diveLog_filter_noComputersRegistered => 'لا توجد حواسيب غوص مسجَّلة';
 
   @override
   String diveLog_filter_sectionDepthRangeUnit(String unit) {
@@ -38442,15 +36402,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_listFields_buddies => 'حقول قائمة الرفاق';
 
   @override
-  String get settings_appearance_listFields_certifications =>
-      'حقول قائمة الشهادات';
+  String get settings_appearance_listFields_certifications => 'حقول قائمة الشهادات';
 
   @override
   String get settings_appearance_listFields_courses => 'حقول قائمة الدورات';
 
   @override
-  String get settings_appearance_listFields_diveCenters =>
-      'حقول قائمة مراكز الغوص';
+  String get settings_appearance_listFields_diveCenters => 'حقول قائمة مراكز الغوص';
 
   @override
   String get settings_appearance_listFields_dives => 'حقول قائمة الغوصات';
@@ -38462,8 +36420,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_listFields_sites => 'حقول قائمة المواقع';
 
   @override
-  String get settings_appearance_listFields_subtitle =>
-      'خصّص الحقول المعروضة في عروض القوائم';
+  String get settings_appearance_listFields_subtitle => 'خصّص الحقول المعروضة في عروض القوائم';
 
   @override
   String get settings_appearance_listFields_trips => 'حقول قائمة الرحلات';
@@ -38472,67 +36429,55 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_listView_buddies => 'عرض قائمة الرفاق';
 
   @override
-  String get settings_appearance_listView_buddies_subtitle =>
-      'التخطيط الافتراضي لقائمة الرفاق';
+  String get settings_appearance_listView_buddies_subtitle => 'التخطيط الافتراضي لقائمة الرفاق';
 
   @override
-  String get settings_appearance_listView_certifications =>
-      'عرض قائمة الشهادات';
+  String get settings_appearance_listView_certifications => 'عرض قائمة الشهادات';
 
   @override
-  String get settings_appearance_listView_certifications_subtitle =>
-      'التخطيط الافتراضي لقائمة الشهادات';
+  String get settings_appearance_listView_certifications_subtitle => 'التخطيط الافتراضي لقائمة الشهادات';
 
   @override
   String get settings_appearance_listView_courses => 'عرض قائمة الدورات';
 
   @override
-  String get settings_appearance_listView_courses_subtitle =>
-      'التخطيط الافتراضي لقائمة الدورات';
+  String get settings_appearance_listView_courses_subtitle => 'التخطيط الافتراضي لقائمة الدورات';
 
   @override
-  String get settings_appearance_listView_diveCenters =>
-      'عرض قائمة مراكز الغوص';
+  String get settings_appearance_listView_diveCenters => 'عرض قائمة مراكز الغوص';
 
   @override
-  String get settings_appearance_listView_diveCenters_subtitle =>
-      'التخطيط الافتراضي لقائمة مراكز الغوص';
+  String get settings_appearance_listView_diveCenters_subtitle => 'التخطيط الافتراضي لقائمة مراكز الغوص';
 
   @override
   String get settings_appearance_listView_dives => 'عرض قائمة الغوصات';
 
   @override
-  String get settings_appearance_listView_dives_subtitle =>
-      'التخطيط الافتراضي لقائمة الغوصات';
+  String get settings_appearance_listView_dives_subtitle => 'التخطيط الافتراضي لقائمة الغوصات';
 
   @override
   String get settings_appearance_listView_equipment => 'عرض قائمة المعدات';
 
   @override
-  String get settings_appearance_listView_equipment_subtitle =>
-      'التخطيط الافتراضي لقائمة المعدات';
+  String get settings_appearance_listView_equipment_subtitle => 'التخطيط الافتراضي لقائمة المعدات';
 
   @override
   String get settings_appearance_listView_sites => 'عرض قائمة المواقع';
 
   @override
-  String get settings_appearance_listView_sites_subtitle =>
-      'التخطيط الافتراضي لقائمة المواقع';
+  String get settings_appearance_listView_sites_subtitle => 'التخطيط الافتراضي لقائمة المواقع';
 
   @override
   String get settings_appearance_listView_trips => 'عرض قائمة الرحلات';
 
   @override
-  String get settings_appearance_listView_trips_subtitle =>
-      'التخطيط الافتراضي لقائمة الرحلات';
+  String get settings_appearance_listView_trips_subtitle => 'التخطيط الافتراضي لقائمة الرحلات';
 
   @override
-  String get settings_appearance_showDataSourceBadges =>
-      'إظهار شارات مصدر البيانات';
+  String get settings_appearance_showDataSourceBadges => 'إظهار شارات مصدر البيانات';
 
   @override
-  String get settings_appearance_showDataSourceBadges_subtitle =>
-      'عرض نسبة المصدر على مقاييس الغوص';
+  String get settings_appearance_showDataSourceBadges_subtitle => 'عرض نسبة المصدر على مقاييس الغوص';
 
   @override
   String get settings_appearance_title_buddies => 'مظهر الرفاق';
@@ -38559,8 +36504,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_title_trips => 'مظهر الرحلات';
 
   @override
-  String get settings_cloudSync_troubleshoot_tileSubtitle =>
-      'أصلح مزامنة متوقفة أو حرّر مساحة سحابية';
+  String get settings_cloudSync_troubleshoot_tileSubtitle => 'أصلح مزامنة متوقفة أو حرّر مساحة سحابية';
 
   @override
   String get settings_data_header_dataTools => 'أدوات البيانات';
@@ -38569,12 +36513,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_decompression_ascentGasLabel => 'خطّط الصعود باستخدام';
 
   @override
-  String get settings_decompression_ascentGas_allCarried =>
-      'جميع الأسطوانات المحمولة';
+  String get settings_decompression_ascentGas_allCarried => 'جميع الأسطوانات المحمولة';
 
   @override
-  String get settings_decompression_ascentGas_decoStage =>
-      'غاز الديكو/الستيج + الغاز الخلفي';
+  String get settings_decompression_ascentGas_decoStage => 'غاز الديكو/الستيج + الغاز الخلفي';
 
   @override
   String get settings_decompression_cnsSource => 'مصدر الـ CNS';
@@ -38586,16 +36528,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_decompression_header_ascent => 'تخطيط الصعود';
 
   @override
-  String get settings_decompression_header_ascent_subtitle =>
-      'أي الأسطوانات المحمولة يمكن للصعود المحاكى (TTS والسقف والمحطات) التبديل إليها عند كل عمق. تؤخذ في الاعتبار الغازات المسجَّلة في الغوصة فقط.';
+  String get settings_decompression_header_ascent_subtitle => 'أي الأسطوانات المحمولة يمكن للصعود المحاكى (TTS والسقف والمحطات) التبديل إليها عند كل عمق. تؤخذ في الاعتبار الغازات المسجَّلة في الغوصة فقط.';
 
   @override
-  String get settings_decompression_header_dataSources =>
-      'تفضيلات مصدر البيانات';
+  String get settings_decompression_header_dataSources => 'تفضيلات مصدر البيانات';
 
   @override
-  String get settings_decompression_header_dataSources_subtitle =>
-      'عند ضبطه على حاسوب الغوص، يستخدم التطبيق البيانات التي يبلّغ عنها حاسوب الغوص عند توفرها. ويرجع إلى القيم المحسوبة عند عدم توفر بيانات الحاسوب.';
+  String get settings_decompression_header_dataSources_subtitle => 'عند ضبطه على حاسوب الغوص، يستخدم التطبيق البيانات التي يبلّغ عنها حاسوب الغوص عند توفرها. ويرجع إلى القيم المحسوبة عند عدم توفر بيانات الحاسوب.';
 
   @override
   String get settings_decompression_ndlSource => 'مصدر NDL';
@@ -38616,8 +36555,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_decompression_gtrReserve => 'ضغط احتياطي GTR';
 
   @override
-  String get settings_decompression_gtrReserve_subtitle =>
-      'ضغط الأسطوانة الذي يعد الوقت المتبقي للغاز تنازلياً إليه. يفترض GTR المحسوب صعوداً مباشراً بسرعة 10 م/دقيقة دون توقفات.';
+  String get settings_decompression_gtrReserve_subtitle => 'ضغط الأسطوانة الذي يعد الوقت المتبقي للغاز تنازلياً إليه. يفترض GTR المحسوب صعوداً مباشراً بسرعة 10 م/دقيقة دون توقفات.';
 
   @override
   String settings_fixDiveTimes_applied(int count, String hours, int hoursAbs) {
@@ -38666,11 +36604,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_fixDiveTimes_confirmApply => 'تطبيق';
 
   @override
-  String settings_fixDiveTimes_confirmBody(
-    int count,
-    String hours,
-    int hoursAbs,
-  ) {
+  String settings_fixDiveTimes_confirmBody(int count, String hours, int hoursAbs) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -38715,8 +36649,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_fixDiveTimes_empty => 'لم يتم العثور على غوصات.';
 
   @override
-  String get settings_fixDiveTimes_emptyFiltered =>
-      'لم يتم العثور على غوصات في نطاق التاريخ هذا.';
+  String get settings_fixDiveTimes_emptyFiltered => 'لم يتم العثور على غوصات في نطاق التاريخ هذا.';
 
   @override
   String get settings_fixDiveTimes_enterOffsetHint => 'أدخل إزاحة بالساعات';
@@ -38739,8 +36672,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_fixDiveTimes_noSelection => 'لم يتم تحديد أي غوصة.';
 
   @override
-  String get settings_fixDiveTimes_offsetHint =>
-      'أدخل عدداً صحيحاً موجباً أو سالباً لإزاحة أوقات الغوصات.';
+  String get settings_fixDiveTimes_offsetHint => 'أدخل عدداً صحيحاً موجباً أو سالباً لإزاحة أوقات الغوصات.';
 
   @override
   String settings_fixDiveTimes_preview(int count, String hours, int hoursAbs) {
@@ -38771,8 +36703,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_fixDiveTimes_selectAll => 'تحديد الكل';
 
   @override
-  String get settings_fixDiveTimes_selectDivesHint =>
-      'اختر الغوصات المراد تطبيق التغيير عليها';
+  String get settings_fixDiveTimes_selectDivesHint => 'اختر الغوصات المراد تطبيق التغيير عليها';
 
   @override
   String get settings_fixDiveTimes_subtitle => 'اضبط أوقات الغوصات المستوردة';
@@ -38784,8 +36715,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_fixDiveTimes_to => 'إلى';
 
   @override
-  String get settings_fixDiveTimes_zeroOffset =>
-      'إزاحة الساعات هي 0، لا يوجد ما يتغير.';
+  String get settings_fixDiveTimes_zeroOffset => 'إزاحة الساعات هي 0، لا يوجد ما يتغير.';
 
   @override
   String get settings_syncDevices_appBar_refreshTooltip => 'تحديث';
@@ -38794,8 +36724,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_syncDevices_appBar_title => 'الأجهزة على هذه الخدمة';
 
   @override
-  String get settings_syncDevices_empty =>
-      'لا توجد ملفات مزامنة على هذه الخدمة.';
+  String get settings_syncDevices_empty => 'لا توجد ملفات مزامنة على هذه الخدمة.';
 
   @override
   String settings_syncDevices_readError(String error) {
@@ -38803,59 +36732,37 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_syncDevices_removal_noBackend =>
-      'لم يتم إعداد أي خدمة سحابية';
+  String get settings_syncDevices_removal_noBackend => 'لم يتم إعداد أي خدمة سحابية';
 
   @override
-  String get settings_syncDevices_removal_unreachable =>
-      'تعذّر الوصول إلى الخدمة. لم تتم إزالة أي شيء.';
+  String get settings_syncDevices_removal_unreachable => 'تعذّر الوصول إلى الخدمة. لم تتم إزالة أي شيء.';
 
   @override
-  String settings_syncDevices_removeDialog_bodyRisky(
-    int count,
-    String name,
-    String size,
-  ) {
+  String settings_syncDevices_removeDialog_bodyRisky(int count, String name, String size) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'سيؤدي هذا إلى حذف $count ملف ($size) تخص $name.\n\nما زال ذلك الجهاز جزءاً من هذه المزامنة. إذا عاد إلى الاتصال فسيعيد البناء من الخدمة بدلاً من إحياء البيانات القديمة، لكن أي تغييرات لم ينشرها بعد ستُفقد. بيانات الغوص الخاصة بك على هذا الجهاز لن تتأثر.',
-      many:
-          'سيؤدي هذا إلى حذف $count ملفًا ($size) تخص $name.\n\nما زال ذلك الجهاز جزءاً من هذه المزامنة. إذا عاد إلى الاتصال فسيعيد البناء من الخدمة بدلاً من إحياء البيانات القديمة، لكن أي تغييرات لم ينشرها بعد ستُفقد. بيانات الغوص الخاصة بك على هذا الجهاز لن تتأثر.',
-      few:
-          'سيؤدي هذا إلى حذف $count ملفات ($size) تخص $name.\n\nما زال ذلك الجهاز جزءاً من هذه المزامنة. إذا عاد إلى الاتصال فسيعيد البناء من الخدمة بدلاً من إحياء البيانات القديمة، لكن أي تغييرات لم ينشرها بعد ستُفقد. بيانات الغوص الخاصة بك على هذا الجهاز لن تتأثر.',
-      two:
-          'سيؤدي هذا إلى حذف ملفين ($size) تخص $name.\n\nما زال ذلك الجهاز جزءاً من هذه المزامنة. إذا عاد إلى الاتصال فسيعيد البناء من الخدمة بدلاً من إحياء البيانات القديمة، لكن أي تغييرات لم ينشرها بعد ستُفقد. بيانات الغوص الخاصة بك على هذا الجهاز لن تتأثر.',
-      one:
-          'سيؤدي هذا إلى حذف ملف واحد ($size) تخص $name.\n\nما زال ذلك الجهاز جزءاً من هذه المزامنة. إذا عاد إلى الاتصال فسيعيد البناء من الخدمة بدلاً من إحياء البيانات القديمة، لكن أي تغييرات لم ينشرها بعد ستُفقد. بيانات الغوص الخاصة بك على هذا الجهاز لن تتأثر.',
-      zero:
-          'سيؤدي هذا إلى حذف $count ملف ($size) تخص $name.\n\nما زال ذلك الجهاز جزءاً من هذه المزامنة. إذا عاد إلى الاتصال فسيعيد البناء من الخدمة بدلاً من إحياء البيانات القديمة، لكن أي تغييرات لم ينشرها بعد ستُفقد. بيانات الغوص الخاصة بك على هذا الجهاز لن تتأثر.',
+      other: 'سيؤدي هذا إلى حذف $count ملف ($size) تخص $name.\n\nما زال ذلك الجهاز جزءاً من هذه المزامنة. إذا عاد إلى الاتصال فسيعيد البناء من الخدمة بدلاً من إحياء البيانات القديمة، لكن أي تغييرات لم ينشرها بعد ستُفقد. بيانات الغوص الخاصة بك على هذا الجهاز لن تتأثر.',
+      many: 'سيؤدي هذا إلى حذف $count ملفًا ($size) تخص $name.\n\nما زال ذلك الجهاز جزءاً من هذه المزامنة. إذا عاد إلى الاتصال فسيعيد البناء من الخدمة بدلاً من إحياء البيانات القديمة، لكن أي تغييرات لم ينشرها بعد ستُفقد. بيانات الغوص الخاصة بك على هذا الجهاز لن تتأثر.',
+      few: 'سيؤدي هذا إلى حذف $count ملفات ($size) تخص $name.\n\nما زال ذلك الجهاز جزءاً من هذه المزامنة. إذا عاد إلى الاتصال فسيعيد البناء من الخدمة بدلاً من إحياء البيانات القديمة، لكن أي تغييرات لم ينشرها بعد ستُفقد. بيانات الغوص الخاصة بك على هذا الجهاز لن تتأثر.',
+      two: 'سيؤدي هذا إلى حذف ملفين ($size) تخص $name.\n\nما زال ذلك الجهاز جزءاً من هذه المزامنة. إذا عاد إلى الاتصال فسيعيد البناء من الخدمة بدلاً من إحياء البيانات القديمة، لكن أي تغييرات لم ينشرها بعد ستُفقد. بيانات الغوص الخاصة بك على هذا الجهاز لن تتأثر.',
+      one: 'سيؤدي هذا إلى حذف ملف واحد ($size) تخص $name.\n\nما زال ذلك الجهاز جزءاً من هذه المزامنة. إذا عاد إلى الاتصال فسيعيد البناء من الخدمة بدلاً من إحياء البيانات القديمة، لكن أي تغييرات لم ينشرها بعد ستُفقد. بيانات الغوص الخاصة بك على هذا الجهاز لن تتأثر.',
+      zero: 'سيؤدي هذا إلى حذف $count ملف ($size) تخص $name.\n\nما زال ذلك الجهاز جزءاً من هذه المزامنة. إذا عاد إلى الاتصال فسيعيد البناء من الخدمة بدلاً من إحياء البيانات القديمة، لكن أي تغييرات لم ينشرها بعد ستُفقد. بيانات الغوص الخاصة بك على هذا الجهاز لن تتأثر.',
     );
     return '$_temp0';
   }
 
   @override
-  String settings_syncDevices_removeDialog_bodySafe(
-    int count,
-    String name,
-    String size,
-  ) {
+  String settings_syncDevices_removeDialog_bodySafe(int count, String name, String size) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'سيؤدي هذا إلى حذف $count ملف ($size) تخص $name. وهي متبقية من مكتبة لم يعد أي جهاز يزامن منها. بيانات الغوص الخاصة بك لن تتأثر.',
-      many:
-          'سيؤدي هذا إلى حذف $count ملفًا ($size) تخص $name. وهي متبقية من مكتبة لم يعد أي جهاز يزامن منها. بيانات الغوص الخاصة بك لن تتأثر.',
-      few:
-          'سيؤدي هذا إلى حذف $count ملفات ($size) تخص $name. وهي متبقية من مكتبة لم يعد أي جهاز يزامن منها. بيانات الغوص الخاصة بك لن تتأثر.',
-      two:
-          'سيؤدي هذا إلى حذف ملفين ($size) تخص $name. وهي متبقية من مكتبة لم يعد أي جهاز يزامن منها. بيانات الغوص الخاصة بك لن تتأثر.',
-      one:
-          'سيؤدي هذا إلى حذف ملف واحد ($size) تخص $name. وهي متبقية من مكتبة لم يعد أي جهاز يزامن منها. بيانات الغوص الخاصة بك لن تتأثر.',
-      zero:
-          'سيؤدي هذا إلى حذف $count ملف ($size) تخص $name. وهي متبقية من مكتبة لم يعد أي جهاز يزامن منها. بيانات الغوص الخاصة بك لن تتأثر.',
+      other: 'سيؤدي هذا إلى حذف $count ملف ($size) تخص $name. وهي متبقية من مكتبة لم يعد أي جهاز يزامن منها. بيانات الغوص الخاصة بك لن تتأثر.',
+      many: 'سيؤدي هذا إلى حذف $count ملفًا ($size) تخص $name. وهي متبقية من مكتبة لم يعد أي جهاز يزامن منها. بيانات الغوص الخاصة بك لن تتأثر.',
+      few: 'سيؤدي هذا إلى حذف $count ملفات ($size) تخص $name. وهي متبقية من مكتبة لم يعد أي جهاز يزامن منها. بيانات الغوص الخاصة بك لن تتأثر.',
+      two: 'سيؤدي هذا إلى حذف ملفين ($size) تخص $name. وهي متبقية من مكتبة لم يعد أي جهاز يزامن منها. بيانات الغوص الخاصة بك لن تتأثر.',
+      one: 'سيؤدي هذا إلى حذف ملف واحد ($size) تخص $name. وهي متبقية من مكتبة لم يعد أي جهاز يزامن منها. بيانات الغوص الخاصة بك لن تتأثر.',
+      zero: 'سيؤدي هذا إلى حذف $count ملف ($size) تخص $name. وهي متبقية من مكتبة لم يعد أي جهاز يزامن منها. بيانات الغوص الخاصة بك لن تتأثر.',
     );
     return '$_temp0';
   }
@@ -38880,22 +36787,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_syncDevices_state_retired => 'متقاعد';
 
   @override
-  String get settings_syncDevices_state_staleEpoch =>
-      'متبقٍ من مكتبة سابقة؛ لا يقرأه أي جهاز';
+  String get settings_syncDevices_state_staleEpoch => 'متبقٍ من مكتبة سابقة؛ لا يقرأه أي جهاز';
 
   @override
   String get settings_syncDevices_state_thisDevice => 'هذا الجهاز';
 
   @override
-  String get settings_syncDevices_state_unreadable =>
-      'لا يوجد بيان قابل للقراءة؛ رفع غير مكتمل أو مشفَّر';
+  String get settings_syncDevices_state_unreadable => 'لا يوجد بيان قابل للقراءة؛ رفع غير مكتمل أو مشفَّر';
 
   @override
-  String settings_syncDevices_summary(
-    int deviceCount,
-    int fileCount,
-    String size,
-  ) {
+  String settings_syncDevices_summary(int deviceCount, int fileCount, String size) {
     String _temp0 = intl.Intl.pluralLogic(
       deviceCount,
       locale: localeName,
@@ -38950,11 +36851,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String settings_syncDevices_tile_filesSizeSeen(
-    int count,
-    String size,
-    String when,
-  ) {
+  String settings_syncDevices_tile_filesSizeSeen(int count, String size, String when) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -38974,27 +36871,22 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_syncMaintenance_keepAppOpen =>
-      'أبقِ التطبيق مفتوحاً حتى تنتهي هذه العملية. إغلاقه الآن يترك الخدمة ممسوحة جزئياً، وستضطر المزامنة التالية إلى البدء من جديد.';
+  String get settings_syncMaintenance_keepAppOpen => 'أبقِ التطبيق مفتوحاً حتى تنتهي هذه العملية. إغلاقه الآن يترك الخدمة ممسوحة جزئياً، وستضطر المزامنة التالية إلى البدء من جديد.';
 
   @override
-  String get settings_syncMaintenance_phase_clearingOldFiles =>
-      'جارٍ مسح الملفات القديمة';
+  String get settings_syncMaintenance_phase_clearingOldFiles => 'جارٍ مسح الملفات القديمة';
 
   @override
   String get settings_syncMaintenance_phase_deleting => 'جارٍ الحذف';
 
   @override
-  String get settings_syncMaintenance_phase_publishingLibrary =>
-      'جارٍ نشر المكتبة';
+  String get settings_syncMaintenance_phase_publishingLibrary => 'جارٍ نشر المكتبة';
 
   @override
-  String get settings_cloudSync_adopt_progressTitle =>
-      'جارٍ اعتماد المكتبة المستعادة';
+  String get settings_cloudSync_adopt_progressTitle => 'جارٍ اعتماد المكتبة المستعادة';
 
   @override
-  String get settings_cloudSync_replaceLibrary_progressTitle =>
-      'جارٍ استبدال مكتبة السحابة';
+  String get settings_cloudSync_replaceLibrary_progressTitle => 'جارٍ استبدال مكتبة السحابة';
 
   @override
   String settings_syncDevices_nameWithId(String name, String shortId) {
@@ -39002,20 +36894,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_syncMaintenance_phase_applyingLibrary =>
-      'جارٍ تطبيق المكتبة';
+  String get settings_syncMaintenance_phase_applyingLibrary => 'جارٍ تطبيق المكتبة';
 
   @override
-  String get settings_syncMaintenance_phase_backingUp =>
-      'جارٍ إنشاء نسخة احتياطية لهذا الجهاز';
+  String get settings_syncMaintenance_phase_backingUp => 'جارٍ إنشاء نسخة احتياطية لهذا الجهاز';
 
   @override
-  String get settings_syncMaintenance_phase_repairing =>
-      'جارٍ مسح حالة المزامنة المحلية';
+  String get settings_syncMaintenance_phase_repairing => 'جارٍ مسح حالة المزامنة المحلية';
 
   @override
-  String get settings_troubleshootSync_repair_progressTitle =>
-      'جارٍ إصلاح المزامنة';
+  String get settings_troubleshootSync_repair_progressTitle => 'جارٍ إصلاح المزامنة';
 
   @override
   String get settings_syncMaintenance_phase_working => 'جارٍ العمل...';
@@ -39051,25 +36939,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String settings_syncMaintenance_removedFilesPartial(
-    int count,
-    String trouble,
-  ) {
+  String settings_syncMaintenance_removedFilesPartial(int count, String trouble) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'تمت إزالة $count ملف، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
-      many:
-          'تمت إزالة $count ملفًا، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
-      few:
-          'تمت إزالة $count ملفات، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
-      two:
-          'تمت إزالة ملفين، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
-      one:
-          'تمت إزالة ملف واحد، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
-      zero:
-          'تمت إزالة $count ملف، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
+      other: 'تمت إزالة $count ملف، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
+      many: 'تمت إزالة $count ملفًا، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
+      few: 'تمت إزالة $count ملفات، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
+      two: 'تمت إزالة ملفين، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
+      one: 'تمت إزالة ملف واحد، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
+      zero: 'تمت إزالة $count ملف، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
     );
     return '$_temp0';
   }
@@ -39090,8 +36969,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_syncMaintenance_trouble_listIncomplete =>
-      'تعذّر سرد بعض الملفات';
+  String get settings_syncMaintenance_trouble_listIncomplete => 'تعذّر سرد بعض الملفات';
 
   @override
   String settings_syncMaintenance_wipedFiles(int count) {
@@ -39113,17 +36991,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'تم مسح $count ملف، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
-      many:
-          'تم مسح $count ملفًا، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
-      few:
-          'تم مسح $count ملفات، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
+      other: 'تم مسح $count ملف، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
+      many: 'تم مسح $count ملفًا، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
+      few: 'تم مسح $count ملفات، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
       two: 'تم مسح ملفين، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
-      one:
-          'تم مسح ملف واحد، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
-      zero:
-          'تم مسح $count ملف، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
+      one: 'تم مسح ملف واحد، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
+      zero: 'تم مسح $count ملف، لكن $trouble. حاول مرة أخرى أثناء الاتصال بالإنترنت.',
     );
     return '$_temp0';
   }
@@ -39132,66 +37005,52 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_troubleshootSync_appBar_title => 'استكشاف أخطاء المزامنة';
 
   @override
-  String get settings_troubleshootSync_devices_subtitle =>
-      'اطّلع على كل جهاز يحتفظ بملفات هنا، ومقدار المساحة التي يستخدمها كل منها، وأزل المخلفات من المكتبات التي لم يعد أي جهاز يزامن منها. بيانات الغوص الخاصة بك لن تتأثر.';
+  String get settings_troubleshootSync_devices_subtitle => 'اطّلع على كل جهاز يحتفظ بملفات هنا، ومقدار المساحة التي يستخدمها كل منها، وأزل المخلفات من المكتبات التي لم يعد أي جهاز يزامن منها. بيانات الغوص الخاصة بك لن تتأثر.';
 
   @override
   String get settings_troubleshootSync_rebuild_confirm => 'إعادة البناء';
 
   @override
-  String get settings_troubleshootSync_rebuild_confirmBody =>
-      'يجعل هذا مكتبة هذا الجهاز هي المكتبة الحالية على الخدمة ويعيد نشرها، بحيث تزامن الأجهزة الأخرى منك. استخدمه عندما يتعثر استبدال قادم من جهاز آخر. بيانات الغوص الخاصة بك لن تتأثر.';
+  String get settings_troubleshootSync_rebuild_confirmBody => 'يجعل هذا مكتبة هذا الجهاز هي المكتبة الحالية على الخدمة ويعيد نشرها، بحيث تزامن الأجهزة الأخرى منك. استخدمه عندما يتعثر استبدال قادم من جهاز آخر. بيانات الغوص الخاصة بك لن تتأثر.';
 
   @override
-  String get settings_troubleshootSync_rebuild_confirmTitle =>
-      'إعادة بناء الخدمة من هذا الجهاز؟';
+  String get settings_troubleshootSync_rebuild_confirmTitle => 'إعادة بناء الخدمة من هذا الجهاز؟';
 
   @override
-  String get settings_troubleshootSync_rebuild_doneSnack =>
-      'تمت إعادة بناء الخدمة من هذا الجهاز';
+  String get settings_troubleshootSync_rebuild_doneSnack => 'تمت إعادة بناء الخدمة من هذا الجهاز';
 
   @override
-  String get settings_troubleshootSync_rebuild_failedSnack =>
-      'فشلت إعادة البناء';
+  String get settings_troubleshootSync_rebuild_failedSnack => 'فشلت إعادة البناء';
 
   @override
-  String get settings_troubleshootSync_rebuild_progressTitle =>
-      'جارٍ إعادة بناء الخدمة';
+  String get settings_troubleshootSync_rebuild_progressTitle => 'جارٍ إعادة بناء الخدمة';
 
   @override
-  String get settings_troubleshootSync_rebuild_subtitle =>
-      'استخدمه إذا كانت المزامنة متوقفة في انتظار مكتبة استبدلها جهاز آخر لكنه لم يُكمل رفعها أبداً (قد يكون ذلك الجهاز غير متصل). ينشر مكتبة هذا الجهاز باعتبارها الحالية.';
+  String get settings_troubleshootSync_rebuild_subtitle => 'استخدمه إذا كانت المزامنة متوقفة في انتظار مكتبة استبدلها جهاز آخر لكنه لم يُكمل رفعها أبداً (قد يكون ذلك الجهاز غير متصل). ينشر مكتبة هذا الجهاز باعتبارها الحالية.';
 
   @override
-  String get settings_troubleshootSync_rebuild_title =>
-      'إعادة بناء الخدمة من هذا الجهاز';
+  String get settings_troubleshootSync_rebuild_title => 'إعادة بناء الخدمة من هذا الجهاز';
 
   @override
-  String get settings_troubleshootSync_removeThisDevice_confirmBody =>
-      'يحذف هذا من الخدمة ملفات المزامنة الخاصة بهذا الجهاز فقط. تستمر الأجهزة الأخرى في المزامنة، وبيانات الغوص الخاصة بك لن تتأثر.';
+  String get settings_troubleshootSync_removeThisDevice_confirmBody => 'يحذف هذا من الخدمة ملفات المزامنة الخاصة بهذا الجهاز فقط. تستمر الأجهزة الأخرى في المزامنة، وبيانات الغوص الخاصة بك لن تتأثر.';
 
   @override
-  String get settings_troubleshootSync_removeThisDevice_confirmTitle =>
-      'إزالة ملفات هذا الجهاز السحابية؟';
+  String get settings_troubleshootSync_removeThisDevice_confirmTitle => 'إزالة ملفات هذا الجهاز السحابية؟';
 
   @override
-  String get settings_troubleshootSync_removeThisDevice_progressTitle =>
-      'جارٍ إزالة ملفات هذا الجهاز السحابية';
+  String get settings_troubleshootSync_removeThisDevice_progressTitle => 'جارٍ إزالة ملفات هذا الجهاز السحابية';
 
   @override
-  String get settings_troubleshootSync_removeThisDevice_subtitle =>
-      'حرّر مساحة هذا الجهاز على الخدمة. تستمر الأجهزة الأخرى في المزامنة. بيانات الغوص الخاصة بك لن تتأثر.';
+  String get settings_troubleshootSync_removeThisDevice_subtitle => 'حرّر مساحة هذا الجهاز على الخدمة. تستمر الأجهزة الأخرى في المزامنة. بيانات الغوص الخاصة بك لن تتأثر.';
 
   @override
-  String get settings_troubleshootSync_removeThisDevice_title =>
-      'إزالة ملفات هذا الجهاز السحابية';
+  String get settings_troubleshootSync_removeThisDevice_title => 'إزالة ملفات هذا الجهاز السحابية';
 
   @override
   String get settings_troubleshootSync_repair_confirm => 'إصلاح';
 
   @override
-  String get settings_troubleshootSync_repair_confirmBody =>
-      'يمسح هذا كل حالة المزامنة المحلية ويمنح هذا الجهاز هوية مزامنة جديدة، ثم يعيد الاتصال من جديد عند المزامنة التالية. بيانات الغوص الخاصة بك آمنة ولن تُحذف.';
+  String get settings_troubleshootSync_repair_confirmBody => 'يمسح هذا كل حالة المزامنة المحلية ويمنح هذا الجهاز هوية مزامنة جديدة، ثم يعيد الاتصال من جديد عند المزامنة التالية. بيانات الغوص الخاصة بك آمنة ولن تُحذف.';
 
   @override
   String get settings_troubleshootSync_repair_confirmTitle => 'إصلاح المزامنة؟';
@@ -39200,8 +37059,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_troubleshootSync_repair_doneSnack => 'تم إصلاح المزامنة';
 
   @override
-  String get settings_troubleshootSync_repair_subtitle =>
-      'أصلح مزامنة متوقفة. يمسح حالة المزامنة الخاصة بهذا الجهاز ويمنحه هوية مزامنة جديدة، ثم يعيد الاتصال عند المزامنة التالية. بيانات الغوص الخاصة بك لن تتأثر.';
+  String get settings_troubleshootSync_repair_subtitle => 'أصلح مزامنة متوقفة. يمسح حالة المزامنة الخاصة بهذا الجهاز ويمنحه هوية مزامنة جديدة، ثم يعيد الاتصال عند المزامنة التالية. بيانات الغوص الخاصة بك لن تتأثر.';
 
   @override
   String get settings_troubleshootSync_repair_title => 'إصلاح المزامنة';
@@ -39215,20 +37073,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_troubleshootSync_wipeAll_confirmTitle =>
-      'مسح جميع بيانات المزامنة؟';
+  String get settings_troubleshootSync_wipeAll_confirmTitle => 'مسح جميع بيانات المزامنة؟';
 
   @override
-  String get settings_troubleshootSync_wipeAll_progressTitle =>
-      'جارٍ مسح بيانات المزامنة';
+  String get settings_troubleshootSync_wipeAll_progressTitle => 'جارٍ مسح بيانات المزامنة';
 
   @override
-  String get settings_troubleshootSync_wipeAll_subtitle =>
-      'احذف بيانات المزامنة الخاصة بكل جهاز من هذه الخدمة، بما في ذلك علامات المكتبة. يعيد كل جهاز إنشاء المزامنة من الصفر. بيانات الغوص الخاصة بك لن تتأثر.';
+  String get settings_troubleshootSync_wipeAll_subtitle => 'احذف بيانات المزامنة الخاصة بكل جهاز من هذه الخدمة، بما في ذلك علامات المكتبة. يعيد كل جهاز إنشاء المزامنة من الصفر. بيانات الغوص الخاصة بك لن تتأثر.';
 
   @override
-  String get settings_troubleshootSync_wipeAll_title =>
-      'مسح جميع بيانات المزامنة على هذه الخدمة';
+  String get settings_troubleshootSync_wipeAll_title => 'مسح جميع بيانات المزامنة على هذه الخدمة';
 
   @override
   String get tableMode_tooltip_toggleDetailPane => 'تبديل لوحة التفاصيل';
@@ -39252,8 +37106,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maps_regionDownload_zoomLevels => 'مستويات التكبير';
 
   @override
-  String get maps_regionDownload_zoomHint =>
-      'تكبير أعلى = تفاصيل أكثر وحجم تنزيل أكبر';
+  String get maps_regionDownload_zoomHint => 'تكبير أعلى = تفاصيل أكثر وحجم تنزيل أكبر';
 
   @override
   String maps_regionDownload_minZoom(int zoom) {
@@ -39276,8 +37129,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get maps_regionDownload_estimatingSemantics =>
-      'جارٍ تقدير حجم التنزيل';
+  String get maps_regionDownload_estimatingSemantics => 'جارٍ تقدير حجم التنزيل';
 
   @override
   String maps_regionDownload_estimateSemantics(int count, Object size) {
@@ -39285,8 +37137,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get maps_regionDownload_estimateUnavailableSemantics =>
-      'تعذر تقدير حجم التنزيل';
+  String get maps_regionDownload_estimateUnavailableSemantics => 'تعذر تقدير حجم التنزيل';
 
   @override
   String get maps_regionDownload_estimating => 'جارٍ التقدير...';
@@ -39300,12 +37151,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maps_regionDownload_estimateUnavailable => 'تعذر التقدير';
 
   @override
-  String get maps_regionDownload_largeWarningSemantics =>
-      'تحذير: تنزيل كبير. فكّر في خفض مستويات التكبير أو اختيار منطقة أصغر.';
+  String get maps_regionDownload_largeWarningSemantics => 'تحذير: تنزيل كبير. فكّر في خفض مستويات التكبير أو اختيار منطقة أصغر.';
 
   @override
-  String get maps_regionDownload_largeWarning =>
-      'تنزيل كبير. فكّر في خفض مستويات التكبير أو اختيار منطقة أصغر.';
+  String get maps_regionDownload_largeWarning => 'تنزيل كبير. فكّر في خفض مستويات التكبير أو اختيار منطقة أصغر.';
 
   @override
   String get maps_regionDownload_downloadButton => 'تنزيل';
@@ -39319,29 +37168,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String trips_gallery_diveSection_subtitle(
-    Object date,
-    int count,
-    Object photoLabel,
-  ) {
+  String trips_gallery_diveSection_subtitle(Object date, int count, Object photoLabel) {
     return '$date ($count $photoLabel)';
   }
 
   @override
-  String get trips_gallery_thumbnail_photo =>
-      'صورة مصغّرة لصورة. انقر للعرض بملء الشاشة';
+  String get trips_gallery_thumbnail_photo => 'صورة مصغّرة لصورة. انقر للعرض بملء الشاشة';
 
   @override
-  String get trips_gallery_thumbnail_video =>
-      'صورة مصغّرة لفيديو. انقر للعرض بملء الشاشة';
+  String get trips_gallery_thumbnail_video => 'صورة مصغّرة لفيديو. انقر للعرض بملء الشاشة';
 
   @override
-  String get trips_photos_thumbnail_photo =>
-      'صورة مصغّرة لصورة. انقر لفتح المعرض';
+  String get trips_photos_thumbnail_photo => 'صورة مصغّرة لصورة. انقر لفتح المعرض';
 
   @override
-  String get trips_photos_thumbnail_video =>
-      'صورة مصغّرة لفيديو. انقر لفتح المعرض';
+  String get trips_photos_thumbnail_video => 'صورة مصغّرة لفيديو. انقر لفتح المعرض';
 
   @override
   String trips_picker_suggestedSemantics(Object name) {
@@ -39349,20 +37190,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String trips_picker_tileSemantics(
-    Object name,
-    Object startDate,
-    Object endDate,
-  ) {
+  String trips_picker_tileSemantics(Object name, Object startDate, Object endDate) {
     return '$name، من $startDate إلى $endDate';
   }
 
   @override
-  String trips_picker_tileSemanticsSelected(
-    Object name,
-    Object startDate,
-    Object endDate,
-  ) {
+  String trips_picker_tileSemanticsSelected(Object name, Object startDate, Object endDate) {
     return '$name، من $startDate إلى $endDate، محددة';
   }
 
@@ -39448,8 +37281,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_provider_icloud_subtitle =>
-      'المزامنة عبر Apple iCloud';
+  String get settings_cloudSync_provider_icloud_subtitle => 'المزامنة عبر Apple iCloud';
 
   @override
   String get settings_debugLog_search_hint => 'البحث في السجلات...';
@@ -39464,8 +37296,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_debugLog_clearLogs => 'مسح السجلات';
 
   @override
-  String get settings_debugLog_empty =>
-      'لا توجد إدخالات سجل تطابق عوامل التصفية الحالية';
+  String get settings_debugLog_empty => 'لا توجد إدخالات سجل تطابق عوامل التصفية الحالية';
 
   @override
   String settings_debugLog_loadError(Object error) {
@@ -39473,8 +37304,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_debugLog_copiedSnack =>
-      'تم نسخ السجلات المصفاة إلى الحافظة';
+  String get settings_debugLog_copiedSnack => 'تم نسخ السجلات المصفاة إلى الحافظة';
 
   @override
   String settings_debugLog_savedSnack(String path) {
@@ -39514,39 +37344,31 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_message_noProviderConfigured =>
-      'لم يتم إعداد أي مزود سحابي';
+  String get settings_cloudSync_message_noProviderConfigured => 'لم يتم إعداد أي مزود سحابي';
 
   @override
-  String get settings_cloudSync_message_adopting =>
-      'جارٍ اعتماد المكتبة المستعادة...';
+  String get settings_cloudSync_message_adopting => 'جارٍ اعتماد المكتبة المستعادة...';
 
   @override
-  String get settings_cloudSync_message_adoptFailed =>
-      'فشل اعتماد المكتبة المستعادة';
+  String get settings_cloudSync_message_adoptFailed => 'فشل اعتماد المكتبة المستعادة';
 
   @override
-  String get settings_cloudSync_message_firstSyncNeedsConfirm =>
-      'المزامنة الأولى تحتاج إلى تأكيد. اضغط على مزامنة الآن للمراجعة.';
+  String get settings_cloudSync_message_firstSyncNeedsConfirm => 'المزامنة الأولى تحتاج إلى تأكيد. اضغط على مزامنة الآن للمراجعة.';
 
   @override
   String get settings_cloudSync_message_startingSync => 'جارٍ بدء المزامنة...';
 
   @override
-  String get settings_cloudSync_message_replacePaused =>
-      'المزامنة متوقفة مؤقتًا: تم استبدال المكتبة من نسخة احتياطية. اضغط على مزامنة الآن للمراجعة.';
+  String get settings_cloudSync_message_replacePaused => 'المزامنة متوقفة مؤقتًا: تم استبدال المكتبة من نسخة احتياطية. اضغط على مزامنة الآن للمراجعة.';
 
   @override
-  String get settings_cloudSync_message_encryptedPaused =>
-      'المزامنة متوقفة مؤقتًا: هذه المكتبة مشفرة. أدخل عبارة المرور للمتابعة.';
+  String get settings_cloudSync_message_encryptedPaused => 'المزامنة متوقفة مؤقتًا: هذه المكتبة مشفرة. أدخل عبارة المرور للمتابعة.';
 
   @override
-  String get settings_cloudSync_message_completedWithConflicts =>
-      'اكتملت المزامنة مع وجود تعارضات';
+  String get settings_cloudSync_message_completedWithConflicts => 'اكتملت المزامنة مع وجود تعارضات';
 
   @override
-  String get settings_cloudSync_message_completedSuccessfully =>
-      'اكتملت المزامنة بنجاح';
+  String get settings_cloudSync_message_completedSuccessfully => 'اكتملت المزامنة بنجاح';
 
   @override
   String get settings_cloudSync_message_syncFailed => 'فشلت المزامنة';
@@ -39555,10 +37377,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_message_phaseDefault => 'المزامنة';
 
   @override
-  String settings_cloudSync_message_syncErrorDuring(
-    String phase,
-    Object error,
-  ) {
+  String settings_cloudSync_message_syncErrorDuring(String phase, Object error) {
     return 'خطأ في المزامنة أثناء $phase: $error';
   }
 
@@ -39584,19 +37403,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_diagnostics_viewLog => 'عرض السجل';
 
   @override
-  String get settings_diagnostics_viewLogSubtitle =>
-      'يتم تسجيل التحذيرات والأخطاء تلقائيًا';
+  String get settings_diagnostics_viewLogSubtitle => 'يتم تسجيل التحذيرات والأخطاء تلقائيًا';
 
   @override
   String get settings_diagnostics_copy => 'نسخ بيانات التشخيص';
 
   @override
-  String get settings_diagnostics_copySubtitle =>
-      'إصدار التطبيق والجهاز وأحدث أسطر السجل لإرفاقها ببلاغ عن خطأ';
+  String get settings_diagnostics_copySubtitle => 'إصدار التطبيق والجهاز وأحدث أسطر السجل لإرفاقها ببلاغ عن خطأ';
 
   @override
-  String get settings_diagnostics_copiedSnack =>
-      'تم نسخ بيانات التشخيص إلى الحافظة';
+  String get settings_diagnostics_copiedSnack => 'تم نسخ بيانات التشخيص إلى الحافظة';
 
   @override
   String get settings_diagnostics_openFolder => 'فتح مجلد السجلات';
@@ -39636,8 +37452,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_preset_matchThresholdLabel => 'عتبة التطابق';
 
   @override
-  String get universalImport_preset_matchThresholdHelp =>
-      'مدى التطابق المطلوب في رؤوس أعمدة CSV للكشف التلقائي';
+  String get universalImport_preset_matchThresholdHelp => 'مدى التطابق المطلوب في رؤوس أعمدة CSV للكشف التلقائي';
 
   @override
   String universalImport_preset_signatureHeaders(int count) {
@@ -39663,12 +37478,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_preset_sectionSaved =>
-      'الإعدادات المسبقة المحفوظة';
+  String get universalImport_preset_sectionSaved => 'الإعدادات المسبقة المحفوظة';
 
   @override
-  String get universalImport_preset_sectionBuiltIn =>
-      'الإعدادات المسبقة المدمجة';
+  String get universalImport_preset_sectionBuiltIn => 'الإعدادات المسبقة المدمجة';
 
   @override
   String get universalImport_preset_deleteTitle => 'حذف الإعداد المسبق';
@@ -39679,11 +37492,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String universalImport_preset_headersMatched(
-    int matched,
-    int total,
-    int percent,
-  ) {
+  String universalImport_preset_headersMatched(int matched, int total, int percent) {
     return '$matched/$total رؤوس متطابقة ($percent%)';
   }
 
@@ -39708,15 +37517,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_cancel_inProgressTitle => 'جارٍ الإلغاء';
 
   @override
-  String get universalImport_cancel_inProgressBody =>
-      'سيتم إنهاء الغوصة الحالية قبل التوقف. تبقى الغوصات المستوردة بالفعل محفوظة.';
+  String get universalImport_cancel_inProgressBody => 'سيتم إنهاء الغوصة الحالية قبل التوقف. تبقى الغوصات المستوردة بالفعل محفوظة.';
 
   @override
   String get universalImport_cancel_confirmTitle => 'إلغاء الاستيراد؟';
 
   @override
-  String get universalImport_cancel_confirmBody =>
-      'سيتوقف بعد انتهاء الغوصة الحالية. تبقى الغوصات المستوردة بالفعل محفوظة.';
+  String get universalImport_cancel_confirmBody => 'سيتوقف بعد انتهاء الغوصة الحالية. تبقى الغوصات المستوردة بالفعل محفوظة.';
 
   @override
   String get universalImport_cancel_keepImporting => 'متابعة الاستيراد';
@@ -39725,8 +37532,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_cancel_confirmAction => 'إلغاء الاستيراد';
 
   @override
-  String get universalImport_cancel_discardSelections =>
-      'تجاهل التحديدات والإلغاء؟';
+  String get universalImport_cancel_discardSelections => 'تجاهل التحديدات والإلغاء؟';
 
   @override
   String get universalImport_action_importSelected => 'استيراد المحدد';
@@ -39833,12 +37639,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_action_viewDives => 'عرض الغوصات';
 
   @override
-  String get diveImport_healthkit_accessGranted =>
-      'تم منح الوصول إلى HealthKit';
+  String get diveImport_healthkit_accessGranted => 'تم منح الوصول إلى HealthKit';
 
   @override
-  String get diveImport_healthkit_accessGrantedBody =>
-      'يمكنك الانتقال إلى الخطوة التالية.';
+  String get diveImport_healthkit_accessGrantedBody => 'يمكنك الانتقال إلى الخطوة التالية.';
 
   @override
   String get diveImport_healthkit_requesting => 'جارٍ الطلب...';
@@ -39847,12 +37651,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveImport_healthkit_selectDateRange => 'اختيار النطاق الزمني';
 
   @override
-  String get diveImport_healthkit_selectDateRangeBody =>
-      'اختر النطاق الزمني للبحث عن الغوصات في Apple Health.';
+  String get diveImport_healthkit_selectDateRangeBody => 'اختر النطاق الزمني للبحث عن الغوصات في Apple Health.';
 
   @override
-  String get diveImport_healthkit_fetchingDives =>
-      'جارٍ جلب الغوصات من Apple Health...';
+  String get diveImport_healthkit_fetchingDives => 'جارٍ جلب الغوصات من Apple Health...';
 
   @override
   String get diveImport_healthkit_fetchFailed => 'فشل الجلب';
@@ -39878,8 +37680,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveImport_healthkit_proceedingToReview =>
-      'جارٍ الانتقال إلى المراجعة...';
+  String get diveImport_healthkit_proceedingToReview => 'جارٍ الانتقال إلى المراجعة...';
 
   @override
   String get importWizard_dc_knownComputer => 'كمبيوتر غوص معروف';
@@ -39893,12 +37694,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get importWizard_dc_noNewDives => 'لا توجد غوصات جديدة للتنزيل';
 
   @override
-  String get importWizard_dc_noNewDivesBody =>
-      'تم استيراد جميع الغوصات من هذا الكمبيوتر بالفعل.';
+  String get importWizard_dc_noNewDivesBody => 'تم استيراد جميع الغوصات من هذا الكمبيوتر بالفعل.';
 
   @override
-  String get universalImport_compare_noDiveData =>
-      'بيانات الغوصة غير متوفرة للمقارنة.';
+  String get universalImport_compare_noDiveData => 'بيانات الغوصة غير متوفرة للمقارنة.';
 
   @override
   String get universalImport_entityAction_consolidateBadge => 'دمج';
@@ -39916,8 +37715,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get lock_recoveryCode_title => 'استخدام رمز الاسترداد';
 
   @override
-  String get lock_recoveryCode_body =>
-      'أدخل رمز الاسترداد المكوَّن من 8 كلمات الذي حفظته عند إعداد كلمة مرور التطبيق.';
+  String get lock_recoveryCode_body => 'أدخل رمز الاسترداد المكوَّن من 8 كلمات الذي حفظته عند إعداد كلمة مرور التطبيق.';
 
   @override
   String get lock_recoveryCode_error => 'رمز الاسترداد غير صحيح.';
@@ -39926,22 +37724,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get lock_forcedReset_title => 'تعيين كلمة مرور جديدة';
 
   @override
-  String get lock_forcedReset_body =>
-      'لقد فتحت القفل باستخدام رمز الاسترداد، لذلك لم تعد كلمة مرورك القديمة موثوقة. اختر كلمة مرور جديدة الآن.';
+  String get lock_forcedReset_body => 'لقد فتحت القفل باستخدام رمز الاسترداد، لذلك لم تعد كلمة مرورك القديمة موثوقة. اختر كلمة مرور جديدة الآن.';
 
   @override
   String get lock_forcedReset_submit => 'تعيين كلمة المرور';
 
   @override
-  String get lock_forcedReset_error =>
-      'تعذّر تعيين كلمة المرور الجديدة. حاول مرة أخرى.';
+  String get lock_forcedReset_error => 'تعذّر تعيين كلمة المرور الجديدة. حاول مرة أخرى.';
 
   @override
   String get lock_sidecarRepair_title => 'إصلاح ملف مفتاح الأمان';
 
   @override
-  String get lock_sidecarRepair_body =>
-      'كان ملف مفتاح الأمان مفقودًا، وما زالت سلسلة مفاتيح هذا الجهاز تحتفظ بالمفتاح. أكِّد كلمة مرورك لكتابة ملف مفتاح جديد. ملاحظة: كلمة المرور التي تدخلها هنا تصبح كلمة مرور التطبيق من الآن فصاعدًا، وستتلقى رمز استرداد جديدًا.';
+  String get lock_sidecarRepair_body => 'كان ملف مفتاح الأمان مفقودًا، وما زالت سلسلة مفاتيح هذا الجهاز تحتفظ بالمفتاح. أكِّد كلمة مرورك لكتابة ملف مفتاح جديد. ملاحظة: كلمة المرور التي تدخلها هنا تصبح كلمة مرور التطبيق من الآن فصاعدًا، وستتلقى رمز استرداد جديدًا.';
 
   @override
   String get lock_sidecarRepair_submit => 'إصلاح';
@@ -39975,41 +37770,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get startup_error_title => 'تعذّر بدء تشغيل Submersion';
 
   @override
-  String get startup_error_body =>
-      'حدث خطأ ما قبل أن يكتمل فتح سجل الغوص الخاص بك. بياناتك ما زالت على القرص ولا تتطلب إعادة تثبيت. حاول إعادة تشغيل التطبيق، وإذا استمرت المشكلة تواصل مع الدعم.';
+  String get startup_error_body => 'حدث خطأ ما قبل أن يكتمل فتح سجل الغوص الخاص بك. بياناتك ما زالت على القرص ولا تتطلب إعادة تثبيت. حاول إعادة تشغيل التطبيق، وإذا استمرت المشكلة تواصل مع الدعم.';
 
   @override
-  String get startup_engineUnavailable_title =>
-      'هذه النسخة لا تستطيع فتح قاعدة بيانات';
+  String get startup_engineUnavailable_title => 'هذه النسخة لا تستطيع فتح قاعدة بيانات';
 
   @override
-  String get startup_engineUnavailable_body =>
-      'محرك قواعد البيانات الخاص بـ Submersion غير موجود في هذه النسخة، لذلك لم يُفتح سجل الغوص الخاص بك على الإطلاق. لم يتغيّر شيء على القرص ولا توجد بيانات معرّضة للخطر.';
+  String get startup_engineUnavailable_body => 'محرك قواعد البيانات الخاص بـ Submersion غير موجود في هذه النسخة، لذلك لم يُفتح سجل الغوص الخاص بك على الإطلاق. لم يتغيّر شيء على القرص ولا توجد بيانات معرّضة للخطر.';
 
   @override
-  String get startup_engineUnavailable_guidance =>
-      'إعادة التثبيت أو استرداد نسخة احتياطية لن تفيد هنا. ثبّت نسخة سليمة من Submersion، ويُرجى الإبلاغ عن هذه المشكلة: فهي خلل في حزمة التطبيق وليس في بياناتك.';
+  String get startup_engineUnavailable_guidance => 'إعادة التثبيت أو استرداد نسخة احتياطية لن تفيد هنا. ثبّت نسخة سليمة من Submersion، ويُرجى الإبلاغ عن هذه المشكلة: فهي خلل في حزمة التطبيق وليس في بياناتك.';
 
   @override
   String get startup_migrationFailed_title => 'فشلت ترقية قاعدة البيانات';
 
   @override
-  String get startup_migrationFailed_body =>
-      'تعذّرت ترقية سجل الغوص الخاص بك إلى التنسيق الذي تحتاجه هذه النسخة. أُخذت نسخة احتياطية قبل بدء الترقية، فلم يُفقد شيء.';
+  String get startup_migrationFailed_body => 'تعذّرت ترقية سجل الغوص الخاص بك إلى التنسيق الذي تحتاجه هذه النسخة. أُخذت نسخة احتياطية قبل بدء الترقية، فلم يُفقد شيء.';
 
   @override
   String get startup_dataUnreadable_title => 'تعذّرت قراءة سجل الغوص الخاص بك';
 
   @override
-  String get startup_dataUnreadable_body =>
-      'ملف قاعدة البيانات موجود، لكن Submersion لا يستطيع قراءته. يعني هذا عادةً أن الملف تالف. استرداد نسخة احتياطية هو أسرع طريق للعودة.';
+  String get startup_dataUnreadable_body => 'ملف قاعدة البيانات موجود، لكن Submersion لا يستطيع قراءته. يعني هذا عادةً أن الملف تالف. استرداد نسخة احتياطية هو أسرع طريق للعودة.';
 
   @override
   String get startup_databaseBusy_title => 'كان سجل الغوص الخاص بك مشغولاً';
 
   @override
-  String get startup_databaseBusy_body =>
-      'كان هناك شيء آخر لا يزال يستخدم ملف قاعدة البيانات، لذلك توقف Submersion بدلاً من الكتابة فيه. لم يتغيّر أي شيء ولم يتضرر أي شيء. أغلق Submersion تمامًا ثم افتحه مرة أخرى.';
+  String get startup_databaseBusy_body => 'كان هناك شيء آخر لا يزال يستخدم ملف قاعدة البيانات، لذلك توقف Submersion بدلاً من الكتابة فيه. لم يتغيّر أي شيء ولم يتضرر أي شيء. أغلق Submersion تمامًا ثم افتحه مرة أخرى.';
 
   @override
   String get startup_failure_technicalDetails => 'تفاصيل تقنية';
@@ -40023,10 +37811,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String startup_failure_backupAvailable_preMigration(
-    Object fromVersion,
-    Object toVersion,
-  ) {
+  String startup_failure_backupAvailable_preMigration(Object fromVersion, Object toVersion) {
     return 'نسخة احتياطية أُخذت قبل الترقية من المخطط v$fromVersion إلى v$toVersion.';
   }
 
@@ -40037,8 +37822,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get startup_failure_restoring => 'جارٍ استرداد سجل الغوص...';
 
   @override
-  String get startup_failure_restoreFailed =>
-      'تعذّر استرداد النسخة الاحتياطية. تُرك سجل الغوص الخاص بك كما كان تمامًا.';
+  String get startup_failure_restoreFailed => 'تعذّر استرداد النسخة الاحتياطية. تُرك سجل الغوص الخاص بك كما كان تمامًا.';
 
   @override
   String get startup_failure_backupsFolder => 'نسخك الاحتياطية موجودة في:';
@@ -40053,30 +37837,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get startup_failure_useAnotherFolder => 'استخدام سجل غوص في مجلد آخر';
 
   @override
-  String get startup_failure_useAnotherFolder_subtitle =>
-      'انتقل إلى سجل غوص تحتفظ به بالفعل في مكان آخر، مثل مجلد في iCloud Drive أو Dropbox.';
+  String get startup_failure_useAnotherFolder_subtitle => 'انتقل إلى سجل غوص تحتفظ به بالفعل في مكان آخر، مثل مجلد في iCloud Drive أو Dropbox.';
 
   @override
-  String get startup_failure_restoreFromFile =>
-      'الاستعادة من ملف نسخة احتياطية';
+  String get startup_failure_restoreFromFile => 'الاستعادة من ملف نسخة احتياطية';
 
   @override
-  String get startup_failure_restoreFromFile_subtitle =>
-      'اختر نسخة احتياطية من Submersion من أي مكان على هذا الجهاز أو في مجلد متزامن.';
+  String get startup_failure_restoreFromFile_subtitle => 'اختر نسخة احتياطية من Submersion من أي مكان على هذا الجهاز أو في مجلد متزامن.';
 
   @override
   String get startup_failure_startFresh => 'البدء بسجل غوص فارغ';
 
   @override
-  String get startup_failure_startFresh_subtitle =>
-      'ضع الملف التالف جانبًا وابدأ من جديد. لا يُحذف أي شيء.';
+  String get startup_failure_startFresh_subtitle => 'ضع الملف التالف جانبًا وابدأ من جديد. لا يُحذف أي شيء.';
 
   @override
   String get startup_recovery_adopt_title => 'استخدام سجل الغوص هذا؟';
 
   @override
-  String get startup_recovery_adopt_body =>
-      'سيفتح Submersion سجل الغوص هذا من الآن فصاعدًا. أما الملف الذي تعذر فتحه فيبقى في مكانه.';
+  String get startup_recovery_adopt_body => 'سيفتح Submersion سجل الغوص هذا من الآن فصاعدًا. أما الملف الذي تعذر فتحه فيبقى في مكانه.';
 
   @override
   String startup_recovery_adopt_contents(Object dives, Object sites) {
@@ -40090,8 +37869,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get startup_recovery_startFresh_title => 'البدء بسجل غوص فارغ؟';
 
   @override
-  String get startup_recovery_startFresh_body =>
-      'ينقل Submersion الملف التالف إلى مجلد خاص به ويفتح سجل غوص جديدًا وفارغًا. لا يُحذف أي شيء، لذا يمكنك تجربة الملف القديم لاحقًا أو إرساله إلى الدعم.';
+  String get startup_recovery_startFresh_body => 'ينقل Submersion الملف التالف إلى مجلد خاص به ويفتح سجل غوص جديدًا وفارغًا. لا يُحذف أي شيء، لذا يمكنك تجربة الملف القديم لاحقًا أو إرساله إلى الدعم.';
 
   @override
   String get startup_recovery_startFresh_confirm => 'البدء من جديد';
@@ -40120,15 +37898,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get startup_recovery_encryptedBackup_body =>
-      'هذه النسخة الاحتياطية مشفَّرة. لا يستطيع Submersion فتح نسخة مشفَّرة إلا بعد تشغيل التطبيق، لذا استخدم إحدى الطرق الأخرى هنا أولًا ثم استعِدها من الإعدادات ضمن النسخ الاحتياطي والاستعادة.';
+  String get startup_recovery_encryptedBackup_body => 'هذه النسخة الاحتياطية مشفَّرة. لا يستطيع Submersion فتح نسخة مشفَّرة إلا بعد تشغيل التطبيق، لذا استخدم إحدى الطرق الأخرى هنا أولًا ثم استعِدها من الإعدادات ضمن النسخ الاحتياطي والاستعادة.';
 
   @override
   String get startup_failure_downgrade_title => 'العودة إلى الإصدار السابق';
 
   @override
-  String get startup_failure_downgrade_body =>
-      'إذا استمرت الترقية في الفشل، ثبّت إصدار Submersion الذي كنت تستخدمه سابقًا، ثم استرد النسخة الاحتياطية من داخل ذلك الإصدار. الاسترداد هنا سيعيد تشغيل الترقية نفسها فحسب. لا يخفّض Submersion إصداره تلقائيًا: نقلك تلقائيًا إلى نسخ أقدم سيبقيك بصمت على إصدارات ذات مشكلات معروفة.';
+  String get startup_failure_downgrade_body => 'إذا استمرت الترقية في الفشل، ثبّت إصدار Submersion الذي كنت تستخدمه سابقًا، ثم استرد النسخة الاحتياطية من داخل ذلك الإصدار. الاسترداد هنا سيعيد تشغيل الترقية نفسها فحسب. لا يخفّض Submersion إصداره تلقائيًا: نقلك تلقائيًا إلى نسخ أقدم سيبقيك بصمت على إصدارات ذات مشكلات معروفة.';
 
   @override
   String get startup_failure_downgrade_action => 'عرض الإصدارات السابقة';
@@ -40137,23 +37913,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get startup_recovering_title => 'جارٍ استرداد قاعدة البيانات...';
 
   @override
-  String get startup_recovering_body =>
-      'جارٍ التراجع عن المعاملة المتوقفة. يستغرق ذلك عادةً بضع ثوانٍ.';
+  String get startup_recovering_body => 'جارٍ التراجع عن المعاملة المتوقفة. يستغرق ذلك عادةً بضع ثوانٍ.';
 
   @override
   String get startup_recoveryFailed_title => 'لم يكتمل الاسترداد';
 
   @override
-  String get startup_recoveryFailed_body =>
-      'تعذّر التراجع عن قاعدة البيانات تلقائيًا. بياناتك ما زالت على القرص؛ تواصل مع الدعم قبل إعادة التثبيت حتى نتمكن من مساعدتك في استردادها.';
+  String get startup_recoveryFailed_body => 'تعذّر التراجع عن قاعدة البيانات تلقائيًا. بياناتك ما زالت على القرص؛ تواصل مع الدعم قبل إعادة التثبيت حتى نتمكن من مساعدتك في استردادها.';
 
   @override
-  String get startup_recoveryRequired_title =>
-      'قاعدة البيانات بحاجة إلى استرداد';
+  String get startup_recoveryRequired_title => 'قاعدة البيانات بحاجة إلى استرداد';
 
   @override
-  String get startup_recoveryRequired_body =>
-      'انقطعت جلسة سابقة أثناء الكتابة في قاعدة البيانات. بياناتك ما زالت على القرص؛ نحتاج فقط إلى إتمام التراجع عن التغيير الملغى قبل أن يتمكن التطبيق من الفتح.';
+  String get startup_recoveryRequired_body => 'انقطعت جلسة سابقة أثناء الكتابة في قاعدة البيانات. بياناتك ما زالت على القرص؛ نحتاج فقط إلى إتمام التراجع عن التغيير الملغى قبل أن يتمكن التطبيق من الفتح.';
 
   @override
   String startup_recovery_sqliteCode(Object code) {
@@ -40164,8 +37936,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get startup_recovery_action => 'استرداد قاعدة البيانات';
 
   @override
-  String get startup_recovery_closeWithoutRecovering =>
-      'الإغلاق من دون استرداد';
+  String get startup_recovery_closeWithoutRecovering => 'الإغلاق من دون استرداد';
 
   @override
   String get common_action_tryAgain => 'حاول مرة أخرى';
@@ -40186,15 +37957,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get startup_backup_title => 'جارٍ عمل نسخة احتياطية من بياناتك';
 
   @override
-  String get startup_backup_body =>
-      'نحفظ نسخة من سجل الغوص الخاص بك قبل تحديث قاعدة بياناتك.';
+  String get startup_backup_body => 'نحفظ نسخة من سجل الغوص الخاص بك قبل تحديث قاعدة بياناتك.';
 
   @override
   String get startup_backupFailed_title => 'تعذّر عمل نسخة احتياطية من بياناتك';
 
   @override
-  String get startup_backupFailed_body =>
-      'لم يتغيّر سجل الغوص الخاص بك؛ لم نقم بتحديثه. حرِّر مساحة (أو عالج المشكلة) ثم حاول مرة أخرى.';
+  String get startup_backupFailed_body => 'لم يتغيّر سجل الغوص الخاص بك؛ لم نقم بتحديثه. حرِّر مساحة (أو عالج المشكلة) ثم حاول مرة أخرى.';
 
   @override
   String get startup_backupFailed_quit => 'إنهاء';
@@ -40209,10 +37978,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get startup_versionMismatch_title => 'بياناتك أحدث من هذا التطبيق';
 
   @override
-  String startup_versionMismatch_body(
-    Object databaseVersion,
-    Object appVersion,
-  ) {
+  String startup_versionMismatch_body(Object databaseVersion, Object appVersion) {
     return 'حُفظ سجل غوصك بالمخطط v$databaseVersion بواسطة إصدار أحدث من Submersion. هذا الإصدار يفتح الملفات حتى المخطط v$appVersion.';
   }
 
@@ -40220,24 +37986,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get startup_versionMismatch_causes_lead => 'يحدث هذا عادةً عندما:';
 
   @override
-  String get startup_versionMismatch_cause_beta =>
-      'قام إصدار بيتا بترقية الملف.';
+  String get startup_versionMismatch_cause_beta => 'قام إصدار بيتا بترقية الملف.';
 
   @override
-  String get startup_versionMismatch_cause_restored =>
-      'تمت استعادة نسخة احتياطية من إصدار أحدث.';
+  String get startup_versionMismatch_cause_restored => 'تمت استعادة نسخة احتياطية من إصدار أحدث.';
 
   @override
-  String get startup_versionMismatch_cause_shared =>
-      'الملف مشترك مع جهاز على قناة تحديث أخرى.';
+  String get startup_versionMismatch_cause_shared => 'الملف مشترك مع جهاز على قناة تحديث أخرى.';
 
   @override
-  String get startup_versionMismatch_instructions =>
-      'لم تُعدَّل بياناتك. افتحها بالإصدار الذي كتبها، أو بإصدار أحدث.';
+  String get startup_versionMismatch_instructions => 'لم تُعدَّل بياناتك. افتحها بالإصدار الذي كتبها، أو بإصدار أحدث.';
 
   @override
-  String get startup_versionMismatch_storeInstructions =>
-      'هذا التطبيق من متجر تطبيقات وهو أقدم من الإصدار الذي حفظ بياناتك. لم تُعدَّل بياناتك. حدّث Submersion عندما يظهر الإصدار الجديد في المتجر، ثم افتحه مجددًا.';
+  String get startup_versionMismatch_storeInstructions => 'هذا التطبيق من متجر تطبيقات وهو أقدم من الإصدار الذي حفظ بياناتك. لم تُعدَّل بياناتك. حدّث Submersion عندما يظهر الإصدار الجديد في المتجر، ثم افتحه مجددًا.';
 
   @override
   String get startup_versionMismatch_download => 'البحث عن إصدار مستقر أحدث';
@@ -40246,23 +38007,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get startup_versionMismatch_betaAction => 'الحصول على إصدار البيتا';
 
   @override
-  String get startup_versionMismatch_betaNote =>
-      'إصدارات البيتا أولية. اختر هذا فقط إذا كان إصدار بيتا قد كتب بياناتك.';
+  String get startup_versionMismatch_betaNote => 'إصدارات البيتا أولية. اختر هذا فقط إذا كان إصدار بيتا قد كتب بياناتك.';
 
   @override
-  String get startup_versionMismatch_manualLink =>
-      'إذا لم تفتح الأزرار متصفحًا:';
+  String get startup_versionMismatch_manualLink => 'إذا لم تفتح الأزرار متصفحًا:';
 
   @override
   String get universalImport_compare_downloaded => 'المنزَّلة';
 
   @override
-  String get universalImport_compare_errorLoading =>
-      'خطأ في تحميل بيانات الغوصة';
+  String get universalImport_compare_errorLoading => 'خطأ في تحميل بيانات الغوصة';
 
   @override
-  String get universalImport_compare_diveNotFound =>
-      'لم يتم العثور على الغوصة الموجودة';
+  String get universalImport_compare_diveNotFound => 'لم يتم العثور على الغوصة الموجودة';
 
   @override
   String universalImport_compare_sameFields(Object fields) {
@@ -40284,12 +38041,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_compare_skipSubtitle => 'تجاهل هذا التنزيل';
 
   @override
-  String get universalImport_compare_importAsNewSubtitle =>
-      'الحفظ كغوصة منفصلة';
+  String get universalImport_compare_importAsNewSubtitle => 'الحفظ كغوصة منفصلة';
 
   @override
-  String get universalImport_compare_consolidateSubtitle =>
-      'الإضافة كقراءة حاسوب ثانٍ';
+  String get universalImport_compare_consolidateSubtitle => 'الإضافة كقراءة حاسوب ثانٍ';
 
   @override
   String get diveLog_tooltip_ndlOverMax => '>60 min';
@@ -40312,8 +38067,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_profileEditor_rangeOperations => 'عمليات النطاق';
 
   @override
-  String get diveLog_profileEditor_selectRangeHint =>
-      'حدّد نطاقًا على الرسم البياني لتفعيل العمليات';
+  String get diveLog_profileEditor_selectRangeHint => 'حدّد نطاقًا على الرسم البياني لتفعيل العمليات';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'العمق +1m';
@@ -40373,8 +38127,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_profileEditor_manualDrawing => 'الرسم اليدوي';
 
   @override
-  String get diveLog_profileEditor_drawHint =>
-      'انقر على الرسم البياني لوضع نقاط المسار';
+  String get diveLog_profileEditor_drawHint => 'انقر على الرسم البياني لوضع نقاط المسار';
 
   @override
   String get diveLog_profileEditor_clearWaypoints => 'مسح';
@@ -40398,15 +38151,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_profileEditor_title => 'تعديل ملف الغوصة';
 
   @override
-  String get diveLog_profileEditor_discardBody =>
-      'لديك تغييرات غير محفوظة على ملف الغوصة هذا. هل تريد بالتأكيد تجاهلها؟';
+  String get diveLog_profileEditor_discardBody => 'لديك تغييرات غير محفوظة على ملف الغوصة هذا. هل تريد بالتأكيد تجاهلها؟';
 
   @override
   String get diveLog_profileEditor_saveTitle => 'حفظ ملف الغوصة؟';
 
   @override
-  String get diveLog_profileEditor_saveBody =>
-      'سيؤدي هذا إلى حفظ الملف المعدَّل كملف أساسي لهذه الغوصة. سيبقى الملف الأصلي محفوظًا ويمكن استعادته لاحقًا.';
+  String get diveLog_profileEditor_saveBody => 'سيؤدي هذا إلى حفظ الملف المعدَّل كملف أساسي لهذه الغوصة. سيبقى الملف الأصلي محفوظًا ويمكن استعادته لاحقًا.';
 
   @override
   String diveLog_profileEditor_saveFailed(String error) {
@@ -40419,8 +38170,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_profileEditor_noProfileData =>
-      'لا تتوفر بيانات ملف الغوصة';
+  String get diveLog_profileEditor_noProfileData => 'لا تتوفر بيانات ملف الغوصة';
 
   @override
   String get diveLog_profileEditor_undo => 'تراجع';
@@ -40514,40 +38264,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_profilePanel_selectDive => 'اختر غوصة لعرض ملفها';
 
   @override
-  String get diveLog_profilePanel_noProfileData =>
-      'لا توجد بيانات ملف لهذه الغوصة';
+  String get diveLog_profilePanel_noProfileData => 'لا توجد بيانات ملف لهذه الغوصة';
 
   @override
-  String get settings_export_progress_divesCsv =>
-      'جارٍ تصدير الغوصات إلى CSV...';
+  String get settings_export_progress_divesCsv => 'جارٍ تصدير الغوصات إلى CSV...';
 
   @override
-  String get settings_export_progress_sitesCsv =>
-      'جارٍ تصدير المواقع إلى CSV...';
+  String get settings_export_progress_sitesCsv => 'جارٍ تصدير المواقع إلى CSV...';
 
   @override
-  String get settings_export_progress_equipmentCsv =>
-      'جارٍ تصدير المعدات إلى CSV...';
+  String get settings_export_progress_equipmentCsv => 'جارٍ تصدير المعدات إلى CSV...';
 
   @override
-  String get settings_export_progress_observationsCsv =>
-      'جارٍ تصدير فحوصات المعدات إلى CSV...';
+  String get settings_export_progress_observationsCsv => 'جارٍ تصدير فحوصات المعدات إلى CSV...';
 
   @override
-  String get settings_export_progress_pdf =>
-      'جارٍ إنشاء سجل الغوص بصيغة PDF...';
+  String get settings_export_progress_pdf => 'جارٍ إنشاء سجل الغوص بصيغة PDF...';
 
   @override
-  String get settings_export_progress_loadingSignatures =>
-      'جارٍ تحميل التوقيعات...';
+  String get settings_export_progress_loadingSignatures => 'جارٍ تحميل التوقيعات...';
 
   @override
-  String get settings_export_progress_loadingProfiles =>
-      'جارٍ تحميل ملفات الغوص...';
+  String get settings_export_progress_loadingProfiles => 'جارٍ تحميل ملفات الغوص...';
 
   @override
-  String get settings_export_progress_loadingCertifications =>
-      'جارٍ تحميل الشهادات...';
+  String get settings_export_progress_loadingCertifications => 'جارٍ تحميل الشهادات...';
 
   @override
   String get settings_export_progress_loadingFonts => 'جارٍ تحميل الخطوط...';
@@ -40561,15 +38302,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_export_progress_uddf => 'جارٍ إنشاء ملف UDDF...';
 
   @override
-  String get settings_export_progress_collectingData =>
-      'جارٍ جمع كل البيانات...';
+  String get settings_export_progress_collectingData => 'جارٍ جمع كل البيانات...';
 
   @override
   String get settings_export_progress_excel => 'جارٍ إنشاء ملف Excel...';
 
   @override
-  String get settings_export_progress_buildingExcel =>
-      'جارٍ بناء مصنّف Excel...';
+  String get settings_export_progress_buildingExcel => 'جارٍ بناء مصنّف Excel...';
 
   @override
   String get settings_export_progress_kml => 'جارٍ إنشاء ملف KML...';
@@ -40578,8 +38317,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_export_progress_buildingKml => 'جارٍ بناء ملف KML...';
 
   @override
-  String get settings_export_progress_preparingExcel =>
-      'جارٍ تحضير ملف Excel...';
+  String get settings_export_progress_preparingExcel => 'جارٍ تحضير ملف Excel...';
 
   @override
   String get settings_export_progress_preparingKml => 'جارٍ تحضير ملف KML...';
@@ -40588,20 +38326,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_export_progress_chooseLocation => 'اختر موقع الحفظ...';
 
   @override
-  String get settings_export_progress_preparingDivesCsv =>
-      'جارٍ تحضير ملف CSV للغوصات...';
+  String get settings_export_progress_preparingDivesCsv => 'جارٍ تحضير ملف CSV للغوصات...';
 
   @override
-  String get settings_export_progress_preparingSitesCsv =>
-      'جارٍ تحضير ملف CSV للمواقع...';
+  String get settings_export_progress_preparingSitesCsv => 'جارٍ تحضير ملف CSV للمواقع...';
 
   @override
-  String get settings_export_progress_preparingEquipmentCsv =>
-      'جارٍ تحضير ملف CSV للمعدات...';
+  String get settings_export_progress_preparingEquipmentCsv => 'جارٍ تحضير ملف CSV للمعدات...';
 
   @override
-  String get settings_export_progress_preparingObservationsCsv =>
-      'جارٍ تحضير ملف CSV لفحوصات المعدات...';
+  String get settings_export_progress_preparingObservationsCsv => 'جارٍ تحضير ملف CSV لفحوصات المعدات...';
 
   @override
   String get settings_export_progress_preparingUddf => 'جارٍ تحضير ملف UDDF...';
@@ -40645,8 +38379,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_export_success_observations => 'تم تصدير فحوصات المعدات';
 
   @override
-  String get settings_export_success_pdf =>
-      'تم إنشاء سجل الغوص بصيغة PDF بنجاح';
+  String get settings_export_success_pdf => 'تم إنشاء سجل الغوص بصيغة PDF بنجاح';
 
   @override
   String get settings_export_success_uddf => 'تم إنشاء ملف UDDF بنجاح';
@@ -40694,12 +38427,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_export_saved_sitesCsv => 'تم حفظ ملف CSV للمواقع بنجاح';
 
   @override
-  String get settings_export_saved_equipmentCsv =>
-      'تم حفظ ملف CSV للمعدات بنجاح';
+  String get settings_export_saved_equipmentCsv => 'تم حفظ ملف CSV للمعدات بنجاح';
 
   @override
-  String get settings_export_saved_observationsCsv =>
-      'تم حفظ ملف CSV لفحوصات المعدات';
+  String get settings_export_saved_observationsCsv => 'تم حفظ ملف CSV لفحوصات المعدات';
 
   @override
   String get settings_export_saved_uddf => 'تم حفظ ملف UDDF بنجاح';
@@ -40720,12 +38451,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_export_saveSitesCsvDialogTitle => 'حفظ ملف CSV للمواقع';
 
   @override
-  String get settings_export_saveEquipmentCsvDialogTitle =>
-      'حفظ ملف CSV للمعدات';
+  String get settings_export_saveEquipmentCsvDialogTitle => 'حفظ ملف CSV للمعدات';
 
   @override
-  String get settings_export_saveObservationsCsvDialogTitle =>
-      'حفظ ملف CSV لفحوصات المعدات';
+  String get settings_export_saveObservationsCsvDialogTitle => 'حفظ ملف CSV لفحوصات المعدات';
 
   @override
   String backup_operation_created(String size) {
@@ -40746,8 +38475,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get backup_operation_restoreSourceMissing =>
-      'لم تتم استعادة أي شيء: تعذر العثور على ملف النسخة الاحتياطية. بياناتك الحالية لم تتغير.';
+  String get backup_operation_restoreSourceMissing => 'لم تتم استعادة أي شيء: تعذر العثور على ملف النسخة الاحتياطية. بياناتك الحالية لم تتغير.';
 
   @override
   String get backup_operation_deleting => 'جارٍ حذف النسخة الاحتياطية...';
@@ -40774,8 +38502,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get backup_operation_preparingShare =>
-      'جارٍ تحضير النسخة الاحتياطية للمشاركة...';
+  String get backup_operation_preparingShare => 'جارٍ تحضير النسخة الاحتياطية للمشاركة...';
 
   @override
   String get backup_operation_shareReady => 'النسخة الاحتياطية جاهزة للمشاركة';
@@ -40811,8 +38538,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get backup_restore_preMigration_title =>
-      'استعادة نسخة احتياطية سابقة للترحيل';
+  String get backup_restore_preMigration_title => 'استعادة نسخة احتياطية سابقة للترحيل';
 
   @override
   String get backup_restore_preMigration_unknownVersion => 'إصدار غير معروف';
@@ -40821,40 +38547,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_restore_preMigration_restoreAnyway => 'استعادة على أي حال';
 
   @override
-  String backup_restore_preMigration_incompleteMetadata(
-    String timestamp,
-    String appVersion,
-  ) {
+  String backup_restore_preMigration_incompleteMetadata(String timestamp, String appVersion) {
     return 'أُنشئت هذه النسخة الاحتياطية في $timestamp بواسطة إصدار التطبيق $appVersion، لكن بياناتها الوصفية الخاصة بترحيل قاعدة البيانات غير مكتملة.\n\nلا يستطيع التطبيق التحقق مما إذا كانت استعادة هذه النسخة الاحتياطية آمنة، لذا فإن الاستعادة معطّلة.';
   }
 
   @override
-  String backup_restore_preMigration_newerApp(
-    String timestamp,
-    String appVersion,
-    int fromVersion,
-  ) {
+  String backup_restore_preMigration_newerApp(String timestamp, String appVersion, int fromVersion) {
     return 'هذه النسخة الاحتياطية أحدث من تطبيقك. ثبّت إصدارًا أحدث من التطبيق لاستعادتها.\n\nأُنشئت النسخة الاحتياطية في $timestamp بواسطة إصدار التطبيق $appVersion (قاعدة البيانات v$fromVersion).';
   }
 
   @override
-  String backup_restore_preMigration_safe(
-    String timestamp,
-    String appVersion,
-    int fromVersion,
-    int toVersion,
-  ) {
+  String backup_restore_preMigration_safe(String timestamp, String appVersion, int fromVersion, int toVersion) {
     return 'أُنشئت هذه النسخة الاحتياطية في $timestamp بواسطة إصدار التطبيق $appVersion، قبل ترقية قاعدة البيانات من v$fromVersion إلى v$toVersion مباشرة.\n\nمخطط قاعدة بيانات تطبيقك يطابق هذه النسخة الاحتياطية، لذا فإن الاستعادة آمنة.';
   }
 
   @override
-  String backup_restore_preMigration_warning(
-    String timestamp,
-    String appVersion,
-    int fromVersion,
-    int toVersion,
-    int currentVersion,
-  ) {
+  String backup_restore_preMigration_warning(String timestamp, String appVersion, int fromVersion, int toVersion, int currentVersion) {
     return 'أُنشئت هذه النسخة الاحتياطية في $timestamp بواسطة إصدار التطبيق $appVersion، قبل ترقية قاعدة البيانات من v$fromVersion إلى v$toVersion مباشرة.\n\nأنت تستخدم تطبيقًا أحدث (قاعدة البيانات v$currentVersion).\n\nالاستعادة الآن ستعيد تشغيل ترقية قاعدة البيانات v$fromVersion → v$toVersion على بياناتك المستعادة: وهي نفس الترقية التي كانت على وشك التشغيل في الأصل. فإذا كانت تلك الترقية هي سبب المشكلة، فستواجه المشكلة نفسها مرة أخرى.\n\nللاستعادة بأمان: ثبّت التطبيق بالإصدار $appVersion أو أقدم، ثم استعد هذه النسخة الاحتياطية من ذلك التطبيق الأقدم.';
   }
 
@@ -40873,10 +38581,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String settings_cloudSync_progress_downloadingLibrary(
-    int downloaded,
-    int total,
-  ) {
+  String settings_cloudSync_progress_downloadingLibrary(int downloaded, int total) {
     return 'جارٍ تنزيل المكتبة ($downloaded من $total)';
   }
 
@@ -40886,35 +38591,28 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_result_noProvider =>
-      'لم يتم إعداد أي مزود تخزين سحابي';
+  String get settings_cloudSync_result_noProvider => 'لم يتم إعداد أي مزود تخزين سحابي';
 
   @override
-  String get settings_cloudSync_result_notAuthenticated =>
-      'لم تتم المصادقة مع مزود التخزين السحابي';
+  String get settings_cloudSync_result_notAuthenticated => 'لم تتم المصادقة مع مزود التخزين السحابي';
 
   @override
   String get settings_cloudSync_result_timedOut => 'انتهت مهلة المزامنة';
 
   @override
-  String get settings_cloudSync_result_epochMarkerUnreadable =>
-      'تعذّرت قراءة علامة حقبة المكتبة';
+  String get settings_cloudSync_result_epochMarkerUnreadable => 'تعذّرت قراءة علامة حقبة المكتبة';
 
   @override
-  String get settings_cloudSync_result_epochMarkerEncrypted =>
-      'علامة حقبة المكتبة مشفّرة';
+  String get settings_cloudSync_result_epochMarkerEncrypted => 'علامة حقبة المكتبة مشفّرة';
 
   @override
-  String get settings_cloudSync_result_libraryReplacedRemotely =>
-      'تم استبدال مكتبة السحابة من نسخة احتياطية';
+  String get settings_cloudSync_result_libraryReplacedRemotely => 'تم استبدال مكتبة السحابة من نسخة احتياطية';
 
   @override
-  String get settings_cloudSync_result_noReplacementToRebuild =>
-      'لا يوجد استبدال للمكتبة يمكن إعادة البناء منه';
+  String get settings_cloudSync_result_noReplacementToRebuild => 'لا يوجد استبدال للمكتبة يمكن إعادة البناء منه';
 
   @override
-  String get settings_cloudSync_result_rebuiltFromThisDevice =>
-      'تمت إعادة بناء هذه الخدمة من مكتبة هذا الجهاز';
+  String get settings_cloudSync_result_rebuiltFromThisDevice => 'تمت إعادة بناء هذه الخدمة من مكتبة هذا الجهاز';
 
   @override
   String settings_cloudSync_result_rebuildFailed(String error) {
@@ -40930,12 +38628,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_result_noReplacementMarker =>
-      'لم يتم العثور على علامة استبدال المكتبة';
+  String get settings_cloudSync_result_noReplacementMarker => 'لم يتم العثور على علامة استبدال المكتبة';
 
   @override
-  String get settings_cloudSync_result_adoptedRestoredLibrary =>
-      'تم اعتماد المكتبة المستعادة';
+  String get settings_cloudSync_result_adoptedRestoredLibrary => 'تم اعتماد المكتبة المستعادة';
 
   @override
   String settings_cloudSync_result_adoptFailed(String error) {
@@ -40943,16 +38639,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_result_previousLibraryUnreadable =>
-      'تعذّرت قراءة المكتبة السابقة؛ وأُعيد إنشاء هذه الخدمة من مكتبة هذا الجهاز.';
+  String get settings_cloudSync_result_previousLibraryUnreadable => 'تعذّرت قراءة المكتبة السابقة؛ وأُعيد إنشاء هذه الخدمة من مكتبة هذا الجهاز.';
 
   @override
-  String get settings_cloudSync_result_replacementStillUploading =>
-      'لا يزال رفع المكتبة المستبدَلة جاريًا. حاول مرة أخرى بعد قليل.';
+  String get settings_cloudSync_result_replacementStillUploading => 'لا يزال رفع المكتبة المستبدَلة جاريًا. حاول مرة أخرى بعد قليل.';
 
   @override
-  String get settings_cloudSync_result_cloudLibraryNewerSchema =>
-      'تم نشر مكتبة السحابة بواسطة إصدار أحدث من Submersion. حدِّث هذا الجهاز ثم حاول مرة أخرى.';
+  String get settings_cloudSync_result_cloudLibraryNewerSchema => 'تم نشر مكتبة السحابة بواسطة إصدار أحدث من Submersion. حدِّث هذا الجهاز ثم حاول مرة أخرى.';
 
   @override
   String settings_cloudSync_result_recordsFailed(int count) {
@@ -40970,8 +38663,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_result_adoptedFreshIdentity =>
-      'كان جهاز آخر يتزامن باستخدام هوية هذا الجهاز. اعتمد هذا الجهاز هوية جديدة ودمج بيانات السحابة.';
+  String get settings_cloudSync_result_adoptedFreshIdentity => 'كان جهاز آخر يتزامن باستخدام هوية هذا الجهاز. اعتمد هذا الجهاز هوية جديدة ودمج بيانات السحابة.';
 
   @override
   String settings_cloudSync_launchCheck_unavailable(String provider) {
@@ -40999,16 +38691,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_launchCheck_noRemoteData =>
-      'لم يتم العثور على بيانات مزامنة في السحابة';
+  String get settings_cloudSync_launchCheck_noRemoteData => 'لم يتم العثور على بيانات مزامنة في السحابة';
 
   @override
-  String get settings_cloudSync_launchCheck_cloudDataAvailable =>
-      'بيانات السحابة متاحة';
+  String get settings_cloudSync_launchCheck_cloudDataAvailable => 'بيانات السحابة متاحة';
 
   @override
-  String get settings_cloudSync_launchCheck_updatesAvailable =>
-      'تتوفر تحديثات من السحابة';
+  String get settings_cloudSync_launchCheck_updatesAvailable => 'تتوفر تحديثات من السحابة';
 
   @override
   String get settings_cloudSync_launchCheck_upToDate => 'كل شيء محدّث';
@@ -41043,8 +38732,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_species_otherSpecies => 'أنواع أخرى...';
 
   @override
-  String get media_species_noDiveHint =>
-      'هذه الصورة غير مرتبطة بغوصة. ابحث عن نوع لوسمها.';
+  String get media_species_noDiveHint => 'هذه الصورة غير مرتبطة بغوصة. ابحث عن نوع لوسمها.';
 
   @override
   String get media_species_chipsLabel => 'وسوم الأنواع';
@@ -41203,8 +38891,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_info_servedGallery => 'مكتبة الصور';
 
   @override
-  String get media_info_servedStoreCache =>
-      'ذاكرة تخزين محلية، من التخزين السحابي';
+  String get media_info_servedStoreCache => 'ذاكرة تخزين محلية، من التخزين السحابي';
 
   @override
   String get media_info_servedStoreNetwork => 'تم تنزيله من التخزين السحابي';
@@ -41213,8 +38900,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_info_servedNetworkUrl => 'بث من رابط';
 
   @override
-  String get media_info_servedConnectorCache =>
-      'ذاكرة تخزين محلية، من الخدمة المتصلة';
+  String get media_info_servedConnectorCache => 'ذاكرة تخزين محلية، من الخدمة المتصلة';
 
   @override
   String get media_info_servedConnectorNetwork => 'تم تنزيله من الخدمة المتصلة';
@@ -41223,8 +38909,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_info_servedEmbedded => 'مخزن داخل هذا السجل';
 
   @override
-  String get media_info_servingFallbackNote =>
-      'تعذر الوصول إلى المصدر الأصلي، لذلك تم التقديم من التخزين السحابي.';
+  String get media_info_servingFallbackNote => 'تعذر الوصول إلى المصدر الأصلي، لذلك تم التقديم من التخزين السحابي.';
 
   @override
   String get media_info_servingTierThumbnail => 'صورة مصغرة';
@@ -41320,12 +39005,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_servedFrom_embedded => 'محفوظ في سجل الغوص هذا';
 
   @override
-  String get settings_media_provenanceBadges =>
-      'إظهار شارات المصدر على الصور المصغرة';
+  String get settings_media_provenanceBadges => 'إظهار شارات المصدر على الصور المصغرة';
 
   @override
-  String get settings_media_provenanceBadgesSubtitle =>
-      'رمز صغير يوضح مصدر كل عنصر. تظهر شارات المشكلات دائما.';
+  String get settings_media_provenanceBadgesSubtitle => 'رمز صغير يوضح مصدر كل عنصر. تظهر شارات المشكلات دائما.';
 
   @override
   String get media_status_transferFailed => 'فشل الرفع';
@@ -41346,28 +39029,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_tile_infoMenuItem => 'معلومات الوسائط';
 
   @override
-  String get diveImport_healthkit_accessGrantedHint =>
-      'لا يخبر تطبيق صحة Apple التطبيقات أبدًا بما إذا كان قد تم منح إذن القراءة. إذا لم تظهر أي غطسات، افتح تطبيق صحة ثم المشاركة ثم التطبيقات ثم Submersion، وفعّل التمارين وعمق الغوص ودرجة حرارة الماء ومعدل ضربات القلب.';
+  String get diveImport_healthkit_accessGrantedHint => 'لا يخبر تطبيق صحة Apple التطبيقات أبدًا بما إذا كان قد تم منح إذن القراءة. إذا لم تظهر أي غطسات، افتح تطبيق صحة ثم المشاركة ثم التطبيقات ثم Submersion، وفعّل التمارين وعمق الغوص ودرجة حرارة الماء ومعدل ضربات القلب.';
 
   @override
-  String get diveImport_healthkit_foundNoDivesHint =>
-      'لا توجد تمارين غوص في هذا النطاق. تأكد من أن التواريخ تغطي الغطسة، ومن تفعيل التمارين وعمق الغوص في تطبيق صحة ضمن المشاركة ثم التطبيقات ثم Submersion.';
+  String get diveImport_healthkit_foundNoDivesHint => 'لا توجد تمارين غوص في هذا النطاق. تأكد من أن التواريخ تغطي الغطسة، ومن تفعيل التمارين وعمق الغوص في تطبيق صحة ضمن المشاركة ثم التطبيقات ثم Submersion.';
 
   @override
-  String get settings_dataSources_appleHealth_dataTypeDepth =>
-      'عمق الغوص - عينات العمق المسجلة أثناء الغطسات';
+  String get settings_dataSources_appleHealth_dataTypeDepth => 'عمق الغوص - عينات العمق المسجلة أثناء الغطسات';
 
   @override
-  String get settings_dataSources_appleHealth_dataTypeWaterTemp =>
-      'درجة حرارة الماء - عينات درجة الحرارة المسجلة أثناء الغطسات';
+  String get settings_dataSources_appleHealth_dataTypeWaterTemp => 'درجة حرارة الماء - عينات درجة الحرارة المسجلة أثناء الغطسات';
 
   @override
-  String get settings_dataSources_appleHealth_permissionManagedInHealth =>
-      'تتم إدارة وصول HealthKit من تطبيق صحة';
+  String get settings_dataSources_appleHealth_permissionManagedInHealth => 'تتم إدارة وصول HealthKit من تطبيق صحة';
 
   @override
-  String get settings_dataSources_appleHealth_permissionUnsupported =>
-      'HealthKit غير متوفر على هذا الجهاز';
+  String get settings_dataSources_appleHealth_permissionUnsupported => 'HealthKit غير متوفر على هذا الجهاز';
 
   @override
   String get insights_trend_aggregation_monthly => 'المتوسط الشهري';
@@ -41382,8 +39059,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_trend_aggregation_weekly => 'المتوسط الأسبوعي';
 
   @override
-  String get insights_trend_band_semanticLabel =>
-      'يمتد النطاق المظلل بين أدنى وأعلى قيمة في كل مجموعة';
+  String get insights_trend_band_semanticLabel => 'يمتد النطاق المظلل بين أدنى وأعلى قيمة في كل مجموعة';
 
   @override
   String get insights_trend_legend_rate => 'الاتجاه العام';
@@ -41403,28 +39079,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_conditions_tempTrend_subtitle => 'كل غطسة ضمن النطاق';
 
   @override
-  String get insights_conditions_tempTrend_empty =>
-      'لا تتوفر بيانات درجة الحرارة';
+  String get insights_conditions_tempTrend_empty => 'لا تتوفر بيانات درجة الحرارة';
 
   @override
-  String get insights_conditions_tempTrend_error =>
-      'تعذر تحميل اتجاه درجة الحرارة';
+  String get insights_conditions_tempTrend_error => 'تعذر تحميل اتجاه درجة الحرارة';
 
   @override
-  String get insights_conditions_waterTempBands_title =>
-      'الغطسات حسب درجة حرارة الماء';
+  String get insights_conditions_waterTempBands_title => 'الغطسات حسب درجة حرارة الماء';
 
   @override
-  String get insights_conditions_waterTempBands_subtitle =>
-      'توزيع غطساتك على نطاقات درجة حرارة الماء';
+  String get insights_conditions_waterTempBands_subtitle => 'توزيع غطساتك على نطاقات درجة حرارة الماء';
 
   @override
-  String get insights_conditions_waterTempBands_empty =>
-      'لا توجد بيانات عن درجة حرارة الماء';
+  String get insights_conditions_waterTempBands_empty => 'لا توجد بيانات عن درجة حرارة الماء';
 
   @override
-  String get insights_conditions_waterTempBands_error =>
-      'تعذر تحميل نطاقات درجة حرارة الماء';
+  String get insights_conditions_waterTempBands_error => 'تعذر تحميل نطاقات درجة حرارة الماء';
 
   @override
   String insights_conditions_waterTempBands_semanticLabel(String description) {
@@ -41444,33 +39114,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_conditions_waterTempBands_table_avgRmv => 'متوسط RMV';
 
   @override
-  String get insights_conditions_waterTempBands_table_avgBottomTime =>
-      'متوسط وقت القاع';
+  String get insights_conditions_waterTempBands_table_avgBottomTime => 'متوسط وقت القاع';
 
   @override
-  String get insights_conditions_waterTempBands_table_error =>
-      'تعذر تحميل متوسطات النطاقات';
+  String get insights_conditions_waterTempBands_table_error => 'تعذر تحميل متوسطات النطاقات';
 
   @override
-  String insights_conditions_waterTempBands_table_averageOver(
-    String value,
-    String dives,
-  ) {
+  String insights_conditions_waterTempBands_table_averageOver(String value, String dives) {
     return '$value من $dives';
   }
 
   @override
-  String get insights_conditions_waterTempBands_table_noData =>
-      'لا توجد بيانات';
+  String get insights_conditions_waterTempBands_table_noData => 'لا توجد بيانات';
 
   @override
-  String insights_conditions_waterTempBands_table_rowSemanticLabel(
-    String band,
-    String dives,
-    String lane,
-    String consumption,
-    String bottomTime,
-  ) {
+  String insights_conditions_waterTempBands_table_rowSemanticLabel(String band, String dives, String lane, String consumption, String bottomTime) {
     return '$band: $dives. متوسط $lane: $consumption. متوسط وقت القاع: $bottomTime.';
   }
 
@@ -41490,15 +39148,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_excludeFromStats => 'استبعاد من الإحصائيات';
 
   @override
-  String get diveLog_edit_excludeFromStatsHelp =>
-      'احتفظ بهذه الغطسة في سجلك، لكن استبعدها من كل الإحصائيات، بما في ذلك عدد غطساتك.';
+  String get diveLog_edit_excludeFromStatsHelp => 'احتفظ بهذه الغطسة في سجلك، لكن استبعدها من كل الإحصائيات، بما في ذلك عدد غطساتك.';
 
   @override
   String get diveLog_edit_excludeFromGasStats => 'استبعاد من إحصائيات الغاز';
 
   @override
-  String get diveLog_edit_excludeFromGasStatsHelp =>
-      'استبعد هذه الغطسة من إحصائيات SAC وRMV وخليط الغاز فقط. مفيد عندما تكون قراءة الغاز غير ممثلة.';
+  String get diveLog_edit_excludeFromGasStatsHelp => 'استبعد هذه الغطسة من إحصائيات SAC وRMV وخليط الغاز فقط. مفيد عندما تكون قراءة الغاز غير ممثلة.';
 
   @override
   String get diveLog_badge_excludedFromStats => 'مستبعدة من الإحصائيات';
@@ -41510,8 +39166,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_bulkEdit_fieldExcludeFromStats => 'استبعاد من الإحصائيات';
 
   @override
-  String get diveLog_bulkEdit_fieldExcludeFromGasStats =>
-      'استبعاد من إحصائيات الغاز';
+  String get diveLog_bulkEdit_fieldExcludeFromGasStats => 'استبعاد من إحصائيات الغاز';
 
   @override
   String get diveLog_filter_excludedOnly => 'المستبعدة من الإحصائيات فقط';
@@ -41547,8 +39202,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get suuntoCloud_signIn_title => 'تسجيل الدخول إلى Suunto';
 
   @override
-  String get suuntoCloud_signIn_description =>
-      'سجّل الدخول بحساب app.suunto.com لاستيراد غوصاتك مباشرة. لا يتم تخزين كلمة المرور مطلقًا، بل يتم تخزين الجلسة الناتجة فقط.';
+  String get suuntoCloud_signIn_description => 'سجّل الدخول بحساب app.suunto.com لاستيراد غوصاتك مباشرة. لا يتم تخزين كلمة المرور مطلقًا، بل يتم تخزين الجلسة الناتجة فقط.';
 
   @override
   String get suuntoCloud_signIn_emailLabel => 'البريد الإلكتروني';
@@ -41632,8 +39286,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get garminConnect_signIn_title => 'تسجيل الدخول إلى Garmin Connect';
 
   @override
-  String get garminConnect_signIn_description =>
-      'سجّل الدخول بحساب Garmin Connect الخاص بك لاستيراد غوصاتك مباشرة. لا يتم تخزين كلمة المرور مطلقًا، بل يتم تخزين الجلسة الناتجة فقط.';
+  String get garminConnect_signIn_description => 'سجّل الدخول بحساب Garmin Connect الخاص بك لاستيراد غوصاتك مباشرة. لا يتم تخزين كلمة المرور مطلقًا، بل يتم تخزين الجلسة الناتجة فقط.';
 
   @override
   String get garminConnect_signIn_emailLabel => 'البريد الإلكتروني';
@@ -41749,22 +39402,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_importCloud_suuntoTitle => 'Suunto';
 
   @override
-  String get transfer_importCloud_suuntoSubtitle =>
-      'استيراد الغوصات من تطبيق Suunto أو حساب app.suunto.com';
+  String get transfer_importCloud_suuntoSubtitle => 'استيراد الغوصات من تطبيق Suunto أو حساب app.suunto.com';
 
   @override
   String get transfer_importCloud_garminTitle => 'Garmin';
 
   @override
-  String get transfer_importCloud_garminSubtitle =>
-      'استيراد الغوصات من حساب Garmin Connect الخاص بك';
+  String get transfer_importCloud_garminSubtitle => 'استيراد الغوصات من حساب Garmin Connect الخاص بك';
 
   @override
   String get transfer_importCloud_divelogsTitle => 'divelogs.de';
 
   @override
-  String get transfer_importCloud_divelogsSubtitle =>
-      'استيراد سجلك ومواقعك ومعداتك وشهاداتك وصورك من divelogs.de';
+  String get transfer_importCloud_divelogsSubtitle => 'استيراد سجلك ومواقعك ومعداتك وشهاداتك وصورك من divelogs.de';
 
   @override
   String get transfer_section_cloudTitle => 'السحابة';
@@ -41779,8 +39429,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_storageUsage_tile_title => 'استخدام التخزين';
 
   @override
-  String get settings_storageUsage_tile_subtitle =>
-      'اطلع على ما يشغل مساحة على هذا الجهاز';
+  String get settings_storageUsage_tile_subtitle => 'اطلع على ما يشغل مساحة على هذا الجهاز';
 
   @override
   String get settings_storageUsage_total => 'الإجمالي';
@@ -41816,35 +39465,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_storageUsage_group_exports => 'الملفات المصدرة';
 
   @override
-  String get settings_storageUsage_group_importedFiles =>
-      'بيانات الاستيراد الخام';
+  String get settings_storageUsage_group_importedFiles => 'بيانات الاستيراد الخام';
 
   @override
-  String get settings_storageUsage_category_database =>
-      'قاعدة بيانات سجل الغوص';
+  String get settings_storageUsage_category_database => 'قاعدة بيانات سجل الغوص';
 
   @override
-  String get settings_storageUsage_category_localCache =>
-      'قاعدة بيانات التخزين المؤقت المحلي';
+  String get settings_storageUsage_category_localCache => 'قاعدة بيانات التخزين المؤقت المحلي';
 
   @override
-  String get settings_storageUsage_category_mediaCacheOriginals =>
-      'الصور ومقاطع الفيديو الأصلية';
+  String get settings_storageUsage_category_mediaCacheOriginals => 'الصور ومقاطع الفيديو الأصلية';
 
   @override
   String get settings_storageUsage_category_mediaCacheThumbs => 'الصور المصغرة';
 
   @override
-  String get settings_storageUsage_category_mediaCacheRenditions =>
-      'نسخ الفيديو';
+  String get settings_storageUsage_category_mediaCacheRenditions => 'نسخ الفيديو';
 
   @override
-  String get settings_storageUsage_category_mediaCacheStaging =>
-      'عمليات النقل المهيأة';
+  String get settings_storageUsage_category_mediaCacheStaging => 'عمليات النقل المهيأة';
 
   @override
-  String get settings_storageUsage_category_mediaCacheTranscode =>
-      'الفيديو المحول';
+  String get settings_storageUsage_category_mediaCacheTranscode => 'الفيديو المحول';
 
   @override
   String get settings_storageUsage_category_mapTiles => 'مربعات الخريطة';
@@ -41853,12 +39495,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_storageUsage_category_networkImages => 'صور الشبكة';
 
   @override
-  String get settings_storageUsage_category_videoThumbnails =>
-      'الصور المصغرة للفيديو';
+  String get settings_storageUsage_category_videoThumbnails => 'الصور المصغرة للفيديو';
 
   @override
-  String get settings_storageUsage_category_pdfThumbnails =>
-      'الصور المصغرة للمستندات';
+  String get settings_storageUsage_category_pdfThumbnails => 'الصور المصغرة للمستندات';
 
   @override
   String get settings_storageUsage_category_backups => 'ملفات النسخ الاحتياطي';
@@ -41870,8 +39510,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_storageUsage_category_exports => 'الملفات المصدرة';
 
   @override
-  String get settings_storageUsage_category_importedFiles =>
-      'ملفات الاستيراد الأصلية';
+  String get settings_storageUsage_category_importedFiles => 'ملفات الاستيراد الأصلية';
 
   @override
   String get profilePhoto_sheet_title => 'صورة الملف الشخصي';
@@ -41895,23 +39534,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profilePhoto_crop_title => 'تعديل الصورة';
 
   @override
-  String get profilePhoto_crop_hint =>
-      'اسحب لتغيير الموضع، وقرّب بإصبعين للتكبير';
+  String get profilePhoto_crop_hint => 'اسحب لتغيير الموضع، وقرّب بإصبعين للتكبير';
 
   @override
-  String get profilePhoto_error_tooLarge =>
-      'هذه الصورة كبيرة جدًا. جرّب صورة أصغر.';
+  String get profilePhoto_error_tooLarge => 'هذه الصورة كبيرة جدًا. جرّب صورة أصغر.';
 
   @override
   String get profilePhoto_error_undecodable => 'تعذّرت قراءة هذا الملف كصورة.';
 
   @override
-  String get profilePhoto_error_contactNoPhoto =>
-      'جهة الاتصال هذه ليس لها صورة.';
+  String get profilePhoto_error_contactNoPhoto => 'جهة الاتصال هذه ليس لها صورة.';
 
   @override
-  String get profilePhoto_error_contactPermission =>
-      'يلزم إذن الوصول إلى جهات الاتصال لاختيار صورة.';
+  String get profilePhoto_error_contactPermission => 'يلزم إذن الوصول إلى جهات الاتصال لاختيار صورة.';
 
   @override
   String get diveComputer_merge_title => 'دمج أجهزة كمبيوتر الغوص';
@@ -41945,8 +39580,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_merge_serialMismatchWarning =>
-      'تُبلغ هذه السجلات عن أرقام تسلسلية مختلفة. قد تكون أجهزة مختلفة.';
+  String get diveComputer_merge_serialMismatchWarning => 'تُبلغ هذه السجلات عن أرقام تسلسلية مختلفة. قد تكون أجهزة مختلفة.';
 
   @override
   String get diveComputer_merge_action => 'دمج';
@@ -41977,8 +39611,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_detail_mergePickerTitle => 'الدمج مع';
 
   @override
-  String get diveComputer_detail_mergePickerEmpty =>
-      'لا توجد أجهزة كمبيوتر أخرى للدمج معها.';
+  String get diveComputer_detail_mergePickerEmpty => 'لا توجد أجهزة كمبيوتر أخرى للدمج معها.';
 
   @override
   String get diveComputer_detail_mergePickerSameSerial => 'نفس الرقم التسلسلي';
@@ -41997,12 +39630,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_detail_duplicateBannerAction => 'دمج';
 
   @override
-  String get startup_versionMismatch_restore_title =>
-      'استعادة النسخة الاحتياطية السابقة للترقية';
+  String get startup_versionMismatch_restore_title => 'استعادة النسخة الاحتياطية السابقة للترقية';
 
   @override
-  String get startup_versionMismatch_restore_warning =>
-      'الغوصات المسجّلة بعد الترقية موجودة في الملف الأحدث فقط. يُحتفظ به كنسخة احتياطية مثبّتة، لذا فإن إعادة تثبيت الإصدار الأحدث تستعيدها.';
+  String get startup_versionMismatch_restore_warning => 'الغوصات المسجّلة بعد الترقية موجودة في الملف الأحدث فقط. يُحتفظ به كنسخة احتياطية مثبّتة، لذا فإن إعادة تثبيت الإصدار الأحدث تستعيدها.';
 
   @override
   String get startup_interruptedRestore_title => 'لم تكتمل عملية استعادة';
@@ -42013,28 +39644,22 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get startup_interruptedRestore_body =>
-      'كان Submersion يستعيد نسخة احتياطية عندما توقف. لا يزال سجل الغوص الخاص بك من قبل تلك الاستعادة على هذا الجهاز، ويمكن لهذا الإصدار فتحه.';
+  String get startup_interruptedRestore_body => 'كان Submersion يستعيد نسخة احتياطية عندما توقف. لا يزال سجل الغوص الخاص بك من قبل تلك الاستعادة على هذا الجهاز، ويمكن لهذا الإصدار فتحه.';
 
   @override
-  String get startup_interruptedRestore_recoverAction =>
-      'استرداد سجل الغوص السابق';
+  String get startup_interruptedRestore_recoverAction => 'استرداد سجل الغوص السابق';
 
   @override
-  String get startup_interruptedRestore_recoverNote =>
-      'يُحتفظ بالملف الموجود مكانه الآن، ولا يُحذف. يمكنك استعادته أو حذفه لاحقًا من نسخ احتياطي واستعادة في الإعدادات.';
+  String get startup_interruptedRestore_recoverNote => 'يُحتفظ بالملف الموجود مكانه الآن، ولا يُحذف. يمكنك استعادته أو حذفه لاحقًا من نسخ احتياطي واستعادة في الإعدادات.';
 
   @override
-  String get startup_interruptedRestore_keepAction =>
-      'الإبقاء على الموجود حاليًا';
+  String get startup_interruptedRestore_keepAction => 'الإبقاء على الموجود حاليًا';
 
   @override
-  String get startup_interruptedRestore_keepNote =>
-      'يُحتفظ بسجل الغوص السابق، ولا يُحذف. يمكنك استعادته أو حذفه لاحقًا من نسخ احتياطي واستعادة في الإعدادات.';
+  String get startup_interruptedRestore_keepNote => 'يُحتفظ بسجل الغوص السابق، ولا يُحذف. يمكنك استعادته أو حذفه لاحقًا من نسخ احتياطي واستعادة في الإعدادات.';
 
   @override
-  String get startup_interruptedRestore_failed =>
-      'لم تكتمل عملية الاسترداد. لم يُحذف أي شيء؛ لا يزال الملفان على هذا الجهاز.';
+  String get startup_interruptedRestore_failed => 'لم تكتمل عملية الاسترداد. لم يُحذف أي شيء؛ لا يزال الملفان على هذا الجهاز.';
 
   @override
   String backup_history_preDowngradeSubtitle(String size) {
@@ -42042,11 +39667,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String backup_history_manualSubtitle(
-    int diveCount,
-    int siteCount,
-    String size,
-  ) {
+  String backup_history_manualSubtitle(int diveCount, int siteCount, String size) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -42063,11 +39684,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String backup_history_manualSubtitleAuto(
-    int diveCount,
-    int siteCount,
-    String size,
-  ) {
+  String backup_history_manualSubtitleAuto(int diveCount, int siteCount, String size) {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
@@ -42087,8 +39704,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_manage_transmitters => 'أجهزة الإرسال';
 
   @override
-  String get settings_manage_transmitters_subtitle =>
-      'ربط أجهزة إرسال الضغط بالأسطوانات';
+  String get settings_manage_transmitters_subtitle => 'ربط أجهزة إرسال الضغط بالأسطوانات';
 
   @override
   String get transmitters_title => 'أجهزة الإرسال';
@@ -42103,8 +39719,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transmitters_header_unassigned => 'ظهرت في التنزيلات ولم تُعيّن';
 
   @override
-  String get transmitters_empty =>
-      'لا توجد أجهزة إرسال بعد. أضف واحدًا، أو عيّن رقمًا تسلسليًا بعد التنزيل التالي.';
+  String get transmitters_empty => 'لا توجد أجهزة إرسال بعد. أضف واحدًا، أو عيّن رقمًا تسلسليًا بعد التنزيل التالي.';
 
   @override
   String get transmitters_action_assign => 'تعيين';
@@ -42132,8 +39747,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'لا توجد أسطوانة تحمل جهاز الإرسال هذا';
+  String get transmitters_apply_nothing => 'لا توجد أسطوانة تحمل جهاز الإرسال هذا';
 
   @override
   String get transmitters_delete_title => 'حذف جهاز الإرسال؟';
@@ -42177,8 +39791,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transmitters_field_serial => 'الرقم التسلسلي لجهاز الإرسال';
 
   @override
-  String get transmitters_field_computer =>
-      'كمبيوتر الغوص (عند عدم الإبلاغ عن رقم تسلسلي)';
+  String get transmitters_field_computer => 'كمبيوتر الغوص (عند عدم الإبلاغ عن رقم تسلسلي)';
 
   @override
   String get transmitters_field_channel => 'القناة';
@@ -42199,8 +39812,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transmitters_gear_none => 'لا شيء';
 
   @override
-  String get transmitters_validation_key =>
-      'أدخل رقمًا تسلسليًا، أو اختر كمبيوتر غوص وقناة';
+  String get transmitters_validation_key => 'أدخل رقمًا تسلسليًا، أو اختر كمبيوتر غوص وقناة';
 
   @override
   String get transmitters_validation_positive => 'أدخل قيمة أكبر من صفر';
@@ -42254,24 +39866,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_reassignSheet_applied => 'تمت إعادة تعيين سلسلة الضغط';
 
   @override
-  String get universalImport_summary_noticeUnknownTransmitterTitle =>
-      'أجهزة إرسال غير معيّنة';
+  String get universalImport_summary_noticeUnknownTransmitterTitle => 'أجهزة إرسال غير معيّنة';
 
   @override
-  String get universalImport_summary_noticeUnknownTransmitterBody =>
-      'جهاز إرسال واحد أو أكثر في هذا التنزيل غير معيّن لأسطوانة. عيّنها لتحصل التنزيلات القادمة على الحجم والدور الصحيحين.';
+  String get universalImport_summary_noticeUnknownTransmitterBody => 'جهاز إرسال واحد أو أكثر في هذا التنزيل غير معيّن لأسطوانة. عيّنها لتحصل التنزيلات القادمة على الحجم والدور الصحيحين.';
 
   @override
-  String get universalImport_summary_noticeAssignTransmitters =>
-      'تعيين أجهزة الإرسال';
+  String get universalImport_summary_noticeAssignTransmitters => 'تعيين أجهزة الإرسال';
 
   @override
-  String get universalImport_summary_noticeDiveNumberConflictTitle =>
-      'أرقام الغطسات مستخدمة بالفعل';
+  String get universalImport_summary_noticeDiveNumberConflictTitle => 'أرقام الغطسات مستخدمة بالفعل';
 
   @override
-  String get universalImport_summary_noticeDiveNumberConflictBody =>
-      'احتفظت هذه الغطسات بالرقم الوارد من مصدرها، لكن غطسات أخرى في سجلك تستخدم الأرقام نفسها بالفعل. افتح «ترقيم الغوصات» من قائمة صفحة الغطسات لإعادة ترقيمها.';
+  String get universalImport_summary_noticeDiveNumberConflictBody => 'احتفظت هذه الغطسات بالرقم الوارد من مصدرها، لكن غطسات أخرى في سجلك تستخدم الأرقام نفسها بالفعل. افتح «ترقيم الغوصات» من قائمة صفحة الغطسات لإعادة ترقيمها.';
 
   @override
   String get dataQuality_detector_unknown_transmitter => 'جهاز إرسال غير معيّن';
@@ -42288,20 +39895,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_unrecognized_appBar_title => 'نسخ احتياطية غير معروفة';
 
   @override
-  String get backup_unrecognized_explanation =>
-      'هذه الملفات موجودة في مجلد النسخ الاحتياطي لديك لكنها ليست في سجل النسخ الاحتياطي لهذا الجهاز. لا يمكن حذف سوى ملف كتبه هذا الجهاز هنا: أي ملف آخر قد يكون النسخة الوحيدة لجهاز آخر.';
+  String get backup_unrecognized_explanation => 'هذه الملفات موجودة في مجلد النسخ الاحتياطي لديك لكنها ليست في سجل النسخ الاحتياطي لهذا الجهاز. لا يمكن حذف سوى ملف كتبه هذا الجهاز هنا: أي ملف آخر قد يكون النسخة الوحيدة لجهاز آخر.';
 
   @override
-  String get backup_unrecognized_empty =>
-      'لا توجد ملفات نسخ احتياطي غير معروفة.';
+  String get backup_unrecognized_empty => 'لا توجد ملفات نسخ احتياطي غير معروفة.';
 
   @override
-  String get backup_unrecognized_loadFailed =>
-      'تعذّرت قراءة مجلد النسخ الاحتياطي.';
+  String get backup_unrecognized_loadFailed => 'تعذّرت قراءة مجلد النسخ الاحتياطي.';
 
   @override
-  String get backup_unrecognized_unavailable =>
-      'لا يستطيع هذا الجهاز سرد مجلد النسخ الاحتياطي الذي اخترته، لذا لا يمكن العثور على الملفات غير المعروفة.';
+  String get backup_unrecognized_unavailable => 'لا يستطيع هذا الجهاز سرد مجلد النسخ الاحتياطي الذي اخترته، لذا لا يمكن العثور على الملفات غير المعروفة.';
 
   @override
   String get backup_unrecognized_ownership_otherDevice => 'جهاز آخر';
@@ -42326,16 +39929,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get backup_unrecognized_confirm_title =>
-      'حذف ملفات النسخ الاحتياطي هذه؟';
+  String get backup_unrecognized_confirm_title => 'حذف ملفات النسخ الاحتياطي هذه؟';
 
   @override
   String backup_unrecognized_confirm_message(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'ستُحذف $count من ملفات النسخ الاحتياطي نهائيًا. لا يمكن التراجع عن ذلك.',
+      other: 'ستُحذف $count من ملفات النسخ الاحتياطي نهائيًا. لا يمكن التراجع عن ذلك.',
       one: 'سيُحذف ملف نسخ احتياطي واحد نهائيًا. لا يمكن التراجع عن ذلك.',
     );
     return '$_temp0';
@@ -42353,16 +39954,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_quarantined_sectionTitle => 'قواعد بيانات محفوظة جانبًا';
 
   @override
-  String get backup_quarantined_explanation =>
-      'احتفظت عملية استعادة لم تكتمل بشكل سليم بهذه النسخ من قاعدة بياناتك بدلًا من حذفها. استعد إحداها لاستخدامها مجددًا، أو احذفها لتحرير المساحة.';
+  String get backup_quarantined_explanation => 'احتفظت عملية استعادة لم تكتمل بشكل سليم بهذه النسخ من قاعدة بياناتك بدلًا من حذفها. استعد إحداها لاستخدامها مجددًا، أو احذفها لتحرير المساحة.';
 
   @override
-  String get backup_quarantined_kind_preRestore =>
-      'سجل غوص من قبل عملية استعادة';
+  String get backup_quarantined_kind_preRestore => 'سجل غوص من قبل عملية استعادة';
 
   @override
-  String get backup_quarantined_kind_restoreRejected =>
-      'سجل غوص استُبدل أثناء عملية استرداد';
+  String get backup_quarantined_kind_restoreRejected => 'سجل غوص استُبدل أثناء عملية استرداد';
 
   @override
   String backup_quarantined_detail(String date, String size) {
@@ -42370,43 +39968,33 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String backup_quarantined_detailWithVersion(
-    String date,
-    String size,
-    int version,
-  ) {
+  String backup_quarantined_detailWithVersion(String date, String size, int version) {
     return '$date • $size • قاعدة البيانات v$version';
   }
 
   @override
-  String get backup_quarantined_status_needsNewerApp =>
-      'تحتاج إلى إصدار أحدث من Submersion';
+  String get backup_quarantined_status_needsNewerApp => 'تحتاج إلى إصدار أحدث من Submersion';
 
   @override
-  String get backup_quarantined_status_unreadable =>
-      'لا يمكن فتحها هنا. قد تكون تالفة، أو محمية بكلمة مرور لا يملكها هذا الجهاز.';
+  String get backup_quarantined_status_unreadable => 'لا يمكن فتحها هنا. قد تكون تالفة، أو محمية بكلمة مرور لا يملكها هذا الجهاز.';
 
   @override
-  String get backup_quarantined_status_incomplete =>
-      'لم يتبقَّ سوى ملفات السجل؛ ملف قاعدة البيانات نفسه غير موجود.';
+  String get backup_quarantined_status_incomplete => 'لم يتبقَّ سوى ملفات السجل؛ ملف قاعدة البيانات نفسه غير موجود.';
 
   @override
   String get backup_quarantined_delete_title => 'حذف نسخة قاعدة البيانات هذه؟';
 
   @override
-  String get backup_quarantined_delete_message =>
-      'سيتم حذف النسخة وملفات السجل الخاصة بها نهائيًا من هذا الجهاز. لا يمكن التراجع عن ذلك.';
+  String get backup_quarantined_delete_message => 'سيتم حذف النسخة وملفات السجل الخاصة بها نهائيًا من هذا الجهاز. لا يمكن التراجع عن ذلك.';
 
   @override
   String get backup_quarantined_deleted => 'تم حذف نسخة قاعدة البيانات';
 
   @override
-  String get backup_quarantined_deleteFailed =>
-      'تعذّر حذف نسخة قاعدة البيانات.';
+  String get backup_quarantined_deleteFailed => 'تعذّر حذف نسخة قاعدة البيانات.';
 
   @override
-  String get backup_quarantined_loadFailed =>
-      'تعذّر فحص مجلد قاعدة البيانات بحثًا عن نسخ محفوظة جانبًا.';
+  String get backup_quarantined_loadFailed => 'تعذّر فحص مجلد قاعدة البيانات بحثًا عن نسخ محفوظة جانبًا.';
 
   @override
   String settings_storageUsage_unrecognized_title(int count) {
@@ -42453,8 +40041,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_arrange_groupByType => 'التجميع حسب النوع';
 
   @override
-  String get equipment_arrange_groupByTypeSubtitle =>
-      'إظهار عنوان لكل نوع من المعدات';
+  String get equipment_arrange_groupByTypeSubtitle => 'إظهار عنوان لكل نوع من المعدات';
 
   @override
   String get equipment_arrange_typeOrderLabel => 'ترتيب الأنواع حسب';
@@ -42466,8 +40053,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_arrange_itemOrderLabelFlat => 'الترتيب حسب';
 
   @override
-  String get equipment_arrange_reset =>
-      'إعادة التعيين إلى الإعدادات الافتراضية';
+  String get equipment_arrange_reset => 'إعادة التعيين إلى الإعدادات الافتراضية';
 
   @override
   String get equipment_arrange_saveFailed => 'تعذر حفظ الترتيب';
@@ -42476,8 +40062,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_gearArrangement => 'ترتيب المعدات';
 
   @override
-  String get settings_appearance_gearArrangementSubtitle =>
-      'كيفية تجميع المعدات وترتيبها في الغوصة';
+  String get settings_appearance_gearArrangementSubtitle => 'كيفية تجميع المعدات وترتيبها في الغوصة';
 
   @override
   String get navTrack_common_loadError => 'تعذر تحميل هذا المسار.';
@@ -42569,14 +40154,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String navTrack_terrain_summary(
-    int onLand,
-    int below,
-    int total,
-    int unknown,
-    String maxPart,
-    String coarsePart,
-  ) {
+  String navTrack_terrain_summary(int onLand, int below, int total, int unknown, String maxPart, String coarsePart) {
     return '$onLand نقاط على اليابسة، $below من $total تحت قاع البحر$maxPart، $unknown غير معروفة$coarsePart';
   }
 
@@ -42586,8 +40164,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get navTrack_terrain_coarsePart =>
-      ' (قياس أعماق منخفض الدقة: تم فحص تعارضات اليابسة فقط)';
+  String get navTrack_terrain_coarsePart => ' (قياس أعماق منخفض الدقة: تم فحص تعارضات اليابسة فقط)';
 
   @override
   String get navTrack_detail_renameTitle => 'إعادة تسمية المسار';
@@ -42608,24 +40185,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_detail_menuChangeSite => 'تغيير الموقع';
 
   @override
-  String get navTrack_detail_noMapYet =>
-      'عيّن نقطة البداية لرؤية هذا على خريطة.';
+  String get navTrack_detail_noMapYet => 'عيّن نقطة البداية لرؤية هذا على خريطة.';
 
   @override
-  String get navTrack_detail_correctionStatus_none =>
-      'لم يُطبَّق أي تصحيح بعد.';
+  String get navTrack_detail_correctionStatus_none => 'لم يُطبَّق أي تصحيح بعد.';
 
   @override
-  String get navTrack_detail_correctionStatus_sameAsStart =>
-      'تم تعيين النهاية لتكون مثل البداية.';
+  String get navTrack_detail_correctionStatus_sameAsStart => 'تم تعيين النهاية لتكون مثل البداية.';
 
   @override
-  String get navTrack_detail_correctionStatus_point =>
-      'تم تعيين نقطة النهاية على الخريطة.';
+  String get navTrack_detail_correctionStatus_point => 'تم تعيين نقطة النهاية على الخريطة.';
 
   @override
-  String get navTrack_detail_correctionStatus_gpsFix =>
-      'تم تعيين النهاية من إصلاح GPS الخاص بالتسجيل.';
+  String get navTrack_detail_correctionStatus_gpsFix => 'تم تعيين النهاية من إصلاح GPS الخاص بالتسجيل.';
 
   @override
   String navTrack_detail_device(String name) {
@@ -42688,11 +40260,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String navTrack_review_segmentSummaryWithFix(
-    int underwater,
-    int surface,
-    String vector,
-  ) {
+  String navTrack_review_segmentSummaryWithFix(int underwater, int surface, String vector) {
     return '$underwater عينات تحت الماء، $surface عينات على السطح، إصلاح GPS على بعد $vector من النهاية المقدَّرة.';
   }
 
@@ -42713,12 +40281,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_review_nameHint => 'الاسم (اختياري)';
 
   @override
-  String get navTrack_review_warningNoMovement =>
-      'لم تُسجَّل أي حركة: تبقى المسافة والسرعة عند الصفر طوال هذا الملف.';
+  String get navTrack_review_warningNoMovement => 'لم تُسجَّل أي حركة: تبقى المسافة والسرعة عند الصفر طوال هذا الملف.';
 
   @override
-  String get navTrack_review_warningDuplicate =>
-      'يبدو هذا مسارًا تم استيراده مسبقًا من الملف نفسه.';
+  String get navTrack_review_warningDuplicate => 'يبدو هذا مسارًا تم استيراده مسبقًا من الملف نفسه.';
 
   @override
   String get navTrack_review_replaceLabel => 'استبدال';
@@ -42785,8 +40351,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_list_title => 'المسارات تحت الماء';
 
   @override
-  String get navTrack_list_noMapRoutes =>
-      'لا توجد مسارات موضوعة على الخريطة بعد.';
+  String get navTrack_list_noMapRoutes => 'لا توجد مسارات موضوعة على الخريطة بعد.';
 
   @override
   String get navTrack_list_empty => 'لا توجد مسارات تحت الماء بعد.';
@@ -42795,16 +40360,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_seascape_title => 'المشهد البحري للمسار';
 
   @override
-  String get navTrack_seascape_noScene =>
-      'لا يحتوي هذا المسار على مشهد بحري قابل للاستخدام.';
+  String get navTrack_seascape_noScene => 'لا يحتوي هذا المسار على مشهد بحري قابل للاستخدام.';
 
   @override
-  String get navTrack_handoff_recognized =>
-      'تم التعرف على سجل ملاحة Seacraft ENC';
+  String get navTrack_handoff_recognized => 'تم التعرف على سجل ملاحة Seacraft ENC';
 
   @override
-  String get navTrack_handoff_description =>
-      'هذا مسار تحت الماء، وليس سجل غطس. له مكانه الخاص في Submersion، منفصل عن استيراد غطساتك.';
+  String get navTrack_handoff_description => 'هذا مسار تحت الماء، وليس سجل غطس. له مكانه الخاص في Submersion، منفصل عن استيراد غطساتك.';
 
   @override
   String get navTrack_handoff_reviewButton => 'مراجعة المسار';
@@ -42847,31 +40409,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_section_menuMakePrimary => 'تعيين كأساسي';
 
   @override
-  String get navTrack_importError_unsupportedFormat =>
-      'هذا الملف ليس سجل ملاحة Seacraft ENC.';
+  String get navTrack_importError_unsupportedFormat => 'هذا الملف ليس سجل ملاحة Seacraft ENC.';
 
   @override
-  String get navTrack_importError_unreadable =>
-      'تعذرت قراءة هذا الملف كسجل ملاحة Seacraft ENC.';
+  String get navTrack_importError_unreadable => 'تعذرت قراءة هذا الملف كسجل ملاحة Seacraft ENC.';
 
   @override
-  String get navTrack_importError_tooShort =>
-      'يحتوي هذا التسجيل على عدد قليل جدًا من العينات ليكون مسارًا قابلاً للاستخدام.';
+  String get navTrack_importError_tooShort => 'يحتوي هذا التسجيل على عدد قليل جدًا من العينات ليكون مسارًا قابلاً للاستخدام.';
 
   @override
-  String get navTrack_importError_badData =>
-      'يحتوي هذا الملف على بيانات تعذر على Submersion فهمها.';
+  String get navTrack_importError_badData => 'يحتوي هذا الملف على بيانات تعذر على Submersion فهمها.';
 
   @override
-  String get navTrack_importError_tooLarge =>
-      'يحتوي هذا التسجيل على عينات أكثر مما يمكن لمسار تخزينه.';
+  String get navTrack_importError_tooLarge => 'يحتوي هذا التسجيل على عينات أكثر مما يمكن لمسار تخزينه.';
 
   @override
   String get diveDetailSection_navTrack_name => 'مسار تحت الماء';
 
   @override
-  String get diveDetailSection_navTrack_description =>
-      'مسار تحت الماء تم قياسه من وحدة تحكم ملاحية';
+  String get diveDetailSection_navTrack_description => 'مسار تحت الماء تم قياسه من وحدة تحكم ملاحية';
 
   @override
   String get dashboard_quickActions_navRoutes => 'المسارات تحت الماء';
@@ -42921,8 +40477,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_whatIf_detailLabel => 'Detail';
 
   @override
-  String get diveLog_whatIf_engineNote =>
-      'The plan covers the descent and working levels. The planner computes the ascent and deco so you can compare them with the logged dive.';
+  String get diveLog_whatIf_engineNote => 'The plan covers the descent and working levels. The planner computes the ascent and deco so you can compare them with the logged dive.';
 
   @override
   String get diveLog_whatIf_seedTissues => 'Seed tissues from previous dive';
@@ -42995,12 +40550,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveCenters_rental_noHistory =>
-      'لا توجد غوصات أخرى مسجلة هنا بعد.';
+  String get diveCenters_rental_noHistory => 'لا توجد غوصات أخرى مسجلة هنا بعد.';
 
   @override
-  String get diveCenters_rental_empty =>
-      'لا توجد ملاحظات عن المعدات المستأجرة لهذا المركز بعد.';
+  String get diveCenters_rental_empty => 'لا توجد ملاحظات عن المعدات المستأجرة لهذا المركز بعد.';
 
   @override
   String get diveCenters_rental_addNote => 'إضافة ملاحظة تأجير';
@@ -43009,16 +40562,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_rental_applyLastDive => 'تطبيق آخر غوصة';
 
   @override
-  String get diveCenters_rental_applied =>
-      'تم نسخ الأثقال والأسطوانات من آخر غوصة لك هنا.';
+  String get diveCenters_rental_applied => 'تم نسخ الأثقال والأسطوانات من آخر غوصة لك هنا.';
 
   @override
-  String get diveCenters_rental_applyConfirmTitle =>
-      'استبدال الأثقال والأسطوانات؟';
+  String get diveCenters_rental_applyConfirmTitle => 'استبدال الأثقال والأسطوانات؟';
 
   @override
-  String get diveCenters_rental_applyConfirmBody =>
-      'تحتوي هذه الغوصة بالفعل على أثقال أو أسطوانات. هل تريد استبدالها بتلك الموجودة في آخر غوصة لك هنا؟';
+  String get diveCenters_rental_applyConfirmBody => 'تحتوي هذه الغوصة بالفعل على أثقال أو أسطوانات. هل تريد استبدالها بتلك الموجودة في آخر غوصة لك هنا؟';
 
   @override
   String get diveCenters_rental_applyConfirmReplace => 'استبدال';
