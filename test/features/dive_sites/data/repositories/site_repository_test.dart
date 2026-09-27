@@ -538,6 +538,38 @@ void main() {
         expect(await repository.getSiteById('z'), isNull);
       });
 
+      test(
+        'should write one tombstone per site, each with its own clock',
+        () async {
+          await repository.createSite(const DiveSite(id: 'x', name: 'X Site'));
+          await repository.createSite(const DiveSite(id: 'y', name: 'Y Site'));
+          await repository.createSite(const DiveSite(id: 'z', name: 'Z Site'));
+
+          await repository.bulkDeleteSites(['x', 'z']);
+
+          final tombstones = await (database.select(
+            database.deletionLog,
+          )..where((t) => t.entityType.equals('diveSites'))).get();
+          expect(
+            tombstones.map((t) => t.recordId),
+            unorderedEquals(['x', 'z']),
+          );
+          expect(
+            tombstones.map((t) => t.hlc).toSet(),
+            hasLength(2),
+            reason: 'each site delete is its own event',
+          );
+          for (final t in tombstones) {
+            expect(t.hlc, isNotNull);
+            expect(
+              t.originHlc,
+              t.hlc,
+              reason: 'a local delete is its own origin',
+            );
+          }
+        },
+      );
+
       test('should no-op for empty list', () async {
         await repository.createSite(
           const DiveSite(id: 'keep', name: 'Keep Me'),

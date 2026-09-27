@@ -9,6 +9,161 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get equipment_filter_owner_all => 'الكل';
+
+  @override
+  String get equipment_delete_notOwner => 'يمكن لمالك هذا العنصر وحده حذفه';
+
+  @override
+  String get equipment_sharedWithMe => 'مُشارَك معي';
+
+  @override
+  String get equipment_owner_unknown => 'ملف آخر';
+
+  @override
+  String equipment_ownerChip_semanticLabel(String name) {
+    return 'مملوك لـ $name';
+  }
+
+  @override
+  String equipment_picker_ownerHeader(String name) {
+    return 'من $name';
+  }
+
+  @override
+  String get equipment_sharing_sharedWithLabel => 'مُشارَك مع';
+
+  @override
+  String get equipment_sharing_notShared => 'غير مُشارَك';
+
+  @override
+  String get equipment_sharing_ownedByLabel => 'المالك';
+
+  @override
+  String get equipment_sharing_dialogTitle => 'مشاركة مع';
+
+  @override
+  String get equipment_sharing_dialogBody =>
+      'يمكن للملفات التي تختارها إضافة هذه المعدات إلى غطساتها وتسجيل صيانتها. يمكن للمالك وحده حذفها أو تغيير من تُشارَك معه.';
+
+  @override
+  String get equipment_bulkShare_action => 'مشاركة مع...';
+
+  @override
+  String equipment_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت مشاركة $count عناصر',
+      one: 'تمت مشاركة عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت مشاركة $count عناصر',
+      one: 'تمت مشاركة عنصر واحد',
+    );
+    return '$_temp0، وتم تخطي $skipped لا تملكها';
+  }
+
+  @override
+  String equipment_bulkDelete_partial(int deleted, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      deleted,
+      locale: localeName,
+      other: 'تم حذف $deleted عناصر',
+      one: 'تم حذف عنصر واحد',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other:
+          'تم الإبقاء على $skipped عناصر مُشارَكة: يمكن لمالكيها وحدهم حذفها',
+      one: 'تم الإبقاء على عنصر مُشارَك واحد: يمكن لمالكه وحده حذفه',
+    );
+    return '$_temp0. $_temp1';
+  }
+
+  @override
+  String get equipment_filter_section_owner => 'المالك';
+
+  @override
+  String get equipment_filter_owner_mine => 'خاصتي';
+
+  @override
+  String get enum_equipmentField_owner => 'المالك';
+
+  @override
+  String get enum_equipmentField_owner_short => 'المالك';
+
+  @override
+  String get equipment_set_noLongerShared => 'لم يعد مُشارَكًا';
+
+  @override
+  String get equipment_history_title => 'السجل';
+
+  @override
+  String get equipment_history_empty => 'لم يُستخدم في أي غطسة بعد';
+
+  @override
+  String get equipment_history_deletedProfile => 'ملف محذوف';
+
+  @override
+  String equipment_history_runDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسات',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_history_dateRange(String from, String to) {
+    return '$from إلى $to';
+  }
+
+  @override
+  String equipment_history_added(String name) {
+    return 'أضافه $name';
+  }
+
+  @override
+  String equipment_history_shared(String name) {
+    return 'تمت المشاركة مع $name';
+  }
+
+  @override
+  String equipment_history_unshared(String name) {
+    return 'توقفت المشاركة مع $name';
+  }
+
+  @override
+  String equipment_history_transferred(String from, String to) {
+    return 'نُقل من $from إلى $to';
+  }
+
+  @override
+  String get settings_shareAllEquipment_title => 'مشاركة كل معداتي...';
+
+  @override
+  String settings_shareAllEquipment_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'شارك عناصرك الـ $count مع الملفات التي تختارها.',
+      one: 'شارك عنصرك الوحيد مع الملفات التي تختارها.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'تعذر فتح المتصفح. استخدم نسخ الرابط والصق العنوان في متصفحك.';
 
@@ -8789,12 +8944,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh => 'العمق المخدر المكافئ مرتفع جداً';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END عند $depth يتجاوز الحد البالغ $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END عند $depth يتجاوز الحد الآمن';
-  }
+  String get divePlanner_warning_endHigh => 'العمق المخدر المكافئ مرتفع جداً';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -14950,6 +15105,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => 'المواقع';
 
   @override
+  String get marineLife_speciesDetail_statsError =>
+      'تعذر تحميل إحصائيات المشاهدات';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'الصنف: $className';
   }
@@ -18809,6 +18968,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_trip => 'الرحلة';
+
+  @override
+  String get settings_conflict_ref_tripCylinder => 'أسطوانة الرحلة';
 
   @override
   String get settings_conflict_remoteVersion => 'النسخة البعيدة';
@@ -25991,7 +26153,7 @@ class AppLocalizationsAr extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'صعود $from ← $to بمعدل $rate/دقيقة';
+    return 'صعود $from ← $to بمعدل $rate';
   }
 
   @override
@@ -26005,7 +26167,7 @@ class AppLocalizationsAr extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'نزول $from ← $to بمعدل $rate/دقيقة';
+    return 'نزول $from ← $to بمعدل $rate';
   }
 
   @override
@@ -27591,6 +27753,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّرت إعادة المزامنة: لم يعد الملف الأصلي يحتوي على غطسة مطابقة';
 
   @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'تعذّرت إعادة المزامنة: يحتوي الملف الأصلي على غطسة مطابقة لأكثر من غوّاص، ولا تسجّل هذه الغطسة من أيّها جاءت';
+
+  @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
       'تعذّرت إعادة المزامنة: حدث خطأ غير متوقع أثناء قراءة الملف الأصلي';
 
@@ -27697,7 +27863,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_sharedData_sectionSubtitle =>
-      'مشاركة المواقع والرحلات بين الملفات';
+      'مشاركة المواقع والرحلات والمعدات بين الملفات';
 
   @override
   String get common_action_unshare => 'إلغاء المشاركة';
@@ -29581,7 +29747,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'أضف حجم الأسطوانة لعرض RMV بوحدة $unit/min';
+    return 'أضف حجم الأسطوانة لعرض RMV بوحدة $unit';
   }
 
   @override
@@ -41912,7 +42078,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'يُحتفظ بالملف الموجود مكانه الآن بجانبه، ولا يُحذف.';
+      'يُحتفظ بالملف الموجود مكانه الآن، ولا يُحذف. يمكنك استعادته أو حذفه لاحقًا من نسخ احتياطي واستعادة في الإعدادات.';
 
   @override
   String get startup_interruptedRestore_keepAction =>
@@ -41920,7 +42086,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'يُحتفظ بسجل الغوص السابق كملف في مجلد قاعدة البيانات.';
+      'يُحتفظ بسجل الغوص السابق، ولا يُحذف. يمكنك استعادته أو حذفه لاحقًا من نسخ احتياطي واستعادة في الإعدادات.';
 
   @override
   String get startup_interruptedRestore_failed =>
@@ -42238,6 +42404,65 @@ class AppLocalizationsAr extends AppLocalizations {
   String backup_unrecognized_freed(String size) {
     return 'تم تحرير $size';
   }
+
+  @override
+  String get backup_quarantined_sectionTitle => 'قواعد بيانات محفوظة جانبًا';
+
+  @override
+  String get backup_quarantined_explanation =>
+      'احتفظت عملية استعادة لم تكتمل بشكل سليم بهذه النسخ من قاعدة بياناتك بدلًا من حذفها. استعد إحداها لاستخدامها مجددًا، أو احذفها لتحرير المساحة.';
+
+  @override
+  String get backup_quarantined_kind_preRestore =>
+      'سجل غوص من قبل عملية استعادة';
+
+  @override
+  String get backup_quarantined_kind_restoreRejected =>
+      'سجل غوص استُبدل أثناء عملية استرداد';
+
+  @override
+  String backup_quarantined_detail(String date, String size) {
+    return '$date • $size';
+  }
+
+  @override
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
+    return '$date • $size • قاعدة البيانات v$version';
+  }
+
+  @override
+  String get backup_quarantined_status_needsNewerApp =>
+      'تحتاج إلى إصدار أحدث من Submersion';
+
+  @override
+  String get backup_quarantined_status_unreadable =>
+      'لا يمكن فتحها هنا. قد تكون تالفة، أو محمية بكلمة مرور لا يملكها هذا الجهاز.';
+
+  @override
+  String get backup_quarantined_status_incomplete =>
+      'لم يتبقَّ سوى ملفات السجل؛ ملف قاعدة البيانات نفسه غير موجود.';
+
+  @override
+  String get backup_quarantined_delete_title => 'حذف نسخة قاعدة البيانات هذه؟';
+
+  @override
+  String get backup_quarantined_delete_message =>
+      'سيتم حذف النسخة وملفات السجل الخاصة بها نهائيًا من هذا الجهاز. لا يمكن التراجع عن ذلك.';
+
+  @override
+  String get backup_quarantined_deleted => 'تم حذف نسخة قاعدة البيانات';
+
+  @override
+  String get backup_quarantined_deleteFailed =>
+      'تعذّر حذف نسخة قاعدة البيانات.';
+
+  @override
+  String get backup_quarantined_loadFailed =>
+      'تعذّر فحص مجلد قاعدة البيانات بحثًا عن نسخ محفوظة جانبًا.';
 
   @override
   String settings_storageUsage_unrecognized_title(int count) {

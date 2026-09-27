@@ -727,32 +727,6 @@ void main() {
       );
       expect(point.isConstant, isTrue);
     });
-
-    test('should format rate correctly', () {
-      const ascending = AscentRatePoint(
-        timestamp: 0,
-        depth: 10,
-        rateMetersPerMin: 8.5,
-        category: AscentRateCategory.safe,
-      );
-      expect(ascending.rateFormatted, equals('+8.5 m/min'));
-
-      const descending = AscentRatePoint(
-        timestamp: 0,
-        depth: 10,
-        rateMetersPerMin: -15.0,
-        category: AscentRateCategory.safe,
-      );
-      expect(descending.rateFormatted, equals('-15.0 m/min'));
-
-      const constant = AscentRatePoint(
-        timestamp: 0,
-        depth: 10,
-        rateMetersPerMin: 0.3,
-        category: AscentRateCategory.safe,
-      );
-      expect(constant.rateFormatted, equals('0 m/min'));
-    });
   });
 
   group('AscentRateViolation', () {
