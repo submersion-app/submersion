@@ -7,6 +7,7 @@ import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:libdivecomputer_plugin/src/dive_computer_service.dart'
     show DownloadEvent;
 // flutter_riverpod 3 no longer re-exports Override.
+// ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
 
 import 'package:submersion/features/dive_computer/domain/entities/clock_sync.dart';

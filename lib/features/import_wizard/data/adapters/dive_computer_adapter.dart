@@ -493,7 +493,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     // Resolve the computer before the bundle records its id: duplicate
     // detection runs on this bundle next and keys its same-computer checks
     // (contained segments, cross-computer consolidation) on that id. A
-    // failure here is left for performImport to retry and report.
+    // failure here is left for performImport to report.
     await _retryPendingComputerSave();
 
     final items = _downloadedDives.map(_diveToEntityItem).toList();
