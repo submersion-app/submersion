@@ -485,6 +485,231 @@ void main() {}
     });
   });
 
+  group('restores that do not run after the test', () {
+    test('a restore in setUp does not cover the tests', () {
+      final offences = scan('''
+void main() {
+  late PathProviderPlatform original;
+  setUpAll(() => original = PathProviderPlatform.instance);
+  setUp(() => PathProviderPlatform.instance = original);
+  test('t', () {
+    PathProviderPlatform.instance = _Fake();
+  });
+}
+''');
+
+      expect(offences.map((o) => o.line), [6]);
+      expect(offences.single.rule, platformRule);
+    });
+
+    test('a restore at the end of a test body does not count', () {
+      final offences = scan('''
+void main() {
+  test('t', () {
+    final original = SharePlatform.instance;
+    SharePlatform.instance = _Fake();
+    expect(1, 1);
+    SharePlatform.instance = original;
+  });
+}
+''');
+
+      expect(offences.map((o) => o.line), [4]);
+    });
+
+    test('an HTTP restore in the test body does not count', () {
+      final offences = scan('''
+void main() {
+  test('t', () {
+    final previous = HttpOverrides.current;
+    HttpOverrides.global = _Overrides();
+    HttpOverrides.global = previous;
+  });
+}
+''');
+
+      expect(offences.map((o) => o.line), [4]);
+    });
+  });
+
+  group('foundation hooks', () {
+    test('debugPrint replaced and never restored is an offence', () {
+      final offences = scan('''
+void main() {
+  test('t', () {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  });
+}
+''');
+
+      expect(offences.map((o) => o.rule), [foundationRule]);
+    });
+
+    test('debugPrint restored in the same test body is accepted', () {
+      final offences = scan('''
+void main() {
+  test('t', () {
+    final originalDebugPrint = debugPrint;
+    debugPrint = (String? message, {int? wrapWidth}) {};
+    debugPrint = originalDebugPrint;
+  });
+}
+''');
+
+      expect(offences, isEmpty);
+    });
+
+    test('FlutterError.onError restored in a finally block is accepted', () {
+      final offences = scan('''
+void main() {
+  testWidgets('t', (tester) async {
+    final originalOnError = FlutterError.onError;
+    try {
+      FlutterError.onError = (details) {};
+      await tester.pump();
+    } finally {
+      FlutterError.onError = originalOnError;
+    }
+  });
+}
+''');
+
+      expect(offences, isEmpty);
+    });
+
+    test('a target platform override reset to null in scope is accepted', () {
+      final offences = scan('''
+void main() {
+  testWidgets('t', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    await tester.pump();
+    debugDefaultTargetPlatformOverride = null;
+  });
+}
+''');
+
+      expect(offences, isEmpty);
+    });
+
+    test('a target platform override reset only in another test leaks', () {
+      final offences = scan('''
+void main() {
+  test('a', () {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+  });
+  test('b', () {
+    debugDefaultTargetPlatformOverride = null;
+  });
+}
+''');
+
+      expect(offences.map((o) => o.line), [3]);
+      expect(offences.single.rule, foundationRule);
+    });
+  });
+
+  group('channel mocks by channel and scope', () {
+    test('clearing a different channel does not count', () {
+      final offences = scan('''
+void main() {
+  setUpAll(() {
+    messenger.setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (call) async => dir.path,
+    );
+  });
+  tearDownAll(() {
+    messenger.setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/url_launcher'),
+      null,
+    );
+  });
+}
+''');
+
+      expect(offences.map((o) => o.line), [3]);
+      expect(offences.single.rule, channelRule);
+    });
+
+    test('a clear in one group does not cover a mock in another', () {
+      final offences = scan('''
+void main() {
+  group('a', () {
+    setUpAll(() => messenger.setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (call) async => dir.path,
+    ));
+    tearDownAll(clearPathAndShareChannelMocks);
+  });
+  group('b', () {
+    setUpAll(() => messenger.setMockMethodCallHandler(
+      const MethodChannel('dev.fluttercommunity.plus/share'),
+      (call) async => null,
+    ));
+  });
+}
+''');
+
+      expect(offences.map((o) => o.line), [10]);
+    });
+
+    test('a channel held in a variable is recognised', () {
+      final offences = scan('''
+const channel = MethodChannel('plugins.flutter.io/path_provider');
+void main() {
+  setUp(() => messenger.setMockMethodCallHandler(channel, handler));
+}
+''');
+
+      expect(offences.map((o) => o.rule), [channelRule]);
+    });
+
+    test('a channel variable cleared in tearDown is accepted', () {
+      final offences = scan('''
+const channel = MethodChannel('plugins.flutter.io/path_provider');
+void main() {
+  setUp(() => messenger.setMockMethodCallHandler(channel, handler));
+  tearDown(() => messenger.setMockMethodCallHandler(channel, null));
+}
+''');
+
+      expect(offences, isEmpty);
+    });
+
+    test('a clear at the end of a test body does not count', () {
+      final offences = scan('''
+void main() {
+  test('t', () async {
+    messenger.setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (call) async => dir.path,
+    );
+    await run();
+    messenger.setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      null,
+    );
+  });
+}
+''');
+
+      expect(offences.map((o) => o.line), [3]);
+    });
+
+    test('every uncovered mock is reported, not only the first', () {
+      final offences = scan('''
+void main() {
+  test('a', () => messenger.setMockMethodCallHandler(
+    const MethodChannel('plugins.flutter.io/path_provider'), (c) async => 1));
+  test('b', () => messenger.setMockMethodCallHandler(
+    const MethodChannel('dev.fluttercommunity.plus/share'), (c) async => 1));
+}
+''');
+
+      expect(offences.map((o) => o.line), [2, 4]);
+    });
+  });
+
   test('a file with Windows line endings reports clean text', () {
     final offences = scan(
       'SharePlatform.instance = fake;\r\nvoid main() {}\r\n',

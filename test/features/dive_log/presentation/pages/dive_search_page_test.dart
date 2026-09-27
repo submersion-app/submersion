@@ -105,13 +105,14 @@ void main() {
 
       // Tap the Search button to trigger _applyAndSearch (lines 784-785)
       final errors = <FlutterErrorDetails>[];
+      final originalOnError = FlutterError.onError;
       FlutterError.onError = (d) => errors.add(d);
       final searchButton = find.byIcon(Icons.search);
       if (searchButton.evaluate().isNotEmpty) {
         await tester.tap(searchButton.first);
         await tester.pump();
       }
-      FlutterError.onError = FlutterError.presentError;
+      FlutterError.onError = originalOnError;
     });
 
     testWidgets(
@@ -249,11 +250,12 @@ void main() {
       expect(find.textContaining('Enter a'), findsWidgets);
 
       final errors = <FlutterErrorDetails>[];
+      final originalOnError = FlutterError.onError;
       FlutterError.onError = (d) => errors.add(d);
       await tester.ensureVisible(find.text('Search'));
       await tester.tap(find.text('Search'));
       await tester.pump();
-      FlutterError.onError = FlutterError.presentError;
+      FlutterError.onError = originalOnError;
 
       final filter = capturedRef.read(diveFilterProvider);
       expect(filter.minDepth, 10);
@@ -359,11 +361,12 @@ void main() {
         // swallow the resulting navigation error the same way the existing
         // "tapping search applies bottomTime filter" test above does.
         final errors = <FlutterErrorDetails>[];
+        final originalOnError = FlutterError.onError;
         FlutterError.onError = (d) => errors.add(d);
         await tester.ensureVisible(find.text('Search'));
         await tester.tap(find.text('Search'));
         await tester.pump();
-        FlutterError.onError = FlutterError.presentError;
+        FlutterError.onError = originalOnError;
 
         expect(
           capturedRef.read(diveFilterProvider).equipmentIds,
@@ -428,11 +431,12 @@ void main() {
         expect(tester.widget<FilterChip>(chip).selected, isFalse);
 
         final errors = <FlutterErrorDetails>[];
+        final originalOnError = FlutterError.onError;
         FlutterError.onError = (d) => errors.add(d);
         await tester.ensureVisible(find.text('Search'));
         await tester.tap(find.text('Search'));
         await tester.pump();
-        FlutterError.onError = FlutterError.presentError;
+        FlutterError.onError = originalOnError;
 
         expect(capturedRef.read(diveFilterProvider).equipmentIds, isEmpty);
       },
