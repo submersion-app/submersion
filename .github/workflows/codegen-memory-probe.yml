@@ -1,0 +1,100 @@
+# Throwaway measurement workflow (scratch branch only, never merged).
+# Cold build_runner build per variant on ubuntu-latest, with a memory sampler
+# that prints straight to the step log so the curve survives a runner kill.
+name: Codegen memory probe v2
+
+on:
+  push:
+    branches: [ci-probe/codegen-memory-v2]
+
+env:
+  FLUTTER_VERSION_FILE: .github/flutter-version.txt
+
+jobs:
+  probe:
+    name: ${{ matrix.variant }} swap=${{ matrix.swap }} rep=${{ matrix.rep }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {variant: baseline, swap: 0, rep: 1}
+          - {variant: baseline, swap: 0, rep: 2}
+          - {variant: baseline, swap: 12, rep: 1}
+          - {variant: baseline, swap: 12, rep: 2}
+          - {variant: tight, swap: 0, rep: 1}
+          - {variant: tight, swap: 0, rep: 2}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: 'stable'
+
+      - name: Restore pub cache (read-only)
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - run: flutter config --no-enable-swift-package-manager
+      - run: flutter pub get
+
+      - name: Apply variant
+        run: |
+          rm -rf .dart_tool/build
+          if [ "${{ matrix.variant }}" != baseline ]; then
+            cp .github/codegen-probe/${{ matrix.variant }}.yaml build.yaml
+          fi
+          echo "--- build.yaml:"; cat build.yaml 2>/dev/null || echo "(none)"
+          if [ "${{ matrix.swap }}" != 0 ]; then
+            sudo fallocate -l ${{ matrix.swap }}G /mnt/extra.swap
+            sudo chmod 600 /mnt/extra.swap
+            sudo mkswap /mnt/extra.swap
+            sudo swapon /mnt/extra.swap
+          fi
+          echo "--- machine:"; nproc; free -m; swapon --show || true
+
+      - name: Cold build with memory sampling
+        run: |
+          (
+            while true; do
+              free -m | awk -v t="$(date +%s)" '/^Mem:/{u=$3; a=$7} /^Swap:/{s=$3; st=$2} END{printf "MEM t=%s used=%s avail=%s swap=%s/%s ", t, u, a, s, st}'
+              ps -eo rss=,args= | awk '/build\.dart\.aot/ && !/awk/ {r+=$1} END{printf "script_rss=%d\n", r/1024}'
+              sleep 10
+            done
+          ) | tee mem.log &
+          sampler=$!
+          start=$(date +%s)
+          set +e
+          /usr/bin/time -v -o time.log dart run build_runner build --delete-conflicting-outputs 2>&1 \
+            | tee run.log | grep --line-buffered -E "on [0-9]+ inputs: .*spent" | awk 'NR % 25 == 1 {print; fflush()}'
+          rc=${PIPESTATUS[0]}
+          set -e
+          end=$(date +%s)
+          kill $sampler 2>/dev/null || true
+          tail -5 run.log
+          echo "PROBE_RESULT variant=${{ matrix.variant }} swap=${{ matrix.swap }} rep=${{ matrix.rep }} rc=$rc seconds=$((end - start))" \
+            "peak_used_mb=$(sed -E 's/.*used=([0-9]+).*/\1/' mem.log | sort -n | tail -1)" \
+            "min_avail_mb=$(sed -E 's/.*avail=([0-9]+).*/\1/' mem.log | sort -n | head -1)" \
+            "peak_swap_mb=$(sed -E 's/.*swap=([0-9]+).*/\1/' mem.log | sort -n | tail -1)" \
+            "time_max_rss_mb=$(awk -F': ' '/Maximum resident set size/{print int($2/1024)}' time.log)" \
+            "$(grep -oE 'Built with [^;]+; wrote [0-9]+ outputs' run.log | tail -1)"
+          find lib test integration_test -type f \( -name '*.g.dart' -o -name '*.freezed.dart' -o -name '*.mocks.dart' \) -print0 \
+            | sort -z | xargs -0 sha256sum > generated.sha256
+          echo "PROBE_DIGEST variant=${{ matrix.variant }} files=$(wc -l < generated.sha256) digest=$(sha256sum < generated.sha256 | cut -c1-16)"
+          exit $rc
+
+      - name: Kernel OOM evidence
+        if: always()
+        run: sudo dmesg -T | grep -iE "oom|killed process|out of memory" | tail -20 || echo "no OOM lines"
