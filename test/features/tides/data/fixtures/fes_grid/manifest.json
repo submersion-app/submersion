@@ -1,0 +1,44 @@
+{
+ "format": "submersion-fes-grid",
+ "version": 1,
+ "model": "synthetic",
+ "extractionDate": "2026-09-26",
+ "bandKm": 30,
+ "constituents": [
+  "M2",
+  "K1"
+ ],
+ "coastal": {
+  "latMin": 10.0,
+  "lonMin": -180.0,
+  "resolution": 0.5,
+  "rows": 5,
+  "cols": 720,
+  "tileSize": 4,
+  "tiles": [
+   [
+    0,
+    0
+   ],
+   [
+    0,
+    179
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    1,
+    179
+   ]
+  ]
+ },
+ "global": {
+  "latMin": 0.0,
+  "lonMin": -180.0,
+  "resolution": 5.0,
+  "rows": 5,
+  "cols": 72
+ }
+}
