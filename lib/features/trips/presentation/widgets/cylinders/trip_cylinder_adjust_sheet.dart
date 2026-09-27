@@ -6,9 +6,11 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_fill_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Opens the adjustment sheet for one slot: a gauge reading, "mark empty",
 /// or a re-analyzed mix. With [editing] it edits that adjustment in place.
@@ -73,11 +75,11 @@ class _AdjustSheetState extends ConsumerState<_AdjustSheet> {
     super.dispose();
   }
 
-  static double? _read(TextEditingController c) {
-    final t = c.text.trim();
-    if (t.isEmpty) return null;
-    return parseUserDecimal(t) ?? double.nan;
-  }
+  static double? _read(TextEditingController c) => switch (readNumber(c.text)) {
+    NumberValue(:final value) => value,
+    NumberBlank() => null,
+    NumberInvalid() => double.nan,
+  };
 
   Future<void> _pickWhen() async {
     final picked = await pickTripCylinderWhen(context, _when);
@@ -92,7 +94,7 @@ class _AdjustSheetState extends ConsumerState<_AdjustSheet> {
     final o2 = _read(_o2);
     final he = _read(_he);
     if ([pressure, o2, he].any((v) => v != null && (v.isNaN || v < 0))) {
-      setState(() => _error = l10n.numberInput_invalidValue);
+      setState(() => _error = tripCylinderInvalidNumber(l10n));
       return;
     }
     final badMix = o2 == null

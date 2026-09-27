@@ -157,6 +157,19 @@ void main() {
     expect(find.text('Add at least one weight'), findsOneWidget);
   });
 
+  testWidgets('new: an unreadable weight blocks save and says why (#1900)', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.enterText(find.byType(TextFormField).first, 'Wetsuit');
+    await tester.enterText(find.byType(TextFormField).last, '4..5');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(repo.created, isEmpty);
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+  });
+
   testWidgets('add weight appends a row', (tester) async {
     await pump(tester);
     expect(find.byType(DropdownButtonFormField<WeightType>), findsOneWidget);

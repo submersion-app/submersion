@@ -1,3 +1,4 @@
+import 'package:submersion/features/universal_import/data/parsers/dl7/dl7_timestamp.dart';
 import 'package:submersion/features/universal_import/data/parsers/dl7/dl7_units.dart';
 
 /// One `<TANK>` entry from an Aqualung ZAR block, converted to SI.
@@ -23,6 +24,12 @@ class AqualungZarTank {
 class AqualungZarData {
   final String? app;
   final String? duid;
+
+  /// When the dive this block describes started: `DIVE_DT`, else the
+  /// timestamp embedded in `DUID`. It is how a multi-dive file's block is
+  /// matched to the `ZDH` record it belongs to.
+  final DateTime? diveDateTime;
+
   final String? title;
   final String? pdcModel;
   final String? pdcSerial;
@@ -47,6 +54,7 @@ class AqualungZarData {
   const AqualungZarData({
     this.app,
     this.duid,
+    this.diveDateTime,
     this.title,
     this.pdcModel,
     this.pdcSerial,
@@ -115,6 +123,7 @@ class AqualungZarDialect {
     }
 
     final gearUnitsImperial = _gearUnitsImperial(text('GEAR'));
+    final duid = text('DUID');
 
     // LOCATION: GPS=[lat,lon],LOCNAME=[..],CITY=[..],STATE/PROVINCE=[..],...
     final location = parseKeyValues(text('LOCATION') ?? '');
@@ -143,7 +152,8 @@ class AqualungZarDialect {
 
     return AqualungZarData(
       app: text('APP'),
-      duid: text('DUID'),
+      duid: duid,
+      diveDateTime: parseDl7Timestamp(text('DIVE_DT')) ?? _duidTimestamp(duid),
       title: text('TITLE'),
       pdcModel: text('PDC_MODEL'),
       pdcSerial: text('PDC_SERIAL'),
@@ -276,6 +286,16 @@ class AqualungZarDialect {
     final value = double.tryParse(match.group(1)!);
     if (value == null) return null;
     return (value: value, suffix: match.group(2)!.trim().toUpperCase());
+  }
+
+  /// The start time a DiverLog+ `DUID` embeds as one of its
+  /// underscore-separated fields (`4321_98765_20240612093000_42`).
+  static DateTime? _duidTimestamp(String? duid) {
+    if (duid == null) return null;
+    for (final field in duid.split('_')) {
+      if (RegExp(r'^\d{14}$').hasMatch(field)) return parseDl7Timestamp(field);
+    }
+    return null;
   }
 
   static Duration? _parseHhmmss(String? raw) {

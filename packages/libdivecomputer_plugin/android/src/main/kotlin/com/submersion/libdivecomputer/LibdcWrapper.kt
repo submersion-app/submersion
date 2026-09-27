@@ -32,6 +32,8 @@ object LibdcWrapper {
     // Download session
     external fun nativeDownloadSessionNew(): Long
     external fun nativeDownloadCancel(sessionPtr: Long)
+    // [product, model] the device reported during the last run (issue #422).
+    external fun nativeDownloadSessionReportedDevice(sessionPtr: Long): Array<String>?
     external fun nativeDownloadSessionFree(sessionPtr: Long)
     // infoOut receives three slots after the run: device serial, firmware
     // version, and the clock sync status code (libdc_clock_sync_status_t).
@@ -129,6 +131,10 @@ interface BleIoHandler : IoHandler {
     fun onPinCodeRequired(address: String): String
     fun getAccessCode(address: String): ByteArray?
     fun setAccessCode(address: String, code: ByteArray)
+
+    // Read a GATT characteristic by UUID (libdivecomputer's
+    // DC_IOCTL_BLE_CHARACTERISTIC_READ, issue #422). Returns null on failure.
+    fun readCharacteristic(uuid: String): ByteArray?
 }
 
 // Serial I/O: adds serial line-control (baud/data/parity/stop/flow + DTR/RTS).

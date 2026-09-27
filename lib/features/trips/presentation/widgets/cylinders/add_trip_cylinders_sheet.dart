@@ -10,6 +10,7 @@ import 'package:submersion/features/tank_presets/presentation/providers/tank_pre
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Opens the sheet that adds cylinder slots to a trip: a number of rental
 /// slots of one preset, or cylinders from the diver's own equipment that
@@ -42,13 +43,16 @@ List<String> tripRentalLabels(
   int count,
   List<String> existingLabels,
 ) {
+  // At most nine digits, so the match always fits an int.
   final numbered = RegExp(
-    prefix.isEmpty ? r'^(\d+)$' : '^${RegExp.escape(prefix)} (\\d+)\$',
+    prefix.isEmpty ? r'^(\d{1,9})$' : '^${RegExp.escape(prefix)} (\\d{1,9})\$',
   );
   var highest = existingLabels.length;
   for (final label in existingLabels) {
-    final n = int.tryParse(numbered.firstMatch(label.trim())?.group(1) ?? '');
-    if (n != null && n > highest) highest = n;
+    final digits = numbered.firstMatch(label.trim())?.group(1);
+    if (digits == null) continue;
+    final n = int.parse(digits);
+    if (n > highest) highest = n;
   }
   return [
     for (var n = highest + 1; n <= highest + count; n++)
@@ -113,7 +117,10 @@ class _AddTripCylindersSheetState
     final now = DateTime.now().toUtc();
     final drafts = <TripCylinder>[];
     if (_mode == _AddMode.rental) {
-      final count = int.tryParse(_count.text.trim());
+      final count = switch (readNumber(_count.text, integer: true)) {
+        NumberValue(:final value) => value.toInt(),
+        NumberBlank() || NumberInvalid() => null,
+      };
       if (count == null || count < 1 || count > _maxRentalCount) {
         setState(() => _error = l10n.trips_cylinders_add_errorCount);
         return;

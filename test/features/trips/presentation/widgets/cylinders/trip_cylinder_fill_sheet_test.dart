@@ -529,7 +529,10 @@ void main() {
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Enter a valid number'), findsOneWidget);
+    expect(
+      find.text('Enter a valid number (decimal separator: ".")'),
+      findsOneWidget,
+    );
     expect(await repo.getEventsForCylinder(cylinders.first.id), isEmpty);
   });
 

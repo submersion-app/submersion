@@ -20,7 +20,8 @@ class TripCylindersCard extends ConsumerWidget {
   const TripCylindersCard({super.key, required this.trip});
 
   /// The most of the window the card may take before it scrolls, below the
-  /// scrubber card's share so both fit above the story on a phone.
+  /// gear alerts panel's share (TripGearAlertsPanel.maxHeightFraction) so
+  /// both fit above the story on a phone.
   static const maxHeightFraction = 0.3;
 
   @override

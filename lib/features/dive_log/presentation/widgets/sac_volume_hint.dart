@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Explains why SAC is shown per pressure unit when the diver asked for
@@ -34,7 +35,9 @@ class SacVolumeHint extends StatelessWidget {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                context.l10n.diveLog_detail_sacVolumeHint(volumeSymbol),
+                context.l10n.diveLog_detail_sacVolumeHint(
+                  UnitFormatter.perMinute(volumeSymbol),
+                ),
                 style: theme.textTheme.bodySmall?.copyWith(color: muted),
               ),
             ),

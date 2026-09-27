@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
@@ -9,6 +8,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_attri
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Renders one input per catalog definition for [type] in [group]. Values are
 /// keyed by attrKey in [values]; edits emit whole EquipmentAttribute objects
@@ -150,6 +150,8 @@ class EquipmentAttributeFormSection extends StatelessWidget {
             decimal: true,
             signed: true,
           ),
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          validator: numberValidator(context),
           onChanged: (text) {
             final trimmed = text.trim();
             if (trimmed.isEmpty) {
@@ -160,7 +162,10 @@ class EquipmentAttributeFormSection extends StatelessWidget {
             // formatAttributeNumberForEditing. A blanket replaceAll(',', '.')
             // would misread the en_US thousands separator, turning "1,250"
             // into 1.25.
-            final parsed = parseUserDecimal(trimmed);
+            final parsed = switch (readNumber(trimmed)) {
+              NumberValue(:final value) => value,
+              NumberBlank() || NumberInvalid() => null,
+            };
             if (parsed != null) {
               onChanged(
                 _base(def.key).copyWith(
@@ -172,8 +177,9 @@ class EquipmentAttributeFormSection extends StatelessWidget {
                 ),
               );
             }
-            // Non-empty but unparseable (transient like "-", or invalid): keep
-            // the last pending value rather than silently dropping the field.
+            // Non-empty but unreadable (transient like "-", or invalid): keep
+            // the last pending value rather than dropping the field; the
+            // validator shows why (#1900).
           },
         );
 

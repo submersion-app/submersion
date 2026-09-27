@@ -13,8 +13,10 @@ class PressureAnomalyDetector extends QualityDetector {
   // Bumped for the endmismatch/startmismatch surfacing-lookback logic
   // (#2220, #2222): divers who already ran a full scan at v1 need the
   // "new checks available" prompt so their stale false positives retire.
+  // Bumped again when the consumption check stopped counting the
+  // post-surfacing tail (#2224), for the same reason.
   @override
-  int get version => 2;
+  int get version => 3;
   @override
   QualityCategory get category => QualityCategory.pressure;
 
@@ -130,13 +132,17 @@ class PressureAnomalyDetector extends QualityDetector {
       closeRise(series.last.t);
 
       // Implausible surface-equivalent consumption.
-      final drop = series.first.bar - series.last.bar;
-      final durSec = series.last.t - series.first.t;
+      final window = _consumptionWindow(series, surfacingTime);
+      if (window == null) continue;
+      final drop = window.first.bar - window.last.bar;
+      final durSec = window.last.t - window.first.t;
       final vol = tank.volume;
       if (drop > 0 &&
           durSec >= QualityThresholds.sacMinSeriesSeconds &&
           vol != null) {
-        final avgDepth = ctx.dive.avgDepth ?? _meanDepth(ctx.primarySamples);
+        final avgDepth =
+            ctx.dive.avgDepth ??
+            _meanDepth(ctx.primarySamples, window.first.t, window.last.t);
         if (avgDepth != null) {
           final atm = 1 + avgDepth / 10;
           final surfaceLpm = drop * vol / (durSec / 60.0) / atm;
@@ -205,6 +211,38 @@ class PressureAnomalyDetector extends QualityDetector {
     return atSurfacing.bar;
   }
 
+  /// The pair of samples to measure this tank's consumption rate between, or
+  /// null when the series recorded no breathing at all.
+  ///
+  /// The window ends at the last sample at or before surfacing, for the same
+  /// reason [_endReferenceBar] does: the post-surfacing tail can shed tens of
+  /// bar that nobody breathed (#1092, #2220), and counting it inflates the
+  /// rate into a false "implausible consumption" finding (#2224). Drop and
+  /// duration both come from this one window, so the rate is never an
+  /// underwater drop spread over a duration that includes the tail.
+  ///
+  /// Unlike the end check, no lookback applies. A rate measured over any
+  /// stretch of the dive is still that dive's rate, so a transmitter that
+  /// went quiet long before surfacing still has one to judge.
+  ///
+  /// When only the first sample falls underwater there is no underwater
+  /// stretch to measure, so the whole series stands, as it did before #2224:
+  /// a sparse start-and-end series cannot separate its tail, and suppressing
+  /// the check would retire it for every such tank. A series that begins
+  /// after surfacing is all tail and gets no window. Without depth data the
+  /// whole series stands too.
+  ({QualityPressureSample first, QualityPressureSample last})?
+  _consumptionWindow(List<QualityPressureSample> series, int? surfacingTime) {
+    if (surfacingTime == null) return (first: series.first, last: series.last);
+    if (series.first.t > surfacingTime) return null;
+    var atSurfacing = 0;
+    for (var i = 1; i < series.length; i++) {
+      if (series[i].t <= surfacingTime) atSurfacing = i;
+    }
+    if (atSurfacing == 0) return (first: series.first, last: series.last);
+    return (first: series.first, last: series[atSurfacing]);
+  }
+
   bool _nearSwitch(DiveQualityContext ctx, int startT, int endT) =>
       ctx.gasSwitches.any(
         (sw) =>
@@ -212,7 +250,17 @@ class PressureAnomalyDetector extends QualityDetector {
             sw.timestamp <= endT + QualityThresholds.switchProximitySeconds,
       );
 
-  double? _meanDepth(List<QualitySample> samples) {
+  /// Mean depth of the samples inside the consumption window [fromT]..[toT],
+  /// so the ambient pressure a rate is normalized by covers the same stretch
+  /// as its drop and duration: surface samples in the post-surfacing tail
+  /// would otherwise make the dive read shallower and the rate higher
+  /// (#2224). Falls back to every sample when none land in the window.
+  double? _meanDepth(List<QualitySample> allSamples, int fromT, int toT) {
+    final inWindow = [
+      for (final s in allSamples)
+        if (s.t >= fromT && s.t <= toT) s,
+    ];
+    final samples = inWindow.isEmpty ? allSamples : inWindow;
     if (samples.isEmpty) return null;
     var sum = 0.0;
     for (final p in samples) {

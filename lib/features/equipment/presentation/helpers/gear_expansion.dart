@@ -26,11 +26,17 @@ typedef GearExpansion = ({
 /// the index or the parts cannot be read, the additions are attached flat,
 /// which is what the app did before assemblies existed, rather than
 /// failing the add.
+///
+/// With [diverId], a part another profile owns and has not shared with that
+/// diver is not attached (issue #2046): a shared assembly does not bring
+/// along parts the diver cannot see. Null attaches every part, as before
+/// sharing existed.
 Future<GearExpansion> expandGearOnPage(
   WidgetRef ref, {
   required List<GearAddition> additions,
   required List<GearProvenance> existing,
   required List<EquipmentItem> existingItems,
+  required String? diverId,
 }) async {
   ComponentsIndex index;
   try {
@@ -44,9 +50,19 @@ Future<GearExpansion> expandGearOnPage(
   var fetched = const <EquipmentItem>[];
   if (candidateIds.isNotEmpty) {
     try {
-      fetched = await ref
-          .read(equipmentRepositoryProvider)
-          .getEquipmentByIds(candidateIds.toList());
+      final repository = ref.read(equipmentRepositoryProvider);
+      final parts = await repository.getEquipmentByIds(candidateIds.toList());
+      if (diverId == null) {
+        fetched = parts;
+      } else {
+        final usable = (await repository.usableSetMemberIds([
+          for (final e in parts) e.id,
+        ], diverId)).toSet();
+        fetched = [
+          for (final e in parts)
+            if (usable.contains(e.id)) e,
+        ];
+      }
     } catch (_) {
       // The repository has logged it; an unknown part is simply not
       // attached, and the expander skips ids it cannot see.

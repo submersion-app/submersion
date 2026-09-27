@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Liters of gas in one cubic foot, the ideal gas figure the tank editor
 /// uses to turn a rated capacity back into water volume.
@@ -49,13 +50,18 @@ cylinderSpecsFromInput(
   required String workingPressureText,
   TankPresetEntity? preset,
 }) {
-  final sizeTrim = sizeText.trim();
-  final wpTrim = workingPressureText.trim();
-  final size = sizeTrim.isEmpty ? null : parseUserDecimal(sizeTrim);
-  final wpDisplay = wpTrim.isEmpty ? null : parseUserDecimal(wpTrim);
-  final badSize = sizeTrim.isNotEmpty && (size == null || size <= 0);
-  final badWp = wpTrim.isNotEmpty && (wpDisplay == null || wpDisplay <= 0);
-  if (badSize || badWp) {
+  // A size or pressure must be positive; blank means unknown.
+  bool bad(NumberRead r) => switch (r) {
+    NumberValue(:final value) => value <= 0,
+    NumberBlank() => false,
+    NumberInvalid() => true,
+  };
+  double? valueOf(NumberRead r) => r is NumberValue ? r.value : null;
+  final sizeRead = readNumber(sizeText);
+  final wpRead = readNumber(workingPressureText);
+  final size = valueOf(sizeRead);
+  final wpDisplay = valueOf(wpRead);
+  if (bad(sizeRead) || bad(wpRead)) {
     return (
       volumeLiters: null,
       workingPressureBar: null,

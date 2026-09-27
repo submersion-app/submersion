@@ -17,6 +17,7 @@ import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_dis
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// True when a cylinder can hold the mix: O2 1 to 100 percent, He 0 to 99,
 /// together at most 100.
@@ -193,11 +194,11 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
   }
 
   /// Null for a blank field; NaN for text that is not a number.
-  static double? _read(TextEditingController c) {
-    final t = c.text.trim();
-    if (t.isEmpty) return null;
-    return parseUserDecimal(t) ?? double.nan;
-  }
+  static double? _read(TextEditingController c) => switch (readNumber(c.text)) {
+    NumberValue(:final value) => value,
+    NumberBlank() => null,
+    NumberInvalid() => double.nan,
+  };
 
   static String? _text(TextEditingController c) {
     final t = c.text.trim();
@@ -273,7 +274,7 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
       for (final a in analysis.values) ...[a.o2, a.he],
     ];
     if (numbers.any((v) => v != null && (v.isNaN || v < 0))) {
-      setState(() => _error = l10n.numberInput_invalidValue);
+      setState(() => _error = tripCylinderInvalidNumber(l10n));
       return;
     }
     final orderedO2 = o2 ?? 21.0;

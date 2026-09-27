@@ -15,6 +15,7 @@ import 'package:submersion/features/equipment/presentation/utils/service_categor
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Service Record Dialog for Add/Edit
 class ServiceRecordDialog extends ConsumerStatefulWidget {
@@ -188,10 +189,22 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
             .valueOrNull ??
         const <ServiceSchedule>[];
 
+    // The diver's own kinds plus any kind this item's schedules use: a
+    // shared item's schedule can use its owner's custom kind (issue #2046).
+    final allKinds = ref.watch(allServiceKindsByIdProvider).value ?? const {};
+    List<ServiceKind> offered(List<ServiceKind> scoped) => [
+      ...scoped,
+      for (final s in schedules)
+        if (allKinds[s.serviceKindId] case final k?)
+          if (!scoped.any((e) => e.id == k.id)) k,
+    ];
+
     // Resolved every build while the field is untouched, so switching the
     // clock re-prices the record.
     _maybePrefillFromKind(
-      ref.watch(serviceKindsProvider).valueOrNull ?? const <ServiceKind>[],
+      offered(
+        ref.watch(serviceKindsProvider).valueOrNull ?? const <ServiceKind>[],
+      ),
       schedules,
     );
 
@@ -227,6 +240,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                 // diver must choose, and the category below follows from it.
                 ref
                     .watch(serviceKindsProvider)
+                    .whenData(offered)
                     .maybeWhen(
                       data: (kinds) => Column(
                         mainAxisSize: MainAxisSize.min,
@@ -403,17 +417,14 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),
-                            validator: (value) {
-                              if (value != null && value.isNotEmpty) {
-                                final parsed = parseUserDecimal(value);
-                                if (parsed == null || parsed < 0) {
-                                  return context
-                                      .l10n
-                                      .equipment_serviceDialog_costValidation;
-                                }
-                              }
-                              return null;
-                            },
+                            validator: numberValidator(
+                              context,
+                              check: (cost) => cost < 0
+                                  ? context
+                                        .l10n
+                                        .equipment_serviceDialog_costValidation
+                                  : null,
+                            ),
                           );
                         },
                       ),
@@ -578,7 +589,11 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
         provider: _providerController.text.trim().isEmpty
             ? null
             : _providerController.text.trim(),
-        cost: parseUserDecimal(_costController.text),
+        // Blank is "no cost"; validate() stopped unreadable text.
+        cost: switch (readNumber(_costController.text)) {
+          NumberValue(:final value) => value,
+          NumberBlank() || NumberInvalid() => null,
+        },
         currency: _currencyController.text.trim().isEmpty
             ? _fallbackCurrencyCode()
             : _currencyController.text.trim().toUpperCase(),

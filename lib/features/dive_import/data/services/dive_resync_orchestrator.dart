@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart'
 import 'package:submersion/features/dive_import/domain/resyncable_import_formats.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/parser_registry.dart';
 
@@ -35,6 +36,13 @@ class DiveResyncOutcome {
 /// matches the target dive is found by content, not by position -- this
 /// reuses the same [DiveMatcher] scorer the import wizard already uses to
 /// flag duplicates, rather than inventing a second matching algorithm.
+///
+/// A logbook shared by several divers (MacDive, issue #1893) holds each
+/// buddy dive once per diver, and the copies score almost identically, so
+/// content alone cannot tell them apart. The source row's stored
+/// `sourceDiverKey` restricts the candidates to the importing diver's
+/// dives; a source imported before that key was stored is refused when more
+/// than one diver has a matching dive (issue #1921).
 class DiveResyncOrchestrator {
   final AppDatabase db;
   final ImportedFileRepository importedFiles;
@@ -85,7 +93,13 @@ class DiveResyncOrchestrator {
     }
 
     final payload = await parserFor(format).parse(bytes);
-    final candidates = payload.entitiesOf(ImportEntityType.dives);
+    final storedDiverKey = source.sourceDiverKey;
+    final candidates = [
+      for (final candidate in payload.entitiesOf(ImportEntityType.dives))
+        if (storedDiverKey == null ||
+            candidate[SourceDiver.mapKey] == storedDiverKey)
+          candidate,
+    ];
 
     // Scoring quirk worth knowing before touching thresholds: maxDepth
     // carries 30% of the weight, so a parser fix to a depth bug (the classic
@@ -100,6 +114,8 @@ class DiveResyncOrchestrator {
     // a dive imported before `runtime` was filled has nothing else.
     Map<String, dynamic>? best;
     var bestScore = 0.0;
+    // Every diver key with a probable match, for the no-stored-key check.
+    final matchingDivers = <String?>{};
     for (final candidate in candidates) {
       final candidateTime = candidate['dateTime'] as DateTime?;
       if (candidateTime == null) continue;
@@ -118,6 +134,9 @@ class DiveResyncOrchestrator {
         existingMaxDepth: dive.maxDepth ?? 0.0,
         existingDurationSeconds: dive.runtime ?? dive.bottomTime ?? 0,
       );
+      if (_matcher.isProbableDuplicate(score)) {
+        matchingDivers.add(candidate[SourceDiver.mapKey] as String?);
+      }
       if (score > bestScore) {
         bestScore = score;
         best = candidate;
@@ -126,6 +145,11 @@ class DiveResyncOrchestrator {
 
     if (best == null || !_matcher.isProbableDuplicate(bestScore)) {
       return const DiveResyncOutcome.failure(DiveResyncFailure.noMatchingDive);
+    }
+    // With a stored key every candidate is already the same diver's, so the
+    // set can only exceed one entry for a source that predates the key.
+    if (matchingDivers.length > 1) {
+      return const DiveResyncOutcome.failure(DiveResyncFailure.ambiguousDiver);
     }
 
     final result = await _writer.applyReimport(

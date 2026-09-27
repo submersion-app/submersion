@@ -7,6 +7,7 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_specs_input.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -124,7 +125,7 @@ class _TripCylinderEditSheetState
     if (specs.invalid || specs.needsPressure) {
       setState(
         () => _error = specs.invalid
-            ? l10n.numberInput_invalidValue
+            ? tripCylinderInvalidNumber(l10n)
             : l10n.trips_cylinders_edit_errorNeedsPressure,
       );
       return;

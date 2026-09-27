@@ -21,6 +21,8 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Advanced search page with all filter options in collapsible sections.
 ///
@@ -144,8 +146,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     _customFieldValueController.text = _customFieldValue ?? '';
 
     // Set controller text
-    _minDepthController.text = _minDepth?.toStringAsFixed(0) ?? '';
-    _maxDepthController.text = _maxDepth?.toStringAsFixed(0) ?? '';
+    _seedDepthControllers(UnitFormatter(ref.read(settingsProvider)));
     _minDurationController.text = _minDurationMinutes?.toString() ?? '';
     _maxDurationController.text = _maxDurationMinutes?.toString() ?? '';
     _buddyNameController.text = _buddyNameFilter ?? '';
@@ -195,10 +196,33 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     super.dispose();
   }
 
+  /// Show the depth bounds, held in meters, in the diver's depth unit, as the
+  /// quick filter sheet does.
+  ///
+  /// Seeds from the meter state rather than the field text, so a value the
+  /// diver already typed keeps its depth when re-shown in another unit.
+  void _seedDepthControllers(UnitFormatter units) {
+    _minDepthController.text = _minDepth == null
+        ? ''
+        : formatRoundedForInput(units.convertDepth(_minDepth!), 0);
+    _maxDepthController.text = _maxDepth == null
+        ? ''
+        : formatRoundedForInput(units.convertDepth(_maxDepth!), 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
+
+    // Settings start as defaults and load the diver's row asynchronously (and
+    // reload on a diver switch), so the unit can change under an open page.
+    // Re-seed, or the fields keep text in the old unit beside the new suffix.
+    ref.listen(
+      settingsProvider.select((s) => s.depthUnit),
+      (_, _) =>
+          _seedDepthControllers(UnitFormatter(ref.read(settingsProvider))),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -234,7 +258,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
             key: 'conditions',
             title: context.l10n.diveLog_search_section_conditions,
             icon: Icons.waves,
-            child: _buildConditionsContent(),
+            child: _buildConditionsContent(units),
           ),
 
           // Gas & Equipment Section
@@ -522,41 +546,49 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     );
   }
 
-  Widget _buildConditionsContent() {
+  Widget _buildConditionsContent(UnitFormatter units) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Depth Range
         Text(
-          context.l10n.diveLog_search_label_depthRange,
+          context.l10n.diveLog_filter_sectionDepthRangeUnit(units.depthSymbol),
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
-              child: TextField(
+              child: NumberField(
                 controller: _minDepthController,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_filter_min,
                   prefixIcon: const Icon(Icons.arrow_downward),
-                  suffixText: 'm',
+                  suffixText: units.depthSymbol,
                 ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) => _minDepth = parseUserDecimal(value),
+                onChanged: (read) => _minDepth = switch (read) {
+                  // Typed in the diver's depth unit; the filter compares metres.
+                  NumberValue(:final value) => units.depthToMeters(value),
+                  NumberBlank() => null,
+                  NumberInvalid() => _minDepth, // the field shows the error
+                },
               ),
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: TextField(
+              child: NumberField(
                 controller: _maxDepthController,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_filter_max,
                   prefixIcon: const Icon(Icons.arrow_downward),
-                  suffixText: 'm',
+                  suffixText: units.depthSymbol,
                 ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) => _maxDepth = parseUserDecimal(value),
+                onChanged: (read) => _maxDepth = switch (read) {
+                  // Typed in the diver's depth unit; the filter compares metres.
+                  NumberValue(:final value) => units.depthToMeters(value),
+                  NumberBlank() => null,
+                  NumberInvalid() => _maxDepth, // the field shows the error
+                },
               ),
             ),
           ],
@@ -572,28 +604,36 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
         Row(
           children: [
             Expanded(
-              child: TextField(
+              child: NumberField(
                 controller: _minDurationController,
+                integer: true,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_filter_min,
                   prefixIcon: const Icon(Icons.timer),
                   suffixText: 'min',
                 ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) => _minDurationMinutes = parseUserInt(value),
+                onChanged: (read) => _minDurationMinutes = switch (read) {
+                  NumberValue(:final value) => value.toInt(),
+                  NumberBlank() => null,
+                  NumberInvalid() => _minDurationMinutes,
+                },
               ),
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: TextField(
+              child: NumberField(
                 controller: _maxDurationController,
+                integer: true,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_filter_max,
                   prefixIcon: const Icon(Icons.timer),
                   suffixText: 'min',
                 ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) => _maxDurationMinutes = parseUserInt(value),
+                onChanged: (read) => _maxDurationMinutes = switch (read) {
+                  NumberValue(:final value) => value.toInt(),
+                  NumberBlank() => null,
+                  NumberInvalid() => _maxDurationMinutes,
+                },
               ),
             ),
           ],

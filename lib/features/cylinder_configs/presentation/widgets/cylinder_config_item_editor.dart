@@ -9,6 +9,8 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// One editable cylinder inside a configuration.
 ///
@@ -151,38 +153,31 @@ class _CylinderConfigItemEditorState
           Row(
             children: [
               Expanded(
-                child: TextField(
+                child: NumberField(
                   controller: _o2,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
                   decoration: InputDecoration(
                     labelText: l10n.gasCalculators_mnd_o2Percent,
                   ),
-                  // Only a parseable value updates the model: transient states
-                  // like a lone "." must not clobber the stored mix.
-                  onChanged: (text) {
-                    final parsed = parseUserDecimal(text);
-                    if (parsed != null) {
-                      widget.onChanged(item.copyWith(o2Percent: parsed));
+                  // Only a readable value updates the model: blank, and
+                  // transient or mistyped text such as a lone ".", must not
+                  // clobber the stored mix; the field says why instead.
+                  onChanged: (read) {
+                    if (read case NumberValue(:final value)) {
+                      widget.onChanged(item.copyWith(o2Percent: value));
                     }
                   },
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: TextField(
+                child: NumberField(
                   controller: _he,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
                   decoration: InputDecoration(
                     labelText: l10n.gasCalculators_mnd_hePercent,
                   ),
-                  onChanged: (text) {
-                    final parsed = parseUserDecimal(text);
-                    if (parsed != null) {
-                      widget.onChanged(item.copyWith(hePercent: parsed));
+                  onChanged: (read) {
+                    if (read case NumberValue(:final value)) {
+                      widget.onChanged(item.copyWith(hePercent: value));
                     }
                   },
                 ),

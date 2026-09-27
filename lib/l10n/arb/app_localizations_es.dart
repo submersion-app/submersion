@@ -9,6 +9,164 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
+  String get equipment_filter_owner_all => 'Todos';
+
+  @override
+  String get equipment_delete_notOwner =>
+      'Solo su propietario puede eliminar este elemento';
+
+  @override
+  String get equipment_sharedWithMe => 'Compartido conmigo';
+
+  @override
+  String get equipment_owner_unknown => 'Otro perfil';
+
+  @override
+  String equipment_ownerChip_semanticLabel(String name) {
+    return 'Propiedad de $name';
+  }
+
+  @override
+  String equipment_picker_ownerHeader(String name) {
+    return 'De $name';
+  }
+
+  @override
+  String get equipment_sharing_sharedWithLabel => 'Compartido con';
+
+  @override
+  String get equipment_sharing_notShared => 'No compartido';
+
+  @override
+  String get equipment_sharing_ownedByLabel => 'Propietario';
+
+  @override
+  String get equipment_sharing_dialogTitle => 'Compartir con';
+
+  @override
+  String get equipment_sharing_dialogBody =>
+      'Los perfiles que elijas pueden añadir este equipo a sus inmersiones y registrar su mantenimiento. Solo el propietario puede eliminarlo o cambiar con quién se comparte.';
+
+  @override
+  String get equipment_bulkShare_action => 'Compartir con...';
+
+  @override
+  String equipment_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos compartidos',
+      one: '1 elemento compartido',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos compartidos',
+      one: '1 elemento compartido',
+    );
+    return '$_temp0, se omitieron $skipped que no son tuyos';
+  }
+
+  @override
+  String equipment_bulkDelete_partial(int deleted, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      deleted,
+      locale: localeName,
+      other: '$deleted elementos eliminados',
+      one: '1 elemento eliminado',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other:
+          'Se conservaron $skipped elementos compartidos: solo sus propietarios pueden eliminarlos',
+      one:
+          'Se conservó 1 elemento compartido: solo su propietario puede eliminarlo',
+    );
+    return '$_temp0. $_temp1';
+  }
+
+  @override
+  String get equipment_filter_section_owner => 'Propietario';
+
+  @override
+  String get equipment_filter_owner_mine => 'Míos';
+
+  @override
+  String get enum_equipmentField_owner => 'Propietario';
+
+  @override
+  String get enum_equipmentField_owner_short => 'Propietario';
+
+  @override
+  String get equipment_set_noLongerShared => 'Ya no se comparte';
+
+  @override
+  String get equipment_history_title => 'Historial';
+
+  @override
+  String get equipment_history_empty =>
+      'Aún no se ha usado en ninguna inmersión';
+
+  @override
+  String get equipment_history_deletedProfile => 'un perfil eliminado';
+
+  @override
+  String equipment_history_runDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones',
+      one: '1 inmersión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_history_dateRange(String from, String to) {
+    return '$from a $to';
+  }
+
+  @override
+  String equipment_history_added(String name) {
+    return 'Añadido por $name';
+  }
+
+  @override
+  String equipment_history_shared(String name) {
+    return 'Compartido con $name';
+  }
+
+  @override
+  String equipment_history_unshared(String name) {
+    return 'Se dejó de compartir con $name';
+  }
+
+  @override
+  String equipment_history_transferred(String from, String to) {
+    return 'Transferido de $from a $to';
+  }
+
+  @override
+  String get settings_shareAllEquipment_title => 'Compartir todo mi equipo...';
+
+  @override
+  String settings_shareAllEquipment_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Comparte tus $count elementos con los perfiles que elijas.',
+      one: 'Comparte tu 1 elemento con los perfiles que elijas.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'No se pudo abrir el navegador. Usa Copiar enlace y pega la dirección en tu navegador.';
 
@@ -251,6 +409,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Si este set incluye un ordenador de buceo, añade automáticamente todo el set a una inmersión descargada o importada desde él';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'Muestra el equipo de este conjunto sobre un buceador en su página';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title =>
+      'Mostrar figura del buceador';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geocercas';
 
   @override
@@ -291,6 +457,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Predeterminado';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'Ocultar figura del buceador';
+
+  @override
+  String get equipment_setDetail_showFigure => 'Mostrar figura del buceador';
 
   @override
   String get equipment_setDetail_setAsDefault =>
@@ -8940,13 +9112,13 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh =>
-      'Profundidad Narcótica Equivalente demasiado alta';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END de $depth excede el límite de $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END de $depth excede el límite seguro';
-  }
+  String get divePlanner_warning_endHigh =>
+      'Profundidad Narcótica Equivalente demasiado alta';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -12180,6 +12352,76 @@ class AppLocalizationsEs extends AppLocalizations {
   String get passport_tag_linked => 'Etiqueta vinculada';
 
   @override
+  String get passport_scan_title => 'Escanear etiqueta de botella';
+
+  @override
+  String get passport_scan_hint =>
+      'Apunta la cámara a la etiqueta o pega el enlace de la etiqueta.';
+
+  @override
+  String get passport_scan_cameraUnavailable =>
+      'La cámara no está disponible aquí. Pega el enlace de la etiqueta.';
+
+  @override
+  String get passport_scan_linkLabel => 'Enlace de la etiqueta';
+
+  @override
+  String get passport_scan_paste => 'Pegar';
+
+  @override
+  String get passport_scan_open => 'Abrir';
+
+  @override
+  String get passport_scan_openFailed =>
+      'No se pudo abrir la etiqueta. Inténtalo de nuevo.';
+
+  @override
+  String get passport_scan_newerFormat =>
+      'Esta etiqueta la escribió una versión más reciente de Submersion. Puede que falten algunos datos.';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return 'Completado desde $name';
+  }
+
+  @override
+  String get passport_foreign_title => 'Etiqueta de botella';
+
+  @override
+  String get passport_foreign_notInGear => 'Esta botella no está en tu equipo.';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return 'Según la etiqueta escrita el $date';
+  }
+
+  @override
+  String get passport_foreign_noDetails =>
+      'La etiqueta no incluye datos aparte de su identificador.';
+
+  @override
+  String get passport_foreign_o2Clean =>
+      'Limpia para O2 cuando se escribió la etiqueta';
+
+  @override
+  String get passport_foreign_useOnDive => 'Usar en una inmersión';
+
+  @override
+  String get passport_foreign_addToGear => 'Añadir a mi equipo';
+
+  @override
+  String get passport_foreign_addFailed =>
+      'No se pudo añadir la botella. Inténtalo de nuevo.';
+
+  @override
+  String get passport_foreign_defaultName => 'Botella';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return 'N.º de serie $serial';
+  }
+
+  @override
   String get passport_logFill_date => 'Cargada el';
 
   @override
@@ -12209,9 +12451,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get passport_logFill_invalidMix =>
       'O2 y He deben estar entre 0 y 100 y sumar 100 o menos';
-
-  @override
-  String get passport_logFill_invalidNumber => 'Introduce un número';
 
   @override
   String get passport_logFill_saveFailed =>
@@ -12828,6 +13067,17 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String trips_gearAlerts_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count avisos de equipo para este viaje',
+      one: '$count aviso de equipo para este viaje',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -13080,10 +13330,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_edit_purchasePriceLabel => 'Precio de compra';
 
   @override
-  String get equipment_edit_purchasePriceValidation =>
-      'Ingresa un monto válido';
-
-  @override
   String get equipment_edit_remindMeBeforeServiceDue =>
       'Recordarme antes del próximo servicio:';
 
@@ -13177,6 +13423,35 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'Agregar Conjunto';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'Detrás · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'Delante · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count artículos',
+      one: '$count artículo',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'También se lleva';
 
   @override
   String get equipment_list_emptyState_addFirstButton =>
@@ -14685,11 +14960,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'Introduce un número válido (separador decimal: \"$separator\")';
-  }
-
-  @override
   String get gasCalculators_blender_currency => 'Moneda';
 
   @override
@@ -15141,6 +15411,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get marineLife_speciesDetail_sitesLabel => 'Puntos';
+
+  @override
+  String get marineLife_speciesDetail_statsError =>
+      'No se pudieron cargar las estadísticas de avistamientos';
 
   @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
@@ -26556,7 +26830,7 @@ class AppLocalizationsEs extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Ascenso $from -> $to a $rate/min';
+    return 'Ascenso $from -> $to a $rate';
   }
 
   @override
@@ -26570,7 +26844,7 @@ class AppLocalizationsEs extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Descenso $from -> $to a $rate/min';
+    return 'Descenso $from -> $to a $rate';
   }
 
   @override
@@ -28177,6 +28451,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo resincronizar: el archivo original ya no contiene una inmersión coincidente';
 
   @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'No se pudo resincronizar: el archivo original tiene una inmersión coincidente para más de un buceador y esta inmersión no registra de cuál procede';
+
+  @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
       'No se pudo resincronizar: se produjo un error inesperado al leer el archivo original';
 
@@ -28287,7 +28565,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_sharedData_sectionSubtitle =>
-      'Compartir sitios y viajes entre perfiles';
+      'Compartir sitios, viajes y equipo entre perfiles';
 
   @override
   String get common_action_unshare => 'Dejar de compartir';
@@ -30197,7 +30475,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Añade el volumen del cilindro para mostrar el RMV en $unit/min';
+    return 'Añade el volumen del cilindro para mostrar el RMV en $unit';
   }
 
   @override
@@ -30981,9 +31259,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get equipmentConditionSettings_o2Label =>
       'Mezcla con alto O2 por encima de (% O2)';
-
-  @override
-  String get equipmentConditionSettings_invalid => 'Introduce un número';
 
   @override
   String get equipmentConditionSettings_saveFailed =>
@@ -41540,7 +41815,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_info_statusFound => 'Encontrada en este dispositivo';
 
   @override
+  String get media_info_statusFoundElsewhere =>
+      'Encontrada en otro dispositivo';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'Encontrada en $device';
+  }
+
+  @override
   String get media_info_statusMissing => 'No está en este dispositivo';
+
+  @override
+  String get media_info_statusMissingElsewhere => 'Falta en otro dispositivo';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'Falta en $device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'Aún sin comprobar';
@@ -42339,6 +42631,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get profilePhoto_source_camera => 'Hacer foto';
 
   @override
+  String get common_camera_unavailable =>
+      'No se pudo abrir la cámara. Permite el acceso a la cámara en Ajustes.';
+
+  @override
+  String get common_photo_pickFailed =>
+      'No se pudo abrir la foto. Prueba con otra.';
+
+  @override
   String get profilePhoto_source_library => 'Elegir de la galería';
 
   @override
@@ -42482,7 +42782,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'El archivo que ocupa ahora su lugar se conserva a su lado; no se elimina.';
+      'El archivo que ocupa ahora su lugar se conserva; no se elimina. Puedes restaurarlo o eliminarlo más tarde en Respaldo y Restauración, dentro de Ajustes.';
 
   @override
   String get startup_interruptedRestore_keepAction =>
@@ -42490,7 +42790,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'Tu cuaderno de buceo anterior se conserva como archivo en la carpeta de la base de datos.';
+      'Tu cuaderno de buceo anterior se conserva; no se elimina. Puedes restaurarlo o eliminarlo más tarde en Respaldo y Restauración, dentro de Ajustes.';
 
   @override
   String get startup_interruptedRestore_failed =>
@@ -42815,6 +43115,67 @@ class AppLocalizationsEs extends AppLocalizations {
   String backup_unrecognized_freed(String size) {
     return 'Se liberaron $size';
   }
+
+  @override
+  String get backup_quarantined_sectionTitle => 'Bases de datos apartadas';
+
+  @override
+  String get backup_quarantined_explanation =>
+      'Una restauración que no pudo terminar correctamente conservó estas copias de tu base de datos en lugar de eliminarlas. Restaura una para volver a usarla o elimínala para liberar espacio.';
+
+  @override
+  String get backup_quarantined_kind_preRestore =>
+      'Cuaderno de buceo de antes de una restauración';
+
+  @override
+  String get backup_quarantined_kind_restoreRejected =>
+      'Cuaderno de buceo sustituido durante una recuperación';
+
+  @override
+  String backup_quarantined_detail(String date, String size) {
+    return '$date • $size';
+  }
+
+  @override
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
+    return '$date • $size • base de datos v$version';
+  }
+
+  @override
+  String get backup_quarantined_status_needsNewerApp =>
+      'Necesita una versión más reciente de Submersion';
+
+  @override
+  String get backup_quarantined_status_unreadable =>
+      'No se puede abrir aquí. Puede estar dañada o protegida con una contraseña que este dispositivo no tiene.';
+
+  @override
+  String get backup_quarantined_status_incomplete =>
+      'Solo quedan archivos de diario; el archivo de la base de datos ya no existe.';
+
+  @override
+  String get backup_quarantined_delete_title =>
+      '¿Eliminar esta copia de la base de datos?';
+
+  @override
+  String get backup_quarantined_delete_message =>
+      'La copia y sus archivos de diario se eliminarán definitivamente de este dispositivo. Esta acción no se puede deshacer.';
+
+  @override
+  String get backup_quarantined_deleted =>
+      'Copia de la base de datos eliminada';
+
+  @override
+  String get backup_quarantined_deleteFailed =>
+      'No se pudo eliminar la copia de la base de datos.';
+
+  @override
+  String get backup_quarantined_loadFailed =>
+      'No se pudo revisar la carpeta de la base de datos en busca de copias apartadas.';
 
   @override
   String settings_storageUsage_unrecognized_title(int count) {
@@ -43369,7 +43730,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => 'Ingresa un número válido';
+  String numberInput_invalidNumber(String separator) {
+    return 'Introduce un número válido (separador decimal: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'Introduce un número entero';
+
+  @override
+  String get numberInput_required => 'Obligatorio';
+
+  @override
+  String get numberInput_notNegative => 'Introduce 0 o más';
+
+  @override
+  String get numberInput_atLeastOne => 'Introduce 1 o más';
+
+  @override
+  String get numberInput_percentRange => 'Introduce un valor de 0 a 100';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Equipo de alquiler';

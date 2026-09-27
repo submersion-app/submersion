@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 /// Initial values for DiveEditPage create mode. All metric.
@@ -18,6 +19,11 @@ class DivePrefill {
   final double? endPressureBar;
   final double? o2Percent;
   final double? cylinderVolumeLiters;
+
+  /// A whole cylinder for the first tank, from a scanned cylinder tag
+  /// (issue #2335). Takes precedence over [o2Percent] and
+  /// [cylinderVolumeLiters]; any spec it leaves null keeps the default.
+  final DiveTank? tank;
   final double? weightKg;
   final String? photoPath; // source logbook photo to attach after save
   final String? importSource; // e.g. 'ocr'
@@ -41,6 +47,7 @@ class DivePrefill {
     this.endPressureBar,
     this.o2Percent,
     this.cylinderVolumeLiters,
+    this.tank,
     this.weightKg,
     this.photoPath,
     this.importSource,
