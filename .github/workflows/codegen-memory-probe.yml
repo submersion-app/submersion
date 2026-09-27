@@ -1,7 +1,10 @@
 # Throwaway measurement workflow (scratch branch only, never merged).
 # Cold build_runner build per variant on ubuntu-latest, with a memory sampler
 # that prints straight to the step log so the curve survives a runner kill.
-name: Codegen memory probe v3
+# v4 (issue #2502): `split` is this branch, with the tables in per-domain
+# libraries; `baseline` restores main's single-library database.dart. No extra
+# swap and no heap cap in either, so the numbers are what the runner gives.
+name: Codegen memory probe v4
 
 on:
   push:
@@ -19,12 +22,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {variant: baseline, heap: 8000, swap: 0, rep: 1}
-          - {variant: baseline, heap: 8000, swap: 0, rep: 2}
-          - {variant: baseline, heap: 8000, swap: 0, rep: 3}
-          - {variant: baseline, heap: 10000, swap: 0, rep: 1}
-          - {variant: baseline, heap: 10000, swap: 0, rep: 2}
-          - {variant: tight, heap: 8000, swap: 0, rep: 1}
+          - {variant: baseline, heap: 0, swap: 0, rep: 1}
+          - {variant: baseline, heap: 0, swap: 0, rep: 2}
+          - {variant: split, heap: 0, swap: 0, rep: 1}
+          - {variant: split, heap: 0, swap: 0, rep: 2}
+          - {variant: split, heap: 0, swap: 0, rep: 3}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -53,9 +55,14 @@ jobs:
       - name: Apply variant
         run: |
           rm -rf .dart_tool/build
-          if [ "${{ matrix.variant }}" != baseline ]; then
-            cp .github/codegen-probe/${{ matrix.variant }}.yaml build.yaml
+          if [ "${{ matrix.variant }}" = baseline ]; then
+            git fetch --depth=1 origin 135016eeb5d7955c0a36e4d5207271b353980f0c
+            git checkout FETCH_HEAD -- lib/core/database
+            rm -rf lib/core/database/tables
           fi
+          echo "--- database library:"
+          wc -l lib/core/database/database.dart
+          echo "table libraries: $(ls lib/core/database/tables 2>/dev/null | wc -l)"
           echo "--- build.yaml:"; cat build.yaml 2>/dev/null || echo "(none)"
           if [ "${{ matrix.swap }}" != 0 ]; then
             sudo fallocate -l ${{ matrix.swap }}G /mnt/extra.swap
