@@ -8924,13 +8924,13 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh =>
-      'Ekvivalens narkotikus mélység túl magas';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END $depth meghaladja a limitet ($limit)';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END $depth meghaladja a biztonságos limitet';
-  }
+  String get divePlanner_warning_endHigh =>
+      'Ekvivalens narkotikus mélység túl magas';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -15108,6 +15108,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => 'Merülőhelyek';
 
   @override
+  String get marineLife_speciesDetail_statsError =>
+      'Nem sikerült betölteni az észlelési statisztikákat';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'Osztály: $className';
   }
@@ -19020,6 +19024,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_trip => 'Utazás';
+
+  @override
+  String get settings_conflict_ref_tripCylinder => 'Utazási palack';
 
   @override
   String get settings_conflict_remoteVersion => 'Távoli változat';
@@ -26204,7 +26211,7 @@ class AppLocalizationsHu extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Emelkedés $from -> $to, $rate/perc';
+    return 'Emelkedés $from -> $to, $rate';
   }
 
   @override
@@ -26218,7 +26225,7 @@ class AppLocalizationsHu extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Süllyedés $from -> $to, $rate/perc';
+    return 'Süllyedés $from -> $to, $rate';
   }
 
   @override
@@ -27809,6 +27816,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       'Nem sikerült újraszinkronizálni: az eredeti fájl már nem tartalmaz megfelelő merülést';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Nem sikerült újraszinkronizálni: az eredeti fájlban több búvárnak is van megfelelő merülése, és ennél a merülésnél nincs rögzítve, melyiktől származik';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
@@ -29807,7 +29818,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Add meg a palack térfogatát, hogy az RMV $unit/min-ben jelenjen meg';
+    return 'Add meg a palack térfogatát, hogy az RMV $unit-ben jelenjen meg';
   }
 
   @override
@@ -42019,7 +42030,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'A most a helyén lévő fájl mellette megmarad, nem törlődik.';
+      'A most a helyén lévő fájl megmarad, nem törlődik. Később visszaállíthatod vagy törölheted a Beállítások Biztonsági mentés és visszaállítás részében.';
 
   @override
   String get startup_interruptedRestore_keepAction =>
@@ -42027,7 +42038,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'Az előző merülési naplód fájlként megmarad az adatbázis mappájában.';
+      'Az előző merülési naplód megmarad, nem törlődik. Később visszaállíthatod vagy törölheted a Beállítások Biztonsági mentés és visszaállítás részében.';
 
   @override
   String get startup_interruptedRestore_failed =>
@@ -42352,6 +42363,66 @@ class AppLocalizationsHu extends AppLocalizations {
   String backup_unrecognized_freed(String size) {
     return '$size felszabadítva';
   }
+
+  @override
+  String get backup_quarantined_sectionTitle => 'Félretett adatbázisok';
+
+  @override
+  String get backup_quarantined_explanation =>
+      'Egy visszaállítás, amely nem tudott rendben befejeződni, törlés helyett megtartotta az adatbázisod ezen másolatait. Állíts vissza egyet, hogy újra használd, vagy töröld, hogy helyet szabadíts fel.';
+
+  @override
+  String get backup_quarantined_kind_preRestore =>
+      'Egy visszaállítás előtti merülési napló';
+
+  @override
+  String get backup_quarantined_kind_restoreRejected =>
+      'Helyreállításkor lecserélt merülési napló';
+
+  @override
+  String backup_quarantined_detail(String date, String size) {
+    return '$date • $size';
+  }
+
+  @override
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
+    return '$date • $size • adatbázis v$version';
+  }
+
+  @override
+  String get backup_quarantined_status_needsNewerApp =>
+      'A Submersion újabb verziójára van szükség';
+
+  @override
+  String get backup_quarantined_status_unreadable =>
+      'Itt nem nyitható meg. Lehet, hogy sérült, vagy olyan jelszó védi, amellyel ez az eszköz nem rendelkezik.';
+
+  @override
+  String get backup_quarantined_status_incomplete =>
+      'Csak naplófájlok maradtak; maga az adatbázisfájl hiányzik.';
+
+  @override
+  String get backup_quarantined_delete_title =>
+      'Törlöd ezt az adatbázis-másolatot?';
+
+  @override
+  String get backup_quarantined_delete_message =>
+      'A másolat és naplófájljai véglegesen törlődnek erről az eszközről. Ez nem vonható vissza.';
+
+  @override
+  String get backup_quarantined_deleted => 'Adatbázis-másolat törölve';
+
+  @override
+  String get backup_quarantined_deleteFailed =>
+      'Az adatbázis-másolat törlése nem sikerült.';
+
+  @override
+  String get backup_quarantined_loadFailed =>
+      'Nem sikerült félretett másolatokat keresni az adatbázis mappájában.';
 
   @override
   String settings_storageUsage_unrecognized_title(int count) {

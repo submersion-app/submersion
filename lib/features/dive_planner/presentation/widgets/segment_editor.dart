@@ -195,7 +195,7 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
     // A rate needs a duration to divide by; without one the leg is an
     // instantaneous depth change and only its direction is known.
     final rateDisplay = durationMinutes > 0
-        ? units.formatDepth(
+        ? units.formatDepthRate(
             (targetMeters - widget.startDepth).abs() / durationMinutes,
             decimals: 1,
           )

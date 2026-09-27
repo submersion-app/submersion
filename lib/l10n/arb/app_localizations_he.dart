@@ -8728,12 +8728,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh => 'עומק נרקוטי שווה ערך גבוה מדי';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END של $depth חורג מהמגבלה של $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END של $depth חורג מהמגבלה הבטוחה';
-  }
+  String get divePlanner_warning_endHigh => 'עומק נרקוטי שווה ערך גבוה מדי';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -14789,6 +14789,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => 'אתרים';
 
   @override
+  String get marineLife_speciesDetail_statsError =>
+      'לא ניתן לטעון את סטטיסטיקת התצפיות';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'מחלקה: $className';
   }
@@ -18610,6 +18614,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_trip => 'טיול';
+
+  @override
+  String get settings_conflict_ref_tripCylinder => 'בלון הטיול';
 
   @override
   String get settings_conflict_remoteVersion => 'גרסה מרוחקת';
@@ -25642,7 +25649,7 @@ class AppLocalizationsHe extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'עלייה $from → $to בקצב $rate/דקה';
+    return 'עלייה $from → $to בקצב $rate';
   }
 
   @override
@@ -25656,7 +25663,7 @@ class AppLocalizationsHe extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'ירידה $from → $to בקצב $rate/דקה';
+    return 'ירידה $from → $to בקצב $rate';
   }
 
   @override
@@ -27226,6 +27233,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       'לא ניתן היה לסנכרן מחדש: הקובץ המקורי כבר לא מכיל צלילה תואמת';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'לא ניתן היה לסנכרן מחדש: בקובץ המקורי יש צלילה תואמת ליותר מצולל אחד, ובצלילה הזו לא נשמר מאיזו מהן היא הגיעה';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
@@ -29206,7 +29217,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'הוסף נפח בלון כדי להציג RMV ב-$unit/min';
+    return 'הוסף נפח בלון כדי להציג RMV ב-$unit';
   }
 
   @override
@@ -41345,14 +41356,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'הקובץ שנמצא עכשיו במקומו נשמר לצידו ואינו נמחק.';
+      'הקובץ שנמצא עכשיו במקומו נשמר ואינו נמחק. אפשר לשחזר או למחוק אותו מאוחר יותר דרך גיבוי ושחזור בהגדרות.';
 
   @override
   String get startup_interruptedRestore_keepAction => 'להשאיר את מה שיש עכשיו';
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'יומן הצלילה הקודם שלך נשמר כקובץ בתיקיית מסד הנתונים.';
+      'יומן הצלילה הקודם שלך נשמר ואינו נמחק. אפשר לשחזר או למחוק אותו מאוחר יותר דרך גיבוי ושחזור בהגדרות.';
 
   @override
   String get startup_interruptedRestore_failed =>
@@ -41665,6 +41676,65 @@ class AppLocalizationsHe extends AppLocalizations {
   String backup_unrecognized_freed(String size) {
     return '$size פונו';
   }
+
+  @override
+  String get backup_quarantined_sectionTitle => 'מסדי נתונים שהועברו הצידה';
+
+  @override
+  String get backup_quarantined_explanation =>
+      'שחזור שלא הצליח להסתיים כראוי שמר את העותקים האלה של מסד הנתונים שלך במקום למחוק אותם. שחזר אחד מהם כדי להשתמש בו שוב, או מחק אותו כדי לפנות מקום.';
+
+  @override
+  String get backup_quarantined_kind_preRestore => 'יומן צלילה מלפני שחזור';
+
+  @override
+  String get backup_quarantined_kind_restoreRejected =>
+      'יומן צלילה שהוחלף במהלך שחזור';
+
+  @override
+  String backup_quarantined_detail(String date, String size) {
+    return '$date • $size';
+  }
+
+  @override
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
+    return '$date • $size • מסד נתונים v$version';
+  }
+
+  @override
+  String get backup_quarantined_status_needsNewerApp =>
+      'נדרשת גרסה חדשה יותר של Submersion';
+
+  @override
+  String get backup_quarantined_status_unreadable =>
+      'לא ניתן לפתוח אותו כאן. ייתכן שהוא פגום, או מוגן בסיסמה שאין למכשיר הזה.';
+
+  @override
+  String get backup_quarantined_status_incomplete =>
+      'נותרו רק קובצי יומן; קובץ מסד הנתונים עצמו אינו קיים.';
+
+  @override
+  String get backup_quarantined_delete_title =>
+      'למחוק את עותק מסד הנתונים הזה?';
+
+  @override
+  String get backup_quarantined_delete_message =>
+      'העותק וקובצי היומן שלו יימחקו לצמיתות מהמכשיר הזה. לא ניתן לבטל פעולה זו.';
+
+  @override
+  String get backup_quarantined_deleted => 'עותק מסד הנתונים נמחק';
+
+  @override
+  String get backup_quarantined_deleteFailed =>
+      'לא ניתן היה למחוק את עותק מסד הנתונים.';
+
+  @override
+  String get backup_quarantined_loadFailed =>
+      'לא ניתן היה לבדוק את תיקיית מסד הנתונים לאיתור עותקים שהועברו הצידה.';
 
   @override
   String settings_storageUsage_unrecognized_title(int count) {

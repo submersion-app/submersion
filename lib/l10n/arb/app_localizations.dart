@@ -14674,17 +14674,17 @@ abstract class AppLocalizations {
   /// **'CNS% exceeds {threshold}%'**
   String divePlanner_warning_cnsWarning(Object threshold);
 
+  /// No description provided for @divePlanner_warning_endExceedsLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'END of {depth} exceeds the {limit} limit'**
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit);
+
   /// No description provided for @divePlanner_warning_endHigh.
   ///
   /// In en, this message translates to:
   /// **'Equivalent Narcotic Depth too high'**
   String get divePlanner_warning_endHigh;
-
-  /// No description provided for @divePlanner_warning_endHighWithDepth.
-  ///
-  /// In en, this message translates to:
-  /// **'END of {depth} exceeds safe limit'**
-  String divePlanner_warning_endHighWithDepth(Object depth);
 
   /// No description provided for @divePlanner_warning_gasLow.
   ///
@@ -24869,6 +24869,12 @@ abstract class AppLocalizations {
   /// **'Sites'**
   String get marineLife_speciesDetail_sitesLabel;
 
+  /// No description provided for @marineLife_speciesDetail_statsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load sighting statistics'**
+  String get marineLife_speciesDetail_statsError;
+
   /// No description provided for @marineLife_speciesDetail_taxonomyClassLabel.
   ///
   /// In en, this message translates to:
@@ -30850,6 +30856,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trip'**
   String get settings_conflict_ref_trip;
+
+  /// No description provided for @settings_conflict_ref_tripCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip cylinder'**
+  String get settings_conflict_ref_tripCylinder;
 
   /// No description provided for @settings_conflict_remoteVersion.
   ///
@@ -41901,7 +41913,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_segmentEditor_derivedAscent.
   ///
   /// In en, this message translates to:
-  /// **'Ascent {from} → {to} at {rate}/min'**
+  /// **'Ascent {from} → {to} at {rate}'**
   String divePlanner_segmentEditor_derivedAscent(
     Object from,
     Object to,
@@ -41917,7 +41929,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_segmentEditor_derivedDescent.
   ///
   /// In en, this message translates to:
-  /// **'Descent {from} → {to} at {rate}/min'**
+  /// **'Descent {from} → {to} at {rate}'**
   String divePlanner_segmentEditor_derivedDescent(
     Object from,
     Object to,
@@ -44459,6 +44471,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not resync: the original file no longer contains a matching dive'**
   String get diveLog_detail_resyncFailed_noMatchingDive;
+
+  /// Snackbar shown when the original file holds a matching dive for several divers and this dive, imported before its diver was recorded, cannot say which copy is its own
+  ///
+  /// In en, this message translates to:
+  /// **'Could not resync: the original file has a matching dive for more than one diver, and this dive does not record which one it came from'**
+  String get diveLog_detail_resyncFailed_ambiguousDiver;
 
   /// Snackbar shown when reading or parsing the stored original file threw
   ///
@@ -47987,7 +48005,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_detail_sacVolumeHint.
   ///
   /// In en, this message translates to:
-  /// **'Add a cylinder volume to show RMV in {unit}/min'**
+  /// **'Add a cylinder volume to show RMV in {unit}'**
   String diveLog_detail_sacVolumeHint(String unit);
 
   /// No description provided for @safetyHub_alert_noFly.
@@ -67556,7 +67574,7 @@ abstract class AppLocalizations {
   /// No description provided for @startup_interruptedRestore_recoverNote.
   ///
   /// In en, this message translates to:
-  /// **'The file that is in its place now is kept beside it, not deleted.'**
+  /// **'The file in its place now is kept, not deleted. You can restore or delete it later in Backup & Restore in Settings.'**
   String get startup_interruptedRestore_recoverNote;
 
   /// No description provided for @startup_interruptedRestore_keepAction.
@@ -67568,7 +67586,7 @@ abstract class AppLocalizations {
   /// No description provided for @startup_interruptedRestore_keepNote.
   ///
   /// In en, this message translates to:
-  /// **'Your previous dive log is kept as a file in the database folder.'**
+  /// **'Your previous dive log is kept, not deleted. You can restore or delete it later in Backup & Restore in Settings.'**
   String get startup_interruptedRestore_keepNote;
 
   /// No description provided for @startup_interruptedRestore_failed.
@@ -67998,6 +68016,94 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Freed {size}'**
   String backup_unrecognized_freed(String size);
+
+  /// No description provided for @backup_quarantined_sectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set-aside databases'**
+  String get backup_quarantined_sectionTitle;
+
+  /// No description provided for @backup_quarantined_explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'A restore that could not finish cleanly kept these copies of your database instead of deleting them. Restore one to use it again, or delete it to free up space.'**
+  String get backup_quarantined_explanation;
+
+  /// No description provided for @backup_quarantined_kind_preRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive log from before a restore'**
+  String get backup_quarantined_kind_preRestore;
+
+  /// No description provided for @backup_quarantined_kind_restoreRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive log replaced during a recovery'**
+  String get backup_quarantined_kind_restoreRejected;
+
+  /// No description provided for @backup_quarantined_detail.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} • {size}'**
+  String backup_quarantined_detail(String date, String size);
+
+  /// No description provided for @backup_quarantined_detailWithVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} • {size} • database v{version}'**
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  );
+
+  /// No description provided for @backup_quarantined_status_needsNewerApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs a newer version of Submersion'**
+  String get backup_quarantined_status_needsNewerApp;
+
+  /// No description provided for @backup_quarantined_status_unreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot be opened here. It may be damaged, or protected with a password this device does not have.'**
+  String get backup_quarantined_status_unreadable;
+
+  /// No description provided for @backup_quarantined_status_incomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Only journal files remain; the database file itself is gone.'**
+  String get backup_quarantined_status_incomplete;
+
+  /// No description provided for @backup_quarantined_delete_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this database copy?'**
+  String get backup_quarantined_delete_title;
+
+  /// No description provided for @backup_quarantined_delete_message.
+  ///
+  /// In en, this message translates to:
+  /// **'The copy and its journal files will be permanently deleted from this device. This cannot be undone.'**
+  String get backup_quarantined_delete_message;
+
+  /// No description provided for @backup_quarantined_deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Database copy deleted'**
+  String get backup_quarantined_deleted;
+
+  /// No description provided for @backup_quarantined_deleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete the database copy.'**
+  String get backup_quarantined_deleteFailed;
+
+  /// No description provided for @backup_quarantined_loadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check the database folder for set-aside copies.'**
+  String get backup_quarantined_loadFailed;
 
   /// No description provided for @settings_storageUsage_unrecognized_title.
   ///

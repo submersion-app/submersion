@@ -8942,13 +8942,13 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh =>
-      'Profundidade Narcótica Equivalente muito alta';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END de $depth excede o limite de $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END de $depth excede o limite seguro';
-  }
+  String get divePlanner_warning_endHigh =>
+      'Profundidade Narcótica Equivalente muito alta';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -15154,6 +15154,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => 'Pontos';
 
   @override
+  String get marineLife_speciesDetail_statsError =>
+      'Não foi possível carregar as estatísticas de avistamentos';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'Classe: $className';
   }
@@ -19078,6 +19082,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_trip => 'Viagem';
+
+  @override
+  String get settings_conflict_ref_tripCylinder => 'Cilindro da viagem';
 
   @override
   String get settings_conflict_remoteVersion => 'Versão Remota';
@@ -26283,7 +26290,7 @@ class AppLocalizationsPt extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Subida $from -> $to a $rate/min';
+    return 'Subida $from -> $to a $rate';
   }
 
   @override
@@ -26297,7 +26304,7 @@ class AppLocalizationsPt extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Descida $from -> $to a $rate/min';
+    return 'Descida $from -> $to a $rate';
   }
 
   @override
@@ -27902,6 +27909,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       'Não foi possível ressincronizar: o arquivo original não contém mais um mergulho correspondente';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Não foi possível ressincronizar: o arquivo original tem um mergulho correspondente para mais de um mergulhador, e este mergulho não registra de qual deles veio';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
@@ -29923,7 +29934,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Adicione o volume do cilindro para mostrar o RMV em $unit/min';
+    return 'Adicione o volume do cilindro para mostrar o RMV em $unit';
   }
 
   @override
@@ -42200,14 +42211,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'O ficheiro que está agora no seu lugar é guardado ao lado, não eliminado.';
+      'O ficheiro que está agora no seu lugar é guardado, não eliminado. Pode restaurá-lo ou eliminá-lo mais tarde em Backup e restauração, nas Definições.';
 
   @override
   String get startup_interruptedRestore_keepAction => 'Manter o que está agora';
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'O seu diário de mergulho anterior fica guardado como ficheiro na pasta da base de dados.';
+      'O seu diário de mergulho anterior fica guardado, não eliminado. Pode restaurá-lo ou eliminá-lo mais tarde em Backup e restauração, nas Definições.';
 
   @override
   String get startup_interruptedRestore_failed =>
@@ -42533,6 +42544,67 @@ class AppLocalizationsPt extends AppLocalizations {
   String backup_unrecognized_freed(String size) {
     return '$size libertados';
   }
+
+  @override
+  String get backup_quarantined_sectionTitle =>
+      'Bases de dados postas de parte';
+
+  @override
+  String get backup_quarantined_explanation =>
+      'Um restauro que não terminou corretamente guardou estas cópias da sua base de dados em vez de as eliminar. Restaure uma para a voltar a usar, ou elimine-a para libertar espaço.';
+
+  @override
+  String get backup_quarantined_kind_preRestore =>
+      'Diário de mergulho de antes de um restauro';
+
+  @override
+  String get backup_quarantined_kind_restoreRejected =>
+      'Diário de mergulho substituído durante uma recuperação';
+
+  @override
+  String backup_quarantined_detail(String date, String size) {
+    return '$date • $size';
+  }
+
+  @override
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
+    return '$date • $size • base de dados v$version';
+  }
+
+  @override
+  String get backup_quarantined_status_needsNewerApp =>
+      'Precisa de uma versão mais recente do Submersion';
+
+  @override
+  String get backup_quarantined_status_unreadable =>
+      'Não pode ser aberta aqui. Pode estar danificada, ou protegida com uma palavra-passe que este dispositivo não tem.';
+
+  @override
+  String get backup_quarantined_status_incomplete =>
+      'Só restam ficheiros de diário; o ficheiro da base de dados desapareceu.';
+
+  @override
+  String get backup_quarantined_delete_title =>
+      'Eliminar esta cópia da base de dados?';
+
+  @override
+  String get backup_quarantined_delete_message =>
+      'A cópia e os seus ficheiros de diário serão eliminados permanentemente deste dispositivo. Esta ação não pode ser anulada.';
+
+  @override
+  String get backup_quarantined_deleted => 'Cópia da base de dados eliminada';
+
+  @override
+  String get backup_quarantined_deleteFailed =>
+      'Não foi possível eliminar a cópia da base de dados.';
+
+  @override
+  String get backup_quarantined_loadFailed =>
+      'Não foi possível verificar a pasta da base de dados à procura de cópias postas de parte.';
 
   @override
   String settings_storageUsage_unrecognized_title(int count) {

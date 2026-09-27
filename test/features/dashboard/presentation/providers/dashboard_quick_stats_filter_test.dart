@@ -186,4 +186,19 @@ void main() {
       reason: reason,
     );
   });
+
+  test('counts every country, not just the top ten of the ranking', () async {
+    // getCountriesVisited is a ranking with a default limit of 10; the
+    // hero header's count must not stop there.
+    for (var i = 0; i < 12; i++) {
+      await insertSite('site-$i', 'Country $i');
+      await insertDive('dive-$i', siteId: 'site-$i', maxDepth: 10);
+    }
+
+    final c = makeContainer(const DiveFilterState());
+    addTearDown(c.dispose);
+    final stats = await c.read(dashboardQuickStatsProvider.future);
+
+    expect(stats.countriesVisited, 12);
+  });
 }

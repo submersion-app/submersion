@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/garmin_connect/garmin_dive_mapper.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 
@@ -11,6 +12,11 @@ ImportedDive _dive({
   String? decoModel,
   double? latitude = 10.0,
   double? longitude = 20.0,
+  int? bottomTimeSeconds,
+  int? surfaceIntervalSeconds,
+  String? waterType,
+  double? cnsEnd,
+  double? otu,
   double? exitLatitude = 10.1,
   double? exitLongitude = 20.1,
 }) {
@@ -33,6 +39,11 @@ ImportedDive _dive({
     gfLow: gfLow,
     gfHigh: gfHigh,
     decoModel: decoModel,
+    bottomTimeSeconds: bottomTimeSeconds,
+    surfaceIntervalSeconds: surfaceIntervalSeconds,
+    waterType: waterType,
+    cnsEnd: cnsEnd,
+    otu: otu,
     tanks: tanks,
     gasSwitches: gasSwitches,
     profile: profile,
@@ -95,6 +106,53 @@ void main() {
 
       expect(result.dive.entryLatitude, isNull);
       expect(result.dive.entryLongitude, isNull);
+    });
+
+    // Issue #1798: the FIT file import kept these dive_summary and
+    // dive_settings values while the Cloud import of the same dive lost them.
+    test('carries the FIT summary bottom time, surface interval, water type, '
+        'CNS and OTU', () {
+      final result = GarminDiveMapper.map(
+        _dive(
+          bottomTimeSeconds: 3600,
+          surfaceIntervalSeconds: 5400,
+          waterType: 'salt',
+          cnsEnd: 14.0,
+          otu: 38.0,
+        ),
+        activityId: 1,
+      );
+
+      expect(result.dive.bottomTimeSeconds, 3600);
+      expect(result.dive.surfaceIntervalSeconds, 5400);
+      expect(result.dive.waterType, WaterType.salt);
+      expect(result.dive.cnsEnd, 14.0);
+      expect(result.dive.otu, 38.0);
+    });
+
+    test('maps fresh water, and leaves a FIT water type with no log '
+        'equivalent unset', () {
+      final fresh = GarminDiveMapper.map(
+        _dive(waterType: 'fresh'),
+        activityId: 1,
+      );
+      final en13319 = GarminDiveMapper.map(
+        _dive(waterType: 'en13319'),
+        activityId: 1,
+      );
+
+      expect(fresh.dive.waterType, WaterType.fresh);
+      expect(en13319.dive.waterType, isNull);
+    });
+
+    test('leaves the summary fields unset when the FIT file has none', () {
+      final result = GarminDiveMapper.map(_dive(), activityId: 1);
+
+      expect(result.dive.bottomTimeSeconds, isNull);
+      expect(result.dive.surfaceIntervalSeconds, isNull);
+      expect(result.dive.waterType, isNull);
+      expect(result.dive.cnsEnd, isNull);
+      expect(result.dive.otu, isNull);
     });
 
     test('falls back to Connect\'s activity-list end position for the exit '

@@ -91,7 +91,7 @@ List<ReadoutRow> diveReadoutRows({
     rate == null
         ? null
         : '${units.convertDepth(rate).toStringAsFixed(1)} '
-              '${units.depthSymbol}/min',
+              '${units.depthRateSymbol}',
   );
   final ppO2 = at(data.ppO2s);
   add(SceneMetric.ppO2, l10n.dive3d_metric_ppO2, ppO2?.toStringAsFixed(2));

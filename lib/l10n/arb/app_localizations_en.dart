@@ -8790,13 +8790,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh =>
-      'Equivalent Narcotic Depth too high';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END of $depth exceeds the $limit limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END of $depth exceeds safe limit';
-  }
+  String get divePlanner_warning_endHigh =>
+      'Equivalent Narcotic Depth too high';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -14909,6 +14909,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => 'Sites';
 
   @override
+  String get marineLife_speciesDetail_statsError =>
+      'Failed to load sighting statistics';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'Class: $className';
   }
@@ -18771,6 +18775,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_trip => 'Trip';
+
+  @override
+  String get settings_conflict_ref_tripCylinder => 'Trip cylinder';
 
   @override
   String get settings_conflict_remoteVersion => 'Remote Version';
@@ -25860,7 +25867,7 @@ class AppLocalizationsEn extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Ascent $from → $to at $rate/min';
+    return 'Ascent $from → $to at $rate';
   }
 
   @override
@@ -25874,7 +25881,7 @@ class AppLocalizationsEn extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Descent $from → $to at $rate/min';
+    return 'Descent $from → $to at $rate';
   }
 
   @override
@@ -27453,6 +27460,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       'Could not resync: the original file no longer contains a matching dive';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Could not resync: the original file has a matching dive for more than one diver, and this dive does not record which one it came from';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
@@ -29451,7 +29462,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Add a cylinder volume to show RMV in $unit/min';
+    return 'Add a cylinder volume to show RMV in $unit';
   }
 
   @override
@@ -41562,14 +41573,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'The file that is in its place now is kept beside it, not deleted.';
+      'The file in its place now is kept, not deleted. You can restore or delete it later in Backup & Restore in Settings.';
 
   @override
   String get startup_interruptedRestore_keepAction => 'Keep what is there now';
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'Your previous dive log is kept as a file in the database folder.';
+      'Your previous dive log is kept, not deleted. You can restore or delete it later in Backup & Restore in Settings.';
 
   @override
   String get startup_interruptedRestore_failed =>
@@ -41889,6 +41900,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String backup_unrecognized_freed(String size) {
     return 'Freed $size';
   }
+
+  @override
+  String get backup_quarantined_sectionTitle => 'Set-aside databases';
+
+  @override
+  String get backup_quarantined_explanation =>
+      'A restore that could not finish cleanly kept these copies of your database instead of deleting them. Restore one to use it again, or delete it to free up space.';
+
+  @override
+  String get backup_quarantined_kind_preRestore =>
+      'Dive log from before a restore';
+
+  @override
+  String get backup_quarantined_kind_restoreRejected =>
+      'Dive log replaced during a recovery';
+
+  @override
+  String backup_quarantined_detail(String date, String size) {
+    return '$date • $size';
+  }
+
+  @override
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
+    return '$date • $size • database v$version';
+  }
+
+  @override
+  String get backup_quarantined_status_needsNewerApp =>
+      'Needs a newer version of Submersion';
+
+  @override
+  String get backup_quarantined_status_unreadable =>
+      'Cannot be opened here. It may be damaged, or protected with a password this device does not have.';
+
+  @override
+  String get backup_quarantined_status_incomplete =>
+      'Only journal files remain; the database file itself is gone.';
+
+  @override
+  String get backup_quarantined_delete_title => 'Delete this database copy?';
+
+  @override
+  String get backup_quarantined_delete_message =>
+      'The copy and its journal files will be permanently deleted from this device. This cannot be undone.';
+
+  @override
+  String get backup_quarantined_deleted => 'Database copy deleted';
+
+  @override
+  String get backup_quarantined_deleteFailed =>
+      'Could not delete the database copy.';
+
+  @override
+  String get backup_quarantined_loadFailed =>
+      'Could not check the database folder for set-aside copies.';
 
   @override
   String settings_storageUsage_unrecognized_title(int count) {

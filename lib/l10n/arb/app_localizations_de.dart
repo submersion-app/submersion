@@ -8936,12 +8936,12 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh => 'Äquivalente Narkosetiefe zu hoch';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END von $depth überschreitet das Limit von $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END von $depth überschreitet sicheres Limit';
-  }
+  String get divePlanner_warning_endHigh => 'Äquivalente Narkosetiefe zu hoch';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -15134,6 +15134,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get marineLife_speciesDetail_sitesLabel => 'Tauchplätze';
 
   @override
+  String get marineLife_speciesDetail_statsError =>
+      'Sichtungsstatistiken konnten nicht geladen werden';
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'Klasse: $className';
   }
@@ -19050,6 +19054,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_trip => 'Reise';
+
+  @override
+  String get settings_conflict_ref_tripCylinder => 'Reiseflasche';
 
   @override
   String get settings_conflict_remoteVersion => 'Remote-Version';
@@ -26242,7 +26249,7 @@ class AppLocalizationsDe extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Aufstieg $from -> $to mit $rate/min';
+    return 'Aufstieg $from -> $to mit $rate';
   }
 
   @override
@@ -26256,7 +26263,7 @@ class AppLocalizationsDe extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Abstieg $from -> $to mit $rate/min';
+    return 'Abstieg $from -> $to mit $rate';
   }
 
   @override
@@ -27852,6 +27859,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       'Resynchronisierung fehlgeschlagen: Die Originaldatei enthält keinen passenden Tauchgang mehr';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Resynchronisierung fehlgeschlagen: Die Originaldatei enthält einen passenden Tauchgang für mehrere Taucher, und bei diesem Tauchgang ist nicht gespeichert, von welchem er stammt';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
@@ -29873,7 +29884,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Flaschenvolumen eintragen, um den AMV in $unit/min anzuzeigen';
+    return 'Flaschenvolumen eintragen, um den AMV in $unit anzuzeigen';
   }
 
   @override
@@ -42109,7 +42120,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'Die Datei, die jetzt an seiner Stelle liegt, wird daneben aufbewahrt und nicht gelöscht.';
+      'Die Datei, die jetzt an seiner Stelle liegt, wird aufbewahrt und nicht gelöscht. Du kannst sie später unter Sicherung und Wiederherstellung in den Einstellungen wiederherstellen oder löschen.';
 
   @override
   String get startup_interruptedRestore_keepAction =>
@@ -42117,7 +42128,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'Dein vorheriges Tauchlogbuch wird als Datei im Datenbankordner aufbewahrt.';
+      'Dein vorheriges Tauchlogbuch wird aufbewahrt und nicht gelöscht. Du kannst es später unter Sicherung und Wiederherstellung in den Einstellungen wiederherstellen oder löschen.';
 
   @override
   String get startup_interruptedRestore_failed =>
@@ -42439,6 +42450,65 @@ class AppLocalizationsDe extends AppLocalizations {
   String backup_unrecognized_freed(String size) {
     return '$size freigegeben';
   }
+
+  @override
+  String get backup_quarantined_sectionTitle => 'Zurückgelegte Datenbanken';
+
+  @override
+  String get backup_quarantined_explanation =>
+      'Eine Wiederherstellung, die nicht sauber abgeschlossen werden konnte, hat diese Kopien Ihrer Datenbank aufbewahrt, statt sie zu löschen. Stellen Sie eine wieder her, um sie erneut zu verwenden, oder löschen Sie sie, um Speicherplatz freizugeben.';
+
+  @override
+  String get backup_quarantined_kind_preRestore =>
+      'Tauchlogbuch von vor einer Wiederherstellung';
+
+  @override
+  String get backup_quarantined_kind_restoreRejected =>
+      'Bei einer Wiederherstellung ersetztes Tauchlogbuch';
+
+  @override
+  String backup_quarantined_detail(String date, String size) {
+    return '$date • $size';
+  }
+
+  @override
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
+    return '$date • $size • Datenbank v$version';
+  }
+
+  @override
+  String get backup_quarantined_status_needsNewerApp =>
+      'Benötigt eine neuere Version von Submersion';
+
+  @override
+  String get backup_quarantined_status_unreadable =>
+      'Kann hier nicht geöffnet werden. Sie ist möglicherweise beschädigt oder mit einem Passwort geschützt, das dieses Gerät nicht hat.';
+
+  @override
+  String get backup_quarantined_status_incomplete =>
+      'Nur Journaldateien sind übrig; die Datenbankdatei selbst fehlt.';
+
+  @override
+  String get backup_quarantined_delete_title => 'Diese Datenbankkopie löschen?';
+
+  @override
+  String get backup_quarantined_delete_message =>
+      'Die Kopie und ihre Journaldateien werden dauerhaft von diesem Gerät gelöscht. Dies kann nicht rückgängig gemacht werden.';
+
+  @override
+  String get backup_quarantined_deleted => 'Datenbankkopie gelöscht';
+
+  @override
+  String get backup_quarantined_deleteFailed =>
+      'Die Datenbankkopie konnte nicht gelöscht werden.';
+
+  @override
+  String get backup_quarantined_loadFailed =>
+      'Der Datenbankordner konnte nicht nach zurückgelegten Kopien durchsucht werden.';
 
   @override
   String settings_storageUsage_unrecognized_title(int count) {
