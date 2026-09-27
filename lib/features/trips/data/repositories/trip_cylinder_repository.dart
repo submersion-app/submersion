@@ -81,29 +81,33 @@ class TripCylinderRepository {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
       final id = cylinder.id.isEmpty ? _uuid.v4() : cylinder.id;
-      await _db
-          .into(_db.tripCylinders)
-          .insert(
-            TripCylindersCompanion.insert(
-              id: id,
-              tripId: cylinder.tripId,
-              equipmentId: Value(cylinder.equipmentId),
-              label: Value(cylinder.label),
-              volume: Value(cylinder.volume),
-              workingPressure: Value(cylinder.workingPressure),
-              material: Value(cylinder.material?.name),
-              presetName: Value(cylinder.presetName),
-              sortOrder: Value(cylinder.sortOrder),
-              notes: Value(cylinder.notes),
-              createdAt: now,
-              updatedAt: now,
-            ),
-          );
-      await _syncRepository.markRecordPending(
-        entityType: 'tripCylinders',
-        recordId: id,
-        localUpdatedAt: now,
-      );
+      // Insert and stage in one transaction: a failed stage must not
+      // leave a row that never syncs and that a retry would double.
+      await _db.transaction(() async {
+        await _db
+            .into(_db.tripCylinders)
+            .insert(
+              TripCylindersCompanion.insert(
+                id: id,
+                tripId: cylinder.tripId,
+                equipmentId: Value(cylinder.equipmentId),
+                label: Value(cylinder.label),
+                volume: Value(cylinder.volume),
+                workingPressure: Value(cylinder.workingPressure),
+                material: Value(cylinder.material?.name),
+                presetName: Value(cylinder.presetName),
+                sortOrder: Value(cylinder.sortOrder),
+                notes: Value(cylinder.notes),
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+        await _syncRepository.markRecordPending(
+          entityType: 'tripCylinders',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      });
       SyncEventBus.notifyLocalChange();
       final stamp = DateTime.fromMillisecondsSinceEpoch(now, isUtc: true);
       return cylinder.copyWith(id: id, createdAt: stamp, updatedAt: stamp);
@@ -302,34 +306,38 @@ class TripCylinderRepository {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
       final id = event.id.isEmpty ? _uuid.v4() : event.id;
-      await _db
-          .into(_db.tripCylinderEvents)
-          .insert(
-            TripCylinderEventsCompanion.insert(
-              id: id,
-              tripCylinderId: event.tripCylinderId,
-              kind: event.kind.name,
-              occurredAt: event.occurredAt.millisecondsSinceEpoch,
-              bottleLabel: Value(event.bottleLabel),
-              pressure: Value(event.pressure),
-              o2Percent: Value(event.o2Percent),
-              hePercent: Value(event.hePercent),
-              analyzedO2: Value(event.analyzedO2),
-              analyzedHe: Value(event.analyzedHe),
-              diveCenterId: Value(event.diveCenterId),
-              cost: Value(event.cost),
-              currency: Value(event.currency),
-              isPackage: Value(event.isPackage),
-              note: Value(event.note),
-              createdAt: now,
-              updatedAt: now,
-            ),
-          );
-      await _syncRepository.markRecordPending(
-        entityType: 'tripCylinderEvents',
-        recordId: id,
-        localUpdatedAt: now,
-      );
+      // Insert and stage in one transaction: a failed stage must not
+      // leave a row that never syncs and that a retry would double.
+      await _db.transaction(() async {
+        await _db
+            .into(_db.tripCylinderEvents)
+            .insert(
+              TripCylinderEventsCompanion.insert(
+                id: id,
+                tripCylinderId: event.tripCylinderId,
+                kind: event.kind.name,
+                occurredAt: event.occurredAt.millisecondsSinceEpoch,
+                bottleLabel: Value(event.bottleLabel),
+                pressure: Value(event.pressure),
+                o2Percent: Value(event.o2Percent),
+                hePercent: Value(event.hePercent),
+                analyzedO2: Value(event.analyzedO2),
+                analyzedHe: Value(event.analyzedHe),
+                diveCenterId: Value(event.diveCenterId),
+                cost: Value(event.cost),
+                currency: Value(event.currency),
+                isPackage: Value(event.isPackage),
+                note: Value(event.note),
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+        await _syncRepository.markRecordPending(
+          entityType: 'tripCylinderEvents',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      });
       SyncEventBus.notifyLocalChange();
       final stamp = DateTime.fromMillisecondsSinceEpoch(now, isUtc: true);
       return event.copyWith(id: id, createdAt: stamp, updatedAt: stamp);

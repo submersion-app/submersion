@@ -443,5 +443,44 @@ void main() {
       final listed = await repository.getCylindersForTrip(tripId);
       expect(listed.map((x) => x.label), ['A', 'B']);
     });
+
+    test('a create that cannot be staged for sync leaves no row', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      Future<int> rows(String table) async =>
+          (await db
+                  .customSelect('SELECT COUNT(*) AS n FROM $table')
+                  .getSingle())
+              .read<int>('n');
+      // Staging fails once the insert has already run.
+      await db.customStatement(
+        'ALTER TABLE sync_records RENAME TO sync_records_off',
+      );
+      addTearDown(
+        () => db.customStatement(
+          'ALTER TABLE sync_records_off RENAME TO sync_records',
+        ),
+      );
+
+      await expectLater(
+        repository.createEvent(
+          TripCylinderEvent(
+            id: '',
+            tripCylinderId: a.id,
+            kind: TripCylinderEventKind.fill,
+            occurredAt: DateTime.utc(2026, 3, 9, 8),
+            createdAt: DateTime.utc(2026, 3, 9, 8),
+            updatedAt: DateTime.utc(2026, 3, 9, 8),
+          ),
+        ),
+        throwsA(anything),
+      );
+      expect(await rows('trip_cylinder_events'), 0);
+
+      await expectLater(
+        repository.createCylinder(slot(label: 'B', sortOrder: 1)),
+        throwsA(anything),
+      );
+      expect(await rows('trip_cylinders'), 1);
+    });
   });
 }
