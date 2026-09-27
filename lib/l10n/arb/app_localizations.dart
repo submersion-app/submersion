@@ -62784,7 +62784,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{start} - {end}'**
-  String diveLog_filterChip_dateRange(String end, String start);
+  String diveLog_filterChip_dateRange(String start, String end);
 
   /// Active-filter chip when more than one equipment item is selected.
   ///

@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/connections/presentation/widgets/year_range_slider.dart';
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -58,5 +59,24 @@ void main() {
     expect(find.byType(RangeSlider), findsNothing);
     await _pump(tester, const YearRangeSlider(), span: null);
     expect(find.byType(RangeSlider), findsNothing);
+  });
+
+  testWidgets('dragging back to the full span clears the date filter', (
+    tester,
+  ) async {
+    final c = await _pump(tester, const YearRangeSlider());
+    c.read(connectionsFilterProvider.notifier).state = DiveFilterState(
+      startDate: DateTime(2021),
+      endDate: DateTime(2022, 12, 31),
+    );
+    await tester.pump();
+    tester.widget<RangeSlider>(find.byType(RangeSlider)).onChangeEnd!(
+      const RangeValues(2019, 2024),
+    );
+    await tester.pump();
+    final f = c.read(connectionsFilterProvider);
+    expect(f.startDate, isNull);
+    expect(f.endDate, isNull);
+    expect(f.hasActiveFilters, isFalse);
   });
 }

@@ -28,16 +28,16 @@ List<Widget> activeDiveFilterChips(
     String dateText;
     if (filter.startDate != null && filter.endDate != null) {
       dateText = context.l10n.diveLog_filterChip_dateRange(
-        units.formatMonthDay(filter.startDate),
-        units.formatMonthDay(filter.endDate),
+        units.formatMonthDayWithYear(filter.startDate),
+        units.formatMonthDayWithYear(filter.endDate),
       );
     } else if (filter.startDate != null) {
       dateText = context.l10n.diveLog_filterChip_from(
-        units.formatMonthDay(filter.startDate),
+        units.formatMonthDayWithYear(filter.startDate),
       );
     } else {
       dateText = context.l10n.diveLog_filterChip_until(
-        units.formatMonthDay(filter.endDate),
+        units.formatMonthDayWithYear(filter.endDate),
       );
     }
     chips.add(

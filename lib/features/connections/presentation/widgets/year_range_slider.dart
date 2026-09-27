@@ -55,10 +55,18 @@ class _YearRangeSliderState extends ConsumerState<YearRangeSlider> {
             onChanged: (v) => setState(() => _dragging = v),
             onChangeEnd: (v) {
               setState(() => _dragging = null);
-              final start = DateTime(v.start.round(), 1, 1);
-              final end = DateTime(v.end.round(), 12, 31);
-              ref.read(connectionsFilterProvider.notifier).state = filter
-                  .copyWith(startDate: start, endDate: end);
+              final from = v.start.round();
+              final to = v.end.round();
+              // The whole span is no filter at all: clear the dates rather
+              // than store bounds that include every dive.
+              ref
+                  .read(connectionsFilterProvider.notifier)
+                  .state = from <= span.first && to >= span.last
+                  ? filter.copyWith(clearStartDate: true, clearEndDate: true)
+                  : filter.copyWith(
+                      startDate: DateTime(from, 1, 1),
+                      endDate: DateTime(to, 12, 31),
+                    );
             },
           ),
         ],

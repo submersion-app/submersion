@@ -36755,7 +36755,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_action_unpin => '取消固定';
 
   @override
-  String diveLog_filterChip_dateRange(String end, String start) {
+  String diveLog_filterChip_dateRange(String start, String end) {
     return '$start 至 $end';
   }
 

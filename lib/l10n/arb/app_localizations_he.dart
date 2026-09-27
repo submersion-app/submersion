@@ -38133,7 +38133,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_action_unpin => 'בטל הצמדה';
 
   @override
-  String diveLog_filterChip_dateRange(String end, String start) {
+  String diveLog_filterChip_dateRange(String start, String end) {
     return '$start עד $end';
   }
 

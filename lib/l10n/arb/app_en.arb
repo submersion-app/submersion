@@ -23611,10 +23611,10 @@
   "@diveLog_filterChip_dateRange": {
     "description": "Active-filter chip showing a closed date range.",
     "placeholders": {
-      "end": {
+      "start": {
         "type": "String"
       },
-      "start": {
+      "end": {
         "type": "String"
       }
     }

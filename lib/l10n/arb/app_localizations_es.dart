@@ -38948,7 +38948,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get common_action_unpin => 'Desanclar';
 
   @override
-  String diveLog_filterChip_dateRange(String end, String start) {
+  String diveLog_filterChip_dateRange(String start, String end) {
     return '$start - $end';
   }
 
