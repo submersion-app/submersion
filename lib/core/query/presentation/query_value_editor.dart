@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
@@ -13,6 +12,12 @@ import 'package:submersion/core/query/syntax/query_parser.dart';
 import 'package:submersion/core/query/syntax/query_printer.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart'
+    show numberInputFormatters;
+// Prefixed: this library has a NumberValue of its own, the query value.
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart'
+    as numbers
+    show NumberValue, invalidNumberText, readNumber;
 
 const _relationOps = [
   QueryOp.eq,
@@ -177,11 +182,14 @@ class QueryValueEditor extends StatelessWidget {
       initialText: shown,
       suffix: field.dimension == FieldDimension.percent ? '%' : unit?.suffix,
       onChanged: (text) {
-        final parsed = double.tryParse(text.replaceAll(',', '.'));
-        if (parsed == null) return;
+        // Read as every number field in the app reads, in the diver's
+        // locale. Blank or unreadable text keeps the last value; the field
+        // says why.
+        final read = numbers.readNumber(text);
+        if (read is! numbers.NumberValue) return;
         onValue(
           NumberValue(
-            groundToStorage(parsed, unit, field.dimension, context.prefs),
+            groundToStorage(read.value, unit, field.dimension, context.prefs),
             null,
           ),
         );
@@ -432,9 +440,9 @@ class _NumberFieldState extends State<_NumberField> {
   void didUpdateWidget(_NumberField old) {
     super.didUpdateWidget(old);
     if (widget.initialText == old.initialText) return;
-    final typed = double.tryParse(_controller.text.replaceAll(',', '.'));
-    final incoming = double.tryParse(widget.initialText);
-    if (typed != null && typed == incoming) return;
+    final typed = numbers.readNumber(_controller.text);
+    final incoming = numbers.readNumber(widget.initialText);
+    if (typed is numbers.NumberValue && typed == incoming) return;
     _controller.text = widget.initialText;
   }
 
@@ -451,9 +459,17 @@ class _NumberFieldState extends State<_NumberField> {
       decimal: true,
       signed: true,
     ),
-    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,-]'))],
-    decoration: InputDecoration(suffixText: widget.suffix, isDense: true),
-    onChanged: widget.onChanged,
+    inputFormatters: numberInputFormatters(),
+    decoration: InputDecoration(
+      suffixText: widget.suffix,
+      isDense: true,
+      errorText: numbers.invalidNumberText(context, _controller.text),
+    ),
+    onChanged: (text) {
+      // Rebuilt so the error follows the text.
+      setState(() {});
+      widget.onChanged(text);
+    },
   );
 }
 

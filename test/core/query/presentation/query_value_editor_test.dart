@@ -10,6 +10,7 @@ import 'package:submersion/core/query/presentation/query_value_editor.dart';
 import 'package:submersion/core/query/registry/query_registry.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../fixtures/fixture_registry.dart';
 
@@ -283,6 +284,35 @@ void main() {
       ),
     );
     expect(find.byType(TextField), findsNothing);
+  });
+
+  testWidgets('unreadable text in a number field says so and keeps the value', (
+    tester,
+  ) async {
+    final values = <QueryValue?>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: QueryValueEditor(
+            context: ctx(),
+            target: target('depth'),
+            op: QueryOp.gt,
+            value: const NumberValue(30, null),
+            onChanged: values.add,
+            strings: kTestBuilderStrings,
+          ),
+        ),
+      ),
+    );
+    await tester.enterText(find.byType(TextField), '3-0');
+    await tester.pump();
+    // Not read as 3, 30 or 0: the condition keeps its value and the field
+    // explains, as every other number field in the app does.
+    expect(values, isEmpty);
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
   });
 
   testWidgets('a number field follows an outside change and a unit change', (
