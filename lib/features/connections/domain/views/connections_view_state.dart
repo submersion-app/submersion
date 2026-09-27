@@ -125,6 +125,13 @@ class ConnectionsViewState extends Equatable {
 
   ConnectionsViewState withHops(int n) => copyWith(hops: n.clamp(1, 3));
 
+  /// Applies a `hops` route parameter; a missing or unreadable one leaves
+  /// the view as it is (a deep link never fails on a malformed value).
+  ConnectionsViewState withHopsParam(String? raw) {
+    final n = raw == null ? null : int.tryParse(raw);
+    return n == null ? this : withHops(n);
+  }
+
   ConnectionsViewState copyWith({
     ConnectionsMode? mode,
     MapSpec? mapSpec,

@@ -58,8 +58,7 @@ class ConnectionsRouteArgs {
     }
     final ref = NodeRef.parse(focus);
     if (ref != null && mode != 'map') next = next.centreOn(ref);
-    final n = int.tryParse(hops ?? '');
-    if (n != null) next = next.withHops(n);
+    next = next.withHopsParam(hops);
     if (mode == 'map') next = next.withMode(ConnectionsMode.map);
     if (mode == 'around' && ref == null) {
       next = next.withMode(ConnectionsMode.around);

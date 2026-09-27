@@ -151,4 +151,15 @@ void main() {
       expect(identical(onSaved.withSavedMaps({'bon': a}), onSaved), isTrue);
     });
   });
+
+  test(
+    'withHopsParam applies a readable hops parameter and ignores the rest',
+    () {
+      final base = ConnectionsViewState.initial;
+      expect(base.withHopsParam('2').hops, 2);
+      expect(base.withHopsParam('9').hops, 3, reason: 'clamped like withHops');
+      expect(identical(base.withHopsParam('many'), base), isTrue);
+      expect(identical(base.withHopsParam(null), base), isTrue);
+    },
+  );
 }
