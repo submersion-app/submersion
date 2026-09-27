@@ -48,6 +48,29 @@ void main() {
       expect(zar.pdcFirmware, '1.003.000');
     });
 
+    test('reads the dive the block describes from DIVE_DT', () {
+      final zar = AqualungZarDialect.parse(_aqualungZar)!;
+      expect(zar.diveDateTime, DateTime.utc(2024, 6, 12, 9, 30));
+    });
+
+    test('falls back to the timestamp inside DUID without DIVE_DT', () {
+      final zar = AqualungZarDialect.parse(
+        '<AQUALUNG><DUID>4321_98765_20240612093015_42</DUID></AQUALUNG>',
+      )!;
+      expect(zar.diveDateTime, DateTime.utc(2024, 6, 12, 9, 30, 15));
+    });
+
+    test('has no dive time when neither DIVE_DT nor DUID carries one', () {
+      final zar = AqualungZarDialect.parse(
+        '<AQUALUNG><DUID>not-a-timestamp</DUID></AQUALUNG>',
+      )!;
+      expect(zar.diveDateTime, isNull);
+      expect(
+        AqualungZarDialect.parse('<AQUALUNG></AQUALUNG>')!.diveDateTime,
+        isNull,
+      );
+    });
+
     test('extracts location with bracket-aware GPS parsing', () {
       final zar = AqualungZarDialect.parse(_aqualungZar)!;
       expect(zar.latitude, closeTo(20.877432, 1e-6));

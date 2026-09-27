@@ -9,6 +9,7 @@ import 'package:submersion/features/universal_import/data/models/import_warning.
 import 'package:submersion/features/universal_import/data/parsers/dl7/aqualung_zar_dialect.dart';
 import 'package:submersion/features/universal_import/data/parsers/dl7/dl7_document.dart';
 import 'package:submersion/features/universal_import/data/parsers/dl7/dl7_reader.dart';
+import 'package:submersion/features/universal_import/data/parsers/dl7/dl7_timestamp.dart';
 import 'package:submersion/features/universal_import/data/parsers/dl7/dl7_units.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
@@ -18,7 +19,8 @@ import 'package:submersion/features/universal_import/data/services/import_site_l
 /// Handles any spec-conformant DL7 file via the standard segments and
 /// enriches the result with the proprietary `ZAR{<AQUALUNG>...}` block that
 /// DiverLog+/DiveCloud exports carry (site, GPS, tanks, dive stats, rating,
-/// computer identity). Foreign ZAR dialects are ignored.
+/// computer identity). Each block is applied to the dive its `DIVE_DT` names
+/// (#2211). Foreign ZAR dialects are ignored, with a diagnostic.
 ///
 /// Known real-file quirks handled here: the ZDH recording-interval field
 /// lies (interval is derived from the time column), the ZDT min-temperature
@@ -79,25 +81,42 @@ class DanDl7Parser implements ImportParser {
     }
 
     final units = Dl7Units.fromZrh(doc.zrhFields);
-    final zar = AqualungZarDialect.parse(doc.zarContent, units: units);
+    final zars = <AqualungZarData>[];
+    for (final block in doc.zarBlocks) {
+      final zar = AqualungZarDialect.parse(block, units: units);
+      if (zar != null) {
+        zars.add(zar);
+      } else {
+        warnings.add(
+          _diagnostic('Ignored a ZAR block not in the Aqualung dialect'),
+        );
+      }
+    }
+    final zarByDive = _attributeZar(doc.dives, zars);
 
     final dives = <Map<String, dynamic>>[];
     final sitesByUddfId = <String, Map<String, dynamic>>{};
+    // Blocks that reached an imported dive, by identity.
+    final attached = Set<AqualungZarData>.identity();
+    var divesWithoutZar = 0;
 
     for (var i = 0; i < doc.dives.length; i++) {
+      final zar = zarByDive[i];
       try {
         final dive = _parseDive(
           doc.dives[i],
           units: units,
-          // A ZAR block describes the dive it was exported with. DiveCloud
-          // files are single-dive; for multi-dive files only apply ZAR
-          // enrichment when the file holds exactly one dive.
-          zar: doc.dives.length == 1 ? zar : null,
+          zar: zar,
           zrhFields: doc.zrhFields,
           sitesByUddfId: sitesByUddfId,
         );
         if (dive != null) {
           dives.add(dive);
+          if (zar != null) {
+            attached.add(zar);
+          } else {
+            divesWithoutZar++;
+          }
         } else {
           warnings.add(_skippedDive(i, 'no readable start time'));
         }
@@ -106,32 +125,33 @@ class DanDl7Parser implements ImportParser {
       }
     }
 
-    // A multi-dive file gets no ZAR enrichment, because the block describes
-    // the single dive it was exported with. Its `<LOCATION>` is nonetheless
-    // the only place the file records GPS, so it is kept as a site the diver
-    // can attach by hand instead of being thrown away with the rest of the
-    // block (#2211). The dives are reported as unattached.
-    if (doc.dives.length > 1) {
-      final orphanSite = zar == null ? null : _zarSite(zar);
-      if (orphanSite != null) {
-        sitesByUddfId.putIfAbsent(
-          orphanSite['uddfId'] as String,
-          () => orphanSite,
-        );
-        // No notice when no dive was read at all: there is then no dive that
-        // failed to attach, and "0 dives" would describe nothing. The site
-        // is still kept, since it is the only GPS the file holds.
-        if (dives.isNotEmpty) {
-          warnings.add(
-            ImportSiteLocation.sitesUnresolved(
-              dives.length,
-              message:
-                  '${dives.length} dives could not be attached to the one site '
-                  'this multi-dive file describes',
-            ),
-          );
-        }
-      }
+    // A block that describes no imported dive keeps its `<LOCATION>`, the
+    // only place the file records GPS, as a site the diver can attach by
+    // hand; the rest of it describes a dive that is not here to receive it.
+    var orphanedSite = false;
+    for (final zar in zars.where((z) => !attached.contains(z))) {
+      warnings.add(
+        _diagnostic(
+          'A ZAR block for ${zar.diveDateTime ?? 'an unstated time'} '
+          'describes no dive imported from this file',
+        ),
+      );
+      final site = _zarSite(zar);
+      if (site == null) continue;
+      sitesByUddfId.putIfAbsent(site['uddfId'] as String, () => site);
+      orphanedSite = true;
+    }
+    // No notice when every imported dive has its own block: there is then no
+    // dive that failed to attach, and "0 dives" would describe nothing.
+    if (orphanedSite && divesWithoutZar > 0) {
+      warnings.add(
+        ImportSiteLocation.sitesUnresolved(
+          divesWithoutZar,
+          message:
+              '$divesWithoutZar dives could not be attached to a site a ZAR '
+              'block in this file describes',
+        ),
+      );
     }
 
     if (dives.isNotEmpty) entities[ImportEntityType.dives] = dives;
@@ -142,9 +162,58 @@ class DanDl7Parser implements ImportParser {
     return ImportPayload(
       entities: entities,
       warnings: warnings,
-      metadata: {'source': 'dan_dl7', if (zar?.app != null) 'app': zar!.app},
+      metadata: {
+        'source': 'dan_dl7',
+        if (zars.firstOrNull?.app != null) 'app': zars.first.app,
+      },
     );
   }
+
+  /// Which ZAR block describes which dive, keyed by the dive's index.
+  ///
+  /// A block goes to the first dive not yet claimed whose start falls in the
+  /// same minute as the block's `DIVE_DT`: `ZDH` may record the start to the
+  /// minute while `DIVE_DT` carries seconds, and no two dives start within
+  /// one minute. A single-dive file takes a block that matched nothing,
+  /// since DiveCloud's one block is that dive's whatever its clock says.
+  static Map<int, AqualungZarData> _attributeZar(
+    List<Dl7DiveRecord> records,
+    List<AqualungZarData> zars,
+  ) {
+    DateTime? minuteOf(DateTime? time) => time == null
+        ? null
+        : DateTime.utc(time.year, time.month, time.day, time.hour, time.minute);
+
+    final starts = [for (final record in records) minuteOf(_startOf(record))];
+    final byDive = <int, AqualungZarData>{};
+    for (final zar in zars) {
+      final minute = minuteOf(zar.diveDateTime);
+      if (minute == null) continue;
+      for (var i = 0; i < starts.length; i++) {
+        if (!byDive.containsKey(i) && starts[i] == minute) {
+          byDive[i] = zar;
+          break;
+        }
+      }
+    }
+
+    if (records.length == 1 && byDive.isEmpty && zars.isNotEmpty) {
+      byDive[0] = zars.first;
+    }
+    return byDive;
+  }
+
+  /// The dive's start from `ZDH` field 5, or null when it cannot be read.
+  static DateTime? _startOf(Dl7DiveRecord record) => record.zdhFields.length > 5
+      ? parseDl7Timestamp(record.zdhFields[5])
+      : null;
+
+  /// Recorded for logs and tests; never shown to the diver.
+  static ImportWarning _diagnostic(String message) => ImportWarning(
+    severity: ImportWarningSeverity.warning,
+    code: ImportWarningCode.diagnostic,
+    message: message,
+  );
 
   /// The site a `ZAR` block's `<LOCATION>` describes, or null when it names
   /// no place and carries no coordinates.
@@ -204,7 +273,7 @@ class DanDl7Parser implements ImportParser {
         ? zrhFields[field].trim()
         : null;
 
-    final start = _parseDl7Timestamp(zdh(5));
+    final start = _startOf(record);
     if (start == null) return null;
 
     final result = <String, dynamic>{'dateTime': start};
@@ -218,7 +287,7 @@ class DanDl7Parser implements ImportParser {
     final events = _parseViolationEvents(record.zdpRows, profile);
     if (events.isNotEmpty) result['events'] = events;
 
-    final end = _parseDl7Timestamp(zdt(4));
+    final end = parseDl7Timestamp(zdt(4));
     Duration? runtime = zar?.elapsedDiveTime;
     if (runtime == null && end != null && end.isAfter(start)) {
       runtime = end.difference(start);
@@ -491,29 +560,5 @@ class DanDl7Parser implements ImportParser {
       return o2 > 0 ? o2 : 21.0;
     }
     return null;
-  }
-
-  /// Parses YYYYMMDDHHMMSS (seconds optional) as wall-clock UTC, ignoring
-  /// any timezone suffix per the house dive-time convention.
-  static DateTime? _parseDl7Timestamp(String? raw) {
-    if (raw == null) return null;
-    final digits = raw.replaceAll(RegExp(r'[^0-9]'), '');
-    if (digits.length < 12) return null;
-    final year = int.tryParse(digits.substring(0, 4));
-    final month = int.tryParse(digits.substring(4, 6));
-    final day = int.tryParse(digits.substring(6, 8));
-    final hour = int.tryParse(digits.substring(8, 10));
-    final minute = int.tryParse(digits.substring(10, 12));
-    if (year == null ||
-        month == null ||
-        day == null ||
-        hour == null ||
-        minute == null) {
-      return null;
-    }
-    final second = digits.length >= 14
-        ? int.tryParse(digits.substring(12, 14)) ?? 0
-        : 0;
-    return DateTime.utc(year, month, day, hour, minute, second);
   }
 }
