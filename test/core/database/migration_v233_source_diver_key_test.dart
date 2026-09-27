@@ -31,9 +31,9 @@ void main() {
   test('v233 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 233);
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(233));
     expect(AppDatabase.migrationVersions, contains(233));
-    expect(AppDatabase.migrationStepCount(232), 1);
+    expect(AppDatabase.migrationStepCount(232), greaterThanOrEqualTo(1));
   });
 
   test('this rung is additive and did not move the sync floor', () {

@@ -2540,6 +2540,10 @@ class DiverSettings extends Table {
   // Data source badge visibility (v55)
   BoolColumn get showDataSourceBadges =>
       boolean().withDefault(const Constant(true))();
+  // v237: the diver figure in the dive detail equipment card (issue #2326),
+  // off by default for every diver.
+  BoolColumn get showDiveFigure =>
+      boolean().withDefault(const Constant(false))();
   // Dive detail section order and visibility (v56) — JSON array
   TextColumn get diveDetailSections => text().nullable()();
   // Dive detail page layout: detailed | list (v185). A stored "compact",
@@ -4575,7 +4579,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 233;
+  static const int currentSchemaVersion = 237;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -5274,6 +5278,11 @@ class AppDatabase extends _$AppDatabase {
     // could recover it), so the floor stays at 224. Taken while 232 was
     // claimed by several open branches; trip cylinders (#2331) shipped it.
     233,
+    // v237: diver_settings.show_dive_figure, the diver-wide switch for the
+    // figure in the dive detail equipment card (issue #2326). Additive,
+    // default off, no backfill, so the floor stays at 224. Taken above
+    // 234 to 236, which open branches claimed when this was cut.
+    237,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -6781,6 +6790,16 @@ class AppDatabase extends _$AppDatabase {
       );
     }
   }
+
+  /// v237: diver_settings.show_dive_figure (issue #2326). Additive, not
+  /// null, default 0, so the dive figure starts off for every diver, new
+  /// and existing. Idempotent, so it is safe to call from both onUpgrade
+  /// and the beforeOpen backstop.
+  Future<void> _assertShowDiveFigureColumn() => _addColumnIfMissing(
+    'diver_settings',
+    'show_dive_figure',
+    'INTEGER NOT NULL DEFAULT 0',
+  );
 
   /// v229: equipment_sets.show_figure (issue #2326). Additive, not null,
   /// default 0, so every existing set comes up with the figure off.
@@ -13067,10 +13086,19 @@ class AppDatabase extends _$AppDatabase {
           await _assertSourceDiverKeyColumn();
         }
         if (from < 233) await reportProgress();
+        // v237: diver_settings.show_dive_figure (issue #2326). Column-only
+        // rung, default off, no backfill.
+        if (from < 237) {
+          await _assertShowDiveFigureColumn();
+        }
+        if (from < 237) await reportProgress();
       },
       beforeOpen: (details) async {
         // v229 backstop: the per-set diver figure switch.
         await _assertEquipmentSetShowFigureColumn();
+
+        // v237 backstop: the dive figure switch.
+        await _assertShowDiveFigureColumn();
 
         // v227 backstop: the hidden built-in tank presets.
         await _assertHiddenTankPresetIdsColumn();
