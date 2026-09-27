@@ -12,6 +12,7 @@ import 'package:submersion/features/universal_import/data/models/source_diver.da
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_media_entries.dart';
+import 'package:submersion/features/universal_import/data/services/macdive_start_seconds.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_value_mapper.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_xml_models.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_xml_reader.dart';
@@ -311,7 +312,12 @@ class MacDiveXmlParser implements ImportParser {
   Map<String, dynamic> _mapDive(MacDiveXmlDive d) {
     final map = <String, dynamic>{};
     if (d.identifier != null) map['sourceUuid'] = d.identifier;
-    if (d.date != null) map['dateTime'] = d.date;
+    // <date> is written to the minute; <identifier> still has the seconds
+    // (#2509).
+    final date = d.date;
+    if (date != null) {
+      map['dateTime'] = MacDiveStartSeconds.restore(date, d.identifier);
+    }
     if (d.diveNumber != null) map['diveNumber'] = d.diveNumber;
     // MacDive's <repetitiveDive> (per-day counter) is intentionally dropped:
     // main's refactor removed the `dive_number_of_day` column because it's
