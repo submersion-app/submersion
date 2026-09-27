@@ -162,7 +162,7 @@ void main() {
     expect(await shown(4), expected);
     expect(
       expected,
-      containsAll([_focus, NodeRef(ConnectionKind.buddy, 'b10')]),
+      containsAll([_focus, const NodeRef(ConnectionKind.buddy, 'b10')]),
     );
   });
 }

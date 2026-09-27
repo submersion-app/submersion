@@ -308,15 +308,15 @@ void main() {
       graph: (ref, budget) {
         final view = ref.watch(connectionsViewProvider);
         return view.presetId == 'reef'
-            ? ConnectionGraph(
+            ? const ConnectionGraph(
                 nodes: [
                   ConnectionNode(
-                    ref: const NodeRef(ConnectionKind.site, 's1'),
+                    ref: NodeRef(ConnectionKind.site, 's1'),
                     label: 'Reef',
                     diveCount: 4,
                   ),
                 ],
-                edges: const [],
+                edges: [],
               )
             : _graph;
       },
