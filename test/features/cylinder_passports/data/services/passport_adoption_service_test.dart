@@ -183,4 +183,65 @@ void main() {
     await Future<void>.delayed(Duration.zero);
     expect(notified, 1);
   });
+
+  group('a tag held by another diver in the library', () {
+    Future<void> seedOtherDiversCylinder({required String status}) async {
+      final t = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: 'd2',
+              name: 'd2',
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: 'eq-partner',
+              name: 'Partner 12',
+              type: 'tank',
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value('d2'),
+              status: Value(status),
+            ),
+          );
+      await CylinderPassportRepository().assignPassportId(
+        equipmentId: 'eq-partner',
+        passportId: id,
+        diverId: 'd2',
+      );
+    }
+
+    test('in service, it blocks the adoption and creates nothing', () async {
+      await seedOtherDiversCylinder(status: 'active');
+      final before = await tankCount();
+      await expectLater(
+        service.adopt(full, diverId: 'd1', fallbackName: 'Cylinder', now: now),
+        throwsA(
+          isA<PassportIdInUse>().having(
+            (e) => e.equipmentId,
+            'holder',
+            'eq-partner',
+          ),
+        ),
+      );
+      expect(await tankCount(), before);
+    });
+
+    test('retired, it does not block (a cylinder bought used)', () async {
+      await seedOtherDiversCylinder(status: 'retired');
+      final item = await service.adopt(
+        full,
+        diverId: 'd1',
+        fallbackName: 'Cylinder',
+        now: now,
+      );
+      expect(item.diverId, 'd1');
+    });
+  });
 }

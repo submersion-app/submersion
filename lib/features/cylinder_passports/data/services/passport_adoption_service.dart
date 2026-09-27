@@ -36,6 +36,17 @@ class PassportAdoptionService {
   }) async {
     final at = now ?? DateTime.now();
     final item = await _equipment.transaction(() async {
+      // Across the whole library, not only this diver's gear: adopting
+      // re-links every fill stored under the id, so a cylinder another diver
+      // still uses must keep its tag and its history. A retired or sold one
+      // (a cylinder bought used) does not block.
+      final holder = await _passports.findEquipmentIdByPassportId(
+        tag.passportId,
+      );
+      if (holder != null &&
+          ((await _equipment.getEquipmentById(holder))?.isFitted ?? false)) {
+        throw PassportIdInUse(holder);
+      }
       final created = await _equipment.createEquipment(
         EquipmentItem(
           id: '',

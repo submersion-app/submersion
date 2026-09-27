@@ -283,7 +283,10 @@ record that arrived on the same tag or a following scan. Two actions:
   and sets their `anchorDate` from `h` and `vi` with `anchorSetAt` now, and
   attaches `o2-clean` when `oc` is set. It never fabricates `ServiceRecord`
   rows from a sticker. Fills already stored under that passport id are
-  re-linked (section 10.8).
+  re-linked (section 10.8). Because of that re-link, it refuses, creating
+  nothing, when a cylinder anywhere in the library that is still in service
+  holds the id, not only one visible to the diver; a retired or sold holder
+  does not block (decided 2026-09-26).
 
 ## 10. Data
 
