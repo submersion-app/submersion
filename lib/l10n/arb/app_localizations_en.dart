@@ -19108,6 +19108,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_ref_trip => 'Trip';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'Trip cylinder';
+
+  @override
   String get settings_conflict_remoteVersion => 'Remote Version';
 
   @override
@@ -27788,6 +27791,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       'Could not resync: the original file no longer contains a matching dive';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Could not resync: the original file has a matching dive for more than one diver, and this dive does not record which one it came from';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>

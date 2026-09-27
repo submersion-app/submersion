@@ -19102,6 +19102,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_trip => 'الرحلة';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'أسطوانة الرحلة';
+
+  @override
   String get settings_conflict_remoteVersion => 'النسخة البعيدة';
 
   @override
@@ -27880,6 +27883,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       'تعذّرت إعادة المزامنة: لم يعد الملف الأصلي يحتوي على غطسة مطابقة';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'تعذّرت إعادة المزامنة: يحتوي الملف الأصلي على غطسة مطابقة لأكثر من غوّاص، ولا تسجّل هذه الغطسة من أيّها جاءت';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>

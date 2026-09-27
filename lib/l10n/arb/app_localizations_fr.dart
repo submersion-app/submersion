@@ -19480,6 +19480,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_ref_trip => 'Voyage';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'Bouteille du voyage';
+
+  @override
   String get settings_conflict_remoteVersion => 'Version distante';
 
   @override
@@ -28341,6 +28344,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       'Impossible de resynchroniser : le fichier original ne contient plus de plongée correspondante';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Impossible de resynchroniser : le fichier original contient une plongée correspondante pour plusieurs plongeurs, et cette plongée n\'indique pas de laquelle elle provient';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>

@@ -1,5 +1,7 @@
 # Connections Explorer Revision 2 Implementation Plan
 
+> **Renumbered at merge (2026-09-26):** the saved-maps rung this plan calls 232 shipped as **234**, because `main` took 232 (trip cylinders, #2331) and 233 (MacDive source diver key, #1921) first. The test file is `migration_v234_connection_maps_test.dart`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Turn the pair-of-kinds Connections page into a two-mode explorer (Around one entity across every kind, up to 3 hops; Whole map over any set of kinds and links) with nine presets, synced saved maps, a tabbed desktop panel and phone sheet, a canvas that no longer clips, and an animated refocus.

@@ -18447,6 +18447,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_trip => '行程';
 
   @override
+  String get settings_conflict_ref_tripCylinder => '行程气瓶';
+
+  @override
   String get settings_conflict_remoteVersion => '远程版本';
 
   @override
@@ -26775,6 +26778,10 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       '无法重新同步：原始文件中已没有匹配的潜水记录';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      '无法重新同步：原始文件中有多位潜水员的匹配潜水记录，而此潜水记录未保存它来自哪一位';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>

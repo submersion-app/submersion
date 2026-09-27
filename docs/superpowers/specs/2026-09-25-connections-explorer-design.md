@@ -61,8 +61,8 @@ engine's SQL fragments, the stats scope, the filter, the force layout, the
 hit testing and the error handling carry over unchanged unless named here.
 
 On 2026-09-26 `main` renamed the Statistics section to Insights (#2385) and
-moved its schema to version 231, so the rung here is 232 (the next free one
-at the time of writing; the plan renumbers if `main` moves again), and
+moved its schema to version 231. `main` later shipped 232 (trip cylinders,
+#2331) and 233 (MacDive source diver key, #1921), so the rung here is 234, and
 references to Statistics code below read as the Insights equivalents.
 
 ### Decisions (revision 2)
@@ -76,7 +76,7 @@ references to Statistics code below read as the Insights equivalents.
 | Whole map | Pick kinds and links; minimum-shared-dives slider (1 to 10) |
 | Link default | Ticking a kind links it to the kinds already on; same-kind links stay off |
 | Presets | Nine built-in presets; editing one makes a custom map |
-| Saved maps | Named, synced per diver (`connection_maps`, schema rung 232) |
+| Saved maps | Named, synced per diver (`connection_maps`, schema rung 234) |
 | Desktop panel | Layout A: one right panel with View, Filter and Details tabs |
 | Phone | The same three tabs in a draggable bottom sheet |
 | Canvas | Label-aware fit that follows the settling layout, label halos, islands gathered below, kinds seeded in sectors, kind icons, rings by hop |
@@ -154,7 +154,7 @@ chips in the View tab change this.
 - **Scope.** Every query keeps the diver clause, `DiveStatsScope` and the
   page's filter through `diveScopeSql`. The minimum-shared-dives slider
   applies to map mode only.
-- **Index.** Rung 232 adds `idx_sightings_dive_id` on `sightings(dive_id)`,
+- **Index.** Rung 234 adds `idx_sightings_dive_id` on `sightings(dive_id)`,
   the one junction the species queries join that has no `dive_id` index.
 
 ### Presets
@@ -181,7 +181,7 @@ card is chosen.
 - **Table.** `ConnectionMaps` in `database.dart`: `id` (uuid primary key),
   `diverId` (not null, references `Divers`, cascade on delete), `name`,
   `spec` (the `MapSpec` as JSON text), `sortOrder`, `createdAt`,
-  `updatedAt`, `hlc`. Rung 232 creates it; a guarded `beforeOpen` backstop
+  `updatedAt`, `hlc`. Rung 234 creates it; a guarded `beforeOpen` backstop
   creates it and the sightings index when missing, for rung collisions
   between parallel branches.
 - **Sync.** Registered as a diver-owned entity everywhere sync enumerates
@@ -302,7 +302,7 @@ Tests are written first.
   ticked, spec JSON round trip and tolerant parsing, preset table, kind-sector
   seeding determinism, island grid, rings by hop, the morph and camera
   interpolation endpoints and midpoints, the label-aware fit.
-- Saved maps: repository CRUD, the change tick, migration rung 232 (table
+- Saved maps: repository CRUD, the change tick, migration rung 234 (table
   and index), the backstop, the sync round trip.
 - Widgets, at 732 and 1280 px: each tab, the editor's link defaults, search
   results across kinds, the hop stepper, selection switching to Details and

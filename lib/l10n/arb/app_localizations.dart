@@ -31361,6 +31361,12 @@ abstract class AppLocalizations {
   /// **'Trip'**
   String get settings_conflict_ref_trip;
 
+  /// No description provided for @settings_conflict_ref_tripCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip cylinder'**
+  String get settings_conflict_ref_tripCylinder;
+
   /// No description provided for @settings_conflict_remoteVersion.
   ///
   /// In en, this message translates to:
@@ -44969,6 +44975,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not resync: the original file no longer contains a matching dive'**
   String get diveLog_detail_resyncFailed_noMatchingDive;
+
+  /// Snackbar shown when the original file holds a matching dive for several divers and this dive, imported before its diver was recorded, cannot say which copy is its own
+  ///
+  /// In en, this message translates to:
+  /// **'Could not resync: the original file has a matching dive for more than one diver, and this dive does not record which one it came from'**
+  String get diveLog_detail_resyncFailed_ambiguousDiver;
 
   /// Snackbar shown when reading or parsing the stored original file threw
   ///

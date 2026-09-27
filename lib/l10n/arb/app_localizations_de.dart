@@ -19391,6 +19391,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_ref_trip => 'Reise';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'Reiseflasche';
+
+  @override
   String get settings_conflict_remoteVersion => 'Remote-Version';
 
   @override
@@ -28191,6 +28194,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       'Resynchronisierung fehlgeschlagen: Die Originaldatei enthält keinen passenden Tauchgang mehr';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Resynchronisierung fehlgeschlagen: Die Originaldatei enthält einen passenden Tauchgang für mehrere Taucher, und bei diesem Tauchgang ist nicht gespeichert, von welchem er stammt';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>

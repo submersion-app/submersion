@@ -18945,6 +18945,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_trip => 'טיול';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'בלון הטיול';
+
+  @override
   String get settings_conflict_remoteVersion => 'גרסה מרוחקת';
 
   @override
@@ -27559,6 +27562,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       'לא ניתן היה לסנכרן מחדש: הקובץ המקורי כבר לא מכיל צלילה תואמת';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'לא ניתן היה לסנכרן מחדש: בקובץ המקורי יש צלילה תואמת ליותר מצולל אחד, ובצלילה הזו לא נשמר מאיזו מהן היא הגיעה';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>

@@ -19274,6 +19274,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_ref_trip => 'Reis';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'Reisfles';
+
+  @override
   String get settings_conflict_remoteVersion => 'Externe versie';
 
   @override
@@ -28033,6 +28036,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       'Kan niet opnieuw synchroniseren: het originele bestand bevat geen overeenkomende duik meer';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Kan niet opnieuw synchroniseren: het originele bestand bevat een overeenkomende duik voor meer dan één duiker, en bij deze duik is niet vastgelegd van welke hij afkomstig is';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>

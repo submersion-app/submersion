@@ -19360,6 +19360,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_ref_trip => 'Utazás';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'Utazási palack';
+
+  @override
   String get settings_conflict_remoteVersion => 'Távoli változat';
 
   @override
@@ -28147,6 +28150,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       'Nem sikerült újraszinkronizálni: az eredeti fájl már nem tartalmaz megfelelő merülést';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Nem sikerült újraszinkronizálni: az eredeti fájlban több búvárnak is van megfelelő merülése, és ennél a merülésnél nincs rögzítve, melyiktől származik';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>

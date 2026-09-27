@@ -19416,6 +19416,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_ref_trip => 'Viaggio';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'Bombola del viaggio';
+
+  @override
   String get settings_conflict_remoteVersion => 'Versione remota';
 
   @override
@@ -28234,6 +28237,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_detail_resyncFailed_noMatchingDive =>
       'Impossibile risincronizzare: il file originale non contiene più un\'immersione corrispondente';
+
+  @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Impossibile risincronizzare: il file originale contiene un\'immersione corrispondente per più di un subacqueo e questa immersione non registra da quale provenga';
 
   @override
   String get diveLog_detail_resyncFailed_unexpectedError =>

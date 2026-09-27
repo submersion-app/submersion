@@ -3,12 +3,12 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v232: saved connection maps and the sightings dive index
+/// Schema v234: saved connection maps and the sightings dive index
 /// (issue #2322, spec Revision 2).
 void main() {
-  /// A v231 database with the stub parents earlier backstops look for, a
+  /// A v233 database with the stub parents earlier backstops look for, a
   /// sightings table without the index, and no connection_maps.
-  NativeDatabase setupDb({int userVersion = 231, bool withDivers = true}) {
+  NativeDatabase setupDb({int userVersion = 233, bool withDivers = true}) {
     return NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = $userVersion');
@@ -83,12 +83,12 @@ void main() {
     return rows.map((r) => r.read<String>('name')).toSet();
   }
 
-  test('v232 is the current schema version and is in the ladder', () {
+  test('v234 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 232);
-    expect(AppDatabase.migrationVersions, contains(232));
-    expect(AppDatabase.migrationStepCount(231), 1);
+    expect(AppDatabase.currentSchemaVersion, 234);
+    expect(AppDatabase.migrationVersions, contains(234));
+    expect(AppDatabase.migrationStepCount(233), 1);
     expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });
 
@@ -150,9 +150,9 @@ void main() {
   });
 
   test(
-    'a database stamped v232 without the table heals in beforeOpen',
+    'a database stamped v234 without the table heals in beforeOpen',
     () async {
-      final db = AppDatabase(setupDb(userVersion: 232));
+      final db = AppDatabase(setupDb(userVersion: 234));
       addTearDown(db.close);
       expect(await columnsOf(db, 'connection_maps'), contains('spec'));
     },

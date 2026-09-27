@@ -418,7 +418,7 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_equipment '
         'ON cylinder_fills(equipment_id)',
   ),
-  // Saved Connections maps and the sightings dive join (v232, issue #2322).
+  // Saved Connections maps and the sightings dive join (v234, issue #2322).
   (
     name: 'idx_connection_maps_diver',
     ddl:
