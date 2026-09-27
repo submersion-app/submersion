@@ -15,13 +15,22 @@ final class PendingCharacteristicRead {
     private let semaphore = DispatchSemaphore(value: 0)
     private var pendingUUID: String?
     private var value: Data?
+    /// Characteristics whose read timed out. CoreBluetooth cannot cancel an
+    /// outstanding readValue, so its late reply could otherwise satisfy a
+    /// later read of the same characteristic; those are refused instead.
+    private var quarantined: Set<String> = []
 
-    func begin(uuid: String) {
+    /// Starts a read. Returns false when the characteristic is quarantined.
+    @discardableResult
+    func begin(uuid: String) -> Bool {
         while semaphore.wait(timeout: .now()) == .success {}
         lock.lock()
-        pendingUUID = uuid.uppercased()
+        defer { lock.unlock() }
+        let key = uuid.uppercased()
+        if quarantined.contains(key) { return false }
+        pendingUUID = key
         value = nil
-        lock.unlock()
+        return true
     }
 
     /// Returns true when the update was this read's reply (consumed).
@@ -42,6 +51,9 @@ final class PendingCharacteristicRead {
         let result = semaphore.wait(timeout: timeout)
         lock.lock()
         defer { lock.unlock() }
+        if result != .success, let pending = pendingUUID {
+            quarantined.insert(pending)
+        }
         pendingUUID = nil
         return result == .success ? value : nil
     }

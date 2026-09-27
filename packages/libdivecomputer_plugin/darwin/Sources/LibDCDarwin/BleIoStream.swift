@@ -689,7 +689,12 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
                     "ioctl BLE_CHARACTERISTIC_READ \(uuidString) not readable")
                 return Int32(LIBDC_STATUS_NOACCESS)
             }
-            pendingRead.begin(uuid: characteristic.uuid.uuidString)
+            guard pendingRead.begin(uuid: characteristic.uuid.uuidString) else {
+                NativeLogger.e("BleIoStream", category: "BLE",
+                    "ioctl BLE_CHARACTERISTIC_READ \(uuidString) refused:"
+                        + " an earlier read of it timed out")
+                return Int32(LIBDC_STATUS_IO)
+            }
             peripheral.readValue(for: characteristic)
             guard let value = pendingRead.wait(
                 timeout: .now() + Self.characteristicReadTimeout) else {

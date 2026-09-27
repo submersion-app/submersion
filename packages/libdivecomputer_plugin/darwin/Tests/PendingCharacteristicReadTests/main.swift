@@ -13,7 +13,7 @@ let uuid = "6E400003-B5A3-F393-E0A9-E50E24DC10B8"
 // A reply for the characteristic being read is claimed and delivered.
 do {
     let slot = PendingCharacteristicRead()
-    slot.begin(uuid: uuid)
+    _ = slot.begin(uuid: uuid)
     let claimed = slot.complete(uuid: uuid, value: Data([1, 2, 3, 4, 4]))
     expect(claimed, "the pending read claims its own reply")
     expect(slot.wait(timeout: .now() + 1) == Data([1, 2, 3, 4, 4]),
@@ -31,7 +31,7 @@ do {
 // A different characteristic's update is not claimed while a read waits.
 do {
     let slot = PendingCharacteristicRead()
-    slot.begin(uuid: uuid)
+    _ = slot.begin(uuid: uuid)
     expect(!slot.complete(uuid: "6E400002-B5A3-F393-E0A9-E50E24DC10B8",
                           value: Data([9])),
         "another characteristic's update is not claimed")
@@ -42,7 +42,7 @@ do {
 // flows to the stream again (one reply per read).
 do {
     let slot = PendingCharacteristicRead()
-    slot.begin(uuid: uuid)
+    _ = slot.begin(uuid: uuid)
     _ = slot.complete(uuid: uuid, value: Data([1]))
     expect(!slot.complete(uuid: uuid, value: Data([2])),
         "only the first update after begin is the reply")
@@ -51,7 +51,7 @@ do {
 // An error reply (nil value) wakes the waiter with nil.
 do {
     let slot = PendingCharacteristicRead()
-    slot.begin(uuid: uuid)
+    _ = slot.begin(uuid: uuid)
     _ = slot.complete(uuid: uuid, value: nil)
     expect(slot.wait(timeout: .now() + 1) == nil, "an error reply yields nil")
 }
@@ -59,7 +59,7 @@ do {
 // A timeout yields nil and clears the slot.
 do {
     let slot = PendingCharacteristicRead()
-    slot.begin(uuid: uuid)
+    _ = slot.begin(uuid: uuid)
     expect(slot.wait(timeout: .now() + .milliseconds(50)) == nil,
         "a timeout yields nil")
     expect(!slot.complete(uuid: uuid, value: Data([1])),
@@ -69,7 +69,7 @@ do {
 // cancel() (disconnect) wakes a waiter on another thread.
 do {
     let slot = PendingCharacteristicRead()
-    slot.begin(uuid: uuid)
+    _ = slot.begin(uuid: uuid)
     DispatchQueue.global().asyncAfter(deadline: .now() + .milliseconds(50)) {
         slot.cancel()
     }
@@ -82,9 +82,33 @@ do {
 // decoder emits lowercase).
 do {
     let slot = PendingCharacteristicRead()
-    slot.begin(uuid: uuid.lowercased())
+    _ = slot.begin(uuid: uuid.lowercased())
     expect(slot.complete(uuid: uuid, value: Data([7])),
         "case differences do not matter")
+}
+
+// A timed-out read quarantines its characteristic: CoreBluetooth has no way
+// to cancel the outstanding readValue, so a later begin for the same UUID
+// could otherwise be satisfied by the old read's late reply.
+do {
+    let slot = PendingCharacteristicRead()
+    expect(slot.begin(uuid: uuid), "a first read may begin")
+    _ = slot.wait(timeout: .now() + .milliseconds(20))
+    expect(!slot.begin(uuid: uuid), "a timed-out characteristic cannot be read again")
+    expect(!slot.begin(uuid: uuid.lowercased()), "the quarantine ignores case")
+    expect(slot.begin(uuid: "6E400004-B5A3-F393-E0A9-E50E24DC10B8"),
+        "other characteristics are unaffected")
+    slot.cancel()
+}
+
+// A completed read does not quarantine anything.
+do {
+    let slot = PendingCharacteristicRead()
+    _ = slot.begin(uuid: uuid)
+    _ = slot.complete(uuid: uuid, value: Data([1]))
+    _ = slot.wait(timeout: .now() + 1)
+    expect(slot.begin(uuid: uuid), "a completed read leaves the characteristic readable")
+    slot.cancel()
 }
 
 if failures > 0 {

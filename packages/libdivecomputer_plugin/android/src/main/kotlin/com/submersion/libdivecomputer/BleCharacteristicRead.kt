@@ -28,3 +28,18 @@ object BleCharacteristicRead {
         if (streamTimeoutMs < 0) MAX_READ_TIMEOUT_MS
         else minOf(streamTimeoutMs.toLong(), MAX_READ_TIMEOUT_MS)
 }
+
+// Characteristics whose read timed out on this connection (issue #422).
+// Android cannot cancel an outstanding readCharacteristic, so its late
+// onCharacteristicRead could otherwise satisfy a later read of the same
+// characteristic; those reads are refused instead. Called only from the
+// libdivecomputer thread.
+class CharacteristicReadQuarantine {
+    private val timedOut = HashSet<UUID>()
+
+    fun mayRead(uuid: UUID): Boolean = uuid !in timedOut
+
+    fun timedOut(uuid: UUID) {
+        timedOut.add(uuid)
+    }
+}

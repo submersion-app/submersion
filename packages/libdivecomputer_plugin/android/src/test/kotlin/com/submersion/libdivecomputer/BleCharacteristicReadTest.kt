@@ -37,4 +37,17 @@ class BleCharacteristicReadTest {
         assertEquals(10_000L, BleCharacteristicRead.readTimeoutMs(60_000))
         assertEquals(5_000L, BleCharacteristicRead.readTimeoutMs(5_000))
     }
+
+    // A timed-out read cannot be cancelled on Android, so its late callback
+    // could satisfy a later read of the same characteristic; refuse those.
+    @Test
+    fun timedOutCharacteristicIsQuarantined() {
+        val quarantine = CharacteristicReadQuarantine()
+        val version = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dc10b8")
+        val other = UUID.fromString("6e400004-b5a3-f393-e0a9-e50e24dc10b8")
+        assertTrue(quarantine.mayRead(version))
+        quarantine.timedOut(version)
+        assertEquals(false, quarantine.mayRead(version))
+        assertTrue(quarantine.mayRead(other))
+    }
 }

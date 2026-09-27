@@ -153,6 +153,7 @@ class BleIoStream(
     private val readCharacteristicSemaphore = Semaphore(0)
     @Volatile private var pendingReadUuid: UUID? = null
     @Volatile private var pendingReadValue: ByteArray? = null
+    private val readQuarantine = CharacteristicReadQuarantine()
     // One permit, held from the moment a GATT write is issued until its
     // completion callback arrives. Android's BluetoothGatt carries a single
     // busy flag and rejects writeCharacteristic() while any operation is
@@ -1031,6 +1032,11 @@ class BleIoStream(
 
     override fun readCharacteristic(uuid: String): ByteArray? {
         val target = BleCharacteristicRead.parseUuid(uuid) ?: return null
+        if (!readQuarantine.mayRead(target)) {
+            NativeLogger.e(TAG, "BLE",
+                "readCharacteristic: $uuid refused, an earlier read of it timed out")
+            return null
+        }
         val g = gatt ?: return null
         // libdivecomputer names only the characteristic, so search every
         // discovered service.
@@ -1060,6 +1066,7 @@ class BleIoStream(
             if (!readCharacteristicSemaphore.tryAcquire(
                     timeout, TimeUnit.MILLISECONDS)) {
                 NativeLogger.e(TAG, "BLE", "readCharacteristic: $uuid timed out")
+                readQuarantine.timedOut(target)
                 return null
             }
             return pendingReadValue
