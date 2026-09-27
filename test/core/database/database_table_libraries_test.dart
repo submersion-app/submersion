@@ -38,8 +38,8 @@ void main() {
       reason:
           'Declare tables in a library under lib/core/database/tables/ and '
           'list them in @DriftDatabase. A table declared in database.dart '
-          'makes drift_dev resolve the whole migration ladder once per '
-          'column, which is what exhausted the CI runner (issue #2502).',
+          'makes drift_dev resolve all of database.dart once per column, '
+          'which is what exhausted the CI runner (issue #2502).',
     );
   });
 

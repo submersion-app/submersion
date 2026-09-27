@@ -53,7 +53,7 @@ part 'ladder/rungs_v055_to_v071.dart';
 part 'ladder/rungs_v072_to_v095.dart';
 part 'ladder/rungs_v096_to_v148.dart';
 part 'ladder/rungs_v149_to_v230.dart';
-part 'ladder/rungs_v231_to_v240.dart';
+part 'ladder/rungs_v231_onward.dart';
 part 'migration_strategy.dart';
 
 /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict
@@ -62,7 +62,8 @@ part 'migration_strategy.dart';
 /// landed at user_version = 77 via the schema-version collision with PR #302's
 /// surface-interval index migration) and the v83 backfill (comprehensive
 /// recovery for databases stranded past v77 by the wider set of sync-branch
-/// version collisions — see the v82 and v83 blocks below).
+/// version collisions; see the v82 and v83 rungs in
+/// `ladder/rungs_v072_to_v095.dart`).
 const List<String> _hlcTables = [
   'divers',
   'diver_settings',

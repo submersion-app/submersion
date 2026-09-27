@@ -1,8 +1,11 @@
 part of '../app_database_migrations.dart';
 
-/// The rungs that take a database to schema versions 231 to 240.
-extension RungsV231ToV240 on AppDatabase {
-  Future<void> _rungsV231ToV240(
+/// The rungs that take a database to schema version 231 and above.
+///
+/// New rungs are appended here. When this file nears 800 lines, give
+/// it a closed range like its neighbours and start the next one.
+extension RungsFromV231 on AppDatabase {
+  Future<void> _rungsFromV231(
     Migrator m,
     int from,
     Future<void> Function() reportProgress,

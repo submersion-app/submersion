@@ -78,20 +78,25 @@ The current version is `AppDatabase.currentSchemaVersion` in
 `lib/core/database/database.dart`.
 
 Migrations handle schema evolution. `AppDatabase` declares only the schema
-and its version; the migration code lives in the library
-`lib/core/database/migrations/app_database_migrations.dart`, as extensions on
-`AppDatabase` spread over part files:
+and its version; the migration code lives under
+`lib/core/database/migrations/`. Most of it is one library,
+`app_database_migrations.dart`, made of extensions on `AppDatabase` spread
+over part files:
 
-| File | Holds |
-| ---- | ----- |
+| Part file | Holds |
+| --------- | ----- |
 | `migration_strategy.dart` | `onCreate`, and `onUpgrade` calling each ladder file in order |
 | `ladder/rungs_v<first>_to_v<last>.dart` | The `if (from < N)` rungs, oldest first |
+| `ladder/rungs_v<first>_onward.dart` | The newest rungs; new ones are appended here |
 | `helpers/<domain>_migrations.dart` | The `_assert...` and `_backfill...` helpers the rungs call, grouped like the table libraries |
 | `before_open.dart` | The backstops that run on every open |
-| `migration_versions.dart` | `appMigrationVersions`, the list behind the progress bar |
+
+`migration_versions.dart` is a library of its own. It holds
+`appMigrationVersions`, the list behind the progress bar, which
+`AppDatabase.migrationVersions` exposes.
 
 ```dart
-// lib/core/database/migrations/ladder/rungs_v231_to_v240.dart
+// lib/core/database/migrations/ladder/rungs_v231_onward.dart
 if (from < 240) {
   await _assertProfileEventsDiveIdIndex();
 }
@@ -102,11 +107,22 @@ To add a migration:
 
 1. Raise `AppDatabase.currentSchemaVersion`.
 2. Append the version to `appMigrationVersions`, with a note on what it does.
-3. Append the rung to the newest file under `ladder/`. When that file nears
-   800 lines, start a new one and call it from `_onUpgrade`.
+3. Append the rung to `ladder/rungs_v<first>_onward.dart`. When that file
+   nears 800 lines, close it: rename the file, its extension and its method
+   to the range they now cover, as the older files are named, and update its
+   `part` directive and its call in `_onUpgrade`. Then start a new onward
+   file, with a `part` directive in `app_database_migrations.dart` and a call
+   at the end of `_onUpgrade`.
 4. Put any helper in the file under `helpers/` for its domain. A helper a
-   test must reach needs a public name there and an instance member of the
-   same name on `AppDatabase` that forwards to it.
+   test must reach needs a public name there, and an instance member of the
+   same name on `AppDatabase` that forwards to it by naming the extension:
+
+   ```dart
+   Future<void> fooForTest() => DiveMigrations(this).fooForTest();
+   ```
+
+   Written as `=> fooForTest()` it would call itself, and no lint catches
+   that. The forwarders at the end of `AppDatabase` are the model.
 5. If the change must also hold for a database that arrives by restore or
    sync, assert it in `before_open.dart`.
 

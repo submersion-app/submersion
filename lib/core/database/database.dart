@@ -257,8 +257,8 @@ class AppDatabase extends _$AppDatabase {
   /// legacy tables and purges their `deletion_log` rows. The floor is stamped
   /// on this device's own payloads and only holds readers below it; the gate
   /// is one-directional and does nothing to inbound payloads from an older
-  /// peer. See [_purgeLegacySampleBookkeeping] for why those inbound legacy
-  /// rows stay safe without the purged tombstones.
+  /// peer. See `_purgeLegacySampleBookkeeping` in the migration library for
+  /// why those inbound legacy rows stay safe without the purged tombstones.
   ///
   /// Raised 183 -> 210 by the cylinder gear link: v210 lets a gear item a
   /// cylinder is linked to be deleted (dive_tanks.equipment_id now sets null
