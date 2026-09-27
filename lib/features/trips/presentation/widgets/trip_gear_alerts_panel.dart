@@ -56,6 +56,14 @@ class _TripGearAlertsPanelState extends ConsumerState<TripGearAlertsPanel> {
   bool _expanded = false;
 
   @override
+  void didUpdateWidget(TripGearAlertsPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The master-detail layouts reuse this state for the next trip; an
+    // open panel must not carry over to alerts the diver never opened.
+    if (oldWidget.trip.id != widget.trip.id) _expanded = false;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final sections = [?_serviceSection(), ?_scrubberSection()];
     if (sections.isEmpty) return const SizedBox.shrink();
@@ -69,6 +77,13 @@ class _TripGearAlertsPanelState extends ConsumerState<TripGearAlertsPanel> {
     final swatch = switch (severity) {
       _Severity.alert => status.alert,
       _Severity.warn => status.warn,
+      _Severity.info => null,
+    };
+    // The tint and triangle carry the severity by sight alone; name it for
+    // screen readers ahead of the summary.
+    final severityLabel = switch (severity) {
+      _Severity.alert => l10n.enum_eventSeverity_alert,
+      _Severity.warn => l10n.enum_eventSeverity_warning,
       _Severity.info => null,
     };
     final summary = sections.length == 1
@@ -92,6 +107,7 @@ class _TripGearAlertsPanelState extends ConsumerState<TripGearAlertsPanel> {
                       ? sections.first.icon
                       : Icons.warning_amber_rounded,
                   color: swatch?.onContainer ?? theme.colorScheme.primary,
+                  semanticLabel: severityLabel,
                 ),
                 const SizedBox(width: 8),
                 Expanded(

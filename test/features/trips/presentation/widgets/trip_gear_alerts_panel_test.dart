@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -270,6 +271,81 @@ void main() {
       expect(find.byIcon(Icons.air), findsOneWidget);
       expect(headerFill(tester), isNull);
     });
+  });
+
+  group('screen readers hear the severity', () {
+    SemanticsNode headerNode(WidgetTester tester) =>
+        tester.getSemantics(find.byKey(TripGearAlertsPanel.headerKey));
+
+    testWidgets('an alert says so', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(host(margins: [margin()]));
+      await tester.pumpAndSettle();
+      expect(headerNode(tester).label, startsWith('Alert'));
+      semantics.dispose();
+    });
+
+    testWidgets('gear coming due is a warning', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(host(alerts: [dueClock()]));
+      await tester.pumpAndSettle();
+      expect(headerNode(tester).label, startsWith('Warning'));
+      semantics.dispose();
+    });
+
+    testWidgets('a comfortable margin claims neither', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(
+        host(margins: [margin(marginAfter: 200, caution: false)]),
+      );
+      await tester.pumpAndSettle();
+      expect(headerNode(tester).label, isNot(contains('Alert')));
+      expect(headerNode(tester).label, isNot(contains('Warning')));
+      semantics.dispose();
+    });
+  });
+
+  testWidgets('selecting another trip starts it collapsed again', (
+    tester,
+  ) async {
+    // The master-detail layouts rebuild the same detail page for the next
+    // trip, so an open panel would otherwise carry over to a trip whose
+    // alerts the diver never asked to see.
+    Trip other() => trip().copyWith(id: 't2');
+    final current = ValueNotifier<Trip>(trip());
+    addTearDown(current.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          for (final id in ['t1', 't2']) ...[
+            tripScrubberMarginsProvider(
+              id,
+            ).overrideWith((ref) async => [margin()]),
+            tripServiceAlertsProvider(id).overrideWith((ref) async => const []),
+          ],
+          equipmentRollupClockProvider.overrideWith((ref) async => const {}),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ValueListenableBuilder<Trip>(
+              valueListenable: current,
+              builder: (_, t, _) => TripGearAlertsPanel(trip: t),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await toggle(tester);
+    expect(find.text('My CCR'), findsOneWidget);
+
+    current.value = other();
+    await tester.pumpAndSettle();
+    expect(find.text('My CCR'), findsNothing);
   });
 
   testWidgets('a past trip drops service alerts and reads as of its start', (
