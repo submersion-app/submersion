@@ -49,6 +49,7 @@ void main() {
     String? serviceKindId = 'scrubber-repack',
     ServiceRecord? existingRecord,
     Future<void> Function(ServiceRecord)? onSave,
+    bool kindOnlyInAllKinds = false,
   }) async {
     // The dialog body is a scroll view and does not fit an 800x600 surface,
     // so a tap on a lower field would land outside the viewport.
@@ -61,7 +62,14 @@ void main() {
         overrides: [
           ...overrides,
           serviceKindsProvider.overrideWith(
-            (ref) async => [kind(cost: kindCost, currency: kindCurrency)],
+            (ref) async => kindOnlyInAllKinds
+                ? const <ServiceKind>[]
+                : [kind(cost: kindCost, currency: kindCurrency)],
+          ),
+          allServiceKindsByIdProvider.overrideWith(
+            (ref) async => {
+              'scrubber-repack': kind(cost: kindCost, currency: kindCurrency),
+            },
           ),
           serviceSchedulesForEquipmentProvider(
             'e1',
@@ -92,6 +100,17 @@ void main() {
     await pumpDialog(tester, kindCost: 60, scheduleCost: 45);
     expect(costText(tester), '45');
   });
+
+  testWidgets(
+    'a schedule on another profile custom kind is offered and prefills',
+    (tester) async {
+      // Issue #2046: a shared item's schedule can use its owner's custom
+      // kind, which the active diver's scoped kind list leaves out.
+      await pumpDialog(tester, kindCost: 60, kindOnlyInAllKinds: true);
+      expect(costText(tester), '60');
+      expect(find.text('Scrubber repack'), findsWidgets);
+    },
+  );
 
   testWidgets('the kind price is used when the schedule has none', (
     tester,

@@ -37,27 +37,39 @@ class NoaaDemSource implements BathymetrySource {
 
   static const Duration _timeout = Duration(seconds: 15);
 
-  /// Where the mosaic can hold a real coastal DEM: US states and
-  /// territories, as (minLat, maxLat, minLon, maxLon). Deliberately
-  /// generous, since erring wide only means a NOAA outage keeps a nearby
-  /// non-US site (the northern Bahamas, say) from caching until it
-  /// recovers, while erring narrow would let an outage pin a US site to a
-  /// coarser fallback forever. The Aleutians cross the antimeridian, hence
-  /// the second Alaska box.
-  static const List<(double, double, double, double)> _usCoverage = [
-    (23.5, 50.0, -125.0, -66.0), // contiguous US, Gulf, Great Lakes
-    (51.0, 72.0, -180.0, -129.0), // Alaska
-    (51.0, 56.0, 172.0, 180.0), // western Aleutians
-    (18.0, 29.0, -179.0, -154.0), // Hawaii, incl. Northwestern Islands
-    (17.0, 19.0, -68.0, -64.0), // Puerto Rico, US Virgin Islands
-    (13.0, 21.0, 144.0, 147.0), // Guam, Northern Mariana Islands
-    (-15.0, -10.5, -171.5, -168.0), // American Samoa
+  /// Where the mosaic holds any DEM finer than [usefulCellSizeMeters], as
+  /// (minLat, maxLat, minLon, maxLon). Outside these boxes [probe] declines
+  /// without a network call, since the service has nothing to offer there.
+  ///
+  /// Derived 2026-09-26 from the ImageServer's own catalogue: every item
+  /// with `LowPS < 0.00046` (50 m at the equator), clustered, then padded
+  /// by about a degree so a new DEM next to an existing one still lands
+  /// inside. That is wider than US soil: NCEI also publishes DEMs for
+  /// Bermuda, the Bahamas, Grenada, the Cook and Society Islands and the
+  /// Galapagos. Erring wide only means a NOAA outage keeps a nearby
+  /// uncovered site from caching until it recovers; erring narrow would let
+  /// an outage pin a covered site to a coarser fallback forever. A DEM
+  /// published somewhere new is missed until this table grows; the ETOPO,
+  /// GMRT and EMODnet tiers still serve that point, just more coarsely. The
+  /// Aleutians cross the antimeridian, hence the second Alaska box.
+  static const List<(double, double, double, double)> _coverage = [
+    (23.0, 50.0, -128.0, -63.0), // US mainland, Bermuda, Bahamas
+    (50.0, 72.0, -180.0, -129.0), // Alaska, through the central Aleutians
+    (50.0, 56.0, 171.0, 180.0), // western Aleutians (Shemya, Attu)
+    (17.0, 30.0, -180.0, -153.0), // Hawaii, incl. Northwestern Islands
+    (16.5, 19.5, -68.5, -63.5), // Puerto Rico, US and British Virgin Is.
+    (11.0, 14.0, -63.0, -60.5), // Grenada
+    (12.0, 21.0, 143.5, 147.0), // Guam, Northern Mariana Islands
+    (18.5, 20.0, 166.0, 167.5), // Wake Island
+    (-15.5, -10.5, -172.0, -168.0), // American Samoa
+    (-23.0, -15.5, -161.0, -148.0), // Cook (Rarotonga), Society (Tahiti)
+    (-3.0, 3.0, -93.0, -86.5), // Galapagos
   ];
 
   /// Whether [p] sits where this source could plausibly have data. Only
-  /// there does a failed probe count as a transient failure rather than a
-  /// decline (see [BathymetrySource.probe]).
-  static bool plausiblyCovers(GeoPoint p) => _usCoverage.any(
+  /// there is a probe worth a network call, and so only there can a failed
+  /// probe count as a transient failure (see [BathymetrySource.probe]).
+  static bool plausiblyCovers(GeoPoint p) => _coverage.any(
     (b) =>
         p.latitude >= b.$1 &&
         p.latitude <= b.$2 &&
@@ -92,6 +104,7 @@ class NoaaDemSource implements BathymetrySource {
 
   @override
   Future<SourceCapability?> probe(GeoPoint center) async {
+    if (!plausiblyCovers(center)) return null;
     final url = Uri.parse('$baseUrl/identify').replace(
       queryParameters: {
         'geometry': '{"x":${center.longitude},"y":${center.latitude}}',
@@ -108,10 +121,12 @@ class NoaaDemSource implements BathymetrySource {
     try {
       resp = await _client.get(url).timeout(_timeout);
     } catch (e) {
-      return _couldNotAsk(center, 'NOAA DEM probe failed: $e');
+      // Could not ask, inside coverage: a transient failure the resolver
+      // must hear about, not a decline.
+      throw BathymetryFetchException('NOAA DEM probe failed: $e');
     }
     if (resp.statusCode != 200) {
-      return _couldNotAsk(center, 'NOAA DEM probe HTTP ${resp.statusCode}');
+      throw BathymetryFetchException('NOAA DEM probe HTTP ${resp.statusCode}');
     }
     try {
       final body = jsonDecode(resp.body);
@@ -170,14 +185,6 @@ class NoaaDemSource implements BathymetrySource {
       // does not contribute here, which is a decline, not a failure.
       return null;
     }
-  }
-
-  /// The probe could not reach a verdict. Inside US coverage that is a
-  /// transient failure the resolver must hear about; anywhere else it ends
-  /// the same way as a decline (see [plausiblyCovers]).
-  static SourceCapability? _couldNotAsk(GeoPoint center, String why) {
-    if (plausiblyCovers(center)) throw BathymetryFetchException(why);
-    return null;
   }
 
   @override

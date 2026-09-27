@@ -966,8 +966,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
   /// stays a pure sheet builder with no repository dependencies.
   Future<List<MaintenanceLogRow>> _buildMaintenanceRows() async {
     final equipment = await _ref.read(allEquipmentProvider.future);
-    final kinds = await _ref.read(serviceKindsProvider.future);
-    final kindsById = {for (final k in kinds) k.id: k};
+    // Every kind: a shared item's record can use its owner's custom kind
+    // (issue #2046).
+    final kindsById = await _ref.read(allServiceKindsByIdProvider.future);
     final recordsByItem = await _ref
         .read(serviceRecordRepositoryProvider)
         .getRecordsForEquipmentIds([for (final item in equipment) item.id]);

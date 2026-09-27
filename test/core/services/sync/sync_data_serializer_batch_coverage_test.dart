@@ -149,6 +149,11 @@ void main() {
           (type: 'siteSiteTypes', table: db.siteSiteTypes.actualTableName),
           (type: 'siteTags', table: db.siteTags.actualTableName),
           (type: 'equipmentTags', table: db.equipmentTags.actualTableName),
+          (type: 'equipmentShares', table: db.equipmentShares.actualTableName),
+          (
+            type: 'equipmentOwnershipEvents',
+            table: db.equipmentOwnershipEvents.actualTableName,
+          ),
           (type: 'tankPresets', table: db.tankPresets.actualTableName),
           (type: 'diveComputers', table: db.diveComputers.actualTableName),
           (type: 'cylinderFills', table: db.cylinderFills.actualTableName),

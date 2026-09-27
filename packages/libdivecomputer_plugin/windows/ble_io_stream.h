@@ -19,6 +19,8 @@
 #include <winrt/Windows.Storage.h>
 #include <winrt/Windows.Storage.Streams.h>
 
+#include "ble_read_poll.h"
+
 extern "C" {
 #include "libdc_wrapper.h"
 }
@@ -106,6 +108,10 @@ class BleIoStream {
   static const winrt::guid kUbloxServiceUuid;
   static const winrt::guid kUbloxDataUuid;
   static const winrt::guid kUbloxCreditsUuid;
+  // Read-poll service (issue #1454): its data characteristic can be read and
+  // written but can neither notify nor indicate.
+  static const winrt::guid kSeacServiceUuid;
+  static const winrt::guid kSeacDataUuid;
 
   // Opening credit grant. 0xFF is reserved by the TIO protocol, so 254 is the
   // largest value that means "credits" rather than a control code.
@@ -169,6 +175,10 @@ class BleIoStream {
   // require each read to return bytes from at most one notification;
   // coalescing them into a flat buffer loses packet boundaries.
   std::deque<std::vector<uint8_t>> read_chunks_;
+
+  // Non-null only when the read-poll tier was selected. Read, poll and purge
+  // go to it instead of read_chunks_, which stays empty in that mode.
+  std::unique_ptr<BleReadPoller> read_poller_;
 
   int timeout_ms_ = 10000;
   std::string device_name_;

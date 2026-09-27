@@ -766,8 +766,10 @@ Decided in the whole-branch review of PR 1:
 - **The `QueryNameIndex` is a snapshot** reloaded on any ref-table tick, so
   parsing stays synchronous; until the first load the editor parses against
   an empty index.
-- **Schema rung 234.** Main shipped 231 while this was open; 232 was held by
-  #2411, #2407 and #2331 and 233 by #2438 on 2026-09-26.
+- **Schema rung 238.** Taken as 234 on 2026-09-26, when main was at 231 and
+  232 and 233 were held by open branches; renumbered to 238 the same day
+  when equipment sharing (#2411) shipped 234, with 235 and 236 held by
+  #2445 and #2407 and 237 by the diver figure branch.
 
 ## Open items for the implementation plans
 

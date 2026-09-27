@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// v234 adds saved_queries: a diver's named query trees (#2365, spec
+/// v238 adds saved_queries: a diver's named query trees (#2365, spec
 /// Unit 7). Table-only rung, additive, floor stays at 224.
 
 Future<Set<String>> _tables(AppDatabase db) async {
@@ -19,12 +19,12 @@ Future<Set<String>> _columns(AppDatabase db, String table) async {
 }
 
 void main() {
-  test('v234 is the current schema version and is in the ladder', () {
+  test('v238 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 234);
-    expect(AppDatabase.migrationVersions, contains(234));
-    expect(AppDatabase.migrationStepCount(233), 1);
+    expect(AppDatabase.currentSchemaVersion, 238);
+    expect(AppDatabase.migrationVersions, contains(238));
+    expect(AppDatabase.migrationStepCount(234), 1);
   });
 
   test(
@@ -58,10 +58,10 @@ void main() {
     },
   );
 
-  test('a database stranded before v234 gains the table', () async {
+  test('a database from a v234 build gains the table', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 231');
+        rawDb.execute('PRAGMA user_version = 234');
         rawDb.execute('''
           CREATE TABLE divers (
             id TEXT NOT NULL PRIMARY KEY,

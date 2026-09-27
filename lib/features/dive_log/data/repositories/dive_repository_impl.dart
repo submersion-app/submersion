@@ -477,6 +477,7 @@ class DiveRepository {
               .add(
                 EquipmentItem(
                   id: e.id,
+                  diverId: e.diverId,
                   name: e.name,
                   type: EquipmentType.values.firstWhere(
                     (t) => t.name == e.type,
@@ -3914,6 +3915,7 @@ class DiveRepository {
       final e = joinRow.readTable(_db.equipment);
       return EquipmentItem(
         id: e.id,
+        diverId: e.diverId,
         name: e.name,
         type: EquipmentType.values.firstWhere(
           (t) => t.name == e.type,
