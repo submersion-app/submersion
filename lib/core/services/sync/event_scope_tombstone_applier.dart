@@ -18,9 +18,11 @@ class EventScopeTombstoneApplier {
   final AppDatabase? _dbOverride;
   final SyncRepository _syncRepository;
 
-  EventScopeTombstoneApplier({AppDatabase? db, SyncRepository? syncRepository})
-    : _dbOverride = db,
-      _syncRepository = syncRepository ?? SyncRepository();
+  EventScopeTombstoneApplier({
+    AppDatabase? db,
+    required SyncRepository syncRepository,
+  }) : _dbOverride = db,
+       _syncRepository = syncRepository;
 
   // Lazy, so a restore that swaps the DatabaseService database is picked up.
   AppDatabase get _db => _dbOverride ?? DatabaseService.instance.database;

@@ -419,6 +419,29 @@ void main() {
       ]);
     });
 
+    test('take the earliest dismissal among the duplicates that go', () async {
+      final earlier = now.subtract(const Duration(days: 2));
+      await insertRaw('f-a');
+      await insertRaw('f-b', dismissedAt: now);
+      await insertRaw('f-c', dismissedAt: earlier);
+
+      await repo.saveReview(
+        SafetyReview(
+          diveId: 'dive-1',
+          engineVersion: 1,
+          reviewedAt: now,
+          findings: [finding('computed')],
+        ),
+      );
+
+      final kept = (await repo.getReview('dive-1'))!.findings.single;
+      expect(kept.id, 'f-a');
+      expect(
+        kept.dismissedAt?.millisecondsSinceEpoch,
+        earlier.millisecondsSinceEpoch,
+      );
+    });
+
     test('keep a dismissal made on the duplicate that goes', () async {
       await insertRaw('f-a');
       await insertRaw('f-b', dismissedAt: now);

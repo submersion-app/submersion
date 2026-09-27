@@ -67,6 +67,7 @@ void main() {
     String peer = 'peer-b',
     List<Map<String, dynamic>> events = const [],
     Map<String, List<SyncDeletion>> deletions = const {},
+    bool inlineBase = false,
   }) async {
     final data = SyncData(diveProfileEvents: events);
     await seedPeerBaseFromPayload(
@@ -83,11 +84,18 @@ void main() {
         deletions: deletions,
       ),
     );
-    final result = await SyncService(
+    final service = SyncService(
       syncRepository: SyncRepository(),
       serializer: SyncDataSerializer(),
       cloudProvider: cloud,
-    ).performSync();
+    );
+    // The base apply has a second, inline path for when its parse worker
+    // cannot start; both build the same-payload contradictions.
+    if (inlineBase) {
+      service.baseParseClientSpawn = (_) async =>
+          throw StateError('forced inline base apply');
+    }
+    final result = await service.performSync();
     expect(result.status, isNot(SyncResultStatus.error));
   }
 
@@ -236,6 +244,14 @@ void main() {
       );
 
       await pull(peer: 'peer-c', deletions: scope('d1'));
+
+      expect(await eventIds(), {'e-live'});
+    });
+
+    test('through a base file applied inline', () async {
+      final live = await seedLiveAndOther();
+
+      await pull(events: [live], deletions: scope('d1'), inlineBase: true);
 
       expect(await eventIds(), {'e-live'});
     });
