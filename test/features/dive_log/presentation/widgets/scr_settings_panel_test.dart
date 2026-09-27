@@ -2,10 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/scr_settings_panel.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/l10n_test_helpers.dart';
+import '../../../../helpers/mock_providers.dart';
+
+/// The panel reads the diver's volume unit; litres keep every value here as
+/// typed.
+Widget _withSettings(Widget child) => ProviderScope(
+  overrides: [
+    settingsProvider.overrideWith(
+      (ref) => MockSettingsNotifier(const AppSettings()),
+    ),
+  ],
+  child: child,
+);
 
 /// Writes every report straight back, as the dive edit page does.
 class _Host extends StatefulWidget {
@@ -61,9 +75,11 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
-      localizedMaterialApp(
-        locale: const Locale('en'),
-        home: const Scaffold(body: _Host()),
+      _withSettings(
+        localizedMaterialApp(
+          locale: const Locale('en'),
+          home: const Scaffold(body: _Host()),
+        ),
       ),
     );
   }
@@ -112,31 +128,33 @@ void main() {
       int? rated;
       int? remaining;
       await tester.pumpWidget(
-        localizedMaterialApp(
-          locale: const Locale('en'),
-          home: Scaffold(
-            body: SingleChildScrollView(
-              child: ScrSettingsPanel(
-                scrType: type,
-                onChanged:
-                    ({
-                      scrType,
-                      injectionRate,
-                      additionRatio,
-                      orificeSize,
-                      supplyGas,
-                      assumedVo2,
-                      loopO2Min,
-                      loopO2Max,
-                      loopO2Avg,
-                      scrubberType,
-                      scrubberDurationMinutes,
-                      scrubberRemainingMinutes,
-                    }) {
-                      vo2 = assumedVo2;
-                      rated = scrubberDurationMinutes;
-                      remaining = scrubberRemainingMinutes;
-                    },
+        _withSettings(
+          localizedMaterialApp(
+            locale: const Locale('en'),
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: ScrSettingsPanel(
+                  scrType: type,
+                  onChanged:
+                      ({
+                        scrType,
+                        injectionRate,
+                        additionRatio,
+                        orificeSize,
+                        supplyGas,
+                        assumedVo2,
+                        loopO2Min,
+                        loopO2Max,
+                        loopO2Avg,
+                        scrubberType,
+                        scrubberDurationMinutes,
+                        scrubberRemainingMinutes,
+                      }) {
+                        vo2 = assumedVo2;
+                        rated = scrubberDurationMinutes;
+                        remaining = scrubberRemainingMinutes;
+                      },
+                ),
               ),
             ),
           ),
