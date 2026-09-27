@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
 import 'package:submersion/features/equipment/presentation/providers/assembly_snapshot_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
@@ -79,6 +80,9 @@ void main() {
     ComponentsIndex template = ComponentsIndex.empty,
     Set<String> activeParts = const {},
     List<EquipmentSet>? sets,
+    Map<String, int> figureNumbers = const {},
+    String? selectedItemId,
+    void Function(String)? onNumberTap,
   }) => ProviderScope(
     overrides: [
       equipmentArrangementProvider.overrideWithValue(arrangement),
@@ -100,11 +104,60 @@ void main() {
             onRemoveSet: onRemoveSet,
             rowTrailing: rowTrailing,
             onUpdateAssembly: onUpdateAssembly,
+            figureNumbers: figureNumbers,
+            selectedItemId: selectedItemId,
+            onNumberTap: onNumberTap,
           ),
         ),
       ),
     ),
   );
+
+  testWidgets('without figure numbers there are no badges', (tester) async {
+    await tester.pumpWidget(build(arrangement: flat));
+    await tester.pumpAndSettle();
+    expect(find.byType(FigureNumberBadge), findsNothing);
+  });
+
+  testWidgets('top-level rows carry their figure number; parts do not', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      build(
+        arrangement: flat,
+        figureNumbers: const {'mask': 1, 'reg': 2, 'fins': 3, 'hose': 9},
+      ),
+    );
+    await tester.pumpAndSettle();
+    final numbers = tester
+        .widgetList<FigureNumberBadge>(find.byType(FigureNumberBadge))
+        .map((b) => b.number)
+        .toSet();
+    expect(numbers, {1, 2, 3});
+  });
+
+  testWidgets('a badge tap reports its item, and the selected badge shows', (
+    tester,
+  ) async {
+    String? tapped;
+    await tester.pumpWidget(
+      build(
+        arrangement: flat,
+        figureNumbers: const {'mask': 1, 'reg': 2, 'fins': 3},
+        selectedItemId: 'fins',
+        onNumberTap: (id) => tapped = id,
+      ),
+    );
+    await tester.pumpAndSettle();
+    final badges = tester.widgetList<FigureNumberBadge>(
+      find.byType(FigureNumberBadge),
+    );
+    expect(badges.singleWhere((b) => b.selected).number, 3);
+    await tester.tap(
+      find.byWidgetPredicate((w) => w is FigureNumberBadge && w.number == 1),
+    );
+    expect(tapped, 'mask');
+  });
 
   testWidgets('set chip above the list, assembly collapsed', (tester) async {
     await tester.pumpWidget(build(arrangement: flat));
