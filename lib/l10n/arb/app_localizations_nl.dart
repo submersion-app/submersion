@@ -12432,6 +12432,470 @@ class AppLocalizationsNl extends AppLocalizations {
       'De vulling kon niet worden opgeslagen. Probeer het opnieuw.';
 
   @override
+  String get pdf_unknownSite => 'Onbekende duikstek';
+
+  @override
+  String get pdf_signaturePlaceholder => '[Handtekening]';
+
+  @override
+  String get pdf_signerBuddy => 'Buddy';
+
+  @override
+  String get pdf_signerInstructor => 'Instructeur';
+
+  @override
+  String get pdf_officialStamp => 'Officiële stempel';
+
+  @override
+  String get pdf_certifications => 'Certificeringen';
+
+  @override
+  String pdf_cardNumber(String number) {
+    return 'Kaartnr.: $number';
+  }
+
+  @override
+  String pdf_certIssued(String date) {
+    return 'Uitgegeven: $date';
+  }
+
+  @override
+  String pdf_certExpires(String date) {
+    return 'Verloopt: $date';
+  }
+
+  @override
+  String get pdf_cardFront => 'Voorkant';
+
+  @override
+  String get pdf_cardBack => 'Achterkant';
+
+  @override
+  String pdf_coverDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '$count duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_headerDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '$count duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_generatedOn(String dateTime) {
+    return 'Gegenereerd op $dateTime';
+  }
+
+  @override
+  String pdf_generated(String dateTime) {
+    return 'Gegenereerd $dateTime';
+  }
+
+  @override
+  String get pdf_noDivesToSummarize => 'Geen duiken om samen te vatten';
+
+  @override
+  String get pdf_noDivesToDisplay => 'Geen duiken om weer te geven';
+
+  @override
+  String get pdf_summary => 'Samenvatting';
+
+  @override
+  String get pdf_totalDives => 'Totaal duiken';
+
+  @override
+  String get pdf_firstDive => 'Eerste duik';
+
+  @override
+  String get pdf_lastDive => 'Laatste duik';
+
+  @override
+  String get pdf_totalDiveTime => 'Totale duiktijd';
+
+  @override
+  String get pdf_deepestDive => 'Diepste duik';
+
+  @override
+  String get pdf_blenderIncomplete =>
+      'Onvolledig: een of meer regels hebben geen prijs.';
+
+  @override
+  String get pdf_averageDepth => 'Gemiddelde diepte';
+
+  @override
+  String get pdf_uniqueSites => 'Unieke duikstekken';
+
+  @override
+  String pdf_hoursMinutes(String hours, String minutes) {
+    return '${hours}u ${minutes}m';
+  }
+
+  @override
+  String pdf_minutesShort(String minutes) {
+    return '${minutes}m';
+  }
+
+  @override
+  String pdf_minutes(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String pdf_minutesCompact(String minutes) {
+    return '${minutes}min';
+  }
+
+  @override
+  String get pdf_diverProfile => 'Duikersprofiel';
+
+  @override
+  String get pdf_name => 'Naam';
+
+  @override
+  String get pdf_email => 'E-mail';
+
+  @override
+  String get pdf_photo => 'Foto';
+
+  @override
+  String pdf_depthProfileHeading(String depthUnit) {
+    return 'Diepteprofiel ($depthUnit vs. min)';
+  }
+
+  @override
+  String get pdf_columnDate => 'Datum';
+
+  @override
+  String get pdf_columnSite => 'Duikstek';
+
+  @override
+  String get pdf_columnDepth => 'Diepte';
+
+  @override
+  String get pdf_columnTime => 'Tijd';
+
+  @override
+  String get pdf_columnTemp => 'Temp.';
+
+  @override
+  String pdf_pageOf(String page, String total) {
+    return 'Pagina $page van $total';
+  }
+
+  @override
+  String get pdf_sectionProfile => 'Profiel';
+
+  @override
+  String get pdf_sectionCylinders => 'Flessen';
+
+  @override
+  String get pdf_sectionConditions => 'Omstandigheden';
+
+  @override
+  String get pdf_sectionWeather => 'Weer';
+
+  @override
+  String get pdf_sectionTeam => 'Team';
+
+  @override
+  String get pdf_sectionEquipment => 'Uitrusting';
+
+  @override
+  String get pdf_sectionTechnical => 'Technisch';
+
+  @override
+  String get pdf_sectionMarineLife => 'Soorten';
+
+  @override
+  String get pdf_sectionNotes => 'Notities';
+
+  @override
+  String get pdf_sectionAdditionalFields => 'Extra velden';
+
+  @override
+  String get pdf_sectionVerifiedBy => 'Geverifieerd door';
+
+  @override
+  String get pdf_sectionVerification => 'Verificatie';
+
+  @override
+  String get pdf_maxDepth => 'Max diepte';
+
+  @override
+  String get pdf_avgDepth => 'Gem. diepte';
+
+  @override
+  String get pdf_runtime => 'Looptijd';
+
+  @override
+  String get pdf_bottomTime => 'Bodemtijd';
+
+  @override
+  String get pdf_timeIn => 'In';
+
+  @override
+  String get pdf_timeOut => 'Uit';
+
+  @override
+  String get pdf_surfaceInterval => 'Oppervlakte-interval';
+
+  @override
+  String get pdf_sac => 'SAC';
+
+  @override
+  String get pdf_rmv => 'RMV';
+
+  @override
+  String pdf_pressureUsed(String pressure) {
+    return '$pressure verbruikt';
+  }
+
+  @override
+  String pdf_cylinderNumber(String number) {
+    return 'Fles $number';
+  }
+
+  @override
+  String get pdf_waterTemp => 'Watertemp.';
+
+  @override
+  String get pdf_airTemp => 'Luchttemp.';
+
+  @override
+  String get pdf_visibility => 'Zicht';
+
+  @override
+  String get pdf_current => 'Stroming';
+
+  @override
+  String get pdf_currentDirection => 'Stroomricht.';
+
+  @override
+  String get pdf_waterType => 'Watertype';
+
+  @override
+  String get pdf_entry => 'Instap';
+
+  @override
+  String get pdf_exit => 'Uitstap';
+
+  @override
+  String get pdf_altitude => 'Hoogte';
+
+  @override
+  String get pdf_buddy => 'Buddy';
+
+  @override
+  String get pdf_diveMaster => 'Divemaster';
+
+  @override
+  String get pdf_diveCenter => 'Duikcentrum';
+
+  @override
+  String get pdf_trip => 'Reis';
+
+  @override
+  String get pdf_weight => 'Gewicht';
+
+  @override
+  String get pdf_weightType => 'Gewichtstype';
+
+  @override
+  String pdf_equipmentSets(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Sets',
+      one: 'Set',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pdf_computer => 'Computer';
+
+  @override
+  String get pdf_diveMode => 'Duikmodus';
+
+  @override
+  String get pdf_algorithm => 'Algoritme';
+
+  @override
+  String get pdf_gradientFactors => 'Gradiëntfactoren';
+
+  @override
+  String get pdf_setpoint => 'Setpoint';
+
+  @override
+  String get pdf_diveType => 'Duiktype';
+
+  @override
+  String get pdf_weatherConditions => 'Omstandigheden';
+
+  @override
+  String get pdf_wind => 'Wind';
+
+  @override
+  String get pdf_windDirection => 'Windricht.';
+
+  @override
+  String get pdf_cloud => 'Bewolking';
+
+  @override
+  String get pdf_precipitation => 'Neerslag';
+
+  @override
+  String get pdf_humidity => 'Luchtvochtigheid';
+
+  @override
+  String get pdf_swell => 'Deining';
+
+  @override
+  String get pdf_instructorSignature => 'Handtekening instructeur';
+
+  @override
+  String get pdf_buddySignature => 'Handtekening buddy';
+
+  @override
+  String get pdf_diveLogBanner => 'DUIKLOGBOEK';
+
+  @override
+  String get pdf_loggedDives => 'Gelogde duiken';
+
+  @override
+  String pdf_diveNumber(String number) {
+    return 'Duik #$number';
+  }
+
+  @override
+  String get pdf_trainingBadge => 'TRAINING';
+
+  @override
+  String get pdf_gas => 'Gas';
+
+  @override
+  String get pdf_visibilityShort => 'Zicht';
+
+  @override
+  String get pdf_air => 'Lucht';
+
+  @override
+  String get pdf_water => 'Water';
+
+  @override
+  String get pdf_verifiedBy => 'Geverifieerd door';
+
+  @override
+  String get pdf_nauiDiveLogBanner => 'NAUI-DUIKLOGBOEK';
+
+  @override
+  String get pdf_statDives => 'Duiken';
+
+  @override
+  String get pdf_statHours => 'Uren';
+
+  @override
+  String get pdf_avgShort => 'Gem.';
+
+  @override
+  String get pdf_pressureStart => 'Begin';
+
+  @override
+  String get pdf_pressureEnd => 'Eind';
+
+  @override
+  String pdf_surfaceIntervalShort(String minutes) {
+    return 'OI: ${minutes}min';
+  }
+
+  @override
+  String get pdf_diveDataHeading => 'DUIKGEGEVENS';
+
+  @override
+  String get pdf_verificationHeading => 'VERIFICATIE';
+
+  @override
+  String pdf_labelValue(String label, String value) {
+    return '$label: $value';
+  }
+
+  @override
+  String get pdf_resort => 'Resort';
+
+  @override
+  String get pdf_liveaboard => 'Liveaboard';
+
+  @override
+  String get pdf_totalRuntime => 'Totale looptijd';
+
+  @override
+  String pdf_tripDiveTitle(String number) {
+    return 'Duik $number';
+  }
+
+  @override
+  String get pdf_date => 'Datum';
+
+  @override
+  String get pdf_site => 'Duikstek';
+
+  @override
+  String get pdf_duration => 'Duur';
+
+  @override
+  String get pdf_notesLabel => 'Notities:';
+
+  @override
+  String get pdf_trainingLog => 'Trainingslogboek';
+
+  @override
+  String get pdf_instructor => 'Instructeur';
+
+  @override
+  String get pdf_instructorNumber => 'Instructeur #';
+
+  @override
+  String get pdf_location => 'Locatie';
+
+  @override
+  String get pdf_startDate => 'Startdatum';
+
+  @override
+  String get pdf_completionDate => 'Voltooiingsdatum';
+
+  @override
+  String get pdf_status => 'Status';
+
+  @override
+  String get pdf_statusCompleted => 'Afgerond';
+
+  @override
+  String get pdf_statusInProgress => 'Bezig';
+
+  @override
+  String get pdf_trainingDives => 'Trainingsduiken';
+
+  @override
+  String get pdf_totalMinutes => 'Totaal minuten';
+
+  @override
+  String get pdf_courseNotes => 'Cursusnotities';
+
+  @override
+  String get pdf_slateMax => 'max';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -23423,6 +23887,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Stempel- en handtekeningvakken voor verificatie toevoegen';
 
   @override
+  String get transfer_pdfExport_languageHeader => 'Taal';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -24778,6 +25245,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
     return 'MacDive-logboeken ($names) zijn opgeslagen zoekopdrachten, geen vaste lijsten met duiken, dus er is niets te importeren. Je kunt ze opnieuw maken als duikfilters.';
   }
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneTitle =>
+      'Duiktijden gelezen in de tijdzone van dit apparaat';
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody =>
+      'MacDive heeft voor deze duiken geen leesbare tijdzone opgeslagen en hun duikstekken hebben geen GPS-positie, dus hun tijden zijn gelezen in de tijdzone van dit apparaat. Als je deze duiken ergens anders hebt gemaakt, controleer dan hun begintijden.';
 
   @override
   String get universalImport_summary_unreadableDatesTitle =>

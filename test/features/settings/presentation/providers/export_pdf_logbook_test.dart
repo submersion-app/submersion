@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show Locale;
 
 import 'package:clock/clock.dart';
 import 'package:flutter/services.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/database/database.dart'
@@ -499,6 +501,25 @@ void main() {
             'the legacy single-layout builder emitted per-dive cards; saving '
             'must use the selected simple template instead (#644)',
       );
+    });
+
+    test('prints in the language picked in the export sheet (#2252)', () async {
+      final target = p.join(workDir.path, 'saved_french.pdf');
+      picker.saveFileResult = Uri.file(target);
+      final fr = lookupAppLocalizations(const Locale('fr'));
+
+      final container = makeContainer();
+      await notifierOf(container).savePdfToFile(
+        const PdfExportOptions(
+          template: PdfTemplate.simple,
+          languageCode: 'fr',
+        ),
+      );
+
+      final text = await textAt(target);
+      expect(text, contains(fr.settings_export_pdfDocumentTitle));
+      expect(text, contains(fr.pdf_headerDiveCount(2)));
+      expect(text, isNot(contains('2 dives')));
     });
 
     test('the detailed template saves a different document', () async {

@@ -6,18 +6,47 @@ import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/services/export/models/blender_invoice_export_data.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 
 /// Renders a trimix blender's running bill to a one-page PDF.
 class BlenderInvoicePdfExportService {
+  /// [loadTheme] picks the fonts. The default loads Roboto plus the script
+  /// font the language needs; tests pass a Helvetica theme because text drawn
+  /// in an embedded TrueType font cannot be read back out of the PDF (the
+  /// same seam as PassportLabelPdfExportService).
+  BlenderInvoicePdfExportService({
+    Future<pw.ThemeData> Function(PdfLocalization localization)? loadTheme,
+  }) : _loadTheme = loadTheme ?? _sharedTheme;
+
+  final Future<pw.ThemeData> Function(PdfLocalization localization) _loadTheme;
+
+  /// Roboto, not the built-in Helvetica: Helvetica stops at U+00FF, so a
+  /// translated label such as Hungarian "Időtartam" would print boxes.
+  static Future<pw.ThemeData> _sharedTheme(PdfLocalization localization) async {
+    await PdfFonts.instance.initialize();
+    return PdfFonts.instance.themeFor(localization);
+  }
+
   static final _fileNameDate = DateFormat('yyyy-MM-dd');
 
   /// Builds the PDF bytes without touching the filesystem, so this half is
   /// independently testable (see [pdfVisibleText] in the test helpers).
-  Future<List<int>> generateBytes(BlenderInvoiceExportData data) async {
-    final pdf = pw.Document();
+  ///
+  /// [data] arrives already localized; [localization] supplies the few labels
+  /// the layout adds itself, plus the fonts and text direction (#2252). Null
+  /// prints English.
+  Future<List<int>> generateBytes(
+    BlenderInvoiceExportData data, {
+    PdfLocalization? localization,
+  }) async {
+    final loc = localization ?? PdfLocalization.english();
+    final l10n = loc.l10n;
+    final pdf = pw.Document(theme: await _loadTheme(loc));
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
+        textDirection: loc.textDirection,
         build: (context) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
@@ -58,7 +87,7 @@ class BlenderInvoicePdfExportService {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  'Total',
+                  l10n.gasCalculators_blender_billedTotal,
                   style: const pw.TextStyle(
                     fontSize: 14,
                     fontWeight: pw.FontWeight.bold,
@@ -76,7 +105,7 @@ class BlenderInvoicePdfExportService {
             if (data.incomplete) ...[
               pw.SizedBox(height: 4),
               pw.Text(
-                'Incomplete: one or more lines have no price.',
+                l10n.pdf_blenderIncomplete,
                 style: const pw.TextStyle(fontSize: 9, color: PdfColors.red700),
               ),
             ],
@@ -162,8 +191,9 @@ class BlenderInvoicePdfExportService {
   Future<String> exportToPdf(
     BlenderInvoiceExportData data, {
     Rect? sharePositionOrigin,
+    PdfLocalization? localization,
   }) async {
-    final bytes = await generateBytes(data);
+    final bytes = await generateBytes(data, localization: localization);
     return saveAndShareFileBytes(
       bytes,
       _fileName(),

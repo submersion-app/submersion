@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -722,6 +723,11 @@ class CourseDetailPage extends ConsumerWidget {
     WidgetRef ref,
     Course course,
   ) async {
+    // Printed in the app language (#2252); read before any await.
+    final localization = PdfLocalization.forLanguageCode(
+      Localizations.localeOf(context).languageCode,
+    );
+
     // Show loading indicator
     showDialog(
       context: context,
@@ -744,6 +750,7 @@ class CourseDetailPage extends ConsumerWidget {
           timeFormat: settings.timeFormat,
         ),
         units: UnitFormatter(settings),
+        localization: localization,
       );
 
       // Dismiss loading

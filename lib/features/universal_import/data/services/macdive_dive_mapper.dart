@@ -16,6 +16,7 @@ import 'package:submersion/features/universal_import/data/services/macdive_media
 import 'package:submersion/features/universal_import/data/services/macdive_raw_types.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_samples_decoder.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_sqlite_sample.dart';
+import 'package:submersion/features/universal_import/data/services/macdive_time_zone.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_unit_converter.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_unit_inference.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_value_mapper.dart';
@@ -179,9 +180,10 @@ class MacDiveDiveMapper {
     // carry, or carries with neither a name nor coordinates. They import
     // without a site, and used to do so in silence (#2213, #2232).
     var divesMissingSite = 0;
+    final zones = MacDiveZoneResolver();
 
     for (final d in logbook.dives) {
-      final map = _buildDiveMap(d, logbook, converter);
+      final map = _buildDiveMap(d, logbook, converter, zones);
       if (d.diveSiteFk != null && map['site'] == null) divesMissingSite++;
       var attached = false;
       if (ffiAvailable && _hasRawProfile(d)) {
@@ -226,6 +228,23 @@ class MacDiveDiveMapper {
     // produce 500 identical summary lines.
     if (divesMissingSite > 0) {
       warnings.add(ImportSiteLocation.sitesUnresolved(divesMissingSite));
+    }
+    // The device zone is a guess that holds only if the diver imports from
+    // the zone they dove in, so say which dives it was used for.
+    final deviceZoneDives = zones.deviceZoneDives;
+    if (deviceZoneDives > 0) {
+      warnings.add(
+        ImportWarning(
+          severity: ImportWarningSeverity.info,
+          code: ImportWarningCode.macdiveDeviceTimeZone,
+          count: deviceZoneDives,
+          message:
+              '$deviceZoneDives dive(s) had no readable time zone in MacDive '
+              "and no site GPS position, so their times were read in this "
+              "device's time zone.",
+          entityType: ImportEntityType.dives,
+        ),
+      );
     }
     if (unreadable > 0) {
       warnings.add(
@@ -859,22 +878,25 @@ class MacDiveDiveMapper {
     MacDiveRawDive d,
     MacDiveRawLogbook logbook,
     MacDiveUnitConverter c,
+    MacDiveZoneResolver zones,
   ) {
     final map = <String, dynamic>{};
 
     if (d.uuid.isNotEmpty) map['sourceUuid'] = d.uuid;
     if (d.identifier != null) map['sourceIdentifier'] = d.identifier;
     map[SourceDiver.mapKey] = _sourceDiverKey(logbook, d.diverFk);
-    // `rawDate` is an absolute UTC DateTime derived from ZRAWDATE (NSDate
-    // reference seconds). MacDive stores the per-dive zone separately in
-    // `ZTIMEZONE` as an NSKeyedArchiver-encoded NSTimeZone. Emitting
-    // rawDate directly matches M2 (`macdive_xml_parser.dart`) and reads
-    // back correctly as long as the diver views the dive from the same
-    // zone in which they dove. A cross-parser move to the wall-time-as-UTC
-    // convention (cf. `subsurface_xml_parser.dart`) requires NSTimeZone
-    // extraction for M3 and structured-date emission for M1/M2 — tracked
-    // as follow-up work, not folded into this PR.
-    if (d.rawDate != null) map['dateTime'] = d.rawDate;
+    // `rawDate` is the absolute instant from ZRAWDATE; the zone the dive
+    // was logged in lives in `ZTIMEZONE`. Emit the wall clock of that zone
+    // as UTC components, the convention the MacDive XML reader and every
+    // other importer use. [MacDiveZoneResolver] documents which zone wins.
+    final rawDate = d.rawDate;
+    if (rawDate != null) {
+      map['dateTime'] = zones.wallClockUtc(
+        rawDate,
+        archive: d.timezoneBplist,
+        site: logbook.sitesByPk[d.diveSiteFk],
+      );
+    }
     if (d.diveNumber != null) map['diveNumber'] = d.diveNumber;
     if (d.repetitiveDiveNumber != null) {
       map['diveNumberOfDay'] = d.repetitiveDiveNumber;

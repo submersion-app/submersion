@@ -1521,6 +1521,21 @@ void main() {
       );
     });
 
+    testWidgets('says which dive times used this device\'s zone', (
+      tester,
+    ) async {
+      await expectCard(
+        tester,
+        const ImportNotice(
+          kind: ImportNoticeKind.macdiveDeviceTimeZone,
+          count: 2,
+        ),
+        title: "Dive times read in this device's time zone",
+        bodyFragment: 'MacDive saved no time zone Submersion could read',
+        countLine: 'Affects 2 dives',
+      );
+    });
+
     testWidgets('says gear could not be fetched', (tester) async {
       await expectCard(
         tester,

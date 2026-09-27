@@ -48,6 +48,16 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
+  // Events read back oldest first, ties broken by a random uuid. Two calls in
+  // the same millisecond would tie, so the tests that assert an order move
+  // the events logged so far to an older time first.
+  Future<void> backdateEvents() async {
+    final moved = await db
+        .update(db.equipmentOwnershipEvents)
+        .write(const EquipmentOwnershipEventsCompanion(occurredAt: Value(1)));
+    expect(moved, greaterThan(0), reason: 'nothing to backdate');
+  }
+
   Future<Set<String>> pending(String entityType) async => {
     for (final r
         in await db
@@ -143,6 +153,7 @@ void main() {
       actingDiverId: 'owner',
     );
     final shareId = (await repo.getSharesFor('bcd')).single.id;
+    await backdateEvents();
     final result = await repo.unshare(
       equipmentId: 'bcd',
       diverId: 'wife',
@@ -165,6 +176,7 @@ void main() {
       diverIds: ['wife'],
       actingDiverId: 'owner',
     );
+    await backdateEvents();
     final result = await repo.setShares(
       equipmentId: 'bcd',
       diverIds: {'son'},

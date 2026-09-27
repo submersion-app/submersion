@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/transfer/presentation/pdf_page_size_display.dart';
 
@@ -10,10 +11,21 @@ import 'package:submersion/features/transfer/presentation/pdf_page_size_display.
 /// Allows users to choose:
 /// - Template style (Simple, Detailed, PADI, NAUI)
 /// - Page size (A4, Letter)
+/// - The language the PDF prints in (#2252)
 /// - Whether to include certification cards
 /// - Whether to include verification areas (stamp and signature blocks)
 class PdfExportDialog extends ConsumerStatefulWidget {
   const PdfExportDialog({super.key});
+
+  /// Finds the language dropdown in tests.
+  @visibleForTesting
+  static const languageFieldKey = ValueKey('pdfExportDialog.language');
+
+  /// The languages a PDF can print in: every language the app ships.
+  static final languageOptions = [
+    for (final option in LanguageSettingsPage.supportedLocales)
+      if (option.code != 'system') option,
+  ];
 
   /// Show the dialog and return the selected options, or null if cancelled.
   static Future<PdfExportOptions?> show(BuildContext context) {
@@ -34,6 +46,21 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
   PdfPageSize _selectedPageSize = PdfPageSize.a4;
   bool _includeCertCards = false;
   bool _includeVerificationAreas = false;
+
+  /// Starts on the language the app is shown in, so a French diver gets a
+  /// French logbook unless they choose otherwise (#2252).
+  String? _languageCode;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_languageCode != null) return;
+    final appLanguage = Localizations.localeOf(context).languageCode;
+    final offered = PdfExportDialog.languageOptions.any(
+      (option) => option.code == appLanguage,
+    );
+    _languageCode = offered ? appLanguage : 'en';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,6 +148,34 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
                       selected: {_selectedPageSize},
                       onSelectionChanged: (selected) {
                         setState(() => _selectedPageSize = selected.first);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    // Language the document prints in
+                    Text(
+                      context.l10n.transfer_pdfExport_languageHeader,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      key: PdfExportDialog.languageFieldKey,
+                      initialValue: _languageCode,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                      items: [
+                        for (final option in PdfExportDialog.languageOptions)
+                          DropdownMenuItem(
+                            value: option.code,
+                            child: Text(option.nativeName),
+                          ),
+                      ],
+                      onChanged: (code) {
+                        if (code != null) setState(() => _languageCode = code);
                       },
                     ),
                     const SizedBox(height: 16),
@@ -332,6 +387,7 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
       includeVerificationAreas:
           _selectedTemplate == PdfTemplate.detailed &&
           _includeVerificationAreas,
+      languageCode: _languageCode,
     );
     Navigator.of(context).pop(options);
   }

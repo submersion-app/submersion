@@ -31,7 +31,9 @@ void main() {
       );
 
   final alice = person('Alice', DiveRole.buddyId, 'Buddy');
-  final guido = person('Guido', DiveRole.diveMasterId, 'Dive Master');
+  // The name the database seeds for this built-in role; the PDF prints the
+  // role's localized name (#2252), which is the same word in English.
+  final guido = person('Guido', DiveRole.diveMasterId, 'Divemaster');
 
   Dive teamDive({List<BuddyWithRole> buddies = const [], String? diveMaster}) =>
       Dive(
@@ -78,7 +80,7 @@ void main() {
           teamDive(buddies: [alice, guido], diveMaster: 'Guido'),
         );
 
-        expect(pdfVisibleText(bytes), contains('Dive Master'));
+        expect(pdfVisibleText(bytes), contains('Divemaster'));
         expect(
           occurrences(bytes, 'Guido'),
           1,

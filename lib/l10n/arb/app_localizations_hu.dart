@@ -12497,6 +12497,470 @@ class AppLocalizationsHu extends AppLocalizations {
       'A töltés mentése nem sikerült. Próbálja újra.';
 
   @override
+  String get pdf_unknownSite => 'Ismeretlen merülőhely';
+
+  @override
+  String get pdf_signaturePlaceholder => '[Aláírás]';
+
+  @override
+  String get pdf_signerBuddy => 'Búvártárs';
+
+  @override
+  String get pdf_signerInstructor => 'Oktató';
+
+  @override
+  String get pdf_officialStamp => 'Hivatalos bélyegző';
+
+  @override
+  String get pdf_certifications => 'Tanúsítványok';
+
+  @override
+  String pdf_cardNumber(String number) {
+    return 'Kártyaszám: $number';
+  }
+
+  @override
+  String pdf_certIssued(String date) {
+    return 'Kiállítva: $date';
+  }
+
+  @override
+  String pdf_certExpires(String date) {
+    return 'Lejár: $date';
+  }
+
+  @override
+  String get pdf_cardFront => 'Előlap';
+
+  @override
+  String get pdf_cardBack => 'Hátlap';
+
+  @override
+  String pdf_coverDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '$count merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_headerDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '$count merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_generatedOn(String dateTime) {
+    return 'Készült: $dateTime';
+  }
+
+  @override
+  String pdf_generated(String dateTime) {
+    return 'Készült: $dateTime';
+  }
+
+  @override
+  String get pdf_noDivesToSummarize => 'Nincs összesíthető merülés';
+
+  @override
+  String get pdf_noDivesToDisplay => 'Nincs megjeleníthető merülés';
+
+  @override
+  String get pdf_summary => 'Összesítés';
+
+  @override
+  String get pdf_totalDives => 'Összes merülés';
+
+  @override
+  String get pdf_firstDive => 'Első merülés';
+
+  @override
+  String get pdf_lastDive => 'Utolsó merülés';
+
+  @override
+  String get pdf_totalDiveTime => 'Teljes merülési idő';
+
+  @override
+  String get pdf_deepestDive => 'Legmélyebb merülés';
+
+  @override
+  String get pdf_blenderIncomplete =>
+      'Hiányos: egy vagy több tételnek nincs ára.';
+
+  @override
+  String get pdf_averageDepth => 'Átlagos mélység';
+
+  @override
+  String get pdf_uniqueSites => 'Különböző merülőhelyek';
+
+  @override
+  String pdf_hoursMinutes(String hours, String minutes) {
+    return '$hours ó $minutes p';
+  }
+
+  @override
+  String pdf_minutesShort(String minutes) {
+    return '$minutes p';
+  }
+
+  @override
+  String pdf_minutes(String minutes) {
+    return '$minutes perc';
+  }
+
+  @override
+  String pdf_minutesCompact(String minutes) {
+    return '$minutes p';
+  }
+
+  @override
+  String get pdf_diverProfile => 'Búvárprofil';
+
+  @override
+  String get pdf_name => 'Név';
+
+  @override
+  String get pdf_email => 'E-mail';
+
+  @override
+  String get pdf_photo => 'Fotó';
+
+  @override
+  String pdf_depthProfileHeading(String depthUnit) {
+    return 'Mélységprofil ($depthUnit / perc)';
+  }
+
+  @override
+  String get pdf_columnDate => 'Dátum';
+
+  @override
+  String get pdf_columnSite => 'Merülőhely';
+
+  @override
+  String get pdf_columnDepth => 'Mélység';
+
+  @override
+  String get pdf_columnTime => 'Idő';
+
+  @override
+  String get pdf_columnTemp => 'Hőm.';
+
+  @override
+  String pdf_pageOf(String page, String total) {
+    return '$page. oldal, összesen: $total';
+  }
+
+  @override
+  String get pdf_sectionProfile => 'Profil';
+
+  @override
+  String get pdf_sectionCylinders => 'Palackok';
+
+  @override
+  String get pdf_sectionConditions => 'Körülmények';
+
+  @override
+  String get pdf_sectionWeather => 'Időjárás';
+
+  @override
+  String get pdf_sectionTeam => 'Csapat';
+
+  @override
+  String get pdf_sectionEquipment => 'Felszerelés';
+
+  @override
+  String get pdf_sectionTechnical => 'Technikai adatok';
+
+  @override
+  String get pdf_sectionMarineLife => 'Élővilág';
+
+  @override
+  String get pdf_sectionNotes => 'Jegyzetek';
+
+  @override
+  String get pdf_sectionAdditionalFields => 'További mezők';
+
+  @override
+  String get pdf_sectionVerifiedBy => 'Hitelesítette';
+
+  @override
+  String get pdf_sectionVerification => 'Hitelesítés';
+
+  @override
+  String get pdf_maxDepth => 'Max mélység';
+
+  @override
+  String get pdf_avgDepth => 'Átlag mélység';
+
+  @override
+  String get pdf_runtime => 'Futásidő';
+
+  @override
+  String get pdf_bottomTime => 'Fenékidő';
+
+  @override
+  String get pdf_timeIn => 'Be';
+
+  @override
+  String get pdf_timeOut => 'Ki';
+
+  @override
+  String get pdf_surfaceInterval => 'Felszíni szünet';
+
+  @override
+  String get pdf_sac => 'SAC';
+
+  @override
+  String get pdf_rmv => 'RMV';
+
+  @override
+  String pdf_pressureUsed(String pressure) {
+    return '$pressure elhasználva';
+  }
+
+  @override
+  String pdf_cylinderNumber(String number) {
+    return '$number. palack';
+  }
+
+  @override
+  String get pdf_waterTemp => 'Víz hőm.';
+
+  @override
+  String get pdf_airTemp => 'Levegő hőm.';
+
+  @override
+  String get pdf_visibility => 'Látótávolság';
+
+  @override
+  String get pdf_current => 'Áramlat';
+
+  @override
+  String get pdf_currentDirection => 'Áramlat iránya';
+
+  @override
+  String get pdf_waterType => 'Víz típusa';
+
+  @override
+  String get pdf_entry => 'Beszállás';
+
+  @override
+  String get pdf_exit => 'Kiszállás';
+
+  @override
+  String get pdf_altitude => 'Magasság';
+
+  @override
+  String get pdf_buddy => 'Búvártárs';
+
+  @override
+  String get pdf_diveMaster => 'Divemaster';
+
+  @override
+  String get pdf_diveCenter => 'Búvárközpont';
+
+  @override
+  String get pdf_trip => 'Utazás';
+
+  @override
+  String get pdf_weight => 'Súly';
+
+  @override
+  String get pdf_weightType => 'Súly típusa';
+
+  @override
+  String pdf_equipmentSets(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Készletek',
+      one: 'Készlet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pdf_computer => 'Számítógép';
+
+  @override
+  String get pdf_diveMode => 'Merülési mód';
+
+  @override
+  String get pdf_algorithm => 'Algoritmus';
+
+  @override
+  String get pdf_gradientFactors => 'Gradiens faktorok';
+
+  @override
+  String get pdf_setpoint => 'Alapérték';
+
+  @override
+  String get pdf_diveType => 'Merülés típusa';
+
+  @override
+  String get pdf_weatherConditions => 'Körülmények';
+
+  @override
+  String get pdf_wind => 'Szél';
+
+  @override
+  String get pdf_windDirection => 'Szélirány';
+
+  @override
+  String get pdf_cloud => 'Felhőzet';
+
+  @override
+  String get pdf_precipitation => 'Csapadék';
+
+  @override
+  String get pdf_humidity => 'Páratartalom';
+
+  @override
+  String get pdf_swell => 'Hullámzás';
+
+  @override
+  String get pdf_instructorSignature => 'Oktató aláírása';
+
+  @override
+  String get pdf_buddySignature => 'Búvártárs aláírása';
+
+  @override
+  String get pdf_diveLogBanner => 'MERÜLÉSI NAPLÓ';
+
+  @override
+  String get pdf_loggedDives => 'Rögzített merülések';
+
+  @override
+  String pdf_diveNumber(String number) {
+    return 'Merülés #$number';
+  }
+
+  @override
+  String get pdf_trainingBadge => 'KÉPZÉS';
+
+  @override
+  String get pdf_gas => 'Gáz';
+
+  @override
+  String get pdf_visibilityShort => 'Látás';
+
+  @override
+  String get pdf_air => 'Levegő';
+
+  @override
+  String get pdf_water => 'Víz';
+
+  @override
+  String get pdf_verifiedBy => 'Hitelesítette';
+
+  @override
+  String get pdf_nauiDiveLogBanner => 'NAUI MERÜLÉSI NAPLÓ';
+
+  @override
+  String get pdf_statDives => 'Merülések';
+
+  @override
+  String get pdf_statHours => 'Órák';
+
+  @override
+  String get pdf_avgShort => 'Átl.';
+
+  @override
+  String get pdf_pressureStart => 'Kezdő';
+
+  @override
+  String get pdf_pressureEnd => 'Záró';
+
+  @override
+  String pdf_surfaceIntervalShort(String minutes) {
+    return 'Felsz.: $minutes p';
+  }
+
+  @override
+  String get pdf_diveDataHeading => 'MERÜLÉSI ADATOK';
+
+  @override
+  String get pdf_verificationHeading => 'HITELESÍTÉS';
+
+  @override
+  String pdf_labelValue(String label, String value) {
+    return '$label: $value';
+  }
+
+  @override
+  String get pdf_resort => 'Üdülőhely';
+
+  @override
+  String get pdf_liveaboard => 'Hajószállás';
+
+  @override
+  String get pdf_totalRuntime => 'Teljes futásidő';
+
+  @override
+  String pdf_tripDiveTitle(String number) {
+    return '$number. merülés';
+  }
+
+  @override
+  String get pdf_date => 'Dátum';
+
+  @override
+  String get pdf_site => 'Merülőhely';
+
+  @override
+  String get pdf_duration => 'Időtartam';
+
+  @override
+  String get pdf_notesLabel => 'Jegyzetek:';
+
+  @override
+  String get pdf_trainingLog => 'Képzési napló';
+
+  @override
+  String get pdf_instructor => 'Oktató';
+
+  @override
+  String get pdf_instructorNumber => 'Oktató #';
+
+  @override
+  String get pdf_location => 'Helyszín';
+
+  @override
+  String get pdf_startDate => 'Kezdés dátuma';
+
+  @override
+  String get pdf_completionDate => 'Befejezés dátuma';
+
+  @override
+  String get pdf_status => 'Állapot';
+
+  @override
+  String get pdf_statusCompleted => 'Befejezve';
+
+  @override
+  String get pdf_statusInProgress => 'Folyamatban';
+
+  @override
+  String get pdf_trainingDives => 'Képzési merülések';
+
+  @override
+  String get pdf_totalMinutes => 'Összes perc';
+
+  @override
+  String get pdf_courseNotes => 'Tanfolyami jegyzetek';
+
+  @override
+  String get pdf_slateMax => 'max';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -23536,6 +24000,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Bélyegző- és aláírásmezők a hitelesítéshez';
 
   @override
+  String get transfer_pdfExport_languageHeader => 'Nyelv';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -24892,6 +25359,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
     return 'A MacDive-naplók ($names) mentett keresések, nem pedig merülések rögzített listái, így nincs mit importálni. Merülésszűrőként újra létrehozhatod őket.';
   }
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneTitle =>
+      'Merülési időpontok ennek az eszköznek az időzónája szerint';
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody =>
+      'A MacDive nem mentett olvasható időzónát ezekhez a merülésekhez, és a merülőhelyeiknek nincs GPS-pozíciója, ezért az időpontjaikat ennek az eszköznek az időzónájában olvastuk be. Ha ezeket a merüléseket máshol végezted, ellenőrizd a kezdési időpontjaikat.';
 
   @override
   String get universalImport_summary_unreadableDatesTitle =>

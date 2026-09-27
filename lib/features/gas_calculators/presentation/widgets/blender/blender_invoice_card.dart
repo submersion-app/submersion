@@ -3,6 +3,7 @@ import 'dart:ui' as ui show ImageByteFormat;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/utils/currency.dart';
@@ -509,6 +510,11 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
     BlenderInvoiceExportData data,
     Rect? anchor,
   ) async {
+    // The invoice lines are already in the app language (#2252); read it
+    // before any await.
+    final localization = PdfLocalization.forLanguageCode(
+      Localizations.localeOf(context).languageCode,
+    );
     setState(() => _isExporting = true);
     try {
       await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -517,6 +523,7 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
           await ExportService().exportBlenderInvoiceToPdf(
             data,
             sharePositionOrigin: anchor,
+            localization: localization,
           );
         case BlenderInvoiceExportFormat.excel:
           await ExportService().exportBlenderInvoiceToExcel(
