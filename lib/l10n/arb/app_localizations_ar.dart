@@ -23948,11 +23948,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_scrubber_title => 'هامش المنظّف';
 
   @override
-  String trips_scrubber_asOfStart(String date) {
-    return 'حتى $date';
-  }
-
-  @override
   String trips_scrubber_remaining(
     String minutes,
     String rated,

@@ -23015,11 +23015,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_scrubber_title => '吸收剂余量';
 
   @override
-  String trips_scrubber_asOfStart(String date) {
-    return '截至 $date';
-  }
-
-  @override
   String trips_scrubber_remaining(
     String minutes,
     String rated,

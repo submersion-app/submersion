@@ -24077,11 +24077,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_scrubber_title => 'Scrubbermarge';
 
   @override
-  String trips_scrubber_asOfStart(String date) {
-    return 'per $date';
-  }
-
-  @override
   String trips_scrubber_remaining(
     String minutes,
     String rated,

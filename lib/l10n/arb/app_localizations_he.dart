@@ -23664,11 +23664,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_scrubber_title => 'מרווח הסופג';
 
   @override
-  String trips_scrubber_asOfStart(String date) {
-    return 'נכון ל-$date';
-  }
-
-  @override
   String trips_scrubber_remaining(
     String minutes,
     String rated,

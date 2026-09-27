@@ -24364,11 +24364,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_scrubber_title => 'Marge de chaux';
 
   @override
-  String trips_scrubber_asOfStart(String date) {
-    return 'au $date';
-  }
-
-  @override
   String trips_scrubber_remaining(
     String minutes,
     String rated,

@@ -24215,11 +24215,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_scrubber_title => 'Atemkalkreserve';
 
   @override
-  String trips_scrubber_asOfStart(String date) {
-    return 'Stand $date';
-  }
-
-  @override
   String trips_scrubber_remaining(
     String minutes,
     String rated,

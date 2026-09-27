@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
-import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -30,31 +28,13 @@ String? tripScrubberMarginSummary(
       : l10n.trips_scrubber_bannerCount(margins.length, lowest);
 }
 
-/// The scrubber section's heading: a past trip reads as of its start.
-String tripScrubberMarginTitle(
-  AppLocalizations l10n,
-  UnitFormatter units,
-  Trip trip, {
-  required bool isPast,
-}) => isPast
-    ? '${l10n.trips_scrubber_title} '
-          '(${l10n.trips_scrubber_asOfStart(units.formatDate(trip.startDate))})'
-    : l10n.trips_scrubber_title;
-
 /// The scrubber margin breakdown on a trip: one block per active
 /// rebreather stating the four figures and the n behind each estimate,
 /// with a caution line under 20 percent of the rated duration.
 class TripScrubberMarginDetails extends StatelessWidget {
   final List<ScrubberMargin> margins;
 
-  /// A past trip reads as of its start (see [_MarginBlock.isPast]).
-  final bool isPast;
-
-  const TripScrubberMarginDetails({
-    super.key,
-    required this.margins,
-    required this.isPast,
-  });
+  const TripScrubberMarginDetails({super.key, required this.margins});
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +43,7 @@ class TripScrubberMarginDetails extends StatelessWidget {
       children: [
         for (final (i, m) in margins.indexed) ...[
           if (i > 0) const Divider(),
-          _MarginBlock(margin: m, isPast: isPast),
+          _MarginBlock(margin: m),
         ],
       ],
     );
@@ -73,12 +53,7 @@ class TripScrubberMarginDetails extends StatelessWidget {
 class _MarginBlock extends StatelessWidget {
   final ScrubberMargin margin;
 
-  /// A past trip reads as of its start, so it carries no service state: a
-  /// live overdue mark beside figures dated to the trip would claim the unit
-  /// was overdue on that trip (#2260).
-  final bool isPast;
-
-  const _MarginBlock({required this.margin, required this.isPast});
+  const _MarginBlock({required this.margin});
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +87,6 @@ class _MarginBlock extends StatelessWidget {
             ServiceStatusIndicatorFor(
               equipmentId: m.item.id,
               density: ServiceIndicatorDensity.dot,
-              enabled: !isPast,
             ),
           ],
         ),

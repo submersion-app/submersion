@@ -23869,11 +23869,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_scrubber_title => 'Scrubber margin';
 
   @override
-  String trips_scrubber_asOfStart(String date) {
-    return 'as of $date';
-  }
-
-  @override
   String trips_scrubber_remaining(
     String minutes,
     String rated,
