@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -46,11 +47,15 @@ final filteredDiveStatisticsProvider = FutureProvider<DiveStatistics>((
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
-  ref.invalidateSelfWhen(repository.watchDivesChanges());
-  // An attribute condition makes the totals read the gear tables (#1805).
-  if (filter.equipmentAttrConditions.isNotEmpty) {
-    ref.invalidateSelfWhen(repository.watchEquipmentAttrFilterChanges());
-  }
+  // ONE debounced tick over `dives` plus every table the filter joins
+  // (#2365), so an attribute-only or junction-only write refreshes the
+  // totals once, never twice.
+  final extra = diveFilterTablesTouched(filter).difference({'dives'});
+  ref.invalidateSelfWhen(
+    extra.isEmpty
+        ? repository.watchDivesChanges()
+        : repository.watchTables({'dives', ...extra}),
+  );
   return repository.getStatistics(diverId: currentDiverId, filter: filter);
 });
 
@@ -70,11 +75,15 @@ final filteredDiveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
-  ref.invalidateSelfWhen(repository.watchDivesChanges());
-  // An attribute condition makes the records read the gear tables (#1805).
-  if (filter.equipmentAttrConditions.isNotEmpty) {
-    ref.invalidateSelfWhen(repository.watchEquipmentAttrFilterChanges());
-  }
+  // ONE debounced tick over `dives` plus every table the filter joins
+  // (#2365), so an attribute-only or junction-only write refreshes the
+  // records once, never twice.
+  final extra = diveFilterTablesTouched(filter).difference({'dives'});
+  ref.invalidateSelfWhen(
+    extra.isEmpty
+        ? repository.watchDivesChanges()
+        : repository.watchTables({'dives', ...extra}),
+  );
   return repository.getRecords(diverId: currentDiverId, filter: filter);
 });
 

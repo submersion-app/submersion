@@ -60,14 +60,14 @@ void main() {
     expect(results.map((d) => d.id).toSet(), {'d1'});
   });
 
-  test('in-memory apply() matches by weekday membership', () {
+  test('the id set the entity views narrow by matches by weekday', () async {
     final monday = DateTime.utc(2026, 6, 8);
     final tuesday = DateTime.utc(2026, 6, 9);
-    final dives = [
-      domain.Dive(id: 'a', dateTime: monday),
-      domain.Dive(id: 'b', dateTime: tuesday),
-    ];
-    final filtered = DiveFilterState(weekdays: [monday.weekday]).apply(dives);
-    expect(filtered.map((d) => d.id), ['a']);
+    await repository.createDive(domain.Dive(id: 'a', dateTime: monday));
+    await repository.createDive(domain.Dive(id: 'b', dateTime: tuesday));
+    final ids = await repository.getDiveIdsMatching(
+      DiveFilterState(weekdays: [monday.weekday]),
+    );
+    expect(ids, {'a'});
   });
 }

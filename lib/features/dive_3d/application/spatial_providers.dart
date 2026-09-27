@@ -21,12 +21,45 @@ import 'package:submersion/features/dive_3d/domain/spatial/spatial_geometry_serv
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_path_adapter.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
-/// The reconstructed swim path for a dive (dead reckoning), or null when the
-/// dive has no usable profile.
+/// Whether the dive's 3D seascape should draw the linked measured route
+/// (the default) rather than the dead-reckoned estimate, when both are
+/// available. Purely a display toggle for the "Show route" button on
+/// `SpatialSitePage` -- it never affects which path is *stored* or linked,
+/// only which one `spatialReckonedPathProvider` returns for this viewing.
+/// True (show the route) unless a diver has explicitly flipped it, so a
+/// dive with no route linked behaves exactly as before this toggle existed.
+final showMeasuredRouteProvider = StateProvider.family<bool, String>(
+  (ref, diveId) => true,
+);
+
+/// The reconstructed swim path for a dive: a linked underwater route when
+/// one exists, has enough points, and [showMeasuredRouteProvider] has not
+/// been switched off, else dead reckoning, else null when the dive has no
+/// usable profile either.
 final spatialReckonedPathProvider =
     FutureProvider.family<ReckonedPath?, String>((ref, diveId) async {
+      final route = await ref.watch(
+        primaryNavTrackForDiveProvider(diveId).future,
+      );
+      final showMeasuredRoute = ref.watch(showMeasuredRouteProvider(diveId));
+      if (route != null && route.points.length >= 2 && showMeasuredRoute) {
+        // The raw sample count is not enough: toReckonedPath truncates to
+        // the active underwater/surfaceReckoned range, which can legitimately
+        // adapt down to fewer than two points (e.g. almost the whole
+        // recording turns out to be a pre-dive/post-dive fix run with
+        // barely any real underwater samples). Only an adapted path with at
+        // least two points is usable; otherwise fall through to dead
+        // reckoning below rather than returning a degenerate measured path.
+        final adapted = NavTrackPathAdapter.toReckonedPath(route);
+        if (adapted.points.length >= 2) {
+          return adapted;
+        }
+      }
+
       final dive = await ref.watch(diveProvider(diveId).future);
       if (dive == null) return null;
       final sources = await ref.watch(sourceProfilesProvider(diveId).future);
@@ -85,6 +118,14 @@ class SpatialSceneResult {
   /// compute() isolate).
   final TerrainImagery? imagery;
 
+  /// Where the swim path's shape came from: a linked measured route, dead
+  /// reckoning, or the straight-line fallback. Drives the path caption.
+  final PathProvenance pathProvenance;
+
+  /// A caption detail for [PathProvenance.measured] paths (e.g. the
+  /// route's source label), or null when none is available.
+  final String? pathSourceLabel;
+
   const SpatialSceneResult({
     required this.scene,
     this.bathymetrySourceId,
@@ -93,10 +134,14 @@ class SpatialSceneResult {
     this.grid,
     this.contourLabels = const [],
     this.imagery,
+    this.pathProvenance = PathProvenance.deadReckoned,
+    this.pathSourceLabel,
   });
 }
 
-typedef _SpatialBuildInput = ({
+/// Everything [buildSpatialScene] needs, as one record so it can cross into
+/// a background isolate.
+typedef SpatialBuildInput = ({
   ReckonedPath path,
   double? siteMaxDepth,
   BathymetryGrid? grid,
@@ -115,17 +160,32 @@ final spatialGeometryProvider =
       final dive = await ref.watch(diveProvider(diveId).future);
       final siteMaxDepth = dive?.site?.maxDepth;
 
-      // Real terrain when any anchor coordinate exists: prefer the site
-      // pin, else the dive's own entry fix. Null grid (no coordinates,
-      // offline-and-uncached, definitive empty) falls back to synthesized.
-      final center = dive?.site?.location ?? dive?.entryLocation;
+      // A linked, primary route carries its own georeferenced start point
+      // (`anchor`), set by the diver on the alignment page. When the scene
+      // draws that measured route, it places the path AND centers the
+      // terrain: a route aligned away from the dive's site, or linked to a
+      // dive with no location at all, would otherwise land outside the
+      // fetched grid or get synthesized terrain.
+      GeoPoint? routeAnchor;
+      if (path.provenance == PathProvenance.measured) {
+        final route = await ref.watch(
+          primaryNavTrackForDiveProvider(diveId).future,
+        );
+        routeAnchor = route?.anchor;
+      }
+
+      // Real terrain when any anchor coordinate exists: the measured route's
+      // own anchor, else the site pin, else the dive's own entry fix. Null
+      // grid (no coordinates, offline-and-uncached, definitive empty) falls
+      // back to synthesized.
+      final center = routeAnchor ?? dive?.site?.location ?? dive?.entryLocation;
       BathymetryGrid? grid;
       if (center != null) {
         grid = await ref.watch(
           bathymetryGridProvider(BathymetryRepository.quantize(center)).future,
         );
       }
-      final entry = dive?.entryLocation;
+      final entry = routeAnchor ?? dive?.entryLocation;
       final anchor = (grid != null && center != null && entry != null)
           ? enuOffsetMeters(center, entry)
           : (east: 0.0, north: 0.0);
@@ -167,10 +227,7 @@ final spatialGeometryProvider =
         depthSymbol: depthUnit.symbol,
         imageryFrame: imagery?.frame,
       );
-      final cells = grid == null ? 0 : grid.rows * grid.cols;
-      final built = (path.points.length < 4000 && cells < 4000)
-          ? _buildSpatial(input)
-          : await compute(_buildSpatial, input);
+      final built = await buildSpatialScene(input);
       return SpatialSceneResult(
         scene: built.scene,
         bathymetrySourceId: grid?.sourceId,
@@ -179,15 +236,40 @@ final spatialGeometryProvider =
         grid: grid,
         contourLabels: built.contourLabels,
         imagery: imagery,
+        pathProvenance: path.provenance,
+        pathSourceLabel: path.sourceLabel,
       );
     });
+
+/// Whether [buildSpatialScene] moves this build off the calling isolate:
+/// a long path or a large grid takes long enough to drop frames.
+bool spatialBuildRunsInBackground(SpatialBuildInput input) {
+  final grid = input.grid;
+  final cells = grid == null ? 0 : grid.rows * grid.cols;
+  return input.path.points.length >= 4000 || cells >= 4000;
+}
+
+/// Builds a scene's geometry, on a background isolate when
+/// [spatialBuildRunsInBackground] says it is large enough to cause jank.
+/// Shared by every 3D scene provider so the threshold lives in one place.
+Future<
+  ({
+    Scene3d scene,
+    SeascapeAxisInputs frame,
+    List<ContourLabelSpec> contourLabels,
+  })
+>
+buildSpatialScene(SpatialBuildInput input) async =>
+    spatialBuildRunsInBackground(input)
+    ? await compute(_buildSpatial, input)
+    : _buildSpatial(input);
 
 ({
   Scene3d scene,
   SeascapeAxisInputs frame,
   List<ContourLabelSpec> contourLabels,
 })
-_buildSpatial(_SpatialBuildInput input) =>
+_buildSpatial(SpatialBuildInput input) =>
     const SpatialGeometryService().buildWithFrame(
       input.path,
       siteMaxDepth: input.siteMaxDepth,

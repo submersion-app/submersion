@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_handoff_card.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
@@ -27,6 +29,21 @@ class FileSelectionStep extends ConsumerWidget {
     // import dialog stays clean for everyone who doesn't own one.
     final hasGarminDevice =
         ref.watch(garminDevicesProvider).valueOrNull?.isNotEmpty ?? false;
+
+    // A recognised Seacraft ENC file never advances to Confirm Source (it is
+    // a route, not a dive log): this step shows the hand-off card instead.
+    final navTrackBytes = state.detectionResult?.format == ImportFormat.navTrack
+        ? state.fileBytes
+        : null;
+    if (navTrackBytes != null) {
+      return Padding(
+        padding: const EdgeInsets.all(24),
+        child: NavTrackHandoffCard(
+          bytes: navTrackBytes,
+          fileName: state.fileName ?? '',
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.all(24),

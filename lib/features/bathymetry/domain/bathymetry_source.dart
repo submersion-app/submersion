@@ -11,14 +11,13 @@ class BathymetryFetchException implements Exception {
   String toString() => 'BathymetryFetchException: $message';
 }
 
-/// Thrown by [BathymetrySource.fetch] when the source answered and confirmed
-/// it holds no data for the request (swissBATHY3D: every tile in the span is
-/// a confirmed gap). A DEFINITIVE miss, unlike [BathymetryFetchException]:
-/// the resolver falls through without treating the result as provisional,
-/// so the fallback it reaches can still be cached (issue #1770).
-class BathymetryNoDataException implements Exception {
-  final String message;
-  const BathymetryNoDataException(this.message);
+/// The source answered, and the answer is "no data here" (every tile in
+/// the span is a confirmed gap). Unlike a plain [BathymetryFetchException]
+/// it repeats identically on every visit, so the resolver skips the source
+/// without treating the walk as failed: counting it as a hiccup would stop
+/// the fallback answer from ever being cached (issue #1770).
+class BathymetryNoDataException extends BathymetryFetchException {
+  const BathymetryNoDataException(super.message);
 
   @override
   String toString() => 'BathymetryNoDataException: $message';
@@ -79,17 +78,17 @@ abstract interface class BathymetrySource {
   double get minKnownFraction;
 
   /// What this source can deliver at [center], or null when it does not
-  /// cover the point. May make a network call; when that call fails, throw
-  /// [BathymetryFetchException] rather than returning null. The resolver
-  /// drops a throwing source, so it never blocks the others, but it must know
-  /// the difference: "could not ask" is not "does not cover", and caching a
-  /// fallback this source might have beaten would pin it forever (#1770).
+  /// cover the point. May make a network call. A probe that could not find
+  /// out (an unreachable service) throws [BathymetryFetchException]; it
+  /// never blocks the others, since the resolver drops the source and
+  /// moves on, but it marks that resolve as not definitive, so its answer
+  /// is shown and not cached (issue #1770). Throw only where this source
+  /// could plausibly have data: anywhere else, "could not ask" and "does
+  /// not cover" end the same way, and throwing would only stop an
+  /// unrelated site from caching while the service is down.
   Future<SourceCapability?> probe(GeoPoint center);
 
   /// Fetches a depth grid roughly [spanMeters] across centered on [center].
-  /// Throws [BathymetryFetchException] on transient failure, and
-  /// [BathymetryNoDataException] when the source answered but confirmed it
-  /// has no data here. The resolver caches nothing past the first, and
-  /// treats the second as a plain decline.
+  /// Throws [BathymetryFetchException] on transient failure.
   Future<BathymetryGrid> fetch(GeoPoint center, {required double spanMeters});
 }

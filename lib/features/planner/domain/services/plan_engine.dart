@@ -120,6 +120,21 @@ class PlanEngine {
 
   const PlanEngine({this.config = const PlanEngineConfig()});
 
+  /// The water and surface conditions [plan] is computed in. Shared with
+  /// every caller that must charge gas at the same ambient pressure the
+  /// deco schedule used (the DPV mission's per-diver gas, issue #2086).
+  ///
+  /// Altitude <= 0 is treated as unset (legacy 1.0 bar surface), matching
+  /// the rest of the planner: a literal 0 must not switch to barometric
+  /// sea-level pressure and subtly change the deco math.
+  static DiveEnvironment environmentFor(domain.DivePlan plan) {
+    return DiveEnvironment.forConditions(
+      altitudeMeters: (plan.altitude ?? 0) > 0 ? plan.altitude : null,
+      waterType: plan.waterType ?? WaterType.salt,
+      salinityPpt: plan.salinityPpt,
+    );
+  }
+
   /// The breathing mode in force for [segment] (its per-segment override, or
   /// the plan's mode). Models mid-plan bailout.
   domain.PlanMode _modeFor(domain.DivePlan plan, PlanSegment? segment) =>
@@ -211,14 +226,7 @@ class PlanEngine {
       );
     }
     final isCcr = plan.mode == domain.PlanMode.ccr;
-    final environment = DiveEnvironment.forConditions(
-      // Altitude <= 0 is treated as unset (legacy 1.0 bar surface), matching
-      // the rest of the planner — a literal 0 must not switch to barometric
-      // sea-level pressure and subtly change the deco math.
-      altitudeMeters: (plan.altitude ?? 0) > 0 ? plan.altitude : null,
-      waterType: plan.waterType ?? WaterType.salt,
-      salinityPpt: plan.salinityPpt,
-    );
+    final environment = environmentFor(plan);
     final policy = _policyFor(plan);
     final model = BuhlmannGf(
       gfLow: plan.gfLow / 100.0,

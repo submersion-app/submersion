@@ -3,11 +3,10 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/core/deco/gas_density.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/utils/unit_axis.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gas_calculators/domain/best_mix.dart';
-import 'package:submersion/features/gas_calculators/domain/gas_consumption.dart'
-    show roundDownTo;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_calculators_providers.dart';
 import 'package:submersion/shared/widgets/forms/unit_slider.dart';
@@ -109,7 +108,7 @@ class BestMixCalculator extends ConsumerWidget {
               Semantics(
                 label:
                     'Recommended mix ${recommended.mix.name}, '
-                    'MOD ${units.formatDepth(recommended.modMeters, decimals: 0)}',
+                    'MOD ${units.formatDepthFloor(recommended.modMeters, decimals: 0)}',
                 child: Card(
                   color: colorScheme.primaryContainer,
                   child: Padding(
@@ -142,7 +141,10 @@ class BestMixCalculator extends ConsumerWidget {
                           context.l10n.gasCalculators_bestMix_modLabel(
                             ppO2.toStringAsFixed(1),
                           ),
-                          units.formatDepth(recommended.modMeters, decimals: 0),
+                          units.formatDepthFloor(
+                            recommended.modMeters,
+                            decimals: 0,
+                          ),
                           onContainer: true,
                         ),
                         _buildBreakdownRow(
@@ -340,7 +342,7 @@ class BestMixCalculator extends ConsumerWidget {
               context.l10n.gasCalculators_bestMix_modLabel(
                 ppO2.toStringAsFixed(1),
               ),
-              units.formatDepth(alternative.modMeters, decimals: 0),
+              units.formatDepthFloor(alternative.modMeters, decimals: 0),
             ),
             _buildBreakdownRow(
               context,
@@ -433,12 +435,13 @@ class BestMixCalculator extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
 
     // MOD rounds DOWN toward the shallower, safer limit.
-    final modMeters = ((ppO2Limit / (o2 / 100)) - 1) * 10;
-    final displayMod = roundDownTo(units.convertDepth(modMeters), 1);
+    final displayMod = units.formatDepthFloor(
+      maxOperatingDepthMeters(o2 / 100, maxPpO2: ppO2Limit),
+      decimals: 0,
+    );
 
     return Semantics(
-      label:
-          '$name, $o2% O2, MOD: ${displayMod.toStringAsFixed(0)}${units.depthSymbol}',
+      label: '$name, $o2% O2, MOD: $displayMod',
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
@@ -460,7 +463,7 @@ class BestMixCalculator extends ConsumerWidget {
             ),
             const Spacer(),
             Text(
-              'MOD: ${displayMod.toStringAsFixed(0)}${units.depthSymbol}',
+              'MOD: $displayMod',
               style: textTheme.bodySmall?.copyWith(
                 color: colorScheme.primary,
                 fontWeight: FontWeight.w500,

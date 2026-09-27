@@ -5,8 +5,6 @@ import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart'
-    as dive_entity;
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 
@@ -315,6 +313,12 @@ void main() {
     expect(await idsMatching(const DiveFilterState()), {'a', 'b'});
   });
 
+  test('an active axis yields a self-contained fq-aliased subquery', () {
+    final s = buildFilteredDiveIdSubquery(const DiveFilterState(siteId: 's1'));
+    expect(s.subquery, startsWith('SELECT fq.id FROM dives fq WHERE'));
+    expect(s.params, ['s1']);
+  });
+
   test('date range filters inclusively through the end day', () async {
     await insertDive('before', date: DateTime(2026, 1, 1));
     await insertDive('inside', date: DateTime(2026, 6, 15));
@@ -488,16 +492,6 @@ void main() {
               ),
             );
       }
-      final domainDives = cases
-          .map(
-            (c) => dive_entity.Dive(
-              id: c.$1,
-              // Entities carry the same wall-clock-UTC value the rows do.
-              dateTime: asWallClockUtc(c.$2),
-              bottomTime: Duration(seconds: c.$3),
-            ),
-          )
-          .toList();
 
       for (final filter in <DiveFilterState>[
         DiveFilterState(
@@ -507,20 +501,20 @@ void main() {
         const DiveFilterState(maxBottomTimeMinutes: 2),
         const DiveFilterState(minBottomTimeMinutes: 2),
       ]) {
-        final applied = filter.apply(domainDives).map((d) => d.id).toSet();
+        final applied = await DiveRepository().getDiveIdsMatching(filter);
         final sqld = await idsMatching(filter);
         expect(sqld, applied, reason: 'mismatch for $filter');
       }
     },
   );
 
-  test('broad parity: apply() and buildFilteredDiveIdSubquery agree across '
+  test('broad parity: the id set and buildFilteredDiveIdSubquery agree across '
       'every implemented DiveFilterState axis (spec 9.3 invariant)', () async {
     // This is the general form of the two parity tests above: instead of
     // hand-rolling matching domain Dive + DB row pairs per axis, seed one
     // rich dataset into the real DB, hydrate the domain side the same way
     // production code does (DiveRepository().getAllDives()), and assert
-    // DiveFilterState.apply() and buildFilteredDiveIdSubquery() select the
+    // getDiveIdsMatching() and buildFilteredDiveIdSubquery() select the
     // same ids for a battery of filters -- one per axis, plus a few
     // multi-axis combinations. That "SQL mirrors apply()" property is what
     // lets getStatistics/getSacVolumePerDive/etc. push filtering into SQL
@@ -688,9 +682,13 @@ void main() {
     await insertCustomField('d4', 'buddyCert', 'AOW');
     await insertCustomField('d6', 'visMeters', '15');
 
-    // Hydrate the domain side exactly the way production code does.
-    final domainDives = await DiveRepository().getAllDives();
-    expect(domainDives.length, 7, reason: 'all seeded dives hydrated');
+    // The other id path: what the table, map and export views narrow by.
+    final repo = DiveRepository();
+    expect(
+      (await repo.getAllDives()).length,
+      7,
+      reason: 'all seeded dives hydrated',
+    );
 
     final battery = <String, DiveFilterState>{
       'date range': DiveFilterState(
@@ -750,14 +748,14 @@ void main() {
 
     for (final entry in battery.entries) {
       final filter = entry.value;
-      final applied = filter.apply(domainDives).map((d) => d.id).toSet();
+      final applied = await DiveRepository().getDiveIdsMatching(filter);
       final sqld = await idsMatching(filter);
       expect(
         sqld,
         applied,
         reason:
             '${entry.key}: buildFilteredDiveIdSubquery and '
-            'DiveFilterState.apply() must select the same dive ids '
+            'getDiveIdsMatching must select the same dive ids '
             '(filter: $filter)',
       );
     }
@@ -801,11 +799,10 @@ void main() {
           'buddy filter must match junction-table buddies (d6, no legacy '
           'scalar) as well as the legacy dives.buddy column (d1) -- #757',
     );
-    expect(
-      battery['buddyNameFilter']!.apply(domainDives).map((d) => d.id).toSet(),
-      {'d1', 'd6'},
-      reason: 'apply() must consult dive.buddies, not only dive.buddy',
-    );
+    expect(await repo.getDiveIdsMatching(battery['buddyNameFilter']!), {
+      'd1',
+      'd6',
+    }, reason: 'the id set must consult dive_buddies, not only dives.buddy');
     expect(
       await idsMatching(battery['noBuddyOnly']!),
       {'d3', 'd4', 'd5', 'd7'},
@@ -828,9 +825,9 @@ void main() {
     for (final key in ['buddyId', 'buddyId + saved diveIds']) {
       final filter = battery[key]!;
       expect(await idsMatching(filter), {'d6'}, reason: '$key: subquery');
-      expect(filter.apply(domainDives).map((d) => d.id).toSet(), {
+      expect(await repo.getDiveIdsMatching(filter), {
         'd6',
-      }, reason: '$key: apply()');
+      }, reason: '$key: id set');
       expect(
         (await DiveRepository().getDiveSummaries(
           filter: filter,

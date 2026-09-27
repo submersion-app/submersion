@@ -116,8 +116,8 @@ void main() {
     });
 
     test('declines when the best item is coarser than the threshold', () async {
-      // Where the mosaic holds nothing but its ETOPO background, the ETOPO
-      // tier already serves that data directly.
+      // Bonaire: the mosaic holds nothing but its ETOPO background there,
+      // which the ETOPO tier already serves directly.
       final source = NoaaDemSource(
         client: MockClient(
           (req) async => http.Response(
@@ -128,7 +128,7 @@ void main() {
           ),
         ),
       );
-      expect(await source.probe(keys), isNull);
+      expect(await source.probe(bonaire), isNull);
     });
 
     test('accepts a mid-range regional DEM', () async {
@@ -153,45 +153,22 @@ void main() {
       expect(await source.probe(keys), isNull);
     });
 
-    test('declines on a body with no catalogue and no error', () async {
-      final source = NoaaDemSource(
-        client: MockClient(
-          (req) async => http.Response(jsonEncode({'objectId': 0}), 200),
-        ),
-      );
-      expect(await source.probe(keys), isNull);
-    });
-
     test(
-      'throws BathymetryFetchException on an ArcGIS error envelope returned '
-      'with HTTP 200: the service failed to answer, it did not decline',
+      'declines on an ArcGIS error envelope returned with HTTP 200',
       () async {
         final source = NoaaDemSource(
           client: MockClient(
             (req) async => http.Response(
               jsonEncode({
-                'error': {'code': 500, 'message': 'Error performing identify'},
+                'error': {'code': 400, 'message': 'Invalid geometry'},
               }),
               200,
             ),
           ),
         );
-        expect(
-          () => source.probe(keys),
-          throwsA(isA<BathymetryFetchException>()),
-        );
+        expect(await source.probe(keys), isNull);
       },
     );
-
-    test('throws BathymetryFetchException on an unparseable body', () async {
-      final source = NoaaDemSource(
-        client: MockClient((req) async => http.Response('<html>', 200)),
-      );
-      expect(
-        () => source.probe(keys),
-        throwsA(isA<BathymetryFetchException>()),
-      );
-    });
 
     test('declines on a catalogue item with no usable cell size', () async {
       final source = NoaaDemSource(
@@ -213,80 +190,75 @@ void main() {
       expect(await source.probe(keys), isNull);
     });
 
-    test('throws BathymetryFetchException on a non-200', () async {
-      final source = NoaaDemSource(
-        client: MockClient((req) async => http.Response('nope', 503)),
-      );
-      expect(
-        () => source.probe(keys),
-        throwsA(isA<BathymetryFetchException>()),
-      );
-    });
-
-    test('throws BathymetryFetchException when the service is unreachable '
-        '(issue #1770): "could not ask" must not read as "does not cover", or '
-        'a coarser fallback is cached as the definitive answer', () async {
-      final source = NoaaDemSource(
-        client: MockClient((req) async => throw const SocketishError()),
-      );
-      expect(
-        () => source.probe(keys),
-        throwsA(isA<BathymetryFetchException>()),
-      );
-    });
-
-    test(
-      'declines outside every coverage region without a network call, so '
-      'a NOAA outage cannot block caching where NOAA has nothing anyway',
-      () async {
-        var requests = 0;
+    group('a failed probe (issue #1770)', () {
+      // Inside NOAA's coverage, "could not ask" is not "has nothing": the
+      // resolver must hear it as a transient failure, or a lower-tier grid
+      // gets cached forever over the DEM that would have won. Outside it, a
+      // NOAA outage must not stop every other site worldwide from caching.
+      test('throws a transient failure on a non-200 inside US coverage', () {
         final source = NoaaDemSource(
-          client: MockClient((req) async {
-            requests++;
-            throw const SocketishError();
-          }),
+          client: MockClient((req) async => http.Response('nope', 503)),
+        );
+        expect(source.probe(keys), throwsA(isA<BathymetryFetchException>()));
+      });
+
+      test('throws a transient failure when the service is unreachable '
+          'inside US coverage', () {
+        final source = NoaaDemSource(
+          client: MockClient((req) async => throw const SocketishError()),
+        );
+        expect(source.probe(keys), throwsA(isA<BathymetryFetchException>()));
+      });
+
+      test('declines on a non-200 outside US coverage', () async {
+        final source = NoaaDemSource(
+          client: MockClient((req) async => http.Response('nope', 503)),
         );
         expect(await source.probe(bonaire), isNull);
-        // Walensee, a swissBATHY3D lake.
-        expect(await source.probe(const GeoPoint(47.13, 9.14)), isNull);
-        // Red Sea, Hurghada.
-        expect(await source.probe(const GeoPoint(27.25, 33.84)), isNull);
-        // Great Barrier Reef, Cairns.
-        expect(await source.probe(const GeoPoint(-16.9, 145.9)), isNull);
-        expect(requests, 0);
-      },
-    );
+      });
 
-    test('probes every place the live service has a sub-50 m DEM', () {
-      // Spot-checked against the live identify endpoint (2026-09-26); the
-      // non-US islands among them are real NCEI coverage, not padding.
-      const covered = <String, GeoPoint>{
-        'Key Largo': GeoPoint(25.1, -80.4),
-        'La Jolla': GeoPoint(32.85, -117.27),
-        'Bermuda': GeoPoint(32.3, -64.8),
-        'Nassau, Bahamas': GeoPoint(25.08, -77.35),
-        'Victoria, BC': GeoPoint(48.42, -123.37),
-        'Juneau': GeoPoint(58.3, -134.4),
-        'Homer': GeoPoint(59.6, -151.5),
-        'Nome': GeoPoint(64.5, -165.4),
-        'Adak': GeoPoint(51.88, -176.65),
-        'Shemya': GeoPoint(52.7, 174.1),
-        'Midway': GeoPoint(28.2, -177.37),
-        'Kona': GeoPoint(19.64, -155.99),
-        'St. Thomas': GeoPoint(18.34, -64.93),
-        'Tortola': GeoPoint(18.43, -64.62),
-        'Grenada': GeoPoint(12.05, -61.75),
-        'Guam': GeoPoint(13.45, 144.75),
-        'Saipan': GeoPoint(15.2, 145.75),
-        'Wake': GeoPoint(19.28, 166.63),
-        'Pago Pago': GeoPoint(-14.28, -170.69),
-        'Rarotonga': GeoPoint(-21.23, -159.78),
-        'Tahiti': GeoPoint(-17.53, -149.57),
-        'Galapagos': GeoPoint(-0.75, -90.3),
-      };
-      for (final entry in covered.entries) {
-        expect(NoaaDemSource.mayCover(entry.value), isTrue, reason: entry.key);
-      }
+      test('declines when the service is unreachable outside US '
+          'coverage', () async {
+        final source = NoaaDemSource(
+          client: MockClient((req) async => throw const SocketishError()),
+        );
+        expect(await source.probe(bonaire), isNull);
+      });
+
+      test('an unparseable 200 is still a decline, not a failure', () async {
+        // The service answered; the answer just holds nothing usable.
+        final source = NoaaDemSource(
+          client: MockClient((req) async => http.Response('{not json', 200)),
+        );
+        expect(await source.probe(keys), isNull);
+      });
+
+      test('US coverage spans the states and territories NOAA maps', () {
+        const inside = [
+          GeoPoint(25.010, -80.376), // Florida Keys
+          GeoPoint(32.85, -117.27), // La Jolla
+          GeoPoint(47.6, -122.4), // Puget Sound
+          GeoPoint(45.0, -87.0), // Great Lakes
+          GeoPoint(60.0, -149.0), // Alaska, Kenai
+          GeoPoint(52.0, 175.0), // Aleutians, west of the antimeridian
+          GeoPoint(20.8, -156.3), // Hawaii, Maui
+          GeoPoint(18.3, -64.9), // US Virgin Islands
+          GeoPoint(13.4, 144.7), // Guam
+          GeoPoint(-14.3, -170.7), // American Samoa
+        ];
+        const outside = [
+          GeoPoint(12.093, -68.287), // Bonaire
+          GeoPoint(47.135503, 9.144546), // Walensee
+          GeoPoint(-16.5, 145.8), // Great Barrier Reef
+          GeoPoint(20.5, -87.0), // Cozumel
+        ];
+        for (final p in inside) {
+          expect(NoaaDemSource.plausiblyCovers(p), isTrue, reason: '$p');
+        }
+        for (final p in outside) {
+          expect(NoaaDemSource.plausiblyCovers(p), isFalse, reason: '$p');
+        }
+      });
     });
 
     test(

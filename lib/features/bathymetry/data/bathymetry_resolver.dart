@@ -7,11 +7,11 @@ const _log = LoggerService('BathymetryResolver');
 
 /// The outcome of walking the source tiers for one coordinate.
 ///
-/// - `grid != null && definitive`: usable terrain, cacheable as the answer.
-/// - `grid != null && !definitive`: usable terrain, but reached only past a
-///   source that failed transiently (issue #1770). Show it, but must NOT be
-///   cached: the failed source may well have won, and a cached fallback
-///   would stop it from ever being asked again.
+/// - `grid != null && definitive`: usable terrain from the best source that
+///   answered, cacheable as final.
+/// - `grid != null && !definitive`: usable terrain, but only because a
+///   higher-priority source failed transiently on the way to it. Show it,
+///   but do NOT cache it, or the preferred source is never retried.
 /// - `grid == null && definitive`: fetched fine, genuinely no water here —
 ///   cacheable as a negative answer.
 /// - `grid == null && !definitive`: transient failure — must NOT be cached.
@@ -67,20 +67,14 @@ class BathymetryResolver {
     double? spanMeters,
   }) async {
     final span = spanMeters ?? defaultSpanMeters;
-    final (:ordered, :probeFailed) = await _order(center);
+    final (:ordered, :anyProbeFailed) = await _order(center);
     var globalSourceSaidDry = false;
-    // Whether any source failed to answer (probe or fetch) on the way to the
-    // result. Such a source may have outranked the winner, or found water a
-    // global source called dry, so the answer is only provisional: returned
-    // for display, never cached as definitive (issue #1770).
-    //
-    // A failed probe taints the result wherever that source sits in the
-    // declared order: without its capability the resolver cannot know its
-    // cell size, and a materially finer source preempts regardless of rank
-    // (see [preemptionFactor]). Unlike a fetch failure, it cannot be placed
-    // "below the winner". NoaaDemSource's coverage regions keep this from
-    // reaching coordinates where the only network probe could never win.
-    var sawTransientFailure = probeFailed;
+    // Whether any source threw instead of answering, in its probe or its
+    // fetch (issue #1770). Such a source might have had better terrain, or
+    // water where a global model says dry, so whatever the walk settles on
+    // is not final: a single network hiccup must not permanently downgrade
+    // the cell.
+    var anySourceFailed = anyProbeFailed;
     for (final source in ordered) {
       try {
         final grid = await source.fetch(center, spanMeters: span);
@@ -98,13 +92,9 @@ class BathymetryResolver {
           continue;
         }
         if (grid.wetFraction >= minWetFraction) {
-          if (!sawTransientFailure) return BathymetryResolution.ok(grid);
-          _log.info(
-            '${source.id} accepted provisionally at '
-            '${center.latitude},${center.longitude}: a source ahead of it '
-            'failed transiently, so this answer is not cached',
-          );
-          return BathymetryResolution.provisional(grid);
+          return anySourceFailed
+              ? BathymetryResolution.provisional(grid)
+              : BathymetryResolution.ok(grid);
         }
         _log.debug(
           '${source.id} rejected at ${center.latitude},${center.longitude}: '
@@ -114,15 +104,16 @@ class BathymetryResolver {
         // covers everywhere; a regional edge cell proves nothing.
         if (source.global) globalSourceSaidDry = true;
       } on BathymetryNoDataException catch (e) {
-        // Definitive miss: this source answered and has nothing here, so it
-        // cannot have outranked the winner. Fall through untainted.
+        // A stable "nothing here", not a hiccup: fall through without
+        // marking the walk as failed.
         _log.debug(
-          '${source.id} has no data at ${center.latitude},${center.longitude}',
+          '${source.id} has no data at '
+          '${center.latitude},${center.longitude}',
           error: e,
         );
       } on BathymetryFetchException catch (e) {
         // Transient: fall through to the next source.
-        sawTransientFailure = true;
+        anySourceFailed = true;
         _log.warning(
           '${source.id} fetch failed at ${center.latitude},${center.longitude}',
           error: e,
@@ -131,7 +122,7 @@ class BathymetryResolver {
         // A source blowing up with anything else (a TypeError from an
         // unexpected response shape, an ArgumentError) must not kill the
         // whole scene: treat it exactly like a transient failure.
-        sawTransientFailure = true;
+        anySourceFailed = true;
         _log.warning(
           '${source.id} fetch threw unexpectedly at '
           '${center.latitude},${center.longitude}',
@@ -140,33 +131,29 @@ class BathymetryResolver {
         );
       }
     }
-    // Every source was walked here, so a failure anywhere (ahead of the dry
-    // answer or behind it) is a source that never said whether it had water.
-    return globalSourceSaidDry && !sawTransientFailure
+    return globalSourceSaidDry && !anySourceFailed
         ? const BathymetryResolution.empty()
         : const BathymetryResolution.transientFailure();
   }
 
   /// Covering sources in fetch order. Probes run concurrently because a
-  /// probe may be a network call and they are independent. A probe that
+  /// probe may be a network call and they are independent; a probe that
   /// fails for any reason drops that source rather than failing the scene,
-  /// but is reported as [probeFailed]: "could not ask" is not "does not
-  /// cover", and the resolver must not cache an answer that source might
-  /// have beaten.
-  Future<({List<BathymetrySource> ordered, bool probeFailed})> _order(
+  /// and is reported in `anyProbeFailed` so the resolve that follows is
+  /// not taken as definitive (see [BathymetrySource.probe]).
+  Future<({List<BathymetrySource> ordered, bool anyProbeFailed})> _order(
     GeoPoint center,
   ) async {
-    var probeFailed = false;
+    var anyProbeFailed = false;
     final caps = await Future.wait(
       sources.map((s) async {
         try {
           return await s.probe(center);
-        } catch (e, stackTrace) {
-          probeFailed = true;
+        } catch (e) {
+          anyProbeFailed = true;
           _log.warning(
             '${s.id} probe failed at ${center.latitude},${center.longitude}',
             error: e,
-            stackTrace: stackTrace,
           );
           return null;
         }
@@ -193,7 +180,7 @@ class BathymetryResolver {
     });
     return (
       ordered: [for (final c in covering) c.source],
-      probeFailed: probeFailed,
+      anyProbeFailed: anyProbeFailed,
     );
   }
 }

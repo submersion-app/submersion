@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 
@@ -36,6 +37,8 @@ class GarminDiveMapper {
     required int activityId,
     double? fallbackLatitude,
     double? fallbackLongitude,
+    double? fallbackExitLatitude,
+    double? fallbackExitLongitude,
   }) {
     final tanks = _mapTanks(imported.tanks);
     final gasSwitches = _mapGasSwitches(imported.gasSwitches);
@@ -59,6 +62,19 @@ class GarminDiveMapper {
         ? imported.longitude
         : (hasFallbackEntryPosition ? fallbackLongitude : null);
 
+    // The exit position works the same way: the FIT file's own end position
+    // needs a fix after surfacing, and Connect's end estimate covers the gap.
+    final hasFitExitPosition =
+        imported.exitLatitude != null && imported.exitLongitude != null;
+    final hasFallbackExitPosition =
+        fallbackExitLatitude != null && fallbackExitLongitude != null;
+    final exitLatitude = hasFitExitPosition
+        ? imported.exitLatitude
+        : (hasFallbackExitPosition ? fallbackExitLatitude : null);
+    final exitLongitude = hasFitExitPosition
+        ? imported.exitLongitude
+        : (hasFallbackExitPosition ? fallbackExitLongitude : null);
+
     final dive = DownloadedDive(
       diveNumber: imported.diveNumber,
       startTime: imported.startTime,
@@ -69,8 +85,8 @@ class GarminDiveMapper {
       maxTemperature: imported.maxTemperature,
       entryLatitude: entryLatitude,
       entryLongitude: entryLongitude,
-      exitLatitude: imported.exitLatitude,
-      exitLongitude: imported.exitLongitude,
+      exitLatitude: exitLatitude,
+      exitLongitude: exitLongitude,
       profile: profile,
       tanks: tanks,
       gasSwitches: gasSwitches,
@@ -84,6 +100,14 @@ class GarminDiveMapper {
           : null,
       gfLow: imported.gfLow,
       gfHigh: imported.gfHigh,
+      // The FIT dive_summary and dive_settings values a FIT file import keeps
+      // (issue #1798). Without them the import derives a shorter bottom time
+      // from the profile and drops the rest.
+      bottomTimeSeconds: imported.bottomTimeSeconds,
+      surfaceIntervalSeconds: imported.surfaceIntervalSeconds,
+      waterType: _waterType(imported.waterType),
+      cnsEnd: imported.cnsEnd,
+      otu: imported.otu,
     );
 
     return GarminParsedDive(
@@ -92,6 +116,16 @@ class GarminDiveMapper {
       serialNumber: imported.computerSerial,
       firmwareVersion: imported.computerFirmware,
     );
+  }
+
+  /// Maps FIT's water type name onto the log's [WaterType]. FIT's
+  /// `en13319` (the EN 13319 standard density) and `custom` have no log
+  /// equivalent and stay unset, as they do on a FIT file import.
+  static WaterType? _waterType(String? fitName) {
+    for (final type in WaterType.values) {
+      if (type.name == fitName) return type;
+    }
+    return null;
   }
 
   static Uint8List _fingerprintFor(int activityId) =>

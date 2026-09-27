@@ -521,6 +521,25 @@ void main() {
       expect(state.wasLoadedExternally, isTrue);
     });
 
+    test(
+      'loadFileFromBytes opens a shared Garmin Connect export ZIP',
+      () async {
+        final fit = File(
+          p.join('test', 'dives', '005_oc-trimix-two-deco-gases.fit'),
+        ).readAsBytesSync();
+        final bytes = buildZip({'21874512345_ACTIVITY.fit': fit});
+
+        final detection = await notifier.loadFileFromBytes(
+          bytes,
+          '21874512345.zip',
+        );
+
+        expect(detection.format, ImportFormat.fit);
+        expect(notifier.state.error, isNull);
+        expect(notifier.state.files.single.name, '21874512345_ACTIVITY.fit');
+      },
+    );
+
     test('a zip with nothing importable reports an error', () async {
       final bytes = buildZip({
         'readme.txt': [65, 66],

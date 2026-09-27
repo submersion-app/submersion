@@ -159,6 +159,17 @@ final surfaceGpsSectionExpandedProvider = Provider<bool>((ref) {
 /// the dive's own window plus margin.
 final surfaceGpsFullTrackProvider = StateProvider<bool>((ref) => false);
 
+/// Whether the dive detail page's "Underwater Route" section
+/// (`DiveDetailSectionId.navTrack`) is expanded.
+///
+/// Session-only, unlike the sections above: those persist through
+/// [CollapsibleSectionState] because the diver's fold choice should survive
+/// reopening the app, but wiring one more boolean through that
+/// SharedPreferences-backed notifier was not worth it for this section in
+/// this pass -- a later change can fold it in the same way if that turns out
+/// to matter.
+final navTrackSectionExpandedProvider = StateProvider<bool>((ref) => true);
+
 /// The lane the consumption-by-segment card renders when the display
 /// preference shows both. Session only: null follows the preference.
 final sacSegmentsLaneOverrideProvider = StateProvider<GasConsumptionLane?>(

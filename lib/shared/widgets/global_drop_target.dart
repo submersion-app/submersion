@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/universal_import/data/services/batch_parse_service.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -114,9 +115,10 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
 
     if (!mounted) return;
 
-    final shouldNavigate = await handleIncomingFile(
+    final fileName = p.basename(paths.first);
+    final outcome = await handleIncomingFile(
       bytes: bytes,
-      fileName: p.basename(paths.first),
+      fileName: fileName,
       currentPath: currentPath,
       notifier: ref.read(universalImportNotifierProvider.notifier),
       messenger: ScaffoldMessenger.of(context),
@@ -125,8 +127,13 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
 
     if (!mounted) return;
 
-    if (shouldNavigate) {
-      context.push('/transfer/import-wizard');
+    switch (outcome) {
+      case IncomingFileOutcome.navigateToWizard:
+        context.push('/transfer/import-wizard');
+      case IncomingFileOutcome.navigateToNavTrackReview:
+        await navigateToNavTrackReview(context, bytes, fileName: fileName);
+      case IncomingFileOutcome.none:
+        break;
     }
   }
 }

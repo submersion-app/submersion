@@ -400,8 +400,8 @@ class SwissBathy3dSource implements BathymetrySource {
     }
 
     if (tiles.isEmpty) {
-      // Every tile is a confirmed gap (no transient failure got this far,
-      // see failedTileKeys above): a definitive miss, not a retryable one.
+      // Every tile in the span is a confirmed gap: a stable answer, not a
+      // hiccup, so the resolver must not treat it as a failed walk.
       throw BathymetryNoDataException(
         'no swissBATHY3D tiles for tile range '
         'E[$tileEMin..$tileEMax] N[$tileNMin..$tileNMax]',

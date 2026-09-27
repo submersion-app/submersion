@@ -705,6 +705,12 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () {
+              // The id set behind the filtered list is its own provider
+              // (#2365); a failed SQL refresh lives there, so Retry must
+              // reach it.
+              ref.invalidate(
+                queryFilteredDiveIdsProvider(ref.read(diveFilterProvider)),
+              );
               ref.invalidate(sortedFilteredDivesProvider);
               ref.invalidate(diveActivityHeatMapProvider);
             },

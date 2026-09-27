@@ -94,20 +94,24 @@ void main() {
     expect(noDecoResults.map((d) => d.id).toSet(), {'noStop'});
   });
 
-  test('getDiveIdsWithDecoSignal agrees with the paginated SQL path', () async {
+  test('getDiveIdsMatching agrees with the paginated SQL path', () async {
     await seedDives();
 
-    expect(await repository.getDiveIdsWithDecoSignal(wantDeco: true), {
-      'stop',
-      'ceilingOnly',
-      'eventOnly',
-    });
-    expect(await repository.getDiveIdsWithDecoSignal(wantDeco: false), {
-      'noStop',
-    });
+    expect(
+      await repository.getDiveIdsMatching(
+        const DiveFilterState(decoOnly: true),
+      ),
+      {'stop', 'ceilingOnly', 'eventOnly'},
+    );
+    expect(
+      await repository.getDiveIdsMatching(
+        const DiveFilterState(decoOnly: false),
+      ),
+      {'noStop'},
+    );
   });
 
-  test('getDiveIdsWithDecoSignal honours the diver scope', () async {
+  test('getDiveIdsMatching honours the diver scope', () async {
     final diverRepo = DiverRepository();
     Future<String> makeDiver(String name) async {
       final diver = await diverRepo.createDiver(
@@ -146,30 +150,11 @@ void main() {
     );
 
     expect(
-      await repository.getDiveIdsWithDecoSignal(
-        wantDeco: true,
+      await repository.getDiveIdsMatching(
+        const DiveFilterState(decoOnly: true),
         diverId: diverA,
       ),
       {'mine'},
     );
   });
-
-  test(
-    'getAllDives leaves profiles unhydrated, so apply() cannot classify deco',
-    () async {
-      await seedDives();
-
-      final dives = await repository.getAllDives();
-
-      // The premise the SQL-backed deco axis exists for: list views carry no
-      // profile points at all, which is why DiveFilterState.apply deliberately
-      // ignores decoOnly instead of matching nothing.
-      expect(dives, isNotEmpty);
-      expect(dives.every((d) => d.profile.isEmpty), isTrue);
-      expect(
-        const DiveFilterState(decoOnly: true).apply(dives).map((d) => d.id),
-        dives.map((d) => d.id),
-      );
-    },
-  );
 }

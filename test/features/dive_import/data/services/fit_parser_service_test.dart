@@ -20,6 +20,9 @@ Uint8List buildTestDiveFitFile({
   int serialNumber = 12345,
   double? startLat,
   double? startLong,
+  double? endLat,
+  double? endLong,
+  (double, double)? lapEndPosition,
   Map<int, (double, double)>? recordPositions,
 }) {
   final builder = FitFileBuilder(autoDefine: true, minStringSize: 50);
@@ -68,8 +71,38 @@ Uint8List buildTestDiveFitFile({
     builder.add(record);
   }
 
-  // Session message: activity summary
   final endTime = startTime.add(Duration(seconds: durationSeconds));
+
+  if (lapEndPosition != null) {
+    builder.add(
+      LapMessage()
+        ..timestamp = endTime.millisecondsSinceEpoch
+        ..startTime = startTime.millisecondsSinceEpoch
+        ..endPositionLat = lapEndPosition.$1
+        ..endPositionLong = lapEndPosition.$2,
+    );
+  }
+
+  // fit_tool's SessionMessage has no setter for end_position (fields 38/39),
+  // so a session carrying one is written as a raw message instead. fit_tool
+  // still decodes it as a SessionMessage, dropping 38/39 exactly as it does
+  // for a real Garmin file.
+  if (endLat != null || endLong != null) {
+    builder.add(
+      _rawDiveSession(
+        startTime: startTime,
+        endTime: endTime,
+        durationSeconds: durationSeconds,
+        startLat: startLat,
+        startLong: startLong,
+        endLat: endLat,
+        endLong: endLong,
+      ),
+    );
+    return builder.build().toBytes();
+  }
+
+  // Session message: activity summary
   final session = SessionMessage()
     ..sport = Sport.diving
     ..timestamp = endTime.millisecondsSinceEpoch
@@ -87,6 +120,46 @@ Uint8List buildTestDiveFitFile({
   builder.add(session);
 
   return builder.build().toBytes();
+}
+
+/// A diving session (msg 18) written field by field, so it can carry
+/// end_position_lat/long (fields 38/39), which fit_tool's profile lacks.
+/// Values are raw: FIT-epoch seconds, milliseconds for the scale-1000
+/// elapsed time, semicircles for positions.
+DataMessage _rawDiveSession({
+  required DateTime startTime,
+  required DateTime endTime,
+  required int durationSeconds,
+  double? startLat,
+  double? startLong,
+  double? endLat,
+  double? endLong,
+}) {
+  const fitEpochSeconds = 631065600;
+  int fitSeconds(DateTime t) =>
+      t.millisecondsSinceEpoch ~/ 1000 - fitEpochSeconds;
+  int semicircles(double degrees) => (degrees * 2147483648.0 / 180.0).round();
+
+  final values = <int, (BaseType, int, int)>{
+    253: (BaseType.UINT32, 4, fitSeconds(endTime)),
+    2: (BaseType.UINT32, 4, fitSeconds(startTime)),
+    5: (BaseType.ENUM, 1, 53), // sport = diving
+    7: (BaseType.UINT32, 4, durationSeconds * 1000),
+    if (startLat != null) 3: (BaseType.SINT32, 4, semicircles(startLat)),
+    if (startLong != null) 4: (BaseType.SINT32, 4, semicircles(startLong)),
+    if (endLat != null) 38: (BaseType.SINT32, 4, semicircles(endLat)),
+    if (endLong != null) 39: (BaseType.SINT32, 4, semicircles(endLong)),
+  };
+  final def = DefinitionMessage(
+    globalId: SessionMessage.ID,
+    fieldDefinitions: [
+      for (final e in values.entries)
+        FieldDefinition(id: e.key, size: e.value.$2, type: e.value.$1),
+    ],
+  );
+  final m = GenericMessage(definitionMessage: def);
+  values.forEach((id, v) => m.getField(id)!.setValue(0, v.$3, null));
+  return m;
 }
 
 /// Builds a FIT file for a non-dive activity (running).
@@ -574,6 +647,115 @@ void main() {
       expect(result, isNotNull);
       expect(result!.latitude, closeTo(28.4594, 0.0001));
       expect(result.longitude, closeTo(-16.3228, 0.0001));
+    });
+
+    group('exit GPS', () {
+      test('reads the session end position the watch records on surfacing '
+          '(issue #1797)', () async {
+        final bytes = buildTestDiveFitFile(
+          startTime: DateTime(2024, 1, 1, 10, 0, 0),
+          durationSeconds: 1800,
+          depthSamples: [0.0, 10.0, 15.0, 10.0, 0.0],
+          startLat: 28.4594,
+          startLong: -16.3228,
+          // Underwater records carry no fixes; only the session holds exit.
+          endLat: 28.4612,
+          endLong: -16.3251,
+        );
+
+        final result = await service.parseFitFile(bytes);
+
+        expect(result, isNotNull);
+        expect(result!.latitude, closeTo(28.4594, 1e-6));
+        expect(result.longitude, closeTo(-16.3228, 1e-6));
+        expect(result.exitLatitude, closeTo(28.4612, 1e-6));
+        expect(result.exitLongitude, closeTo(-16.3251, 1e-6));
+      });
+
+      test(
+        'prefers the session end position over the last record fix',
+        () async {
+          final bytes = buildTestDiveFitFile(
+            startTime: DateTime(2024, 1, 1, 10, 0, 0),
+            durationSeconds: 1800,
+            depthSamples: [0.0, 10.0, 15.0, 10.0, 0.0],
+            endLat: 28.4612,
+            endLong: -16.3251,
+            recordPositions: {4: (28.999, -16.999)},
+          );
+
+          final result = await service.parseFitFile(bytes);
+
+          expect(result!.exitLatitude, closeTo(28.4612, 1e-6));
+          expect(result.exitLongitude, closeTo(-16.3251, 1e-6));
+        },
+      );
+
+      test('ignores a session end position with only one half set', () async {
+        final bytes = buildTestDiveFitFile(
+          startTime: DateTime(2024, 1, 1, 10, 0, 0),
+          durationSeconds: 1800,
+          depthSamples: [0.0, 10.0, 15.0, 10.0, 0.0],
+          endLat: 28.4612,
+          recordPositions: {4: (28.47, -16.33)},
+        );
+
+        final result = await service.parseFitFile(bytes);
+
+        expect(result!.exitLatitude, closeTo(28.47, 1e-4));
+        expect(result.exitLongitude, closeTo(-16.33, 1e-4));
+      });
+
+      test(
+        'falls back to the lap end position when the session has none',
+        () async {
+          final bytes = buildTestDiveFitFile(
+            startTime: DateTime(2024, 1, 1, 10, 0, 0),
+            durationSeconds: 1800,
+            depthSamples: [0.0, 10.0, 15.0, 10.0, 0.0],
+            lapEndPosition: (28.4633, -16.3277),
+            recordPositions: {4: (28.999, -16.999)},
+          );
+
+          final result = await service.parseFitFile(bytes);
+
+          expect(result!.exitLatitude, closeTo(28.4633, 1e-4));
+          expect(result.exitLongitude, closeTo(-16.3277, 1e-4));
+        },
+      );
+
+      test('falls back to the last record fix when neither session nor lap '
+          'has an end position', () async {
+        final bytes = buildTestDiveFitFile(
+          startTime: DateTime(2024, 1, 1, 10, 0, 0),
+          durationSeconds: 1800,
+          depthSamples: [0.0, 10.0, 15.0, 10.0, 0.0],
+          recordPositions: {0: (28.46, -16.32), 4: (28.47, -16.33)},
+        );
+
+        final result = await service.parseFitFile(bytes);
+
+        expect(result!.exitLatitude, closeTo(28.47, 1e-4));
+        expect(result.exitLongitude, closeTo(-16.33, 1e-4));
+      });
+
+      test(
+        'leaves exit empty when the file has no end position at all',
+        () async {
+          final bytes = buildTestDiveFitFile(
+            startTime: DateTime(2024, 1, 1, 10, 0, 0),
+            durationSeconds: 1800,
+            depthSamples: [0.0, 10.0, 15.0, 10.0, 0.0],
+            startLat: 28.4594,
+            startLong: -16.3228,
+          );
+
+          final result = await service.parseFitFile(bytes);
+
+          expect(result!.exitLatitude, isNull);
+          expect(result.exitLongitude, isNull);
+        },
+      );
     });
 
     test(

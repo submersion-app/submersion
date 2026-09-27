@@ -374,6 +374,7 @@ class BulkDiveEditService {
         computerId: r.computerId,
         transmitterSerial: r.transmitterSerial,
         regulatorEquipmentId: r.regulatorEquipmentId,
+        tripCylinderId: r.tripCylinderId,
         sourceTankIndex: r.sourceTankIndex,
         // The cylinder link the registry recorded; bulkReplaceTanks writes
         // it only when told this is a restore.

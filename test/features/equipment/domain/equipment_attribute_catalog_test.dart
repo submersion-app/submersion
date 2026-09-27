@@ -219,6 +219,8 @@ void main() {
         'battery_capacity_wh',
         'motor_type',
         'speed_mps',
+        'tow_speed_factor',
+        'tow_burn_factor',
         'depth_rating_m',
         'buoyancy_kg',
         'dry_weight_kg',

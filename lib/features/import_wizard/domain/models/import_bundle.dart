@@ -25,6 +25,9 @@ enum ImportSourceType {
 
   /// A Garmin Connect cloud import.
   garminCloud,
+
+  /// A divelogs.de logbook import.
+  divelogs,
 }
 
 /// The kind of entity represented by an [EntityGroup].

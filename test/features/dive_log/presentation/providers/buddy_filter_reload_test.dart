@@ -7,6 +7,7 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/core/query/compiler/query_compiler.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
@@ -33,6 +34,21 @@ class _CountingRepository implements DiveRepository {
   final DiveRepository _inner;
   int summaryCalls = 0;
   int allDivesCalls = 0;
+  int orderedIdsCalls = 0;
+
+  @override
+  Future<List<String>> getOrderedDiveIds({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+    SortState<DiveSortField>? sort,
+  }) {
+    orderedIdsCalls++;
+    return _inner.getOrderedDiveIds(
+      diverId: diverId,
+      filter: filter,
+      sort: sort,
+    );
+  }
 
   @override
   Future<List<Dive>> getAllDives({String? diverId}) {
@@ -75,8 +91,20 @@ class _CountingRepository implements DiveRepository {
   Stream<void> watchDiveListChanges() => _inner.watchDiveListChanges();
 
   @override
-  Stream<void> watchEquipmentAttrFilterChanges() =>
-      _inner.watchEquipmentAttrFilterChanges();
+  Stream<void> watchTables(Set<String> tableNames) =>
+      _inner.watchTables(tableNames);
+
+  @override
+  Future<Set<String>> getDiveIdsMatching(
+    DiveFilterState filter, {
+    String? diverId,
+  }) => _inner.getDiveIdsMatching(filter, diverId: diverId);
+
+  @override
+  Future<Set<String>> getDiveIdsForQuery(
+    CompiledQuery compiled, {
+    String? diverId,
+  }) => _inner.getDiveIdsForQuery(compiled, diverId: diverId);
 
   @override
   Stream<void> watchDiveListChangesWithBuddyLinks() =>
@@ -343,6 +371,62 @@ void main() {
 
     expect(await waitFor(filteredIds, (ids) => ids.isNotEmpty), {'annDive'});
     expect(counting.allDivesCalls - before, 1);
+  });
+
+  test('a local buddy edit recomputes the neighbor ids once', () async {
+    final counting = _CountingRepository(DiveRepository());
+    final container = containerWith(
+      const DiveFilterState(buddyNameFilter: 'Ann'),
+      repository: counting,
+    );
+    final sub = container.listen(orderedDiveIdsProvider, (_, _) {});
+    addTearDown(sub.close);
+    List<String>? orderedIds() => container.read(orderedDiveIdsProvider).value;
+    expect(await waitFor(orderedIds, (ids) => ids.isEmpty), isEmpty);
+    await Future<void>.delayed(
+      DiveRepository.changeTickDebounce + const Duration(milliseconds: 200),
+    );
+    final before = counting.orderedIdsCalls;
+
+    await BuddyRepository().addBuddyToDive('annDive', 'ann', DiveRole.buddyId);
+    await Future<void>.delayed(
+      DiveRepository.changeTickDebounce * 2 + const Duration(milliseconds: 300),
+    );
+
+    expect(await waitFor(orderedIds, (ids) => ids.isNotEmpty), ['annDive']);
+    expect(
+      counting.orderedIdsCalls - before,
+      1,
+      reason: 'the junction write and the dive write share one debounced tick',
+    );
+  });
+
+  test('entering a buddy filter does not re-read the hydrated list', () async {
+    final counting = _CountingRepository(DiveRepository());
+    final container = containerWith(
+      const DiveFilterState(),
+      repository: counting,
+    );
+    final sub = container.listen(filteredDivesProvider, (_, _) {});
+    addTearDown(sub.close);
+    Set<String>? filteredIds() =>
+        container.read(filteredDivesProvider).value?.map((d) => d.id).toSet();
+    await waitFor(filteredIds, (ids) => ids.isNotEmpty);
+    final before = counting.allDivesCalls;
+
+    container.read(diveFilterProvider.notifier).state = const DiveFilterState(
+      buddyNameFilter: 'Ann',
+    );
+    await waitFor(filteredIds, (ids) => ids.isEmpty);
+    await Future<void>.delayed(
+      DiveRepository.changeTickDebounce + const Duration(milliseconds: 200),
+    );
+
+    expect(
+      counting.allDivesCalls - before,
+      0,
+      reason: 'narrowing is by SQL ids; the hydrated list need not reload',
+    );
   });
 
   test('a link-only write refreshes detail-page neighbor ids', () async {

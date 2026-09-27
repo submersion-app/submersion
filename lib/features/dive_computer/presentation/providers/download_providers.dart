@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_computer/presentation/providers/clock_s
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
+import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
@@ -39,6 +40,7 @@ final diveImportServiceProvider = Provider<DiveImportService>((ref) {
     repository: repository,
     diveRepository: diveRepository,
     gpsTrackMatchService: ref.watch(gpsTrackMatchServiceProvider),
+    navTrackMatchService: ref.watch(navTrackMatchServiceProvider),
     // Read at import time, not provider build time, so a toggle flipped in
     // Settings applies to the very next download (issue #386).
     defaultTankPresetForImports: () => loadDefaultTankPresetForDownloads(ref),

@@ -11,16 +11,23 @@ void main() {
     types: {EquipmentType.hose},
   );
 
-  test('each condition becomes the shared EXISTS clause, in order', () {
+  test('each condition becomes its own attribute EXISTS, in order', () {
     final suit = EquipmentAttrCondition.suitThickness(min: 5.0, max: 7.0);
     final result = buildFilteredDiveIdSubquery(
       DiveFilterState(equipmentAttrConditions: [hose, suit]),
     );
-    final hoseSql = equipmentAttrConditionSql(hose, diveIdRef: 'dives.id');
-    final suitSql = equipmentAttrConditionSql(suit, diveIdRef: 'dives.id');
-    expect(result.subquery, contains(hoseSql.sql));
-    expect(result.subquery, contains(suitSql.sql));
-    expect(result.params, [...hoseSql.params, ...suitSql.params]);
+    // One correlated probe of equipment_attributes per condition, and every
+    // value bound in declaration order: the hose key first, then the suit
+    // key with its bounds (#2365 compiles the axis from the registry).
+    expect(
+      'equipment_attributes'.allMatches(result.subquery).length,
+      2,
+      reason: result.subquery,
+    );
+    expect(
+      result.params,
+      containsAllInOrder([hose.key, 'thickness_mm', 5.0, 7.0]),
+    );
   });
 
   test('no conditions, no attribute SQL', () {

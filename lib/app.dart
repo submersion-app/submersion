@@ -22,6 +22,7 @@ import 'package:submersion/features/backup/presentation/pages/restore_complete_p
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_barrier.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_origin_republish_provider.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -96,6 +97,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     registerDisplayZoomMenuChannel(ref);
     _fileShareHandler = FileShareHandler(
       onFileReceived: _handleIncomingFile,
+      onFilesReceived: _handleIncomingFiles,
       onError: (_) {
         final l10n = _scaffoldMessengerKey.currentContext != null
             ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
@@ -320,7 +322,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
         : null;
 
-    final shouldNavigate = await handleIncomingFile(
+    final outcome = await handleIncomingFile(
       bytes: bytes,
       fileName: fileName,
       currentPath: location,
@@ -330,9 +332,41 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       unsupportedFileMessage: l10n?.dropTarget_error_unsupportedFile,
     );
 
+    if (!mounted) return;
+
+    switch (outcome) {
+      case IncomingFileOutcome.navigateToWizard:
+        // PUSH (not go): the wizard is a sub-page, so system back returns
+        // to wherever the drop happened instead of closing the app (#647).
+        router.push('/transfer/import-wizard');
+      case IncomingFileOutcome.navigateToNavTrackReview:
+        final navContext = rootNavigatorKey.currentContext;
+        if (navContext != null && navContext.mounted) {
+          await navigateToNavTrackReview(navContext, bytes, fileName: fileName);
+        }
+      case IncomingFileOutcome.none:
+        break;
+    }
+  }
+
+  Future<void> _handleIncomingFiles(List<String> paths) async {
+    final router = ref.read(appRouterProvider);
+    final location = router.routeInformationProvider.value.uri.path;
+
+    final l10n = _scaffoldMessengerKey.currentContext != null
+        ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
+        : null;
+
+    final shouldNavigate = await handleIncomingFiles(
+      paths: paths,
+      currentPath: location,
+      notifier: ref.read(universalImportNotifierProvider.notifier),
+      messenger: _scaffoldMessengerKey.currentState,
+      wizardActiveMessage: l10n?.dropTarget_error_wizardActive,
+    );
+
     if (shouldNavigate) {
-      // PUSH (not go): the wizard is a sub-page, so system back returns to
-      // wherever the drop happened instead of closing the app (#647).
+      // PUSH (not go), for the same reason as _handleIncomingFile (#647).
       router.push('/transfer/import-wizard');
     }
   }

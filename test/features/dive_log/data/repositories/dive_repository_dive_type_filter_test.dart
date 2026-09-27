@@ -39,20 +39,24 @@ void main() {
     expect(ids, isNot(contains('d2')));
   });
 
-  test('in-memory apply() matches by membership', () {
-    final dives = [
+  test('the id set the entity views narrow by matches by membership', () async {
+    await repository.createDive(
       domain.Dive(
         id: 'a',
         dateTime: DateTime(2026, 1, 1),
         diveTypeIds: const ['shore', 'wreck'],
       ),
+    );
+    await repository.createDive(
       domain.Dive(
         id: 'b',
         dateTime: DateTime(2026, 1, 2),
         diveTypeIds: const ['boat'],
       ),
-    ];
-    final filtered = const DiveFilterState(diveTypeId: 'wreck').apply(dives);
-    expect(filtered.map((d) => d.id), ['a']);
+    );
+    final ids = await repository.getDiveIdsMatching(
+      const DiveFilterState(diveTypeId: 'wreck'),
+    );
+    expect(ids, {'a'});
   });
 }

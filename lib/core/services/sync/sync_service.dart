@@ -1368,6 +1368,7 @@ class SyncService {
             hasUpdatedAt: true,
           ),
           (type: 'gpsTracks', records: data.gpsTracks, hasUpdatedAt: true),
+          (type: 'navTracks', records: data.navTracks, hasUpdatedAt: true),
           (type: 'divePlans', records: data.divePlans, hasUpdatedAt: true),
           (
             type: 'divePlanTanks',
@@ -1380,6 +1381,19 @@ class SyncService {
             hasUpdatedAt: true,
           ),
           (type: 'equipment', records: data.equipment, hasUpdatedAt: true),
+          // Trip cylinder slots reference trips and equipment; their ledger
+          // references the slots and dive centers. Both before dives, whose
+          // tanks link the slots.
+          (
+            type: 'tripCylinders',
+            records: data.tripCylinders,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'tripCylinderEvents',
+            records: data.tripCylinderEvents,
+            hasUpdatedAt: true,
+          ),
           (
             type: 'equipmentSets',
             records: data.equipmentSets,
@@ -2356,6 +2370,8 @@ class SyncService {
     'liveaboardDetails': true,
     'itineraryDays': true,
     'tripDayWeather': true,
+    'tripCylinders': true,
+    'tripCylinderEvents': true,
     'checklistTemplates': true,
     'checklistTemplateItems': true,
     'tripChecklistItems': true,
@@ -2364,6 +2380,7 @@ class SyncService {
     'preDiveSessions': true,
     'preDiveSessionItems': true,
     'gpsTracks': true,
+    'navTracks': true,
     'divePlans': true,
     'divePlanTanks': true,
     'divePlanSegments': true,
@@ -2488,6 +2505,25 @@ class SyncService {
   /// before the diver's tombstone reached it, is cleared by
   /// SyncDataSerializer.repairDanglingForeignKeys, which drops the row
   /// instead where the column is NOT NULL.)
+  /// Fields cleared together with a set-null [parentRefs] reference when
+  /// its parent is tombstoned, keyed by entity type and then by the
+  /// reference's field: values that only mean something while the
+  /// reference is set.
+  ///
+  /// navTracks.linkMode records HOW diveId got linked ('auto'/'manual') and
+  /// is null exactly when diveId is (nav_tracks schema comment,
+  /// database.dart). Clearing it here keeps that invariant when a peer's
+  /// still-linked route arrives after this device already tombstoned its
+  /// dive, mirroring what NavTrackRepository does for the same unlink on
+  /// the local delete path. isPrimary is left alone: it is NOT NULL with a
+  /// default, and nothing reads it without also filtering on diveId.
+  @visibleForTesting
+  static const Map<String, Map<String, List<String>>> alsoClearedWithParent = {
+    'navTracks': {
+      'diveId': ['linkMode'],
+    },
+  };
+
   @visibleForTesting
   static const Map<String, List<ParentRef>> parentRefs = {
     'dives': [
@@ -2536,6 +2572,9 @@ class SyncService {
       // v202: the regulator breathed from the cylinder; user-authored and
       // nullable, so a deleted regulator only clears the link.
       (field: 'regulatorEquipmentId', parent: 'equipment', nullable: true),
+      // v232: the trip cylinder slot; nullable, so a slot the peer never
+      // sent, or has deleted, only clears the link.
+      (field: 'tripCylinderId', parent: 'tripCylinders', nullable: true),
       (field: 'computerId', parent: 'diveComputers', nullable: true),
     ],
     'diveWeights': [(field: 'diveId', parent: 'dives', nullable: false)],
@@ -2611,6 +2650,15 @@ class SyncService {
       (field: 'equipmentId', parent: 'equipment', nullable: true),
       (field: 'signerId', parent: 'buddies', nullable: true),
     ],
+    // All three nullable (onDelete: KeyAction.setNull): the recording
+    // outlives a deleted dive, site or equipment item and just loses the
+    // link (spec 2026-09-10-underwater-nav-track-design.md).
+    'navTracks': [
+      // diveId also clears linkMode: see [alsoClearedWithParent].
+      (field: 'diveId', parent: 'dives', nullable: true),
+      (field: 'siteId', parent: 'diveSites', nullable: true),
+      (field: 'equipmentId', parent: 'equipment', nullable: true),
+    ],
     'siteSpecies': [
       (field: 'siteId', parent: 'diveSites', nullable: false),
       (field: 'speciesId', parent: 'species', nullable: false),
@@ -2635,6 +2683,14 @@ class SyncService {
     'liveaboardDetails': [(field: 'tripId', parent: 'trips', nullable: false)],
     'itineraryDays': [(field: 'tripId', parent: 'trips', nullable: false)],
     'tripDayWeather': [(field: 'tripId', parent: 'trips', nullable: false)],
+    'tripCylinders': [
+      (field: 'tripId', parent: 'trips', nullable: false),
+      (field: 'equipmentId', parent: 'equipment', nullable: true),
+    ],
+    'tripCylinderEvents': [
+      (field: 'tripCylinderId', parent: 'tripCylinders', nullable: false),
+      (field: 'diveCenterId', parent: 'diveCenters', nullable: true),
+    ],
     'checklistTemplateItems': [
       (field: 'templateId', parent: 'checklistTemplates', nullable: false),
     ],
@@ -2849,7 +2905,14 @@ class SyncService {
               // the child's reference intact regardless of merge order.
               (revivedParents[ref.parent]?.contains(parentId) != true)) {
             if (ref.nullable) {
-              recordToApply = {...recordToApply, ref.field: null};
+              recordToApply = {
+                ...recordToApply,
+                ref.field: null,
+                for (final also
+                    in alsoClearedWithParent[entityType]?[ref.field] ??
+                        const <String>[])
+                  also: null,
+              };
             } else {
               droppedByParent = true;
               break;

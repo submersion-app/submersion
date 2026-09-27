@@ -288,6 +288,8 @@ class SyncData {
   final List<Map<String, dynamic>> liveaboardDetails;
   final List<Map<String, dynamic>> itineraryDays;
   final List<Map<String, dynamic>> tripDayWeather;
+  final List<Map<String, dynamic>> tripCylinders;
+  final List<Map<String, dynamic>> tripCylinderEvents;
   final List<Map<String, dynamic>> checklistTemplates;
   final List<Map<String, dynamic>> checklistTemplateItems;
   final List<Map<String, dynamic>> tripChecklistItems;
@@ -296,6 +298,7 @@ class SyncData {
   final List<Map<String, dynamic>> preDiveSessions;
   final List<Map<String, dynamic>> preDiveSessionItems;
   final List<Map<String, dynamic>> gpsTracks;
+  final List<Map<String, dynamic>> navTracks;
   final List<Map<String, dynamic>> divePlans;
   final List<Map<String, dynamic>> divePlanTanks;
   final List<Map<String, dynamic>> divePlanSegments;
@@ -385,6 +388,8 @@ class SyncData {
     this.liveaboardDetails = const [],
     this.itineraryDays = const [],
     this.tripDayWeather = const [],
+    this.tripCylinders = const [],
+    this.tripCylinderEvents = const [],
     this.checklistTemplates = const [],
     this.checklistTemplateItems = const [],
     this.tripChecklistItems = const [],
@@ -393,6 +398,7 @@ class SyncData {
     this.preDiveSessions = const [],
     this.preDiveSessionItems = const [],
     this.gpsTracks = const [],
+    this.navTracks = const [],
     this.divePlans = const [],
     this.divePlanTanks = const [],
     this.divePlanSegments = const [],
@@ -477,6 +483,8 @@ class SyncData {
     'liveaboardDetails': liveaboardDetails,
     'itineraryDays': itineraryDays,
     'tripDayWeather': tripDayWeather,
+    'tripCylinders': tripCylinders,
+    'tripCylinderEvents': tripCylinderEvents,
     'checklistTemplates': checklistTemplates,
     'checklistTemplateItems': checklistTemplateItems,
     'tripChecklistItems': tripChecklistItems,
@@ -485,6 +493,7 @@ class SyncData {
     'preDiveSessions': preDiveSessions,
     'preDiveSessionItems': preDiveSessionItems,
     'gpsTracks': gpsTracks,
+    'navTracks': navTracks,
     'divePlans': divePlans,
     'divePlanTanks': divePlanTanks,
     'divePlanSegments': divePlanSegments,
@@ -570,6 +579,8 @@ class SyncData {
       liveaboardDetails: _parseList(json['liveaboardDetails']),
       itineraryDays: _parseList(json['itineraryDays']),
       tripDayWeather: _parseList(json['tripDayWeather']),
+      tripCylinders: _parseList(json['tripCylinders']),
+      tripCylinderEvents: _parseList(json['tripCylinderEvents']),
       checklistTemplates: _parseList(json['checklistTemplates']),
       checklistTemplateItems: _parseList(json['checklistTemplateItems']),
       tripChecklistItems: _parseList(json['tripChecklistItems']),
@@ -580,6 +591,7 @@ class SyncData {
       preDiveSessions: _parseList(json['preDiveSessions']),
       preDiveSessionItems: _parseList(json['preDiveSessionItems']),
       gpsTracks: _parseList(json['gpsTracks']),
+      navTracks: _parseList(json['navTracks']),
       divePlans: _parseList(json['divePlans']),
       divePlanTanks: _parseList(json['divePlanTanks']),
       divePlanSegments: _parseList(json['divePlanSegments']),
@@ -921,6 +933,13 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'tripDayWeather', table: _db.tripDayWeather, blob: false, full: null),
+    (key: 'tripCylinders', table: _db.tripCylinders, blob: false, full: null),
+    (
+      key: 'tripCylinderEvents',
+      table: _db.tripCylinderEvents,
+      blob: false,
+      full: null,
+    ),
     (
       key: 'checklistTemplates',
       table: _db.checklistTemplates,
@@ -969,6 +988,7 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'gpsTracks', table: _db.gpsTracks, blob: true, full: null),
+    (key: 'navTracks', table: _db.navTracks, blob: true, full: null),
     (key: 'divePlans', table: _db.divePlans, blob: false, full: null),
     (key: 'divePlanTanks', table: _db.divePlanTanks, blob: false, full: null),
     (
@@ -1925,6 +1945,14 @@ class SyncDataSerializer {
         'tripDayWeather',
         () => _exportTripDayWeather(hlcSince),
       ),
+      tripCylinders: await _safeExport(
+        'tripCylinders',
+        () => _exportTripCylinders(hlcSince),
+      ),
+      tripCylinderEvents: await _safeExport(
+        'tripCylinderEvents',
+        () => _exportTripCylinderEvents(hlcSince),
+      ),
       checklistTemplates: await _safeExport(
         'checklistTemplates',
         () => _exportChecklistTemplates(hlcSince),
@@ -1956,6 +1984,10 @@ class SyncDataSerializer {
       gpsTracks: await _safeExport(
         'gpsTracks',
         () => _exportGpsTracks(hlcSince),
+      ),
+      navTracks: await _safeExport(
+        'navTracks',
+        () => _exportNavTracks(hlcSince),
       ),
       divePlans: await _safeExport(
         'divePlans',
@@ -2505,6 +2537,16 @@ class SyncDataSerializer {
           _db.tripDayWeather,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'tripCylinders':
+        final row = await (_db.select(
+          _db.tripCylinders,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'tripCylinderEvents':
+        final row = await (_db.select(
+          _db.tripCylinderEvents,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'checklistTemplates':
         final row = await (_db.select(
           _db.checklistTemplates,
@@ -2545,6 +2587,12 @@ class SyncDataSerializer {
           _db.gpsTracks,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         // The points BLOB rides as base64, matching _exportGpsTracks.
+        return row?.toJson(serializer: _syncBlobSerializer);
+      case 'navTracks':
+        final row = await (_db.select(
+          _db.navTracks,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        // The points BLOB rides as base64, matching _exportNavTracks.
         return row?.toJson(serializer: _syncBlobSerializer);
       case 'divePlans':
         final row = await (_db.select(
@@ -2648,6 +2696,11 @@ class SyncDataSerializer {
       case 'cylinderFills':
         final row = await (_db.select(
           _db.cylinderFills,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'mediaSmartAlbums':
+        final row = await (_db.select(
+          _db.mediaSmartAlbums,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'tideRecords':
@@ -2944,6 +2997,16 @@ class SyncDataSerializer {
           _db.tripDayWeather,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
+      case 'tripCylinders':
+        final rows = await (_db.select(
+          _db.tripCylinders,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'tripCylinderEvents':
+        final rows = await (_db.select(
+          _db.tripCylinderEvents,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
       case 'checklistTemplates':
         final rows = await (_db.select(
           _db.checklistTemplates,
@@ -3044,6 +3107,11 @@ class SyncDataSerializer {
       case 'cylinderFills':
         final rows = await (_db.select(
           _db.cylinderFills,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'mediaSmartAlbums':
+        final rows = await (_db.select(
+          _db.mediaSmartAlbums,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'tags':
@@ -3851,6 +3919,20 @@ class SyncDataSerializer {
               TripDayWeatherData.fromJson(data).toCompanion(false),
             );
         return;
+      case 'tripCylinders':
+        await _db
+            .into(_db.tripCylinders)
+            .insertOnConflictUpdate(
+              TripCylinderRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'tripCylinderEvents':
+        await _db
+            .into(_db.tripCylinderEvents)
+            .insertOnConflictUpdate(
+              TripCylinderEventRow.fromJson(data).toCompanion(false),
+            );
+        return;
       case 'checklistTemplates':
         await _db
             .into(_db.checklistTemplates)
@@ -3905,6 +3987,13 @@ class SyncDataSerializer {
             .into(_db.gpsTracks)
             .insertOnConflictUpdate(
               GpsTrackRow.fromJson(data, serializer: _syncBlobSerializer),
+            );
+        return;
+      case 'navTracks':
+        await _db
+            .into(_db.navTracks)
+            .insertOnConflictUpdate(
+              NavTrackRow.fromJson(data, serializer: _syncBlobSerializer),
             );
         return;
       case 'divePlans':
@@ -4011,6 +4100,13 @@ class SyncDataSerializer {
             .into(_db.cylinderFills)
             .insertOnConflictUpdate(
               CylinderFillRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'mediaSmartAlbums':
+        await _db
+            .into(_db.mediaSmartAlbums)
+            .insertOnConflictUpdate(
+              MediaSmartAlbum.fromJson(data).toCompanion(false),
             );
         return;
       case 'tankPressureProfiles':
@@ -4733,6 +4829,26 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'tripCylinders':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.tripCylinders,
+            records
+                .map((r) => TripCylinderRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'tripCylinderEvents':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.tripCylinderEvents,
+            records
+                .map((r) => TripCylinderEventRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
       case 'checklistTemplates':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -4820,6 +4936,19 @@ class SyncDataSerializer {
                 .map(
                   (r) =>
                       GpsTrackRow.fromJson(r, serializer: _syncBlobSerializer),
+                )
+                .toList(),
+          ),
+        );
+        return;
+      case 'navTracks':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.navTracks,
+            records
+                .map(
+                  (r) =>
+                      NavTrackRow.fromJson(r, serializer: _syncBlobSerializer),
                 )
                 .toList(),
           ),
@@ -5077,6 +5206,16 @@ class SyncDataSerializer {
             _db.cylinderFills,
             records
                 .map((r) => CylinderFillRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'mediaSmartAlbums':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.mediaSmartAlbums,
+            records
+                .map((r) => MediaSmartAlbum.fromJson(r).toCompanion(false))
                 .toList(),
           ),
         );
@@ -5440,6 +5579,10 @@ class SyncDataSerializer {
         return plain(_db.tripItineraryDays, _db.tripItineraryDays.id);
       case 'tripDayWeather':
         return plain(_db.tripDayWeather, _db.tripDayWeather.id);
+      case 'tripCylinders':
+        return plain(_db.tripCylinders, _db.tripCylinders.id);
+      case 'tripCylinderEvents':
+        return plain(_db.tripCylinderEvents, _db.tripCylinderEvents.id);
       case 'checklistTemplates':
         return plain(_db.checklistTemplates, _db.checklistTemplates.id);
       case 'checklistTemplateItems':
@@ -5462,6 +5605,8 @@ class SyncDataSerializer {
         return plain(_db.preDiveSessionItems, _db.preDiveSessionItems.id);
       case 'gpsTracks':
         return plain(_db.gpsTracks, _db.gpsTracks.id);
+      case 'navTracks':
+        return plain(_db.navTracks, _db.navTracks.id);
       case 'divePlans':
         return plain(_db.divePlans, _db.divePlans.id);
       case 'divePlanTanks':
@@ -5825,6 +5970,10 @@ class SyncDataSerializer {
         return _db.tripItineraryDays;
       case 'tripDayWeather':
         return _db.tripDayWeather;
+      case 'tripCylinders':
+        return _db.tripCylinders;
+      case 'tripCylinderEvents':
+        return _db.tripCylinderEvents;
       case 'checklistTemplates':
         return _db.checklistTemplates;
       case 'checklistTemplateItems':
@@ -5841,6 +5990,8 @@ class SyncDataSerializer {
         return _db.preDiveSessionItems;
       case 'gpsTracks':
         return _db.gpsTracks;
+      case 'navTracks':
+        return _db.navTracks;
       case 'divePlans':
         return _db.divePlans;
       case 'divePlanTanks':
@@ -6190,6 +6341,16 @@ class SyncDataSerializer {
           _db.tripDayWeather,
         )..where((t) => t.id.equals(recordId))).go();
         return;
+      case 'tripCylinders':
+        await (_db.delete(
+          _db.tripCylinders,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'tripCylinderEvents':
+        await (_db.delete(
+          _db.tripCylinderEvents,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
       case 'checklistTemplates':
         await (_db.delete(
           _db.checklistTemplates,
@@ -6228,6 +6389,11 @@ class SyncDataSerializer {
       case 'gpsTracks':
         await (_db.delete(
           _db.gpsTracks,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'navTracks':
+        await (_db.delete(
+          _db.navTracks,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'divePlans':
@@ -6327,6 +6493,11 @@ class SyncDataSerializer {
       case 'cylinderFills':
         await (_db.delete(
           _db.cylinderFills,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'mediaSmartAlbums':
+        await (_db.delete(
+          _db.mediaSmartAlbums,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'tideRecords':
@@ -6983,6 +7154,28 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
+  Future<List<Map<String, dynamic>>> _exportTripCylinders(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.tripCylinders);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportTripCylinderEvents(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.tripCylinderEvents);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
   Future<List<Map<String, dynamic>>> _exportChecklistTemplates(
     String? hlcSince,
   ) async {
@@ -7080,26 +7273,47 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
   }
 
-  /// The stored size, in bytes, of the packed sample blobs an incremental
-  /// changeset would carry above [hlcSince] (everything when it is null).
+  Future<List<Map<String, dynamic>>> _exportNavTracks(String? hlcSince) async {
+    final query = _db.select(_db.navTracks);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    // nav_tracks carries the points BLOB; encode it as base64, like
+    // gps_tracks.points.
+    return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
+  }
+
+  /// The stored size, in bytes, of the packed sample/route blobs an
+  /// incremental changeset would carry above [hlcSince] (everything when it
+  /// is null).
   ///
   /// The changeset export builds its whole payload in memory, base64 and
   /// `jsonEncode` alive at once, which the base path deliberately avoids by
-  /// streaming to a temp file. These two entities are the only ones whose
-  /// rows carry a large blob AND can all move at once: the v182 migration
-  /// stamps every packed row with one freshly issued HLC, so the first
-  /// changeset after the upgrade would otherwise select the entire packed
-  /// corpus into a single unstreamed payload. [ChangesetWriter] asks this
-  /// first and publishes a streamed base instead when the answer is too big.
+  /// streaming to a temp file. These are the entities whose rows carry a
+  /// large blob AND can all move at once: the v182 migration stamps every
+  /// packed profile/pressure row with one freshly issued HLC, so the first
+  /// changeset after that upgrade would otherwise select the entire packed
+  /// corpus into a single unstreamed payload -- and an imported nav_tracks
+  /// route (or several) carries its own large `points` blob the same way.
+  /// [ChangesetWriter] asks this first and publishes a streamed base instead
+  /// when the answer is too big.
   ///
   /// `length()` on a blob column reads the record header, not the payload,
-  /// so this costs a scan of two small tables and no blob reads.
+  /// so this costs a scan of a few small tables and no blob reads.
   Future<int> pendingSeriesBlobBytes(String? hlcSince) async {
+    const blobColumnByTable = {
+      'dive_profile_series': 'samples',
+      'tank_pressure_series': 'samples',
+      'nav_tracks': 'points',
+    };
     var total = 0;
-    for (final table in const ['dive_profile_series', 'tank_pressure_series']) {
-      // Guarded per table: _assertProfileSeriesSchema waits for each series
-      // table's foreign key parents, so a partially built database can reach
-      // a publish without one.
+    for (final entry in blobColumnByTable.entries) {
+      final table = entry.key;
+      final column = entry.value;
+      // Guarded per table: _assertProfileSeriesSchema/_assertNavTracksSchema
+      // wait for each table's foreign key parents, so a partially built
+      // database can reach a publish without one.
       final exists = await _db
           .customSelect(
             "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
@@ -7109,7 +7323,7 @@ class SyncDataSerializer {
       if (exists.isEmpty) continue;
       final row = await _db
           .customSelect(
-            'SELECT COALESCE(SUM(LENGTH(samples)), 0) AS n FROM $table'
+            'SELECT COALESCE(SUM(LENGTH($column)), 0) AS n FROM $table'
             '${hlcSince == null ? '' : ' WHERE hlc > ?'}',
             variables: hlcSince == null
                 ? const []
