@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/domain/query_error_code.dart';
+import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
@@ -70,6 +72,41 @@ void main() {
       tester.widget<TextField>(find.byKey(fieldKey)).decoration!.errorText,
       isNull,
     );
+  });
+
+  group('suggestionsReplaceSpan', () {
+    const text = 'deph > 30';
+    QueryError err({int? offset, int? length}) => QueryError(
+      QueryErrorCode.unknownField,
+      args: const {'name': 'deph'},
+      offset: offset,
+      length: length,
+      suggestions: const ['depth'],
+    );
+
+    test('a span inside the text can be replaced', () {
+      expect(suggestionsReplaceSpan(err(offset: 0, length: 4), text), isTrue);
+    });
+
+    test('an error with no span offers no replacement', () {
+      // A validator error names a path, not a place in the text: a chip
+      // would insert at the start of the field instead of replacing.
+      expect(suggestionsReplaceSpan(err(), text), isFalse);
+      expect(suggestionsReplaceSpan(err(offset: 0), text), isFalse);
+    });
+
+    test('a span past the end of the text offers no replacement', () {
+      expect(suggestionsReplaceSpan(err(offset: 6, length: 9), text), isFalse);
+    });
+
+    test('an error with no suggestions offers none', () {
+      const bare = QueryError(
+        QueryErrorCode.unknownField,
+        offset: 0,
+        length: 4,
+      );
+      expect(suggestionsReplaceSpan(bare, text), isFalse);
+    });
   });
 
   testWidgets('a valid query is committed', (tester) async {

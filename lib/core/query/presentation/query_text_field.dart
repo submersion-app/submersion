@@ -8,6 +8,20 @@ import 'package:submersion/core/query/presentation/query_editor_context.dart';
 import 'package:submersion/core/query/presentation/query_error_controller.dart';
 import 'package:submersion/core/query/presentation/query_tree_edit.dart';
 
+/// Whether [error]'s suggestions can replace a span of [text]: they need
+/// a place in the text to go. A validator error names a path, not a
+/// position, and a chip for it would insert at the start of the field.
+bool suggestionsReplaceSpan(QueryError error, String text) {
+  final offset = error.offset;
+  final length = error.length;
+  return error.suggestions.isNotEmpty &&
+      offset != null &&
+      length != null &&
+      offset >= 0 &&
+      length >= 0 &&
+      offset + length <= text.length;
+}
+
 /// The typed editor of a query tree (#2365, spec Unit 6 "Text").
 ///
 /// Every keystroke is parsed and validated. Only a clean tree reaches
@@ -184,7 +198,7 @@ class _QueryTextFieldState extends State<QueryTextField> {
           ),
           onChanged: _onTextChanged,
         ),
-        if (error != null && error.suggestions.isNotEmpty)
+        if (error != null && suggestionsReplaceSpan(error, _controller.text))
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Wrap(
@@ -194,8 +208,7 @@ class _QueryTextFieldState extends State<QueryTextField> {
                   ActionChip(
                     avatar: const Icon(Icons.error_outline, size: 16),
                     label: Text(s),
-                    onPressed: () =>
-                        _replace(error.offset ?? 0, error.length ?? 0, s),
+                    onPressed: () => _replace(error.offset!, error.length!, s),
                   ),
               ],
             ),
