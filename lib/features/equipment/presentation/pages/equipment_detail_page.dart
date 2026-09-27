@@ -286,6 +286,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
       );
     }
 
+    final canDelete = _isOwner(ref, equipment);
     return Scaffold(
       appBar: AppBar(
         title: Text(equipment.name),
@@ -295,21 +296,21 @@ class _EquipmentDetailContent extends ConsumerWidget {
             tooltip: context.l10n.equipment_detail_editTooltip,
             onPressed: () => context.push('/equipment/$equipmentId/edit'),
           ),
-          if (_isOwner(ref, equipment))
-            PopupMenuButton<String>(
-              key: const ValueKey('equipment-detail-overflow'),
-              onSelected: (value) => _handleMenuAction(context, ref, value),
-              itemBuilder: (context) => _buildMenuItems(context),
-            ),
+          PopupMenuButton<String>(
+            key: const ValueKey('equipment-detail-overflow'),
+            onSelected: (value) => _handleMenuAction(context, ref, value),
+            itemBuilder: (context) =>
+                _buildMenuItems(context, canDelete: canDelete),
+          ),
         ],
       ),
       body: body,
     );
   }
 
-  /// Delete is owner-only (issue #2046), so the page menu, whose one action
-  /// is delete, shows only to the item's owner. With no diver or no owner
-  /// every profile counts as the owner, as before sharing existed.
+  /// Delete is owner-only (issue #2046), so the page menu offers it only to
+  /// the item's owner. With no diver or no owner every profile counts as the
+  /// owner, as before sharing existed.
   bool _isOwner(WidgetRef ref, EquipmentItem equipment) {
     final activeDiver = ref.watch(validatedCurrentDiverIdProvider);
     // Hidden until the active diver is known, so a sharee never sees it flash.
@@ -323,6 +324,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
     EquipmentItem equipment,
     bool isServiceOverdue,
   ) {
+    final canDelete = _isOwner(ref, equipment);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -378,32 +380,38 @@ class _EquipmentDetailContent extends ConsumerWidget {
               context.go('$currentPath?selected=$equipmentId&mode=edit');
             },
           ),
-          if (_isOwner(ref, equipment))
-            PopupMenuButton<String>(
-              key: const ValueKey('equipment-detail-overflow'),
-              icon: const Icon(Icons.more_vert, size: 20),
-              onSelected: (value) => _handleMenuAction(context, ref, value),
-              itemBuilder: (context) => _buildMenuItems(context),
-            ),
+          PopupMenuButton<String>(
+            key: const ValueKey('equipment-detail-overflow'),
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (value) => _handleMenuAction(context, ref, value),
+            itemBuilder: (context) =>
+                _buildMenuItems(context, canDelete: canDelete),
+          ),
         ],
       ),
     );
   }
 
-  List<PopupMenuEntry<String>> _buildMenuItems(BuildContext context) {
+  /// Open in Connections is for everyone who can see the item, a sharee
+  /// included: shared gear sits on their own dives. Delete needs the owner.
+  List<PopupMenuEntry<String>> _buildMenuItems(
+    BuildContext context, {
+    required bool canDelete,
+  }) {
     return [
       openInConnectionsMenuItem(context),
-      PopupMenuItem(
-        value: 'delete',
-        child: ListTile(
-          leading: const Icon(Icons.delete, color: Colors.red),
-          title: Text(
-            context.l10n.equipment_menu_delete,
-            style: const TextStyle(color: Colors.red),
+      if (canDelete)
+        PopupMenuItem(
+          value: 'delete',
+          child: ListTile(
+            leading: const Icon(Icons.delete, color: Colors.red),
+            title: Text(
+              context.l10n.equipment_menu_delete,
+              style: const TextStyle(color: Colors.red),
+            ),
+            contentPadding: EdgeInsets.zero,
           ),
-          contentPadding: EdgeInsets.zero,
         ),
-      ),
     ];
   }
 
