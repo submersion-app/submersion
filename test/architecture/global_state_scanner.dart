@@ -4,6 +4,9 @@
 /// leaves in a global is what the next file starts with. The scan is a pattern
 /// match over source text: it proves a restore is written, not that it runs on
 /// every path.
+///
+/// A restore is the previous value read into a variable, and that same
+/// variable assigned back. Reading the value is not enough on its own.
 library;
 
 /// One assignment that nothing in the same file undoes.
@@ -45,14 +48,27 @@ const channelRule = 'channel mock';
 
 final _platformAssignment = RegExp(r'\b([A-Z]\w*Platform)\.instance\s*=(?!=)');
 final _httpAssignment = RegExp(r'\bHttpOverrides\.global\s*=(?!=)');
-final _httpCapture = RegExp(r'(?<![=!<>])=\s*HttpOverrides\.current\b');
 final _nullHandler = RegExp(
   r'setMockMethodCallHandler\([^;]*?,\s*null\s*,?\s*\)',
   dotAll: true,
 );
 
+/// Whether [code] reads [read] into a variable and assigns that same variable
+/// to [target].
+bool _isRestored(String code, {required String read, required String target}) {
+  final capture = RegExp(
+    '\\b([A-Za-z_]\\w*)\\s*=\\s*${RegExp.escape(read)}\\b',
+  );
+  final assigned = RegExp.escape(target);
+  for (final match in capture.allMatches(code)) {
+    final variable = RegExp.escape(match.group(1)!);
+    if (RegExp('$assigned\\s*=\\s*$variable\\b').hasMatch(code)) return true;
+  }
+  return false;
+}
+
 /// Every assignment in [source] that replaces a global without the file also
-/// holding on to what was there.
+/// putting back what was there.
 List<GlobalStateOffence> scanForUnrestoredGlobals(String path, String source) {
   final lines = source.split('\n');
   // Comments may describe an assignment freely.
@@ -74,11 +90,17 @@ List<GlobalStateOffence> scanForUnrestoredGlobals(String path, String source) {
   final restoresDefaults = all.contains('applyGlobalTestDefaults');
   for (var i = 0; i < code.length; i++) {
     for (final match in _platformAssignment.allMatches(code[i])) {
-      final name = match.group(1)!;
-      final capture = RegExp('(?<![=!<>])=\\s*$name\\.instance\\b');
-      if (!capture.hasMatch(all)) flag(i, platformRule);
+      final instance = '${match.group(1)!}.instance';
+      if (!_isRestored(all, read: instance, target: instance)) {
+        flag(i, platformRule);
+      }
     }
-    if (_httpAssignment.hasMatch(code[i]) && !_httpCapture.hasMatch(all)) {
+    if (_httpAssignment.hasMatch(code[i]) &&
+        !_isRestored(
+          all,
+          read: 'HttpOverrides.current',
+          target: 'HttpOverrides.global',
+        )) {
       flag(i, httpRule);
     }
     if (!restoresDefaults) {

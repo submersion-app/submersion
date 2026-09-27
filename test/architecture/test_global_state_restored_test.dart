@@ -15,7 +15,8 @@ import 'global_state_scanner.dart';
 /// What to write instead:
 ///
 /// * A `*Platform.instance` or `HttpOverrides.global`: read the previous value
-///   into a variable first, and assign it back in `tearDown` or `addTearDown`.
+///   into a variable first, and assign that variable back in `tearDown` or
+///   `addTearDown`. Reading the value without assigning it back does not count.
 /// * `QualityScanScheduler.enabled`, `SensorSummaryScheduler.enabled` or
 ///   `debugCanShareFiles`: call `applyGlobalTestDefaults()` from
 ///   `test/helpers/global_test_defaults.dart` in `tearDown`.
@@ -27,7 +28,12 @@ void main() {
   bool isGenerated(String path) => path.startsWith('test/.bundles/');
 
   /// Files that replace a global on purpose, each with the reason.
-  const allowed = <String, String>{};
+  const allowed = <String, String>{
+    // The harness pins the forwarder once, for the life of the isolate. There
+    // is no earlier value to put back: staying in place is what it is for.
+    'test/helpers/late_bound_share_platform.dart':
+        'pins the share forwarder for the whole isolate',
+  };
 
   Map<String, List<GlobalStateOffence>> scan() {
     final found = <String, List<GlobalStateOffence>>{};
