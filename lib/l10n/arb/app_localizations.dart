@@ -21482,6 +21482,12 @@ abstract class AppLocalizations {
   /// **'{name}: {kind} overdue'**
   String dashboard_alerts_clockOverdue(String name, String kind);
 
+  /// No description provided for @trips_gearAlerts_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} gear alert for this trip} other{{count} gear alerts for this trip}}'**
+  String trips_gearAlerts_count(int count);
+
   /// No description provided for @trips_serviceAlert_count.
   ///
   /// In en, this message translates to:

@@ -4211,6 +4211,7 @@
   "dashboard_serviceDue_more": "+{count} أخرى",
   "dashboard_alerts_clockDue": "{name}: {kind} مستحقة",
   "dashboard_alerts_clockOverdue": "{name}: {kind} متأخرة",
+  "trips_gearAlerts_count": "{count, plural, zero{{count} تنبيهات معدات لهذه الرحلة} one{{count} تنبيه معدات لهذه الرحلة} two{{count} تنبيها معدات لهذه الرحلة} few{{count} تنبيهات معدات لهذه الرحلة} many{{count} تنبيهًا للمعدات لهذه الرحلة} other{{count} تنبيه معدات لهذه الرحلة}}",
   "trips_serviceAlert_count": "{count, plural, zero{لا توجد معدات تحتاج إلى صيانة قبل هذه الرحلة} one{قطعة معدات واحدة تحتاج إلى صيانة قبل هذه الرحلة} two{قطعتا معدات تحتاجان إلى صيانة قبل هذه الرحلة} few{{count} قطع معدات تحتاج إلى صيانة قبل هذه الرحلة} many{{count} قطعة معدات تحتاج إلى صيانة قبل هذه الرحلة} other{{count} قطعة معدات تحتاج إلى صيانة قبل هذه الرحلة}}",
   "trips_serviceAlert_dueBefore": "{kind} مستحقة في {date}",
   "equipment_service_overdue": "{kind} متأخرة",

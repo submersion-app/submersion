@@ -65,6 +65,9 @@ class DivingLogReferenceReader {
     'WaterName',
     'Difficulty',
     'Comments',
+    'Rating',
+    'Water',
+    'Altitude',
   ];
   static const _cityColumns = ['ID', 'City'];
   static const _countryColumns = ['ID', 'Country'];
@@ -245,6 +248,9 @@ class DivingLogReferenceReader {
           waterName: rowString(r, 'WaterName'),
           difficulty: rowString(r, 'Difficulty'),
           comments: rowString(r, 'Comments'),
+          rating: rowInt(r, 'Rating'),
+          water: rowInt(r, 'Water'),
+          altitude: rowString(r, 'Altitude'),
         ),
       ),
       cityNames: _named(cities),

@@ -53,6 +53,14 @@ class GearTwinCandidate {
 /// Returns null when zero or several candidates match. Guessing between two
 /// identical computers is worse than minting a second row: a wrong adoption
 /// silently attaches one device's service history to another device's dives.
+///
+/// Brand plus model is tried field by field first, then by
+/// [computerNamesAgree] (#2299). A file import registers its computer with
+/// the whole name as the model ("Shearwater Teric") and no manufacturer,
+/// while the same logbook's gear row splits it into brand and model, so the
+/// field-by-field tier alone minted a second item for the one device. The
+/// looser tier runs only when the strict one finds nothing, so a computer
+/// that already had a single exact twin keeps adopting it.
 GearTwinCandidate? matchGearTwin({
   required String? manufacturer,
   required String? model,
@@ -69,14 +77,77 @@ GearTwinCandidate? matchGearTwin({
   // blank-identity gear item would collide.
   if (wantSerial.isEmpty && wantModel.isEmpty) return null;
 
-  final matches = candidates.where((c) {
-    if (normalizeComputerIdentityPart(c.diverId) != wantDiver) return false;
-    if (wantSerial.isNotEmpty) {
-      return normalizeComputerIdentityPart(c.serialNumber) == wantSerial;
-    }
-    return normalizeComputerIdentityPart(c.brand) == wantBrand &&
-        normalizeComputerIdentityPart(c.model) == wantModel;
-  }).toList();
+  final sameDiver = candidates
+      .where((c) => normalizeComputerIdentityPart(c.diverId) == wantDiver)
+      .toList();
 
-  return matches.length == 1 ? matches.first : null;
+  if (wantSerial.isNotEmpty) {
+    return _single(
+      sameDiver.where(
+        (c) => normalizeComputerIdentityPart(c.serialNumber) == wantSerial,
+      ),
+    );
+  }
+
+  final exact = sameDiver
+      .where(
+        (c) =>
+            normalizeComputerIdentityPart(c.brand) == wantBrand &&
+            normalizeComputerIdentityPart(c.model) == wantModel,
+      )
+      .toList();
+  if (exact.isNotEmpty) return _single(exact);
+
+  return _single(
+    sameDiver.where(
+      (c) => computerNamesAgree(
+        brandA: manufacturer,
+        modelA: model,
+        brandB: c.brand,
+        modelB: c.model,
+      ),
+    ),
+  );
+}
+
+GearTwinCandidate? _single(Iterable<GearTwinCandidate> matches) {
+  final list = matches.toList();
+  return list.length == 1 ? list.first : null;
+}
+
+/// The normalized "brand model" name of a device, with the brand left off
+/// when the model already starts with it, so "Shearwater" + "Teric" and
+/// "Shearwater" + "Shearwater Teric" both read "shearwater teric".
+String computerFullName(String? brand, String? model) {
+  final b = normalizeComputerIdentityPart(brand);
+  final m = normalizeComputerIdentityPart(model);
+  if (b.isEmpty) return m;
+  if (m.isEmpty) return b;
+  if (m == b || m.startsWith('$b ')) return m;
+  return '$b $m';
+}
+
+/// Whether two brand and model pairs name the same device, however each
+/// source split the name between the two fields.
+///
+/// The full names must agree, except that a side naming no brand may match
+/// on model alone: a file that says only "Teric" did not name a different
+/// brand, it named none. The same allowance `matchImportedComputer` makes.
+/// A side with no model never matches, since a brand alone names no device.
+bool computerNamesAgree({
+  required String? brandA,
+  required String? modelA,
+  required String? brandB,
+  required String? modelB,
+}) {
+  final mA = normalizeComputerIdentityPart(modelA);
+  final mB = normalizeComputerIdentityPart(modelB);
+  if (mA.isEmpty || mB.isEmpty) return false;
+  if (computerFullName(brandA, modelA) == computerFullName(brandB, modelB)) {
+    return true;
+  }
+  final noBrand =
+      normalizeComputerIdentityPart(brandA).isEmpty ||
+      normalizeComputerIdentityPart(brandB).isEmpty;
+  return noBrand && mA == mB;
 }

@@ -9,22 +9,15 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/trips/domain/entities/trip.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_banner.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_list.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
 
 void main() {
   final now = DateTime.now();
   final t0 = DateTime(2025, 1, 1);
-
-  Trip upcomingTrip() => Trip(
-    id: 'trip-1',
-    name: 'Bonaire',
-    startDate: now.add(const Duration(days: 10)),
-    endDate: now.add(const Duration(days: 17)),
-    createdAt: t0,
-    updatedAt: t0,
-  );
 
   DueClock hydroAlert() {
     final kind = ServiceKind(
@@ -58,12 +51,13 @@ void main() {
     );
   }
 
-  Widget buildBanner(Trip trip, List<DueClock> alerts) {
+  Widget buildList(List<DueClock> alerts) {
     final router = GoRouter(
       routes: [
         GoRoute(
           path: '/',
-          builder: (_, _) => Scaffold(body: TripServiceAlertBanner(trip: trip)),
+          builder: (_, _) =>
+              Scaffold(body: TripServiceAlertList(alerts: alerts)),
         ),
         GoRoute(
           path: '/equipment/:id',
@@ -73,7 +67,7 @@ void main() {
     );
     return ProviderScope(
       overrides: [
-        tripServiceAlertsProvider(trip.id).overrideWith((ref) async => alerts),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
       ],
       child: MaterialApp.router(
         locale: const Locale('en'),
@@ -84,24 +78,17 @@ void main() {
     );
   }
 
-  testWidgets('renders count and opens sheet listing blocking gear', (
+  testWidgets('lists each blocking item with when it falls due', (
     tester,
   ) async {
-    await tester.pumpWidget(buildBanner(upcomingTrip(), [hydroAlert()]));
-    await tester.pumpAndSettle();
-
-    expect(find.text('1 item needs service before this trip'), findsOneWidget);
-
-    await tester.tap(find.byType(InkWell).first);
+    await tester.pumpWidget(buildList([hydroAlert()]));
     await tester.pumpAndSettle();
 
     expect(find.text('AL80'), findsOneWidget);
     expect(find.textContaining('Hydrostatic test due'), findsOneWidget);
   });
 
-  testWidgets('two blocking clocks on one item still count as 1 item', (
-    tester,
-  ) async {
+  test('two blocking clocks on one item still count as 1 item', () {
     final vipKind = ServiceKind(
       id: 'vip',
       name: 'Visual inspection (VIP)',
@@ -131,45 +118,22 @@ void main() {
         now: now,
       ),
     );
-    await tester.pumpWidget(
-      buildBanner(upcomingTrip(), [hydroAlert(), vipAlert]),
-    );
-    await tester.pumpAndSettle();
-
-    // Per-clock alerts collapse to distinct equipment items in the label.
-    expect(find.text('1 item needs service before this trip'), findsOneWidget);
+    // Per-clock alerts collapse to distinct equipment items in the count.
+    expect(tripServiceAlertItemCount([hydroAlert(), vipAlert]), 1);
+    expect(tripServiceAlertsAnyOverdue([hydroAlert(), vipAlert]), isFalse);
   });
 
-  /// The banner strip behind the count label.
-  Container banner(WidgetTester tester) => tester.widget<Container>(
-    find
-        .ancestor(
-          of: find.textContaining('needs service'),
-          matching: find.byType(Container),
-        )
-        .first,
-  );
-
-  Color? bannerLabelColor(WidgetTester tester) =>
-      tester.widget<Text>(find.textContaining('needs service')).style?.color;
-
-  testWidgets('a due-soon alert uses the warn palette, banner and sheet', (
+  testWidgets('a due-soon alert marks its row with the warn palette', (
     tester,
   ) async {
-    await tester.pumpWidget(buildBanner(upcomingTrip(), [hydroAlert()]));
-    await tester.pumpAndSettle();
-
-    expect(banner(tester).color, StatusColors.light.warn.container);
-    expect(bannerLabelColor(tester), StatusColors.light.warn.onContainer);
-
-    await tester.tap(find.byType(InkWell).first);
+    await tester.pumpWidget(buildList([hydroAlert()]));
     await tester.pumpAndSettle();
 
     final dot = tester.widget<Icon>(find.byIcon(Icons.circle));
     expect(dot.color, StatusColors.light.warn.accent);
   });
 
-  testWidgets('overdue alert styles the banner and taps through to the item', (
+  testWidgets('an overdue alert reads overdue and taps through to the item', (
     tester,
   ) async {
     final overdue = (
@@ -200,15 +164,10 @@ void main() {
         now: now,
       ),
     );
-    await tester.pumpWidget(buildBanner(upcomingTrip(), [overdue]));
+    await tester.pumpWidget(buildList([overdue]));
     await tester.pumpAndSettle();
 
-    expect(banner(tester).color, StatusColors.light.alert.container);
-    expect(bannerLabelColor(tester), StatusColors.light.alert.onContainer);
-
-    await tester.tap(find.byType(InkWell).first);
-    await tester.pumpAndSettle();
-
+    expect(tripServiceAlertsAnyOverdue([overdue]), isTrue);
     expect(
       tester.widget<Icon>(find.byIcon(Icons.circle)).color,
       StatusColors.light.alert.accent,
@@ -217,7 +176,7 @@ void main() {
     // Overdue clocks phrase without a due date.
     expect(find.text('Hydrostatic test overdue'), findsOneWidget);
 
-    // Tapping the row closes the sheet and navigates to the item.
+    // Tapping the row navigates to the item.
     await tester.tap(find.text('AL80'));
     await tester.pumpAndSettle();
     expect(find.text('EQUIPMENT_PAGE'), findsOneWidget);
@@ -256,10 +215,7 @@ void main() {
           now: now,
         ),
       );
-      await tester.pumpWidget(buildBanner(upcomingTrip(), [usageOverdue]));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byType(InkWell).first);
+      await tester.pumpWidget(buildList([usageOverdue]));
       await tester.pumpAndSettle();
 
       expect(find.text('Reg service overdue'), findsOneWidget);
@@ -267,24 +223,4 @@ void main() {
       expect(find.textContaining('Reg service due'), findsNothing);
     },
   );
-
-  testWidgets('renders nothing when there are no alerts', (tester) async {
-    await tester.pumpWidget(buildBanner(upcomingTrip(), const []));
-    await tester.pumpAndSettle();
-    expect(find.byType(InkWell), findsNothing);
-  });
-
-  testWidgets('renders nothing for past trips', (tester) async {
-    final pastTrip = Trip(
-      id: 'trip-1',
-      name: 'Old trip',
-      startDate: now.subtract(const Duration(days: 30)),
-      endDate: now.subtract(const Duration(days: 23)),
-      createdAt: t0,
-      updatedAt: t0,
-    );
-    await tester.pumpWidget(buildBanner(pastTrip, [hydroAlert()]));
-    await tester.pumpAndSettle();
-    expect(find.byType(InkWell), findsNothing);
-  });
 }

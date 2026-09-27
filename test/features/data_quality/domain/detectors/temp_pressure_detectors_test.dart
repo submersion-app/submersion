@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/data_quality/domain/detectors/pressure_anomaly_detector.dart';
 import 'package:submersion/features/data_quality/domain/detectors/temp_anomaly_detector.dart';
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
+import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -414,6 +415,118 @@ void main() {
       final out = det.detect(ctx);
       final sac = out.singleWhere((f) => f.params.containsKey('surfaceLpm'));
       expect(sac.params['surfaceLpm'] as double, greaterThan(100.0));
+    });
+
+    // Shared depth shape for the consumption tests below: 10 m (2 atm) until
+    // the diver surfaces at t=420, then two more minutes of recording at the
+    // surface.
+    final surfacedAt420 = [
+      const QualitySample(t: 0, depth: 10),
+      const QualitySample(t: 420, depth: 10),
+      const QualitySample(t: 480, depth: 0.3),
+      const QualitySample(t: 540, depth: 0.2),
+    ];
+
+    Iterable<QualityFinding> sacFindings(List<QualityFinding> out) =>
+        out.where((f) => f.params.containsKey('surfaceLpm'));
+
+    test('a post-surfacing bleed-down tail does not read as implausible '
+        'consumption (#2224)', () {
+      // Underwater the cylinder drops 30 bar in 7 minutes: 30*12/7/2 = 25.7
+      // L/min, an ordinary rate. The 140 bar the tail sheds after surfacing
+      // is not breathing, but counting it (170 bar over 9 minutes) reads as
+      // 170*12/9/2 = 113 L/min, past the 100 L/min ceiling.
+      final ctx = makeContext(
+        dive: makeTestDive(avgDepth: 10, tanks: [tank(end: 170)]),
+        samples: surfacedAt420,
+        pressures: {
+          't1': const [
+            QualityPressureSample(t: 0, bar: 200),
+            QualityPressureSample(t: 420, bar: 170),
+            QualityPressureSample(t: 480, bar: 90),
+            QualityPressureSample(t: 540, bar: 30),
+          ],
+        },
+      );
+      expect(sacFindings(det.detect(ctx)), isEmpty);
+    });
+
+    test('genuinely implausible consumption is still measured up to '
+        'surfacing, not through the tail', () {
+      // 140 bar in 7 minutes underwater: 140*12/7/2 = 120 L/min. The finding
+      // reports that underwater drop and rate, never the 170 bar the series
+      // shows once the tail is included.
+      final ctx = makeContext(
+        dive: makeTestDive(avgDepth: 10, tanks: [tank(end: 60)]),
+        samples: surfacedAt420,
+        pressures: {
+          't1': const [
+            QualityPressureSample(t: 0, bar: 200),
+            QualityPressureSample(t: 420, bar: 60),
+            QualityPressureSample(t: 540, bar: 30),
+          ],
+        },
+      );
+      final sac = sacFindings(det.detect(ctx)).single;
+      expect(sac.params['dropBar'], closeTo(140.0, 1e-9));
+      expect(sac.params['surfaceLpm'], closeTo(120.0, 1e-6));
+    });
+
+    test('without a reported average depth, ambient pressure comes from the '
+        'same underwater window, not the surface tail', () {
+      // 110 bar in 7 minutes at 10 m: 110*12/7/2 = 94.3 L/min, under the
+      // ceiling. Averaging the depth samples through the tail as well
+      // (10, 10, 0.3, 0.2) gives 5.1 m, and dividing by that shallower
+      // ambient pressure reads 124.7 L/min.
+      final ctx = makeContext(
+        dive: makeTestDive(tanks: [tank(end: 90)]),
+        samples: surfacedAt420,
+        pressures: {
+          't1': const [
+            QualityPressureSample(t: 0, bar: 200),
+            QualityPressureSample(t: 420, bar: 90),
+            QualityPressureSample(t: 540, bar: 40),
+          ],
+        },
+      );
+      expect(sacFindings(det.detect(ctx)), isEmpty);
+    });
+
+    test('an underwater stretch shorter than the minimum window is not '
+        'measured, even when the tail makes the series long enough', () {
+      // Only 4 minutes of the series fall underwater, below
+      // sacMinSeriesSeconds, so there is no rate worth judging; the tail
+      // must not pad the window out to the minimum.
+      final ctx = makeContext(
+        dive: makeTestDive(avgDepth: 10, tanks: [tank(end: 60)]),
+        samples: surfacedAt420,
+        pressures: {
+          't1': const [
+            QualityPressureSample(t: 180, bar: 200),
+            QualityPressureSample(t: 420, bar: 60),
+            QualityPressureSample(t: 540, bar: 30),
+          ],
+        },
+      );
+      expect(sacFindings(det.detect(ctx)), isEmpty);
+    });
+
+    test('a series recorded entirely after surfacing measures no '
+        'consumption', () {
+      // Every reading is post-surfacing tail: the drop describes the
+      // cylinder bleeding down at the surface, not anyone breathing from it.
+      // Counted as consumption it would read 180*12/6/2 = 180 L/min.
+      final ctx = makeContext(
+        dive: makeTestDive(avgDepth: 10, tanks: [tank(end: 20)]),
+        samples: surfacedAt420,
+        pressures: {
+          't1': const [
+            QualityPressureSample(t: 480, bar: 200),
+            QualityPressureSample(t: 840, bar: 20),
+          ],
+        },
+      );
+      expect(sacFindings(det.detect(ctx)), isEmpty);
     });
   });
 }

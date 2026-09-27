@@ -4109,6 +4109,7 @@
   "dashboard_serviceDue_more": "+{count} további",
   "dashboard_alerts_clockDue": "{name}: {kind} esedékes",
   "dashboard_alerts_clockOverdue": "{name}: {kind} lejárt",
+  "trips_gearAlerts_count": "{count, plural, one{{count} felszerelési figyelmeztetés ehhez az utazáshoz} other{{count} felszerelési figyelmeztetés ehhez az utazáshoz}}",
   "trips_serviceAlert_count": "{count, plural, =1{1 felszerelés szervizt igényel az utazás előtt} other{{count} felszerelés szervizt igényel az utazás előtt}}",
   "trips_serviceAlert_dueBefore": "{kind} esedékes: {date}",
   "equipment_service_overdue": "{kind} lejárt",

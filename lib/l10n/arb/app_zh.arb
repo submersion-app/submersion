@@ -4357,6 +4357,7 @@
   "dashboard_serviceDue_more": "+{count} 项",
   "dashboard_alerts_clockDue": "{name}：{kind}到期",
   "dashboard_alerts_clockOverdue": "{name}：{kind}已逾期",
+  "trips_gearAlerts_count": "{count, plural, other{此行程有 {count} 条装备提醒}}",
   "trips_serviceAlert_count": "{count, plural, other{{count} 件装备需要在此行程前维护}}",
   "trips_serviceAlert_dueBefore": "{kind}将于 {date} 到期",
   "equipment_service_overdue": "{kind}已逾期",

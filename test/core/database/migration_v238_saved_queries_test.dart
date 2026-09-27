@@ -19,12 +19,36 @@ Future<Set<String>> _columns(AppDatabase db, String table) async {
 }
 
 void main() {
-  test('v238 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 238);
+  test('v238 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v239 (regulator part service kinds) landed on top; the
+    // newest rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(238));
     expect(AppDatabase.migrationVersions, contains(238));
-    expect(AppDatabase.migrationStepCount(234), 1);
+    expect(AppDatabase.migrationStepCount(234), greaterThanOrEqualTo(1));
+  });
+
+  test('a database already past v238 without the table gains it', () async {
+    // v238 sits below v239, so a database a v239 build created skips the
+    // rung; only the beforeOpen backstop can add the table there.
+    final nativeDb = NativeDatabase.memory(
+      setup: (rawDb) {
+        rawDb.execute(
+          'PRAGMA user_version = ${AppDatabase.currentSchemaVersion}',
+        );
+        rawDb.execute('''
+          CREATE TABLE divers (
+            id TEXT NOT NULL PRIMARY KEY,
+            name TEXT NOT NULL,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+          )
+        ''');
+      },
+    );
+    final db = AppDatabase(nativeDb);
+    addTearDown(db.close);
+
+    expect(await _tables(db), contains('saved_queries'));
   });
 
   test(

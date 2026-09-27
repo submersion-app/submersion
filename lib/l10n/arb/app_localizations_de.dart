@@ -13062,6 +13062,17 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String trips_gearAlerts_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Ausrüstungshinweise für diese Reise',
+      one: '$count Ausrüstungshinweis für diese Reise',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

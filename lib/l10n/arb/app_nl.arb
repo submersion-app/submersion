@@ -4211,6 +4211,7 @@
   "dashboard_serviceDue_more": "+{count} meer",
   "dashboard_alerts_clockDue": "{name}: {kind} nodig",
   "dashboard_alerts_clockOverdue": "{name}: {kind} achterstallig",
+  "trips_gearAlerts_count": "{count, plural, one{{count} uitrustingsmelding voor deze reis} other{{count} uitrustingsmeldingen voor deze reis}}",
   "trips_serviceAlert_count": "{count, plural, =1{1 item heeft vóór deze reis service nodig} other{{count} items hebben vóór deze reis service nodig}}",
   "trips_serviceAlert_dueBefore": "{kind} vervalt op {date}",
   "equipment_service_overdue": "{kind} achterstallig",
