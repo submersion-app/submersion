@@ -24,6 +24,10 @@ class GarminActivitySummary {
     this.longitude,
     this.exitLatitude,
     this.exitLongitude,
+    this.localStartTime,
+    this.notes,
+    this.isManual = false,
+    this.weightKg,
   });
 
   final int activityId;
@@ -31,6 +35,23 @@ class GarminActivitySummary {
   /// Activity start in UTC. Approximate -- the authoritative dive start comes
   /// from the FIT file once downloaded.
   final DateTime startTime;
+
+  /// Activity start as the wall clock where the dive happened, held as
+  /// wall-clock-as-UTC like every stored dive time. Only a dive imported
+  /// from its summary uses it (issue #2410); a FIT file carries its own.
+  final DateTime? localStartTime;
+
+  /// The notes the diver wrote in Connect (`description`), trimmed; null
+  /// when there are none. A FIT file never carries them (issue #2410).
+  final String? notes;
+
+  /// Whether the activity was entered by hand in Connect, so has no FIT
+  /// file to download.
+  final bool isManual;
+
+  /// The dive weight the diver entered in Connect, in kilograms. Null unless
+  /// Connect named a unit this client can read (issue #2410).
+  final double? weightKg;
 
   /// Garmin activity type key, e.g. `single_gas_diving`.
   final String activityType;
@@ -408,15 +429,43 @@ class GarminConnectClient {
   /// Downloads an activity's original upload. Garmin serves this as a ZIP
   /// archive wrapping the FIT file, even for a single activity, so the
   /// archive is unwrapped here and only the FIT bytes are returned.
+  ///
+  /// Throws [GarminNoFitException] when Garmin has no FIT for the activity:
+  /// a 404, an empty body, or an archive with no `.fit` inside. Transient
+  /// faults have already been retried by then, so these are final.
   Future<Uint8List> downloadActivityFit(int activityId) async {
-    final response = await _apiRequest(
-      'GET',
-      Uri.parse('$_apiBase/download-service/files/activity/$activityId'),
-    );
+    final http.Response response;
+    try {
+      response = await _apiRequest(
+        'GET',
+        Uri.parse('$_apiBase/download-service/files/activity/$activityId'),
+      );
+    } on GarminApiException catch (e) {
+      if (e.statusCode != 404) rethrow;
+      throw GarminNoFitException(
+        'Garmin has no FIT file for activity $activityId',
+        statusCode: 404,
+      );
+    }
     return _extractFitBytes(response.bodyBytes, activityId);
   }
 
   static Uint8List _extractFitBytes(Uint8List bytes, int activityId) {
+    if (bytes.isEmpty) {
+      throw GarminNoFitException(
+        'Garmin returned an empty download for activity $activityId',
+      );
+    }
+    // ZipDecoder reads a body that is not a ZIP at all as an empty archive,
+    // which would pass for "no FIT inside". A garbled or truncated body may
+    // be transient, so anything without the ZIP signature stays an ordinary
+    // failure the diver can retry.
+    if (!_hasZipSignature(bytes)) {
+      throw GarminApiException(
+        'Garmin returned an unreadable activity archive for activity '
+        '$activityId',
+      );
+    }
     final Archive archive;
     try {
       archive = ZipDecoder().decodeBytes(bytes, verify: false);
@@ -433,9 +482,23 @@ class GarminConnectClient {
         return Uint8List.fromList(entry.readBytes() ?? const <int>[]);
       }
     }
-    throw GarminApiException(
+    throw GarminNoFitException(
       'Garmin activity $activityId archive contained no FIT file',
     );
+  }
+
+  /// Whether [bytes] open with a full ZIP record signature: a local file
+  /// header (`PK 03 04`), the end record of an empty archive (`PK 05 06`),
+  /// or a spanned-archive marker (`PK 07 08`). `PK` alone is not enough,
+  /// since a plain-text error body can start with it.
+  static bool _hasZipSignature(Uint8List bytes) {
+    if (bytes.length < 4 || bytes[0] != 0x50 || bytes[1] != 0x4B) {
+      return false;
+    }
+    final (third, fourth) = (bytes[2], bytes[3]);
+    return (third == 0x03 && fourth == 0x04) ||
+        (third == 0x05 && fourth == 0x06) ||
+        (third == 0x07 && fourth == 0x08);
   }
 
   GarminActivitySummary? _toActivitySummary(Map<String, dynamic> item) {
@@ -444,7 +507,11 @@ class GarminConnectClient {
     if (typeKey == null || !_isDiveType(typeKey)) return null;
 
     final activityId = (item['activityId'] as num?)?.toInt();
-    final startTime = _parseGarminUtc(item['startTimeGMT'] as String?);
+    final localStartTime = _parseGarminUtc(_stringOf(item['startTimeLocal']));
+    // The local start stands in for a missing GMT one, rather than the item
+    // being dropped: a summary-only import uses the local start anyway.
+    final startTime =
+        _parseGarminUtc(_stringOf(item['startTimeGMT'])) ?? localStartTime;
     if (activityId == null || startTime == null) return null;
 
     return GarminActivitySummary(
@@ -458,7 +525,55 @@ class GarminConnectClient {
       longitude: (item['startLongitude'] as num?)?.toDouble(),
       exitLatitude: (item['endLatitude'] as num?)?.toDouble(),
       exitLongitude: (item['endLongitude'] as num?)?.toDouble(),
+      localStartTime: localStartTime,
+      notes: _notesOf(item['description']),
+      isManual: item['manualActivity'] == true,
+      weightKg: _diveWeightKg(item['summarizedDiveInfo']),
     );
+  }
+
+  static String? _stringOf(Object? value) => value is String ? value : null;
+
+  /// Connect sends "no notes" as an absent key, a null or an empty string.
+  static String? _notesOf(Object? description) {
+    if (description is! String) return null;
+    final text = description.trim();
+    return text.isEmpty ? null : text;
+  }
+
+  static const double _kgPerPound = 0.45359237;
+
+  /// Heavier than any real dive weight, so a value past it is read as a
+  /// unit this client has misunderstood rather than imported.
+  static const double _maxPlausibleWeightKg = 50;
+
+  /// The dive weight from `summarizedDiveInfo`, in kilograms.
+  ///
+  /// The key names come from a captured Connect response, but no capture of
+  /// a dive with weight set has been found, so the unit's shape is a guess.
+  /// It is accepted as a plain string or a `{unitKey}` object, and only for
+  /// kilograms or pounds; anything else is dropped rather than guessed at.
+  static double? _diveWeightKg(Object? diveInfo) {
+    // Every value is type-checked rather than cast: a shape this client did
+    // not expect must drop the weight, not throw and lose the listing page.
+    if (diveInfo is! Map<String, dynamic>) return null;
+    final rawWeight = diveInfo['weight'];
+    if (rawWeight is! num || rawWeight <= 0) return null;
+    final weight = rawWeight.toDouble();
+
+    final unit = diveInfo['weightUnit'];
+    final unitKey = switch (unit) {
+      String() => unit,
+      Map<String, dynamic>() => _stringOf(unit['unitKey']),
+      _ => null,
+    }?.toLowerCase();
+    final kg = switch (unitKey) {
+      'kilogram' || 'kg' => weight,
+      'pound' || 'lb' => weight * _kgPerPound,
+      _ => null,
+    };
+    if (kg == null || kg > _maxPlausibleWeightKg) return null;
+    return kg;
   }
 
   static bool _isDiveType(String typeKey) {
@@ -467,7 +582,8 @@ class GarminConnectClient {
   }
 
   /// Garmin serves `startTimeGMT` as `yyyy-MM-dd HH:mm:ss` with no zone
-  /// designator, despite it being UTC.
+  /// designator, despite it being UTC. `startTimeLocal` has the same shape,
+  /// and read this way yields the wall-clock-as-UTC form dive times use.
   static DateTime? _parseGarminUtc(String? value) {
     if (value == null || value.isEmpty) return null;
     return DateTime.tryParse('${value.replaceFirst(' ', 'T')}Z');

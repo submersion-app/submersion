@@ -41,7 +41,12 @@ void main() {
   });
 
   test('the column is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
+    // An older reader ignores the column. v240 raised the floor later, for
+    // its own reasons.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(224),
+    );
   });
 
   test('a fresh database has the switch, off', () async {

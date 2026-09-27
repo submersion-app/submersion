@@ -44,7 +44,9 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
     EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, String> equipmentSetNamesById = const {},
+    DateTime? generatedAt,
   }) async {
+    final stamp = generatedAt ?? DateTime.now();
     final pdf = pw.Document(theme: PdfFonts.instance.theme);
     final pageFormat = getPageFormat(pageSize);
 
@@ -221,7 +223,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text(
-                    'Generated ${dates.date(DateTime.now())}',
+                    'Generated ${dates.date(stamp)}',
                     style: const pw.TextStyle(
                       fontSize: 8,
                       color: PdfColors.grey500,

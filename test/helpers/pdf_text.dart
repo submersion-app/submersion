@@ -85,6 +85,70 @@ List<({String text, double y})> pdfTextBaselines(List<int> bytes) {
   return result;
 }
 
+/// The text of a PDF whose fonts are embedded as Unicode subsets, decoded once
+/// per subset.
+///
+/// Once PdfFonts loads Roboto, the `pdf` package writes each word as a hex
+/// string of indices into that font's subset (`[<00120003>]TJ`) and gives each
+/// font a `ToUnicode` map (`<0012> <0047>` pairs) to read them back, which is
+/// why [pdfVisibleText] finds nothing. Which font a word was set in is not
+/// tracked, so every map decodes every word: one returned string reads as the
+/// text set in that font and the rest are noise. Assert with
+/// `anyElement(contains(...))`.
+///
+/// It reads only the forms the `pdf` package writes: `beginbfchar` maps (not
+/// `beginbfrange`) and 4-digit hex strings inside `[...]TJ` arrays (not
+/// `Tj`). A PDF from another writer may use those, and its text will be
+/// missing here rather than wrong in the document.
+List<String> pdfSubsetTexts(List<int> bytes) {
+  final streams = _streamPayloads(bytes).toList();
+  final maps = [
+    for (final stream in streams)
+      if (_bfcharBlock.allMatches(stream).toList() case final blocks
+          when blocks.isNotEmpty)
+        {
+          for (final block in blocks)
+            for (final pair in _bfchar.allMatches(block.group(1)!))
+              int.parse(pair.group(1)!, radix: 16): int.parse(
+                pair.group(2)!,
+                radix: 16,
+              ),
+        },
+  ];
+  // One entry per `[...]TJ` array; kerning can split a word across several
+  // hex strings inside one array.
+  final words = [
+    for (final stream in streams)
+      for (final array in _showTextArray.allMatches(stream))
+        _hexString.allMatches(array.group(1)!).map((h) => h.group(1)!).join(),
+  ]..removeWhere((word) => word.isEmpty);
+  return [
+    for (final map in maps)
+      [
+        for (final word in words)
+          String.fromCharCodes([
+            for (var i = 0; i < word.length; i += 4)
+              // A trailing fragment shorter than 4 digits is not a subset
+              // index; show it as U+FFFD rather than dropping it unseen.
+              if (i + 4 > word.length)
+                0xFFFD
+              else
+                map[int.parse(word.substring(i, i + 4), radix: 16)] ?? 0xFFFD,
+          ]),
+      ].join(' '),
+  ];
+}
+
+/// The entries between `beginbfchar` and `endbfchar`, so no other hex pair in
+/// the stream is read as one.
+final _bfcharBlock = RegExp(r'beginbfchar(.*?)endbfchar', dotAll: true);
+
+/// One `<index> <code point>` entry of a `ToUnicode` map.
+final _bfchar = RegExp(r'<([0-9A-Fa-f]{4})>\s*<([0-9A-Fa-f]{4})>');
+
+/// A PDF hex string, as a Unicode subset font writes text.
+final _hexString = RegExp(r'<([0-9A-Fa-f]+)>');
+
 /// `cm` with its six operands, the y operand of `Td`, a `[...]TJ` array, or a
 /// bare `BT`, `q` or `Q`.
 final _positionOp = RegExp(

@@ -87,14 +87,16 @@ void main() {
   }
 
   test('v234 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v237 (the dive figure switch, issue #2326) and v239
-    // (regulator part service kinds) landed on top; the newest rung owns
-    // the exact assertion.
+    // Relaxed once v237 (#2326), v239 (#2275) and v240 (#1926) landed on
+    // top; the newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(234));
     expect(AppDatabase.migrationVersions, contains(234));
     expect(AppDatabase.migrationStepCount(233), greaterThanOrEqualTo(1));
-    // Additive rung: the sync compatibility floor must not move.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
+    // Additive rung: it did not move the floor (v240 raised it later).
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(224),
+    );
   });
 
   test('adds equipment_shares and equipment_ownership_events', () async {

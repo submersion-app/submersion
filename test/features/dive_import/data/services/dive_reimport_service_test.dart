@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
+import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/features/dive_import/data/services/dive_reimport_service.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -1332,10 +1334,16 @@ void main() {
         now: DateTime(2026, 9, 3),
       );
 
-      final tombstones = await (db.select(
-        db.deletionLog,
-      )..where((t) => t.entityType.equals('diveProfileEvents'))).get();
-      expect(tombstones.map((r) => r.recordId), ['ev-old']);
+      // One tombstone for the dive's events, not one per event (#1926).
+      final tombstones = await db.select(db.deletionLog).get();
+      expect(
+        tombstones.where((r) => r.entityType == 'diveProfileEvents'),
+        isEmpty,
+      );
+      final scope = tombstones.singleWhere(
+        (r) => r.entityType == EventScopeTombstone.entityType,
+      );
+      expect(scope.recordId, diveId);
 
       final pending = await syncRepository.getPendingRecords();
       final pendingEvents = [
@@ -1346,6 +1354,12 @@ void main() {
         db.diveProfileEvents,
       )..where((t) => t.diveId.equals(diveId))).get();
       expect(pendingEvents, unorderedEquals(fresh.map((e) => e.id)));
+      // A peer deletes only events that predate the scope; the fresh ones
+      // must be newer or they would go too.
+      final scopeClock = Hlc.parse(scope.originHlc!);
+      for (final e in fresh) {
+        expect(Hlc.parse(e.hlc!).compareTo(scopeClock), greaterThan(0));
+      }
     });
   });
 
@@ -1388,11 +1402,12 @@ void main() {
       expect(source.gradientFactorHigh, isNull);
     });
 
-    test('snapshots the derived bottom time, not the absent duration '
-        'key', () async {
+    test('snapshots the runtime, not the absent duration key or a derived '
+        'bottom time', () async {
       // UDDF never sets `duration`, so reading it alone left the Sources panel
       // advertising the duration of the profile the resync had just deleted.
-      // The synthesised source row stores the derived bottom time.
+      // The source row stores the runtime the parse reports, never a bottom
+      // time derived from the profile (issue #2421).
       final diveId = await seedDive(notes: '', buddy: '');
       await db
           .into(db.diveDataSources)
@@ -1420,7 +1435,7 @@ void main() {
       final source = await (db.select(
         db.diveDataSources,
       )..where((t) => t.id.equals('src-1'))).getSingle();
-      expect(source.duration, 1200);
+      expect(source.duration, 25 * 60);
     });
 
     test('derives the snapshot window the way the first import '

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -7,8 +8,11 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/passport_resolver.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -103,6 +107,71 @@ void main() {
     expect(find.text('passport eq-1'), findsOneWidget);
     expect(passportExtra, isA<CylinderPassportPayload>());
     expect((passportExtra! as CylinderPassportPayload).volumeL, 10);
+  });
+
+  testWidgets('a cylinder shared with the diver resolves as their own', (
+    tester,
+  ) async {
+    // Diver A owns the cylinder and shares it with diver B, who scans it.
+    await tester.runAsync(() async {
+      final t = DateTime.now().millisecondsSinceEpoch;
+      for (final d in ['d-a', 'd-b']) {
+        await db
+            .into(db.divers)
+            .insert(
+              DiversCompanion.insert(
+                id: d,
+                name: d,
+                createdAt: t,
+                updatedAt: t,
+              ),
+            );
+      }
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: 'eq-a',
+              name: 'Faber 12',
+              type: 'tank',
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value('d-a'),
+            ),
+          );
+      await CylinderPassportRepository().assignPassportId(
+        equipmentId: 'eq-a',
+        passportId: id,
+        diverId: 'd-a',
+      );
+      await EquipmentShareRepository().shareMany(
+        equipmentIds: ['eq-a'],
+        diverIds: ['d-b'],
+        actingDiverId: 'd-a',
+      );
+    });
+    late WidgetRef scanner;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...await getBaseOverrides(),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd-b'),
+        ].cast(),
+        child: Consumer(
+          builder: (context, ref, _) {
+            scanner = ref;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    final resolution = await tester.runAsync(
+      () => resolveScannedTag(scanner, tag),
+    );
+    expect(
+      resolution,
+      isA<OwnCylinder>().having((r) => r.equipmentId, 'equipmentId', 'eq-a'),
+    );
   });
 
   testWidgets('a tag nobody holds opens the foreign passport', (tester) async {
