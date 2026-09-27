@@ -1493,8 +1493,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ),
           onChanged: (d) => setState(() => _equipmentDelta = d),
           ensureOn: _equipmentEnsureOn,
-          // Assembly and part-of chips, as on the equipment list (#1487).
-          trailingBuilder: (item) => AssemblyChips(itemId: item.id),
+          // Assembly and part-of chips, as on the equipment list (#1487). They
+          // go under the name, not in the trailing slot: a long assembly name
+          // there squeezed the row to one character per line (#2276).
+          detailBuilder: (item) => AssemblyChips(itemId: item.id),
         ),
         BulkMembershipEditor(
           title: l10n.diveLog_edit_group_buddies,
