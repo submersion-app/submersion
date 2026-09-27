@@ -216,6 +216,7 @@ Widget _buildStartupWrapper({
   RestoreJournal Function(String dbPath)? restoreJournalFactory,
   StartupRecoveryService? recoveryServiceOverride,
   Future<String?> Function()? pickBackupFileOverride,
+  bool Function()? databaseOpenedOverride,
 }) {
   return StartupWrapper(
     prefs: prefs,
@@ -238,6 +239,7 @@ Widget _buildStartupWrapper({
         restoreJournalFactory ?? (_) => _FakeRestoreJournal(),
     recoveryServiceOverride: recoveryServiceOverride,
     pickBackupFileOverride: pickBackupFileOverride,
+    databaseOpenedOverride: databaseOpenedOverride,
   );
 }
 
@@ -3271,6 +3273,7 @@ void main() {
       required DatabaseLocationService locationService,
       required ServiceInitializer initializer,
       StartupRecoveryService? recoveryServiceOverride,
+      bool databaseOpened = false,
     }) async {
       await tester.pumpWidget(
         _buildStartupWrapper(
@@ -3281,6 +3284,9 @@ void main() {
               (needsMigration: false, totalSteps: 0),
           initializerOverride: initializer,
           recoveryServiceOverride: recoveryServiceOverride,
+          // Stated rather than read from the process-wide DatabaseService,
+          // so a connection another test left open cannot leak in here.
+          databaseOpenedOverride: () => databaseOpened,
         ),
       );
       await tester.pump(const Duration(seconds: 2));
@@ -3489,6 +3495,33 @@ void main() {
     // The probe runs on a screen the diver reached because something already
     // went wrong. If it fails too, the original failure has to be what they
     // see, not a second terminal state.
+    // Copilot on PR 2497: a service that fails AFTER the database opened
+    // reached the file. The folder may be gone now, but the file may have
+    // been written, and relaunching at the default location would reuse the
+    // connection that is still open.
+    testWidgets('a failure after the database opened keeps the data routes', (
+      tester,
+    ) async {
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+        ),
+        databaseOpened: true,
+        initializer: (_) async => throw revokedAccess,
+      );
+
+      expect(
+        find.text("Your dive log's folder can't be reached"),
+        findsNothing,
+      );
+      expect(find.text('Go back to the app default location'), findsNothing);
+      expect(find.text('Submersion could not start'), findsOneWidget);
+      expect(find.text('Start with an empty dive log'), findsOneWidget);
+    });
+
     testWidgets('a probe that throws leaves the original failure on screen', (
       tester,
     ) async {

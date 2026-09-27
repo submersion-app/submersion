@@ -113,6 +113,10 @@ class DatabaseService {
   /// The current database file path (set after initialization)
   String? get currentPath => _currentDatabasePath;
 
+  /// Whether a connection is open. Set only once the open itself succeeded,
+  /// so true proves the file was reached.
+  bool get isOpen => _database != null;
+
   /// For testing only: allows injecting a test database
   @visibleForTesting
   void setTestDatabase(AppDatabase db) {

@@ -125,13 +125,16 @@ const List<String> _unreadableDataMarkers = [
 /// surfaces as a plain file error, or as SQLite failing to open or read the
 /// file, none of which names the folder. It outranks everything but an engine
 /// failure, because until the folder can be reached no other answer helps.
-/// Except during the upgrade: the probe only proves the folder is unreachable
-/// NOW, and the ladder may already have written to the file, so the screen
-/// that keeps the safety copy on offer is the honest one.
+/// Except once the file was reached: the probe only proves the folder is
+/// unreachable NOW. [databaseOpened] means a connection was made, after which
+/// the ladder or any later service may have written to the file; and during
+/// the upgrade the ladder is writing by definition. Either way the screen
+/// that keeps the backups and the safety copy on offer is the honest one.
 StartupFailureKind classifyStartupFailure(
   Object error,
   StartupPhase phase, {
   bool locationUnreachable = false,
+  bool databaseOpened = false,
 }) {
   if (error is DatabaseEngineUnavailableException) {
     return StartupFailureKind.engineUnavailable;
@@ -143,7 +146,9 @@ StartupFailureKind classifyStartupFailure(
     return StartupFailureKind.engineUnavailable;
   }
 
-  if (locationUnreachable && phase != StartupPhase.upgrading) {
+  if (locationUnreachable &&
+      !databaseOpened &&
+      phase != StartupPhase.upgrading) {
     return StartupFailureKind.locationUnreachable;
   }
 

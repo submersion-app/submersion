@@ -272,6 +272,29 @@ void main() {
       );
     });
 
+    // Copilot on PR 2497: `opening` also covers every service started after
+    // the database opened. Once a connection exists the file was reached, and
+    // anything after that may have written to it.
+    test(
+      'a failure after the database opened is never blamed on the folder',
+      () {
+        for (final phase in StartupPhase.values) {
+          final kind = classifyStartupFailure(
+            Exception('notifications blew up'),
+            phase,
+            locationUnreachable: true,
+            databaseOpened: true,
+          );
+          expect(
+            kind,
+            isNot(StartupFailureKind.locationUnreachable),
+            reason: '$phase',
+          );
+          expect(kind.dataIsAtRisk, isTrue, reason: '$phase');
+        }
+      },
+    );
+
     test('an engine failure still outranks an unreachable folder', () {
       // The database was never opened, so the folder is not why startup
       // stopped, and pointing the diver at it would hide the packaging fault.

@@ -199,6 +199,12 @@ class StartupWrapper extends StatefulWidget {
   @visibleForTesting
   final StartupRecoveryService? recoveryServiceOverride;
 
+  /// Optional override for "did this launch open a database connection"
+  /// (used in tests). The real answer lives on the process-wide
+  /// DatabaseService, which another test may have left open.
+  @visibleForTesting
+  final bool Function()? databaseOpenedOverride;
+
   const StartupWrapper({
     super.key,
     required this.prefs,
@@ -215,6 +221,7 @@ class StartupWrapper extends StatefulWidget {
     this.restoreJournalFactory,
     this.recoveryServiceOverride,
     this.pickBackupFileOverride,
+    this.databaseOpenedOverride,
   });
 
   @override
@@ -493,6 +500,12 @@ class _StartupWrapperState extends State<StartupWrapper>
       error,
       _phase,
       locationUnreachable: unreachableFolder != null,
+      // A connection that opened reached the file, and relaunching at the
+      // default location would reuse it: initialize() returns early while a
+      // database is open.
+      databaseOpened:
+          (widget.databaseOpenedOverride ??
+          () => DatabaseService.instance.isOpen)(),
     );
     debugPrint('FATAL: App initialization failed (${kind.name}): $error');
     if (!mounted) return;
