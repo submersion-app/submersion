@@ -14,6 +14,8 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_factory.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -24,10 +26,16 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 /// Handles PDF export for dive logbooks and trip reports.
 class PdfExportService {
-  /// [now] is the clock a logbook export is stamped with, injectable so tests
-  /// can pin it (#2446).
-  PdfExportService({DateTime Function()? now}) : _now = now ?? DateTime.now;
+  /// [templateFor] picks the builder for a template; tests pass one that
+  /// records what it was handed. [now] is the clock a logbook export is
+  /// stamped with, injectable so tests can pin it (#2446).
+  PdfExportService({
+    PdfTemplateBuilder Function(PdfTemplate)? templateFor,
+    DateTime Function()? now,
+  }) : _templateFor = templateFor ?? PdfTemplateFactory().getBuilder,
+       _now = now ?? DateTime.now;
 
+  final PdfTemplateBuilder Function(PdfTemplate) _templateFor;
   final DateTime Function() _now;
 
   /// File names stay ISO no matter what the diver reads in the document, so a
@@ -36,20 +44,30 @@ class PdfExportService {
 
   // ==================== Trip PDF ====================
 
-  /// Export trip with dives to PDF.
+  /// Export trip with dives to PDF, in [localization]'s language (#2252).
+  /// Null prints English.
   Future<String> exportTripToPdf(
     Trip trip,
     List<Dive> dives, {
     required PdfDateFormatter dates,
     required UnitFormatter units,
     TripWithStats? stats,
+    PdfLocalization? localization,
   }) async {
-    final pdf = pw.Document();
+    final loc = localization ?? PdfLocalization.english();
+    final l10n = loc.l10n;
+    // Month names and AM/PM in the report's language (#2252).
+    final localDates = dates.inLanguage(loc.languageCode);
+    // Roboto, not the built-in Helvetica: Helvetica stops at U+00FF, so a
+    // translated label such as Hungarian "Időtartam" would print boxes.
+    await PdfFonts.instance.initialize();
+    final pdf = pw.Document(theme: await PdfFonts.instance.themeFor(loc));
 
     // Title page
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
+        textDirection: loc.textDirection,
         build: (context) => pw.Center(
           child: pw.Column(
             mainAxisAlignment: pw.MainAxisAlignment.center,
@@ -63,7 +81,7 @@ class PdfExportService {
               ),
               pw.SizedBox(height: 20),
               pw.Text(
-                '${dates.date(trip.startDate)} - ${dates.date(trip.endDate)}',
+                '${localDates.date(trip.startDate)} - ${localDates.date(trip.endDate)}',
                 style: const pw.TextStyle(fontSize: 18),
               ),
               if (trip.location != null) ...[
@@ -76,20 +94,23 @@ class PdfExportService {
               if (trip.resortName != null) ...[
                 pw.SizedBox(height: 10),
                 pw.Text(
-                  'Resort: ${trip.resortName}',
+                  l10n.pdf_labelValue(l10n.pdf_resort, trip.resortName!),
                   style: const pw.TextStyle(fontSize: 14),
                 ),
               ],
               if (trip.liveaboardName != null) ...[
                 pw.SizedBox(height: 10),
                 pw.Text(
-                  'Liveaboard: ${trip.liveaboardName}',
+                  l10n.pdf_labelValue(
+                    l10n.pdf_liveaboard,
+                    trip.liveaboardName!,
+                  ),
                   style: const pw.TextStyle(fontSize: 14),
                 ),
               ],
               pw.SizedBox(height: 30),
               pw.Text(
-                '${dives.length} Dives',
+                l10n.pdf_coverDiveCount(dives.length),
                 style: const pw.TextStyle(
                   fontSize: 24,
                   fontWeight: pw.FontWeight.bold,
@@ -98,7 +119,10 @@ class PdfExportService {
               if (stats != null) ...[
                 pw.SizedBox(height: 10),
                 pw.Text(
-                  'Total Runtime: ${stats.formattedRuntime}',
+                  l10n.pdf_labelValue(
+                    l10n.pdf_totalRuntime,
+                    stats.formattedRuntime,
+                  ),
                   style: const pw.TextStyle(fontSize: 14),
                 ),
               ],
@@ -115,32 +139,54 @@ class PdfExportService {
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
           crossAxisAlignment: pw.CrossAxisAlignment.start,
+          textDirection: loc.textDirection,
           build: (context) => [
             pw.Text(
-              'Dive ${dive.diveNumber ?? ""}',
+              l10n.pdf_tripDiveTitle('${dive.diveNumber ?? ""}'),
               style: const pw.TextStyle(
                 fontSize: 24,
                 fontWeight: pw.FontWeight.bold,
               ),
             ),
             pw.SizedBox(height: 10),
-            pw.Text('Date: ${dates.dateTime(dive.dateTime)}'),
-            if (dive.site != null) pw.Text('Site: ${dive.site!.name}'),
+            pw.Text(
+              l10n.pdf_labelValue(
+                l10n.pdf_date,
+                localDates.dateTime(dive.dateTime),
+              ),
+            ),
+            if (dive.site != null)
+              pw.Text(l10n.pdf_labelValue(l10n.pdf_site, dive.site!.name)),
             pw.SizedBox(height: 10),
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 if (dive.maxDepth != null)
-                  pw.Text('Max Depth: ${units.formatDepth(dive.maxDepth)}'),
+                  pw.Text(
+                    l10n.pdf_labelValue(
+                      l10n.pdf_maxDepth,
+                      units.formatDepth(dive.maxDepth),
+                    ),
+                  ),
                 if (dive.effectiveRuntime != null)
-                  pw.Text('Duration: ${dive.effectiveRuntime!.inMinutes} min'),
+                  pw.Text(
+                    l10n.pdf_labelValue(
+                      l10n.pdf_duration,
+                      l10n.pdf_minutes('${dive.effectiveRuntime!.inMinutes}'),
+                    ),
+                  ),
               ],
             ),
             if (dive.waterTemp != null)
-              pw.Text('Water Temp: ${units.formatTemperature(dive.waterTemp)}'),
+              pw.Text(
+                l10n.pdf_labelValue(
+                  l10n.pdf_waterTemp,
+                  units.formatTemperature(dive.waterTemp),
+                ),
+              ),
             if (dive.notes.isNotEmpty) ...[
               pw.SizedBox(height: 10),
-              pw.Text('Notes:'),
+              pw.Text(l10n.pdf_notesLabel),
               // TextOverflow.span is what lets MultiPage break the notes
               // across sheets.
               pw.Text(dive.notes, overflow: pw.TextOverflow.span),
@@ -168,7 +214,7 @@ class PdfExportService {
     required PdfDateFormatter dates,
     required UnitFormatter units,
     PdfExportOptions options = const PdfExportOptions(),
-    String title = 'Dive Logbook',
+    String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
     Diver? diver,
@@ -203,14 +249,18 @@ class PdfExportService {
     // Read once, so the cover's stamp and the file name show the same moment.
     final generatedAt = _now();
 
-    final builder = PdfTemplateFactory().getBuilder(options.template);
+    final builder = _templateFor(options.template);
+    // The language picked in the export sheet (#2252). A null title lets the
+    // template head the document in that language, and dates name months in
+    // it too.
+    final localization = PdfLocalization.forLanguageCode(options.languageCode);
     final pdfBytes = await builder.buildPdf(
       generatedAt: generatedAt,
       gearArrangement: gearArrangement,
       equipmentSetNamesById: equipmentSetNamesById,
       dives: dives,
       pageSize: options.pageSize,
-      dates: dates,
+      dates: dates.inLanguage(localization.languageCode),
       units: units,
       title: title,
       diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
@@ -222,6 +272,7 @@ class PdfExportService {
       diverPhoto: diverPhoto,
       includeVerificationAreas: options.includeVerificationAreas,
       diveTypesById: diveTypesById,
+      localization: localization,
     );
 
     final fileName =
@@ -236,7 +287,7 @@ class PdfExportService {
     required PdfDateFormatter dates,
     required UnitFormatter units,
     PdfExportOptions options = const PdfExportOptions(),
-    String title = 'Dive Logbook',
+    String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
     Diver? diver,
@@ -268,7 +319,7 @@ class PdfExportService {
     required PdfDateFormatter dates,
     required UnitFormatter units,
     PdfExportOptions options = const PdfExportOptions(),
-    String title = 'Dive Logbook',
+    String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
     Diver? diver,

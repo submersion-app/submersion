@@ -16,11 +16,42 @@ class PdfDateFormatter {
   PdfDateFormatter({
     required DateFormatPreference dateFormat,
     required TimeFormat timeFormat,
-  }) : _date = DateFormat(dateFormat.pattern),
-       _time = DateFormat(timeFormat.pattern);
+  }) : this._(dateFormat.pattern, timeFormat.pattern, null);
 
+  PdfDateFormatter._(this._datePattern, this._timePattern, String? locale)
+    : _date = DateFormat(_datePattern, locale),
+      _time = DateFormat(_timePattern, locale);
+
+  final String _datePattern;
+  final String _timePattern;
   final DateFormat _date;
   final DateFormat _time;
+
+  /// The same patterns, with month names and AM/PM in [languageCode] (#2252).
+  ///
+  /// Without this a French logbook exported from an English app read
+  /// "Aug 17, 2026": [DateFormat] otherwise follows `Intl.defaultLocale`,
+  /// which is the app language, not the PDF's. A language whose date
+  /// symbols are not loaded keeps this formatter unchanged: an export that
+  /// throws would be worse than month names in the app language.
+  PdfDateFormatter inLanguage(String languageCode) {
+    try {
+      final localized = PdfDateFormatter._(
+        _datePattern,
+        _timePattern,
+        languageCode,
+      );
+      // Formatting once here, inside the try, catches a locale-data failure
+      // intl defers to the first format() call, so no page of the export
+      // can meet it later.
+      localized.dateTime(DateTime(2000, 1, 1, 13));
+      return localized;
+    } catch (_) {
+      // LocaleDataException (symbols not loaded) or ArgumentError (unknown
+      // locale); localeExists() reports true for `en` in both cases.
+      return this;
+    }
+  }
 
   /// Date alone, for example "15/01/2026".
   String date(DateTime value) => _date.format(value);
