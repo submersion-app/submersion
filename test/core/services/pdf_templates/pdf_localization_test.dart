@@ -108,6 +108,24 @@ void main() {
       },
     );
 
+    test('a partial Roboto load falls back to Helvetica throughout', () async {
+      // Regular arrives, then bold fails: the theme must not mix a Roboto
+      // body with Helvetica headings.
+      PdfFonts.debugLatinFontLoader = (weight) async => weight == 'regular'
+          ? pw.Font.courier()
+          : throw Exception('offline');
+      addTearDown(() => PdfFonts.debugLatinFontLoader = null);
+
+      await PdfFonts.instance.initialize();
+      final theme = await PdfFonts.instance.themeFor(
+        PdfLocalization.forLanguageCode('fr'),
+      );
+
+      expect(PdfFonts.instance.isInitialized, isFalse);
+      expect(theme.defaultTextStyle.fontNormal?.fontName, 'Helvetica');
+      expect(theme.defaultTextStyle.fontBold?.fontName, 'Helvetica-Bold');
+    });
+
     test('a failing script font download still yields a theme', () async {
       PdfFonts.debugScriptFontLoader = (_, {required bold}) async =>
           throw Exception('offline');

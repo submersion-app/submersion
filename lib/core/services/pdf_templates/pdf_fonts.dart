@@ -46,14 +46,23 @@ class PdfFonts {
     try {
       // Load Roboto font variants using PdfGoogleFonts
       // These are downloaded and cached automatically
-      _regular = await PdfGoogleFonts.robotoRegular();
-      _bold = await PdfGoogleFonts.robotoBold();
-      _italic = await PdfGoogleFonts.robotoItalic();
-      _boldItalic = await PdfGoogleFonts.robotoBoldItalic();
+      final load = debugLatinFontLoader;
+      _regular =
+          await (load?.call('regular') ?? PdfGoogleFonts.robotoRegular());
+      _bold = await (load?.call('bold') ?? PdfGoogleFonts.robotoBold());
+      _italic = await (load?.call('italic') ?? PdfGoogleFonts.robotoItalic());
+      _boldItalic =
+          await (load?.call('boldItalic') ?? PdfGoogleFonts.robotoBoldItalic());
 
       _initialized = true;
     } catch (e) {
-      // Fall back to Helvetica if font loading fails (e.g., no network)
+      // Fall back to Helvetica if font loading fails (e.g., no network).
+      // Weights that did load are dropped too, so every getter falls back
+      // together rather than mixing a Roboto body with Helvetica headings.
+      _regular = null;
+      _bold = null;
+      _italic = null;
+      _boldItalic = null;
       _initialized = false;
     }
   }
@@ -79,6 +88,11 @@ class PdfFonts {
       boldItalic: boldItalic,
     );
   }
+
+  /// Replaces the Roboto download in tests, by weight: `regular`, `bold`,
+  /// `italic` or `boldItalic`.
+  @visibleForTesting
+  static Future<pw.Font> Function(String weight)? debugLatinFontLoader;
 
   /// Replaces the script font download in tests, which must not reach the
   /// network. Returning null means "this weight is not available".
