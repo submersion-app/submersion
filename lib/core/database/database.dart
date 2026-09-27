@@ -3559,6 +3559,13 @@ class DiveDataSources extends Table {
   /// one -- which a real constraint would reject at COMMIT, taking the whole
   /// changeset with it.
   TextColumn get importedFileId => text().nullable()();
+
+  /// The diver a multi-diver logbook attributed this source's dive to
+  /// (`SourceDiver.key`, as the file itself emits it), so a resync replays
+  /// that diver's copy of a shared buddy dive and never another diver's
+  /// (issue #1921). Null for every format without diver attribution and for
+  /// every source imported before v233.
+  TextColumn get sourceDiverKey => text().nullable()();
   RealColumn get maxDepth => real().nullable()();
   RealColumn get avgDepth => real().nullable()();
   IntColumn get duration => integer().nullable()();
@@ -5260,9 +5267,15 @@ class AppDatabase extends _$AppDatabase {
     // shipped cylinder fills (#2364) as 228, nav tracks (#1772) as 230 and
     // CCR ppO2 limits (#2387) as 231, and 229 is held by #2372.
     232,
+    // v233: dive_data_sources.source_diver_key (issue #1921), so a resync
+    // replays the importing diver's copy of a shared MacDive dive. Additive
+    // nullable column, no backfill (only a re-parse of each stored file
+    // could recover it), so the floor stays at 224. Taken while 232 was
+    // claimed by several open branches; trip cylinders (#2331) shipped it.
+    233,
     // v235: idx_dive_profile_events_dive_id for scoped event tombstones
     // (#1926), which delete and match events by dive; also raises the floor
-    // to 235. 233 is claimed by open PR #2438 and 234 by #2443.
+    // to 235. 234 is claimed by open PR #2443.
     235,
   ];
 
@@ -8691,6 +8704,22 @@ class AppDatabase extends _$AppDatabase {
       'ALTER TABLE diver_settings ADD COLUMN group_trips_in_dive_list '
       'INTEGER NOT NULL DEFAULT 0',
     );
+  }
+
+  /// v233: dive_data_sources.source_diver_key (issue #1921). Idempotent, so
+  /// it is safe from both onUpgrade and the beforeOpen backstop, and a no-op
+  /// when the table does not exist yet.
+  Future<void> _assertSourceDiverKeyColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('dive_data_sources')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('source_diver_key')) {
+      await customStatement(
+        'ALTER TABLE dive_data_sources ADD COLUMN source_diver_key TEXT',
+      );
+    }
   }
 
   /// Idempotent DDL for the diver_settings CCR ppO2 limits (v231, issue
@@ -13021,6 +13050,13 @@ class AppDatabase extends _$AppDatabase {
           await _assertTripCylindersSchema();
         }
         if (from < 232) await reportProgress();
+        // v233: dive_data_sources.source_diver_key (issue #1921). Column
+        // only, no backfill: null means "not recorded", which resync treats
+        // as "check the file for a second diver's match".
+        if (from < 233) {
+          await _assertSourceDiverKeyColumn();
+        }
+        if (from < 233) await reportProgress();
         // v235: index dive_profile_events by dive (#1926). Scoped event
         // tombstones delete and match events by dive, and the table had no
         // index on it. Index-only rung; the floor rise it ships with is for
@@ -13543,6 +13579,11 @@ class AppDatabase extends _$AppDatabase {
         // v228 backstop: the cylinder_fills table (parallel-branch
         // version-collision self-heal; createTable is idempotent).
         await _assertCylinderFillsSchema();
+
+        // v233 backstop: re-assert dive_data_sources.source_diver_key
+        // (parallel-branch version-collision self-heal). Nullable column
+        // only, so it cannot touch diver data.
+        await _assertSourceDiverKeyColumn();
 
         // v231 backstop: re-assert the diver_settings CCR ppO2 limits
         // (parallel-branch version-collision self-heal). Defaulted columns
