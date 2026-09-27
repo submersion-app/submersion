@@ -11,9 +11,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 /// `Difficulty` is a label that only partly matches our levels. Everything
 /// here returns null for a value it cannot read, so the importer omits the
 /// field rather than storing a guess.
-class DivingLogPlaceValues {
-  const DivingLogPlaceValues._();
-
+abstract final class DivingLogPlaceValues {
   /// The `Water` code: 1 salt, 2 fresh, 3 brackish.
   ///
   /// Settled against the reporter's logbook, where every sea site is 1 and
