@@ -74,6 +74,16 @@ class FigureLayout {
 
   Rect rectFor(FigureView view) => view == FigureView.front ? front : back;
 
+  @override
+  bool operator ==(Object other) =>
+      other is FigureLayout &&
+      other.front == front &&
+      other.back == back &&
+      other.scale == scale;
+
+  @override
+  int get hashCode => Object.hash(front, back, scale);
+
   /// A figure-space point of [view] in box coordinates.
   Offset toBox(FigureView view, double x, double y) {
     final rect = rectFor(view);

@@ -227,6 +227,65 @@ void main() {
     );
   });
 
+  test('repaints when any part of the layout changes', () {
+    final model = composeFigure(const []);
+    const front = Rect.fromLTWH(0, 0, 100, 200);
+    DiverFigurePainter withLayout(FigureLayout layout) => DiverFigurePainter(
+      model: model,
+      palette: FigurePalette.light,
+      layout: layout,
+    );
+    final painter = withLayout(
+      const FigureLayout(
+        front: front,
+        back: Rect.fromLTWH(120, 0, 100, 200),
+        scale: 0.5,
+      ),
+    );
+    // An equal layout built afresh. Not const: a const copy would be the
+    // very same object, which proves nothing about equality.
+    expect(
+      painter.shouldRepaint(
+        withLayout(
+          // ignore: prefer_const_constructors
+          FigureLayout(
+            front: front,
+            // ignore: prefer_const_constructors
+            back: Rect.fromLTWH(120, 0, 100, 200),
+            scale: 0.5,
+          ),
+        ),
+      ),
+      isFalse,
+    );
+    // Same front rect, the back figure moved.
+    expect(
+      painter.shouldRepaint(
+        withLayout(
+          const FigureLayout(
+            front: front,
+            back: Rect.fromLTWH(300, 0, 100, 200),
+            scale: 0.5,
+          ),
+        ),
+      ),
+      isTrue,
+    );
+    // Same rects, a different scale.
+    expect(
+      painter.shouldRepaint(
+        withLayout(
+          const FigureLayout(
+            front: front,
+            back: Rect.fromLTWH(120, 0, 100, 200),
+            scale: 0.6,
+          ),
+        ),
+      ),
+      isTrue,
+    );
+  });
+
   testWidgets('fins and boots show on the back view too', (tester) async {
     await tester.runAsync(() async {
       final fins = await paint(composeFigure([item('f', EquipmentType.fins)]));

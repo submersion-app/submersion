@@ -98,7 +98,7 @@ class DiverFigurePainter extends CustomPainter {
       !identical(oldDelegate.model, model) ||
       oldDelegate.palette != palette ||
       oldDelegate.only != only ||
-      oldDelegate.layout?.front != layout?.front;
+      oldDelegate.layout != layout;
 }
 
 class _Entry {

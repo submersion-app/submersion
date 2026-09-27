@@ -64,4 +64,13 @@ void main() {
     expect(FigureLayout.forSingle(const Size(1000, 300)).front.height, 300);
     expect(FigureLayout.forSingle(Size.zero).front.width, greaterThan(0));
   });
+
+  test('layouts with the same rects and scale are equal', () {
+    final a = FigureLayout.forSize(const Size(400, 360));
+    final b = FigureLayout.forSize(const Size(400, 360));
+    expect(identical(a, b), isFalse);
+    expect(a, b);
+    expect(a.hashCode, b.hashCode);
+    expect(a, isNot(FigureLayout.forSize(const Size(500, 360))));
+  });
 }

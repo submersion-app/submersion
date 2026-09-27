@@ -39,6 +39,10 @@ class EquipmentSetDetailPage extends ConsumerStatefulWidget {
 
 class _EquipmentSetDetailPageState
     extends ConsumerState<EquipmentSetDetailPage> {
+  /// The menu value that shows or hides the diver figure, shared by the menu
+  /// item and its handler so the two cannot drift apart.
+  static const _toggleFigureAction = 'toggleFigure';
+
   /// The item whose figure label and legend row are highlighted, cleared after a
   /// moment so the highlight reads as a flash rather than a selection mode.
   String? _selectedId;
@@ -182,7 +186,7 @@ class _EquipmentSetDetailPageState
             onSelected: (value) => _handleMenuAction(context, ref, value, set),
             itemBuilder: (context) => [
               PopupMenuItem(
-                value: 'toggleFigure',
+                value: _toggleFigureAction,
                 child: ListTile(
                   leading: Icon(
                     set.showFigure
@@ -525,7 +529,7 @@ class _EquipmentSetDetailPageState
     String action,
     EquipmentSet set,
   ) async {
-    if (action == 'toggleFigure') {
+    if (action == _toggleFigureAction) {
       await ref
           .read(equipmentSetListNotifierProvider.notifier)
           .setShowFigure(set.id, !set.showFigure);
