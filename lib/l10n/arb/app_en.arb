@@ -7203,6 +7203,290 @@
   "passport_logFill_notes": "Notes",
   "passport_logFill_invalidMix": "O2 and He must each be 0 to 100 and total 100 or less",
   "passport_logFill_saveFailed": "Could not save the fill. Try again.",
+  "pdf_unknownSite": "Unknown Site",
+  "pdf_signaturePlaceholder": "[Signature]",
+  "pdf_signerBuddy": "Buddy",
+  "pdf_signerInstructor": "Instructor",
+  "pdf_officialStamp": "Official Stamp",
+  "pdf_certifications": "Certifications",
+  "pdf_cardNumber": "Card #: {number}",
+  "pdf_certIssued": "Issued: {date}",
+  "pdf_certExpires": "Expires: {date}",
+  "pdf_cardFront": "Front",
+  "pdf_cardBack": "Back",
+  "pdf_coverDiveCount": "{count, plural, one{{count} Dive} other{{count} Dives}}",
+  "pdf_headerDiveCount": "{count, plural, one{{count} dive} other{{count} dives}}",
+  "pdf_generatedOn": "Generated on {dateTime}",
+  "pdf_generated": "Generated {dateTime}",
+  "pdf_noDivesToSummarize": "No dives to summarize",
+  "pdf_noDivesToDisplay": "No dives to display",
+  "pdf_summary": "Summary",
+  "pdf_totalDives": "Total Dives",
+  "pdf_firstDive": "First Dive",
+  "pdf_lastDive": "Last Dive",
+  "pdf_totalDiveTime": "Total Dive Time",
+  "pdf_deepestDive": "Deepest Dive",
+  "pdf_blenderIncomplete": "Incomplete: one or more lines have no price.",
+  "pdf_averageDepth": "Average Depth",
+  "pdf_uniqueSites": "Unique Sites",
+  "pdf_hoursMinutes": "{hours}h {minutes}m",
+  "pdf_minutesShort": "{minutes}m",
+  "pdf_minutes": "{minutes} min",
+  "pdf_minutesCompact": "{minutes}min",
+  "pdf_diverProfile": "Diver Profile",
+  "pdf_name": "Name",
+  "pdf_email": "Email",
+  "pdf_photo": "Photo",
+  "pdf_depthProfileHeading": "Depth Profile ({depthUnit} vs min)",
+  "pdf_columnDate": "Date",
+  "pdf_columnSite": "Site",
+  "pdf_columnDepth": "Depth",
+  "pdf_columnTime": "Time",
+  "pdf_columnTemp": "Temp",
+  "pdf_pageOf": "Page {page} of {total}",
+  "pdf_sectionProfile": "Profile",
+  "pdf_sectionCylinders": "Cylinders",
+  "pdf_sectionConditions": "Conditions",
+  "pdf_sectionWeather": "Weather",
+  "pdf_sectionTeam": "Team",
+  "pdf_sectionEquipment": "Equipment",
+  "pdf_sectionTechnical": "Technical",
+  "pdf_sectionMarineLife": "Marine Life",
+  "pdf_sectionNotes": "Notes",
+  "pdf_sectionAdditionalFields": "Additional Fields",
+  "pdf_sectionVerifiedBy": "Verified By",
+  "pdf_sectionVerification": "Verification",
+  "pdf_maxDepth": "Max Depth",
+  "pdf_avgDepth": "Avg Depth",
+  "pdf_runtime": "Runtime",
+  "pdf_bottomTime": "Bottom Time",
+  "pdf_timeIn": "In",
+  "pdf_timeOut": "Out",
+  "pdf_surfaceInterval": "Surface Interval",
+  "pdf_sac": "SAC",
+  "pdf_rmv": "RMV",
+  "pdf_pressureUsed": "{pressure} used",
+  "pdf_cylinderNumber": "Cylinder {number}",
+  "pdf_waterTemp": "Water Temp",
+  "pdf_airTemp": "Air Temp",
+  "pdf_visibility": "Visibility",
+  "pdf_current": "Current",
+  "pdf_currentDirection": "Current Dir",
+  "pdf_waterType": "Water Type",
+  "pdf_entry": "Entry",
+  "pdf_exit": "Exit",
+  "pdf_altitude": "Altitude",
+  "pdf_buddy": "Buddy",
+  "pdf_diveMaster": "Dive Master",
+  "pdf_diveCenter": "Dive Center",
+  "pdf_trip": "Trip",
+  "pdf_weight": "Weight",
+  "pdf_weightType": "Weight Type",
+  "pdf_equipmentSets": "{count, plural, one{Set} other{Sets}}",
+  "pdf_computer": "Computer",
+  "pdf_diveMode": "Dive Mode",
+  "pdf_algorithm": "Algorithm",
+  "pdf_gradientFactors": "Gradient Factors",
+  "pdf_setpoint": "Setpoint",
+  "pdf_diveType": "Dive Type",
+  "pdf_weatherConditions": "Conditions",
+  "pdf_wind": "Wind",
+  "pdf_windDirection": "Wind Dir",
+  "pdf_cloud": "Cloud",
+  "pdf_precipitation": "Precipitation",
+  "pdf_humidity": "Humidity",
+  "pdf_swell": "Swell",
+  "pdf_instructorSignature": "Instructor Signature",
+  "pdf_buddySignature": "Buddy Signature",
+  "pdf_diveLogBanner": "DIVE LOG",
+  "pdf_loggedDives": "Logged Dives",
+  "pdf_diveNumber": "Dive #{number}",
+  "pdf_trainingBadge": "TRAINING",
+  "pdf_gas": "Gas",
+  "pdf_visibilityShort": "Vis",
+  "pdf_air": "Air",
+  "pdf_water": "Water",
+  "pdf_verifiedBy": "Verified by",
+  "pdf_nauiDiveLogBanner": "NAUI DIVE LOG",
+  "pdf_statDives": "Dives",
+  "pdf_statHours": "Hours",
+  "pdf_avgShort": "Avg",
+  "pdf_pressureStart": "Start",
+  "pdf_pressureEnd": "End",
+  "pdf_surfaceIntervalShort": "SI: {minutes}min",
+  "pdf_diveDataHeading": "DIVE DATA",
+  "pdf_verificationHeading": "VERIFICATION",
+  "pdf_labelValue": "{label}: {value}",
+  "pdf_resort": "Resort",
+  "pdf_liveaboard": "Liveaboard",
+  "pdf_totalRuntime": "Total Runtime",
+  "pdf_tripDiveTitle": "Dive {number}",
+  "pdf_date": "Date",
+  "pdf_site": "Site",
+  "pdf_duration": "Duration",
+  "pdf_notesLabel": "Notes:",
+  "pdf_trainingLog": "Training Log",
+  "pdf_instructor": "Instructor",
+  "pdf_instructorNumber": "Instructor #",
+  "pdf_location": "Location",
+  "pdf_startDate": "Start Date",
+  "pdf_completionDate": "Completion Date",
+  "pdf_status": "Status",
+  "pdf_statusCompleted": "Completed",
+  "pdf_statusInProgress": "In Progress",
+  "pdf_trainingDives": "Training Dives",
+  "pdf_totalMinutes": "Total Minutes",
+  "pdf_courseNotes": "Course Notes",
+  "pdf_slateMax": "max",
+  "@pdf_cardNumber": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_certIssued": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_certExpires": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_coverDiveCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@pdf_headerDiveCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@pdf_generatedOn": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_generated": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_hoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_minutesShort": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_minutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_minutesCompact": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_depthProfileHeading": {
+    "placeholders": {
+      "depthUnit": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_pageOf": {
+    "placeholders": {
+      "page": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_pressureUsed": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_cylinderNumber": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_equipmentSets": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@pdf_diveNumber": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_surfaceIntervalShort": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_labelValue": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_tripDiveTitle": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_bulkTags_confirmAdding": "{count, plural, =1{Adding to 1 equipment item} other{Adding to all {count} equipment items}}",
   "@equipment_bulkTags_confirmAdding": {
     "placeholders": {
@@ -14445,6 +14729,7 @@
   "transfer_pdfExport_includeCertCardsSubtitle": "Add scanned certification card images to the PDF",
   "transfer_pdfExport_includeVerificationAreas": "Include Verification Areas",
   "transfer_pdfExport_includeVerificationAreasSubtitle": "Add stamp and signature boxes for agency verification",
+  "transfer_pdfExport_languageHeader": "Language",
   "transfer_pdfExport_pageSizeA4": "A4",
   "transfer_pdfExport_pageSizeA4Desc": "210 x 297 mm",
   "transfer_pdfExport_pageSizeHeader": "Page Size",
@@ -15314,6 +15599,8 @@
       }
     }
   },
+  "universalImport_summary_noticeMacdiveDeviceTimeZoneTitle": "Dive times read in this device's time zone",
+  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "MacDive saved no time zone Submersion could read for these dives, and their dive sites have no GPS position, so their times were read in this device's time zone. If you made these dives somewhere else, check their start times.",
   "universalImport_summary_unreadableDatesTitle": "Some rows were not imported",
   "@universalImport_summary_unreadableDatesTitle": {
     "description": "Heading of the import summary card for CSV rows that were not imported because their date could not be read. A row is a spreadsheet row, one line of the CSV file, as numbered in a spreadsheet app."

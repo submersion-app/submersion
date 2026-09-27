@@ -12219,6 +12219,466 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_logFill_saveFailed => '无法保存充气记录。请重试。';
 
   @override
+  String get pdf_unknownSite => '未知潜水点';
+
+  @override
+  String get pdf_signaturePlaceholder => '[签名]';
+
+  @override
+  String get pdf_signerBuddy => '潜伴';
+
+  @override
+  String get pdf_signerInstructor => '教练';
+
+  @override
+  String get pdf_officialStamp => '官方印章';
+
+  @override
+  String get pdf_certifications => '证书';
+
+  @override
+  String pdf_cardNumber(String number) {
+    return '卡号：$number';
+  }
+
+  @override
+  String pdf_certIssued(String date) {
+    return '签发日期：$date';
+  }
+
+  @override
+  String pdf_certExpires(String date) {
+    return '到期日期：$date';
+  }
+
+  @override
+  String get pdf_cardFront => '正面';
+
+  @override
+  String get pdf_cardBack => '背面';
+
+  @override
+  String pdf_coverDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_headerDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_generatedOn(String dateTime) {
+    return '生成于 $dateTime';
+  }
+
+  @override
+  String pdf_generated(String dateTime) {
+    return '生成于 $dateTime';
+  }
+
+  @override
+  String get pdf_noDivesToSummarize => '没有可汇总的潜水记录';
+
+  @override
+  String get pdf_noDivesToDisplay => '没有可显示的潜水记录';
+
+  @override
+  String get pdf_summary => '汇总';
+
+  @override
+  String get pdf_totalDives => '潜水总次数';
+
+  @override
+  String get pdf_firstDive => '首次潜水';
+
+  @override
+  String get pdf_lastDive => '最后一次潜水';
+
+  @override
+  String get pdf_totalDiveTime => '潜水总时间';
+
+  @override
+  String get pdf_deepestDive => '最深潜水';
+
+  @override
+  String get pdf_blenderIncomplete => '不完整：有一行或多行没有价格。';
+
+  @override
+  String get pdf_averageDepth => '平均深度';
+
+  @override
+  String get pdf_uniqueSites => '不同潜水点';
+
+  @override
+  String pdf_hoursMinutes(String hours, String minutes) {
+    return '$hours小时$minutes分钟';
+  }
+
+  @override
+  String pdf_minutesShort(String minutes) {
+    return '$minutes分钟';
+  }
+
+  @override
+  String pdf_minutes(String minutes) {
+    return '$minutes 分钟';
+  }
+
+  @override
+  String pdf_minutesCompact(String minutes) {
+    return '$minutes分钟';
+  }
+
+  @override
+  String get pdf_diverProfile => '潜水员档案';
+
+  @override
+  String get pdf_name => '姓名';
+
+  @override
+  String get pdf_email => '电子邮件';
+
+  @override
+  String get pdf_photo => '照片';
+
+  @override
+  String pdf_depthProfileHeading(String depthUnit) {
+    return '深度轮廓（$depthUnit / 分钟）';
+  }
+
+  @override
+  String get pdf_columnDate => '日期';
+
+  @override
+  String get pdf_columnSite => '潜水点';
+
+  @override
+  String get pdf_columnDepth => '深度';
+
+  @override
+  String get pdf_columnTime => '时间';
+
+  @override
+  String get pdf_columnTemp => '温度';
+
+  @override
+  String pdf_pageOf(String page, String total) {
+    return '第 $page 页，共 $total 页';
+  }
+
+  @override
+  String get pdf_sectionProfile => '潜水轮廓';
+
+  @override
+  String get pdf_sectionCylinders => '气瓶';
+
+  @override
+  String get pdf_sectionConditions => '环境条件';
+
+  @override
+  String get pdf_sectionWeather => '天气';
+
+  @override
+  String get pdf_sectionTeam => '团队';
+
+  @override
+  String get pdf_sectionEquipment => '装备';
+
+  @override
+  String get pdf_sectionTechnical => '技术参数';
+
+  @override
+  String get pdf_sectionMarineLife => '海洋生物';
+
+  @override
+  String get pdf_sectionNotes => '备注';
+
+  @override
+  String get pdf_sectionAdditionalFields => '附加字段';
+
+  @override
+  String get pdf_sectionVerifiedBy => '验证人';
+
+  @override
+  String get pdf_sectionVerification => '验证';
+
+  @override
+  String get pdf_maxDepth => '最大深度';
+
+  @override
+  String get pdf_avgDepth => '平均深度';
+
+  @override
+  String get pdf_runtime => '运行时间';
+
+  @override
+  String get pdf_bottomTime => '底部时间';
+
+  @override
+  String get pdf_timeIn => '入水';
+
+  @override
+  String get pdf_timeOut => '出水';
+
+  @override
+  String get pdf_surfaceInterval => '水面间隔';
+
+  @override
+  String get pdf_sac => 'SAC';
+
+  @override
+  String get pdf_rmv => 'RMV';
+
+  @override
+  String pdf_pressureUsed(String pressure) {
+    return '已用 $pressure';
+  }
+
+  @override
+  String pdf_cylinderNumber(String number) {
+    return '气瓶 $number';
+  }
+
+  @override
+  String get pdf_waterTemp => '水温';
+
+  @override
+  String get pdf_airTemp => '气温';
+
+  @override
+  String get pdf_visibility => '能见度';
+
+  @override
+  String get pdf_current => '水流';
+
+  @override
+  String get pdf_currentDirection => '流向';
+
+  @override
+  String get pdf_waterType => '水类型';
+
+  @override
+  String get pdf_entry => '入水';
+
+  @override
+  String get pdf_exit => '出水';
+
+  @override
+  String get pdf_altitude => '海拔';
+
+  @override
+  String get pdf_buddy => '潜伴';
+
+  @override
+  String get pdf_diveMaster => '潜水长';
+
+  @override
+  String get pdf_diveCenter => '潜水中心';
+
+  @override
+  String get pdf_trip => '行程';
+
+  @override
+  String get pdf_weight => '配重';
+
+  @override
+  String get pdf_weightType => '配重类型';
+
+  @override
+  String pdf_equipmentSets(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '套装',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pdf_computer => '潜水电脑';
+
+  @override
+  String get pdf_diveMode => '潜水模式';
+
+  @override
+  String get pdf_algorithm => '算法';
+
+  @override
+  String get pdf_gradientFactors => '梯度因子';
+
+  @override
+  String get pdf_setpoint => '设定点';
+
+  @override
+  String get pdf_diveType => '潜水类型';
+
+  @override
+  String get pdf_weatherConditions => '天气状况';
+
+  @override
+  String get pdf_wind => '风速';
+
+  @override
+  String get pdf_windDirection => '风向';
+
+  @override
+  String get pdf_cloud => '云量';
+
+  @override
+  String get pdf_precipitation => '降水';
+
+  @override
+  String get pdf_humidity => '湿度';
+
+  @override
+  String get pdf_swell => '涌浪';
+
+  @override
+  String get pdf_instructorSignature => '教练签名';
+
+  @override
+  String get pdf_buddySignature => '潜伴签名';
+
+  @override
+  String get pdf_diveLogBanner => '潜水日志';
+
+  @override
+  String get pdf_loggedDives => '已记录潜水';
+
+  @override
+  String pdf_diveNumber(String number) {
+    return '潜水 #$number';
+  }
+
+  @override
+  String get pdf_trainingBadge => '培训';
+
+  @override
+  String get pdf_gas => '气体';
+
+  @override
+  String get pdf_visibilityShort => '能见度';
+
+  @override
+  String get pdf_air => '气压';
+
+  @override
+  String get pdf_water => '水体';
+
+  @override
+  String get pdf_verifiedBy => '验证人';
+
+  @override
+  String get pdf_nauiDiveLogBanner => 'NAUI 潜水日志';
+
+  @override
+  String get pdf_statDives => '潜水次数';
+
+  @override
+  String get pdf_statHours => '小时';
+
+  @override
+  String get pdf_avgShort => '平均';
+
+  @override
+  String get pdf_pressureStart => '开始';
+
+  @override
+  String get pdf_pressureEnd => '结束';
+
+  @override
+  String pdf_surfaceIntervalShort(String minutes) {
+    return '间隔：$minutes分钟';
+  }
+
+  @override
+  String get pdf_diveDataHeading => '潜水数据';
+
+  @override
+  String get pdf_verificationHeading => '验证';
+
+  @override
+  String pdf_labelValue(String label, String value) {
+    return '$label：$value';
+  }
+
+  @override
+  String get pdf_resort => '度假村';
+
+  @override
+  String get pdf_liveaboard => '船宿';
+
+  @override
+  String get pdf_totalRuntime => '总运行时间';
+
+  @override
+  String pdf_tripDiveTitle(String number) {
+    return '潜水 $number';
+  }
+
+  @override
+  String get pdf_date => '日期';
+
+  @override
+  String get pdf_site => '潜水点';
+
+  @override
+  String get pdf_duration => '时长';
+
+  @override
+  String get pdf_notesLabel => '备注：';
+
+  @override
+  String get pdf_trainingLog => '训练日志';
+
+  @override
+  String get pdf_instructor => '教练';
+
+  @override
+  String get pdf_instructorNumber => '教练编号';
+
+  @override
+  String get pdf_location => '地点';
+
+  @override
+  String get pdf_startDate => '开始日期';
+
+  @override
+  String get pdf_completionDate => '完成日期';
+
+  @override
+  String get pdf_status => '状态';
+
+  @override
+  String get pdf_statusCompleted => '已完成';
+
+  @override
+  String get pdf_statusInProgress => '进行中';
+
+  @override
+  String get pdf_trainingDives => '训练潜水';
+
+  @override
+  String get pdf_totalMinutes => '总分钟数';
+
+  @override
+  String get pdf_courseNotes => '课程备注';
+
+  @override
+  String get pdf_slateMax => '最大';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -22646,6 +23106,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '添加机构验证所需的印章和签名框';
 
   @override
+  String get transfer_pdfExport_languageHeader => '语言';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -23931,6 +24394,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
     return 'MacDive 日志簿（$names）是已保存的搜索，而不是固定的潜水列表，因此没有可导入的内容。您可以将它们重新创建为潜水筛选条件。';
   }
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneTitle =>
+      '潜水时间按此设备的时区读取';
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody =>
+      'MacDive 没有为这些潜水保存可读取的时区，而且它们的潜水点没有 GPS 位置，因此它们的时间按此设备的时区读取。如果您是在其他地方进行这些潜水的，请检查它们的开始时间。';
 
   @override
   String get universalImport_summary_unreadableDatesTitle => '部分行未导入';

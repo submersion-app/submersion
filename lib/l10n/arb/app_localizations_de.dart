@@ -12792,6 +12792,470 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Füllung konnte nicht gespeichert werden. Bitte erneut versuchen.';
 
   @override
+  String get pdf_unknownSite => 'Unbekannter Tauchplatz';
+
+  @override
+  String get pdf_signaturePlaceholder => '[Unterschrift]';
+
+  @override
+  String get pdf_signerBuddy => 'Tauchpartner';
+
+  @override
+  String get pdf_signerInstructor => 'Tauchlehrer';
+
+  @override
+  String get pdf_officialStamp => 'Offizieller Stempel';
+
+  @override
+  String get pdf_certifications => 'Zertifizierungen';
+
+  @override
+  String pdf_cardNumber(String number) {
+    return 'Karten-Nr.: $number';
+  }
+
+  @override
+  String pdf_certIssued(String date) {
+    return 'Ausgestellt: $date';
+  }
+
+  @override
+  String pdf_certExpires(String date) {
+    return 'Gültig bis: $date';
+  }
+
+  @override
+  String get pdf_cardFront => 'Vorderseite';
+
+  @override
+  String get pdf_cardBack => 'Rückseite';
+
+  @override
+  String pdf_coverDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '$count Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_headerDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '$count Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_generatedOn(String dateTime) {
+    return 'Erstellt am $dateTime';
+  }
+
+  @override
+  String pdf_generated(String dateTime) {
+    return 'Erstellt $dateTime';
+  }
+
+  @override
+  String get pdf_noDivesToSummarize => 'Keine Tauchgänge zum Zusammenfassen';
+
+  @override
+  String get pdf_noDivesToDisplay => 'Keine Tauchgänge vorhanden';
+
+  @override
+  String get pdf_summary => 'Zusammenfassung';
+
+  @override
+  String get pdf_totalDives => 'Tauchgänge gesamt';
+
+  @override
+  String get pdf_firstDive => 'Erster Tauchgang';
+
+  @override
+  String get pdf_lastDive => 'Letzter Tauchgang';
+
+  @override
+  String get pdf_totalDiveTime => 'Gesamttauchzeit';
+
+  @override
+  String get pdf_deepestDive => 'Tiefster Tauchgang';
+
+  @override
+  String get pdf_blenderIncomplete =>
+      'Unvollständig: Mindestens eine Position hat keinen Preis.';
+
+  @override
+  String get pdf_averageDepth => 'Durchschnittstiefe';
+
+  @override
+  String get pdf_uniqueSites => 'Verschiedene Tauchplätze';
+
+  @override
+  String pdf_hoursMinutes(String hours, String minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String pdf_minutesShort(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String pdf_minutes(String minutes) {
+    return '$minutes Min.';
+  }
+
+  @override
+  String pdf_minutesCompact(String minutes) {
+    return '${minutes}min';
+  }
+
+  @override
+  String get pdf_diverProfile => 'Taucherprofil';
+
+  @override
+  String get pdf_name => 'Name';
+
+  @override
+  String get pdf_email => 'E-Mail';
+
+  @override
+  String get pdf_photo => 'Foto';
+
+  @override
+  String pdf_depthProfileHeading(String depthUnit) {
+    return 'Tiefenprofil ($depthUnit über min)';
+  }
+
+  @override
+  String get pdf_columnDate => 'Datum';
+
+  @override
+  String get pdf_columnSite => 'Tauchplatz';
+
+  @override
+  String get pdf_columnDepth => 'Tiefe';
+
+  @override
+  String get pdf_columnTime => 'Zeit';
+
+  @override
+  String get pdf_columnTemp => 'Temp.';
+
+  @override
+  String pdf_pageOf(String page, String total) {
+    return 'Seite $page von $total';
+  }
+
+  @override
+  String get pdf_sectionProfile => 'Profil';
+
+  @override
+  String get pdf_sectionCylinders => 'Flaschen';
+
+  @override
+  String get pdf_sectionConditions => 'Bedingungen';
+
+  @override
+  String get pdf_sectionWeather => 'Wetter';
+
+  @override
+  String get pdf_sectionTeam => 'Team';
+
+  @override
+  String get pdf_sectionEquipment => 'Ausrüstung';
+
+  @override
+  String get pdf_sectionTechnical => 'Technisch';
+
+  @override
+  String get pdf_sectionMarineLife => 'Meereslebewesen';
+
+  @override
+  String get pdf_sectionNotes => 'Notizen';
+
+  @override
+  String get pdf_sectionAdditionalFields => 'Zusätzliche Felder';
+
+  @override
+  String get pdf_sectionVerifiedBy => 'Bestätigt von';
+
+  @override
+  String get pdf_sectionVerification => 'Bestätigung';
+
+  @override
+  String get pdf_maxDepth => 'Max. Tiefe';
+
+  @override
+  String get pdf_avgDepth => 'Ø Tiefe';
+
+  @override
+  String get pdf_runtime => 'Laufzeit';
+
+  @override
+  String get pdf_bottomTime => 'Grundzeit';
+
+  @override
+  String get pdf_timeIn => 'Beginn';
+
+  @override
+  String get pdf_timeOut => 'Ende';
+
+  @override
+  String get pdf_surfaceInterval => 'Oberflächenpause';
+
+  @override
+  String get pdf_sac => 'Druckverbrauch';
+
+  @override
+  String get pdf_rmv => 'AMV';
+
+  @override
+  String pdf_pressureUsed(String pressure) {
+    return '$pressure verbraucht';
+  }
+
+  @override
+  String pdf_cylinderNumber(String number) {
+    return 'Flasche $number';
+  }
+
+  @override
+  String get pdf_waterTemp => 'Wassertemp.';
+
+  @override
+  String get pdf_airTemp => 'Lufttemp.';
+
+  @override
+  String get pdf_visibility => 'Sichtweite';
+
+  @override
+  String get pdf_current => 'Strömung';
+
+  @override
+  String get pdf_currentDirection => 'Strömungsrichtung';
+
+  @override
+  String get pdf_waterType => 'Wasserart';
+
+  @override
+  String get pdf_entry => 'Einstieg';
+
+  @override
+  String get pdf_exit => 'Ausstieg';
+
+  @override
+  String get pdf_altitude => 'Höhe';
+
+  @override
+  String get pdf_buddy => 'Tauchpartner';
+
+  @override
+  String get pdf_diveMaster => 'Divemaster';
+
+  @override
+  String get pdf_diveCenter => 'Tauchbasis';
+
+  @override
+  String get pdf_trip => 'Reise';
+
+  @override
+  String get pdf_weight => 'Gewicht';
+
+  @override
+  String get pdf_weightType => 'Gewichtsart';
+
+  @override
+  String pdf_equipmentSets(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Sets',
+      one: 'Set',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pdf_computer => 'Computer';
+
+  @override
+  String get pdf_diveMode => 'Tauchmodus';
+
+  @override
+  String get pdf_algorithm => 'Algorithmus';
+
+  @override
+  String get pdf_gradientFactors => 'Gradientenfaktoren';
+
+  @override
+  String get pdf_setpoint => 'Setpoint';
+
+  @override
+  String get pdf_diveType => 'Tauchgangart';
+
+  @override
+  String get pdf_weatherConditions => 'Bedingungen';
+
+  @override
+  String get pdf_wind => 'Wind';
+
+  @override
+  String get pdf_windDirection => 'Windrichtung';
+
+  @override
+  String get pdf_cloud => 'Bewölkung';
+
+  @override
+  String get pdf_precipitation => 'Niederschlag';
+
+  @override
+  String get pdf_humidity => 'Luftfeuchtigkeit';
+
+  @override
+  String get pdf_swell => 'Welle';
+
+  @override
+  String get pdf_instructorSignature => 'Unterschrift Tauchlehrer';
+
+  @override
+  String get pdf_buddySignature => 'Unterschrift Tauchpartner';
+
+  @override
+  String get pdf_diveLogBanner => 'TAUCHLOGBUCH';
+
+  @override
+  String get pdf_loggedDives => 'Geloggte Tauchgänge';
+
+  @override
+  String pdf_diveNumber(String number) {
+    return 'Tauchgang #$number';
+  }
+
+  @override
+  String get pdf_trainingBadge => 'AUSBILDUNG';
+
+  @override
+  String get pdf_gas => 'Gas';
+
+  @override
+  String get pdf_visibilityShort => 'Sicht';
+
+  @override
+  String get pdf_air => 'Luft';
+
+  @override
+  String get pdf_water => 'Wasser';
+
+  @override
+  String get pdf_verifiedBy => 'Bestätigt von';
+
+  @override
+  String get pdf_nauiDiveLogBanner => 'NAUI TAUCHLOGBUCH';
+
+  @override
+  String get pdf_statDives => 'Tauchgänge';
+
+  @override
+  String get pdf_statHours => 'Stunden';
+
+  @override
+  String get pdf_avgShort => 'Ø';
+
+  @override
+  String get pdf_pressureStart => 'Start';
+
+  @override
+  String get pdf_pressureEnd => 'Ende';
+
+  @override
+  String pdf_surfaceIntervalShort(String minutes) {
+    return 'OFP: ${minutes}min';
+  }
+
+  @override
+  String get pdf_diveDataHeading => 'TAUCHDATEN';
+
+  @override
+  String get pdf_verificationHeading => 'BESTÄTIGUNG';
+
+  @override
+  String pdf_labelValue(String label, String value) {
+    return '$label: $value';
+  }
+
+  @override
+  String get pdf_resort => 'Resort';
+
+  @override
+  String get pdf_liveaboard => 'Tauchsafari';
+
+  @override
+  String get pdf_totalRuntime => 'Gesamte Laufzeit';
+
+  @override
+  String pdf_tripDiveTitle(String number) {
+    return 'Tauchgang $number';
+  }
+
+  @override
+  String get pdf_date => 'Datum';
+
+  @override
+  String get pdf_site => 'Tauchplatz';
+
+  @override
+  String get pdf_duration => 'Dauer';
+
+  @override
+  String get pdf_notesLabel => 'Notizen:';
+
+  @override
+  String get pdf_trainingLog => 'Ausbildungsprotokoll';
+
+  @override
+  String get pdf_instructor => 'Tauchlehrer';
+
+  @override
+  String get pdf_instructorNumber => 'Tauchlehrer-Nr.';
+
+  @override
+  String get pdf_location => 'Ort';
+
+  @override
+  String get pdf_startDate => 'Startdatum';
+
+  @override
+  String get pdf_completionDate => 'Abschlussdatum';
+
+  @override
+  String get pdf_status => 'Status';
+
+  @override
+  String get pdf_statusCompleted => 'Abgeschlossen';
+
+  @override
+  String get pdf_statusInProgress => 'Läuft';
+
+  @override
+  String get pdf_trainingDives => 'Ausbildungstauchgänge';
+
+  @override
+  String get pdf_totalMinutes => 'Minuten gesamt';
+
+  @override
+  String get pdf_courseNotes => 'Kursnotizen';
+
+  @override
+  String get pdf_slateMax => 'max.';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -23834,6 +24298,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Stempel- und Unterschriftsfelder für die Verbandsprüfung';
 
   @override
+  String get transfer_pdfExport_languageHeader => 'Sprache';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -25190,6 +25657,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
     return 'MacDive-Logbücher ($names) sind gespeicherte Suchen und keine festen Listen von Tauchgängen, daher gibt es nichts zu importieren. Sie können sie als Tauchgangsfilter neu anlegen.';
   }
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneTitle =>
+      'Tauchzeiten in der Zeitzone dieses Geräts gelesen';
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody =>
+      'MacDive hat für diese Tauchgänge keine lesbare Zeitzone gespeichert, und ihre Tauchplätze haben keine GPS-Position. Ihre Zeiten wurden daher in der Zeitzone dieses Geräts gelesen. Wenn Sie diese Tauchgänge anderswo gemacht haben, prüfen Sie ihre Startzeiten.';
 
   @override
   String get universalImport_summary_unreadableDatesTitle =>

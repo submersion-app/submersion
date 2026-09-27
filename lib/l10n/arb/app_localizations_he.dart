@@ -12511,6 +12511,472 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן היה לשמור את המילוי. נסו שוב.';
 
   @override
+  String get pdf_unknownSite => 'אתר לא ידוע';
+
+  @override
+  String get pdf_signaturePlaceholder => '[חתימה]';
+
+  @override
+  String get pdf_signerBuddy => 'שותף';
+
+  @override
+  String get pdf_signerInstructor => 'מדריך';
+
+  @override
+  String get pdf_officialStamp => 'חותמת רשמית';
+
+  @override
+  String get pdf_certifications => 'הסמכות';
+
+  @override
+  String pdf_cardNumber(String number) {
+    return 'מספר כרטיס: $number';
+  }
+
+  @override
+  String pdf_certIssued(String date) {
+    return 'הונפק: $date';
+  }
+
+  @override
+  String pdf_certExpires(String date) {
+    return 'תפוגה: $date';
+  }
+
+  @override
+  String get pdf_cardFront => 'קדמי';
+
+  @override
+  String get pdf_cardBack => 'אחורי';
+
+  @override
+  String pdf_coverDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      two: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_headerDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      two: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_generatedOn(String dateTime) {
+    return 'נוצר ב-$dateTime';
+  }
+
+  @override
+  String pdf_generated(String dateTime) {
+    return 'נוצר $dateTime';
+  }
+
+  @override
+  String get pdf_noDivesToSummarize => 'אין צלילות לסיכום';
+
+  @override
+  String get pdf_noDivesToDisplay => 'אין צלילות להצגה';
+
+  @override
+  String get pdf_summary => 'סיכום';
+
+  @override
+  String get pdf_totalDives => 'סה\"כ צלילות';
+
+  @override
+  String get pdf_firstDive => 'צלילה ראשונה';
+
+  @override
+  String get pdf_lastDive => 'צלילה אחרונה';
+
+  @override
+  String get pdf_totalDiveTime => 'סה\"כ זמן צלילה';
+
+  @override
+  String get pdf_deepestDive => 'הצלילה העמוקה ביותר';
+
+  @override
+  String get pdf_blenderIncomplete => 'לא שלם: לשורה אחת או יותר אין מחיר.';
+
+  @override
+  String get pdf_averageDepth => 'עומק ממוצע';
+
+  @override
+  String get pdf_uniqueSites => 'אתרים שונים';
+
+  @override
+  String pdf_hoursMinutes(String hours, String minutes) {
+    return '$hours שע\' $minutes דק\'';
+  }
+
+  @override
+  String pdf_minutesShort(String minutes) {
+    return '$minutes דק\'';
+  }
+
+  @override
+  String pdf_minutes(String minutes) {
+    return '$minutes דק\'';
+  }
+
+  @override
+  String pdf_minutesCompact(String minutes) {
+    return '$minutes דק\'';
+  }
+
+  @override
+  String get pdf_diverProfile => 'פרופיל צולל';
+
+  @override
+  String get pdf_name => 'שם';
+
+  @override
+  String get pdf_email => 'דוא\"ל';
+
+  @override
+  String get pdf_photo => 'תמונה';
+
+  @override
+  String pdf_depthProfileHeading(String depthUnit) {
+    return 'פרופיל עומק ($depthUnit מול דקות)';
+  }
+
+  @override
+  String get pdf_columnDate => 'תאריך';
+
+  @override
+  String get pdf_columnSite => 'אתר';
+
+  @override
+  String get pdf_columnDepth => 'עומק';
+
+  @override
+  String get pdf_columnTime => 'זמן';
+
+  @override
+  String get pdf_columnTemp => 'טמפ\'';
+
+  @override
+  String pdf_pageOf(String page, String total) {
+    return 'עמוד $page מתוך $total';
+  }
+
+  @override
+  String get pdf_sectionProfile => 'פרופיל';
+
+  @override
+  String get pdf_sectionCylinders => 'בלונים';
+
+  @override
+  String get pdf_sectionConditions => 'תנאים';
+
+  @override
+  String get pdf_sectionWeather => 'מזג אוויר';
+
+  @override
+  String get pdf_sectionTeam => 'צוות';
+
+  @override
+  String get pdf_sectionEquipment => 'ציוד';
+
+  @override
+  String get pdf_sectionTechnical => 'טכני';
+
+  @override
+  String get pdf_sectionMarineLife => 'חיים ימיים';
+
+  @override
+  String get pdf_sectionNotes => 'הערות';
+
+  @override
+  String get pdf_sectionAdditionalFields => 'שדות נוספים';
+
+  @override
+  String get pdf_sectionVerifiedBy => 'אומת על ידי';
+
+  @override
+  String get pdf_sectionVerification => 'אימות';
+
+  @override
+  String get pdf_maxDepth => 'עומק מרבי';
+
+  @override
+  String get pdf_avgDepth => 'עומק ממוצע';
+
+  @override
+  String get pdf_runtime => 'זמן ריצה';
+
+  @override
+  String get pdf_bottomTime => 'זמן תחתית';
+
+  @override
+  String get pdf_timeIn => 'כניסה';
+
+  @override
+  String get pdf_timeOut => 'יציאה';
+
+  @override
+  String get pdf_surfaceInterval => 'מרווח פני שטח';
+
+  @override
+  String get pdf_sac => 'SAC';
+
+  @override
+  String get pdf_rmv => 'RMV';
+
+  @override
+  String pdf_pressureUsed(String pressure) {
+    return 'נוצלו $pressure';
+  }
+
+  @override
+  String pdf_cylinderNumber(String number) {
+    return 'בלון $number';
+  }
+
+  @override
+  String get pdf_waterTemp => 'טמפ\' מים';
+
+  @override
+  String get pdf_airTemp => 'טמפ\' אוויר';
+
+  @override
+  String get pdf_visibility => 'ראות';
+
+  @override
+  String get pdf_current => 'זרם';
+
+  @override
+  String get pdf_currentDirection => 'כיוון זרם';
+
+  @override
+  String get pdf_waterType => 'סוג מים';
+
+  @override
+  String get pdf_entry => 'כניסה';
+
+  @override
+  String get pdf_exit => 'יציאה';
+
+  @override
+  String get pdf_altitude => 'גובה';
+
+  @override
+  String get pdf_buddy => 'שותף';
+
+  @override
+  String get pdf_diveMaster => 'דייבמאסטר';
+
+  @override
+  String get pdf_diveCenter => 'מרכז צלילה';
+
+  @override
+  String get pdf_trip => 'טיול';
+
+  @override
+  String get pdf_weight => 'משקולות';
+
+  @override
+  String get pdf_weightType => 'סוג משקולות';
+
+  @override
+  String pdf_equipmentSets(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'סטים',
+      two: 'סטים',
+      one: 'סט',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pdf_computer => 'מחשב';
+
+  @override
+  String get pdf_diveMode => 'מצב צלילה';
+
+  @override
+  String get pdf_algorithm => 'אלגוריתם';
+
+  @override
+  String get pdf_gradientFactors => 'מקדמי שיפוע';
+
+  @override
+  String get pdf_setpoint => 'נקודת כוונון';
+
+  @override
+  String get pdf_diveType => 'סוג צלילה';
+
+  @override
+  String get pdf_weatherConditions => 'תנאים';
+
+  @override
+  String get pdf_wind => 'רוח';
+
+  @override
+  String get pdf_windDirection => 'כיוון רוח';
+
+  @override
+  String get pdf_cloud => 'עננות';
+
+  @override
+  String get pdf_precipitation => 'משקעים';
+
+  @override
+  String get pdf_humidity => 'לחות';
+
+  @override
+  String get pdf_swell => 'גלים';
+
+  @override
+  String get pdf_instructorSignature => 'חתימת מדריך';
+
+  @override
+  String get pdf_buddySignature => 'חתימת שותף';
+
+  @override
+  String get pdf_diveLogBanner => 'יומן צלילות';
+
+  @override
+  String get pdf_loggedDives => 'צלילות מתועדות';
+
+  @override
+  String pdf_diveNumber(String number) {
+    return 'צלילה #$number';
+  }
+
+  @override
+  String get pdf_trainingBadge => 'הכשרה';
+
+  @override
+  String get pdf_gas => 'גז';
+
+  @override
+  String get pdf_visibilityShort => 'ראות';
+
+  @override
+  String get pdf_air => 'אוויר';
+
+  @override
+  String get pdf_water => 'מים';
+
+  @override
+  String get pdf_verifiedBy => 'אומת על ידי';
+
+  @override
+  String get pdf_nauiDiveLogBanner => 'יומן צלילות NAUI';
+
+  @override
+  String get pdf_statDives => 'צלילות';
+
+  @override
+  String get pdf_statHours => 'שעות';
+
+  @override
+  String get pdf_avgShort => 'ממוצע';
+
+  @override
+  String get pdf_pressureStart => 'התחלה';
+
+  @override
+  String get pdf_pressureEnd => 'סיום';
+
+  @override
+  String pdf_surfaceIntervalShort(String minutes) {
+    return 'מרווח: $minutes דק\'';
+  }
+
+  @override
+  String get pdf_diveDataHeading => 'נתוני צלילה';
+
+  @override
+  String get pdf_verificationHeading => 'אימות';
+
+  @override
+  String pdf_labelValue(String label, String value) {
+    return '$label: $value';
+  }
+
+  @override
+  String get pdf_resort => 'אתר נופש';
+
+  @override
+  String get pdf_liveaboard => 'ספינת צלילה';
+
+  @override
+  String get pdf_totalRuntime => 'סה\"כ זמן ריצה';
+
+  @override
+  String pdf_tripDiveTitle(String number) {
+    return 'צלילה $number';
+  }
+
+  @override
+  String get pdf_date => 'תאריך';
+
+  @override
+  String get pdf_site => 'אתר';
+
+  @override
+  String get pdf_duration => 'משך';
+
+  @override
+  String get pdf_notesLabel => 'הערות:';
+
+  @override
+  String get pdf_trainingLog => 'יומן אימונים';
+
+  @override
+  String get pdf_instructor => 'מדריך';
+
+  @override
+  String get pdf_instructorNumber => 'מספר מדריך';
+
+  @override
+  String get pdf_location => 'מיקום';
+
+  @override
+  String get pdf_startDate => 'תאריך התחלה';
+
+  @override
+  String get pdf_completionDate => 'תאריך השלמה';
+
+  @override
+  String get pdf_status => 'סטטוס';
+
+  @override
+  String get pdf_statusCompleted => 'הושלם';
+
+  @override
+  String get pdf_statusInProgress => 'בתהליך';
+
+  @override
+  String get pdf_trainingDives => 'צלילות אימון';
+
+  @override
+  String get pdf_totalMinutes => 'סה\"כ דקות';
+
+  @override
+  String get pdf_courseNotes => 'הערות קורס';
+
+  @override
+  String get pdf_slateMax => 'מרבי';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -23285,6 +23751,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'הוסף תיבות חותמת וחתימה לאימות';
 
   @override
+  String get transfer_pdfExport_languageHeader => 'שפה';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -24628,6 +25097,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
     return 'יומני MacDive ($names) הם חיפושים שמורים ולא רשימות קבועות של צלילות, ולכן אין מה לייבא. אפשר ליצור אותם מחדש כמסנני צלילות.';
   }
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneTitle =>
+      'זמני הצלילה נקראו באזור הזמן של מכשיר זה';
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody =>
+      'MacDive לא שמר אזור זמן קריא עבור צלילות אלה, ולאתרי הצלילה שלהן אין מיקום GPS, ולכן הזמנים שלהן נקראו באזור הזמן של מכשיר זה. אם ביצעת צלילות אלה במקום אחר, כדאי לבדוק את שעות ההתחלה שלהן.';
 
   @override
   String get universalImport_summary_unreadableDatesTitle =>

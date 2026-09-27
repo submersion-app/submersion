@@ -12591,6 +12591,481 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_logFill_saveFailed => 'تعذّر حفظ التعبئة. حاول مرة أخرى.';
 
   @override
+  String get pdf_unknownSite => 'موقع غير معروف';
+
+  @override
+  String get pdf_signaturePlaceholder => '[التوقيع]';
+
+  @override
+  String get pdf_signerBuddy => 'زميل الغوص';
+
+  @override
+  String get pdf_signerInstructor => 'المدرب';
+
+  @override
+  String get pdf_officialStamp => 'الختم الرسمي';
+
+  @override
+  String get pdf_certifications => 'الشهادات';
+
+  @override
+  String pdf_cardNumber(String number) {
+    return 'رقم البطاقة: $number';
+  }
+
+  @override
+  String pdf_certIssued(String date) {
+    return 'تاريخ الإصدار: $date';
+  }
+
+  @override
+  String pdf_certExpires(String date) {
+    return 'تاريخ الانتهاء: $date';
+  }
+
+  @override
+  String get pdf_cardFront => 'الأمام';
+
+  @override
+  String get pdf_cardBack => 'الخلف';
+
+  @override
+  String pdf_coverDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+      zero: '$count غطسة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_headerDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+      zero: '$count غطسة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_generatedOn(String dateTime) {
+    return 'أُنشئ في $dateTime';
+  }
+
+  @override
+  String pdf_generated(String dateTime) {
+    return 'أُنشئ $dateTime';
+  }
+
+  @override
+  String get pdf_noDivesToSummarize => 'لا توجد غطسات لتلخيصها';
+
+  @override
+  String get pdf_noDivesToDisplay => 'لا توجد غطسات لعرضها';
+
+  @override
+  String get pdf_summary => 'الملخص';
+
+  @override
+  String get pdf_totalDives => 'إجمالي الغطسات';
+
+  @override
+  String get pdf_firstDive => 'أول غطسة';
+
+  @override
+  String get pdf_lastDive => 'آخر غطسة';
+
+  @override
+  String get pdf_totalDiveTime => 'إجمالي وقت الغوص';
+
+  @override
+  String get pdf_deepestDive => 'أعمق غطسة';
+
+  @override
+  String get pdf_blenderIncomplete => 'غير مكتمل: سطر واحد أو أكثر بلا سعر.';
+
+  @override
+  String get pdf_averageDepth => 'متوسط العمق';
+
+  @override
+  String get pdf_uniqueSites => 'المواقع المختلفة';
+
+  @override
+  String pdf_hoursMinutes(String hours, String minutes) {
+    return '$hours س $minutes د';
+  }
+
+  @override
+  String pdf_minutesShort(String minutes) {
+    return '$minutes د';
+  }
+
+  @override
+  String pdf_minutes(String minutes) {
+    return '$minutes دقيقة';
+  }
+
+  @override
+  String pdf_minutesCompact(String minutes) {
+    return '$minutes د';
+  }
+
+  @override
+  String get pdf_diverProfile => 'ملف الغواص';
+
+  @override
+  String get pdf_name => 'الاسم';
+
+  @override
+  String get pdf_email => 'البريد الإلكتروني';
+
+  @override
+  String get pdf_photo => 'الصورة';
+
+  @override
+  String pdf_depthProfileHeading(String depthUnit) {
+    return 'ملف العمق ($depthUnit مقابل الدقائق)';
+  }
+
+  @override
+  String get pdf_columnDate => 'التاريخ';
+
+  @override
+  String get pdf_columnSite => 'الموقع';
+
+  @override
+  String get pdf_columnDepth => 'العمق';
+
+  @override
+  String get pdf_columnTime => 'الوقت';
+
+  @override
+  String get pdf_columnTemp => 'الحرارة';
+
+  @override
+  String pdf_pageOf(String page, String total) {
+    return 'صفحة $page من $total';
+  }
+
+  @override
+  String get pdf_sectionProfile => 'ملف الغطسة';
+
+  @override
+  String get pdf_sectionCylinders => 'الأسطوانات';
+
+  @override
+  String get pdf_sectionConditions => 'الظروف';
+
+  @override
+  String get pdf_sectionWeather => 'الطقس';
+
+  @override
+  String get pdf_sectionTeam => 'الفريق';
+
+  @override
+  String get pdf_sectionEquipment => 'المعدات';
+
+  @override
+  String get pdf_sectionTechnical => 'البيانات التقنية';
+
+  @override
+  String get pdf_sectionMarineLife => 'الحياة البحرية';
+
+  @override
+  String get pdf_sectionNotes => 'الملاحظات';
+
+  @override
+  String get pdf_sectionAdditionalFields => 'حقول إضافية';
+
+  @override
+  String get pdf_sectionVerifiedBy => 'تم التحقق بواسطة';
+
+  @override
+  String get pdf_sectionVerification => 'التحقق';
+
+  @override
+  String get pdf_maxDepth => 'أقصى عمق';
+
+  @override
+  String get pdf_avgDepth => 'متوسط العمق';
+
+  @override
+  String get pdf_runtime => 'وقت التشغيل';
+
+  @override
+  String get pdf_bottomTime => 'وقت القاع';
+
+  @override
+  String get pdf_timeIn => 'الدخول';
+
+  @override
+  String get pdf_timeOut => 'الخروج';
+
+  @override
+  String get pdf_surfaceInterval => 'فترة السطح';
+
+  @override
+  String get pdf_sac => 'SAC';
+
+  @override
+  String get pdf_rmv => 'RMV';
+
+  @override
+  String pdf_pressureUsed(String pressure) {
+    return '$pressure مستهلك';
+  }
+
+  @override
+  String pdf_cylinderNumber(String number) {
+    return 'الأسطوانة $number';
+  }
+
+  @override
+  String get pdf_waterTemp => 'حرارة الماء';
+
+  @override
+  String get pdf_airTemp => 'حرارة الهواء';
+
+  @override
+  String get pdf_visibility => 'الرؤية';
+
+  @override
+  String get pdf_current => 'التيار';
+
+  @override
+  String get pdf_currentDirection => 'اتجاه التيار';
+
+  @override
+  String get pdf_waterType => 'نوع المياه';
+
+  @override
+  String get pdf_entry => 'الدخول';
+
+  @override
+  String get pdf_exit => 'الخروج';
+
+  @override
+  String get pdf_altitude => 'الارتفاع';
+
+  @override
+  String get pdf_buddy => 'زميل الغوص';
+
+  @override
+  String get pdf_diveMaster => 'دايف ماستر';
+
+  @override
+  String get pdf_diveCenter => 'مركز الغوص';
+
+  @override
+  String get pdf_trip => 'الرحلة';
+
+  @override
+  String get pdf_weight => 'الأثقال';
+
+  @override
+  String get pdf_weightType => 'نوع الأثقال';
+
+  @override
+  String pdf_equipmentSets(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'المجموعات',
+      many: 'المجموعات',
+      few: 'المجموعات',
+      two: 'المجموعتان',
+      one: 'المجموعة',
+      zero: 'المجموعات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pdf_computer => 'الحاسوب';
+
+  @override
+  String get pdf_diveMode => 'وضع الغوص';
+
+  @override
+  String get pdf_algorithm => 'الخوارزمية';
+
+  @override
+  String get pdf_gradientFactors => 'عوامل التدرج';
+
+  @override
+  String get pdf_setpoint => 'نقطة الضبط';
+
+  @override
+  String get pdf_diveType => 'نوع الغطسة';
+
+  @override
+  String get pdf_weatherConditions => 'الأحوال الجوية';
+
+  @override
+  String get pdf_wind => 'الرياح';
+
+  @override
+  String get pdf_windDirection => 'اتجاه الرياح';
+
+  @override
+  String get pdf_cloud => 'الغيوم';
+
+  @override
+  String get pdf_precipitation => 'هطول الأمطار';
+
+  @override
+  String get pdf_humidity => 'الرطوبة';
+
+  @override
+  String get pdf_swell => 'الموج';
+
+  @override
+  String get pdf_instructorSignature => 'توقيع المدرب';
+
+  @override
+  String get pdf_buddySignature => 'توقيع زميل الغوص';
+
+  @override
+  String get pdf_diveLogBanner => 'سجل الغوص';
+
+  @override
+  String get pdf_loggedDives => 'الغطسات المسجلة';
+
+  @override
+  String pdf_diveNumber(String number) {
+    return 'الغطسة #$number';
+  }
+
+  @override
+  String get pdf_trainingBadge => 'تدريب';
+
+  @override
+  String get pdf_gas => 'الغاز';
+
+  @override
+  String get pdf_visibilityShort => 'الرؤية';
+
+  @override
+  String get pdf_air => 'الهواء';
+
+  @override
+  String get pdf_water => 'الماء';
+
+  @override
+  String get pdf_verifiedBy => 'تم التحقق بواسطة';
+
+  @override
+  String get pdf_nauiDiveLogBanner => 'سجل غوص NAUI';
+
+  @override
+  String get pdf_statDives => 'الغطسات';
+
+  @override
+  String get pdf_statHours => 'الساعات';
+
+  @override
+  String get pdf_avgShort => 'المتوسط';
+
+  @override
+  String get pdf_pressureStart => 'البداية';
+
+  @override
+  String get pdf_pressureEnd => 'النهاية';
+
+  @override
+  String pdf_surfaceIntervalShort(String minutes) {
+    return 'فترة السطح: $minutes د';
+  }
+
+  @override
+  String get pdf_diveDataHeading => 'بيانات الغطسة';
+
+  @override
+  String get pdf_verificationHeading => 'التحقق';
+
+  @override
+  String pdf_labelValue(String label, String value) {
+    return '$label: $value';
+  }
+
+  @override
+  String get pdf_resort => 'المنتجع';
+
+  @override
+  String get pdf_liveaboard => 'قارب إقامة';
+
+  @override
+  String get pdf_totalRuntime => 'إجمالي وقت التشغيل';
+
+  @override
+  String pdf_tripDiveTitle(String number) {
+    return 'الغطسة $number';
+  }
+
+  @override
+  String get pdf_date => 'التاريخ';
+
+  @override
+  String get pdf_site => 'الموقع';
+
+  @override
+  String get pdf_duration => 'المدة';
+
+  @override
+  String get pdf_notesLabel => 'ملاحظات:';
+
+  @override
+  String get pdf_trainingLog => 'سجل التدريب';
+
+  @override
+  String get pdf_instructor => 'المدرب';
+
+  @override
+  String get pdf_instructorNumber => 'رقم المدرب';
+
+  @override
+  String get pdf_location => 'الموقع';
+
+  @override
+  String get pdf_startDate => 'تاريخ البدء';
+
+  @override
+  String get pdf_completionDate => 'تاريخ الإكمال';
+
+  @override
+  String get pdf_status => 'الحالة';
+
+  @override
+  String get pdf_statusCompleted => 'مكتمل';
+
+  @override
+  String get pdf_statusInProgress => 'قيد التنفيذ';
+
+  @override
+  String get pdf_trainingDives => 'الغطسات التدريبية';
+
+  @override
+  String get pdf_totalMinutes => 'إجمالي الدقائق';
+
+  @override
+  String get pdf_courseNotes => 'ملاحظات الدورة';
+
+  @override
+  String get pdf_slateMax => 'أقصى';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -23571,6 +24046,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'إضافة مربعات الختم والتوقيع للتحقق';
 
   @override
+  String get transfer_pdfExport_languageHeader => 'اللغة';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -24929,6 +25407,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
     return 'دفاتر سجل MacDive ($names) هي عمليات بحث محفوظة وليست قوائم ثابتة من الغطسات، لذا لا يوجد ما يُستورد. يمكنك إعادة إنشائها كعوامل تصفية للغطسات.';
   }
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneTitle =>
+      'قُرئت أوقات الغطس بالمنطقة الزمنية لهذا الجهاز';
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody =>
+      'لم يحفظ MacDive منطقة زمنية قابلة للقراءة لهذه الغطسات، ولا تحتوي مواقع الغوص الخاصة بها على موقع GPS، لذا قُرئت أوقاتها بالمنطقة الزمنية لهذا الجهاز. إذا أجريت هذه الغطسات في مكان آخر، فتحقق من أوقات بدئها.';
 
   @override
   String get universalImport_summary_unreadableDatesTitle =>
