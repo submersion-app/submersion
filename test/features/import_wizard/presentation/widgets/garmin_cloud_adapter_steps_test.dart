@@ -55,6 +55,7 @@ class _FakeGarminClient extends GarminConnectClient {
     this.dives = const [],
     this.fitBytesByActivityId = const {},
     this.failActivityIds = const {},
+    this.noFitActivityIds = const {},
   });
 
   final bool mfaRequired;
@@ -66,6 +67,9 @@ class _FakeGarminClient extends GarminConnectClient {
   final List<GarminActivitySummary> dives;
   final Map<int, Uint8List> fitBytesByActivityId;
   final Set<int> failActivityIds;
+
+  /// Activities Garmin has no FIT file for, as for one entered by hand.
+  final Set<int> noFitActivityIds;
 
   GarminOAuth1Token? _token;
   String? loggedInEmail;
@@ -162,6 +166,9 @@ class _FakeGarminClient extends GarminConnectClient {
     fetchedActivityIds.add(activityId);
     if (failActivityIds.contains(activityId)) {
       throw const GarminApiException('fetch blew up');
+    }
+    if (noFitActivityIds.contains(activityId)) {
+      throw const GarminNoFitException('no FIT', statusCode: 404);
     }
     return fitBytesByActivityId[activityId] ?? Uint8List(0);
   }
@@ -1129,6 +1136,114 @@ void main() {
 
       expect(fetched, hasLength(1));
       expect(find.text('Found 1 dive'), findsOneWidget);
+    });
+
+    // Issue #2410: a dive Connect cannot export as FIT is imported from its
+    // summary instead of being skipped.
+    group('dives with no FIT file', () {
+      Future<List<GarminParsedDive>?> fetchWith(
+        WidgetTester tester,
+        _FakeGarminClient client,
+      ) async {
+        List<GarminParsedDive>? fetched;
+        await tester.pumpWidget(
+          _host(
+            store: _FakeSessionStore(),
+            clientFactory: _FakeGarminClient.new,
+            child: GarminCloudFetchStep(
+              client: client,
+              onDivesFetched: (dives) => fetched = dives,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        return fetched;
+      }
+
+      testWidgets('imports one Garmin has no FIT for from its summary', (
+        tester,
+      ) async {
+        final client = _FakeGarminClient(
+          dives: [
+            _activity(1),
+            GarminActivitySummary(
+              activityId: 2,
+              startTime: DateTime.utc(2026, 5, 1, 10),
+              activityType: 'single_gas_diving',
+              maxDepth: 14,
+              durationSeconds: 1800,
+            ),
+          ],
+          fitBytesByActivityId: {1: fitBytes},
+          noFitActivityIds: {2},
+        );
+
+        final fetched = await fetchWith(tester, client);
+
+        expect(fetched, hasLength(2));
+        final fromSummary = fetched!.singleWhere((d) => d.profileMissing);
+        expect(fromSummary.dive.maxDepth, 14);
+        expect(fromSummary.dive.durationSeconds, 1800);
+        expect(find.textContaining('skipped'), findsNothing);
+      });
+
+      testWidgets('does not download an activity entered by hand', (
+        tester,
+      ) async {
+        final client = _FakeGarminClient(
+          dives: [
+            GarminActivitySummary(
+              activityId: 3,
+              startTime: DateTime.utc(2026, 5, 1, 10),
+              activityType: 'single_gas_diving',
+              isManual: true,
+            ),
+          ],
+        );
+
+        final fetched = await fetchWith(tester, client);
+
+        expect(client.fetchedActivityIds, isEmpty);
+        expect(fetched!.single.profileMissing, isTrue);
+      });
+
+      testWidgets('still skips a dive whose download merely failed', (
+        tester,
+      ) async {
+        final client = _FakeGarminClient(
+          dives: [_activity(1)],
+          failActivityIds: {1},
+        );
+
+        final fetched = await fetchWith(tester, client);
+
+        // A transient failure must stay retryable rather than turning into
+        // a profile-less dive.
+        expect(fetched ?? const [], isEmpty);
+      });
+
+      testWidgets('carries the Connect notes and weight onto a FIT dive', (
+        tester,
+      ) async {
+        final client = _FakeGarminClient(
+          dives: [
+            GarminActivitySummary(
+              activityId: 1,
+              startTime: DateTime.utc(2026, 5, 1, 10),
+              activityType: 'single_gas_diving',
+              notes: 'Drift along the wall',
+              weightKg: 4.5,
+            ),
+          ],
+          fitBytesByActivityId: {1: fitBytes},
+        );
+
+        final fetched = await fetchWith(tester, client);
+
+        expect(fetched!.single.notes, 'Drift along the wall');
+        expect(fetched.single.weightKg, 4.5);
+        expect(fetched.single.profileMissing, isFalse);
+      });
     });
 
     testWidgets('downloads every dive in a page concurrently', (tester) async {

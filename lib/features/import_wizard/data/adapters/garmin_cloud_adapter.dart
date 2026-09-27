@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/enums.dart' show WeightType;
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_rep
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/import_wizard/data/adapters/cloud_computer_identity.dart';
@@ -25,6 +27,7 @@ import 'package:submersion/features/import_wizard/domain/models/duplicate_action
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/garmin_cloud_adapter_steps.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/garmin_cloud_dive_list.dart';
@@ -325,6 +328,7 @@ class GarminCloudAdapter implements ImportSourceAdapter {
     var imported = 0;
     var consolidated = 0;
     var updated = 0;
+    var importedWithoutProfile = 0;
     final importedCountByComputerId = <String, int>{};
     final importedDiveIds = <String>[];
 
@@ -354,12 +358,19 @@ class GarminCloudAdapter implements ImportSourceAdapter {
               consolidated++;
               importedCountByComputerId[comp.id] =
                   (importedCountByComputerId[comp.id] ?? 0) + 1;
+              // The fold keeps the target's own header, so Connect's notes
+              // and weight go onto the target, not the folded-away download.
+              await _applyConnectExtras(matchResult.diveId, parsed);
             case _ConsolidateOutcome.keptStandalone:
               // The fold refused, but the download survived as its own dive,
               // so it counts as imported rather than skipped.
               imported++;
+              if (parsed.profileMissing) importedWithoutProfile++;
               final keptId = result.diveId;
-              if (keptId != null) importedDiveIds.add(keptId);
+              if (keptId != null) {
+                importedDiveIds.add(keptId);
+                await _applyConnectExtras(keptId, parsed);
+              }
               importedCountByComputerId[comp.id] =
                   (importedCountByComputerId[comp.id] ?? 0) + 1;
             case _ConsolidateOutcome.skippedSameComputer:
@@ -389,6 +400,7 @@ class GarminCloudAdapter implements ImportSourceAdapter {
             descriptorProduct: parsed.deviceModel,
           );
           updated++;
+          await _applyConnectExtras(matchResult.diveId, parsed);
         }
       } else {
         final diveId = await _importService.importSingleDiveAsNew(
@@ -400,7 +412,9 @@ class GarminCloudAdapter implements ImportSourceAdapter {
           retainSourceDiveNumber: retainSourceDiveNumbers,
         );
         imported++;
+        if (parsed.profileMissing) importedWithoutProfile++;
         importedDiveIds.add(diveId);
+        await _applyConnectExtras(diveId, parsed);
         importedCountByComputerId[comp.id] =
             (importedCountByComputerId[comp.id] ?? 0) + 1;
       }
@@ -427,8 +441,58 @@ class GarminCloudAdapter implements ImportSourceAdapter {
       updatedCount: updated,
       skippedCount: skipped,
       importedDiveIds: importedDiveIds,
-      notices: [?numberConflict],
+      notices: [
+        if (importedWithoutProfile > 0)
+          ImportNotice(
+            kind: ImportNoticeKind.profileUnreadable,
+            count: importedWithoutProfile,
+          ),
+        ?numberConflict,
+      ],
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Helpers -- what the diver added in Connect
+  // ---------------------------------------------------------------------------
+
+  /// Brings the notes and weight the diver entered in Connect onto [diveId]
+  /// (issue #2410), each only where the dive has none, so nothing written in
+  /// Submersion is overwritten.
+  ///
+  /// The dive itself is already saved by now, so a failure here is logged
+  /// rather than thrown: losing the notes must not fail the import or stop
+  /// the dives after this one.
+  Future<void> _applyConnectExtras(
+    String diveId,
+    GarminParsedDive parsed,
+  ) async {
+    try {
+      final notes = parsed.notes;
+      if (notes != null) {
+        await _diveRepository.fillNotesIfEmpty(diveId, notes);
+      }
+      final weightKg = parsed.weightKg;
+      if (weightKg != null) {
+        await _diveRepository.addWeightIfNone(
+          diveId,
+          // Connect does not say what kind of weight it is; a belt is the
+          // plainest reading, and the diver can change it.
+          DiveWeight(
+            id: '',
+            diveId: diveId,
+            weightType: WeightType.belt,
+            amountKg: weightKg,
+          ),
+        );
+      }
+    } catch (e, st) {
+      _log.error(
+        'Could not bring Garmin Connect notes or weight onto dive $diveId',
+        error: e,
+        stackTrace: st,
+      );
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -441,10 +505,21 @@ class GarminCloudAdapter implements ImportSourceAdapter {
     }
   }
 
-  String _computerCacheKey(GarminParsedDive parsed) =>
-      normalizedIdentityPart(parsed.serialNumber) ??
-      normalizedIdentityPart(parsed.deviceModel) ??
-      'Garmin';
+  /// Cache key for [_connectComputerModel], which no watch can collide with:
+  /// a real key is a serial or a model name, neither of which has a colon.
+  static const _connectComputerKey = ':garmin-connect';
+
+  /// The model of the one record every dive without a FIT file is filed
+  /// under, shown as "Garmin Connect". Such a dive, often entered by hand,
+  /// names no watch, and minting a nameless device per import would leave a
+  /// new placeholder in the computer list every time.
+  static const _connectComputerModel = 'Connect';
+
+  String _computerCacheKey(GarminParsedDive parsed) => parsed.profileMissing
+      ? _connectComputerKey
+      : normalizedIdentityPart(parsed.serialNumber) ??
+            normalizedIdentityPart(parsed.deviceModel) ??
+            'Garmin';
 
   DiveComputer? _computerFor(GarminParsedDive parsed) =>
       _computersByKey[_computerCacheKey(parsed)];
@@ -457,6 +532,20 @@ class GarminCloudAdapter implements ImportSourceAdapter {
     final cacheKey = _computerCacheKey(parsed);
     final cached = _computersByKey[cacheKey];
     if (cached != null) return cached;
+
+    if (parsed.profileMissing) {
+      // Serial-less, so matched on manufacturer + model: every import finds
+      // the same row rather than adding another.
+      final connect = await _computerRepository.findOrRegisterImportedComputer(
+        model: _connectComputerModel,
+        manufacturer: 'Garmin',
+        diverId: _diverId,
+      );
+      if (connect != null) {
+        _computersByKey[cacheKey] = connect;
+        return connect;
+      }
+    }
 
     final model = normalizedIdentityPart(parsed.deviceModel) ?? 'Garmin';
     final serial = normalizedIdentityPart(parsed.serialNumber);

@@ -5677,6 +5677,48 @@ class DiveRepository {
     }
   }
 
+  /// Write [notes] onto dive [diveId] only when its notes are blank, so a
+  /// cloud import can bring in the notes the diver wrote in the source app
+  /// without overwriting any written in Submersion (issue #2410). Returns
+  /// whether anything was written; a blank [notes] writes nothing.
+  Future<bool> fillNotesIfEmpty(String diveId, String notes) async {
+    final text = notes.trim();
+    if (text.isEmpty) return false;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final changed = await _db.customUpdate(
+      'UPDATE dives SET notes = ?, updated_at = ? '
+      // TRIM strips only spaces by default, so tabs and newlines are named.
+      "WHERE id = ? AND TRIM(COALESCE(notes, ''), ' ' || char(9, 10, 13)) = ''",
+      variables: [
+        Variable.withString(text),
+        Variable.withInt(now),
+        Variable.withString(diveId),
+      ],
+      updates: {_db.dives},
+    );
+    if (changed == 0) return false;
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+    return true;
+  }
+
+  /// Add [weight] to dive [diveId] only when the dive records no weight yet,
+  /// the weight counterpart of [fillNotesIfEmpty]. Returns whether it was
+  /// added.
+  Future<bool> addWeightIfNone(String diveId, domain.DiveWeight weight) async {
+    final existing =
+        await (_db.select(_db.diveWeights)
+              ..where((t) => t.diveId.equals(diveId))
+              ..limit(1))
+            .get();
+    if (existing.isNotEmpty) return false;
+    await bulkAddWeights([diveId], [weight]);
+    return true;
+  }
+
   /// Shift dive times of every dive in [diveIds] by [offset].
   /// Shifts dive_date_time always, entry_time/exit_time only when non-null.
   /// Forces `updated_at = now` and marks each dive pending. Does NOT open a

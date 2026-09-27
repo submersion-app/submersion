@@ -213,6 +213,7 @@ Map<String, dynamic> _diveActivity({
   double? startLongitude,
   double? endLatitude,
   double? endLongitude,
+  Map<String, dynamic> extra = const {},
 }) => {
   'activityId': id,
   'startTimeGMT': startTimeGmt,
@@ -222,7 +223,18 @@ Map<String, dynamic> _diveActivity({
   'startLongitude': ?startLongitude,
   'endLatitude': ?endLatitude,
   'endLongitude': ?endLongitude,
+  ...extra,
 };
+
+/// Lists a single activity carrying [extra] and returns its summary.
+Future<GarminActivitySummary> _summaryWith(Map<String, dynamic> extra) async {
+  final server = _FakeGarminServer()
+    ..activities.add(_diveActivity(id: 1, extra: extra));
+  final client = GarminConnectClient(httpClient: server.client);
+  await client.login('diver@example.com', 'hunter2');
+  final page = await client.fetchDivePage();
+  return page.dives.single;
+}
 
 void main() {
   group('login', () {
@@ -802,6 +814,84 @@ void main() {
     });
   });
 
+  // Issue #2410: what the diver adds in Connect after the dive never reaches
+  // the FIT file, so it is read from the activity summary instead.
+  group('activity summary fields', () {
+    test('reads the Connect notes from description', () async {
+      final summary = await _summaryWith({
+        'description': '  Drift along the wall\n',
+      });
+
+      expect(summary.notes, 'Drift along the wall');
+    });
+
+    test('treats absent, null and empty description as no notes', () async {
+      expect((await _summaryWith({})).notes, isNull);
+      expect((await _summaryWith({'description': null})).notes, isNull);
+      expect((await _summaryWith({'description': ''})).notes, isNull);
+      expect((await _summaryWith({'description': '  '})).notes, isNull);
+    });
+
+    test('reads the local wall-clock start as wall-clock-as-UTC', () async {
+      final summary = await _summaryWith({
+        'startTimeLocal': '2026-03-15 05:00:00',
+      });
+
+      expect(summary.localStartTime, DateTime.utc(2026, 3, 15, 5));
+      expect(summary.startTime, DateTime.utc(2026, 3, 15, 10));
+    });
+
+    test('flags an activity entered by hand', () async {
+      expect((await _summaryWith({'manualActivity': true})).isManual, isTrue);
+      expect((await _summaryWith({'manualActivity': false})).isManual, isFalse);
+      expect((await _summaryWith({})).isManual, isFalse);
+    });
+
+    group('dive weight', () {
+      Future<double?> weightFor(Object? weight, Object? unit) async =>
+          (await _summaryWith({
+            'summarizedDiveInfo': {'weight': weight, 'weightUnit': unit},
+          })).weightKg;
+
+      test(
+        'reads a weight in kilograms, as a string or a unit object',
+        () async {
+          expect(await weightFor(4.5, 'kilogram'), 4.5);
+          expect(await weightFor(4.5, 'kg'), 4.5);
+          expect(await weightFor(4.5, {'unitKey': 'kilogram'}), 4.5);
+        },
+      );
+
+      test('converts a weight in pounds to kilograms', () async {
+        expect(await weightFor(10, 'pound'), closeTo(4.536, 0.001));
+        expect(await weightFor(10, {'unitKey': 'lb'}), closeTo(4.536, 0.001));
+      });
+
+      test('skips a weight whose unit it cannot read', () async {
+        // The unit format is unverified against a real dive, so anything
+        // unrecognised is dropped rather than guessed at.
+        expect(await weightFor(4000, 'gram'), isNull);
+        expect(await weightFor(4.5, null), isNull);
+        expect(await weightFor(4.5, {'unitId': 8}), isNull);
+      });
+
+      test('skips a zero or implausible weight', () async {
+        expect(await weightFor(0, 'kilogram'), isNull);
+        expect(await weightFor(4000, 'kilogram'), isNull);
+      });
+
+      test('is null when the summary has no dive info', () async {
+        expect((await _summaryWith({})).weightKg, isNull);
+        expect(
+          (await _summaryWith({
+            'summarizedDiveInfo': {'summarizedDiveGases': <Object>[]},
+          })).weightKg,
+          isNull,
+        );
+      });
+    });
+  });
+
   group('downloadActivityFit', () {
     test('unwraps the ZIP Garmin serves the FIT file inside', () async {
       final server = _FakeGarminServer()..fitFiles[42] = [1, 2, 3, 4];
@@ -1022,8 +1112,91 @@ void main() {
 
       expect(
         () => client.downloadActivityFit(8),
-        throwsA(isA<GarminApiException>()),
+        throwsA(isA<GarminNoFitException>()),
       );
     });
+
+    // Issue #2410: an activity entered by hand in Connect has no original
+    // upload, so there is no FIT to hand out. The fetch step imports such a
+    // dive from its summary instead, and needs to tell this apart from a
+    // download that merely failed.
+    test('reports a 404 as the activity having no FIT', () async {
+      final server = _FakeGarminServer();
+      final client = GarminConnectClient(httpClient: server.client);
+      await client.login('diver@example.com', 'hunter2');
+
+      await expectLater(
+        client.downloadActivityFit(404404),
+        throwsA(
+          isA<GarminNoFitException>().having(
+            (e) => e.statusCode,
+            'statusCode',
+            404,
+          ),
+        ),
+      );
+    });
+
+    test(
+      'reports an empty download body as the activity having no FIT',
+      () async {
+        final server = _FakeGarminServer();
+        final client = GarminConnectClient(httpClient: server.client);
+        await client.login('diver@example.com', 'hunter2');
+        server.rawDownloadBytes[9] = const [];
+
+        await expectLater(
+          client.downloadActivityFit(9),
+          throwsA(isA<GarminNoFitException>()),
+        );
+      },
+    );
+
+    test(
+      'does not report a corrupt archive as the activity having no FIT',
+      () async {
+        final server = _FakeGarminServer();
+        final client = GarminConnectClient(httpClient: server.client);
+        await client.login('diver@example.com', 'hunter2');
+        server.rawDownloadBytes[7] = [0, 1, 2, 3];
+
+        // A truncated or garbled body can be a transient fault, so it stays an
+        // ordinary failure the diver can retry.
+        await expectLater(
+          client.downloadActivityFit(7),
+          throwsA(
+            isA<GarminApiException>().having(
+              (e) => e is GarminNoFitException,
+              'is GarminNoFitException',
+              isFalse,
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      'does not report a server error as the activity having no FIT',
+      () async {
+        final server = _FakeGarminServer();
+        final client = GarminConnectClient(
+          httpClient: server.client,
+          retryDelay: (_) async {},
+        );
+        await client.login('diver@example.com', 'hunter2');
+        server.downloadStatusQueue[42] = [503, 503, 503];
+
+        await expectLater(
+          client.downloadActivityFit(42),
+          throwsA(
+            isA<GarminApiException>().having(
+              (e) => e is GarminNoFitException,
+              'is GarminNoFitException',
+              isFalse,
+            ),
+          ),
+        );
+      },
+    );
   });
 }
