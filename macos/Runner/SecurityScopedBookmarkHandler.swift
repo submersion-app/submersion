@@ -250,9 +250,11 @@ class SecurityScopedBookmarkHandler: NSObject {
             coordinator.coordinate(readingItemAt: url, options: [], error: &coordinationError) { readURL in
                 // Reading a byte is what makes an evicted file's contents arrive, whether or
                 // not the coordination fetched them already. An evicted file still exists by
-                // name, so presence alone proves nothing.
+                // name, so presence alone proves nothing, and neither does an unknown status:
+                // only an explicit answer that the contents are local counts.
+                let status = self.iCloudDownloadStatus(path: readURL.path)
                 downloaded = Self.readsFirstByte(of: readURL)
-                    && self.iCloudDownloadStatus(path: readURL.path) != "notDownloaded"
+                    && (status == "downloaded" || status == "notUbiquitous")
             }
             let succeeded = coordinationError == nil && downloaded
             DispatchQueue.main.async {
