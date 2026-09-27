@@ -467,6 +467,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
                                 item,
                                 labels,
                                 numberById[item.id],
+                                figureShown: model != null,
                               ),
                           ],
                         ),
@@ -526,13 +527,15 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
 
   /// One row of the picker. [number] is the item's figure number while the
   /// figure shows; it leads the row as a badge that brings the figure into
-  /// view.
+  /// view. While the figure shows ([figureShown]), a row with no number
+  /// keeps the badge's room, so every name starts at the same place.
   Widget _buildEquipmentCheckbox(
     BuildContext context,
     EquipmentItem item,
     Map<String, EquipmentRowLabel> labels,
-    int? number,
-  ) {
+    int? number, {
+    bool figureShown = false,
+  }) {
     final isSelected = _selectedEquipmentIds.contains(item.id);
     final scheme = Theme.of(context).colorScheme;
     final flashing = number != null && item.id == selectedFigureItemId;
@@ -574,17 +577,21 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
               ),
             ],
           ),
-          secondary: number == null
+          secondary: !figureShown
               ? icon
               : Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    FigureNumberBadge(
-                      number: number,
-                      selected: flashing,
-                      onTap: () =>
-                          selectFigureItem(item.id, revealFigure: true),
-                    ),
+                    if (number != null)
+                      FigureNumberBadge(
+                        number: number,
+                        selected: flashing,
+                        onTap: () =>
+                            selectFigureItem(item.id, revealFigure: true),
+                      )
+                    else
+                      // The room a one- or two-digit badge takes.
+                      SizedBox(width: FigureNumberBadge.widthFor(1, 24)),
                     const SizedBox(width: 8),
                     icon,
                   ],

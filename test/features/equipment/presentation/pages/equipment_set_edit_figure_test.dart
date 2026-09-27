@@ -133,6 +133,18 @@ void main() {
     expect(find.byKey(const ValueKey('figure-label-old')), findsNothing);
   });
 
+  testWidgets('with the figure on, ticked and unticked names line up', (
+    tester,
+  ) async {
+    // Ticked rows lead with a number badge; an unticked row keeps the
+    // badge's room so its name does not sit further left.
+    await pumpPage(tester, showFigure: true);
+    double nameX(String name) => tester
+        .getTopLeft(find.descendant(of: rowOf(name), matching: find.text(name)))
+        .dx;
+    expect(nameX('Jets'), nameX('Hollis SMS75'));
+  });
+
   testWidgets('ticking an item redraws the figure at once', (tester) async {
     await pumpPage(tester, showFigure: true);
     await tester.tap(rowOf('Jets'));
