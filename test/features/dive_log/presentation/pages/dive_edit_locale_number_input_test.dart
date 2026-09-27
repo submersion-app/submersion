@@ -94,6 +94,138 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('unreadable max depth blocks save and shows the error (#1900)', (
+    tester,
+  ) async {
+    Intl.defaultLocale = 'en_US';
+
+    final created = await repository.createDive(
+      Dive(id: '', dateTime: DateTime(2026, 4, 2, 9, 30), maxDepth: 20),
+    );
+
+    await pumpEditor(tester, created.id);
+    await typeIntoRow(tester, 'Max Depth', '1..2');
+    await tapSave(tester);
+
+    expect(
+      find.text('Enter a valid number (decimal separator: ".")'),
+      findsOneWidget,
+    );
+    final reloaded = (await repository.getDiveById(created.id))!;
+    expect(
+      reloaded.maxDepth,
+      20,
+      reason: 'a mistyped depth used to be saved as 0 m',
+    );
+  });
+
+  testWidgets('unreadable water temperature blocks save (#1900)', (
+    tester,
+  ) async {
+    Intl.defaultLocale = 'en_US';
+
+    final created = await repository.createDive(
+      Dive(id: '', dateTime: DateTime(2026, 4, 2, 9, 30), waterTemp: 24),
+    );
+
+    await pumpEditor(tester, created.id);
+    // The conditions group is collapsed for an existing dive.
+    final conditions = find.textContaining('24').first;
+    await tester.ensureVisible(conditions);
+    await tester.pumpAndSettle();
+    await tester.tap(conditions);
+    await tester.pumpAndSettle();
+    await typeIntoRow(tester, 'Water Temp', '2..4');
+    await tapSave(tester);
+
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    final reloaded = (await repository.getDiveById(created.id))!;
+    expect(reloaded.waterTemp, 24);
+  });
+
+  testWidgets('unreadable visibility keeps the measured value (#1900)', (
+    tester,
+  ) async {
+    Intl.defaultLocale = 'en_US';
+
+    final created = await repository.createDive(
+      Dive(id: '', dateTime: DateTime(2026, 4, 2, 9, 30), visibilityMeters: 15),
+    );
+
+    await pumpEditor(tester, created.id);
+    final conditions = find.textContaining('15').first;
+    await tester.ensureVisible(conditions);
+    await tester.pumpAndSettle();
+    await tester.tap(conditions);
+    await tester.pumpAndSettle();
+    await typeIntoRow(tester, 'Visibility', '1..5');
+    await tapSave(tester);
+
+    final reloaded = (await repository.getDiveById(created.id))!;
+    expect(
+      reloaded.visibilityMeters,
+      15,
+      reason: 'unreadable text used to save as unknown, erasing the value',
+    );
+  });
+
+  testWidgets('an unreadable number in a section collapsed before Save still '
+      'blocks the save (#1900 review)', (tester) async {
+    Intl.defaultLocale = 'en_US';
+
+    final created = await repository.createDive(
+      Dive(id: '', dateTime: DateTime(2026, 4, 2, 9, 30), waterTemp: 24),
+    );
+
+    await pumpEditor(tester, created.id);
+    final conditions = find.textContaining('24').first;
+    await tester.ensureVisible(conditions);
+    await tester.pumpAndSettle();
+    await tester.tap(conditions);
+    await tester.pumpAndSettle();
+    await typeIntoRow(tester, 'Water Temp', '2..4');
+
+    // Collapse the group again, so its fields unmount before Save.
+    final header = find.text('Conditions').first;
+    await tester.ensureVisible(header);
+    await tester.pumpAndSettle();
+    await tester.tap(header);
+    await tester.pumpAndSettle();
+    expect(find.text('Water Temp'), findsNothing);
+
+    await tapSave(tester);
+
+    expect(find.textContaining('Error saving dive'), findsNothing);
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    final reloaded = (await repository.getDiveById(created.id))!;
+    expect(reloaded.waterTemp, 24);
+  });
+
+  testWidgets('a fractional bottom time blocks save instead of saving as a '
+      'different number (#1900 review)', (tester) async {
+    Intl.defaultLocale = 'en_US';
+
+    final created = await repository.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime(2026, 4, 2, 9, 30),
+        bottomTime: const Duration(minutes: 45),
+      ),
+    );
+
+    await pumpEditor(tester, created.id);
+    await typeIntoRow(tester, 'Bottom Time', '5.5');
+    await tapSave(tester);
+
+    expect(find.text('Enter a whole number'), findsOneWidget);
+    final reloaded = (await repository.getDiveById(created.id))!;
+    expect(
+      reloaded.bottomTime,
+      const Duration(minutes: 45),
+      reason: 'a digits-only filter used to turn "5.5" into 55 minutes',
+    );
+  });
+
   testWidgets('fr: a comma decimal typed into max depth is stored', (
     tester,
   ) async {

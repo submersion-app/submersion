@@ -12180,9 +12180,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'O2 and He must each be 0 to 100 and total 100 or less';
 
   @override
-  String get passport_logFill_invalidNumber => 'Enter a number';
-
-  @override
   String get passport_logFill_saveFailed =>
       'Could not save the fill. Try again.';
 
@@ -13043,9 +13040,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'Purchase Price';
-
-  @override
-  String get equipment_edit_purchasePriceValidation => 'Enter a valid amount';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -14620,11 +14614,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'Price per 100 $unit';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'Enter a valid number (decimal separator: \"$separator\")';
   }
 
   @override
@@ -30395,9 +30384,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipmentConditionSettings_o2Label => 'High-O2 mix above (% O2)';
 
   @override
-  String get equipmentConditionSettings_invalid => 'Enter a number';
-
-  @override
   String get equipmentConditionSettings_saveFailed =>
       'Could not save. Try again.';
 
@@ -42665,7 +42651,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => 'Enter a valid number';
+  String numberInput_invalidNumber(String separator) {
+    return 'Enter a valid number (decimal separator: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'Enter a whole number';
+
+  @override
+  String get numberInput_required => 'Required';
+
+  @override
+  String get numberInput_notNegative => 'Enter 0 or more';
+
+  @override
+  String get numberInput_atLeastOne => 'Enter 1 or more';
+
+  @override
+  String get numberInput_percentRange => 'Enter 0 to 100';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Rental gear';

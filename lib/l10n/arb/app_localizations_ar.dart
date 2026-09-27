@@ -12177,9 +12177,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'يجب أن يكون كل من O2 وHe بين 0 و100 وألا يتجاوز مجموعهما 100';
 
   @override
-  String get passport_logFill_invalidNumber => 'أدخل رقمًا';
-
-  @override
   String get passport_logFill_saveFailed => 'تعذّر حفظ التعبئة. حاول مرة أخرى.';
 
   @override
@@ -13046,9 +13043,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'سعر الشراء';
-
-  @override
-  String get equipment_edit_purchasePriceValidation => 'أدخل مبلغاً صالحاً';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -14621,11 +14615,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'السعر لكل 100 $unit';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'أدخل رقمًا صالحًا (الفاصلة العشرية: \"$separator\")';
   }
 
   @override
@@ -30481,9 +30470,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'خليط بأكسجين مرتفع فوق (% O2)';
 
   @override
-  String get equipmentConditionSettings_invalid => 'أدخل رقمًا';
-
-  @override
   String get equipmentConditionSettings_saveFailed =>
       'تعذر الحفظ. حاول مرة أخرى.';
 
@@ -42976,7 +42962,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => 'أدخل رقمًا صالحًا';
+  String numberInput_invalidNumber(String separator) {
+    return 'أدخل رقمًا صالحًا (الفاصلة العشرية: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'أدخل عددًا صحيحًا';
+
+  @override
+  String get numberInput_required => 'مطلوب';
+
+  @override
+  String get numberInput_notNegative => 'أدخل 0 أو أكثر';
+
+  @override
+  String get numberInput_atLeastOne => 'أدخل 1 أو أكثر';
+
+  @override
+  String get numberInput_percentRange => 'أدخل قيمة من 0 إلى 100';
 
   @override
   String get diveCenters_rental_sectionTitle => 'معدات مستأجرة';

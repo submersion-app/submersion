@@ -12096,9 +12096,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'O2 ו-He חייבים להיות בין 0 ל-100 וסכומם עד 100';
 
   @override
-  String get passport_logFill_invalidNumber => 'יש להזין מספר';
-
-  @override
   String get passport_logFill_saveFailed =>
       'לא ניתן היה לשמור את המילוי. נסו שוב.';
 
@@ -12950,9 +12947,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'מחיר רכישה';
-
-  @override
-  String get equipment_edit_purchasePriceValidation => 'הזן סכום חוקי';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -14507,11 +14501,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'מחיר ל-100 $unit';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'הזן מספר תקין (מפריד עשרוני: \"$separator\")';
   }
 
   @override
@@ -30140,9 +30129,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'תערובת בחמצן גבוה מעל (% O2)';
 
   @override
-  String get equipmentConditionSettings_invalid => 'יש להזין מספר';
-
-  @override
   String get equipmentConditionSettings_saveFailed => 'השמירה נכשלה. נסו שוב.';
 
   @override
@@ -42436,7 +42422,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => 'הזן מספר תקין';
+  String numberInput_invalidNumber(String separator) {
+    return 'הזן מספר תקין (מפריד עשרוני: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'הזן מספר שלם';
+
+  @override
+  String get numberInput_required => 'שדה חובה';
+
+  @override
+  String get numberInput_notNegative => 'הזן 0 או יותר';
+
+  @override
+  String get numberInput_atLeastOne => 'הזן 1 או יותר';
+
+  @override
+  String get numberInput_percentRange => 'הזן ערך בין 0 ל-100';
 
   @override
   String get diveCenters_rental_sectionTitle => 'ציוד מושכר';

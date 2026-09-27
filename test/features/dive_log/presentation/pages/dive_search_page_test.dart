@@ -190,6 +190,78 @@ void main() {
       },
     );
 
+    testWidgets('depth and duration bounds: blank clears, a typo keeps the '
+        'last readable bound and says why (#1900)', (tester) async {
+      final overrides = await getBaseOverrides();
+      late WidgetRef capturedRef;
+      tester.view.physicalSize = const Size(900, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            diveRepositoryProvider.overrideWithValue(repository),
+            diveListNotifierProvider.overrideWith((ref) {
+              return DiveListNotifier(repository, ref);
+            }),
+          ].cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) {
+                  capturedRef = ref;
+                  return const DiveSearchPage();
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Conditions'));
+      await tester.pumpAndSettle();
+
+      Finder field(String suffix, int index) => find
+          .byWidgetPredicate(
+            (w) => w is TextField && w.decoration?.suffixText == suffix,
+          )
+          .at(index);
+
+      // Each field: blank, a readable value, then a typo that must not
+      // replace it.
+      for (final (suffix, index, value) in [
+        ('m', 0, '10'),
+        ('m', 1, '30'),
+        ('min', 0, '20'),
+        ('min', 1, '60'),
+      ]) {
+        await tester.ensureVisible(field(suffix, index));
+        await tester.enterText(field(suffix, index), '');
+        await tester.enterText(field(suffix, index), value);
+        await tester.enterText(field(suffix, index), '$value..');
+        await tester.pump();
+      }
+      expect(find.textContaining('Enter a'), findsWidgets);
+
+      final errors = <FlutterErrorDetails>[];
+      FlutterError.onError = (d) => errors.add(d);
+      await tester.ensureVisible(find.text('Search'));
+      await tester.tap(find.text('Search'));
+      await tester.pump();
+      FlutterError.onError = FlutterError.presentError;
+
+      final filter = capturedRef.read(diveFilterProvider);
+      expect(filter.minDepth, 10);
+      expect(filter.maxDepth, 30);
+      expect(filter.minBottomTimeMinutes, 20);
+      expect(filter.maxBottomTimeMinutes, 60);
+    });
+
     testWidgets('tapping the start-date button opens the date picker (#765)', (
       tester,
     ) async {

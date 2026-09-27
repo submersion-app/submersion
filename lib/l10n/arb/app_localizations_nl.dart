@@ -12278,9 +12278,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'O2 en He moeten elk tussen 0 en 100 liggen en samen hoogstens 100 zijn';
 
   @override
-  String get passport_logFill_invalidNumber => 'Voer een getal in';
-
-  @override
   String get passport_logFill_saveFailed =>
       'De vulling kon niet worden opgeslagen. Probeer het opnieuw.';
 
@@ -13145,10 +13142,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'Aankoopprijs';
-
-  @override
-  String get equipment_edit_purchasePriceValidation =>
-      'Voer een geldig bedrag in';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -14746,11 +14739,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'Prijs per 100 $unit';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'Voer een geldig getal in (decimaalteken: \"$separator\")';
   }
 
   @override
@@ -30664,9 +30652,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Mengsel met hoog O2 boven (% O2)';
 
   @override
-  String get equipmentConditionSettings_invalid => 'Voer een getal in';
-
-  @override
   String get equipmentConditionSettings_saveFailed =>
       'Opslaan mislukt. Probeer het opnieuw.';
 
@@ -43022,7 +43007,24 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => 'Voer een geldig getal in';
+  String numberInput_invalidNumber(String separator) {
+    return 'Voer een geldig getal in (decimaalteken: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'Voer een geheel getal in';
+
+  @override
+  String get numberInput_required => 'Verplicht';
+
+  @override
+  String get numberInput_notNegative => 'Voer 0 of meer in';
+
+  @override
+  String get numberInput_atLeastOne => 'Voer 1 of meer in';
+
+  @override
+  String get numberInput_percentRange => 'Voer 0 tot 100 in';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Huuruitrusting';

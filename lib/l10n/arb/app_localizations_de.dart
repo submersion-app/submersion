@@ -12368,9 +12368,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'O2 und He müssen jeweils 0 bis 100 sein und zusammen höchstens 100 ergeben';
 
   @override
-  String get passport_logFill_invalidNumber => 'Zahl eingeben';
-
-  @override
   String get passport_logFill_saveFailed =>
       'Die Füllung konnte nicht gespeichert werden. Bitte erneut versuchen.';
 
@@ -13236,10 +13233,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'Kaufpreis';
-
-  @override
-  String get equipment_edit_purchasePriceValidation =>
-      'Geben Sie einen gültigen Betrag ein';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -14839,11 +14832,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'Preis pro 100 $unit';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'Gib eine gültige Zahl ein (Dezimaltrennzeichen: \"$separator\")';
   }
 
   @override
@@ -30830,9 +30818,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'O2-reiches Gemisch über (% O2)';
 
   @override
-  String get equipmentConditionSettings_invalid => 'Bitte eine Zahl eingeben';
-
-  @override
   String get equipmentConditionSettings_saveFailed =>
       'Speichern fehlgeschlagen. Bitte erneut versuchen.';
 
@@ -43226,7 +43211,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => 'Geben Sie eine gültige Zahl ein';
+  String numberInput_invalidNumber(String separator) {
+    return 'Gib eine gültige Zahl ein (Dezimaltrennzeichen: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'Geben Sie eine ganze Zahl ein';
+
+  @override
+  String get numberInput_required => 'Erforderlich';
+
+  @override
+  String get numberInput_notNegative => 'Geben Sie 0 oder mehr ein';
+
+  @override
+  String get numberInput_atLeastOne => 'Geben Sie 1 oder mehr ein';
+
+  @override
+  String get numberInput_percentRange => 'Geben Sie 0 bis 100 ein';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Leihausrüstung';

@@ -470,6 +470,27 @@ void main() {
       expect(fills.single.total, closeTo(12.50, 0.001));
     });
 
+    testWidgets('an unreadable free amount says so instead of saving no '
+        'amount (#1900)', (tester) async {
+      final ref = await _pump(tester);
+      await _openAddLine(tester, freeAmount: true);
+
+      await tester.enterText(
+        find.byKey(const Key('blender-line-description')),
+        'Analyser cell',
+      );
+      await tester.enterText(
+        find.byKey(const Key('blender-line-amount')),
+        '12..50',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Enter a valid number'), findsWidgets);
+      expect(ref.read(blenderBilledFillsProvider), isEmpty);
+    });
+
     testWidgets('a free amount with nothing to name it says so', (
       tester,
     ) async {

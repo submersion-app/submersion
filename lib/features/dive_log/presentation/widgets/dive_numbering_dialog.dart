@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/utils/number_input.dart';
 
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Dialog for managing dive numbering - detecting gaps and renumbering dives
 class DiveNumberingDialog extends ConsumerStatefulWidget {
@@ -304,32 +305,48 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
   }
 
   Future<void> _showRenumberDialog(BuildContext context) async {
+    final formKey = GlobalKey<FormState>();
     final result = await showDialog<int>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(context.l10n.diveLog_numbering_renumberDialog_title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(context.l10n.diveLog_numbering_renumberDialog_content),
-            const SizedBox(height: 16),
-            TextField(
-              decoration: InputDecoration(
-                labelText:
-                    context.l10n.diveLog_numbering_renumberDialog_startFrom,
-                border: const OutlineInputBorder(),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(context.l10n.diveLog_numbering_renumberDialog_content),
+              const SizedBox(height: 16),
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText:
+                      context.l10n.diveLog_numbering_renumberDialog_startFrom,
+                  border: const OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                initialValue: _startFrom.toString(),
+                inputFormatters: numberInputFormatters(),
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                // Negatives read as numbers so they get the same "1 or more"
+                // message as 0, rather than the shared "0 or more".
+                validator: numberValidator(
+                  context,
+                  integer: true,
+                  required: true,
+                  check: (value) =>
+                      value < 1 ? context.l10n.numberInput_atLeastOne : null,
+                ),
+                onChanged: (value) {
+                  if (readNumber(value, integer: true) case NumberValue(
+                    :final value,
+                  ) when value > 0) {
+                    _startFrom = value.toInt();
+                  }
+                },
               ),
-              keyboardType: TextInputType.number,
-              controller: TextEditingController(text: _startFrom.toString()),
-              onChanged: (value) {
-                final num = parseUserInt(value);
-                if (num != null && num > 0) {
-                  _startFrom = num;
-                }
-              },
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -337,7 +354,13 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
             child: Text(context.l10n.diveLog_numbering_renumberDialog_cancel),
           ),
           FilledButton(
-            onPressed: () => Navigator.of(context).pop(_startFrom),
+            // Renumbering cannot be undone, so it never runs from a number
+            // other than the one the field shows (#1900).
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.of(context).pop(_startFrom);
+              }
+            },
             child: Text(context.l10n.diveLog_numbering_renumberDialog_renumber),
           ),
         ],
