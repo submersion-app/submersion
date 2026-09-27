@@ -124,9 +124,13 @@ void main() {
     final container = ProviderContainer();
     addTearDown(container.dispose);
     final key = gpsTrackGeometryProvider((id, TrackLod.thumbnail));
-    // Seconds 50 to 99 of a track running east from longitude 0.
+    // The trim keeps seconds 50 to 99, and simplification always keeps a
+    // line's endpoints, so a redrawn line starts exactly at second 50.
+    const trimStartSeconds = 1700000050;
     bool trimmed(List<GpsTrackPoint>? points) =>
-        points != null && points.isNotEmpty && points.first.longitude > 0.0049;
+        points != null &&
+        points.isNotEmpty &&
+        points.first.timestamp == trimStartSeconds;
     final redrawn = Completer<void>();
     final sub = container.listen(key, (_, next) {
       if (redrawn.isCompleted) return;
@@ -143,7 +147,7 @@ void main() {
     final serializer = SyncDataSerializer();
     await serializer.upsertRecord('gpsTracks', {
       ...(await serializer.fetchRecord('gpsTracks', id))!,
-      'trimStartTime': 1700000050000,
+      'trimStartTime': trimStartSeconds * 1000,
     });
 
     // The warm cache hit never watched the track row, so only the eviction's

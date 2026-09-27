@@ -724,7 +724,7 @@ class SyncDataSerializer {
   ) async {
     final byId = {for (final track in incoming) track.id: track};
     final ids = byId.keys.toList();
-    final reshaped = <String>{};
+    final geometryChanged = <String>{};
     // Chunked to stay under SQLite's bound-variable limit.
     for (final chunk in seriesIdChunks(ids)) {
       final stored = await (_db.select(
@@ -736,11 +736,11 @@ class SyncDataSerializer {
             row.trimEndTime != next.trimEndTime ||
             row.pointCount != next.pointCount ||
             !_sameBytes(row.points, next.points)) {
-          reshaped.add(row.id);
+          geometryChanged.add(row.id);
         }
       }
     }
-    return reshaped;
+    return geometryChanged;
   }
 
   static bool _sameBytes(Uint8List? a, Uint8List? b) {
@@ -3993,9 +3993,9 @@ class SyncDataSerializer {
           data,
           serializer: _syncBlobSerializer,
         );
-        final reshaped = await _gpsTracksWithNewGeometry([track]);
+        final geometryChanged = await _gpsTracksWithNewGeometry([track]);
         await _db.into(_db.gpsTracks).insertOnConflictUpdate(track);
-        await _evictGeometryOf(reshaped);
+        await _evictGeometryOf(geometryChanged);
         return;
       case 'navTracks':
         await _db
@@ -4915,11 +4915,11 @@ class SyncDataSerializer {
               (r) => GpsTrackRow.fromJson(r, serializer: _syncBlobSerializer),
             )
             .toList();
-        final reshaped = await _gpsTracksWithNewGeometry(tracks);
+        final geometryChanged = await _gpsTracksWithNewGeometry(tracks);
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(_db.gpsTracks, tracks),
         );
-        await _evictGeometryOf(reshaped);
+        await _evictGeometryOf(geometryChanged);
         return;
       case 'navTracks':
         await _db.batch(
