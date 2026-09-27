@@ -50,7 +50,11 @@ void main() {
     updatedAt: DateTime(2026),
   );
 
-  Future<void> pumpPage(WidgetTester tester, {required bool showFigure}) async {
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    required bool showFigure,
+    double textScale = 1,
+  }) async {
     tester.view.physicalSize = const Size(1200, 3000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -74,11 +78,17 @@ void main() {
             const AsyncValue.data(ComponentsIndex.empty),
           ),
         ],
-        child: const MaterialApp(
-          locale: Locale('en'),
+        child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: EquipmentSetEditPage(setId: 'set-1'),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: TextScaler.linear(textScale)),
+            child: child!,
+          ),
+          home: const EquipmentSetEditPage(setId: 'set-1'),
         ),
       ),
     );
@@ -139,6 +149,18 @@ void main() {
     // Ticked rows lead with a number badge; an unticked row keeps the
     // badge's room so its name does not sit further left.
     await pumpPage(tester, showFigure: true);
+    double nameX(String name) => tester
+        .getTopLeft(find.descendant(of: rowOf(name), matching: find.text(name)))
+        .dx;
+    expect(nameX('Jets'), nameX('Hollis SMS75'));
+  });
+
+  testWidgets('with large text, ticked and unticked names still line up', (
+    tester,
+  ) async {
+    // The badge grows with the diver's text size, so the room an unticked
+    // row keeps must grow with it.
+    await pumpPage(tester, showFigure: true, textScale: 3);
     double nameX(String name) => tester
         .getTopLeft(find.descendant(of: rowOf(name), matching: find.text(name)))
         .dx;

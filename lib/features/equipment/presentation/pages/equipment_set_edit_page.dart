@@ -421,6 +421,15 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
                 final numberById = model == null
                     ? const <String, int>{}
                     : {for (final p in model.numbered) p.item.id: p.number};
+                // The widest badge the rows will show, at the diver's text
+                // size: the highest number takes the most digits.
+                final badgeSlot = model == null
+                    ? null
+                    : FigureNumberBadge.widthFor(
+                        model.itemCount,
+                        24,
+                        textScaler: MediaQuery.textScalerOf(context),
+                      );
                 final name = _nameController.text.trim();
 
                 return Column(
@@ -482,7 +491,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
                                 item,
                                 labels,
                                 numberById[item.id],
-                                figureShown: model != null,
+                                badgeSlot: badgeSlot,
                               ),
                           ],
                         ),
@@ -542,14 +551,15 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
 
   /// One row of the picker. [number] is the item's figure number while the
   /// figure shows; it leads the row as a badge that brings the figure into
-  /// view. While the figure shows ([figureShown]), a row with no number
-  /// keeps the badge's room, so every name starts at the same place.
+  /// view. While the figure shows, every row leads with a slot [badgeSlot]
+  /// wide (the widest badge at the diver's text size), holding the badge or
+  /// nothing, so every name starts at the same place. Null when it is off.
   Widget _buildEquipmentCheckbox(
     BuildContext context,
     EquipmentItem item,
     Map<String, EquipmentRowLabel> labels,
     int? number, {
-    bool figureShown = false,
+    double? badgeSlot,
   }) {
     final isSelected = _selectedEquipmentIds.contains(item.id);
     final scheme = Theme.of(context).colorScheme;
@@ -592,21 +602,27 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
               ),
             ],
           ),
-          secondary: !figureShown
+          secondary: badgeSlot == null
               ? icon
               : Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (number != null)
-                      FigureNumberBadge(
-                        number: number,
-                        selected: flashing,
-                        onTap: () =>
-                            selectFigureItem(item.id, revealFigure: true),
-                      )
-                    else
-                      // The room a one- or two-digit badge takes.
-                      SizedBox(width: FigureNumberBadge.widthFor(1, 24)),
+                    SizedBox(
+                      width: badgeSlot,
+                      child: number == null
+                          ? null
+                          : Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: FigureNumberBadge(
+                                number: number,
+                                selected: flashing,
+                                onTap: () => selectFigureItem(
+                                  item.id,
+                                  revealFigure: true,
+                                ),
+                              ),
+                            ),
+                    ),
                     const SizedBox(width: 8),
                     icon,
                   ],
