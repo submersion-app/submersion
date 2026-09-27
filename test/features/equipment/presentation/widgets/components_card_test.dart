@@ -45,7 +45,10 @@ class _FakeEquipmentRepository extends EquipmentRepository {
   Object? throwOnCount;
 
   @override
-  Future<int> getDiveCountForEquipment(String equipmentId) async {
+  Future<int> getDiveCountForEquipment(
+    String equipmentId, {
+    String? diverId,
+  }) async {
     if (throwOnCount != null) throw throwOnCount!;
     return diveCount;
   }

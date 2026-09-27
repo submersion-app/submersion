@@ -5,10 +5,11 @@ import 'package:submersion/features/data_quality/presentation/widgets/quality_fi
 ///
 /// Takes an already-built [UnitFormatter] rather than a `WidgetRef` so any
 /// caller that has one can reuse it, instead of watching the settings provider
-/// a second time just to reach these five closures.
+/// a second time just to reach these closures.
 QualityUnitFormatters qualityUnitFormattersFor(UnitFormatter units) =>
     QualityUnitFormatters(
       depth: (m) => units.formatDepth(m),
+      depthRate: (mpm) => units.formatDepthRate(mpm),
       limitDepth: (m) => units.formatDepthFloor(m),
       pressure: (bar) => units.formatPressure(bar),
       temperature: (c) => units.formatTemperature(c),

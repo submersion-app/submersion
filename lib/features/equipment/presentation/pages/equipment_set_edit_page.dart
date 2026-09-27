@@ -330,27 +330,66 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                 // Labelled as one list, so identical items read differently
                 // from each other (#1549).
                 final labels = equipmentRowLabelsOf(context, ref, equipment);
+                // Members the diver can no longer see (a share was removed,
+                // issue #2046) stay selected, so saving keeps them; they are
+                // listed without a checkbox and marked.
+                final visibleIds = ref
+                    .watch(allEquipmentProvider)
+                    .value
+                    ?.map((e) => e.id)
+                    .toSet();
+                final unshared = [
+                  if (visibleIds != null)
+                    for (final item in existingSet?.items ?? const [])
+                      if (!visibleIds.contains(item.id)) item,
+                ];
 
                 return Column(
-                  children: groups.map((group) {
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (group.type != null)
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                              child: EquipmentGroupHeader(type: group.type!),
-                            ),
-                          ...group.items.map(
-                            (item) =>
-                                _buildEquipmentCheckbox(context, item, labels),
-                          ),
-                        ],
+                  children: [
+                    if (unshared.isNotEmpty)
+                      Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: Column(
+                          children: [
+                            for (final item in unshared)
+                              ListTile(
+                                enabled: false,
+                                title: Text(item.name),
+                                subtitle: Text(
+                                  context.l10n.equipment_set_noLongerShared,
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                    );
-                  }).toList(),
+                    ...groups.map((group) {
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (group.type != null)
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  12,
+                                  16,
+                                  0,
+                                ),
+                                child: EquipmentGroupHeader(type: group.type!),
+                              ),
+                            ...group.items.map(
+                              (item) => _buildEquipmentCheckbox(
+                                context,
+                                item,
+                                labels,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),

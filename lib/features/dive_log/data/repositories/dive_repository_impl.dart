@@ -477,6 +477,7 @@ class DiveRepository {
               .add(
                 EquipmentItem(
                   id: e.id,
+                  diverId: e.diverId,
                   name: e.name,
                   type: EquipmentType.values.firstWhere(
                     (t) => t.name == e.type,
@@ -2018,7 +2019,8 @@ class DiveRepository {
   /// Deletes the dive rows (their children cascade), first clearing the
   /// dive plans built from or linked to them: those links have no ON DELETE
   /// action and would fail the delete. One transaction, so a failed delete
-  /// leaves the plans linked.
+  /// leaves the plans linked. Chunked, so "select all" on a logbook past
+  /// SQLite's bound-variable limit still deletes (issue #1953).
   Future<void> _deleteDiveRows(List<String> ids) => _db.transaction(() async {
     await clearPlanLinksToDives(
       _db,
@@ -2026,7 +2028,9 @@ class DiveRepository {
       ids,
       now: DateTime.now().millisecondsSinceEpoch,
     );
-    await (_db.delete(_db.dives)..where((t) => t.id.isIn(ids))).go();
+    for (final chunk in seriesIdChunks(ids)) {
+      await (_db.delete(_db.dives)..where((t) => t.id.isIn(chunk))).go();
+    }
   });
 
   /// Delete a dive.
@@ -2077,24 +2081,23 @@ class DiveRepository {
 
     try {
       _log.info('Bulk deleting ${ids.length} dives');
-      if (cascadeMedia) await _cascadeMediaForDiveDeletion(ids);
+      // Once each: a single `IN (...)` collapsed a repeated id, but chunked
+      // statements can each match it, doubling the rows they return.
+      final dives = ids.toSet().toList();
+      if (cascadeMedia) await _cascadeMediaForDiveDeletion(dives);
       // Check-ins on the dives stay as bench notes; staged, not just nulled.
-      await _observationRepository.unlinkFromDeletedDives(ids);
+      await _observationRepository.unlinkFromDeletedDives(dives);
       // See deleteDive: must be captured before the delete removes the
       // dives that the nav_tracks.dive_id FK's SET NULL is about to unlink.
-      final linkedRouteIds = <String>[];
-      for (final id in ids) {
-        linkedRouteIds.addAll(
-          await _navTrackRepository.routeIdsLinkedToDive(id),
-        );
-      }
-      await _deleteDiveRows(ids);
+      final linkedRouteIds = await _navTrackRepository.routeIdsLinkedToDives(
+        dives,
+      );
+      await _deleteDiveRows(dives);
       await _navTrackRepository.normalizeAfterDiveDeletion(linkedRouteIds);
       // See deleteDive: the cascade may have orphaned a stored import file.
       if (cascadeMedia) await _importedFileReclaimer.reclaimOrphans();
-      for (final id in ids) {
-        await _syncRepository.logDeletion(entityType: 'dives', recordId: id);
-      }
+      // One transaction for every tombstone, not one per dive.
+      await _syncRepository.logDeletions(entityType: 'dives', recordIds: dives);
       SyncEventBus.notifyLocalChange();
       _log.info('Bulk deleted ${ids.length} dives');
       return ids;
@@ -2108,19 +2111,22 @@ class DiveRepository {
     }
   }
 
-  /// Get dives by their IDs (for undo functionality)
+  /// Get dives by their IDs (for undo functionality), newest first.
+  ///
+  /// Read in chunks, since the list view's bulk delete reads every selected
+  /// dive first (issue #1953), and sorted here because no one statement
+  /// sees them all. A repeated id is read once, as one `IN (...)` read it.
   Future<List<domain.Dive>> getDivesByIds(List<String> ids) async {
     if (ids.isEmpty) return [];
 
     try {
-      final query = _db.select(_db.dives)
-        ..where((t) => t.id.isIn(ids))
-        ..orderBy([
-          (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
-          (t) => OrderingTerm.desc(t.diveNumber),
-        ]);
-
-      final rows = await query.get();
+      final rows = <Dive>[];
+      for (final chunk in seriesIdChunks(ids.toSet().toList())) {
+        rows.addAll(
+          await (_db.select(_db.dives)..where((t) => t.id.isIn(chunk))).get(),
+        );
+      }
+      rows.sort(_newestFirst);
       return await Future.wait(rows.map(_mapRowToDive));
     } catch (e, stackTrace) {
       _log.error(
@@ -2130,6 +2136,23 @@ class DiveRepository {
       );
       rethrow;
     }
+  }
+
+  /// Entry time (else the logged date/time) descending, then dive number
+  /// descending with unnumbered dives last: the order SQL's
+  /// `ORDER BY COALESCE(entry_time, dive_date_time) DESC, dive_number DESC`
+  /// gives, since SQLite sorts NULL lowest.
+  static int _newestFirst(Dive a, Dive b) {
+    final byTime = (b.entryTime ?? b.diveDateTime).compareTo(
+      a.entryTime ?? a.diveDateTime,
+    );
+    if (byTime != 0) return byTime;
+    final an = a.diveNumber;
+    final bn = b.diveNumber;
+    if (an == null || bn == null) {
+      return an == bn ? 0 : (an == null ? 1 : -1);
+    }
+    return bn.compareTo(an);
   }
 
   // ============================================================================
@@ -3892,6 +3915,7 @@ class DiveRepository {
       final e = joinRow.readTable(_db.equipment);
       return EquipmentItem(
         id: e.id,
+        diverId: e.diverId,
         name: e.name,
         type: EquipmentType.values.firstWhere(
           (t) => t.name == e.type,

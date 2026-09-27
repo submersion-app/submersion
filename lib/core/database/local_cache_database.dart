@@ -89,9 +89,12 @@ class BathymetryCache extends Table {
 /// [BathymetryCache] quantized cells, so caching at tile granularity is what
 /// actually guarantees "every tile is downloaded only once" (the task's OGD
 /// fair-use requirement), independent of the coarser 0.02 degree cache grid.
-/// status semantics: 'ok' = usable grid in gridJson; 'empty' = the STAC
+/// status semantics: 'ok' = usable grid in gridJson; 'gap' = the STAC
 /// lookup for this tile definitively found no covering asset. Transient
-/// failures (network error, STAC error) write NO row.
+/// failures (network error, STAC error, a download that is not a zip) write
+/// NO row. 'empty' is the pre-#1770 negative, written before downloads were
+/// validated: SwissBathyTileCacheRepository.read drops it so the tile
+/// re-resolves once.
 class SwissBathyTileCache extends Table {
   TextColumn get tileKey => text()();
   TextColumn get status => text()();
@@ -100,7 +103,7 @@ class SwissBathyTileCache extends Table {
 
   /// The STAC item's `datetime` (or `updated`/`created` fallback) at the
   /// time this tile was last downloaded — the version token the periodic
-  /// freshness check compares against. Null for 'empty' rows and rows
+  /// freshness check compares against. Null for 'gap' rows and rows
   /// written before this field existed (v14).
   TextColumn get sourceDatetime => text().nullable()();
 
@@ -115,7 +118,7 @@ class SwissBathyTileCache extends Table {
   /// href before comparing datetimes, rather than assuming the first
   /// bbox-overlapping candidate is the one that actually covered this tile
   /// (it is not necessarily -- see [SwissBathy3dSource._firstOverlappingCandidate]).
-  /// Null for 'empty' rows and rows written before this field existed
+  /// Null for 'gap' rows and rows written before this field existed
   /// (v15), which fall back to one full re-resolution on their next check.
   TextColumn get sourceHref => text().nullable()();
 
@@ -125,7 +128,7 @@ class SwissBathyTileCache extends Table {
   /// correction to `swiss_lake_levels.dart` (a lake's bbox or documented
   /// level changed) since this tile was cached, so the baked-in depths are
   /// wrong and the row must be dropped rather than served stale. Null for
-  /// 'empty' rows and rows written before this field existed (v17), which
+  /// 'gap' rows and rows written before this field existed (v17), which
   /// are ALSO treated as a mismatch (not trusted as-is): unlike
   /// [sourceDatetime]/[checkedAt], there is no way to tell whether an old
   /// row's baked-in level is still correct without this field, so it falls
@@ -134,7 +137,7 @@ class SwissBathyTileCache extends Table {
   /// used to resolve to a coarser neighboring lake's bbox before a
   /// whitelist correction) rather than merely preventing new ones. Null
   /// only for rows written before this field existed (v17) -- every 'ok'
-  /// AND 'empty' row written since then stores its actual level, so the
+  /// AND 'gap' row written since then stores its actual level, so the
   /// mismatch check above applies uniformly to both statuses.
   RealColumn get referenceLevelMeters => real().nullable()();
 

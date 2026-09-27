@@ -6,6 +6,12 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/scan_tag_menu_entries.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_share.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_owner_sections.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_owner_chip.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/print_passport_labels.dart';
@@ -55,6 +61,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_lis
 import 'package:submersion/features/equipment/presentation/widgets/bulk_equipment_tag_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/shared/widgets/max_width_fraction.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
@@ -280,7 +287,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               const <String, ServiceClockStatus>{})
         : const <String, ServiceClockStatus>{};
 
-    final filter = ref.watch(equipmentFilterProvider);
+    final filter = ref.watch(effectiveEquipmentFilterProvider);
     // Tags ride beside the items, not on them (issue #1942): one batch read
     // for the whole list feeds the tag filter and the detailed tiles' chips.
     final tagsByEquipment =
@@ -302,18 +309,26 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       equipmentAsync = ref.watch(equipmentByStatusProvider(filter.status!));
     }
 
+    // The owner axis (issue #2046) compares each item with this diver.
+    final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
+
     // Whether the tag selection is what emptied the list (issue #1942), so
     // the empty state blames the tags rather than a stocked category.
     final tagsEmptied = filter.tagsEmptied(
       equipmentAsync.value ?? const <EquipmentItem>[],
       tagIdsByEquipment,
+      activeDiverId: activeDiverId,
     );
 
     // Table mode uses a dedicated scaffold with column configuration support.
     if (viewMode == ListViewMode.table) {
       final sortedAsync = equipmentAsync.whenData(
         (equipment) => applyEquipmentSorting(
-          filter.apply(equipment, tagIdsByEquipment),
+          filter.apply(
+            equipment,
+            tagIdsByEquipment,
+            activeDiverId: activeDiverId,
+          ),
           sort,
           serviceUrgency: serviceUrgency,
         ),
@@ -353,6 +368,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       filter.apply(
         equipmentAsync.value ?? const <EquipmentItem>[],
         tagIdsByEquipment,
+        activeDiverId: activeDiverId,
       ),
       arrangement,
       typeLabel: (t) => t.localizedName(context.l10n),
@@ -538,6 +554,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       return checked.isNotEmpty && checked.every(test);
     }
 
+    final multipleDivers = ref.watch(hasMultipleDiversProvider);
+    final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
+
     return [
       BulkAction(
         id: 'retire',
@@ -584,6 +603,22 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           return BulkActionOutcome.completed;
         },
       ),
+      // Owner-only (issue #2046): enabled when every checked item is the
+      // active diver's own.
+      if (multipleDivers)
+        BulkAction(
+          id: 'share',
+          icon: Icons.share,
+          label: context.l10n.equipment_bulkShare_action,
+          isEnabled: (ids) =>
+              everyChecked(ids, (e) => canShareEquipment(e, activeDiverId)),
+          onInvoke: () => shareEquipmentWithProfiles(
+            context,
+            ref,
+            equipmentIds: _selectedIds.toList(),
+            activeDiverId: activeDiverId,
+          ),
+        ),
     ];
   }
 
@@ -662,14 +697,22 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     final notifier = ref.read(equipmentListNotifierProvider.notifier);
     _selection.exit();
 
+    // Delete is owner-only (issue #2046): a shared item is kept and the
+    // snackbar says how many.
+    var deleted = 0;
     for (final id in ids) {
-      await notifier.deleteEquipment(id);
+      if (await notifier.deleteEquipment(id)) deleted++;
     }
+    final skipped = ids.length - deleted;
 
     if (!mounted) return BulkActionOutcome.completed;
     messenger.showSnackBar(
       SnackBar(
-        content: Text(context.l10n.common_bulkDelete_snackbar(ids.length)),
+        content: Text(
+          skipped == 0
+              ? context.l10n.common_bulkDelete_snackbar(deleted)
+              : context.l10n.equipment_bulkDelete_partial(deleted, skipped),
+        ),
       ),
     );
     return BulkActionOutcome.completed;
@@ -795,6 +838,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               for (final e in tagsByEquipment.entries)
                 e.key: [for (final t in e.value) t.name],
             },
+            ownerNames: ref.watch(diverNamesByIdProvider).value ?? const {},
           ),
           config: config,
           units: units,
@@ -844,7 +888,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       ),
       _buildFilterAction(
         context,
-        ref.watch(equipmentFilterProvider),
+        ref.watch(effectiveEquipmentFilterProvider),
         iconSize: 20,
         dense: dense,
       ),
@@ -1128,7 +1172,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     required bool hadItemsBeforeTypeFilter,
     required bool tagsEmptied,
   }) {
-    final filter = ref.watch(equipmentFilterProvider);
+    final filter = ref.watch(effectiveEquipmentFilterProvider);
 
     // Blame the tags (issue #1942) when the category and its conditions left
     // items that none of the selected tags is on: a tag chip on a retired
@@ -1288,6 +1332,12 @@ class EquipmentListTile extends ConsumerWidget {
     final detail =
         label?.subtitle ?? (item.fullName != item.name ? item.fullName : null);
     final hasTags = tags.isNotEmpty;
+    // Another profile's gear shared with this one names its owner (#2046).
+    final hasOwner = showsOwnerChip(
+      item,
+      ref.watch(validatedCurrentDiverIdProvider).value,
+      multipleDivers: ref.watch(hasMultipleDiversProvider),
+    );
     final accent = resolveFeatureAccent(
       context,
       ref,
@@ -1323,7 +1373,7 @@ class EquipmentListTile extends ConsumerWidget {
           ),
         ),
         title: Text(item.name),
-        subtitle: detail != null || hasChips || hasTags
+        subtitle: detail != null || hasChips || hasTags || hasOwner
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -1335,13 +1385,24 @@ class EquipmentListTile extends ConsumerWidget {
                       padding: const EdgeInsets.only(top: 4),
                       child: TagChips(tags: tags, maxTags: 3),
                     ),
+                  if (hasOwner)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: EquipmentOwnerChip(ownerId: item.diverId),
+                    ),
                 ],
               )
             : null,
-        trailing: _buildTrailing(
-          context,
-          source == BadgeSource.finding ? null : worstClock,
-          source == BadgeSource.finding ? finding : null,
+        // The tile offers trailing the whole row, so a rollup label naming
+        // a long part took it all and left the title one letter per line
+        // (issue #1981).
+        trailing: MaxWidthFraction(
+          fraction: kListTileTrailingMaxWidthFraction,
+          child: _buildTrailing(
+            context,
+            source == BadgeSource.finding ? null : worstClock,
+            source == BadgeSource.finding ? finding : null,
+          ),
         ),
       ),
     );
@@ -1354,11 +1415,15 @@ class EquipmentListTile extends ConsumerWidget {
   ) {
     final theme = Theme.of(context);
 
+    // Every label here is one line: the column is width-capped, and the
+    // tile also caps its trailing height, so a wrapped label would overflow.
     final typeLabel = Text(
       item.type.localizedName(context.l10n),
       style: theme.textTheme.bodySmall?.copyWith(
         color: theme.colorScheme.onSurfaceVariant,
       ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
 
     if (finding != null) {
@@ -1377,6 +1442,8 @@ class EquipmentListTile extends ConsumerWidget {
                   : theme.colorScheme.tertiary,
               fontWeight: FontWeight.w600,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       );
@@ -1407,6 +1474,8 @@ class EquipmentListTile extends ConsumerWidget {
               color: theme.colorScheme.onSecondaryContainer,
               fontWeight: FontWeight.w500,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       );
