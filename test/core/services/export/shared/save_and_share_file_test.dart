@@ -8,6 +8,8 @@ import 'package:share_plus_platform_interface/share_plus_platform_interface.dart
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 
+import '../../../../helpers/fake_path_provider.dart';
+
 /// The share helpers write into getApplicationDocumentsDirectory(), a platform
 /// channel with no implementation under flutter_test. Unstubbed it never
 /// completes and the await hangs forever.
@@ -34,7 +36,6 @@ class _FakeSharePlatform extends SharePlatform {
 
 void main() {
   late Directory documents;
-  late PathProviderPlatform originalPathProvider;
   final platform = _FakeSharePlatform();
 
   // The harness pins a forwarder that looks the platform up on every share
@@ -50,15 +51,11 @@ void main() {
 
   setUp(() {
     documents = Directory.systemTemp.createTempSync('save_and_share_file_test');
-    originalPathProvider = PathProviderPlatform.instance;
-    PathProviderPlatform.instance = _FakePathProvider(documents.path);
+    useFakePathProvider(_FakePathProvider(documents.path));
     platform.calls.clear();
   });
 
-  tearDown(() {
-    PathProviderPlatform.instance = originalPathProvider;
-    documents.deleteSync(recursive: true);
-  });
+  tearDown(() => documents.deleteSync(recursive: true));
 
   const anchor = Rect.fromLTWH(12, 34, 56, 78);
 

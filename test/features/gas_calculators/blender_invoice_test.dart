@@ -26,6 +26,8 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../helpers/fake_path_provider.dart';
+
 /// The share helpers write into getApplicationDocumentsDirectory(), a
 /// platform channel with no implementation under flutter_test.
 class _FakePathProvider extends PathProviderPlatform
@@ -1519,7 +1521,6 @@ void main() {
 
   group('export', () {
     late Directory documents;
-    late PathProviderPlatform originalPathProvider;
     final platform = _FakeSharePlatform();
 
     // The harness pins a forwarder that looks the platform up on every share
@@ -1535,15 +1536,11 @@ void main() {
 
     setUp(() {
       documents = Directory.systemTemp.createTempSync('blender_invoice_test');
-      originalPathProvider = PathProviderPlatform.instance;
-      PathProviderPlatform.instance = _FakePathProvider(documents.path);
+      useFakePathProvider(_FakePathProvider(documents.path));
       platform.calls.clear();
     });
 
-    tearDown(() {
-      PathProviderPlatform.instance = originalPathProvider;
-      documents.deleteSync(recursive: true);
-    });
+    tearDown(() => documents.deleteSync(recursive: true));
 
     /// Fills the running bill with one manual line so the export button is
     /// on screen, then opens the export picker.

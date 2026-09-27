@@ -8,6 +8,7 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 
+import '../../../../helpers/fake_path_provider.dart';
 import '../../../../helpers/global_test_defaults.dart';
 import '../../../../helpers/mock_file_picker_platform.dart';
 
@@ -40,7 +41,6 @@ void main() {
   late Directory chosen;
   late MockFilePickerPlatform picker;
   late FilePickerPlatform originalPicker;
-  late PathProviderPlatform originalPathProvider;
   final sharePlatform = _FakeSharePlatform();
 
   // The harness pins a forwarder that looks the platform up on every share
@@ -57,8 +57,7 @@ void main() {
   setUp(() {
     documents = Directory.systemTemp.createTempSync('share_fallback_docs');
     chosen = Directory.systemTemp.createTempSync('share_fallback_chosen');
-    originalPathProvider = PathProviderPlatform.instance;
-    PathProviderPlatform.instance = _FakePathProvider(documents.path);
+    useFakePathProvider(_FakePathProvider(documents.path));
     originalPicker = FilePickerPlatform.instance;
     picker = MockFilePickerPlatform();
     FilePickerPlatform.instance = picker;
@@ -69,7 +68,6 @@ void main() {
   tearDown(() {
     applyGlobalTestDefaults();
     FilePickerPlatform.instance = originalPicker;
-    PathProviderPlatform.instance = originalPathProvider;
     documents.deleteSync(recursive: true);
     chosen.deleteSync(recursive: true);
   });

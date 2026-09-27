@@ -8,6 +8,8 @@ import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
+import '../../helpers/fake_path_provider.dart';
+
 class _FakePathProvider extends PathProviderPlatform
     with MockPlatformInterfaceMixin {
   _FakePathProvider(this.supportPath);
@@ -20,12 +22,10 @@ class _FakePathProvider extends PathProviderPlatform
 void main() {
   late Directory support;
   late LocalCacheDatabase db;
-  late PathProviderPlatform originalPathProvider;
 
   setUp(() async {
     support = await Directory.systemTemp.createTemp('eviction_provider_test');
-    originalPathProvider = PathProviderPlatform.instance;
-    PathProviderPlatform.instance = _FakePathProvider(support.path);
+    useFakePathProvider(_FakePathProvider(support.path));
     resetMediaCacheRootForTesting();
     LocalCacheDatabaseService.instance.resetForTesting();
     await LocalCacheDatabaseService.instance.initialize();
@@ -36,7 +36,6 @@ void main() {
     await db.close();
     LocalCacheDatabaseService.instance.resetForTesting();
     resetMediaCacheRootForTesting();
-    PathProviderPlatform.instance = originalPathProvider;
     if (support.existsSync()) await support.delete(recursive: true);
   });
 

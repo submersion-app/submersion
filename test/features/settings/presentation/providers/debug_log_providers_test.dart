@@ -14,6 +14,8 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+import '../../../../helpers/fake_path_provider.dart';
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -876,9 +878,7 @@ void main() {
       final tempDir = Directory.systemTemp.createTempSync('share_log_test_');
       addTearDown(() => tempDir.deleteSync(recursive: true));
       final shareTemp = Directory('${tempDir.path}/tmp')..createSync();
-      final originalPathProvider = PathProviderPlatform.instance;
-      addTearDown(() => PathProviderPlatform.instance = originalPathProvider);
-      PathProviderPlatform.instance = _FakePathProvider(shareTemp.path);
+      useFakePathProvider(_FakePathProvider(shareTemp.path));
       final service = LogFileService(logDirectory: tempDir.path);
       await service.initialize();
       await service.writeLine(_entry(message: 'a line').toLogLine());
@@ -903,9 +903,7 @@ void main() {
       final tempDir = Directory.systemTemp.createTempSync('share_log_test_');
       addTearDown(() => tempDir.deleteSync(recursive: true));
       final shareTemp = Directory('${tempDir.path}/tmp')..createSync();
-      final originalPathProvider = PathProviderPlatform.instance;
-      addTearDown(() => PathProviderPlatform.instance = originalPathProvider);
-      PathProviderPlatform.instance = _FakePathProvider(shareTemp.path);
+      useFakePathProvider(_FakePathProvider(shareTemp.path));
       final service = LogFileService(logDirectory: tempDir.path);
       await service.initialize();
       await service.writeLine(

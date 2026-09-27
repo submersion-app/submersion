@@ -11,6 +11,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../helpers/fake_path_provider.dart';
 import '../../helpers/test_app.dart';
 import '../../helpers/test_database.dart';
 
@@ -51,7 +52,6 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 
 void main() {
   late Directory documents;
-  late PathProviderPlatform originalPathProvider;
   final sharePlatform = _FakeSharePlatform();
 
   // The harness pins a forwarder that looks the platform up on every share
@@ -68,14 +68,12 @@ void main() {
   setUp(() async {
     await setUpTestDatabase();
     documents = Directory.systemTemp.createTempSync('plan_canvas_share_test');
-    originalPathProvider = PathProviderPlatform.instance;
-    PathProviderPlatform.instance = _FakePathProvider(documents.path);
+    useFakePathProvider(_FakePathProvider(documents.path));
     sharePlatform.calls.clear();
   });
 
   tearDown(() {
     DatabaseService.instance.resetForTesting();
-    PathProviderPlatform.instance = originalPathProvider;
     documents.deleteSync(recursive: true);
   });
 

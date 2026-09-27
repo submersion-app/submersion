@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/fake_path_provider.dart';
 import '../../../../helpers/test_database.dart';
 
 /// Routes getApplicationDocumentsDirectory to a temp dir so the page's
@@ -71,15 +72,13 @@ class _PickerCancelsStorageConfig extends StateNotifier<StorageConfigState>
 void main() {
   late SharedPreferences prefs;
   late Directory tempDir;
-  late PathProviderPlatform originalPathProvider;
 
   setUp(() async {
     await setUpTestDatabase();
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
     tempDir = Directory.systemTemp.createTempSync('storage_pick_fail_test');
-    originalPathProvider = PathProviderPlatform.instance;
-    PathProviderPlatform.instance = _FakePathProvider(tempDir.path);
+    useFakePathProvider(_FakePathProvider(tempDir.path));
   });
 
   tearDown(() async {
@@ -87,7 +86,6 @@ void main() {
       await DatabaseService.instance.database.close();
     } catch (_) {}
     DatabaseService.instance.resetForTesting();
-    PathProviderPlatform.instance = originalPathProvider;
     try {
       tempDir.deleteSync(recursive: true);
     } catch (_) {}

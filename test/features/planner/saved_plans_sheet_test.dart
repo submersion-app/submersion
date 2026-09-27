@@ -16,6 +16,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_reposito
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../helpers/fake_path_provider.dart';
 import '../../helpers/mock_file_picker_platform.dart';
 import '../../helpers/test_app.dart';
 import '../../helpers/test_database.dart';
@@ -67,7 +68,6 @@ DivePlan _plan(String id, String name) => DivePlan(
 void main() {
   late DivePlanRepository repository;
   late Directory documents;
-  late PathProviderPlatform originalPathProvider;
   final sharePlatform = _FakeSharePlatform();
 
   // The harness pins a forwarder that looks the platform up on every share
@@ -85,14 +85,12 @@ void main() {
     await setUpTestDatabase();
     repository = DivePlanRepository();
     documents = Directory.systemTemp.createTempSync('saved_plans_sheet_test');
-    originalPathProvider = PathProviderPlatform.instance;
-    PathProviderPlatform.instance = _FakePathProvider(documents.path);
+    useFakePathProvider(_FakePathProvider(documents.path));
     sharePlatform.calls.clear();
   });
 
   tearDown(() {
     DatabaseService.instance.resetForTesting();
-    PathProviderPlatform.instance = originalPathProvider;
     documents.deleteSync(recursive: true);
   });
 

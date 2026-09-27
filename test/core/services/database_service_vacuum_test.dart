@@ -10,6 +10,8 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
 
+import '../../helpers/fake_path_provider.dart';
+
 class _FakeLocation implements DatabaseLocationService {
   _FakeLocation(this.path);
   final String path;
@@ -41,13 +43,11 @@ void main() {
 
   late Directory tempDir;
   late String dbPath;
-  late PathProviderPlatform originalPathProvider;
 
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('v183-vacuum-test');
     dbPath = p.join(tempDir.path, 'submersion.db');
-    originalPathProvider = PathProviderPlatform.instance;
-    PathProviderPlatform.instance = _FakePathProvider(tempDir.path);
+    useFakePathProvider(_FakePathProvider(tempDir.path));
     DatabaseService.instance.resetForTesting();
   });
 
@@ -55,7 +55,6 @@ void main() {
     try {
       await DatabaseService.instance.close(strict: true);
     } finally {
-      PathProviderPlatform.instance = originalPathProvider;
       DatabaseService.instance.resetForTesting();
       await tempDir.delete(recursive: true);
     }
