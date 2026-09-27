@@ -4,6 +4,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/equipment/presentation/widgets/profile_checklist_dialog.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/core/utils/currency.dart';
@@ -2633,6 +2636,64 @@ Future<void> _confirmAndBulkShareSites(
   }
 }
 
+/// Shares every item the active diver owns with the profiles picked in
+/// the checklist (issue #2046). Per profile, unlike sites and trips, which
+/// share with every profile at once.
+Future<void> _confirmAndBulkShareEquipment(
+  BuildContext context,
+  WidgetRef ref,
+) async {
+  final l10n = context.l10n;
+  final messenger = ScaffoldMessenger.of(context);
+  final errorColor = Theme.of(context).colorScheme.errorContainer;
+  final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+  if (diverId == null) return;
+  final visible = await ref.read(allEquipmentProvider.future);
+  final ownedCount = visible.where((e) => e.diverId == diverId).length;
+  if (ownedCount == 0) {
+    if (!context.mounted) return;
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.settings_shareAll_noneToShare)),
+    );
+    return;
+  }
+  final divers = await ref.read(allDiversProvider.future);
+  final others = [
+    for (final d in divers)
+      if (d.id != diverId) d,
+  ];
+  if (others.isEmpty || !context.mounted) return;
+  final chosen = await showProfileChecklistDialog(
+    context,
+    title: l10n.settings_shareAllEquipment_title,
+    body: l10n.settings_shareAllEquipment_body(ownedCount),
+    profiles: others,
+    initiallySelected: const {},
+    confirmLabel: l10n.common_action_share,
+    allowEmpty: false,
+  );
+  if (chosen == null) return;
+  try {
+    final result = await ref
+        .read(equipmentShareRepositoryProvider)
+        .shareAllForDiver(ownerId: diverId, diverIds: chosen.toList());
+    if (!context.mounted) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.equipment_bulkShare_done(result.itemsChanged)),
+      ),
+    );
+  } catch (_) {
+    if (!context.mounted) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.common_error_tryAgain),
+        backgroundColor: errorColor,
+      ),
+    );
+  }
+}
+
 /// Confirms and bulk-shares all private trips for the current diver.
 Future<void> _confirmAndBulkShareTrips(
   BuildContext context,
@@ -2763,6 +2824,12 @@ class SharedDataSectionContent extends ConsumerWidget {
                   title: Text(context.l10n.settings_shareAllTrips_title),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _confirmAndBulkShareTrips(context, ref),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: Text(context.l10n.settings_shareAllEquipment_title),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _confirmAndBulkShareEquipment(context, ref),
                 ),
               ],
             ),

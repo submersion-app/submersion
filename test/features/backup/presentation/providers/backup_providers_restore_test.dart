@@ -91,6 +91,7 @@ class _RecordingBackupService extends BackupService {
   Future<BackupValidationResult> validateBackupFile(
     String filePath, {
     bool allowLiveDatabaseEncryption = false,
+    bool requireBackupExtension = true,
   }) async => const BackupValidationResult.valid(sizeBytes: 1);
 
   @override
@@ -123,6 +124,26 @@ class _RecordingBackupService extends BackupService {
     final progress = migrationProgressToEmit;
     if (progress != null) onMigrationProgress?.call(progress.$1, progress.$2);
   }
+
+  String? lastCopyPath;
+
+  @override
+  Future<void> restoreFromDatabaseCopy(
+    String path, {
+    RestoreMode mode = RestoreMode.merge,
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
+  }) async {
+    calls.add('restoreFromDatabaseCopy');
+    lastMode = mode;
+    lastCopyPath = path;
+    _gate(null);
+    if (copyError != null) throw copyError!;
+    final progress = migrationProgressToEmit;
+    if (progress != null) onMigrationProgress?.call(progress.$1, progress.$2);
+  }
+
+  /// When set, [restoreFromDatabaseCopy] throws this after recording.
+  Object? copyError;
 }
 
 /// Stands in for the real post-restore sweep so the notifier can be exercised
@@ -629,6 +650,59 @@ void main() {
     expect(state.status, BackupOperationStatus.error);
     expect(state.isRestoring, isFalse);
     expect(state.message, startsWith('Nothing was restored'));
+  });
+
+  group('restoreFromDatabaseCopy', () {
+    test('threads the path and mode, runs the sweep and completes', () async {
+      final sweep = _FakePostRestoreSafetyReview();
+      final container = makeContainer(sweep: sweep);
+
+      await container
+          .read(backupOperationProvider.notifier)
+          .restoreFromDatabaseCopy(
+            '/db/submersion.db.pre-restore.20260926T134501Z',
+            mode: RestoreMode.replace,
+          );
+
+      expect(service.calls, ['restoreFromDatabaseCopy']);
+      expect(
+        service.lastCopyPath,
+        '/db/submersion.db.pre-restore.20260926T134501Z',
+      );
+      expect(service.lastMode, RestoreMode.replace);
+      expect(sweep.calls, 1);
+      expect(
+        container.read(backupOperationProvider).status,
+        BackupOperationStatus.restoreComplete,
+      );
+    });
+
+    test('reports a refused copy as a failed restore', () async {
+      final container = makeContainer();
+      service.copyError = const BackupException('newer build');
+
+      await container
+          .read(backupOperationProvider.notifier)
+          .restoreFromDatabaseCopy('/db/copy');
+
+      final state = container.read(backupOperationProvider);
+      expect(state.status, BackupOperationStatus.error);
+      expect(state.message, contains('newer build'));
+    });
+
+    test('reports a vanished copy as nothing restored', () async {
+      final container = makeContainer();
+      service.sourceMissing = true;
+
+      await container
+          .read(backupOperationProvider.notifier)
+          .restoreFromDatabaseCopy('/db/copy');
+
+      final state = container.read(backupOperationProvider);
+      expect(state.status, BackupOperationStatus.error);
+      expect(state.isRestoring, isFalse, reason: 'the barrier must come down');
+      expect(state.message, startsWith('Nothing was restored'));
+    });
   });
 
   test('backup encryption providers wire their real dependencies', () async {

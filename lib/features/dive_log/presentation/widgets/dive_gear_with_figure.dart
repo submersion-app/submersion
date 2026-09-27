@@ -71,6 +71,9 @@ class _DiveGearWithFigureState extends ConsumerState<DiveGearWithFigure>
       showServiceStatus: widget.showServiceStatus,
       onTap: widget.onTap,
       rowTrailing: widget.rowTrailing,
+      // Gear another profile owns is marked against this dive's diver
+      // (issue #2046).
+      ownerReferenceDiverId: dive.diverId,
       figureNumbers: model == null
           ? const {}
           : {for (final p in model.numbered) p.item.id: p.number},

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -124,6 +125,13 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
     final numberById = model == null
         ? const <String, int>{}
         : {for (final p in model.numbered) p.item.id: p.number};
+    // Members the diver can no longer see (a share was removed, issue
+    // #2046) stay in the set, marked. Null until the list loads.
+    final visibleIds = ref
+        .watch(allEquipmentProvider)
+        .value
+        ?.map((e) => e.id)
+        .toSet();
     return Scaffold(
       appBar: AppBar(
         title: Text(set.name),
@@ -326,6 +334,8 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
                     item,
                     labels,
                     numberById[item.id],
+                    noLongerShared:
+                        visibleIds != null && !visibleIds.contains(item.id),
                   ),
                 ),
               ],
@@ -382,12 +392,14 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
 
   /// One member of the set. [number] is its figure number, shown as the
   /// legend badge; child items and assembly parts have none.
+  /// [noLongerShared] marks a member another profile stopped sharing.
   Widget _buildEquipmentTile(
     BuildContext context,
     EquipmentItem item,
     Map<String, EquipmentRowLabel> labels,
-    int? number,
-  ) {
+    int? number, {
+    bool noLongerShared = false,
+  }) {
     final selected = item.id == selectedFigureItemId;
     final scheme = Theme.of(context).colorScheme;
     final highlight = selected ? figureHighlightFor(scheme) : null;
@@ -433,6 +445,7 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
                 if (item.fullName == item.name)
                   item.type.localizedName(context.l10n),
                 ...?labels[item.id]?.subtitleParts,
+                if (noLongerShared) context.l10n.equipment_set_noLongerShared,
               ].join(' · '),
             ),
             AssemblyChips(itemId: item.id),

@@ -161,6 +161,15 @@ const winrt::guid BleIoStream::kUbloxCreditsUuid{
     0x2456E1B9, 0x26E2, 0x8F83,
     {0xE7, 0x44, 0xF3, 0x4F, 0x01, 0xE9, 0xD7, 0x04}};
 
+// Seac Tablet (libdivecomputer 415778c): 84968ffe-d26d-478a-b953-5010bcf58bca
+// with one Rx/Tx characteristic, 43c620c2-1b09-4951-bc1e-9c75298cddeb.
+const winrt::guid BleIoStream::kSeacServiceUuid{
+    0x84968FFE, 0xD26D, 0x478A,
+    {0xB9, 0x53, 0x50, 0x10, 0xBC, 0xF5, 0x8B, 0xCA}};
+const winrt::guid BleIoStream::kSeacDataUuid{
+    0x43C620C2, 0x1B09, 0x4951,
+    {0xBC, 0x1E, 0x9C, 0x75, 0x29, 0x8C, 0xDD, 0xEB}};
+
 static constexpr uint32_t kBleIoctlType = 'b';
 static constexpr uint32_t kBleIoctlGetName = 0;
 static constexpr uint32_t kBleIoctlGetPinCode = 1;
@@ -238,6 +247,7 @@ bool BleIoStream::ConnectAndDiscover(uint64_t bluetooth_address) {
 }
 
 bool BleIoStream::DiscoverCharacteristics() {
+    read_poller_.reset();
     auto services_result =
         device_.GetGattServicesAsync(BluetoothCacheMode::Uncached).get();
     if (services_result.Status() != GattCommunicationStatus::Success) {
@@ -261,6 +271,11 @@ bool BleIoStream::DiscoverCharacteristics() {
         bool credits_required = false;
     };
     Candidate best;
+    // Read-poll tier candidate (issue #1454), used only if no service carries
+    // a write/notify pair. An allowlist: Generic Access's Device Name is
+    // read+write on some peripherals and must never be mistaken for a
+    // serial channel.
+    GattCharacteristic read_poll_candidate{nullptr};
 
     for (auto const& service : services_result.Services()) {
         auto chars_result =
@@ -302,6 +317,17 @@ bool BleIoStream::DiscoverCharacteristics() {
             if (ch.Uuid() == kTerminalIoCreditsTxUuid) tio_credits_tx = ch;
             if (ch.Uuid() == kUbloxDataUuid) ublox_data = ch;
             if (ch.Uuid() == kUbloxCreditsUuid) ublox_credits = ch;
+
+            if (!read_poll_candidate && service.Uuid() == kSeacServiceUuid &&
+                ch.Uuid() == kSeacDataUuid &&
+                (props & GattCharacteristicProperties::Read) !=
+                    GattCharacteristicProperties::None &&
+                ((props & GattCharacteristicProperties::Write) !=
+                     GattCharacteristicProperties::None ||
+                 (props & GattCharacteristicProperties::WriteWithoutResponse) !=
+                     GattCharacteristicProperties::None)) {
+                read_poll_candidate = ch;
+            }
 
             // Evaluate as write candidate.
             if ((props & GattCharacteristicProperties::Write) !=
@@ -388,6 +414,20 @@ bool BleIoStream::DiscoverCharacteristics() {
         }
     }
 
+    if (best.score < 0 && read_poll_candidate) {
+        // Read-poll tier: the computer cannot push its replies, so there is no
+        // CCCD to write, no ValueChanged handler and no credit handshake; the
+        // poller reads the characteristic whenever libdivecomputer wants bytes.
+        NativeLogger::Debug(kBleCategory,
+                            "read-poll tier selected: service=" +
+                                DescribeUuid(kSeacServiceUuid) +
+                                " characteristic=" +
+                                DescribeUuid(read_poll_candidate.Uuid()));
+        write_characteristic_ = read_poll_candidate;
+        read_poller_ = std::make_unique<BleReadPoller>(read_poll_candidate);
+        return true;
+    }
+
     if (best.score < 0) {
         if (discovered_service_uuids.empty()) {
             NativeLogger::Error(kBleCategory,
@@ -402,7 +442,7 @@ bool BleIoStream::DiscoverCharacteristics() {
             NativeLogger::Error(
                 kBleCategory,
                 "No discovered service carries both a write and a notify "
-                "characteristic; " +
+                "characteristic, nor matches a known read-poll service; " +
                     std::to_string(discovered_service_uuids.size()) +
                     " service(s) seen: " + seen.str());
         }
@@ -697,6 +737,10 @@ void BleIoStream::Close() {
         }
         notify_characteristic_ = nullptr;
     }
+    if (read_poller_) {
+        read_poller_->Close();
+        read_poller_.reset();
+    }
     write_characteristic_ = nullptr;
     // Release the throughput-optimized connection request (reverts to the
     // controller's default interval) before tearing down the device.
@@ -881,6 +925,7 @@ int BleIoStream::IoctlCallback(void* userdata, unsigned int request,
 
 int BleIoStream::PollCallback(void* userdata, int timeout) {
     auto* stream = static_cast<BleIoStream*>(userdata);
+    if (stream->read_poller_) return stream->read_poller_->Poll(timeout);
     std::unique_lock<std::mutex> lock(stream->read_mutex_);
     if (!stream->read_chunks_.empty()) return LIBDC_STATUS_SUCCESS;
     if (timeout == 0) return LIBDC_STATUS_TIMEOUT;
@@ -901,12 +946,16 @@ int BleIoStream::PollCallback(void* userdata, int timeout) {
 int BleIoStream::PurgeCallback(void* userdata, unsigned int direction) {
     if ((direction & kDirectionInput) == 0) return LIBDC_STATUS_SUCCESS;
     auto* stream = static_cast<BleIoStream*>(userdata);
+    if (stream->read_poller_) stream->read_poller_->Purge();
     std::lock_guard<std::mutex> lock(stream->read_mutex_);
     stream->read_chunks_.clear();
     return LIBDC_STATUS_SUCCESS;
 }
 
 int BleIoStream::PerformRead(void* data, size_t size, size_t* actual) {
+    if (read_poller_) {
+        return read_poller_->Read(data, size, actual, timeout_ms_);
+    }
     std::unique_lock<std::mutex> lock(read_mutex_);
 
     auto deadline = (timeout_ms_ == INT32_MAX)

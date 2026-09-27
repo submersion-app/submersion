@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_rep
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
@@ -182,6 +183,8 @@ void main() {
           ServiceRecordRepository().watchServiceRecordsChanges,
       'ServiceKindRepository.watchServiceKindsChanges':
           ServiceKindRepository().watchServiceKindsChanges,
+      'EquipmentShareRepository.watchChanges':
+          EquipmentShareRepository().watchChanges,
       'ServiceScheduleRepository.watchSchedulesChanges':
           ServiceScheduleRepository().watchSchedulesChanges,
       'CylinderConfigRepository.watchConfigsChanges':
@@ -401,6 +404,27 @@ void main() {
                   serviceDate: now,
                   createdAt: now,
                   updatedAt: now,
+                ),
+              ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('EquipmentShareRepository.watchChanges fires on an event', () async {
+      // The ownership log is the table a share-only write would miss.
+      await seedParents();
+      expect(
+        await fires(
+          EquipmentShareRepository().watchChanges(),
+          () => db
+              .into(db.equipmentOwnershipEvents)
+              .insert(
+                EquipmentOwnershipEventsCompanion.insert(
+                  id: 'ev1',
+                  equipmentId: 'e1',
+                  kind: 'shared',
+                  occurredAt: now,
                 ),
               ),
         ),

@@ -9,7 +9,7 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 237);
     expect(AppDatabase.migrationVersions, contains(237));
-    expect(AppDatabase.migrationStepCount(233), 1);
+    expect(AppDatabase.migrationStepCount(234), 1);
   });
 
   test('the column is additive and did not move the sync floor', () {

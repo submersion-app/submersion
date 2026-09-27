@@ -308,6 +308,15 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
       for (final item in items)
         if (!_gear.any((g) => g.id == item.id)) item,
     ];
+    // Parts are scoped to the active diver (issue #2046); an unreadable
+    // diver adds unscoped, as before sharing, rather than failing the add.
+    String? diverId;
+    try {
+      diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    } catch (_) {
+      diverId = null;
+    }
+    if (!mounted) return;
     final expansion = await expandGearOnPage(
       ref,
       additions: [
@@ -315,6 +324,7 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
       ],
       existing: _gearProvenance,
       existingItems: merged,
+      diverId: diverId,
     );
     if (!mounted) return;
     _mutate(units, () {

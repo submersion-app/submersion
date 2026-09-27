@@ -12,11 +12,14 @@ import 'package:submersion/features/equipment/presentation/providers/assembly_sn
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_owner_sections.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_owner_chip.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -53,6 +56,10 @@ class DiveGearTreeView extends ConsumerStatefulWidget {
   /// does not gain a mark about today's service state.
   final bool showServiceStatus;
 
+  /// The diver whose dive this is. A row whose item another profile owns
+  /// shows that owner's chip (issue #2046). Null shows no chips.
+  final String? ownerReferenceDiverId;
+
   /// The diver figure's number for each item on it (issue #2326). A
   /// top-level row whose item has one leads with its badge; parts never
   /// do. Empty, the default, when the figure is not shown.
@@ -77,6 +84,7 @@ class DiveGearTreeView extends ConsumerStatefulWidget {
     this.rowTrailing,
     this.onUpdateAssembly,
     this.showServiceStatus = false,
+    this.ownerReferenceDiverId,
     this.figureNumbers = const {},
     this.selectedItemId,
     this.onNumberTap,
@@ -245,6 +253,14 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (showsOwnerChip(
+                item,
+                widget.ownerReferenceDiverId,
+                multipleDivers: ref.watch(hasMultipleDiversProvider),
+              )) ...[
+                EquipmentOwnerChip(ownerId: item.diverId),
+                const SizedBox(width: 4),
+              ],
               ServiceStatusIndicatorFor(
                 equipmentId: item.id,
                 density: ServiceIndicatorDensity.dot,

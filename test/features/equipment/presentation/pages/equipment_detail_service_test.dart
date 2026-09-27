@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -62,6 +63,9 @@ void main() {
       ProviderScope(
         overrides: [
           ...overrides,
+          // No diver profile: the page treats every item as the viewer's own
+          // (issue #2046), and the menu waits for this to resolve.
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
           equipmentItemProvider(item.id).overrideWith((ref) async => item),
           equipmentDiveCountProvider(item.id).overrideWith((ref) async => 0),
           equipmentTripCountProvider(item.id).overrideWith((ref) async => 0),

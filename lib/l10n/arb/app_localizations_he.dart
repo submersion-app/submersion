@@ -9,6 +9,160 @@ class AppLocalizationsHe extends AppLocalizations {
   AppLocalizationsHe([String locale = 'he']) : super(locale);
 
   @override
+  String get equipment_filter_owner_all => 'הכל';
+
+  @override
+  String get equipment_delete_notOwner => 'רק הבעלים יכול למחוק פריט זה';
+
+  @override
+  String get equipment_sharedWithMe => 'משותף איתי';
+
+  @override
+  String get equipment_owner_unknown => 'פרופיל אחר';
+
+  @override
+  String equipment_ownerChip_semanticLabel(String name) {
+    return 'בבעלות $name';
+  }
+
+  @override
+  String equipment_picker_ownerHeader(String name) {
+    return 'מאת $name';
+  }
+
+  @override
+  String get equipment_sharing_sharedWithLabel => 'משותף עם';
+
+  @override
+  String get equipment_sharing_notShared => 'לא משותף';
+
+  @override
+  String get equipment_sharing_ownedByLabel => 'בעלים';
+
+  @override
+  String get equipment_sharing_dialogTitle => 'שיתוף עם';
+
+  @override
+  String get equipment_sharing_dialogBody =>
+      'הפרופילים שתבחר יכולים להוסיף ציוד זה לצלילות שלהם ולתעד את הטיפולים בו. רק הבעלים יכול למחוק אותו או לשנות עם מי הוא משותף.';
+
+  @override
+  String get equipment_bulkShare_action => 'שיתוף עם...';
+
+  @override
+  String equipment_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים שותפו',
+      one: 'פריט אחד שותף',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים שותפו',
+      one: 'פריט אחד שותף',
+    );
+    return '$_temp0, דולגו $skipped שאינם בבעלותך';
+  }
+
+  @override
+  String equipment_bulkDelete_partial(int deleted, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      deleted,
+      locale: localeName,
+      other: '$deleted פריטים נמחקו',
+      one: 'פריט אחד נמחק',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other: '$skipped פריטים משותפים נשמרו: רק הבעלים שלהם יכולים למחוק אותם',
+      one: 'פריט משותף אחד נשמר: רק הבעלים יכול למחוק אותו',
+    );
+    return '$_temp0. $_temp1';
+  }
+
+  @override
+  String get equipment_filter_section_owner => 'בעלים';
+
+  @override
+  String get equipment_filter_owner_mine => 'שלי';
+
+  @override
+  String get enum_equipmentField_owner => 'בעלים';
+
+  @override
+  String get enum_equipmentField_owner_short => 'בעלים';
+
+  @override
+  String get equipment_set_noLongerShared => 'כבר לא משותף';
+
+  @override
+  String get equipment_history_title => 'היסטוריה';
+
+  @override
+  String get equipment_history_empty => 'עדיין לא שימש באף צלילה';
+
+  @override
+  String get equipment_history_deletedProfile => 'פרופיל שנמחק';
+
+  @override
+  String equipment_history_runDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_history_dateRange(String from, String to) {
+    return '$from עד $to';
+  }
+
+  @override
+  String equipment_history_added(String name) {
+    return 'נוסף על ידי $name';
+  }
+
+  @override
+  String equipment_history_shared(String name) {
+    return 'שותף עם $name';
+  }
+
+  @override
+  String equipment_history_unshared(String name) {
+    return 'השיתוף עם $name הופסק';
+  }
+
+  @override
+  String equipment_history_transferred(String from, String to) {
+    return 'הועבר מ$from אל $to';
+  }
+
+  @override
+  String get settings_shareAllEquipment_title => 'שיתוף כל הציוד שלי...';
+
+  @override
+  String settings_shareAllEquipment_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'שתף את $count הפריטים שלך עם הפרופילים שתבחר.',
+      one: 'שתף את הפריט שלך עם הפרופילים שתבחר.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'לא ניתן לפתוח את הדפדפן. השתמש בהעתקת קישור והדבק את הכתובת בדפדפן שלך.';
 
@@ -27450,7 +27604,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_sharedData_sectionSubtitle =>
-      'שיתוף אתרים וטיולים בין פרופילים';
+      'שיתוף אתרים, טיולים וציוד בין פרופילים';
 
   @override
   String get common_action_unshare => 'ביטול שיתוף';
@@ -41477,14 +41631,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'הקובץ שנמצא עכשיו במקומו נשמר לצידו ואינו נמחק.';
+      'הקובץ שנמצא עכשיו במקומו נשמר ואינו נמחק. אפשר לשחזר או למחוק אותו מאוחר יותר דרך גיבוי ושחזור בהגדרות.';
 
   @override
   String get startup_interruptedRestore_keepAction => 'להשאיר את מה שיש עכשיו';
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'יומן הצלילה הקודם שלך נשמר כקובץ בתיקיית מסד הנתונים.';
+      'יומן הצלילה הקודם שלך נשמר ואינו נמחק. אפשר לשחזר או למחוק אותו מאוחר יותר דרך גיבוי ושחזור בהגדרות.';
 
   @override
   String get startup_interruptedRestore_failed =>
@@ -41797,6 +41951,65 @@ class AppLocalizationsHe extends AppLocalizations {
   String backup_unrecognized_freed(String size) {
     return '$size פונו';
   }
+
+  @override
+  String get backup_quarantined_sectionTitle => 'מסדי נתונים שהועברו הצידה';
+
+  @override
+  String get backup_quarantined_explanation =>
+      'שחזור שלא הצליח להסתיים כראוי שמר את העותקים האלה של מסד הנתונים שלך במקום למחוק אותם. שחזר אחד מהם כדי להשתמש בו שוב, או מחק אותו כדי לפנות מקום.';
+
+  @override
+  String get backup_quarantined_kind_preRestore => 'יומן צלילה מלפני שחזור';
+
+  @override
+  String get backup_quarantined_kind_restoreRejected =>
+      'יומן צלילה שהוחלף במהלך שחזור';
+
+  @override
+  String backup_quarantined_detail(String date, String size) {
+    return '$date • $size';
+  }
+
+  @override
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
+    return '$date • $size • מסד נתונים v$version';
+  }
+
+  @override
+  String get backup_quarantined_status_needsNewerApp =>
+      'נדרשת גרסה חדשה יותר של Submersion';
+
+  @override
+  String get backup_quarantined_status_unreadable =>
+      'לא ניתן לפתוח אותו כאן. ייתכן שהוא פגום, או מוגן בסיסמה שאין למכשיר הזה.';
+
+  @override
+  String get backup_quarantined_status_incomplete =>
+      'נותרו רק קובצי יומן; קובץ מסד הנתונים עצמו אינו קיים.';
+
+  @override
+  String get backup_quarantined_delete_title =>
+      'למחוק את עותק מסד הנתונים הזה?';
+
+  @override
+  String get backup_quarantined_delete_message =>
+      'העותק וקובצי היומן שלו יימחקו לצמיתות מהמכשיר הזה. לא ניתן לבטל פעולה זו.';
+
+  @override
+  String get backup_quarantined_deleted => 'עותק מסד הנתונים נמחק';
+
+  @override
+  String get backup_quarantined_deleteFailed =>
+      'לא ניתן היה למחוק את עותק מסד הנתונים.';
+
+  @override
+  String get backup_quarantined_loadFailed =>
+      'לא ניתן היה לבדוק את תיקיית מסד הנתונים לאיתור עותקים שהועברו הצידה.';
 
   @override
   String settings_storageUsage_unrecognized_title(int count) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -51,94 +52,96 @@ void main() {
       type: EquipmentType.bcd,
     );
 
-    testWidgets(
-      'redirects to master-detail on desktop when not in table mode',
-      (tester) async {
-        tester.view.devicePixelRatio = 1.0;
-        tester.view.physicalSize = const Size(1200, 800);
-        addTearDown(() {
-          tester.view.resetPhysicalSize();
-          tester.view.resetDevicePixelRatio();
-        });
+    testWidgets('redirects to master-detail on desktop when not in table mode', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
 
-        final overrides = await getBaseOverrides();
+      final overrides = await getBaseOverrides();
 
-        final router = GoRouter(
-          initialLocation: '/equipment/equip-1',
-          routes: [
-            GoRoute(
-              path: '/equipment',
-              builder: (context, state) =>
-                  const Scaffold(body: Text('EQUIPMENT_LIST_PAGE')),
-            ),
-            GoRoute(
-              path: '/equipment/:id',
-              builder: (context, state) =>
-                  EquipmentDetailPage(equipmentId: state.pathParameters['id']!),
-            ),
-          ],
-        );
-
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              ...overrides,
-              equipmentListViewModeProvider.overrideWith(
-                (ref) => ListViewMode.detailed,
-              ),
-              equipmentItemProvider(
-                equipment.id,
-              ).overrideWith((ref) async => equipment),
-              equipmentDiveCountProvider(
-                equipment.id,
-              ).overrideWith((ref) async => 0),
-              equipmentTripCountProvider(
-                equipment.id,
-              ).overrideWith((ref) async => 0),
-              equipmentComponentsProvider(
-                equipment.id,
-              ).overrideWith((ref) async => const []),
-              equipmentPartOfProvider(
-                equipment.id,
-              ).overrideWith((ref) async => const []),
-              equipmentExposureTotalsProvider(
-                equipment.id,
-              ).overrideWith((ref) async => EquipmentExposureTotals.empty),
-              equipmentConditionProvider(
-                equipment.id,
-              ).overrideWith((ref) async => const []),
-              conditionTrendProvider((
-                equipmentId: equipment.id,
-                kind: null,
-              )).overrideWith((ref) async => null),
-              conditionTrendProvider((
-                equipmentId: equipment.id,
-                kind: ConditionTrendKind.scrubberMinutes,
-              )).overrideWith((ref) async => null),
-              childEquipmentProvider(
-                equipment.id,
-              ).overrideWith((ref) async => const []),
-              observationsForEquipmentProvider(
-                equipment.id,
-              ).overrideWith((ref) async => const []),
-              equipmentWorstClockProvider.overrideWith((ref) async => {}),
-              serviceRecordNotifierProvider(
-                equipment.id,
-              ).overrideWith((ref) => _MockServiceRecordNotifier()),
-            ].cast(),
-            child: MaterialApp.router(
-              routerConfig: router,
-              locale: const Locale('en'),
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-            ),
+      final router = GoRouter(
+        initialLocation: '/equipment/equip-1',
+        routes: [
+          GoRoute(
+            path: '/equipment',
+            builder: (context, state) =>
+                const Scaffold(body: Text('EQUIPMENT_LIST_PAGE')),
           ),
-        );
+          GoRoute(
+            path: '/equipment/:id',
+            builder: (context, state) =>
+                EquipmentDetailPage(equipmentId: state.pathParameters['id']!),
+          ),
+        ],
+      );
 
-        await tester.pumpAndSettle();
-        expect(find.text('EQUIPMENT_LIST_PAGE'), findsOneWidget);
-      },
-    );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            // No diver profile: the page treats every item as the viewer's own
+            // (issue #2046), and the menu waits for this to resolve.
+            validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+            equipmentListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
+            equipmentItemProvider(
+              equipment.id,
+            ).overrideWith((ref) async => equipment),
+            equipmentDiveCountProvider(
+              equipment.id,
+            ).overrideWith((ref) async => 0),
+            equipmentTripCountProvider(
+              equipment.id,
+            ).overrideWith((ref) async => 0),
+            equipmentComponentsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            equipmentPartOfProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            equipmentExposureTotalsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => EquipmentExposureTotals.empty),
+            equipmentConditionProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            conditionTrendProvider((
+              equipmentId: equipment.id,
+              kind: null,
+            )).overrideWith((ref) async => null),
+            conditionTrendProvider((
+              equipmentId: equipment.id,
+              kind: ConditionTrendKind.scrubberMinutes,
+            )).overrideWith((ref) async => null),
+            childEquipmentProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            observationsForEquipmentProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            equipmentWorstClockProvider.overrideWith((ref) async => {}),
+            serviceRecordNotifierProvider(
+              equipment.id,
+            ).overrideWith((ref) => _MockServiceRecordNotifier()),
+          ].cast(),
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('EQUIPMENT_LIST_PAGE'), findsOneWidget);
+    });
 
     testWidgets('does not redirect on desktop in table mode', (tester) async {
       tester.view.devicePixelRatio = 1.0;
@@ -170,6 +173,9 @@ void main() {
         ProviderScope(
           overrides: [
             ...overrides,
+            // No diver profile: the page treats every item as the viewer's own
+            // (issue #2046), and the menu waits for this to resolve.
+            validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
             equipmentListViewModeProvider.overrideWith(
               (ref) => ListViewMode.table,
             ),
@@ -267,6 +273,9 @@ void main() {
         ProviderScope(
           overrides: [
             ...overrides,
+            // No diver profile: the page treats every item as the viewer's own
+            // (issue #2046), and the menu waits for this to resolve.
+            validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
             equipmentItemProvider(
               equipment.id,
             ).overrideWith((ref) async => equipment),
@@ -348,6 +357,9 @@ void main() {
         ProviderScope(
           overrides: [
             ...overrides,
+            // No diver profile: the page treats every item as the viewer's own
+            // (issue #2046), and the menu waits for this to resolve.
+            validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
             equipmentItemProvider(
               equipment.id,
             ).overrideWith((ref) async => equipment),
@@ -641,6 +653,9 @@ void main() {
         ProviderScope(
           overrides: [
             ...overrides,
+            // No diver profile: the page treats every item as the viewer's own
+            // (issue #2046), and the menu waits for this to resolve.
+            validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
             serviceKindsProvider.overrideWith((ref) async => const []),
           ].cast(),
           child: MaterialApp(
@@ -731,6 +746,9 @@ void main() {
         ProviderScope(
           overrides: [
             ...overrides,
+            // No diver profile: the page treats every item as the viewer's own
+            // (issue #2046), and the menu waits for this to resolve.
+            validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
             equipmentItemProvider(
               equipment.id,
             ).overrideWith((ref) async => equipment),
@@ -919,6 +937,9 @@ void main() {
         ProviderScope(
           overrides: [
             ...overrides,
+            // No diver profile: the page treats every item as the viewer's own
+            // (issue #2046), and the menu waits for this to resolve.
+            validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
             equipmentItemProvider(item.id).overrideWith((ref) async => item),
             equipmentDiveCountProvider(item.id).overrideWith((ref) async => 3),
             equipmentTripCountProvider(item.id).overrideWith((ref) async => 0),

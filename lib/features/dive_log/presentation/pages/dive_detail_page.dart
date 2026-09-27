@@ -4833,7 +4833,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       contentBuilder: (context) => Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         // The tree, and the diver figure above it when the diver has turned
-        // it on (issue #2326).
+        // it on (issue #2326). It marks gear another profile owns against
+        // this dive's diver, as the tree alone did (issue #2046).
         child: DiveGearWithFigure(
           dive: dive,
           showFigure: ref.watch(
