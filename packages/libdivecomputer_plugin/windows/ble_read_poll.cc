@@ -41,7 +41,7 @@ int BleReadPoller::Read(void* data, size_t size, size_t* actual,
     std::unique_lock<std::mutex> lock(state_->mutex);
     const int status = AwaitPacket(lock, deadline);
     if (status != LIBDC_STATUS_SUCCESS) {
-        *actual = 0;
+        if (actual) *actual = 0;
         return status;
     }
 
@@ -55,7 +55,7 @@ int BleReadPoller::Read(void* data, size_t size, size_t* actual,
     } else {
         state_->chunks.pop_front();
     }
-    *actual = count;
+    if (actual) *actual = count;
     return LIBDC_STATUS_SUCCESS;
 }
 

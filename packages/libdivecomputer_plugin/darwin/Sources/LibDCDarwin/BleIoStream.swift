@@ -375,9 +375,10 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
 
     private static let cClose: libdc_io_close_fn = { userdata in
         let stream = Unmanaged<BleIoStream>.fromOpaque(userdata!).takeUnretainedValue()
-        // Wake a read-poll reader waiting with no timeout; it would otherwise
-        // block forever on a link that is going away.
+        // Fail a read-poll reader waiting with no timeout, and wake it now
+        // rather than at the end of its wait slice.
         stream.withReadPoll { $0.close() }
+        if stream.readCharacteristic != nil { stream.packetBuffer.interrupt() }
         stream.centralManager.cancelPeripheralConnection(stream.peripheral)
         return Int32(LIBDC_STATUS_SUCCESS)
     }

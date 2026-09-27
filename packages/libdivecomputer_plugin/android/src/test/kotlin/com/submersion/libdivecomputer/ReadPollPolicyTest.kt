@@ -7,7 +7,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 // JVM tests for the read-poll decisions behind BleIoStream's read mode
-// (issue #1454). Mirrors darwin/Tests/ReadPollPolicyTests case for case.
+// (issue #1454). Each case has a one-to-one counterpart in
+// darwin/Tests/ReadPollPolicyTests.
 class ReadPollPolicyTest {
 
     @Test

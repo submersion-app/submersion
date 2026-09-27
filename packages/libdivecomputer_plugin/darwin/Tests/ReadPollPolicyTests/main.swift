@@ -3,7 +3,7 @@ import Foundation
 // Standalone test runner for ReadPollPolicy (no XCTest: the LibDCDarwin
 // package cannot build under SwiftPM because it depends on Flutter modules
 // only present in the CocoaPods build). Run via run_native_tests.sh.
-// Mirrored case for case by ReadPollPolicyTest.kt on Android.
+// Each case has a one-to-one counterpart in ReadPollPolicyTest.kt on Android.
 
 var failures = 0
 
