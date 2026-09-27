@@ -498,6 +498,18 @@ void main() {
       expect(File(missingPath).existsSync(), isFalse);
     });
 
+    test('a restore into a folder that is gone recreates it, as opening '
+        'a new dive log there would', () async {
+      await Directory(p.dirname(missingPath)).delete(recursive: true);
+
+      await DatabaseService.instance.restore(backupPath);
+
+      expect(File(missingPath).existsSync(), isTrue);
+      await DatabaseService.instance.database
+          .customSelect('SELECT 1')
+          .getSingle();
+    });
+
     test('a rejected newer-schema file leaves the path empty', () async {
       final raw = sqlite3.sqlite3.open(backupPath);
       raw.execute(

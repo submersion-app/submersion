@@ -957,6 +957,10 @@ class DatabaseService {
     // filesystem, so the swap is an atomic metadata operation rather than a
     // cross-device copy.
     final stagingPath = '$destinationPath.restore-staging';
+    // The folder can be gone: the startup "dive log not found" screen offers a
+    // restore into a configured folder that no longer exists (#2177). It is
+    // created here exactly as initialize() creates it for a new dive log.
+    await Directory(p.dirname(destinationPath)).create(recursive: true);
     await _deleteIfExists(stagingPath);
     try {
       await backupFile.copy(stagingPath);
