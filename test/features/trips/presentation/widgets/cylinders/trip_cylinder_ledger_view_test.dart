@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -79,6 +81,7 @@ void main() {
   Future<void> pumpLedger(
     WidgetTester tester, {
     TripCylinderRepository? repository,
+    Future<List<TripCylinderEvent>>? ledger,
   }) async {
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1.0;
@@ -93,6 +96,8 @@ void main() {
           allDiveCentersProvider.overrideWith((ref) async => const []),
           if (repository != null)
             tripCylinderRepositoryProvider.overrideWithValue(repository),
+          if (ledger != null)
+            tripCylinderLedgerProvider(tripId).overrideWith((ref) => ledger),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -104,7 +109,11 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Ledger'));
-    await tester.pumpAndSettle();
+    if (ledger == null) {
+      await tester.pumpAndSettle();
+    } else {
+      await tester.pump();
+    }
   }
 
   testWidgets('an empty ledger says so', (tester) async {
@@ -196,5 +205,26 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const Key('ledger-e1')), findsOneWidget);
+  });
+
+  testWidgets('a ledger still loading is not called empty', (tester) async {
+    final pending = Completer<List<TripCylinderEvent>>();
+    await pumpLedger(tester, ledger: pending.future);
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text('No fills or adjustments yet'), findsNothing);
+    pending.complete(const []);
+    await tester.pumpAndSettle();
+    expect(find.text('No fills or adjustments yet'), findsOneWidget);
+  });
+
+  testWidgets('a ledger that fails to load says so', (tester) async {
+    final failing = Completer<List<TripCylinderEvent>>();
+    await pumpLedger(tester, ledger: failing.future);
+    failing.completeError(StateError('db gone'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Error'), findsOneWidget);
+    expect(find.text('No fills or adjustments yet'), findsNothing);
   });
 }

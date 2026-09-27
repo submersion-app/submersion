@@ -65,9 +65,16 @@ class TripCylinderLedgerView extends ConsumerWidget {
     final l10n = context.l10n;
     final units = UnitFormatter(ref.watch(settingsProvider));
     final fallbackCurrency = ref.watch(defaultCurrencyProvider);
-    final events =
-        ref.watch(tripCylinderLedgerProvider(tripId)).value ??
-        const <TripCylinderEvent>[];
+    final async = ref.watch(tripCylinderLedgerProvider(tripId));
+    final events = async.value;
+    // Not loaded yet, or failed: neither is an empty ledger.
+    if (events == null) {
+      return Center(
+        child: async.hasError
+            ? Text(l10n.common_label_error)
+            : const CircularProgressIndicator(),
+      );
+    }
     if (events.isEmpty) {
       return Center(child: Text(l10n.trips_cylinders_ledgerEmpty));
     }
