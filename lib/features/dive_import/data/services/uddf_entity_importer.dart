@@ -71,6 +71,7 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_tag_scopes.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 import 'package:submersion/features/universal_import/data/services/import_tank_defaults.dart';
 import 'package:uuid/uuid.dart';
@@ -2937,6 +2938,15 @@ class UddfEntityImporter {
       final diveSourceFileName = source?.fileName ?? sourceFileName;
       final diveSourceFormat = source?.format ?? sourceFormat;
 
+      // Whose dive this is in a multi-diver logbook, so a resync replays
+      // this diver's copy of a shared buddy dive and not another's (#1921).
+      // Stored as the file itself emits it: the resync re-parses the one
+      // stored file with no batch merger in between.
+      final diverKey = diveData[SourceDiver.mapKey] as String?;
+      final sourceDiverKey = diverKey != null && sourceFileId != null
+          ? SourceDiver.unqualifyForFile(diverKey, sourceFileId)
+          : diverKey;
+
       if (sourceEntries.isEmpty) {
         final dataSourceId = _uuid.v4();
 
@@ -2959,9 +2969,12 @@ class UddfEntityImporter {
                     ),
             ),
             sourceUuid: Value(diveData['sourceUuid'] as String?),
+            sourceDiverKey: Value(sourceDiverKey),
             maxDepth: Value(asDoubleOrNull(diveData['maxDepth'])),
             avgDepth: Value(asDoubleOrNull(diveData['avgDepth'])),
-            duration: Value(dive.bottomTime?.inSeconds),
+            // The runtime the file reports; bottom time is derived and never
+            // stored in its place (issue #2421).
+            duration: Value(dive.runtime?.inSeconds),
             waterTemp: Value(asDoubleOrNull(diveData['waterTemp'])),
             entryTime: Value(dive.entryTime),
             exitTime: Value(dive.exitTime),

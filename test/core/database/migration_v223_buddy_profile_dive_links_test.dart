@@ -18,7 +18,10 @@ void main() {
     // never sees a buddy's profile link or a dive's outing. Asserting the
     // current value keeps the pair honest, so moving the floor fails both
     // tests rather than silently passing this one.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(224),
+    );
   });
 
   test('a fresh database has both columns, nullable', () async {

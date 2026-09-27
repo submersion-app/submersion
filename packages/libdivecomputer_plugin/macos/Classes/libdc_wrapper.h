@@ -117,6 +117,27 @@ int libdc_usbhid_match(const char *vendor, const char *product,
                        unsigned int model,
                        unsigned short vid, unsigned short pid);
 
+// The product a device reported about itself, when that differs from the
+// descriptor it was opened with (issue #422).
+//
+// A Cressi Donatello behind Cressi's Bluetooth adapter advertises "1_...",
+// the Cartesio's model code, so the scan labels it a Cartesio. The version
+// block the Goa backend reads during the download carries the real model
+// code, in the same code space as the descriptor table.
+//
+// Only families on an allowlist are consulted: most families report a
+// DEVINFO model in a private code space that does not index the descriptor
+// table, and reading it as one would mislabel hardware.
+//
+// Returns 1 and copies the product into product_out when reported_model names
+// a different row of the same vendor and family. Returns 0 otherwise,
+// including when product_out is too small for the whole name (the app matches
+// descriptors by exact product string).
+int libdc_resolve_reported_product(const char *vendor, const char *product,
+                                   unsigned int model,
+                                   unsigned int reported_model,
+                                   char *product_out, size_t product_out_size);
+
 // ============================================================
 // Custom I/O Callbacks (for BLE bridge)
 // ============================================================
@@ -168,6 +189,43 @@ typedef struct {
     libdc_io_set_rts_fn set_rts;          // may be NULL (serial RTS line)
     void *userdata;
 } libdc_io_callbacks_t;
+
+// ============================================================
+// BLE Characteristic Read ioctl (issue #422)
+// ============================================================
+
+// Some dive computers keep data outside the serial-over-GATT stream. The
+// Cressi Goa family has no BLE version command: libdivecomputer reads the
+// serial, model and firmware from three extra characteristics through
+// DC_IOCTL_BLE_CHARACTERISTIC_READ. The request buffer is the 16-byte
+// big-endian characteristic UUID followed by the bytes to fill with its
+// value; `size` covers both. The constants mirror libdivecomputer's
+// ioctl.h/ble.h so this header stays free of its headers;
+// test_ble_characteristic_read.c pins them against the real macros.
+#define LIBDC_BLE_UUID_SIZE 16
+#define LIBDC_BLE_UUID_STRING_SIZE 37
+// DC_IOCTL_IOR('b', 3, DC_IOCTL_SIZE_VARIABLE)
+#define LIBDC_IOCTL_BLE_CHARACTERISTIC_READ 0x40006203u
+
+#define LIBDC_BLE_CHAR_READ_NOT_THIS 0   // some other ioctl
+#define LIBDC_BLE_CHAR_READ_OK 1         // decoded
+#define LIBDC_BLE_CHAR_READ_INVALID (-1) // right ioctl, unusable buffer
+
+// Decode a characteristic read request. On LIBDC_BLE_CHAR_READ_OK, uuid_str
+// receives the lowercase 8-4-4-4-12 form and *value_size the number of value
+// bytes the bridge must supply. Anything else leaves both untouched.
+int libdc_ble_characteristic_read_decode(
+    unsigned int request, const void *data, size_t size,
+    char uuid_str[LIBDC_BLE_UUID_STRING_SIZE], size_t *value_size);
+
+// Copy a characteristic value into the request buffer after its UUID.
+// Returns LIBDC_STATUS_SUCCESS when value_len covers the requested size (a
+// longer value is truncated to it), LIBDC_STATUS_DATAFORMAT when it falls
+// short (a zero-padded version block would be misparsed), and
+// LIBDC_STATUS_INVALIDARGS for a malformed buffer.
+int libdc_ble_characteristic_read_fill(void *data, size_t size,
+                                       const unsigned char *value,
+                                       size_t value_len);
 
 // ============================================================
 // Parsed Dive Data
@@ -368,6 +426,14 @@ int libdc_download_run(
 
 // Cancel a running download (thread-safe).
 void libdc_download_cancel(libdc_download_session_t *session);
+
+// After libdc_download_run: the descriptor product and model the device
+// reported about itself, when it differs from the one the download was
+// opened with (see libdc_resolve_reported_product). Returns 1 and fills
+// both outputs, or 0 when there is nothing to relabel.
+int libdc_download_session_reported_device(
+    const libdc_download_session_t *session,
+    char *product_out, size_t product_out_size, unsigned int *model_out);
 
 // Free the session.
 void libdc_download_session_free(libdc_download_session_t *session);

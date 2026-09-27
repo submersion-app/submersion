@@ -1,6 +1,6 @@
 # Equipment identity, sharing and transfer between diver profiles
 
-Date: 2026-09-17
+Date: 2026-09-17 (revised 2026-09-25: schema rung, new consumers, equipment history)
 Issues: #1549, #2046
 
 ## Problem
@@ -56,11 +56,15 @@ one of four identical pouches.
   a data-quality finding, never blocked.
 - Deleting or merging diver profiles never removes gear from a surviving
   diver's dives.
+- An item's page shows its history: who dived with it and when, and every
+  transfer and share, when two or more profiles exist.
 
 ## Non-goals
 
-- A dated custody history table. The dive's own diver already records who used
-  an item and when.
+- A dated custody table as the record of who used an item. The dive's own
+  diver already records that, and the usage timeline derives it from the
+  dives. Ownership and share changes, which no dive records, go in an
+  append-only event log (see "Equipment history").
 - Snapshotting an item's name or label onto `dive_equipment`. A snapshot
   cannot be corrected later and would touch about seven gear writers, sync and
   UDDF.
@@ -101,7 +105,9 @@ are not made worse by this work.
 
 ### Data
 
-**New table `equipment_shares`** (schema v219):
+**New table `equipment_shares`** (schema vN, the next free rung when the PR
+is written; v219 went to `equipment_tags` in #1942, main is at v227 on
+2026-09-25 and #2364 claims v228, so expect v229):
 
 | Column | Type | Notes |
 | --- | --- | --- |
@@ -117,12 +123,32 @@ in `performance_indexes.dart`.
 
 The rung follows the ladder convention: an idempotent
 `_assertEquipmentSharesTable()` (`CREATE TABLE IF NOT EXISTS` through
-`createMigrator().createTable`), `if (from < 219)` in `onUpgrade`, the
+`createMigrator().createTable`), `if (from < N)` in `onUpgrade`, the
 `currentSchemaVersion` constant, the `migrationVersions` list, and the
 `@DriftDatabase(tables: [...])` list. No backfill: no existing row changes.
 
 An invariant the repository enforces, because SQLite cannot: a share row never
 names the item's own owner.
+
+**New table `equipment_ownership_events`** (same rung vN):
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | TEXT PK | uuid |
+| `equipment_id` | TEXT | FK `equipment.id`, ON DELETE CASCADE |
+| `kind` | TEXT | `transferred`, `shared` or `unshared` |
+| `from_diver_id` | TEXT nullable | FK `divers.id`, ON DELETE SET NULL |
+| `to_diver_id` | TEXT nullable | FK `divers.id`, ON DELETE SET NULL |
+| `occurred_at` | INTEGER | epoch ms |
+| `hlc` | TEXT nullable | child clock |
+
+Index on `(equipment_id, occurred_at)`. Rows are append-only: nothing updates
+one. For `transferred`, from is the old owner and to the new one; for
+`shared` and `unshared`, from is the owner at the time and to is the sharee.
+SET NULL keeps an event when a profile is deleted, so the history still says
+the item changed hands. It ships in the same rung as `equipment_shares` so
+that every share ever made is logged. No backfill: see "Equipment history"
+for how the original owner is derived.
 
 **Sync.** `equipment_shares` registers as a parent-gated child of `equipment`,
 copying `site_site_types` (v217):
@@ -130,6 +156,8 @@ copying `site_site_types` (v217):
 - `sync_repository.dart` HLC target registry.
 - `sync_service.dart`: merge order (after `equipment` and `divers`), the
   clocked-entity flag, `parentRefs` for both foreign keys (neither nullable).
+  `equipment_ownership_events` registers the same way, as a parent-gated
+  child of `equipment`, with nullable `parentRefs` for its two diver keys.
 - `sync_data_serializer.dart`: the `SyncData` field and all serializer arms
   (ctor, `toJson`, `fromJson`, hlc target, export, `fetchRecord(s)`,
   `upsertRecord(s)`, `recordIdsFor`, `_tableFor`, `deleteRecord`), plus
@@ -139,7 +167,9 @@ copying `site_site_types` (v217):
   `deleteEquipment` selects the item's share rows before the delete and logs a
   deletion for each, as it does for `equipmentComponents`. Applying an
   `equipment` or `divers` tombstone on a peer drops the matching share rows, as
-  a cascade would.
+  a cascade would. `deleteEquipment` does the same for the item's ownership
+  events; a `divers` tombstone on a peer nulls the matching event diver ids,
+  as SET NULL would.
 - Every write marks the row pending after any `_db.batch` closure, never
   inside it.
 
@@ -160,7 +190,10 @@ This single change carries visibility to every consumer that reads through
 those methods: the dive equipment picker, set editing, the component picker,
 the "installed in" dropdown (`_validParentIdFor`), dive search chips, weight
 calibration, `activeEquipmentClocksProvider`, the notification scheduler, and
-the equipment exports. Reminders therefore reach the owner and every sharee.
+the equipment exports. Surfaces added after this spec was first written also
+read through these methods and must be covered by tests: the home gear
+service chips (#2259), service status on every equipment row (#2268) and the
+batched pre-dive service clock evaluation (#2287). Reminders therefore reach the owner and every sharee.
 
 Owner-agnostic reads stay as they are: `getEquipmentById`,
 `getEquipmentByIds`, `getChildEquipment`, the usage and exposure queries, and
@@ -184,7 +217,9 @@ set it, so a gear row on a dive can show an owner chip.
 `getSharesFor(equipmentId)`, `getSharesForItems(ids)`,
 `setShares(equipmentId, diverIds)`, `shareMany(equipmentIds, diverIds)`,
 `unshare(equipmentId, diverId)`, `shareAllForDiver(ownerId, diverIds)`. It
-rejects a share to the owner and ignores an existing pair. Providers:
+rejects a share to the owner and ignores an existing pair. Each added share
+writes a `shared` event and each removed share an `unshared` event, in the
+same transaction; an ignored duplicate pair writes nothing. Providers:
 `equipmentSharesProvider(equipmentId)` and a `diverNamesByIdProvider` for
 chips, both invalidated on share-table changes. The equipment list providers
 also invalidate on share-table changes.
@@ -291,7 +326,10 @@ runs in one transaction:
    `transmitters` row whose `equipmentId` or `transmitterEquipmentId` is in
    the unit. Declined, they stay and keep working, because gear reads by id
    ignore the owner.
-5. Marks every changed row pending after the transaction's batch work.
+5. Writes one `transferred` event per row of the unit (from the old owner,
+   to the new one). The share fix-up in step 3 writes no `shared` or
+   `unshared` events: the transfer event already explains it.
+6. Marks every changed row pending after the transaction's batch work.
 
 `EquipmentRepository.updateEquipment` still never writes `diverId`; the service
 is the only writer of ownership.
@@ -344,7 +382,9 @@ diver's **kept items**: owned items that have a share row, or that appear in
 handed to `EquipmentTransferService` with `keepAccess: false`, to the earliest
 sharee by `created_at`, or without a sharee to the diver of the most recent
 such dive. Everything else is deleted as today. The deleted diver's own share
-rows go with the `divers` cascade, and each logs a tombstone.
+rows go with the `divers` cascade, and each logs a tombstone. Those removals
+write no `unshared` events; the earlier `shared` events stay, with their
+sharee nulled to "a deleted profile".
 
 **Merge.** `DiverMergeRepository` repoints every table with a `diver_id`
 column, so it will pick up `equipment_shares` and can create a share to the
@@ -352,6 +392,8 @@ item's own owner or a duplicate pair (a unique-index failure). The merge
 handles `equipment_shares` explicitly: delete the duplicate's share rows that
 would collide with the survivor's, repoint the rest, then delete rows where the
 share's diver equals the item's owner. Each removed row logs a tombstone.
+Ownership events are repointed like any `diver_id` column: both
+`from_diver_id` and `to_diver_id` move from the duplicate to the survivor.
 
 ### Unsharing
 
@@ -362,12 +404,50 @@ sets, where the set detail and edit pages already tolerate items the scoped
 provider does not return; those rows show "No longer shared", and applying the
 set skips them.
 
+### Equipment history
+
+The item detail page gains a "History" section, shown only when two or more
+diver profiles exist. It merges two sources into one list, newest first:
+
+**Usage runs (derived, no schema).** A new
+`EquipmentRepository.getUsageByDiver(equipmentId)` returns the item's dives
+with each dive's `diver_id` and date. It uses the same dive set as
+`getExposureSamplesForEquipment`, the query the service clocks run on: gear
+links, cylinder and regulator slots, rebreather gases, transmitter serials,
+and dives of the host an item is installed in from its install date. Like the
+clocks, it does not apply `DiveStatsScope`. A pure function
+`buildEquipmentUsageRuns` in `lib/features/equipment/domain/` folds the dives,
+in date order, into runs: consecutive dives by the same diver form one run
+(diver, first date, last date, dive count). Bill, then Mitchell, then Bill
+again is three runs. Dates use the active diver's date format. The active
+diver's own runs open their dive list filtered to this item; other divers'
+runs are not tappable, because the dive list shows only the active profile's
+dives.
+
+**Ownership events.** `equipment_ownership_events` rows show as "Transferred
+to Mitchell", "Shared with Anna" and "No longer shared with Anna", each with
+its date. A null diver id reads "a deleted profile".
+
+**Original owner.** No event is written for creation. If the item has a
+`transferred` event, the earliest one's from diver is the original owner,
+from the item's `created_at`. Otherwise the current owner has held it since
+`created_at`. That is the oldest, so last, entry of the list.
+
+**Dives count.** The detail page's Dives row today counts every diver's
+`dive_equipment` links (`getDiveCountForEquipment`), but tapping it opens the
+active diver's dive list, so a shared item would show "40" and list 12. The
+row counts only the active diver's dives, with the link set the dive filter
+uses (`dive_equipment`, or `dive_tanks.equipment_id` for a cylinder); other
+divers' dives appear in History. The link set also fixes an existing
+mismatch: today a cylinder attached only through a tank slot counts fewer
+dives than tapping the row lists.
+
 ### Exports
 
 `allEquipmentProvider` now returns visible items, so the full UDDF export
 declares every item its dives reference and re-import no longer drops gear.
 The equipment CSV and the check-ins export include shared items. Share rows
-are not exported; an import stamps every item with the importing diver, as
+and ownership events are not exported; an import stamps every item with the importing diver, as
 today.
 
 ## Error handling
@@ -385,8 +465,8 @@ today.
 
 Tests are written first.
 
-- **Migration:** `migration_v219_equipment_shares_test.dart` (fresh create,
-  upgrade from 218, idempotent re-run, indexes present); the v218 test relaxes
+- **Migration:** `migration_vN_equipment_shares_test.dart` (fresh create,
+  upgrade from N-1, idempotent re-run, indexes present); the vN-1 test relaxes
   its version assertion to `greaterThanOrEqualTo`.
 - **Sync census:** `sync_parent_refs_completeness_test`,
   `sync_data_serializer_batch_coverage_test`,
@@ -414,6 +494,14 @@ Tests are written first.
   each new `lib/` file.
 - **Detector:** overlap inside and outside the tolerance, missing times,
   same-diver pairs ignored, each repair.
+- **History:** the run builder folds dives into per-diver runs (A, B, A gives
+  three runs; input fed out of date order); the usage query returns the same
+  dive set as the exposure samples, with each dive's diver; share, unshare
+  and transfer each write the right event in their transaction, and a
+  rolled-back transfer leaves none; a deleted profile's events survive with
+  null diver ids; the original owner is derived with and without a transfer
+  event; the Dives row counts only the active diver's dives; the History
+  section is hidden with one profile.
 - New strings are translated in all 11 locales.
 
 ## Delivery
@@ -422,11 +510,14 @@ Four pull requests, each based on `main` (a PR based on a branch gets no CI):
 
 1. **Identity labels.** Universal identifier, the row label builder and its
    consumers, the picker's brand and model. No schema change. `Refs #1549`.
-2. **Sharing.** v219, sync wiring, the visibility filter, the two explicit
+2. **Sharing.** vN (`equipment_shares` and `equipment_ownership_events`),
+   share events, the usage timeline and History section, the Dives count
+   fix, sync wiring, the visibility filter, the two explicit
    owner checks, gear `diverId` hydration, owner chips, picker sections, the
    sharing UI, service kind name resolution, exports. `Closes #2046`,
    `Refs #1549`.
-3. **Transfer and safe deletion.** `EquipmentTransferService`, the transfer
-   UI, diver delete and merge handling. `Closes #1549`.
+3. **Transfer and safe deletion.** `EquipmentTransferService` and its
+   `transferred` events, transfer rows in History, the transfer UI, diver
+   delete and merge handling. `Closes #1549`.
 4. **Overlap.** The inline warning and `SharedGearOverlapDetector`.
    `Refs #2046`.

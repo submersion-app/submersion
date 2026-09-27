@@ -32,6 +32,8 @@ void main() {
     'liveaboard_detail_records': 'liveaboardDetails',
     'trip_itinerary_days': 'itineraryDays',
     'trip_day_weather': 'tripDayWeather',
+    'trip_cylinders': 'tripCylinders',
+    'trip_cylinder_events': 'tripCylinderEvents',
     'checklist_templates': 'checklistTemplates',
     'checklist_template_items': 'checklistTemplateItems',
     'trip_checklist_items': 'tripChecklistItems',
@@ -48,6 +50,7 @@ void main() {
     'weight_preset_entries': 'weightPresetEntries',
     'transmitters': 'transmitters',
     'cylinder_fills': 'cylinderFills',
+    'saved_queries': 'savedQueries',
     'dive_computers': 'diveComputers',
     'species': 'species',
     'tags': 'tags',
@@ -87,6 +90,7 @@ void main() {
     'service_kinds': 'serviceKinds',
     'service_schedules': 'serviceSchedules',
     'gps_tracks': 'gpsTracks',
+    'nav_tracks': 'navTracks',
     'diver_weight_entries': 'diverWeightEntries',
     'dive_roles': 'diveRoles',
     'equipment_attributes': 'equipmentAttributes',
@@ -98,6 +102,8 @@ void main() {
     'site_site_types': 'siteSiteTypes',
     'site_tags': 'siteTags',
     'equipment_tags': 'equipmentTags',
+    'equipment_shares': 'equipmentShares',
+    'equipment_ownership_events': 'equipmentOwnershipEvents',
     'dive_safety_reviews': 'diveSafetyReviews',
     'dive_safety_findings': 'diveSafetyFindings',
     'dive_plans': 'divePlans',
@@ -123,6 +129,7 @@ void main() {
     'dives': 'dives',
     'dive_sites': 'diveSites',
     'trips': 'trips',
+    'trip_cylinders': 'tripCylinders',
     'courses': 'courses',
     'equipment': 'equipment',
     'equipment_sets': 'equipmentSets',
@@ -242,5 +249,20 @@ void main() {
           'These merge-applied entities are missing from syncedTables, so '
           'their FK guards are unverified:\n${missing.join('\n')}',
     );
+  });
+
+  test('alsoClearedWithParent only names declared set-null references', () {
+    // A key that matches no nullable parentRefs entry would never be read,
+    // silently leaving its fields set after the parent is tombstoned.
+    for (final entity in SyncService.alsoClearedWithParent.entries) {
+      final refs = SyncService.parentRefs[entity.key] ?? const [];
+      for (final field in entity.value.keys) {
+        expect(
+          refs.any((r) => r.field == field && r.nullable),
+          isTrue,
+          reason: '${entity.key}.$field is not a nullable parentRefs entry',
+        );
+      }
+    }
   });
 }

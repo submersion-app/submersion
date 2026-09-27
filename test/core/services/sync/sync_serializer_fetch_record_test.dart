@@ -115,6 +115,8 @@ void main() {
       'siteSiteTypes',
       'siteTags',
       'equipmentTags',
+      'equipmentShares',
+      'equipmentOwnershipEvents',
       'tankPresets',
       'diveComputers',
       'tankPressureProfiles',

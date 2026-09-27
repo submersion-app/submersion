@@ -38,6 +38,7 @@ dependencies:
   # encrypted databases; the codec only engages when PRAGMA key is set.
   path_provider: ^2.1.5
   path: ^1.9.0
+  path_parsing: ^1.1.0  # SVG path data for the diver figure artwork
   # `@immutable` for the pure-Dart query package (lib/core/query), which
   # must not import Flutter.
   meta: ^1.16.0
@@ -62,6 +63,9 @@ dependencies:
 
   # Networking
   http: ^1.2.2
+  # HTTP-date parsing for Retry-After (all three RFC 7231 forms, pure Dart,
+  # so it stays usable on web). Already locked as a dependency of http.
+  http_parser: ^4.1.2
   # Network-type detection for media store transfer policies (Wi-Fi vs
   # cellular vs offline).
   connectivity_plus: ^7.3.1
@@ -149,6 +153,8 @@ dependencies:
   flutter_local_notifications: ^22.0.1
   workmanager: ^0.10.7
   timezone: ^0.11.0
+  # Offline zone lookup for dive sites, when an imported dive carries no zone.
+  lat_lng_to_timezone: ^0.2.0
   google_fonts: ^8.0.2
   linked_scroll_controller: ^0.2.0
   cryptography: ^2.9.0
@@ -159,6 +165,11 @@ dependencies:
   # Keeps the screen awake while a blocking sync-maintenance dialog is up: a
   # phone that locks mid-wipe suspends the work behind it (issue #1194).
   wakelock_plus: ^1.7.0
+  # Camera QR scanning of cylinder passport labels (issue #2335).
+  mobile_scanner: ^7.4.2
+  # Incoming passport links (https://submersion.app/c and submersion://c).
+  # Flutter's own deep linking is off because it drops the custom-scheme host.
+  app_links: ^7.2.1
 
 dev_dependencies:
   flutter_test:

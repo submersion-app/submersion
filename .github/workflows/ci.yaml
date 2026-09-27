@@ -177,6 +177,14 @@ jobs:
           restore-keys: |
             build-runner-${{ runner.os }}-${{ steps.flutter-ver.outputs.version }}-${{ hashFiles('pubspec.lock', 'build.yaml') }}-
 
+      # A cold build peaks at about 3.5 GB on this 16 GB runner and uses no
+      # swap. It used to reach 15 GB and be killed with exit 143 (#2498),
+      # because drift_dev resolves the whole library that declares a column
+      # once per column, and every table sat in database.dart beside the
+      # migrations. They now live in small libraries of their own (#2502),
+      # and test/core/database/database_table_libraries_test.dart keeps them
+      # there. If this step is killed again, look first at what has been
+      # added to lib/core/database/database.dart or to a table library.
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs
 

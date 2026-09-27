@@ -47,7 +47,10 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
     // loading the map is empty and rows fall back to the service type, which
     // is the right transient state: the history is already useful without the
     // task names, so blocking it behind a spinner would be worse.
+    // Every kind, so a shared item's record on its owner's custom kind keeps
+    // its name (issue #2046).
     final kindsById = {
+      ...?ref.watch(allServiceKindsByIdProvider).value,
       for (final kind
           in ref.watch(serviceKindsProvider).valueOrNull ??
               const <ServiceKind>[])
@@ -290,8 +293,7 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
     // either provider, so a plain read returns AsyncLoading and the workbook
     // would carry a blank equipment name and task column.
     final item = await ref.read(equipmentItemProvider(equipmentId).future);
-    final kinds = await ref.read(serviceKindsProvider.future);
-    final kindsById = {for (final k in kinds) k.id: k};
+    final kindsById = await ref.read(allServiceKindsByIdProvider.future);
     final dateFormat = ref.read(settingsProvider).dateFormat;
 
     final rows = <MaintenanceLogRow>[

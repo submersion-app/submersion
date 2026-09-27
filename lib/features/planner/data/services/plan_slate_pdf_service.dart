@@ -2,6 +2,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -29,6 +30,12 @@ class PlanSlateLabels {
   final String minGas;
   final String base;
 
+  /// A duration in whole minutes, such as "12 min" (#2252).
+  final String Function(String minutes) minutes;
+
+  /// The short "max" in front of the plan's deepest point in the header.
+  final String maxPrefix;
+
   const PlanSlateLabels({
     required this.runtimeTable,
     required this.gasPlan,
@@ -43,6 +50,8 @@ class PlanSlateLabels {
     required this.turnAt,
     required this.minGas,
     required this.base,
+    required this.minutes,
+    required this.maxPrefix,
   });
 }
 
@@ -52,21 +61,26 @@ class PlanSlateLabels {
 /// Top-level so tests can assert the rendered string directly. The slate
 /// embeds a TrueType font, so its glyph-indexed text cannot be read back out
 /// of the saved PDF the way the Helvetica-based logbook templates can.
+///
+/// GF, RT and CNS stay as they are in every language: they are the
+/// abbreviations printed on dive computers and deco tables.
 String planSlateHeaderLine(
   domain.DivePlan plan,
   PlanOutcome outcome,
   UnitFormatter units,
+  PlanSlateLabels labels,
 ) =>
     // The date follows the diver's DateFormatPreference: a slate is printed
     // and read at the dive site, not parsed by another program (#964).
     '${units.formatDate(plan.updatedAt)}   ${plan.mode.name.toUpperCase()}   '
     'GF ${plan.gfLow}/${plan.gfHigh}   '
-    'max ${units.formatDepth(outcome.maxDepth)}   '
-    'RT ${planSlateMinutes(outcome.runtimeSeconds)}   '
+    '${labels.maxPrefix} ${units.formatDepth(outcome.maxDepth)}   '
+    'RT ${planSlateMinutes(outcome.runtimeSeconds, labels)}   '
     'CNS ${outcome.cnsEnd.toStringAsFixed(0)}%';
 
 /// Whole minutes, rounded up, as the slate prints durations.
-String planSlateMinutes(int seconds) => '${(seconds / 60).ceil()} min';
+String planSlateMinutes(int seconds, PlanSlateLabels labels) =>
+    labels.minutes('${(seconds / 60).ceil()}');
 
 /// Renders a plan as a high-contrast printable dive slate: runtime table,
 /// gas plan, contingency tables, bailout summary, and range table. Pure
@@ -83,16 +97,21 @@ class PlanSlatePdfService {
     required BailoutOutcome? bailout,
     required UnitFormatter units,
     required PlanSlateLabels labels,
+    PdfLocalization? localization,
   }) async {
+    // [labels] arrive localized; [localization] picks the fonts and text
+    // direction for that language (#2252). Null is English.
+    final loc = localization ?? PdfLocalization.english();
     await PdfFonts.instance.initialize();
-    final pdf = pw.Document(theme: PdfFonts.instance.theme);
+    final pdf = pw.Document(theme: await PdfFonts.instance.themeFor(loc));
 
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(28),
+        textDirection: loc.textDirection,
         build: (context) => [
-          _header(plan, outcome, units),
+          _header(plan, outcome, units, labels),
           pw.SizedBox(height: 10),
           _sectionTitle(labels.runtimeTable),
           _runtimeTable(outcome, units, labels),
@@ -102,13 +121,13 @@ class PlanSlatePdfService {
           if (bailout != null) ...[
             pw.SizedBox(height: 10),
             _sectionTitle(labels.bailout),
-            _bailoutSummary(bailout, units),
+            _bailoutSummary(bailout, units, labels),
           ],
           if (deviations.isNotEmpty || lostGas.isNotEmpty) ...[
             pw.SizedBox(height: 10),
             _sectionTitle(labels.contingencies),
             for (final deviation in deviations) ...[
-              _subTitle(_deviationLabel(deviation, plan, units)),
+              _subTitle(_deviationLabel(deviation, plan, units, labels)),
               _runtimeTable(deviation.outcome, units, labels),
               pw.SizedBox(height: 6),
             ],
@@ -134,10 +153,11 @@ class PlanSlatePdfService {
     DeviationOutcome deviation,
     domain.DivePlan plan,
     UnitFormatter units,
+    PlanSlateLabels labels,
   ) {
     final depth =
         '+${units.formatDepth(plan.deviationDepthDelta, decimals: 0)}';
-    final time = '+${plan.deviationTimeMinutes} min';
+    final time = '+${labels.minutes('${plan.deviationTimeMinutes}')}';
     return switch (deviation.key) {
       'deeper' => depth,
       'longer' => time,
@@ -149,6 +169,7 @@ class PlanSlatePdfService {
     domain.DivePlan plan,
     PlanOutcome outcome,
     UnitFormatter units,
+    PlanSlateLabels labels,
   ) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -162,7 +183,7 @@ class PlanSlatePdfService {
         ),
         pw.SizedBox(height: 2),
         pw.Text(
-          planSlateHeaderLine(plan, outcome, units),
+          planSlateHeaderLine(plan, outcome, units, labels),
           style: const pw.TextStyle(fontSize: 10),
         ),
         pw.Divider(thickness: 1.2),
@@ -308,10 +329,14 @@ class PlanSlatePdfService {
     );
   }
 
-  pw.Widget _bailoutSummary(BailoutOutcome bailout, UnitFormatter units) {
+  pw.Widget _bailoutSummary(
+    BailoutOutcome bailout,
+    UnitFormatter units,
+    PlanSlateLabels labels,
+  ) {
     final worst = bailout.worstCase;
     return pw.Text(
-      'TTS ${planSlateMinutes(worst.ttsSeconds)} @ ${units.formatDepth(worst.depthMeters)} '
+      'TTS ${planSlateMinutes(worst.ttsSeconds, labels)} @ ${units.formatDepth(worst.depthMeters)} '
       '(${units.formatVolume(worst.litersRequired)} / '
       '${units.formatVolume(bailout.availableLiters)})',
       style: const pw.TextStyle(fontSize: 10),
@@ -339,8 +364,9 @@ class PlanSlatePdfService {
     String depthLabel(double delta) => delta == 0
         ? labels.base
         : '${delta > 0 ? '+' : '-'}${units.formatDepth(delta.abs(), decimals: 0)}';
-    String timeLabel(int delta) =>
-        delta == 0 ? labels.base : '${delta > 0 ? '+' : '-'}${delta.abs()} min';
+    String timeLabel(int delta) => delta == 0
+        ? labels.base
+        : '${delta > 0 ? '+' : '-'}${labels.minutes('${delta.abs()}')}';
 
     return pw.Table(
       border: pw.TableBorder.all(width: 0.4),

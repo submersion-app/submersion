@@ -266,6 +266,38 @@ void main() {
       });
     });
 
+    test('the Shearwater brand is not read as shears (#2299)', () {
+      // "shear" sits inside the brand name, so a substring rule filed every
+      // Shearwater computer and transmitter under knife.
+      const brandNamed = {
+        'Shearwater Teric': EquipmentType.other,
+        'Shearwater Perdix 2': EquipmentType.other,
+        'Shearwater Petrel computer': EquipmentType.computer,
+        'Shearwater Swift transmitter': EquipmentType.transmitter,
+      };
+      brandNamed.forEach((input, expected) {
+        expect(
+          MacDiveValueMapper.equipmentType(input),
+          expected,
+          reason: input,
+        );
+      });
+      // The tool itself still reads as one, brand or no brand.
+      const cutters = {
+        'Shears': EquipmentType.knife,
+        'Trauma shear': EquipmentType.knife,
+        'EMT Shears': EquipmentType.knife,
+        'Shearwater shears': EquipmentType.knife,
+      };
+      cutters.forEach((input, expected) {
+        expect(
+          MacDiveValueMapper.equipmentType(input),
+          expected,
+          reason: input,
+        );
+      });
+    });
+
     test('an accessory word outranks "lycra" (#1518)', () {
       // Same trap main hit twice with "thermal": a fabric word sitting above
       // the accessory checks steals real product names. Lycra hoods and

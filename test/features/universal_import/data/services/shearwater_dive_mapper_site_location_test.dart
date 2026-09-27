@@ -69,6 +69,92 @@ void main() {
     });
   });
 
+  group('an empty site name is no name', () {
+    for (final blank in ['', '   ']) {
+      test('"$blank" with no fix produces no site', () {
+        final raw = rawDive(site: blank);
+
+        expect(ShearwaterDiveMapper.mapSites([raw]), isEmpty);
+        final dive = ShearwaterDiveMapper.mapDiveMetadata(raw);
+        expect(dive['site'], isNull);
+        expect(dive['siteName'], isNull);
+      });
+
+      test('"$blank" with a fix is named from the fix', () {
+        final raw = rawDive(
+          site: blank,
+          gnssEntryLocation: '20.2114, -87.4654',
+        );
+        final sites = ShearwaterDiveMapper.mapSites([raw]);
+        final dive = ShearwaterDiveMapper.mapDiveMetadata(raw);
+
+        expect(sites.single['name'], '20.211400, -87.465400');
+        expect(
+          (dive['site'] as Map<String, dynamic>)['uddfId'],
+          sites.single['uddfId'],
+        );
+      });
+    }
+  });
+
+  group('a named site only carries a usable fix', () {
+    test('the 0,0 sentinel is not written onto the site', () {
+      final sites = ShearwaterDiveMapper.mapSites([
+        rawDive(site: 'Maclearie Park', gnssEntryLocation: '0, 0'),
+      ]);
+
+      expect(sites.single['name'], 'Maclearie Park');
+      expect(sites.single.containsKey('latitude'), isFalse);
+      expect(sites.single.containsKey('longitude'), isFalse);
+    });
+
+    test('a later dive\'s usable fix fills a site the first dive left '
+        'without one', () {
+      final sites = ShearwaterDiveMapper.mapSites([
+        rawDive(
+          diveId: 'd1',
+          site: 'Maclearie Park',
+          gnssEntryLocation: '0, 0',
+        ),
+        rawDive(
+          diveId: 'd2',
+          site: 'Maclearie Park',
+          gnssEntryLocation: '40.1900, -74.0300',
+        ),
+      ]);
+
+      expect(sites, hasLength(1));
+      expect(sites.single['latitude'], 40.19);
+      expect(sites.single['longitude'], -74.03);
+    });
+
+    test('a later dive does not move a site that already has a fix', () {
+      final sites = ShearwaterDiveMapper.mapSites([
+        rawDive(
+          diveId: 'd1',
+          site: 'Maclearie Park',
+          gnssEntryLocation: '40.1900, -74.0300',
+        ),
+        rawDive(
+          diveId: 'd2',
+          site: 'Maclearie Park',
+          gnssEntryLocation: '40.2500, -74.1000',
+        ),
+      ]);
+
+      expect(sites.single['latitude'], 40.19);
+      expect(sites.single['longitude'], -74.03);
+    });
+
+    test('an off-globe pair is not written onto the site', () {
+      final sites = ShearwaterDiveMapper.mapSites([
+        rawDive(site: 'Maclearie Park', gnssEntryLocation: '91.5, -74.03'),
+      ]);
+
+      expect(sites.single.containsKey('latitude'), isFalse);
+    });
+  });
+
   group('the dive keeps its own fix', () {
     test('entry GNSS becomes the dive\'s entry coordinates', () {
       final dive = ShearwaterDiveMapper.mapDiveMetadata(

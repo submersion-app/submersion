@@ -55,6 +55,7 @@ class _FakeGarminClient extends GarminConnectClient {
     this.dives = const [],
     this.fitBytesByActivityId = const {},
     this.failActivityIds = const {},
+    this.noFitActivityIds = const {},
   });
 
   final bool mfaRequired;
@@ -66,6 +67,9 @@ class _FakeGarminClient extends GarminConnectClient {
   final List<GarminActivitySummary> dives;
   final Map<int, Uint8List> fitBytesByActivityId;
   final Set<int> failActivityIds;
+
+  /// Activities Garmin has no FIT file for, as for one entered by hand.
+  final Set<int> noFitActivityIds;
 
   GarminOAuth1Token? _token;
   String? loggedInEmail;
@@ -162,6 +166,9 @@ class _FakeGarminClient extends GarminConnectClient {
     fetchedActivityIds.add(activityId);
     if (failActivityIds.contains(activityId)) {
       throw const GarminApiException('fetch blew up');
+    }
+    if (noFitActivityIds.contains(activityId)) {
+      throw const GarminNoFitException('no FIT', statusCode: 404);
     }
     return fitBytesByActivityId[activityId] ?? Uint8List(0);
   }
@@ -273,6 +280,39 @@ class _ControllableClient extends _FakeGarminClient {
 
   void complete(int activityId, Uint8List bytes) {
     _pending[activityId]!.complete(bytes);
+  }
+
+  /// Downloads started but not yet completed, in start order.
+  List<int> get pendingIds => [
+    for (final entry in _pending.entries)
+      if (!entry.value.isCompleted) entry.key,
+  ];
+}
+
+/// Fails [flakyId]'s first download, then holds its retry open until
+/// [releaseRetry], so a test can look at the step mid-retry.
+class _HeldRetryClient extends _FakeGarminClient {
+  _HeldRetryClient({
+    required super.dives,
+    required this.fitBytes,
+    required this.flakyId,
+  });
+
+  final Uint8List fitBytes;
+  final int flakyId;
+  final _retryGate = Completer<void>();
+  int _flakyAttempts = 0;
+
+  void releaseRetry() => _retryGate.complete();
+
+  @override
+  Future<Uint8List> downloadActivityFit(int activityId) async {
+    fetchedActivityIds.add(activityId);
+    if (activityId == flakyId && _flakyAttempts++ == 0) {
+      throw const GarminApiException('rate limited');
+    }
+    if (activityId == flakyId) await _retryGate.future;
+    return fitBytes;
   }
 }
 
@@ -1098,6 +1138,114 @@ void main() {
       expect(find.text('Found 1 dive'), findsOneWidget);
     });
 
+    // Issue #2410: a dive Connect cannot export as FIT is imported from its
+    // summary instead of being skipped.
+    group('dives with no FIT file', () {
+      Future<List<GarminParsedDive>?> fetchWith(
+        WidgetTester tester,
+        _FakeGarminClient client,
+      ) async {
+        List<GarminParsedDive>? fetched;
+        await tester.pumpWidget(
+          _host(
+            store: _FakeSessionStore(),
+            clientFactory: _FakeGarminClient.new,
+            child: GarminCloudFetchStep(
+              client: client,
+              onDivesFetched: (dives) => fetched = dives,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        return fetched;
+      }
+
+      testWidgets('imports one Garmin has no FIT for from its summary', (
+        tester,
+      ) async {
+        final client = _FakeGarminClient(
+          dives: [
+            _activity(1),
+            GarminActivitySummary(
+              activityId: 2,
+              startTime: DateTime.utc(2026, 5, 1, 10),
+              activityType: 'single_gas_diving',
+              maxDepth: 14,
+              durationSeconds: 1800,
+            ),
+          ],
+          fitBytesByActivityId: {1: fitBytes},
+          noFitActivityIds: {2},
+        );
+
+        final fetched = await fetchWith(tester, client);
+
+        expect(fetched, hasLength(2));
+        final fromSummary = fetched!.singleWhere((d) => d.profileMissing);
+        expect(fromSummary.dive.maxDepth, 14);
+        expect(fromSummary.dive.durationSeconds, 1800);
+        expect(find.textContaining('skipped'), findsNothing);
+      });
+
+      testWidgets('does not download an activity entered by hand', (
+        tester,
+      ) async {
+        final client = _FakeGarminClient(
+          dives: [
+            GarminActivitySummary(
+              activityId: 3,
+              startTime: DateTime.utc(2026, 5, 1, 10),
+              activityType: 'single_gas_diving',
+              isManual: true,
+            ),
+          ],
+        );
+
+        final fetched = await fetchWith(tester, client);
+
+        expect(client.fetchedActivityIds, isEmpty);
+        expect(fetched!.single.profileMissing, isTrue);
+      });
+
+      testWidgets('still skips a dive whose download merely failed', (
+        tester,
+      ) async {
+        final client = _FakeGarminClient(
+          dives: [_activity(1)],
+          failActivityIds: {1},
+        );
+
+        final fetched = await fetchWith(tester, client);
+
+        // A transient failure must stay retryable rather than turning into
+        // a profile-less dive.
+        expect(fetched ?? const [], isEmpty);
+      });
+
+      testWidgets('carries the Connect notes and weight onto a FIT dive', (
+        tester,
+      ) async {
+        final client = _FakeGarminClient(
+          dives: [
+            GarminActivitySummary(
+              activityId: 1,
+              startTime: DateTime.utc(2026, 5, 1, 10),
+              activityType: 'single_gas_diving',
+              notes: 'Drift along the wall',
+              weightKg: 4.5,
+            ),
+          ],
+          fitBytesByActivityId: {1: fitBytes},
+        );
+
+        final fetched = await fetchWith(tester, client);
+
+        expect(fetched!.single.notes, 'Drift along the wall');
+        expect(fetched.single.weightKg, 4.5);
+        expect(fetched.single.profileMissing, isFalse);
+      });
+    });
+
     testWidgets('downloads every dive in a page concurrently', (tester) async {
       final client = _ControllableClient(dives: [_activity(1), _activity(2)]);
 
@@ -1121,6 +1269,169 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Found 2 dives'), findsOneWidget);
+    });
+
+    testWidgets('caps how many downloads run at once', (tester) async {
+      final client = _ControllableClient(
+        dives: [for (var id = 1; id <= 5; id++) _activity(id)],
+      );
+
+      await tester.pumpWidget(
+        _host(
+          store: _FakeSessionStore(),
+          clientFactory: _FakeGarminClient.new,
+          child: GarminCloudFetchStep(client: client, onDivesFetched: (_) {}),
+        ),
+      );
+      await tester.pump();
+
+      // A whole page fired at once is what drew Garmin's rate limiting
+      // (#1635), so only the first few are in flight.
+      expect(
+        client.fetchedActivityIds,
+        hasLength(GarminCloudFetchStep.maxConcurrentDownloads),
+      );
+
+      // Finishing one frees a slot for the next dive in the page.
+      client.complete(client.fetchedActivityIds.first, fitBytes);
+      await tester.pump();
+      expect(
+        client.fetchedActivityIds,
+        hasLength(GarminCloudFetchStep.maxConcurrentDownloads + 1),
+      );
+
+      // Drain the rest; each completion lets a queued dive start.
+      while (client.pendingIds.isNotEmpty) {
+        client.complete(client.pendingIds.first, fitBytes);
+        await tester.pump();
+      }
+      await tester.pumpAndSettle();
+
+      expect(client.fetchedActivityIds, unorderedEquals([1, 2, 3, 4, 5]));
+      expect(find.text('Found 5 dives'), findsOneWidget);
+    });
+
+    testWidgets('Try Again re-downloads only the dives that failed', (
+      tester,
+    ) async {
+      final failing = {2};
+      final client = _FakeGarminClient(
+        dives: [_activity(1), _activity(2)],
+        fitBytesByActivityId: {1: fitBytes, 2: fitBytes},
+        failActivityIds: failing,
+      );
+      List<GarminParsedDive>? fetched;
+
+      await tester.pumpWidget(
+        _host(
+          store: _FakeSessionStore(),
+          clientFactory: _FakeGarminClient.new,
+          child: GarminCloudFetchStep(
+            client: client,
+            onDivesFetched: (dives) => fetched = dives,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(fetched, hasLength(1));
+      expect(
+        find.text('1 dive could not be converted and was skipped.'),
+        findsOneWidget,
+      );
+
+      // Whatever made dive 2 fail has passed.
+      failing.clear();
+      client.fetchedActivityIds.clear();
+      await tester.tap(find.widgetWithText(TextButton, 'Try Again'));
+      await tester.pumpAndSettle();
+
+      expect(client.fetchedActivityIds, [2]);
+      expect(fetched, hasLength(2));
+      expect(find.text('Found 2 dives'), findsOneWidget);
+      expect(
+        find.text('1 dive could not be converted and was skipped.'),
+        findsNothing,
+      );
+      expect(find.widgetWithText(TextButton, 'Try Again'), findsNothing);
+    });
+
+    testWidgets('keeps the skipped notice on screen while its retry runs', (
+      tester,
+    ) async {
+      final client = _HeldRetryClient(
+        dives: [_activity(1), _activity(2)],
+        fitBytes: fitBytes,
+        flakyId: 2,
+      );
+
+      await tester.pumpWidget(
+        _host(
+          store: _FakeSessionStore(),
+          clientFactory: _FakeGarminClient.new,
+          child: GarminCloudFetchStep(client: client, onDivesFetched: (_) {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'Try Again'));
+      await tester.pump();
+
+      // The retry is in flight: the notice stays up with its spinner, and
+      // paging is visibly unavailable rather than silently inert.
+      expect(
+        find.text('1 dive could not be converted and was skipped.'),
+        findsOneWidget,
+      );
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      for (final label in ['Load More', 'Fetch All']) {
+        final button = tester.widget<ButtonStyleButton>(
+          find.ancestor(
+            of: find.text(label),
+            matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+          ),
+        );
+        expect(button.onPressed, isNull, reason: label);
+      }
+
+      client.releaseRetry();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Found 2 dives'), findsOneWidget);
+      expect(
+        find.text('1 dive could not be converted and was skipped.'),
+        findsNothing,
+      );
+    });
+
+    testWidgets('a dive that fails again stays skipped and retryable', (
+      tester,
+    ) async {
+      final client = _FakeGarminClient(
+        dives: [_activity(1), _activity(2)],
+        fitBytesByActivityId: {1: fitBytes, 2: fitBytes},
+        failActivityIds: {2},
+      );
+
+      await tester.pumpWidget(
+        _host(
+          store: _FakeSessionStore(),
+          clientFactory: _FakeGarminClient.new,
+          child: GarminCloudFetchStep(client: client, onDivesFetched: (_) {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'Try Again'));
+      await tester.pumpAndSettle();
+
+      expect(client.fetchedActivityIds, [1, 2, 2]);
+      expect(find.text('Found 1 dive'), findsOneWidget);
+      expect(
+        find.text('1 dive could not be converted and was skipped.'),
+        findsOneWidget,
+      );
+      expect(find.widgetWithText(TextButton, 'Try Again'), findsOneWidget);
     });
 
     testWidgets(

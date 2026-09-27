@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/query/presentation/widgets/saved_query_chip_row.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/number_input.dart';
@@ -29,6 +31,8 @@ import 'package:submersion/features/marine_life/presentation/species_display.dar
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Filter sheet for dive list
 class DiveFilterSheet extends ConsumerStatefulWidget {
@@ -207,10 +211,17 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
     return formatDecimalForInput(value);
   }
 
-  /// Parse a user-entered thickness bound in the diver's locale. Empty or
-  /// invalid input clears the bound. A blanket replaceAll(',', '.') would
-  /// misread the en_US thousands separator, turning "1,250" into 1.25 (#1091).
-  double? _parseThicknessBound(String value) => parseUserDecimal(value);
+  /// Parse a user-entered thickness bound in the diver's locale. Empty input
+  /// clears the bound; unreadable input keeps [previous] while the field
+  /// shows its error, rather than silently dropping the bound (#1900). A
+  /// blanket replaceAll(',', '.') would misread the en_US thousands
+  /// separator, turning "1,250" into 1.25 (#1091).
+  double? _parseThicknessBound(String value, double? previous) =>
+      switch (readNumber(value)) {
+        NumberValue(:final value) => value,
+        NumberBlank() => null,
+        NumberInvalid() => previous,
+      };
 
   /// The selected computer, or null when [computers] no longer contains it.
   String? _computerIdWithin(List<DiveComputer> computers) =>
@@ -281,6 +292,23 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                     controller: scrollController,
                     padding: const EdgeInsets.all(16),
                     children: [
+                      // Saved queries apply at once: the sheet's own axes
+                      // are untouched, the advanced part is replaced
+                      // (#2365).
+                      SavedQueryChipRow(
+                        subject: QuerySubject.dives,
+                        onApply: (load) {
+                          final current = widget.ref.read(
+                            widget.filterProvider,
+                          );
+                          widget.ref
+                              .read(widget.filterProvider.notifier)
+                              .state = current.copyWith(
+                            query: load.node,
+                          );
+                          Navigator.of(context).pop();
+                        },
+                      ),
                       // Link to advanced search
                       Align(
                         alignment: AlignmentDirectional.centerStart,
@@ -309,6 +337,24 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                           },
                           icon: const Icon(Icons.manage_search, size: 18),
                           label: Text(context.l10n.diveLog_search_appBar),
+                        ),
+                      ),
+                      // The query editor lives on the search page; this
+                      // opens it on that section (#2365). Same push-not-go
+                      // reasoning as the link above.
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: TextButton.icon(
+                          onPressed: () {
+                            final router = GoRouter.of(context);
+                            Navigator.of(context).pop();
+                            router.push(
+                              '/dives/search?section=query',
+                              extra: widget.filterProvider,
+                            );
+                          },
+                          icon: const Icon(Icons.code, size: 18),
+                          label: Text(context.l10n.diveLog_filter_queryRow),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -667,37 +713,37 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                       Row(
                         children: [
                           Expanded(
-                            child: TextField(
+                            child: NumberField(
                               controller: _minDepthController,
                               decoration: InputDecoration(
                                 labelText: context.l10n.diveLog_filter_min,
                                 prefixIcon: const Icon(Icons.arrow_downward),
                                 suffixText: units.depthSymbol,
                               ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                final entered = parseUserDecimal(value);
-                                _minDepth = entered == null
-                                    ? null
-                                    : units.depthToMeters(entered);
+                              onChanged: (read) => _minDepth = switch (read) {
+                                NumberValue(:final value) =>
+                                  units.depthToMeters(value),
+                                NumberBlank() => null,
+                                // Keep the bound; the field shows the error.
+                                NumberInvalid() => _minDepth,
                               },
                             ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: TextField(
+                            child: NumberField(
                               controller: _maxDepthController,
                               decoration: InputDecoration(
                                 labelText: context.l10n.diveLog_filter_max,
                                 prefixIcon: const Icon(Icons.arrow_downward),
                                 suffixText: units.depthSymbol,
                               ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                final entered = parseUserDecimal(value);
-                                _maxDepth = entered == null
-                                    ? null
-                                    : units.depthToMeters(entered);
+                              onChanged: (read) => _maxDepth = switch (read) {
+                                NumberValue(:final value) =>
+                                  units.depthToMeters(value),
+                                NumberBlank() => null,
+                                // Keep the bound; the field shows the error.
+                                NumberInvalid() => _maxDepth,
                               },
                             ),
                           ),
@@ -847,6 +893,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
 
                       // Favorites Section
                       SwitchListTile(
+                        key: const Key('filter-favorites-only'),
                         title: Text(context.l10n.diveLog_filter_favoritesOnly),
                         subtitle: Text(
                           context.l10n.diveLog_filter_showOnlyFavorites,
@@ -895,9 +942,14 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                                   const TextInputType.numberWithOptions(
                                     decimal: true,
                                   ),
+                              inputFormatters: numberInputFormatters(),
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
+                              validator: numberValidator(context),
                               onChanged: (value) => setState(
                                 () => _suitThicknessMin = _parseThicknessBound(
                                   value,
+                                  _suitThicknessMin,
                                 ),
                               ),
                             ),
@@ -916,9 +968,14 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                                   const TextInputType.numberWithOptions(
                                     decimal: true,
                                   ),
+                              inputFormatters: numberInputFormatters(),
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
+                              validator: numberValidator(context),
                               onChanged: (value) => setState(
                                 () => _suitThicknessMax = _parseThicknessBound(
                                   value,
+                                  _suitThicknessMax,
                                 ),
                               ),
                             ),
@@ -1254,34 +1311,40 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                       Row(
                         children: [
                           Expanded(
-                            child: TextField(
+                            child: NumberField(
                               controller: _minDurationController,
+                              integer: true,
                               decoration: InputDecoration(
                                 labelText: context.l10n.diveLog_filter_min,
                                 prefixIcon: const Icon(Icons.timer),
                                 suffixText:
                                     context.l10n.units_profileMetric_min,
                               ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                _minDurationMinutes = parseUserInt(value);
-                              },
+                              onChanged: (read) =>
+                                  _minDurationMinutes = switch (read) {
+                                    NumberValue(:final value) => value.toInt(),
+                                    NumberBlank() => null,
+                                    NumberInvalid() => _minDurationMinutes,
+                                  },
                             ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: TextField(
+                            child: NumberField(
                               controller: _maxDurationController,
+                              integer: true,
                               decoration: InputDecoration(
                                 labelText: context.l10n.diveLog_filter_max,
                                 prefixIcon: const Icon(Icons.timer),
                                 suffixText:
                                     context.l10n.units_profileMetric_min,
                               ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                _maxDurationMinutes = parseUserInt(value);
-                              },
+                              onChanged: (read) =>
+                                  _maxDurationMinutes = switch (read) {
+                                    NumberValue(:final value) => value.toInt(),
+                                    NumberBlank() => null,
+                                    NumberInvalid() => _maxDurationMinutes,
+                                  },
                             ),
                           ),
                         ],
@@ -1501,27 +1564,50 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
     );
   }
 
+  /// Writes the sheet's axes over the current state with copyWith, so the
+  /// axes this sheet does not edit (the advanced query, trip, centre, gear
+  /// ids, buddy id, the Insights dive-id seam, custom fields, deco) survive
+  /// an Apply (#2365). An axis the sheet edits is set, or cleared with its
+  /// flag when the sheet's value is empty.
   void _applyFilters() {
-    widget.ref.read(widget.filterProvider.notifier).state = DiveFilterState(
+    final current = widget.ref.read(widget.filterProvider);
+    final computerId = _resolveComputerId();
+    final buddyName = _buddyNameFilter;
+    widget.ref.read(widget.filterProvider.notifier).state = current.copyWith(
       startDate: _startDate,
+      clearStartDate: _startDate == null,
       endDate: _endDate,
+      clearEndDate: _endDate == null,
       diveTypeId: _diveTypeId,
+      clearDiveType: _diveTypeId == null,
       siteId: _siteId,
+      clearSiteId: _siteId == null,
       minDepth: _minDepth,
+      clearMinDepth: _minDepth == null,
       maxDepth: _maxDepth,
+      clearMaxDepth: _maxDepth == null,
       favoritesOnly: _favoritesOnly ? true : null,
+      clearFavoritesOnly: !_favoritesOnly,
       excludedFromStatsOnly: _excludedFromStatsOnly ? true : null,
+      clearExcludedFromStatsOnly: !_excludedFromStatsOnly,
       tagIds: _selectedTagIds,
       weekdays: _selectedWeekdays,
-      // v1.5 filters
-      buddyNameFilter: _buddyNameFilter,
+      buddyNameFilter: buddyName,
+      clearBuddyNameFilter: buddyName == null || buddyName.isEmpty,
       noBuddyOnly: _noBuddyOnly ? true : null,
+      clearNoBuddyOnly: !_noBuddyOnly,
       minO2Percent: _minO2Percent,
+      clearMinO2Percent: _minO2Percent == null,
       maxO2Percent: _maxO2Percent,
+      clearMaxO2Percent: _maxO2Percent == null,
       minRating: _minRating,
+      clearMinRating: _minRating == null,
       minBottomTimeMinutes: _minDurationMinutes,
+      clearMinBottomTimeMinutes: _minDurationMinutes == null,
       maxBottomTimeMinutes: _maxDurationMinutes,
-      computerId: _resolveComputerId(),
+      clearMaxBottomTimeMinutes: _maxDurationMinutes == null,
+      computerId: computerId,
+      clearComputerId: computerId == null,
       equipmentAttrConditions: [
         if (_suitThicknessMin != null || _suitThicknessMax != null)
           EquipmentAttrCondition.suitThickness(
@@ -1530,10 +1616,17 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
           ),
         ..._gearConditions,
       ],
+      // Each nullable bound carries its clear flag, as every axis above
+      // does: copyWith reads null as "keep", so an emptied field would
+      // otherwise leave the previous bound in force.
       minWaterTemp: _minWaterTemp,
+      clearMinWaterTemp: _minWaterTemp == null,
       maxWaterTemp: _maxWaterTemp,
+      clearMaxWaterTemp: _maxWaterTemp == null,
       minVisibility: _minVisibility,
+      clearMinVisibility: _minVisibility == null,
       maxVisibility: _maxVisibility,
+      clearMaxVisibility: _maxVisibility == null,
       waterTypes: _waterTypes,
       speciesIds: _speciesIds,
       siteIds: _siteIds,

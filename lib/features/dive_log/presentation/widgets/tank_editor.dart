@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_template_display.dart';
@@ -11,7 +14,12 @@ import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/passport_resolver.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/domain/services/tank_preset_visibility.dart';
@@ -21,6 +29,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_disp
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
+
+final _log = LoggerService.forClass(TankEditor);
 
 /// Callback when tank data changes
 typedef TankChangeCallback = void Function(DiveTank tank);
@@ -38,6 +48,18 @@ class TankEditor extends ConsumerStatefulWidget {
   /// (#797), which never writes pressures.
   final bool showPressures;
 
+  /// Called with the diver's own cylinder when its tag is scanned, so the
+  /// host can add it to the dive's gear (issue #2335). Awaited, so a failed
+  /// add is reported like any other scan failure. The tank itself never
+  /// records the link: `DiveTank.equipmentId` belongs to the transmitter
+  /// registry.
+  final Future<void> Function(EquipmentItem item)? onCylinderScanned;
+
+  /// Called with a tag scan that has started resolving, including the
+  /// [onCylinderScanned] call it may make. A host that saves (the dive edit
+  /// page) waits for it, so Save cannot outrun the scan.
+  final void Function(Future<void> scan)? onScanPending;
+
   const TankEditor({
     super.key,
     required this.tank,
@@ -46,6 +68,8 @@ class TankEditor extends ConsumerStatefulWidget {
     this.onRemove,
     this.canRemove = true,
     this.showPressures = true,
+    this.onCylinderScanned,
+    this.onScanPending,
   });
 
   @override
@@ -81,6 +105,14 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   late double _lastValidO2;
   late double _lastValidHe;
 
+  /// The spec and pressure fields' last readable values, in display units,
+  /// for the same reason as [_lastValidO2]: a mistype reports what the diver
+  /// last typed, never null, while the field shows its error.
+  late LiveNumber _volume;
+  late LiveNumber _workingPressure;
+  late LiveNumber _startPressure;
+  late LiveNumber _endPressure;
+
   @override
   void initState() {
     super.initState();
@@ -89,10 +121,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   }
 
   void _onMndFocusChanged() {
-    if (!_mndFocusNode.hasFocus && _mndDriven) {
-      _mndDriven = false;
-      setState(() {});
-    }
+    // Leaving the box always rebuilds, so it syncs back to the mix's MND,
+    // including after an unreadable entry that left _mndDriven false.
+    if (!_mndFocusNode.hasFocus) setState(() => _mndDriven = false);
   }
 
   void _initializeControllers() {
@@ -154,6 +185,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     );
     _lastValidO2 = widget.tank.gasMix.o2;
     _lastValidHe = widget.tank.gasMix.he;
+    _volume = LiveNumber(null)..resolve(_volumeController.text);
+    _workingPressure = LiveNumber(null)
+      ..resolve(_workingPressureController.text);
+    _startPressure = LiveNumber(null)..resolve(_startPressureController.text);
+    _endPressure = LiveNumber(null)..resolve(_endPressureController.text);
     _mndController = TextEditingController();
     _role = widget.tank.role;
     _material = widget.tank.material;
@@ -195,7 +231,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// imperial mode AND working pressure is available, otherwise "L".
   String _effectiveVolumeSuffix(UnitFormatter units) {
     final settings = ref.read(settingsProvider);
-    final wp = parseUserDecimal(_workingPressureController.text);
+    final wp = _workingPressure.resolve(_workingPressureController.text);
     if (settings.volumeUnit == VolumeUnit.cubicFeet && wp != null && wp > 0) {
       return units.volumeSymbol;
     }
@@ -208,8 +244,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   ({double? volumeLiters, double? workingPressureBar}) _metricSpecs() {
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
-    final volumeDisplay = parseUserDecimal(_volumeController.text);
-    final workingPressureDisplay = parseUserDecimal(
+    // Blank is "not set", as before.
+    final volumeDisplay = _volume.resolve(_volumeController.text);
+    final workingPressureDisplay = _workingPressure.resolve(
       _workingPressureController.text,
     );
     // Convert working pressure to bar first (needed for cuft->liters).
@@ -227,6 +264,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           volumeLiters = _selectedPreset!.volumeLiters;
         } else if (workingPressureBar != null && workingPressureBar > 0) {
           volumeLiters = (volumeDisplay * 28.3168) / workingPressureBar;
+        } else {
+          // Without a working pressure the field is in liters (see
+          // _effectiveVolumeSuffix and _initializeControllers).
+          volumeLiters = volumeDisplay;
         }
       } else {
         // Metric: value is already in liters.
@@ -312,12 +353,16 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   GasMix _currentGasMix() {
     final o2Text = _o2Controller.text;
     final heText = _heController.text;
-    final o2 =
-        parseUserDecimal(o2Text) ??
-        (o2Text.trim().isEmpty ? 21.0 : _lastValidO2);
-    final he =
-        parseUserDecimal(heText) ??
-        (heText.trim().isEmpty ? 0.0 : _lastValidHe);
+    final o2 = switch (readNumber(o2Text)) {
+      NumberValue(:final value) => value,
+      NumberBlank() => 21.0,
+      NumberInvalid() => _lastValidO2,
+    };
+    final he = switch (readNumber(heText)) {
+      NumberValue(:final value) => value,
+      NumberBlank() => 0.0,
+      NumberInvalid() => _lastValidHe,
+    };
     return GasMix(o2: o2, he: he);
   }
 
@@ -326,10 +371,12 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     final units = UnitFormatter(settings);
     final specs = _metricSpecs();
 
-    final startPressureDisplay = parseUserDecimal(
+    final startPressureDisplay = _startPressure.resolve(
       _startPressureController.text,
     );
-    final endPressureDisplay = parseUserDecimal(_endPressureController.text);
+    final endPressureDisplay = _endPressure.resolve(
+      _endPressureController.text,
+    );
 
     widget.onChanged(
       DiveTank(
@@ -353,6 +400,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         computerId: widget.tank.computerId,
         transmitterSerial: widget.tank.transmitterSerial,
         regulatorEquipmentId: _regulatorEquipmentId,
+        // The slot link is carried, not edited, here; the picker that sets it
+        // arrives with the board (PR 3 of #2325). Dropping it would let
+        // updateDive wipe it on the next save.
+        tripCylinderId: widget.tank.tripCylinderId,
       ),
     );
   }
@@ -453,6 +504,12 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               ),
             ],
           ),
+        ),
+        IconButton(
+          key: const Key('tank-scan-tag'),
+          icon: const Icon(Icons.qr_code_scanner),
+          tooltip: context.l10n.passport_scan_title,
+          onPressed: _scanCylinder,
         ),
         if (widget.canRemove && widget.onRemove != null)
           IconButton(
@@ -647,14 +704,13 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       children: [
         // Volume
         Expanded(
-          child: TextFormField(
+          child: NumberField(
             controller: _volumeController,
             decoration: InputDecoration(
               labelText: context.l10n.diveLog_tank_label_volume,
               suffixText: _effectiveVolumeSuffix(units),
               isDense: true,
             ),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             onChanged: (_) {
               _clearPreset();
               _notifyChange();
@@ -694,14 +750,13 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         const SizedBox(width: 12),
         // Working pressure
         Expanded(
-          child: TextFormField(
+          child: NumberField(
             controller: _workingPressureController,
             decoration: InputDecoration(
               labelText: context.l10n.diveLog_tank_label_workingPressure,
               suffixText: units.pressureSymbol,
               isDense: true,
             ),
-            keyboardType: TextInputType.number,
             onChanged: (_) {
               _clearPreset();
               _notifyChange();
@@ -750,8 +805,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 validator: _validateGasPercent,
                 onChanged: (value) {
                   _mndDriven = false;
-                  final parsed = parseUserDecimal(value);
-                  if (parsed != null) _lastValidO2 = parsed;
+                  if (readNumber(value) case NumberValue(:final value)) {
+                    _lastValidO2 = value;
+                  }
                   setState(() {});
                   _notifyChange();
                 },
@@ -773,8 +829,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 validator: _validateGasPercent,
                 onChanged: (value) {
                   _mndDriven = false;
-                  final parsed = parseUserDecimal(value);
-                  if (parsed != null) _lastValidHe = parsed;
+                  if (readNumber(value) case NumberValue(:final value)) {
+                    _lastValidHe = value;
+                  }
                   setState(() {});
                   _notifyChange();
                 },
@@ -801,12 +858,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// Empty is "not set" (fine, `_currentGasMix` defaults it); anything else
   /// must parse (#1900) -- a mistyped percentage otherwise silently becomes
   /// whatever the tank's last saved mix was, with no sign anything was wrong.
-  String? _validateGasPercent(String? value) {
-    if (value == null || value.trim().isEmpty) return null;
-    return parseUserDecimal(value) == null
-        ? context.l10n.numberInput_invalidValue
-        : null;
-  }
+  String? _validateGasPercent(String? value) => numberValidator(context)(value);
 
   Widget _buildGasChip(GasTemplate template) {
     final currentMix = _currentGasMix();
@@ -824,27 +876,25 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     return Row(
       children: [
         Expanded(
-          child: TextFormField(
+          child: NumberField(
             controller: _startPressureController,
             decoration: InputDecoration(
               labelText: context.l10n.diveLog_tank_label_startPressure,
               suffixText: units.pressureSymbol,
               isDense: true,
             ),
-            keyboardType: TextInputType.number,
             onChanged: (_) => _notifyChange(),
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: TextFormField(
+          child: NumberField(
             controller: _endPressureController,
             decoration: InputDecoration(
               labelText: context.l10n.diveLog_tank_label_endPressure,
               suffixText: units.pressureSymbol,
               isDense: true,
             ),
-            keyboardType: TextInputType.number,
             onChanged: (_) => _notifyChange(),
           ),
         ),
@@ -862,8 +912,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       o2Narcotic: settings.o2Narcotic,
     );
 
-    // Sync controller if not actively editing MND
-    if (!_mndDriven) {
+    // Sync controller if not actively editing MND. While the box has focus
+    // it keeps what the diver typed, so an unreadable entry can say why
+    // rather than be overwritten; leaving the box syncs it again.
+    if (!_mndDriven && !_mndFocusNode.hasFocus) {
       final displayValue = currentMnd.isFinite
           ? formatDecimalForInput(
               units.convertDepth(currentMnd).roundToDouble(),
@@ -885,10 +937,23 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               suffixText: units.depthSymbol,
               isDense: true,
               helperText: context.l10n.diveLog_tank_mndHelper,
+              // A helper that is not saved, so it says why without blocking
+              // the dive's save (#1900 review).
+              errorText: invalidNumberText(
+                context,
+                _mndController.text,
+                allowNegative: false,
+              ),
+              errorMaxLines: 3,
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: numberInputFormatters(),
             onChanged: (value) {
-              final parsed = parseUserDecimal(value);
+              final parsed = switch (readNumber(value, allowNegative: false)) {
+                NumberValue(:final value) => value,
+                // No MND to drive He from; the field says why.
+                NumberBlank() || NumberInvalid() => null,
+              };
               if (parsed != null && parsed > 0) {
                 _mndDriven = true;
                 final mndMeters = units.depthToMeters(parsed);
@@ -903,7 +968,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 setState(() {});
                 _notifyChange();
               } else {
-                _mndDriven = false;
+                // Rebuild for the error line; nothing else changed.
+                setState(() => _mndDriven = false);
               }
             },
           ),
@@ -919,7 +985,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     AppSettings settings,
   ) {
     final workingPpO2 = settings.ppO2MaxWorking;
-    final modDepth = units.formatDepth(
+    final modDepth = units.formatDepthFloor(
       gasMix.mod(ppO2: workingPpO2),
       decimals: 0,
     );
@@ -928,7 +994,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       o2Narcotic: settings.o2Narcotic,
     );
     final mndDepth = mndValue.isFinite
-        ? units.formatDepth(mndValue, decimals: 0)
+        ? units.formatDepthFloor(mndValue, decimals: 0)
         : '--';
 
     return Padding(
@@ -988,6 +1054,165 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           _notifyChange();
         })
         .catchError((Object _) {});
+  }
+
+  Future<void> _scanCylinder() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final text = await ref.read(passportScanLauncherProvider)(context);
+    if (text == null || !mounted) return;
+    // From here the scan is database work the host may need to wait for:
+    // Save must not run before the scanned cylinder reaches the dive.
+    final scan = _fillFromTag(text, messenger, l10n);
+    widget.onScanPending?.call(scan);
+    await scan;
+  }
+
+  /// Resolves a scanned [text] and fills the tank from it. Never throws: a
+  /// failure is logged and reported with a snack bar.
+  Future<void> _fillFromTag(
+    String text,
+    ScaffoldMessengerState messenger,
+    AppLocalizations l10n,
+  ) async {
+    try {
+      final resolution = await resolveScannedTag(ref, text);
+      // The tank card closed while the tag was looked up: fill nothing.
+      if (!mounted) return;
+      switch (resolution) {
+        case OwnCylinder(:final equipmentId, :final tag):
+          final item = await ref
+              .read(equipmentRepositoryProvider)
+              .getEquipmentById(equipmentId);
+          final fills = await ref
+              .read(cylinderFillRepositoryProvider)
+              .getForCylinder(
+                passportId: tag.passportId,
+                equipmentId: equipmentId,
+              );
+          if (!mounted) return;
+          // The passport lookup found it, but the row is gone (deleted on
+          // another device): say so rather than do nothing.
+          if (item == null) {
+            throw StateError('Scanned cylinder $equipmentId has no row');
+          }
+          final filled = _applyScannedSpec(
+            volumeL: item.volumeL,
+            workingPressureBar: item.workingPressureBar,
+            material: item.tankMaterial,
+            mix: fills.isEmpty ? null : fills.first.gasMix,
+          );
+          // The cylinder joins the dive's gear even when it records no spec.
+          await widget.onCylinderScanned?.call(item);
+          if (filled) {
+            messenger.showSnackBar(
+              SnackBar(content: Text(l10n.passport_scan_filledFrom(item.name))),
+            );
+          }
+        case ForeignCylinder(:final tag):
+          final filled = _applyScannedSpec(
+            volumeL: tag.volumeL,
+            workingPressureBar: tag.workingPressureBar?.toDouble(),
+            material: tag.material,
+            mix: null,
+          );
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(
+                filled
+                    ? l10n.passport_scan_filledFrom(
+                        tag.name ?? l10n.passport_foreign_defaultName,
+                      )
+                    : l10n.passport_foreign_noDetails,
+              ),
+            ),
+          );
+        case NotACylinderTag():
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.passport_tag_linkInvalid)),
+          );
+      }
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to fill a tank from a scanned tag',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.passport_scan_openFailed)),
+      );
+    }
+  }
+
+  /// Fills the spec fields (and the mix, when given) the way choosing a
+  /// preset does, in the diver's units, then reports the tank. Returns false,
+  /// changing nothing, when there is nothing to fill: a tag that carries only
+  /// its identity must not clear the tank's preset.
+  bool _applyScannedSpec({
+    double? volumeL,
+    double? workingPressureBar,
+    TankMaterial? material,
+    GasMix? mix,
+  }) {
+    if (volumeL == null &&
+        workingPressureBar == null &&
+        material == null &&
+        mix == null) {
+      return false;
+    }
+    final settings = ref.read(settingsProvider);
+    final units = UnitFormatter(settings);
+    // The cylinder after the scan: the tag's size where it gives one, the
+    // tank's current size where it does not. In cubic feet the volume field
+    // depends on both, so it is rewritten from these whenever either
+    // changes; otherwise a new pressure would reread the old cuft figure as
+    // a different water volume.
+    final current = _metricSpecs();
+    final liters = volumeL ?? current.volumeLiters;
+    final pressureBar = workingPressureBar ?? current.workingPressureBar;
+    final match = liters != null && pressureBar != null
+        ? TankPresets.matchBySpecs(liters, pressureBar)
+        : null;
+    // The preset follows the size; a tag that leaves the size alone leaves it.
+    final sizeChanged = volumeL != null || workingPressureBar != null;
+    setState(() {
+      if (sizeChanged) {
+        _selectedPreset = match == null
+            ? null
+            : TankPresetEntity.fromBuiltIn(match);
+      }
+      if (sizeChanged && liters != null) {
+        if (settings.volumeUnit == VolumeUnit.cubicFeet) {
+          // Gas capacity needs a pressure. With none, the field is in
+          // liters, as _metricSpecs reads it.
+          final value =
+              match?.volumeCuft ??
+              (pressureBar != null && pressureBar > 0
+                  ? liters * pressureBar / 28.3168
+                  : liters);
+          _volumeController.text = formatRoundedForInput(value, 1);
+        } else {
+          _volumeController.text = formatRoundedForInput(liters, 1);
+        }
+      }
+      if (workingPressureBar != null) {
+        _workingPressureController.text = formatRoundedForInput(
+          units.convertPressure(workingPressureBar),
+          0,
+        );
+      }
+      if (material != null) _material = material;
+      if (mix != null) {
+        _mndDriven = false;
+        _o2Controller.text = formatDecimalForInput(mix.o2);
+        _heController.text = formatDecimalForInput(mix.he);
+        _lastValidO2 = mix.o2;
+        _lastValidHe = mix.he;
+      }
+    });
+    _notifyChange();
+    return true;
   }
 
   void _applyPreset(TankPresetEntity preset) {

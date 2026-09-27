@@ -115,4 +115,19 @@ void main() {
     expect(f.maxWaterTemp, 25);
     expect(f.siteIds, ['s1', 's2']);
   });
+
+  testWidgets('emptying a bound and applying clears it', (tester) async {
+    // Apply writes through copyWith, which reads null as "keep". Without
+    // the bound's clear flag the seeded 10 would survive an emptied field.
+    await open(tester);
+    final min = find.byKey(const ValueKey('filter-water-temp-min'));
+    await reveal(tester, min);
+    await tester.enterText(min, '');
+    await tester.tap(find.text(en.diveLog_filter_apply));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.text('Open filter')),
+    );
+    expect(container.read(_filter).minWaterTemp, isNull);
+  });
 }

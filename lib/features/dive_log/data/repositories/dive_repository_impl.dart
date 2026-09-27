@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
@@ -37,6 +39,7 @@ import 'package:submersion/features/dive_log/domain/entities/source_profile.dart
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
+import 'package:submersion/features/dive_log/domain/services/source_bottom_time.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -49,6 +52,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
+import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
@@ -138,6 +142,7 @@ class DiveRepository {
       EquipmentObservationRepository();
   late final DiveCustomFieldRepository _customFieldRepository =
       DiveCustomFieldRepository(_db);
+  final NavTrackRepository _navTrackRepository = NavTrackRepository();
 
   // ============================================================================
   // CRUD Operations
@@ -211,6 +216,9 @@ class DiveRepository {
     'dive_sites',
     'trips',
     'dive_safety_findings',
+    // The badge counts findings only while a review marker exists, and a
+    // recompute that reaches the same findings writes only the marker.
+    'dive_safety_reviews',
     'dive_tags',
     'tags',
     'dive_dive_types',
@@ -474,6 +482,7 @@ class DiveRepository {
               .add(
                 EquipmentItem(
                   id: e.id,
+                  diverId: e.diverId,
                   name: e.name,
                   type: EquipmentType.values.firstWhere(
                     (t) => t.name == e.type,
@@ -1410,6 +1419,15 @@ class DiveRepository {
       _log.info('Creating dive: ${dive.diveNumber ?? "new"}');
       final id = dive.id.isEmpty ? _uuid.v4() : dive.id;
       final now = DateTime.now().millisecondsSinceEpoch;
+      // A tank may only link a slot on the dive's own trip. Checked before
+      // the tank rows are written: a link to a missing slot would otherwise
+      // fail the save on the foreign key. The trip resolves as the row write
+      // resolves it, since the editor saves Dive(trip: selected) with a null
+      // tripId.
+      final validSlots = await tripCylinderIdsForTrip(
+        _db,
+        dive.tripId ?? dive.trip?.id,
+      );
 
       // One transaction for the dive and every child it owns. The profile
       // used to be written inside the child batch below and is now a
@@ -1583,6 +1601,9 @@ class DiveRepository {
                 computerId: Value(tank.computerId),
                 transmitterSerial: Value(tank.transmitterSerial),
                 regulatorEquipmentId: Value(tank.regulatorEquipmentId),
+                tripCylinderId: Value(
+                  validTripCylinderLink(tank.tripCylinderId, validSlots),
+                ),
                 sourceTankIndex: Value(tank.sourceTankIndex),
               ),
             );
@@ -1714,6 +1735,15 @@ class DiveRepository {
       }
 
       final now = DateTime.now().millisecondsSinceEpoch;
+      // A tank may only link a slot on the dive's own trip. Checked before
+      // the tank rows are written: a link to a missing slot would otherwise
+      // fail the save on the foreign key. The trip resolves as the row write
+      // resolves it, since the editor saves Dive(trip: selected) with a null
+      // tripId.
+      final validSlots = await tripCylinderIdsForTrip(
+        _db,
+        dive.tripId ?? dive.trip?.id,
+      );
 
       // One transaction for the dive and every child it owns, the way
       // createDive already does it. Without one, a throw partway through
@@ -1877,6 +1907,11 @@ class DiveRepository {
                 // The regulator link is user-authored, unlike the two above,
                 // so an edit does write it.
                 regulatorEquipmentId: Value(tank.regulatorEquipmentId),
+                // The slot link is user-authored like the regulator, so an
+                // edit writes it; every rebuild site must carry it.
+                tripCylinderId: Value(
+                  validTripCylinderLink(tank.tripCylinderId, validSlots),
+                ),
               ),
             );
             // Log as pending update (assuming sync handles updates)
@@ -1907,6 +1942,9 @@ class DiveRepository {
                     computerId: Value(tank.computerId),
                     transmitterSerial: Value(tank.transmitterSerial),
                     regulatorEquipmentId: Value(tank.regulatorEquipmentId),
+                    tripCylinderId: Value(
+                      validTripCylinderLink(tank.tripCylinderId, validSlots),
+                    ),
                     sourceTankIndex: Value(tank.sourceTankIndex),
                   ),
                 );
@@ -1986,7 +2024,8 @@ class DiveRepository {
   /// Deletes the dive rows (their children cascade), first clearing the
   /// dive plans built from or linked to them: those links have no ON DELETE
   /// action and would fail the delete. One transaction, so a failed delete
-  /// leaves the plans linked.
+  /// leaves the plans linked. Chunked, so "select all" on a logbook past
+  /// SQLite's bound-variable limit still deletes (issue #1953).
   Future<void> _deleteDiveRows(List<String> ids) => _db.transaction(() async {
     await clearPlanLinksToDives(
       _db,
@@ -1994,7 +2033,9 @@ class DiveRepository {
       ids,
       now: DateTime.now().millisecondsSinceEpoch,
     );
-    await (_db.delete(_db.dives)..where((t) => t.id.isIn(ids))).go();
+    for (final chunk in seriesIdChunks(ids)) {
+      await (_db.delete(_db.dives)..where((t) => t.id.isIn(chunk))).go();
+    }
   });
 
   /// Delete a dive.
@@ -2009,7 +2050,13 @@ class DiveRepository {
       if (cascadeMedia) await _cascadeMediaForDiveDeletion([id]);
       // Check-ins on the dive stay as bench notes; staged, not just nulled.
       await _observationRepository.unlinkFromDeletedDives([id]);
+      // Captured before the delete: the nav_tracks.dive_id FK's own SET NULL
+      // fires as part of the dive row's removal, so afterwards there is no
+      // way to tell which routes it just unlinked from which were already
+      // unlinked.
+      final linkedRouteIds = await _navTrackRepository.routeIdsLinkedToDive(id);
       await _deleteDiveRows([id]);
+      await _navTrackRepository.normalizeAfterDiveDeletion(linkedRouteIds);
       // The FK cascade took this dive's dive_data_sources rows, which may
       // have held the last reference to a stored import file (issue #478).
       // Gated on cascadeMedia for the same reason the media cascade is: a
@@ -2039,15 +2086,23 @@ class DiveRepository {
 
     try {
       _log.info('Bulk deleting ${ids.length} dives');
-      if (cascadeMedia) await _cascadeMediaForDiveDeletion(ids);
+      // Once each: a single `IN (...)` collapsed a repeated id, but chunked
+      // statements can each match it, doubling the rows they return.
+      final dives = ids.toSet().toList();
+      if (cascadeMedia) await _cascadeMediaForDiveDeletion(dives);
       // Check-ins on the dives stay as bench notes; staged, not just nulled.
-      await _observationRepository.unlinkFromDeletedDives(ids);
-      await _deleteDiveRows(ids);
+      await _observationRepository.unlinkFromDeletedDives(dives);
+      // See deleteDive: must be captured before the delete removes the
+      // dives that the nav_tracks.dive_id FK's SET NULL is about to unlink.
+      final linkedRouteIds = await _navTrackRepository.routeIdsLinkedToDives(
+        dives,
+      );
+      await _deleteDiveRows(dives);
+      await _navTrackRepository.normalizeAfterDiveDeletion(linkedRouteIds);
       // See deleteDive: the cascade may have orphaned a stored import file.
       if (cascadeMedia) await _importedFileReclaimer.reclaimOrphans();
-      for (final id in ids) {
-        await _syncRepository.logDeletion(entityType: 'dives', recordId: id);
-      }
+      // One transaction for every tombstone, not one per dive.
+      await _syncRepository.logDeletions(entityType: 'dives', recordIds: dives);
       SyncEventBus.notifyLocalChange();
       _log.info('Bulk deleted ${ids.length} dives');
       return ids;
@@ -2061,19 +2116,22 @@ class DiveRepository {
     }
   }
 
-  /// Get dives by their IDs (for undo functionality)
+  /// Get dives by their IDs (for undo functionality), newest first.
+  ///
+  /// Read in chunks, since the list view's bulk delete reads every selected
+  /// dive first (issue #1953), and sorted here because no one statement
+  /// sees them all. A repeated id is read once, as one `IN (...)` read it.
   Future<List<domain.Dive>> getDivesByIds(List<String> ids) async {
     if (ids.isEmpty) return [];
 
     try {
-      final query = _db.select(_db.dives)
-        ..where((t) => t.id.isIn(ids))
-        ..orderBy([
-          (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
-          (t) => OrderingTerm.desc(t.diveNumber),
-        ]);
-
-      final rows = await query.get();
+      final rows = <Dive>[];
+      for (final chunk in seriesIdChunks(ids.toSet().toList())) {
+        rows.addAll(
+          await (_db.select(_db.dives)..where((t) => t.id.isIn(chunk))).get(),
+        );
+      }
+      rows.sort(_newestFirst);
       return await Future.wait(rows.map(_mapRowToDive));
     } catch (e, stackTrace) {
       _log.error(
@@ -2083,6 +2141,23 @@ class DiveRepository {
       );
       rethrow;
     }
+  }
+
+  /// Entry time (else the logged date/time) descending, then dive number
+  /// descending with unnumbered dives last: the order SQL's
+  /// `ORDER BY COALESCE(entry_time, dive_date_time) DESC, dive_number DESC`
+  /// gives, since SQLite sorts NULL lowest.
+  static int _newestFirst(Dive a, Dive b) {
+    final byTime = (b.entryTime ?? b.diveDateTime).compareTo(
+      a.entryTime ?? a.diveDateTime,
+    );
+    if (byTime != 0) return byTime;
+    final an = a.diveNumber;
+    final bn = b.diveNumber;
+    if (an == null || bn == null) {
+      return an == bn ? 0 : (an == null ? 1 : -1);
+    }
+    return bn.compareTo(an);
   }
 
   // ============================================================================
@@ -2195,7 +2270,12 @@ class DiveRepository {
             // idx_dive_safety_findings_dive_id and only counts findings for the
             // page's dives, instead of grouping the whole findings table.
             '(SELECT COUNT(*) FROM dive_safety_findings sf '
-            'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL'
+            'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL '
+            // A dive whose review was invalidated (clearReviewForDive keeps
+            // its findings for the next recompute to diff against) shows no
+            // badge until it is recomputed.
+            'AND EXISTS (SELECT 1 FROM dive_safety_reviews sr '
+            'WHERE sr.dive_id = d.id)'
             '$safetyCountFilter) '
             'AS safety_finding_count '
             'FROM dives d '
@@ -2216,6 +2296,7 @@ class DiveRepository {
                 // Renaming a trip changes a header the list is showing.
                 _db.trips,
                 _db.diveSafetyFindings,
+                _db.diveSafetyReviews,
                 // Whatever the filter joined (#2365).
                 ...tablesNamed(compiled.tablesTouched),
               },
@@ -2861,7 +2942,12 @@ class DiveRepository {
           // idx_dive_safety_findings_dive_id and only counts findings for the
           // requested dives, instead of grouping the whole findings table.
           '(SELECT COUNT(*) FROM dive_safety_findings sf '
-          'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL'
+          'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL '
+          // A dive whose review was invalidated (clearReviewForDive keeps
+          // its findings for the next recompute to diff against) shows no
+          // badge until it is recomputed.
+          'AND EXISTS (SELECT 1 FROM dive_safety_reviews sr '
+          'WHERE sr.dive_id = d.id)'
           '$safetyCountFilter) '
           'AS safety_finding_count '
           'FROM dives d '
@@ -2879,6 +2965,7 @@ class DiveRepository {
             _db.diveSites,
             _db.trips,
             _db.diveSafetyFindings,
+            _db.diveSafetyReviews,
           },
         )
         .get();
@@ -3735,6 +3822,7 @@ class DiveRepository {
               computerId: t.computerId,
               transmitterSerial: t.transmitterSerial,
               regulatorEquipmentId: t.regulatorEquipmentId,
+              tripCylinderId: t.tripCylinderId,
               equipmentId: t.equipmentId,
               sourceTankIndex: t.sourceTankIndex,
             ),
@@ -3861,6 +3949,7 @@ class DiveRepository {
       final e = joinRow.readTable(_db.equipment);
       return EquipmentItem(
         id: e.id,
+        diverId: e.diverId,
         name: e.name,
         type: EquipmentType.values.firstWhere(
           (t) => t.name == e.type,
@@ -4158,6 +4247,7 @@ class DiveRepository {
           computerId: t.computerId,
           transmitterSerial: t.transmitterSerial,
           regulatorEquipmentId: t.regulatorEquipmentId,
+          tripCylinderId: t.tripCylinderId,
           equipmentId: t.equipmentId,
           sourceTankIndex: t.sourceTankIndex,
         );
@@ -4839,16 +4929,13 @@ class DiveRepository {
   /// Delete all profile events for a dive
   Future<void> deleteProfileEventsForDive(String diveId) async {
     try {
-      final existing = await (_db.select(
-        _db.diveProfileEvents,
-      )..where((t) => t.diveId.equals(diveId))).get();
-      await (_db.delete(
+      final deleted = await (_db.delete(
         _db.diveProfileEvents,
       )..where((t) => t.diveId.equals(diveId))).go();
-      for (final row in existing) {
-        await _syncRepository.logDeletion(
-          entityType: 'diveProfileEvents',
-          recordId: row.id,
+      // One tombstone for the dive's events, not one per event (#1926).
+      if (deleted > 0) {
+        await _syncRepository.logScopedDeletion(
+          EventScopeTombstone(diveId: diveId),
         );
       }
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -5619,6 +5706,48 @@ class DiveRepository {
         localUpdatedAt: now,
       );
     }
+  }
+
+  /// Write [notes] onto dive [diveId] only when its notes are blank, so a
+  /// cloud import can bring in the notes the diver wrote in the source app
+  /// without overwriting any written in Submersion (issue #2410). Returns
+  /// whether anything was written; a blank [notes] writes nothing.
+  Future<bool> fillNotesIfEmpty(String diveId, String notes) async {
+    final text = notes.trim();
+    if (text.isEmpty) return false;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final changed = await _db.customUpdate(
+      'UPDATE dives SET notes = ?, updated_at = ? '
+      // TRIM strips only spaces by default, so tabs and newlines are named.
+      "WHERE id = ? AND TRIM(COALESCE(notes, ''), ' ' || char(9, 10, 13)) = ''",
+      variables: [
+        Variable.withString(text),
+        Variable.withInt(now),
+        Variable.withString(diveId),
+      ],
+      updates: {_db.dives},
+    );
+    if (changed == 0) return false;
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+    return true;
+  }
+
+  /// Add [weight] to dive [diveId] only when the dive records no weight yet,
+  /// the weight counterpart of [fillNotesIfEmpty]. Returns whether it was
+  /// added.
+  Future<bool> addWeightIfNone(String diveId, domain.DiveWeight weight) async {
+    final existing =
+        await (_db.select(_db.diveWeights)
+              ..where((t) => t.diveId.equals(diveId))
+              ..limit(1))
+            .get();
+    if (existing.isNotEmpty) return false;
+    await bulkAddWeights([diveId], [weight]);
+    return true;
   }
 
   /// Shift dive times of every dive in [diveIds] by [offset].
@@ -6398,6 +6527,7 @@ class DiveRepository {
     domain.DiveTank t,
     int order, {
     bool withLink = false,
+    Set<String> validSlots = const {},
   }) => DiveTanksCompanion(
     id: Value(id),
     diveId: Value(diveId),
@@ -6416,6 +6546,11 @@ class DiveRepository {
     transmitterSerial: Value(t.transmitterSerial),
     regulatorEquipmentId: Value(t.regulatorEquipmentId),
     sourceTankIndex: Value(t.sourceTankIndex),
+    // The trip cylinder slot, kept out of templates for the same reason as
+    // the registry link: only a restore writes it.
+    tripCylinderId: withLink
+        ? Value(validTripCylinderLink(t.tripCylinderId, validSlots))
+        : const Value.absent(),
     // The registry's cylinder link, owned by the transmitter registry. A
     // template copied from a linked tank must not stamp that cylinder onto
     // every dive it lands on, so only a restore writes it.
@@ -6543,10 +6678,22 @@ class DiveRepository {
   Future<void> bulkRestoreTankRows(List<DiveTank> rows) async {
     if (rows.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
+    final slotsByDive = <String, Set<String>>{};
     for (final row in rows) {
+      var companion = row.toCompanion(false);
+      final link = row.tripCylinderId;
+      if (link != null) {
+        // The captured link may name a slot deleted since the capture.
+        final valid = slotsByDive[row.diveId] ??= await _tripCylinderIdsForDive(
+          row.diveId,
+        );
+        if (!valid.contains(link)) {
+          companion = companion.copyWith(tripCylinderId: const Value(null));
+        }
+      }
       await (_db.update(
         _db.diveTanks,
-      )..where((t) => t.id.equals(row.id))).write(row.toCompanion(false));
+      )..where((t) => t.id.equals(row.id))).write(companion);
       await _syncRepository.markRecordPending(
         entityType: 'diveTanks',
         recordId: row.id,
@@ -6554,6 +6701,14 @@ class DiveRepository {
       );
     }
     await _bumpDives(rows.map((r) => r.diveId).toSet().toList(), now);
+  }
+
+  /// The slot ids on [diveId]'s trip: the links a restored tank may keep.
+  Future<Set<String>> _tripCylinderIdsForDive(String diveId) async {
+    final dive = await (_db.select(
+      _db.dives,
+    )..where((d) => d.id.equals(diveId))).getSingleOrNull();
+    return tripCylinderIdsForTrip(_db, dive?.tripId);
   }
 
   /// How many of [diveIds] have no tank rows at all. Used to warn before an
@@ -6587,6 +6742,11 @@ class DiveRepository {
     if (diveIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final diveId in diveIds) {
+      // A restored slot link may name a slot deleted since the capture;
+      // written unchecked it would fail the undo on the foreign key.
+      final validSlots = restoreLinks
+          ? await _tripCylinderIdsForDive(diveId)
+          : const <String>{};
       final existing = await (_db.select(
         _db.diveTanks,
       )..where((t) => t.diveId.equals(diveId))).get();
@@ -6610,6 +6770,7 @@ class DiveRepository {
                 tanks[i],
                 i,
                 withLink: restoreLinks,
+                validSlots: validSlots,
               ),
             );
         await _syncRepository.markRecordPending(
@@ -6700,16 +6861,29 @@ class DiveRepository {
 
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(_db.dives)..where((t) => t.id.isIn(diveIds))).write(
-        DivesCompanion(tripId: Value(tripId), updatedAt: Value(now)),
-      );
-      for (final diveId in diveIds) {
-        await _syncRepository.markRecordPending(
-          entityType: 'dives',
-          recordId: diveId,
-          localUpdatedAt: now,
+      // One transaction: the dives move and their stale slot links go
+      // together, or nothing changes.
+      await _db.transaction(() async {
+        await (_db.update(_db.dives)..where((t) => t.id.isIn(diveIds))).write(
+          DivesCompanion(tripId: Value(tripId), updatedAt: Value(now)),
         );
-      }
+        for (final diveId in diveIds) {
+          await _syncRepository.markRecordPending(
+            entityType: 'dives',
+            recordId: diveId,
+            localUpdatedAt: now,
+          );
+          // A tank link into another trip's slot means nothing once the dive
+          // has moved; the single-dive paths drop it the same way.
+          await clearForeignTripCylinderLinks(
+            _db,
+            _syncRepository,
+            diveId,
+            tripId: tripId,
+            now: now,
+          );
+        }
+      });
       SyncEventBus.notifyLocalChange();
       _log.info('Bulk updated trip for ${diveIds.length} dives');
     } catch (e, stackTrace) {
@@ -7323,7 +7497,8 @@ class DiveRepository {
           computerSerial: Value(diveRow.diveComputerSerial),
           maxDepth: Value(diveRow.maxDepth),
           avgDepth: Value(diveRow.avgDepth),
-          duration: Value(diveRow.bottomTime),
+          // The runtime, never the derived bottom time (issue #2421).
+          duration: Value(diveRow.runtime),
           waterTemp: Value(diveRow.waterTemp),
           entryTime: Value(
             diveRow.entryTime != null
@@ -7343,6 +7518,7 @@ class DiveRepository {
           ),
           surfaceInterval: Value(diveRow.surfaceIntervalSeconds),
           cns: Value(diveRow.cnsEnd),
+          otu: Value(diveRow.otu),
           decoAlgorithm: Value(diveRow.decoAlgorithm),
           gradientFactorLow: Value(diveRow.gradientFactorLow),
           gradientFactorHigh: Value(diveRow.gradientFactorHigh),
@@ -7393,6 +7569,16 @@ class DiveRepository {
               ..where((t) => t.id.equals(computerReadingId)))
             .write(const DiveDataSourcesCompanion(isPrimary: Value(true)));
 
+        // Bottom time is derived from the new primary's own profile, never
+        // taken from its duration, which is the runtime it measured (issue
+        // #2421). With no profile to derive from, the dive keeps its own.
+        final derivedBottomTime = sourceBottomTimeSeconds(
+          await _profileSeries.getSeriesForDive(diveId),
+          sourceId: newPrimary.id,
+          computerId: newPrimary.computerId,
+          runtimeSeconds: newPrimary.duration,
+        );
+
         // Update the dives record with the new primary's metadata.
         final now = DateTime.now().millisecondsSinceEpoch;
         await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
@@ -7401,12 +7587,15 @@ class DiveRepository {
             diveComputerSerial: Value(newPrimary.computerSerial),
             maxDepth: Value(newPrimary.maxDepth),
             avgDepth: Value(newPrimary.avgDepth),
-            bottomTime: Value(newPrimary.duration),
+            bottomTime: derivedBottomTime != null
+                ? Value(derivedBottomTime)
+                : const Value.absent(),
             waterTemp: Value(newPrimary.waterTemp),
             entryTime: Value(newPrimary.entryTime?.millisecondsSinceEpoch),
             exitTime: Value(newPrimary.exitTime?.millisecondsSinceEpoch),
             surfaceIntervalSeconds: Value(newPrimary.surfaceInterval),
             cnsEnd: Value(newPrimary.cns),
+            otu: Value(newPrimary.otu),
             decoAlgorithm: Value(newPrimary.decoAlgorithm),
             gradientFactorLow: Value(newPrimary.gradientFactorLow),
             gradientFactorHigh: Value(newPrimary.gradientFactorHigh),

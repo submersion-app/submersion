@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart' show parseHttpDate;
 
 import 'package:submersion/core/services/garmin_connect/garmin_api_exception.dart';
 import 'package:submersion/core/services/garmin_connect/garmin_auth_tokens.dart';
@@ -21,6 +22,12 @@ class GarminActivitySummary {
     this.durationSeconds,
     this.latitude,
     this.longitude,
+    this.exitLatitude,
+    this.exitLongitude,
+    this.localStartTime,
+    this.notes,
+    this.isManual = false,
+    this.weightKg,
   });
 
   final int activityId;
@@ -28,6 +35,23 @@ class GarminActivitySummary {
   /// Activity start in UTC. Approximate -- the authoritative dive start comes
   /// from the FIT file once downloaded.
   final DateTime startTime;
+
+  /// Activity start as the wall clock where the dive happened, held as
+  /// wall-clock-as-UTC like every stored dive time. Only a dive imported
+  /// from its summary uses it (issue #2410); a FIT file carries its own.
+  final DateTime? localStartTime;
+
+  /// The notes the diver wrote in Connect (`description`), trimmed; null
+  /// when there are none. A FIT file never carries them (issue #2410).
+  final String? notes;
+
+  /// Whether the activity was entered by hand in Connect, so has no FIT
+  /// file to download.
+  final bool isManual;
+
+  /// The dive weight the diver entered in Connect, in kilograms. Null unless
+  /// Connect named a unit this client can read (issue #2410).
+  final double? weightKg;
 
   /// Garmin activity type key, e.g. `single_gas_diving`.
   final String activityType;
@@ -48,6 +72,13 @@ class GarminActivitySummary {
   /// file's own start-of-session field doesn't.
   final double? latitude;
   final double? longitude;
+
+  /// Garmin Connect's own end-position estimate for the activity, kept as the
+  /// exit-position fallback for the same reason as [latitude]/[longitude]:
+  /// the FIT file's `session.end_position_lat/long` is only set when the watch
+  /// got a fix after surfacing.
+  final double? exitLatitude;
+  final double? exitLongitude;
 }
 
 /// One page of the dive-activity listing, plus the cursor needed to ask for
@@ -103,8 +134,17 @@ class GarminLoginResult {
 /// its own Android app; garth publishes it because the OAuth 1 exchange
 /// cannot be performed without it.
 class GarminConnectClient {
-  GarminConnectClient({http.Client? httpClient})
-    : _http = httpClient ?? http.Client();
+  /// [retryDelay] waits out the backoff between attempts of a transient API
+  /// failure, and [clock] is the time a date-form `Retry-After` is measured
+  /// from. Both are injectable so a test can record the waits instead of
+  /// sleeping, against a fixed now.
+  GarminConnectClient({
+    http.Client? httpClient,
+    Future<void> Function(Duration delay)? retryDelay,
+    DateTime Function()? clock,
+  }) : _http = httpClient ?? http.Client(),
+       _retryDelay = retryDelay ?? Future<void>.delayed,
+       _clock = clock ?? DateTime.now;
 
   static const String _ssoBase = 'https://sso.garmin.com';
   static const String _apiBase = 'https://connectapi.garmin.com';
@@ -143,7 +183,17 @@ class GarminConnectClient {
   /// still recognised rather than silently dropped.
   static const List<String> _diveTypeFragments = ['diving', 'apnea'];
 
+  /// Attempts an authenticated API request gets before a transient failure
+  /// (rate limiting, a 5xx, a dropped connection) is reported to the caller.
+  static const int _maxApiAttempts = 3;
+
+  /// Upper bound on a server-requested `Retry-After` wait, so a large value
+  /// cannot stall an import for minutes per dive.
+  static const Duration _maxRetryAfter = Duration(seconds: 30);
+
   final http.Client _http;
+  final Future<void> Function(Duration delay) _retryDelay;
+  final DateTime Function() _clock;
 
   /// Minimal cookie jar. The SSO handshake threads Cloudflare and Garmin
   /// session cookies across three requests, and `package:http` does not
@@ -379,15 +429,43 @@ class GarminConnectClient {
   /// Downloads an activity's original upload. Garmin serves this as a ZIP
   /// archive wrapping the FIT file, even for a single activity, so the
   /// archive is unwrapped here and only the FIT bytes are returned.
+  ///
+  /// Throws [GarminNoFitException] when Garmin has no FIT for the activity:
+  /// a 404, an empty body, or an archive with no `.fit` inside. Transient
+  /// faults have already been retried by then, so these are final.
   Future<Uint8List> downloadActivityFit(int activityId) async {
-    final response = await _apiRequest(
-      'GET',
-      Uri.parse('$_apiBase/download-service/files/activity/$activityId'),
-    );
+    final http.Response response;
+    try {
+      response = await _apiRequest(
+        'GET',
+        Uri.parse('$_apiBase/download-service/files/activity/$activityId'),
+      );
+    } on GarminApiException catch (e) {
+      if (e.statusCode != 404) rethrow;
+      throw GarminNoFitException(
+        'Garmin has no FIT file for activity $activityId',
+        statusCode: 404,
+      );
+    }
     return _extractFitBytes(response.bodyBytes, activityId);
   }
 
   static Uint8List _extractFitBytes(Uint8List bytes, int activityId) {
+    if (bytes.isEmpty) {
+      throw GarminNoFitException(
+        'Garmin returned an empty download for activity $activityId',
+      );
+    }
+    // ZipDecoder reads a body that is not a ZIP at all as an empty archive,
+    // which would pass for "no FIT inside". A garbled or truncated body may
+    // be transient, so anything without the ZIP signature stays an ordinary
+    // failure the diver can retry.
+    if (!_hasZipSignature(bytes)) {
+      throw GarminApiException(
+        'Garmin returned an unreadable activity archive for activity '
+        '$activityId',
+      );
+    }
     final Archive archive;
     try {
       archive = ZipDecoder().decodeBytes(bytes, verify: false);
@@ -404,9 +482,23 @@ class GarminConnectClient {
         return Uint8List.fromList(entry.readBytes() ?? const <int>[]);
       }
     }
-    throw GarminApiException(
+    throw GarminNoFitException(
       'Garmin activity $activityId archive contained no FIT file',
     );
+  }
+
+  /// Whether [bytes] open with a full ZIP record signature: a local file
+  /// header (`PK 03 04`), the end record of an empty archive (`PK 05 06`),
+  /// or a spanned-archive marker (`PK 07 08`). `PK` alone is not enough,
+  /// since a plain-text error body can start with it.
+  static bool _hasZipSignature(Uint8List bytes) {
+    if (bytes.length < 4 || bytes[0] != 0x50 || bytes[1] != 0x4B) {
+      return false;
+    }
+    final (third, fourth) = (bytes[2], bytes[3]);
+    return (third == 0x03 && fourth == 0x04) ||
+        (third == 0x05 && fourth == 0x06) ||
+        (third == 0x07 && fourth == 0x08);
   }
 
   GarminActivitySummary? _toActivitySummary(Map<String, dynamic> item) {
@@ -415,7 +507,11 @@ class GarminConnectClient {
     if (typeKey == null || !_isDiveType(typeKey)) return null;
 
     final activityId = (item['activityId'] as num?)?.toInt();
-    final startTime = _parseGarminUtc(item['startTimeGMT'] as String?);
+    final localStartTime = _parseGarminUtc(_stringOf(item['startTimeLocal']));
+    // The local start stands in for a missing GMT one, rather than the item
+    // being dropped: a summary-only import uses the local start anyway.
+    final startTime =
+        _parseGarminUtc(_stringOf(item['startTimeGMT'])) ?? localStartTime;
     if (activityId == null || startTime == null) return null;
 
     return GarminActivitySummary(
@@ -427,7 +523,57 @@ class GarminConnectClient {
       durationSeconds: (item['duration'] as num?)?.round(),
       latitude: (item['startLatitude'] as num?)?.toDouble(),
       longitude: (item['startLongitude'] as num?)?.toDouble(),
+      exitLatitude: (item['endLatitude'] as num?)?.toDouble(),
+      exitLongitude: (item['endLongitude'] as num?)?.toDouble(),
+      localStartTime: localStartTime,
+      notes: _notesOf(item['description']),
+      isManual: item['manualActivity'] == true,
+      weightKg: _diveWeightKg(item['summarizedDiveInfo']),
     );
+  }
+
+  static String? _stringOf(Object? value) => value is String ? value : null;
+
+  /// Connect sends "no notes" as an absent key, a null or an empty string.
+  static String? _notesOf(Object? description) {
+    if (description is! String) return null;
+    final text = description.trim();
+    return text.isEmpty ? null : text;
+  }
+
+  static const double _kgPerPound = 0.45359237;
+
+  /// Heavier than any real dive weight, so a value past it is read as a
+  /// unit this client has misunderstood rather than imported.
+  static const double _maxPlausibleWeightKg = 50;
+
+  /// The dive weight from `summarizedDiveInfo`, in kilograms.
+  ///
+  /// The key names come from a captured Connect response, but no capture of
+  /// a dive with weight set has been found, so the unit's shape is a guess.
+  /// It is accepted as a plain string or a `{unitKey}` object, and only for
+  /// kilograms or pounds; anything else is dropped rather than guessed at.
+  static double? _diveWeightKg(Object? diveInfo) {
+    // Every value is type-checked rather than cast: a shape this client did
+    // not expect must drop the weight, not throw and lose the listing page.
+    if (diveInfo is! Map<String, dynamic>) return null;
+    final rawWeight = diveInfo['weight'];
+    if (rawWeight is! num || rawWeight <= 0) return null;
+    final weight = rawWeight.toDouble();
+
+    final unit = diveInfo['weightUnit'];
+    final unitKey = switch (unit) {
+      String() => unit,
+      Map<String, dynamic>() => _stringOf(unit['unitKey']),
+      _ => null,
+    }?.toLowerCase();
+    final kg = switch (unitKey) {
+      'kilogram' || 'kg' => weight,
+      'pound' || 'lb' => weight * _kgPerPound,
+      _ => null,
+    };
+    if (kg == null || kg > _maxPlausibleWeightKg) return null;
+    return kg;
   }
 
   static bool _isDiveType(String typeKey) {
@@ -436,7 +582,8 @@ class GarminConnectClient {
   }
 
   /// Garmin serves `startTimeGMT` as `yyyy-MM-dd HH:mm:ss` with no zone
-  /// designator, despite it being UTC.
+  /// designator, despite it being UTC. `startTimeLocal` has the same shape,
+  /// and read this way yields the wall-clock-as-UTC form dive times use.
   static DateTime? _parseGarminUtc(String? value) {
     if (value == null || value.isEmpty) return null;
     return DateTime.tryParse('${value.replaceFirst(' ', 'T')}Z');
@@ -507,10 +654,13 @@ class GarminConnectClient {
       tokenSecret: oauth1.tokenSecret,
     );
 
-    final response = await _send(
+    // Retried like any API request: an access token lapses mid-import, and a
+    // transient failure here would otherwise fail the dive being downloaded.
+    // Re-signed per attempt, since the signature carries a one-time nonce.
+    final response = await _sendRetrying(
       'POST',
       url,
-      headers: {
+      headers: () => {
         ..._oauthHeaders,
         'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': signer.authorizationHeader(
@@ -559,16 +709,108 @@ class GarminConnectClient {
       _oauth2Token = await _exchangeForOAuth2(oauth1);
     }
 
-    final response = await _send(
+    final response = await _sendRetrying(
       method,
       url,
-      headers: {
+      headers: () => {
         ..._apiHeaders,
         'Authorization': _oauth2Token!.authorizationHeader,
       },
     );
     _throwForStatus(response, 'Garmin request failed');
     return response;
+  }
+
+  /// Sends a request, retrying a transient failure with a short backoff
+  /// before it reaches the caller. Returns the final response, whatever its
+  /// status; the caller decides what counts as an error.
+  ///
+  /// The fetch step downloads a page of FIT files at once, and Garmin
+  /// answers a burst like that with the odd 429 or 5xx; without a retry
+  /// each of those became a dive silently missing from the import (#1635).
+  /// Only idempotent calls come through here: API GETs, and the token
+  /// exchange, which just mints another access token. [headers] is called
+  /// per attempt so a signed request gets a fresh signature each time.
+  Future<http.Response> _sendRetrying(
+    String method,
+    Uri url, {
+    required Map<String, String> Function() headers,
+    List<int>? body,
+  }) async {
+    for (var attempt = 1; ; attempt++) {
+      final http.Response response;
+      try {
+        response = await _send(method, url, headers: headers(), body: body);
+      } on GarminApiException {
+        // _send only throws for a transport-level failure.
+        if (attempt >= _maxApiAttempts) rethrow;
+        await _retryDelay(_backoff(attempt));
+        continue;
+      }
+
+      if (_isTransientStatus(response.statusCode) &&
+          attempt < _maxApiAttempts) {
+        await _retryDelay(_retryAfter(response) ?? _backoff(attempt));
+        continue;
+      }
+      return response;
+    }
+  }
+
+  static final _rfc850Date = RegExp(r'^\w+, \d{2}-\w{3}-\d{2} ');
+
+  /// `parseHttpDate` puts an RFC 850 date's two-digit year in the 1900s.
+  /// RFC 7231 section 7.1.1.1 wants the year with those last two digits that
+  /// is not more than 50 years ahead of [now], so this re-centuries it.
+  static DateTime _fixTwoDigitYear(DateTime parsed, String raw, DateTime now) {
+    if (!_rfc850Date.hasMatch(raw)) return parsed;
+    var year = now.year - now.year % 100 + parsed.year % 100;
+    if (year > now.year + 50) year -= 100;
+    return DateTime.utc(
+      year,
+      parsed.month,
+      parsed.day,
+      parsed.hour,
+      parsed.minute,
+      parsed.second,
+    );
+  }
+
+  static bool _isTransientStatus(int statusCode) =>
+      statusCode == 429 || statusCode >= 500;
+
+  /// 1 s after the first failed attempt, 2 s after the second.
+  static Duration _backoff(int attempt) =>
+      Duration(seconds: 1 << (attempt - 1));
+
+  /// The server's own `Retry-After` wait, capped at [_maxRetryAfter]. The
+  /// header is either a number of seconds or an HTTP date (any of the three
+  /// RFC 7231 forms); a date already past means retry at once. Null when
+  /// absent or unreadable, so the caller falls back to [_backoff].
+  Duration? _retryAfter(http.Response response) {
+    final value = response.headers['retry-after']?.trim();
+    if (value == null || value.isEmpty) return null;
+
+    Duration requested;
+    final seconds = int.tryParse(value);
+    if (seconds != null) {
+      if (seconds < 0) return null;
+      // Cap before converting: Duration counts microseconds, so a huge
+      // value would overflow into a negative wait that slips past the cap.
+      if (seconds >= _maxRetryAfter.inSeconds) return _maxRetryAfter;
+      requested = Duration(seconds: seconds);
+    } else {
+      final now = _clock().toUtc();
+      final DateTime at;
+      try {
+        at = _fixTwoDigitYear(parseHttpDate(value), value, now);
+      } on FormatException {
+        return null;
+      }
+      requested = at.difference(now);
+      if (requested.isNegative) requested = Duration.zero;
+    }
+    return requested > _maxRetryAfter ? _maxRetryAfter : requested;
   }
 
   Future<List<dynamic>> _getJsonList(Uri url) async {

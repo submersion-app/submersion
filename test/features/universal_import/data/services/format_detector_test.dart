@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -276,6 +277,114 @@ void main() {
       final result = detector.detect(_toBytes(csv));
       // Not enough dive keywords
       expect(result.format, ImportFormat.unknown);
+    });
+  });
+
+  group('Seacraft ENC navigation log detection', () {
+    const encHeader =
+        'Date,Time,Pos3Dx,Pos3Dy,Pos3Dz,Course,Pitch,Roll,Distance,Speed,'
+        'Temp,BattV';
+    const encRow = '15.1.2025,16:16:07,0,0,5,355.4,-12.1,-1.5,0,0,32.1,4.13';
+
+    test('recognises the exact header', () {
+      final result = detector.detect(_toBytes('$encHeader\n$encRow\n'));
+      expect(result.format, ImportFormat.navTrack);
+    });
+
+    test('recognises the header regardless of casing', () {
+      final upper = encHeader.toUpperCase();
+      final result = detector.detect(_toBytes('$upper\n$encRow\n'));
+      expect(result.format, ImportFormat.navTrack);
+    });
+
+    test('recognises the header with a UTF-8 BOM', () {
+      final result = detector.detect(_toBytes('\u{FEFF}$encHeader\n$encRow\n'));
+      expect(result.format, ImportFormat.navTrack);
+    });
+
+    test('recognises the header with CRLF line endings', () {
+      final result = detector.detect(_toBytes('$encHeader\r\n$encRow\r\n'));
+      expect(result.format, ImportFormat.navTrack);
+    });
+
+    test('recognises the header with an appended column '
+        '(a later firmware channel)', () {
+      final result = detector.detect(
+        _toBytes('$encHeader,ExtraChannel\n$encRow,1\n'),
+      );
+      expect(result.format, ImportFormat.navTrack);
+    });
+
+    test('is never scored as a dive CSV, even a generic one', () {
+      final result = detector.detect(_toBytes('$encHeader\n$encRow\n'));
+      expect(result.format, isNot(ImportFormat.csv));
+      expect(result.sourceApp, isNull);
+    });
+
+    test('does not false-positive on any recognised dive-log CSV shape', () {
+      const diveCsvs = [
+        'Dive No,Date,Time,Location,Max. Depth,Bottom Time,Dive Type\n'
+            '1,2024-01-15,10:00,Blue Hole,25,45,Recreational\n',
+        'dive number,date,time,duration [min],sac [l/min],maxdepth [m],'
+            'avgdepth [m],cylinder size (1) [l],divemaster\n'
+            '1,2024-01-15,10:00,0:45,15,25,18,11.1,John\n',
+        'Dive Number,Date,Max Depth,Avg Depth,Duration,GF Low,GF High,ppO2\n'
+            '1,2024-01-15,25,18,0:45:00,30,70,1.2\n',
+        'Dive Number,Date,Time,Site,Max Depth,Bottom Time,Water Temp,'
+            'Start Pressure\n'
+            '1,2024-01-15,10:00,Blue Hole,25,45,28,200\n',
+        'date,depth,duration,location,temperature\n2024-01-15,25,45,Reef,28\n',
+      ];
+      for (final csv in diveCsvs) {
+        final result = detector.detect(_toBytes(csv));
+        expect(
+          result.format,
+          isNot(ImportFormat.navTrack),
+          reason: 'false positive on: $csv',
+        );
+      }
+    });
+
+    test('does not false-positive on any pinned universal_import fixture', () {
+      final dir = Directory('test/fixtures/universal_import');
+      if (!dir.existsSync()) return;
+      for (final entity in dir.listSync(recursive: true)) {
+        if (entity is! File || !entity.path.toLowerCase().endsWith('.csv')) {
+          continue;
+        }
+        final bytes = entity.readAsBytesSync();
+        final result = detector.detect(bytes);
+        expect(
+          result.format,
+          isNot(ImportFormat.navTrack),
+          reason: 'false positive on fixture: ${entity.path}',
+        );
+      }
+    });
+
+    test('does not false-positive on any pinned gps_tracks fixture', () {
+      final dir = Directory('test/fixtures/gps_tracks');
+      if (!dir.existsSync()) return;
+      for (final entity in dir.listSync(recursive: true)) {
+        if (entity is! File || !entity.path.toLowerCase().endsWith('.csv')) {
+          continue;
+        }
+        final bytes = entity.readAsBytesSync();
+        final result = detector.detect(bytes);
+        expect(
+          result.format,
+          isNot(ImportFormat.navTrack),
+          reason: 'false positive on fixture: ${entity.path}',
+        );
+      }
+    });
+
+    test('does not detect a Seacraft file missing one required column', () {
+      const partial =
+          'Date,Time,Pos3Dx,Pos3Dy,Course,Pitch,Roll,Distance,Speed,Temp,'
+          'BattV\n15.1.2025,16:16:07,0,0,355.4,-12.1,-1.5,0,0,32.1,4.13\n';
+      final result = detector.detect(_toBytes(partial));
+      expect(result.format, isNot(ImportFormat.navTrack));
     });
   });
 

@@ -16,6 +16,15 @@ swiftc -o "$BUILD_DIR/packet_read_buffer_tests" \
 
 "$BUILD_DIR/packet_read_buffer_tests"
 
+# Characteristic read slot (issue #422): a read reply shares the notification
+# callback on Apple platforms and must be claimed before it can reach the
+# download's packet buffer.
+swiftc -o "$BUILD_DIR/pending_characteristic_read_tests" \
+    Sources/LibDCDarwin/PendingCharacteristicRead.swift \
+    Tests/PendingCharacteristicReadTests/main.swift
+
+"$BUILD_DIR/pending_characteristic_read_tests"
+
 swiftc -o "$BUILD_DIR/ble_characteristic_selector_tests" \
     Sources/LibDCDarwin/BleCharacteristicSelector.swift \
     Tests/BleCharacteristicSelectorTests/main.swift
@@ -119,3 +128,12 @@ swiftc -o "$BUILD_DIR/descriptor_transport_mapping_tests" \
     Tests/DescriptorTransportMappingTests/main.swift
 
 "$BUILD_DIR/descriptor_transport_mapping_tests"
+
+# Read-poll response path (issue #1454). The Seac Tablet's data characteristic
+# cannot notify, so every reply is fetched with a GATT read; the policy decides
+# when a read goes on the wire.
+swiftc -o "$BUILD_DIR/read_poll_policy_tests" \
+    Sources/LibDCDarwin/ReadPollPolicy.swift \
+    Tests/ReadPollPolicyTests/main.swift
+
+"$BUILD_DIR/read_poll_policy_tests"

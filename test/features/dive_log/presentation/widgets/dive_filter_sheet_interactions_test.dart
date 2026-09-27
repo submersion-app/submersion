@@ -170,11 +170,18 @@ void main() {
   testWidgets('date presets and clear-dates affordance', (tester) async {
     final ref = await openSheet(tester);
 
-    // The preset chips all live in one Wrap at the top of the sheet, so they
-    // are visible without scrolling. Tapping each runs its own setState
-    // closure.
+    // The preset chips all live in one Wrap near the top of the sheet, below
+    // the Advanced search and Query links. "Clear dates" sits below them, so
+    // it is reached by scrolling down (tapText) and a chip after it by
+    // scrolling back up. Tapping each runs its own setState closure.
     Future<void> tapChip(String label) async {
-      await tester.tap(find.text(label).first);
+      final chip = find.text(label);
+      if (chip.evaluate().isEmpty) {
+        await tester.scrollUntilVisible(chip, -60, scrollable: scrollable());
+      }
+      await tester.ensureVisible(chip.first);
+      await tester.pumpAndSettle();
+      await tester.tap(chip.first);
       await tester.pumpAndSettle();
     }
 
@@ -183,7 +190,7 @@ void main() {
     await tapChip('Last 12 months');
 
     // Dates are now set, so the "Clear dates" button is shown.
-    await tapChip('Clear dates');
+    await tapText(tester, 'Clear dates');
 
     // This year sets a range; All time then resets both bounds.
     await tapChip('This year');
@@ -330,6 +337,95 @@ void main() {
     expect(applied.buddyNameFilter, 'Alex');
     expect(applied.minBottomTimeMinutes, 20);
     expect(applied.maxBottomTimeMinutes, 60);
+  });
+
+  testWidgets('unreadable depth keeps the typed bound and shows the error '
+      '(#1900)', (tester) async {
+    final ref = await openSheet(tester);
+
+    final depthFields = find.byWidgetPredicate(
+      (w) => w is TextField && w.decoration?.suffixText == 'm',
+    );
+    await scrollTo(tester, find.text('Depth Range (m)'));
+    await tester.enterText(depthFields.first, '10');
+    await tester.enterText(depthFields.first, '1..0');
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    await tapText(tester, 'Apply Filters');
+    expect(
+      ref.read(filterProvider).minDepth,
+      10,
+      reason: 'unreadable text used to clear the bound silently',
+    );
+  });
+
+  testWidgets('every numeric bound: blank clears, a typo keeps the last '
+      'readable bound (#1900)', (tester) async {
+    final previousLocale = Intl.defaultLocale;
+    addTearDown(() => Intl.defaultLocale = previousLocale);
+    Intl.defaultLocale = 'en_US';
+    final ref = await openSheet(tester);
+
+    Finder bySuffix(String suffix, int index) => find
+        .byWidgetPredicate(
+          (w) => w is TextField && w.decoration?.suffixText == suffix,
+        )
+        .at(index);
+
+    // The section header is scrolled in first, so the indexed field exists.
+    Future<void> cycle(Finder field, String value) async {
+      await tester.ensureVisible(field);
+      await tester.pumpAndSettle();
+      await tester.enterText(field, '');
+      await tester.enterText(field, value);
+      await tester.enterText(field, '$value..');
+      await tester.pumpAndSettle();
+    }
+
+    await scrollTo(tester, find.text('Depth Range (m)'));
+    await cycle(bySuffix('m', 0), '10');
+    await cycle(bySuffix('m', 1), '30');
+    await scrollTo(tester, find.text('Duration (minutes)'));
+    await cycle(bySuffix('min', 0), '20');
+    await cycle(bySuffix('min', 1), '60');
+    await tapText(tester, 'Apply Filters');
+    final applied = ref.read(filterProvider);
+    expect(applied.minDepth, 10);
+    expect(applied.maxDepth, 30);
+    expect(applied.minBottomTimeMinutes, 20);
+    expect(applied.maxBottomTimeMinutes, 60);
+  });
+
+  testWidgets('suit-thickness bounds: blank clears, a typo keeps the last '
+      'readable bound (#1900)', (tester) async {
+    final previousLocale = Intl.defaultLocale;
+    addTearDown(() => Intl.defaultLocale = previousLocale);
+    Intl.defaultLocale = 'en_US';
+    final ref = await openSheet(tester);
+
+    await scrollTo(tester, find.text('Suit thickness (mm)'));
+    final thickness = find.byWidgetPredicate(
+      (w) =>
+          w is TextField &&
+          (w.decoration?.labelText == 'Min' ||
+              w.decoration?.labelText == 'Max') &&
+          w.decoration?.suffixText == null,
+    );
+    for (final (index, value) in [(0, '3'), (1, '7')]) {
+      final field = thickness.at(index);
+      await tester.ensureVisible(field);
+      await tester.pumpAndSettle();
+      await tester.enterText(field, '');
+      await tester.enterText(field, value);
+      await tester.enterText(field, '$value..');
+      await tester.pumpAndSettle();
+    }
+
+    await tapText(tester, 'Apply Filters');
+    expect(ref.read(filterProvider).equipmentAttrConditions, [
+      EquipmentAttrCondition.suitThickness(min: 3, max: 7),
+    ]);
   });
 
   testWidgets('favorites, tags, gas-mix and rating selectors', (tester) async {

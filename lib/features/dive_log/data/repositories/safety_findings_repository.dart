@@ -5,13 +5,15 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/domain/services/safety_finding_identity.dart';
 
 /// Persistence for post-dive safety reviews.
 ///
 /// dive_safety_reviews is the "analyzed" marker (one row per analyzed dive);
-/// dive_safety_findings holds the observations. Both are write-once children
-/// of dives (no HLC columns): sync integrity comes from markRecordPending on
-/// writes and per-row logDeletion on deletes, mirroring DiveProfileEvents.
+/// dive_safety_findings holds the observations. Both are children of dives
+/// that sync on their own: every write marks the row itself pending, and a
+/// finding that stops firing is tombstoned. A recompute diffs against the
+/// stored findings rather than replacing them (see [saveReview]).
 class SafetyFindingsRepository {
   // Lazy getter (not a captured instance) so a restore that swaps the
   // DatabaseService database is picked up, matching DiveRepository.
@@ -46,54 +48,200 @@ class SafetyFindingsRepository {
     );
   }
 
-  Future<void> saveReview(SafetyReview review) async {
+  /// Saves [review] by diffing it against the stored findings, and returns
+  /// what is now stored.
+  ///
+  /// A computed finding with the same key as a stored one (rule, span and
+  /// ordinal; see [safetyFindingKeys]) is the same finding: it keeps its id,
+  /// dismissal and creation time, and is written only when its severity,
+  /// value or engine version changed. A recompute that reaches the same
+  /// findings therefore writes no finding row and mints no tombstone
+  /// (#1926). Stored rows that no longer fire are deleted and tombstoned;
+  /// rows whose rule this build does not know came from a newer peer and
+  /// are never touched.
+  Future<SafetyReview> saveReview(SafetyReview review) async {
+    final reviewedAtMs = review.reviewedAt.millisecondsSinceEpoch;
+    final persisted = <SafetyFinding>[];
     await _db.transaction(() async {
-      final existing = await (_db.select(
-        _db.diveSafetyFindings,
-      )..where((t) => t.diveId.equals(review.diveId))).get();
-      await (_db.delete(
-        _db.diveSafetyFindings,
-      )..where((t) => t.diveId.equals(review.diveId))).go();
-      for (final row in existing) {
-        await _syncRepository.logDeletion(
-          entityType: 'diveSafetyFindings',
-          recordId: row.id,
+      final stored =
+          await (_db.select(_db.diveSafetyFindings)
+                ..where((t) => t.diveId.equals(review.diveId))
+                ..orderBy([
+                  (t) => OrderingTerm.asc(t.startTimestamp),
+                  (t) => OrderingTerm.asc(t.id),
+                ]))
+              .get();
+      final known = [
+        for (final row in stored)
+          if (SafetyRuleId.fromDbValue(row.ruleId) != null) row,
+      ];
+      final storedKeys = safetyFindingKeys([
+        for (final r in known)
+          (
+            ruleId: r.ruleId,
+            start: r.startTimestamp,
+            end: r.endTimestamp,
+            value: r.value,
+            severity: r.severity,
+          ),
+      ]);
+      final storedByKey = {
+        for (var i = 0; i < known.length; i++) storedKeys[i]: known[i],
+      };
+      final computedKeys = safetyFindingKeys([
+        for (final f in review.findings)
+          (
+            ruleId: f.ruleId.dbValue,
+            start: f.startTimestamp,
+            end: f.endTimestamp,
+            value: f.value,
+            severity: f.severity.dbValue,
+          ),
+      ]);
+
+      // The stored row each computed finding keeps, decided before any
+      // metadata moves between rows.
+      final keptRows = [
+        for (var i = 0; i < review.findings.length; i++)
+          storedByKey[computedKeys[i]],
+      ];
+      final keptIds = {
+        for (final r in keptRows)
+          if (r != null) r.id,
+      };
+
+      // Two devices that reviewed a dive before ids were deterministic left
+      // the same finding under two random ids. The diff keeps one (the
+      // lowest id, so every device keeps the same one) and drops the other,
+      // and a dismissal made on the dropped copy moves to the kept one. Only
+      // from a copy of the same finding (rule, span, value and severity): a
+      // separate finding that happens to share the span keeps its own state.
+      final droppedDismissals = <(String, int?, int?, double?, String), int>{};
+      for (final r in known) {
+        final at = r.dismissedAt;
+        if (at == null || keptIds.contains(r.id)) continue;
+        droppedDismissals.update(
+          (r.ruleId, r.startTimestamp, r.endTimestamp, r.value, r.severity),
+          (earliest) => at < earliest ? at : earliest,
+          ifAbsent: () => at,
         );
       }
-      final reviewedAtMs = review.reviewedAt.millisecondsSinceEpoch;
-      await _db
-          .into(_db.diveSafetyReviews)
-          .insertOnConflictUpdate(
-            DiveSafetyReviewsCompanion.insert(
-              diveId: review.diveId,
-              engineVersion: review.engineVersion,
-              reviewedAt: reviewedAtMs,
-            ),
-          );
-      await _syncRepository.markRecordPending(
-        entityType: 'diveSafetyReviews',
-        recordId: review.diveId,
-        localUpdatedAt: reviewedAtMs,
-      );
-      // Both safety exporters gate incremental export on the parent dive's
-      // HLC (dives.hlc > hlcSince). A review computed lazily on first view
-      // never touches the dive, so its rows (and their device-local random
-      // ids) would never sync; a later dismiss/restore on another device
-      // would then reference finding ids it never received. Bump the parent
-      // dive's HLC so the freshly computed review propagates and all devices
-      // converge on one set of finding ids, mirroring setDismissed.
-      await _syncRepository.markRecordPending(
-        entityType: 'dives',
-        recordId: review.diveId,
-        localUpdatedAt: reviewedAtMs,
-      );
-      for (final finding in review.findings) {
+
+      final matched = <String>{};
+      final updates = <(String, SafetyFinding, int?)>[];
+      final inserts = <SafetyFinding>[];
+      // Where each insert sits in [persisted], so a renamed one is replaced
+      // there even when it shares an id with a kept row.
+      final insertSlots = <int>[];
+      for (var i = 0; i < review.findings.length; i++) {
+        final computed = review.findings[i];
+        final old = keptRows[i];
+        if (old == null) {
+          inserts.add(computed);
+          insertSlots.add(persisted.length);
+          persisted.add(computed);
+          continue;
+        }
+        matched.add(old.id);
+        final dismissedAt =
+            old.dismissedAt ??
+            droppedDismissals[(
+              old.ruleId,
+              old.startTimestamp,
+              old.endTimestamp,
+              old.value,
+              old.severity,
+            )];
+        persisted.add(
+          SafetyFinding(
+            id: old.id,
+            diveId: review.diveId,
+            ruleId: computed.ruleId,
+            severity: computed.severity,
+            startTimestamp: computed.startTimestamp,
+            endTimestamp: computed.endTimestamp,
+            value: computed.value,
+            engineVersion: computed.engineVersion,
+            dismissedAt: dismissedAt == null
+                ? null
+                : DateTime.fromMillisecondsSinceEpoch(dismissedAt),
+            createdAt: DateTime.fromMillisecondsSinceEpoch(old.createdAt),
+          ),
+        );
+        if (old.severity != computed.severity.dbValue ||
+            old.value != computed.value ||
+            old.engineVersion != computed.engineVersion ||
+            old.dismissedAt != dismissedAt) {
+          updates.add((old.id, computed, dismissedAt));
+        }
+      }
+
+      // An insert never takes the id of a row that stays. A kept row can
+      // hold the deterministic id of another ordinal (its value moved past a
+      // sibling's since it was minted), so the new finding takes the lowest
+      // free ordinal's id instead; every device resolves it the same way.
+      final taken = {...matched};
+      for (var k = 0; k < inserts.length; k++) {
+        final f = inserts[k];
+        if (!taken.contains(f.id)) {
+          taken.add(f.id);
+          continue;
+        }
+        var ordinal = 0;
+        String id;
+        do {
+          id = safetyFindingId(review.diveId, (
+            f.ruleId.dbValue,
+            f.startTimestamp,
+            f.endTimestamp,
+            ordinal++,
+          ));
+        } while (taken.contains(id));
+        taken.add(id);
+        inserts[k] = f.copyWith(id: id);
+        persisted[insertSlots[k]] = inserts[k];
+      }
+
+      // Deletes first, so an insert never meets a row that is about to go.
+      final gone = [
+        for (final r in known)
+          if (!matched.contains(r.id)) r.id,
+      ];
+      if (gone.isNotEmpty) {
+        await (_db.delete(
+          _db.diveSafetyFindings,
+        )..where((t) => t.id.isIn(gone))).go();
+        await _syncRepository.logDeletions(
+          entityType: 'diveSafetyFindings',
+          recordIds: gone,
+        );
+      }
+
+      for (final (id, computed, dismissedAt) in updates) {
+        await (_db.update(
+          _db.diveSafetyFindings,
+        )..where((t) => t.id.equals(id))).write(
+          DiveSafetyFindingsCompanion(
+            severity: Value(computed.severity.dbValue),
+            value: Value(computed.value),
+            engineVersion: Value(computed.engineVersion),
+            dismissedAt: Value(dismissedAt),
+          ),
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveSafetyFindings',
+          recordId: id,
+          localUpdatedAt: reviewedAtMs,
+        );
+      }
+
+      for (final finding in inserts) {
         await _db
             .into(_db.diveSafetyFindings)
             .insert(
               DiveSafetyFindingsCompanion.insert(
                 id: finding.id,
-                diveId: finding.diveId,
+                diveId: review.diveId,
                 ruleId: finding.ruleId.dbValue,
                 severity: finding.severity.dbValue,
                 startTimestamp: Value(finding.startTimestamp),
@@ -104,14 +252,53 @@ class SafetyFindingsRepository {
                 createdAt: finding.createdAt.millisecondsSinceEpoch,
               ),
             );
+        // Ids are deterministic, so a finding that stopped firing (and was
+        // tombstoned) returns under the same id. Left in place, that
+        // tombstone would ride the next changeset beside the row and delete
+        // it on every peer.
+        await _syncRepository.removeDeletion(
+          entityType: 'diveSafetyFindings',
+          recordId: finding.id,
+        );
         await _syncRepository.markRecordPending(
           entityType: 'diveSafetyFindings',
           recordId: finding.id,
           localUpdatedAt: finding.createdAt.millisecondsSinceEpoch,
         );
       }
+
+      await _db
+          .into(_db.diveSafetyReviews)
+          .insertOnConflictUpdate(
+            DiveSafetyReviewsCompanion.insert(
+              diveId: review.diveId,
+              engineVersion: review.engineVersion,
+              reviewedAt: reviewedAtMs,
+            ),
+          );
+      // A profile change tombstones the marker (clearReviewForDive); the
+      // recompute brings it back under the same key.
+      await _syncRepository.removeDeletion(
+        entityType: 'diveSafetyReviews',
+        recordId: review.diveId,
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveSafetyReviews',
+        recordId: review.diveId,
+        localUpdatedAt: reviewedAtMs,
+      );
+      // No parent-dive bump: both safety tables export their pending rows on
+      // their own (SyncDataSerializer.parentGatedChildEntities), and
+      // re-stamping the dive for a child-only change lets this device's
+      // stale dive row beat a peer's newer edit (#1769).
     });
     SyncEventBus.notifyLocalChange();
+    return SafetyReview(
+      diveId: review.diveId,
+      engineVersion: review.engineVersion,
+      reviewedAt: review.reviewedAt,
+      findings: persisted,
+    );
   }
 
   Future<void> setDismissed({
@@ -186,10 +373,18 @@ class SafetyFindingsRepository {
           start,
           end < diveIds.length ? end : diveIds.length,
         );
+        // Only dives with a current review: clearReviewForDive keeps an
+        // invalidated review's findings for the recompute to diff against
+        // (#1926), and nothing shows them until then.
         Expression<bool> pending($DiveSafetyFindingsTable t) =>
             t.diveId.isIn(chunk) &
             t.ruleId.isIn(ruleIds) &
-            (dismissed ? t.dismissedAt.isNull() : t.dismissedAt.isNotNull());
+            (dismissed ? t.dismissedAt.isNull() : t.dismissedAt.isNotNull()) &
+            existsQuery(
+              _db.selectOnly(_db.diveSafetyReviews)
+                ..addColumns([_db.diveSafetyReviews.diveId])
+                ..where(_db.diveSafetyReviews.diveId.equalsExp(t.diveId)),
+            );
 
         await _db.transaction(() async {
           // Read the affected ids first: the UPDATE below cannot report which
@@ -235,26 +430,18 @@ class SafetyFindingsRepository {
     return changed;
   }
 
-  /// Invalidation hook for profile writes: drops the review so the next view
-  /// recomputes against the new profile. Static so both dive repositories
+  /// Invalidation hook for profile writes: drops the review marker so the
+  /// next view recomputes against the new profile. The findings rows stay,
+  /// so that recompute diffs against them and a re-import reaching the same
+  /// findings mints no tombstones (#1926). Readers gate on the marker:
+  /// [getReview] returns null without one, and the dive list's badge counts
+  /// findings only on dives that have one. Static so both dive repositories
   /// can call it without holding a SafetyFindingsRepository.
   static Future<void> clearReviewForDive(
     AppDatabase db,
     SyncRepository sync,
     String diveId,
   ) async {
-    final existing = await (db.select(
-      db.diveSafetyFindings,
-    )..where((t) => t.diveId.equals(diveId))).get();
-    await (db.delete(
-      db.diveSafetyFindings,
-    )..where((t) => t.diveId.equals(diveId))).go();
-    for (final row in existing) {
-      await sync.logDeletion(
-        entityType: 'diveSafetyFindings',
-        recordId: row.id,
-      );
-    }
     final deletedMarker = await (db.delete(
       db.diveSafetyReviews,
     )..where((t) => t.diveId.equals(diveId))).go();

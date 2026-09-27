@@ -4,6 +4,7 @@ import 'package:http/testing.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/gas_model.dart';
@@ -29,6 +30,8 @@ import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.d
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
@@ -197,6 +200,16 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setPpO2Limits(double working, double max) async =>
       state = state.copyWith(ppO2MaxWorking: working, ppO2MaxDeco: max);
+  @override
+  Future<void> setCcrPpO2Limits({
+    required double setpointLow,
+    required double setpointHigh,
+    required double diluentModPpO2,
+  }) async => state = state.copyWith(
+    ccrSetpointLow: setpointLow,
+    ccrSetpointHigh: setpointHigh,
+    ccrDiluentModPpO2: diluentModPpO2,
+  );
   @override
   Future<void> setCnsWarningThreshold(int value) async =>
       state = state.copyWith(cnsWarningThreshold: value);
@@ -679,6 +692,8 @@ Future<List<Override>> getBaseOverrides({
   PreDiveSession? linkedPreDiveSession,
   Map<int, TripDayWeather>? tripDayWeather,
   List<TankPresetEntity>? tankPresets,
+  NavTrack? primaryNavTrack,
+  IncomingLinkSource? incomingLinks,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -687,6 +702,10 @@ Future<List<Override>> getBaseOverrides({
     sharedPreferencesProvider.overrideWithValue(prefs),
     settingsProvider.overrideWith(
       (ref) => settingsNotifier ?? MockSettingsNotifier(),
+    ),
+    // Widget tests of the app root must never reach the app_links channel.
+    incomingLinkSourceProvider.overrideWithValue(
+      incomingLinks ?? const NoIncomingLinks(),
     ),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     // The Dives app-bar data-quality badge watches a live Drift stream; stub
@@ -703,6 +722,14 @@ Future<List<Override>> getBaseOverrides({
     // and a database that widget tests do not have.
     preDiveSessionForDiveProvider.overrideWith(
       (ref, diveId) async => linkedPreDiveSession,
+    ),
+    // spatialReckonedPathProvider checks for a linked underwater route
+    // ahead of dead reckoning; without this it reaches the real repository
+    // and a database widget tests do not have. Defaults to null (no linked
+    // route, falling back to dead reckoning); pass primaryNavTrack to
+    // exercise the nav-track branch.
+    primaryNavTrackForDiveProvider.overrideWith(
+      (ref, diveId) async => primaryNavTrack,
     ),
     // Weather/elevation lookups must never hit the network in widget tests;
     // the default stub fails fast so altitude auto-fill resolves to null.

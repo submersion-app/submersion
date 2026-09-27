@@ -374,7 +374,7 @@ class RockBottomCalculator extends ConsumerWidget {
                             .l10n
                             .gasCalculators_rockBottom_combinedStressedSac,
                         '${units.convertVolume(sac + buddySac).toStringAsFixed(isMetricVolume ? 0 : 2)} '
-                        '$volumeSymbol/min',
+                        '${units.rmvSymbol}',
                       ),
                       if (solveMinutes > 0)
                         _buildBreakdownRow(

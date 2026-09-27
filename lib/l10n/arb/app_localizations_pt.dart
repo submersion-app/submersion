@@ -9,6 +9,164 @@ class AppLocalizationsPt extends AppLocalizations {
   AppLocalizationsPt([String locale = 'pt']) : super(locale);
 
   @override
+  String get equipment_filter_owner_all => 'Todos';
+
+  @override
+  String get equipment_delete_notOwner =>
+      'Só o proprietário pode eliminar este item';
+
+  @override
+  String get equipment_sharedWithMe => 'Partilhado comigo';
+
+  @override
+  String get equipment_owner_unknown => 'Outro perfil';
+
+  @override
+  String equipment_ownerChip_semanticLabel(String name) {
+    return 'Pertence a $name';
+  }
+
+  @override
+  String equipment_picker_ownerHeader(String name) {
+    return 'De $name';
+  }
+
+  @override
+  String get equipment_sharing_sharedWithLabel => 'Partilhado com';
+
+  @override
+  String get equipment_sharing_notShared => 'Não partilhado';
+
+  @override
+  String get equipment_sharing_ownedByLabel => 'Proprietário';
+
+  @override
+  String get equipment_sharing_dialogTitle => 'Partilhar com';
+
+  @override
+  String get equipment_sharing_dialogBody =>
+      'Os perfis escolhidos podem adicionar este equipamento aos seus mergulhos e registar a sua manutenção. Só o proprietário o pode eliminar ou alterar com quem é partilhado.';
+
+  @override
+  String get equipment_bulkShare_action => 'Partilhar com...';
+
+  @override
+  String equipment_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens partilhados',
+      one: '$count item partilhado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens partilhados',
+      one: '$count item partilhado',
+    );
+    return '$_temp0, $skipped ignorados que não são seus';
+  }
+
+  @override
+  String equipment_bulkDelete_partial(int deleted, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      deleted,
+      locale: localeName,
+      other: '$deleted itens eliminados',
+      one: '$deleted item eliminado',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other:
+          '$skipped itens partilhados foram mantidos: só os proprietários os podem eliminar',
+      one:
+          '$skipped item partilhado foi mantido: só o proprietário o pode eliminar',
+    );
+    return '$_temp0. $_temp1';
+  }
+
+  @override
+  String get equipment_filter_section_owner => 'Proprietário';
+
+  @override
+  String get equipment_filter_owner_mine => 'Meus';
+
+  @override
+  String get enum_equipmentField_owner => 'Proprietário';
+
+  @override
+  String get enum_equipmentField_owner_short => 'Proprietário';
+
+  @override
+  String get equipment_set_noLongerShared => 'Já não é partilhado';
+
+  @override
+  String get equipment_history_title => 'Histórico';
+
+  @override
+  String get equipment_history_empty => 'Ainda não usado em nenhum mergulho';
+
+  @override
+  String get equipment_history_deletedProfile => 'um perfil eliminado';
+
+  @override
+  String equipment_history_runDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '$count mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_history_dateRange(String from, String to) {
+    return '$from a $to';
+  }
+
+  @override
+  String equipment_history_added(String name) {
+    return 'Adicionado por $name';
+  }
+
+  @override
+  String equipment_history_shared(String name) {
+    return 'Partilhado com $name';
+  }
+
+  @override
+  String equipment_history_unshared(String name) {
+    return 'Deixou de ser partilhado com $name';
+  }
+
+  @override
+  String equipment_history_transferred(String from, String to) {
+    return 'Transferido de $from para $to';
+  }
+
+  @override
+  String get settings_shareAllEquipment_title =>
+      'Partilhar todo o meu equipamento...';
+
+  @override
+  String settings_shareAllEquipment_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Partilhe os seus $count itens com os perfis escolhidos.',
+      one: 'Partilhe o seu item com os perfis escolhidos.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'Não foi possível abrir o navegador. Use Copiar link e cole o endereço no navegador.';
 
@@ -251,6 +409,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Se este conjunto incluir um computador de mergulho, adiciona automaticamente todo o conjunto a uma imersão descarregada ou importada dele';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'Mostra o equipamento deste conjunto num mergulhador na sua página';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title =>
+      'Mostrar figura do mergulhador';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geocercas';
 
   @override
@@ -291,6 +457,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Padrão';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'Ocultar figura do mergulhador';
+
+  @override
+  String get equipment_setDetail_showFigure => 'Mostrar figura do mergulhador';
 
   @override
   String get equipment_setDetail_setAsDefault => 'Definir como padrão';
@@ -2091,7 +2263,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_detail_label_agency => 'Agência';
 
   @override
-  String get certifications_detail_label_alsoRecognized => 'Also recognized as';
+  String get certifications_detail_label_alsoRecognized =>
+      'Também reconhecida como';
 
   @override
   String get certifications_detail_label_cardNumber => 'Número do Cartão';
@@ -2210,7 +2383,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String certifications_ecard_alsoRecognized(String recognitions) {
-    return 'Also: $recognitions';
+    return 'Também: $recognitions';
   }
 
   @override
@@ -2316,10 +2489,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_edit_label_agency => 'Agência *';
 
   @override
-  String get certifications_edit_addRecognition => 'Add another recognition';
+  String get certifications_edit_addRecognition =>
+      'Adicionar outro reconhecimento';
 
   @override
-  String get certifications_edit_removeRecognition => 'Remove this recognition';
+  String get certifications_edit_removeRecognition =>
+      'Remover este reconhecimento';
 
   @override
   String get certifications_edit_label_cardNumber => 'Número do Cartão';
@@ -8946,13 +9121,13 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh =>
-      'Profundidade Narcótica Equivalente muito alta';
+  String divePlanner_warning_endExceedsLimit(Object depth, Object limit) {
+    return 'END de $depth excede o limite de $limit';
+  }
 
   @override
-  String divePlanner_warning_endHighWithDepth(Object depth) {
-    return 'END de $depth excede o limite seguro';
-  }
+  String get divePlanner_warning_endHigh =>
+      'Profundidade Narcótica Equivalente muito alta';
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
@@ -12184,6 +12359,77 @@ class AppLocalizationsPt extends AppLocalizations {
   String get passport_tag_linked => 'Etiqueta vinculada';
 
   @override
+  String get passport_scan_title => 'Ler etiqueta do cilindro';
+
+  @override
+  String get passport_scan_hint =>
+      'Aponte a câmera para a etiqueta ou cole o link da etiqueta.';
+
+  @override
+  String get passport_scan_cameraUnavailable =>
+      'A câmera não está disponível aqui. Cole o link da etiqueta.';
+
+  @override
+  String get passport_scan_linkLabel => 'Link da etiqueta';
+
+  @override
+  String get passport_scan_paste => 'Colar';
+
+  @override
+  String get passport_scan_open => 'Abrir';
+
+  @override
+  String get passport_scan_openFailed =>
+      'Não foi possível abrir a etiqueta. Tente novamente.';
+
+  @override
+  String get passport_scan_newerFormat =>
+      'Esta etiqueta foi escrita por uma versão mais recente do Submersion. Alguns detalhes podem estar faltando.';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return 'Preenchido a partir de $name';
+  }
+
+  @override
+  String get passport_foreign_title => 'Etiqueta do cilindro';
+
+  @override
+  String get passport_foreign_notInGear =>
+      'Este cilindro não está no seu equipamento.';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return 'Conforme escrito na etiqueta em $date';
+  }
+
+  @override
+  String get passport_foreign_noDetails =>
+      'A etiqueta não traz detalhes além da sua identificação.';
+
+  @override
+  String get passport_foreign_o2Clean =>
+      'Limpo para O2 quando a etiqueta foi escrita';
+
+  @override
+  String get passport_foreign_useOnDive => 'Usar em um mergulho';
+
+  @override
+  String get passport_foreign_addToGear => 'Adicionar ao meu equipamento';
+
+  @override
+  String get passport_foreign_addFailed =>
+      'Não foi possível adicionar o cilindro. Tente novamente.';
+
+  @override
+  String get passport_foreign_defaultName => 'Cilindro';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return 'Nº de série $serial';
+  }
+
+  @override
   String get passport_logFill_date => 'Carregado em';
 
   @override
@@ -12215,11 +12461,472 @@ class AppLocalizationsPt extends AppLocalizations {
       'O2 e He devem estar entre 0 e 100 e somar no máximo 100';
 
   @override
-  String get passport_logFill_invalidNumber => 'Digite um número';
-
-  @override
   String get passport_logFill_saveFailed =>
       'Não foi possível salvar a carga. Tente novamente.';
+
+  @override
+  String get pdf_unknownSite => 'Ponto Desconhecido';
+
+  @override
+  String get pdf_signaturePlaceholder => '[Assinatura]';
+
+  @override
+  String get pdf_signerBuddy => 'Dupla';
+
+  @override
+  String get pdf_signerInstructor => 'Instrutor';
+
+  @override
+  String get pdf_officialStamp => 'Carimbo Oficial';
+
+  @override
+  String get pdf_certifications => 'Certificações';
+
+  @override
+  String pdf_cardNumber(String number) {
+    return 'Nº do Cartão: $number';
+  }
+
+  @override
+  String pdf_certIssued(String date) {
+    return 'Emissão: $date';
+  }
+
+  @override
+  String pdf_certExpires(String date) {
+    return 'Validade: $date';
+  }
+
+  @override
+  String get pdf_cardFront => 'Frente';
+
+  @override
+  String get pdf_cardBack => 'Verso';
+
+  @override
+  String pdf_coverDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Mergulhos',
+      one: '$count Mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_headerDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '$count mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_generatedOn(String dateTime) {
+    return 'Gerado em $dateTime';
+  }
+
+  @override
+  String pdf_generated(String dateTime) {
+    return 'Gerado em $dateTime';
+  }
+
+  @override
+  String get pdf_noDivesToSummarize => 'Nenhum mergulho para resumir';
+
+  @override
+  String get pdf_noDivesToDisplay => 'Nenhum mergulho para exibir';
+
+  @override
+  String get pdf_summary => 'Resumo';
+
+  @override
+  String get pdf_totalDives => 'Total de Mergulhos';
+
+  @override
+  String get pdf_firstDive => 'Primeiro Mergulho';
+
+  @override
+  String get pdf_lastDive => 'Último Mergulho';
+
+  @override
+  String get pdf_totalDiveTime => 'Tempo Total de Mergulho';
+
+  @override
+  String get pdf_deepestDive => 'Mergulho Mais Profundo';
+
+  @override
+  String get pdf_blenderIncomplete =>
+      'Incompleto: uma ou mais linhas não têm preço.';
+
+  @override
+  String get pdf_averageDepth => 'Profundidade Média';
+
+  @override
+  String get pdf_uniqueSites => 'Pontos Distintos';
+
+  @override
+  String pdf_hoursMinutes(String hours, String minutes) {
+    return '${hours}h ${minutes}min';
+  }
+
+  @override
+  String pdf_minutesShort(String minutes) {
+    return '${minutes}min';
+  }
+
+  @override
+  String pdf_minutes(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String pdf_minutesCompact(String minutes) {
+    return '${minutes}min';
+  }
+
+  @override
+  String get pdf_diverProfile => 'Perfil do Mergulhador';
+
+  @override
+  String get pdf_name => 'Nome';
+
+  @override
+  String get pdf_email => 'E-mail';
+
+  @override
+  String get pdf_photo => 'Foto';
+
+  @override
+  String pdf_depthProfileHeading(String depthUnit) {
+    return 'Perfil de Profundidade ($depthUnit vs min)';
+  }
+
+  @override
+  String get pdf_columnDate => 'Data';
+
+  @override
+  String get pdf_columnSite => 'Ponto';
+
+  @override
+  String get pdf_columnDepth => 'Prof.';
+
+  @override
+  String get pdf_columnTime => 'Tempo';
+
+  @override
+  String get pdf_columnTemp => 'Temp';
+
+  @override
+  String pdf_pageOf(String page, String total) {
+    return 'Página $page de $total';
+  }
+
+  @override
+  String get pdf_sectionProfile => 'Perfil';
+
+  @override
+  String get pdf_sectionCylinders => 'Cilindros';
+
+  @override
+  String get pdf_sectionConditions => 'Condições';
+
+  @override
+  String get pdf_sectionWeather => 'Clima';
+
+  @override
+  String get pdf_sectionTeam => 'Equipe';
+
+  @override
+  String get pdf_sectionEquipment => 'Equipamentos';
+
+  @override
+  String get pdf_sectionTechnical => 'Técnico';
+
+  @override
+  String get pdf_sectionMarineLife => 'Vida Marinha';
+
+  @override
+  String get pdf_sectionNotes => 'Anotações';
+
+  @override
+  String get pdf_sectionAdditionalFields => 'Campos Adicionais';
+
+  @override
+  String get pdf_sectionVerifiedBy => 'Verificado Por';
+
+  @override
+  String get pdf_sectionVerification => 'Verificação';
+
+  @override
+  String get pdf_maxDepth => 'Prof. Máxima';
+
+  @override
+  String get pdf_avgDepth => 'Prof. Média';
+
+  @override
+  String get pdf_runtime => 'Tempo Total';
+
+  @override
+  String get pdf_bottomTime => 'Tempo de Fundo';
+
+  @override
+  String get pdf_timeIn => 'Entrada';
+
+  @override
+  String get pdf_timeOut => 'Saída';
+
+  @override
+  String get pdf_surfaceInterval => 'Intervalo de Superfície';
+
+  @override
+  String get pdf_sac => 'SAC';
+
+  @override
+  String get pdf_rmv => 'RMV';
+
+  @override
+  String pdf_pressureUsed(String pressure) {
+    return '$pressure usados';
+  }
+
+  @override
+  String pdf_cylinderNumber(String number) {
+    return 'Cilindro $number';
+  }
+
+  @override
+  String get pdf_waterTemp => 'Temp da Água';
+
+  @override
+  String get pdf_airTemp => 'Temp do Ar';
+
+  @override
+  String get pdf_visibility => 'Visibilidade';
+
+  @override
+  String get pdf_current => 'Corrente';
+
+  @override
+  String get pdf_currentDirection => 'Dir. Corrente';
+
+  @override
+  String get pdf_waterType => 'Tipo de Água';
+
+  @override
+  String get pdf_entry => 'Entrada';
+
+  @override
+  String get pdf_exit => 'Saída';
+
+  @override
+  String get pdf_altitude => 'Altitude';
+
+  @override
+  String get pdf_buddy => 'Dupla';
+
+  @override
+  String get pdf_diveMaster => 'Dive Master';
+
+  @override
+  String get pdf_diveCenter => 'Centro de Mergulho';
+
+  @override
+  String get pdf_trip => 'Viagem';
+
+  @override
+  String get pdf_weight => 'Lastro';
+
+  @override
+  String get pdf_weightType => 'Tipo de Lastro';
+
+  @override
+  String pdf_equipmentSets(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Conjuntos',
+      one: 'Conjunto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pdf_computer => 'Computador';
+
+  @override
+  String get pdf_diveMode => 'Modo de Mergulho';
+
+  @override
+  String get pdf_algorithm => 'Algoritmo';
+
+  @override
+  String get pdf_gradientFactors => 'Fatores de Gradiente';
+
+  @override
+  String get pdf_setpoint => 'Setpoint';
+
+  @override
+  String get pdf_diveType => 'Tipo de Mergulho';
+
+  @override
+  String get pdf_weatherConditions => 'Condições';
+
+  @override
+  String get pdf_wind => 'Vento';
+
+  @override
+  String get pdf_windDirection => 'Dir. Vento';
+
+  @override
+  String get pdf_cloud => 'Nuvens';
+
+  @override
+  String get pdf_precipitation => 'Precipitação';
+
+  @override
+  String get pdf_humidity => 'Umidade';
+
+  @override
+  String get pdf_swell => 'Ondulação';
+
+  @override
+  String get pdf_instructorSignature => 'Assinatura do Instrutor';
+
+  @override
+  String get pdf_buddySignature => 'Assinatura da Dupla';
+
+  @override
+  String get pdf_diveLogBanner => 'DIÁRIO DE MERGULHO';
+
+  @override
+  String get pdf_loggedDives => 'Mergulhos Registrados';
+
+  @override
+  String pdf_diveNumber(String number) {
+    return 'Mergulho #$number';
+  }
+
+  @override
+  String get pdf_trainingBadge => 'TREINAMENTO';
+
+  @override
+  String get pdf_gas => 'Gás';
+
+  @override
+  String get pdf_visibilityShort => 'Vis';
+
+  @override
+  String get pdf_air => 'Ar';
+
+  @override
+  String get pdf_water => 'Água';
+
+  @override
+  String get pdf_verifiedBy => 'Verificado por';
+
+  @override
+  String get pdf_nauiDiveLogBanner => 'DIÁRIO DE MERGULHO NAUI';
+
+  @override
+  String get pdf_statDives => 'Mergulhos';
+
+  @override
+  String get pdf_statHours => 'Horas';
+
+  @override
+  String get pdf_avgShort => 'Média';
+
+  @override
+  String get pdf_pressureStart => 'Início';
+
+  @override
+  String get pdf_pressureEnd => 'Fim';
+
+  @override
+  String pdf_surfaceIntervalShort(String minutes) {
+    return 'IS: ${minutes}min';
+  }
+
+  @override
+  String get pdf_diveDataHeading => 'DADOS DO MERGULHO';
+
+  @override
+  String get pdf_verificationHeading => 'VERIFICAÇÃO';
+
+  @override
+  String pdf_labelValue(String label, String value) {
+    return '$label: $value';
+  }
+
+  @override
+  String get pdf_resort => 'Resort';
+
+  @override
+  String get pdf_liveaboard => 'Liveaboard';
+
+  @override
+  String get pdf_totalRuntime => 'Tempo Total Acumulado';
+
+  @override
+  String pdf_tripDiveTitle(String number) {
+    return 'Mergulho $number';
+  }
+
+  @override
+  String get pdf_date => 'Data';
+
+  @override
+  String get pdf_site => 'Ponto';
+
+  @override
+  String get pdf_duration => 'Duração';
+
+  @override
+  String get pdf_notesLabel => 'Anotações:';
+
+  @override
+  String get pdf_trainingLog => 'Registro de Treinamento';
+
+  @override
+  String get pdf_instructor => 'Instrutor';
+
+  @override
+  String get pdf_instructorNumber => 'Instrutor nº';
+
+  @override
+  String get pdf_location => 'Local';
+
+  @override
+  String get pdf_startDate => 'Data de Início';
+
+  @override
+  String get pdf_completionDate => 'Data de Conclusão';
+
+  @override
+  String get pdf_status => 'Status';
+
+  @override
+  String get pdf_statusCompleted => 'Concluído';
+
+  @override
+  String get pdf_statusInProgress => 'Em Andamento';
+
+  @override
+  String get pdf_trainingDives => 'Mergulhos de Treinamento';
+
+  @override
+  String get pdf_totalMinutes => 'Total de Minutos';
+
+  @override
+  String get pdf_courseNotes => 'Anotações do Curso';
+
+  @override
+  String get pdf_slateMax => 'máx';
 
   @override
   String equipment_bulkTags_confirmAdding(int count) {
@@ -12833,6 +13540,17 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String trips_gearAlerts_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count alertas de equipamento para esta viagem',
+      one: '$count alerta de equipamento para esta viagem',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -13087,9 +13805,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_edit_purchasePriceLabel => 'Preço de Compra';
 
   @override
-  String get equipment_edit_purchasePriceValidation => 'Insira um valor válido';
-
-  @override
   String get equipment_edit_remindMeBeforeServiceDue =>
       'Lembrar-me antes da manutenção:';
 
@@ -13186,6 +13901,35 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'Adicionar Conjunto';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'Costas · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'Frente · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens',
+      one: '$count item',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'Também levado';
 
   @override
   String get equipment_list_emptyState_addFirstButton =>
@@ -14174,8 +14918,205 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gasCalculators_mod_aboutMod => 'Sobre MOD';
 
   @override
-  String get gasCalculators_mod_aboutModBody =>
-      'Menos O₂ = MOD mais profunda = NDL mais curto';
+  String get gasCalculators_mod_mode => 'Modo';
+
+  @override
+  String get gasCalculators_mod_modeRecHint =>
+      'Nitrox para mergulho recreativo: MOD e EAD, com 1 bar a cada 10 m como no registo.';
+
+  @override
+  String get gasCalculators_mod_modeOcTecHint =>
+      'Trimix em circuito aberto: MOD, profundidade mínima, narcose e densidade do gás.';
+
+  @override
+  String get gasCalculators_mod_modeCcrTecHint =>
+      'Circuito fechado: a mistura é o diluente. A MOD é a do diluente numa purga; o loop mantém o setpoint.';
+
+  @override
+  String get gasCalculators_mod_heliumHe => 'Hélio (He)';
+
+  @override
+  String get gasCalculators_mod_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_mod_limitsTitle => 'Limites de ppO₂';
+
+  @override
+  String get gasCalculators_mod_workingPpO2 => 'ppO₂ de trabalho';
+
+  @override
+  String get gasCalculators_mod_decoPpO2 => 'ppO₂ de descompressão';
+
+  @override
+  String get gasCalculators_mod_flushPpO2 =>
+      'ppO₂ para a MOD do diluente (purga)';
+
+  @override
+  String get gasCalculators_mod_minPpO2 => 'ppO₂ mínima (misturas hipóxicas)';
+
+  @override
+  String get gasCalculators_mod_fromProfile => 'Do teu perfil de mergulhador';
+
+  @override
+  String gasCalculators_mod_differsFromProfile(String value) {
+    return 'Diferente do teu perfil ($value bar)';
+  }
+
+  @override
+  String get gasCalculators_mod_useProfileValue => 'Usar valor do perfil';
+
+  @override
+  String get gasCalculators_mod_checkTargetDepth =>
+      'Verificar também uma profundidade alvo';
+
+  @override
+  String get gasCalculators_mod_targetDepth => 'Profundidade alvo';
+
+  @override
+  String get gasCalculators_mod_diluentMod => 'MOD do diluente (purga)';
+
+  @override
+  String gasCalculators_mod_contingencyMod(String ppO2) {
+    return 'MOD de contingência a $ppO2 bar';
+  }
+
+  @override
+  String gasCalculators_mod_decoMod(String ppO2) {
+    return 'MOD com ppO₂ de descompressão $ppO2 bar';
+  }
+
+  @override
+  String gasCalculators_mod_minDepth(String ppO2) {
+    return 'Profundidade mínima com ppO₂ $ppO2 bar';
+  }
+
+  @override
+  String get gasCalculators_mod_fromSurface => 'desde a superfície';
+
+  @override
+  String gasCalculators_mod_mnd(String limit) {
+    return 'MND (limite END $limit)';
+  }
+
+  @override
+  String get gasCalculators_mod_noNarcoticLimit => 'sem limite';
+
+  @override
+  String get gasCalculators_mod_atDepthTitle => 'Em profundidade';
+
+  @override
+  String get gasCalculators_mod_atMod => 'Na MOD';
+
+  @override
+  String get gasCalculators_mod_atTarget => 'Na profundidade alvo';
+
+  @override
+  String get gasCalculators_mod_rowDepth => 'Profundidade';
+
+  @override
+  String get gasCalculators_mod_rowPpO2 => 'ppO₂';
+
+  @override
+  String get gasCalculators_mod_rowEad => 'EAD (N₂ narcótico)';
+
+  @override
+  String get gasCalculators_mod_rowEnd => 'END (N₂ + O₂ narcóticos)';
+
+  @override
+  String get gasCalculators_mod_rowEadd => 'EADD (densidade do ar)';
+
+  @override
+  String get gasCalculators_mod_rowDensity => 'Densidade do gás a 0 °C';
+
+  @override
+  String get gasCalculators_mod_openDensity =>
+      'Abrir na calculadora de densidade';
+
+  @override
+  String get gasCalculators_mod_assessmentTitle => 'Avaliação';
+
+  @override
+  String gasCalculators_mod_recBeyondLimit(String limit) {
+    return 'A MOD fica mais funda do que o limite recreativo de $limit. Lá em baixo, a narcose e a densidade do gás, não o oxigénio, definem o limite.';
+  }
+
+  @override
+  String gasCalculators_mod_recWithinLimit(String limit) {
+    return 'A MOD fica dentro do limite recreativo de $limit.';
+  }
+
+  @override
+  String gasCalculators_mod_targetBeyondMod(String ppO2) {
+    return 'A profundidade alvo é mais funda do que a MOD: ppO₂ $ppO2 bar lá.';
+  }
+
+  @override
+  String get gasCalculators_mod_targetAboveMinDepth =>
+      'A profundidade alvo é menos funda do que a profundidade mínima: a mistura é hipóxica lá.';
+
+  @override
+  String gasCalculators_mod_hypoxic(String depth) {
+    return 'Mistura hipóxica: não a respirar acima de $depth.';
+  }
+
+  @override
+  String gasCalculators_mod_narcosisExceeded(
+    String where,
+    String depth,
+    String limit,
+  ) {
+    return '$where: a profundidade narcótica $depth excede o teu limite END de $limit.';
+  }
+
+  @override
+  String gasCalculators_mod_densityWarn(
+    String where,
+    String density,
+    String limit,
+  ) {
+    return '$where: a densidade do gás $density g/L está acima dos $limit g/L recomendados.';
+  }
+
+  @override
+  String gasCalculators_mod_densityCritical(
+    String where,
+    String density,
+    String limit,
+  ) {
+    return '$where: a densidade do gás $density g/L está acima do limite máximo de $limit g/L.';
+  }
+
+  @override
+  String gasCalculators_mod_targetBeyondDiluentMod(String ppO2) {
+    return 'A profundidade alvo é mais funda do que a MOD do diluente: uma purga lá dá ppO₂ $ppO2 bar.';
+  }
+
+  @override
+  String gasCalculators_mod_diluentAboveSetpoint(String where, String ppO2) {
+    return '$where: o diluente sozinho dá ppO₂ $ppO2 bar, mais do que o setpoint; o loop funciona com a ppO₂ do diluente.';
+  }
+
+  @override
+  String gasCalculators_mod_setpointCapped(String where) {
+    return '$where: o setpoint está acima da pressão ambiente, o loop é oxigénio puro.';
+  }
+
+  @override
+  String get gasCalculators_mod_allClear =>
+      'Dentro dos teus limites de ppO₂, END e densidade nas profundidades verificadas.';
+
+  @override
+  String get gasCalculators_mod_aboutModesBody =>
+      'A MOD é a profundidade a que a mistura atinge o limite de ppO₂. É sempre arredondada para baixo, nunca para cima.\n\nRec usa 1 bar a cada 10 m, como o registo. OC Tec e CCR Tec obtêm a pressão ambiente do tipo de água, como a calculadora de densidade, por isso a mesma mistura pode mostrar lá uma MOD um pouco menos funda.\n\nA EAD conta o azoto como narcótico, a END o azoto e o oxigénio. O teu limite END, se o oxigénio conta como narcótico e os limites de ppO₂ predefinidos vêm do teu perfil de mergulhador.';
+
+  @override
+  String get gasCalculators_mod_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_mod_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_mod_modeCcrTec => 'CCR Tec';
 
   @override
   String get gasCalculators_mod_inputParameters => 'Parâmetros de Entrada';
@@ -14503,11 +15444,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'Preço por 100 $unit';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'Introduza um número válido (separador decimal: \"$separator\")';
   }
 
   @override
@@ -14959,6 +15895,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get marineLife_speciesDetail_sitesLabel => 'Pontos';
+
+  @override
+  String get marineLife_speciesDetail_statsError =>
+      'Não foi possível carregar as estatísticas de avistamentos';
 
   @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
@@ -18887,6 +19827,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_ref_trip => 'Viagem';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'Cilindro da viagem';
+
+  @override
   String get settings_conflict_remoteVersion => 'Versão Remota';
 
   @override
@@ -19056,7 +19999,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Toxicidade do oxigênio';
 
   @override
-  String get settings_decompression_ppO2LimitsTitle => 'Limites de ppO2';
+  String get settings_decompression_ppO2LimitsTitle => 'Limites de ppO2 OC';
 
   @override
   String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
@@ -19064,7 +20007,44 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_ppO2Dialog_title => 'Limites de ppO2';
+  String get settings_decompression_ppO2Dialog_title => 'Limites de ppO2 OC';
+
+  @override
+  String get settings_decompression_ccrPpO2LimitsTitle => 'Limites de ppO2 CCR';
+
+  @override
+  String settings_decompression_ccrPpO2LimitsSubtitle(
+    String low,
+    String high,
+    String dil,
+  ) {
+    return 'Setpoint baixo $low · alto $high · MOD Dil $dil bar';
+  }
+
+  @override
+  String get settings_decompression_ccrDialog_info =>
+      'Valores predefinidos para mergulhos com rebreather. O modo CCR da calculadora de MOD parte destes valores.';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLow => 'Setpoint baixo';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLowHint =>
+      'Perto da superfície, na descida e na subida';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHigh => 'Setpoint alto';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHighHint =>
+      'Em profundidade';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentMod => 'MOD Dil';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentModHint =>
+      'ppO2 que o diluente pode atingir numa purga; define a sua MOD';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>
@@ -23037,6 +24017,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Adicionar caixas de carimbo e assinatura para verificação';
 
   @override
+  String get transfer_pdfExport_languageHeader => 'Idioma';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -23761,11 +24744,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_scrubber_title => 'Margem do absorvente';
 
   @override
-  String trips_scrubber_asOfStart(String date) {
-    return 'à data de $date';
-  }
-
-  @override
   String trips_scrubber_remaining(
     String minutes,
     String rated,
@@ -24396,6 +25374,14 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneTitle =>
+      'Horários dos mergulhos lidos no fuso horário deste dispositivo';
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody =>
+      'O MacDive não salvou um fuso horário legível para estes mergulhos e seus pontos de mergulho não têm posição GPS, então seus horários foram lidos no fuso horário deste dispositivo. Se você fez estes mergulhos em outro lugar, confira seus horários de início.';
+
+  @override
   String get universalImport_summary_unreadableDatesTitle =>
       'Algumas linhas não foram importadas';
 
@@ -24449,6 +25435,9 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get universalImport_summary_importAsRoute => 'Importar como rota';
 
   @override
   String get universalImport_summary_fileNeedsIndividualImport =>
@@ -25771,7 +26760,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveImport_healthkit_accessDescription =>
-      'Submersion uses Apple HealthKit to read underwater diving workout data, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+      'O Submersion usa o Apple HealthKit para ler dados de treinos de mergulho subaquático, incluindo profundidade, duração, temperatura da água e frequência cardíaca, e criar registros de mergulho detalhados.';
 
   @override
   String get diveImport_healthkit_accessRequired => 'Apple HealthKit';
@@ -26050,7 +27039,7 @@ class AppLocalizationsPt extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Subida $from -> $to a $rate/min';
+    return 'Subida $from -> $to a $rate';
   }
 
   @override
@@ -26064,7 +27053,7 @@ class AppLocalizationsPt extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return 'Descida $from -> $to a $rate/min';
+    return 'Descida $from -> $to a $rate';
   }
 
   @override
@@ -27002,11 +27991,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get tools_weight_yourWeight => 'Seu peso';
 
   @override
-  String get settings_section_dataSources_title => 'Data Sources';
+  String get settings_section_dataSources_title => 'Apple HealthKit';
 
   @override
   String get settings_section_dataSources_subtitle =>
-      'Connected services & integrations';
+      'Integração de dados de saúde';
 
   @override
   String get settings_siteMatch_title => 'Associação automática de pontos';
@@ -27033,7 +28022,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_siteMatch_relaxed => 'Flexível';
 
   @override
-  String get settings_dataSources_header => 'Data Sources';
+  String get settings_dataSources_header => 'Integração com o Apple HealthKit';
 
   @override
   String get settings_dataSources_appleHealth_title => 'Apple Health';
@@ -27044,7 +28033,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_description =>
-      'Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+      'O Submersion usa o Apple HealthKit para ler dados de treinos de mergulho subaquático do Apple Health. Esses dados são usados para criar registros de mergulho detalhados dos seus mergulhos com o Apple Watch.';
 
   @override
   String get settings_dataSources_appleHealth_dataTypesHeader =>
@@ -27072,11 +28061,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_importAction =>
-      'Import from Apple Watch';
+      'Importar mergulhos do Apple Watch via HealthKit';
 
   @override
   String get settings_dataSources_appleHealth_privacy =>
-      'Your health data is stored locally and is never shared with third parties.';
+      'Seus dados de saúde são armazenados localmente neste dispositivo e nunca são compartilhados com terceiros. O Submersion apenas lê dados do Apple HealthKit e não grava nenhum dado no HealthKit.';
 
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
@@ -27084,7 +28073,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_dataSources_noSources =>
-      'No data source integrations are available on this platform.';
+      'Nenhuma integração de fonte de dados está disponível nesta plataforma.';
 
   @override
   String get diveLog_edit_section_environment => 'Ambiente';
@@ -27671,6 +28660,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível ressincronizar: o arquivo original não contém mais um mergulho correspondente';
 
   @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Não foi possível ressincronizar: o arquivo original tem um mergulho correspondente para mais de um mergulhador, e este mergulho não registra de qual deles veio';
+
+  @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
       'Não foi possível ressincronizar: ocorreu um erro inesperado ao ler o arquivo original';
 
@@ -27782,7 +28775,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_sharedData_sectionSubtitle =>
-      'Partilhar locais e viagens entre perfis';
+      'Partilhar locais, viagens e equipamento entre perfis';
 
   @override
   String get common_action_unshare => 'Deixar de partilhar';
@@ -28390,6 +29383,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get dive3d_seascape_overlay_walls => 'Paredes íngremes';
 
   @override
+  String get dive3d_seascape_showRoute => 'Mostrar rota';
+
+  @override
   String get dive3d_overlay_water => 'Superfície da água';
 
   @override
@@ -28535,24 +29531,24 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get dive3d_seascape_detailLimitReached =>
-      'This is the most detail available for this location';
+      'Este é o máximo de detalhe disponível para este local';
 
   @override
   String dive3d_seascape_lodStageLabel(String stage, String span) {
-    return 'Level of detail: $stage ($span)';
+    return 'Nível de detalhe: $stage ($span)';
   }
 
   @override
-  String get dive3d_seascape_lodStageOverview => 'Overview';
+  String get dive3d_seascape_lodStageOverview => 'Visão geral';
 
   @override
-  String get dive3d_seascape_lodStageMedium => 'Medium';
+  String get dive3d_seascape_lodStageMedium => 'Médio';
 
   @override
-  String get dive3d_seascape_lodStageFine => 'Fine';
+  String get dive3d_seascape_lodStageFine => 'Fino';
 
   @override
-  String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
+  String get dive3d_seascape_lodStageSuperFine => 'Muito fino';
 
   @override
   String get dive3d_seascape_noData =>
@@ -28675,6 +29671,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get dive3d_spatial_estimatedPath =>
       'Trajeto estimado (navegação estimada)';
+
+  @override
+  String get dive3d_spatial_recordedPath => 'Rota registada';
+
+  @override
+  String dive3d_spatial_recordedPathWithSource(String source) {
+    return 'Rota registada ($source)';
+  }
 
   @override
   String get dive3d_spatial_synthesizedSeafloor => 'Fundo do mar sintetizado';
@@ -29679,7 +30683,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Adicione o volume do cilindro para mostrar o RMV em $unit/min';
+    return 'Adicione o volume do cilindro para mostrar o RMV em $unit';
   }
 
   @override
@@ -30464,9 +31468,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get equipmentConditionSettings_o2Label =>
       'Mistura com O2 elevado acima de (% O2)';
-
-  @override
-  String get equipmentConditionSettings_invalid => 'Introduza um número';
 
   @override
   String get equipmentConditionSettings_saveFailed =>
@@ -41358,7 +42359,25 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_info_statusFound => 'Encontrada neste dispositivo';
 
   @override
+  String get media_info_statusFoundElsewhere =>
+      'Encontrada em outro dispositivo';
+
+  @override
+  String media_info_statusFoundOn(String device) {
+    return 'Encontrada em $device';
+  }
+
+  @override
   String get media_info_statusMissing => 'Ausente neste dispositivo';
+
+  @override
+  String get media_info_statusMissingElsewhere =>
+      'Ausente em outro dispositivo';
+
+  @override
+  String media_info_statusMissingFrom(String device) {
+    return 'Ausente em $device';
+  }
 
   @override
   String get media_info_statusUnchecked => 'Ainda não verificada';
@@ -42157,6 +43176,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get profilePhoto_source_camera => 'Tirar foto';
 
   @override
+  String get common_camera_unavailable =>
+      'Não foi possível abrir a câmera. Permita o acesso à câmera nas Configurações.';
+
+  @override
+  String get common_photo_pickFailed =>
+      'Não foi possível abrir a foto. Tente outra.';
+
+  @override
   String get profilePhoto_source_library => 'Escolher da biblioteca';
 
   @override
@@ -42300,14 +43327,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'O ficheiro que está agora no seu lugar é guardado ao lado, não eliminado.';
+      'O ficheiro que está agora no seu lugar é guardado, não eliminado. Pode restaurá-lo ou eliminá-lo mais tarde em Backup e restauração, nas Definições.';
 
   @override
   String get startup_interruptedRestore_keepAction => 'Manter o que está agora';
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'O seu diário de mergulho anterior fica guardado como ficheiro na pasta da base de dados.';
+      'O seu diário de mergulho anterior fica guardado, não eliminado. Pode restaurá-lo ou eliminá-lo mais tarde em Backup e restauração, nas Definições.';
 
   @override
   String get startup_interruptedRestore_failed =>
@@ -42635,6 +43662,67 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get backup_quarantined_sectionTitle =>
+      'Bases de dados postas de parte';
+
+  @override
+  String get backup_quarantined_explanation =>
+      'Um restauro que não terminou corretamente guardou estas cópias da sua base de dados em vez de as eliminar. Restaure uma para a voltar a usar, ou elimine-a para libertar espaço.';
+
+  @override
+  String get backup_quarantined_kind_preRestore =>
+      'Diário de mergulho de antes de um restauro';
+
+  @override
+  String get backup_quarantined_kind_restoreRejected =>
+      'Diário de mergulho substituído durante uma recuperação';
+
+  @override
+  String backup_quarantined_detail(String date, String size) {
+    return '$date • $size';
+  }
+
+  @override
+  String backup_quarantined_detailWithVersion(
+    String date,
+    String size,
+    int version,
+  ) {
+    return '$date • $size • base de dados v$version';
+  }
+
+  @override
+  String get backup_quarantined_status_needsNewerApp =>
+      'Precisa de uma versão mais recente do Submersion';
+
+  @override
+  String get backup_quarantined_status_unreadable =>
+      'Não pode ser aberta aqui. Pode estar danificada, ou protegida com uma palavra-passe que este dispositivo não tem.';
+
+  @override
+  String get backup_quarantined_status_incomplete =>
+      'Só restam ficheiros de diário; o ficheiro da base de dados desapareceu.';
+
+  @override
+  String get backup_quarantined_delete_title =>
+      'Eliminar esta cópia da base de dados?';
+
+  @override
+  String get backup_quarantined_delete_message =>
+      'A cópia e os seus ficheiros de diário serão eliminados permanentemente deste dispositivo. Esta ação não pode ser anulada.';
+
+  @override
+  String get backup_quarantined_deleted => 'Cópia da base de dados eliminada';
+
+  @override
+  String get backup_quarantined_deleteFailed =>
+      'Não foi possível eliminar a cópia da base de dados.';
+
+  @override
+  String get backup_quarantined_loadFailed =>
+      'Não foi possível verificar a pasta da base de dados à procura de cópias postas de parte.';
+
+  @override
   String settings_storageUsage_unrecognized_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -42709,6 +43797,416 @@ class AppLocalizationsPt extends AppLocalizations {
       'Como o equipamento é agrupado e ordenado num mergulho';
 
   @override
+  String get navTrack_common_loadError =>
+      'Não foi possível carregar esta rota.';
+
+  @override
+  String get navTrack_common_notFound => 'Rota não encontrada.';
+
+  @override
+  String get navTrack_common_cancel => 'Cancelar';
+
+  @override
+  String get navTrack_common_save => 'Salvar';
+
+  @override
+  String get navTrack_common_delete => 'Excluir';
+
+  @override
+  String get navTrack_common_unlink => 'Desvincular';
+
+  @override
+  String get navTrack_common_open3dTooltip => 'Abrir 3D';
+
+  @override
+  String navTrack_common_diveNumber(String number) {
+    return 'Mergulho nº $number';
+  }
+
+  @override
+  String navTrack_common_diveById(String id) {
+    return 'Mergulho $id';
+  }
+
+  @override
+  String get navTrack_common_unlinked => 'sem vínculo';
+
+  @override
+  String get navTrack_align_title => 'Alinhar no mapa';
+
+  @override
+  String get navTrack_align_resetTooltip => 'Redefinir correção';
+
+  @override
+  String get navTrack_align_setStartHere => 'Definir início aqui';
+
+  @override
+  String get navTrack_align_setEndHere => 'Definir fim aqui';
+
+  @override
+  String get navTrack_align_setStartOnMap => 'Definir início no mapa';
+
+  @override
+  String get navTrack_align_fromDiveEntry => 'Da entrada do mergulho';
+
+  @override
+  String get navTrack_align_fromSite => 'Do ponto de mergulho';
+
+  @override
+  String get navTrack_align_fromGps => 'Do GPS';
+
+  @override
+  String get navTrack_align_startLabel => 'Início: ';
+
+  @override
+  String get navTrack_align_endLabel => 'Fim: ';
+
+  @override
+  String get navTrack_align_endMode_none => 'Nenhum';
+
+  @override
+  String get navTrack_align_endMode_sameAsStart => 'Igual ao início';
+
+  @override
+  String get navTrack_align_endMode_point => 'Colocar no mapa';
+
+  @override
+  String get navTrack_align_endMode_gpsFix => 'Do fix de GPS';
+
+  @override
+  String navTrack_align_trustSummary(String distance, int minutes) {
+    return 'Confiança: confiável até $distance, $minutes min';
+  }
+
+  @override
+  String get navTrack_align_rotationLabel => 'Rotação:';
+
+  @override
+  String navTrack_align_rotationDegrees(String degrees) {
+    return '$degrees°';
+  }
+
+  @override
+  String navTrack_terrain_summary(
+    int onLand,
+    int below,
+    int total,
+    int unknown,
+    String maxPart,
+    String coarsePart,
+  ) {
+    return '$onLand pontos em terra, $below de $total abaixo do fundo do mar$maxPart, $unknown desconhecidos$coarsePart';
+  }
+
+  @override
+  String navTrack_terrain_maxPart(String depth) {
+    return ' (máx. $depth)';
+  }
+
+  @override
+  String get navTrack_terrain_coarsePart =>
+      ' (batimetria de baixa resolução: só conflitos em terra foram verificados)';
+
+  @override
+  String get navTrack_detail_renameTitle => 'Renomear rota';
+
+  @override
+  String get navTrack_detail_deleteTitle => 'Excluir rota?';
+
+  @override
+  String get navTrack_detail_deleteMessage => 'Isso não pode ser desfeito.';
+
+  @override
+  String get navTrack_detail_defaultTitle => 'Rota';
+
+  @override
+  String get navTrack_detail_menuRename => 'Renomear';
+
+  @override
+  String get navTrack_detail_menuChangeSite => 'Alterar ponto de mergulho';
+
+  @override
+  String get navTrack_detail_noMapYet =>
+      'Defina o ponto de início para ver isso em um mapa.';
+
+  @override
+  String get navTrack_detail_correctionStatus_none =>
+      'Nenhuma correção aplicada ainda.';
+
+  @override
+  String get navTrack_detail_correctionStatus_sameAsStart =>
+      'Fim definido como igual ao início.';
+
+  @override
+  String get navTrack_detail_correctionStatus_point =>
+      'Ponto final definido no mapa.';
+
+  @override
+  String get navTrack_detail_correctionStatus_gpsFix =>
+      'Fim definido a partir do fix de GPS da gravação.';
+
+  @override
+  String navTrack_detail_device(String name) {
+    return 'Dispositivo: $name';
+  }
+
+  @override
+  String navTrack_detail_equipment(String name) {
+    return 'Equipamento: $name';
+  }
+
+  @override
+  String navTrack_detail_distance(String value) {
+    return 'Distância: $value';
+  }
+
+  @override
+  String navTrack_detail_maxDepth(String value) {
+    return 'Profundidade máx.: $value';
+  }
+
+  @override
+  String navTrack_detail_maxSpeed(String value) {
+    return 'Velocidade máx.: $value';
+  }
+
+  @override
+  String navTrack_detail_avgSpeed(String value) {
+    return 'Velocidade média: $value';
+  }
+
+  @override
+  String navTrack_detail_duration(int hours, int minutes) {
+    return 'Duração: ${hours}h ${minutes}min';
+  }
+
+  @override
+  String navTrack_detail_battery(String start, String end) {
+    return 'Bateria: $start V -> $end V';
+  }
+
+  @override
+  String get navTrack_detail_noDiveLinked => 'Nenhum mergulho vinculado';
+
+  @override
+  String get navTrack_detail_chooseDive => 'Escolher mergulho';
+
+  @override
+  String get navTrack_detail_noSite => 'Nenhum ponto de mergulho';
+
+  @override
+  String get navTrack_detail_chooseSite => 'Escolher ponto de mergulho';
+
+  @override
+  String get navTrack_review_title => 'Importar rota subaquática';
+
+  @override
+  String navTrack_review_segmentSummaryNoFix(int underwater) {
+    return '$underwater amostras subaquáticas, nenhum fix de GPS após o mergulho.';
+  }
+
+  @override
+  String navTrack_review_segmentSummaryWithFix(
+    int underwater,
+    int surface,
+    String vector,
+  ) {
+    return '$underwater amostras subaquáticas, $surface amostras de superfície, fix de GPS a $vector do fim estimado.';
+  }
+
+  @override
+  String navTrack_review_saveError(String error) {
+    return 'Não foi possível salvar esta rota: $error';
+  }
+
+  @override
+  String navTrack_review_importError(String error) {
+    return 'Não foi possível importar este arquivo: $error';
+  }
+
+  @override
+  String get navTrack_review_sourceLabel => 'Registro Seacraft ENC';
+
+  @override
+  String get navTrack_review_nameHint => 'Nome (opcional)';
+
+  @override
+  String get navTrack_review_warningNoMovement =>
+      'Nenhum movimento registrado: distância e velocidade permanecem em zero durante todo o arquivo.';
+
+  @override
+  String get navTrack_review_warningDuplicate =>
+      'Isso parece uma rota já importada do mesmo arquivo.';
+
+  @override
+  String get navTrack_review_replaceLabel => 'Substituir';
+
+  @override
+  String get navTrack_review_linkToDive => 'Vincular a um mergulho';
+
+  @override
+  String get navTrack_review_diveSite => 'Ponto de mergulho';
+
+  @override
+  String get navTrack_review_equipment => 'Equipamento';
+
+  @override
+  String get navTrack_review_noEquipmentChosen => 'Nenhum equipamento';
+
+  @override
+  String get navTrack_review_noSiteChosen =>
+      'Nenhum ponto de mergulho escolhido';
+
+  @override
+  String get navTrack_review_row_start => 'Início';
+
+  @override
+  String get navTrack_review_row_end => 'Fim';
+
+  @override
+  String get navTrack_review_row_duration => 'Duração';
+
+  @override
+  String get navTrack_review_row_distance => 'Distância';
+
+  @override
+  String get navTrack_review_row_maxDepth => 'Profundidade máx.';
+
+  @override
+  String get navTrack_review_row_maxSpeed => 'Velocidade máx.';
+
+  @override
+  String get navTrack_review_leaveUnlinked => 'Deixar sem vínculo';
+
+  @override
+  String navTrack_list_importFailed(String error) {
+    return 'Falha ao importar: $error';
+  }
+
+  @override
+  String get navTrack_list_matchError => 'Não foi possível associar as rotas.';
+
+  @override
+  String get navTrack_list_matchSuccess => 'Rotas associadas aos mergulhos.';
+
+  @override
+  String navTrack_list_deleteMessage(String name) {
+    return 'Excluir \"$name\"?';
+  }
+
+  @override
+  String get navTrack_list_importTooltip => 'Importar arquivo de rota';
+
+  @override
+  String get navTrack_list_matchTooltip => 'Associar agora';
+
+  @override
+  String get navTrack_list_title => 'Rotas subaquáticas';
+
+  @override
+  String get navTrack_list_noMapRoutes =>
+      'Nenhuma rota colocada no mapa ainda.';
+
+  @override
+  String get navTrack_list_empty => 'Nenhuma rota subaquática ainda.';
+
+  @override
+  String get navTrack_seascape_title => 'Paisagem subaquática da rota';
+
+  @override
+  String get navTrack_seascape_noScene =>
+      'Esta rota não tem uma paisagem subaquática utilizável.';
+
+  @override
+  String get navTrack_handoff_recognized =>
+      'Registro de navegação Seacraft ENC reconhecido';
+
+  @override
+  String get navTrack_handoff_description =>
+      'Esta é uma rota subaquática, não um registro de mergulho. Ela tem seu próprio lugar no Submersion, separado da sua importação de mergulhos.';
+
+  @override
+  String get navTrack_handoff_reviewButton => 'Revisar rota';
+
+  @override
+  String get navTrack_section_title => 'Rota subaquática';
+
+  @override
+  String navTrack_section_routeCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rotas',
+      one: '$count rota',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_section_noRouteLinked => 'Nenhuma rota vinculada';
+
+  @override
+  String get navTrack_section_linkButton => 'Vincular rota';
+
+  @override
+  String get navTrack_section_importButton => 'Importar arquivo';
+
+  @override
+  String get navTrack_section_primaryTag => 'principal';
+
+  @override
+  String get navTrack_section_menuOpen => 'Abrir rota';
+
+  @override
+  String get navTrack_section_menuOpen3d => 'Abrir paisagem 3D';
+
+  @override
+  String get navTrack_section_menuMakePrimary => 'Definir como principal';
+
+  @override
+  String get navTrack_importError_unsupportedFormat =>
+      'Este arquivo não é um registro de navegação Seacraft ENC.';
+
+  @override
+  String get navTrack_importError_unreadable =>
+      'Não foi possível ler este arquivo como um registro de navegação Seacraft ENC.';
+
+  @override
+  String get navTrack_importError_tooShort =>
+      'Esta gravação tem amostras insuficientes para ser uma rota utilizável.';
+
+  @override
+  String get navTrack_importError_badData =>
+      'Este arquivo tem dados que o Submersion não conseguiu interpretar.';
+
+  @override
+  String get navTrack_importError_tooLarge =>
+      'Esta gravação tem mais amostras do que uma rota pode armazenar.';
+
+  @override
+  String get diveDetailSection_navTrack_name => 'Rota subaquática';
+
+  @override
+  String get diveDetailSection_navTrack_description =>
+      'Rota subaquática medida a partir de um console de navegação';
+
+  @override
+  String get dashboard_quickActions_navRoutes => 'Rotas subaquáticas';
+
+  @override
+  String navTrack_list_durationHours(int hours, int minutes) {
+    return '${hours}h ${minutes}min';
+  }
+
+  @override
+  String navTrack_list_durationMinutes(int minutes) {
+    return '${minutes}min';
+  }
+
+  @override
+  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
+
+  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
@@ -42781,7 +44279,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => 'Insira um número válido';
+  String numberInput_invalidNumber(String separator) {
+    return 'Introduza um número válido (separador decimal: \"$separator\")';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => 'Insira um número inteiro';
+
+  @override
+  String get numberInput_required => 'Obrigatório';
+
+  @override
+  String get numberInput_notNegative => 'Insira 0 ou mais';
+
+  @override
+  String get numberInput_atLeastOne => 'Insira 1 ou mais';
+
+  @override
+  String get numberInput_percentRange => 'Insira um valor de 0 a 100';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Equipamento alugado';
@@ -43309,4 +44824,438 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get query_weights_type => 'Tipo';
+
+  @override
+  String get query_op_eq => 'é';
+
+  @override
+  String get query_op_neq => 'não é';
+
+  @override
+  String get query_op_lt => 'menor que';
+
+  @override
+  String get query_op_lte => 'no máximo';
+
+  @override
+  String get query_op_gt => 'maior que';
+
+  @override
+  String get query_op_gte => 'pelo menos';
+
+  @override
+  String get query_op_contains => 'contém';
+
+  @override
+  String get query_op_inList => 'é um de';
+
+  @override
+  String get query_op_between => 'entre';
+
+  @override
+  String get query_op_isEmpty => 'não definido';
+
+  @override
+  String get query_op_isSet => 'definido';
+
+  @override
+  String get query_editor_tabText => 'Texto';
+
+  @override
+  String get query_editor_tabBuilder => 'Construtor';
+
+  @override
+  String get query_editor_hint => 'ex.: weights:none AND depth > 30';
+
+  @override
+  String get query_editor_save => 'Salvar consulta';
+
+  @override
+  String get query_editor_allOf => 'Todas';
+
+  @override
+  String get query_editor_anyOf => 'Qualquer uma';
+
+  @override
+  String get query_editor_addCondition => 'Adicionar condição';
+
+  @override
+  String get query_editor_addGroup => 'Adicionar grupo';
+
+  @override
+  String get query_editor_negate => 'Negar';
+
+  @override
+  String get query_editor_remove => 'Remover';
+
+  @override
+  String get query_editor_pickField => 'Escolher um campo';
+
+  @override
+  String get query_editor_pickFieldSearch => 'Buscar campos';
+
+  @override
+  String query_editor_useRelation(String name) {
+    return 'Usar $name diretamente';
+  }
+
+  @override
+  String query_editor_fieldsOf(String name) {
+    return 'Campos de $name';
+  }
+
+  @override
+  String query_editor_pickRef(String name) {
+    return 'Escolher $name';
+  }
+
+  @override
+  String get query_editor_pickRefSearch => 'Buscar';
+
+  @override
+  String get query_editor_done => 'Concluído';
+
+  @override
+  String get query_editor_unresolvedRef => 'Não existe mais';
+
+  @override
+  String query_editor_scopedRow(String name) {
+    return 'Grupo sobre $name: edite na aba Texto';
+  }
+
+  @override
+  String get query_editor_textRow => 'Busca de texto';
+
+  @override
+  String get query_editor_betweenAnd => 'e';
+
+  @override
+  String get query_editor_valueTrue => 'Sim';
+
+  @override
+  String get query_editor_valueFalse => 'Não';
+
+  @override
+  String get diveLog_filter_queryRow => 'Consulta';
+
+  @override
+  String get diveLog_search_section_query => 'Consulta';
+
+  @override
+  String get query_saveDialog_title => 'Salvar consulta';
+
+  @override
+  String get query_saveDialog_nameLabel => 'Nome';
+
+  @override
+  String get query_saveDialog_nameValidation => 'Digite um nome';
+
+  @override
+  String query_saved_snackbar(String name) {
+    return 'Consulta \"$name\" salva';
+  }
+
+  @override
+  String get query_savedRow_title => 'Salvas';
+
+  @override
+  String query_savedRow_unresolved(String name) {
+    return '\"$name\" se refere a algo que não existe mais';
+  }
+
+  @override
+  String get savedQueries_appBar_title => 'Consultas salvas';
+
+  @override
+  String get savedQueries_empty =>
+      'Nenhuma consulta salva ainda. Salve uma pelo editor de consultas na página de busca de mergulhos.';
+
+  @override
+  String get savedQueries_renameTooltip => 'Renomear';
+
+  @override
+  String get savedQueries_deleteTooltip => 'Excluir';
+
+  @override
+  String get savedQueries_reorderTooltip => 'Arraste para reordenar';
+
+  @override
+  String get savedQueries_deleteDialog_title => 'Excluir consulta?';
+
+  @override
+  String savedQueries_deleteDialog_content(String name) {
+    return 'Excluir \"$name\"? Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String get savedQueries_problem_unreadable =>
+      'Não pode ser lida por esta versão do app';
+
+  @override
+  String savedQueries_problem_invalid(String detail) {
+    return 'Usa algo que esta versão não tem: $detail';
+  }
+
+  @override
+  String savedQueries_problem_unknownSubject(String detail) {
+    return 'Para uma lista que esta versão não tem: $detail';
+  }
+
+  @override
+  String savedQueries_problem_unresolved(String detail) {
+    return 'Refere-se a algo que não existe mais: $detail';
+  }
+
+  @override
+  String savedQueries_snackbar_deleted(String name) {
+    return 'Consulta \"$name\" excluída';
+  }
+
+  @override
+  String get settings_manage_savedQueries => 'Consultas salvas';
+
+  @override
+  String get settings_manage_savedQueries_subtitle =>
+      'Renomear, reordenar e excluir consultas salvas';
+
+  @override
+  String get query_error_unterminatedQuote => 'aspas não fechadas';
+
+  @override
+  String query_error_unexpectedCharacter(String text) {
+    return 'caractere inesperado \"$text\"';
+  }
+
+  @override
+  String query_error_unexpectedToken(String text) {
+    return '\"$text\" inesperado';
+  }
+
+  @override
+  String get query_error_expectedCloseParen => 'esperava-se \")\"';
+
+  @override
+  String get query_error_expectedCloseBracket => 'esperava-se \"]\"';
+
+  @override
+  String get query_error_expectedOpenBracketAfterIn =>
+      'esperava-se \"[\" depois de \"in\"';
+
+  @override
+  String get query_error_expectedAnd => 'esperava-se \"and\"';
+
+  @override
+  String get query_error_expectedOperator => 'esperava-se um operador';
+
+  @override
+  String get query_error_expectedConditionOrText =>
+      'esperava-se uma condição ou texto';
+
+  @override
+  String get query_error_expectedName => 'esperava-se um nome';
+
+  @override
+  String get query_error_expectedDate => 'esperava-se uma data';
+
+  @override
+  String get query_error_expectedDateValue => 'esperava-se um valor de data';
+
+  @override
+  String get query_error_expectedValue => 'esperava-se um valor';
+
+  @override
+  String get query_error_expectedNumber => 'esperava-se um número';
+
+  @override
+  String get query_error_expectedText => 'esperava-se texto';
+
+  @override
+  String get query_error_expectedBool => 'esperava-se true ou false';
+
+  @override
+  String get query_error_emptyText => 'texto vazio';
+
+  @override
+  String get query_error_emptyList => 'a lista está vazia';
+
+  @override
+  String get query_error_emptyGroup => 'um grupo vazio não corresponde a nada';
+
+  @override
+  String get query_error_emptyPath => 'caminho vazio';
+
+  @override
+  String query_error_notSingleDay(String text) {
+    return '\"$text\" não é um único dia';
+  }
+
+  @override
+  String query_error_notADate(String text) {
+    return '\"$text\" não é uma data';
+  }
+
+  @override
+  String query_error_openEndedDate(
+    String text,
+    String field,
+    String symbol,
+    String day,
+  ) {
+    return '\"$text\" é um intervalo aberto; escreva $field $symbol $day em vez disso';
+  }
+
+  @override
+  String query_error_unknownUnit(String unit) {
+    return 'unidade desconhecida \"$unit\"';
+  }
+
+  @override
+  String query_error_noUnitAllowed(String field) {
+    return '$field não aceita unidade';
+  }
+
+  @override
+  String query_error_wrongUnitDimension(String unit, String dimension) {
+    return '\"$unit\" não é uma unidade de $dimension';
+  }
+
+  @override
+  String query_error_wrongUnitForField(
+    String unit,
+    String dimension,
+    String field,
+  ) {
+    return '\"$unit\" não é uma unidade de $dimension; $field é medido em $dimension';
+  }
+
+  @override
+  String get query_error_decimalComma => 'use \".\" para decimais, não \",\"';
+
+  @override
+  String query_error_scopeNeedsRelationQuoted(String path) {
+    return '\"[...]\" precisa de uma relação, \"$path\" é um campo';
+  }
+
+  @override
+  String query_error_scopeNeedsRelation(String path) {
+    return '[...] precisa de uma relação, \"$path\" é um campo';
+  }
+
+  @override
+  String query_error_relationNeedsRefOp(String path) {
+    return '\"$path\" é uma relação; use =, in, :none, :any ou [...]';
+  }
+
+  @override
+  String query_error_relationOpNotAllowed(String op) {
+    return '\"$op\" não pode ser usado com uma relação; use =, !=, in, :none, :any ou [...]';
+  }
+
+  @override
+  String query_error_opNotForFieldQuoted(String op, String field) {
+    return '\"$op\" não pode ser usado com $field';
+  }
+
+  @override
+  String query_error_opNotForField(String op, String field) {
+    return '$op não pode ser usado com $field';
+  }
+
+  @override
+  String query_error_noneAmbiguous(String field) {
+    return '\"$field:none\" é ambíguo: escreva \"$field = none\" para o valor none, ou \"NOT $field:any\" se não estiver registrado';
+  }
+
+  @override
+  String query_error_noRefNamed(String relation, String text) {
+    return 'não há $relation com o nome \"$text\"';
+  }
+
+  @override
+  String query_error_notEnumValue(String text, String field) {
+    return '\"$text\" não é um valor de $field';
+  }
+
+  @override
+  String query_error_unknownField(String name) {
+    return 'campo desconhecido \"$name\"';
+  }
+
+  @override
+  String query_error_fieldNotPath(String name, String next) {
+    return '\"$name\" é um campo e não pode ser seguido de \".$next\"';
+  }
+
+  @override
+  String query_error_tooManyHops(String max) {
+    return 'uma consulta pode atravessar no máximo $max relações, contando os grupos aninhados';
+  }
+
+  @override
+  String query_error_pathTooLong(String max) {
+    return 'um caminho pode atravessar no máximo $max relações';
+  }
+
+  @override
+  String query_error_textNotSearchable(String table) {
+    return 'não é possível buscar texto livre dentro de $table';
+  }
+
+  @override
+  String query_error_expectsReference(String name) {
+    return '$name espera uma referência';
+  }
+
+  @override
+  String query_error_expectsReferences(String name) {
+    return '$name espera referências';
+  }
+
+  @override
+  String get query_error_betweenNeedsTwo => 'between precisa de dois valores';
+
+  @override
+  String get query_error_inNeedsList => 'in precisa de uma lista';
+
+  @override
+  String query_error_expectsNumber(String field) {
+    return '$field espera um número';
+  }
+
+  @override
+  String query_error_outOfRange(String field) {
+    return 'o valor de $field está fora do intervalo';
+  }
+
+  @override
+  String query_error_expectsText(String field) {
+    return '$field espera texto';
+  }
+
+  @override
+  String query_error_expectsBool(String field) {
+    return '$field espera true ou false';
+  }
+
+  @override
+  String query_error_expectsEnumValue(String field) {
+    return '$field espera um dos seus valores';
+  }
+
+  @override
+  String query_error_expectsSingleDay(String field) {
+    return '$field espera um único dia aqui';
+  }
+
+  @override
+  String query_error_expectsDate(String field) {
+    return '$field espera uma data';
+  }
+
+  @override
+  String get query_editor_needsText => 'Digite pelo menos uma palavra';
+
+  @override
+  String get query_saveNeedsDiver =>
+      'Crie um perfil de mergulhador para salvar consultas';
 }

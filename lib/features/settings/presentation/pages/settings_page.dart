@@ -4,6 +4,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/equipment/presentation/widgets/profile_checklist_dialog.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/core/utils/currency.dart';
@@ -18,6 +21,7 @@ import 'package:submersion/features/settings/presentation/pages/column_config_pa
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/widgets/ccr_ppo2_limit_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/coordinate_format_picker.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
@@ -522,10 +526,10 @@ class _UnitsSectionContent extends ConsumerWidget {
                   value: switch (settings.gasConsumptionDisplay) {
                     GasConsumptionDisplay.sac =>
                       '${context.l10n.gasConsumption_sac} '
-                          '(${settings.pressureUnit.symbol}/min)',
+                          '(${UnitFormatter(settings).sacSymbol})',
                     GasConsumptionDisplay.rmv =>
                       '${context.l10n.gasConsumption_rmv} '
-                          '(${settings.volumeUnit.symbol}/min)',
+                          '(${UnitFormatter(settings).rmvSymbol})',
                     GasConsumptionDisplay.both =>
                       context.l10n.settings_units_gasConsumption_both,
                   },
@@ -947,14 +951,14 @@ class _UnitsSectionContent extends ConsumerWidget {
                 GasConsumptionDisplay.sac,
                 l10n.gasConsumption_sac,
                 l10n.settings_units_gasConsumption_sac_subtitle(
-                  '${settings.pressureUnit.symbol}/min',
+                  UnitFormatter(settings).sacSymbol,
                 ),
               ),
               option(
                 GasConsumptionDisplay.rmv,
                 l10n.gasConsumption_rmv,
                 l10n.settings_units_gasConsumption_rmv_subtitle(
-                  '${settings.volumeUnit.symbol}/min',
+                  UnitFormatter(settings).rmvSymbol,
                 ),
               ),
               option(
@@ -1286,6 +1290,8 @@ class _DecompressionSectionContent extends ConsumerWidget {
                   trailing: const Icon(Icons.edit),
                   onTap: () => _showPpO2LimitPicker(context, ref, settings),
                 ),
+                const Divider(height: 1),
+                const CcrPpO2LimitTile(),
               ],
             ),
           ),
@@ -2558,6 +2564,16 @@ class _ManageSectionContent extends StatelessWidget {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/tags'),
                 ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.bookmarks_outlined),
+                  title: Text(context.l10n.settings_manage_savedQueries),
+                  subtitle: Text(
+                    context.l10n.settings_manage_savedQueries_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/saved-queries'),
+                ),
               ],
             ),
           ),
@@ -2625,6 +2641,64 @@ Future<void> _confirmAndBulkShareSites(
       SnackBar(
         content: Text(context.l10n.common_error_tryAgain),
         backgroundColor: Theme.of(context).colorScheme.errorContainer,
+      ),
+    );
+  }
+}
+
+/// Shares every item the active diver owns with the profiles picked in
+/// the checklist (issue #2046). Per profile, unlike sites and trips, which
+/// share with every profile at once.
+Future<void> _confirmAndBulkShareEquipment(
+  BuildContext context,
+  WidgetRef ref,
+) async {
+  final l10n = context.l10n;
+  final messenger = ScaffoldMessenger.of(context);
+  final errorColor = Theme.of(context).colorScheme.errorContainer;
+  final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+  if (diverId == null) return;
+  final visible = await ref.read(allEquipmentProvider.future);
+  final ownedCount = visible.where((e) => e.diverId == diverId).length;
+  if (ownedCount == 0) {
+    if (!context.mounted) return;
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.settings_shareAll_noneToShare)),
+    );
+    return;
+  }
+  final divers = await ref.read(allDiversProvider.future);
+  final others = [
+    for (final d in divers)
+      if (d.id != diverId) d,
+  ];
+  if (others.isEmpty || !context.mounted) return;
+  final chosen = await showProfileChecklistDialog(
+    context,
+    title: l10n.settings_shareAllEquipment_title,
+    body: l10n.settings_shareAllEquipment_body(ownedCount),
+    profiles: others,
+    initiallySelected: const {},
+    confirmLabel: l10n.common_action_share,
+    allowEmpty: false,
+  );
+  if (chosen == null) return;
+  try {
+    final result = await ref
+        .read(equipmentShareRepositoryProvider)
+        .shareAllForDiver(ownerId: diverId, diverIds: chosen.toList());
+    if (!context.mounted) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.equipment_bulkShare_done(result.itemsChanged)),
+      ),
+    );
+  } catch (_) {
+    if (!context.mounted) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.common_error_tryAgain),
+        backgroundColor: errorColor,
       ),
     );
   }
@@ -2760,6 +2834,12 @@ class SharedDataSectionContent extends ConsumerWidget {
                   title: Text(context.l10n.settings_shareAllTrips_title),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _confirmAndBulkShareTrips(context, ref),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: Text(context.l10n.settings_shareAllEquipment_title),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _confirmAndBulkShareEquipment(context, ref),
                 ),
               ],
             ),

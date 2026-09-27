@@ -573,6 +573,37 @@ void main() {
       expect(fetched!.first.dive.startTime, DateTime.utc(2026, 5, 1, 10));
     });
 
+    testWidgets('carries the workout notes onto the parsed dive', (
+      tester,
+    ) async {
+      final client = _FakeCloudClient(
+        workouts: [
+          SuuntoWorkoutSummary(
+            key: 'w1',
+            startTime: DateTime.utc(2026, 5, 1, 10),
+            activityId: 78,
+            notes: 'Turtle at the mooring',
+          ),
+        ],
+        smlByKey: {'w1': _diveJson()},
+      );
+      List<SuuntoParsedDive>? fetched;
+
+      await tester.pumpWidget(
+        _host(
+          store: _FakeSessionStore(),
+          clientFactory: _FakeCloudClient.new,
+          child: SuuntoCloudFetchStep(
+            client: client,
+            onDivesFetched: (dives) => fetched = dives,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(fetched!.single.notes, 'Turtle at the mooring');
+    });
+
     testWidgets('skips a single unreadable dive rather than aborting', (
       tester,
     ) async {

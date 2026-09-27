@@ -17,6 +17,7 @@ import 'package:submersion/core/database/database.dart'
         DiveProfileEvent;
 import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/matching/match_scorer.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
@@ -260,64 +261,71 @@ class DiveComputerRepository {
       final id = computer.id.isEmpty ? _uuid.v4() : computer.id;
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await _db
-          .into(_db.diveComputers)
-          .insert(
-            DiveComputersCompanion(
-              id: Value(id),
-              diverId: Value(computer.diverId),
-              name: Value(computer.name),
-              manufacturer: Value(computer.manufacturer),
-              model: Value(computer.model),
-              serialNumber: Value(computer.serialNumber),
-              firmwareVersion: Value(computer.firmwareVersion),
-              connectionType: Value(computer.connectionType),
-              bluetoothAddress: Value(computer.bluetoothAddress),
-              lastDownloadTimestamp: Value(
-                computer.lastDownload?.millisecondsSinceEpoch,
+      // One transaction for the whole creation (issue #2439): a failure part
+      // way through used to leave the registry row behind with no pending
+      // mark, and a caller retrying the save would then register the same
+      // computer a second time under a fresh id.
+      final equipmentId = await _db.transaction(() async {
+        await _db
+            .into(_db.diveComputers)
+            .insert(
+              DiveComputersCompanion(
+                id: Value(id),
+                diverId: Value(computer.diverId),
+                name: Value(computer.name),
+                manufacturer: Value(computer.manufacturer),
+                model: Value(computer.model),
+                serialNumber: Value(computer.serialNumber),
+                firmwareVersion: Value(computer.firmwareVersion),
+                connectionType: Value(computer.connectionType),
+                bluetoothAddress: Value(computer.bluetoothAddress),
+                lastDownloadTimestamp: Value(
+                  computer.lastDownload?.millisecondsSinceEpoch,
+                ),
+                diveCount: Value(computer.diveCount),
+                isFavorite: Value(computer.isFavorite),
+                notes: Value(computer.notes),
+                createdAt: Value(now),
+                updatedAt: Value(now),
               ),
-              diveCount: Value(computer.diveCount),
-              isFavorite: Value(computer.isFavorite),
-              notes: Value(computer.notes),
-              createdAt: Value(now),
-              updatedAt: Value(now),
-            ),
-          );
+            );
 
-      // Seed the gear twin once, here, because this is the only repository
-      // path that genuinely inserts a registry row (v175). Minting nowhere
-      // else is what makes a user-deleted twin permanent. Pass the resolved
-      // id: the caller's may have been empty and minted just above.
-      final twinId = await DiveComputerGearResolver().resolveGearTwin(
-        computer.copyWith(id: id),
-      );
-      if (twinId != null) {
-        await _db.customStatement(
-          'UPDATE dive_computers SET equipment_id = ? WHERE id = ?',
-          [twinId, id],
+        // Seed the gear twin once, here, because this is the only repository
+        // path that genuinely inserts a registry row (v175). Minting nowhere
+        // else is what makes a user-deleted twin permanent. Pass the resolved
+        // id: the caller's may have been empty and minted just above.
+        final twinId = await DiveComputerGearResolver().resolveGearTwin(
+          computer.copyWith(id: id),
         );
-      }
+        if (twinId != null) {
+          await _db.customStatement(
+            'UPDATE dive_computers SET equipment_id = ? WHERE id = ?',
+            [twinId, id],
+          );
+        }
 
-      // Marked pending ONCE, after the optional equipment_id write, so the row
-      // carries a single HLC representing its final state. Marking on either
-      // side of that update would spend two clock ticks on one logical
-      // creation. Unconditional: a computer whose twin failed to resolve is
-      // still a registered computer and still has to sync.
-      await _syncRepository.markRecordPending(
-        entityType: 'diveComputers',
-        recordId: id,
-        localUpdatedAt: now,
-      );
+        // Marked pending ONCE, after the optional equipment_id write, so the
+        // row carries a single HLC representing its final state. Marking on
+        // either side of that update would spend two clock ticks on one
+        // logical creation. Unconditional: a computer whose twin failed to
+        // resolve is still a registered computer and still has to sync.
+        await _syncRepository.markRecordPending(
+          entityType: 'diveComputers',
+          recordId: id,
+          localUpdatedAt: now,
+        );
 
-      // If a computer with this hardware identity was deleted earlier, its
-      // dives kept provenance snapshots; give them their link back.
-      await _relinkOrphanedRows(id, computer);
+        // If a computer with this hardware identity was deleted earlier, its
+        // dives kept provenance snapshots; give them their link back.
+        await _relinkOrphanedRows(id, computer);
+        return twinId;
+      });
       SyncEventBus.notifyLocalChange();
 
       _log.info('Created dive computer with id: $id');
       return computer.copyWith(
         id: id,
-        equipmentId: twinId,
+        equipmentId: equipmentId,
         createdAt: DateTime.fromMillisecondsSinceEpoch(now),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
       );
@@ -801,7 +809,9 @@ class DiveComputerRepository {
     required double? maxDepth,
     required double? effectiveAvgDepth,
     required double? minWaterTemp,
-    required double? maxCns,
+    required double? cns,
+    required double? otu,
+    required int? surfaceIntervalSeconds,
     required int now,
     required double? entryLatitude,
     required double? entryLongitude,
@@ -828,6 +838,9 @@ class DiveComputerRepository {
       sourceFormat: const Value('dive_computer'),
       maxDepth: Value(maxDepth),
       avgDepth: Value(effectiveAvgDepth),
+      // What the computer measured: the runtime. Bottom time is derived from a
+      // profile and never stored in its place, even when the source reports
+      // one; that lands on the dive row only (issues #1798, #2421).
       duration: Value(durationSeconds),
       waterTemp: Value(minWaterTemp),
       entryLatitude: Value(entryLatitude),
@@ -836,7 +849,9 @@ class DiveComputerRepository {
       exitLongitude: Value(exitLongitude),
       entryTime: Value(profileStartTime),
       exitTime: Value(profileStartTime.add(Duration(seconds: durationSeconds))),
-      cns: Value(maxCns),
+      cns: Value(cns),
+      otu: Value(otu),
+      surfaceInterval: Value(surfaceIntervalSeconds),
       decoAlgorithm: Value(decoAlgorithm),
       gradientFactorLow: Value(gfLow),
       gradientFactorHigh: Value(gfHigh),
@@ -1233,10 +1248,17 @@ class DiveComputerRepository {
   }) async {
     // Delete per-dive derived rows that importProfile will re-create.
     // These tables lack a computer_id column, so we clear by dive_id.
-    await _db.customStatement(
-      'DELETE FROM dive_profile_events WHERE dive_id = ?',
-      [diveId],
-    );
+    final deletedEvents = await (_db.delete(
+      _db.diveProfileEvents,
+    )..where((t) => t.diveId.equals(diveId))).go();
+    // One tombstone for the dive's events (#1926). Without one, peers kept
+    // the old events beside the re-imported ones. importProfile stamps the
+    // fresh events after this, so their clocks are newer and peers keep them.
+    if (deletedEvents > 0) {
+      await _syncRepository.logScopedDeletion(
+        EventScopeTombstone(diveId: diveId),
+      );
+    }
     await _tankSeries.deleteForDive(diveId);
     await _db.customStatement('DELETE FROM gas_switches WHERE dive_id = ?', [
       diveId,
@@ -1320,6 +1342,16 @@ class DiveComputerRepository {
     // the dive header and never as a sample, so it cannot be recovered from
     // the profile points.
     double? minTemperature,
+    // A dive summary the source reported itself rather than one derived from
+    // the profile (Garmin's FIT dive_summary, issue #1798). Like the diluent
+    // above, the dive row only takes them when it is brand new; the
+    // download's own data source row takes them either way, except the
+    // bottom time: that row keeps the measured runtime (issue #2421).
+    int? bottomTimeSeconds,
+    int? surfaceIntervalSeconds,
+    WaterType? waterType,
+    double? cnsEnd,
+    double? otu,
     // Attach to this dive instead of matching by time (issue #2002). A
     // planned dive being filled may share its minute with a sibling in
     // another profile, so the time match could land on the wrong row.
@@ -1340,6 +1372,14 @@ class DiveComputerRepository {
 
       final diveId = matchedDiveId ?? _uuid.v4();
       final isNewDive = matchedDiveId == null;
+
+      // A bottom time the source reported, bounded by the runtime so it
+      // cannot come out longer than the dive (issue #1642).
+      final reportedBottomTimeSeconds = bottomTimeSeconds == null
+          ? null
+          : (bottomTimeSeconds < durationSeconds
+                ? bottomTimeSeconds
+                : durationSeconds);
 
       if (isNewDive) {
         // Create a new dive for this profile
@@ -1371,13 +1411,18 @@ class DiveComputerRepository {
                 : null);
 
         // durationSeconds from the dive computer is total runtime,
-        // not bottom time. Calculate bottom time from the profile, bounded
-        // by that runtime so a sample stream that outlasts the dive cannot
-        // produce a bottom time longer than the dive (issue #1642).
-        final bottomTimeSeconds = _calculateBottomTimeFromPoints(
-          points,
-          totalDurationSeconds: durationSeconds,
-        );
+        // not bottom time. A bottom time the source reported wins (#1798);
+        // otherwise calculate it from the profile, bounded by that runtime
+        // so it cannot come out longer than the dive (issue #1642).
+        final effectiveBottomTimeSeconds =
+            reportedBottomTimeSeconds ??
+            _calculateBottomTimeFromPoints(
+              points,
+              totalDurationSeconds: durationSeconds,
+            );
+
+        // The source's own end-of-dive CNS wins over the highest sample.
+        final effectiveCnsEnd = cnsEnd ?? maxCns;
 
         // Downloaded profiles carry no dive type (#1513: no longer inferred
         // from deco indicators either), so every dive lands on the built-in
@@ -1394,11 +1439,14 @@ class DiveComputerRepository {
                 diveDateTime: Value(entryTimeMs),
                 entryTime: Value(entryTimeMs),
                 exitTime: Value(exitTimeMs),
-                bottomTime: Value(bottomTimeSeconds),
+                bottomTime: Value(effectiveBottomTimeSeconds),
                 runtime: Value(durationSeconds),
                 maxDepth: Value(maxDepth),
                 avgDepth: Value(effectiveAvgDepth),
-                cnsEnd: Value(maxCns),
+                cnsEnd: Value(effectiveCnsEnd),
+                otu: Value(otu),
+                surfaceIntervalSeconds: Value(surfaceIntervalSeconds),
+                waterType: Value(waterType?.name),
                 // Populated so DiveConsolidationService (Task 5) can attribute
                 // consolidated children and enforce its same-computer guard;
                 // without this the dives row's own computerId stayed null
@@ -1528,7 +1576,9 @@ class DiveComputerRepository {
                 maxDepth: maxDepth,
                 effectiveAvgDepth: effectiveAvgDepth,
                 minWaterTemp: minWaterTemp,
-                maxCns: maxCns,
+                cns: effectiveCnsEnd,
+                otu: otu,
+                surfaceIntervalSeconds: surfaceIntervalSeconds,
                 now: now,
                 entryLatitude: entryLatitude,
                 entryLongitude: entryLongitude,
@@ -1607,9 +1657,13 @@ class DiveComputerRepository {
                     (existingSampleTemps.isNotEmpty
                         ? existingSampleTemps.reduce((a, b) => a < b ? a : b)
                         : null),
-                maxCns: existingSampleCns.isNotEmpty
-                    ? existingSampleCns.reduce((a, b) => a > b ? a : b)
-                    : null,
+                cns:
+                    cnsEnd ??
+                    (existingSampleCns.isNotEmpty
+                        ? existingSampleCns.reduce((a, b) => a > b ? a : b)
+                        : null),
+                otu: otu,
+                surfaceIntervalSeconds: surfaceIntervalSeconds,
                 now: now,
                 entryLatitude: entryLatitude,
                 entryLongitude: entryLongitude,
@@ -1838,6 +1892,12 @@ class DiveComputerRepository {
 
       // Batch insert dive events
       if (events != null && events.isNotEmpty) {
+        // Stamped, as every other event writer is: a peer judges an event
+        // with no clock by its creation time against a scope tombstone's
+        // delete time (#1926), and those two come from different devices'
+        // wall clocks. One clock for the batch, issued after any scope this
+        // import logged, so the fresh events are newer than it.
+        final eventClock = await _syncRepository.issueRowClock();
         await _db.batch((batch) {
           for (final event in events) {
             final eventType = _mapEventTypeString(
@@ -1862,6 +1922,7 @@ class DiveComputerRepository {
                 depth: Value(depthAtEvent),
                 value: Value(event.value?.toDouble()),
                 createdAt: Value(now),
+                hlc: Value(eventClock),
               ),
             );
           }
@@ -2151,9 +2212,7 @@ class DiveComputerRepository {
   ///
   /// One statement per [kSeriesIdChunkSize] ids instead of one per dive, so
   /// the full UDDF export costs the same for any logbook size (issue #1867).
-  /// `dive_profile_events` has no `dive_id` index, which made every
-  /// per-dive read a scan of the whole table. Each dive keeps the per-dive
-  /// read's timestamp order.
+  /// Each dive keeps the per-dive read's timestamp order.
   Future<Map<String, List<DiveProfileEvent>>> getEventsForDives(
     List<String> diveIds,
   ) async {
@@ -2239,16 +2298,13 @@ class DiveComputerRepository {
   /// Delete all events for a dive
   Future<void> clearEventsForDive(String diveId) async {
     try {
-      final existing = await (_db.select(
-        _db.diveProfileEvents,
-      )..where((t) => t.diveId.equals(diveId))).get();
-      await (_db.delete(
+      final deleted = await (_db.delete(
         _db.diveProfileEvents,
       )..where((t) => t.diveId.equals(diveId))).go();
-      for (final event in existing) {
-        await _syncRepository.logDeletion(
-          entityType: 'diveProfileEvents',
-          recordId: event.id,
+      // One tombstone for the dive's events, not one per event (#1926).
+      if (deleted > 0) {
+        await _syncRepository.logScopedDeletion(
+          EventScopeTombstone(diveId: diveId),
         );
       }
       final now = DateTime.now().millisecondsSinceEpoch;

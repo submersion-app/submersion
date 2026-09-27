@@ -15,6 +15,9 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
@@ -634,6 +637,37 @@ void main() {
 
         expect(result, isNull);
         // Tanks are cascade deleted with the dive
+      });
+
+      test('unlinks a linked nav track and marks it pending instead of leaving '
+          'a stale linkMode after the diveId FK clears it', () async {
+        final dive = await repository.createDive(createTestDive(diveNumber: 1));
+        final navTrackRepository = NavTrackRepository();
+        final routeId = await navTrackRepository.insertImportedRoute(
+          points: const [
+            NavTrackPoint(timestamp: 1700000000, north: 0, east: 0, depth: 5),
+            NavTrackPoint(timestamp: 1700000010, north: 10, east: 0, depth: 5),
+          ],
+          source: NavTrackSource.seacraftEnc,
+          sourceRef: 'unlink_test.csv',
+          diveId: dive.id,
+        );
+
+        await repository.deleteDive(dive.id);
+
+        final route = await navTrackRepository.getById(routeId);
+        expect(route, isNotNull);
+        expect(route!.diveId, isNull);
+        expect(route.linkMode, isNull);
+        expect(route.isPrimary, isTrue);
+
+        final pending = await DatabaseService.instance.database
+            .customSelect(
+              "SELECT local_updated_at FROM sync_records "
+              "WHERE entity_type = 'navTracks' AND record_id = '$routeId'",
+            )
+            .getSingleOrNull();
+        expect(pending, isNotNull);
       });
     });
 

@@ -17,6 +17,7 @@ class FileShareHandlerDelegate {
   void initialize({
     required Future<void> Function(Uint8List bytes, String fileName)
     onFileReceived,
+    Future<void> Function(List<String> paths)? onFilesReceived,
     void Function(Object error)? onError,
   }) {
     if (!_isMobile) return;
@@ -25,6 +26,7 @@ class FileShareHandlerDelegate {
       (files) => handleMediaFiles(
         files,
         onFileReceived: onFileReceived,
+        onFilesReceived: onFilesReceived,
         onError: onError,
       ),
       onError: (Object e) => onError?.call(e),
@@ -36,6 +38,7 @@ class FileShareHandlerDelegate {
           (files) => handleMediaFiles(
             files,
             onFileReceived: onFileReceived,
+            onFilesReceived: onFilesReceived,
             onError: onError,
           ),
         )
@@ -48,20 +51,30 @@ class FileShareHandlerDelegate {
     List<dynamic> files, {
     required Future<void> Function(Uint8List bytes, String fileName)
     onFileReceived,
+    Future<void> Function(List<String> paths)? onFilesReceived,
     void Function(Object error)? onError,
   }) async {
     if (files.isEmpty) return;
 
-    final first = files.first;
-    if (first is! SharedMediaFile) {
-      onError?.call(TypeError());
-      return;
+    final paths = <String>[];
+    for (final shared in files) {
+      if (shared is! SharedMediaFile) {
+        onError?.call(TypeError());
+        return;
+      }
+      if (await File(shared.path).exists()) paths.add(shared.path);
     }
-    final sharedFile = first;
-    final file = File(sharedFile.path);
-    if (!await file.exists()) return;
+    if (paths.isEmpty) return;
 
     try {
+      // Several files go over as one batch, so exporting a handful of dives
+      // at once imports them all rather than only the first (#1635).
+      if (paths.length > 1 && onFilesReceived != null) {
+        await onFilesReceived(paths);
+        return;
+      }
+
+      final file = File(paths.first);
       final bytes = await file.readAsBytes();
       final fileName = file.uri.pathSegments.last;
       await onFileReceived(bytes, fileName);

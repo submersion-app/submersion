@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Panel for configuring CCR (Closed Circuit Rebreather) dive settings.
 ///
@@ -77,11 +79,28 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
   late TextEditingController _scrubberRemainingController;
   late TextEditingController _loopVolumeController;
 
+  // What each number field last held while readable, so a mistype reports
+  // that value instead of null while the field shows its error (#1900).
+  late final _setpointLow = LiveNumber(widget.setpointLow ?? 0.70);
+  late final _setpointHigh = LiveNumber(widget.setpointHigh ?? 1.30);
+  late final _setpointDeco = LiveNumber(widget.setpointDeco);
+  late final _diluentO2 = LiveNumber(widget.diluentGas?.o2 ?? 21);
+  late final _diluentHe = LiveNumber(widget.diluentGas?.he ?? 0);
+  late final _scrubberDuration = LiveNumber(
+    widget.scrubberDurationMinutes?.toDouble(),
+    integer: true,
+  );
+  late final _scrubberRemaining = LiveNumber(
+    widget.scrubberRemainingMinutes?.toDouble(),
+    integer: true,
+  );
+  late final _loopVolume = LiveNumber(widget.loopVolume);
+
   @override
   void initState() {
     super.initState();
     // Every seed goes through formatDecimalForInput so the diver's locale
-    // decides the separator, matching what parseUserDecimal reads back in
+    // decides the separator, matching what readNumber reads back in
     // _notifyChange. The defaults are formatted too: a literal '0.70' would be
     // unreadable in a comma-decimal locale and silently become null (#1091).
     _setpointLowController = TextEditingController(
@@ -136,22 +155,29 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
   }
 
   void _notifyChange() {
-    final diluentO2 = parseUserDecimal(_diluentO2Controller.text);
-    final diluentHe = parseUserDecimal(_diluentHeController.text);
+    // Blank keeps its meaning from before: an empty setpoint or loop volume
+    // is "not set", an empty diluent O2 drops the diluent, and an empty He
+    // is 0 %.
+    final diluentO2 = _diluentO2.resolve(_diluentO2Controller.text);
+    final diluentHe = _diluentHe.resolve(_diluentHeController.text, blank: 0);
 
     widget.onChanged(
-      setpointLow: parseUserDecimal(_setpointLowController.text),
-      setpointHigh: parseUserDecimal(_setpointHighController.text),
-      setpointDeco: parseUserDecimal(_setpointDecoController.text),
+      setpointLow: _setpointLow.resolve(_setpointLowController.text),
+      setpointHigh: _setpointHigh.resolve(_setpointHighController.text),
+      setpointDeco: _setpointDeco.resolve(_setpointDecoController.text),
       diluentGas: diluentO2 != null
           ? GasMix(o2: diluentO2, he: diluentHe ?? 0)
           : null,
       scrubberType: _scrubberTypeController.text.isNotEmpty
           ? _scrubberTypeController.text
           : null,
-      scrubberDurationMinutes: parseUserInt(_scrubberDurationController.text),
-      scrubberRemainingMinutes: parseUserInt(_scrubberRemainingController.text),
-      loopVolume: parseUserDecimal(_loopVolumeController.text),
+      scrubberDurationMinutes: _scrubberDuration
+          .resolve(_scrubberDurationController.text)
+          ?.toInt(),
+      scrubberRemainingMinutes: _scrubberRemaining
+          .resolve(_scrubberRemainingController.text)
+          ?.toInt(),
+      loopVolume: _loopVolume.resolve(_loopVolumeController.text),
     );
   }
 
@@ -191,7 +217,7 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
+                  child: NumberField(
                     controller: _setpointLowController,
                     decoration: InputDecoration(
                       labelText: context.l10n.diveLog_ccr_label_lowDescAsc,
@@ -199,15 +225,12 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                       isDense: true,
                       hintText: '0.70',
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
                     onChanged: (_) => _notifyChange(),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: TextFormField(
+                  child: NumberField(
                     controller: _setpointHighController,
                     decoration: InputDecoration(
                       labelText: context.l10n.diveLog_ccr_label_highBottom,
@@ -215,24 +238,18 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                       isDense: true,
                       hintText: '1.30',
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
                     onChanged: (_) => _notifyChange(),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: TextFormField(
+                  child: NumberField(
                     controller: _setpointDecoController,
                     decoration: InputDecoration(
                       labelText: context.l10n.diveLog_ccr_label_deco,
                       suffixText: 'bar',
                       isDense: true,
                       hintText: '1.60',
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
                     ),
                     onChanged: (_) => _notifyChange(),
                   ),
@@ -252,15 +269,12 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
+                  child: NumberField(
                     controller: _diluentO2Controller,
                     decoration: InputDecoration(
                       labelText: context.l10n.diveLog_ccr_label_o2,
                       suffixText: '%',
                       isDense: true,
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
                     ),
                     onChanged: (_) {
                       setState(() {});
@@ -270,15 +284,12 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: TextFormField(
+                  child: NumberField(
                     controller: _diluentHeController,
                     decoration: InputDecoration(
                       labelText: context.l10n.diveLog_ccr_label_he,
                       suffixText: '%',
                       isDense: true,
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
                     ),
                     onChanged: (_) {
                       setState(() {});
@@ -326,27 +337,27 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: TextFormField(
+                  child: NumberField(
                     controller: _scrubberDurationController,
                     decoration: InputDecoration(
                       labelText: context.l10n.diveLog_ccr_label_rated,
                       suffixText: 'min',
                       isDense: true,
                     ),
-                    keyboardType: TextInputType.number,
+                    integer: true,
                     onChanged: (_) => _notifyChange(),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: TextFormField(
+                  child: NumberField(
                     controller: _scrubberRemainingController,
                     decoration: InputDecoration(
                       labelText: context.l10n.diveLog_ccr_label_remaining,
                       suffixText: 'min',
                       isDense: true,
                     ),
-                    keyboardType: TextInputType.number,
+                    integer: true,
                     onChanged: (_) => _notifyChange(),
                   ),
                 ),
@@ -358,16 +369,13 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
+                  child: NumberField(
                     controller: _loopVolumeController,
                     decoration: InputDecoration(
                       labelText: context.l10n.diveLog_ccr_label_loopVolume,
                       suffixText: 'L',
                       isDense: true,
                       hintText: context.l10n.diveLog_ccr_hint_loopVolume,
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
                     ),
                     onChanged: (_) => _notifyChange(),
                   ),
@@ -393,8 +401,10 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
       (l10n.gas_diluentTx1070_displayName, 10.0, 70.0),
     ];
 
-    final currentO2 = parseUserDecimal(_diluentO2Controller.text) ?? 21.0;
-    final currentHe = parseUserDecimal(_diluentHeController.text) ?? 0.0;
+    // The chips follow the mix the panel reports; an unreadable field shows
+    // its own error.
+    final currentO2 = _diluentO2.resolve(_diluentO2Controller.text) ?? 21.0;
+    final currentHe = _diluentHe.resolve(_diluentHeController.text) ?? 0.0;
 
     return Wrap(
       spacing: 8,
@@ -419,8 +429,8 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
   }
 
   String _calculateN2() {
-    final o2 = parseUserDecimal(_diluentO2Controller.text) ?? 21.0;
-    final he = parseUserDecimal(_diluentHeController.text) ?? 0.0;
+    final o2 = _diluentO2.resolve(_diluentO2Controller.text) ?? 21.0;
+    final he = _diluentHe.resolve(_diluentHeController.text) ?? 0.0;
     final n2 = 100.0 - o2 - he;
     return n2.clamp(0.0, 100.0).toStringAsFixed(0);
   }

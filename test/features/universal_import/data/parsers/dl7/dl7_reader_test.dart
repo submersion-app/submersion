@@ -50,12 +50,10 @@ void main() {
 
     test('captures multi-line ZAR content between braces', () {
       final doc = reader.read(_multiLineZar);
-      expect(doc.zarContent, contains('<AQUALUNG>'));
-      expect(
-        doc.zarContent,
-        contains('<DUID>7168_13960_20220224130600_1</DUID>'),
-      );
-      expect(doc.zarContent, isNot(contains('ZDH')));
+      final zar = doc.zarBlocks.single;
+      expect(zar, contains('<AQUALUNG>'));
+      expect(zar, contains('<DUID>7168_13960_20220224130600_1</DUID>'));
+      expect(zar, isNot(contains('ZDH')));
     });
 
     test('captures single-line ZAR content', () {
@@ -65,8 +63,39 @@ void main() {
         'ZDH|1|1|I|Q1M|20240501100000|25|||\n'
         'ZDT|1|1|10.0|20240501100200|24||\n',
       );
-      expect(doc.zarContent, 'More Mobile Software, DiveLogDT, version 4.144');
+      expect(doc.zarBlocks, ['More Mobile Software, DiveLogDT, version 4.144']);
       expect(doc.dives, hasLength(1));
+    });
+
+    test('keeps each ZAR block separate, in file order (#2211)', () {
+      // A multi-dive file may describe each dive in its own block. Joining
+      // them into one string let the dialect parser read only the first.
+      final doc = reader.read(
+        'FSH|^~<>{}|X^^|ZXU|20240501120000|\n'
+        'ZAR{\n'
+        '<AQUALUNG>\n'
+        '<DIVE_DT>20240501100000</DIVE_DT>\n'
+        '</AQUALUNG>\n'
+        '}\n'
+        'ZDH|1|1|I|Q1M|20240501100000|25|||\n'
+        'ZDT|1|1|10.0|20240501100200|24||\n'
+        'ZAR{<AQUALUNG><DIVE_DT>20240502100000</DIVE_DT></AQUALUNG>}\n'
+        'ZDH|2|2|I|Q1M|20240502100000|25|||\n'
+        'ZDT|1|2|10.0|20240502100200|24||\n',
+      );
+      expect(doc.zarBlocks, hasLength(2));
+      expect(doc.zarBlocks[0], contains('20240501100000'));
+      expect(doc.zarBlocks[1], contains('20240502100000'));
+    });
+
+    test('an empty ZAR block adds nothing', () {
+      final doc = reader.read(
+        'FSH|^~<>{}|X^^|ZXU|20240501120000|\n'
+        'ZAR{}\n'
+        'ZDH|1|1|I|Q1M|20240501100000|25|||\n'
+        'ZDT|1|1|10.0|20240501100200|24||\n',
+      );
+      expect(doc.zarBlocks, isEmpty);
     });
 
     test('groups ZDH + ZDP rows + ZDT into one dive record', () {
@@ -84,7 +113,7 @@ void main() {
 
     test('parses multiple dives, including profile-less dives', () {
       final doc = reader.read(_multiDiveNoZar);
-      expect(doc.zarContent, isEmpty);
+      expect(doc.zarBlocks, isEmpty);
       expect(doc.dives, hasLength(2));
       expect(doc.dives[0].zdpRows, isEmpty);
       expect(doc.dives[0].zdtFields[3], '12.0');

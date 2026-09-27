@@ -221,12 +221,36 @@ void main() {
               updatedAt: stale,
             ),
           );
+      await db
+          .into(db.tripCylinders)
+          .insert(
+            TripCylindersCompanion.insert(
+              id: 'slot-a',
+              tripId: 'trip-a',
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.tripCylinderEvents)
+          .insert(
+            TripCylinderEventsCompanion.insert(
+              id: 'fill-a',
+              tripCylinderId: 'slot-a',
+              kind: 'fill',
+              occurredAt: stale,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
       return [
         ('trips', 'trips', 'trip-a'),
         ('liveaboard_detail_records', 'liveaboardDetails', 'lb-a'),
         ('trip_itinerary_days', 'itineraryDays', 'day-a'),
         ('trip_checklist_items', 'tripChecklistItems', 'check-a'),
         ('trip_day_weather', 'tripDayWeather', 'wx-a'),
+        ('trip_cylinders', 'tripCylinders', 'slot-a'),
+        ('trip_cylinder_events', 'tripCylinderEvents', 'fill-a'),
       ];
     },
     'a private dive site': () async {

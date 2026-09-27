@@ -1612,6 +1612,430 @@ void main() {
               as DiveComputer;
       expect(captured.name, equals('My Custom Name'));
     });
+
+    // Issue #422: Cressi's Bluetooth adapter advertises the Cartesio's model
+    // code whatever computer is behind it; the download names the real one.
+    group('with a model the device reported', () {
+      DiscoveredDevice cressiScannedAsCartesio() => DiscoveredDevice(
+        id: 'device-cressi',
+        name: '1_12345',
+        connectionType: DeviceConnectionType.ble,
+        address: 'D1:2C:3B:4A:59:68',
+        recognizedModel: const DeviceModel(
+          id: 'cressi_cartesio',
+          manufacturer: 'Cressi',
+          model: 'Cartesio',
+          connectionTypes: [DeviceConnectionType.ble],
+          dcModel: 1,
+        ),
+        discoveredAt: DateTime(2026, 9, 26),
+      );
+
+      DiveComputerAdapter discoveryAdapter() => DiveComputerAdapter(
+        importService: mockImportService,
+        computerRepository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
+        diverId: diverId,
+      );
+
+      test('creates a new computer under the reported model', () async {
+        final dcAdapter = discoveryAdapter();
+        when(mockComputerRepo.createComputer(any)).thenAnswer(
+          (invocation) async =>
+              invocation.positionalArguments[0] as DiveComputer,
+        );
+
+        await dcAdapter.ensureComputer(
+          device: cressiScannedAsCartesio(),
+          serialNumber: '74565',
+          reportedProduct: 'Donatello',
+          reportedModel: 4,
+        );
+
+        final created =
+            verify(mockComputerRepo.createComputer(captureAny)).captured.single
+                as DiveComputer;
+        expect(created.manufacturer, 'Cressi');
+        expect(created.model, 'Donatello');
+        expect(created.name, 'Cressi Donatello');
+      });
+
+      test('keeps a custom device name for the new computer', () async {
+        final dcAdapter = discoveryAdapter()..setCustomDeviceName('My Cressi');
+        when(mockComputerRepo.createComputer(any)).thenAnswer(
+          (invocation) async =>
+              invocation.positionalArguments[0] as DiveComputer,
+        );
+
+        await dcAdapter.ensureComputer(
+          device: cressiScannedAsCartesio(),
+          serialNumber: '74565',
+          reportedProduct: 'Donatello',
+          reportedModel: 4,
+        );
+
+        final created =
+            verify(mockComputerRepo.createComputer(captureAny)).captured.single
+                as DiveComputer;
+        expect(created.model, 'Donatello');
+        expect(created.name, 'My Cressi');
+      });
+
+      test(
+        'rebinds and relabels a record an older build saved as Cartesio',
+        () async {
+          final dcAdapter = discoveryAdapter();
+          final old = makeComputer(
+            id: 'old-cressi',
+            name: 'Cressi Cartesio',
+            manufacturer: 'Cressi',
+            model: 'Cartesio',
+            serialNumber: '74565',
+          );
+          when(
+            mockComputerRepo.findByHardwareIdentity(
+              manufacturer: 'Cressi',
+              model: 'Cartesio',
+              serialNumber: '74565',
+              diverId: diverId,
+            ),
+          ).thenAnswer((_) async => old);
+
+          await dcAdapter.ensureComputer(
+            device: cressiScannedAsCartesio(),
+            serialNumber: '74565',
+            reportedProduct: 'Donatello',
+            reportedModel: 4,
+          );
+
+          verifyNever(mockComputerRepo.createComputer(any));
+          final updated =
+              verify(
+                    mockComputerRepo.updateComputer(captureAny),
+                  ).captured.single
+                  as DiveComputer;
+          expect(updated.id, 'old-cressi');
+          expect(updated.model, 'Donatello');
+          expect(updated.name, 'Cressi Donatello');
+          expect(updated.bluetoothAddress, 'D1:2C:3B:4A:59:68');
+        },
+      );
+
+      test('finds a record already saved under the reported model', () async {
+        final dcAdapter = discoveryAdapter();
+        final existing = makeComputer(
+          id: 'donatello',
+          name: 'Cressi Donatello',
+          manufacturer: 'Cressi',
+          model: 'Donatello',
+          serialNumber: '74565',
+        );
+        when(
+          mockComputerRepo.findByHardwareIdentity(
+            manufacturer: 'Cressi',
+            model: 'Donatello',
+            serialNumber: '74565',
+            diverId: diverId,
+          ),
+        ).thenAnswer((_) async => existing);
+
+        await dcAdapter.ensureComputer(
+          device: cressiScannedAsCartesio(),
+          serialNumber: '74565',
+          reportedProduct: 'Donatello',
+          reportedModel: 4,
+        );
+
+        verifyNever(mockComputerRepo.createComputer(any));
+        expect(dcAdapter.computer?.id, 'donatello');
+        expect(dcAdapter.computer?.model, 'Donatello');
+      });
+
+      test('without a reported model, behaviour is unchanged', () async {
+        final dcAdapter = discoveryAdapter();
+        when(mockComputerRepo.createComputer(any)).thenAnswer(
+          (invocation) async =>
+              invocation.positionalArguments[0] as DiveComputer,
+        );
+
+        await dcAdapter.ensureComputer(
+          device: cressiScannedAsCartesio(),
+          serialNumber: '74565',
+        );
+
+        final created =
+            verify(mockComputerRepo.createComputer(captureAny)).captured.single
+                as DiveComputer;
+        expect(created.model, 'Cartesio');
+        expect(created.name, 'Cressi Cartesio');
+      });
+
+      test('stamps imported dives with the reported descriptor', () async {
+        // Known-computer mode: the descriptor is captured even though no
+        // record is created.
+        await adapter.ensureComputer(
+          device: cressiScannedAsCartesio(),
+          serialNumber: '74565',
+          reportedProduct: 'Donatello',
+          reportedModel: 4,
+        );
+        adapter.setDownloadedDives([makeDownloadedDive(fingerprint: 'fp1')]);
+        final bundle = await adapter.buildBundle();
+        when(
+          mockImportService.importSingleDiveAsNew(
+            any,
+            computerId: anyNamed('computerId'),
+            diverId: anyNamed('diverId'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+          ),
+        ).thenAnswer((_) async => 'imported-id');
+
+        await adapter.performImport(bundle, {
+          ImportEntityType.dives: {0},
+        }, {});
+
+        verify(
+          mockImportService.importSingleDiveAsNew(
+            any,
+            computerId: anyNamed('computerId'),
+            diverId: anyNamed('diverId'),
+            descriptorVendor: 'Cressi',
+            descriptorProduct: 'Donatello',
+            descriptorModel: 4,
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+          ),
+        ).called(1);
+      });
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // performImport after a failed computer save (issue #2439)
+  // -------------------------------------------------------------------------
+
+  // The download step no longer lets a failed computer save strand the
+  // wizard, so the diver can reach Review without a computer record.
+  // buildBundle retries the save with what the download reported; Import
+  // never imports a bundle that was checked without the computer.
+  group('performImport after a failed computer save (issue #2439)', () {
+    late DiveComputerAdapter discoveryAdapter;
+    late DiscoveredDevice device;
+
+    setUp(() {
+      discoveryAdapter = DiveComputerAdapter(
+        importService: mockImportService,
+        computerRepository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
+        diverId: diverId,
+      );
+      device = DiscoveredDevice(
+        id: 'device-1',
+        name: 'G2 HUD',
+        connectionType: DeviceConnectionType.ble,
+        address: 'AA:BB:CC:DD:EE:FF',
+        discoveredAt: DateTime(2026, 3, 20),
+      );
+    });
+
+    // Duplicate detection runs on the bundle before import and keys its
+    // same-computer checks on the computer id, so the retry has to land
+    // before the bundle is built, not only at import.
+    test('resolves the computer before building the bundle', () async {
+      final createdComputer = makeComputer(id: 'new-computer-id');
+      var attempts = 0;
+      when(mockComputerRepo.createComputer(any)).thenAnswer((_) async {
+        attempts++;
+        if (attempts == 1) throw StateError('database is locked');
+        return createdComputer;
+      });
+
+      await expectLater(
+        discoveryAdapter.ensureComputer(device: device),
+        throwsStateError,
+      );
+
+      discoveryAdapter.setDownloadedDives([makeDownloadedDive()]);
+      final bundle = await discoveryAdapter.buildBundle();
+
+      expect(bundle.source.currentComputerId, equals('new-computer-id'));
+      expect(discoveryAdapter.computer, equals(createdComputer));
+    });
+
+    test('still builds the bundle when the retry fails', () async {
+      when(
+        mockComputerRepo.createComputer(any),
+      ).thenThrow(StateError('database is locked'));
+
+      await expectLater(
+        discoveryAdapter.ensureComputer(device: device),
+        throwsStateError,
+      );
+
+      discoveryAdapter.setDownloadedDives([makeDownloadedDive()]);
+      final bundle = await discoveryAdapter.buildBundle();
+
+      expect(bundle.source.currentComputerId, isNull);
+      expect(bundle.groups[ImportEntityType.dives]?.items, hasLength(1));
+    });
+
+    test('retries the save and imports when it succeeds', () async {
+      final createdComputer = makeComputer(id: 'new-computer-id');
+      var attempts = 0;
+      when(mockComputerRepo.createComputer(any)).thenAnswer((_) async {
+        attempts++;
+        if (attempts == 1) throw StateError('database is locked');
+        return createdComputer;
+      });
+
+      await expectLater(
+        discoveryAdapter.ensureComputer(
+          device: device,
+          serialNumber: 'SN-99999',
+          firmwareVersion: 'v4.0',
+        ),
+        throwsStateError,
+      );
+      expect(discoveryAdapter.computer, isNull);
+
+      final dive = makeDownloadedDive();
+      discoveryAdapter.setDownloadedDives([dive]);
+      final bundle = await discoveryAdapter.buildBundle();
+      when(
+        mockImportService.importSingleDiveAsNew(
+          dive,
+          computerId: 'new-computer-id',
+          diverId: diverId,
+        ),
+      ).thenAnswer((_) async => 'new-dive-1');
+
+      final result = await discoveryAdapter.performImport(bundle, {
+        ImportEntityType.dives: {0},
+      }, {});
+
+      expect(result.errorMessage, isNull);
+      expect(result.importedCounts[ImportEntityType.dives], equals(1));
+      final saved =
+          verify(mockComputerRepo.createComputer(captureAny)).captured.last
+              as DiveComputer;
+      expect(saved.serialNumber, equals('SN-99999'));
+      expect(saved.firmwareVersion, equals('v4.0'));
+      expect(discoveryAdapter.computer, equals(createdComputer));
+    });
+
+    // Duplicate detection already ran on a bundle with no computer id, so a
+    // save that only works at Import must not let that bundle through: the
+    // same-computer matches it missed would import as new dives.
+    test(
+      'does not retry at import a save that failed for the bundle',
+      () async {
+        var attempts = 0;
+        when(mockComputerRepo.createComputer(any)).thenAnswer((_) async {
+          attempts++;
+          if (attempts <= 2) throw StateError('database is locked');
+          return makeComputer(id: 'late-computer-id');
+        });
+
+        await expectLater(
+          discoveryAdapter.ensureComputer(device: device),
+          throwsStateError,
+        );
+        discoveryAdapter.setDownloadedDives([makeDownloadedDive()]);
+        final bundle = await discoveryAdapter.buildBundle();
+        expect(bundle.source.currentComputerId, isNull);
+
+        final result = await discoveryAdapter.performImport(bundle, {
+          ImportEntityType.dives: {0},
+        }, {});
+
+        expect(result.errorMessage, contains('database is locked'));
+        verify(mockComputerRepo.createComputer(any)).called(2);
+        verifyNever(
+          mockImportService.importSingleDiveAsNew(
+            any,
+            computerId: anyNamed('computerId'),
+            diverId: anyNamed('diverId'),
+          ),
+        );
+      },
+    );
+
+    // Issue #422 stamps a computer under the model it reports mid-download.
+    // The retry has to replay that too, or a recovered save registers the
+    // scan-time model instead.
+    test('the retried save keeps the model the device reported', () async {
+      var attempts = 0;
+      when(mockComputerRepo.createComputer(any)).thenAnswer((invocation) async {
+        attempts++;
+        if (attempts == 1) throw StateError('database is locked');
+        return invocation.positionalArguments[0] as DiveComputer;
+      });
+      final cressi = DiscoveredDevice(
+        id: 'device-goa',
+        name: 'Cressi',
+        connectionType: DeviceConnectionType.ble,
+        address: 'AA:BB:CC:DD:EE:01',
+        recognizedModel: const DeviceModel(
+          id: 'cressi_cartesio',
+          manufacturer: 'Cressi',
+          model: 'Cartesio',
+          dcModel: 1,
+          connectionTypes: [DeviceConnectionType.ble],
+        ),
+        discoveredAt: DateTime(2026, 3, 20),
+      );
+
+      await expectLater(
+        discoveryAdapter.ensureComputer(
+          device: cressi,
+          reportedProduct: 'Goa',
+          reportedModel: 2,
+        ),
+        throwsStateError,
+      );
+      discoveryAdapter.setDownloadedDives([makeDownloadedDive()]);
+      await discoveryAdapter.buildBundle();
+
+      final saved =
+          verify(mockComputerRepo.createComputer(captureAny)).captured.last
+              as DiveComputer;
+      expect(saved.model, equals('Goa'));
+    });
+
+    test('reports why when the retried save fails again', () async {
+      when(
+        mockComputerRepo.createComputer(any),
+      ).thenThrow(StateError('database is locked'));
+
+      await expectLater(
+        discoveryAdapter.ensureComputer(device: device),
+        throwsStateError,
+      );
+
+      final dive = makeDownloadedDive();
+      discoveryAdapter.setDownloadedDives([dive]);
+      final bundle = await discoveryAdapter.buildBundle();
+
+      final result = await discoveryAdapter.performImport(bundle, {
+        ImportEntityType.dives: {0},
+      }, {});
+
+      expect(result.errorMessage, contains('database is locked'));
+      expect(result.importedCounts, isEmpty);
+      // The download step and the bundle build each tried; Import did not.
+      verify(mockComputerRepo.createComputer(any)).called(2);
+      verifyNever(
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
+          diverId: anyNamed('diverId'),
+        ),
+      );
+    });
   });
 
   // -------------------------------------------------------------------------

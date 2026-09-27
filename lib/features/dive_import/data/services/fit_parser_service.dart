@@ -5,10 +5,12 @@ import 'package:fit_tool/fit_tool.dart';
 // ignore: implementation_imports
 import 'package:fit_tool/src/utils/logger.dart' as fit_log;
 import 'package:logger/logger.dart' show Level, Logger;
+import 'package:submersion/features/dive_import/data/services/fit/fit_constants.dart';
 import 'package:submersion/features/dive_import/data/services/fit/fit_device_mapper.dart';
 import 'package:submersion/features/dive_import/data/services/fit/fit_gas_extractor.dart';
 import 'package:submersion/features/dive_import/data/services/fit/fit_gas_switch_extractor.dart';
 import 'package:submersion/features/dive_import/data/services/fit/fit_profile_extractor.dart';
+import 'package:submersion/features/dive_import/data/services/fit/fit_raw_field_reader.dart';
 import 'package:submersion/features/dive_import/data/services/fit/fit_summary_extractor.dart';
 import 'package:submersion/features/dive_import/data/services/fit/fit_tank_extractor.dart';
 import 'package:submersion/features/dive_import/data/services/fit/fit_time_resolver.dart';
@@ -22,7 +24,8 @@ const _diveSports = {Sport.diving};
 /// Orchestrates focused extractors (see `fit/`) to pull depth/temp/HR samples,
 /// recorded deco (ceiling/TTS/NDL/CNS), air-integration tanks + pressure series,
 /// gas mixes, GPS, and dive-level summary fields. Returns null for non-dive
-/// activities, corrupt files, or files with no depth samples.
+/// activities and corrupt files. A dive with no depth samples still parses,
+/// with an empty profile.
 class FitParserService {
   const FitParserService();
 
@@ -55,8 +58,9 @@ class FitParserService {
     if (sessionStartMs == null) return null;
 
     final records = messages.whereType<RecordMessage>().toList();
+    // May be empty: a dive logged without a recorded profile still imports,
+    // with its depth taken from the dive summary (#1605).
     final samples = FitProfileExtractor.extract(records);
-    if (samples.isEmpty) return null;
 
     final fileId = _firstOfType<FileIdMessage>(messages);
     final activity = _firstOfType<ActivityMessage>(messages);
@@ -105,10 +109,16 @@ class FitParserService {
       realTanks,
     );
 
-    // Summary stats derived from the samples.
+    // Summary stats derived from the samples. Without any, the dive summary's
+    // own depths are all there is; a dive that recorded no depth anywhere
+    // imports at 0 m for the diver to correct.
     final depths = samples.map((s) => s.depth).toList();
-    final maxDepth = depths.reduce(math.max);
-    final avgDepth = depths.reduce((a, b) => a + b) / depths.length;
+    final maxDepth = depths.isEmpty
+        ? (diveSummary?.maxDepth ?? 0.0)
+        : depths.reduce(math.max);
+    final avgDepth = depths.isEmpty
+        ? diveSummary?.avgDepth
+        : depths.reduce((a, b) => a + b) / depths.length;
 
     final temps = samples
         .map((s) => s.temperature)
@@ -145,18 +155,7 @@ class FitParserService {
       }
     }
 
-    // Exit GPS: the last record carrying a position fix (often absent).
-    double? exitLat;
-    double? exitLong;
-    for (final r in records.reversed) {
-      final lat = r.positionLat;
-      final long = r.positionLong;
-      if (lat != null && long != null) {
-        exitLat = lat;
-        exitLong = long;
-        break;
-      }
-    }
+    final (exitLat, exitLong) = _exitPosition(bytes, messages, records);
 
     final tanks = _buildImportedTanks(realTanks, gases);
     final gasSwitches = _buildGasSwitches(
@@ -219,6 +218,50 @@ class FitParserService {
       if (dive != null) results.add(dive);
     }
     return results;
+  }
+
+  /// Exit GPS, from the first source that has a full fix:
+  ///
+  /// 1. `session.end_position_lat/long`, which a Garmin watch fills in from the
+  ///    fix it takes after surfacing. fit_tool drops these fields, so they are
+  ///    read off the raw bytes (issue #1797).
+  /// 2. The last lap's end position.
+  /// 3. The last record carrying a fix. Records logged underwater have none,
+  ///    so this only helps when the watch kept logging at the surface.
+  (double?, double?) _exitPosition(
+    Uint8List bytes,
+    List<Message> messages,
+    List<RecordMessage> records,
+  ) {
+    final sessionEnd = FitRawFieldReader.firstSint32Fields(
+      bytes,
+      globalId: FitConstants.sessionMsg,
+      fieldIds: const {
+        FitConstants.sessionEndPositionLat,
+        FitConstants.sessionEndPositionLong,
+      },
+    );
+    final endLat = sessionEnd?[FitConstants.sessionEndPositionLat];
+    final endLong = sessionEnd?[FitConstants.sessionEndPositionLong];
+    if (endLat != null && endLong != null) {
+      return (
+        endLat * FitConstants.semicircleToDegrees,
+        endLong * FitConstants.semicircleToDegrees,
+      );
+    }
+
+    for (final lap in messages.whereType<LapMessage>().toList().reversed) {
+      final lat = lap.endPositionLat;
+      final long = lap.endPositionLong;
+      if (lat != null && long != null) return (lat, long);
+    }
+
+    for (final r in records.reversed) {
+      final lat = r.positionLat;
+      final long = r.positionLong;
+      if (lat != null && long != null) return (lat, long);
+    }
+    return (null, null);
   }
 
   T? _firstOfType<T extends Message>(List<Message> messages) {

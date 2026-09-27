@@ -15,10 +15,12 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:submersion/app.dart' show resolveAppLocale;
 import 'package:submersion/app.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/storage/local_cache_sweep.dart';
 import 'package:submersion/core/services/storage/scratch_sweep.dart';
 import 'package:submersion/core/services/sync/changeset_log/local_only_tombstone_gc.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_sweep.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_engine_preflight.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
@@ -734,6 +736,17 @@ class _StartupWrapperState extends State<StartupWrapper>
     // (cf. the coverage-ignored bootstrap in lib/main.dart). The wall-time
     // attribution itself lives in the unit-tested [timeStartupStep].
     // coverage:ignore-start
+    // Leftover sync temp files, every launch (issue #1931). An interrupted
+    // sync strands its `ssv1_` base export or assembled base in the app temp
+    // dir, a full copy of the library, and nothing else reclaims it short of
+    // Repair sync. First, ahead of the database: the sweep needs no database
+    // or provider (a device that signed out can still hold a leftover), so it
+    // still runs when the open fails or waits on a lock, and it lists the dir
+    // before any sync of this launch has started. Its five-minute grace
+    // covers one that starts while the listing runs. Not awaited, and no
+    // try/catch: the sweep logs and swallows every failure itself.
+    unawaited(sweepLeftoverSyncTempFiles());
+
     await timeStartupStep(
       'database',
       () => DatabaseService.instance.initialize(
@@ -882,6 +895,38 @@ class _StartupWrapperState extends State<StartupWrapper>
         await prefs.setInt(kScratchSweepStampKey, now.millisecondsSinceEpoch);
       } catch (e, stackTrace) {
         debugPrint('Scratch sweep failed (will retry): $e\n$stackTrace');
+      }
+    }());
+
+    // Local cache database sweep (issue #1929), at most once a week. Deletes
+    // superseded bathymetry grids and cache rows whose dive, media item or
+    // track is gone, then VACUUMs when that freed enough to matter. Same
+    // stamp-and-swallow shape as the scratch sweep above.
+    unawaited(() async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final stampMs = prefs.getInt(kLocalCacheSweepStampKey);
+        final lastSweptAt = stampMs == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(stampMs);
+        final now = DateTime.now();
+        if (!shouldSweepLocalCache(lastSweptAt: lastSweptAt, now: now)) {
+          return;
+        }
+
+        await LocalCacheSweep(
+          localCache: LocalCacheDatabaseService.instance.database,
+          library: DatabaseService.instance.database,
+        ).run(now: now);
+
+        // Stamped after the pass, so a sweep that throws part way retries
+        // on the next launch rather than being recorded as done.
+        await prefs.setInt(
+          kLocalCacheSweepStampKey,
+          now.millisecondsSinceEpoch,
+        );
+      } catch (e, stackTrace) {
+        debugPrint('Local cache sweep failed (will retry): $e\n$stackTrace');
       }
     }());
     // coverage:ignore-end

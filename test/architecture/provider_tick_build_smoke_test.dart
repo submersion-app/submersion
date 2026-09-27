@@ -48,7 +48,9 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_history_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
 import 'package:submersion/features/maps/presentation/providers/offline_map_providers.dart';
@@ -72,6 +74,8 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/universal_import/presentation/providers/csv_preset_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
+import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
 
 import '../helpers/mock_providers.dart';
 import '../helpers/test_database.dart';
@@ -522,6 +526,22 @@ void main() {
 
   _tickGroup('equipment', [
     (
+      name: 'equipmentHistoryProvider',
+      read: (c) => c.read(equipmentHistoryProvider(_id).future),
+    ),
+    (
+      name: 'allServiceKindsByIdProvider',
+      read: (c) => c.read(allServiceKindsByIdProvider.future),
+    ),
+    (
+      name: 'equipmentSharesProvider',
+      read: (c) => c.read(equipmentSharesProvider(_id).future),
+    ),
+    (
+      name: 'equipmentOwnershipEventsProvider',
+      read: (c) => c.read(equipmentOwnershipEventsProvider(_id).future),
+    ),
+    (
       name: 'passportIdProvider',
       read: (c) => c.read(passportIdProvider('missing').future),
     ),
@@ -874,6 +894,21 @@ void main() {
     (
       name: 'userCsvPresetsProvider',
       read: (c) => c.read(userCsvPresetsProvider.future),
+    ),
+  ]);
+
+  _tickGroup('query', [
+    (
+      name: 'queryNameIndexProvider',
+      read: (c) => c.read(queryNameIndexProvider.future),
+    ),
+    (
+      name: 'savedQueriesProvider',
+      read: (c) => c.read(savedQueriesProvider('dives').future),
+    ),
+    (
+      name: 'savedQueryLoadsProvider',
+      read: (c) => c.read(savedQueryLoadsProvider(null).future),
     ),
   ]);
 }

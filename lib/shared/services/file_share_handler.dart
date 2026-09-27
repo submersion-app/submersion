@@ -11,11 +11,20 @@ import 'package:submersion/shared/services/file_share_handler_io.dart'
 /// Call [initialize] once at app startup, and [dispose] when done.
 /// On non-mobile platforms (and on web), [initialize] is a no-op.
 class FileShareHandler {
-  FileShareHandler({required this.onFileReceived, this.onError});
+  FileShareHandler({
+    required this.onFileReceived,
+    this.onFilesReceived,
+    this.onError,
+  });
 
   /// Called when a file is shared to the app.
   /// Receives the file bytes and the original file name.
   final Future<void> Function(Uint8List bytes, String fileName) onFileReceived;
+
+  /// Called instead of [onFileReceived] when several readable files are
+  /// shared at once, with their paths in share order. When null, only the
+  /// first readable file of a multi-file share is imported.
+  final Future<void> Function(List<String> paths)? onFilesReceived;
 
   /// Called when a shared file cannot be read or a platform error occurs.
   final void Function(Object error)? onError;
@@ -24,7 +33,11 @@ class FileShareHandler {
 
   /// Start listening for shared files. Only active on iOS and Android.
   void initialize() {
-    _delegate.initialize(onFileReceived: onFileReceived, onError: onError);
+    _delegate.initialize(
+      onFileReceived: onFileReceived,
+      onFilesReceived: onFilesReceived,
+      onError: onError,
+    );
   }
 
   @visibleForTesting
@@ -32,6 +45,7 @@ class FileShareHandler {
     await _delegate.handleMediaFiles(
       files,
       onFileReceived: onFileReceived,
+      onFilesReceived: onFilesReceived,
       onError: onError,
     );
   }
