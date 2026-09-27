@@ -2748,6 +2748,11 @@ class SyncDataSerializer {
           _db.cylinderFills,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'mediaSmartAlbums':
+        final row = await (_db.select(
+          _db.mediaSmartAlbums,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'tideRecords':
         final row = await (_db.select(
           _db.tideRecords,
@@ -3152,6 +3157,11 @@ class SyncDataSerializer {
       case 'cylinderFills':
         final rows = await (_db.select(
           _db.cylinderFills,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'mediaSmartAlbums':
+        final rows = await (_db.select(
+          _db.mediaSmartAlbums,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'tags':
@@ -3678,7 +3688,7 @@ class SyncDataSerializer {
         );
   }
 
-  /// Applies one incoming `equipment_shares` row (v233, issue #2046). The
+  /// Applies one incoming `equipment_shares` row (v234, issue #2046). The
   /// (item, diver) pair is unique, so a peer's copy of a pair this device
   /// holds under another id is reconciled to the lower id and then skipped
   /// with DO NOTHING, as [_applySiteSiteTypeRecord] does.
@@ -4171,6 +4181,13 @@ class SyncDataSerializer {
             .into(_db.cylinderFills)
             .insertOnConflictUpdate(
               CylinderFillRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'mediaSmartAlbums':
+        await _db
+            .into(_db.mediaSmartAlbums)
+            .insertOnConflictUpdate(
+              MediaSmartAlbum.fromJson(data).toCompanion(false),
             );
         return;
       case 'tankPressureProfiles':
@@ -5303,6 +5320,16 @@ class SyncDataSerializer {
             _db.cylinderFills,
             records
                 .map((r) => CylinderFillRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'mediaSmartAlbums':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.mediaSmartAlbums,
+            records
+                .map((r) => MediaSmartAlbum.fromJson(r).toCompanion(false))
                 .toList(),
           ),
         );
@@ -6603,6 +6630,11 @@ class SyncDataSerializer {
           _db.cylinderFills,
         )..where((t) => t.id.equals(recordId))).go();
         return;
+      case 'mediaSmartAlbums':
+        await (_db.delete(
+          _db.mediaSmartAlbums,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
       case 'tideRecords':
         await (_db.delete(
           _db.tideRecords,
@@ -7867,7 +7899,7 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  /// Equipment shares (v233, issue #2046), gated on the parent item's clock
+  /// Equipment shares (v234, issue #2046), gated on the parent item's clock
   /// like [_exportEquipmentTags].
   Future<List<Map<String, dynamic>>> _exportEquipmentShares(
     String? hlcSince,
@@ -7886,7 +7918,7 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  /// Equipment share and ownership events (v233, issue #2046), gated on the
+  /// Equipment share and ownership events (v234, issue #2046), gated on the
   /// parent item's clock like [_exportEquipmentTags].
   Future<List<Map<String, dynamic>>> _exportEquipmentOwnershipEvents(
     String? hlcSince,

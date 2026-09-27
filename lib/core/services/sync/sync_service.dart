@@ -2688,7 +2688,7 @@ class SyncService {
       (field: 'equipmentId', parent: 'equipment', nullable: false),
       (field: 'tagId', parent: 'tags', nullable: false),
     ],
-    // v233: equipment sharing (issue #2046). The diver keys are left to
+    // v234: equipment sharing (issue #2046). The diver keys are left to
     // repairDanglingForeignKeys like every diverId (see the note above).
     'equipmentShares': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),
