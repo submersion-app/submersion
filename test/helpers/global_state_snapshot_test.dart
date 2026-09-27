@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 
@@ -70,6 +72,22 @@ void main() {
       'debugPrint',
       'FlutterError.onError',
       'debugDefaultTargetPlatformOverride',
+    ]);
+  });
+
+  test('a PDF font loader override is reported', () {
+    final before = GlobalStateSnapshot.take();
+    addTearDown(() {
+      PdfFonts.debugLatinFontLoader = null;
+      PdfFonts.debugScriptFontLoader = null;
+    });
+
+    PdfFonts.debugLatinFontLoader = (weight) async => pw.Font.helvetica();
+    PdfFonts.debugScriptFontLoader = (code, {required bold}) async => null;
+
+    expect(GlobalStateSnapshot.take().changedSince(before), [
+      'PdfFonts.debugLatinFontLoader',
+      'PdfFonts.debugScriptFontLoader',
     ]);
   });
 

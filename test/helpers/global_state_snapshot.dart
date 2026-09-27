@@ -9,6 +9,7 @@ import 'package:path_provider_platform_interface/path_provider_platform_interfac
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
@@ -59,6 +60,8 @@ class GlobalStateSnapshot {
       'debugPrint': debugPrint,
       'FlutterError.onError': FlutterError.onError,
       'debugDefaultTargetPlatformOverride': debugDefaultTargetPlatformOverride,
+      'PdfFonts.debugLatinFontLoader': PdfFonts.debugLatinFontLoader,
+      'PdfFonts.debugScriptFontLoader': PdfFonts.debugScriptFontLoader,
       for (final channel in _watchedChannels)
         'mock handler on $channel': _hasMockHandler(channel),
     });
