@@ -69,10 +69,16 @@ void main() {
   late Directory documents;
   final sharePlatform = _FakeSharePlatform();
 
-  // SharePlus.instance is a `static final` that captures SharePlatform.instance
-  // on first read and keeps it for the life of the isolate, so the fake has to
-  // be installed before the first share.
-  setUpAll(() => SharePlatform.instance = sharePlatform);
+  // The harness pins a forwarder that looks the platform up on every share
+  // (test/helpers/late_bound_share_platform.dart), so the fake comes out
+  // again when this file is done.
+  late SharePlatform originalSharePlatform;
+
+  setUpAll(() {
+    originalSharePlatform = SharePlatform.instance;
+    SharePlatform.instance = sharePlatform;
+  });
+  tearDownAll(() => SharePlatform.instance = originalSharePlatform);
 
   setUp(() async {
     await setUpTestDatabase();

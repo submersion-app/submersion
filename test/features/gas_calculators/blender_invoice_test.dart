@@ -1521,7 +1521,16 @@ void main() {
     late Directory documents;
     final platform = _FakeSharePlatform();
 
-    setUpAll(() => SharePlatform.instance = platform);
+    // The harness pins a forwarder that looks the platform up on every share
+    // (test/helpers/late_bound_share_platform.dart), so the fake comes out
+    // again when this group is done.
+    late SharePlatform originalSharePlatform;
+
+    setUpAll(() {
+      originalSharePlatform = SharePlatform.instance;
+      SharePlatform.instance = platform;
+    });
+    tearDownAll(() => SharePlatform.instance = originalSharePlatform);
 
     setUp(() {
       documents = Directory.systemTemp.createTempSync('blender_invoice_test');

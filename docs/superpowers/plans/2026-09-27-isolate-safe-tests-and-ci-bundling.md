@@ -1695,8 +1695,8 @@ Replace the whole of `test/flutter_test_config.dart` with:
 ```dart
 import 'dart:async';
 
-import 'global_test_defaults.dart';
-import 'late_bound_share_platform.dart';
+import 'helpers/global_test_defaults.dart';
+import 'helpers/late_bound_share_platform.dart';
 
 /// Global test harness config, run once per entrypoint by `flutter test`.
 ///

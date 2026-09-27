@@ -87,10 +87,6 @@ void main() {
         'pending repair, issue #2500',
     'test/features/gas_calculators/blender_invoice_test.dart':
         'pending repair, issue #2500',
-    'test/features/media/presentation/media_selection_test.dart':
-        'pending repair, issue #2500',
-    'test/features/media/presentation/media_share_helper_test.dart':
-        'pending repair, issue #2500',
     'test/features/media/presentation/pages/media_viewer_video_test.dart':
         'pending repair, issue #2500',
     'test/features/media_store/media_cache_eviction_provider_test.dart':

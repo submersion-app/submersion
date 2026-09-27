@@ -42,7 +42,16 @@ void main() {
   late FilePickerPlatform originalPicker;
   final sharePlatform = _FakeSharePlatform();
 
-  setUpAll(() => SharePlatform.instance = sharePlatform);
+  // The harness pins a forwarder that looks the platform up on every share
+  // (test/helpers/late_bound_share_platform.dart), so the fake comes out
+  // again when this file is done.
+  late SharePlatform originalSharePlatform;
+
+  setUpAll(() {
+    originalSharePlatform = SharePlatform.instance;
+    SharePlatform.instance = sharePlatform;
+  });
+  tearDownAll(() => SharePlatform.instance = originalSharePlatform);
 
   setUp(() {
     documents = Directory.systemTemp.createTempSync('share_fallback_docs');

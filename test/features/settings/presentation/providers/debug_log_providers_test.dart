@@ -847,10 +847,18 @@ void main() {
 
   // -------------------------------------------------------------------------
   group('shareLogFile', () {
-    // SharePlus.instance captures the platform the first time it is used, so
-    // one fake serves every test in the group; each test clears its calls.
+    // One fake for the group; each test clears its calls.
     final sharePlatform = _FakeSharePlatform();
-    setUpAll(() => SharePlatform.instance = sharePlatform);
+    // The harness pins a forwarder that looks the platform up on every share
+    // (test/helpers/late_bound_share_platform.dart), so the fake comes out
+    // again when this group is done.
+    late SharePlatform originalSharePlatform;
+
+    setUpAll(() {
+      originalSharePlatform = SharePlatform.instance;
+      SharePlatform.instance = sharePlatform;
+    });
+    tearDownAll(() => SharePlatform.instance = originalSharePlatform);
     setUp(sharePlatform.calls.clear);
 
     test('returns immediately when log file does not exist', () async {
