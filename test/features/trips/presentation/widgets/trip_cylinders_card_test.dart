@@ -20,10 +20,13 @@ import '../../../../helpers/mock_providers.dart';
 void main() {
   final at = DateTime.utc(2026, 3, 9, 8);
 
-  Trip trip({bool past = false}) {
+  Trip trip({bool past = false, bool current = false}) {
+    final now = DateTime.now();
     final start = past
         ? DateTime(2025, 3, 1)
-        : DateTime.now().add(const Duration(days: 10));
+        : current
+        ? DateTime(now.year, now.month, now.day - 2)
+        : DateTime(now.year, now.month, now.day + 10);
     return Trip(
       id: 't1',
       name: 'Bonaire',
@@ -71,6 +74,7 @@ void main() {
   Widget host(
     List<TripCylinderState> slots, {
     bool past = false,
+    bool current = false,
     MockSettingsNotifier? settings,
     Future<List<TripCylinderState>>? loading,
   }) {
@@ -79,7 +83,9 @@ void main() {
         GoRoute(
           path: '/',
           builder: (_, _) => Scaffold(
-            body: TripCylindersCard(trip: trip(past: past)),
+            body: TripCylindersCard(
+              trip: trip(past: past, current: current),
+            ),
           ),
         ),
         GoRoute(
@@ -166,5 +172,11 @@ void main() {
     pending.complete(states());
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('cylinder-chip-c1')), findsOneWidget);
+  });
+
+  testWidgets('a trip in progress with no slots offers set-up', (tester) async {
+    await tester.pumpWidget(host(const [], current: true));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('cylinders-set-up')), findsOneWidget);
   });
 }

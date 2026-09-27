@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value, Variable;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -16,6 +18,7 @@ import 'package:submersion/features/trips/data/repositories/trip_repository.dart
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_cylinder_board_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -79,6 +82,8 @@ void main() {
   Future<void> pumpBoard(
     WidgetTester tester, {
     TripCylinderRepository? repository,
+    Future<List<TripCylinderState>>? states,
+    bool settle = true,
   }) async {
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1.0;
@@ -96,6 +101,8 @@ void main() {
           ),
           if (repository != null)
             tripCylinderRepositoryProvider.overrideWithValue(repository),
+          if (states != null)
+            tripCylinderStatesProvider(tripId).overrideWith((ref) => states),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -105,7 +112,11 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      await tester.pump();
+    }
   }
 
   testWidgets('an empty board offers to add cylinders', (tester) async {
@@ -273,6 +284,21 @@ void main() {
     );
     double top(String label) => tester.getTopLeft(find.text(label)).dy;
     expect(top('Truck 1'), lessThan(top('Truck 2')));
+  });
+
+  testWidgets('adding waits until the slots on the trip are known', (
+    tester,
+  ) async {
+    final pending = Completer<List<TripCylinderState>>();
+    await pumpBoard(tester, states: pending.future, settle: false);
+    IconButton add() =>
+        tester.widget<IconButton>(find.byKey(const Key('board-add')));
+    expect(add().onPressed, isNull);
+
+    pending.completeError(StateError('db gone'));
+    await tester.pump();
+    await tester.pump();
+    expect(add().onPressed, isNull);
   });
 
   test('reorderedIds moves one id and keeps the rest in order', () {

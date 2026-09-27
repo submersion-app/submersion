@@ -134,11 +134,15 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage> {
             key: const Key('board-add'),
             tooltip: l10n.trips_cylinders_action_add,
             icon: const Icon(Icons.add),
-            onPressed: () => showAddTripCylindersSheet(
-              context,
-              tripId: tripId,
-              existing: [for (final s in states) s.cylinder],
-            ),
+            // New labels and positions follow the slots already on the
+            // trip, so adding waits until those are known.
+            onPressed: statesAsync.hasValue
+                ? () => showAddTripCylindersSheet(
+                    context,
+                    tripId: tripId,
+                    existing: [for (final s in states) s.cylinder],
+                  )
+                : null,
           ),
         ],
       ),
