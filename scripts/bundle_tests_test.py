@@ -394,6 +394,21 @@ class MainTest(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("--shard must be from 0", err)
 
+    def test_zero_max_files_is_an_error(self):
+        code, lines, err = self.run_main("--max-files", "0")
+        self.assertEqual(code, 2)
+        self.assertEqual(lines, [])
+        self.assertIn("--max-files must be at least 1", err)
+
+    def test_files_and_containing_together_are_an_error(self):
+        code, lines, err = self.run_main(
+            "--files", "test/a/f00_test.dart",
+            "--containing", "test/a/f00_test.dart",
+        )
+        self.assertEqual(code, 2)
+        self.assertEqual(lines, [])
+        self.assertIn("--files and --containing cannot be combined", err)
+
     def test_zero_shards_is_an_error(self):
         code, _, err = self.run_main("--total-shards", "0")
         self.assertEqual(code, 2)
