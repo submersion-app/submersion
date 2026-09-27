@@ -1499,6 +1499,14 @@ class SyncService {
             records: data.connectionMaps,
             hasUpdatedAt: true,
           ),
+          // Saved queries reference sites and buddies only inside their
+          // JSON (by id, resolved at load), so they carry no FK but the
+          // diver and can apply anywhere in the order.
+          (
+            type: 'savedQueries',
+            records: data.savedQueries,
+            hasUpdatedAt: true,
+          ),
           (type: 'species', records: data.species, hasUpdatedAt: false),
           (type: 'tags', records: data.tags, hasUpdatedAt: true),
           // Courses must apply before dives/certifications that reference them.
@@ -2509,6 +2517,7 @@ class SyncService {
     'transmitters': true,
     'cylinderFills': true,
     'connectionMaps': true,
+    'savedQueries': true,
     'species': false,
     'tags': true,
     'courses': true,

@@ -51,6 +51,7 @@ void main() {
     'transmitters': 'transmitters',
     'cylinder_fills': 'cylinderFills',
     'connection_maps': 'connectionMaps',
+    'saved_queries': 'savedQueries',
     'dive_computers': 'diveComputers',
     'species': 'species',
     'tags': 'tags',

@@ -7,6 +7,8 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/query/presentation/dive_query_chips.dart';
+import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -188,6 +190,23 @@ List<Widget> activeDiveFilterChips(
       _chip(context, filter.buddyNameFilter!, () {
         ref.read(filterProvider.notifier).state = filter.copyWith(
           clearBuddyNameFilter: true,
+        );
+      }),
+    );
+  }
+
+  // The advanced query: one chip per top-level AND child, printed in the
+  // diver's units (#2365).
+  final queryLabels = diveQueryChipLabels(
+    filter.query,
+    ref.watch(queryUnitPrefsProvider),
+  );
+  for (var i = 0; i < queryLabels.length; i++) {
+    chips.add(
+      _chip(context, queryLabels[i], () {
+        ref.read(filterProvider.notifier).state = removeDiveQueryChip(
+          filter,
+          i,
         );
       }),
     );

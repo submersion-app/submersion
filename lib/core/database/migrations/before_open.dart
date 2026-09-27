@@ -162,6 +162,11 @@ extension BeforeOpenBackstops on AppDatabase {
     // (parallel-branch version-collision self-heal; idempotent).
     await _assertConnectionMapsSchema();
 
+    // v238 backstop: re-assert the saved_queries table. A database that
+    // arrives by restore or sync-adopt never runs onUpgrade, and one
+    // already at 239 or later skips the v238 rung.
+    await _assertSavedQueriesSchema();
+
     // v122 backstop: re-assert service ledger schema + built-in kinds.
     // The legacy backfill is NOT here (onUpgrade only) -- re-running it
     // would resurrect user-deleted schedules.

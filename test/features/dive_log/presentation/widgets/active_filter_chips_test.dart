@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_types/presentation/providers/dive_type_
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chips.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -154,5 +155,57 @@ void main() {
         expect(container.read(provider).hasActiveFilters, isFalse);
       });
     }
+  });
+
+  testWidgets('an advanced query shows one chip per part, each removable', (
+    tester,
+  ) async {
+    // The Connections Filter tab shares these chips, and its graph honours
+    // the query, so a query must never be active without a chip.
+    final depth = ConditionNode(
+      FieldPath(['depth']),
+      QueryOp.gt,
+      const NumberValue(30, null),
+    );
+    final noWeights = ConditionNode(
+      FieldPath(['weights']),
+      QueryOp.isEmpty,
+      null,
+    );
+    final queryFilterProvider = StateProvider<DiveFilterState>(
+      (ref) => DiveFilterState(query: AndNode([depth, noWeights])),
+    );
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: overrides,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Consumer(
+              builder: (context, ref, _) => Wrap(
+                children: activeDiveFilterChips(
+                  context,
+                  ref,
+                  queryFilterProvider,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byType(Chip), findsNWidgets(2));
+    expect(find.text('weights:none'), findsOneWidget);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(Scaffold)),
+    );
+    await tester.tap(find.byIcon(Icons.close).first);
+    await tester.pump();
+    expect(find.byType(Chip), findsOneWidget);
+    expect(find.text('weights:none'), findsOneWidget);
+    expect(container.read(diveFilterProvider).hasActiveFilters, isFalse);
   });
 }
