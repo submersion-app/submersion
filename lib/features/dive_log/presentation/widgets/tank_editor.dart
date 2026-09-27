@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -52,6 +53,11 @@ class TankEditor extends ConsumerStatefulWidget {
   /// registry.
   final Future<void> Function(EquipmentItem item)? onCylinderScanned;
 
+  /// Called with a tag scan that has started resolving, including the
+  /// [onCylinderScanned] call it may make. A host that saves (the dive edit
+  /// page) waits for it, so Save cannot outrun the scan.
+  final void Function(Future<void> scan)? onScanPending;
+
   const TankEditor({
     super.key,
     required this.tank,
@@ -61,6 +67,7 @@ class TankEditor extends ConsumerStatefulWidget {
     this.canRemove = true,
     this.showPressures = true,
     this.onCylinderScanned,
+    this.onScanPending,
   });
 
   @override
@@ -1024,6 +1031,20 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     final l10n = context.l10n;
     final text = await ref.read(passportScanLauncherProvider)(context);
     if (text == null || !mounted) return;
+    // From here the scan is database work the host may need to wait for:
+    // Save must not run before the scanned cylinder reaches the dive.
+    final scan = _fillFromTag(text, messenger, l10n);
+    widget.onScanPending?.call(scan);
+    await scan;
+  }
+
+  /// Resolves a scanned [text] and fills the tank from it. Never throws: a
+  /// failure is logged and reported with a snack bar.
+  Future<void> _fillFromTag(
+    String text,
+    ScaffoldMessengerState messenger,
+    AppLocalizations l10n,
+  ) async {
     try {
       final resolution = await resolveScannedTag(ref, text);
       // The tank card closed while the tag was looked up: fill nothing.

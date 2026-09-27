@@ -3042,6 +3042,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             // A scanned own cylinder joins this dive's gear; the tank row
             // itself never links to it (issue #2335).
             onCylinderScanned: (item) => _addGear([item]),
+            onScanPending: _trackTankScan,
           ),
       ],
       onAddTank: _addTank,
@@ -3602,6 +3603,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// waits for them, so gear added a moment before Save (a scanned cylinder,
   /// a set) is not left out of the saved dive.
   Future<void>? _pendingGearAdd;
+
+  /// Tank tag scans still resolving. Save waits for them before the gear
+  /// adds, since a scan's gear add only starts once its lookup finishes.
+  final Set<Future<void>> _pendingTankScans = {};
+
+  void _trackTankScan(Future<void> scan) {
+    _pendingTankScans.add(scan);
+    unawaited(scan.whenComplete(() => _pendingTankScans.remove(scan)));
+  }
 
   Future<void> _addGear(
     List<EquipmentItem> items, {
@@ -5226,8 +5236,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       await pendingSnap;
       if (!mounted) return;
     }
-    // Wait for gear still being added; an add started meanwhile is waited
-    // for too. A failed add was reported by its caller and adds nothing.
+    // Wait for tank scans still resolving (each ends with its gear add),
+    // then for gear still being added; work started meanwhile is waited for
+    // too. A failed add was reported by its caller and adds nothing.
+    while (_pendingTankScans.isNotEmpty) {
+      await Future.wait(_pendingTankScans.toList());
+      if (!mounted) return;
+    }
     for (
       var pending = _pendingGearAdd;
       pending != null;

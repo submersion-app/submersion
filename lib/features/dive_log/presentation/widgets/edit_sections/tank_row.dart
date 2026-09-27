@@ -22,6 +22,7 @@ class TankRow extends StatefulWidget {
     this.canRemove = true,
     this.initiallyExpanded = false,
     this.onCylinderScanned,
+    this.onScanPending,
   });
 
   final DiveTank tank;
@@ -34,6 +35,9 @@ class TankRow extends StatefulWidget {
 
   /// Forwarded to [TankEditor.onCylinderScanned].
   final Future<void> Function(EquipmentItem item)? onCylinderScanned;
+
+  /// Forwarded to [TankEditor.onScanPending].
+  final void Function(Future<void> scan)? onScanPending;
 
   @override
   State<TankRow> createState() => _TankRowState();
@@ -71,6 +75,7 @@ class _TankRowState extends State<TankRow> {
               onRemove: widget.onRemove,
               canRemove: widget.canRemove,
               onCylinderScanned: widget.onCylinderScanned,
+              onScanPending: widget.onScanPending,
             ),
             Align(
               alignment: Alignment.centerRight,

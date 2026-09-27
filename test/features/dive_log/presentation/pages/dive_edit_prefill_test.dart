@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -446,6 +447,64 @@ void main() {
       expect(tank.workingPressure, isNull);
       expect(tank.material, isNull);
     });
+
+    testWidgets('Save during the tag lookup waits for the scanned cylinder', (
+      tester,
+    ) async {
+      const passportId = '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
+      final item = (await tester.runAsync(
+        () => EquipmentRepository().createEquipment(
+          const EquipmentItem(
+            id: '',
+            name: 'Faber 12',
+            type: EquipmentType.tank,
+          ),
+        ),
+      ))!;
+      // Holds the tag lookup open, as a slow database would.
+      final gate = Completer<void>();
+      String? savedId;
+      await pumpEditPage(
+        tester,
+        onSaved: (id) => savedId = id,
+        extraOverrides: [
+          passportScanLauncherProvider.overrideWithValue(
+            (context) async => 'https://submersion.app/c#f=1&p=$passportId',
+          ),
+          cylinderPassportRepositoryProvider.overrideWithValue(
+            _GatedPassports(gate.future, item.id),
+          ),
+        ],
+      );
+      await tester.tap(find.textContaining('Tank 1').first);
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.ensureVisible(find.byKey(const Key('tank-scan-tag')));
+      await tester.tap(find.byKey(const Key('tank-scan-tag')));
+      await tester.pump();
+
+      // The sheet has closed; the lookup is still running.
+      await tester.tap(find.text('Save'));
+      await tester.pump(const Duration(milliseconds: 100));
+      gate.complete();
+      for (var i = 0; i < 100 && savedId == null; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 10)),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      // Let the scan's remaining work settle; it holds the database while
+      // it runs in the test zone.
+      for (var i = 0; i < 20; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 10)),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      final dive = await tester.runAsync(
+        () => repository.getDiveById(savedId!),
+      );
+      expect(dive!.equipment.map((e) => e.id), contains(item.id));
+    });
   });
 }
 
@@ -464,4 +523,21 @@ class _Club15Presets extends TankPresetRepository {
           updatedAt: DateTime(2026),
         )
       : null;
+}
+
+/// Finds [equipmentId] for any tag, but only once [gate] opens.
+class _GatedPassports extends CylinderPassportRepository {
+  _GatedPassports(this.gate, this.equipmentId);
+
+  final Future<void> gate;
+  final String equipmentId;
+
+  @override
+  Future<String?> findEquipmentIdByPassportId(
+    String passportId, {
+    String? diverId,
+  }) async {
+    await gate;
+    return equipmentId;
+  }
 }
