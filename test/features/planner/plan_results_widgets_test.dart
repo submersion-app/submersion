@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
@@ -313,5 +315,88 @@ void main() {
       container.read(activePlanOutcomeProvider),
       same(container.read(planOutcomeProvider)),
     );
+  });
+
+  group('planIssueMessage for an END warning (issue #1499)', () {
+    const issue = PlanIssue(
+      type: PlanIssueType.endExceeded,
+      severity: PlanIssueSeverity.warning,
+      message: 'END 32 m exceeds 30 m',
+      atDepth: 32,
+      value: 32,
+      threshold: 30,
+    );
+
+    Future<String> render(
+      WidgetTester tester,
+      AppSettings settings, {
+      PlanIssue issue = issue,
+    }) async {
+      late String message;
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          child: Builder(
+            builder: (context) {
+              message = planIssueMessage(
+                context,
+                issue,
+                UnitFormatter(settings),
+              );
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      return message;
+    }
+
+    testWidgets('names both the END and the limit it exceeds', (tester) async {
+      expect(
+        await render(tester, const AppSettings()),
+        'END of 32m exceeds the 30m limit',
+      );
+    });
+
+    testWidgets('converts both depths to the diver\'s units', (tester) async {
+      expect(
+        await render(tester, const AppSettings(depthUnit: DepthUnit.feet)),
+        'END of 105ft exceeds the 98ft limit',
+      );
+    });
+
+    testWidgets('never reads as equal to the limit it exceeds', (tester) async {
+      // Trimix 21/10 at 34.5 m, O2 narcotic: END 30.05 m against 30 m.
+      // Rounding both to whole metres would print "30m exceeds the 30m".
+      const barelyOver = PlanIssue(
+        type: PlanIssueType.endExceeded,
+        severity: PlanIssueSeverity.warning,
+        message: 'END 30 m exceeds 30 m',
+        atDepth: 34.5,
+        value: 30.05,
+        threshold: 30,
+      );
+      expect(
+        await render(tester, const AppSettings(), issue: barelyOver),
+        'END of 31m exceeds the 30m limit',
+      );
+    });
+
+    testWidgets('stays above the limit when the END is a hair over it', (
+      tester,
+    ) async {
+      // Inside the float-noise epsilon: END and limit would both show 30.
+      const hairOver = PlanIssue(
+        type: PlanIssueType.endExceeded,
+        severity: PlanIssueSeverity.warning,
+        message: 'END 30 m exceeds 30 m',
+        value: 30.0000005,
+        threshold: 30,
+      );
+      expect(
+        await render(tester, const AppSettings(), issue: hairOver),
+        'END of 31m exceeds the 30m limit',
+      );
+    });
   });
 }

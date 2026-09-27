@@ -12,10 +12,13 @@ import 'package:submersion/features/dive_import/data/services/imported_file_recl
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
+    show AppSettings;
 import 'package:submersion/features/divers/data/repositories/diver_delete_steps.dart';
 import 'package:submersion/features/divers/data/repositories/diver_owned_rows.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
+import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/features/equipment/data/repositories/cylinder_gear_links.dart';
 import 'package:submersion/features/media/data/repositories/media_parent_cascade.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -161,57 +164,74 @@ class DiverRepository {
     }
   }
 
-  /// Create a new diver
-  Future<domain.Diver> createDiver(domain.Diver diver) async {
+  /// Create a new diver, with a settings row seeded from [settings] (the
+  /// defaults when omitted).
+  ///
+  /// Pass the diver's real settings here rather than overwriting the row
+  /// afterwards. On a fresh database `CurrentDiverIdNotifier` resolves to
+  /// the new diver on the divers-table tick alone, and the SettingsNotifier
+  /// then loads this row straight away; a row that briefly held the defaults
+  /// could be loaded, and later saved back, in their place (#2298). The two
+  /// inserts share a transaction so no reader sees the diver without its row.
+  Future<domain.Diver> createDiver(
+    domain.Diver diver, {
+    AppSettings? settings,
+  }) async {
     try {
       _log.info('Creating diver: ${diver.name}');
       final id = diver.id.isEmpty ? _uuid.v4() : diver.id;
       final now = DateTime.now();
 
-      await _db
-          .into(_db.divers)
-          .insert(
-            DiversCompanion(
-              id: Value(id),
-              name: Value(diver.name),
-              email: Value(diver.email),
-              phone: Value(diver.phone),
-              photoPath: Value(diver.photoPath),
-              photo: Value(diver.photo),
-              emergencyContactName: Value(diver.emergencyContact.name),
-              emergencyContactPhone: Value(diver.emergencyContact.phone),
-              emergencyContactRelation: Value(diver.emergencyContact.relation),
-              emergencyContact2Name: Value(diver.emergencyContact2.name),
-              emergencyContact2Phone: Value(diver.emergencyContact2.phone),
-              emergencyContact2Relation: Value(
-                diver.emergencyContact2.relation,
+      await _db.transaction(() async {
+        await _db
+            .into(_db.divers)
+            .insert(
+              DiversCompanion(
+                id: Value(id),
+                name: Value(diver.name),
+                email: Value(diver.email),
+                phone: Value(diver.phone),
+                photoPath: Value(diver.photoPath),
+                photo: Value(diver.photo),
+                emergencyContactName: Value(diver.emergencyContact.name),
+                emergencyContactPhone: Value(diver.emergencyContact.phone),
+                emergencyContactRelation: Value(
+                  diver.emergencyContact.relation,
+                ),
+                emergencyContact2Name: Value(diver.emergencyContact2.name),
+                emergencyContact2Phone: Value(diver.emergencyContact2.phone),
+                emergencyContact2Relation: Value(
+                  diver.emergencyContact2.relation,
+                ),
+                medicalNotes: Value(diver.medicalNotes),
+                bloodType: Value(diver.bloodType),
+                allergies: Value(diver.allergies),
+                medications: Value(diver.medications),
+                medicalClearanceExpiryDate: Value(
+                  diver.medicalClearanceExpiryDate?.millisecondsSinceEpoch,
+                ),
+                insuranceProvider: Value(diver.insurance.provider),
+                insurancePolicyNumber: Value(diver.insurance.policyNumber),
+                insuranceExpiryDate: Value(
+                  diver.insurance.expiryDate?.millisecondsSinceEpoch,
+                ),
+                insuranceEmergencyPhone: Value(diver.insurance.emergencyPhone),
+                insurancePhone: Value(diver.insurance.phone),
+                notes: Value(diver.notes),
+                isDefault: Value(diver.isDefault),
+                createdAt: Value(now.millisecondsSinceEpoch),
+                updatedAt: Value(now.millisecondsSinceEpoch),
+                priorDiveCount: Value(diver.priorDiveCount),
+                priorDiveTimeSeconds: Value(diver.priorDiveTimeSeconds),
+                divingSince: Value(diver.divingSince?.year),
               ),
-              medicalNotes: Value(diver.medicalNotes),
-              bloodType: Value(diver.bloodType),
-              allergies: Value(diver.allergies),
-              medications: Value(diver.medications),
-              medicalClearanceExpiryDate: Value(
-                diver.medicalClearanceExpiryDate?.millisecondsSinceEpoch,
-              ),
-              insuranceProvider: Value(diver.insurance.provider),
-              insurancePolicyNumber: Value(diver.insurance.policyNumber),
-              insuranceExpiryDate: Value(
-                diver.insurance.expiryDate?.millisecondsSinceEpoch,
-              ),
-              insuranceEmergencyPhone: Value(diver.insurance.emergencyPhone),
-              insurancePhone: Value(diver.insurance.phone),
-              notes: Value(diver.notes),
-              isDefault: Value(diver.isDefault),
-              createdAt: Value(now.millisecondsSinceEpoch),
-              updatedAt: Value(now.millisecondsSinceEpoch),
-              priorDiveCount: Value(diver.priorDiveCount),
-              priorDiveTimeSeconds: Value(diver.priorDiveTimeSeconds),
-              divingSince: Value(diver.divingSince?.year),
-            ),
-          );
+            );
 
-      // Create default settings for the new diver
-      await _settingsRepository.createSettingsForDiver(id);
+        await _settingsRepository.createSettingsForDiver(
+          id,
+          settings: settings,
+        );
+      });
 
       await _syncRepository.markRecordPending(
         entityType: 'divers',
@@ -652,6 +672,19 @@ class DiverRepository {
         // Step 3: Delete and tombstone the trips, with the children their
         // own deletion tombstones, and the sites the diver still owns. The
         // shared ones were reassigned in Step 0 and keep their children.
+        // Other divers' surviving tanks can still link this diver's trip
+        // slots. Cleared and staged here, as the gear links are below: the
+        // schema's SET NULL reaches no peer.
+        await clearTripCylinderLinks(
+          _db,
+          _syncRepository,
+          await _idsOf(
+            'SELECT id FROM trip_cylinders WHERE trip_id IN '
+            '(SELECT id FROM trips WHERE diver_id = ?)',
+            [id],
+          ),
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
         await deleteDiverRows(_db, _syncRepository, id, diverTripAndSiteSteps);
 
         // Step 4: Delete and tombstone the rest of the diver's library.
@@ -666,6 +699,15 @@ class DiverRepository {
           now: DateTime.now().millisecondsSinceEpoch,
         );
         await deleteDiverRows(_db, _syncRepository, id, diverGearSteps);
+        // Fills on other divers' trips made at this diver's centers: the
+        // centers go with the library below, so clear and stage those links
+        // now; the schema's SET NULL reaches no peer.
+        await clearTripCylinderEventCenterLinks(
+          _db,
+          _syncRepository,
+          await _idsOf('SELECT id FROM dive_centers WHERE diver_id = ?', [id]),
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
         // After the gear, so only surviving gear's schedules keep a kind.
         await retireDiverServiceKinds(
           _db,

@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
-import 'package:submersion/core/services/export/uddf/uddf_import_service.dart';
 
 // double.tryParse SUCCEEDS on "NaN" and "Infinity", so a value read with it
 // and only null-checked reaches the database intact. A NaN weight silently
@@ -49,14 +48,6 @@ void main() {
         );
 
         expect(result.dives.single['weightUsed'], isNull);
-      });
-
-      test('simple import: $value', () async {
-        final result = await UddfImportService().importDivesFromUddf(
-          _dive(before: _lead(value), after: ''),
-        );
-
-        expect(result['dives']!.single['weightUsed'], isNull);
       });
     }
 

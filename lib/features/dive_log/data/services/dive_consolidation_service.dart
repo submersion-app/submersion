@@ -235,7 +235,8 @@ class DiveConsolidationService {
                   computerSerial: Value(secRow.diveComputerSerial),
                   maxDepth: Value(secRow.maxDepth),
                   avgDepth: Value(secRow.avgDepth),
-                  duration: Value(secRow.bottomTime),
+                  // The runtime, never the derived bottom time (#2421).
+                  duration: Value(secRow.runtime),
                   waterTemp: Value(secRow.waterTemp),
                   entryTime: Value(
                     secRow.entryTime != null
@@ -368,7 +369,7 @@ class DiveConsolidationService {
             // computer, and without it their series of one cylinder merge
             // into one. An unattributed series of a secondary holding
             // several sources stays unattributed, as in the merge and the
-            // v232 backfill: handing it to one of them would group it with
+            // v240 backfill: handing it to one of them would group it with
             // another source's recording.
             sourceId: s.sourceId == null && secSources.length > 1
                 ? null

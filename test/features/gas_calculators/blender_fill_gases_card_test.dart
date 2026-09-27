@@ -86,6 +86,26 @@ void main() {
     expect(find.byKey(const Key('blender-topup-o2')), findsOneWidget);
   });
 
+  testWidgets('an unreadable topup O2 shows the error and keeps the stored '
+      'fraction (#1900)', (tester) async {
+    final ref = await _pump(tester);
+
+    await tester.enterText(find.byKey(const Key('blender-topup-o2')), '32');
+    await tester.pump();
+    await tester.enterText(find.byKey(const Key('blender-topup-o2')), ',');
+    await tester.pump();
+
+    final field = tester.widget<TextField>(
+      find.byKey(const Key('blender-topup-o2')),
+    );
+    expect(field.decoration?.errorText, isNotNull);
+    expect(
+      ref.read(blenderTopupO2PercentProvider),
+      closeTo(32, 0.001),
+      reason: 'unreadable text used to read as 0 % O2',
+    );
+  });
+
   testWidgets('submitting the topup O2 field saves the preferences', (
     tester,
   ) async {

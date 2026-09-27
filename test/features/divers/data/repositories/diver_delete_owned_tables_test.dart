@@ -651,11 +651,14 @@ void main() {
     // Adding a table with a plain `diver_id REFERENCES divers(id)` re-breaks
     // the delete for any diver who owns a row of it. This fails until the
     // new table gets an ON DELETE action or a step in
-    // deleteDiverWithReassignment, and is listed in _clearedByDelete.
+    // deleteDiverWithReassignment, and is listed in _clearedByDelete. SET
+    // NULL keeps the row and cannot block the delete, as in the reference
+    // census below (equipment_ownership_events, issue #2046).
     final unhandled = {
       for (final (table, _, target, onDelete) in await foreignKeys())
         if (target == 'divers' &&
             onDelete != 'CASCADE' &&
+            onDelete != 'SET NULL' &&
             !_clearedByDelete.contains(table))
           table,
     };
@@ -686,6 +689,7 @@ void main() {
       'pre_dive_checklist_template_items.template_id',
       'trip_checklist_items.trip_id',
       'trip_day_weather.trip_id',
+      'trip_cylinders.trip_id',
       'trip_itinerary_days.trip_id',
     };
     final unhandled = {

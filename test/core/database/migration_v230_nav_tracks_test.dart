@@ -27,12 +27,14 @@ Future<void> _insertMinimalDive(AppDatabase db, String id) {
 
 void main() {
   test('v230 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v231 (diver_settings CCR ppO2 limits) landed on top; the
-    // newest rung owns the exact assertion.
+    // Relaxed once v231 (CCR ppO2 limits) and v232 (trip cylinders) landed
+    // on top; the newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(230));
     expect(AppDatabase.migrationVersions, contains(230));
     // Earlier numbers this rung held before main shipped them elsewhere.
     expect(AppDatabase.migrationVersions, isNot(contains(209)));
+    // v229 (the diver figure switch) sits between 228 and this rung, and
+    // v231 above it, so count at least one.
     expect(AppDatabase.migrationStepCount(228), greaterThanOrEqualTo(1));
   });
 

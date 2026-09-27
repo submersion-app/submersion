@@ -22,7 +22,6 @@ import 'package:submersion/core/services/export/shared/file_export_utils.dart'
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
-import 'package:submersion/core/services/export/uddf/uddf_import_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
@@ -76,7 +75,6 @@ class ExportService {
   final _kml = KmlExportService();
   final _uddf = UddfExportService();
   final _uddfFull = UddfFullExportService();
-  final _uddfImport = UddfImportService();
   final _uddfFullImport = UddfFullImportService();
 
   // ==================== CSV Export ====================
@@ -655,10 +653,6 @@ class ExportService {
   );
 
   // ==================== UDDF Import ====================
-
-  Future<Map<String, List<Map<String, dynamic>>>> importDivesFromUddf(
-    String uddfContent,
-  ) => _uddfImport.importDivesFromUddf(uddfContent);
 
   Future<UddfImportResult> importAllDataFromUddf(String uddfContent) =>
       _uddfFullImport.importAllDataFromUddf(uddfContent);

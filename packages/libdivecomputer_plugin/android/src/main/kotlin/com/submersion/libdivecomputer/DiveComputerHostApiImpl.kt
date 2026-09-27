@@ -486,9 +486,17 @@ class DiveComputerHostApiImpl(
             val firmware = libdcUnsignedOrNull(infoOut[1])
             val clockSync = libdcClockSyncStatusName(infoOut[2])
                 .takeIf { it != "not_requested" }
-            NativeLogger.i(TAG, "LDC", "Device info: serial=$serial firmware=$firmware clockSync=${clockSync ?: "not_requested"}")
+            // The model the device named about itself (issue #422), read
+            // before the session is freed.
+            val reported = reportedDeviceOrNull(
+                LibdcWrapper.nativeDownloadSessionReportedDevice(sessionPtr)
+            )
+            NativeLogger.i(TAG, "LDC", "Device info: serial=$serial firmware=$firmware clockSync=${clockSync ?: "not_requested"} reported=${reported?.product ?: "none"}")
             mainHandler.post {
-                flutterApi.onDownloadComplete(0, serial, firmware, clockSync) { }
+                flutterApi.onDownloadComplete(
+                    0, serial, firmware, clockSync,
+                    reported?.product, reported?.model
+                ) { }
             }
         } else if (result != LIBDC_STATUS_CANCELLED) {
             // If the download failed because the remote device rejected our
@@ -652,7 +660,7 @@ class DiveComputerHostApiImpl(
             !anyOpened ->
                 reportError("connect_failed", "No dive computer found. Ports tried:\n$probeLog")
             lastResult == 0 || lastResult == LIBDC_STATUS_CANCELLED ->
-                mainHandler.post { flutterApi.onDownloadComplete(0, null, null, null) { } }
+                mainHandler.post { flutterApi.onDownloadComplete(0, null, null, null, null, null) { } }
             drivers.size > 1 ->
                 reportError("connect_failed", "No dive computer found. Ports tried:\n$probeLog")
             else ->

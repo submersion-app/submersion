@@ -33,6 +33,7 @@ import 'package:submersion/features/planning/presentation/widgets/planning_tool_
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_prediction_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/twin_summary_rows.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// The Weight Planner tool: compose a rig, get a personalized weight
 /// prediction from the diver's history, and swap gear to see the change.
@@ -85,8 +86,18 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
   double get _displayDepthM => _maxDepthDraft ?? _maxDepthM;
   int get _displayBottomMinutes => _bottomMinutesDraft ?? _bottomMinutes;
 
+  /// A body-measurement field's number, or null when blank or unreadable,
+  /// so the prediction falls back to the profile and the field shows its
+  /// own error. A negative is unreadable too, as its field says, so it never
+  /// reaches the prediction or the diver's profile.
+  static double? _typed(TextEditingController controller) =>
+      switch (readNumber(controller.text, allowNegative: false)) {
+        NumberValue(:final value) => value,
+        NumberBlank() || NumberInvalid() => null,
+      };
+
   double? _bodyWeightKg(UnitFormatter units) {
-    final parsed = parseUserDecimal(_bodyWeightController.text);
+    final parsed = _typed(_bodyWeightController);
     return parsed != null ? units.weightToKg(parsed) : null;
   }
 
@@ -96,10 +107,10 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
   double? _heightCm(UnitFormatter units) {
     final double? cm;
     if (units.heightIsMetric) {
-      cm = parseUserDecimal(_heightCmController.text);
+      cm = _typed(_heightCmController);
     } else {
-      final feet = parseUserDecimal(_heightFeetController.text);
-      final inches = parseUserDecimal(_heightInchesController.text);
+      final feet = _typed(_heightFeetController);
+      final inches = _typed(_heightInchesController);
       cm = (feet == null && inches == null)
           ? null
           : units.feetInchesToCm(feet ?? 0, inches ?? 0);
@@ -308,6 +319,15 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
       for (final item in items)
         if (!_gear.any((g) => g.id == item.id)) item,
     ];
+    // Parts are scoped to the active diver (issue #2046); an unreadable
+    // diver adds unscoped, as before sharing, rather than failing the add.
+    String? diverId;
+    try {
+      diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    } catch (_) {
+      diverId = null;
+    }
+    if (!mounted) return;
     final expansion = await expandGearOnPage(
       ref,
       additions: [
@@ -315,6 +335,7 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
       ],
       existing: _gearProvenance,
       existingItems: merged,
+      diverId: diverId,
     );
     if (!mounted) return;
     _mutate(units, () {

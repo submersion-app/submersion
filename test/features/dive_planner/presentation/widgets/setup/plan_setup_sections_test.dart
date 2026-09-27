@@ -245,6 +245,30 @@ void main() {
     expect(container.read(divePlanNotifierProvider).reservePressure, 60);
   });
 
+  testWidgets('a fractional reserve says so and keeps the plan reserve '
+      '(#1900 review)', (tester) async {
+    await tester.pumpWidget(_harness(const PlanGasSection()));
+    await tester.pumpAndSettle();
+    final field = find.descendant(
+      of: find.bySemanticsLabel(RegExp('Reserve pressure')),
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(field, '60');
+    await tester.pumpAndSettle();
+    await tester.enterText(field, '5.5');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enter a whole number'), findsOneWidget);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanGasSection)),
+    );
+    expect(
+      container.read(divePlanNotifierProvider).reservePressure,
+      60,
+      reason: 'a digits-only filter used to turn "5.5" into 55',
+    );
+  });
+
   group('Bottom RMV field units (#1823)', () {
     testWidgets('metric shows the plan RMV in L/min', (tester) async {
       await tester.pumpWidget(_harness(const PlanGasSection()));
@@ -476,6 +500,42 @@ void main() {
     await tester.enterText(find.byType(TextField).first, '1000');
     await tester.pumpAndSettle();
     expect(find.textContaining('Group 2'), findsOneWidget);
+  });
+
+  testWidgets('unreadable altitude keeps the plan altitude and says why '
+      '(#1900)', (tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness(const PlanEnvironmentSection()));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '1000');
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '1..000');
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanEnvironmentSection)),
+    );
+    expect(container.read(divePlanNotifierProvider).altitude, 1000);
+  });
+
+  testWidgets('a below-sea-level plan altitude keeps its sign (#1900 review)', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness(const PlanEnvironmentSection()));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '-430');
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanEnvironmentSection)),
+    );
+    expect(container.read(divePlanNotifierProvider).altitude, -430);
   });
 
   testWidgets('environment section water type feeds the plan and deco', (

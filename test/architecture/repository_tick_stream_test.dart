@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_rep
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
@@ -19,6 +20,7 @@ import 'package:submersion/features/media_store/data/media_stores_repository.dar
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/universal_import/data/repositories/csv_preset_repository.dart';
 import 'package:submersion/features/weight_planner/data/repositories/weight_history_repository.dart';
@@ -181,6 +183,8 @@ void main() {
           ServiceRecordRepository().watchServiceRecordsChanges,
       'ServiceKindRepository.watchServiceKindsChanges':
           ServiceKindRepository().watchServiceKindsChanges,
+      'EquipmentShareRepository.watchChanges':
+          EquipmentShareRepository().watchChanges,
       'ServiceScheduleRepository.watchSchedulesChanges':
           ServiceScheduleRepository().watchSchedulesChanges,
       'CylinderConfigRepository.watchConfigsChanges':
@@ -400,6 +404,27 @@ void main() {
                   serviceDate: now,
                   createdAt: now,
                   updatedAt: now,
+                ),
+              ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('EquipmentShareRepository.watchChanges fires on an event', () async {
+      // The ownership log is the table a share-only write would miss.
+      await seedParents();
+      expect(
+        await fires(
+          EquipmentShareRepository().watchChanges(),
+          () => db
+              .into(db.equipmentOwnershipEvents)
+              .insert(
+                EquipmentOwnershipEventsCompanion.insert(
+                  id: 'ev1',
+                  equipmentId: 'e1',
+                  kind: 'shared',
+                  occurredAt: now,
                 ),
               ),
         ),
@@ -701,6 +726,53 @@ void main() {
                   createdAt: now,
                   updatedAt: now,
                 ),
+              ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('watchTripCylinderChanges fires on a slot write', () async {
+      await seedParents();
+      expect(
+        await fires(
+          TripCylinderRepository().watchTripCylinderChanges(),
+          () => db
+              .into(db.tripCylinders)
+              .insert(
+                TripCylindersCompanion.insert(
+                  id: 'slot-1',
+                  tripId: 't1',
+                  createdAt: now,
+                  updatedAt: now,
+                ),
+              ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('watchTripCylinderChanges fires on a dive tank write', () async {
+      // The board's consumption side lives on dive_tanks; a sync pull that
+      // rewrites a tank never touches the dives row.
+      await seedParents();
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'dive-tick',
+              diveDateTime: now,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      expect(
+        await fires(
+          TripCylinderRepository().watchTripCylinderChanges(),
+          () => db
+              .into(db.diveTanks)
+              .insert(
+                DiveTanksCompanion.insert(id: 'tank-tick', diveId: 'dive-tick'),
               ),
         ),
         isTrue,

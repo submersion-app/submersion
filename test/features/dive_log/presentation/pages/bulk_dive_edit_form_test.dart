@@ -708,6 +708,132 @@ void main() {
       expect((await repository.getDiveById(d1.id))!.humidity, 60);
     });
 
+    testWidgets('an unreadable bulk number blocks the save across every dive '
+        '(#1900)', (tester) async {
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'num-typo', humidity: 40),
+      );
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: buildOverrides(overrides).cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Each rebreather number goes blank, readable, then mistyped; the
+      // conditions numbers get a readable value; Surface Pressure a typo.
+      for (final field in const [
+        ('Setpoint low', '0.7', '0..7'),
+        ('Setpoint high', '1.3', '1..3'),
+        ('Setpoint deco', '1.6', '1..6'),
+        ('Scrubber duration', '90', '9.5'),
+        ('Humidity', '60', null),
+        ('Swell Height', '1.5', null),
+        ('Altitude', '300', null),
+        ('Wind Speed', '10', null),
+        ('Surface Pressure', '1013', '10..13'),
+      ]) {
+        final gate = find.ancestor(
+          of: find.text(field.$1),
+          matching: find.byType(BulkFieldGate),
+        );
+        await tester.ensureVisible(find.text(field.$1));
+        await tester.tap(
+          find.descendant(of: gate, matching: find.byType(Checkbox)),
+        );
+        await tester.pumpAndSettle();
+        final input = find.descendant(
+          of: gate,
+          matching: find.byType(TextField),
+        );
+        await tester.enterText(input, '');
+        await tester.enterText(input, field.$2);
+        if (field.$3 != null) await tester.enterText(input, field.$3!);
+        await tester.pumpAndSettle();
+      }
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Enter a'), findsWidgets);
+      expect(find.text('Apply'), findsNothing, reason: 'save was refused');
+      expect((await repository.getDiveById(d1.id))!.humidity, 40);
+    });
+
+    testWidgets('a switched-off row with a typo does not block the save '
+        '(#1900 review)', (tester) async {
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'num-off', humidity: 40),
+      );
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: buildOverrides(overrides).cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      Finder gateOf(String label) => find.ancestor(
+        of: find.text(label),
+        matching: find.byType(BulkFieldGate),
+      );
+      Future<void> toggle(String label) async {
+        await tester.ensureVisible(find.text(label));
+        await tester.tap(
+          find.descendant(of: gateOf(label), matching: find.byType(Checkbox)),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      // A typo in a row the diver then switches off again.
+      await toggle('Setpoint high');
+      await tester.enterText(
+        find.descendant(
+          of: gateOf('Setpoint high'),
+          matching: find.byType(TextField),
+        ),
+        '1..3',
+      );
+      await tester.pumpAndSettle();
+      await toggle('Setpoint high');
+
+      await toggle('Humidity');
+      await tester.enterText(
+        find.descendant(
+          of: gateOf('Humidity'),
+          matching: find.byType(TextField),
+        ),
+        '60',
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      expect((await repository.getDiveById(d1.id))!.humidity, 60);
+    });
+
     testWidgets('selecting every collection mode covers all op branches', (
       tester,
     ) async {

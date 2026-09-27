@@ -1045,7 +1045,10 @@ void main() {
         )..where((t) => t.id.equals(diveId))).getSingle();
         expect(diveRow.diveComputerModel, equals('Computer B'));
         expect(diveRow.maxDepth, equals(28.0));
-        expect(diveRow.bottomTime, equals(2800));
+        // Reading B's duration is the runtime it measured, never a bottom
+        // time; with no profile to derive one from, the dive keeps its own
+        // (issue #2421).
+        expect(diveRow.bottomTime, equals(3000));
         expect(diveRow.waterTemp, equals(19.0));
       },
     );

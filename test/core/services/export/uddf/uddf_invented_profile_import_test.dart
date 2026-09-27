@@ -54,8 +54,8 @@ final _invented = [
   _wp(2700, '0'),
 ].join();
 
-/// The (timestamp, depth) of each profile point a full parse produced.
-Future<List<(int, double)>?> _fullParse(String xml) async {
+/// The (timestamp, depth) of each profile point the UDDF import produced.
+Future<List<(int, double)>?> _parse(String xml) async {
   final dive = (await ExportService().importAllDataFromUddf(xml)).dives.single;
   final profile = dive['profile'] as List<Map<String, dynamic>>?;
   return profile
@@ -63,94 +63,79 @@ Future<List<(int, double)>?> _fullParse(String xml) async {
       .toList();
 }
 
-/// The same from the simple dives import, which reads the same files.
-Future<List<(int, double)>?> _simpleParse(String xml) async {
-  final dive = (await ExportService().importDivesFromUddf(
-    xml,
-  ))['dives']!.single;
-  final profile = dive['profile'] as List<Map<String, dynamic>>?;
-  return profile
-      ?.map((p) => (p['timestamp'] as int, p['depth'] as double))
-      .toList();
-}
-
 void main() {
-  final parsers = {'full import': _fullParse, 'simple import': _simpleParse};
+  group('import', () {
+    test(
+      'drops the invented outline of a dive with an average depth',
+      () async {
+        expect(await _parse(_uddf(waypoints: _invented)), isNull);
+      },
+    );
 
-  for (final MapEntry(key: name, value: parse) in parsers.entries) {
-    group(name, () {
-      test(
-        'drops the invented outline of a dive with an average depth',
-        () async {
-          expect(await parse(_uddf(waypoints: _invented)), isNull);
-        },
+    test('drops the invented outline of a dive without an average '
+        'depth', () async {
+      // The old writer fell back to 0.7 x the greatest depth: 17.5 m.
+      final xml = _uddf(
+        waypoints: [
+          _start,
+          _wp(540, '25.0'),
+          _wp(2160, '17.5'),
+          _wp(2700, '0'),
+        ].join(),
+        after:
+            '<greatestdepth>25.0</greatestdepth>'
+            '<diveduration>2700</diveduration>',
       );
 
-      test('drops the invented outline of a dive without an average '
-          'depth', () async {
-        // The old writer fell back to 0.7 x the greatest depth: 17.5 m.
-        final xml = _uddf(
-          waypoints: [
-            _start,
-            _wp(540, '25.0'),
-            _wp(2160, '17.5'),
-            _wp(2700, '0'),
-          ].join(),
-          after:
-              '<greatestdepth>25.0</greatestdepth>'
-              '<diveduration>2700</diveduration>',
-        );
-
-        expect(await parse(xml), isNull);
-      });
-
-      test('drops a lone surface waypoint', () async {
-        // A dive with no samples and no duration or depth got only this.
-        expect(await parse(_uddf(waypoints: _start, after: '')), isNull);
-      });
-
-      test('keeps the same outline in a file another app wrote', () async {
-        expect(await parse(_uddf(generator: 'MacDive', waypoints: _invented)), [
-          (0, 0.0),
-          (540, 25.0),
-          (2160, 18.0),
-          (2700, 0.0),
-        ]);
-      });
-
-      test('keeps a four-point profile that is not the invented one', () async {
-        // One depth off the formula: a real sample, not the fallback.
-        final xml = _uddf(
-          waypoints: [
-            _start,
-            _wp(540, '25.0'),
-            _wp(2160, '17.0'),
-            _wp(2700, '0'),
-          ].join(),
-        );
-
-        expect(await parse(xml), [
-          (0, 0.0),
-          (540, 25.0),
-          (2160, 17.0),
-          (2700, 0.0),
-        ]);
-      });
-
-      test('keeps a recorded profile', () async {
-        final xml = _uddf(
-          waypoints: [
-            _start,
-            _wp(10, '4.5'),
-            _wp(60, '12.0'),
-            _wp(120, '6.0'),
-          ].join(),
-        );
-
-        expect(await parse(xml), [(0, 0.0), (10, 4.5), (60, 12.0), (120, 6.0)]);
-      });
+      expect(await _parse(xml), isNull);
     });
-  }
+
+    test('drops a lone surface waypoint', () async {
+      // A dive with no samples and no duration or depth got only this.
+      expect(await _parse(_uddf(waypoints: _start, after: '')), isNull);
+    });
+
+    test('keeps the same outline in a file another app wrote', () async {
+      expect(await _parse(_uddf(generator: 'MacDive', waypoints: _invented)), [
+        (0, 0.0),
+        (540, 25.0),
+        (2160, 18.0),
+        (2700, 0.0),
+      ]);
+    });
+
+    test('keeps a four-point profile that is not the invented one', () async {
+      // One depth off the formula: a real sample, not the fallback.
+      final xml = _uddf(
+        waypoints: [
+          _start,
+          _wp(540, '25.0'),
+          _wp(2160, '17.0'),
+          _wp(2700, '0'),
+        ].join(),
+      );
+
+      expect(await _parse(xml), [
+        (0, 0.0),
+        (540, 25.0),
+        (2160, 17.0),
+        (2700, 0.0),
+      ]);
+    });
+
+    test('keeps a recorded profile', () async {
+      final xml = _uddf(
+        waypoints: [
+          _start,
+          _wp(10, '4.5'),
+          _wp(60, '12.0'),
+          _wp(120, '6.0'),
+        ].join(),
+      );
+
+      expect(await _parse(xml), [(0, 0.0), (10, 4.5), (60, 12.0), (120, 6.0)]);
+    });
+  });
 
   group('restore', () {
     setUp(() async {

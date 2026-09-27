@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
+import 'package:submersion/features/cylinder_passports/presentation/pages/foreign_passport_page.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/passport_page.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
@@ -617,6 +618,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     ),
                   ),
                 ],
+              ),
+              // A scanned cylinder tag the diver does not hold (issue #2335).
+              // Before ':equipmentId' so 'tag' is never read as an id.
+              GoRoute(
+                path: 'tag',
+                name: 'foreignPassport',
+                builder: (context, state) => ForeignPassportPage(
+                  tag: foreignTagFromQuery(state.uri.queryParameters['t']),
+                ),
               ),
               GoRoute(
                 path: ':equipmentId',

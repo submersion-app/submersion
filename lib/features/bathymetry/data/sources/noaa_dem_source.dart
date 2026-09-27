@@ -37,6 +37,46 @@ class NoaaDemSource implements BathymetrySource {
 
   static const Duration _timeout = Duration(seconds: 15);
 
+  /// Where the mosaic holds any DEM finer than [usefulCellSizeMeters], as
+  /// (minLat, maxLat, minLon, maxLon). Outside these boxes [probe] declines
+  /// without a network call, since the service has nothing to offer there.
+  ///
+  /// Derived 2026-09-26 from the ImageServer's own catalogue: every item
+  /// with `LowPS < 0.00046` (50 m at the equator), clustered, then padded
+  /// by about a degree so a new DEM next to an existing one still lands
+  /// inside. That is wider than US soil: NCEI also publishes DEMs for
+  /// Bermuda, the Bahamas, Grenada, the Cook and Society Islands and the
+  /// Galapagos. Erring wide only means a NOAA outage keeps a nearby
+  /// uncovered site from caching until it recovers; erring narrow would let
+  /// an outage pin a covered site to a coarser fallback forever. A DEM
+  /// published somewhere new is missed until this table grows; the ETOPO,
+  /// GMRT and EMODnet tiers still serve that point, just more coarsely. The
+  /// Aleutians cross the antimeridian, hence the second Alaska box.
+  static const List<(double, double, double, double)> _coverage = [
+    (23.0, 50.0, -128.0, -63.0), // US mainland, Bermuda, Bahamas
+    (50.0, 72.0, -180.0, -129.0), // Alaska, through the central Aleutians
+    (50.0, 56.0, 171.0, 180.0), // western Aleutians (Shemya, Attu)
+    (17.0, 30.0, -180.0, -153.0), // Hawaii, incl. Northwestern Islands
+    (16.5, 19.5, -68.5, -63.5), // Puerto Rico, US and British Virgin Is.
+    (11.0, 14.0, -63.0, -60.5), // Grenada
+    (12.0, 21.0, 143.5, 147.0), // Guam, Northern Mariana Islands
+    (18.5, 20.0, 166.0, 167.5), // Wake Island
+    (-15.5, -10.5, -172.0, -168.0), // American Samoa
+    (-23.0, -15.5, -161.0, -148.0), // Cook (Rarotonga), Society (Tahiti)
+    (-3.0, 3.0, -93.0, -86.5), // Galapagos
+  ];
+
+  /// Whether [p] sits where this source could plausibly have data. Only
+  /// there is a probe worth a network call, and so only there can a failed
+  /// probe count as a transient failure (see [BathymetrySource.probe]).
+  static bool plausiblyCovers(GeoPoint p) => _coverage.any(
+    (b) =>
+        p.latitude >= b.$1 &&
+        p.latitude <= b.$2 &&
+        p.longitude >= b.$3 &&
+        p.longitude <= b.$4,
+  );
+
   final http.Client _client;
   final String baseUrl;
 
@@ -64,6 +104,7 @@ class NoaaDemSource implements BathymetrySource {
 
   @override
   Future<SourceCapability?> probe(GeoPoint center) async {
+    if (!plausiblyCovers(center)) return null;
     final url = Uri.parse('$baseUrl/identify').replace(
       queryParameters: {
         'geometry': '{"x":${center.longitude},"y":${center.latitude}}',
@@ -76,9 +117,18 @@ class NoaaDemSource implements BathymetrySource {
         'f': 'json',
       },
     );
+    final http.Response resp;
     try {
-      final resp = await _client.get(url).timeout(_timeout);
-      if (resp.statusCode != 200) return null;
+      resp = await _client.get(url).timeout(_timeout);
+    } catch (e) {
+      // Could not ask, inside coverage: a transient failure the resolver
+      // must hear about, not a decline.
+      throw BathymetryFetchException('NOAA DEM probe failed: $e');
+    }
+    if (resp.statusCode != 200) {
+      throw BathymetryFetchException('NOAA DEM probe HTTP ${resp.statusCode}');
+    }
+    try {
       final body = jsonDecode(resp.body);
       if (body is! Map<String, dynamic>) return null;
       // ArcGIS returns error envelopes with HTTP 200, so a body without a
@@ -131,8 +181,8 @@ class NoaaDemSource implements BathymetrySource {
         detail: bestName ?? 'NOAA NCEI DEM',
       );
     } catch (_) {
-      // A probe never throws: an unreachable or surprising service simply
-      // means this source does not contribute here.
+      // The service answered, just with something surprising: this source
+      // does not contribute here, which is a decline, not a failure.
       return null;
     }
   }

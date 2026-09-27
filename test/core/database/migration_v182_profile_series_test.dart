@@ -64,7 +64,7 @@ const tankSeriesColumns = {
   'dive_id',
   'tank_id',
   'computer_id',
-  // v232 (issue #2440); the ladder these tests run ends at the current rung.
+  // v240 (issue #2440); the ladder these tests run ends at the current rung.
   'source_id',
   'sample_count',
   'start_timestamp',

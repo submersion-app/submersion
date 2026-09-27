@@ -184,6 +184,10 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         /// Wire name from libdc_clock_sync_status_name (issue #1216).
         let clockSyncStatus: String
         let errorMessage: String
+        /// The product and model code the device reported about itself, when
+        /// they differ from the ones it was scanned as (issue #422).
+        var reportedProduct: String? = nil
+        var reportedModel: Int64? = nil
     }
 
     private func performDownload(device: DiscoveredDevice, fingerprint: String?, syncClock: Bool) {
@@ -346,10 +350,17 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                 &errorBuf, errorBuf.count
             )
         }
+        // The model the device named about itself (issue #422).
+        var reportedBuf = [CChar](repeating: 0, count: 64)
+        var reportedModel: UInt32 = 0
+        let hasReported = libdc_download_session_reported_device(
+            session, &reportedBuf, reportedBuf.count, &reportedModel) != 0
         return RunResult(
             rc: result, serial: serial, firmware: firmware,
             clockSyncStatus: String(cString: libdc_clock_sync_status_name(clockSync)),
-            errorMessage: String(cString: errorBuf))
+            errorMessage: String(cString: errorBuf),
+            reportedProduct: hasReported ? String(cString: reportedBuf) : nil,
+            reportedModel: hasReported ? Int64(reportedModel) : nil)
     }
 
     /// Reports the final outcome of a download attempt to Flutter
@@ -363,7 +374,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         NativeLogger.i("DiveComputerHost", category: "LDC",
             "Clock sync: \(result.clockSyncStatus)")
         NativeLogger.i("DiveComputerHost", category: "LDC",
-            "Device info: serial=\(result.serial), firmware=\(result.firmware)")
+            "Device info: serial=\(result.serial), firmware=\(result.firmware),"
+                + " reported=\(result.reportedProduct ?? "none")")
         NativeLogger.d("DiveComputerHost", category: "LDC",
             "libdc_download_run returned result=\(result.rc)")
 
@@ -372,7 +384,9 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             DispatchQueue.main.async { [weak self] in
                 self?.flutterApi.onDownloadComplete(
                     totalDives: 0, serialNumber: serialStr, firmwareVersion: firmwareStr,
-                    clockSyncStatus: clockSyncStr) { _ in }
+                    clockSyncStatus: clockSyncStr,
+                    reportedProduct: result.reportedProduct,
+                    reportedModel: result.reportedModel) { _ in }
             }
         } else if result.rc == Int32(LIBDC_STATUS_CANCELLED) {
             NativeLogger.i("DiveComputerHost", category: "LDC", "Download cancelled, sending onDownloadComplete")
@@ -381,7 +395,9 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             DispatchQueue.main.async { [weak self] in
                 self?.flutterApi.onDownloadComplete(
                     totalDives: 0, serialNumber: serialStr, firmwareVersion: firmwareStr,
-                    clockSyncStatus: clockSyncStr) { _ in }
+                    clockSyncStatus: clockSyncStr,
+                    reportedProduct: result.reportedProduct,
+                    reportedModel: result.reportedModel) { _ in }
             }
         } else {
             NativeLogger.e("DiveComputerHost", category: "LDC",

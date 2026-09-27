@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/scan_tag_menu_entries.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -303,7 +307,9 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
       PopupMenuButton<String>(
         icon: Icon(Icons.more_vert, size: iconSize),
         onSelected: (value) {
-          if (value == _selectMenuValue) {
+          if (value == scanTagMenuValue) {
+            unawaited(scanAndOpenCylinderTag(context, ref));
+          } else if (value == _selectMenuValue) {
             onSelect?.call();
           } else if (value.startsWith('view_')) {
             final mode = ListViewMode.fromName(value.replaceFirst('view_', ''));
@@ -313,6 +319,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         itemBuilder: (context) {
           final currentMode = ref.read(equipmentListViewModeProvider);
           return [
+            ...scanTagMenuEntries(context),
             if (onSelect != null) ...[
               PopupMenuItem<String>(
                 value: _selectMenuValue,

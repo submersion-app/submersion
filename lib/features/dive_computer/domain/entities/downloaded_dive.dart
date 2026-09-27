@@ -160,6 +160,25 @@ class DownloadedDive {
   /// Helium fraction of [diluentO2], 0.0 for a helium-free diluent.
   final double? diluentHe;
 
+  /// Bottom time in seconds as the source itself counted it, when it reports
+  /// one (Garmin's FIT dive_summary). Null for libdivecomputer downloads,
+  /// whose bottom time is derived from the profile on import instead.
+  final int? bottomTimeSeconds;
+
+  /// Surface interval before this dive in seconds, as the source reported it.
+  final int? surfaceIntervalSeconds;
+
+  /// Water type the computer was set to for this dive, when it reports one.
+  final WaterType? waterType;
+
+  /// CNS% at the end of the dive, as the source reported it. When null the
+  /// import falls back to the highest per-sample CNS in [profile].
+  final double? cnsEnd;
+
+  /// Oxygen toxicity units accumulated over the dive, as the source reported
+  /// them.
+  final double? otu;
+
   const DownloadedDive({
     this.diveNumber,
     required this.startTime,
@@ -186,6 +205,11 @@ class DownloadedDive {
     this.rawFingerprint,
     this.diluentO2,
     this.diluentHe,
+    this.bottomTimeSeconds,
+    this.surfaceIntervalSeconds,
+    this.waterType,
+    this.cnsEnd,
+    this.otu,
   });
 
   /// Duration as a Duration object

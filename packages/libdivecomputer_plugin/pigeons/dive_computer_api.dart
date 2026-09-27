@@ -313,6 +313,10 @@ abstract class DiveComputerFlutterApi {
     String? serialNumber,
     String? firmwareVersion,
     String? clockSyncStatus,
+    // The descriptor product and model code the device reported about
+    // itself, when they differ from the ones it was scanned as (issue #422).
+    String? reportedProduct,
+    int? reportedModel,
   );
   void onError(DiveComputerError error);
   void onPinCodeRequired(String deviceAddress);
