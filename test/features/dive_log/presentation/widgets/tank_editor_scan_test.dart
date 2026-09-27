@@ -292,6 +292,27 @@ void main() {
     expect(changed!.workingPressure, closeTo(232, 0.5));
   });
 
+  testWidgets('a pressure-only tag keeps the tank volume in cubic feet', (
+    tester,
+  ) async {
+    final settings = MockSettingsNotifier();
+    await settings.setVolumeUnit(VolumeUnit.cubicFeet);
+    await settings.setPressureUnit(PressureUnit.psi);
+    DiveTank? changed;
+    await pump(
+      tester,
+      scanned: 'https://submersion.app/c#f=1&p=$stranger&wp=300',
+      onChanged: (t) => changed = t,
+      settings: settings,
+      tank: al80Tank,
+    );
+    await scan(tester);
+    // The field showed the AL80's rated cuft; a new pressure must not turn
+    // that number into a different water volume.
+    expect(changed!.volume, closeTo(11.1, 0.05));
+    expect(changed!.workingPressure, closeTo(300, 0.5));
+  });
+
   group('a tag with a volume but no working pressure, in cubic feet', () {
     Future<DiveTank?> scanVolumeOnly(WidgetTester tester, DiveTank tank) async {
       final settings = MockSettingsNotifier();

@@ -58,10 +58,11 @@ class PassportAdoptionService {
         ),
         notify: false,
       );
+      // Unscoped, like the check above: a retired or sold holder of any
+      // diver gives the id up, so it is never on two rows.
       await _passports.assignPassportId(
         equipmentId: created.id,
         passportId: tag.passportId,
-        diverId: diverId,
       );
       await _applyBaselines(created.id, tag, at);
       return created;

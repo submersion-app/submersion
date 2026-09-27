@@ -1112,8 +1112,16 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     }
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
-    final match = volumeL != null && workingPressureBar != null
-        ? TankPresets.matchBySpecs(volumeL, workingPressureBar)
+    // The cylinder after the scan: the tag's size where it gives one, the
+    // tank's current size where it does not. In cubic feet the volume field
+    // depends on both, so it is rewritten from these whenever either
+    // changes; otherwise a new pressure would reread the old cuft figure as
+    // a different water volume.
+    final current = _metricSpecs();
+    final liters = volumeL ?? current.volumeLiters;
+    final pressureBar = workingPressureBar ?? current.workingPressureBar;
+    final match = liters != null && pressureBar != null
+        ? TankPresets.matchBySpecs(liters, pressureBar)
         : null;
     // The preset follows the size; a tag that leaves the size alone leaves it.
     final sizeChanged = volumeL != null || workingPressureBar != null;
@@ -1123,21 +1131,18 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             ? null
             : TankPresetEntity.fromBuiltIn(match);
       }
-      if (volumeL != null) {
+      if (sizeChanged && liters != null) {
         if (settings.volumeUnit == VolumeUnit.cubicFeet) {
-          // Gas capacity needs a pressure: the tag's, else the tank's
-          // current one. With neither, the field is in liters, as
-          // _metricSpecs reads it.
-          final pressureBar =
-              workingPressureBar ?? _metricSpecs().workingPressureBar;
+          // Gas capacity needs a pressure. With none, the field is in
+          // liters, as _metricSpecs reads it.
           final value =
               match?.volumeCuft ??
               (pressureBar != null && pressureBar > 0
-                  ? volumeL * pressureBar / 28.3168
-                  : volumeL);
+                  ? liters * pressureBar / 28.3168
+                  : liters);
           _volumeController.text = formatRoundedForInput(value, 1);
         } else {
-          _volumeController.text = formatRoundedForInput(volumeL, 1);
+          _volumeController.text = formatRoundedForInput(liters, 1);
         }
       }
       if (workingPressureBar != null) {

@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show Value;
+import 'package:drift/drift.dart' show BooleanExpressionOperators, Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -242,6 +242,15 @@ void main() {
         now: now,
       );
       expect(item.diverId, 'd1');
+      // The tag moved: the retired cylinder no longer carries its id.
+      final partnerIds =
+          await (db.select(db.equipmentAttributes)..where(
+                (a) =>
+                    a.equipmentId.equals('eq-partner') &
+                    a.attrKey.equals(EquipmentAttrKeys.passportId),
+              ))
+              .get();
+      expect(partnerIds, isEmpty);
     });
   });
 }
