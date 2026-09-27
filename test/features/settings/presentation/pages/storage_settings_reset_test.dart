@@ -59,12 +59,14 @@ class _FakeStorageConfig extends StateNotifier<StorageConfigState>
 void main() {
   late SharedPreferences prefs;
   late Directory tempDir;
+  late PathProviderPlatform originalPathProvider;
 
   setUp(() async {
     await setUpTestDatabase();
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
     tempDir = Directory.systemTemp.createTempSync('storage_reset_test');
+    originalPathProvider = PathProviderPlatform.instance;
     PathProviderPlatform.instance = _FakePathProvider(tempDir.path);
   });
 
@@ -76,6 +78,7 @@ void main() {
       await DatabaseService.instance.database.close();
     } catch (_) {}
     DatabaseService.instance.resetForTesting();
+    PathProviderPlatform.instance = originalPathProvider;
     try {
       tempDir.deleteSync(recursive: true);
     } catch (_) {}

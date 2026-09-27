@@ -38,12 +38,14 @@ void main() {
   late SharedPreferences prefs;
   late Directory tempDir;
   late String customPath;
+  late PathProviderPlatform originalPathProvider;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
     tempDir = Directory.systemTemp.createTempSync('db-location-adoption-');
     customPath = p.join(tempDir.path, 'elsewhere', 'dive.db');
+    originalPathProvider = PathProviderPlatform.instance;
     PathProviderPlatform.instance = _FakePathProvider(tempDir.path);
     DatabaseService.instance.resetForTesting();
   });
@@ -52,6 +54,7 @@ void main() {
     try {
       await DatabaseService.instance.close(strict: true);
     } finally {
+      PathProviderPlatform.instance = originalPathProvider;
       DatabaseService.instance.resetForTesting();
       if (tempDir.existsSync()) tempDir.deleteSync(recursive: true);
     }

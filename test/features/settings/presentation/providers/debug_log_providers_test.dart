@@ -876,6 +876,8 @@ void main() {
       final tempDir = Directory.systemTemp.createTempSync('share_log_test_');
       addTearDown(() => tempDir.deleteSync(recursive: true));
       final shareTemp = Directory('${tempDir.path}/tmp')..createSync();
+      final originalPathProvider = PathProviderPlatform.instance;
+      addTearDown(() => PathProviderPlatform.instance = originalPathProvider);
       PathProviderPlatform.instance = _FakePathProvider(shareTemp.path);
       final service = LogFileService(logDirectory: tempDir.path);
       await service.initialize();
@@ -901,6 +903,8 @@ void main() {
       final tempDir = Directory.systemTemp.createTempSync('share_log_test_');
       addTearDown(() => tempDir.deleteSync(recursive: true));
       final shareTemp = Directory('${tempDir.path}/tmp')..createSync();
+      final originalPathProvider = PathProviderPlatform.instance;
+      addTearDown(() => PathProviderPlatform.instance = originalPathProvider);
       PathProviderPlatform.instance = _FakePathProvider(shareTemp.path);
       final service = LogFileService(logDirectory: tempDir.path);
       await service.initialize();

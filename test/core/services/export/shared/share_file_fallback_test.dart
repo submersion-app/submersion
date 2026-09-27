@@ -40,6 +40,7 @@ void main() {
   late Directory chosen;
   late MockFilePickerPlatform picker;
   late FilePickerPlatform originalPicker;
+  late PathProviderPlatform originalPathProvider;
   final sharePlatform = _FakeSharePlatform();
 
   // The harness pins a forwarder that looks the platform up on every share
@@ -56,6 +57,7 @@ void main() {
   setUp(() {
     documents = Directory.systemTemp.createTempSync('share_fallback_docs');
     chosen = Directory.systemTemp.createTempSync('share_fallback_chosen');
+    originalPathProvider = PathProviderPlatform.instance;
     PathProviderPlatform.instance = _FakePathProvider(documents.path);
     originalPicker = FilePickerPlatform.instance;
     picker = MockFilePickerPlatform();
@@ -67,6 +69,7 @@ void main() {
   tearDown(() {
     applyGlobalTestDefaults();
     FilePickerPlatform.instance = originalPicker;
+    PathProviderPlatform.instance = originalPathProvider;
     documents.deleteSync(recursive: true);
     chosen.deleteSync(recursive: true);
   });

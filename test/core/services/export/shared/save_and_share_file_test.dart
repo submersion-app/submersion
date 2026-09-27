@@ -34,6 +34,7 @@ class _FakeSharePlatform extends SharePlatform {
 
 void main() {
   late Directory documents;
+  late PathProviderPlatform originalPathProvider;
   final platform = _FakeSharePlatform();
 
   // The harness pins a forwarder that looks the platform up on every share
@@ -49,11 +50,15 @@ void main() {
 
   setUp(() {
     documents = Directory.systemTemp.createTempSync('save_and_share_file_test');
+    originalPathProvider = PathProviderPlatform.instance;
     PathProviderPlatform.instance = _FakePathProvider(documents.path);
     platform.calls.clear();
   });
 
-  tearDown(() => documents.deleteSync(recursive: true));
+  tearDown(() {
+    PathProviderPlatform.instance = originalPathProvider;
+    documents.deleteSync(recursive: true);
+  });
 
   const anchor = Rect.fromLTWH(12, 34, 56, 78);
 

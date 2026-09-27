@@ -31,18 +31,6 @@ void main() {
   const allowed = <String, String>{
     'test/core/services/background_service_backup_test.dart':
         'pending repair, issue #2500',
-    'test/core/services/cloud_storage/google_drive/google_sign_in_authenticator_test.dart':
-        'pending repair, issue #2500',
-    'test/core/services/database_service_headless_upgrade_guard_test.dart':
-        'pending repair, issue #2500',
-    'test/core/services/database_service_isolate_test.dart':
-        'pending repair, issue #2500',
-    'test/core/services/database_service_location_adoption_test.dart':
-        'pending repair, issue #2500',
-    'test/core/services/database_service_vacuum_test.dart':
-        'pending repair, issue #2500',
-    'test/core/services/export/excel/maintenance_excel_export_service_test.dart':
-        'pending repair, issue #2500',
     'test/core/services/export/export_service_dive_types_test.dart':
         'pending repair, issue #2500',
     'test/core/services/export/export_service_pdf_units_test.dart':
@@ -51,13 +39,7 @@ void main() {
         'pending repair, issue #2500',
     'test/core/services/export/pdf/pdf_trip_export_test.dart':
         'pending repair, issue #2500',
-    'test/core/services/export/shared/save_and_share_file_test.dart':
-        'pending repair, issue #2500',
-    'test/core/services/export/shared/share_file_fallback_test.dart':
-        'pending repair, issue #2500',
     'test/core/services/export_service_test.dart':
-        'pending repair, issue #2500',
-    'test/core/services/local_cache_database_service_test.dart':
         'pending repair, issue #2500',
     'test/core/services/sync/base_export_blob_paging_test.dart':
         'pending repair, issue #2500',
@@ -85,29 +67,9 @@ void main() {
         'pending repair, issue #2500',
     'test/features/courses/presentation/pages/course_detail_export_units_test.dart':
         'pending repair, issue #2500',
-    'test/features/gas_calculators/blender_invoice_test.dart':
-        'pending repair, issue #2500',
-    'test/features/media/presentation/pages/media_viewer_video_test.dart':
-        'pending repair, issue #2500',
-    'test/features/media_store/media_cache_eviction_provider_test.dart':
-        'pending repair, issue #2500',
-    'test/features/media_store/media_cache_root_test.dart':
-        'pending repair, issue #2500',
-    'test/features/planner/plan_canvas_share_anchor_test.dart':
-        'pending repair, issue #2500',
-    'test/features/planner/saved_plans_sheet_test.dart':
-        'pending repair, issue #2500',
-    'test/features/settings/presentation/pages/storage_settings_pick_failure_test.dart':
-        'pending repair, issue #2500',
-    'test/features/settings/presentation/pages/storage_settings_reset_test.dart':
-        'pending repair, issue #2500',
-    'test/features/settings/presentation/providers/debug_log_providers_test.dart':
-        'pending repair, issue #2500',
     'test/features/settings/presentation/providers/export_pdf_logbook_test.dart':
         'pending repair, issue #2500',
     'test/features/settings/presentation/providers/export_uddf_profiles_test.dart':
-        'pending repair, issue #2500',
-    'test/features/settings/presentation/providers/storage_usage_wiring_test.dart':
         'pending repair, issue #2500',
     'test/integration/uddf_round_trip_test.dart': 'pending repair, issue #2500',
   };

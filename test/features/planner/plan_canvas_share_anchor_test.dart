@@ -51,6 +51,7 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 
 void main() {
   late Directory documents;
+  late PathProviderPlatform originalPathProvider;
   final sharePlatform = _FakeSharePlatform();
 
   // The harness pins a forwarder that looks the platform up on every share
@@ -67,12 +68,14 @@ void main() {
   setUp(() async {
     await setUpTestDatabase();
     documents = Directory.systemTemp.createTempSync('plan_canvas_share_test');
+    originalPathProvider = PathProviderPlatform.instance;
     PathProviderPlatform.instance = _FakePathProvider(documents.path);
     sharePlatform.calls.clear();
   });
 
   tearDown(() {
     DatabaseService.instance.resetForTesting();
+    PathProviderPlatform.instance = originalPathProvider;
     documents.deleteSync(recursive: true);
   });
 

@@ -27,16 +27,19 @@ class _CountingPathProvider extends PathProviderPlatform
 void main() {
   late Directory support;
   late _CountingPathProvider platform;
+  late PathProviderPlatform originalPathProvider;
 
   setUp(() async {
     support = await Directory.systemTemp.createTemp('media_cache_root_test');
     platform = _CountingPathProvider(support.path);
+    originalPathProvider = PathProviderPlatform.instance;
     PathProviderPlatform.instance = platform;
     resetMediaCacheRootForTesting();
   });
 
   tearDown(() async {
     resetMediaCacheRootForTesting();
+    PathProviderPlatform.instance = originalPathProvider;
     if (support.existsSync()) await support.delete(recursive: true);
   });
 

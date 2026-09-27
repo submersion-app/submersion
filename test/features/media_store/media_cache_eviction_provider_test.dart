@@ -20,9 +20,11 @@ class _FakePathProvider extends PathProviderPlatform
 void main() {
   late Directory support;
   late LocalCacheDatabase db;
+  late PathProviderPlatform originalPathProvider;
 
   setUp(() async {
     support = await Directory.systemTemp.createTemp('eviction_provider_test');
+    originalPathProvider = PathProviderPlatform.instance;
     PathProviderPlatform.instance = _FakePathProvider(support.path);
     resetMediaCacheRootForTesting();
     LocalCacheDatabaseService.instance.resetForTesting();
@@ -34,6 +36,7 @@ void main() {
     await db.close();
     LocalCacheDatabaseService.instance.resetForTesting();
     resetMediaCacheRootForTesting();
+    PathProviderPlatform.instance = originalPathProvider;
     if (support.existsSync()) await support.delete(recursive: true);
   });
 

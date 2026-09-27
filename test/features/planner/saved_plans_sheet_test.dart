@@ -67,6 +67,7 @@ DivePlan _plan(String id, String name) => DivePlan(
 void main() {
   late DivePlanRepository repository;
   late Directory documents;
+  late PathProviderPlatform originalPathProvider;
   final sharePlatform = _FakeSharePlatform();
 
   // The harness pins a forwarder that looks the platform up on every share
@@ -84,12 +85,14 @@ void main() {
     await setUpTestDatabase();
     repository = DivePlanRepository();
     documents = Directory.systemTemp.createTempSync('saved_plans_sheet_test');
+    originalPathProvider = PathProviderPlatform.instance;
     PathProviderPlatform.instance = _FakePathProvider(documents.path);
     sharePlatform.calls.clear();
   });
 
   tearDown(() {
     DatabaseService.instance.resetForTesting();
+    PathProviderPlatform.instance = originalPathProvider;
     documents.deleteSync(recursive: true);
   });
 
