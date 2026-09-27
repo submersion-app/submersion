@@ -207,6 +207,39 @@ void main() {
       expect(await eventIds(), {'e-live'});
     });
 
+    test('and survives a later copy of the same scope', () async {
+      // The scope is stored and relayed here, so another peer's copy of it
+      // arrives later without the live row. The kept event takes a clock
+      // newer than the scope and is published, so no copy of the scope, here
+      // or downstream, covers it any more.
+      final live = await seedLiveAndOther();
+
+      await pull(events: [live], deletions: scope('d1'));
+      final kept = (await SyncDataSerializer().fetchRecord(
+        'diveProfileEvents',
+        'e-live',
+      ))!;
+      expect(
+        Hlc.parse(kept['hlc'] as String).compareTo(deleteClock),
+        greaterThan(0),
+      );
+      // Published with that clock: this device's log now reaches past it.
+      final manifest = await ownManifest(
+        cloud,
+        await SyncRepository().getDeviceId(),
+      );
+      expect(
+        Hlc.parse(
+          manifest!.publishedHlcHigh!,
+        ).compareTo(Hlc.parse(kept['hlc'] as String)),
+        greaterThanOrEqualTo(0),
+      );
+
+      await pull(peer: 'peer-c', deletions: scope('d1'));
+
+      expect(await eventIds(), {'e-live'});
+    });
+
     test('through a changeset', () async {
       final live = await seedLiveAndOther();
       final data = SyncData(diveProfileEvents: [live]);

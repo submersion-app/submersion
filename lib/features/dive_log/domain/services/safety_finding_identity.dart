@@ -11,11 +11,13 @@ const String kSafetyFindingNamespace = '4d0c8a52-6b1e-4f3a-9a27-c5e1d7b3f906';
 typedef SafetyFindingKey = (String ruleId, int? start, int? end, int ordinal);
 
 /// Keys for [spans], in the same order. The ordinal is a finding's rank
-/// among the spans sharing its rule and span, ordered by value (then by
-/// position when values tie), so it does not depend on the order the spans
-/// arrive in: stored rows and the engine's output agree on it.
+/// among the spans sharing its rule and span, ordered by value, then by
+/// severity, so it does not depend on the order the spans arrive in: stored
+/// rows and the engine's output agree on it. Spans equal in all of these are
+/// interchangeable, so their remaining tie is broken by position.
 List<SafetyFindingKey> safetyFindingKeys(
-  List<({String ruleId, int? start, int? end, double? value})> spans,
+  List<({String ruleId, int? start, int? end, double? value, String? severity})>
+  spans,
 ) {
   final groups = <(String, int?, int?), List<int>>{};
   for (var i = 0; i < spans.length; i++) {
@@ -29,7 +31,11 @@ List<SafetyFindingKey> safetyFindingKeys(
         final byValue = (spans[a].value ?? double.negativeInfinity).compareTo(
           spans[b].value ?? double.negativeInfinity,
         );
-        return byValue != 0 ? byValue : a.compareTo(b);
+        if (byValue != 0) return byValue;
+        final bySeverity = (spans[a].severity ?? '').compareTo(
+          spans[b].severity ?? '',
+        );
+        return bySeverity != 0 ? bySeverity : a.compareTo(b);
       });
     for (var rank = 0; rank < ranked.length; rank++) {
       ordinals[ranked[rank]] = rank;
@@ -60,6 +66,7 @@ List<SafetyFinding> withDeterministicIds(
         start: f.startTimestamp,
         end: f.endTimestamp,
         value: f.value,
+        severity: f.severity.dbValue,
       ),
   ]);
   return [

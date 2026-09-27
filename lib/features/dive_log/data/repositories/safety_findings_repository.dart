@@ -82,6 +82,7 @@ class SafetyFindingsRepository {
             start: r.startTimestamp,
             end: r.endTimestamp,
             value: r.value,
+            severity: r.severity,
           ),
       ]);
       final storedByKey = {
@@ -94,6 +95,7 @@ class SafetyFindingsRepository {
             start: f.startTimestamp,
             end: f.endTimestamp,
             value: f.value,
+            severity: f.severity.dbValue,
           ),
       ]);
 

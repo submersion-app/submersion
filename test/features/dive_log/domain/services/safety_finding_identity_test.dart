@@ -20,9 +20,9 @@ void main() {
 
   test('keys number repeats of the same span in order', () {
     final keys = safetyFindingKeys([
-      (ruleId: 'a', start: 1, end: 2, value: null),
-      (ruleId: 'a', start: 1, end: 2, value: null),
-      (ruleId: 'a', start: 3, end: 4, value: null),
+      (ruleId: 'a', start: 1, end: 2, value: null, severity: null),
+      (ruleId: 'a', start: 1, end: 2, value: null, severity: null),
+      (ruleId: 'a', start: 3, end: 4, value: null, severity: null),
     ]);
     expect(keys, [('a', 1, 2, 0), ('a', 1, 2, 1), ('a', 3, 4, 0)]);
   });
@@ -31,12 +31,25 @@ void main() {
     // Stored rows and the engine's output arrive in different orders; the
     // same finding must get the same ordinal from either side.
     final forward = safetyFindingKeys([
-      (ruleId: 'a', start: 1, end: 2, value: 20.0),
-      (ruleId: 'a', start: 1, end: 2, value: 10.0),
+      (ruleId: 'a', start: 1, end: 2, value: 20.0, severity: null),
+      (ruleId: 'a', start: 1, end: 2, value: 10.0, severity: null),
     ]);
     final reversed = safetyFindingKeys([
-      (ruleId: 'a', start: 1, end: 2, value: 10.0),
-      (ruleId: 'a', start: 1, end: 2, value: 20.0),
+      (ruleId: 'a', start: 1, end: 2, value: 10.0, severity: null),
+      (ruleId: 'a', start: 1, end: 2, value: 20.0, severity: null),
+    ]);
+    expect(forward, [('a', 1, 2, 1), ('a', 1, 2, 0)]);
+    expect(reversed, [('a', 1, 2, 0), ('a', 1, 2, 1)]);
+  });
+
+  test('equal values are told apart by severity, not by input order', () {
+    final forward = safetyFindingKeys([
+      (ruleId: 'a', start: 1, end: 2, value: 10.0, severity: 'significant'),
+      (ruleId: 'a', start: 1, end: 2, value: 10.0, severity: 'caution'),
+    ]);
+    final reversed = safetyFindingKeys([
+      (ruleId: 'a', start: 1, end: 2, value: 10.0, severity: 'caution'),
+      (ruleId: 'a', start: 1, end: 2, value: 10.0, severity: 'significant'),
     ]);
     expect(forward, [('a', 1, 2, 1), ('a', 1, 2, 0)]);
     expect(reversed, [('a', 1, 2, 0), ('a', 1, 2, 1)]);

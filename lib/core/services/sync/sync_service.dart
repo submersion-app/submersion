@@ -2915,6 +2915,9 @@ class SyncService {
                 const <String, Hlc>{},
           )
         : null;
+    // Events the payload sends live beside a scope that covers them: kept,
+    // then given a fresh clock (see below).
+    final scopeSurvivors = <String>{};
     final factGroups = SyncFactGroups.of(entityType);
     final localById = hasUpdatedAt || clockGuarded || factGroups.isNotEmpty
         ? await _serializer.fetchRecords(entityType, [
@@ -3068,11 +3071,13 @@ class SyncService {
 
         // A scope delete covers this event: the same rule as the per-row
         // guard above, where only a copy newer than the delete comes back.
+        // The exception is a row the same payload sends live beside it,
+        // which the publisher still holds and so wins.
         if (eventScopes != null &&
             !eventScopes.isEmpty &&
-            !contradicted.contains(recordId) &&
             eventScopes.covers(record)) {
-          continue;
+          if (!contradicted.contains(recordId)) continue;
+          scopeSurvivors.add(recordId);
         }
 
         if (!hasUpdatedAt) {
@@ -3242,6 +3247,22 @@ class SyncService {
         batchFailed = true;
         failed += toUpsert.length;
         applied -= toUpsert.length;
+      }
+    }
+
+    // A live event that beat a scope keeps an old clock, but the scope is
+    // stored and relayed: a later copy of it (from another peer, or relayed
+    // on from here) would delete the event again. The per-row path drops a
+    // contradicted tombstone; a scope also covers other rows, so instead the
+    // event takes a clock newer than the scope and is published with it, and
+    // no copy of the scope covers it anywhere any more.
+    if (!batchFailed) {
+      for (final id in scopeSurvivors) {
+        await _syncRepository.markRecordPending(
+          entityType: entityType,
+          recordId: id,
+          localUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+        );
       }
     }
 
