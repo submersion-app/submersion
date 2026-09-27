@@ -22900,6 +22900,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'Höhen relativ zum mittleren Meeresspiegel';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'Zeiten werden in der Ortszeit des Tauchplatzes angezeigt.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return 'Ozeanmodell-Raster mit $distance';
+  }
+
+  @override
   String get tides_title => 'Gezeiten';
 
   @override

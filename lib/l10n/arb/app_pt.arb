@@ -6658,6 +6658,8 @@
   "tides_source_sheetTitle": "Fonte dos dados de maré",
   "tides_source_datumMllw": "Alturas relativas ao MLLW (datum da estação)",
   "tides_source_datumMsl": "Alturas relativas ao nível médio do mar",
+  "tides_source_siteLocalTime": "Os horários são mostrados na hora local do local de mergulho.",
+  "tides_source_modelResolution": "Grade do modelo oceânico de {distance}",
   "tides_title": "Marés",
   "tools_gpsLogger_description": "Grave sua posição durante um dia de mergulho e associe automaticamente os mergulhos importados a localizações GPS.",
   "tools_gpsLogger_subtitle": "Grave uma trilha de superfície",

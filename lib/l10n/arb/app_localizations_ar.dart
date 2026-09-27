@@ -22649,6 +22649,15 @@ class AppLocalizationsAr extends AppLocalizations {
       'الارتفاعات نسبة إلى متوسط مستوى سطح البحر';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'تُعرض الأوقات بالتوقيت المحلي لموقع الغوص.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return 'شبكة نموذج المحيط بدقة $distance';
+  }
+
+  @override
   String get tides_title => 'المد والجزر';
 
   @override

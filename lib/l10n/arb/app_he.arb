@@ -6658,6 +6658,8 @@
   "tides_source_sheetTitle": "מקור נתוני הגאות",
   "tides_source_datumMllw": "גבהים ביחס ל-MLLW (ייחוס התחנה)",
   "tides_source_datumMsl": "גבהים ביחס לגובה פני הים הממוצע",
+  "tides_source_siteLocalTime": "השעות מוצגות לפי השעה המקומית של אתר הצלילה.",
+  "tides_source_modelResolution": "רשת מודל אוקיינוס של {distance}",
   "tides_title": "גאות",
   "tools_gpsLogger_description": "הקלט את מיקומך במהלך יום צלילה והתאם אוטומטית צלילות מיובאות למיקומי GPS.",
   "tools_gpsLogger_subtitle": "הקלטת מסלול פני המים",

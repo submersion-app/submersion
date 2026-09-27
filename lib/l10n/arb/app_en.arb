@@ -14150,6 +14150,15 @@
   "tides_source_sheetTitle": "Tide data source",
   "tides_source_datumMllw": "Heights relative to MLLW (station datum)",
   "tides_source_datumMsl": "Heights relative to mean sea level",
+  "tides_source_siteLocalTime": "Times are shown in the dive site's local time.",
+  "tides_source_modelResolution": "{distance} ocean-model grid",
+  "@tides_source_modelResolution": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
   "tides_title": "Tides",
   "transfer_appBar_title": "Transfer",
   "transfer_computers_aboutContent": "Connect your dive computer via Bluetooth to download dive logs directly to the app. Supported computers include Suunto, Shearwater, Garmin, Mares, and many other popular brands.  Apple Watch Ultra users can import dive data directly from the Health app, including depth, duration, and heart rate.",

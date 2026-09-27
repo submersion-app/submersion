@@ -22767,6 +22767,15 @@ class AppLocalizationsNl extends AppLocalizations {
       'Hoogten ten opzichte van gemiddeld zeeniveau';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'Tijden worden weergegeven in de lokale tijd van de duikstek.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return 'Oceaanmodelraster van $distance';
+  }
+
+  @override
   String get tides_title => 'Getijden';
 
   @override

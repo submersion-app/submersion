@@ -21759,6 +21759,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tides_source_datumMsl => '高度基于平均海平面';
 
   @override
+  String get tides_source_siteLocalTime => '时间以潜水点当地时间显示。';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return '$distance 海洋模型网格';
+  }
+
+  @override
   String get tides_title => '潮汐';
 
   @override

@@ -22878,6 +22878,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'Magasságok a közepes tengerszinthez képest';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'Az időpontok a merülőhely helyi idejében jelennek meg.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return '$distance felbontású óceánmodell-rács';
+  }
+
+  @override
   String get tides_title => 'Árapály';
 
   @override

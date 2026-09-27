@@ -22372,6 +22372,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tides_source_datumMsl => 'גבהים ביחס לגובה פני הים הממוצע';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'השעות מוצגות לפי השעה המקומית של אתר הצלילה.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return 'רשת מודל אוקיינוס של $distance';
+  }
+
+  @override
   String get tides_title => 'גאות';
 
   @override

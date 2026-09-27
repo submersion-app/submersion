@@ -36700,6 +36700,18 @@ abstract class AppLocalizations {
   /// **'Heights relative to mean sea level'**
   String get tides_source_datumMsl;
 
+  /// No description provided for @tides_source_siteLocalTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Times are shown in the dive site\'s local time.'**
+  String get tides_source_siteLocalTime;
+
+  /// No description provided for @tides_source_modelResolution.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} ocean-model grid'**
+  String tides_source_modelResolution(String distance);
+
   /// No description provided for @tides_title.
   ///
   /// In en, this message translates to:

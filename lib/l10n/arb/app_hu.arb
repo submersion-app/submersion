@@ -6556,6 +6556,8 @@
   "tides_source_sheetTitle": "Árapályadatok forrása",
   "tides_source_datumMllw": "Magasságok az MLLW-hez képest (állomási alapszint)",
   "tides_source_datumMsl": "Magasságok a közepes tengerszinthez képest",
+  "tides_source_siteLocalTime": "Az időpontok a merülőhely helyi idejében jelennek meg.",
+  "tides_source_modelResolution": "{distance} felbontású óceánmodell-rács",
   "tides_title": "Árapály",
   "tools_gpsLogger_description": "Rögzítsd a pozíciódat a merülőnap során, és párosítsd automatikusan az importált merüléseket GPS-helyekhez.",
   "tools_gpsLogger_subtitle": "Felszíni útvonal rögzítése",

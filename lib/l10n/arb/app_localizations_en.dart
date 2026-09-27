@@ -22574,6 +22574,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tides_source_datumMsl => 'Heights relative to mean sea level';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'Times are shown in the dive site\'s local time.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return '$distance ocean-model grid';
+  }
+
+  @override
   String get tides_title => 'Tides';
 
   @override

@@ -22963,6 +22963,15 @@ class AppLocalizationsEs extends AppLocalizations {
       'Alturas relativas al nivel medio del mar';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'Las horas se muestran en la hora local del punto de buceo.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return 'Cuadrícula del modelo oceánico de $distance';
+  }
+
+  @override
   String get tides_title => 'Mareas';
 
   @override

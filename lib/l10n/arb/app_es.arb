@@ -6658,6 +6658,8 @@
   "tides_source_sheetTitle": "Fuente de datos de mareas",
   "tides_source_datumMllw": "Alturas relativas a MLLW (datum de la estación)",
   "tides_source_datumMsl": "Alturas relativas al nivel medio del mar",
+  "tides_source_siteLocalTime": "Las horas se muestran en la hora local del punto de buceo.",
+  "tides_source_modelResolution": "Cuadrícula del modelo oceánico de {distance}",
   "tides_title": "Mareas",
   "tools_gpsLogger_description": "Graba tu posición durante un día de buceo y empareja automáticamente las inmersiones importadas con ubicaciones GPS.",
   "tools_gpsLogger_subtitle": "Graba un track de superficie",

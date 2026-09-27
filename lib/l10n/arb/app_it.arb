@@ -6552,6 +6552,8 @@
   "tides_source_sheetTitle": "Fonte dei dati di marea",
   "tides_source_datumMllw": "Altezze rispetto al MLLW (datum della stazione)",
   "tides_source_datumMsl": "Altezze rispetto al livello medio del mare",
+  "tides_source_siteLocalTime": "Gli orari sono mostrati nell'ora locale del sito di immersione.",
+  "tides_source_modelResolution": "Griglia del modello oceanico di {distance}",
   "tides_title": "Maree",
   "tools_gpsLogger_description": "Registra la tua posizione durante una giornata di immersioni e abbina automaticamente le immersioni importate alle posizioni GPS.",
   "tools_gpsLogger_subtitle": "Registra una traccia di superficie",

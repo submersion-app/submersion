@@ -6830,6 +6830,8 @@
   "tides_source_sheetTitle": "潮汐数据来源",
   "tides_source_datumMllw": "高度基于 MLLW（站点基准面）",
   "tides_source_datumMsl": "高度基于平均海平面",
+  "tides_source_siteLocalTime": "时间以潜水点当地时间显示。",
+  "tides_source_modelResolution": "{distance} 海洋模型网格",
   "tides_title": "潮汐",
   "tools_gpsLogger_description": "在潜水日记录你的位置，自动将导入的潜水与 GPS 位置匹配。",
   "tools_gpsLogger_subtitle": "记录水面轨迹",

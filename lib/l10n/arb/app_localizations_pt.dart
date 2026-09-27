@@ -22953,6 +22953,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get tides_source_datumMsl => 'Alturas relativas ao nível médio do mar';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'Os horários são mostrados na hora local do local de mergulho.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return 'Grade do modelo oceânico de $distance';
+  }
+
+  @override
   String get tides_title => 'Marés';
 
   @override

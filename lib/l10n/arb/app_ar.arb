@@ -6658,6 +6658,8 @@
   "tides_source_sheetTitle": "مصدر بيانات المد والجزر",
   "tides_source_datumMllw": "الارتفاعات نسبة إلى MLLW (مرجع المحطة)",
   "tides_source_datumMsl": "الارتفاعات نسبة إلى متوسط مستوى سطح البحر",
+  "tides_source_siteLocalTime": "تُعرض الأوقات بالتوقيت المحلي لموقع الغوص.",
+  "tides_source_modelResolution": "شبكة نموذج المحيط بدقة {distance}",
   "tides_title": "المد والجزر",
   "tools_gpsLogger_description": "سجّل موقعك خلال يوم الغطس وتتم مطابقة الغطسات المستوردة مع مواقع GPS تلقائيًا.",
   "tools_gpsLogger_subtitle": "تسجيل مسار السطح",
