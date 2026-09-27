@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_color_field.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
@@ -202,6 +203,16 @@ class EquipmentAttributeFormSection extends StatelessWidget {
               onChanged(_base(def.key).copyWith(valueText: option));
             }
           },
+        );
+
+      case AttributeKind.color:
+        return EquipmentColorField(
+          key: fieldKey,
+          label: label,
+          hex: current?.valueText,
+          onChanged: (hex) =>
+              onChanged(_base(def.key).copyWith(valueText: hex)),
+          onCleared: () => onCleared(def.key),
         );
 
       case AttributeKind.flag:

@@ -1,5 +1,6 @@
+import 'dart:ui' show Tristate;
+
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_color_sheet.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -86,9 +87,12 @@ void main() {
       tester,
       selected: '#ef4444',
       act: () async {
-        bool selected(String key) => tester
-            .getSemantics(find.byKey(ValueKey(key)))
-            .hasFlag(SemanticsFlag.isSelected);
+        bool selected(String key) =>
+            tester
+                .getSemantics(find.byKey(ValueKey(key)))
+                .flagsCollection
+                .isSelected ==
+            Tristate.isTrue;
         expect(selected('color-swatch-#EF4444'), isTrue);
         expect(selected('color-swatch-#3B82F6'), isFalse);
         expect(selected('color-swatch-none'), isFalse);
@@ -110,8 +114,10 @@ void main() {
         ]) {
           expect(
             tester
-                .getSemantics(find.byKey(ValueKey(key)))
-                .hasFlag(SemanticsFlag.isSelected),
+                    .getSemantics(find.byKey(ValueKey(key)))
+                    .flagsCollection
+                    .isSelected ==
+                Tristate.isTrue,
             isFalse,
             reason: key,
           );
