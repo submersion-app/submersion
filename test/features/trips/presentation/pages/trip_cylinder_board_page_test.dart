@@ -301,9 +301,63 @@ void main() {
     expect(add().onPressed, isNull);
   });
 
+  testWidgets('two quick drops never show the older order in between', (
+    tester,
+  ) async {
+    await slot('A', 0);
+    await slot('B', 1);
+    await slot('C', 2);
+    final gated = _GatedRepository();
+    await pumpBoard(tester, repository: gated);
+    List<String> shown() {
+      final labels = ['A', 'B', 'C'];
+      return labels..sort(
+        (x, y) => tester
+            .getTopLeft(find.text(x))
+            .dy
+            .compareTo(tester.getTopLeft(find.text(y)).dy),
+      );
+    }
+
+    void drop(int from, int to) => tester
+        .widget<ReorderableListView>(find.byType(ReorderableListView))
+        .onReorderItem!(from, to);
+    drop(2, 0); // C A B
+    await tester.pump();
+    drop(2, 0); // B C A
+    await tester.pump();
+    expect(shown(), ['B', 'C', 'A']);
+
+    // The first write lands while the second still runs.
+    gated.release(0);
+    await tester.pumpAndSettle();
+    expect(shown(), ['B', 'C', 'A']);
+
+    gated.release(1);
+    await tester.pumpAndSettle();
+    expect(shown(), ['B', 'C', 'A']);
+    final stored = await repo.getCylindersForTrip(tripId);
+    expect(stored.map((c) => c.label), ['B', 'C', 'A']);
+  });
+
   test('reorderedIds moves one id and keeps the rest in order', () {
     expect(reorderedIds(['a', 'b', 'c'], 2, 0), ['c', 'a', 'b']);
     expect(reorderedIds(['a', 'b', 'c'], 0, 2), ['b', 'c', 'a']);
     expect(reorderedIds(['a', 'b', 'c'], 1, 1), ['a', 'b', 'c']);
   });
+}
+
+/// Holds each reorder until the test releases it, then writes it for real.
+class _GatedRepository extends TripCylinderRepository {
+  final _gates = <Completer<void>>[];
+
+  void release(int i) => _gates[i].complete();
+
+  @override
+  Future<void> reorderCylinders(List<String> orderedIds) async {
+    final gate = Completer<void>();
+    _gates.add(gate);
+    await gate.future;
+    await super.reorderCylinders(orderedIds);
+  }
 }

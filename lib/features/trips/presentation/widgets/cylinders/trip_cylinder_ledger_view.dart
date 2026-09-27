@@ -50,11 +50,13 @@ class TripCylinderLedgerView extends ConsumerWidget {
     );
     if (confirmed != true || !context.mounted) return;
     try {
-      await ref.read(tripCylinderRepositoryProvider).deleteEvent(event.id);
-      // A deleted fill takes its passport copy with it (Task 6).
+      // A deleted fill takes its passport copy with it (Task 6). The copy
+      // goes first: if that fails nothing is deleted and the diver can try
+      // again, where the other order would strand the copy with no fill.
       if (event.kind == TripCylinderEventKind.fill) {
         await ref.read(tripFillPassportCopierProvider).afterDelete(event.id);
       }
+      await ref.read(tripCylinderRepositoryProvider).deleteEvent(event.id);
     } catch (_) {
       if (context.mounted) showTripCylinderChangeFailed(context);
     }

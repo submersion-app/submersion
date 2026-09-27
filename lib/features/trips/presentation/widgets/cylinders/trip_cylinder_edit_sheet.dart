@@ -225,6 +225,10 @@ class _TripCylinderEditSheetState
             const SizedBox(height: 12),
             TextField(
               controller: _workingPressure,
+              // A typed pressure is no longer the preset's either.
+              onChanged: (_) {
+                if (_presetName != null) setState(() => _presetName = null);
+              },
               decoration: InputDecoration(
                 labelText: l10n.trips_cylinders_edit_workingPressure(
                   units.pressureSymbol,

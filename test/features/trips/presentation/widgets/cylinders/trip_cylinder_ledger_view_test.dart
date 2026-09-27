@@ -82,6 +82,7 @@ void main() {
     WidgetTester tester, {
     TripCylinderRepository? repository,
     Future<List<TripCylinderEvent>>? ledger,
+    TripFillPassportCopier? copier,
   }) async {
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1.0;
@@ -96,6 +97,8 @@ void main() {
           allDiveCentersProvider.overrideWith((ref) async => const []),
           if (repository != null)
             tripCylinderRepositoryProvider.overrideWithValue(repository),
+          if (copier != null)
+            tripFillPassportCopierProvider.overrideWithValue(copier),
           if (ledger != null)
             tripCylinderLedgerProvider(tripId).overrideWith((ref) => ledger),
         ],
@@ -227,4 +230,30 @@ void main() {
     expect(find.text('Error'), findsOneWidget);
     expect(find.text('No fills or adjustments yet'), findsNothing);
   });
+
+  testWidgets('a failed passport cleanup keeps the fill to delete again', (
+    tester,
+  ) async {
+    await event('e1', TripCylinderEventKind.fill, hour: 8, pressure: 200);
+    await pumpLedger(tester, copier: _FailingCopier());
+
+    await tester.tap(find.byKey(const Key('ledger-delete-e1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('ledger-e1')), findsOneWidget);
+    expect(await repo.getEventsForCylinder(slot.id), hasLength(1));
+  });
+}
+
+/// A passport copier whose cleanup always fails.
+class _FailingCopier extends TripFillPassportCopier {
+  @override
+  Future<void> afterDelete(String tripEventId) async =>
+      throw StateError('copy cleanup failed');
 }

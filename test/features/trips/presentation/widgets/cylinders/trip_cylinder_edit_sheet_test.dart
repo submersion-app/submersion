@@ -193,4 +193,15 @@ void main() {
     );
     expect((await repo.getCylinderById(slot.id))!.volume, 11.1);
   });
+
+  testWidgets('a typed working pressure makes the slot custom', (tester) async {
+    await pumpAndOpen(tester);
+    await tester.enterText(field('Working pressure (bar)'), '232');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final stored = (await repo.getCylinderById(slot.id))!;
+    expect(stored.workingPressure, 232);
+    expect(stored.presetName, isNull);
+  });
 }

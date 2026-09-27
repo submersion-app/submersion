@@ -177,17 +177,23 @@ class _TripCylinderBoardListState extends ConsumerState<TripCylinderBoardList> {
   /// still carrying it is stale, not an answer.
   List<String>? _before;
 
+  /// Reorder writes not yet finished. While one runs, an order from the
+  /// provider may be an earlier drop landing, not the latest.
+  int _writing = 0;
+
   List<String> get _ids => [for (final s in widget.states) s.cylinder.id];
 
   @override
   void didUpdateWidget(TripCylinderBoardList oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // The provider has caught up (the dropped order) or moved on (any order
-    // but the one before the drop, say a sync); either way it is the truth.
-    // A refresh that still shows the old order leaves the drop in place.
+    // The provider has caught up (the dropped order) or, once no write is
+    // left running, moved on (any order but the one before the drop, say a
+    // sync); either way it is the truth. A refresh that still shows the old
+    // order, or an earlier drop landing, leaves the latest drop in place.
     final ids = _ids;
     if (_pending != null &&
-        (listEquals(ids, _pending) || !listEquals(ids, _before))) {
+        (listEquals(ids, _pending) ||
+            (_writing == 0 && !listEquals(ids, _before)))) {
       _pending = null;
       _before = null;
     }
@@ -212,6 +218,7 @@ class _TripCylinderBoardListState extends ConsumerState<TripCylinderBoardList> {
     setState(() {
       _pending = next;
       _before ??= _ids;
+      _writing++;
     });
     try {
       await ref.read(tripCylinderRepositoryProvider).reorderCylinders(next);
@@ -222,6 +229,8 @@ class _TripCylinderBoardListState extends ConsumerState<TripCylinderBoardList> {
         _before = null;
       });
       showTripCylinderChangeFailed(context);
+    } finally {
+      _writing--;
     }
   }
 
