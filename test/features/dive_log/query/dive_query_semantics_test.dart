@@ -165,10 +165,9 @@ void main() {
         .get();
     final lines = plan.map((r) => r.data['detail'].toString()).toList();
     // The root scan is expected; every correlated hop whose correlation
-    // column is indexed must be a SEARCH. `certifications.buddy_id` has no
-    // index in the schema (a per-buddy table of a handful of rows), so its
-    // hop is the one scan this PR accepts; an index is a follow-up rung.
-    const unindexedHops = {'r2'};
+    // column is indexed must be a SEARCH. Since v245 that includes
+    // `certifications.buddy_id`, so no hop is exempt.
+    const unindexedHops = <String>{};
     final scans = lines
         .where((l) => l.startsWith('SCAN'))
         .where((l) => l != 'SCAN d')

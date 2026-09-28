@@ -76,5 +76,11 @@ extension RungsFromV231 on AppDatabase {
       await _assertEquipmentServiceStatusTable();
     }
     if (from < 242) await reportProgress();
+    // v245: index certifications by buddy (issue #2365). Index-only rung;
+    // re-asserted in beforeOpen.
+    if (from < 245) {
+      await _assertCertificationsBuddyIndex();
+    }
+    if (from < 245) await reportProgress();
   }
 }

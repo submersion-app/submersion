@@ -62,7 +62,7 @@ void main() {
     final q = compileQuery(node, species, appQueryRegistry);
     final rows = await db
         .customSelect(
-          '${q.idSubquery()}',
+          q.idSubquery(),
           variables: [for (final p in q.params) Variable(p)],
         )
         .get();

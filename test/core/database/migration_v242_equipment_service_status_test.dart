@@ -16,9 +16,11 @@ void main() {
   test('v242 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 242);
+    // Relaxed once v245 landed on top; the newest rung owns the exact
+    // assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(242));
     expect(AppDatabase.migrationVersions, contains(242));
-    expect(AppDatabase.migrationStepCount(240), 1);
+    expect(AppDatabase.migrationStepCount(240), greaterThanOrEqualTo(1));
     // A local cache: the sync compatibility floor must not move.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
