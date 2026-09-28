@@ -197,9 +197,10 @@ class _AddTripCylindersSheetState
     final units = UnitFormatter(ref.watch(settingsProvider));
     final presetsAsync = ref.watch(tankPresetsProvider);
     final presets = presetsAsync.value ?? const [];
-    // Rentals take their specs from the chosen preset, so saving them waits
-    // until the presets have loaded (or failed to).
-    final presetsPending = _mode == _AddMode.rental && presetsAsync.isLoading;
+    // Rentals take their specs from the chosen preset, so saving them needs
+    // the preset list; while it loads Save waits, and a failed load says so.
+    final presetsPending = _mode == _AddMode.rental && !presetsAsync.hasValue;
+    final presetsFailed = presetsPending && presetsAsync.hasError;
     final candidates = _ownedCandidates(
       ref.watch(activeEquipmentProvider).value ?? const [],
     );
@@ -296,7 +297,8 @@ class _AddTripCylindersSheetState
                     }
                   }),
                 ),
-            if (_error case final error?)
+            if (presetsFailed ? l10n.common_error_tryAgain : _error
+                case final error?)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(

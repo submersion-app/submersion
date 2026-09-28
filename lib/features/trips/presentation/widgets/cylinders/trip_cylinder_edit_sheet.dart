@@ -162,7 +162,11 @@ class _TripCylinderEditSheetState
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));
-    final presets = ref.watch(tankPresetsProvider).value ?? const [];
+    final presetsAsync = ref.watch(tankPresetsProvider);
+    final presets = presetsAsync.value ?? const [];
+    // Save needs the presets: without them a preset-backed slot would lose
+    // its preset and exact specs on an unchanged save.
+    final presetsMissing = !presetsAsync.hasValue;
     final known = presets.any((p) => p.name == _presetName);
     return Padding(
       padding: EdgeInsets.only(
@@ -244,7 +248,10 @@ class _TripCylinderEditSheetState
               decoration: InputDecoration(labelText: l10n.trips_cylinders_note),
               maxLines: 3,
             ),
-            if (_error case final error?)
+            if (presetsMissing && presetsAsync.hasError
+                    ? l10n.common_error_tryAgain
+                    : _error
+                case final error?)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
@@ -262,7 +269,7 @@ class _TripCylinderEditSheetState
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
-                  onPressed: _saving ? null : _save,
+                  onPressed: _saving || presetsMissing ? null : _save,
                   child: Text(l10n.common_action_save),
                 ),
               ],

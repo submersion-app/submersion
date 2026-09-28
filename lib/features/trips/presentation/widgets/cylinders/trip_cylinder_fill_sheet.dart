@@ -277,6 +277,11 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
       setState(() => _error = tripCylinderInvalidNumber(l10n));
       return;
     }
+    // A fill leaves pressure in the cylinder; zero would read as "Full".
+    if (pressure != null && pressure < 1) {
+      setState(() => _error = l10n.numberInput_atLeastOne);
+      return;
+    }
     final orderedO2 = o2 ?? 21.0;
     final orderedHe = he ?? 0.0;
     bool badAnalysis(_Analysis a) =>
@@ -347,11 +352,15 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
       // passport, and an edit updates that copy (Task 6).
       final copier = ref.read(tripFillPassportCopierProvider);
       final diverId = ref.read(currentDiverIdProvider);
-      final stationName =
-          (ref.read(allDiveCentersProvider).value ?? const <DiveCenter>[])
-              .where((c) => c.id == _centerId)
-              .firstOrNull
-              ?.name;
+      // Wait for the centers rather than reading a list still loading, or the
+      // passport copy would lose its station name.
+      final centers = _centerId == null
+          ? const <DiveCenter>[]
+          : await ref.read(allDiveCentersProvider.future);
+      final stationName = centers
+          .where((c) => c.id == _centerId)
+          .firstOrNull
+          ?.name;
       final slotsById = {
         for (final s in widget.slots) s.cylinder.id: s.cylinder,
       };

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -77,6 +79,7 @@ void main() {
     MockSettingsNotifier? settings,
     TripFillPassportCopier? copier,
     List<DiveCenter> centers = const [],
+    Future<List<DiveCenter>>? centersLoad,
   }) async {
     tester.view.physicalSize = const Size(800, 2000);
     tester.view.devicePixelRatio = 1.0;
@@ -89,7 +92,9 @@ void main() {
                 settings ??
                 MockSettingsNotifier(const AppSettings(defaultCurrency: 'EUR')),
           ),
-          allDiveCentersProvider.overrideWith((ref) async => centers),
+          allDiveCentersProvider.overrideWith(
+            (ref) => centersLoad ?? Future.value(centers),
+          ),
           currentDiverIdProvider.overrideWith(
             (ref) => MockCurrentDiverIdNotifier(),
           ),
@@ -285,6 +290,87 @@ void main() {
     expect(copy, isNotNull);
     expect(copy!.o2Percent, 31.6);
     expect(copy.equipmentId, equipmentId);
+  });
+
+  testWidgets('a fill at zero pressure is refused', (tester) async {
+    await pumpAndOpen(tester);
+    await type(tester, 'fill-pressure', '0');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enter 1 or more'), findsOneWidget);
+    expect(await repo.getEventsForCylinder(cylinders.first.id), isEmpty);
+  });
+
+  testWidgets('the passport copy names the station even if it loads late', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    await db
+        .into(db.diveCenters)
+        .insert(
+          DiveCentersCompanion.insert(
+            id: 'dc1',
+            name: 'Budget Marine',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    final equipmentId = (await EquipmentRepository().createEquipment(
+      const EquipmentItem(id: '', name: 'My HP100', type: EquipmentType.tank),
+    )).id;
+    final owned = await repo.createCylinder(
+      TripCylinder(
+        id: '',
+        tripId: cylinders.first.tripId,
+        equipmentId: equipmentId,
+        label: 'My HP100',
+        workingPressure: 230,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    final at = DateTime.utc(2026, 3, 9, 8);
+    states = [
+      foldCylinderState(
+        cylinder: owned,
+        events: [
+          TripCylinderEvent(
+            id: 'f0',
+            tripCylinderId: owned.id,
+            kind: TripCylinderEventKind.fill,
+            occurredAt: at,
+            diveCenterId: 'dc1',
+            createdAt: at,
+            updatedAt: at,
+          ),
+        ],
+        uses: const [],
+      ),
+    ];
+    final centersLater = Completer<List<DiveCenter>>();
+    await pumpAndOpen(
+      tester,
+      preselected: {owned.id},
+      centersLoad: centersLater.future,
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+    centersLater.complete([
+      DiveCenter(
+        id: 'dc1',
+        name: 'Budget Marine',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    ]);
+    await tester.pumpAndSettle();
+
+    final event = (await repo.getEventsForCylinder(owned.id)).single;
+    final copy = await CylinderFillRepository().getById(
+      tripFillPassportCopyId(event.id),
+    );
+    expect(copy!.stationName, 'Budget Marine');
   });
 
   group('pure rules', () {

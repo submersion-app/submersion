@@ -6,6 +6,8 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
@@ -515,6 +517,37 @@ void main() {
         const DiveSitesCompanion(name: Value('Salt Pier North')),
       );
       await expectLater(changed.timeout(const Duration(seconds: 2)), completes);
+    });
+
+    test('a delete run alongside the event commits or fails with it', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      final e = await repository.createEvent(fill(a.id));
+      final fills = CylinderFillRepository();
+      await fills.create(
+        CylinderFill(
+          id: 'copy-1',
+          passportId: 'passport-1',
+          filledAt: DateTime(2026, 3, 9, 8),
+          o2Percent: 32,
+          createdAt: DateTime.utc(2026, 3, 9),
+          updatedAt: DateTime.utc(2026, 3, 9),
+        ),
+      );
+      await db.customStatement(
+        'ALTER TABLE deletion_log RENAME TO deletion_log_off',
+      );
+      addTearDown(
+        () => db.customStatement(
+          'ALTER TABLE deletion_log_off RENAME TO deletion_log',
+        ),
+      );
+
+      await expectLater(
+        repository.deleteEvent(e.id, alongside: () => fills.delete('copy-1')),
+        throwsA(anything),
+      );
+      expect(await fills.getById('copy-1'), isNotNull);
+      expect(await repository.getEventsForCylinder(a.id), hasLength(1));
     });
   });
 }

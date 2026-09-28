@@ -4,8 +4,10 @@ import 'package:submersion/features/trips/data/repositories/trip_cylinder_reposi
 /// test can check that the UI reports the failure instead of losing it.
 class FailingTripCylinderRepository extends TripCylinderRepository {
   @override
-  Future<void> deleteEvent(String id) async =>
-      throw StateError('delete failed');
+  Future<void> deleteEvent(
+    String id, {
+    Future<void> Function()? alongside,
+  }) async => throw StateError('delete failed');
 
   @override
   Future<void> deleteCylinder(String id) async =>

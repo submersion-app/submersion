@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -57,6 +59,8 @@ void main() {
   Future<void> pumpAndOpen(
     WidgetTester tester, {
     MockSettingsNotifier? settings,
+    Future<List<TankPresetEntity>>? presetsLoad,
+    bool settle = true,
   }) async {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1.0;
@@ -67,7 +71,9 @@ void main() {
           settingsProvider.overrideWith(
             (ref) => settings ?? MockSettingsNotifier(),
           ),
-          tankPresetsProvider.overrideWith((ref) => Future.value(presets)),
+          tankPresetsProvider.overrideWith(
+            (ref) => presetsLoad ?? Future.value(presets),
+          ),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -86,7 +92,12 @@ void main() {
       ),
     );
     await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+    }
   }
 
   Finder field(String label) =>
@@ -203,5 +214,21 @@ void main() {
     final stored = (await repo.getCylinderById(slot.id))!;
     expect(stored.workingPressure, 232);
     expect(stored.presetName, isNull);
+  });
+
+  testWidgets('saving waits for the presets, so the slot keeps its preset', (
+    tester,
+  ) async {
+    final pending = Completer<List<TankPresetEntity>>();
+    await pumpAndOpen(tester, presetsLoad: pending.future, settle: false);
+    FilledButton save() =>
+        tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Save'));
+    expect(save().onPressed, isNull);
+
+    pending.complete(presets);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect((await repo.getCylinderById(slot.id))!.presetName, 'al80');
   });
 }

@@ -392,11 +392,18 @@ class TripCylinderRepository {
     }
   }
 
-  Future<void> deleteEvent(String id) async {
+  /// Deletes an event and logs its tombstone. [alongside] runs first in the
+  /// same transaction (the fill's passport copy), so the two commit or fail
+  /// together and a failed delete leaves both records for a retry.
+  Future<void> deleteEvent(
+    String id, {
+    Future<void> Function()? alongside,
+  }) async {
     try {
       // Delete and log the tombstone together: a failed log must not drop
       // the event here while other devices keep it.
       await _db.transaction(() async {
+        if (alongside != null) await alongside();
         await (_db.delete(
           _db.tripCylinderEvents,
         )..where((t) => t.id.equals(id))).go();

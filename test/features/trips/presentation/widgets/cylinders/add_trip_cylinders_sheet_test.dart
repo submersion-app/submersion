@@ -212,4 +212,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(save().onPressed, isNotNull);
   });
+
+  testWidgets('rentals cannot be saved when the presets fail to load', (
+    tester,
+  ) async {
+    final failing = Completer<List<TankPresetEntity>>();
+    await pumpAndOpen(tester, presets: failing.future, settle: false);
+    failing.completeError(StateError('presets gone'));
+    await tester.pumpAndSettle();
+
+    final save = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Save'),
+    );
+    expect(save.onPressed, isNull);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+  });
 }
