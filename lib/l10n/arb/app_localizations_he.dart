@@ -12537,6 +12537,85 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_foreign_defaultName => 'מיכל';
 
   @override
+  String get passport_nfc_tap => 'הצמדת תג NFC';
+
+  @override
+  String get passport_nfc_holdNear => 'הצמידו את התג לגב הטלפון.';
+
+  @override
+  String get passport_nfc_write => 'כתיבת תג NFC';
+
+  @override
+  String get passport_nfc_rewrite => 'כתיבה מחדש של התג';
+
+  @override
+  String get passport_nfc_reprint => 'הדפסה מחדש של התווית';
+
+  @override
+  String get passport_nfc_unsupported =>
+      'המכשיר הזה אינו יכול לקרוא או לכתוב תגי NFC.';
+
+  @override
+  String get passport_nfc_disabled => 'NFC כבוי. הפעילו אותו בהגדרות המערכת.';
+
+  @override
+  String get passport_nfc_written => 'התג נכתב ונבדק';
+
+  @override
+  String passport_nfc_tagInfo(String type, int capacity) {
+    return '$type, $capacity בייטים';
+  }
+
+  @override
+  String passport_nfc_capacity(int capacity) {
+    return '$capacity בייטים';
+  }
+
+  @override
+  String get passport_nfc_allFields => 'הכול נכנס לתג הזה.';
+
+  @override
+  String passport_nfc_fieldsDropped(String fields) {
+    return 'הושמט כדי שייכנס: $fields';
+  }
+
+  @override
+  String get passport_nfc_notNdef =>
+      'התג הזה אינו יכול לשמור קישור. השתמשו בתג NTAG215 או NTAG216.';
+
+  @override
+  String get passport_nfc_readOnly => 'התג הזה נעול ולא ניתן לכתוב עליו.';
+
+  @override
+  String passport_nfc_tooSmall(int capacity) {
+    return 'התג הזה קטן מדי ($capacity בייטים), אפילו למזהה המיכל.';
+  }
+
+  @override
+  String get passport_nfc_readBackFailed =>
+      'התג לא נקרא בחזרה כפי שנכתב, ולכן לא נכתב.';
+
+  @override
+  String get passport_nfc_writeFailed =>
+      'התג לא נכתב. החזיקו אותו יציב ונסו שוב.';
+
+  @override
+  String get passport_nfc_readFailed =>
+      'לא ניתן היה לקרוא את התג. החזיקו אותו יציב ונסו שוב.';
+
+  @override
+  String get passport_nfc_retry => 'ניסיון חוזר';
+
+  @override
+  String get passport_nfc_fieldName => 'שם';
+
+  @override
+  String get passport_nfc_fieldSerial => 'מספר סידורי';
+
+  @override
+  String get passport_nfc_fieldO2Clean => 'נקי ל-O2';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'מספר סידורי $serial';
   }
@@ -14063,6 +14142,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String equipment_list_emptyState_noEquipment(Object filterText) {
     return 'אין $filterText';
   }
+
+  @override
+  String get equipment_list_emptyState_noQueryMatch =>
+      'אין ציוד שתואם לשאילתה זו';
 
   @override
   String get equipment_list_emptyState_noStatusMatch => 'אין ציוד עם סטטוס זה';
@@ -43938,6 +44021,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_entity_sightings => 'תצפיות';
 
   @override
+  String get query_entity_siteTypes => 'סוגי אתר';
+
+  @override
   String get query_entity_sites => 'אתרי צלילה';
 
   @override
@@ -43977,6 +44063,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_equipment_brand => 'מותג';
 
   @override
+  String get query_equipment_dives => 'צלילות';
+
+  @override
   String get query_equipment_model => 'דגם';
 
   @override
@@ -43986,7 +44075,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_equipment_serialNumber => 'מספר סידורי';
 
   @override
+  String get query_equipment_serviceDue => 'טיפול נדרש';
+
+  @override
+  String get query_equipment_serviceDue_dueSoon => 'בקרוב';
+
+  @override
+  String get query_equipment_serviceDue_ok => 'מעודכן';
+
+  @override
+  String get query_equipment_serviceDue_overdue => 'באיחור';
+
+  @override
   String get query_equipment_status => 'מצב';
+
+  @override
+  String get query_equipment_tags => 'תגיות';
 
   @override
   String get query_equipment_type => 'סוג';
@@ -44001,6 +44105,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_media_type => 'סוג';
 
   @override
+  String get query_sheet_sectionTitle => 'שאילתה';
+
+  @override
   String get query_sightings_count => 'כמות';
 
   @override
@@ -44010,10 +44117,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_sightings_species => 'מינים';
 
   @override
+  String get query_siteTypes_name => 'שם';
+
+  @override
   String get query_sites_city => 'עיר';
 
   @override
+  String get query_sites_coordinates => 'קואורדינטות';
+
+  @override
   String get query_sites_country => 'מדינה';
+
+  @override
+  String get query_sites_difficulty => 'רמת קושי';
+
+  @override
+  String get query_sites_dives => 'צלילות';
 
   @override
   String get query_sites_island => 'אי';
@@ -44025,10 +44144,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_sites_name => 'שם';
 
   @override
+  String get query_sites_notes => 'הערות';
+
+  @override
   String get query_sites_rating => 'דירוג';
 
   @override
   String get query_sites_region => 'אזור';
+
+  @override
+  String get query_sites_tags => 'תגיות';
+
+  @override
+  String get query_sites_types => 'סוגי אתר';
 
   @override
   String get query_species_category => 'קטגוריה';
@@ -44064,7 +44192,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_tanks_volume => 'נפח';
 
   @override
+  String get query_trips_dives => 'צלילות';
+
+  @override
   String get query_trips_endDate => 'תאריך סיום';
+
+  @override
+  String get query_trips_liveaboardName => 'ספינת צלילה';
 
   @override
   String get query_trips_location => 'מיקום';
@@ -44073,7 +44207,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_trips_name => 'שם';
 
   @override
+  String get query_trips_notes => 'הערות';
+
+  @override
+  String get query_trips_resortName => 'אתר נופש';
+
+  @override
+  String get query_trips_shared => 'משותף';
+
+  @override
   String get query_trips_startDate => 'תאריך התחלה';
+
+  @override
+  String get query_trips_tripType => 'סוג טיול';
 
   @override
   String get query_weights_amount => 'כמות';

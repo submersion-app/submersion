@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show setEquals;
-
 import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
@@ -27,6 +25,8 @@ import 'package:submersion/features/dive_log/domain/entities/source_profile.dart
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/filter_aware_tick.dart';
 import 'package:submersion/features/dive_log/presentation/providers/narrow_dives.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -72,6 +72,7 @@ final queryFilteredDiveIdsProvider = FutureProvider.autoDispose
       // Compiled once: the same object names the tables to follow and is
       // the query the repository runs.
       final compiled = compileDiveFilter(filter, rootAlias: 'd');
+      await awaitServiceStatusIfRead(ref, compiled.tablesTouched);
       ref.invalidateSelfWhen(repository.watchTables(compiled.tablesTouched));
       return repository.getDiveIdsForQuery(compiled, diverId: diverId);
     });
@@ -121,7 +122,9 @@ final orderedDiveIdsProvider = FutureProvider.autoDispose<List<String>>((
   // reads (#2365): the buddy tables under a buddy filter (#1915), the gear
   // tables under an attribute condition (#1805). One stream, not two, so a
   // junction write followed by the dive write recomputes the ids once.
-  final extra = diveFilterTablesTouched(filter).difference({'dives'});
+  final touched = diveFilterTablesTouched(filter);
+  await awaitServiceStatusIfRead(ref, touched);
+  final extra = touched.difference({'dives'});
   ref.invalidateSelfWhen(
     extra.isEmpty
         ? repository.watchDivesChanges()
@@ -437,53 +440,6 @@ final diveSearchProvider = FutureProvider.family<List<DiveSummary>, String>((
   );
 });
 
-/// A notifier's one change tick, widened to the tables its compiled
-/// filter reads (#2365).
-///
-/// With no extra tables it is [plain] (the notifier's own debounced
-/// stream). With extra tables it is ONE debounced stream over the base
-/// tables plus the extra ones, never a second tick beside the first: a
-/// local buddy edit writes `dive_buddies` and then the dive row, and two
-/// separately debounced ticks would reload the list once for each write.
-/// Resubscribes only when the extra set changes. The many test fakes that
-/// `implements DiveRepository` without `watchTables` are never asked for
-/// it while the filter reads nothing extra.
-class _FilterAwareTick {
-  _FilterAwareTick({
-    required Stream<void> Function() plain,
-    required Set<String> baseTables,
-    required Stream<void> Function(Set<String>) watchTables,
-    required void Function() onTick,
-  }) : _plain = plain,
-       _baseTables = baseTables,
-       _watchTables = watchTables,
-       _onTick = onTick;
-
-  final Stream<void> Function() _plain;
-  final Set<String> _baseTables;
-  final Stream<void> Function(Set<String>) _watchTables;
-  final void Function() _onTick;
-  StreamSubscription<void>? _subscription;
-  Set<String>? _extra;
-
-  /// Subscribes for [extra] (the filter's tables beyond the base set),
-  /// resubscribing only when that set changes.
-  void follow(Set<String> extra) {
-    if (_subscription != null && setEquals(_extra, extra)) return;
-    _subscription?.cancel();
-    _extra = extra;
-    final stream = extra.isEmpty
-        ? _plain()
-        : _watchTables({..._baseTables, ...extra});
-    _subscription = stream.listen((_) => _onTick());
-  }
-
-  void cancel() {
-    _subscription?.cancel();
-    _subscription = null;
-  }
-}
-
 /// Dive list notifier for mutations
 class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
   final DiveRepository _repository;
@@ -512,7 +468,7 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     // whatever tables the filter names; a write to one of them (a synced
     // buddy link, a weight row) changes the answer without a dives write,
     // so the tick follows the filter's tables beyond `dives` (#1915).
-    final divesTick = _FilterAwareTick(
+    final divesTick = FilterAwareTick(
       plain: _repository.watchDivesChanges,
       baseTables: const {'dives'},
       watchTables: _repository.watchTables,
@@ -796,7 +752,7 @@ class PaginatedDiveListNotifier
   /// The list tick, not the dives one: the summary query joins sites and
   /// trips, so a trip rename or a site rename changes what is on screen
   /// without touching the dives table (#1193).
-  late final _listTick = _FilterAwareTick(
+  late final _listTick = FilterAwareTick(
     plain: _repository.watchDiveListChanges,
     baseTables: DiveRepository.diveListTickTables,
     watchTables: _repository.watchTables,
@@ -834,6 +790,16 @@ class PaginatedDiveListNotifier
 
   Future<void> loadFirstPage() => _enqueuePaging(_loadFirstPage);
 
+  /// A filter naming gear.serviceDue reads the service cache: each load waits
+  /// for it to mirror the engine, so no page shows an empty cache or the
+  /// previous diver's verdicts (#2365).
+  Future<void> _awaitServiceCache(DiveFilterState filter) =>
+      awaitServiceStatusIfRead(
+        _ref,
+        diveFilterTablesTouched(filter),
+        hold: false,
+      );
+
   Future<void> _loadFirstPage() async {
     // Queued work can reach its turn after the notifier is gone: this provider
     // is invalidated from half a dozen places (imports, merges, renumbering),
@@ -844,6 +810,8 @@ class PaginatedDiveListNotifier
     try {
       final filter = _ref.read(diveFilterProvider);
       final sort = _ref.read(diveSortProvider);
+      await _awaitServiceCache(filter);
+      if (!mounted) return;
       final results = await Future.wait([
         _repository.getDiveSummaries(
           diverId: _currentDiverId,
@@ -1012,6 +980,8 @@ class PaginatedDiveListNotifier
     try {
       final filter = _ref.read(diveFilterProvider);
       final sort = _ref.read(diveSortProvider);
+      await _awaitServiceCache(filter);
+      if (!mounted) return;
       final results = await Future.wait([
         _repository.getDiveSummaries(
           diverId: _currentDiverId,

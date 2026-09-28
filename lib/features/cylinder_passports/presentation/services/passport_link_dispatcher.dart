@@ -60,14 +60,20 @@ class PassportLinkDispatcher {
     required Future<void> Function(String tagText) open,
     DateTime Function()? clock,
     Duration repeatWindow = const Duration(seconds: 2),
+    bool Function(String tagText)? alreadyHandled,
   }) : _source = source,
        _open = open,
        _clock = clock ?? DateTime.now,
-       _repeatWindow = repeatWindow;
+       _repeatWindow = repeatWindow,
+       _alreadyHandled = alreadyHandled;
 
   final IncomingLinkSource _source;
   final Future<void> Function(String tagText) _open;
   final DateTime Function() _clock;
+
+  /// Whether the app itself just handled this tag (read or written over
+  /// NFC), in which case its arrival as a link is a re-dispatch to drop.
+  final bool Function(String tagText)? _alreadyHandled;
   final Duration _repeatWindow;
 
   StreamSubscription<String>? _subscription;
@@ -114,6 +120,7 @@ class PassportLinkDispatcher {
   void _onLink(String text) {
     // An OAuth callback, a future /f record link, any other page: not ours.
     if (PassportPayloadCodec.extractQuery(text) == null) return;
+    if (_alreadyHandled?.call(text) ?? false) return;
     final now = _clock();
     final last = _lastAt;
     if (text == _lastText &&

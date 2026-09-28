@@ -21160,6 +21160,138 @@ abstract class AppLocalizations {
   /// **'Cylinder'**
   String get passport_foreign_defaultName;
 
+  /// No description provided for @passport_nfc_tap.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an NFC tag'**
+  String get passport_nfc_tap;
+
+  /// No description provided for @passport_nfc_holdNear.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold the tag against the back of the phone.'**
+  String get passport_nfc_holdNear;
+
+  /// No description provided for @passport_nfc_write.
+  ///
+  /// In en, this message translates to:
+  /// **'Write NFC tag'**
+  String get passport_nfc_write;
+
+  /// No description provided for @passport_nfc_rewrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewrite tag'**
+  String get passport_nfc_rewrite;
+
+  /// No description provided for @passport_nfc_reprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reprint label'**
+  String get passport_nfc_reprint;
+
+  /// No description provided for @passport_nfc_unsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This device cannot read or write NFC tags.'**
+  String get passport_nfc_unsupported;
+
+  /// No description provided for @passport_nfc_disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'NFC is turned off. Turn it on in the system settings.'**
+  String get passport_nfc_disabled;
+
+  /// No description provided for @passport_nfc_written.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag written and checked'**
+  String get passport_nfc_written;
+
+  /// No description provided for @passport_nfc_tagInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'{type}, {capacity} bytes'**
+  String passport_nfc_tagInfo(String type, int capacity);
+
+  /// No description provided for @passport_nfc_capacity.
+  ///
+  /// In en, this message translates to:
+  /// **'{capacity} bytes'**
+  String passport_nfc_capacity(int capacity);
+
+  /// No description provided for @passport_nfc_allFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything fits on this tag.'**
+  String get passport_nfc_allFields;
+
+  /// No description provided for @passport_nfc_fieldsDropped.
+  ///
+  /// In en, this message translates to:
+  /// **'Left off to fit: {fields}'**
+  String passport_nfc_fieldsDropped(String fields);
+
+  /// No description provided for @passport_nfc_notNdef.
+  ///
+  /// In en, this message translates to:
+  /// **'This tag cannot hold a link. Use an NTAG215 or NTAG216 tag.'**
+  String get passport_nfc_notNdef;
+
+  /// No description provided for @passport_nfc_readOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'This tag is locked and cannot be written.'**
+  String get passport_nfc_readOnly;
+
+  /// No description provided for @passport_nfc_tooSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'This tag is too small ({capacity} bytes), even for the cylinder\'s identity.'**
+  String passport_nfc_tooSmall(int capacity);
+
+  /// No description provided for @passport_nfc_readBackFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The tag did not read back as written, so it was not written.'**
+  String get passport_nfc_readBackFailed;
+
+  /// No description provided for @passport_nfc_writeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The tag was not written. Hold it still and try again.'**
+  String get passport_nfc_writeFailed;
+
+  /// No description provided for @passport_nfc_readFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read the tag. Hold it still and try again.'**
+  String get passport_nfc_readFailed;
+
+  /// No description provided for @passport_nfc_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get passport_nfc_retry;
+
+  /// No description provided for @passport_nfc_fieldName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get passport_nfc_fieldName;
+
+  /// No description provided for @passport_nfc_fieldSerial.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number'**
+  String get passport_nfc_fieldSerial;
+
+  /// No description provided for @passport_nfc_fieldO2Clean.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 clean'**
+  String get passport_nfc_fieldO2Clean;
+
   /// No description provided for @passport_foreign_serial.
   ///
   /// In en, this message translates to:
@@ -23551,6 +23683,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No {filterText}'**
   String equipment_list_emptyState_noEquipment(Object filterText);
+
+  /// Empty-state subtitle on the equipment list when the advanced query matches none of the items
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment matches this query'**
+  String get equipment_list_emptyState_noQueryMatch;
 
   /// No description provided for @equipment_list_emptyState_noStatusMatch.
   ///
@@ -71743,6 +71881,12 @@ abstract class AppLocalizations {
   /// **'Sightings'**
   String get query_entity_sightings;
 
+  /// Entity name in the query field picker
+  ///
+  /// In en, this message translates to:
+  /// **'Site types'**
+  String get query_entity_siteTypes;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
@@ -71821,6 +71965,12 @@ abstract class AppLocalizations {
   /// **'Brand'**
   String get query_equipment_brand;
 
+  /// Relation label in the query builder: the dives an item was used on
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get query_equipment_dives;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
@@ -71839,11 +71989,41 @@ abstract class AppLocalizations {
   /// **'Serial number'**
   String get query_equipment_serialNumber;
 
+  /// Field label in the query builder: the item's service verdict
+  ///
+  /// In en, this message translates to:
+  /// **'Service due'**
+  String get query_equipment_serviceDue;
+
+  /// Service verdict value in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Due soon'**
+  String get query_equipment_serviceDue_dueSoon;
+
+  /// Service verdict value in the query builder: no service due
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get query_equipment_serviceDue_ok;
+
+  /// Service verdict value in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get query_equipment_serviceDue_overdue;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
   /// **'Status'**
   String get query_equipment_status;
+
+  /// Relation label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get query_equipment_tags;
 
   /// Field label in the query builder
   ///
@@ -71869,6 +72049,12 @@ abstract class AppLocalizations {
   /// **'Type'**
   String get query_media_type;
 
+  /// Section title in the site and equipment filter sheets for the query editor and saved queries
+  ///
+  /// In en, this message translates to:
+  /// **'Query'**
+  String get query_sheet_sectionTitle;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
@@ -71890,14 +72076,38 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
+  /// **'Name'**
+  String get query_siteTypes_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
   /// **'City'**
   String get query_sites_city;
+
+  /// Field label in the query builder: whether the site has a position
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinates'**
+  String get query_sites_coordinates;
 
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
   /// **'Country'**
   String get query_sites_country;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Difficulty'**
+  String get query_sites_difficulty;
+
+  /// Relation label in the query builder: the dives at a site
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get query_sites_dives;
 
   /// Field label in the query builder
   ///
@@ -71920,6 +72130,12 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_sites_notes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
   /// **'Rating'**
   String get query_sites_rating;
 
@@ -71928,6 +72144,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Region'**
   String get query_sites_region;
+
+  /// Relation label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get query_sites_tags;
+
+  /// Relation label in the query builder: a site's classification types
+  ///
+  /// In en, this message translates to:
+  /// **'Site types'**
+  String get query_sites_types;
 
   /// Field label in the query builder
   ///
@@ -71995,11 +72223,23 @@ abstract class AppLocalizations {
   /// **'Volume'**
   String get query_tanks_volume;
 
+  /// Relation label in the query builder: the dives on a trip
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get query_trips_dives;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
   /// **'End date'**
   String get query_trips_endDate;
+
+  /// Field label in the query builder: the trip's liveaboard name
+  ///
+  /// In en, this message translates to:
+  /// **'Liveaboard'**
+  String get query_trips_liveaboardName;
 
   /// Field label in the query builder
   ///
@@ -72016,8 +72256,32 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_trips_notes;
+
+  /// Field label in the query builder: the trip's resort name
+  ///
+  /// In en, this message translates to:
+  /// **'Resort'**
+  String get query_trips_resortName;
+
+  /// Field label in the query builder: whether the trip is shared with every diver profile
+  ///
+  /// In en, this message translates to:
+  /// **'Shared'**
+  String get query_trips_shared;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
   /// **'Start date'**
   String get query_trips_startDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Trip type'**
+  String get query_trips_tripType;
 
   /// Field label in the query builder
   ///

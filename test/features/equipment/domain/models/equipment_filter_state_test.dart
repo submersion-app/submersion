@@ -1,12 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
-
-EquipmentItem _item(String id, EquipmentType type) =>
-    EquipmentItem(id: id, name: id, type: type);
 
 void main() {
   group('EquipmentFilterState', () {
@@ -99,26 +94,6 @@ void main() {
       );
     });
 
-    test('apply keeps only the selected category', () {
-      final equipment = [
-        _item('reg', EquipmentType.regulator),
-        _item('bcd', EquipmentType.bcd),
-        _item('suit', EquipmentType.wetsuit),
-      ];
-
-      const filter = EquipmentFilterState(type: EquipmentType.bcd);
-      expect(filter.apply(equipment, const {}).map((e) => e.id), ['bcd']);
-    });
-
-    test('apply passes the list through when no category is selected', () {
-      final equipment = [_item('reg', EquipmentType.regulator)];
-
-      expect(
-        const EquipmentFilterState().apply(equipment, const {}),
-        same(equipment),
-      );
-    });
-
     test('clearStatus resets both halves of the status axis', () {
       const serviceDue = EquipmentFilterState(
         serviceDue: ServiceDueFilter.overdue,
@@ -165,33 +140,6 @@ void main() {
       choices: {'hp'},
       types: {EquipmentType.hose},
     );
-
-    EquipmentItem hose(String id, String kind) => EquipmentItem(
-      id: id,
-      name: id,
-      type: EquipmentType.hose,
-      attributes: [
-        EquipmentAttribute.curated(
-          equipmentId: id,
-          key: 'hose_type',
-          valueText: kind,
-        ),
-      ],
-    );
-
-    test('apply narrows by the category and then each condition', () {
-      final equipment = [
-        hose('hp1', 'hp'),
-        hose('lp1', 'lp'),
-        _item('bcd', EquipmentType.bcd),
-      ];
-      const filter = EquipmentFilterState(
-        type: EquipmentType.hose,
-        attrConditions: [hp],
-      );
-      expect(filter.apply(equipment, const {}).map((e) => e.id), ['hp1']);
-      expect(filter.hasActiveFilters, isTrue);
-    });
 
     test('changing or clearing the category drops the conditions', () {
       const filter = EquipmentFilterState(

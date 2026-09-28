@@ -131,6 +131,32 @@ void main() {
     );
   });
 
+  test('a data source with no linked computer makes no dive computer '
+      'edge', () async {
+    final d = DatabaseService.instance.database;
+    await _seed(d);
+    // An imported file whose computer was never identified: computer_id is
+    // nullable, and the edge query must not return a row for the NULL.
+    await d
+        .into(d.diveDataSources)
+        .insert(
+          db.DiveDataSourcesCompanion.insert(
+            id: 'src1',
+            diveId: 'd1',
+            importedAt: DateTime.utc(2024, 3, 2),
+            createdAt: DateTime.utc(2024, 3, 2),
+          ),
+        );
+    final edges = await ConnectionsReader(d).edges(
+      ConnectionKind.trip,
+      ConnectionKind.diveComputer,
+      diverId: 'me',
+      filter: const DiveFilterState(),
+      restrictA: const ['t1'],
+    );
+    expect(edges, isEmpty);
+  });
+
   test('a missing focus names itself in the error', () {
     const e = FocusNotFoundException(NodeRef(ConnectionKind.buddy, 'ghost'));
     expect(e.toString(), 'FocusNotFoundException(buddy:ghost)');

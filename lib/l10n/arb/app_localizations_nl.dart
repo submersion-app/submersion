@@ -12726,6 +12726,88 @@ class AppLocalizationsNl extends AppLocalizations {
   String get passport_foreign_defaultName => 'Fles';
 
   @override
+  String get passport_nfc_tap => 'Een NFC-tag aantikken';
+
+  @override
+  String get passport_nfc_holdNear =>
+      'Houd de tag tegen de achterkant van de telefoon.';
+
+  @override
+  String get passport_nfc_write => 'NFC-tag schrijven';
+
+  @override
+  String get passport_nfc_rewrite => 'Tag opnieuw schrijven';
+
+  @override
+  String get passport_nfc_reprint => 'Label opnieuw afdrukken';
+
+  @override
+  String get passport_nfc_unsupported =>
+      'Dit apparaat kan geen NFC-tags lezen of schrijven.';
+
+  @override
+  String get passport_nfc_disabled =>
+      'NFC staat uit. Zet het aan in de systeeminstellingen.';
+
+  @override
+  String get passport_nfc_written => 'Tag geschreven en gecontroleerd';
+
+  @override
+  String passport_nfc_tagInfo(String type, int capacity) {
+    return '$type, $capacity bytes';
+  }
+
+  @override
+  String passport_nfc_capacity(int capacity) {
+    return '$capacity bytes';
+  }
+
+  @override
+  String get passport_nfc_allFields => 'Alles past op deze tag.';
+
+  @override
+  String passport_nfc_fieldsDropped(String fields) {
+    return 'Weggelaten om te passen: $fields';
+  }
+
+  @override
+  String get passport_nfc_notNdef =>
+      'Deze tag kan geen link bevatten. Gebruik een NTAG215- of NTAG216-tag.';
+
+  @override
+  String get passport_nfc_readOnly =>
+      'Deze tag is vergrendeld en kan niet worden beschreven.';
+
+  @override
+  String passport_nfc_tooSmall(int capacity) {
+    return 'Deze tag is te klein ($capacity bytes), zelfs voor de identiteit van de fles.';
+  }
+
+  @override
+  String get passport_nfc_readBackFailed =>
+      'De tag las niet terug zoals geschreven, dus hij is niet geschreven.';
+
+  @override
+  String get passport_nfc_writeFailed =>
+      'De tag is niet geschreven. Houd hem stil en probeer het opnieuw.';
+
+  @override
+  String get passport_nfc_readFailed =>
+      'De tag kon niet worden gelezen. Houd hem stil en probeer het opnieuw.';
+
+  @override
+  String get passport_nfc_retry => 'Opnieuw proberen';
+
+  @override
+  String get passport_nfc_fieldName => 'Naam';
+
+  @override
+  String get passport_nfc_fieldSerial => 'Serienummer';
+
+  @override
+  String get passport_nfc_fieldO2Clean => 'O2-schoon';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'Serienummer $serial';
   }
@@ -14264,6 +14346,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String equipment_list_emptyState_noEquipment(Object filterText) {
     return 'Geen $filterText';
   }
+
+  @override
+  String get equipment_list_emptyState_noQueryMatch =>
+      'Geen uitrusting komt overeen met deze query';
 
   @override
   String get equipment_list_emptyState_noStatusMatch =>
@@ -44532,6 +44618,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_entity_sightings => 'Waarnemingen';
 
   @override
+  String get query_entity_siteTypes => 'Duikstektypes';
+
+  @override
   String get query_entity_sites => 'Duikstekken';
 
   @override
@@ -44571,6 +44660,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_equipment_brand => 'Merk';
 
   @override
+  String get query_equipment_dives => 'Duiken';
+
+  @override
   String get query_equipment_model => 'Model';
 
   @override
@@ -44580,7 +44672,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_equipment_serialNumber => 'Serienummer';
 
   @override
+  String get query_equipment_serviceDue => 'Service nodig';
+
+  @override
+  String get query_equipment_serviceDue_dueSoon => 'Binnenkort';
+
+  @override
+  String get query_equipment_serviceDue_ok => 'Up-to-date';
+
+  @override
+  String get query_equipment_serviceDue_overdue => 'Achterstallig';
+
+  @override
   String get query_equipment_status => 'Status';
+
+  @override
+  String get query_equipment_tags => 'Tags';
 
   @override
   String get query_equipment_type => 'Type';
@@ -44595,6 +44702,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_media_type => 'Type';
 
   @override
+  String get query_sheet_sectionTitle => 'Query';
+
+  @override
   String get query_sightings_count => 'Aantal';
 
   @override
@@ -44604,10 +44714,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_sightings_species => 'Soorten';
 
   @override
+  String get query_siteTypes_name => 'Naam';
+
+  @override
   String get query_sites_city => 'Stad';
 
   @override
+  String get query_sites_coordinates => 'Coördinaten';
+
+  @override
   String get query_sites_country => 'Land';
+
+  @override
+  String get query_sites_difficulty => 'Moeilijkheidsgraad';
+
+  @override
+  String get query_sites_dives => 'Duiken';
 
   @override
   String get query_sites_island => 'Eiland';
@@ -44619,10 +44741,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_sites_name => 'Naam';
 
   @override
+  String get query_sites_notes => 'Notities';
+
+  @override
   String get query_sites_rating => 'Beoordeling';
 
   @override
   String get query_sites_region => 'Regio';
+
+  @override
+  String get query_sites_tags => 'Tags';
+
+  @override
+  String get query_sites_types => 'Duikstektypes';
 
   @override
   String get query_species_category => 'Categorie';
@@ -44658,7 +44789,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_tanks_volume => 'Volume';
 
   @override
+  String get query_trips_dives => 'Duiken';
+
+  @override
   String get query_trips_endDate => 'Einddatum';
+
+  @override
+  String get query_trips_liveaboardName => 'Liveaboard';
 
   @override
   String get query_trips_location => 'Locatie';
@@ -44667,7 +44804,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_trips_name => 'Naam';
 
   @override
+  String get query_trips_notes => 'Notities';
+
+  @override
+  String get query_trips_resortName => 'Resort';
+
+  @override
+  String get query_trips_shared => 'Gedeeld';
+
+  @override
   String get query_trips_startDate => 'Startdatum';
+
+  @override
+  String get query_trips_tripType => 'Reistype';
 
   @override
   String get query_weights_amount => 'Hoeveelheid';

@@ -168,6 +168,11 @@ dependencies:
   # Incoming passport links (https://submersion.app/c and submersion://c).
   # Flutter's own deep linking is off because it drops the custom-scheme host.
   app_links: ^7.2.1
+  # NFC tags on cylinders (issue #2336): sessions, the cross-platform NDEF
+  # tag, and the NDEF message types the passport layer builds and reads.
+  nfc_manager: ^4.2.1
+  nfc_manager_ndef: ^1.1.0
+  ndef_record: ^1.4.2
 
 dev_dependencies:
   flutter_test:

@@ -33,6 +33,8 @@ import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_failed_exception.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../helpers/theme_presets_warm_up.dart';
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -370,6 +372,11 @@ Widget _buildGenericError({
 }
 
 void main() {
+  // Builds the theme presets before any widget test does. A widget test that
+  // is the first to build them strands their google_fonts loads, and a later
+  // file in the same CI isolate that waits on the loads then hangs.
+  setUpAll(warmUpThemePresets);
+
   // ===========================================================================
   // Isolated UI builder tests (no real services needed)
   // ===========================================================================

@@ -12247,6 +12247,80 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_foreign_defaultName => '气瓶';
 
   @override
+  String get passport_nfc_tap => '轻触 NFC 标签';
+
+  @override
+  String get passport_nfc_holdNear => '将标签贴近手机背面。';
+
+  @override
+  String get passport_nfc_write => '写入 NFC 标签';
+
+  @override
+  String get passport_nfc_rewrite => '重写标签';
+
+  @override
+  String get passport_nfc_reprint => '重新打印标签';
+
+  @override
+  String get passport_nfc_unsupported => '此设备无法读取或写入 NFC 标签。';
+
+  @override
+  String get passport_nfc_disabled => 'NFC 已关闭。请在系统设置中开启。';
+
+  @override
+  String get passport_nfc_written => '标签已写入并校验';
+
+  @override
+  String passport_nfc_tagInfo(String type, int capacity) {
+    return '$type，$capacity 字节';
+  }
+
+  @override
+  String passport_nfc_capacity(int capacity) {
+    return '$capacity 字节';
+  }
+
+  @override
+  String get passport_nfc_allFields => '所有信息都能写入此标签。';
+
+  @override
+  String passport_nfc_fieldsDropped(String fields) {
+    return '为适应容量而省略：$fields';
+  }
+
+  @override
+  String get passport_nfc_notNdef => '此标签无法保存链接。请使用 NTAG215 或 NTAG216 标签。';
+
+  @override
+  String get passport_nfc_readOnly => '此标签已锁定，无法写入。';
+
+  @override
+  String passport_nfc_tooSmall(int capacity) {
+    return '此标签太小（$capacity 字节），连气瓶标识都放不下。';
+  }
+
+  @override
+  String get passport_nfc_readBackFailed => '标签回读内容与写入不一致，因此未写入。';
+
+  @override
+  String get passport_nfc_writeFailed => '标签未写入。请保持稳定后重试。';
+
+  @override
+  String get passport_nfc_readFailed => '无法读取标签。请保持稳定后重试。';
+
+  @override
+  String get passport_nfc_retry => '重试';
+
+  @override
+  String get passport_nfc_fieldName => '名称';
+
+  @override
+  String get passport_nfc_fieldSerial => '序列号';
+
+  @override
+  String get passport_nfc_fieldO2Clean => '氧气清洁';
+
+  @override
   String passport_foreign_serial(String serial) {
     return '序列号 $serial';
   }
@@ -13731,6 +13805,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String equipment_list_emptyState_noEquipment(Object filterText) {
     return '没有$filterText';
   }
+
+  @override
+  String get equipment_list_emptyState_noQueryMatch => '没有与此查询匹配的装备';
 
   @override
   String get equipment_list_emptyState_noStatusMatch => '没有此状态的装备';
@@ -42251,6 +42328,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_entity_sightings => '观察记录';
 
   @override
+  String get query_entity_siteTypes => '潜水点类型';
+
+  @override
   String get query_entity_sites => '潜点';
 
   @override
@@ -42290,6 +42370,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_equipment_brand => '品牌';
 
   @override
+  String get query_equipment_dives => '潜水';
+
+  @override
   String get query_equipment_model => '型号';
 
   @override
@@ -42299,7 +42382,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_equipment_serialNumber => '序列号';
 
   @override
+  String get query_equipment_serviceDue => '需要维护';
+
+  @override
+  String get query_equipment_serviceDue_dueSoon => '即将到期';
+
+  @override
+  String get query_equipment_serviceDue_ok => '已是最新版本';
+
+  @override
+  String get query_equipment_serviceDue_overdue => '已逾期';
+
+  @override
   String get query_equipment_status => '状态';
+
+  @override
+  String get query_equipment_tags => '标签';
 
   @override
   String get query_equipment_type => '类型';
@@ -42314,6 +42412,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_media_type => '类型';
 
   @override
+  String get query_sheet_sectionTitle => '查询';
+
+  @override
   String get query_sightings_count => '数量';
 
   @override
@@ -42323,10 +42424,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_sightings_species => '物种';
 
   @override
+  String get query_siteTypes_name => '名称';
+
+  @override
   String get query_sites_city => '城市';
 
   @override
+  String get query_sites_coordinates => '坐标';
+
+  @override
   String get query_sites_country => '国家';
+
+  @override
+  String get query_sites_difficulty => '难度';
+
+  @override
+  String get query_sites_dives => '潜水';
 
   @override
   String get query_sites_island => '岛屿';
@@ -42338,10 +42451,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_sites_name => '名称';
 
   @override
+  String get query_sites_notes => '备注';
+
+  @override
   String get query_sites_rating => '评分';
 
   @override
   String get query_sites_region => '地区';
+
+  @override
+  String get query_sites_tags => '标签';
+
+  @override
+  String get query_sites_types => '潜水点类型';
 
   @override
   String get query_species_category => '类别';
@@ -42377,7 +42499,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_tanks_volume => '容量';
 
   @override
+  String get query_trips_dives => '潜水';
+
+  @override
   String get query_trips_endDate => '结束日期';
+
+  @override
+  String get query_trips_liveaboardName => '船宿';
 
   @override
   String get query_trips_location => '地点';
@@ -42386,7 +42514,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_trips_name => '名称';
 
   @override
+  String get query_trips_notes => '备注';
+
+  @override
+  String get query_trips_resortName => '度假村';
+
+  @override
+  String get query_trips_shared => '已共享';
+
+  @override
   String get query_trips_startDate => '开始日期';
+
+  @override
+  String get query_trips_tripType => '旅行类型';
 
   @override
   String get query_weights_amount => '数量';

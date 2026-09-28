@@ -385,6 +385,17 @@ jobs:
           printf '  %s\n' "${paths[@]}"
           flutter test --coverage --exclude-tags performance "${paths[@]}"
 
+      - name: Drop trivial members from coverage
+        # Plain copyWith, props, ==, hashCode and toString count toward no
+        # coverage target, so no one writes a test only to execute them. A PR whose
+        # coverage came mostly from such lines sees its patch status fall,
+        # which is the intent (see scripts/filter_trivial_coverage.py and
+        # docs/developer/testing.md).
+        # Runs even when the tests failed, like the upload: a missing or empty
+        # report passes through untouched.
+        if: always()
+        run: python3 scripts/filter_trivial_coverage.py coverage/lcov.info
+
       - name: Upload coverage
         uses: codecov/codecov-action@v7
         if: always()
@@ -544,7 +555,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -567,6 +578,8 @@ jobs:
             scripts/release/sanitize_apple_store_notes_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/bundle_tests_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/filter_trivial_coverage_test.py
           python3 -m coverage report -m --include="$guards"
           python3 -m coverage xml --include="$guards" \
             -o coverage/scripts.xml
@@ -686,6 +699,12 @@ jobs:
         # checkout rather than the worktree, and a set -e abort that produced
         # no error message. Stubs dart/flutter, so no toolchain is needed here.
         run: ./scripts/pre_push_hook_test.sh
+
+      - name: Run full-suite runner test
+        # scripts/run_all_tests.sh bundles the whole suite for a local run and
+        # names the failing files (issue #2512). Stubs flutter, so no toolchain
+        # is needed here.
+        run: ./scripts/run_all_tests_test.sh
 
       - name: Upload coverage
         uses: codecov/codecov-action@v7

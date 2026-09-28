@@ -71,17 +71,17 @@ void main() {
       final notifier = container.read(settingsProvider.notifier);
       expect(
         container.read(settingsProvider).defaultDecoStopSource,
-        MetricDataSource.calculated,
+        MetricDataSource.computer,
       );
 
-      await notifier.setDefaultDecoStopSource(MetricDataSource.computer);
+      await notifier.setDefaultDecoStopSource(MetricDataSource.calculated);
 
       expect(
         container.read(settingsProvider).defaultDecoStopSource,
-        MetricDataSource.computer,
+        MetricDataSource.calculated,
       );
       final stored = await DiverSettingsRepository().getSettingsForDiver('d1');
-      expect(stored!.defaultDecoStopSource, MetricDataSource.computer);
+      expect(stored!.defaultDecoStopSource, MetricDataSource.calculated);
     });
 
     test('the deco stop setters leave the ceiling settings alone', () async {
@@ -94,7 +94,7 @@ void main() {
           .defaultCeilingSource;
 
       await notifier.setShowDecoStopsOnProfile(false);
-      await notifier.setDefaultDecoStopSource(MetricDataSource.computer);
+      await notifier.setDefaultDecoStopSource(MetricDataSource.calculated);
 
       final after = container.read(settingsProvider);
       expect(after.showCeilingOnProfile, ceilingVisibleBefore);

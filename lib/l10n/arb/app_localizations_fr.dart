@@ -12867,6 +12867,88 @@ class AppLocalizationsFr extends AppLocalizations {
   String get passport_foreign_defaultName => 'Bouteille';
 
   @override
+  String get passport_nfc_tap => 'Approcher une étiquette NFC';
+
+  @override
+  String get passport_nfc_holdNear =>
+      'Tenez l\'étiquette contre le dos du téléphone.';
+
+  @override
+  String get passport_nfc_write => 'Écrire l\'étiquette NFC';
+
+  @override
+  String get passport_nfc_rewrite => 'Réécrire l\'étiquette';
+
+  @override
+  String get passport_nfc_reprint => 'Réimprimer l\'étiquette';
+
+  @override
+  String get passport_nfc_unsupported =>
+      'Cet appareil ne peut ni lire ni écrire d\'étiquettes NFC.';
+
+  @override
+  String get passport_nfc_disabled =>
+      'Le NFC est désactivé. Activez-le dans les réglages du système.';
+
+  @override
+  String get passport_nfc_written => 'Étiquette écrite et vérifiée';
+
+  @override
+  String passport_nfc_tagInfo(String type, int capacity) {
+    return '$type, $capacity octets';
+  }
+
+  @override
+  String passport_nfc_capacity(int capacity) {
+    return '$capacity octets';
+  }
+
+  @override
+  String get passport_nfc_allFields => 'Tout tient sur cette étiquette.';
+
+  @override
+  String passport_nfc_fieldsDropped(String fields) {
+    return 'Omis faute de place : $fields';
+  }
+
+  @override
+  String get passport_nfc_notNdef =>
+      'Cette étiquette ne peut pas contenir de lien. Utilisez une étiquette NTAG215 ou NTAG216.';
+
+  @override
+  String get passport_nfc_readOnly =>
+      'Cette étiquette est verrouillée et ne peut pas être écrite.';
+
+  @override
+  String passport_nfc_tooSmall(int capacity) {
+    return 'Cette étiquette est trop petite ($capacity octets), même pour l\'identité de la bouteille.';
+  }
+
+  @override
+  String get passport_nfc_readBackFailed =>
+      'L\'étiquette ne s\'est pas relue telle qu\'écrite ; elle n\'a donc pas été écrite.';
+
+  @override
+  String get passport_nfc_writeFailed =>
+      'L\'étiquette n\'a pas été écrite. Tenez-la immobile et réessayez.';
+
+  @override
+  String get passport_nfc_readFailed =>
+      'Impossible de lire l\'étiquette. Tenez-la immobile et réessayez.';
+
+  @override
+  String get passport_nfc_retry => 'Réessayer';
+
+  @override
+  String get passport_nfc_fieldName => 'Nom';
+
+  @override
+  String get passport_nfc_fieldSerial => 'Numéro de série';
+
+  @override
+  String get passport_nfc_fieldO2Clean => 'Compatible O2';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'N° de série $serial';
   }
@@ -14410,6 +14492,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String equipment_list_emptyState_noEquipment(Object filterText) {
     return 'Aucun $filterText';
   }
+
+  @override
+  String get equipment_list_emptyState_noQueryMatch =>
+      'Aucun équipement ne correspond à cette requête';
 
   @override
   String get equipment_list_emptyState_noStatusMatch =>
@@ -44935,6 +45021,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_entity_sightings => 'Observations';
 
   @override
+  String get query_entity_siteTypes => 'Types de site';
+
+  @override
   String get query_entity_sites => 'Sites de plongée';
 
   @override
@@ -44974,6 +45063,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_equipment_brand => 'Marque';
 
   @override
+  String get query_equipment_dives => 'Plongées';
+
+  @override
   String get query_equipment_model => 'Modèle';
 
   @override
@@ -44983,7 +45075,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_equipment_serialNumber => 'Numéro de série';
 
   @override
+  String get query_equipment_serviceDue => 'Révision due';
+
+  @override
+  String get query_equipment_serviceDue_dueSoon => 'Bientôt due';
+
+  @override
+  String get query_equipment_serviceDue_ok => 'À jour';
+
+  @override
+  String get query_equipment_serviceDue_overdue => 'En retard';
+
+  @override
   String get query_equipment_status => 'Statut';
+
+  @override
+  String get query_equipment_tags => 'Étiquettes';
 
   @override
   String get query_equipment_type => 'Type';
@@ -44998,6 +45105,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_media_type => 'Type';
 
   @override
+  String get query_sheet_sectionTitle => 'Requête';
+
+  @override
   String get query_sightings_count => 'Nombre';
 
   @override
@@ -45007,10 +45117,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_sightings_species => 'Espèces';
 
   @override
+  String get query_siteTypes_name => 'Nom';
+
+  @override
   String get query_sites_city => 'Ville';
 
   @override
+  String get query_sites_coordinates => 'Coordonnées';
+
+  @override
   String get query_sites_country => 'Pays';
+
+  @override
+  String get query_sites_difficulty => 'Difficulté';
+
+  @override
+  String get query_sites_dives => 'Plongées';
 
   @override
   String get query_sites_island => 'Île';
@@ -45022,10 +45144,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_sites_name => 'Nom';
 
   @override
+  String get query_sites_notes => 'Notes';
+
+  @override
   String get query_sites_rating => 'Note';
 
   @override
   String get query_sites_region => 'Région';
+
+  @override
+  String get query_sites_tags => 'Étiquettes';
+
+  @override
+  String get query_sites_types => 'Types de site';
 
   @override
   String get query_species_category => 'Catégorie';
@@ -45061,7 +45192,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_tanks_volume => 'Volume';
 
   @override
+  String get query_trips_dives => 'Plongées';
+
+  @override
   String get query_trips_endDate => 'Date de fin';
+
+  @override
+  String get query_trips_liveaboardName => 'Croisière';
 
   @override
   String get query_trips_location => 'Lieu';
@@ -45070,7 +45207,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_trips_name => 'Nom';
 
   @override
+  String get query_trips_notes => 'Notes';
+
+  @override
+  String get query_trips_resortName => 'Resort';
+
+  @override
+  String get query_trips_shared => 'Partagé';
+
+  @override
   String get query_trips_startDate => 'Date de début';
+
+  @override
+  String get query_trips_tripType => 'Type de voyage';
 
   @override
   String get query_weights_amount => 'Quantité';

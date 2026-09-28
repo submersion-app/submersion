@@ -18,7 +18,7 @@ Future<bool> _hasIndex(AppDatabase db) async {
 
 void main() {
   test('v240 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v244 (DPV mission planner) landed on top; the newest
+    // Relaxed once v242 (equipment service cache) landed on top; the newest
     // rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(240));
     expect(AppDatabase.migrationVersions, contains(240));
