@@ -44307,6 +44307,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_media_type => 'Típus';
 
   @override
+  String get query_sheet_sectionTitle => 'Lekérdezés';
+
+  @override
   String get query_sightings_count => 'Darabszám';
 
   @override

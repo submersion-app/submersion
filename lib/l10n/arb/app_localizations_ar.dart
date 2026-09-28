@@ -44154,6 +44154,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_media_type => 'النوع';
 
   @override
+  String get query_sheet_sectionTitle => 'استعلام';
+
+  @override
   String get query_sightings_count => 'العدد';
 
   @override

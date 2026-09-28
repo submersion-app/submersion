@@ -41930,6 +41930,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_media_type => '类型';
 
   @override
+  String get query_sheet_sectionTitle => '查询';
+
+  @override
   String get query_sightings_count => '数量';
 
   @override

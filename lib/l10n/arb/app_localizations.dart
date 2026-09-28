@@ -71278,6 +71278,12 @@ abstract class AppLocalizations {
   /// **'Type'**
   String get query_media_type;
 
+  /// Section title in the site and equipment filter sheets for the query editor and saved queries
+  ///
+  /// In en, this message translates to:
+  /// **'Query'**
+  String get query_sheet_sectionTitle;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:

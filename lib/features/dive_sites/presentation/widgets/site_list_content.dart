@@ -27,6 +27,10 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/core/query/presentation/query_tree_edit.dart';
+import 'package:submersion/features/dive_sites/query/site_query_entity.dart';
+import 'package:submersion/features/query/presentation/dive_query_chips.dart';
+import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/compact_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/dense_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_filter_sheet.dart';
@@ -1190,6 +1194,19 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                 () => ref.read(siteFilterProvider.notifier).state = filter
                     .copyWith(tagIds: {...filter.tagIds}..remove(tagId)),
               ),
+            // One chip per top-level condition of the advanced query
+            // (#2365), printed in the diver's units.
+            for (final (i, label) in entityQueryChipLabels(
+              siteQueryEntity,
+              filter.query,
+              ref.watch(queryUnitPrefsProvider),
+            ).indexed)
+              _buildFilterChip(label, () {
+                final next = removeTopLevelConjunct(filter.query, i);
+                ref.read(siteFilterProvider.notifier).state = next == null
+                    ? filter.copyWith(clearQuery: true)
+                    : filter.copyWith(query: next);
+              }),
           ],
         ),
       ),

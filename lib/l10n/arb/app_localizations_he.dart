@@ -43602,6 +43602,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_media_type => 'סוג';
 
   @override
+  String get query_sheet_sectionTitle => 'שאילתה';
+
+  @override
   String get query_sightings_count => 'כמות';
 
   @override

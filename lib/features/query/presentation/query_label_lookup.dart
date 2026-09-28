@@ -355,6 +355,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_saveNeedsDiver;
     case 'query_savedRow_title':
       return l10n.query_savedRow_title;
+    case 'query_sheet_sectionTitle':
+      return l10n.query_sheet_sectionTitle;
     case 'query_sightings_count':
       return l10n.query_sightings_count;
     case 'query_sightings_notes':

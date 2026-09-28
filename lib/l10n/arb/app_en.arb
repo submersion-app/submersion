@@ -27369,6 +27369,8 @@
   "@query_media_favorite": {"description": "Field label in the query builder"},
   "query_media_type": "Type",
   "@query_media_type": {"description": "Field label in the query builder"},
+  "query_sheet_sectionTitle": "Query",
+  "@query_sheet_sectionTitle": {"description": "Section title in the site and equipment filter sheets for the query editor and saved queries"},
   "query_sightings_count": "Count",
   "@query_sightings_count": {"description": "Field label in the query builder"},
   "query_sightings_notes": "Notes",

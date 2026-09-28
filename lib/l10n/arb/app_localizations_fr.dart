@@ -44594,6 +44594,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_media_type => 'Type';
 
   @override
+  String get query_sheet_sectionTitle => 'Requête';
+
+  @override
   String get query_sightings_count => 'Nombre';
 
   @override
