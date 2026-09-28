@@ -92,5 +92,9 @@ void main() {
     test('has exactly 15 entries', () {
       expect(movableNavIds.length, 15);
     });
+
+    test('Connections lives in Insights, not in the nav', () {
+      expect(kNavDestinations.map((d) => d.id), isNot(contains('connections')));
+    });
   });
 }
