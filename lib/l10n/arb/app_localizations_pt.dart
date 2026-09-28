@@ -44672,13 +44672,31 @@ class AppLocalizationsPt extends AppLocalizations {
   String get query_buddies_phone => 'Telefone';
 
   @override
+  String get query_centers_affiliations => 'Afiliações';
+
+  @override
   String get query_centers_city => 'Cidade';
+
+  @override
+  String get query_centers_coordinates => 'Coordenadas';
 
   @override
   String get query_centers_country => 'País';
 
   @override
+  String get query_centers_dives => 'Mergulhos';
+
+  @override
   String get query_centers_name => 'Nome';
+
+  @override
+  String get query_centers_notes => 'Notas';
+
+  @override
+  String get query_centers_rating => 'Avaliação';
+
+  @override
+  String get query_centers_stateProvince => 'Estado / Província';
 
   @override
   String get query_certifications_agency => 'Agência';

@@ -21,12 +21,24 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_buddies_notes;
     case 'query_buddies_phone':
       return l10n.query_buddies_phone;
+    case 'query_centers_affiliations':
+      return l10n.query_centers_affiliations;
     case 'query_centers_city':
       return l10n.query_centers_city;
+    case 'query_centers_coordinates':
+      return l10n.query_centers_coordinates;
     case 'query_centers_country':
       return l10n.query_centers_country;
+    case 'query_centers_dives':
+      return l10n.query_centers_dives;
     case 'query_centers_name':
       return l10n.query_centers_name;
+    case 'query_centers_notes':
+      return l10n.query_centers_notes;
+    case 'query_centers_rating':
+      return l10n.query_centers_rating;
+    case 'query_centers_stateProvince':
+      return l10n.query_centers_stateProvince;
     case 'query_certifications_agency':
       return l10n.query_certifications_agency;
     case 'query_certifications_buddy':

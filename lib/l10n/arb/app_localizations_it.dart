@@ -44654,13 +44654,31 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_buddies_phone => 'Telefono';
 
   @override
+  String get query_centers_affiliations => 'Affiliazioni';
+
+  @override
   String get query_centers_city => 'Città';
+
+  @override
+  String get query_centers_coordinates => 'Coordinate';
 
   @override
   String get query_centers_country => 'Paese';
 
   @override
+  String get query_centers_dives => 'Immersioni';
+
+  @override
   String get query_centers_name => 'Nome';
+
+  @override
+  String get query_centers_notes => 'Note';
+
+  @override
+  String get query_centers_rating => 'Valutazione';
+
+  @override
+  String get query_centers_stateProvince => 'Stato / Provincia';
 
   @override
   String get query_certifications_agency => 'Didattica';

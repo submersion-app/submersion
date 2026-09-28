@@ -44577,13 +44577,31 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_buddies_phone => 'Telefon';
 
   @override
+  String get query_centers_affiliations => 'Verbindungen';
+
+  @override
   String get query_centers_city => 'Stadt';
+
+  @override
+  String get query_centers_coordinates => 'Koordinaten';
 
   @override
   String get query_centers_country => 'Land';
 
   @override
+  String get query_centers_dives => 'Tauchgänge';
+
+  @override
   String get query_centers_name => 'Name';
+
+  @override
+  String get query_centers_notes => 'Notizen';
+
+  @override
+  String get query_centers_rating => 'Bewertung';
+
+  @override
+  String get query_centers_stateProvince => 'Bundesland / Provinz';
 
   @override
   String get query_certifications_agency => 'Verband';

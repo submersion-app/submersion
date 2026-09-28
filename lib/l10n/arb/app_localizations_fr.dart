@@ -44775,13 +44775,31 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_buddies_phone => 'Téléphone';
 
   @override
+  String get query_centers_affiliations => 'Affiliations';
+
+  @override
   String get query_centers_city => 'Ville';
+
+  @override
+  String get query_centers_coordinates => 'Coordonnées';
 
   @override
   String get query_centers_country => 'Pays';
 
   @override
+  String get query_centers_dives => 'Plongées';
+
+  @override
   String get query_centers_name => 'Nom';
+
+  @override
+  String get query_centers_notes => 'Notes';
+
+  @override
+  String get query_centers_rating => 'Note';
+
+  @override
+  String get query_centers_stateProvince => 'État / Province';
 
   @override
   String get query_certifications_agency => 'Organisme';

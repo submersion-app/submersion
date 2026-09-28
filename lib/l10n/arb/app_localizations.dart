@@ -71389,11 +71389,23 @@ abstract class AppLocalizations {
   /// **'Phone'**
   String get query_buddies_phone;
 
+  /// Query builder: a dive center's agency affiliations
+  ///
+  /// In en, this message translates to:
+  /// **'Affiliations'**
+  String get query_centers_affiliations;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
   /// **'City'**
   String get query_centers_city;
+
+  /// Query builder: whether a dive center has a map position
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinates'**
+  String get query_centers_coordinates;
 
   /// Field label in the query builder
   ///
@@ -71401,11 +71413,35 @@ abstract class AppLocalizations {
   /// **'Country'**
   String get query_centers_country;
 
+  /// Query builder: dives made with a dive center
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get query_centers_dives;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
   /// **'Name'**
   String get query_centers_name;
+
+  /// Query builder: a dive center's notes
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_centers_notes;
+
+  /// Query builder: a dive center's rating
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get query_centers_rating;
+
+  /// Query builder: a dive center's state or province
+  ///
+  /// In en, this message translates to:
+  /// **'State / Province'**
+  String get query_centers_stateProvince;
 
   /// Field label in the query builder
   ///

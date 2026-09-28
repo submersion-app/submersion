@@ -44004,13 +44004,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_buddies_phone => 'Phone';
 
   @override
+  String get query_centers_affiliations => 'Affiliations';
+
+  @override
   String get query_centers_city => 'City';
+
+  @override
+  String get query_centers_coordinates => 'Coordinates';
 
   @override
   String get query_centers_country => 'Country';
 
   @override
+  String get query_centers_dives => 'Dives';
+
+  @override
   String get query_centers_name => 'Name';
+
+  @override
+  String get query_centers_notes => 'Notes';
+
+  @override
+  String get query_centers_rating => 'Rating';
+
+  @override
+  String get query_centers_stateProvince => 'State / Province';
 
   @override
   String get query_certifications_agency => 'Agency';

@@ -44701,13 +44701,31 @@ class AppLocalizationsEs extends AppLocalizations {
   String get query_buddies_phone => 'Teléfono';
 
   @override
+  String get query_centers_affiliations => 'Afiliaciones';
+
+  @override
   String get query_centers_city => 'Ciudad';
+
+  @override
+  String get query_centers_coordinates => 'Coordenadas';
 
   @override
   String get query_centers_country => 'País';
 
   @override
+  String get query_centers_dives => 'Inmersiones';
+
+  @override
   String get query_centers_name => 'Nombre';
+
+  @override
+  String get query_centers_notes => 'Notas';
+
+  @override
+  String get query_centers_rating => 'Valoración';
+
+  @override
+  String get query_centers_stateProvince => 'Estado / Provincia';
 
   @override
   String get query_certifications_agency => 'Agencia';

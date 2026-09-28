@@ -44372,13 +44372,31 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_buddies_phone => 'Telefoon';
 
   @override
+  String get query_centers_affiliations => 'Aangesloten bij';
+
+  @override
   String get query_centers_city => 'Stad';
+
+  @override
+  String get query_centers_coordinates => 'Coördinaten';
 
   @override
   String get query_centers_country => 'Land';
 
   @override
+  String get query_centers_dives => 'Duiken';
+
+  @override
   String get query_centers_name => 'Naam';
+
+  @override
+  String get query_centers_notes => 'Notities';
+
+  @override
+  String get query_centers_rating => 'Beoordeling';
+
+  @override
+  String get query_centers_stateProvince => 'Staat / Provincie';
 
   @override
   String get query_certifications_agency => 'Organisatie';

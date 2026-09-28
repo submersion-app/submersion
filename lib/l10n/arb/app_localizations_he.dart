@@ -43775,13 +43775,31 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_buddies_phone => 'טלפון';
 
   @override
+  String get query_centers_affiliations => 'השתייכויות';
+
+  @override
   String get query_centers_city => 'עיר';
+
+  @override
+  String get query_centers_coordinates => 'קואורדינטות';
 
   @override
   String get query_centers_country => 'מדינה';
 
   @override
+  String get query_centers_dives => 'צלילות';
+
+  @override
   String get query_centers_name => 'שם';
+
+  @override
+  String get query_centers_notes => 'הערות';
+
+  @override
+  String get query_centers_rating => 'דירוג';
+
+  @override
+  String get query_centers_stateProvince => 'מדינה / מחוז';
 
   @override
   String get query_certifications_agency => 'ארגון';

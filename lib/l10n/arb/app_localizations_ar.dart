@@ -44327,13 +44327,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_buddies_phone => 'الهاتف';
 
   @override
+  String get query_centers_affiliations => 'الانتماءات';
+
+  @override
   String get query_centers_city => 'المدينة';
+
+  @override
+  String get query_centers_coordinates => 'الإحداثيات';
 
   @override
   String get query_centers_country => 'البلد';
 
   @override
+  String get query_centers_dives => 'الغطسات';
+
+  @override
   String get query_centers_name => 'الاسم';
+
+  @override
+  String get query_centers_notes => 'ملاحظات';
+
+  @override
+  String get query_centers_rating => 'التقييم';
+
+  @override
+  String get query_centers_stateProvince => 'الولاية / المقاطعة';
 
   @override
   String get query_certifications_agency => 'الهيئة';

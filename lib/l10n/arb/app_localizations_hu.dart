@@ -44487,13 +44487,31 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_buddies_phone => 'Telefon';
 
   @override
+  String get query_centers_affiliations => 'Tagságok';
+
+  @override
   String get query_centers_city => 'Város';
+
+  @override
+  String get query_centers_coordinates => 'Koordináták';
 
   @override
   String get query_centers_country => 'Ország';
 
   @override
+  String get query_centers_dives => 'Merülések';
+
+  @override
   String get query_centers_name => 'Név';
+
+  @override
+  String get query_centers_notes => 'Jegyzetek';
+
+  @override
+  String get query_centers_rating => 'Értékelés';
+
+  @override
+  String get query_centers_stateProvince => 'Állam / megye';
 
   @override
   String get query_certifications_agency => 'Szervezet';

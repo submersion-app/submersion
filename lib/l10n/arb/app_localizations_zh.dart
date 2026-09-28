@@ -42082,13 +42082,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_buddies_phone => '电话';
 
   @override
+  String get query_centers_affiliations => '所属机构';
+
+  @override
   String get query_centers_city => '城市';
+
+  @override
+  String get query_centers_coordinates => '坐标';
 
   @override
   String get query_centers_country => '国家';
 
   @override
+  String get query_centers_dives => '潜水';
+
+  @override
   String get query_centers_name => '名称';
+
+  @override
+  String get query_centers_notes => '备注';
+
+  @override
+  String get query_centers_rating => '评分';
+
+  @override
+  String get query_centers_stateProvince => '州 / 省';
 
   @override
   String get query_certifications_agency => '认证机构';
