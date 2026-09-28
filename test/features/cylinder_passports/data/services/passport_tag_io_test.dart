@@ -101,9 +101,16 @@ void main() {
       expect(await readPassportFrom(other), isA<TagHasNoPassport>());
     });
 
-    test('a read that fails reports it', () async {
-      final tag = FakeTagHandle(readError: PlatformException(code: 'io'));
-      expect(await readPassportFrom(tag), isA<TagReadFailed>());
+    test('uses what the tag held when found, without reading again', () async {
+      // iOS fails a second read of an empty tag (a zero-length message);
+      // a blank tag is one with no passport, not one that could not be read.
+      final blank = FakeTagHandle(readError: PlatformException(code: '403'));
+      expect(await readPassportFrom(blank), isA<TagHasNoPassport>());
+      final held = FakeTagHandle(
+        stored: NdefMessage(records: [uriRecord(text)]),
+        readError: PlatformException(code: 'io'),
+      );
+      expect((await readPassportFrom(held) as TagReadText).text, text);
     });
   });
 

@@ -1,8 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 import 'package:nfc_manager/nfc_manager_ios.dart';
+// The plugin's own tag data, so a test can hand the service an iOS tag.
+// ignore: implementation_imports
+import 'package:nfc_manager/src/nfc_manager_ios/pigeon.g.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/passport_ndef.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_manager_tag_service.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 
@@ -207,6 +212,101 @@ void main() {
     test('a failed availability check is unsupported', () async {
       manager.availabilityThrows = StateError('no NFC');
       expect(await service.support(), NfcSupport.unsupported);
+    });
+  });
+
+  test('an iOS session that ends on its own fails, not cancels', () async {
+    final session = service.withTag<int>(
+      promptIos: 'Hold near',
+      onTag: (_) async => 1,
+    );
+    await started();
+    manager.onSessionErrorIos!(
+      const NfcReaderSessionErrorIos(
+        code:
+            NfcReaderErrorCodeIos.readerSessionInvalidationErrorSessionTimeout,
+        message: 'Session timeout',
+      ),
+    );
+    await expectLater(session, throwsA(isA<NfcSessionFailed>()));
+  });
+
+  test('cancel while a tag is being written lets the write finish', () async {
+    final gate = Completer<void>();
+    final session = service.withTag<int>(
+      promptIos: 'Hold near',
+      onTag: (_) async {
+        await gate.future;
+        return 5;
+      },
+    );
+    await started();
+    manager.onDiscovered!(tag);
+    await service.cancel();
+    await started();
+    // Stopping now would cut the write off half way.
+    expect(manager.stops, 0);
+    gate.complete();
+    expect(await session, 5);
+    expect(manager.stops, 1);
+  });
+
+  group('iOS tags', () {
+    setUp(() {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      service = NfcManagerTagService(manager: manager);
+    });
+
+    NfcTag iosTag(NdefStatusPigeon status, {NdefMessagePigeon? cached}) =>
+        NfcTag(
+          data: TagPigeon(
+            handle: 'h',
+            ndef: NdefPigeon(
+              status: status,
+              capacity: status == NdefStatusPigeon.notSupported ? 0 : 137,
+              cachedNdefMessage: cached,
+            ),
+          ),
+        );
+
+    Future<NdefTagHandle?> handleOf(NfcTag nfcTag) async {
+      final session = service.withTag<NdefTagHandle?>(
+        promptIos: 'Hold near',
+        onTag: (handle) async => handle,
+      );
+      await started();
+      manager.onDiscovered!(nfcTag);
+      return session;
+    }
+
+    test('a tag that cannot hold NDEF reaches the handler as none', () async {
+      expect(await handleOf(iosTag(NdefStatusPigeon.notSupported)), isNull);
+    });
+
+    test('an NDEF tag reports what it held when it was found', () async {
+      const url =
+          'https://submersion.app/c#f=1&p=8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
+      final record = uriRecord(url);
+      final handle = await handleOf(
+        iosTag(
+          NdefStatusPigeon.readWrite,
+          cached: NdefMessagePigeon(
+            records: [
+              NdefPayloadPigeon(
+                typeNameFormat: TypeNameFormatPigeon.wellKnown,
+                type: record.type,
+                identifier: Uint8List(0),
+                payload: record.payload,
+              ),
+            ],
+          ),
+        ),
+      );
+      expect(handle, isNotNull);
+      expect(handle!.isWritable, isTrue);
+      expect(handle.maxMessageBytes, 137);
+      expect(firstPassportUri(handle.discoveredMessage!), url);
     });
   });
 }

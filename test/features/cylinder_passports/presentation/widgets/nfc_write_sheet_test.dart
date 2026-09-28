@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ndef_record/ndef_record.dart';
 import 'package:submersion/features/cylinder_passports/presentation/services/recent_passport_tags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -30,8 +31,9 @@ void main() {
   /// Opens the sheet from a button; returns the strings.
   Future<AppLocalizations> open(
     WidgetTester tester,
-    FakeNfcTagService nfc,
-  ) async {
+    FakeNfcTagService nfc, {
+    void Function(ProviderContainer container)? beforeTap,
+  }) async {
     final overrides = await getBaseOverrides(nfcTagService: nfc);
     await tester.pumpWidget(
       testApp(
@@ -45,6 +47,9 @@ void main() {
       ),
     );
     final l10n = AppLocalizations.of(tester.element(find.text('open')));
+    beforeTap?.call(
+      ProviderScope.containerOf(tester.element(find.text('open'))),
+    );
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
     return l10n;
@@ -172,16 +177,41 @@ void main() {
   });
 
   testWidgets(
-    'a tag written here is remembered, so its re-dispatch is dropped',
+    'a tag written here is remembered before the session ends, so its '
+    're-dispatch is dropped',
     (tester) async {
-      await open(tester, FakeNfcTagService(tag: FakeTagHandle()));
+      final nfc = FakeNfcTagService(tag: FakeTagHandle());
+      bool? notedBeforeEnd;
+      await open(
+        tester,
+        nfc,
+        beforeTap: (container) => nfc.beforeEnd = () =>
+            notedBeforeEnd = container
+                .read(recentPassportTagsProvider)
+                .wasJustHandled(PassportPayloadCodec.httpsUrl(payload)),
+      );
+      expect(notedBeforeEnd, isTrue);
+    },
+  );
+
+  testWidgets(
+    'a locked tag holding a passport is remembered, so its re-dispatch is '
+    'dropped',
+    (tester) async {
+      const held =
+          'https://submersion.app/c#f=1&p=11111111-2222-4333-8444-555555555555';
+      final nfc = FakeNfcTagService(
+        tag: FakeTagHandle(
+          isWritable: false,
+          stored: NdefMessage(records: [uriRecord(held)]),
+        ),
+      );
+      await open(tester, nfc);
       final container = ProviderScope.containerOf(
         tester.element(find.byType(NfcWriteSheet)),
       );
       expect(
-        container
-            .read(recentPassportTagsProvider)
-            .wasJustHandled(PassportPayloadCodec.httpsUrl(payload)),
+        container.read(recentPassportTagsProvider).wasJustHandled(held),
         isTrue,
       );
     },

@@ -23,14 +23,26 @@ OS version, build and tag model for each line.
 - [ ] Lift the tag mid-write: "The tag was not written", Try again writes
       it cleanly.
 - [ ] iPhone: dismiss the system sheet: the write sheet closes, no error.
+- [ ] iPhone: hold no tag until the system sheet times out: "The tag was
+      not written", Try again starts a new session.
+- [ ] iPhone: a tag that cannot hold NDEF (a MIFARE Classic card): "This tag
+      cannot hold a link", not "This tag is locked".
+- [ ] Tap Cancel the moment the tag is found: the write finishes, and a scan
+      of the tag afterwards reads a whole passport, never a half-written one.
+- [ ] Android: a locked tag holding a passport, kept against the phone after
+      "This tag is locked": that passport does not open over the sheet.
 
 ## Read
 
 - [ ] iPhone and Android: Equipment, Scan a cylinder tag, Tap an NFC tag:
       the passport opens.
 - [ ] The other app's tag: "That is not a cylinder tag", the sheet stays.
+- [ ] iPhone: a blank tag: "That is not a cylinder tag", not "Could not read
+      the tag".
 - [ ] Android with NFC off: the button is disabled with "NFC is turned off".
 - [ ] iPad without NFC: disabled with "This device cannot read or write".
+- [ ] macOS: the scan sheet shows Tap an NFC tag disabled, with "This device
+      cannot read or write NFC tags."
 
 ## Background launch
 

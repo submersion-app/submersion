@@ -201,11 +201,24 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('desktop offers no NFC', (tester) async {
+  testWidgets('desktop shows NFC turned off, with the reason', (tester) async {
+    // Spec 13.3: desktop and iPads without NFC show the NFC actions
+    // disabled with a reason, as the tag card does.
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
-    await openSheet(tester, camera: null, nfc: FakeNfcTagService());
-    expect(find.byKey(const Key('passportScan_nfc')), findsNothing);
+    await openSheet(
+      tester,
+      camera: null,
+      nfc: FakeNfcTagService(supportValue: NfcSupport.unsupported),
+    );
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportScanSheet)),
+    );
+    final button = tester.widget<OutlinedButton>(
+      find.byKey(const Key('passportScan_nfc')),
+    );
+    expect(button.onPressed, isNull);
+    expect(find.text(l10n.passport_nfc_unsupported), findsOneWidget);
     debugDefaultTargetPlatformOverride = null;
   });
 
@@ -236,17 +249,21 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(PassportScanSheet)),
     );
+    bool? notedBeforeEnd;
+    nfc.beforeEnd = () => notedBeforeEnd = container
+        .read(recentPassportTagsProvider)
+        .wasJustHandled(tag);
     await tester.tap(find.byKey(const Key('passportScan_nfc')));
     await tester.pumpAndSettle();
-    expect(
-      container.read(recentPassportTagsProvider).wasJustHandled(tag),
-      isTrue,
-    );
+    // Noted while the session was still open, before Android's dispatch of
+    // the held tag resumes.
+    expect(notedBeforeEnd, isTrue);
   });
 
-  testWidgets('a tag that cannot be read says so', (tester) async {
+  testWidgets('a blank tag says it holds no passport', (tester) async {
+    // iOS fails a second read of an empty tag; the scan must not try one.
     final nfc = FakeNfcTagService(
-      tag: FakeTagHandle(readError: StateError('tag lost')),
+      tag: FakeTagHandle(readError: StateError('zero-length message')),
     );
     final results = await openSheet(tester, camera: null, nfc: nfc);
     final l10n = AppLocalizations.of(
@@ -254,8 +271,7 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('passportScan_nfc')));
     await tester.pumpAndSettle();
-    expect(find.text(l10n.passport_nfc_readFailed), findsOneWidget);
-    expect(nfc.lastIosEnd?.error, l10n.passport_nfc_readFailed);
+    expect(find.text(l10n.passport_tag_linkInvalid), findsOneWidget);
     expect(results, isEmpty);
   });
 

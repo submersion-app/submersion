@@ -39,4 +39,17 @@ void main() {
     recent.note('hello');
     expect(recent.wasJustHandled(read), isTrue);
   });
+
+  test('every passport handled within the window is remembered', () {
+    // A failed rewrite may leave the tag holding its old passport or the new
+    // one, so both are noted.
+    const other =
+        'https://submersion.app/c#f=1&p=11111111-2222-4333-8444-555555555555';
+    recent.note(read);
+    recent.note(other);
+    expect(recent.wasJustHandled(read), isTrue);
+    expect(recent.wasJustHandled(other), isTrue);
+    now = now.add(const Duration(seconds: 6));
+    expect(recent.wasJustHandled(read), isFalse);
+  });
 }

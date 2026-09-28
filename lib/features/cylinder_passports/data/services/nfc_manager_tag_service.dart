@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:ndef_record/ndef_record.dart';
 import 'package:nfc_manager/nfc_manager.dart';
+import 'package:nfc_manager/nfc_manager_ios.dart';
 import 'package:nfc_manager_ndef/nfc_manager_ndef.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
@@ -28,7 +30,14 @@ class NfcManagerTagService implements NfcTagService {
 
   static NdefTagHandle? _ndefHandleFor(NfcTag tag) {
     final ndef = Ndef.from(tag);
-    return ndef == null ? null : _NdefHandle(ndef);
+    if (ndef == null) return null;
+    // iOS reports a tag that cannot hold NDEF at all as an Ndef that is not
+    // writable, which would read as a locked tag.
+    if (defaultTargetPlatform == TargetPlatform.iOS &&
+        NdefIos.from(tag)?.status == NdefStatusIos.notSupported) {
+      return null;
+    }
+    return _NdefHandle(ndef);
   }
 
   @override
@@ -62,11 +71,14 @@ class NfcManagerTagService implements NfcTagService {
     // Only the first tag is handled: a tag that stays in the field can be
     // reported again before its write finishes.
     var handling = false;
-    void cancelled() {
-      if (!result.isCompleted) {
-        result.completeError(const NfcSessionCancelled());
-      }
+    // Ends a session still waiting for a tag. Once a tag is being handled,
+    // its write runs to the end and reports its own result: stopping the
+    // session under it would leave the tag half written.
+    void endWith(Object error) {
+      if (!handling && !result.isCompleted) result.completeError(error);
     }
+
+    void cancelled() => endWith(const NfcSessionCancelled());
 
     _cancelPending = cancelled;
     try {
@@ -90,7 +102,11 @@ class NfcManagerTagService implements NfcTagService {
             if (!result.isCompleted) result.completeError(e, stackTrace);
           }
         },
-        onSessionErrorIos: (_) => cancelled(),
+        onSessionErrorIos: (error) =>
+            error.code ==
+                NfcReaderErrorCodeIos.readerSessionInvalidationErrorUserCanceled
+            ? cancelled()
+            : endWith(NfcSessionFailed(error.message)),
       );
       return await result.future;
     } finally {
@@ -132,6 +148,9 @@ class _NdefHandle implements NdefTagHandle {
 
   @override
   String? get typeLabel => _ndef.additionalData['type'] as String?;
+
+  @override
+  NdefMessage? get discoveredMessage => _ndef.cachedMessage;
 
   @override
   Future<NdefMessage?> read() => _ndef.read();

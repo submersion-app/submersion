@@ -7,6 +7,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 import 'package:submersion/features/cylinder_passports/data/services/passport_tag_io.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/passport_ndef.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/services/recent_passport_tags.dart';
@@ -77,6 +78,9 @@ class _NfcWriteSheetState extends ConsumerState<NfcWriteSheet> {
 
   Future<void> _write() async {
     final l10n = context.l10n;
+    // Read now: the tag is noted inside the session, which can outlive the
+    // sheet when the diver closes it mid-write.
+    final recent = ref.read(recentPassportTagsProvider);
     setState(() {
       _waiting = true;
       _result = null;
@@ -85,7 +89,11 @@ class _NfcWriteSheetState extends ConsumerState<NfcWriteSheet> {
     try {
       result = await _service.withTag(
         promptIos: l10n.passport_nfc_holdNear,
-        onTag: (tag) => writePassportTo(tag, widget.payload),
+        onTag: (tag) async {
+          final outcome = await writePassportTo(tag, widget.payload);
+          _noteHeld(recent, tag, outcome);
+          return outcome;
+        },
         iosEnd: (result) => result is TagWritten
             ? IosSheetEnd.success(l10n.passport_nfc_written)
             : IosSheetEnd.failure(_failure(l10n, result)),
@@ -100,15 +108,30 @@ class _NfcWriteSheetState extends ConsumerState<NfcWriteSheet> {
       result = TagWriteFailed(e);
     }
     if (!mounted) return;
-    if (result case TagWritten(:final plan)) {
-      ref
-          .read(recentPassportTagsProvider)
-          .note(PassportPayloadCodec.httpsUrl(plan.payload));
-    }
     setState(() {
       _waiting = false;
       _result = result;
     });
+  }
+
+  /// Notes what [tag] may hold once the session ends, while it is still
+  /// open: the passport it held when found, and the one written, unless the
+  /// tag was refused untouched. A failed write can leave either on the tag.
+  void _noteHeld(
+    RecentPassportTags recent,
+    NdefTagHandle? tag,
+    PassportTagWrite outcome,
+  ) {
+    if (tag == null) return;
+    if (tag.discoveredMessage case final found?) {
+      if (firstPassportUri(found) case final held?) recent.note(held);
+    }
+    final written = switch (outcome) {
+      TagWritten(:final plan) => plan.payload,
+      TagReadBackMismatch() || TagWriteFailed() => widget.payload,
+      TagNotNdef() || TagReadOnly() || TagTooSmall() => null,
+    };
+    if (written != null) recent.note(PassportPayloadCodec.httpsUrl(written));
   }
 
   void _cancel() {

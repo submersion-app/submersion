@@ -101,14 +101,23 @@ class PassportTagCard extends ConsumerWidget {
     final records =
         ref.watch(serviceRecordsForEquipmentProvider(equipment.id)).value ??
         const <ServiceRecord>[];
+    final now = DateTime.now();
+    // The label and QR carry the bounded payload; an NFC write starts from
+    // the full one and lets the tag's capacity decide what is left off.
     final full = fullPayloadFor(
       equipment,
       passportId: passportId,
       clocks: clocks,
       records: records,
-      now: DateTime.now(),
+      now: now,
     );
-    final payload = full == null ? null : NdefFit.fitForLabel(full);
+    final payload = currentPayloadFor(
+      equipment,
+      passportId: passportId,
+      clocks: clocks,
+      records: records,
+      now: now,
+    );
     final nfc = ref.watch(nfcSupportProvider).value;
     final canWriteNfc = full != null && nfc == NfcSupport.enabled;
     ServiceClockStatus? clock(String kindId) =>

@@ -88,27 +88,18 @@ class TagReadText extends PassportTagRead {
   final String text;
 }
 
-/// No passport link on the tag (or no NDEF at all).
+/// No passport link on the tag (an empty tag, or no NDEF at all).
 class TagHasNoPassport extends PassportTagRead {
   const TagHasNoPassport();
 }
 
-class TagReadFailed extends PassportTagRead {
-  const TagReadFailed(this.error);
-
-  final Object error;
-}
-
-/// The passport link on [tag], if it holds one. Never throws.
+/// The passport link on [tag], if it holds one, from the message the phone
+/// read when it found the tag. A second read would only cost a round trip,
+/// and on iOS it fails for an empty tag, which would read as a broken one.
 Future<PassportTagRead> readPassportFrom(NdefTagHandle? tag) async {
-  if (tag == null) return const TagHasNoPassport();
-  try {
-    final message = await tag.read();
-    final uri = message == null ? null : firstPassportUri(message);
-    return uri == null ? const TagHasNoPassport() : TagReadText(uri);
-  } catch (e) {
-    return TagReadFailed(e);
-  }
+  final message = tag?.discoveredMessage;
+  final uri = message == null ? null : firstPassportUri(message);
+  return uri == null ? const TagHasNoPassport() : TagReadText(uri);
 }
 
 /// A readable name for a platform tag type (Android reports

@@ -81,16 +81,17 @@ void main() {
       );
     });
 
-    test('may read and write NDEF tags through a tag session', () {
-      // nfc_manager 4 uses NFCTagReaderSession, which needs TAG as well.
+    test('may read and write tags through a tag session, and only that', () {
+      // nfc_manager 4 uses NFCTagReaderSession, which needs TAG. NDEF must
+      // not be listed: App Store Connect rejects an upload whose entitlement
+      // still names it (ITMS-90778, "NDEF is disallowed").
       final formats = plistValue(
         entitlements,
         'com.apple.developer.nfc.readersession.formats',
       );
-      expect(
-        formats?.findElements('string').map((e) => e.innerText.trim()),
-        containsAll(['NDEF', 'TAG']),
-      );
+      expect(formats?.findElements('string').map((e) => e.innerText.trim()), [
+        'TAG',
+      ]);
     });
   });
 

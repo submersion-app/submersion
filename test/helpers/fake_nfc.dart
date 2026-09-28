@@ -14,7 +14,7 @@ class FakeTagHandle implements NdefTagHandle {
     this.writeError,
     this.readError,
     this.readBackOverride,
-  });
+  }) : discoveredMessage = stored;
 
   @override
   final bool isWritable;
@@ -24,6 +24,10 @@ class FakeTagHandle implements NdefTagHandle {
 
   @override
   final String? typeLabel;
+
+  /// What [stored] held when the tag was found.
+  @override
+  final NdefMessage? discoveredMessage;
 
   NdefMessage? stored;
   Object? writeError;
@@ -72,6 +76,10 @@ class FakeNfcTagService implements NfcTagService {
   /// How the last session would have closed the iOS system sheet.
   IosSheetEnd? lastIosEnd;
 
+  /// Runs after the tag is handled and before the session would stop, the
+  /// moment Android resumes its own dispatch of a tag still held.
+  void Function()? beforeEnd;
+
   @override
   Future<NfcSupport> support() async => supportValue;
 
@@ -92,6 +100,7 @@ class FakeNfcTagService implements NfcTagService {
     }
     final result = await onTag(tag);
     lastIosEnd = iosEnd?.call(result);
+    beforeEnd?.call();
     return result;
   }
 

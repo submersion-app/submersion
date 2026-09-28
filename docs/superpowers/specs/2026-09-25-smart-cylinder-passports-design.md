@@ -575,9 +575,11 @@ encoder, and `pw.BarcodeWidget` in the PDF label.
 ### 13.3 NFC
 
 - iOS: `NFCReaderUsageDescription`; entitlement
-  `com.apple.developer.nfc.readersession.formats` with `NDEF` and `TAG`
+  `com.apple.developer.nfc.readersession.formats` with `TAG` only
   (`nfc_manager` 4 reads and writes through `NFCTagReaderSession`, which
-  needs `TAG`; decided 2026-09-27). With the associated domain verified,
+  needs `TAG`; decided 2026-09-27). `NDEF` must not be listed: App Store
+  Connect rejects an upload whose entitlement still names it (ITMS-90778,
+  "NDEF is disallowed"; decided 2026-09-28). With the associated domain verified,
   background tag reading opens the app on a tap with nothing running.
   NFC Tag Reading must be enabled for the app id in the Apple developer
   portal before a signed build.

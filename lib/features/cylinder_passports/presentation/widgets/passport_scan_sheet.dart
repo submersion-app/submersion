@@ -87,6 +87,7 @@ class _PassportScanSheetState extends ConsumerState<PassportScanSheet> {
 
   Future<void> _readNfc() async {
     final l10n = context.l10n;
+    final recent = ref.read(recentPassportTagsProvider);
     setState(() {
       _nfcReading = true;
       _nfcError = null;
@@ -94,25 +95,27 @@ class _PassportScanSheetState extends ConsumerState<PassportScanSheet> {
     try {
       final result = await _nfc.withTag(
         promptIos: l10n.passport_nfc_holdNear,
-        onTag: readPassportFrom,
+        onTag: (tag) async {
+          final read = await readPassportFrom(tag);
+          // Noted while the session is open, before Android resumes its own
+          // dispatch of the tag still held against the phone.
+          if (read case TagReadText(:final text)) recent.note(text);
+          return read;
+        },
         iosEnd: (result) => switch (result) {
           TagReadText() => const IosSheetEnd.success(),
           TagHasNoPassport() => IosSheetEnd.failure(
             l10n.passport_tag_linkInvalid,
           ),
-          TagReadFailed() => IosSheetEnd.failure(l10n.passport_nfc_readFailed),
         },
         iosFailure: l10n.passport_nfc_readFailed,
       );
       if (!mounted) return;
       switch (result) {
         case TagReadText(:final text):
-          ref.read(recentPassportTagsProvider).note(text);
           _finish(text);
         case TagHasNoPassport():
           setState(() => _nfcError = l10n.passport_tag_linkInvalid);
-        case TagReadFailed():
-          setState(() => _nfcError = l10n.passport_nfc_readFailed);
       }
     } on NfcSessionCancelled {
       // The diver closed the system sheet: nothing to report.
@@ -171,37 +174,32 @@ class _PassportScanSheetState extends ConsumerState<PassportScanSheet> {
             Text(l10n.passport_scan_hint),
           ] else
             Text(l10n.passport_scan_cameraUnavailable),
-          if (nfcPlatform()) ...[
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              key: const Key('passportScan_nfc'),
-              icon: const Icon(Icons.nfc),
-              label: Text(
-                _nfcReading
-                    ? l10n.passport_nfc_holdNear
-                    : l10n.passport_nfc_tap,
-              ),
-              onPressed: nfc == NfcSupport.enabled && !_nfcReading
-                  ? _readNfc
-                  : null,
+          // Shown on every platform; without NFC it is disabled with the
+          // reason (spec 13.3).
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            key: const Key('passportScan_nfc'),
+            icon: const Icon(Icons.nfc),
+            label: Text(
+              _nfcReading ? l10n.passport_nfc_holdNear : l10n.passport_nfc_tap,
             ),
-            if (nfcUnavailableReason(l10n, nfc) case final reason?)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  reason,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+            onPressed: nfc == NfcSupport.enabled && !_nfcReading
+                ? _readNfc
+                : null,
+          ),
+          if (nfcUnavailableReason(l10n, nfc) case final reason?)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(reason, style: Theme.of(context).textTheme.bodySmall),
+            ),
+          if (_nfcError case final error?)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                error,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
-            if (_nfcError case final error?)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  error,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ),
-          ],
+            ),
           const SizedBox(height: 12),
           TextField(
             key: const Key('passportScan_link'),
