@@ -7,6 +7,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
@@ -100,6 +101,7 @@ class SyncRepository {
     'diveComputers': (table: 'dive_computers', pk: 'id'),
     'transmitters': (table: 'transmitters', pk: 'id'),
     'cylinderFills': (table: 'cylinder_fills', pk: 'id'),
+    'savedQueries': (table: 'saved_queries', pk: 'id'),
     'tags': (table: 'tags', pk: 'id'),
     'courses': (table: 'courses', pk: 'id'),
     // HLC merge-root only: the courseRequirementDives junction is clockless
@@ -1370,6 +1372,56 @@ class SyncRepository {
       );
       rethrow;
     }
+  }
+
+  /// A fresh clock for a row written outside [markRecordPending]: a batch
+  /// insert, or an UPDATE that moves many rows at once. Newer than every
+  /// clock this device has issued, a scope tombstone's included, so a row
+  /// stamped with it is never covered by a scope logged before it.
+  Future<String> issueRowClock() async {
+    await ensureSyncClockConfigured();
+    // Configured just above, and issue() is null only on an unconfigured
+    // clock.
+    return SyncClock.instance.issue()!;
+  }
+
+  /// One tombstone for a whole set of events (see [EventScopeTombstone]),
+  /// in place of one per row.
+  Future<void> logScopedDeletion(EventScopeTombstone scope) => logDeletion(
+    entityType: EventScopeTombstone.entityType,
+    recordId: scope.encode(),
+  );
+
+  /// Stores a peer's scope tombstone for relay. Unlike
+  /// [logDeletionIfMissing], a stored copy is replaced when the incoming
+  /// delete is newer: a later delete of the same scope covers every row the
+  /// earlier one did and more, so keeping the first copy would relay the
+  /// narrower one.
+  Future<void> relayScopedDeletion({
+    required String recordId,
+    required int deletedAt,
+    String? originHlc,
+  }) async {
+    final existing =
+        await (_db.select(_db.deletionLog)..where(
+              (t) =>
+                  t.entityType.equals(EventScopeTombstone.entityType) &
+                  t.recordId.equals(recordId),
+            ))
+            .get();
+    if (existing.isNotEmpty) {
+      final incoming = tryParseHlc(originHlc);
+      final stored = tryParseHlc(existing.first.originHlc);
+      if (incoming == null) return;
+      if (stored != null && incoming.compareTo(stored) <= 0) return;
+    }
+    await logDeletion(
+      entityType: EventScopeTombstone.entityType,
+      recordId: recordId,
+      deletedAt: deletedAt,
+      relayed: true,
+      originHlc: originHlc,
+    );
   }
 
   DeletionLogCompanion _localTombstone(

@@ -17,13 +17,17 @@ List<FigureItemInput> figureInputsFromItems(
         id: item.id,
         type: item.type,
         name: item.name,
-        attributes: {
-          for (final a in item.attributes)
-            if (!a.isCustom) a.key: a.valueText,
-        },
+        attributes: figureAttributesOf(item),
         isChild:
             item.parentEquipmentId != null ||
             components.parentIdsOf(item.id).isNotEmpty,
       ),
   ];
 }
+
+/// An item's catalog attribute values by key: choice keys and its colour.
+/// Custom attributes are dropped; the figure reads only catalog keys.
+Map<String, String?> figureAttributesOf(EquipmentItem item) => {
+  for (final a in item.attributes)
+    if (!a.isCustom) a.key: a.valueText,
+};

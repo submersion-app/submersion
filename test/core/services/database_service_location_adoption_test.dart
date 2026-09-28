@@ -9,6 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
 
+import '../../helpers/fake_path_provider.dart';
+
 /// A location service pinned to a caller-provided path, so a test can tell
 /// "resolved through the location service" apart from "fell back to the
 /// application documents directory".
@@ -44,7 +46,7 @@ void main() {
     prefs = await SharedPreferences.getInstance();
     tempDir = Directory.systemTemp.createTempSync('db-location-adoption-');
     customPath = p.join(tempDir.path, 'elsewhere', 'dive.db');
-    PathProviderPlatform.instance = _FakePathProvider(tempDir.path);
+    useFakePathProvider(_FakePathProvider(tempDir.path));
     DatabaseService.instance.resetForTesting();
   });
 

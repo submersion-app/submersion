@@ -5,6 +5,7 @@ import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart'
 import 'package:submersion/core/services/export/csv/codec/csv_list_codec.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_text.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
 
@@ -192,6 +193,14 @@ CsvAttribute? _readCurated(
         valueText: value,
         valueNum: parsePrimaryThickness(value),
       );
+    case AttributeKind.color:
+      final code = normalizeEquipmentColor(value);
+      // A file written before items had a colour can carry the diver's own
+      // custom field named "color", unprefixed. A value that is not a colour
+      // code is that field, so it comes back as one instead of being lost.
+      return code == null
+          ? (key: def.key, isCustom: true, valueText: value, valueNum: null)
+          : (key: def.key, isCustom: false, valueText: code, valueNum: null);
     case AttributeKind.text:
     case AttributeKind.url:
     case AttributeKind.choice:

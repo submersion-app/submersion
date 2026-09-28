@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/garmin_connect/garmin_connect_client.dart';
 import 'package:submersion/core/services/garmin_connect/garmin_dive_mapper.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 
@@ -50,7 +51,119 @@ ImportedDive _dive({
   );
 }
 
+GarminActivitySummary _summary({
+  int activityId = 77,
+  DateTime? localStartTime,
+  double? maxDepth = 12.4,
+  int? durationSeconds = 2400,
+  double? latitude = 25.1,
+  double? longitude = -80.3,
+  double? exitLatitude = 25.2,
+  double? exitLongitude = -80.4,
+  String? notes,
+}) => GarminActivitySummary(
+  activityId: activityId,
+  startTime: DateTime.utc(2026, 3, 15, 14, 5),
+  localStartTime: localStartTime,
+  activityType: 'single_gas_diving',
+  maxDepth: maxDepth,
+  durationSeconds: durationSeconds,
+  latitude: latitude,
+  longitude: longitude,
+  exitLatitude: exitLatitude,
+  exitLongitude: exitLongitude,
+  notes: notes,
+);
+
 void main() {
+  // Issue #2410: a dive Connect cannot export as FIT, such as one entered by
+  // hand, is imported from what the activity summary already carries.
+  group('GarminDiveMapper.fromSummary', () {
+    test('maps the summary header onto a dive with no profile', () {
+      final result = GarminDiveMapper.fromSummary(
+        _summary(localStartTime: DateTime.utc(2026, 3, 15, 9, 5)),
+      );
+
+      expect(result.dive.durationSeconds, 2400);
+      expect(result.dive.maxDepth, 12.4);
+      expect(result.dive.profile, isEmpty);
+      expect(result.dive.tanks, isEmpty);
+      expect(result.dive.entryLatitude, 25.1);
+      expect(result.dive.entryLongitude, -80.3);
+      expect(result.dive.exitLatitude, 25.2);
+      expect(result.dive.exitLongitude, -80.4);
+      expect(result.profileMissing, isTrue);
+    });
+
+    test('keeps the local wall-clock start, like a FIT import does', () {
+      // Dive times are stored as wall-clock-as-UTC. startTimeGMT is a real
+      // instant, so using it would shift the dive by the diver's UTC offset.
+      final result = GarminDiveMapper.fromSummary(
+        _summary(localStartTime: DateTime.utc(2026, 3, 15, 9, 5)),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 3, 15, 9, 5));
+    });
+
+    test('falls back to the UTC start when Connect gave no local one', () {
+      final result = GarminDiveMapper.fromSummary(_summary());
+
+      expect(result.dive.startTime, DateTime.utc(2026, 3, 15, 14, 5));
+    });
+
+    test('shares the FIT route fingerprint so a re-import dedupes', () {
+      final fromSummary = GarminDiveMapper.fromSummary(
+        _summary(activityId: 123),
+      );
+      final fromFit = GarminDiveMapper.map(_dive(), activityId: 123);
+
+      expect(fromSummary.dive.rawFingerprint, fromFit.dive.rawFingerprint);
+    });
+
+    test('uses zero for a depth or duration the summary lacks', () {
+      final result = GarminDiveMapper.fromSummary(
+        _summary(maxDepth: null, durationSeconds: null),
+      );
+
+      expect(result.dive.maxDepth, 0);
+      expect(result.dive.durationSeconds, 0);
+    });
+
+    test('never pairs a latitude with a missing longitude', () {
+      final result = GarminDiveMapper.fromSummary(
+        _summary(longitude: null, exitLatitude: null),
+      );
+
+      expect(result.dive.entryLatitude, isNull);
+      expect(result.dive.entryLongitude, isNull);
+      expect(result.dive.exitLatitude, isNull);
+      expect(result.dive.exitLongitude, isNull);
+    });
+
+    test('carries the Connect notes and names the device plain Garmin', () {
+      final result = GarminDiveMapper.fromSummary(
+        _summary(notes: 'Drift along the wall'),
+      );
+
+      expect(result.notes, 'Drift along the wall');
+      expect(result.deviceModel, 'Garmin');
+      expect(result.serialNumber, isNull);
+    });
+  });
+
+  group('GarminDiveMapper.map notes', () {
+    test('carries the Connect notes alongside the FIT dive', () {
+      final result = GarminDiveMapper.map(
+        _dive(),
+        activityId: 1,
+        notes: 'Drift along the wall',
+      );
+
+      expect(result.notes, 'Drift along the wall');
+      expect(result.profileMissing, isFalse);
+    });
+  });
+
   group('GarminDiveMapper.map', () {
     test('maps header fields and device identity', () {
       final result = GarminDiveMapper.map(_dive(), activityId: 123);

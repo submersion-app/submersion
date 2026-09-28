@@ -50,6 +50,8 @@ final _labels = PlanSlateLabels(
   turnAt: 'Turn',
   minGas: 'Min gas',
   base: 'Base',
+  minutes: (value) => '$value min',
+  maxPrefix: 'max',
 );
 
 domain.DivePlan _plan({domain.PlanMode mode = domain.PlanMode.oc}) {
@@ -128,9 +130,41 @@ void main() {
       const UnitFormatter(
         AppSettings(dateFormat: DateFormatPreference.ddmmyyyy),
       ),
+      _labels,
     );
 
     expect(line, startsWith('05/07/2026'));
     expect(line, isNot(contains('2026-07-05')));
+  });
+
+  test('the header prints minutes and max in the app language (#2252)', () {
+    const engine = PlanEngine();
+    final plan = _plan();
+    final line = planSlateHeaderLine(
+      plan,
+      engine.compute(plan),
+      const UnitFormatter(AppSettings()),
+      PlanSlateLabels(
+        runtimeTable: '',
+        gasPlan: '',
+        contingencies: '',
+        lostGasLabel: (gas) => gas,
+        rangeTable: '',
+        bailout: '',
+        duration: '',
+        depth: '',
+        runtime: '',
+        gas: '',
+        turnAt: '',
+        minGas: '',
+        base: '',
+        minutes: (value) => '$value Min.',
+        maxPrefix: 'max.',
+      ),
+    );
+
+    expect(line, contains(' Min.'));
+    expect(line, contains('max. '));
+    expect(line, isNot(contains(' min ')));
   });
 }

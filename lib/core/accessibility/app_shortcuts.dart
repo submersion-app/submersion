@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/accessibility/not_while_typing_activator.dart';
 import 'package:submersion/core/accessibility/shortcut_registry.dart';
 import 'package:submersion/core/accessibility/shortcuts_help_dialog.dart';
 import 'package:submersion/features/divers/presentation/widgets/diver_switcher_sheet.dart';
@@ -30,6 +31,14 @@ class AppShortcuts {
   AppShortcuts._();
 
   static bool _registered = false;
+
+  /// Forget that the shortcuts were registered, so the next
+  /// [ensureRegistered] fills the catalog again.
+  ///
+  /// [ShortcutCatalog.clear] empties the catalog but cannot reach this flag,
+  /// so a test that clears the catalog resets the flag with it.
+  @visibleForTesting
+  static void debugReset() => _registered = false;
 
   /// Register all global shortcuts with the [ShortcutCatalog].
   ///
@@ -120,11 +129,18 @@ class AppShortcuts {
         isGlobal: true,
       ),
 
-      // Help
+      // Help. Bare "?" is ignored while typing in a text field; the modified
+      // key works everywhere, including inside one (#2145).
       const ShortcutEntry(
         label: 'Keyboard shortcuts',
         category: 'Help',
         activator: SingleActivator(LogicalKeyboardKey.question),
+        isGlobal: true,
+      ),
+      ShortcutEntry(
+        label: 'Keyboard shortcuts',
+        category: 'Help',
+        activator: platformShortcut(LogicalKeyboardKey.slash),
         isGlobal: true,
       ),
     ]);
@@ -183,8 +199,13 @@ class AppShortcuts {
         showDiverSwitcherSheet(context);
       },
 
-      // Help overlay (bare "?" key, no modifier — matches convention)
-      const CharacterActivator('?'): () {
+      // Help overlay. Bare "?" follows the common convention, but it must not
+      // fire while the diver is typing, or no field could ever contain a "?"
+      // (#2145). Ctrl+/ (Cmd+/ on macOS) opens the help from anywhere.
+      const NotWhileTypingActivator(CharacterActivator('?')): () {
+        showShortcutsHelpDialog(context);
+      },
+      platformShortcut(LogicalKeyboardKey.slash): () {
         showShortcutsHelpDialog(context);
       },
     };

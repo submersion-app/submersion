@@ -303,7 +303,7 @@ class SuuntoCloudFetchStep extends StatelessWidget {
               SuuntoDiveParser.parse(
                 header: export.header,
                 samples: export.samples,
-              ),
+              ).copyWith(notes: page[i].notes),
             );
           } catch (_) {
             results.add(null);

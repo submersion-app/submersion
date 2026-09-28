@@ -15,6 +15,8 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
 
+import '../../helpers/fake_path_provider.dart';
+
 class _FakeLocation implements DatabaseLocationService {
   _FakeLocation(this.path);
   final String path;
@@ -106,7 +108,7 @@ void main() {
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('ws5-isolate-test');
     dbPath = p.join(tempDir.path, 'submersion.db');
-    PathProviderPlatform.instance = _FakePathProvider(tempDir.path);
+    useFakePathProvider(_FakePathProvider(tempDir.path));
     DatabaseService.instance.resetForTesting();
   });
 

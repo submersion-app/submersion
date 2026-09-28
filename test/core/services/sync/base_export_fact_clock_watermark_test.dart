@@ -10,6 +10,7 @@ import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 
+import '../../../helpers/mock_channels.dart';
 import '../../../helpers/test_database.dart';
 
 /// A base's high-water mark must count media fact clocks as well as row
@@ -29,6 +30,7 @@ void main() {
               call.method == 'getTemporaryDirectory' ? fakeAppTemp.path : null,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   tearDownAll(() async {
     if (fakeAppTemp.existsSync()) await fakeAppTemp.delete(recursive: true);

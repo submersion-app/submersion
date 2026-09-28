@@ -194,4 +194,24 @@ void main() {
     expect(cell, r'retailer=A\; sku=9; sku=7');
     expect(splitAttributePairs(cell), ['retailer=A; sku=9', 'sku=7']);
   });
+
+  group('color', () {
+    test('a colour code reads back as the item colour, uppercase', () {
+      expect(parseAttributePair('color=#ef4444'), (
+        key: 'color',
+        isCustom: false,
+        valueText: '#EF4444',
+        valueNum: null,
+      ));
+    });
+
+    test('an older file\'s custom "color" field stays a custom field', () {
+      expect(parseAttributePair('color=Red'), (
+        key: 'color',
+        isCustom: true,
+        valueText: 'Red',
+        valueNum: null,
+      ));
+    });
+  });
 }

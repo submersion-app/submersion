@@ -737,6 +737,163 @@ void main() {
       );
     });
 
+    // MacDive stores the dive's absolute moment in `ZRAWDATE` and the zone
+    // it was logged in, as an archived NSTimeZone, in `ZTIMEZONE`.
+    // Submersion keeps dive times as wall-clock-UTC, so the mapper has to
+    // shift the instant into that zone before emitting it.
+    group('ZRAWDATE and ZTIMEZONE', () {
+      late Uint8List losAngelesBplist;
+
+      setUpAll(() async {
+        losAngelesBplist = Uint8List.fromList(
+          await File(
+            'test/fixtures/macdive_sqlite/bplist_samples/macdive_ztimezone.bplist',
+          ).readAsBytes(),
+        );
+      });
+
+      test('emits the wall clock of the zone the dive was logged in', () async {
+        final payload = await MacDiveDiveMapper.toPayload(
+          _singleDiveLogbook(
+            MacDiveRawDive(
+              pk: 1,
+              uuid: 'dive-1',
+              rawDate: DateTime.utc(2024, 7, 1, 17, 5),
+              timezoneBplist: losAngelesBplist,
+            ),
+          ),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        // 17:05Z is 10:05 PDT, the time MacDive shows for this dive.
+        expect(dive['dateTime'], DateTime.utc(2024, 7, 1, 10, 5));
+      });
+
+      test('a dive with no ZTIMEZONE uses the zone of its site', () async {
+        final payload = await MacDiveDiveMapper.toPayload(
+          _singleDiveLogbook(
+            MacDiveRawDive(
+              pk: 1,
+              uuid: 'dive-1',
+              rawDate: DateTime.utc(2013, 5, 2, 20, 30),
+              diveSiteFk: 7,
+            ),
+            sitesByPk: {7: _tahitiSite},
+          ),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        // Tahiti is UTC-10 with no daylight saving.
+        expect(dive['dateTime'], DateTime.utc(2013, 5, 2, 10, 30));
+      });
+
+      test('ZTIMEZONE wins over the zone of the site', () async {
+        // MacDive derived ZRAWDATE from the dive computer's clock using the
+        // stored zone, so only that zone gives back the time MacDive shows.
+        final payload = await MacDiveDiveMapper.toPayload(
+          _singleDiveLogbook(
+            MacDiveRawDive(
+              pk: 1,
+              uuid: 'dive-1',
+              rawDate: DateTime.utc(2024, 7, 1, 17, 5),
+              timezoneBplist: losAngelesBplist,
+              diveSiteFk: 7,
+            ),
+            sitesByPk: {7: _tahitiSite},
+          ),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['dateTime'], DateTime.utc(2024, 7, 1, 10, 5));
+      });
+
+      test('a stored zone name the tz database does not know falls back '
+          'to the site zone', () async {
+        // The same archive with its zone name overwritten in place, so the
+        // BLOB still decodes but names no zone Submersion can resolve.
+        final unknownZone = _replaceAscii(
+          losAngelesBplist,
+          'America/Los_Angeles',
+          'Nowhere/Not_A_Zone1',
+        );
+        final payload = await MacDiveDiveMapper.toPayload(
+          _singleDiveLogbook(
+            MacDiveRawDive(
+              pk: 1,
+              uuid: 'dive-1',
+              rawDate: DateTime.utc(2013, 5, 2, 20, 30),
+              timezoneBplist: unknownZone,
+              diveSiteFk: 7,
+            ),
+            sitesByPk: {7: _tahitiSite},
+          ),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['dateTime'], DateTime.utc(2013, 5, 2, 10, 30));
+        expect(
+          payload.warnings.where(
+            (w) => w.code == ImportWarningCode.macdiveDeviceTimeZone,
+          ),
+          isEmpty,
+        );
+      });
+
+      test('counts the dives read in the device zone in one warning', () async {
+        final payload = await MacDiveDiveMapper.toPayload(
+          _divesLogbook(
+            [
+              // No zone and no site.
+              MacDiveRawDive(
+                pk: 1,
+                uuid: 'dive-1',
+                rawDate: DateTime.utc(2024, 7, 1, 17, 5),
+              ),
+              // No zone, and a site without a GPS fix.
+              MacDiveRawDive(
+                pk: 2,
+                uuid: 'dive-2',
+                rawDate: DateTime.utc(2024, 7, 2, 17, 5),
+                diveSiteFk: 8,
+              ),
+              // A stored zone that cannot be read, and no site.
+              MacDiveRawDive(
+                pk: 4,
+                uuid: 'dive-4',
+                rawDate: DateTime.utc(2024, 7, 4, 17, 5),
+                timezoneBplist: Uint8List.fromList([1, 2, 3, 4]),
+              ),
+              // A stored zone: not a device-zone dive.
+              MacDiveRawDive(
+                pk: 3,
+                uuid: 'dive-3',
+                rawDate: DateTime.utc(2024, 7, 3, 17, 5),
+                timezoneBplist: losAngelesBplist,
+              ),
+            ],
+            sitesByPk: const {
+              8: MacDiveRawSite(pk: 8, uuid: 'site-8', name: 'No GPS'),
+            },
+          ),
+        );
+        final warning = payload.warnings.singleWhere(
+          (w) => w.code == ImportWarningCode.macdiveDeviceTimeZone,
+        );
+        expect(warning.count, 3);
+        expect(warning.entityType, ImportEntityType.dives);
+      });
+
+      test('a dive without ZRAWDATE has no dateTime', () async {
+        final payload = await MacDiveDiveMapper.toPayload(
+          _singleDiveLogbook(
+            MacDiveRawDive(
+              pk: 1,
+              uuid: 'dive-1',
+              timezoneBplist: losAngelesBplist,
+            ),
+          ),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        expect(dive.containsKey('dateTime'), isFalse);
+      });
+    });
+
     // #1606: `ZSURFACEINTERVAL` holds minutes. Confirmed by joining a real
     // MacDive.sqlite against the XML export of the same logbook: the column
     // and `<surfaceInterval>` carry the identical number for all 381
@@ -1621,11 +1778,25 @@ pigeon.ParsedDive _parsedDive({required List<pigeon.ProfileSample> samples}) {
 
 /// One dive whose only interesting column is `ZSURFACEINTERVAL`.
 MacDiveRawLogbook _surfaceIntervalLogbook(double surfaceInterval) {
+  return _singleDiveLogbook(
+    MacDiveRawDive(pk: 1, uuid: 'dive-1', surfaceInterval: surfaceInterval),
+  );
+}
+
+/// A logbook holding just [dive] and, optionally, the sites it links to.
+MacDiveRawLogbook _singleDiveLogbook(
+  MacDiveRawDive dive, {
+  Map<int, MacDiveRawSite> sitesByPk = const {},
+}) => _divesLogbook([dive], sitesByPk: sitesByPk);
+
+/// A logbook holding just [dives] and, optionally, the sites they link to.
+MacDiveRawLogbook _divesLogbook(
+  List<MacDiveRawDive> dives, {
+  Map<int, MacDiveRawSite> sitesByPk = const {},
+}) {
   return MacDiveRawLogbook(
-    dives: [
-      MacDiveRawDive(pk: 1, uuid: 'dive-1', surfaceInterval: surfaceInterval),
-    ],
-    sitesByPk: const {},
+    dives: dives,
+    sitesByPk: sitesByPk,
     buddiesByPk: const {},
     tagsByPk: const {},
     gearByPk: const {},
@@ -1642,4 +1813,23 @@ MacDiveRawLogbook _surfaceIntervalLogbook(double surfaceInterval) {
     diveToCritterPks: const {},
     unitsPreference: 'Metric',
   );
+}
+
+/// A site off Moorea, French Polynesia (Pacific/Tahiti, UTC-10).
+const _tahitiSite = MacDiveRawSite(
+  pk: 7,
+  uuid: 'site-7',
+  name: 'Moorea',
+  latitude: -17.536,
+  longitude: -149.829,
+);
+
+/// [bytes] with the ASCII text [from] overwritten by [to], which must be the
+/// same length so every offset in the stream stays valid.
+Uint8List _replaceAscii(Uint8List bytes, String from, String to) {
+  assert(from.length == to.length);
+  final text = String.fromCharCodes(bytes);
+  final at = text.indexOf(from);
+  if (at < 0) throw StateError('"$from" not found');
+  return Uint8List.fromList(bytes)..setRange(at, at + to.length, to.codeUnits);
 }

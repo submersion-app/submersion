@@ -46,7 +46,12 @@ void main() {
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
+    // v240 (scoped event tombstones, #1926) raised the floor later; this
+    // rung only needs it never to fall below where it stood.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(224),
+    );
   });
 
   test('a fresh database has the column, not null, off by default', () async {

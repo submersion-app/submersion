@@ -1,3 +1,4 @@
+import 'package:submersion/core/query/domain/query_error_code.dart';
 import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
@@ -34,7 +35,7 @@ void _walk(
     case AndNode(:final children):
     case OrNode(:final children):
       if (children.isEmpty) {
-        out.add(const QueryError('an empty group matches nothing'));
+        out.add(const QueryError(QueryErrorCode.emptyGroup));
       }
       for (final c in children) {
         _walk(c, scope, registry, out, depth);
@@ -42,10 +43,13 @@ void _walk(
     case NotNode(:final child):
       _walk(child, scope, registry, out, depth);
     case TextNode(:final words):
-      if (words.isEmpty) out.add(const QueryError('empty text'));
+      if (words.isEmpty) out.add(const QueryError(QueryErrorCode.emptyText));
       if (scope.textSearchSql.isEmpty) {
         out.add(
-          QueryError('free text cannot be searched inside ${scope.table}'),
+          QueryError(
+            QueryErrorCode.textNotSearchable,
+            args: {'table': scope.table},
+          ),
         );
       }
     case ScopedNode(:final path, :final inner):
@@ -56,7 +60,11 @@ void _walk(
       }
       if (res.terminalRelation == null) {
         out.add(
-          QueryError('[...] needs a relation, "$path" is a field', path: path),
+          QueryError(
+            QueryErrorCode.scopeNeedsRelation,
+            path: path,
+            args: {'path': '$path'},
+          ),
         );
         return;
       }
@@ -64,9 +72,9 @@ void _walk(
       if (total > kMaxPathHops) {
         out.add(
           QueryError(
-            'a query may cross at most $kMaxPathHops relations, '
-            'counting nested groups',
+            QueryErrorCode.tooManyHops,
             path: path,
+            args: {'max': '$kMaxPathHops'},
           ),
         );
         return;
@@ -87,9 +95,9 @@ void _walk(
       if (depth + res.hops.length > kMaxPathHops) {
         out.add(
           QueryError(
-            'a query may cross at most $kMaxPathHops relations, '
-            'counting nested groups',
+            QueryErrorCode.tooManyHops,
             path: path,
+            args: {'max': '$kMaxPathHops'},
           ),
         );
         return;
@@ -101,7 +109,11 @@ void _walk(
       }
       if (!field.ops.contains(op)) {
         out.add(
-          QueryError('${op.name} cannot be used with ${field.key}', path: path),
+          QueryError(
+            QueryErrorCode.opNotForField,
+            path: path,
+            args: {'op': op.name, 'field': field.key},
+          ),
         );
         return;
       }
@@ -109,9 +121,9 @@ void _walk(
           (field.enumValues?.contains('none') ?? false)) {
         out.add(
           QueryError(
-            '"${field.key}:none" is ambiguous: write "${field.key} = none" '
-            'for the value none, or "NOT ${field.key}:any" for unrecorded',
+            QueryErrorCode.noneAmbiguous,
             path: path,
+            args: {'field': field.key},
           ),
         );
         return;
@@ -135,19 +147,32 @@ void _checkRelationOp(
     case QueryOp.eq:
     case QueryOp.neq:
       if (value is! RefValue) {
-        out.add(QueryError('$name expects a reference', path: path));
+        out.add(
+          QueryError(
+            QueryErrorCode.expectsReference,
+            path: path,
+            args: {'name': name},
+          ),
+        );
       }
     case QueryOp.inList:
       if (value is! ListValue || value.items.isEmpty) {
-        out.add(QueryError('the list is empty', path: path));
+        out.add(QueryError(QueryErrorCode.emptyList, path: path));
       } else if (value.items.any((v) => v is! RefValue)) {
-        out.add(QueryError('$name expects references', path: path));
+        out.add(
+          QueryError(
+            QueryErrorCode.expectsReferences,
+            path: path,
+            args: {'name': name},
+          ),
+        );
       }
     default:
       out.add(
         QueryError(
-          '"$path" is a relation; use =, in, :none, :any or [...]',
+          QueryErrorCode.relationNeedsRefOp,
           path: path,
+          args: {'path': '$path'},
         ),
       );
   }
@@ -162,7 +187,7 @@ void _checkValue(
 ) {
   if (op == QueryOp.between) {
     if (value is! ListValue || value.items.length != 2) {
-      out.add(QueryError('between needs two values', path: path));
+      out.add(QueryError(QueryErrorCode.betweenNeedsTwo, path: path));
       return;
     }
     for (final v in value.items) {
@@ -173,11 +198,11 @@ void _checkValue(
   if (op == QueryOp.inList) {
     if (value is DateRangeValue && field.type == FieldType.date) return;
     if (value is! ListValue) {
-      out.add(QueryError('in needs a list', path: path));
+      out.add(QueryError(QueryErrorCode.inNeedsList, path: path));
       return;
     }
     if (value.items.isEmpty) {
-      out.add(QueryError('the list is empty', path: path));
+      out.add(QueryError(QueryErrorCode.emptyList, path: path));
       return;
     }
     for (final v in value.items) {
@@ -188,7 +213,13 @@ void _checkValue(
   switch (field.type) {
     case FieldType.number:
       if (value is! NumberValue) {
-        out.add(QueryError('${field.key} expects a number', path: path));
+        out.add(
+          QueryError(
+            QueryErrorCode.expectsNumber,
+            path: path,
+            args: {'field': field.key},
+          ),
+        );
         return;
       }
       final unitless = const {
@@ -198,36 +229,69 @@ void _checkValue(
       }.contains(field.dimension);
       final unit = value.typedUnit;
       if (unit != null && unitless) {
-        out.add(QueryError('${field.key} takes no unit', path: path));
+        out.add(
+          QueryError(
+            QueryErrorCode.noUnitAllowed,
+            path: path,
+            args: {'field': field.key},
+          ),
+        );
       } else if (unit != null && dimensionOfUnit(unit) != field.dimension) {
         out.add(
           QueryError(
-            '"${unit.suffix}" is not a ${field.dimension.name} unit',
+            QueryErrorCode.wrongUnitDimension,
             path: path,
+            args: {'unit': unit.suffix, 'dimension': field.dimension.name},
           ),
         );
       }
       final s = field.sanity;
       if (s != null && (value.value < s.min || value.value > s.max)) {
-        out.add(QueryError('${field.key} value is out of range', path: path));
+        out.add(
+          QueryError(
+            QueryErrorCode.outOfRange,
+            path: path,
+            args: {'field': field.key},
+          ),
+        );
       }
     case FieldType.text:
     case FieldType.id:
       if (value is! StringValue) {
-        out.add(QueryError('${field.key} expects text', path: path));
+        out.add(
+          QueryError(
+            QueryErrorCode.expectsText,
+            path: path,
+            args: {'field': field.key},
+          ),
+        );
       }
     case FieldType.bool:
       if (value is! BoolValue) {
-        out.add(QueryError('${field.key} expects true or false', path: path));
+        out.add(
+          QueryError(
+            QueryErrorCode.expectsBool,
+            path: path,
+            args: {'field': field.key},
+          ),
+        );
       }
     case FieldType.enumName:
       if (value is! EnumValue) {
         out.add(
-          QueryError('${field.key} expects one of its values', path: path),
+          QueryError(
+            QueryErrorCode.expectsEnumValue,
+            path: path,
+            args: {'field': field.key},
+          ),
         );
       } else if (!(field.enumValues ?? const []).contains(value.name)) {
         out.add(
-          QueryError('"${value.name}" is not a ${field.key} value', path: path),
+          QueryError(
+            QueryErrorCode.notEnumValue,
+            path: path,
+            args: {'text': value.name, 'field': field.key},
+          ),
         );
       }
     case FieldType.date:
@@ -235,10 +299,20 @@ void _checkValue(
       // day (the parser lowers a period to its edge day for those).
       if (value is DateRangeValue) {
         out.add(
-          QueryError('${field.key} expects a single day here', path: path),
+          QueryError(
+            QueryErrorCode.expectsSingleDay,
+            path: path,
+            args: {'field': field.key},
+          ),
         );
       } else if (value is! DateValue) {
-        out.add(QueryError('${field.key} expects a date', path: path));
+        out.add(
+          QueryError(
+            QueryErrorCode.expectsDate,
+            path: path,
+            args: {'field': field.key},
+          ),
+        );
       }
   }
 }

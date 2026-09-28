@@ -10,6 +10,8 @@ import 'package:submersion/features/backup/data/services/backup_saf_port.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/backup_target.dart';
 
+import '../../../../helpers/mock_channels.dart';
+
 class _FakeSafPort implements BackupSafPort {
   _FakeSafPort({this.tree});
   final String? tree; // resolveTree result
@@ -48,6 +50,7 @@ void main() {
           (call) async => Directory.systemTemp.path,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     preferences = BackupPreferences(await SharedPreferences.getInstance());

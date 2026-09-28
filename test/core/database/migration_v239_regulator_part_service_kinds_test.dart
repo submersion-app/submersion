@@ -74,14 +74,17 @@ void main() {
     return row.data;
   }
 
-  test('v239 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 239);
+  test('v239 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v240 (scoped event tombstones, #1926) landed on top; the
+    // newest rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(239));
     expect(AppDatabase.migrationVersions, contains(239));
-    expect(AppDatabase.migrationStepCount(238), 1);
-    // Reference-data rung: the sync compatibility floor must not move.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
+    expect(AppDatabase.migrationStepCount(238), greaterThanOrEqualTo(1));
+    // Reference-data rung: it did not move the floor (v240 raised it later).
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(224),
+    );
   });
 
   test('a fresh database seeds the regulator parts on both kinds', () async {
