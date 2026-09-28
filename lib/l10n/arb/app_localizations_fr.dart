@@ -44787,13 +44787,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_certifications_agency => 'Organisme';
 
   @override
+  String get query_certifications_buddy => 'Binôme';
+
+  @override
   String get query_certifications_cardNumber => 'Numéro de carte';
+
+  @override
+  String get query_certifications_course => 'Formation';
 
   @override
   String get query_certifications_expiryDate => 'Date d\'expiration';
 
   @override
+  String get query_certifications_instructor => 'Instructeur';
+
+  @override
   String get query_certifications_instructorName => 'Nom de l\'instructeur';
+
+  @override
+  String get query_certifications_instructorNumber => 'Numéro d\'instructeur';
 
   @override
   String get query_certifications_issueDate => 'Date de délivrance';
@@ -44803,6 +44815,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get query_certifications_name => 'Nom';
+
+  @override
+  String get query_certifications_notes => 'Notes';
 
   @override
   String get query_computers_manufacturer => 'Fabricant';

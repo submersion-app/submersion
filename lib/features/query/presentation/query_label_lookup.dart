@@ -29,18 +29,28 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_centers_name;
     case 'query_certifications_agency':
       return l10n.query_certifications_agency;
+    case 'query_certifications_buddy':
+      return l10n.query_certifications_buddy;
     case 'query_certifications_cardNumber':
       return l10n.query_certifications_cardNumber;
+    case 'query_certifications_course':
+      return l10n.query_certifications_course;
     case 'query_certifications_expiryDate':
       return l10n.query_certifications_expiryDate;
+    case 'query_certifications_instructor':
+      return l10n.query_certifications_instructor;
     case 'query_certifications_instructorName':
       return l10n.query_certifications_instructorName;
+    case 'query_certifications_instructorNumber':
+      return l10n.query_certifications_instructorNumber;
     case 'query_certifications_issueDate':
       return l10n.query_certifications_issueDate;
     case 'query_certifications_level':
       return l10n.query_certifications_level;
     case 'query_certifications_name':
       return l10n.query_certifications_name;
+    case 'query_certifications_notes':
+      return l10n.query_certifications_notes;
     case 'query_computers_manufacturer':
       return l10n.query_computers_manufacturer;
     case 'query_computers_model':

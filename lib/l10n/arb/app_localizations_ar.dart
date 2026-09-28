@@ -44339,13 +44339,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_certifications_agency => 'الهيئة';
 
   @override
+  String get query_certifications_buddy => 'زميل الغوص';
+
+  @override
   String get query_certifications_cardNumber => 'رقم البطاقة';
+
+  @override
+  String get query_certifications_course => 'الدورة';
 
   @override
   String get query_certifications_expiryDate => 'تاريخ الانتهاء';
 
   @override
+  String get query_certifications_instructor => 'المدرب';
+
+  @override
   String get query_certifications_instructorName => 'اسم المدرب';
+
+  @override
+  String get query_certifications_instructorNumber => 'رقم المدرب';
 
   @override
   String get query_certifications_issueDate => 'تاريخ الإصدار';
@@ -44355,6 +44367,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_certifications_name => 'الاسم';
+
+  @override
+  String get query_certifications_notes => 'ملاحظات';
 
   @override
   String get query_computers_manufacturer => 'الشركة المصنعة';

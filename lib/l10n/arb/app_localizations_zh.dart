@@ -42094,13 +42094,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_certifications_agency => '认证机构';
 
   @override
+  String get query_certifications_buddy => '潜伴';
+
+  @override
   String get query_certifications_cardNumber => '卡号';
+
+  @override
+  String get query_certifications_course => '课程';
 
   @override
   String get query_certifications_expiryDate => '到期日期';
 
   @override
+  String get query_certifications_instructor => '教练';
+
+  @override
   String get query_certifications_instructorName => '教练姓名';
+
+  @override
+  String get query_certifications_instructorNumber => '教练编号';
 
   @override
   String get query_certifications_issueDate => '签发日期';
@@ -42110,6 +42122,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_certifications_name => '名称';
+
+  @override
+  String get query_certifications_notes => '备注';
 
   @override
   String get query_computers_manufacturer => '制造商';

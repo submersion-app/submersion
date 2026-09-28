@@ -44589,13 +44589,25 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_certifications_agency => 'Verband';
 
   @override
+  String get query_certifications_buddy => 'Tauchpartner';
+
+  @override
   String get query_certifications_cardNumber => 'Kartennummer';
+
+  @override
+  String get query_certifications_course => 'Kurs';
 
   @override
   String get query_certifications_expiryDate => 'Ablaufdatum';
 
   @override
+  String get query_certifications_instructor => 'Tauchlehrer';
+
+  @override
   String get query_certifications_instructorName => 'Name des Instructors';
+
+  @override
+  String get query_certifications_instructorNumber => 'Tauchlehrernummer';
 
   @override
   String get query_certifications_issueDate => 'Ausstellungsdatum';
@@ -44605,6 +44617,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_certifications_name => 'Name';
+
+  @override
+  String get query_certifications_notes => 'Notizen';
 
   @override
   String get query_computers_manufacturer => 'Hersteller';

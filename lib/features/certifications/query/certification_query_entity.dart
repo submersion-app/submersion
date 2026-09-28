@@ -1,65 +1,85 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
+import 'package:submersion/core/query/registry/query_relation.dart';
 
-/// Minimal in PR 1 (reached through `buddies.certifications`); PR 4 of #2365
-/// adds the list entry point.
-const certificationQueryEntity = QueryEntity(
+QueryField _text(String key, String column) => QueryField(
+  key: key,
+  type: FieldType.text,
+  sql: '{r}.$column',
+  emptySql: "({r}.$column IS NULL OR TRIM({r}.$column) = '')",
+  labelKey: 'query_certifications_$key',
+);
+
+QueryField _date(String key, String column) => QueryField(
+  key: key,
+  type: FieldType.date,
+  dateFrame: DateFrame.localInstant,
+  sql: '{r}.$column',
+  emptySql: '{r}.$column IS NULL',
+  labelKey: 'query_certifications_$key',
+);
+
+/// A buddy's certification row, as stored in `buddy_id`/`instructor_id`.
+QueryRelation _buddy(String key, String column) => QueryRelation(
+  key: key,
+  target: QuerySubject.buddies,
+  shape: RelationShape.fk,
+  joinSql: '{to}.id = {from}.$column',
+  isMany: false,
+  labelKey: 'query_certifications_$key',
+);
+
+/// Every field and relation a certification query can name (#2365). The
+/// certification list's query roots here; `buddies.certifications` reaches
+/// it from dives. `agency` and `level` store enum names, so they compare as
+/// enums; a stored name outside the enum is set but equals no value.
+final certificationQueryEntity = QueryEntity(
   subject: QuerySubject.certifications,
   table: 'certifications',
   diverScopeColumn: 'diver_id',
+  // The certification search route's columns.
+  textSearchSql: const [
+    "{r}.name LIKE ? ESCAPE '\\'",
+    "{r}.agency LIKE ? ESCAPE '\\'",
+    "{r}.card_number LIKE ? ESCAPE '\\'",
+  ],
   fields: [
-    QueryField(
-      key: 'name',
-      type: FieldType.text,
-      sql: '{r}.name',
-      emptySql: "({r}.name IS NULL OR TRIM({r}.name) = '')",
-      labelKey: 'query_certifications_name',
-    ),
+    _text('name', 'name'),
     QueryField(
       key: 'agency',
-      type: FieldType.text,
+      type: FieldType.enumName,
       sql: '{r}.agency',
       emptySql: "({r}.agency IS NULL OR TRIM({r}.agency) = '')",
       labelKey: 'query_certifications_agency',
+      enumValues: [for (final a in CertificationAgency.values) a.name],
     ),
     QueryField(
       key: 'level',
-      type: FieldType.text,
+      type: FieldType.enumName,
       sql: '{r}.level',
       emptySql: "({r}.level IS NULL OR TRIM({r}.level) = '')",
       labelKey: 'query_certifications_level',
+      enumValues: [for (final l in CertificationLevel.values) l.name],
     ),
-    QueryField(
-      key: 'cardNumber',
-      type: FieldType.text,
-      sql: '{r}.card_number',
-      emptySql: "({r}.card_number IS NULL OR TRIM({r}.card_number) = '')",
-      labelKey: 'query_certifications_cardNumber',
-    ),
-    QueryField(
-      key: 'instructorName',
-      type: FieldType.text,
-      sql: '{r}.instructor_name',
-      emptySql:
-          "({r}.instructor_name IS NULL OR TRIM({r}.instructor_name) = '')",
-      labelKey: 'query_certifications_instructorName',
-    ),
-    QueryField(
-      key: 'issueDate',
-      type: FieldType.date,
-      dateFrame: DateFrame.localInstant,
-      sql: '{r}.issue_date',
-      emptySql: '{r}.issue_date IS NULL',
-      labelKey: 'query_certifications_issueDate',
-    ),
-    QueryField(
-      key: 'expiryDate',
-      type: FieldType.date,
-      dateFrame: DateFrame.localInstant,
-      sql: '{r}.expiry_date',
-      emptySql: '{r}.expiry_date IS NULL',
-      labelKey: 'query_certifications_expiryDate',
+    _text('cardNumber', 'card_number'),
+    _text('instructorName', 'instructor_name'),
+    _text('instructorNumber', 'instructor_number'),
+    _text('notes', 'notes'),
+    _date('issueDate', 'issue_date'),
+    _date('expiryDate', 'expiry_date'),
+  ],
+  relations: [
+    _buddy('buddy', 'buddy_id'),
+    _buddy('instructor', 'instructor_id'),
+    const QueryRelation(
+      key: 'course',
+      target: QuerySubject.courses,
+      shape: RelationShape.fk,
+      joinSql: '{to}.id = {from}.course_id',
+      isMany: false,
+      labelKey: 'query_certifications_course',
     ),
   ],
 );

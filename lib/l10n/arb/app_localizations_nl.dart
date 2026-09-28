@@ -44384,13 +44384,25 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_certifications_agency => 'Organisatie';
 
   @override
+  String get query_certifications_buddy => 'Buddy';
+
+  @override
   String get query_certifications_cardNumber => 'Kaartnummer';
+
+  @override
+  String get query_certifications_course => 'Cursus';
 
   @override
   String get query_certifications_expiryDate => 'Vervaldatum';
 
   @override
+  String get query_certifications_instructor => 'Instructeur';
+
+  @override
   String get query_certifications_instructorName => 'Naam instructeur';
+
+  @override
+  String get query_certifications_instructorNumber => 'Instructeurnummer';
 
   @override
   String get query_certifications_issueDate => 'Uitgiftedatum';
@@ -44400,6 +44412,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_certifications_name => 'Naam';
+
+  @override
+  String get query_certifications_notes => 'Notities';
 
   @override
   String get query_computers_manufacturer => 'Fabrikant';

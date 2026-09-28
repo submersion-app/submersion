@@ -6,6 +6,8 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/presentation/query_labels.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
+import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weekday_filter_selector.dart';
@@ -92,6 +94,11 @@ class AppQueryLabels implements QueryLabels {
         return queryLabelForKey(_l10n, 'query_equipment_serviceDue_$value');
       case 'query_sites_difficulty':
         return byName(SiteDifficulty.values)?.localizedName(_l10n) ?? value;
+      case 'query_certifications_agency':
+        return byName(CertificationAgency.values)?.localizedName(_l10n) ??
+            value;
+      case 'query_certifications_level':
+        return byName(CertificationLevel.values)?.localizedName(_l10n) ?? value;
       default:
         return value;
     }

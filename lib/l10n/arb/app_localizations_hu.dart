@@ -44499,13 +44499,25 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_certifications_agency => 'Szervezet';
 
   @override
+  String get query_certifications_buddy => 'Búvártárs';
+
+  @override
   String get query_certifications_cardNumber => 'Kártyaszám';
+
+  @override
+  String get query_certifications_course => 'Tanfolyam';
 
   @override
   String get query_certifications_expiryDate => 'Lejárat dátuma';
 
   @override
+  String get query_certifications_instructor => 'Oktató';
+
+  @override
   String get query_certifications_instructorName => 'Oktató neve';
+
+  @override
+  String get query_certifications_instructorNumber => 'Oktató száma';
 
   @override
   String get query_certifications_issueDate => 'Kiállítás dátuma';
@@ -44515,6 +44527,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_certifications_name => 'Név';
+
+  @override
+  String get query_certifications_notes => 'Jegyzetek';
 
   @override
   String get query_computers_manufacturer => 'Gyártó';

@@ -43787,13 +43787,25 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_certifications_agency => 'ארגון';
 
   @override
+  String get query_certifications_buddy => 'שותף';
+
+  @override
   String get query_certifications_cardNumber => 'מספר כרטיס';
+
+  @override
+  String get query_certifications_course => 'קורס';
 
   @override
   String get query_certifications_expiryDate => 'תאריך תפוגה';
 
   @override
+  String get query_certifications_instructor => 'מדריך';
+
+  @override
   String get query_certifications_instructorName => 'שם המדריך';
+
+  @override
+  String get query_certifications_instructorNumber => 'מספר המדריך';
 
   @override
   String get query_certifications_issueDate => 'תאריך הנפקה';
@@ -43803,6 +43815,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_certifications_name => 'שם';
+
+  @override
+  String get query_certifications_notes => 'הערות';
 
   @override
   String get query_computers_manufacturer => 'יצרן';

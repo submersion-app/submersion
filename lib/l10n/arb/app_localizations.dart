@@ -71413,11 +71413,23 @@ abstract class AppLocalizations {
   /// **'Agency'**
   String get query_certifications_agency;
 
+  /// Query builder: the buddy a certification belongs to
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy'**
+  String get query_certifications_buddy;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
   /// **'Card number'**
   String get query_certifications_cardNumber;
+
+  /// Query builder: the course a certification came from
+  ///
+  /// In en, this message translates to:
+  /// **'Course'**
+  String get query_certifications_course;
 
   /// Field label in the query builder
   ///
@@ -71425,11 +71437,23 @@ abstract class AppLocalizations {
   /// **'Expiry date'**
   String get query_certifications_expiryDate;
 
+  /// Query builder: a certification's instructor
+  ///
+  /// In en, this message translates to:
+  /// **'Instructor'**
+  String get query_certifications_instructor;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
   /// **'Instructor name'**
   String get query_certifications_instructorName;
+
+  /// Query builder: the instructor number on a certification
+  ///
+  /// In en, this message translates to:
+  /// **'Instructor number'**
+  String get query_certifications_instructorNumber;
 
   /// Field label in the query builder
   ///
@@ -71448,6 +71472,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Name'**
   String get query_certifications_name;
+
+  /// Query builder: a certification's notes
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_certifications_notes;
 
   /// Field label in the query builder
   ///

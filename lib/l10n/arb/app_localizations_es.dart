@@ -44713,13 +44713,25 @@ class AppLocalizationsEs extends AppLocalizations {
   String get query_certifications_agency => 'Agencia';
 
   @override
+  String get query_certifications_buddy => 'Compañero';
+
+  @override
   String get query_certifications_cardNumber => 'Número de tarjeta';
+
+  @override
+  String get query_certifications_course => 'Curso';
 
   @override
   String get query_certifications_expiryDate => 'Fecha de caducidad';
 
   @override
+  String get query_certifications_instructor => 'Instructor';
+
+  @override
   String get query_certifications_instructorName => 'Nombre del instructor';
+
+  @override
+  String get query_certifications_instructorNumber => 'Número de instructor';
 
   @override
   String get query_certifications_issueDate => 'Fecha de emisión';
@@ -44729,6 +44741,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get query_certifications_name => 'Nombre';
+
+  @override
+  String get query_certifications_notes => 'Notas';
 
   @override
   String get query_computers_manufacturer => 'Fabricante';
