@@ -5,7 +5,7 @@ import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
-import 'package:submersion/features/buddies/presentation/widgets/buddy_list_content.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_search_delegate.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/providers/entity_card_config_providers.dart';
