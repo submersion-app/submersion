@@ -55,6 +55,7 @@ class GlobalStateSnapshot {
       'VideoPlayerPlatform.instance': VideoPlayerPlatform.instance,
       'FlutterWebAuth2Platform.instance': FlutterWebAuth2Platform.instance,
       'HttpOverrides.current': HttpOverrides.current,
+      'IOOverrides.current': IOOverrides.current,
       'QualityScanScheduler.enabled': QualityScanScheduler.enabled,
       'SensorSummaryScheduler.enabled': SensorSummaryScheduler.enabled,
       'GoogleFonts.config.allowRuntimeFetching':

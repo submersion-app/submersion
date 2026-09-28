@@ -17,6 +17,8 @@ class _FakePathProvider extends PathProviderPlatform {}
 
 class _Overrides extends HttpOverrides {}
 
+final class _IoOverrides extends IOOverrides {}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -85,6 +87,35 @@ void main() {
       'FlutterError.onError',
       'debugDefaultTargetPlatformOverride',
     ]);
+  });
+
+  test('IO overrides are reported', () {
+    final before = GlobalStateSnapshot.take();
+    final previous = IOOverrides.current;
+    addTearDown(() => IOOverrides.global = previous);
+
+    IOOverrides.global = _IoOverrides();
+
+    expect(GlobalStateSnapshot.take().changedSince(before), [
+      'IOOverrides.current',
+    ]);
+  });
+
+  test('restoring the harness overrides reports nothing', () {
+    final before = GlobalStateSnapshot.take();
+    final previousHttp = HttpOverrides.current;
+    final previousIo = IOOverrides.current;
+    addTearDown(() {
+      HttpOverrides.global = previousHttp;
+      IOOverrides.global = previousIo;
+    });
+    HttpOverrides.global = _Overrides();
+    IOOverrides.global = _IoOverrides();
+
+    HttpOverrides.global = previousHttp;
+    IOOverrides.global = previousIo;
+
+    expect(GlobalStateSnapshot.take().changedSince(before), isEmpty);
   });
 
   test('a PDF font loader override is reported', () {

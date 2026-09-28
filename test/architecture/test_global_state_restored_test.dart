@@ -19,9 +19,10 @@ import 'global_state_scanner.dart';
 ///
 /// What to write instead:
 ///
-/// * A `*Platform.instance` or `HttpOverrides.global`: read the previous value
-///   into a variable first, and assign that variable back in `tearDown` or
-///   `addTearDown`. Reading the value without assigning it back does not count.
+/// * A `*Platform.instance`, `HttpOverrides.global` or `IOOverrides.global`:
+///   read the previous value into a variable first, and assign that variable
+///   back in `tearDown` or `addTearDown`. Reading the value without assigning
+///   it back does not count.
 /// * `QualityScanScheduler.enabled`, `SensorSummaryScheduler.enabled`,
 ///   `debugCanShareFiles` or `GoogleFonts.config.allowRuntimeFetching`: call
 ///   `applyGlobalTestDefaults()` from
