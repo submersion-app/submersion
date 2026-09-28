@@ -44309,6 +44309,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_buddies_certifications => 'الشهادات';
 
   @override
+  String get query_buddies_dives => 'الغطسات';
+
+  @override
   String get query_buddies_email => 'البريد الإلكتروني';
 
   @override

@@ -9,6 +9,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
   switch (key) {
     case 'query_buddies_certifications':
       return l10n.query_buddies_certifications;
+    case 'query_buddies_dives':
+      return l10n.query_buddies_dives;
     case 'query_buddies_email':
       return l10n.query_buddies_email;
     case 'query_buddies_favorite':

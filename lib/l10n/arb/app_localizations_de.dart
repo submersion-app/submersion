@@ -44559,6 +44559,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_buddies_certifications => 'Zertifizierungen';
 
   @override
+  String get query_buddies_dives => 'Tauchgänge';
+
+  @override
   String get query_buddies_email => 'E-Mail';
 
   @override

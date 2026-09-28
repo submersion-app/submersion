@@ -43757,6 +43757,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_buddies_certifications => 'הסמכות';
 
   @override
+  String get query_buddies_dives => 'צלילות';
+
+  @override
   String get query_buddies_email => 'דוא\"ל';
 
   @override

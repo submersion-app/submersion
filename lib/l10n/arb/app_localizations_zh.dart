@@ -42064,6 +42064,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_buddies_certifications => '证书';
 
   @override
+  String get query_buddies_dives => '潜水';
+
+  @override
   String get query_buddies_email => '电子邮件';
 
   @override

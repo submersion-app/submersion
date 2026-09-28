@@ -44636,6 +44636,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_buddies_certifications => 'Brevetti';
 
   @override
+  String get query_buddies_dives => 'Immersioni';
+
+  @override
   String get query_buddies_email => 'E-mail';
 
   @override

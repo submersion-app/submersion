@@ -44757,6 +44757,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_buddies_certifications => 'Certifications';
 
   @override
+  String get query_buddies_dives => 'Plongées';
+
+  @override
   String get query_buddies_email => 'E-mail';
 
   @override

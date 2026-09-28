@@ -44469,6 +44469,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_buddies_certifications => 'Minősítések';
 
   @override
+  String get query_buddies_dives => 'Merülések';
+
+  @override
   String get query_buddies_email => 'E-mail';
 
   @override

@@ -27370,6 +27370,8 @@
   "diveCenters_rental_deleteConfirm": "Delete this rental note?",
   "query_buddies_certifications": "Certifications",
   "@query_buddies_certifications": {"description": "Field label in the query builder"},
+  "query_buddies_dives": "Dives",
+  "@query_buddies_dives": {"description": "Query builder: a buddy's dives"},
   "query_buddies_email": "Email",
   "@query_buddies_email": {"description": "Field label in the query builder"},
   "query_buddies_favorite": "Favorite",
