@@ -21,7 +21,20 @@ abstract final class SiteTimeZone {
   debugZoneIdOverride;
 
   static final Set<String> _loggedMissingZones = {};
-  static bool _fullDatabaseLoaded = false;
+
+  /// Location count of the full database this class last loaded. The
+  /// database is process-wide and another caller can replace it later, so
+  /// "full" is checked against the live database, never remembered.
+  static int? _fullDatabaseSize;
+
+  static bool get _fullDatabaseLoaded =>
+      _fullDatabaseSize != null &&
+      tz.timeZoneDatabase.locations.length == _fullDatabaseSize;
+
+  static void _loadFullDatabase() {
+    tzdata.initializeTimeZones();
+    _fullDatabaseSize = tz.timeZoneDatabase.locations.length;
+  }
 
   /// The UTC instant at which the site's clocks show [wallClock]'s digits.
   ///
@@ -80,16 +93,12 @@ abstract final class SiteTimeZone {
   /// miss loads the full database once. Loading resets `tz.local`, so the
   /// caller's local zone is restored afterwards.
   static tz.Location? _find(String id) {
-    if (!tz.timeZoneDatabase.isInitialized) {
-      tzdata.initializeTimeZones();
-      _fullDatabaseLoaded = true;
-    }
+    if (!tz.timeZoneDatabase.isInitialized) _loadFullDatabase();
     final found = tz.timeZoneDatabase.locations[id];
     if (found != null) return found;
     if (!_fullDatabaseLoaded) {
       final previousLocal = tz.local;
-      tzdata.initializeTimeZones();
-      _fullDatabaseLoaded = true;
+      _loadFullDatabase();
       // Prefer the reloaded database's copy; a hand-built Location that is
       // not in it is put back as it was.
       tz.setLocalLocation(
