@@ -1395,6 +1395,22 @@ class SyncService {
             records: data.divePlanSegments,
             hasUpdatedAt: true,
           ),
+          // Mission rows reference only their plan, applied above.
+          (
+            type: 'divePlanMissions',
+            records: data.divePlanMissions,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'divePlanMissionLegs',
+            records: data.divePlanMissionLegs,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'divePlanMissionMembers',
+            records: data.divePlanMissionMembers,
+            hasUpdatedAt: true,
+          ),
           (type: 'equipment', records: data.equipment, hasUpdatedAt: true),
           // Trip cylinder slots reference trips and equipment; their ledger
           // references the slots and dive centers. Both before dives, whose
@@ -2490,6 +2506,9 @@ class SyncService {
     'divePlans': true,
     'divePlanTanks': true,
     'divePlanSegments': true,
+    'divePlanMissions': true,
+    'divePlanMissionLegs': true,
+    'divePlanMissionMembers': true,
     'equipment': true,
     'equipmentSets': true,
     'equipmentSetItems': false,
@@ -2842,6 +2861,15 @@ class SyncService {
     'divePlanSegments': [
       (field: 'planId', parent: 'divePlans', nullable: false),
       (field: 'tankId', parent: 'divePlanTanks', nullable: false),
+    ],
+    'divePlanMissions': [
+      (field: 'planId', parent: 'divePlans', nullable: false),
+    ],
+    'divePlanMissionLegs': [
+      (field: 'planId', parent: 'divePlans', nullable: false),
+    ],
+    'divePlanMissionMembers': [
+      (field: 'planId', parent: 'divePlans', nullable: false),
     ],
     'certifications': [
       (field: 'courseId', parent: 'courses', nullable: true),
