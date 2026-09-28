@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_history_card.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
@@ -286,6 +289,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
       );
     }
 
+    final canDelete = _isOwner(ref, equipment);
     return Scaffold(
       appBar: AppBar(
         title: Text(equipment.name),
@@ -295,21 +299,21 @@ class _EquipmentDetailContent extends ConsumerWidget {
             tooltip: context.l10n.equipment_detail_editTooltip,
             onPressed: () => context.push('/equipment/$equipmentId/edit'),
           ),
-          if (_isOwner(ref, equipment))
-            PopupMenuButton<String>(
-              key: const ValueKey('equipment-detail-overflow'),
-              onSelected: (value) => _handleMenuAction(context, ref, value),
-              itemBuilder: (context) => _buildMenuItems(context),
-            ),
+          PopupMenuButton<String>(
+            key: const ValueKey('equipment-detail-overflow'),
+            onSelected: (value) => _handleMenuAction(context, ref, value),
+            itemBuilder: (context) =>
+                _buildMenuItems(context, canDelete: canDelete),
+          ),
         ],
       ),
       body: body,
     );
   }
 
-  /// Delete is owner-only (issue #2046), so the page menu, whose one action
-  /// is delete, shows only to the item's owner. With no diver or no owner
-  /// every profile counts as the owner, as before sharing existed.
+  /// Delete is owner-only (issue #2046), so the page menu offers it only to
+  /// the item's owner. With no diver or no owner every profile counts as the
+  /// owner, as before sharing existed.
   bool _isOwner(WidgetRef ref, EquipmentItem equipment) {
     final activeDiver = ref.watch(validatedCurrentDiverIdProvider);
     // Hidden until the active diver is known, so a sharee never sees it flash.
@@ -323,6 +327,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
     EquipmentItem equipment,
     bool isServiceOverdue,
   ) {
+    final canDelete = _isOwner(ref, equipment);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -378,31 +383,38 @@ class _EquipmentDetailContent extends ConsumerWidget {
               context.go('$currentPath?selected=$equipmentId&mode=edit');
             },
           ),
-          if (_isOwner(ref, equipment))
-            PopupMenuButton<String>(
-              key: const ValueKey('equipment-detail-overflow'),
-              icon: const Icon(Icons.more_vert, size: 20),
-              onSelected: (value) => _handleMenuAction(context, ref, value),
-              itemBuilder: (context) => _buildMenuItems(context),
-            ),
+          PopupMenuButton<String>(
+            key: const ValueKey('equipment-detail-overflow'),
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (value) => _handleMenuAction(context, ref, value),
+            itemBuilder: (context) =>
+                _buildMenuItems(context, canDelete: canDelete),
+          ),
         ],
       ),
     );
   }
 
-  List<PopupMenuEntry<String>> _buildMenuItems(BuildContext context) {
+  /// Open in Connections is for everyone who can see the item, a sharee
+  /// included: shared gear sits on their own dives. Delete needs the owner.
+  List<PopupMenuEntry<String>> _buildMenuItems(
+    BuildContext context, {
+    required bool canDelete,
+  }) {
     return [
-      PopupMenuItem(
-        value: 'delete',
-        child: ListTile(
-          leading: const Icon(Icons.delete, color: Colors.red),
-          title: Text(
-            context.l10n.equipment_menu_delete,
-            style: const TextStyle(color: Colors.red),
+      openInConnectionsMenuItem(context),
+      if (canDelete)
+        PopupMenuItem(
+          value: 'delete',
+          child: ListTile(
+            leading: const Icon(Icons.delete, color: Colors.red),
+            title: Text(
+              context.l10n.equipment_menu_delete,
+              style: const TextStyle(color: Colors.red),
+            ),
+            contentPadding: EdgeInsets.zero,
           ),
-          contentPadding: EdgeInsets.zero,
         ),
-      ),
     ];
   }
 
@@ -691,14 +703,20 @@ class _EquipmentDetailContent extends ConsumerWidget {
                   formatAttributeValue(attr, def, units, context.l10n),
                 ),
             // The item's colour (issue #2326): its own row with a swatch,
-            // only when the stored value is a colour code.
-            if (normalizeEquipmentColor(
-                  equipment.attrText(EquipmentAttrKeys.color),
-                )
-                case final code?)
-              _buildColorRow(context, code),
+            // only when the stored value is a colour code and the type has
+            // a colour. On a type without one it shows as a custom field
+            // (issue #2520), the way the edit form keeps it.
+            if (EquipmentAttributeCatalog.hasColor(equipment.type))
+              if (normalizeEquipmentColor(
+                    equipment.attrText(EquipmentAttrKeys.color),
+                  )
+                  case final code?)
+                _buildColorRow(context, code),
             for (final attr
-                in equipment.attributes.where((a) => a.isCustom).toList()
+                in keepStrayColorAsCustom(
+                    equipment.type,
+                    equipment.attributes,
+                  ).where((a) => a.isCustom).toList()
                   ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)))
               if (attr.hasValue)
                 _buildDetailRow(context, attr.key, attr.valueText ?? ''),
@@ -973,6 +991,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
     final notifier = ref.read(equipmentListNotifierProvider.notifier);
 
     switch (action) {
+      case kOpenInConnectionsAction:
+        openInConnections(
+          context,
+          NodeRef(ConnectionKind.equipment, equipmentId),
+        );
       case 'delete':
         final confirmed = await showDialog<bool>(
           context: context,

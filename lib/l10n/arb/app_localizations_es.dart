@@ -9,6 +9,184 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
+  String get connections_action_centreHere => 'Centrar aquí';
+
+  @override
+  String get connections_around_centredOn => 'Centrado en';
+
+  @override
+  String get connections_around_hops => 'Saltos';
+
+  @override
+  String connections_around_kindChip(String kind, int count) {
+    return '$kind ($count)';
+  }
+
+  @override
+  String get connections_around_noResults => 'Sin resultados';
+
+  @override
+  String get connections_around_prompt =>
+      'Busca un compañero, un punto, un viaje u otra cosa para centrar el mapa en ello.';
+
+  @override
+  String get connections_around_searchHint =>
+      'Buscar compañeros, puntos, viajes y otros';
+
+  @override
+  String get connections_around_show => 'Mostrar';
+
+  @override
+  String get connections_editor_kinds => 'Tipos';
+
+  @override
+  String connections_editor_link(String a, String b) {
+    return '$a con $b';
+  }
+
+  @override
+  String get connections_editor_links => 'Enlaces';
+
+  @override
+  String connections_editor_minShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Al menos $count inmersiones compartidas',
+      one: 'Al menos 1 inmersión compartida',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_editor_saveAsMap => 'Guardar como mapa';
+
+  @override
+  String get connections_editor_title => 'Mapa personalizado';
+
+  @override
+  String get connections_filter_allFilters => 'Todos los filtros';
+
+  @override
+  String get connections_filter_clear => 'Borrar';
+
+  @override
+  String get connections_filter_none => 'No hay filtros activos.';
+
+  @override
+  String get connections_loading => 'Cargando conexiones';
+
+  @override
+  String get connections_mode_around => 'Alrededor de un elemento';
+
+  @override
+  String get connections_mode_map => 'Mapa completo';
+
+  @override
+  String get connections_preset_centers => 'Centros y personas';
+
+  @override
+  String get connections_preset_circle => 'Círculo de buceo';
+
+  @override
+  String get connections_preset_edited => 'editado';
+
+  @override
+  String get connections_preset_gear => 'Equipo en conjunto';
+
+  @override
+  String get connections_preset_gearRoad => 'Equipo de viaje';
+
+  @override
+  String get connections_preset_life => 'Puntos por vida marina';
+
+  @override
+  String get connections_preset_reef => 'Vida del arrecife';
+
+  @override
+  String get connections_preset_travel => 'Historia de viaje';
+
+  @override
+  String get connections_preset_trips => 'Viajes y personas';
+
+  @override
+  String get connections_preset_where => 'Quién bucea dónde';
+
+  @override
+  String get connections_presets_title => 'Predefinidos';
+
+  @override
+  String get connections_savedMap_badge => 'Mapa guardado';
+
+  @override
+  String connections_savedMap_deleted(String name) {
+    return '\"$name\" eliminado';
+  }
+
+  @override
+  String get connections_savedMap_nameLabel => 'Nombre';
+
+  @override
+  String get connections_savedMap_rename => 'Renombrar';
+
+  @override
+  String get connections_savedMap_saveTitle => 'Guardar mapa';
+
+  @override
+  String get connections_savedMap_undo => 'Deshacer';
+
+  @override
+  String get connections_savedMap_update => 'Actualizar con la vista actual';
+
+  @override
+  String get connections_summary_closest => 'Más cercano';
+
+  @override
+  String connections_summary_entitiesAround(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos',
+      one: '1 elemento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_mostConnected => 'Con más conexiones';
+
+  @override
+  String connections_summary_pairValue(int count, String a, String b) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$a y $b, $count inmersiones',
+      one: '$a y $b, 1 inmersión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_strongestPair => 'Pareja más fuerte';
+
+  @override
+  String get connections_summary_title => 'Resumen';
+
+  @override
+  String get connections_tab_details => 'Detalles';
+
+  @override
+  String get connections_tab_filter => 'Filtro';
+
+  @override
+  String connections_tab_filterCount(int count) {
+    return 'Filtro ($count)';
+  }
+
+  @override
+  String get connections_tab_view => 'Vista';
+
+  @override
   String get equipment_filter_owner_all => 'Todos';
 
   @override
@@ -3519,6 +3697,162 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get common_error_tryAgain => 'Algo salió mal. Inténtalo de nuevo.';
+
+  @override
+  String get connections_title => 'Conexiones';
+
+  @override
+  String get connections_tooltip_relayout => 'Reorganizar';
+
+  @override
+  String get connections_tooltip_showWholeWeb => 'Volver al mapa completo';
+
+  @override
+  String connections_filterBar_edges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count conexiones',
+      one: '1 conexión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_hiddenNodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count más sin mostrar',
+      one: '1 más sin mostrar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_showAll => 'Mostrar todo';
+
+  @override
+  String get connections_showAll_confirmTitle => '¿Mostrar todos los nodos?';
+
+  @override
+  String connections_showAll_confirmBody(int count) {
+    return '$count nodos pueden tardar un momento en organizarse en este dispositivo.';
+  }
+
+  @override
+  String get connections_action_open => 'Abrir';
+
+  @override
+  String get connections_action_showDives => 'Ver inmersiones';
+
+  @override
+  String get connections_action_openInConnections => 'Abrir en Conexiones';
+
+  @override
+  String connections_selection_divesTogether(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones juntos',
+      one: '1 inmersión juntos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_selection_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones',
+      one: '1 inmersión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_selection_topConnections => 'Conexiones principales';
+
+  @override
+  String connections_selection_firstLast(String first, String last) {
+    return 'Primera $first, última $last';
+  }
+
+  @override
+  String get connections_selection_hint =>
+      'Toca un nodo o una línea para ver los detalles.';
+
+  @override
+  String get connections_empty_noDives =>
+      'Aún no hay inmersiones. Las conexiones aparecen cuando el diario tiene inmersiones.';
+
+  @override
+  String get connections_empty_buddies =>
+      'Aún no hay compañeros vinculados a inmersiones. Añade compañeros a tus inmersiones o convierte los nombres antiguos en Ajustes, Herramientas de datos.';
+
+  @override
+  String get connections_empty_sites =>
+      'Ninguna inmersión tiene punto de buceo todavía.';
+
+  @override
+  String get connections_empty_filtered =>
+      'Nada coincide con el filtro actual.';
+
+  @override
+  String get connections_focusMissing =>
+      'Ese elemento ya no está en el diario.';
+
+  @override
+  String get connections_error_load => 'No se pudieron cargar las conexiones.';
+
+  @override
+  String get connections_legend_title => 'Leyenda';
+
+  @override
+  String connections_yearRange_label(int first, int last) {
+    return 'Años $first a $last';
+  }
+
+  @override
+  String connections_semantics_summary(int nodes, int edges) {
+    return '$nodes nodos y $edges conexiones';
+  }
+
+  @override
+  String connections_semantics_selected(String label) {
+    return 'Seleccionado: $label';
+  }
+
+  @override
+  String get connections_kind_buddy => 'Compañeros';
+
+  @override
+  String get connections_kind_site => 'Puntos de buceo';
+
+  @override
+  String get connections_kind_trip => 'Viajes';
+
+  @override
+  String get connections_kind_diveCenter => 'Centros de buceo';
+
+  @override
+  String get connections_kind_equipment => 'Equipo';
+
+  @override
+  String get connections_kind_species => 'Especies';
+
+  @override
+  String get connections_kind_tag => 'Etiquetas';
+
+  @override
+  String get connections_kind_diveType => 'Tipos de inmersión';
+
+  @override
+  String get connections_kind_diveComputer => 'Ordenadores de buceo';
+
+  @override
+  String get connections_kind_course => 'Cursos';
 
   @override
   String get courses_action_add => 'Agregar Curso';
@@ -21492,6 +21826,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get insights_category_conditions_title => 'Condiciones';
 
   @override
+  String get insights_category_connections_subtitle =>
+      'Compañeros, puntos y equipo enlazados';
+
+  @override
   String get insights_category_equipment_subtitle => 'Uso de equipo y peso';
 
   @override
@@ -39423,7 +39761,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get common_action_unpin => 'Desanclar';
 
   @override
-  String diveLog_filterChip_dateRange(String end, String start) {
+  String diveLog_filterChip_dateRange(String start, String end) {
     return '$start - $end';
   }
 
@@ -41020,6 +41358,18 @@ class AppLocalizationsEs extends AppLocalizations {
       'Algo más seguía usando el archivo de la base de datos, así que Submersion se detuvo en lugar de escribir en él. No se cambió nada y nada está dañado. Cierra Submersion por completo y vuelve a abrirlo.';
 
   @override
+  String get startup_locationUnreachable_title =>
+      'No se puede acceder a la carpeta de tu cuaderno de buceo';
+
+  @override
+  String get startup_locationUnreachable_body =>
+      'Tu cuaderno de buceo está en una carpeta que elegiste y Submersion no puede abrir esa carpeta ahora mismo. No se ha cambiado nada en ella. Si la carpeta está en una unidad que no está conectada, o en una carpeta en la nube que aún se está sincronizando, vuelve a conectarla y abre Submersion de nuevo.';
+
+  @override
+  String get startup_locationUnreachable_folderLabel =>
+      'Carpeta de tu cuaderno de buceo:';
+
+  @override
   String get startup_failure_technicalDetails => 'Detalles técnicos';
 
   @override
@@ -41084,6 +41434,22 @@ class AppLocalizationsEs extends AppLocalizations {
       'Aparta el archivo dañado y empieza de nuevo. No se elimina nada.';
 
   @override
+  String get startup_failure_chooseFolderAgain =>
+      'Elegir la carpeta del cuaderno de buceo';
+
+  @override
+  String get startup_failure_chooseFolderAgain_subtitle =>
+      'Vuelve a elegir la misma carpeta para devolverle el acceso a Submersion, o elige la carpeta donde está ahora tu cuaderno.';
+
+  @override
+  String get startup_failure_useDefaultLocation =>
+      'Volver a la ubicación predeterminada de la app';
+
+  @override
+  String get startup_failure_useDefaultLocation_subtitle =>
+      'Deja de usar esta carpeta y abre el cuaderno en la carpeta propia de Submersion. No se cambia nada en tu carpeta.';
+
+  @override
   String get startup_recovery_adopt_title => '¿Usar este cuaderno de buceo?';
 
   @override
@@ -41135,6 +41501,19 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get startup_recovery_encryptedBackup_body =>
       'Esa copia de seguridad está cifrada. Submersion solo puede desbloquear una copia cifrada con la app ya abierta, así que usa primero una de las otras opciones de aquí y luego restáurala desde Ajustes, en Copia de seguridad y restauración.';
+
+  @override
+  String get startup_recovery_useDefault_title =>
+      '¿Volver a la ubicación predeterminada de la app?';
+
+  @override
+  String startup_recovery_useDefault_body(Object folder) {
+    return 'A partir de ahora, Submersion abrirá el cuaderno en su propia carpeta, o creará allí uno vacío si no hay ninguno. No se mueve ni se elimina nada de $folder. Para volver a usar esa carpeta, elígela en Ajustes, en Almacenamiento de base de datos.';
+  }
+
+  @override
+  String get startup_recovery_useDefault_confirm =>
+      'Usar la ubicación predeterminada';
 
   @override
   String get startup_failure_downgrade_title => 'Volver a la versión anterior';

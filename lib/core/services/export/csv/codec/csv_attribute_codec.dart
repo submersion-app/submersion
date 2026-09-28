@@ -120,10 +120,13 @@ final _numberWithSymbol = RegExp(r'^(-?\d+(?:\.\d+)?)\s+(\S.*)$');
 /// `=`, or a curated value cannot be read as its kind requires.
 ///
 /// [dateFormat] is the format the file's date columns name; null means the
-/// file is Metric (a date attribute is then epoch milliseconds).
+/// file is Metric (a date attribute is then epoch milliseconds). [type] is
+/// the row's item type when known: a type without a colour keeps a colour
+/// code as the diver's own "color" field (issue #2520).
 CsvAttribute? parseAttributePair(
   String pair, {
   DateFormatPreference? dateFormat,
+  EquipmentType? type,
 }) {
   final eq = pair.indexOf('=');
   if (eq <= 0) return null;
@@ -138,7 +141,7 @@ CsvAttribute? parseAttributePair(
   }
 
   final def = EquipmentAttributeCatalog.defFor(key);
-  if (def != null) return _readCurated(def, value, dateFormat);
+  if (def != null) return _readCurated(def, value, dateFormat, type);
 
   final unitDef = _defByMyUnitsKey[key];
   final match = _numberWithSymbol.firstMatch(value);
@@ -164,6 +167,7 @@ CsvAttribute? _readCurated(
   EquipmentAttributeDef def,
   String value,
   DateFormatPreference? dateFormat,
+  EquipmentType? type,
 ) {
   CsvAttribute withNumber(double n) =>
       (key: def.key, isCustom: false, valueText: null, valueNum: n);
@@ -198,7 +202,10 @@ CsvAttribute? _readCurated(
       // A file written before items had a colour can carry the diver's own
       // custom field named "color", unprefixed. A value that is not a colour
       // code is that field, so it comes back as one instead of being lost.
-      return code == null
+      // So is a colour code on a type that has no colour: the item's form
+      // offers no colour for it, and its save would drop one.
+      final hasColor = type == null || EquipmentAttributeCatalog.hasColor(type);
+      return code == null || !hasColor
           ? (key: def.key, isCustom: true, valueText: value, valueNum: null)
           : (key: def.key, isCustom: false, valueText: code, valueNum: null);
     case AttributeKind.text:

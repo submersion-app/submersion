@@ -116,4 +116,67 @@ void main() {
       },
     );
   });
+
+  // Issue #2178, Copilot on PR 2497: the startup failure screen may only
+  // promise "nothing in your folder changed" when the file was never
+  // reached. An open that fails part way has already touched it, and the
+  // connection is only recorded once the open fully succeeds.
+  group('DatabaseService.hasReachedFile', () {
+    test('is false before anything was opened', () {
+      expect(DatabaseService.instance.hasReachedFile, isFalse);
+    });
+
+    test('is true after an open that failed part way', () async {
+      final path = p.join(tempDir.path, 'damaged', 'submersion.db');
+      Directory(p.dirname(path)).createSync(recursive: true);
+      File(path).writeAsStringSync('this is not a SQLite database at all');
+
+      await expectLater(
+        DatabaseService.instance.initialize(
+          locationService: _CustomLocationService(prefs, path),
+        ),
+        throwsA(anything),
+      );
+
+      expect(DatabaseService.instance.hasReachedFile, isTrue);
+    });
+
+    // Scoped to one attempt. The failure screen reads it, then closes; a
+    // relaunch (after re-picking the folder, say) that fails before it opens
+    // anything must not inherit the last attempt's answer, or an unreachable
+    // folder would never be named.
+    test('is cleared by the close that ends the attempt', () async {
+      final path = p.join(tempDir.path, 'damaged', 'submersion.db');
+      Directory(p.dirname(path)).createSync(recursive: true);
+      File(path).writeAsStringSync('this is not a SQLite database at all');
+      await expectLater(
+        DatabaseService.instance.initialize(
+          locationService: _CustomLocationService(prefs, path),
+        ),
+        throwsA(anything),
+      );
+      expect(DatabaseService.instance.hasReachedFile, isTrue);
+
+      await DatabaseService.instance.close(strict: true);
+
+      expect(DatabaseService.instance.hasReachedFile, isFalse);
+    });
+
+    // An unplugged drive: the folder cannot even be created, so the file
+    // was never reached and the folder is the whole story.
+    test('stays false when the folder cannot be created', () async {
+      final blocker = File(p.join(tempDir.path, 'not-a-folder'))
+        ..writeAsStringSync('');
+      final path = p.join(blocker.path, 'Submersion', 'submersion.db');
+
+      await expectLater(
+        DatabaseService.instance.initialize(
+          locationService: _CustomLocationService(prefs, path),
+        ),
+        throwsA(anything),
+      );
+
+      expect(DatabaseService.instance.hasReachedFile, isFalse);
+    });
+  });
 }

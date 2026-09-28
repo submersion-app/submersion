@@ -216,6 +216,8 @@ Widget _buildStartupWrapper({
   RestoreJournal Function(String dbPath)? restoreJournalFactory,
   StartupRecoveryService? recoveryServiceOverride,
   Future<String?> Function()? pickBackupFileOverride,
+  bool Function()? fileReachedOverride,
+  Future<void> Function()? closeDatabaseOverride,
 }) {
   return StartupWrapper(
     prefs: prefs,
@@ -238,6 +240,8 @@ Widget _buildStartupWrapper({
         restoreJournalFactory ?? (_) => _FakeRestoreJournal(),
     recoveryServiceOverride: recoveryServiceOverride,
     pickBackupFileOverride: pickBackupFileOverride,
+    fileReachedOverride: fileReachedOverride,
+    closeDatabaseOverride: closeDatabaseOverride,
   );
 }
 
@@ -3233,6 +3237,540 @@ void main() {
       expect(find.text('Your dive log could not be read'), findsOneWidget);
     });
   });
+
+  // Issue #2178. On macOS and iOS an unreachable custom folder used to reset
+  // the storage location during startup, silently, so this screen was never
+  // reached and the next launch opened an empty default database.
+  group('an unreachable dive log folder', () {
+    const folder = '/Users/diver/Library/Mobile Documents/Submersion';
+    late SharedPreferences prefs;
+    late LogFileService logFileService;
+    late Directory tempDir;
+    late String dbPath;
+
+    /// How a folder the sandbox no longer grants actually fails: the open,
+    /// with nothing in the error that names the folder.
+    final revokedAccess = FileSystemException(
+      'Cannot open file',
+      p.join(folder, DatabaseLocationService.databaseFilename),
+      const OSError('Operation not permitted', 1),
+    );
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+      tempDir = Directory.systemTemp.createTempSync('startup_unreachable_');
+      logFileService = LogFileService(
+        logDirectory: p.join(tempDir.path, 'logs'),
+      );
+      dbPath = p.join(tempDir.path, DatabaseLocationService.databaseFilename);
+    });
+
+    tearDown(() {
+      if (tempDir.existsSync()) tempDir.deleteSync(recursive: true);
+    });
+
+    Future<void> pumpUnreachable(
+      WidgetTester tester, {
+      required DatabaseLocationService locationService,
+      required ServiceInitializer initializer,
+      StartupRecoveryService? recoveryServiceOverride,
+      bool fileReached = false,
+      List<String>? journal,
+      Object? closeError,
+    }) async {
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: initializer,
+          recoveryServiceOverride: recoveryServiceOverride,
+          // Stated rather than read from the process-wide DatabaseService,
+          // so a connection another test left open cannot leak in here.
+          fileReachedOverride: () => fileReached,
+          closeDatabaseOverride: () async {
+            journal?.add('close');
+            if (closeError != null) throw closeError;
+          },
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('is reported as a folder problem, naming the folder', (
+      tester,
+    ) async {
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+        ),
+        initializer: (_) async => throw revokedAccess,
+      );
+
+      expect(find.text("Your dive log's folder can't be reached"), findsOne);
+      expect(find.text(folder), findsOneWidget);
+      expect(find.text('Submersion could not start'), findsNothing);
+      expect(find.text("Choose your dive log's folder"), findsOneWidget);
+      expect(find.text('Go back to the app default location'), findsOne);
+      expect(find.text('Start with an empty dive log'), findsNothing);
+      expect(find.text('Restore from a backup file'), findsNothing);
+    });
+
+    testWidgets('going back to the default location asks first, then '
+        'relaunches', (tester) async {
+      final recovery = _FakeStartupRecoveryService();
+      var initializerCalls = 0;
+      // Left pending: reaching `ready` would mount the real app against an
+      // uninitialized DatabaseService, which is not what this test is about.
+      final secondAttempt = Completer<void>();
+
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+        ),
+        recoveryServiceOverride: recovery,
+        initializer: (_) async {
+          initializerCalls++;
+          if (initializerCalls == 1) throw revokedAccess;
+          await secondAttempt.future;
+        },
+      );
+
+      await tester.ensureVisible(
+        find.text('Go back to the app default location'),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Go back to the app default location'));
+      await tester.pumpAndSettle();
+
+      // Asked, not done: the dialog names the folder being left, so the diver
+      // knows where their dive log still is.
+      expect(find.text('Go back to the app default location?'), findsOne);
+      expect(find.textContaining('Nothing in $folder is moved'), findsOne);
+      expect(recovery.useDefaultCalls, 0);
+
+      await tester.tap(find.text('Use the default location'));
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      expect(recovery.useDefaultCalls, 1);
+      expect(initializerCalls, 2, reason: 'startup must run again');
+      expect(
+        find.text("Your dive log's folder can't be reached"),
+        findsNothing,
+      );
+
+      // Drain the splash-delay timer started by the second _runInitialization.
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('backing out of the default location changes nothing', (
+      tester,
+    ) async {
+      final recovery = _FakeStartupRecoveryService();
+      var initializerCalls = 0;
+
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+        ),
+        recoveryServiceOverride: recovery,
+        initializer: (_) async {
+          initializerCalls++;
+          throw revokedAccess;
+        },
+      );
+
+      await tester.ensureVisible(
+        find.text('Go back to the app default location'),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Go back to the app default location'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(recovery.useDefaultCalls, 0);
+      expect(initializerCalls, 1, reason: 'nothing may relaunch');
+      expect(find.text("Your dive log's folder can't be reached"), findsOne);
+    });
+
+    testWidgets('a return to the default location that fails is reported', (
+      tester,
+    ) async {
+      final recovery = _FakeStartupRecoveryService(
+        useDefaultError: StateError('prefs are read-only'),
+      );
+      var initializerCalls = 0;
+
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+        ),
+        recoveryServiceOverride: recovery,
+        initializer: (_) async {
+          initializerCalls++;
+          throw revokedAccess;
+        },
+      );
+
+      await tester.ensureVisible(
+        find.text('Go back to the app default location'),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Go back to the app default location'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Use the default location'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('That did not work'), findsOneWidget);
+      expect(find.textContaining('prefs are read-only'), findsOneWidget);
+
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(initializerCalls, 1, reason: 'nothing may relaunch');
+      expect(find.text("Your dive log's folder can't be reached"), findsOne);
+    });
+
+    // Picking the same folder again is what restores a sandboxed build's
+    // access, so the folder route has to lead to the same adoption flow.
+    testWidgets('choosing the folder again adopts it and relaunches', (
+      tester,
+    ) async {
+      final recovery = _FakeStartupRecoveryService(
+        inspection: AdoptableDiveLog(
+          path: p.join(folder, DatabaseLocationService.databaseFilename),
+          diveCount: 412,
+          siteCount: 87,
+          sizeBytes: 9 * 1024 * 1024,
+          lastModified: DateTime.utc(2026, 9, 18),
+        ),
+      );
+      var initializerCalls = 0;
+      final secondAttempt = Completer<void>();
+
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+          picks: folder,
+        ),
+        recoveryServiceOverride: recovery,
+        initializer: (_) async {
+          initializerCalls++;
+          if (initializerCalls == 1) throw revokedAccess;
+          await secondAttempt.future;
+        },
+      );
+
+      await tester.ensureVisible(find.text("Choose your dive log's folder"));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text("Choose your dive log's folder"));
+      await tester.pumpAndSettle();
+
+      expect(recovery.inspectedFolder, folder);
+      await tester.tap(find.text('Use this dive log'));
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      expect(recovery.adoptCalls, 1);
+      expect(initializerCalls, 2, reason: 'startup must run again');
+
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    // The probe runs on a screen the diver reached because something already
+    // went wrong. If it fails too, the original failure has to be what they
+    // see, not a second terminal state.
+    // Copilot on PR 2497: a service that fails AFTER the database opened
+    // reached the file. The folder may be gone now, but the file may have
+    // been written, and relaunching at the default location would reuse the
+    // connection that is still open.
+    testWidgets('a failure after the database opened keeps the data routes', (
+      tester,
+    ) async {
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+        ),
+        fileReached: true,
+        initializer: (_) async => throw revokedAccess,
+      );
+
+      expect(
+        find.text("Your dive log's folder can't be reached"),
+        findsNothing,
+      );
+      expect(find.text('Go back to the app default location'), findsNothing);
+      expect(find.text('Submersion could not start'), findsOneWidget);
+      expect(find.text('Start with an empty dive log'), findsOneWidget);
+    });
+
+    // Copilot on PR 2497: the schema probe opens an EXISTING file
+    // read-write, which can roll back a hot journal, so a failure after it
+    // may have changed the file whatever the folder looks like now.
+    testWidgets('a file the schema probe reached is not blamed on the folder', (
+      tester,
+    ) async {
+      File(dbPath).writeAsStringSync('reached');
+      final location = _UnreachableLocationService(
+        prefs,
+        dbPath,
+        folder: folder,
+      );
+      await pumpUnreachable(
+        tester,
+        locationService: location,
+        initializer: (_) async => throw revokedAccess,
+      );
+
+      expect(location.probeCalls, 0);
+      expect(find.text('Submersion could not start'), findsOneWidget);
+      expect(find.text('Go back to the app default location'), findsNothing);
+    });
+
+    // Copilot on PR 2497: a relaunch reuses whatever connection is still
+    // open (initialize() returns early), and setting aside moves the open
+    // file out from under it. So the connection goes first.
+    testWidgets('starting fresh closes the database before moving it', (
+      tester,
+    ) async {
+      final journal = <String>[];
+      final recovery = _FakeStartupRecoveryService(journal: journal);
+      var initializerCalls = 0;
+      final secondAttempt = Completer<void>();
+
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+        ),
+        recoveryServiceOverride: recovery,
+        fileReached: true,
+        journal: journal,
+        initializer: (_) async {
+          initializerCalls++;
+          if (initializerCalls == 1) throw Exception('notifications blew up');
+          await secondAttempt.future;
+        },
+      );
+
+      await tester.ensureVisible(find.text('Start with an empty dive log'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start with an empty dive log'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start fresh'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pump();
+      await tester.pump();
+
+      expect(journal.first, 'close');
+      expect(journal.indexOf('setAside'), greaterThan(0));
+      expect(initializerCalls, 2);
+
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('adopting another folder closes the database first', (
+      tester,
+    ) async {
+      final journal = <String>[];
+      final recovery = _FakeStartupRecoveryService(
+        journal: journal,
+        inspection: AdoptableDiveLog(
+          path: p.join(folder, DatabaseLocationService.databaseFilename),
+          diveCount: 1,
+          siteCount: 1,
+          sizeBytes: 4096,
+          lastModified: DateTime.utc(2026, 9, 18),
+        ),
+      );
+      var initializerCalls = 0;
+      final secondAttempt = Completer<void>();
+
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+          picks: folder,
+        ),
+        recoveryServiceOverride: recovery,
+        fileReached: true,
+        journal: journal,
+        initializer: (_) async {
+          initializerCalls++;
+          if (initializerCalls == 1) throw Exception('notifications blew up');
+          await secondAttempt.future;
+        },
+      );
+
+      await tester.ensureVisible(find.text('Use a dive log in another folder'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Use a dive log in another folder'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Use this dive log'));
+      await tester.pump();
+      await tester.pump();
+
+      expect(journal, containsAllInOrder(['close', 'adopt']));
+      expect(initializerCalls, 2);
+
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    // Releasing the connection is housekeeping on the way to a screen the
+    // diver reached because something already failed. A close that fails too
+    // must leave that failure on screen, not replace it.
+    testWidgets('a connection that will not close leaves the failure shown', (
+      tester,
+    ) async {
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+        ),
+        fileReached: true,
+        closeError: StateError('connection is stuck'),
+        initializer: (_) async => throw Exception('notifications blew up'),
+      );
+
+      expect(find.text('Submersion could not start'), findsOneWidget);
+      expect(find.textContaining('notifications blew up'), findsOneWidget);
+      expect(find.textContaining('connection is stuck'), findsNothing);
+    });
+
+    // A dead network mount can leave every file call blocked for the whole
+    // network timeout. The failure screen must not wait that long: it falls
+    // back to the screen that keeps every route.
+    testWidgets('a probe that never answers gives way to the failure screen', (
+      tester,
+    ) async {
+      final location = _UnreachableLocationService(
+        prefs,
+        dbPath,
+        folder: folder,
+      )..hangs = true;
+      await pumpUnreachable(
+        tester,
+        locationService: location,
+        initializer: (_) async => throw revokedAccess,
+      );
+
+      expect(location.probeCalls, 1);
+      expect(find.text('Submersion could not start'), findsOneWidget);
+      expect(find.text("Choose your dive log's folder"), findsNothing);
+    });
+
+    // Copilot on PR 2497: every route out moves or reopens the database, so
+    // one must not run while a connection still holds it. The close is
+    // retried first; only one that still fails stops the route.
+    testWidgets('a route does not run while the connection will not close', (
+      tester,
+    ) async {
+      final recovery = _FakeStartupRecoveryService();
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+        ),
+        recoveryServiceOverride: recovery,
+        fileReached: true,
+        closeError: StateError('connection is stuck'),
+        initializer: (_) async => throw Exception('notifications blew up'),
+      );
+
+      await tester.ensureVisible(find.text('Start with an empty dive log'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start with an empty dive log'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('That did not work'), findsOneWidget);
+      expect(find.textContaining('connection is stuck'), findsOneWidget);
+      expect(find.text('Start fresh'), findsNothing, reason: 'no confirm');
+
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      expect(recovery.setAsideCalls, 0);
+      expect(find.text('Submersion could not start'), findsOneWidget);
+    });
+
+    // Its answer could not change the screen, and on a dead network mount
+    // each file call can block for the whole network timeout.
+    testWidgets('the folder is not probed when its answer cannot matter', (
+      tester,
+    ) async {
+      final location = _UnreachableLocationService(
+        prefs,
+        dbPath,
+        folder: folder,
+      );
+      await pumpUnreachable(
+        tester,
+        locationService: location,
+        fileReached: true,
+        initializer: (_) async => throw revokedAccess,
+      );
+
+      expect(location.probeCalls, 0);
+      expect(find.text('Submersion could not start'), findsOneWidget);
+    });
+
+    testWidgets('a probe that throws leaves the original failure on screen', (
+      tester,
+    ) async {
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+          probeError: StateError('prefs unavailable'),
+        ),
+        initializer: (_) async {
+          throw Exception('database disk image is malformed');
+        },
+      );
+
+      expect(find.text('Your dive log could not be read'), findsOneWidget);
+      expect(
+        find.text("Your dive log's folder can't be reached"),
+        findsNothing,
+      );
+    });
+  });
 }
 
 /// A backup service whose `backupIfMigrationPending` always throws.
@@ -3264,21 +3802,37 @@ class _FakeStartupRecoveryService implements StartupRecoveryService {
     this.setAsideResult = '/aside',
     this.inspection = const NoDiveLogInFolder(),
     this.backupChoice,
+    this.useDefaultError,
+    this.journal,
   });
+
+  /// Shared with the page's close hook, so a test can assert ORDER.
+  final List<String>? journal;
 
   final String setAsideResult;
   final FolderInspection inspection;
 
   final BackupFileChoice? backupChoice;
 
+  /// Thrown by [useDefaultLocation] when set.
+  final Object? useDefaultError;
+
   int setAsideCalls = 0;
   int adoptCalls = 0;
+  int useDefaultCalls = 0;
   String? inspectedFolder;
   String? classifiedPath;
 
   @override
+  Future<void> useDefaultLocation() async {
+    useDefaultCalls++;
+    if (useDefaultError != null) throw useDefaultError!;
+  }
+
+  @override
   Future<String> setAsideUnreadableDatabase() async {
     setAsideCalls++;
+    journal?.add('setAside');
     return setAsideResult;
   }
 
@@ -3289,7 +3843,10 @@ class _FakeStartupRecoveryService implements StartupRecoveryService {
   }
 
   @override
-  Future<void> adopt(AdoptableDiveLog found) async => adoptCalls++;
+  Future<void> adopt(AdoptableDiveLog found) async {
+    adoptCalls++;
+    journal?.add('adopt');
+  }
 
   @override
   Future<BackupFileChoice> classifyBackupFile(
@@ -3313,4 +3870,40 @@ class _PickingLocationService extends _CustomPathLocationService {
   Future<FolderPickResultWithBookmark?> pickCustomFolder({
     Future<ExternalVolumeOption?> Function(List<ExternalVolumeOption>)? chooser,
   }) async => picks == null ? null : FolderPickResultWithBookmark(path: picks!);
+}
+
+/// A location service whose custom folder cannot be reached.
+///
+/// Answers the probe directly: the real one is `dart:io`, and a `dart:io`
+/// future started inside the fake-async widget-test zone never completes. The
+/// probe itself is covered against real folders in
+/// `test/core/services/database_location_startup_check_test.dart`.
+class _UnreachableLocationService extends _PickingLocationService {
+  _UnreachableLocationService(
+    super.prefs,
+    super.path, {
+    required this.folder,
+    super.picks,
+    this.probeError,
+  });
+
+  final String folder;
+
+  /// Thrown by the probe when set, to prove a failed probe never replaces
+  /// the failure the diver actually hit.
+  final Object? probeError;
+
+  /// When set, the probe never answers, like a dead network mount.
+  bool hangs = false;
+
+  /// How many times the failure screen asked.
+  int probeCalls = 0;
+
+  @override
+  Future<String?> unreachableCustomFolder() async {
+    probeCalls++;
+    if (probeError != null) throw probeError!;
+    if (hangs) return Completer<String?>().future;
+    return folder;
+  }
 }

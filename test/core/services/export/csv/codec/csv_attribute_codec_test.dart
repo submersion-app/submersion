@@ -213,5 +213,31 @@ void main() {
         valueNum: null,
       ));
     });
+
+    test('a colour code on a type that takes one is the item colour', () {
+      expect(parseAttributePair('color=#ef4444', type: EquipmentType.fins), (
+        key: 'color',
+        isCustom: false,
+        valueText: '#EF4444',
+        valueNum: null,
+      ));
+    });
+
+    // Issue #2520: a battery, O2 cell or Other item has no colour, so the
+    // value stays the diver's own field instead of a colour the form drops.
+    for (final type in [
+      EquipmentType.battery,
+      EquipmentType.o2Cell,
+      EquipmentType.other,
+    ]) {
+      test('a colour code on ${type.name} stays a custom field', () {
+        expect(parseAttributePair('color=#ef4444', type: type), (
+          key: 'color',
+          isCustom: true,
+          valueText: '#ef4444',
+          valueNum: null,
+        ));
+      });
+    }
   });
 }

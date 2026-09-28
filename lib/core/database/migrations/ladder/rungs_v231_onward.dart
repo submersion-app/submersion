@@ -36,6 +36,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertEquipmentSharingSchema();
     }
     if (from < 234) await reportProgress();
+    // v235: saved Connections maps and the sightings dive index (issue
+    // #2322). Table-and-index rung, no backfill.
+    if (from < 235) {
+      await _assertConnectionMapsSchema();
+    }
+    if (from < 235) await reportProgress();
     // v237: diver_settings.show_dive_figure (issue #2326). Column-only
     // rung, default off, no backfill.
     if (from < 237) {

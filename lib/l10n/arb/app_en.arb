@@ -1,4 +1,59 @@
 {
+  "connections_action_centreHere": "Centre here",
+  "connections_around_centredOn": "Centred on",
+  "connections_around_hops": "Hops",
+  "connections_around_kindChip": "{kind} ({count})",
+  "@connections_around_kindChip": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
+  "connections_around_noResults": "No matches",
+  "connections_around_prompt": "Search for a buddy, site, trip or anything else to centre the map on it.",
+  "connections_around_searchHint": "Search buddies, sites, trips and more",
+  "connections_around_show": "Show",
+  "connections_editor_kinds": "Kinds",
+  "connections_editor_link": "{a} with {b}",
+  "@connections_editor_link": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
+  "connections_editor_links": "Links",
+  "connections_editor_minShared": "{count, plural, =1{At least 1 shared dive} other{At least {count} shared dives}}",
+  "@connections_editor_minShared": {"placeholders": {"count": {"type": "int"}}},
+  "connections_editor_saveAsMap": "Save as map",
+  "connections_editor_title": "Custom map",
+  "connections_filter_allFilters": "All filters",
+  "connections_filter_clear": "Clear",
+  "connections_filter_none": "No filters are active.",
+  "connections_loading": "Loading connections",
+  "connections_mode_around": "Around one entity",
+  "connections_mode_map": "Whole map",
+  "connections_preset_centers": "Centers and people",
+  "connections_preset_circle": "Dive circle",
+  "connections_preset_edited": "edited",
+  "connections_preset_gear": "Gear together",
+  "connections_preset_gearRoad": "Gear on the road",
+  "connections_preset_life": "Sites by marine life",
+  "connections_preset_reef": "Reef life",
+  "connections_preset_travel": "Travel story",
+  "connections_preset_trips": "Trips and people",
+  "connections_preset_where": "Who dives where",
+  "connections_presets_title": "Presets",
+  "connections_savedMap_badge": "Saved map",
+  "connections_savedMap_deleted": "Deleted \"{name}\"",
+  "@connections_savedMap_deleted": {"placeholders": {"name": {"type": "String"}}},
+  "connections_savedMap_nameLabel": "Name",
+  "connections_savedMap_rename": "Rename",
+  "connections_savedMap_saveTitle": "Save map",
+  "connections_savedMap_undo": "Undo",
+  "connections_savedMap_update": "Update from current",
+  "connections_summary_closest": "Closest",
+  "connections_summary_entitiesAround": "{count, plural, =1{1 entity} other{{count} entities}}",
+  "@connections_summary_entitiesAround": {"placeholders": {"count": {"type": "int"}}},
+  "connections_summary_mostConnected": "Most connected",
+  "connections_summary_pairValue": "{count, plural, =1{{a} and {b}, 1 dive} other{{a} and {b}, {count} dives}}",
+  "@connections_summary_pairValue": {"placeholders": {"count": {"type": "int"}, "a": {"type": "String"}, "b": {"type": "String"}}},
+  "connections_summary_strongestPair": "Strongest pair",
+  "connections_summary_title": "Summary",
+  "connections_tab_details": "Details",
+  "connections_tab_filter": "Filter",
+  "connections_tab_filterCount": "Filter ({count})",
+  "@connections_tab_filterCount": {"placeholders": {"count": {"type": "int"}}},
+  "connections_tab_view": "View",
   "equipment_filter_owner_all": "All",
   "equipment_delete_notOwner": "Only its owner can delete this item",
   "equipment_sharedWithMe": "Shared with me",
@@ -2123,6 +2178,51 @@
   "@common_error_tryAgain": {
     "description": "Generic error snackbar shown when an action fails and the user should retry."
   },
+  "connections_title": "Connections",
+  "connections_tooltip_relayout": "Lay out again",
+  "connections_tooltip_showWholeWeb": "Back to the whole map",
+  "connections_filterBar_edges": "{count, plural, =1{1 connection} other{{count} connections}}",
+  "@connections_filterBar_edges": {"placeholders": {"count": {"type": "int"}}},
+  "connections_hiddenNodes": "{count, plural, =1{1 more not shown} other{{count} more not shown}}",
+  "@connections_hiddenNodes": {"placeholders": {"count": {"type": "int"}}},
+  "connections_showAll": "Show all",
+  "connections_showAll_confirmTitle": "Show every node?",
+  "connections_showAll_confirmBody": "{count} nodes may take a moment to lay out on this device.",
+  "@connections_showAll_confirmBody": {"placeholders": {"count": {"type": "int"}}},
+  "connections_action_open": "Open",
+  "connections_action_showDives": "Show dives",
+  "connections_action_openInConnections": "Open in Connections",
+  "connections_selection_divesTogether": "{count, plural, =1{1 dive together} other{{count} dives together}}",
+  "@connections_selection_divesTogether": {"placeholders": {"count": {"type": "int"}}},
+  "connections_selection_dives": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "@connections_selection_dives": {"placeholders": {"count": {"type": "int"}}},
+  "connections_selection_topConnections": "Top connections",
+  "connections_selection_firstLast": "First {first}, last {last}",
+  "@connections_selection_firstLast": {"placeholders": {"first": {"type": "String"}, "last": {"type": "String"}}},
+  "connections_selection_hint": "Tap a node or a line to see details.",
+  "connections_empty_noDives": "No dives yet. Connections appear once your log has dives in it.",
+  "connections_empty_buddies": "No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names in Settings, Data Tools.",
+  "connections_empty_sites": "No dives have a site yet.",
+  "connections_empty_filtered": "Nothing matches the current filter.",
+  "connections_focusMissing": "That item is no longer in the log.",
+  "connections_error_load": "Could not load connections.",
+  "connections_legend_title": "Legend",
+  "connections_yearRange_label": "Years {first} to {last}",
+  "@connections_yearRange_label": {"placeholders": {"first": {"type": "int"}, "last": {"type": "int"}}},
+  "connections_semantics_summary": "{nodes} nodes and {edges} connections",
+  "@connections_semantics_summary": {"placeholders": {"nodes": {"type": "int"}, "edges": {"type": "int"}}},
+  "connections_semantics_selected": "Selected: {label}",
+  "@connections_semantics_selected": {"placeholders": {"label": {"type": "String"}}},
+  "connections_kind_buddy": "Buddies",
+  "connections_kind_site": "Sites",
+  "connections_kind_trip": "Trips",
+  "connections_kind_diveCenter": "Dive centers",
+  "connections_kind_equipment": "Equipment",
+  "connections_kind_species": "Species",
+  "connections_kind_tag": "Tags",
+  "connections_kind_diveType": "Dive types",
+  "connections_kind_diveComputer": "Dive computers",
+  "connections_kind_course": "Courses",
   "courses_action_add": "Add Course",
   "courses_action_addFromTemplate": "Add from template",
   "courses_action_addRequirement": "Add requirement",
@@ -13048,6 +13148,7 @@
   "insights_categoryCard_semanticLabel": "{title} insights category",
   "insights_category_conditions_subtitle": "Visibility & temperature",
   "insights_category_conditions_title": "Conditions",
+  "insights_category_connections_subtitle": "Buddies, sites & gear linked",
   "insights_category_equipment_subtitle": "Gear usage & weight",
   "insights_category_equipment_title": "Equipment",
   "insights_category_gas_subtitle": "Gas consumption & gas mixes",
@@ -23935,10 +24036,10 @@
   "@diveLog_filterChip_dateRange": {
     "description": "Active-filter chip showing a closed date range.",
     "placeholders": {
-      "end": {
+      "start": {
         "type": "String"
       },
-      "start": {
+      "end": {
         "type": "String"
       }
     }
@@ -24891,6 +24992,9 @@
   "startup_dataUnreadable_body": "The database file is there, but Submersion cannot read it. This usually means the file is damaged. Restoring a backup is the fastest way back.",
   "startup_databaseBusy_title": "Your dive log was busy",
   "startup_databaseBusy_body": "Something else was still using the database file, so Submersion stopped rather than write to it. Nothing was changed and nothing is damaged. Close Submersion completely, then open it again.",
+  "startup_locationUnreachable_title": "Your dive log's folder can't be reached",
+  "startup_locationUnreachable_body": "Your dive log is kept in a folder you chose, and Submersion can't open that folder right now. Nothing in it has been changed. If the folder is on a drive that isn't connected, or in a cloud folder that is still syncing, reconnect it and open Submersion again.",
+  "startup_locationUnreachable_folderLabel": "Your dive log's folder:",
   "startup_failure_technicalDetails": "Technical details",
   "startup_failure_backupAvailable_title": "A backup is available",
   "startup_failure_backupAvailable_taken": "Taken {timestamp}",
@@ -24907,6 +25011,10 @@
   "startup_failure_restoreFromFile_subtitle": "Pick a Submersion backup from anywhere on this device or in a synced folder.",
   "startup_failure_startFresh": "Start with an empty dive log",
   "startup_failure_startFresh_subtitle": "Set the damaged file aside and begin again. Nothing is deleted.",
+  "startup_failure_chooseFolderAgain": "Choose your dive log's folder",
+  "startup_failure_chooseFolderAgain_subtitle": "Pick the same folder again to give Submersion access to it, or pick the folder your dive log is in now.",
+  "startup_failure_useDefaultLocation": "Go back to the app default location",
+  "startup_failure_useDefaultLocation_subtitle": "Stop using this folder and open the dive log in Submersion's own folder. Nothing in your folder is changed.",
   "startup_recovery_adopt_title": "Use this dive log?",
   "startup_recovery_adopt_body": "Submersion will open this dive log from now on. The file that would not open stays where it is.",
   "startup_recovery_adopt_contents": "{dives} dives, {sites} dive sites",
@@ -24920,6 +25028,9 @@
   "startup_recovery_unusable_body": "The dive log at {path} is damaged, or it is not a Submersion dive log.",
   "startup_recovery_unusableBackup_body": "That file is not a backup Submersion can restore: {path}",
   "startup_recovery_encryptedBackup_body": "That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings, under Backup and Restore.",
+  "startup_recovery_useDefault_title": "Go back to the app default location?",
+  "startup_recovery_useDefault_body": "From now on Submersion opens the dive log in its own folder, or starts an empty one there if there is none. Nothing in {folder} is moved or deleted. To use that folder again, choose it in Settings, under Database Storage.",
+  "startup_recovery_useDefault_confirm": "Use the default location",
   "startup_failure_downgrade_title": "Going back to the previous version",
   "startup_failure_downgrade_body": "If the upgrade keeps failing, install the version of Submersion you were running before, then restore the safety copy from inside that version. Restoring it here would only run the same upgrade again. Submersion does not downgrade itself: moving you onto older builds automatically would quietly keep you on versions with known problems.",
   "startup_failure_downgrade_action": "View previous releases",
@@ -25241,6 +25352,42 @@
   },
   "@startup_recovery_encryptedBackup_body": {
     "description": "Shown when the diver picks an encrypted backup on the startup failure screen, where the passphrase prompt that unlocks one is not reachable."
+  },
+  "@startup_locationUnreachable_title": {
+    "description": "Title of the startup failure screen shown when the folder the diver chose for their dive log cannot be reached."
+  },
+  "@startup_locationUnreachable_body": {
+    "description": "Says the chosen folder cannot be opened, that nothing in it changed, and gives the usual fix: reconnect the drive or let the cloud folder finish syncing."
+  },
+  "@startup_locationUnreachable_folderLabel": {
+    "description": "Label above the path of the dive log folder that cannot be reached."
+  },
+  "@startup_failure_chooseFolderAgain": {
+    "description": "Action opening a folder picker when the dive log folder cannot be reached. Picking the same folder again gives a sandboxed build its access back."
+  },
+  "@startup_failure_chooseFolderAgain_subtitle": {
+    "description": "Explains that picking the same folder restores access, and that another folder can be picked instead."
+  },
+  "@startup_failure_useDefaultLocation": {
+    "description": "Action that stops using the unreachable folder and goes back to the location Settings > Database Storage calls the app default location."
+  },
+  "@startup_failure_useDefaultLocation_subtitle": {
+    "description": "Explains that going back to the default location leaves the diver's folder untouched."
+  },
+  "@startup_recovery_useDefault_title": {
+    "description": "Title of the dialog confirming the return to the app default location."
+  },
+  "@startup_recovery_useDefault_body": {
+    "description": "Explains what the app opens from now on, that nothing in the folder it leaves is moved or deleted, and where to choose that folder again.",
+    "placeholders": {
+      "folder": {
+        "type": "Object",
+        "example": "/Users/me/Library/Mobile Documents/com~apple~CloudDocs/Submersion"
+      }
+    }
+  },
+  "@startup_recovery_useDefault_confirm": {
+    "description": "Confirm button of the go-back-to-the-default-location dialog."
   },
   "@startup_failure_downgrade_title": {
     "description": "Heading of the guided-downgrade section on a failed schema upgrade."

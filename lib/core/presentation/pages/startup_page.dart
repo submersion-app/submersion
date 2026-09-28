@@ -205,6 +205,17 @@ class StartupWrapper extends StatefulWidget {
   @visibleForTesting
   final StartupRecoveryService? recoveryServiceOverride;
 
+  /// Optional override for "did the database open reach the file" (used in
+  /// tests). The real answer lives on the process-wide DatabaseService, which
+  /// another test may have left in any state.
+  @visibleForTesting
+  final bool Function()? fileReachedOverride;
+
+  /// Optional override for releasing the database connection when startup
+  /// fails (used in tests, which have no real connection to close).
+  @visibleForTesting
+  final Future<void> Function()? closeDatabaseOverride;
+
   /// Optional override for the check that the configured dive log is on this
   /// device (used in tests, whose answers would otherwise need real iCloud
   /// state and real file I/O).
@@ -227,6 +238,8 @@ class StartupWrapper extends StatefulWidget {
     this.restoreJournalFactory,
     this.recoveryServiceOverride,
     this.pickBackupFileOverride,
+    this.fileReachedOverride,
+    this.closeDatabaseOverride,
     this.availabilityServiceOverride,
   });
 
@@ -254,6 +267,15 @@ class _StartupWrapperState extends State<StartupWrapper>
 
   /// Which class of failure the terminal error screen is reporting.
   StartupFailureKind _failureKind = StartupFailureKind.unknown;
+
+  /// Whether this launch's schema probe opened an existing database file.
+  /// It opens read-write, which can roll back a hot journal, so after it the
+  /// file may have changed however unreachable its folder looks later.
+  bool _schemaProbeReachedFile = false;
+
+  /// The diver's custom folder, when the failure screen found it unreachable
+  /// (#2178). Null at the default location and whenever the folder is fine.
+  String? _unreachableFolder;
 
   /// A backup the diver could swap in, discovered after the failure. Null
   /// until [_loadRecoveryOptions] finds one (and never loaded at all for an
@@ -338,6 +360,7 @@ class _StartupWrapperState extends State<StartupWrapper>
   }
 
   Future<void> _runInitialization() async {
+    _schemaProbeReachedFile = false;
     try {
       _phase = StartupPhase.preflight;
 
@@ -393,6 +416,9 @@ class _StartupWrapperState extends State<StartupWrapper>
       final bool needsMigration;
       final int totalSteps;
 
+      // Sync stat on purpose, like _loadRecoveryOptions: a dart:io future
+      // started in the widget-test zone never completes.
+      _schemaProbeReachedFile = File(dbPath).existsSync();
       if (widget.schemaVersionProbeOverride != null) {
         final probe = widget.schemaVersionProbeOverride!(dbPath);
         needsMigration = probe.needsMigration;
@@ -499,10 +525,10 @@ class _StartupWrapperState extends State<StartupWrapper>
           });
         }
       } else {
-        _enterFailureState(e);
+        await _enterFailureState(e);
       }
     } catch (e) {
-      _enterFailureState(e);
+      await _enterFailureState(e);
     }
   }
 
@@ -513,16 +539,92 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// "Database upgrade failed", which was wrong in both directions: it told
   /// divers their upgrade failed when the database had never been opened, and
   /// it pointed diagnosis at migration code.
-  void _enterFailureState(Object error) {
-    final kind = classifyStartupFailure(error, _phase);
+  ///
+  /// The custom folder is probed first because an unreachable one never says
+  /// so in the error: a folder the sandbox no longer grants surfaces as a
+  /// plain file error or a SQLite open failure. Startup on macOS and iOS used
+  /// to answer that by resetting the storage location, silently (#2178).
+  Future<void> _enterFailureState(Object error) async {
+    // Once the file was reached, by the schema probe or by an open (even one
+    // that failed part way), it may have changed, and the folder must not
+    // take the blame.
+    final fileReached =
+        _schemaProbeReachedFile ||
+        (widget.fileReachedOverride ??
+            () => DatabaseService.instance.hasReachedFile)();
+    // The screen is terminal and every route out relaunches or moves files.
+    // A relaunch would reuse a connection still open (initialize() returns
+    // early while one is), and setting aside would move the open file.
+    await _releaseDatabase();
+    // Probed only when its answer can change the screen: on a dead network
+    // mount every file call can block for the whole network timeout.
+    final unreachableFolder =
+        canBlameUnreachableFolder(error, _phase, fileReached: fileReached)
+        ? await _probeUnreachableFolder()
+        : null;
+    final kind = classifyStartupFailure(
+      error,
+      _phase,
+      locationUnreachable: unreachableFolder != null,
+      fileReached: fileReached,
+    );
     debugPrint('FATAL: App initialization failed (${kind.name}): $error');
     if (!mounted) return;
     setState(() {
       _state = _StartupState.error;
       _failureKind = kind;
       _errorMessage = '$error';
+      _unreachableFolder = kind == StartupFailureKind.locationUnreachable
+          ? unreachableFolder
+          : null;
     });
     unawaited(_loadRecoveryOptions());
+  }
+
+  /// Closes any connection this launch opened, and returns why it would not
+  /// close, or null once none is open.
+  ///
+  /// The strict close, not the app-exit one: every route out of the failure
+  /// screen moves or reopens this file, and the exit path may abandon a
+  /// worker still holding it. Never throws: a connection that will not close
+  /// must not replace the failure being reported. A no-op once closed.
+  Future<Object?> _releaseDatabase() async {
+    try {
+      await (widget.closeDatabaseOverride ??
+          () => DatabaseService.instance.close(strict: true))();
+      return null;
+    } catch (e) {
+      debugPrint('Could not close the database after a failed start: $e');
+      return e;
+    }
+  }
+
+  /// How long the failure screen waits on the folder check.
+  static const _folderProbeLimit = Duration(seconds: 1);
+
+  /// The diver's custom folder if it cannot be reached, else null.
+  ///
+  /// Never throws. This runs on the way to a screen the diver reaches because
+  /// something already failed, so a probe that fails too must leave that
+  /// original failure on screen rather than replace it.
+  ///
+  /// Bounded by [_folderProbeLimit]: on a dead network mount every file call
+  /// can block for the whole network timeout, and the splash must not wait
+  /// that long. A probe that does not answer in time counts as reachable,
+  /// which leaves the screen that keeps every route on offer.
+  Future<String?> _probeUnreachableFolder() async {
+    try {
+      return await widget.locationService.unreachableCustomFolder().timeout(
+        _folderProbeLimit,
+        onTimeout: () {
+          debugPrint('Dive log folder check gave no answer; not blaming it');
+          return null;
+        },
+      );
+    } catch (e) {
+      debugPrint('Could not check the dive log folder: $e');
+      return null;
+    }
   }
 
   /// Stops startup when the dive log a custom folder points at is not on this
@@ -1150,7 +1252,7 @@ class _StartupWrapperState extends State<StartupWrapper>
         });
       }
     } catch (e) {
-      _enterFailureState(e);
+      await _enterFailureState(e);
     }
   }
 
@@ -1504,6 +1606,14 @@ class _StartupWrapperState extends State<StartupWrapper>
     if (_recoveryRoutesBusy) return;
     setState(() => _recoveryBusy = true);
     try {
+      // Every route moves or reopens the database. One that failed to close
+      // on the way to this screen gets another chance; one that still will
+      // not close stops the route rather than race the handle holding it.
+      final stuck = await _releaseDatabase();
+      if (stuck != null) {
+        await _reportRecoveryProblem(null, detail: '$stuck');
+        return;
+      }
       await action();
     } finally {
       // The screen is often gone by now (a successful route relaunches
@@ -1624,6 +1734,27 @@ class _StartupWrapperState extends State<StartupWrapper>
     return picked?.path;
   }
 
+  /// Stops using the folder that cannot be reached and goes back to the app
+  /// default location, once the diver has said so.
+  ///
+  /// The same reset startup used to perform unasked on macOS and iOS (#2178).
+  /// Nothing in the folder is touched, so choosing it again from Settings >
+  /// Database Storage picks the dive log back up.
+  Future<void> _useDefaultLocation() async {
+    final folder = _unreachableFolder;
+    final context = _dialogContext;
+    if (folder == null || context == null || !context.mounted) return;
+    if (!await showUseDefaultLocationDialog(context, folder)) return;
+
+    try {
+      await _recoveryService.useDefaultLocation();
+    } catch (e) {
+      await _reportRecoveryProblem(null, detail: '$e');
+      return;
+    }
+    await _relaunchStartup();
+  }
+
   /// Sets the database that will not open aside and starts an empty one.
   ///
   /// The last resort, and still worth having: an app that opens at all puts
@@ -1662,6 +1793,7 @@ class _StartupWrapperState extends State<StartupWrapper>
     setState(() {
       _state = _StartupState.initializing;
       _errorMessage = '';
+      _unreachableFolder = null;
       _recoveryBackup = null;
       _backupsDirectory = null;
       _restoreStatus = StartupRestoreStatus.idle;
@@ -2074,6 +2206,8 @@ class _StartupWrapperState extends State<StartupWrapper>
       onUseAnotherFolder: () => _runRecoveryRoute(_useAnotherFolder),
       onRestoreFromFile: () => _runRecoveryRoute(_restoreFromPickedFile),
       onStartFresh: () => _runRecoveryRoute(_startFresh),
+      unreachableFolder: _unreachableFolder,
+      onUseDefaultLocation: () => _runRecoveryRoute(_useDefaultLocation),
       recoveryBusy: _recoveryRoutesBusy,
       onClose: _closeApp,
     );

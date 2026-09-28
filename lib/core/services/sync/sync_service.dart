@@ -1510,6 +1510,11 @@ class SyncService {
             records: data.cylinderFills,
             hasUpdatedAt: true,
           ),
+          (
+            type: 'connectionMaps',
+            records: data.connectionMaps,
+            hasUpdatedAt: true,
+          ),
           // Saved queries reference sites and buddies only inside their
           // JSON (by id, resolved at load), so they carry no FK but the
           // diver and can apply anywhere in the order.
@@ -2530,6 +2535,7 @@ class SyncService {
     'diveComputers': true,
     'transmitters': true,
     'cylinderFills': true,
+    'connectionMaps': true,
     'savedQueries': true,
     'species': false,
     'tags': true,
