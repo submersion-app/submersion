@@ -214,7 +214,8 @@ void main() {
         c.invalidate(equipmentServiceStatusCacheProvider);
         await c.read(equipmentServiceStatusCacheProvider.future);
         await c.pump();
-        await Future<void>.delayed(const Duration(milliseconds: 400));
+        // The override writes nothing, so no table tick can follow; a reader
+        // that watched the writer would already have re-run on the pump.
         expect(writerRuns, 2);
         expect(readerUpdates, before);
       },

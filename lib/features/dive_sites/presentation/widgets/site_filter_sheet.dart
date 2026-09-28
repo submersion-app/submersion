@@ -99,53 +99,49 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
       maxChildSize: 0.95,
       expand: false,
       builder: (context, scrollController) {
-        return SheetMessengerScope(
-          child: Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-            ),
-            // Transparent Material so the ListTiles inside paint their ink and
-            // background above this decorated container (Flutter 3.44 asserts on
-            // a ListTile whose nearest decorated ancestor precedes its Material).
-            child: Material(
-              type: MaterialType.transparency,
-              child: Column(
-                children: [
-                  // Handle bar
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 12),
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: colorScheme.onSurfaceVariant.withValues(
-                        alpha: 0.4,
+        return Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          // Transparent Material so the ListTiles inside paint their ink and
+          // background above this decorated container (Flutter 3.44 asserts on
+          // a ListTile whose nearest decorated ancestor precedes its Material).
+          child: Material(
+            type: MaterialType.transparency,
+            child: Column(
+              children: [
+                // Handle bar
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                // Header
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        context.l10n.diveSites_filter_title,
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+                      TextButton(
+                        onPressed: _clearAll,
+                        child: Text(context.l10n.diveSites_filter_clearAll),
+                      ),
+                    ],
                   ),
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          context.l10n.diveSites_filter_title,
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        TextButton(
-                          onPressed: _clearAll,
-                          child: Text(context.l10n.diveSites_filter_clearAll),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(),
-                  // Filter content
-                  Expanded(
+                ),
+                const Divider(),
+                // Filter content
+                Expanded(
+                  child: SheetMessengerScope(
                     child: ListView(
                       controller: scrollController,
                       padding: const EdgeInsets.all(16),
@@ -172,39 +168,39 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
                       ],
                     ),
                   ),
-                  // Bottom buttons
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, -2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: Text(context.l10n.diveSites_filter_cancel),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: FilledButton(
-                            onPressed: _applyFilters,
-                            child: Text(context.l10n.diveSites_filter_apply),
-                          ),
-                        ),
-                      ],
-                    ),
+                ),
+                // Bottom buttons
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, -2),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(context.l10n.diveSites_filter_cancel),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: _applyFilters,
+                          child: Text(context.l10n.diveSites_filter_apply),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         );

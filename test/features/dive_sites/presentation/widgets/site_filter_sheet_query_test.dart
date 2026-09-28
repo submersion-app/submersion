@@ -191,6 +191,11 @@ void main() {
       ),
       findsOneWidget,
     );
+    // Above the footer, so Apply Filters stays reachable while it shows.
+    expect(
+      tester.getRect(find.byType(SnackBar)).bottom,
+      lessThanOrEqualTo(tester.getRect(find.text('Apply Filters')).top),
+    );
   });
 
   testWidgets('a typed query is applied with the other axes', (tester) async {

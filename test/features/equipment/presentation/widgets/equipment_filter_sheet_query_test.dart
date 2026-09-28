@@ -114,6 +114,42 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('a save message shows inside the sheet, above its footer', (
+    tester,
+  ) async {
+    // The page's ScaffoldMessenger renders under the modal sheet; the sheet
+    // carries its own, scoped above the Cancel and Apply footer.
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final c = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        equipmentFilterProvider.overrideWith(
+          (ref) => EquipmentFilterState(query: bcd),
+        ),
+        // No diver profile: the save flow answers with a snackbar.
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
+    addTearDown(c.dispose);
+    await open(tester, c);
+
+    await tester.tap(find.text('Save query'));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byType(EquipmentFilterSheet),
+        matching: find.byType(SnackBar),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      tester.getRect(find.byType(SnackBar)).bottom,
+      lessThanOrEqualTo(tester.getRect(find.text('Apply Filters')).top),
+    );
+  });
+
   testWidgets('a typed query is applied with the other axes', (tester) async {
     final c = await container(
       filter: const EquipmentFilterState(status: EquipmentStatus.retired),

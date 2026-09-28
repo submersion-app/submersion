@@ -40,28 +40,22 @@ final equipmentServiceStatusCacheProvider = FutureProvider.autoDispose<void>((
 });
 
 /// Waits for the cache to mirror the engine before a query that reads it,
-/// so the query never sees an empty cache or another diver's verdicts, and
-/// keeps the writer alive while the calling provider is. Listens rather
-/// than watches: a writer run that changes no verdict must not re-run the
-/// query, and one that does writes the table, whose tick the caller follows.
+/// so the query never sees an empty cache or another diver's verdicts.
+/// Listens rather than watches: a writer run that changes no verdict must
+/// not re-run the query, and one that does writes the table, whose tick the
+/// caller follows. A provider [hold]s the writer for its own life; a
+/// notifier, whose ref outlives each load, passes `hold: false` so repeated
+/// loads add no listeners.
 Future<void> awaitServiceStatusIfRead(
   Ref ref,
-  Set<String> tablesTouched,
-) async {
-  if (!tablesTouched.contains(serviceStatusTable)) return;
-  await ref
-      .listen(equipmentServiceStatusCacheProvider.future, (_, _) {})
-      .read();
-}
-
-/// [awaitServiceStatusIfRead] for a notifier, whose ref outlives each load:
-/// holds the writer only for the wait, so repeated loads add no listeners.
-Future<void> awaitServiceStatusOnce(Ref ref, Set<String> tablesTouched) async {
+  Set<String> tablesTouched, {
+  bool hold = true,
+}) async {
   if (!tablesTouched.contains(serviceStatusTable)) return;
   final sub = ref.listen(equipmentServiceStatusCacheProvider.future, (_, _) {});
   try {
     await sub.read();
   } finally {
-    sub.close();
+    if (!hold) sub.close();
   }
 }
