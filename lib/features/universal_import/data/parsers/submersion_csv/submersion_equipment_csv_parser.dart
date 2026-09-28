@@ -88,6 +88,13 @@ class SubmersionEquipmentCsvParser implements ImportParser {
           dates: const ['Purchase Date', 'Last Service', 'Next Service Due'],
         ),
       );
+      final type =
+          enumByDisplayName(
+            EquipmentType.values,
+            (v) => v.displayName,
+            table.text(row, 'Type'),
+          ) ??
+          EquipmentType.other;
       final attributes = <Map<String, dynamic>>[];
       final thickness = table.text(row, 'Thickness');
       if (thickness != null) {
@@ -110,7 +117,11 @@ class SubmersionEquipmentCsvParser implements ImportParser {
       for (final pair in splitAttributePairs(
         table.text(row, 'Attributes') ?? '',
       )) {
-        final parsed = parseAttributePair(pair, dateFormat: dateFormat);
+        final parsed = parseAttributePair(
+          pair,
+          dateFormat: dateFormat,
+          type: type,
+        );
         if (parsed == null) {
           warnings.add(
             ImportWarning(
@@ -149,14 +160,7 @@ class SubmersionEquipmentCsvParser implements ImportParser {
         <String, dynamic>{
           'uddfId': 'csv-equipment-$i',
           'name': name,
-          'type':
-              (enumByDisplayName(
-                        EquipmentType.values,
-                        (v) => v.displayName,
-                        table.text(row, 'Type'),
-                      ) ??
-                      EquipmentType.other)
-                  .name,
+          'type': type.name,
           'brand': table.text(row, 'Brand'),
           'model': table.text(row, 'Model'),
           'serialNumber': table.text(row, 'Serial Number'),

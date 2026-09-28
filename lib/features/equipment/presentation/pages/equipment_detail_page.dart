@@ -691,14 +691,20 @@ class _EquipmentDetailContent extends ConsumerWidget {
                   formatAttributeValue(attr, def, units, context.l10n),
                 ),
             // The item's colour (issue #2326): its own row with a swatch,
-            // only when the stored value is a colour code.
-            if (normalizeEquipmentColor(
-                  equipment.attrText(EquipmentAttrKeys.color),
-                )
-                case final code?)
-              _buildColorRow(context, code),
+            // only when the stored value is a colour code and the type has
+            // a colour. On a type without one it shows as a custom field
+            // (issue #2520), the way the edit form keeps it.
+            if (EquipmentAttributeCatalog.hasColor(equipment.type))
+              if (normalizeEquipmentColor(
+                    equipment.attrText(EquipmentAttrKeys.color),
+                  )
+                  case final code?)
+                _buildColorRow(context, code),
             for (final attr
-                in equipment.attributes.where((a) => a.isCustom).toList()
+                in keepStrayColorAsCustom(
+                    equipment.type,
+                    equipment.attributes,
+                  ).where((a) => a.isCustom).toList()
                   ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)))
               if (attr.hasValue)
                 _buildDetailRow(context, attr.key, attr.valueText ?? ''),
