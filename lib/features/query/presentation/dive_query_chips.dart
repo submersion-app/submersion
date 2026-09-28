@@ -1,5 +1,6 @@
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/presentation/query_tree_edit.dart';
+import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/syntax/query_printer.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -10,8 +11,16 @@ import 'package:submersion/features/query/app_query_registry.dart';
 /// query, labelled by the printer in the diver's units. Printing from the
 /// tree the compiler consumes is what guarantees a chip never claims a
 /// strictness the filter does not apply.
-List<String> diveQueryChipLabels(QueryNode? query, UnitPrefs prefs) {
-  final printer = QueryPrinter(appQueryRegistry, diveQueryEntity, prefs);
+List<String> diveQueryChipLabels(QueryNode? query, UnitPrefs prefs) =>
+    entityQueryChipLabels(diveQueryEntity, query, prefs);
+
+/// [diveQueryChipLabels] for any list rooted at [root].
+List<String> entityQueryChipLabels(
+  QueryEntity root,
+  QueryNode? query,
+  UnitPrefs prefs,
+) {
+  final printer = QueryPrinter(appQueryRegistry, root, prefs);
   return [for (final part in topLevelConjuncts(query)) printer.print(part)];
 }
 

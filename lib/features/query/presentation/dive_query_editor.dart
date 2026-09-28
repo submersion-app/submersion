@@ -5,6 +5,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/presentation/query_builder_strings.dart';
 import 'package:submersion/core/query/presentation/query_editor.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
+import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/query/data/query_name_index.dart';
@@ -50,11 +51,8 @@ QueryEditorStrings queryEditorStringsOf(AppLocalizations l10n) =>
       builder: queryBuilderStringsOf(l10n),
     );
 
-/// The dive query editor: [QueryEditor] over the app registry, the diver's
-/// units, the live name index and the ARB labels (#2365). Until the name
-/// index arrives the editor parses against an empty index, so a typed ref
-/// name fails with suggestions rather than blocking the field.
-class DiveQueryEditor extends ConsumerWidget {
+/// The dive query editor: [EntityQueryEditor] rooted at dives.
+class DiveQueryEditor extends StatelessWidget {
   const DiveQueryEditor({
     super.key,
     required this.value,
@@ -67,13 +65,41 @@ class DiveQueryEditor extends ConsumerWidget {
   final VoidCallback? onSave;
 
   @override
+  Widget build(BuildContext context) => EntityQueryEditor(
+    root: diveQueryEntity,
+    value: value,
+    onChanged: onChanged,
+    onSave: onSave,
+  );
+}
+
+/// A query editor for any list: [QueryEditor] over the app registry rooted
+/// at [root], the diver's units, the live name index and the ARB labels
+/// (#2365). Until the name index arrives the editor parses against an empty
+/// index, so a typed ref name fails with suggestions rather than blocking
+/// the field.
+class EntityQueryEditor extends ConsumerWidget {
+  const EntityQueryEditor({
+    super.key,
+    required this.root,
+    required this.value,
+    required this.onChanged,
+    this.onSave,
+  });
+
+  final QueryEntity root;
+  final QueryNode? value;
+  final ValueChanged<QueryNode?> onChanged;
+  final VoidCallback? onSave;
+
+  @override
   Widget build(BuildContext context, WidgetRef ref) {
     final prefs = ref.watch(queryUnitPrefsProvider);
     final names =
         ref.watch(queryNameIndexProvider).value ?? QueryNameIndex.empty;
     final editorContext = QueryEditorContext(
       registry: appQueryRegistry,
-      root: diveQueryEntity,
+      root: root,
       prefs: prefs,
       names: names,
       labels: AppQueryLabels(context),
