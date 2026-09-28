@@ -44,6 +44,7 @@ const harnessDefaults = [
   'QualityScanScheduler.enabled',
   'SensorSummaryScheduler.enabled',
   'debugCanShareFiles',
+  'GoogleFonts.config.allowRuntimeFetching',
 ];
 
 /// Channels whose mock handlers change what the path provider and the share

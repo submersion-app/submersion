@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
@@ -47,6 +48,17 @@ void main() {
     expect(GlobalStateSnapshot.take().changedSince(before), [
       'QualityScanScheduler.enabled',
       'canShareFiles',
+    ]);
+  });
+
+  test('turning font fetching back on is reported', () {
+    final before = GlobalStateSnapshot.take();
+    addTearDown(applyGlobalTestDefaults);
+
+    GoogleFonts.config.allowRuntimeFetching = true;
+
+    expect(GlobalStateSnapshot.take().changedSince(before), [
+      'GoogleFonts.config.allowRuntimeFetching',
     ]);
   });
 

@@ -4,6 +4,7 @@ import 'package:file_picker_platform_interface/file_picker_platform_interface.da
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_web_auth_2_platform_interface/flutter_web_auth_2_platform_interface.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
@@ -56,6 +57,8 @@ class GlobalStateSnapshot {
       'HttpOverrides.current': HttpOverrides.current,
       'QualityScanScheduler.enabled': QualityScanScheduler.enabled,
       'SensorSummaryScheduler.enabled': SensorSummaryScheduler.enabled,
+      'GoogleFonts.config.allowRuntimeFetching':
+          GoogleFonts.config.allowRuntimeFetching,
       'canShareFiles': canShareFiles,
       'debugPrint': debugPrint,
       'FlutterError.onError': FlutterError.onError,

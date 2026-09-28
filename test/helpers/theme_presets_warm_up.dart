@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 
 import 'google_fonts_settle.dart';
@@ -28,17 +27,15 @@ import 'google_fonts_settle.dart';
 ///
 /// The wait is [settleGoogleFonts], bounded by [limit], so a load some other
 /// file left stranded delays this one instead of hanging it. Fetching fonts
-/// over the network is turned off while the loads run, and the expected load
-/// failures are kept out of the test output. Both are put back before it
-/// returns, on every path.
+/// over the network is off for every test (the harness defaults), and the
+/// expected load failures are kept out of the test output; debugPrint is put
+/// back before it returns, on every path.
 Future<void> warmUpThemePresets({
   Duration limit = const Duration(seconds: 2),
 }) async {
   TestWidgetsFlutterBinding.ensureInitialized();
   final originalDebugPrint = debugPrint;
-  final originalFetching = GoogleFonts.config.allowRuntimeFetching;
   debugPrint = (String? message, {int? wrapWidth}) {};
-  GoogleFonts.config.allowRuntimeFetching = false;
   try {
     // The guarded zone keeps a load error from escaping as an uncaught error.
     await runZonedGuarded(() async {
@@ -47,7 +44,6 @@ Future<void> warmUpThemePresets({
       await settleGoogleFonts(limit: limit);
     }, (error, stack) {});
   } finally {
-    GoogleFonts.config.allowRuntimeFetching = originalFetching;
     debugPrint = originalDebugPrint;
   }
 }

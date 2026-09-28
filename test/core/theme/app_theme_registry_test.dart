@@ -2,23 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 
 import '../../helpers/google_fonts_settle.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  // Runtime fetching is off for this file's tests only. Set in setUpAll, not
-  // here, because a CI bundle declares every file before any test runs.
-  late bool originalFetching;
 
   // Force-initialize all theme finals inside a guarded zone so that the
   // expected google_fonts font-loading errors (fonts are not bundled in
   // test assets) do not escape as unhandled async exceptions.
   setUpAll(() async {
-    originalFetching = GoogleFonts.config.allowRuntimeFetching;
-    GoogleFonts.config.allowRuntimeFetching = false;
     // Suppress debugPrint output from google_fonts during font loading.
     // The fonts are not bundled in test assets, so google_fonts logs
     // expected errors that are harmless but noisy.
@@ -43,7 +37,6 @@ void main() {
       debugPrint = originalDebugPrint;
     }
   });
-  tearDownAll(() => GoogleFonts.config.allowRuntimeFetching = originalFetching);
 
   group('AppThemeRegistry', () {
     test('contains all 5 presets', () {
