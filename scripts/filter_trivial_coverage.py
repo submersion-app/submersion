@@ -23,7 +23,9 @@ Standard library only.
 
 import os
 import re
+import shutil
 import sys
+import tempfile
 import traceback
 
 LIB_ROOT = "lib"
@@ -55,8 +57,12 @@ _IDENTICAL_GUARD = re.compile(
 _COPY_WITH = re.compile(
     r"^[ \t]*(?:@override[ \t]+)?[A-Za-z_][\w<>?, \t]*[ \t]copyWith[ \t]*[(<]", re.M
 )
+# `name: name ?? this.name`, `name: this.name` or `name: name`; a positional
+# argument may only be `name ?? this.name` or `this.name`.
 _ARGUMENT = re.compile(
-    r"^(?:\w+\s*:\s*)?(?:\w+\s*\?\?\s*this\.\w+|this\.\w+|\w+)$"
+    r"^(?:(?P<to>\w+)\s*:\s*)?"
+    r"(?:(?P<fallback>\w+)\s*\?\?\s*this\.(?P<field>\w+)"
+    r"|this\.(?P<this>\w+)|(?P<bare>\w+))$"
 )
 _CONSTRUCTOR_CALL = re.compile(
     r"^(?:return\s+)?(?:const\s+|new\s+)?[A-Za-z_]\w*(?:<[^()]*>)?(?:\.\w+)?\s*\($",
@@ -226,7 +232,20 @@ def is_pure_copy(code, body_start, body_end):
     if _matching(body, open_paren, "(", ")") != len(body) - 1:
         return False
     arguments = _split_arguments(body[open_paren + 1:-1])
-    return all(_ARGUMENT.match(argument) for argument in arguments)
+    return all(_is_copied(argument) for argument in arguments)
+
+
+def _is_copied(argument):
+    """Whether one argument copies a value into the field of the same name."""
+    match = _ARGUMENT.match(argument)
+    if not match:
+        return False
+    if match["fallback"] and match["fallback"] != match["field"]:
+        return False
+    names = {match[key] for key in ("fallback", "this", "bare") if match[key]}
+    if match["to"]:
+        return names == {match["to"]}
+    return not match["bare"]
 
 
 def is_simple(code, body_start, body_end):
@@ -381,18 +400,36 @@ def main(argv=None):
         with open(path, encoding="utf-8") as handle:
             text = handle.read()
         result, removed, files = filter_report(text)
-    except Exception:  # noqa: BLE001 - a filter bug must not fail the shard
+        _replace(path, result)
+    except Exception:  # noqa: BLE001 (a filter bug must not fail the shard)
         # The tests have already run and passed or failed on their own. A
-        # report this script cannot read is uploaded as it is, rather than
-        # turning a green shard red.
+        # report this script cannot read or rewrite is uploaded as it is,
+        # rather than turning a green shard red.
         traceback.print_exc()
         print("%s: could not filter; left the report unchanged" % path,
               file=sys.stderr)
         return 0
-    with open(path, "w", encoding="utf-8", newline="\n") as handle:
-        handle.write(result)
     print("Dropped %d lines of trivial members from %d files" % (removed, files))
     return 0
+
+
+def _replace(path, text):
+    """Write text to path whole or not at all.
+
+    The text goes to a temporary file beside path, which then takes path's
+    place in one step, so a failed write never leaves a truncated report.
+    """
+    fd, temporary = tempfile.mkstemp(
+        dir=os.path.dirname(os.path.abspath(path)), suffix=".tmp"
+    )
+    try:
+        with open(fd, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write(text)
+        shutil.copymode(path, temporary)
+        os.replace(temporary, path)
+    except BaseException:
+        os.unlink(temporary)
+        raise
 
 
 if __name__ == "__main__":  # pragma: no cover

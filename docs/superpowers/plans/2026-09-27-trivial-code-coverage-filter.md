@@ -480,9 +480,12 @@ A test that only executes them asserts that a field copies or that two equal
 objects are equal, and would almost never catch a bug. Removing their lines
 from the report means no coverage target can be met by writing such tests.
 
-A copyWith counts as trivial only when its body is plain field copying; one
-with any other logic stays in the report. Everything else is untouched, so the
-filter can raise a coverage percentage but never lower it.
+A copyWith counts as trivial only when its body is plain field copying, and
+an ==, hashCode or toString only when its body is one plain expression; one
+with any other logic stays in the report. Everything else is untouched. A
+percentage can therefore move either way: it falls when covered boilerplate was
+propping it up, which is the point, and rises when uncovered boilerplate was
+holding it down.
 
 Usage:
     python3 scripts/filter_trivial_coverage.py coverage/lcov.info
@@ -859,10 +862,11 @@ Insert directly above `      - name: Upload coverage` in the `test` job:
 
 ```yaml
       - name: Drop trivial members from coverage
-        # copyWith, props, ==, hashCode and toString count toward no coverage
-        # target, so no one writes a test only to execute them. The filter only
-        # removes lines, so it can raise a percentage but never lower it (see
-        # scripts/filter_trivial_coverage.py and docs/developer/testing.md).
+        # Plain copyWith, props, ==, hashCode and toString count toward no
+        # coverage target, so no one writes a test only to execute them. A PR whose
+        # coverage came mostly from such lines sees its patch status fall,
+        # which is the intent (see scripts/filter_trivial_coverage.py and
+        # docs/developer/testing.md).
         # Runs even when the tests failed, like the upload: a missing or empty
         # report passes through untouched.
         if: always()

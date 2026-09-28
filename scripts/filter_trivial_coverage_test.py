@@ -8,6 +8,7 @@ import os
 import tempfile
 import textwrap
 import unittest
+from unittest import mock
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _spec = importlib.util.spec_from_file_location(
@@ -286,6 +287,26 @@ class CopyWithTest(unittest.TestCase):
             source = "class A {\n  A copyWith({int? a}) %s\n}\n" % body
             self.assertEqual(cov.trivial_lines(source), set(), body)
 
+    def test_an_argument_copied_from_another_name_is_logic(self):
+        arguments = [
+            "a: currentValue",
+            "a: this.b",
+            "a: b ?? this.a",
+            "a: a ?? this.b",
+            "current",
+        ]
+        for argument in arguments:
+            source = "class A {\n  A copyWith({int? a}) => A(%s);\n}\n" % argument
+            self.assertEqual(cov.trivial_lines(source), set(), argument)
+
+    def test_a_positional_copy_of_a_field_is_pure(self):
+        source = """
+            class A {
+              A copyWith({int? a}) => A(a ?? this.a, this.b);
+            }
+            """
+        self.assertEqual(lines_of(source), {2})
+
     def test_a_call_to_copy_with_is_not_a_declaration(self):
         source = """
             class B {
@@ -535,6 +556,39 @@ class MainTest(unittest.TestCase):
         self.assertIn("left the report unchanged", err)
         with open("lcov.info", encoding="utf-8") as handle:
             self.assertEqual(handle.read(), broken)
+
+    def test_a_failed_write_leaves_the_report_whole_and_does_not_fail(self):
+        with open("lcov.info", "w", encoding="utf-8") as handle:
+            handle.write(REPORT)
+        real_open = open
+
+        class Refusing:
+            """A file whose writes fail, like one on a full disk."""
+
+            def __init__(self, handle):
+                self._handle = handle
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                self._handle.close()
+                return False
+
+            def write(self, _):
+                raise OSError(28, "No space left on device")
+
+        def full_disk(file, mode="r", *args, **kwargs):
+            handle = real_open(file, mode, *args, **kwargs)
+            return Refusing(handle) if "w" in mode else handle
+
+        with mock.patch("builtins.open", full_disk):
+            code, _, err = self.run_main("lcov.info")
+        self.assertEqual(code, 0)
+        self.assertIn("left the report unchanged", err)
+        with open("lcov.info", encoding="utf-8") as handle:
+            self.assertEqual(handle.read(), REPORT)
+        self.assertEqual(sorted(os.listdir(".")), ["lcov.info", "lib"])
 
     def test_the_wrong_number_of_arguments_is_a_usage_error(self):
         code, _, err = self.run_main()
