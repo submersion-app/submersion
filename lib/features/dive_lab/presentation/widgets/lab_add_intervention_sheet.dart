@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_lab/presentation/providers/lab_request_
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Opens the "add an intervention" sheet for the lab draft of [diveId].
 Future<void> showLabAddInterventionSheet(
@@ -146,28 +147,39 @@ class _LabAddInterventionSheetState
     ];
   }
 
+  /// The hypothetical cylinder the fields describe, or null while any of
+  /// them holds text that cannot be read (the field shows why). A blank field
+  /// keeps its default: 21% O2, no helium, 11.1 L, 200 bar.
+  HypotheticalTankRef? _hypotheticalTank(UnitFormatter units) {
+    double? read(TextEditingController c, double blank) =>
+        switch (readNumber(c.text, allowNegative: false)) {
+          NumberValue(:final value) => value,
+          NumberBlank() => blank,
+          NumberInvalid() => null,
+        };
+    final o2 = read(_o2, 21);
+    final he = read(_he, 0);
+    final volume = read(_volume, units.convertVolume(11.1));
+    final pressure = read(_pressure, units.convertPressure(200));
+    if (o2 == null || he == null || volume == null || pressure == null) {
+      return null;
+    }
+    return HypotheticalTankRef(
+      gasMix: GasMix(
+        o2: o2.clamp(1, 100).toDouble(),
+        he: he.clamp(0, 99).toDouble(),
+      ),
+      volumeLiters: units.volumeToLiters(volume),
+      startPressureBar: units.pressureToBar(pressure),
+    );
+  }
+
   ScenarioIntervention? _build(UnitFormatter units) {
     switch (_selected) {
       case InterventionKind.switchGas:
         if (_switchTankId == _kHypothetical) {
-          final o2 = parseUserDecimal(_o2.text) ?? 21;
-          final he = parseUserDecimal(_he.text) ?? 0;
-          final volume = parseUserDecimal(_volume.text);
-          final pressure = parseUserDecimal(_pressure.text);
-          return SwitchGasIntervention(
-            tank: HypotheticalTankRef(
-              gasMix: GasMix(
-                o2: o2.clamp(1, 100).toDouble(),
-                he: he.clamp(0, 99).toDouble(),
-              ),
-              volumeLiters: volume == null
-                  ? 11.1
-                  : units.volumeToLiters(volume),
-              startPressureBar: pressure == null
-                  ? 200
-                  : units.pressureToBar(pressure),
-            ),
-          );
+          final tank = _hypotheticalTank(units);
+          return tank == null ? null : SwitchGasIntervention(tank: tank);
         }
         final id = _switchTankId;
         return id == null
@@ -192,24 +204,8 @@ class _LabAddInterventionSheetState
       case InterventionKind.bailOut:
         if (_bailoutTankId == _kAllBailout) return const BailOutIntervention();
         if (_bailoutTankId == _kHypothetical) {
-          final o2 = parseUserDecimal(_o2.text) ?? 21;
-          final he = parseUserDecimal(_he.text) ?? 0;
-          final volume = parseUserDecimal(_volume.text);
-          final pressure = parseUserDecimal(_pressure.text);
-          return BailOutIntervention(
-            tank: HypotheticalTankRef(
-              gasMix: GasMix(
-                o2: o2.clamp(1, 100).toDouble(),
-                he: he.clamp(0, 99).toDouble(),
-              ),
-              volumeLiters: volume == null
-                  ? 11.1
-                  : units.volumeToLiters(volume),
-              startPressureBar: pressure == null
-                  ? 200
-                  : units.pressureToBar(pressure),
-            ),
-          );
+          final tank = _hypotheticalTank(units);
+          return tank == null ? null : BailOutIntervention(tank: tank);
         }
         return BailOutIntervention(tank: ExistingTankRef(_bailoutTankId));
       case InterventionKind.ascentPolicy:
@@ -324,6 +320,9 @@ class _LabAddInterventionSheetState
     }
   }
 
+  String? _numberError(TextEditingController c) =>
+      invalidNumberText(context, c.text, allowNegative: false);
+
   Widget _hypotheticalFields(UnitFormatter units, dynamic l10n) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
@@ -334,7 +333,11 @@ class _LabAddInterventionSheetState
             child: TextField(
               controller: _o2,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: l10n.diveLab_sheet_o2),
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: l10n.diveLab_sheet_o2,
+                errorText: _numberError(_o2),
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -342,7 +345,11 @@ class _LabAddInterventionSheetState
             child: TextField(
               controller: _he,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: l10n.diveLab_sheet_he),
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: l10n.diveLab_sheet_he,
+                errorText: _numberError(_he),
+              ),
             ),
           ),
         ],
@@ -354,8 +361,10 @@ class _LabAddInterventionSheetState
             child: TextField(
               controller: _volume,
               keyboardType: TextInputType.number,
+              onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 labelText: l10n.diveLab_sheet_volume(units.volumeSymbol),
+                errorText: _numberError(_volume),
               ),
             ),
           ),
@@ -364,10 +373,12 @@ class _LabAddInterventionSheetState
             child: TextField(
               controller: _pressure,
               keyboardType: TextInputType.number,
+              onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 labelText: l10n.diveLab_sheet_startPressure(
                   units.pressureSymbol,
                 ),
+                errorText: _numberError(_pressure),
               ),
             ),
           ),

@@ -106,6 +106,51 @@ void main() {
     expect(draft.modeForced, isTrue);
   });
 
+  testWidgets('an unreadable hypothetical cylinder entry is shown, not saved', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(600, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        ],
+        locale: const Locale('en'),
+        child: _Host(_inputs()),
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(_Host)),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Switch gas'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Hypothetical cylinder').last);
+    await tester.pumpAndSettle();
+    // A typo in the O2 field must not quietly become the 21% default.
+    await tester.enterText(find.widgetWithText(TextField, 'O2 %'), '5o');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+    await tester.pumpAndSettle();
+    expect(container.read(labDraftProvider('d')).interventions, isEmpty);
+    expect(find.text('Add an intervention'), findsOneWidget);
+    // Corrected, it adds the cylinder with the typed mix.
+    await tester.enterText(find.widgetWithText(TextField, 'O2 %'), '50');
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+    await tester.pumpAndSettle();
+    final added = container.read(labDraftProvider('d')).interventions.single;
+    expect(added, isA<SwitchGasIntervention>());
+    final tank = (added as SwitchGasIntervention).tank as HypotheticalTankRef;
+    expect(tank.gasMix.o2, 50);
+  });
+
   testWidgets('shift ascent editor builds a negative delta by default', (
     tester,
   ) async {
