@@ -4,6 +4,7 @@ import 'package:submersion/core/data/repositories/connected_accounts_repository.
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_config_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/connections/data/repositories/connection_map_repository.dart';
 import 'package:submersion/features/query/data/repositories/saved_query_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -197,6 +198,8 @@ void main() {
           CylinderConfigRepository().watchConfigsChanges(),
       'CylinderFillRepository.watchFillsChanges': () =>
           CylinderFillRepository().watchFillsChanges(),
+      'ConnectionMapRepository.watchConnectionMapsChanges': () =>
+          ConnectionMapRepository().watchConnectionMapsChanges(),
       'SavedQueryRepository.watchSavedQueriesChanges': () =>
           SavedQueryRepository().watchSavedQueriesChanges(),
       'DiveComputerRepository.watchComputersChanges': () =>
@@ -574,6 +577,39 @@ void main() {
                   passportId: 'pp-tick',
                   filledAt: now,
                   o2Percent: 21,
+                  createdAt: now,
+                  updatedAt: now,
+                ),
+              ),
+        ),
+        isTrue,
+      );
+    });
+  });
+
+  group('connection maps', () {
+    test('watchConnectionMapsChanges fires on a saved map write', () async {
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: 'diver-tick',
+              name: 'Tick',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      expect(
+        await fires(
+          ConnectionMapRepository().watchConnectionMapsChanges(),
+          () => db
+              .into(db.connectionMaps)
+              .insert(
+                ConnectionMapsCompanion.insert(
+                  id: 'map-tick',
+                  diverId: 'diver-tick',
+                  name: 'Tick',
+                  spec: '{"kinds":["buddy"],"links":[],"min":1}',
                   createdAt: now,
                   updatedAt: now,
                 ),
