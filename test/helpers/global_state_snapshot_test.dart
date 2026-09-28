@@ -180,60 +180,6 @@ void main() {
     );
   });
 
-  group('the test binding appearing during a file', () {
-    void printA(String? message, {int? wrapWidth}) {}
-    void printB(String? message, {int? wrapWidth}) {}
-    final overrides = _Overrides();
-
-    Map<String, Object?> state({
-      required bool binding,
-      Object? http,
-      Object? print,
-      bool scan = false,
-    }) => {
-      GlobalStateSnapshot.bindingKey: binding,
-      'HttpOverrides.current': http,
-      'debugPrint': print,
-      'QualityScanScheduler.enabled': scan,
-    };
-
-    test('the values the binding installs are not reported', () {
-      final before = GlobalStateSnapshot.fromValues(
-        state(binding: false, print: printA),
-      );
-      final after = GlobalStateSnapshot.fromValues(
-        state(binding: true, http: overrides, print: printB),
-      );
-
-      expect(after.changedSince(before), isEmpty);
-    });
-
-    test('they are reported when the binding was already there', () {
-      final before = GlobalStateSnapshot.fromValues(
-        state(binding: true, print: printA),
-      );
-      final after = GlobalStateSnapshot.fromValues(
-        state(binding: true, http: overrides, print: printB),
-      );
-
-      expect(after.changedSince(before), [
-        'HttpOverrides.current',
-        'debugPrint',
-      ]);
-    });
-
-    test('anything else the file changed is still reported', () {
-      final before = GlobalStateSnapshot.fromValues(
-        state(binding: false, print: printA),
-      );
-      final after = GlobalStateSnapshot.fromValues(
-        state(binding: true, http: overrides, print: printB, scan: true),
-      );
-
-      expect(after.changedSince(before), ['QualityScanScheduler.enabled']);
-    });
-  });
-
   group('declareAndCheck', () {
     test('a clean declaration reports no error and no change', () {
       var ran = false;

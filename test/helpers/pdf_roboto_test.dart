@@ -8,8 +8,8 @@ import 'pdf_roboto.dart';
 const _styles = ['Regular', 'Bold', 'Italic', 'BoldItalic'];
 
 void main() {
-  // The test binding answers every HTTP request with 400, so a font that
-  // loads here did not come from the network.
+  // The test harness refuses every request that leaves the machine, so a font
+  // that loads here did not come from the network.
   TestWidgetsFlutterBinding.ensureInitialized();
 
   tearDown(unloadPdfRoboto);

@@ -1,18 +1,32 @@
 import 'dart:io';
 
-/// Whether [host] is this machine: `localhost`, or a loopback address such as
-/// 127.0.0.1 or ::1, as text (an IPv6 address may be in brackets) or as an
-/// [InternetAddress].
+/// Whether [host] is this machine: `localhost` or a name under `.localhost`,
+/// a loopback address such as 127.0.0.1, ::1 or ::ffff:127.0.0.1 (as text, an
+/// IPv6 address possibly in brackets, or as an [InternetAddress]), or a Unix
+/// domain socket.
 bool isLoopbackHost(Object? host) {
-  if (host is InternetAddress) return host.isLoopback;
+  if (host is InternetAddress) return _isLoopbackAddress(host);
   if (host is! String) return false;
   var name = host.toLowerCase();
   if (name.endsWith('.')) name = name.substring(0, name.length - 1);
-  if (name == 'localhost') return true;
+  if (name == 'localhost' || name.endsWith('.localhost')) return true;
   if (name.startsWith('[') && name.endsWith(']')) {
     name = name.substring(1, name.length - 1);
   }
-  return InternetAddress.tryParse(name)?.isLoopback ?? false;
+  final address = InternetAddress.tryParse(name);
+  return address != null && _isLoopbackAddress(address);
+}
+
+bool _isLoopbackAddress(InternetAddress address) {
+  if (address.type == InternetAddressType.unix) return true;
+  if (address.isLoopback) return true;
+  // An IPv4 loopback address mapped into IPv6: ::ffff:127.x.y.z.
+  final bytes = address.rawAddress;
+  return address.type == InternetAddressType.IPv6 &&
+      bytes.take(10).every((byte) => byte == 0) &&
+      bytes[10] == 0xff &&
+      bytes[11] == 0xff &&
+      bytes[12] == 127;
 }
 
 /// The failure for a test that tried to reach [target] over the network.

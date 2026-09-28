@@ -26,6 +26,9 @@ void main() {
       '127.1.2.3',
       '::1',
       '[::1]',
+      'api.localhost',
+      '::ffff:127.0.0.1',
+      '[::ffff:127.0.0.1]',
     ]) {
       test('$host is this machine', () {
         expect(isLoopbackHost(host), isTrue);
@@ -37,10 +40,21 @@ void main() {
       expect(isLoopbackHost(InternetAddress.loopbackIPv6), isTrue);
     });
 
+    test('a Unix domain socket is this machine', () {
+      expect(
+        isLoopbackHost(
+          InternetAddress('/run/test.sock', type: InternetAddressType.unix),
+        ),
+        isTrue,
+      );
+    });
+
     for (final host in [
       'example.com',
       'fonts.gstatic.com',
       'localhost.example.com',
+      'notlocalhost',
+      '::ffff:8.8.8.8',
       '8.8.8.8',
       '10.0.0.1',
       '',

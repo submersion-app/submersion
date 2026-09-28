@@ -404,7 +404,10 @@ CI bundle, or through `flutter test` locally.
   `dart_test.yaml` and for widget tests on the binding in
   `test/flutter_test_config.dart`. A test that is slow on purpose declares its
   own `timeout:` with a comment saying why. The `performance` and `real-data`
-  tags, which run only on request, allow 30 minutes.
+  tags, which run only on request, allow 30 minutes. That tag setting, like a
+  file-level `@Timeout`, reaches plain tests only: `testWidgets` passes the
+  binding's limit to each test explicitly, so a widget test that needs longer
+  passes its own `timeout:` argument.
 - **No font downloads.** Google Fonts runtime fetching is off for every test.
   The family name is still on each `TextStyle`; the font bytes never load.
 
@@ -426,9 +429,9 @@ restores it, so the next file starts from the same place.
 | You change | Put it back with |
 |---|---|
 | The path provider | `useFakePathProvider(fake)` from `test/helpers/fake_path_provider.dart`, in `setUp` or the test. It restores the previous provider when the test ends |
-| Any other `*Platform.instance`, or `HttpOverrides.global` | Read the previous value into a variable, and assign that variable back in `tearDown` or `addTearDown` |
+| Any other `*Platform.instance`, `HttpOverrides.global` or `IOOverrides.global` | Read the previous value into a variable, and assign that variable back in `tearDown` or `addTearDown` |
 | `debugPrint`, `FlutterError.onError` or `debugDefaultTargetPlatformOverride` | Put the saved value (or `null` for the platform override) back before the test ends. flutter_test requires this in the body of a `testWidgets` |
-| `QualityScanScheduler.enabled`, `SensorSummaryScheduler.enabled` or `debugCanShareFiles` | `applyGlobalTestDefaults()` from `test/helpers/global_test_defaults.dart`, in `tearDown` |
+| `QualityScanScheduler.enabled`, `SensorSummaryScheduler.enabled`, `debugCanShareFiles` or `GoogleFonts.config.allowRuntimeFetching` | `applyGlobalTestDefaults()` from `test/helpers/global_test_defaults.dart`, in `tearDown` |
 | A mock handler on the path provider or share channel | `clearPathAndShareChannelMocks()` from `test/helpers/mock_channels.dart`, or `setMockMethodCallHandler(channel, null)`, in a `tearDown` or `tearDownAll` |
 | The share sheet | Assign your fake to `SharePlatform.instance` and restore it. The harness pins a forwarder, so the fake is looked up on every share |
 | PDF fonts | `loadPdfRoboto()` in `setUpAll` and `unloadPdfRoboto()` in `tearDownAll`, from `test/helpers/pdf_roboto.dart` |
