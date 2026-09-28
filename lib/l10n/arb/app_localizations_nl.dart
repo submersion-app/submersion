@@ -42780,6 +42780,52 @@ class AppLocalizationsNl extends AppLocalizations {
       'Het herstel is niet voltooid. Er is niets verwijderd; beide bestanden staan nog op dit apparaat.';
 
   @override
+  String get startup_diveLogUnavailable_downloading =>
+      'Je logboek wordt gedownload uit iCloud';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'Je logboek staat nog in iCloud';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'Je logboek in $folder is opgeslagen in iCloud, maar staat nog niet op dit apparaat en kon niet worden gedownload. Het is veilig in iCloud en er is niets gewijzigd. Controleer je internetverbinding of download het in de Bestanden-app of in de Finder, en probeer het daarna opnieuw.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'Je logboek is niet gevonden';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'Submersion bewaart je logboek in $folder, maar daar staat nu geen $filename. Staat die map op een schijf die niet is aangesloten, of in een gesynchroniseerde map die nog niet bij is, sluit de schijf dan aan of synchroniseer de map en probeer het opnieuw. Er is niets aangemaakt of gewijzigd.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'Een nieuw logboek in deze map beginnen';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'Alleen als je oude logboek definitief kwijt is. Het nieuwe begint leeg.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      'Hier een nieuw logboek beginnen?';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'Er wordt een leeg logboek aangemaakt in $folder. Als je oude logboek later terugkomt, bijvoorbeeld wanneer een synchronisatie klaar is, conflicteert het met het nieuwe.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm =>
+      'Nieuw logboek beginnen';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Nieuwere database, bewaard bij het teruggaan - $size';
   }
