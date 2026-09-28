@@ -773,6 +773,74 @@ Decided in the whole-branch review of PR 1:
   when equipment sharing (#2411) shipped 234, with 235 and 236 held by
   #2445 and #2407 and 237 by the diver figure branch.
 
+## Deviations recorded during implementation (PR 3)
+
+- **Trips get the engine only.** Trips have a registry entry, `toQuery()`,
+  SQL filtering and the id-set list path; there is no editor, Saved row or
+  filter button for trips yet. The trip list has no filter sheet, and its
+  one axis (`equipmentId`, set from the equipment detail page) lowers to
+  the query tree.
+- **Service due is a query field backed by a cache table.**
+  `ServiceDueEngine` stays the only evaluator. A local table
+  `equipment_service_status` holds each active item's worst severity; the
+  `serviceDue` field reads it with `COALESCE(..., 'ok')`. The table has no
+  `hlc` column, so sync never sees it. The writer re-runs with
+  `activeEquipmentClocksProvider`, which holds the ticks, so it carries the
+  tick guard's documented no-tick annotation.
+- **The cache holds the active diver's view only.** Severity depends on
+  that diver's settings (due-soon window, exposure thresholds) and
+  visibility; one diver is active on a device at a time, so a diver switch
+  re-evaluates and rewrites the table.
+- **The equipment owner axis is a caller-applied scope, not a field.** Like
+  visibility, it compares rows with the active diver, which a saved query
+  cannot name. `EquipmentFilterQuery.ownerScope(activeDiverId)` returns a
+  bound clause the id-set runner ANDs with the compiled query.
+- **The equipment status axis is always lowered.** The default view is
+  `active = true AND status != retired AND status != sold`, the Retired view
+  is `(status = retired OR active = false) AND status != sold`, any other
+  status is `status = X`, and service due adds `serviceDue` on top of the
+  default view. One list source (`allEquipmentProvider`) replaces the
+  three-provider switch.
+- **The equipment empty state keeps its wording.** "No items of this type"
+  needs to know whether the status view had rows before the other axes; a
+  small `equipmentStatusViewHasItemsProvider` runs the status axes alone
+  through the same id set.
+- **Site `country` and `region` compare trimmed.** Their SQL is
+  `TRIM({r}.country)` and `TRIM({r}.region)`; text `=` is already
+  case-insensitive. The old Dart key also collapsed internal runs of
+  whitespace, which SQLite cannot do in one expression, so a stored country
+  with a doubled inner space now needs the doubled space.
+- **Site "has dives" keeps the list's count rule.** It lowers to
+  `dives[planned = false AND excludedFromStats = false]`, because the site
+  list's dive count comes from `DiveStatsScope` over every diver's dives.
+- **Site `coordinates` is a bool with its own operator set.** The validator
+  refuses `:none` and `:any` on a bool, so the field declares
+  `{=, !=, :none, :any}` instead of becoming a number; `:any` means both
+  latitude and longitude are set.
+- **Trips by equipment use the dive `gear` relation**, which also counts
+  cylinders the transmitter registry matched through
+  `dive_tanks.equipment_id`. The old `getTripIdsForEquipment` read only
+  `dive_equipment`, so a trip whose only link to a cylinder was that match
+  was missing from "trips with this gear". `getTripIdsForEquipment` itself
+  stays, since the equipment detail providers still call it.
+- **Site types are a query subject** (`QuerySubject.siteTypes`, table
+  `site_types`), so `types = "Wreck"` resolves by name through the name
+  index.
+- **The site map stays unfiltered**, as before; only the list and table
+  views read the filter.
+- **One editor, chip labeller and save flow serve every entity.**
+  `EntityQueryEditor` takes the root entity (`DiveQueryEditor` delegates to
+  it), `entityQueryChipLabels` prints the list chips for any entity, and
+  `saveQueryFromEditor` is the one save flow. The site and equipment sheets
+  put the query section first, titled from one shared key
+  (`query_sheet_sectionTitle`).
+- **Widget tests without a database fake the id set.**
+  `fakeEquipmentQueryIds` reproduces the old in-memory filter for list
+  tests; the SQL is pinned by the per-entity semantics tests, which run the
+  compiled query against a real database.
+- **Schema rung 242.** Main was at 240 with 237 shipped; 241 was held by
+  #2493 when the rung was taken.
+
 ## Open items for the implementation plans
 
 - PR 1 must re-grep `currentSchemaVersion` only if it adds a table; it does
