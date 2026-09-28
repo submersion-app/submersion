@@ -26,6 +26,8 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../helpers/fake_path_provider.dart';
+
 /// The share helpers write into getApplicationDocumentsDirectory(), a
 /// platform channel with no implementation under flutter_test.
 class _FakePathProvider extends PathProviderPlatform
@@ -1521,11 +1523,20 @@ void main() {
     late Directory documents;
     final platform = _FakeSharePlatform();
 
-    setUpAll(() => SharePlatform.instance = platform);
+    // The harness pins a forwarder that looks the platform up on every share
+    // (test/helpers/late_bound_share_platform.dart), so the fake comes out
+    // again when this group is done.
+    late SharePlatform originalSharePlatform;
+
+    setUpAll(() {
+      originalSharePlatform = SharePlatform.instance;
+      SharePlatform.instance = platform;
+    });
+    tearDownAll(() => SharePlatform.instance = originalSharePlatform);
 
     setUp(() {
       documents = Directory.systemTemp.createTempSync('blender_invoice_test');
-      PathProviderPlatform.instance = _FakePathProvider(documents.path);
+      useFakePathProvider(_FakePathProvider(documents.path));
       platform.calls.clear();
     });
 

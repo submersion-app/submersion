@@ -3,10 +3,13 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Front-matter pages shared by the logbook templates.
 ///
@@ -30,6 +33,7 @@ class PdfFrontMatter {
   static List<pw.Widget> buildDiverPageBody({
     required Diver diver,
     required PdfDateFormatter dates,
+    required AppLocalizations l10n,
     required int diveCount,
     List<Certification> certifications = const [],
     Uint8List? photoBytes,
@@ -39,20 +43,23 @@ class PdfFrontMatter {
       buildDiverPage(
         diver: diver,
         dates: dates,
+        l10n: l10n,
         diveCount: diveCount,
         photoBytes: photoBytes,
         accentColor: accentColor,
       ),
       if (certifications.isNotEmpty) ...[
         pw.Text(
-          'Certifications',
+          l10n.pdf_certifications,
           style: const pw.TextStyle(
             fontSize: 14,
             fontWeight: pw.FontWeight.bold,
           ),
         ),
         pw.SizedBox(height: 8),
-        ...certifications.map((cert) => _buildCertificationLine(cert, dates)),
+        ...certifications.map(
+          (cert) => _buildCertificationLine(cert, dates, l10n),
+        ),
       ],
     ];
   }
@@ -60,6 +67,7 @@ class PdfFrontMatter {
   static pw.Widget buildDiverPage({
     required Diver diver,
     required PdfDateFormatter dates,
+    required AppLocalizations l10n,
     required int diveCount,
     List<Certification> certifications = const [],
     Uint8List? photoBytes,
@@ -69,7 +77,7 @@ class PdfFrontMatter {
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Text(
-          'Diver Profile',
+          l10n.pdf_diverProfile,
           style: pw.TextStyle(
             fontSize: 20,
             fontWeight: pw.FontWeight.bold,
@@ -86,34 +94,39 @@ class PdfFrontMatter {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  _buildProfileField('Name', diver.name),
+                  _buildProfileField(l10n.pdf_name, diver.name),
                   if (diver.email != null)
-                    _buildProfileField('Email', diver.email!),
-                  _buildProfileField('Total Dives', '$diveCount'),
+                    _buildProfileField(l10n.pdf_email, diver.email!),
+                  _buildProfileField(l10n.pdf_totalDives, '$diveCount'),
                 ],
               ),
             ),
             pw.SizedBox(width: 40),
-            _buildPortrait(photoBytes),
+            _buildPortrait(photoBytes, l10n),
           ],
         ),
         pw.SizedBox(height: 24),
         if (certifications.isNotEmpty) ...[
           pw.Text(
-            'Certifications',
+            l10n.pdf_certifications,
             style: const pw.TextStyle(
               fontSize: 14,
               fontWeight: pw.FontWeight.bold,
             ),
           ),
           pw.SizedBox(height: 8),
-          ...certifications.map((cert) => _buildCertificationLine(cert, dates)),
+          ...certifications.map(
+            (cert) => _buildCertificationLine(cert, dates, l10n),
+          ),
         ],
       ],
     );
   }
 
-  static pw.Widget _buildPortrait(Uint8List? photoBytes) {
+  static pw.Widget _buildPortrait(
+    Uint8List? photoBytes,
+    AppLocalizations l10n,
+  ) {
     if (photoBytes == null) {
       return pw.Container(
         width: 100,
@@ -123,7 +136,7 @@ class PdfFrontMatter {
         ),
         child: pw.Center(
           child: pw.Text(
-            'Photo',
+            l10n.pdf_photo,
             style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey400),
           ),
         ),
@@ -143,6 +156,7 @@ class PdfFrontMatter {
   static pw.Widget _buildCertificationLine(
     Certification cert,
     PdfDateFormatter dates,
+    AppLocalizations l10n,
   ) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 4),
@@ -165,13 +179,13 @@ class PdfFrontMatter {
           // twice.
           pw.Expanded(
             child: pw.Text(
-              '${cert.agency.displayName} - ${certificationTitle(cert)}',
+              '${cert.agency.localizedName(l10n)} - ${certificationTitle(cert)}',
               style: const pw.TextStyle(fontSize: 10),
             ),
           ),
           if (cert.cardNumber != null)
             pw.Text(
-              ' Card #: ${cert.cardNumber}',
+              ' ${l10n.pdf_cardNumber(cert.cardNumber!)}',
               style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
             ),
           if (cert.issueDate != null)
@@ -192,11 +206,11 @@ class PdfFrontMatter {
         children: [
           pw.Text(
             label.toUpperCase(),
-            style: const pw.TextStyle(
+            style: pw.TextStyle(
               fontSize: 8,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.grey600,
-              letterSpacing: 1,
+              letterSpacing: pdfTracking(label, 1),
             ),
           ),
           pw.SizedBox(height: 2),

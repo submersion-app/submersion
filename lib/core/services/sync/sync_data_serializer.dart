@@ -316,6 +316,8 @@ class SyncData {
   final List<Map<String, dynamic>> diveComputers;
   final List<Map<String, dynamic>> transmitters;
   final List<Map<String, dynamic>> cylinderFills;
+  final List<Map<String, dynamic>> connectionMaps;
+  final List<Map<String, dynamic>> savedQueries;
 
   /// Inbound only since v182: older peers still send row-per-sample arrays;
   /// they apply into the legacy tables and are packed into series by
@@ -418,6 +420,8 @@ class SyncData {
     this.diveComputers = const [],
     this.transmitters = const [],
     this.cylinderFills = const [],
+    this.connectionMaps = const [],
+    this.savedQueries = const [],
     this.tankPressureProfiles = const [],
     this.tideRecords = const [],
     this.settings = const [],
@@ -515,6 +519,8 @@ class SyncData {
     'diveComputers': diveComputers,
     'transmitters': transmitters,
     'cylinderFills': cylinderFills,
+    'connectionMaps': connectionMaps,
+    'savedQueries': savedQueries,
     'tideRecords': tideRecords,
     'settings': settings,
     'species': species,
@@ -615,6 +621,8 @@ class SyncData {
       diveComputers: _parseList(json['diveComputers']),
       transmitters: _parseList(json['transmitters']),
       cylinderFills: _parseList(json['cylinderFills']),
+      connectionMaps: _parseList(json['connectionMaps']),
+      savedQueries: _parseList(json['savedQueries']),
       tankPressureProfiles: _parseList(json['tankPressureProfiles']),
       tideRecords: _parseList(json['tideRecords']),
       settings: _parseList(json['settings']),
@@ -1055,6 +1063,8 @@ class SyncDataSerializer {
     (key: 'diveComputers', table: _db.diveComputers, blob: false, full: null),
     (key: 'transmitters', table: _db.transmitters, blob: false, full: null),
     (key: 'cylinderFills', table: _db.cylinderFills, blob: false, full: null),
+    (key: 'connectionMaps', table: _db.connectionMaps, blob: false, full: null),
+    (key: 'savedQueries', table: _db.savedQueries, blob: false, full: null),
     (key: 'tideRecords', table: _db.tideRecords, blob: false, full: null),
     (
       key: 'settings',
@@ -2100,6 +2110,14 @@ class SyncDataSerializer {
         'cylinderFills',
         () => _exportCylinderFills(hlcSince),
       ),
+      connectionMaps: await _safeExport(
+        'connectionMaps',
+        () => _exportConnectionMaps(hlcSince),
+      ),
+      savedQueries: await _safeExport(
+        'savedQueries',
+        () => _exportSavedQueries(hlcSince),
+      ),
       tideRecords: await _safeExport(
         'tideRecords',
         () async => _withPendingChildren(
@@ -2758,6 +2776,16 @@ class SyncDataSerializer {
           _db.cylinderFills,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'connectionMaps':
+        final row = await (_db.select(
+          _db.connectionMaps,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'savedQueries':
+        final row = await (_db.select(
+          _db.savedQueries,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'mediaSmartAlbums':
         final row = await (_db.select(
           _db.mediaSmartAlbums,
@@ -3167,6 +3195,16 @@ class SyncDataSerializer {
       case 'cylinderFills':
         final rows = await (_db.select(
           _db.cylinderFills,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'connectionMaps':
+        final rows = await (_db.select(
+          _db.connectionMaps,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'savedQueries':
+        final rows = await (_db.select(
+          _db.savedQueries,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'mediaSmartAlbums':
@@ -4191,6 +4229,20 @@ class SyncDataSerializer {
             .into(_db.cylinderFills)
             .insertOnConflictUpdate(
               CylinderFillRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'connectionMaps':
+        await _db
+            .into(_db.connectionMaps)
+            .insertOnConflictUpdate(
+              ConnectionMapRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'savedQueries':
+        await _db
+            .into(_db.savedQueries)
+            .insertOnConflictUpdate(
+              SavedQueryRow.fromJson(data).toCompanion(false),
             );
         return;
       case 'mediaSmartAlbums':
@@ -5334,6 +5386,26 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'connectionMaps':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.connectionMaps,
+            records
+                .map((r) => ConnectionMapRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'savedQueries':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.savedQueries,
+            records
+                .map((r) => SavedQueryRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
       case 'mediaSmartAlbums':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -5784,6 +5856,10 @@ class SyncDataSerializer {
         return plain(_db.transmitters, _db.transmitters.id);
       case 'cylinderFills':
         return plain(_db.cylinderFills, _db.cylinderFills.id);
+      case 'connectionMaps':
+        return plain(_db.connectionMaps, _db.connectionMaps.id);
+      case 'savedQueries':
+        return plain(_db.savedQueries, _db.savedQueries.id);
       case 'species':
         return plain(_db.species, _db.species.id);
       case 'tags':
@@ -6173,6 +6249,10 @@ class SyncDataSerializer {
         return _db.transmitters;
       case 'cylinderFills':
         return _db.cylinderFills;
+      case 'connectionMaps':
+        return _db.connectionMaps;
+      case 'savedQueries':
+        return _db.savedQueries;
       case 'species':
         return _db.species;
       case 'tags':
@@ -6652,6 +6732,16 @@ class SyncDataSerializer {
       case 'cylinderFills':
         await (_db.delete(
           _db.cylinderFills,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'connectionMaps':
+        await (_db.delete(
+          _db.connectionMaps,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'savedQueries':
+        await (_db.delete(
+          _db.savedQueries,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'mediaSmartAlbums':
@@ -7687,6 +7777,28 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.cylinderFills);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportConnectionMaps(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.connectionMaps);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportSavedQueries(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.savedQueries);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }

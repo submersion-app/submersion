@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_log/data/services/dive_split_service.da
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
+import '../../../helpers/global_test_defaults.dart';
 import '../../../helpers/l10n_test_helpers.dart';
 import '../../../helpers/test_database.dart';
 import '../../../helpers/test_app.dart';
@@ -285,7 +286,7 @@ void main() {
     QualityScanScheduler.enabled = false;
   });
   tearDown(() {
-    QualityScanScheduler.enabled = true;
+    applyGlobalTestDefaults();
     return tearDownTestDatabase();
   });
 

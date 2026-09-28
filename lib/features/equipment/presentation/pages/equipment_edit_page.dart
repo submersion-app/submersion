@@ -12,6 +12,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -143,7 +144,12 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     if (_isInitialized) return;
     _isInitialized = true;
 
-    for (final attr in equipment.attributes) {
+    // A colour on a type without one loads as a custom field, so the save
+    // keeps it (issue #2520).
+    for (final attr in keepStrayColorAsCustom(
+      equipment.type,
+      equipment.attributes,
+    )) {
       if (attr.isCustom) {
         _customFields.add(attr);
       } else {
@@ -492,6 +498,23 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           EquipmentAttributeFormSection(
             key: ValueKey('attrs-${_selectedType.name}'),
             type: _selectedType,
+            values: _attrValues,
+            units: UnitFormatter(ref.watch(settingsProvider)),
+            onChanged: (attr) => setState(() {
+              _attrValues[attr.key] = attr;
+              _hasChanges = true;
+            }),
+            onCleared: (key) => setState(() {
+              _attrValues.remove(key);
+              _hasChanges = true;
+            }),
+          ),
+          // The item's colour, which tints its artwork on the diver figure
+          // (issue #2326). Renders nothing for the types that have none.
+          EquipmentAttributeFormSection(
+            key: ValueKey('appearance-${_selectedType.name}'),
+            type: _selectedType,
+            group: AttributeGroup.appearance,
             values: _attrValues,
             units: UnitFormatter(ref.watch(settingsProvider)),
             onChanged: (attr) => setState(() {

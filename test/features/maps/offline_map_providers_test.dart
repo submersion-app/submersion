@@ -178,7 +178,10 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  final tileLayer = TileLayer(
+  // Lazy: TileLayer creates an HTTP client, and the body of main() runs while
+  // the file is declared. By then another file in the isolate may have set up
+  // the test binding, whose HTTP layer only works inside a test.
+  late final tileLayer = TileLayer(
     urlTemplate: 'https://tile.example/{z}/{x}/{y}.png',
   );
 

@@ -13,6 +13,7 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 
+import '../../helpers/mock_channels.dart';
 import '../../support/fake_cloud_storage_provider.dart';
 
 /// Writes a stand-in backup file so the service has real bytes to upload.
@@ -95,6 +96,7 @@ void main() {
           },
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   const log = LoggerService('BackgroundServiceTest');
   late FakeCloudStorageProvider cloud;

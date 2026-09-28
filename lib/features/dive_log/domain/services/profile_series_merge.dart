@@ -130,8 +130,8 @@ List<TankPressureSeries> selectTankSeriesForComputer(
 ///
 /// Per tank, the series are grouped by source; a series with no source is a
 /// group of its own, since nothing ties it to any other. Groups are taken in
-/// order of preference and each is kept unless its time span overlaps one
-/// already kept. Preference: [preferredSourceId]; then an unattributed group
+/// order of preference and each is kept unless one of its series overlaps a
+/// series already kept. Preference: [preferredSourceId]; then an unattributed group
 /// recorded by [preferredComputerId]; then attributed groups before
 /// unattributed ones; then the group with more samples; then the one that
 /// starts first; then the first series id. Input order is preserved in the
@@ -164,12 +164,18 @@ List<TankPressureSeries> selectTankSeriesPerSource(
         if (byStart != 0) return byStart;
         return a.first.id.compareTo(b.first.id);
       });
-    final spans = <(int, int)>[];
+    // Overlap is judged series by series, not on a group's overall span: a
+    // source that recorded two stretches with another source's recording
+    // in the gap between them overlaps nothing, and that middle recording
+    // must be kept.
+    final keptSpans = <(int, int)>[];
     for (final group in ordered) {
-      final span = _spanOfGroup(group);
-      final overlaps = spans.any((s) => span.$1 <= s.$2 && s.$1 <= span.$2);
+      final spans = [for (final s in group) _spanOf(s)];
+      final overlaps = spans.any(
+        (span) => keptSpans.any((k) => span.$1 <= k.$2 && k.$1 <= span.$2),
+      );
       if (overlaps) continue;
-      spans.add(span);
+      keptSpans.addAll(spans);
       kept.addAll(group.map((s) => s.id));
     }
   }
@@ -196,6 +202,9 @@ int _preferenceRank(
 
 int _sampleCount(List<TankPressureSeries> group) =>
     group.fold(0, (n, s) => n + s.summary.sampleCount);
+
+(int, int) _spanOf(TankPressureSeries series) =>
+    (series.summary.startTimestamp, series.summary.endTimestamp);
 
 (int, int) _spanOfGroup(List<TankPressureSeries> group) {
   var start = group.first.summary.startTimestamp;

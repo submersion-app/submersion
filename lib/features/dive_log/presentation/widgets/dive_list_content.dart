@@ -35,17 +35,12 @@ import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
-import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
-import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
@@ -53,6 +48,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chips.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
@@ -2086,187 +2082,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   }
 
   Widget _buildActiveFiltersBar(BuildContext context) {
-    final filter = ref.watch(diveFilterProvider);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
-    final chips = <Widget>[];
-
-    if (filter.startDate != null || filter.endDate != null) {
-      String dateText;
-      if (filter.startDate != null && filter.endDate != null) {
-        dateText = context.l10n.diveLog_filterChip_dateRange(
-          units.formatMonthDay(filter.startDate),
-          units.formatMonthDay(filter.endDate),
-        );
-      } else if (filter.startDate != null) {
-        dateText = context.l10n.diveLog_filterChip_from(
-          units.formatMonthDay(filter.startDate),
-        );
-      } else {
-        dateText = context.l10n.diveLog_filterChip_until(
-          units.formatMonthDay(filter.endDate),
-        );
-      }
-      chips.add(
-        _buildFilterChip(context, dateText, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearStartDate: true,
-            clearEndDate: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.diveTypeId != null) {
-      final diveTypeName =
-          ref
-              .watch(diveTypeProvider(filter.diveTypeId!))
-              .value
-              ?.localizedName(context.l10n) ??
-          builtInDiveTypeName(context.l10n, filter.diveTypeId!) ??
-          filter.diveTypeId!;
-      chips.add(
-        _buildFilterChip(context, diveTypeName, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearDiveType: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.siteId != null) {
-      final siteName =
-          ref.watch(siteProvider(filter.siteId!)).value?.name ??
-          context.l10n.diveLog_edit_row_site;
-      chips.add(
-        _buildFilterChip(context, siteName, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearSiteId: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.tripId != null) {
-      final tripName =
-          ref.watch(tripByIdProvider(filter.tripId!)).value?.name ??
-          context.l10n.diveLog_edit_row_trip;
-      chips.add(
-        _buildFilterChip(context, tripName, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearTripId: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.diveCenterId != null) {
-      final centerName =
-          ref.watch(diveCenterByIdProvider(filter.diveCenterId!)).value?.name ??
-          context.l10n.diveLog_search_label_diveCenter;
-      chips.add(
-        _buildFilterChip(context, centerName, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearDiveCenterId: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.equipmentIds.isNotEmpty) {
-      final label = filter.equipmentIds.length == 1
-          ? (ref
-                    .watch(equipmentItemProvider(filter.equipmentIds.first))
-                    .value
-                    ?.name ??
-                context.l10n.diveLog_edit_section_equipment)
-          : context.l10n.diveLog_filterChip_equipmentCount(
-              filter.equipmentIds.length,
-            );
-      chips.add(
-        _buildFilterChip(context, label, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            equipmentIds: [],
-          );
-        }),
-      );
-    }
-
-    if (filter.minDepth != null || filter.maxDepth != null) {
-      // Bounds are stored in meters; show them in the diver's depth unit.
-      final unit = units.depthSymbol;
-      final minValue = filter.minDepth == null
-          ? null
-          : units.convertDepth(filter.minDepth!).round();
-      final maxValue = filter.maxDepth == null
-          ? null
-          : units.convertDepth(filter.maxDepth!).round();
-      String depthText;
-      if (minValue != null && maxValue != null) {
-        depthText = '$minValue-$maxValue$unit';
-      } else if (minValue != null) {
-        depthText = '>$minValue$unit';
-      } else {
-        depthText = '<${maxValue!}$unit';
-      }
-      chips.add(
-        _buildFilterChip(context, depthText, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearMinDepth: true,
-            clearMaxDepth: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.favoritesOnly == true) {
-      chips.add(
-        _buildFilterChip(
-          context,
-          context.l10n.diveLog_filterChip_favorites,
-          () {
-            ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-              clearFavoritesOnly: true,
-            );
-          },
-        ),
-      );
-    }
-
-    if (filter.noBuddyOnly == true) {
-      chips.add(
-        _buildFilterChip(context, context.l10n.diveLog_filterChip_noBuddy, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearNoBuddyOnly: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.tagIds.isNotEmpty) {
-      final tagCount = filter.tagIds.length;
-      chips.add(
-        _buildFilterChip(
-          context,
-          context.l10n.diveLog_detail_tagCount(tagCount),
-          () {
-            ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-              clearTagIds: true,
-            );
-          },
-        ),
-      );
-    }
-
-    if (filter.buddyNameFilter != null && filter.buddyNameFilter!.isNotEmpty) {
-      chips.add(
-        _buildFilterChip(context, filter.buddyNameFilter!, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearBuddyNameFilter: true,
-          );
-        }),
-      );
-    }
+    final chips = activeDiveFilterChips(context, ref, diveFilterProvider);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -2286,23 +2102,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             child: Text(context.l10n.diveLog_filterChip_clearAll),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(
-    BuildContext context,
-    String label,
-    VoidCallback onRemove,
-  ) {
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(end: 8),
-      child: Chip(
-        label: Text(label, style: const TextStyle(fontSize: 12)),
-        deleteIcon: const Icon(Icons.close, size: 16),
-        onDeleted: onRemove,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
       ),
     );
   }

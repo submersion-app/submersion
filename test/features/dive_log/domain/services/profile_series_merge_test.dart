@@ -402,6 +402,21 @@ void main() {
       expect(kept.map((s) => s.id), ['a', 'b']);
     });
 
+    test('a recording in the gap between two of another source is kept', () {
+      // Source A recorded 0-1000 and 3000-4000; source B the stretch
+      // between. Nothing overlaps, so all three belong in the line even
+      // though A's series together span B's.
+      final a1 = sourced('a1', 'src-a', span(0, 1000, 200));
+      final a2 = sourced('a2', 'src-a', span(3000, 4000, 100));
+      final b = sourced('b', 'src-b', span(1500, 2500, 150));
+      final kept = selectTankSeriesPerSource([
+        a1,
+        b,
+        a2,
+      ], preferredSourceId: 'src-a');
+      expect(kept.map((s) => s.id), ['a1', 'b', 'a2']);
+    });
+
     test('several series of one source are all kept', () {
       final a = sourced('a1', 'src-a', span(0, 1500, 200));
       final b = sourced('a2', 'src-a', span(1000, 3000, 150));

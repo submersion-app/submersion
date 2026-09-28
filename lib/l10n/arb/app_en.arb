@@ -1,4 +1,59 @@
 {
+  "connections_action_centreHere": "Centre here",
+  "connections_around_centredOn": "Centred on",
+  "connections_around_hops": "Hops",
+  "connections_around_kindChip": "{kind} ({count})",
+  "@connections_around_kindChip": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
+  "connections_around_noResults": "No matches",
+  "connections_around_prompt": "Search for a buddy, site, trip or anything else to centre the map on it.",
+  "connections_around_searchHint": "Search buddies, sites, trips and more",
+  "connections_around_show": "Show",
+  "connections_editor_kinds": "Kinds",
+  "connections_editor_link": "{a} with {b}",
+  "@connections_editor_link": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
+  "connections_editor_links": "Links",
+  "connections_editor_minShared": "{count, plural, =1{At least 1 shared dive} other{At least {count} shared dives}}",
+  "@connections_editor_minShared": {"placeholders": {"count": {"type": "int"}}},
+  "connections_editor_saveAsMap": "Save as map",
+  "connections_editor_title": "Custom map",
+  "connections_filter_allFilters": "All filters",
+  "connections_filter_clear": "Clear",
+  "connections_filter_none": "No filters are active.",
+  "connections_loading": "Loading connections",
+  "connections_mode_around": "Around one entity",
+  "connections_mode_map": "Whole map",
+  "connections_preset_centers": "Centers and people",
+  "connections_preset_circle": "Dive circle",
+  "connections_preset_edited": "edited",
+  "connections_preset_gear": "Gear together",
+  "connections_preset_gearRoad": "Gear on the road",
+  "connections_preset_life": "Sites by marine life",
+  "connections_preset_reef": "Reef life",
+  "connections_preset_travel": "Travel story",
+  "connections_preset_trips": "Trips and people",
+  "connections_preset_where": "Who dives where",
+  "connections_presets_title": "Presets",
+  "connections_savedMap_badge": "Saved map",
+  "connections_savedMap_deleted": "Deleted \"{name}\"",
+  "@connections_savedMap_deleted": {"placeholders": {"name": {"type": "String"}}},
+  "connections_savedMap_nameLabel": "Name",
+  "connections_savedMap_rename": "Rename",
+  "connections_savedMap_saveTitle": "Save map",
+  "connections_savedMap_undo": "Undo",
+  "connections_savedMap_update": "Update from current",
+  "connections_summary_closest": "Closest",
+  "connections_summary_entitiesAround": "{count, plural, =1{1 entity} other{{count} entities}}",
+  "@connections_summary_entitiesAround": {"placeholders": {"count": {"type": "int"}}},
+  "connections_summary_mostConnected": "Most connected",
+  "connections_summary_pairValue": "{count, plural, =1{{a} and {b}, 1 dive} other{{a} and {b}, {count} dives}}",
+  "@connections_summary_pairValue": {"placeholders": {"count": {"type": "int"}, "a": {"type": "String"}, "b": {"type": "String"}}},
+  "connections_summary_strongestPair": "Strongest pair",
+  "connections_summary_title": "Summary",
+  "connections_tab_details": "Details",
+  "connections_tab_filter": "Filter",
+  "connections_tab_filterCount": "Filter ({count})",
+  "@connections_tab_filterCount": {"placeholders": {"count": {"type": "int"}}},
+  "connections_tab_view": "View",
   "equipment_filter_owner_all": "All",
   "equipment_delete_notOwner": "Only its owner can delete this item",
   "equipment_sharedWithMe": "Shared with me",
@@ -133,8 +188,30 @@
   "equipment_setEdit_defaultSwitch_subtitle": "Auto-applied to new dives that have no equipment yet",
   "equipment_setEdit_computerAutoApplySwitch_title": "Apply when this set's computer is imported",
   "equipment_setEdit_computerAutoApplySwitch_subtitle": "If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it",
-  "equipment_setEdit_figureSwitch_subtitle": "Draw this set's gear on a diver on the set page",
+  "equipment_setEdit_figureSwitch_subtitle": "Draw this set's gear on a diver",
   "equipment_setEdit_figureSwitch_title": "Show diver figure",
+  "equipment_color_red": "Red",
+  "equipment_color_orange": "Orange",
+  "equipment_color_amber": "Amber",
+  "equipment_color_yellow": "Yellow",
+  "equipment_color_lime": "Lime",
+  "equipment_color_green": "Green",
+  "equipment_color_emerald": "Emerald",
+  "equipment_color_teal": "Teal",
+  "equipment_color_cyan": "Cyan",
+  "equipment_color_sky": "Sky",
+  "equipment_color_blue": "Blue",
+  "equipment_color_indigo": "Indigo",
+  "equipment_color_violet": "Violet",
+  "equipment_color_purple": "Purple",
+  "equipment_color_fuchsia": "Fuchsia",
+  "equipment_color_pink": "Pink",
+  "equipment_color_rose": "Rose",
+  "equipment_color_stone": "Stone",
+  "equipment_color_zinc": "Zinc",
+  "equipment_color_slate": "Slate",
+  "equipment_color_none": "None",
+  "equipment_color_sheetTitle": "Choose a color",
   "equipment_setEdit_geofencesTitle": "Geofences",
   "equipment_setEdit_geofencesSubtitle": "Auto-suggest this set for dives near these locations",
   "equipment_setEdit_addGeofence": "Add geofence",
@@ -2101,6 +2178,51 @@
   "@common_error_tryAgain": {
     "description": "Generic error snackbar shown when an action fails and the user should retry."
   },
+  "connections_title": "Connections",
+  "connections_tooltip_relayout": "Lay out again",
+  "connections_tooltip_showWholeWeb": "Back to the whole map",
+  "connections_filterBar_edges": "{count, plural, =1{1 connection} other{{count} connections}}",
+  "@connections_filterBar_edges": {"placeholders": {"count": {"type": "int"}}},
+  "connections_hiddenNodes": "{count, plural, =1{1 more not shown} other{{count} more not shown}}",
+  "@connections_hiddenNodes": {"placeholders": {"count": {"type": "int"}}},
+  "connections_showAll": "Show all",
+  "connections_showAll_confirmTitle": "Show every node?",
+  "connections_showAll_confirmBody": "{count} nodes may take a moment to lay out on this device.",
+  "@connections_showAll_confirmBody": {"placeholders": {"count": {"type": "int"}}},
+  "connections_action_open": "Open",
+  "connections_action_showDives": "Show dives",
+  "connections_action_openInConnections": "Open in Connections",
+  "connections_selection_divesTogether": "{count, plural, =1{1 dive together} other{{count} dives together}}",
+  "@connections_selection_divesTogether": {"placeholders": {"count": {"type": "int"}}},
+  "connections_selection_dives": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "@connections_selection_dives": {"placeholders": {"count": {"type": "int"}}},
+  "connections_selection_topConnections": "Top connections",
+  "connections_selection_firstLast": "First {first}, last {last}",
+  "@connections_selection_firstLast": {"placeholders": {"first": {"type": "String"}, "last": {"type": "String"}}},
+  "connections_selection_hint": "Tap a node or a line to see details.",
+  "connections_empty_noDives": "No dives yet. Connections appear once your log has dives in it.",
+  "connections_empty_buddies": "No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names in Settings, Data Tools.",
+  "connections_empty_sites": "No dives have a site yet.",
+  "connections_empty_filtered": "Nothing matches the current filter.",
+  "connections_focusMissing": "That item is no longer in the log.",
+  "connections_error_load": "Could not load connections.",
+  "connections_legend_title": "Legend",
+  "connections_yearRange_label": "Years {first} to {last}",
+  "@connections_yearRange_label": {"placeholders": {"first": {"type": "int"}, "last": {"type": "int"}}},
+  "connections_semantics_summary": "{nodes} nodes and {edges} connections",
+  "@connections_semantics_summary": {"placeholders": {"nodes": {"type": "int"}, "edges": {"type": "int"}}},
+  "connections_semantics_selected": "Selected: {label}",
+  "@connections_semantics_selected": {"placeholders": {"label": {"type": "String"}}},
+  "connections_kind_buddy": "Buddies",
+  "connections_kind_site": "Sites",
+  "connections_kind_trip": "Trips",
+  "connections_kind_diveCenter": "Dive centers",
+  "connections_kind_equipment": "Equipment",
+  "connections_kind_species": "Species",
+  "connections_kind_tag": "Tags",
+  "connections_kind_diveType": "Dive types",
+  "connections_kind_diveComputer": "Dive computers",
+  "connections_kind_course": "Courses",
   "courses_action_add": "Add Course",
   "courses_action_addFromTemplate": "Add from template",
   "courses_action_addRequirement": "Add requirement",
@@ -7103,6 +7225,290 @@
   "passport_logFill_notes": "Notes",
   "passport_logFill_invalidMix": "O2 and He must each be 0 to 100 and total 100 or less",
   "passport_logFill_saveFailed": "Could not save the fill. Try again.",
+  "pdf_unknownSite": "Unknown Site",
+  "pdf_signaturePlaceholder": "[Signature]",
+  "pdf_signerBuddy": "Buddy",
+  "pdf_signerInstructor": "Instructor",
+  "pdf_officialStamp": "Official Stamp",
+  "pdf_certifications": "Certifications",
+  "pdf_cardNumber": "Card #: {number}",
+  "pdf_certIssued": "Issued: {date}",
+  "pdf_certExpires": "Expires: {date}",
+  "pdf_cardFront": "Front",
+  "pdf_cardBack": "Back",
+  "pdf_coverDiveCount": "{count, plural, one{{count} Dive} other{{count} Dives}}",
+  "pdf_headerDiveCount": "{count, plural, one{{count} dive} other{{count} dives}}",
+  "pdf_generatedOn": "Generated on {dateTime}",
+  "pdf_generated": "Generated {dateTime}",
+  "pdf_noDivesToSummarize": "No dives to summarize",
+  "pdf_noDivesToDisplay": "No dives to display",
+  "pdf_summary": "Summary",
+  "pdf_totalDives": "Total Dives",
+  "pdf_firstDive": "First Dive",
+  "pdf_lastDive": "Last Dive",
+  "pdf_totalDiveTime": "Total Dive Time",
+  "pdf_deepestDive": "Deepest Dive",
+  "pdf_blenderIncomplete": "Incomplete: one or more lines have no price.",
+  "pdf_averageDepth": "Average Depth",
+  "pdf_uniqueSites": "Unique Sites",
+  "pdf_hoursMinutes": "{hours}h {minutes}m",
+  "pdf_minutesShort": "{minutes}m",
+  "pdf_minutes": "{minutes} min",
+  "pdf_minutesCompact": "{minutes}min",
+  "pdf_diverProfile": "Diver Profile",
+  "pdf_name": "Name",
+  "pdf_email": "Email",
+  "pdf_photo": "Photo",
+  "pdf_depthProfileHeading": "Depth Profile ({depthUnit} vs min)",
+  "pdf_columnDate": "Date",
+  "pdf_columnSite": "Site",
+  "pdf_columnDepth": "Depth",
+  "pdf_columnTime": "Time",
+  "pdf_columnTemp": "Temp",
+  "pdf_pageOf": "Page {page} of {total}",
+  "pdf_sectionProfile": "Profile",
+  "pdf_sectionCylinders": "Cylinders",
+  "pdf_sectionConditions": "Conditions",
+  "pdf_sectionWeather": "Weather",
+  "pdf_sectionTeam": "Team",
+  "pdf_sectionEquipment": "Equipment",
+  "pdf_sectionTechnical": "Technical",
+  "pdf_sectionMarineLife": "Marine Life",
+  "pdf_sectionNotes": "Notes",
+  "pdf_sectionAdditionalFields": "Additional Fields",
+  "pdf_sectionVerifiedBy": "Verified By",
+  "pdf_sectionVerification": "Verification",
+  "pdf_maxDepth": "Max Depth",
+  "pdf_avgDepth": "Avg Depth",
+  "pdf_runtime": "Runtime",
+  "pdf_bottomTime": "Bottom Time",
+  "pdf_timeIn": "In",
+  "pdf_timeOut": "Out",
+  "pdf_surfaceInterval": "Surface Interval",
+  "pdf_sac": "SAC",
+  "pdf_rmv": "RMV",
+  "pdf_pressureUsed": "{pressure} used",
+  "pdf_cylinderNumber": "Cylinder {number}",
+  "pdf_waterTemp": "Water Temp",
+  "pdf_airTemp": "Air Temp",
+  "pdf_visibility": "Visibility",
+  "pdf_current": "Current",
+  "pdf_currentDirection": "Current Dir",
+  "pdf_waterType": "Water Type",
+  "pdf_entry": "Entry",
+  "pdf_exit": "Exit",
+  "pdf_altitude": "Altitude",
+  "pdf_buddy": "Buddy",
+  "pdf_diveMaster": "Dive Master",
+  "pdf_diveCenter": "Dive Center",
+  "pdf_trip": "Trip",
+  "pdf_weight": "Weight",
+  "pdf_weightType": "Weight Type",
+  "pdf_equipmentSets": "{count, plural, one{Set} other{Sets}}",
+  "pdf_computer": "Computer",
+  "pdf_diveMode": "Dive Mode",
+  "pdf_algorithm": "Algorithm",
+  "pdf_gradientFactors": "Gradient Factors",
+  "pdf_setpoint": "Setpoint",
+  "pdf_diveType": "Dive Type",
+  "pdf_weatherConditions": "Conditions",
+  "pdf_wind": "Wind",
+  "pdf_windDirection": "Wind Dir",
+  "pdf_cloud": "Cloud",
+  "pdf_precipitation": "Precipitation",
+  "pdf_humidity": "Humidity",
+  "pdf_swell": "Swell",
+  "pdf_instructorSignature": "Instructor Signature",
+  "pdf_buddySignature": "Buddy Signature",
+  "pdf_diveLogBanner": "DIVE LOG",
+  "pdf_loggedDives": "Logged Dives",
+  "pdf_diveNumber": "Dive #{number}",
+  "pdf_trainingBadge": "TRAINING",
+  "pdf_gas": "Gas",
+  "pdf_visibilityShort": "Vis",
+  "pdf_air": "Air",
+  "pdf_water": "Water",
+  "pdf_verifiedBy": "Verified by",
+  "pdf_nauiDiveLogBanner": "NAUI DIVE LOG",
+  "pdf_statDives": "Dives",
+  "pdf_statHours": "Hours",
+  "pdf_avgShort": "Avg",
+  "pdf_pressureStart": "Start",
+  "pdf_pressureEnd": "End",
+  "pdf_surfaceIntervalShort": "SI: {minutes}min",
+  "pdf_diveDataHeading": "DIVE DATA",
+  "pdf_verificationHeading": "VERIFICATION",
+  "pdf_labelValue": "{label}: {value}",
+  "pdf_resort": "Resort",
+  "pdf_liveaboard": "Liveaboard",
+  "pdf_totalRuntime": "Total Runtime",
+  "pdf_tripDiveTitle": "Dive {number}",
+  "pdf_date": "Date",
+  "pdf_site": "Site",
+  "pdf_duration": "Duration",
+  "pdf_notesLabel": "Notes:",
+  "pdf_trainingLog": "Training Log",
+  "pdf_instructor": "Instructor",
+  "pdf_instructorNumber": "Instructor #",
+  "pdf_location": "Location",
+  "pdf_startDate": "Start Date",
+  "pdf_completionDate": "Completion Date",
+  "pdf_status": "Status",
+  "pdf_statusCompleted": "Completed",
+  "pdf_statusInProgress": "In Progress",
+  "pdf_trainingDives": "Training Dives",
+  "pdf_totalMinutes": "Total Minutes",
+  "pdf_courseNotes": "Course Notes",
+  "pdf_slateMax": "max",
+  "@pdf_cardNumber": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_certIssued": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_certExpires": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_coverDiveCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@pdf_headerDiveCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@pdf_generatedOn": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_generated": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_hoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_minutesShort": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_minutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_minutesCompact": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_depthProfileHeading": {
+    "placeholders": {
+      "depthUnit": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_pageOf": {
+    "placeholders": {
+      "page": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_pressureUsed": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_cylinderNumber": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_equipmentSets": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@pdf_diveNumber": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_surfaceIntervalShort": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_labelValue": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@pdf_tripDiveTitle": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_bulkTags_confirmAdding": "{count, plural, =1{Adding to 1 equipment item} other{Adding to all {count} equipment items}}",
   "@equipment_bulkTags_confirmAdding": {
     "placeholders": {
@@ -12742,6 +13148,7 @@
   "insights_categoryCard_semanticLabel": "{title} insights category",
   "insights_category_conditions_subtitle": "Visibility & temperature",
   "insights_category_conditions_title": "Conditions",
+  "insights_category_connections_subtitle": "Buddies, sites & gear linked",
   "insights_category_equipment_subtitle": "Gear usage & weight",
   "insights_category_equipment_title": "Equipment",
   "insights_category_gas_subtitle": "Gas consumption & gas mixes",
@@ -14344,6 +14751,7 @@
   "transfer_pdfExport_includeCertCardsSubtitle": "Add scanned certification card images to the PDF",
   "transfer_pdfExport_includeVerificationAreas": "Include Verification Areas",
   "transfer_pdfExport_includeVerificationAreasSubtitle": "Add stamp and signature boxes for agency verification",
+  "transfer_pdfExport_languageHeader": "Language",
   "transfer_pdfExport_pageSizeA4": "A4",
   "transfer_pdfExport_pageSizeA4Desc": "210 x 297 mm",
   "transfer_pdfExport_pageSizeHeader": "Page Size",
@@ -14641,14 +15049,6 @@
   "trips_edit_label_expectedRuntime": "Expected runtime per dive (minutes)",
   "trips_edit_hint_expectedRuntime": "Leave empty to estimate from your recent rebreather dives",
   "trips_scrubber_title": "Scrubber margin",
-  "trips_scrubber_asOfStart": "as of {date}",
-  "@trips_scrubber_asOfStart": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
   "trips_scrubber_remaining": "{minutes} min left before the trip (rated {rated} min, {consumed} min used since the last repack)",
   "@trips_scrubber_remaining": {
     "placeholders": {
@@ -15213,6 +15613,8 @@
       }
     }
   },
+  "universalImport_summary_noticeMacdiveDeviceTimeZoneTitle": "Dive times read in this device's time zone",
+  "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "MacDive saved no time zone Submersion could read for these dives, and their dive sites have no GPS position, so their times were read in this device's time zone. If you made these dives somewhere else, check their start times.",
   "universalImport_summary_unreadableDatesTitle": "Some rows were not imported",
   "@universalImport_summary_unreadableDatesTitle": {
     "description": "Heading of the import summary card for CSV rows that were not imported because their date could not be read. A row is a spreadsheet row, one line of the CSV file, as numbered in a spreadsheet app."
@@ -19229,6 +19631,7 @@
   "attrLabel_sku": "SKU",
   "attrLabel_retailer": "Retailer",
   "attrLabel_product_url": "Web link",
+  "attrLabel_color": "Color",
   "attrLabel_sleeve_length": "Sleeves",
   "attrLabel_upf_rating": "UPF rating",
   "attrLabel_snorkel_type": "Type",
@@ -23515,6 +23918,9 @@
   "settings_appearance_listView_trips_subtitle": "Default layout for the trips list",
   "settings_appearance_showDataSourceBadges": "Show data source badges",
   "settings_appearance_showDataSourceBadges_subtitle": "Display source attribution on dive metrics",
+  "settings_appearance_showDiveFigure": "Show diver figure on dives",
+  "settings_appearance_showDiveFigure_subtitle": "Draw each dive's gear on a diver in its equipment card",
+  "diveLog_detail_gearFigureName": "Gear on this dive",
   "settings_appearance_title_buddies": "Buddies Appearance",
   "settings_appearance_title_certifications": "Certifications Appearance",
   "settings_appearance_title_courses": "Courses Appearance",
@@ -23639,10 +24045,10 @@
   "@diveLog_filterChip_dateRange": {
     "description": "Active-filter chip showing a closed date range.",
     "placeholders": {
-      "end": {
+      "start": {
         "type": "String"
       },
-      "start": {
+      "end": {
         "type": "String"
       }
     }
@@ -26235,6 +26641,47 @@
   "startup_interruptedRestore_keepAction": "Keep what is there now",
   "startup_interruptedRestore_keepNote": "Your previous dive log is kept, not deleted. You can restore or delete it later in Backup & Restore in Settings.",
   "startup_interruptedRestore_failed": "Recovery did not complete. Nothing was deleted; both files are still on this device.",
+  "startup_diveLogUnavailable_downloading": "Downloading your dive log from iCloud",
+  "startup_diveLogUnavailable_iCloud_title": "Your dive log is still in iCloud",
+  "startup_diveLogUnavailable_iCloud_body": "Your dive log in {folder} is stored in iCloud but is not on this device yet, and it could not be downloaded. It is safe in iCloud, and nothing has been changed. Check your internet connection, or download it in the Files app or Finder, then try again.",
+  "@startup_diveLogUnavailable_iCloud_body": {
+    "description": "Startup screen when the dive log in a custom folder has been evicted by iCloud and could not be downloaded. The folder is the configured dive log folder.",
+    "placeholders": {
+      "folder": {
+        "type": "String",
+        "example": "/Users/me/Library/Mobile Documents/com~apple~CloudDocs/Submersion"
+      }
+    }
+  },
+  "startup_diveLogUnavailable_missing_title": "Your dive log was not found",
+  "startup_diveLogUnavailable_missing_body": "Submersion keeps your dive log in {folder}, but there is no {filename} there now. If that folder is on a drive that is not connected, or in a synced folder that has not caught up, connect or sync it and try again. Nothing has been created or changed.",
+  "@startup_diveLogUnavailable_missing_body": {
+    "description": "Startup screen when a custom folder that held the dive log no longer holds it. Names the file and folder so the diver can check by hand.",
+    "placeholders": {
+      "folder": {
+        "type": "String",
+        "example": "/Users/me/Library/Mobile Documents/com~apple~CloudDocs/Submersion"
+      },
+      "filename": {
+        "type": "String",
+        "example": "submersion.db"
+      }
+    }
+  },
+  "startup_diveLogUnavailable_startNew": "Start a new dive log in this folder",
+  "startup_diveLogUnavailable_startNew_subtitle": "Only if your old dive log is gone for good. The new one starts empty.",
+  "startup_diveLogUnavailable_startNew_confirmTitle": "Start a new dive log here?",
+  "startup_diveLogUnavailable_startNew_confirmBody": "An empty dive log is created in {folder}. If your old dive log comes back later, for example when a sync finishes, it will conflict with the new one.",
+  "@startup_diveLogUnavailable_startNew_confirmBody": {
+    "description": "Confirms creating an empty dive log in a folder whose dive log is missing.",
+    "placeholders": {
+      "folder": {
+        "type": "String",
+        "example": "/Users/me/Library/Mobile Documents/com~apple~CloudDocs/Submersion"
+      }
+    }
+  },
+  "startup_diveLogUnavailable_startNew_confirm": "Start new dive log",
   "backup_history_preDowngradeSubtitle": "Newer database, kept when going back - {size}",
   "@backup_history_preDowngradeSubtitle": {
     "placeholders": {
@@ -27114,5 +27561,227 @@
   "query_weights_notes": "Notes",
   "@query_weights_notes": {"description": "Field label in the query builder"},
   "query_weights_type": "Type",
-  "@query_weights_type": {"description": "Field label in the query builder"}
+  "@query_weights_type": {"description": "Field label in the query builder"},
+  "query_op_eq": "is",
+  "@query_op_eq": {"description": "Operator label in the query builder"},
+  "query_op_neq": "is not",
+  "@query_op_neq": {"description": "Operator label in the query builder"},
+  "query_op_lt": "less than",
+  "@query_op_lt": {"description": "Operator label in the query builder"},
+  "query_op_lte": "at most",
+  "@query_op_lte": {"description": "Operator label in the query builder"},
+  "query_op_gt": "more than",
+  "@query_op_gt": {"description": "Operator label in the query builder"},
+  "query_op_gte": "at least",
+  "@query_op_gte": {"description": "Operator label in the query builder"},
+  "query_op_contains": "contains",
+  "@query_op_contains": {"description": "Operator label in the query builder"},
+  "query_op_inList": "is one of",
+  "@query_op_inList": {"description": "Operator label in the query builder"},
+  "query_op_between": "between",
+  "@query_op_between": {"description": "Operator label in the query builder"},
+  "query_op_isEmpty": "is not set",
+  "@query_op_isEmpty": {"description": "Operator label in the query builder"},
+  "query_op_isSet": "is set",
+  "@query_op_isSet": {"description": "Operator label in the query builder"},
+  "query_editor_tabText": "Text",
+  "@query_editor_tabText": {"description": "Query editor tab: the typed field"},
+  "query_editor_tabBuilder": "Builder",
+  "@query_editor_tabBuilder": {"description": "Query editor tab: the rule builder"},
+  "query_editor_hint": "e.g. weights:none AND depth > 30",
+  "@query_editor_hint": {"description": "Placeholder in the typed query field; the example is query syntax and stays in English in every locale"},
+  "query_editor_save": "Save query",
+  "@query_editor_save": {"description": "Button that saves the current query under a name"},
+  "query_editor_allOf": "All of",
+  "@query_editor_allOf": {"description": "Group toggle: every row must match (AND)"},
+  "query_editor_anyOf": "Any of",
+  "@query_editor_anyOf": {"description": "Group toggle: one row must match (OR)"},
+  "query_editor_addCondition": "Add condition",
+  "@query_editor_addCondition": {"description": "Builder button"},
+  "query_editor_addGroup": "Add group",
+  "@query_editor_addGroup": {"description": "Builder button that nests a group"},
+  "query_editor_negate": "Not",
+  "@query_editor_negate": {"description": "Tooltip of the toggle that negates a row"},
+  "query_editor_remove": "Remove",
+  "@query_editor_remove": {"description": "Tooltip of the button that removes a row or group"},
+  "query_editor_pickField": "Choose a field",
+  "@query_editor_pickField": {"description": "Field picker title"},
+  "query_editor_pickFieldSearch": "Search fields",
+  "@query_editor_pickFieldSearch": {"description": "Field picker search hint"},
+  "query_editor_useRelation": "Use {name} itself",
+  "@query_editor_useRelation": {"description": "Field picker: pick the relation as a value rather than one of its fields", "placeholders": {"name": {"type": "String"}}},
+  "query_editor_fieldsOf": "Fields of {name}",
+  "@query_editor_fieldsOf": {"description": "Field picker: heading after walking into a relation", "placeholders": {"name": {"type": "String"}}},
+  "query_editor_pickRef": "Choose {name}",
+  "@query_editor_pickRef": {"description": "Ref picker title, name is the relation label", "placeholders": {"name": {"type": "String"}}},
+  "query_editor_pickRefSearch": "Search",
+  "@query_editor_pickRefSearch": {"description": "Ref picker search hint"},
+  "query_editor_done": "Done",
+  "@query_editor_done": {"description": "Multi-ref picker confirm button"},
+  "query_editor_unresolvedRef": "No longer exists",
+  "@query_editor_unresolvedRef": {"description": "Tooltip on a saved reference whose row was deleted"},
+  "query_editor_scopedRow": "Group over {name}: edit in the Text tab",
+  "@query_editor_scopedRow": {"description": "Builder row for a scoped group the builder cannot edit", "placeholders": {"name": {"type": "String"}}},
+  "query_editor_textRow": "Text search",
+  "@query_editor_textRow": {"description": "Builder row label for a free-text term"},
+  "query_editor_betweenAnd": "and",
+  "@query_editor_betweenAnd": {"description": "Between two bounds: between X and Y"},
+  "query_editor_valueTrue": "Yes",
+  "@query_editor_valueTrue": {"description": "Boolean value editor"},
+  "query_editor_valueFalse": "No",
+  "@query_editor_valueFalse": {"description": "Boolean value editor"},
+  "diveLog_filter_queryRow": "Query",
+  "@diveLog_filter_queryRow": {"description": "Quick filter sheet row that opens the advanced search on its query editor"},
+  "diveLog_search_section_query": "Query",
+  "@diveLog_search_section_query": {"description": "Advanced search section that hosts the query editor"},
+  "query_saveDialog_title": "Save query",
+  "@query_saveDialog_title": {"description": "Dialog that names a query being saved"},
+  "query_saveDialog_nameLabel": "Name",
+  "@query_saveDialog_nameLabel": {"description": "Save query dialog field label"},
+  "query_saveDialog_nameValidation": "Enter a name",
+  "@query_saveDialog_nameValidation": {"description": "Save query dialog validation"},
+  "query_saved_snackbar": "Saved \"{name}\"",
+  "@query_saved_snackbar": {"description": "Confirmation after saving a query", "placeholders": {"name": {"type": "String"}}},
+  "query_savedRow_title": "Saved",
+  "@query_savedRow_title": {"description": "Heading of the saved-query chip row"},
+  "query_savedRow_unresolved": "\"{name}\" refers to something that no longer exists",
+  "@query_savedRow_unresolved": {"description": "Tooltip on a saved query with a deleted reference", "placeholders": {"name": {"type": "String"}}},
+  "savedQueries_appBar_title": "Saved Queries",
+  "@savedQueries_appBar_title": {"description": "Settings > Manage > Saved queries page title"},
+  "savedQueries_empty": "No saved queries yet. Save one from the query editor on the dive search page.",
+  "@savedQueries_empty": {"description": "Empty state of the saved queries page"},
+  "savedQueries_renameTooltip": "Rename",
+  "@savedQueries_renameTooltip": {"description": "Tooltip"},
+  "savedQueries_deleteTooltip": "Delete",
+  "@savedQueries_deleteTooltip": {"description": "Tooltip"},
+  "savedQueries_reorderTooltip": "Drag to reorder",
+  "@savedQueries_reorderTooltip": {"description": "Tooltip on the drag handle"},
+  "savedQueries_deleteDialog_title": "Delete query?",
+  "@savedQueries_deleteDialog_title": {"description": "Confirm dialog title"},
+  "savedQueries_deleteDialog_content": "Delete \"{name}\"? This cannot be undone.",
+  "@savedQueries_deleteDialog_content": {"description": "Confirm dialog body", "placeholders": {"name": {"type": "String"}}},
+  "savedQueries_problem_unreadable": "Cannot be read by this version of the app",
+  "@savedQueries_problem_unreadable": {"description": "Subtitle of a saved query whose JSON is newer or corrupt"},
+  "savedQueries_problem_invalid": "Uses something this version does not have: {detail}",
+  "@savedQueries_problem_invalid": {"description": "Subtitle of a saved query the registry rejects", "placeholders": {"detail": {"type": "String"}}},
+  "savedQueries_problem_unknownSubject": "For a list this version does not have: {detail}",
+  "@savedQueries_problem_unknownSubject": {"description": "Subtitle of a saved query whose subject is unknown", "placeholders": {"detail": {"type": "String"}}},
+  "savedQueries_problem_unresolved": "Refers to something that no longer exists: {detail}",
+  "@savedQueries_problem_unresolved": {"description": "Subtitle of a saved query with a deleted reference", "placeholders": {"detail": {"type": "String"}}},
+  "savedQueries_snackbar_deleted": "Deleted \"{name}\"",
+  "@savedQueries_snackbar_deleted": {"description": "Snackbar after deleting a saved query", "placeholders": {"name": {"type": "String"}}},
+  "settings_manage_savedQueries": "Saved Queries",
+  "@settings_manage_savedQueries": {"description": "Settings > Manage entry"},
+  "settings_manage_savedQueries_subtitle": "Rename, reorder and delete saved queries",
+  "@settings_manage_savedQueries_subtitle": {"description": "Settings > Manage entry subtitle"},
+  "query_error_unterminatedQuote": "unterminated quote",
+  "@query_error_unterminatedQuote": {"description": "Query error message."},
+  "query_error_unexpectedCharacter": "unexpected character \"{text}\"",
+  "@query_error_unexpectedCharacter": {"description": "Query error message. text is what the diver typed; keep verbatim.", "placeholders": {"text": {"type": "String"}}},
+  "query_error_unexpectedToken": "unexpected \"{text}\"",
+  "@query_error_unexpectedToken": {"description": "Query error message. text is what the diver typed; keep verbatim.", "placeholders": {"text": {"type": "String"}}},
+  "query_error_expectedCloseParen": "expected \")\"",
+  "@query_error_expectedCloseParen": {"description": "Query error message."},
+  "query_error_expectedCloseBracket": "expected \"]\"",
+  "@query_error_expectedCloseBracket": {"description": "Query error message."},
+  "query_error_expectedOpenBracketAfterIn": "expected \"[\" after \"in\"",
+  "@query_error_expectedOpenBracketAfterIn": {"description": "Query error message. Query syntax, keep untranslated: in."},
+  "query_error_expectedAnd": "expected \"and\"",
+  "@query_error_expectedAnd": {"description": "Query error message. Query syntax, keep untranslated: and."},
+  "query_error_expectedOperator": "expected an operator",
+  "@query_error_expectedOperator": {"description": "Query error message."},
+  "query_error_expectedConditionOrText": "expected a condition or text",
+  "@query_error_expectedConditionOrText": {"description": "Query error message."},
+  "query_error_expectedName": "expected a name",
+  "@query_error_expectedName": {"description": "Query error message."},
+  "query_error_expectedDate": "expected a date",
+  "@query_error_expectedDate": {"description": "Query error message."},
+  "query_error_expectedDateValue": "expected a date value",
+  "@query_error_expectedDateValue": {"description": "Query error message."},
+  "query_error_expectedValue": "expected a value",
+  "@query_error_expectedValue": {"description": "Query error message."},
+  "query_error_expectedNumber": "expected a number",
+  "@query_error_expectedNumber": {"description": "Query error message."},
+  "query_error_expectedText": "expected text",
+  "@query_error_expectedText": {"description": "Query error message."},
+  "query_error_expectedBool": "expected true or false",
+  "@query_error_expectedBool": {"description": "Query error message. Query syntax, keep untranslated: true false."},
+  "query_error_emptyText": "empty text",
+  "@query_error_emptyText": {"description": "Query error message."},
+  "query_error_emptyList": "the list is empty",
+  "@query_error_emptyList": {"description": "Query error message."},
+  "query_error_emptyGroup": "an empty group matches nothing",
+  "@query_error_emptyGroup": {"description": "Query error message."},
+  "query_error_emptyPath": "empty path",
+  "@query_error_emptyPath": {"description": "Query error message."},
+  "query_error_notSingleDay": "\"{text}\" is not a single day",
+  "@query_error_notSingleDay": {"description": "Query error message. text is what the diver typed; keep verbatim.", "placeholders": {"text": {"type": "String"}}},
+  "query_error_notADate": "\"{text}\" is not a date",
+  "@query_error_notADate": {"description": "Query error message. text is what the diver typed; keep verbatim.", "placeholders": {"text": {"type": "String"}}},
+  "query_error_openEndedDate": "\"{text}\" is open-ended; write {field} {symbol} {day} instead",
+  "@query_error_openEndedDate": {"description": "Query error message. text, field, symbol, day are what the diver typed; keep verbatim.", "placeholders": {"text": {"type": "String"}, "field": {"type": "String"}, "symbol": {"type": "String"}, "day": {"type": "String"}}},
+  "query_error_unknownUnit": "unknown unit \"{unit}\"",
+  "@query_error_unknownUnit": {"description": "Query error message. unit is what the diver typed; keep verbatim.", "placeholders": {"unit": {"type": "String"}}},
+  "query_error_noUnitAllowed": "{field} takes no unit",
+  "@query_error_noUnitAllowed": {"description": "Query error message. field is what the diver typed; keep verbatim.", "placeholders": {"field": {"type": "String"}}},
+  "query_error_wrongUnitDimension": "\"{unit}\" is not a {dimension} unit",
+  "@query_error_wrongUnitDimension": {"description": "Query error message. unit, dimension are what the diver typed; keep verbatim.", "placeholders": {"unit": {"type": "String"}, "dimension": {"type": "String"}}},
+  "query_error_wrongUnitForField": "\"{unit}\" is not a {dimension} unit; {field} is measured in {dimension}",
+  "@query_error_wrongUnitForField": {"description": "Query error message. unit, dimension, field are what the diver typed; keep verbatim.", "placeholders": {"unit": {"type": "String"}, "dimension": {"type": "String"}, "field": {"type": "String"}}},
+  "query_error_decimalComma": "use \".\" for decimals, not \",\"",
+  "@query_error_decimalComma": {"description": "Query error message."},
+  "query_error_scopeNeedsRelationQuoted": "\"[...]\" needs a relation, \"{path}\" is a field",
+  "@query_error_scopeNeedsRelationQuoted": {"description": "Query error message. path is what the diver typed; keep verbatim. Query syntax, keep untranslated: [...].", "placeholders": {"path": {"type": "String"}}},
+  "query_error_scopeNeedsRelation": "[...] needs a relation, \"{path}\" is a field",
+  "@query_error_scopeNeedsRelation": {"description": "Query error message. path is what the diver typed; keep verbatim.", "placeholders": {"path": {"type": "String"}}},
+  "query_error_relationNeedsRefOp": "\"{path}\" is a relation; use =, in, :none, :any or [...]",
+  "@query_error_relationNeedsRefOp": {"description": "Query error message. path is what the diver typed; keep verbatim. Query syntax, keep untranslated: in [...] = :none :any.", "placeholders": {"path": {"type": "String"}}},
+  "query_error_relationOpNotAllowed": "\"{op}\" cannot be used with a relation; use =, !=, in, :none, :any or [...]",
+  "@query_error_relationOpNotAllowed": {"description": "Query error message. op is what the diver typed; keep verbatim. Query syntax, keep untranslated: in [...] = != :none :any.", "placeholders": {"op": {"type": "String"}}},
+  "query_error_opNotForFieldQuoted": "\"{op}\" cannot be used with {field}",
+  "@query_error_opNotForFieldQuoted": {"description": "Query error message. op, field are what the diver typed; keep verbatim.", "placeholders": {"op": {"type": "String"}, "field": {"type": "String"}}},
+  "query_error_opNotForField": "{op} cannot be used with {field}",
+  "@query_error_opNotForField": {"description": "Query error message. op, field are what the diver typed; keep verbatim.", "placeholders": {"op": {"type": "String"}, "field": {"type": "String"}}},
+  "query_error_noneAmbiguous": "\"{field}:none\" is ambiguous: write \"{field} = none\" for the value none, or \"NOT {field}:any\" for unrecorded",
+  "@query_error_noneAmbiguous": {"description": "Query error message. field is what the diver typed; keep verbatim. Query syntax, keep untranslated: NOT :none :any.", "placeholders": {"field": {"type": "String"}}},
+  "query_error_noRefNamed": "no {relation} named \"{text}\"",
+  "@query_error_noRefNamed": {"description": "Query error message. relation, text are what the diver typed; keep verbatim.", "placeholders": {"relation": {"type": "String"}, "text": {"type": "String"}}},
+  "query_error_notEnumValue": "\"{text}\" is not a {field} value",
+  "@query_error_notEnumValue": {"description": "Query error message. text, field are what the diver typed; keep verbatim.", "placeholders": {"text": {"type": "String"}, "field": {"type": "String"}}},
+  "query_error_unknownField": "unknown field \"{name}\"",
+  "@query_error_unknownField": {"description": "Query error message. name is what the diver typed; keep verbatim.", "placeholders": {"name": {"type": "String"}}},
+  "query_error_fieldNotPath": "\"{name}\" is a field and cannot be followed by \".{next}\"",
+  "@query_error_fieldNotPath": {"description": "Query error message. name, next are what the diver typed; keep verbatim.", "placeholders": {"name": {"type": "String"}, "next": {"type": "String"}}},
+  "query_error_tooManyHops": "a query may cross at most {max} relations, counting nested groups",
+  "@query_error_tooManyHops": {"description": "Query error message. max is what the diver typed; keep verbatim.", "placeholders": {"max": {"type": "String"}}},
+  "query_error_pathTooLong": "a path may cross at most {max} relations",
+  "@query_error_pathTooLong": {"description": "Query error message. max is what the diver typed; keep verbatim.", "placeholders": {"max": {"type": "String"}}},
+  "query_error_textNotSearchable": "free text cannot be searched inside {table}",
+  "@query_error_textNotSearchable": {"description": "Query error message. table is what the diver typed; keep verbatim.", "placeholders": {"table": {"type": "String"}}},
+  "query_error_expectsReference": "{name} expects a reference",
+  "@query_error_expectsReference": {"description": "Query error message. name is what the diver typed; keep verbatim.", "placeholders": {"name": {"type": "String"}}},
+  "query_error_expectsReferences": "{name} expects references",
+  "@query_error_expectsReferences": {"description": "Query error message. name is what the diver typed; keep verbatim.", "placeholders": {"name": {"type": "String"}}},
+  "query_error_betweenNeedsTwo": "between needs two values",
+  "@query_error_betweenNeedsTwo": {"description": "Query error message. Query syntax, keep untranslated: between."},
+  "query_error_inNeedsList": "in needs a list",
+  "@query_error_inNeedsList": {"description": "Query error message. Query syntax, keep untranslated: in."},
+  "query_error_expectsNumber": "{field} expects a number",
+  "@query_error_expectsNumber": {"description": "Query error message. field is what the diver typed; keep verbatim.", "placeholders": {"field": {"type": "String"}}},
+  "query_error_outOfRange": "{field} value is out of range",
+  "@query_error_outOfRange": {"description": "Query error message. field is what the diver typed; keep verbatim.", "placeholders": {"field": {"type": "String"}}},
+  "query_error_expectsText": "{field} expects text",
+  "@query_error_expectsText": {"description": "Query error message. field is what the diver typed; keep verbatim.", "placeholders": {"field": {"type": "String"}}},
+  "query_error_expectsBool": "{field} expects true or false",
+  "@query_error_expectsBool": {"description": "Query error message. field is what the diver typed; keep verbatim. Query syntax, keep untranslated: true false.", "placeholders": {"field": {"type": "String"}}},
+  "query_error_expectsEnumValue": "{field} expects one of its values",
+  "@query_error_expectsEnumValue": {"description": "Query error message. field is what the diver typed; keep verbatim.", "placeholders": {"field": {"type": "String"}}},
+  "query_error_expectsSingleDay": "{field} expects a single day here",
+  "@query_error_expectsSingleDay": {"description": "Query error message. field is what the diver typed; keep verbatim.", "placeholders": {"field": {"type": "String"}}},
+  "query_error_expectsDate": "{field} expects a date",
+  "@query_error_expectsDate": {"description": "Query error message. field is what the diver typed; keep verbatim.", "placeholders": {"field": {"type": "String"}}},
+  "query_editor_needsText": "Enter at least one word",
+  "@query_editor_needsText": {"description": "Builder text row left empty: it needs at least one word"},
+  "query_saveNeedsDiver": "Create a diver profile to save queries",
+  "@query_saveNeedsDiver": {"description": "Snackbar when Save is tapped with no diver profile"}
 }

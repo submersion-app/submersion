@@ -500,7 +500,16 @@ void main() {
     late Directory tempDir;
     late PathProviderPlatform originalPathProvider;
 
-    setUpAll(() => SharePlatform.instance = platform);
+    // The harness pins a forwarder that looks the platform up on every share
+    // (test/helpers/late_bound_share_platform.dart), so the fake comes out
+    // again when this group is done.
+    late SharePlatform originalSharePlatform;
+
+    setUpAll(() {
+      originalSharePlatform = SharePlatform.instance;
+      SharePlatform.instance = platform;
+    });
+    tearDownAll(() => SharePlatform.instance = originalSharePlatform);
 
     setUp(() async {
       platform.calls.clear();

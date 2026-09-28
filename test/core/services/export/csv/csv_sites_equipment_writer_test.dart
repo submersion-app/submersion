@@ -85,4 +85,39 @@ void main() {
     expect(rowOf(csv, 1)['Attributes'], 'valve_type=din');
     expect(csv, isNot(contains('passport_id')));
   });
+
+  // Issue #2520: a colour stored on a type without one exports as the
+  // custom field the app shows and keeps, never as the item's colour.
+  group('a colour on a battery', () {
+    final colour = EquipmentAttribute.curated(
+      equipmentId: 'b1',
+      key: EquipmentAttrKeys.color,
+      valueText: '#EF4444',
+    );
+    EquipmentItem battery(List<EquipmentAttribute> attributes) => EquipmentItem(
+      id: 'b1',
+      name: 'Cell pack',
+      type: EquipmentType.battery,
+      attributes: attributes,
+    );
+    String? attributesOf(EquipmentItem item) => rowOf(
+      CsvEquipmentWriter(CsvExportUnits.metric).write([item]),
+      1,
+    )['Attributes'];
+
+    test('exports as a custom field', () {
+      expect(attributesOf(battery([colour])), 'custom:color=#EF4444');
+    });
+
+    test('gives way to the diver\'s own "color" field', () {
+      const own = EquipmentAttribute(
+        id: 'c1',
+        equipmentId: 'b1',
+        key: EquipmentAttrKeys.color,
+        isCustom: true,
+        valueText: 'Red',
+      );
+      expect(attributesOf(battery([colour, own])), 'custom:color=Red');
+    });
+  });
 }

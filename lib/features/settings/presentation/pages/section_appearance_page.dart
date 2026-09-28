@@ -617,6 +617,18 @@ class SectionAppearancePage extends ConsumerWidget {
         trailing: const Icon(Icons.chevron_right),
         onTap: () => context.push('/settings/dive-detail-sections'),
       ),
+      // The diver figure in the equipment card (issue #2326), off by
+      // default so the dive page is unchanged until the diver opts in.
+      SwitchListTile(
+        secondary: const Icon(Icons.accessibility_new),
+        title: Text(context.l10n.settings_appearance_showDiveFigure),
+        subtitle: Text(
+          context.l10n.settings_appearance_showDiveFigure_subtitle,
+        ),
+        value: ref.watch(settingsProvider.select((s) => s.showDiveFigure)),
+        onChanged: (value) =>
+            ref.read(settingsProvider.notifier).setShowDiveFigure(value),
+      ),
     ];
   }
 

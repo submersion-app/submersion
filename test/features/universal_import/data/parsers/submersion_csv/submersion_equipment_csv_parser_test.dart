@@ -229,4 +229,74 @@ void main() {
     expect(keys, contains('valve_type'));
     expect(keys, isNot(contains('passport_id')));
   });
+
+  // Issue #2520: the row's type decides whether `color=#...` is the item's
+  // colour. A battery has none, so it keeps the diver's own field.
+  test('a colour on a battery row comes back as a custom field', () async {
+    EquipmentItem item(String id, EquipmentType type) => EquipmentItem(
+      id: id,
+      name: type.name,
+      type: type,
+      attributes: [
+        EquipmentAttribute(
+          id: '$id-color',
+          equipmentId: id,
+          key: 'color',
+          isCustom: true,
+          valueText: '#EF4444',
+        ),
+      ],
+    );
+    final csv = CsvEquipmentWriter(CsvExportUnits.metric)
+        .write([
+          item('battery', EquipmentType.battery),
+          item('fins', EquipmentType.fins),
+        ])
+        // An older file's unprefixed pair, as a colour-less type would get
+        // it from a hand-edited or pre-colour export.
+        .replaceAll('custom:color=', 'color=');
+    final items = (await const SubmersionEquipmentCsvParser().parse(
+      _bytes(csv),
+    )).entitiesOf(ImportEntityType.equipment);
+
+    expect(_attr(_byName(items, 'battery'), 'color'), {
+      'key': 'color',
+      'isCustom': true,
+      'valueText': '#EF4444',
+      'valueNum': null,
+    });
+    expect(_attr(_byName(items, 'fins'), 'color')['isCustom'], isFalse);
+  });
+
+  // The importer keeps the first custom field of a name, so the diver's own
+  // `custom:color` must come before a colour that became custom: the app
+  // lets the diver's field win the same way (keepStrayColorAsCustom).
+  test(
+    'a battery row\'s own custom:color wins over an unprefixed colour',
+    () async {
+      final csv = CsvEquipmentWriter(CsvExportUnits.metric)
+          .write([
+            const EquipmentItem(
+              id: 'battery',
+              name: 'battery',
+              type: EquipmentType.battery,
+              attributes: [
+                EquipmentAttribute(
+                  id: 'own',
+                  equipmentId: 'battery',
+                  key: 'color',
+                  isCustom: true,
+                  valueText: 'Red',
+                ),
+              ],
+            ),
+          ])
+          .replaceAll('custom:color=Red', 'color=#EF4444; custom:color=Red');
+      final items = (await const SubmersionEquipmentCsvParser().parse(
+        _bytes(csv),
+      )).entitiesOf(ImportEntityType.equipment);
+
+      expect(_attr(_byName(items, 'battery'), 'color')['valueText'], 'Red');
+    },
+  );
 }

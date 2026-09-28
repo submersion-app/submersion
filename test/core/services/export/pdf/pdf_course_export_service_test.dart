@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/pdf/pdf_course_export_service.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/mock_channels.dart';
 import '../../../../helpers/pdf_text.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -52,6 +54,7 @@ void main() {
           (call) async => null,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   tearDownAll(() async {
     if (await shareDir.exists()) await shareDir.delete(recursive: true);
@@ -99,12 +102,14 @@ void main() {
   Future<String> exportText(
     List<Dive> dives, {
     UnitFormatter units = metric,
+    PdfLocalization? localization,
   }) async {
     final path = await service.exportCourseTrainingLogToPdf(
       course,
       dives,
       dates: isoDates,
       units: units,
+      localization: localization,
     );
     final bytes = await File(path).readAsBytes();
     expect(String.fromCharCodes(bytes.take(4)), '%PDF');
@@ -272,5 +277,41 @@ void main() {
       expect(text, isNot(contains('ft')));
       expect(text, isNot(contains('°F')));
     });
+  });
+
+  test('prints in the app language (#2252)', () async {
+    final fr = PdfLocalization.forLanguageCode('fr');
+
+    final text = await exportText([
+      trainingDive(id: 'fr1', number: 1, runtime: const Duration(minutes: 40)),
+    ], localization: fr);
+
+    expect(text, contains(fr.l10n.pdf_trainingLog));
+    expect(text, isNot(contains('Training Log')));
+    expect(text, contains(fr.l10n.pdf_trainingDives));
+  });
+
+  test('instructor number and location print in French (#2252)', () async {
+    final fr = PdfLocalization.forLanguageCode('fr');
+    final path = await service.exportCourseTrainingLogToPdf(
+      course.copyWith(instructorNumber: 'PADI-123', location: 'Marseille'),
+      [
+        trainingDive(
+          id: 'fr2',
+          number: 1,
+          runtime: const Duration(minutes: 40),
+        ),
+      ],
+      dates: isoDates,
+      units: metric,
+      localization: fr,
+    );
+    final text = pdfVisibleText(await File(path).readAsBytes());
+
+    expect(text, contains(fr.l10n.pdf_instructorNumber));
+    expect(text, contains('PADI-123'));
+    expect(text, contains(fr.l10n.pdf_location));
+    expect(text, contains(fr.l10n.pdf_completionDate));
+    expect(text, contains(fr.l10n.pdf_statusCompleted));
   });
 }

@@ -9,6 +9,182 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get connections_action_centreHere => '以此为中心';
+
+  @override
+  String get connections_around_centredOn => '中心';
+
+  @override
+  String get connections_around_hops => '跳数';
+
+  @override
+  String connections_around_kindChip(String kind, int count) {
+    return '$kind（$count）';
+  }
+
+  @override
+  String get connections_around_noResults => '无匹配结果';
+
+  @override
+  String get connections_around_prompt => '搜索潜伴、潜点、行程或其他内容，以其为中心显示图谱。';
+
+  @override
+  String get connections_around_searchHint => '搜索潜伴、潜点、行程等';
+
+  @override
+  String get connections_around_show => '显示';
+
+  @override
+  String get connections_editor_kinds => '类型';
+
+  @override
+  String connections_editor_link(String a, String b) {
+    return '$a 与 $b';
+  }
+
+  @override
+  String get connections_editor_links => '连线';
+
+  @override
+  String connections_editor_minShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '至少 $count 次共同潜水',
+      one: '至少 1 次共同潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_editor_saveAsMap => '另存为图谱';
+
+  @override
+  String get connections_editor_title => '自定义图谱';
+
+  @override
+  String get connections_filter_allFilters => '全部筛选';
+
+  @override
+  String get connections_filter_clear => '清除';
+
+  @override
+  String get connections_filter_none => '没有启用的筛选。';
+
+  @override
+  String get connections_loading => '正在加载关联';
+
+  @override
+  String get connections_mode_around => '围绕单个条目';
+
+  @override
+  String get connections_mode_map => '完整图谱';
+
+  @override
+  String get connections_preset_centers => '潜店与人';
+
+  @override
+  String get connections_preset_circle => '潜伴圈';
+
+  @override
+  String get connections_preset_edited => '已编辑';
+
+  @override
+  String get connections_preset_gear => '一起使用的装备';
+
+  @override
+  String get connections_preset_gearRoad => '旅途中的装备';
+
+  @override
+  String get connections_preset_life => '按海洋生物看潜点';
+
+  @override
+  String get connections_preset_reef => '珊瑚礁生物';
+
+  @override
+  String get connections_preset_travel => '旅行故事';
+
+  @override
+  String get connections_preset_trips => '行程与人';
+
+  @override
+  String get connections_preset_where => '谁在哪里潜水';
+
+  @override
+  String get connections_presets_title => '预设';
+
+  @override
+  String get connections_savedMap_badge => '已保存的图谱';
+
+  @override
+  String connections_savedMap_deleted(String name) {
+    return '已删除“$name”';
+  }
+
+  @override
+  String get connections_savedMap_nameLabel => '名称';
+
+  @override
+  String get connections_savedMap_rename => '重命名';
+
+  @override
+  String get connections_savedMap_saveTitle => '保存图谱';
+
+  @override
+  String get connections_savedMap_undo => '撤销';
+
+  @override
+  String get connections_savedMap_update => '用当前视图更新';
+
+  @override
+  String get connections_summary_closest => '最接近';
+
+  @override
+  String connections_summary_entitiesAround(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个条目',
+      one: '1 个条目',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_mostConnected => '关联最多';
+
+  @override
+  String connections_summary_pairValue(int count, String a, String b) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$a 与 $b，$count 次潜水',
+      one: '$a 与 $b，1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_strongestPair => '最紧密的一对';
+
+  @override
+  String get connections_summary_title => '摘要';
+
+  @override
+  String get connections_tab_details => '详情';
+
+  @override
+  String get connections_tab_filter => '筛选';
+
+  @override
+  String connections_tab_filterCount(int count) {
+    return '筛选（$count）';
+  }
+
+  @override
+  String get connections_tab_view => '视图';
+
+  @override
   String get equipment_filter_owner_all => '全部';
 
   @override
@@ -392,10 +568,76 @@ class AppLocalizationsZh extends AppLocalizations {
       '如果该套装包含潜水电脑，则从该电脑下载或导入的潜水记录会自动添加整个套装';
 
   @override
-  String get equipment_setEdit_figureSwitch_subtitle => '在套装页面上把此套装的装备画在潜水员身上';
+  String get equipment_setEdit_figureSwitch_subtitle => '在潜水员图上显示此套装的装备';
 
   @override
   String get equipment_setEdit_figureSwitch_title => '显示潜水员图示';
+
+  @override
+  String get equipment_color_red => '红色';
+
+  @override
+  String get equipment_color_orange => '橙色';
+
+  @override
+  String get equipment_color_amber => '琥珀色';
+
+  @override
+  String get equipment_color_yellow => '黄色';
+
+  @override
+  String get equipment_color_lime => '青柠色';
+
+  @override
+  String get equipment_color_green => '绿色';
+
+  @override
+  String get equipment_color_emerald => '翡翠绿';
+
+  @override
+  String get equipment_color_teal => '蓝绿色';
+
+  @override
+  String get equipment_color_cyan => '青色';
+
+  @override
+  String get equipment_color_sky => '天蓝色';
+
+  @override
+  String get equipment_color_blue => '蓝色';
+
+  @override
+  String get equipment_color_indigo => '靛蓝色';
+
+  @override
+  String get equipment_color_violet => '紫罗兰色';
+
+  @override
+  String get equipment_color_purple => '紫色';
+
+  @override
+  String get equipment_color_fuchsia => '品红色';
+
+  @override
+  String get equipment_color_pink => '粉色';
+
+  @override
+  String get equipment_color_rose => '玫瑰红';
+
+  @override
+  String get equipment_color_stone => '岩石灰';
+
+  @override
+  String get equipment_color_zinc => '锌灰色';
+
+  @override
+  String get equipment_color_slate => '石板灰';
+
+  @override
+  String get equipment_color_none => '无';
+
+  @override
+  String get equipment_color_sheetTitle => '选择颜色';
 
   @override
   String get equipment_setEdit_geofencesTitle => '地理围栏';
@@ -3261,6 +3503,157 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get common_error_tryAgain => '发生错误，请重试。';
+
+  @override
+  String get connections_title => '关联';
+
+  @override
+  String get connections_tooltip_relayout => '重新排列';
+
+  @override
+  String get connections_tooltip_showWholeWeb => '返回完整图谱';
+
+  @override
+  String connections_filterBar_edges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 条关联',
+      one: '1 条关联',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_hiddenNodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '另有 $count 个未显示',
+      one: '另有 1 个未显示',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_showAll => '全部显示';
+
+  @override
+  String get connections_showAll_confirmTitle => '显示所有节点？';
+
+  @override
+  String connections_showAll_confirmBody(int count) {
+    return '$count 个节点在此设备上可能需要片刻才能排列完成。';
+  }
+
+  @override
+  String get connections_action_open => '打开';
+
+  @override
+  String get connections_action_showDives => '显示潜水';
+
+  @override
+  String get connections_action_openInConnections => '在关联中打开';
+
+  @override
+  String connections_selection_divesTogether(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '共同潜水 $count 次',
+      one: '共同潜水 1 次',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_selection_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      one: '1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_selection_topConnections => '主要关联';
+
+  @override
+  String connections_selection_firstLast(String first, String last) {
+    return '首次 $first，最近 $last';
+  }
+
+  @override
+  String get connections_selection_hint => '点击节点或连线查看详情。';
+
+  @override
+  String get connections_empty_noDives => '还没有潜水记录。日志中有潜水后会显示关联。';
+
+  @override
+  String get connections_empty_buddies =>
+      '还没有潜伴与潜水关联。请为潜水添加潜伴，或在“设置”的“数据工具”中转换旧的潜伴名称。';
+
+  @override
+  String get connections_empty_sites => '还没有潜水记录了潜点。';
+
+  @override
+  String get connections_empty_filtered => '没有符合当前筛选的内容。';
+
+  @override
+  String get connections_focusMissing => '该项目已不在日志中。';
+
+  @override
+  String get connections_error_load => '无法加载关联。';
+
+  @override
+  String get connections_legend_title => '图例';
+
+  @override
+  String connections_yearRange_label(int first, int last) {
+    return '$first 至 $last 年';
+  }
+
+  @override
+  String connections_semantics_summary(int nodes, int edges) {
+    return '$nodes 个节点和 $edges 条关联';
+  }
+
+  @override
+  String connections_semantics_selected(String label) {
+    return '已选择：$label';
+  }
+
+  @override
+  String get connections_kind_buddy => '潜伴';
+
+  @override
+  String get connections_kind_site => '潜点';
+
+  @override
+  String get connections_kind_trip => '行程';
+
+  @override
+  String get connections_kind_diveCenter => '潜店';
+
+  @override
+  String get connections_kind_equipment => '装备';
+
+  @override
+  String get connections_kind_species => '物种';
+
+  @override
+  String get connections_kind_tag => '标签';
+
+  @override
+  String get connections_kind_diveType => '潜水类型';
+
+  @override
+  String get connections_kind_diveComputer => '潜水电脑';
+
+  @override
+  String get connections_kind_course => '课程';
 
   @override
   String get courses_action_add => '添加课程';
@@ -11892,6 +12285,466 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_logFill_saveFailed => '无法保存充气记录。请重试。';
 
   @override
+  String get pdf_unknownSite => '未知潜水点';
+
+  @override
+  String get pdf_signaturePlaceholder => '[签名]';
+
+  @override
+  String get pdf_signerBuddy => '潜伴';
+
+  @override
+  String get pdf_signerInstructor => '教练';
+
+  @override
+  String get pdf_officialStamp => '官方印章';
+
+  @override
+  String get pdf_certifications => '证书';
+
+  @override
+  String pdf_cardNumber(String number) {
+    return '卡号：$number';
+  }
+
+  @override
+  String pdf_certIssued(String date) {
+    return '签发日期：$date';
+  }
+
+  @override
+  String pdf_certExpires(String date) {
+    return '到期日期：$date';
+  }
+
+  @override
+  String get pdf_cardFront => '正面';
+
+  @override
+  String get pdf_cardBack => '背面';
+
+  @override
+  String pdf_coverDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_headerDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_generatedOn(String dateTime) {
+    return '生成于 $dateTime';
+  }
+
+  @override
+  String pdf_generated(String dateTime) {
+    return '生成于 $dateTime';
+  }
+
+  @override
+  String get pdf_noDivesToSummarize => '没有可汇总的潜水记录';
+
+  @override
+  String get pdf_noDivesToDisplay => '没有可显示的潜水记录';
+
+  @override
+  String get pdf_summary => '汇总';
+
+  @override
+  String get pdf_totalDives => '潜水总次数';
+
+  @override
+  String get pdf_firstDive => '首次潜水';
+
+  @override
+  String get pdf_lastDive => '最后一次潜水';
+
+  @override
+  String get pdf_totalDiveTime => '潜水总时间';
+
+  @override
+  String get pdf_deepestDive => '最深潜水';
+
+  @override
+  String get pdf_blenderIncomplete => '不完整：有一行或多行没有价格。';
+
+  @override
+  String get pdf_averageDepth => '平均深度';
+
+  @override
+  String get pdf_uniqueSites => '不同潜水点';
+
+  @override
+  String pdf_hoursMinutes(String hours, String minutes) {
+    return '$hours小时$minutes分钟';
+  }
+
+  @override
+  String pdf_minutesShort(String minutes) {
+    return '$minutes分钟';
+  }
+
+  @override
+  String pdf_minutes(String minutes) {
+    return '$minutes 分钟';
+  }
+
+  @override
+  String pdf_minutesCompact(String minutes) {
+    return '$minutes分钟';
+  }
+
+  @override
+  String get pdf_diverProfile => '潜水员档案';
+
+  @override
+  String get pdf_name => '姓名';
+
+  @override
+  String get pdf_email => '电子邮件';
+
+  @override
+  String get pdf_photo => '照片';
+
+  @override
+  String pdf_depthProfileHeading(String depthUnit) {
+    return '深度轮廓（$depthUnit / 分钟）';
+  }
+
+  @override
+  String get pdf_columnDate => '日期';
+
+  @override
+  String get pdf_columnSite => '潜水点';
+
+  @override
+  String get pdf_columnDepth => '深度';
+
+  @override
+  String get pdf_columnTime => '时间';
+
+  @override
+  String get pdf_columnTemp => '温度';
+
+  @override
+  String pdf_pageOf(String page, String total) {
+    return '第 $page 页，共 $total 页';
+  }
+
+  @override
+  String get pdf_sectionProfile => '潜水轮廓';
+
+  @override
+  String get pdf_sectionCylinders => '气瓶';
+
+  @override
+  String get pdf_sectionConditions => '环境条件';
+
+  @override
+  String get pdf_sectionWeather => '天气';
+
+  @override
+  String get pdf_sectionTeam => '团队';
+
+  @override
+  String get pdf_sectionEquipment => '装备';
+
+  @override
+  String get pdf_sectionTechnical => '技术参数';
+
+  @override
+  String get pdf_sectionMarineLife => '海洋生物';
+
+  @override
+  String get pdf_sectionNotes => '备注';
+
+  @override
+  String get pdf_sectionAdditionalFields => '附加字段';
+
+  @override
+  String get pdf_sectionVerifiedBy => '验证人';
+
+  @override
+  String get pdf_sectionVerification => '验证';
+
+  @override
+  String get pdf_maxDepth => '最大深度';
+
+  @override
+  String get pdf_avgDepth => '平均深度';
+
+  @override
+  String get pdf_runtime => '运行时间';
+
+  @override
+  String get pdf_bottomTime => '底部时间';
+
+  @override
+  String get pdf_timeIn => '入水';
+
+  @override
+  String get pdf_timeOut => '出水';
+
+  @override
+  String get pdf_surfaceInterval => '水面间隔';
+
+  @override
+  String get pdf_sac => 'SAC';
+
+  @override
+  String get pdf_rmv => 'RMV';
+
+  @override
+  String pdf_pressureUsed(String pressure) {
+    return '已用 $pressure';
+  }
+
+  @override
+  String pdf_cylinderNumber(String number) {
+    return '气瓶 $number';
+  }
+
+  @override
+  String get pdf_waterTemp => '水温';
+
+  @override
+  String get pdf_airTemp => '气温';
+
+  @override
+  String get pdf_visibility => '能见度';
+
+  @override
+  String get pdf_current => '水流';
+
+  @override
+  String get pdf_currentDirection => '流向';
+
+  @override
+  String get pdf_waterType => '水类型';
+
+  @override
+  String get pdf_entry => '入水';
+
+  @override
+  String get pdf_exit => '出水';
+
+  @override
+  String get pdf_altitude => '海拔';
+
+  @override
+  String get pdf_buddy => '潜伴';
+
+  @override
+  String get pdf_diveMaster => '潜水长';
+
+  @override
+  String get pdf_diveCenter => '潜水中心';
+
+  @override
+  String get pdf_trip => '行程';
+
+  @override
+  String get pdf_weight => '配重';
+
+  @override
+  String get pdf_weightType => '配重类型';
+
+  @override
+  String pdf_equipmentSets(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '套装',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pdf_computer => '潜水电脑';
+
+  @override
+  String get pdf_diveMode => '潜水模式';
+
+  @override
+  String get pdf_algorithm => '算法';
+
+  @override
+  String get pdf_gradientFactors => '梯度因子';
+
+  @override
+  String get pdf_setpoint => '设定点';
+
+  @override
+  String get pdf_diveType => '潜水类型';
+
+  @override
+  String get pdf_weatherConditions => '天气状况';
+
+  @override
+  String get pdf_wind => '风速';
+
+  @override
+  String get pdf_windDirection => '风向';
+
+  @override
+  String get pdf_cloud => '云量';
+
+  @override
+  String get pdf_precipitation => '降水';
+
+  @override
+  String get pdf_humidity => '湿度';
+
+  @override
+  String get pdf_swell => '涌浪';
+
+  @override
+  String get pdf_instructorSignature => '教练签名';
+
+  @override
+  String get pdf_buddySignature => '潜伴签名';
+
+  @override
+  String get pdf_diveLogBanner => '潜水日志';
+
+  @override
+  String get pdf_loggedDives => '已记录潜水';
+
+  @override
+  String pdf_diveNumber(String number) {
+    return '潜水 #$number';
+  }
+
+  @override
+  String get pdf_trainingBadge => '培训';
+
+  @override
+  String get pdf_gas => '气体';
+
+  @override
+  String get pdf_visibilityShort => '能见度';
+
+  @override
+  String get pdf_air => '气压';
+
+  @override
+  String get pdf_water => '水体';
+
+  @override
+  String get pdf_verifiedBy => '验证人';
+
+  @override
+  String get pdf_nauiDiveLogBanner => 'NAUI 潜水日志';
+
+  @override
+  String get pdf_statDives => '潜水次数';
+
+  @override
+  String get pdf_statHours => '小时';
+
+  @override
+  String get pdf_avgShort => '平均';
+
+  @override
+  String get pdf_pressureStart => '开始';
+
+  @override
+  String get pdf_pressureEnd => '结束';
+
+  @override
+  String pdf_surfaceIntervalShort(String minutes) {
+    return '间隔：$minutes分钟';
+  }
+
+  @override
+  String get pdf_diveDataHeading => '潜水数据';
+
+  @override
+  String get pdf_verificationHeading => '验证';
+
+  @override
+  String pdf_labelValue(String label, String value) {
+    return '$label：$value';
+  }
+
+  @override
+  String get pdf_resort => '度假村';
+
+  @override
+  String get pdf_liveaboard => '船宿';
+
+  @override
+  String get pdf_totalRuntime => '总运行时间';
+
+  @override
+  String pdf_tripDiveTitle(String number) {
+    return '潜水 $number';
+  }
+
+  @override
+  String get pdf_date => '日期';
+
+  @override
+  String get pdf_site => '潜水点';
+
+  @override
+  String get pdf_duration => '时长';
+
+  @override
+  String get pdf_notesLabel => '备注：';
+
+  @override
+  String get pdf_trainingLog => '训练日志';
+
+  @override
+  String get pdf_instructor => '教练';
+
+  @override
+  String get pdf_instructorNumber => '教练编号';
+
+  @override
+  String get pdf_location => '地点';
+
+  @override
+  String get pdf_startDate => '开始日期';
+
+  @override
+  String get pdf_completionDate => '完成日期';
+
+  @override
+  String get pdf_status => '状态';
+
+  @override
+  String get pdf_statusCompleted => '已完成';
+
+  @override
+  String get pdf_statusInProgress => '进行中';
+
+  @override
+  String get pdf_trainingDives => '训练潜水';
+
+  @override
+  String get pdf_totalMinutes => '总分钟数';
+
+  @override
+  String get pdf_courseNotes => '课程备注';
+
+  @override
+  String get pdf_slateMax => '最大';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -19884,6 +20737,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_category_conditions_title => '条件';
 
   @override
+  String get insights_category_connections_subtitle => '潜伴、潜水点与装备的关联';
+
+  @override
   String get insights_category_equipment_subtitle => '装备使用与配重';
 
   @override
@@ -22316,6 +23172,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '添加机构验证所需的印章和签名框';
 
   @override
+  String get transfer_pdfExport_languageHeader => '语言';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -23015,11 +23874,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_scrubber_title => '吸收剂余量';
 
   @override
-  String trips_scrubber_asOfStart(String date) {
-    return '截至 $date';
-  }
-
-  @override
   String trips_scrubber_remaining(
     String minutes,
     String rated,
@@ -23601,6 +24455,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
     return 'MacDive 日志簿（$names）是已保存的搜索，而不是固定的潜水列表，因此没有可导入的内容。您可以将它们重新创建为潜水筛选条件。';
   }
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneTitle =>
+      '潜水时间按此设备的时区读取';
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody =>
+      'MacDive 没有为这些潜水保存可读取的时区，而且它们的潜水点没有 GPS 位置，因此它们的时间按此设备的时区读取。如果您是在其他地方进行这些潜水的，请检查它们的开始时间。';
 
   @override
   String get universalImport_summary_unreadableDatesTitle => '部分行未导入';
@@ -28087,6 +28949,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrLabel_product_url => '网页链接';
+
+  @override
+  String get attrLabel_color => '颜色';
 
   @override
   String get attrLabel_sleeve_length => '袖长';
@@ -36695,7 +37560,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_action_unpin => '取消固定';
 
   @override
-  String diveLog_filterChip_dateRange(String end, String start) {
+  String diveLog_filterChip_dateRange(String start, String end) {
     return '$start 至 $end';
   }
 
@@ -36854,6 +37719,16 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_appearance_showDataSourceBadges_subtitle =>
       '在潜水指标上显示来源归属';
+
+  @override
+  String get settings_appearance_showDiveFigure => '在潜水记录中显示潜水员图';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      '在装备卡片中将每次潜水的装备显示在潜水员图上';
+
+  @override
+  String get diveLog_detail_gearFigureName => '本次潜水的装备';
 
   @override
   String get settings_appearance_title_buddies => '潜伴外观';
@@ -40035,6 +40910,46 @@ class AppLocalizationsZh extends AppLocalizations {
   String get startup_interruptedRestore_failed => '恢复未完成。没有删除任何内容；两个文件仍在此设备上。';
 
   @override
+  String get startup_diveLogUnavailable_downloading => '正在从 iCloud 下载你的潜水日志';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title => '你的潜水日志仍在 iCloud 中';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return '$folder 中的潜水日志存储在 iCloud 中，但尚未下载到此设备，且无法下载。它在 iCloud 中是安全的，没有任何更改。请检查网络连接，或在“文件” App 或访达中下载它，然后重试。';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title => '未找到你的潜水日志';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'Submersion 将你的潜水日志保存在 $folder 中，但那里现在没有 $filename。如果该文件夹位于未连接的驱动器上，或位于尚未完成同步的同步文件夹中，请连接或同步后重试。没有创建或更改任何内容。';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew => '在此文件夹中新建潜水日志';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      '仅在旧潜水日志已永久丢失时使用。新日志为空。';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle => '在此新建潜水日志？';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return '将在 $folder 中创建一个空白潜水日志。如果旧潜水日志之后又回来了（例如同步完成时），它会与新日志冲突。';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm => '新建潜水日志';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return '较新的数据库，回退时保留 - $size';
   }
@@ -41460,4 +42375,432 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_weights_type => '类型';
+
+  @override
+  String get query_op_eq => '是';
+
+  @override
+  String get query_op_neq => '不是';
+
+  @override
+  String get query_op_lt => '小于';
+
+  @override
+  String get query_op_lte => '至多';
+
+  @override
+  String get query_op_gt => '大于';
+
+  @override
+  String get query_op_gte => '至少';
+
+  @override
+  String get query_op_contains => '包含';
+
+  @override
+  String get query_op_inList => '是其中之一';
+
+  @override
+  String get query_op_between => '介于';
+
+  @override
+  String get query_op_isEmpty => '未设置';
+
+  @override
+  String get query_op_isSet => '已设置';
+
+  @override
+  String get query_editor_tabText => '文本';
+
+  @override
+  String get query_editor_tabBuilder => '构建器';
+
+  @override
+  String get query_editor_hint => '例如 weights:none AND depth > 30';
+
+  @override
+  String get query_editor_save => '保存查询';
+
+  @override
+  String get query_editor_allOf => '全部满足';
+
+  @override
+  String get query_editor_anyOf => '任一满足';
+
+  @override
+  String get query_editor_addCondition => '添加条件';
+
+  @override
+  String get query_editor_addGroup => '添加分组';
+
+  @override
+  String get query_editor_negate => '取反';
+
+  @override
+  String get query_editor_remove => '移除';
+
+  @override
+  String get query_editor_pickField => '选择字段';
+
+  @override
+  String get query_editor_pickFieldSearch => '搜索字段';
+
+  @override
+  String query_editor_useRelation(String name) {
+    return '使用$name本身';
+  }
+
+  @override
+  String query_editor_fieldsOf(String name) {
+    return '$name的字段';
+  }
+
+  @override
+  String query_editor_pickRef(String name) {
+    return '选择$name';
+  }
+
+  @override
+  String get query_editor_pickRefSearch => '搜索';
+
+  @override
+  String get query_editor_done => '完成';
+
+  @override
+  String get query_editor_unresolvedRef => '已不存在';
+
+  @override
+  String query_editor_scopedRow(String name) {
+    return '$name范围内的分组：请在“文本”标签页中编辑';
+  }
+
+  @override
+  String get query_editor_textRow => '文本搜索';
+
+  @override
+  String get query_editor_betweenAnd => '和';
+
+  @override
+  String get query_editor_valueTrue => '是';
+
+  @override
+  String get query_editor_valueFalse => '否';
+
+  @override
+  String get diveLog_filter_queryRow => '查询';
+
+  @override
+  String get diveLog_search_section_query => '查询';
+
+  @override
+  String get query_saveDialog_title => '保存查询';
+
+  @override
+  String get query_saveDialog_nameLabel => '名称';
+
+  @override
+  String get query_saveDialog_nameValidation => '请输入名称';
+
+  @override
+  String query_saved_snackbar(String name) {
+    return '已保存 \"$name\"';
+  }
+
+  @override
+  String get query_savedRow_title => '已保存';
+
+  @override
+  String query_savedRow_unresolved(String name) {
+    return '\"$name\" 引用了已不存在的内容';
+  }
+
+  @override
+  String get savedQueries_appBar_title => '已保存的查询';
+
+  @override
+  String get savedQueries_empty => '还没有已保存的查询。可在潜水搜索页面的查询编辑器中保存查询。';
+
+  @override
+  String get savedQueries_renameTooltip => '重命名';
+
+  @override
+  String get savedQueries_deleteTooltip => '删除';
+
+  @override
+  String get savedQueries_reorderTooltip => '拖动以重新排序';
+
+  @override
+  String get savedQueries_deleteDialog_title => '删除查询？';
+
+  @override
+  String savedQueries_deleteDialog_content(String name) {
+    return '确定要删除 \"$name\" 吗？此操作无法撤销。';
+  }
+
+  @override
+  String get savedQueries_problem_unreadable => '此版本的应用无法读取';
+
+  @override
+  String savedQueries_problem_invalid(String detail) {
+    return '使用了此版本不支持的内容：$detail';
+  }
+
+  @override
+  String savedQueries_problem_unknownSubject(String detail) {
+    return '针对此版本不支持的列表：$detail';
+  }
+
+  @override
+  String savedQueries_problem_unresolved(String detail) {
+    return '引用了已不存在的内容：$detail';
+  }
+
+  @override
+  String savedQueries_snackbar_deleted(String name) {
+    return '已删除 \"$name\"';
+  }
+
+  @override
+  String get settings_manage_savedQueries => '已保存的查询';
+
+  @override
+  String get settings_manage_savedQueries_subtitle => '重命名、重新排序和删除已保存的查询';
+
+  @override
+  String get query_error_unterminatedQuote => '引号未闭合';
+
+  @override
+  String query_error_unexpectedCharacter(String text) {
+    return '意外的字符 \"$text\"';
+  }
+
+  @override
+  String query_error_unexpectedToken(String text) {
+    return '意外的 \"$text\"';
+  }
+
+  @override
+  String get query_error_expectedCloseParen => '此处应为 \")\"';
+
+  @override
+  String get query_error_expectedCloseBracket => '此处应为 \"]\"';
+
+  @override
+  String get query_error_expectedOpenBracketAfterIn => '\"in\" 后应为 \"[\"';
+
+  @override
+  String get query_error_expectedAnd => '此处应为 \"and\"';
+
+  @override
+  String get query_error_expectedOperator => '此处应为运算符';
+
+  @override
+  String get query_error_expectedConditionOrText => '此处应为条件或文本';
+
+  @override
+  String get query_error_expectedName => '此处应为名称';
+
+  @override
+  String get query_error_expectedDate => '此处应为日期';
+
+  @override
+  String get query_error_expectedDateValue => '此处应为日期值';
+
+  @override
+  String get query_error_expectedValue => '此处应为值';
+
+  @override
+  String get query_error_expectedNumber => '此处应为数字';
+
+  @override
+  String get query_error_expectedText => '此处应为文本';
+
+  @override
+  String get query_error_expectedBool => '此处应为 true 或 false';
+
+  @override
+  String get query_error_emptyText => '文本为空';
+
+  @override
+  String get query_error_emptyList => '列表为空';
+
+  @override
+  String get query_error_emptyGroup => '空分组不匹配任何内容';
+
+  @override
+  String get query_error_emptyPath => '路径为空';
+
+  @override
+  String query_error_notSingleDay(String text) {
+    return '\"$text\" 不是单个日期';
+  }
+
+  @override
+  String query_error_notADate(String text) {
+    return '\"$text\" 不是日期';
+  }
+
+  @override
+  String query_error_openEndedDate(
+    String text,
+    String field,
+    String symbol,
+    String day,
+  ) {
+    return '\"$text\" 是开放式日期；请改写为 $field $symbol $day';
+  }
+
+  @override
+  String query_error_unknownUnit(String unit) {
+    return '未知单位 \"$unit\"';
+  }
+
+  @override
+  String query_error_noUnitAllowed(String field) {
+    return '$field 不接受单位';
+  }
+
+  @override
+  String query_error_wrongUnitDimension(String unit, String dimension) {
+    return '\"$unit\" 不是$dimension单位';
+  }
+
+  @override
+  String query_error_wrongUnitForField(
+    String unit,
+    String dimension,
+    String field,
+  ) {
+    return '\"$unit\" 不是$dimension单位；$field 以$dimension计量';
+  }
+
+  @override
+  String get query_error_decimalComma => '小数请使用 \".\"，而不是 \",\"';
+
+  @override
+  String query_error_scopeNeedsRelationQuoted(String path) {
+    return '\"[...]\" 需要关联，而 \"$path\" 是字段';
+  }
+
+  @override
+  String query_error_scopeNeedsRelation(String path) {
+    return '[...] 需要关联，而 \"$path\" 是字段';
+  }
+
+  @override
+  String query_error_relationNeedsRefOp(String path) {
+    return '\"$path\" 是关联；请使用 =、in、:none、:any 或 [...]';
+  }
+
+  @override
+  String query_error_relationOpNotAllowed(String op) {
+    return '\"$op\" 不能用于关联；请使用 =、!=、in、:none、:any 或 [...]';
+  }
+
+  @override
+  String query_error_opNotForFieldQuoted(String op, String field) {
+    return '\"$op\" 不能用于 $field';
+  }
+
+  @override
+  String query_error_opNotForField(String op, String field) {
+    return '$op 不能用于 $field';
+  }
+
+  @override
+  String query_error_noneAmbiguous(String field) {
+    return '\"$field:none\" 有歧义：值为 none 请写 \"$field = none\"，未记录请写 \"NOT $field:any\"';
+  }
+
+  @override
+  String query_error_noRefNamed(String relation, String text) {
+    return '没有名为 \"$text\" 的$relation';
+  }
+
+  @override
+  String query_error_notEnumValue(String text, String field) {
+    return '\"$text\" 不是 $field 的有效值';
+  }
+
+  @override
+  String query_error_unknownField(String name) {
+    return '未知字段 \"$name\"';
+  }
+
+  @override
+  String query_error_fieldNotPath(String name, String next) {
+    return '\"$name\" 是字段，后面不能接 \".$next\"';
+  }
+
+  @override
+  String query_error_tooManyHops(String max) {
+    return '一个查询最多只能跨越 $max 个关联（含嵌套分组）';
+  }
+
+  @override
+  String query_error_pathTooLong(String max) {
+    return '一条路径最多只能跨越 $max 个关联';
+  }
+
+  @override
+  String query_error_textNotSearchable(String table) {
+    return '无法在 $table 中搜索自由文本';
+  }
+
+  @override
+  String query_error_expectsReference(String name) {
+    return '$name 需要一个引用';
+  }
+
+  @override
+  String query_error_expectsReferences(String name) {
+    return '$name 需要多个引用';
+  }
+
+  @override
+  String get query_error_betweenNeedsTwo => 'between 需要两个值';
+
+  @override
+  String get query_error_inNeedsList => 'in 需要一个列表';
+
+  @override
+  String query_error_expectsNumber(String field) {
+    return '$field 需要数字';
+  }
+
+  @override
+  String query_error_outOfRange(String field) {
+    return '$field 的值超出范围';
+  }
+
+  @override
+  String query_error_expectsText(String field) {
+    return '$field 需要文本';
+  }
+
+  @override
+  String query_error_expectsBool(String field) {
+    return '$field 需要 true 或 false';
+  }
+
+  @override
+  String query_error_expectsEnumValue(String field) {
+    return '$field 需要其可选值之一';
+  }
+
+  @override
+  String query_error_expectsSingleDay(String field) {
+    return '$field 此处需要单个日期';
+  }
+
+  @override
+  String query_error_expectsDate(String field) {
+    return '$field 需要日期';
+  }
+
+  @override
+  String get query_editor_needsText => '请至少输入一个词';
+
+  @override
+  String get query_saveNeedsDiver => '请先创建潜水员档案再保存查询';
 }

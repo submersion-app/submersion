@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
@@ -143,18 +142,6 @@ Color? headerFill(WidgetTester tester) {
 }
 
 void main() {
-  // formatDate resolves against Intl.defaultLocale, a process global a
-  // widget test never sets; pin it so the "as of" date reads the same on
-  // every machine.
-  late String? previousLocale;
-  setUp(() {
-    previousLocale = Intl.defaultLocale;
-    Intl.defaultLocale = 'en_US';
-  });
-  tearDown(() {
-    Intl.defaultLocale = previousLocale;
-  });
-
   testWidgets('nothing to say renders nothing', (tester) async {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
@@ -348,26 +335,51 @@ void main() {
     expect(find.text('My CCR'), findsNothing);
   });
 
-  testWidgets('a past trip drops service alerts and reads as of its start', (
+  testWidgets('a past trip renders nothing, scrubber margin included (#2485)', (
     tester,
   ) async {
-    // Today's service state says nothing about a trip already dived.
+    // A trip already dived has nothing left to plan: today's service state
+    // says nothing about it, and a margin forecast from today's rebreathers
+    // would warn about a repack that can no longer happen.
     await tester.pumpWidget(
       host(margins: [margin()], alerts: [dueClock()], past: true),
     );
     await tester.pumpAndSettle();
-    expect(find.text('-140 min scrubber margin'), findsOneWidget);
-    await toggle(tester);
-    expect(find.text('AL80'), findsNothing);
-    expect(find.textContaining('as of Mar 1, 2025'), findsOneWidget);
+    expect(find.byType(Card), findsNothing);
+    expect(find.text('-140 min scrubber margin'), findsNothing);
   });
 
-  testWidgets('a past trip with only service alerts renders nothing', (
+  testWidgets('a trip under way still shows its scrubber margin', (
     tester,
   ) async {
-    await tester.pumpWidget(host(alerts: [dueClock()], past: true));
+    final started = _now.subtract(const Duration(days: 1));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          tripScrubberMarginsProvider(
+            't1',
+          ).overrideWith((ref) async => [margin()]),
+          tripServiceAlertsProvider('t1').overrideWith((ref) async => const []),
+          equipmentRollupClockProvider.overrideWith((ref) async => const {}),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: TripGearAlertsPanel(
+              trip: trip().copyWith(
+                startDate: started,
+                endDate: started.add(const Duration(days: 4)),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
-    expect(find.byType(Card), findsNothing);
+    expect(find.text('-140 min scrubber margin'), findsOneWidget);
   });
 
   testWidgets('tapping a listed item opens it', (tester) async {

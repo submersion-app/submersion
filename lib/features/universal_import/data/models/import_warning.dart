@@ -78,6 +78,12 @@ enum ImportWarningCode {
   /// were imported without one. [ImportWarning.count] is the number of dives.
   sitesUnresolved,
 
+  /// MacDive dives with no readable stored time zone (missing, malformed,
+  /// or naming a zone Submersion does not know) and no site GPS position,
+  /// so their times were read in the importing device's zone.
+  /// [ImportWarning.count] is the number of dives.
+  macdiveDeviceTimeZone,
+
   /// A remote source's gear list could not be fetched, so no gear was
   /// imported and dives carry no gear links.
   gearUnavailable,

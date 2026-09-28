@@ -78,6 +78,8 @@ import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_gallery_page.dart';
+import 'package:submersion/features/connections/presentation/connections_links.dart';
+import 'package:submersion/features/connections/presentation/pages/connections_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_overview_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_page.dart';
 import 'package:submersion/features/insights/presentation/pages/records_page.dart';
@@ -139,6 +141,7 @@ import 'package:submersion/features/transfer/presentation/pages/transfer_page.da
 import 'package:submersion/features/dive_types/presentation/pages/dive_types_page.dart';
 import 'package:submersion/features/site_types/presentation/pages/site_types_page.dart';
 import 'package:submersion/features/dive_roles/presentation/pages/dive_roles_page.dart';
+import 'package:submersion/features/query/presentation/pages/saved_queries_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_presets_page.dart';
 import 'package:submersion/features/weight_presets/presentation/pages/weight_preset_editor_page.dart';
 import 'package:submersion/features/weight_presets/presentation/pages/weight_presets_page.dart';
@@ -399,6 +402,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   filterProvider: state.extra is StateProvider<DiveFilterState>
                       ? state.extra as StateProvider<DiveFilterState>
                       : null,
+                  // `?section=query` opens the query editor (#2365).
+                  initialSection: state.uri.queryParameters['section'],
                 ),
               ),
               GoRoute(
@@ -933,7 +938,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'insightsProfile',
                 builder: (context, state) => const InsightsProfilePage(),
               ),
+              // Connections opens from Insights as its own full page.
+              GoRoute(
+                path: kConnectionsSegment,
+                name: 'connections',
+                builder: (context, state) => ConnectionsPage(
+                  args: ConnectionsRouteArgs.fromQuery(
+                    state.uri.queryParameters,
+                  ),
+                ),
+              ),
             ],
+          ),
+
+          // Connections moved under Insights; links saved before the move
+          // (and phase 1 deep links) still land there.
+          GoRoute(
+            path: '/connections',
+            redirect: (context, state) => connectionsLegacyRedirect(state.uri),
           ),
 
           // Records
@@ -1435,6 +1457,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/dive-roles',
             name: 'diveRoles',
             builder: (context, state) => const DiveRolesPage(),
+          ),
+
+          // Saved queries management (#2365)
+          GoRoute(
+            path: '/saved-queries',
+            name: 'savedQueries',
+            builder: (context, state) => const SavedQueriesPage(),
           ),
 
           // Transmitter registry (issue #1365)

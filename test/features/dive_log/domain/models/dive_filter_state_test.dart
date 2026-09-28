@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 
 void main() {
   group('DiveFilterState', () {
@@ -286,6 +288,80 @@ void main() {
         expect(withQuery.copyWith(clearQuery: true).query, isNull);
         expect(withQuery.copyWith(clearQuery: true).hasActiveFilters, isFalse);
       });
+    });
+  });
+
+  group('activeAxisCount', () {
+    test('an empty filter has no active axes', () {
+      expect(const DiveFilterState().activeAxisCount, 0);
+    });
+
+    test('a range counts once, separate axes count each', () {
+      expect(
+        DiveFilterState(
+          startDate: DateTime(2021),
+          endDate: DateTime(2024),
+        ).activeAxisCount,
+        1,
+      );
+      expect(
+        const DiveFilterState(minDepth: 10, maxDepth: 30).activeAxisCount,
+        1,
+      );
+      expect(
+        const DiveFilterState(
+          minRating: 3,
+          weekdays: [6, 7],
+          computerId: 'c1',
+        ).activeAxisCount,
+        3,
+      );
+    });
+
+    test('every axis hasActiveFilters knows counts', () {
+      final singles = <DiveFilterState>[
+        DiveFilterState(startDate: DateTime(2021)),
+        DiveFilterState(endDate: DateTime(2021)),
+        const DiveFilterState(diveTypeId: 't'),
+        const DiveFilterState(siteId: 's'),
+        const DiveFilterState(tripId: 't'),
+        const DiveFilterState(diveCenterId: 'c'),
+        const DiveFilterState(minDepth: 1),
+        const DiveFilterState(maxDepth: 1),
+        const DiveFilterState(favoritesOnly: true),
+        const DiveFilterState(excludedFromStatsOnly: true),
+        const DiveFilterState(decoOnly: false),
+        const DiveFilterState(noBuddyOnly: true),
+        const DiveFilterState(tagIds: ['t']),
+        const DiveFilterState(weekdays: [1]),
+        const DiveFilterState(equipmentIds: ['e']),
+        const DiveFilterState(buddyNameFilter: 'a'),
+        const DiveFilterState(buddyId: 'b'),
+        const DiveFilterState(diveIds: ['d']),
+        const DiveFilterState(minO2Percent: 21),
+        const DiveFilterState(maxO2Percent: 40),
+        const DiveFilterState(minRating: 1),
+        const DiveFilterState(minBottomTimeMinutes: 1),
+        const DiveFilterState(maxBottomTimeMinutes: 1),
+        const DiveFilterState(computerId: 'c'),
+        const DiveFilterState(customFieldKey: 'k'),
+        const DiveFilterState(
+          equipmentAttrConditions: [
+            EquipmentAttrCondition(
+              key: 'hose_type',
+              choices: {'hp'},
+              types: {EquipmentType.hose},
+            ),
+          ],
+        ),
+        const DiveFilterState().copyWith(
+          query: ConditionNode(FieldPath(['weights']), QueryOp.isEmpty, null),
+        ),
+      ];
+      for (final f in singles) {
+        expect(f.hasActiveFilters, isTrue);
+        expect(f.activeAxisCount, 1, reason: f.toString());
+      }
     });
   });
 }
