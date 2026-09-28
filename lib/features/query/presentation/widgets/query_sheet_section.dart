@@ -4,7 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart' show QueryNode;
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
-import 'package:submersion/features/query/presentation/dive_query_editor.dart';
+import 'package:submersion/features/query/presentation/entity_query_editor.dart';
 import 'package:submersion/features/query/presentation/widgets/save_query_flow.dart';
 import 'package:submersion/features/query/presentation/widgets/saved_query_chip_row.dart';
 import 'package:submersion/l10n/l10n_extension.dart';

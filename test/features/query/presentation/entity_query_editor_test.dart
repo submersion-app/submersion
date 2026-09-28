@@ -4,8 +4,8 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart';
 import 'package:submersion/features/query/data/query_name_index.dart';
-import 'package:submersion/features/query/presentation/dive_query_chips.dart';
-import 'package:submersion/features/query/presentation/dive_query_editor.dart';
+import 'package:submersion/features/query/presentation/entity_query_chips.dart';
+import 'package:submersion/features/query/presentation/entity_query_editor.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 

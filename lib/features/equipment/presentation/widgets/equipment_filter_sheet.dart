@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/shared/widgets/sheet_messenger_scope.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart' show QueryNode;
@@ -96,95 +97,101 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
       maxChildSize: 0.95,
       expand: false,
       builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-          ),
-          child: Material(
-            type: MaterialType.transparency,
-            child: Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        context.l10n.equipment_filter_title,
-                        style: Theme.of(context).textTheme.titleLarge,
+        return SheetMessengerScope(
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
+            ),
+            child: Material(
+              type: MaterialType.transparency,
+              child: Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 12),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.4,
                       ),
-                      TextButton(
-                        onPressed: _clearAll,
-                        child: Text(context.l10n.equipment_filter_clearAll),
-                      ),
-                    ],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                ),
-                const Divider(),
-                Expanded(
-                  child: ListView(
-                    controller: scrollController,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          context.l10n.equipment_filter_title,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        TextButton(
+                          onPressed: _clearAll,
+                          child: Text(context.l10n.equipment_filter_clearAll),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(),
+                  Expanded(
+                    child: ListView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        QuerySheetSection(
+                          subject: QuerySubject.equipment,
+                          root: equipmentQueryEntity,
+                          value: _query,
+                          onChanged: (node) => setState(() => _query = node),
+                        ),
+                        const SizedBox(height: 24),
+                        _buildStatusSection(),
+                        const SizedBox(height: 24),
+                        _buildOwnerSection(),
+                        _buildCategorySection(),
+                        _buildTagSection(),
+                      ],
+                    ),
+                  ),
+                  // Outside the ListView: as lazy children the actions were
+                  // never built on desktop and looked clipped (#989).
+                  Container(
                     padding: const EdgeInsets.all(16),
-                    children: [
-                      QuerySheetSection(
-                        subject: QuerySubject.equipment,
-                        root: equipmentQueryEntity,
-                        value: _query,
-                        onChanged: (node) => setState(() => _query = node),
-                      ),
-                      const SizedBox(height: 24),
-                      _buildStatusSection(),
-                      const SizedBox(height: 24),
-                      _buildOwnerSection(),
-                      _buildCategorySection(),
-                      _buildTagSection(),
-                    ],
-                  ),
-                ),
-                // Outside the ListView: as lazy children the actions were
-                // never built on desktop and looked clipped (#989).
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, -2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text(context.l10n.equipment_filter_cancel),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, -2),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: FilledButton(
-                          key: const ValueKey('equipment_filter_apply'),
-                          onPressed: _applyFilters,
-                          child: Text(context.l10n.equipment_filter_apply),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text(context.l10n.equipment_filter_cancel),
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: FilledButton(
+                            key: const ValueKey('equipment_filter_apply'),
+                            onPressed: _applyFilters,
+                            child: Text(context.l10n.equipment_filter_apply),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );

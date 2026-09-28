@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_service_status_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
 
 final equipmentServiceStatusRepositoryProvider =
     Provider<EquipmentServiceStatusRepository>(
@@ -38,17 +39,29 @@ final equipmentServiceStatusCacheProvider = FutureProvider.autoDispose<void>((
   }, computedAt: DateTime.now().millisecondsSinceEpoch);
 });
 
-/// The cache table a compiled query names when it reads `serviceDue`.
-const serviceStatusTable = 'equipment_service_status';
-
 /// Waits for the cache to mirror the engine before a query that reads it,
 /// so the query never sees an empty cache or another diver's verdicts, and
-/// keeps the writer alive while the calling provider is.
+/// keeps the writer alive while the calling provider is. Listens rather
+/// than watches: a writer run that changes no verdict must not re-run the
+/// query, and one that does writes the table, whose tick the caller follows.
 Future<void> awaitServiceStatusIfRead(
   Ref ref,
   Set<String> tablesTouched,
 ) async {
-  if (tablesTouched.contains(serviceStatusTable)) {
-    await ref.watch(equipmentServiceStatusCacheProvider.future);
+  if (!tablesTouched.contains(serviceStatusTable)) return;
+  await ref
+      .listen(equipmentServiceStatusCacheProvider.future, (_, _) {})
+      .read();
+}
+
+/// [awaitServiceStatusIfRead] for a notifier, whose ref outlives each load:
+/// holds the writer only for the wait, so repeated loads add no listeners.
+Future<void> awaitServiceStatusOnce(Ref ref, Set<String> tablesTouched) async {
+  if (!tablesTouched.contains(serviceStatusTable)) return;
+  final sub = ref.listen(equipmentServiceStatusCacheProvider.future, (_, _) {});
+  try {
+    await sub.read();
+  } finally {
+    sub.close();
   }
 }

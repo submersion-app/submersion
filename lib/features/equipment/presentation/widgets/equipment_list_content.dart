@@ -49,9 +49,8 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_c
 import 'package:submersion/features/equipment/presentation/utils/condition_finding_text.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_query_providers.dart';
-import 'package:submersion/core/query/presentation/query_tree_edit.dart';
 import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
-import 'package:submersion/features/query/presentation/dive_query_chips.dart';
+import 'package:submersion/features/query/presentation/entity_query_chips.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -1007,17 +1006,16 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               ),
             // One chip per top-level condition of the advanced query
             // (#2365), printed in the diver's units.
-            for (final (i, label) in entityQueryChipLabels(
+            for (final chip in entityQueryChips(
               equipmentQueryEntity,
               filter.query,
               ref.watch(queryUnitPrefsProvider),
-            ).indexed)
-              _buildActiveFilterChip(label, () {
-                final next = removeTopLevelConjunct(filter.query, i);
-                ref.read(equipmentFilterProvider.notifier).state = next == null
-                    ? filter.copyWith(clearQuery: true)
-                    : filter.copyWith(query: next);
-              }),
+            ))
+              _buildActiveFilterChip(
+                chip.label,
+                () => ref.read(equipmentFilterProvider.notifier).state = filter
+                    .copyWith(query: chip.rest, clearQuery: chip.rest == null),
+              ),
           ],
         ),
       ),

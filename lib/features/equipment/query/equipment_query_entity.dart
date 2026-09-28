@@ -6,6 +6,10 @@ import 'package:submersion/core/query/registry/query_relation.dart';
 
 /// Minimal in PR 1 (enough for `gear.type` and the suit-thickness lowering
 /// through `gear[attributes[...]]`); PR 3 of #2365 completes it.
+/// The local cache table (v242) the `serviceDue` field reads; a compiled
+/// query names it in `tablesTouched` exactly when it reads the verdicts.
+const serviceStatusTable = 'equipment_service_status';
+
 final equipmentQueryEntity = QueryEntity(
   subject: QuerySubject.equipment,
   table: 'equipment',
@@ -69,12 +73,12 @@ final equipmentQueryEntity = QueryEntity(
       key: 'serviceDue',
       type: FieldType.enumName,
       sql:
-          'COALESCE((SELECT s.severity FROM equipment_service_status s '
+          'COALESCE((SELECT s.severity FROM $serviceStatusTable s '
           "WHERE s.equipment_id = {r}.id), 'ok')",
       emptySql: '0',
       labelKey: 'query_equipment_serviceDue',
       enumValues: ['ok', 'dueSoon', 'overdue'],
-      tables: ['equipment_service_status'],
+      tables: [serviceStatusTable],
     ),
   ],
   relations: const [

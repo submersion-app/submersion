@@ -9,6 +9,8 @@ import 'package:submersion/core/query/syntax/query_parser.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/query/presentation/providers/service_status_keeper.dart';
@@ -82,11 +84,26 @@ void main() {
       // Disposed, not merely idle: it no longer follows the clocks.
       expect(container.exists(equipmentServiceStatusCacheProvider), isFalse);
     });
+
+    test('a list filter left on a service view does not drive it', () async {
+      // The site, trip and equipment id sets keep the writer alive while
+      // their list is shown; a filter that merely persists must not keep
+      // the clocks running after the list closes.
+      container.read(equipmentFilterProvider.notifier).state =
+          const EquipmentFilterState(serviceDue: ServiceDueFilter.overdue);
+      await container.read(serviceStatusKeeperProvider.future);
+      expect(container.read(serviceStatusDemandProvider), isFalse);
+      expect(writerBuilds, 0);
+    });
   });
 
   group('readers wait for the write', () {
     late AppDatabase db;
     late ProviderContainer container;
+    late SharedPreferences prefs;
+    final filter = DiveFilterState(
+      query: parse(QuerySubject.dives, 'gear.serviceDue = overdue'),
+    );
     final now = DateTime.now();
 
     setUp(() async {
@@ -146,7 +163,7 @@ void main() {
             DiveEquipmentCompanion.insert(diveId: 'd1', equipmentId: 'late'),
           );
       SharedPreferences.setMockInitialValues({currentDiverIdKey: 'me'});
-      final prefs = await SharedPreferences.getInstance();
+      prefs = await SharedPreferences.getInstance();
       container = ProviderContainer(
         overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       );
@@ -158,9 +175,6 @@ void main() {
 
     test('a dive id set naming gear.serviceDue sees a fresh cache', () async {
       // Nothing else keeps the writer alive: the id set itself must wait.
-      final filter = DiveFilterState(
-        query: parse(QuerySubject.dives, 'gear.serviceDue = overdue'),
-      );
       final sub = container.listen(
         queryFilteredDiveIdsProvider(filter),
         (_, _) {},
@@ -169,6 +183,56 @@ void main() {
       expect(
         await container.read(queryFilteredDiveIdsProvider(filter).future),
         {'d1'},
+      );
+    });
+
+    test(
+      'a writer run that changes nothing does not re-run a reader',
+      () async {
+        // Readers keep the writer alive but follow the cache table's tick, not
+        // every writer run: a steady verdict set costs no re-query.
+        var writerRuns = 0;
+        final c = ProviderContainer(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            equipmentServiceStatusCacheProvider.overrideWith((ref) async {
+              writerRuns++;
+            }),
+          ],
+        );
+        addTearDown(c.dispose);
+        var readerUpdates = 0;
+        final sub = c.listen(
+          queryFilteredDiveIdsProvider(filter),
+          (_, _) => readerUpdates++,
+        );
+        addTearDown(sub.close);
+        await c.read(queryFilteredDiveIdsProvider(filter).future);
+        await c.pump();
+        final before = readerUpdates;
+
+        c.invalidate(equipmentServiceStatusCacheProvider);
+        await c.read(equipmentServiceStatusCacheProvider.future);
+        await c.pump();
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        expect(writerRuns, 2);
+        expect(readerUpdates, before);
+      },
+    );
+
+    test('the paged dive list waits for the write too', () async {
+      // A notifier cannot watch; with no keeper or id set alive, its first
+      // page must still see the new verdicts.
+      container.read(diveFilterProvider.notifier).state = filter;
+      final sub = container.listen(paginatedDiveListProvider, (_, _) {});
+      addTearDown(sub.close);
+      for (var i = 0; i < 100; i++) {
+        if (container.read(paginatedDiveListProvider).hasValue) break;
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      }
+      expect(
+        container.read(paginatedDiveListProvider).value!.dives.map((d) => d.id),
+        ['d1'],
       );
     });
   });

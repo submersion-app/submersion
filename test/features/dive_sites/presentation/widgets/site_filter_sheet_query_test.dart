@@ -161,6 +161,38 @@ void main() {
     expect(find.byType(AlertDialog), findsOneWidget);
   });
 
+  testWidgets('a save message shows inside the sheet, not behind it', (
+    tester,
+  ) async {
+    // The page's ScaffoldMessenger renders under the modal sheet, where the
+    // diver never sees it; the sheet carries its own.
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final c = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        siteFilterProvider.overrideWith(
+          (ref) => SiteFilterState(query: difficult),
+        ),
+        // No diver profile: the save flow answers with a snackbar.
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
+    addTearDown(c.dispose);
+    await open(tester, c);
+
+    await tester.tap(find.text('Save query'));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byType(SiteFilterSheet),
+        matching: find.byType(SnackBar),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('a typed query is applied with the other axes', (tester) async {
     final c = await container(filter: const SiteFilterState(minRating: 3));
     await open(tester, c);

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/query/presentation/query_tree_edit.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart';
-import 'package:submersion/features/query/presentation/dive_query_chips.dart';
+import 'package:submersion/features/query/presentation/entity_query_chips.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
@@ -130,18 +129,17 @@ class SiteActiveFiltersBar extends ConsumerWidget {
               ),
             // One chip per top-level condition of the advanced query
             // (#2365), printed in the diver's units.
-            for (final (i, label) in entityQueryChipLabels(
+            for (final chip in entityQueryChips(
               siteQueryEntity,
               filter.query,
               ref.watch(queryUnitPrefsProvider),
-            ).indexed)
-              _chip(context, label, () {
-                final next = removeTopLevelConjunct(filter.query, i);
-                ref.read(siteFilterProvider.notifier).state = filter.copyWith(
-                  query: next,
-                  clearQuery: next == null,
-                );
-              }),
+            ))
+              _chip(
+                context,
+                chip.label,
+                () => ref.read(siteFilterProvider.notifier).state = filter
+                    .copyWith(query: chip.rest, clearQuery: chip.rest == null),
+              ),
           ],
         ),
       ),

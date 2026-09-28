@@ -848,6 +848,11 @@ class PaginatedDiveListNotifier
     try {
       final filter = _ref.read(diveFilterProvider);
       final sort = _ref.read(diveSortProvider);
+      // A filter naming gear.serviceDue reads the service cache: wait for it
+      // to mirror the engine, so a page never shows an empty cache or the
+      // previous diver's verdicts (#2365).
+      await awaitServiceStatusOnce(_ref, diveFilterTablesTouched(filter));
+      if (!mounted) return;
       final results = await Future.wait([
         _repository.getDiveSummaries(
           diverId: _currentDiverId,
@@ -1016,6 +1021,11 @@ class PaginatedDiveListNotifier
     try {
       final filter = _ref.read(diveFilterProvider);
       final sort = _ref.read(diveSortProvider);
+      // A filter naming gear.serviceDue reads the service cache: wait for it
+      // to mirror the engine, so a page never shows an empty cache or the
+      // previous diver's verdicts (#2365).
+      await awaitServiceStatusOnce(_ref, diveFilterTablesTouched(filter));
+      if (!mounted) return;
       final results = await Future.wait([
         _repository.getDiveSummaries(
           diverId: _currentDiverId,
