@@ -435,7 +435,7 @@ file that throws while declaring fails in a test named `declares its tests`,
 and one that leaves a global changed fails in `declares its tests without
 changing global state`. The other files in the bundle still run.
 
-A shared isolate exposes two more things:
+A shared isolate exposes three more things:
 
 - Code in the body of `main()` or `group()` runs while the file is declared,
   before any test. By then an earlier file has set up the test binding. Build
@@ -443,6 +443,14 @@ A shared isolate exposes two more things:
   test, or make it `late final`.
 - A warm isolate is faster than a cold one. An assertion that two timestamps
   differ needs the difference built in, not left to the clock.
+- The theme presets are built once per isolate, by the first test that reads
+  them, and building them starts google_fonts loads. A `testWidgets` body that
+  is first strands those loads on its fake clock, and they never complete, so
+  never wait on `GoogleFonts.pendingFonts()` directly: use `settleGoogleFonts()`
+  from `test/helpers/google_fonts_settle.dart`, which bounds the wait. A file
+  that pumps a widget reading the registry calls `setUpAll(warmUpThemePresets)`
+  from `test/helpers/theme_presets_warm_up.dart`, so the presets are built
+  outside the fake clock and nothing is stranded.
 
 ### Reproducing a CI failure locally
 

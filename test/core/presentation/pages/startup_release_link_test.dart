@@ -16,6 +16,8 @@ import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/pre_migration_backup_service.dart';
 
+import '../../../helpers/theme_presets_warm_up.dart';
+
 /// Which address each terminal startup screen actually hands to the browser.
 ///
 /// The whole point of #1588 was that the schema-mismatch screen opened the
@@ -92,6 +94,11 @@ class _FakeLocationService extends DatabaseLocationService {
 }
 
 void main() {
+  // Builds the theme presets before any widget test does. A widget test that
+  // is the first to build them strands their google_fonts loads, and a later
+  // file in the same CI isolate that waits on the loads then hangs.
+  setUpAll(warmUpThemePresets);
+
   late SharedPreferences prefs;
   late LogFileService logFileService;
   late DatabaseLocationService locationService;
