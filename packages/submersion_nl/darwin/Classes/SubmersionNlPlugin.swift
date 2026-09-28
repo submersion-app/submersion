@@ -91,17 +91,35 @@ public class SubmersionNlPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
     #endif
   }
 
+  #if canImport(FoundationModels)
+  /// Hands out the prewarmed session, or a new one, and forgets it so no
+  /// later sentence can reuse its transcript.
+  @available(iOS 26.0, macOS 26.0, *)
+  private func takeSession() -> LanguageModelSession {
+    let session = sessionBox as? LanguageModelSession
+      ?? LanguageModelSession(instructions: instructions)
+    sessionBox = nil
+    return session
+  }
+  #endif
+
   private func compile(sentence: String, result: @escaping FlutterResult) {
     #if canImport(FoundationModels)
     if #available(iOS 26.0, macOS 26.0, *) {
-      Task {
+      // A fresh session per sentence. A session is a conversation: every
+      // respond(to:) appends the prompt and the answer to its transcript, so
+      // a shared one lets earlier sentences steer later parses and fills the
+      // 4K context window after a few queries. It also cannot answer two
+      // sentences at once. The prewarmed session is consumed here and the
+      // next one is prewarmed once this answer is back.
+      let session = takeSession()
+      let vocab = vocabulary
+      // The main actor: FlutterResult must be called on the platform thread,
+      // and sessionBox is only ever touched there.
+      Task { @MainActor in
+        defer { self.prepare() }
         do {
-          if sessionBox == nil { prepare() }
-          guard let session = sessionBox as? LanguageModelSession else {
-            result(FlutterError(code: "model_not_ready", message: nil, details: nil))
-            return
-          }
-          let schema = try GenerationSchema(root: Self.querySchema(vocabulary), dependencies: [])
+          let schema = try GenerationSchema(root: Self.querySchema(vocab), dependencies: [])
           let response = try await session.respond(to: sentence, schema: schema)
           result(response.content.jsonString)
         } catch {
