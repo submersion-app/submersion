@@ -115,4 +115,17 @@ void main() {
     expect(find.byType(NfcWriteSheet), findsNothing);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('the iOS sheet closes as the write ended', (tester) async {
+    final locked = FakeNfcTagService(tag: FakeTagHandle(isWritable: false));
+    final l10n = await open(tester, locked);
+    expect(locked.lastIosEnd?.error, l10n.passport_nfc_readOnly);
+    await tester.tap(find.text(l10n.common_action_close));
+    await tester.pumpAndSettle();
+
+    final good = FakeNfcTagService(tag: FakeTagHandle());
+    await open(tester, good);
+    expect(good.lastIosEnd?.alert, l10n.passport_nfc_written);
+    expect(good.lastIosEnd?.error, isNull);
+  });
 }

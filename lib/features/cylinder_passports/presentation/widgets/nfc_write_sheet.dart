@@ -80,6 +80,10 @@ class _NfcWriteSheetState extends ConsumerState<NfcWriteSheet> {
       result = await _service.withTag(
         promptIos: l10n.passport_nfc_holdNear,
         onTag: (tag) => writePassportTo(tag, widget.payload),
+        iosEnd: (result) => result is TagWritten
+            ? IosSheetEnd.success(l10n.passport_nfc_written)
+            : IosSheetEnd.failure(_failure(l10n, result)),
+        iosFailure: l10n.passport_nfc_writeFailed,
       );
     } on NfcSessionCancelled {
       _waiting = false;

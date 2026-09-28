@@ -206,4 +206,21 @@ void main() {
     expect(find.byKey(const Key('passportScan_nfc')), findsNothing);
     debugDefaultTargetPlatformOverride = null;
   });
+
+  testWidgets('the iOS sheet closes as a failure for a tag with no passport', (
+    tester,
+  ) async {
+    final nfc = FakeNfcTagService(
+      tag: FakeTagHandle(
+        stored: NdefMessage(records: [uriRecord('https://example.com/')]),
+      ),
+    );
+    await openSheet(tester, camera: null, nfc: nfc);
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportScanSheet)),
+    );
+    await tester.tap(find.byKey(const Key('passportScan_nfc')));
+    await tester.pumpAndSettle();
+    expect(nfc.lastIosEnd?.error, l10n.passport_tag_linkInvalid);
+  });
 }

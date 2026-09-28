@@ -94,6 +94,14 @@ class _PassportScanSheetState extends ConsumerState<PassportScanSheet> {
       final result = await _nfc.withTag(
         promptIos: l10n.passport_nfc_holdNear,
         onTag: readPassportFrom,
+        iosEnd: (result) => switch (result) {
+          TagReadText() => const IosSheetEnd.success(),
+          TagHasNoPassport() => IosSheetEnd.failure(
+            l10n.passport_tag_linkInvalid,
+          ),
+          TagReadFailed() => IosSheetEnd.failure(l10n.passport_nfc_readFailed),
+        },
+        iosFailure: l10n.passport_nfc_readFailed,
       );
       if (!mounted) return;
       switch (result) {

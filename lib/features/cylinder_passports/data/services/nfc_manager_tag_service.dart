@@ -9,15 +9,32 @@ import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_ser
 
 final _log = LoggerService.forClass(NfcManagerTagService);
 
-/// [NfcTagService] over `nfc_manager` on iOS and Android. Runs on a device
-/// only; the device checklist covers it.
+/// [NfcTagService] over `nfc_manager` on iOS and Android. The device
+/// checklist covers the real hardware; the session handling is tested with
+/// an injected [NfcManager].
 class NfcManagerTagService implements NfcTagService {
+  NfcManagerTagService({
+    NfcManager? manager,
+    NdefTagHandle? Function(NfcTag tag)? handleFor,
+  }) : _managerOverride = manager,
+       _handleFor = handleFor ?? _ndefHandleFor;
+
+  final NfcManager? _managerOverride;
+  final NdefTagHandle? Function(NfcTag tag) _handleFor;
   void Function()? _cancelPending;
+
+  /// Read lazily: [NfcManager.instance] throws on platforms without NFC.
+  NfcManager get _manager => _managerOverride ?? NfcManager.instance;
+
+  static NdefTagHandle? _ndefHandleFor(NfcTag tag) {
+    final ndef = Ndef.from(tag);
+    return ndef == null ? null : _NdefHandle(ndef);
+  }
 
   @override
   Future<NfcSupport> support() async {
     try {
-      return switch (await NfcManager.instance.checkAvailability()) {
+      return switch (await _manager.checkAvailability()) {
         NfcAvailability.enabled => NfcSupport.enabled,
         NfcAvailability.disabled => NfcSupport.disabled,
         NfcAvailability.unsupported => NfcSupport.unsupported,
@@ -36,8 +53,15 @@ class NfcManagerTagService implements NfcTagService {
   Future<T> withTag<T>({
     required String promptIos,
     required Future<T> Function(NdefTagHandle? tag) onTag,
+    IosSheetEnd Function(T result)? iosEnd,
+    String? iosFailure,
   }) async {
     final result = Completer<T>();
+    // How the iOS sheet closes; none after a cancel, which already closed it.
+    IosSheetEnd? end;
+    // Only the first tag is handled: a tag that stays in the field can be
+    // reported again before its write finishes.
+    var handling = false;
     void cancelled() {
       if (!result.isCompleted) {
         result.completeError(const NfcSessionCancelled());
@@ -46,19 +70,23 @@ class NfcManagerTagService implements NfcTagService {
 
     _cancelPending = cancelled;
     try {
-      await NfcManager.instance.startSession(
+      await _manager.startSession(
         // NTAG21x and most cylinder tags are ISO 14443 type A.
         pollingOptions: const {NfcPollingOption.iso14443},
         alertMessageIos: promptIos,
-        // The write reads back in the same session, so keep it open.
-        invalidateAfterFirstReadIos: false,
+        // Left at its default (true): false makes nfc_manager restart
+        // polling right after reporting a tag, which invalidates that tag
+        // before Dart can write to it. The session itself stays open until
+        // stopSession below.
         onDiscovered: (tag) async {
-          if (result.isCompleted) return;
+          if (handling || result.isCompleted) return;
+          handling = true;
           try {
-            final ndef = Ndef.from(tag);
-            final value = await onTag(ndef == null ? null : _NdefHandle(ndef));
+            final value = await onTag(_handleFor(tag));
+            end = iosEnd?.call(value);
             if (!result.isCompleted) result.complete(value);
           } catch (e, stackTrace) {
+            if (iosFailure != null) end = IosSheetEnd.failure(iosFailure);
             if (!result.isCompleted) result.completeError(e, stackTrace);
           }
         },
@@ -68,7 +96,10 @@ class NfcManagerTagService implements NfcTagService {
     } finally {
       _cancelPending = null;
       try {
-        await NfcManager.instance.stopSession();
+        await _manager.stopSession(
+          alertMessageIos: end?.alert,
+          errorMessageIos: end?.error,
+        );
       } catch (e, stackTrace) {
         // Already ended by the system sheet or an error: nothing to stop.
         _log.info(

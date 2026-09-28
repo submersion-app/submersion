@@ -58,6 +58,9 @@ class FakeNfcTagService implements NfcTagService {
   int sessions = 0;
   int cancels = 0;
 
+  /// How the last session would have closed the iOS system sheet.
+  IosSheetEnd? lastIosEnd;
+
   @override
   Future<NfcSupport> support() async => supportValue;
 
@@ -65,10 +68,14 @@ class FakeNfcTagService implements NfcTagService {
   Future<T> withTag<T>({
     required String promptIos,
     required Future<T> Function(NdefTagHandle? tag) onTag,
+    IosSheetEnd Function(T result)? iosEnd,
+    String? iosFailure,
   }) async {
     sessions++;
     if (cancelled) throw const NfcSessionCancelled();
-    return onTag(tag);
+    final result = await onTag(tag);
+    lastIosEnd = iosEnd?.call(result);
+    return result;
   }
 
   @override
