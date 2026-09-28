@@ -555,7 +555,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String diveLog_edit_geofenceSuggestion_body(String setName) {
-    return 'להחיל את ערכת \"$setName\"?';
+    return 'להחיל את הסט \"$setName\"?';
   }
 
   @override
@@ -565,7 +565,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_action_dismiss => 'התעלם';
 
   @override
-  String get equipment_setEdit_defaultSwitch_title => 'ערכת ברירת מחדל';
+  String get equipment_setEdit_defaultSwitch_title => 'סט ברירת מחדל';
 
   @override
   String get equipment_setEdit_defaultSwitch_subtitle =>
@@ -657,7 +657,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_geofencesSubtitle =>
-      'הצע ערכה זו אוטומטית לצלילות ליד מיקומים אלה';
+      'הצע סט זה אוטומטית לצלילות ליד מיקומים אלה';
 
   @override
   String get equipment_setEdit_addGeofence => 'הוסף גדר גאוגרפית';
@@ -705,7 +705,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String equipment_setDetail_setAsDefaultSnackbar(String name) {
-    return '\"$name\" היא כעת ערכת ברירת המחדל שלך';
+    return '\"$name\" הוא כעת סט ברירת המחדל שלך';
   }
 
   @override
@@ -13998,7 +13998,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_fab_addEquipment => 'הוסף ציוד';
 
   @override
-  String get equipment_fab_addSet => 'הוסף ערכה';
+  String get equipment_fab_addSet => 'הוסף סט';
 
   @override
   String equipment_figure_backCount(int count) {
@@ -14784,7 +14784,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_tab_equipment => 'ציוד';
 
   @override
-  String get equipment_tab_sets => 'ערכות';
+  String get equipment_tab_sets => 'סטים';
 
   @override
   String get formatter_approximate_prefix => '~';
@@ -20172,7 +20172,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_import_phase_equipment => 'מייבא ציוד...';
 
   @override
-  String get settings_import_phase_equipmentSets => 'מייבא ערכות ציוד...';
+  String get settings_import_phase_equipmentSets => 'מייבא סטי ציוד...';
 
   @override
   String get settings_import_phase_preparing => 'מכין...';
@@ -26683,7 +26683,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveImport_uddf_equipment => 'ציוד';
 
   @override
-  String get diveImport_uddf_equipmentSets => 'ערכות ציוד';
+  String get diveImport_uddf_equipmentSets => 'סטי ציוד';
 
   @override
   String diveImport_uddf_importProgress(Object current, Object total) {
@@ -26742,7 +26742,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveImport_uddf_tabEquipment => 'ציוד';
 
   @override
-  String get diveImport_uddf_tabSets => 'ערכות';
+  String get diveImport_uddf_tabSets => 'סטים';
 
   @override
   String get diveImport_uddf_tabSites => 'אתרים';
@@ -28953,7 +28953,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get planner_gearWeights_title => 'ציוד ומשקולות';
 
   @override
-  String get planner_gearWeights_useSet => 'השתמש בערכה';
+  String get planner_gearWeights_useSet => 'השתמש בסט';
 
   @override
   String get tools_weight_addGear => 'הוסף ציוד';
@@ -29029,7 +29029,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tools_weight_tanks => 'מכלים';
 
   @override
-  String get tools_weight_useSet => 'השתמש בערכה';
+  String get tools_weight_useSet => 'השתמש בסט';
 
   @override
   String get tools_weight_waterTerm => 'סוג מים';
