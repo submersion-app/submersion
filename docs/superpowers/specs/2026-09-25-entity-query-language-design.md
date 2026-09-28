@@ -864,6 +864,60 @@ Decided in the whole-branch review of PR 1:
 - **Schema rung 242.** Main was at 240 with 237 shipped; 241 was held by
   #2493 when the rung was taken.
 
+## Deviations recorded during implementation (PR 4)
+
+- **One set of list pieces serves every list without a filter sheet.**
+  `entityQueryIdsProvider` runs any root entity's query as an id set,
+  `narrowByQuery` narrows a list by it (a pass-through with no query, so a
+  list with no filter never touches the id set), and three widgets finish
+  the surface: `QueryFilterButton` (a badge while a query is active),
+  `showQueryFilterSheet` (the Saved row and the editor, Clear, Cancel,
+  Apply; it applies through its own ref), `QueryChipsFrame` (Clear plus one
+  removable chip per condition above the list body) and `QueryNoMatchState`
+  ("Nothing matches this query" with Clear, in place of the list's
+  "nothing here yet" state).
+- **Each list reads one filtered provider in every view.** The buddy,
+  certification, dive center and course lists (and both species pages)
+  narrow the rows they already load, so the list, the compact pane and the
+  table all honour the query; loading, sorting and grouping are unchanged.
+- **Species: both pages.** The nav Species page (the diver's sighted
+  species) and the Manage catalog each hold their own query
+  (`seenSpeciesQueryProvider`, `speciesCatalogQueryProvider`) over
+  `QuerySubject.species`, so a saved species query serves either page; each
+  page's own search, category chips and sort still apply on top.
+- **Course status chips moved into SQL.** `CourseFilterState(status,
+  query)` lowers In progress to `completionDate:none` and Completed to
+  `completionDate:any`, ANDed with the query, so the chips now also apply in
+  table mode, which ignored them before. A census test pins the lowering.
+- **Registries completed.** Certification `agency` and `level`, course
+  `agency` and species `category` are enum fields (localized in the
+  builder); every list's registry searches its search route's columns; new
+  relations: buddy `dives`; certification `buddy`, `instructor`, `course`;
+  course `instructor`, `certification` (either stored link direction),
+  `dives`; center `dives`; species `sightings`, `sites`, `dives`. Centers
+  also gain `stateProvince`, `affiliations` (contains), `rating`, `notes`
+  and `coordinates`; species `taxonomyClass`, `description`, `builtIn`.
+- **Search routes stay.** The buddy, certification and center search
+  screens are unchanged; their columns became each registry's
+  `textSearchSql`, so a bare word in a query matches what the search
+  screen matches. Their delegates moved to their own files, so the three
+  content files end smaller than before the filter wiring.
+- **Enum text compares the stored name.** A stored certification level (or
+  course agency, or species category) outside its enum is found by `:any`
+  and by no `= X`, including `= other`.
+- **Species text search is English for built-ins.** SQL sees the stored
+  English `common_name`; the pages' own search fields keep matching the
+  translated name.
+- **Relations are not diver-scoped.** As with `sites.dives`, a hop reaches
+  every diver's rows: `sightings.count >= 3` on the nav Species page counts
+  every diver's sightings of that species.
+- **The dive center map stays unfiltered**, like the site map.
+- **Schema rung 245** indexes `certifications(buddy_id)`
+  (`idx_certifications_buddy_id`), so every hop in the three-hop dive query
+  plan is a SEARCH. The helper also checks the column exists, since a
+  stranded pre-v199 fixture builds the table without `buddy_id`. 243 and
+  244 were held by #2409 and #2538 when the rung was taken.
+
 ## Open items for the implementation plans
 
 - PR 1 must re-grep `currentSchemaVersion` only if it adds a table; it does
