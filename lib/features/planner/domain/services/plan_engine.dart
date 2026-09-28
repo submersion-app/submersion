@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/ascent/ccr_loop_ascent_gas.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
@@ -280,6 +281,10 @@ class PlanEngine {
             diluentFHe: segments.isEmpty
                 ? 0.0
                 : segments.last.gasMix.he / 100.0,
+          )
+        : plan.mode == domain.PlanMode.scr
+        ? scrAscentPlanFor(
+            segments.isEmpty ? const GasMix() : segments.last.gasMix,
           )
         : ascentPlanFor(plan.tanks);
 
@@ -1165,6 +1170,17 @@ class PlanEngine {
     airBreaks: plan.airBreaks,
     minStopSecondsByDepth: plan.stopMinimums,
   );
+
+  /// SCR stays on its steady-state loop mix through the computed ascent.
+  AscentGasPlan scrAscentPlanFor(GasMix supply) {
+    final gas = Scr(
+      supplyFO2: supply.o2 / 100,
+      supplyFHe: supply.he / 100,
+      injectionRateLpm: config.scrInjectionRateLpm,
+      vo2: config.scrVo2Lpm,
+    ).inspiredAt(1 + waterVaporPressure);
+    return FixedAscentGas(fN2: gas.pN2, fHe: gas.pHe);
+  }
 
   /// The open-circuit ascent gas plan for [tanks]: the richest eligible mix
   /// at each depth under the deco ppO2. Public so the Dive Lab synthesises

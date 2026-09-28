@@ -4,6 +4,7 @@ import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_mode.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_outcome.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/scenario_outcome_provider.dart';
@@ -33,8 +34,8 @@ final labTwinRunnerProvider = Provider<TwinRunner>(
 );
 
 /// The counterfactual twin input: the actual rig over the counterfactual
-/// profile, each tank's start and end pressure taken from the consumption
-/// pass when known (no measured series: the twin interpolates). Cylinders
+/// profile. Recorded pressure history is retained through the branch; the
+/// simulated tail interpolates from that pressure to its computed end. Cylinders
 /// that exist only in the counterfactual (hypothetical) are not modelled.
 TwinInput buildCounterfactualTwinInput({
   required TwinInput actual,
@@ -51,6 +52,35 @@ TwinInput buildCounterfactualTwinInput({
     for (final t in actual.tanks)
       () {
         final c = outcome.consumption.counterfactualFor(t.id);
+        final unchanged =
+            outcome.mode == ScenarioMode.replay &&
+            c != null &&
+            outcome.consumption.actualFor(t.id) == c;
+        final branch = outcome.branch.runtimeSeconds;
+        final first = actual.profile.first.timestamp;
+        final last = actual.profile.last.timestamp;
+        final branchPressure = twinTankPressureAt(t, branch, first, last);
+        final series = unchanged
+            ? t.pressureSeries
+            : <TwinPressureSample>[
+                TwinPressureSample(
+                  timestamp: first,
+                  pressureBar: twinTankPressureAt(t, first, first, last),
+                ),
+                for (final p
+                    in t.pressureSeries ?? const <TwinPressureSample>[])
+                  if (p.timestamp > first && p.timestamp < branch) p,
+                if (branch > first)
+                  TwinPressureSample(
+                    timestamp: branch,
+                    pressureBar: branchPressure,
+                  ),
+                if (profile.last.timestamp > branch)
+                  TwinPressureSample(
+                    timestamp: profile.last.timestamp,
+                    pressureBar: c?.endPressureBar ?? branchPressure,
+                  ),
+              ];
         return TwinTankInput(
           id: t.id,
           label: t.label,
@@ -60,8 +90,12 @@ TwinInput buildCounterfactualTwinInput({
           material: t.material,
           o2Percent: t.o2Percent,
           hePercent: t.hePercent,
-          startPressureBar: c?.startPressureBar ?? t.startPressureBar,
-          endPressureBar: c?.endPressureBar ?? t.endPressureBar,
+          startPressureBar: t.startPressureBar,
+          endPressureBar: unchanged
+              ? t.endPressureBar
+              : (c?.endPressureBar ?? t.endPressureBar),
+          pressureSeries: series,
+          pressureSeriesIsEstimated: !unchanged || t.pressureSeriesIsEstimated,
         );
       }(),
   ];
