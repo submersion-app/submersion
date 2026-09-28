@@ -220,6 +220,7 @@ class DiverSettingsRepository {
               tripServiceLeadDays: Value(s.tripServiceLeadDays),
               reminderTime: Value(_formatReminderTime(s.reminderTime)),
               showDataSourceBadges: Value(s.showDataSourceBadges),
+              showDiveFigure: Value(s.showDiveFigure),
               showProfilePanelInTableView: Value(s.showProfilePanelInTableView),
               showDetailsPaneDives: Value(s.showDetailsPaneDives),
               showDetailsPaneSites: Value(s.showDetailsPaneSites),
@@ -420,6 +421,7 @@ class DiverSettingsRepository {
           tripServiceLeadDays: Value(settings.tripServiceLeadDays),
           reminderTime: Value(_formatReminderTime(settings.reminderTime)),
           showDataSourceBadges: Value(settings.showDataSourceBadges),
+          showDiveFigure: Value(settings.showDiveFigure),
           showProfilePanelInTableView: Value(
             settings.showProfilePanelInTableView,
           ),
@@ -650,6 +652,7 @@ class DiverSettingsRepository {
       tripServiceLeadDays: row.tripServiceLeadDays,
       reminderTime: _parseReminderTime(row.reminderTime),
       showDataSourceBadges: row.showDataSourceBadges,
+      showDiveFigure: row.showDiveFigure,
       showProfilePanelInTableView: row.showProfilePanelInTableView,
       showDetailsPaneDives: row.showDetailsPaneDives,
       showDetailsPaneSites: row.showDetailsPaneSites,

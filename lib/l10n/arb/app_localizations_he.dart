@@ -581,10 +581,76 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'הצגת הציוד של הערכה על צולל בדף שלה';
+      'הצגת הציוד של הערכה על צוללן';
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'הצגת דמות הצולל';
+
+  @override
+  String get equipment_color_red => 'אדום';
+
+  @override
+  String get equipment_color_orange => 'כתום';
+
+  @override
+  String get equipment_color_amber => 'ענבר';
+
+  @override
+  String get equipment_color_yellow => 'צהוב';
+
+  @override
+  String get equipment_color_lime => 'ליים';
+
+  @override
+  String get equipment_color_green => 'ירוק';
+
+  @override
+  String get equipment_color_emerald => 'אזמרגד';
+
+  @override
+  String get equipment_color_teal => 'כחול-ירקרק';
+
+  @override
+  String get equipment_color_cyan => 'ציאן';
+
+  @override
+  String get equipment_color_sky => 'תכלת';
+
+  @override
+  String get equipment_color_blue => 'כחול';
+
+  @override
+  String get equipment_color_indigo => 'אינדיגו';
+
+  @override
+  String get equipment_color_violet => 'סגול';
+
+  @override
+  String get equipment_color_purple => 'ארגמן';
+
+  @override
+  String get equipment_color_fuchsia => 'פוקסיה';
+
+  @override
+  String get equipment_color_pink => 'ורוד';
+
+  @override
+  String get equipment_color_rose => 'ורד';
+
+  @override
+  String get equipment_color_stone => 'אבן';
+
+  @override
+  String get equipment_color_zinc => 'אבץ';
+
+  @override
+  String get equipment_color_slate => 'צפחה';
+
+  @override
+  String get equipment_color_none => 'ללא';
+
+  @override
+  String get equipment_color_sheetTitle => 'בחירת צבע';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'גדרות גאוגרפיות';
@@ -29735,6 +29801,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_product_url => 'קישור אינטרנט';
 
   @override
+  String get attrLabel_color => 'צבע';
+
+  @override
   String get attrLabel_sleeve_length => 'שרוולים';
 
   @override
@@ -39045,6 +39114,16 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_appearance_showDataSourceBadges_subtitle =>
       'הצגת ייחוס המקור על מדדי הצלילה';
+
+  @override
+  String get settings_appearance_showDiveFigure => 'הצגת דמות הצוללן בצלילות';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'הצגת הציוד של כל צלילה על צוללן בכרטיס הציוד';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'הציוד בצלילה זו';
 
   @override
   String get settings_appearance_title_buddies => 'מראה חברי הצוללים';

@@ -588,11 +588,77 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'Muestra el equipo de este conjunto sobre un buceador en su página';
+      'Mostrar el equipo de este conjunto sobre un buceador';
 
   @override
   String get equipment_setEdit_figureSwitch_title =>
       'Mostrar figura del buceador';
+
+  @override
+  String get equipment_color_red => 'Rojo';
+
+  @override
+  String get equipment_color_orange => 'Naranja';
+
+  @override
+  String get equipment_color_amber => 'Ámbar';
+
+  @override
+  String get equipment_color_yellow => 'Amarillo';
+
+  @override
+  String get equipment_color_lime => 'Lima';
+
+  @override
+  String get equipment_color_green => 'Verde';
+
+  @override
+  String get equipment_color_emerald => 'Esmeralda';
+
+  @override
+  String get equipment_color_teal => 'Verde azulado';
+
+  @override
+  String get equipment_color_cyan => 'Cian';
+
+  @override
+  String get equipment_color_sky => 'Celeste';
+
+  @override
+  String get equipment_color_blue => 'Azul';
+
+  @override
+  String get equipment_color_indigo => 'Índigo';
+
+  @override
+  String get equipment_color_violet => 'Violeta';
+
+  @override
+  String get equipment_color_purple => 'Morado';
+
+  @override
+  String get equipment_color_fuchsia => 'Fucsia';
+
+  @override
+  String get equipment_color_pink => 'Rosa';
+
+  @override
+  String get equipment_color_rose => 'Rosa intenso';
+
+  @override
+  String get equipment_color_stone => 'Piedra';
+
+  @override
+  String get equipment_color_zinc => 'Zinc';
+
+  @override
+  String get equipment_color_slate => 'Pizarra';
+
+  @override
+  String get equipment_color_none => 'Ninguno';
+
+  @override
+  String get equipment_color_sheetTitle => 'Elige un color';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'Geocercas';
@@ -30479,6 +30545,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrLabel_product_url => 'Enlace web';
 
   @override
+  String get attrLabel_color => 'Color';
+
+  @override
   String get attrLabel_sleeve_length => 'Mangas';
 
   @override
@@ -39875,6 +39944,17 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_appearance_showDataSourceBadges_subtitle =>
       'Mostrar la atribución de origen en las métricas de inmersión';
+
+  @override
+  String get settings_appearance_showDiveFigure =>
+      'Mostrar la figura del buceador en las inmersiones';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'Mostrar el equipo de cada inmersión sobre un buceador en su tarjeta de equipo';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'Equipo de esta inmersión';
 
   @override
   String get settings_appearance_title_buddies => 'Apariencia de compañeros';

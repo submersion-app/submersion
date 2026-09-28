@@ -583,10 +583,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'Draw this set\'s gear on a diver on the set page';
+      'Draw this set\'s gear on a diver';
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'Show diver figure';
+
+  @override
+  String get equipment_color_red => 'Red';
+
+  @override
+  String get equipment_color_orange => 'Orange';
+
+  @override
+  String get equipment_color_amber => 'Amber';
+
+  @override
+  String get equipment_color_yellow => 'Yellow';
+
+  @override
+  String get equipment_color_lime => 'Lime';
+
+  @override
+  String get equipment_color_green => 'Green';
+
+  @override
+  String get equipment_color_emerald => 'Emerald';
+
+  @override
+  String get equipment_color_teal => 'Teal';
+
+  @override
+  String get equipment_color_cyan => 'Cyan';
+
+  @override
+  String get equipment_color_sky => 'Sky';
+
+  @override
+  String get equipment_color_blue => 'Blue';
+
+  @override
+  String get equipment_color_indigo => 'Indigo';
+
+  @override
+  String get equipment_color_violet => 'Violet';
+
+  @override
+  String get equipment_color_purple => 'Purple';
+
+  @override
+  String get equipment_color_fuchsia => 'Fuchsia';
+
+  @override
+  String get equipment_color_pink => 'Pink';
+
+  @override
+  String get equipment_color_rose => 'Rose';
+
+  @override
+  String get equipment_color_stone => 'Stone';
+
+  @override
+  String get equipment_color_zinc => 'Zinc';
+
+  @override
+  String get equipment_color_slate => 'Slate';
+
+  @override
+  String get equipment_color_none => 'None';
+
+  @override
+  String get equipment_color_sheetTitle => 'Choose a color';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
@@ -29978,6 +30044,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_product_url => 'Web link';
 
   @override
+  String get attrLabel_color => 'Color';
+
+  @override
   String get attrLabel_sleeve_length => 'Sleeves';
 
   @override
@@ -39300,6 +39369,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_appearance_showDataSourceBadges_subtitle =>
       'Display source attribution on dive metrics';
+
+  @override
+  String get settings_appearance_showDiveFigure => 'Show diver figure on dives';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'Draw each dive\'s gear on a diver in its equipment card';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'Gear on this dive';
 
   @override
   String get settings_appearance_title_buddies => 'Buddies Appearance';

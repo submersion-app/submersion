@@ -568,10 +568,76 @@ class AppLocalizationsZh extends AppLocalizations {
       '如果该套装包含潜水电脑，则从该电脑下载或导入的潜水记录会自动添加整个套装';
 
   @override
-  String get equipment_setEdit_figureSwitch_subtitle => '在套装页面上把此套装的装备画在潜水员身上';
+  String get equipment_setEdit_figureSwitch_subtitle => '在潜水员图上显示此套装的装备';
 
   @override
   String get equipment_setEdit_figureSwitch_title => '显示潜水员图示';
+
+  @override
+  String get equipment_color_red => '红色';
+
+  @override
+  String get equipment_color_orange => '橙色';
+
+  @override
+  String get equipment_color_amber => '琥珀色';
+
+  @override
+  String get equipment_color_yellow => '黄色';
+
+  @override
+  String get equipment_color_lime => '青柠色';
+
+  @override
+  String get equipment_color_green => '绿色';
+
+  @override
+  String get equipment_color_emerald => '翡翠绿';
+
+  @override
+  String get equipment_color_teal => '蓝绿色';
+
+  @override
+  String get equipment_color_cyan => '青色';
+
+  @override
+  String get equipment_color_sky => '天蓝色';
+
+  @override
+  String get equipment_color_blue => '蓝色';
+
+  @override
+  String get equipment_color_indigo => '靛蓝色';
+
+  @override
+  String get equipment_color_violet => '紫罗兰色';
+
+  @override
+  String get equipment_color_purple => '紫色';
+
+  @override
+  String get equipment_color_fuchsia => '品红色';
+
+  @override
+  String get equipment_color_pink => '粉色';
+
+  @override
+  String get equipment_color_rose => '玫瑰红';
+
+  @override
+  String get equipment_color_stone => '岩石灰';
+
+  @override
+  String get equipment_color_zinc => '锌灰色';
+
+  @override
+  String get equipment_color_slate => '石板灰';
+
+  @override
+  String get equipment_color_none => '无';
+
+  @override
+  String get equipment_color_sheetTitle => '选择颜色';
 
   @override
   String get equipment_setEdit_geofencesTitle => '地理围栏';
@@ -28885,6 +28951,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_product_url => '网页链接';
 
   @override
+  String get attrLabel_color => '颜色';
+
+  @override
   String get attrLabel_sleeve_length => '袖长';
 
   @override
@@ -37636,6 +37705,16 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_appearance_showDataSourceBadges_subtitle =>
       '在潜水指标上显示来源归属';
+
+  @override
+  String get settings_appearance_showDiveFigure => '在潜水记录中显示潜水员图';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      '在装备卡片中将每次潜水的装备显示在潜水员图上';
+
+  @override
+  String get diveLog_detail_gearFigureName => '本次潜水的装备';
 
   @override
   String get settings_appearance_title_buddies => '潜伴外观';

@@ -936,6 +936,13 @@ class AppDatabase extends _$AppDatabase {
     // Renumbered from 232 and 234: trip cylinders (#2331) shipped 232, the
     // MacDive source diver key (#1921) 233 and equipment sharing (#2046) 234.
     235,
+    // v237: diver_settings.show_dive_figure, the diver-wide switch for the
+    // figure in the dive detail equipment card (issue #2326). Additive,
+    // default off, no backfill, so the floor it needs stays at 224. Taken
+    // above 235 and 236, which open branches claimed when this was cut,
+    // and kept below v239, which main shipped first: a database already
+    // past it skips this step, and the beforeOpen backstop adds the column.
+    237,
     // v238: saved_queries, a diver's named query trees (issue #2365, spec
     // Unit 7). Table-only rung, additive, floor stays at 224. Renumbered
     // from 234 when equipment sharing (#2411) shipped it. Kept below

@@ -583,10 +583,76 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'عرض معدات هذه المجموعة على غواص في صفحتها';
+      'عرض معدات هذه المجموعة على غوّاص';
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'إظهار رسم الغواص';
+
+  @override
+  String get equipment_color_red => 'أحمر';
+
+  @override
+  String get equipment_color_orange => 'برتقالي';
+
+  @override
+  String get equipment_color_amber => 'كهرماني';
+
+  @override
+  String get equipment_color_yellow => 'أصفر';
+
+  @override
+  String get equipment_color_lime => 'ليموني';
+
+  @override
+  String get equipment_color_green => 'أخضر';
+
+  @override
+  String get equipment_color_emerald => 'زمردي';
+
+  @override
+  String get equipment_color_teal => 'أزرق مخضر';
+
+  @override
+  String get equipment_color_cyan => 'سماوي';
+
+  @override
+  String get equipment_color_sky => 'أزرق فاتح';
+
+  @override
+  String get equipment_color_blue => 'أزرق';
+
+  @override
+  String get equipment_color_indigo => 'نيلي';
+
+  @override
+  String get equipment_color_violet => 'بنفسجي';
+
+  @override
+  String get equipment_color_purple => 'أرجواني';
+
+  @override
+  String get equipment_color_fuchsia => 'فوشيا';
+
+  @override
+  String get equipment_color_pink => 'وردي';
+
+  @override
+  String get equipment_color_rose => 'وردي داكن';
+
+  @override
+  String get equipment_color_stone => 'حجري';
+
+  @override
+  String get equipment_color_zinc => 'زنكي';
+
+  @override
+  String get equipment_color_slate => 'رمادي أردوازي';
+
+  @override
+  String get equipment_color_none => 'بلا';
+
+  @override
+  String get equipment_color_sheetTitle => 'اختر لونًا';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'الأسوار الجغرافية';
@@ -30079,6 +30145,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_product_url => 'رابط الويب';
 
   @override
+  String get attrLabel_color => 'اللون';
+
+  @override
   String get attrLabel_sleeve_length => 'الأكمام';
 
   @override
@@ -39473,6 +39542,17 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_appearance_showDataSourceBadges_subtitle =>
       'عرض نسبة المصدر على مقاييس الغوص';
+
+  @override
+  String get settings_appearance_showDiveFigure =>
+      'إظهار شكل الغوّاص في الغطسات';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'عرض معدات كل غطسة على غوّاص في بطاقة المعدات';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'معدات هذه الغطسة';
 
   @override
   String get settings_appearance_title_buddies => 'مظهر الرفاق';

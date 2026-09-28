@@ -588,10 +588,76 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'Die Ausrüstung dieses Sets auf der Set-Seite an einer Taucherfigur zeigen';
+      'Die Ausrüstung dieses Sets an einem Taucher zeigen';
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'Taucherfigur anzeigen';
+
+  @override
+  String get equipment_color_red => 'Rot';
+
+  @override
+  String get equipment_color_orange => 'Orange';
+
+  @override
+  String get equipment_color_amber => 'Bernstein';
+
+  @override
+  String get equipment_color_yellow => 'Gelb';
+
+  @override
+  String get equipment_color_lime => 'Limette';
+
+  @override
+  String get equipment_color_green => 'Grün';
+
+  @override
+  String get equipment_color_emerald => 'Smaragd';
+
+  @override
+  String get equipment_color_teal => 'Petrol';
+
+  @override
+  String get equipment_color_cyan => 'Cyan';
+
+  @override
+  String get equipment_color_sky => 'Himmelblau';
+
+  @override
+  String get equipment_color_blue => 'Blau';
+
+  @override
+  String get equipment_color_indigo => 'Indigo';
+
+  @override
+  String get equipment_color_violet => 'Violett';
+
+  @override
+  String get equipment_color_purple => 'Lila';
+
+  @override
+  String get equipment_color_fuchsia => 'Fuchsia';
+
+  @override
+  String get equipment_color_pink => 'Rosa';
+
+  @override
+  String get equipment_color_rose => 'Rosé';
+
+  @override
+  String get equipment_color_stone => 'Stein';
+
+  @override
+  String get equipment_color_zinc => 'Zink';
+
+  @override
+  String get equipment_color_slate => 'Schiefer';
+
+  @override
+  String get equipment_color_none => 'Keine';
+
+  @override
+  String get equipment_color_sheetTitle => 'Farbe wählen';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
@@ -30406,6 +30472,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_product_url => 'Weblink';
 
   @override
+  String get attrLabel_color => 'Farbe';
+
+  @override
   String get attrLabel_sleeve_length => 'Ärmel';
 
   @override
@@ -39775,6 +39844,17 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_appearance_showDataSourceBadges_subtitle =>
       'Quellenangabe bei Tauchgangswerten anzeigen';
+
+  @override
+  String get settings_appearance_showDiveFigure =>
+      'Taucherfigur bei Tauchgängen zeigen';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'Die Ausrüstung jedes Tauchgangs in seiner Ausrüstungskarte an einem Taucher zeigen';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'Ausrüstung dieses Tauchgangs';
 
   @override
   String get settings_appearance_title_buddies => 'Darstellung Tauchpartner';

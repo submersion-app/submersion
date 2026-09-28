@@ -30,6 +30,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:collection/collection.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -38,6 +39,8 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/helpers/equipment_web_link_launcher.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_color_names.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/cylinder_configs/presentation/widgets/unit_configurations_card.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_documents_section.dart';
@@ -699,6 +702,13 @@ class _EquipmentDetailContent extends ConsumerWidget {
                   attributeLabel(context.l10n, def.key),
                   formatAttributeValue(attr, def, units, context.l10n),
                 ),
+            // The item's colour (issue #2326): its own row with a swatch,
+            // only when the stored value is a colour code.
+            if (normalizeEquipmentColor(
+                  equipment.attrText(EquipmentAttrKeys.color),
+                )
+                case final code?)
+              _buildColorRow(context, code),
             for (final attr
                 in equipment.attributes.where((a) => a.isCustom).toList()
                   ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)))
@@ -856,6 +866,46 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 textAlign: TextAlign.end,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The item's colour: its label, then a swatch and the colour's name.
+  Widget _buildColorRow(BuildContext context, String code) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            attributeLabel(context.l10n, EquipmentAttrKeys.color),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                key: const ValueKey('detail-color-swatch'),
+                width: 16,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: TagColors.fromHex(code),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                equipmentColorName(context.l10n, code),
+                style: theme.textTheme.bodyMedium,
+              ),
+            ],
           ),
         ],
       ),

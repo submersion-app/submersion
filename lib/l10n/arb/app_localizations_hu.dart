@@ -587,11 +587,77 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'A készlet felszerelését egy búváron mutatja a készlet oldalán';
+      'A készlet felszerelésének megjelenítése egy búváron';
 
   @override
   String get equipment_setEdit_figureSwitch_title =>
       'Búvárfigura megjelenítése';
+
+  @override
+  String get equipment_color_red => 'Piros';
+
+  @override
+  String get equipment_color_orange => 'Narancs';
+
+  @override
+  String get equipment_color_amber => 'Borostyán';
+
+  @override
+  String get equipment_color_yellow => 'Sárga';
+
+  @override
+  String get equipment_color_lime => 'Zöldcitrom';
+
+  @override
+  String get equipment_color_green => 'Zöld';
+
+  @override
+  String get equipment_color_emerald => 'Smaragd';
+
+  @override
+  String get equipment_color_teal => 'Kékeszöld';
+
+  @override
+  String get equipment_color_cyan => 'Cián';
+
+  @override
+  String get equipment_color_sky => 'Égkék';
+
+  @override
+  String get equipment_color_blue => 'Kék';
+
+  @override
+  String get equipment_color_indigo => 'Indigó';
+
+  @override
+  String get equipment_color_violet => 'Ibolya';
+
+  @override
+  String get equipment_color_purple => 'Lila';
+
+  @override
+  String get equipment_color_fuchsia => 'Fukszia';
+
+  @override
+  String get equipment_color_pink => 'Rózsaszín';
+
+  @override
+  String get equipment_color_rose => 'Rózsa';
+
+  @override
+  String get equipment_color_stone => 'Kő';
+
+  @override
+  String get equipment_color_zinc => 'Cink';
+
+  @override
+  String get equipment_color_slate => 'Pala';
+
+  @override
+  String get equipment_color_none => 'Nincs';
+
+  @override
+  String get equipment_color_sheetTitle => 'Szín választása';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'Geokerítések';
@@ -30339,6 +30405,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_product_url => 'Webhivatkozás';
 
   @override
+  String get attrLabel_color => 'Szín';
+
+  @override
   String get attrLabel_sleeve_length => 'Ujjak';
 
   @override
@@ -39689,6 +39758,17 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_appearance_showDataSourceBadges_subtitle =>
       'Forrásmegjelölés megjelenítése a merülési mutatókon';
+
+  @override
+  String get settings_appearance_showDiveFigure =>
+      'Búváralak megjelenítése a merüléseknél';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'Minden merülés felszerelésének megjelenítése egy búváron a felszerelés kártyán';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'A merülés felszerelése';
 
   @override
   String get settings_appearance_title_buddies => 'Búvártársak megjelenése';

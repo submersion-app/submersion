@@ -1137,6 +1137,33 @@ void main() {
       expect(find.text('Condition findings'), findsNothing);
     });
 
+    EquipmentItem fins({required String color}) => EquipmentItem(
+      id: 'fins-color',
+      name: 'Jet Fins',
+      type: EquipmentType.fins,
+      attributes: [
+        EquipmentAttribute.curated(
+          equipmentId: 'fins-color',
+          key: 'color',
+        ).copyWith(valueText: color),
+      ],
+    );
+
+    testWidgets('shows a set colour by name with a swatch', (tester) async {
+      await pumpItem(tester, fins(color: '#EF4444'));
+      expect(find.text('Color'), findsOneWidget);
+      expect(find.text('Red'), findsOneWidget);
+      expect(find.byKey(const ValueKey('detail-color-swatch')), findsOneWidget);
+    });
+
+    testWidgets('shows no colour row for a value that is not a colour', (
+      tester,
+    ) async {
+      await pumpItem(tester, fins(color: 'Red'));
+      expect(find.byKey(const ValueKey('detail-color-swatch')), findsNothing);
+      expect(find.text('Red'), findsNothing);
+    });
+
     testWidgets('the Components card renders with no error line', (
       tester,
     ) async {
