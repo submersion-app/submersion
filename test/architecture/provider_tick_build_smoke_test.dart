@@ -31,6 +31,11 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
+import 'package:submersion/features/connections/presentation/providers/saved_connection_maps_provider.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/cylinder_configs/presentation/providers/cylinder_config_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
@@ -213,6 +218,37 @@ void main() {
     (
       name: 'diveIdsForBuddyProvider',
       read: (c) => c.read(diveIdsForBuddyProvider(_id).future),
+    ),
+  ]);
+
+  _tickGroup('connections', [
+    (
+      name: 'connectionGraphProvider',
+      read: (c) => c.read(connectionGraphProvider(80).future),
+    ),
+    (
+      name: 'connectionsYearSpanProvider',
+      read: (c) => c.read(connectionsYearSpanProvider.future),
+    ),
+    (
+      name: 'connectionsSelectionDiveIdsProvider',
+      read: (c) => c.read(
+        connectionsSelectionDiveIdsProvider(
+          const NodeSelection(NodeRef(ConnectionKind.buddy, _id)),
+        ).future,
+      ),
+    ),
+    (
+      name: 'connectionsNodesByWireProvider',
+      read: (c) => c.read(connectionsNodesByWireProvider('buddy:$_id').future),
+    ),
+    (
+      name: 'connectionsSearchProvider',
+      read: (c) => c.read(connectionsSearchProvider('a').future),
+    ),
+    (
+      name: 'savedConnectionMapsProvider',
+      read: (c) => c.read(savedConnectionMapsProvider.future),
     ),
   ]);
 

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -447,7 +450,9 @@ class _TripDetailContent extends ConsumerWidget {
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
       onSelected: (value) async {
-        if (value == 'delete') {
+        if (value == kOpenInConnectionsAction) {
+          openInConnections(context, NodeRef(ConnectionKind.trip, trip.id));
+        } else if (value == 'delete') {
           final confirmed = await _showDeleteConfirmation(context, ref, trip);
           if (confirmed && context.mounted) {
             await ref
@@ -477,6 +482,7 @@ class _TripDetailContent extends ConsumerWidget {
         }
       },
       itemBuilder: (context) => [
+        openInConnectionsMenuItem(context),
         PopupMenuItem(
           value: 'scan-dives',
           child: Row(

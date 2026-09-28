@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
@@ -182,13 +185,19 @@ class _BuddyDetailContent extends ConsumerWidget {
           ),
           PopupMenuButton<String>(
             onSelected: (value) async {
-              if (value == 'share') {
+              if (value == kOpenInConnectionsAction) {
+                openInConnections(
+                  context,
+                  NodeRef(ConnectionKind.buddy, buddy.id),
+                );
+              } else if (value == 'share') {
                 await _shareDivesWithBuddy(context, ref);
               } else if (value == 'delete') {
                 await _handleDelete(context, ref);
               }
             },
             itemBuilder: (context) => [
+              openInConnectionsMenuItem(context),
               PopupMenuItem(
                 value: 'share',
                 child: Row(
@@ -283,13 +292,19 @@ class _BuddyDetailContent extends ConsumerWidget {
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) async {
-              if (value == 'share') {
+              if (value == kOpenInConnectionsAction) {
+                openInConnections(
+                  context,
+                  NodeRef(ConnectionKind.buddy, buddy.id),
+                );
+              } else if (value == 'share') {
                 await _shareDivesWithBuddy(context, ref);
               } else if (value == 'delete') {
                 await _handleDelete(context, ref);
               }
             },
             itemBuilder: (context) => [
+              openInConnectionsMenuItem(context),
               PopupMenuItem(
                 value: 'share',
                 child: Row(

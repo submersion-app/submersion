@@ -79,6 +79,8 @@ import 'package:submersion/features/trips/presentation/pages/trip_detail_page.da
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_cylinder_board_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_gallery_page.dart';
+import 'package:submersion/features/connections/presentation/connections_links.dart';
+import 'package:submersion/features/connections/presentation/pages/connections_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_overview_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_page.dart';
 import 'package:submersion/features/insights/presentation/pages/records_page.dart';
@@ -944,7 +946,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'insightsProfile',
                 builder: (context, state) => const InsightsProfilePage(),
               ),
+              // Connections opens from Insights as its own full page.
+              GoRoute(
+                path: kConnectionsSegment,
+                name: 'connections',
+                builder: (context, state) => ConnectionsPage(
+                  args: ConnectionsRouteArgs.fromQuery(
+                    state.uri.queryParameters,
+                  ),
+                ),
+              ),
             ],
+          ),
+
+          // Connections moved under Insights; links saved before the move
+          // (and phase 1 deep links) still land there.
+          GoRoute(
+            path: '/connections',
+            redirect: (context, state) => connectionsLegacyRedirect(state.uri),
           ),
 
           // Records
