@@ -8,7 +8,7 @@ import 'package:submersion/features/tides/presentation/providers/tide_providers.
 const _bonaire = GeoPoint(12.15, -68.27); // UTC-4, no DST
 
 void main() {
-  test('site-clock providers map the instant providers for display', () async {
+  test('the site-clock extremes provider maps the instant provider', () async {
     final container = ProviderContainer(
       overrides: [
         tideExtremesProvider(_bonaire).overrideWith(
@@ -20,14 +20,6 @@ void main() {
             ),
           ],
         ),
-        tidePredictionsProvider(_bonaire).overrideWith(
-          (ref) async => [
-            TidePrediction(
-              time: DateTime.utc(2026, 3, 28, 12),
-              heightMeters: 0.2,
-            ),
-          ],
-        ),
       ],
     );
     addTearDown(container.dispose);
@@ -35,11 +27,26 @@ void main() {
     final extremes = await container.read(
       tideExtremesAtSiteProvider(_bonaire).future,
     );
-    final predictions = await container.read(
-      tidePredictionsAtSiteProvider(_bonaire).future,
-    );
 
     expect(extremes.single.time, DateTime.utc(2026, 3, 28, 14, 20));
-    expect(predictions.single.time, DateTime.utc(2026, 3, 28, 8));
+  });
+
+  test('the site-clock extremes provider is released when unused', () async {
+    final container = ProviderContainer(
+      overrides: [
+        tideExtremesProvider(_bonaire).overrideWith((ref) async => []),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final subscription = container.listen(
+      tideExtremesAtSiteProvider(_bonaire),
+      (_, _) {},
+    );
+    await container.read(tideExtremesAtSiteProvider(_bonaire).future);
+    subscription.close();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(container.exists(tideExtremesAtSiteProvider(_bonaire)), isFalse);
   });
 }

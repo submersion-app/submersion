@@ -61,9 +61,10 @@ class FesGridReader {
         );
   }
 
-  /// One layer's sample, or null when it has no data here. Any read error
-  /// (a tile that parsed but still reads out of range) counts as no data,
-  /// so the caller falls through to the next layer instead of failing.
+  /// One layer's sample, or null when it has no data here. A cell read out
+  /// of range (a tile that parsed but is still inconsistent) counts as no
+  /// data, so the caller falls through to the next layer. Other errors are
+  /// programming errors and propagate.
   Future<FesGridSample?> _sampleLayer(
     FesGridManifest m,
     FesLayerGeometry layer,
@@ -76,7 +77,7 @@ class FesGridReader {
         constituents: constituents,
         resolutionKm: layer.resolutionKm,
       );
-    } catch (e) {
+    } on RangeError catch (e) {
       developer.log('FES grid read failed: $e', name: 'FesGridReader');
       return null;
     }

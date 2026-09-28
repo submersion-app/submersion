@@ -37,13 +37,23 @@ TideRecord _tideRecord({
   );
 }
 
+/// A dive at a site on the equator and prime meridian. Its zone is Etc/GMT,
+/// so the site's wall clock equals UTC and stored instants print verbatim.
+Dive _equatorDive() => createTestDiveWithBottomTime().copyWith(
+  site: const DiveSite(
+    id: 'site-equator',
+    name: 'Equator',
+    location: GeoPoint(0, 0),
+  ),
+);
+
 Future<void> _pumpDetailPage(
   WidgetTester tester,
   TideRecord record, {
   Dive? dive,
   DateFormatPreference dateFormat = DateFormatPreference.mmmDYYYY,
 }) async {
-  final shownDive = dive ?? createTestDiveWithBottomTime();
+  final shownDive = dive ?? _equatorDive();
   final settings = MockSettingsNotifier();
   await settings.setTimeFormat(TimeFormat.twentyFourHour);
   await settings.setDateFormat(dateFormat);
@@ -186,5 +196,23 @@ void main() {
       expect(find.textContaining('at 14:20'), findsOneWidget);
       expect(find.textContaining('at 08:20'), findsOneWidget);
     });
+  });
+
+  testWidgets('a site without coordinates shows no tide card', (tester) async {
+    // With no site clock, stored instants cannot be shown as local times.
+    final dive = createTestDiveWithBottomTime().copyWith(
+      site: const DiveSite(id: 'site-nowhere', name: 'Unmapped'),
+    );
+    await _pumpDetailPage(
+      tester,
+      _tideRecord(
+        highTideTime: DateTime.utc(2026, 3, 28, 14, 20),
+        lowTideTime: DateTime.utc(2026, 3, 28, 8, 20),
+      ),
+      dive: dive,
+    );
+
+    expect(find.textContaining('at 14:20'), findsNothing);
+    expect(find.text('Sat, Mar 28 | 08:20 - 20:20'), findsNothing);
   });
 }

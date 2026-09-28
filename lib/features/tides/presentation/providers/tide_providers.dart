@@ -45,7 +45,8 @@ final tideRecordForDiveProvider = FutureProvider.family<TideRecord?, String>((
 /// a fresh computation beyond the heal thresholds it is overwritten and
 /// the new record returned. Converges: post-fix records match the fresh
 /// computation and are never rewritten.
-/// Returns null when the site has coordinates but no tide data resolves.
+/// Returns null when the site has no coordinates, or has coordinates but no
+/// tide data resolves.
 final healedTideRecordProvider =
     FutureProvider.family<
       TideRecord?,
@@ -58,8 +59,10 @@ final healedTideRecordProvider =
       final stored = await repository.getTideRecordForDive(params.diveId);
       if (stored == null) return null;
 
+      // Stored times are real instants; without coordinates there is no
+      // site clock to show them in, so the record is not shown.
       final location = params.location;
-      if (location == null) return stored;
+      if (location == null) return null;
 
       final resolved = await ref.watch(
         resolvedTideDataProvider(location).future,
@@ -84,11 +87,28 @@ final healedTideRecordProvider =
       return repository.createFromStatus(diveId: params.diveId, status: status);
     });
 
-/// Provider for tide data metadata.
-final tideMetadataProvider = FutureProvider<TideDataMetadata?>((ref) async {
-  final service = ref.watch(tideDataServiceProvider);
-  return service.getMetadata();
-});
+/// A dive's tide computed from the model when nothing is stored, off the UI
+/// thread. Times are real instants, like a stored record's.
+final calculatedTideRecordProvider = FutureProvider.autoDispose
+    .family<
+      TideRecord?,
+      ({String diveId, GeoPoint location, DateTime entryTime})
+    >((ref, params) async {
+      final calculator = await ref.watch(
+        tideCalculatorProvider(params.location).future,
+      );
+      if (calculator == null) return null;
+      final status = await tideStatusForDive(
+        calculator: calculator,
+        entryWallClock: params.entryTime,
+        location: params.location,
+      );
+      return TideRecord.fromStatus(
+        id: 'calculated',
+        diveId: params.diveId,
+        status: status,
+      );
+    });
 
 /// Provider for the NOAA station index (bundled asset).
 final noaaStationIndexProvider = FutureProvider<NoaaStationIndex?>((ref) async {
@@ -225,23 +245,10 @@ final tideExtremesProvider = FutureProvider.family<List<TideExtreme>, GeoPoint>(
   },
 );
 
-/// [tidePredictionsProvider] with times in the site's wall clock, for
-/// display. Absolute times on screen come from this, never from the
-/// instant provider directly.
-final tidePredictionsAtSiteProvider =
-    FutureProvider.family<List<TidePrediction>, GeoPoint>((
-      ref,
-      location,
-    ) async {
-      final predictions = await ref.watch(
-        tidePredictionsProvider(location).future,
-      );
-      return predictionsAtSiteWallClock(predictions, location);
-    });
-
 /// [tideExtremesProvider] with times in the site's wall clock, for display.
-final tideExtremesAtSiteProvider =
-    FutureProvider.family<List<TideExtreme>, GeoPoint>((ref, location) async {
+/// Released when no widget watches it; the instant provider stays cached.
+final tideExtremesAtSiteProvider = FutureProvider.autoDispose
+    .family<List<TideExtreme>, GeoPoint>((ref, location) async {
       final extremes = await ref.watch(tideExtremesProvider(location).future);
       return extremesAtSiteWallClock(extremes, location);
     });

@@ -87,11 +87,14 @@ abstract final class SiteTimeZone {
     final found = tz.timeZoneDatabase.locations[id];
     if (found != null) return found;
     if (!_fullDatabaseLoaded) {
-      final previousLocal = tz.local.name;
+      final previousLocal = tz.local;
       tzdata.initializeTimeZones();
       _fullDatabaseLoaded = true;
-      final restored = tz.timeZoneDatabase.locations[previousLocal];
-      if (restored != null) tz.setLocalLocation(restored);
+      // Prefer the reloaded database's copy; a hand-built Location that is
+      // not in it is put back as it was.
+      tz.setLocalLocation(
+        tz.timeZoneDatabase.locations[previousLocal.name] ?? previousLocal,
+      );
       final retried = tz.timeZoneDatabase.locations[id];
       if (retried != null) return retried;
     }

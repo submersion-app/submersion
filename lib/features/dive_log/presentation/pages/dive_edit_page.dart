@@ -138,7 +138,7 @@ import 'package:submersion/features/tank_presets/presentation/providers/tank_pre
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
-import 'package:submersion/features/tides/domain/services/tide_status_for_dive.dart';
+import 'package:submersion/features/tides/data/services/dive_tide_recorder.dart';
 
 const _createNewSiteSentinel = '__create_new__';
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
@@ -5537,16 +5537,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           );
           if (resolved != null) {
             // entryDateTime is the dive's wall clock (DateTime.utc of the
-            // picked digits); evaluate the tide at the real instant.
-            final status = await tideStatusForDive(
+            // picked digits); the recorder evaluates the real instant.
+            await recordDiveTide(
+              repository: ref.read(tideRecordRepositoryProvider),
               calculator: resolved.calculator,
+              diveId: savedDiveId,
               entryWallClock: entryDateTime,
               location: _selectedSite!.location!,
-            );
-            final tideRepository = ref.read(tideRecordRepositoryProvider);
-            await tideRepository.createFromStatus(
-              diveId: savedDiveId,
-              status: status,
             );
           }
         } catch (e) {

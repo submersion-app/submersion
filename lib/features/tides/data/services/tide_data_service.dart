@@ -40,34 +40,4 @@ class TideDataService {
   /// Whether the model has data for a location.
   Future<bool> hasTideData(double latitude, double longitude) async =>
       await getModelForLocation(latitude, longitude) != null;
-
-  /// Metadata about the bundled grid, or null when it cannot be read.
-  Future<TideDataMetadata?> getMetadata() async {
-    final manifest = await _reader.manifest();
-    if (manifest == null) return null;
-    return TideDataMetadata(
-      version: '1',
-      model: manifest.model,
-      datum: 'MSL',
-      extractionDate: manifest.extractionDate,
-    );
-  }
-}
-
-/// Metadata about the tide data source.
-class TideDataMetadata {
-  final String version;
-  final String model;
-  final String datum;
-  final String? extractionDate;
-
-  const TideDataMetadata({
-    required this.version,
-    required this.model,
-    required this.datum,
-    this.extractionDate,
-  });
-
-  @override
-  String toString() => 'TideDataMetadata($model $version, datum: $datum)';
 }

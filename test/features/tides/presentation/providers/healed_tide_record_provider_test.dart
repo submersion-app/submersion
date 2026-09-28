@@ -145,4 +145,52 @@ void main() {
       expect(repository.writes, 0);
     },
   );
+
+  test('a stored record is hidden when the site has no coordinates', () async {
+    // Stored times are real instants; with no site clock to place them on,
+    // printing them would show UTC digits as local time.
+    final stored = TideRecord.fromStatus(
+      id: 'stored',
+      diveId: 'd1',
+      status: _calculator.getStatus(DateTime.utc(2026, 3, 28, 14)),
+    );
+    final container = ProviderContainer(
+      overrides: [
+        diveRepositoryProvider.overrideWithValue(_FakeDiveRepository()),
+        tideRecordRepositoryProvider.overrideWithValue(
+          _FakeTideRecordRepository(stored),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final key = (diveId: 'd1', location: null, entryTime: _entryWallClock);
+    expect(await container.read(healedTideRecordProvider(key).future), isNull);
+  });
+
+  test(
+    'without a stored record the tide is calculated at the real instant',
+    () async {
+      final container = ProviderContainer(
+        overrides: [
+          tideCalculatorProvider(
+            _bonaire,
+          ).overrideWith((ref) async => _calculator),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final record = await container.read(
+        calculatedTideRecordProvider((
+          diveId: 'd1',
+          location: _bonaire,
+          entryTime: _entryWallClock,
+        )).future,
+      );
+
+      final expected = _calculator.getStatus(DateTime.utc(2026, 3, 28, 14));
+      expect(record!.heightMeters, closeTo(expected.currentHeight, 1e-9));
+      expect(record.diveId, 'd1');
+    },
+  );
 }
