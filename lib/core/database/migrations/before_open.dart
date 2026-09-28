@@ -166,6 +166,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // already at 239 or later skips the v238 rung.
     await _assertSavedQueriesSchema();
 
+    // v241 backstop: re-assert the DPV mission tables. A database that
+    // arrives by restore or sync-adopt never runs onUpgrade.
+    await _assertDivePlanMissionSchema();
+
     // v122 backstop: re-assert service ledger schema + built-in kinds.
     // The legacy backfill is NOT here (onUpgrade only) -- re-running it
     // would resurrect user-deleted schedules.
