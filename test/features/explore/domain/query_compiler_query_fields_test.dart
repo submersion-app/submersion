@@ -110,8 +110,8 @@ void main() {
       q.filter.query,
       ConditionNode(
         FieldPath(['types', 'name']),
-        QueryOp.eq,
-        const StringValue('Night'),
+        QueryOp.inList,
+        ListValue(const [StringValue('Night')]),
       ),
     );
   });
@@ -159,18 +159,11 @@ void main() {
     expect(q.unplaced, isEmpty);
     expect(
       q.filter.query,
-      OrNode([
-        ConditionNode(
-          FieldPath(['types', 'name']),
-          QueryOp.eq,
-          const StringValue('Wreck'),
-        ),
-        ConditionNode(
-          FieldPath(['types', 'name']),
-          QueryOp.eq,
-          const StringValue('Night'),
-        ),
-      ]),
+      ConditionNode(
+        FieldPath(['types', 'name']),
+        QueryOp.inList,
+        ListValue(const [StringValue('Wreck'), StringValue('Night')]),
+      ),
     );
   });
 
@@ -214,5 +207,13 @@ void main() {
       compile([clause('depth', 'gt', 450)]).unplaced.single.reason,
       'outOfRange',
     );
+    expect(
+      compile([
+        clause('depth', 'between', [10, 450]),
+      ]).unplaced.single.reason,
+      'outOfRange',
+    );
+    // "Exactly" at a bound: the band reaches past it, the number does not.
+    expect(compile([clause('depth', 'eq', 0)]).unplaced, isEmpty);
   });
 }

@@ -1,4 +1,4 @@
-import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
 /// What a numeric clause measures, so bare numbers can take the diver's unit.
@@ -26,7 +26,10 @@ const List<String> kWeekdayTokens = [
   'sun',
 ];
 
-List<String> _names(List<Enum> values) => [for (final v in values) v.name];
+/// A dive query registry field's enum values: the list the query compiler
+/// accepts for the condition these clauses lower to.
+List<String> _registryValues(String key) =>
+    diveQueryEntity.field(key)!.enumValues!;
 
 /// The fields the native schema constrains a dive clause to (schema v1).
 ///
@@ -101,8 +104,8 @@ const FieldSpec _flag = FieldSpec(
 );
 
 abstract final class DiveFieldCatalog {
-  // Enum values are the Dart enums' names, which are also the dive query
-  // registry's, so a value added to an enum reaches Explore unedited.
+  // Enum values come from the dive query registry, which the compiler lowers
+  // these clauses onto, so Explore accepts exactly what it can search.
   static final Map<ExploreDiveField, FieldSpec> _specs = {
     ExploreDiveField.depth: _depth,
     ExploreDiveField.avgDepth: _depth,
@@ -125,25 +128,25 @@ abstract final class DiveFieldCatalog {
       dimension: FieldDimension.none,
       valueType: FieldValueType.enumName,
       ops: _membership,
-      enumValues: _names(WaterType.values),
+      enumValues: _registryValues('waterType'),
     ),
     ExploreDiveField.diveMode: FieldSpec(
       dimension: FieldDimension.none,
       valueType: FieldValueType.enumName,
       ops: _membership,
-      enumValues: _names(DiveMode.values),
+      enumValues: _registryValues('diveMode'),
     ),
     ExploreDiveField.entryMethod: FieldSpec(
       dimension: FieldDimension.none,
       valueType: FieldValueType.enumName,
       ops: _membership,
-      enumValues: _names(EntryMethod.values),
+      enumValues: _registryValues('entryMethod'),
     ),
     ExploreDiveField.currentStrength: FieldSpec(
       dimension: FieldDimension.none,
       valueType: FieldValueType.enumName,
       ops: _membership,
-      enumValues: _names(CurrentStrength.values),
+      enumValues: _registryValues('currentStrength'),
     ),
     ExploreDiveField.favorite: _flag,
     ExploreDiveField.deco: _flag,

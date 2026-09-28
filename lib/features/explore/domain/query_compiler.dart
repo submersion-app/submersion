@@ -24,17 +24,6 @@ class CompilerContext {
   });
 }
 
-/// Enum fields with no plain filter axis (or whose axis is already taken),
-/// lowered to a condition on the dive query field of the same name. The
-/// catalog's enum values are the registry's own enum names.
-const Set<ExploreDiveField> _enumQueryFields = {
-  ExploreDiveField.waterType,
-  ExploreDiveField.weekday,
-  ExploreDiveField.diveMode,
-  ExploreDiveField.entryMethod,
-  ExploreDiveField.currentStrength,
-};
-
 /// Numeric fields with no plain filter axis, lowered to inclusive bounds on
 /// the dive query field of the same name. Values are metric, like the
 /// registry's.
@@ -244,30 +233,30 @@ abstract final class QueryCompiler {
     final allowed = spec.enumValues;
     if (allowed == null) {
       // A dive type is the diver's own entity, named in their words: an
-      // exact (case-insensitive) name match through the types junction,
-      // any of the names when there are several.
+      // exact (case-insensitive) match on any of the names through the
+      // types junction, which the query compiler emits as one LOWER IN.
       if (field != ExploreDiveField.diveType) return _fail('invalid');
-      final names = [
-        for (final v in values)
+      return (
+        filter: _andQuery(
+          f,
           ConditionNode(
             FieldPath(['types', 'name']),
-            QueryOp.eq,
-            StringValue(v),
+            QueryOp.inList,
+            ListValue([for (final v in values) StringValue(v)]),
           ),
-      ];
-      return (
-        filter: _andQuery(f, names.length == 1 ? names.single : OrNode(names)),
+        ),
         chip: chip,
         error: null,
       );
     }
     if (values.any((v) => !allowed.contains(v))) return _fail('invalid');
-    final key = _enumQueryFields.contains(field) ? field.jsonName : null;
+    // Every listed enum field is a dive query registry field of the same
+    // name: the catalog reads its values from there.
+    final key = field.jsonName;
     // "Not" keeps the dives where the field was never recorded: the query
     // tree's NOT treats an unknown as not matching, where the complement of
     // the listed values would silently drop every blank dive.
     if (c.op == ClauseOp.not) {
-      if (key == null) return _fail('noAxis');
       return (
         filter: _andQuery(f, NotNode(_enumCondition(field, key, values))),
         chip: chip,
@@ -285,7 +274,6 @@ abstract final class QueryCompiler {
         final days = values.map((v) => kWeekdayTokens.indexOf(v) + 1).toList();
         return (filter: f.copyWith(weekdays: days), chip: chip, error: null);
       default:
-        if (key == null) return _fail('noAxis');
         return (
           filter: _andQuery(f, _enumCondition(field, key, values)),
           chip: chip,
@@ -337,6 +325,9 @@ abstract final class QueryCompiler {
       var a = ground(raw[0] as num);
       var b = ground(raw[1] as num);
       if (b < a) (a, b) = (b, a);
+      if (!_inRange(field, a) || !_inRange(field, b)) {
+        return _fail('outOfRange');
+      }
       lo = a;
       hi = b;
       chipValue = [a, b];
@@ -345,6 +336,8 @@ abstract final class QueryCompiler {
       if (raw is! num) return _fail('invalid');
       final v = ground(raw);
       chipValue = v;
+      // The number said is what must be plausible; an "exactly" band may
+      // reach half a unit past the bound.
       if (!_inRange(field, v)) return _fail('outOfRange');
       switch (c.op) {
         case ClauseOp.lt:
@@ -365,9 +358,6 @@ abstract final class QueryCompiler {
         default:
           return _fail('invalid');
       }
-    }
-    if (c.op != ClauseOp.eq && (!_inRange(field, lo) || !_inRange(field, hi))) {
-      return _fail('outOfRange');
     }
     // The chip reports the op the filter ACTUALLY applies, not the one the
     // model wrote. Every numeric axis is an inclusive bound, so a strict

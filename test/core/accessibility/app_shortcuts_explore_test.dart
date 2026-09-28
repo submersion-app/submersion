@@ -172,6 +172,47 @@ void main() {
     expect(find.text('Explore'), findsNothing);
   });
 
+  testWidgets('a probe that fails says the model is unavailable', (
+    tester,
+  ) async {
+    // Failed only once the press is listening, as a real probe would.
+    final probe = Completer<NlAvailability>();
+    await pumpHost(tester, probe.future);
+
+    await pressExplore(tester);
+    probe.completeError(StateError('probe crashed'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Explore'), findsNothing);
+    expect(
+      find.text(AppLocalizationsEn().explore_shortcut_unavailable),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a gate that turns off unlists the shortcut', (tester) async {
+    ShortcutCatalog.instance.clear();
+    AppShortcuts.debugReset();
+    addTearDown(() {
+      ShortcutCatalog.instance.clear();
+      AppShortcuts.debugReset();
+    });
+    List<String> labels() =>
+        ShortcutCatalog.instance.entries.map((e) => e.label).toList();
+
+    await pumpHost(tester, Future.value(NlAvailability.available));
+    expect(labels(), contains('Explore with a sentence'));
+
+    // A new scope rebuilds the shell with the gate closed.
+    await tester.pumpWidget(const SizedBox());
+    await pumpHost(
+      tester,
+      Future.value(NlAvailability.available),
+      platformSupported: false,
+    );
+    expect(labels(), isNot(contains('Explore with a sentence')));
+  });
+
   testWidgets('a device without the model says so', (tester) async {
     await pumpHost(tester, Future.value(NlAvailability.deviceNotEligible));
 

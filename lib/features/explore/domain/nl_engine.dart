@@ -55,12 +55,10 @@ abstract final class NlPrompt {
   };
 
   /// A catalog field's values as prose, "a, b or c", so the prompt lists
-  /// exactly what the compiler accepts.
+  /// exactly what the compiler accepts. Every listed field has at least two.
   static String _oneOf(ExploreDiveField field) {
     final values = DiveFieldCatalog.spec(field).enumValues!;
-    return values.length == 1
-        ? values.single
-        : '${values.take(values.length - 1).join(', ')} or ${values.last}';
+    return '${values.take(values.length - 1).join(', ')} or ${values.last}';
   }
 
   static String instructions() =>

@@ -223,7 +223,7 @@ void main() {
             {
               'field': 'diveType',
               'op': 'eq',
-              'value': 'cavern tour',
+              'value': ['wreck penetration', 'CAVERN TOUR'],
               'text': 'cavern',
             },
           ],
