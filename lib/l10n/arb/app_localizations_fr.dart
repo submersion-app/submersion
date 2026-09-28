@@ -582,11 +582,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_computerAutoApplySwitch_title =>
-      'Appliquer lors de l\'importation de l\'ordinateur de ce set';
+      'Appliquer lors de l\'importation de l\'ordinateur de cet ensemble';
 
   @override
   String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
-      'Si ce set inclut un ordinateur de plongée, ajoute automatiquement tout le set à une plongée téléchargée ou importée depuis celui-ci';
+      'Si cet ensemble inclut un ordinateur de plongée, ajoute automatiquement tout l\'ensemble à une plongée téléchargée ou importée depuis celui-ci';
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
@@ -3585,10 +3585,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_gear_removePart => 'Retirer la pièce';
 
   @override
-  String get diveLog_gear_removeSet => 'Retirer le kit de cette plongée';
+  String get diveLog_gear_removeSet => 'Retirer l\'ensemble de cette plongée';
 
   @override
-  String get diveLog_gear_unknownSet => 'Kit';
+  String get diveLog_gear_unknownSet => 'Ensemble';
 
   @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
@@ -6322,7 +6322,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_edit_equipmentHint =>
-      'Appuie sur \"Utiliser un set\" ou \"Ajouter\" pour sélectionner l\'équipement';
+      'Appuie sur \"Utiliser un ensemble\" ou \"Ajouter\" pour sélectionner l\'équipement';
 
   @override
   String diveLog_edit_errorLoadingDiveTypes(Object error) {
@@ -6528,7 +6528,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_save => 'Enregistrer';
 
   @override
-  String get diveLog_edit_saveAsSet => 'Enregistrer comme set';
+  String get diveLog_edit_saveAsSet => 'Enregistrer comme ensemble';
 
   @override
   String diveLog_edit_saveAsSetDialog_content(int count) {
@@ -6538,7 +6538,7 @@ class AppLocalizationsFr extends AppLocalizations {
       other: 'équipements',
       one: 'équipement',
     );
-    return 'Enregistrer $count $_temp0 comme nouveau set d\'équipement.';
+    return 'Enregistrer $count $_temp0 comme nouvel ensemble d\'équipement.';
   }
 
   @override
@@ -6551,11 +6551,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String diveLog_edit_saveAsSetDialog_error(Object error) {
-    return 'Erreur lors de la création du set : $error';
+    return 'Erreur lors de la création de l\'ensemble : $error';
   }
 
   @override
-  String get diveLog_edit_saveAsSetDialog_setName => 'Nom du set';
+  String get diveLog_edit_saveAsSetDialog_setName => 'Nom de l\'ensemble';
 
   @override
   String get diveLog_edit_saveAsSetDialog_setNameHint =>
@@ -6563,16 +6563,16 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String diveLog_edit_saveAsSetDialog_success(Object name) {
-    return 'Set d\'équipement \"$name\" créé';
+    return 'Ensemble d\'équipement \"$name\" créé';
   }
 
   @override
   String get diveLog_edit_saveAsSetDialog_title =>
-      'Enregistrer comme set d\'équipement';
+      'Enregistrer comme ensemble d\'équipement';
 
   @override
   String get diveLog_edit_saveAsSetDialog_validation =>
-      'Veuillez entrer un nom de set';
+      'Veuillez entrer un nom d\'ensemble';
 
   @override
   String get diveLog_edit_section_conditions => 'Conditions';
@@ -6786,7 +6786,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_tripUse => 'Utiliser';
 
   @override
-  String get diveLog_edit_useSet => 'Utiliser un set';
+  String get diveLog_edit_useSet => 'Utiliser un ensemble';
 
   @override
   String get diveLog_edit_weightPreset_use => 'Utiliser un preset';
@@ -6888,10 +6888,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_equipmentSetPicker_createHint =>
-      'Crée des sets dans Équipement > Sets';
+      'Crée des ensembles dans Équipement > Ensembles';
 
   @override
-  String get diveLog_equipmentSetPicker_emptySet => 'Set vide';
+  String get diveLog_equipmentSetPicker_emptySet => 'Ensemble vide';
 
   @override
   String get diveLog_equipmentSetPicker_errorItems =>
@@ -6899,7 +6899,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String diveLog_equipmentSetPicker_errorLoading(Object error) {
-    return 'Erreur lors du chargement des sets d\'équipement : $error';
+    return 'Erreur lors du chargement des ensembles d\'équipement : $error';
   }
 
   @override
@@ -6918,11 +6918,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_equipmentSetPicker_noSets =>
-      'Pas encore de sets d\'équipement';
+      'Pas encore d\'ensembles d\'équipement';
 
   @override
   String get diveLog_equipmentSetPicker_title =>
-      'Utiliser un set d\'équipement';
+      'Utiliser un ensemble d\'équipement';
 
   @override
   String get diveLog_error_loadingDives =>
@@ -20725,7 +20725,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_import_phase_equipmentSets =>
-      'Importation des kits d\'équipement...';
+      'Importation des ensembles d\'équipement...';
 
   @override
   String get settings_import_phase_preparing => 'Préparation...';
@@ -27431,7 +27431,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveImport_uddf_equipment => 'Équipement';
 
   @override
-  String get diveImport_uddf_equipmentSets => 'Kits d\'équipement';
+  String get diveImport_uddf_equipmentSets => 'Ensembles d\'équipement';
 
   @override
   String diveImport_uddf_importProgress(Object current, Object total) {
@@ -27490,7 +27490,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveImport_uddf_tabEquipment => 'Équipement';
 
   @override
-  String get diveImport_uddf_tabSets => 'Kits';
+  String get diveImport_uddf_tabSets => 'Ensembles';
 
   @override
   String get diveImport_uddf_tabSites => 'Sites';
@@ -29755,7 +29755,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get planner_gearWeights_title => 'Équipement et lestage';
 
   @override
-  String get planner_gearWeights_useSet => 'Utiliser un kit';
+  String get planner_gearWeights_useSet => 'Utiliser un ensemble';
 
   @override
   String get tools_weight_addGear => 'Ajouter équipement';
@@ -29833,7 +29833,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tools_weight_tanks => 'Blocs';
 
   @override
-  String get tools_weight_useSet => 'Utiliser un kit';
+  String get tools_weight_useSet => 'Utiliser un ensemble';
 
   @override
   String get tools_weight_waterTerm => 'Type d\'eau';
