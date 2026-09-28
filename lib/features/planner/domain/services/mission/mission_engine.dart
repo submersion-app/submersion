@@ -213,7 +213,14 @@ class MissionEngine {
       // In open water the safe surface is the ascent alone, which does not
       // depend on whose scooter failed.
       final safeSurfaceSeconds = openWater
-          ? members.map((m) => m.surface?.ttsSeconds).nonNulls.firstOrNull
+          // A failed surface run knows no ascent time; its zero must not
+          // read as a safe surface reached at once.
+          ? members
+                .map((m) => m.surface)
+                .nonNulls
+                .where((s) => !s.failed)
+                .map((s) => s.ttsSeconds)
+                .firstOrNull
           : overheadSafeSurface;
       waypoints.add(
         WaypointOutcome(
@@ -392,13 +399,18 @@ class MissionEngine {
     }
   }
 
-  /// Prefers a feasible tow; then one that made headway over one the current
-  /// blocked (a blocked tow reports no time, so it would otherwise win on
-  /// time and hide why the tow that ran failed); then the quicker one.
+  /// Prefers a feasible tow; then one that was computed over one whose
+  /// computation threw; then one that made headway over one the current
+  /// blocked. A failed or blocked tow reports no time, so either would
+  /// otherwise win on time and hide why the tow that ran failed. Then the
+  /// quicker one.
   ExitOutcome _betterTow(ExitOutcome? current, ExitOutcome candidate) {
     if (current == null) return candidate;
     if (candidate.feasible != current.feasible) {
       return candidate.feasible ? candidate : current;
+    }
+    if (candidate.failed != current.failed) {
+      return candidate.failed ? current : candidate;
     }
     if (candidate.blockedByCurrent != current.blockedByCurrent) {
       return candidate.blockedByCurrent ? current : candidate;

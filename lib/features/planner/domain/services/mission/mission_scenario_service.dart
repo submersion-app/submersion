@@ -6,6 +6,7 @@ import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
 import 'package:submersion/features/planner/domain/services/mission/battery_burn_service.dart';
 import 'package:submersion/features/planner/domain/services/mission/exit_path_evaluator.dart';
+import 'package:submersion/features/planner/domain/services/mission/leg_speed_resolver.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_geometry.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_segment_builder.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_team.dart';
@@ -224,8 +225,11 @@ class MissionScenarioService {
                 baseSpeedMps: swimSpeed,
               )
               .outboundMps;
-    // A shore route has no bearing, so it takes the worst the current can do.
-    final shoreMps = swimSpeed - (current?.speedMps ?? 0.0);
+    // A shore route has no bearing, so it takes the worst the current can do,
+    // held to the same headway floor as a route with a heading.
+    final shoreMps = LegSpeedResolver.headway(
+      swimSpeed - (current?.speedMps ?? 0.0),
+    );
     final shore = leg.shoreExit;
     final routes = <_SurfaceRoute>[
       (swimM: home.distanceHomeM, walkM: 0.0, viaShore: false, mps: homeMps),

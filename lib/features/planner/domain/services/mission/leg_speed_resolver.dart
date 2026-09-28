@@ -61,12 +61,15 @@ class LegSpeedResolver {
     }
     final made = math.sqrt(baseSpeedMps * baseSpeedMps - cross * cross);
     return LegSpeeds(
-      outboundMps: _headway(made + along),
-      returnMps: _headway(made - along),
+      outboundMps: headway(made + along),
+      returnMps: headway(made - along),
     );
   }
 
-  static double _headway(double speedOverGroundMps) {
+  /// [speedOverGroundMps], or zero when it is below
+  /// [kMinSpeedOverGroundMps]. Public so a speed worked out without a
+  /// heading (a shore route's worst case) is held to the same floor.
+  static double headway(double speedOverGroundMps) {
     return speedOverGroundMps < kMinSpeedOverGroundMps ? 0 : speedOverGroundMps;
   }
 }

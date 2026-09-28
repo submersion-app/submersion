@@ -11,6 +11,8 @@ import 'package:submersion/features/planner/domain/entities/mission/mission_memb
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_engine.dart';
+import 'package:submersion/features/planner/domain/services/mission/mission_scenario_service.dart';
+import 'package:submersion/features/planner/domain/services/mission/mission_segment_builder.dart';
 
 const _air = GasMix(o2: 21);
 
@@ -62,6 +64,36 @@ MissionOutcome _compute(DpvMission mission) =>
 
 MemberOutcome _outcomeOf(MissionOutcome outcome, String id) =>
     outcome.members.firstWhere((m) => m.memberId == id);
+
+/// Throws from every tow that [_brokenTower] would give; everything else is
+/// computed normally.
+class _OneTowerThrows extends MissionScenarioService {
+  const _OneTowerThrows();
+
+  @override
+  ExitOutcome evaluate({
+    required domain.DivePlan plan,
+    required DpvMission mission,
+    required int waypointIndex,
+    required String failedMemberId,
+    required MissionExitMode mode,
+    String? towerId,
+    MissionProfile? outbound,
+  }) {
+    if (towerId == _brokenTower) throw StateError('unschedulable');
+    return super.evaluate(
+      plan: plan,
+      mission: mission,
+      waypointIndex: waypointIndex,
+      failedMemberId: failedMemberId,
+      mode: mode,
+      towerId: towerId,
+      outbound: outbound,
+    );
+  }
+}
+
+const _brokenTower = 'a';
 
 void main() {
   test("a teammate's gas binds a diver who could get out on their own", () {
@@ -200,5 +232,34 @@ void main() {
         waypointIndex: 0,
       ),
     );
+  });
+
+  test('a tow that ran outranks one whose computation failed', () {
+    // As in the own-gas case, b's swim is blocked and a tow that runs leaves
+    // b short of gas. a's tow of b throws; c's runs. The failed tow reports
+    // no time, so it must not win on time and hide c's real cause.
+    final outcome = const MissionEngine(scenarios: _OneTowerThrows()).compute(
+      plan: _plan(),
+      mission: DpvMission(
+        legs: const [
+          MissionLeg(
+            id: 'L1',
+            order: 0,
+            label: 'T',
+            distanceM: 300,
+            depthM: 20,
+            headingDeg: 0,
+          ),
+        ],
+        team: [_member('a', 0), _member('b', 1), _member('c', 2)],
+        defaultCurrent: const CurrentVector(speedMps: 0.24, setsTowardDeg: 0),
+      ),
+    );
+    final b = outcome.waypoints.single.members.firstWhere(
+      (m) => m.memberId == 'b',
+    );
+    expect(b.tow!.failed, isFalse);
+    expect(b.tow!.towerId, 'c');
+    expect(_outcomeOf(outcome, 'b').bindingFactor, MissionBindingFactor.ownGas);
   });
 }

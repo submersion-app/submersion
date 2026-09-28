@@ -207,6 +207,9 @@ void main() {
     );
     expect(b.surface!.failed, isTrue);
     expect(b.surface!.feasible, isFalse);
+    // A failed surface run reports no ascent time; it must not read as a
+    // safe surface reached at once.
+    expect(outcome.waypoints.single.safeSurfaceSeconds, isNull);
     expect(
       outcome.members.firstWhere((m) => m.memberId == 'b').bindingFactor,
       MissionBindingFactor.scenarioFailed,
