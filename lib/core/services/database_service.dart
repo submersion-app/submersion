@@ -119,7 +119,8 @@ class DatabaseService {
   /// The connection is only recorded once the open fully succeeds, but the
   /// open touches the file well before that (the background connection, the
   /// forcing query, the schema ladder). False therefore means the file was
-  /// never reached, as when its folder could not even be created.
+  /// never reached, as when its folder could not even be created. Scoped to
+  /// one attempt: [initialize] and [close] both clear it.
   bool get hasReachedFile => _database != null || _openAttempted;
   bool _openAttempted = false;
 
@@ -577,7 +578,12 @@ class DatabaseService {
   /// non-null so the still-open connection is not orphaned and the caller
   /// can retry — [_database] is cleared ONLY on a clean close.
   Future<void> close({bool strict = false}) async {
-    if (_database == null) return;
+    // A close ends the attempt [hasReachedFile] describes, including one
+    // whose open failed before a connection was ever recorded.
+    if (_database == null) {
+      _openAttempted = false;
+      return;
+    }
 
     if (strict) {
       // Graceful close first, but only briefly: GeneratedDatabase.close()
@@ -621,6 +627,7 @@ class DatabaseService {
       );
       _background = null;
       _database = null;
+      _openAttempted = false;
       return;
     }
 
@@ -638,6 +645,7 @@ class DatabaseService {
     } finally {
       _background = null;
       _database = null;
+      _openAttempted = false;
     }
   }
 

@@ -317,12 +317,31 @@ class DatabaseLocationService {
   }) async {
     final bookmarkPlatform =
         isBookmarkPlatform ?? SecurityScopedBookmarkService.isSupported;
-    var config = await getStorageConfig();
-    if (config.isCustomLocation && bookmarkPlatform && hasStoredBookmark()) {
-      final resolved = await resolveStoredBookmark();
-      config = await _followMovedFolder(config, resolved);
-    }
+    final config = await restoreCustomLocationAccess(
+      isBookmarkPlatform: bookmarkPlatform,
+    );
     return _check(config, sandboxed: bookmarkPlatform);
+  }
+
+  /// The part of [validateCustomLocationAtStartup] that opening the database
+  /// depends on: restores sandbox access through the stored bookmark and
+  /// follows a folder the bookmark tracked to a new path. Returns the config
+  /// in force afterwards. Reads nothing in the folder.
+  ///
+  /// Split out so startup can await just this before its first frame and
+  /// leave the check, which only feeds a log line there, unawaited: on a dead
+  /// network mount each of its file calls can block for the network timeout.
+  Future<StorageConfig> restoreCustomLocationAccess({
+    bool? isBookmarkPlatform,
+  }) async {
+    final bookmarkPlatform =
+        isBookmarkPlatform ?? SecurityScopedBookmarkService.isSupported;
+    final config = await getStorageConfig();
+    if (!config.isCustomLocation || !bookmarkPlatform || !hasStoredBookmark()) {
+      return config;
+    }
+    final resolved = await resolveStoredBookmark();
+    return _followMovedFolder(config, resolved);
   }
 
   /// Points the config at the folder's new path when the bookmark followed a

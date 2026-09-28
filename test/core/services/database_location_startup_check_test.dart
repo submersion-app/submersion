@@ -313,6 +313,28 @@ void main() {
       },
     );
 
+    // main.dart awaits only this before the first frame: the open depends
+    // on the access it restores and the path it follows. The check itself is
+    // log-only there, so a dead network mount cannot hold the first frame.
+    test('restoring access resolves the bookmark and follows a moved folder, '
+        'without probing the database', () async {
+      final parent = await Directory.systemTemp.createTemp('submersion2178');
+      addTearDown(() => parent.delete(recursive: true));
+      final moved = Directory(p.join(parent.path, 'renamed'))..createSync();
+      bookmarkResolvesTo(moved.path);
+
+      final service = await serviceWithCustomFolder(
+        p.join(parent.path, 'original'),
+      );
+      await prefs.setString('db_security_bookmark', base64Encode(<int>[1, 2]));
+
+      await service.restoreCustomLocationAccess(isBookmarkPlatform: true);
+
+      expect(bookmarkCalls, contains('resolveBookmark'));
+      expect(bookmarkCalls, isNot(contains('iCloudDownloadStatus')));
+      expect((await service.getStorageConfig()).customFolderPath, moved.path);
+    });
+
     // Only a stored path that is GONE is replaced. A folder that is still
     // where the diver put it stays the choice, whatever the bookmark says.
     test('a stored folder that still exists is never repointed', () async {
