@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers/global_test_defaults.dart';
 import 'helpers/late_bound_share_platform.dart';
+import 'helpers/test_timeouts.dart';
 
 /// Global test harness config, run once per entrypoint by `flutter test`.
 ///
@@ -15,7 +16,12 @@ import 'helpers/late_bound_share_platform.dart';
 /// means the harness defaults decide what every test sees, rather than
 /// whichever widget test happens to run first.
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  final binding = TestWidgetsFlutterBinding.ensureInitialized();
+  // testWidgets reads this when each test is declared, so it is set before
+  // testMain declares any.
+  if (binding is AutomatedTestWidgetsFlutterBinding) {
+    binding.defaultTestTimeout = const Timeout(testTimeLimit);
+  }
   applyGlobalTestDefaults();
   pinLateBoundSharePlatform();
   await testMain();
