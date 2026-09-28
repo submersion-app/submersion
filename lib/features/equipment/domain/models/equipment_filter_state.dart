@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 
@@ -64,6 +65,10 @@ class EquipmentFilterState {
   /// nothing.
   final EquipmentOwnerFilter owner;
 
+  /// The advanced part (#2365): a typed or built query, ANDed with every
+  /// axis above by `EquipmentFilterQuery.toQuery`.
+  final QueryNode? query;
+
   const EquipmentFilterState({
     this.status,
     this.serviceDue,
@@ -71,6 +76,7 @@ class EquipmentFilterState {
     this.attrConditions = const [],
     this.tagIds = const {},
     this.owner = EquipmentOwnerFilter.all,
+    this.query,
   }) : assert(
          !(serviceDue != null && status != null),
          'The status axis is a single choice: service due or a status, never '
@@ -84,7 +90,8 @@ class EquipmentFilterState {
       type != null ||
       attrConditions.isNotEmpty ||
       tagIds.isNotEmpty ||
-      owner != EquipmentOwnerFilter.all;
+      owner != EquipmentOwnerFilter.all ||
+      query != null;
 
   /// Whether the status axis is anything other than the default view.
   bool get hasStatusFilter => status != null || serviceDue != null;
@@ -159,10 +166,12 @@ class EquipmentFilterState {
     List<EquipmentAttrCondition>? attrConditions,
     Set<String>? tagIds,
     EquipmentOwnerFilter? owner,
+    QueryNode? query,
     bool clearStatus = false,
     bool clearType = false,
     bool clearAttrConditions = false,
     bool clearTagIds = false,
+    bool clearQuery = false,
   }) {
     final nextType = clearType ? null : (type ?? this.type);
     final categoryChanged = nextType != this.type;
@@ -177,6 +186,7 @@ class EquipmentFilterState {
       // Tags do not belong to the category, so a new one keeps them.
       tagIds: clearTagIds ? const {} : (tagIds ?? this.tagIds),
       owner: owner ?? this.owner,
+      query: clearQuery ? null : (query ?? this.query),
     );
   }
 
@@ -189,7 +199,8 @@ class EquipmentFilterState {
           other.type == type &&
           listEquals(other.attrConditions, attrConditions) &&
           setEquals(other.tagIds, tagIds) &&
-          other.owner == owner;
+          other.owner == owner &&
+          other.query == query;
 
   @override
   int get hashCode => Object.hash(
@@ -199,11 +210,12 @@ class EquipmentFilterState {
     Object.hashAll(attrConditions),
     Object.hashAllUnordered(tagIds),
     owner,
+    query,
   );
 
   @override
   String toString() =>
       'EquipmentFilterState(status: $status, serviceDue: $serviceDue, '
       'type: $type, attrConditions: $attrConditions, tagIds: $tagIds, '
-      'owner: $owner)';
+      'owner: $owner, query: $query)';
 }
