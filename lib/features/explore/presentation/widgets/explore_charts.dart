@@ -70,7 +70,9 @@ class _ExploreChartCard extends ConsumerWidget {
                       valueFormatter: (v) => switch (request.kind) {
                         ChartKind.depthTrend => units.formatDepth(v),
                         ChartKind.waterTempTrend => units.formatTemperature(v),
-                        ChartKind.bottomTimeTrend => '${v.round()} min',
+                        ChartKind.bottomTimeTrend => l10n.explore_value_minutes(
+                          v.round(),
+                        ),
                         _ => '${v.round()}',
                       },
                       yAxisFormatter: (v) => switch (request.kind) {

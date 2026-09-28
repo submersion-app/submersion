@@ -23,11 +23,12 @@ void main() {
     WidgetTester tester,
     List<ChartRequest> requests, {
     ExploreChartData data = const ExploreChartData(),
+    Locale locale = const Locale('en'),
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
-        locale: const Locale('en'),
+        locale: locale,
         overrides: [
           ...base,
           exploreChartDataProvider.overrideWith((ref, req) async => data),
@@ -94,5 +95,15 @@ void main() {
   testWidgets('no requests renders nothing', (tester) async {
     await pump(tester, const []);
     expect(find.byType(Card), findsNothing);
+  });
+
+  testWidgets('the bottom-time chart labels minutes in the diver language', (
+    tester,
+  ) async {
+    await pump(tester, [
+      const ChartRequest(ChartKind.bottomTimeTrend),
+    ], locale: const Locale('de'));
+    final chart = tester.widget<DiveTrendChart>(find.byType(DiveTrendChart));
+    expect(chart.valueFormatter!(45), '45 Min.');
   });
 }

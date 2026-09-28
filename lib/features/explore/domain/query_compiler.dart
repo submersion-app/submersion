@@ -349,12 +349,22 @@ abstract final class QueryCompiler {
           error: null,
         );
       case ExploreDiveField.rating:
-        if (lo == null) return _fail('invalid');
-        return (
-          filter: f.copyWith(minRating: lo.round()),
-          chip: chip,
-          error: null,
-        );
+        // The filter has only a minimum rating, so an upper bound is an
+        // exact condition in the query tree. Without it "between 3 and 4"
+        // and "exactly 4" would both match every rating from the lower bound
+        // up, while the chip claimed the range.
+        var next = lo == null ? f : f.copyWith(minRating: lo.round());
+        if (hi != null) {
+          next = _andQuery(
+            next,
+            ConditionNode(
+              FieldPath(['rating']),
+              QueryOp.lte,
+              NumberValue(hi, null),
+            ),
+          );
+        }
+        return (filter: next, chip: chip, error: null);
       default:
         return _fail('noAxis');
     }

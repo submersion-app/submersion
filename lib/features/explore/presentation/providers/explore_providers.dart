@@ -390,12 +390,15 @@ final exploreChartDataProvider =
               diverId: diverId,
               filter: filter,
             )).map((r) => (label: r.name, count: r.count)).toList(),
-            _ =>
+            MentionKind.site || MentionKind.place =>
               (await ref
                       .watch(exploreRepositoryProvider)
                       .diveCountBySite(filter, diverId: diverId))
                   .map((r) => (label: r.name, count: r.count))
                   .toList(),
+            // selectCharts only requests kRankedEntityKinds; anything else
+            // draws nothing rather than another kind's counts.
+            _ => const <({String label, int count})>[],
           };
           return ExploreChartData(bars: rows);
       }
