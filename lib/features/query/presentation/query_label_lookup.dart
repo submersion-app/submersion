@@ -253,6 +253,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_equipment_attributes;
     case 'query_equipment_brand':
       return l10n.query_equipment_brand;
+    case 'query_equipment_dives':
+      return l10n.query_equipment_dives;
     case 'query_equipment_model':
       return l10n.query_equipment_model;
     case 'query_equipment_name':
@@ -261,6 +263,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_equipment_serialNumber;
     case 'query_equipment_status':
       return l10n.query_equipment_status;
+    case 'query_equipment_tags':
+      return l10n.query_equipment_tags;
     case 'query_equipment_type':
       return l10n.query_equipment_type;
     case 'query_error_betweenNeedsTwo':

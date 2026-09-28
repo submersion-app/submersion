@@ -43560,6 +43560,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_equipment_brand => 'מותג';
 
   @override
+  String get query_equipment_dives => 'צלילות';
+
+  @override
   String get query_equipment_model => 'דגם';
 
   @override
@@ -43570,6 +43573,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_equipment_status => 'מצב';
+
+  @override
+  String get query_equipment_tags => 'תגיות';
 
   @override
   String get query_equipment_type => 'סוג';

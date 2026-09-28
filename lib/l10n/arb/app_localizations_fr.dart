@@ -44552,6 +44552,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_equipment_brand => 'Marque';
 
   @override
+  String get query_equipment_dives => 'Plongées';
+
+  @override
   String get query_equipment_model => 'Modèle';
 
   @override
@@ -44562,6 +44565,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get query_equipment_status => 'Statut';
+
+  @override
+  String get query_equipment_tags => 'Étiquettes';
 
   @override
   String get query_equipment_type => 'Type';

@@ -71194,6 +71194,12 @@ abstract class AppLocalizations {
   /// **'Brand'**
   String get query_equipment_brand;
 
+  /// Relation label in the query builder: the dives an item was used on
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get query_equipment_dives;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
@@ -71217,6 +71223,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Status'**
   String get query_equipment_status;
+
+  /// Relation label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get query_equipment_tags;
 
   /// Field label in the query builder
   ///

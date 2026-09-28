@@ -44149,6 +44149,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_equipment_brand => 'Merk';
 
   @override
+  String get query_equipment_dives => 'Duiken';
+
+  @override
   String get query_equipment_model => 'Model';
 
   @override
@@ -44159,6 +44162,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_equipment_status => 'Status';
+
+  @override
+  String get query_equipment_tags => 'Tags';
 
   @override
   String get query_equipment_type => 'Type';

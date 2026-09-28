@@ -72,6 +72,33 @@ final equipmentQueryEntity = QueryEntity(
       isMany: true,
       labelKey: 'query_equipment_attributes',
     ),
+    QueryRelation(
+      key: 'tags',
+      target: QuerySubject.tags,
+      shape: RelationShape.junction,
+      joinSql:
+          '{to}.id IN (SELECT j.tag_id FROM equipment_tags j '
+          'WHERE j.equipment_id = {from}.id)',
+      isMany: true,
+      labelKey: 'query_equipment_tags',
+      tables: ['equipment_tags'],
+    ),
+    // The dive gear union (`kDiveGearJoinSql`) read from the item's side:
+    // linked through dive_equipment, or a cylinder matched through
+    // dive_tanks.
+    QueryRelation(
+      key: 'dives',
+      target: QuerySubject.dives,
+      shape: RelationShape.custom,
+      joinSql:
+          '{to}.id IN (SELECT de.dive_id FROM dive_equipment de '
+          'WHERE de.equipment_id = {from}.id '
+          'UNION SELECT dt.dive_id FROM dive_tanks dt '
+          'WHERE dt.equipment_id = {from}.id)',
+      isMany: true,
+      labelKey: 'query_equipment_dives',
+      tables: ['dive_equipment', 'dive_tanks'],
+    ),
   ],
 );
 

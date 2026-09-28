@@ -41888,6 +41888,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_equipment_brand => '品牌';
 
   @override
+  String get query_equipment_dives => '潜水';
+
+  @override
   String get query_equipment_model => '型号';
 
   @override
@@ -41898,6 +41901,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_equipment_status => '状态';
+
+  @override
+  String get query_equipment_tags => '标签';
 
   @override
   String get query_equipment_type => '类型';

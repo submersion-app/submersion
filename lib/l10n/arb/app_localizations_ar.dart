@@ -44112,6 +44112,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_equipment_brand => 'العلامة التجارية';
 
   @override
+  String get query_equipment_dives => 'الغطسات';
+
+  @override
   String get query_equipment_model => 'الطراز';
 
   @override
@@ -44122,6 +44125,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_equipment_status => 'الحالة';
+
+  @override
+  String get query_equipment_tags => 'الوسوم';
 
   @override
   String get query_equipment_type => 'النوع';

@@ -44265,6 +44265,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_equipment_brand => 'Márka';
 
   @override
+  String get query_equipment_dives => 'Merülések';
+
+  @override
   String get query_equipment_model => 'Modell';
 
   @override
@@ -44275,6 +44278,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_equipment_status => 'Állapot';
+
+  @override
+  String get query_equipment_tags => 'Címkék';
 
   @override
   String get query_equipment_type => 'Típus';
