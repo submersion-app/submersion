@@ -430,8 +430,6 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
                         24,
                         textScaler: MediaQuery.textScalerOf(context),
                       );
-                final name = _nameController.text.trim();
-
                 return Column(
                   children: [
                     if (model != null) ...[
@@ -439,15 +437,25 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
                         key: figureKey,
                         child: Padding(
                           padding: const EdgeInsets.all(16),
-                          child: GearFigure(
-                            model: model,
-                            title: name.isEmpty
-                                ? context.l10n.equipment_setEdit_appBar_newTitle
-                                : name,
-                            selectedItemId: selectedFigureItemId,
-                            selectionSerial: figureSelectionSerial,
-                            onItemTap: (placed) =>
-                                selectFigureItem(placed.item.id),
+                          // Typing a name does not rebuild the page, so the
+                          // summary listens to the field itself.
+                          child: ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: _nameController,
+                            builder: (context, value, _) {
+                              final name = value.text.trim();
+                              return GearFigure(
+                                model: model,
+                                title: name.isEmpty
+                                    ? context
+                                          .l10n
+                                          .equipment_setEdit_appBar_newTitle
+                                    : name,
+                                selectedItemId: selectedFigureItemId,
+                                selectionSerial: figureSelectionSerial,
+                                onItemTap: (placed) =>
+                                    selectFigureItem(placed.item.id),
+                              );
+                            },
                           ),
                         ),
                       ),
