@@ -46,6 +46,7 @@ MissionMember _member(
   int order, {
   double sac = 15,
   int burn = 7200,
+  double speed = 0.5,
 }) => MissionMember(
   id: id,
   order: order,
@@ -54,7 +55,7 @@ MissionMember _member(
   swimSpeedMps: 0.2,
   scooter: ScooterSpec(
     name: 'S-$id',
-    ratedSpeedMps: 0.5,
+    ratedSpeedMps: speed,
     burnTimeSeconds: burn,
   ),
 );
@@ -94,6 +95,33 @@ class _OneTowerThrows extends MissionScenarioService {
 }
 
 const _brokenTower = 'a';
+
+/// Throws from every swim; tows and the rest are computed normally.
+class _SwimThrows extends MissionScenarioService {
+  const _SwimThrows();
+
+  @override
+  ExitOutcome evaluate({
+    required domain.DivePlan plan,
+    required DpvMission mission,
+    required int waypointIndex,
+    required String failedMemberId,
+    required MissionExitMode mode,
+    String? towerId,
+    MissionProfile? outbound,
+  }) {
+    if (mode == MissionExitMode.swim) throw StateError('unschedulable');
+    return super.evaluate(
+      plan: plan,
+      mission: mission,
+      waypointIndex: waypointIndex,
+      failedMemberId: failedMemberId,
+      mode: mode,
+      towerId: towerId,
+      outbound: outbound,
+    );
+  }
+}
 
 void main() {
   test("a teammate's gas binds a diver who could get out on their own", () {
@@ -261,5 +289,69 @@ void main() {
     expect(b.tow!.failed, isFalse);
     expect(b.tow!.towerId, 'c');
     expect(_outcomeOf(outcome, 'b').bindingFactor, MissionBindingFactor.ownGas);
+  });
+
+  test('a tow the current blocked outranks one whose computation failed', () {
+    // b's swim is blocked. a's tow of b throws; c's slower scooter tows at
+    // 0.4 x 0.6 = 0.24 m/s, which the 0.24 m/s current cancels. The blocked
+    // tow is a known cause; the failed one would hide it.
+    final outcome = const MissionEngine(scenarios: _OneTowerThrows()).compute(
+      plan: _plan(),
+      mission: DpvMission(
+        legs: const [
+          MissionLeg(
+            id: 'L1',
+            order: 0,
+            label: 'T',
+            distanceM: 300,
+            depthM: 20,
+            headingDeg: 0,
+          ),
+        ],
+        team: [_member('a', 0), _member('b', 1), _member('c', 2, speed: 0.4)],
+        defaultCurrent: const CurrentVector(speedMps: 0.24, setsTowardDeg: 0),
+      ),
+    );
+    final b = outcome.waypoints.single.members.firstWhere(
+      (m) => m.memberId == 'b',
+    );
+    expect(b.tow!.towerId, 'c');
+    expect(b.tow!.blockedByCurrent, isTrue);
+    expect(
+      _outcomeOf(outcome, 'b').bindingFactor,
+      MissionBindingFactor.blockedByCurrent,
+    );
+  });
+
+  test('a tow that ran and failed is named over a swim that threw', () {
+    // The battery case: a's tow of b makes headway but a's battery cannot
+    // pay for it. b's swim computation throws, which says nothing about the
+    // water; the tow's failure is known, so it is the reason.
+    final outcome = const MissionEngine(scenarios: _SwimThrows()).compute(
+      plan: _plan(),
+      mission: DpvMission(
+        legs: const [
+          MissionLeg(
+            id: 'L1',
+            order: 0,
+            label: 'T',
+            distanceM: 30,
+            depthM: 20,
+            headingDeg: 0,
+          ),
+        ],
+        team: [_member('a', 0, burn: 1100), _member('b', 1)],
+        defaultCurrent: const CurrentVector(speedMps: 0.24, setsTowardDeg: 0),
+      ),
+    );
+    final b = outcome.waypoints.single.members.firstWhere(
+      (m) => m.memberId == 'b',
+    );
+    expect(b.swim.failed, isTrue);
+    expect(b.tow!.batteryShortfallMemberIds, {'a'});
+    expect(
+      _outcomeOf(outcome, 'b').bindingFactor,
+      MissionBindingFactor.noFeasibleTow,
+    );
   });
 }

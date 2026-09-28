@@ -74,4 +74,20 @@ void main() {
     expect(member(_surface()).surface, _surface());
     expect(member(_surface()), isNot(member(null)));
   });
+
+  test('a failed exit knows no time', () {
+    const failed = ExitOutcome.failed(mode: MissionExitMode.tow, towerId: 'c');
+    expect(failed.failed, isTrue);
+    expect(failed.feasible, isFalse);
+    expect(failed.towerId, 'c');
+    expect(failed.exitLitersByMember, isEmpty);
+    expect(failed.knownExitSeconds, isNull);
+    expect(failed.knownTtsSeconds, isNull);
+  });
+
+  test('a computed exit reports its own times as known', () {
+    final surface = _surface();
+    expect(surface.knownExitSeconds, surface.exitSeconds);
+    expect(surface.knownTtsSeconds, surface.ttsSeconds);
+  });
 }

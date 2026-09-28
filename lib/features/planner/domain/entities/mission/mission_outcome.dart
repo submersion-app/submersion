@@ -40,6 +40,11 @@ enum MissionIssueType {
 
   /// A leg depth is negative or not a number. Carries the leg id.
   legDepthInvalid,
+
+  /// A member's swim speed, scooter speed or tow speed (rated speed times
+  /// tow factor) is above zero but below kMinSpeedOverGroundMps, so it can
+  /// make no headway even in still water. Carries the member id.
+  speedBelowHeadwayFloor,
   untraversableLeg,
   scenarioFailed,
 }

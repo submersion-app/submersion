@@ -213,14 +213,9 @@ class MissionEngine {
       // In open water the safe surface is the ascent alone, which does not
       // depend on whose scooter failed.
       final safeSurfaceSeconds = openWater
-          // A failed surface run knows no ascent time; its zero must not
-          // read as a safe surface reached at once.
-          ? members
-                .map((m) => m.surface)
-                .nonNulls
-                .where((s) => !s.failed)
-                .map((s) => s.ttsSeconds)
-                .firstOrNull
+          // A failed surface run knows no ascent time, so it has none to
+          // give; its zero must not read as a safe surface reached at once.
+          ? members.map((m) => m.surface?.knownTtsSeconds).nonNulls.firstOrNull
           : overheadSafeSurface;
       waypoints.add(
         WaypointOutcome(
@@ -320,15 +315,7 @@ class MissionEngine {
           memberId: member.id,
         ),
       );
-      return ExitOutcome(
-        mode: mode,
-        towerId: towerId,
-        feasible: false,
-        exitBottomSeconds: 0,
-        ttsSeconds: 0,
-        exitLitersByMember: const {},
-        failed: true,
-      );
+      return ExitOutcome.failed(mode: mode, towerId: towerId);
     }
   }
 
@@ -360,14 +347,7 @@ class MissionEngine {
           memberId: failedMemberId,
         ),
       );
-      return const ExitOutcome(
-        mode: MissionExitMode.surface,
-        feasible: false,
-        exitBottomSeconds: 0,
-        ttsSeconds: 0,
-        exitLitersByMember: {},
-        failed: true,
-      );
+      return const ExitOutcome.failed(mode: MissionExitMode.surface);
     }
   }
 
@@ -415,6 +395,10 @@ class MissionEngine {
     if (candidate.blockedByCurrent != current.blockedByCurrent) {
       return candidate.blockedByCurrent ? current : candidate;
     }
-    return candidate.exitSeconds < current.exitSeconds ? candidate : current;
+    final candidateSeconds = candidate.knownExitSeconds;
+    final currentSeconds = current.knownExitSeconds;
+    // Both failed: neither has a time to compare, so the first stands.
+    if (candidateSeconds == null || currentSeconds == null) return current;
+    return candidateSeconds < currentSeconds ? candidate : current;
   }
 }

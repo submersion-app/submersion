@@ -77,7 +77,34 @@ class ExitOutcome extends Equatable {
     this.failed = false,
   });
 
+  /// A way out whose computation threw: infeasible, with no time, gas or
+  /// shortfall known. Its times are zero and must not be read as times;
+  /// read [knownExitSeconds] and [knownTtsSeconds] instead.
+  const ExitOutcome.failed({required this.mode, this.towerId})
+    : feasible = false,
+      exitBottomSeconds = 0,
+      ttsSeconds = 0,
+      exitLitersByMember = const {},
+      gasShortfallMemberIds = const {},
+      batteryShortfallMemberIds = const {},
+      blockedByCurrent = false,
+      notDiveable = false,
+      surfaceSeconds = 0,
+      surfaceSwimM = null,
+      walkM = null,
+      viaShore = false,
+      surfaceLimitExceeded = false,
+      failed = true;
+
+  /// Total seconds of the way out. Zero, and meaningless, for a [failed]
+  /// exit; anything that ranks or reports exits reads [knownExitSeconds].
   int get exitSeconds => exitBottomSeconds + ttsSeconds + surfaceSeconds;
+
+  /// [exitSeconds], or null when the exit [failed] and no time is known.
+  int? get knownExitSeconds => failed ? null : exitSeconds;
+
+  /// [ttsSeconds], or null when the exit [failed] and no time is known.
+  int? get knownTtsSeconds => failed ? null : ttsSeconds;
 
   ExitOutcome copyWith({
     MissionExitMode? mode,
