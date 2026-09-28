@@ -1,9 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
+import 'package:submersion/features/cylinder_passports/data/services/passport_tag_io.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/nfc_availability_text.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_mobile_scanner.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -56,6 +62,9 @@ class PassportScanSheet extends ConsumerStatefulWidget {
 
 class _PassportScanSheetState extends ConsumerState<PassportScanSheet> {
   final _link = TextEditingController();
+  late final NfcTagService _nfc = ref.read(nfcTagServiceProvider);
+  bool _nfcReading = false;
+  String? _nfcError;
 
   /// The camera reports the same code many times a second; only the first
   /// may close the sheet, or a second pop would close the page under it.
@@ -63,6 +72,7 @@ class _PassportScanSheetState extends ConsumerState<PassportScanSheet> {
 
   @override
   void dispose() {
+    if (_nfcReading) unawaited(_nfc.cancel());
     _link.dispose();
     super.dispose();
   }
@@ -72,6 +82,36 @@ class _PassportScanSheetState extends ConsumerState<PassportScanSheet> {
     if (_done || value.isEmpty || !mounted) return;
     _done = true;
     Navigator.of(context).pop(value);
+  }
+
+  Future<void> _readNfc() async {
+    final l10n = context.l10n;
+    setState(() {
+      _nfcReading = true;
+      _nfcError = null;
+    });
+    try {
+      final result = await _nfc.withTag(
+        promptIos: l10n.passport_nfc_holdNear,
+        onTag: readPassportFrom,
+      );
+      if (!mounted) return;
+      switch (result) {
+        case TagReadText(:final text):
+          _finish(text);
+        case TagHasNoPassport():
+          setState(() => _nfcError = l10n.passport_tag_linkInvalid);
+        case TagReadFailed():
+          setState(() => _nfcError = l10n.passport_nfc_readFailed);
+      }
+    } on NfcSessionCancelled {
+      // The diver closed the system sheet: nothing to report.
+    } catch (e, stackTrace) {
+      _log.error('NFC read session failed', error: e, stackTrace: stackTrace);
+      if (mounted) setState(() => _nfcError = l10n.passport_nfc_readFailed);
+    } finally {
+      if (mounted) setState(() => _nfcReading = false);
+    }
   }
 
   Future<void> _paste() async {
@@ -97,6 +137,7 @@ class _PassportScanSheetState extends ConsumerState<PassportScanSheet> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final camera = ref.watch(passportCameraProvider);
+    final nfc = ref.watch(nfcSupportProvider).value;
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       child: Column(
@@ -120,6 +161,37 @@ class _PassportScanSheetState extends ConsumerState<PassportScanSheet> {
             Text(l10n.passport_scan_hint),
           ] else
             Text(l10n.passport_scan_cameraUnavailable),
+          if (nfcPlatform()) ...[
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              key: const Key('passportScan_nfc'),
+              icon: const Icon(Icons.nfc),
+              label: Text(
+                _nfcReading
+                    ? l10n.passport_nfc_holdNear
+                    : l10n.passport_nfc_tap,
+              ),
+              onPressed: nfc == NfcSupport.enabled && !_nfcReading
+                  ? _readNfc
+                  : null,
+            ),
+            if (nfcUnavailableReason(l10n, nfc) case final reason?)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  reason,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            if (_nfcError case final error?)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  error,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ),
+          ],
           const SizedBox(height: 12),
           TextField(
             key: const Key('passportScan_link'),

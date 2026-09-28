@@ -1,9 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ndef_record/ndef_record.dart';
+import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/passport_ndef.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/fake_nfc.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
@@ -15,9 +20,10 @@ void main() {
   Future<List<String?>> openSheet(
     WidgetTester tester, {
     required PassportCameraBuilder? camera,
+    FakeNfcTagService? nfc,
   }) async {
     final results = <String?>[];
-    final overrides = await getBaseOverrides();
+    final overrides = await getBaseOverrides(nfcTagService: nfc);
     await tester.pumpWidget(
       testApp(
         overrides: [
@@ -133,5 +139,71 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.byType(PassportScanSheet), findsOneWidget);
+  });
+
+  testWidgets('an NFC tap opens the tag it reads', (tester) async {
+    final nfc = FakeNfcTagService(
+      tag: FakeTagHandle(stored: NdefMessage(records: [uriRecord(tag)])),
+    );
+    final results = await openSheet(tester, camera: null, nfc: nfc);
+    await tester.tap(find.byKey(const Key('passportScan_nfc')));
+    await tester.pumpAndSettle();
+    expect(results, [tag]);
+  });
+
+  testWidgets('a tag with no passport says so', (tester) async {
+    final nfc = FakeNfcTagService(
+      tag: FakeTagHandle(
+        stored: NdefMessage(records: [uriRecord('https://example.com/')]),
+      ),
+    );
+    final results = await openSheet(tester, camera: null, nfc: nfc);
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportScanSheet)),
+    );
+    await tester.tap(find.byKey(const Key('passportScan_nfc')));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.passport_tag_linkInvalid), findsOneWidget);
+    expect(results, isEmpty);
+  });
+
+  testWidgets('NFC turned off explains itself', (tester) async {
+    await openSheet(
+      tester,
+      camera: null,
+      nfc: FakeNfcTagService(supportValue: NfcSupport.disabled),
+    );
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportScanSheet)),
+    );
+    final button = tester.widget<OutlinedButton>(
+      find.ancestor(
+        of: find.text(l10n.passport_nfc_tap),
+        matching: find.byType(OutlinedButton),
+      ),
+    );
+    expect(button.onPressed, isNull);
+    expect(find.text(l10n.passport_nfc_disabled), findsOneWidget);
+  });
+
+  testWidgets('closing the iOS sheet is quiet', (tester) async {
+    final results = await openSheet(
+      tester,
+      camera: null,
+      nfc: FakeNfcTagService(cancelled: true),
+    );
+    await tester.tap(find.byKey(const Key('passportScan_nfc')));
+    await tester.pumpAndSettle();
+    expect(results, isEmpty);
+    expect(find.byType(PassportScanSheet), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('desktop offers no NFC', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    await openSheet(tester, camera: null, nfc: FakeNfcTagService());
+    expect(find.byKey(const Key('passportScan_nfc')), findsNothing);
+    debugDefaultTargetPlatformOverride = null;
   });
 }
