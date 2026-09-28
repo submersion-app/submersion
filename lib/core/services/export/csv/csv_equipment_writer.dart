@@ -6,6 +6,7 @@ import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart'
 import 'package:submersion/core/services/export/csv/codec/csv_list_codec.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_text.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 /// Writes the equipment CSV. [write]'s `componentNames` maps an assembly's
@@ -76,7 +77,9 @@ class CsvEquipmentWriter {
         units.value(CsvColumns.dryWeight, item.weightKg),
         sanitizeCsvField(
           joinAttributePairs(
-            item.attributes
+            // A colour on a type without one is the diver's own field
+            // (issue #2520), so it exports as one.
+            keepStrayColorAsCustom(item.type, item.attributes)
                 .where(
                   (a) =>
                       a.hasValue &&

@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_with
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
+import 'package:submersion/features/equipment/figure/domain/figure_zone.dart';
 import 'package:submersion/features/equipment/figure/presentation/diver_figure.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
 import 'package:submersion/features/equipment/presentation/providers/assembly_snapshot_providers.dart';
@@ -112,6 +113,10 @@ void main() {
 
   testWidgets('a linked tank is drawn where its role puts it', (tester) async {
     await pump(tester, showFigure: true);
+    // The dive tank's sidemountLeft role wins over the tank's default back
+    // tank zone.
+    final model = tester.widget<DiverFigure>(find.byType(DiverFigure)).model;
+    expect(model.byId('tank')!.zone, FigureZone.sidemountLeft);
     // A sidemount tank labels on the back view; the wide layout shows both.
     expect(find.byKey(const ValueKey('figure-label-tank')), findsOneWidget);
   });
