@@ -957,6 +957,10 @@ class DatabaseService {
     // filesystem, so the swap is an atomic metadata operation rather than a
     // cross-device copy.
     final stagingPath = '$destinationPath.restore-staging';
+    // The folder can be gone: the startup "dive log not found" screen offers a
+    // restore into a configured folder that no longer exists (#2177). It is
+    // created here exactly as initialize() creates it for a new dive log.
+    await Directory(p.dirname(destinationPath)).create(recursive: true);
     await _deleteIfExists(stagingPath);
     try {
       await backupFile.copy(stagingPath);
@@ -1037,7 +1041,11 @@ class DatabaseService {
       // (the same lock that likely broke the swap above) must not skip the
       // reopen below and leave the app with no database until restart.
       await _bestEffortDelete(stagingPath);
-      await initialize();
+      // Reopen only what was there to put back. With no database at the path
+      // before the restore (one reached from the startup "dive log not
+      // found" screen), a reopen would create an empty one that the next
+      // launch opens as the diver's dive log (#2177).
+      if (hadDest) await initialize();
       rethrow;
     }
 
@@ -1088,7 +1096,8 @@ class DatabaseService {
         await _deleteIfExists(destinationPath);
       }
       await _commitIfNothingAside(journal);
-      await initialize();
+      // As in the swap rollback above: nothing was there, so nothing reopens.
+      if (hadDest) await initialize();
       rethrow;
     }
 

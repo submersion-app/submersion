@@ -43408,6 +43408,52 @@ class AppLocalizationsPt extends AppLocalizations {
       'A recuperação não foi concluída. Nada foi eliminado; ambos os ficheiros continuam neste dispositivo.';
 
   @override
+  String get startup_diveLogUnavailable_downloading =>
+      'A transferir o seu registo de mergulho do iCloud';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'O seu registo de mergulho ainda está no iCloud';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'O seu registo de mergulho em $folder está guardado no iCloud, mas ainda não está neste dispositivo e não foi possível transferi-lo. Está seguro no iCloud e nada foi alterado. Verifique a sua ligação à Internet, ou transfira-o na app Ficheiros ou no Finder, e tente novamente.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'O seu registo de mergulho não foi encontrado';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'O Submersion guarda o seu registo de mergulho em $folder, mas agora não existe nenhum $filename aí. Se essa pasta estiver numa unidade que não está ligada, ou numa pasta sincronizada que ainda não está atualizada, ligue-a ou sincronize-a e tente novamente. Nada foi criado nem alterado.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'Começar um novo registo nesta pasta';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'Apenas se o seu registo antigo se perdeu de vez. O novo começa vazio.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      'Começar um novo registo aqui?';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'É criado um registo de mergulho vazio em $folder. Se o seu registo antigo voltar mais tarde, por exemplo quando uma sincronização terminar, vai entrar em conflito com o novo.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm =>
+      'Começar novo registo';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Base de dados mais recente, guardada ao recuar - $size';
   }

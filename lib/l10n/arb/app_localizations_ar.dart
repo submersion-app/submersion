@@ -43080,6 +43080,51 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم تكتمل عملية الاسترداد. لم يُحذف أي شيء؛ لا يزال الملفان على هذا الجهاز.';
 
   @override
+  String get startup_diveLogUnavailable_downloading =>
+      'جارٍ تنزيل سجل الغوص من iCloud';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'سجل الغوص الخاص بك لا يزال في iCloud';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'سجل الغوص الخاص بك في $folder محفوظ في iCloud لكنه ليس على هذا الجهاز بعد، وتعذّر تنزيله. إنه آمن في iCloud ولم يتغير أي شيء. تحقق من اتصالك بالإنترنت، أو نزّله من تطبيق الملفات أو Finder، ثم حاول مرة أخرى.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'لم يتم العثور على سجل الغوص الخاص بك';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'يحفظ Submersion سجل الغوص الخاص بك في $folder، لكن لا يوجد ملف $filename هناك الآن. إذا كان هذا المجلد على محرك أقراص غير متصل، أو في مجلد متزامن لم يكتمل تزامنه بعد، فقم بتوصيله أو مزامنته ثم حاول مرة أخرى. لم يتم إنشاء أو تغيير أي شيء.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'بدء سجل غوص جديد في هذا المجلد';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'فقط إذا فُقد سجل الغوص القديم نهائيًا. يبدأ السجل الجديد فارغًا.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      'بدء سجل غوص جديد هنا؟';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'سيتم إنشاء سجل غوص فارغ في $folder. إذا عاد سجل الغوص القديم لاحقًا، على سبيل المثال عند انتهاء المزامنة، فسيتعارض مع السجل الجديد.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm => 'بدء سجل غوص جديد';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'قاعدة بيانات أحدث، محفوظة عند الرجوع - $size';
   }

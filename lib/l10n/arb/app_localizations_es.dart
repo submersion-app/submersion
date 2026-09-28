@@ -43441,6 +43441,52 @@ class AppLocalizationsEs extends AppLocalizations {
       'La recuperación no se completó. No se eliminó nada; ambos archivos siguen en este dispositivo.';
 
   @override
+  String get startup_diveLogUnavailable_downloading =>
+      'Descargando tu cuaderno de buceo de iCloud';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'Tu cuaderno de buceo sigue en iCloud';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'Tu cuaderno de buceo de $folder está guardado en iCloud, pero aún no está en este dispositivo y no se pudo descargar. Está a salvo en iCloud y no se ha cambiado nada. Comprueba tu conexión a internet o descárgalo en la app Archivos o en el Finder, y vuelve a intentarlo.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'No se encontró tu cuaderno de buceo';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'Submersion guarda tu cuaderno de buceo en $folder, pero ahora no hay ningún $filename allí. Si esa carpeta está en una unidad que no está conectada, o en una carpeta sincronizada que aún no se ha puesto al día, conéctala o sincronízala y vuelve a intentarlo. No se ha creado ni cambiado nada.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'Empezar un cuaderno nuevo en esta carpeta';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'Solo si tu cuaderno anterior se ha perdido para siempre. El nuevo empieza vacío.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      '¿Empezar un cuaderno nuevo aquí?';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'Se crea un cuaderno de buceo vacío en $folder. Si tu cuaderno anterior vuelve más adelante, por ejemplo cuando termine una sincronización, entrará en conflicto con el nuevo.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm =>
+      'Empezar cuaderno nuevo';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Base de datos más reciente, conservada al volver atrás - $size';
   }

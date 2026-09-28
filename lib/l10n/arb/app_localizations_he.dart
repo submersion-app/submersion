@@ -42541,6 +42541,52 @@ class AppLocalizationsHe extends AppLocalizations {
       'השחזור לא הושלם. שום דבר לא נמחק; שני הקבצים עדיין נמצאים במכשיר הזה.';
 
   @override
+  String get startup_diveLogUnavailable_downloading =>
+      'מוריד את יומן הצלילה שלכם מ-iCloud';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'יומן הצלילה שלכם עדיין ב-iCloud';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'יומן הצלילה שלכם בתיקייה $folder שמור ב-iCloud אבל עדיין לא נמצא במכשיר הזה, ולא ניתן היה להוריד אותו. הוא בטוח ב-iCloud ושום דבר לא שונה. בדקו את החיבור לאינטרנט, או הורידו אותו באפליקציה \'קבצים\' או ב-Finder, ואז נסו שוב.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'יומן הצלילה שלכם לא נמצא';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'Submersion שומר את יומן הצלילה שלכם בתיקייה $folder, אבל אין שם עכשיו קובץ $filename. אם התיקייה נמצאת בכונן שאינו מחובר, או בתיקייה מסונכרנת שעדיין לא התעדכנה, חברו או סנכרנו אותה ונסו שוב. שום דבר לא נוצר ולא שונה.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'התחלת יומן צלילה חדש בתיקייה הזו';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'רק אם יומן הצלילה הישן אבד לתמיד. היומן החדש מתחיל ריק.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      'להתחיל כאן יומן צלילה חדש?';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'ייווצר יומן צלילה ריק בתיקייה $folder. אם יומן הצלילה הישן יחזור מאוחר יותר, למשל בסיום סנכרון, הוא יתנגש עם היומן החדש.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm =>
+      'התחלת יומן צלילה חדש';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'מסד נתונים חדש יותר, נשמר בעת החזרה - $size';
   }
