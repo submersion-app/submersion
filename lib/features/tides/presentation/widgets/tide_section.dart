@@ -168,11 +168,11 @@ class _TideSectionContent extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final settings = ref.watch(settingsProvider);
     final statusAsync = ref.watch(currentTideStatusProvider(location));
-    final predictionsAsync = ref.watch(tidePredictionsProvider(location));
-    final extremesAsync = ref.watch(tideExtremesProvider(location));
-    // Providers compute with real instants; everything absolute on screen
-    // is shown in the site's wall clock. CurrentTideIndicator keeps the
-    // real status because it only shows durations from the real now.
+    final predictionsAsync = ref.watch(tidePredictionsAtSiteProvider(location));
+    final extremesAsync = ref.watch(tideExtremesAtSiteProvider(location));
+    // Predictions and extremes arrive in the site's wall clock; now must
+    // match. CurrentTideIndicator keeps the real status because it only
+    // shows durations from the real now.
     final siteNow = siteWallClock(DateTime.now(), location);
 
     return Card(
@@ -245,7 +245,7 @@ class _TideSectionContent extends ConsumerWidget {
                   extremesAsync.when(
                     data: (extremes) => _buildChartTimeRange(
                       context,
-                      extremesAtSiteWallClock(extremes, location),
+                      extremes,
                       siteNow,
                       settings.timeFormat,
                       settings.dateFormat,
@@ -263,22 +263,16 @@ class _TideSectionContent extends ConsumerWidget {
                   }
                   return extremesAsync.when(
                     data: (extremes) => TideChart(
-                      predictions: predictionsAtSiteWallClock(
-                        predictions,
-                        location,
-                      ),
+                      predictions: predictions,
                       now: siteNow,
-                      extremes: extremesAtSiteWallClock(extremes, location),
+                      extremes: extremes,
                       height: 180,
                       timeFormat: settings.timeFormat,
                       depthUnit: settings.depthUnit,
                       dateFormat: settings.dateFormat,
                     ),
                     loading: () => TideChart(
-                      predictions: predictionsAtSiteWallClock(
-                        predictions,
-                        location,
-                      ),
+                      predictions: predictions,
                       now: siteNow,
                       height: 180,
                       timeFormat: settings.timeFormat,
@@ -286,10 +280,7 @@ class _TideSectionContent extends ConsumerWidget {
                       dateFormat: settings.dateFormat,
                     ),
                     error: (_, _) => TideChart(
-                      predictions: predictionsAtSiteWallClock(
-                        predictions,
-                        location,
-                      ),
+                      predictions: predictions,
                       now: siteNow,
                       height: 180,
                       timeFormat: settings.timeFormat,
@@ -338,7 +329,7 @@ class _TideSectionContent extends ConsumerWidget {
                     );
                   }
                   return TideTimesTable(
-                    extremes: extremesAtSiteWallClock(extremes, location),
+                    extremes: extremes,
                     now: siteNow,
                     maxItems: 4,
                     showPast: false,

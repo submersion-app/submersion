@@ -69,7 +69,7 @@ finer grid, so the asset format and the reader must change together.
 3. Vendor the CC0 `tz-lookup` quadtree decoder and data rather than taking a
    pub dependency.
 4. Coastal layer at 0.1 degree (about 11 km) within 30 km of any non-ocean
-   cell, plus a 1-degree global layer. About 58 MB of assets, replacing
+   cell, plus a 1-degree global layer. About 54 MB of assets, replacing
    today's 70 MB.
 
 ## Part 1: Site time
@@ -178,7 +178,7 @@ are replaced by a directory `assets/data/tide/fes/`:
 - `coastal/tile_<row>_<col>.bin`: the 0.1-degree coastal layer over latitude
   -80 to 80 and longitude -180 to 180 (wrapping), cut into 100 by 100 cell
   tiles indexed from the south-west corner. Only tiles containing at least
-  one coastal cell are written: 393 of 612. About 52 MB.
+  one coastal cell are written: 351 of 612. About 48 MB.
 
 `pubspec.yaml` lists the new asset directories. The NOAA station index asset
 is unaffected.
@@ -194,6 +194,11 @@ definition every sampled dive site has all four surrounding cells in the band
 except Sipadan and the Belize Blue Hole (two of four) and the Maldives (none;
 atolls are below the mask's resolution, so the global layer answers there,
 where open-ocean tides vary slowly).
+
+Lake cells (mask class 3) are never stored, in either layer. FES2022 gives
+them zero amplitudes rather than no data; stored, they would chart a flat
+tide on lakes and pull neighbouring coastal cells toward zero during
+interpolation.
 
 ### Cell encoding
 

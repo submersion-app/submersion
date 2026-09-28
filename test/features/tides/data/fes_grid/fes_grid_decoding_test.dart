@@ -92,6 +92,20 @@ void main() {
       expect(edge.cellAt(0, 3)!.amplitudeMeters(0), closeTo(1.4 + 0.719, 1e-9));
     });
 
+    test('a corrupt per-row count is rejected', () {
+      // Tile (0,0): 16-byte header, 2-byte bitmap, then one uint32 per row.
+      // Row 1 truly starts after 3 populated cells; claim 99.
+      final bytes = Uint8List.fromList(
+        File(p.join(_root, FesGridManifest.tilePath(0, 0))).readAsBytesSync(),
+      );
+      ByteData.sublistView(bytes).setUint32(22, 99, Endian.little);
+      expect(
+        () =>
+            FesTile.parse(ByteData.sublistView(bytes), expectedConstituents: 2),
+        throwsFormatException,
+      );
+    });
+
     test('malformed bytes are rejected', () {
       expect(
         () => FesTile.parse(ByteData(8), expectedConstituents: 2),

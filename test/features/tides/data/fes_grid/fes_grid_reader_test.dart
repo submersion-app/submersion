@@ -100,6 +100,44 @@ void main() {
     },
   );
 
+  test(
+    'a tile with a corrupt row count falls back instead of throwing',
+    () async {
+      ByteData corrupt() {
+        final bytes = Uint8List.fromList(
+          File(p.join(_root, 'coastal', 'tile_0_0.bin')).readAsBytesSync(),
+        );
+        ByteData.sublistView(bytes).setUint32(22, 99, Endian.little);
+        return ByteData.sublistView(bytes);
+      }
+
+      final sample = await _reader(
+        replace: {'coastal/tile_0_0.bin': corrupt},
+      ).sampleAt(10.25, -179.75);
+      expect(sample!.resolutionKm, closeTo(555.975, 0.01));
+    },
+  );
+
+  test('the tile cache is bounded, evicting the least recently used', () async {
+    Future<int> tile00Loads(int maxCachedTiles) async {
+      var loads = 0;
+      final reader = FesGridReader(
+        maxCachedTiles: maxCachedTiles,
+        load: (relative) {
+          if (relative == 'coastal/tile_0_0.bin') loads++;
+          return _fileLoader(relative);
+        },
+      );
+      await reader.sampleAt(10.0, -180.0); // tile 0_0
+      await reader.sampleAt(12.0, -180.0); // tile 1_0
+      await reader.sampleAt(10.0, -180.0); // tile 0_0 again
+      return loads;
+    }
+
+    expect(await tile00Loads(1), 2);
+    expect(await tile00Loads(2), 1);
+  });
+
   test('a malformed manifest yields no data', () async {
     final reader = _reader(
       replace: {

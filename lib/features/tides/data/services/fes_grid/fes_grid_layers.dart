@@ -94,7 +94,7 @@ class FesTile {
     }
     final expectedLength =
         tile._cellsOffset +
-        tile._populatedCount() * count * fesBytesPerConstituent;
+        tile._validatedPopulatedCount() * count * fesBytesPerConstituent;
     if (data.lengthInBytes != expectedLength) {
       throw const FormatException('FES tile length does not match its bitmap');
     }
@@ -104,14 +104,20 @@ class FesTile {
   bool _isSet(int bit) =>
       ((_data.getUint8(_headerBytes + (bit >> 3)) >> (bit & 7)) & 1) == 1;
 
-  int _populatedCount() {
-    if (rows == 0) return 0;
-    var count = _data.getUint32(
-      _rowCountsOffset + (rows - 1) * 4,
-      Endian.little,
-    );
-    for (var bit = (rows - 1) * cols; bit < rows * cols; bit++) {
-      if (_isSet(bit)) count++;
+  /// Walks the bitmap once, checking each row's stored count of populated
+  /// cells before it against the running total, and returns the total.
+  /// cellAt trusts these counts for its offsets, so a wrong one must be
+  /// rejected here rather than read past the buffer later.
+  int _validatedPopulatedCount() {
+    var count = 0;
+    for (var row = 0; row < rows; row++) {
+      final stored = _data.getUint32(_rowCountsOffset + row * 4, Endian.little);
+      if (stored != count) {
+        throw FormatException('FES tile row $row count is $stored, not $count');
+      }
+      for (var bit = row * cols; bit < (row + 1) * cols; bit++) {
+        if (_isSet(bit)) count++;
+      }
     }
     return count;
   }

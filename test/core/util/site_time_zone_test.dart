@@ -139,6 +139,23 @@ void main() {
       );
     });
 
+    test('a converter resolved once matches per-call conversion', () {
+      final toSite = SiteTimeZone.wallClockConverterFor(
+        monterey.$1,
+        monterey.$2,
+      );
+      for (final instant in [
+        DateTime.utc(2026, 1, 15, 18),
+        DateTime.utc(2026, 7, 15, 17),
+        DateTime.utc(2026, 11, 1, 9, 30),
+      ]) {
+        expect(
+          toSite(instant),
+          SiteTimeZone.wallClockFromInstant(instant, monterey.$1, monterey.$2),
+        );
+      }
+    });
+
     test('a zone missing from tzdata falls back to the longitude zone', () {
       SiteTimeZone.debugZoneIdOverride = (_, _) => 'Nope/Zone';
       // Longitude -68.27 rounds to 5 hours west: Etc/GMT+5.

@@ -39,6 +39,7 @@ COASTAL_STEP = 3  # native cells per coastal cell: 0.1 degree
 GLOBAL_STEP = 30  # native cells per global cell: 1 degree
 BAND_STEPS = 8  # 4-neighbour native steps from non-ocean: about 30 km
 TILE = 100
+LAKE = 3  # FES2022B mask class for lakes: zero amplitudes, not tide data
 
 FILE_NAMES = {
     "M2": "m2", "S2": "s2", "N2": "n2", "K2": "k2", "2N2": "2n2",
@@ -89,8 +90,11 @@ def load(fes_dir, name):
     return amp, ph
 
 
-def coastal_band(fes_dir):
-    mask = np.ma.filled(nc.Dataset(fes_dir / "mask_fes2022B.nc")["mask"][:], 2)
+def load_mask(fes_dir):
+    return np.ma.filled(nc.Dataset(fes_dir / "mask_fes2022B.nc")["mask"][:], 2)
+
+
+def coastal_band(mask):
     band = mask != 0  # extrapolated, land and lake cells seed the band
     for _ in range(BAND_STEPS):
         band = (band | np.roll(band, 1, 0) | np.roll(band, -1, 0)
@@ -148,8 +152,13 @@ def extract(fes_dir):
                 vectors[site][name] = value
         del amp, ph
 
-    present_c = np.isfinite(amp_c[:, :, 0]) & coastal_band(fes_dir)[np.ix_(li_c, lo_c)]
-    amp_g[~np.isfinite(amp_g[:, :, 0])] = np.nan
+    mask = load_mask(fes_dir)
+    # Lake cells hold zero amplitudes: storing them would chart a flat "tide"
+    # on lakes and pull neighbouring coastal cells toward zero.
+    present_c = (np.isfinite(amp_c[:, :, 0])
+                 & coastal_band(mask)[np.ix_(li_c, lo_c)]
+                 & (mask[np.ix_(li_c, lo_c)] != LAKE))
+    amp_g[~np.isfinite(amp_g[:, :, 0]) | (mask[np.ix_(li_g, lo_g)] == LAKE)] = np.nan
     return amp_c, ph_c, present_c, amp_g, ph_g, vectors
 
 

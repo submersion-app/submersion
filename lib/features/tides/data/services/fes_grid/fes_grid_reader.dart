@@ -19,7 +19,7 @@ class FesGridSample {
 
 /// Reads the bundled FES2022 grid: the 0.1-degree coastal tiles first, the
 /// 1-degree global layer when no coastal corner has data, else nothing.
-/// Tiles load on demand and stay cached for the reader's lifetime. Every
+/// Tiles load on demand into a small least-recently-used cache. Every
 /// failure (missing or malformed file) degrades to the next layer and is
 /// logged; nothing throws to the caller.
 class FesGridReader {
@@ -28,10 +28,17 @@ class FesGridReader {
   final Future<ByteData> Function(String relativePath) _load;
   Future<FesGridManifest?>? _manifest;
   Future<FesGlobalLayer?>? _global;
+  final int _maxCachedTiles;
+
+  /// Insertion-ordered, oldest first: a hit is moved to the end, and the
+  /// front is evicted past [_maxCachedTiles] (a tile is up to about 1 MB).
   final Map<(int, int), Future<FesTile?>> _tiles = {};
 
-  FesGridReader({required Future<ByteData> Function(String relativePath) load})
-    : _load = load;
+  FesGridReader({
+    required Future<ByteData> Function(String relativePath) load,
+    int maxCachedTiles = 16,
+  }) : _load = load,
+       _maxCachedTiles = maxCachedTiles;
 
   factory FesGridReader.bundled() => FesGridReader(
     load: (relative) => rootBundle.load('$bundledRoot/$relative'),
@@ -42,25 +49,37 @@ class FesGridReader {
   Future<FesGridSample?> sampleAt(double latitude, double longitude) async {
     final m = await manifest();
     if (m == null) return null;
+    return await _sampleLayer(
+          m,
+          m.coastal,
+          () => _coastalCorners(m, latitude, longitude),
+        ) ??
+        await _sampleLayer(
+          m,
+          m.global,
+          () => _globalCorners(m, latitude, longitude),
+        );
+  }
 
-    final coastal = await _coastalCorners(m, latitude, longitude);
-    final fromCoastal = _interpolate(m.constituents, coastal);
-    if (fromCoastal != null) {
+  /// One layer's sample, or null when it has no data here. Any read error
+  /// (a tile that parsed but still reads out of range) counts as no data,
+  /// so the caller falls through to the next layer instead of failing.
+  Future<FesGridSample?> _sampleLayer(
+    FesGridManifest m,
+    FesLayerGeometry layer,
+    Future<List<(FesCell, double)>> Function() corners,
+  ) async {
+    try {
+      final constituents = _interpolate(m.constituents, await corners());
+      if (constituents == null) return null;
       return FesGridSample(
-        constituents: fromCoastal,
-        resolutionKm: m.coastal.resolutionKm,
+        constituents: constituents,
+        resolutionKm: layer.resolutionKm,
       );
+    } catch (e) {
+      developer.log('FES grid read failed: $e', name: 'FesGridReader');
+      return null;
     }
-
-    final global = await _globalCorners(m, latitude, longitude);
-    final fromGlobal = _interpolate(m.constituents, global);
-    if (fromGlobal != null) {
-      return FesGridSample(
-        constituents: fromGlobal,
-        resolutionKm: m.global.resolutionKm,
-      );
-    }
-    return null;
   }
 
   Future<FesGridManifest?> _loadManifest() async {
@@ -78,7 +97,10 @@ class FesGridReader {
   }
 
   Future<FesTile?> _tile(FesGridManifest m, int tileRow, int tileCol) {
-    return _tiles[(tileRow, tileCol)] ??= () async {
+    final key = (tileRow, tileCol);
+    final cached = _tiles.remove(key);
+    if (cached != null) return _tiles[key] = cached;
+    final loading = _tiles[key] = () async {
       try {
         final data = await _load(FesGridManifest.tilePath(tileRow, tileCol));
         return FesTile.parse(data, expectedConstituents: m.constituents.length);
@@ -90,6 +112,10 @@ class FesGridReader {
         return null;
       }
     }();
+    while (_tiles.length > _maxCachedTiles) {
+      _tiles.remove(_tiles.keys.first);
+    }
+    return loading;
   }
 
   Future<FesGlobalLayer?> _globalLayer(FesGridManifest m) {

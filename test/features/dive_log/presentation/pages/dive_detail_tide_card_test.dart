@@ -10,10 +10,10 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-
-import '../../../../helpers/mock_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+
+import '../../../../helpers/mock_providers.dart';
 
 // The dive's stored tide record carries wall-clock-as-UTC instants: the digits
 // the diver saw, flagged UTC. The tide card must print them verbatim -- a

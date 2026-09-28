@@ -15,6 +15,7 @@ import 'package:submersion/features/tides/data/services/tide_constituent_resolve
 import 'package:submersion/features/tides/data/services/tide_data_service.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/tides/domain/services/tide_record_heal.dart';
+import 'package:submersion/features/tides/domain/services/site_wall_clock.dart';
 import 'package:submersion/features/tides/domain/services/tide_status_for_dive.dart';
 
 /// Provider for the [TideDataService] singleton.
@@ -44,6 +45,7 @@ final tideRecordForDiveProvider = FutureProvider.family<TideRecord?, String>((
 /// a fresh computation beyond the heal thresholds it is overwritten and
 /// the new record returned. Converges: post-fix records match the fresh
 /// computation and are never rewritten.
+/// Returns null when the site has coordinates but no tide data resolves.
 final healedTideRecordProvider =
     FutureProvider.family<
       TideRecord?,
@@ -62,7 +64,9 @@ final healedTideRecordProvider =
       final resolved = await ref.watch(
         resolvedTideDataProvider(location).future,
       );
-      if (resolved == null) return stored;
+      // No tide data here: the record can be neither healed nor verified,
+      // and records from before the site-time fix would display shifted.
+      if (resolved == null) return null;
 
       // entryTime is the dive's wall clock; the engine needs the instant.
       final status = await tideStatusForDive(
@@ -220,6 +224,27 @@ final tideExtremesProvider = FutureProvider.family<List<TideExtreme>, GeoPoint>(
     );
   },
 );
+
+/// [tidePredictionsProvider] with times in the site's wall clock, for
+/// display. Absolute times on screen come from this, never from the
+/// instant provider directly.
+final tidePredictionsAtSiteProvider =
+    FutureProvider.family<List<TidePrediction>, GeoPoint>((
+      ref,
+      location,
+    ) async {
+      final predictions = await ref.watch(
+        tidePredictionsProvider(location).future,
+      );
+      return predictionsAtSiteWallClock(predictions, location);
+    });
+
+/// [tideExtremesProvider] with times in the site's wall clock, for display.
+final tideExtremesAtSiteProvider =
+    FutureProvider.family<List<TideExtreme>, GeoPoint>((ref, location) async {
+      final extremes = await ref.watch(tideExtremesProvider(location).future);
+      return extremesAtSiteWallClock(extremes, location);
+    });
 
 /// Provider for tide extremes over a custom time range.
 ///

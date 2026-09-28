@@ -117,4 +117,32 @@ void main() {
     expect(repository.writes, 0);
     expect(result!.id, 'correct');
   });
+
+  test(
+    'a record that cannot be verified at a site without data is hidden',
+    () async {
+      // Written by the pre-fix path; with no tide data here it can be neither
+      // healed nor trusted, and mapping it to site time would double its shift.
+      final stale = TideRecord.fromStatus(
+        id: 'stale',
+        diveId: 'd1',
+        status: _calculator.getStatus(_entryWallClock),
+      );
+      final repository = _FakeTideRecordRepository(stale);
+      final container = ProviderContainer(
+        overrides: [
+          diveRepositoryProvider.overrideWithValue(_FakeDiveRepository()),
+          tideRecordRepositoryProvider.overrideWithValue(repository),
+          resolvedTideDataProvider(_bonaire).overrideWith((ref) async => null),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      expect(
+        await container.read(healedTideRecordProvider(_key).future),
+        isNull,
+      );
+      expect(repository.writes, 0);
+    },
+  );
 }

@@ -5,6 +5,7 @@ import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import 'package:submersion/core/util/tz_lookup_data.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 
 /// Offline mapping from a coordinate to its local clock.
 ///
@@ -20,6 +21,7 @@ abstract final class SiteTimeZone {
   debugZoneIdOverride;
 
   static final Set<String> _loggedMissingZones = {};
+  static bool _fullDatabaseLoaded = false;
 
   /// The UTC instant at which the site's clocks show [wallClock]'s digits.
   ///
@@ -56,38 +58,47 @@ abstract final class SiteTimeZone {
     DateTime instant,
     double latitude,
     double longitude,
+  ) => wallClockConverterFor(latitude, longitude)(instant);
+
+  /// [wallClockFromInstant] with the site's zone resolved once, for mapping
+  /// many instants at the same coordinate. The closure keeps only the
+  /// resolved location.
+  static DateTime Function(DateTime instant) wallClockConverterFor(
+    double latitude,
+    double longitude,
   ) {
-    final local = tz.TZDateTime.from(
-      instant,
-      _locationFor(latitude, longitude),
-    );
-    return DateTime.utc(
-      local.year,
-      local.month,
-      local.day,
-      local.hour,
-      local.minute,
-      local.second,
-      local.millisecond,
-    );
+    final location = _locationFor(latitude, longitude);
+    return (instant) => asWallClockUtc(tz.TZDateTime.from(instant, location));
   }
 
   static tz.Location _locationFor(double latitude, double longitude) {
-    // Initializing resets tz.local, so never re-initialize a database the
-    // notification service already loaded.
-    if (!tz.timeZoneDatabase.isInitialized) tzdata.initializeTimeZones();
     final id = (debugZoneIdOverride ?? zoneIdFor)(latitude, longitude);
-    try {
-      return tz.getLocation(id);
-    } on tz.LocationNotFoundException {
-      if (_loggedMissingZones.add(id)) {
-        developer.log(
-          'Zone $id is missing from tzdata; using the longitude offset',
-          name: 'SiteTimeZone',
-        );
-      }
-      return tz.getLocation(etcZoneForLongitude(longitude));
+    return _find(id) ?? _find(etcZoneForLongitude(longitude)) ?? tz.UTC;
+  }
+
+  /// Looks [id] up. Another caller may have loaded a tzdata subset, so a
+  /// miss loads the full database once. Loading resets `tz.local`, so the
+  /// caller's local zone is restored afterwards.
+  static tz.Location? _find(String id) {
+    if (!tz.timeZoneDatabase.isInitialized) {
+      tzdata.initializeTimeZones();
+      _fullDatabaseLoaded = true;
     }
+    final found = tz.timeZoneDatabase.locations[id];
+    if (found != null) return found;
+    if (!_fullDatabaseLoaded) {
+      final previousLocal = tz.local.name;
+      tzdata.initializeTimeZones();
+      _fullDatabaseLoaded = true;
+      final restored = tz.timeZoneDatabase.locations[previousLocal];
+      if (restored != null) tz.setLocalLocation(restored);
+      final retried = tz.timeZoneDatabase.locations[id];
+      if (retried != null) return retried;
+    }
+    if (_loggedMissingZones.add(id)) {
+      developer.log('Zone $id is missing from tzdata', name: 'SiteTimeZone');
+    }
+    return null;
   }
 
   /// IANA zone id for the coordinate. Never throws: open ocean yields an

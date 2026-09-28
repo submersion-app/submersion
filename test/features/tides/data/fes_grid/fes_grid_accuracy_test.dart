@@ -56,6 +56,13 @@ void main() {
     },
   );
 
+  test('lakes carry no model data, not a flat zero tide', () async {
+    // FES2022 marks lakes (mask class 3) with zero amplitudes; stored as
+    // data they would chart a flat tide and damp neighbouring coastal cells.
+    expect(await reader.sampleAt(43.5, -87.0), isNull); // Lake Michigan
+    expect(await reader.sampleAt(42.0, 50.5), isNull); // Caspian Sea
+  });
+
   test('a salt-water site geocoded deep inland has no model data', () async {
     expect(await reader.sampleAt(23.0, 12.0), isNull); // central Sahara
   });
