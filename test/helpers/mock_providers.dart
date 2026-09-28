@@ -4,6 +4,8 @@ import 'package:http/testing.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
@@ -697,6 +699,7 @@ Future<List<Override>> getBaseOverrides({
   List<TankPresetEntity>? tankPresets,
   NavTrack? primaryNavTrack,
   IncomingLinkSource? incomingLinks,
+  NfcTagService? nfcTagService,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -709,6 +712,10 @@ Future<List<Override>> getBaseOverrides({
     // Widget tests of the app root must never reach the app_links channel.
     incomingLinkSourceProvider.overrideWithValue(
       incomingLinks ?? const NoIncomingLinks(),
+    ),
+    // Widget tests never reach the NFC plugin.
+    nfcTagServiceProvider.overrideWithValue(
+      nfcTagService ?? const UnsupportedNfcTagService(),
     ),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     // The Dives app-bar data-quality badge watches a live Drift stream; stub
