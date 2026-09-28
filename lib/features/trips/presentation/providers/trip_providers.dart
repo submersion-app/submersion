@@ -1,6 +1,7 @@
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/text/text_sort.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -10,10 +11,11 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/query/trip_filter_query.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
@@ -22,18 +24,37 @@ import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 class TripFilterState {
   final String? equipmentId;
 
-  const TripFilterState({this.equipmentId});
+  /// The advanced part (#2365): a typed or built query, ANDed with the
+  /// equipment axis by `TripFilterQuery.toQuery`.
+  final QueryNode? query;
 
-  bool get hasActiveFilters => equipmentId != null;
+  const TripFilterState({this.equipmentId, this.query});
+
+  bool get hasActiveFilters => equipmentId != null || query != null;
 
   TripFilterState copyWith({
     String? equipmentId,
+    QueryNode? query,
     bool clearEquipmentId = false,
+    bool clearQuery = false,
   }) {
     return TripFilterState(
       equipmentId: clearEquipmentId ? null : (equipmentId ?? this.equipmentId),
+      query: clearQuery ? null : (query ?? this.query),
     );
   }
+
+  // Value equality, so the id-set family reuses its instance for an equal
+  // filter.
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TripFilterState &&
+          other.equipmentId == equipmentId &&
+          other.query == query;
+
+  @override
+  int get hashCode => Object.hash(equipmentId, query);
 }
 
 /// Trip filter state provider
@@ -78,26 +99,15 @@ final allTripsWithStatsProvider = FutureProvider<List<TripWithStats>>((
   return repository.getAllTripsWithStats(diverId: validatedDiverId);
 });
 
-/// Helper provider for async equipment filtering
-final _equipmentFilteredTripsProvider =
-    FutureProvider.family<List<TripWithStats>, String>((
-      ref,
-      equipmentId,
-    ) async {
-      final tripsAsync = ref.watch(tripListNotifierProvider);
-      if (!tripsAsync.hasValue) return [];
-
-      final trips = tripsAsync.value!;
-      // Constructed directly rather than read from equipmentRepositoryProvider:
-      // equipment_providers.dart imports this file, so reaching for its
-      // provider here would close an import cycle.
-      final equipmentRepository = EquipmentRepository();
-      ref.invalidateSelfWhen(equipmentRepository.watchEquipmentChanges());
-      final tripIds = await equipmentRepository.getTripIdsForEquipment(
-        equipmentId,
-      );
-      final tripIdSet = tripIds.toSet();
-      return trips.where((t) => tripIdSet.contains(t.trip.id)).toList();
+/// The ids the trip filter selects, from the compiled query (#2365). Keyed
+/// on the filter's value; a write to any table the query read refreshes it
+/// in place.
+final queryFilteredTripIdsProvider = FutureProvider.autoDispose
+    .family<Set<String>, TripFilterState>((ref, filter) async {
+      final runner = ref.watch(queryIdSetRunnerProvider);
+      final compiled = compileTripFilter(filter);
+      ref.invalidateSelfWhen(runner.watchTables(compiled.tablesTouched));
+      return runner.ids(compiled);
     });
 
 /// Filtered trips provider - applies current filter to trip list.
@@ -123,12 +133,18 @@ final filteredTripsProvider = Provider<AsyncValue<List<TripWithStats>>>((ref) {
     return AsyncValue.data(trips);
   }
 
-  // If filtering by equipment, delegate to async family provider
-  if (filter.equipmentId != null) {
-    return ref.watch(_equipmentFilteredTripsProvider(filter.equipmentId!));
+  // Every axis narrows through the compiled query. A failed refresh is an
+  // error even with a previous set (PR 1); a refresh in flight keeps it.
+  final idsAsync = ref.watch(queryFilteredTripIdsProvider(filter));
+  if (idsAsync.hasError) {
+    return AsyncValue.error(idsAsync.error!, idsAsync.stackTrace!);
   }
-
-  return AsyncValue.data(trips);
+  final ids = idsAsync.value;
+  if (ids == null) return const AsyncValue.loading();
+  return AsyncValue.data([
+    for (final t in trips)
+      if (ids.contains(t.trip.id)) t,
+  ]);
 });
 
 /// Trip sort state provider
