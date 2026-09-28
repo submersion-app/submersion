@@ -9,6 +9,184 @@ class AppLocalizationsNl extends AppLocalizations {
   AppLocalizationsNl([String locale = 'nl']) : super(locale);
 
   @override
+  String get connections_action_centreHere => 'Hier centreren';
+
+  @override
+  String get connections_around_centredOn => 'Gecentreerd op';
+
+  @override
+  String get connections_around_hops => 'Stappen';
+
+  @override
+  String connections_around_kindChip(String kind, int count) {
+    return '$kind ($count)';
+  }
+
+  @override
+  String get connections_around_noResults => 'Geen resultaten';
+
+  @override
+  String get connections_around_prompt =>
+      'Zoek een buddy, duikplek, reis of iets anders om de kaart erop te centreren.';
+
+  @override
+  String get connections_around_searchHint =>
+      'Zoek buddy\'s, duikplekken, reizen en meer';
+
+  @override
+  String get connections_around_show => 'Tonen';
+
+  @override
+  String get connections_editor_kinds => 'Soorten';
+
+  @override
+  String connections_editor_link(String a, String b) {
+    return '$a met $b';
+  }
+
+  @override
+  String get connections_editor_links => 'Koppelingen';
+
+  @override
+  String connections_editor_minShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Minstens $count gedeelde duiken',
+      one: 'Minstens 1 gedeelde duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_editor_saveAsMap => 'Opslaan als kaart';
+
+  @override
+  String get connections_editor_title => 'Eigen kaart';
+
+  @override
+  String get connections_filter_allFilters => 'Alle filters';
+
+  @override
+  String get connections_filter_clear => 'Wissen';
+
+  @override
+  String get connections_filter_none => 'Geen filters actief.';
+
+  @override
+  String get connections_loading => 'Verbindingen laden';
+
+  @override
+  String get connections_mode_around => 'Rond één item';
+
+  @override
+  String get connections_mode_map => 'Volledige kaart';
+
+  @override
+  String get connections_preset_centers => 'Duikcentra en mensen';
+
+  @override
+  String get connections_preset_circle => 'Duikkring';
+
+  @override
+  String get connections_preset_edited => 'bewerkt';
+
+  @override
+  String get connections_preset_gear => 'Uitrusting samen';
+
+  @override
+  String get connections_preset_gearRoad => 'Uitrusting onderweg';
+
+  @override
+  String get connections_preset_life => 'Duikplekken naar zeeleven';
+
+  @override
+  String get connections_preset_reef => 'Rifleven';
+
+  @override
+  String get connections_preset_travel => 'Reisverhaal';
+
+  @override
+  String get connections_preset_trips => 'Reizen en mensen';
+
+  @override
+  String get connections_preset_where => 'Wie duikt waar';
+
+  @override
+  String get connections_presets_title => 'Voorinstellingen';
+
+  @override
+  String get connections_savedMap_badge => 'Opgeslagen kaart';
+
+  @override
+  String connections_savedMap_deleted(String name) {
+    return '\"$name\" verwijderd';
+  }
+
+  @override
+  String get connections_savedMap_nameLabel => 'Naam';
+
+  @override
+  String get connections_savedMap_rename => 'Hernoemen';
+
+  @override
+  String get connections_savedMap_saveTitle => 'Kaart opslaan';
+
+  @override
+  String get connections_savedMap_undo => 'Ongedaan maken';
+
+  @override
+  String get connections_savedMap_update => 'Bijwerken met huidige weergave';
+
+  @override
+  String get connections_summary_closest => 'Dichtstbij';
+
+  @override
+  String connections_summary_entitiesAround(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_mostConnected => 'Meest verbonden';
+
+  @override
+  String connections_summary_pairValue(int count, String a, String b) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$a en $b, $count duiken',
+      one: '$a en $b, 1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_strongestPair => 'Sterkste paar';
+
+  @override
+  String get connections_summary_title => 'Samenvatting';
+
+  @override
+  String get connections_tab_details => 'Details';
+
+  @override
+  String get connections_tab_filter => 'Filter';
+
+  @override
+  String connections_tab_filterCount(int count) {
+    return 'Filter ($count)';
+  }
+
+  @override
+  String get connections_tab_view => 'Weergave';
+
+  @override
   String get equipment_filter_owner_all => 'Alle';
 
   @override
@@ -3494,6 +3672,162 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get common_error_tryAgain =>
       'Er is iets misgegaan. Probeer het opnieuw.';
+
+  @override
+  String get connections_title => 'Verbindingen';
+
+  @override
+  String get connections_tooltip_relayout => 'Opnieuw schikken';
+
+  @override
+  String get connections_tooltip_showWholeWeb => 'Terug naar de hele kaart';
+
+  @override
+  String connections_filterBar_edges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count verbindingen',
+      one: '1 verbinding',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_hiddenNodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count meer niet getoond',
+      one: '1 meer niet getoond',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_showAll => 'Alles tonen';
+
+  @override
+  String get connections_showAll_confirmTitle => 'Alle knooppunten tonen?';
+
+  @override
+  String connections_showAll_confirmBody(int count) {
+    return '$count knooppunten kunnen op dit apparaat even duren om te schikken.';
+  }
+
+  @override
+  String get connections_action_open => 'Openen';
+
+  @override
+  String get connections_action_showDives => 'Duiken tonen';
+
+  @override
+  String get connections_action_openInConnections => 'Openen in Verbindingen';
+
+  @override
+  String connections_selection_divesTogether(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken samen',
+      one: '1 duik samen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_selection_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_selection_topConnections => 'Sterkste verbindingen';
+
+  @override
+  String connections_selection_firstLast(String first, String last) {
+    return 'Eerste $first, laatste $last';
+  }
+
+  @override
+  String get connections_selection_hint =>
+      'Tik op een knooppunt of lijn voor details.';
+
+  @override
+  String get connections_empty_noDives =>
+      'Nog geen duiken. Verbindingen verschijnen zodra je logboek duiken bevat.';
+
+  @override
+  String get connections_empty_buddies =>
+      'Nog geen buddy\'s gekoppeld aan duiken. Voeg buddy\'s toe aan je duiken of zet oude buddynamen om via Instellingen, Gegevenshulpmiddelen.';
+
+  @override
+  String get connections_empty_sites => 'Nog geen duik heeft een duikplek.';
+
+  @override
+  String get connections_empty_filtered =>
+      'Niets komt overeen met het huidige filter.';
+
+  @override
+  String get connections_focusMissing =>
+      'Dat item staat niet meer in het logboek.';
+
+  @override
+  String get connections_error_load =>
+      'Verbindingen konden niet worden geladen.';
+
+  @override
+  String get connections_legend_title => 'Legenda';
+
+  @override
+  String connections_yearRange_label(int first, int last) {
+    return 'Jaren $first tot $last';
+  }
+
+  @override
+  String connections_semantics_summary(int nodes, int edges) {
+    return '$nodes knooppunten en $edges verbindingen';
+  }
+
+  @override
+  String connections_semantics_selected(String label) {
+    return 'Geselecteerd: $label';
+  }
+
+  @override
+  String get connections_kind_buddy => 'Buddy\'s';
+
+  @override
+  String get connections_kind_site => 'Duikplekken';
+
+  @override
+  String get connections_kind_trip => 'Reizen';
+
+  @override
+  String get connections_kind_diveCenter => 'Duikcentra';
+
+  @override
+  String get connections_kind_equipment => 'Uitrusting';
+
+  @override
+  String get connections_kind_species => 'Soorten';
+
+  @override
+  String get connections_kind_tag => 'Labels';
+
+  @override
+  String get connections_kind_diveType => 'Duiktypen';
+
+  @override
+  String get connections_kind_diveComputer => 'Duikcomputers';
+
+  @override
+  String get connections_kind_course => 'Cursussen';
 
   @override
   String get courses_action_add => 'Cursus toevoegen';
@@ -21323,6 +21657,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_category_conditions_title => 'Omstandigheden';
 
   @override
+  String get insights_category_connections_subtitle =>
+      'Buddy\'s, duikstekken & uitrusting gekoppeld';
+
+  @override
   String get insights_category_equipment_subtitle =>
       'Uitrustingsgebruik & gewicht';
 
@@ -39138,7 +39476,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get common_action_unpin => 'Losmaken';
 
   @override
-  String diveLog_filterChip_dateRange(String end, String start) {
+  String diveLog_filterChip_dateRange(String start, String end) {
     return '$start - $end';
   }
 
@@ -43293,6 +43631,52 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get startup_interruptedRestore_failed =>
       'Het herstel is niet voltooid. Er is niets verwijderd; beide bestanden staan nog op dit apparaat.';
+
+  @override
+  String get startup_diveLogUnavailable_downloading =>
+      'Je logboek wordt gedownload uit iCloud';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'Je logboek staat nog in iCloud';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'Je logboek in $folder is opgeslagen in iCloud, maar staat nog niet op dit apparaat en kon niet worden gedownload. Het is veilig in iCloud en er is niets gewijzigd. Controleer je internetverbinding of download het in de Bestanden-app of in de Finder, en probeer het daarna opnieuw.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'Je logboek is niet gevonden';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'Submersion bewaart je logboek in $folder, maar daar staat nu geen $filename. Staat die map op een schijf die niet is aangesloten, of in een gesynchroniseerde map die nog niet bij is, sluit de schijf dan aan of synchroniseer de map en probeer het opnieuw. Er is niets aangemaakt of gewijzigd.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'Een nieuw logboek in deze map beginnen';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'Alleen als je oude logboek definitief kwijt is. Het nieuwe begint leeg.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      'Hier een nieuw logboek beginnen?';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'Er wordt een leeg logboek aangemaakt in $folder. Als je oude logboek later terugkomt, bijvoorbeeld wanneer een synchronisatie klaar is, conflicteert het met het nieuwe.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm =>
+      'Nieuw logboek beginnen';
 
   @override
   String backup_history_preDowngradeSubtitle(String size) {

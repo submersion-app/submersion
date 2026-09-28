@@ -9,6 +9,184 @@ class AppLocalizationsHu extends AppLocalizations {
   AppLocalizationsHu([String locale = 'hu']) : super(locale);
 
   @override
+  String get connections_action_centreHere => 'Középre ide';
+
+  @override
+  String get connections_around_centredOn => 'Középpontban';
+
+  @override
+  String get connections_around_hops => 'Lépések';
+
+  @override
+  String connections_around_kindChip(String kind, int count) {
+    return '$kind ($count)';
+  }
+
+  @override
+  String get connections_around_noResults => 'Nincs találat';
+
+  @override
+  String get connections_around_prompt =>
+      'Keress egy búvártársat, helyet, utat vagy bármi mást, hogy a térképet köré igazítsd.';
+
+  @override
+  String get connections_around_searchHint =>
+      'Búvártársak, helyek, utak és más keresése';
+
+  @override
+  String get connections_around_show => 'Megjelenítés';
+
+  @override
+  String get connections_editor_kinds => 'Típusok';
+
+  @override
+  String connections_editor_link(String a, String b) {
+    return '$a és $b';
+  }
+
+  @override
+  String get connections_editor_links => 'Kapcsolatok';
+
+  @override
+  String connections_editor_minShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Legalább $count közös merülés',
+      one: 'Legalább 1 közös merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_editor_saveAsMap => 'Mentés térképként';
+
+  @override
+  String get connections_editor_title => 'Egyéni térkép';
+
+  @override
+  String get connections_filter_allFilters => 'Összes szűrő';
+
+  @override
+  String get connections_filter_clear => 'Törlés';
+
+  @override
+  String get connections_filter_none => 'Nincs aktív szűrő.';
+
+  @override
+  String get connections_loading => 'Kapcsolatok betöltése';
+
+  @override
+  String get connections_mode_around => 'Egy elem körül';
+
+  @override
+  String get connections_mode_map => 'Teljes térkép';
+
+  @override
+  String get connections_preset_centers => 'Központok és emberek';
+
+  @override
+  String get connections_preset_circle => 'Búvárkör';
+
+  @override
+  String get connections_preset_edited => 'módosítva';
+
+  @override
+  String get connections_preset_gear => 'Együtt használt felszerelés';
+
+  @override
+  String get connections_preset_gearRoad => 'Felszerelés úton';
+
+  @override
+  String get connections_preset_life => 'Merülőhelyek élővilág szerint';
+
+  @override
+  String get connections_preset_reef => 'Zátonyélet';
+
+  @override
+  String get connections_preset_travel => 'Úti történet';
+
+  @override
+  String get connections_preset_trips => 'Utak és emberek';
+
+  @override
+  String get connections_preset_where => 'Ki hol merül';
+
+  @override
+  String get connections_presets_title => 'Előbeállítások';
+
+  @override
+  String get connections_savedMap_badge => 'Mentett térkép';
+
+  @override
+  String connections_savedMap_deleted(String name) {
+    return '\"$name\" törölve';
+  }
+
+  @override
+  String get connections_savedMap_nameLabel => 'Név';
+
+  @override
+  String get connections_savedMap_rename => 'Átnevezés';
+
+  @override
+  String get connections_savedMap_saveTitle => 'Térkép mentése';
+
+  @override
+  String get connections_savedMap_undo => 'Visszavonás';
+
+  @override
+  String get connections_savedMap_update => 'Frissítés a jelenlegi nézettel';
+
+  @override
+  String get connections_summary_closest => 'Legközelebbi';
+
+  @override
+  String connections_summary_entitiesAround(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem',
+      one: '1 elem',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_mostConnected => 'Legtöbb kapcsolat';
+
+  @override
+  String connections_summary_pairValue(int count, String a, String b) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$a és $b, $count merülés',
+      one: '$a és $b, 1 merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_strongestPair => 'Legerősebb pár';
+
+  @override
+  String get connections_summary_title => 'Összegzés';
+
+  @override
+  String get connections_tab_details => 'Részletek';
+
+  @override
+  String get connections_tab_filter => 'Szűrő';
+
+  @override
+  String connections_tab_filterCount(int count) {
+    return 'Szűrő ($count)';
+  }
+
+  @override
+  String get connections_tab_view => 'Nézet';
+
+  @override
   String get equipment_filter_owner_all => 'Összes';
 
   @override
@@ -3509,6 +3687,163 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get common_error_tryAgain =>
       'Valami hiba történt. Kérjük, próbáld újra.';
+
+  @override
+  String get connections_title => 'Kapcsolatok';
+
+  @override
+  String get connections_tooltip_relayout => 'Újrarendezés';
+
+  @override
+  String get connections_tooltip_showWholeWeb => 'Vissza a teljes térképhez';
+
+  @override
+  String connections_filterBar_edges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count kapcsolat',
+      one: '1 kapcsolat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_hiddenNodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count további nincs megjelenítve',
+      one: '1 további nincs megjelenítve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_showAll => 'Összes megjelenítése';
+
+  @override
+  String get connections_showAll_confirmTitle =>
+      'Minden csomópont megjelenítése?';
+
+  @override
+  String connections_showAll_confirmBody(int count) {
+    return '$count csomópont elrendezése eltarthat egy pillanatig ezen az eszközön.';
+  }
+
+  @override
+  String get connections_action_open => 'Megnyitás';
+
+  @override
+  String get connections_action_showDives => 'Merülések megjelenítése';
+
+  @override
+  String get connections_action_openInConnections =>
+      'Megnyitás a Kapcsolatokban';
+
+  @override
+  String connections_selection_divesTogether(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count közös merülés',
+      one: '1 közös merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_selection_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_selection_topConnections => 'Legerősebb kapcsolatok';
+
+  @override
+  String connections_selection_firstLast(String first, String last) {
+    return 'Első $first, utolsó $last';
+  }
+
+  @override
+  String get connections_selection_hint =>
+      'Koppints egy csomópontra vagy vonalra a részletekhez.';
+
+  @override
+  String get connections_empty_noDives =>
+      'Még nincsenek merülések. A kapcsolatok akkor jelennek meg, ha a napló merüléseket tartalmaz.';
+
+  @override
+  String get connections_empty_buddies =>
+      'Még nincs merüléshez kapcsolt búvártárs. Adj búvártársakat a merüléseidhez, vagy alakítsd át a régi neveket a Beállítások, Adateszközök menüben.';
+
+  @override
+  String get connections_empty_sites =>
+      'Még egyik merülésnek sincs merülőhelye.';
+
+  @override
+  String get connections_empty_filtered =>
+      'Semmi nem felel meg a jelenlegi szűrőnek.';
+
+  @override
+  String get connections_focusMissing => 'Ez az elem már nincs a naplóban.';
+
+  @override
+  String get connections_error_load => 'A kapcsolatok betöltése nem sikerült.';
+
+  @override
+  String get connections_legend_title => 'Jelmagyarázat';
+
+  @override
+  String connections_yearRange_label(int first, int last) {
+    return '$first és $last közötti évek';
+  }
+
+  @override
+  String connections_semantics_summary(int nodes, int edges) {
+    return '$nodes csomópont és $edges kapcsolat';
+  }
+
+  @override
+  String connections_semantics_selected(String label) {
+    return 'Kijelölve: $label';
+  }
+
+  @override
+  String get connections_kind_buddy => 'Búvártársak';
+
+  @override
+  String get connections_kind_site => 'Merülőhelyek';
+
+  @override
+  String get connections_kind_trip => 'Utak';
+
+  @override
+  String get connections_kind_diveCenter => 'Búvárközpontok';
+
+  @override
+  String get connections_kind_equipment => 'Felszerelés';
+
+  @override
+  String get connections_kind_species => 'Fajok';
+
+  @override
+  String get connections_kind_tag => 'Címkék';
+
+  @override
+  String get connections_kind_diveType => 'Merüléstípusok';
+
+  @override
+  String get connections_kind_diveComputer => 'Búvárcomputerek';
+
+  @override
+  String get connections_kind_course => 'Tanfolyamok';
 
   @override
   String get courses_action_add => 'Tanfolyam hozzáadása';
@@ -21423,6 +21758,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_category_conditions_title => 'Körülmények';
 
   @override
+  String get insights_category_connections_subtitle =>
+      'Merülőtársak, helyek és felszerelés összekötve';
+
+  @override
   String get insights_category_equipment_subtitle =>
       'Felszerelés használat és súly';
 
@@ -39244,7 +39583,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get common_action_unpin => 'Rögzítés feloldása';
 
   @override
-  String diveLog_filterChip_dateRange(String end, String start) {
+  String diveLog_filterChip_dateRange(String start, String end) {
     return '$start - $end';
   }
 
@@ -43403,6 +43742,52 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get startup_interruptedRestore_failed =>
       'A helyreállítás nem fejeződött be. Semmi sem törlődött; mindkét fájl még ezen az eszközön van.';
+
+  @override
+  String get startup_diveLogUnavailable_downloading =>
+      'Merülési napló letöltése az iCloudból';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'A merülési naplója még az iCloudban van';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'A(z) $folder mappában lévő merülési naplója az iCloudban van tárolva, de még nincs ezen az eszközön, és nem sikerült letölteni. Az iCloudban biztonságban van, és semmi sem változott. Ellenőrizze az internetkapcsolatot, vagy töltse le a Fájlok appban vagy a Finderben, majd próbálja újra.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'A merülési napló nem található';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'A Submersion a(z) $folder mappában tárolja a merülési naplóját, de most nincs ott $filename nevű fájl. Ha a mappa egy nem csatlakoztatott meghajtón van, vagy egy még nem szinkronizált mappában, csatlakoztassa vagy szinkronizálja, majd próbálja újra. Semmi sem jött létre és semmi sem változott.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'Új merülési napló indítása ebben a mappában';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'Csak ha a régi merülési napló végleg elveszett. Az új üresen indul.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      'Új merülési naplót indít itt?';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'A(z) $folder mappában egy üres merülési napló jön létre. Ha a régi merülési napló később visszakerül, például egy szinkronizálás befejeztével, ütközni fog az újjal.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm =>
+      'Új merülési napló indítása';
 
   @override
   String backup_history_preDowngradeSubtitle(String size) {

@@ -36,6 +36,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertEquipmentSharingSchema();
     }
     if (from < 234) await reportProgress();
+    // v235: saved Connections maps and the sightings dive index (issue
+    // #2322). Table-and-index rung, no backfill.
+    if (from < 235) {
+      await _assertConnectionMapsSchema();
+    }
+    if (from < 235) await reportProgress();
     // v236: dive_scenarios (Dive Lab saved scenarios). A new synced
     // table, so onUpgrade need only create it; idempotent and re-asserted
     // in the beforeOpen backstop, which is what reaches a database

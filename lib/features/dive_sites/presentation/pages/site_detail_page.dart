@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -253,6 +256,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               onSelected: (value) =>
                   _handleMenuAction(context, ref, value, site),
               itemBuilder: (context) => [
+                openInConnectionsMenuItem(context),
                 displayOptionsMenuItem(context, 'displayOptions'),
               ],
             ),
@@ -452,6 +456,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               onSelected: (value) =>
                   _handleMenuAction(context, ref, value, site),
               itemBuilder: (context) => [
+                openInConnectionsMenuItem(context),
                 displayOptionsMenuItem(context, 'displayOptions'),
                 PopupMenuItem(
                   value: 'delete',
@@ -478,6 +483,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     String action,
     DiveSite site,
   ) async {
+    if (action == kOpenInConnectionsAction) {
+      openInConnections(context, NodeRef(ConnectionKind.site, site.id));
+      return;
+    }
     if (action == 'displayOptions') {
       _displayOptionsMenu.open();
       return;

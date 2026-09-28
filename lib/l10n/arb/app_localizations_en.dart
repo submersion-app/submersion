@@ -9,6 +9,184 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get connections_action_centreHere => 'Centre here';
+
+  @override
+  String get connections_around_centredOn => 'Centred on';
+
+  @override
+  String get connections_around_hops => 'Hops';
+
+  @override
+  String connections_around_kindChip(String kind, int count) {
+    return '$kind ($count)';
+  }
+
+  @override
+  String get connections_around_noResults => 'No matches';
+
+  @override
+  String get connections_around_prompt =>
+      'Search for a buddy, site, trip or anything else to centre the map on it.';
+
+  @override
+  String get connections_around_searchHint =>
+      'Search buddies, sites, trips and more';
+
+  @override
+  String get connections_around_show => 'Show';
+
+  @override
+  String get connections_editor_kinds => 'Kinds';
+
+  @override
+  String connections_editor_link(String a, String b) {
+    return '$a with $b';
+  }
+
+  @override
+  String get connections_editor_links => 'Links';
+
+  @override
+  String connections_editor_minShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'At least $count shared dives',
+      one: 'At least 1 shared dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_editor_saveAsMap => 'Save as map';
+
+  @override
+  String get connections_editor_title => 'Custom map';
+
+  @override
+  String get connections_filter_allFilters => 'All filters';
+
+  @override
+  String get connections_filter_clear => 'Clear';
+
+  @override
+  String get connections_filter_none => 'No filters are active.';
+
+  @override
+  String get connections_loading => 'Loading connections';
+
+  @override
+  String get connections_mode_around => 'Around one entity';
+
+  @override
+  String get connections_mode_map => 'Whole map';
+
+  @override
+  String get connections_preset_centers => 'Centers and people';
+
+  @override
+  String get connections_preset_circle => 'Dive circle';
+
+  @override
+  String get connections_preset_edited => 'edited';
+
+  @override
+  String get connections_preset_gear => 'Gear together';
+
+  @override
+  String get connections_preset_gearRoad => 'Gear on the road';
+
+  @override
+  String get connections_preset_life => 'Sites by marine life';
+
+  @override
+  String get connections_preset_reef => 'Reef life';
+
+  @override
+  String get connections_preset_travel => 'Travel story';
+
+  @override
+  String get connections_preset_trips => 'Trips and people';
+
+  @override
+  String get connections_preset_where => 'Who dives where';
+
+  @override
+  String get connections_presets_title => 'Presets';
+
+  @override
+  String get connections_savedMap_badge => 'Saved map';
+
+  @override
+  String connections_savedMap_deleted(String name) {
+    return 'Deleted \"$name\"';
+  }
+
+  @override
+  String get connections_savedMap_nameLabel => 'Name';
+
+  @override
+  String get connections_savedMap_rename => 'Rename';
+
+  @override
+  String get connections_savedMap_saveTitle => 'Save map';
+
+  @override
+  String get connections_savedMap_undo => 'Undo';
+
+  @override
+  String get connections_savedMap_update => 'Update from current';
+
+  @override
+  String get connections_summary_closest => 'Closest';
+
+  @override
+  String connections_summary_entitiesAround(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entities',
+      one: '1 entity',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_mostConnected => 'Most connected';
+
+  @override
+  String connections_summary_pairValue(int count, String a, String b) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$a and $b, $count dives',
+      one: '$a and $b, 1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_strongestPair => 'Strongest pair';
+
+  @override
+  String get connections_summary_title => 'Summary';
+
+  @override
+  String get connections_tab_details => 'Details';
+
+  @override
+  String get connections_tab_filter => 'Filter';
+
+  @override
+  String connections_tab_filterCount(int count) {
+    return 'Filter ($count)';
+  }
+
+  @override
+  String get connections_tab_view => 'View';
+
+  @override
   String get equipment_filter_owner_all => 'All';
 
   @override
@@ -3455,6 +3633,160 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get common_error_tryAgain => 'Something went wrong. Please try again.';
+
+  @override
+  String get connections_title => 'Connections';
+
+  @override
+  String get connections_tooltip_relayout => 'Lay out again';
+
+  @override
+  String get connections_tooltip_showWholeWeb => 'Back to the whole map';
+
+  @override
+  String connections_filterBar_edges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count connections',
+      one: '1 connection',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_hiddenNodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count more not shown',
+      one: '1 more not shown',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_showAll => 'Show all';
+
+  @override
+  String get connections_showAll_confirmTitle => 'Show every node?';
+
+  @override
+  String connections_showAll_confirmBody(int count) {
+    return '$count nodes may take a moment to lay out on this device.';
+  }
+
+  @override
+  String get connections_action_open => 'Open';
+
+  @override
+  String get connections_action_showDives => 'Show dives';
+
+  @override
+  String get connections_action_openInConnections => 'Open in Connections';
+
+  @override
+  String connections_selection_divesTogether(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives together',
+      one: '1 dive together',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_selection_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_selection_topConnections => 'Top connections';
+
+  @override
+  String connections_selection_firstLast(String first, String last) {
+    return 'First $first, last $last';
+  }
+
+  @override
+  String get connections_selection_hint =>
+      'Tap a node or a line to see details.';
+
+  @override
+  String get connections_empty_noDives =>
+      'No dives yet. Connections appear once your log has dives in it.';
+
+  @override
+  String get connections_empty_buddies =>
+      'No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names in Settings, Data Tools.';
+
+  @override
+  String get connections_empty_sites => 'No dives have a site yet.';
+
+  @override
+  String get connections_empty_filtered =>
+      'Nothing matches the current filter.';
+
+  @override
+  String get connections_focusMissing => 'That item is no longer in the log.';
+
+  @override
+  String get connections_error_load => 'Could not load connections.';
+
+  @override
+  String get connections_legend_title => 'Legend';
+
+  @override
+  String connections_yearRange_label(int first, int last) {
+    return 'Years $first to $last';
+  }
+
+  @override
+  String connections_semantics_summary(int nodes, int edges) {
+    return '$nodes nodes and $edges connections';
+  }
+
+  @override
+  String connections_semantics_selected(String label) {
+    return 'Selected: $label';
+  }
+
+  @override
+  String get connections_kind_buddy => 'Buddies';
+
+  @override
+  String get connections_kind_site => 'Sites';
+
+  @override
+  String get connections_kind_trip => 'Trips';
+
+  @override
+  String get connections_kind_diveCenter => 'Dive centers';
+
+  @override
+  String get connections_kind_equipment => 'Equipment';
+
+  @override
+  String get connections_kind_species => 'Species';
+
+  @override
+  String get connections_kind_tag => 'Tags';
+
+  @override
+  String get connections_kind_diveType => 'Dive types';
+
+  @override
+  String get connections_kind_diveComputer => 'Dive computers';
+
+  @override
+  String get connections_kind_course => 'Courses';
 
   @override
   String get courses_action_add => 'Add Course';
@@ -21143,6 +21475,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insights_category_conditions_title => 'Conditions';
+
+  @override
+  String get insights_category_connections_subtitle =>
+      'Buddies, sites & gear linked';
 
   @override
   String get insights_category_equipment_subtitle => 'Gear usage & weight';
@@ -38859,7 +39195,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common_action_unpin => 'Unpin';
 
   @override
-  String diveLog_filterChip_dateRange(String end, String start) {
+  String diveLog_filterChip_dateRange(String start, String end) {
     return '$start - $end';
   }
 
@@ -42930,6 +43266,52 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get startup_interruptedRestore_failed =>
       'Recovery did not complete. Nothing was deleted; both files are still on this device.';
+
+  @override
+  String get startup_diveLogUnavailable_downloading =>
+      'Downloading your dive log from iCloud';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'Your dive log is still in iCloud';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'Your dive log in $folder is stored in iCloud but is not on this device yet, and it could not be downloaded. It is safe in iCloud, and nothing has been changed. Check your internet connection, or download it in the Files app or Finder, then try again.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'Your dive log was not found';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'Submersion keeps your dive log in $folder, but there is no $filename there now. If that folder is on a drive that is not connected, or in a synced folder that has not caught up, connect or sync it and try again. Nothing has been created or changed.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'Start a new dive log in this folder';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'Only if your old dive log is gone for good. The new one starts empty.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      'Start a new dive log here?';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'An empty dive log is created in $folder. If your old dive log comes back later, for example when a sync finishes, it will conflict with the new one.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm =>
+      'Start new dive log';
 
   @override
   String backup_history_preDowngradeSubtitle(String size) {

@@ -50,6 +50,7 @@ void main() {
     'weight_preset_entries': 'weightPresetEntries',
     'transmitters': 'transmitters',
     'cylinder_fills': 'cylinderFills',
+    'connection_maps': 'connectionMaps',
     'saved_queries': 'savedQueries',
     'dive_computers': 'diveComputers',
     'species': 'species',
