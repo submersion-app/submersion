@@ -54,7 +54,8 @@ A `copyWith` body is plain copying when every line, ignoring comments, blank
 lines and brackets, is one of:
 
 - the constructor call: `return Type(`, `return const Type(`, `=> Type(`, or a
-  named constructor such as `Type._(`;
+  named constructor such as `Type._(`, where `Type` is the type `copyWith`
+  returns;
 - a named argument copied from a parameter: `name: name ?? this.name`,
   `name: this.name` or `name: name`, with an optional trailing comma;
 - the whole call on one line, made only of such arguments:
@@ -63,7 +64,10 @@ lines and brackets, is one of:
 Anything else (a computed value, a clear flag, a conditional, a helper call,
 a local variable) makes the `copyWith` count as ordinary code.
 
-Measured on main: 134 of 226 `copyWith` methods are pure. Most of the rest use
+lcov counts whole lines, so a member of any kind whose last line also holds
+other code stays counted: dropping the line would drop that code too.
+
+Measured on main: 133 of 226 `copyWith` methods are pure. Most of the rest use
 a clear flag or a sentinel value, which counts as logic. With the other four
 kinds the exemption covers about 6,200 lines in 334 files, just under 1% of
 the hand-written code.

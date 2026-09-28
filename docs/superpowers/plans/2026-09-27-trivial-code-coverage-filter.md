@@ -994,12 +994,12 @@ the hand-written code.
 - [ ] **Step 4: Check and commit**
 
 ```bash
-grep -n -E "—|–" docs/developer/testing.md docs/superpowers/specs/2026-09-27-trivial-code-coverage-filter-design.md
+python3 -c "import sys; [print(p, n) for p in sys.argv[1:] for n, line in enumerate(open(p, encoding='utf-8'), 1) if '\u2013' in line or '\u2014' in line]" docs/developer/testing.md docs/superpowers/specs/2026-09-27-trivial-code-coverage-filter-design.md
 git add docs/developer/testing.md docs/superpowers/specs/2026-09-27-trivial-code-coverage-filter-design.md
 git commit -m "docs(testing): describe what the coverage targets count"
 ```
 
-Expected: the `grep` prints nothing.
+Expected: the check prints nothing.
 
 ---
 

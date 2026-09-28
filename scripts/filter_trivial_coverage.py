@@ -35,27 +35,35 @@ LIB_ROOT = "lib"
 _GENERATED = (".g.dart", ".freezed.dart")
 _GENERATED_DIRS = ("lib/l10n/",)
 _ANNOTATION = re.compile(r"^[ \t]*@\w+(?:\([^\n]*\))?[ \t\r]*$")
+_NOT_NEWLINE = re.compile(r"[^\n]")
 
-_ALWAYS = [
-    re.compile(r"^[ \t]*(?:@override[ \t]+)?List<Object\?>[ \t]+get[ \t]+props\b", re.M),
-]
-# Exempt only when simple: see is_simple.
-_WHEN_SIMPLE = [
-    re.compile(r"^[ \t]*(?:@override[ \t]+)?bool[ \t]+operator[ \t]*==[ \t]*\(", re.M),
-    re.compile(r"^[ \t]*(?:@override[ \t]+)?int[ \t]+get[ \t]+hashCode\b", re.M),
-    re.compile(r"^[ \t]*(?:@override[ \t]+)?String[ \t]+toString[ \t]*\([ \t]*\)", re.M),
-]
+_PROPS = re.compile(
+    r"^[ \t]*(?:@override[ \t]+)?List<Object\?>[ \t]+get[ \t]+props\b", re.M
+)
+_EQUALS = re.compile(
+    r"^[ \t]*(?:@override[ \t]+)?bool[ \t]+operator[ \t]*==[ \t]*\(", re.M
+)
+_HASH_CODE = re.compile(
+    r"^[ \t]*(?:@override[ \t]+)?int[ \t]+get[ \t]+hashCode\b", re.M
+)
+_TO_STRING = re.compile(
+    r"^[ \t]*(?:@override[ \t]+)?String[ \t]+toString[ \t]*\([ \t]*\)", re.M
+)
+# Ends before the parameter list, so the body search starts at its bracket.
+_COPY_WITH = re.compile(
+    r"^[ \t]*(?:@override[ \t]+)?(?P<type>[A-Za-z_]\w*)[\w<>?, \t]*[ \t]"
+    r"copyWith[ \t]*(?=[(<])",
+    re.M,
+)
 # A condition, a loop or a closure inside an expression. `?.`, `??` and `?[`
 # are null-aware access, not a condition, and the braces of a string
 # interpolation are not a closure body.
 _LOGIC = re.compile(
-    r"\b(?:if|for|while|switch|do|try|throw)\b|=>|\)\s*\{|(?<!\?)\?(?![.?\[=])"
+    r"\b(?:if|for|while|switch|do|try|throw)\b|=>"
+    r"|\)\s*(?:async\*?|sync\*)?\s*\{|(?<!\?)\?(?![.?\[=])"
 )
 _IDENTICAL_GUARD = re.compile(
     r"^if\s*\(\s*identical\s*\(\s*this\s*,\s*\w+\s*\)\s*\)\s*return\s+true\s*;"
-)
-_COPY_WITH = re.compile(
-    r"^[ \t]*(?:@override[ \t]+)?[A-Za-z_][\w<>?, \t]*[ \t]copyWith[ \t]*[(<]", re.M
 )
 # `name: name ?? this.name`, `name: this.name` or `name: name`; a positional
 # argument may only be `name ?? this.name` or `this.name`.
@@ -65,8 +73,7 @@ _ARGUMENT = re.compile(
     r"|this\.(?P<this>\w+)|(?P<bare>\w+))$"
 )
 _CONSTRUCTOR_CALL = re.compile(
-    r"^(?:return\s+)?(?:const\s+|new\s+)?[A-Za-z_]\w*(?:<[^()]*>)?(?:\.\w+)?\s*\($",
-    re.S,
+    r"^(?:const\s+|new\s+)?(?P<type>[A-Za-z_]\w*)(?:<[^()]*>)?(?:\.\w+)?\s*\("
 )
 
 
@@ -75,76 +82,90 @@ def mask(source):
 
     Offsets and line breaks are kept, so a position in the result is the same
     position in the source. Code inside a string interpolation is kept.
+    test/architecture/source_mask.dart masks the same way, and
+    test/architecture/coverage_filter_mask_parity_test.dart holds the two
+    to the same output.
     """
-    out = list(source)
+    return "".join(_masked_pieces(source))
+
+
+def _masked_pieces(source):
+    kept = 0
+    for start, stop in _scan_code(source, 0):
+        yield source[kept:start]
+        yield _NOT_NEWLINE.sub(" ", source[start:stop])
+        kept = stop
+    yield source[kept:]
+
+
+def _is_identifier(ch):
+    return ch.isalnum() or ch in "_$"
+
+
+def _scan_code(source, i, until_brace=False):
+    """Yields the (start, stop) spans to blank, in order, from offset i.
+
+    Returns the offset after the `}` that closes an interpolation when
+    until_brace is set, and the end of source otherwise.
+    """
     end = len(source)
+    depth = 0
+    while i < end:
+        ch = source[i]
+        if source.startswith("//", i):
+            stop = source.find("\n", i)
+            stop = end if stop < 0 else stop
+            yield i, stop
+            i = stop
+        elif source.startswith("/*", i):
+            stop = source.find("*/", i + 2)
+            stop = end if stop < 0 else stop + 2
+            yield i, stop
+            i = stop
+        elif ch in "'\"":
+            i = yield from _scan_string(source, i)
+        elif ch == "{":
+            depth += 1
+            i += 1
+        elif ch == "}":
+            if until_brace and depth == 0:
+                return i + 1
+            depth -= 1
+            i += 1
+        else:
+            i += 1
+    return end
 
-    def blank(start, stop):
-        for k in range(start, min(stop, end)):
-            if out[k] != "\n":
-                out[k] = " "
 
-    def is_identifier(ch):
-        return ch.isalnum() or ch in "_$"
-
-    def skip_string(at):
-        raw = at > 0 and source[at - 1] == "r" and (
-            at < 2 or not is_identifier(source[at - 2])
-        )
-        quote = source[at]
-        triple = source.startswith(quote * 3, at)
-        close = quote * 3 if triple else quote
-        i = at + len(close)
-        start = i
-        while i < end:
-            ch = source[i]
-            if not raw and ch == "\\":
-                i += 2
-            elif not raw and ch == "$" and i + 1 < end and source[i + 1] == "{":
-                blank(start, i)
-                i = skip_code(i + 2, until_brace=True)
-                start = i
-            elif source.startswith(close, i):
-                blank(start, i)
-                return i + len(close)
-            elif not triple and ch == "\n":
-                blank(start, i)
-                return i
-            else:
-                i += 1
-        blank(start, end)
-        return end
-
-    def skip_code(i, until_brace=False):
-        depth = 0
-        while i < end:
-            ch = source[i]
-            if source.startswith("//", i):
-                stop = source.find("\n", i)
-                stop = end if stop < 0 else stop
-                blank(i, stop)
-                i = stop
-            elif source.startswith("/*", i):
-                stop = source.find("*/", i + 2)
-                stop = end if stop < 0 else stop + 2
-                blank(i, stop)
-                i = stop
-            elif ch in "'\"":
-                i = skip_string(i)
-            elif ch == "{":
-                depth += 1
-                i += 1
-            elif ch == "}":
-                if until_brace and depth == 0:
-                    return i + 1
-                depth -= 1
-                i += 1
-            else:
-                i += 1
-        return end
-
-    skip_code(0)
-    return "".join(out)
+def _scan_string(source, at):
+    """Yields the spans of the string opening at `at`; returns its end."""
+    end = len(source)
+    raw = at > 0 and source[at - 1] == "r" and (
+        at < 2 or not _is_identifier(source[at - 2])
+    )
+    quote = source[at]
+    triple = source.startswith(quote * 3, at)
+    close = quote * 3 if triple else quote
+    i = at + len(close)
+    start = i
+    while i < end:
+        ch = source[i]
+        if not raw and ch == "\\":
+            i += 2
+        elif not raw and ch == "$" and i + 1 < end and source[i + 1] == "{":
+            yield start, i
+            i = yield from _scan_code(source, i + 2, until_brace=True)
+            start = i
+        elif source.startswith(close, i):
+            yield start, i
+            return i + len(close)
+        elif not triple and ch == "\n":
+            yield start, i
+            return i
+        else:
+            i += 1
+    yield start, end
+    return end
 
 
 def _matching(code, start, open_ch, close_ch):
@@ -195,43 +216,58 @@ def member_body(code, start):
     return None
 
 
-def _split_arguments(text):
-    """Top-level comma separated parts of text."""
-    parts, depth, start = [], 0, 0
+def _single_expression(code, body_start, body_end, guard=False):
+    """The one expression a body returns, or None if the body does more.
+
+    An arrow body qualifies, and so does a block holding a single `return`.
+    With guard, the block may open with
+    `if (identical(this, other)) return true;`.
+    """
+    body = code[body_start:body_end + 1].strip()
+    if body.startswith("=>"):
+        expression = body[2:].strip()
+        return expression[:-1].strip() if expression.endswith(";") else expression
+    inner = (body[1:-1] if body.endswith("}") else body[1:]).strip()
+    early_return = _IDENTICAL_GUARD.match(inner) if guard else None
+    if early_return:
+        inner = inner[early_return.end():].strip()
+    if (
+        not re.match(r"return\s", inner)
+        or not inner.endswith(";")
+        or inner.count(";") != 1
+    ):
+        return None
+    return inner[len("return"):-1].strip()
+
+
+def _top_level_commas(text):
+    depth = 0
     for i, ch in enumerate(text):
         if ch in "([{":
             depth += 1
         elif ch in ")]}":
             depth -= 1
         elif ch == "," and depth == 0:
-            parts.append(text[start:i])
-            start = i + 1
-    parts.append(text[start:])
-    return [part.strip() for part in parts if part.strip()]
+            yield i
 
 
-def is_pure_copy(code, body_start, body_end):
-    """Whether a copyWith body only copies fields into a constructor call."""
-    body = code[body_start:body_end + 1].strip()
-    if body.startswith("=>"):
-        body = body[2:].strip()
-        if body.endswith(";"):
-            body = body[:-1].strip()
-    else:
-        body = body[1:-1].strip()
-        if not body.endswith(";") or body.count(";") != 1:
-            return False
-        body = body[:-1].strip()
-        if not body.startswith("return"):
-            return False
-    open_paren = body.find("(")
-    if open_paren < 0 or not body.endswith(")"):
+def _split_arguments(text):
+    """Top-level comma separated parts of text."""
+    cuts = [-1, *_top_level_commas(text), len(text)]
+    parts = (text[a + 1:b].strip() for a, b in zip(cuts, cuts[1:]))
+    return [part for part in parts if part]
+
+
+def is_pure_copy(code, body_start, body_end, type_name):
+    """Whether a copyWith body only copies fields into a type_name constructor."""
+    expression = _single_expression(code, body_start, body_end)
+    call = _CONSTRUCTOR_CALL.match(expression) if expression else None
+    if not call or call["type"] != type_name or not expression.endswith(")"):
         return False
-    if not _CONSTRUCTOR_CALL.match(body[:open_paren + 1]):
+    open_paren = call.end() - 1
+    if _matching(expression, open_paren, "(", ")") != len(expression) - 1:
         return False
-    if _matching(body, open_paren, "(", ")") != len(body) - 1:
-        return False
-    arguments = _split_arguments(body[open_paren + 1:-1])
+    arguments = _split_arguments(expression[open_paren + 1:-1])
     return all(_is_copied(argument) for argument in arguments)
 
 
@@ -251,61 +287,56 @@ def _is_copied(argument):
 def is_simple(code, body_start, body_end):
     """Whether an ==, hashCode or toString body is one plain expression.
 
-    An arrow body qualifies, and so does a block holding one return, after an
-    optional `if (identical(this, other)) return true;`. The expression may not
-    hold a condition, a loop or a closure.
+    See _single_expression for the shapes of body that qualify. The expression
+    may not hold a condition, a loop or a closure.
     """
-    body = code[body_start:body_end + 1].strip()
-    if body.startswith("=>"):
-        expression = body[2:].strip()
-        if expression.endswith(";"):
-            expression = expression[:-1]
-    else:
-        inner = body[1:]
-        if inner.endswith("}"):
-            inner = inner[:-1]
-        inner = inner.strip()
-        guard = _IDENTICAL_GUARD.match(inner)
-        if guard:
-            inner = inner[guard.end():].strip()
-        if (
-            not re.match(r"return\s", inner)
-            or not inner.endswith(";")
-            or inner.count(";") != 1
-        ):
-            return False
-        expression = inner[len("return"):-1]
-    return not _LOGIC.search(expression)
+    expression = _single_expression(code, body_start, body_end, guard=True)
+    return expression is not None and not _LOGIC.search(expression)
+
+
+# Each kind of trivial member, and the test its body must pass.
+_MEMBERS = (
+    (_PROPS, lambda code, match, body: True),
+    (_EQUALS, lambda code, match, body: is_simple(code, *body)),
+    (_HASH_CODE, lambda code, match, body: is_simple(code, *body)),
+    (_TO_STRING, lambda code, match, body: is_simple(code, *body)),
+    (_COPY_WITH, lambda code, match, body: is_pure_copy(code, *body, match["type"])),
+)
+
+
+def _ends_its_line(code, offset):
+    """Whether nothing but blanks follows offset on its line."""
+    newline = code.find("\n", offset + 1)
+    return not code[offset + 1:newline if newline >= 0 else len(code)].strip()
+
+
+def _trivial_spans(code):
+    for pattern, is_trivial in _MEMBERS:
+        for match in pattern.finditer(code):
+            body = member_body(code, match.end())
+            # lcov counts whole lines, so a member that shares its last line
+            # with other code cannot be dropped without dropping that code.
+            if body and _ends_its_line(code, body[1]) and is_trivial(code, match, body):
+                yield match.start(), body[1]
+
+
+def _line_range(code, code_lines, start, stop):
+    first = code.count("\n", 0, start) + 1
+    last = code.count("\n", 0, stop) + 1
+    # Coverage can record a member's hit on an annotation above it.
+    while first > 1 and _ANNOTATION.match(code_lines[first - 2]):
+        first -= 1
+    return range(first, last + 1)
 
 
 def trivial_lines(source):
     """The 1-based line numbers that belong to trivial members of source."""
     code = mask(source)
-    spans = []
-    for pattern in _ALWAYS:
-        for match in pattern.finditer(code):
-            body = member_body(code, match.end())
-            if body:
-                spans.append((match.start(), body[1]))
-    for pattern in _WHEN_SIMPLE:
-        for match in pattern.finditer(code):
-            body = member_body(code, match.end())
-            if body and is_simple(code, body[0], body[1]):
-                spans.append((match.start(), body[1]))
-    for match in _COPY_WITH.finditer(code):
-        body = member_body(code, match.end() - 1)
-        if body and is_pure_copy(code, body[0], body[1]):
-            spans.append((match.start(), body[1]))
     code_lines = code.split("\n")
-    lines = set()
-    for start, stop in spans:
-        first = code.count("\n", 0, start) + 1
-        last = code.count("\n", 0, stop) + 1
-        # Coverage can record a member's hit on an annotation above it.
-        while first > 1 and _ANNOTATION.match(code_lines[first - 2]):
-            first -= 1
-        lines.update(range(first, last + 1))
-    return lines
+    return set().union(
+        *(_line_range(code, code_lines, start, stop)
+          for start, stop in _trivial_spans(code))
+    )
 
 
 def _source_for(path):
@@ -320,71 +351,68 @@ def _source_for(path):
         return handle.read()
 
 
+def _records(lines):
+    """lines split into lcov records.
+
+    A record ends at its end_of_record line. A new source file also ends the
+    one before, even if its end_of_record line is missing, so one file's lines
+    are never judged by another's.
+    """
+    start = 0
+    for i, line in enumerate(lines):
+        if line.startswith("SF:") and i > start:
+            yield lines[start:i]
+            start = i
+        if line.strip() == "end_of_record":
+            yield lines[start:i + 1]
+            start = i + 1
+    if start < len(lines):
+        yield lines[start:]
+
+
 def filter_report(text, read_source=_source_for):
     """text, an lcov report, with trivial members' lines removed.
 
     Returns (new_text, removed_line_count, touched_file_count).
     """
-    out = []
-    removed = files = 0
-    record = []
-
-    def close():
-        nonlocal removed, files
-        new_record, dropped = _filter_record(record, read_source)
-        out.extend(new_record)
-        if dropped:
-            removed += dropped
-            files += 1
-
-    for line in text.splitlines():
-        # A new source file ends the one before, even if its end_of_record
-        # line is missing, so one file's lines are never judged by another's.
-        if line.startswith("SF:") and record:
-            close()
-            record = []
-        record.append(line)
-        if line.strip() == "end_of_record":
-            close()
-            record = []
-    if record:
-        close()
-    result = "\n".join(out)
+    results = [
+        _filter_record(record, read_source)
+        for record in _records(text.splitlines())
+    ]
+    result = "\n".join(line for record, _ in results for line in record)
     if text.endswith("\n") and result:
         result += "\n"
+    removed = sum(dropped for _, dropped in results)
+    files = sum(1 for _, dropped in results if dropped)
     return result, removed, files
+
+
+def _line_number(line):
+    return int(line[3:].split(",", 1)[0])
+
+
+def _total(line, found, hit):
+    if line.startswith("LF:"):
+        return "LF:%d" % found
+    if line.startswith("LH:"):
+        return "LH:%d" % hit
+    return line
 
 
 def _filter_record(record, read_source):
     path = next((line[3:] for line in record if line.startswith("SF:")), None)
     source = read_source(path) if path else None
-    if source is None:
-        return record, 0
-    trivial = trivial_lines(source)
-    if not trivial:
-        return record, 0
-    kept = []
-    dropped = 0
-    for line in record:
-        if line.startswith("DA:"):
-            number = int(line[3:].split(",", 1)[0])
-            if number in trivial:
-                dropped += 1
-                continue
-        kept.append(line)
+    trivial = trivial_lines(source) if source is not None else set()
+    kept = [
+        line for line in record
+        if not (line.startswith("DA:") and _line_number(line) in trivial)
+    ]
+    dropped = len(record) - len(kept)
     if not dropped:
         return record, 0
     hits = [line for line in kept if line.startswith("DA:")]
-    found = str(len(hits))
-    hit = str(sum(1 for line in hits if int(line.split(",")[1]) > 0))
-    rewritten = []
-    for line in kept:
-        if line.startswith("LF:"):
-            line = "LF:" + found
-        elif line.startswith("LH:"):
-            line = "LH:" + hit
-        rewritten.append(line)
-    return rewritten, dropped
+    hit = sum(1 for line in hits if int(line.split(",")[1]) > 0)
+    return [_total(line, len(hits), hit) for line in kept], dropped
 
 
 def main(argv=None):
@@ -423,7 +451,12 @@ def _replace(path, text):
         dir=os.path.dirname(os.path.abspath(path)), suffix=".tmp"
     )
     try:
-        with open(fd, "w", encoding="utf-8", newline="\n") as handle:
+        try:
+            handle = open(fd, "w", encoding="utf-8", newline="\n")
+        except BaseException:
+            os.close(fd)
+            raise
+        with handle:
             handle.write(text)
         shutil.copymode(path, temporary)
         os.replace(temporary, path)

@@ -132,6 +132,33 @@ class RecognitionTest(unittest.TestCase):
             """
         self.assertEqual(lines_of(source), set())
 
+    def test_an_async_or_generator_closure_stays_counted(self):
+        for marker in ("async", "async*", "sync*"):
+            source = (
+                "class A {\n"
+                "  String toString() => f((i) %s { return i; });\n"
+                "}\n" % marker
+            )
+            self.assertEqual(cov.trivial_lines(source), set(), marker)
+
+    def test_a_member_sharing_its_line_with_other_code_stays_counted(self):
+        source = """
+            class A {
+              @override
+              int get hashCode => a.hashCode; int total() { return a + b; }
+            }
+            """
+        self.assertEqual(lines_of(source), set())
+
+    def test_a_comment_after_a_member_does_not_keep_it_counted(self):
+        source = """
+            class A {
+              @override
+              String toString() => 'A'; // for logs
+            }
+            """
+        self.assertEqual(lines_of(source), {2, 3})
+
     def test_a_block_closure_stays_counted(self):
         source = """
             class A {
@@ -282,10 +309,31 @@ class CopyWithTest(unittest.TestCase):
             "{\n    return A(a: a) + b;\n  }",
             "{\n    return a.b.c(x: x);\n  }",
             "{\n    return make(a: a)(b);\n  }",
+            "{\n    return A(a: a)(b);\n  }",
+            "{\n    return A(a: a).normalized(b);\n  }",
         ]
         for body in bodies:
             source = "class A {\n  A copyWith({int? a}) %s\n}\n" % body
             self.assertEqual(cov.trivial_lines(source), set(), body)
+
+    def test_a_call_to_anything_but_the_returned_type_is_logic(self):
+        bodies = [
+            "=> validate(a: a);",
+            "=> _with(a: a);",
+            "=> B(a: a);",
+            "=> super.copyWith(a: a);",
+        ]
+        for body in bodies:
+            source = "class A {\n  A copyWith({int? a}) %s\n}\n" % body
+            self.assertEqual(cov.trivial_lines(source), set(), body)
+
+    def test_a_named_constructor_of_the_returned_type_is_pure(self):
+        source = """
+            class A {
+              A? copyWith({int? a}) => new A.fromParts(a: a ?? this.a);
+            }
+            """
+        self.assertEqual(lines_of(source), {2})
 
     def test_an_argument_copied_from_another_name_is_logic(self):
         arguments = [
@@ -589,6 +637,40 @@ class MainTest(unittest.TestCase):
         with open("lcov.info", encoding="utf-8") as handle:
             self.assertEqual(handle.read(), REPORT)
         self.assertEqual(sorted(os.listdir(".")), ["lcov.info", "lib"])
+
+    def test_a_failed_open_closes_the_temporary_descriptor(self):
+        with open("lcov.info", "w", encoding="utf-8") as handle:
+            handle.write(REPORT)
+        real_open, real_mkstemp = open, tempfile.mkstemp
+        descriptors = []
+
+        def recording_mkstemp(*args, **kwargs):
+            fd, name = real_mkstemp(*args, **kwargs)
+            descriptors.append(fd)
+            return fd, name
+
+        def refusing_open(file, *args, **kwargs):
+            if isinstance(file, int):
+                raise OSError(24, "Too many open files")
+            return real_open(file, *args, **kwargs)
+
+        with mock.patch("tempfile.mkstemp", recording_mkstemp), \
+                mock.patch("builtins.open", refusing_open):
+            code, _, err = self.run_main("lcov.info")
+        self.assertEqual(code, 0)
+        self.assertIn("left the report unchanged", err)
+        self.assertEqual(len(descriptors), 1)
+        with self.assertRaises(OSError):
+            os.fstat(descriptors[0])
+        self.assertEqual(sorted(os.listdir(".")), ["lcov.info", "lib"])
+
+    def test_the_rewritten_report_keeps_its_permissions(self):
+        with open("lcov.info", "w", encoding="utf-8") as handle:
+            handle.write(REPORT)
+        os.chmod("lcov.info", 0o640)
+        code, _, _ = self.run_main("lcov.info")
+        self.assertEqual(code, 0)
+        self.assertEqual(os.stat("lcov.info").st_mode & 0o777, 0o640)
 
     def test_the_wrong_number_of_arguments_is_a_usage_error(self):
         code, _, err = self.run_main()
