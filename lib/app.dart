@@ -22,6 +22,7 @@ import 'package:submersion/features/auto_update/presentation/providers/update_me
 import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_barrier.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
 import 'package:submersion/features/cylinder_passports/presentation/services/recent_passport_tags.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
@@ -193,6 +194,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       ref.read(appLockNotifierProvider.notifier).noteResumed();
       _maybeSyncOnResume();
       _resumeMediaTransfers();
+      // NFC may have been turned on in the system settings meanwhile, as
+      // the passport screens tell the diver to do.
+      ref.invalidate(nfcSupportProvider);
     }
   }
 

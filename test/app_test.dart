@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/app.dart';
 import 'package:submersion/core/router/app_router.dart';
@@ -20,6 +22,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
+import 'helpers/fake_nfc.dart';
 import 'helpers/mock_providers.dart';
 
 /// A [SyncNotifier] stand-in whose state can be driven directly from a test,
@@ -158,8 +161,12 @@ void main() {
     List<Override> extraOverrides = const [],
     IncomingLinkSource? links,
     GoRouter? router,
+    FakeNfcTagService? nfc,
   }) async {
-    final base = await getBaseOverrides(incomingLinks: links);
+    final base = await getBaseOverrides(
+      incomingLinks: links,
+      nfcTagService: nfc,
+    );
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -428,5 +435,28 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
     }
     expect(find.text('That is not a cylinder tag'), findsOneWidget);
+  });
+
+  testWidgets('NFC turned on in the system settings is noticed on return', (
+    tester,
+  ) async {
+    final nfc = FakeNfcTagService(supportValue: NfcSupport.disabled);
+    await pumpApp(tester, _DrivableSyncNotifier(const SyncState()), nfc: nfc);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SubmersionApp)),
+    );
+    final sub = container.listen(nfcSupportProvider, (_, _) {});
+    addTearDown(sub.close);
+    expect(
+      await container.read(nfcSupportProvider.future),
+      NfcSupport.disabled,
+    );
+
+    // The diver follows "Turn it on in the system settings" and comes back.
+    nfc.supportValue = NfcSupport.enabled;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(await container.read(nfcSupportProvider.future), NfcSupport.enabled);
   });
 }

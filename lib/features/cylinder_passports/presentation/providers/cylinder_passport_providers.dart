@@ -71,8 +71,9 @@ final nfcTagServiceProvider = Provider<NfcTagService>(
       nfcPlatform() ? NfcManagerTagService() : const UnsupportedNfcTagService(),
 );
 
-/// Re-checked each time a screen asks, since the diver can turn NFC on and
-/// off in the system settings.
+/// Re-checked when a screen first asks and whenever the app resumes (the
+/// app root invalidates it), since the diver can turn NFC on and off in the
+/// system settings.
 final nfcSupportProvider = FutureProvider.autoDispose<NfcSupport>(
   (ref) => ref.watch(nfcTagServiceProvider).support(),
 );
