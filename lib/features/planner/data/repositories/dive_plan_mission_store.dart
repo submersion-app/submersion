@@ -17,8 +17,6 @@ class MissionRowIds {
   });
 
   static const none = MissionRowIds(mission: false, legIds: [], memberIds: []);
-
-  bool get isEmpty => !mission && legIds.isEmpty && memberIds.isEmpty;
 }
 
 /// Persistence for a plan's DPV mission (v241, issue #2086), kept apart

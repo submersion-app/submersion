@@ -130,4 +130,29 @@ void main() {
       changeset.data.divePlanMissionMembers,
     );
   });
+
+  test('fetchRecord reads each mission row by its id', () async {
+    await DivePlanRepository().savePlan(plan());
+    final serializer = SyncDataSerializer();
+
+    final missionRow = await serializer.fetchRecord(
+      'divePlanMissions',
+      'plan-1',
+    );
+    final legRow = await serializer.fetchRecord('divePlanMissionLegs', 'leg-1');
+    final memberRow = await serializer.fetchRecord(
+      'divePlanMissionMembers',
+      'member-1',
+    );
+
+    expect(missionRow!['planId'], 'plan-1');
+    expect(legRow!['label'], 'T');
+    expect(legRow['planId'], 'plan-1');
+    expect(memberRow!['displayName'], 'Sam');
+    expect(memberRow['scooterName'], 'Blacktip');
+    expect(
+      await serializer.fetchRecord('divePlanMissionLegs', 'missing'),
+      isNull,
+    );
+  });
 }
