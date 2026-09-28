@@ -13733,6 +13733,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get equipment_list_emptyState_noQueryMatch => '没有与此查询匹配的装备';
+
+  @override
   String get equipment_list_emptyState_noStatusMatch => '没有此状态的装备';
 
   @override

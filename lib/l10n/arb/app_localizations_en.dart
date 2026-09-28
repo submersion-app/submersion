@@ -14156,6 +14156,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get equipment_list_emptyState_noQueryMatch =>
+      'No equipment matches this query';
+
+  @override
   String get equipment_list_emptyState_noStatusMatch =>
       'No equipment with this status';
 

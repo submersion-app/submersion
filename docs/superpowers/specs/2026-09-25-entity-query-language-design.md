@@ -791,6 +791,16 @@ Decided in the whole-branch review of PR 1:
   that diver's settings (due-soon window, exposure thresholds) and
   visibility; one diver is active on a device at a time, so a diver switch
   re-evaluates and rewrites the table.
+- **The cache writer runs all session.** Any list can reach `serviceDue`
+  through a relation (`gear.serviceDue` on dives, `dives.gear.serviceDue` on
+  sites and trips), so the app root listens to the writer rather than
+  leaving it to the equipment list. Every query that reads the table
+  re-runs when it is rewritten; the equipment list also awaits the write,
+  so it never shows the previous diver's verdicts.
+- **An advanced query that keeps no gear says so.** The equipment empty
+  state blames the query ("No equipment matches this query") ahead of the
+  category, status and service wording, so a diver with gear is never told
+  to add their first item.
 - **The equipment owner axis is a caller-applied scope, not a field.** Like
   visibility, it compares rows with the active diver, which a saved query
   cannot name. `EquipmentFilterQuery.ownerScope(activeDiverId)` returns a
@@ -805,11 +815,17 @@ Decided in the whole-branch review of PR 1:
   needs to know whether the status view had rows before the other axes; a
   small `equipmentStatusViewHasItemsProvider` runs the status axes alone
   through the same id set.
-- **Site `country` and `region` compare trimmed.** Their SQL is
-  `TRIM({r}.country)` and `TRIM({r}.region)`; text `=` is already
-  case-insensitive. The old Dart key also collapsed internal runs of
-  whitespace, which SQLite cannot do in one expression, so a stored country
-  with a doubled inner space now needs the doubled space.
+- **Site `country` and `region` compare trimmed.** Their SQL trims the
+  exact character set Dart's `String.trim` strips (tab, CR, LF, NBSP and
+  the Unicode spaces, not only U+0020), so a value imported with a CR or
+  pasted with a no-break space still matches the chip the dropdown offers
+  for it; text `=` is already case-insensitive. Two differences from the
+  old Dart key remain. It collapsed internal runs of whitespace, which
+  SQLite cannot do in one expression, so a stored country with a doubled
+  inner space now needs the doubled space. And SQLite's `LOWER` folds only
+  ASCII, so two sites spelled "Curaçao" and "CURAÇAO" share one dropdown
+  option but only the spelling whose non-ASCII letters match the option's
+  case is kept. Both need two spellings of one place in one library.
 - **Site "has dives" keeps the list's count rule.** It lowers to
   `dives[planned = false AND excludedFromStats = false]`, because the site
   list's dive count comes from `DiveStatsScope` over every diver's dives.

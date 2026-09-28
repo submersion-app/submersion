@@ -1165,14 +1165,21 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // items that none of the selected tags is on: a tag chip on a retired
     // item can land here, since the default view hides retired gear.
     final blameTags = tagsEmptied;
+    // An advanced query (#2365) is the likeliest cause next: it can name any
+    // field, so the empty list says the query matched nothing rather than
+    // that the diver owns no gear.
+    final blameQuery = !blameTags && filter.query != null;
     // Otherwise blame the category only when it actually narrowed something
     // away; if the status-filtered source was already empty, the status (or
     // the lack of any gear) is the real cause and the wording should say so.
     final blameCategory =
-        !blameTags && filter.type != null && hadItemsBeforeTypeFilter;
+        !blameTags &&
+        !blameQuery &&
+        filter.type != null &&
+        hadItemsBeforeTypeFilter;
 
     String filterText;
-    if (blameTags) {
+    if (blameTags || blameQuery) {
       filterText = context.l10n.equipment_list_emptyState_filterText_equipment;
     } else if (blameCategory) {
       filterText = context.l10n.equipment_list_emptyState_filterText_type(
@@ -1206,6 +1213,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           Text(
             blameTags
                 ? context.l10n.equipment_list_emptyState_noTagMatch
+                : blameQuery
+                ? context.l10n.equipment_list_emptyState_noQueryMatch
                 : blameCategory
                 ? context.l10n.equipment_list_emptyState_noTypeMatch
                 : filter.serviceDue != null

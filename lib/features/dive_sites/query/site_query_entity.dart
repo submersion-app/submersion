@@ -17,6 +17,15 @@ QueryField _text(String key, String sql, String column) => QueryField(
   labelKey: 'query_sites_$key',
 );
 
+/// The characters Dart's `String.trim` strips, as a SQLite `char(...)`
+/// set. One-argument `TRIM` strips only U+0020, so a value imported with a
+/// CR or pasted with a no-break space would miss the location chip that
+/// the dropdown (deduped with Dart's trim) offers for it.
+const _dartWhitespace =
+    'char(9, 10, 11, 12, 13, 32, 133, 160, 5760, 8192, 8193, 8194, 8195, '
+    '8196, 8197, 8198, 8199, 8200, 8201, 8202, 8232, 8233, 8239, 8287, '
+    '12288, 65279)';
+
 /// Site to one side of a site junction table.
 QueryRelation _junction(
   String key,
@@ -49,9 +58,9 @@ final siteQueryEntity = QueryEntity(
   fields: [
     _text('name', '{r}.name', 'name'),
     // Trimmed: the location chips offer the trimmed spelling, and a stored
-    // value with a stray space must still match it.
-    _text('country', 'TRIM({r}.country)', 'country'),
-    _text('region', 'TRIM({r}.region)', 'region'),
+    // value with stray whitespace must still match it.
+    _text('country', 'TRIM({r}.country, $_dartWhitespace)', 'country'),
+    _text('region', 'TRIM({r}.region, $_dartWhitespace)', 'region'),
     _text('city', '{r}.city', 'city'),
     _text('island', '{r}.island', 'island'),
     _text('notes', '{r}.notes', 'notes'),

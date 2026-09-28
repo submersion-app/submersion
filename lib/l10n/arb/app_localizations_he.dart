@@ -14065,6 +14065,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get equipment_list_emptyState_noQueryMatch =>
+      'אין ציוד שתואם לשאילתה זו';
+
+  @override
   String get equipment_list_emptyState_noStatusMatch => 'אין ציוד עם סטטוס זה';
 
   @override
@@ -44096,7 +44100,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_trips_startDate => 'תאריך התחלה';
 
   @override
-  String get query_trips_tripType => 'Trip Type';
+  String get query_trips_tripType => 'סוג טיול';
 
   @override
   String get query_weights_amount => 'כמות';

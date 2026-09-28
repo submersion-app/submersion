@@ -14171,6 +14171,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get equipment_list_emptyState_noQueryMatch =>
+      'لا توجد معدات تطابق هذا الاستعلام';
+
+  @override
   String get equipment_list_emptyState_noStatusMatch =>
       'لا توجد معدات بهذه الحالة';
 
@@ -44647,7 +44651,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_trips_startDate => 'تاريخ البدء';
 
   @override
-  String get query_trips_tripType => 'Trip Type';
+  String get query_trips_tripType => 'نوع الرحلة';
 
   @override
   String get query_weights_amount => 'الكمية';

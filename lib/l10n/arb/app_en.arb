@@ -8197,6 +8197,8 @@
   "equipment_list_emptyState_filterText_status": "{status} equipment",
   "equipment_list_emptyState_filterText_type": "{type} equipment",
   "equipment_list_emptyState_noEquipment": "No {filterText}",
+  "equipment_list_emptyState_noQueryMatch": "No equipment matches this query",
+  "@equipment_list_emptyState_noQueryMatch": {"description": "Empty-state subtitle on the equipment list when the advanced query matches none of the items"},
   "equipment_list_emptyState_noStatusMatch": "No equipment with this status",
   "equipment_list_emptyState_noTagMatch": "No equipment with these tags",
   "equipment_list_emptyState_noTypeMatch": "No equipment in this category",

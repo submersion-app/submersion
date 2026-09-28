@@ -14328,6 +14328,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get equipment_list_emptyState_noQueryMatch =>
+      'Nincs a lekérdezésnek megfelelő felszerelés';
+
+  @override
   String get equipment_list_emptyState_noStatusMatch =>
       'Nincs ilyen állapotú felszerelés';
 
@@ -44806,7 +44810,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_trips_startDate => 'Kezdő dátum';
 
   @override
-  String get query_trips_tripType => 'Trip Type';
+  String get query_trips_tripType => 'Út típusa';
 
   @override
   String get query_weights_amount => 'Mennyiség';

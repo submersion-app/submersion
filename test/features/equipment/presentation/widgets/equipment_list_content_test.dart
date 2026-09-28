@@ -2429,6 +2429,36 @@ void main() {
   });
 
   group('query chips (#2365)', () {
+    testWidgets('a query that keeps nothing blames the query, not the gear', (
+      tester,
+    ) async {
+      // The fake id set ignores the query, so an empty source stands in for
+      // a query that matched none of the diver's items.
+      final overrides = await _buildPhoneOverrides(
+        items: const [],
+        filter: EquipmentFilterState(
+          query: ConditionNode(
+            FieldPath(['type']),
+            QueryOp.eq,
+            const EnumValue('drysuit'),
+          ),
+        ),
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const EquipmentListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('No equipment matches this query'), findsOneWidget);
+      expect(
+        find.text('Add your diving equipment to track usage and service'),
+        findsNothing,
+      );
+    });
+
     testWidgets(
       'each top-level query condition is a chip that removes itself',
       (tester) async {

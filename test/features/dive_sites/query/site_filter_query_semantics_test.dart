@@ -228,6 +228,38 @@ void main() {
     );
   });
 
+  test('a country or region padded with any whitespace matches', () async {
+    // The dropdown dedups with Dart's trim, which strips CR, tab and NBSP
+    // too (a CRLF import, a pasted value), so the SQL must strip them.
+    for (final (id, country, region) in [
+      ('cr', 'Bonaire\r', 'Klein\r\n'),
+      ('nbsp', ' Bonaire ', '\tKlein'),
+    ]) {
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion.insert(
+              id: id,
+              name: id,
+              diverId: const Value('me'),
+              country: Value(country),
+              region: Value(region),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    }
+    expect(
+      await selected(const SiteFilterState(country: 'Bonaire')),
+      containsAll(['bon', 'shr', 'cr', 'nbsp']),
+    );
+    expect(await selected(const SiteFilterState(region: 'Klein')), {
+      'bon',
+      'cr',
+      'nbsp',
+    });
+  });
+
   test('planned and excluded dives do not count', () async {
     expect(await selected(const SiteFilterState(hasDives: true)), {'bon'});
     expect(

@@ -23552,6 +23552,12 @@ abstract class AppLocalizations {
   /// **'No {filterText}'**
   String equipment_list_emptyState_noEquipment(Object filterText);
 
+  /// Empty-state subtitle on the equipment list when the advanced query matches none of the items
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment matches this query'**
+  String get equipment_list_emptyState_noQueryMatch;
+
   /// No description provided for @equipment_list_emptyState_noStatusMatch.
   ///
   /// In en, this message translates to:

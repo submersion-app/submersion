@@ -12,8 +12,11 @@ final equipmentServiceStatusRepositoryProvider =
 /// `serviceDue` query field reads (#2365 PR 3). The engine lists statuses
 /// worst first, so the first is the item's verdict, the same one
 /// [equipmentWorstClockProvider] and the row badges show. Re-runs whenever
-/// the clocks do (a ledger write, a share, a diver switch). Read it before
-/// running a query whose `tablesTouched` names `equipment_service_status`.
+/// the clocks do (a ledger write, a share, a diver switch). The app root
+/// listens to it all session, since any list can reach `serviceDue`
+/// through a relation; a query that must not see the previous verdicts
+/// (the equipment list) also awaits it, and every query that reads the
+/// table re-runs when it is rewritten.
 // no-tick: a WRITE of derived data, not a cached query. It re-runs whenever
 // activeEquipmentClocksProvider does, and that provider subscribes to the
 // equipment, share, attribute and service-ledger ticks the verdicts come

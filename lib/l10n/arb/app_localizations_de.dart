@@ -14359,6 +14359,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get equipment_list_emptyState_noQueryMatch =>
+      'Keine Ausrüstung entspricht dieser Abfrage';
+
+  @override
   String get equipment_list_emptyState_noStatusMatch =>
       'Keine Ausrüstung mit diesem Status';
 
@@ -44894,7 +44898,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_trips_startDate => 'Startdatum';
 
   @override
-  String get query_trips_tripType => 'Trip Type';
+  String get query_trips_tripType => 'Reiseart';
 
   @override
   String get query_weights_amount => 'Menge';

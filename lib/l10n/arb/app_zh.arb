@@ -4578,6 +4578,7 @@
   "equipment_list_emptyState_filterText_status": "{status} 装备",
   "equipment_list_emptyState_filterText_type": "{type} 装备",
   "equipment_list_emptyState_noEquipment": "没有{filterText}",
+  "equipment_list_emptyState_noQueryMatch": "没有与此查询匹配的装备",
   "equipment_list_emptyState_noStatusMatch": "没有此状态的装备",
   "equipment_list_emptyState_noTagMatch": "没有带这些标签的装备",
   "equipment_list_emptyState_noTypeMatch": "此类别中没有装备",
