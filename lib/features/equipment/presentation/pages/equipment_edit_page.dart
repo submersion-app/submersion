@@ -4,10 +4,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -20,10 +18,15 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_tag
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_attribute_form_section.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_custom_fields_section.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_advanced_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_edit_embedded_header.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_notification_overrides_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_parent_picker.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_purchase_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_type_status_fields.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_form_attributes.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 class EquipmentEditPage extends ConsumerStatefulWidget {
@@ -225,7 +228,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     // check.
     final items = ref.read(activeEquipmentProvider).valueOrNull;
     if (items == null) return id;
-    final allowed = _parentTypesFor(type);
+    final allowed = equipmentParentTypesFor(type);
     return items.any((e) => e.id == id && allowed.contains(e.type)) ? id : null;
   }
 
@@ -249,23 +252,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         !await ref.read(equipmentRepositoryProvider).isVisibleTo(id, diverId)) {
       return null;
     }
-    return _parentTypesFor(type).contains(parent.type) ? id : null;
+    return equipmentParentTypesFor(type).contains(parent.type) ? id : null;
   }
-
-  /// Which item types can hold a child of [type]. Empty means the type is
-  /// not a child type and the picker is hidden.
-  static Set<EquipmentType> _parentTypesFor(EquipmentType type) =>
-      switch (type) {
-        EquipmentType.o2Cell => const {EquipmentType.rebreather},
-        EquipmentType.battery => const {
-          EquipmentType.computer,
-          EquipmentType.transmitter,
-          EquipmentType.light,
-          EquipmentType.dpv,
-          EquipmentType.rebreather,
-        },
-        _ => const {},
-      };
 
   @override
   Widget build(BuildContext context) {
@@ -334,114 +322,37 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Type
-          DropdownButtonFormField<EquipmentType>(
-            initialValue: _selectedType,
-            decoration: InputDecoration(
-              labelText: context.l10n.equipment_edit_typeLabel,
-              prefixIcon: const Icon(Icons.category),
-            ),
-            items: EquipmentType.values.map((type) {
-              return DropdownMenuItem(
-                value: type,
-                child: Text(type.localizedName(context.l10n)),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  _selectedType = value;
-                  // A parent chosen for the old type may not hold the new
-                  // one (a computer holds a battery, never an O2 cell), and
-                  // the picker would show "none" while the stale id was
-                  // still written on save. Keep it only if it can: a host's
-                  // "Add part" starts on a type that holds nothing, and its
-                  // parent must survive the switch to a cell or battery.
-                  _parentEquipmentId = _validParentIdFor(value);
-                  _hasChanges = true;
-                });
-              }
-            },
-          ),
-          const SizedBox(height: 16),
-
-          // Status
-          DropdownButtonFormField<EquipmentStatus>(
-            initialValue: _selectedStatus,
-            decoration: InputDecoration(
-              labelText: context.l10n.equipment_edit_statusLabel,
-              prefixIcon: const Icon(Icons.flag),
-            ),
-            items: EquipmentStatus.values.map((status) {
-              return DropdownMenuItem(
-                value: status,
-                child: Text(status.localizedName(context.l10n)),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  _selectedStatus = value;
-                  _hasChanges = true;
-                });
-              }
-            },
+          EquipmentTypeStatusFields(
+            type: _selectedType,
+            status: _selectedStatus,
+            onTypeChanged: (value) => setState(() {
+              _selectedType = value;
+              // A parent chosen for the old type may not hold the new one (a
+              // computer holds a battery, never an O2 cell), and the picker
+              // would show "none" while the stale id was still written on
+              // save. Keep it only if it can: a host's "Add part" starts on a
+              // type that holds nothing, and its parent must survive the
+              // switch to a cell or battery.
+              _parentEquipmentId = _validParentIdFor(value);
+              _hasChanges = true;
+            }),
+            onStatusChanged: (value) => setState(() {
+              _selectedStatus = value;
+              _hasChanges = true;
+            }),
           ),
           const SizedBox(height: 16),
 
           // Parent item, for the child types only (v202).
-          if (_parentTypesFor(_selectedType).isNotEmpty) ...[
-            Builder(
-              builder: (context) {
-                final candidates =
-                    (ref.watch(activeEquipmentProvider).valueOrNull ??
-                            const <EquipmentItem>[])
-                        .where(
-                          (e) =>
-                              e.id != widget.equipmentId &&
-                              _parentTypesFor(_selectedType).contains(e.type),
-                        )
-                        .toList();
-                final known = candidates.any((e) => e.id == _parentEquipmentId);
-                return DropdownButtonFormField<String?>(
-                  key: const Key('equipment-parent-picker'),
-                  initialValue: known ? _parentEquipmentId : null,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.equipment_edit_parentLabel,
-                    prefixIcon: const Icon(Icons.account_tree_outlined),
-                  ),
-                  items: [
-                    DropdownMenuItem<String?>(
-                      value: null,
-                      child: Text(context.l10n.equipment_edit_parentNone),
-                    ),
-                    for (final e in candidates)
-                      DropdownMenuItem<String?>(
-                        value: e.id,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ServiceStatusIndicatorFor(
-                              equipmentId: e.id,
-                              density: ServiceIndicatorDensity.dot,
-                            ),
-                            const SizedBox(width: 6),
-                            Flexible(
-                              child: Text(
-                                e.name,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                  onChanged: (value) => setState(() {
-                    _parentEquipmentId = value;
-                    _hasChanges = true;
-                  }),
-                );
-              },
+          if (equipmentParentTypesFor(_selectedType).isNotEmpty) ...[
+            EquipmentParentPicker(
+              equipmentId: widget.equipmentId,
+              allowedTypes: equipmentParentTypesFor(_selectedType),
+              selectedParentId: _parentEquipmentId,
+              onChanged: (value) => setState(() {
+                _parentEquipmentId = value;
+                _hasChanges = true;
+              }),
             ),
             const SizedBox(height: 16),
           ],
@@ -494,14 +405,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             type: _selectedType,
             values: _attrValues,
             units: UnitFormatter(ref.watch(settingsProvider)),
-            onChanged: (attr) => setState(() {
-              _attrValues[attr.key] = attr;
-              _hasChanges = true;
-            }),
-            onCleared: (key) => setState(() {
-              _attrValues.remove(key);
-              _hasChanges = true;
-            }),
+            onChanged: _setAttribute,
+            onCleared: _clearAttribute,
           ),
           // The item's colour, which tints its artwork on the diver figure
           // (issue #2326). Renders nothing for the types that have none.
@@ -511,14 +416,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             group: AttributeGroup.appearance,
             values: _attrValues,
             units: UnitFormatter(ref.watch(settingsProvider)),
-            onChanged: (attr) => setState(() {
-              _attrValues[attr.key] = attr;
-              _hasChanges = true;
-            }),
-            onCleared: (key) => setState(() {
-              _attrValues.remove(key);
-              _hasChanges = true;
-            }),
+            onChanged: _setAttribute,
+            onCleared: _clearAttribute,
           ),
           // Serial #
           TextFormField(
@@ -530,7 +429,22 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           ),
           const SizedBox(height: 24),
           // Purchase Date
-          _buildDateSection(context),
+          EquipmentPurchaseCard(
+            purchaseDate: _purchaseDate,
+            onPickDate: _selectPurchaseDate,
+            onClearDate: () => setState(() {
+              _purchaseDate = null;
+              _hasChanges = true;
+            }),
+            priceController: _purchasePriceController,
+            currencyController: _purchaseCurrencyController,
+            initialCurrencyCode: _initialCurrencyCode,
+            type: _selectedType,
+            attrValues: _attrValues,
+            units: UnitFormatter(ref.watch(settingsProvider)),
+            onAttrChanged: _setAttribute,
+            onAttrCleared: _clearAttribute,
+          ),
           const SizedBox(height: 24),
 
           // Notes
@@ -556,11 +470,28 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           ),
           const SizedBox(height: 24),
           // Advanced (buoyancy metadata for weight prediction)
-          _buildAdvancedSection(context),
+          EquipmentAdvancedCard(
+            fields: _customFields,
+            onChanged: (fields) => setState(() {
+              _customFields = fields;
+              _hasChanges = true;
+            }),
+          ),
           const SizedBox(height: 24),
 
           // Notification Overrides
-          _buildNotificationSection(context),
+          EquipmentNotificationOverridesCard(
+            customReminderEnabled: _customReminderEnabled,
+            customReminderDays: _customReminderDays,
+            onEnabledChanged: (enabled) => setState(() {
+              _customReminderEnabled = enabled;
+              _hasChanges = true;
+            }),
+            onDaysChanged: (days) => setState(() {
+              _customReminderDays = days;
+              _hasChanges = true;
+            }),
+          ),
 
           if (!widget.embedded) ...[
             const SizedBox(height: 32),
@@ -596,7 +527,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         canPop: !_hasChanges,
         onPopInvokedWithResult: (didPop, result) async {
           if (!didPop && _hasChanges) {
-            final shouldPop = await _showDiscardDialog();
+            final shouldPop = await showEquipmentDiscardDialog(context);
             if (shouldPop == true && mounted) {
               _handleCancel();
             }
@@ -604,7 +535,21 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         },
         child: Column(
           children: [
-            _buildEmbeddedHeader(context, existingEquipment),
+            EquipmentEditEmbeddedHeader(
+              isEditing: widget.isEditing,
+              isLoading: _isLoading,
+              onCancel: () async {
+                if (_hasChanges) {
+                  final discard = await showEquipmentDiscardDialog(context);
+                  if (discard == true && mounted) {
+                    _handleCancel();
+                  }
+                } else {
+                  _handleCancel();
+                }
+              },
+              onSave: () => _saveEquipment(existingEquipment),
+            ),
             Expanded(child: body),
           ],
         ),
@@ -615,7 +560,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       canPop: !_hasChanges,
       onPopInvokedWithResult: (didPop, result) async {
         if (!didPop && _hasChanges) {
-          final shouldPop = await _showDiscardDialog();
+          final shouldPop = await showEquipmentDiscardDialog(context);
           if (shouldPop == true && context.mounted) {
             Navigator.of(context).pop();
           }
@@ -646,357 +591,15 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     );
   }
 
-  Widget _buildEmbeddedHeader(
-    BuildContext context,
-    EquipmentItem? existingEquipment,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
+  void _setAttribute(EquipmentAttribute attr) => setState(() {
+    _attrValues[attr.key] = attr;
+    _hasChanges = true;
+  });
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
-        ),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: colorScheme.primaryContainer,
-            child: Icon(
-              widget.isEditing ? Icons.edit : Icons.add,
-              size: 20,
-              color: colorScheme.onPrimaryContainer,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              widget.isEditing
-                  ? context.l10n.equipment_edit_embeddedHeader_editTitle
-                  : context.l10n.equipment_edit_embeddedHeader_newTitle,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              if (_hasChanges) {
-                final discard = await _showDiscardDialog();
-                if (discard == true && mounted) {
-                  _handleCancel();
-                }
-              } else {
-                _handleCancel();
-              }
-            },
-            child: Text(
-              context.l10n.equipment_edit_embeddedHeader_cancelButton,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Tooltip(
-            message: widget.isEditing
-                ? context.l10n.equipment_edit_embeddedHeader_saveTooltip_edit
-                : context.l10n.equipment_edit_embeddedHeader_saveTooltip_new,
-            child: FilledButton(
-              onPressed: _isLoading
-                  ? null
-                  : () => _saveEquipment(existingEquipment),
-              child: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Text(context.l10n.equipment_edit_embeddedHeader_saveButton),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<bool?> _showDiscardDialog() {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n.equipment_edit_discardDialog_title),
-        content: Text(context.l10n.equipment_edit_discardDialog_content),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.l10n.equipment_edit_discardDialog_keepEditing),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(context.l10n.equipment_edit_discardDialog_discard),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDateSection(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.equipment_edit_purchaseInfoTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              context.l10n.equipment_edit_purchaseDateLabel,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _selectPurchaseDate,
-              icon: const Icon(Icons.calendar_today),
-              label: Text(
-                // #1512: hand-rolled M/D/YYYY ignored the diver's preference,
-                // which the detail page for the same field already honours.
-                _purchaseDate != null
-                    ? UnitFormatter(
-                        ref.watch(settingsProvider),
-                      ).formatDate(_purchaseDate)
-                    : context.l10n.equipment_edit_selectDate,
-              ),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 48),
-              ),
-            ),
-            if (_purchaseDate != null)
-              TextButton(
-                onPressed: () => setState(() {
-                  _purchaseDate = null;
-                  _hasChanges = true;
-                }),
-                child: Text(context.l10n.equipment_edit_clearDate),
-              ),
-            const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 2,
-                  // Rebuild the price field when the currency changes so its
-                  // prefix shows the right symbol (€, $, £ ...).
-                  child: ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: _purchaseCurrencyController,
-                    builder: (context, value, _) {
-                      final symbol = currencySymbol(value.text);
-                      return TextFormField(
-                        key: const ValueKey('equipment-purchase-price'),
-                        controller: _purchasePriceController,
-                        decoration: InputDecoration(
-                          labelText:
-                              context.l10n.equipment_edit_purchasePriceLabel,
-                          prefixText: symbol.isEmpty ? null : '$symbol ',
-                        ),
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        // A price that cannot be read has to be reported. The
-                        // repository writes Value(null) rather than
-                        // Value.absent(), so accepting the save would erase
-                        // the stored price instead of leaving it alone.
-                        validator: numberValidator(context),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  // Editable dropdown: common currencies as presets, but any
-                  // ISO code can still be typed.
-                  child: DropdownMenu<String>(
-                    controller: _purchaseCurrencyController,
-                    expandedInsets: EdgeInsets.zero,
-                    requestFocusOnTap: true,
-                    enableFilter: true,
-                    label: Text(context.l10n.equipment_edit_currencyLabel),
-                    dropdownMenuEntries: [
-                      // The stored code leads the list when it is outside the
-                      // presets, so an item priced in, say, ISK stays visible
-                      // and re-selectable.
-                      for (final code in currencyCodesWith(
-                        _initialCurrencyCode,
-                      ))
-                        DropdownMenuEntry(
-                          value: code,
-                          label: code,
-                          leadingIcon: SizedBox(
-                            width: 28,
-                            child: Center(child: Text(currencySymbol(code))),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Purchase record (issue #1517): SKU, retailer and the product
-            // listing, kept with the date and price because they are all
-            // parts of the same receipt an insurer asks for.
-            EquipmentAttributeFormSection(
-              key: ValueKey('purchase-attrs-${_selectedType.name}'),
-              type: _selectedType,
-              group: AttributeGroup.purchase,
-              values: _attrValues,
-              units: UnitFormatter(ref.watch(settingsProvider)),
-              onChanged: (attr) => setState(() {
-                _attrValues[attr.key] = attr;
-                _hasChanges = true;
-              }),
-              onCleared: (key) => setState(() {
-                _attrValues.remove(key);
-                _hasChanges = true;
-              }),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAdvancedSection(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.tune, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.equipment_edit_advanced_title,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            EquipmentCustomFieldsSection(
-              fields: _customFields,
-              onChanged: (fields) => setState(() {
-                _customFields = fields;
-                _hasChanges = true;
-              }),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNotificationSection(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.notifications, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.equipment_edit_notificationsTitle,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              context.l10n.equipment_edit_notificationsSubtitle,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 16),
-            SwitchListTile(
-              title: Text(context.l10n.equipment_edit_useCustomReminders),
-              subtitle: Text(
-                context.l10n.equipment_edit_useCustomRemindersSubtitle,
-              ),
-              value: _customReminderEnabled == true,
-              onChanged: (value) {
-                setState(() {
-                  _customReminderEnabled = value ? true : null;
-                  _hasChanges = true;
-                });
-              },
-              contentPadding: EdgeInsets.zero,
-            ),
-            if (_customReminderEnabled == true) ...[
-              const SizedBox(height: 8),
-              Text(
-                context.l10n.equipment_edit_remindMeBeforeServiceDue,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: [7, 14, 30].map((days) {
-                  final isSelected = _customReminderDays.contains(days);
-                  return FilterChip(
-                    label: Text(context.l10n.equipment_edit_reminderDays(days)),
-                    selected: isSelected,
-                    onSelected: (_) {
-                      setState(() {
-                        if (isSelected) {
-                          if (_customReminderDays.length > 1) {
-                            _customReminderDays = _customReminderDays
-                                .where((d) => d != days)
-                                .toList();
-                          }
-                        } else {
-                          _customReminderDays = [..._customReminderDays, days];
-                        }
-                        _hasChanges = true;
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-            ],
-            const Divider(height: 24),
-            SwitchListTile(
-              title: Text(context.l10n.equipment_edit_disableReminders),
-              subtitle: Text(
-                context.l10n.equipment_edit_disableRemindersSubtitle,
-              ),
-              value: _customReminderEnabled == false,
-              onChanged: (value) {
-                setState(() {
-                  _customReminderEnabled = value ? false : null;
-                  _hasChanges = true;
-                });
-              },
-              contentPadding: EdgeInsets.zero,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  void _clearAttribute(String key) => setState(() {
+    _attrValues.remove(key);
+    _hasChanges = true;
+  });
 
   Future<void> _selectPurchaseDate() async {
     final date = await showAppDatePicker(
@@ -1024,20 +627,13 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           existingEquipment?.diverId ??
           await ref.read(validatedCurrentDiverIdProvider.future);
 
-      // De-dupe custom fields by trimmed key before building the attribute
-      // list. The schema enforces UNIQUE(equipment_id, attr_key, is_custom),
-      // so two custom fields sharing a label would fail the insert. First
-      // occurrence wins; sort order is re-packed to the surviving order.
-      final customAttributes = <EquipmentAttribute>[];
-      final seenCustomKeys = <String>{};
-      for (final field in _customFields) {
-        final key = field.key.trim();
-        if (key.isEmpty || !field.hasValue) continue;
-        if (!seenCustomKeys.add(key)) continue;
-        customAttributes.add(
-          field.copyWith(key: key, sortOrder: customAttributes.length),
-        );
-      }
+      // Catalog attributes of the selected type plus the de-duped custom
+      // fields (see equipmentAttributesToSave).
+      final attributes = equipmentAttributesToSave(
+        type: _selectedType,
+        values: _attrValues,
+        customFields: _customFields,
+      );
 
       final equipment = EquipmentItem(
         id: widget.equipmentId ?? '',
@@ -1055,7 +651,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             ? null
             : _serialController.text.trim(),
         purchaseDate: _purchaseDate,
-        parentEquipmentId: _parentTypesFor(_selectedType).isEmpty
+        parentEquipmentId: equipmentParentTypesFor(_selectedType).isEmpty
             ? null
             : await _parentIdToSave(_selectedType, diverId),
         // Blank means "no price"; anything unreadable was already stopped by
@@ -1077,16 +673,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         isActive:
             _selectedStatus != EquipmentStatus.retired &&
             _selectedStatus != EquipmentStatus.sold,
-        // Only attributes in the SELECTED type's catalog are kept: switching
-        // type drops out-of-catalog values at save time (form = source of
-        // truth), plus non-empty custom fields with re-packed sort order.
-        attributes: [
-          for (final def in EquipmentAttributeCatalog.attributesFor(
-            _selectedType,
-          ))
-            if (_attrValues[def.key] case final attr? when attr.hasValue) attr,
-          ...customAttributes,
-        ],
+        attributes: attributes,
         customReminderEnabled: _customReminderEnabled,
         customReminderDays: _customReminderEnabled == true
             ? _customReminderDays
