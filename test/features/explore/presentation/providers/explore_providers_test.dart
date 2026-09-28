@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -47,13 +49,48 @@ class _ThrowingEngine implements NlEngine {
       throw const NlException(NlError.contextExceeded);
 }
 
+Future<NameIndex> _bonaireLoader() async => const NameIndex([
+  NameEntry(
+    kind: MentionKind.place,
+    label: 'Bonaire',
+    ids: ['s1', 's2'],
+    target: NameTarget.sitePlace,
+  ),
+]);
+
+/// An engine whose answer arrives only when the test says so, to order a
+/// slow model call against a later request.
+class _GatedEngine implements NlEngine {
+  final gates = <String, Completer<String>>{};
+
+  @override
+  Future<NlAvailability> availability(String localeTag) async =>
+      NlAvailability.available;
+
+  @override
+  Future<void> prepare() async {}
+
+  @override
+  Stream<double> download() => const Stream.empty();
+
+  @override
+  Future<String> compile(String sentence, {required String localeTag}) =>
+      (gates[sentence] = Completer<String>()).future;
+}
+
 void main() {
   const turtles =
       '{"schemaVersion":1,"subject":"dives","clauses":[{"field":"depth",'
       '"op":"gt","value":20,"unit":"m","text":"below 20m"}],"mentions":'
       '[{"kind":"place","text":"Bonaire"}],"time":null,"unplaced":["maybe"]}';
 
-  ProviderContainer make(NlEngine engine) => ProviderContainer(
+  // Parameterized rather than re-overridden per test: a second override of
+  // the same provider later in the list does not win.
+  ProviderContainer make(
+    NlEngine engine, {
+    Future<NameIndex> Function() names = _bonaireLoader,
+    RecentQueryRecorder? recorder,
+  }) => ProviderContainer(
     overrides: [
       nlEngineProvider.overrideWithValue(engine),
       localeProvider.overrideWithValue('en'),
@@ -62,18 +99,9 @@ void main() {
         temperature: TemperatureUnit.celsius,
         pressure: PressureUnit.bar,
       )),
-      nameIndexProvider.overrideWith(
-        (ref) async => const NameIndex([
-          NameEntry(
-            kind: MentionKind.place,
-            label: 'Bonaire',
-            ids: ['s1', 's2'],
-            target: NameTarget.sitePlace,
-          ),
-        ]),
-      ),
+      nameIndexProvider.overrideWith((ref) => names()),
       recentQueryRecorderProvider.overrideWithValue(
-        (sentence, locale, parsed) async {},
+        recorder ?? (sentence, locale, parsed) async {},
       ),
     ],
   );
@@ -219,5 +247,84 @@ void main() {
         );
     expect(engine.compileCalls, 0);
     expect(c.read(exploreQueryProvider).compiled, isNotNull);
+  });
+
+  group('review fixes', () {
+    const twins = NameIndex([
+      NameEntry(
+        kind: MentionKind.buddy,
+        label: 'John Smith',
+        ids: ['john-a'],
+        target: NameTarget.buddyId,
+      ),
+      NameEntry(
+        kind: MentionKind.buddy,
+        label: 'John Smith',
+        ids: ['john-b'],
+        target: NameTarget.buddyId,
+      ),
+    ]);
+    const withJohn =
+        '{"schemaVersion":1,"subject":"dives","mentions":'
+        '[{"kind":"buddy","text":"John Smith"}],"unplaced":[]}';
+
+    test('choosing between two same-named buddies sticks', () async {
+      final c = make(_ScriptedEngine(withJohn), names: () async => twins);
+      final n = c.read(exploreQueryProvider.notifier);
+      await n.run('dives with John Smith');
+      expect(c.read(exploreQueryProvider).compiled!.unresolved, hasLength(1));
+      n.resolveWith(0, twins.entries[1]);
+      expect(c.read(exploreFilterProvider).buddyId, 'john-b');
+      expect(c.read(exploreQueryProvider).compiled!.unresolved, isEmpty);
+    });
+
+    test('an unexpected failure ends the run with an error', () async {
+      final c = make(
+        _ScriptedEngine(turtles),
+        names: () async => throw StateError('index build failed'),
+      );
+      await c.read(exploreQueryProvider.notifier).run('x');
+      final s = c.read(exploreQueryProvider);
+      expect(s.running, isFalse);
+      expect(s.error, NlError.unknown);
+    });
+
+    test('a failed recent-query write does not hide a good answer', () async {
+      final c = make(
+        _ScriptedEngine(turtles),
+        recorder: (sentence, locale, parsed) async =>
+            throw StateError('cache full'),
+      );
+      await c.read(exploreQueryProvider.notifier).run('x');
+      final s = c.read(exploreQueryProvider);
+      expect(s.running, isFalse);
+      expect(s.error, isNull);
+      expect(s.compiled!.filter.minDepth, 20);
+    });
+
+    test('a slow reply cannot overwrite a newer request', () async {
+      final engine = _GatedEngine();
+      final c = make(engine);
+      final n = c.read(exploreQueryProvider.notifier);
+      final first = n.run('first');
+      await Future<void>.delayed(Duration.zero);
+      // A recent chip re-runs a stored parse while the model is still busy.
+      await n.rerun(
+        'second',
+        ParsedQuery.fromJson(const {
+          'schemaVersion': 1,
+          'subject': 'dives',
+          'clauses': [
+            {'field': 'depth', 'op': 'gte', 'value': 40, 'text': 'deep'},
+          ],
+        }),
+      );
+      engine.gates['first']!.complete(turtles);
+      await first;
+      final s = c.read(exploreQueryProvider);
+      expect(s.sentence, 'second');
+      expect(s.compiled!.filter.minDepth, 40);
+      expect(c.read(exploreFilterProvider).minDepth, 40);
+    });
   });
 }

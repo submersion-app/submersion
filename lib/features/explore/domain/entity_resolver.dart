@@ -53,6 +53,18 @@ Resolution resolveMention(
   if (mention.kind == MentionKind.place) addGroups(MentionKind.site);
   if (mention.kind == MentionKind.site) addGroups(MentionKind.place);
 
+  // A pick the diver already made wins outright. A pin whose entity no
+  // longer exists falls through to the words, so a deleted buddy degrades
+  // to a normal lookup instead of silently dropping the mention.
+  final pinned = mention.identity;
+  if (pinned != null) {
+    for (final group in groups) {
+      for (final e in group) {
+        if (e.identity == pinned) return Resolved(e, 1.0);
+      }
+    }
+  }
+
   for (final group in groups) {
     final scored = <(NameEntry, double)>[];
     for (final e in group) {

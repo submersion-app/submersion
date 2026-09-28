@@ -1,4 +1,6 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/syntax/date_grammar.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
@@ -8,7 +10,6 @@ import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
 import 'package:submersion/features/explore/domain/entity_resolver.dart';
 import 'package:submersion/features/explore/domain/name_index.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
-import 'package:submersion/features/explore/domain/time_grammar.dart';
 import 'package:submersion/features/explore/domain/unit_grounding.dart';
 
 class CompilerContext {
@@ -76,13 +77,12 @@ abstract final class QueryCompiler {
     }
 
     final entityIds = <MentionKind, Set<String>>{};
-    final buddyLabels = <String>[];
     for (var i = 0; i < query.mentions.length; i++) {
       final m = query.mentions[i];
       final res = resolveMention(m, ctx.names);
       switch (res) {
         case Resolved(:final entry):
-          filter = _lowerMention(entry, filter, buddyLabels);
+          filter = _lowerMention(entry, filter);
           chips.add(
             QueryChip(
               ref: ChipRef.mention,
@@ -107,7 +107,7 @@ abstract final class QueryCompiler {
     }
 
     if (query.time != null) {
-      final range = parseTimeText(query.time!.text, now: ctx.now);
+      final range = parseDateText(query.time!.text, now: ctx.now);
       if (range == null) {
         unplaced.add(UnplacedItem(query.time!.text, reason: 'unknownTime'));
       } else {
@@ -360,6 +360,17 @@ abstract final class QueryCompiler {
     }
   }
 
+  /// [node] ANDed into the filter's query tree, flattening a top-level AND.
+  static DiveFilterState _andQuery(DiveFilterState f, QueryNode node) {
+    final current = f.query;
+    final next = switch (current) {
+      null => node,
+      AndNode(:final children) => AndNode([...children, node]),
+      _ => AndNode([current, node]),
+    };
+    return f.copyWith(query: next);
+  }
+
   static bool _inRange(ExploreDiveField field, double? v) {
     if (v == null) return true;
     return switch (field) {
@@ -374,11 +385,7 @@ abstract final class QueryCompiler {
     };
   }
 
-  static DiveFilterState _lowerMention(
-    NameEntry e,
-    DiveFilterState f,
-    List<String> buddyLabels,
-  ) {
+  static DiveFilterState _lowerMention(NameEntry e, DiveFilterState f) {
     switch (e.target) {
       case NameTarget.siteId:
       case NameTarget.sitePlace:
@@ -394,16 +401,31 @@ abstract final class QueryCompiler {
             EquipmentAttrCondition(key: e.attrKey!, choices: {e.attrChoice!}),
           ],
         );
+      // Every resolved buddy is an EXACT match. The first uses the plain
+      // buddy axis; each further one ANDs an exact condition into the query
+      // tree. The name filter is a substring search split on commas, so it
+      // would let "Ana" match Diana and break "Smith, John" in two.
       case NameTarget.buddyId:
-        if (f.buddyId == null && buddyLabels.isEmpty) {
-          buddyLabels.add(e.label);
-          return f.copyWith(buddyId: e.ids.single);
-        }
-        buddyLabels.add(e.label);
-        return f.copyWith(buddyNameFilter: buddyLabels.join(', '));
+        if (f.buddyId == null) return f.copyWith(buddyId: e.ids.single);
+        return _andQuery(
+          f,
+          ConditionNode(
+            FieldPath(['buddies']),
+            QueryOp.eq,
+            RefValue(e.ids.single, e.label),
+          ),
+        );
       case NameTarget.legacyBuddyName:
-        buddyLabels.add(e.label);
-        return f.copyWith(buddyNameFilter: buddyLabels.join(', '));
+        // The label IS a whole stored `dives.buddy` value, so equality
+        // (case-insensitive in the compiler) is exact.
+        return _andQuery(
+          f,
+          ConditionNode(
+            FieldPath(['legacyBuddy']),
+            QueryOp.eq,
+            StringValue(e.label),
+          ),
+        );
       case NameTarget.tagId:
         return f.copyWith(tagIds: [...f.tagIds, ...e.ids]);
       case NameTarget.centerId:

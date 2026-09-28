@@ -124,4 +124,61 @@ void main() {
       isA<Unresolved>(),
     );
   });
+
+  group('a pinned identity', () {
+    // Two buddies with the SAME name: text alone can never tell them apart,
+    // so the diver's pick is carried as the entry's identity.
+    const twins = NameIndex([
+      NameEntry(
+        kind: MentionKind.buddy,
+        label: 'John Smith',
+        ids: ['john-a'],
+        target: NameTarget.buddyId,
+      ),
+      NameEntry(
+        kind: MentionKind.buddy,
+        label: 'John Smith',
+        ids: ['john-b'],
+        target: NameTarget.buddyId,
+      ),
+    ]);
+
+    test('identical labels are ambiguous by text', () {
+      expect(
+        resolveMention(
+          const QueryMention(kind: MentionKind.buddy, text: 'John Smith'),
+          twins,
+        ),
+        isA<Ambiguous>(),
+      );
+    });
+
+    test('resolves to exactly the pinned entry', () {
+      final second = twins.entries[1];
+      final res = resolveMention(
+        QueryMention(
+          kind: MentionKind.buddy,
+          text: 'John Smith',
+          identity: second.identity,
+        ),
+        twins,
+      );
+      expect(res, isA<Resolved>());
+      expect((res as Resolved).entry.ids, ['john-b']);
+    });
+
+    test('a pin that no longer exists falls back to the text', () {
+      // The pinned buddy was deleted: resolve by words again rather than
+      // silently dropping the mention.
+      final res = resolveMention(
+        const QueryMention(
+          kind: MentionKind.buddy,
+          text: 'John Smith',
+          identity: 'buddyId:gone:::',
+        ),
+        twins,
+      );
+      expect(res, isA<Ambiguous>());
+    });
+  });
 }

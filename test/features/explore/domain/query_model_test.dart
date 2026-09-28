@@ -207,4 +207,22 @@ void main() {
     expect(q.withoutClause(0).clauses.single.field, 'visibility');
     expect(q.withoutMention(1).mentions.single.kind, MentionKind.species);
   });
+
+  test('a pinned mention identity survives a JSON round trip', () {
+    final q = ParsedQuery.fromJson({
+      'schemaVersion': kQuerySchemaVersion,
+      'subject': 'dives',
+      'mentions': [
+        {'kind': 'buddy', 'text': 'John Smith', 'identity': 'buddyId:b2:::'},
+        {'kind': 'buddy', 'text': 'Ana'},
+      ],
+    });
+    expect(q.mentions[0].identity, 'buddyId:b2:::');
+    expect(q.mentions[1].identity, isNull);
+    final again = ParsedQuery.fromJson(q.toJson());
+    expect(again.mentions[0].identity, 'buddyId:b2:::');
+    // An unpinned mention writes no identity key, so the model's own payload
+    // shape is unchanged.
+    expect((q.toJson()['mentions']! as List)[1], isNot(contains('identity')));
+  });
 }

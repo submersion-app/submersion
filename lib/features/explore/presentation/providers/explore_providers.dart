@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -138,42 +139,86 @@ class ExploreQueryNotifier extends StateNotifier<ExploreState> {
   ExploreQueryNotifier(this._ref) : super(const ExploreState());
   final Ref _ref;
 
+  static const _log = LoggerService('ExploreQueryNotifier');
+
+  /// Bumped by every request. A reply is published only while its request is
+  /// still the latest, so a slow model call cannot overwrite a sentence the
+  /// diver asked for after it (the keyboard's submit and the recent chips
+  /// both start requests while one is in flight).
+  int _request = 0;
+
   Future<void> run(String sentence) async {
     final trimmed = sentence.trim();
     if (trimmed.isEmpty) return;
-    state = state.copyWith(
-      sentence: trimmed,
-      running: true,
-      clearError: true,
-      clearResults: true,
-    );
-    _ref.read(exploreFilterProvider.notifier).state = const DiveFilterState();
+    final request = _begin(trimmed);
     try {
       final locale = _ref.read(localeProvider);
       final json = await _ref
           .read(nlEngineProvider)
           .compile(trimmed, localeTag: locale);
+      if (request != _request) return;
       final parsed = ParsedQuery.fromDecoded(jsonDecode(json));
-      await _compileAndPublish(parsed);
-      await _ref.read(recentQueryRecorderProvider)(trimmed, locale, parsed);
+      if (!await _compileAndPublish(parsed, request)) return;
+      await _recordRecent(trimmed, locale, parsed);
     } on NlException catch (e) {
-      state = state.copyWith(running: false, error: e.error);
+      _fail(request, e.error);
     } on QuerySchemaException {
-      state = state.copyWith(running: false, error: NlError.schemaMismatch);
+      _fail(request, NlError.schemaMismatch);
     } on FormatException {
-      state = state.copyWith(running: false, error: NlError.schemaMismatch);
+      _fail(request, NlError.schemaMismatch);
+    } catch (e, stackTrace) {
+      // Anything else (the name index failing to build, a database error)
+      // must still end the run: otherwise the page spins forever with the
+      // send button disabled and nothing on screen says why.
+      _log.error('Explore query failed', error: e, stackTrace: stackTrace);
+      _fail(request, NlError.unknown);
     }
   }
 
   /// A stored parse: no model call.
   Future<void> rerun(String sentence, ParsedQuery parsed) async {
+    final request = _begin(sentence);
+    try {
+      await _compileAndPublish(parsed, request);
+    } catch (e, stackTrace) {
+      _log.error('Explore re-run failed', error: e, stackTrace: stackTrace);
+      _fail(request, NlError.unknown);
+    }
+  }
+
+  int _begin(String sentence) {
+    final request = ++_request;
     state = state.copyWith(
       sentence: sentence,
       running: true,
       clearError: true,
       clearResults: true,
     );
-    await _compileAndPublish(parsed);
+    _ref.read(exploreFilterProvider.notifier).state = const DiveFilterState();
+    return request;
+  }
+
+  void _fail(int request, NlError error) {
+    if (request != _request) return;
+    state = state.copyWith(running: false, error: error);
+  }
+
+  /// Remembering the sentence is a convenience: a failed write must not turn
+  /// an answer the diver can already see into an error.
+  Future<void> _recordRecent(
+    String sentence,
+    String locale,
+    ParsedQuery parsed,
+  ) async {
+    try {
+      await _ref.read(recentQueryRecorderProvider)(sentence, locale, parsed);
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not remember an Explore query',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   void removeChip(QueryChip chip) {
@@ -187,13 +232,18 @@ class ExploreQueryNotifier extends StateNotifier<ExploreState> {
     _compileSync(next);
   }
 
-  /// Replaces the mention's words with the chosen label so the resolver
-  /// matches it exactly on recompile.
+  /// Pins the mention to the chosen entry. The label goes into the text so
+  /// the chip reads right, and the entry's identity rides along because two
+  /// entities can share a label exactly: text alone would stay ambiguous.
   void resolveWith(int mentionIndex, NameEntry entry) {
     final parsed = state.parsed;
     if (parsed == null || mentionIndex >= parsed.mentions.length) return;
     final mentions = [...parsed.mentions];
-    mentions[mentionIndex] = QueryMention(kind: entry.kind, text: entry.label);
+    mentions[mentionIndex] = QueryMention(
+      kind: entry.kind,
+      text: entry.label,
+      identity: entry.identity,
+    );
     _compileSync(
       ParsedQuery(
         subject: parsed.subject,
@@ -206,13 +256,19 @@ class ExploreQueryNotifier extends StateNotifier<ExploreState> {
   }
 
   void clear() {
+    // Also retires any request still in flight.
+    _request++;
     state = const ExploreState();
     _ref.read(exploreFilterProvider.notifier).state = const DiveFilterState();
   }
 
-  Future<void> _compileAndPublish(ParsedQuery parsed) async {
+  /// False when a newer request superseded [request] while the name index
+  /// loaded, in which case nothing is published.
+  Future<bool> _compileAndPublish(ParsedQuery parsed, int request) async {
     final names = await _ref.read(nameIndexProvider.future);
+    if (request != _request) return false;
     _publish(parsed, names);
+    return true;
   }
 
   void _compileSync(ParsedQuery parsed) {

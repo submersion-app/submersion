@@ -89,8 +89,20 @@ class QueryClause {
 class QueryMention {
   final MentionKind kind;
   final String text;
-  const QueryMention({required this.kind, required this.text});
-  Map<String, Object?> toJson() => {'kind': kind.name, 'text': text};
+
+  /// The [NameEntry.identity] the diver picked for this mention, when the
+  /// words alone were ambiguous. Two entities can share a label exactly (two
+  /// buddies named John Smith), so the pick cannot be carried by the text.
+  /// Never produced by the model; set only by an explicit choice.
+  final String? identity;
+
+  const QueryMention({required this.kind, required this.text, this.identity});
+
+  Map<String, Object?> toJson() => {
+    'kind': kind.name,
+    'text': text,
+    if (identity != null) 'identity': identity,
+  };
 }
 
 class QueryTime {
@@ -183,10 +195,12 @@ class ParsedQuery {
       if (text is! String || text.isEmpty) {
         throw const QuerySchemaException('mention.text missing');
       }
+      final identity = map['identity'];
       mentions.add(
         QueryMention(
           kind: _enumByName(MentionKind.values, map['kind'], 'kind'),
           text: text,
+          identity: identity is String && identity.isNotEmpty ? identity : null,
         ),
       );
     }
