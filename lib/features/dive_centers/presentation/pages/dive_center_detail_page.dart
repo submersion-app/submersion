@@ -6,6 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -219,6 +222,13 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
   Widget _buildMoreMenu(BuildContext context, DiveCenter center) {
     return PopupMenuButton<String>(
       onSelected: (value) async {
+        if (value == kOpenInConnectionsAction) {
+          openInConnections(
+            context,
+            NodeRef(ConnectionKind.diveCenter, center.id),
+          );
+          return;
+        }
         if (value == 'delete') {
           final usage = await readDiveCenterDeleteUsage(ref, [center.id]);
           if (!context.mounted) return;
@@ -264,6 +274,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
         }
       },
       itemBuilder: (context) => [
+        openInConnectionsMenuItem(context),
         PopupMenuItem(
           value: 'delete',
           child: Row(

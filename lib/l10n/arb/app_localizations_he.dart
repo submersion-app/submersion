@@ -9,6 +9,184 @@ class AppLocalizationsHe extends AppLocalizations {
   AppLocalizationsHe([String locale = 'he']) : super(locale);
 
   @override
+  String get connections_action_centreHere => 'מרכוז כאן';
+
+  @override
+  String get connections_around_centredOn => 'במרכז';
+
+  @override
+  String get connections_around_hops => 'צעדים';
+
+  @override
+  String connections_around_kindChip(String kind, int count) {
+    return '$kind ($count)';
+  }
+
+  @override
+  String get connections_around_noResults => 'אין תוצאות';
+
+  @override
+  String get connections_around_prompt =>
+      'חפשו שותף, אתר, טיול או כל דבר אחר כדי למרכז עליו את המפה.';
+
+  @override
+  String get connections_around_searchHint =>
+      'חיפוש שותפים, אתרים, טיולים ועוד';
+
+  @override
+  String get connections_around_show => 'הצגה';
+
+  @override
+  String get connections_editor_kinds => 'סוגים';
+
+  @override
+  String connections_editor_link(String a, String b) {
+    return '$a עם $b';
+  }
+
+  @override
+  String get connections_editor_links => 'קישורים';
+
+  @override
+  String connections_editor_minShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לפחות $count צלילות משותפות',
+      one: 'לפחות צלילה משותפת אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_editor_saveAsMap => 'שמירה כמפה';
+
+  @override
+  String get connections_editor_title => 'מפה מותאמת';
+
+  @override
+  String get connections_filter_allFilters => 'כל המסננים';
+
+  @override
+  String get connections_filter_clear => 'ניקוי';
+
+  @override
+  String get connections_filter_none => 'אין מסננים פעילים.';
+
+  @override
+  String get connections_loading => 'טוען קשרים';
+
+  @override
+  String get connections_mode_around => 'סביב פריט אחד';
+
+  @override
+  String get connections_mode_map => 'מפה מלאה';
+
+  @override
+  String get connections_preset_centers => 'מרכזים ואנשים';
+
+  @override
+  String get connections_preset_circle => 'מעגל הצלילה';
+
+  @override
+  String get connections_preset_edited => 'נערך';
+
+  @override
+  String get connections_preset_gear => 'ציוד יחד';
+
+  @override
+  String get connections_preset_gearRoad => 'ציוד בדרכים';
+
+  @override
+  String get connections_preset_life => 'אתרים לפי חיים ימיים';
+
+  @override
+  String get connections_preset_reef => 'חיי השונית';
+
+  @override
+  String get connections_preset_travel => 'סיפור מסע';
+
+  @override
+  String get connections_preset_trips => 'טיולים ואנשים';
+
+  @override
+  String get connections_preset_where => 'מי צולל איפה';
+
+  @override
+  String get connections_presets_title => 'הגדרות מוכנות';
+
+  @override
+  String get connections_savedMap_badge => 'מפה שמורה';
+
+  @override
+  String connections_savedMap_deleted(String name) {
+    return '\"$name\" נמחקה';
+  }
+
+  @override
+  String get connections_savedMap_nameLabel => 'שם';
+
+  @override
+  String get connections_savedMap_rename => 'שינוי שם';
+
+  @override
+  String get connections_savedMap_saveTitle => 'שמירת מפה';
+
+  @override
+  String get connections_savedMap_undo => 'ביטול';
+
+  @override
+  String get connections_savedMap_update => 'עדכון מהתצוגה הנוכחית';
+
+  @override
+  String get connections_summary_closest => 'הקרוב ביותר';
+
+  @override
+  String connections_summary_entitiesAround(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים',
+      one: 'פריט אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_mostConnected => 'המקושר ביותר';
+
+  @override
+  String connections_summary_pairValue(int count, String a, String b) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$a ו-$b, $count צלילות',
+      one: '$a ו-$b, צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_strongestPair => 'הזוג החזק ביותר';
+
+  @override
+  String get connections_summary_title => 'סיכום';
+
+  @override
+  String get connections_tab_details => 'פרטים';
+
+  @override
+  String get connections_tab_filter => 'סינון';
+
+  @override
+  String connections_tab_filterCount(int count) {
+    return 'סינון ($count)';
+  }
+
+  @override
+  String get connections_tab_view => 'תצוגה';
+
+  @override
   String get equipment_filter_owner_all => 'הכל';
 
   @override
@@ -3429,6 +3607,158 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get common_error_tryAgain => 'משהו השתבש. יש לנסות שוב.';
+
+  @override
+  String get connections_title => 'קשרים';
+
+  @override
+  String get connections_tooltip_relayout => 'סידור מחדש';
+
+  @override
+  String get connections_tooltip_showWholeWeb => 'חזרה למפה המלאה';
+
+  @override
+  String connections_filterBar_edges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count קשרים',
+      one: 'קשר אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_hiddenNodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count נוספים לא מוצגים',
+      one: 'אחד נוסף לא מוצג',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_showAll => 'הצגת הכול';
+
+  @override
+  String get connections_showAll_confirmTitle => 'להציג את כל הצמתים?';
+
+  @override
+  String connections_showAll_confirmBody(int count) {
+    return 'סידור $count צמתים עשוי להימשך רגע במכשיר זה.';
+  }
+
+  @override
+  String get connections_action_open => 'פתיחה';
+
+  @override
+  String get connections_action_showDives => 'הצגת צלילות';
+
+  @override
+  String get connections_action_openInConnections => 'פתיחה בקשרים';
+
+  @override
+  String connections_selection_divesTogether(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות יחד',
+      one: 'צלילה אחת יחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_selection_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_selection_topConnections => 'קשרים מובילים';
+
+  @override
+  String connections_selection_firstLast(String first, String last) {
+    return 'ראשונה $first, אחרונה $last';
+  }
+
+  @override
+  String get connections_selection_hint => 'הקישו על צומת או על קו לפרטים.';
+
+  @override
+  String get connections_empty_noDives =>
+      'אין עדיין צלילות. הקשרים יופיעו כשביומן יהיו צלילות.';
+
+  @override
+  String get connections_empty_buddies =>
+      'אין עדיין שותפים המקושרים לצלילות. הוסיפו שותפים לצלילות או המירו שמות שותפים ישנים בהגדרות, כלי נתונים.';
+
+  @override
+  String get connections_empty_sites => 'לאף צלילה אין עדיין אתר.';
+
+  @override
+  String get connections_empty_filtered => 'אין פריטים שמתאימים לסינון הנוכחי.';
+
+  @override
+  String get connections_focusMissing => 'הפריט הזה כבר אינו ביומן.';
+
+  @override
+  String get connections_error_load => 'לא ניתן לטעון את הקשרים.';
+
+  @override
+  String get connections_legend_title => 'מקרא';
+
+  @override
+  String connections_yearRange_label(int first, int last) {
+    return 'השנים $first עד $last';
+  }
+
+  @override
+  String connections_semantics_summary(int nodes, int edges) {
+    return '$nodes צמתים ו-$edges קשרים';
+  }
+
+  @override
+  String connections_semantics_selected(String label) {
+    return 'נבחר: $label';
+  }
+
+  @override
+  String get connections_kind_buddy => 'שותפים';
+
+  @override
+  String get connections_kind_site => 'אתרים';
+
+  @override
+  String get connections_kind_trip => 'טיולים';
+
+  @override
+  String get connections_kind_diveCenter => 'מרכזי צלילה';
+
+  @override
+  String get connections_kind_equipment => 'ציוד';
+
+  @override
+  String get connections_kind_species => 'מינים';
+
+  @override
+  String get connections_kind_tag => 'תגיות';
+
+  @override
+  String get connections_kind_diveType => 'סוגי צלילה';
+
+  @override
+  String get connections_kind_diveComputer => 'מחשבי צלילה';
+
+  @override
+  String get connections_kind_course => 'קורסים';
 
   @override
   String get courses_action_add => 'הוסף קורס';
@@ -20974,6 +21304,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_category_conditions_title => 'תנאים';
+
+  @override
+  String get insights_category_connections_subtitle =>
+      'שותפים, אתרים וציוד מקושרים';
 
   @override
   String get insights_category_equipment_subtitle => 'שימוש בציוד ומשקל';
@@ -38607,7 +38941,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_action_unpin => 'בטל הצמדה';
 
   @override
-  String diveLog_filterChip_dateRange(String end, String start) {
+  String diveLog_filterChip_dateRange(String start, String end) {
     return '$start עד $end';
   }
 
