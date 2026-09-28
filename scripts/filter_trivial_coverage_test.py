@@ -303,6 +303,39 @@ class ReportTest(unittest.TestCase):
             "SF:lib/b.dart\nDA:1,0\nLF:1\nLH:0\nend_of_record\n", text
         )
 
+    def test_covered_trivial_lines_no_longer_prop_up_a_total(self):
+        report = (
+            "SF:lib/a.dart\nDA:3,5\nDA:4,0\nLF:2\nLH:1\nend_of_record\n"
+        )
+        text, _, _ = cov.filter_report(report, self.read)
+        self.assertIn("DA:4,0\nLF:1\nLH:0\n", text)
+
+    def test_an_end_of_record_with_trailing_space_still_ends_the_record(self):
+        report = (
+            "SF:lib/a.dart\nDA:3,1\nLF:1\nLH:1\nend_of_record \n"
+            "SF:lib/b.dart\nDA:2,1\nDA:3,1\nLF:2\nLH:2\nend_of_record\n"
+        )
+        sources = {"lib/a.dart": A_SOURCE, "lib/b.dart": "\nint real() {\n  return 1;\n}\n"}
+        text, removed, files = cov.filter_report(report, sources.get)
+        self.assertEqual((removed, files), (1, 1))
+        self.assertIn("SF:lib/b.dart\nDA:2,1\nDA:3,1\nLF:2\nLH:2\n", text)
+
+    def test_a_new_source_file_starts_a_new_record(self):
+        report = (
+            "SF:lib/a.dart\nDA:3,1\nLF:1\nLH:1\n"
+            "SF:lib/b.dart\nDA:2,1\nDA:3,1\nLF:2\nLH:2\nend_of_record\n"
+        )
+        sources = {"lib/a.dart": A_SOURCE, "lib/b.dart": "\nint real() {\n  return 1;\n}\n"}
+        text, removed, _ = cov.filter_report(report, sources.get)
+        self.assertEqual(removed, 1)
+        self.assertIn("SF:lib/b.dart\nDA:2,1\nDA:3,1\nLF:2\nLH:2\n", text)
+
+    def test_a_last_record_without_end_of_record_is_still_filtered(self):
+        report = "SF:lib/a.dart\nDA:3,1\nDA:4,0\nLF:2\nLH:1"
+        text, removed, _ = cov.filter_report(report, self.read)
+        self.assertEqual(removed, 1)
+        self.assertEqual(text, "SF:lib/a.dart\nDA:4,0\nLF:1\nLH:0")
+
     def test_a_record_that_misses_every_trivial_line_is_kept(self):
         report = "SF:lib/a.dart\nDA:4,1\nLF:1\nLH:1\nend_of_record\n"
         result = cov.filter_report(report, self.read)
@@ -389,6 +422,17 @@ class MainTest(unittest.TestCase):
         code, _, _ = self.run_main("lcov.info")
         self.assertEqual(code, 0)
         self.assertEqual(os.path.getsize("lcov.info"), 0)
+
+    def test_a_report_it_cannot_read_is_left_alone_and_does_not_fail(self):
+        # DA:4 has no hit count, which the totals cannot be computed from.
+        broken = "SF:lib/a.dart\nDA:3,1\nDA:4\nend_of_record\n"
+        with open("lcov.info", "w", encoding="utf-8") as handle:
+            handle.write(broken)
+        code, _, err = self.run_main("lcov.info")
+        self.assertEqual(code, 0)
+        self.assertIn("left the report unchanged", err)
+        with open("lcov.info", encoding="utf-8") as handle:
+            self.assertEqual(handle.read(), broken)
 
     def test_the_wrong_number_of_arguments_is_a_usage_error(self):
         code, _, err = self.run_main()

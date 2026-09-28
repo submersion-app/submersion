@@ -387,9 +387,10 @@ jobs:
 
       - name: Drop trivial members from coverage
         # copyWith, props, ==, hashCode and toString count toward no coverage
-        # target, so no one writes a test only to execute them. The filter only
-        # removes lines, so it can raise a percentage but never lower it (see
-        # scripts/filter_trivial_coverage.py and docs/developer/testing.md).
+        # target, so no one writes a test only to execute them. A PR whose
+        # coverage came mostly from such lines sees its patch status fall,
+        # which is the intent (see scripts/filter_trivial_coverage.py and
+        # docs/developer/testing.md).
         # Runs even when the tests failed, like the upload: a missing or empty
         # report passes through untouched.
         if: always()

@@ -7,8 +7,10 @@ objects are equal, and would almost never catch a bug. Removing their lines
 from the report means no coverage target can be met by writing such tests.
 
 A copyWith counts as trivial only when its body is plain field copying; one
-with any other logic stays in the report. Everything else is untouched, so the
-filter can raise a coverage percentage but never lower it.
+with any other logic stays in the report. Everything else is untouched. A
+percentage can therefore move either way: it falls when covered boilerplate was
+propping it up, which is the point, and rises when uncovered boilerplate was
+holding it down.
 
 Usage:
     python3 scripts/filter_trivial_coverage.py coverage/lcov.info
@@ -21,6 +23,7 @@ Standard library only.
 import os
 import re
 import sys
+import traceback
 
 LIB_ROOT = "lib"
 
@@ -258,17 +261,27 @@ def filter_report(text, read_source=_source_for):
     out = []
     removed = files = 0
     record = []
-    for line in text.splitlines():
-        record.append(line)
-        if line != "end_of_record":
-            continue
+
+    def close():
+        nonlocal removed, files
         new_record, dropped = _filter_record(record, read_source)
         out.extend(new_record)
         if dropped:
             removed += dropped
             files += 1
-        record = []
-    out.extend(record)
+
+    for line in text.splitlines():
+        # A new source file ends the one before, even if its end_of_record
+        # line is missing, so one file's lines are never judged by another's.
+        if line.startswith("SF:") and record:
+            close()
+            record = []
+        record.append(line)
+        if line.strip() == "end_of_record":
+            close()
+            record = []
+    if record:
+        close()
     result = "\n".join(out)
     if text.endswith("\n") and result:
         result += "\n"
@@ -316,9 +329,18 @@ def main(argv=None):
     if not os.path.isfile(path) or os.path.getsize(path) == 0:
         print("%s: no coverage to filter" % path)
         return 0
-    with open(path, encoding="utf-8") as handle:
-        text = handle.read()
-    result, removed, files = filter_report(text)
+    try:
+        with open(path, encoding="utf-8") as handle:
+            text = handle.read()
+        result, removed, files = filter_report(text)
+    except Exception:  # noqa: BLE001 - a filter bug must not fail the shard
+        # The tests have already run and passed or failed on their own. A
+        # report this script cannot read is uploaded as it is, rather than
+        # turning a green shard red.
+        traceback.print_exc()
+        print("%s: could not filter; left the report unchanged" % path,
+              file=sys.stderr)
+        return 0
     with open(path, "w", encoding="utf-8", newline="\n") as handle:
         handle.write(result)
     print("Dropped %d lines of trivial members from %d files" % (removed, files))

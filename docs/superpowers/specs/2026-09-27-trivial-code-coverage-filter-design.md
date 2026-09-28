@@ -87,8 +87,10 @@ exits 0, so a shard whose tests failed before writing coverage still reports
 the test failure, not a filter error. The script prints how many lines it
 removed and from how many files.
 
-Removing lines can only raise a PR's percentage, never lower it, so the change
-cannot turn a passing PR red.
+Removing lines moves a percentage either way. It falls when covered
+boilerplate was propping it up, which is the intent: a PR whose new code is
+mostly untested apart from its `copyWith` sees its patch status fall. It rises
+when uncovered boilerplate was holding it down.
 
 ### CI
 
