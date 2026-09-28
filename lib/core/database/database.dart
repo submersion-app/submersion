@@ -181,7 +181,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DivePlans,
     DivePlanTanks,
     DivePlanSegments,
-    // DPV mission planner (v241, issue #2086)
+    // DPV mission planner (v244, issue #2086)
     DivePlanMissions,
     DivePlanMissionLegs,
     DivePlanMissionMembers,
@@ -218,7 +218,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 241;
+  static const int currentSchemaVersion = 244;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -966,11 +966,13 @@ class AppDatabase extends _$AppDatabase {
     // to 240. Renumbered from 233 and then 235: main shipped 233 (#1921),
     // 234 (#2046) and 239 (#2275) while this was open.
     240,
-    // v241: DPV mission planner (issue #2086). dive_plan_missions,
+    // v244: DPV mission planner (issue #2086). dive_plan_missions,
     // dive_plan_mission_legs and dive_plan_mission_members, children of
     // dive_plans. Table-only rung, no backfill; an older reader keeps the
     // new entity types as inert unknowns, so the floor stays at 240.
-    241,
+    // Renumbered from 241: #2493 took it, and open branches claim 242
+    // (#2541) and 243 (#2409).
+    244,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

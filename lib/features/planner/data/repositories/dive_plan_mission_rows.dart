@@ -8,7 +8,7 @@ import 'package:submersion/features/planner/domain/entities/mission/mission_memb
 import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
 import 'package:submersion/features/planner/domain/entities/mission/shore_exit.dart';
 
-/// Row and entity mapping for a plan's DPV mission (v241, issue #2086).
+/// Row and entity mapping for a plan's DPV mission (v244, issue #2086).
 ///
 /// The mission row's id is its plan's id. Legs and members store their list
 /// position as `sort_order` and read it back as their `order`.

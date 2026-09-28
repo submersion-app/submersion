@@ -364,7 +364,8 @@ diver or item.
 "No mission" is "no row" in `dive_plan_missions`, so `DivePlan.mission` is
 null exactly when the plan has none.
 
-The migration rung takes the next free number at implementation time: v241. On
+The migration rung takes the next free number at implementation time: v244 (renumbered
+from v241, which #2493 took; 242 and 243 are claimed by open PRs). On
 2026-09-27 main is at v240 with the sync floor at 240, and this table-only
 rung leaves the floor there. The create lives in
 `migrations/helpers/dive_plan_migrations.dart`, the rung in

@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// v241 adds the DPV mission tables (issue #2086): dive_plan_missions,
+/// v244 adds the DPV mission tables (issue #2086): dive_plan_missions,
 /// dive_plan_mission_legs and dive_plan_mission_members, children of
 /// dive_plans. Table-only rung, additive, floor stays at 240.
 
@@ -59,11 +59,11 @@ Future<String?> _ddl(AppDatabase db, String table) async {
 }
 
 void main() {
-  test('v241 is the current schema version and is in the ladder', () {
+  test('v244 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 241);
-    expect(AppDatabase.migrationVersions, contains(241));
+    expect(AppDatabase.currentSchemaVersion, 244);
+    expect(AppDatabase.migrationVersions, contains(244));
     expect(AppDatabase.migrationStepCount(240), 1);
     // Table-only rung: the sync compatibility floor must not move.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
@@ -171,7 +171,7 @@ void main() {
     }
   });
 
-  test('a database already at v241 without the tables gains them', () async {
+  test('a database already at v244 without the tables gains them', () async {
     // A database that arrives by restore or sync-adopt, or one a parallel
     // branch stamped with this version, never runs the rung; only the
     // beforeOpen backstop can add the tables there.

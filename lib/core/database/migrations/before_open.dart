@@ -621,7 +621,7 @@ extension BeforeOpenBackstops on AppDatabase {
     await Migrator(this).createTable(divePlanTanks);
     await Migrator(this).createTable(divePlanSegments);
 
-    // v241 backstop: re-assert the DPV mission tables. A database that
+    // v244 backstop: re-assert the DPV mission tables. A database that
     // arrives by restore or sync-adopt never runs onUpgrade.
     await _assertDivePlanMissionSchema();
 

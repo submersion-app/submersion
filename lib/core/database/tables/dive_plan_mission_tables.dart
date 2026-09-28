@@ -11,7 +11,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/tables/dive_plan_tables.dart';
 
-/// A DPV mission layered on a saved dive plan (v241, issue #2086). At most
+/// A DPV mission layered on a saved dive plan (v244, issue #2086). At most
 /// one row per plan, and no row means the plan has no mission. The row's id
 /// is its plan's id; `plan_id` still carries the foreign key and the unique
 /// key so a plan can never carry two.
@@ -50,7 +50,7 @@ class DivePlanMissions extends Table {
   ];
 }
 
-/// One outbound leg of a plan's DPV mission route (v241, issue #2086),
+/// One outbound leg of a plan's DPV mission route (v244, issue #2086),
 /// keyed to its plan like `dive_plan_segments`. The return is derived.
 class DivePlanMissionLegs extends Table {
   TextColumn get id => text()();
@@ -80,7 +80,7 @@ class DivePlanMissionLegs extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// One diver on a plan's DPV mission (v241, issue #2086), with a snapshot
+/// One diver on a plan's DPV mission (v244, issue #2086), with a snapshot
 /// of their scooter. `buddy_id`, `diver_id` and `scooter_equipment_id` are
 /// soft links with no foreign key: a key with no delete action would block
 /// deleting the buddy, diver or item, and a missing scooter falls back to

@@ -29,7 +29,7 @@ typedef MissionWrite = ({
   MissionRowIds removed,
 });
 
-/// Persistence for a plan's DPV mission (v241, issue #2086), kept apart
+/// Persistence for a plan's DPV mission (v244, issue #2086), kept apart
 /// from `DivePlanRepository` so that file does not grow further.
 ///
 /// [write] and [deleteAll] run inside the caller's transaction; the
