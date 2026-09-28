@@ -383,6 +383,31 @@ class MockDiveRepository extends Mock implements DiveRepository {
 }
 ```
 
+## Network, Time Limits and Fonts
+
+Every test runs with the same three limits, whether it runs on its own, in a
+CI bundle, or through `flutter test` locally.
+
+- **No network.** A request or socket to any host but this machine fails with
+  `A test reached the network: <URL>`. Inject a fake client (`MockClient` from
+  `package:http/testing.dart`), serve the response from a loopback
+  `HttpServer` (`HttpServer.bind(InternetAddress.loopbackIPv4, 0)`), or call
+  `loadPdfRoboto()` for PDF fonts. The overrides live in
+  `test/helpers/blocked_network.dart`, and `HttpOverrides.runZoned` still wins
+  inside its zone. The refusal is a `StateError`: code under test that catches
+  every error swallows it, so no request leaves the machine but the test does
+  not fail on it. A widget test that waits for such a lookup with
+  `pumpAndSettle` can then wait forever; pump a bounded number of times
+  instead, or fake the service.
+- **A time limit per test.** A test fails after `testTimeLimit`
+  (`test/helpers/test_timeouts.dart`, two minutes), set for plain tests in
+  `dart_test.yaml` and for widget tests on the binding in
+  `test/flutter_test_config.dart`. A test that is slow on purpose declares its
+  own `timeout:` with a comment saying why. The `performance` and `real-data`
+  tags, which run only on request, allow 30 minutes.
+- **No font downloads.** Google Fonts runtime fetching is off for every test.
+  The family name is still on each `TextStyle`; the font bytes never load.
+
 ## Shared Isolates in CI
 
 `flutter test` compiles and loads every test file as its own entrypoint. In CI
