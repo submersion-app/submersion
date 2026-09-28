@@ -9,8 +9,9 @@ import 'package:submersion/features/query/data/query_id_set_runner.dart';
 
 import '../../../helpers/test_database.dart';
 
-/// The compiled site query selects exactly what SiteFilterState.apply did,
-/// axis by axis (#2365). Deleted with apply() once the list reads the query.
+/// What each site filter axis selects through the compiled query (#2365),
+/// against rows, including the location and classification rules
+/// SiteFilterState.apply() once pinned in memory (#1373, #1765).
 void main() {
   late AppDatabase db;
   const now = 1735689600000;
@@ -81,6 +82,11 @@ void main() {
     await site('shr', diver: 'other', country: 'Bonaire', shared: true);
     await site('hid', diver: 'other', country: 'Bonaire');
     await site('plan', diver: 'me');
+    // Location containment (issue #1373): exact values, never substrings.
+    await site('sinai', diver: 'me', region: 'Sinai');
+    await site('ssinai', diver: 'me', region: 'South Sinai');
+    await site('congo', diver: 'me', country: 'Congo');
+    await site('drc', diver: 'me', country: 'Democratic Republic of Congo');
     Future<void> dive(
       String id,
       String siteId, {
@@ -148,52 +154,110 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<void> expectSame(SiteFilterState f) async {
+  /// The visible sites (the list's rows) the filter's query selects.
+  Future<Set<String>> selected(SiteFilterState f) async {
     final visible = await SiteRepository().getSitesWithDiveCounts(
       diverId: 'me',
     );
-    final viaApply = {for (final s in f.apply(visible)) s.site.id};
     final ids = await QueryIdSetRunner(db).ids(compileSiteFilter(f));
-    final viaSql = {
+    return {
       for (final s in visible)
         if (ids.contains(s.site.id)) s.site.id,
     };
-    expect(viaSql, viaApply, reason: '$f');
   }
 
-  test('every axis selects what apply() selected', () async {
-    for (final f in [
-      const SiteFilterState(),
-      const SiteFilterState(country: 'Bonaire'),
-      const SiteFilterState(country: 'bonaire', region: 'Klein'),
-      const SiteFilterState(difficulty: SiteDifficulty.advanced),
-      const SiteFilterState(minDepth: 20),
-      const SiteFilterState(maxDepth: 20),
-      const SiteFilterState(minRating: 3),
-      const SiteFilterState(hasCoordinates: true),
-      const SiteFilterState(hasCoordinates: false),
-      const SiteFilterState(hasDives: true),
-      const SiteFilterState(hasDives: false),
-      const SiteFilterState(siteTypeIds: {'my-arch'}),
-      const SiteFilterState(tagIds: {'t1'}),
-      const SiteFilterState(country: 'Bonaire', hasDives: true, tagIds: {'t1'}),
-    ]) {
-      await expectSame(f);
-    }
+  const everyVisible = {
+    'bon',
+    'cur',
+    'shr',
+    'plan',
+    'sinai',
+    'ssinai',
+    'congo',
+    'drc',
+  };
+
+  test('each axis selects its sites', () async {
+    expect(await selected(const SiteFilterState()), everyVisible);
+    expect(await selected(const SiteFilterState(country: 'Bonaire')), {
+      'bon',
+      'shr',
+    });
+    expect(
+      await selected(
+        const SiteFilterState(country: 'bonaire', region: 'Klein'),
+      ),
+      {'bon'},
+    );
+    expect(
+      await selected(
+        const SiteFilterState(difficulty: SiteDifficulty.advanced),
+      ),
+      {'bon'},
+    );
+    expect(await selected(const SiteFilterState(minDepth: 20)), {'bon'});
+    expect(await selected(const SiteFilterState(maxDepth: 20)), {'cur'});
+    expect(await selected(const SiteFilterState(minRating: 3)), {'bon'});
+    expect(await selected(const SiteFilterState(hasCoordinates: true)), {
+      'bon',
+    });
+    expect(
+      await selected(const SiteFilterState(hasCoordinates: false)),
+      everyVisible.difference({'bon'}),
+    );
+    expect(await selected(const SiteFilterState(siteTypeIds: {'my-arch'})), {
+      'cur',
+    });
+    expect(await selected(const SiteFilterState(tagIds: {'t1'})), {'bon'});
+    expect(
+      await selected(
+        const SiteFilterState(
+          country: 'Bonaire',
+          hasDives: true,
+          tagIds: {'t1'},
+        ),
+      ),
+      {'bon'},
+    );
   });
 
   test('a trimmed country matches', () async {
-    final ids = await QueryIdSetRunner(
-      db,
-    ).ids(compileSiteFilter(const SiteFilterState(country: 'Bonaire')));
-    expect(ids, containsAll(['bon', 'shr']));
+    expect(
+      await selected(const SiteFilterState(country: 'Bonaire')),
+      containsAll(['bon', 'shr']),
+    );
   });
 
   test('planned and excluded dives do not count', () async {
-    final ids = await QueryIdSetRunner(
-      db,
-    ).ids(compileSiteFilter(const SiteFilterState(hasDives: true)));
-    expect(ids, isNot(contains('plan')));
-    expect(ids, contains('bon'));
+    expect(await selected(const SiteFilterState(hasDives: true)), {'bon'});
+    expect(
+      await selected(const SiteFilterState(hasDives: false)),
+      everyVisible.difference({'bon'}),
+    );
+  });
+
+  test('a location filter matches exactly, never a containing value', () async {
+    expect(await selected(const SiteFilterState(region: 'Sinai')), {'sinai'});
+    expect(await selected(const SiteFilterState(country: 'Congo')), {'congo'});
+    // Case- and edge-whitespace-insensitive.
+    expect(await selected(const SiteFilterState(region: ' sinai ')), {'sinai'});
+  });
+
+  test('type and tag filters combine with AND', () async {
+    expect(
+      await selected(
+        const SiteFilterState(siteTypeIds: {'my-arch'}, tagIds: {'t1'}),
+      ),
+      isEmpty,
+    );
+  });
+
+  test('empty sets are inactive and copyWith can clear them', () {
+    expect(const SiteFilterState().hasActiveFilters, isFalse);
+    const f = SiteFilterState(siteTypeIds: {'lake'}, tagIds: {'try'});
+    expect(f.hasActiveFilters, isTrue);
+    final cleared = f.copyWith(siteTypeIds: const {}, tagIds: const {});
+    expect(cleared.hasActiveFilters, isFalse);
+    expect(f.copyWith(country: 'Mexico').siteTypeIds, {'lake'});
   });
 }
