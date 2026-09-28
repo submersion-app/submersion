@@ -53,11 +53,15 @@ class FakeNfcTagService implements NfcTagService {
     this.tag,
     this.cancelled = false,
     this.waitForCancel = false,
+    this.sessionError,
   });
 
   NfcSupport supportValue;
   NdefTagHandle? tag;
   bool cancelled;
+
+  /// Fails the session itself (not the tag), like a plugin error.
+  Object? sessionError;
 
   /// Waits, like a real session with no tag, until [cancel] ends it.
   bool waitForCancel;
@@ -80,6 +84,7 @@ class FakeNfcTagService implements NfcTagService {
   }) async {
     sessions++;
     if (cancelled) throw const NfcSessionCancelled();
+    if (sessionError case final error?) throw error;
     if (waitForCancel) {
       final waiting = _waiting = Completer<void>();
       await waiting.future;

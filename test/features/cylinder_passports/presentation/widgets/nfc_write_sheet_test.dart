@@ -5,6 +5,7 @@ import 'package:submersion/features/cylinder_passports/presentation/services/rec
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/ndef_fit.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_ndef.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/nfc_write_sheet.dart';
@@ -185,4 +186,32 @@ void main() {
       );
     },
   );
+
+  testWidgets('a session that fails outright says the write failed', (
+    tester,
+  ) async {
+    final nfc = FakeNfcTagService(
+      tag: FakeTagHandle(),
+      sessionError: PlatformException(code: 'session_already_exists'),
+    );
+    final l10n = await open(tester, nfc);
+    expect(find.text(l10n.passport_nfc_writeFailed), findsOneWidget);
+    expect(find.text(l10n.passport_nfc_retry), findsOneWidget);
+  });
+
+  testWidgets('Done closes the sheet after a write', (tester) async {
+    final l10n = await open(tester, FakeNfcTagService(tag: FakeTagHandle()));
+    await tester.tap(find.text(l10n.common_action_done));
+    await tester.pumpAndSettle();
+    expect(find.byType(NfcWriteSheet), findsNothing);
+  });
+
+  test('every key a small tag can drop has a readable name', () {
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    for (final key in NdefFit.dropOrder) {
+      final label = tagFieldLabel(l10n, key);
+      expect(label, isNot(key), reason: key);
+      expect(label, isNotEmpty, reason: key);
+    }
+  });
 }

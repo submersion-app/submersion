@@ -19,12 +19,17 @@ class _FakeNfcManager implements NfcManager {
   String? stopAlert;
   String? stopError;
   Object? stopThrows;
+  NfcAvailability availability = NfcAvailability.enabled;
+  Object? availabilityThrows;
 
   @override
   Future<bool> isAvailable() async => true;
 
   @override
-  Future<NfcAvailability> checkAvailability() async => NfcAvailability.enabled;
+  Future<NfcAvailability> checkAvailability() async {
+    if (availabilityThrows case final error?) throw error;
+    return availability;
+  }
 
   @override
   Future<void> startSession({
@@ -186,4 +191,22 @@ void main() {
       expect(await session, 7);
     },
   );
+
+  group('support', () {
+    for (final (availability, expected) in [
+      (NfcAvailability.enabled, NfcSupport.enabled),
+      (NfcAvailability.disabled, NfcSupport.disabled),
+      (NfcAvailability.unsupported, NfcSupport.unsupported),
+    ]) {
+      test('$availability is $expected', () async {
+        manager.availability = availability;
+        expect(await service.support(), expected);
+      });
+    }
+
+    test('a failed availability check is unsupported', () async {
+      manager.availabilityThrows = StateError('no NFC');
+      expect(await service.support(), NfcSupport.unsupported);
+    });
+  });
 }

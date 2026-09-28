@@ -243,4 +243,51 @@ void main() {
       isTrue,
     );
   });
+
+  testWidgets('a tag that cannot be read says so', (tester) async {
+    final nfc = FakeNfcTagService(
+      tag: FakeTagHandle(readError: StateError('tag lost')),
+    );
+    final results = await openSheet(tester, camera: null, nfc: nfc);
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportScanSheet)),
+    );
+    await tester.tap(find.byKey(const Key('passportScan_nfc')));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.passport_nfc_readFailed), findsOneWidget);
+    expect(nfc.lastIosEnd?.error, l10n.passport_nfc_readFailed);
+    expect(results, isEmpty);
+  });
+
+  testWidgets('a session that fails outright says the read failed', (
+    tester,
+  ) async {
+    final nfc = FakeNfcTagService(sessionError: StateError('no session'));
+    final results = await openSheet(tester, camera: null, nfc: nfc);
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportScanSheet)),
+    );
+    await tester.tap(find.byKey(const Key('passportScan_nfc')));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.passport_nfc_readFailed), findsOneWidget);
+    expect(results, isEmpty);
+    // The button is usable again.
+    expect(find.text(l10n.passport_nfc_tap), findsOneWidget);
+  });
+
+  testWidgets('the NFC button says to hold the tag near while it waits', (
+    tester,
+  ) async {
+    final nfc = FakeNfcTagService(waitForCancel: true);
+    await openSheet(tester, camera: null, nfc: nfc);
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportScanSheet)),
+    );
+    await tester.tap(find.byKey(const Key('passportScan_nfc')));
+    await tester.pump();
+    expect(find.text(l10n.passport_nfc_holdNear), findsOneWidget);
+    await nfc.cancel();
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.passport_nfc_tap), findsOneWidget);
+  });
 }
