@@ -267,4 +267,36 @@ void main() {
     });
     expect(_attr(_byName(items, 'fins'), 'color')['isCustom'], isFalse);
   });
+
+  // The importer keeps the first custom field of a name, so the diver's own
+  // `custom:color` must come before a colour that became custom: the app
+  // lets the diver's field win the same way (keepStrayColorAsCustom).
+  test(
+    'a battery row\'s own custom:color wins over an unprefixed colour',
+    () async {
+      final csv = CsvEquipmentWriter(CsvExportUnits.metric)
+          .write([
+            const EquipmentItem(
+              id: 'battery',
+              name: 'battery',
+              type: EquipmentType.battery,
+              attributes: [
+                EquipmentAttribute(
+                  id: 'own',
+                  equipmentId: 'battery',
+                  key: 'color',
+                  isCustom: true,
+                  valueText: 'Red',
+                ),
+              ],
+            ),
+          ])
+          .replaceAll('custom:color=Red', 'color=#EF4444; custom:color=Red');
+      final items = (await const SubmersionEquipmentCsvParser().parse(
+        _bytes(csv),
+      )).entitiesOf(ImportEntityType.equipment);
+
+      expect(_attr(_byName(items, 'battery'), 'color')['valueText'], 'Red');
+    },
+  );
 }

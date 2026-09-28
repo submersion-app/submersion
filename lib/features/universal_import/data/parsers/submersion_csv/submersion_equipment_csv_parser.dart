@@ -114,6 +114,11 @@ class SubmersionEquipmentCsvParser implements ImportParser {
           attributes.add({'key': key, 'isCustom': false, 'valueNum': kg});
         }
       }
+      // An unprefixed "color" read back as a custom field (not a colour
+      // code, or on a type without a colour) goes after the row's other
+      // attributes: the importer keeps the first custom field of a name, and
+      // the diver's own `custom:color` wins, as it does in the app.
+      final strayColors = <Map<String, dynamic>>[];
       for (final pair in splitAttributePairs(
         table.text(row, 'Attributes') ?? '',
       )) {
@@ -138,9 +143,14 @@ class SubmersionEquipmentCsvParser implements ImportParser {
           // A system attribute (a passport id) in an older export is the
           // exported cylinder's identity, not this row's; importing it would
           // give two cylinders one tag.
-          attributes.add(_attribute(parsed));
+          final unprefixedColor =
+              parsed.isCustom &&
+              pair.substring(0, pair.indexOf('=')).trim() ==
+                  EquipmentAttrKeys.color;
+          (unprefixedColor ? strayColors : attributes).add(_attribute(parsed));
         }
       }
+      attributes.addAll(strayColors);
 
       final lastService = table.date(row, 'Last Service');
       final nextDue = table.date(row, 'Next Service Due');
