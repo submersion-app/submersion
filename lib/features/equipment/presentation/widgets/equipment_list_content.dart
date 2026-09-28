@@ -49,6 +49,10 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_c
 import 'package:submersion/features/equipment/presentation/utils/condition_finding_text.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_query_providers.dart';
+import 'package:submersion/core/query/presentation/query_tree_edit.dart';
+import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
+import 'package:submersion/features/query/presentation/dive_query_chips.dart';
+import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -1019,6 +1023,19 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                     ),
                 icon: Icons.sell_outlined,
               ),
+            // One chip per top-level condition of the advanced query
+            // (#2365), printed in the diver's units.
+            for (final (i, label) in entityQueryChipLabels(
+              equipmentQueryEntity,
+              filter.query,
+              ref.watch(queryUnitPrefsProvider),
+            ).indexed)
+              _buildActiveFilterChip(label, () {
+                final next = removeTopLevelConjunct(filter.query, i);
+                ref.read(equipmentFilterProvider.notifier).state = next == null
+                    ? filter.copyWith(clearQuery: true)
+                    : filter.copyWith(query: next);
+              }),
           ],
         ),
       ),

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
@@ -179,17 +180,22 @@ Future<void> _openFilterPanel(WidgetTester tester) async {
 
 /// Tap a chip in the panel, scrolling it into view first: the sheet is short
 /// enough that the lower sections start off screen.
+/// The open filter sheet's list: the last VERTICAL Scrollable (the query
+/// editor's text field scrolls horizontally, #2365).
+Finder _sheetList() => find
+    .byWidgetPredicate(
+      (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+    )
+    .last;
+
 Future<void> _tapPanelChip(WidgetTester tester, String key) async {
   final finder = find.byKey(ValueKey(key));
   // The panel body is a lazy ListView; a chip past the cache extent is not
   // built yet, so ensureVisible alone throws "No element". Scroll it in via
-  // the sheet's list (the last Scrollable mounted once the panel is open).
+  // the sheet's list: the last VERTICAL Scrollable once the panel is open
+  // (the query editor's text field scrolls horizontally, #2365).
   if (finder.evaluate().isEmpty) {
-    await tester.scrollUntilVisible(
-      finder,
-      120,
-      scrollable: find.byType(Scrollable).last,
-    );
+    await tester.scrollUntilVisible(finder, 120, scrollable: _sheetList());
   }
   await tester.ensureVisible(finder);
   await tester.pumpAndSettle();
@@ -2037,7 +2043,7 @@ void main() {
       await tester.scrollUntilVisible(
         _typeChip(EquipmentType.bcd),
         120,
-        scrollable: find.byType(Scrollable).last,
+        scrollable: _sheetList(),
       );
 
       expect(_typeChip(null), findsOneWidget);
@@ -2422,6 +2428,62 @@ void main() {
     });
   });
 
+  group('query chips (#2365)', () {
+    testWidgets(
+      'each top-level query condition is a chip that removes itself',
+      (tester) async {
+        final overrides = await _buildPhoneOverrides(
+          items: [_makeEquipment(id: 'e1', name: 'Alpha Reg')],
+          filter: EquipmentFilterState(
+            query: AndNode([
+              ConditionNode(
+                FieldPath(['type']),
+                QueryOp.eq,
+                const EnumValue('regulator'),
+              ),
+              ConditionNode(
+                FieldPath(['serviceDue']),
+                QueryOp.eq,
+                const EnumValue('overdue'),
+              ),
+            ]),
+          ),
+        );
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: const EquipmentListContent(showAppBar: false),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('type = regulator'), findsOneWidget);
+        expect(find.text('serviceDue = overdue'), findsOneWidget);
+
+        tester
+            .widget<InputChip>(
+              find.ancestor(
+                of: find.text('type = regulator'),
+                matching: find.byType(InputChip),
+              ),
+            )
+            .onDeleted!();
+        await tester.pumpAndSettle();
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(EquipmentListContent)),
+        );
+        expect(
+          container.read(equipmentFilterProvider).query,
+          ConditionNode(
+            FieldPath(['serviceDue']),
+            QueryOp.eq,
+            const EnumValue('overdue'),
+          ),
+        );
+      },
+    );
+  });
+
   group('owner chip on rows (issue #2046)', () {
     final t = DateTime(2026);
     final divers = [
@@ -2475,11 +2537,7 @@ void main() {
       await _openFilterPanel(tester);
       final chip = find.byKey(const ValueKey('equipment_filter_owner_all'));
       if (chip.evaluate().isEmpty) {
-        await tester.scrollUntilVisible(
-          chip,
-          120,
-          scrollable: find.byType(Scrollable).last,
-        );
+        await tester.scrollUntilVisible(chip, 120, scrollable: _sheetList());
       }
       expect(
         find.descendant(of: chip, matching: find.text('All')),

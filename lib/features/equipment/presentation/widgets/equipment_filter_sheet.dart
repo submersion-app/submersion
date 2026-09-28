@@ -3,11 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart' show QueryNode;
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/domain/models/service_due_filter_display.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_choice_attribute_filter.dart';
+import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
+import 'package:submersion/features/query/presentation/dive_query_editor.dart';
+import 'package:submersion/features/query/presentation/widgets/save_query_flow.dart';
+import 'package:submersion/features/query/presentation/widgets/saved_query_chip_row.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -58,6 +64,9 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
   Set<String> _tagIds = const {};
   EquipmentOwnerFilter _owner = EquipmentOwnerFilter.all;
 
+  /// The advanced part (#2365): typed, built or applied from a saved query.
+  QueryNode? _query;
+
   @override
   void initState() {
     super.initState();
@@ -68,6 +77,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
     _attrConditions = filter.attrConditions;
     _tagIds = filter.tagIds;
     _owner = filter.owner;
+    _query = filter.query;
   }
 
   /// Conditions belong to a category, so picking another one drops them.
@@ -128,6 +138,8 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                     controller: scrollController,
                     padding: const EdgeInsets.all(16),
                     children: [
+                      _buildQuerySection(),
+                      const SizedBox(height: 24),
                       _buildStatusSection(),
                       const SizedBox(height: 24),
                       _buildOwnerSection(),
@@ -336,6 +348,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
       _attrConditions = const [];
       _tagIds = const {};
       _owner = EquipmentOwnerFilter.all;
+      _query = null;
     });
   }
 
@@ -349,8 +362,43 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
       attrConditions: _attrConditions,
       tagIds: _tagIds,
       owner: _owner,
+      query: _query,
     );
     Navigator.of(context).pop();
+  }
+
+  /// The query editor and the Saved row (#2365): a typed or built query is
+  /// ANDed with every section below.
+  Widget _buildQuerySection() {
+    final query = _query;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          context.l10n.query_sheet_sectionTitle,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 12),
+        SavedQueryChipRow(
+          subject: QuerySubject.equipment,
+          onApply: (load) => setState(() => _query = load.node),
+        ),
+        const SizedBox(height: 8),
+        EntityQueryEditor(
+          root: equipmentQueryEntity,
+          value: query,
+          onChanged: (node) => setState(() => _query = node),
+          onSave: query == null
+              ? null
+              : () => saveQueryFromEditor(
+                  context,
+                  widget.ref,
+                  subject: QuerySubject.equipment,
+                  node: query,
+                ),
+        ),
+      ],
+    );
   }
 
   /// Whose gear to show (issue #2046), offered only with two or more
