@@ -5524,13 +5524,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ref.invalidate(courseForDiveProvider(savedDiveId));
       }
 
-      // Record tide conditions if site has coordinates (skip freshwater
-      // sites: tides are meaningless there and a nearby ocean station
-      // must not leak in).
+      // Record tide conditions if the site has coordinates. The recorder
+      // skips freshwater dives, judged by the dive's own water type first.
       if (savedDiveId != null &&
           _selectedSite != null &&
-          _selectedSite!.hasCoordinates &&
-          _selectedSite!.waterType != WaterType.fresh) {
+          _selectedSite!.hasCoordinates) {
         try {
           final resolved = await ref.read(
             resolvedTideDataProvider(_selectedSite!.location!).future,
@@ -5544,6 +5542,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               diveId: savedDiveId,
               entryWallClock: entryDateTime,
               location: _selectedSite!.location!,
+              waterType: _waterType ?? _selectedSite!.waterType,
             );
           }
         } catch (e) {

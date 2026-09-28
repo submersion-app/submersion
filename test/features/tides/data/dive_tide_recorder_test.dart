@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+
 import 'package:submersion/core/tide/tide.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/tides/data/repositories/tide_record_repository.dart';
@@ -37,6 +39,7 @@ void main() {
       // Wall clock at Bonaire (UTC-4, no DST): 10:00 local is 14:00Z.
       entryWallClock: DateTime.utc(2026, 3, 28, 10),
       location: const GeoPoint(12.15, -68.27),
+      waterType: WaterType.salt,
     );
 
     expect(repository.diveId, 'd1');
@@ -44,5 +47,25 @@ void main() {
       repository.status,
       calculator.getStatus(DateTime.utc(2026, 3, 28, 14)),
     );
+  });
+
+  test('a dive marked freshwater records no tide', () async {
+    final repository = _CapturingRepository();
+
+    final record = await recordDiveTide(
+      repository: repository,
+      calculator: TideCalculator(
+        constituents: {
+          'M2': const TideConstituent(name: 'M2', amplitude: 1.0, phase: 0.0),
+        },
+      ),
+      diveId: 'd1',
+      entryWallClock: DateTime.utc(2026, 3, 28, 10),
+      location: const GeoPoint(12.15, -68.27),
+      waterType: WaterType.fresh,
+    );
+
+    expect(record, isNull);
+    expect(repository.diveId, isNull);
   });
 }

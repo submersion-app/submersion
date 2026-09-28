@@ -30,14 +30,4 @@ class TideDataService {
       resolutionKm: sample.resolutionKm,
     );
   }
-
-  /// A [TideCalculator] for a location, or null without data.
-  Future<TideCalculator?> getCalculatorForLocation(
-    double latitude,
-    double longitude,
-  ) async => (await getModelForLocation(latitude, longitude))?.calculator;
-
-  /// Whether the model has data for a location.
-  Future<bool> hasTideData(double latitude, double longitude) async =>
-      await getModelForLocation(latitude, longitude) != null;
 }

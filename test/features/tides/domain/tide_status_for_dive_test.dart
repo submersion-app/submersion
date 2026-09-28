@@ -83,23 +83,22 @@ void main() {
   for (final station in ['9414290', '9755371']) {
     test('NOAA $station local-time extremes round-trip through site time', () {
       final data = _load(station);
+      final toSite = siteClockConverter(data.location);
       expect(data.extremes, isNotEmpty);
       for (final e in data.extremes) {
         final expected = _wallClock(e['localTime'] as String);
         final type = e['type'] == 'H'
             ? TideExtremeType.high
             : TideExtremeType.low;
-        final status = tideStatusForDiveSync(
-          calculator: data.calculator,
-          entryWallClock: expected.subtract(const Duration(hours: 1)),
-          location: data.location,
+        // Synchronous here: tideStatusForDive is getStatusAsync at this
+        // instant, and 35 isolate spawns would only slow the test.
+        final status = data.calculator.getStatus(
+          diveEntryInstant(
+            expected.subtract(const Duration(hours: 1)),
+            data.location,
+          ),
         );
-        final error = _errorMinutes(
-          status,
-          type,
-          expected,
-          (instant) => siteWallClock(instant, data.location),
-        );
+        final error = _errorMinutes(status, type, expected, toSite);
         expect(
           error,
           lessThanOrEqualTo(20),
@@ -136,19 +135,15 @@ void main() {
     );
   });
 
-  test('async and sync variants agree', () async {
+  test('tideStatusForDive evaluates the dive\'s real entry instant', () async {
     final data = _load('9755371');
     final entry = DateTime.utc(2026, 7, 14, 10);
-    final sync = tideStatusForDiveSync(
+    final status = await tideStatusForDive(
       calculator: data.calculator,
       entryWallClock: entry,
       location: data.location,
     );
-    final async = await tideStatusForDive(
-      calculator: data.calculator,
-      entryWallClock: entry,
-      location: data.location,
-    );
-    expect(async, sync);
+    // San Juan is UTC-4 with no DST: 10:00 local is 14:00Z.
+    expect(status, data.calculator.getStatus(DateTime.utc(2026, 7, 14, 14)));
   });
 }

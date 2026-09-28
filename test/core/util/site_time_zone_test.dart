@@ -3,8 +3,10 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:timezone/timezone.dart' as tz;
 
 import 'package:submersion/core/util/site_time_zone.dart';
+import 'package:submersion/core/util/tz_lookup_data.dart';
 
 void main() {
   tearDown(() => SiteTimeZone.debugZoneIdOverride = null);
@@ -37,6 +39,16 @@ void main() {
           reason: '${point['name']} (${point['lat']}, ${point['lon']})',
         );
       }
+    });
+
+    test('every lookup zone resolves in the bundled tzdata', () {
+      // A zone newer than package:timezone's data would silently fall back
+      // to the whole-hour longitude offset; regenerate against both together.
+      SiteTimeZone.instantFromWallClock(DateTime.utc(2026), 12.15, -68.27);
+      final missing = tzLookupZones.where(
+        (zone) => !tz.timeZoneDatabase.locations.containsKey(zone),
+      );
+      expect(missing, isEmpty);
     });
 
     test('invalid coordinates fall back to a longitude zone', () {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -214,5 +215,20 @@ void main() {
 
     expect(find.textContaining('at 14:20'), findsNothing);
     expect(find.text('Sat, Mar 28 | 08:20 - 20:20'), findsNothing);
+  });
+
+  testWidgets('a dive marked freshwater shows no tide card', (tester) async {
+    // The diver's own water type wins over the site's (Dive.effectiveWaterType).
+    final dive = _equatorDive().copyWith(waterType: WaterType.fresh);
+    await _pumpDetailPage(
+      tester,
+      _tideRecord(
+        highTideTime: DateTime.utc(2026, 3, 28, 14, 20),
+        lowTideTime: DateTime.utc(2026, 3, 28, 8, 20),
+      ),
+      dive: dive,
+    );
+
+    expect(find.textContaining('at 14:20'), findsNothing);
   });
 }

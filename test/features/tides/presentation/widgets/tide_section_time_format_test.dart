@@ -7,6 +7,7 @@ import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/tide/entities/tide_prediction.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
+import 'package:submersion/features/tides/presentation/widgets/tide_chart.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -40,7 +41,10 @@ final _extremes = [
   ),
 ];
 
-Future<void> _pumpSection(WidgetTester tester) async {
+Future<void> _pumpSection(
+  WidgetTester tester, {
+  List<TidePrediction> predictions = const [],
+}) async {
   final settings = MockSettingsNotifier();
   await settings.setTimeFormat(TimeFormat.twentyFourHour);
   final overrides = await getBaseOverrides(settingsNotifier: settings);
@@ -53,7 +57,7 @@ Future<void> _pumpSection(WidgetTester tester) async {
         currentTideStatusProvider(_location).overrideWith((ref) async => null),
         tidePredictionsProvider(
           _location,
-        ).overrideWith((ref) async => <TidePrediction>[]),
+        ).overrideWith((ref) async => predictions),
         tideExtremesProvider(_location).overrideWith((ref) async => _extremes),
       ],
       child: const MaterialApp(
@@ -112,6 +116,30 @@ void main() {
     expect(
       table.now!.difference(siteNow).inMinutes.abs(),
       lessThanOrEqualTo(1),
+    );
+  });
+
+  testWidgets('the chart plots instants and labels them in the site clock', (
+    tester,
+  ) async {
+    final now = DateTime.now().toUtc();
+    await _pumpSection(
+      tester,
+      predictions: [
+        for (var hours = -6; hours <= 24; hours++)
+          TidePrediction(
+            time: now.add(Duration(hours: hours)),
+            heightMeters: hours / 10,
+          ),
+      ],
+    );
+
+    final chart = tester.widget<TideChart>(find.byType(TideChart));
+    // Santa Cruz is America/Los_Angeles: PDT (UTC-7) in July.
+    expect(chart.displayTime, isNotNull);
+    expect(
+      chart.displayTime!(DateTime.utc(2026, 7, 15, 12)),
+      DateTime.utc(2026, 7, 15, 5),
     );
   });
 }

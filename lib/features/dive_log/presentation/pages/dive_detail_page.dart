@@ -3984,9 +3984,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// Surface GPS) can use the same null result both as the presence gate and
   /// as the bare card to place in the row.
   Widget? _tideCard(BuildContext context, WidgetRef ref, Dive dive) {
-    // Freshwater sites have no tides; hide the section entirely, even
-    // when an old stored record exists.
-    if (dive.site?.waterType == WaterType.fresh) return null;
+    // Freshwater dives have no tides; hide the section entirely, even when
+    // an old stored record exists. The dive's own water type wins over its
+    // site's, as everywhere else (Dive.effectiveWaterType).
+    if (dive.effectiveWaterType == WaterType.fresh) return null;
 
     // Tide times are shown in the dive site's own clock; a site without
     // coordinates has none, so there is no tide card.

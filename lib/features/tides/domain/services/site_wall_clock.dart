@@ -3,14 +3,6 @@ import 'package:submersion/core/util/site_time_zone.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 
-/// The site's wall clock at [instant], as wall-clock-as-UTC.
-DateTime siteWallClock(DateTime instant, GeoPoint location) =>
-    SiteTimeZone.wallClockFromInstant(
-      instant,
-      location.latitude,
-      location.longitude,
-    );
-
 /// Maps instants at [location] to its wall clock, with the zone resolved
 /// once; for labelling many times at one site.
 DateTime Function(DateTime instant) siteClockConverter(GeoPoint location) =>

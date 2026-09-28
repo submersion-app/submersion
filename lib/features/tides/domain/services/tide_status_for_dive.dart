@@ -20,10 +20,3 @@ Future<TideStatus> tideStatusForDive({
   required DateTime entryWallClock,
   required GeoPoint location,
 }) => calculator.getStatusAsync(diveEntryInstant(entryWallClock, location));
-
-/// Synchronous twin of [tideStatusForDive] for code already inside `build`.
-TideStatus tideStatusForDiveSync({
-  required TideCalculator calculator,
-  required DateTime entryWallClock,
-  required GeoPoint location,
-}) => calculator.getStatus(diveEntryInstant(entryWallClock, location));
