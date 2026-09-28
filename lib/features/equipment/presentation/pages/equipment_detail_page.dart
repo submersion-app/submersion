@@ -3,18 +3,14 @@ import 'package:submersion/features/equipment/domain/services/equipment_ownershi
 import 'package:submersion/features/equipment/presentation/widgets/equipment_history_card.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_sharing_row.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
-import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_entry_card.dart';
-import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observations_card.dart';
-import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -23,32 +19,22 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
-import 'package:collection/collection.dart';
-import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
-import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/helpers/equipment_web_link_launcher.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_color_names.dart';
-import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/cylinder_configs/presentation/widgets/unit_configurations_card.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_documents_section.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_detail_header_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_details_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_notes_card.dart';
 import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
 import 'package:submersion/features/equipment/presentation/widgets/children_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/condition_trend_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_tag_chips.dart';
-import 'package:submersion/features/equipment/presentation/widgets/installed_in_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_history_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_record_dialog.dart';
@@ -199,14 +185,17 @@ class _EquipmentDetailContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeaderSection(
-            context,
-            equipment,
-            isServiceOverdue,
-            headerClock,
+          EquipmentDetailHeaderCard(
+            equipment: equipment,
+            isServiceOverdue: isServiceOverdue,
+            headerClock: headerClock,
           ),
           const SizedBox(height: 24),
-          _buildDetailsSection(context, ref, equipment, units),
+          EquipmentDetailsCard(
+            equipment: equipment,
+            equipmentId: equipmentId,
+            units: units,
+          ),
           const SizedBox(height: 24),
           if (equipment.type == EquipmentType.tank) ...[
             PassportEntryCard(equipment: equipment),
@@ -268,7 +257,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
           ServiceHistorySection(equipmentId: equipmentId),
           if (equipment.notes.isNotEmpty) ...[
             const SizedBox(height: 24),
-            _buildNotesSection(context, equipment),
+            EquipmentNotesCard(notes: equipment.notes),
           ],
         ],
       ),
@@ -406,337 +395,6 @@ class _EquipmentDetailContent extends ConsumerWidget {
     ];
   }
 
-  Widget _buildHeaderSection(
-    BuildContext context,
-    EquipmentItem equipment,
-    bool isServiceOverdue,
-    RollupClock? headerClock,
-  ) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 32,
-                  backgroundColor: isServiceOverdue
-                      ? StatusColors.of(context).alert.container
-                      : Theme.of(context).colorScheme.tertiaryContainer,
-                  child: Icon(
-                    equipmentTypeIcon(equipment.type),
-                    size: 32,
-                    color: isServiceOverdue
-                        ? StatusColors.of(context).alert.onContainer
-                        : Theme.of(context).colorScheme.onTertiaryContainer,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        equipment.name,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      Text(
-                        equipment.type.localizedName(context.l10n),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      if (!equipment.isActive)
-                        Chip(
-                          label: Text(
-                            context.l10n.equipment_detail_retiredChip,
-                          ),
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerHighest,
-                          labelStyle: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      // Tags (issue #1942), under the name and type.
-                      EquipmentTagChips(equipmentId: equipment.id),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            if (headerClock case final clock?) ...[
-              const SizedBox(height: 16),
-              _ServiceBanner(clock: clock, subjectId: equipment.id),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailsSection(
-    BuildContext context,
-    WidgetRef ref,
-    EquipmentItem equipment,
-    UnitFormatter units,
-  ) {
-    final diveCountAsync = ref.watch(equipmentDiveCountProvider(equipmentId));
-    final tripCountAsync = ref.watch(equipmentTripCountProvider(equipmentId));
-    // The item this one is installed in. A parent id naming nothing (a
-    // parent row that never arrived) resolves to null and shows no row.
-    final parentId = equipment.parentEquipmentId;
-    final host = parentId == null
-        ? null
-        : ref.watch(equipmentItemProvider(parentId)).value;
-    final showsInstallAge = InstalledInRow.showsInstallAge(equipment, host);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.equipment_detail_detailsTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const Divider(),
-            _buildDetailRow(
-              context,
-              context.l10n.equipment_detail_statusLabel,
-              equipment.status.localizedName(context.l10n),
-            ),
-            if (host != null)
-              InstalledInRow(part: equipment, host: host, units: units),
-            diveCountAsync.when(
-              data: (count) => Semantics(
-                button: count > 0,
-                label: context.l10n.equipment_detail_divesSemanticLabel,
-                child: InkWell(
-                  onTap: count > 0
-                      ? () {
-                          ref.read(diveFilterProvider.notifier).state =
-                              DiveFilterState(equipmentIds: [equipmentId]);
-                          context.go('/dives');
-                        }
-                      : null,
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          context.l10n.equipment_detail_divesLabel,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              count == 1
-                                  ? context.l10n
-                                        .equipment_detail_divesCountSingular(
-                                          count,
-                                        )
-                                  : context.l10n
-                                        .equipment_detail_divesCountPlural(
-                                          count,
-                                        ),
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: count > 0
-                                        ? Theme.of(context).colorScheme.primary
-                                        : null,
-                                  ),
-                            ),
-                            if (count > 0) ...[
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.chevron_right,
-                                size: 18,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              loading: () => _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_divesLabel,
-                '...',
-              ),
-              error: (e, s) => const SizedBox.shrink(),
-            ),
-            tripCountAsync.when(
-              data: (count) => Semantics(
-                button: count > 0,
-                label: context.l10n.equipment_detail_tripsSemanticLabel,
-                child: InkWell(
-                  onTap: count > 0
-                      ? () {
-                          ref.read(tripFilterProvider.notifier).state =
-                              TripFilterState(equipmentId: equipmentId);
-                          context.go('/trips');
-                        }
-                      : null,
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          context.l10n.equipment_detail_tripsLabel,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              count == 1
-                                  ? context.l10n
-                                        .equipment_detail_tripsCountSingular(
-                                          count,
-                                        )
-                                  : context.l10n
-                                        .equipment_detail_tripsCountPlural(
-                                          count,
-                                        ),
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: count > 0
-                                        ? Theme.of(context).colorScheme.primary
-                                        : null,
-                                  ),
-                            ),
-                            if (count > 0) ...[
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.chevron_right,
-                                size: 18,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              loading: () => _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_tripsLabel,
-                '...',
-              ),
-              error: (e, s) => const SizedBox.shrink(),
-            ),
-            EquipmentSharingRow(equipment: equipment),
-            if (equipment.brand != null)
-              _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_brandLabel,
-                equipment.brand!,
-              ),
-            if (equipment.model != null)
-              _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_modelLabel,
-                equipment.model!,
-              ),
-            if (equipment.serialNumber != null)
-              _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_serialNumberLabel,
-                equipment.serialNumber!,
-              ),
-            // Curated specs in catalog order, then custom fields. The
-            // purchase group is held back to the purchase block below, and
-            // the install date to the installed-in row while it shows one.
-            for (final def
-                in EquipmentAttributeCatalog.attributesFor(
-                  equipment.type,
-                ).where(
-                  (d) =>
-                      d.group == AttributeGroup.spec &&
-                      !(showsInstallAge &&
-                          d.key == EquipmentAttrKeys.installedDate),
-                ))
-              if (equipment.attributes.firstWhereOrNull(
-                    (a) => !a.isCustom && a.key == def.key,
-                  )
-                  case final attr? when attr.hasValue)
-                _buildDetailRow(
-                  context,
-                  attributeLabel(context.l10n, def.key),
-                  formatAttributeValue(attr, def, units, context.l10n),
-                ),
-            // The item's colour (issue #2326): its own row with a swatch,
-            // only when the stored value is a colour code.
-            if (normalizeEquipmentColor(
-                  equipment.attrText(EquipmentAttrKeys.color),
-                )
-                case final code?)
-              _buildColorRow(context, code),
-            for (final attr
-                in equipment.attributes.where((a) => a.isCustom).toList()
-                  ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)))
-              if (attr.hasValue)
-                _buildDetailRow(context, attr.key, attr.valueText ?? ''),
-            if (equipment.purchaseDate != null)
-              _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_purchaseDateLabel,
-                units.formatDate(equipment.purchaseDate),
-              ),
-            if (equipment.purchasePrice != null)
-              _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_purchasePriceLabel,
-                formatMoney(
-                  equipment.purchasePrice!,
-                  equipment.purchaseCurrency,
-                ),
-              ),
-            // Purchase record (issue #1517): the receipt trail, shown with
-            // the date and price rather than among the physical specs.
-            for (final def in EquipmentAttributeCatalog.purchase)
-              if (equipment.attributes.firstWhereOrNull(
-                    (a) => !a.isCustom && a.key == def.key,
-                  )
-                  case final attr? when attr.hasValue)
-                _buildPurchaseAttributeRow(context, ref, def, attr, units),
-            if (equipment.ownershipDuration != null)
-              _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_ownedForLabel,
-                _formatDuration(context, equipment.ownershipDuration!),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
   /// Opens the add-service dialog pre-tagged with a clock's kind so the
   /// saved record resets that clock.
   void _showAddServiceDialogForKind(
@@ -755,213 +413,6 @@ class _EquipmentDetailContent extends ConsumerWidget {
               .addRecord(record);
         },
       ),
-    );
-  }
-
-  Widget _buildNotesSection(BuildContext context, EquipmentItem equipment) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.notes,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.equipment_detail_notesTitle,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              equipment.notes,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// One purchase-record row. A `url` attribute whose stored text resolves
-  /// to an http(s) link becomes tappable; anything else (including a value
-  /// [parseWebLink] rejects) renders as plain text, so a garbled link is
-  /// still visible and editable rather than silently dropped.
-  Widget _buildPurchaseAttributeRow(
-    BuildContext context,
-    WidgetRef ref,
-    EquipmentAttributeDef def,
-    EquipmentAttribute attr,
-    UnitFormatter units,
-  ) {
-    final label = attributeLabel(context.l10n, def.key);
-    if (def.kind == AttributeKind.url) {
-      final link = parseWebLink(attr.valueText);
-      if (link != null) {
-        return _buildLinkRow(context, ref, label, attr.valueText!, link);
-      }
-    }
-    return _buildDetailRow(
-      context,
-      label,
-      formatAttributeValue(attr, def, units, context.l10n),
-    );
-  }
-
-  /// [_buildDetailRow] with the value rendered as a tappable link.
-  Widget _buildLinkRow(
-    BuildContext context,
-    WidgetRef ref,
-    String label,
-    String value,
-    Uri link,
-  ) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Flexible(
-            child: InkWell(
-              key: const ValueKey('equipment-detail-web-link'),
-              onTap: () => launchEquipmentWebLink(
-                context,
-                link,
-                launch: ref.read(equipmentWebLinkLaunchProvider),
-              ),
-              child: Text(
-                value,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.primary,
-                  decoration: TextDecoration.underline,
-                  decorationColor: theme.colorScheme.primary,
-                ),
-                textAlign: TextAlign.end,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// The item's colour: its label, then a swatch and the colour's name.
-  Widget _buildColorRow(BuildContext context, String code) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            attributeLabel(context.l10n, EquipmentAttrKeys.color),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                key: const ValueKey('detail-color-swatch'),
-                width: 16,
-                height: 16,
-                decoration: BoxDecoration(
-                  color: TagColors.fromHex(code),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: theme.colorScheme.outlineVariant),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                equipmentColorName(context.l10n, code),
-                style: theme.textTheme.bodyMedium,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(BuildContext context, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(width: 16),
-          // Flexible so long values (e.g. free-text custom fields) wrap
-          // instead of overflowing the row.
-          Flexible(
-            child: Text(
-              value,
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.end,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatDuration(BuildContext context, Duration duration) {
-    final days = duration.inDays;
-    if (days < 30) return context.l10n.equipment_detail_durationDays(days);
-    if (days < 365) {
-      final months = (days / 30).floor();
-      return context.l10n.equipment_detail_durationMonths(months);
-    }
-    final years = (days / 365).floor();
-    final months = ((days % 365) / 30).floor();
-    if (months == 0) {
-      return years == 1
-          ? context.l10n.equipment_detail_durationYearsSingular(years)
-          : context.l10n.equipment_detail_durationYearsPlural(years);
-    }
-    if (years == 1 && months == 1) {
-      return context.l10n.equipment_detail_durationYearsMonthsSingularSingular(
-        years,
-        months,
-      );
-    }
-    if (years == 1) {
-      return context.l10n.equipment_detail_durationYearsMonthsSingularPlural(
-        years,
-        months,
-      );
-    }
-    if (months == 1) {
-      return context.l10n.equipment_detail_durationYearsMonthsPluralSingular(
-        years,
-        months,
-      );
-    }
-    return context.l10n.equipment_detail_durationYearsMonthsPluralPlural(
-      years,
-      months,
     );
   }
 
@@ -1020,48 +471,5 @@ class _EquipmentDetailContent extends ConsumerWidget {
         }
         break;
     }
-  }
-}
-
-/// The header's service banner: which service is due, on which part, and
-/// when, in the swatch of its own severity (red overdue, amber due soon).
-/// It used to say only "Service is overdue!", which named neither (#2260).
-///
-/// The text takes the swatch's onContainer rather than the indicator's
-/// accent: the banner fills itself with the container colour, and an accent
-/// laid on its own container does not read.
-class _ServiceBanner extends StatelessWidget {
-  final RollupClock clock;
-  final String subjectId;
-
-  const _ServiceBanner({required this.clock, required this.subjectId});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = StatusColors.of(context);
-    final swatch =
-        serviceSeveritySwatch(colors, clock.status.severity) ?? colors.alert;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: swatch.container,
-        border: Border.all(color: swatch.outline),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.warning, color: swatch.onContainer),
-          const SizedBox(width: 8),
-          Expanded(
-            child: ServiceStatusIndicator(
-              clock: clock,
-              subjectId: subjectId,
-              density: ServiceIndicatorDensity.full,
-              color: swatch.onContainer,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
