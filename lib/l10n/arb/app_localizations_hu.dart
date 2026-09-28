@@ -44934,13 +44934,31 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_sites_types => 'Merülőhely-típusok';
 
   @override
+  String get query_species_builtIn => 'Beépített';
+
+  @override
   String get query_species_category => 'Kategória';
+
+  @override
+  String get query_species_description => 'Leírás';
+
+  @override
+  String get query_species_dives => 'Merülések';
 
   @override
   String get query_species_name => 'Név';
 
   @override
   String get query_species_scientificName => 'Tudományos név';
+
+  @override
+  String get query_species_sightings => 'Észlelések';
+
+  @override
+  String get query_species_sites => 'Merülőhelyek';
+
+  @override
+  String get query_species_taxonomyClass => 'Taxonómiai osztály';
 
   @override
   String get query_tags_name => 'Név';

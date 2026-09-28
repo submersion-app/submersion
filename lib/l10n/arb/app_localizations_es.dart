@@ -45148,13 +45148,31 @@ class AppLocalizationsEs extends AppLocalizations {
   String get query_sites_types => 'Tipos de punto';
 
   @override
+  String get query_species_builtIn => 'Predefinido';
+
+  @override
   String get query_species_category => 'Categoría';
+
+  @override
+  String get query_species_description => 'Descripción';
+
+  @override
+  String get query_species_dives => 'Inmersiones';
 
   @override
   String get query_species_name => 'Nombre';
 
   @override
   String get query_species_scientificName => 'Nombre científico';
+
+  @override
+  String get query_species_sightings => 'Avistamientos';
+
+  @override
+  String get query_species_sites => 'Puntos de buceo';
+
+  @override
+  String get query_species_taxonomyClass => 'Clase taxonómica';
 
   @override
   String get query_tags_name => 'Nombre';

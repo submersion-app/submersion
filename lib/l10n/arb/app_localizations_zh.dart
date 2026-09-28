@@ -42529,13 +42529,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_sites_types => '潜水点类型';
 
   @override
+  String get query_species_builtIn => '内置';
+
+  @override
   String get query_species_category => '类别';
+
+  @override
+  String get query_species_description => '描述';
+
+  @override
+  String get query_species_dives => '潜水';
 
   @override
   String get query_species_name => '名称';
 
   @override
   String get query_species_scientificName => '学名';
+
+  @override
+  String get query_species_sightings => '观察记录';
+
+  @override
+  String get query_species_sites => '潜点';
+
+  @override
+  String get query_species_taxonomyClass => '分类纲';
 
   @override
   String get query_tags_name => '名称';

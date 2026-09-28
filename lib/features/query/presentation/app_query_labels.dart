@@ -8,6 +8,7 @@ import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weekday_filter_selector.dart';
@@ -98,6 +99,8 @@ class AppQueryLabels implements QueryLabels {
       case 'query_courses_agency':
         return byName(CertificationAgency.values)?.localizedName(_l10n) ??
             value;
+      case 'query_species_category':
+        return byName(SpeciesCategory.values)?.localizedName(_l10n) ?? value;
       case 'query_certifications_level':
         return byName(CertificationLevel.values)?.localizedName(_l10n) ?? value;
       default:

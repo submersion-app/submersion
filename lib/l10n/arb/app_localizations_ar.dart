@@ -44774,13 +44774,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_sites_types => 'أنواع الموقع';
 
   @override
+  String get query_species_builtIn => 'مدمج';
+
+  @override
   String get query_species_category => 'الفئة';
+
+  @override
+  String get query_species_description => 'الوصف';
+
+  @override
+  String get query_species_dives => 'الغطسات';
 
   @override
   String get query_species_name => 'الاسم';
 
   @override
   String get query_species_scientificName => 'الاسم العلمي';
+
+  @override
+  String get query_species_sightings => 'المشاهدات';
+
+  @override
+  String get query_species_sites => 'مواقع الغوص';
+
+  @override
+  String get query_species_taxonomyClass => 'الصنف التصنيفي';
 
   @override
   String get query_tags_name => 'الاسم';

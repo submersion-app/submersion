@@ -45222,13 +45222,31 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_sites_types => 'Types de site';
 
   @override
+  String get query_species_builtIn => 'Prédéfini';
+
+  @override
   String get query_species_category => 'Catégorie';
+
+  @override
+  String get query_species_description => 'Description';
+
+  @override
+  String get query_species_dives => 'Plongées';
 
   @override
   String get query_species_name => 'Nom';
 
   @override
   String get query_species_scientificName => 'Nom scientifique';
+
+  @override
+  String get query_species_sightings => 'Observations';
+
+  @override
+  String get query_species_sites => 'Sites de plongée';
+
+  @override
+  String get query_species_taxonomyClass => 'Classe taxonomique';
 
   @override
   String get query_tags_name => 'Nom';

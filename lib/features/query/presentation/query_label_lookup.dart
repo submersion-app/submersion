@@ -433,12 +433,24 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_sites_tags;
     case 'query_sites_types':
       return l10n.query_sites_types;
+    case 'query_species_builtIn':
+      return l10n.query_species_builtIn;
     case 'query_species_category':
       return l10n.query_species_category;
+    case 'query_species_description':
+      return l10n.query_species_description;
+    case 'query_species_dives':
+      return l10n.query_species_dives;
     case 'query_species_name':
       return l10n.query_species_name;
     case 'query_species_scientificName':
       return l10n.query_species_scientificName;
+    case 'query_species_sightings':
+      return l10n.query_species_sightings;
+    case 'query_species_sites':
+      return l10n.query_species_sites;
+    case 'query_species_taxonomyClass':
+      return l10n.query_species_taxonomyClass;
     case 'query_tags_name':
       return l10n.query_tags_name;
     case 'query_tanks_cylinder':

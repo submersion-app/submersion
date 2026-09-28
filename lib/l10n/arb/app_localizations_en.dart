@@ -44451,13 +44451,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_sites_types => 'Site types';
 
   @override
+  String get query_species_builtIn => 'Built-in';
+
+  @override
   String get query_species_category => 'Category';
+
+  @override
+  String get query_species_description => 'Description';
+
+  @override
+  String get query_species_dives => 'Dives';
 
   @override
   String get query_species_name => 'Name';
 
   @override
   String get query_species_scientificName => 'Scientific name';
+
+  @override
+  String get query_species_sightings => 'Sightings';
+
+  @override
+  String get query_species_sites => 'Dive sites';
+
+  @override
+  String get query_species_taxonomyClass => 'Taxonomy class';
 
   @override
   String get query_tags_name => 'Name';

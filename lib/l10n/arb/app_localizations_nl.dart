@@ -44819,13 +44819,31 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_sites_types => 'Duikstektypes';
 
   @override
+  String get query_species_builtIn => 'Ingebouwd';
+
+  @override
   String get query_species_category => 'Categorie';
+
+  @override
+  String get query_species_description => 'Beschrijving';
+
+  @override
+  String get query_species_dives => 'Duiken';
 
   @override
   String get query_species_name => 'Naam';
 
   @override
   String get query_species_scientificName => 'Wetenschappelijke naam';
+
+  @override
+  String get query_species_sightings => 'Waarnemingen';
+
+  @override
+  String get query_species_sites => 'Duikstekken';
+
+  @override
+  String get query_species_taxonomyClass => 'Taxonomische klasse';
 
   @override
   String get query_tags_name => 'Naam';

@@ -45102,13 +45102,31 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_sites_types => 'Tipi di sito';
 
   @override
+  String get query_species_builtIn => 'Predefinito';
+
+  @override
   String get query_species_category => 'Categoria';
+
+  @override
+  String get query_species_description => 'Descrizione';
+
+  @override
+  String get query_species_dives => 'Immersioni';
 
   @override
   String get query_species_name => 'Nome';
 
   @override
   String get query_species_scientificName => 'Nome scientifico';
+
+  @override
+  String get query_species_sightings => 'Avvistamenti';
+
+  @override
+  String get query_species_sites => 'Siti di immersione';
+
+  @override
+  String get query_species_taxonomyClass => 'Classe tassonomica';
 
   @override
   String get query_tags_name => 'Nome';

@@ -45119,13 +45119,31 @@ class AppLocalizationsPt extends AppLocalizations {
   String get query_sites_types => 'Tipos de ponto';
 
   @override
+  String get query_species_builtIn => 'Predefinido';
+
+  @override
   String get query_species_category => 'Categoria';
+
+  @override
+  String get query_species_description => 'Descrição';
+
+  @override
+  String get query_species_dives => 'Mergulhos';
 
   @override
   String get query_species_name => 'Nome';
 
   @override
   String get query_species_scientificName => 'Nome científico';
+
+  @override
+  String get query_species_sightings => 'Avistamentos';
+
+  @override
+  String get query_species_sites => 'Pontos de mergulho';
+
+  @override
+  String get query_species_taxonomyClass => 'Classe Taxonomica';
 
   @override
   String get query_tags_name => 'Nome';

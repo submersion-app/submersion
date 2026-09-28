@@ -72283,11 +72283,29 @@ abstract class AppLocalizations {
   /// **'Site types'**
   String get query_sites_types;
 
+  /// Query builder: whether a species comes from the built-in catalog
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
+  String get query_species_builtIn;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
   /// **'Category'**
   String get query_species_category;
+
+  /// Query builder: a species' description
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get query_species_description;
+
+  /// Query builder: the dives a species was sighted on
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get query_species_dives;
 
   /// Field label in the query builder
   ///
@@ -72300,6 +72318,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Scientific name'**
   String get query_species_scientificName;
+
+  /// Query builder: a species' sightings
+  ///
+  /// In en, this message translates to:
+  /// **'Sightings'**
+  String get query_species_sightings;
+
+  /// Query builder: the sites a species is expected at
+  ///
+  /// In en, this message translates to:
+  /// **'Dive sites'**
+  String get query_species_sites;
+
+  /// Query builder: a species' taxonomy class
+  ///
+  /// In en, this message translates to:
+  /// **'Taxonomy class'**
+  String get query_species_taxonomyClass;
 
   /// Field label in the query builder
   ///

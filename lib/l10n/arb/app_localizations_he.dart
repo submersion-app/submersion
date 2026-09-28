@@ -44222,13 +44222,31 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_sites_types => 'סוגי אתר';
 
   @override
+  String get query_species_builtIn => 'מובנה';
+
+  @override
   String get query_species_category => 'קטגוריה';
+
+  @override
+  String get query_species_description => 'תיאור';
+
+  @override
+  String get query_species_dives => 'צלילות';
 
   @override
   String get query_species_name => 'שם';
 
   @override
   String get query_species_scientificName => 'שם מדעי';
+
+  @override
+  String get query_species_sightings => 'תצפיות';
+
+  @override
+  String get query_species_sites => 'אתרי צלילה';
+
+  @override
+  String get query_species_taxonomyClass => 'מחלקה טקסונומית';
 
   @override
   String get query_tags_name => 'שם';

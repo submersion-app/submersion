@@ -45024,13 +45024,31 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_sites_types => 'Tauchplatztypen';
 
   @override
+  String get query_species_builtIn => 'Vordefiniert';
+
+  @override
   String get query_species_category => 'Kategorie';
+
+  @override
+  String get query_species_description => 'Beschreibung';
+
+  @override
+  String get query_species_dives => 'Tauchgänge';
 
   @override
   String get query_species_name => 'Name';
 
   @override
   String get query_species_scientificName => 'Wissenschaftlicher Name';
+
+  @override
+  String get query_species_sightings => 'Sichtungen';
+
+  @override
+  String get query_species_sites => 'Tauchplätze';
+
+  @override
+  String get query_species_taxonomyClass => 'Taxonomische Klasse';
 
   @override
   String get query_tags_name => 'Name';
