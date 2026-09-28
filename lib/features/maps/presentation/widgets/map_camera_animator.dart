@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/maps/domain/map_utils.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_camera_fit.dart';
 
@@ -63,11 +64,13 @@ class MapCameraAnimator {
     List<LatLng> points, {
     double singlePointZoom = 12.0,
     EdgeInsets padding = const EdgeInsets.all(50),
+    double maxZoom = fitAllMaxZoom,
   }) {
     final fit = fitAllCameraFit(
       points,
       singlePointZoom: singlePointZoom,
       padding: padding,
+      maxZoom: maxZoom,
     );
     if (fit == null) return;
     dispose();
@@ -81,15 +84,23 @@ class MapCameraAnimator {
     List<LatLng> points, {
     double singlePointZoom = 12.0,
     EdgeInsets padding = const EdgeInsets.all(50),
+    double maxZoom = fitAllMaxZoom,
   }) {
     final usable = points.where(isUsableMapPoint).toList();
     if (usable.isEmpty) return null;
     return WorldCameraFit(
       points: usable,
       padding: padding,
+      maxZoom: maxZoom,
       singlePointZoom: singlePointZoom,
     );
   }
+
+  /// The closest [fitAll] and [fitAllCameraFit] will zoom. Sites a few
+  /// hundred metres apart would otherwise fit at the map's own maxZoom (18),
+  /// past OpenTopoMap's last tile level (17), and the map would open blank.
+  /// 14 matches the cluster-tap cap in [animateToBounds].
+  static const double fitAllMaxZoom = 14.0;
 
   /// Cancels any in-flight animation. Safe to call twice.
   void dispose() {

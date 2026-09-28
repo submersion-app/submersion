@@ -283,8 +283,6 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     // Open framed on every site the way the fit-all button frames them,
     // across the date line when that is tighter (#2516). With no site to
     // frame the fit is null and the map falls back to the default view.
-    const center = _defaultCenter;
-    const zoom = _defaultZoom;
     final initialFit = MapCameraAnimator.fitAllCameraFit(
       _sitePoints(sitesWithLocation.map((s) => s.site)),
     );
@@ -298,8 +296,8 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
           child: FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter: center,
-              initialZoom: zoom,
+              initialCenter: _defaultCenter,
+              initialZoom: _defaultZoom,
               initialCameraFit: initialFit,
               minZoom: 2.0,
               maxZoom: 18.0,

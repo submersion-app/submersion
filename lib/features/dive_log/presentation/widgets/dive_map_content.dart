@@ -228,32 +228,30 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
     // Get selected dive's site ID for highlighting
     final selectedSiteId = _getSelectedSiteId(widget.selectedId);
 
-    // Calculate initial center and zoom
-    // If there's a selected dive with location, start centered on it
-    LatLng center = _defaultCenter;
-    double zoom = _defaultZoom;
-    CameraFit? initialFit;
-
-    if (widget.selectedId != null && selectedSiteId != null) {
-      // Find the selected site's location
-      final selectedSite = sitesWithDives
-          .where((s) => s.site.id == selectedSiteId)
-          .firstOrNull
-          ?.site;
-      if (selectedSite?.hasCoordinates == true) {
-        center = LatLng(
-          selectedSite!.location!.latitude,
-          selectedSite.location!.longitude,
-        );
-        zoom = 12.0; // Reasonable zoom for viewing a single site
-      }
-    } else {
-      // No selection: open framed on every site the way the fit-all button
-      // frames them, across the date line when that is tighter (#2516).
-      initialFit = MapCameraAnimator.fitAllCameraFit(
-        _sitePoints(sitesWithDives.map((s) => s.site)),
-      );
-    }
+    // A selected dive whose site has a location opens centred on it.
+    final selectedSite = selectedSiteId == null
+        ? null
+        : sitesWithDives
+              .where((s) => s.site.id == selectedSiteId)
+              .firstOrNull
+              ?.site;
+    final selectedPoint = selectedSite?.hasCoordinates == true
+        ? LatLng(
+            selectedSite!.location!.latitude,
+            selectedSite.location!.longitude,
+          )
+        : null;
+    final center = selectedPoint ?? _defaultCenter;
+    // Reasonable zoom for viewing a single site
+    final zoom = selectedPoint != null ? 12.0 : _defaultZoom;
+    // No selection, or one the map cannot place: open framed on every site
+    // the way the fit-all button frames them, across the date line when that
+    // is tighter (#2516).
+    final initialFit = selectedPoint == null
+        ? MapCameraAnimator.fitAllCameraFit(
+            _sitePoints(sitesWithDives.map((s) => s.site)),
+          )
+        : null;
 
     // Build a lookup map from marker location to dive count for cluster summing
     final diveCountByLocation = <LatLng, int>{};

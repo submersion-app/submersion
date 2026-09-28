@@ -1,6 +1,8 @@
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/utils/geo_math.dart';
+
 /// Calculate an appropriate zoom level for a set of map points.
 ///
 /// Uses a heuristic based on the maximum geographic span (latitude or
@@ -31,19 +33,6 @@ bool isUsableMapPoint(LatLng p) =>
     p.latitude <= 90 &&
     p.longitude >= -180 &&
     p.longitude <= 180;
-
-/// [longitude] folded into [-180, 180). Both ends of the seam land on -180.
-double normalizeLongitude(double longitude) {
-  final folded = (longitude + 180) % 360;
-  return folded - 180;
-}
-
-/// The signed number of degrees to travel east from [from] to reach [to]
-/// the short way round, in (-180, 180]. Negative means west.
-double longitudeDelta(double from, double to) {
-  final delta = normalizeLongitude(to - from);
-  return delta == -180 ? 180 : delta;
-}
 
 /// The narrowest band of longitudes that holds every one of [longitudes],
 /// crossing the date line when that is shorter than going through

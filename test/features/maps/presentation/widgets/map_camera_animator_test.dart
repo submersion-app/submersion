@@ -217,4 +217,21 @@ void main() {
     expect(controller.camera.center.longitude.abs(), greaterThan(179));
     expect(controller.camera.zoom, greaterThan(4));
   });
+
+  testWidgets('fitAll never zooms past fitAllMaxZoom for nearby points', (
+    tester,
+  ) async {
+    final controller = await _pumpMap(tester);
+    final animator = MapCameraAnimator(
+      controller: controller,
+      vsync: const TestVSync(),
+    );
+    addTearDown(animator.dispose);
+
+    // Two sites about 100 m apart would otherwise fit near zoom 18.
+    animator.fitAll(const [LatLng(-8.0, 115.0), LatLng(-8.0009, 115.0009)]);
+    await tester.pump();
+
+    expect(controller.camera.zoom, MapCameraAnimator.fitAllMaxZoom);
+  });
 }

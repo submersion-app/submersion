@@ -30,9 +30,12 @@ typedef WorldCopy = ({int shift, MapCamera camera});
 ///
 /// The copy with shift 0 is [camera] itself. The others are centred 360
 /// degrees west for each world east, so a point projects [shift] world
-/// widths further east on screen. Their [MapCamera.visibleBounds] spans every
-/// longitude at the real view's latitudes, because a longitude past 180 has
-/// no valid [LatLngBounds]; layers still cull by pixel bounds.
+/// widths further east on screen. A longitude past 180 has no valid
+/// [LatLngBounds], so each shifted copy's [MapCamera.visibleBounds] holds
+/// instead the canonical longitudes it actually puts on screen, padded by
+/// half a screen. A copy with none (one of the [margin] extras) gets a
+/// zero-width band at its edge, so a layer that recurses by visible bounds,
+/// as the cluster plugin does, skips it almost entirely.
 ///
 /// [margin] adds that many copies beyond the visible ones on each side.
 ///
@@ -49,12 +52,11 @@ List<WorldCopy> worldCopyCameras(MapCamera camera, {int margin = 0}) {
   if (first == 0 && last == 0) return [(shift: 0, camera: camera)];
 
   final real = camera.visibleBounds;
-  final everyLongitude = LatLngBounds.unsafe(
-    north: real.north,
-    south: real.south,
-    east: 180,
-    west: -180,
-  );
+  // Padded by half a screen each side, as the cluster plugin pads the real
+  // view, so a marker just past a sliver of a copy still draws its edge.
+  final pad = camera.size.width / 2;
+  double longitudeAt(double x) =>
+      x.clamp(0.0, worldWidth) / worldWidth * 360 - 180;
   return [
     for (var shift = first; shift <= last; shift++)
       if (shift == 0)
@@ -73,7 +75,12 @@ List<WorldCopy> worldCopyCameras(MapCamera camera, {int margin = 0}) {
             nonRotatedSize: camera.nonRotatedSize,
             minZoom: camera.minZoom,
             maxZoom: camera.maxZoom,
-            bounds: everyLongitude,
+            bounds: LatLngBounds.unsafe(
+              north: real.north,
+              south: real.south,
+              west: longitudeAt(left - pad - worldWidth * shift),
+              east: longitudeAt(right + pad - worldWidth * shift),
+            ),
           ),
         ),
   ];
@@ -84,34 +91,56 @@ List<WorldCopy> worldCopyCameras(MapCamera camera, {int margin = 0}) {
 /// `flutter_map_marker_cluster` positions markers in the canonical world
 /// only, so on a map that scrolls past 180 the markers on the far side of the
 /// seam would be missing. This draws one cluster layer per visible copy of
-/// the world (see [worldCopyCameras]). Clusters never merge across the seam,
-/// the same as the plugin's own clustering, which works in canonical pixels.
+/// the world (see [worldCopyCameras]); away from the seam that is just one.
+/// Clusters never merge across the seam, the same as the plugin's own
+/// clustering, which works in canonical pixels.
 ///
-/// It keeps one copy beyond the visible ones on each side. The plugin runs
-/// its zoom-to-cluster animation inside the copy that was tapped, and when
-/// that animation carries the camera across the date line the camera's
-/// longitude wraps, which relabels every copy by one world. Without the spare
-/// copies the tapped copy could leave the list and take the animation with
-/// it halfway. Copies off screen cull all their markers, so they cost little.
-class WorldWrappedMarkerClusterLayer extends StatelessWidget {
+/// Each copy is keyed by the world it shows, not by its shift. The camera's
+/// longitude wraps as it crosses 180, which relabels every copy's shift by
+/// one; keyed by shift, the copy on screen would become a new State and take
+/// any running plugin animation (the zoom-to-cluster of a layer with
+/// `zoomToBoundsOnClick`) with it halfway. Counting the wraps keeps each
+/// piece of the world with its own State.
+class WorldWrappedMarkerClusterLayer extends StatefulWidget {
   const WorldWrappedMarkerClusterLayer({super.key, required this.options});
 
   final MarkerClusterLayerOptions options;
 
   @override
+  State<WorldWrappedMarkerClusterLayer> createState() =>
+      _WorldWrappedMarkerClusterLayerState();
+}
+
+class _WorldWrappedMarkerClusterLayerState
+    extends State<WorldWrappedMarkerClusterLayer> {
+  double? _lastLongitude;
+
+  /// Net times the camera has wrapped east across 180 (west counts -1).
+  int _wraps = 0;
+
+  @override
   Widget build(BuildContext context) {
+    final camera = MapCamera.of(context);
     final controller = MapController.of(context);
-    final copies = worldCopyCameras(MapCamera.of(context), margin: 1);
+
+    // A jump of more than half the world between two frames is the camera
+    // wrapping at the seam, not a pan: 179.9 to -179.9 is 0.2 degrees east.
+    final last = _lastLongitude;
+    if (last != null) {
+      final jump = camera.center.longitude - last;
+      if (jump < -180) _wraps++;
+      if (jump > 180) _wraps--;
+    }
+    _lastLongitude = camera.center.longitude;
+
     return Stack(
       children: [
-        for (final copy in copies)
+        for (final copy in worldCopyCameras(camera))
           MarkerClusterLayer(
-            // Keyed by shift so each copy keeps its own cluster state as the
-            // camera moves.
-            key: ValueKey(copy.shift),
+            key: ValueKey(copy.shift + _wraps),
             mapController: controller,
             mapCamera: copy.camera,
-            options: options,
+            options: widget.options,
           ),
       ],
     );

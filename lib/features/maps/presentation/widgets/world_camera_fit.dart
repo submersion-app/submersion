@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/maps/domain/map_utils.dart';
 
 /// Fits the camera to every one of [points], going the short way round the

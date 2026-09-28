@@ -151,28 +151,24 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
     }).toList();
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Calculate initial center and zoom
-    // If there's a selected center with location, start centered on it
-    LatLng center = _defaultCenter;
-    double zoom = _defaultZoom;
-    CameraFit? initialFit;
-
-    if (widget.selectedId != null) {
-      // Find the selected center's location
-      final selectedCenter = centersWithLocation
-          .where((c) => c.id == widget.selectedId)
-          .firstOrNull;
-      if (selectedCenter?.hasCoordinates == true) {
-        center = LatLng(selectedCenter!.latitude!, selectedCenter.longitude!);
-        zoom = 12.0; // Reasonable zoom for viewing a single center
-      }
-    } else {
-      // No selection: open framed on every centre the way the fit-all button
-      // frames them, across the date line when that is tighter (#2516).
-      initialFit = MapCameraAnimator.fitAllCameraFit(
-        _centerPoints(centersWithLocation),
-      );
-    }
+    // A selected center with a location opens centred on it.
+    final selectedCenter = widget.selectedId == null
+        ? null
+        : centersWithLocation
+              .where((c) => c.id == widget.selectedId)
+              .firstOrNull;
+    final selectedPoint = selectedCenter?.hasCoordinates == true
+        ? LatLng(selectedCenter!.latitude!, selectedCenter.longitude!)
+        : null;
+    final center = selectedPoint ?? _defaultCenter;
+    // Reasonable zoom for viewing a single center
+    final zoom = selectedPoint != null ? 12.0 : _defaultZoom;
+    // No selection, or one the map cannot place: open framed on every centre
+    // the way the fit-all button frames them, across the date line when that
+    // is tighter (#2516).
+    final initialFit = selectedPoint == null
+        ? MapCameraAnimator.fitAllCameraFit(_centerPoints(centersWithLocation))
+        : null;
 
     return Stack(
       children: [

@@ -26,18 +26,9 @@ const double _metersPerDegreeLatitude = 111194.93;
 ) {
   final metersPerLon = metersPerDegreeLongitude(origin.latitude);
   return (
-    east: unwrapLongitudeDelta(p.longitude - origin.longitude) * metersPerLon,
+    east: longitudeDelta(origin.longitude, p.longitude) * metersPerLon,
     north: (p.latitude - origin.latitude) * _metersPerDegreeLatitude,
   );
-}
-
-/// Maps a raw longitude difference into [-180, 180], taking the short way
-/// round. Two points 0.2 degrees apart across the dateline differ by 0.2, not
-/// 359.8.
-double unwrapLongitudeDelta(double delta) {
-  if (delta > 180.0) return delta - 360.0;
-  if (delta < -180.0) return delta + 360.0;
-  return delta;
 }
 
 /// Perpendicular distance in metres from [point] to the segment [a]-[b].

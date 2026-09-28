@@ -57,16 +57,30 @@ void main() {
       expect(copies.map((c) => c.shift), [-2, -1, 0, 1, 2]);
     });
 
-    test('shifted copies report a world-wide visible longitude band', () {
+    test('shifted copies report the longitudes they put on screen', () {
+      // At zoom 3 an 800 px view centred on 170E spans 170 +/- 70.3 degrees.
+      // The eastern copy shows canonical 180W onwards; padded by half a
+      // screen (another 70.3 degrees) its window ends at 310.6E, i.e. 49.4W.
       final camera = _camera(longitude: 170);
       final east = worldCopyCameras(camera).firstWhere((c) => c.shift == 1);
 
       expect(east.camera.visibleBounds.west, -180);
-      expect(east.camera.visibleBounds.east, 180);
+      expect(east.camera.visibleBounds.east, closeTo(-49.375, 1e-6));
       expect(
         east.camera.visibleBounds.north,
         closeTo(camera.visibleBounds.north, 1e-9),
       );
+    });
+
+    test('an off-screen margin copy gets a zero-width window', () {
+      final copies = worldCopyCameras(
+        _camera(longitude: 0, zoom: 5),
+        margin: 1,
+      );
+      for (final copy in copies.where((c) => c.shift != 0)) {
+        final bounds = copy.camera.visibleBounds;
+        expect(bounds.east, bounds.west, reason: 'shift ${copy.shift}');
+      }
     });
 
     test('adds spare copies on each side when asked for a margin', () {
@@ -143,6 +157,64 @@ void main() {
         closeTo(400 + 2048 * 35.5 / 360, 2.0),
       );
       expect(tester.getCenter(australia).dx - mapLeft, lessThan(400));
+    });
+
+    testWidgets('a copy keeps its State when the camera wraps at 180', (
+      tester,
+    ) async {
+      final controller = MapController();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Center(
+            child: SizedBox(
+              width: 800,
+              height: 600,
+              child: FlutterMap(
+                mapController: controller,
+                options: const MapOptions(
+                  initialCenter: LatLng(0, 179),
+                  initialZoom: 5,
+                  cameraConstraint: CameraConstraint.containLatitude(),
+                ),
+                children: [
+                  WorldWrappedMarkerClusterLayer(
+                    options: MarkerClusterLayerOptions(
+                      maxClusterRadius: 20,
+                      size: const Size(30, 30),
+                      markers: [
+                        marker('west-of-seam', const LatLng(0, 179.5)),
+                        marker('east-of-seam', const LatLng(0, -179.5)),
+                      ],
+                      builder: (context, markers) => const SizedBox(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      State layerOf(String key) => tester.state(
+        find.ancestor(
+          of: find.byKey(ValueKey(key)),
+          matching: find.byType(MarkerClusterLayer),
+        ),
+      );
+      final west = layerOf('west-of-seam');
+      final east = layerOf('east-of-seam');
+      expect(identical(west, east), isFalse);
+
+      // Two degrees east: the camera's longitude wraps from 179 to -179, and
+      // every copy's shift changes by one. The same pieces of the world must
+      // keep the same States, or an animation running in one would be cut off.
+      controller.move(const LatLng(0, -179), 5);
+      await tester.pump();
+
+      expect(controller.camera.center.longitude, closeTo(-179, 1e-9));
+      expect(identical(layerOf('west-of-seam'), west), isTrue);
+      expect(identical(layerOf('east-of-seam'), east), isTrue);
     });
 
     testWidgets('draws each marker once when no seam is in view', (

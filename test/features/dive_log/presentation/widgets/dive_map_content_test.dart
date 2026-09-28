@@ -175,6 +175,33 @@ void main() {
     }
   });
 
+  testWidgets('opens framed on every site when the selection has no place', (
+    tester,
+  ) async {
+    // The selected dive's site has no coordinates, so the map cannot centre
+    // on it; it must still frame the Pacific rather than the 20N 0E default.
+    const nowhere = DiveSite(id: 'nowhere', name: 'Unplaced');
+    final sites = [
+      _site(id: 'fiji', name: 'Fiji', lat: -17.7, lng: 178.0),
+      _site(id: 'tahiti', name: 'Tahiti', lat: -17.5, lng: -149.0),
+    ];
+    await _pump(
+      tester,
+      dives: AsyncValue.data([
+        _diveAtSite(nowhere, id: 'dive-nowhere'),
+        for (final site in sites) _diveAtSite(site, id: 'dive-${site.id}'),
+      ]),
+      selectedId: 'dive-nowhere',
+    );
+
+    final camera = tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .mapController!
+        .camera;
+    // Fiji (178E) to Tahiti (149W) is centred on 165.5W.
+    expect(camera.center.longitude, closeTo(-165.5, 2.0));
+  });
+
   group('camera moves', () {
     testWidgets('eases to a dive selected from outside the map', (
       tester,

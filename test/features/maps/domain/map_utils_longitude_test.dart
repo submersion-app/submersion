@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/maps/domain/map_utils.dart';
 
 void main() {
@@ -12,12 +13,12 @@ void main() {
     test('folds a longitude past 180 back into range', () {
       expect(normalizeLongitude(190), closeTo(-170, 1e-9));
       expect(normalizeLongitude(-190), closeTo(170, 1e-9));
-      expect(normalizeLongitude(540), closeTo(-180, 1e-9));
+      expect(normalizeLongitude(540), closeTo(180, 1e-9));
     });
 
-    test('maps both ends of the seam to -180', () {
-      expect(normalizeLongitude(180), -180);
-      expect(normalizeLongitude(-180), -180);
+    test('maps both ends of the seam to 180, the range the app stores', () {
+      expect(normalizeLongitude(180), 180);
+      expect(normalizeLongitude(-180), 180);
     });
   });
 
