@@ -299,19 +299,22 @@ jobs:
         # NOTE: the shard count is coupled to codecov.yml `after_n_builds`, which
         # must equal (shard count + 1) for the scripts job -- Codecov holds the
         # patch/project status until every partial lcov arrives (see codecov.yml).
-        # It is also bounded by the account-wide concurrent-job cap: this workflow
-        # already fans out ~10-11 non-test jobs (analyze + 5 builds + scripts +
-        # timezone + integration) that share the pool AND gate ci-success, so
-        # oversharding queues the builds and makes total CI slower, not
-        # faster. The org is on GitHub Team (60 concurrent jobs; it was 8
-        # shards under Free's 20). Each shard pays ~4s per test file (almost
-        # all of it load + coverage, not assertions) plus ~2 min of fixed
-        # setup, so at ~3000 files 16 shards bring a shard to ~14 min, under
-        # the ~19 min Android build that then sets the critical path. More
-        # shards would not shorten CI until that build does.
-        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+        #
+        # Test files run in bundles that share an isolate
+        # (scripts/bundle_tests.py, issue #2500), so a shard's time follows the
+        # number of tests it runs, not the number of test files. The count is
+        # the fewest shards that keep the slowest shard under the slowest
+        # platform build, which sets the critical path. Fewer would lengthen
+        # CI. More would only take jobs from the account-wide cap (60 on
+        # GitHub Team) that the builds, analyze and script jobs share, and
+        # each shard also pays about 1.6 min of setup before its tests.
+        # Measured 2026-09-27 on the first bundled run (#2504): 62 min of
+        # tests across 16 shards, slowest shard 7.4 min, slowest build
+        # 16.8 min (Windows). Six shards estimate the slowest shard at about
+        # 14.5 min, allowing a quarter for imbalance and suite growth.
+        shard: [0, 1, 2, 3, 4, 5]
     env:
-      TOTAL_SHARDS: 16
+      TOTAL_SHARDS: 6
     steps:
       - uses: actions/checkout@v7
         with:
