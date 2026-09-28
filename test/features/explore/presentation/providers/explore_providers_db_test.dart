@@ -246,6 +246,53 @@ void main() {
     },
   );
 
+  test('a not clause keeps dives with the field unrecorded', () async {
+    for (final (id, current) in [
+      ('strong', 'strong'),
+      ('light', 'light'),
+      ('blank', null),
+    ]) {
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion(
+              id: Value(id),
+              diveDateTime: Value(now),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+              currentStrength: Value(current),
+            ),
+          );
+    }
+    final compiled = QueryCompiler.compile(
+      ParsedQuery.fromJson({
+        'schemaVersion': kQuerySchemaVersion,
+        'subject': 'dives',
+        'clauses': [
+          {
+            'field': 'currentStrength',
+            'op': 'not',
+            'value': ['strong'],
+            'text': 'not strong current',
+          },
+        ],
+      }),
+      CompilerContext(
+        units: (
+          depth: DepthUnit.meters,
+          temperature: TemperatureUnit.celsius,
+          pressure: PressureUnit.bar,
+        ),
+        names: NameIndex.empty,
+        now: DateTime(2026, 9, 28),
+      ),
+    );
+    final c = await container();
+    c.read(exploreFilterProvider.notifier).state = compiled.filter;
+    final results = await c.read(exploreResultsProvider.future);
+    expect(results.map((s) => s.id).toSet(), {'light', 'blank'});
+  });
+
   test('the recorder writes a recent query the list provider reads', () async {
     final c = await container();
     await c.read(recentQueryRecorderProvider)(

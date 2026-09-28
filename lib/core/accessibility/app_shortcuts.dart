@@ -113,14 +113,8 @@ class AppShortcuts {
         activator: platformShortcut(LogicalKeyboardKey.keyF),
         isGlobal: true,
       ),
-      // Listed only where an on-device model adapter exists at all.
-      if (exploreSupportedOn(defaultTargetPlatform))
-        ShortcutEntry(
-          label: 'Explore with a sentence',
-          category: 'Search',
-          activator: platformShortcut(LogicalKeyboardKey.keyE),
-          isGlobal: true,
-        ),
+      // 'Explore with a sentence' is listed by globalBindings, which can
+      // read the platform gate from the provider graph.
 
       // General
       const ShortcutEntry(
@@ -166,22 +160,63 @@ class AppShortcuts {
   /// same availability as the app bar action, but waits for the probe: a
   /// press before anything asked would otherwise read "still loading" and
   /// be dropped.
+  ///
+  /// One press at a time: presses while the probe is still answering, or
+  /// while Explore is already the top page, open nothing more.
   static Future<void> _openExplore(BuildContext context) async {
-    final container = ProviderScope.containerOf(context, listen: false);
-    final NlAvailability availability;
+    if (_openingExplore || _onExplore(context)) return;
+    _openingExplore = true;
     try {
-      availability = await container.read(exploreAvailabilityProvider.future);
-    } catch (e, stackTrace) {
-      // A failed probe is an unavailable model, as the app bar reads it.
-      _log.warning('Explore probe failed', error: e, stackTrace: stackTrace);
-      if (context.mounted) _showExploreUnavailable(context);
-      return;
+      final container = ProviderScope.containerOf(context, listen: false);
+      final NlAvailability availability;
+      try {
+        availability = await container.read(exploreAvailabilityProvider.future);
+      } catch (e, stackTrace) {
+        // A failed probe is an unavailable model, as the app bar reads it.
+        _log.warning('Explore probe failed', error: e, stackTrace: stackTrace);
+        if (context.mounted) _showExploreUnavailable(context);
+        return;
+      }
+      if (!context.mounted || _onExplore(context)) return;
+      if (availability == NlAvailability.available) {
+        context.push(_explorePath);
+      } else {
+        _showExploreUnavailable(context);
+      }
+    } finally {
+      _openingExplore = false;
     }
-    if (!context.mounted) return;
-    if (availability == NlAvailability.available) {
-      context.push('/dives/explore');
+  }
+
+  static const _explorePath = '/dives/explore';
+  static const _exploreLabel = 'Explore with a sentence';
+
+  /// True while a press is waiting on the availability probe.
+  static bool _openingExplore = false;
+
+  /// The top page, walked down through shell routes: the router's own
+  /// configuration uri stays on the shell's location after a push.
+  static bool _onExplore(BuildContext context) =>
+      GoRouter.of(context).state.matchedLocation == _explorePath;
+
+  /// Lists or unlists Explore in the catalog to match the platform gate.
+  /// The gate is a provider so every entry point, and every test override,
+  /// agrees; registration has no container, so the entry follows here.
+  static void _syncExploreEntry(bool supported) {
+    final catalog = ShortcutCatalog.instance;
+    final listed = catalog.entries.any((e) => e.label == _exploreLabel);
+    if (listed == supported) return;
+    if (supported) {
+      catalog.register(
+        ShortcutEntry(
+          label: _exploreLabel,
+          category: 'Search',
+          activator: platformShortcut(LogicalKeyboardKey.keyE),
+          isGlobal: true,
+        ),
+      );
     } else {
-      _showExploreUnavailable(context);
+      catalog.unregisterLabel(_exploreLabel);
     }
   }
 
@@ -196,6 +231,11 @@ class AppShortcuts {
     BuildContext context,
   ) {
     ensureRegistered();
+    final exploreSupported = ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(explorePlatformSupportedProvider);
+    _syncExploreEntry(exploreSupported);
 
     return {
       // Navigation.
@@ -235,7 +275,7 @@ class AppShortcuts {
       platformShortcut(LogicalKeyboardKey.keyF): () {
         context.push('/dives/search');
       },
-      if (exploreSupportedOn(defaultTargetPlatform))
+      if (exploreSupported)
         platformShortcut(LogicalKeyboardKey.keyE): () => _openExplore(context),
 
       // Settings

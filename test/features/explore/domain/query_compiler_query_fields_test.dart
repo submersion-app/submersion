@@ -92,14 +92,12 @@ void main() {
           QueryOp.inList,
           ListValue(const [EnumValue('boat'), EnumValue('giantStride')]),
         ),
-        cond(
-          'currentStrength',
-          QueryOp.inList,
-          ListValue(const [
-            EnumValue('none'),
-            EnumValue('light'),
-            EnumValue('moderate'),
-          ]),
+        NotNode(
+          cond(
+            'currentStrength',
+            QueryOp.inList,
+            ListValue(const [EnumValue('strong')]),
+          ),
         ),
       ]),
     );
@@ -128,10 +126,8 @@ void main() {
     expect(q.filter.waterTypes, [WaterType.salt]);
     expect(
       q.filter.query,
-      cond(
-        'waterType',
-        QueryOp.inList,
-        ListValue(const [EnumValue('fresh'), EnumValue('brackish')]),
+      NotNode(
+        cond('waterType', QueryOp.inList, ListValue(const [EnumValue('salt')])),
       ),
     );
   });
@@ -152,6 +148,70 @@ void main() {
     expect(compile([clause('airTemp', 'lt', -25)]).unplaced, isEmpty);
     expect(
       compile([clause('airTemp', 'lt', -60)]).unplaced.single.reason,
+      'outOfRange',
+    );
+  });
+
+  test('several dive types match any of them', () {
+    final q = compile([
+      clause('diveType', 'in', ['Wreck', 'Night']),
+    ]);
+    expect(q.unplaced, isEmpty);
+    expect(
+      q.filter.query,
+      OrNode([
+        ConditionNode(
+          FieldPath(['types', 'name']),
+          QueryOp.eq,
+          const StringValue('Wreck'),
+        ),
+        ConditionNode(
+          FieldPath(['types', 'name']),
+          QueryOp.eq,
+          const StringValue('Night'),
+        ),
+      ]),
+    );
+  });
+
+  test('exactly a depth or temperature is the half unit either side', () {
+    final q = compile([clause('avgDepth', 'eq', 15)]);
+    expect(
+      q.filter.query,
+      AndNode([
+        cond('avgDepth', QueryOp.gte, const NumberValue(14.5, null)),
+        cond('avgDepth', QueryOp.lte, const NumberValue(15.5, null)),
+      ]),
+    );
+    // The chip still shows the number the diver said.
+    expect((q.chips.single.payload as ClauseChip).value, 15);
+    final depth = compile([clause('depth', 'eq', 30)]).filter;
+    expect((depth.minDepth, depth.maxDepth), (29.5, 30.5));
+  });
+
+  test('the half unit is in the unit the diver used', () {
+    final q = compile([
+      {...clause('depth', 'eq', 100), 'unit': 'ft'},
+    ]);
+    // 99.5 ft to 100.5 ft, in metres.
+    expect(q.filter.minDepth, closeTo(30.33, 0.01));
+    expect(q.filter.maxDepth, closeTo(30.63, 0.01));
+  });
+
+  test('exactly a count stays exact', () {
+    final q = compile([clause('rating', 'eq', 4)]);
+    expect(q.filter.minRating, 4);
+    expect(
+      q.filter.query,
+      cond('rating', QueryOp.lte, const NumberValue(4, null)),
+    );
+  });
+
+  test('range limits are the query registry sanity bounds', () {
+    // The registry allows 400 m; Explore used to stop at 350.
+    expect(compile([clause('depth', 'gt', 380)]).unplaced, isEmpty);
+    expect(
+      compile([clause('depth', 'gt', 450)]).unplaced.single.reason,
       'outOfRange',
     );
   });

@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
 /// What a numeric clause measures, so bare numbers can take the diver's unit.
@@ -12,6 +13,20 @@ enum FieldDimension {
 }
 
 enum FieldValueType { number, enumName, flag }
+
+/// The weekday tokens the model writes, Monday first: a token's index plus
+/// one is its [DateTime.weekday]. The one list every weekday mapping reads.
+const List<String> kWeekdayTokens = [
+  'mon',
+  'tue',
+  'wed',
+  'thu',
+  'fri',
+  'sat',
+  'sun',
+];
+
+List<String> _names(List<Enum> values) => [for (final v in values) v.name];
 
 /// The fields the native schema constrains a dive clause to (schema v1).
 ///
@@ -86,10 +101,12 @@ const FieldSpec _flag = FieldSpec(
 );
 
 abstract final class DiveFieldCatalog {
-  static const Map<ExploreDiveField, FieldSpec> _specs = {
+  // Enum values are the Dart enums' names, which are also the dive query
+  // registry's, so a value added to an enum reaches Explore unedited.
+  static final Map<ExploreDiveField, FieldSpec> _specs = {
     ExploreDiveField.depth: _depth,
     ExploreDiveField.avgDepth: _depth,
-    ExploreDiveField.bottomTime: FieldSpec(
+    ExploreDiveField.bottomTime: const FieldSpec(
       dimension: FieldDimension.minutes,
       valueType: FieldValueType.number,
       ops: _ordering,
@@ -98,7 +115,7 @@ abstract final class DiveFieldCatalog {
     ExploreDiveField.airTemp: _temperature,
     ExploreDiveField.visibility: _depth,
     ExploreDiveField.rating: _number,
-    ExploreDiveField.o2: FieldSpec(
+    ExploreDiveField.o2: const FieldSpec(
       dimension: FieldDimension.percent,
       valueType: FieldValueType.number,
       ops: _ordering,
@@ -108,49 +125,39 @@ abstract final class DiveFieldCatalog {
       dimension: FieldDimension.none,
       valueType: FieldValueType.enumName,
       ops: _membership,
-      enumValues: ['salt', 'fresh', 'brackish'],
+      enumValues: _names(WaterType.values),
     ),
     ExploreDiveField.diveMode: FieldSpec(
       dimension: FieldDimension.none,
       valueType: FieldValueType.enumName,
       ops: _membership,
-      enumValues: ['oc', 'ccr', 'scr', 'gauge'],
+      enumValues: _names(DiveMode.values),
     ),
     ExploreDiveField.entryMethod: FieldSpec(
       dimension: FieldDimension.none,
       valueType: FieldValueType.enumName,
       ops: _membership,
-      enumValues: [
-        'shore',
-        'boat',
-        'backRoll',
-        'giantStride',
-        'seatedEntry',
-        'ladder',
-        'platform',
-        'jetty',
-        'other',
-      ],
+      enumValues: _names(EntryMethod.values),
     ),
     ExploreDiveField.currentStrength: FieldSpec(
       dimension: FieldDimension.none,
       valueType: FieldValueType.enumName,
       ops: _membership,
-      enumValues: ['none', 'light', 'moderate', 'strong'],
+      enumValues: _names(CurrentStrength.values),
     ),
     ExploreDiveField.favorite: _flag,
     ExploreDiveField.deco: _flag,
     ExploreDiveField.noBuddy: _flag,
-    ExploreDiveField.weekday: FieldSpec(
+    ExploreDiveField.weekday: const FieldSpec(
       dimension: FieldDimension.none,
       valueType: FieldValueType.enumName,
       ops: _membership,
-      enumValues: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
+      enumValues: kWeekdayTokens,
     ),
-    ExploreDiveField.diveType: FieldSpec(
+    ExploreDiveField.diveType: const FieldSpec(
       dimension: FieldDimension.none,
       valueType: FieldValueType.enumName,
-      ops: {ClauseOp.eq},
+      ops: {ClauseOp.eq, ClauseOp.inList},
     ),
   };
 
