@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:ndef_record/ndef_record.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
@@ -35,11 +36,26 @@ class FakeTagHandle implements NdefTagHandle {
   NdefMessage? readBackOverride;
   int writes = 0;
 
+  /// A fresh copy, as a real tag decodes a new message on every read, so a
+  /// read-back is compared by content and never passes by identity.
   @override
   Future<NdefMessage?> read() async {
     if (readError case final error?) throw error;
-    return readBackOverride ?? stored;
+    final message = readBackOverride ?? stored;
+    return message == null ? null : _decodedCopy(message);
   }
+
+  static NdefMessage _decodedCopy(NdefMessage message) => NdefMessage(
+    records: [
+      for (final r in message.records)
+        NdefRecord(
+          typeNameFormat: r.typeNameFormat,
+          type: Uint8List.fromList(r.type),
+          identifier: Uint8List.fromList(r.identifier),
+          payload: Uint8List.fromList(r.payload),
+        ),
+    ],
+  );
 
   @override
   Future<void> write(NdefMessage message) async {

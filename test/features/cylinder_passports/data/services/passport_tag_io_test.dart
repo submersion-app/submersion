@@ -27,6 +27,11 @@ void main() {
       expect(result, isA<TagWritten>());
       final written = result as TagWritten;
       expect(tag.stored, written.plan.message);
+      // The read-back is a separately decoded message, as on a real tag: it
+      // confirms the write by content, not by being the same object.
+      final back = await tag.read();
+      expect(identical(back, written.plan.message), isFalse);
+      expect(back, written.plan.message);
       expect(written.capacity, 496);
       expect(written.typeLabel, 'org.nfcforum.ndef.type2');
       expect(
