@@ -396,7 +396,8 @@ optional `mission` block, including the environment, walk speed, surface
 swim limit and each leg's shore exit. Version 2 files, and version 3 files
 without a mission, load unchanged. Export writes the block whenever a mission
 exists, and leaves out the buddy, diver and scooter equipment links, because
-they name rows of the exporting install.
+they name rows of the exporting install. A plan without a mission is still
+stamped version 2, so an install that reads only version 2 keeps opening it.
 
 `DivePlanState` gains a `mission` field, and `dive_plan_state_mapper.dart`
 maps it both ways.

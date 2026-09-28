@@ -23,7 +23,9 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 ///
 /// Version 3 adds an optional `mission` block: a DPV mission's route, team
 /// and scooter numbers (issue #2086). It is absent for a plan without one,
-/// and version 1 and 2 files import with no mission.
+/// and version 1 and 2 files import with no mission. A plan without a
+/// mission is still written as version 2, so an older install keeps
+/// opening it.
 const subplanFormat = 'submersion-plan';
 const subplanVersion = 3;
 const subplanMinReadableVersion = 1;
@@ -31,11 +33,16 @@ const subplanExtension = 'subplan';
 
 const _uuid = Uuid();
 
+/// The version written for a plan with no mission block.
+const _subplanVersionWithoutMission = 2;
+
 /// Serializes [plan] into a shareable `.subplan` JSON string.
 String planToSubplanJson(domain.DivePlan plan) {
   final map = {
     'format': subplanFormat,
-    'version': subplanVersion,
+    'version': plan.mission == null
+        ? _subplanVersionWithoutMission
+        : subplanVersion,
     'plan': {
       'name': plan.name,
       'notes': plan.notes,

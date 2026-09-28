@@ -114,6 +114,16 @@ void main() {
     expect(imported.mission!.team.single.scooter.name, 'Blacktip');
   });
 
+  test('a file is stamped with the lowest version that can carry it', () {
+    // A plan with nothing new stays readable on a version 2 install; only a
+    // mission needs version 3.
+    expect(jsonDecode(planToSubplanJson(_plan()))['version'], 2);
+    expect(
+      jsonDecode(planToSubplanJson(_plan(mission: _mission)))['version'],
+      3,
+    );
+  });
+
   test('a plan without a mission writes no mission block', () {
     final json = jsonDecode(planToSubplanJson(_plan()));
     expect((json['plan'] as Map).containsKey('mission'), isFalse);

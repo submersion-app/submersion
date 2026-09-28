@@ -185,13 +185,25 @@ void main() {
     }
   });
 
-  test('the backstop skips a fixture with no dive_plans table', () async {
-    final db = AppDatabase(_fixture(userVersion: 240, withPlans: false));
-    addTearDown(db.close);
+  test(
+    'a database opened without dive_plans gains it and the mission tables',
+    () async {
+      // The v100 backstop re-creates dive_plans on every open (the
+      // version-collision and restore cases). The mission backstop must run
+      // after it, or such a database opens with plans but no mission tables
+      // and every plan save fails until the next launch.
+      final db = AppDatabase(
+        _fixture(
+          userVersion: AppDatabase.currentSchemaVersion,
+          withPlans: false,
+        ),
+      );
+      addTearDown(db.close);
 
-    // No throw: the helper returns early when the parent is missing.
-    for (final table in _tables) {
-      expect(await _columns(db, table), isEmpty, reason: table);
-    }
-  });
+      expect(await _columns(db, 'dive_plans'), contains('id'));
+      for (final table in _tables) {
+        expect(await _columns(db, table), contains('plan_id'), reason: table);
+      }
+    },
+  );
 }
