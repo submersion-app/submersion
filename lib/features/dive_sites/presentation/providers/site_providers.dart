@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/text/text_sort.dart';
 
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -54,6 +57,10 @@ class SiteFilterState {
   /// Sites carrying any of these tags (issue #1765). Empty means no filter.
   final Set<String> tagIds;
 
+  /// The advanced part (#2365): a typed or built query, ANDed with every
+  /// axis above by `SiteFilterQuery.toQuery`.
+  final QueryNode? query;
+
   const SiteFilterState({
     this.country,
     this.region,
@@ -65,6 +72,7 @@ class SiteFilterState {
     this.hasDives,
     this.siteTypeIds = const {},
     this.tagIds = const {},
+    this.query,
   });
 
   /// Whether any filter is currently active.
@@ -78,7 +86,8 @@ class SiteFilterState {
       hasCoordinates != null ||
       hasDives != null ||
       siteTypeIds.isNotEmpty ||
-      tagIds.isNotEmpty;
+      tagIds.isNotEmpty ||
+      query != null;
 
   /// Apply all active filters to a list of sites with dive counts.
   List<SiteWithDiveCount> apply(List<SiteWithDiveCount> sites) {
@@ -174,6 +183,7 @@ class SiteFilterState {
     // A non-null set replaces the current one; pass `const {}` to clear.
     Set<String>? siteTypeIds,
     Set<String>? tagIds,
+    QueryNode? query,
     // Clear flags
     bool clearCountry = false,
     bool clearRegion = false,
@@ -183,6 +193,7 @@ class SiteFilterState {
     bool clearMinRating = false,
     bool clearHasCoordinates = false,
     bool clearHasDives = false,
+    bool clearQuery = false,
   }) {
     return SiteFilterState(
       country: clearCountry ? null : (country ?? this.country),
@@ -197,8 +208,50 @@ class SiteFilterState {
       hasDives: clearHasDives ? null : (hasDives ?? this.hasDives),
       siteTypeIds: siteTypeIds ?? this.siteTypeIds,
       tagIds: tagIds ?? this.tagIds,
+      query: clearQuery ? null : (query ?? this.query),
     );
   }
+
+  // Value equality, so an unchanged filter set again is no change to a
+  // listener and the id-set family reuses its instance for an equal filter.
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SiteFilterState &&
+          other.country == country &&
+          other.region == region &&
+          other.difficulty == difficulty &&
+          other.minDepth == minDepth &&
+          other.maxDepth == maxDepth &&
+          other.minRating == minRating &&
+          other.hasCoordinates == hasCoordinates &&
+          other.hasDives == hasDives &&
+          setEquals(other.siteTypeIds, siteTypeIds) &&
+          setEquals(other.tagIds, tagIds) &&
+          other.query == query;
+
+  @override
+  int get hashCode => Object.hash(
+    country,
+    region,
+    difficulty,
+    minDepth,
+    maxDepth,
+    minRating,
+    hasCoordinates,
+    hasDives,
+    Object.hashAllUnordered(siteTypeIds),
+    Object.hashAllUnordered(tagIds),
+    query,
+  );
+
+  @override
+  String toString() =>
+      'SiteFilterState(country: $country, region: $region, '
+      'difficulty: $difficulty, depth: $minDepth..$maxDepth, '
+      'minRating: $minRating, hasCoordinates: $hasCoordinates, '
+      'hasDives: $hasDives, types: $siteTypeIds, tags: $tagIds, '
+      'query: $query)';
 }
 
 /// Site filter provider
