@@ -411,7 +411,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'Représenter l’équipement de ce jeu sur un plongeur';
+      'Représenter l’équipement de cet ensemble sur un plongeur';
 
   @override
   String get equipment_setEdit_figureSwitch_title =>

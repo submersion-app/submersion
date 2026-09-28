@@ -405,7 +405,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'عرض معدات هذه المجموعة على غوّاص';
+      'عرض معدات هذه المجموعة على غواص';
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'إظهار رسم الغواص';
@@ -39211,11 +39211,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_appearance_showDiveFigure =>
-      'إظهار شكل الغوّاص في الغطسات';
+      'إظهار رسم الغواص في الغطسات';
 
   @override
   String get settings_appearance_showDiveFigure_subtitle =>
-      'عرض معدات كل غطسة على غوّاص في بطاقة المعدات';
+      'عرض معدات كل غطسة على غواص في بطاقة المعدات';
 
   @override
   String get diveLog_detail_gearFigureName => 'معدات هذه الغطسة';

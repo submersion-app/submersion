@@ -403,7 +403,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'הצגת הציוד של הערכה על צוללן';
+      'הצגת הציוד של סט זה על צולל';
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'הצגת דמות הצולל';
@@ -38782,11 +38782,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'הצגת ייחוס המקור על מדדי הצלילה';
 
   @override
-  String get settings_appearance_showDiveFigure => 'הצגת דמות הצוללן בצלילות';
+  String get settings_appearance_showDiveFigure => 'הצגת דמות הצולל בצלילות';
 
   @override
   String get settings_appearance_showDiveFigure_subtitle =>
-      'הצגת הציוד של כל צלילה על צוללן בכרטיס הציוד';
+      'הצגת הציוד של כל צלילה על צולל בכרטיס הציוד';
 
   @override
   String get diveLog_detail_gearFigureName => 'הציוד בצלילה זו';
