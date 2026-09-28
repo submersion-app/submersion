@@ -45566,10 +45566,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get diveLab_handoff_note_extraLastStop =>
-      'Le temps supplémentaire au dernier palier n\'a pas été repris ; définissez un minimum de palier dans le planificateur.';
-
-  @override
   String get diveLab_handoff_note_lostTankKept =>
       'La bouteille perdue reste listée car elle a été respirée avant l\'embranchement ; retirez-la dans le planificateur si besoin.';
 

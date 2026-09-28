@@ -42858,10 +42858,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLab_handoff_note_extraLastStop =>
-      '最后一站的额外时间未被带入；请在计划器中设置停留最短时间。';
-
-  @override
   String get diveLab_handoff_note_lostTankKept =>
       '丢失的气瓶仍在列表中，因为在分支点之前曾使用过；如有需要请在计划器中移除。';
 

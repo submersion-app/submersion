@@ -27725,7 +27725,6 @@
   "@query_weights_type": {"description": "Field label in the query builder"},
   "diveLab_handoff_failed": "Couldn't open in planner: {error}",
   "@diveLab_handoff_failed": {"placeholders": {"error": {"type": "String"}}},
-  "diveLab_handoff_note_extraLastStop": "Extra last-stop time was not carried over; set a stop minimum in the planner.",
   "diveLab_handoff_note_lostTankKept": "The lost cylinder stays listed because it was breathed before the branch; remove it in the planner if needed.",
   "diveLab_handoff_note_replay": "The planner re-plans the ascent; the replay path was not carried over.",
   "diveLab_handoff_planName": "What if: {dive} ({scenario})",

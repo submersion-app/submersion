@@ -45367,10 +45367,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get diveLab_handoff_note_extraLastStop =>
-      'Zusätzliche Zeit am letzten Stopp wurde nicht übernommen; lege im Planer eine Mindeststoppzeit fest.';
-
-  @override
   String get diveLab_handoff_note_lostTankKept =>
       'Die verlorene Flasche bleibt aufgeführt, weil sie vor der Verzweigung geatmet wurde; entferne sie bei Bedarf im Planer.';
 

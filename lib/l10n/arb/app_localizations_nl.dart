@@ -45158,10 +45158,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveLab_handoff_note_extraLastStop =>
-      'Extra tijd op de laatste stop is niet overgenomen; stel een minimale stop in de planner in.';
-
-  @override
   String get diveLab_handoff_note_lostTankKept =>
       'De verloren fles blijft vermeld omdat er vóór de vertakking uit is geademd; verwijder hem zo nodig in de planner.';
 

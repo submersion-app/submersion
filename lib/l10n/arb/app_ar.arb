@@ -12830,7 +12830,6 @@
   "diveLab_menu_openInPlanner_loopDisabled": "فتح في المخطط متاح لغوصات الدائرة المفتوحة فقط",
   "diveLab_handoff_planName": "ماذا لو: {dive} ({scenario})",
   "diveLab_handoff_note_replay": "يعيد المخطط تخطيط الصعود؛ لم يُنقل مسار إعادة التشغيل.",
-  "diveLab_handoff_note_extraLastStop": "لم يُنقل الوقت الإضافي في المحطة الأخيرة؛ حدد حدًا أدنى للمحطة في المخطط.",
   "diveLab_handoff_note_lostTankKept": "تبقى الأسطوانة المفقودة مدرجة لأنك تنفست منها قبل نقطة التفرع؛ أزلها في المخطط عند الحاجة.",
   "diveLab_handoff_failed": "تعذر الفتح في المخطط: {error}",
   "diveLab_share_failed": "فشلت المشاركة: {error}",

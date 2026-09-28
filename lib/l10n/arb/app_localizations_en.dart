@@ -44786,10 +44786,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get diveLab_handoff_note_extraLastStop =>
-      'Extra last-stop time was not carried over; set a stop minimum in the planner.';
-
-  @override
   String get diveLab_handoff_note_lostTankKept =>
       'The lost cylinder stays listed because it was breathed before the branch; remove it in the planner if needed.';
 

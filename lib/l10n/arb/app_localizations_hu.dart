@@ -45276,10 +45276,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveLab_handoff_note_extraLastStop =>
-      'Az utolsó megállón töltött plusz idő nem került át; állíts be megállási minimumot a tervezőben.';
-
-  @override
   String get diveLab_handoff_note_lostTankKept =>
       'Az elveszett palack listázva marad, mert az elágazás előtt lélegeztél belőle; szükség esetén távolítsd el a tervezőben.';
 

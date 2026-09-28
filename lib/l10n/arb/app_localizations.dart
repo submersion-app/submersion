@@ -72858,12 +72858,6 @@ abstract class AppLocalizations {
   /// **'Couldn\'t open in planner: {error}'**
   String diveLab_handoff_failed(String error);
 
-  /// No description provided for @diveLab_handoff_note_extraLastStop.
-  ///
-  /// In en, this message translates to:
-  /// **'Extra last-stop time was not carried over; set a stop minimum in the planner.'**
-  String get diveLab_handoff_note_extraLastStop;
-
   /// No description provided for @diveLab_handoff_note_lostTankKept.
   ///
   /// In en, this message translates to:

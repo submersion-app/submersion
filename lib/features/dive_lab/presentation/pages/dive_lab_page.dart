@@ -141,8 +141,6 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
   String _noteText(AppLocalizations l10n, ScenarioHandoffNote note) =>
       switch (note) {
         ScenarioHandoffNote.replayReplanned => l10n.diveLab_handoff_note_replay,
-        ScenarioHandoffNote.extraLastStopNotCarried =>
-          l10n.diveLab_handoff_note_extraLastStop,
         ScenarioHandoffNote.lostTankKept =>
           l10n.diveLab_handoff_note_lostTankKept,
       };

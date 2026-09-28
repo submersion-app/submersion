@@ -361,6 +361,9 @@ void main() {
     expect(_handoff(d, replay, scenario: replayDraft).notes, [
       ScenarioHandoffNote.replayReplanned,
     ]);
+  });
+
+  test('extra last-stop time travels as the lab\'s stop minimum', () {
     final policy = _request(
       d,
       branchSeconds: 900,
@@ -368,9 +371,13 @@ void main() {
         AscentPolicyIntervention(extraLastStopSeconds: 120),
       ],
     );
-    expect(_handoff(d, policy).notes, [
-      ScenarioHandoffNote.extraLastStopNotCarried,
-    ]);
+    final compiled = const ScenarioEngine().run(policy).compiledPlan!;
+    // The lab recomputes with a minimum on its last stop; the planner gets
+    // that same minimum, so nothing is dropped and no note is needed.
+    expect(compiled.stopMinimums, isNotEmpty);
+    final result = _handoff(d, policy);
+    expect(result.plan.stopMinimums, compiled.stopMinimums);
+    expect(result.notes, isEmpty);
   });
 
   test('a branch at the first sample yields the remainder alone', () {

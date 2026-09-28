@@ -18,10 +18,6 @@ enum ScenarioHandoffNote {
   /// The draft was in replay mode; a plan always re-plans the ascent.
   replayReplanned,
 
-  /// `ascentPolicy.extraLastStopSeconds` has no planner equivalent: the
-  /// planner's per-depth stop minimum is a floor, not an addition.
-  extraLastStopNotCarried,
-
   /// A lost cylinder was breathed before the branch, so the authored segments
   /// reference it and it stays on the plan.
   lostTankKept,
@@ -175,11 +171,6 @@ ScenarioPlanHandoffResult buildScenarioPlanHandoff({
   if (scenario.effectiveMode == ScenarioMode.replay) {
     notes.add(ScenarioHandoffNote.replayReplanned);
   }
-  for (final i in scenario.interventions) {
-    if (i is AscentPolicyIntervention && (i.extraLastStopSeconds ?? 0) > 0) {
-      notes.add(ScenarioHandoffNote.extraLastStopNotCarried);
-    }
-  }
 
   final now = DateTime.now();
   final plan = stateFromDivePlan(compiled).copyWith(
@@ -198,7 +189,9 @@ ScenarioPlanHandoffResult buildScenarioPlanHandoff({
     sacFactor: defaults.sacFactor,
     problemSolvingMinutes: defaults.problemSolvingMinutes,
     bestMixEndMeters: defaults.bestMixEndMeters,
-    stopMinimums: const {},
+    // The lab turns extra last-stop time into a minimum on its last stop
+    // (compiled.stopMinimums); the planner honours the same floor.
+    stopMinimums: compiled.stopMinimums,
     isDirty: false,
     createdAt: now,
     updatedAt: now,

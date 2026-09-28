@@ -12830,7 +12830,6 @@
   "diveLab_menu_openInPlanner_loopDisabled": "Abrir no planeador só está disponível para mergulhos em circuito aberto",
   "diveLab_handoff_planName": "E se: {dive} ({scenario})",
   "diveLab_handoff_note_replay": "O planeador recalcula a subida; o trajeto do replay não foi transposto.",
-  "diveLab_handoff_note_extraLastStop": "O tempo extra na última paragem não foi transposto; define um mínimo de paragem no planeador.",
   "diveLab_handoff_note_lostTankKept": "A garrafa perdida permanece listada porque foi respirada antes da ramificação; remove-a no planeador se necessário.",
   "diveLab_handoff_failed": "Não foi possível abrir no planeador: {error}",
   "diveLab_share_failed": "Falha ao partilhar: {error}",

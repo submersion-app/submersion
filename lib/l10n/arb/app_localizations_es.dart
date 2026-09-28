@@ -45490,10 +45490,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get diveLab_handoff_note_extraLastStop =>
-      'El tiempo extra en la última parada no se ha trasladado; fija un mínimo de parada en el planificador.';
-
-  @override
   String get diveLab_handoff_note_lostTankKept =>
       'La botella perdida sigue en la lista porque se respiró antes de la bifurcación; elimínala en el planificador si hace falta.';
 

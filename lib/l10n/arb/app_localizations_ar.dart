@@ -45109,10 +45109,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLab_handoff_note_extraLastStop =>
-      'لم يُنقل الوقت الإضافي في المحطة الأخيرة؛ حدد حدًا أدنى للمحطة في المخطط.';
-
-  @override
   String get diveLab_handoff_note_lostTankKept =>
       'تبقى الأسطوانة المفقودة مدرجة لأنك تنفست منها قبل نقطة التفرع؛ أزلها في المخطط عند الحاجة.';
 

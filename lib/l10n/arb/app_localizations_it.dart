@@ -45445,10 +45445,6 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get diveLab_handoff_note_extraLastStop =>
-      'Il tempo extra all\'ultima tappa non è stato riportato; imposta un minimo di tappa nel pianificatore.';
-
-  @override
   String get diveLab_handoff_note_lostTankKept =>
       'La bombola persa resta in elenco perché è stata respirata prima della diramazione; rimuovila nel pianificatore se serve.';
 

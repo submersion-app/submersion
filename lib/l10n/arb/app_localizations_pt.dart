@@ -45462,10 +45462,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get diveLab_handoff_note_extraLastStop =>
-      'O tempo extra na última paragem não foi transposto; define um mínimo de paragem no planeador.';
-
-  @override
   String get diveLab_handoff_note_lostTankKept =>
       'A garrafa perdida permanece listada porque foi respirada antes da ramificação; remove-a no planeador se necessário.';
 

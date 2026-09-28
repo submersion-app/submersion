@@ -12830,7 +12830,6 @@
   "diveLab_menu_openInPlanner_loopDisabled": "Apri nel pianificatore è disponibile solo per immersioni a circuito aperto",
   "diveLab_handoff_planName": "E se: {dive} ({scenario})",
   "diveLab_handoff_note_replay": "Il pianificatore ricalcola la risalita; il percorso del replay non è stato riportato.",
-  "diveLab_handoff_note_extraLastStop": "Il tempo extra all'ultima tappa non è stato riportato; imposta un minimo di tappa nel pianificatore.",
   "diveLab_handoff_note_lostTankKept": "La bombola persa resta in elenco perché è stata respirata prima della diramazione; rimuovila nel pianificatore se serve.",
   "diveLab_handoff_failed": "Impossibile aprire nel pianificatore: {error}",
   "diveLab_share_failed": "Condivisione non riuscita: {error}",

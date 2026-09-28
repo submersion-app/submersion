@@ -44552,10 +44552,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLab_handoff_note_extraLastStop =>
-      'זמן נוסף בתחנה האחרונה לא הועבר; הגדר מינימום תחנה במתכנן.';
-
-  @override
   String get diveLab_handoff_note_lostTankKept =>
       'הבלון שאבד נשאר ברשימה כי נשמת ממנו לפני נקודת ההסתעפות; הסר אותו במתכנן במידת הצורך.';
 
