@@ -21,7 +21,11 @@ final equipmentServiceStatusRepositoryProvider =
 // activeEquipmentClocksProvider does, and that provider subscribes to the
 // equipment, share, attribute and service-ledger ticks the verdicts come
 // from; its only repository call writes the cache and renders nothing.
-final equipmentServiceStatusCacheProvider = FutureProvider<void>((ref) async {
+// autoDispose: once no reader or keeper watches it, it is released and
+// stops following the clocks.
+final equipmentServiceStatusCacheProvider = FutureProvider.autoDispose<void>((
+  ref,
+) async {
   final evaluated = await ref.watch(activeEquipmentClocksProvider.future);
   await ref.read(equipmentServiceStatusRepositoryProvider).replaceAll({
     for (final e in evaluated)

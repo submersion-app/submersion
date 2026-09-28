@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -258,6 +259,34 @@ void main() {
       'cr',
       'nbsp',
     });
+  });
+
+  test('a whitespace-only country or region is empty', () async {
+    // :none uses the same trim as =, so CR or NBSP alone is no location.
+    await db
+        .into(db.diveSites)
+        .insert(
+          DiveSitesCompanion.insert(
+            id: 'blank',
+            name: 'blank',
+            diverId: const Value('me'),
+            country: const Value('\r\n'),
+            region: const Value(' '),
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    for (final key in ['country', 'region']) {
+      expect(
+        await selected(
+          SiteFilterState(
+            query: ConditionNode(FieldPath([key]), QueryOp.isEmpty, null),
+          ),
+        ),
+        contains('blank'),
+        reason: key,
+      );
+    }
   });
 
   test('planned and excluded dives do not count', () async {

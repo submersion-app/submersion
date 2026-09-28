@@ -150,6 +150,19 @@ void main() {
     );
   });
 
+  test('a switch mid-evaluation never keeps the old verdicts', () async {
+    // The first evaluation (for 'me') is still in flight when the diver
+    // changes; whichever finishes last, the cache must end as 'other''s.
+    final first = container.read(equipmentServiceStatusCacheProvider.future);
+    await container
+        .read(currentDiverIdProvider.notifier)
+        .setCurrentDiver('other');
+    await first.catchError((_) {});
+    await container.read(equipmentServiceStatusCacheProvider.future);
+    await pumpEventQueue();
+    expect(await EquipmentServiceStatusRepository().severities(), isEmpty);
+  });
+
   test('a diver switch rewrites the cache', () async {
     await container.read(equipmentServiceStatusCacheProvider.future);
     // 'other' owns no gear and nothing is shared with them.

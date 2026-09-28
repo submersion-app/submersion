@@ -9,11 +9,14 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 /// filter lowers to these (`SiteFilterQuery`), and dive paths such as
 /// `site.country` walk them.
 
-QueryField _text(String key, String sql, String column) => QueryField(
+/// A text column. [trimmed] is the expression both `=` and `:none` compare,
+/// so a value the match treats as blank is also empty; by default only
+/// `:none` trims (plain spaces).
+QueryField _text(String key, String column, {String? trimmed}) => QueryField(
   key: key,
   type: FieldType.text,
-  sql: sql,
-  emptySql: "({r}.$column IS NULL OR TRIM({r}.$column) = '')",
+  sql: trimmed ?? '{r}.$column',
+  emptySql: "({r}.$column IS NULL OR ${trimmed ?? 'TRIM({r}.$column)'} = '')",
   labelKey: 'query_sites_$key',
 );
 
@@ -56,14 +59,15 @@ final siteQueryEntity = QueryEntity(
     "{r}.island LIKE ? ESCAPE '\\'",
   ],
   fields: [
-    _text('name', '{r}.name', 'name'),
+    _text('name', 'name'),
     // Trimmed: the location chips offer the trimmed spelling, and a stored
-    // value with stray whitespace must still match it.
-    _text('country', 'TRIM({r}.country, $_dartWhitespace)', 'country'),
-    _text('region', 'TRIM({r}.region, $_dartWhitespace)', 'region'),
-    _text('city', '{r}.city', 'city'),
-    _text('island', '{r}.island', 'island'),
-    _text('notes', '{r}.notes', 'notes'),
+    // value with stray whitespace must still match it (and one that is only
+    // whitespace is empty).
+    _text('country', 'country', trimmed: 'TRIM({r}.country, $_dartWhitespace)'),
+    _text('region', 'region', trimmed: 'TRIM({r}.region, $_dartWhitespace)'),
+    _text('city', 'city'),
+    _text('island', 'island'),
+    _text('notes', 'notes'),
     const QueryField(
       key: 'rating',
       type: FieldType.number,

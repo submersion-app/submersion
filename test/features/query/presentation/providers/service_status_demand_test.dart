@@ -67,6 +67,21 @@ void main() {
       expect(container.read(serviceStatusDemandProvider), isTrue);
       expect(writerBuilds, 1);
     });
+
+    test('the writer is released once no filter reads the cache', () async {
+      container.read(diveFilterProvider.notifier).state = DiveFilterState(
+        query: parse(QuerySubject.dives, 'gear.serviceDue = overdue'),
+      );
+      await container.read(serviceStatusKeeperProvider.future);
+      expect(container.exists(equipmentServiceStatusCacheProvider), isTrue);
+
+      container.read(diveFilterProvider.notifier).state =
+          const DiveFilterState();
+      await container.read(serviceStatusKeeperProvider.future);
+      await container.pump();
+      // Disposed, not merely idle: it no longer follows the clocks.
+      expect(container.exists(equipmentServiceStatusCacheProvider), isFalse);
+    });
   });
 
   group('readers wait for the write', () {
