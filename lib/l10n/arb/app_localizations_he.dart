@@ -44096,6 +44096,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_equipment_type => 'סוג';
 
   @override
+  String get query_filter_clear => 'נקה';
+
+  @override
+  String get query_filter_tooltip => 'סינון';
+
+  @override
+  String get query_list_noMatch => 'אין תוצאות התואמות לשאילתה זו';
+
+  @override
   String get query_media_caption => 'כיתוב';
 
   @override

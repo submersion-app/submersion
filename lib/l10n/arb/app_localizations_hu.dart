@@ -44808,6 +44808,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_equipment_type => 'Típus';
 
   @override
+  String get query_filter_clear => 'Törlés';
+
+  @override
+  String get query_filter_tooltip => 'Szűrő';
+
+  @override
+  String get query_list_noMatch => 'Semmi sem felel meg ennek a lekérdezésnek';
+
+  @override
   String get query_media_caption => 'Felirat';
 
   @override

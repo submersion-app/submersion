@@ -45096,6 +45096,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_equipment_type => 'Type';
 
   @override
+  String get query_filter_clear => 'Effacer';
+
+  @override
+  String get query_filter_tooltip => 'Filtre';
+
+  @override
+  String get query_list_noMatch => 'Rien ne correspond à cette requête';
+
+  @override
   String get query_media_caption => 'Légende';
 
   @override

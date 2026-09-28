@@ -42403,6 +42403,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_equipment_type => '类型';
 
   @override
+  String get query_filter_clear => '清除';
+
+  @override
+  String get query_filter_tooltip => '筛选';
+
+  @override
+  String get query_list_noMatch => '没有与此查询匹配的结果';
+
+  @override
   String get query_media_caption => '说明';
 
   @override

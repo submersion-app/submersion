@@ -44993,6 +44993,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get query_equipment_type => 'Tipo';
 
   @override
+  String get query_filter_clear => 'Limpar';
+
+  @override
+  String get query_filter_tooltip => 'Filtro';
+
+  @override
+  String get query_list_noMatch => 'Nada corresponde a esta consulta';
+
+  @override
   String get query_media_caption => 'Legenda';
 
   @override

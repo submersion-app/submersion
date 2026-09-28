@@ -1,4 +1,7 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/registry/query_entity.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 
 /// A hydrated list narrowed to the ids a compiled query keeps (#2365), for
 /// every list that filters through an id set.
@@ -25,3 +28,20 @@ AsyncValue<List<T>> narrowByIds<T>(
         keep == null ? all : all.where((e) => keep.contains(idOf(e))).toList(),
   );
 }
+
+/// [items] narrowed by [query] rooted at [root] (#2365), by [narrowByIds]'s
+/// rules. No query passes the list through without touching the database,
+/// so a list with no filter never waits on an id set.
+AsyncValue<List<T>> narrowByQuery<T>(
+  Ref ref,
+  AsyncValue<List<T>> items,
+  QueryEntity root,
+  QueryNode? query,
+  String Function(T item) idOf,
+) => query == null
+    ? items
+    : narrowByIds(
+        items,
+        ref.watch(entityQueryIdsProvider((root: root, query: query))),
+        idOf,
+      );

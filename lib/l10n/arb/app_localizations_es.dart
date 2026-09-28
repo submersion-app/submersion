@@ -45022,6 +45022,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get query_equipment_type => 'Tipo';
 
   @override
+  String get query_filter_clear => 'Borrar';
+
+  @override
+  String get query_filter_tooltip => 'Filtro';
+
+  @override
+  String get query_list_noMatch => 'Nada coincide con esta consulta';
+
+  @override
   String get query_media_caption => 'Descripción';
 
   @override

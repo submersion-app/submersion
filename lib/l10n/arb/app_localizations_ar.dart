@@ -44648,6 +44648,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_equipment_type => 'النوع';
 
   @override
+  String get query_filter_clear => 'مسح';
+
+  @override
+  String get query_filter_tooltip => 'التصفية';
+
+  @override
+  String get query_list_noMatch => 'لا شيء يطابق هذا الاستعلام';
+
+  @override
   String get query_media_caption => 'التعليق';
 
   @override

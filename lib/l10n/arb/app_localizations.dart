@@ -72031,6 +72031,24 @@ abstract class AppLocalizations {
   /// **'Type'**
   String get query_equipment_type;
 
+  /// Clears a list's query, in its chip bar, filter sheet and no-match state
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get query_filter_clear;
+
+  /// Tooltip of the filter icon that opens a list's query filter sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get query_filter_tooltip;
+
+  /// Shown when a list's query hides every row
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches this query'**
+  String get query_list_noMatch;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:

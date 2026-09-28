@@ -44325,6 +44325,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_equipment_type => 'Type';
 
   @override
+  String get query_filter_clear => 'Clear';
+
+  @override
+  String get query_filter_tooltip => 'Filter';
+
+  @override
+  String get query_list_noMatch => 'Nothing matches this query';
+
+  @override
   String get query_media_caption => 'Caption';
 
   @override

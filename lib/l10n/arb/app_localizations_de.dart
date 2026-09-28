@@ -44898,6 +44898,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_equipment_type => 'Typ';
 
   @override
+  String get query_filter_clear => 'Löschen';
+
+  @override
+  String get query_filter_tooltip => 'Filter';
+
+  @override
+  String get query_list_noMatch => 'Nichts entspricht dieser Abfrage';
+
+  @override
   String get query_media_caption => 'Bildunterschrift';
 
   @override

@@ -317,6 +317,12 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_error_inNeedsList;
     case 'query_error_unterminatedQuote':
       return l10n.query_error_unterminatedQuote;
+    case 'query_filter_clear':
+      return l10n.query_filter_clear;
+    case 'query_filter_tooltip':
+      return l10n.query_filter_tooltip;
+    case 'query_list_noMatch':
+      return l10n.query_list_noMatch;
     case 'query_media_caption':
       return l10n.query_media_caption;
     case 'query_media_favorite':
