@@ -591,14 +591,28 @@ class _StartupWrapperState extends State<StartupWrapper>
     }
   }
 
+  /// How long the failure screen waits on the folder check.
+  static const _folderProbeLimit = Duration(seconds: 1);
+
   /// The diver's custom folder if it cannot be reached, else null.
   ///
   /// Never throws. This runs on the way to a screen the diver reaches because
   /// something already failed, so a probe that fails too must leave that
   /// original failure on screen rather than replace it.
+  ///
+  /// Bounded by [_folderProbeLimit]: on a dead network mount every file call
+  /// can block for the whole network timeout, and the splash must not wait
+  /// that long. A probe that does not answer in time counts as reachable,
+  /// which leaves the screen that keeps every route on offer.
   Future<String?> _probeUnreachableFolder() async {
     try {
-      return await widget.locationService.unreachableCustomFolder();
+      return await widget.locationService.unreachableCustomFolder().timeout(
+        _folderProbeLimit,
+        onTimeout: () {
+          debugPrint('Dive log folder check gave no answer; not blaming it');
+          return null;
+        },
+      );
     } catch (e) {
       debugPrint('Could not check the dive log folder: $e');
       return null;

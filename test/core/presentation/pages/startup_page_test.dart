@@ -3670,6 +3670,28 @@ void main() {
       expect(find.textContaining('connection is stuck'), findsNothing);
     });
 
+    // A dead network mount can leave every file call blocked for the whole
+    // network timeout. The failure screen must not wait that long: it falls
+    // back to the screen that keeps every route.
+    testWidgets('a probe that never answers gives way to the failure screen', (
+      tester,
+    ) async {
+      final location = _UnreachableLocationService(
+        prefs,
+        dbPath,
+        folder: folder,
+      )..hangs = true;
+      await pumpUnreachable(
+        tester,
+        locationService: location,
+        initializer: (_) async => throw revokedAccess,
+      );
+
+      expect(location.probeCalls, 1);
+      expect(find.text('Submersion could not start'), findsOneWidget);
+      expect(find.text("Choose your dive log's folder"), findsNothing);
+    });
+
     // Its answer could not change the screen, and on a dead network mount
     // each file call can block for the whole network timeout.
     testWidgets('the folder is not probed when its answer cannot matter', (
@@ -3836,6 +3858,9 @@ class _UnreachableLocationService extends _PickingLocationService {
   /// the failure the diver actually hit.
   final Object? probeError;
 
+  /// When set, the probe never answers, like a dead network mount.
+  bool hangs = false;
+
   /// How many times the failure screen asked.
   int probeCalls = 0;
 
@@ -3843,6 +3868,7 @@ class _UnreachableLocationService extends _PickingLocationService {
   Future<String?> unreachableCustomFolder() async {
     probeCalls++;
     if (probeError != null) throw probeError!;
+    if (hangs) return Completer<String?>().future;
     return folder;
   }
 }
