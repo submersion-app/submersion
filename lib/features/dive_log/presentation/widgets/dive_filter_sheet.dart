@@ -107,7 +107,11 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
   final _maxWaterTempController = TextEditingController();
   final _minVisibilityController = TextEditingController();
   final _maxVisibilityController = TextEditingController();
+  // Handed to the species Autocomplete, so clearing it after a pick clears
+  // the field the diver sees. An Autocomplete given a controller needs its
+  // focus node too.
   final _speciesSearchController = TextEditingController();
+  final _speciesSearchFocus = FocusNode();
 
   final _minDepthController = TextEditingController();
   final _maxDepthController = TextEditingController();
@@ -200,6 +204,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
     _minVisibilityController.dispose();
     _maxVisibilityController.dispose();
     _speciesSearchController.dispose();
+    _speciesSearchFocus.dispose();
     super.dispose();
   }
 
@@ -1539,6 +1544,8 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
             ],
           ),
         Autocomplete<Species>(
+          textEditingController: _speciesSearchController,
+          focusNode: _speciesSearchFocus,
           displayStringForOption: (s) => s.localizedCommonName(l10n),
           optionsBuilder: (value) {
             final needle = normalize(value.text);

@@ -4,6 +4,8 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
@@ -24,11 +26,17 @@ void main() {
   setUp(() async => setUpTestDatabase());
   tearDown(() async => tearDownTestDatabase());
 
-  Future<void> open(WidgetTester tester) async {
+  Future<void> open(
+    WidgetTester tester, {
+    List<Species> species = const [],
+  }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       ProviderScope(
-        overrides: overrides.cast(),
+        overrides: [
+          ...overrides.cast(),
+          allSpeciesProvider.overrideWith((ref) async => species),
+        ],
         child: MaterialApp(
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -129,5 +137,39 @@ void main() {
       tester.element(find.text('Open filter')),
     );
     expect(container.read(_filter).minWaterTemp, isNull);
+  });
+
+  testWidgets('picking a species clears the search for the next one', (
+    tester,
+  ) async {
+    await open(
+      tester,
+      species: const [
+        Species(
+          id: 'sp-turtle',
+          commonName: 'Green Turtle',
+          category: SpeciesCategory.turtle,
+        ),
+      ],
+    );
+    final search = find.widgetWithText(
+      TextField,
+      en.diveLog_filter_speciesSearchHint,
+    );
+    await reveal(tester, search);
+    await tester.enterText(search, 'tur');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Green Turtle').last);
+    await tester.pumpAndSettle();
+    // The pick is a chip now; the field is empty and ready for another.
+    expect(find.widgetWithText(InputChip, 'Green Turtle'), findsOneWidget);
+    final field = tester.widget<TextField>(
+      find.byWidgetPredicate(
+        (w) =>
+            w is TextField &&
+            w.decoration?.hintText == en.diveLog_filter_speciesSearchHint,
+      ),
+    );
+    expect(field.controller!.text, isEmpty);
   });
 }
