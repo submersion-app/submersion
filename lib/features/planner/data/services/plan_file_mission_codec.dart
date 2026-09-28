@@ -59,50 +59,14 @@ DpvMission missionFromFileMap(
   Map<String, dynamic> map,
   String Function() newId,
 ) {
-  final legs = <MissionLeg>[];
-  for (final (i, raw) in (map['legs'] as List? ?? const []).indexed) {
-    final leg = raw as Map<String, dynamic>;
-    legs.add(
-      MissionLeg(
-        id: newId(),
-        order: i,
-        label: leg['label'] as String? ?? '',
-        distanceM: _numberOrThrow(leg, 'distanceM'),
-        depthM: _numberOrThrow(leg, 'depthM'),
-        headingDeg: _numberOrThrow(leg, 'headingDeg'),
-        current: _currentFromMap(leg['current'], 'current'),
-        shoreExit: _shoreFromMap(leg['shoreExit']),
-      ),
-    );
-  }
-
-  final team = <MissionMember>[];
-  for (final (i, raw) in (map['team'] as List? ?? const []).indexed) {
-    final member = raw as Map<String, dynamic>;
-    final scooter = member['scooter'] as Map<String, dynamic>;
-    team.add(
-      MissionMember(
-        id: newId(),
-        order: i,
-        displayName: member['displayName'] as String? ?? '',
-        sacBottom: _numberOrThrow(member, 'sacBottom'),
-        swimSpeedMps:
-            (member['swimSpeedMps'] as num?)?.toDouble() ??
-            kDefaultSwimSpeedMps,
-        scooter: ScooterSpec(
-          name: scooter['name'] as String? ?? '',
-          ratedSpeedMps: _numberOrThrow(scooter, 'ratedSpeedMps'),
-          burnTimeSeconds: _numberOrThrow(scooter, 'burnTimeSeconds').round(),
-          towSpeedFactor:
-              (scooter['towSpeedFactor'] as num?)?.toDouble() ??
-              kDefaultTowSpeedFactor,
-          towBurnFactor:
-              (scooter['towBurnFactor'] as num?)?.toDouble() ??
-              kDefaultTowBurnFactor,
-        ),
-      ),
-    );
-  }
+  final legs = [
+    for (final (i, raw) in (map['legs'] as List? ?? const []).indexed)
+      _legFromMap(raw as Map<String, dynamic>, i, newId()),
+  ];
+  final team = [
+    for (final (i, raw) in (map['team'] as List? ?? const []).indexed)
+      _memberFromMap(raw as Map<String, dynamic>, i, newId()),
+  ];
 
   return DpvMission(
     legs: legs,
@@ -117,6 +81,46 @@ DpvMission missionFromFileMap(
     walkSpeedMps:
         (map['walkSpeedMps'] as num?)?.toDouble() ?? kDefaultWalkSpeedMps,
     surfaceSwimLimitM: (map['surfaceSwimLimitM'] as num?)?.toDouble(),
+  );
+}
+
+MissionLeg _legFromMap(Map<String, dynamic> leg, int order, String id) {
+  return MissionLeg(
+    id: id,
+    order: order,
+    label: leg['label'] as String? ?? '',
+    distanceM: _numberOrThrow(leg, 'distanceM'),
+    depthM: _numberOrThrow(leg, 'depthM'),
+    headingDeg: _numberOrThrow(leg, 'headingDeg'),
+    current: _currentFromMap(leg['current'], 'current'),
+    shoreExit: _shoreFromMap(leg['shoreExit']),
+  );
+}
+
+MissionMember _memberFromMap(
+  Map<String, dynamic> member,
+  int order,
+  String id,
+) {
+  final scooter = member['scooter'] as Map<String, dynamic>;
+  return MissionMember(
+    id: id,
+    order: order,
+    displayName: member['displayName'] as String? ?? '',
+    sacBottom: _numberOrThrow(member, 'sacBottom'),
+    swimSpeedMps:
+        (member['swimSpeedMps'] as num?)?.toDouble() ?? kDefaultSwimSpeedMps,
+    scooter: ScooterSpec(
+      name: scooter['name'] as String? ?? '',
+      ratedSpeedMps: _numberOrThrow(scooter, 'ratedSpeedMps'),
+      burnTimeSeconds: _numberOrThrow(scooter, 'burnTimeSeconds').round(),
+      towSpeedFactor:
+          (scooter['towSpeedFactor'] as num?)?.toDouble() ??
+          kDefaultTowSpeedFactor,
+      towBurnFactor:
+          (scooter['towBurnFactor'] as num?)?.toDouble() ??
+          kDefaultTowBurnFactor,
+    ),
   );
 }
 

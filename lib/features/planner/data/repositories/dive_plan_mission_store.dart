@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart';
+
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/features/planner/data/repositories/dive_plan_mission_rows.dart';
@@ -19,6 +21,14 @@ class MissionRowIds {
   static const none = MissionRowIds(mission: false, legIds: [], memberIds: []);
 }
 
+/// What [DivePlanMissionStore.write] stored and touched: the mission as
+/// written (null when it was removed), the rows written and the rows removed.
+typedef MissionWrite = ({
+  DpvMission? mission,
+  MissionRowIds written,
+  MissionRowIds removed,
+});
+
 /// Persistence for a plan's DPV mission (v241, issue #2086), kept apart
 /// from `DivePlanRepository` so that file does not grow further.
 ///
@@ -30,53 +40,62 @@ class DivePlanMissionStore {
 
   /// Upserts [mission] for [planId] and deletes the legs and members it no
   /// longer lists; a null [mission] deletes every mission row of the plan.
-  /// Returns the rows written and the rows removed.
-  Future<(MissionRowIds, MissionRowIds)> write(
+  ///
+  /// Row ids are global, so a leg or member id a row of another plan already
+  /// holds (a copy that skipped [remint]) gets a fresh id from [newId]
+  /// instead of taking that plan's row over. Returns the mission as stored,
+  /// carrying any such new ids, and the rows written and removed.
+  Future<MissionWrite> write(
     db.AppDatabase d,
     String planId,
     DpvMission? mission,
     int now,
+    String Function() newId,
   ) async {
-    final existingMission = await (d.select(
-      d.divePlanMissions,
-    )..where((t) => t.planId.equals(planId))).getSingleOrNull();
-    final existingLegs = await (d.select(
-      d.divePlanMissionLegs,
-    )..where((t) => t.planId.equals(planId))).get();
-    final existingMembers = await (d.select(
-      d.divePlanMissionMembers,
-    )..where((t) => t.planId.equals(planId))).get();
+    final existingMission = await _missionRow(d, planId);
+    final existing = await _childrenFor(d, planId);
 
     if (mission == null) {
       await deleteAll(d, planId);
       return (
-        MissionRowIds.none,
-        MissionRowIds(
+        mission: null,
+        written: MissionRowIds.none,
+        removed: MissionRowIds(
           mission: existingMission != null,
-          legIds: [for (final r in existingLegs) r.id],
-          memberIds: [for (final r in existingMembers) r.id],
+          legIds: [for (final r in existing.legs) r.id],
+          memberIds: [for (final r in existing.members) r.id],
         ),
       );
     }
 
-    final legCreatedAt = {for (final r in existingLegs) r.id: r.createdAt};
+    final stored = await _withOwnIds(d, planId, mission, newId);
+    final legCreatedAt = {for (final r in existing.legs) r.id: r.createdAt};
     final memberCreatedAt = {
-      for (final r in existingMembers) r.id: r.createdAt,
+      for (final r in existing.members) r.id: r.createdAt,
     };
-    await d
-        .into(d.divePlanMissions)
-        .insertOnConflictUpdate(
-          DivePlanMissionRows.mission(
-            planId,
-            mission,
-            now,
-            createdAt: existingMission?.createdAt,
-          ),
-        );
-    for (final (i, leg) in mission.legs.indexed) {
-      await d
-          .into(d.divePlanMissionLegs)
-          .insertOnConflictUpdate(
+    final keptLegs = {for (final l in stored.legs) l.id};
+    final keptMembers = {for (final m in stored.team) m.id};
+    final removedLegs = [
+      for (final r in existing.legs)
+        if (!keptLegs.contains(r.id)) r.id,
+    ];
+    final removedMembers = [
+      for (final r in existing.members)
+        if (!keptMembers.contains(r.id)) r.id,
+    ];
+
+    await d.batch((b) {
+      b.insertAllOnConflictUpdate(d.divePlanMissions, [
+        DivePlanMissionRows.mission(
+          planId,
+          stored,
+          now,
+          createdAt: existingMission?.createdAt,
+        ),
+      ]);
+      if (stored.legs.isNotEmpty) {
+        b.insertAllOnConflictUpdate(d.divePlanMissionLegs, [
+          for (final (i, leg) in stored.legs.indexed)
             DivePlanMissionRows.leg(
               planId,
               leg,
@@ -84,12 +103,11 @@ class DivePlanMissionStore {
               now,
               createdAt: legCreatedAt[leg.id],
             ),
-          );
-    }
-    for (final (i, member) in mission.team.indexed) {
-      await d
-          .into(d.divePlanMissionMembers)
-          .insertOnConflictUpdate(
+        ]);
+      }
+      if (stored.team.isNotEmpty) {
+        b.insertAllOnConflictUpdate(d.divePlanMissionMembers, [
+          for (final (i, member) in stored.team.indexed)
             DivePlanMissionRows.member(
               planId,
               member,
@@ -97,37 +115,27 @@ class DivePlanMissionStore {
               now,
               createdAt: memberCreatedAt[member.id],
             ),
-          );
-    }
-
-    final keptLegs = {for (final l in mission.legs) l.id};
-    final keptMembers = {for (final m in mission.team) m.id};
-    final removedLegs = [
-      for (final r in existingLegs)
-        if (!keptLegs.contains(r.id)) r.id,
-    ];
-    final removedMembers = [
-      for (final r in existingMembers)
-        if (!keptMembers.contains(r.id)) r.id,
-    ];
-    if (removedLegs.isNotEmpty) {
-      await (d.delete(
-        d.divePlanMissionLegs,
-      )..where((t) => t.id.isIn(removedLegs))).go();
-    }
-    if (removedMembers.isNotEmpty) {
-      await (d.delete(
-        d.divePlanMissionMembers,
-      )..where((t) => t.id.isIn(removedMembers))).go();
-    }
+        ]);
+      }
+      if (removedLegs.isNotEmpty) {
+        b.deleteWhere(d.divePlanMissionLegs, (t) => t.id.isIn(removedLegs));
+      }
+      if (removedMembers.isNotEmpty) {
+        b.deleteWhere(
+          d.divePlanMissionMembers,
+          (t) => t.id.isIn(removedMembers),
+        );
+      }
+    });
 
     return (
-      MissionRowIds(
+      mission: stored,
+      written: MissionRowIds(
         mission: true,
-        legIds: [for (final l in mission.legs) l.id],
-        memberIds: [for (final m in mission.team) m.id],
+        legIds: [...keptLegs],
+        memberIds: [...keptMembers],
       ),
-      MissionRowIds(
+      removed: MissionRowIds(
         mission: false,
         legIds: removedLegs,
         memberIds: removedMembers,
@@ -137,34 +145,83 @@ class DivePlanMissionStore {
 
   /// The mission stored for [planId], or null when the plan has none.
   Future<DpvMission?> read(db.AppDatabase d, String planId) async {
-    final row = await (d.select(
-      d.divePlanMissions,
-    )..where((t) => t.planId.equals(planId))).getSingleOrNull();
+    final row = await _missionRow(d, planId);
     if (row == null) return null;
-    final legs = await (d.select(
-      d.divePlanMissionLegs,
-    )..where((t) => t.planId.equals(planId))).get();
-    final members = await (d.select(
-      d.divePlanMissionMembers,
-    )..where((t) => t.planId.equals(planId))).get();
-    return DivePlanMissionRows.toMission(row, legs, members);
+    final children = await _childrenFor(d, planId);
+    return DivePlanMissionRows.toMission(row, children.legs, children.members);
   }
 
   /// Every mission row [planId] owns, for tombstoning a plan delete.
   Future<MissionRowIds> idsFor(db.AppDatabase d, String planId) async {
-    final mission = await (d.select(
-      d.divePlanMissions,
-    )..where((t) => t.planId.equals(planId))).getSingleOrNull();
-    final legs = await (d.select(
-      d.divePlanMissionLegs,
-    )..where((t) => t.planId.equals(planId))).get();
-    final members = await (d.select(
-      d.divePlanMissionMembers,
-    )..where((t) => t.planId.equals(planId))).get();
+    final mission = await _missionRow(d, planId);
+    final children = await _childrenFor(d, planId);
     return MissionRowIds(
       mission: mission != null,
-      legIds: [for (final r in legs) r.id],
-      memberIds: [for (final r in members) r.id],
+      legIds: [for (final r in children.legs) r.id],
+      memberIds: [for (final r in children.members) r.id],
+    );
+  }
+
+  Future<db.DivePlanMission?> _missionRow(db.AppDatabase d, String planId) {
+    return (d.select(
+      d.divePlanMissions,
+    )..where((t) => t.planId.equals(planId))).getSingleOrNull();
+  }
+
+  Future<
+    ({List<db.DivePlanMissionLeg> legs, List<db.DivePlanMissionMember> members})
+  >
+  _childrenFor(db.AppDatabase d, String planId) async {
+    return (
+      legs: await (d.select(
+        d.divePlanMissionLegs,
+      )..where((t) => t.planId.equals(planId))).get(),
+      members: await (d.select(
+        d.divePlanMissionMembers,
+      )..where((t) => t.planId.equals(planId))).get(),
+    );
+  }
+
+  /// [mission] with a fresh id on every leg and member whose id a row of
+  /// another plan already holds.
+  Future<DpvMission> _withOwnIds(
+    db.AppDatabase d,
+    String planId,
+    DpvMission mission,
+    String Function() newId,
+  ) async {
+    final legIds = [for (final l in mission.legs) l.id];
+    final memberIds = [for (final m in mission.team) m.id];
+    final takenLegs = legIds.isEmpty
+        ? const <String>{}
+        : {
+            for (final r
+                in await (d.select(d.divePlanMissionLegs)..where(
+                      (t) => t.id.isIn(legIds) & t.planId.isNotValue(planId),
+                    ))
+                    .get())
+              r.id,
+          };
+    final takenMembers = memberIds.isEmpty
+        ? const <String>{}
+        : {
+            for (final r
+                in await (d.select(d.divePlanMissionMembers)..where(
+                      (t) => t.id.isIn(memberIds) & t.planId.isNotValue(planId),
+                    ))
+                    .get())
+              r.id,
+          };
+    if (takenLegs.isEmpty && takenMembers.isEmpty) return mission;
+    return mission.copyWith(
+      legs: [
+        for (final l in mission.legs)
+          takenLegs.contains(l.id) ? l.copyWith(id: newId()) : l,
+      ],
+      team: [
+        for (final m in mission.team)
+          takenMembers.contains(m.id) ? m.copyWith(id: newId()) : m,
+      ],
     );
   }
 

@@ -218,12 +218,20 @@ class DivePlanRepository {
               ))
               .go();
         }
-        (missionWritten, missionRemoved) = await _missions.write(
+        final missionWrite = await _missions.write(
           _db,
           plan.id,
           plan.mission,
           now,
+          _uuid.v4,
         );
+        missionWritten = missionWrite.written;
+        missionRemoved = missionWrite.removed;
+        // The mission as stored: a leg or member id another plan held was
+        // re-minted, and the caller must see the id it can save again.
+        if (missionWrite.mission != null) {
+          stored = stored.copyWith(mission: missionWrite.mission);
+        }
       });
 
       // Sync bookkeeping AFTER the transaction commits so a rollback leaves

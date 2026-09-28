@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - No em-dashes (U+2014), en-dashes as punctuation, or double hyphens as punctuation anywhere: code, comments, tests, commit messages. Rewrite the sentence.
-- No mention of Claude, Claude Code or Anthropic in any file, commit message or PR text. No co-author trailers.
+- No tool or model attribution in any file, commit message or PR text, and no co-author trailers.
 - No emojis in code, comments or docs.
 - Immutability: build new lists, never mutate entity lists.
 - Never declare a table, a migration helper or a rung in `database.dart`; `test/core/database/database_table_libraries_test.dart` fails on it (see Task 1).

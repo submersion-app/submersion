@@ -152,4 +152,53 @@ void main() {
       expect((await DivePlanRepository().getPlan('plan-1'))!.mission, mission);
     },
   );
+
+  test(
+    "a peer's new leg is dropped when this device removed the mission",
+    () async {
+      // The peer's mission has leg-1 and a leg this device never saw.
+      final cloud = FakeCloudStorageProvider();
+      final peerMission = mission.copyWith(
+        legs: [
+          ...mission.legs,
+          const MissionLeg(
+            id: 'leg-3',
+            order: 2,
+            label: 'Jump',
+            distanceM: 90,
+            depthM: 25,
+            headingDeg: 270,
+          ),
+        ],
+      );
+      await DivePlanRepository().savePlan(
+        plan().copyWith(mission: peerMission),
+      );
+      await publishOwnLog(cloud, 'peer-dev');
+
+      final peer = DatabaseService.instance.database;
+      addTearDown(peer.close);
+      DatabaseService.instance.resetForTesting();
+      DatabaseService.instance.setTestDatabase(
+        AppDatabase(NativeDatabase.memory()),
+      );
+
+      // This device had the mission, then turned it off: the mission row and
+      // its legs and members are tombstoned here, the plan survives.
+      await DivePlanRepository().savePlan(plan());
+      await DivePlanRepository().savePlan(plan().copyWith(clearMission: true));
+
+      final result = await SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+        cloudProvider: cloud,
+      ).performSync();
+      expect(result.status, isNot(SyncResultStatus.error));
+
+      final receiver = DatabaseService.instance.database;
+      final legs = await receiver.select(receiver.divePlanMissionLegs).get();
+      expect(legs.map((l) => l.id), isEmpty);
+      expect((await DivePlanRepository().getPlan('plan-1'))!.mission, isNull);
+    },
+  );
 }

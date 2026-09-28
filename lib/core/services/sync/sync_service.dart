@@ -2865,11 +2865,16 @@ class SyncService {
     'divePlanMissions': [
       (field: 'planId', parent: 'divePlans', nullable: false),
     ],
+    // A mission row's id is its plan's id, so planId also names the
+    // mission: a leg or member whose mission this device removed is dropped
+    // rather than landing as an orphan the mission read never shows.
     'divePlanMissionLegs': [
       (field: 'planId', parent: 'divePlans', nullable: false),
+      (field: 'planId', parent: 'divePlanMissions', nullable: false),
     ],
     'divePlanMissionMembers': [
       (field: 'planId', parent: 'divePlans', nullable: false),
+      (field: 'planId', parent: 'divePlanMissions', nullable: false),
     ],
     'certifications': [
       (field: 'courseId', parent: 'courses', nullable: true),

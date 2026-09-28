@@ -183,4 +183,42 @@ void main() {
     // The source keeps its own rows.
     expect((await repository.getPlan('plan-1'))!.mission, _mission);
   });
+
+  test('a mission row id another plan owns is re-minted, not taken', () async {
+    await repository.savePlan(_plan(mission: _mission));
+
+    // A second plan whose mission reuses plan-1's leg and member ids (a
+    // copy that skipped the re-mint). Its own tank and segment ids differ.
+    final other = _plan(mission: _mission).copyWith(
+      id: 'plan-2',
+      tanks: const [
+        DiveTank(id: 'tank-2', volume: 24, startPressure: 200, gasMix: _gas),
+      ],
+      segments: [
+        PlanSegment.hold(
+          id: 'seg-2',
+          depth: 20,
+          durationMinutes: 20,
+          tankId: 'tank-2',
+          gasMix: _gas,
+        ),
+      ],
+    );
+    final stored = await repository.savePlan(other);
+
+    expect((await repository.getPlan('plan-1'))!.mission, _mission);
+    final copy = (await repository.getPlan('plan-2'))!.mission!;
+    expect(copy.legs.map((l) => l.label), ['L1', 'L2']);
+    expect(
+      copy.legs.map((l) => l.id),
+      isNot(anyOf(contains('L1'), contains('L2'))),
+    );
+    expect(
+      copy.team.map((m) => m.id),
+      isNot(anyOf(contains('m1'), contains('m2'))),
+    );
+    // The returned plan carries the ids as stored, so a later save of it
+    // updates these rows instead of trying plan-1's again.
+    expect(stored.mission, copy);
+  });
 }
