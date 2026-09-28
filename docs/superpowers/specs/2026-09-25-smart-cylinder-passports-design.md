@@ -179,6 +179,10 @@ this fixed order until the record fits: `n`, `sn`, `vi`, `h`, `oc`, `vt`,
 `m`, `wp`, `v`. It never drops `f`, `p` or `w`. A 144-byte NTAG213 gets
 identity only; NTAG215 and NTAG216 get everything.
 
+On a phone the capacity is the NDEF message size the platform reports for
+the tag (`Ndef.maxSize`), which already excludes the Type 2 TLV wrapper
+that `NdefFit.fit` counts for a bare tag (decided 2026-09-27).
+
 The NDEF message holds, in order: the identity URI record; when room allows,
 the newest signed fill record as a second URI record
 (`https://submersion.app/f#<token>`, section 11); when room still allows, an
@@ -571,9 +575,12 @@ encoder, and `pw.BarcodeWidget` in the PDF label.
 ### 13.3 NFC
 
 - iOS: `NFCReaderUsageDescription`; entitlement
-  `com.apple.developer.nfc.readersession.formats` with `NDEF`. With the
-  associated domain verified, background tag reading opens the app on a tap
-  with nothing running.
+  `com.apple.developer.nfc.readersession.formats` with `NDEF` and `TAG`
+  (`nfc_manager` 4 reads and writes through `NFCTagReaderSession`, which
+  needs `TAG`; decided 2026-09-27). With the associated domain verified,
+  background tag reading opens the app on a tap with nothing running.
+  NFC Tag Reading must be enabled for the app id in the Apple developer
+  portal before a signed build.
 - Android: `android.permission.NFC`; `<uses-feature android:name=
   "android.hardware.nfc" android:required="false"/>`; an
   `NDEF_DISCOVERED` filter on the host and `/c` path so a tap launches the
