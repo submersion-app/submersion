@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ndef_record/ndef_record.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 
@@ -50,11 +52,16 @@ class FakeNfcTagService implements NfcTagService {
     this.supportValue = NfcSupport.enabled,
     this.tag,
     this.cancelled = false,
+    this.waitForCancel = false,
   });
 
   NfcSupport supportValue;
   NdefTagHandle? tag;
   bool cancelled;
+
+  /// Waits, like a real session with no tag, until [cancel] ends it.
+  bool waitForCancel;
+  Completer<void>? _waiting;
   int sessions = 0;
   int cancels = 0;
 
@@ -73,11 +80,20 @@ class FakeNfcTagService implements NfcTagService {
   }) async {
     sessions++;
     if (cancelled) throw const NfcSessionCancelled();
+    if (waitForCancel) {
+      final waiting = _waiting = Completer<void>();
+      await waiting.future;
+      throw const NfcSessionCancelled();
+    }
     final result = await onTag(tag);
     lastIosEnd = iosEnd?.call(result);
     return result;
   }
 
   @override
-  Future<void> cancel() async => cancels++;
+  Future<void> cancel() async {
+    cancels++;
+    final waiting = _waiting;
+    if (waiting != null && !waiting.isCompleted) waiting.complete();
+  }
 }

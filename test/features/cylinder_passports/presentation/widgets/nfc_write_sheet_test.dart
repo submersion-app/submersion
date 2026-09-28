@@ -128,4 +128,43 @@ void main() {
     expect(good.lastIosEnd?.alert, l10n.passport_nfc_written);
     expect(good.lastIosEnd?.error, isNull);
   });
+
+  testWidgets('Cancel closes only the sheet', (tester) async {
+    final nfc = FakeNfcTagService(tag: FakeTagHandle(), waitForCancel: true);
+    final overrides = await getBaseOverrides(nfcTagService: nfc);
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => Scaffold(
+                  body: Builder(
+                    builder: (pageContext) => TextButton(
+                      onPressed: () =>
+                          showNfcWriteSheet(pageContext, payload: payload),
+                      child: const Text('write'),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            child: const Text('passport'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('passport'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('write'));
+    await tester.pumpAndSettle();
+    final l10n = AppLocalizations.of(tester.element(find.text('write')));
+    await tester.tap(find.text(l10n.common_action_cancel));
+    await tester.pumpAndSettle();
+    expect(find.byType(NfcWriteSheet), findsNothing);
+    // The page under the sheet is still there.
+    expect(find.text('write'), findsOneWidget);
+    expect(nfc.cancels, 1);
+  });
 }

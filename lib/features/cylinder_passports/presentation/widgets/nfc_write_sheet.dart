@@ -55,6 +55,10 @@ class _NfcWriteSheetState extends ConsumerState<NfcWriteSheet> {
   PassportTagWrite? _result;
   bool _waiting = false;
 
+  /// Set once the sheet has started closing, so it is popped exactly once:
+  /// a second pop would close the page under it.
+  bool _closing = false;
+
   @override
   void initState() {
     super.initState();
@@ -87,7 +91,7 @@ class _NfcWriteSheetState extends ConsumerState<NfcWriteSheet> {
       );
     } on NfcSessionCancelled {
       _waiting = false;
-      if (mounted) Navigator.of(context).pop();
+      _close();
       return;
     } catch (e, stackTrace) {
       _log.error('NFC write session failed', error: e, stackTrace: stackTrace);
@@ -103,6 +107,12 @@ class _NfcWriteSheetState extends ConsumerState<NfcWriteSheet> {
   void _cancel() {
     _waiting = false;
     unawaited(_service.cancel());
+    _close();
+  }
+
+  void _close() {
+    if (_closing || !mounted) return;
+    _closing = true;
     Navigator.of(context).pop();
   }
 
