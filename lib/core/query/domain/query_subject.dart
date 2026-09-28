@@ -22,4 +22,7 @@ enum QuerySubject {
   sightings,
   media,
   equipmentAttributes,
+
+  /// Site classification types (#1765), a relation target of sites.
+  siteTypes,
 }

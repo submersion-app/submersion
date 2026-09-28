@@ -9,6 +9,8 @@ import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weekday_filter_selector.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/query/presentation/query_label_lookup.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
@@ -78,6 +80,8 @@ class AppQueryLabels implements QueryLabels {
         return byName(EquipmentType.values)?.localizedName(_l10n) ?? value;
       case 'query_equipment_status':
         return byName(EquipmentStatus.values)?.localizedName(_l10n) ?? value;
+      case 'query_sites_difficulty':
+        return byName(SiteDifficulty.values)?.localizedName(_l10n) ?? value;
       default:
         return value;
     }

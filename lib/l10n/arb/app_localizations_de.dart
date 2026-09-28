@@ -44310,6 +44310,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_entity_sightings => 'Sichtungen';
 
   @override
+  String get query_entity_siteTypes => 'Tauchplatztypen';
+
+  @override
   String get query_entity_sites => 'Tauchplätze';
 
   @override
@@ -44382,10 +44385,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_sightings_species => 'Arten';
 
   @override
+  String get query_siteTypes_name => 'Name';
+
+  @override
   String get query_sites_city => 'Stadt';
 
   @override
+  String get query_sites_coordinates => 'Koordinaten';
+
+  @override
   String get query_sites_country => 'Land';
+
+  @override
+  String get query_sites_difficulty => 'Schwierigkeitsgrad';
+
+  @override
+  String get query_sites_dives => 'Tauchgänge';
 
   @override
   String get query_sites_island => 'Insel';
@@ -44397,10 +44412,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_sites_name => 'Name';
 
   @override
+  String get query_sites_notes => 'Notizen';
+
+  @override
   String get query_sites_rating => 'Bewertung';
 
   @override
   String get query_sites_region => 'Region';
+
+  @override
+  String get query_sites_tags => 'Tags';
+
+  @override
+  String get query_sites_types => 'Tauchplatztypen';
 
   @override
   String get query_species_category => 'Kategorie';

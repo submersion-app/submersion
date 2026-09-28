@@ -225,6 +225,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_entity_media;
     case 'query_entity_sightings':
       return l10n.query_entity_sightings;
+    case 'query_entity_siteTypes':
+      return l10n.query_entity_siteTypes;
     case 'query_entity_sites':
       return l10n.query_entity_sites;
     case 'query_entity_species':
@@ -347,20 +349,34 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_sightings_notes;
     case 'query_sightings_species':
       return l10n.query_sightings_species;
+    case 'query_siteTypes_name':
+      return l10n.query_siteTypes_name;
     case 'query_sites_city':
       return l10n.query_sites_city;
+    case 'query_sites_coordinates':
+      return l10n.query_sites_coordinates;
     case 'query_sites_country':
       return l10n.query_sites_country;
+    case 'query_sites_difficulty':
+      return l10n.query_sites_difficulty;
+    case 'query_sites_dives':
+      return l10n.query_sites_dives;
     case 'query_sites_island':
       return l10n.query_sites_island;
     case 'query_sites_maxDepth':
       return l10n.query_sites_maxDepth;
     case 'query_sites_name':
       return l10n.query_sites_name;
+    case 'query_sites_notes':
+      return l10n.query_sites_notes;
     case 'query_sites_rating':
       return l10n.query_sites_rating;
     case 'query_sites_region':
       return l10n.query_sites_region;
+    case 'query_sites_tags':
+      return l10n.query_sites_tags;
+    case 'query_sites_types':
+      return l10n.query_sites_types;
     case 'query_species_category':
       return l10n.query_species_category;
     case 'query_species_name':

@@ -44107,6 +44107,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_entity_sightings => 'Waarnemingen';
 
   @override
+  String get query_entity_siteTypes => 'Duikstektypes';
+
+  @override
   String get query_entity_sites => 'Duikstekken';
 
   @override
@@ -44179,10 +44182,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_sightings_species => 'Soorten';
 
   @override
+  String get query_siteTypes_name => 'Naam';
+
+  @override
   String get query_sites_city => 'Stad';
 
   @override
+  String get query_sites_coordinates => 'Coördinaten';
+
+  @override
   String get query_sites_country => 'Land';
+
+  @override
+  String get query_sites_difficulty => 'Moeilijkheidsgraad';
+
+  @override
+  String get query_sites_dives => 'Duiken';
 
   @override
   String get query_sites_island => 'Eiland';
@@ -44194,10 +44209,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_sites_name => 'Naam';
 
   @override
+  String get query_sites_notes => 'Notities';
+
+  @override
   String get query_sites_rating => 'Beoordeling';
 
   @override
   String get query_sites_region => 'Regio';
+
+  @override
+  String get query_sites_tags => 'Tags';
+
+  @override
+  String get query_sites_types => 'Duikstektypes';
 
   @override
   String get query_species_category => 'Categorie';

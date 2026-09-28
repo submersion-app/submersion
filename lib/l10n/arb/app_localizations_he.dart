@@ -43518,6 +43518,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_entity_sightings => 'תצפיות';
 
   @override
+  String get query_entity_siteTypes => 'סוגי אתר';
+
+  @override
   String get query_entity_sites => 'אתרי צלילה';
 
   @override
@@ -43590,10 +43593,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_sightings_species => 'מינים';
 
   @override
+  String get query_siteTypes_name => 'שם';
+
+  @override
   String get query_sites_city => 'עיר';
 
   @override
+  String get query_sites_coordinates => 'קואורדינטות';
+
+  @override
   String get query_sites_country => 'מדינה';
+
+  @override
+  String get query_sites_difficulty => 'רמת קושי';
+
+  @override
+  String get query_sites_dives => 'צלילות';
 
   @override
   String get query_sites_island => 'אי';
@@ -43605,10 +43620,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_sites_name => 'שם';
 
   @override
+  String get query_sites_notes => 'הערות';
+
+  @override
   String get query_sites_rating => 'דירוג';
 
   @override
   String get query_sites_region => 'אזור';
+
+  @override
+  String get query_sites_tags => 'תגיות';
+
+  @override
+  String get query_sites_types => 'סוגי אתר';
 
   @override
   String get query_species_category => 'קטגוריה';

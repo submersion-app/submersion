@@ -71110,6 +71110,12 @@ abstract class AppLocalizations {
   /// **'Sightings'**
   String get query_entity_sightings;
 
+  /// Entity name in the query field picker
+  ///
+  /// In en, this message translates to:
+  /// **'Site types'**
+  String get query_entity_siteTypes;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
@@ -71257,14 +71263,38 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
+  /// **'Name'**
+  String get query_siteTypes_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
   /// **'City'**
   String get query_sites_city;
+
+  /// Field label in the query builder: whether the site has a position
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinates'**
+  String get query_sites_coordinates;
 
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
   /// **'Country'**
   String get query_sites_country;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Difficulty'**
+  String get query_sites_difficulty;
+
+  /// Relation label in the query builder: the dives at a site
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get query_sites_dives;
 
   /// Field label in the query builder
   ///
@@ -71287,6 +71317,12 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_sites_notes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
   /// **'Rating'**
   String get query_sites_rating;
 
@@ -71295,6 +71331,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Region'**
   String get query_sites_region;
+
+  /// Relation label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get query_sites_tags;
+
+  /// Relation label in the query builder: a site's classification types
+  ///
+  /// In en, this message translates to:
+  /// **'Site types'**
+  String get query_sites_types;
 
   /// Field label in the query builder
   ///

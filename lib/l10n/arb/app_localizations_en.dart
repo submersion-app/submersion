@@ -43742,6 +43742,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_entity_sightings => 'Sightings';
 
   @override
+  String get query_entity_siteTypes => 'Site types';
+
+  @override
   String get query_entity_sites => 'Dive sites';
 
   @override
@@ -43814,10 +43817,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_sightings_species => 'Species';
 
   @override
+  String get query_siteTypes_name => 'Name';
+
+  @override
   String get query_sites_city => 'City';
 
   @override
+  String get query_sites_coordinates => 'Coordinates';
+
+  @override
   String get query_sites_country => 'Country';
+
+  @override
+  String get query_sites_difficulty => 'Difficulty';
+
+  @override
+  String get query_sites_dives => 'Dives';
 
   @override
   String get query_sites_island => 'Island';
@@ -43829,10 +43844,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_sites_name => 'Name';
 
   @override
+  String get query_sites_notes => 'Notes';
+
+  @override
   String get query_sites_rating => 'Rating';
 
   @override
   String get query_sites_region => 'Region';
+
+  @override
+  String get query_sites_tags => 'Tags';
+
+  @override
+  String get query_sites_types => 'Site types';
 
   @override
   String get query_species_category => 'Category';

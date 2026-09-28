@@ -44390,6 +44390,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_entity_sightings => 'Avvistamenti';
 
   @override
+  String get query_entity_siteTypes => 'Tipi di sito';
+
+  @override
   String get query_entity_sites => 'Siti di immersione';
 
   @override
@@ -44462,10 +44465,22 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_sightings_species => 'Specie';
 
   @override
+  String get query_siteTypes_name => 'Nome';
+
+  @override
   String get query_sites_city => 'Città';
 
   @override
+  String get query_sites_coordinates => 'Coordinate';
+
+  @override
   String get query_sites_country => 'Paese';
+
+  @override
+  String get query_sites_difficulty => 'Difficoltà';
+
+  @override
+  String get query_sites_dives => 'Immersioni';
 
   @override
   String get query_sites_island => 'Isola';
@@ -44477,10 +44492,19 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_sites_name => 'Nome';
 
   @override
+  String get query_sites_notes => 'Note';
+
+  @override
   String get query_sites_rating => 'Valutazione';
 
   @override
   String get query_sites_region => 'Regione';
+
+  @override
+  String get query_sites_tags => 'Tag';
+
+  @override
+  String get query_sites_types => 'Tipi di sito';
 
   @override
   String get query_species_category => 'Categoria';

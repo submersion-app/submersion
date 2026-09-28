@@ -41846,6 +41846,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_entity_sightings => '观察记录';
 
   @override
+  String get query_entity_siteTypes => '潜水点类型';
+
+  @override
   String get query_entity_sites => '潜点';
 
   @override
@@ -41918,10 +41921,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_sightings_species => '物种';
 
   @override
+  String get query_siteTypes_name => '名称';
+
+  @override
   String get query_sites_city => '城市';
 
   @override
+  String get query_sites_coordinates => '坐标';
+
+  @override
   String get query_sites_country => '国家';
+
+  @override
+  String get query_sites_difficulty => '难度';
+
+  @override
+  String get query_sites_dives => '潜水';
 
   @override
   String get query_sites_island => '岛屿';
@@ -41933,10 +41948,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_sites_name => '名称';
 
   @override
+  String get query_sites_notes => '备注';
+
+  @override
   String get query_sites_rating => '评分';
 
   @override
   String get query_sites_region => '地区';
+
+  @override
+  String get query_sites_tags => '标签';
+
+  @override
+  String get query_sites_types => '潜水点类型';
 
   @override
   String get query_species_category => '类别';

@@ -44070,6 +44070,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_entity_sightings => 'المشاهدات';
 
   @override
+  String get query_entity_siteTypes => 'أنواع الموقع';
+
+  @override
   String get query_entity_sites => 'مواقع الغوص';
 
   @override
@@ -44142,10 +44145,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_sightings_species => 'الأنواع';
 
   @override
+  String get query_siteTypes_name => 'الاسم';
+
+  @override
   String get query_sites_city => 'المدينة';
 
   @override
+  String get query_sites_coordinates => 'الإحداثيات';
+
+  @override
   String get query_sites_country => 'البلد';
+
+  @override
+  String get query_sites_difficulty => 'الصعوبة';
+
+  @override
+  String get query_sites_dives => 'الغطسات';
 
   @override
   String get query_sites_island => 'الجزيرة';
@@ -44157,10 +44172,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_sites_name => 'الاسم';
 
   @override
+  String get query_sites_notes => 'ملاحظات';
+
+  @override
   String get query_sites_rating => 'التقييم';
 
   @override
   String get query_sites_region => 'المنطقة';
+
+  @override
+  String get query_sites_tags => 'الوسوم';
+
+  @override
+  String get query_sites_types => 'أنواع الموقع';
 
   @override
   String get query_species_category => 'الفئة';

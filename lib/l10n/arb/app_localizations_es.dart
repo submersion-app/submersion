@@ -44436,6 +44436,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get query_entity_sightings => 'Avistamientos';
 
   @override
+  String get query_entity_siteTypes => 'Tipos de punto';
+
+  @override
   String get query_entity_sites => 'Puntos de buceo';
 
   @override
@@ -44508,10 +44511,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String get query_sightings_species => 'Especies';
 
   @override
+  String get query_siteTypes_name => 'Nombre';
+
+  @override
   String get query_sites_city => 'Ciudad';
 
   @override
+  String get query_sites_coordinates => 'Coordenadas';
+
+  @override
   String get query_sites_country => 'País';
+
+  @override
+  String get query_sites_difficulty => 'Dificultad';
+
+  @override
+  String get query_sites_dives => 'Inmersiones';
 
   @override
   String get query_sites_island => 'Isla';
@@ -44523,10 +44538,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get query_sites_name => 'Nombre';
 
   @override
+  String get query_sites_notes => 'Notas';
+
+  @override
   String get query_sites_rating => 'Valoración';
 
   @override
   String get query_sites_region => 'Región';
+
+  @override
+  String get query_sites_tags => 'Etiquetas';
+
+  @override
+  String get query_sites_types => 'Tipos de punto';
 
   @override
   String get query_species_category => 'Categoría';
