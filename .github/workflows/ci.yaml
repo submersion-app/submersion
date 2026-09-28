@@ -385,6 +385,16 @@ jobs:
           printf '  %s\n' "${paths[@]}"
           flutter test --coverage --exclude-tags performance "${paths[@]}"
 
+      - name: Drop trivial members from coverage
+        # copyWith, props, ==, hashCode and toString count toward no coverage
+        # target, so no one writes a test only to execute them. The filter only
+        # removes lines, so it can raise a percentage but never lower it (see
+        # scripts/filter_trivial_coverage.py and docs/developer/testing.md).
+        # Runs even when the tests failed, like the upload: a missing or empty
+        # report passes through untouched.
+        if: always()
+        run: python3 scripts/filter_trivial_coverage.py coverage/lcov.info
+
       - name: Upload coverage
         uses: codecov/codecov-action@v7
         if: always()
