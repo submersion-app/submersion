@@ -1,6 +1,4 @@
 import 'package:submersion/core/query/compiler/query_compiler.dart';
-import 'package:submersion/core/query/compiler/query_validator.dart';
-import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart';
@@ -78,18 +76,3 @@ CompiledQuery compileSiteFilter(
   appQueryRegistry,
   rootAlias: rootAlias,
 );
-
-/// The tables [filter] reads, for change ticks; never throws (an invalid
-/// advanced query falls back to the root table and the SQL path reports
-/// the error through its AsyncValue).
-Set<String> siteFilterTablesTouched(SiteFilterState filter) {
-  final tree = filter.toQuery();
-  if (validateQuery(tree, siteQueryEntity, appQueryRegistry).isNotEmpty) {
-    return const {'dive_sites'};
-  }
-  try {
-    return compileQuery(tree, siteQueryEntity, appQueryRegistry).tablesTouched;
-  } on QueryCompileError {
-    return const {'dive_sites'};
-  }
-}

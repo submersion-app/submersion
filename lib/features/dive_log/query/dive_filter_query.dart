@@ -1,12 +1,11 @@
 import 'package:submersion/core/query/compiler/query_compiler.dart';
-import 'package:submersion/core/query/compiler/query_validator.dart';
-import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/equipment/query/equipment_attr_condition_query.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
+import 'package:submersion/features/query/query_tables_touched.dart';
 
 /// Lowers the sheet's filter model to the query tree the compiler reads.
 ///
@@ -175,21 +174,8 @@ CompiledQuery compileDiveFilter(
   rootAlias: rootAlias,
 );
 
-/// The tables [filter] reads, for change ticks. Computed inside provider
-/// listeners, so it never throws: an advanced query the compiler rejects
-/// falls back to the base tick and the SQL path reports the error through
-/// its AsyncValue, where the diver can see it.
-Set<String> diveFilterTablesTouched(DiveFilterState filter) {
-  // The advanced tree is public data: validate it first, so a
-  // structurally wrong node (a text value on a bool field) never reaches
-  // the compiler's casts from a listener.
-  final tree = filter.toQuery();
-  if (validateQuery(tree, diveQueryEntity, appQueryRegistry).isNotEmpty) {
-    return const {'dives'};
-  }
-  try {
-    return compileQuery(tree, diveQueryEntity, appQueryRegistry).tablesTouched;
-  } on QueryCompileError {
-    return const {'dives'};
-  }
-}
+/// The tables [filter] reads, for change ticks. Never throws: an advanced
+/// query the compiler rejects falls back to the base tick (`dives`), and
+/// the SQL path reports the error through its AsyncValue.
+Set<String> diveFilterTablesTouched(DiveFilterState filter) =>
+    tablesTouchedOrRoot(filter.toQuery(), diveQueryEntity);

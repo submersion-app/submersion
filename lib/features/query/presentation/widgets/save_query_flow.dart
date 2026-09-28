@@ -5,12 +5,13 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/query/data/repositories/saved_query_repository.dart';
 import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/save_query_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-final _log = LoggerService.forClass(SavedQueryRepository);
+// Named for the flow: its failures come from the diver lookup, the dialog
+// or the write, not only the repository.
+const _log = LoggerService('SaveQueryFlow');
 
 /// Saves [node] as a [subject] query under a name the diver gives (spec
 /// Unit 7). The one save flow every query editor shares: queries are saved

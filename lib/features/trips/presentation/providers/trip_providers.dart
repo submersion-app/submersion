@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/query/presentation/providers/narrow_by_ids.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
@@ -103,12 +104,9 @@ final allTripsWithStatsProvider = FutureProvider<List<TripWithStats>>((
 /// on the filter's value; a write to any table the query read refreshes it
 /// in place.
 final queryFilteredTripIdsProvider = FutureProvider.autoDispose
-    .family<Set<String>, TripFilterState>((ref, filter) async {
-      final runner = ref.watch(queryIdSetRunnerProvider);
-      final compiled = compileTripFilter(filter);
-      ref.invalidateSelfWhen(runner.watchTables(compiled.tablesTouched));
-      return runner.ids(compiled);
-    });
+    .family<Set<String>, TripFilterState>(
+      (ref, filter) => watchQueryIds(ref, compileTripFilter(filter)),
+    );
 
 /// Filtered trips provider - applies current filter to trip list.
 /// Uses synchronous Provider returning AsyncValue instead of FutureProvider
@@ -133,18 +131,12 @@ final filteredTripsProvider = Provider<AsyncValue<List<TripWithStats>>>((ref) {
     return AsyncValue.data(trips);
   }
 
-  // Every axis narrows through the compiled query. A failed refresh is an
-  // error even with a previous set (PR 1); a refresh in flight keeps it.
-  final idsAsync = ref.watch(queryFilteredTripIdsProvider(filter));
-  if (idsAsync.hasError) {
-    return AsyncValue.error(idsAsync.error!, idsAsync.stackTrace!);
-  }
-  final ids = idsAsync.value;
-  if (ids == null) return const AsyncValue.loading();
-  return AsyncValue.data([
-    for (final t in trips)
-      if (ids.contains(t.trip.id)) t,
-  ]);
+  // Every axis narrows through the compiled query, by narrowByIds's rules.
+  return narrowByIds(
+    AsyncValue.data(trips),
+    ref.watch(queryFilteredTripIdsProvider(filter)),
+    (t) => t.trip.id,
+  );
 });
 
 /// Trip sort state provider

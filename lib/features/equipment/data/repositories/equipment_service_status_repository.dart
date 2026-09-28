@@ -23,47 +23,15 @@ class EquipmentServiceStatusRepository {
   };
 
   /// Makes the cache hold exactly [byId]: rows for other items go, new or
-  /// changed verdicts are written, unchanged ones are left alone.
+  /// changed verdicts are written, unchanged ones are left alone. One
+  /// transaction, and a verdict for an item deleted since the engine
+  /// evaluated it is skipped rather than failing the equipment foreign key.
   Future<void> replaceAll(
     Map<String, ServiceStatusEntry> byId, {
     required int computedAt,
   }) async {
     try {
-      final existing = {
-        for (final r in await _db.select(_db.equipmentServiceStatus).get())
-          r.equipmentId: r,
-      };
-      final stale = [
-        for (final id in existing.keys)
-          if (!byId.containsKey(id)) id,
-      ];
-      final changed = {
-        for (final e in byId.entries)
-          if (existing[e.key]?.severity != e.value.severity ||
-              existing[e.key]?.dueDate != e.value.dueDate)
-            e.key: e.value,
-      };
-      if (stale.isEmpty && changed.isEmpty) return;
-      await _db.batch((b) {
-        if (stale.isNotEmpty) {
-          b.deleteWhere(
-            _db.equipmentServiceStatus,
-            (t) => t.equipmentId.isIn(stale),
-          );
-        }
-        for (final e in changed.entries) {
-          b.insert(
-            _db.equipmentServiceStatus,
-            EquipmentServiceStatusCompanion.insert(
-              equipmentId: e.key,
-              severity: e.value.severity,
-              dueDate: Value(e.value.dueDate),
-              computedAt: computedAt,
-            ),
-            mode: InsertMode.insertOrReplace,
-          );
-        }
-      });
+      await _db.transaction(() => _replaceAll(byId, computedAt));
     } catch (e, st) {
       _log.error(
         'Failed to write the service status cache',
@@ -72,5 +40,57 @@ class EquipmentServiceStatusRepository {
       );
       rethrow;
     }
+  }
+
+  Future<void> _replaceAll(
+    Map<String, ServiceStatusEntry> byId,
+    int computedAt,
+  ) async {
+    final existing = {
+      for (final r in await _db.select(_db.equipmentServiceStatus).get())
+        r.equipmentId: r,
+    };
+    final live = byId.isEmpty
+        ? const <String>{}
+        : {
+            for (final r
+                in await (_db.selectOnly(_db.equipment)
+                      ..addColumns([_db.equipment.id])
+                      ..where(_db.equipment.id.isIn(byId.keys)))
+                    .get())
+              r.read(_db.equipment.id)!,
+          };
+    final stale = [
+      for (final id in existing.keys)
+        if (!live.contains(id)) id,
+    ];
+    final changed = {
+      for (final e in byId.entries)
+        if (live.contains(e.key) &&
+            (existing[e.key]?.severity != e.value.severity ||
+                existing[e.key]?.dueDate != e.value.dueDate))
+          e.key: e.value,
+    };
+    if (stale.isEmpty && changed.isEmpty) return;
+    await _db.batch((b) {
+      if (stale.isNotEmpty) {
+        b.deleteWhere(
+          _db.equipmentServiceStatus,
+          (t) => t.equipmentId.isIn(stale),
+        );
+      }
+      for (final e in changed.entries) {
+        b.insert(
+          _db.equipmentServiceStatus,
+          EquipmentServiceStatusCompanion.insert(
+            equipmentId: e.key,
+            severity: e.value.severity,
+            dueDate: Value(e.value.dueDate),
+            computedAt: computedAt,
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
   }
 }

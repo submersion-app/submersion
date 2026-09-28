@@ -10,9 +10,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/utils/location_options.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart';
-import 'package:submersion/features/query/presentation/dive_query_editor.dart';
-import 'package:submersion/features/query/presentation/widgets/save_query_flow.dart';
-import 'package:submersion/features/query/presentation/widgets/saved_query_chip_row.dart';
+import 'package:submersion/features/query/presentation/widgets/query_sheet_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
@@ -146,7 +144,12 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
                     controller: scrollController,
                     padding: const EdgeInsets.all(16),
                     children: [
-                      _buildQuerySection(),
+                      QuerySheetSection(
+                        subject: QuerySubject.sites,
+                        root: siteQueryEntity,
+                        value: _query,
+                        onChanged: (node) => setState(() => _query = node),
+                      ),
                       const SizedBox(height: 24),
                       _buildLocationSection(),
                       const SizedBox(height: 24),
@@ -546,40 +549,6 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
       query: _query,
     );
     Navigator.of(context).pop();
-  }
-
-  /// The query editor and the Saved row (#2365): a typed or built query is
-  /// ANDed with every section below.
-  Widget _buildQuerySection() {
-    final query = _query;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          context.l10n.query_sheet_sectionTitle,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 12),
-        SavedQueryChipRow(
-          subject: QuerySubject.sites,
-          onApply: (load) => setState(() => _query = load.node),
-        ),
-        const SizedBox(height: 8),
-        EntityQueryEditor(
-          root: siteQueryEntity,
-          value: query,
-          onChanged: (node) => setState(() => _query = node),
-          onSave: query == null
-              ? null
-              : () => saveQueryFromEditor(
-                  context,
-                  widget.ref,
-                  subject: QuerySubject.sites,
-                  node: query,
-                ),
-        ),
-      ],
-    );
   }
 
   /// Site type chips (issue #1765). Any chosen type matches. Renders nothing

@@ -299,10 +299,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // Whether the tag selection is what emptied the list (issue #1942), so
     // the empty state blames the tags rather than a stocked category.
     final tagsEmptied = ref.watch(equipmentTagsEmptiedProvider);
-    // Whether the status view held anything before the other axes.
-    final hadItemsBeforeTypeFilter = ref.watch(
-      equipmentStatusViewHasItemsProvider,
-    );
 
     // Table mode uses a dedicated scaffold with column configuration support.
     if (viewMode == ListViewMode.table) {
@@ -317,7 +313,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         context,
         sortedAsync,
         filter,
-        hadItemsBeforeTypeFilter: hadItemsBeforeTypeFilter,
         tagsEmptied: tagsEmptied,
       );
     }
@@ -365,12 +360,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       return equipmentAsync.when(
         // visibleGroups was arranged from `equipmentAsync.value`.
         data: (_) => visibleGroups.isEmpty
-            ? _buildEmptyState(
-                context,
-                ref,
-                hadItemsBeforeTypeFilter: hadItemsBeforeTypeFilter,
-                tagsEmptied: tagsEmptied,
-              )
+            ? _buildEmptyState(context, ref, tagsEmptied: tagsEmptied)
             : _buildEquipmentList(
                 context,
                 ref,
@@ -709,7 +699,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     BuildContext context,
     AsyncValue<List<EquipmentItem>> equipmentAsync,
     EquipmentFilterState filter, {
-    required bool hadItemsBeforeTypeFilter,
     required bool tagsEmptied,
   }) {
     final visibleIds = (equipmentAsync.value ?? const <EquipmentItem>[])
@@ -754,7 +743,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               child: _buildTableView(
                 context,
                 equipmentAsync,
-                hadItemsBeforeTypeFilter: hadItemsBeforeTypeFilter,
                 tagsEmptied: tagsEmptied,
               ),
             ),
@@ -768,7 +756,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   Widget _buildTableView(
     BuildContext context,
     AsyncValue<List<EquipmentItem>> equipmentAsync, {
-    required bool hadItemsBeforeTypeFilter,
     required bool tagsEmptied,
   }) {
     return equipmentAsync.when(
@@ -776,12 +763,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       error: (e, s) => _buildErrorState(context, e),
       data: (equipment) {
         if (equipment.isEmpty) {
-          return _buildEmptyState(
-            context,
-            ref,
-            hadItemsBeforeTypeFilter: hadItemsBeforeTypeFilter,
-            tagsEmptied: tagsEmptied,
-          );
+          return _buildEmptyState(context, ref, tagsEmptied: tagsEmptied);
         }
         final config = ref.watch(equipmentTableConfigProvider);
         final notifier = ref.read(equipmentTableConfigProvider.notifier);
@@ -1156,7 +1138,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   Widget _buildEmptyState(
     BuildContext context,
     WidgetRef ref, {
-    required bool hadItemsBeforeTypeFilter,
     required bool tagsEmptied,
   }) {
     final filter = ref.watch(effectiveEquipmentFilterProvider);
@@ -1172,11 +1153,13 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // Otherwise blame the category only when it actually narrowed something
     // away; if the status-filtered source was already empty, the status (or
     // the lack of any gear) is the real cause and the wording should say so.
+    // The status-view probe is a second id-set query, so it runs only here,
+    // on an empty list, and only when the category could be the cause.
     final blameCategory =
         !blameTags &&
         !blameQuery &&
         filter.type != null &&
-        hadItemsBeforeTypeFilter;
+        ref.watch(equipmentStatusViewHasItemsProvider);
 
     String filterText;
     if (blameTags || blameQuery) {

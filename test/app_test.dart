@@ -18,6 +18,7 @@ import 'package:submersion/features/backup/presentation/pages/restore_complete_p
 import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
+import 'package:submersion/features/query/presentation/providers/service_status_keeper.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
@@ -188,17 +189,20 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets(
-    'keeps the service-due cache writer alive for the session (#2365)',
-    (tester) async {
-      // Any list may read equipment_service_status through a relation hop
-      // (dives gear.serviceDue), so the mirror cannot wait for the equipment
-      // list to be open.
-      serviceCacheBuilds = 0;
-      await pumpApp(tester, _DrivableSyncNotifier(const SyncState()));
-      expect(serviceCacheBuilds, 1);
-    },
-  );
+  testWidgets('runs the service-due cache writer only on demand (#2365)', (
+    tester,
+  ) async {
+    // The app root keeps the keeper alive, and the keeper starts the
+    // writer only while a filter names serviceDue: with none, launching
+    // the app evaluates no service clocks.
+    serviceCacheBuilds = 0;
+    await pumpApp(tester, _DrivableSyncNotifier(const SyncState()));
+    expect(serviceCacheBuilds, 0);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SubmersionApp)),
+    );
+    expect(container.exists(serviceStatusKeeperProvider), isTrue);
+  });
 
   testWidgets('shows the post-restore syncing notice when sync begins', (
     tester,

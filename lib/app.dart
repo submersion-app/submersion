@@ -25,7 +25,7 @@ import 'package:submersion/features/backup/presentation/widgets/restore_barrier.
 import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
+import 'package:submersion/features/query/presentation/providers/service_status_keeper.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_origin_republish_provider.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -137,9 +137,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     }, fireImmediately: true);
     // The serviceDue query field reads a cache of the service engine's
     // verdicts, and any list can reach it through a relation (a dive's
-    // gear.serviceDue), so the mirror follows the engine all session rather
-    // than only while the equipment list is open (#2365).
-    ref.listenManual(equipmentServiceStatusCacheProvider, (_, _) {});
+    // gear.serviceDue). The keeper runs the cache writer while a filter
+    // names it, and leaves the clocks idle otherwise (#2365).
+    ref.listenManual(serviceStatusKeeperProvider, (_, _) {});
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _maybeSyncOnLaunch();
       _resumeMediaTransfers();

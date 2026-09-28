@@ -58,4 +58,16 @@ void main() {
       expect(await repo.severities(), {'a': 'dueSoon', 'c': 'ok'});
     },
   );
+
+  test('a verdict for an item deleted mid-evaluation is skipped', () async {
+    // The engine evaluated 'ghost', then it was deleted before the write:
+    // the cache keeps the live items instead of failing the whole write on
+    // the equipment foreign key.
+    final repo = EquipmentServiceStatusRepository();
+    await repo.replaceAll({
+      'a': (severity: 'overdue', dueDate: 1),
+      'ghost': (severity: 'dueSoon', dueDate: 2),
+    }, computedAt: 10);
+    expect(await repo.severities(), {'a': 'overdue'});
+  });
 }

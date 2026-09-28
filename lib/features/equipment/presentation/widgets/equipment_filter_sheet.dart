@@ -11,9 +11,7 @@ import 'package:submersion/features/equipment/domain/models/service_due_filter_d
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_choice_attribute_filter.dart';
 import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
-import 'package:submersion/features/query/presentation/dive_query_editor.dart';
-import 'package:submersion/features/query/presentation/widgets/save_query_flow.dart';
-import 'package:submersion/features/query/presentation/widgets/saved_query_chip_row.dart';
+import 'package:submersion/features/query/presentation/widgets/query_sheet_section.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -138,7 +136,12 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                     controller: scrollController,
                     padding: const EdgeInsets.all(16),
                     children: [
-                      _buildQuerySection(),
+                      QuerySheetSection(
+                        subject: QuerySubject.equipment,
+                        root: equipmentQueryEntity,
+                        value: _query,
+                        onChanged: (node) => setState(() => _query = node),
+                      ),
                       const SizedBox(height: 24),
                       _buildStatusSection(),
                       const SizedBox(height: 24),
@@ -365,40 +368,6 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
       query: _query,
     );
     Navigator.of(context).pop();
-  }
-
-  /// The query editor and the Saved row (#2365): a typed or built query is
-  /// ANDed with every section below.
-  Widget _buildQuerySection() {
-    final query = _query;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          context.l10n.query_sheet_sectionTitle,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 12),
-        SavedQueryChipRow(
-          subject: QuerySubject.equipment,
-          onApply: (load) => setState(() => _query = load.node),
-        ),
-        const SizedBox(height: 8),
-        EntityQueryEditor(
-          root: equipmentQueryEntity,
-          value: query,
-          onChanged: (node) => setState(() => _query = node),
-          onSave: query == null
-              ? null
-              : () => saveQueryFromEditor(
-                  context,
-                  widget.ref,
-                  subject: QuerySubject.equipment,
-                  node: query,
-                ),
-        ),
-      ],
-    );
   }
 
   /// Whose gear to show (issue #2046), offered only with two or more

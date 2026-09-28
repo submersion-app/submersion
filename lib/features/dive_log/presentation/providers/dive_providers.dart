@@ -27,6 +27,7 @@ import 'package:submersion/features/dive_log/domain/entities/source_profile.dart
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/narrow_dives.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -72,6 +73,7 @@ final queryFilteredDiveIdsProvider = FutureProvider.autoDispose
       // Compiled once: the same object names the tables to follow and is
       // the query the repository runs.
       final compiled = compileDiveFilter(filter, rootAlias: 'd');
+      await awaitServiceStatusIfRead(ref, compiled.tablesTouched);
       ref.invalidateSelfWhen(repository.watchTables(compiled.tablesTouched));
       return repository.getDiveIdsForQuery(compiled, diverId: diverId);
     });
@@ -121,7 +123,9 @@ final orderedDiveIdsProvider = FutureProvider.autoDispose<List<String>>((
   // reads (#2365): the buddy tables under a buddy filter (#1915), the gear
   // tables under an attribute condition (#1805). One stream, not two, so a
   // junction write followed by the dive write recomputes the ids once.
-  final extra = diveFilterTablesTouched(filter).difference({'dives'});
+  final touched = diveFilterTablesTouched(filter);
+  await awaitServiceStatusIfRead(ref, touched);
+  final extra = touched.difference({'dives'});
   ref.invalidateSelfWhen(
     extra.isEmpty
         ? repository.watchDivesChanges()

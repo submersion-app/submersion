@@ -28,6 +28,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_featu
 import 'package:submersion/features/dive_sites/query/site_filter_query.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/query/presentation/providers/narrow_by_ids.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
@@ -289,12 +290,9 @@ final siteSortProvider = StateProvider<SortState<SiteSortField>>(
 /// on the filter's value, so an equal filter reuses its instance; a write to
 /// any table the query read refreshes it in place.
 final queryFilteredSiteIdsProvider = FutureProvider.autoDispose
-    .family<Set<String>, SiteFilterState>((ref, filter) async {
-      final runner = ref.watch(queryIdSetRunnerProvider);
-      final compiled = compileSiteFilter(filter);
-      ref.invalidateSelfWhen(runner.watchTables(compiled.tablesTouched));
-      return runner.ids(compiled);
-    });
+    .family<Set<String>, SiteFilterState>(
+      (ref, filter) => watchQueryIds(ref, compileSiteFilter(filter)),
+    );
 
 /// The site list: every visible site narrowed to the compiled query's ids.
 final filteredSitesWithCountsProvider =
@@ -302,19 +300,10 @@ final filteredSitesWithCountsProvider =
       final sitesAsync = ref.watch(sitesWithCountsProvider);
       final filter = ref.watch(siteFilterProvider);
       if (!filter.hasActiveFilters) return sitesAsync;
-      final idsAsync = ref.watch(queryFilteredSiteIdsProvider(filter));
-      // A failed refresh is an error even with a previous set (PR 1); a
-      // refresh in flight keeps the previous set.
-      if (idsAsync.hasError) {
-        return AsyncValue.error(idsAsync.error!, idsAsync.stackTrace!);
-      }
-      final ids = idsAsync.value;
-      if (ids == null) return const AsyncValue.loading();
-      return sitesAsync.whenData(
-        (sites) => [
-          for (final s in sites)
-            if (ids.contains(s.site.id)) s,
-        ],
+      return narrowByIds(
+        sitesAsync,
+        ref.watch(queryFilteredSiteIdsProvider(filter)),
+        (s) => s.site.id,
       );
     });
 

@@ -29,6 +29,7 @@ import 'package:submersion/features/equipment/domain/entities/service_schedule.d
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_query_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
@@ -2429,6 +2430,29 @@ void main() {
   });
 
   group('query chips (#2365)', () {
+    testWidgets('a list with rows never runs the empty-state status probe', (
+      tester,
+    ) async {
+      // The probe is a second id-set query only the empty state reads.
+      final overrides = await _buildPhoneOverrides(
+        items: [_makeEquipment(id: 'e1', name: 'Alpha Reg')],
+        filter: const EquipmentFilterState(type: EquipmentType.regulator),
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const EquipmentListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Alpha Reg'), findsOneWidget);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(EquipmentListContent)),
+      );
+      expect(container.exists(equipmentStatusViewHasItemsProvider), isFalse);
+    });
+
     testWidgets('a query that keeps nothing blames the query, not the gear', (
       tester,
     ) async {

@@ -103,6 +103,64 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('Save query works after the launching list is gone', (
+    tester,
+  ) async {
+    // The sheet outlives the list that opened it (a layout change, a
+    // navigation): the save must use the sheet's own ref, not the dead one
+    // it was handed.
+    final c = await container(filter: SiteFilterState(query: difficult));
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(1000, 2400);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    WidgetRef? launcherRef;
+    final sheetKey = GlobalKey();
+    Widget app({required bool launcher, required bool sheet}) =>
+        UncontrolledProviderScope(
+          container: c,
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Column(
+                children: [
+                  if (launcher)
+                    Consumer(
+                      builder: (context, ref, _) {
+                        launcherRef = ref;
+                        return const SizedBox();
+                      },
+                    ),
+                  if (sheet)
+                    Expanded(
+                      child: SiteFilterSheet(key: sheetKey, ref: launcherRef!),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+    // The launcher opens the sheet while alive...
+    await tester.pumpWidget(app(launcher: true, sheet: false));
+    await tester.pumpWidget(app(launcher: true, sheet: true));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pumpAndSettle();
+    // ...then goes away; the keyed sheet keeps its state.
+    await tester.pumpWidget(app(launcher: false, sheet: true));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save query'));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+  });
+
   testWidgets('a typed query is applied with the other axes', (tester) async {
     final c = await container(filter: const SiteFilterState(minRating: 3));
     await open(tester, c);

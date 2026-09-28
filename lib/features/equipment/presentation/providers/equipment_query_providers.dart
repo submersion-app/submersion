@@ -3,43 +3,27 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/features/equipment/query/equipment_filter_query.dart';
+import 'package:submersion/features/query/presentation/providers/narrow_by_ids.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 
 /// The ids the equipment filter selects (#2365). A query naming
 /// `serviceDue` waits for the service cache to mirror the engine first.
 /// Keyed on the filter's value and the active diver (the owner scope).
 final queryFilteredEquipmentIdsProvider = FutureProvider.autoDispose
-    .family<Set<String>, ({EquipmentFilterState filter, String? diverId})>((
-      ref,
-      key,
-    ) async {
-      final runner = ref.watch(queryIdSetRunnerProvider);
-      final compiled = compileEquipmentFilter(key.filter);
-      if (compiled.tablesTouched.contains('equipment_service_status')) {
-        await ref.watch(equipmentServiceStatusCacheProvider.future);
-      }
-      ref.invalidateSelfWhen(runner.watchTables(compiled.tablesTouched));
-      return runner.ids(compiled, scope: key.filter.ownerScope(key.diverId));
-    });
+    .family<Set<String>, ({EquipmentFilterState filter, String? diverId})>(
+      (ref, key) => watchQueryIds(
+        ref,
+        compileEquipmentFilter(key.filter),
+        scope: key.filter.ownerScope(key.diverId),
+      ),
+    );
 
-/// [items] narrowed to [ids]: an error in either is the list's error, and a
-/// refresh in flight keeps the previous set.
+/// [items] narrowed to [ids], by [narrowByIds]'s rules.
 AsyncValue<List<EquipmentItem>> _narrow(
   AsyncValue<List<EquipmentItem>> items,
   AsyncValue<Set<String>> ids,
-) {
-  if (ids.hasError) return AsyncValue.error(ids.error!, ids.stackTrace!);
-  final set = ids.value;
-  if (set == null) return const AsyncValue.loading();
-  return items.whenData(
-    (all) => [
-      for (final e in all)
-        if (set.contains(e.id)) e,
-    ],
-  );
-}
+) => narrowByIds(items, ids, (e) => e.id);
 
 /// The equipment list: every visible item (in `getAllEquipment` order,
 /// type then name) narrowed to the compiled query's ids. Replaces the

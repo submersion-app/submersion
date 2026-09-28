@@ -791,12 +791,16 @@ Decided in the whole-branch review of PR 1:
   that diver's settings (due-soon window, exposure thresholds) and
   visibility; one diver is active on a device at a time, so a diver switch
   re-evaluates and rewrites the table.
-- **The cache writer runs all session.** Any list can reach `serviceDue`
+- **The cache writer runs on demand.** Any list can reach `serviceDue`
   through a relation (`gear.serviceDue` on dives, `dives.gear.serviceDue` on
-  sites and trips), so the app root listens to the writer rather than
-  leaving it to the equipment list. Every query that reads the table
-  re-runs when it is rewritten; the equipment list also awaits the write,
-  so it never shows the previous diver's verdicts.
+  sites and trips), so the writer cannot be left to the equipment list, but
+  evaluating every item's clocks all session would cost every diver on
+  every gear write. The app root listens to a keeper that runs the writer
+  only while a live dive, Insights, site, trip or equipment filter reads
+  the cache table. Every provider whose query reads it (the four list id
+  sets, the ordered dive ids, the Insights totals) awaits the write first,
+  so none reads an empty cache or the previous diver's verdicts; the paged
+  dive list notifier re-runs on the table's tick instead.
 - **An advanced query that keeps no gear says so.** The equipment empty
   state blames the query ("No equipment matches this query") ahead of the
   category, status and service wording, so a diver with gear is never told
