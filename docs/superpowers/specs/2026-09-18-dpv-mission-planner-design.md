@@ -364,16 +364,17 @@ diver or item.
 "No mission" is "no row" in `dive_plan_missions`, so `DivePlan.mission` is
 null exactly when the plan has none.
 
-The migration rung takes the next free number at implementation time: v244 (renumbered
-from v241, which #2493 took; 242 and 243 are claimed by open PRs). On
-2026-09-27 main is at v240 with the sync floor at 240, and this table-only
-rung leaves the floor there. The create lives in
+The migration rung takes the next free number at implementation time: v244,
+renumbered from v241 when #2493 claimed that number (242 and 243 were already
+taken or claimed); re-check `origin/main` and the open PRs before merging. The
+table-only rung leaves the sync floor at 240. The create lives in
 `migrations/helpers/dive_plan_migrations.dart`, the rung in
 `migrations/ladder/rungs_v231_onward.dart` and the backstop in
-`migrations/before_open.dart`. The rung creates the tables and their indexes
-with create-if-missing statements and has an idempotent assert like the
-existing plan column asserts, so a database that already carries them is left
-alone.
+`migrations/before_open.dart`. The rung and the backstop create the three
+tables with create-if-missing statements, so a database that already carries
+them is left alone. They create no index: the leg and member plan-id indexes
+are declared in `lib/core/database/performance_indexes.dart` and installed by
+`ensurePerformanceIndexes` when the database opens.
 
 Every seam the plan tables already cross gets the three new tables:
 

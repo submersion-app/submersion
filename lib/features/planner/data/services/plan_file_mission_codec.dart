@@ -75,9 +75,7 @@ DpvMission missionFromFileMap(
         (map['batteryReserveFraction'] as num?)?.toDouble() ??
         kDefaultBatteryReserveFraction,
     defaultCurrent: _currentFromMap(map['defaultCurrent'], 'defaultCurrent'),
-    environment:
-        MissionEnvironment.values.asNameMap()[map['environment']] ??
-        MissionEnvironment.overhead,
+    environment: _environmentFromMap(map['environment']),
     walkSpeedMps:
         (map['walkSpeedMps'] as num?)?.toDouble() ?? kDefaultWalkSpeedMps,
     surfaceSwimLimitM: (map['surfaceSwimLimitM'] as num?)?.toDouble(),
@@ -122,6 +120,19 @@ MissionMember _memberFromMap(
           kDefaultTowBurnFactor,
     ),
   );
+}
+
+/// An absent environment, or a name this build does not know (a newer
+/// peer's), reads as overhead: the conservative choice, which offers no
+/// surface exit that may not exist. A value that is not a name at all is a
+/// malformed file.
+MissionEnvironment _environmentFromMap(Object? raw) {
+  if (raw == null) return MissionEnvironment.overhead;
+  if (raw is! String) {
+    throw const FormatException('Mission field "environment" is not a name');
+  }
+  return MissionEnvironment.values.asNameMap()[raw] ??
+      MissionEnvironment.overhead;
 }
 
 /// A null [raw] is no shore exit; anything else must carry both distances.

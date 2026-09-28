@@ -168,10 +168,27 @@ void main() {
       expect(() => subplanFromJson(jsonEncode(json)), throwsFormatException);
     });
 
+    test('an environment that is not a string', () {
+      final json = exported();
+      json['plan']['mission']['environment'] = 1;
+      expect(() => subplanFromJson(jsonEncode(json)), throwsFormatException);
+    });
+
     test('a default current that is not a map', () {
       final json = exported();
       json['plan']['mission']['defaultCurrent'] = 'north';
       expect(() => subplanFromJson(jsonEncode(json)), throwsFormatException);
     });
+  });
+
+  test('an unknown environment name still reads as overhead', () {
+    // A newer peer's environment is a well-formed string this build does
+    // not know; overhead, the conservative reading, offers no surface exit.
+    final json = jsonDecode(planToSubplanJson(_plan(mission: _mission)));
+    json['plan']['mission']['environment'] = 'cave2030';
+    expect(
+      subplanFromJson(jsonEncode(json)).mission!.environment,
+      MissionEnvironment.overhead,
+    );
   });
 }
