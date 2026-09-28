@@ -193,6 +193,21 @@ void main() {
     );
   });
 
+  test('of two tows that both failed, the first tower stands', () {
+    final outcome = const MissionEngine(scenarios: _ExitsThrow()).compute(
+      plan: _plan(),
+      mission: DpvMission(
+        legs: [_leg('L1', 0)],
+        team: [_member('a', 0), _member('b', 1), _member('c', 2)],
+      ),
+    );
+    final b = outcome.waypoints.single.members.firstWhere(
+      (m) => m.memberId == 'b',
+    );
+    expect(b.tow!.failed, isTrue);
+    expect(b.tow!.towerId, 'a');
+  });
+
   test('an open-water surface exit that throws is a failed exit', () {
     final outcome = const MissionEngine(scenarios: _AllExitsThrow()).compute(
       plan: _plan(),

@@ -80,31 +80,33 @@ class ExitOutcome extends Equatable {
   /// A way out whose computation threw: infeasible, with no time, gas or
   /// shortfall known. Its times are zero and must not be read as times;
   /// read [knownExitSeconds] and [knownTtsSeconds] instead.
-  const ExitOutcome.failed({required this.mode, this.towerId})
-    : feasible = false,
-      exitBottomSeconds = 0,
-      ttsSeconds = 0,
-      exitLitersByMember = const {},
-      gasShortfallMemberIds = const {},
-      batteryShortfallMemberIds = const {},
-      blockedByCurrent = false,
-      notDiveable = false,
-      surfaceSeconds = 0,
-      surfaceSwimM = null,
-      walkM = null,
-      viaShore = false,
-      surfaceLimitExceeded = false,
-      failed = true;
+  const ExitOutcome.failed({required MissionExitMode mode, String? towerId})
+    : this(
+        mode: mode,
+        towerId: towerId,
+        feasible: false,
+        exitBottomSeconds: 0,
+        ttsSeconds: 0,
+        exitLitersByMember: const {},
+        failed: true,
+      );
 
   /// Total seconds of the way out. Zero, and meaningless, for a [failed]
-  /// exit; anything that ranks or reports exits reads [knownExitSeconds].
+  /// exit or one the current blocked; anything that ranks or reports exits
+  /// reads [knownExitSeconds].
   int get exitSeconds => exitBottomSeconds + ttsSeconds + surfaceSeconds;
 
-  /// [exitSeconds], or null when the exit [failed] and no time is known.
-  int? get knownExitSeconds => failed ? null : exitSeconds;
+  /// [exitSeconds], or null when no way out was travelled: the exit
+  /// [failed], or the current blocked it.
+  int? get knownExitSeconds => failed || blockedByCurrent ? null : exitSeconds;
 
-  /// [ttsSeconds], or null when the exit [failed] and no time is known.
-  int? get knownTtsSeconds => failed ? null : ttsSeconds;
+  /// [ttsSeconds], or null when no ascent was computed: the exit [failed],
+  /// or the current blocked an underwater exit. A blocked surface exit still
+  /// knows its ascent in place, which the safe-surface time reads.
+  int? get knownTtsSeconds =>
+      failed || (blockedByCurrent && mode != MissionExitMode.surface)
+      ? null
+      : ttsSeconds;
 
   ExitOutcome copyWith({
     MissionExitMode? mode,

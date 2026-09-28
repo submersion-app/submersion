@@ -90,4 +90,32 @@ void main() {
     expect(surface.knownExitSeconds, surface.exitSeconds);
     expect(surface.knownTtsSeconds, surface.ttsSeconds);
   });
+
+  test('a blocked underwater exit knows no time either', () {
+    // ExitPathResult.blocked reports zeros: no way out was travelled.
+    const blocked = ExitOutcome(
+      mode: MissionExitMode.swim,
+      feasible: false,
+      exitBottomSeconds: 0,
+      ttsSeconds: 0,
+      exitLitersByMember: {},
+      blockedByCurrent: true,
+    );
+    expect(blocked.knownExitSeconds, isNull);
+    expect(blocked.knownTtsSeconds, isNull);
+  });
+
+  test('a blocked surface exit still knows its ascent in place', () {
+    // No surface route home, but the ascent where the diver is was run.
+    const blocked = ExitOutcome(
+      mode: MissionExitMode.surface,
+      feasible: false,
+      exitBottomSeconds: 0,
+      ttsSeconds: 300,
+      exitLitersByMember: {},
+      blockedByCurrent: true,
+    );
+    expect(blocked.knownExitSeconds, isNull);
+    expect(blocked.knownTtsSeconds, 300);
+  });
 }
