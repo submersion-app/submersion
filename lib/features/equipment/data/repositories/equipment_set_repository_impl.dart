@@ -58,6 +58,9 @@ class EquipmentSetRepository {
   ///   the cascade propagation above is delete-only, so a RENAME of a member
   ///   only surfaces if this table is watched directly.
   /// - `equipment_set_geofences` -- hydrated by the set detail/edit providers.
+  /// - `equipment_attributes` -- hydrated with each item; a member's colour
+  ///   tints the set page's diver figure, and a synced colour edit writes
+  ///   only this table (issue #2326).
   ///
   /// Without this, deleting a gear item left every cached set carrying the dead
   /// id; the edit form then re-inserted it and the save died on the FK
@@ -68,6 +71,7 @@ class EquipmentSetRepository {
           TableUpdateQuery.onTable(_db.equipmentSets),
           TableUpdateQuery.onTable(_db.equipmentSetItems),
           TableUpdateQuery.onTable(_db.equipment),
+          TableUpdateQuery.onTable(_db.equipmentAttributes),
           TableUpdateQuery.onTable(_db.equipmentSetGeofences),
         ]),
       )

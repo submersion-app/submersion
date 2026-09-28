@@ -11,6 +11,8 @@ import 'package:submersion/core/services/background_service.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
 
+import '../../helpers/fake_path_provider.dart';
+
 class _FakeLocation implements DatabaseLocationService {
   _FakeLocation(this.path);
   final String path;
@@ -43,7 +45,7 @@ void main() {
     // headless isolate registers no DatabaseLocationService.
     dbPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
     await Directory(p.dirname(dbPath)).create(recursive: true);
-    PathProviderPlatform.instance = _FakePathProvider(tempDir.path);
+    useFakePathProvider(_FakePathProvider(tempDir.path));
     DatabaseService.instance.resetForTesting();
   });
 

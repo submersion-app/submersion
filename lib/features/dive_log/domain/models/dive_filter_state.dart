@@ -184,41 +184,43 @@ class DiveFilterState {
     ).add(const Duration(days: 1)).millisecondsSinceEpoch;
   }
 
-  bool get hasActiveFilters =>
-      minWaterTemp != null ||
-      maxWaterTemp != null ||
-      minVisibility != null ||
-      maxVisibility != null ||
-      waterTypes.isNotEmpty ||
-      speciesIds.isNotEmpty ||
-      siteIds.isNotEmpty ||
-      startDate != null ||
-      endDate != null ||
-      diveTypeId != null ||
-      siteId != null ||
-      tripId != null ||
-      diveCenterId != null ||
-      minDepth != null ||
-      maxDepth != null ||
-      favoritesOnly == true ||
-      excludedFromStatsOnly == true ||
-      decoOnly != null ||
-      noBuddyOnly == true ||
-      tagIds.isNotEmpty ||
-      weekdays.isNotEmpty ||
-      equipmentIds.isNotEmpty ||
-      (buddyNameFilter != null && buddyNameFilter!.isNotEmpty) ||
-      buddyId != null ||
-      diveIds.isNotEmpty ||
-      minO2Percent != null ||
-      maxO2Percent != null ||
-      minRating != null ||
-      minBottomTimeMinutes != null ||
-      maxBottomTimeMinutes != null ||
-      computerId != null ||
-      (customFieldKey != null && customFieldKey!.isNotEmpty) ||
-      equipmentAttrConditions.isNotEmpty ||
-      query != null;
+  bool get hasActiveFilters => activeAxisCount > 0;
+
+  /// How many independent axes are active; a range (dates, depth, O2,
+  /// bottom time) counts once. The single list of axes: [hasActiveFilters]
+  /// is derived from it, so a new axis cannot be counted by one and missed
+  /// by the other.
+  int get activeAxisCount => [
+    startDate != null || endDate != null,
+    diveTypeId != null,
+    siteId != null,
+    tripId != null,
+    diveCenterId != null,
+    minDepth != null || maxDepth != null,
+    favoritesOnly == true,
+    excludedFromStatsOnly == true,
+    decoOnly != null,
+    noBuddyOnly == true,
+    tagIds.isNotEmpty,
+    weekdays.isNotEmpty,
+    equipmentIds.isNotEmpty,
+    buddyNameFilter != null && buddyNameFilter!.isNotEmpty,
+    buddyId != null,
+    diveIds.isNotEmpty,
+    minO2Percent != null || maxO2Percent != null,
+    minRating != null,
+    minBottomTimeMinutes != null || maxBottomTimeMinutes != null,
+    computerId != null,
+    customFieldKey != null && customFieldKey!.isNotEmpty,
+    equipmentAttrConditions.isNotEmpty,
+    // Explore's axes (#2195); a bound pair counts once, like depth.
+    minWaterTemp != null || maxWaterTemp != null,
+    minVisibility != null || maxVisibility != null,
+    waterTypes.isNotEmpty,
+    speciesIds.isNotEmpty,
+    siteIds.isNotEmpty,
+    query != null,
+  ].where((active) => active).length;
 
   /// Value equality over every axis, so an unchanged filter set again is
   /// no change to a listener, and the id-set family keyed on the filter

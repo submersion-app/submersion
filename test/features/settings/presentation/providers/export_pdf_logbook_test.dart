@@ -29,6 +29,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, DivesCompanion, MediaCompanion;
 
+import '../../../../helpers/mock_channels.dart';
 import '../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../helpers/pdf_text.dart';
 import '../../../../helpers/test_database.dart';
@@ -189,6 +190,7 @@ void main() {
           (call) async => null,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   tearDownAll(() async {
     if (await workDir.exists()) await workDir.delete(recursive: true);

@@ -89,6 +89,59 @@ void main() {
       expect(find.text('Red Sea Safari'), findsWidgets);
     });
 
+    testWidgets('Open in Connections centres the map on the trip', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      final router = GoRouter(
+        initialLocation: '/trips/${testTrip.id}',
+        routes: [
+          GoRoute(
+            path: '/trips/:id',
+            builder: (_, s) => TripDetailPage(tripId: s.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/insights/connections',
+            builder: (context, state) =>
+                Scaffold(body: Text('CONNECTIONS ${state.uri.query}')),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripWithStatsProvider(testTrip.id).overrideWith((ref) {
+              return Future.value(testTripWithStats);
+            }),
+            diveIdsForTripProvider(testTrip.id).overrideWith((ref) {
+              return Future.value(<String>[]);
+            }),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+            settingsProvider.overrideWith((ref) {
+              return _MockSettingsNotifier();
+            }),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('More options'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open in Connections'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('CONNECTIONS mode=around&focus=trip:test-id'),
+        findsOneWidget,
+      );
+    });
+
     // The overview tab renders the interactive trip story. Its content is
     // covered in depth by trip_overview_tab_test.dart and the story widget
     // tests; here we only verify the page wires the story in.

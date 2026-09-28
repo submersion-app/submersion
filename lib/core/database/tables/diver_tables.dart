@@ -389,6 +389,10 @@ class DiverSettings extends Table {
   // Data source badge visibility (v55)
   BoolColumn get showDataSourceBadges =>
       boolean().withDefault(const Constant(true))();
+  // v237: the diver figure in the dive detail equipment card (issue #2326),
+  // off by default for every diver.
+  BoolColumn get showDiveFigure =>
+      boolean().withDefault(const Constant(false))();
   // Dive detail section order and visibility (v56) — JSON array
   TextColumn get diveDetailSections => text().nullable()();
   // Dive detail page layout: detailed | list (v185). A stored "compact",

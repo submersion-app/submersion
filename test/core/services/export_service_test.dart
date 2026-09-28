@@ -6,6 +6,8 @@ import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
+import '../../helpers/mock_channels.dart';
+
 void main() {
   late ExportService exportService;
   late Directory testDir;
@@ -38,6 +40,7 @@ void main() {
           },
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   tearDownAll(() async {
     // Clean up the temp directory

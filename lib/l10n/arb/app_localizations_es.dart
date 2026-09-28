@@ -9,6 +9,184 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
+  String get connections_action_centreHere => 'Centrar aquí';
+
+  @override
+  String get connections_around_centredOn => 'Centrado en';
+
+  @override
+  String get connections_around_hops => 'Saltos';
+
+  @override
+  String connections_around_kindChip(String kind, int count) {
+    return '$kind ($count)';
+  }
+
+  @override
+  String get connections_around_noResults => 'Sin resultados';
+
+  @override
+  String get connections_around_prompt =>
+      'Busca un compañero, un punto, un viaje u otra cosa para centrar el mapa en ello.';
+
+  @override
+  String get connections_around_searchHint =>
+      'Buscar compañeros, puntos, viajes y otros';
+
+  @override
+  String get connections_around_show => 'Mostrar';
+
+  @override
+  String get connections_editor_kinds => 'Tipos';
+
+  @override
+  String connections_editor_link(String a, String b) {
+    return '$a con $b';
+  }
+
+  @override
+  String get connections_editor_links => 'Enlaces';
+
+  @override
+  String connections_editor_minShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Al menos $count inmersiones compartidas',
+      one: 'Al menos 1 inmersión compartida',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_editor_saveAsMap => 'Guardar como mapa';
+
+  @override
+  String get connections_editor_title => 'Mapa personalizado';
+
+  @override
+  String get connections_filter_allFilters => 'Todos los filtros';
+
+  @override
+  String get connections_filter_clear => 'Borrar';
+
+  @override
+  String get connections_filter_none => 'No hay filtros activos.';
+
+  @override
+  String get connections_loading => 'Cargando conexiones';
+
+  @override
+  String get connections_mode_around => 'Alrededor de un elemento';
+
+  @override
+  String get connections_mode_map => 'Mapa completo';
+
+  @override
+  String get connections_preset_centers => 'Centros y personas';
+
+  @override
+  String get connections_preset_circle => 'Círculo de buceo';
+
+  @override
+  String get connections_preset_edited => 'editado';
+
+  @override
+  String get connections_preset_gear => 'Equipo en conjunto';
+
+  @override
+  String get connections_preset_gearRoad => 'Equipo de viaje';
+
+  @override
+  String get connections_preset_life => 'Puntos por vida marina';
+
+  @override
+  String get connections_preset_reef => 'Vida del arrecife';
+
+  @override
+  String get connections_preset_travel => 'Historia de viaje';
+
+  @override
+  String get connections_preset_trips => 'Viajes y personas';
+
+  @override
+  String get connections_preset_where => 'Quién bucea dónde';
+
+  @override
+  String get connections_presets_title => 'Predefinidos';
+
+  @override
+  String get connections_savedMap_badge => 'Mapa guardado';
+
+  @override
+  String connections_savedMap_deleted(String name) {
+    return '\"$name\" eliminado';
+  }
+
+  @override
+  String get connections_savedMap_nameLabel => 'Nombre';
+
+  @override
+  String get connections_savedMap_rename => 'Renombrar';
+
+  @override
+  String get connections_savedMap_saveTitle => 'Guardar mapa';
+
+  @override
+  String get connections_savedMap_undo => 'Deshacer';
+
+  @override
+  String get connections_savedMap_update => 'Actualizar con la vista actual';
+
+  @override
+  String get connections_summary_closest => 'Más cercano';
+
+  @override
+  String connections_summary_entitiesAround(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos',
+      one: '1 elemento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_mostConnected => 'Con más conexiones';
+
+  @override
+  String connections_summary_pairValue(int count, String a, String b) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$a y $b, $count inmersiones',
+      one: '$a y $b, 1 inmersión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_strongestPair => 'Pareja más fuerte';
+
+  @override
+  String get connections_summary_title => 'Resumen';
+
+  @override
+  String get connections_tab_details => 'Detalles';
+
+  @override
+  String get connections_tab_filter => 'Filtro';
+
+  @override
+  String connections_tab_filterCount(int count) {
+    return 'Filtro ($count)';
+  }
+
+  @override
+  String get connections_tab_view => 'Vista';
+
+  @override
   String get equipment_filter_owner_all => 'Todos';
 
   @override
@@ -410,11 +588,77 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'Muestra el equipo de este conjunto sobre un buceador en su página';
+      'Mostrar el equipo de este conjunto sobre un buceador';
 
   @override
   String get equipment_setEdit_figureSwitch_title =>
       'Mostrar figura del buceador';
+
+  @override
+  String get equipment_color_red => 'Rojo';
+
+  @override
+  String get equipment_color_orange => 'Naranja';
+
+  @override
+  String get equipment_color_amber => 'Ámbar';
+
+  @override
+  String get equipment_color_yellow => 'Amarillo';
+
+  @override
+  String get equipment_color_lime => 'Lima';
+
+  @override
+  String get equipment_color_green => 'Verde';
+
+  @override
+  String get equipment_color_emerald => 'Esmeralda';
+
+  @override
+  String get equipment_color_teal => 'Verde azulado';
+
+  @override
+  String get equipment_color_cyan => 'Cian';
+
+  @override
+  String get equipment_color_sky => 'Celeste';
+
+  @override
+  String get equipment_color_blue => 'Azul';
+
+  @override
+  String get equipment_color_indigo => 'Índigo';
+
+  @override
+  String get equipment_color_violet => 'Violeta';
+
+  @override
+  String get equipment_color_purple => 'Morado';
+
+  @override
+  String get equipment_color_fuchsia => 'Fucsia';
+
+  @override
+  String get equipment_color_pink => 'Rosa';
+
+  @override
+  String get equipment_color_rose => 'Rosa intenso';
+
+  @override
+  String get equipment_color_stone => 'Piedra';
+
+  @override
+  String get equipment_color_zinc => 'Zinc';
+
+  @override
+  String get equipment_color_slate => 'Pizarra';
+
+  @override
+  String get equipment_color_none => 'Ninguno';
+
+  @override
+  String get equipment_color_sheetTitle => 'Elige un color';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'Geocercas';
@@ -3457,6 +3701,162 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get common_error_tryAgain => 'Algo salió mal. Inténtalo de nuevo.';
+
+  @override
+  String get connections_title => 'Conexiones';
+
+  @override
+  String get connections_tooltip_relayout => 'Reorganizar';
+
+  @override
+  String get connections_tooltip_showWholeWeb => 'Volver al mapa completo';
+
+  @override
+  String connections_filterBar_edges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count conexiones',
+      one: '1 conexión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_hiddenNodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count más sin mostrar',
+      one: '1 más sin mostrar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_showAll => 'Mostrar todo';
+
+  @override
+  String get connections_showAll_confirmTitle => '¿Mostrar todos los nodos?';
+
+  @override
+  String connections_showAll_confirmBody(int count) {
+    return '$count nodos pueden tardar un momento en organizarse en este dispositivo.';
+  }
+
+  @override
+  String get connections_action_open => 'Abrir';
+
+  @override
+  String get connections_action_showDives => 'Ver inmersiones';
+
+  @override
+  String get connections_action_openInConnections => 'Abrir en Conexiones';
+
+  @override
+  String connections_selection_divesTogether(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones juntos',
+      one: '1 inmersión juntos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_selection_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones',
+      one: '1 inmersión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_selection_topConnections => 'Conexiones principales';
+
+  @override
+  String connections_selection_firstLast(String first, String last) {
+    return 'Primera $first, última $last';
+  }
+
+  @override
+  String get connections_selection_hint =>
+      'Toca un nodo o una línea para ver los detalles.';
+
+  @override
+  String get connections_empty_noDives =>
+      'Aún no hay inmersiones. Las conexiones aparecen cuando el diario tiene inmersiones.';
+
+  @override
+  String get connections_empty_buddies =>
+      'Aún no hay compañeros vinculados a inmersiones. Añade compañeros a tus inmersiones o convierte los nombres antiguos en Ajustes, Herramientas de datos.';
+
+  @override
+  String get connections_empty_sites =>
+      'Ninguna inmersión tiene punto de buceo todavía.';
+
+  @override
+  String get connections_empty_filtered =>
+      'Nada coincide con el filtro actual.';
+
+  @override
+  String get connections_focusMissing =>
+      'Ese elemento ya no está en el diario.';
+
+  @override
+  String get connections_error_load => 'No se pudieron cargar las conexiones.';
+
+  @override
+  String get connections_legend_title => 'Leyenda';
+
+  @override
+  String connections_yearRange_label(int first, int last) {
+    return 'Años $first a $last';
+  }
+
+  @override
+  String connections_semantics_summary(int nodes, int edges) {
+    return '$nodes nodos y $edges conexiones';
+  }
+
+  @override
+  String connections_semantics_selected(String label) {
+    return 'Seleccionado: $label';
+  }
+
+  @override
+  String get connections_kind_buddy => 'Compañeros';
+
+  @override
+  String get connections_kind_site => 'Puntos de buceo';
+
+  @override
+  String get connections_kind_trip => 'Viajes';
+
+  @override
+  String get connections_kind_diveCenter => 'Centros de buceo';
+
+  @override
+  String get connections_kind_equipment => 'Equipo';
+
+  @override
+  String get connections_kind_species => 'Especies';
+
+  @override
+  String get connections_kind_tag => 'Etiquetas';
+
+  @override
+  String get connections_kind_diveType => 'Tipos de inmersión';
+
+  @override
+  String get connections_kind_diveComputer => 'Ordenadores de buceo';
+
+  @override
+  String get connections_kind_course => 'Cursos';
 
   @override
   String get courses_action_add => 'Agregar Curso';
@@ -21430,6 +21830,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get insights_category_conditions_title => 'Condiciones';
 
   @override
+  String get insights_category_connections_subtitle =>
+      'Compañeros, puntos y equipo enlazados';
+
+  @override
   String get insights_category_equipment_subtitle => 'Uso de equipo y peso';
 
   @override
@@ -30143,6 +30547,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get attrLabel_product_url => 'Enlace web';
+
+  @override
+  String get attrLabel_color => 'Color';
 
   @override
   String get attrLabel_sleeve_length => 'Mangas';
@@ -39358,7 +39765,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get common_action_unpin => 'Desanclar';
 
   @override
-  String diveLog_filterChip_dateRange(String end, String start) {
+  String diveLog_filterChip_dateRange(String start, String end) {
     return '$start - $end';
   }
 
@@ -39883,6 +40290,17 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_appearance_showDataSourceBadges_subtitle =>
       'Mostrar la atribución de origen en las métricas de inmersión';
+
+  @override
+  String get settings_appearance_showDiveFigure =>
+      'Mostrar la figura del buceador en las inmersiones';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'Mostrar el equipo de cada inmersión sobre un buceador en su tarjeta de equipo';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'Equipo de esta inmersión';
 
   @override
   String get settings_appearance_title_buddies => 'Apariencia de compañeros';
@@ -43367,6 +43785,52 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get startup_interruptedRestore_failed =>
       'La recuperación no se completó. No se eliminó nada; ambos archivos siguen en este dispositivo.';
+
+  @override
+  String get startup_diveLogUnavailable_downloading =>
+      'Descargando tu cuaderno de buceo de iCloud';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'Tu cuaderno de buceo sigue en iCloud';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'Tu cuaderno de buceo de $folder está guardado en iCloud, pero aún no está en este dispositivo y no se pudo descargar. Está a salvo en iCloud y no se ha cambiado nada. Comprueba tu conexión a internet o descárgalo en la app Archivos o en el Finder, y vuelve a intentarlo.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'No se encontró tu cuaderno de buceo';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'Submersion guarda tu cuaderno de buceo en $folder, pero ahora no hay ningún $filename allí. Si esa carpeta está en una unidad que no está conectada, o en una carpeta sincronizada que aún no se ha puesto al día, conéctala o sincronízala y vuelve a intentarlo. No se ha creado ni cambiado nada.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'Empezar un cuaderno nuevo en esta carpeta';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'Solo si tu cuaderno anterior se ha perdido para siempre. El nuevo empieza vacío.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      '¿Empezar un cuaderno nuevo aquí?';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'Se crea un cuaderno de buceo vacío en $folder. Si tu cuaderno anterior vuelve más adelante, por ejemplo cuando termine una sincronización, entrará en conflicto con el nuevo.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm =>
+      'Empezar cuaderno nuevo';
 
   @override
   String backup_history_preDowngradeSubtitle(String size) {

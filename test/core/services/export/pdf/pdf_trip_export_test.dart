@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
+import '../../../../helpers/mock_channels.dart';
 import '../../../../helpers/pdf_text.dart';
 
 /// The trip report's per-dive Duration line must print total runtime rather
@@ -51,6 +52,7 @@ void main() {
           (call) async => null,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   tearDownAll(() async {
     if (await shareDir.exists()) await shareDir.delete(recursive: true);

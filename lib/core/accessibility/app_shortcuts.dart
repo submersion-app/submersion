@@ -34,6 +34,14 @@ class AppShortcuts {
 
   static bool _registered = false;
 
+  /// Forget that the shortcuts were registered, so the next
+  /// [ensureRegistered] fills the catalog again.
+  ///
+  /// [ShortcutCatalog.clear] empties the catalog but cannot reach this flag,
+  /// so a test that clears the catalog resets the flag with it.
+  @visibleForTesting
+  static void debugReset() => _registered = false;
+
   /// Register all global shortcuts with the [ShortcutCatalog].
   ///
   /// Safe to call multiple times -- only registers once.

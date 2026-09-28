@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_compute
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
+import '../../../helpers/global_test_defaults.dart';
 import '../../../helpers/test_database.dart';
 
 void main() {
@@ -25,7 +26,7 @@ void main() {
     findingsRepo = QualityFindingsRepository();
   });
   tearDown(() {
-    QualityScanScheduler.enabled = true;
+    applyGlobalTestDefaults();
     return tearDownTestDatabase();
   });
 

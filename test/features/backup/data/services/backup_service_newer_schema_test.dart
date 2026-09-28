@@ -14,6 +14,7 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_crypto.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 
+import '../../../../helpers/mock_channels.dart';
 import '../../../../support/fake_keychain_storage.dart';
 
 const _fastKdf = KdfParams(m: 1024, t: 3, p: 1);
@@ -67,6 +68,7 @@ void main() {
           (MethodCall methodCall) async => Directory.systemTemp.path,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});

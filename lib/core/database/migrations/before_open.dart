@@ -10,6 +10,9 @@ extension BeforeOpenBackstops on AppDatabase {
     // v240 backstop: the events-by-dive index.
     await _assertProfileEventsDiveIdIndex();
 
+    // v237 backstop: the dive figure switch.
+    await _assertShowDiveFigureColumn();
+
     // v229 backstop: the per-set diver figure switch.
     await _assertEquipmentSetShowFigureColumn();
 
@@ -157,6 +160,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // index (parallel-branch version-collision self-heal; all
     // idempotent).
     await _assertEquipmentSharingSchema();
+
+    // v235 backstop: connection_maps and idx_sightings_dive_id
+    // (parallel-branch version-collision self-heal; idempotent).
+    await _assertConnectionMapsSchema();
 
     // v238 backstop: re-assert the saved_queries table. A database that
     // arrives by restore or sync-adopt never runs onUpgrade, and one

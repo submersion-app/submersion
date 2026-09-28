@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/services/dive_figure_inputs.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/services/assembly_snapshot.dart';
-import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 import 'package:submersion/features/equipment/presentation/providers/assembly_snapshot_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
@@ -58,6 +60,20 @@ class DiveGearTreeView extends ConsumerStatefulWidget {
   /// shows that owner's chip (issue #2046). Null shows no chips.
   final String? ownerReferenceDiverId;
 
+  /// The diver figure's number for each item on it (issue #2326). A
+  /// top-level row whose item has one leads with its badge; parts never
+  /// do. Empty, the default, when the figure is not shown.
+  final Map<String, int> figureNumbers;
+
+  /// The item flashing on the figure, highlighted here too.
+  final String? selectedItemId;
+
+  /// A badge tap, which brings the figure into view.
+  final void Function(String itemId)? onNumberTap;
+
+  /// A key for a top-level row, so a tap on the figure can scroll to it.
+  final Key? Function(String itemId)? rowKey;
+
   const DiveGearTreeView({
     super.key,
     required this.links,
@@ -69,6 +85,10 @@ class DiveGearTreeView extends ConsumerStatefulWidget {
     this.onUpdateAssembly,
     this.showServiceStatus = false,
     this.ownerReferenceDiverId,
+    this.figureNumbers = const {},
+    this.selectedItemId,
+    this.onNumberTap,
+    this.rowKey,
   });
 
   @override
@@ -122,9 +142,10 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
             onRemove: widget.onRemoveSet,
           ),
         // The arrangement sees every top-level item on the dive at once;
-        // parts keep template order underneath their assembly.
-        for (final group in arrangeEquipment(
-          [for (final n in roots) n.link.item],
+        // parts keep template order underneath their assembly. The dive
+        // figure numbers the same rows in the same order.
+        for (final group in arrangedDiveGear(
+          widget.links,
           arrangement,
           typeLabel: (type) => type.localizedName(l10n),
         )) ...[
@@ -186,21 +207,44 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
     final remove = hasParts || depth == 0
         ? widget.onRemoveSubtree
         : widget.onRemovePart;
+    final number = depth == 0 ? widget.figureNumbers[item.id] : null;
+    final flashing = number != null && item.id == widget.selectedItemId;
+    final highlight = flashing ? figureHighlightFor(theme.colorScheme) : null;
+    final avatar = CircleAvatar(
+      backgroundColor: theme.colorScheme.tertiaryContainer,
+      child: Icon(
+        equipmentTypeIcon(item.type),
+        color: theme.colorScheme.onTertiaryContainer,
+        size: 20,
+      ),
+    );
 
     return [
       Padding(
+        key: depth == 0 ? widget.rowKey?.call(item.id) : null,
         padding: EdgeInsets.only(left: 24.0 * depth),
         child: ListTile(
           key: ValueKey('gear-row-${item.id}'),
           contentPadding: EdgeInsets.zero,
-          leading: CircleAvatar(
-            backgroundColor: theme.colorScheme.tertiaryContainer,
-            child: Icon(
-              equipmentTypeIcon(item.type),
-              color: theme.colorScheme.onTertiaryContainer,
-              size: 20,
-            ),
-          ),
+          tileColor: highlight?.fill,
+          textColor: highlight?.onFill,
+          iconColor: highlight?.onFill,
+          leading: number == null
+              ? avatar
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FigureNumberBadge(
+                      number: number,
+                      selected: flashing,
+                      onTap: widget.onNumberTap == null
+                          ? null
+                          : () => widget.onNumberTap!(item.id),
+                    ),
+                    const SizedBox(width: 8),
+                    avatar,
+                  ],
+                ),
           title: Text(item.name),
           subtitle: subtitleParts.isEmpty
               ? null

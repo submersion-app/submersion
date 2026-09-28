@@ -116,6 +116,294 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @connections_action_centreHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Centre here'**
+  String get connections_action_centreHere;
+
+  /// No description provided for @connections_around_centredOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Centred on'**
+  String get connections_around_centredOn;
+
+  /// No description provided for @connections_around_hops.
+  ///
+  /// In en, this message translates to:
+  /// **'Hops'**
+  String get connections_around_hops;
+
+  /// No description provided for @connections_around_kindChip.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind} ({count})'**
+  String connections_around_kindChip(String kind, int count);
+
+  /// No description provided for @connections_around_noResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches'**
+  String get connections_around_noResults;
+
+  /// No description provided for @connections_around_prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a buddy, site, trip or anything else to centre the map on it.'**
+  String get connections_around_prompt;
+
+  /// No description provided for @connections_around_searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search buddies, sites, trips and more'**
+  String get connections_around_searchHint;
+
+  /// No description provided for @connections_around_show.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get connections_around_show;
+
+  /// No description provided for @connections_editor_kinds.
+  ///
+  /// In en, this message translates to:
+  /// **'Kinds'**
+  String get connections_editor_kinds;
+
+  /// No description provided for @connections_editor_link.
+  ///
+  /// In en, this message translates to:
+  /// **'{a} with {b}'**
+  String connections_editor_link(String a, String b);
+
+  /// No description provided for @connections_editor_links.
+  ///
+  /// In en, this message translates to:
+  /// **'Links'**
+  String get connections_editor_links;
+
+  /// No description provided for @connections_editor_minShared.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{At least 1 shared dive} other{At least {count} shared dives}}'**
+  String connections_editor_minShared(int count);
+
+  /// No description provided for @connections_editor_saveAsMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as map'**
+  String get connections_editor_saveAsMap;
+
+  /// No description provided for @connections_editor_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom map'**
+  String get connections_editor_title;
+
+  /// No description provided for @connections_filter_allFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'All filters'**
+  String get connections_filter_allFilters;
+
+  /// No description provided for @connections_filter_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get connections_filter_clear;
+
+  /// No description provided for @connections_filter_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No filters are active.'**
+  String get connections_filter_none;
+
+  /// No description provided for @connections_loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading connections'**
+  String get connections_loading;
+
+  /// No description provided for @connections_mode_around.
+  ///
+  /// In en, this message translates to:
+  /// **'Around one entity'**
+  String get connections_mode_around;
+
+  /// No description provided for @connections_mode_map.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole map'**
+  String get connections_mode_map;
+
+  /// No description provided for @connections_preset_centers.
+  ///
+  /// In en, this message translates to:
+  /// **'Centers and people'**
+  String get connections_preset_centers;
+
+  /// No description provided for @connections_preset_circle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive circle'**
+  String get connections_preset_circle;
+
+  /// No description provided for @connections_preset_edited.
+  ///
+  /// In en, this message translates to:
+  /// **'edited'**
+  String get connections_preset_edited;
+
+  /// No description provided for @connections_preset_gear.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear together'**
+  String get connections_preset_gear;
+
+  /// No description provided for @connections_preset_gearRoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear on the road'**
+  String get connections_preset_gearRoad;
+
+  /// No description provided for @connections_preset_life.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites by marine life'**
+  String get connections_preset_life;
+
+  /// No description provided for @connections_preset_reef.
+  ///
+  /// In en, this message translates to:
+  /// **'Reef life'**
+  String get connections_preset_reef;
+
+  /// No description provided for @connections_preset_travel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel story'**
+  String get connections_preset_travel;
+
+  /// No description provided for @connections_preset_trips.
+  ///
+  /// In en, this message translates to:
+  /// **'Trips and people'**
+  String get connections_preset_trips;
+
+  /// No description provided for @connections_preset_where.
+  ///
+  /// In en, this message translates to:
+  /// **'Who dives where'**
+  String get connections_preset_where;
+
+  /// No description provided for @connections_presets_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Presets'**
+  String get connections_presets_title;
+
+  /// No description provided for @connections_savedMap_badge.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved map'**
+  String get connections_savedMap_badge;
+
+  /// No description provided for @connections_savedMap_deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted \"{name}\"'**
+  String connections_savedMap_deleted(String name);
+
+  /// No description provided for @connections_savedMap_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get connections_savedMap_nameLabel;
+
+  /// No description provided for @connections_savedMap_rename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get connections_savedMap_rename;
+
+  /// No description provided for @connections_savedMap_saveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save map'**
+  String get connections_savedMap_saveTitle;
+
+  /// No description provided for @connections_savedMap_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get connections_savedMap_undo;
+
+  /// No description provided for @connections_savedMap_update.
+  ///
+  /// In en, this message translates to:
+  /// **'Update from current'**
+  String get connections_savedMap_update;
+
+  /// No description provided for @connections_summary_closest.
+  ///
+  /// In en, this message translates to:
+  /// **'Closest'**
+  String get connections_summary_closest;
+
+  /// No description provided for @connections_summary_entitiesAround.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 entity} other{{count} entities}}'**
+  String connections_summary_entitiesAround(int count);
+
+  /// No description provided for @connections_summary_mostConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Most connected'**
+  String get connections_summary_mostConnected;
+
+  /// No description provided for @connections_summary_pairValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{a} and {b}, 1 dive} other{{a} and {b}, {count} dives}}'**
+  String connections_summary_pairValue(int count, String a, String b);
+
+  /// No description provided for @connections_summary_strongestPair.
+  ///
+  /// In en, this message translates to:
+  /// **'Strongest pair'**
+  String get connections_summary_strongestPair;
+
+  /// No description provided for @connections_summary_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get connections_summary_title;
+
+  /// No description provided for @connections_tab_details.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get connections_tab_details;
+
+  /// No description provided for @connections_tab_filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get connections_tab_filter;
+
+  /// No description provided for @connections_tab_filterCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter ({count})'**
+  String connections_tab_filterCount(int count);
+
+  /// No description provided for @connections_tab_view.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get connections_tab_view;
+
   /// No description provided for @equipment_filter_owner_all.
   ///
   /// In en, this message translates to:
@@ -617,7 +905,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_setEdit_figureSwitch_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Draw this set\'s gear on a diver on the set page'**
+  /// **'Draw this set\'s gear on a diver'**
   String get equipment_setEdit_figureSwitch_subtitle;
 
   /// No description provided for @equipment_setEdit_figureSwitch_title.
@@ -625,6 +913,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show diver figure'**
   String get equipment_setEdit_figureSwitch_title;
+
+  /// No description provided for @equipment_color_red.
+  ///
+  /// In en, this message translates to:
+  /// **'Red'**
+  String get equipment_color_red;
+
+  /// No description provided for @equipment_color_orange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get equipment_color_orange;
+
+  /// No description provided for @equipment_color_amber.
+  ///
+  /// In en, this message translates to:
+  /// **'Amber'**
+  String get equipment_color_amber;
+
+  /// No description provided for @equipment_color_yellow.
+  ///
+  /// In en, this message translates to:
+  /// **'Yellow'**
+  String get equipment_color_yellow;
+
+  /// No description provided for @equipment_color_lime.
+  ///
+  /// In en, this message translates to:
+  /// **'Lime'**
+  String get equipment_color_lime;
+
+  /// No description provided for @equipment_color_green.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get equipment_color_green;
+
+  /// No description provided for @equipment_color_emerald.
+  ///
+  /// In en, this message translates to:
+  /// **'Emerald'**
+  String get equipment_color_emerald;
+
+  /// No description provided for @equipment_color_teal.
+  ///
+  /// In en, this message translates to:
+  /// **'Teal'**
+  String get equipment_color_teal;
+
+  /// No description provided for @equipment_color_cyan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cyan'**
+  String get equipment_color_cyan;
+
+  /// No description provided for @equipment_color_sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Sky'**
+  String get equipment_color_sky;
+
+  /// No description provided for @equipment_color_blue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get equipment_color_blue;
+
+  /// No description provided for @equipment_color_indigo.
+  ///
+  /// In en, this message translates to:
+  /// **'Indigo'**
+  String get equipment_color_indigo;
+
+  /// No description provided for @equipment_color_violet.
+  ///
+  /// In en, this message translates to:
+  /// **'Violet'**
+  String get equipment_color_violet;
+
+  /// No description provided for @equipment_color_purple.
+  ///
+  /// In en, this message translates to:
+  /// **'Purple'**
+  String get equipment_color_purple;
+
+  /// No description provided for @equipment_color_fuchsia.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuchsia'**
+  String get equipment_color_fuchsia;
+
+  /// No description provided for @equipment_color_pink.
+  ///
+  /// In en, this message translates to:
+  /// **'Pink'**
+  String get equipment_color_pink;
+
+  /// No description provided for @equipment_color_rose.
+  ///
+  /// In en, this message translates to:
+  /// **'Rose'**
+  String get equipment_color_rose;
+
+  /// No description provided for @equipment_color_stone.
+  ///
+  /// In en, this message translates to:
+  /// **'Stone'**
+  String get equipment_color_stone;
+
+  /// No description provided for @equipment_color_zinc.
+  ///
+  /// In en, this message translates to:
+  /// **'Zinc'**
+  String get equipment_color_zinc;
+
+  /// No description provided for @equipment_color_slate.
+  ///
+  /// In en, this message translates to:
+  /// **'Slate'**
+  String get equipment_color_slate;
+
+  /// No description provided for @equipment_color_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get equipment_color_none;
+
+  /// No description provided for @equipment_color_sheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a color'**
+  String get equipment_color_sheetTitle;
 
   /// No description provided for @equipment_setEdit_geofencesTitle.
   ///
@@ -5522,6 +5942,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong. Please try again.'**
   String get common_error_tryAgain;
+
+  /// No description provided for @connections_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections'**
+  String get connections_title;
+
+  /// No description provided for @connections_tooltip_relayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Lay out again'**
+  String get connections_tooltip_relayout;
+
+  /// No description provided for @connections_tooltip_showWholeWeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the whole map'**
+  String get connections_tooltip_showWholeWeb;
+
+  /// No description provided for @connections_filterBar_edges.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 connection} other{{count} connections}}'**
+  String connections_filterBar_edges(int count);
+
+  /// No description provided for @connections_hiddenNodes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 more not shown} other{{count} more not shown}}'**
+  String connections_hiddenNodes(int count);
+
+  /// No description provided for @connections_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all'**
+  String get connections_showAll;
+
+  /// No description provided for @connections_showAll_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show every node?'**
+  String get connections_showAll_confirmTitle;
+
+  /// No description provided for @connections_showAll_confirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} nodes may take a moment to lay out on this device.'**
+  String connections_showAll_confirmBody(int count);
+
+  /// No description provided for @connections_action_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get connections_action_open;
+
+  /// No description provided for @connections_action_showDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Show dives'**
+  String get connections_action_showDives;
+
+  /// No description provided for @connections_action_openInConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Connections'**
+  String get connections_action_openInConnections;
+
+  /// No description provided for @connections_selection_divesTogether.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive together} other{{count} dives together}}'**
+  String connections_selection_divesTogether(int count);
+
+  /// No description provided for @connections_selection_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String connections_selection_dives(int count);
+
+  /// No description provided for @connections_selection_topConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'Top connections'**
+  String get connections_selection_topConnections;
+
+  /// No description provided for @connections_selection_firstLast.
+  ///
+  /// In en, this message translates to:
+  /// **'First {first}, last {last}'**
+  String connections_selection_firstLast(String first, String last);
+
+  /// No description provided for @connections_selection_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a node or a line to see details.'**
+  String get connections_selection_hint;
+
+  /// No description provided for @connections_empty_noDives.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives yet. Connections appear once your log has dives in it.'**
+  String get connections_empty_noDives;
+
+  /// No description provided for @connections_empty_buddies.
+  ///
+  /// In en, this message translates to:
+  /// **'No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names in Settings, Data Tools.'**
+  String get connections_empty_buddies;
+
+  /// No description provided for @connections_empty_sites.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives have a site yet.'**
+  String get connections_empty_sites;
+
+  /// No description provided for @connections_empty_filtered.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches the current filter.'**
+  String get connections_empty_filtered;
+
+  /// No description provided for @connections_focusMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'That item is no longer in the log.'**
+  String get connections_focusMissing;
+
+  /// No description provided for @connections_error_load.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load connections.'**
+  String get connections_error_load;
+
+  /// No description provided for @connections_legend_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Legend'**
+  String get connections_legend_title;
+
+  /// No description provided for @connections_yearRange_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Years {first} to {last}'**
+  String connections_yearRange_label(int first, int last);
+
+  /// No description provided for @connections_semantics_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{nodes} nodes and {edges} connections'**
+  String connections_semantics_summary(int nodes, int edges);
+
+  /// No description provided for @connections_semantics_selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected: {label}'**
+  String connections_semantics_selected(String label);
+
+  /// No description provided for @connections_kind_buddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddies'**
+  String get connections_kind_buddy;
+
+  /// No description provided for @connections_kind_site.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites'**
+  String get connections_kind_site;
+
+  /// No description provided for @connections_kind_trip.
+  ///
+  /// In en, this message translates to:
+  /// **'Trips'**
+  String get connections_kind_trip;
+
+  /// No description provided for @connections_kind_diveCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive centers'**
+  String get connections_kind_diveCenter;
+
+  /// No description provided for @connections_kind_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get connections_kind_equipment;
+
+  /// No description provided for @connections_kind_species.
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get connections_kind_species;
+
+  /// No description provided for @connections_kind_tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get connections_kind_tag;
+
+  /// No description provided for @connections_kind_diveType.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive types'**
+  String get connections_kind_diveType;
+
+  /// No description provided for @connections_kind_diveComputer.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive computers'**
+  String get connections_kind_diveComputer;
+
+  /// No description provided for @connections_kind_course.
+  ///
+  /// In en, this message translates to:
+  /// **'Courses'**
+  String get connections_kind_course;
 
   /// No description provided for @courses_action_add.
   ///
@@ -34739,6 +35375,12 @@ abstract class AppLocalizations {
   /// **'Conditions'**
   String get insights_category_conditions_title;
 
+  /// No description provided for @insights_category_connections_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddies, sites & gear linked'**
+  String get insights_category_connections_subtitle;
+
   /// No description provided for @insights_category_equipment_subtitle.
   ///
   /// In en, this message translates to:
@@ -48115,6 +48757,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Web link'**
   String get attrLabel_product_url;
+
+  /// No description provided for @attrLabel_color.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get attrLabel_color;
 
   /// No description provided for @attrLabel_sleeve_length.
   ///
@@ -63444,7 +64092,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{start} - {end}'**
-  String diveLog_filterChip_dateRange(String end, String start);
+  String diveLog_filterChip_dateRange(String start, String end);
 
   /// Active-filter chip when more than one equipment item is selected.
   ///
@@ -64277,6 +64925,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Display source attribution on dive metrics'**
   String get settings_appearance_showDataSourceBadges_subtitle;
+
+  /// No description provided for @settings_appearance_showDiveFigure.
+  ///
+  /// In en, this message translates to:
+  /// **'Show diver figure on dives'**
+  String get settings_appearance_showDiveFigure;
+
+  /// No description provided for @settings_appearance_showDiveFigure_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw each dive\'s gear on a diver in its equipment card'**
+  String get settings_appearance_showDiveFigure_subtitle;
+
+  /// No description provided for @diveLog_detail_gearFigureName.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear on this dive'**
+  String get diveLog_detail_gearFigureName;
 
   /// No description provided for @settings_appearance_title_buddies.
   ///
@@ -69338,6 +70004,69 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recovery did not complete. Nothing was deleted; both files are still on this device.'**
   String get startup_interruptedRestore_failed;
+
+  /// No description provided for @startup_diveLogUnavailable_downloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading your dive log from iCloud'**
+  String get startup_diveLogUnavailable_downloading;
+
+  /// No description provided for @startup_diveLogUnavailable_iCloud_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your dive log is still in iCloud'**
+  String get startup_diveLogUnavailable_iCloud_title;
+
+  /// Startup screen when the dive log in a custom folder has been evicted by iCloud and could not be downloaded. The folder is the configured dive log folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Your dive log in {folder} is stored in iCloud but is not on this device yet, and it could not be downloaded. It is safe in iCloud, and nothing has been changed. Check your internet connection, or download it in the Files app or Finder, then try again.'**
+  String startup_diveLogUnavailable_iCloud_body(String folder);
+
+  /// No description provided for @startup_diveLogUnavailable_missing_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your dive log was not found'**
+  String get startup_diveLogUnavailable_missing_title;
+
+  /// Startup screen when a custom folder that held the dive log no longer holds it. Names the file and folder so the diver can check by hand.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion keeps your dive log in {folder}, but there is no {filename} there now. If that folder is on a drive that is not connected, or in a synced folder that has not caught up, connect or sync it and try again. Nothing has been created or changed.'**
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  );
+
+  /// No description provided for @startup_diveLogUnavailable_startNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new dive log in this folder'**
+  String get startup_diveLogUnavailable_startNew;
+
+  /// No description provided for @startup_diveLogUnavailable_startNew_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Only if your old dive log is gone for good. The new one starts empty.'**
+  String get startup_diveLogUnavailable_startNew_subtitle;
+
+  /// No description provided for @startup_diveLogUnavailable_startNew_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new dive log here?'**
+  String get startup_diveLogUnavailable_startNew_confirmTitle;
+
+  /// Confirms creating an empty dive log in a folder whose dive log is missing.
+  ///
+  /// In en, this message translates to:
+  /// **'An empty dive log is created in {folder}. If your old dive log comes back later, for example when a sync finishes, it will conflict with the new one.'**
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder);
+
+  /// No description provided for @startup_diveLogUnavailable_startNew_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Start new dive log'**
+  String get startup_diveLogUnavailable_startNew_confirm;
 
   /// No description provided for @backup_history_preDowngradeSubtitle.
   ///
