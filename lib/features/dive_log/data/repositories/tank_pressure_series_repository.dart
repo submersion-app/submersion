@@ -266,6 +266,20 @@ class TankPressureSeriesRepository {
     return ids.length;
   }
 
+  /// The id of [diveId]'s primary data source, or null when it has none.
+  ///
+  /// The source [selectTankSeriesPerSource] prefers wherever two sources
+  /// recorded the same stretch of a tank (issue #2440), so every reader of a
+  /// dive's pressures narrows them the same way.
+  Future<String?> primarySourceId(String diveId) async {
+    final row =
+        await (_db.select(_db.diveDataSources)
+              ..where((s) => s.diveId.equals(diveId) & s.isPrimary.equals(true))
+              ..limit(1))
+            .getSingleOrNull();
+    return row?.id;
+  }
+
   /// Stamps [sourceId] on the unattributed series of [diveId] (issue
   /// #2440): a single-source import writes its series before the source row
   /// exists, and consolidation attributes the target's own series to its

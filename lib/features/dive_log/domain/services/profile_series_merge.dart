@@ -172,7 +172,7 @@ List<TankPressureSeries> selectTankSeriesPerSource(
     for (final group in ordered) {
       final spans = [for (final s in group) _spanOf(s)];
       final overlaps = spans.any(
-        (span) => keptSpans.any((k) => span.$1 <= k.$2 && k.$1 <= span.$2),
+        (span) => keptSpans.any((k) => _spansOverlap(span, k)),
       );
       if (overlaps) continue;
       keptSpans.addAll(spans);
@@ -205,6 +205,17 @@ int _sampleCount(List<TankPressureSeries> group) =>
 
 (int, int) _spanOf(TankPressureSeries series) =>
     (series.summary.startTimestamp, series.summary.endTimestamp);
+
+/// Whether two recordings ran side by side. Two that only meet at one
+/// second, the last reading of one and the first of the next, ran one after
+/// the other, as a combined dive's halves do. A single reading has no length,
+/// so it overlaps any span that holds its second.
+bool _spansOverlap((int, int) a, (int, int) b) {
+  final start = a.$1 > b.$1 ? a.$1 : b.$1;
+  final end = a.$2 < b.$2 ? a.$2 : b.$2;
+  if (start < end) return true;
+  return start == end && (a.$1 == a.$2 || b.$1 == b.$2);
+}
 
 (int, int) _spanOfGroup(List<TankPressureSeries> group) {
   var start = group.first.summary.startTimestamp;

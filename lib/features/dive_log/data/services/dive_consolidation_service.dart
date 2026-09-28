@@ -364,6 +364,11 @@ class DiveConsolidationService {
         for (final s in await _tankSeries.getSeriesForDive(secondary.id)) {
           final mappedTank = tankIdMap[s.tankId];
           if (mappedTank == null || s.samples.isEmpty) continue;
+          // A source that is none of the secondary's own tells no more than
+          // no source at all, so such a series follows the unattributed rule.
+          final copiedSourceId = s.sourceId == null
+              ? null
+              : sourceIdMap[s.sourceId];
           await _tankSeries.insertSeries(
             diveId: targetDiveId,
             tankId: mappedTank,
@@ -375,9 +380,9 @@ class DiveConsolidationService {
             // several sources stays unattributed, as in the merge and the
             // v241 backfill: handing it to one of them would group it with
             // another source's recording.
-            sourceId: s.sourceId == null && secSources.length > 1
-                ? null
-                : sourceIdMap[s.sourceId] ?? sourceIdMap[null],
+            sourceId:
+                copiedSourceId ??
+                (secSources.length > 1 ? null : sourceIdMap[null]),
             samples: [for (final p in s.samples) p.shiftedBy(offset)],
             now: now,
           );

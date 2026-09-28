@@ -176,4 +176,40 @@ void main() {
     ])).firstWhere((r) => r.id == legacy);
     expect(row.sourceId, isNull);
   });
+
+  test('a secondary series naming a source the secondary lacks is left '
+      'unattributed', () async {
+    // f2 holds two sources, and one of its series points at a source of
+    // another dive (f3's). Nothing on f2 says which of its own sources
+    // recorded it, so it is as unknown as an unattributed series, and is
+    // not handed to f2's primary source.
+    await seedFileImport('f3', 'tank-f3', DateTime.utc(2026, 7, 19, 9));
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion.insert(
+            id: 'src-f2-other',
+            diveId: 'f2',
+            importedAt: DateTime.utc(2026, 7, 18),
+            createdAt: DateTime.utc(2026, 7, 18),
+          ),
+        );
+    final stray = await tankSeries.insertSeries(
+      diveId: 'f2',
+      tankId: 'tank-f2',
+      sourceId: 'src-f3',
+      samples: recording(offset: 7, start: 196),
+      now: 1000,
+    );
+
+    await service.apply(targetDiveId: 'f1', secondaryDiveIds: ['f2']);
+
+    final series = await tankSeries.getSeriesForDive('f1');
+    expect(series, hasLength(3));
+    final moved = series.singleWhere(
+      (s) => s.samples.first.pressure == 196,
+      orElse: () => fail('the series $stray did not move to f1'),
+    );
+    expect(moved.sourceId, isNull);
+  });
 }

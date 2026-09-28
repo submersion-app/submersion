@@ -74,10 +74,13 @@ bool looksLikeInterleavedSources(List<PressureReading> readings) {
       overlapEnd - overlapStart >= kMixedMinOverlapSeconds;
 }
 
+/// Near-zero readings are passed over here too: a dropout logged at the
+/// second of a real reading is one recording losing its signal.
 int _conflictingDuplicates(List<PressureReading> readings) {
   final seen = <int, double>{};
   var conflicts = 0;
   for (final r in readings) {
+    if (r.bar < kPressureGlitchNearZeroBar) continue;
     final previous = seen[r.t];
     if (previous != null && (previous - r.bar).abs() > _duplicateConflictBar) {
       conflicts++;

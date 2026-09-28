@@ -143,8 +143,13 @@ List<PressureReading> withoutPressureGlitches(List<PressureReading> readings) {
 /// A source that derives its endpoints from the samples (libdivecomputer's
 /// Shearwater parser takes the first and last non-zero reading) inherits any
 /// glitch sitting at either end. When [reportedBar] matches a glitch reading
-/// of [readings], the first or last clean reading replaces it; any other
-/// value, and a null, comes back unchanged.
+/// of [readings] that sits below the first or last clean reading, that clean
+/// reading replaces it; any other value, and a null, comes back unchanged.
+///
+/// Only a low glitch counts: a lead-in, a dropout and a dip all read below
+/// the cylinder, and those are what a source takes an endpoint from. A
+/// reported value that equals a spike, which reads above it, is a header
+/// value that happens to coincide, and is kept.
 ///
 /// [readings] must be in time order. A caller resolving both endpoints of one
 /// cylinder passes the [scan] of [readings] it already holds, so the series
@@ -158,16 +163,18 @@ double? replaceGlitchedEndpoint({
   if (reportedBar == null) return null;
   scan ??= scanPressureGlitches(readings);
   if (scan.glitchIndices.isEmpty) return reportedBar;
-  final matchesGlitch = scan.glitchIndices.any(
-    (i) => (readings[i].bar - reportedBar).abs() <= _endpointMatchToleranceBar,
-  );
-  if (!matchesGlitch) return reportedBar;
   final clean = [
     for (var i = 0; i < readings.length; i++)
       if (!scan.glitchIndices.contains(i)) readings[i],
   ];
   if (clean.isEmpty) return reportedBar;
-  return atStart ? clean.first.bar : clean.last.bar;
+  final replacement = atStart ? clean.first.bar : clean.last.bar;
+  final matchesLowGlitch = scan.glitchIndices.any(
+    (i) =>
+        readings[i].bar < replacement &&
+        (readings[i].bar - reportedBar).abs() <= _endpointMatchToleranceBar,
+  );
+  return matchesLowGlitch ? replacement : reportedBar;
 }
 
 /// The first and last clean reading of a tank pressure series, in any order,

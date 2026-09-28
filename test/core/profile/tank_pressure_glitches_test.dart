@@ -307,6 +307,38 @@ void main() {
       );
     });
 
+    // A spike is a reading above the cylinder's level. A reported endpoint
+    // that happens to equal one is a real header value: the glitches a
+    // source takes an endpoint from (a lead-in, a dropout, a dip) all read
+    // low.
+    test('a reported start that equals a mid-dive spike is kept', () {
+      // The transmitter paired late: the series opens at 185 bar while the
+      // computer's header recorded the 200 bar the cylinder was filled to.
+      final series = withValues(draining(start: 185), {15: 200.2});
+      expect(scanPressureGlitches(series).glitchIndices, {15});
+      expect(
+        replaceGlitchedEndpoint(
+          reportedBar: 200,
+          readings: series,
+          atStart: true,
+        ),
+        200,
+      );
+    });
+
+    test('a reported end that equals a mid-dive spike is kept', () {
+      final series = withValues(draining(), {15: 210.4});
+      expect(scanPressureGlitches(series).glitchIndices, {15});
+      expect(
+        replaceGlitchedEndpoint(
+          reportedBar: 210.2,
+          readings: series,
+          atStart: false,
+        ),
+        210.2,
+      );
+    });
+
     test('a reported value that is no glitch is kept', () {
       final series = withValues(draining(), {15: 0.8});
       expect(

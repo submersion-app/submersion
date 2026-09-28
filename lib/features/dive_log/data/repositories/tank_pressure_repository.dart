@@ -45,7 +45,7 @@ class TankPressureRepository {
   ) async => _groupByTank(
     selectTankSeriesPerSource(
       await _tankSeries.getSeriesForDive(diveId),
-      preferredSourceId: await _primarySourceId(diveId),
+      preferredSourceId: await _tankSeries.primarySourceId(diveId),
     ),
   );
 
@@ -83,16 +83,6 @@ class TankPressureRepository {
     ),
   );
 
-  /// The id of [diveId]'s primary data source, or null when it has none.
-  Future<String?> _primarySourceId(String diveId) async {
-    final row =
-        await (_db.select(_db.diveDataSources)
-              ..where((s) => s.diveId.equals(diveId) & s.isPrimary.equals(true))
-              ..limit(1))
-            .getSingleOrNull();
-    return row?.id;
-  }
-
   Map<String, List<TankPressurePoint>> _groupByTank(
     List<domain.TankPressureSeries> series,
   ) {
@@ -121,7 +111,7 @@ class TankPressureRepository {
     return mergeTankSeriesPoints(
       selectTankSeriesPerSource(
         series,
-        preferredSourceId: await _primarySourceId(diveId),
+        preferredSourceId: await _tankSeries.primarySourceId(diveId),
       ),
     );
   }

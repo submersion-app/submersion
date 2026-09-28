@@ -417,6 +417,29 @@ void main() {
       expect(kept.map((s) => s.id), ['a1', 'b', 'a2']);
     });
 
+    test('sources that meet at one second are both kept', () {
+      // A combined dive whose second half's first reading shares the
+      // second of the first half's last one: one after the other, not side
+      // by side.
+      final first = sourced('a', 'src-a', span(0, 1800, 200));
+      final second = sourced('b', 'src-b', span(1800, 3600, 110));
+      final kept = selectTankSeriesPerSource([
+        first,
+        second,
+      ], preferredSourceId: 'src-a');
+      expect(kept.map((s) => s.id), ['a', 'b']);
+    });
+
+    test('single readings of two sources at one second overlap', () {
+      final mine = sourced('m', 'src-m', span(600, 600, 150));
+      final theirs = sourced('t', 'src-t', span(600, 600, 148));
+      final kept = selectTankSeriesPerSource([
+        theirs,
+        mine,
+      ], preferredSourceId: 'src-m');
+      expect(kept.map((s) => s.id), ['m']);
+    });
+
     test('several series of one source are all kept', () {
       final a = sourced('a1', 'src-a', span(0, 1500, 200));
       final b = sourced('a2', 'src-a', span(1000, 3000, 150));

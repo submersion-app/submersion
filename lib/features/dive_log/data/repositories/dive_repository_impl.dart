@@ -3902,14 +3902,9 @@ class DiveRepository {
     // computer provided time-series readings.
     // One source per stretch of a tank, never two interleaved (#2440), and
     // no signal dropout standing in for either endpoint (#2441).
-    final primarySource =
-        await (_db.select(_db.diveDataSources)
-              ..where((s) => s.diveId.equals(row.id) & s.isPrimary.equals(true))
-              ..limit(1))
-            .getSingleOrNull();
     final tankSeries = selectTankSeriesPerSource(
       await _tankSeries.getSeriesForDive(row.id),
-      preferredSourceId: primarySource?.id,
+      preferredSourceId: await _tankSeries.primarySourceId(row.id),
     );
     final startPressureByTank = <String, double>{};
     final endPressureByTank = <String, double>{};

@@ -150,10 +150,12 @@ _ResolvedCylinders _resolveCylinders(
   // Scanned only once there are tank records to correct: a tankless dive
   // synthesizes pressureless cylinders that have no end pressure to trim.
   final points = _surfacingPoints(parsed.samples);
+  // Grouped and glitch-scanned once, for the surfacing rule and the
+  // endpoint check alike.
+  final tankReadings = tankReadingsOf(points);
   final surfacingReadings = trimAtSurfacing
-      ? surfacingTankReadings(points)
+      ? surfacingTankReadings(points, tankReadings: tankReadings)
       : const <int, SurfacingTankReading>{};
-  final readingsByTank = _readingsByTank(points);
   final result = <DownloadedTank>[];
   final consumed = <int>{};
 
@@ -184,8 +186,9 @@ _ResolvedCylinders _resolveCylinders(
     // Shearwater's begin/end pressures are the first and last non-zero
     // samples, so a dropout or a pre-valve lead-in at either end becomes
     // the cylinder's pressure (#2441).
-    final readings = readingsByTank[tank.index] ?? const <PressureReading>[];
-    final glitches = scanPressureGlitches(readings);
+    final ofTank = tankReadings[tank.index];
+    final readings = ofTank?.readings ?? const <PressureReading>[];
+    final glitches = ofTank?.scan ?? PressureGlitchScan.none;
     result.add(
       DownloadedTank(
         index: tank.index,
@@ -529,22 +532,6 @@ Map<int, double> _sampleTankReadings(pigeon.ProfileSample sample) {
   // A reading without a tank index belongs to tank 0, as in the stored series.
   final pressure = sample.pressureBar;
   return pressure != null ? {sample.tankIndex ?? 0: pressure} : const {};
-}
-
-/// Each cylinder's readings in time order, keyed by cylinder index.
-Map<int, List<PressureReading>> _readingsByTank(
-  List<SurfacingProfilePoint> points,
-) {
-  final byTank = <int, List<PressureReading>>{};
-  for (final p in points) {
-    for (final entry in p.tankPressuresBar.entries) {
-      (byTank[entry.key] ??= []).add((t: p.timeSeconds, bar: entry.value));
-    }
-  }
-  return {
-    for (final entry in byTank.entries)
-      entry.key: readingsInTimeOrder(entry.value),
-  };
 }
 
 /// Reduce libdivecomputer samples to the depth-plus-pressure points the

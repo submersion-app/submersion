@@ -77,6 +77,21 @@ void main() {
       expect(looksLikeInterleavedSources(series), isFalse);
     });
 
+    // A transmitter that loses its signal can log a near-zero reading at
+    // the same second as a real one. That is a dropout, not a second
+    // recording, the same way the track split passes over near-zero
+    // readings.
+    test('dropouts logged at the second of a real reading are not mixed', () {
+      final base = recording(start: 57, count: 80);
+      final series = [
+        for (var i = 0; i < base.length; i++) ...[
+          base[i],
+          if (i == 20 || i == 40 || i == 60) (t: base[i].t, bar: 0.8),
+        ],
+      ];
+      expect(looksLikeInterleavedSources(series), isFalse);
+    });
+
     test('an empty series is not mixed', () {
       expect(looksLikeInterleavedSources(const []), isFalse);
     });
