@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 
 /// Which service clocks the list narrows to.
@@ -95,65 +94,6 @@ class EquipmentFilterState {
 
   /// Whether the status axis is anything other than the default view.
   bool get hasStatusFilter => status != null || serviceDue != null;
-
-  /// Narrow [equipment] to the selected category, its conditions and the
-  /// selected tags. [tagIdsByEquipment] is each item's tag ids, keyed by
-  /// item id (an item with no entry has no tags).
-  ///
-  /// The status axis is applied upstream by provider selection, so this is the
-  /// only filtering the list itself has to do.
-  List<EquipmentItem> apply(
-    List<EquipmentItem> equipment,
-    Map<String, Iterable<String>> tagIdsByEquipment, {
-    String? activeDiverId,
-  }) {
-    final selected = type;
-    final ownerAxis = activeDiverId == null ? EquipmentOwnerFilter.all : owner;
-    if (selected == null &&
-        attrConditions.isEmpty &&
-        tagIds.isEmpty &&
-        ownerAxis == EquipmentOwnerFilter.all) {
-      return equipment;
-    }
-    bool ownerMatches(EquipmentItem e) => switch (ownerAxis) {
-      EquipmentOwnerFilter.all => true,
-      EquipmentOwnerFilter.mine =>
-        e.diverId == null || e.diverId == activeDiverId,
-      EquipmentOwnerFilter.sharedWithMe =>
-        e.diverId != null && e.diverId != activeDiverId,
-    };
-    return equipment
-        .where(
-          (e) =>
-              (selected == null || e.type == selected) &&
-              attrConditions.every((c) => c.matches(e)) &&
-              ownerMatches(e) &&
-              (tagIds.isEmpty ||
-                  (tagIdsByEquipment[e.id] ?? const <String>[]).any(
-                    tagIds.contains,
-                  )),
-        )
-        .toList();
-  }
-
-  /// Whether the tag selection is what emptied [equipment]: some item passes
-  /// the category and its conditions, but none of those carries a selected
-  /// tag. The empty state blames the axis that did the emptying.
-  /// [activeDiverId] keeps the owner axis (issue #2046) in both passes.
-  bool tagsEmptied(
-    List<EquipmentItem> equipment,
-    Map<String, Iterable<String>> tagIdsByEquipment, {
-    String? activeDiverId,
-  }) =>
-      tagIds.isNotEmpty &&
-      apply(
-        equipment,
-        tagIdsByEquipment,
-        activeDiverId: activeDiverId,
-      ).isEmpty &&
-      copyWith(clearTagIds: true)
-          .apply(equipment, tagIdsByEquipment, activeDiverId: activeDiverId)
-          .isNotEmpty;
 
   /// Copy with per-axis clearing. Clearing the status axis resets both of its
   /// values, since they are one choice to the diver. A new or cleared

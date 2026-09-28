@@ -37,6 +37,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
+import '../../../../helpers/equipment_query_fakes.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/bulk_delete_contract.dart';
@@ -99,6 +100,7 @@ Future<List<Override>> _buildOverrides({
     equipmentByStatusProvider.overrideWith((ref, status) => equipment),
     activeEquipmentProvider.overrideWith((ref) async => equipment),
     allEquipmentProvider.overrideWith((ref) async => equipment),
+    fakeEquipmentQueryIds(),
     equipmentListViewModeProvider.overrideWith((ref) => ListViewMode.table),
     equipmentTableConfigProvider.overrideWith(
       (ref) => _TestEquipTableConfigNotifier(_testConfig),
@@ -136,6 +138,7 @@ Future<List<Override>> _buildPhoneOverrides({
     activeEquipmentProvider.overrideWith((ref) async => items),
     allEquipmentProvider.overrideWith((ref) async => items),
     serviceDueEquipmentProvider.overrideWith((ref, _) async => serviceDue),
+    fakeEquipmentQueryIds(),
     equipmentListViewModeProvider.overrideWith((ref) => viewMode),
     equipmentTableConfigProvider.overrideWith(
       (ref) => _TestEquipTableConfigNotifier(_testConfig),
@@ -244,6 +247,8 @@ void main() {
           ),
           equipmentByStatusProvider.overrideWith((ref, status) => items),
           activeEquipmentProvider.overrideWith((ref) async => items),
+          allEquipmentProvider.overrideWith((ref) async => items),
+          fakeEquipmentQueryIds(),
           equipmentListViewModeProvider.overrideWith(
             (ref) => ListViewMode.detailed,
           ),
@@ -652,6 +657,10 @@ void main() {
         activeEquipmentProvider.overrideWith(
           (ref) async => ref.watch(_visibleEquipmentProvider),
         ),
+        allEquipmentProvider.overrideWith(
+          (ref) async => ref.watch(_visibleEquipmentProvider),
+        ),
+        fakeEquipmentQueryIds(),
         equipmentListViewModeProvider.overrideWith(
           (ref) => ListViewMode.detailed,
         ),
@@ -1991,6 +2000,7 @@ void main() {
             serviceDueEquipmentProvider.overrideWith(
               (ref, _) async => const <EquipmentItem>[],
             ),
+            fakeEquipmentQueryIds(),
             equipmentListViewModeProvider.overrideWith(
               (ref) => ListViewMode.detailed,
             ),
@@ -2336,15 +2346,15 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('refreshing the default view rebuilds the active provider', (
-      tester,
+    /// Pumps the list with a counting all-equipment source, the one list
+    /// every view narrows (#2365).
+    Future<int Function()> pumpCounting(
+      WidgetTester tester,
+      List<EquipmentItem> items,
     ) async {
-      var activeBuilds = 0;
-      var statusBuilds = 0;
-      final items = [_makeEquipment(id: 'e1', name: 'Alpha Reg')];
+      var allBuilds = 0;
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
-
       await tester.pumpWidget(
         testApp(
           overrides: [
@@ -2353,15 +2363,13 @@ void main() {
             currentDiverIdProvider.overrideWith(
               (ref) => MockCurrentDiverIdNotifier(),
             ),
-            activeEquipmentProvider.overrideWith((ref) async {
-              activeBuilds++;
+            activeEquipmentProvider.overrideWith((ref) async => items),
+            equipmentByStatusProvider.overrideWith((ref, status) => items),
+            allEquipmentProvider.overrideWith((ref) async {
+              allBuilds++;
               return items;
             }),
-            equipmentByStatusProvider.overrideWith((ref, status) {
-              statusBuilds++;
-              return items;
-            }),
-            allEquipmentProvider.overrideWith((ref) async => items),
+            fakeEquipmentQueryIds(),
             equipmentListViewModeProvider.overrideWith(
               (ref) => ListViewMode.detailed,
             ),
@@ -2373,85 +2381,44 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      return () => allBuilds;
+    }
 
-      final activeBefore = activeBuilds;
-      final statusBefore = statusBuilds;
+    testWidgets('refreshing the default view rebuilds the list source', (
+      tester,
+    ) async {
+      final builds = await pumpCounting(tester, [
+        _makeEquipment(id: 'e1', name: 'Alpha Reg'),
+      ]);
+      final before = builds();
 
       await pullToRefresh(tester);
 
       expect(
-        activeBuilds,
-        greaterThan(activeBefore),
+        builds(),
+        greaterThan(before),
         reason:
-            'the default view reads activeEquipmentProvider, so refresh must '
-            'invalidate that one or the list stays stale (#636)',
-      );
-      expect(
-        statusBuilds,
-        statusBefore,
-        reason: 'the status family is not what the default view is showing',
+            'every view narrows allEquipmentProvider, so refresh must '
+            'invalidate it or the list stays stale (#636)',
       );
     });
 
-    testWidgets('refreshing under a status filter rebuilds that status', (
+    testWidgets('refreshing under a status filter rebuilds the list source', (
       tester,
     ) async {
-      var activeBuilds = 0;
-      var statusBuilds = 0;
-      final items = [
+      final builds = await pumpCounting(tester, [
         _makeEquipment(
           id: 'e2',
           name: 'Old BCD',
           status: EquipmentStatus.retired,
         ),
-      ];
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(prefs),
-            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-            currentDiverIdProvider.overrideWith(
-              (ref) => MockCurrentDiverIdNotifier(),
-            ),
-            activeEquipmentProvider.overrideWith((ref) async {
-              activeBuilds++;
-              return items;
-            }),
-            equipmentByStatusProvider.overrideWith((ref, status) {
-              statusBuilds++;
-              return items;
-            }),
-            allEquipmentProvider.overrideWith((ref) async => items),
-            equipmentListViewModeProvider.overrideWith(
-              (ref) => ListViewMode.detailed,
-            ),
-            equipmentTableConfigProvider.overrideWith(
-              (ref) => _TestEquipTableConfigNotifier(_testConfig),
-            ),
-          ],
-          child: const EquipmentListContent(showAppBar: false),
-        ),
-      );
-      await tester.pumpAndSettle();
-
+      ]);
       await _filterVia(tester, [_statusChipKey(EquipmentStatus.retired)]);
-
-      final activeBefore = activeBuilds;
-      final statusBefore = statusBuilds;
+      final before = builds();
 
       await pullToRefresh(tester);
 
-      expect(
-        statusBuilds,
-        greaterThan(statusBefore),
-        reason:
-            'the filtered view reads the status family, so refresh must '
-            'invalidate that family',
-      );
-      expect(activeBuilds, activeBefore);
+      expect(builds(), greaterThan(before));
     });
   });
 
