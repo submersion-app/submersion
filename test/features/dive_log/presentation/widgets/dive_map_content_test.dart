@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -30,6 +31,7 @@ Future<void> _pump(
   WidgetTester tester, {
   required AsyncValue<List<Dive>> dives,
   String? selectedId,
+  ValueNotifier<String?>? selection,
   void Function(String?)? onItemSelected,
 }) async {
   final base = await getBaseOverrides();
@@ -46,10 +48,20 @@ Future<void> _pump(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
-          body: DiveMapContent(
-            selectedId: selectedId,
-            onItemSelected: onItemSelected ?? (_) {},
-          ),
+          // A [selection] lets a test change selectedId on the mounted map,
+          // the way the dive list does, without rebuilding the scope.
+          body: selection == null
+              ? DiveMapContent(
+                  selectedId: selectedId,
+                  onItemSelected: onItemSelected ?? (_) {},
+                )
+              : ValueListenableBuilder<String?>(
+                  valueListenable: selection,
+                  builder: (context, id, _) => DiveMapContent(
+                    selectedId: id,
+                    onItemSelected: onItemSelected ?? (_) {},
+                  ),
+                ),
         ),
       ),
     ),
@@ -57,6 +69,20 @@ Future<void> _pump(
   await tester.pump();
   await tester.pump(const Duration(seconds: 1));
 }
+
+MapCamera _camera(WidgetTester tester) =>
+    tester.widget<FlutterMap>(find.byType(FlutterMap)).mapController!.camera;
+
+Finder _siteMarker(String name) => find.byWidgetPredicate(
+  (w) => w is Semantics && w.properties.label == 'Select dive site $name',
+);
+
+// Two sites a kilometre apart that cluster at any overview zoom, and one far
+// to the south on the same meridian. Stacked north to south, they keep the
+// markers clear of the heat map controls in the top right corner.
+final _reefA = _site(id: 'reef-a', name: 'Reef A', lat: 12.34, lng: 98.76);
+final _reefB = _site(id: 'reef-b', name: 'Reef B', lat: 12.35, lng: 98.77);
+final _farReef = _site(id: 'far', name: 'Far Reef', lat: -20.0, lng: 98.0);
 
 void main() {
   testWidgets('renders the FlutterMap with a site marker for dives', (
@@ -147,5 +173,114 @@ void main() {
         reason: site.name,
       );
     }
+  });
+
+  group('camera moves', () {
+    testWidgets('eases to a dive selected from outside the map', (
+      tester,
+    ) async {
+      final selection = ValueNotifier<String?>(null);
+      addTearDown(selection.dispose);
+      await _pump(
+        tester,
+        dives: AsyncValue.data([
+          _diveAtSite(_reefA, id: 'dive-a'),
+          _diveAtSite(_farReef, id: 'dive-far'),
+        ]),
+        selection: selection,
+      );
+      // Opens framed on both sites, wider than the zoom a selection eases to.
+      expect(_camera(tester).zoom, lessThan(10));
+
+      selection.value = 'dive-far';
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      final camera = _camera(tester);
+      expect(camera.center.latitude, closeTo(-20.0, 1e-6));
+      expect(camera.center.longitude, closeTo(98.0, 1e-6));
+      expect(camera.zoom, closeTo(12.0, 1e-6));
+    });
+
+    testWidgets('fit-all button frames every site again', (tester) async {
+      await _pump(
+        tester,
+        dives: AsyncValue.data([
+          _diveAtSite(_reefA, id: 'dive-a'),
+          _diveAtSite(_farReef, id: 'dive-far'),
+        ]),
+      );
+      final opening = _camera(tester);
+
+      tester
+          .widget<FlutterMap>(find.byType(FlutterMap))
+          .mapController!
+          .move(const LatLng(45.0, -30.0), 7.0);
+      await tester.pump();
+      expect(_camera(tester).center.latitude, closeTo(45.0, 1e-6));
+
+      await tester.tap(find.byIcon(Icons.my_location));
+      await tester.pump();
+
+      // Back to the framing the map opened with, which shows both sites.
+      final fitted = _camera(tester);
+      expect(fitted.center.latitude, closeTo(opening.center.latitude, 1e-6));
+      expect(fitted.center.longitude, closeTo(opening.center.longitude, 1e-6));
+      expect(fitted.zoom, closeTo(opening.zoom, 1e-6));
+      for (final site in [_reefA, _farReef]) {
+        final point = LatLng(site.location!.latitude, site.location!.longitude);
+        expect(fitted.visibleBounds.contains(point), isTrue, reason: site.name);
+      }
+    });
+
+    testWidgets('tapping a cluster eases in on its sites', (tester) async {
+      await _pump(
+        tester,
+        dives: AsyncValue.data([
+          _diveAtSite(_reefA, id: 'dive-a'),
+          _diveAtSite(_reefB, id: 'dive-b'),
+          _diveAtSite(_farReef, id: 'dive-far'),
+        ]),
+      );
+      // Reef A and Reef B share one cluster marker counting their two dives.
+      expect(_siteMarker('Reef A'), findsNothing);
+
+      await tester.tap(find.text('2').hitTestable().first);
+      // Past flutter_map's double-tap window, then through the ease.
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(seconds: 1));
+
+      // The cluster's bounds are small enough that the fit stops at the
+      // animator's maxZoom, centred between the two sites.
+      final camera = _camera(tester);
+      expect(camera.center.latitude, closeTo(12.345, 1e-3));
+      expect(camera.center.longitude, closeTo(98.765, 1e-3));
+      expect(camera.zoom, closeTo(14.0, 1e-6));
+    });
+
+    testWidgets('tapping a site marker selects its dive and eases to it', (
+      tester,
+    ) async {
+      String? selected;
+      await _pump(
+        tester,
+        dives: AsyncValue.data([
+          _diveAtSite(_reefA, id: 'dive-a'),
+          _diveAtSite(_farReef, id: 'dive-far'),
+        ]),
+        onItemSelected: (id) => selected = id,
+      );
+
+      await tester.tap(_siteMarker('Far Reef'));
+      // Past flutter_map's double-tap window, then through the ease.
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(selected, 'dive-far');
+      final camera = _camera(tester);
+      expect(camera.center.latitude, closeTo(-20.0, 1e-6));
+      expect(camera.center.longitude, closeTo(98.0, 1e-6));
+      expect(camera.zoom, closeTo(12.0, 1e-6));
+    });
   });
 }

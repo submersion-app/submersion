@@ -64,6 +64,15 @@ void main() {
     expect(fitted.zoom, 12);
   });
 
+  test('holds a single point to maxZoom when that is lower', () {
+    final fitted = const WorldCameraFit(
+      points: [LatLng(-8.5, 115.2)],
+      maxZoom: 9,
+    ).fit(_camera());
+
+    expect(fitted.zoom, 9);
+  });
+
   test('leaves the camera alone when no point is usable', () {
     final camera = _camera();
     final fitted = const WorldCameraFit(
@@ -80,5 +89,15 @@ void main() {
     ).fit(_camera());
 
     expect(fitted.zoom, lessThanOrEqualTo(14));
+  });
+
+  test('compares by value so rebuilt map options stay equal', () {
+    const a = WorldCameraFit(points: [LatLng(1, 2)], maxZoom: 10);
+    const b = WorldCameraFit(points: [LatLng(1, 2)], maxZoom: 10);
+    const c = WorldCameraFit(points: [LatLng(1, 3)], maxZoom: 10);
+
+    expect(a, b);
+    expect(a.hashCode, b.hashCode);
+    expect(a, isNot(c));
   });
 }

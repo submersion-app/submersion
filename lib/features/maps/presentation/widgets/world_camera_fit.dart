@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -18,8 +20,8 @@ import 'package:submersion/features/maps/domain/map_utils.dart';
 ///
 /// The bounds are padded by ten percent of each span first, as
 /// [boundsForPoints] does, then by [padding] on screen. A set of points that
-/// all sit on one spot is centred at [singlePointZoom] instead, since a
-/// zero-area box has no finite zoom. Unusable points (see
+/// all sit on one spot is centred at [singlePointZoom] instead (never past
+/// [maxZoom]), since a zero-area box has no finite zoom. Unusable points (see
 /// [isUsableMapPoint]) are skipped; with none left the camera is unchanged.
 @immutable
 class WorldCameraFit extends CameraFit {
@@ -50,7 +52,7 @@ class WorldCameraFit extends CameraFit {
     if (bounds.north == bounds.south && bounds.east == bounds.west) {
       return camera.withPosition(
         center: LatLng(bounds.north, normalizeLongitude(middle)),
-        zoom: singlePointZoom,
+        zoom: math.min(singlePointZoom, maxZoom ?? singlePointZoom),
       );
     }
 
