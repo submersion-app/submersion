@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:google_fonts/google_fonts.dart';
 
-/// Waits briefly for pending Google Fonts loads, and never for ever.
+/// Waits for pending Google Fonts loads for at most [limit].
 ///
 /// google_fonts keeps every pending load in one set for the whole isolate,
 /// and [GoogleFonts.pendingFonts] waits for all of them. A load started inside
