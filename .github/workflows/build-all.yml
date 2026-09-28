@@ -585,10 +585,12 @@ jobs:
           restore-keys: |
             pub-build-all-${{ runner.os }}-
 
-      # Cold build_runner peaks near this 16 GB runner's RAM and can exhaust
-      # its 3 GB swap, killing the job with exit 143 (#2498); see the codegen
-      # job in ci.yaml for the measurements. Inline rather than a local
-      # action because this workflow may check out an older ref.
+      # This workflow may check out a ref from before #2502, where every
+      # table sits inside database.dart. A cold build_runner on such a ref
+      # peaks near this 16 GB runner's RAM and can exhaust its 3 GB swap,
+      # killing the job with exit 143 (#2498). Current refs peak at about
+      # 3.5 GB and never reach the swapfile. Inline rather than a local
+      # action for the same reason: an older ref would not have the action.
       - name: Add swap for build_runner
         run: |
           if sudo fallocate -l 12G /mnt/codegen.swap \
@@ -772,10 +774,12 @@ jobs:
           restore-keys: |
             pub-build-all-${{ runner.os }}-
 
-      # Cold build_runner peaks near this 16 GB runner's RAM and can exhaust
-      # its 3 GB swap, killing the job with exit 143 (#2498); see the codegen
-      # job in ci.yaml for the measurements. Inline rather than a local
-      # action because this workflow may check out an older ref.
+      # This workflow may check out a ref from before #2502, where every
+      # table sits inside database.dart. A cold build_runner on such a ref
+      # peaks near this 16 GB runner's RAM and can exhaust its 3 GB swap,
+      # killing the job with exit 143 (#2498). Current refs peak at about
+      # 3.5 GB and never reach the swapfile. Inline rather than a local
+      # action for the same reason: an older ref would not have the action.
       - name: Add swap for build_runner
         run: |
           if sudo fallocate -l 12G /mnt/codegen.swap \

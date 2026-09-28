@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/pdf/passport_label_pdf_export_service.dart';
@@ -15,15 +16,25 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Hands finished labels on: the PDF share sheet in the app, a capture in
-/// tests. [origin] anchors the share popover on iPad and macOS.
+/// tests. [origin] anchors the share popover on iPad and macOS, and
+/// [localization] is the app language the label text was written in, which
+/// picks the fonts and text direction (#2252).
 typedef PassportLabelExport =
-    Future<void> Function(List<PassportLabelData> labels, Rect? origin);
-
-Future<void> _shareLabelPdf(List<PassportLabelData> labels, Rect? origin) =>
-    PassportLabelPdfExportService().exportToPdf(
-      labels,
-      sharePositionOrigin: origin,
+    Future<void> Function(
+      List<PassportLabelData> labels,
+      Rect? origin,
+      PdfLocalization localization,
     );
+
+Future<void> _shareLabelPdf(
+  List<PassportLabelData> labels,
+  Rect? origin,
+  PdfLocalization localization,
+) => PassportLabelPdfExportService().exportToPdf(
+  labels,
+  sharePositionOrigin: origin,
+  localization: localization,
+);
 
 /// Builds one label per cylinder among [equipmentIds] (other types are
 /// skipped), minting passport ids where missing, and passes them to
@@ -118,5 +129,6 @@ Future<void> printPassportLabels(
   await export(
     labels,
     box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+    PdfLocalization.forLanguageCode(l10n.localeName),
   );
 }

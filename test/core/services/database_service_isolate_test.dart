@@ -15,6 +15,8 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
 
+import '../../helpers/fake_path_provider.dart';
+
 class _FakeLocation implements DatabaseLocationService {
   _FakeLocation(this.path);
   final String path;
@@ -106,7 +108,7 @@ void main() {
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('ws5-isolate-test');
     dbPath = p.join(tempDir.path, 'submersion.db');
-    PathProviderPlatform.instance = _FakePathProvider(tempDir.path);
+    useFakePathProvider(_FakePathProvider(tempDir.path));
     DatabaseService.instance.resetForTesting();
   });
 
@@ -460,6 +462,70 @@ void main() {
     expect(kept, hasLength(1), reason: 'the original must be kept aside');
     expect(_diverNames(kept.single), contains('Original'));
     expect(File('$defaultPath.pre-restore').existsSync(), isFalse);
+  });
+
+  group('a failed restore into a location that holds no database (#2177)', () {
+    // The startup "dive log not found" screen offers a restore into a folder
+    // whose dive log is missing, with nothing open. Rolling back must not
+    // leave an empty database there: the next launch would find a file and
+    // open it as the diver's dive log.
+    late String missingPath;
+    late String backupPath;
+
+    setUp(() async {
+      final sourcePath = p.join(tempDir.path, 'source', 'submersion.db');
+      await DatabaseService.instance.initialize(
+        locationService: _FakeLocation(sourcePath),
+      );
+      backupPath = p.join(tempDir.path, 'backup.db');
+      await DatabaseService.instance.backup(backupPath);
+      await DatabaseService.instance.close(strict: true);
+      DatabaseService.instance.resetForTesting();
+
+      missingPath = p.join(tempDir.path, 'lost', 'submersion.db');
+      await Directory(p.dirname(missingPath)).create();
+      DatabaseService.instance.adoptLocationService(_FakeLocation(missingPath));
+    });
+
+    test('a failed swap leaves the path empty', () async {
+      DatabaseService.instance.debugOnRestoreWindowOpen = (stagingPath) {
+        File(stagingPath).deleteSync();
+      };
+
+      await expectLater(
+        DatabaseService.instance.restore(backupPath),
+        throwsA(anything),
+      );
+
+      expect(File(missingPath).existsSync(), isFalse);
+    });
+
+    test('a restore into a folder that is gone recreates it, as opening '
+        'a new dive log there would', () async {
+      await Directory(p.dirname(missingPath)).delete(recursive: true);
+
+      await DatabaseService.instance.restore(backupPath);
+
+      expect(File(missingPath).existsSync(), isTrue);
+      await DatabaseService.instance.database
+          .customSelect('SELECT 1')
+          .getSingle();
+    });
+
+    test('a rejected newer-schema file leaves the path empty', () async {
+      final raw = sqlite3.sqlite3.open(backupPath);
+      raw.execute(
+        'PRAGMA user_version = ${AppDatabase.currentSchemaVersion + 1}',
+      );
+      raw.close();
+
+      await expectLater(
+        DatabaseService.instance.restore(backupPath),
+        throwsA(isA<DatabaseVersionMismatchException>()),
+      );
+
+      expect(File(missingPath).existsSync(), isFalse);
+    });
   });
 
   test('a newer-schema file rejected at the post-swap reopen rolls back '

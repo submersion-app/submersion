@@ -22,7 +22,7 @@ import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_tree_view.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_with_figure.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -4855,9 +4855,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       },
       contentBuilder: (context) => Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: DiveGearTreeView(
-          links: dive.gear,
-          ownerReferenceDiverId: dive.diverId,
+        // The tree, and the diver figure above it when the diver has turned
+        // it on (issue #2326). It marks gear another profile owns against
+        // this dive's diver, as the tree alone did (issue #2046).
+        child: DiveGearWithFigure(
+          dive: dive,
+          showFigure: ref.watch(
+            settingsProvider.select((s) => s.showDiveFigure),
+          ),
           showServiceStatus: diveGearShowsLiveServiceStatus(
             dive,
             DateTime.now(),

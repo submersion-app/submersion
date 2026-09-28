@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
@@ -591,11 +592,16 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       turnAt: l10n.plannerCanvas_slate_turn,
       minGas: l10n.plannerCanvas_slate_minGas,
       base: l10n.plannerCanvas_range_base,
+      minutes: l10n.pdf_minutes,
+      maxPrefix: l10n.pdf_slateMax,
     );
 
     final bytes = await const PlanSlatePdfService().buildSlate(
       plan: divePlanFromState(state),
       outcome: ref.read(planOutcomeProvider),
+      localization: PdfLocalization.forLanguageCode(
+        Localizations.localeOf(context).languageCode,
+      ),
       deviations: ref.read(planDeviationsProvider),
       lostGas: ref.read(planLostGasProvider),
       rangeTable: ref.read(planRangeTableProvider),

@@ -406,10 +406,76 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'Toont de uitrusting van deze set op een duiker op de setpagina';
+      'De uitrusting van deze set op een duiker tonen';
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'Duikerfiguur tonen';
+
+  @override
+  String get equipment_color_red => 'Rood';
+
+  @override
+  String get equipment_color_orange => 'Oranje';
+
+  @override
+  String get equipment_color_amber => 'Amber';
+
+  @override
+  String get equipment_color_yellow => 'Geel';
+
+  @override
+  String get equipment_color_lime => 'Limoen';
+
+  @override
+  String get equipment_color_green => 'Groen';
+
+  @override
+  String get equipment_color_emerald => 'Smaragd';
+
+  @override
+  String get equipment_color_teal => 'Blauwgroen';
+
+  @override
+  String get equipment_color_cyan => 'Cyaan';
+
+  @override
+  String get equipment_color_sky => 'Hemelsblauw';
+
+  @override
+  String get equipment_color_blue => 'Blauw';
+
+  @override
+  String get equipment_color_indigo => 'Indigo';
+
+  @override
+  String get equipment_color_violet => 'Violet';
+
+  @override
+  String get equipment_color_purple => 'Paars';
+
+  @override
+  String get equipment_color_fuchsia => 'Fuchsia';
+
+  @override
+  String get equipment_color_pink => 'Roze';
+
+  @override
+  String get equipment_color_rose => 'Rozerood';
+
+  @override
+  String get equipment_color_stone => 'Steen';
+
+  @override
+  String get equipment_color_zinc => 'Zink';
+
+  @override
+  String get equipment_color_slate => 'Leisteen';
+
+  @override
+  String get equipment_color_none => 'Geen';
+
+  @override
+  String get equipment_color_sheetTitle => 'Kies een kleur';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
@@ -12366,6 +12432,470 @@ class AppLocalizationsNl extends AppLocalizations {
       'De vulling kon niet worden opgeslagen. Probeer het opnieuw.';
 
   @override
+  String get pdf_unknownSite => 'Onbekende duikstek';
+
+  @override
+  String get pdf_signaturePlaceholder => '[Handtekening]';
+
+  @override
+  String get pdf_signerBuddy => 'Buddy';
+
+  @override
+  String get pdf_signerInstructor => 'Instructeur';
+
+  @override
+  String get pdf_officialStamp => 'Officiële stempel';
+
+  @override
+  String get pdf_certifications => 'Certificeringen';
+
+  @override
+  String pdf_cardNumber(String number) {
+    return 'Kaartnr.: $number';
+  }
+
+  @override
+  String pdf_certIssued(String date) {
+    return 'Uitgegeven: $date';
+  }
+
+  @override
+  String pdf_certExpires(String date) {
+    return 'Verloopt: $date';
+  }
+
+  @override
+  String get pdf_cardFront => 'Voorkant';
+
+  @override
+  String get pdf_cardBack => 'Achterkant';
+
+  @override
+  String pdf_coverDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '$count duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_headerDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '$count duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_generatedOn(String dateTime) {
+    return 'Gegenereerd op $dateTime';
+  }
+
+  @override
+  String pdf_generated(String dateTime) {
+    return 'Gegenereerd $dateTime';
+  }
+
+  @override
+  String get pdf_noDivesToSummarize => 'Geen duiken om samen te vatten';
+
+  @override
+  String get pdf_noDivesToDisplay => 'Geen duiken om weer te geven';
+
+  @override
+  String get pdf_summary => 'Samenvatting';
+
+  @override
+  String get pdf_totalDives => 'Totaal duiken';
+
+  @override
+  String get pdf_firstDive => 'Eerste duik';
+
+  @override
+  String get pdf_lastDive => 'Laatste duik';
+
+  @override
+  String get pdf_totalDiveTime => 'Totale duiktijd';
+
+  @override
+  String get pdf_deepestDive => 'Diepste duik';
+
+  @override
+  String get pdf_blenderIncomplete =>
+      'Onvolledig: een of meer regels hebben geen prijs.';
+
+  @override
+  String get pdf_averageDepth => 'Gemiddelde diepte';
+
+  @override
+  String get pdf_uniqueSites => 'Unieke duikstekken';
+
+  @override
+  String pdf_hoursMinutes(String hours, String minutes) {
+    return '${hours}u ${minutes}m';
+  }
+
+  @override
+  String pdf_minutesShort(String minutes) {
+    return '${minutes}m';
+  }
+
+  @override
+  String pdf_minutes(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String pdf_minutesCompact(String minutes) {
+    return '${minutes}min';
+  }
+
+  @override
+  String get pdf_diverProfile => 'Duikersprofiel';
+
+  @override
+  String get pdf_name => 'Naam';
+
+  @override
+  String get pdf_email => 'E-mail';
+
+  @override
+  String get pdf_photo => 'Foto';
+
+  @override
+  String pdf_depthProfileHeading(String depthUnit) {
+    return 'Diepteprofiel ($depthUnit vs. min)';
+  }
+
+  @override
+  String get pdf_columnDate => 'Datum';
+
+  @override
+  String get pdf_columnSite => 'Duikstek';
+
+  @override
+  String get pdf_columnDepth => 'Diepte';
+
+  @override
+  String get pdf_columnTime => 'Tijd';
+
+  @override
+  String get pdf_columnTemp => 'Temp.';
+
+  @override
+  String pdf_pageOf(String page, String total) {
+    return 'Pagina $page van $total';
+  }
+
+  @override
+  String get pdf_sectionProfile => 'Profiel';
+
+  @override
+  String get pdf_sectionCylinders => 'Flessen';
+
+  @override
+  String get pdf_sectionConditions => 'Omstandigheden';
+
+  @override
+  String get pdf_sectionWeather => 'Weer';
+
+  @override
+  String get pdf_sectionTeam => 'Team';
+
+  @override
+  String get pdf_sectionEquipment => 'Uitrusting';
+
+  @override
+  String get pdf_sectionTechnical => 'Technisch';
+
+  @override
+  String get pdf_sectionMarineLife => 'Soorten';
+
+  @override
+  String get pdf_sectionNotes => 'Notities';
+
+  @override
+  String get pdf_sectionAdditionalFields => 'Extra velden';
+
+  @override
+  String get pdf_sectionVerifiedBy => 'Geverifieerd door';
+
+  @override
+  String get pdf_sectionVerification => 'Verificatie';
+
+  @override
+  String get pdf_maxDepth => 'Max diepte';
+
+  @override
+  String get pdf_avgDepth => 'Gem. diepte';
+
+  @override
+  String get pdf_runtime => 'Looptijd';
+
+  @override
+  String get pdf_bottomTime => 'Bodemtijd';
+
+  @override
+  String get pdf_timeIn => 'In';
+
+  @override
+  String get pdf_timeOut => 'Uit';
+
+  @override
+  String get pdf_surfaceInterval => 'Oppervlakte-interval';
+
+  @override
+  String get pdf_sac => 'SAC';
+
+  @override
+  String get pdf_rmv => 'RMV';
+
+  @override
+  String pdf_pressureUsed(String pressure) {
+    return '$pressure verbruikt';
+  }
+
+  @override
+  String pdf_cylinderNumber(String number) {
+    return 'Fles $number';
+  }
+
+  @override
+  String get pdf_waterTemp => 'Watertemp.';
+
+  @override
+  String get pdf_airTemp => 'Luchttemp.';
+
+  @override
+  String get pdf_visibility => 'Zicht';
+
+  @override
+  String get pdf_current => 'Stroming';
+
+  @override
+  String get pdf_currentDirection => 'Stroomricht.';
+
+  @override
+  String get pdf_waterType => 'Watertype';
+
+  @override
+  String get pdf_entry => 'Instap';
+
+  @override
+  String get pdf_exit => 'Uitstap';
+
+  @override
+  String get pdf_altitude => 'Hoogte';
+
+  @override
+  String get pdf_buddy => 'Buddy';
+
+  @override
+  String get pdf_diveMaster => 'Divemaster';
+
+  @override
+  String get pdf_diveCenter => 'Duikcentrum';
+
+  @override
+  String get pdf_trip => 'Reis';
+
+  @override
+  String get pdf_weight => 'Gewicht';
+
+  @override
+  String get pdf_weightType => 'Gewichtstype';
+
+  @override
+  String pdf_equipmentSets(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Sets',
+      one: 'Set',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pdf_computer => 'Computer';
+
+  @override
+  String get pdf_diveMode => 'Duikmodus';
+
+  @override
+  String get pdf_algorithm => 'Algoritme';
+
+  @override
+  String get pdf_gradientFactors => 'Gradiëntfactoren';
+
+  @override
+  String get pdf_setpoint => 'Setpoint';
+
+  @override
+  String get pdf_diveType => 'Duiktype';
+
+  @override
+  String get pdf_weatherConditions => 'Omstandigheden';
+
+  @override
+  String get pdf_wind => 'Wind';
+
+  @override
+  String get pdf_windDirection => 'Windricht.';
+
+  @override
+  String get pdf_cloud => 'Bewolking';
+
+  @override
+  String get pdf_precipitation => 'Neerslag';
+
+  @override
+  String get pdf_humidity => 'Luchtvochtigheid';
+
+  @override
+  String get pdf_swell => 'Deining';
+
+  @override
+  String get pdf_instructorSignature => 'Handtekening instructeur';
+
+  @override
+  String get pdf_buddySignature => 'Handtekening buddy';
+
+  @override
+  String get pdf_diveLogBanner => 'DUIKLOGBOEK';
+
+  @override
+  String get pdf_loggedDives => 'Gelogde duiken';
+
+  @override
+  String pdf_diveNumber(String number) {
+    return 'Duik #$number';
+  }
+
+  @override
+  String get pdf_trainingBadge => 'TRAINING';
+
+  @override
+  String get pdf_gas => 'Gas';
+
+  @override
+  String get pdf_visibilityShort => 'Zicht';
+
+  @override
+  String get pdf_air => 'Lucht';
+
+  @override
+  String get pdf_water => 'Water';
+
+  @override
+  String get pdf_verifiedBy => 'Geverifieerd door';
+
+  @override
+  String get pdf_nauiDiveLogBanner => 'NAUI-DUIKLOGBOEK';
+
+  @override
+  String get pdf_statDives => 'Duiken';
+
+  @override
+  String get pdf_statHours => 'Uren';
+
+  @override
+  String get pdf_avgShort => 'Gem.';
+
+  @override
+  String get pdf_pressureStart => 'Begin';
+
+  @override
+  String get pdf_pressureEnd => 'Eind';
+
+  @override
+  String pdf_surfaceIntervalShort(String minutes) {
+    return 'OI: ${minutes}min';
+  }
+
+  @override
+  String get pdf_diveDataHeading => 'DUIKGEGEVENS';
+
+  @override
+  String get pdf_verificationHeading => 'VERIFICATIE';
+
+  @override
+  String pdf_labelValue(String label, String value) {
+    return '$label: $value';
+  }
+
+  @override
+  String get pdf_resort => 'Resort';
+
+  @override
+  String get pdf_liveaboard => 'Liveaboard';
+
+  @override
+  String get pdf_totalRuntime => 'Totale looptijd';
+
+  @override
+  String pdf_tripDiveTitle(String number) {
+    return 'Duik $number';
+  }
+
+  @override
+  String get pdf_date => 'Datum';
+
+  @override
+  String get pdf_site => 'Duikstek';
+
+  @override
+  String get pdf_duration => 'Duur';
+
+  @override
+  String get pdf_notesLabel => 'Notities:';
+
+  @override
+  String get pdf_trainingLog => 'Trainingslogboek';
+
+  @override
+  String get pdf_instructor => 'Instructeur';
+
+  @override
+  String get pdf_instructorNumber => 'Instructeur #';
+
+  @override
+  String get pdf_location => 'Locatie';
+
+  @override
+  String get pdf_startDate => 'Startdatum';
+
+  @override
+  String get pdf_completionDate => 'Voltooiingsdatum';
+
+  @override
+  String get pdf_status => 'Status';
+
+  @override
+  String get pdf_statusCompleted => 'Afgerond';
+
+  @override
+  String get pdf_statusInProgress => 'Bezig';
+
+  @override
+  String get pdf_trainingDives => 'Trainingsduiken';
+
+  @override
+  String get pdf_totalMinutes => 'Totaal minuten';
+
+  @override
+  String get pdf_courseNotes => 'Cursusnotities';
+
+  @override
+  String get pdf_slateMax => 'max';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -23357,6 +23887,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Stempel- en handtekeningvakken voor verificatie toevoegen';
 
   @override
+  String get transfer_pdfExport_languageHeader => 'Taal';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -24077,11 +24610,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_scrubber_title => 'Scrubbermarge';
-
-  @override
-  String trips_scrubber_asOfStart(String date) {
-    return 'per $date';
-  }
 
   @override
   String trips_scrubber_remaining(
@@ -24958,6 +25486,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
     return 'MacDive-logboeken ($names) zijn opgeslagen zoekopdrachten, geen vaste lijsten met duiken, dus er is niets te importeren. Je kunt ze opnieuw maken als duikfilters.';
   }
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneTitle =>
+      'Duiktijden gelezen in de tijdzone van dit apparaat';
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody =>
+      'MacDive heeft voor deze duiken geen leesbare tijdzone opgeslagen en hun duikstekken hebben geen GPS-positie, dus hun tijden zijn gelezen in de tijdzone van dit apparaat. Als je deze duiken ergens anders hebt gemaakt, controleer dan hun begintijden.';
 
   @override
   String get universalImport_summary_unreadableDatesTitle =>
@@ -29680,6 +30216,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrLabel_product_url => 'Weblink';
+
+  @override
+  String get attrLabel_color => 'Kleur';
 
   @override
   String get attrLabel_sleeve_length => 'Mouwen';
@@ -39025,6 +39564,17 @@ class AppLocalizationsNl extends AppLocalizations {
       'Bronvermelding tonen bij duikgegevens';
 
   @override
+  String get settings_appearance_showDiveFigure =>
+      'Duikerfiguur bij duiken tonen';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'De uitrusting van elke duik op een duiker tonen in de uitrustingskaart';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'Uitrusting van deze duik';
+
+  @override
   String get settings_appearance_title_buddies => 'Uiterlijk van buddies';
 
   @override
@@ -42476,6 +43026,52 @@ class AppLocalizationsNl extends AppLocalizations {
       'Het herstel is niet voltooid. Er is niets verwijderd; beide bestanden staan nog op dit apparaat.';
 
   @override
+  String get startup_diveLogUnavailable_downloading =>
+      'Je logboek wordt gedownload uit iCloud';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'Je logboek staat nog in iCloud';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'Je logboek in $folder is opgeslagen in iCloud, maar staat nog niet op dit apparaat en kon niet worden gedownload. Het is veilig in iCloud en er is niets gewijzigd. Controleer je internetverbinding of download het in de Bestanden-app of in de Finder, en probeer het daarna opnieuw.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'Je logboek is niet gevonden';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'Submersion bewaart je logboek in $folder, maar daar staat nu geen $filename. Staat die map op een schijf die niet is aangesloten, of in een gesynchroniseerde map die nog niet bij is, sluit de schijf dan aan of synchroniseer de map en probeer het opnieuw. Er is niets aangemaakt of gewijzigd.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'Een nieuw logboek in deze map beginnen';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'Alleen als je oude logboek definitief kwijt is. Het nieuwe begint leeg.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      'Hier een nieuw logboek beginnen?';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'Er wordt een leeg logboek aangemaakt in $folder. Als je oude logboek later terugkomt, bijvoorbeeld wanneer een synchronisatie klaar is, conflicteert het met het nieuwe.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm =>
+      'Nieuw logboek beginnen';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Nieuwere database, bewaard bij het teruggaan - $size';
   }
@@ -43948,4 +44544,439 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_weights_type => 'Type';
+
+  @override
+  String get query_op_eq => 'is';
+
+  @override
+  String get query_op_neq => 'is niet';
+
+  @override
+  String get query_op_lt => 'kleiner dan';
+
+  @override
+  String get query_op_lte => 'hoogstens';
+
+  @override
+  String get query_op_gt => 'groter dan';
+
+  @override
+  String get query_op_gte => 'minstens';
+
+  @override
+  String get query_op_contains => 'bevat';
+
+  @override
+  String get query_op_inList => 'is een van';
+
+  @override
+  String get query_op_between => 'tussen';
+
+  @override
+  String get query_op_isEmpty => 'niet ingesteld';
+
+  @override
+  String get query_op_isSet => 'ingesteld';
+
+  @override
+  String get query_editor_tabText => 'Tekst';
+
+  @override
+  String get query_editor_tabBuilder => 'Bouwer';
+
+  @override
+  String get query_editor_hint => 'bijv. weights:none AND depth > 30';
+
+  @override
+  String get query_editor_save => 'Query opslaan';
+
+  @override
+  String get query_editor_allOf => 'Alle';
+
+  @override
+  String get query_editor_anyOf => 'Minstens één';
+
+  @override
+  String get query_editor_addCondition => 'Voorwaarde toevoegen';
+
+  @override
+  String get query_editor_addGroup => 'Groep toevoegen';
+
+  @override
+  String get query_editor_negate => 'Niet';
+
+  @override
+  String get query_editor_remove => 'Verwijderen';
+
+  @override
+  String get query_editor_pickField => 'Kies een veld';
+
+  @override
+  String get query_editor_pickFieldSearch => 'Velden zoeken';
+
+  @override
+  String query_editor_useRelation(String name) {
+    return '$name zelf gebruiken';
+  }
+
+  @override
+  String query_editor_fieldsOf(String name) {
+    return 'Velden van $name';
+  }
+
+  @override
+  String query_editor_pickRef(String name) {
+    return 'Kies $name';
+  }
+
+  @override
+  String get query_editor_pickRefSearch => 'Zoeken';
+
+  @override
+  String get query_editor_done => 'Klaar';
+
+  @override
+  String get query_editor_unresolvedRef => 'Bestaat niet meer';
+
+  @override
+  String query_editor_scopedRow(String name) {
+    return 'Groep over $name: bewerk dit op het tabblad Tekst';
+  }
+
+  @override
+  String get query_editor_textRow => 'Tekst zoeken';
+
+  @override
+  String get query_editor_betweenAnd => 'en';
+
+  @override
+  String get query_editor_valueTrue => 'Ja';
+
+  @override
+  String get query_editor_valueFalse => 'Nee';
+
+  @override
+  String get diveLog_filter_queryRow => 'Query';
+
+  @override
+  String get diveLog_search_section_query => 'Query';
+
+  @override
+  String get query_saveDialog_title => 'Query opslaan';
+
+  @override
+  String get query_saveDialog_nameLabel => 'Naam';
+
+  @override
+  String get query_saveDialog_nameValidation => 'Voer een naam in';
+
+  @override
+  String query_saved_snackbar(String name) {
+    return '\"$name\" opgeslagen';
+  }
+
+  @override
+  String get query_savedRow_title => 'Opgeslagen';
+
+  @override
+  String query_savedRow_unresolved(String name) {
+    return '\"$name\" verwijst naar iets dat niet meer bestaat';
+  }
+
+  @override
+  String get savedQueries_appBar_title => 'Opgeslagen query\'s';
+
+  @override
+  String get savedQueries_empty =>
+      'Nog geen opgeslagen query\'s. Sla er een op vanuit de query-editor op de zoekpagina voor duiken.';
+
+  @override
+  String get savedQueries_renameTooltip => 'Hernoemen';
+
+  @override
+  String get savedQueries_deleteTooltip => 'Verwijderen';
+
+  @override
+  String get savedQueries_reorderTooltip => 'Sleep om te herschikken';
+
+  @override
+  String get savedQueries_deleteDialog_title => 'Query verwijderen?';
+
+  @override
+  String savedQueries_deleteDialog_content(String name) {
+    return '\"$name\" verwijderen? Dit kan niet ongedaan worden gemaakt.';
+  }
+
+  @override
+  String get savedQueries_problem_unreadable =>
+      'Kan niet gelezen worden door deze versie van de app';
+
+  @override
+  String savedQueries_problem_invalid(String detail) {
+    return 'Gebruikt iets dat deze versie niet heeft: $detail';
+  }
+
+  @override
+  String savedQueries_problem_unknownSubject(String detail) {
+    return 'Voor een lijst die deze versie niet heeft: $detail';
+  }
+
+  @override
+  String savedQueries_problem_unresolved(String detail) {
+    return 'Verwijst naar iets dat niet meer bestaat: $detail';
+  }
+
+  @override
+  String savedQueries_snackbar_deleted(String name) {
+    return '\"$name\" verwijderd';
+  }
+
+  @override
+  String get settings_manage_savedQueries => 'Opgeslagen query\'s';
+
+  @override
+  String get settings_manage_savedQueries_subtitle =>
+      'Opgeslagen query\'s hernoemen, herschikken en verwijderen';
+
+  @override
+  String get query_error_unterminatedQuote => 'niet-afgesloten aanhalingsteken';
+
+  @override
+  String query_error_unexpectedCharacter(String text) {
+    return 'onverwacht teken \"$text\"';
+  }
+
+  @override
+  String query_error_unexpectedToken(String text) {
+    return 'onverwacht \"$text\"';
+  }
+
+  @override
+  String get query_error_expectedCloseParen => '\")\" verwacht';
+
+  @override
+  String get query_error_expectedCloseBracket => '\"]\" verwacht';
+
+  @override
+  String get query_error_expectedOpenBracketAfterIn =>
+      '\"[\" verwacht na \"in\"';
+
+  @override
+  String get query_error_expectedAnd => '\"and\" verwacht';
+
+  @override
+  String get query_error_expectedOperator => 'operator verwacht';
+
+  @override
+  String get query_error_expectedConditionOrText =>
+      'voorwaarde of tekst verwacht';
+
+  @override
+  String get query_error_expectedName => 'naam verwacht';
+
+  @override
+  String get query_error_expectedDate => 'datum verwacht';
+
+  @override
+  String get query_error_expectedDateValue => 'datumwaarde verwacht';
+
+  @override
+  String get query_error_expectedValue => 'waarde verwacht';
+
+  @override
+  String get query_error_expectedNumber => 'getal verwacht';
+
+  @override
+  String get query_error_expectedText => 'tekst verwacht';
+
+  @override
+  String get query_error_expectedBool => 'true of false verwacht';
+
+  @override
+  String get query_error_emptyText => 'lege tekst';
+
+  @override
+  String get query_error_emptyList => 'de lijst is leeg';
+
+  @override
+  String get query_error_emptyGroup => 'een lege groep komt met niets overeen';
+
+  @override
+  String get query_error_emptyPath => 'leeg pad';
+
+  @override
+  String query_error_notSingleDay(String text) {
+    return '\"$text\" is niet één dag';
+  }
+
+  @override
+  String query_error_notADate(String text) {
+    return '\"$text\" is geen datum';
+  }
+
+  @override
+  String query_error_openEndedDate(
+    String text,
+    String field,
+    String symbol,
+    String day,
+  ) {
+    return '\"$text\" is een open bereik; schrijf in plaats daarvan $field $symbol $day';
+  }
+
+  @override
+  String query_error_unknownUnit(String unit) {
+    return 'onbekende eenheid \"$unit\"';
+  }
+
+  @override
+  String query_error_noUnitAllowed(String field) {
+    return '$field accepteert geen eenheid';
+  }
+
+  @override
+  String query_error_wrongUnitDimension(String unit, String dimension) {
+    return '\"$unit\" is geen eenheid voor $dimension';
+  }
+
+  @override
+  String query_error_wrongUnitForField(
+    String unit,
+    String dimension,
+    String field,
+  ) {
+    return '\"$unit\" is geen eenheid voor $dimension; $field wordt gemeten in $dimension';
+  }
+
+  @override
+  String get query_error_decimalComma =>
+      'gebruik \".\" voor decimalen, niet \",\"';
+
+  @override
+  String query_error_scopeNeedsRelationQuoted(String path) {
+    return '\"[...]\" heeft een relatie nodig, \"$path\" is een veld';
+  }
+
+  @override
+  String query_error_scopeNeedsRelation(String path) {
+    return '[...] heeft een relatie nodig, \"$path\" is een veld';
+  }
+
+  @override
+  String query_error_relationNeedsRefOp(String path) {
+    return '\"$path\" is een relatie; gebruik =, in, :none, :any of [...]';
+  }
+
+  @override
+  String query_error_relationOpNotAllowed(String op) {
+    return '\"$op\" kan niet gebruikt worden met een relatie; gebruik =, !=, in, :none, :any of [...]';
+  }
+
+  @override
+  String query_error_opNotForFieldQuoted(String op, String field) {
+    return '\"$op\" kan niet gebruikt worden met $field';
+  }
+
+  @override
+  String query_error_opNotForField(String op, String field) {
+    return '$op kan niet gebruikt worden met $field';
+  }
+
+  @override
+  String query_error_noneAmbiguous(String field) {
+    return '\"$field:none\" is dubbelzinnig: schrijf \"$field = none\" voor de waarde none, of \"NOT $field:any\" voor niet vastgelegd';
+  }
+
+  @override
+  String query_error_noRefNamed(String relation, String text) {
+    return 'geen $relation met de naam \"$text\"';
+  }
+
+  @override
+  String query_error_notEnumValue(String text, String field) {
+    return '\"$text\" is geen waarde van $field';
+  }
+
+  @override
+  String query_error_unknownField(String name) {
+    return 'onbekend veld \"$name\"';
+  }
+
+  @override
+  String query_error_fieldNotPath(String name, String next) {
+    return '\"$name\" is een veld en kan niet gevolgd worden door \".$next\"';
+  }
+
+  @override
+  String query_error_tooManyHops(String max) {
+    return 'een query mag hoogstens $max relaties doorlopen, geneste groepen meegeteld';
+  }
+
+  @override
+  String query_error_pathTooLong(String max) {
+    return 'een pad mag hoogstens $max relaties doorlopen';
+  }
+
+  @override
+  String query_error_textNotSearchable(String table) {
+    return 'vrije tekst kan niet doorzocht worden binnen $table';
+  }
+
+  @override
+  String query_error_expectsReference(String name) {
+    return '$name verwacht een verwijzing';
+  }
+
+  @override
+  String query_error_expectsReferences(String name) {
+    return '$name verwacht verwijzingen';
+  }
+
+  @override
+  String get query_error_betweenNeedsTwo => 'between heeft twee waarden nodig';
+
+  @override
+  String get query_error_inNeedsList => 'in heeft een lijst nodig';
+
+  @override
+  String query_error_expectsNumber(String field) {
+    return '$field verwacht een getal';
+  }
+
+  @override
+  String query_error_outOfRange(String field) {
+    return 'waarde van $field valt buiten het bereik';
+  }
+
+  @override
+  String query_error_expectsText(String field) {
+    return '$field verwacht tekst';
+  }
+
+  @override
+  String query_error_expectsBool(String field) {
+    return '$field verwacht true of false';
+  }
+
+  @override
+  String query_error_expectsEnumValue(String field) {
+    return '$field verwacht een van de eigen waarden';
+  }
+
+  @override
+  String query_error_expectsSingleDay(String field) {
+    return '$field verwacht hier één dag';
+  }
+
+  @override
+  String query_error_expectsDate(String field) {
+    return '$field verwacht een datum';
+  }
+
+  @override
+  String get query_editor_needsText => 'Voer minstens één woord in';
+
+  @override
+  String get query_saveNeedsDiver =>
+      'Maak een duikersprofiel aan om query\'s op te slaan';
 }

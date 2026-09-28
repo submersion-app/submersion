@@ -57,16 +57,21 @@ MediaItem item(String id) => MediaItem(
 );
 
 void main() {
-  // SharePlus.instance is a `static final` that captures
-  // SharePlatform.instance the first time it is read and keeps it for the
-  // whole isolate. Swapping the platform per test would leave every share
-  // after the first one arriving at a fake nobody is looking at -- so there
-  // is exactly one, reset between tests.
+  // One fake for the whole file, reset between tests.
   final platform = _FakeSharePlatform();
   late Directory tempDir;
   late PathProviderPlatform originalPathProvider;
 
-  setUpAll(() => SharePlatform.instance = platform);
+  // The harness pins a forwarder that looks the platform up on every share
+  // (test/helpers/late_bound_share_platform.dart), so the fake comes out
+  // again when this file is done.
+  late SharePlatform originalSharePlatform;
+
+  setUpAll(() {
+    originalSharePlatform = SharePlatform.instance;
+    SharePlatform.instance = platform;
+  });
+  tearDownAll(() => SharePlatform.instance = originalSharePlatform);
 
   setUp(() async {
     platform.calls.clear();

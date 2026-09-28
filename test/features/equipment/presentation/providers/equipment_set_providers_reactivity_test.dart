@@ -146,6 +146,44 @@ void main() {
     expect(items.map((e) => e.id), unorderedEquals(['e1', 'e3']));
   });
 
+  test('equipmentSetProvider reflects a member colour written straight to '
+      'the attributes table (a synced colour edit touches nothing else, and '
+      'the set page figure is tinted by it)', () async {
+    final c = makeContainer();
+    final sub = c.listen(equipmentSetProvider('s1'), (_, _) {});
+    addTearDown(sub.close);
+
+    String? colourOfE2() => c
+        .read(equipmentSetProvider('s1'))
+        .value
+        ?.items
+        ?.firstWhere((e) => e.id == 'e2')
+        .attrText('color');
+
+    await c.read(equipmentSetProvider('s1').future);
+    expect(colourOfE2(), isNull);
+
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.equipmentAttributes)
+        .insert(
+          EquipmentAttributesCompanion.insert(
+            id: 'attr_e2_color',
+            equipmentId: 'e2',
+            attrKey: 'color',
+            valueText: const Value('#EF4444'),
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+
+    final colour = await pollUntil(() async {
+      await c.read(equipmentSetProvider('s1').future);
+      return colourOfE2();
+    }, (v) => v == '#EF4444');
+    expect(colour, '#EF4444');
+  });
+
   test('equipmentSetProvider reflects a renamed member (rename does not '
       'cascade, so the equipment table is watched directly)', () async {
     final c = makeContainer();

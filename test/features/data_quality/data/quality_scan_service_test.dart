@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
+import '../../../helpers/global_test_defaults.dart';
 import '../../../helpers/test_database.dart';
 
 /// Always throws: proves per-detector isolation.
@@ -105,7 +106,7 @@ void main() {
   test('scheduler merges bursts and is awaitable', () async {
     await seedFutureDive('d1');
     QualityScanScheduler.enabled = true;
-    addTearDown(() => QualityScanScheduler.enabled = false);
+    addTearDown(applyGlobalTestDefaults);
     scheduleQualityScan(['d1']);
     scheduleQualityScan(['d1']);
     await QualityScanScheduler.instance.idle;
