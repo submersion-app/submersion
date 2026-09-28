@@ -6,7 +6,8 @@ A test that only executes them asserts that a field copies or that two equal
 objects are equal, and would almost never catch a bug. Removing their lines
 from the report means no coverage target can be met by writing such tests.
 
-A copyWith counts as trivial only when its body is plain field copying; one
+A copyWith counts as trivial only when its body is plain field copying, and
+an ==, hashCode or toString only when its body is one plain expression; one
 with any other logic stays in the report. Everything else is untouched. A
 percentage can therefore move either way: it falls when covered boilerplate was
 propping it up, which is the point, and rises when uncovered boilerplate was
@@ -33,12 +34,24 @@ _GENERATED = (".g.dart", ".freezed.dart")
 _GENERATED_DIRS = ("lib/l10n/",)
 _ANNOTATION = re.compile(r"^[ \t]*@\w+(?:\([^\n]*\))?[ \t\r]*$")
 
-_SIGNATURES = [
+_ALWAYS = [
     re.compile(r"^[ \t]*(?:@override[ \t]+)?List<Object\?>[ \t]+get[ \t]+props\b", re.M),
+]
+# Exempt only when simple: see is_simple.
+_WHEN_SIMPLE = [
     re.compile(r"^[ \t]*(?:@override[ \t]+)?bool[ \t]+operator[ \t]*==[ \t]*\(", re.M),
     re.compile(r"^[ \t]*(?:@override[ \t]+)?int[ \t]+get[ \t]+hashCode\b", re.M),
     re.compile(r"^[ \t]*(?:@override[ \t]+)?String[ \t]+toString[ \t]*\([ \t]*\)", re.M),
 ]
+# A condition, a loop or a closure inside an expression. `?.`, `??` and `?[`
+# are null-aware access, not a condition, and the braces of a string
+# interpolation are not a closure body.
+_LOGIC = re.compile(
+    r"\b(?:if|for|while|switch|do|try|throw)\b|=>|\)\s*\{|(?<!\?)\?(?![.?\[=])"
+)
+_IDENTICAL_GUARD = re.compile(
+    r"^if\s*\(\s*identical\s*\(\s*this\s*,\s*\w+\s*\)\s*\)\s*return\s+true\s*;"
+)
 _COPY_WITH = re.compile(
     r"^[ \t]*(?:@override[ \t]+)?[A-Za-z_][\w<>?, \t]*[ \t]copyWith[ \t]*[(<]", re.M
 )
@@ -216,14 +229,49 @@ def is_pure_copy(code, body_start, body_end):
     return all(_ARGUMENT.match(argument) for argument in arguments)
 
 
+def is_simple(code, body_start, body_end):
+    """Whether an ==, hashCode or toString body is one plain expression.
+
+    An arrow body qualifies, and so does a block holding one return, after an
+    optional `if (identical(this, other)) return true;`. The expression may not
+    hold a condition, a loop or a closure.
+    """
+    body = code[body_start:body_end + 1].strip()
+    if body.startswith("=>"):
+        expression = body[2:].strip()
+        if expression.endswith(";"):
+            expression = expression[:-1]
+    else:
+        inner = body[1:]
+        if inner.endswith("}"):
+            inner = inner[:-1]
+        inner = inner.strip()
+        guard = _IDENTICAL_GUARD.match(inner)
+        if guard:
+            inner = inner[guard.end():].strip()
+        if (
+            not re.match(r"return\s", inner)
+            or not inner.endswith(";")
+            or inner.count(";") != 1
+        ):
+            return False
+        expression = inner[len("return"):-1]
+    return not _LOGIC.search(expression)
+
+
 def trivial_lines(source):
     """The 1-based line numbers that belong to trivial members of source."""
     code = mask(source)
     spans = []
-    for pattern in _SIGNATURES:
+    for pattern in _ALWAYS:
         for match in pattern.finditer(code):
             body = member_body(code, match.end())
             if body:
+                spans.append((match.start(), body[1]))
+    for pattern in _WHEN_SIMPLE:
+        for match in pattern.finditer(code):
+            body = member_body(code, match.end())
+            if body and is_simple(code, body[0], body[1]):
                 spans.append((match.start(), body[1]))
     for match in _COPY_WITH.finditer(code):
         body = member_body(code, match.end() - 1)

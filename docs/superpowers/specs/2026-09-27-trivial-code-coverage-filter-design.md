@@ -37,9 +37,18 @@ A member's lines are removed from the report when it is one of:
 |---|---|---|
 | `copyWith` | A method named `copyWith` | Every line of its body is plain copying (see below) |
 | Equatable `props` | A getter `List<Object?> get props` | Always |
-| `operator ==` | `bool operator ==(` | Always |
-| `hashCode` | `int get hashCode` | Always |
-| `toString` | `String toString(` | Always |
+| `operator ==` | `bool operator ==(` | Its body is one plain expression (see below) |
+| `hashCode` | `int get hashCode` | Its body is one plain expression |
+| `toString` | `String toString(` | Its body is one plain expression |
+
+An `==`, `hashCode` or `toString` body is one plain expression when it is an
+arrow body, or a block holding a single `return`, optionally after
+`if (identical(this, other)) return true;`. The expression may not hold a
+condition (`if`, a ternary `?`), a loop, a `switch`, a `throw` or a closure.
+Null-aware operators (`?.`, `??`, `?[`) and string interpolation are allowed.
+Measured on main, this keeps 8 of 227 such members (56 lines) in the report,
+each with real logic: a ternary suffix, a loop over a list, a hash over a
+mapped collection.
 
 A `copyWith` body is plain copying when every line, ignoring comments, blank
 lines and brackets, is one of:

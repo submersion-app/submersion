@@ -525,11 +525,14 @@ members (`scripts/filter_trivial_coverage.py`):
 - `copyWith`, when its body only copies fields into a constructor
   (`name: name ?? this.name`, `name: this.name`);
 - Equatable `props`;
-- `operator ==`, `hashCode` and `toString`.
+- `operator ==`, `hashCode` and `toString`, when the body is one plain
+  expression (`=> Object.hash(a, b)`, or a single `return`, optionally after
+  `if (identical(this, other)) return true;`).
 
 A `copyWith` with any other logic, such as a clear flag or a computed value,
-still counts, and so do `toJson` and `fromJson`. Generated files and
-`lib/l10n/` are not counted at all.
+still counts. So does an `==`, `hashCode` or `toString` with a condition, a
+loop, a local variable or a closure, and so do `toJson` and `fromJson`.
+Generated files and `lib/l10n/` are not counted at all.
 
 Test behaviour, not lines. A test that only checks that a field copies, or
 that two equal objects are equal, would almost never catch a bug, and the

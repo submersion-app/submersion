@@ -65,6 +65,108 @@ class RecognitionTest(unittest.TestCase):
             """
         self.assertEqual(lines_of(source), {2, 3})
 
+    def test_equality_with_an_identical_guard_is_exempt(self):
+        source = """
+            class A {
+              @override
+              bool operator ==(Object other) {
+                if (identical(this, other)) return true;
+                return other is A && other.a?.id == a?.id && (b ?? 0) == 0;
+              }
+            }
+            """
+        self.assertEqual(lines_of(source), {2, 3, 4, 5, 6})
+
+    def test_equality_with_a_loop_stays_counted(self):
+        source = """
+            class A {
+              @override
+              bool operator ==(Object other) {
+                if (other is! A || other.ids.length != ids.length) return false;
+                for (var i = 0; i < ids.length; i++) {
+                  if (other.ids[i] != ids[i]) return false;
+                }
+                return true;
+              }
+            }
+            """
+        self.assertEqual(lines_of(source), set())
+
+    def test_a_to_string_with_a_condition_stays_counted(self):
+        source = """
+            class A {
+              @override
+              String toString() {
+                final text = cause == null ? message : '$message: $cause';
+                return text.length > 200 ? text.substring(0, 200) : text;
+              }
+            }
+            """
+        self.assertEqual(lines_of(source), set())
+
+    def test_a_to_string_with_a_ternary_arrow_stays_counted(self):
+        source = """
+            class A {
+              @override
+              String toString() => cause == null ? message : '$message: $cause';
+            }
+            """
+        self.assertEqual(lines_of(source), set())
+
+    def test_a_condition_inside_an_interpolation_stays_counted(self):
+        source = """
+            class A {
+              @override
+              String toString() => 'A(${a > 0 ? a : 0})';
+            }
+            """
+        self.assertEqual(lines_of(source), set())
+
+    def test_a_hash_code_with_a_closure_stays_counted(self):
+        source = """
+            class A {
+              @override
+              int get hashCode => items.fold(0, (h, i) => h ^ i.hashCode);
+            }
+            """
+        self.assertEqual(lines_of(source), set())
+
+    def test_a_block_closure_stays_counted(self):
+        source = """
+            class A {
+              @override
+              String toString() => items.map((i) { return i.name; }).join();
+            }
+            """
+        self.assertEqual(lines_of(source), set())
+
+    def test_a_hash_code_over_a_list_is_exempt(self):
+        source = """
+            class A {
+              @override
+              int get hashCode => Object.hashAll([a, b, ...items]);
+            }
+            """
+        self.assertEqual(lines_of(source), {2, 3})
+
+    def test_a_to_string_with_interpolated_members_is_exempt(self):
+        source = """
+            class A {
+              @override
+              String toString() => '$runtimeType(${props.join(', ')}, ${a ?? b})';
+            }
+            """
+        self.assertEqual(lines_of(source), {2, 3})
+
+    def test_props_is_exempt_whatever_it_holds(self):
+        source = """
+            class A {
+              @override
+              List<Object?> get props => [a, if (b != null) b];
+            }
+            """
+        self.assertEqual(lines_of(source), {2, 3})
+
     def test_ordinary_members_are_left_alone(self):
         source = """
             class A {

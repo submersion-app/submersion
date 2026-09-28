@@ -386,8 +386,8 @@ jobs:
           flutter test --coverage --exclude-tags performance "${paths[@]}"
 
       - name: Drop trivial members from coverage
-        # copyWith, props, ==, hashCode and toString count toward no coverage
-        # target, so no one writes a test only to execute them. A PR whose
+        # Plain copyWith, props, ==, hashCode and toString count toward no
+        # coverage target, so no one writes a test only to execute them. A PR whose
         # coverage came mostly from such lines sees its patch status fall,
         # which is the intent (see scripts/filter_trivial_coverage.py and
         # docs/developer/testing.md).
