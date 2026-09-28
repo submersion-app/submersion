@@ -3692,6 +3692,41 @@ void main() {
       expect(find.text("Choose your dive log's folder"), findsNothing);
     });
 
+    // Copilot on PR 2497: every route out moves or reopens the database, so
+    // one must not run while a connection still holds it. The close is
+    // retried first; only one that still fails stops the route.
+    testWidgets('a route does not run while the connection will not close', (
+      tester,
+    ) async {
+      final recovery = _FakeStartupRecoveryService();
+      await pumpUnreachable(
+        tester,
+        locationService: _UnreachableLocationService(
+          prefs,
+          dbPath,
+          folder: folder,
+        ),
+        recoveryServiceOverride: recovery,
+        fileReached: true,
+        closeError: StateError('connection is stuck'),
+        initializer: (_) async => throw Exception('notifications blew up'),
+      );
+
+      await tester.ensureVisible(find.text('Start with an empty dive log'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start with an empty dive log'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('That did not work'), findsOneWidget);
+      expect(find.textContaining('connection is stuck'), findsOneWidget);
+      expect(find.text('Start fresh'), findsNothing, reason: 'no confirm');
+
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      expect(recovery.setAsideCalls, 0);
+      expect(find.text('Submersion could not start'), findsOneWidget);
+    });
+
     // Its answer could not change the screen, and on a dead network mount
     // each file call can block for the whole network timeout.
     testWidgets('the folder is not probed when its answer cannot matter', (

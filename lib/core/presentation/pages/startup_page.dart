@@ -581,13 +581,21 @@ class _StartupWrapperState extends State<StartupWrapper>
     unawaited(_loadRecoveryOptions());
   }
 
-  /// Closes any connection this launch opened. Never throws: a connection
-  /// that will not close must not replace the failure being reported.
-  Future<void> _releaseDatabase() async {
+  /// Closes any connection this launch opened, and returns why it would not
+  /// close, or null once none is open.
+  ///
+  /// The strict close, not the app-exit one: every route out of the failure
+  /// screen moves or reopens this file, and the exit path may abandon a
+  /// worker still holding it. Never throws: a connection that will not close
+  /// must not replace the failure being reported. A no-op once closed.
+  Future<Object?> _releaseDatabase() async {
     try {
-      await (widget.closeDatabaseOverride ?? DatabaseService.instance.close)();
+      await (widget.closeDatabaseOverride ??
+          () => DatabaseService.instance.close(strict: true))();
+      return null;
     } catch (e) {
       debugPrint('Could not close the database after a failed start: $e');
+      return e;
     }
   }
 
@@ -1598,6 +1606,14 @@ class _StartupWrapperState extends State<StartupWrapper>
     if (_recoveryRoutesBusy) return;
     setState(() => _recoveryBusy = true);
     try {
+      // Every route moves or reopens the database. One that failed to close
+      // on the way to this screen gets another chance; one that still will
+      // not close stops the route rather than race the handle holding it.
+      final stuck = await _releaseDatabase();
+      if (stuck != null) {
+        await _reportRecoveryProblem(null, detail: '$stuck');
+        return;
+      }
       await action();
     } finally {
       // The screen is often gone by now (a successful route relaunches
