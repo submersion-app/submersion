@@ -191,7 +191,36 @@ else
         "left behind: $(ls "$tmp/repo/test/.bundles" 2>&1)"
 fi
 
-# --- Test 4: without a working python3 the files run one by one --------------
+# --- Test 4: bundler output with Windows line endings ------------------------
+#
+# Under Git Bash a native Windows python3 prints CRLF, and a carriage return
+# left on a path would make flutter test fail to open every bundle.
+
+real_python="$(command -v python3)"
+cat > "$tmp/bin/python3" <<STUB
+#!/bin/bash
+"$real_python" "\$@" | sed 's/\$/\r/'
+exit "\${PIPESTATUS[0]}"
+STUB
+chmod +x "$tmp/bin/python3"
+run_script "$tmp"
+
+case "$flutter_args" in
+    *$'\r'*)
+        fail 'strips carriage returns from the bundler output' \
+            "flutter was invoked with a carriage return: $(printf '%s' "$flutter_args" | od -c | head -3)"
+        ;;
+    *'test/.bundles/bundle_'*)
+        pass 'strips carriage returns from the bundler output'
+        ;;
+    *)
+        fail 'strips carriage returns from the bundler output' \
+            "flutter was invoked as: $flutter_args"
+        ;;
+esac
+rm "$tmp/bin/python3"
+
+# --- Test 5: without a working python3 the files run one by one --------------
 #
 # Git Bash on Windows may have no python3. A bundler that cannot run must not
 # stop the tests from running.

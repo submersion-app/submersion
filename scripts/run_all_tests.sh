@@ -107,8 +107,9 @@ rm -rf "$BUNDLE_DIR"
 bundle_list="$(python3 scripts/bundle_tests.py --total-shards 1 \
     --max-files "$MAX_FILES" --out "$BUNDLE_DIR" 2>/dev/null || true)"
 if [ -n "$bundle_list" ]; then
+    # A native Windows python3 under Git Bash ends each line with CRLF.
     while IFS= read -r line; do
-        ENTRYPOINTS+=("$line")
+        ENTRYPOINTS+=("${line%$'\r'}")
     done <<< "$bundle_list"
     echo "Running the suite as ${#ENTRYPOINTS[@]} bundled entrypoints (concurrency $CONCURRENCY)."
 else
