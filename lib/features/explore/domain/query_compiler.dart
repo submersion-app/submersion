@@ -33,6 +33,36 @@ const Map<String, int> _weekdayNumbers = {
   'sun': 7,
 };
 
+/// The weekday names the dive query registry uses.
+const Map<String, String> _weekdayQueryNames = {
+  'mon': 'monday',
+  'tue': 'tuesday',
+  'wed': 'wednesday',
+  'thu': 'thursday',
+  'fri': 'friday',
+  'sat': 'saturday',
+  'sun': 'sunday',
+};
+
+/// Enum fields with no plain filter axis (or whose axis is already taken),
+/// lowered to a condition on this dive query field. The catalog's enum
+/// values are the registry's own enum names.
+const Map<ExploreDiveField, String> _enumQueryKeys = {
+  ExploreDiveField.waterType: 'waterType',
+  ExploreDiveField.weekday: 'weekday',
+  ExploreDiveField.diveMode: 'diveMode',
+  ExploreDiveField.entryMethod: 'entryMethod',
+  ExploreDiveField.currentStrength: 'currentStrength',
+};
+
+/// Numeric fields with no plain filter axis, lowered to inclusive bounds on
+/// this dive query field. Values are metric, like the registry's.
+const Map<ExploreDiveField, String> _numberQueryKeys = {
+  ExploreDiveField.avgDepth: 'avgDepth',
+  ExploreDiveField.airTemp: 'airTemp',
+  ExploreDiveField.diveNumber: 'diveNumber',
+};
+
 typedef _Lowered = ({DiveFilterState? filter, ClauseChip? chip, String? error});
 
 _Lowered _fail(String error) => (filter: null, chip: null, error: error);
@@ -140,12 +170,15 @@ abstract final class QueryCompiler {
     );
   }
 
-  /// Up to five same-kind labels above a loose similarity floor, offered as
-  /// candidates for a mention the strict resolver could not place.
+  /// Up to five labels above a loose similarity floor, offered as candidates
+  /// for a mention the strict resolver could not place. Searches the same
+  /// kinds the resolver does, so a misspelt place can suggest a site.
   static List<NameEntry> _nearest(QueryMention m, NameIndex names) {
     final q = normalize(m.text);
     final scored = <(NameEntry, double)>[];
-    for (final e in names.forKind(m.kind)) {
+    for (final e in [
+      for (final k in mentionSearchKinds(m.kind)) ...names.forKind(k),
+    ]) {
       final s = diceCoefficient(q, normalize(e.label));
       if (s > 0.3) scored.add((e, s));
     }
@@ -221,35 +254,64 @@ abstract final class QueryCompiler {
         ? raw.whereType<String>().toList()
         : [if (raw is String) raw];
     if (values.isEmpty) return _fail('invalid');
-    final allowed = spec.enumValues;
-    if (allowed == null) return _fail('noAxis');
-    if (values.any((v) => !allowed.contains(v))) return _fail('invalid');
-    final chosen = c.op == ClauseOp.not
-        ? allowed.where((v) => !values.contains(v)).toList()
-        : values;
     final chip = ClauseChip(
       field: field,
       op: c.op,
       value: values,
       dimension: FieldDimension.none,
     );
+    final allowed = spec.enumValues;
+    if (allowed == null) {
+      // A dive type is the diver's own entity, named in their words: an
+      // exact (case-insensitive) name match through the types junction.
+      if (field != ExploreDiveField.diveType || values.length != 1) {
+        return _fail('invalid');
+      }
+      return (
+        filter: _andQuery(
+          f,
+          ConditionNode(
+            FieldPath(['types', 'name']),
+            QueryOp.eq,
+            StringValue(values.single),
+          ),
+        ),
+        chip: chip,
+        error: null,
+      );
+    }
+    if (values.any((v) => !allowed.contains(v))) return _fail('invalid');
+    final chosen = c.op == ClauseOp.not
+        ? allowed.where((v) => !values.contains(v)).toList()
+        : values;
+    // Each clause is its own condition, ANDed with the rest. The first
+    // water-type or weekday clause uses the plain filter axis; a second one
+    // on the same field must not merge into that axis, whose values OR.
     switch (field) {
-      case ExploreDiveField.waterType:
+      case ExploreDiveField.waterType when f.waterTypes.isEmpty:
         final types = chosen.map((v) => WaterType.values.byName(v)).toList();
-        return (
-          filter: f.copyWith(waterTypes: [...f.waterTypes, ...types]),
-          chip: chip,
-          error: null,
-        );
-      case ExploreDiveField.weekday:
+        return (filter: f.copyWith(waterTypes: types), chip: chip, error: null);
+      case ExploreDiveField.weekday when f.weekdays.isEmpty:
         final days = chosen.map((v) => _weekdayNumbers[v]!).toList();
+        return (filter: f.copyWith(weekdays: days), chip: chip, error: null);
+      default:
+        final key = _enumQueryKeys[field];
+        if (key == null) return _fail('noAxis');
+        final names = field == ExploreDiveField.weekday
+            ? chosen.map((v) => _weekdayQueryNames[v]!)
+            : chosen;
         return (
-          filter: f.copyWith(weekdays: [...f.weekdays, ...days]),
+          filter: _andQuery(
+            f,
+            ConditionNode(
+              FieldPath([key]),
+              QueryOp.inList,
+              ListValue([for (final n in names) EnumValue(n)]),
+            ),
+          ),
           chip: chip,
           error: null,
         );
-      default:
-        return _fail('noAxis');
     }
   }
 
@@ -366,7 +428,22 @@ abstract final class QueryCompiler {
         }
         return (filter: next, chip: chip, error: null);
       default:
-        return _fail('noAxis');
+        final key = _numberQueryKeys[field];
+        if (key == null) return _fail('noAxis');
+        var next = f;
+        if (lo != null) {
+          next = _andQuery(
+            next,
+            ConditionNode(FieldPath([key]), QueryOp.gte, NumberValue(lo, null)),
+          );
+        }
+        if (hi != null) {
+          next = _andQuery(
+            next,
+            ConditionNode(FieldPath([key]), QueryOp.lte, NumberValue(hi, null)),
+          );
+        }
+        return (filter: next, chip: chip, error: null);
     }
   }
 
@@ -385,8 +462,10 @@ abstract final class QueryCompiler {
     if (v == null) return true;
     return switch (field) {
       ExploreDiveField.depth || ExploreDiveField.avgDepth => v >= 0 && v <= 350,
-      ExploreDiveField.waterTemp ||
-      ExploreDiveField.airTemp => v >= -5 && v <= 45,
+      // The dive query registry's sanity bounds: ice diving puts the air
+      // well below the water's floor.
+      ExploreDiveField.waterTemp => v >= -5 && v <= 45,
+      ExploreDiveField.airTemp => v >= -40 && v <= 60,
       ExploreDiveField.visibility => v >= 0 && v <= 200,
       ExploreDiveField.rating => v >= 1 && v <= 5,
       ExploreDiveField.o2 => v >= 1 && v <= 100,

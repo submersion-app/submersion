@@ -39895,6 +39895,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get explore_shortcut_unavailable =>
+      'A felfedezéshez az eszközön futó modell szükséges, amely ezen az eszközön nem áll készen.';
+
+  @override
   String get explore_subjectNotSupported =>
       'Jelenleg csak merülések kereshetők.';
 

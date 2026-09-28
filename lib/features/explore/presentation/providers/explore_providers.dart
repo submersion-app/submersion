@@ -91,16 +91,19 @@ typedef RecentQueryRecorder =
 // and the list provider follows the table's own tick.
 final recentQueryRecorderProvider = Provider<RecentQueryRecorder>((ref) {
   final repo = ref.watch(recentQueryRepositoryProvider);
-  return (sentence, locale, parsed) => repo.record(sentence, locale, parsed);
+  return (sentence, locale, parsed) async {
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    await repo.record(sentence, locale, parsed, diverId: diverId ?? '');
+  };
 });
 
-/// The diver's recent sentences for the active locale, newest first.
+/// The active diver's recent sentences for the active locale, newest first.
 final recentQueriesProvider = FutureProvider<List<RecentQuery>>((ref) async {
   final repo = ref.watch(recentQueryRepositoryProvider);
   ref.invalidateSelfWhen(repo.watchChanges());
   final locale = ref.watch(localeProvider);
-  final all = await repo.list();
-  return all.where((q) => q.locale == locale).toList();
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repo.list(diverId: diverId ?? '', locale: locale);
 });
 
 class ExploreState {
@@ -312,13 +315,29 @@ Stream<void> _exploreTick(DiveRepository repo, DiveFilterState filter) {
       : repo.watchTables({'dives', ...extra});
 }
 
+const _queryLog = LoggerService('ExploreQueries');
+
+/// Runs a results or chart query, logging a failure on its way to the
+/// widget, which shows the diver a sentence rather than the exception.
+Future<T> _logged<T>(String what, Future<T> Function() body) async {
+  try {
+    return await body();
+  } catch (e, stackTrace) {
+    _queryLog.error('Explore $what failed', error: e, stackTrace: stackTrace);
+    rethrow;
+  }
+}
+
 final exploreResultsProvider = FutureProvider<List<DiveSummary>>((ref) async {
   final filter = ref.watch(exploreFilterProvider);
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   final repo = ref.watch(diveRepositoryProvider);
   ref.invalidateSelfWhen(_exploreTick(repo, filter));
   if (!filter.hasActiveFilters) return const [];
-  return repo.getDiveSummaries(diverId: diverId, filter: filter, limit: 100);
+  return _logged(
+    'results',
+    () => repo.getDiveSummaries(diverId: diverId, filter: filter, limit: 100),
+  );
 });
 
 final exploreCountProvider = FutureProvider<int>((ref) async {
@@ -327,7 +346,10 @@ final exploreCountProvider = FutureProvider<int>((ref) async {
   final repo = ref.watch(diveRepositoryProvider);
   ref.invalidateSelfWhen(_exploreTick(repo, filter));
   if (!filter.hasActiveFilters) return 0;
-  return repo.getDiveCount(diverId: diverId, filter: filter);
+  return _logged(
+    'count',
+    () => repo.getDiveCount(diverId: diverId, filter: filter),
+  );
 });
 
 class ExploreChartData {
@@ -343,63 +365,65 @@ final exploreChartDataProvider =
       final stats = ref.watch(insightsRepositoryProvider);
       ref.invalidateSelfWhen(stats.watchInsightsChanges());
       if (!filter.hasActiveFilters) return const ExploreChartData();
-      switch (request.kind) {
-        case ChartKind.divesOverTime:
-          return ExploreChartData(
-            points: await stats.getCumulativeDiveCount(
-              diverId: diverId,
-              filter: filter,
-            ),
-          );
-        case ChartKind.depthTrend:
-          return ExploreChartData(
-            points: await stats.getDepthPerDive(
-              diverId: diverId,
-              filter: filter,
-            ),
-          );
-        case ChartKind.waterTempTrend:
-          return ExploreChartData(
-            points: await stats.getWaterTempPerDive(
-              diverId: diverId,
-              filter: filter,
-            ),
-          );
-        case ChartKind.bottomTimeTrend:
-          return ExploreChartData(
-            points: await stats.getBottomTimePerDive(
-              diverId: diverId,
-              filter: filter,
-            ),
-          );
-        case ChartKind.entityCounts:
-          final rows = switch (request.entityKind) {
-            MentionKind.species => (await stats.getMostCommonSightings(
-              diverId: diverId,
-              filter: filter,
-            )).map((r) => (label: r.name, count: r.count)).toList(),
-            MentionKind.buddy => (await stats.getTopBuddies(
-              diverId: diverId,
-              filter: filter,
-            )).map((r) => (label: r.name, count: r.count)).toList(),
-            MentionKind.center => (await stats.getTopDiveCenters(
-              diverId: diverId,
-              filter: filter,
-            )).map((r) => (label: r.name, count: r.count)).toList(),
-            MentionKind.gear => (await stats.getMostUsedGear(
-              diverId: diverId,
-              filter: filter,
-            )).map((r) => (label: r.name, count: r.count)).toList(),
-            MentionKind.site || MentionKind.place =>
-              (await ref
-                      .watch(exploreRepositoryProvider)
-                      .diveCountBySite(filter, diverId: diverId))
-                  .map((r) => (label: r.name, count: r.count))
-                  .toList(),
-            // selectCharts only requests kRankedEntityKinds; anything else
-            // draws nothing rather than another kind's counts.
-            _ => const <({String label, int count})>[],
-          };
-          return ExploreChartData(bars: rows);
-      }
+      final repo = ref.watch(exploreRepositoryProvider);
+      return _logged('chart ${request.kind.name}', () async {
+        switch (request.kind) {
+          case ChartKind.divesOverTime:
+            return ExploreChartData(
+              points: await stats.getCumulativeDiveCount(
+                diverId: diverId,
+                filter: filter,
+              ),
+            );
+          case ChartKind.depthTrend:
+            return ExploreChartData(
+              points: await stats.getDepthPerDive(
+                diverId: diverId,
+                filter: filter,
+              ),
+            );
+          case ChartKind.waterTempTrend:
+            return ExploreChartData(
+              points: await stats.getWaterTempPerDive(
+                diverId: diverId,
+                filter: filter,
+              ),
+            );
+          case ChartKind.bottomTimeTrend:
+            return ExploreChartData(
+              points: await stats.getBottomTimePerDive(
+                diverId: diverId,
+                filter: filter,
+              ),
+            );
+          case ChartKind.entityCounts:
+            final rows = switch (request.entityKind) {
+              MentionKind.species => (await stats.getMostCommonSightings(
+                diverId: diverId,
+                filter: filter,
+              )).map((r) => (label: r.name, count: r.count)).toList(),
+              MentionKind.buddy => (await stats.getTopBuddies(
+                diverId: diverId,
+                filter: filter,
+              )).map((r) => (label: r.name, count: r.count)).toList(),
+              MentionKind.center => (await stats.getTopDiveCenters(
+                diverId: diverId,
+                filter: filter,
+              )).map((r) => (label: r.name, count: r.count)).toList(),
+              MentionKind.gear => (await stats.getMostUsedGear(
+                diverId: diverId,
+                filter: filter,
+              )).map((r) => (label: r.name, count: r.count)).toList(),
+              MentionKind.site ||
+              MentionKind.place => (await repo.diveCountBySite(
+                filter,
+                diverId: diverId,
+              )).map((r) => (label: r.name, count: r.count)).toList(),
+              // selectCharts only requests kRankedEntityKinds; anything else
+              // draws nothing rather than another kind's counts.
+              _ => const <({String label, int count})>[],
+            };
+            return ExploreChartData(bars: rows);
+        }
+      });
     });

@@ -40157,6 +40157,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get explore_shortcut_unavailable =>
+      'Explorer nécessite le modèle sur l\'appareil, qui n\'est pas prêt sur cet appareil.';
+
+  @override
   String get explore_subjectNotSupported =>
       'Seules les plongées peuvent être recherchées pour l\'instant.';
 

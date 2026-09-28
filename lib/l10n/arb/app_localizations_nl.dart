@@ -39789,6 +39789,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get explore_shortcut_unavailable =>
+      'Verkennen heeft het model op het apparaat nodig, dat op dit apparaat niet klaar is.';
+
+  @override
   String get explore_subjectNotSupported =>
       'Voorlopig kunnen alleen duiken worden gezocht.';
 

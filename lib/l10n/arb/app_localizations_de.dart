@@ -39978,6 +39978,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get explore_shortcut_unavailable =>
+      'Erkunden benötigt das Modell auf dem Gerät, das auf diesem Gerät nicht bereit ist.';
+
+  @override
   String get explore_subjectNotSupported =>
       'Derzeit können nur Tauchgänge gesucht werden.';
 

@@ -12025,6 +12025,7 @@
   "explore_recent_title": "Zuletzt",
   "explore_results_title": "Passende Tauchgänge",
   "explore_results_truncated": "Die ersten {count} werden angezeigt. In der Tauchgangsliste öffnen, um alle zu sehen.",
+  "explore_shortcut_unavailable": "Erkunden benötigt das Modell auf dem Gerät, das auf diesem Gerät nicht bereit ist.",
   "explore_subjectNotSupported": "Derzeit können nur Tauchgänge gesucht werden.",
   "explore_title": "Erkunden",
   "explore_understood_title": "Verstanden",

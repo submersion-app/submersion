@@ -11913,6 +11913,7 @@
   "explore_recent_title": "Récents",
   "explore_results_title": "Plongées correspondantes",
   "explore_results_truncated": "Affichage des {count} premiers. Ouvrez la liste des plongées pour les voir toutes.",
+  "explore_shortcut_unavailable": "Explorer nécessite le modèle sur l'appareil, qui n'est pas prêt sur cet appareil.",
   "explore_subjectNotSupported": "Seules les plongées peuvent être recherchées pour l'instant.",
   "explore_title": "Explorer",
   "explore_understood_title": "Compris",

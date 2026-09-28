@@ -256,7 +256,6 @@ void main() {
           'text': 'below 900m',
         },
         {'field': 'waterTemp', 'op': 'gt', 'value': 'warm', 'text': 'warm'},
-        {'field': 'avgDepth', 'op': 'gt', 'value': 10, 'text': 'avg over 10'},
       ],
       'time': {'text': 'when the water was warm'},
       'unplaced': ['maybe'],
@@ -268,7 +267,6 @@ void main() {
       'depth in',
       'below 900m',
       'warm',
-      'avg over 10',
       'when the water was warm',
       'maybe',
     ]);
@@ -277,7 +275,6 @@ void main() {
       'invalid',
       'outOfRange',
       'invalid',
-      'noAxis',
       'unknownTime',
       null,
     ]);

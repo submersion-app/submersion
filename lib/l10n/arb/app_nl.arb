@@ -11913,6 +11913,7 @@
   "explore_recent_title": "Recent",
   "explore_results_title": "Overeenkomende duiken",
   "explore_results_truncated": "De eerste {count} worden getoond. Open de duiklijst voor alle duiken.",
+  "explore_shortcut_unavailable": "Verkennen heeft het model op het apparaat nodig, dat op dit apparaat niet klaar is.",
   "explore_subjectNotSupported": "Voorlopig kunnen alleen duiken worden gezocht.",
   "explore_title": "Verkennen",
   "explore_understood_title": "Begrepen",

@@ -37848,6 +37848,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get explore_shortcut_unavailable => '探索需要设备端模型，但此设备上的模型尚未就绪。';
+
+  @override
   String get explore_subjectNotSupported => '目前只能搜索潜水记录。';
 
   @override

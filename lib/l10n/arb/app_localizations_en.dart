@@ -39508,6 +39508,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get explore_shortcut_unavailable =>
+      'Explore needs the on-device model, which is not ready on this device.';
+
+  @override
   String get explore_subjectNotSupported =>
       'Only dives can be searched for now.';
 

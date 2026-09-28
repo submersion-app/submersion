@@ -58,8 +58,11 @@ class _ExploreChartCard extends ConsumerWidget {
                 height: 180,
                 child: Center(child: CircularProgressIndicator()),
               ),
-              error: (e, _) =>
-                  SizedBox(height: 80, child: Center(child: Text('$e'))),
+              // The provider logs the cause; the diver gets a sentence.
+              error: (_, _) => SizedBox(
+                height: 80,
+                child: Center(child: Text(l10n.common_error_tryAgain)),
+              ),
               data: (d) => request.kind == ChartKind.entityCounts
                   ? HorizontalCategoryBarChart(data: d.bars)
                   : DiveTrendChart(

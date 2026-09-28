@@ -11913,6 +11913,7 @@
   "explore_recent_title": "Legutóbbi",
   "explore_results_title": "Egyező merülések",
   "explore_results_truncated": "Az első {count} látható. Az összeshez nyissa meg a merüléslistát.",
+  "explore_shortcut_unavailable": "A felfedezéshez az eszközön futó modell szükséges, amely ezen az eszközön nem áll készen.",
   "explore_subjectNotSupported": "Jelenleg csak merülések kereshetők.",
   "explore_title": "Felfedezés",
   "explore_understood_title": "Értelmezve",

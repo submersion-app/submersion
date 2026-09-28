@@ -1,13 +1,16 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/name_index.dart';
+import 'package:submersion/features/explore/domain/query_compiler.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -158,6 +161,91 @@ void main() {
     expect(data.bars, isEmpty);
   });
 
+  test(
+    'query-tree clauses from the compiler run against the database',
+    () async {
+      // The fields with no plain filter axis compile to query-tree
+      // conditions; this runs them as SQL, including the hop through the
+      // types junction to a dive type's name.
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion(
+              id: const Value('match'),
+              diveDateTime: Value(now),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+              avgDepth: const Value(18),
+              diveMode: const Value('ccr'),
+            ),
+          );
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion(
+              id: const Value('other'),
+              diveDateTime: Value(now),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+              avgDepth: const Value(9),
+              diveMode: const Value('ccr'),
+            ),
+          );
+      await db
+          .into(db.diveTypes)
+          .insert(
+            DiveTypesCompanion(
+              id: const Value('custom-cavern'),
+              name: const Value('Cavern Tour'),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+      for (final dive in ['match', 'other']) {
+        await db
+            .into(db.diveDiveTypes)
+            .insert(
+              DiveDiveTypesCompanion(
+                id: Value('j-$dive'),
+                diveId: Value(dive),
+                diveTypeId: const Value('custom-cavern'),
+                createdAt: Value(now),
+              ),
+            );
+      }
+      final compiled = QueryCompiler.compile(
+        ParsedQuery.fromJson({
+          'schemaVersion': kQuerySchemaVersion,
+          'subject': 'dives',
+          'clauses': [
+            {'field': 'avgDepth', 'op': 'gt', 'value': 15, 'text': 'avg'},
+            {'field': 'diveMode', 'op': 'eq', 'value': 'ccr', 'text': 'ccr'},
+            {
+              'field': 'diveType',
+              'op': 'eq',
+              'value': 'cavern tour',
+              'text': 'cavern',
+            },
+          ],
+        }),
+        CompilerContext(
+          units: (
+            depth: DepthUnit.meters,
+            temperature: TemperatureUnit.celsius,
+            pressure: PressureUnit.bar,
+          ),
+          names: NameIndex.empty,
+          now: DateTime(2026, 9, 28),
+        ),
+      );
+      expect(compiled.unplaced, isEmpty);
+      final c = await container();
+      c.read(exploreFilterProvider.notifier).state = compiled.filter;
+      final results = await c.read(exploreResultsProvider.future);
+      expect(results.map((s) => s.id), ['match']);
+    },
+  );
+
   test('the recorder writes a recent query the list provider reads', () async {
     final c = await container();
     await c.read(recentQueryRecorderProvider)(
@@ -177,7 +265,35 @@ void main() {
           'tortues',
           'fr',
           const ParsedQuery(subject: QuerySubject.dives),
+          diverId: '',
         );
     expect(await c.read(recentQueriesProvider.future), isEmpty);
+  });
+
+  test('recent queries are scoped to the active diver', () async {
+    final overrides = await getBaseOverrides();
+    final c = ProviderContainer(
+      overrides: [
+        ...overrides,
+        localeProvider.overrideWithValue('en'),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'ana'),
+      ].cast(),
+    );
+    addTearDown(c.dispose);
+    await c
+        .read(recentQueryRepositoryProvider)
+        .record(
+          'wrecks with Bob',
+          'en',
+          const ParsedQuery(subject: QuerySubject.dives),
+          diverId: 'bob',
+        );
+    await c.read(recentQueryRecorderProvider)(
+      'turtles with Ana',
+      'en',
+      const ParsedQuery(subject: QuerySubject.dives),
+    );
+    final recent = await c.read(recentQueriesProvider.future);
+    expect(recent.map((r) => r.sentence), ['turtles with Ana']);
   });
 }

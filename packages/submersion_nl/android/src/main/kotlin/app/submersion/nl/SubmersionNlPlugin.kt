@@ -11,11 +11,14 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -57,22 +60,27 @@ class SubmersionNlPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Event
     override fun onListen(arguments: Any?, events: EventChannel.EventSink) {
         val m = client()
         downloadJob = scope.launch {
+            // Every way out of the download closes the stream, so the Dart
+            // listener's onDone runs after a failure as well as a success.
             try {
-                m.download().collect { status ->
+                m.download().takeWhile { status ->
                     when (status) {
                         is DownloadStatus.DownloadStarted -> events.success(0.0)
                         is DownloadStatus.DownloadProgress -> {}
-                        is DownloadStatus.DownloadCompleted -> {
-                            events.success(1.0)
-                            events.endOfStream()
-                        }
+                        is DownloadStatus.DownloadCompleted -> events.success(1.0)
                         is DownloadStatus.DownloadFailed ->
                             events.error("model_not_ready", status.e.message, null)
                     }
-                }
+                    status !is DownloadStatus.DownloadCompleted &&
+                        status !is DownloadStatus.DownloadFailed
+                }.collect()
+            } catch (e: CancellationException) {
+                // onCancel: the listener is gone, so nothing is sent.
+                throw e
             } catch (e: Exception) {
                 events.error("model_not_ready", e.message, null)
             }
+            events.endOfStream()
         }
     }
 

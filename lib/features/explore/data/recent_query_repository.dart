@@ -20,8 +20,11 @@ class RecentQuery {
   });
 }
 
-/// The last [cap] Explore sentences with their parse, in the local cache
-/// database (never synced, never backed up).
+/// Each diver's last [cap] Explore sentences with their parse, in the local
+/// cache database (never synced, never backed up).
+///
+/// Scoped to the diver who asked: a sentence names that diver's buddies and
+/// sites, and a pinned mention carries one of their entity ids.
 class RecentQueryRepository {
   RecentQueryRepository({LocalCacheDatabase? database}) : _database = database;
   final LocalCacheDatabase? _database;
@@ -30,12 +33,21 @@ class RecentQueryRepository {
 
   static const int cap = 20;
 
-  static String keyFor(String sentence, String locale) =>
-      '${fuzzy.normalize(sentence).replaceAll(RegExp(r'\s+'), ' ')}|$locale';
+  static String keyFor(String diverId, String sentence, String locale) =>
+      '$diverId|${fuzzy.normalize(sentence).replaceAll(RegExp(r'\s+'), ' ')}'
+      '|$locale';
 
-  Future<List<RecentQuery>> list({int limit = cap}) async {
+  /// The diver's recent sentences in [locale], newest first.
+  Future<List<RecentQuery>> list({
+    required String diverId,
+    required String locale,
+    int limit = cap,
+  }) async {
     final rows =
         await (_db.select(_db.recentQueries)
+              ..where(
+                (t) => t.diverId.equals(diverId) & t.locale.equals(locale),
+              )
               ..orderBy([(t) => OrderingTerm.desc(t.lastUsedAt)])
               ..limit(limit))
             .get();
@@ -75,14 +87,16 @@ class RecentQueryRepository {
   Future<void> record(
     String sentence,
     String locale,
-    ParsedQuery parsed,
-  ) async {
+    ParsedQuery parsed, {
+    required String diverId,
+  }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db
         .into(_db.recentQueries)
         .insertOnConflictUpdate(
           RecentQueriesCompanion(
-            key: Value(keyFor(sentence, locale)),
+            key: Value(keyFor(diverId, sentence, locale)),
+            diverId: Value(diverId),
             sentence: Value(sentence),
             locale: Value(locale),
             parsedJson: Value(jsonEncode(parsed.toJson())),
@@ -91,10 +105,12 @@ class RecentQueryRepository {
             lastUsedAt: Value(now),
           ),
         );
-    // Keep the newest [cap] rows.
+    // Keep the diver's newest [cap] rows; another diver's are theirs.
     await _db.customStatement(
-      'DELETE FROM recent_queries WHERE key NOT IN '
-      '(SELECT key FROM recent_queries ORDER BY last_used_at DESC LIMIT $cap)',
+      'DELETE FROM recent_queries WHERE diver_id = ? AND key NOT IN '
+      '(SELECT key FROM recent_queries WHERE diver_id = ? '
+      'ORDER BY last_used_at DESC LIMIT $cap)',
+      [diverId, diverId],
     );
   }
 

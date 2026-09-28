@@ -11913,6 +11913,7 @@
   "explore_recent_title": "Recentes",
   "explore_results_title": "Mergulhos correspondentes",
   "explore_results_truncated": "A mostrar os primeiros {count}. Abra a lista de mergulhos para ver todos.",
+  "explore_shortcut_unavailable": "Explorar precisa do modelo no dispositivo, que não está pronto neste dispositivo.",
   "explore_subjectNotSupported": "Por agora só é possível pesquisar mergulhos.",
   "explore_title": "Explorar",
   "explore_understood_title": "Compreendido",

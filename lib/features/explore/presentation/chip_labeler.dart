@@ -1,4 +1,9 @@
+import 'package:intl/intl.dart';
+
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/explore/domain/compiled_query.dart';
 import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
@@ -73,16 +78,12 @@ class ChipLabeler {
         _value((v[1] as num).toDouble(), c.dimension),
       );
     }
-    if (v is List) {
-      final values = v.map((e) => '$e').join(', ');
+    if (v is List || v is String) {
+      final raw = v is List ? v.whereType<String>() : [v as String];
+      final values = raw.map((e) => _enumValue(c.field, e)).join(', ');
       return c.op == ClauseOp.not
           ? l10n.explore_chip_enumNot(name, values)
           : l10n.explore_chip_enum(name, values);
-    }
-    if (v is String) {
-      return c.op == ClauseOp.not
-          ? l10n.explore_chip_enumNot(name, v)
-          : l10n.explore_chip_enum(name, v);
     }
     final number = (v as num).toDouble();
     if (c.field == ExploreDiveField.rating) {
@@ -95,6 +96,34 @@ class ChipLabeler {
     );
   }
 
+  /// An enum value in the app language. The catalog's values are the enum
+  /// names, so each maps through the same localized names the dive editor
+  /// shows; a dive type is the diver's own name and stays as written.
+  String _enumValue(ExploreDiveField field, String v) => switch (field) {
+    ExploreDiveField.waterType =>
+      WaterType.values.byName(v).localizedName(l10n),
+    ExploreDiveField.diveMode => DiveMode.values.byName(v).localizedName(l10n),
+    ExploreDiveField.entryMethod =>
+      EntryMethod.values.byName(v).localizedName(l10n),
+    ExploreDiveField.currentStrength =>
+      CurrentStrength.values.byName(v).localizedName(l10n),
+    ExploreDiveField.weekday => DateFormat.E(l10n.localeName).format(
+      // 1 January 2024 was a Monday.
+      DateTime(2024, 1, _weekdayIndex[v]!),
+    ),
+    _ => v,
+  };
+
+  static const Map<String, int> _weekdayIndex = {
+    'mon': 1,
+    'tue': 2,
+    'wed': 3,
+    'thu': 4,
+    'fri': 5,
+    'sat': 6,
+    'sun': 7,
+  };
+
   String _time(DateTime? start, DateTime? end) {
     if (start != null && end != null) {
       return l10n.explore_chip_timeRange(
@@ -105,6 +134,11 @@ class ChipLabeler {
     if (start != null) {
       return l10n.explore_chip_timeSince(units.formatDate(start));
     }
-    return l10n.explore_chip_timeBefore(units.formatDate(end));
+    // [end] is the last INCLUDED day, so "Before" names the day after it:
+    // "before 2022" ends on 31 December 2021 and reads "Before 1 Jan 2022".
+    final e = end!;
+    return l10n.explore_chip_timeBefore(
+      units.formatDate(DateTime(e.year, e.month, e.day + 1)),
+    );
   }
 }

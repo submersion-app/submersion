@@ -64542,6 +64542,12 @@ abstract class AppLocalizations {
   /// **'Showing the first {count}. Open in the dive list for all of them.'**
   String explore_results_truncated(Object count);
 
+  /// No description provided for @explore_shortcut_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore needs the on-device model, which is not ready on this device.'**
+  String get explore_shortcut_unavailable;
+
   /// No description provided for @explore_subjectNotSupported.
   ///
   /// In en, this message translates to:

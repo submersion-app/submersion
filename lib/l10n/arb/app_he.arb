@@ -11913,6 +11913,7 @@
   "explore_recent_title": "אחרונים",
   "explore_results_title": "צלילות מתאימות",
   "explore_results_truncated": "מוצגים {count} הראשונים. פתחו את רשימת הצלילות לכולן.",
+  "explore_shortcut_unavailable": "חקירה דורשת את המודל במכשיר, שאינו מוכן במכשיר זה.",
   "explore_subjectNotSupported": "כרגע ניתן לחפש צלילות בלבד.",
   "explore_title": "חקירה",
   "explore_understood_title": "הובן",

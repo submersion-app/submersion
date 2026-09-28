@@ -39250,6 +39250,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get explore_shortcut_unavailable =>
+      'חקירה דורשת את המודל במכשיר, שאינו מוכן במכשיר זה.';
+
+  @override
   String get explore_subjectNotSupported => 'כרגע ניתן לחפש צלילות בלבד.';
 
   @override

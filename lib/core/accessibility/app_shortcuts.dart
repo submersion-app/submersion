@@ -1,14 +1,17 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/accessibility/not_while_typing_activator.dart';
 import 'package:submersion/core/accessibility/shortcut_registry.dart';
 import 'package:submersion/core/accessibility/shortcuts_help_dialog.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/divers/presentation/widgets/diver_switcher_sheet.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Creates a platform-appropriate shortcut activator.
 ///
@@ -33,6 +36,8 @@ class AppShortcuts {
   AppShortcuts._();
 
   static bool _registered = false;
+
+  static const _log = LoggerService('AppShortcuts');
 
   /// Forget that the shortcuts were registered, so the next
   /// [ensureRegistered] fills the catalog again.
@@ -108,12 +113,14 @@ class AppShortcuts {
         activator: platformShortcut(LogicalKeyboardKey.keyF),
         isGlobal: true,
       ),
-      ShortcutEntry(
-        label: 'Explore with a sentence',
-        category: 'Search',
-        activator: platformShortcut(LogicalKeyboardKey.keyE),
-        isGlobal: true,
-      ),
+      // Listed only where an on-device model adapter exists at all.
+      if (exploreSupportedOn(defaultTargetPlatform))
+        ShortcutEntry(
+          label: 'Explore with a sentence',
+          category: 'Search',
+          activator: platformShortcut(LogicalKeyboardKey.keyE),
+          isGlobal: true,
+        ),
 
       // General
       const ShortcutEntry(
@@ -152,6 +159,36 @@ class AppShortcuts {
         isGlobal: true,
       ),
     ]);
+  }
+
+  /// Opens Explore when the on-device model can answer, and says why not
+  /// otherwise. The page is useless without a model, so this honours the
+  /// same availability as the app bar action, but waits for the probe: a
+  /// press before anything asked would otherwise read "still loading" and
+  /// be dropped.
+  static Future<void> _openExplore(BuildContext context) async {
+    final container = ProviderScope.containerOf(context, listen: false);
+    final NlAvailability availability;
+    try {
+      availability = await container.read(exploreAvailabilityProvider.future);
+    } catch (e, stackTrace) {
+      // A failed probe is an unavailable model, as the app bar reads it.
+      _log.warning('Explore probe failed', error: e, stackTrace: stackTrace);
+      if (context.mounted) _showExploreUnavailable(context);
+      return;
+    }
+    if (!context.mounted) return;
+    if (availability == NlAvailability.available) {
+      context.push('/dives/explore');
+    } else {
+      _showExploreUnavailable(context);
+    }
+  }
+
+  static void _showExploreUnavailable(BuildContext context) {
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(content: Text(context.l10n.explore_shortcut_unavailable)),
+    );
   }
 
   /// Returns the global shortcut bindings map for [CallbackShortcuts].
@@ -198,13 +235,8 @@ class AppShortcuts {
       platformShortcut(LogicalKeyboardKey.keyF): () {
         context.push('/dives/search');
       },
-      platformShortcut(LogicalKeyboardKey.keyE): () {
-        // The page is useless without a model, so the shortcut honours the
-        // same gate as the app bar action.
-        if (ProviderScope.containerOf(context).read(exploreEnabledProvider)) {
-          context.push('/dives/explore');
-        }
-      },
+      if (exploreSupportedOn(defaultTargetPlatform))
+        platformShortcut(LogicalKeyboardKey.keyE): () => _openExplore(context),
 
       // Settings
       platformShortcut(LogicalKeyboardKey.comma): () {

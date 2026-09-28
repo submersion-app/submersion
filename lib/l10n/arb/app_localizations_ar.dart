@@ -39679,6 +39679,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get explore_shortcut_unavailable =>
+      'يحتاج الاستكشاف إلى النموذج على الجهاز، وهو غير جاهز على هذا الجهاز.';
+
+  @override
   String get explore_subjectNotSupported => 'يمكن البحث في الغطسات فقط حاليًا.';
 
   @override

@@ -23943,6 +23943,7 @@
   "explore_recent_title": "Recent",
   "explore_results_title": "Matching dives",
   "explore_results_truncated": "Showing the first {count}. Open in the dive list for all of them.",
+  "explore_shortcut_unavailable": "Explore needs the on-device model, which is not ready on this device.",
   "explore_subjectNotSupported": "Only dives can be searched for now.",
   "explore_title": "Explore",
   "explore_understood_title": "Understood",

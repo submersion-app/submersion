@@ -40053,6 +40053,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get explore_shortcut_unavailable =>
+      'Esplora richiede il modello sul dispositivo, che non è pronto su questo dispositivo.';
+
+  @override
   String get explore_subjectNotSupported =>
       'Per ora è possibile cercare solo immersioni.';
 

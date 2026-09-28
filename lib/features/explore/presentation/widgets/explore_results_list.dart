@@ -19,8 +19,11 @@ class ExploreResultsList extends ConsumerWidget {
         padding: EdgeInsets.all(24),
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (e, _) =>
-          Padding(padding: const EdgeInsets.all(16), child: Text('$e')),
+      // The provider logs the cause; the diver gets a sentence.
+      error: (_, _) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(context.l10n.common_error_tryAgain),
+      ),
       data: (dives) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

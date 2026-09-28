@@ -274,13 +274,18 @@ class DecoClassificationCache extends Table {
   Set<Column> get primaryKey => {diveId};
 }
 
-/// The diver's last Explore sentences with the model's parse, so the field
+/// Each diver's last Explore sentences with the model's parse, so the field
 /// can offer them and a re-run skips the model. Local-only by construction:
 /// no HLC, never synced, never backed up; rows with an older schema version
 /// are dropped on read.
 class RecentQueries extends Table {
-  /// Normalized sentence plus locale, so a retyped sentence bumps its row.
+  /// Diver, normalized sentence and locale, so a retyped sentence bumps its
+  /// row and two divers on one device never share one.
   TextColumn get key => text()();
+
+  /// The diver who asked. A sentence names that diver's own buddies and
+  /// sites, and its pinned identities are theirs.
+  TextColumn get diverId => text()();
   TextColumn get sentence => text()();
   TextColumn get locale => text()();
   TextColumn get parsedJson => text()();
@@ -561,10 +566,20 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
           PRIMARY KEY (dive_id)
         )
       ''');
-      // v18 mirror, same collision self-heal as above.
+      // v18 mirror, same collision self-heal as above. A development build
+      // of v18 created the table before rows carried a diver; the rows are
+      // a convenience cache, so that shape is dropped and recreated.
+      final recentColumns = await customSelect(
+        "SELECT name FROM pragma_table_info('recent_queries')",
+      ).get();
+      if (recentColumns.isNotEmpty &&
+          !recentColumns.any((r) => r.read<String>('name') == 'diver_id')) {
+        await customStatement('DROP TABLE recent_queries');
+      }
       await customStatement('''
         CREATE TABLE IF NOT EXISTS recent_queries (
           key TEXT NOT NULL,
+          diver_id TEXT NOT NULL,
           sentence TEXT NOT NULL,
           locale TEXT NOT NULL,
           parsed_json TEXT NOT NULL,

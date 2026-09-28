@@ -21,6 +21,15 @@ class Unresolved extends Resolution {
   const Unresolved();
 }
 
+/// The kinds a mention of [kind] is looked up under, in priority order. A
+/// place falls through to sites and a site to places, so "Bonaire" and
+/// "Salt Pier" both work under either.
+List<MentionKind> mentionSearchKinds(MentionKind kind) => switch (kind) {
+  MentionKind.place => const [MentionKind.place, MentionKind.site],
+  MentionKind.site => const [MentionKind.site, MentionKind.place],
+  _ => [kind],
+};
+
 /// Resolves one mention against the diver's own names by Dice similarity.
 ///
 /// Walks the kind's rank groups in order and stops at the first group with a
@@ -49,9 +58,7 @@ Resolution resolveMention(
     }
   }
 
-  addGroups(mention.kind);
-  if (mention.kind == MentionKind.place) addGroups(MentionKind.site);
-  if (mention.kind == MentionKind.site) addGroups(MentionKind.place);
+  mentionSearchKinds(mention.kind).forEach(addGroups);
 
   // A pick the diver already made wins outright. A pin whose entity no
   // longer exists falls through to the words, so a deleted buddy degrades

@@ -11913,6 +11913,7 @@
   "explore_recent_title": "最近",
   "explore_results_title": "匹配的潜水",
   "explore_results_truncated": "显示前 {count} 条。在潜水列表中查看全部。",
+  "explore_shortcut_unavailable": "探索需要设备端模型，但此设备上的模型尚未就绪。",
   "explore_subjectNotSupported": "目前只能搜索潜水记录。",
   "explore_title": "探索",
   "explore_understood_title": "已理解",

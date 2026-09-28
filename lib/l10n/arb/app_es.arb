@@ -11913,6 +11913,7 @@
   "explore_recent_title": "Recientes",
   "explore_results_title": "Inmersiones coincidentes",
   "explore_results_truncated": "Mostrando los primeros {count}. Abre la lista de inmersiones para verlos todos.",
+  "explore_shortcut_unavailable": "Explorar necesita el modelo del dispositivo, que no está listo en este dispositivo.",
   "explore_subjectNotSupported": "Por ahora solo se pueden buscar inmersiones.",
   "explore_title": "Explorar",
   "explore_understood_title": "Entendido",

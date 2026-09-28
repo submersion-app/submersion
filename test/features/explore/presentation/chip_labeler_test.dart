@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/explore/domain/compiled_query.dart';
@@ -11,6 +12,9 @@ import 'package:submersion/l10n/arb/app_localizations_de.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 void main() {
+  // The app loads date symbols through its localization delegates.
+  setUpAll(initializeDateFormatting);
+
   final l10n = AppLocalizationsEn();
   final metric = ChipLabeler(l10n, const UnitFormatter(AppSettings()));
   final imperial = ChipLabeler(
@@ -101,7 +105,7 @@ void main() {
     );
     expect(
       metric.label(chip(ExploreDiveField.diveMode, 'ccr', op: ClauseOp.eq)),
-      'Dive mode: ccr',
+      'Dive mode: Closed Circuit Rebreather',
     );
   });
 
@@ -126,7 +130,7 @@ void main() {
           dimension: FieldDimension.none,
         ),
       ),
-      'Water type: salt, fresh',
+      'Water type: Salt Water, Fresh Water',
     );
     expect(
       metric.label(
@@ -137,7 +141,7 @@ void main() {
           dimension: FieldDimension.none,
         ),
       ),
-      'Water type not salt',
+      'Water type not Salt Water',
     );
     expect(
       metric.label(
@@ -179,15 +183,52 @@ void main() {
       metric.label(TimeChip(start: DateTime(2025, 1, 1))),
       startsWith('Since '),
     );
+    // The end is the last included day, so the label names the day after.
     expect(
       metric.label(TimeChip(end: DateTime(2021, 12, 31))),
-      startsWith('Before '),
+      'Before ${const UnitFormatter(AppSettings()).formatDate(DateTime(2022, 1, 1))}',
     );
     expect(
       metric.label(
         TimeChip(start: DateTime(2025, 1, 1), end: DateTime(2025, 12, 31)),
       ),
       contains(' to '),
+    );
+  });
+
+  test('enum values are shown in the app language', () {
+    final german = ChipLabeler(
+      AppLocalizationsDe(),
+      const UnitFormatter(AppSettings()),
+    );
+    final water = chip(ExploreDiveField.waterType, ['salt'], op: ClauseOp.eq);
+    final days = chip(ExploreDiveField.weekday, [
+      'mon',
+      'sun',
+    ], op: ClauseOp.inList);
+    expect(
+      german.label(water),
+      contains(AppLocalizationsDe().enum_waterType_salt),
+    );
+    expect(german.label(water), isNot(contains('salt')));
+    expect(metric.label(days), 'Weekday: Mon, Sun');
+    expect(german.label(days), 'Wochentag: Mo, So');
+    expect(
+      metric.label(
+        chip(ExploreDiveField.entryMethod, ['giantStride'], op: ClauseOp.eq),
+      ),
+      contains('Giant Stride'),
+    );
+    expect(
+      metric.label(
+        chip(ExploreDiveField.currentStrength, ['strong'], op: ClauseOp.not),
+      ),
+      contains('Strong'),
+    );
+    // A dive type is the diver's own name.
+    expect(
+      metric.label(chip(ExploreDiveField.diveType, 'Night', op: ClauseOp.eq)),
+      contains('Night'),
     );
   });
 

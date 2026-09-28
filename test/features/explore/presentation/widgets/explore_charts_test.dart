@@ -4,6 +4,7 @@ import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
 import 'package:submersion/features/explore/presentation/widgets/explore_charts.dart';
+import 'package:submersion/features/explore/presentation/widgets/explore_results_list.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
@@ -105,5 +106,36 @@ void main() {
     ], locale: const Locale('de'));
     final chart = tester.widget<DiveTrendChart>(find.byType(DiveTrendChart));
     expect(chart.valueFormatter!(45), '45 Min.');
+  });
+
+  testWidgets('a failed query shows a sentence, not the exception', (
+    tester,
+  ) async {
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...base,
+          exploreChartDataProvider.overrideWith(
+            (ref, req) async => throw StateError('database is locked'),
+          ),
+          exploreResultsProvider.overrideWith(
+            (ref) async => throw StateError('database is locked'),
+          ),
+          exploreCountProvider.overrideWith((ref) async => 0),
+        ],
+        child: const SingleChildScrollView(
+          child: Column(
+            children: [
+              ExploreCharts(requests: [ChartRequest(ChartKind.depthTrend)]),
+              ExploreResultsList(),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(en.common_error_tryAgain), findsNWidgets(2));
+    expect(find.textContaining('database is locked'), findsNothing);
   });
 }
