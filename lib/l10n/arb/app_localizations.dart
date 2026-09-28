@@ -71410,11 +71410,23 @@ abstract class AppLocalizations {
   /// **'Volume'**
   String get query_tanks_volume;
 
+  /// Relation label in the query builder: the dives on a trip
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get query_trips_dives;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
   /// **'End date'**
   String get query_trips_endDate;
+
+  /// Field label in the query builder: the trip's liveaboard name
+  ///
+  /// In en, this message translates to:
+  /// **'Liveaboard'**
+  String get query_trips_liveaboardName;
 
   /// Field label in the query builder
   ///
@@ -71431,8 +71443,32 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_trips_notes;
+
+  /// Field label in the query builder: the trip's resort name
+  ///
+  /// In en, this message translates to:
+  /// **'Resort'**
+  String get query_trips_resortName;
+
+  /// Field label in the query builder: whether the trip is shared with every diver profile
+  ///
+  /// In en, this message translates to:
+  /// **'Shared'**
+  String get query_trips_shared;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
   /// **'Start date'**
   String get query_trips_startDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Trip type'**
+  String get query_trips_tripType;
 
   /// Field label in the query builder
   ///

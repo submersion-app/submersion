@@ -44220,7 +44220,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_tanks_volume => 'الحجم';
 
   @override
+  String get query_trips_dives => 'الغطسات';
+
+  @override
   String get query_trips_endDate => 'تاريخ الانتهاء';
+
+  @override
+  String get query_trips_liveaboardName => 'سفينة غوص';
 
   @override
   String get query_trips_location => 'الموقع';
@@ -44229,7 +44235,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_trips_name => 'الاسم';
 
   @override
+  String get query_trips_notes => 'ملاحظات';
+
+  @override
+  String get query_trips_resortName => 'المنتجع';
+
+  @override
+  String get query_trips_shared => 'مشترك';
+
+  @override
   String get query_trips_startDate => 'تاريخ البدء';
+
+  @override
+  String get query_trips_tripType => 'Trip Type';
 
   @override
   String get query_weights_amount => 'الكمية';

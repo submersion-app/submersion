@@ -41996,7 +41996,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_tanks_volume => '容量';
 
   @override
+  String get query_trips_dives => '潜水';
+
+  @override
   String get query_trips_endDate => '结束日期';
+
+  @override
+  String get query_trips_liveaboardName => '船宿';
 
   @override
   String get query_trips_location => '地点';
@@ -42005,7 +42011,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_trips_name => '名称';
 
   @override
+  String get query_trips_notes => '备注';
+
+  @override
+  String get query_trips_resortName => '度假村';
+
+  @override
+  String get query_trips_shared => '已共享';
+
+  @override
   String get query_trips_startDate => '开始日期';
+
+  @override
+  String get query_trips_tripType => '旅行类型';
 
   @override
   String get query_weights_amount => '数量';

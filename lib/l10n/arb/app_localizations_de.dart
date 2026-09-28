@@ -44460,7 +44460,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_tanks_volume => 'Volumen';
 
   @override
+  String get query_trips_dives => 'Tauchgänge';
+
+  @override
   String get query_trips_endDate => 'Enddatum';
+
+  @override
+  String get query_trips_liveaboardName => 'Tauchsafari';
 
   @override
   String get query_trips_location => 'Ort';
@@ -44469,7 +44475,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_trips_name => 'Name';
 
   @override
+  String get query_trips_notes => 'Notizen';
+
+  @override
+  String get query_trips_resortName => 'Resort';
+
+  @override
+  String get query_trips_shared => 'Geteilt';
+
+  @override
   String get query_trips_startDate => 'Startdatum';
+
+  @override
+  String get query_trips_tripType => 'Trip Type';
 
   @override
   String get query_weights_amount => 'Menge';

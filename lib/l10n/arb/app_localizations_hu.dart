@@ -44373,7 +44373,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_tanks_volume => 'Térfogat';
 
   @override
+  String get query_trips_dives => 'Merülések';
+
+  @override
   String get query_trips_endDate => 'Záró dátum';
+
+  @override
+  String get query_trips_liveaboardName => 'Hajószállás';
 
   @override
   String get query_trips_location => 'Helyszín';
@@ -44382,7 +44388,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_trips_name => 'Név';
 
   @override
+  String get query_trips_notes => 'Jegyzetek';
+
+  @override
+  String get query_trips_resortName => 'Üdülőhely';
+
+  @override
+  String get query_trips_shared => 'Megosztott';
+
+  @override
   String get query_trips_startDate => 'Kezdő dátum';
+
+  @override
+  String get query_trips_tripType => 'Trip Type';
 
   @override
   String get query_weights_amount => 'Mennyiség';

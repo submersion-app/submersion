@@ -80,6 +80,14 @@ class AppQueryLabels implements QueryLabels {
         return byName(EquipmentType.values)?.localizedName(_l10n) ?? value;
       case 'query_equipment_status':
         return byName(EquipmentStatus.values)?.localizedName(_l10n) ?? value;
+      case 'query_trips_tripType':
+        return switch (byName(TripType.values)) {
+          TripType.shore => _l10n.trips_type_shore,
+          TripType.liveaboard => _l10n.trips_type_liveaboard,
+          TripType.resort => _l10n.trips_type_resort,
+          TripType.dayTrip => _l10n.trips_type_dayTrip,
+          null => value,
+        };
       case 'query_sites_difficulty':
         return byName(SiteDifficulty.values)?.localizedName(_l10n) ?? value;
       default:

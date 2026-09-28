@@ -43668,7 +43668,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_tanks_volume => 'נפח';
 
   @override
+  String get query_trips_dives => 'צלילות';
+
+  @override
   String get query_trips_endDate => 'תאריך סיום';
+
+  @override
+  String get query_trips_liveaboardName => 'ספינת צלילה';
 
   @override
   String get query_trips_location => 'מיקום';
@@ -43677,7 +43683,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_trips_name => 'שם';
 
   @override
+  String get query_trips_notes => 'הערות';
+
+  @override
+  String get query_trips_resortName => 'אתר נופש';
+
+  @override
+  String get query_trips_shared => 'משותף';
+
+  @override
   String get query_trips_startDate => 'תאריך התחלה';
+
+  @override
+  String get query_trips_tripType => 'Trip Type';
 
   @override
   String get query_weights_amount => 'כמות';

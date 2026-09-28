@@ -399,14 +399,26 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_tanks_startPressure;
     case 'query_tanks_volume':
       return l10n.query_tanks_volume;
+    case 'query_trips_dives':
+      return l10n.query_trips_dives;
     case 'query_trips_endDate':
       return l10n.query_trips_endDate;
+    case 'query_trips_liveaboardName':
+      return l10n.query_trips_liveaboardName;
     case 'query_trips_location':
       return l10n.query_trips_location;
     case 'query_trips_name':
       return l10n.query_trips_name;
+    case 'query_trips_notes':
+      return l10n.query_trips_notes;
+    case 'query_trips_resortName':
+      return l10n.query_trips_resortName;
+    case 'query_trips_shared':
+      return l10n.query_trips_shared;
     case 'query_trips_startDate':
       return l10n.query_trips_startDate;
+    case 'query_trips_tripType':
+      return l10n.query_trips_tripType;
     case 'query_weights_amount':
       return l10n.query_weights_amount;
     case 'query_weights_notes':
