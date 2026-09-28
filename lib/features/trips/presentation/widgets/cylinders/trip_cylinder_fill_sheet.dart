@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/data/services/trip_fill_saver.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
@@ -120,10 +121,9 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
   bool _saving = false;
   String? _error;
 
-  /// Fills this sheet already wrote, by slot id. When a save fails after
-  /// some writes (a later slot, or the passport copy), Save again updates
-  /// these instead of adding a second fill to the same slot.
-  Map<String, TripCylinderEvent> _written = const {};
+  /// Writes this sheet's fills and remembers what each attempt stored, so
+  /// Save again after a failure never doubles a fill.
+  late final TripFillSaver _saver;
 
   static String _num(double? v, int digits) =>
       v == null ? '' : formatRoundedForInput(v, digits);
@@ -131,6 +131,10 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
   @override
   void initState() {
     super.initState();
+    _saver = TripFillSaver(
+      repository: ref.read(tripCylinderRepositoryProvider),
+      copier: ref.read(tripFillPassportCopierProvider),
+    );
     final e = widget.editing;
     final units = UnitFormatter(ref.read(settingsProvider));
     _selected = e != null ? {e.tripCylinderId} : {...widget.preselected};
@@ -300,17 +304,15 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
       _error = null;
     });
     try {
-      final repo = ref.read(tripCylinderRepositoryProvider);
       final bar = pressure == null ? null : units.pressureToBar(pressure);
       final currency = cost == null ? null : _currency;
-      final copier = ref.read(tripFillPassportCopierProvider);
-      final List<TripCylinderEvent> saved;
-      final e = widget.editing;
-      if (e != null) {
-        final a = analysis[e.tripCylinderId]!;
-        final updated = e.copyWith(
+      // The form's values on [base], a new fill or the one being edited.
+      TripCylinderEvent withForm(TripCylinderEvent base) {
+        final id = base.tripCylinderId;
+        final a = analysis[id]!;
+        return base.copyWith(
           occurredAt: _when,
-          bottleLabel: _text(_bottle[e.tripCylinderId]!),
+          bottleLabel: _text(_bottle[id]!),
           pressure: bar,
           o2Percent: orderedO2,
           hePercent: orderedHe,
@@ -322,70 +324,19 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
           isPackage: _package,
           note: _note.text,
         );
-        await repo.updateEvent(updated);
-        saved = [updated];
-      } else {
-        // A slot a failed attempt already filled and the diver has since
-        // unchecked loses that fill, and its passport copy with it.
-        for (final gone in [
-          for (final w in _written.entries)
-            if (!ids.contains(w.key)) w.value,
-        ]) {
-          await repo.deleteEvent(
-            gone.id,
-            alongside: () => copier.afterDelete(gone.id),
-          );
-          _written = {
-            for (final w in _written.entries)
-              if (w.key != gone.tripCylinderId) w.key: w.value,
-          };
-        }
-        final now = DateTime.now().toUtc();
-        TripCylinderEvent filled(String id) {
-          final a = analysis[id]!;
-          return (_written[id] ?? _blankFill(id, now)).copyWith(
-            occurredAt: _when,
-            bottleLabel: _text(_bottle[id]!),
-            pressure: bar,
-            o2Percent: orderedO2,
-            hePercent: orderedHe,
-            analyzedO2: a.o2,
-            analyzedHe: a.he,
-            diveCenterId: _centerId,
-            cost: cost,
-            currency: currency,
-            isPackage: _package,
-            note: _note.text,
-          );
-        }
-
-        // Slots already written by a failed attempt are updated, never
-        // doubled; the rest are created together in one transaction.
-        final updates = [
-          for (final id in ids)
-            if (_written.containsKey(id)) filled(id),
-        ];
-        for (final u in updates) {
-          await repo.updateEvent(u);
-        }
-        final fresh = [
-          for (final id in ids)
-            if (!_written.containsKey(id)) filled(id),
-        ];
-        final created = fresh.isEmpty
-            ? const <TripCylinderEvent>[]
-            : await repo.createEvents(fresh);
-        _written = {
-          ..._written,
-          for (final w in [...updates, ...created]) w.tripCylinderId: w,
-        };
-        saved = [for (final id in ids) _written[id]!];
       }
+
+      final e = widget.editing;
+      final now = DateTime.now().toUtc();
+      final saved = e != null
+          ? [await _saver.writeEdit(withForm(e))]
+          : await _saver.writeFills([
+              for (final id in ids) withForm(_blankFill(id, now)),
+            ]);
       // A fill on one of the diver's own cylinders is also written to its
-      // passport, and an edit updates that copy (Task 6).
-      final diverId = ref.read(currentDiverIdProvider);
-      // Wait for the centers rather than reading a list still loading, or the
-      // passport copy would lose its station name.
+      // passport, and an edit updates that copy (Task 6). Wait for the
+      // centers rather than reading a list still loading, or the copy would
+      // lose its station name.
       var centers = const <DiveCenter>[];
       var stationResolved = true;
       if (_centerId != null) {
@@ -398,25 +349,13 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
           stationResolved = false;
         }
       }
-      final stationName = centers
-          .where((c) => c.id == _centerId)
-          .firstOrNull
-          ?.name;
-      final slotsById = {
-        for (final s in widget.slots) s.cylinder.id: s.cylinder,
-      };
-      for (final event in saved) {
-        final slot = slotsById[event.tripCylinderId];
-        if (slot != null) {
-          await copier.afterSave(
-            event,
-            slot,
-            diverId: diverId,
-            stationName: stationName,
-            stationResolved: stationResolved,
-          );
-        }
-      }
+      await _saver.copyToPassports(
+        saved,
+        {for (final s in widget.slots) s.cylinder.id: s.cylinder},
+        diverId: ref.read(currentDiverIdProvider),
+        stationName: centers.where((c) => c.id == _centerId).firstOrNull?.name,
+        stationResolved: stationResolved,
+      );
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
       if (mounted) setState(() => _error = l10n.common_error_tryAgain);

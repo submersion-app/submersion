@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -194,6 +195,14 @@ void main() {
       },
     );
 
+    test('a fill on a rental slot never reads the passport table', () async {
+      final counting = _CountingFills();
+      final rentalCopier = TripFillPassportCopier(fills: counting);
+      final event = await save(rental);
+      await rentalCopier.afterSave(event, rental);
+      expect(counting.lookups, 0);
+    });
+
     test('deleting the fill removes the copy', () async {
       final event = await save(owned);
       await copier.afterSave(event, owned);
@@ -226,4 +235,15 @@ void main() {
       expect(await fills.getById(tripFillPassportCopyId(event.id)), isNotNull);
     });
   });
+}
+
+/// Counts copy lookups.
+class _CountingFills extends CylinderFillRepository {
+  int lookups = 0;
+
+  @override
+  Future<CylinderFill?> getById(String id) {
+    lookups++;
+    return super.getById(id);
+  }
 }

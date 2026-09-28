@@ -45,6 +45,15 @@ class TripCylinderRepository {
     ]),
   );
 
+  /// Changes to the slots or the ledger only. The ledger reads neither
+  /// dives, tanks nor sites, so it need not refetch when those change.
+  Stream<void> watchLedgerChanges() => _db.tableUpdates(
+    TableUpdateQuery.allOf([
+      TableUpdateQuery.onTable(_db.tripCylinders),
+      TableUpdateQuery.onTable(_db.tripCylinderEvents),
+    ]),
+  );
+
   // ---------------------------------------------------------------- slots
 
   /// The slots of a trip in board order.
@@ -235,14 +244,18 @@ class TripCylinderRepository {
   }
 
   /// Inserts every event in [events] in one transaction, so one save of
-  /// several fills commits once (one refresh) and a failure adds none.
+  /// several fills commits once (one refresh) and a failure adds none. They
+  /// share one creation time, so the ledger can order them by the board.
   Future<List<domain.TripCylinderEvent>> createEvents(
     List<domain.TripCylinderEvent> events,
   ) async {
     try {
-      return await _db.transaction(
-        () async => [for (final e in events) await createEvent(e)],
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final created = await _db.transaction(
+        () async => [for (final e in events) await _insertEvent(e, now)],
       );
+      SyncEventBus.notifyLocalChange();
+      return created;
     } catch (e, stackTrace) {
       _log.error('Failed to create events', error: e, stackTrace: stackTrace);
       rethrow;
@@ -321,47 +334,58 @@ class TripCylinderRepository {
     return rows.map(_mapEvent).toList();
   }
 
+  /// Inserts and stages one event stamped [now], in one transaction: a
+  /// failed stage must not leave a row that never syncs and that a retry
+  /// would double. Callers notify sync once they are done.
+  Future<domain.TripCylinderEvent> _insertEvent(
+    domain.TripCylinderEvent event,
+    int now,
+  ) async {
+    final id = event.id.isEmpty ? _uuid.v4() : event.id;
+    await _db.transaction(() async {
+      await _db
+          .into(_db.tripCylinderEvents)
+          .insert(
+            TripCylinderEventsCompanion.insert(
+              id: id,
+              tripCylinderId: event.tripCylinderId,
+              kind: event.kind.name,
+              occurredAt: event.occurredAt.millisecondsSinceEpoch,
+              bottleLabel: Value(event.bottleLabel),
+              pressure: Value(event.pressure),
+              o2Percent: Value(event.o2Percent),
+              hePercent: Value(event.hePercent),
+              analyzedO2: Value(event.analyzedO2),
+              analyzedHe: Value(event.analyzedHe),
+              diveCenterId: Value(event.diveCenterId),
+              cost: Value(event.cost),
+              currency: Value(event.currency),
+              isPackage: Value(event.isPackage),
+              note: Value(event.note),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      await _syncRepository.markRecordPending(
+        entityType: 'tripCylinderEvents',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+    });
+    final stamp = DateTime.fromMillisecondsSinceEpoch(now, isUtc: true);
+    return event.copyWith(id: id, createdAt: stamp, updatedAt: stamp);
+  }
+
   Future<domain.TripCylinderEvent> createEvent(
     domain.TripCylinderEvent event,
   ) async {
     try {
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final id = event.id.isEmpty ? _uuid.v4() : event.id;
-      // Insert and stage in one transaction: a failed stage must not
-      // leave a row that never syncs and that a retry would double.
-      await _db.transaction(() async {
-        await _db
-            .into(_db.tripCylinderEvents)
-            .insert(
-              TripCylinderEventsCompanion.insert(
-                id: id,
-                tripCylinderId: event.tripCylinderId,
-                kind: event.kind.name,
-                occurredAt: event.occurredAt.millisecondsSinceEpoch,
-                bottleLabel: Value(event.bottleLabel),
-                pressure: Value(event.pressure),
-                o2Percent: Value(event.o2Percent),
-                hePercent: Value(event.hePercent),
-                analyzedO2: Value(event.analyzedO2),
-                analyzedHe: Value(event.analyzedHe),
-                diveCenterId: Value(event.diveCenterId),
-                cost: Value(event.cost),
-                currency: Value(event.currency),
-                isPackage: Value(event.isPackage),
-                note: Value(event.note),
-                createdAt: now,
-                updatedAt: now,
-              ),
-            );
-        await _syncRepository.markRecordPending(
-          entityType: 'tripCylinderEvents',
-          recordId: id,
-          localUpdatedAt: now,
-        );
-      });
+      final created = await _insertEvent(
+        event,
+        DateTime.now().millisecondsSinceEpoch,
+      );
       SyncEventBus.notifyLocalChange();
-      final stamp = DateTime.fromMillisecondsSinceEpoch(now, isUtc: true);
-      return event.copyWith(id: id, createdAt: stamp, updatedAt: stamp);
+      return created;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to create event for cylinder: ${event.tripCylinderId}',

@@ -48,6 +48,7 @@ void main() {
     List<TripCylinder> existing = const [],
     List<EquipmentItem> equipment = const [],
     Future<List<TankPresetEntity>>? presets,
+    Future<List<EquipmentItem>>? equipmentLoad,
     bool settle = true,
   }) async {
     tester.view.physicalSize = const Size(800, 1600);
@@ -60,7 +61,9 @@ void main() {
           tankPresetsProvider.overrideWith(
             (ref) => presets ?? Future.value([al80]),
           ),
-          activeEquipmentProvider.overrideWith((ref) async => equipment),
+          activeEquipmentProvider.overrideWith(
+            (ref) => equipmentLoad ?? Future.value(equipment),
+          ),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -225,6 +228,54 @@ void main() {
       find.widgetWithText(FilledButton, 'Save'),
     );
     expect(save.onPressed, isNull);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('new slots go after the last one, even with gaps', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final existing = [
+      for (final (label, order) in [
+        ('Truck 1', 0),
+        ('Truck 2', 1),
+        ('Truck 6', 5),
+      ])
+        await repo.createCylinder(
+          TripCylinder(
+            id: '',
+            tripId: tripId,
+            label: label,
+            sortOrder: order,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ),
+    ];
+    await pumpAndOpen(tester, existing: existing);
+    await tester.enterText(field('How many'), '1');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final labels = (await repo.getCylindersForTrip(tripId)).map((s) => s.label);
+    expect(labels.last, 'Truck 7');
+  });
+
+  testWidgets('own cylinders wait for the equipment to load', (tester) async {
+    final failing = Completer<List<EquipmentItem>>();
+    await pumpAndOpen(tester, equipmentLoad: failing.future, settle: false);
+    await tester.tap(find.text('From my equipment'));
+    await tester.pump();
+    FilledButton save() =>
+        tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Save'));
+    expect(save().onPressed, isNull);
+
+    failing.completeError(StateError('equipment gone'));
+    await tester.pumpAndSettle();
+    expect(save().onPressed, isNull);
     expect(
       find.text('Something went wrong. Please try again.'),
       findsOneWidget,

@@ -185,11 +185,10 @@ class _TripCylinderEditSheetState
     final units = UnitFormatter(ref.watch(settingsProvider));
     final presetsAsync = ref.watch(tankPresetsProvider);
     final presets = presetsAsync.value ?? const [];
-    // A preset-backed slot needs the presets to save: without them an
-    // unchanged save would lose its preset and exact specs. A custom slot
-    // does not depend on them.
-    final presetsMissing =
-        !presetsAsync.hasValue && widget.cylinder.presetName != null;
+    // A slot still on its preset needs the presets to save: without them an
+    // unchanged save would lose the preset and its exact specs. A slot the
+    // diver has made custom (typed a size or pressure) does not.
+    final presetsMissing = !presetsAsync.hasValue && _presetName != null;
     final known = presets.any((p) => p.name == _presetName);
     return Padding(
       padding: EdgeInsets.only(

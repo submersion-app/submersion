@@ -48,19 +48,31 @@ final tripFillPassportCopierProvider = Provider<TripFillPassportCopier>(
 );
 
 /// Every fill and adjustment on a trip, newest first, for the ledger.
-/// Entries at the same time list the one recorded last first, then fall
-/// back to the id, so the order never depends on the query.
+/// Entries at the same time list the one recorded last first; fills saved
+/// together follow the board; the id settles the rest, so the order never
+/// depends on the query.
 final tripCylinderLedgerProvider =
     FutureProvider.family<List<TripCylinderEvent>, String>((ref, tripId) async {
       final repository = ref.watch(tripCylinderRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchTripCylinderChanges());
+      ref.invalidateSelfWhen(repository.watchLedgerChanges());
       final bySlot = await repository.getEventsForTrip(tripId);
+      final board = {
+        for (final (i, c) in (await repository.getCylindersForTrip(
+          tripId,
+        )).indexed)
+          c.id: i,
+      };
       final events = [for (final list in bySlot.values) ...list]
         ..sort((a, b) {
           final byTime = b.occurredAt.compareTo(a.occurredAt);
           if (byTime != 0) return byTime;
           final byCreated = b.createdAt.compareTo(a.createdAt);
-          return byCreated != 0 ? byCreated : b.id.compareTo(a.id);
+          if (byCreated != 0) return byCreated;
+          // Fills saved together share both times: list them as the board.
+          final byBoard = (board[a.tripCylinderId] ?? 0).compareTo(
+            board[b.tripCylinderId] ?? 0,
+          );
+          return byBoard != 0 ? byBoard : b.id.compareTo(a.id);
         });
       return events;
     });

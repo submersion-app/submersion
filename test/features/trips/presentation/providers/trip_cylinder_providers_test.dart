@@ -224,4 +224,24 @@ void main() {
     );
     expect(ledger.map((e) => e.id), ['a-second', 'z-first']);
   });
+
+  test('fills saved together list in board order', () async {
+    final a = await slot('A');
+    final b = await slot('B', sortOrder: 1);
+    final c = await slot('C', sortOrder: 2);
+    TripCylinderEvent fillOn(String id) => TripCylinderEvent(
+      id: '',
+      tripCylinderId: id,
+      kind: TripCylinderEventKind.fill,
+      occurredAt: at,
+      createdAt: at,
+      updatedAt: at,
+    );
+    await repository.createEvents([fillOn(c.id), fillOn(a.id), fillOn(b.id)]);
+
+    final ledger = await container.read(
+      tripCylinderLedgerProvider(tripId).future,
+    );
+    expect(ledger.map((e) => e.tripCylinderId), [a.id, b.id, c.id]);
+  });
 }

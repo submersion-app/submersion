@@ -79,13 +79,15 @@ class TripFillPassportCopier {
     bool stationResolved = true,
   }) async {
     final copyId = tripFillPassportCopyId(event.id);
-    final existing = await _fills.getById(copyId);
     if (event.kind != TripCylinderEventKind.fill) {
-      if (existing != null) await _fills.delete(copyId);
+      if (await _fills.getById(copyId) != null) await _fills.delete(copyId);
       return;
     }
+    // A fill on a rental slot has no copy to write or keep up to date, so
+    // it never needs the lookup.
     final equipmentId = slot.equipmentId;
     if (equipmentId == null) return;
+    final existing = await _fills.getById(copyId);
     final passportId = await _passports.ensurePassportId(
       equipmentId,
       diverId: diverId,

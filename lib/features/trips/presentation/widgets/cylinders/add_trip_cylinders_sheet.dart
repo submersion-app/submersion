@@ -1,3 +1,5 @@
+import 'dart:math' show max;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -113,7 +115,11 @@ class _AddTripCylindersSheetState
   Future<void> _save() async {
     if (_saving) return;
     final l10n = context.l10n;
-    final start = widget.existing.length;
+    // After the last slot on the board: deletions leave gaps, so the count
+    // of slots could land a new one above an existing one.
+    final start = widget.existing.isEmpty
+        ? 0
+        : widget.existing.map((c) => c.sortOrder).reduce(max) + 1;
     final now = DateTime.now().toUtc();
     final drafts = <TripCylinder>[];
     if (_mode == _AddMode.rental) {
@@ -201,9 +207,14 @@ class _AddTripCylindersSheetState
     // the preset list; while it loads Save waits, and a failed load says so.
     final presetsPending = _mode == _AddMode.rental && !presetsAsync.hasValue;
     final presetsFailed = presetsPending && presetsAsync.hasError;
-    final candidates = _ownedCandidates(
-      ref.watch(activeEquipmentProvider).value ?? const [],
-    );
+    final equipmentAsync = ref.watch(activeEquipmentProvider);
+    final candidates = _ownedCandidates(equipmentAsync.value ?? const []);
+    // Own cylinders come from the equipment list: while it loads there is
+    // nothing to pick yet, and a failed load says so rather than looking
+    // like owning no tanks.
+    final equipmentPending =
+        _mode == _AddMode.owned && !equipmentAsync.hasValue;
+    final equipmentFailed = equipmentPending && equipmentAsync.hasError;
     return Padding(
       padding: EdgeInsets.only(
         left: 16,
@@ -298,7 +309,9 @@ class _AddTripCylindersSheetState
                           };
                   }),
                 ),
-            if (presetsFailed ? l10n.common_error_tryAgain : _error
+            if (presetsFailed || equipmentFailed
+                    ? l10n.common_error_tryAgain
+                    : _error
                 case final error?)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
@@ -317,7 +330,9 @@ class _AddTripCylindersSheetState
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
-                  onPressed: _saving || presetsPending ? null : _save,
+                  onPressed: _saving || presetsPending || equipmentPending
+                      ? null
+                      : _save,
                   child: Text(l10n.common_action_save),
                 ),
               ],

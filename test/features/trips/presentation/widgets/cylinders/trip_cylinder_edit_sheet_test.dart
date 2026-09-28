@@ -266,4 +266,22 @@ void main() {
     await tester.pumpAndSettle();
     expect((await repo.getCylinderById(slot.id))!.label, 'Truck Z');
   });
+
+  testWidgets('a preset slot made custom saves while presets are missing', (
+    tester,
+  ) async {
+    final failing = Completer<List<TankPresetEntity>>();
+    await pumpAndOpen(tester, presetsLoad: failing.future, settle: false);
+    failing.completeError(StateError('presets gone'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(field('Size (L)'), '12');
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final stored = (await repo.getCylinderById(slot.id))!;
+    expect(stored.volume, 12);
+    expect(stored.presetName, isNull);
+  });
 }

@@ -601,5 +601,40 @@ void main() {
       );
       expect(await repository.getEventsForCylinder(a.id), hasLength(2));
     });
+
+    test('the ledger stream ignores dives and sites', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      var hits = 0;
+      final sub = repository.watchLedgerChanges().listen((_) => hits++);
+      addTearDown(sub.cancel);
+      await pumpEventQueue();
+      hits = 0;
+
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion.insert(
+              id: 's1',
+              name: 'Salt Pier',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      await pumpEventQueue();
+      expect(hits, 0);
+
+      await repository.createEvent(fill(a.id));
+      await pumpEventQueue();
+      expect(hits, greaterThan(0));
+    });
+
+    test('one createEvents batch shares its creation time', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      final b = await repository.createCylinder(slot(label: 'B', sortOrder: 1));
+      final made = await repository.createEvents([
+        for (var i = 0; i < 20; i++) fill(i.isEven ? a.id : b.id),
+      ]);
+      expect(made.map((e) => e.createdAt).toSet(), hasLength(1));
+    });
   });
 }
