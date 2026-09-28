@@ -54,6 +54,42 @@ Future<bool> showAdoptDiveLogDialog(
   return confirmed ?? false;
 }
 
+/// Confirms creating a new, empty dive log in [folder], whose dive log is
+/// missing (issue #2177).
+///
+/// Asked rather than done on the tap: the app that opens next looks to the
+/// diver as if every dive they logged is gone, and if the old file comes back
+/// later, the two conflict.
+///
+/// Returns true when the diver wants the new dive log.
+Future<bool> showStartNewDiveLogDialog(
+  BuildContext context,
+  String folder,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(
+        context.l10n.startup_diveLogUnavailable_startNew_confirmTitle,
+      ),
+      content: Text(
+        context.l10n.startup_diveLogUnavailable_startNew_confirmBody(folder),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(context.l10n.common_action_cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(context.l10n.startup_diveLogUnavailable_startNew_confirm),
+        ),
+      ],
+    ),
+  );
+  return confirmed ?? false;
+}
+
 /// Confirms setting the unreadable database aside for an empty one.
 ///
 /// Returns true when the diver wants to start fresh.

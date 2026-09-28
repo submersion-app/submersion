@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 
 import '../../../helpers/test_database.dart';

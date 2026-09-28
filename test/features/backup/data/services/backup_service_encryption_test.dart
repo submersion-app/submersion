@@ -15,6 +15,7 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 
+import '../../../../helpers/mock_channels.dart';
 import '../../../../support/fake_cloud_storage_provider.dart';
 import '../../../../support/fake_keychain_storage.dart';
 
@@ -78,6 +79,7 @@ void main() {
           },
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   late BackupPreferences preferences;
   late SyncPreferences syncPreferences;

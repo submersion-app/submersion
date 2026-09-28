@@ -16,6 +16,15 @@ class BPlistDecoder {
   final int _objectRefSize;
   final int _offsetTableOffset;
 
+  /// Objects whose decoding is under way: the path from the root to the
+  /// object being read. A well-formed plist is a tree (shared leaves
+  /// aside), so meeting one of these again means the graph has a cycle.
+  final Set<int> _inProgress = {};
+
+  /// Far deeper than any NSKeyedArchiver payload MacDive writes, and far
+  /// shallower than the depth at which the recursion would overflow.
+  static const int _maxDepth = 256;
+
   BPlistDecoder._(
     this._bytes, {
     required int offsetIntSize,
@@ -27,8 +36,20 @@ class BPlistDecoder {
 
   /// Entry point: decode [bytes] into the root [BPlistObject].
   /// Throws [FormatException] if [bytes] is not a valid bplist00 stream
-  /// or uses unsupported type markers (sets).
+  /// or uses unsupported type markers (sets). That is the only exception
+  /// malformed input raises: a stream that is truncated, cyclic or nested
+  /// deeper than [_maxDepth] is reported the same way, so a caller reading
+  /// a user's database can skip one bad BLOB without aborting its import.
   static BPlistObject decode(Uint8List bytes) {
+    try {
+      return _decode(bytes);
+    } on RangeError catch (e) {
+      // An offset, count or length that points past the end of the stream.
+      throw FormatException('truncated bplist00 stream: ${e.message}');
+    }
+  }
+
+  static BPlistObject _decode(Uint8List bytes) {
     if (bytes.length < 8 + 32) {
       throw const FormatException('bplist00 stream too short');
     }
@@ -43,6 +64,17 @@ class BPlistDecoder {
     final trailer = bytes.length - 32;
     final offsetIntSize = bytes[trailer + 6];
     final objectRefSize = bytes[trailer + 7];
+    // Both sizes are 1 to 8 bytes in any real stream. A zero would read
+    // every reference as object 0, so a large count never runs off the end.
+    if (offsetIntSize < 1 ||
+        offsetIntSize > 8 ||
+        objectRefSize < 1 ||
+        objectRefSize > 8) {
+      throw FormatException(
+        'invalid bplist trailer sizes: offset $offsetIntSize, '
+        'ref $objectRefSize',
+      );
+    }
     final topObjectIndex = _readBigEndianInt(bytes, trailer + 16, 8);
     final offsetTableOffset = _readBigEndianInt(bytes, trailer + 24, 8);
 
@@ -61,6 +93,20 @@ class BPlistDecoder {
   }
 
   BPlistObject _readObject(int index) {
+    if (_inProgress.length >= _maxDepth) {
+      throw const FormatException('bplist nested too deeply');
+    }
+    if (!_inProgress.add(index)) {
+      throw FormatException('bplist object $index contains itself');
+    }
+    try {
+      return _readObjectAt(index);
+    } finally {
+      _inProgress.remove(index);
+    }
+  }
+
+  BPlistObject _readObjectAt(int index) {
     final offset = _offsetOfObject(index);
     final marker = _bytes[offset];
     final type = marker >> 4;

@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
@@ -20,6 +21,7 @@ import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_factory.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -513,12 +515,18 @@ class ExportNotifier extends StateNotifier<ExportState> {
         return;
       }
 
-      final pdfBytes = await _buildLogbookPdfBytes(exportOptions, dives);
+      // Read once, so the cover's stamp and the file name show the same moment.
+      final generatedAt = clock.now();
+      final pdfBytes = await _buildLogbookPdfBytes(
+        exportOptions,
+        dives,
+        generatedAt: generatedAt,
+      );
 
       // Save and share the PDF
       final path = await _exportService.sharePdfBytes(
         pdfBytes,
-        'dive_logbook_${exportOptions.template.name}_${DateFormat('yyyy-MM-dd').format(DateTime.now())}.pdf',
+        _logbookFileName(exportOptions.template, generatedAt),
       );
 
       state = state.copyWith(
@@ -537,10 +545,14 @@ class ExportNotifier extends StateNotifier<ExportState> {
   /// Build logbook PDF bytes honoring [exportOptions] (template, page size,
   /// certification cards, diver personalization). Shared by the share and
   /// save-to-file paths so both respect the selected detail level (#644).
+  ///
+  /// [generatedAt] is the moment the cover is stamped with; the caller names
+  /// the file from the same instant.
   Future<List<int>> _buildLogbookPdfBytes(
     PdfExportOptions exportOptions,
-    List<Dive> dives,
-  ) async {
+    List<Dive> dives, {
+    required DateTime generatedAt,
+  }) async {
     // Load signatures for all dives
     state = state.copyWith(
       message: _l10n.settings_export_progress_loadingSignatures,
@@ -602,6 +614,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
     );
     final factory = PdfTemplateFactory();
     final builder = factory.getBuilder(exportOptions.template);
+    final localization = PdfLocalization.forLanguageCode(
+      exportOptions.languageCode ?? _l10n.localeName,
+    );
 
     // The logbook is a document the diver prints or shares, so its dates and
     // times follow the diver's preferences (#964); the file name stays ISO.
@@ -615,6 +630,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
     await _ref.read(equipmentArrangementNotifierProvider.notifier).loaded;
 
     return builder.buildPdf(
+      generatedAt: generatedAt,
       dives: dives,
       // The logbook is a document a human reads, so gear follows the diver's
       // arrangement (#1486, #1576).
@@ -627,9 +643,13 @@ class ExportNotifier extends StateNotifier<ExportState> {
       dates: PdfDateFormatter(
         dateFormat: settings.dateFormat,
         timeFormat: settings.timeFormat,
-      ),
+      ).inLanguage(localization.languageCode),
       units: UnitFormatter(settings),
-      title: _l10n.settings_export_pdfDocumentTitle,
+      // The language picked in the export sheet, or the app language when
+      // the caller offered no choice (#2252). The title follows it too, so
+      // a French logbook is not headed in English.
+      localization: localization,
+      title: localization.l10n.settings_export_pdfDocumentTitle,
       diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
       certifications: certifications,
       diver: diver,
@@ -1446,14 +1466,20 @@ class ExportNotifier extends StateNotifier<ExportState> {
       // selected detail level, page size, and diver personalization are
       // honored (#644: options were previously dropped here and the legacy
       // single-layout builder produced identical PDFs for every level).
-      final pdfBytes = await _buildLogbookPdfBytes(options, dives);
+      final generatedAt = clock.now();
+      final pdfBytes = await _buildLogbookPdfBytes(
+        options,
+        dives,
+        generatedAt: generatedAt,
+      );
 
       state = state.copyWith(
         message: _l10n.settings_export_progress_chooseLocation,
       );
-      final fileName =
-          'dive_logbook_${options.template.name}_${DateFormat('yyyy-MM-dd').format(DateTime.now())}.pdf';
-      final path = await _exportService.savePdfBytesToFile(pdfBytes, fileName);
+      final path = await _exportService.savePdfBytesToFile(
+        pdfBytes,
+        _logbookFileName(options.template, generatedAt),
+      );
 
       if (path == null) {
         state = state.copyWith(
@@ -1475,6 +1501,12 @@ class ExportNotifier extends StateNotifier<ExportState> {
       );
     }
   }
+
+  /// The logbook's file name, dated in ISO so a folder of exports sorts
+  /// chronologically whatever the diver's date preference.
+  String _logbookFileName(PdfTemplate template, DateTime generatedAt) =>
+      'dive_logbook_${template.name}_'
+      '${DateFormat('yyyy-MM-dd').format(generatedAt)}.pdf';
 
   void reset() {
     state = const ExportState();

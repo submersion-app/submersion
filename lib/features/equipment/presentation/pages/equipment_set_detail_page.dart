@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -22,8 +20,9 @@ import 'package:submersion/features/equipment/figure/domain/figure_composer.dart
 import 'package:submersion/features/equipment/figure/domain/figure_inputs.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_model.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
-import 'package:submersion/features/equipment/figure/domain/figure_view.dart';
-import 'package:submersion/features/equipment/figure/presentation/diver_figure.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_model_memo.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_selection.dart';
+import 'package:submersion/features/equipment/figure/presentation/gear_figure.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
@@ -38,66 +37,18 @@ class EquipmentSetDetailPage extends ConsumerStatefulWidget {
       _EquipmentSetDetailPageState();
 }
 
-class _EquipmentSetDetailPageState
-    extends ConsumerState<EquipmentSetDetailPage> {
+class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
+    with FigureSelection<EquipmentSetDetailPage> {
   /// The menu value that shows or hides the diver figure, shared by the menu
   /// item and its handler so the two cannot drift apart.
   static const _toggleFigureAction = 'toggleFigure';
 
-  /// The item whose figure label and legend row are highlighted, cleared after a
-  /// moment so the highlight reads as a flash rather than a selection mode.
-  String? _selectedId;
-  Timer? _flashTimer;
-  final Map<String, GlobalKey> _rowKeys = {};
-  final GlobalKey _figureKey = GlobalKey();
-
-  /// Bumped on every selection, so selecting the same item again still
-  /// brings its side of the figure forward on a phone.
-  int _selectionSerial = 0;
-
-  /// The composed figure and what it was composed from. Rebuilds that change
-  /// none of these (the highlight flash, for one) reuse it, so the painter
-  /// is not handed a new model and does not repaint.
-  FigureModel? _model;
-  List<EquipmentItem>? _modelItems;
-  ComponentsIndex? _modelComponents;
-  EquipmentArrangement? _modelArrangement;
-  Locale? _modelLocale;
+  /// The composed figure, reused by rebuilds that change none of its
+  /// inputs (the highlight flash, for one), so the painter is not handed a
+  /// new model and does not repaint.
+  final _memo = FigureModelMemo();
 
   String get setId => widget.setId;
-
-  @override
-  void dispose() {
-    _flashTimer?.cancel();
-    super.dispose();
-  }
-
-  /// Highlights [id] on the figure and in the list. Tapping a label on the
-  /// figure brings the item's row into view; tapping a row's badge
-  /// ([revealFigure]) brings the figure into view instead, which matters on
-  /// a long set whose figure has scrolled off the top.
-  void _select(String id, {bool revealFigure = false}) {
-    _flashTimer?.cancel();
-    setState(() {
-      _selectedId = id;
-      _selectionSerial++;
-    });
-    _flashTimer = Timer(const Duration(milliseconds: 1200), () {
-      if (mounted) setState(() => _selectedId = null);
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final target = revealFigure
-          ? _figureKey.currentContext
-          : _rowKeys[id]?.currentContext;
-      if (target != null && target.mounted) {
-        Scrollable.ensureVisible(
-          target,
-          alignment: 0.3,
-          duration: const Duration(milliseconds: 300),
-        );
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -315,29 +266,15 @@ class _EquipmentSetDetailPageState
             const SizedBox(height: 24),
             if (model != null && ordered.isNotEmpty) ...[
               Card(
-                key: _figureKey,
+                key: figureKey,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: DiverFigure(
+                  child: GearFigure(
                     model: model,
-                    semanticsLabel: context.l10n.equipment_figure_summary(
-                      set.name,
-                      model.itemCount,
-                    ),
-                    labelText: (placed) => placed.item.name,
-                    sideLabel: (view, count) => view == FigureView.front
-                        ? context.l10n.equipment_figure_frontCount(count)
-                        : context.l10n.equipment_figure_backCount(count),
-                    selectedItemId: _selectedId,
-                    selectionSerial: _selectionSerial,
-                    onItemTap: (placed) => _select(placed.item.id),
-                    itemSemantics: (placed) =>
-                        context.l10n.equipment_figure_itemLabel(
-                          placed.number,
-                          placed.item.type.localizedName(context.l10n),
-                          placed.item.name,
-                        ),
-                    trayTitle: context.l10n.equipment_figure_trayTitle,
+                    title: set.name,
+                    selectedItemId: selectedFigureItemId,
+                    selectionSerial: figureSelectionSerial,
+                    onItemTap: (placed) => selectFigureItem(placed.item.id),
                   ),
                 ),
               ),
@@ -448,23 +385,10 @@ class _EquipmentSetDetailPageState
     required ComponentsIndex components,
     required EquipmentArrangement arrangement,
     required Locale locale,
-  }) {
-    final cached = _model;
-    if (cached != null &&
-        identical(items, _modelItems) &&
-        identical(components, _modelComponents) &&
-        arrangement == _modelArrangement &&
-        locale == _modelLocale) {
-      return cached;
-    }
-    _modelItems = items;
-    _modelComponents = components;
-    _modelArrangement = arrangement;
-    _modelLocale = locale;
-    return _model = composeFigure(
-      figureInputsFromItems(ordered, components: components),
-    );
-  }
+  }) => _memo.of(
+    (items, components, arrangement, locale),
+    () => composeFigure(figureInputsFromItems(ordered, components: components)),
+  );
 
   /// One member of the set. [number] is its figure number, shown as the
   /// legend badge; child items and assembly parts have none.
@@ -476,11 +400,11 @@ class _EquipmentSetDetailPageState
     int? number, {
     bool noLongerShared = false,
   }) {
-    final selected = item.id == _selectedId;
+    final selected = item.id == selectedFigureItemId;
     final scheme = Theme.of(context).colorScheme;
     final highlight = selected ? figureHighlightFor(scheme) : null;
     return Card(
-      key: _rowKeys.putIfAbsent(item.id, GlobalKey.new),
+      key: figureRowKey(item.id),
       margin: const EdgeInsets.only(bottom: 8),
       color: highlight?.fill,
       child: ListTile(
@@ -494,7 +418,7 @@ class _EquipmentSetDetailPageState
               FigureNumberBadge(
                 number: number,
                 selected: selected,
-                onTap: () => _select(item.id, revealFigure: true),
+                onTap: () => selectFigureItem(item.id, revealFigure: true),
               ),
               const SizedBox(width: 8),
             ],

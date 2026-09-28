@@ -14,6 +14,8 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+import '../../../../helpers/fake_path_provider.dart';
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -847,10 +849,18 @@ void main() {
 
   // -------------------------------------------------------------------------
   group('shareLogFile', () {
-    // SharePlus.instance captures the platform the first time it is used, so
-    // one fake serves every test in the group; each test clears its calls.
+    // One fake for the group; each test clears its calls.
     final sharePlatform = _FakeSharePlatform();
-    setUpAll(() => SharePlatform.instance = sharePlatform);
+    // The harness pins a forwarder that looks the platform up on every share
+    // (test/helpers/late_bound_share_platform.dart), so the fake comes out
+    // again when this group is done.
+    late SharePlatform originalSharePlatform;
+
+    setUpAll(() {
+      originalSharePlatform = SharePlatform.instance;
+      SharePlatform.instance = sharePlatform;
+    });
+    tearDownAll(() => SharePlatform.instance = originalSharePlatform);
     setUp(sharePlatform.calls.clear);
 
     test('returns immediately when log file does not exist', () async {
@@ -868,7 +878,7 @@ void main() {
       final tempDir = Directory.systemTemp.createTempSync('share_log_test_');
       addTearDown(() => tempDir.deleteSync(recursive: true));
       final shareTemp = Directory('${tempDir.path}/tmp')..createSync();
-      PathProviderPlatform.instance = _FakePathProvider(shareTemp.path);
+      useFakePathProvider(_FakePathProvider(shareTemp.path));
       final service = LogFileService(logDirectory: tempDir.path);
       await service.initialize();
       await service.writeLine(_entry(message: 'a line').toLogLine());
@@ -893,7 +903,7 @@ void main() {
       final tempDir = Directory.systemTemp.createTempSync('share_log_test_');
       addTearDown(() => tempDir.deleteSync(recursive: true));
       final shareTemp = Directory('${tempDir.path}/tmp')..createSync();
-      PathProviderPlatform.instance = _FakePathProvider(shareTemp.path);
+      useFakePathProvider(_FakePathProvider(shareTemp.path));
       final service = LogFileService(logDirectory: tempDir.path);
       await service.initialize();
       await service.writeLine(

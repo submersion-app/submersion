@@ -11,6 +11,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../helpers/fake_path_provider.dart';
 import '../../helpers/test_app.dart';
 import '../../helpers/test_database.dart';
 
@@ -53,14 +54,21 @@ void main() {
   late Directory documents;
   final sharePlatform = _FakeSharePlatform();
 
-  // SharePlus.instance is a `static final` that captures SharePlatform.instance
-  // on first read and keeps it for the life of the isolate.
-  setUpAll(() => SharePlatform.instance = sharePlatform);
+  // The harness pins a forwarder that looks the platform up on every share
+  // (test/helpers/late_bound_share_platform.dart), so the fake comes out
+  // again when this file is done.
+  late SharePlatform originalSharePlatform;
+
+  setUpAll(() {
+    originalSharePlatform = SharePlatform.instance;
+    SharePlatform.instance = sharePlatform;
+  });
+  tearDownAll(() => SharePlatform.instance = originalSharePlatform);
 
   setUp(() async {
     await setUpTestDatabase();
     documents = Directory.systemTemp.createTempSync('plan_canvas_share_test');
-    PathProviderPlatform.instance = _FakePathProvider(documents.path);
+    useFakePathProvider(_FakePathProvider(documents.path));
     sharePlatform.calls.clear();
   });
 

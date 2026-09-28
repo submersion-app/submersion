@@ -1,5 +1,5 @@
 // Exercises the Drift typed API for tables added in v72 so the `lib/core/
-// database/database.dart` column getters and table classes are reached at
+// database/tables/` column getters and table classes are reached at
 // runtime — without that, the table-class declarations (e.g. `class
 // MediaSubscriptions extends Table { TextColumn get id => ...; }`) stay at
 // 0 hits in the lcov report even though the schema works in production.

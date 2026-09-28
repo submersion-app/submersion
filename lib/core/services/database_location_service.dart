@@ -57,6 +57,12 @@ enum StartupLocationCheck {
   /// keeps the routes that repair or replace the file.
   keptDatabaseUnreadable,
 
+  /// The custom database is in iCloud but its contents are not on this
+  /// device. Not [isUnreachable]: it is a fetch still to happen, which
+  /// startup does under the splash instead of creating an empty dive log
+  /// (#2177).
+  keptNotDownloaded,
+
   /// The configured folder itself is not there: an unplugged drive, a share
   /// that is not mounted, a folder that was moved or deleted.
   keptFolderMissing;
@@ -282,6 +288,20 @@ class DatabaseLocationService {
     await saveStorageConfig(config.copyWith(lastVerified: DateTime.now()));
   }
 
+  /// Stamps a custom location as one that has held a dive log, if nothing
+  /// has stamped it yet (#2177).
+  ///
+  /// Called once a dive log has opened there. Every flow that saves a custom
+  /// location stamps it today, but configurations saved before the stamp
+  /// existed carry none, and without it a later loss reads as a first launch
+  /// and an empty dive log is created in its place. This records a fact the
+  /// app just observed; it changes no choice the diver made.
+  Future<void> markCustomLocationVerified() async {
+    final config = await getStorageConfig();
+    if (!config.isCustomLocation || config.lastVerified != null) return;
+    await saveStorageConfig(config.copyWith(lastVerified: DateTime.now()));
+  }
+
   /// Restores access to a configured custom database location, then reports
   /// on it (#218).
   ///
@@ -290,6 +310,8 @@ class DatabaseLocationService {
   /// quits. The diver's choice is KEPT whatever the check finds, on every
   /// platform: a folder that cannot be read right now is very often one that
   /// can be read later, and the failed open reports it on screen (#2178).
+  /// A database iCloud holds but has not downloaded is left unread: that is a
+  /// fetch still to happen, not lost access (#2177).
   Future<StartupLocationCheck> validateCustomLocationAtStartup({
     bool? isBookmarkPlatform,
   }) async {
@@ -346,6 +368,15 @@ class DatabaseLocationService {
     }
 
     final dbPath = p.join(folder, databaseFilename);
+
+    // A dive log iCloud has evicted is a fetch still to happen, not lost
+    // access, so it is kept and left unread. Reading an evicted file would
+    // fetch all of it before the read returned, with no limit and before the
+    // app has drawn a frame. Startup fetches it instead, under the splash,
+    // where it can say what is happening and give up (#2177).
+    if (await isOnlyInICloud(dbPath)) {
+      return StartupLocationCheck.keptNotDownloaded;
+    }
 
     // Nothing at the path is NOT an access failure when the folder is there:
     // it is the first launch after choosing it (#218). Anything that DOES

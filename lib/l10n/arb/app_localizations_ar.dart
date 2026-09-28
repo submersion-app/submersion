@@ -405,10 +405,76 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'عرض معدات هذه المجموعة على غواص في صفحتها';
+      'عرض معدات هذه المجموعة على غوّاص';
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'إظهار رسم الغواص';
+
+  @override
+  String get equipment_color_red => 'أحمر';
+
+  @override
+  String get equipment_color_orange => 'برتقالي';
+
+  @override
+  String get equipment_color_amber => 'كهرماني';
+
+  @override
+  String get equipment_color_yellow => 'أصفر';
+
+  @override
+  String get equipment_color_lime => 'ليموني';
+
+  @override
+  String get equipment_color_green => 'أخضر';
+
+  @override
+  String get equipment_color_emerald => 'زمردي';
+
+  @override
+  String get equipment_color_teal => 'أزرق مخضر';
+
+  @override
+  String get equipment_color_cyan => 'سماوي';
+
+  @override
+  String get equipment_color_sky => 'أزرق فاتح';
+
+  @override
+  String get equipment_color_blue => 'أزرق';
+
+  @override
+  String get equipment_color_indigo => 'نيلي';
+
+  @override
+  String get equipment_color_violet => 'بنفسجي';
+
+  @override
+  String get equipment_color_purple => 'أرجواني';
+
+  @override
+  String get equipment_color_fuchsia => 'فوشيا';
+
+  @override
+  String get equipment_color_pink => 'وردي';
+
+  @override
+  String get equipment_color_rose => 'وردي داكن';
+
+  @override
+  String get equipment_color_stone => 'حجري';
+
+  @override
+  String get equipment_color_zinc => 'زنكي';
+
+  @override
+  String get equipment_color_slate => 'رمادي أردوازي';
+
+  @override
+  String get equipment_color_none => 'بلا';
+
+  @override
+  String get equipment_color_sheetTitle => 'اختر لونًا';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'الأسوار الجغرافية';
@@ -2231,7 +2297,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_detail_label_agency => 'الجهة المانحة';
 
   @override
-  String get certifications_detail_label_alsoRecognized => 'Also recognized as';
+  String get certifications_detail_label_alsoRecognized =>
+      'معترف بها أيضًا باسم';
 
   @override
   String get certifications_detail_label_cardNumber => 'رقم البطاقة';
@@ -2346,7 +2413,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String certifications_ecard_alsoRecognized(String recognitions) {
-    return 'Also: $recognitions';
+    return 'أيضًا: $recognitions';
   }
 
   @override
@@ -2446,10 +2513,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_edit_label_agency => 'الجهة المانحة *';
 
   @override
-  String get certifications_edit_addRecognition => 'Add another recognition';
+  String get certifications_edit_addRecognition => 'إضافة اعتراف آخر';
 
   @override
-  String get certifications_edit_removeRecognition => 'Remove this recognition';
+  String get certifications_edit_removeRecognition => 'إزالة هذا الاعتراف';
 
   @override
   String get certifications_edit_label_cardNumber => 'رقم البطاقة';
@@ -12258,6 +12325,481 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get passport_logFill_saveFailed => 'تعذّر حفظ التعبئة. حاول مرة أخرى.';
+
+  @override
+  String get pdf_unknownSite => 'موقع غير معروف';
+
+  @override
+  String get pdf_signaturePlaceholder => '[التوقيع]';
+
+  @override
+  String get pdf_signerBuddy => 'زميل الغوص';
+
+  @override
+  String get pdf_signerInstructor => 'المدرب';
+
+  @override
+  String get pdf_officialStamp => 'الختم الرسمي';
+
+  @override
+  String get pdf_certifications => 'الشهادات';
+
+  @override
+  String pdf_cardNumber(String number) {
+    return 'رقم البطاقة: $number';
+  }
+
+  @override
+  String pdf_certIssued(String date) {
+    return 'تاريخ الإصدار: $date';
+  }
+
+  @override
+  String pdf_certExpires(String date) {
+    return 'تاريخ الانتهاء: $date';
+  }
+
+  @override
+  String get pdf_cardFront => 'الأمام';
+
+  @override
+  String get pdf_cardBack => 'الخلف';
+
+  @override
+  String pdf_coverDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+      zero: '$count غطسة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_headerDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+      zero: '$count غطسة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdf_generatedOn(String dateTime) {
+    return 'أُنشئ في $dateTime';
+  }
+
+  @override
+  String pdf_generated(String dateTime) {
+    return 'أُنشئ $dateTime';
+  }
+
+  @override
+  String get pdf_noDivesToSummarize => 'لا توجد غطسات لتلخيصها';
+
+  @override
+  String get pdf_noDivesToDisplay => 'لا توجد غطسات لعرضها';
+
+  @override
+  String get pdf_summary => 'الملخص';
+
+  @override
+  String get pdf_totalDives => 'إجمالي الغطسات';
+
+  @override
+  String get pdf_firstDive => 'أول غطسة';
+
+  @override
+  String get pdf_lastDive => 'آخر غطسة';
+
+  @override
+  String get pdf_totalDiveTime => 'إجمالي وقت الغوص';
+
+  @override
+  String get pdf_deepestDive => 'أعمق غطسة';
+
+  @override
+  String get pdf_blenderIncomplete => 'غير مكتمل: سطر واحد أو أكثر بلا سعر.';
+
+  @override
+  String get pdf_averageDepth => 'متوسط العمق';
+
+  @override
+  String get pdf_uniqueSites => 'المواقع المختلفة';
+
+  @override
+  String pdf_hoursMinutes(String hours, String minutes) {
+    return '$hours س $minutes د';
+  }
+
+  @override
+  String pdf_minutesShort(String minutes) {
+    return '$minutes د';
+  }
+
+  @override
+  String pdf_minutes(String minutes) {
+    return '$minutes دقيقة';
+  }
+
+  @override
+  String pdf_minutesCompact(String minutes) {
+    return '$minutes د';
+  }
+
+  @override
+  String get pdf_diverProfile => 'ملف الغواص';
+
+  @override
+  String get pdf_name => 'الاسم';
+
+  @override
+  String get pdf_email => 'البريد الإلكتروني';
+
+  @override
+  String get pdf_photo => 'الصورة';
+
+  @override
+  String pdf_depthProfileHeading(String depthUnit) {
+    return 'ملف العمق ($depthUnit مقابل الدقائق)';
+  }
+
+  @override
+  String get pdf_columnDate => 'التاريخ';
+
+  @override
+  String get pdf_columnSite => 'الموقع';
+
+  @override
+  String get pdf_columnDepth => 'العمق';
+
+  @override
+  String get pdf_columnTime => 'الوقت';
+
+  @override
+  String get pdf_columnTemp => 'الحرارة';
+
+  @override
+  String pdf_pageOf(String page, String total) {
+    return 'صفحة $page من $total';
+  }
+
+  @override
+  String get pdf_sectionProfile => 'ملف الغطسة';
+
+  @override
+  String get pdf_sectionCylinders => 'الأسطوانات';
+
+  @override
+  String get pdf_sectionConditions => 'الظروف';
+
+  @override
+  String get pdf_sectionWeather => 'الطقس';
+
+  @override
+  String get pdf_sectionTeam => 'الفريق';
+
+  @override
+  String get pdf_sectionEquipment => 'المعدات';
+
+  @override
+  String get pdf_sectionTechnical => 'البيانات التقنية';
+
+  @override
+  String get pdf_sectionMarineLife => 'الحياة البحرية';
+
+  @override
+  String get pdf_sectionNotes => 'الملاحظات';
+
+  @override
+  String get pdf_sectionAdditionalFields => 'حقول إضافية';
+
+  @override
+  String get pdf_sectionVerifiedBy => 'تم التحقق بواسطة';
+
+  @override
+  String get pdf_sectionVerification => 'التحقق';
+
+  @override
+  String get pdf_maxDepth => 'أقصى عمق';
+
+  @override
+  String get pdf_avgDepth => 'متوسط العمق';
+
+  @override
+  String get pdf_runtime => 'وقت التشغيل';
+
+  @override
+  String get pdf_bottomTime => 'وقت القاع';
+
+  @override
+  String get pdf_timeIn => 'الدخول';
+
+  @override
+  String get pdf_timeOut => 'الخروج';
+
+  @override
+  String get pdf_surfaceInterval => 'فترة السطح';
+
+  @override
+  String get pdf_sac => 'SAC';
+
+  @override
+  String get pdf_rmv => 'RMV';
+
+  @override
+  String pdf_pressureUsed(String pressure) {
+    return '$pressure مستهلك';
+  }
+
+  @override
+  String pdf_cylinderNumber(String number) {
+    return 'الأسطوانة $number';
+  }
+
+  @override
+  String get pdf_waterTemp => 'حرارة الماء';
+
+  @override
+  String get pdf_airTemp => 'حرارة الهواء';
+
+  @override
+  String get pdf_visibility => 'الرؤية';
+
+  @override
+  String get pdf_current => 'التيار';
+
+  @override
+  String get pdf_currentDirection => 'اتجاه التيار';
+
+  @override
+  String get pdf_waterType => 'نوع المياه';
+
+  @override
+  String get pdf_entry => 'الدخول';
+
+  @override
+  String get pdf_exit => 'الخروج';
+
+  @override
+  String get pdf_altitude => 'الارتفاع';
+
+  @override
+  String get pdf_buddy => 'زميل الغوص';
+
+  @override
+  String get pdf_diveMaster => 'دايف ماستر';
+
+  @override
+  String get pdf_diveCenter => 'مركز الغوص';
+
+  @override
+  String get pdf_trip => 'الرحلة';
+
+  @override
+  String get pdf_weight => 'الأثقال';
+
+  @override
+  String get pdf_weightType => 'نوع الأثقال';
+
+  @override
+  String pdf_equipmentSets(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'المجموعات',
+      many: 'المجموعات',
+      few: 'المجموعات',
+      two: 'المجموعتان',
+      one: 'المجموعة',
+      zero: 'المجموعات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pdf_computer => 'الحاسوب';
+
+  @override
+  String get pdf_diveMode => 'وضع الغوص';
+
+  @override
+  String get pdf_algorithm => 'الخوارزمية';
+
+  @override
+  String get pdf_gradientFactors => 'عوامل التدرج';
+
+  @override
+  String get pdf_setpoint => 'نقطة الضبط';
+
+  @override
+  String get pdf_diveType => 'نوع الغطسة';
+
+  @override
+  String get pdf_weatherConditions => 'الأحوال الجوية';
+
+  @override
+  String get pdf_wind => 'الرياح';
+
+  @override
+  String get pdf_windDirection => 'اتجاه الرياح';
+
+  @override
+  String get pdf_cloud => 'الغيوم';
+
+  @override
+  String get pdf_precipitation => 'هطول الأمطار';
+
+  @override
+  String get pdf_humidity => 'الرطوبة';
+
+  @override
+  String get pdf_swell => 'الموج';
+
+  @override
+  String get pdf_instructorSignature => 'توقيع المدرب';
+
+  @override
+  String get pdf_buddySignature => 'توقيع زميل الغوص';
+
+  @override
+  String get pdf_diveLogBanner => 'سجل الغوص';
+
+  @override
+  String get pdf_loggedDives => 'الغطسات المسجلة';
+
+  @override
+  String pdf_diveNumber(String number) {
+    return 'الغطسة #$number';
+  }
+
+  @override
+  String get pdf_trainingBadge => 'تدريب';
+
+  @override
+  String get pdf_gas => 'الغاز';
+
+  @override
+  String get pdf_visibilityShort => 'الرؤية';
+
+  @override
+  String get pdf_air => 'الهواء';
+
+  @override
+  String get pdf_water => 'الماء';
+
+  @override
+  String get pdf_verifiedBy => 'تم التحقق بواسطة';
+
+  @override
+  String get pdf_nauiDiveLogBanner => 'سجل غوص NAUI';
+
+  @override
+  String get pdf_statDives => 'الغطسات';
+
+  @override
+  String get pdf_statHours => 'الساعات';
+
+  @override
+  String get pdf_avgShort => 'المتوسط';
+
+  @override
+  String get pdf_pressureStart => 'البداية';
+
+  @override
+  String get pdf_pressureEnd => 'النهاية';
+
+  @override
+  String pdf_surfaceIntervalShort(String minutes) {
+    return 'فترة السطح: $minutes د';
+  }
+
+  @override
+  String get pdf_diveDataHeading => 'بيانات الغطسة';
+
+  @override
+  String get pdf_verificationHeading => 'التحقق';
+
+  @override
+  String pdf_labelValue(String label, String value) {
+    return '$label: $value';
+  }
+
+  @override
+  String get pdf_resort => 'المنتجع';
+
+  @override
+  String get pdf_liveaboard => 'قارب إقامة';
+
+  @override
+  String get pdf_totalRuntime => 'إجمالي وقت التشغيل';
+
+  @override
+  String pdf_tripDiveTitle(String number) {
+    return 'الغطسة $number';
+  }
+
+  @override
+  String get pdf_date => 'التاريخ';
+
+  @override
+  String get pdf_site => 'الموقع';
+
+  @override
+  String get pdf_duration => 'المدة';
+
+  @override
+  String get pdf_notesLabel => 'ملاحظات:';
+
+  @override
+  String get pdf_trainingLog => 'سجل التدريب';
+
+  @override
+  String get pdf_instructor => 'المدرب';
+
+  @override
+  String get pdf_instructorNumber => 'رقم المدرب';
+
+  @override
+  String get pdf_location => 'الموقع';
+
+  @override
+  String get pdf_startDate => 'تاريخ البدء';
+
+  @override
+  String get pdf_completionDate => 'تاريخ الإكمال';
+
+  @override
+  String get pdf_status => 'الحالة';
+
+  @override
+  String get pdf_statusCompleted => 'مكتمل';
+
+  @override
+  String get pdf_statusInProgress => 'قيد التنفيذ';
+
+  @override
+  String get pdf_trainingDives => 'الغطسات التدريبية';
+
+  @override
+  String get pdf_totalMinutes => 'إجمالي الدقائق';
+
+  @override
+  String get pdf_courseNotes => 'ملاحظات الدورة';
+
+  @override
+  String get pdf_slateMax => 'أقصى';
 
   @override
   String equipment_bulkTags_confirmAdding(int count) {
@@ -23236,6 +23778,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'إضافة مربعات الختم والتوقيع للتحقق';
 
   @override
+  String get transfer_pdfExport_languageHeader => 'اللغة';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -23948,11 +24493,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_scrubber_title => 'هامش المنظّف';
 
   @override
-  String trips_scrubber_asOfStart(String date) {
-    return 'حتى $date';
-  }
-
-  @override
   String trips_scrubber_remaining(
     String minutes,
     String rated,
@@ -24594,6 +25134,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
     return 'دفاتر سجل MacDive ($names) هي عمليات بحث محفوظة وليست قوائم ثابتة من الغطسات، لذا لا يوجد ما يُستورد. يمكنك إعادة إنشائها كعوامل تصفية للغطسات.';
   }
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneTitle =>
+      'قُرئت أوقات الغطس بالمنطقة الزمنية لهذا الجهاز';
+
+  @override
+  String get universalImport_summary_noticeMacdiveDeviceTimeZoneBody =>
+      'لم يحفظ MacDive منطقة زمنية قابلة للقراءة لهذه الغطسات، ولا تحتوي مواقع الغوص الخاصة بها على موقع GPS، لذا قُرئت أوقاتها بالمنطقة الزمنية لهذا الجهاز. إذا أجريت هذه الغطسات في مكان آخر، فتحقق من أوقات بدئها.';
 
   @override
   String get universalImport_summary_unreadableDatesTitle =>
@@ -25949,7 +26497,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveImport_healthkit_accessDescription =>
-      'Submersion uses Apple HealthKit to read underwater diving workout data, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+      'يستخدم Submersion خدمة Apple HealthKit لقراءة بيانات تمارين الغوص تحت الماء، بما في ذلك العمق والمدة ودرجة حرارة الماء ومعدل ضربات القلب، لإنشاء سجلات غوص مفصلة.';
 
   @override
   String get diveImport_healthkit_accessRequired => 'Apple HealthKit';
@@ -27168,11 +27716,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tools_weight_yourWeight => 'وزنك';
 
   @override
-  String get settings_section_dataSources_title => 'Data Sources';
+  String get settings_section_dataSources_title => 'Apple HealthKit';
 
   @override
-  String get settings_section_dataSources_subtitle =>
-      'Connected services & integrations';
+  String get settings_section_dataSources_subtitle => 'تكامل البيانات الصحية';
 
   @override
   String get settings_siteMatch_title => 'مطابقة المواقع تلقائيًا';
@@ -27199,7 +27746,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_siteMatch_relaxed => 'متساهل';
 
   @override
-  String get settings_dataSources_header => 'Data Sources';
+  String get settings_dataSources_header => 'تكامل Apple HealthKit';
 
   @override
   String get settings_dataSources_appleHealth_title => 'Apple Health';
@@ -27210,7 +27757,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_description =>
-      'Submersion reads underwater diving workout data from Apple Health, including depth, duration, water temperature, and heart rate, to create detailed dive logs.';
+      'يستخدم Submersion خدمة Apple HealthKit لقراءة بيانات تمارين الغوص تحت الماء من Apple Health. تُستخدم هذه البيانات لإنشاء سجلات غوص مفصلة من غوصاتك المسجلة على Apple Watch.';
 
   @override
   String get settings_dataSources_appleHealth_dataTypesHeader =>
@@ -27238,11 +27785,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_importAction =>
-      'Import from Apple Watch';
+      'استيراد الغوصات من Apple Watch عبر HealthKit';
 
   @override
   String get settings_dataSources_appleHealth_privacy =>
-      'Your health data is stored locally and is never shared with third parties.';
+      'تُخزَّن بياناتك الصحية محليًا على هذا الجهاز ولا تتم مشاركتها أبدًا مع أطراف ثالثة. يقرأ Submersion البيانات من Apple HealthKit فقط ولا يكتب أي بيانات إلى HealthKit.';
 
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
@@ -27250,7 +27797,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_dataSources_noSources =>
-      'No data source integrations are available on this platform.';
+      'لا تتوفر أي عمليات تكامل لمصادر البيانات على هذه المنصة.';
 
   @override
   String get diveLog_edit_section_environment => 'البيئة';
@@ -28680,24 +29227,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dive3d_seascape_detailLimitReached =>
-      'This is the most detail available for this location';
+      'هذا أقصى قدر من التفاصيل متاح لهذا الموقع';
 
   @override
   String dive3d_seascape_lodStageLabel(String stage, String span) {
-    return 'Level of detail: $stage ($span)';
+    return 'مستوى التفاصيل: $stage ($span)';
   }
 
   @override
-  String get dive3d_seascape_lodStageOverview => 'Overview';
+  String get dive3d_seascape_lodStageOverview => 'نظرة عامة';
 
   @override
-  String get dive3d_seascape_lodStageMedium => 'Medium';
+  String get dive3d_seascape_lodStageMedium => 'متوسط';
 
   @override
-  String get dive3d_seascape_lodStageFine => 'Fine';
+  String get dive3d_seascape_lodStageFine => 'دقيق';
 
   @override
-  String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
+  String get dive3d_seascape_lodStageSuperFine => 'دقيق جدًا';
 
   @override
   String get dive3d_seascape_noData =>
@@ -29262,6 +29809,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrLabel_product_url => 'رابط الويب';
+
+  @override
+  String get attrLabel_color => 'اللون';
 
   @override
   String get attrLabel_sleeve_length => 'الأكمام';
@@ -38660,6 +39210,17 @@ class AppLocalizationsAr extends AppLocalizations {
       'عرض نسبة المصدر على مقاييس الغوص';
 
   @override
+  String get settings_appearance_showDiveFigure =>
+      'إظهار شكل الغوّاص في الغطسات';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'عرض معدات كل غطسة على غوّاص في بطاقة المعدات';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'معدات هذه الغطسة';
+
+  @override
   String get settings_appearance_title_buddies => 'مظهر الرفاق';
 
   @override
@@ -42224,6 +42785,51 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم تكتمل عملية الاسترداد. لم يُحذف أي شيء؛ لا يزال الملفان على هذا الجهاز.';
 
   @override
+  String get startup_diveLogUnavailable_downloading =>
+      'جارٍ تنزيل سجل الغوص من iCloud';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'سجل الغوص الخاص بك لا يزال في iCloud';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'سجل الغوص الخاص بك في $folder محفوظ في iCloud لكنه ليس على هذا الجهاز بعد، وتعذّر تنزيله. إنه آمن في iCloud ولم يتغير أي شيء. تحقق من اتصالك بالإنترنت، أو نزّله من تطبيق الملفات أو Finder، ثم حاول مرة أخرى.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'لم يتم العثور على سجل الغوص الخاص بك';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'يحفظ Submersion سجل الغوص الخاص بك في $folder، لكن لا يوجد ملف $filename هناك الآن. إذا كان هذا المجلد على محرك أقراص غير متصل، أو في مجلد متزامن لم يكتمل تزامنه بعد، فقم بتوصيله أو مزامنته ثم حاول مرة أخرى. لم يتم إنشاء أو تغيير أي شيء.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'بدء سجل غوص جديد في هذا المجلد';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'فقط إذا فُقد سجل الغوص القديم نهائيًا. يبدأ السجل الجديد فارغًا.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      'بدء سجل غوص جديد هنا؟';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'سيتم إنشاء سجل غوص فارغ في $folder. إذا عاد سجل الغوص القديم لاحقًا، على سبيل المثال عند انتهاء المزامنة، فسيتعارض مع السجل الجديد.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm => 'بدء سجل غوص جديد';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'قاعدة بيانات أحدث، محفوظة عند الرجوع - $size';
   }
@@ -43693,4 +44299,437 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_weights_type => 'النوع';
+
+  @override
+  String get query_op_eq => 'يساوي';
+
+  @override
+  String get query_op_neq => 'لا يساوي';
+
+  @override
+  String get query_op_lt => 'أقل من';
+
+  @override
+  String get query_op_lte => 'على الأكثر';
+
+  @override
+  String get query_op_gt => 'أكثر من';
+
+  @override
+  String get query_op_gte => 'على الأقل';
+
+  @override
+  String get query_op_contains => 'يحتوي على';
+
+  @override
+  String get query_op_inList => 'أحد';
+
+  @override
+  String get query_op_between => 'بين';
+
+  @override
+  String get query_op_isEmpty => 'غير محدد';
+
+  @override
+  String get query_op_isSet => 'محدد';
+
+  @override
+  String get query_editor_tabText => 'النص';
+
+  @override
+  String get query_editor_tabBuilder => 'المنشئ';
+
+  @override
+  String get query_editor_hint => 'مثال: weights:none AND depth > 30';
+
+  @override
+  String get query_editor_save => 'حفظ الاستعلام';
+
+  @override
+  String get query_editor_allOf => 'جميع الشروط';
+
+  @override
+  String get query_editor_anyOf => 'أي من الشروط';
+
+  @override
+  String get query_editor_addCondition => 'إضافة شرط';
+
+  @override
+  String get query_editor_addGroup => 'إضافة مجموعة';
+
+  @override
+  String get query_editor_negate => 'نفي';
+
+  @override
+  String get query_editor_remove => 'إزالة';
+
+  @override
+  String get query_editor_pickField => 'اختر حقلًا';
+
+  @override
+  String get query_editor_pickFieldSearch => 'البحث في الحقول';
+
+  @override
+  String query_editor_useRelation(String name) {
+    return 'استخدام $name نفسه';
+  }
+
+  @override
+  String query_editor_fieldsOf(String name) {
+    return 'حقول $name';
+  }
+
+  @override
+  String query_editor_pickRef(String name) {
+    return 'اختر $name';
+  }
+
+  @override
+  String get query_editor_pickRefSearch => 'بحث';
+
+  @override
+  String get query_editor_done => 'تم';
+
+  @override
+  String get query_editor_unresolvedRef => 'لم يعد موجودًا';
+
+  @override
+  String query_editor_scopedRow(String name) {
+    return 'مجموعة ضمن $name: حرّرها في علامة تبويب النص';
+  }
+
+  @override
+  String get query_editor_textRow => 'بحث نصي';
+
+  @override
+  String get query_editor_betweenAnd => 'و';
+
+  @override
+  String get query_editor_valueTrue => 'نعم';
+
+  @override
+  String get query_editor_valueFalse => 'لا';
+
+  @override
+  String get diveLog_filter_queryRow => 'استعلام';
+
+  @override
+  String get diveLog_search_section_query => 'استعلام';
+
+  @override
+  String get query_saveDialog_title => 'حفظ الاستعلام';
+
+  @override
+  String get query_saveDialog_nameLabel => 'الاسم';
+
+  @override
+  String get query_saveDialog_nameValidation => 'أدخل اسمًا';
+
+  @override
+  String query_saved_snackbar(String name) {
+    return 'تم حفظ \"$name\"';
+  }
+
+  @override
+  String get query_savedRow_title => 'المحفوظة';
+
+  @override
+  String query_savedRow_unresolved(String name) {
+    return 'يشير \"$name\" إلى شيء لم يعد موجودًا';
+  }
+
+  @override
+  String get savedQueries_appBar_title => 'الاستعلامات المحفوظة';
+
+  @override
+  String get savedQueries_empty =>
+      'لا توجد استعلامات محفوظة بعد. احفظ استعلامًا من محرر الاستعلامات في صفحة البحث عن الغطسات.';
+
+  @override
+  String get savedQueries_renameTooltip => 'إعادة تسمية';
+
+  @override
+  String get savedQueries_deleteTooltip => 'حذف';
+
+  @override
+  String get savedQueries_reorderTooltip => 'اسحب لإعادة الترتيب';
+
+  @override
+  String get savedQueries_deleteDialog_title => 'حذف الاستعلام؟';
+
+  @override
+  String savedQueries_deleteDialog_content(String name) {
+    return 'حذف \"$name\"؟ لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String get savedQueries_problem_unreadable =>
+      'لا يمكن لهذا الإصدار من التطبيق قراءته';
+
+  @override
+  String savedQueries_problem_invalid(String detail) {
+    return 'يستخدم شيئًا غير موجود في هذا الإصدار: $detail';
+  }
+
+  @override
+  String savedQueries_problem_unknownSubject(String detail) {
+    return 'لقائمة غير موجودة في هذا الإصدار: $detail';
+  }
+
+  @override
+  String savedQueries_problem_unresolved(String detail) {
+    return 'يشير إلى شيء لم يعد موجودًا: $detail';
+  }
+
+  @override
+  String savedQueries_snackbar_deleted(String name) {
+    return 'تم حذف \"$name\"';
+  }
+
+  @override
+  String get settings_manage_savedQueries => 'الاستعلامات المحفوظة';
+
+  @override
+  String get settings_manage_savedQueries_subtitle =>
+      'إعادة تسمية الاستعلامات المحفوظة وإعادة ترتيبها وحذفها';
+
+  @override
+  String get query_error_unterminatedQuote => 'علامة اقتباس غير مغلقة';
+
+  @override
+  String query_error_unexpectedCharacter(String text) {
+    return 'حرف غير متوقع \"$text\"';
+  }
+
+  @override
+  String query_error_unexpectedToken(String text) {
+    return '\"$text\" غير متوقع';
+  }
+
+  @override
+  String get query_error_expectedCloseParen => 'يُتوقع \")\"';
+
+  @override
+  String get query_error_expectedCloseBracket => 'يُتوقع \"]\"';
+
+  @override
+  String get query_error_expectedOpenBracketAfterIn =>
+      'يُتوقع \"[\" بعد \"in\"';
+
+  @override
+  String get query_error_expectedAnd => 'يُتوقع \"and\"';
+
+  @override
+  String get query_error_expectedOperator => 'يُتوقع عامل';
+
+  @override
+  String get query_error_expectedConditionOrText => 'يُتوقع شرط أو نص';
+
+  @override
+  String get query_error_expectedName => 'يُتوقع اسم';
+
+  @override
+  String get query_error_expectedDate => 'يُتوقع تاريخ';
+
+  @override
+  String get query_error_expectedDateValue => 'يُتوقع قيمة تاريخ';
+
+  @override
+  String get query_error_expectedValue => 'يُتوقع قيمة';
+
+  @override
+  String get query_error_expectedNumber => 'يُتوقع رقم';
+
+  @override
+  String get query_error_expectedText => 'يُتوقع نص';
+
+  @override
+  String get query_error_expectedBool => 'يُتوقع true أو false';
+
+  @override
+  String get query_error_emptyText => 'نص فارغ';
+
+  @override
+  String get query_error_emptyList => 'القائمة فارغة';
+
+  @override
+  String get query_error_emptyGroup => 'المجموعة الفارغة لا تطابق شيئًا';
+
+  @override
+  String get query_error_emptyPath => 'مسار فارغ';
+
+  @override
+  String query_error_notSingleDay(String text) {
+    return '\"$text\" ليس يومًا واحدًا';
+  }
+
+  @override
+  String query_error_notADate(String text) {
+    return '\"$text\" ليس تاريخًا';
+  }
+
+  @override
+  String query_error_openEndedDate(
+    String text,
+    String field,
+    String symbol,
+    String day,
+  ) {
+    return '\"$text\" مفتوح النهاية؛ اكتب $field $symbol $day بدلًا من ذلك';
+  }
+
+  @override
+  String query_error_unknownUnit(String unit) {
+    return 'وحدة غير معروفة \"$unit\"';
+  }
+
+  @override
+  String query_error_noUnitAllowed(String field) {
+    return 'لا يقبل $field أي وحدة';
+  }
+
+  @override
+  String query_error_wrongUnitDimension(String unit, String dimension) {
+    return '\"$unit\" ليست وحدة $dimension';
+  }
+
+  @override
+  String query_error_wrongUnitForField(
+    String unit,
+    String dimension,
+    String field,
+  ) {
+    return '\"$unit\" ليست وحدة $dimension؛ يُقاس $field بوحدات $dimension';
+  }
+
+  @override
+  String get query_error_decimalComma =>
+      'استخدم \".\" للكسور العشرية، وليس \",\"';
+
+  @override
+  String query_error_scopeNeedsRelationQuoted(String path) {
+    return 'يحتاج \"[...]\" إلى علاقة، و\"$path\" حقل';
+  }
+
+  @override
+  String query_error_scopeNeedsRelation(String path) {
+    return 'يحتاج [...] إلى علاقة، و\"$path\" حقل';
+  }
+
+  @override
+  String query_error_relationNeedsRefOp(String path) {
+    return '\"$path\" علاقة؛ استخدم = أو in أو :none أو :any أو [...]';
+  }
+
+  @override
+  String query_error_relationOpNotAllowed(String op) {
+    return 'لا يمكن استخدام \"$op\" مع علاقة؛ استخدم = أو != أو in أو :none أو :any أو [...]';
+  }
+
+  @override
+  String query_error_opNotForFieldQuoted(String op, String field) {
+    return 'لا يمكن استخدام \"$op\" مع $field';
+  }
+
+  @override
+  String query_error_opNotForField(String op, String field) {
+    return 'لا يمكن استخدام $op مع $field';
+  }
+
+  @override
+  String query_error_noneAmbiguous(String field) {
+    return '\"$field:none\" غامض: اكتب \"$field = none\" للقيمة none، أو \"NOT $field:any\" لغير المسجَّل';
+  }
+
+  @override
+  String query_error_noRefNamed(String relation, String text) {
+    return 'لا يوجد $relation باسم \"$text\"';
+  }
+
+  @override
+  String query_error_notEnumValue(String text, String field) {
+    return '\"$text\" ليست قيمة من قيم $field';
+  }
+
+  @override
+  String query_error_unknownField(String name) {
+    return 'حقل غير معروف \"$name\"';
+  }
+
+  @override
+  String query_error_fieldNotPath(String name, String next) {
+    return '\"$name\" حقل ولا يمكن أن يتبعه \".$next\"';
+  }
+
+  @override
+  String query_error_tooManyHops(String max) {
+    return 'يمكن للاستعلام أن يعبر $max علاقات على الأكثر، بما في ذلك المجموعات المتداخلة';
+  }
+
+  @override
+  String query_error_pathTooLong(String max) {
+    return 'يمكن للمسار أن يعبر $max علاقات على الأكثر';
+  }
+
+  @override
+  String query_error_textNotSearchable(String table) {
+    return 'لا يمكن البحث بالنص الحر داخل $table';
+  }
+
+  @override
+  String query_error_expectsReference(String name) {
+    return 'يتوقع $name مرجعًا';
+  }
+
+  @override
+  String query_error_expectsReferences(String name) {
+    return 'يتوقع $name مراجع';
+  }
+
+  @override
+  String get query_error_betweenNeedsTwo => 'يحتاج between إلى قيمتين';
+
+  @override
+  String get query_error_inNeedsList => 'يحتاج in إلى قائمة';
+
+  @override
+  String query_error_expectsNumber(String field) {
+    return 'يتوقع $field رقمًا';
+  }
+
+  @override
+  String query_error_outOfRange(String field) {
+    return 'قيمة $field خارج النطاق';
+  }
+
+  @override
+  String query_error_expectsText(String field) {
+    return 'يتوقع $field نصًا';
+  }
+
+  @override
+  String query_error_expectsBool(String field) {
+    return 'يتوقع $field القيمة true أو false';
+  }
+
+  @override
+  String query_error_expectsEnumValue(String field) {
+    return 'يتوقع $field إحدى قيمه';
+  }
+
+  @override
+  String query_error_expectsSingleDay(String field) {
+    return 'يتوقع $field يومًا واحدًا هنا';
+  }
+
+  @override
+  String query_error_expectsDate(String field) {
+    return 'يتوقع $field تاريخًا';
+  }
+
+  @override
+  String get query_editor_needsText => 'أدخل كلمة واحدة على الأقل';
+
+  @override
+  String get query_saveNeedsDiver => 'أنشئ ملف غواص لحفظ الاستعلامات';
 }

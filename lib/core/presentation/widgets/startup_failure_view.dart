@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/presentation/startup_failure.dart';
 import 'package:submersion/core/presentation/startup_restore_status.dart';
+import 'package:submersion/core/presentation/widgets/startup_recovery_route.dart';
 import 'package:submersion/core/presentation/widgets/startup_restore_card.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -372,7 +373,7 @@ class StartupFailureView extends StatelessWidget {
             // that end with their existing dives in front of them first, and
             // the empty log last.
             if (_offersFolderRoute)
-              _RecoveryRoute(
+              StartupRecoveryRoute(
                 icon: Icons.folder_special_outlined,
                 // Same picker either way. Worded for the SAME folder when the
                 // folder is the problem, because that is the pick that
@@ -388,7 +389,7 @@ class StartupFailureView extends StatelessWidget {
                 subtitleColor: subtitleColor,
               ),
             if (_offersDefaultLocation)
-              _RecoveryRoute(
+              StartupRecoveryRoute(
                 icon: Icons.home_outlined,
                 label: context.l10n.startup_failure_useDefaultLocation,
                 description:
@@ -398,7 +399,7 @@ class StartupFailureView extends StatelessWidget {
                 subtitleColor: subtitleColor,
               ),
             if (_offersRestoreFromFile)
-              _RecoveryRoute(
+              StartupRecoveryRoute(
                 icon: Icons.restore_page_outlined,
                 label: context.l10n.startup_failure_restoreFromFile,
                 description:
@@ -408,7 +409,7 @@ class StartupFailureView extends StatelessWidget {
                 subtitleColor: subtitleColor,
               ),
             if (_offersStartFresh)
-              _RecoveryRoute(
+              StartupRecoveryRoute(
                 icon: Icons.note_add_outlined,
                 label: context.l10n.startup_failure_startFresh,
                 description: context.l10n.startup_failure_startFresh_subtitle,
@@ -454,58 +455,6 @@ class StartupFailureView extends StatelessWidget {
           FilledButton(
             onPressed: onClose,
             child: Text(context.l10n.common_action_close),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// One route out of the failure screen: what it does, and what it costs.
-///
-/// The description is not decoration. Every one of these acts on the diver's
-/// only dive log, from a screen they reached because something already went
-/// wrong, so what each button will do has to be readable before it is pressed
-/// rather than after.
-class _RecoveryRoute extends StatelessWidget {
-  const _RecoveryRoute({
-    required this.icon,
-    required this.label,
-    required this.description,
-    required this.onPressed,
-    required this.textColor,
-    required this.subtitleColor,
-  });
-
-  final IconData icon;
-  final String label;
-  final String description;
-
-  /// Null renders the route disabled rather than removing it.
-  final VoidCallback? onPressed;
-  final Color textColor;
-  final Color subtitleColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          OutlinedButton.icon(
-            onPressed: onPressed,
-            icon: Icon(icon, size: 18),
-            label: Text(label, textAlign: TextAlign.center),
-          ),
-          const SizedBox(height: 4),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: Text(
-              description,
-              style: TextStyle(fontSize: 12, color: subtitleColor),
-              textAlign: TextAlign.center,
-            ),
           ),
         ],
       ),

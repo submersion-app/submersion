@@ -81,6 +81,7 @@ String attributeLabel(AppLocalizations l10n, String key) => switch (key) {
   'sku' => l10n.attrLabel_sku,
   'retailer' => l10n.attrLabel_retailer,
   'product_url' => l10n.attrLabel_product_url,
+  'color' => l10n.attrLabel_color,
   _ => key,
 };
 
