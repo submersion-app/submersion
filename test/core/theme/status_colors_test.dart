@@ -7,6 +7,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 
+import '../../helpers/google_fonts_settle.dart';
+
 /// WCAG 2.1 contrast ratio between two opaque colors.
 double _contrast(Color a, Color b) {
   final la = a.computeLuminance();
@@ -39,11 +41,8 @@ void main() {
         () async {
           // ignore: unnecessary_statements
           AppThemeRegistry.presets;
-          try {
-            await GoogleFonts.pendingFonts();
-          } catch (_) {
-            // Expected: fonts are not bundled in test assets.
-          }
+          // Bounded: a font load another file left pending never finishes.
+          await settleGoogleFonts();
         },
         (error, stack) {
           // Silently absorb google_fonts errors in the test environment.
