@@ -12487,6 +12487,88 @@ class AppLocalizationsPt extends AppLocalizations {
   String get passport_foreign_defaultName => 'Cilindro';
 
   @override
+  String get passport_nfc_tap => 'Aproximar uma etiqueta NFC';
+
+  @override
+  String get passport_nfc_holdNear =>
+      'Segure a etiqueta contra a parte de trás do telefone.';
+
+  @override
+  String get passport_nfc_write => 'Gravar etiqueta NFC';
+
+  @override
+  String get passport_nfc_rewrite => 'Regravar etiqueta';
+
+  @override
+  String get passport_nfc_reprint => 'Reimprimir etiqueta';
+
+  @override
+  String get passport_nfc_unsupported =>
+      'Este dispositivo não consegue ler nem gravar etiquetas NFC.';
+
+  @override
+  String get passport_nfc_disabled =>
+      'O NFC está desativado. Ative-o nas configurações do sistema.';
+
+  @override
+  String get passport_nfc_written => 'Etiqueta gravada e verificada';
+
+  @override
+  String passport_nfc_tagInfo(String type, int capacity) {
+    return '$type, $capacity bytes';
+  }
+
+  @override
+  String passport_nfc_capacity(int capacity) {
+    return '$capacity bytes';
+  }
+
+  @override
+  String get passport_nfc_allFields => 'Tudo cabe nesta etiqueta.';
+
+  @override
+  String passport_nfc_fieldsDropped(String fields) {
+    return 'Omitido para caber: $fields';
+  }
+
+  @override
+  String get passport_nfc_notNdef =>
+      'Esta etiqueta não consegue guardar um link. Use uma etiqueta NTAG215 ou NTAG216.';
+
+  @override
+  String get passport_nfc_readOnly =>
+      'Esta etiqueta está bloqueada e não pode ser gravada.';
+
+  @override
+  String passport_nfc_tooSmall(int capacity) {
+    return 'Esta etiqueta é pequena demais ($capacity bytes), até para a identificação do cilindro.';
+  }
+
+  @override
+  String get passport_nfc_readBackFailed =>
+      'A etiqueta não foi lida de volta como gravada, então não foi gravada.';
+
+  @override
+  String get passport_nfc_writeFailed =>
+      'A etiqueta não foi gravada. Segure-a parada e tente novamente.';
+
+  @override
+  String get passport_nfc_readFailed =>
+      'Não foi possível ler a etiqueta. Segure-a parada e tente novamente.';
+
+  @override
+  String get passport_nfc_retry => 'Tentar novamente';
+
+  @override
+  String get passport_nfc_fieldName => 'Nome';
+
+  @override
+  String get passport_nfc_fieldSerial => 'Número de série';
+
+  @override
+  String get passport_nfc_fieldO2Clean => 'Limpo para O2';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'Nº de série $serial';
   }

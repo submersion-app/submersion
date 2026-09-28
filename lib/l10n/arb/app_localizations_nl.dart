@@ -12392,6 +12392,88 @@ class AppLocalizationsNl extends AppLocalizations {
   String get passport_foreign_defaultName => 'Fles';
 
   @override
+  String get passport_nfc_tap => 'Een NFC-tag aantikken';
+
+  @override
+  String get passport_nfc_holdNear =>
+      'Houd de tag tegen de achterkant van de telefoon.';
+
+  @override
+  String get passport_nfc_write => 'NFC-tag schrijven';
+
+  @override
+  String get passport_nfc_rewrite => 'Tag opnieuw schrijven';
+
+  @override
+  String get passport_nfc_reprint => 'Label opnieuw afdrukken';
+
+  @override
+  String get passport_nfc_unsupported =>
+      'Dit apparaat kan geen NFC-tags lezen of schrijven.';
+
+  @override
+  String get passport_nfc_disabled =>
+      'NFC staat uit. Zet het aan in de systeeminstellingen.';
+
+  @override
+  String get passport_nfc_written => 'Tag geschreven en gecontroleerd';
+
+  @override
+  String passport_nfc_tagInfo(String type, int capacity) {
+    return '$type, $capacity bytes';
+  }
+
+  @override
+  String passport_nfc_capacity(int capacity) {
+    return '$capacity bytes';
+  }
+
+  @override
+  String get passport_nfc_allFields => 'Alles past op deze tag.';
+
+  @override
+  String passport_nfc_fieldsDropped(String fields) {
+    return 'Weggelaten om te passen: $fields';
+  }
+
+  @override
+  String get passport_nfc_notNdef =>
+      'Deze tag kan geen link bevatten. Gebruik een NTAG215- of NTAG216-tag.';
+
+  @override
+  String get passport_nfc_readOnly =>
+      'Deze tag is vergrendeld en kan niet worden beschreven.';
+
+  @override
+  String passport_nfc_tooSmall(int capacity) {
+    return 'Deze tag is te klein ($capacity bytes), zelfs voor de identiteit van de fles.';
+  }
+
+  @override
+  String get passport_nfc_readBackFailed =>
+      'De tag las niet terug zoals geschreven, dus hij is niet geschreven.';
+
+  @override
+  String get passport_nfc_writeFailed =>
+      'De tag is niet geschreven. Houd hem stil en probeer het opnieuw.';
+
+  @override
+  String get passport_nfc_readFailed =>
+      'De tag kon niet worden gelezen. Houd hem stil en probeer het opnieuw.';
+
+  @override
+  String get passport_nfc_retry => 'Opnieuw proberen';
+
+  @override
+  String get passport_nfc_fieldName => 'Naam';
+
+  @override
+  String get passport_nfc_fieldSerial => 'Serienummer';
+
+  @override
+  String get passport_nfc_fieldO2Clean => 'O2-schoon';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'Serienummer $serial';
   }

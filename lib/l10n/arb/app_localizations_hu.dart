@@ -12457,6 +12457,86 @@ class AppLocalizationsHu extends AppLocalizations {
   String get passport_foreign_defaultName => 'Palack';
 
   @override
+  String get passport_nfc_tap => 'NFC-címke érintése';
+
+  @override
+  String get passport_nfc_holdNear => 'Tartsa a címkét a telefon hátlapjához.';
+
+  @override
+  String get passport_nfc_write => 'NFC-címke írása';
+
+  @override
+  String get passport_nfc_rewrite => 'Címke újraírása';
+
+  @override
+  String get passport_nfc_reprint => 'Címke újranyomtatása';
+
+  @override
+  String get passport_nfc_unsupported =>
+      'Ez az eszköz nem tud NFC-címkéket olvasni vagy írni.';
+
+  @override
+  String get passport_nfc_disabled =>
+      'Az NFC ki van kapcsolva. Kapcsolja be a rendszerbeállításokban.';
+
+  @override
+  String get passport_nfc_written => 'A címke megírva és ellenőrizve';
+
+  @override
+  String passport_nfc_tagInfo(String type, int capacity) {
+    return '$type, $capacity bájt';
+  }
+
+  @override
+  String passport_nfc_capacity(int capacity) {
+    return '$capacity bájt';
+  }
+
+  @override
+  String get passport_nfc_allFields => 'Minden elfér ezen a címkén.';
+
+  @override
+  String passport_nfc_fieldsDropped(String fields) {
+    return 'Helyhiány miatt kimaradt: $fields';
+  }
+
+  @override
+  String get passport_nfc_notNdef =>
+      'Ez a címke nem tud hivatkozást tárolni. Használjon NTAG215 vagy NTAG216 címkét.';
+
+  @override
+  String get passport_nfc_readOnly => 'Ez a címke zárolva van, nem írható.';
+
+  @override
+  String passport_nfc_tooSmall(int capacity) {
+    return 'Ez a címke túl kicsi ($capacity bájt), még a palack azonosítójához is.';
+  }
+
+  @override
+  String get passport_nfc_readBackFailed =>
+      'A címke visszaolvasása nem egyezett az írottal, így nem lett megírva.';
+
+  @override
+  String get passport_nfc_writeFailed =>
+      'A címke nem lett megírva. Tartsa mozdulatlanul, és próbálja újra.';
+
+  @override
+  String get passport_nfc_readFailed =>
+      'A címkét nem sikerült beolvasni. Tartsa mozdulatlanul, és próbálja újra.';
+
+  @override
+  String get passport_nfc_retry => 'Újra';
+
+  @override
+  String get passport_nfc_fieldName => 'Név';
+
+  @override
+  String get passport_nfc_fieldSerial => 'Sorozatszám';
+
+  @override
+  String get passport_nfc_fieldO2Clean => 'O2-tiszta';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'Sorozatszám: $serial';
   }

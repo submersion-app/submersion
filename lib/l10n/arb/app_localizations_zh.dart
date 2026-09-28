@@ -11920,6 +11920,80 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_foreign_defaultName => '气瓶';
 
   @override
+  String get passport_nfc_tap => '轻触 NFC 标签';
+
+  @override
+  String get passport_nfc_holdNear => '将标签贴近手机背面。';
+
+  @override
+  String get passport_nfc_write => '写入 NFC 标签';
+
+  @override
+  String get passport_nfc_rewrite => '重写标签';
+
+  @override
+  String get passport_nfc_reprint => '重新打印标签';
+
+  @override
+  String get passport_nfc_unsupported => '此设备无法读取或写入 NFC 标签。';
+
+  @override
+  String get passport_nfc_disabled => 'NFC 已关闭。请在系统设置中开启。';
+
+  @override
+  String get passport_nfc_written => '标签已写入并校验';
+
+  @override
+  String passport_nfc_tagInfo(String type, int capacity) {
+    return '$type，$capacity 字节';
+  }
+
+  @override
+  String passport_nfc_capacity(int capacity) {
+    return '$capacity 字节';
+  }
+
+  @override
+  String get passport_nfc_allFields => '所有信息都能写入此标签。';
+
+  @override
+  String passport_nfc_fieldsDropped(String fields) {
+    return '为适应容量而省略：$fields';
+  }
+
+  @override
+  String get passport_nfc_notNdef => '此标签无法保存链接。请使用 NTAG215 或 NTAG216 标签。';
+
+  @override
+  String get passport_nfc_readOnly => '此标签已锁定，无法写入。';
+
+  @override
+  String passport_nfc_tooSmall(int capacity) {
+    return '此标签太小（$capacity 字节），连气瓶标识都放不下。';
+  }
+
+  @override
+  String get passport_nfc_readBackFailed => '标签回读内容与写入不一致，因此未写入。';
+
+  @override
+  String get passport_nfc_writeFailed => '标签未写入。请保持稳定后重试。';
+
+  @override
+  String get passport_nfc_readFailed => '无法读取标签。请保持稳定后重试。';
+
+  @override
+  String get passport_nfc_retry => '重试';
+
+  @override
+  String get passport_nfc_fieldName => '名称';
+
+  @override
+  String get passport_nfc_fieldSerial => '序列号';
+
+  @override
+  String get passport_nfc_fieldO2Clean => '氧气清洁';
+
+  @override
   String passport_foreign_serial(String serial) {
     return '序列号 $serial';
   }

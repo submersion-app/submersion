@@ -12288,6 +12288,87 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_foreign_defaultName => 'أسطوانة';
 
   @override
+  String get passport_nfc_tap => 'المس بطاقة NFC';
+
+  @override
+  String get passport_nfc_holdNear => 'ثبّت البطاقة على ظهر الهاتف.';
+
+  @override
+  String get passport_nfc_write => 'كتابة بطاقة NFC';
+
+  @override
+  String get passport_nfc_rewrite => 'إعادة كتابة البطاقة';
+
+  @override
+  String get passport_nfc_reprint => 'إعادة طباعة الملصق';
+
+  @override
+  String get passport_nfc_unsupported =>
+      'لا يستطيع هذا الجهاز قراءة بطاقات NFC أو الكتابة عليها.';
+
+  @override
+  String get passport_nfc_disabled =>
+      'تقنية NFC متوقفة. شغّلها من إعدادات النظام.';
+
+  @override
+  String get passport_nfc_written => 'تمت كتابة البطاقة والتحقق منها';
+
+  @override
+  String passport_nfc_tagInfo(String type, int capacity) {
+    return '$type، $capacity بايت';
+  }
+
+  @override
+  String passport_nfc_capacity(int capacity) {
+    return '$capacity بايت';
+  }
+
+  @override
+  String get passport_nfc_allFields => 'كل البيانات تتسع لهذه البطاقة.';
+
+  @override
+  String passport_nfc_fieldsDropped(String fields) {
+    return 'حُذف لتتسع البطاقة: $fields';
+  }
+
+  @override
+  String get passport_nfc_notNdef =>
+      'لا تستطيع هذه البطاقة حفظ رابط. استخدم بطاقة NTAG215 أو NTAG216.';
+
+  @override
+  String get passport_nfc_readOnly =>
+      'هذه البطاقة مقفلة ولا يمكن الكتابة عليها.';
+
+  @override
+  String passport_nfc_tooSmall(int capacity) {
+    return 'هذه البطاقة صغيرة جدًا ($capacity بايت)، حتى لمعرّف الأسطوانة.';
+  }
+
+  @override
+  String get passport_nfc_readBackFailed =>
+      'لم تُقرأ البطاقة كما كُتبت، لذلك لم تُكتب.';
+
+  @override
+  String get passport_nfc_writeFailed =>
+      'لم تُكتب البطاقة. ثبّتها وحاول مرة أخرى.';
+
+  @override
+  String get passport_nfc_readFailed =>
+      'تعذّرت قراءة البطاقة. ثبّتها وحاول مرة أخرى.';
+
+  @override
+  String get passport_nfc_retry => 'إعادة المحاولة';
+
+  @override
+  String get passport_nfc_fieldName => 'الاسم';
+
+  @override
+  String get passport_nfc_fieldSerial => 'الرقم التسلسلي';
+
+  @override
+  String get passport_nfc_fieldO2Clean => 'نظيفة للأكسجين';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'الرقم التسلسلي $serial';
   }

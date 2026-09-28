@@ -20656,6 +20656,138 @@ abstract class AppLocalizations {
   /// **'Cylinder'**
   String get passport_foreign_defaultName;
 
+  /// No description provided for @passport_nfc_tap.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an NFC tag'**
+  String get passport_nfc_tap;
+
+  /// No description provided for @passport_nfc_holdNear.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold the tag against the back of the phone.'**
+  String get passport_nfc_holdNear;
+
+  /// No description provided for @passport_nfc_write.
+  ///
+  /// In en, this message translates to:
+  /// **'Write NFC tag'**
+  String get passport_nfc_write;
+
+  /// No description provided for @passport_nfc_rewrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewrite tag'**
+  String get passport_nfc_rewrite;
+
+  /// No description provided for @passport_nfc_reprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reprint label'**
+  String get passport_nfc_reprint;
+
+  /// No description provided for @passport_nfc_unsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This device cannot read or write NFC tags.'**
+  String get passport_nfc_unsupported;
+
+  /// No description provided for @passport_nfc_disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'NFC is turned off. Turn it on in the system settings.'**
+  String get passport_nfc_disabled;
+
+  /// No description provided for @passport_nfc_written.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag written and checked'**
+  String get passport_nfc_written;
+
+  /// No description provided for @passport_nfc_tagInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'{type}, {capacity} bytes'**
+  String passport_nfc_tagInfo(String type, int capacity);
+
+  /// No description provided for @passport_nfc_capacity.
+  ///
+  /// In en, this message translates to:
+  /// **'{capacity} bytes'**
+  String passport_nfc_capacity(int capacity);
+
+  /// No description provided for @passport_nfc_allFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything fits on this tag.'**
+  String get passport_nfc_allFields;
+
+  /// No description provided for @passport_nfc_fieldsDropped.
+  ///
+  /// In en, this message translates to:
+  /// **'Left off to fit: {fields}'**
+  String passport_nfc_fieldsDropped(String fields);
+
+  /// No description provided for @passport_nfc_notNdef.
+  ///
+  /// In en, this message translates to:
+  /// **'This tag cannot hold a link. Use an NTAG215 or NTAG216 tag.'**
+  String get passport_nfc_notNdef;
+
+  /// No description provided for @passport_nfc_readOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'This tag is locked and cannot be written.'**
+  String get passport_nfc_readOnly;
+
+  /// No description provided for @passport_nfc_tooSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'This tag is too small ({capacity} bytes), even for the cylinder\'s identity.'**
+  String passport_nfc_tooSmall(int capacity);
+
+  /// No description provided for @passport_nfc_readBackFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The tag did not read back as written, so it was not written.'**
+  String get passport_nfc_readBackFailed;
+
+  /// No description provided for @passport_nfc_writeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The tag was not written. Hold it still and try again.'**
+  String get passport_nfc_writeFailed;
+
+  /// No description provided for @passport_nfc_readFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read the tag. Hold it still and try again.'**
+  String get passport_nfc_readFailed;
+
+  /// No description provided for @passport_nfc_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get passport_nfc_retry;
+
+  /// No description provided for @passport_nfc_fieldName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get passport_nfc_fieldName;
+
+  /// No description provided for @passport_nfc_fieldSerial.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number'**
+  String get passport_nfc_fieldSerial;
+
+  /// No description provided for @passport_nfc_fieldO2Clean.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 clean'**
+  String get passport_nfc_fieldO2Clean;
+
   /// No description provided for @passport_foreign_serial.
   ///
   /// In en, this message translates to:

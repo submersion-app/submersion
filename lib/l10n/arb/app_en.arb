@@ -7108,6 +7108,49 @@
   "passport_foreign_addToGear": "Add to my gear",
   "passport_foreign_addFailed": "Could not add the cylinder. Try again.",
   "passport_foreign_defaultName": "Cylinder",
+  "passport_nfc_tap": "Tap an NFC tag",
+  "passport_nfc_holdNear": "Hold the tag against the back of the phone.",
+  "passport_nfc_write": "Write NFC tag",
+  "passport_nfc_rewrite": "Rewrite tag",
+  "passport_nfc_reprint": "Reprint label",
+  "passport_nfc_unsupported": "This device cannot read or write NFC tags.",
+  "passport_nfc_disabled": "NFC is turned off. Turn it on in the system settings.",
+  "passport_nfc_written": "Tag written and checked",
+  "passport_nfc_tagInfo": "{type}, {capacity} bytes",
+  "@passport_nfc_tagInfo": {
+    "placeholders": {
+      "type": {"type": "String"},
+      "capacity": {"type": "int"}
+    }
+  },
+  "passport_nfc_capacity": "{capacity} bytes",
+  "@passport_nfc_capacity": {
+    "placeholders": {
+      "capacity": {"type": "int"}
+    }
+  },
+  "passport_nfc_allFields": "Everything fits on this tag.",
+  "passport_nfc_fieldsDropped": "Left off to fit: {fields}",
+  "@passport_nfc_fieldsDropped": {
+    "placeholders": {
+      "fields": {"type": "String"}
+    }
+  },
+  "passport_nfc_notNdef": "This tag cannot hold a link. Use an NTAG215 or NTAG216 tag.",
+  "passport_nfc_readOnly": "This tag is locked and cannot be written.",
+  "passport_nfc_tooSmall": "This tag is too small ({capacity} bytes), even for the cylinder's identity.",
+  "@passport_nfc_tooSmall": {
+    "placeholders": {
+      "capacity": {"type": "int"}
+    }
+  },
+  "passport_nfc_readBackFailed": "The tag did not read back as written, so it was not written.",
+  "passport_nfc_writeFailed": "The tag was not written. Hold it still and try again.",
+  "passport_nfc_readFailed": "Could not read the tag. Hold it still and try again.",
+  "passport_nfc_retry": "Try again",
+  "passport_nfc_fieldName": "Name",
+  "passport_nfc_fieldSerial": "Serial number",
+  "passport_nfc_fieldO2Clean": "O2 clean",
   "passport_foreign_serial": "Serial {serial}",
   "@passport_foreign_serial": {
     "placeholders": {

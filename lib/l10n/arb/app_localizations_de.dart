@@ -12482,6 +12482,88 @@ class AppLocalizationsDe extends AppLocalizations {
   String get passport_foreign_defaultName => 'Flasche';
 
   @override
+  String get passport_nfc_tap => 'NFC-Tag antippen';
+
+  @override
+  String get passport_nfc_holdNear =>
+      'Den Tag an die Rückseite des Telefons halten.';
+
+  @override
+  String get passport_nfc_write => 'NFC-Tag beschreiben';
+
+  @override
+  String get passport_nfc_rewrite => 'Tag neu beschreiben';
+
+  @override
+  String get passport_nfc_reprint => 'Etikett neu drucken';
+
+  @override
+  String get passport_nfc_unsupported =>
+      'Dieses Gerät kann keine NFC-Tags lesen oder beschreiben.';
+
+  @override
+  String get passport_nfc_disabled =>
+      'NFC ist ausgeschaltet. In den Systemeinstellungen einschalten.';
+
+  @override
+  String get passport_nfc_written => 'Tag beschrieben und geprüft';
+
+  @override
+  String passport_nfc_tagInfo(String type, int capacity) {
+    return '$type, $capacity Byte';
+  }
+
+  @override
+  String passport_nfc_capacity(int capacity) {
+    return '$capacity Byte';
+  }
+
+  @override
+  String get passport_nfc_allFields => 'Alles passt auf diesen Tag.';
+
+  @override
+  String passport_nfc_fieldsDropped(String fields) {
+    return 'Aus Platzgründen weggelassen: $fields';
+  }
+
+  @override
+  String get passport_nfc_notNdef =>
+      'Dieser Tag kann keinen Link speichern. Einen NTAG215- oder NTAG216-Tag verwenden.';
+
+  @override
+  String get passport_nfc_readOnly =>
+      'Dieser Tag ist gesperrt und kann nicht beschrieben werden.';
+
+  @override
+  String passport_nfc_tooSmall(int capacity) {
+    return 'Dieser Tag ist zu klein ($capacity Byte), selbst für die Kennung der Flasche.';
+  }
+
+  @override
+  String get passport_nfc_readBackFailed =>
+      'Der Tag ließ sich nicht wie geschrieben zurücklesen und wurde daher nicht beschrieben.';
+
+  @override
+  String get passport_nfc_writeFailed =>
+      'Der Tag wurde nicht beschrieben. Ruhig halten und erneut versuchen.';
+
+  @override
+  String get passport_nfc_readFailed =>
+      'Der Tag konnte nicht gelesen werden. Ruhig halten und erneut versuchen.';
+
+  @override
+  String get passport_nfc_retry => 'Erneut versuchen';
+
+  @override
+  String get passport_nfc_fieldName => 'Name';
+
+  @override
+  String get passport_nfc_fieldSerial => 'Seriennummer';
+
+  @override
+  String get passport_nfc_fieldO2Clean => 'O2-rein';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'Seriennummer $serial';
   }

@@ -12291,6 +12291,88 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passport_foreign_defaultName => 'Cylinder';
 
   @override
+  String get passport_nfc_tap => 'Tap an NFC tag';
+
+  @override
+  String get passport_nfc_holdNear =>
+      'Hold the tag against the back of the phone.';
+
+  @override
+  String get passport_nfc_write => 'Write NFC tag';
+
+  @override
+  String get passport_nfc_rewrite => 'Rewrite tag';
+
+  @override
+  String get passport_nfc_reprint => 'Reprint label';
+
+  @override
+  String get passport_nfc_unsupported =>
+      'This device cannot read or write NFC tags.';
+
+  @override
+  String get passport_nfc_disabled =>
+      'NFC is turned off. Turn it on in the system settings.';
+
+  @override
+  String get passport_nfc_written => 'Tag written and checked';
+
+  @override
+  String passport_nfc_tagInfo(String type, int capacity) {
+    return '$type, $capacity bytes';
+  }
+
+  @override
+  String passport_nfc_capacity(int capacity) {
+    return '$capacity bytes';
+  }
+
+  @override
+  String get passport_nfc_allFields => 'Everything fits on this tag.';
+
+  @override
+  String passport_nfc_fieldsDropped(String fields) {
+    return 'Left off to fit: $fields';
+  }
+
+  @override
+  String get passport_nfc_notNdef =>
+      'This tag cannot hold a link. Use an NTAG215 or NTAG216 tag.';
+
+  @override
+  String get passport_nfc_readOnly =>
+      'This tag is locked and cannot be written.';
+
+  @override
+  String passport_nfc_tooSmall(int capacity) {
+    return 'This tag is too small ($capacity bytes), even for the cylinder\'s identity.';
+  }
+
+  @override
+  String get passport_nfc_readBackFailed =>
+      'The tag did not read back as written, so it was not written.';
+
+  @override
+  String get passport_nfc_writeFailed =>
+      'The tag was not written. Hold it still and try again.';
+
+  @override
+  String get passport_nfc_readFailed =>
+      'Could not read the tag. Hold it still and try again.';
+
+  @override
+  String get passport_nfc_retry => 'Try again';
+
+  @override
+  String get passport_nfc_fieldName => 'Name';
+
+  @override
+  String get passport_nfc_fieldSerial => 'Serial number';
+
+  @override
+  String get passport_nfc_fieldO2Clean => 'O2 clean';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'Serial $serial';
   }

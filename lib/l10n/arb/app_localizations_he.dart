@@ -12207,6 +12207,85 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_foreign_defaultName => 'מיכל';
 
   @override
+  String get passport_nfc_tap => 'הצמדת תג NFC';
+
+  @override
+  String get passport_nfc_holdNear => 'הצמידו את התג לגב הטלפון.';
+
+  @override
+  String get passport_nfc_write => 'כתיבת תג NFC';
+
+  @override
+  String get passport_nfc_rewrite => 'כתיבה מחדש של התג';
+
+  @override
+  String get passport_nfc_reprint => 'הדפסה מחדש של התווית';
+
+  @override
+  String get passport_nfc_unsupported =>
+      'המכשיר הזה אינו יכול לקרוא או לכתוב תגי NFC.';
+
+  @override
+  String get passport_nfc_disabled => 'NFC כבוי. הפעילו אותו בהגדרות המערכת.';
+
+  @override
+  String get passport_nfc_written => 'התג נכתב ונבדק';
+
+  @override
+  String passport_nfc_tagInfo(String type, int capacity) {
+    return '$type, $capacity בייטים';
+  }
+
+  @override
+  String passport_nfc_capacity(int capacity) {
+    return '$capacity בייטים';
+  }
+
+  @override
+  String get passport_nfc_allFields => 'הכול נכנס לתג הזה.';
+
+  @override
+  String passport_nfc_fieldsDropped(String fields) {
+    return 'הושמט כדי שייכנס: $fields';
+  }
+
+  @override
+  String get passport_nfc_notNdef =>
+      'התג הזה אינו יכול לשמור קישור. השתמשו בתג NTAG215 או NTAG216.';
+
+  @override
+  String get passport_nfc_readOnly => 'התג הזה נעול ולא ניתן לכתוב עליו.';
+
+  @override
+  String passport_nfc_tooSmall(int capacity) {
+    return 'התג הזה קטן מדי ($capacity בייטים), אפילו למזהה המיכל.';
+  }
+
+  @override
+  String get passport_nfc_readBackFailed =>
+      'התג לא נקרא בחזרה כפי שנכתב, ולכן לא נכתב.';
+
+  @override
+  String get passport_nfc_writeFailed =>
+      'התג לא נכתב. החזיקו אותו יציב ונסו שוב.';
+
+  @override
+  String get passport_nfc_readFailed =>
+      'לא ניתן היה לקרוא את התג. החזיקו אותו יציב ונסו שוב.';
+
+  @override
+  String get passport_nfc_retry => 'ניסיון חוזר';
+
+  @override
+  String get passport_nfc_fieldName => 'שם';
+
+  @override
+  String get passport_nfc_fieldSerial => 'מספר סידורי';
+
+  @override
+  String get passport_nfc_fieldO2Clean => 'נקי ל-O2';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'מספר סידורי $serial';
   }
