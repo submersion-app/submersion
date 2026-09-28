@@ -17,12 +17,12 @@ Future<bool> _hasIndex(AppDatabase db) async {
 }
 
 void main() {
-  test('v240 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 240);
+  test('v240 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v242 (equipment service cache) landed on top; the newest
+    // rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(240));
     expect(AppDatabase.migrationVersions, contains(240));
-    expect(AppDatabase.migrationStepCount(239), 1);
+    expect(AppDatabase.migrationStepCount(239), greaterThanOrEqualTo(1));
   });
 
   test('scoped event tombstones raise the sync floor to 240', () {
