@@ -7,7 +7,9 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 import 'package:submersion/features/cylinder_passports/data/services/passport_tag_io.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/services/recent_passport_tags.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -98,6 +100,11 @@ class _NfcWriteSheetState extends ConsumerState<NfcWriteSheet> {
       result = TagWriteFailed(e);
     }
     if (!mounted) return;
+    if (result case TagWritten(:final plan)) {
+      ref
+          .read(recentPassportTagsProvider)
+          .note(PassportPayloadCodec.httpsUrl(plan.payload));
+    }
     setState(() {
       _waiting = false;
       _result = result;

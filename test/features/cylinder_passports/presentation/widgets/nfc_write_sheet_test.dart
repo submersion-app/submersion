@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/cylinder_passports/presentation/services/recent_passport_tags.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_ndef.dart';
@@ -167,4 +169,20 @@ void main() {
     expect(find.text('write'), findsOneWidget);
     expect(nfc.cancels, 1);
   });
+
+  testWidgets(
+    'a tag written here is remembered, so its re-dispatch is dropped',
+    (tester) async {
+      await open(tester, FakeNfcTagService(tag: FakeTagHandle()));
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(NfcWriteSheet)),
+      );
+      expect(
+        container
+            .read(recentPassportTagsProvider)
+            .wasJustHandled(PassportPayloadCodec.httpsUrl(payload)),
+        isTrue,
+      );
+    },
+  );
 }

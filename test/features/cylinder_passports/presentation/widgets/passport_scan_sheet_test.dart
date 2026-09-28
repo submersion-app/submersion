@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ndef_record/ndef_record.dart';
+import 'package:submersion/features/cylinder_passports/presentation/services/recent_passport_tags.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_ndef.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
@@ -222,5 +224,23 @@ void main() {
     await tester.tap(find.byKey(const Key('passportScan_nfc')));
     await tester.pumpAndSettle();
     expect(nfc.lastIosEnd?.error, l10n.passport_tag_linkInvalid);
+  });
+
+  testWidgets('a tag read here is remembered, so its re-dispatch is dropped', (
+    tester,
+  ) async {
+    final nfc = FakeNfcTagService(
+      tag: FakeTagHandle(stored: NdefMessage(records: [uriRecord(tag)])),
+    );
+    await openSheet(tester, camera: null, nfc: nfc);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PassportScanSheet)),
+    );
+    await tester.tap(find.byKey(const Key('passportScan_nfc')));
+    await tester.pumpAndSettle();
+    expect(
+      container.read(recentPassportTagsProvider).wasJustHandled(tag),
+      isTrue,
+    );
   });
 }

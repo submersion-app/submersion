@@ -9,6 +9,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 import 'package:submersion/features/cylinder_passports/data/services/passport_tag_io.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/services/recent_passport_tags.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/nfc_availability_text.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_mobile_scanner.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -106,6 +107,7 @@ class _PassportScanSheetState extends ConsumerState<PassportScanSheet> {
       if (!mounted) return;
       switch (result) {
         case TagReadText(:final text):
+          ref.read(recentPassportTagsProvider).note(text);
           _finish(text);
         case TagHasNoPassport():
           setState(() => _nfcError = l10n.passport_tag_linkInvalid);

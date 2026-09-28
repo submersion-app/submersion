@@ -23,6 +23,7 @@ import 'package:submersion/features/backup/presentation/pages/restore_complete_p
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_barrier.dart';
 import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
+import 'package:submersion/features/cylinder_passports/presentation/services/recent_passport_tags.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_origin_republish_provider.dart';
@@ -122,6 +123,8 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     _passportLinks = PassportLinkDispatcher(
       source: ref.read(incomingLinkSourceProvider),
       open: _openPassportLink,
+      alreadyHandled: (text) =>
+          ref.read(recentPassportTagsProvider).wasJustHandled(text),
     );
     // A tag tapped on a fresh install waits until setup is over, and one
     // tapped with the app closed waits for the navigator to exist.
