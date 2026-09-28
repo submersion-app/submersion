@@ -9,6 +9,184 @@ class AppLocalizationsPt extends AppLocalizations {
   AppLocalizationsPt([String locale = 'pt']) : super(locale);
 
   @override
+  String get connections_action_centreHere => 'Centrar aqui';
+
+  @override
+  String get connections_around_centredOn => 'Centrado em';
+
+  @override
+  String get connections_around_hops => 'Passos';
+
+  @override
+  String connections_around_kindChip(String kind, int count) {
+    return '$kind ($count)';
+  }
+
+  @override
+  String get connections_around_noResults => 'Sem resultados';
+
+  @override
+  String get connections_around_prompt =>
+      'Pesquise um parceiro, local, viagem ou outra coisa para centrar o mapa.';
+
+  @override
+  String get connections_around_searchHint =>
+      'Pesquisar parceiros, locais, viagens e outros';
+
+  @override
+  String get connections_around_show => 'Mostrar';
+
+  @override
+  String get connections_editor_kinds => 'Tipos';
+
+  @override
+  String connections_editor_link(String a, String b) {
+    return '$a com $b';
+  }
+
+  @override
+  String get connections_editor_links => 'Ligações';
+
+  @override
+  String connections_editor_minShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Pelo menos $count mergulhos em comum',
+      one: 'Pelo menos $count mergulho em comum',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_editor_saveAsMap => 'Guardar como mapa';
+
+  @override
+  String get connections_editor_title => 'Mapa personalizado';
+
+  @override
+  String get connections_filter_allFilters => 'Todos os filtros';
+
+  @override
+  String get connections_filter_clear => 'Limpar';
+
+  @override
+  String get connections_filter_none => 'Nenhum filtro ativo.';
+
+  @override
+  String get connections_loading => 'A carregar ligações';
+
+  @override
+  String get connections_mode_around => 'À volta de um elemento';
+
+  @override
+  String get connections_mode_map => 'Mapa completo';
+
+  @override
+  String get connections_preset_centers => 'Centros e pessoas';
+
+  @override
+  String get connections_preset_circle => 'Círculo de mergulho';
+
+  @override
+  String get connections_preset_edited => 'editado';
+
+  @override
+  String get connections_preset_gear => 'Equipamento em conjunto';
+
+  @override
+  String get connections_preset_gearRoad => 'Equipamento em viagem';
+
+  @override
+  String get connections_preset_life => 'Locais por vida marinha';
+
+  @override
+  String get connections_preset_reef => 'Vida do recife';
+
+  @override
+  String get connections_preset_travel => 'História de viagem';
+
+  @override
+  String get connections_preset_trips => 'Viagens e pessoas';
+
+  @override
+  String get connections_preset_where => 'Quem mergulha onde';
+
+  @override
+  String get connections_presets_title => 'Predefinições';
+
+  @override
+  String get connections_savedMap_badge => 'Mapa guardado';
+
+  @override
+  String connections_savedMap_deleted(String name) {
+    return '\"$name\" eliminado';
+  }
+
+  @override
+  String get connections_savedMap_nameLabel => 'Nome';
+
+  @override
+  String get connections_savedMap_rename => 'Mudar o nome';
+
+  @override
+  String get connections_savedMap_saveTitle => 'Guardar mapa';
+
+  @override
+  String get connections_savedMap_undo => 'Anular';
+
+  @override
+  String get connections_savedMap_update => 'Atualizar com a vista atual';
+
+  @override
+  String get connections_summary_closest => 'Mais próximo';
+
+  @override
+  String connections_summary_entitiesAround(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos',
+      one: '$count elemento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_mostConnected => 'Mais ligado';
+
+  @override
+  String connections_summary_pairValue(int count, String a, String b) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$a e $b, $count mergulhos',
+      one: '$a e $b, $count mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_strongestPair => 'Par mais forte';
+
+  @override
+  String get connections_summary_title => 'Resumo';
+
+  @override
+  String get connections_tab_details => 'Detalhes';
+
+  @override
+  String get connections_tab_filter => 'Filtro';
+
+  @override
+  String connections_tab_filterCount(int count) {
+    return 'Filtro ($count)';
+  }
+
+  @override
+  String get connections_tab_view => 'Vista';
+
+  @override
   String get equipment_filter_owner_all => 'Todos';
 
   @override
@@ -3518,6 +3696,159 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get common_error_tryAgain => 'Algo correu mal. Tenta novamente.';
+
+  @override
+  String get connections_title => 'Ligações';
+
+  @override
+  String get connections_tooltip_relayout => 'Reorganizar';
+
+  @override
+  String get connections_tooltip_showWholeWeb => 'Voltar ao mapa completo';
+
+  @override
+  String connections_filterBar_edges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ligações',
+      one: '$count ligação',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_hiddenNodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mais não mostrados',
+      one: '$count mais não mostrado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_showAll => 'Mostrar tudo';
+
+  @override
+  String get connections_showAll_confirmTitle => 'Mostrar todos os elementos?';
+
+  @override
+  String connections_showAll_confirmBody(int count) {
+    return '$count elementos podem demorar um momento a organizar neste dispositivo.';
+  }
+
+  @override
+  String get connections_action_open => 'Abrir';
+
+  @override
+  String get connections_action_showDives => 'Ver mergulhos';
+
+  @override
+  String get connections_action_openInConnections => 'Abrir em Ligações';
+
+  @override
+  String connections_selection_divesTogether(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos juntos',
+      one: '$count mergulho juntos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_selection_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '$count mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_selection_topConnections => 'Ligações principais';
+
+  @override
+  String connections_selection_firstLast(String first, String last) {
+    return 'Primeiro $first, último $last';
+  }
+
+  @override
+  String get connections_selection_hint =>
+      'Toque num elemento ou numa linha para ver os detalhes.';
+
+  @override
+  String get connections_empty_noDives =>
+      'Ainda não há mergulhos. As ligações aparecem quando o diário tiver mergulhos.';
+
+  @override
+  String get connections_empty_buddies =>
+      'Ainda não há parceiros ligados a mergulhos. Adicione parceiros aos seus mergulhos ou converta nomes antigos em Definições, Ferramentas de dados.';
+
+  @override
+  String get connections_empty_sites => 'Nenhum mergulho tem ainda um local.';
+
+  @override
+  String get connections_empty_filtered => 'Nada corresponde ao filtro atual.';
+
+  @override
+  String get connections_focusMissing => 'Esse item já não está no diário.';
+
+  @override
+  String get connections_error_load => 'Não foi possível carregar as ligações.';
+
+  @override
+  String get connections_legend_title => 'Legenda';
+
+  @override
+  String connections_yearRange_label(int first, int last) {
+    return 'Anos $first a $last';
+  }
+
+  @override
+  String connections_semantics_summary(int nodes, int edges) {
+    return '$nodes elementos e $edges ligações';
+  }
+
+  @override
+  String connections_semantics_selected(String label) {
+    return 'Selecionado: $label';
+  }
+
+  @override
+  String get connections_kind_buddy => 'Parceiros';
+
+  @override
+  String get connections_kind_site => 'Locais';
+
+  @override
+  String get connections_kind_trip => 'Viagens';
+
+  @override
+  String get connections_kind_diveCenter => 'Centros de mergulho';
+
+  @override
+  String get connections_kind_equipment => 'Equipamento';
+
+  @override
+  String get connections_kind_species => 'Espécies';
+
+  @override
+  String get connections_kind_tag => 'Etiquetas';
+
+  @override
+  String get connections_kind_diveType => 'Tipos de mergulho';
+
+  @override
+  String get connections_kind_diveComputer => 'Computadores de mergulho';
+
+  @override
+  String get connections_kind_course => 'Cursos';
 
   @override
   String get courses_action_add => 'Adicionar Curso';
@@ -21576,6 +21907,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get insights_category_conditions_title => 'Condições';
 
   @override
+  String get insights_category_connections_subtitle =>
+      'Duplas, pontos e equipamentos ligados';
+
+  @override
   String get insights_category_equipment_subtitle =>
       'Uso de equipamento e peso';
 
@@ -39492,7 +39827,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get common_action_unpin => 'Desafixar';
 
   @override
-  String diveLog_filterChip_dateRange(String end, String start) {
+  String diveLog_filterChip_dateRange(String start, String end) {
     return '$start a $end';
   }
 

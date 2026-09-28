@@ -128,6 +128,72 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('DIVE_CENTER_LIST_PAGE'), findsNothing);
     });
+
+    testWidgets('Open in Connections centres the map on the center', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await getBaseOverrides();
+
+      final router = GoRouter(
+        initialLocation: '/dive-centers/center-1',
+        routes: [
+          GoRoute(
+            path: '/dive-centers',
+            builder: (context, state) =>
+                const Scaffold(body: Text('DIVE_CENTER_LIST_PAGE')),
+          ),
+          GoRoute(
+            path: '/dive-centers/:id',
+            builder: (context, state) =>
+                DiveCenterDetailPage(centerId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/insights/connections',
+            builder: (context, state) =>
+                Scaffold(body: Text('CONNECTIONS ${state.uri.query}')),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            diveCenterListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.table,
+            ),
+            diveCenterByIdProvider(
+              center.id,
+            ).overrideWith((ref) async => center),
+            diveCenterDiveCountProvider(
+              center.id,
+            ).overrideWith((ref) async => 0),
+          ].cast(),
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(PopupMenuButton<String>).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open in Connections'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('CONNECTIONS mode=around&focus=diveCenter:center-1'),
+        findsOneWidget,
+      );
+    });
   });
 
   group('DiveCenterDetailPage map section', () {

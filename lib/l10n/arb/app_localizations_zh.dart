@@ -9,6 +9,182 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get connections_action_centreHere => '以此为中心';
+
+  @override
+  String get connections_around_centredOn => '中心';
+
+  @override
+  String get connections_around_hops => '跳数';
+
+  @override
+  String connections_around_kindChip(String kind, int count) {
+    return '$kind（$count）';
+  }
+
+  @override
+  String get connections_around_noResults => '无匹配结果';
+
+  @override
+  String get connections_around_prompt => '搜索潜伴、潜点、行程或其他内容，以其为中心显示图谱。';
+
+  @override
+  String get connections_around_searchHint => '搜索潜伴、潜点、行程等';
+
+  @override
+  String get connections_around_show => '显示';
+
+  @override
+  String get connections_editor_kinds => '类型';
+
+  @override
+  String connections_editor_link(String a, String b) {
+    return '$a 与 $b';
+  }
+
+  @override
+  String get connections_editor_links => '连线';
+
+  @override
+  String connections_editor_minShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '至少 $count 次共同潜水',
+      one: '至少 1 次共同潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_editor_saveAsMap => '另存为图谱';
+
+  @override
+  String get connections_editor_title => '自定义图谱';
+
+  @override
+  String get connections_filter_allFilters => '全部筛选';
+
+  @override
+  String get connections_filter_clear => '清除';
+
+  @override
+  String get connections_filter_none => '没有启用的筛选。';
+
+  @override
+  String get connections_loading => '正在加载关联';
+
+  @override
+  String get connections_mode_around => '围绕单个条目';
+
+  @override
+  String get connections_mode_map => '完整图谱';
+
+  @override
+  String get connections_preset_centers => '潜店与人';
+
+  @override
+  String get connections_preset_circle => '潜伴圈';
+
+  @override
+  String get connections_preset_edited => '已编辑';
+
+  @override
+  String get connections_preset_gear => '一起使用的装备';
+
+  @override
+  String get connections_preset_gearRoad => '旅途中的装备';
+
+  @override
+  String get connections_preset_life => '按海洋生物看潜点';
+
+  @override
+  String get connections_preset_reef => '珊瑚礁生物';
+
+  @override
+  String get connections_preset_travel => '旅行故事';
+
+  @override
+  String get connections_preset_trips => '行程与人';
+
+  @override
+  String get connections_preset_where => '谁在哪里潜水';
+
+  @override
+  String get connections_presets_title => '预设';
+
+  @override
+  String get connections_savedMap_badge => '已保存的图谱';
+
+  @override
+  String connections_savedMap_deleted(String name) {
+    return '已删除“$name”';
+  }
+
+  @override
+  String get connections_savedMap_nameLabel => '名称';
+
+  @override
+  String get connections_savedMap_rename => '重命名';
+
+  @override
+  String get connections_savedMap_saveTitle => '保存图谱';
+
+  @override
+  String get connections_savedMap_undo => '撤销';
+
+  @override
+  String get connections_savedMap_update => '用当前视图更新';
+
+  @override
+  String get connections_summary_closest => '最接近';
+
+  @override
+  String connections_summary_entitiesAround(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个条目',
+      one: '1 个条目',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_mostConnected => '关联最多';
+
+  @override
+  String connections_summary_pairValue(int count, String a, String b) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$a 与 $b，$count 次潜水',
+      one: '$a 与 $b，1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_summary_strongestPair => '最紧密的一对';
+
+  @override
+  String get connections_summary_title => '摘要';
+
+  @override
+  String get connections_tab_details => '详情';
+
+  @override
+  String get connections_tab_filter => '筛选';
+
+  @override
+  String connections_tab_filterCount(int count) {
+    return '筛选（$count）';
+  }
+
+  @override
+  String get connections_tab_view => '视图';
+
+  @override
   String get equipment_filter_owner_all => '全部';
 
   @override
@@ -3327,6 +3503,157 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get common_error_tryAgain => '发生错误，请重试。';
+
+  @override
+  String get connections_title => '关联';
+
+  @override
+  String get connections_tooltip_relayout => '重新排列';
+
+  @override
+  String get connections_tooltip_showWholeWeb => '返回完整图谱';
+
+  @override
+  String connections_filterBar_edges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 条关联',
+      one: '1 条关联',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_hiddenNodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '另有 $count 个未显示',
+      one: '另有 1 个未显示',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_showAll => '全部显示';
+
+  @override
+  String get connections_showAll_confirmTitle => '显示所有节点？';
+
+  @override
+  String connections_showAll_confirmBody(int count) {
+    return '$count 个节点在此设备上可能需要片刻才能排列完成。';
+  }
+
+  @override
+  String get connections_action_open => '打开';
+
+  @override
+  String get connections_action_showDives => '显示潜水';
+
+  @override
+  String get connections_action_openInConnections => '在关联中打开';
+
+  @override
+  String connections_selection_divesTogether(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '共同潜水 $count 次',
+      one: '共同潜水 1 次',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_selection_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      one: '1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_selection_topConnections => '主要关联';
+
+  @override
+  String connections_selection_firstLast(String first, String last) {
+    return '首次 $first，最近 $last';
+  }
+
+  @override
+  String get connections_selection_hint => '点击节点或连线查看详情。';
+
+  @override
+  String get connections_empty_noDives => '还没有潜水记录。日志中有潜水后会显示关联。';
+
+  @override
+  String get connections_empty_buddies =>
+      '还没有潜伴与潜水关联。请为潜水添加潜伴，或在“设置”的“数据工具”中转换旧的潜伴名称。';
+
+  @override
+  String get connections_empty_sites => '还没有潜水记录了潜点。';
+
+  @override
+  String get connections_empty_filtered => '没有符合当前筛选的内容。';
+
+  @override
+  String get connections_focusMissing => '该项目已不在日志中。';
+
+  @override
+  String get connections_error_load => '无法加载关联。';
+
+  @override
+  String get connections_legend_title => '图例';
+
+  @override
+  String connections_yearRange_label(int first, int last) {
+    return '$first 至 $last 年';
+  }
+
+  @override
+  String connections_semantics_summary(int nodes, int edges) {
+    return '$nodes 个节点和 $edges 条关联';
+  }
+
+  @override
+  String connections_semantics_selected(String label) {
+    return '已选择：$label';
+  }
+
+  @override
+  String get connections_kind_buddy => '潜伴';
+
+  @override
+  String get connections_kind_site => '潜点';
+
+  @override
+  String get connections_kind_trip => '行程';
+
+  @override
+  String get connections_kind_diveCenter => '潜店';
+
+  @override
+  String get connections_kind_equipment => '装备';
+
+  @override
+  String get connections_kind_species => '物种';
+
+  @override
+  String get connections_kind_tag => '标签';
+
+  @override
+  String get connections_kind_diveType => '潜水类型';
+
+  @override
+  String get connections_kind_diveComputer => '潜水电脑';
+
+  @override
+  String get connections_kind_course => '课程';
 
   @override
   String get courses_action_add => '添加课程';
@@ -20484,6 +20811,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_category_conditions_title => '条件';
 
   @override
+  String get insights_category_connections_subtitle => '潜伴、潜水点与装备的关联';
+
+  @override
   String get insights_category_equipment_subtitle => '装备使用与配重';
 
   @override
@@ -37290,7 +37620,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_action_unpin => '取消固定';
 
   @override
-  String diveLog_filterChip_dateRange(String end, String start) {
+  String diveLog_filterChip_dateRange(String start, String end) {
     return '$start 至 $end';
   }
 
