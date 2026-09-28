@@ -1474,6 +1474,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.19.3"
+  ndef_record:
+    dependency: "direct main"
+    description:
+      name: ndef_record
+      sha256: "210ffb12284961cab9e44b99462143316d9a20cd992581170706069ef77d74a6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.2"
   nested:
     dependency: transitive
     description:
@@ -1482,6 +1490,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  nfc_manager:
+    dependency: "direct main"
+    description:
+      name: nfc_manager
+      sha256: "1b8d3788ed71bb34f59878a445e433891eb2268353289515c1542b2780151fe6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.2.1"
+  nfc_manager_ndef:
+    dependency: "direct main"
+    description:
+      name: nfc_manager_ndef
+      sha256: "8aacee776120b4d09e3049b26cf4a7397fee3abafc207c0640342ada05c5df7d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   nm:
     dependency: transitive
     description:
