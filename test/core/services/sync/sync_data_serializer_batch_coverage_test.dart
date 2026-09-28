@@ -162,6 +162,7 @@ void main() {
             type: 'mediaSmartAlbums',
             table: db.mediaSmartAlbums.actualTableName,
           ),
+          (type: 'connectionMaps', table: db.connectionMaps.actualTableName),
           (type: 'tideRecords', table: db.tideRecords.actualTableName),
           (type: 'species', table: db.species.actualTableName),
           (type: 'sightings', table: db.sightings.actualTableName),

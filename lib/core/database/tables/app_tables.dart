@@ -112,3 +112,22 @@ class FieldPresets extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+/// Saved Connections maps (issue #2322, spec Revision 2): a named MapSpec
+/// per diver, synced like field presets. `spec` is the MapSpec JSON; a spec
+/// naming a kind the reading build does not know is skipped, never deleted.
+@DataClassName('ConnectionMapRow')
+class ConnectionMaps extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId =>
+      text().references(Divers, #id, onDelete: KeyAction.cascade)();
+  TextColumn get name => text()();
+  TextColumn get spec => text()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
