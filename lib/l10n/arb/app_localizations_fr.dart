@@ -44564,6 +44564,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_equipment_serialNumber => 'Numéro de série';
 
   @override
+  String get query_equipment_serviceDue => 'Révision due';
+
+  @override
+  String get query_equipment_serviceDue_dueSoon => 'Bientôt due';
+
+  @override
+  String get query_equipment_serviceDue_ok => 'À jour';
+
+  @override
+  String get query_equipment_serviceDue_overdue => 'En retard';
+
+  @override
   String get query_equipment_status => 'Statut';
 
   @override

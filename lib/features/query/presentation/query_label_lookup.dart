@@ -261,6 +261,14 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_equipment_name;
     case 'query_equipment_serialNumber':
       return l10n.query_equipment_serialNumber;
+    case 'query_equipment_serviceDue':
+      return l10n.query_equipment_serviceDue;
+    case 'query_equipment_serviceDue_dueSoon':
+      return l10n.query_equipment_serviceDue_dueSoon;
+    case 'query_equipment_serviceDue_ok':
+      return l10n.query_equipment_serviceDue_ok;
+    case 'query_equipment_serviceDue_overdue':
+      return l10n.query_equipment_serviceDue_overdue;
     case 'query_equipment_status':
       return l10n.query_equipment_status;
     case 'query_equipment_tags':

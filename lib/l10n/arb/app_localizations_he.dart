@@ -43572,6 +43572,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_equipment_serialNumber => 'מספר סידורי';
 
   @override
+  String get query_equipment_serviceDue => 'טיפול נדרש';
+
+  @override
+  String get query_equipment_serviceDue_dueSoon => 'בקרוב';
+
+  @override
+  String get query_equipment_serviceDue_ok => 'מעודכן';
+
+  @override
+  String get query_equipment_serviceDue_overdue => 'באיחור';
+
+  @override
   String get query_equipment_status => 'מצב';
 
   @override

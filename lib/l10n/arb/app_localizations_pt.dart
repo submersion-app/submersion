@@ -44465,6 +44465,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get query_equipment_serialNumber => 'Número de série';
 
   @override
+  String get query_equipment_serviceDue => 'Manutenção Pendente';
+
+  @override
+  String get query_equipment_serviceDue_dueSoon => 'Em Breve';
+
+  @override
+  String get query_equipment_serviceDue_ok => 'Atualizado';
+
+  @override
+  String get query_equipment_serviceDue_overdue => 'Atrasada';
+
+  @override
   String get query_equipment_status => 'Estado';
 
   @override

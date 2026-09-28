@@ -41900,6 +41900,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_equipment_serialNumber => '序列号';
 
   @override
+  String get query_equipment_serviceDue => '需要维护';
+
+  @override
+  String get query_equipment_serviceDue_dueSoon => '即将到期';
+
+  @override
+  String get query_equipment_serviceDue_ok => '已是最新版本';
+
+  @override
+  String get query_equipment_serviceDue_overdue => '已逾期';
+
+  @override
   String get query_equipment_status => '状态';
 
   @override

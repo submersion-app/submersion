@@ -44364,6 +44364,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_equipment_serialNumber => 'Seriennummer';
 
   @override
+  String get query_equipment_serviceDue => 'Wartung fällig';
+
+  @override
+  String get query_equipment_serviceDue_dueSoon => 'Bald fällig';
+
+  @override
+  String get query_equipment_serviceDue_ok => 'Auf dem neuesten Stand';
+
+  @override
+  String get query_equipment_serviceDue_overdue => 'Überfällig';
+
+  @override
   String get query_equipment_status => 'Status';
 
   @override

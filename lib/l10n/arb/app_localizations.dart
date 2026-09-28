@@ -71218,6 +71218,30 @@ abstract class AppLocalizations {
   /// **'Serial number'**
   String get query_equipment_serialNumber;
 
+  /// Field label in the query builder: the item's service verdict
+  ///
+  /// In en, this message translates to:
+  /// **'Service due'**
+  String get query_equipment_serviceDue;
+
+  /// Service verdict value in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Due soon'**
+  String get query_equipment_serviceDue_dueSoon;
+
+  /// Service verdict value in the query builder: no service due
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get query_equipment_serviceDue_ok;
+
+  /// Service verdict value in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get query_equipment_serviceDue_overdue;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:

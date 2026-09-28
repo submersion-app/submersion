@@ -44124,6 +44124,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_equipment_serialNumber => 'الرقم التسلسلي';
 
   @override
+  String get query_equipment_serviceDue => 'الصيانة مستحقة';
+
+  @override
+  String get query_equipment_serviceDue_dueSoon => 'قريبًا';
+
+  @override
+  String get query_equipment_serviceDue_ok => 'محدّث';
+
+  @override
+  String get query_equipment_serviceDue_overdue => 'متأخرة';
+
+  @override
   String get query_equipment_status => 'الحالة';
 
   @override

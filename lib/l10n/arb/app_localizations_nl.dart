@@ -44161,6 +44161,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_equipment_serialNumber => 'Serienummer';
 
   @override
+  String get query_equipment_serviceDue => 'Service nodig';
+
+  @override
+  String get query_equipment_serviceDue_dueSoon => 'Binnenkort';
+
+  @override
+  String get query_equipment_serviceDue_ok => 'Up-to-date';
+
+  @override
+  String get query_equipment_serviceDue_overdue => 'Achterstallig';
+
+  @override
   String get query_equipment_status => 'Status';
 
   @override

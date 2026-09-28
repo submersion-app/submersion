@@ -44277,6 +44277,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_equipment_serialNumber => 'Sorozatszám';
 
   @override
+  String get query_equipment_serviceDue => 'Szerviz esedékes';
+
+  @override
+  String get query_equipment_serviceDue_dueSoon => 'Hamarosan';
+
+  @override
+  String get query_equipment_serviceDue_ok => 'Naprakész';
+
+  @override
+  String get query_equipment_serviceDue_overdue => 'Lejárt';
+
+  @override
   String get query_equipment_status => 'Állapot';
 
   @override

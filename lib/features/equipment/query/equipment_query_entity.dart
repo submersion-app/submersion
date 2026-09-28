@@ -62,6 +62,20 @@ final equipmentQueryEntity = QueryEntity(
       emptySql: '0',
       labelKey: 'query_equipment_active',
     ),
+    // The service engine's verdict for the active diver (#2365 PR 3), read
+    // from the local cache the engine writes; an item it never evaluated
+    // (retired, sold, not visible) reads as ok.
+    const QueryField(
+      key: 'serviceDue',
+      type: FieldType.enumName,
+      sql:
+          'COALESCE((SELECT s.severity FROM equipment_service_status s '
+          "WHERE s.equipment_id = {r}.id), 'ok')",
+      emptySql: '0',
+      labelKey: 'query_equipment_serviceDue',
+      enumValues: ['ok', 'dueSoon', 'overdue'],
+      tables: ['equipment_service_status'],
+    ),
   ],
   relations: const [
     QueryRelation(
