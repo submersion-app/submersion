@@ -482,5 +482,39 @@ void main() {
       );
       expect(await rows('trip_cylinders'), 1);
     });
+
+    test('a delete that cannot log its tombstone keeps the event', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      final e = await repository.createEvent(fill(a.id));
+      await db.customStatement(
+        'ALTER TABLE deletion_log RENAME TO deletion_log_off',
+      );
+      addTearDown(
+        () => db.customStatement(
+          'ALTER TABLE deletion_log_off RENAME TO deletion_log',
+        ),
+      );
+
+      await expectLater(repository.deleteEvent(e.id), throwsA(anything));
+      expect(await repository.getEventsForCylinder(a.id), hasLength(1));
+    });
+
+    test('renaming a dive site refreshes the board', () async {
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion.insert(
+              id: 's1',
+              name: 'Salt Pier',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      final changed = repository.watchTripCylinderChanges().first;
+      await (db.update(db.diveSites)..where((t) => t.id.equals('s1'))).write(
+        const DiveSitesCompanion(name: Value('Salt Pier North')),
+      );
+      await expectLater(changed.timeout(const Duration(seconds: 2)), completes);
+    });
   });
 }

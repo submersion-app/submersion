@@ -195,7 +195,11 @@ class _AddTripCylindersSheetState
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));
-    final presets = ref.watch(tankPresetsProvider).value ?? const [];
+    final presetsAsync = ref.watch(tankPresetsProvider);
+    final presets = presetsAsync.value ?? const [];
+    // Rentals take their specs from the chosen preset, so saving them waits
+    // until the presets have loaded (or failed to).
+    final presetsPending = _mode == _AddMode.rental && presetsAsync.isLoading;
     final candidates = _ownedCandidates(
       ref.watch(activeEquipmentProvider).value ?? const [],
     );
@@ -310,7 +314,7 @@ class _AddTripCylindersSheetState
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
-                  onPressed: _saving ? null : _save,
+                  onPressed: _saving || presetsPending ? null : _save,
                   child: Text(l10n.common_action_save),
                 ),
               ],

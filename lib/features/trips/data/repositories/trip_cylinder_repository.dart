@@ -40,6 +40,8 @@ class TripCylinderRepository {
       TableUpdateQuery.onTable(_db.tripCylinderEvents),
       TableUpdateQuery.onTable(_db.diveTanks),
       TableUpdateQuery.onTable(_db.dives),
+      // Tank uses carry the dive's site name.
+      TableUpdateQuery.onTable(_db.diveSites),
     ]),
   );
 
@@ -392,13 +394,17 @@ class TripCylinderRepository {
 
   Future<void> deleteEvent(String id) async {
     try {
-      await (_db.delete(
-        _db.tripCylinderEvents,
-      )..where((t) => t.id.equals(id))).go();
-      await _syncRepository.logDeletion(
-        entityType: 'tripCylinderEvents',
-        recordId: id,
-      );
+      // Delete and log the tombstone together: a failed log must not drop
+      // the event here while other devices keep it.
+      await _db.transaction(() async {
+        await (_db.delete(
+          _db.tripCylinderEvents,
+        )..where((t) => t.id.equals(id))).go();
+        await _syncRepository.logDeletion(
+          entityType: 'tripCylinderEvents',
+          recordId: id,
+        );
+      });
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(

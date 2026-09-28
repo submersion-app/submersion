@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -45,6 +47,8 @@ void main() {
     WidgetTester tester, {
     List<TripCylinder> existing = const [],
     List<EquipmentItem> equipment = const [],
+    Future<List<TankPresetEntity>>? presets,
+    bool settle = true,
   }) async {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1.0;
@@ -53,7 +57,9 @@ void main() {
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          tankPresetsProvider.overrideWith((ref) => Future.value([al80])),
+          tankPresetsProvider.overrideWith(
+            (ref) => presets ?? Future.value([al80]),
+          ),
           activeEquipmentProvider.overrideWith((ref) async => equipment),
         ],
         child: MaterialApp(
@@ -76,7 +82,12 @@ void main() {
       ),
     );
     await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+    }
   }
 
   Finder field(String label) =>
@@ -188,5 +199,17 @@ void main() {
     ]);
     expect(tripRentalLabels('Car', 2, ['Truck 1']), ['Car 2', 'Car 3']);
     expect(tripRentalLabels('', 2, ['1', '5']), ['6', '7']);
+  });
+
+  testWidgets('saving rentals waits for the presets to load', (tester) async {
+    final pending = Completer<List<TankPresetEntity>>();
+    await pumpAndOpen(tester, presets: pending.future, settle: false);
+    FilledButton save() =>
+        tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Save'));
+    expect(save().onPressed, isNull);
+
+    pending.complete([al80]);
+    await tester.pumpAndSettle();
+    expect(save().onPressed, isNotNull);
   });
 }
