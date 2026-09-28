@@ -141,4 +141,37 @@ void main() {
     (json['plan']['mission']['legs'][0] as Map).remove('distanceM');
     expect(() => subplanFromJson(jsonEncode(json)), throwsFormatException);
   });
+
+  group('a malformed mission is rejected, not half-imported', () {
+    Map<String, dynamic> exported() =>
+        jsonDecode(planToSubplanJson(_plan(mission: _mission)))
+            as Map<String, dynamic>;
+
+    test('a mission value that is not a map', () {
+      final json = exported();
+      json['plan']['mission'] = 'broken';
+      expect(() => subplanFromJson(jsonEncode(json)), throwsFormatException);
+    });
+
+    test('a shore exit missing one of its distances', () {
+      final json = exported();
+      json['plan']['mission']['legs'][1]['shoreExit'] = {'surfaceSwimM': 120};
+      expect(() => subplanFromJson(jsonEncode(json)), throwsFormatException);
+    });
+
+    test('a leg current with a non-number field', () {
+      final json = exported();
+      json['plan']['mission']['legs'][0]['current'] = {
+        'speedMps': 'fast',
+        'setsTowardDeg': 45,
+      };
+      expect(() => subplanFromJson(jsonEncode(json)), throwsFormatException);
+    });
+
+    test('a default current that is not a map', () {
+      final json = exported();
+      json['plan']['mission']['defaultCurrent'] = 'north';
+      expect(() => subplanFromJson(jsonEncode(json)), throwsFormatException);
+    });
+  });
 }

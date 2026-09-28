@@ -59,14 +59,6 @@ DpvMission missionFromFileMap(
   Map<String, dynamic> map,
   String Function() newId,
 ) {
-  double required(Map<String, dynamic> m, String key) {
-    final value = m[key];
-    if (value is! num) {
-      throw FormatException('Mission field "$key" is missing');
-    }
-    return value.toDouble();
-  }
-
   final legs = <MissionLeg>[];
   for (final (i, raw) in (map['legs'] as List? ?? const []).indexed) {
     final leg = raw as Map<String, dynamic>;
@@ -75,10 +67,10 @@ DpvMission missionFromFileMap(
         id: newId(),
         order: i,
         label: leg['label'] as String? ?? '',
-        distanceM: required(leg, 'distanceM'),
-        depthM: required(leg, 'depthM'),
-        headingDeg: required(leg, 'headingDeg'),
-        current: _currentFromMap(leg['current']),
+        distanceM: _numberOrThrow(leg, 'distanceM'),
+        depthM: _numberOrThrow(leg, 'depthM'),
+        headingDeg: _numberOrThrow(leg, 'headingDeg'),
+        current: _currentFromMap(leg['current'], 'current'),
         shoreExit: _shoreFromMap(leg['shoreExit']),
       ),
     );
@@ -93,14 +85,14 @@ DpvMission missionFromFileMap(
         id: newId(),
         order: i,
         displayName: member['displayName'] as String? ?? '',
-        sacBottom: required(member, 'sacBottom'),
+        sacBottom: _numberOrThrow(member, 'sacBottom'),
         swimSpeedMps:
             (member['swimSpeedMps'] as num?)?.toDouble() ??
             kDefaultSwimSpeedMps,
         scooter: ScooterSpec(
           name: scooter['name'] as String? ?? '',
-          ratedSpeedMps: required(scooter, 'ratedSpeedMps'),
-          burnTimeSeconds: required(scooter, 'burnTimeSeconds').round(),
+          ratedSpeedMps: _numberOrThrow(scooter, 'ratedSpeedMps'),
+          burnTimeSeconds: _numberOrThrow(scooter, 'burnTimeSeconds').round(),
           towSpeedFactor:
               (scooter['towSpeedFactor'] as num?)?.toDouble() ??
               kDefaultTowSpeedFactor,
@@ -118,7 +110,7 @@ DpvMission missionFromFileMap(
     batteryReserveFraction:
         (map['batteryReserveFraction'] as num?)?.toDouble() ??
         kDefaultBatteryReserveFraction,
-    defaultCurrent: _currentFromMap(map['defaultCurrent']),
+    defaultCurrent: _currentFromMap(map['defaultCurrent'], 'defaultCurrent'),
     environment:
         MissionEnvironment.values.asNameMap()[map['environment']] ??
         MissionEnvironment.overhead,
@@ -128,12 +120,14 @@ DpvMission missionFromFileMap(
   );
 }
 
+/// A null [raw] is no shore exit; anything else must carry both distances.
 ShoreExit? _shoreFromMap(Object? raw) {
-  if (raw is! Map<String, dynamic>) return null;
-  final swim = raw['surfaceSwimM'];
-  final walk = raw['walkM'];
-  if (swim is! num || walk is! num) return null;
-  return ShoreExit(surfaceSwimM: swim.toDouble(), walkM: walk.toDouble());
+  if (raw == null) return null;
+  final map = _objectOrThrow(raw, 'shoreExit');
+  return ShoreExit(
+    surfaceSwimM: _numberOrThrow(map, 'surfaceSwimM'),
+    walkM: _numberOrThrow(map, 'walkM'),
+  );
 }
 
 Map<String, dynamic>? _currentToMap(CurrentVector? current) {
@@ -141,13 +135,27 @@ Map<String, dynamic>? _currentToMap(CurrentVector? current) {
   return {'speedMps': current.speedMps, 'setsTowardDeg': current.setsTowardDeg};
 }
 
-CurrentVector? _currentFromMap(Object? raw) {
-  if (raw is! Map<String, dynamic>) return null;
-  final speed = raw['speedMps'];
-  final toward = raw['setsTowardDeg'];
-  if (speed is! num || toward is! num) return null;
+/// A null [raw] is no current; anything else must carry both halves.
+CurrentVector? _currentFromMap(Object? raw, String field) {
+  if (raw == null) return null;
+  final map = _objectOrThrow(raw, field);
   return CurrentVector(
-    speedMps: speed.toDouble(),
-    setsTowardDeg: toward.toDouble(),
+    speedMps: _numberOrThrow(map, 'speedMps'),
+    setsTowardDeg: _numberOrThrow(map, 'setsTowardDeg'),
   );
+}
+
+Map<String, dynamic> _objectOrThrow(Object raw, String field) {
+  if (raw is! Map<String, dynamic>) {
+    throw FormatException('Mission field "$field" is not an object');
+  }
+  return raw;
+}
+
+double _numberOrThrow(Map<String, dynamic> map, String key) {
+  final value = map[key];
+  if (value is! num) {
+    throw FormatException('Mission field "$key" is missing');
+  }
+  return value.toDouble();
 }

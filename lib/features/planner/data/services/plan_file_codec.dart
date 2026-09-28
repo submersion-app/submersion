@@ -257,8 +257,11 @@ domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
     turnPressureFraction: (plan['turnPressureFraction'] as num?)?.toDouble(),
     tanks: tanks,
     segments: segments,
-    mission: plan['mission'] is Map<String, dynamic>
-        ? missionFromFileMap(plan['mission'] as Map<String, dynamic>, _uuid.v4)
-        : null,
+    // Only an absent or null block means no mission. A present block of the
+    // wrong type fails the cast, which the caller turns into a
+    // FormatException rather than importing the plan without it.
+    mission: plan['mission'] == null
+        ? null
+        : missionFromFileMap(plan['mission'] as Map<String, dynamic>, _uuid.v4),
   );
 }
