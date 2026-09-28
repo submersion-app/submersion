@@ -104,20 +104,24 @@ void main() {
       expect(index.resolve(QuerySubject.equipment, 'loaner bcd')?.id, 'g-lent');
     });
 
-    test('the tables it reads are the ten ref tables and the share table', () {
-      expect(QueryNameIndexLoader.tables, {
-        'equipment_shares',
-        'dive_sites',
-        'trips',
-        'dive_centers',
-        'dive_computers',
-        'courses',
-        'buddies',
-        'tags',
-        'dive_types',
-        'equipment',
-        'species',
-      });
-    });
+    test(
+      'the tables it reads are the eleven ref tables and the share table',
+      () {
+        expect(QueryNameIndexLoader.tables, {
+          'equipment_shares',
+          'site_types',
+          'dive_sites',
+          'trips',
+          'dive_centers',
+          'dive_computers',
+          'courses',
+          'buddies',
+          'tags',
+          'dive_types',
+          'equipment',
+          'species',
+        });
+      },
+    );
   });
 }

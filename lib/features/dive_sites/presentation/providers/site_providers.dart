@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/text/text_sort.dart';
 
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -22,8 +25,11 @@ import 'package:submersion/features/dive_sites/domain/entities/site_dive_statist
 import 'package:submersion/features/dive_sites/domain/models/entry_exit_suggestion.dart';
 import 'package:submersion/features/dive_sites/domain/utils/location_options.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
+import 'package:submersion/features/dive_sites/query/site_filter_query.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/query/presentation/providers/narrow_by_ids.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_card_config_providers.dart';
@@ -54,6 +60,10 @@ class SiteFilterState {
   /// Sites carrying any of these tags (issue #1765). Empty means no filter.
   final Set<String> tagIds;
 
+  /// The advanced part (#2365): a typed or built query, ANDed with every
+  /// axis above by `SiteFilterQuery.toQuery`.
+  final QueryNode? query;
+
   const SiteFilterState({
     this.country,
     this.region,
@@ -65,6 +75,7 @@ class SiteFilterState {
     this.hasDives,
     this.siteTypeIds = const {},
     this.tagIds = const {},
+    this.query,
   });
 
   /// Whether any filter is currently active.
@@ -78,89 +89,8 @@ class SiteFilterState {
       hasCoordinates != null ||
       hasDives != null ||
       siteTypeIds.isNotEmpty ||
-      tagIds.isNotEmpty;
-
-  /// Apply all active filters to a list of sites with dive counts.
-  List<SiteWithDiveCount> apply(List<SiteWithDiveCount> sites) {
-    return sites.where((siteWithCount) {
-      final site = siteWithCount.site;
-      final diveCount = siteWithCount.diveCount;
-
-      // Country filter. Exact match (case-/whitespace-insensitive): the
-      // country always comes from the dropdown's enumerated site values
-      // (issue #1373), never free-typed partial text, so e.g. "Congo" must
-      // not also match a site whose country is "Democratic Republic of
-      // Congo".
-      if (country != null && country!.isNotEmpty) {
-        if (site.country == null ||
-            locationDedupKey(site.country!) != locationDedupKey(country!)) {
-          return false;
-        }
-      }
-
-      // Region filter. Same exact-match reasoning as country above - e.g.
-      // "Sinai" must not also match a site whose region is "South Sinai".
-      if (region != null && region!.isNotEmpty) {
-        if (site.region == null ||
-            locationDedupKey(site.region!) != locationDedupKey(region!)) {
-          return false;
-        }
-      }
-
-      // Difficulty filter
-      if (difficulty != null) {
-        if (site.difficulty != difficulty) {
-          return false;
-        }
-      }
-
-      // Depth range filter
-      if (minDepth != null) {
-        if (site.maxDepth == null || site.maxDepth! < minDepth!) {
-          return false;
-        }
-      }
-      if (maxDepth != null) {
-        if (site.maxDepth == null || site.maxDepth! > maxDepth!) {
-          return false;
-        }
-      }
-
-      // Minimum rating filter
-      if (minRating != null) {
-        if (site.rating == null || site.rating! < minRating!) {
-          return false;
-        }
-      }
-
-      // Has coordinates filter
-      if (hasCoordinates != null) {
-        if (site.hasCoordinates != hasCoordinates) {
-          return false;
-        }
-      }
-
-      // Has dives filter
-      if (hasDives != null) {
-        final siteHasDives = diveCount > 0;
-        if (siteHasDives != hasDives) {
-          return false;
-        }
-      }
-
-      // Site type and tag filters (issue #1765): any-of within each set.
-      if (siteTypeIds.isNotEmpty &&
-          !siteWithCount.siteTypes.any((t) => siteTypeIds.contains(t.id))) {
-        return false;
-      }
-      if (tagIds.isNotEmpty &&
-          !siteWithCount.tags.any((t) => tagIds.contains(t.id))) {
-        return false;
-      }
-
-      return true;
-    }).toList();
-  }
+      tagIds.isNotEmpty ||
+      query != null;
 
   SiteFilterState copyWith({
     String? country,
@@ -174,6 +104,7 @@ class SiteFilterState {
     // A non-null set replaces the current one; pass `const {}` to clear.
     Set<String>? siteTypeIds,
     Set<String>? tagIds,
+    QueryNode? query,
     // Clear flags
     bool clearCountry = false,
     bool clearRegion = false,
@@ -183,6 +114,7 @@ class SiteFilterState {
     bool clearMinRating = false,
     bool clearHasCoordinates = false,
     bool clearHasDives = false,
+    bool clearQuery = false,
   }) {
     return SiteFilterState(
       country: clearCountry ? null : (country ?? this.country),
@@ -197,8 +129,50 @@ class SiteFilterState {
       hasDives: clearHasDives ? null : (hasDives ?? this.hasDives),
       siteTypeIds: siteTypeIds ?? this.siteTypeIds,
       tagIds: tagIds ?? this.tagIds,
+      query: clearQuery ? null : (query ?? this.query),
     );
   }
+
+  // Value equality, so an unchanged filter set again is no change to a
+  // listener and the id-set family reuses its instance for an equal filter.
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SiteFilterState &&
+          other.country == country &&
+          other.region == region &&
+          other.difficulty == difficulty &&
+          other.minDepth == minDepth &&
+          other.maxDepth == maxDepth &&
+          other.minRating == minRating &&
+          other.hasCoordinates == hasCoordinates &&
+          other.hasDives == hasDives &&
+          setEquals(other.siteTypeIds, siteTypeIds) &&
+          setEquals(other.tagIds, tagIds) &&
+          other.query == query;
+
+  @override
+  int get hashCode => Object.hash(
+    country,
+    region,
+    difficulty,
+    minDepth,
+    maxDepth,
+    minRating,
+    hasCoordinates,
+    hasDives,
+    Object.hashAllUnordered(siteTypeIds),
+    Object.hashAllUnordered(tagIds),
+    query,
+  );
+
+  @override
+  String toString() =>
+      'SiteFilterState(country: $country, region: $region, '
+      'difficulty: $difficulty, depth: $minDepth..$maxDepth, '
+      'minRating: $minRating, hasCoordinates: $hasCoordinates, '
+      'hasDives: $hasDives, types: $siteTypeIds, tags: $tagIds, '
+      'query: $query)';
 }
 
 /// Site filter provider
@@ -312,14 +286,25 @@ final siteSortProvider = StateProvider<SortState<SiteSortField>>(
   ),
 );
 
-/// Filtered sites with counts provider
-/// Applies active filters to the full site list.
+/// The ids the site filter selects, from the compiled query (#2365). Keyed
+/// on the filter's value, so an equal filter reuses its instance; a write to
+/// any table the query read refreshes it in place.
+final queryFilteredSiteIdsProvider = FutureProvider.autoDispose
+    .family<Set<String>, SiteFilterState>(
+      (ref, filter) => watchQueryIds(ref, compileSiteFilter(filter)),
+    );
+
+/// The site list: every visible site narrowed to the compiled query's ids.
 final filteredSitesWithCountsProvider =
     Provider<AsyncValue<List<SiteWithDiveCount>>>((ref) {
       final sitesAsync = ref.watch(sitesWithCountsProvider);
       final filter = ref.watch(siteFilterProvider);
-
-      return sitesAsync.whenData((sites) => filter.apply(sites));
+      if (!filter.hasActiveFilters) return sitesAsync;
+      return narrowByIds(
+        sitesAsync,
+        ref.watch(queryFilteredSiteIdsProvider(filter)),
+        (s) => s.site.id,
+      );
     });
 
 /// Sorted and filtered sites with counts provider

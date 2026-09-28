@@ -48,6 +48,10 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_a
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/condition_finding_text.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_query_providers.dart';
+import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
+import 'package:submersion/features/query/presentation/entity_query_chips.dart';
+import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -255,20 +259,14 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     }
   }
 
-  /// Invalidate whatever provider the visible list is actually reading.
-  /// Must mirror the selection in [build]: the default (no filter) view
-  /// reads activeEquipmentProvider, so invalidating only the status family
-  /// would leave pull-to-refresh and error-retry showing stale rows.
+  /// Invalidate what the visible list reads: every visible item, and for a
+  /// service-due view the clock evaluation the service cache mirrors (the
+  /// cache itself would replay the last verdicts).
   void _invalidateCurrentProvider(WidgetRef ref) {
     final filter = ref.read(equipmentFilterProvider);
+    ref.invalidate(allEquipmentProvider);
     if (filter.serviceDue != null) {
-      // The service-due list derives from the clock evaluation, so refresh
-      // that base rather than the leaf, which would replay cached verdicts.
       ref.invalidate(activeEquipmentClocksProvider);
-    } else if (filter.status == null) {
-      ref.invalidate(activeEquipmentProvider);
-    } else {
-      ref.invalidate(equipmentByStatusProvider(filter.status!));
     }
   }
 
@@ -292,43 +290,20 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // for the whole list feeds the tag filter and the detailed tiles' chips.
     final tagsByEquipment =
         ref.watch(tagsByEquipmentProvider).value ?? const <String, List<Tag>>{};
-    final tagIdsByEquipment = {
-      for (final entry in tagsByEquipment.entries)
-        entry.key: [for (final t in entry.value) t.id],
-    };
 
-    final AsyncValue<List<EquipmentItem>> equipmentAsync;
-    final serviceDue = filter.serviceDue;
-    if (serviceDue != null) {
-      equipmentAsync = ref.watch(serviceDueEquipmentProvider(serviceDue));
-    } else if (filter.status == null) {
-      // The default view hides retired gear; the Retired status filter is
-      // the way to see it (#636).
-      equipmentAsync = ref.watch(activeEquipmentProvider);
-    } else {
-      equipmentAsync = ref.watch(equipmentByStatusProvider(filter.status!));
-    }
-
-    // The owner axis (issue #2046) compares each item with this diver.
-    final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
+    // Every axis, the advanced query included, narrows in SQL (#2365); the
+    // default view hides retired gear, the Retired status shows it (#636).
+    final equipmentAsync = ref.watch(filteredEquipmentProvider);
 
     // Whether the tag selection is what emptied the list (issue #1942), so
     // the empty state blames the tags rather than a stocked category.
-    final tagsEmptied = filter.tagsEmptied(
-      equipmentAsync.value ?? const <EquipmentItem>[],
-      tagIdsByEquipment,
-      activeDiverId: activeDiverId,
-    );
+    final tagsEmptied = ref.watch(equipmentTagsEmptiedProvider);
 
     // Table mode uses a dedicated scaffold with column configuration support.
     if (viewMode == ListViewMode.table) {
       final sortedAsync = equipmentAsync.whenData(
         (equipment) => applyEquipmentSorting(
-          filter.apply(
-            equipment,
-            tagIdsByEquipment,
-            activeDiverId: activeDiverId,
-          ),
+          equipment,
           sort,
           serviceUrgency: serviceUrgency,
         ),
@@ -337,8 +312,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         context,
         sortedAsync,
         filter,
-        hadItemsBeforeTypeFilter:
-            (equipmentAsync.value ?? const <EquipmentItem>[]).isNotEmpty,
         tagsEmptied: tagsEmptied,
       );
     }
@@ -365,11 +338,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // re-sorting the whole inventory there made bulk selection cost a full
     // sort per tap.
     final visibleGroups = arrangeEquipment(
-      filter.apply(
-        equipmentAsync.value ?? const <EquipmentItem>[],
-        tagIdsByEquipment,
-        activeDiverId: activeDiverId,
-      ),
+      equipmentAsync.value ?? const <EquipmentItem>[],
       arrangement,
       typeLabel: (t) => t.localizedName(context.l10n),
       compareItems: compareItems,
@@ -388,15 +357,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // change; computing it here would leave the list frozen mid-selection.
     Widget buildContent() {
       return equipmentAsync.when(
-        // `equipment` is `equipmentAsync.value`, which visibleGroups was
-        // arranged from.
-        data: (equipment) => visibleGroups.isEmpty
-            ? _buildEmptyState(
-                context,
-                ref,
-                hadItemsBeforeTypeFilter: equipment.isNotEmpty,
-                tagsEmptied: tagsEmptied,
-              )
+        // visibleGroups was arranged from `equipmentAsync.value`.
+        data: (_) => visibleGroups.isEmpty
+            ? _buildEmptyState(context, ref, tagsEmptied: tagsEmptied)
             : _buildEquipmentList(
                 context,
                 ref,
@@ -735,7 +698,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     BuildContext context,
     AsyncValue<List<EquipmentItem>> equipmentAsync,
     EquipmentFilterState filter, {
-    required bool hadItemsBeforeTypeFilter,
     required bool tagsEmptied,
   }) {
     final visibleIds = (equipmentAsync.value ?? const <EquipmentItem>[])
@@ -780,7 +742,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               child: _buildTableView(
                 context,
                 equipmentAsync,
-                hadItemsBeforeTypeFilter: hadItemsBeforeTypeFilter,
                 tagsEmptied: tagsEmptied,
               ),
             ),
@@ -794,7 +755,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   Widget _buildTableView(
     BuildContext context,
     AsyncValue<List<EquipmentItem>> equipmentAsync, {
-    required bool hadItemsBeforeTypeFilter,
     required bool tagsEmptied,
   }) {
     return equipmentAsync.when(
@@ -802,12 +762,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       error: (e, s) => _buildErrorState(context, e),
       data: (equipment) {
         if (equipment.isEmpty) {
-          return _buildEmptyState(
-            context,
-            ref,
-            hadItemsBeforeTypeFilter: hadItemsBeforeTypeFilter,
-            tagsEmptied: tagsEmptied,
-          );
+          return _buildEmptyState(context, ref, tagsEmptied: tagsEmptied);
         }
         final config = ref.watch(equipmentTableConfigProvider);
         final notifier = ref.read(equipmentTableConfigProvider.notifier);
@@ -1049,6 +1004,18 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                     ),
                 icon: Icons.sell_outlined,
               ),
+            // One chip per top-level condition of the advanced query
+            // (#2365), printed in the diver's units.
+            for (final chip in entityQueryChips(
+              equipmentQueryEntity,
+              filter.query,
+              ref.watch(queryUnitPrefsProvider),
+            ))
+              _buildActiveFilterChip(
+                chip.label,
+                () => ref.read(equipmentFilterProvider.notifier).state = filter
+                    .copyWith(query: chip.rest, clearQuery: chip.rest == null),
+              ),
           ],
         ),
       ),
@@ -1169,7 +1136,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   Widget _buildEmptyState(
     BuildContext context,
     WidgetRef ref, {
-    required bool hadItemsBeforeTypeFilter,
     required bool tagsEmptied,
   }) {
     final filter = ref.watch(effectiveEquipmentFilterProvider);
@@ -1178,14 +1144,23 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // items that none of the selected tags is on: a tag chip on a retired
     // item can land here, since the default view hides retired gear.
     final blameTags = tagsEmptied;
+    // An advanced query (#2365) is the likeliest cause next: it can name any
+    // field, so the empty list says the query matched nothing rather than
+    // that the diver owns no gear.
+    final blameQuery = !blameTags && filter.query != null;
     // Otherwise blame the category only when it actually narrowed something
     // away; if the status-filtered source was already empty, the status (or
     // the lack of any gear) is the real cause and the wording should say so.
+    // The status-view probe is a second id-set query, so it runs only here,
+    // on an empty list, and only when the category could be the cause.
     final blameCategory =
-        !blameTags && filter.type != null && hadItemsBeforeTypeFilter;
+        !blameTags &&
+        !blameQuery &&
+        filter.type != null &&
+        ref.watch(equipmentStatusViewHasItemsProvider);
 
     String filterText;
-    if (blameTags) {
+    if (blameTags || blameQuery) {
       filterText = context.l10n.equipment_list_emptyState_filterText_equipment;
     } else if (blameCategory) {
       filterText = context.l10n.equipment_list_emptyState_filterText_type(
@@ -1219,6 +1194,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           Text(
             blameTags
                 ? context.l10n.equipment_list_emptyState_noTagMatch
+                : blameQuery
+                ? context.l10n.equipment_list_emptyState_noQueryMatch
                 : blameCategory
                 ? context.l10n.equipment_list_emptyState_noTypeMatch
                 : filter.serviceDue != null

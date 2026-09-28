@@ -178,6 +178,29 @@ void main() {
     expect(find.byKey(const ValueKey('figure-label-mask')), findsNothing);
   });
 
+  testWidgets('the figure summary follows the name as it is typed', (
+    tester,
+  ) async {
+    await pumpPage(tester, showFigure: true);
+    final nameField = find.widgetWithText(TextFormField, 'Reef set');
+    await tester.enterText(nameField, 'Wreck set');
+    await tester.pump();
+    expect(find.bySemanticsLabel('Wreck set, 2 items'), findsOneWidget);
+    expect(find.bySemanticsLabel('Reef set, 2 items'), findsNothing);
+  });
+
+  testWidgets('a cleared name gives the figure the new set title', (
+    tester,
+  ) async {
+    await pumpPage(tester, showFigure: true);
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Reef set'),
+      '  ',
+    );
+    await tester.pump();
+    expect(find.bySemanticsLabel('New Equipment Set, 2 items'), findsOneWidget);
+  });
+
   testWidgets('the switch shows and hides the figure', (tester) async {
     await pumpPage(tester, showFigure: false);
     await tester.tap(find.widgetWithText(SwitchListTile, 'Show diver figure'));

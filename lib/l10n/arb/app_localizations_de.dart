@@ -12818,6 +12818,88 @@ class AppLocalizationsDe extends AppLocalizations {
   String get passport_foreign_defaultName => 'Flasche';
 
   @override
+  String get passport_nfc_tap => 'NFC-Tag antippen';
+
+  @override
+  String get passport_nfc_holdNear =>
+      'Den Tag an die Rückseite des Telefons halten.';
+
+  @override
+  String get passport_nfc_write => 'NFC-Tag beschreiben';
+
+  @override
+  String get passport_nfc_rewrite => 'Tag neu beschreiben';
+
+  @override
+  String get passport_nfc_reprint => 'Etikett neu drucken';
+
+  @override
+  String get passport_nfc_unsupported =>
+      'Dieses Gerät kann keine NFC-Tags lesen oder beschreiben.';
+
+  @override
+  String get passport_nfc_disabled =>
+      'NFC ist ausgeschaltet. In den Systemeinstellungen einschalten.';
+
+  @override
+  String get passport_nfc_written => 'Tag beschrieben und geprüft';
+
+  @override
+  String passport_nfc_tagInfo(String type, int capacity) {
+    return '$type, $capacity Byte';
+  }
+
+  @override
+  String passport_nfc_capacity(int capacity) {
+    return '$capacity Byte';
+  }
+
+  @override
+  String get passport_nfc_allFields => 'Alles passt auf diesen Tag.';
+
+  @override
+  String passport_nfc_fieldsDropped(String fields) {
+    return 'Aus Platzgründen weggelassen: $fields';
+  }
+
+  @override
+  String get passport_nfc_notNdef =>
+      'Dieser Tag kann keinen Link speichern. Einen NTAG215- oder NTAG216-Tag verwenden.';
+
+  @override
+  String get passport_nfc_readOnly =>
+      'Dieser Tag ist gesperrt und kann nicht beschrieben werden.';
+
+  @override
+  String passport_nfc_tooSmall(int capacity) {
+    return 'Dieser Tag ist zu klein ($capacity Byte), selbst für die Kennung der Flasche.';
+  }
+
+  @override
+  String get passport_nfc_readBackFailed =>
+      'Der Tag ließ sich nicht wie geschrieben zurücklesen und wurde daher nicht beschrieben.';
+
+  @override
+  String get passport_nfc_writeFailed =>
+      'Der Tag wurde nicht beschrieben. Ruhig halten und erneut versuchen.';
+
+  @override
+  String get passport_nfc_readFailed =>
+      'Der Tag konnte nicht gelesen werden. Ruhig halten und erneut versuchen.';
+
+  @override
+  String get passport_nfc_retry => 'Erneut versuchen';
+
+  @override
+  String get passport_nfc_fieldName => 'Name';
+
+  @override
+  String get passport_nfc_fieldSerial => 'Seriennummer';
+
+  @override
+  String get passport_nfc_fieldO2Clean => 'O2-rein';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'Seriennummer $serial';
   }
@@ -14357,6 +14439,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String equipment_list_emptyState_noEquipment(Object filterText) {
     return 'Keine $filterText';
   }
+
+  @override
+  String get equipment_list_emptyState_noQueryMatch =>
+      'Keine Ausrüstung entspricht dieser Abfrage';
 
   @override
   String get equipment_list_emptyState_noStatusMatch =>
@@ -41251,6 +41337,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Etwas anderes hat die Datenbankdatei noch verwendet, deshalb hat Submersion angehalten, statt hineinzuschreiben. Es wurde nichts geändert und nichts beschädigt. Schließen Sie Submersion vollständig und öffnen Sie es erneut.';
 
   @override
+  String get startup_locationUnreachable_title =>
+      'Der Ordner Ihres Tauchlogbuchs ist nicht erreichbar';
+
+  @override
+  String get startup_locationUnreachable_body =>
+      'Ihr Tauchlogbuch liegt in einem Ordner, den Sie gewählt haben, und Submersion kann diesen Ordner gerade nicht öffnen. Darin wurde nichts geändert. Liegt der Ordner auf einem Laufwerk, das nicht verbunden ist, oder in einem Cloud-Ordner, der noch synchronisiert, verbinden Sie ihn wieder und öffnen Sie Submersion erneut.';
+
+  @override
+  String get startup_locationUnreachable_folderLabel =>
+      'Ordner Ihres Tauchlogbuchs:';
+
+  @override
   String get startup_failure_technicalDetails => 'Technische Details';
 
   @override
@@ -41315,6 +41413,22 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die beschädigte Datei beiseitelegen und neu beginnen. Es wird nichts gelöscht.';
 
   @override
+  String get startup_failure_chooseFolderAgain =>
+      'Ordner des Logbuchs auswählen';
+
+  @override
+  String get startup_failure_chooseFolderAgain_subtitle =>
+      'Wählen Sie denselben Ordner erneut, um Submersion wieder Zugriff darauf zu geben, oder den Ordner, in dem Ihr Logbuch jetzt liegt.';
+
+  @override
+  String get startup_failure_useDefaultLocation =>
+      'Zum Standard-App-Speicherort zurückkehren';
+
+  @override
+  String get startup_failure_useDefaultLocation_subtitle =>
+      'Diesen Ordner nicht mehr verwenden und das Logbuch im eigenen Ordner von Submersion öffnen. In Ihrem Ordner wird nichts geändert.';
+
+  @override
   String get startup_recovery_adopt_title => 'Dieses Logbuch verwenden?';
 
   @override
@@ -41366,6 +41480,19 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get startup_recovery_encryptedBackup_body =>
       'Diese Sicherung ist verschlüsselt. Submersion kann eine verschlüsselte Sicherung erst entsperren, wenn die App geöffnet ist. Nutzen Sie daher zuerst einen der anderen Wege hier und stellen Sie sie danach in den Einstellungen unter Sicherung und Wiederherstellung wieder her.';
+
+  @override
+  String get startup_recovery_useDefault_title =>
+      'Zum Standard-App-Speicherort zurückkehren?';
+
+  @override
+  String startup_recovery_useDefault_body(Object folder) {
+    return 'Submersion öffnet ab jetzt das Logbuch im eigenen Ordner oder legt dort ein leeres an, falls keines vorhanden ist. In $folder wird nichts verschoben oder gelöscht. Um diesen Ordner wieder zu verwenden, wählen Sie ihn in den Einstellungen unter Datenbankspeicher aus.';
+  }
+
+  @override
+  String get startup_recovery_useDefault_confirm =>
+      'Standard-Speicherort verwenden';
 
   @override
   String get startup_failure_downgrade_title => 'Zurück zur vorherigen Version';
@@ -44713,6 +44840,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_entity_sightings => 'Sichtungen';
 
   @override
+  String get query_entity_siteTypes => 'Tauchplatztypen';
+
+  @override
   String get query_entity_sites => 'Tauchplätze';
 
   @override
@@ -44752,6 +44882,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_equipment_brand => 'Marke';
 
   @override
+  String get query_equipment_dives => 'Tauchgänge';
+
+  @override
   String get query_equipment_model => 'Modell';
 
   @override
@@ -44761,7 +44894,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_equipment_serialNumber => 'Seriennummer';
 
   @override
+  String get query_equipment_serviceDue => 'Wartung fällig';
+
+  @override
+  String get query_equipment_serviceDue_dueSoon => 'Bald fällig';
+
+  @override
+  String get query_equipment_serviceDue_ok => 'Auf dem neuesten Stand';
+
+  @override
+  String get query_equipment_serviceDue_overdue => 'Überfällig';
+
+  @override
   String get query_equipment_status => 'Status';
+
+  @override
+  String get query_equipment_tags => 'Tags';
 
   @override
   String get query_equipment_type => 'Typ';
@@ -44776,6 +44924,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_media_type => 'Typ';
 
   @override
+  String get query_sheet_sectionTitle => 'Abfrage';
+
+  @override
   String get query_sightings_count => 'Anzahl';
 
   @override
@@ -44785,10 +44936,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_sightings_species => 'Arten';
 
   @override
+  String get query_siteTypes_name => 'Name';
+
+  @override
   String get query_sites_city => 'Stadt';
 
   @override
+  String get query_sites_coordinates => 'Koordinaten';
+
+  @override
   String get query_sites_country => 'Land';
+
+  @override
+  String get query_sites_difficulty => 'Schwierigkeitsgrad';
+
+  @override
+  String get query_sites_dives => 'Tauchgänge';
 
   @override
   String get query_sites_island => 'Insel';
@@ -44800,10 +44963,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_sites_name => 'Name';
 
   @override
+  String get query_sites_notes => 'Notizen';
+
+  @override
   String get query_sites_rating => 'Bewertung';
 
   @override
   String get query_sites_region => 'Region';
+
+  @override
+  String get query_sites_tags => 'Tags';
+
+  @override
+  String get query_sites_types => 'Tauchplatztypen';
 
   @override
   String get query_species_category => 'Kategorie';
@@ -44839,7 +45011,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_tanks_volume => 'Volumen';
 
   @override
+  String get query_trips_dives => 'Tauchgänge';
+
+  @override
   String get query_trips_endDate => 'Enddatum';
+
+  @override
+  String get query_trips_liveaboardName => 'Tauchsafari';
 
   @override
   String get query_trips_location => 'Ort';
@@ -44848,7 +45026,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_trips_name => 'Name';
 
   @override
+  String get query_trips_notes => 'Notizen';
+
+  @override
+  String get query_trips_resortName => 'Resort';
+
+  @override
+  String get query_trips_shared => 'Geteilt';
+
+  @override
   String get query_trips_startDate => 'Startdatum';
+
+  @override
+  String get query_trips_tripType => 'Reiseart';
 
   @override
   String get query_weights_amount => 'Menge';

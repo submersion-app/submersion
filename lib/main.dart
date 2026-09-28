@@ -128,11 +128,19 @@ Future<void> _bootstrap() async {
   debugPrint('  mode: ${storageConfig.mode}');
   debugPrint('  customFolderPath: ${storageConfig.customFolderPath}');
 
-  // Restore/verify a custom database location. The check auto-resets ONLY
-  // on sandbox (bookmark) platforms; elsewhere the user's choice is kept
-  // even if the file is momentarily inaccessible (#218).
-  final locationCheck = await locationService.validateCustomLocationAtStartup();
-  debugPrint('  custom location check: $locationCheck');
+  // Restore access to a custom database location before anything opens it.
+  // The diver's choice is kept on every platform even when the folder cannot
+  // be reached (#218, #2178): the failed open lands on the startup failure
+  // screen, which names the folder and offers the way back to the default
+  // location. The check itself only feeds this log line, so it is not
+  // awaited: on a dead network mount it could hold the first frame.
+  await locationService.restoreCustomLocationAccess();
+  unawaited(
+    locationService.checkCustomLocation().then(
+      (check) => debugPrint('  custom location check: $check'),
+      onError: (Object e) => debugPrint('  custom location check failed: $e'),
+    ),
+  );
 
   // Launch the app immediately -- database init happens inside StartupWrapper
   // so the user sees a splash screen while initialization runs

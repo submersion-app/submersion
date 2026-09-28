@@ -7208,6 +7208,49 @@
   "passport_foreign_addToGear": "Add to my gear",
   "passport_foreign_addFailed": "Could not add the cylinder. Try again.",
   "passport_foreign_defaultName": "Cylinder",
+  "passport_nfc_tap": "Tap an NFC tag",
+  "passport_nfc_holdNear": "Hold the tag against the back of the phone.",
+  "passport_nfc_write": "Write NFC tag",
+  "passport_nfc_rewrite": "Rewrite tag",
+  "passport_nfc_reprint": "Reprint label",
+  "passport_nfc_unsupported": "This device cannot read or write NFC tags.",
+  "passport_nfc_disabled": "NFC is turned off. Turn it on in the system settings.",
+  "passport_nfc_written": "Tag written and checked",
+  "passport_nfc_tagInfo": "{type}, {capacity} bytes",
+  "@passport_nfc_tagInfo": {
+    "placeholders": {
+      "type": {"type": "String"},
+      "capacity": {"type": "int"}
+    }
+  },
+  "passport_nfc_capacity": "{capacity} bytes",
+  "@passport_nfc_capacity": {
+    "placeholders": {
+      "capacity": {"type": "int"}
+    }
+  },
+  "passport_nfc_allFields": "Everything fits on this tag.",
+  "passport_nfc_fieldsDropped": "Left off to fit: {fields}",
+  "@passport_nfc_fieldsDropped": {
+    "placeholders": {
+      "fields": {"type": "String"}
+    }
+  },
+  "passport_nfc_notNdef": "This tag cannot hold a link. Use an NTAG215 or NTAG216 tag.",
+  "passport_nfc_readOnly": "This tag is locked and cannot be written.",
+  "passport_nfc_tooSmall": "This tag is too small ({capacity} bytes), even for the cylinder's identity.",
+  "@passport_nfc_tooSmall": {
+    "placeholders": {
+      "capacity": {"type": "int"}
+    }
+  },
+  "passport_nfc_readBackFailed": "The tag did not read back as written, so it was not written.",
+  "passport_nfc_writeFailed": "The tag was not written. Hold it still and try again.",
+  "passport_nfc_readFailed": "Could not read the tag. Hold it still and try again.",
+  "passport_nfc_retry": "Try again",
+  "passport_nfc_fieldName": "Name",
+  "passport_nfc_fieldSerial": "Serial number",
+  "passport_nfc_fieldO2Clean": "O2 clean",
   "passport_foreign_serial": "Serial {serial}",
   "@passport_foreign_serial": {
     "placeholders": {
@@ -8197,6 +8240,8 @@
   "equipment_list_emptyState_filterText_status": "{status} equipment",
   "equipment_list_emptyState_filterText_type": "{type} equipment",
   "equipment_list_emptyState_noEquipment": "No {filterText}",
+  "equipment_list_emptyState_noQueryMatch": "No equipment matches this query",
+  "@equipment_list_emptyState_noQueryMatch": {"description": "Empty-state subtitle on the equipment list when the advanced query matches none of the items"},
   "equipment_list_emptyState_noStatusMatch": "No equipment with this status",
   "equipment_list_emptyState_noTagMatch": "No equipment with these tags",
   "equipment_list_emptyState_noTypeMatch": "No equipment in this category",
@@ -25001,6 +25046,9 @@
   "startup_dataUnreadable_body": "The database file is there, but Submersion cannot read it. This usually means the file is damaged. Restoring a backup is the fastest way back.",
   "startup_databaseBusy_title": "Your dive log was busy",
   "startup_databaseBusy_body": "Something else was still using the database file, so Submersion stopped rather than write to it. Nothing was changed and nothing is damaged. Close Submersion completely, then open it again.",
+  "startup_locationUnreachable_title": "Your dive log's folder can't be reached",
+  "startup_locationUnreachable_body": "Your dive log is kept in a folder you chose, and Submersion can't open that folder right now. Nothing in it has been changed. If the folder is on a drive that isn't connected, or in a cloud folder that is still syncing, reconnect it and open Submersion again.",
+  "startup_locationUnreachable_folderLabel": "Your dive log's folder:",
   "startup_failure_technicalDetails": "Technical details",
   "startup_failure_backupAvailable_title": "A backup is available",
   "startup_failure_backupAvailable_taken": "Taken {timestamp}",
@@ -25017,6 +25065,10 @@
   "startup_failure_restoreFromFile_subtitle": "Pick a Submersion backup from anywhere on this device or in a synced folder.",
   "startup_failure_startFresh": "Start with an empty dive log",
   "startup_failure_startFresh_subtitle": "Set the damaged file aside and begin again. Nothing is deleted.",
+  "startup_failure_chooseFolderAgain": "Choose your dive log's folder",
+  "startup_failure_chooseFolderAgain_subtitle": "Pick the same folder again to give Submersion access to it, or pick the folder your dive log is in now.",
+  "startup_failure_useDefaultLocation": "Go back to the app default location",
+  "startup_failure_useDefaultLocation_subtitle": "Stop using this folder and open the dive log in Submersion's own folder. Nothing in your folder is changed.",
   "startup_recovery_adopt_title": "Use this dive log?",
   "startup_recovery_adopt_body": "Submersion will open this dive log from now on. The file that would not open stays where it is.",
   "startup_recovery_adopt_contents": "{dives} dives, {sites} dive sites",
@@ -25030,6 +25082,9 @@
   "startup_recovery_unusable_body": "The dive log at {path} is damaged, or it is not a Submersion dive log.",
   "startup_recovery_unusableBackup_body": "That file is not a backup Submersion can restore: {path}",
   "startup_recovery_encryptedBackup_body": "That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings, under Backup and Restore.",
+  "startup_recovery_useDefault_title": "Go back to the app default location?",
+  "startup_recovery_useDefault_body": "From now on Submersion opens the dive log in its own folder, or starts an empty one there if there is none. Nothing in {folder} is moved or deleted. To use that folder again, choose it in Settings, under Database Storage.",
+  "startup_recovery_useDefault_confirm": "Use the default location",
   "startup_failure_downgrade_title": "Going back to the previous version",
   "startup_failure_downgrade_body": "If the upgrade keeps failing, install the version of Submersion you were running before, then restore the safety copy from inside that version. Restoring it here would only run the same upgrade again. Submersion does not downgrade itself: moving you onto older builds automatically would quietly keep you on versions with known problems.",
   "startup_failure_downgrade_action": "View previous releases",
@@ -25351,6 +25406,42 @@
   },
   "@startup_recovery_encryptedBackup_body": {
     "description": "Shown when the diver picks an encrypted backup on the startup failure screen, where the passphrase prompt that unlocks one is not reachable."
+  },
+  "@startup_locationUnreachable_title": {
+    "description": "Title of the startup failure screen shown when the folder the diver chose for their dive log cannot be reached."
+  },
+  "@startup_locationUnreachable_body": {
+    "description": "Says the chosen folder cannot be opened, that nothing in it changed, and gives the usual fix: reconnect the drive or let the cloud folder finish syncing."
+  },
+  "@startup_locationUnreachable_folderLabel": {
+    "description": "Label above the path of the dive log folder that cannot be reached."
+  },
+  "@startup_failure_chooseFolderAgain": {
+    "description": "Action opening a folder picker when the dive log folder cannot be reached. Picking the same folder again gives a sandboxed build its access back."
+  },
+  "@startup_failure_chooseFolderAgain_subtitle": {
+    "description": "Explains that picking the same folder restores access, and that another folder can be picked instead."
+  },
+  "@startup_failure_useDefaultLocation": {
+    "description": "Action that stops using the unreachable folder and goes back to the location Settings > Database Storage calls the app default location."
+  },
+  "@startup_failure_useDefaultLocation_subtitle": {
+    "description": "Explains that going back to the default location leaves the diver's folder untouched."
+  },
+  "@startup_recovery_useDefault_title": {
+    "description": "Title of the dialog confirming the return to the app default location."
+  },
+  "@startup_recovery_useDefault_body": {
+    "description": "Explains what the app opens from now on, that nothing in the folder it leaves is moved or deleted, and where to choose that folder again.",
+    "placeholders": {
+      "folder": {
+        "type": "Object",
+        "example": "/Users/me/Library/Mobile Documents/com~apple~CloudDocs/Submersion"
+      }
+    }
+  },
+  "@startup_recovery_useDefault_confirm": {
+    "description": "Confirm button of the go-back-to-the-default-location dialog."
   },
   "@startup_failure_downgrade_title": {
     "description": "Heading of the guided-downgrade section on a failed schema upgrade."
@@ -27464,6 +27555,8 @@
   "@query_entity_media": {"description": "Field label in the query builder"},
   "query_entity_sightings": "Sightings",
   "@query_entity_sightings": {"description": "Field label in the query builder"},
+  "query_entity_siteTypes": "Site types",
+  "@query_entity_siteTypes": {"description": "Entity name in the query field picker"},
   "query_entity_sites": "Dive sites",
   "@query_entity_sites": {"description": "Field label in the query builder"},
   "query_entity_species": "Species",
@@ -27490,14 +27583,26 @@
   "@query_equipment_attributes": {"description": "Field label in the query builder"},
   "query_equipment_brand": "Brand",
   "@query_equipment_brand": {"description": "Field label in the query builder"},
+  "query_equipment_dives": "Dives",
+  "@query_equipment_dives": {"description": "Relation label in the query builder: the dives an item was used on"},
   "query_equipment_model": "Model",
   "@query_equipment_model": {"description": "Field label in the query builder"},
   "query_equipment_name": "Name",
   "@query_equipment_name": {"description": "Field label in the query builder"},
   "query_equipment_serialNumber": "Serial number",
   "@query_equipment_serialNumber": {"description": "Field label in the query builder"},
+  "query_equipment_serviceDue": "Service due",
+  "@query_equipment_serviceDue": {"description": "Field label in the query builder: the item's service verdict"},
+  "query_equipment_serviceDue_dueSoon": "Due soon",
+  "@query_equipment_serviceDue_dueSoon": {"description": "Service verdict value in the query builder"},
+  "query_equipment_serviceDue_ok": "Up to date",
+  "@query_equipment_serviceDue_ok": {"description": "Service verdict value in the query builder: no service due"},
+  "query_equipment_serviceDue_overdue": "Overdue",
+  "@query_equipment_serviceDue_overdue": {"description": "Service verdict value in the query builder"},
   "query_equipment_status": "Status",
   "@query_equipment_status": {"description": "Field label in the query builder"},
+  "query_equipment_tags": "Tags",
+  "@query_equipment_tags": {"description": "Relation label in the query builder"},
   "query_equipment_type": "Type",
   "@query_equipment_type": {"description": "Field label in the query builder"},
   "query_media_caption": "Caption",
@@ -27506,26 +27611,42 @@
   "@query_media_favorite": {"description": "Field label in the query builder"},
   "query_media_type": "Type",
   "@query_media_type": {"description": "Field label in the query builder"},
+  "query_sheet_sectionTitle": "Query",
+  "@query_sheet_sectionTitle": {"description": "Section title in the site and equipment filter sheets for the query editor and saved queries"},
   "query_sightings_count": "Count",
   "@query_sightings_count": {"description": "Field label in the query builder"},
   "query_sightings_notes": "Notes",
   "@query_sightings_notes": {"description": "Field label in the query builder"},
   "query_sightings_species": "Species",
   "@query_sightings_species": {"description": "Field label in the query builder"},
+  "query_siteTypes_name": "Name",
+  "@query_siteTypes_name": {"description": "Field label in the query builder"},
   "query_sites_city": "City",
   "@query_sites_city": {"description": "Field label in the query builder"},
+  "query_sites_coordinates": "Coordinates",
+  "@query_sites_coordinates": {"description": "Field label in the query builder: whether the site has a position"},
   "query_sites_country": "Country",
   "@query_sites_country": {"description": "Field label in the query builder"},
+  "query_sites_difficulty": "Difficulty",
+  "@query_sites_difficulty": {"description": "Field label in the query builder"},
+  "query_sites_dives": "Dives",
+  "@query_sites_dives": {"description": "Relation label in the query builder: the dives at a site"},
   "query_sites_island": "Island",
   "@query_sites_island": {"description": "Field label in the query builder"},
   "query_sites_maxDepth": "Max depth",
   "@query_sites_maxDepth": {"description": "Field label in the query builder"},
   "query_sites_name": "Name",
   "@query_sites_name": {"description": "Field label in the query builder"},
+  "query_sites_notes": "Notes",
+  "@query_sites_notes": {"description": "Field label in the query builder"},
   "query_sites_rating": "Rating",
   "@query_sites_rating": {"description": "Field label in the query builder"},
   "query_sites_region": "Region",
   "@query_sites_region": {"description": "Field label in the query builder"},
+  "query_sites_tags": "Tags",
+  "@query_sites_tags": {"description": "Relation label in the query builder"},
+  "query_sites_types": "Site types",
+  "@query_sites_types": {"description": "Relation label in the query builder: a site's classification types"},
   "query_species_category": "Category",
   "@query_species_category": {"description": "Field label in the query builder"},
   "query_species_name": "Name",
@@ -27548,14 +27669,26 @@
   "@query_tanks_startPressure": {"description": "Field label in the query builder"},
   "query_tanks_volume": "Volume",
   "@query_tanks_volume": {"description": "Field label in the query builder"},
+  "query_trips_dives": "Dives",
+  "@query_trips_dives": {"description": "Relation label in the query builder: the dives on a trip"},
   "query_trips_endDate": "End date",
   "@query_trips_endDate": {"description": "Field label in the query builder"},
+  "query_trips_liveaboardName": "Liveaboard",
+  "@query_trips_liveaboardName": {"description": "Field label in the query builder: the trip's liveaboard name"},
   "query_trips_location": "Location",
   "@query_trips_location": {"description": "Field label in the query builder"},
   "query_trips_name": "Name",
   "@query_trips_name": {"description": "Field label in the query builder"},
+  "query_trips_notes": "Notes",
+  "@query_trips_notes": {"description": "Field label in the query builder"},
+  "query_trips_resortName": "Resort",
+  "@query_trips_resortName": {"description": "Field label in the query builder: the trip's resort name"},
+  "query_trips_shared": "Shared",
+  "@query_trips_shared": {"description": "Field label in the query builder: whether the trip is shared with every diver profile"},
   "query_trips_startDate": "Start date",
   "@query_trips_startDate": {"description": "Field label in the query builder"},
+  "query_trips_tripType": "Trip type",
+  "@query_trips_tripType": {"description": "Field label in the query builder"},
   "query_weights_amount": "Amount",
   "@query_weights_amount": {"description": "Field label in the query builder"},
   "query_weights_notes": "Notes",

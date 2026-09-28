@@ -581,7 +581,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'הצגת הציוד של הערכה על צוללן';
+      'הצגת הציוד של סט זה על צולל';
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'הצגת דמות הצולל';
@@ -12537,6 +12537,85 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_foreign_defaultName => 'מיכל';
 
   @override
+  String get passport_nfc_tap => 'הצמדת תג NFC';
+
+  @override
+  String get passport_nfc_holdNear => 'הצמידו את התג לגב הטלפון.';
+
+  @override
+  String get passport_nfc_write => 'כתיבת תג NFC';
+
+  @override
+  String get passport_nfc_rewrite => 'כתיבה מחדש של התג';
+
+  @override
+  String get passport_nfc_reprint => 'הדפסה מחדש של התווית';
+
+  @override
+  String get passport_nfc_unsupported =>
+      'המכשיר הזה אינו יכול לקרוא או לכתוב תגי NFC.';
+
+  @override
+  String get passport_nfc_disabled => 'NFC כבוי. הפעילו אותו בהגדרות המערכת.';
+
+  @override
+  String get passport_nfc_written => 'התג נכתב ונבדק';
+
+  @override
+  String passport_nfc_tagInfo(String type, int capacity) {
+    return '$type, $capacity בייטים';
+  }
+
+  @override
+  String passport_nfc_capacity(int capacity) {
+    return '$capacity בייטים';
+  }
+
+  @override
+  String get passport_nfc_allFields => 'הכול נכנס לתג הזה.';
+
+  @override
+  String passport_nfc_fieldsDropped(String fields) {
+    return 'הושמט כדי שייכנס: $fields';
+  }
+
+  @override
+  String get passport_nfc_notNdef =>
+      'התג הזה אינו יכול לשמור קישור. השתמשו בתג NTAG215 או NTAG216.';
+
+  @override
+  String get passport_nfc_readOnly => 'התג הזה נעול ולא ניתן לכתוב עליו.';
+
+  @override
+  String passport_nfc_tooSmall(int capacity) {
+    return 'התג הזה קטן מדי ($capacity בייטים), אפילו למזהה המיכל.';
+  }
+
+  @override
+  String get passport_nfc_readBackFailed =>
+      'התג לא נקרא בחזרה כפי שנכתב, ולכן לא נכתב.';
+
+  @override
+  String get passport_nfc_writeFailed =>
+      'התג לא נכתב. החזיקו אותו יציב ונסו שוב.';
+
+  @override
+  String get passport_nfc_readFailed =>
+      'לא ניתן היה לקרוא את התג. החזיקו אותו יציב ונסו שוב.';
+
+  @override
+  String get passport_nfc_retry => 'ניסיון חוזר';
+
+  @override
+  String get passport_nfc_fieldName => 'שם';
+
+  @override
+  String get passport_nfc_fieldSerial => 'מספר סידורי';
+
+  @override
+  String get passport_nfc_fieldO2Clean => 'נקי ל-O2';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'מספר סידורי $serial';
   }
@@ -14063,6 +14142,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String equipment_list_emptyState_noEquipment(Object filterText) {
     return 'אין $filterText';
   }
+
+  @override
+  String get equipment_list_emptyState_noQueryMatch =>
+      'אין ציוד שתואם לשאילתה זו';
 
   @override
   String get equipment_list_emptyState_noStatusMatch => 'אין ציוד עם סטטוס זה';
@@ -39131,11 +39214,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'הצגת ייחוס המקור על מדדי הצלילה';
 
   @override
-  String get settings_appearance_showDiveFigure => 'הצגת דמות הצוללן בצלילות';
+  String get settings_appearance_showDiveFigure => 'הצגת דמות הצולל בצלילות';
 
   @override
   String get settings_appearance_showDiveFigure_subtitle =>
-      'הצגת הציוד של כל צלילה על צוללן בכרטיס הציוד';
+      'הצגת הציוד של כל צלילה על צולל בכרטיס הציוד';
 
   @override
   String get diveLog_detail_gearFigureName => 'הציוד בצלילה זו';
@@ -40544,6 +40627,18 @@ class AppLocalizationsHe extends AppLocalizations {
       'משהו אחר עדיין השתמש בקובץ מסד הנתונים, ולכן Submersion עצר במקום לכתוב אליו. שום דבר לא השתנה ושום דבר לא ניזוק. סגור את Submersion לגמרי ופתח אותו שוב.';
 
   @override
+  String get startup_locationUnreachable_title =>
+      'אי אפשר לגשת לתיקייה של יומן הצלילה';
+
+  @override
+  String get startup_locationUnreachable_body =>
+      'יומן הצלילה שלכם שמור בתיקייה שבחרתם, ו-Submersion לא יכול לפתוח אותה כרגע. שום דבר בה לא השתנה. אם התיקייה נמצאת בכונן שאינו מחובר או בתיקיית ענן שעדיין מסתנכרנת, חברו אותה מחדש ופתחו את Submersion שוב.';
+
+  @override
+  String get startup_locationUnreachable_folderLabel =>
+      'התיקייה של יומן הצלילה:';
+
+  @override
   String get startup_failure_technicalDetails => 'פרטים טכניים';
 
   @override
@@ -40604,6 +40699,22 @@ class AppLocalizationsHe extends AppLocalizations {
       'הניחו את הקובץ הפגום בצד והתחילו מחדש. שום דבר לא נמחק.';
 
   @override
+  String get startup_failure_chooseFolderAgain =>
+      'בחירת התיקייה של יומן הצלילה';
+
+  @override
+  String get startup_failure_chooseFolderAgain_subtitle =>
+      'בחרו שוב באותה תיקייה כדי להחזיר ל-Submersion גישה אליה, או בחרו בתיקייה שבה היומן נמצא עכשיו.';
+
+  @override
+  String get startup_failure_useDefaultLocation =>
+      'חזרה למיקום ברירת המחדל של האפליקציה';
+
+  @override
+  String get startup_failure_useDefaultLocation_subtitle =>
+      'הפסקת השימוש בתיקייה הזו ופתיחת היומן בתיקייה של Submersion עצמו. שום דבר בתיקייה שלכם לא משתנה.';
+
+  @override
   String get startup_recovery_adopt_title => 'להשתמש ביומן הצלילה הזה?';
 
   @override
@@ -40654,6 +40765,18 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get startup_recovery_encryptedBackup_body =>
       'הגיבוי הזה מוצפן. Submersion יכול לפתוח גיבוי מוצפן רק כשהאפליקציה פתוחה, ולכן השתמשו קודם באחת הדרכים האחרות כאן ואז שחזרו אותו מההגדרות, תחת גיבוי ושחזור.';
+
+  @override
+  String get startup_recovery_useDefault_title =>
+      'לחזור למיקום ברירת המחדל של האפליקציה?';
+
+  @override
+  String startup_recovery_useDefault_body(Object folder) {
+    return 'מעכשיו Submersion יפתח את היומן בתיקייה שלו, או ייצור שם יומן ריק אם אין. שום דבר ב-$folder לא מועבר או נמחק. כדי להשתמש שוב בתיקייה הזו, בחרו בה בהגדרות, תחת אחסון מסד נתונים.';
+  }
+
+  @override
+  String get startup_recovery_useDefault_confirm => 'להשתמש במיקום ברירת המחדל';
 
   @override
   String get startup_failure_downgrade_title => 'חזרה לגרסה הקודמת';
@@ -43913,6 +44036,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_entity_sightings => 'תצפיות';
 
   @override
+  String get query_entity_siteTypes => 'סוגי אתר';
+
+  @override
   String get query_entity_sites => 'אתרי צלילה';
 
   @override
@@ -43952,6 +44078,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_equipment_brand => 'מותג';
 
   @override
+  String get query_equipment_dives => 'צלילות';
+
+  @override
   String get query_equipment_model => 'דגם';
 
   @override
@@ -43961,7 +44090,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_equipment_serialNumber => 'מספר סידורי';
 
   @override
+  String get query_equipment_serviceDue => 'טיפול נדרש';
+
+  @override
+  String get query_equipment_serviceDue_dueSoon => 'בקרוב';
+
+  @override
+  String get query_equipment_serviceDue_ok => 'מעודכן';
+
+  @override
+  String get query_equipment_serviceDue_overdue => 'באיחור';
+
+  @override
   String get query_equipment_status => 'מצב';
+
+  @override
+  String get query_equipment_tags => 'תגיות';
 
   @override
   String get query_equipment_type => 'סוג';
@@ -43976,6 +44120,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_media_type => 'סוג';
 
   @override
+  String get query_sheet_sectionTitle => 'שאילתה';
+
+  @override
   String get query_sightings_count => 'כמות';
 
   @override
@@ -43985,10 +44132,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_sightings_species => 'מינים';
 
   @override
+  String get query_siteTypes_name => 'שם';
+
+  @override
   String get query_sites_city => 'עיר';
 
   @override
+  String get query_sites_coordinates => 'קואורדינטות';
+
+  @override
   String get query_sites_country => 'מדינה';
+
+  @override
+  String get query_sites_difficulty => 'רמת קושי';
+
+  @override
+  String get query_sites_dives => 'צלילות';
 
   @override
   String get query_sites_island => 'אי';
@@ -44000,10 +44159,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_sites_name => 'שם';
 
   @override
+  String get query_sites_notes => 'הערות';
+
+  @override
   String get query_sites_rating => 'דירוג';
 
   @override
   String get query_sites_region => 'אזור';
+
+  @override
+  String get query_sites_tags => 'תגיות';
+
+  @override
+  String get query_sites_types => 'סוגי אתר';
 
   @override
   String get query_species_category => 'קטגוריה';
@@ -44039,7 +44207,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_tanks_volume => 'נפח';
 
   @override
+  String get query_trips_dives => 'צלילות';
+
+  @override
   String get query_trips_endDate => 'תאריך סיום';
+
+  @override
+  String get query_trips_liveaboardName => 'ספינת צלילה';
 
   @override
   String get query_trips_location => 'מיקום';
@@ -44048,7 +44222,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_trips_name => 'שם';
 
   @override
+  String get query_trips_notes => 'הערות';
+
+  @override
+  String get query_trips_resortName => 'אתר נופש';
+
+  @override
+  String get query_trips_shared => 'משותף';
+
+  @override
   String get query_trips_startDate => 'תאריך התחלה';
+
+  @override
+  String get query_trips_tripType => 'סוג טיול';
 
   @override
   String get query_weights_amount => 'כמות';

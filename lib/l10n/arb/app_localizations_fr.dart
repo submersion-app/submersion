@@ -590,7 +590,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'Représenter l’équipement de ce jeu sur un plongeur';
+      'Représenter l’équipement de cet ensemble sur un plongeur';
 
   @override
   String get equipment_setEdit_figureSwitch_title =>
@@ -12867,6 +12867,88 @@ class AppLocalizationsFr extends AppLocalizations {
   String get passport_foreign_defaultName => 'Bouteille';
 
   @override
+  String get passport_nfc_tap => 'Approcher une étiquette NFC';
+
+  @override
+  String get passport_nfc_holdNear =>
+      'Tenez l\'étiquette contre le dos du téléphone.';
+
+  @override
+  String get passport_nfc_write => 'Écrire l\'étiquette NFC';
+
+  @override
+  String get passport_nfc_rewrite => 'Réécrire l\'étiquette';
+
+  @override
+  String get passport_nfc_reprint => 'Réimprimer l\'étiquette';
+
+  @override
+  String get passport_nfc_unsupported =>
+      'Cet appareil ne peut ni lire ni écrire d\'étiquettes NFC.';
+
+  @override
+  String get passport_nfc_disabled =>
+      'Le NFC est désactivé. Activez-le dans les réglages du système.';
+
+  @override
+  String get passport_nfc_written => 'Étiquette écrite et vérifiée';
+
+  @override
+  String passport_nfc_tagInfo(String type, int capacity) {
+    return '$type, $capacity octets';
+  }
+
+  @override
+  String passport_nfc_capacity(int capacity) {
+    return '$capacity octets';
+  }
+
+  @override
+  String get passport_nfc_allFields => 'Tout tient sur cette étiquette.';
+
+  @override
+  String passport_nfc_fieldsDropped(String fields) {
+    return 'Omis faute de place : $fields';
+  }
+
+  @override
+  String get passport_nfc_notNdef =>
+      'Cette étiquette ne peut pas contenir de lien. Utilisez une étiquette NTAG215 ou NTAG216.';
+
+  @override
+  String get passport_nfc_readOnly =>
+      'Cette étiquette est verrouillée et ne peut pas être écrite.';
+
+  @override
+  String passport_nfc_tooSmall(int capacity) {
+    return 'Cette étiquette est trop petite ($capacity octets), même pour l\'identité de la bouteille.';
+  }
+
+  @override
+  String get passport_nfc_readBackFailed =>
+      'L\'étiquette ne s\'est pas relue telle qu\'écrite ; elle n\'a donc pas été écrite.';
+
+  @override
+  String get passport_nfc_writeFailed =>
+      'L\'étiquette n\'a pas été écrite. Tenez-la immobile et réessayez.';
+
+  @override
+  String get passport_nfc_readFailed =>
+      'Impossible de lire l\'étiquette. Tenez-la immobile et réessayez.';
+
+  @override
+  String get passport_nfc_retry => 'Réessayer';
+
+  @override
+  String get passport_nfc_fieldName => 'Nom';
+
+  @override
+  String get passport_nfc_fieldSerial => 'Numéro de série';
+
+  @override
+  String get passport_nfc_fieldO2Clean => 'Compatible O2';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'N° de série $serial';
   }
@@ -14410,6 +14492,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String equipment_list_emptyState_noEquipment(Object filterText) {
     return 'Aucun $filterText';
   }
+
+  @override
+  String get equipment_list_emptyState_noQueryMatch =>
+      'Aucun équipement ne correspond à cette requête';
 
   @override
   String get equipment_list_emptyState_noStatusMatch =>
@@ -41445,6 +41531,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Quelque chose utilisait encore le fichier de base de données ; Submersion s’est donc arrêté au lieu d’y écrire. Rien n’a été modifié ni endommagé. Fermez complètement Submersion, puis rouvrez-le.';
 
   @override
+  String get startup_locationUnreachable_title =>
+      'Le dossier de votre carnet de plongée est inaccessible';
+
+  @override
+  String get startup_locationUnreachable_body =>
+      'Votre carnet de plongée se trouve dans un dossier que vous avez choisi, et Submersion ne peut pas ouvrir ce dossier pour le moment. Rien n\'y a été modifié. Si le dossier se trouve sur un disque non connecté ou dans un dossier cloud encore en cours de synchronisation, reconnectez-le et rouvrez Submersion.';
+
+  @override
+  String get startup_locationUnreachable_folderLabel =>
+      'Dossier de votre carnet de plongée :';
+
+  @override
   String get startup_failure_technicalDetails => 'Détails techniques';
 
   @override
@@ -41510,6 +41608,22 @@ class AppLocalizationsFr extends AppLocalizations {
       'Mettez le fichier endommagé de côté et repartez de zéro. Rien n\'est supprimé.';
 
   @override
+  String get startup_failure_chooseFolderAgain =>
+      'Choisir le dossier de votre carnet';
+
+  @override
+  String get startup_failure_chooseFolderAgain_subtitle =>
+      'Choisissez à nouveau le même dossier pour redonner l\'accès à Submersion, ou choisissez le dossier où se trouve désormais votre carnet.';
+
+  @override
+  String get startup_failure_useDefaultLocation =>
+      'Revenir à l\'emplacement par défaut de l\'application';
+
+  @override
+  String get startup_failure_useDefaultLocation_subtitle =>
+      'Ne plus utiliser ce dossier et ouvrir le carnet dans le dossier propre à Submersion. Rien n\'est modifié dans votre dossier.';
+
+  @override
   String get startup_recovery_adopt_title => 'Utiliser ce carnet de plongée ?';
 
   @override
@@ -41561,6 +41675,19 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get startup_recovery_encryptedBackup_body =>
       'Cette sauvegarde est chiffrée. Submersion ne peut déverrouiller une sauvegarde chiffrée qu\'une fois l\'application ouverte : utilisez d\'abord l\'un des autres moyens proposés ici, puis restaurez-la depuis les Réglages, dans Sauvegarde et restauration.';
+
+  @override
+  String get startup_recovery_useDefault_title =>
+      'Revenir à l\'emplacement par défaut de l\'application ?';
+
+  @override
+  String startup_recovery_useDefault_body(Object folder) {
+    return 'Désormais, Submersion ouvre le carnet dans son propre dossier, ou y crée un carnet vide s\'il n\'y en a pas. Rien n\'est déplacé ni supprimé dans $folder. Pour réutiliser ce dossier, choisissez-le dans les Réglages, dans Stockage de la base de données.';
+  }
+
+  @override
+  String get startup_recovery_useDefault_confirm =>
+      'Utiliser l\'emplacement par défaut';
 
   @override
   String get startup_failure_downgrade_title =>
@@ -44911,6 +45038,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_entity_sightings => 'Observations';
 
   @override
+  String get query_entity_siteTypes => 'Types de site';
+
+  @override
   String get query_entity_sites => 'Sites de plongée';
 
   @override
@@ -44950,6 +45080,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_equipment_brand => 'Marque';
 
   @override
+  String get query_equipment_dives => 'Plongées';
+
+  @override
   String get query_equipment_model => 'Modèle';
 
   @override
@@ -44959,7 +45092,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_equipment_serialNumber => 'Numéro de série';
 
   @override
+  String get query_equipment_serviceDue => 'Révision due';
+
+  @override
+  String get query_equipment_serviceDue_dueSoon => 'Bientôt due';
+
+  @override
+  String get query_equipment_serviceDue_ok => 'À jour';
+
+  @override
+  String get query_equipment_serviceDue_overdue => 'En retard';
+
+  @override
   String get query_equipment_status => 'Statut';
+
+  @override
+  String get query_equipment_tags => 'Étiquettes';
 
   @override
   String get query_equipment_type => 'Type';
@@ -44974,6 +45122,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_media_type => 'Type';
 
   @override
+  String get query_sheet_sectionTitle => 'Requête';
+
+  @override
   String get query_sightings_count => 'Nombre';
 
   @override
@@ -44983,10 +45134,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_sightings_species => 'Espèces';
 
   @override
+  String get query_siteTypes_name => 'Nom';
+
+  @override
   String get query_sites_city => 'Ville';
 
   @override
+  String get query_sites_coordinates => 'Coordonnées';
+
+  @override
   String get query_sites_country => 'Pays';
+
+  @override
+  String get query_sites_difficulty => 'Difficulté';
+
+  @override
+  String get query_sites_dives => 'Plongées';
 
   @override
   String get query_sites_island => 'Île';
@@ -44998,10 +45161,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_sites_name => 'Nom';
 
   @override
+  String get query_sites_notes => 'Notes';
+
+  @override
   String get query_sites_rating => 'Note';
 
   @override
   String get query_sites_region => 'Région';
+
+  @override
+  String get query_sites_tags => 'Étiquettes';
+
+  @override
+  String get query_sites_types => 'Types de site';
 
   @override
   String get query_species_category => 'Catégorie';
@@ -45037,7 +45209,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_tanks_volume => 'Volume';
 
   @override
+  String get query_trips_dives => 'Plongées';
+
+  @override
   String get query_trips_endDate => 'Date de fin';
+
+  @override
+  String get query_trips_liveaboardName => 'Croisière';
 
   @override
   String get query_trips_location => 'Lieu';
@@ -45046,7 +45224,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_trips_name => 'Nom';
 
   @override
+  String get query_trips_notes => 'Notes';
+
+  @override
+  String get query_trips_resortName => 'Resort';
+
+  @override
+  String get query_trips_shared => 'Partagé';
+
+  @override
   String get query_trips_startDate => 'Date de début';
+
+  @override
+  String get query_trips_tripType => 'Type de voyage';
 
   @override
   String get query_weights_amount => 'Quantité';

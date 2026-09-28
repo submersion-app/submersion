@@ -91,12 +91,12 @@ void main() {
     };
   }
 
-  test('v241 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 241);
+  test('v241 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v242 (equipment service cache) landed on top; the
+    // newest rung owns the exact assertions.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(241));
     expect(AppDatabase.migrationVersions, contains(241));
-    expect(AppDatabase.migrationStepCount(240), 1);
+    expect(AppDatabase.migrationStepCount(240), greaterThanOrEqualTo(1));
   });
 
   test('the column is additive and did not move the sync floor', () {

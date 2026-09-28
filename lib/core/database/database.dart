@@ -9,6 +9,7 @@ import 'package:submersion/core/database/tables/dive_profile_tables.dart';
 import 'package:submersion/core/database/tables/dive_tables.dart';
 import 'package:submersion/core/database/tables/diver_tables.dart';
 import 'package:submersion/core/database/tables/equipment_condition_tables.dart';
+import 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 import 'package:submersion/core/database/tables/marine_life_tables.dart';
 import 'package:submersion/core/database/tables/media_tables.dart';
@@ -33,6 +34,7 @@ export 'package:submersion/core/database/tables/dive_profile_tables.dart';
 export 'package:submersion/core/database/tables/dive_tables.dart';
 export 'package:submersion/core/database/tables/diver_tables.dart';
 export 'package:submersion/core/database/tables/equipment_condition_tables.dart';
+export 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 export 'package:submersion/core/database/tables/equipment_tables.dart';
 export 'package:submersion/core/database/tables/marine_life_tables.dart';
 export 'package:submersion/core/database/tables/media_tables.dart';
@@ -138,6 +140,9 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Equipment sharing and its event log (v234, issue #2046)
     EquipmentShares,
     EquipmentOwnershipEvents,
+    // Equipment service cache for the query language (v242, issue
+    // #2365), local only
+    EquipmentServiceStatus,
     // Saved queries (v238, issue #2365)
     SavedQueries,
     // Training courses (v1.5)
@@ -212,7 +217,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 241;
+  static const int currentSchemaVersion = 242;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -964,7 +969,16 @@ class AppDatabase extends _$AppDatabase {
     // the source is unambiguous. Additive nullable column, so the floor
     // stays at 240. Renumbered from 232 and then 240 while in review: main
     // shipped 232 to 234, 239 (#2275) and 240 (#1926) while this was open.
+    // Kept below v242, which main shipped with 241 left for this rung: a
+    // database already at 242 skips this step, the beforeOpen backstop
+    // adds the column there, and its series stay unattributed, which every
+    // reader already handles.
     241,
+    // v242: equipment_service_status, the local service-due cache the
+    // query language's serviceDue field reads (issue #2365, PR 3). A table
+    // with no hlc, never synced, so the floor does not move. 241 was held
+    // by #2493 when this was taken.
+    242,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
