@@ -177,6 +177,8 @@ void main() {
     tester,
   ) async {
     final platform = _FakeVideoPlatform();
+    final originalPlatform = VideoPlayerPlatform.instance;
+    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
     VideoPlayerPlatform.instance = platform;
 
     await tester.runAsync(() async {

@@ -23,6 +23,8 @@ import 'package:submersion/features/backup/domain/entities/backup_settings.dart'
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 
+import '../../../../helpers/mock_channels.dart';
+
 // =============================================================================
 // Test Doubles
 // =============================================================================
@@ -292,6 +294,7 @@ void main() {
             },
           );
     });
+    tearDownAll(clearPathAndShareChannelMocks);
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});

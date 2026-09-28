@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
+import '../../../helpers/global_test_defaults.dart';
 import '../../../helpers/test_database.dart';
 
 domain.DiveProfilePoint p(int t, double depth, {double? temp}) =>
@@ -142,7 +143,7 @@ void main() {
       service = ProfileRepairService(diveRepository: diveRepo);
     });
     tearDown(() async {
-      QualityScanScheduler.enabled = true;
+      applyGlobalTestDefaults();
       await tearDownTestDatabase();
     });
 

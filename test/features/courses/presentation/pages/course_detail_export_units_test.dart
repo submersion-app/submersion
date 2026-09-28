@@ -14,6 +14,8 @@ import 'package:submersion/features/courses/presentation/providers/course_requir
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/global_test_defaults.dart';
+import '../../../../helpers/mock_channels.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/pdf_text.dart';
 import '../../../../helpers/test_app.dart';
@@ -84,7 +86,8 @@ void main() {
   });
 
   tearDown(() async {
-    debugCanShareFiles = null;
+    clearPathAndShareChannelMocks();
+    applyGlobalTestDefaults();
     await tearDownTestDatabase();
     await deleteTempDir(shareDir);
   });

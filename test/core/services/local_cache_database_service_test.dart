@@ -10,6 +10,7 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 
+import '../../helpers/fake_path_provider.dart';
 import '../../helpers/temp_dir.dart';
 
 class _FakePathProvider extends PathProviderPlatform
@@ -30,7 +31,7 @@ void main() {
 
   setUp(() async {
     support = await Directory.systemTemp.createTemp('local_cache_service_');
-    PathProviderPlatform.instance = _FakePathProvider(support.path);
+    useFakePathProvider(_FakePathProvider(support.path));
     service.resetForTesting();
   });
 

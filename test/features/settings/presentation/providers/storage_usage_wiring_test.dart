@@ -10,6 +10,8 @@ import 'package:submersion/core/services/storage/storage_category.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_usage_providers.dart';
 
+import '../../../../helpers/fake_path_provider.dart';
+
 class _FakePathProvider extends PathProviderPlatform
     with MockPlatformInterfaceMixin {
   _FakePathProvider(this.supportPath);
@@ -31,7 +33,7 @@ void main() {
 
   setUp(() async {
     support = await Directory.systemTemp.createTemp('storage_wiring_test');
-    PathProviderPlatform.instance = _FakePathProvider(support.path);
+    useFakePathProvider(_FakePathProvider(support.path));
     resetMediaCacheRootForTesting();
     LocalCacheDatabaseService.instance.resetForTesting();
     await LocalCacheDatabaseService.instance.initialize();
