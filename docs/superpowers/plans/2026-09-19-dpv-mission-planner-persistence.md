@@ -67,7 +67,7 @@ The database code is split (#2506): tables live in libraries under `lib/core/dat
 - Modify: `lib/core/database/database.dart` (import and export next to `dive_plan_tables.dart`; the `@DriftDatabase` table list after `DivePlanSegments,`; `currentSchemaVersion`; `migrationVersions` after `240,`)
 - Modify: `lib/core/database/migrations/helpers/dive_plan_migrations.dart` (`_assertDivePlanMissionSchema` at the end of `extension DivePlanMigrations`)
 - Modify: `lib/core/database/migrations/ladder/rungs_v231_onward.dart` (the rung after `if (from < 240) await reportProgress();`)
-- Modify: `lib/core/database/migrations/before_open.dart` (the backstop after the v238 `await _assertSavedQueriesSchema();`)
+- Modify: `lib/core/database/migrations/before_open.dart` (the backstop after the v100 block that ends `await Migrator(this).createTable(divePlanSegments);`)
 - Modify: `lib/core/database/performance_indexes.dart` (after `idx_dive_plan_segments_plan_id`)
 - Modify: `lib/core/data/repositories/sync_repository.dart` (after `'divePlanSegments'` in `hlcTargets`)
 - Modify: `lib/features/divers/data/repositories/diver_owned_rows.dart` (children of `dive_plans`)
@@ -80,7 +80,7 @@ The database code is split (#2506): tables live in libraries under `lib/core/dat
 
 - [ ] **Step 1: Write the failing migration test**
 
-The fixture follows `migration_v238_saved_queries_test.dart`: every beforeOpen backstop returns early when its parent table is missing, so the fixture holds only `dive_plans`. If a backstop throws on it anyway, add only the table or column that backstop names.
+The fixture follows `migration_v238_saved_queries_test.dart`: the other beforeOpen backstops return early when their parent table is missing, so the fixture holds only `dive_plans`. If a backstop throws on it anyway, add only the table or column that backstop names.
 
 ```dart
 // test/core/database/migration_v241_dive_plan_missions_test.dart
@@ -268,15 +268,27 @@ void main() {
     }
   });
 
-  test('the backstop skips a fixture with no dive_plans table', () async {
-    final db = AppDatabase(_fixture(userVersion: 240, withPlans: false));
-    addTearDown(db.close);
+  test(
+    'a database opened without dive_plans gains it and the mission tables',
+    () async {
+      // The v100 backstop re-creates dive_plans on every open (the
+      // version-collision and restore cases). The mission tables must be
+      // there too, whatever order the backstops run in, or every plan save
+      // fails until the next launch.
+      final db = AppDatabase(
+        _fixture(
+          userVersion: AppDatabase.currentSchemaVersion,
+          withPlans: false,
+        ),
+      );
+      addTearDown(db.close);
 
-    // No throw: the helper returns early when the parent is missing.
-    for (final table in _tables) {
-      expect(await _columns(db, table), isEmpty, reason: table);
-    }
-  });
+      expect(await _columns(db, 'dive_plans'), contains('id'));
+      for (final table in _tables) {
+        expect(await _columns(db, table), contains('plan_id'), reason: table);
+      }
+    },
+  );
 }
 ```
 
@@ -451,11 +463,10 @@ At the end of `extension DivePlanMigrations on AppDatabase` in `migrations/helpe
   /// Idempotent creation of the v241 DPV mission tables (issue #2086).
   /// Called from the v241 rung and the beforeOpen backstop.
   ///
-  /// Skipped on a migration-test fixture without dive_plans, so a fixture
-  /// written for an older rung does not gain tables whose foreign keys point
-  /// nowhere.
+  /// Not guarded on dive_plans: SQLite accepts a REFERENCES clause to a
+  /// table that does not exist yet, so the create does not depend on where
+  /// it runs relative to the v100 backstop that re-creates dive_plans.
   Future<void> _assertDivePlanMissionSchema() async {
-    if (!await _tableExists('dive_plans')) return;
     final migrator = Migrator(this);
     await migrator.createTable(divePlanMissions);
     await migrator.createTable(divePlanMissionLegs);
@@ -463,7 +474,7 @@ At the end of `extension DivePlanMigrations on AppDatabase` in `migrations/helpe
   }
 ```
 
-(`createTable` emits `CREATE TABLE IF NOT EXISTS`, which is what makes the helper safe to run on every open; `_tableExists` lives in `helpers/support_migrations.dart`, a part of the same library.)
+(`createTable` emits `CREATE TABLE IF NOT EXISTS`, which is what makes the helper safe to run on every open. It deliberately has no `_tableExists('dive_plans')` guard: a guard made the backstop's result depend on running after the v100 block, and a database opened without `dive_plans` came up with no mission tables.)
 
 In `migrations/ladder/rungs_v231_onward.dart`, directly after `if (from < 240) await reportProgress();`:
 
@@ -477,7 +488,7 @@ In `migrations/ladder/rungs_v231_onward.dart`, directly after `if (from < 240) a
     if (from < 241) await reportProgress();
 ```
 
-In `migrations/before_open.dart`, directly after the v238 block that ends `await _assertSavedQueriesSchema();` (it runs after `PRAGMA foreign_keys = ON`, like the other table backstops):
+In `migrations/before_open.dart`, directly after the v100 block that ends `await Migrator(this).createTable(divePlanSegments);`, next to the other plan tables (the helper is order-independent, so this placement is for readability):
 
 ```dart
 

@@ -189,9 +189,9 @@ void main() {
     'a database opened without dive_plans gains it and the mission tables',
     () async {
       // The v100 backstop re-creates dive_plans on every open (the
-      // version-collision and restore cases). The mission backstop must run
-      // after it, or such a database opens with plans but no mission tables
-      // and every plan save fails until the next launch.
+      // version-collision and restore cases). The mission tables must be
+      // there too, whatever order the backstops run in, or every plan save
+      // fails until the next launch.
       final db = AppDatabase(
         _fixture(
           userVersion: AppDatabase.currentSchemaVersion,
