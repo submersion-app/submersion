@@ -161,6 +161,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // idempotent).
     await _assertEquipmentSharingSchema();
 
+    // v235 backstop: connection_maps and idx_sightings_dive_id
+    // (parallel-branch version-collision self-heal; idempotent).
+    await _assertConnectionMapsSchema();
+
     // v238 backstop: re-assert the saved_queries table. A database that
     // arrives by restore or sync-adopt never runs onUpgrade, and one
     // already at 239 or later skips the v238 rung.

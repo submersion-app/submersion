@@ -206,6 +206,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Trip cylinder slots and their ledger (v232, issue #2325)
     TripCylinders,
     TripCylinderEvents,
+    // Saved Connections maps (v235, issue #2322)
+    ConnectionMaps,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -933,6 +935,12 @@ class AppDatabase extends _$AppDatabase {
     // took 231, trip cylinders (#2325) took 232 and the dive source diver
     // key (#1921) took 233 while this was open.
     234,
+    // v235: connection_maps, saved Connections maps per diver, plus the
+    // idx_sightings_dive_id index the species maps join on (issue #2322).
+    // Table-and-index rung, no backfill, so it does not move the floor.
+    // Renumbered from 232 and 234: trip cylinders (#2331) shipped 232, the
+    // MacDive source diver key (#1921) 233 and equipment sharing (#2046) 234.
+    235,
     // v237: diver_settings.show_dive_figure, the diver-wide switch for the
     // figure in the dive detail equipment card (issue #2326). Additive,
     // default off, no backfill, so the floor it needs stays at 224. Taken
