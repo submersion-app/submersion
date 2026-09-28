@@ -17,8 +17,10 @@ import 'google_fonts_settle.dart';
 /// the test ends, so they never complete. Every later [settleGoogleFonts] in
 /// the same CI isolate (issue #2500) then waits out its full limit.
 ///
-/// Call it from `setUpAll`, which runs outside the fake clock, in a file that
-/// pumps a widget reading the registry:
+/// Call it from `setUpAll`, which runs outside the fake clock, in a widget
+/// test file that reads the registry and shares a bundle with a later file
+/// that waits on the loads (see "Shared Isolates in CI" in
+/// docs/developer/testing.md):
 ///
 /// ```dart
 /// setUpAll(warmUpThemePresets);

@@ -447,10 +447,15 @@ A shared isolate exposes three more things:
   them, and building them starts google_fonts loads. A `testWidgets` body that
   is first strands those loads on its fake clock, and they never complete, so
   never wait on `GoogleFonts.pendingFonts()` directly: use `settleGoogleFonts()`
-  from `test/helpers/google_fonts_settle.dart`, which bounds the wait. A file
-  that pumps a widget reading the registry calls `setUpAll(warmUpThemePresets)`
-  from `test/helpers/theme_presets_warm_up.dart`, so the presets are built
-  outside the fake clock and nothing is stranded.
+  from `test/helpers/google_fonts_settle.dart`, which bounds the wait. A
+  stranded load costs time only in a bundle where a later file waits with
+  `settleGoogleFonts()`: that file then sits out the whole limit. Today the
+  only files that wait are the theme tests under `test/core/theme/`, so a
+  widget test elsewhere under `test/core/` that reads the registry, directly
+  or through a widget such as `StartupPage`, calls
+  `setUpAll(warmUpThemePresets)` from `test/helpers/theme_presets_warm_up.dart`
+  to build the presets outside the fake clock. A new file that waits on the
+  loads makes the same true of the files ahead of it in its bundle.
 
 ### Reproducing a CI failure locally
 
