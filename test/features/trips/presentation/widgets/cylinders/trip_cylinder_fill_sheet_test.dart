@@ -18,6 +18,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/data/services/trip_fill_passport_copy.dart';
+import 'package:submersion/features/trips/data/services/trip_fill_saver.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
@@ -80,6 +81,7 @@ void main() {
     TripFillPassportCopier? copier,
     List<DiveCenter> centers = const [],
     Future<List<DiveCenter>>? centersLoad,
+    TripFillSaver Function()? saverFactory,
   }) async {
     tester.view.physicalSize = const Size(800, 2000);
     tester.view.devicePixelRatio = 1.0;
@@ -100,6 +102,8 @@ void main() {
           ),
           if (copier != null)
             tripFillPassportCopierProvider.overrideWithValue(copier),
+          if (saverFactory != null)
+            tripFillSaverFactoryProvider.overrideWithValue(saverFactory),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -456,6 +460,24 @@ void main() {
     expect(await repo.getEventsForCylinder(cylinders.first.id), isEmpty);
   });
 
+  testWidgets('the sheet saves through the provided saver', (tester) async {
+    await pumpAndOpen(
+      tester,
+      saverFactory: () => _FailingSaver(
+        repository: TripCylinderRepository(),
+        copier: TripFillPassportCopier(),
+      ),
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(await repo.getEventsForCylinder(cylinders.first.id), isEmpty);
+  });
+
   group('pure rules', () {
     test('mix validity', () {
       expect(tripCylinderMixIsValid(21, 0), isTrue);
@@ -734,4 +756,14 @@ class _FlakyCopier extends TripFillPassportCopier {
       throw StateError('copy failed');
     }
   }
+}
+
+/// A saver whose writes always fail.
+class _FailingSaver extends TripFillSaver {
+  _FailingSaver({required super.repository, required super.copier});
+
+  @override
+  Future<List<TripCylinderEvent>> writeFills(
+    List<TripCylinderEvent> drafts,
+  ) async => throw StateError('write failed');
 }

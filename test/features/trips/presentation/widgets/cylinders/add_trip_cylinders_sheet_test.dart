@@ -281,4 +281,17 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('loading equipment is not shown as owning none', (tester) async {
+    final pending = Completer<List<EquipmentItem>>();
+    await pumpAndOpen(tester, equipmentLoad: pending.future, settle: false);
+    await tester.tap(find.text('From my equipment'));
+    await tester.pump();
+
+    expect(
+      find.text('No cylinders in your equipment are left to add.'),
+      findsNothing,
+    );
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+  });
 }

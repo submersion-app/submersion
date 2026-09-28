@@ -42,7 +42,7 @@ class TripFillSaver {
       };
     }
 
-    final updates = [
+    final candidates = [
       for (final d in drafts)
         if (_written[d.tripCylinderId] case final stored?)
           d.copyWith(
@@ -51,8 +51,19 @@ class TripFillSaver {
             updatedAt: stored.updatedAt,
           ),
     ];
-    for (final u in updates) {
-      await _repository.updateEvent(u);
+    final updates = <TripCylinderEvent>[];
+    for (final u in candidates) {
+      try {
+        await _repository.updateEvent(u);
+        updates.add(u);
+      } on TripCylinderEventMissing {
+        // Deleted since the earlier attempt (by a sync, say): the diver
+        // still wants this fill, so it is created again below.
+        _written = {
+          for (final w in _written.entries)
+            if (w.key != u.tripCylinderId) w.key: w.value,
+        };
+      }
     }
     final fresh = [
       for (final d in drafts)

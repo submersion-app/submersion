@@ -131,10 +131,7 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
   @override
   void initState() {
     super.initState();
-    _saver = TripFillSaver(
-      repository: ref.read(tripCylinderRepositoryProvider),
-      copier: ref.read(tripFillPassportCopierProvider),
-    );
+    _saver = ref.read(tripFillSaverFactoryProvider)();
     final e = widget.editing;
     final units = UnitFormatter(ref.read(settingsProvider));
     _selected = e != null ? {e.tripCylinderId} : {...widget.preselected};

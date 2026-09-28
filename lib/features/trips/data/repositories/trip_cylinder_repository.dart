@@ -24,6 +24,16 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.da
 /// `tripCylinderEvents`). A dive's consumption is the
 /// `dive_tanks.trip_cylinder_id` link, which belongs to the dive: this
 /// repository only ever clears it, when the slot it points at goes.
+/// An update named a trip cylinder event that no longer exists.
+class TripCylinderEventMissing implements Exception {
+  const TripCylinderEventMissing(this.id);
+
+  final String id;
+
+  @override
+  String toString() => 'TripCylinderEventMissing($id)';
+}
+
 class TripCylinderRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
@@ -86,42 +96,53 @@ class TripCylinderRepository {
   }
 
   /// Inserts a slot. An empty id is minted; timestamps are set here.
+  /// Inserts and stages one slot stamped [now], in one transaction: a
+  /// failed stage must not leave a row that never syncs and that a retry
+  /// would double. Callers notify sync once they are done.
+  Future<domain.TripCylinder> _insertCylinder(
+    domain.TripCylinder cylinder,
+    int now,
+  ) async {
+    final id = cylinder.id.isEmpty ? _uuid.v4() : cylinder.id;
+    await _db.transaction(() async {
+      await _db
+          .into(_db.tripCylinders)
+          .insert(
+            TripCylindersCompanion.insert(
+              id: id,
+              tripId: cylinder.tripId,
+              equipmentId: Value(cylinder.equipmentId),
+              label: Value(cylinder.label),
+              volume: Value(cylinder.volume),
+              workingPressure: Value(cylinder.workingPressure),
+              material: Value(cylinder.material?.name),
+              presetName: Value(cylinder.presetName),
+              sortOrder: Value(cylinder.sortOrder),
+              notes: Value(cylinder.notes),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      await _syncRepository.markRecordPending(
+        entityType: 'tripCylinders',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+    });
+    final stamp = DateTime.fromMillisecondsSinceEpoch(now, isUtc: true);
+    return cylinder.copyWith(id: id, createdAt: stamp, updatedAt: stamp);
+  }
+
   Future<domain.TripCylinder> createCylinder(
     domain.TripCylinder cylinder,
   ) async {
     try {
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final id = cylinder.id.isEmpty ? _uuid.v4() : cylinder.id;
-      // Insert and stage in one transaction: a failed stage must not
-      // leave a row that never syncs and that a retry would double.
-      await _db.transaction(() async {
-        await _db
-            .into(_db.tripCylinders)
-            .insert(
-              TripCylindersCompanion.insert(
-                id: id,
-                tripId: cylinder.tripId,
-                equipmentId: Value(cylinder.equipmentId),
-                label: Value(cylinder.label),
-                volume: Value(cylinder.volume),
-                workingPressure: Value(cylinder.workingPressure),
-                material: Value(cylinder.material?.name),
-                presetName: Value(cylinder.presetName),
-                sortOrder: Value(cylinder.sortOrder),
-                notes: Value(cylinder.notes),
-                createdAt: now,
-                updatedAt: now,
-              ),
-            );
-        await _syncRepository.markRecordPending(
-          entityType: 'tripCylinders',
-          recordId: id,
-          localUpdatedAt: now,
-        );
-      });
+      final created = await _insertCylinder(
+        cylinder,
+        DateTime.now().millisecondsSinceEpoch,
+      );
       SyncEventBus.notifyLocalChange();
-      final stamp = DateTime.fromMillisecondsSinceEpoch(now, isUtc: true);
-      return cylinder.copyWith(id: id, createdAt: stamp, updatedAt: stamp);
+      return created;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to create cylinder for trip: ${cylinder.tripId}',
@@ -225,14 +246,18 @@ class TripCylinderRepository {
   }
 
   /// Inserts every slot in [cylinders] in one transaction: a failure part
-  /// way leaves none of them, so a retry never doubles the batch.
+  /// way leaves none of them, so a retry never doubles the batch. They share
+  /// one creation time and one sync notice, as [createEvents] does.
   Future<List<domain.TripCylinder>> createCylinders(
     List<domain.TripCylinder> cylinders,
   ) async {
     try {
-      return await _db.transaction(
-        () async => [for (final c in cylinders) await createCylinder(c)],
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final created = await _db.transaction(
+        () async => [for (final c in cylinders) await _insertCylinder(c, now)],
       );
+      SyncEventBus.notifyLocalChange();
+      return created;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to create cylinders',
@@ -402,26 +427,30 @@ class TripCylinderRepository {
       // Write and stage in one transaction, as the creates do: a failed
       // stage must not leave a local edit that never syncs.
       await _db.transaction(() async {
-        await (_db.update(
-          _db.tripCylinderEvents,
-        )..where((t) => t.id.equals(event.id))).write(
-          TripCylinderEventsCompanion(
-            kind: Value(event.kind.name),
-            occurredAt: Value(event.occurredAt.millisecondsSinceEpoch),
-            bottleLabel: Value(event.bottleLabel),
-            pressure: Value(event.pressure),
-            o2Percent: Value(event.o2Percent),
-            hePercent: Value(event.hePercent),
-            analyzedO2: Value(event.analyzedO2),
-            analyzedHe: Value(event.analyzedHe),
-            diveCenterId: Value(event.diveCenterId),
-            cost: Value(event.cost),
-            currency: Value(event.currency),
-            isPackage: Value(event.isPackage),
-            note: Value(event.note),
-            updatedAt: Value(now),
-          ),
-        );
+        final changed =
+            await (_db.update(
+              _db.tripCylinderEvents,
+            )..where((t) => t.id.equals(event.id))).write(
+              TripCylinderEventsCompanion(
+                kind: Value(event.kind.name),
+                occurredAt: Value(event.occurredAt.millisecondsSinceEpoch),
+                bottleLabel: Value(event.bottleLabel),
+                pressure: Value(event.pressure),
+                o2Percent: Value(event.o2Percent),
+                hePercent: Value(event.hePercent),
+                analyzedO2: Value(event.analyzedO2),
+                analyzedHe: Value(event.analyzedHe),
+                diveCenterId: Value(event.diveCenterId),
+                cost: Value(event.cost),
+                currency: Value(event.currency),
+                isPackage: Value(event.isPackage),
+                note: Value(event.note),
+                updatedAt: Value(now),
+              ),
+            );
+        // Gone (a sync deleted it, say): staging it would queue a record
+        // for a row that no longer exists.
+        if (changed == 0) throw TripCylinderEventMissing(event.id);
         await _syncRepository.markRecordPending(
           entityType: 'tripCylinderEvents',
           recordId: event.id,

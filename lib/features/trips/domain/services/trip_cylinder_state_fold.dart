@@ -9,8 +9,9 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.da
 /// A constant, not a setting.
 const double kTripCylinderEmptyBar = 50;
 
-/// An adjustment at or above this share of the working pressure is a full
-/// bottle: a gauge reading of 190 on a 207 bar cylinder is not a partial.
+/// A fill or adjustment at or above this share of the working pressure is a
+/// full bottle: a gauge reading of 190 on a 207 bar cylinder is not a
+/// partial, and a short fill below it is not full.
 const double kTripCylinderFullFraction = 0.9;
 
 /// Order on one instant: the fill before the dive it was for, a correction
@@ -127,19 +128,23 @@ TripCylinderStatus _statusOf(
 ) {
   if (last == null) return TripCylinderStatus.unknown;
   final event = last.event;
-  if (event != null && event.kind == TripCylinderEventKind.fill) {
-    return TripCylinderStatus.full;
+  final isFill = event != null && event.kind == TripCylinderEventKind.fill;
+  // A fill logged without a pressure is taken at its word.
+  if (pressure == null) {
+    return isFill ? TripCylinderStatus.full : TripCylinderStatus.partial;
   }
+  // Fills and readings share one set of thresholds, so a short fill reads
+  // partial (or empty) rather than full. A dive's end pressure never makes
+  // a slot full.
   final working = cylinder.workingPressure;
   if (event != null &&
-      event.kind == TripCylinderEventKind.adjustment &&
-      pressure != null &&
       working != null &&
       pressure >= kTripCylinderFullFraction * working) {
     return TripCylinderStatus.full;
   }
-  if (pressure == null) return TripCylinderStatus.partial;
   if (pressure <= kTripCylinderEmptyBar) return TripCylinderStatus.empty;
+  // With no working pressure to measure against, a fill stays full.
+  if (isFill && working == null) return TripCylinderStatus.full;
   return TripCylinderStatus.partial;
 }
 

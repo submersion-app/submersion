@@ -283,7 +283,12 @@ class _AddTripCylindersSheetState
                   labelText: l10n.trips_cylinders_add_prefix,
                 ),
               ),
-            ] else if (candidates.isEmpty)
+            ] else if (equipmentPending && !equipmentFailed)
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (candidates.isEmpty && !equipmentFailed)
               Text(l10n.trips_cylinders_add_noOwned)
             else
               for (final e in candidates)

@@ -636,5 +636,25 @@ void main() {
       ]);
       expect(made.map((e) => e.createdAt).toSet(), hasLength(1));
     });
+
+    test('updating an event that is gone throws and stages nothing', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      final e = await repository.createEvent(fill(a.id));
+      await repository.deleteEvent(e.id);
+      await db.customStatement('DELETE FROM sync_records');
+
+      await expectLater(
+        repository.updateEvent(e.copyWith(pressure: 150.0)),
+        throwsA(isA<TripCylinderEventMissing>()),
+      );
+      expect(await pendingCountFor('tripCylinderEvents', e.id), 0);
+    });
+
+    test('one createCylinders batch shares its creation time', () async {
+      final made = await repository.createCylinders([
+        for (var i = 0; i < 20; i++) slot(label: 'S$i', sortOrder: i),
+      ]);
+      expect(made.map((c) => c.createdAt).toSet(), hasLength(1));
+    });
   });
 }

@@ -103,8 +103,39 @@ void main() {
   });
 
   test('passport copies skip fills whose slot is unknown', () async {
-    final created = await saver.writeFills([draft(a.id, 200)]);
-    await saver.copyToPassports(created, const {});
-    expect(await repo.getEventsForCylinder(a.id), hasLength(1));
+    final recording = _RecordingCopier();
+    final recordingSaver = TripFillSaver(repository: repo, copier: recording);
+    final created = await recordingSaver.writeFills([draft(a.id, 200)]);
+    await recordingSaver.copyToPassports(created, const {});
+    expect(recording.saved, isEmpty);
+
+    await recordingSaver.copyToPassports(created, {a.id: a});
+    expect(recording.saved, [created.single.id]);
   });
+
+  test('a fill deleted before the retry is written again, not lost', () async {
+    final first = (await saver.writeFills([draft(a.id, 200)])).single;
+    await repo.deleteEvent(first.id);
+
+    final again = (await saver.writeFills([draft(a.id, 210)])).single;
+    final stored = await repo.getEventsForCylinder(a.id);
+    expect(stored.single.id, again.id);
+    expect(stored.single.pressure, 210);
+  });
+}
+
+/// Records which fills reached the passport step.
+class _RecordingCopier extends TripFillPassportCopier {
+  final saved = <String>[];
+
+  @override
+  Future<void> afterSave(
+    TripCylinderEvent event,
+    TripCylinder slot, {
+    String? diverId,
+    String? stationName,
+    bool stationResolved = true,
+  }) async {
+    saved.add(event.id);
+  }
 }
