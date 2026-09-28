@@ -231,6 +231,109 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('EQUIPMENT_LIST_PAGE'), findsNothing);
     });
+
+    testWidgets('Open in Connections centres the map on the item', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await getBaseOverrides();
+
+      final router = GoRouter(
+        initialLocation: '/equipment/equip-1',
+        routes: [
+          GoRoute(
+            path: '/equipment',
+            builder: (context, state) =>
+                const Scaffold(body: Text('EQUIPMENT_LIST_PAGE')),
+          ),
+          GoRoute(
+            path: '/equipment/:id',
+            builder: (context, state) =>
+                EquipmentDetailPage(equipmentId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/insights/connections',
+            builder: (context, state) =>
+                Scaffold(body: Text('CONNECTIONS ${state.uri.query}')),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            // A resolved active diver: the page menu is owner-only (#2046),
+            // and with no diver every profile counts as the owner.
+            validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+            equipmentListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.table,
+            ),
+            equipmentItemProvider(
+              equipment.id,
+            ).overrideWith((ref) async => equipment),
+            equipmentDiveCountProvider(
+              equipment.id,
+            ).overrideWith((ref) async => 0),
+            equipmentTripCountProvider(
+              equipment.id,
+            ).overrideWith((ref) async => 0),
+            equipmentComponentsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            equipmentPartOfProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            equipmentExposureTotalsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => EquipmentExposureTotals.empty),
+            equipmentConditionProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            conditionTrendProvider((
+              equipmentId: equipment.id,
+              kind: null,
+            )).overrideWith((ref) async => null),
+            conditionTrendProvider((
+              equipmentId: equipment.id,
+              kind: ConditionTrendKind.scrubberMinutes,
+            )).overrideWith((ref) async => null),
+            childEquipmentProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            observationsForEquipmentProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            equipmentWorstClockProvider.overrideWith((ref) async => {}),
+            serviceRecordNotifierProvider(
+              equipment.id,
+            ).overrideWith((ref) => _MockServiceRecordNotifier()),
+          ].cast(),
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(PopupMenuButton<String>).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open in Connections'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('CONNECTIONS mode=around&focus=equipment:equip-1'),
+        findsOneWidget,
+      );
+    });
   });
 
   group('EquipmentDetailPage attributes card', () {
@@ -587,13 +690,14 @@ void main() {
     });
 
     // Retiring and reactivating go through the Edit page's Status field;
-    // the overflow menu only offers Delete, whatever the item's state.
+    // the overflow menu offers only Open in Connections and Delete, whatever
+    // the item's state.
     for (final embedded in [false, true]) {
       for (final isActive in [true, false]) {
         final state = isActive ? 'an active' : 'a retired';
         final layout = embedded ? 'embedded' : 'standalone';
         testWidgets(
-          'the $layout overflow menu of $state item offers Delete only',
+          'the $layout overflow menu of $state item offers only Connections and Delete',
           (tester) async {
             final equipment = EquipmentItem(
               id: 'equip-menu-$layout-$isActive',
@@ -618,10 +722,11 @@ void main() {
             );
             await tester.pumpAndSettle();
 
+            expect(find.text('Open in Connections'), findsOneWidget);
             expect(find.text('Delete'), findsOneWidget);
             expect(find.text('Retire Equipment'), findsNothing);
             expect(find.text('Reactivate'), findsNothing);
-            expect(find.byType(PopupMenuItem<String>), findsOneWidget);
+            expect(find.byType(PopupMenuItem<String>), findsNWidgets(2));
 
             // Selecting Delete still reaches the handler: it asks first,
             // and cancelling leaves the item in place.
