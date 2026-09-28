@@ -31,6 +31,11 @@ OS version, build and tag model for each line.
       of the tag afterwards reads a whole passport, never a half-written one.
 - [ ] Android: a locked tag holding a passport, kept against the phone after
       "This tag is locked": that passport does not open over the sheet.
+- [ ] Android: after that, lift the tag and tap it again: the passport opens.
+- [ ] iPhone: a write that fails, then Try again at once: the new system
+      sheet stays up and writes the tag; the write sheet does not close.
+- [ ] iPhone with App Lock set to Immediately: write a tag and scan one: the
+      result shows with no lock screen, and no sync starts.
 
 ## Read
 

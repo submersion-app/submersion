@@ -52,4 +52,21 @@ void main() {
     now = now.add(const Duration(seconds: 6));
     expect(recent.wasJustHandled(read), isFalse);
   });
+
+  test('only the first repeat of a noted tag is dropped', () {
+    // Android re-dispatches a held tag once; a diver who lifts the tag and
+    // taps it again means it, and that tap must open.
+    recent.note(read);
+    expect(recent.takeJustHandled(read), isTrue);
+    expect(recent.takeJustHandled(read), isFalse);
+  });
+
+  test('the memory lasts three seconds', () {
+    recent.note(read);
+    now = now.add(const Duration(milliseconds: 2900));
+    expect(recent.wasJustHandled(read), isTrue);
+    now = now.add(const Duration(milliseconds: 100));
+    expect(recent.wasJustHandled(read), isFalse);
+    expect(recent.takeJustHandled(read), isFalse);
+  });
 }

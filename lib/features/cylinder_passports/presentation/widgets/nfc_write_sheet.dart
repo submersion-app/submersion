@@ -103,6 +103,11 @@ class _NfcWriteSheetState extends ConsumerState<NfcWriteSheet> {
       _waiting = false;
       _close();
       return;
+    } on NfcSessionFailed catch (e) {
+      // The system ended the session, usually a timeout with no tag
+      // presented: expected, so not reported as an error.
+      _log.info('NFC write session ended by the system: ${e.message}');
+      result = TagWriteFailed(e);
     } catch (e, stackTrace) {
       _log.error('NFC write session failed', error: e, stackTrace: stackTrace);
       result = TagWriteFailed(e);

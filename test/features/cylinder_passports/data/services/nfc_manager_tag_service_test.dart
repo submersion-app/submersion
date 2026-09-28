@@ -1,12 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ndef_record/ndef_record.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 import 'package:nfc_manager/nfc_manager_ios.dart';
-// The plugin's own tag data, so a test can hand the service an iOS tag.
-// ignore: implementation_imports
-import 'package:nfc_manager/src/nfc_manager_ios/pigeon.g.dart';
+import 'package:nfc_manager_ndef/nfc_manager_ndef.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_ndef.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_manager_tag_service.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
@@ -63,6 +61,34 @@ class _FakeNfcManager implements NfcManager {
   }
 }
 
+/// The plugin's public NDEF view of a tag, as the adapter reads it.
+class _FakeNdef implements Ndef {
+  _FakeNdef({this.cachedMessage});
+
+  @override
+  final NdefMessage? cachedMessage;
+
+  @override
+  bool get isWritable => true;
+
+  @override
+  int get maxSize => 137;
+
+  @override
+  Map<String, dynamic> get additionalData => {
+    'type': 'org.nfcforum.ndef.type2',
+  };
+
+  @override
+  Future<NdefMessage?> read() async => cachedMessage;
+
+  @override
+  Future<void> write({required NdefMessage message}) async {}
+
+  @override
+  Future<void> writeLock() async {}
+}
+
 void main() {
   const tag = NfcTag(data: 'tag');
   late _FakeNfcManager manager;
@@ -92,6 +118,20 @@ void main() {
     manager.onDiscovered!(tag);
     expect(await session, 1);
     expect(manager.stops, 1);
+  });
+
+  test('the session is active from its start until it has stopped', () async {
+    expect(service.sessionActive, isFalse);
+    final session = service.withTag<int>(
+      promptIos: 'Hold near',
+      onTag: (_) async => 1,
+    );
+    await started();
+    expect(service.sessionActive, isTrue);
+    manager.onDiscovered!(tag);
+    await session;
+    expect(manager.stops, 1);
+    expect(service.sessionActive, isFalse);
   });
 
   test('a second tag while the first is handled is ignored', () async {
@@ -251,61 +291,88 @@ void main() {
     expect(manager.stops, 1);
   });
 
-  group('iOS tags', () {
+  group('a cancel left over from the previous iOS session', () {
+    var now = DateTime(2026, 9, 28, 10);
+    const userCanceled = NfcReaderSessionErrorIos(
+      code: NfcReaderErrorCodeIos.readerSessionInvalidationErrorUserCanceled,
+      message: 'Session invalidated by user',
+    );
+
     setUp(() {
-      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-      addTearDown(() => debugDefaultTargetPlatformOverride = null);
-      service = NfcManagerTagService(manager: manager);
+      now = DateTime(2026, 9, 28, 10);
+      service = NfcManagerTagService(
+        manager: manager,
+        handleFor: (_) => FakeTagHandle(),
+        clock: () => now,
+      );
     });
 
-    NfcTag iosTag(NdefStatusPigeon status, {NdefMessagePigeon? cached}) =>
-        NfcTag(
-          data: TagPigeon(
-            handle: 'h',
-            ndef: NdefPigeon(
-              status: status,
-              capacity: status == NdefStatusPigeon.notSupported ? 0 : 137,
-              cachedNdefMessage: cached,
-            ),
-          ),
-        );
-
-    Future<NdefTagHandle?> handleOf(NfcTag nfcTag) async {
-      final session = service.withTag<NdefTagHandle?>(
+    Future<void> finishOneSession() async {
+      final first = service.withTag<int>(
         promptIos: 'Hold near',
-        onTag: (handle) async => handle,
+        onTag: (_) async => 1,
       );
       await started();
-      manager.onDiscovered!(nfcTag);
-      return session;
+      manager.onDiscovered!(tag);
+      await first;
     }
 
-    test('a tag that cannot hold NDEF reaches the handler as none', () async {
-      expect(await handleOf(iosTag(NdefStatusPigeon.notSupported)), isNull);
+    test('does not end a Retry started right after it', () async {
+      // nfc_manager hands the old session's late invalidation to whichever
+      // callback is registered, and Retry has just registered a new one.
+      await finishOneSession();
+      now = now.add(const Duration(seconds: 1));
+      var done = false;
+      final retry = service.withTag<int>(
+        promptIos: 'Hold near',
+        onTag: (_) async => 2,
+      )..whenComplete(() => done = true).ignore();
+      await started();
+      manager.onSessionErrorIos!(userCanceled);
+      await started();
+      expect(done, isFalse);
+      manager.onDiscovered!(tag);
+      expect(await retry, 2);
     });
 
-    test('an NDEF tag reports what it held when it was found', () async {
-      const url =
-          'https://submersion.app/c#f=1&p=8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
-      final record = uriRecord(url);
-      final handle = await handleOf(
-        iosTag(
-          NdefStatusPigeon.readWrite,
-          cached: NdefMessagePigeon(
-            records: [
-              NdefPayloadPigeon(
-                typeNameFormat: TypeNameFormatPigeon.wellKnown,
-                type: record.type,
-                identifier: Uint8List(0),
-                payload: record.payload,
-              ),
-            ],
-          ),
-        ),
+    test(
+      'once the old session is long gone, a cancel is the diver\'s',
+      () async {
+        await finishOneSession();
+        now = now.add(const Duration(seconds: 10));
+        final next = service.withTag<int>(
+          promptIos: 'Hold near',
+          onTag: (_) async => 2,
+        );
+        await started();
+        manager.onSessionErrorIos!(userCanceled);
+        await expectLater(next, throwsA(isA<NfcSessionCancelled>()));
+      },
+    );
+  });
+
+  group('handleOf', () {
+    const url =
+        'https://submersion.app/c#f=1&p=8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
+
+    test('a tag that cannot hold NDEF reaches the handler as none', () {
+      // iOS hands out an Ndef for such a tag, not writable, which would
+      // otherwise read as a locked tag.
+      expect(
+        NfcManagerTagService.handleOf(_FakeNdef(), iosNdefUnsupported: true),
+        isNull,
       );
-      expect(handle, isNotNull);
-      expect(handle!.isWritable, isTrue);
+      expect(NfcManagerTagService.handleOf(null), isNull);
+    });
+
+    test('an NDEF tag reports what it held when it was found', () {
+      final message = NdefMessage(records: [uriRecord(url)]);
+      final handle = NfcManagerTagService.handleOf(
+        _FakeNdef(cachedMessage: message),
+      )!;
+      expect(handle.isWritable, isTrue);
       expect(handle.maxMessageBytes, 137);
+      expect(handle.typeLabel, 'org.nfcforum.ndef.type2');
       expect(firstPassportUri(handle.discoveredMessage!), url);
     });
   });

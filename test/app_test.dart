@@ -459,4 +459,35 @@ void main() {
     await tester.pump();
     expect(await container.read(nfcSupportProvider.future), NfcSupport.enabled);
   });
+
+  testWidgets('the iOS NFC sheet coming and going is not a return to the app', (
+    tester,
+  ) async {
+    // The sheet makes the app inactive, then resumed. Taken as leaving and
+    // coming back, App Lock set to Immediately would lock after every tag
+    // and every tag would start a sync.
+    final nfc = FakeNfcTagService(supportValue: NfcSupport.disabled);
+    await pumpApp(tester, _DrivableSyncNotifier(const SyncState()), nfc: nfc);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SubmersionApp)),
+    );
+    final sub = container.listen(nfcSupportProvider, (_, _) {});
+    addTearDown(sub.close);
+    expect(
+      await container.read(nfcSupportProvider.future),
+      NfcSupport.disabled,
+    );
+
+    nfc.supportValue = NfcSupport.enabled;
+    nfc.sessionActive = true;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    nfc.sessionActive = false;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    // No resume work ran, so NFC was not checked again.
+    expect(
+      await container.read(nfcSupportProvider.future),
+      NfcSupport.disabled,
+    );
+  });
 }

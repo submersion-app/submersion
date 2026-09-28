@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ndef_record/ndef_record.dart';
+import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/features/cylinder_passports/presentation/services/recent_passport_tags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -244,4 +247,21 @@ void main() {
       expect(label, isNotEmpty, reason: key);
     }
   });
+
+  testWidgets(
+    'a session the system ended says the write failed, logged as no error',
+    (tester) async {
+      // An iOS timeout is the diver not presenting a tag: expected, so it
+      // is not reported as an error.
+      final levels = <LogLevel>[];
+      final sub = LoggerService.logStream.listen((e) => levels.add(e.level));
+      addTearDown(sub.cancel);
+      final l10n = await open(
+        tester,
+        FakeNfcTagService(sessionError: const NfcSessionFailed('timeout')),
+      );
+      expect(find.text(l10n.passport_nfc_writeFailed), findsOneWidget);
+      expect(levels, isNot(contains(LogLevel.error)));
+    },
+  );
 }

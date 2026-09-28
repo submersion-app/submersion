@@ -1,7 +1,7 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
 
-/// The passports the app read or wrote over NFC in the last few seconds.
+/// The passports the app read or wrote over NFC in the last three seconds.
 ///
 /// When an in-app NFC session ends, Android resumes its own tag dispatch,
 /// and a tag still held against the phone arrives again as an incoming link.
@@ -11,7 +11,7 @@ import 'package:submersion/features/cylinder_passports/domain/services/passport_
 class RecentPassportTags {
   RecentPassportTags({
     DateTime Function()? clock,
-    this.window = const Duration(seconds: 5),
+    this.window = const Duration(seconds: 3),
   }) : _clock = clock ?? DateTime.now;
 
   final DateTime Function() _clock;
@@ -35,6 +35,15 @@ class RecentPassportTags {
     final id = _passportIdOf(tagText);
     final at = id == null ? null : _handledAt[id];
     return at != null && _clock().difference(at) < window;
+  }
+
+  /// [wasJustHandled], and forgets the passport when it was: Android
+  /// re-dispatches a held tag once, so only that first repeat is dropped. A
+  /// diver who lifts the tag and taps it again means it, and it opens.
+  bool takeJustHandled(String tagText) {
+    if (!wasJustHandled(tagText)) return false;
+    _handledAt.remove(_passportIdOf(tagText));
+    return true;
   }
 
   static String? _passportIdOf(String text) =>

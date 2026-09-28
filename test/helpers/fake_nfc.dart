@@ -89,6 +89,9 @@ class FakeNfcTagService implements NfcTagService {
   int sessions = 0;
   int cancels = 0;
 
+  @override
+  bool sessionActive = false;
+
   /// How the last session would have closed the iOS system sheet.
   IosSheetEnd? lastIosEnd;
 

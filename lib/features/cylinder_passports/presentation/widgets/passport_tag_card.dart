@@ -50,24 +50,28 @@ CylinderPassportPayload? fullPayloadFor(
   );
 }
 
-/// [fullPayloadFor], bounded so every QR drawn from it (on screen and on
-/// the printed label) stays inside the label's designed density.
+/// [full], bounded so every QR drawn from it (on screen and on the printed
+/// label) stays inside the label's designed density.
+CylinderPassportPayload? labelPayloadOf(CylinderPassportPayload? full) =>
+    full == null ? null : NdefFit.fitForLabel(full);
+
+/// The payload a label written right now carries: [fullPayloadFor] bounded
+/// by [labelPayloadOf].
 CylinderPassportPayload? currentPayloadFor(
   EquipmentItem item, {
   required String? passportId,
   required List<ServiceClockStatus> clocks,
   required Iterable<ServiceRecord> records,
   required DateTime now,
-}) {
-  final full = fullPayloadFor(
+}) => labelPayloadOf(
+  fullPayloadFor(
     item,
     passportId: passportId,
     clocks: clocks,
     records: records,
     now: now,
-  );
-  return full == null ? null : NdefFit.fitForLabel(full);
-}
+  ),
+);
 
 /// QR of the current tag string, print and link actions, and the stale-tag
 /// hint when a scanned tag predates the row (spec section 8, Tag card).
@@ -101,7 +105,6 @@ class PassportTagCard extends ConsumerWidget {
     final records =
         ref.watch(serviceRecordsForEquipmentProvider(equipment.id)).value ??
         const <ServiceRecord>[];
-    final now = DateTime.now();
     // The label and QR carry the bounded payload; an NFC write starts from
     // the full one and lets the tag's capacity decide what is left off.
     final full = fullPayloadFor(
@@ -109,15 +112,9 @@ class PassportTagCard extends ConsumerWidget {
       passportId: passportId,
       clocks: clocks,
       records: records,
-      now: now,
+      now: DateTime.now(),
     );
-    final payload = currentPayloadFor(
-      equipment,
-      passportId: passportId,
-      clocks: clocks,
-      records: records,
-      now: now,
-    );
+    final payload = labelPayloadOf(full);
     final nfc = ref.watch(nfcSupportProvider).value;
     final canWriteNfc = full != null && nfc == NfcSupport.enabled;
     ServiceClockStatus? clock(String kindId) =>

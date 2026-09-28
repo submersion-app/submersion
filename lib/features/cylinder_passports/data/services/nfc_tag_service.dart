@@ -56,6 +56,10 @@ class IosSheetEnd {
 abstract interface class NfcTagService {
   Future<NfcSupport> support();
 
+  /// Whether a session is running, from its start until it has stopped. On
+  /// iOS its system sheet is over the app all that time.
+  bool get sessionActive;
+
   /// Waits for a tag, runs [onTag] with it (null when it cannot hold NDEF),
   /// ends the session and returns [onTag]'s result. [promptIos] is shown on
   /// the iOS system sheet, which then closes as [iosEnd] says for the result,
@@ -80,6 +84,9 @@ class UnsupportedNfcTagService implements NfcTagService {
 
   @override
   Future<NfcSupport> support() async => NfcSupport.unsupported;
+
+  @override
+  bool get sessionActive => false;
 
   @override
   Future<T> withTag<T>({

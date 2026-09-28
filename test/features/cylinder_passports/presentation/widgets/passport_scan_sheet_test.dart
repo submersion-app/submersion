@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ndef_record/ndef_record.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/features/cylinder_passports/presentation/services/recent_passport_tags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
@@ -306,4 +308,25 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(l10n.passport_nfc_tap), findsOneWidget);
   });
+
+  testWidgets(
+    'a session the system ended says the read failed, logged as no error',
+    (tester) async {
+      final levels = <LogLevel>[];
+      final sub = LoggerService.logStream.listen((e) => levels.add(e.level));
+      addTearDown(sub.cancel);
+      await openSheet(
+        tester,
+        camera: null,
+        nfc: FakeNfcTagService(sessionError: const NfcSessionFailed('timeout')),
+      );
+      final l10n = AppLocalizations.of(
+        tester.element(find.byType(PassportScanSheet)),
+      );
+      await tester.tap(find.byKey(const Key('passportScan_nfc')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.passport_nfc_readFailed), findsOneWidget);
+      expect(levels, isNot(contains(LogLevel.error)));
+    },
+  );
 }

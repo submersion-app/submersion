@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/core/utils/system_sheet_lifecycle.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/app/app_exit.dart';
@@ -91,6 +92,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     with WidgetsBindingObserver {
   final _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
   bool _adoptDialogShownThisSession = false;
+  final _lifecycle = SystemSheetLifecycle();
   late final FileShareHandler _fileShareHandler;
   late final PassportLinkDispatcher _passportLinks;
   late final GoRouter _linkRouter;
@@ -125,7 +127,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       source: ref.read(incomingLinkSourceProvider),
       open: _openPassportLink,
       alreadyHandled: (text) =>
-          ref.read(recentPassportTagsProvider).wasJustHandled(text),
+          ref.read(recentPassportTagsProvider).takeJustHandled(text),
     );
     // A tag tapped on a fresh install waits until setup is over, and one
     // tapped with the app closed waits for the navigator to exist.
@@ -185,18 +187,23 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.hidden) {
-      ref.read(appLockNotifierProvider.notifier).noteBackgrounded();
-    }
-    if (state == AppLifecycleState.resumed) {
-      ref.read(appLockNotifierProvider.notifier).noteResumed();
-      _maybeSyncOnResume();
-      _resumeMediaTransfers();
-      // NFC may have been turned on in the system settings meanwhile, as
-      // the passport screens tell the diver to do.
-      ref.invalidate(nfcSupportProvider);
+    // The iOS NFC sheet over the app is not the diver leaving it.
+    final meaning = _lifecycle.interpret(
+      state,
+      systemSheetUp: ref.read(nfcTagServiceProvider).sessionActive,
+    );
+    switch (meaning) {
+      case LifecycleMeaning.backgrounded:
+        ref.read(appLockNotifierProvider.notifier).noteBackgrounded();
+      case LifecycleMeaning.resumed:
+        ref.read(appLockNotifierProvider.notifier).noteResumed();
+        _maybeSyncOnResume();
+        _resumeMediaTransfers();
+        // NFC may have been turned on in the system settings meanwhile, as
+        // the passport screens tell the diver to do.
+        ref.invalidate(nfcSupportProvider);
+      case LifecycleMeaning.none:
+        break;
     }
   }
 

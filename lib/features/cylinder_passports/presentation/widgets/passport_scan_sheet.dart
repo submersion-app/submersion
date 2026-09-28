@@ -119,6 +119,11 @@ class _PassportScanSheetState extends ConsumerState<PassportScanSheet> {
       }
     } on NfcSessionCancelled {
       // The diver closed the system sheet: nothing to report.
+    } on NfcSessionFailed catch (e) {
+      // The system ended the session, usually a timeout with no tag
+      // presented: expected, so not reported as an error.
+      _log.info('NFC read session ended by the system: ${e.message}');
+      if (mounted) setState(() => _nfcError = l10n.passport_nfc_readFailed);
     } catch (e, stackTrace) {
       _log.error('NFC read session failed', error: e, stackTrace: stackTrace);
       if (mounted) setState(() => _nfcError = l10n.passport_nfc_readFailed);

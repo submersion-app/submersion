@@ -18,27 +18,46 @@ class NfcManagerTagService implements NfcTagService {
   NfcManagerTagService({
     NfcManager? manager,
     NdefTagHandle? Function(NfcTag tag)? handleFor,
+    DateTime Function()? clock,
   }) : _managerOverride = manager,
-       _handleFor = handleFor ?? _ndefHandleFor;
+       _handleFor = handleFor ?? _ndefHandleFor,
+       _clock = clock ?? DateTime.now;
 
   final NfcManager? _managerOverride;
   final NdefTagHandle? Function(NfcTag tag) _handleFor;
+  final DateTime Function() _clock;
   void Function()? _cancelPending;
+
+  /// When the last session was stopped. iOS reports that session's end
+  /// only after its sheet has closed, and nfc_manager hands the report to
+  /// whichever session is registered by then, so a Retry can receive it.
+  DateTime? _lastStoppedAt;
+
+  @override
+  bool sessionActive = false;
+
+  /// How long after a stop a user-cancel may still be the stopped session's.
+  static const Duration _leftOverCancelWindow = Duration(seconds: 5);
 
   /// Read lazily: [NfcManager.instance] throws on platforms without NFC.
   NfcManager get _manager => _managerOverride ?? NfcManager.instance;
 
-  static NdefTagHandle? _ndefHandleFor(NfcTag tag) {
-    final ndef = Ndef.from(tag);
-    if (ndef == null) return null;
-    // iOS reports a tag that cannot hold NDEF at all as an Ndef that is not
-    // writable, which would read as a locked tag.
-    if (defaultTargetPlatform == TargetPlatform.iOS &&
-        NdefIos.from(tag)?.status == NdefStatusIos.notSupported) {
-      return null;
-    }
-    return _NdefHandle(ndef);
-  }
+  /// Reads the plugin's views of [tag]; the only part that needs a real one.
+  static NdefTagHandle? _ndefHandleFor(NfcTag tag) => handleOf(
+    Ndef.from(tag),
+    iosNdefUnsupported:
+        defaultTargetPlatform == TargetPlatform.iOS &&
+        NdefIos.from(tag)?.status == NdefStatusIos.notSupported,
+  );
+
+  /// The handle for [ndef], or null when the tag cannot hold NDEF. iOS hands
+  /// out an Ndef for such a tag, not writable, which would read as a locked
+  /// tag, so [iosNdefUnsupported] says so.
+  @visibleForTesting
+  static NdefTagHandle? handleOf(
+    Ndef? ndef, {
+    bool iosNdefUnsupported = false,
+  }) => ndef == null || iosNdefUnsupported ? null : _NdefHandle(ndef);
 
   @override
   Future<NfcSupport> support() async {
@@ -80,7 +99,23 @@ class NfcManagerTagService implements NfcTagService {
 
     void cancelled() => endWith(const NfcSessionCancelled());
 
+    // At most one user-cancel shortly after the previous session stopped is
+    // taken as that session's late report. A real cancel in that window
+    // with no late report ahead of it is missed; the sheets' own Cancel
+    // still ends the session.
+    var leftOverIgnored = false;
+    bool isLeftOverCancel() {
+      final stoppedAt = _lastStoppedAt;
+      if (leftOverIgnored || stoppedAt == null) return false;
+      if (_clock().difference(stoppedAt) >= _leftOverCancelWindow) {
+        return false;
+      }
+      leftOverIgnored = true;
+      return true;
+    }
+
     _cancelPending = cancelled;
+    sessionActive = true;
     try {
       await _manager.startSession(
         // NTAG21x and most cylinder tags are ISO 14443 type A.
@@ -102,15 +137,20 @@ class NfcManagerTagService implements NfcTagService {
             if (!result.isCompleted) result.completeError(e, stackTrace);
           }
         },
-        onSessionErrorIos: (error) =>
-            error.code ==
-                NfcReaderErrorCodeIos.readerSessionInvalidationErrorUserCanceled
-            ? cancelled()
-            : endWith(NfcSessionFailed(error.message)),
+        onSessionErrorIos: (error) {
+          if (error.code !=
+              NfcReaderErrorCodeIos
+                  .readerSessionInvalidationErrorUserCanceled) {
+            endWith(NfcSessionFailed(error.message));
+          } else if (!isLeftOverCancel()) {
+            cancelled();
+          }
+        },
       );
       return await result.future;
     } finally {
       _cancelPending = null;
+      _lastStoppedAt = _clock();
       try {
         await _manager.stopSession(
           alertMessageIos: end?.alert,
@@ -124,6 +164,7 @@ class NfcManagerTagService implements NfcTagService {
           stackTrace: stackTrace,
         );
       }
+      sessionActive = false;
     }
   }
 
