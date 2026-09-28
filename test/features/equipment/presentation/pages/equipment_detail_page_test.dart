@@ -1164,6 +1164,32 @@ void main() {
       expect(find.text('Red'), findsNothing);
     });
 
+    // Issue #2520: a battery has no colour, so one that reached it shows
+    // as the diver's own field, the way the edit form keeps it.
+    testWidgets('a colour on a battery shows as a custom field', (
+      tester,
+    ) async {
+      await pumpItem(
+        tester,
+        EquipmentItem(
+          id: 'battery-color',
+          name: 'Cell pack',
+          type: EquipmentType.battery,
+          attributes: [
+            EquipmentAttribute.curated(
+              equipmentId: 'battery-color',
+              key: 'color',
+              valueText: '#EF4444',
+            ),
+          ],
+        ),
+      );
+      expect(find.byKey(const ValueKey('detail-color-swatch')), findsNothing);
+      expect(find.text('Color'), findsNothing);
+      expect(find.text('color'), findsOneWidget);
+      expect(find.text('#EF4444'), findsOneWidget);
+    });
+
     testWidgets('the Components card renders with no error line', (
       tester,
     ) async {

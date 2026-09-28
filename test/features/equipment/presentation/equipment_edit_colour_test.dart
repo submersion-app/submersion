@@ -81,6 +81,34 @@ void main() {
     expect(find.byKey(const ValueKey('attr-field-color')), findsNothing);
   });
 
+  // Issue #2520: CSV import could give a battery a colour. The form has no
+  // colour field for it, so it keeps the value as a custom field on save.
+  testWidgets('a colour on a battery survives a save as a custom field', (
+    tester,
+  ) async {
+    final created = await repository.createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'Cell pack',
+        type: EquipmentType.battery,
+        attributes: [
+          EquipmentAttribute.curated(
+            equipmentId: '',
+            key: 'color',
+          ).copyWith(valueText: '#EF4444'),
+        ],
+      ),
+    );
+    await pumpEditor(tester, created.id);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final saved = await repository.getEquipmentById(created.id);
+    expect(saved!.attributes.map((a) => (a.key, a.isCustom, a.valueText)), [
+      ('color', true, '#EF4444'),
+    ]);
+  });
+
   testWidgets('picking and then clearing a colour updates the form', (
     tester,
   ) async {

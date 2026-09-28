@@ -758,6 +758,11 @@ abstract final class EquipmentAttributeCatalog {
     if (!_noAppearance.contains(type)) ...appearance,
   ];
 
+  /// Whether items of [type] take a colour ([appearance]). A colour that
+  /// reaches a type without one is the diver's own field, not the item's
+  /// colour (issue #2520): see `keepStrayColorAsCustom`.
+  static bool hasColor(EquipmentType type) => !_noAppearance.contains(type);
+
   static final Map<String, EquipmentAttributeDef> _byKey = {
     for (final defs in _byType.values)
       for (final def in defs) def.key: def,
