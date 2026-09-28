@@ -388,8 +388,11 @@ class MockDiveRepository extends Mock implements DiveRepository {
 Every test runs with the same three limits, whether it runs on its own, in a
 CI bundle, or through `flutter test` locally.
 
-- **No network.** A request or socket to any host but this machine fails with
-  `A test reached the network: <URL>`. Inject a fake client (`MockClient` from
+- **No network.** An HTTP or HTTPS request through `HttpClient` (which
+  `package:http`, images and most plugins use), or a plain `Socket`, to any
+  host but this machine fails with `A test reached the network: <URL>`. A TLS
+  socket opened directly with `SecureSocket.connect` connects below the hook
+  and is not covered; nothing in `lib/` opens one. Inject a fake client (`MockClient` from
   `package:http/testing.dart`), serve the response from a loopback
   `HttpServer` (`HttpServer.bind(InternetAddress.loopbackIPv4, 0)`), or call
   `loadPdfRoboto()` for PDF fonts. The overrides live in

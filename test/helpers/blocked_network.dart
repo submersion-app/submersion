@@ -61,7 +61,8 @@ class BlockedNetworkHttpOverrides extends HttpOverrides {
 ///
 /// Covers `Socket.connect` and `Socket.startConnect`. A secure socket connects
 /// below this hook, so an HTTPS request is refused by
-/// [BlockedNetworkHttpOverrides] instead.
+/// [BlockedNetworkHttpOverrides] instead, and a TLS socket opened directly with
+/// `SecureSocket.connect` is not refused at all; nothing in lib/ opens one.
 final class BlockedNetworkIOOverrides extends IOOverrides {
   @override
   Future<Socket> socketConnect(
