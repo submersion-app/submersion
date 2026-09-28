@@ -68,12 +68,15 @@ class TripFillPassportCopier {
 
   /// After a trip event on [slot] is saved: writes or updates the copy of a
   /// fill on an owned cylinder. An adjustment never has one; an event that
-  /// was a fill and no longer is loses its copy.
+  /// was a fill and no longer is loses its copy. Pass [stationResolved]
+  /// false when the station list could not be read: an existing copy then
+  /// keeps its station name rather than losing it to a failed lookup.
   Future<void> afterSave(
     TripCylinderEvent event,
     TripCylinder slot, {
     String? diverId,
     String? stationName,
+    bool stationResolved = true,
   }) async {
     final copyId = tripFillPassportCopyId(event.id);
     final existing = await _fills.getById(copyId);
@@ -92,7 +95,7 @@ class TripFillPassportCopier {
       passportId: passportId,
       equipmentId: equipmentId,
       diverId: diverId,
-      stationName: stationName,
+      stationName: stationResolved ? stationName : existing?.stationName,
     );
     if (existing == null) {
       await _fills.create(copy);

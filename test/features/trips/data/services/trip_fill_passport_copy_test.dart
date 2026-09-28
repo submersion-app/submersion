@@ -175,6 +175,25 @@ void main() {
       expect(copy!.o2Percent, 32.2);
     });
 
+    test(
+      'an edit whose station could not be looked up keeps the name',
+      () async {
+        final event = await save(owned, analyzedO2: 31.6);
+        await copier.afterSave(event, owned, stationName: 'Dive Friends');
+        final edited = event.copyWith(analyzedO2: 32.2);
+
+        await copier.afterSave(edited, owned, stationResolved: false);
+        var copy = await fills.getById(tripFillPassportCopyId(event.id));
+        expect(copy!.o2Percent, 32.2);
+        expect(copy.stationName, 'Dive Friends');
+
+        // A lookup that ran and found no station clears it.
+        await copier.afterSave(edited, owned);
+        copy = await fills.getById(tripFillPassportCopyId(event.id));
+        expect(copy!.stationName, isNull);
+      },
+    );
+
     test('deleting the fill removes the copy', () async {
       final event = await save(owned);
       await copier.afterSave(event, owned);

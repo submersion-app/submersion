@@ -727,6 +727,7 @@ class _FlakyCopier extends TripFillPassportCopier {
     TripCylinder slot, {
     String? diverId,
     String? stationName,
+    bool stationResolved = true,
   }) async {
     if (failures > 0) {
       failures--;

@@ -387,12 +387,15 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
       // Wait for the centers rather than reading a list still loading, or the
       // passport copy would lose its station name.
       var centers = const <DiveCenter>[];
+      var stationResolved = true;
       if (_centerId != null) {
         try {
           centers = await ref.read(allDiveCentersProvider.future);
         } catch (_) {
-          // The fills are saved; without the list the passport copy only
-          // loses its station name, which must not fail the whole save.
+          // The fills are saved; without the list a new passport copy has
+          // no station name and an existing one keeps the name it had. That
+          // must not fail the whole save.
+          stationResolved = false;
         }
       }
       final stationName = centers
@@ -410,6 +413,7 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
             slot,
             diverId: diverId,
             stationName: stationName,
+            stationResolved: stationResolved,
           );
         }
       }
