@@ -814,7 +814,7 @@ python3 -m coverage run --include='scripts/filter_trivial_coverage.py' scripts/f
 python3 -m coverage report -m --include='scripts/filter_trivial_coverage.py'
 ```
 
-Expected: `Ran 40 tests` and `OK`, then `100%`. If `coverage` is not installed locally, `python3 -m pip install --user coverage` first.
+Expected: every test passes (`OK`), then `100%`. If `coverage` is not installed locally, `python3 -m pip install --user coverage` first.
 
 - [ ] **Step 5: Try it on a real report**
 

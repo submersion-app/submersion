@@ -512,10 +512,12 @@ Codecov reports two numbers on every PR:
 | Status | Target | Measures |
 |---|---|---|
 | `codecov/patch` | 80% | The lines the PR adds or changes |
-| `codecov/project` | 70%, within 5 points | The whole of `lib/` |
+| `codecov/project` | 70%, within 5 points | All of `lib/`, plus the Python scripts the Script Tests job covers |
 
-Neither blocks a merge: only `CI Success` is required. They are there to show
-when new logic went untested.
+Codecov builds both from seven uploads: one per test shard for `lib/`, and one
+from the Script Tests job for the scripts in its `guards` list
+(`coverage/scripts.xml`, flag `scripts`). Neither status blocks a merge: only
+`CI Success` is required. They are there to show when new logic went untested.
 
 ### What counts
 
