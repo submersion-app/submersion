@@ -1,5 +1,7 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_request.dart';
 import 'package:submersion/features/dive_lab/domain/services/tank_schedule.dart';
@@ -45,9 +47,10 @@ class SynthesizedRemainder {
 }
 
 class _Builder {
-  _Builder(this.plan, this.loop, this.step) : tanks = plan.tanks;
+  _Builder(this.plan, this.loop, this.scr, this.step) : tanks = plan.tanks;
   final domain.DivePlan plan;
   final LoopSetpoints? loop;
+  final Scr? scr;
   final int step;
   final List<DiveTank> tanks;
   final timestamps = <int>[];
@@ -76,6 +79,13 @@ class _Builder {
   }) {
     // The gas and the cylinder change independently: two cylinders of the
     // same mix are one gas segment but two tanks to charge.
+    // CMF SCR has a fixed steady-state loop fraction, not a CCR setpoint.
+    final scrGas = scr?.inspiredAt(1 + waterVaporPressure);
+    if (scrGas != null) {
+      fN2 = scrGas.pN2;
+      fHe = scrGas.pHe;
+      setpoint = null;
+    }
     final gasChanged = _fN2 != fN2 || _fHe != fHe || _setpoint != setpoint;
     if (gasChanged) {
       gasSegments.add(
@@ -158,10 +168,11 @@ SynthesizedRemainder synthesizeRemainder({
   required double startDepth,
   required AscentGasPlan ascentPlan,
   LoopSetpoints? loop,
+  Scr? scr,
   int stepSeconds = 10,
   int extraLastStopSeconds = 0,
 }) {
-  final b = _Builder(plan, loop, stepSeconds);
+  final b = _Builder(plan, loop, scr, stepSeconds);
   b.sample(startTimestamp, startDepth);
 
   final segments = List<PlanSegment>.from(plan.segments)

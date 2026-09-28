@@ -110,7 +110,14 @@ List<PlanSegment> compileRemainingBottom({
     order: 0,
   );
   if (ascendNow || bottomEndIndex == null || bottomEndIndex <= branchIndex) {
-    return [hold()];
+    return [
+      hold().copyWith(
+        durationSeconds:
+            !ascendNow && bottomEndIndex == branchIndex && shiftSeconds > 0
+            ? shiftSeconds
+            : 0,
+      ),
+    ];
   }
 
   // Group the remaining samples into levels (within the tolerance of the
@@ -136,44 +143,46 @@ List<PlanSegment> compileRemainingBottom({
   // level or a transition is a property of its position, so the compiler
   // keeps that knowledge beside each segment while it trims.
   final segments = <_Waypoint>[];
+  // Split both levels and travel legs at the exact recorded switch time.
+  // A waypoint's gas applies to the entire leg leading to that waypoint.
+  void append(int from, int to, double fromDepth, double toDepth, bool level) {
+    final cuts = <int>[
+      from,
+      if (forcedTankId == null)
+        for (final iv in schedule.intervals)
+          if (iv.startTimestamp > from && iv.startTimestamp < to)
+            iv.startTimestamp,
+      to,
+    ];
+    for (var j = 1; j < cuts.length; j++) {
+      final start = cuts[j - 1];
+      final end = cuts[j];
+      if (end <= start) continue;
+      segments.add(
+        _Waypoint(
+          PlanSegment(
+            id: '$idPrefix-${segments.length}',
+            targetDepth:
+                fromDepth + (toDepth - fromDepth) * (end - from) / (to - from),
+            durationSeconds: end - start,
+            tankId: _tankIdAt(schedule, start, forcedTankId),
+            gasMix: _mixAt(schedule, start, forcedTankId),
+            order: segments.length,
+          ),
+          isLevel: level,
+        ),
+      );
+    }
+  }
+
   for (var k = 0; k < levels.length; k++) {
     final level = levels[k];
     final startTs = timestamps[level.startIndex];
     if (k > 0) {
       final prev = levels[k - 1];
-      final transitionSeconds = startTs - timestamps[prev.endIndex];
-      if (transitionSeconds > 0) {
-        segments.add(
-          _Waypoint(
-            PlanSegment(
-              id: '$idPrefix-${segments.length}',
-              targetDepth: level.mean,
-              durationSeconds: transitionSeconds,
-              tankId: _tankIdAt(schedule, startTs, forcedTankId),
-              gasMix: _mixAt(schedule, startTs, forcedTankId),
-              order: segments.length,
-            ),
-            isLevel: false,
-          ),
-        );
-      }
+      append(timestamps[prev.endIndex], startTs, prev.mean, level.mean, false);
     }
-    final holdSeconds = timestamps[level.endIndex] - startTs;
-    if (holdSeconds > 0) {
-      segments.add(
-        _Waypoint(
-          PlanSegment(
-            id: '$idPrefix-${segments.length}',
-            targetDepth: level.mean,
-            durationSeconds: holdSeconds,
-            tankId: _tankIdAt(schedule, startTs, forcedTankId),
-            gasMix: _mixAt(schedule, startTs, forcedTankId),
-            order: segments.length,
-          ),
-          isLevel: true,
-        ),
-      );
-    }
+    append(startTs, timestamps[level.endIndex], level.mean, level.mean, true);
   }
 
   if (shiftSeconds != 0) {

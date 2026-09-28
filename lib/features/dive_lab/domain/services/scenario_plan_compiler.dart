@@ -39,8 +39,13 @@ String? forcedTankIdFor({
   required double branchDepth,
   required double maxPpO2,
 }) {
+  tanks = availableScenarioTanks(tanks, interventions);
   for (final i in interventions) {
-    if (i is SwitchGasIntervention) return i.tank.tankId;
+    if (i is SwitchGasIntervention &&
+        (i.tank is HypotheticalTankRef ||
+            tanks.any((t) => t.id == i.tank.tankId))) {
+      return i.tank.tankId;
+    }
   }
   for (final i in interventions) {
     if (i is BailOutIntervention) {
@@ -65,7 +70,10 @@ CompiledScenario compileScenarioPlan({
     return p != null ? t.copyWith(startPressure: p) : t;
   }
 
-  var tanks = <DiveTank>[for (final t in request.tanks) atBranch(t)];
+  var tanks = <DiveTank>[
+    for (final t in availableScenarioTanks(request.tanks, interventions))
+      atBranch(t),
+  ];
   var mode = switch (request.diveMode) {
     DiveMode.ccr => domain.PlanMode.ccr,
     DiveMode.scr => domain.PlanMode.scr,
@@ -110,7 +118,13 @@ CompiledScenario compileScenarioPlan({
         sacBottom = stressed;
         sacDeco = stressed;
       case BailOutIntervention():
-        tanks = [for (final t in bailoutPool(i, request.tanks)) atBranch(t)];
+        tanks = [
+          for (final t in bailoutPool(
+            i,
+            availableScenarioTanks(request.tanks, interventions),
+          ))
+            atBranch(t),
+        ];
         mode = domain.PlanMode.oc;
         final stressed = branch.sacLitersPerMin * 2.5;
         sacBottom = stressed;

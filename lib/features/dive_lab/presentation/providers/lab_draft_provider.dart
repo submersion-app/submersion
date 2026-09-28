@@ -17,6 +17,7 @@ class LabDraft extends Equatable {
     this.interventions = const [],
     this.scenarioId,
     this.name,
+    this.notes,
   });
 
   /// Null until the page seeds the default branch.
@@ -29,6 +30,7 @@ class LabDraft extends Equatable {
 
   /// The saved name; null until saved.
   final String? name;
+  final String? notes;
 
   bool get isSeeded => branchSeconds != null;
 
@@ -40,6 +42,7 @@ class LabDraft extends Equatable {
     id: scenarioId ?? 'draft',
     diveId: diveId,
     name: name ?? 'draft',
+    notes: notes,
     branchSeconds: branchSeconds ?? 0,
     mode: mode,
     interventions: interventions,
@@ -53,12 +56,15 @@ class LabDraft extends Equatable {
     List<ScenarioIntervention>? interventions,
     String? scenarioId,
     String? name,
+    String? notes,
+    bool clearNotes = false,
   }) => LabDraft(
     branchSeconds: branchSeconds ?? this.branchSeconds,
     mode: mode ?? this.mode,
     interventions: interventions ?? this.interventions,
     scenarioId: scenarioId ?? this.scenarioId,
     name: name ?? this.name,
+    notes: clearNotes ? null : (notes ?? this.notes),
   );
 
   @override
@@ -68,6 +74,7 @@ class LabDraft extends Equatable {
     interventions,
     scenarioId,
     name,
+    notes,
   ];
 }
 
@@ -134,6 +141,7 @@ class LabDraftNotifier extends StateNotifier<LabDraft> {
       interventions: scenario.interventions,
       scenarioId: scenario.id,
       name: scenario.name,
+      notes: scenario.notes,
     );
   }
 

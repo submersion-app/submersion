@@ -164,11 +164,17 @@ class _LabAddInterventionSheetState
     if (o2 == null || he == null || volume == null || pressure == null) {
       return null;
     }
+    if (o2 < 1 ||
+        o2 > 100 ||
+        he > 99 ||
+        o2 + he > 100 ||
+        volume <= 0 ||
+        pressure <= 0 ||
+        ![o2, he, volume, pressure].every((v) => v.isFinite)) {
+      return null;
+    }
     return HypotheticalTankRef(
-      gasMix: GasMix(
-        o2: o2.clamp(1, 100).toDouble(),
-        he: he.clamp(0, 99).toDouble(),
-      ),
+      gasMix: GasMix(o2: o2, he: he),
       volumeLiters: units.volumeToLiters(volume),
       startPressureBar: units.pressureToBar(pressure),
     );
@@ -320,14 +326,34 @@ class _LabAddInterventionSheetState
     }
   }
 
-  String? _numberError(TextEditingController c) =>
-      invalidNumberText(context, c.text, allowNegative: false);
+  String? _numberError(TextEditingController c) {
+    final parseError = invalidNumberText(context, c.text, allowNegative: false);
+    if (parseError != null) return parseError;
+    if (c == _o2 || c == _he) {
+      final o2 = switch (readNumber(_o2.text, allowNegative: false)) {
+        NumberValue(:final value) => value,
+        _ => 21.0,
+      };
+      final he = switch (readNumber(_he.text, allowNegative: false)) {
+        NumberValue(:final value) => value,
+        _ => 0.0,
+      };
+      if ((c == _o2 && (o2 < 1 || o2 > 100)) ||
+          (c == _he && (he > 99 || o2 + he > 100))) {
+        return context.l10n.passport_logFill_invalidMix;
+      }
+    } else if (readNumber(c.text) case NumberValue(:final value)) {
+      if (value <= 0) return context.l10n.transmitters_validation_positive;
+    }
+    return null;
+  }
 
   Widget _hypotheticalFields(UnitFormatter units, dynamic l10n) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       const SizedBox(height: 8),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: TextField(
@@ -337,6 +363,7 @@ class _LabAddInterventionSheetState
               decoration: InputDecoration(
                 labelText: l10n.diveLab_sheet_o2,
                 errorText: _numberError(_o2),
+                errorMaxLines: 4,
               ),
             ),
           ),
@@ -349,6 +376,7 @@ class _LabAddInterventionSheetState
               decoration: InputDecoration(
                 labelText: l10n.diveLab_sheet_he,
                 errorText: _numberError(_he),
+                errorMaxLines: 4,
               ),
             ),
           ),
@@ -356,6 +384,7 @@ class _LabAddInterventionSheetState
       ),
       const SizedBox(height: 8),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: TextField(

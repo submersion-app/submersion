@@ -1,5 +1,7 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/features/dive_lab/domain/entities/branch_state.dart';
@@ -58,8 +60,34 @@ class ScenarioEngine {
       switches: request.gasSwitches,
       originTimestamp: request.timestamps.first,
     );
+    final primary =
+        schedule.tankAt(request.timestamps.first)?.gasMix ?? const GasMix();
+    final loopSupply =
+        request.tanks
+            .where((t) => t.role == TankRole.diluent)
+            .firstOrNull
+            ?.gasMix ??
+        primary;
+    final scrSupply = GasMix(
+      o2: request.scrSupplyO2Percent ?? loopSupply.o2,
+      he: loopSupply.he,
+    );
     List<ProfileGasSegment> actualGas;
-    if (isOc) {
+    if (request.diveMode == DiveMode.scr && request.scrInjectionRate != null) {
+      final gas = Scr(
+        supplyFO2: scrSupply.o2 / 100,
+        supplyFHe: scrSupply.he / 100,
+        injectionRateLpm: request.scrInjectionRate!,
+        vo2: request.scrVo2,
+      ).inspiredAt(1 + waterVaporPressure);
+      actualGas = [
+        ProfileGasSegment(
+          startTimestamp: request.timestamps.first,
+          fN2: gas.pN2,
+          fHe: gas.pHe,
+        ),
+      ];
+    } else if (isOc) {
       actualGas = schedule.toGasSegments();
     } else {
       final loop = request.loopGasSegments;
@@ -70,8 +98,6 @@ class ScenarioEngine {
         actualGas = loop;
       }
     }
-    final primary =
-        schedule.tankAt(request.timestamps.first)?.gasMix ?? const GasMix();
 
     ProfileAnalysis analyze({
       required List<double> depths,
@@ -178,7 +204,7 @@ class ScenarioEngine {
       final bailsOut =
           !isOc && interventions.any((i) => i is BailOutIntervention);
       final cfGas = isOc
-          ? cfSchedule.toGasSegments()
+          ? _openCircuitFrom(actualGas, cfSchedule.toGasSegments(), branchT)
           : bailsOut
           ? _openCircuitFrom(actualGas, cfSchedule.toGasSegments(), branchT)
           : actualGas;
@@ -282,7 +308,14 @@ class ScenarioEngine {
     }
     // A forced hypothetical tank must be known to the schedule the segments
     // are compiled against.
-    var segmentSchedule = schedule;
+    var segmentSchedule = rewriteScheduleForReplay(
+      actual: schedule,
+      interventions: interventions.whereType<LoseTankIntervention>().toList(),
+      branchTimestamp: branchT,
+      timestamps: request.timestamps,
+      depths: request.depths,
+      maxPpO2: settings.ppO2Deco,
+    );
     for (final i in interventions) {
       final ref = switch (i) {
         SwitchGasIntervention(:final tank) => tank,
@@ -296,7 +329,7 @@ class ScenarioEngine {
         ]);
       }
     }
-    final remaining = compileRemainingBottom(
+    var remaining = compileRemainingBottom(
       depths: request.depths,
       timestamps: request.timestamps,
       branchIndex: branchIndex,
@@ -306,6 +339,23 @@ class ScenarioEngine {
       shiftSeconds: shift,
       ascendNow: ascendNow,
     );
+    // Loop gas is resolved from the logged loop, never cylinder list order
+    // (the first cylinder may be the oxygen supply).
+    final staysOnLoop =
+        !isOc && !interventions.any((i) => i is BailOutIntervention);
+    if (staysOnLoop) {
+      final loopAtBranch = actualGas.lastWhere(
+        (g) => g.startTimestamp <= branchT,
+        orElse: () => actualGas.first,
+      );
+      final mix = request.diveMode == DiveMode.scr
+          ? scrSupply
+          : GasMix(
+              o2: (1 - loopAtBranch.fN2 - loopAtBranch.fHe) * 100,
+              he: loopAtBranch.fHe * 100,
+            );
+      remaining = [for (final s in remaining) s.copyWith(gasMix: mix)];
+    }
     final compiled = compileScenarioPlan(
       request: request,
       branch: branch,
@@ -313,14 +363,27 @@ class ScenarioEngine {
       interventions: interventions,
       remainingBottom: remaining,
     );
-    final plan = compiled.plan;
+    var plan = compiled.plan;
     final engine = PlanEngine(
       config: settings.engineConfigFor(
         scrInjectionRateLpm: request.scrInjectionRate,
         scrVo2Lpm: request.scrVo2,
       ),
     );
-    final planOutcome = engine.compute(plan, startState: branch.tissueState);
+    var planOutcome = engine.compute(plan, startState: branch.tissueState);
+    if (compiled.extraLastStopSeconds > 0 && planOutcome.stops.isNotEmpty) {
+      final last = planOutcome.stops.last;
+      // Recompute with an explicit minimum so the table, exposure, gas use,
+      // and synthesized profile all include the same extra stop time.
+      plan = plan.copyWith(
+        stopMinimums: {
+          ...plan.stopMinimums,
+          last.depthMeters.round():
+              last.durationSeconds + compiled.extraLastStopSeconds,
+        },
+      );
+      planOutcome = engine.compute(plan, startState: branch.tissueState);
+    }
     if (!planOutcome.isDiveable) {
       flags.add(const ScenarioFlag(ScenarioFlagKind.replanNotCompletable));
     }
@@ -331,8 +394,10 @@ class ScenarioEngine {
       outcome: planOutcome,
       startTimestamp: branchT,
       startDepth: branch.depthMeters,
-      ascentPlan: engine.ascentPlanFor(plan.tanks),
-      loop: isLoop
+      ascentPlan: plan.mode == domain.PlanMode.scr
+          ? engine.scrAscentPlanFor(plan.segments.last.gasMix)
+          : engine.ascentPlanFor(plan.tanks),
+      loop: plan.mode == domain.PlanMode.ccr
           ? LoopSetpoints(
               low: plan.effectiveSetpointLow,
               high: plan.effectiveSetpointHigh,
@@ -342,7 +407,15 @@ class ScenarioEngine {
                   : plan.segments.last.gasMix,
             )
           : null,
-      extraLastStopSeconds: compiled.extraLastStopSeconds,
+      scr: plan.mode == domain.PlanMode.scr
+          ? Scr(
+              supplyFO2: plan.segments.last.gasMix.o2 / 100,
+              supplyFHe: plan.segments.last.gasMix.he / 100,
+              injectionRateLpm:
+                  request.scrInjectionRate ?? engine.config.scrInjectionRateLpm,
+              vo2: request.scrVo2,
+            )
+          : null,
     );
     final spliced = spliceCounterfactual(
       actualTimestamps: request.timestamps,

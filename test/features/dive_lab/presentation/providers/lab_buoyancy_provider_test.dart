@@ -1,3 +1,4 @@
+import '../../domain/support/synthetic_dives.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
@@ -16,8 +17,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
-
-import '../../domain/support/synthetic_dives.dart';
 
 LabRequestInputs _inputs() {
   final d = squareDive();
@@ -84,8 +83,98 @@ void main() {
       back.endPressureBar,
       outcome.consumption.counterfactualFor('back')!.endPressureBar,
     );
-    expect(back.pressureSeries, isNull);
+    expect(back.startPressureBar, actual.tanks.first.startPressureBar);
+    final original = actual.tanks.firstWhere((t) => t.id == back.id);
+    for (final t in [0, 300, 600, 900]) {
+      expect(
+        twinTankPressureAt(
+          back,
+          t,
+          cf.profile.first.timestamp,
+          cf.profile.last.timestamp,
+        ),
+        closeTo(
+          twinTankPressureAt(
+            original,
+            t,
+            actual.profile.first.timestamp,
+            actual.profile.last.timestamp,
+          ),
+          1e-10,
+        ),
+      );
+    }
+    expect(back.pressureSeries!.last.pressureBar, back.endPressureBar);
     expect(cf.suit, actual.suit);
+    expect(runBuoyancyTwin(cf).pressuresEstimated, isTrue);
+    final measured = actual.copyWith(
+      tanks: const [
+        TwinTankInput(
+          id: 'back',
+          label: 'Back gas',
+          volumeL: 24,
+          startPressureBar: 200,
+          endPressureBar: 80,
+          pressureSeries: [
+            TwinPressureSample(timestamp: 0, pressureBar: 200),
+            TwinPressureSample(timestamp: 450, pressureBar: 195),
+            TwinPressureSample(timestamp: 1200, pressureBar: 120),
+          ],
+        ),
+      ],
+    );
+    final measuredCf = buildCounterfactualTwinInput(
+      actual: measured,
+      outcome: outcome,
+    );
+    for (final t in [0, 300, 450, 600, 900]) {
+      expect(
+        twinTankPressureAt(
+          measuredCf.tanks.single,
+          t,
+          0,
+          cf.profile.last.timestamp,
+        ),
+        closeTo(
+          twinTankPressureAt(
+            measured.tanks.single,
+            t,
+            0,
+            actual.profile.last.timestamp,
+          ),
+          1e-10,
+        ),
+      );
+    }
+    expect(measuredCf.tanks.single.hasMeasuredSeries, isFalse);
+  });
+
+  test('an unchanged replay preserves the entire buoyancy pressure curve', () {
+    final inputs = _inputs();
+    final outcome = const ScenarioEngine().run(
+      inputs.toRequest(
+        DiveScenario(
+          id: 's',
+          diveId: 'd',
+          name: 'n',
+          branchSeconds: 900,
+          mode: ScenarioMode.replay,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ),
+    );
+    final actual = BuoyancyTwinAssembler.assemble(
+      dive: inputs.dive,
+      tankPressures: const {},
+      model: model,
+      bodyWeightKg: 75,
+    )!;
+    final cf = buildCounterfactualTwinInput(actual: actual, outcome: outcome);
+    expect(
+      runBuoyancyTwin(cf).samples.map((s) => s.netKg),
+      runBuoyancyTwin(actual).samples.map((s) => s.netKg),
+    );
   });
 
   test('labBuoyancyProvider compares both timelines', () async {

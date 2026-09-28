@@ -25,6 +25,18 @@ List<DiveTank> bailoutPool(BailOutIntervention i, List<DiveTank> tanks) {
   return tanks.where((t) => t.role == TankRole.bailout).toList();
 }
 
+/// Availability is independent of the order interventions were added.
+List<DiveTank> availableScenarioTanks(
+  List<DiveTank> tanks,
+  List<ScenarioIntervention> interventions,
+) {
+  final lost = interventions
+      .whereType<LoseTankIntervention>()
+      .map((i) => i.tankId)
+      .toSet();
+  return tanks.where((t) => !lost.contains(t.id)).toList();
+}
+
 /// The breathing schedule the replay timeline follows: the actual schedule
 /// with the interventions applied from [branchTimestamp]. Returns [actual]
 /// itself when nothing changes.
