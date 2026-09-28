@@ -61,9 +61,12 @@ The HTTP override's `HttpClient` connects normally to loopback hosts
 (`localhost`, `127.0.0.1`, `::1`), so the tests that start a local
 `HttpServer` keep working. Any other host fails with a `StateError`:
 
-> A test reached the network: GET https://example.com/fonts.ttf. Tests must
-> not depend on the network; inject a fake client, serve it from a loopback
-> HttpServer, or use loadPdfRoboto for PDF fonts.
+> A test reached the network: https://example.com/fonts.ttf. Tests must not
+> depend on the network: inject a fake client, serve the response from a
+> loopback HttpServer, or call loadPdfRoboto() for PDF fonts.
+
+The request is refused from `HttpClient.findProxy`, which sees the URL but not
+the method.
 
 The IO override does the same for `Socket.connect`, which does not go through
 `HttpOverrides`.
@@ -120,7 +123,7 @@ a slow test declares its own, and that fonts are never fetched.
 
 `test/helpers/blocked_network_test.dart` and neighbours check that:
 
-- a request to a public host fails with its method and URL;
+- a request to a public host fails with its URL;
 - a loopback `HttpServer` still answers;
 - a raw `Socket.connect` to a public host fails;
 - `HttpOverrides.runZoned` still wins inside its zone;
