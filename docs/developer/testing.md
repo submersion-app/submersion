@@ -1,15 +1,8 @@
 # Testing Guide
 
-Submersion has comprehensive test coverage including unit, widget, integration, and performance tests.
-
-## Overview
-
-| Test Type | Count | Coverage |
-|-----------|-------|----------|
-| **Unit Tests** | 165+ | 80%+ |
-| **Widget Tests** | 48+ | Critical paths |
-| **Integration Tests** | 2+ | Full workflows |
-| **Performance Tests** | 6+ | Large datasets |
+Submersion has unit, widget, integration and performance tests. See
+[Coverage](#coverage) for what the coverage numbers measure and what they do
+not ask for.
 
 ## Test Structure
 
@@ -512,13 +505,42 @@ When adding new features:
 4. Run performance tests if data model changes
 5. Update this documentation
 
-## Coverage Goals
+## Coverage
 
-| Test Type | Target |
-|-----------|--------|
-| Unit Tests | 80%+ code coverage |
-| Widget Tests | All critical user paths |
-| Integration Tests | Complete workflows |
-| Performance Tests | All operations with large datasets |
+Codecov reports two numbers on every PR:
 
-**Current Status:** All goals met
+| Status | Target | Measures |
+|---|---|---|
+| `codecov/patch` | 80% | The lines the PR adds or changes |
+| `codecov/project` | 70%, within 5 points | The whole of `lib/` |
+
+Neither blocks a merge: only `CI Success` is required. They are there to show
+when new logic went untested.
+
+### What counts
+
+Before each test shard uploads its report, CI removes the lines of trivial
+members (`scripts/filter_trivial_coverage.py`):
+
+- `copyWith`, when its body only copies fields into a constructor
+  (`name: name ?? this.name`, `name: this.name`);
+- Equatable `props`;
+- `operator ==`, `hashCode` and `toString`.
+
+A `copyWith` with any other logic, such as a clear flag or a computed value,
+still counts, and so do `toJson` and `fromJson`. Generated files and
+`lib/l10n/` are not counted at all.
+
+Test behaviour, not lines. A test that only checks that a field copies, or
+that two equal objects are equal, would almost never catch a bug, and the
+target no longer asks for one.
+
+### Checking patch coverage locally
+
+```bash
+flutter test --coverage test/path/to/the/tests/you/changed
+python3 scripts/filter_trivial_coverage.py coverage/lcov.info
+```
+
+Then compare the lines your change adds (`git diff --unified=0 origin/main...HEAD -- lib/`)
+with the `DA:` records in `coverage/lcov.info`, the way Codecov does.

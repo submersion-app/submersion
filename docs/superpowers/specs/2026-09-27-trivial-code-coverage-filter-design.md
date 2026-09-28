@@ -54,8 +54,9 @@ lines and brackets, is one of:
 Anything else (a computed value, a clear flag, a conditional, a helper call,
 a local variable) makes the `copyWith` count as ordinary code.
 
-Measured on main: 198 of 225 `copyWith` methods are pure, about 2,800 lines;
-with the other four kinds the exemption covers roughly 6,000 lines, about 1% of
+Measured on main: 134 of 226 `copyWith` methods are pure. Most of the rest use
+a clear flag or a sentinel value, which counts as logic. With the other four
+kinds the exemption covers about 6,200 lines in 334 files, just under 1% of
 the hand-written code.
 
 ## Components
