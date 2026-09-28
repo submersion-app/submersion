@@ -135,7 +135,7 @@ List<ActiveFilterChip> activeFilterChipLabels(
   if (f.weekdays.isNotEmpty) {
     chips.add(
       ActiveFilterChip(
-        '${f.weekdays.length} ${l10n.explore_field_weekday}',
+        l10n.diveLog_filterChip_weekdayCount(f.weekdays.length),
         (x) => x.copyWith(clearWeekdays: true),
       ),
     );
@@ -163,12 +163,12 @@ List<ActiveFilterChip> activeFilterChipLabels(
         ? l10n.explore_chip_between(
             l10n.explore_field_bottomTime,
             '$lo',
-            '$hi min',
+            l10n.explore_value_minutes(hi),
           )
         : l10n.explore_chip_numeric(
             l10n.explore_field_bottomTime,
             lo != null ? l10n.explore_op_gte : l10n.explore_op_lte,
-            '${lo ?? hi} min',
+            l10n.explore_value_minutes((lo ?? hi)!),
           );
     chips.add(
       ActiveFilterChip(

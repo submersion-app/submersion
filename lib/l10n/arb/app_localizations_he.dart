@@ -38973,6 +38973,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_weekdayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ימים בשבוע',
+      one: 'יום אחד בשבוע',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_filterChip_siteCount(Object count) {
     return '$count אתרים';
   }
@@ -39213,6 +39224,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get explore_op_lte => 'לכל היותר';
+
+  @override
+  String explore_value_minutes(int minutes) {
+    return '$minutes דק\'';
+  }
 
   @override
   String get explore_op_eq => 'של';

@@ -39510,6 +39510,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_weekdayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weekdagen',
+      one: '$count weekdag',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_filterChip_siteCount(Object count) {
     return '$count locaties';
   }
@@ -39752,6 +39763,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get explore_op_lte => 'hoogstens';
+
+  @override
+  String explore_value_minutes(int minutes) {
+    return '$minutes min';
+  }
 
   @override
   String get explore_op_eq => 'van';

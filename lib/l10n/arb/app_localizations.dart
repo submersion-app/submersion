@@ -64130,6 +64130,12 @@ abstract class AppLocalizations {
   /// **'{count} species'**
   String diveLog_filterChip_speciesCount(Object count);
 
+  /// No description provided for @diveLog_filterChip_weekdayCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} weekday} other{{count} weekdays}}'**
+  String diveLog_filterChip_weekdayCount(int count);
+
   /// No description provided for @diveLog_filterChip_siteCount.
   ///
   /// In en, this message translates to:
@@ -64499,6 +64505,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'at most'**
   String get explore_op_lte;
+
+  /// No description provided for @explore_value_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String explore_value_minutes(int minutes);
 
   /// No description provided for @explore_op_eq.
   ///

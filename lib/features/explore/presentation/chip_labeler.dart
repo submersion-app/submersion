@@ -49,7 +49,7 @@ class ChipLabeler {
     FieldDimension.depth => units.formatDepth(v, decimals: 0),
     FieldDimension.temperature => units.formatTemperature(v, decimals: 0),
     FieldDimension.pressure => units.formatPressure(v),
-    FieldDimension.minutes => '${v.round()} min',
+    FieldDimension.minutes => l10n.explore_value_minutes(v.round()),
     FieldDimension.percent => '${v.round()}%',
     FieldDimension.count ||
     FieldDimension.none => v == v.roundToDouble() ? '${v.round()}' : '$v',

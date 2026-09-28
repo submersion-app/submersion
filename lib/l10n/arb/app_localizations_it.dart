@@ -39774,6 +39774,17 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_weekdayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count giorni della settimana',
+      one: '$count giorno della settimana',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_filterChip_siteCount(Object count) {
     return '$count siti';
   }
@@ -40016,6 +40027,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get explore_op_lte => 'al massimo';
+
+  @override
+  String explore_value_minutes(int minutes) {
+    return '$minutes min';
+  }
 
   @override
   String get explore_op_eq => 'di';

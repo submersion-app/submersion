@@ -37578,6 +37578,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_weekdayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '每周 $count 天',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_filterChip_siteCount(Object count) {
     return '$count 个潜点';
   }
@@ -37812,6 +37822,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get explore_op_lte => '至多';
+
+  @override
+  String explore_value_minutes(int minutes) {
+    return '$minutes 分钟';
+  }
 
   @override
   String get explore_op_eq => '为';

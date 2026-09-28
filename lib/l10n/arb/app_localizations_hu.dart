@@ -39617,6 +39617,16 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_weekdayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nap a héten',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_filterChip_siteCount(Object count) {
     return '$count helyszín';
   }
@@ -39859,6 +39869,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get explore_op_lte => 'legfeljebb';
+
+  @override
+  String explore_value_minutes(int minutes) {
+    return '$minutes perc';
+  }
 
   @override
   String get explore_op_eq => 'értéke';

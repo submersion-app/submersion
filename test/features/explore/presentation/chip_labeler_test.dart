@@ -7,6 +7,7 @@ import 'package:submersion/features/explore/domain/name_index.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/chip_labeler.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations_de.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 void main() {
@@ -188,5 +189,20 @@ void main() {
       ),
       contains(' to '),
     );
+  });
+
+  test('a minutes value uses the translated unit', () {
+    final german = ChipLabeler(
+      AppLocalizationsDe(),
+      const UnitFormatter(AppSettings()),
+    );
+    const bottom = ClauseChip(
+      field: ExploreDiveField.bottomTime,
+      op: ClauseOp.gte,
+      value: 45.0,
+      dimension: FieldDimension.minutes,
+    );
+    expect(german.label(bottom), contains('45 Min.'));
+    expect(metric.label(bottom), contains('45 min'));
   });
 }
