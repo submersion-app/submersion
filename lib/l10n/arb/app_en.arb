@@ -133,8 +133,30 @@
   "equipment_setEdit_defaultSwitch_subtitle": "Auto-applied to new dives that have no equipment yet",
   "equipment_setEdit_computerAutoApplySwitch_title": "Apply when this set's computer is imported",
   "equipment_setEdit_computerAutoApplySwitch_subtitle": "If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it",
-  "equipment_setEdit_figureSwitch_subtitle": "Draw this set's gear on a diver on the set page",
+  "equipment_setEdit_figureSwitch_subtitle": "Draw this set's gear on a diver",
   "equipment_setEdit_figureSwitch_title": "Show diver figure",
+  "equipment_color_red": "Red",
+  "equipment_color_orange": "Orange",
+  "equipment_color_amber": "Amber",
+  "equipment_color_yellow": "Yellow",
+  "equipment_color_lime": "Lime",
+  "equipment_color_green": "Green",
+  "equipment_color_emerald": "Emerald",
+  "equipment_color_teal": "Teal",
+  "equipment_color_cyan": "Cyan",
+  "equipment_color_sky": "Sky",
+  "equipment_color_blue": "Blue",
+  "equipment_color_indigo": "Indigo",
+  "equipment_color_violet": "Violet",
+  "equipment_color_purple": "Purple",
+  "equipment_color_fuchsia": "Fuchsia",
+  "equipment_color_pink": "Pink",
+  "equipment_color_rose": "Rose",
+  "equipment_color_stone": "Stone",
+  "equipment_color_zinc": "Zinc",
+  "equipment_color_slate": "Slate",
+  "equipment_color_none": "None",
+  "equipment_color_sheetTitle": "Choose a color",
   "equipment_setEdit_geofencesTitle": "Geofences",
   "equipment_setEdit_geofencesSubtitle": "Auto-suggest this set for dives near these locations",
   "equipment_setEdit_addGeofence": "Add geofence",
@@ -19509,6 +19531,7 @@
   "attrLabel_sku": "SKU",
   "attrLabel_retailer": "Retailer",
   "attrLabel_product_url": "Web link",
+  "attrLabel_color": "Color",
   "attrLabel_sleeve_length": "Sleeves",
   "attrLabel_upf_rating": "UPF rating",
   "attrLabel_snorkel_type": "Type",
@@ -23888,6 +23911,9 @@
   "settings_appearance_listView_trips_subtitle": "Default layout for the trips list",
   "settings_appearance_showDataSourceBadges": "Show data source badges",
   "settings_appearance_showDataSourceBadges_subtitle": "Display source attribution on dive metrics",
+  "settings_appearance_showDiveFigure": "Show diver figure on dives",
+  "settings_appearance_showDiveFigure_subtitle": "Draw each dive's gear on a diver in its equipment card",
+  "diveLog_detail_gearFigureName": "Gear on this dive",
   "settings_appearance_title_buddies": "Buddies Appearance",
   "settings_appearance_title_certifications": "Certifications Appearance",
   "settings_appearance_title_courses": "Courses Appearance",
@@ -26608,6 +26634,47 @@
   "startup_interruptedRestore_keepAction": "Keep what is there now",
   "startup_interruptedRestore_keepNote": "Your previous dive log is kept, not deleted. You can restore or delete it later in Backup & Restore in Settings.",
   "startup_interruptedRestore_failed": "Recovery did not complete. Nothing was deleted; both files are still on this device.",
+  "startup_diveLogUnavailable_downloading": "Downloading your dive log from iCloud",
+  "startup_diveLogUnavailable_iCloud_title": "Your dive log is still in iCloud",
+  "startup_diveLogUnavailable_iCloud_body": "Your dive log in {folder} is stored in iCloud but is not on this device yet, and it could not be downloaded. It is safe in iCloud, and nothing has been changed. Check your internet connection, or download it in the Files app or Finder, then try again.",
+  "@startup_diveLogUnavailable_iCloud_body": {
+    "description": "Startup screen when the dive log in a custom folder has been evicted by iCloud and could not be downloaded. The folder is the configured dive log folder.",
+    "placeholders": {
+      "folder": {
+        "type": "String",
+        "example": "/Users/me/Library/Mobile Documents/com~apple~CloudDocs/Submersion"
+      }
+    }
+  },
+  "startup_diveLogUnavailable_missing_title": "Your dive log was not found",
+  "startup_diveLogUnavailable_missing_body": "Submersion keeps your dive log in {folder}, but there is no {filename} there now. If that folder is on a drive that is not connected, or in a synced folder that has not caught up, connect or sync it and try again. Nothing has been created or changed.",
+  "@startup_diveLogUnavailable_missing_body": {
+    "description": "Startup screen when a custom folder that held the dive log no longer holds it. Names the file and folder so the diver can check by hand.",
+    "placeholders": {
+      "folder": {
+        "type": "String",
+        "example": "/Users/me/Library/Mobile Documents/com~apple~CloudDocs/Submersion"
+      },
+      "filename": {
+        "type": "String",
+        "example": "submersion.db"
+      }
+    }
+  },
+  "startup_diveLogUnavailable_startNew": "Start a new dive log in this folder",
+  "startup_diveLogUnavailable_startNew_subtitle": "Only if your old dive log is gone for good. The new one starts empty.",
+  "startup_diveLogUnavailable_startNew_confirmTitle": "Start a new dive log here?",
+  "startup_diveLogUnavailable_startNew_confirmBody": "An empty dive log is created in {folder}. If your old dive log comes back later, for example when a sync finishes, it will conflict with the new one.",
+  "@startup_diveLogUnavailable_startNew_confirmBody": {
+    "description": "Confirms creating an empty dive log in a folder whose dive log is missing.",
+    "placeholders": {
+      "folder": {
+        "type": "String",
+        "example": "/Users/me/Library/Mobile Documents/com~apple~CloudDocs/Submersion"
+      }
+    }
+  },
+  "startup_diveLogUnavailable_startNew_confirm": "Start new dive log",
   "backup_history_preDowngradeSubtitle": "Newer database, kept when going back - {size}",
   "@backup_history_preDowngradeSubtitle": {
     "placeholders": {

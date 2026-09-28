@@ -10,6 +10,8 @@ import 'package:submersion/features/backup/data/services/backup_saf_port.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 
+import '../../../../helpers/mock_channels.dart';
+
 class _NoopAdapter implements BackupDatabaseAdapter {
   @override
   Future<void> backup(String destinationPath) async {}
@@ -84,6 +86,7 @@ void main() {
           (call) async => Directory.systemTemp.path,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     prefs = BackupPreferences(await SharedPreferences.getInstance());

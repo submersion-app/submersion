@@ -2,6 +2,16 @@ part of '../app_database_migrations.dart';
 
 /// Diver profiles and diver settings.
 extension DiverMigrations on AppDatabase {
+  /// v237: diver_settings.show_dive_figure (issue #2326). Additive, not
+  /// null, default 0, so the dive figure starts off for every diver, new
+  /// and existing. Idempotent, so it is safe to call from both onUpgrade
+  /// and the beforeOpen backstop.
+  Future<void> _assertShowDiveFigureColumn() => _addColumnIfMissing(
+    'diver_settings',
+    'show_dive_figure',
+    'INTEGER NOT NULL DEFAULT 0',
+  );
+
   /// v206: the condition engine's master and per-rule toggles on
   /// diver_settings, and the transmitter registry's link to the transmitter
   /// gear item an entry is (condition phase 3b). Idempotent; called from the

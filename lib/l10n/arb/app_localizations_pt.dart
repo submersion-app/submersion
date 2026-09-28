@@ -410,11 +410,77 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'Mostra o equipamento deste conjunto num mergulhador na sua página';
+      'Mostrar o equipamento deste conjunto num mergulhador';
 
   @override
   String get equipment_setEdit_figureSwitch_title =>
       'Mostrar figura do mergulhador';
+
+  @override
+  String get equipment_color_red => 'Vermelho';
+
+  @override
+  String get equipment_color_orange => 'Laranja';
+
+  @override
+  String get equipment_color_amber => 'Âmbar';
+
+  @override
+  String get equipment_color_yellow => 'Amarelo';
+
+  @override
+  String get equipment_color_lime => 'Lima';
+
+  @override
+  String get equipment_color_green => 'Verde';
+
+  @override
+  String get equipment_color_emerald => 'Esmeralda';
+
+  @override
+  String get equipment_color_teal => 'Verde-azulado';
+
+  @override
+  String get equipment_color_cyan => 'Ciano';
+
+  @override
+  String get equipment_color_sky => 'Azul-celeste';
+
+  @override
+  String get equipment_color_blue => 'Azul';
+
+  @override
+  String get equipment_color_indigo => 'Índigo';
+
+  @override
+  String get equipment_color_violet => 'Violeta';
+
+  @override
+  String get equipment_color_purple => 'Roxo';
+
+  @override
+  String get equipment_color_fuchsia => 'Fúcsia';
+
+  @override
+  String get equipment_color_pink => 'Rosa';
+
+  @override
+  String get equipment_color_rose => 'Rosa-choque';
+
+  @override
+  String get equipment_color_stone => 'Pedra';
+
+  @override
+  String get equipment_color_zinc => 'Zinco';
+
+  @override
+  String get equipment_color_slate => 'Ardósia';
+
+  @override
+  String get equipment_color_none => 'Nenhuma';
+
+  @override
+  String get equipment_color_sheetTitle => 'Escolha uma cor';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'Geocercas';
@@ -30123,6 +30189,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get attrLabel_product_url => 'Link web';
 
   @override
+  String get attrLabel_color => 'Cor';
+
+  @override
   String get attrLabel_sleeve_length => 'Mangas';
 
   @override
@@ -39876,6 +39945,17 @@ class AppLocalizationsPt extends AppLocalizations {
       'Exibir a atribuição de fonte nas métricas de mergulho';
 
   @override
+  String get settings_appearance_showDiveFigure =>
+      'Mostrar a figura do mergulhador nos mergulhos';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'Mostrar o equipamento de cada mergulho num mergulhador no cartão de equipamento';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'Equipamento deste mergulho';
+
+  @override
   String get settings_appearance_title_buddies => 'Aparência dos companheiros';
 
   @override
@@ -43339,6 +43419,52 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get startup_interruptedRestore_failed =>
       'A recuperação não foi concluída. Nada foi eliminado; ambos os ficheiros continuam neste dispositivo.';
+
+  @override
+  String get startup_diveLogUnavailable_downloading =>
+      'A transferir o seu registo de mergulho do iCloud';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'O seu registo de mergulho ainda está no iCloud';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'O seu registo de mergulho em $folder está guardado no iCloud, mas ainda não está neste dispositivo e não foi possível transferi-lo. Está seguro no iCloud e nada foi alterado. Verifique a sua ligação à Internet, ou transfira-o na app Ficheiros ou no Finder, e tente novamente.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'O seu registo de mergulho não foi encontrado';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'O Submersion guarda o seu registo de mergulho em $folder, mas agora não existe nenhum $filename aí. Se essa pasta estiver numa unidade que não está ligada, ou numa pasta sincronizada que ainda não está atualizada, ligue-a ou sincronize-a e tente novamente. Nada foi criado nem alterado.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'Começar um novo registo nesta pasta';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'Apenas se o seu registo antigo se perdeu de vez. O novo começa vazio.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      'Começar um novo registo aqui?';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'É criado um registo de mergulho vazio em $folder. Se o seu registo antigo voltar mais tarde, por exemplo quando uma sincronização terminar, vai entrar em conflito com o novo.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm =>
+      'Começar novo registo';
 
   @override
   String backup_history_preDowngradeSubtitle(String size) {

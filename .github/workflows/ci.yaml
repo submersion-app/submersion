@@ -299,19 +299,22 @@ jobs:
         # NOTE: the shard count is coupled to codecov.yml `after_n_builds`, which
         # must equal (shard count + 1) for the scripts job -- Codecov holds the
         # patch/project status until every partial lcov arrives (see codecov.yml).
-        # It is also bounded by the account-wide concurrent-job cap: this workflow
-        # already fans out ~10-11 non-test jobs (analyze + 5 builds + scripts +
-        # timezone + integration) that share the pool AND gate ci-success, so
-        # oversharding queues the builds and makes total CI slower, not
-        # faster. The org is on GitHub Team (60 concurrent jobs; it was 8
-        # shards under Free's 20). Each shard pays ~4s per test file (almost
-        # all of it load + coverage, not assertions) plus ~2 min of fixed
-        # setup, so at ~3000 files 16 shards bring a shard to ~14 min, under
-        # the ~19 min Android build that then sets the critical path. More
-        # shards would not shorten CI until that build does.
-        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+        #
+        # Test files run in bundles that share an isolate
+        # (scripts/bundle_tests.py, issue #2500), so a shard's time follows the
+        # number of tests it runs, not the number of test files. The count is
+        # the fewest shards that keep the slowest shard under the slowest
+        # platform build, which sets the critical path. Fewer would lengthen
+        # CI. More would only take jobs from the account-wide cap (60 on
+        # GitHub Team) that the builds, analyze and script jobs share, and
+        # each shard also pays about 1.6 min of setup before its tests.
+        # Measured 2026-09-27 on the first bundled run (#2504): 62 min of
+        # tests across 16 shards, slowest shard 7.4 min, slowest build
+        # 16.8 min (Windows). Six shards estimate the slowest shard at about
+        # 14.5 min, allowing a quarter for imbalance and suite growth.
+        shard: [0, 1, 2, 3, 4, 5]
     env:
-      TOTAL_SHARDS: 16
+      TOTAL_SHARDS: 6
     steps:
       - uses: actions/checkout@v7
         with:
@@ -352,32 +355,35 @@ jobs:
         run: tar -xzf generated-code.tar.gz
 
       - name: Run tests
-        # flutter test's built-in --total-shards shards by test CASE, so every
-        # shard still LOADS ~all test files and pays the dominant per-file cost
-        # (isolate + Flutter binding + Drift setup, and ~3.6x amplified by
-        # --coverage, which dumps the VM hit-map per suite). That barely divides
-        # wall-clock. We instead shard by FILE so each job loads a disjoint
-        # subset, which divides the per-file cost. Codecov merges the partial
-        # coverage reports via the per-shard flag below.
+        # `flutter test` compiles and loads every test file as its own
+        # entrypoint, and --coverage collects a hit map per entrypoint, so the
+        # cost of a run follows the number of entrypoints, not the number of
+        # tests. scripts/bundle_tests.py groups the test files by directory
+        # into bundles that share one isolate, and spreads the bundles over
+        # the shards by weight. The few files that need their own entrypoint
+        # (a library-level @Tags or @TestOn, a golden file) are passed as they
+        # are. Codecov merges the partial coverage reports via the per-shard
+        # flag below. See issue #2500 and docs/developer/testing.md.
         run: |
-          total=$(find test -name '*_test.dart' | wc -l)
-          # (NR-1) so the modulus is 0-based like matrix.shard: shard i owns
-          # file indices i, i+N, i+2N, ... (shard 0 -> first file). Plain NR
-          # (1-based) would map shard 0 to every Nth file and leave it empty
-          # for suites smaller than N.
-          mapfile -t files < <(find test -name '*_test.dart' | sort \
-            | awk "(NR-1) % ${TOTAL_SHARDS} == ${{ matrix.shard }}")
-          echo "Shard ${{ matrix.shard }}/${TOTAL_SHARDS}: ${#files[@]} of ${total} test files"
+          # Written to a file first: a generator failure inside a process
+          # substitution would be lost, leave the list empty, and let the
+          # guard below pass the shard without running anything.
+          python3 scripts/bundle_tests.py \
+            --shard "${{ matrix.shard }}" --total-shards "${TOTAL_SHARDS}" \
+            > bundle-paths.txt
+          mapfile -t paths < bundle-paths.txt
+          echo "Shard ${{ matrix.shard }}/${TOTAL_SHARDS}: ${#paths[@]} entrypoints"
           # Guard: with no paths, `flutter test` runs the ENTIRE suite. An empty
-          # shard (more shards than files) would silently re-run everything and
+          # shard (more shards than bundles) would silently re-run everything and
           # defeat sharding, so skip it and emit an empty lcov so the Codecov
           # step still has a file to upload.
-          if [ "${#files[@]}" -eq 0 ]; then
-            echo "No test files assigned to this shard; skipping."
+          if [ "${#paths[@]}" -eq 0 ]; then
+            echo "No entrypoints assigned to this shard; skipping."
             mkdir -p coverage && : > coverage/lcov.info
             exit 0
           fi
-          flutter test --coverage --exclude-tags performance "${files[@]}"
+          printf '  %s\n' "${paths[@]}"
+          flutter test --coverage --exclude-tags performance "${paths[@]}"
 
       - name: Upload coverage
         uses: codecov/codecov-action@v7
@@ -538,7 +544,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -559,6 +565,8 @@ jobs:
             scripts/fix_macho_symbol_order_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/release/sanitize_apple_store_notes_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/bundle_tests_test.py
           python3 -m coverage report -m --include="$guards"
           python3 -m coverage xml --include="$guards" \
             -o coverage/scripts.xml

@@ -411,11 +411,77 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'Montre l\'équipement de cet ensemble sur un plongeur dans sa page';
+      'Représenter l’équipement de ce jeu sur un plongeur';
 
   @override
   String get equipment_setEdit_figureSwitch_title =>
       'Afficher la silhouette du plongeur';
+
+  @override
+  String get equipment_color_red => 'Rouge';
+
+  @override
+  String get equipment_color_orange => 'Orange';
+
+  @override
+  String get equipment_color_amber => 'Ambre';
+
+  @override
+  String get equipment_color_yellow => 'Jaune';
+
+  @override
+  String get equipment_color_lime => 'Citron vert';
+
+  @override
+  String get equipment_color_green => 'Vert';
+
+  @override
+  String get equipment_color_emerald => 'Émeraude';
+
+  @override
+  String get equipment_color_teal => 'Sarcelle';
+
+  @override
+  String get equipment_color_cyan => 'Cyan';
+
+  @override
+  String get equipment_color_sky => 'Bleu ciel';
+
+  @override
+  String get equipment_color_blue => 'Bleu';
+
+  @override
+  String get equipment_color_indigo => 'Indigo';
+
+  @override
+  String get equipment_color_violet => 'Violet';
+
+  @override
+  String get equipment_color_purple => 'Pourpre';
+
+  @override
+  String get equipment_color_fuchsia => 'Fuchsia';
+
+  @override
+  String get equipment_color_pink => 'Rose';
+
+  @override
+  String get equipment_color_rose => 'Rose vif';
+
+  @override
+  String get equipment_color_stone => 'Pierre';
+
+  @override
+  String get equipment_color_zinc => 'Zinc';
+
+  @override
+  String get equipment_color_slate => 'Ardoise';
+
+  @override
+  String get equipment_color_none => 'Aucune';
+
+  @override
+  String get equipment_color_sheetTitle => 'Choisir une couleur';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'Géorepères';
@@ -30229,6 +30295,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrLabel_product_url => 'Lien web';
 
   @override
+  String get attrLabel_color => 'Couleur';
+
+  @override
   String get attrLabel_sleeve_length => 'Manches';
 
   @override
@@ -39966,6 +40035,17 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher l’origine des données sur les mesures de plongée';
 
   @override
+  String get settings_appearance_showDiveFigure =>
+      'Afficher la silhouette du plongeur sur les plongées';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'Représenter l’équipement de chaque plongée sur un plongeur dans sa carte Équipement';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'Équipement de cette plongée';
+
+  @override
   String get settings_appearance_title_buddies => 'Apparence des binômes';
 
   @override
@@ -43441,6 +43521,52 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get startup_interruptedRestore_failed =>
       'La récupération n’a pas abouti. Rien n’a été supprimé. Les deux fichiers sont toujours sur cet appareil.';
+
+  @override
+  String get startup_diveLogUnavailable_downloading =>
+      'Téléchargement de votre carnet de plongée depuis iCloud';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'Votre carnet de plongée est encore dans iCloud';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'Votre carnet de plongée dans $folder est stocké dans iCloud mais n’est pas encore sur cet appareil, et il n’a pas pu être téléchargé. Il est en sécurité dans iCloud et rien n’a été modifié. Vérifiez votre connexion Internet, ou téléchargez-le dans l’app Fichiers ou dans le Finder, puis réessayez.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'Votre carnet de plongée est introuvable';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'Submersion conserve votre carnet de plongée dans $folder, mais ce dossier ne contient plus de fichier $filename. Si ce dossier se trouve sur un disque qui n’est pas connecté, ou dans un dossier synchronisé qui n’est pas encore à jour, connectez-le ou synchronisez-le, puis réessayez. Rien n’a été créé ni modifié.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'Commencer un nouveau carnet dans ce dossier';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'Seulement si votre ancien carnet est perdu pour de bon. Le nouveau commence vide.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      'Commencer un nouveau carnet ici ?';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'Un carnet de plongée vide est créé dans $folder. Si votre ancien carnet revient plus tard, par exemple à la fin d’une synchronisation, il entrera en conflit avec le nouveau.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm =>
+      'Commencer un nouveau carnet';
 
   @override
   String backup_history_preDowngradeSubtitle(String size) {

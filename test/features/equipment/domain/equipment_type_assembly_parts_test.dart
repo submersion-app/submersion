@@ -66,11 +66,12 @@ void main() {
   });
 
   test('the rig accessories carry the fields that tell them apart', () {
-    // Type-specific keys only: every type also carries the universal and
-    // purchase fields.
+    // Type-specific keys only: every type also carries the universal,
+    // purchase and appearance fields.
     final shared = {
       ...EquipmentAttributeCatalog.universal,
       ...EquipmentAttributeCatalog.purchase,
+      ...EquipmentAttributeCatalog.appearance,
     }.map((d) => d.key).toSet();
     List<String> keysFor(EquipmentType t) =>
         EquipmentAttributeCatalog.attributesFor(

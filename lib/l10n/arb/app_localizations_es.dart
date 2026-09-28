@@ -410,11 +410,77 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'Muestra el equipo de este conjunto sobre un buceador en su página';
+      'Mostrar el equipo de este conjunto sobre un buceador';
 
   @override
   String get equipment_setEdit_figureSwitch_title =>
       'Mostrar figura del buceador';
+
+  @override
+  String get equipment_color_red => 'Rojo';
+
+  @override
+  String get equipment_color_orange => 'Naranja';
+
+  @override
+  String get equipment_color_amber => 'Ámbar';
+
+  @override
+  String get equipment_color_yellow => 'Amarillo';
+
+  @override
+  String get equipment_color_lime => 'Lima';
+
+  @override
+  String get equipment_color_green => 'Verde';
+
+  @override
+  String get equipment_color_emerald => 'Esmeralda';
+
+  @override
+  String get equipment_color_teal => 'Verde azulado';
+
+  @override
+  String get equipment_color_cyan => 'Cian';
+
+  @override
+  String get equipment_color_sky => 'Celeste';
+
+  @override
+  String get equipment_color_blue => 'Azul';
+
+  @override
+  String get equipment_color_indigo => 'Índigo';
+
+  @override
+  String get equipment_color_violet => 'Violeta';
+
+  @override
+  String get equipment_color_purple => 'Morado';
+
+  @override
+  String get equipment_color_fuchsia => 'Fucsia';
+
+  @override
+  String get equipment_color_pink => 'Rosa';
+
+  @override
+  String get equipment_color_rose => 'Rosa intenso';
+
+  @override
+  String get equipment_color_stone => 'Piedra';
+
+  @override
+  String get equipment_color_zinc => 'Zinc';
+
+  @override
+  String get equipment_color_slate => 'Pizarra';
+
+  @override
+  String get equipment_color_none => 'Ninguno';
+
+  @override
+  String get equipment_color_sheetTitle => 'Elige un color';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'Geocercas';
@@ -30145,6 +30211,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrLabel_product_url => 'Enlace web';
 
   @override
+  String get attrLabel_color => 'Color';
+
+  @override
   String get attrLabel_sleeve_length => 'Mangas';
 
   @override
@@ -39885,6 +39954,17 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mostrar la atribución de origen en las métricas de inmersión';
 
   @override
+  String get settings_appearance_showDiveFigure =>
+      'Mostrar la figura del buceador en las inmersiones';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'Mostrar el equipo de cada inmersión sobre un buceador en su tarjeta de equipo';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'Equipo de esta inmersión';
+
+  @override
   String get settings_appearance_title_buddies => 'Apariencia de compañeros';
 
   @override
@@ -43367,6 +43447,52 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get startup_interruptedRestore_failed =>
       'La recuperación no se completó. No se eliminó nada; ambos archivos siguen en este dispositivo.';
+
+  @override
+  String get startup_diveLogUnavailable_downloading =>
+      'Descargando tu cuaderno de buceo de iCloud';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'Tu cuaderno de buceo sigue en iCloud';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'Tu cuaderno de buceo de $folder está guardado en iCloud, pero aún no está en este dispositivo y no se pudo descargar. Está a salvo en iCloud y no se ha cambiado nada. Comprueba tu conexión a internet o descárgalo en la app Archivos o en el Finder, y vuelve a intentarlo.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'No se encontró tu cuaderno de buceo';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'Submersion guarda tu cuaderno de buceo en $folder, pero ahora no hay ningún $filename allí. Si esa carpeta está en una unidad que no está conectada, o en una carpeta sincronizada que aún no se ha puesto al día, conéctala o sincronízala y vuelve a intentarlo. No se ha creado ni cambiado nada.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'Empezar un cuaderno nuevo en esta carpeta';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'Solo si tu cuaderno anterior se ha perdido para siempre. El nuevo empieza vacío.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      '¿Empezar un cuaderno nuevo aquí?';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'Se crea un cuaderno de buceo vacío en $folder. Si tu cuaderno anterior vuelve más adelante, por ejemplo cuando termine una sincronización, entrará en conflicto con el nuevo.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm =>
+      'Empezar cuaderno nuevo';
 
   @override
   String backup_history_preDowngradeSubtitle(String size) {

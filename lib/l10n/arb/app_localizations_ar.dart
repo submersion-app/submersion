@@ -405,10 +405,76 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'عرض معدات هذه المجموعة على غواص في صفحتها';
+      'عرض معدات هذه المجموعة على غوّاص';
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'إظهار رسم الغواص';
+
+  @override
+  String get equipment_color_red => 'أحمر';
+
+  @override
+  String get equipment_color_orange => 'برتقالي';
+
+  @override
+  String get equipment_color_amber => 'كهرماني';
+
+  @override
+  String get equipment_color_yellow => 'أصفر';
+
+  @override
+  String get equipment_color_lime => 'ليموني';
+
+  @override
+  String get equipment_color_green => 'أخضر';
+
+  @override
+  String get equipment_color_emerald => 'زمردي';
+
+  @override
+  String get equipment_color_teal => 'أزرق مخضر';
+
+  @override
+  String get equipment_color_cyan => 'سماوي';
+
+  @override
+  String get equipment_color_sky => 'أزرق فاتح';
+
+  @override
+  String get equipment_color_blue => 'أزرق';
+
+  @override
+  String get equipment_color_indigo => 'نيلي';
+
+  @override
+  String get equipment_color_violet => 'بنفسجي';
+
+  @override
+  String get equipment_color_purple => 'أرجواني';
+
+  @override
+  String get equipment_color_fuchsia => 'فوشيا';
+
+  @override
+  String get equipment_color_pink => 'وردي';
+
+  @override
+  String get equipment_color_rose => 'وردي داكن';
+
+  @override
+  String get equipment_color_stone => 'حجري';
+
+  @override
+  String get equipment_color_zinc => 'زنكي';
+
+  @override
+  String get equipment_color_slate => 'رمادي أردوازي';
+
+  @override
+  String get equipment_color_none => 'بلا';
+
+  @override
+  String get equipment_color_sheetTitle => 'اختر لونًا';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'الأسوار الجغرافية';
@@ -29748,6 +29814,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_product_url => 'رابط الويب';
 
   @override
+  String get attrLabel_color => 'اللون';
+
+  @override
   String get attrLabel_sleeve_length => 'الأكمام';
 
   @override
@@ -39481,6 +39550,17 @@ class AppLocalizationsAr extends AppLocalizations {
       'عرض نسبة المصدر على مقاييس الغوص';
 
   @override
+  String get settings_appearance_showDiveFigure =>
+      'إظهار شكل الغوّاص في الغطسات';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'عرض معدات كل غطسة على غوّاص في بطاقة المعدات';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'معدات هذه الغطسة';
+
+  @override
   String get settings_appearance_title_buddies => 'مظهر الرفاق';
 
   @override
@@ -43004,6 +43084,51 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get startup_interruptedRestore_failed =>
       'لم تكتمل عملية الاسترداد. لم يُحذف أي شيء؛ لا يزال الملفان على هذا الجهاز.';
+
+  @override
+  String get startup_diveLogUnavailable_downloading =>
+      'جارٍ تنزيل سجل الغوص من iCloud';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'سجل الغوص الخاص بك لا يزال في iCloud';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'سجل الغوص الخاص بك في $folder محفوظ في iCloud لكنه ليس على هذا الجهاز بعد، وتعذّر تنزيله. إنه آمن في iCloud ولم يتغير أي شيء. تحقق من اتصالك بالإنترنت، أو نزّله من تطبيق الملفات أو Finder، ثم حاول مرة أخرى.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'لم يتم العثور على سجل الغوص الخاص بك';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'يحفظ Submersion سجل الغوص الخاص بك في $folder، لكن لا يوجد ملف $filename هناك الآن. إذا كان هذا المجلد على محرك أقراص غير متصل، أو في مجلد متزامن لم يكتمل تزامنه بعد، فقم بتوصيله أو مزامنته ثم حاول مرة أخرى. لم يتم إنشاء أو تغيير أي شيء.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'بدء سجل غوص جديد في هذا المجلد';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'فقط إذا فُقد سجل الغوص القديم نهائيًا. يبدأ السجل الجديد فارغًا.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      'بدء سجل غوص جديد هنا؟';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'سيتم إنشاء سجل غوص فارغ في $folder. إذا عاد سجل الغوص القديم لاحقًا، على سبيل المثال عند انتهاء المزامنة، فسيتعارض مع السجل الجديد.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm => 'بدء سجل غوص جديد';
 
   @override
   String backup_history_preDowngradeSubtitle(String size) {

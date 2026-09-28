@@ -392,10 +392,76 @@ class AppLocalizationsZh extends AppLocalizations {
       '如果该套装包含潜水电脑，则从该电脑下载或导入的潜水记录会自动添加整个套装';
 
   @override
-  String get equipment_setEdit_figureSwitch_subtitle => '在套装页面上把此套装的装备画在潜水员身上';
+  String get equipment_setEdit_figureSwitch_subtitle => '在潜水员图上显示此套装的装备';
 
   @override
   String get equipment_setEdit_figureSwitch_title => '显示潜水员图示';
+
+  @override
+  String get equipment_color_red => '红色';
+
+  @override
+  String get equipment_color_orange => '橙色';
+
+  @override
+  String get equipment_color_amber => '琥珀色';
+
+  @override
+  String get equipment_color_yellow => '黄色';
+
+  @override
+  String get equipment_color_lime => '青柠色';
+
+  @override
+  String get equipment_color_green => '绿色';
+
+  @override
+  String get equipment_color_emerald => '翡翠绿';
+
+  @override
+  String get equipment_color_teal => '蓝绿色';
+
+  @override
+  String get equipment_color_cyan => '青色';
+
+  @override
+  String get equipment_color_sky => '天蓝色';
+
+  @override
+  String get equipment_color_blue => '蓝色';
+
+  @override
+  String get equipment_color_indigo => '靛蓝色';
+
+  @override
+  String get equipment_color_violet => '紫罗兰色';
+
+  @override
+  String get equipment_color_purple => '紫色';
+
+  @override
+  String get equipment_color_fuchsia => '品红色';
+
+  @override
+  String get equipment_color_pink => '粉色';
+
+  @override
+  String get equipment_color_rose => '玫瑰红';
+
+  @override
+  String get equipment_color_stone => '岩石灰';
+
+  @override
+  String get equipment_color_zinc => '锌灰色';
+
+  @override
+  String get equipment_color_slate => '石板灰';
+
+  @override
+  String get equipment_color_none => '无';
+
+  @override
+  String get equipment_color_sheetTitle => '选择颜色';
 
   @override
   String get equipment_setEdit_geofencesTitle => '地理围栏';
@@ -28558,6 +28624,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_product_url => '网页链接';
 
   @override
+  String get attrLabel_color => '颜色';
+
+  @override
   String get attrLabel_sleeve_length => '袖长';
 
   @override
@@ -37642,6 +37711,16 @@ class AppLocalizationsZh extends AppLocalizations {
       '在潜水指标上显示来源归属';
 
   @override
+  String get settings_appearance_showDiveFigure => '在潜水记录中显示潜水员图';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      '在装备卡片中将每次潜水的装备显示在潜水员图上';
+
+  @override
+  String get diveLog_detail_gearFigureName => '本次潜水的装备';
+
+  @override
   String get settings_appearance_title_buddies => '潜伴外观';
 
   @override
@@ -40819,6 +40898,46 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_failed => '恢复未完成。没有删除任何内容；两个文件仍在此设备上。';
+
+  @override
+  String get startup_diveLogUnavailable_downloading => '正在从 iCloud 下载你的潜水日志';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title => '你的潜水日志仍在 iCloud 中';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return '$folder 中的潜水日志存储在 iCloud 中，但尚未下载到此设备，且无法下载。它在 iCloud 中是安全的，没有任何更改。请检查网络连接，或在“文件” App 或访达中下载它，然后重试。';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title => '未找到你的潜水日志';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'Submersion 将你的潜水日志保存在 $folder 中，但那里现在没有 $filename。如果该文件夹位于未连接的驱动器上，或位于尚未完成同步的同步文件夹中，请连接或同步后重试。没有创建或更改任何内容。';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew => '在此文件夹中新建潜水日志';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      '仅在旧潜水日志已永久丢失时使用。新日志为空。';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle => '在此新建潜水日志？';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return '将在 $folder 中创建一个空白潜水日志。如果旧潜水日志之后又回来了（例如同步完成时），它会与新日志冲突。';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm => '新建潜水日志';
 
   @override
   String backup_history_preDowngradeSubtitle(String size) {

@@ -403,10 +403,76 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_subtitle =>
-      'הצגת הציוד של הערכה על צולל בדף שלה';
+      'הצגת הציוד של הערכה על צוללן';
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'הצגת דמות הצולל';
+
+  @override
+  String get equipment_color_red => 'אדום';
+
+  @override
+  String get equipment_color_orange => 'כתום';
+
+  @override
+  String get equipment_color_amber => 'ענבר';
+
+  @override
+  String get equipment_color_yellow => 'צהוב';
+
+  @override
+  String get equipment_color_lime => 'ליים';
+
+  @override
+  String get equipment_color_green => 'ירוק';
+
+  @override
+  String get equipment_color_emerald => 'אזמרגד';
+
+  @override
+  String get equipment_color_teal => 'כחול-ירקרק';
+
+  @override
+  String get equipment_color_cyan => 'ציאן';
+
+  @override
+  String get equipment_color_sky => 'תכלת';
+
+  @override
+  String get equipment_color_blue => 'כחול';
+
+  @override
+  String get equipment_color_indigo => 'אינדיגו';
+
+  @override
+  String get equipment_color_violet => 'סגול';
+
+  @override
+  String get equipment_color_purple => 'ארגמן';
+
+  @override
+  String get equipment_color_fuchsia => 'פוקסיה';
+
+  @override
+  String get equipment_color_pink => 'ורוד';
+
+  @override
+  String get equipment_color_rose => 'ורד';
+
+  @override
+  String get equipment_color_stone => 'אבן';
+
+  @override
+  String get equipment_color_zinc => 'אבץ';
+
+  @override
+  String get equipment_color_slate => 'צפחה';
+
+  @override
+  String get equipment_color_none => 'ללא';
+
+  @override
+  String get equipment_color_sheetTitle => 'בחירת צבע';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'גדרות גאוגרפיות';
@@ -29404,6 +29470,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_product_url => 'קישור אינטרנט';
 
   @override
+  String get attrLabel_color => 'צבע';
+
+  @override
   String get attrLabel_sleeve_length => 'שרוולים';
 
   @override
@@ -39053,6 +39122,16 @@ class AppLocalizationsHe extends AppLocalizations {
       'הצגת ייחוס המקור על מדדי הצלילה';
 
   @override
+  String get settings_appearance_showDiveFigure => 'הצגת דמות הצוללן בצלילות';
+
+  @override
+  String get settings_appearance_showDiveFigure_subtitle =>
+      'הצגת הציוד של כל צלילה על צוללן בכרטיס הציוד';
+
+  @override
+  String get diveLog_detail_gearFigureName => 'הציוד בצלילה זו';
+
+  @override
   String get settings_appearance_title_buddies => 'מראה חברי הצוללים';
 
   @override
@@ -42466,6 +42545,52 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get startup_interruptedRestore_failed =>
       'השחזור לא הושלם. שום דבר לא נמחק; שני הקבצים עדיין נמצאים במכשיר הזה.';
+
+  @override
+  String get startup_diveLogUnavailable_downloading =>
+      'מוריד את יומן הצלילה שלכם מ-iCloud';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'יומן הצלילה שלכם עדיין ב-iCloud';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'יומן הצלילה שלכם בתיקייה $folder שמור ב-iCloud אבל עדיין לא נמצא במכשיר הזה, ולא ניתן היה להוריד אותו. הוא בטוח ב-iCloud ושום דבר לא שונה. בדקו את החיבור לאינטרנט, או הורידו אותו באפליקציה \'קבצים\' או ב-Finder, ואז נסו שוב.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'יומן הצלילה שלכם לא נמצא';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'Submersion שומר את יומן הצלילה שלכם בתיקייה $folder, אבל אין שם עכשיו קובץ $filename. אם התיקייה נמצאת בכונן שאינו מחובר, או בתיקייה מסונכרנת שעדיין לא התעדכנה, חברו או סנכרנו אותה ונסו שוב. שום דבר לא נוצר ולא שונה.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'התחלת יומן צלילה חדש בתיקייה הזו';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'רק אם יומן הצלילה הישן אבד לתמיד. היומן החדש מתחיל ריק.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      'להתחיל כאן יומן צלילה חדש?';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'ייווצר יומן צלילה ריק בתיקייה $folder. אם יומן הצלילה הישן יחזור מאוחר יותר, למשל בסיום סנכרון, הוא יתנגש עם היומן החדש.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm =>
+      'התחלת יומן צלילה חדש';
 
   @override
   String backup_history_preDowngradeSubtitle(String size) {

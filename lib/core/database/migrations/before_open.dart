@@ -10,6 +10,9 @@ extension BeforeOpenBackstops on AppDatabase {
     // v240 backstop: the events-by-dive index.
     await _assertProfileEventsDiveIdIndex();
 
+    // v237 backstop: the dive figure switch.
+    await _assertShowDiveFigureColumn();
+
     // v229 backstop: the per-set diver figure switch.
     await _assertEquipmentSetShowFigureColumn();
 

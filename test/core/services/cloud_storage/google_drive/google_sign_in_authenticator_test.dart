@@ -92,12 +92,16 @@ void main() {
 
   late _FakePlatform platform;
   late GoogleSignInAuthenticator auth;
+  late GoogleSignInPlatform originalPlatform;
 
   setUp(() {
     platform = _FakePlatform();
+    originalPlatform = GoogleSignInPlatform.instance;
     GoogleSignInPlatform.instance = platform;
     auth = GoogleSignInAuthenticator();
   });
+
+  tearDown(() => GoogleSignInPlatform.instance = originalPlatform);
 
   group('attemptSilentAuth', () {
     test('succeeds in a fresh process with no authenticate() call', () async {
