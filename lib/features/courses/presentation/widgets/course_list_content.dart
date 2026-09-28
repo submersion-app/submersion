@@ -24,6 +24,13 @@ import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_card.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/courses/domain/models/course_filter_state.dart';
+import 'package:submersion/features/courses/presentation/providers/course_query_providers.dart';
+import 'package:submersion/features/courses/query/course_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 
 /// Content widget for the course list
 class CourseListContent extends ConsumerStatefulWidget {
@@ -53,7 +60,6 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
   Set<String> get _selectedIds => _selection.value.checkedIds;
 
   final ScrollController _scrollController = ScrollController();
-  String _filterStatus = 'all'; // 'all', 'in_progress', 'completed'
 
   @override
   void dispose() {
@@ -70,10 +76,43 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
     }
   }
 
+  void _setStatus(CourseStatusFilter status) {
+    final notifier = ref.read(courseFilterProvider.notifier);
+    notifier.state = notifier.state.copyWith(status: status);
+  }
+
+  void _setQuery(QueryNode? query) {
+    final notifier = ref.read(courseFilterProvider.notifier);
+    notifier.state = query == null
+        ? notifier.state.copyWith(clearQuery: true)
+        : notifier.state.copyWith(query: query);
+  }
+
+  void _openQueryFilter() => showQueryFilterSheet(
+    context,
+    subject: QuerySubject.courses,
+    root: courseQueryEntity,
+    initial: ref.read(courseFilterProvider).query,
+    onApply: (ref, query) {
+      final notifier = ref.read(courseFilterProvider.notifier);
+      notifier.state = query == null
+          ? notifier.state.copyWith(clearQuery: true)
+          : notifier.state.copyWith(query: query);
+    },
+  );
+
+  /// The list body with the query's chips above it (#2365).
+  Widget _withQueryChips(Widget child) => QueryChipsFrame(
+    root: courseQueryEntity,
+    query: ref.watch(courseFilterProvider).query,
+    onChanged: _setQuery,
+    child: child,
+  );
+
   @override
   Widget build(BuildContext context) {
     final viewMode = ref.watch(courseListViewModeProvider);
-    final coursesAsync = ref.watch(courseListNotifierProvider);
+    final coursesAsync = ref.watch(filteredCoursesProvider);
 
     // Table mode uses a dedicated scaffold with column configuration support.
     if (viewMode == ListViewMode.table) {
@@ -98,15 +137,17 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
     // Built inside the selection listener below so rows re-render as checks
     // change; computing it here would leave the list frozen mid-selection.
     Widget buildContent() {
-      return coursesAsync.when(
-        data: (courses) {
-          final sorted = _visibleCourses(courses, sort);
-          return sorted.isEmpty
-              ? _buildEmptyState(context)
-              : _buildCourseList(context, sorted);
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => _buildErrorState(context, error),
+      return _withQueryChips(
+        coursesAsync.when(
+          data: (courses) {
+            final sorted = _visibleCourses(courses, sort);
+            return sorted.isEmpty
+                ? _buildEmptyState(context)
+                : _buildCourseList(context, sorted);
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => _buildErrorState(context, error),
+        ),
       );
     }
 
@@ -150,6 +191,10 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
                     ),
                     // The only way into bulk actions: entry by long-press was removed,
                     // so nothing but this control opens selection mode on touch.
+                    QueryFilterButton(
+                      active: ref.watch(courseFilterProvider).query != null,
+                      onPressed: _openQueryFilter,
+                    ),
                     IconButton(
                       key: const ValueKey('enter_selection'),
                       icon: const Icon(Icons.checklist),
@@ -203,21 +248,12 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
   ///
   /// When embedded inside [TableModeLayout] (showAppBar: false), provides
   /// only the compact app bar and the table content.
-  /// Courses visible under the active status filter, sorted.
-  ///
-  /// Shared by the list and by the pruning in [build] so the selection can
-  /// never hold a course the filter has hidden.
+  /// The filtered courses, sorted. Shared by the list and by the pruning in
+  /// [build] so the selection never holds a course the filter has hidden.
   List<Course> _visibleCourses(
     List<Course> courses,
     SortState<CourseSortField> sort,
-  ) {
-    final filtered = _filterStatus == 'all'
-        ? courses
-        : _filterStatus == 'in_progress'
-        ? courses.where((c) => c.isInProgress).toList()
-        : courses.where((c) => c.isCompleted).toList();
-    return applyCourseSorting(filtered, sort);
-  }
+  ) => applyCourseSorting(courses, sort);
 
   /// Course-specific extras. Select-all, deselect-all and delete come from
   /// SelectionAppBar.
@@ -269,7 +305,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
   Future<BulkActionOutcome> _markSelectedComplete() async {
     final ids = _selectedIds.toList();
     if (ids.isEmpty) return BulkActionOutcome.cancelled;
-    final courses = (ref.read(courseListNotifierProvider).value ?? const [])
+    final courses = (ref.read(filteredCoursesProvider).value ?? const [])
         .where((c) => ids.contains(c.id))
         .toList();
 
@@ -358,7 +394,9 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
                 _buildSelectionBar(courses, SelectionBarShell.pane)
               else
                 SelectionEntryBar(controller: _selection),
-              Expanded(child: _buildTableView(context, coursesAsync)),
+              Expanded(
+                child: _withQueryChips(_buildTableView(context, coursesAsync)),
+              ),
             ],
           );
         },
@@ -445,6 +483,11 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
             ),
           // The only way into bulk actions: entry by long-press was removed,
           // so nothing but this control opens selection mode on touch.
+          QueryFilterButton(
+            active: ref.watch(courseFilterProvider).query != null,
+            onPressed: _openQueryFilter,
+            compact: true,
+          ),
           IconButton(
             key: const ValueKey('enter_selection'),
             icon: const Icon(Icons.checklist, size: 20),
@@ -479,6 +522,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
 
   Widget _buildFilterChips(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final status = ref.watch(courseFilterProvider).status;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -488,9 +532,9 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
           children: [
             FilterChip(
               label: Text(context.l10n.courses_filter_all),
-              selected: _filterStatus == 'all',
+              selected: status == CourseStatusFilter.all,
               onSelected: (selected) {
-                if (selected) setState(() => _filterStatus = 'all');
+                if (selected) _setStatus(CourseStatusFilter.all);
               },
             ),
             const SizedBox(width: 8),
@@ -498,14 +542,14 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
               avatar: Icon(
                 Icons.pending_outlined,
                 size: 18,
-                color: _filterStatus == 'in_progress'
+                color: status == CourseStatusFilter.inProgress
                     ? colorScheme.onPrimaryContainer
                     : null,
               ),
               label: Text(context.l10n.courses_status_inProgress),
-              selected: _filterStatus == 'in_progress',
+              selected: status == CourseStatusFilter.inProgress,
               onSelected: (selected) {
-                if (selected) setState(() => _filterStatus = 'in_progress');
+                if (selected) _setStatus(CourseStatusFilter.inProgress);
               },
             ),
             const SizedBox(width: 8),
@@ -513,14 +557,14 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
               avatar: Icon(
                 Icons.check_circle_outline,
                 size: 18,
-                color: _filterStatus == 'completed'
+                color: status == CourseStatusFilter.completed
                     ? colorScheme.onPrimaryContainer
                     : null,
               ),
               label: Text(context.l10n.courses_status_completed),
-              selected: _filterStatus == 'completed',
+              selected: status == CourseStatusFilter.completed,
               onSelected: (selected) {
-                if (selected) setState(() => _filterStatus = 'completed');
+                if (selected) _setStatus(CourseStatusFilter.completed);
               },
             ),
           ],
@@ -559,12 +603,17 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final filter = ref.watch(courseFilterProvider);
+    // A query that hid every course is not "no courses yet".
+    if (filter.query != null) {
+      return QueryNoMatchState(onClear: () => _setQuery(null));
+    }
     final colorScheme = Theme.of(context).colorScheme;
-    final message = _filterStatus == 'in_progress'
-        ? context.l10n.courses_empty_noInProgress
-        : _filterStatus == 'completed'
-        ? context.l10n.courses_empty_noCompleted
-        : context.l10n.courses_empty_title;
+    final message = switch (filter.status) {
+      CourseStatusFilter.inProgress => context.l10n.courses_empty_noInProgress,
+      CourseStatusFilter.completed => context.l10n.courses_empty_noCompleted,
+      CourseStatusFilter.all => context.l10n.courses_empty_title,
+    };
 
     return Center(
       child: Column(
@@ -589,7 +638,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ),
           ),
-          if (_filterStatus == 'all') ...[
+          if (filter.status == CourseStatusFilter.all) ...[
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () {

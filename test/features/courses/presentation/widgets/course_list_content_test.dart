@@ -15,6 +15,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/courses/domain/models/course_filter_state.dart';
+import 'package:submersion/features/courses/presentation/providers/course_query_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -108,6 +113,7 @@ Future<List<Override>> _buildOverrides({required List<Course> courses}) async {
 
 Future<List<Override>> _buildPhoneOverrides({
   required List<Course> courses,
+  ListViewMode viewMode = ListViewMode.detailed,
   String? highlightedCourseId,
 }) async {
   SharedPreferences.setMockInitialValues({});
@@ -120,7 +126,7 @@ Future<List<Override>> _buildPhoneOverrides({
     courseListNotifierProvider.overrideWith(
       (ref) => _MockCourseListNotifier(courses),
     ),
-    courseListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
+    courseListViewModeProvider.overrideWith((ref) => viewMode),
     courseTableConfigProvider.overrideWith(
       (ref) => _TestCourseTableConfigNotifier(_testConfig),
     ),
@@ -567,5 +573,74 @@ void main() {
         expect(bravo.isSelected, isTrue);
       },
     );
+  });
+
+  group('status chips and query (#2365)', () {
+    Future<ProviderContainer> pump(
+      WidgetTester tester, {
+      required Set<String> ids,
+      CourseFilterState filter = const CourseFilterState(),
+      ListViewMode viewMode = ListViewMode.detailed,
+    }) async {
+      final overrides = await _buildPhoneOverrides(
+        courses: [
+          _makeCourse(id: 'k1', name: 'Open Water'),
+          _makeCourse(id: 'k2', name: 'Rescue'),
+        ],
+        viewMode: viewMode,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            courseFilterProvider.overrideWith((ref) => filter),
+            entityQueryIdsProvider.overrideWith((ref, key) async => ids),
+          ],
+          child: const CourseListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return ProviderScope.containerOf(
+        tester.element(find.byType(CourseListContent)),
+      );
+    }
+
+    testWidgets('a status chip writes the filter state', (tester) async {
+      final c = await pump(tester, ids: const {});
+      await tester.tap(find.widgetWithText(FilterChip, 'In Progress'));
+      await tester.pumpAndSettle();
+      expect(
+        c.read(courseFilterProvider).status,
+        CourseStatusFilter.inProgress,
+      );
+    });
+
+    testWidgets('table mode reads the filtered courses', (tester) async {
+      await pump(
+        tester,
+        ids: {'k2'},
+        filter: const CourseFilterState(status: CourseStatusFilter.completed),
+        viewMode: ListViewMode.table,
+      );
+      expect(find.text('Rescue'), findsWidgets);
+      expect(find.text('Open Water'), findsNothing);
+    });
+
+    testWidgets('a query that keeps nothing shows the no-match state', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        ids: const {},
+        filter: CourseFilterState(
+          query: ConditionNode(
+            FieldPath(['agency']),
+            QueryOp.eq,
+            const EnumValue('tdi'),
+          ),
+        ),
+      );
+      expect(find.byType(QueryNoMatchState), findsOneWidget);
+    });
   });
 }
