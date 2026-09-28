@@ -3,6 +3,7 @@ import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/features/connections/data/connections_reader.dart';
 import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 
 /// Records the id restrictions of every edge query, so a test can bound the
@@ -18,6 +19,32 @@ class SpyReader extends ConnectionsReader {
   /// passes an exclusion instead).
   Iterable<(int?, int?)> get restrictedCalls =>
       edgeCalls.where((c) => c.$2 != null);
+
+  /// One entry per node query: how many rows it returned.
+  final List<int> nodeRowCounts = [];
+
+  @override
+  Future<List<ConnectionNode>> nodes(
+    ConnectionKind kind, {
+    required String? diverId,
+    required DiveFilterState filter,
+    Iterable<String>? onlyIds,
+    String? labelLike,
+    int? limit,
+    bool byRank = false,
+  }) async {
+    final rows = await super.nodes(
+      kind,
+      diverId: diverId,
+      filter: filter,
+      onlyIds: onlyIds,
+      labelLike: labelLike,
+      limit: limit,
+      byRank: byRank,
+    );
+    nodeRowCounts.add(rows.length);
+    return rows;
+  }
 
   @override
   Future<List<ConnectionEdge>> edges(

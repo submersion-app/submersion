@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show mapEquals;
 import 'package:flutter/material.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
@@ -279,7 +280,7 @@ class ConnectionsPainter extends CustomPainter {
       old.viewport.offset != viewport.offset ||
       old.selection != selection ||
       old.hovered != hovered ||
-      old.photos.length != photos.length ||
+      !mapEquals(old.photos, photos) ||
       old.labelStyle != labelStyle ||
       old.haloColor != haloColor;
 }

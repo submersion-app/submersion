@@ -40,6 +40,10 @@ KindTable kindTable(ConnectionKind kind) => switch (kind) {
 
 /// Every entity of [kind] with at least one dive in scope, with its own
 /// distinct dive count and the columns its subtitle needs.
+///
+/// Rows come by dive count, then label. With [byRank] they come by dive
+/// count, then id: the order the node budget ranks in (see
+/// nodesWithinBudget), so a [limit] cuts exactly the rows the budget would.
 ({String sql, List<Object?> params}) buildNodeSql({
   required ConnectionKind kind,
   required String? diverId,
@@ -47,6 +51,7 @@ KindTable kindTable(ConnectionKind kind) => switch (kind) {
   Iterable<String>? onlyIds,
   String? labelLike,
   int? limit,
+  bool byRank = false,
 }) {
   final extraWhere = <String>[];
   final extraParams = <Object?>[];
@@ -81,8 +86,30 @@ FROM (
   GROUP BY m.entity_id
 ) c
 JOIN ${t.table} t ON t.id = c.entity_id$outerWhere
-ORDER BY c.dive_count DESC, label ASC$limitClause''';
+ORDER BY c.dive_count DESC, ${byRank ? 't.id' : 'label'} ASC$limitClause''';
   return (sql: sql, params: [...params, ?labelLike, ?limit]);
+}
+
+/// How many entities of [kind] have at least one dive in scope: the row
+/// count [buildNodeSql] would return with no limit.
+({String sql, List<Object?> params}) buildNodeCountSql({
+  required ConnectionKind kind,
+  required String? diverId,
+  required DiveFilterState filter,
+}) {
+  final scope = diveScopeSql(diverId: diverId, filter: filter);
+  final t = kindTable(kind);
+  final sql =
+      '''
+SELECT COUNT(*) AS n
+FROM (
+  SELECT DISTINCT m.entity_id
+  FROM (${membershipSql(kind)}) m
+  JOIN dives d ON d.id = m.dive_id
+  WHERE ${scope.clauses.join(' AND ')}
+) c
+JOIN ${t.table} t ON t.id = c.entity_id''';
+  return (sql: sql, params: scope.params);
 }
 
 /// One row per buddy in [buddyIds] whose dives in scope all carry the same

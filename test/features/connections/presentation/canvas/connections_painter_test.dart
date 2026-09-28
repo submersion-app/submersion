@@ -43,14 +43,24 @@ void main() {
     ConnectionKind.buddy: Colors.pink,
   }, Colors.grey);
 
-  ConnectionsPainter painter({GraphSelection? selection}) => ConnectionsPainter(
+  ConnectionsPainter painter({
+    GraphSelection? selection,
+    Map<NodeRef, ui.Image> photos = const {},
+  }) => ConnectionsPainter(
     graph: graph,
     frame: frame,
     viewport: const GraphViewport(scale: 1, offset: Offset(50, 50)),
     colors: colors,
     selection: selection,
+    photos: photos,
     labelStyle: const TextStyle(fontSize: 12, color: Colors.black),
   );
+
+  ui.Image image() {
+    final recorder = ui.PictureRecorder();
+    Canvas(recorder).drawRect(Rect.largest, Paint());
+    return recorder.endRecording().toImageSync(1, 1);
+  }
 
   test('paints without throwing, with and without a selection', () {
     for (final sel in [
@@ -82,6 +92,25 @@ void main() {
     expect(
       p1.shouldRepaint(painter(selection: NodeSelection(_b('a')))),
       isTrue,
+    );
+  });
+
+  test('shouldRepaint reacts to a photo replaced for the same node', () {
+    final before = image();
+    final after = image();
+    addTearDown(before.dispose);
+    addTearDown(after.dispose);
+    final p1 = painter(photos: {_b('a'): before});
+    expect(p1.shouldRepaint(painter(photos: {_b('a'): before})), isFalse);
+    expect(
+      p1.shouldRepaint(painter(photos: {_b('a'): after})),
+      isTrue,
+      reason: 'a new photo for the same buddy must be painted',
+    );
+    expect(
+      p1.shouldRepaint(painter(photos: {_b('b'): before})),
+      isTrue,
+      reason: 'the photo moved to another node',
     );
   });
 

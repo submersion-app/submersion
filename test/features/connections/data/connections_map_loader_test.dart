@@ -53,4 +53,31 @@ void main() {
     final shown = (await _load(reader, 4)).nodes.map((n) => n.ref).toSet();
     expect(shown, expected);
   });
+
+  test('node reads stop at twice the budget per kind', () async {
+    final d = DatabaseService.instance.database;
+    await seedStar(d, (i) => i, 30);
+    final spy = SpyReader(d);
+    final g = await _load(spy, 4);
+    for (final rows in spy.nodeRowCounts) {
+      expect(rows, lessThanOrEqualTo(8), reason: 'no whole-log node read');
+    }
+    expect(g.nodes, hasLength(4));
+    expect(g.hiddenNodeCount, 27, reason: '31 buddies, 4 shown');
+    expect(g.hiddenByKind[ConnectionKind.buddy], 27);
+  });
+
+  test('a capped read keeps the same set when ties fill the cap', () async {
+    final d = DatabaseService.instance.database;
+    // Every buddy shares one dive with f: one tie class larger than the cap.
+    await seedStar(d, (_) => 1, 20);
+    final reader = ConnectionsReader(d);
+    final whole = await _load(reader, 1000);
+    final shown = await _load(reader, 4);
+    expect(
+      shown.nodes.map((n) => n.ref).toSet(),
+      whole.trimmed(4).nodes.map((n) => n.ref).toSet(),
+    );
+    expect(shown.hiddenNodeCount, 17, reason: '21 buddies, 4 shown');
+  });
 }

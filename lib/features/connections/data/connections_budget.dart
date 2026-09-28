@@ -49,11 +49,36 @@ ConnectionGraph withDropped(
   List<ConnectionNode> all,
   List<ConnectionNode> kept,
 ) {
-  if (all.length == kept.length) return graph;
-  final keptRefs = {for (final n in kept) n.ref};
-  final dropped = all.where((n) => !keptRefs.contains(n.ref)).toList();
+  final totals = <ConnectionKind, int>{};
+  for (final n in all) {
+    totals[n.ref.kind] = (totals[n.ref.kind] ?? 0) + 1;
+  }
+  return withDroppedCounts(graph, totals, kept);
+}
+
+/// [withDropped] for a load that read only the top of each kind: [totals]
+/// holds each kind's full entity count, and whatever [kept] does not hold
+/// is added to the hidden counts.
+ConnectionGraph withDroppedCounts(
+  ConnectionGraph graph,
+  Map<ConnectionKind, int> totals,
+  List<ConnectionNode> kept,
+) {
+  final keptByKind = <ConnectionKind, int>{};
+  for (final n in kept) {
+    keptByKind[n.ref.kind] = (keptByKind[n.ref.kind] ?? 0) + 1;
+  }
+  final hiddenByKind = {...graph.hiddenByKind};
+  var dropped = 0;
+  for (final MapEntry(key: kind, value: total) in totals.entries) {
+    final cut = total - (keptByKind[kind] ?? 0);
+    if (cut <= 0) continue;
+    hiddenByKind[kind] = (hiddenByKind[kind] ?? 0) + cut;
+    dropped += cut;
+  }
+  if (dropped == 0) return graph;
   return graph.copyWith(
-    hiddenNodeCount: graph.hiddenNodeCount + dropped.length,
-    hiddenByKind: ConnectionGraph.addHidden(graph.hiddenByKind, dropped),
+    hiddenNodeCount: graph.hiddenNodeCount + dropped,
+    hiddenByKind: Map.unmodifiable(hiddenByKind),
   );
 }

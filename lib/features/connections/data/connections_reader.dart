@@ -64,6 +64,7 @@ class ConnectionsReader {
     Iterable<String>? onlyIds,
     String? labelLike,
     int? limit,
+    bool byRank = false,
   }) async {
     final q = buildNodeSql(
       kind: kind,
@@ -72,6 +73,7 @@ class ConnectionsReader {
       onlyIds: onlyIds,
       labelLike: labelLike,
       limit: limit,
+      byRank: byRank,
     );
     final rows = await _db
         .customSelect(q.sql, variables: q.params.map(Variable.new).toList())
@@ -100,6 +102,19 @@ class ConnectionsReader {
             ? n.copyWith(subtitle: RoleSubtitle(roles[n.ref.id]!))
             : n,
     ];
+  }
+
+  /// How many entities of [kind] have a dive in scope.
+  Future<int> nodeCount(
+    ConnectionKind kind, {
+    required String? diverId,
+    required DiveFilterState filter,
+  }) async {
+    final q = buildNodeCountSql(kind: kind, diverId: diverId, filter: filter);
+    final row = await _db
+        .customSelect(q.sql, variables: q.params.map(Variable.new).toList())
+        .getSingle();
+    return row.read<int>('n');
   }
 
   /// The focus when it has no dive in scope: label only, zero dives.
