@@ -226,9 +226,11 @@ void main() {
         expect(t.originHlc, t.hlc, reason: 'a local delete is its own origin');
       }
     },
-    // Measured at 57.7 s in a full bundled run on 2026-09-28, more than a
-    // third of testTimeLimit (test/helpers/test_timeouts.dart).
-    timeout: const Timeout(Duration(minutes: 3)),
+    // Measured at 57.7 s in a full bundled run and 51 s alone with --coverage
+    // on 2026-09-28, more than a third of testTimeLimit
+    // (test/helpers/test_timeouts.dart). CI's 4-vCPU runners are slower than
+    // that machine, so it gets five minutes.
+    timeout: const Timeout(Duration(minutes: 5)),
   );
 
   test('getDivesByIds reads more ids than one statement can bind, '
