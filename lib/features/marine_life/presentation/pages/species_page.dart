@@ -13,6 +13,11 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
+import 'package:submersion/features/marine_life/query/species_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 
 /// The species the diver has seen across every dive, searchable and sortable.
 ///
@@ -43,12 +48,23 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final entriesAsync = ref.watch(seenSpeciesProvider);
+    final entriesAsync = ref.watch(filteredSeenSpeciesProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.marineLife_speciesPage_title),
         actions: [
+          QueryFilterButton(
+            active: ref.watch(seenSpeciesQueryProvider) != null,
+            onPressed: () => showQueryFilterSheet(
+              context,
+              subject: QuerySubject.species,
+              root: speciesQueryEntity,
+              initial: ref.read(seenSpeciesQueryProvider),
+              onApply: (ref, query) =>
+                  ref.read(seenSpeciesQueryProvider.notifier).state = query,
+            ),
+          ),
           PopupMenuButton<SeenSpeciesSort>(
             key: const ValueKey('species_sort_menu'),
             icon: const Icon(Icons.sort),
@@ -79,14 +95,20 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
             onSelected: (category) => setState(() => _category = category),
           ),
           Expanded(
-            child: entriesAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => _ErrorState(
-                message: l10n.marineLife_speciesPage_error(error.toString()),
-                retryLabel: l10n.marineLife_speciesPage_retry,
-                onRetry: () => ref.invalidate(seenSpeciesProvider),
+            child: QueryChipsFrame(
+              root: speciesQueryEntity,
+              query: ref.watch(seenSpeciesQueryProvider),
+              onChanged: (q) =>
+                  ref.read(seenSpeciesQueryProvider.notifier).state = q,
+              child: entriesAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, _) => _ErrorState(
+                  message: l10n.marineLife_speciesPage_error(error.toString()),
+                  retryLabel: l10n.marineLife_speciesPage_retry,
+                  onRetry: () => ref.invalidate(seenSpeciesProvider),
+                ),
+                data: _buildList,
               ),
-              data: _buildList,
             ),
           ),
         ],
@@ -121,6 +143,12 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
   }
 
   Widget _buildList(List<SeenSpecies> entries) {
+    // A query that hid every sighted species is not "nothing seen yet".
+    if (entries.isEmpty && ref.watch(seenSpeciesQueryProvider) != null) {
+      return QueryNoMatchState(
+        onClear: () => ref.read(seenSpeciesQueryProvider.notifier).state = null,
+      );
+    }
     // Covers load beside the list, not ahead of it: a species with no photo
     // yet, or a cover query still running, shows the category avatar.
     final covers =

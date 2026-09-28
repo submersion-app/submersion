@@ -17,6 +17,11 @@ import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/shared/widgets/fab_clearance.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
+import 'package:submersion/features/marine_life/query/species_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 
 class SpeciesManagePage extends ConsumerStatefulWidget {
   const SpeciesManagePage({super.key});
@@ -61,7 +66,7 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
 
   @override
   Widget build(BuildContext context) {
-    final speciesAsync = ref.watch(speciesListNotifierProvider);
+    final speciesAsync = ref.watch(filteredSpeciesCatalogProvider);
     _sightingCounts =
         ref.watch(speciesSightingCountsProvider).value ?? const {};
     _tagCounts = ref.watch(speciesTagCountsProvider).value ?? const {};
@@ -98,6 +103,20 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
                     onPressed: () => context.pop(),
                   ),
                   actions: [
+                    QueryFilterButton(
+                      active: ref.watch(speciesCatalogQueryProvider) != null,
+                      onPressed: () => showQueryFilterSheet(
+                        context,
+                        subject: QuerySubject.species,
+                        root: speciesQueryEntity,
+                        initial: ref.read(speciesCatalogQueryProvider),
+                        onApply: (ref, query) =>
+                            ref
+                                    .read(speciesCatalogQueryProvider.notifier)
+                                    .state =
+                                query,
+                      ),
+                    ),
                     IconButton(
                       key: const ValueKey('enter_selection'),
                       icon: const Icon(Icons.checklist),
@@ -140,17 +159,23 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
                     setState(() => _selectedCategory = category),
               ),
               Expanded(
-                child: speciesAsync.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (e, st) => Center(
-                    child: Text(
-                      context.l10n.marineLife_speciesManage_errorLoading(
-                        e.toString(),
+                child: QueryChipsFrame(
+                  root: speciesQueryEntity,
+                  query: ref.watch(speciesCatalogQueryProvider),
+                  onChanged: (q) =>
+                      ref.read(speciesCatalogQueryProvider.notifier).state = q,
+                  child: speciesAsync.when(
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (e, st) => Center(
+                      child: Text(
+                        context.l10n.marineLife_speciesManage_errorLoading(
+                          e.toString(),
+                        ),
                       ),
                     ),
+                    data: (allSpecies) => _buildSpeciesList(allSpecies),
                   ),
-                  data: (allSpecies) => _buildSpeciesList(allSpecies),
                 ),
               ),
             ],
@@ -213,6 +238,13 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
   }
 
   Widget _buildSpeciesList(List<Species> allSpecies) {
+    // A query that hid the whole catalog is not an empty catalog.
+    if (allSpecies.isEmpty && ref.watch(speciesCatalogQueryProvider) != null) {
+      return QueryNoMatchState(
+        onClear: () =>
+            ref.read(speciesCatalogQueryProvider.notifier).state = null,
+      );
+    }
     final filtered = _visibleSpecies(allSpecies);
 
     if (filtered.isEmpty) {
