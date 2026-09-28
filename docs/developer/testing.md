@@ -36,9 +36,33 @@ tests at once.
 
 ### All Tests
 
+The quickest full run is the pre-push hook's, which runs the suite as bundles
+(see [Shared Isolates in CI](#shared-isolates-in-ci)):
+
+```bash
+RUN_ALL_TESTS=1 git push
+```
+
+To run the same bundles without pushing:
+
+```bash
+flutter test --exclude-tags performance --concurrency=16 \
+  $(python3 scripts/bundle_tests.py --total-shards 1 --max-files 40)
+rm -rf test/.bundles
+```
+
+Measured on an 18-core Mac at `--concurrency=16` (issue #2512), the whole suite
+took 10 min 11 s as separate files and 2 min 52 s as 40-file bundles in one
+call. The hook passes the bundles in calls of 100, which keeps each command
+line within Windows' limit and took 3 min 18 s. When a bundled run fails, the
+hook lists the failing test files, so one can be rerun on its own with
+`flutter test <path>`. Without `python3` it runs the files one by one, as
+plain `flutter test` does:
+
 ```bash
 flutter test
-```text
+```
+
 ### Specific Test Suite
 
 ```bash
@@ -389,9 +413,11 @@ class MockDiveRepository extends Mock implements DiveRepository {
 that made the cost of a run follow the number of test files, so the test job
 runs bundles instead: generated entrypoints that import many test files and
 call each one's `main()` inside a group named after the file
-(`scripts/bundle_tests.py`, issue #2500). Local runs and the pre-push hook still
-run test files one by one. At local concurrency a bundle is no faster, because
-it runs its files one after another in a single isolate.
+(`scripts/bundle_tests.py`, issue #2500). A full local run with
+`RUN_ALL_TESTS=1` uses bundles too, of up to 40 files so they spread evenly over
+the local workers (issue #2512). The pre-push hook's usual run of the affected
+test files stays unbundled: a few dozen files finish sooner side by side than
+one after another in a single isolate.
 
 ### The rule: put back what you replace
 
@@ -418,8 +444,9 @@ Two checks enforce the rule:
 - `test/architecture/test_global_state_restored_test.dart` reads the source and
   fails on an assignment that nothing in its scope restores. It names the file
   and line, and it runs locally like any other test.
-- In CI, each generated bundle records the process-wide state before a file's
-  tests (`test/helpers/global_state_snapshot.dart`) and fails that file's group
+- In CI and in a bundled full local run, each generated bundle records the
+  process-wide state before a file's tests
+  (`test/helpers/global_state_snapshot.dart`) and fails that file's group
   if anything is left changed afterwards, whatever shape the code took.
 
 The bundle also checks each file's `main()`, which runs while the bundle is

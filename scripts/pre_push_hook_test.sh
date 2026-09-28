@@ -38,9 +38,27 @@ write_stubs() {
     stub_tmp="$1"
     mkdir -p "$stub_tmp/bin"
 
+    # flutter test also records its arguments and how many bundles existed
+    # while it ran, and with FLUTTER_TEST_FAIL=1 fails the way a real run
+    # prints it: the entrypoint as an absolute path, then the test's name. In
+    # a bundle that name starts with the file's path relative to test/; a file
+    # that ran on its own is the entrypoint itself.
     cat > "$stub_tmp/bin/flutter" <<'STUB'
 #!/bin/bash
 pwd -P >> "$CWD_LOG"
+if [ "${1:-}" = "test" ] && [ -n "${FLUTTER_TEST_LOG:-}" ]; then
+    printf '%s\n' "$*" >> "$FLUTTER_TEST_LOG"
+    find test/.bundles -name 'bundle_*.dart' 2>/dev/null | wc -l | tr -d ' ' \
+        >> "$FLUTTER_TEST_LOG.bundles"
+    if [ "${FLUTTER_TEST_FAIL:-0}" = "1" ]; then
+        root="$(pwd -P)"
+        echo "00:01 +1 -1: $root/test/.bundles/bundle_000_root.dart: b_test.dart fails on purpose [E]"
+        echo "00:02 +1 -2: $root/test/a_test.dart: fails while running alone [E]"
+        echo "00:02 +1 -2: $root/test/.bundles/bundle_000_root.dart: b_test.dart (tearDownAll)"
+        echo "00:02 +1 -2: Some tests failed."
+        exit 1
+    fi
+fi
 exit 0
 STUB
 
@@ -110,17 +128,22 @@ run_hook() {
     cd "$tmp/wt" || exit 1
     : > "$tmp/cwd.log"
     : > "$tmp/dart.log"
+    : > "$tmp/flutter_test.log"
+    : > "$tmp/flutter_test.log.bundles"
 
     printf 'refs/heads/feature %s refs/heads/feature %s\n' \
         "$(git rev-parse HEAD)" "$ZERO" > "$tmp/refline"
 
     hook_output="$(env "$@" PATH="$tmp/bin:$PATH" CWD_LOG="$tmp/cwd.log" \
-        DART_LOG="$tmp/dart.log" DRY_RUN=1 \
+        DART_LOG="$tmp/dart.log" FLUTTER_TEST_LOG="$tmp/flutter_test.log" \
+        DRY_RUN=1 \
         /bin/bash "$tmp/main/hooks/pre-push" < "$tmp/refline" 2>&1)"
     hook_status=$?
 
     analyze_cwd="$(head -1 "$tmp/cwd.log" 2>/dev/null || true)"
     dart_args="$(cat "$tmp/dart.log" 2>/dev/null || true)"
+    flutter_test_args="$(cat "$tmp/flutter_test.log" 2>/dev/null || true)"
+    bundles_during_run="$(head -1 "$tmp/flutter_test.log.bundles" 2>/dev/null || true)"
 }
 
 # As run_hook, but the caller supplies the whole ref line. Used to simulate a
@@ -468,6 +491,143 @@ if [ "$selected_l10n" -eq 40 ]; then
 else
     fail 'falls back to the default sample size of 40' "selected $selected_l10n of 60"
 fi
+
+rm -rf "$tmp"
+
+# Build a repo for the full-suite path: runnable test files and the real
+# bundler, which the hook calls from the tree being pushed. Echoes the temp dir.
+make_full_run_fixture() {
+    tmp="$(mktemp -d)"
+    main_tree="$tmp/main"
+
+    mkdir -p "$main_tree"
+    cd "$main_tree" || exit 1
+
+    git init -q -b main .
+    git config user.email 'test@example.com'
+    git config user.name 'Test'
+    git config commit.gpgsign false
+
+    mkdir -p lib test hooks scripts
+    printf '// lib\n' > lib/sample.dart
+    for name in a b; do
+        printf "import 'package:flutter_test/flutter_test.dart';\n\nvoid main() {\n  test('%s', () {});\n}\n" \
+            "$name" > "test/${name}_test.dart"
+    done
+    cp "$REPO_ROOT/scripts/bundle_tests.py" scripts/bundle_tests.py
+    git add -A
+    git commit -q -m 'initial'
+
+    cp "$HOOK_SRC" "$main_tree/hooks/pre-push"
+    chmod +x "$main_tree/hooks/pre-push"
+
+    git worktree add -q "$tmp/wt" -b feature
+    cd "$tmp/wt" || exit 1
+    printf '// changed on the branch\n' >> lib/sample.dart
+    git add -A
+    git commit -q -m 'change on feature'
+
+    write_stubs "$tmp"
+
+    printf '%s\n' "$tmp"
+}
+
+# --- Test 10: RUN_ALL_TESTS=1 runs the suite as bundles ---------------------
+#
+# A full local run as separate files took 10m11s at -j 16; as bundles of up to
+# 40 files it took 2m52s (issue #2512). The bundles are generated for the run
+# and removed afterwards, so they never reach a commit or a later run.
+
+tmp="$(make_full_run_fixture)"
+run_hook "$tmp" RUN_ALL_TESTS=1
+
+case "$flutter_test_args" in
+    *'test/.bundles/bundle_'*)
+        pass 'RUN_ALL_TESTS=1 hands flutter test the generated bundles'
+        ;;
+    *)
+        fail 'RUN_ALL_TESTS=1 hands flutter test the generated bundles' \
+            "flutter was invoked as: $flutter_test_args"
+        ;;
+esac
+
+case "$flutter_test_args" in
+    *'--exclude-tags performance'*'--concurrency='*)
+        pass 'the bundled run keeps the tag filter and the concurrency'
+        ;;
+    *)
+        fail 'the bundled run keeps the tag filter and the concurrency' \
+            "flutter was invoked as: $flutter_test_args"
+        ;;
+esac
+
+if [ "${bundles_during_run:-0}" -gt 0 ] && [ ! -e "$tmp/wt/test/.bundles" ]; then
+    pass 'the bundles exist during the run and are removed after it'
+else
+    fail 'the bundles exist during the run and are removed after it' \
+        "bundles during the run: '${bundles_during_run}'; left behind: $(ls "$tmp/wt/test/.bundles" 2>&1)"
+fi
+
+if [ "$hook_status" -eq 0 ]; then
+    pass 'a passing bundled run lets the push through'
+else
+    fail 'a passing bundled run lets the push through' "exit $hook_status: $hook_output"
+fi
+
+# --- Test 11: a failing bundled run names the failing test files ------------
+
+run_hook "$tmp" RUN_ALL_TESTS=1 FLUTTER_TEST_FAIL=1
+
+if [ "$hook_status" -ne 0 ]; then
+    pass 'a failing bundled run blocks the push'
+else
+    fail 'a failing bundled run blocks the push' "exit 0: $hook_output"
+fi
+
+failing_list="$(printf '%s\n' "$hook_output" | sed -n '/Failing test files/,$p' \
+    | grep -E '^ +test/' | sed 's/^ *//' | sort | tr '\n' ' ')"
+if [ "$failing_list" = 'test/a_test.dart test/b_test.dart ' ]; then
+    pass 'a failing run lists each failing test file once, relative to the repo'
+else
+    fail 'a failing run lists each failing test file once, relative to the repo' \
+        "listed: '$failing_list'; output: $hook_output"
+fi
+
+if [ ! -e "$tmp/wt/test/.bundles" ]; then
+    pass 'the bundles are removed after a failing run too'
+else
+    fail 'the bundles are removed after a failing run too' \
+        "left behind: $(ls "$tmp/wt/test/.bundles" 2>&1)"
+fi
+
+# --- Test 12: without a working python3 the full run is unbundled -----------
+#
+# The hook had no Python dependency before bundling, and Git Bash on Windows
+# may have none. A bundler that cannot run must not block a push.
+
+cat > "$tmp/bin/python3" <<'STUB'
+#!/bin/bash
+echo 'python3: not usable here' >&2
+exit 127
+STUB
+chmod +x "$tmp/bin/python3"
+run_hook "$tmp" RUN_ALL_TESTS=1
+
+if [ "$hook_status" -eq 0 ] && [ -n "$flutter_test_args" ]; then
+    pass 'RUN_ALL_TESTS=1 still runs when python3 cannot bundle'
+else
+    fail 'RUN_ALL_TESTS=1 still runs when python3 cannot bundle' \
+        "exit $hook_status; flutter test args: '$flutter_test_args'"
+fi
+
+case "$flutter_test_args" in
+    *'bundle_'*)
+        fail 'falls back to separate test files' "flutter was invoked as: $flutter_test_args"
+        ;;
+    *)
+        pass 'falls back to separate test files'
+        ;;
+esac
 
 rm -rf "$tmp"
 
