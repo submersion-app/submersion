@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/domain/track_geometry.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_camera.dart';
+import 'package:submersion/features/maps/domain/map_utils.dart';
 
 GpsTrackPoint p(double lat, double lon) =>
     GpsTrackPoint(timestamp: 0, latitude: lat, longitude: lon);

@@ -189,13 +189,6 @@ bool crossesAntimeridian(
   ({double minLat, double maxLat, double minLon, double maxLon}) bounds,
 ) => bounds.maxLon > 180.0;
 
-/// Wraps a longitude back into the -180..180 range flutter_map accepts.
-double normalizeLongitude(double lon) {
-  var wrapped = (lon + 180.0) % 360.0;
-  if (wrapped < 0) wrapped += 360.0;
-  return wrapped - 180.0;
-}
-
 /// A point's longitude in the same continuous frame [trackBounds] used, so a
 /// caller that draws against those bounds stays consistent with them.
 ///

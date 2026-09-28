@@ -109,4 +109,43 @@ void main() {
 
     expect(find.byType(FlutterMap), findsOneWidget);
   });
+
+  testWidgets('opens on the Pacific for dives on both sides of 180 (#2516)', (
+    tester,
+  ) async {
+    // Queensland, Fiji and Tahiti. A plain bounding box of these centres on
+    // 15E (Africa) and splits the dives across the map's two edges.
+    final sites = [
+      _site(id: 'qld', name: 'Queensland', lat: -16.9, lng: 150.0),
+      _site(id: 'fiji', name: 'Fiji', lat: -17.7, lng: 178.0),
+      _site(id: 'tahiti', name: 'Tahiti', lat: -17.5, lng: -149.0),
+    ];
+    await _pump(
+      tester,
+      dives: AsyncValue.data([
+        for (final site in sites) _diveAtSite(site, id: 'dive-${site.id}'),
+      ]),
+    );
+
+    final camera = tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .mapController!
+        .camera;
+    // The span runs 150E to 149W, so its middle is 180.5E (179.5W).
+    expect(camera.center.longitude, closeTo(-179.5, 2.0));
+
+    // Queensland sits in the copy of the world west of the date line; it is
+    // on screen only because the cluster layer repeats across the seam.
+    for (final site in sites) {
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is Semantics &&
+              w.properties.label == 'Select dive site ${site.name}',
+        ),
+        findsOneWidget,
+        reason: site.name,
+      );
+    }
+  });
 }
