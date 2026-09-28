@@ -42979,6 +42979,52 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Wiederherstellung wurde nicht abgeschlossen. Es wurde nichts gelöscht; beide Dateien sind noch auf diesem Gerät.';
 
   @override
+  String get startup_diveLogUnavailable_downloading =>
+      'Ihr Logbuch wird aus iCloud heruntergeladen';
+
+  @override
+  String get startup_diveLogUnavailable_iCloud_title =>
+      'Ihr Logbuch ist noch in iCloud';
+
+  @override
+  String startup_diveLogUnavailable_iCloud_body(String folder) {
+    return 'Ihr Logbuch in $folder ist in iCloud gespeichert, aber noch nicht auf diesem Gerät, und es konnte nicht heruntergeladen werden. Es ist in iCloud sicher, und es wurde nichts geändert. Prüfen Sie Ihre Internetverbindung oder laden Sie es in der App „Dateien“ oder im Finder herunter, und versuchen Sie es dann erneut.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_missing_title =>
+      'Ihr Logbuch wurde nicht gefunden';
+
+  @override
+  String startup_diveLogUnavailable_missing_body(
+    String folder,
+    String filename,
+  ) {
+    return 'Submersion bewahrt Ihr Logbuch in $folder auf, aber dort gibt es jetzt keine Datei $filename. Wenn sich dieser Ordner auf einem nicht angeschlossenen Laufwerk befindet oder in einem synchronisierten Ordner, der noch nicht auf dem neuesten Stand ist, schließen Sie das Laufwerk an oder synchronisieren Sie den Ordner und versuchen Sie es erneut. Es wurde nichts erstellt oder geändert.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew =>
+      'Neues Logbuch in diesem Ordner beginnen';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_subtitle =>
+      'Nur wenn Ihr altes Logbuch endgültig verloren ist. Das neue beginnt leer.';
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirmTitle =>
+      'Hier ein neues Logbuch beginnen?';
+
+  @override
+  String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
+    return 'In $folder wird ein leeres Logbuch angelegt. Wenn Ihr altes Logbuch später zurückkommt, etwa wenn eine Synchronisierung abgeschlossen ist, gerät es mit dem neuen in Konflikt.';
+  }
+
+  @override
+  String get startup_diveLogUnavailable_startNew_confirm =>
+      'Neues Logbuch beginnen';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Neuere Datenbank, beim Zurückwechseln behalten - $size';
   }

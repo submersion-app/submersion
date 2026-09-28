@@ -48,6 +48,11 @@ enum StartupLocationCheck {
   /// Custom database is not accessible and the configuration was reset
   /// (sandbox platforms, where folder access can be permanently revoked).
   resetToDefault,
+
+  /// The custom database is in iCloud but its contents are not on this
+  /// device. The configuration is KEPT on every platform, so startup can
+  /// fetch the diver's dive log instead of creating an empty one (#2177).
+  keptNotDownloaded,
 }
 
 class DatabaseLocationService {
@@ -265,6 +270,20 @@ class DatabaseLocationService {
     await saveStorageConfig(config.copyWith(lastVerified: DateTime.now()));
   }
 
+  /// Stamps a custom location as one that has held a dive log, if nothing
+  /// has stamped it yet (#2177).
+  ///
+  /// Called once a dive log has opened there. Every flow that saves a custom
+  /// location stamps it today, but configurations saved before the stamp
+  /// existed carry none, and without it a later loss reads as a first launch
+  /// and an empty dive log is created in its place. This records a fact the
+  /// app just observed; it changes no choice the diver made.
+  Future<void> markCustomLocationVerified() async {
+    final config = await getStorageConfig();
+    if (!config.isCustomLocation || config.lastVerified != null) return;
+    await saveStorageConfig(config.copyWith(lastVerified: DateTime.now()));
+  }
+
   /// Clear the storage configuration and reset to default
   /// Verifies a configured custom database location at startup (#218).
   ///
@@ -275,6 +294,9 @@ class DatabaseLocationService {
   /// to lose access to, a missing file is created by the open, and the old
   /// unconditional reset made the setting appear to never persist on
   /// Linux.
+  ///
+  /// A database iCloud holds but has not downloaded is KEPT everywhere and
+  /// left unread: that is a fetch still to happen, not lost access (#2177).
   Future<StartupLocationCheck> validateCustomLocationAtStartup({
     bool? isBookmarkPlatform,
   }) async {
@@ -298,6 +320,17 @@ class DatabaseLocationService {
     // location before the database was ever created (#218). Anything that
     // DOES occupy the path (including a directory) has to be opened to
     // decide, so test the entity type rather than File.exists().
+    // A dive log iCloud has evicted is a fetch still to happen, not lost
+    // access, so it is kept and left unread. Reading an evicted file would
+    // fetch all of it before the read returned, with no limit and before the
+    // app has drawn a frame; offline the read fails and the reset below would
+    // open an empty dive log at the default path. Startup fetches it instead,
+    // under the splash, where it can say what is happening and give up
+    // (#2177).
+    if (await isOnlyInICloud(dbPath)) {
+      return StartupLocationCheck.keptNotDownloaded;
+    }
+
     if (await FileSystemEntity.type(dbPath) == FileSystemEntityType.notFound) {
       return StartupLocationCheck.keptDatabaseMissing;
     }
