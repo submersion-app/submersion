@@ -19,6 +19,11 @@ import 'package:submersion/features/certifications/presentation/widgets/certific
 import 'package:submersion/features/certifications/presentation/widgets/certification_summary_widget.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_query_providers.dart';
+import 'package:submersion/features/certifications/query/certification_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_search_delegate.dart';
 
 class CertificationListPage extends ConsumerWidget {
   const CertificationListPage({super.key});
@@ -100,6 +105,21 @@ class CertificationListPage extends ConsumerWidget {
                   delegate: CertificationSearchDelegate(ref),
                 );
               },
+            ),
+            Consumer(
+              builder: (context, ref, _) => QueryFilterButton(
+                active: ref.watch(certificationQueryProvider) != null,
+                compact: true,
+                onPressed: () => showQueryFilterSheet(
+                  context,
+                  subject: QuerySubject.certifications,
+                  root: certificationQueryEntity,
+                  initial: ref.read(certificationQueryProvider),
+                  onApply: (ref, query) =>
+                      ref.read(certificationQueryProvider.notifier).state =
+                          query,
+                ),
+              ),
             ),
             IconButton(
               icon: const Icon(Icons.sort, size: 20),
