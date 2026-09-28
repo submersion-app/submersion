@@ -494,8 +494,9 @@ fi
 
 rm -rf "$tmp"
 
-# Build a repo for the full-suite path: runnable test files and the real
-# bundler, which the hook calls from the tree being pushed. Echoes the temp dir.
+# Build a repo for the full-suite path: runnable test files, the real
+# scripts/run_all_tests.sh and the bundler it calls, both of which the hook
+# runs from the tree being pushed. Echoes the temp dir.
 make_full_run_fixture() {
     tmp="$(mktemp -d)"
     main_tree="$tmp/main"
@@ -515,6 +516,7 @@ make_full_run_fixture() {
             "$name" > "test/${name}_test.dart"
     done
     cp "$REPO_ROOT/scripts/bundle_tests.py" scripts/bundle_tests.py
+    cp "$REPO_ROOT/scripts/run_all_tests.sh" scripts/run_all_tests.sh
     git add -A
     git commit -q -m 'initial'
 
@@ -535,8 +537,9 @@ make_full_run_fixture() {
 # --- Test 10: RUN_ALL_TESTS=1 runs the suite as bundles ---------------------
 #
 # A full local run as separate files took 10m11s at -j 16; as bundles of up to
-# 40 files it took 2m52s (issue #2512). The bundles are generated for the run
-# and removed afterwards, so they never reach a commit or a later run.
+# 40 files it took 2m52s (issue #2512). The hook runs scripts/run_all_tests.sh,
+# which bundles the suite and removes the bundles afterwards; that script's own
+# cases are in scripts/run_all_tests_test.sh.
 
 tmp="$(make_full_run_fixture)"
 run_hook "$tmp" RUN_ALL_TESTS=1
@@ -552,14 +555,26 @@ case "$flutter_test_args" in
 esac
 
 case "$flutter_test_args" in
-    *'--exclude-tags performance'*'--concurrency='*)
-        pass 'the bundled run keeps the tag filter and the concurrency'
+    *'--exclude-tags performance --concurrency=16 '*)
+        pass 'the bundled run keeps the tag filter and the hook concurrency'
         ;;
     *)
-        fail 'the bundled run keeps the tag filter and the concurrency' \
+        fail 'the bundled run keeps the tag filter and the hook concurrency' \
             "flutter was invoked as: $flutter_test_args"
         ;;
 esac
+
+run_hook "$tmp" RUN_ALL_TESTS=1 TEST_CONCURRENCY=5
+case "$flutter_test_args" in
+    *'--concurrency=5 '*)
+        pass 'RUN_ALL_TESTS=1 passes TEST_CONCURRENCY through'
+        ;;
+    *)
+        fail 'RUN_ALL_TESTS=1 passes TEST_CONCURRENCY through' \
+            "flutter was invoked as: $flutter_test_args"
+        ;;
+esac
+run_hook "$tmp" RUN_ALL_TESTS=1
 
 if [ "${bundles_during_run:-0}" -gt 0 ] && [ ! -e "$tmp/wt/test/.bundles" ]; then
     pass 'the bundles exist during the run and are removed after it'
@@ -600,32 +615,27 @@ else
         "left behind: $(ls "$tmp/wt/test/.bundles" 2>&1)"
 fi
 
-# --- Test 12: without a working python3 the full run is unbundled -----------
+# --- Test 12: a branch without scripts/run_all_tests.sh runs plain ----------
 #
-# The hook had no Python dependency before bundling, and Git Bash on Windows
-# may have none. A bundler that cannot run must not block a push.
+# Every worktree runs the main checkout's hook, so an up-to-date hook meets
+# branches cut before the script existed. Those still get a full run.
 
-cat > "$tmp/bin/python3" <<'STUB'
-#!/bin/bash
-echo 'python3: not usable here' >&2
-exit 127
-STUB
-chmod +x "$tmp/bin/python3"
+rm "$tmp/wt/scripts/run_all_tests.sh"
 run_hook "$tmp" RUN_ALL_TESTS=1
 
 if [ "$hook_status" -eq 0 ] && [ -n "$flutter_test_args" ]; then
-    pass 'RUN_ALL_TESTS=1 still runs when python3 cannot bundle'
+    pass 'RUN_ALL_TESTS=1 still runs on a branch without run_all_tests.sh'
 else
-    fail 'RUN_ALL_TESTS=1 still runs when python3 cannot bundle' \
+    fail 'RUN_ALL_TESTS=1 still runs on a branch without run_all_tests.sh' \
         "exit $hook_status; flutter test args: '$flutter_test_args'"
 fi
 
 case "$flutter_test_args" in
     *'bundle_'*)
-        fail 'falls back to separate test files' "flutter was invoked as: $flutter_test_args"
+        fail 'runs the test files one by one there' "flutter was invoked as: $flutter_test_args"
         ;;
     *)
-        pass 'falls back to separate test files'
+        pass 'runs the test files one by one there'
         ;;
 esac
 

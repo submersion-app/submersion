@@ -38,8 +38,8 @@
 # reproduces, but rotating across commits so coverage accumulates.
 #
 # Escape hatches:
-#   RUN_ALL_TESTS=1    git push   run the entire suite locally, as bundles
-#                                 (file by file if python3 cannot bundle it)
+#   RUN_ALL_TESTS=1    git push   run the entire suite locally, as bundles, via
+#                                 scripts/run_all_tests.sh (also runnable alone)
 #   RUN_ALL_AFFECTED=1 git push   skip ranking; run every importer (old behavior)
 #   SKIP_TESTS=1       git push   skip the local test run entirely
 #   DRY_RUN=1          git push   print the resolved test list and exit (no run)
@@ -448,77 +448,26 @@ if [ "${SKIP_TESTS:-0}" = "1" ]; then
     exit 0
 fi
 
-# The full suite runs as bundles: generated entrypoints that each import up to
-# 40 test files and run them in one isolate (scripts/bundle_tests.py, issue
-# #2500), which also carries the runtime check that a test puts back any
-# process-wide state it changed. Measured on an 18-core Mac at -j 16 (issue
-# #2512): 10m11s as separate files, 3m30s as CI's 120-file bundles, 2m52s at 40
-# files per bundle, which spread more evenly over 16 workers. The bundles go in
-# test/.bundles (git-ignored) and are removed however the run ends.
-BUNDLE_DIR="test/.bundles"
-
-# Prints the entrypoints for a bundled whole-suite run, one per line, or
-# nothing if python3 is missing or the bundler fails.
-bundle_whole_suite() {
-    python3 scripts/bundle_tests.py --total-shards 1 --max-files 40 \
-        --out "$BUNDLE_DIR" 2>/dev/null || true
-}
-
-# Lists the test files behind the failures in a run's output. flutter test
-# prints a failure as "<time> <counts>: <entrypoint>: <test name> [E]", with the
-# entrypoint as an absolute path. A bundle runs each file in a group named after
-# its path relative to test/, so for a bundle the file begins the test's name;
-# a file that ran on its own is the entrypoint.
-report_failing_files() {
-    local files
-    files="$(grep -aE '\[E\]' "$1" | sed -E 's/^[0-9:]+ [^:]*: //' \
-        | awk -v root="$PROJECT_ROOT/" '
-            match($0, /bundle_[0-9]+[^ :]*\.dart: /) {
-                split(substr($0, RSTART + RLENGTH), words, " ")
-                if (words[1] ~ /_test\.dart$/) print "test/" words[1]
-                next
-            }
-            match($0, /^[^ ]*_test\.dart: /) {
-                file = substr($0, 1, RLENGTH - 2)
-                if (index(file, root) == 1) file = substr(file, length(root) + 1)
-                print file
-            }' | sort -u || true)"
-    if [ -n "$files" ]; then
-        echo "   Failing test files (rerun one with: flutter test <path>):"
-        printf '%s\n' "$files" | sed 's/^/     /'
+# The full suite runs through scripts/run_all_tests.sh, which bundles it (issue
+# #2512: 10m11s as separate files, 3m18s bundled, on an 18-core Mac at -j 16)
+# and lists the failing test files if any fail. It runs from the tree being
+# pushed. This hook runs from the main checkout for every worktree, so a branch
+# cut before that script existed gets the plain run instead.
+run_full_suite() {
+    if [ -f scripts/run_all_tests.sh ]; then
+        TEST_CONCURRENCY="$CONCURRENCY" bash scripts/run_all_tests.sh
+    else
+        run_tests
     fi
 }
 
 if [ "${RUN_ALL_TESTS:-0}" = "1" ]; then
     echo "🧪 Running FULL test suite (RUN_ALL_TESTS=1, concurrency $CONCURRENCY)..."
-    trap 'rm -rf "$BUNDLE_DIR"' EXIT
-    entrypoints=()
-    bundle_list="$(bundle_whole_suite)"
-    if [ -n "$bundle_list" ]; then
-        while IFS= read -r line; do
-            entrypoints+=("$line")
-        done <<< "$bundle_list"
-        echo "   as ${#entrypoints[@]} entrypoints, bundled by scripts/bundle_tests.py"
-    else
-        echo "   python3 could not bundle the suite; running the test files one by one."
-    fi
-    full_log="$(mktemp)"
-    set +e
-    if [ "${#entrypoints[@]}" -gt 0 ]; then
-        run_tests_batched "${entrypoints[@]}" 2>&1 | tee "$full_log"
-    else
-        run_tests 2>&1 | tee "$full_log"
-    fi
-    full_status=${PIPESTATUS[0]}
-    set -e
-    if [ "$full_status" -ne 0 ]; then
+    if ! run_full_suite; then
         echo ""
         echo "❌ Tests failed! Fix the failing tests before pushing."
-        report_failing_files "$full_log"
-        rm -f "$full_log"
         exit 1
     fi
-    rm -f "$full_log"
     echo "✅ All tests passed"
     echo ""
     echo "🚀 All checks passed! Pushing..."
