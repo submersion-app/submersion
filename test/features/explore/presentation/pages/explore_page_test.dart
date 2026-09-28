@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -22,8 +24,9 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
 class _Engine implements NlEngine {
-  _Engine(this.json);
+  _Engine(this.json, {this.downloadStream});
   final String json;
+  final Stream<double> Function()? downloadStream;
   bool prepared = false;
   int compiled = 0;
 
@@ -35,7 +38,7 @@ class _Engine implements NlEngine {
   Future<void> prepare() async => prepared = true;
 
   @override
-  Stream<double> download() => const Stream.empty();
+  Stream<double> download() => downloadStream?.call() ?? const Stream.empty();
 
   @override
   Future<String> compile(String sentence, {required String localeTag}) async {
@@ -326,5 +329,81 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const ValueKey('explore-sentence')), findsOneWidget);
+  });
+
+  group('model download', () {
+    // Counts availability probes, so a re-probe after the download is
+    // visible to the test.
+    Future<(int Function(), List<dynamic>)> downloadOverrides(
+      _Engine engine,
+    ) async {
+      var probes = 0;
+      final base = await getBaseOverrides();
+      return (
+        () => probes,
+        [
+          ...base,
+          ...commonOverrides(engine),
+          exploreAvailabilityProvider.overrideWith((ref) async {
+            probes++;
+            return NlAvailability.downloadable;
+          }),
+        ],
+      );
+    }
+
+    testWidgets('a failed download re-probes instead of throwing', (
+      tester,
+    ) async {
+      final engine = _Engine(
+        turtles,
+        downloadStream: () =>
+            Stream<double>.error(const NlException(NlError.modelNotReady)),
+      );
+      final (probes, overrides) = await downloadOverrides(engine);
+      await tester.pumpWidget(
+        testApp(
+          child: const ExplorePage(),
+          locale: const Locale('en'),
+          overrides: overrides,
+        ),
+      );
+      await tester.pumpAndSettle();
+      final before = probes();
+      await tester.tap(find.text(AppLocalizationsEn().explore_download_button));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(probes(), greaterThan(before));
+    });
+
+    testWidgets('a download finishing after leaving the page is harmless', (
+      tester,
+    ) async {
+      final controller = StreamController<double>();
+      final engine = _Engine(turtles, downloadStream: () => controller.stream);
+      final (_, overrides) = await downloadOverrides(engine);
+      await tester.pumpWidget(
+        testApp(
+          child: const ExplorePage(),
+          locale: const Locale('en'),
+          overrides: overrides,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(AppLocalizationsEn().explore_download_button));
+      await tester.pump();
+      // Leave Explore: the prompt widget and its ref are disposed.
+      await tester.pumpWidget(
+        testApp(
+          child: const SizedBox.shrink(),
+          locale: const Locale('en'),
+          overrides: overrides,
+        ),
+      );
+      controller.add(1);
+      await controller.close();
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
   });
 }

@@ -206,13 +206,18 @@ class _DownloadPrompt extends ConsumerWidget {
       leading: const Icon(Icons.download),
       title: Text(l10n.explore_download_button),
       onTap: () {
+        // The container, not this widget's ref: the download outlives the
+        // page, and a ref used after the diver has left throws. Re-probe
+        // however the stream ends, so a failed download shows the button
+        // again instead of an uncaught error.
+        final container = ProviderScope.containerOf(context, listen: false);
+        void reprobe() => container.invalidate(exploreAvailabilityProvider);
         ref
             .read(nlEngineProvider)
             .download()
-            .listen(
-              (_) {},
-              onDone: () => ref.invalidate(exploreAvailabilityProvider),
-            );
+            .listen((_) {}, onError: (Object _) => reprobe(), onDone: reprobe);
+        // Once started, the platform reports it as downloading.
+        reprobe();
       },
     );
   }
