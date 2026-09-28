@@ -342,9 +342,10 @@ limit turns the surface swim back into a constraint.
 
 ### Persistence
 
-Three new tables in `lib/core/database/database.dart`, following the
-`dive_plan_segments` pattern: text id, parent id, sort order, created and
-updated timestamps, nullable hlc, no cascade, explicit child deletes.
+Three new tables in `lib/core/database/tables/dive_plan_mission_tables.dart`,
+following the `dive_plan_segments` pattern: text id, parent id, sort order,
+created and updated timestamps, nullable hlc, no cascade, explicit child
+deletes.
 
 | Table | Columns |
 | --- | --- |
@@ -363,12 +364,15 @@ diver or item.
 "No mission" is "no row" in `dive_plan_missions`, so `DivePlan.mission` is
 null exactly when the plan has none.
 
-The migration rung takes the next free number at implementation time. On
-2026-09-25 main is at v226, #2315 claims v227 and #1772 claims v228, so this
-lands as v229 or later; re-check `origin/main` before opening the PR.
-The rung creates the tables and their indexes with create-if-missing
-statements and has an idempotent assert like the existing plan column asserts,
-so a database that already carries them is left alone.
+The migration rung takes the next free number at implementation time: v241. On
+2026-09-27 main is at v240 with the sync floor at 240, and this table-only
+rung leaves the floor there. The create lives in
+`migrations/helpers/dive_plan_migrations.dart`, the rung in
+`migrations/ladder/rungs_v231_onward.dart` and the backstop in
+`migrations/before_open.dart`. The rung creates the tables and their indexes
+with create-if-missing statements and has an idempotent assert like the
+existing plan column asserts, so a database that already carries them is left
+alone.
 
 Every seam the plan tables already cross gets the three new tables:
 
