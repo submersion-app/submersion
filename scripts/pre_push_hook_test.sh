@@ -554,13 +554,17 @@ case "$flutter_test_args" in
         ;;
 esac
 
+# The hook's default depends on the machine's core count, so compare with the
+# value it announced rather than a fixed number.
+hook_concurrency="$(printf '%s\n' "$hook_output" \
+    | sed -n 's/.*RUN_ALL_TESTS=1, concurrency \([0-9]*\).*/\1/p' | head -1)"
 case "$flutter_test_args" in
-    *'--exclude-tags performance --concurrency=16 '*)
+    *"--exclude-tags performance --concurrency=${hook_concurrency:-none} "*)
         pass 'the bundled run keeps the tag filter and the hook concurrency'
         ;;
     *)
         fail 'the bundled run keeps the tag filter and the hook concurrency' \
-            "flutter was invoked as: $flutter_test_args"
+            "hook announced '${hook_concurrency}'; flutter was invoked as: $flutter_test_args"
         ;;
 esac
 
