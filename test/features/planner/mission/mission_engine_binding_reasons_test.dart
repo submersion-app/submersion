@@ -89,9 +89,10 @@ void main() {
   });
 
   test('a tow that runs the towed diver out of gas binds as own gas', () {
-    // The same 0.25 m/s current over 300 m: the swim is blocked, and the
-    // 0.05 m/s tow takes 6000 s, which b's gas cannot cover. The tow's own
-    // shortfall is the cause, not the mere failure of the tow.
+    // A 0.24 m/s current over 300 m: the swim is blocked, and the 0.06 m/s
+    // tow (just above the headway floor) takes 5000 s, which b's gas cannot
+    // cover. The tow's own shortfall is the cause, not the mere failure of
+    // the tow.
     final outcome = _compute(
       DpvMission(
         legs: const [
@@ -105,7 +106,7 @@ void main() {
           ),
         ],
         team: [_member('a', 0), _member('b', 1)],
-        defaultCurrent: const CurrentVector(speedMps: 0.25, setsTowardDeg: 0),
+        defaultCurrent: const CurrentVector(speedMps: 0.24, setsTowardDeg: 0),
       ),
     );
     final b = outcome.waypoints.single.members.firstWhere(
@@ -164,10 +165,11 @@ void main() {
   });
 
   test('a tow that makes headway but fails on battery is no feasible tow', () {
-    // 0.25 m/s sets outbound along the 30 m leg: the scooters make 0.25 m/s
-    // home, a 0.2 m/s swim makes none, and a 0.3 m/s tow makes 0.05 m/s,
-    // so towing takes 600 s. a's 1200 s battery cannot pay 600 s at 1.5x on
-    // top of the outbound within a one-third reserve; b's can.
+    // 0.24 m/s sets outbound along the 30 m leg: the scooters make 0.26 m/s
+    // home, a 0.2 m/s swim makes none, and a 0.3 m/s tow makes 0.06 m/s
+    // (just above the headway floor), so towing takes 500 s. a's 1100 s
+    // battery cannot pay 500 s at 1.5x on top of the outbound within a
+    // one-third reserve; b's can.
     final outcome = _compute(
       DpvMission(
         legs: const [
@@ -180,8 +182,8 @@ void main() {
             headingDeg: 0,
           ),
         ],
-        team: [_member('a', 0, burn: 1200), _member('b', 1)],
-        defaultCurrent: const CurrentVector(speedMps: 0.25, setsTowardDeg: 0),
+        team: [_member('a', 0, burn: 1100), _member('b', 1)],
+        defaultCurrent: const CurrentVector(speedMps: 0.24, setsTowardDeg: 0),
       ),
     );
     final b = outcome.waypoints.single.members.firstWhere(

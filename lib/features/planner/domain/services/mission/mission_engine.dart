@@ -320,13 +320,15 @@ class MissionEngine {
         exitBottomSeconds: 0,
         ttsSeconds: 0,
         exitLitersByMember: const {},
+        failed: true,
       );
     }
   }
 
   /// The open-water surface exit at waypoint [k] after [failedMemberId]'s
-  /// scooter dies, or null (with a warning) when it cannot be run.
-  ExitOutcome? _evaluateSurface({
+  /// scooter dies; a failed, infeasible exit (with a warning) when it cannot
+  /// be run, so the binding factor does not blame the current for it.
+  ExitOutcome _evaluateSurface({
     required domain.DivePlan plan,
     required DpvMission mission,
     required int k,
@@ -351,7 +353,14 @@ class MissionEngine {
           memberId: failedMemberId,
         ),
       );
-      return null;
+      return const ExitOutcome(
+        mode: MissionExitMode.surface,
+        feasible: false,
+        exitBottomSeconds: 0,
+        ttsSeconds: 0,
+        exitLitersByMember: {},
+        failed: true,
+      );
     }
   }
 

@@ -54,7 +54,9 @@ enum MissionIssueSeverity { info, warning, blocking }
 /// (in practice CNS from the extra time). [blockedByCurrent]: no exit can make headway. [noFeasibleTow]:
 /// only when the member has a teammate whose tow was possible but failed.
 /// [surfaceSwimLimit]: open water, the only way out is a surface swim longer
-/// than the mission's limit.
+/// than the mission's limit. [scenarioFailed]: an exit could not be computed
+/// at all, so no physical cause is known; last, so a teammate's real cause
+/// wins a tie.
 enum MissionBindingFactor {
   battery,
   ownGas,
@@ -63,6 +65,7 @@ enum MissionBindingFactor {
   blockedByCurrent,
   noFeasibleTow,
   surfaceSwimLimit,
+  scenarioFailed,
 }
 
 /// One issue found while computing a mission. Carries ids, not prose; the

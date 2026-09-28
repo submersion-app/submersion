@@ -74,6 +74,7 @@ class MissionScenarioService {
     String? towerId,
     MissionProfile? outbound,
   }) {
+    _requireTank(plan);
     if (mode == MissionExitMode.surface) {
       throw ArgumentError.value(
         mode,
@@ -182,6 +183,7 @@ class MissionScenarioService {
     String? failedMemberId,
     MissionProfile? outbound,
   }) {
+    _requireTank(plan);
     final out =
         outbound ??
         builder.outbound(
@@ -293,6 +295,7 @@ class MissionScenarioService {
     required int waypointIndex,
     MissionProfile? outbound,
   }) {
+    _requireTank(plan);
     final cruise = cruiseSpeedMps(mission.team);
     final out =
         outbound ??
@@ -311,5 +314,14 @@ class MissionScenarioService {
       divers: const [],
     );
     return result.exitBottomSeconds + result.ttsSeconds;
+  }
+
+  /// Every scenario breathes from the plan's cylinders. MissionEngine reports
+  /// a plan without one as planHasNoTank before running any; a direct caller
+  /// gets this instead of an index out of range deep in the segment builder.
+  static void _requireTank(domain.DivePlan plan) {
+    if (plan.tanks.isEmpty) {
+      throw ArgumentError.value(plan.id, 'plan', 'has no tank');
+    }
   }
 }

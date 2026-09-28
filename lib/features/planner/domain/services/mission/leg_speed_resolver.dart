@@ -5,6 +5,12 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/features/planner/domain/entities/mission/current_vector.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
 
+/// Slowest speed over the ground that still counts as headway, in m/s
+/// (3 m/min). Below it a 300 m leg takes over an hour and a half, and the
+/// leg time would carry into gas, battery and deco as if it were a plan, so
+/// such a direction is blocked like a current the diver cannot beat.
+const double kMinSpeedOverGroundMps = 0.05;
+
 /// Speed over the ground along a track in each direction, in m/s.
 class LegSpeeds extends Equatable {
   final double outboundMps;
@@ -26,8 +32,8 @@ class LegSpeeds extends Equatable {
 /// the current, so their speed over the ground is the along-track share
 /// plus `sqrt(v^2 - x^2)`. The return flips the along-track share and keeps
 /// the cross share. A cross current as fast as the diver cannot be held at
-/// all, and a direction whose speed over the ground is not positive cannot
-/// be travelled.
+/// all, and a direction whose speed over the ground is below
+/// [kMinSpeedOverGroundMps] resolves to zero: it cannot be travelled.
 class LegSpeedResolver {
   const LegSpeedResolver();
 
@@ -54,6 +60,13 @@ class LegSpeedResolver {
       return const LegSpeeds(outboundMps: 0, returnMps: 0);
     }
     final made = math.sqrt(baseSpeedMps * baseSpeedMps - cross * cross);
-    return LegSpeeds(outboundMps: made + along, returnMps: made - along);
+    return LegSpeeds(
+      outboundMps: _headway(made + along),
+      returnMps: _headway(made - along),
+    );
+  }
+
+  static double _headway(double speedOverGroundMps) {
+    return speedOverGroundMps < kMinSpeedOverGroundMps ? 0 : speedOverGroundMps;
   }
 }

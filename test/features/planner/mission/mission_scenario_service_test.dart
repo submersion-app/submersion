@@ -241,4 +241,53 @@ void main() {
       closeTo(0.24, 1e-9),
     );
   });
+
+  group('a plan with no tank', () {
+    // MissionEngine reports planHasNoTank before any scenario runs; a direct
+    // caller gets a clear argument error instead of an index out of range.
+    final noTank = _plan().copyWith(tanks: const []);
+    // Not throwsArgumentError: RangeError is an ArgumentError, so that would
+    // accept the out-of-range index this guard replaces.
+    final rejectsPlan = throwsA(
+      isA<ArgumentError>()
+          .having((e) => e, 'error', isNot(isA<RangeError>()))
+          .having((e) => e.name, 'name', 'plan'),
+    );
+
+    test('the swim and tow evaluation rejects it', () {
+      expect(
+        () => service.evaluate(
+          plan: noTank,
+          mission: _mission(),
+          waypointIndex: 0,
+          failedMemberId: 'a',
+          mode: MissionExitMode.swim,
+        ),
+        rejectsPlan,
+      );
+    });
+
+    test('the surface evaluation rejects it', () {
+      expect(
+        () => service.evaluateSurface(
+          plan: noTank,
+          mission: _mission(),
+          waypointIndex: 0,
+          failedMemberId: 'a',
+        ),
+        rejectsPlan,
+      );
+    });
+
+    test('the safe-surface time rejects it', () {
+      expect(
+        () => service.overheadSafeSurfaceSeconds(
+          plan: noTank,
+          mission: _mission(),
+          waypointIndex: 0,
+        ),
+        rejectsPlan,
+      );
+    });
+  });
 }

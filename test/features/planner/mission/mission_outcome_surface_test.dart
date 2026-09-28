@@ -25,6 +25,8 @@ void main() {
       MissionBindingFactor.blockedByCurrent,
       MissionBindingFactor.noFeasibleTow,
       MissionBindingFactor.surfaceSwimLimit,
+      // Last: a real cause found for a teammate wins the tie.
+      MissionBindingFactor.scenarioFailed,
     ]);
   });
 

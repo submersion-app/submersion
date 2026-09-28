@@ -53,6 +53,11 @@ class ExitOutcome extends Equatable {
   /// Surface exit only: no surface route is within the mission's limit.
   final bool surfaceLimitExceeded;
 
+  /// The computation of this exit threw, so nothing is known about it:
+  /// [feasible] is false, but not because of the water, the gas or the
+  /// battery.
+  final bool failed;
+
   const ExitOutcome({
     required this.mode,
     this.towerId,
@@ -69,6 +74,7 @@ class ExitOutcome extends Equatable {
     this.walkM,
     this.viaShore = false,
     this.surfaceLimitExceeded = false,
+    this.failed = false,
   });
 
   int get exitSeconds => exitBottomSeconds + ttsSeconds + surfaceSeconds;
@@ -92,6 +98,7 @@ class ExitOutcome extends Equatable {
     bool clearWalkM = false,
     bool? viaShore,
     bool? surfaceLimitExceeded,
+    bool? failed,
   }) {
     return ExitOutcome(
       mode: mode ?? this.mode,
@@ -113,6 +120,7 @@ class ExitOutcome extends Equatable {
       walkM: clearWalkM ? null : (walkM ?? this.walkM),
       viaShore: viaShore ?? this.viaShore,
       surfaceLimitExceeded: surfaceLimitExceeded ?? this.surfaceLimitExceeded,
+      failed: failed ?? this.failed,
     );
   }
 
@@ -133,5 +141,6 @@ class ExitOutcome extends Equatable {
     walkM,
     viaShore,
     surfaceLimitExceeded,
+    failed,
   ];
 }
