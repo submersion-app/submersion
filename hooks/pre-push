@@ -370,42 +370,39 @@ fi
 
 # --- Test stage ------------------------------------------------------------
 
-# Parallel test isolates. A fixed 6 left most of a modern laptop idle. Measured
-# on an 18-core M5 Pro over a 388-file run, warm cache, alternating 6/16/6/16 to
-# keep compile warmth from confounding the comparison: 162.8/162.8s at 6 against
-# 124.7/124.8s at 16, so 23% faster and both pairs replicate within 0.1s.
-# 24 measured no better than 16, so 16 is the knee -- the machine has only 6
-# performance cores, and the rest are efficiency cores.
-default_concurrency() {
-    local n
-    n=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 6)
-    case "$n" in
-        ''|*[!0-9]*) n=6 ;;
-    esac
-    if [ "$n" -gt 16 ]; then n=16; fi
-    if [ "$n" -lt 2 ]; then n=2; fi
-    printf '%s' "$n"
-}
+# Parallel test isolates: the core count, at most 16, or TEST_CONCURRENCY. The
+# default and its measurement live in scripts/test_concurrency.sh, shared with
+# scripts/run_all_tests.sh. The hook sources the copy beside itself, in the
+# main checkout, so the two files always come from the same version.
+HOOK_SCRIPTS="$(cd "$(dirname "$0")/.." && pwd)/scripts"
+if [ -f "$HOOK_SCRIPTS/test_concurrency.sh" ]; then
+    # shellcheck source=../scripts/test_concurrency.sh
+    . "$HOOK_SCRIPTS/test_concurrency.sh"
+    CONCURRENCY="$(resolve_test_concurrency)"
+else
+    echo "⚠️  $HOOK_SCRIPTS/test_concurrency.sh is missing; using 6 test isolates." >&2
+    CONCURRENCY=6
+fi
 
-# Both overrides are interpolated straight into a command (`--concurrency=` and
-# `head -n`), so a typo used to fail that command and, under set -e, abort the
-# push with an error that named neither the variable nor the value. Warn and
-# fall back instead: a mistyped tuning knob must never block a push.
+# L10N_SAMPLE is interpolated straight into `head -n`, so a typo used to fail
+# that command and, under set -e, abort the push with an error that named
+# neither the variable nor the value. Warn and fall back instead: a mistyped
+# tuning knob must never block a push. The value is read as decimal (08 is 8),
+# and zero in any spelling is refused.
 sanitized_override() {
     local name="$1" value="$2" fallback="$3"
     case "$value" in
-        ''|*[!0-9]*|0)
-            echo "⚠️  Ignoring invalid ${name}='${value}'; using ${fallback}." >&2
-            printf '%s' "$fallback"
+        ''|*[!0-9]*) ;;
+        *)
+            if [ "$((10#$value))" -gt 0 ]; then
+                printf '%s' "$((10#$value))"
+                return
+            fi
             ;;
-        *) printf '%s' "$value" ;;
     esac
+    echo "⚠️  Ignoring invalid ${name}='${value}'; using ${fallback}." >&2
+    printf '%s' "$fallback"
 }
-
-CONCURRENCY="$(default_concurrency)"
-if [ -n "${TEST_CONCURRENCY:-}" ]; then
-    CONCURRENCY="$(sanitized_override TEST_CONCURRENCY "$TEST_CONCURRENCY" "$CONCURRENCY")"
-fi
 
 L10N_SAMPLE_SIZE=40
 if [ -n "${L10N_SAMPLE:-}" ]; then
@@ -449,8 +446,8 @@ if [ "${SKIP_TESTS:-0}" = "1" ]; then
 fi
 
 # The full suite runs through scripts/run_all_tests.sh, which bundles it (issue
-# #2512: 10m11s as separate files, 3m18s bundled, on an 18-core Mac at -j 16)
-# and lists the failing test files if any fail. It runs from the tree being
+# #2512: 10m11s as separate files, 2m52s bundled, on an 18-core Mac at -j 16)
+# and names the files that failed or did not compile. It runs from the tree being
 # pushed. This hook runs from the main checkout for every worktree, so a branch
 # cut before that script existed gets the plain run instead.
 run_full_suite() {

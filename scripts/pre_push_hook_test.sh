@@ -101,6 +101,9 @@ make_fixture() {
     # path in the real repo, so every worktree executes this exact file.
     cp "$HOOK_SRC" "$main_tree/hooks/pre-push"
     chmod +x "$main_tree/hooks/pre-push"
+    # The hook sources its concurrency helper from beside itself.
+    mkdir -p "$main_tree/scripts"
+    cp "$REPO_ROOT/scripts/test_concurrency.sh" "$main_tree/scripts/test_concurrency.sh"
 
     git worktree add -q "$tmp/wt" -b feature
     cd "$tmp/wt" || exit 1
@@ -309,6 +312,9 @@ make_proximity_fixture() {
 
     cp "$HOOK_SRC" "$main_tree/hooks/pre-push"
     chmod +x "$main_tree/hooks/pre-push"
+    # The hook sources its concurrency helper from beside itself.
+    mkdir -p "$main_tree/scripts"
+    cp "$REPO_ROOT/scripts/test_concurrency.sh" "$main_tree/scripts/test_concurrency.sh"
 
     git worktree add -q "$tmp/wt" -b feature
     cd "$tmp/wt" || exit 1
@@ -492,6 +498,26 @@ else
     fail 'falls back to the default sample size of 40' "selected $selected_l10n of 60"
 fi
 
+# Zero in another spelling is still zero: `head -n 000` would select nothing.
+run_hook "$tmp" TEST_CONCURRENCY=00 L10N_SAMPLE=000
+
+case "$hook_output" in
+    *"invalid TEST_CONCURRENCY='00'"*"invalid L10N_SAMPLE='000'"*)
+        pass 'refuses zero spelled 00 or 000'
+        ;;
+    *)
+        fail 'refuses zero spelled 00 or 000' "output: $hook_output"
+        ;;
+esac
+
+selected_l10n="$(printf '%s\n' "$hook_output" | grep -c 'test/features/gamma/l10n_' || true)"
+if [ "$selected_l10n" -eq 40 ]; then
+    pass 'a zero sample size falls back to 40 instead of selecting nothing'
+else
+    fail 'a zero sample size falls back to 40 instead of selecting nothing' \
+        "selected $selected_l10n of 60"
+fi
+
 rm -rf "$tmp"
 
 # Build a repo for the full-suite path: runnable test files, the real
@@ -517,11 +543,15 @@ make_full_run_fixture() {
     done
     cp "$REPO_ROOT/scripts/bundle_tests.py" scripts/bundle_tests.py
     cp "$REPO_ROOT/scripts/run_all_tests.sh" scripts/run_all_tests.sh
+    cp "$REPO_ROOT/scripts/test_concurrency.sh" scripts/test_concurrency.sh
     git add -A
     git commit -q -m 'initial'
 
     cp "$HOOK_SRC" "$main_tree/hooks/pre-push"
     chmod +x "$main_tree/hooks/pre-push"
+    # The hook sources its concurrency helper from beside itself.
+    mkdir -p "$main_tree/scripts"
+    cp "$REPO_ROOT/scripts/test_concurrency.sh" "$main_tree/scripts/test_concurrency.sh"
 
     git worktree add -q "$tmp/wt" -b feature
     cd "$tmp/wt" || exit 1
@@ -545,7 +575,7 @@ tmp="$(make_full_run_fixture)"
 run_hook "$tmp" RUN_ALL_TESTS=1
 
 case "$flutter_test_args" in
-    *'test/.bundles/bundle_'*)
+    *'test/.bundles/'*'/bundle_'*)
         pass 'RUN_ALL_TESTS=1 hands flutter test the generated bundles'
         ;;
     *)

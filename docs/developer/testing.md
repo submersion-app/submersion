@@ -44,18 +44,22 @@ scripts/run_all_tests.sh
 ```
 
 It runs from the repository root wherever you start it, excludes performance
-tests, and passes any other arguments to `flutter test`, such as
-`scripts/run_all_tests.sh --coverage`. `TEST_CONCURRENCY=N` sets the number of
-parallel test isolates (default: the core count, at most 16). If a test fails,
-it lists the failing test files, so one can be rerun on its own with
-`flutter test <path>`, and exits non-zero. `RUN_ALL_TESTS=1 git push` runs the
-same script before pushing.
+tests, and passes options to `flutter test`, such as
+`scripts/run_all_tests.sh --coverage`. The whole suite goes to one
+`flutter test` call, so a coverage report covers all of it. It takes options
+only: to run particular files, use `flutter test <paths>`. `TEST_CONCURRENCY=N`
+sets the number of parallel test isolates (default: the core count, at most
+16). If anything fails, it names the test files that failed, did not compile or
+could not load, so one can be rerun on its own with `flutter test <path>`, and
+exits non-zero. `RUN_ALL_TESTS=1 git push` runs the same script before pushing.
 
 Measured on an 18-core Mac at `--concurrency=16` (issue #2512), the whole suite
-took 10 min 11 s as separate files and 3 min 18 s through the script, which
-builds bundles of up to 40 test files and passes them in calls of 100 so each
-command line stays within Windows' limit. Without `python3` the script runs the
-files one by one, as plain `flutter test` does:
+took 10 min 11 s as separate files and 2 min 52 s as bundles of up to 40 test
+files. Each run keeps its bundles in its own directory under `test/.bundles`,
+so it leaves bundles made by another run alone. Under Git Bash on Windows, where
+a command line is limited to 8,191 characters, the script rebuilds the bundles
+with more files each until their paths fit. Without `python3` it runs the files
+one by one, as plain `flutter test` does:
 
 ```bash
 flutter test
