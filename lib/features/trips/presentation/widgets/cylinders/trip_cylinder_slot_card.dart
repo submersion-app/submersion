@@ -22,7 +22,13 @@ Future<bool> confirmDeleteTripCylinder(
 ) async {
   final l10n = context.l10n;
   final repo = ref.read(tripCylinderRepositoryProvider);
-  final used = await repo.countLinkedDives(cylinder.id);
+  final int used;
+  try {
+    used = await repo.countLinkedDives(cylinder.id);
+  } catch (_) {
+    if (context.mounted) showTripCylinderChangeFailed(context);
+    return false;
+  }
   if (!context.mounted) return false;
   final confirmed = await showDialog<bool>(
     context: context,

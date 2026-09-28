@@ -373,6 +373,89 @@ void main() {
     expect(copy!.stationName, 'Budget Marine');
   });
 
+  testWidgets('unchecking a slot after a failed save removes its fill', (
+    tester,
+  ) async {
+    final a = cylinders[0].id;
+    final b = cylinders[1].id;
+    await pumpAndOpen(
+      tester,
+      preselected: {a, b},
+      several: true,
+      copier: _FlakyCopier(failures: 1),
+    );
+    await type(tester, 'fill-pressure', '200');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(Key('fill-slot-$a')));
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(await repo.getEventsForCylinder(a), isEmpty);
+    expect(await repo.getEventsForCylinder(b), hasLength(1));
+  });
+
+  testWidgets('a station list that fails to load does not block saving', (
+    tester,
+  ) async {
+    await db
+        .into(db.diveCenters)
+        .insert(
+          DiveCentersCompanion.insert(
+            id: 'dc1',
+            name: 'Budget Marine',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    final first = cylinders.first;
+    final at = DateTime.utc(2026, 3, 9, 8);
+    states = [
+      foldCylinderState(
+        cylinder: first,
+        events: [
+          TripCylinderEvent(
+            id: 'f0',
+            tripCylinderId: first.id,
+            kind: TripCylinderEventKind.fill,
+            occurredAt: at,
+            diveCenterId: 'dc1',
+            createdAt: at,
+            updatedAt: at,
+          ),
+        ],
+        uses: const [],
+      ),
+      ...states.skip(1),
+    ];
+    final failing = Completer<List<DiveCenter>>();
+    await pumpAndOpen(tester, centersLoad: failing.future);
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+    failing.completeError(StateError('centers gone'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Save'), findsNothing);
+    final e = (await repo.getEventsForCylinder(first.id)).single;
+    expect(e.diveCenterId, 'dc1');
+  });
+
+  testWidgets('a negative number asks for zero or more', (tester) async {
+    await pumpAndOpen(tester);
+    await type(tester, 'fill-pressure', '-200');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enter 0 or more'), findsOneWidget);
+    expect(await repo.getEventsForCylinder(cylinders.first.id), isEmpty);
+  });
+
   group('pure rules', () {
     test('mix validity', () {
       expect(tripCylinderMixIsValid(21, 0), isTrue);

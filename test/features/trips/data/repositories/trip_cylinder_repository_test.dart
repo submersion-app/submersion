@@ -549,5 +549,57 @@ void main() {
       expect(await fills.getById('copy-1'), isNotNull);
       expect(await repository.getEventsForCylinder(a.id), hasLength(1));
     });
+
+    test('editing a slot never moves it on the board', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      final b = await repository.createCylinder(slot(label: 'B', sortOrder: 1));
+      await repository.reorderCylinders([b.id, a.id]);
+
+      // The editor still holds A as it was before the reorder.
+      await repository.updateCylinder(a.copyWith(label: 'A2'));
+
+      final listed = await repository.getCylindersForTrip(tripId);
+      expect(listed.map((x) => x.label), ['B', 'A2']);
+    });
+
+    test('an update that cannot be staged for sync changes nothing', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      final e = await repository.createEvent(fill(a.id));
+      await db.customStatement(
+        'ALTER TABLE sync_records RENAME TO sync_records_off',
+      );
+      addTearDown(
+        () => db.customStatement(
+          'ALTER TABLE sync_records_off RENAME TO sync_records',
+        ),
+      );
+
+      await expectLater(
+        repository.updateEvent(e.copyWith(pressure: 123.0)),
+        throwsA(anything),
+      );
+      await expectLater(
+        repository.updateCylinder(a.copyWith(label: 'Z')),
+        throwsA(anything),
+      );
+      final events = await repository.getEventsForCylinder(a.id);
+      expect(events.single.pressure, e.pressure);
+      expect((await repository.getCylinderById(a.id))!.label, 'A');
+    });
+
+    test('createEvents writes the whole batch or none of it', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      final made = await repository.createEvents([fill(a.id), fill(a.id)]);
+      expect(made, hasLength(2));
+
+      await expectLater(
+        repository.createEvents([
+          fill(a.id),
+          fill(a.id).copyWith(id: made.first.id),
+        ]),
+        throwsA(anything),
+      );
+      expect(await repository.getEventsForCylinder(a.id), hasLength(2));
+    });
   });
 }

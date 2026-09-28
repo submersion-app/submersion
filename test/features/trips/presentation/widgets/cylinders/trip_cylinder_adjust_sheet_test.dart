@@ -169,4 +169,14 @@ void main() {
     expect(events.single.pressure, closeTo(psi.pressureToBar(1000), 1e-9));
     expect(events.single.occurredAt, DateTime.utc(2026, 3, 9, 14));
   });
+
+  testWidgets('a negative reading asks for zero or more', (tester) async {
+    await pumpAndOpen(tester);
+    await tester.enterText(find.byKey(const Key('adjust-pressure')), '-5');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enter 0 or more'), findsOneWidget);
+    expect(await repo.getEventsForCylinder(slot.id), isEmpty);
+  });
 }

@@ -340,6 +340,23 @@ void main() {
     expect(stored.map((c) => c.label), ['B', 'C', 'A']);
   });
 
+  testWidgets('a failure before the delete dialog says so', (tester) async {
+    final a = await slot('Truck 1', 0);
+    await pumpBoard(tester, repository: _CountFailingRepository());
+
+    await tester.tap(find.byKey(Key('slot-menu-${a.id}')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete').last);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Truck 1'), findsOneWidget);
+  });
+
   test('reorderedIds moves one id and keeps the rest in order', () {
     expect(reorderedIds(['a', 'b', 'c'], 2, 0), ['c', 'a', 'b']);
     expect(reorderedIds(['a', 'b', 'c'], 0, 2), ['b', 'c', 'a']);
@@ -360,4 +377,11 @@ class _GatedRepository extends TripCylinderRepository {
     await gate.future;
     await super.reorderCylinders(orderedIds);
   }
+}
+
+/// Cannot count the dives that used a slot.
+class _CountFailingRepository extends TripCylinderRepository {
+  @override
+  Future<int> countLinkedDives(String cylinderId) async =>
+      throw StateError('count failed');
 }

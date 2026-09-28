@@ -6,7 +6,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
-import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_fill_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -90,13 +89,17 @@ class _AdjustSheetState extends ConsumerState<_AdjustSheet> {
     if (_saving) return;
     final l10n = context.l10n;
     final units = UnitFormatter(ref.read(settingsProvider));
+    final invalid = [_pressure, _o2, _he]
+        .map((c) => invalidNumberText(context, c.text, allowNegative: false))
+        .nonNulls
+        .firstOrNull;
+    if (invalid != null) {
+      setState(() => _error = invalid);
+      return;
+    }
     final pressure = _read(_pressure);
     final o2 = _read(_o2);
     final he = _read(_he);
-    if ([pressure, o2, he].any((v) => v != null && (v.isNaN || v < 0))) {
-      setState(() => _error = tripCylinderInvalidNumber(l10n));
-      return;
-    }
     final badMix = o2 == null
         ? he != null
         : !tripCylinderMixIsValid(o2, he ?? 0);

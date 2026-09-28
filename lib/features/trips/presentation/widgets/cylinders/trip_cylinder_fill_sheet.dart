@@ -123,7 +123,7 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
   /// Fills this sheet already wrote, by slot id. When a save fails after
   /// some writes (a later slot, or the passport copy), Save again updates
   /// these instead of adding a second fill to the same slot.
-  final _written = <String, TripCylinderEvent>{};
+  Map<String, TripCylinderEvent> _written = const {};
 
   static String _num(double? v, int digits) =>
       v == null ? '' : formatRoundedForInput(v, digits);
@@ -266,15 +266,19 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
       for (final id in ids)
         id: (o2: _read(_analyzedO2[id]!), he: _read(_analyzedHe[id]!)),
     };
-    final numbers = <double?>[
-      pressure,
-      o2,
-      he,
-      cost,
-      for (final a in analysis.values) ...[a.o2, a.he],
+    final fields = [
+      _pressure,
+      _o2,
+      _he,
+      _cost,
+      for (final id in ids) ...[_analyzedO2[id]!, _analyzedHe[id]!],
     ];
-    if (numbers.any((v) => v != null && (v.isNaN || v < 0))) {
-      setState(() => _error = tripCylinderInvalidNumber(l10n));
+    final invalid = fields
+        .map((c) => invalidNumberText(context, c.text, allowNegative: false))
+        .nonNulls
+        .firstOrNull;
+    if (invalid != null) {
+      setState(() => _error = invalid);
       return;
     }
     // A fill leaves pressure in the cylinder; zero would read as "Full".
@@ -299,7 +303,8 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
       final repo = ref.read(tripCylinderRepositoryProvider);
       final bar = pressure == null ? null : units.pressureToBar(pressure);
       final currency = cost == null ? null : _currency;
-      final saved = <TripCylinderEvent>[];
+      final copier = ref.read(tripFillPassportCopierProvider);
+      final List<TripCylinderEvent> saved;
       final e = widget.editing;
       if (e != null) {
         final a = analysis[e.tripCylinderId]!;
@@ -318,12 +323,27 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
           note: _note.text,
         );
         await repo.updateEvent(updated);
-        saved.add(updated);
+        saved = [updated];
       } else {
+        // A slot a failed attempt already filled and the diver has since
+        // unchecked loses that fill, and its passport copy with it.
+        for (final gone in [
+          for (final w in _written.entries)
+            if (!ids.contains(w.key)) w.value,
+        ]) {
+          await repo.deleteEvent(
+            gone.id,
+            alongside: () => copier.afterDelete(gone.id),
+          );
+          _written = {
+            for (final w in _written.entries)
+              if (w.key != gone.tripCylinderId) w.key: w.value,
+          };
+        }
         final now = DateTime.now().toUtc();
-        for (final id in ids) {
+        TripCylinderEvent filled(String id) {
           final a = analysis[id]!;
-          final fill = (_written[id] ?? _blankFill(id, now)).copyWith(
+          return (_written[id] ?? _blankFill(id, now)).copyWith(
             occurredAt: _when,
             bottleLabel: _text(_bottle[id]!),
             pressure: bar,
@@ -337,26 +357,44 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
             isPackage: _package,
             note: _note.text,
           );
-          final TripCylinderEvent stored;
-          if (_written.containsKey(id)) {
-            await repo.updateEvent(fill);
-            stored = fill;
-          } else {
-            stored = await repo.createEvent(fill);
-          }
-          _written[id] = stored;
-          saved.add(stored);
         }
+
+        // Slots already written by a failed attempt are updated, never
+        // doubled; the rest are created together in one transaction.
+        final updates = [
+          for (final id in ids)
+            if (_written.containsKey(id)) filled(id),
+        ];
+        for (final u in updates) {
+          await repo.updateEvent(u);
+        }
+        final fresh = [
+          for (final id in ids)
+            if (!_written.containsKey(id)) filled(id),
+        ];
+        final created = fresh.isEmpty
+            ? const <TripCylinderEvent>[]
+            : await repo.createEvents(fresh);
+        _written = {
+          ..._written,
+          for (final w in [...updates, ...created]) w.tripCylinderId: w,
+        };
+        saved = [for (final id in ids) _written[id]!];
       }
       // A fill on one of the diver's own cylinders is also written to its
       // passport, and an edit updates that copy (Task 6).
-      final copier = ref.read(tripFillPassportCopierProvider);
       final diverId = ref.read(currentDiverIdProvider);
       // Wait for the centers rather than reading a list still loading, or the
       // passport copy would lose its station name.
-      final centers = _centerId == null
-          ? const <DiveCenter>[]
-          : await ref.read(allDiveCentersProvider.future);
+      var centers = const <DiveCenter>[];
+      if (_centerId != null) {
+        try {
+          centers = await ref.read(allDiveCentersProvider.future);
+        } catch (_) {
+          // The fills are saved; without the list the passport copy only
+          // loses its station name, which must not fail the whole save.
+        }
+      }
       final stationName = centers
           .where((c) => c.id == _centerId)
           .firstOrNull
@@ -543,11 +581,13 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
                   contentPadding: EdgeInsets.zero,
                   title: Text(s.cylinder.label),
                   onChanged: (v) => setState(() {
-                    if (v == true) {
-                      _selected.add(s.cylinder.id);
-                    } else {
-                      _selected.remove(s.cylinder.id);
-                    }
+                    final id = s.cylinder.id;
+                    _selected = v == true
+                        ? {..._selected, id}
+                        : {
+                            for (final x in _selected)
+                              if (x != id) x,
+                          };
                   }),
                 ),
                 if (_selected.contains(s.cylinder.id))

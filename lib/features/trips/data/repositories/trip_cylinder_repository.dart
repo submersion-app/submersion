@@ -127,26 +127,30 @@ class TripCylinderRepository {
   Future<void> updateCylinder(domain.TripCylinder cylinder) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(
-        _db.tripCylinders,
-      )..where((t) => t.id.equals(cylinder.id))).write(
-        TripCylindersCompanion(
-          equipmentId: Value(cylinder.equipmentId),
-          label: Value(cylinder.label),
-          volume: Value(cylinder.volume),
-          workingPressure: Value(cylinder.workingPressure),
-          material: Value(cylinder.material?.name),
-          presetName: Value(cylinder.presetName),
-          sortOrder: Value(cylinder.sortOrder),
-          notes: Value(cylinder.notes),
-          updatedAt: Value(now),
-        ),
-      );
-      await _syncRepository.markRecordPending(
-        entityType: 'tripCylinders',
-        recordId: cylinder.id,
-        localUpdatedAt: now,
-      );
+      // Write and stage in one transaction, as the creates do: a failed
+      // stage must not leave a local edit that never syncs. Board order is
+      // left to reorderCylinders: the editor's copy of it may be stale.
+      await _db.transaction(() async {
+        await (_db.update(
+          _db.tripCylinders,
+        )..where((t) => t.id.equals(cylinder.id))).write(
+          TripCylindersCompanion(
+            equipmentId: Value(cylinder.equipmentId),
+            label: Value(cylinder.label),
+            volume: Value(cylinder.volume),
+            workingPressure: Value(cylinder.workingPressure),
+            material: Value(cylinder.material?.name),
+            presetName: Value(cylinder.presetName),
+            notes: Value(cylinder.notes),
+            updatedAt: Value(now),
+          ),
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'tripCylinders',
+          recordId: cylinder.id,
+          localUpdatedAt: now,
+        );
+      });
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
@@ -226,6 +230,21 @@ class TripCylinderRepository {
         error: e,
         stackTrace: stackTrace,
       );
+      rethrow;
+    }
+  }
+
+  /// Inserts every event in [events] in one transaction, so one save of
+  /// several fills commits once (one refresh) and a failure adds none.
+  Future<List<domain.TripCylinderEvent>> createEvents(
+    List<domain.TripCylinderEvent> events,
+  ) async {
+    try {
+      return await _db.transaction(
+        () async => [for (final e in events) await createEvent(e)],
+      );
+    } catch (e, stackTrace) {
+      _log.error('Failed to create events', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -356,31 +375,35 @@ class TripCylinderRepository {
   Future<void> updateEvent(domain.TripCylinderEvent event) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(
-        _db.tripCylinderEvents,
-      )..where((t) => t.id.equals(event.id))).write(
-        TripCylinderEventsCompanion(
-          kind: Value(event.kind.name),
-          occurredAt: Value(event.occurredAt.millisecondsSinceEpoch),
-          bottleLabel: Value(event.bottleLabel),
-          pressure: Value(event.pressure),
-          o2Percent: Value(event.o2Percent),
-          hePercent: Value(event.hePercent),
-          analyzedO2: Value(event.analyzedO2),
-          analyzedHe: Value(event.analyzedHe),
-          diveCenterId: Value(event.diveCenterId),
-          cost: Value(event.cost),
-          currency: Value(event.currency),
-          isPackage: Value(event.isPackage),
-          note: Value(event.note),
-          updatedAt: Value(now),
-        ),
-      );
-      await _syncRepository.markRecordPending(
-        entityType: 'tripCylinderEvents',
-        recordId: event.id,
-        localUpdatedAt: now,
-      );
+      // Write and stage in one transaction, as the creates do: a failed
+      // stage must not leave a local edit that never syncs.
+      await _db.transaction(() async {
+        await (_db.update(
+          _db.tripCylinderEvents,
+        )..where((t) => t.id.equals(event.id))).write(
+          TripCylinderEventsCompanion(
+            kind: Value(event.kind.name),
+            occurredAt: Value(event.occurredAt.millisecondsSinceEpoch),
+            bottleLabel: Value(event.bottleLabel),
+            pressure: Value(event.pressure),
+            o2Percent: Value(event.o2Percent),
+            hePercent: Value(event.hePercent),
+            analyzedO2: Value(event.analyzedO2),
+            analyzedHe: Value(event.analyzedHe),
+            diveCenterId: Value(event.diveCenterId),
+            cost: Value(event.cost),
+            currency: Value(event.currency),
+            isPackage: Value(event.isPackage),
+            note: Value(event.note),
+            updatedAt: Value(now),
+          ),
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'tripCylinderEvents',
+          recordId: event.id,
+          localUpdatedAt: now,
+        );
+      });
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(

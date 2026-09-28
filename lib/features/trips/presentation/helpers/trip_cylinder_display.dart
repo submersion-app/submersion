@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/utils/locale_number_symbols.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
@@ -41,11 +40,6 @@ void showTripCylinderChangeFailed(BuildContext context) {
     context,
   ).showSnackBar(SnackBar(content: Text(context.l10n.common_error_tryAgain)));
 }
-
-/// The message for a number the sheets cannot read, naming the decimal
-/// separator the diver's locale expects.
-String tripCylinderInvalidNumber(AppLocalizations l10n) =>
-    l10n.numberInput_invalidNumber(localeNumberFormat().symbols.DECIMAL_SEP);
 
 typedef TripCylinderCounts = ({int full, int partial, int empty, int unknown});
 

@@ -7,9 +7,9 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_specs_input.dart';
-import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Opens the editor for one trip cylinder slot: its label, size, working
 /// pressure and note. Picking a preset fills the size and pressure; typing
@@ -66,6 +66,20 @@ class _TripCylinderEditSheetState
       text: cylinderWorkingPressureForInput(units, c.workingPressure),
     );
     _notes = TextEditingController(text: c.notes);
+    // Opened before the presets loaded, an imperial size fell back to the
+    // ideal gas figure; show the preset's rated capacity once it arrives,
+    // unless the diver has already made the slot custom.
+    ref.listenManual(tankPresetsProvider, (previous, next) {
+      if (previous?.hasValue ?? false) return;
+      final loaded = _presetNamed(_presetName);
+      if (loaded == null || !mounted) return;
+      _size.text = cylinderSizeForInput(
+        UnitFormatter(ref.read(settingsProvider)),
+        liters: c.volume,
+        workingPressureBar: c.workingPressure,
+        ratedCuft: loaded.ratedCapacityCuft,
+      );
+    });
   }
 
   @override
@@ -125,7 +139,14 @@ class _TripCylinderEditSheetState
     if (specs.invalid || specs.needsPressure) {
       setState(
         () => _error = specs.invalid
-            ? tripCylinderInvalidNumber(l10n)
+            // Unreadable or negative says which; what is left is a zero.
+            ? invalidNumberText(context, _size.text, allowNegative: false) ??
+                  invalidNumberText(
+                    context,
+                    _workingPressure.text,
+                    allowNegative: false,
+                  ) ??
+                  l10n.numberInput_atLeastOne
             : l10n.trips_cylinders_edit_errorNeedsPressure,
       );
       return;
@@ -164,9 +185,11 @@ class _TripCylinderEditSheetState
     final units = UnitFormatter(ref.watch(settingsProvider));
     final presetsAsync = ref.watch(tankPresetsProvider);
     final presets = presetsAsync.value ?? const [];
-    // Save needs the presets: without them a preset-backed slot would lose
-    // its preset and exact specs on an unchanged save.
-    final presetsMissing = !presetsAsync.hasValue;
+    // A preset-backed slot needs the presets to save: without them an
+    // unchanged save would lose its preset and exact specs. A custom slot
+    // does not depend on them.
+    final presetsMissing =
+        !presetsAsync.hasValue && widget.cylinder.presetName != null;
     final known = presets.any((p) => p.name == _presetName);
     return Padding(
       padding: EdgeInsets.only(

@@ -231,4 +231,39 @@ void main() {
     await tester.pumpAndSettle();
     expect((await repo.getCylinderById(slot.id))!.presetName, 'al80');
   });
+
+  testWidgets('an imperial size takes the rated capacity once presets load', (
+    tester,
+  ) async {
+    final imperial = MockSettingsNotifier();
+    await imperial.setImperial();
+    final pending = Completer<List<TankPresetEntity>>();
+    await pumpAndOpen(
+      tester,
+      settings: imperial,
+      presetsLoad: pending.future,
+      settle: false,
+    );
+    pending.complete(presets);
+    await tester.pumpAndSettle();
+
+    final size = tester.widget<TextField>(field('Size (cuft)'));
+    expect(size.controller!.text, '77');
+  });
+
+  testWidgets('a custom slot can be saved when presets fail to load', (
+    tester,
+  ) async {
+    await repo.updateCylinder(slot.copyWith(presetName: null, material: null));
+    slot = (await repo.getCylinderById(slot.id))!;
+    final failing = Completer<List<TankPresetEntity>>();
+    await pumpAndOpen(tester, presetsLoad: failing.future, settle: false);
+    failing.completeError(StateError('presets gone'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(field('Label'), 'Truck Z');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect((await repo.getCylinderById(slot.id))!.label, 'Truck Z');
+  });
 }

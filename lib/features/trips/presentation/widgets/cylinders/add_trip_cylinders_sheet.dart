@@ -78,7 +78,7 @@ class _AddTripCylindersSheetState
   final _prefix = TextEditingController();
   bool _prefixSeeded = false;
   String? _presetName = 'al80';
-  final Set<String> _owned = {};
+  Set<String> _owned = const {};
   bool _saving = false;
   String? _error;
 
@@ -290,11 +290,12 @@ class _AddTripCylindersSheetState
                           ),
                         ),
                   onChanged: (v) => setState(() {
-                    if (v == true) {
-                      _owned.add(e.id);
-                    } else {
-                      _owned.remove(e.id);
-                    }
+                    _owned = v == true
+                        ? {..._owned, e.id}
+                        : {
+                            for (final x in _owned)
+                              if (x != e.id) x,
+                          };
                   }),
                 ),
             if (presetsFailed ? l10n.common_error_tryAgain : _error
