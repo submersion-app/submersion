@@ -43835,10 +43835,28 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_courses_agency => 'ארגון';
 
   @override
+  String get query_courses_certification => 'הסמכה';
+
+  @override
   String get query_courses_completionDate => 'תאריך סיום';
 
   @override
+  String get query_courses_dives => 'צלילות';
+
+  @override
+  String get query_courses_instructor => 'מדריך';
+
+  @override
+  String get query_courses_instructorName => 'שם המדריך';
+
+  @override
+  String get query_courses_location => 'מיקום';
+
+  @override
   String get query_courses_name => 'שם';
+
+  @override
+  String get query_courses_notes => 'הערות';
 
   @override
   String get query_courses_startDate => 'תאריך התחלה';

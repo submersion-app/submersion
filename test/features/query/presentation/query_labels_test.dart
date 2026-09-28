@@ -85,5 +85,7 @@ void main() {
     final certs = appQueryRegistry.entityFor(QuerySubject.certifications);
     expect(labels.enumValue(certs.field('agency')!, 'padi'), 'PADI');
     expect(labels.enumValue(certs.field('level')!, 'rescue'), 'Rescue Diver');
+    final courses = appQueryRegistry.entityFor(QuerySubject.courses);
+    expect(labels.enumValue(courses.field('agency')!, 'padi'), 'PADI');
   });
 }

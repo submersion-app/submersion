@@ -44387,10 +44387,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_courses_agency => 'الهيئة';
 
   @override
+  String get query_courses_certification => 'الاعتماد';
+
+  @override
   String get query_courses_completionDate => 'تاريخ الإكمال';
 
   @override
+  String get query_courses_dives => 'الغطسات';
+
+  @override
+  String get query_courses_instructor => 'المدرب';
+
+  @override
+  String get query_courses_instructorName => 'اسم المدرب';
+
+  @override
+  String get query_courses_location => 'الموقع';
+
+  @override
   String get query_courses_name => 'الاسم';
+
+  @override
+  String get query_courses_notes => 'ملاحظات';
 
   @override
   String get query_courses_startDate => 'تاريخ البدء';

@@ -44547,10 +44547,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_courses_agency => 'Szervezet';
 
   @override
+  String get query_courses_certification => 'Képesítés';
+
+  @override
   String get query_courses_completionDate => 'Befejezés dátuma';
 
   @override
+  String get query_courses_dives => 'Merülések';
+
+  @override
+  String get query_courses_instructor => 'Oktató';
+
+  @override
+  String get query_courses_instructorName => 'Oktató neve';
+
+  @override
+  String get query_courses_location => 'Helyszín';
+
+  @override
   String get query_courses_name => 'Név';
+
+  @override
+  String get query_courses_notes => 'Jegyzetek';
 
   @override
   String get query_courses_startDate => 'Kezdő dátum';

@@ -42142,10 +42142,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_courses_agency => '认证机构';
 
   @override
+  String get query_courses_certification => '认证';
+
+  @override
   String get query_courses_completionDate => '完成日期';
 
   @override
+  String get query_courses_dives => '潜水';
+
+  @override
+  String get query_courses_instructor => '教练';
+
+  @override
+  String get query_courses_instructorName => '教练姓名';
+
+  @override
+  String get query_courses_location => '地点';
+
+  @override
   String get query_courses_name => '名称';
+
+  @override
+  String get query_courses_notes => '备注';
 
   @override
   String get query_courses_startDate => '开始日期';

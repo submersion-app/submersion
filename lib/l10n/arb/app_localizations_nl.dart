@@ -44432,10 +44432,28 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_courses_agency => 'Organisatie';
 
   @override
+  String get query_courses_certification => 'Certificering';
+
+  @override
   String get query_courses_completionDate => 'Voltooiingsdatum';
 
   @override
+  String get query_courses_dives => 'Duiken';
+
+  @override
+  String get query_courses_instructor => 'Instructeur';
+
+  @override
+  String get query_courses_instructorName => 'Naam instructeur';
+
+  @override
+  String get query_courses_location => 'Locatie';
+
+  @override
   String get query_courses_name => 'Naam';
+
+  @override
+  String get query_courses_notes => 'Notities';
 
   @override
   String get query_courses_startDate => 'Startdatum';

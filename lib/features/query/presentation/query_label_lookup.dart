@@ -61,10 +61,22 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_computers_serialNumber;
     case 'query_courses_agency':
       return l10n.query_courses_agency;
+    case 'query_courses_certification':
+      return l10n.query_courses_certification;
     case 'query_courses_completionDate':
       return l10n.query_courses_completionDate;
+    case 'query_courses_dives':
+      return l10n.query_courses_dives;
+    case 'query_courses_instructor':
+      return l10n.query_courses_instructor;
+    case 'query_courses_instructorName':
+      return l10n.query_courses_instructorName;
+    case 'query_courses_location':
+      return l10n.query_courses_location;
     case 'query_courses_name':
       return l10n.query_courses_name;
+    case 'query_courses_notes':
+      return l10n.query_courses_notes;
     case 'query_courses_startDate':
       return l10n.query_courses_startDate;
     case 'query_customFields_key':

@@ -95,6 +95,7 @@ class AppQueryLabels implements QueryLabels {
       case 'query_sites_difficulty':
         return byName(SiteDifficulty.values)?.localizedName(_l10n) ?? value;
       case 'query_certifications_agency':
+      case 'query_courses_agency':
         return byName(CertificationAgency.values)?.localizedName(_l10n) ??
             value;
       case 'query_certifications_level':

@@ -44637,10 +44637,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_courses_agency => 'Verband';
 
   @override
+  String get query_courses_certification => 'Zertifizierung';
+
+  @override
   String get query_courses_completionDate => 'Abschlussdatum';
 
   @override
+  String get query_courses_dives => 'Tauchgänge';
+
+  @override
+  String get query_courses_instructor => 'Tauchlehrer';
+
+  @override
+  String get query_courses_instructorName => 'Name des Instructors';
+
+  @override
+  String get query_courses_location => 'Ort';
+
+  @override
   String get query_courses_name => 'Name';
+
+  @override
+  String get query_courses_notes => 'Notizen';
 
   @override
   String get query_courses_startDate => 'Startdatum';
