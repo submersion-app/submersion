@@ -4,6 +4,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.d
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 
 /// Fixtures that touch every column of the three CSV exports. Values are
 /// fixed (no clock, no time zone dependence) so the goldens are stable on
@@ -201,3 +202,42 @@ List<EquipmentItem> roundTripEquipment() => [
           )
         : item,
 ];
+
+/// Two fills for the fills sheet (cylinder passports phase 5): one linked to
+/// the AL80 of [goldenEquipment] with every column set, one unlinked trimix
+/// fill read from a tag with the optional columns empty. Wall-clock instants
+/// are local, the way LogFillSheet stores them.
+List<CylinderFill> goldenFills() => [
+  CylinderFill(
+    id: '3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11',
+    diverId: 'diver-1',
+    passportId: 'pp-al80',
+    equipmentId: 'e-tank',
+    filledAt: DateTime(2025, 3, 15, 9, 5),
+    o2Percent: 32,
+    pressureBar: 206.843,
+    temperatureC: 22,
+    analyzer: 'Analox O2EII',
+    stationName: 'Blue Hole Dive Center',
+    notes: 'Topped off\nafter analysis',
+    createdAt: DateTime(2025, 3, 15, 9, 6),
+    updatedAt: DateTime(2025, 3, 15, 9, 6),
+  ),
+  CylinderFill(
+    id: '8a1d4c47-9e2a-4b7d-8c9e-0f113f0c2b8e',
+    diverId: 'diver-1',
+    passportId: 'pp-foreign',
+    filledAt: DateTime(2025, 3, 16, 14, 30),
+    o2Percent: 18,
+    hePercent: 45,
+    pressureBar: 180,
+    source: FillSource.nfc,
+    createdAt: DateTime(2025, 3, 16, 14, 31),
+    updatedAt: DateTime(2025, 3, 16, 14, 31),
+  ),
+];
+
+/// The cylinder [goldenFills] links to, by id, for the display columns.
+Map<String, EquipmentItem> goldenFillEquipment() => {
+  'e-tank': goldenEquipment()[2],
+};

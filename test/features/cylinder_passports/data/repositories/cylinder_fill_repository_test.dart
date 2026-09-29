@@ -223,4 +223,67 @@ void main() {
     await repo.delete(created.id);
     expect(await repo.wasDeleted('f-1'), isTrue);
   });
+
+  test('getAllVisibleTo reads the diver\'s own, shared and unlinked fills, '
+      'newest first', () async {
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'd2',
+            name: 'd2',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'eq-2',
+            name: 'eq-2',
+            type: 'tank',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value('d2'),
+          ),
+        );
+    // d2 shares eq-2 with d1, so eq-2's fills are d1's to see.
+    await db
+        .into(db.equipmentShares)
+        .insert(
+          EquipmentSharesCompanion.insert(
+            id: 'share-1',
+            equipmentId: 'eq-2',
+            diverId: 'd1',
+            createdAt: t,
+          ),
+        );
+    await repo.create(fill('own', t0)); // eq-1, d1
+    await repo.create(
+      fill('unlinked', t0.add(const Duration(hours: 1)), equipmentId: null),
+    );
+    await repo.create(
+      fill(
+        'shared',
+        t0.add(const Duration(hours: 2)),
+        equipmentId: 'eq-2',
+      ).copyWith(diverId: 'd2'),
+    );
+    await repo.create(
+      fill(
+        'other-unlinked',
+        t0.add(const Duration(hours: 3)),
+        equipmentId: null,
+      ).copyWith(diverId: 'd2'),
+    );
+
+    final visible = await repo.getAllVisibleTo('d1');
+    expect(visible.map((f) => f.id), ['shared', 'unlinked', 'own']);
+    expect((await repo.getAllVisibleTo('d2')).map((f) => f.id), [
+      'other-unlinked',
+      'shared',
+    ]);
+  });
 }

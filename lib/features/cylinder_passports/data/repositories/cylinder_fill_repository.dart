@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -101,6 +102,29 @@ class CylinderFillRepository {
             .get();
     final owned = await _ownedElsewhere(rows, equipmentId);
     return rows.where((r) => !owned.contains(r.id)).map(_fromRow).toList();
+  }
+
+  /// Every fill [diverId] can see, newest first, for the fills CSV (spec
+  /// section 10.8): those linked to a cylinder the diver owns or has been
+  /// shared, and unlinked ones the diver logged or imported.
+  Future<List<CylinderFill>> getAllVisibleTo(String diverId) async {
+    final eq = _db.equipment;
+    final visibleEquipment = _db.selectOnly(eq)
+      ..addColumns([eq.id])
+      ..where(VisibilityFilter.equipmentVisibleTo(_db, eq, diverId)!);
+    final rows =
+        await (_db.select(_db.cylinderFills)
+              ..where(
+                (t) =>
+                    t.equipmentId.isInQuery(visibleEquipment) |
+                    (t.equipmentId.isNull() & t.diverId.equals(diverId)),
+              )
+              ..orderBy([
+                (t) => OrderingTerm.desc(t.filledAt),
+                (t) => OrderingTerm.asc(t.id),
+              ]))
+            .get();
+    return rows.map(_fromRow).toList();
   }
 
   /// Ids of [rows] linked to a live cylinder other than [equipmentId].

@@ -317,12 +317,15 @@ class FormatDetector {
     // recognised exactly and routed to their dedicated parsers (#1813).
     final rawHeaders = rows.first.map((e) => e.toString().trim()).toList();
     final kind = SubmersionCsvSignatures.match(rawHeaders);
-    if (kind != null) {
+    if (kind != null && kind != SubmersionCsvKind.fills) {
       return DetectionResult(
         format: switch (kind) {
           SubmersionCsvKind.dives => ImportFormat.submersionDivesCsv,
           SubmersionCsvKind.sites => ImportFormat.submersionSitesCsv,
           SubmersionCsvKind.equipment => ImportFormat.submersionEquipmentCsv,
+          // The fills sheet reads as a generic CSV until it has a format
+          // and a parser of its own (issue #2339).
+          SubmersionCsvKind.fills => ImportFormat.csv,
         },
         sourceApp: SourceApp.submersion,
         confidence: 1.0,
