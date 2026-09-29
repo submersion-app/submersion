@@ -84,8 +84,21 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
           hideSpare: false,
           onEquipmentSelected: (item) {
             Navigator.of(context).pop();
-            final spec = const ScooterSpecResolver().fromEquipment(item);
-            if (spec == null) return;
+            // An item logged without a speed or burn time still brings its
+            // name, link and whatever numbers it has; validation names the
+            // missing ones, and the next load picks them up once logged.
+            final spec =
+                const ScooterSpecResolver().fromEquipment(item) ??
+                ScooterSpec(
+                  equipmentId: item.id,
+                  name: item.name,
+                  ratedSpeedMps: item.dpvSpeedMps ?? 0,
+                  burnTimeSeconds: ((item.dpvBurnTimeHours ?? 0) * 3600)
+                      .round(),
+                  towSpeedFactor:
+                      item.dpvTowSpeedFactor ?? kDefaultTowSpeedFactor,
+                  towBurnFactor: item.dpvTowBurnFactor ?? kDefaultTowBurnFactor,
+                );
             setState(() {
               _scooterName.text = spec.name;
               _draft = _draft.copyWith(scooter: spec);

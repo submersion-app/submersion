@@ -81,6 +81,19 @@ Future<void> _open(
                 ),
               ],
             ),
+            // Logged with a speed but no burn time yet.
+            EquipmentItem(
+              id: 'eq-2',
+              name: 'Half-logged DPV',
+              type: EquipmentType.dpv,
+              attributes: [
+                EquipmentAttribute.curated(
+                  equipmentId: 'eq-2',
+                  key: 'speed_mps',
+                  valueNum: 0.8,
+                ),
+              ],
+            ),
           ],
         ),
       ],
@@ -226,5 +239,25 @@ void main() {
     );
     // 15 L/min is 0.5297 cuft/min; one decimal would round it to 0.5.
     expect(find.text('0.53'), findsOneWidget);
+  });
+
+  testWidgets('a scooter with missing numbers still brings what it has', (
+    tester,
+  ) async {
+    await _open(tester);
+    await tester.tap(find.text('Choose from equipment'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Half-logged DPV'));
+    await tester.pumpAndSettle();
+    // The name lands in the field, so the diver sees the pick took.
+    expect(find.text('Half-logged DPV'), findsOneWidget);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    final scooter = lastResult!.scooter;
+    expect(scooter.equipmentId, 'eq-2');
+    expect(scooter.name, 'Half-logged DPV');
+    expect(scooter.ratedSpeedMps, 0.8);
+    // Left for the diver to fill in; validation reports it until then.
+    expect(scooter.burnTimeSeconds, 0);
   });
 }
