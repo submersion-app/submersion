@@ -90,4 +90,22 @@ extension TripMigrations on AppDatabase {
       );
     }
   }
+
+  /// v249: the fill forecast's inputs (issue #2325, PR 4). Additive columns,
+  /// no backfill; idempotent, so it is also the beforeOpen backstop.
+  Future<void> _assertTripFillForecastColumns() async {
+    await _addColumnIfMissing(
+      'trips',
+      'divers_sharing_cylinders',
+      'INTEGER NOT NULL DEFAULT 1',
+    );
+    await _addColumnIfMissing('trips', 'dives_per_day_target', 'INTEGER');
+    await _addColumnIfMissing(
+      'trip_itinerary_days',
+      'planned_dives',
+      'INTEGER',
+    );
+    await _addColumnIfMissing('dive_centers', 'fill_opens_at', 'INTEGER');
+    await _addColumnIfMissing('dive_centers', 'fill_closes_at', 'INTEGER');
+  }
 }

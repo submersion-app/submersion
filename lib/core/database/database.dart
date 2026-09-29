@@ -227,7 +227,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 247;
+  static const int currentSchemaVersion = 249;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1004,6 +1004,11 @@ class AppDatabase extends _$AppDatabase {
     // fields read (issue #2195, phase 2). A table with no hlc, never synced,
     // so the floor does not move. 246 is held by #2409 (open).
     247,
+    // v249: the trip fill forecast's inputs (issue #2325, PR 4): trips
+    // divers sharing and dives per day, itinerary planned dives, dive
+    // center fill hours. Additive columns, so the floor does not move. 248
+    // is held by #2585 (open).
+    249,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

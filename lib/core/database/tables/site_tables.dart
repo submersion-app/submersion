@@ -125,6 +125,11 @@ class DiveCenters extends Table {
       text().nullable()(); // PADI, SSI, etc. comma-separated
   RealColumn get rating => real().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();
+
+  /// v249: fill hours for the trip fill forecast, minutes after local
+  /// midnight; null when unknown.
+  IntColumn get fillOpensAt => integer().nullable()();
+  IntColumn get fillClosesAt => integer().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

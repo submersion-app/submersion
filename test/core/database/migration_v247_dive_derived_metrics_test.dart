@@ -56,12 +56,12 @@ Future<AppDatabase> _reopenWithout({required int storedVersion}) async {
 }
 
 void main() {
-  test('v247 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 247);
+  test('v247 is in the ladder', () {
+    // Relaxed once v249 (the trip fill forecast) landed on top; the newest
+    // rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(247));
     expect(AppDatabase.migrationVersions, contains(247));
-    expect(AppDatabase.migrationStepCount(245), 1);
+    expect(AppDatabase.migrationStepCount(245), greaterThanOrEqualTo(1));
     // A device-local table: the sync compatibility floor must not move.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
