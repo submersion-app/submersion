@@ -404,8 +404,11 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       ),
     ];
 
+    // A quick plan replaces the whole profile, so it also ends a DPV mission
+    // that was generating the old one.
     state = state.copyWith(
       segments: segments,
+      clearMission: true,
       isDirty: true,
       updatedAt: DateTime.now(),
     );

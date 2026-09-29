@@ -138,6 +138,13 @@ void main() {
     expect(notifier.state.segments, before);
   });
 
+  test('a quick plan from the calculator replaces the mission', () {
+    notifier.enableMission(starter);
+    notifier.addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
+    expect(notifier.state.mission, isNull);
+    expect(notifier.state.segments, hasLength(2));
+  });
+
   group('opening a saved mission', () {
     setUp(() async => setUpTestDatabase());
     tearDown(tearDownTestDatabase);

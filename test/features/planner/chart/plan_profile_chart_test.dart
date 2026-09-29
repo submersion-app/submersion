@@ -7,6 +7,8 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
+import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
+import 'package:submersion/features/planner/domain/services/mission/mission_edits.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_edit_controller.dart';
@@ -320,5 +322,77 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(PopupMenuItem<DiveTank>), findsWidgets);
+  });
+
+  testWidgets('a DPV mission profile is read-only on the chart', (
+    tester,
+  ) async {
+    await tester.pumpWidget(harness());
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanProfileChart)),
+    );
+    final starter = MissionEdits.starter(
+      legId: 'L1',
+      memberId: 'm1',
+      memberName: 'Sam',
+      sacBottom: 15,
+    );
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .enableMission(
+          MissionEdits.updateMember(
+            MissionEdits.updateLeg(
+              starter,
+              starter.legs.single.copyWith(distanceM: 300, depthM: 20),
+            ),
+            starter.team.single.copyWith(
+              scooter: const ScooterSpec(
+                name: 'S',
+                ratedSpeedMps: 0.9,
+                burnTimeSeconds: 5400,
+              ),
+            ),
+          ),
+        );
+    await tester.pumpAndSettle();
+    final generated = container.read(divePlanNotifierProvider).segments;
+    expect(generated, isNotEmpty);
+
+    // Double-tap past the plan: would append a segment on an ordinary plan.
+    final series = container.read(planCanvasSeriesProvider);
+    final rect = tester.getRect(find.byKey(const Key('planChartOverlay')));
+    final geometry = PlanChartGeometry(
+      size: rect.size,
+      maxTimeSeconds: series.maxTimeSeconds,
+      maxDepthMeters: series.maxDepth,
+      depthUnitScale: 1,
+    );
+    final pos =
+        rect.topLeft +
+        Offset(geometry.xFor(series.maxTimeSeconds * 1.02), geometry.yFor(10));
+    await tester.tapAt(pos);
+    await tester.tapAt(pos);
+    await tester.pumpAndSettle();
+
+    // Keys on a selected segment: would deepen and delete it.
+    container.read(selectedSegmentIdProvider.notifier).state =
+        generated.first.id;
+    tester
+        .widget<Focus>(
+          find
+              .descendant(
+                of: find.byType(PlanProfileChart),
+                matching: find.byType(Focus),
+              )
+              .first,
+        )
+        .focusNode!
+        .requestFocus();
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.sendKeyEvent(LogicalKeyboardKey.delete);
+    await tester.pump();
+
+    expect(container.read(divePlanNotifierProvider).segments, generated);
   });
 }

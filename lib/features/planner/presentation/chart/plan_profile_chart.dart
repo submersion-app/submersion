@@ -152,6 +152,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
       return KeyEventResult.ignored;
     }
+    if (_readOnly) return KeyEventResult.ignored;
     final selectedId = ref.read(selectedSegmentIdProvider);
     if (selectedId == null) return KeyEventResult.ignored;
     final ordered = _orderedSegments;
@@ -201,6 +202,11 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     }
     return KeyEventResult.ignored;
   }
+
+  /// A DPV mission generates the profile from its route, so the chart only
+  /// scrubs it: an edit here would disagree with the route and be replaced
+  /// by the next mission edit.
+  bool get _readOnly => ref.read(divePlanNotifierProvider).mission != null;
 
   static double _endTimeOf(List<PlanSegment> ordered, int index) {
     var t = 0.0;
@@ -252,7 +258,11 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     );
 
     final selectedId = ref.watch(selectedSegmentIdProvider);
-    final vertices = planVertices(ref.watch(divePlanNotifierProvider).segments);
+    final plan = ref.watch(divePlanNotifierProvider);
+    // No vertices on a mission profile: no handles, no drag, no gas menu.
+    final vertices = plan.mission == null
+        ? planVertices(plan.segments)
+        : const <PlanVertex>[];
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -288,7 +298,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
         // soup of tap + double-tap + pan recognizers swallows single taps.
         void onPointerDown(PointerDownEvent event) {
           _focusNode.requestFocus();
-          if (event.buttons & kSecondaryButton != 0) {
+          if (event.buttons & kSecondaryButton != 0 && !_readOnly) {
             _showGasMenu(
               context,
               geometry,
@@ -324,7 +334,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
           final wasDrag = _dragVertex != null;
           _dragVertex = null;
           _clearScrub();
-          if (wasDrag || _moved) {
+          if (wasDrag || _moved || _readOnly) {
             _downPosition = null;
             return;
           }
