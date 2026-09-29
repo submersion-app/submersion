@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
-import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
 void main() {
@@ -16,12 +15,7 @@ void main() {
     'adds one trend per numeric field in catalog order, capped at three',
     () {
       final charts = selectCharts(
-        numericFields: const [
-          ExploreDiveField.bottomTime,
-          ExploreDiveField.depth,
-          ExploreDiveField.waterTemp,
-          ExploreDiveField.rating,
-        ],
+        numericFields: const ['bottomTime', 'depth', 'waterTemp', 'rating'],
         resolvedEntityCounts: const {MentionKind.place: 3},
       );
       expect(charts.map((c) => c.kind), [
@@ -89,7 +83,7 @@ void main() {
   test('a SAC clause draws a SAC chart', () {
     expect(
       selectCharts(
-        numericFields: const [ExploreDiveField.sac],
+        numericFields: const ['sac'],
         resolvedEntityCounts: const {},
       ),
       contains(const ChartRequest(ChartKind.sacTrend)),

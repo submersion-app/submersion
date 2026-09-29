@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/explore/domain/explore_compilation.dart';
 import 'package:submersion/core/query/names/name_index.dart';
@@ -9,10 +10,12 @@ import 'package:submersion/features/explore/domain/query_model.dart';
 /// from a local midnight lands a day early across a spring-forward change,
 /// and DateTime rolls "February 31" into March.
 void main() {
-  const units = (
+  const units = UnitPrefs(
     depth: DepthUnit.meters,
     temperature: TemperatureUnit.celsius,
     pressure: PressureUnit.bar,
+    weight: WeightUnit.kilograms,
+    volume: VolumeUnit.liters,
   );
 
   ExploreCompilation compileTime(String text, DateTime now) =>

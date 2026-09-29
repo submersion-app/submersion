@@ -1,6 +1,7 @@
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
-import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
+import 'package:submersion/features/explore/domain/explore_fields.dart';
+import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
@@ -14,7 +15,7 @@ sealed class ChipPayload {
 /// double (between), a bool (flags), a String or a List of String (enum
 /// fields).
 class ClauseChip extends ChipPayload {
-  final ExploreDiveField field;
+  final ExploreField field;
   final ClauseOp op;
   final Object value;
   final FieldDimension dimension;

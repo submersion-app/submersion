@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
@@ -265,10 +266,12 @@ void main() {
           ],
         }),
         ExploreCompilerContext(
-          units: (
+          units: const UnitPrefs(
             depth: DepthUnit.meters,
             temperature: TemperatureUnit.celsius,
             pressure: PressureUnit.bar,
+            weight: WeightUnit.kilograms,
+            volume: VolumeUnit.liters,
           ),
           names: NameIndex.empty,
           now: DateTime(2026, 9, 28),
@@ -314,10 +317,12 @@ void main() {
         ],
       }),
       ExploreCompilerContext(
-        units: (
+        units: const UnitPrefs(
           depth: DepthUnit.meters,
           temperature: TemperatureUnit.celsius,
           pressure: PressureUnit.bar,
+          weight: WeightUnit.kilograms,
+          volume: VolumeUnit.liters,
         ),
         names: NameIndex.empty,
         now: DateTime(2026, 9, 28),

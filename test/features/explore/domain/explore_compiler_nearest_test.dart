@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/names/name_index.dart';
@@ -8,10 +9,12 @@ import 'package:submersion/features/explore/domain/query_model.dart';
 /// "Did you mean" searches the kinds the resolver searches: a misspelt place
 /// can be a site, and a misspelt site can be a place.
 void main() {
-  const units = (
+  const units = UnitPrefs(
     depth: DepthUnit.meters,
     temperature: TemperatureUnit.celsius,
     pressure: PressureUnit.bar,
+    weight: WeightUnit.kilograms,
+    volume: VolumeUnit.liters,
   );
   final names = NameIndex(const [
     NameEntry(

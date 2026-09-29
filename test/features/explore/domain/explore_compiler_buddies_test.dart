@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
@@ -11,10 +12,12 @@ import 'package:submersion/features/explore/domain/query_model.dart';
 /// "Ana" match Diana and "Bob" match Bobby, while the chips claim two exact
 /// buddies.
 void main() {
-  const units = (
+  const units = UnitPrefs(
     depth: DepthUnit.meters,
     temperature: TemperatureUnit.celsius,
     pressure: PressureUnit.bar,
+    weight: WeightUnit.kilograms,
+    volume: VolumeUnit.liters,
   );
   final names = NameIndex(const [
     NameEntry(

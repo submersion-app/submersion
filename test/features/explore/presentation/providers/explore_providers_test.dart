@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -96,11 +98,15 @@ void main() {
     overrides: [
       nlEngineProvider.overrideWithValue(engine),
       localeProvider.overrideWithValue('en'),
-      unitPrefsProvider.overrideWithValue(const (
-        depth: DepthUnit.meters,
-        temperature: TemperatureUnit.celsius,
-        pressure: PressureUnit.bar,
-      )),
+      queryUnitPrefsProvider.overrideWithValue(
+        const UnitPrefs(
+          depth: DepthUnit.meters,
+          temperature: TemperatureUnit.celsius,
+          pressure: PressureUnit.bar,
+          weight: WeightUnit.kilograms,
+          volume: VolumeUnit.liters,
+        ),
+      ),
       queryNameIndexProvider.overrideWith((ref) => names()),
       recentQueryRecorderProvider.overrideWithValue(
         recorder ?? (sentence, locale, parsed) async {},

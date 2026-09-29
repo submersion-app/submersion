@@ -17,27 +17,18 @@ import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/domain/entity_resolver.dart';
 import 'package:submersion/features/explore/domain/explore_compiler.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
-import 'package:submersion/features/explore/domain/unit_grounding.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
+import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 
 /// Explore's own filter scope, so editing chips never rescopes the dive list
 /// or Statistics until the diver asks for a handoff.
 final exploreFilterProvider = StateProvider<DiveFilterState>(
   (ref) => const DiveFilterState(),
 );
-
-final unitPrefsProvider = Provider<UnitPrefs>((ref) {
-  final s = ref.watch(settingsProvider);
-  return (
-    depth: s.depthUnit,
-    temperature: s.temperatureUnit,
-    pressure: s.pressureUnit,
-  );
-});
 
 final exploreRepositoryProvider = Provider<ExploreRepository>(
   (ref) => ExploreRepository(),
@@ -248,7 +239,7 @@ class ExploreQueryNotifier extends StateNotifier<ExploreState> {
     final compiled = ExploreCompiler.compile(
       parsed,
       ExploreCompilerContext(
-        units: _ref.read(unitPrefsProvider),
+        units: _ref.read(queryUnitPrefsProvider),
         names: names,
         now: DateTime.now(),
       ),

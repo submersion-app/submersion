@@ -1,10 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/explore/domain/explore_compilation.dart';
-import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
+import 'package:submersion/features/explore/domain/explore_fields.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/chip_labeler.dart';
@@ -30,8 +31,8 @@ void main() {
   );
 
   test('numeric clauses show the value in the diver unit', () {
-    const chip = ClauseChip(
-      field: ExploreDiveField.depth,
+    final chip = ClauseChip(
+      field: exploreField('depth')!,
       op: ClauseOp.gt,
       value: 20.0,
       dimension: FieldDimension.depth,
@@ -41,14 +42,14 @@ void main() {
   });
 
   ClauseChip chip(
-    ExploreDiveField f,
+    ExploreField f,
     Object v, {
     FieldDimension d = FieldDimension.none,
     ClauseOp op = ClauseOp.gte,
   }) => ClauseChip(field: f, op: op, value: v, dimension: d);
 
   test('every catalog field has a label', () {
-    for (final f in ExploreDiveField.values) {
+    for (final f in kExploreFields) {
       expect(metric.fieldName(f), isNotEmpty, reason: f.name);
     }
   });
@@ -56,23 +57,23 @@ void main() {
   test('each dimension formats its own way', () {
     expect(
       metric.label(
-        chip(ExploreDiveField.bottomTime, 45.0, d: FieldDimension.minutes),
+        chip(exploreField('bottomTime')!, 45.0, d: FieldDimension.minutes),
       ),
       'Bottom time at least 45 min',
     );
     expect(
-      metric.label(chip(ExploreDiveField.o2, 32.0, d: FieldDimension.percent)),
+      metric.label(chip(exploreField('o2')!, 32.0, d: FieldDimension.percent)),
       'Oxygen at least 32%',
     );
     expect(
       metric.label(
-        chip(ExploreDiveField.diveNumber, 7.0, d: FieldDimension.count),
+        chip(exploreField('diveNumber')!, 7.0, d: FieldDimension.count),
       ),
       'Dive number at least 7',
     );
     // A non-integer count keeps its fraction rather than rounding silently.
     expect(
-      metric.label(chip(ExploreDiveField.rating, 3.5, d: FieldDimension.count)),
+      metric.label(chip(exploreField('rating')!, 3.5, d: FieldDimension.count)),
       'Rating at least 3.5',
     );
   });
@@ -88,7 +89,7 @@ void main() {
       expect(
         metric.label(
           chip(
-            ExploreDiveField.diveNumber,
+            exploreField('diveNumber')!,
             3.0,
             d: FieldDimension.count,
             op: entry.key,
@@ -102,11 +103,11 @@ void main() {
 
   test('the no-buddy flag and a single enum value', () {
     expect(
-      metric.label(chip(ExploreDiveField.noBuddy, true, op: ClauseOp.eq)),
+      metric.label(chip(exploreField('noBuddy')!, true, op: ClauseOp.eq)),
       'No buddy',
     );
     expect(
-      metric.label(chip(ExploreDiveField.diveMode, 'ccr', op: ClauseOp.eq)),
+      metric.label(chip(exploreField('diveMode')!, 'ccr', op: ClauseOp.eq)),
       'Dive mode: Closed Circuit Rebreather',
     );
   });
@@ -114,8 +115,8 @@ void main() {
   test('between, enum, not, flags and time', () {
     expect(
       metric.label(
-        const ClauseChip(
-          field: ExploreDiveField.waterTemp,
+        ClauseChip(
+          field: exploreField('waterTemp')!,
           op: ClauseOp.between,
           value: [10.0, 15.0],
           dimension: FieldDimension.temperature,
@@ -125,8 +126,8 @@ void main() {
     );
     expect(
       metric.label(
-        const ClauseChip(
-          field: ExploreDiveField.waterType,
+        ClauseChip(
+          field: exploreField('waterType')!,
           op: ClauseOp.inList,
           value: ['salt', 'fresh'],
           dimension: FieldDimension.none,
@@ -136,8 +137,8 @@ void main() {
     );
     expect(
       metric.label(
-        const ClauseChip(
-          field: ExploreDiveField.waterType,
+        ClauseChip(
+          field: exploreField('waterType')!,
           op: ClauseOp.not,
           value: ['salt'],
           dimension: FieldDimension.none,
@@ -147,8 +148,8 @@ void main() {
     );
     expect(
       metric.label(
-        const ClauseChip(
-          field: ExploreDiveField.favorite,
+        ClauseChip(
+          field: exploreField('favorite')!,
           op: ClauseOp.eq,
           value: true,
           dimension: FieldDimension.none,
@@ -158,8 +159,8 @@ void main() {
     );
     expect(
       metric.label(
-        const ClauseChip(
-          field: ExploreDiveField.deco,
+        ClauseChip(
+          field: exploreField('deco')!,
           op: ClauseOp.eq,
           value: false,
           dimension: FieldDimension.none,
@@ -203,8 +204,8 @@ void main() {
       AppLocalizationsDe(),
       const UnitFormatter(AppSettings()),
     );
-    final water = chip(ExploreDiveField.waterType, ['salt'], op: ClauseOp.eq);
-    final days = chip(ExploreDiveField.weekday, [
+    final water = chip(exploreField('waterType')!, ['salt'], op: ClauseOp.eq);
+    final days = chip(exploreField('weekday')!, [
       'mon',
       'sun',
     ], op: ClauseOp.inList);
@@ -217,19 +218,19 @@ void main() {
     expect(german.label(days), 'Wochentag: Mo, So');
     expect(
       metric.label(
-        chip(ExploreDiveField.entryMethod, ['giantStride'], op: ClauseOp.eq),
+        chip(exploreField('entryMethod')!, ['giantStride'], op: ClauseOp.eq),
       ),
       contains('Giant Stride'),
     );
     expect(
       metric.label(
-        chip(ExploreDiveField.currentStrength, ['strong'], op: ClauseOp.not),
+        chip(exploreField('currentStrength')!, ['strong'], op: ClauseOp.not),
       ),
       contains('Strong'),
     );
     // A dive type is the diver's own name.
     expect(
-      metric.label(chip(ExploreDiveField.diveType, 'Night', op: ClauseOp.eq)),
+      metric.label(chip(exploreField('diveType')!, 'Night', op: ClauseOp.eq)),
       contains('Night'),
     );
   });
@@ -237,8 +238,8 @@ void main() {
   test('every catalog enum value has a label', () {
     // The catalog reads its values from the query registry; the labeler
     // maps them through the Dart enums. Every value must make that trip.
-    for (final field in ExploreDiveField.values) {
-      final values = DiveFieldCatalog.spec(field).enumValues;
+    for (final field in kExploreFields) {
+      final values = field.enumValues;
       if (values == null) continue;
       for (final v in values) {
         final label = metric.label(chip(field, [v], op: ClauseOp.inList));
@@ -252,8 +253,8 @@ void main() {
       AppLocalizationsDe(),
       const UnitFormatter(AppSettings()),
     );
-    const bottom = ClauseChip(
-      field: ExploreDiveField.bottomTime,
+    final bottom = ClauseChip(
+      field: exploreField('bottomTime')!,
       op: ClauseOp.gte,
       value: 45.0,
       dimension: FieldDimension.minutes,
@@ -263,8 +264,8 @@ void main() {
   });
 
   test('SAC reads in the diver pressure unit, findings by rule name', () {
-    const sac = ClauseChip(
-      field: ExploreDiveField.sac,
+    final sac = ClauseChip(
+      field: exploreField('sac')!,
       op: ClauseOp.gte,
       value: 1.5,
       dimension: FieldDimension.pressureRate,
@@ -273,13 +274,13 @@ void main() {
     expect(imperial.label(sac), contains('psi/min'));
     expect(
       metric.label(
-        chip(ExploreDiveField.finding, ['rapidAscent'], op: ClauseOp.inList),
+        chip(exploreField('finding')!, ['rapidAscent'], op: ClauseOp.inList),
       ),
       contains(l10n.safetySettings_rule_rapidAscent),
     );
     expect(
       metric.label(
-        chip(ExploreDiveField.finalStop, ['unstable'], op: ClauseOp.inList),
+        chip(exploreField('finalStop')!, ['unstable'], op: ClauseOp.inList),
       ),
       contains(l10n.query_dives_finalStop_unstable),
     );

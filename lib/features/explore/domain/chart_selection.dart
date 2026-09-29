@@ -1,4 +1,3 @@
-import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
 enum ChartKind {
@@ -41,15 +40,15 @@ const Set<MentionKind> kRankedEntityKinds = {
 
 /// Rule-based chart choice: the model never picks charts.
 List<ChartRequest> selectCharts({
-  required List<ExploreDiveField> numericFields,
+  required List<String> numericFields,
   required Map<MentionKind, int> resolvedEntityCounts,
 }) {
   final out = <ChartRequest>[const ChartRequest(ChartKind.divesOverTime)];
   const trends = {
-    ExploreDiveField.depth: ChartKind.depthTrend,
-    ExploreDiveField.waterTemp: ChartKind.waterTempTrend,
-    ExploreDiveField.bottomTime: ChartKind.bottomTimeTrend,
-    ExploreDiveField.sac: ChartKind.sacTrend,
+    'depth': ChartKind.depthTrend,
+    'waterTemp': ChartKind.waterTempTrend,
+    'bottomTime': ChartKind.bottomTimeTrend,
+    'sac': ChartKind.sacTrend,
   };
   for (final entry in trends.entries) {
     if (numericFields.contains(entry.key)) out.add(ChartRequest(entry.value));

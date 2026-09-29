@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
@@ -11,10 +12,12 @@ import 'package:submersion/features/explore/domain/query_model.dart';
 /// with no plain filter axis become conditions in the query tree, and a
 /// second clause on a field whose axis is taken ANDs instead of widening it.
 void main() {
-  const units = (
+  const units = UnitPrefs(
     depth: DepthUnit.meters,
     temperature: TemperatureUnit.celsius,
     pressure: PressureUnit.bar,
+    weight: WeightUnit.kilograms,
+    volume: VolumeUnit.liters,
   );
 
   ExploreCompilation compile(List<Map<String, Object?>> clauses) =>
@@ -300,10 +303,12 @@ void main() {
           'clauses': [clause('sac', 'eq', 20)],
         }),
         ExploreCompilerContext(
-          units: (
+          units: const UnitPrefs(
             depth: DepthUnit.feet,
             temperature: TemperatureUnit.fahrenheit,
             pressure: PressureUnit.psi,
+            weight: WeightUnit.pounds,
+            volume: VolumeUnit.cubicFeet,
           ),
           names: NameIndex.empty,
           now: DateTime(2026, 9, 28),

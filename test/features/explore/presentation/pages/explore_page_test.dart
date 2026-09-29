@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:go_router/go_router.dart';
@@ -73,11 +75,15 @@ void main() {
     nlEngineProvider.overrideWithValue(engine),
     explorePlatformSupportedProvider.overrideWithValue(true),
     localeProvider.overrideWithValue('en'),
-    unitPrefsProvider.overrideWithValue(const (
-      depth: DepthUnit.meters,
-      temperature: TemperatureUnit.celsius,
-      pressure: PressureUnit.bar,
-    )),
+    queryUnitPrefsProvider.overrideWithValue(
+      const UnitPrefs(
+        depth: DepthUnit.meters,
+        temperature: TemperatureUnit.celsius,
+        pressure: PressureUnit.bar,
+        weight: WeightUnit.kilograms,
+        volume: VolumeUnit.liters,
+      ),
+    ),
     queryNameIndexProvider.overrideWith(
       (ref) async => NameIndex(const [
         NameEntry(

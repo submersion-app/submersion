@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/explore/domain/explore_compilation.dart';
@@ -10,10 +11,12 @@ import 'package:submersion/features/explore/domain/query_model.dart';
 /// condition in the query tree. Every op the catalog accepts must filter
 /// what its chip claims.
 void main() {
-  const units = (
+  const units = UnitPrefs(
     depth: DepthUnit.meters,
     temperature: TemperatureUnit.celsius,
     pressure: PressureUnit.bar,
+    weight: WeightUnit.kilograms,
+    volume: VolumeUnit.liters,
   );
 
   ExploreCompilation compile(String op, Object value) =>

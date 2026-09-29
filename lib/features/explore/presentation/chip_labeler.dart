@@ -7,7 +7,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/environment_en
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_text.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/explore/domain/explore_compilation.dart';
-import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
+import 'package:submersion/features/explore/domain/explore_fields.dart';
+import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/query/presentation/query_label_lookup.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -24,44 +25,40 @@ class ChipLabeler {
     TimeChip(:final start, :final end) => _time(start, end),
   };
 
-  String fieldName(ExploreDiveField f) => switch (f) {
-    ExploreDiveField.depth => l10n.explore_field_depth,
-    ExploreDiveField.avgDepth => l10n.explore_field_avgDepth,
-    ExploreDiveField.bottomTime => l10n.explore_field_bottomTime,
-    ExploreDiveField.waterTemp => l10n.explore_field_waterTemp,
-    ExploreDiveField.airTemp => l10n.explore_field_airTemp,
-    ExploreDiveField.visibility => l10n.explore_field_visibility,
-    ExploreDiveField.rating => l10n.explore_field_rating,
-    ExploreDiveField.o2 => l10n.explore_field_o2,
-    ExploreDiveField.diveNumber => l10n.explore_field_diveNumber,
-    ExploreDiveField.waterType => l10n.explore_field_waterType,
-    ExploreDiveField.diveMode => l10n.explore_field_diveMode,
-    ExploreDiveField.entryMethod => l10n.explore_field_entryMethod,
-    ExploreDiveField.currentStrength => l10n.explore_field_currentStrength,
-    ExploreDiveField.favorite => l10n.explore_chip_favorite,
-    ExploreDiveField.deco => l10n.explore_chip_deco,
-    ExploreDiveField.noBuddy => l10n.explore_chip_noBuddy,
-    ExploreDiveField.weekday => l10n.explore_field_weekday,
-    ExploreDiveField.diveType => l10n.explore_field_diveType,
-    ExploreDiveField.sac => queryLabelForKey(l10n, 'query_dives_sac'),
-    ExploreDiveField.sacTrend => queryLabelForKey(l10n, 'query_dives_sacTrend'),
-    ExploreDiveField.sacChange => queryLabelForKey(
-      l10n,
-      'query_dives_sacChange',
-    ),
-    ExploreDiveField.finalStop => queryLabelForKey(
-      l10n,
-      'query_dives_finalStop',
-    ),
-    ExploreDiveField.finalStopExcursion => queryLabelForKey(
+  String fieldName(ExploreField f) => switch (f.name) {
+    'depth' => l10n.explore_field_depth,
+    'avgDepth' => l10n.explore_field_avgDepth,
+    'bottomTime' => l10n.explore_field_bottomTime,
+    'waterTemp' => l10n.explore_field_waterTemp,
+    'airTemp' => l10n.explore_field_airTemp,
+    'visibility' => l10n.explore_field_visibility,
+    'rating' => l10n.explore_field_rating,
+    'o2' => l10n.explore_field_o2,
+    'diveNumber' => l10n.explore_field_diveNumber,
+    'waterType' => l10n.explore_field_waterType,
+    'diveMode' => l10n.explore_field_diveMode,
+    'entryMethod' => l10n.explore_field_entryMethod,
+    'currentStrength' => l10n.explore_field_currentStrength,
+    'favorite' => l10n.explore_chip_favorite,
+    'deco' => l10n.explore_chip_deco,
+    'noBuddy' => l10n.explore_chip_noBuddy,
+    'weekday' => l10n.explore_field_weekday,
+    'diveType' => l10n.explore_field_diveType,
+    'sac' => queryLabelForKey(l10n, 'query_dives_sac'),
+    'sacTrend' => queryLabelForKey(l10n, 'query_dives_sacTrend'),
+    'sacChange' => queryLabelForKey(l10n, 'query_dives_sacChange'),
+    'finalStop' => queryLabelForKey(l10n, 'query_dives_finalStop'),
+    'finalStopExcursion' => queryLabelForKey(
       l10n,
       'query_dives_finalStopExcursion',
     ),
-    ExploreDiveField.finalStopDuration => queryLabelForKey(
+    'finalStopDuration' => queryLabelForKey(
       l10n,
       'query_dives_finalStopDuration',
     ),
-    ExploreDiveField.finding => queryLabelForKey(l10n, 'query_dives_findings'),
+    'finding' => queryLabelForKey(l10n, 'query_dives_findings'),
+    // Every field in kExploreFields has an arm above (chip_labeler_test).
+    _ => f.name,
   };
 
   String _op(ClauseOp op) => switch (op) {
@@ -79,6 +76,9 @@ class ChipLabeler {
     FieldDimension.pressureRate => units.formatSac(v),
     FieldDimension.minutes => l10n.explore_value_minutes(v.round()),
     FieldDimension.percent => '${v.round()}%',
+    // No Explore field weighs or measures volume; they read as numbers.
+    FieldDimension.weight ||
+    FieldDimension.volume ||
     FieldDimension.count ||
     FieldDimension.none => v == v.roundToDouble() ? '${v.round()}' : '$v',
   };
@@ -87,10 +87,9 @@ class ChipLabeler {
     final name = fieldName(c.field);
     final v = c.value;
     if (v is bool) {
-      return switch (c.field) {
-        ExploreDiveField.deco =>
-          v ? l10n.explore_chip_deco : l10n.explore_chip_noDeco,
-        ExploreDiveField.noBuddy => l10n.explore_chip_noBuddy,
+      return switch (c.field.name) {
+        'deco' => v ? l10n.explore_chip_deco : l10n.explore_chip_noDeco,
+        'noBuddy' => l10n.explore_chip_noBuddy,
         _ => l10n.explore_chip_favorite,
       };
     }
@@ -109,7 +108,7 @@ class ChipLabeler {
           : l10n.explore_chip_enum(name, values);
     }
     final number = (v as num).toDouble();
-    if (c.field == ExploreDiveField.rating) {
+    if (c.field.name == 'rating') {
       return l10n.explore_chip_rating(_op(c.op), _value(number, c.dimension));
     }
     return l10n.explore_chip_numeric(
@@ -122,23 +121,18 @@ class ChipLabeler {
   /// An enum value in the app language. The catalog's values are the enum
   /// names, so each maps through the same localized names the dive editor
   /// shows; a dive type is the diver's own name and stays as written.
-  String _enumValue(ExploreDiveField field, String v) => switch (field) {
-    ExploreDiveField.waterType =>
-      WaterType.values.byName(v).localizedName(l10n),
-    ExploreDiveField.diveMode => DiveMode.values.byName(v).localizedName(l10n),
-    ExploreDiveField.entryMethod =>
-      EntryMethod.values.byName(v).localizedName(l10n),
-    ExploreDiveField.currentStrength =>
-      CurrentStrength.values.byName(v).localizedName(l10n),
-    ExploreDiveField.weekday => DateFormat.E(l10n.localeName).format(
+  String _enumValue(ExploreField field, String v) => switch (field.name) {
+    'waterType' => WaterType.values.byName(v).localizedName(l10n),
+    'diveMode' => DiveMode.values.byName(v).localizedName(l10n),
+    'entryMethod' => EntryMethod.values.byName(v).localizedName(l10n),
+    'currentStrength' => CurrentStrength.values.byName(v).localizedName(l10n),
+    'weekday' => DateFormat.E(l10n.localeName).format(
       // 1 January 2024 was a Monday.
       DateTime(2024, 1, kWeekdayTokens.indexOf(v) + 1),
     ),
-    ExploreDiveField.sacTrend || ExploreDiveField.finalStop => queryLabelForKey(
-      l10n,
-      'query_dives_${field.jsonName}_$v',
-    ),
-    ExploreDiveField.finding => switch (SafetyRuleId.fromDbValue(v)) {
+    'sacTrend' ||
+    'finalStop' => queryLabelForKey(l10n, 'query_dives_${field.name}_$v'),
+    'finding' => switch (SafetyRuleId.fromDbValue(v)) {
       final rule? => safetyRuleLabel(rule, l10n),
       null => v,
     },

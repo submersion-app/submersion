@@ -1,25 +1,30 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/registry/query_field.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/explore_compilation.dart';
-import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
+import 'package:submersion/features/explore/domain/explore_fields.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/explore_compiler.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
-import 'package:submersion/features/explore/domain/unit_grounding.dart';
 
 void main() {
-  const metric = (
+  const metric = UnitPrefs(
     depth: DepthUnit.meters,
     temperature: TemperatureUnit.celsius,
     pressure: PressureUnit.bar,
+    weight: WeightUnit.kilograms,
+    volume: VolumeUnit.liters,
   );
-  const imperial = (
+  const imperial = UnitPrefs(
     depth: DepthUnit.feet,
     temperature: TemperatureUnit.fahrenheit,
     pressure: PressureUnit.psi,
+    weight: WeightUnit.pounds,
+    volume: VolumeUnit.cubicFeet,
   );
   final now = DateTime(2026, 9, 19);
 
@@ -145,7 +150,7 @@ void main() {
       expect(c.filter.maxDepth, closeTo(18.29, 0.01));
       expect(c.filter.maxWaterTemp, closeTo(15.56, 0.01));
       final chip = c.chips.first.payload as ClauseChip;
-      expect(chip.field, ExploreDiveField.depth);
+      expect(chip.field, exploreField('depth')!);
       // The bound is inclusive, so the chip says so rather than repeating
       // the model's strict "shallower than".
       expect(chip.op, ClauseOp.lte);
