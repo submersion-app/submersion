@@ -103,18 +103,22 @@ class DiveSensorSummaryRepository {
     String diveId, {
     bool force = false,
   }) async {
-    final dive = await (_db.select(
-      _db.dives,
-    )..where((t) => t.id.equals(diveId))).getSingleOrNull();
-    if (dive == null) return null;
-
-    final stamp = (await readDiveSourceStamp(_db, diveId))!;
+    // The stamp is read before anything the row is built from: an edit or
+    // a synced series landing mid-build then leaves a row older than its
+    // stamp, which reads as stale and is rebuilt, never the reverse.
+    final stamp = await readDiveSourceStamp(_db, diveId);
+    if (stamp == null) return null;
     if (!force) {
       final stored = await getSummary(diveId);
       if (stored != null && DiveSensorSummaryService.isCurrent(stored, stamp)) {
         return stored;
       }
     }
+
+    final dive = await (_db.select(
+      _db.dives,
+    )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+    if (dive == null) return null;
 
     final primaryRows =
         await (_db.select(_db.diveProfileSeries)
@@ -178,8 +182,8 @@ class DiveSensorSummaryRepository {
       );
 
   /// Dives with no row, a row from an older engine, or a row whose source
-  /// stamp no longer matches the dive or its series; oldest dive first so a sweep primes
-  /// the same order the safety review uses.
+  /// stamp no longer matches the dive or its series; oldest dive first so
+  /// a sweep primes the same order the safety review uses.
   Future<List<String>> staleDiveIds({String? diverId}) async {
     final rows = await _db
         .customSelect(

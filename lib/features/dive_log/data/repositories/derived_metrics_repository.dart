@@ -48,19 +48,23 @@ class DerivedMetricsRepository {
     String diveId, {
     bool force = false,
   }) async {
-    final dive = await (_db.select(
-      _db.dives,
-    )..where((t) => t.id.equals(diveId))).getSingleOrNull();
-    if (dive == null) return null;
-
     // The dive plus its synced series, which never re-stamp it (#1769).
-    final stamp = (await readDiveSourceStamp(_db, diveId))!;
+    // The stamp is read before anything the row is built from: an edit or
+    // a synced series landing mid-build then leaves a row older than its
+    // stamp, which reads as stale and is rebuilt, never the reverse.
+    final stamp = await readDiveSourceStamp(_db, diveId);
+    if (stamp == null) return null;
     if (!force) {
       final stored = await getMetrics(diveId);
       if (stored != null && DerivedMetricsService.isCurrent(stored, stamp)) {
         return stored;
       }
     }
+
+    final dive = await (_db.select(
+      _db.dives,
+    )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+    if (dive == null) return null;
 
     final seriesRows = await _series.getPrimaryRowsForDives([diveId]);
     final tankRows = await (_db.select(

@@ -11,7 +11,10 @@ import 'package:submersion/core/database/database.dart';
 /// so a profile or pressure change arriving by sync leaves `dives.updated_at`
 /// alone. A cache keyed on the dive's stamp alone would keep calling a row
 /// built from the old series current. A row matches only its exact stamp, so
-/// removing a series moves the stamp too.
+/// removing the newest series moves the stamp back down, which is a change
+/// too. Removing an older series leaves the maximum where it was and is not
+/// seen: a series delete that arrives by sync with no newer write to the dive
+/// or its other series keeps the row current until something else moves.
 ///
 /// Every writer and reader of one cache must use this same expression: a row
 /// written with it and compared against the bare `updated_at` reads as stale
