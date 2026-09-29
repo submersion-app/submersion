@@ -55,7 +55,8 @@ class RecentQueryRepository {
     final out = <RecentQuery>[];
     final stale = <String>[];
     for (final r in rows) {
-      if (r.schemaVersion != kQuerySchemaVersion) {
+      if (r.schemaVersion < kMinReadableQuerySchemaVersion ||
+          r.schemaVersion > kQuerySchemaVersion) {
         stale.add(r.key);
         continue;
       }

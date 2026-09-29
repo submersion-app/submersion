@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/tag_fill.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
@@ -213,5 +214,113 @@ void main() {
       'https://submersion.app.evil.example/c#f=1&p=$id',
     );
     expect((result as PassportRejected).reason, PassportRejectReason.notATag);
+  });
+
+  group('the newest fill', () {
+    final fill = TagFill(
+      id: '3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11',
+      filledAt: DateTime.utc(2026, 9, 28, 9, 30),
+      o2Percent: 32.1,
+      hePercent: 0,
+      pressureBar: 232,
+      temperatureC: 24.5,
+      filledBy: 'Blue Hole',
+      analyzer: 'Divesoft',
+    );
+    final base = CylinderPassportPayload(
+      passportId: '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab',
+      writtenOn: DateTime(2026, 9, 28),
+    );
+
+    test('encodes after the cylinder keys, in order', () {
+      expect(
+        PassportPayloadCodec.encode(base.copyWith(fill: fill)),
+        'f=1&p=8f3a5c1e-1b2c-4d5e-8f90-1234567890ab&w=2026-09-28'
+        '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11&ft=2026-09-28T09%3A30%3A00Z'
+        '&fo=32.1&fh=0&fp=232&fc=24.5&fb=Blue+Hole&fa=Divesoft',
+      );
+    });
+
+    test('round trips', () {
+      final url = PassportPayloadCodec.httpsUrl(base.copyWith(fill: fill));
+      final decoded = PassportPayloadCodec.decode(url) as PassportDecoded;
+      expect(decoded.payload.fill, fill);
+    });
+
+    test('a tag without fill keys has no fill', () {
+      final decoded =
+          PassportPayloadCodec.decode(PassportPayloadCodec.httpsUrl(base))
+              as PassportDecoded;
+      expect(decoded.payload.fill, isNull);
+    });
+
+    test('a malformed fill is dropped and the tag still opens', () {
+      const p = 'f=1&p=8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
+      for (final bad in [
+        '&fi=nope&ft=2026-09-28T09:30:00Z&fo=32',
+        '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11&ft=yesterday&fo=32',
+        '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11&ft=2026-09-28T09:30:00&fo=32',
+        '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11&ft=2026-09-28T09:30:00Z&fo=80&fh=30',
+        '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11&ft=2026-09-28T09:30:00Z',
+        // Dart reads NaN as a number, and NaN passes every range check.
+        '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11&ft=2026-09-28T09:30:00Z&fo=NaN',
+        '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11&ft=2026-09-28T09:30:00Z&fo=21&fh=NaN',
+      ]) {
+        final r = PassportPayloadCodec.decode('$p$bad') as PassportDecoded;
+        expect(r.payload.fill, isNull, reason: bad);
+      }
+    });
+
+    test('a fill time must be RFC 3339 and a real date and time', () {
+      const p =
+          'f=1&p=8f3a5c1e-1b2c-4d5e-8f90-1234567890ab'
+          '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11&fo=32&ft=';
+      DateTime? at(String ft) =>
+          (PassportPayloadCodec.decode('$p${Uri.encodeQueryComponent(ft)}')
+                  as PassportDecoded)
+              .payload
+              .fill
+              ?.filledAt;
+      for (final bad in [
+        '2026-09-28 09:30:00Z',
+        '2026-09-28T09:30Z',
+        '20260928T093000Z',
+        '2026-13-45T09:30:00Z',
+        '2026-02-30T09:30:00Z',
+        '2026-09-28T24:00:00Z',
+        '2026-09-28T09:60:00Z',
+        '2026-09-28t09:30:00Z',
+      ]) {
+        expect(at(bad), isNull, reason: bad);
+      }
+      expect(at('2026-09-28T11:30:00+02:00'), DateTime.utc(2026, 9, 28, 9, 30));
+      expect(
+        at('2026-09-28T09:30:00.5Z'),
+        DateTime.utc(2026, 9, 28, 9, 30, 0, 500),
+      );
+    });
+
+    test('out-of-range fill details are dropped, the fill kept', () {
+      final r =
+          PassportPayloadCodec.decode(
+                'f=1&p=8f3a5c1e-1b2c-4d5e-8f90-1234567890ab'
+                '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11'
+                '&ft=2026-09-28T09:30:00Z&fo=21&fp=900&fc=300',
+              )
+              as PassportDecoded;
+      final f = r.payload.fill!;
+      expect((f.o2Percent, f.pressureBar, f.temperatureC), (21.0, null, null));
+    });
+
+    test('the reserved signature key is ignored', () {
+      final r =
+          PassportPayloadCodec.decode(
+                'f=1&p=8f3a5c1e-1b2c-4d5e-8f90-1234567890ab'
+                '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11'
+                '&ft=2026-09-28T09:30:00Z&fo=21&fs=abc',
+              )
+              as PassportDecoded;
+      expect(r.payload.fill, isNotNull);
+    });
   });
 }

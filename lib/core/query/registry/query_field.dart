@@ -20,6 +20,9 @@ enum FieldDimension {
   depth,
   temperature,
   pressure,
+
+  /// Pressure per minute (SAC). Stored in bar per minute at the surface.
+  pressureRate,
   weight,
   volume,
   minutes,

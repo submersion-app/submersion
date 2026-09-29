@@ -578,6 +578,464 @@ abstract class AppLocalizations {
   /// **'Transferred from {from} to {to}'**
   String equipment_history_transferred(String from, String to);
 
+  /// No description provided for @plannerMission_buddyPicker_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No buddies yet'**
+  String get plannerMission_buddyPicker_empty;
+
+  /// No description provided for @plannerMission_buddyPicker_me.
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get plannerMission_buddyPicker_me;
+
+  /// No description provided for @plannerMission_buddyPicker_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a buddy'**
+  String get plannerMission_buddyPicker_title;
+
+  /// No description provided for @plannerMission_current_setsToward.
+  ///
+  /// In en, this message translates to:
+  /// **'Sets toward'**
+  String get plannerMission_current_setsToward;
+
+  /// No description provided for @plannerMission_current_speed.
+  ///
+  /// In en, this message translates to:
+  /// **'Current speed'**
+  String get plannerMission_current_speed;
+
+  /// No description provided for @plannerMission_disableConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off'**
+  String get plannerMission_disableConfirm;
+
+  /// No description provided for @plannerMission_disableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The route and team are removed. The generated profile stays as ordinary segments you can edit.'**
+  String get plannerMission_disableMessage;
+
+  /// No description provided for @plannerMission_disableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off the DPV mission?'**
+  String get plannerMission_disableTitle;
+
+  /// No description provided for @plannerMission_enable.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan as DPV mission'**
+  String get plannerMission_enable;
+
+  /// No description provided for @plannerMission_enableConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get plannerMission_enableConfirm;
+
+  /// No description provided for @plannerMission_enableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The mission builds the profile from its route and team, so this plan\'s segments are replaced. Turning the mission off later keeps the mission\'s profile, not these segments.'**
+  String get plannerMission_enableMessage;
+
+  /// No description provided for @plannerMission_enableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace the segments with a DPV mission?'**
+  String get plannerMission_enableTitle;
+
+  /// No description provided for @plannerMission_environment_openWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Open water'**
+  String get plannerMission_environment_openWater;
+
+  /// No description provided for @plannerMission_environment_overhead.
+  ///
+  /// In en, this message translates to:
+  /// **'Overhead'**
+  String get plannerMission_environment_overhead;
+
+  /// No description provided for @plannerMission_issue_batteryReserveInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'The battery reserve must be between 0 and 100%'**
+  String get plannerMission_issue_batteryReserveInvalid;
+
+  /// No description provided for @plannerMission_issue_emptyRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one leg'**
+  String get plannerMission_issue_emptyRoute;
+
+  /// No description provided for @plannerMission_issue_emptyTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one diver'**
+  String get plannerMission_issue_emptyTeam;
+
+  /// No description provided for @plannerMission_issue_legDepthInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'{leg} has an invalid depth'**
+  String plannerMission_issue_legDepthInvalid(String leg);
+
+  /// No description provided for @plannerMission_issue_legTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{leg} is too short to travel'**
+  String plannerMission_issue_legTooShort(String leg);
+
+  /// No description provided for @plannerMission_issue_memberSacUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} needs an RMV'**
+  String plannerMission_issue_memberSacUnset(String name);
+
+  /// No description provided for @plannerMission_issue_memberSwimSpeedUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} needs a swim speed'**
+  String plannerMission_issue_memberSwimSpeedUnset(String name);
+
+  /// No description provided for @plannerMission_issue_openWaterInputInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'A shore exit, the surface swim limit or the walking speed is negative'**
+  String get plannerMission_issue_openWaterInputInvalid;
+
+  /// No description provided for @plannerMission_issue_planHasNoTank.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a back-gas cylinder to the plan'**
+  String get plannerMission_issue_planHasNoTank;
+
+  /// No description provided for @plannerMission_issue_planNotDiveable.
+  ///
+  /// In en, this message translates to:
+  /// **'The planned route breaks a critical limit'**
+  String get plannerMission_issue_planNotDiveable;
+
+  /// No description provided for @plannerMission_issue_scenarioFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'A failure scenario could not be computed'**
+  String get plannerMission_issue_scenarioFailed;
+
+  /// No description provided for @plannerMission_issue_scooterUnspecified.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s scooter needs a speed and burn time'**
+  String plannerMission_issue_scooterUnspecified(String name);
+
+  /// No description provided for @plannerMission_issue_speedBelowHeadwayFloor.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s swim, scooter or tow speed is too slow to make headway'**
+  String plannerMission_issue_speedBelowHeadwayFloor(String name);
+
+  /// No description provided for @plannerMission_issue_tankBudgetUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Every cylinder needs a size and a fill pressure'**
+  String get plannerMission_issue_tankBudgetUnknown;
+
+  /// No description provided for @plannerMission_issue_unsupportedMode.
+  ///
+  /// In en, this message translates to:
+  /// **'DPV missions plan open circuit dives only'**
+  String get plannerMission_issue_unsupportedMode;
+
+  /// No description provided for @plannerMission_issue_untraversableLeg.
+  ///
+  /// In en, this message translates to:
+  /// **'The current blocks {leg}'**
+  String plannerMission_issue_untraversableLeg(String leg);
+
+  /// No description provided for @plannerMission_leg_depth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get plannerMission_leg_depth;
+
+  /// No description provided for @plannerMission_leg_distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get plannerMission_leg_distance;
+
+  /// No description provided for @plannerMission_leg_heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Heading'**
+  String get plannerMission_leg_heading;
+
+  /// No description provided for @plannerMission_leg_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Waypoint name'**
+  String get plannerMission_leg_label;
+
+  /// No description provided for @plannerMission_leg_shoreExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Shore exit from here'**
+  String get plannerMission_leg_shoreExit;
+
+  /// No description provided for @plannerMission_leg_shoreSwim.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface swim to shore'**
+  String get plannerMission_leg_shoreSwim;
+
+  /// No description provided for @plannerMission_leg_shoreWalk.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk to the entry'**
+  String get plannerMission_leg_shoreWalk;
+
+  /// No description provided for @plannerMission_leg_useMissionCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the mission\'s current'**
+  String get plannerMission_leg_useMissionCurrent;
+
+  /// No description provided for @plannerMission_member_chooseScooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from equipment'**
+  String get plannerMission_member_chooseScooter;
+
+  /// No description provided for @plannerMission_member_manualScooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter manually'**
+  String get plannerMission_member_manualScooter;
+
+  /// No description provided for @plannerMission_member_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get plannerMission_member_name;
+
+  /// No description provided for @plannerMission_member_pickBuddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a buddy'**
+  String get plannerMission_member_pickBuddy;
+
+  /// No description provided for @plannerMission_member_sac.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom RMV'**
+  String get plannerMission_member_sac;
+
+  /// No description provided for @plannerMission_member_scooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Scooter'**
+  String get plannerMission_member_scooter;
+
+  /// No description provided for @plannerMission_member_swimSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Swim speed'**
+  String get plannerMission_member_swimSpeed;
+
+  /// No description provided for @plannerMission_profile_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No profile yet: {reason}'**
+  String plannerMission_profile_none(String reason);
+
+  /// No description provided for @plannerMission_profile_segment.
+  ///
+  /// In en, this message translates to:
+  /// **'{depth}, {minutes} min'**
+  String plannerMission_profile_segment(String depth, String minutes);
+
+  /// No description provided for @plannerMission_profile_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Generated profile'**
+  String get plannerMission_profile_title;
+
+  /// No description provided for @plannerMission_route_addLeg.
+  ///
+  /// In en, this message translates to:
+  /// **'Add leg'**
+  String get plannerMission_route_addLeg;
+
+  /// No description provided for @plannerMission_route_deleteLeg.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete leg'**
+  String get plannerMission_route_deleteLeg;
+
+  /// No description provided for @plannerMission_route_editLeg.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit leg'**
+  String get plannerMission_route_editLeg;
+
+  /// No description provided for @plannerMission_route_legSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} at {depth}, heading {heading}'**
+  String plannerMission_route_legSummary(
+    String depth,
+    String distance,
+    String heading,
+  );
+
+  /// No description provided for @plannerMission_route_ownCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current {speed} toward {direction}'**
+  String plannerMission_route_ownCurrent(String direction, String speed);
+
+  /// No description provided for @plannerMission_route_shoreExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Shore exit: swim {swim}, walk {walk}'**
+  String plannerMission_route_shoreExit(String swim, String walk);
+
+  /// No description provided for @plannerMission_route_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Route'**
+  String get plannerMission_route_title;
+
+  /// No description provided for @plannerMission_route_unnamedLeg.
+  ///
+  /// In en, this message translates to:
+  /// **'Leg {number}'**
+  String plannerMission_route_unnamedLeg(int number);
+
+  /// No description provided for @plannerMission_scooter_burnTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Burn time'**
+  String get plannerMission_scooter_burnTime;
+
+  /// No description provided for @plannerMission_scooter_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Scooter name'**
+  String get plannerMission_scooter_name;
+
+  /// No description provided for @plannerMission_scooter_speed.
+  ///
+  /// In en, this message translates to:
+  /// **'Rated speed'**
+  String get plannerMission_scooter_speed;
+
+  /// No description provided for @plannerMission_scooter_towBurnFactor.
+  ///
+  /// In en, this message translates to:
+  /// **'Tow burn factor'**
+  String get plannerMission_scooter_towBurnFactor;
+
+  /// No description provided for @plannerMission_scooter_towSpeedFactor.
+  ///
+  /// In en, this message translates to:
+  /// **'Tow speed factor'**
+  String get plannerMission_scooter_towSpeedFactor;
+
+  /// No description provided for @plannerMission_settings_batteryReserve.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery reserve'**
+  String get plannerMission_settings_batteryReserve;
+
+  /// No description provided for @plannerMission_settings_defaultCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Default current'**
+  String get plannerMission_settings_defaultCurrent;
+
+  /// No description provided for @plannerMission_settings_environment.
+  ///
+  /// In en, this message translates to:
+  /// **'Environment'**
+  String get plannerMission_settings_environment;
+
+  /// No description provided for @plannerMission_settings_surfaceSwimLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest surface swim'**
+  String get plannerMission_settings_surfaceSwimLimit;
+
+  /// No description provided for @plannerMission_settings_walkSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Walking speed'**
+  String get plannerMission_settings_walkSpeed;
+
+  /// No description provided for @plannerMission_team_addDiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Add diver'**
+  String get plannerMission_team_addDiver;
+
+  /// No description provided for @plannerMission_team_capacity.
+  ///
+  /// In en, this message translates to:
+  /// **'{wh} Wh battery'**
+  String plannerMission_team_capacity(String wh);
+
+  /// No description provided for @plannerMission_team_defaultName.
+  ///
+  /// In en, this message translates to:
+  /// **'Diver {number}'**
+  String plannerMission_team_defaultName(int number);
+
+  /// No description provided for @plannerMission_team_editDiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit diver'**
+  String get plannerMission_team_editDiver;
+
+  /// No description provided for @plannerMission_team_memberSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV {sac}, swim {speed}'**
+  String plannerMission_team_memberSummary(String sac, String speed);
+
+  /// No description provided for @plannerMission_team_noScooter.
+  ///
+  /// In en, this message translates to:
+  /// **'No scooter set'**
+  String get plannerMission_team_noScooter;
+
+  /// No description provided for @plannerMission_team_removeDiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove diver'**
+  String get plannerMission_team_removeDiver;
+
+  /// No description provided for @plannerMission_team_scooterSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {speed}, {minutes} min burn'**
+  String plannerMission_team_scooterSummary(
+    String minutes,
+    String name,
+    String speed,
+  );
+
+  /// No description provided for @plannerMission_team_title.
+  ///
+  /// In en, this message translates to:
+  /// **'DPV team'**
+  String get plannerMission_team_title;
+
   /// No description provided for @settings_shareAllEquipment_title.
   ///
   /// In en, this message translates to:
@@ -14565,6 +15023,30 @@ abstract class AppLocalizations {
   /// **'None'**
   String get diveLog_tank_regulatorNone;
 
+  /// No description provided for @diveLog_tank_tripCylinderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip cylinder'**
+  String get diveLog_tank_tripCylinderLabel;
+
+  /// No description provided for @diveLog_tank_tripCylinderNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get diveLog_tank_tripCylinderNone;
+
+  /// No description provided for @diveLog_tank_tripCylinderMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'No longer on this trip'**
+  String get diveLog_tank_tripCylinderMissing;
+
+  /// No description provided for @diveLog_tank_tripCylinderSuggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested from the trip\'s full cylinders'**
+  String get diveLog_tank_tripCylinderSuggested;
+
   /// No description provided for @diveLog_tissue_title.
   ///
   /// In en, this message translates to:
@@ -20932,6 +21414,60 @@ abstract class AppLocalizations {
   /// **'Filled by {station}'**
   String passport_fill_station(String station);
 
+  /// No description provided for @passport_fill_fromTag.
+  ///
+  /// In en, this message translates to:
+  /// **'From tag'**
+  String get passport_fill_fromTag;
+
+  /// No description provided for @passport_fill_analyseBeforeDiving.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyse the gas yourself before you dive it'**
+  String get passport_fill_analyseBeforeDiving;
+
+  /// No description provided for @passport_fill_writeToTagTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill logged'**
+  String get passport_fill_writeToTagTitle;
+
+  /// No description provided for @passport_fill_writeToTagBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Write it to the tank\'s tag?'**
+  String get passport_fill_writeToTagBody;
+
+  /// No description provided for @passport_fill_writeToTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Write to tag'**
+  String get passport_fill_writeToTag;
+
+  /// No description provided for @passport_fill_notNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get passport_fill_notNow;
+
+  /// No description provided for @passport_foreign_lastFill.
+  ///
+  /// In en, this message translates to:
+  /// **'Last fill on the tag'**
+  String get passport_foreign_lastFill;
+
+  /// The last fill on a tag: its mix, with the pressure after a middle dot when the tag has one, then the date.
+  ///
+  /// In en, this message translates to:
+  /// **'{fill} · {date}'**
+  String passport_foreign_fillSummary(String fill, String date);
+
+  /// After scanning a tag: its fill was added. fill is the mix, with the pressure after a middle dot when the tag has one.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill from the tag added: {fill}'**
+  String passport_fill_addedFromTag(String fill);
+
   /// No description provided for @passport_fill_analyzer.
   ///
   /// In en, this message translates to:
@@ -20949,12 +21485,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gas temperature {temperature}'**
   String passport_fill_temperature(String temperature);
-
-  /// No description provided for @passport_fill_unsigned.
-  ///
-  /// In en, this message translates to:
-  /// **'Unsigned'**
-  String get passport_fill_unsigned;
 
   /// No description provided for @passport_history_title.
   ///
@@ -21298,6 +21828,36 @@ abstract class AppLocalizations {
   /// **'O2 clean'**
   String get passport_nfc_fieldO2Clean;
 
+  /// No description provided for @passport_nfc_fieldFillAnalyzer.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill analyzer'**
+  String get passport_nfc_fieldFillAnalyzer;
+
+  /// No description provided for @passport_nfc_fieldFilledBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled by'**
+  String get passport_nfc_fieldFilledBy;
+
+  /// No description provided for @passport_nfc_fieldFillTemperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill temperature'**
+  String get passport_nfc_fieldFillTemperature;
+
+  /// No description provided for @passport_nfc_fieldFill.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest fill'**
+  String get passport_nfc_fieldFill;
+
+  /// No description provided for @passport_nfc_fillIncluded.
+  ///
+  /// In en, this message translates to:
+  /// **'The newest fill is on the tag too'**
+  String get passport_nfc_fillIncluded;
+
   /// No description provided for @passport_foreign_serial.
   ///
   /// In en, this message translates to:
@@ -21351,6 +21911,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Analyzer'**
   String get passport_logFill_analyzer;
+
+  /// No description provided for @passport_logFill_analysedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your analysed values'**
+  String get passport_logFill_analysedHint;
 
   /// No description provided for @passport_logFill_notes.
   ///
@@ -25769,6 +26335,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fill procedure'**
   String get gasCalculators_blender_procedure;
+
+  /// No description provided for @gasCalculators_blender_logFill.
+  ///
+  /// In en, this message translates to:
+  /// **'Log this fill'**
+  String get gasCalculators_blender_logFill;
+
+  /// No description provided for @gasCalculators_blender_chooseCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose cylinder'**
+  String get gasCalculators_blender_chooseCylinder;
+
+  /// No description provided for @gasCalculators_blender_scanTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan tag'**
+  String get gasCalculators_blender_scanTag;
+
+  /// No description provided for @gasCalculators_blender_notYourCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'That cylinder is not in your gear'**
+  String get gasCalculators_blender_notYourCylinder;
+
+  /// No description provided for @gasCalculators_blender_cylinderFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open that cylinder. Try again.'**
+  String get gasCalculators_blender_cylinderFailed;
+
+  /// After Choose cylinder: the cylinder chosen and the mix of its last fill, now what is in it.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {mix}'**
+  String gasCalculators_blender_filledFrom(String name, String mix);
 
   /// No description provided for @gasCalculators_blender_amounts.
   ///
@@ -40595,6 +41197,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Adjust'**
   String get trips_cylinders_action_adjust;
+
+  /// No description provided for @trips_cylinders_action_logDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Log dive'**
+  String get trips_cylinders_action_logDive;
 
   /// No description provided for @trips_cylinders_bottle.
   ///
@@ -72812,6 +73420,84 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
+  /// **'Safety findings'**
+  String get query_dives_findings;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'SAC'**
+  String get query_dives_sac;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'SAC trend'**
+  String get query_dives_sacTrend;
+
+  /// Enum value label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Rising'**
+  String get query_dives_sacTrend_rising;
+
+  /// Enum value label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Steady'**
+  String get query_dives_sacTrend_steady;
+
+  /// Enum value label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Falling'**
+  String get query_dives_sacTrend_falling;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'SAC change'**
+  String get query_dives_sacChange;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Final stop'**
+  String get query_dives_finalStop;
+
+  /// Enum value label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Stable'**
+  String get query_dives_finalStop_stable;
+
+  /// Enum value label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Unstable'**
+  String get query_dives_finalStop_unstable;
+
+  /// Enum value label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'No stop'**
+  String get query_dives_finalStop_noStop;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Final stop excursion'**
+  String get query_dives_finalStopExcursion;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Final stop length'**
+  String get query_dives_finalStopDuration;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
   /// **'Runtime'**
   String get query_dives_runtime;
 
@@ -72964,6 +73650,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment attributes'**
   String get query_entity_equipmentAttributes;
+
+  /// Entity label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Safety findings'**
+  String get query_entity_findings;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Rule'**
+  String get query_findings_rule;
 
   /// Field label in the query builder
   ///

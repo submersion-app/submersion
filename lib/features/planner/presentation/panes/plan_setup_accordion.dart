@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_rates_section.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/presentation/mission/mission_team_section.dart';
 import 'package:submersion/features/planner/presentation/providers/planner_layout_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/ccr_settings_section.dart';
 import 'package:submersion/features/planner/presentation/widgets/contingency_settings_section.dart';
@@ -38,6 +39,9 @@ class _PlanSetupAccordionState extends ConsumerState<PlanSetupAccordion> {
   @override
   Widget build(BuildContext context) {
     final mode = ref.watch(divePlanNotifierProvider.select((s) => s.mode));
+    final missionOn = ref.watch(
+      divePlanNotifierProvider.select((s) => s.mission != null),
+    );
 
     // Header-chip deep link. Watched (not just listened) so a pending focus
     // is consumed even when this accordion builds lazily AFTER the request
@@ -93,6 +97,12 @@ class _PlanSetupAccordionState extends ConsumerState<PlanSetupAccordion> {
         context.l10n.plannerCanvas_contingency_title,
         const ContingencySettingsSection(),
       ),
+      if (missionOn)
+        (
+          'dpvTeam',
+          context.l10n.plannerMission_team_title,
+          const MissionTeamSection(),
+        ),
       (
         'gear',
         context.l10n.planner_gearWeights_title,

@@ -6,6 +6,7 @@ import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_formatter.dart'
     as coords;
 import 'package:submersion/core/utils/number_display.dart';
+import 'package:submersion/core/utils/per_minute.dart' as rate;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -62,7 +63,7 @@ class UnitFormatter {
   /// symbols from the unit enums, so it reads "/min" in every locale. Call
   /// sites use [depthRateSymbol], [sacSymbol] or [rmvSymbol] rather than
   /// interpolating "/min" themselves (issue #1932).
-  static String perMinute(String unitSymbol) => '$unitSymbol/min';
+  static String perMinute(String unitSymbol) => rate.perMinute(unitSymbol);
 
   /// Ascent/descent rate unit: "m/min" or "ft/min".
   String get depthRateSymbol => perMinute(depthSymbol);

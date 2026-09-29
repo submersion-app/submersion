@@ -193,3 +193,32 @@ TripCylinder? suggestTripCylinder({
 
 /// Sorts a slot with no fill after every filled one.
 const int _neverFilled = 1 << 62;
+
+/// Pure. Every slot as it stood at [atMillis]: its fills and adjustments
+/// at or before that instant (a fill at a dive's own minute was for that
+/// dive, as the fold ranks it), and the dives before it, leaving out
+/// [excludeDiveId], the dive being edited, whose own use must not count.
+/// For a dive logged now this is the board's current state (decided
+/// 2026-09-29: a past dive picks and fills from the slots as they were).
+List<TripCylinderState> foldCylinderStatesAt({
+  required List<TripCylinder> cylinders,
+  required Map<String, List<TripCylinderEvent>> eventsBySlot,
+  required Map<String, List<TripCylinderTankUse>> usesBySlot,
+  required int atMillis,
+  String? excludeDiveId,
+}) => [
+  for (final c in cylinders)
+    foldCylinderState(
+      cylinder: c,
+      events: [
+        for (final e in eventsBySlot[c.id] ?? const <TripCylinderEvent>[])
+          if (e.occurredAt.millisecondsSinceEpoch <= atMillis) e,
+      ],
+      uses: [
+        for (final u in usesBySlot[c.id] ?? const <TripCylinderTankUse>[])
+          if (u.entryTime.millisecondsSinceEpoch < atMillis &&
+              u.diveId != excludeDiveId)
+            u,
+      ],
+    ),
+];

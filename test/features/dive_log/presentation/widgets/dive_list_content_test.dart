@@ -153,6 +153,41 @@ class _MockPaginatedNotifier
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// The paginated list as the real notifier behaves on a filter change: it
+/// drops to a bare loading state, then answers with the first page.
+class _ReloadingPaginatedNotifier
+    extends StateNotifier<AsyncValue<PaginatedDiveListState>>
+    implements PaginatedDiveListNotifier {
+  _ReloadingPaginatedNotifier(Ref ref, this._dives)
+    : super(
+        AsyncValue.data(PaginatedDiveListState(dives: _dives, hasMore: false)),
+      ) {
+    ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
+      state = const AsyncValue.loading();
+      Future.delayed(const Duration(milliseconds: 50), () {
+        if (mounted) {
+          state = AsyncValue.data(
+            PaginatedDiveListState(dives: _dives, hasMore: false),
+          );
+        }
+      });
+    });
+  }
+
+  final List<DiveSummary> _dives;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _MockDiveListNotifier extends StateNotifier<AsyncValue<List<Dive>>>
+    implements DiveListNotifier {
+  _MockDiveListNotifier(List<Dive> dives) : super(AsyncValue.data(dives));
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 Future<List<Override>> _buildPhoneOverrides({
   required List<Dive> dives,
   required ListViewMode viewMode,
@@ -1223,6 +1258,105 @@ void main() {
   // Deselect All action, positioned immediately after Select All so the two
   // read as a pair.
   // -------------------------------------------------------------------------
+
+  group('a new filter', () {
+    List<Dive> twoDives() => [
+      _makeDive(
+        id: 'd1',
+        diveNumber: 1,
+        site: const DiveSite(id: 's1', name: 'Aaa'),
+      ),
+      _makeDive(
+        id: 'd2',
+        diveNumber: 2,
+        site: const DiveSite(id: 's2', name: 'Bbb'),
+      ),
+    ];
+
+    Future<void> selectAllThenFilter(WidgetTester tester) async {
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+      expect(find.text('2 selected'), findsOneWidget);
+
+      // The new filter's rows load first; the selection must survive that.
+      ProviderScope.containerOf(
+        tester.element(find.byType(DiveListContent)),
+      ).read(diveFilterProvider.notifier).state = const DiveFilterState(
+        favoritesOnly: true,
+      );
+      // One frame at once, as the app draws it, before the query answers.
+      await tester.pump();
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('keeps the checks that stay on screen (list)', (tester) async {
+      final summaries = twoDives().map(DiveSummary.fromDive).toList();
+      final base = await getBaseOverrides();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...base,
+            diveListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
+            highlightedDiveIdProvider.overrideWith((ref) => null),
+            paginatedDiveListProvider.overrideWith(
+              (ref) => _ReloadingPaginatedNotifier(ref, summaries),
+            ),
+          ],
+          locale: const Locale('en'),
+          child: const DiveListContent(showAppBar: false),
+        ),
+      );
+      await selectAllThenFilter(tester);
+      expect(find.text('2 selected'), findsOneWidget);
+    });
+
+    testWidgets('keeps the checks that stay on screen (table)', (tester) async {
+      final dives = twoDives();
+      final base = await getBaseOverrides();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...base,
+            diveListViewModeProvider.overrideWith((ref) => ListViewMode.table),
+            highlightedDiveIdProvider.overrideWith((ref) => null),
+            diveListNotifierProvider.overrideWith(
+              (ref) => _MockDiveListNotifier(dives),
+            ),
+            // A real id set takes a query's time, so the table has a loading
+            // frame.
+            queryFilteredDiveIdsProvider.overrideWith(
+              (ref, filter) => Future.delayed(
+                const Duration(milliseconds: 50),
+                () => const {'d1', 'd2'},
+              ),
+            ),
+            tableViewConfigProvider.overrideWith(
+              (ref) => _TestTableConfigNotifier(
+                TableViewConfig(
+                  columns: [
+                    TableColumnConfig(
+                      field: DiveField.siteName,
+                      isPinned: true,
+                    ),
+                    TableColumnConfig(field: DiveField.maxDepth),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          locale: const Locale('en'),
+          child: const DiveListContent(showAppBar: false),
+        ),
+      );
+      await selectAllThenFilter(tester);
+      expect(find.text('2 selected'), findsOneWidget);
+    });
+  });
 
   group('selection toolbar deselect-all', () {
     List<Dive> fourDives() => [

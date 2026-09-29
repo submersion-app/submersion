@@ -94,6 +94,224 @@
   "@equipment_history_unshared": {"placeholders": {"name": {"type": "String"}}},
   "equipment_history_transferred": "Transferred from {from} to {to}",
   "@equipment_history_transferred": {"placeholders": {"from": {"type": "String"}, "to": {"type": "String"}}},
+  "plannerMission_buddyPicker_empty": "No buddies yet",
+  "plannerMission_buddyPicker_me": "Me",
+  "plannerMission_buddyPicker_title": "Choose a buddy",
+  "plannerMission_current_setsToward": "Sets toward",
+  "plannerMission_current_speed": "Current speed",
+  "plannerMission_disableConfirm": "Turn off",
+  "plannerMission_disableMessage": "The route and team are removed. The generated profile stays as ordinary segments you can edit.",
+  "plannerMission_disableTitle": "Turn off the DPV mission?",
+  "plannerMission_enable": "Plan as DPV mission",
+  "plannerMission_enableConfirm": "Replace",
+  "plannerMission_enableMessage": "The mission builds the profile from its route and team, so this plan's segments are replaced. Turning the mission off later keeps the mission's profile, not these segments.",
+  "plannerMission_enableTitle": "Replace the segments with a DPV mission?",
+  "plannerMission_environment_openWater": "Open water",
+  "plannerMission_environment_overhead": "Overhead",
+  "plannerMission_issue_batteryReserveInvalid": "The battery reserve must be between 0 and 100%",
+  "plannerMission_issue_emptyRoute": "Add at least one leg",
+  "plannerMission_issue_emptyTeam": "Add at least one diver",
+  "plannerMission_issue_legDepthInvalid": "{leg} has an invalid depth",
+  "@plannerMission_issue_legDepthInvalid": {
+    "placeholders": {
+      "leg": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_issue_legTooShort": "{leg} is too short to travel",
+  "@plannerMission_issue_legTooShort": {
+    "placeholders": {
+      "leg": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_issue_memberSacUnset": "{name} needs an RMV",
+  "@plannerMission_issue_memberSacUnset": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_issue_memberSwimSpeedUnset": "{name} needs a swim speed",
+  "@plannerMission_issue_memberSwimSpeedUnset": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_issue_openWaterInputInvalid": "A shore exit, the surface swim limit or the walking speed is negative",
+  "plannerMission_issue_planHasNoTank": "Add a back-gas cylinder to the plan",
+  "plannerMission_issue_planNotDiveable": "The planned route breaks a critical limit",
+  "plannerMission_issue_scenarioFailed": "A failure scenario could not be computed",
+  "plannerMission_issue_scooterUnspecified": "{name}'s scooter needs a speed and burn time",
+  "@plannerMission_issue_scooterUnspecified": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_issue_speedBelowHeadwayFloor": "{name}'s swim, scooter or tow speed is too slow to make headway",
+  "@plannerMission_issue_speedBelowHeadwayFloor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_issue_tankBudgetUnknown": "Every cylinder needs a size and a fill pressure",
+  "plannerMission_issue_unsupportedMode": "DPV missions plan open circuit dives only",
+  "plannerMission_issue_untraversableLeg": "The current blocks {leg}",
+  "@plannerMission_issue_untraversableLeg": {
+    "placeholders": {
+      "leg": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_leg_depth": "Depth",
+  "plannerMission_leg_distance": "Distance",
+  "plannerMission_leg_heading": "Heading",
+  "plannerMission_leg_label": "Waypoint name",
+  "plannerMission_leg_shoreExit": "Shore exit from here",
+  "plannerMission_leg_shoreSwim": "Surface swim to shore",
+  "plannerMission_leg_shoreWalk": "Walk to the entry",
+  "plannerMission_leg_useMissionCurrent": "Use the mission's current",
+  "plannerMission_member_chooseScooter": "Choose from equipment",
+  "plannerMission_member_manualScooter": "Enter manually",
+  "plannerMission_member_name": "Name",
+  "plannerMission_member_pickBuddy": "Choose a buddy",
+  "plannerMission_member_sac": "Bottom RMV",
+  "plannerMission_member_scooter": "Scooter",
+  "plannerMission_member_swimSpeed": "Swim speed",
+  "plannerMission_profile_none": "No profile yet: {reason}",
+  "@plannerMission_profile_none": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_profile_segment": "{depth}, {minutes} min",
+  "@plannerMission_profile_segment": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_profile_title": "Generated profile",
+  "plannerMission_route_addLeg": "Add leg",
+  "plannerMission_route_deleteLeg": "Delete leg",
+  "plannerMission_route_editLeg": "Edit leg",
+  "plannerMission_route_legSummary": "{distance} at {depth}, heading {heading}",
+  "@plannerMission_route_legSummary": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "distance": {
+        "type": "String"
+      },
+      "heading": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_route_ownCurrent": "Current {speed} toward {direction}",
+  "@plannerMission_route_ownCurrent": {
+    "placeholders": {
+      "direction": {
+        "type": "String"
+      },
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_route_shoreExit": "Shore exit: swim {swim}, walk {walk}",
+  "@plannerMission_route_shoreExit": {
+    "placeholders": {
+      "swim": {
+        "type": "String"
+      },
+      "walk": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_route_title": "Route",
+  "plannerMission_route_unnamedLeg": "Leg {number}",
+  "@plannerMission_route_unnamedLeg": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerMission_scooter_burnTime": "Burn time",
+  "plannerMission_scooter_name": "Scooter name",
+  "plannerMission_scooter_speed": "Rated speed",
+  "plannerMission_scooter_towBurnFactor": "Tow burn factor",
+  "plannerMission_scooter_towSpeedFactor": "Tow speed factor",
+  "plannerMission_settings_batteryReserve": "Battery reserve",
+  "plannerMission_settings_defaultCurrent": "Default current",
+  "plannerMission_settings_environment": "Environment",
+  "plannerMission_settings_surfaceSwimLimit": "Longest surface swim",
+  "plannerMission_settings_walkSpeed": "Walking speed",
+  "plannerMission_team_addDiver": "Add diver",
+  "plannerMission_team_capacity": "{wh} Wh battery",
+  "@plannerMission_team_capacity": {
+    "placeholders": {
+      "wh": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_team_defaultName": "Diver {number}",
+  "@plannerMission_team_defaultName": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerMission_team_editDiver": "Edit diver",
+  "plannerMission_team_memberSummary": "RMV {sac}, swim {speed}",
+  "@plannerMission_team_memberSummary": {
+    "placeholders": {
+      "sac": {
+        "type": "String"
+      },
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_team_noScooter": "No scooter set",
+  "plannerMission_team_removeDiver": "Remove diver",
+  "plannerMission_team_scooterSummary": "{name}: {speed}, {minutes} min burn",
+  "@plannerMission_team_scooterSummary": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_team_title": "DPV team",
   "settings_shareAllEquipment_title": "Share all my equipment...",
   "settings_shareAllEquipment_body": "{count, plural, =1{Share your 1 item with the profiles you choose.} other{Share your {count} items with the profiles you choose.}}",
   "@settings_shareAllEquipment_body": {"placeholders": {"count": {"type": "int"}}},
@@ -4648,6 +4866,10 @@
   "diveLog_tank_tooltip_remove": "Remove tank",
   "diveLog_tank_regulatorLabel": "Regulator",
   "diveLog_tank_regulatorNone": "None",
+  "diveLog_tank_tripCylinderLabel": "Trip cylinder",
+  "diveLog_tank_tripCylinderNone": "None",
+  "diveLog_tank_tripCylinderMissing": "No longer on this trip",
+  "diveLog_tank_tripCylinderSuggested": "Suggested from the trip's full cylinders",
   "diveLog_tissue_title": "Tissue Loading",
   "diveLog_tooltip_avgCalculated": "(avg, calculated)",
   "diveLog_tooltip_ceiling": "Ceiling",
@@ -7129,6 +7351,34 @@
       "station": {"type": "String"}
     }
   },
+  "passport_fill_fromTag": "From tag",
+  "passport_fill_analyseBeforeDiving": "Analyse the gas yourself before you dive it",
+  "passport_fill_writeToTagTitle": "Fill logged",
+  "passport_fill_writeToTagBody": "Write it to the tank's tag?",
+  "passport_fill_writeToTag": "Write to tag",
+  "passport_fill_notNow": "Not now",
+  "passport_foreign_lastFill": "Last fill on the tag",
+  "passport_foreign_fillSummary": "{fill} · {date}",
+  "@passport_foreign_fillSummary": {
+    "description": "The last fill on a tag: its mix, with the pressure after a middle dot when the tag has one, then the date.",
+    "placeholders": {
+      "fill": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "passport_fill_addedFromTag": "Fill from the tag added: {fill}",
+  "@passport_fill_addedFromTag": {
+    "description": "After scanning a tag: its fill was added. fill is the mix, with the pressure after a middle dot when the tag has one.",
+    "placeholders": {
+      "fill": {
+        "type": "String"
+      }
+    }
+  },
   "passport_fill_analyzer": "Analyzed with {analyzer}",
   "@passport_fill_analyzer": {
     "placeholders": {
@@ -7148,7 +7398,6 @@
       "temperature": {"type": "String"}
     }
   },
-  "passport_fill_unsigned": "Unsigned",
   "passport_history_title": "Fill history",
   "passport_history_sinceHydro": "{count, plural, =0{No fills since the last hydro} =1{{count} fill since the last hydro} other{{count} fills since the last hydro}}",
   "@passport_history_sinceHydro": {
@@ -7252,6 +7501,11 @@
   "passport_nfc_fieldName": "Name",
   "passport_nfc_fieldSerial": "Serial number",
   "passport_nfc_fieldO2Clean": "O2 clean",
+  "passport_nfc_fieldFillAnalyzer": "Fill analyzer",
+  "passport_nfc_fieldFilledBy": "Filled by",
+  "passport_nfc_fieldFillTemperature": "Fill temperature",
+  "passport_nfc_fieldFill": "Newest fill",
+  "passport_nfc_fillIncluded": "The newest fill is on the tag too",
   "passport_foreign_serial": "Serial {serial}",
   "@passport_foreign_serial": {
     "placeholders": {
@@ -7266,6 +7520,7 @@
   "passport_logFill_temperature": "Gas temperature",
   "passport_logFill_station": "Fill station",
   "passport_logFill_analyzer": "Analyzer",
+  "passport_logFill_analysedHint": "Enter your analysed values",
   "passport_logFill_notes": "Notes",
   "passport_logFill_invalidMix": "O2 and He must each be 0 to 100 and total 100 or less",
   "passport_logFill_saveFailed": "Could not save the fill. Try again.",
@@ -9148,6 +9403,23 @@
     }
   },
   "gasCalculators_blender_procedure": "Fill procedure",
+  "gasCalculators_blender_logFill": "Log this fill",
+  "gasCalculators_blender_chooseCylinder": "Choose cylinder",
+  "gasCalculators_blender_scanTag": "Scan tag",
+  "gasCalculators_blender_notYourCylinder": "That cylinder is not in your gear",
+  "gasCalculators_blender_cylinderFailed": "Could not open that cylinder. Try again.",
+  "gasCalculators_blender_filledFrom": "{name}: {mix}",
+  "@gasCalculators_blender_filledFrom": {
+    "description": "After Choose cylinder: the cylinder chosen and the mix of its last fill, now what is in it.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_blender_amounts": "Gas to add",
   "gasCalculators_blender_stepStart": "Start with {pressure} {gas}",
   "@gasCalculators_blender_stepStart": {
@@ -15239,6 +15511,7 @@
   "trips_cylinders_action_fill": "Fill",
   "trips_cylinders_action_fillSeveral": "Fill several",
   "trips_cylinders_action_adjust": "Adjust",
+  "trips_cylinders_action_logDive": "Log dive",
   "trips_cylinders_bottle": "Bottle {label}",
   "@trips_cylinders_bottle": {
     "placeholders": {
@@ -27828,6 +28101,32 @@
   "@query_dives_planned": {"description": "Field label in the query builder"},
   "query_dives_rating": "Rating",
   "@query_dives_rating": {"description": "Field label in the query builder"},
+  "query_dives_findings": "Safety findings",
+  "@query_dives_findings": {"description": "Field label in the query builder"},
+  "query_dives_sac": "SAC",
+  "@query_dives_sac": {"description": "Field label in the query builder"},
+  "query_dives_sacTrend": "SAC trend",
+  "@query_dives_sacTrend": {"description": "Field label in the query builder"},
+  "query_dives_sacTrend_rising": "Rising",
+  "@query_dives_sacTrend_rising": {"description": "Enum value label in the query builder"},
+  "query_dives_sacTrend_steady": "Steady",
+  "@query_dives_sacTrend_steady": {"description": "Enum value label in the query builder"},
+  "query_dives_sacTrend_falling": "Falling",
+  "@query_dives_sacTrend_falling": {"description": "Enum value label in the query builder"},
+  "query_dives_sacChange": "SAC change",
+  "@query_dives_sacChange": {"description": "Field label in the query builder"},
+  "query_dives_finalStop": "Final stop",
+  "@query_dives_finalStop": {"description": "Field label in the query builder"},
+  "query_dives_finalStop_stable": "Stable",
+  "@query_dives_finalStop_stable": {"description": "Enum value label in the query builder"},
+  "query_dives_finalStop_unstable": "Unstable",
+  "@query_dives_finalStop_unstable": {"description": "Enum value label in the query builder"},
+  "query_dives_finalStop_noStop": "No stop",
+  "@query_dives_finalStop_noStop": {"description": "Enum value label in the query builder"},
+  "query_dives_finalStopExcursion": "Final stop excursion",
+  "@query_dives_finalStopExcursion": {"description": "Field label in the query builder"},
+  "query_dives_finalStopDuration": "Final stop length",
+  "@query_dives_finalStopDuration": {"description": "Field label in the query builder"},
   "query_dives_runtime": "Runtime",
   "@query_dives_runtime": {"description": "Field label in the query builder"},
   "query_dives_sightings": "Sightings",
@@ -27880,6 +28179,10 @@
   "@query_entity_equipment": {"description": "Field label in the query builder"},
   "query_entity_equipmentAttributes": "Equipment attributes",
   "@query_entity_equipmentAttributes": {"description": "Field label in the query builder"},
+  "query_entity_findings": "Safety findings",
+  "@query_entity_findings": {"description": "Entity label in the query builder"},
+  "query_findings_rule": "Rule",
+  "@query_findings_rule": {"description": "Field label in the query builder"},
   "query_entity_media": "Media",
   "@query_entity_media": {"description": "Field label in the query builder"},
   "query_entity_sightings": "Sightings",

@@ -35,10 +35,11 @@ reason.
 | Primary use | The diver's own cylinders first; the tag must also work for a rental or club fleet |
 | Tag technology | QR labels and NFC read and write, both in phase 1 |
 | Tag string | An https universal link; the custom scheme is also accepted but never written |
-| Trust model | Ed25519, self-certifying station identity, trust on first use, keyed on the public key |
-| Producer | Station mode inside the app, plus a documented open format for third parties |
+| Trust model | Ed25519, self-certifying station identity, trust on first use, keyed on the public key (deferred 2026-09-28, section 18) |
+| Producer | The diver's own app writes fills to the tag, plus a documented open format for third parties; station mode deferred (2026-09-28, section 18) |
 | Trip assignment | An explicit synced `trip_equipment` link |
-| Architecture | The tag carries an identity plus a spec snapshot; fill history, trip links and station pins live in the database; a roomy NFC tag also carries the newest signed record |
+| Architecture | The tag carries an identity plus a spec snapshot; fill history and trip links live in the database; an NFC tag also carries the newest fill |
+| Fill handoff (revised 2026-09-28) | Phase 3 starts simple: the diver's own app writes the newest fill into the tag's passport link, unsigned, and every tap picks it up. Signing, trust pins and station mode are deferred (section 18); the format reserves a signature field so they can follow without breaking tags |
 
 ## 3. Goals
 
@@ -48,13 +49,12 @@ reason.
   attributes, test status from the service clocks, mix from the newest fill,
   buoyancy from the tank physics, MOD and END from the gas model and the
   diver's ppO2 limits. It never contradicts the reminders or the dive log.
-- A fill can be logged by hand or received as a signed record, and the
-  record's origin is shown honestly: verified, first seen, key changed,
-  blocked, or unsigned.
-- Any Submersion install can act as a fill station and hand a record to a
-  phone by QR, NFC or file, offline.
-- The record and tag formats are documented so analyzer vendors and shop
-  software can produce them with off-the-shelf libraries.
+- A fill can be logged by hand, or from the trimix blender's result, and
+  written onto the cylinder's NFC tag; any phone that taps the tag sees it,
+  labelled for what it is (from the tag, who filled it, analyse before
+  diving).
+- The tag format is documented so analyzer vendors and shop software can
+  write it with off-the-shelf libraries.
 - A tank the diver has never seen opens a read-only passport from the tag
   alone and can be used on a dive without becoming equipment.
 - Everything new syncs between the diver's devices and respects the equipment
@@ -70,7 +70,8 @@ reason.
   devices.
 - A passport id on `dive_tanks`, "you have used this cylinder before", and
   rental memory across seasons. That is the fleet phase, filed separately.
-- Turning a gas blender result into a signed record. Filed as a follow-up.
+- Turning a gas blender result into a signed record (signing waits, section
+  18). An unsigned fill logged from the blender is in phase 3 (section 11).
 - UDDF export of fills. CSV joins in PR 5; the `.db` backup is a byte copy
   and already carries every table.
 - Tags on gear other than cylinders. `trip_equipment` accepts any type, but
@@ -152,8 +153,25 @@ converts for display. Everything but `f` and `p` is optional.
 | `h` | last hydro test, `YYYY-MM-DD` | `2024-06-14` |
 | `vi` | last visual inspection, `YYYY-MM-DD` | `2026-03-02` |
 | `oc` | `1` when O2 clean at write time | `1` |
+| `fi` | newest fill: its id, a UUID, the dedupe key | `3f0c2b8e-...` |
+| `ft` | fill time, RFC 3339 UTC to the second | `2026-09-28T09:30:00Z` |
+| `fo` | fill O2, percent | `32.1` |
+| `fh` | fill He, percent, default 0 | `0` |
+| `fp` | fill pressure, bar | `232` |
+| `fc` | gas temperature at the reading, C | `24.5` |
+| `fb` | filled by (a person or a station), at most 40 characters | `Blue+Hole` |
+| `fa` | analyzer, at most 40 characters | `Divesoft` |
+| `fs` | reserved for a future signature; ignored | |
 
-A full payload is at most 160 characters, a version 9 QR (53 modules) at
+The `f`-prefixed fill keys (decided 2026-09-28) carry the cylinder's newest
+fill on an NFC tag only: a printed label never has them, because the fill
+changes every time the cylinder is filled. They sit in the passport link
+itself, not a second record, because iOS and Android hand an app only the
+first link of a tapped tag. A fill is present when `fi`, `ft` and `fo` are
+all valid (a UUID, an RFC 3339 time, an O2 above 0 with O2 plus He at most
+100); anything less drops the whole fill, never the tag.
+
+A full payload without a fill is at most 160 characters, a version 9 QR (53 modules) at
 medium error correction, about half a millimetre per module on a 26 mm label.
 
 `h`, `vi` and `oc` are written from the clocks: the newest `hydro` and `vip`
@@ -175,20 +193,19 @@ The codec (`PassportPayloadCodec`) is total: it never throws on a tag.
 ### 6.4 Fitting small NFC tags
 
 The writer (`NdefFit`) knows the tag's capacity and drops optional keys in
-this fixed order until the record fits: `n`, `sn`, `vi`, `h`, `oc`, `vt`,
-`m`, `wp`, `v`. It never drops `f`, `p` or `w`. A 144-byte NTAG213 gets
-identity only; NTAG215 and NTAG216 get everything.
+this fixed order until the record fits: the fill's `fa`, `fb` and `fc`,
+then the whole fill, then `n`, `sn`, `vi`, `h`, `oc`, `vt`, `m`, `wp`, `v`.
+It never drops `f`, `p` or `w`. A 144-byte NTAG213 gets identity only;
+NTAG215 and NTAG216 get everything, a fill included (about 270 bytes).
 
 On a phone the capacity is the NDEF message size the platform reports for
 the tag (`Ndef.maxSize`), which already excludes the Type 2 TLV wrapper
 that `NdefFit.fit` counts for a bare tag (decided 2026-09-27).
 
-The NDEF message holds, in order: the identity URI record; when room allows,
-the newest signed fill record as a second URI record
-(`https://submersion.app/f#<token>`, section 11); when room still allows, an
-Android Application Record for `app.submersion` so Android opens this app
-rather than asking. The reader processes URI records in order and ignores
-records it does not know.
+The NDEF message holds, in order: the identity URI record (with the newest
+fill in it, section 11); when room allows, an Android Application Record for
+`app.submersion` so Android opens this app rather than asking. The reader
+processes URI records in order and ignores records it does not know.
 
 ### 6.5 The passport id
 
@@ -223,7 +240,7 @@ shows "Tag out of date" on the Tag card with Rewrite (NFC) and Reprint (QR).
    `PassportScanSheet`.
 3. The dive edit tank editor (`tank_editor.dart`, beside its equipment pick)
    gains the same Scan action.
-4. `/f` receives fill records (section 11).
+4. `/f` fill record links are deferred (section 18).
 
 ### 7.2 Resolution
 
@@ -260,7 +277,7 @@ card names its source of truth. Every value with a unit goes through
 | Spec | volume, working pressure, material, valve; free gas at working pressure; empty and full buoyancy | attributes; the diver's gas model via `gas_compressibility`; `BuoyancyPhysics.tankTermKg` minus the gas mass |
 | Service | hydro, VIP, O2 clean: last date, due date, severity | `ServiceStatusIndicator` in `full` density per clock, the rollup provider; O2 clean untracked shows "Track O2 cleaning", which attaches the built-in `o2-clean` schedule |
 | O2 warning | banner when the newest fill's O2 fraction exceeds `ExposureThresholds.highO2Fraction` and the O2 clean clock is untracked or overdue | fills and clocks |
-| Current fill | mix name, analyzed O2 and He, pressure, temperature, date, station and verification badge; MOD at `ppO2MaxWorking` and at `ppO2MaxDeco`; END at the working MOD for helium mixes; Log a fill; Scan a fill record | newest `cylinder_fills` row, `GasMix`, settings |
+| Current fill | mix name, analyzed O2 and He, pressure, temperature, date, who filled it and, for a fill read from a tag, a From tag chip; MOD at `ppO2MaxWorking` and at `ppO2MaxDeco`; END at the working MOD for helium mixes; Log a fill; Scan a fill record | newest `cylinder_fills` row, `GasMix`, settings |
 | Fill history | newest first, badge per row, count since the last hydro, delete | `cylinder_fills` |
 | Trip | "Packed for <trip>" chip, nearest upcoming or in-progress first, "+N" for the rest; Assign, Unassign | `trip_equipment` |
 | Tag | QR preview of the current payload; Print label; Print labels for selected (from the list's multi-select); Write NFC tag; Link an existing tag; staleness hint | codec, `PassportLabelPdfService`, `NfcTagService` |
@@ -320,8 +337,8 @@ A top-level clocked entity, modelled on `transmitters` (v200).
 | `temperature_c` | REAL nullable | gas temperature at the reading |
 | `analyzer` | TEXT nullable | |
 | `station_name` | TEXT nullable | as entered, or as signed |
-| `station_key` | TEXT nullable | base64url Ed25519 public key from the record |
-| `signed_record` | TEXT nullable | the JWS token verbatim |
+| `station_key` | TEXT nullable | reserved for signed records (section 18); unused |
+| `signed_record` | TEXT nullable | reserved for signed records (section 18); unused |
 | `source` | TEXT | `manual`, `qr`, `nfc`, `file`, `link`, `issued` |
 | `notes` | TEXT | default `''` |
 | `created_at`, `updated_at` | INTEGER | epoch ms |
@@ -331,7 +348,7 @@ Indexes: `(passport_id, filled_at)` and `(equipment_id)`.
 
 Invariants the repository enforces:
 
-- When `signed_record` is present, `o2_percent`, `he_percent`,
+- When signing ships (section 18) and `signed_record` is present, `o2_percent`, `he_percent`,
   `pressure_bar`, `temperature_c`, `analyzer`, `station_name` and
   `station_key` are copies of the verified payload, denormalised for queries.
   The token is the truth; a mismatch on read is reported as corruption.
@@ -346,7 +363,9 @@ Invariants the repository enforces:
 
 ### 10.3 `fill_stations`
 
-The trust-on-first-use pins. A top-level clocked entity.
+Deferred with signing (section 18, decided 2026-09-28); kept here as the
+design to start from. The trust-on-first-use pins. A top-level clocked
+entity.
 
 | Column | Type | Notes |
 | --- | --- | --- |
@@ -361,7 +380,7 @@ The trust-on-first-use pins. A top-level clocked entity.
 | `hlc` | TEXT nullable | |
 
 Unique index on `(diver_id, public_key)`. The key is the identity; the name
-is a label. The pin rule is in section 11.2.
+is a label. The pin rule moves with signing to section 18.
 
 ### 10.4 `trip_equipment`
 
@@ -401,7 +420,7 @@ other PRs are in flight (226 was current on 2026-09-25).
 
 ### 10.7 Sync
 
-`cylinder_fills` and `fill_stations` register as top-level clocked entities,
+`cylinder_fills` (and `fill_stations`, when signing ships) register as top-level clocked entities,
 copying `transmitters`; `trip_equipment` registers as a parent-gated child,
 copying `equipment_shares`:
 
@@ -434,114 +453,35 @@ copying `equipment_shares`:
   cascades them too.
 - Diver deletion follows the `transmitters` convention for `diver_id`.
 
-## 11. The signed fill record
+## 11. The newest fill on the tag
 
-### 11.1 Format
+Decided 2026-09-28, replacing the signed fill record and station mode, which
+move to section 18.
 
-A fill record is a JWS in compact serialization (RFC 7515) signed with
-Ed25519 (EdDSA, RFC 8037). `FillRecordCodec` lives in
-`lib/core/services/fill_record/` because the consumer and the producer both
-use it.
-
-Protected header:
-
-```json
-{"alg":"EdDSA","typ":"sfr+json","jwk":{"kty":"OKP","crv":"Ed25519","x":"<base64url public key>"}}
-```
-
-Payload, all metric:
-
-| Field | Meaning | Required |
-| --- | --- | --- |
-| `v` | record format version, `1` | yes |
-| `id` | record UUID, the dedupe key | yes |
-| `cyl` | passport id | no |
-| `t` | analysis time, RFC 3339, UTC | yes |
-| `o2` | analyzed O2, percent | yes |
-| `he` | analyzed He, percent | yes |
-| `p` | fill pressure, bar | no |
-| `tc` | gas temperature, C | no |
-| `an` | analyzer | no |
-| `op` | operator | no |
-| `st` | station display name | yes |
-| `n` | note, at most 140 characters | no |
-
-Encoding: `base64url(header) . base64url(payload) . base64url(signature)`,
-the signature over the ASCII of the first two parts joined by `.`, exactly as
-JWS specifies. The receiver verifies against the header's `jwk` first, parses
-second, then applies the pin rule. Because the signature covers the bytes as
-transmitted there is no JSON canonicalisation.
-
-Rejected outright, with a message: any `alg` other than `EdDSA`; a missing
-`jwk`, or one that is not `OKP`/`Ed25519`; a bad signature; a payload that
-is not JSON or lacks a required field; `v` with an unknown major version.
-Unknown payload fields are ignored. A `t` more than 24 hours in the future
-is stored with a "clock ahead" note, not rejected. A repeated `id` is a
-no-op, so two phones scanning one screen, or one phone scanning twice, never
-double-log.
-
-A record without `cyl` asks which cylinder it belongs to (visible cylinders,
-newest-used first) or offers Use on a dive.
-
-### 11.2 Verification and the pin rule
-
-`FillTrustEvaluator` takes a token, the pins, and now, and returns a
-`FillVerification`:
-
-| Result | When | Badge |
-| --- | --- | --- |
-| `verified` | key K is pinned `trusted` | Verified, station name from the pin, "(signs as N)" when the signed name differs |
-| `firstSeen` | K unknown, no pin named N | pins K as N `trusted`, Verified with "first seen <date>" |
-| `keyChanged` | K unknown, a pin named N exists | stored; badge Key changed with Trust (pin K as N too) and Block |
-| `blocked` | K pinned `blocked` | Blocked, greyed, warning icon |
-| `unsigned` | no token | Unsigned |
-
-Invalid tokens are never stored; the import reports why. Badge colours come
-from `StatusColors` (`ok`, `warn`, `alert`) and each badge carries text and
-semantics, never colour alone. Because theme presets collapse secondary
-roles, the badge widget is tested across every preset in both brightnesses.
-
-### 11.3 Carriers
-
-- URL: `https://submersion.app/f#<token>`, shown as a QR on the station
-  screen, written as the second NDEF record on a roomy tag, or sent as a
-  link. `submersion://f?<token>` is accepted, never written.
-- File: `<station>-<date>-<mix>.sfr`, content is the token as text. Shared
-  through `share_plus`, received through the existing share-sheet, Open with,
-  drop-target and incoming-file paths.
-
-### 11.4 Import paths
-
-- `/f` route: verify, evaluate, store, then open the passport of `cyl` (own),
-  the foreign passport (unknown `cyl`), or the cylinder picker (no `cyl`).
-- `FormatDetector` learns the JWS shape (`typ` of `sfr+json` in a decoded
-  header) and routes the file to the fill importer instead of the dive
-  wizard.
-- The NFC reader hands a second URI record to the same importer.
-- Scan a fill record on the passport page opens the scan sheet expecting
-  `/f`; a `/c` tag scanned there is resolved normally instead.
-
-## 12. Station mode
-
-`FillStationPage` at `/planning/fill-station`, beside the gas calculators,
-in `lib/features/fill_station/`.
-
-- **First run.** Name the station; `StationIdentityService` generates the
-  keypair. The identity card shows the name and a short fingerprint (the first
-  eight base32 characters of the SHA-256 of the public key, grouped in fours)
-  so a diver can compare it with the pin in their passport.
-- **Issue a record.** Scan the cylinder tag or Skip; enter O2 and He (the
-  analyzer and operator are remembered), pressure, temperature; Sign. The
-  result screen is a high-contrast full-screen QR of the `/f` URL with Write
-  to tag (phones) and Share file beneath it. Next cylinder keeps the station
-  fields and clears the mix and pressure.
-- **Station log.** Every issued record is saved to `cylinder_fills` with
-  source `issued`, `passport_id` from the scanned tag (or empty when skipped),
-  `equipment_id` resolved when the station owns the cylinder. The page lists
-  today's issued records.
-- **Reset station identity** is behind a confirmation and explains that
-  returning customers will see Key changed once. Private keys are never
-  exported.
+- **Writing.** Log a fill (section 8) gains, on a phone with NFC, a "Write
+  it to the tank's tag?" step after Save. The Tag card's Write NFC tag and
+  Rewrite always include the cylinder's newest fill. The fill keys carry
+  the fill row's own id, so reading the tag back never duplicates it.
+- **Reading.** Every tag the app opens, whether by a tap with the app closed,
+  a link, or an in-app scan, is checked for a fill:
+  - an own cylinder (`OwnCylinder`) stores it in `cylinder_fills` with
+    source `nfc`, unless a fill with that id exists or was deleted (a
+    tombstone), and says so ("Fill from the tag added");
+  - a foreign cylinder shows it on the foreign passport and uses its mix
+    for Use on a dive, without storing it: a buddy's or a rental's fill is
+    not the diver's history.
+- **Labelling.** A fill that came from a tag shows a "From tag" chip, who
+  filled it (`fb`) and "Analyse before you dive". Nothing is signed, so
+  nothing is called verified.
+- **Trimix blender.** The Cylinder card gains Choose cylinder (the diver's
+  tanks, or Scan tag), which fills in the cylinder's size and its newest
+  fill's mix as what is already in it. The Fill procedure gains Log this
+  fill, which asks which cylinder, then opens Log a fill prefilled with the
+  target mix (with "enter your analysed values"), the target pressure and
+  the settled temperature, and ends with the same Write to tag step.
+- **Deferred** (section 18): station mode and a station log, the on-screen
+  QR, `.sfr` files and `/f` links, signing and trust pins, and the website's
+  `/f` page.
 
 ## 13. Platform plumbing
 
@@ -625,10 +565,10 @@ carries PR 1b:
 - `/.well-known/assetlinks.json`: package `app.submersion` with the release
   and debug signing certificate fingerprints.
 - Static `/c` and `/f` pages: parse the fragment in the browser, render the
-  spec or the record's payload (verifying with WebCrypto Ed25519 where the
-  browser supports it, otherwise labelled "not verified here"), show Open in
-  Submersion and the store links. No analytics, no server processing, no
-  form.
+  spec, show Open in Submersion and the store links. No analytics, no server
+  processing, no form. The `/c` page shows a tag's fill keys (section 6.2);
+  a full `/f` page, and verifying signed records with WebCrypto Ed25519,
+  wait for the carriers and signing in section 18.
 
 Until they are live, in-app scanning and the custom scheme work; a phone
 without the app scanning a printed label reaches a 404.
@@ -640,16 +580,14 @@ record page with PR 3:
 
 - `cylinder-passport-tag.md`: the URL forms, the payload table, parsing
   rules, the small-tag drop order, the NDEF layout, a worked example.
-- `fill-record.md`: the JWS profile, the payload table, rejection rules, the
-  pin rule, the carriers, a worked example, and a test vector (key, token,
-  expected payload) computed with an independent implementation, with the
-  implementation named.
+- The tag page gains the fill keys (section 6.2) and their drop order.
+  `fill-record.md` (the signed record) waits for signing (section 18).
 
 ## 15. Error handling
 
 - A tag that fails to parse is reported with the reason and never stored.
-- A token that fails verification is reported with the reason and never
-  stored; a token from a blocked station is stored and shown Blocked.
+- A tag whose fill keys are invalid opens normally without the fill; the
+  fill is dropped, never the tag. (Signed-token errors wait for signing.)
 - An NFC write that fails read-back reports the tag as not written and
   offers Retry; a partial write is retried from the start (NDEF messages are
   written whole).
@@ -679,17 +617,18 @@ Tests first throughout, per the project rule.
 - **Sync.** Serializer batch coverage and streaming parity entries per
   entity; tombstones; parent gating for `trip_equipment`; pending marks
   after the batch.
-- **Crypto and trust.** Sign and verify against vectors computed with an
-  independent implementation (OpenSSL or PyNaCl, named in the vector file),
-  never invented. Tampered payload, tampered header, wrong key, wrong `alg`,
-  missing `jwk`, future `t`, duplicate `id`. The pin rule as a state table
-  with three or more stations, two of them sharing a name, since two-row
-  tests hid a bug in the identity label work.
-- **Routing.** `/c` and `/f` with fragment and query on both URL forms;
+- **Fill on the tag.** Codec round trips with and without a fill; a fill
+  missing `fi`, `ft` or `fo`, or with O2 plus He over 100, is dropped and
+  the tag still opens; the drop order against NTAG213, 215 and 216; reading
+  an own tag stores the fill once (a second read, a synced copy and a
+  deleted fill are all no-ops); a foreign tag's fill is shown, not stored.
+  (Crypto vectors and the pin-rule state table wait for signing.)
+- **Routing.** `/c` with fragment and query on both URL forms;
   cold-start queueing through the setup redirect.
-- **Widgets.** The passport page in every state (no fills, unsigned,
-  verified, first seen, key changed, blocked, O2 warning, stale tag); the
-  foreign passport; the station mode flow; imperial units on every value;
+- **Widgets.** The passport page in every state (no fills, a fill from a
+  tag, O2 warning, stale tag); the foreign passport with and without a fill;
+  Log a fill's Write to tag step; the blender's Choose cylinder and Log this
+  fill; imperial units on every value;
   badge colours across every theme preset in both brightnesses; the label
   PDF renders a scannable QR (decode the rendered bitmap with the `qr`
   decoder in the test).
@@ -699,8 +638,9 @@ Tests first throughout, per the project rule.
   `2026-09-18-media-sync-manual-test-checklist.md` covering: NFC read and
   write on iPhone and Android, background launch from a tap with the app
   closed, camera scan on all three platforms, printed label scan at 25 mm,
-  station QR to phone handoff, `.sfr` over AirDrop and email, and the
-  website fallback on a phone without the app. None of this runs in CI.
+  writing a fill to a tag and reading it on a second phone (app open and
+  closed), the blender's Log this fill to a tag, and the website fallback
+  on a phone without the app. None of this runs in CI.
 
 ## 17. Delivery
 
@@ -712,7 +652,7 @@ previous one merges, each closing its own issue and referencing the umbrella #23
 | 1a Passport core | #2334 | `passport_id` attribute, `AttributeGroup.system`, index; `PassportPayloadCodec` and `NdefFit`; `cylinder_fills` table, repository, sync; `LogFillSheet`; `PassportPage` and `PassportEntryCard` (spec, buoyancy, service, O2 warning, current fill, history, tag card); on-screen QR; `PassportLabelPdfService` with the multi-label sheet; Link an existing tag; `cylinder-passport-tag.md` | yes | main |
 | 1b Scan and links | #2335 | `/c` and custom-scheme routes and queueing; iOS and Android link plumbing; `mobile_scanner` with `PassportScanSheet` and Paste link; `PassportResolver`; `ForeignPassportPage` with Use on a dive and Add to my gear; tank editor Scan | no | 1a |
 | 2 NFC | #2336 | `nfc_manager`, `NfcTagService`; read, background launch filters; write with capacity and read-back; staleness hint with Rewrite and Reprint | no | 1b |
-| 3 Signed records | #2337 | `FillRecordCodec` with vectors; `StationIdentityService`; `FillStationPage`; `/f` route; `FormatDetector` and `.sfr` share; `fill_stations` table, repository, sync; `FillTrustEvaluator` and badges with Trust and Block; second NDEF record write and read; `fill-record.md`; hardware checklist | yes | 2 |
+| 3 Fill on the tag | #2337 | Fill keys in the tag codec and `NdefFit`; reading them on every tag open (store for an own cylinder, show for a foreign one); Write to tag after Log a fill; the newest fill in every NFC write; the trimix blender's Choose cylinder and Log this fill; tag doc update; hardware checklist (rescoped 2026-09-28) | no | 2 |
 | 4 Trip assignment | #2338 | `trip_equipment` table, repository, sync; passport Trip card; trip page Gear section | yes | 1a |
 | 5 CSV round trip | #2339 | fills in the Submersion CSV bundle: writer, signature, parser, round-trip test | no | 1a |
 
@@ -733,6 +673,18 @@ Filed as their own issues, not part of this program:
 - Explicit station key exchange (scanning a station identity QR before its
   records count). The fingerprint on the identity card is the manual form.
 - Tags and passports for gear other than cylinders.
+- Deferred from phase 3 (decided 2026-09-28), in the order they build on
+  each other:
+  - Station mode: a Fill station screen for filling other people's
+    cylinders (tap their tag, enter the analysis, write it), and a
+    device-local station log that never enters the owner's fill history.
+  - More carriers: an on-screen QR of the fill for printed-label cylinders,
+    `.sfr` files and `/f` links (share sheet, Open with, drop), and the
+    website's `/f` page.
+  - Signing: an Ed25519 JWS over the fill (the reserved `fs` key), with
+    trust-on-first-use pins (`fill_stations`, section 10.3), badges reading
+    "Signed" rather than "Verified" (a signature proves consistency of
+    origin, not identity), and Key changed with Trust and Block.
 
 ## 19. Assumptions verified at plan time
 
@@ -744,9 +696,9 @@ Filed as their own issues, not part of this program:
 - `mobile_scanner` builds and scans on macOS with the current Flutter SDK
   pin; otherwise macOS joins the desktop Paste-link tier for PR 1b and
   camera scanning on macOS becomes a follow-up.
-- The `barcode` package's QR encoder handles a 450-character `/f` URL at
-  medium error correction (it should reach version 20 or so); otherwise the
-  station QR drops to low error correction.
+- (Deferred with the on-screen QR.) The `barcode` package's QR encoder
+  handles a 600-character signed `/f` URL at medium error correction: a
+  version 19 code, measured 2026-09-28.
 - `VisibilityFilter` offers an equipment clause the resolver can reuse; if
   it is still `diver_id = ?` on main, the resolver uses that and the sharing
   program's PR 2 swaps it.

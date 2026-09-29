@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/cylinder_passports/data/services/tag_fill_importer.dart';
 import 'package:submersion/core/providers/ref_invalidate_on_change.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
@@ -16,6 +17,10 @@ final cylinderFillRepositoryProvider = Provider<CylinderFillRepository>(
 
 final cylinderPassportRepositoryProvider = Provider<CylinderPassportRepository>(
   (ref) => CylinderPassportRepository(),
+);
+
+final tagFillImporterProvider = Provider<TagFillImporter>(
+  (ref) => TagFillImporter(fills: ref.watch(cylinderFillRepositoryProvider)),
 );
 
 final passportAdoptionServiceProvider = Provider<PassportAdoptionService>(

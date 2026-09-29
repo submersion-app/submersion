@@ -44,10 +44,45 @@ double groundToMetric(
         _ => prefs.pressure,
       };
       return from.convert(v, PressureUnit.bar);
+    case FieldDimension.pressureRate:
+      return rateUnitSaid(unit, prefs).convert(v, PressureUnit.bar);
     case FieldDimension.minutes:
     case FieldDimension.percent:
     case FieldDimension.count:
     case FieldDimension.none:
       return v;
   }
+}
+
+/// The pressure unit a SAC was said in. Divers often drop "per minute", so
+/// a plain bar or psi on a rate means bar/min or psi/min; no unit means the
+/// diver's own.
+PressureUnit rateUnitSaid(ClauseUnit? unit, UnitPrefs prefs) => switch (unit) {
+  ClauseUnit.bar || ClauseUnit.barMin => PressureUnit.bar,
+  ClauseUnit.psi || ClauseUnit.psiMin => PressureUnit.psi,
+  _ => prefs.pressure,
+};
+
+/// Whether [unit] can be read on a field of [dimension]. A unit of another
+/// kind (20 c on a depth, l/min on a SAC, which is RMV) would otherwise be
+/// ignored and the number read in the diver's own unit, searching for the
+/// wrong thing without saying so. No unit always fits, and a unitless field
+/// takes whatever it is given, as it always has.
+bool unitFits(FieldDimension dimension, ClauseUnit? unit) {
+  if (unit == null) return true;
+  return switch (dimension) {
+    FieldDimension.depth => unit == ClauseUnit.m || unit == ClauseUnit.ft,
+    FieldDimension.temperature => unit == ClauseUnit.c || unit == ClauseUnit.f,
+    FieldDimension.pressure => unit == ClauseUnit.bar || unit == ClauseUnit.psi,
+    // Divers drop "per minute": a plain bar or psi on a rate fits.
+    FieldDimension.pressureRate =>
+      unit == ClauseUnit.bar ||
+          unit == ClauseUnit.psi ||
+          unit == ClauseUnit.barMin ||
+          unit == ClauseUnit.psiMin,
+    FieldDimension.minutes => unit == ClauseUnit.min,
+    FieldDimension.percent ||
+    FieldDimension.count ||
+    FieldDimension.none => true,
+  };
 }

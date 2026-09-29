@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/utils/system_sheet_lifecycle.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/app/app_exit.dart';
@@ -155,6 +156,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       // Fill the per-dive sensor summary cache for dives that predate it or
       // changed since. Single-flight, oldest first, no-op when current.
       SensorSummaryScheduler.instance.scheduleStaleSweep();
+      DerivedMetricsScheduler.instance.scheduleStaleSweep();
     });
   }
 

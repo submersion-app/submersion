@@ -328,6 +328,284 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get plannerMission_buddyPicker_empty => 'No buddies yet';
+
+  @override
+  String get plannerMission_buddyPicker_me => 'Me';
+
+  @override
+  String get plannerMission_buddyPicker_title => 'Choose a buddy';
+
+  @override
+  String get plannerMission_current_setsToward => 'Sets toward';
+
+  @override
+  String get plannerMission_current_speed => 'Current speed';
+
+  @override
+  String get plannerMission_disableConfirm => 'Turn off';
+
+  @override
+  String get plannerMission_disableMessage =>
+      'The route and team are removed. The generated profile stays as ordinary segments you can edit.';
+
+  @override
+  String get plannerMission_disableTitle => 'Turn off the DPV mission?';
+
+  @override
+  String get plannerMission_enable => 'Plan as DPV mission';
+
+  @override
+  String get plannerMission_enableConfirm => 'Replace';
+
+  @override
+  String get plannerMission_enableMessage =>
+      'The mission builds the profile from its route and team, so this plan\'s segments are replaced. Turning the mission off later keeps the mission\'s profile, not these segments.';
+
+  @override
+  String get plannerMission_enableTitle =>
+      'Replace the segments with a DPV mission?';
+
+  @override
+  String get plannerMission_environment_openWater => 'Open water';
+
+  @override
+  String get plannerMission_environment_overhead => 'Overhead';
+
+  @override
+  String get plannerMission_issue_batteryReserveInvalid =>
+      'The battery reserve must be between 0 and 100%';
+
+  @override
+  String get plannerMission_issue_emptyRoute => 'Add at least one leg';
+
+  @override
+  String get plannerMission_issue_emptyTeam => 'Add at least one diver';
+
+  @override
+  String plannerMission_issue_legDepthInvalid(String leg) {
+    return '$leg has an invalid depth';
+  }
+
+  @override
+  String plannerMission_issue_legTooShort(String leg) {
+    return '$leg is too short to travel';
+  }
+
+  @override
+  String plannerMission_issue_memberSacUnset(String name) {
+    return '$name needs an RMV';
+  }
+
+  @override
+  String plannerMission_issue_memberSwimSpeedUnset(String name) {
+    return '$name needs a swim speed';
+  }
+
+  @override
+  String get plannerMission_issue_openWaterInputInvalid =>
+      'A shore exit, the surface swim limit or the walking speed is negative';
+
+  @override
+  String get plannerMission_issue_planHasNoTank =>
+      'Add a back-gas cylinder to the plan';
+
+  @override
+  String get plannerMission_issue_planNotDiveable =>
+      'The planned route breaks a critical limit';
+
+  @override
+  String get plannerMission_issue_scenarioFailed =>
+      'A failure scenario could not be computed';
+
+  @override
+  String plannerMission_issue_scooterUnspecified(String name) {
+    return '$name\'s scooter needs a speed and burn time';
+  }
+
+  @override
+  String plannerMission_issue_speedBelowHeadwayFloor(String name) {
+    return '$name\'s swim, scooter or tow speed is too slow to make headway';
+  }
+
+  @override
+  String get plannerMission_issue_tankBudgetUnknown =>
+      'Every cylinder needs a size and a fill pressure';
+
+  @override
+  String get plannerMission_issue_unsupportedMode =>
+      'DPV missions plan open circuit dives only';
+
+  @override
+  String plannerMission_issue_untraversableLeg(String leg) {
+    return 'The current blocks $leg';
+  }
+
+  @override
+  String get plannerMission_leg_depth => 'Depth';
+
+  @override
+  String get plannerMission_leg_distance => 'Distance';
+
+  @override
+  String get plannerMission_leg_heading => 'Heading';
+
+  @override
+  String get plannerMission_leg_label => 'Waypoint name';
+
+  @override
+  String get plannerMission_leg_shoreExit => 'Shore exit from here';
+
+  @override
+  String get plannerMission_leg_shoreSwim => 'Surface swim to shore';
+
+  @override
+  String get plannerMission_leg_shoreWalk => 'Walk to the entry';
+
+  @override
+  String get plannerMission_leg_useMissionCurrent =>
+      'Use the mission\'s current';
+
+  @override
+  String get plannerMission_member_chooseScooter => 'Choose from equipment';
+
+  @override
+  String get plannerMission_member_manualScooter => 'Enter manually';
+
+  @override
+  String get plannerMission_member_name => 'Name';
+
+  @override
+  String get plannerMission_member_pickBuddy => 'Choose a buddy';
+
+  @override
+  String get plannerMission_member_sac => 'Bottom RMV';
+
+  @override
+  String get plannerMission_member_scooter => 'Scooter';
+
+  @override
+  String get plannerMission_member_swimSpeed => 'Swim speed';
+
+  @override
+  String plannerMission_profile_none(String reason) {
+    return 'No profile yet: $reason';
+  }
+
+  @override
+  String plannerMission_profile_segment(String depth, String minutes) {
+    return '$depth, $minutes min';
+  }
+
+  @override
+  String get plannerMission_profile_title => 'Generated profile';
+
+  @override
+  String get plannerMission_route_addLeg => 'Add leg';
+
+  @override
+  String get plannerMission_route_deleteLeg => 'Delete leg';
+
+  @override
+  String get plannerMission_route_editLeg => 'Edit leg';
+
+  @override
+  String plannerMission_route_legSummary(
+    String depth,
+    String distance,
+    String heading,
+  ) {
+    return '$distance at $depth, heading $heading';
+  }
+
+  @override
+  String plannerMission_route_ownCurrent(String direction, String speed) {
+    return 'Current $speed toward $direction';
+  }
+
+  @override
+  String plannerMission_route_shoreExit(String swim, String walk) {
+    return 'Shore exit: swim $swim, walk $walk';
+  }
+
+  @override
+  String get plannerMission_route_title => 'Route';
+
+  @override
+  String plannerMission_route_unnamedLeg(int number) {
+    return 'Leg $number';
+  }
+
+  @override
+  String get plannerMission_scooter_burnTime => 'Burn time';
+
+  @override
+  String get plannerMission_scooter_name => 'Scooter name';
+
+  @override
+  String get plannerMission_scooter_speed => 'Rated speed';
+
+  @override
+  String get plannerMission_scooter_towBurnFactor => 'Tow burn factor';
+
+  @override
+  String get plannerMission_scooter_towSpeedFactor => 'Tow speed factor';
+
+  @override
+  String get plannerMission_settings_batteryReserve => 'Battery reserve';
+
+  @override
+  String get plannerMission_settings_defaultCurrent => 'Default current';
+
+  @override
+  String get plannerMission_settings_environment => 'Environment';
+
+  @override
+  String get plannerMission_settings_surfaceSwimLimit => 'Longest surface swim';
+
+  @override
+  String get plannerMission_settings_walkSpeed => 'Walking speed';
+
+  @override
+  String get plannerMission_team_addDiver => 'Add diver';
+
+  @override
+  String plannerMission_team_capacity(String wh) {
+    return '$wh Wh battery';
+  }
+
+  @override
+  String plannerMission_team_defaultName(int number) {
+    return 'Diver $number';
+  }
+
+  @override
+  String get plannerMission_team_editDiver => 'Edit diver';
+
+  @override
+  String plannerMission_team_memberSummary(String sac, String speed) {
+    return 'RMV $sac, swim $speed';
+  }
+
+  @override
+  String get plannerMission_team_noScooter => 'No scooter set';
+
+  @override
+  String get plannerMission_team_removeDiver => 'Remove diver';
+
+  @override
+  String plannerMission_team_scooterSummary(
+    String minutes,
+    String name,
+    String speed,
+  ) {
+    return '$name: $speed, $minutes min burn';
+  }
+
+  @override
+  String get plannerMission_team_title => 'DPV team';
+
+  @override
   String get settings_shareAllEquipment_title => 'Share all my equipment...';
 
   @override
@@ -8818,6 +9096,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tank_regulatorNone => 'None';
 
   @override
+  String get diveLog_tank_tripCylinderLabel => 'Trip cylinder';
+
+  @override
+  String get diveLog_tank_tripCylinderNone => 'None';
+
+  @override
+  String get diveLog_tank_tripCylinderMissing => 'No longer on this trip';
+
+  @override
+  String get diveLog_tank_tripCylinderSuggested =>
+      'Suggested from the trip\'s full cylinders';
+
+  @override
   String get diveLog_tissue_title => 'Tissue Loading';
 
   @override
@@ -12480,6 +12771,38 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get passport_fill_fromTag => 'From tag';
+
+  @override
+  String get passport_fill_analyseBeforeDiving =>
+      'Analyse the gas yourself before you dive it';
+
+  @override
+  String get passport_fill_writeToTagTitle => 'Fill logged';
+
+  @override
+  String get passport_fill_writeToTagBody => 'Write it to the tank\'s tag?';
+
+  @override
+  String get passport_fill_writeToTag => 'Write to tag';
+
+  @override
+  String get passport_fill_notNow => 'Not now';
+
+  @override
+  String get passport_foreign_lastFill => 'Last fill on the tag';
+
+  @override
+  String passport_foreign_fillSummary(String fill, String date) {
+    return '$fill · $date';
+  }
+
+  @override
+  String passport_fill_addedFromTag(String fill) {
+    return 'Fill from the tag added: $fill';
+  }
+
+  @override
   String passport_fill_analyzer(String analyzer) {
     return 'Analyzed with $analyzer';
   }
@@ -12493,9 +12816,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String passport_fill_temperature(String temperature) {
     return 'Gas temperature $temperature';
   }
-
-  @override
-  String get passport_fill_unsigned => 'Unsigned';
 
   @override
   String get passport_history_title => 'Fill history';
@@ -12709,6 +13029,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passport_nfc_fieldO2Clean => 'O2 clean';
 
   @override
+  String get passport_nfc_fieldFillAnalyzer => 'Fill analyzer';
+
+  @override
+  String get passport_nfc_fieldFilledBy => 'Filled by';
+
+  @override
+  String get passport_nfc_fieldFillTemperature => 'Fill temperature';
+
+  @override
+  String get passport_nfc_fieldFill => 'Newest fill';
+
+  @override
+  String get passport_nfc_fillIncluded => 'The newest fill is on the tag too';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'Serial $serial';
   }
@@ -12736,6 +13071,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get passport_logFill_analyzer => 'Analyzer';
+
+  @override
+  String get passport_logFill_analysedHint => 'Enter your analysed values';
 
   @override
   String get passport_logFill_notes => 'Notes';
@@ -15495,6 +15833,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_procedure => 'Fill procedure';
+
+  @override
+  String get gasCalculators_blender_logFill => 'Log this fill';
+
+  @override
+  String get gasCalculators_blender_chooseCylinder => 'Choose cylinder';
+
+  @override
+  String get gasCalculators_blender_scanTag => 'Scan tag';
+
+  @override
+  String get gasCalculators_blender_notYourCylinder =>
+      'That cylinder is not in your gear';
+
+  @override
+  String get gasCalculators_blender_cylinderFailed =>
+      'Could not open that cylinder. Try again.';
+
+  @override
+  String gasCalculators_blender_filledFrom(String name, String mix) {
+    return '$name: $mix';
+  }
 
   @override
   String get gasCalculators_blender_amounts => 'Gas to add';
@@ -24975,6 +25335,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_cylinders_action_adjust => 'Adjust';
+
+  @override
+  String get trips_cylinders_action_logDive => 'Log dive';
 
   @override
   String trips_cylinders_bottle(String label) {
@@ -44854,6 +45217,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_dives_rating => 'Rating';
 
   @override
+  String get query_dives_findings => 'Safety findings';
+
+  @override
+  String get query_dives_sac => 'SAC';
+
+  @override
+  String get query_dives_sacTrend => 'SAC trend';
+
+  @override
+  String get query_dives_sacTrend_rising => 'Rising';
+
+  @override
+  String get query_dives_sacTrend_steady => 'Steady';
+
+  @override
+  String get query_dives_sacTrend_falling => 'Falling';
+
+  @override
+  String get query_dives_sacChange => 'SAC change';
+
+  @override
+  String get query_dives_finalStop => 'Final stop';
+
+  @override
+  String get query_dives_finalStop_stable => 'Stable';
+
+  @override
+  String get query_dives_finalStop_unstable => 'Unstable';
+
+  @override
+  String get query_dives_finalStop_noStop => 'No stop';
+
+  @override
+  String get query_dives_finalStopExcursion => 'Final stop excursion';
+
+  @override
+  String get query_dives_finalStopDuration => 'Final stop length';
+
+  @override
   String get query_dives_runtime => 'Runtime';
 
   @override
@@ -44930,6 +45332,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get query_entity_equipmentAttributes => 'Equipment attributes';
+
+  @override
+  String get query_entity_findings => 'Safety findings';
+
+  @override
+  String get query_findings_rule => 'Rule';
 
   @override
   String get query_entity_media => 'Media';

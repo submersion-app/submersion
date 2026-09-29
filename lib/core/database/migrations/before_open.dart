@@ -175,6 +175,8 @@ extension BeforeOpenBackstops on AppDatabase {
 
     // v245 backstop: the certifications buddy index (idempotent).
     await _assertCertificationsBuddyIndex();
+    // v247 backstop: the Explore derived metrics (local, idempotent).
+    await _assertDerivedMetricsTable();
 
     // v122 backstop: re-assert service ledger schema + built-in kinds.
     // The legacy backfill is NOT here (onUpgrade only) -- re-running it

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ndef_record/ndef_record.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/tag_fill.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/ndef_fit.dart';
@@ -101,6 +102,34 @@ void main() {
   });
 
   group('planPassportMessage', () {
+    final fill = TagFill(
+      id: '3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11',
+      filledAt: DateTime.utc(2026, 9, 28, 9, 30),
+      o2Percent: 32,
+      pressureBar: 232,
+      filledBy: 'Blue Hole',
+    );
+
+    test('an NTAG215 carries the newest fill', () {
+      final plan = planPassportMessage(
+        full.copyWith(fill: fill),
+        maxMessageBytes: 496,
+      )!;
+      expect(plan.payload.fill, fill);
+      expect(plan.droppedKeys, isEmpty);
+    });
+
+    test('an NTAG213 keeps the identity and leaves the fill off', () {
+      final plan = planPassportMessage(
+        full.copyWith(fill: fill),
+        maxMessageBytes: 144,
+      )!;
+      expect(plan.payload.fill, isNull);
+      expect(plan.droppedKeys, contains('fill'));
+      expect(plan.payload.passportId, full.passportId);
+      expect(plan.payload.writtenOn, full.writtenOn);
+    });
+
     test('a roomy tag gets everything and the Android record', () {
       final plan = planPassportMessage(full, maxMessageBytes: 496)!;
       expect(plan.payload, full);
@@ -117,8 +146,20 @@ void main() {
     test(
       'a small tag drops keys in the fixed order and keeps the identity',
       () {
-        final plan = planPassportMessage(full, maxMessageBytes: 100)!;
+        // With a fill, so every key in the drop order has something to drop.
+        final withFill = full.copyWith(
+          fill: TagFill(
+            id: '3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11',
+            filledAt: DateTime.utc(2026, 9, 28, 9, 30),
+            o2Percent: 32,
+            temperatureC: 24,
+            filledBy: 'Blue Hole',
+            analyzer: 'Divesoft',
+          ),
+        );
+        final plan = planPassportMessage(withFill, maxMessageBytes: 100)!;
         expect(plan.message.byteLength, lessThanOrEqualTo(100));
+        expect(plan.payload.fill, isNull);
         expect(plan.payload.passportId, id);
         expect(plan.payload.writtenOn, full.writtenOn);
         expect(plan.droppedKeys, isNotEmpty);

@@ -44,8 +44,12 @@ String safetyFindingTitle(
 
 /// Localized rule name only (settings-page strings), for narrow contexts
 /// like wide lane chips.
-String safetyFindingShortLabel(SafetyFinding finding, AppLocalizations l10n) {
-  return switch (finding.ruleId) {
+String safetyFindingShortLabel(SafetyFinding finding, AppLocalizations l10n) =>
+    safetyRuleLabel(finding.ruleId, l10n);
+
+/// A rule's name as the safety settings page shows it.
+String safetyRuleLabel(SafetyRuleId rule, AppLocalizations l10n) {
+  return switch (rule) {
     SafetyRuleId.rapidAscent => l10n.safetySettings_rule_rapidAscent,
     SafetyRuleId.missedDecoStop => l10n.safetySettings_rule_missedDecoStop,
     SafetyRuleId.omittedSafetyStop =>

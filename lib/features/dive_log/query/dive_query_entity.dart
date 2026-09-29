@@ -3,6 +3,8 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
+import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
+import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 
 /// Every field and relation a dive query can name (#2365). This file is
@@ -133,6 +135,34 @@ QueryRelation _junction(
   emptySql: emptySql,
   tables: [junction],
 );
+
+/// The Explore derived metrics (#2195): a device-local table the derived
+/// metrics scheduler keeps current. A dive not yet swept has no row, so its
+/// derived fields are empty (`:none`) until the sweep reaches it.
+const kDiveDerivedMetricsTable = 'dive_derived_metrics';
+
+String _derived(String column) =>
+    '(SELECT m.$column FROM $kDiveDerivedMetricsTable m '
+    'WHERE m.dive_id = {r}.id)';
+
+/// SAC in bar per minute at the surface, by the formula the Insights SAC
+/// chart plots (`InsightsRepository.getSacPressurePerDive`): the back-gas
+/// tank's pressure drop over the runtime, normalised by the average depth,
+/// so a search and the chart agree. Empty with no such tank, no runtime or
+/// no average depth.
+const kDiveSacSql =
+    '(SELECT (t.start_pressure - t.end_pressure) '
+    '/ (COALESCE({r}.runtime, {r}.bottom_time) / 60.0) '
+    '/ (({r}.avg_depth / 10.0) + 1) '
+    'FROM dive_tanks t WHERE t.id = ('
+    'SELECT t2.id FROM dive_tanks t2 WHERE t2.dive_id = {r}.id '
+    'AND t2.start_pressure > t2.end_pressure '
+    "AND (t2.tank_role = 'backGas' OR NOT EXISTS ("
+    'SELECT 1 FROM dive_tanks t3 WHERE t3.dive_id = {r}.id '
+    "AND t3.tank_role = 'backGas')) "
+    'ORDER BY t2.tank_order, t2.rowid LIMIT 1) '
+    'AND COALESCE({r}.runtime, {r}.bottom_time) > 0 '
+    'AND {r}.avg_depth > 0)';
 
 final QueryEntity diveQueryEntity = QueryEntity(
   subject: QuerySubject.dives,
@@ -310,6 +340,54 @@ final QueryEntity diveQueryEntity = QueryEntity(
           'NOT EXISTS (SELECT 1 FROM dive_tanks t WHERE t.dive_id = {r}.id)',
       tables: ['dive_tanks'],
     ),
+    _num(
+      'sac',
+      kDiveSacSql,
+      dimension: FieldDimension.pressureRate,
+      sanity: (min: 0, max: 20),
+      tables: ['dive_tanks'],
+    ),
+    QueryField(
+      key: 'sacTrend',
+      type: FieldType.enumName,
+      sql: _derived('sac_trend'),
+      emptySql: '${_derived('sac_trend')} IS NULL',
+      labelKey: _label('sacTrend'),
+      enumValues: _names(SacTrend.values),
+      tables: const [kDiveDerivedMetricsTable],
+    ),
+    _num(
+      'sacChange',
+      _derived('sac_change_pct'),
+      dimension: FieldDimension.percent,
+      sanity: (min: -100, max: 1000),
+      tables: [kDiveDerivedMetricsTable],
+    ),
+    QueryField(
+      key: 'finalStop',
+      type: FieldType.enumName,
+      sql: _derived('final_stop_state'),
+      emptySql: '${_derived('final_stop_state')} IS NULL',
+      labelKey: _label('finalStop'),
+      enumValues: _names(FinalStopState.values),
+      tables: const [kDiveDerivedMetricsTable],
+    ),
+    // How far the diver strayed from the stop's depth for a tenth of the
+    // stop or more (the 90th percentile), not the single worst sample.
+    _num(
+      'finalStopExcursion',
+      _derived('final_stop_max_excursion_m'),
+      dimension: FieldDimension.depth,
+      sanity: (min: 0, max: 10),
+      tables: [kDiveDerivedMetricsTable],
+    ),
+    // Whole minutes, truncated, like bottomTime.
+    _num(
+      'finalStopDuration',
+      _derived('final_stop_duration_s / 60'),
+      dimension: FieldDimension.minutes,
+      tables: [kDiveDerivedMetricsTable],
+    ),
     _text('notes', 'notes'),
     // The legacy free-text buddy column (#757): the dive editor writes only
     // dive_buddies, but old data still carries names here.
@@ -417,5 +495,19 @@ final QueryEntity diveQueryEntity = QueryEntity(
     _child('customFields', QuerySubject.customFields),
     _child('sightings', QuerySubject.sightings),
     _child('media', QuerySubject.media),
+    // Live findings only: a dismissed finding is one the diver waved off,
+    // and one from an older engine is replaced when the dive is next
+    // reviewed. The filter rides on the hop, so no condition inside it (an
+    // empty rule, a negated rule) can reach a hidden finding.
+    QueryRelation(
+      key: 'findings',
+      aliases: const ['finding'],
+      target: QuerySubject.findings,
+      shape: RelationShape.child,
+      joinSql: '{to}.dive_id = {from}.id',
+      targetFilterSql: kLiveFindingSql,
+      isMany: true,
+      labelKey: _label('findings'),
+    ),
   ],
 );

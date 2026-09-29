@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/explore/data/channel_nl_engine.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
+import 'package:submersion/features/explore/domain/query_model.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -38,11 +39,11 @@ void main() {
     messenger.setMockMethodCallHandler(channel, (call) async {
       expect(call.method, 'compile');
       expect(call.arguments, {'sentence': 'turtles', 'locale': 'en-US'});
-      return '{"schemaVersion":1,"subject":"dives"}';
+      return '{"schemaVersion":$kQuerySchemaVersion,"subject":"dives"}';
     });
     expect(
       await ChannelNlEngine().compile('turtles', localeTag: 'en-US'),
-      '{"schemaVersion":1,"subject":"dives"}',
+      '{"schemaVersion":$kQuerySchemaVersion,"subject":"dives"}',
     );
 
     messenger.setMockMethodCallHandler(
@@ -83,6 +84,6 @@ void main() {
     });
     await ChannelNlEngine().prepare();
     expect(sent!['instructions'], NlPrompt.instructions());
-    expect((sent!['vocabulary'] as Map)['schemaVersion'], 1);
+    expect((sent!['vocabulary'] as Map)['schemaVersion'], kQuerySchemaVersion);
   });
 }

@@ -46,6 +46,7 @@ import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/tag_fill_copy_merge.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -2415,7 +2416,15 @@ class SyncService {
               localUpdatedAt > lastSyncMs;
           final newerThanTombstone =
               localUpdatedAt != null && localUpdatedAt > deletionTimestamp;
-          final hasConflict = editedSinceLastSync || newerThanTombstone;
+          // A fill copied from a tag is not an edit of the fill the peer
+          // deleted: the delete wins, with no conflict to resolve, so every
+          // device agrees it stays deleted (tag_fill_copy_merge.dart).
+          final tagCopy =
+              entityType == 'cylinderFills' &&
+              local != null &&
+              isTagFillCopy(local);
+          final hasConflict =
+              !tagCopy && (editedSinceLastSync || newerThanTombstone);
 
           if (hasConflict) {
             conflicts += 1;
@@ -3111,6 +3120,11 @@ class SyncService {
               entityType: entityType,
               recordId: recordId,
             );
+          } else if (entityType == 'cylinderFills' && isTagFillCopy(record)) {
+            // A fill copied from a tag is not an edit of the fill we deleted,
+            // so it never revives it, whatever its clock
+            // (tag_fill_copy_merge.dart).
+            continue;
           } else {
             // Read the remote clock whether or not this entity resolves as
             // LWW. [hasUpdatedAt] selects the merge STRATEGY (an entity that
@@ -3248,6 +3262,21 @@ class SyncService {
         // next local write is ordered after what it has seen (the skew fix).
         if (remoteHlc != null) {
           SyncClock.instance.receive(remoteHlc);
+        }
+
+        // A fill copied from an NFC tag never beats the fill it was copied
+        // from, whatever the clocks say (tag_fill_copy_merge.dart).
+        if (entityType == 'cylinderFills') {
+          switch (tagFillCopyMerge(local, record)) {
+            case TagFillCopyMerge.keepLocal:
+              continue;
+            case TagFillCopyMerge.takeRemote:
+              toUpsert.add(_overlayOntoLocal(entityType, recordToApply, local));
+              applied += 1;
+              continue;
+            case null:
+              break;
+          }
         }
 
         // When BOTH sides carry an HLC it is the authoritative, deterministic

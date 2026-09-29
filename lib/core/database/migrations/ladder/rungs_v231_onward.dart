@@ -96,5 +96,11 @@ extension RungsFromV231 on AppDatabase {
       await _assertCertificationsBuddyIndex();
     }
     if (from < 245) await reportProgress();
+    // v247: the Explore derived metrics (issue #2195). Table-only rung, no
+    // backfill: the startup sweep fills it. Re-asserted in beforeOpen.
+    if (from < 247) {
+      await _assertDerivedMetricsTable();
+    }
+    if (from < 247) await reportProgress();
   }
 }

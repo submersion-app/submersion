@@ -216,4 +216,152 @@ void main() {
     // "Exactly" at a bound: the band reaches past it, the number does not.
     expect(compile([clause('depth', 'eq', 0)]).unplaced, isEmpty);
   });
+
+  group('the derived fields', () {
+    test('SAC is a rate grounded from the unit said', () {
+      final q = compile([
+        {...clause('sac', 'gt', 21.76), 'unit': 'psi_min'},
+      ]);
+      expect(q.unplaced, isEmpty);
+      final bound = (q.filter.query! as ConditionNode).value as NumberValue;
+      expect(bound.value, closeTo(1.5, 0.01));
+    });
+
+    test('exactly a SAC is a tenth either side', () {
+      final q = compile([clause('sac', 'eq', 1.2)]);
+      expect(
+        q.filter.query,
+        AndNode([
+          cond('sac', QueryOp.gte, const NumberValue(1.15, null)),
+          cond('sac', QueryOp.lte, const NumberValue(1.25, null)),
+        ]),
+      );
+    });
+
+    test('trend, change, stop, excursion and length', () {
+      final q = compile([
+        clause('sacTrend', 'eq', 'rising'),
+        clause('sacChange', 'gt', 10),
+        clause('finalStop', 'eq', 'unstable'),
+        clause('finalStopExcursion', 'gt', 1),
+        clause('finalStopDuration', 'gte', 3),
+      ]);
+      expect(q.unplaced, isEmpty);
+      expect(
+        q.filter.query,
+        AndNode([
+          cond(
+            'sacTrend',
+            QueryOp.inList,
+            ListValue(const [EnumValue('rising')]),
+          ),
+          cond('sacChange', QueryOp.gte, const NumberValue(10, null)),
+          cond(
+            'finalStop',
+            QueryOp.inList,
+            ListValue(const [EnumValue('unstable')]),
+          ),
+          cond('finalStopExcursion', QueryOp.gte, const NumberValue(1, null)),
+          cond('finalStopDuration', QueryOp.gte, const NumberValue(3, null)),
+        ]),
+      );
+    });
+
+    test('a finding is a rule of any of the dive findings', () {
+      final rule = ConditionNode(
+        FieldPath(['findings', 'rule']),
+        QueryOp.inList,
+        ListValue(const [EnumValue('rapidAscent')]),
+      );
+      expect(
+        compile([clause('finding', 'eq', 'rapidAscent')]).filter.query,
+        rule,
+      );
+      expect(
+        compile([
+          clause('finding', 'not', ['rapidAscent']),
+        ]).filter.query,
+        NotNode(rule),
+      );
+    });
+
+    (double, double) bounds(CompiledQuery q) {
+      final and = q.filter.query! as AndNode;
+      double v(int i) =>
+          ((and.children[i] as ConditionNode).value as NumberValue).value;
+      return (v(0), v(1));
+    }
+
+    test('exactly a SAC in psi/min is a real band, half a psi either side', () {
+      final q = QueryCompiler.compile(
+        ParsedQuery.fromJson({
+          'schemaVersion': kQuerySchemaVersion,
+          'subject': 'dives',
+          'clauses': [clause('sac', 'eq', 20)],
+        }),
+        CompilerContext(
+          units: (
+            depth: DepthUnit.feet,
+            temperature: TemperatureUnit.fahrenheit,
+            pressure: PressureUnit.psi,
+          ),
+          names: NameIndex.empty,
+          now: DateTime(2026, 9, 28),
+        ),
+      );
+      final (lo, hi) = bounds(q);
+      // 19.5 to 20.5 psi/min: 1.344 to 1.413 bar/min, not one rounded value.
+      expect(lo, closeTo(1.344, 0.001));
+      expect(hi, closeTo(1.413, 0.001));
+    });
+
+    test('SAC said in psi without per minute is psi per minute', () {
+      final q = compile([
+        {...clause('sac', 'gt', 20), 'unit': 'psi'},
+      ]);
+      final bound = (q.filter.query! as ConditionNode).value as NumberValue;
+      expect(bound.value, closeTo(1.379, 0.001));
+    });
+
+    test('a volume rate on SAC is refused, not read as pressure', () {
+      final q = compile([
+        {...clause('sac', 'gt', 15), 'unit': 'l_min'},
+      ]);
+      expect(q.unplaced.single.reason, 'invalid');
+      expect(q.filter.query, isNull);
+    });
+
+    test('a unit of the wrong kind is refused on any measured field', () {
+      // Reading 20 c as 20 m, or 15 m as 15 degrees, would search for the
+      // wrong thing without saying so.
+      for (final bad in [
+        {...clause('depth', 'gt', 20), 'unit': 'c'},
+        {...clause('waterTemp', 'lt', 15), 'unit': 'm'},
+        {...clause('bottomTime', 'gt', 40), 'unit': 'bar'},
+      ]) {
+        final q = compile([bad]);
+        expect(q.unplaced.single.reason, 'invalid', reason: '$bad');
+      }
+      // The right kind still grounds.
+      expect(
+        compile([
+          {...clause('depth', 'gt', 60), 'unit': 'ft'},
+        ]).unplaced,
+        isEmpty,
+      );
+      expect(
+        compile([
+          {...clause('bottomTime', 'gt', 40), 'unit': 'min'},
+        ]).unplaced,
+        isEmpty,
+      );
+    });
+
+    test('a change below minus 100 percent is out of range', () {
+      expect(
+        compile([clause('sacChange', 'lt', -150)]).unplaced.single.reason,
+        'outOfRange',
+      );
+    });
+  });
 }
