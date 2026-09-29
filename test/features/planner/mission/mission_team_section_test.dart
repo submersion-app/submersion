@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/domain/entities/mission/current_vector.dart';
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_edits.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_setup_accordion.dart';
@@ -92,5 +93,47 @@ void main() {
       MissionEnvironment.openWater,
     );
     expect(find.text('Walking speed'), findsOneWidget);
+  });
+
+  testWidgets('the DPV team section fits a 320 pt phone with every field', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 2000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanSetupAccordion)),
+    );
+    final starter = MissionEdits.starter(
+      legId: 'L1',
+      memberId: 'm1',
+      memberName: 'Alexandria Montgomery-Fitzwilliam',
+      sacBottom: 15,
+    );
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .enableMission(
+          MissionEdits.addMember(
+            starter,
+            'm2',
+            name: 'Sam',
+            sacBottom: 18,
+          ).copyWith(
+            environment: MissionEnvironment.openWater,
+            defaultCurrent: const CurrentVector(
+              speedMps: 0.2,
+              setsTowardDeg: 90,
+            ),
+            surfaceSwimLimitM: 300,
+          ),
+        );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('DPV team'));
+    await tester.pumpAndSettle();
+    expect(find.text('Walking speed'), findsOneWidget);
+    expect(find.text('Sets toward'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }
