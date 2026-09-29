@@ -24673,6 +24673,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Exportar inventário de equipamentos e informações de manutenção';
 
   @override
+  String get transfer_csvExport_descriptionFills =>
+      'Cada enchimento registado num passaporte de garrafa, com análise, pressão e estação';
+
+  @override
   String get transfer_csvExport_descriptionObservations =>
       'Cada verificação OK e cada problema reportado, com mergulho, etiquetas e nota';
 
@@ -24693,6 +24697,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'CSV de Equipamentos';
 
   @override
+  String get transfer_csvExport_optionFillsTitle =>
+      'CSV de enchimentos de garrafa';
+
+  @override
   String get transfer_csvExport_optionObservationsTitle =>
       'CSV de verificações de equipamento';
 
@@ -24709,6 +24717,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Equipamentos';
+
+  @override
+  String get transfer_csvExport_typeFills => 'Enchimentos de garrafa';
 
   @override
   String get transfer_csvExport_typeObservations =>
@@ -42996,6 +43007,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'A exportar verificações de equipamento para CSV...';
 
   @override
+  String get settings_export_progress_fillsCsv =>
+      'A exportar enchimentos de garrafa para CSV...';
+
+  @override
   String get settings_export_progress_pdf =>
       'Gerando diário de mergulho em PDF...';
 
@@ -43069,6 +43084,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'A preparar CSV de verificações de equipamento...';
 
   @override
+  String get settings_export_progress_preparingFillsCsv =>
+      'A preparar CSV de enchimentos de garrafa...';
+
+  @override
   String get settings_export_progress_preparingUddf =>
       'Preparando arquivo UDDF...';
 
@@ -43088,6 +43107,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_export_empty_observations =>
       'Sem verificações de equipamento para exportar';
+
+  @override
+  String get settings_export_empty_fills =>
+      'Sem enchimentos de garrafa para exportar';
 
   @override
   String get settings_export_empty_data => 'Nenhum dado para exportar';
@@ -43115,6 +43138,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_export_success_observations =>
       'Verificações de equipamento exportadas';
+
+  @override
+  String get settings_export_success_fills =>
+      'Enchimentos de garrafa exportados';
 
   @override
   String get settings_export_success_pdf =>
@@ -43175,6 +43202,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'CSV de verificações de equipamento guardado';
 
   @override
+  String get settings_export_saved_fillsCsv =>
+      'CSV de enchimentos de garrafa guardado';
+
+  @override
   String get settings_export_saved_uddf => 'Arquivo UDDF salvo com sucesso';
 
   @override
@@ -43200,6 +43231,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_export_saveObservationsCsvDialogTitle =>
       'Salvar CSV de verificações de equipamento';
+
+  @override
+  String get settings_export_saveFillsCsvDialogTitle =>
+      'Guardar CSV de enchimentos de garrafa';
 
   @override
   String backup_operation_created(String size) {

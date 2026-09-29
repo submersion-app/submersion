@@ -24278,6 +24278,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Export equipment inventory and service info';
 
   @override
+  String get transfer_csvExport_descriptionFills =>
+      'Every fill logged on a cylinder passport, with its analysis, pressure and filler';
+
+  @override
   String get transfer_csvExport_descriptionObservations =>
       'Every OK check and reported issue, with its dive, tags and note';
 
@@ -24298,6 +24302,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'Equipment CSV';
 
   @override
+  String get transfer_csvExport_optionFillsTitle => 'Cylinder fills CSV';
+
+  @override
   String get transfer_csvExport_optionObservationsTitle => 'Gear check-ins CSV';
 
   @override
@@ -24313,6 +24320,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Equipment';
+
+  @override
+  String get transfer_csvExport_typeFills => 'Cylinder fills';
 
   @override
   String get transfer_csvExport_typeObservations => 'Gear check-ins';
@@ -42372,6 +42382,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Exporting gear check-ins to CSV...';
 
   @override
+  String get settings_export_progress_fillsCsv =>
+      'Exporting cylinder fills to CSV...';
+
+  @override
   String get settings_export_progress_pdf => 'Generating PDF logbook...';
 
   @override
@@ -42442,6 +42456,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Preparing gear check-ins CSV...';
 
   @override
+  String get settings_export_progress_preparingFillsCsv =>
+      'Preparing cylinder fills CSV...';
+
+  @override
   String get settings_export_progress_preparingUddf => 'Preparing UDDF file...';
 
   @override
@@ -42459,6 +42477,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_export_empty_observations =>
       'No gear check-ins to export';
+
+  @override
+  String get settings_export_empty_fills => 'No cylinder fills to export';
 
   @override
   String get settings_export_empty_data => 'No data to export';
@@ -42483,6 +42504,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_export_success_observations => 'Gear check-ins exported';
+
+  @override
+  String get settings_export_success_fills => 'Cylinder fills exported';
 
   @override
   String get settings_export_success_pdf =>
@@ -42540,6 +42564,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Gear check-ins CSV saved';
 
   @override
+  String get settings_export_saved_fillsCsv => 'Cylinder fills CSV saved';
+
+  @override
   String get settings_export_saved_uddf => 'UDDF file saved successfully';
 
   @override
@@ -42564,6 +42591,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_export_saveObservationsCsvDialogTitle =>
       'Save Gear Check-ins CSV';
+
+  @override
+  String get settings_export_saveFillsCsvDialogTitle =>
+      'Save Cylinder Fills CSV';
 
   @override
   String backup_operation_created(String size) {

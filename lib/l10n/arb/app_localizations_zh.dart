@@ -23416,6 +23416,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_csvExport_descriptionEquipment => '导出装备库存和维护信息';
 
   @override
+  String get transfer_csvExport_descriptionFills => '气瓶护照上记录的每次充气，含气体分析、压力和充气站';
+
+  @override
   String get transfer_csvExport_descriptionObservations =>
       '每条正常检查和报告的问题，含潜水、标签和备注';
 
@@ -23435,6 +23438,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => '装备 CSV';
 
   @override
+  String get transfer_csvExport_optionFillsTitle => '气瓶充气记录 CSV';
+
+  @override
   String get transfer_csvExport_optionObservationsTitle => '装备检查记录 CSV';
 
   @override
@@ -23450,6 +23456,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => '装备';
+
+  @override
+  String get transfer_csvExport_typeFills => '气瓶充气记录';
 
   @override
   String get transfer_csvExport_typeObservations => '装备检查记录';
@@ -40540,6 +40549,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_export_progress_observationsCsv => '正在将装备检查记录导出为 CSV...';
 
   @override
+  String get settings_export_progress_fillsCsv => '正在将气瓶充气记录导出为 CSV...';
+
+  @override
   String get settings_export_progress_pdf => '正在生成 PDF 潜水日志...';
 
   @override
@@ -40600,6 +40612,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '正在准备装备检查记录 CSV...';
 
   @override
+  String get settings_export_progress_preparingFillsCsv => '正在准备气瓶充气记录 CSV...';
+
+  @override
   String get settings_export_progress_preparingUddf => '正在准备 UDDF 文件...';
 
   @override
@@ -40616,6 +40631,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_export_empty_observations => '没有可导出的装备检查记录';
+
+  @override
+  String get settings_export_empty_fills => '没有可导出的气瓶充气记录';
 
   @override
   String get settings_export_empty_data => '没有可导出的数据';
@@ -40639,6 +40657,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_export_success_observations => '装备检查记录已导出';
+
+  @override
+  String get settings_export_success_fills => '气瓶充气记录已导出';
 
   @override
   String get settings_export_success_pdf => 'PDF 潜水日志生成成功';
@@ -40689,6 +40710,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_export_saved_observationsCsv => '装备检查记录 CSV 已保存';
 
   @override
+  String get settings_export_saved_fillsCsv => '气瓶充气记录 CSV 已保存';
+
+  @override
   String get settings_export_saved_uddf => 'UDDF 文件保存成功';
 
   @override
@@ -40711,6 +40735,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_export_saveObservationsCsvDialogTitle => '保存装备检查记录 CSV';
+
+  @override
+  String get settings_export_saveFillsCsvDialogTitle => '保存气瓶充气记录 CSV';
 
   @override
   String backup_operation_created(String size) {

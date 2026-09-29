@@ -8,9 +8,9 @@ Future<ValueGetter<Object?>> _open(
   WidgetTester tester, {
   CsvUnitMode initial = CsvUnitMode.myUnits,
 }) async {
-  // The sheet lists four data types plus the unit choice; the default test
+  // The sheet lists five data types plus the unit choice; the default test
   // surface is too short to tap the lower rows.
-  await tester.binding.setSurfaceSize(const Size(800, 1400));
+  await tester.binding.setSurfaceSize(const Size(800, 1500));
   addTearDown(() => tester.binding.setSurfaceSize(null));
   Object? result = #pending;
   await tester.pumpWidget(
@@ -80,5 +80,20 @@ void main() {
     await tester.tap(find.text('Gear check-ins'));
     await tester.pumpAndSettle();
     expect(find.text('My units'), findsNothing);
+  });
+
+  testWidgets('cylinder fills keep the unit choice and are returned', (
+    tester,
+  ) async {
+    final result = await _open(tester);
+    await tester.tap(find.text('Cylinder fills'));
+    await tester.pumpAndSettle();
+    expect(find.text('My units'), findsOneWidget);
+    await tester.tap(find.text('Export CSV').last);
+    await tester.pumpAndSettle();
+    expect(result(), (
+      type: CsvExportType.fills,
+      unitMode: CsvUnitMode.myUnits,
+    ));
   });
 }

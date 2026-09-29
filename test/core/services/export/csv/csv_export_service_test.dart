@@ -4,6 +4,7 @@ import 'package:csv/csv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/csv/csv_export_service.dart';
 import 'package:submersion/core/services/export/csv/dive_csv_columns.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -188,6 +189,15 @@ void main() {
       mockPicker.saveFileResult = null;
       final result = await service.saveEquipmentCsvToFile(
         <EquipmentItem>[],
+        dialogTitle: 'Save',
+      );
+      expect(result, isNull);
+    });
+
+    test('saveFillsCsvToFile returns null when user cancels', () async {
+      mockPicker.saveFileResult = null;
+      final result = await service.saveFillsCsvToFile(
+        <CylinderFill>[],
         dialogTitle: 'Save',
       );
       expect(result, isNull);

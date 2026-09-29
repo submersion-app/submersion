@@ -51,6 +51,10 @@ void main() {
       ),
       contains('Buoyancy (lbs)'),
     );
+    expect(
+      header(service.generateFillsCsvContent(goldenFills(), units: units)),
+      contains('Pressure (psi)'),
+    );
   });
 
   test('saving dives writes the chosen units', () async {
@@ -80,6 +84,17 @@ void main() {
     );
     expect(header(saved()), contains('Dry Weight (lbs)'));
     expect(saved(), contains('Mk25; Long hose'));
+  });
+
+  test('saving fills writes the chosen units and the cylinder name', () async {
+    await service.saveFillsCsvToFile(
+      goldenFills(),
+      equipmentById: goldenFillEquipment(),
+      dialogTitle: 'Save',
+      units: units,
+    );
+    expect(header(saved()), contains('Temperature (°F)'));
+    expect(saved(), contains('AL80'));
   });
 
   test('the default is still the historical metric file', () async {
