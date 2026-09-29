@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -110,6 +112,32 @@ void main() {
     );
   });
 
+  test('a rate edit regenerates the mission segments', () {
+    notifier.enableMission(starter);
+    notifier.updateMission(
+      MissionEdits.updateMember(
+        MissionEdits.updateLeg(
+          starter,
+          starter.legs.single.copyWith(distanceM: 300, depthM: 20),
+        ),
+        starter.team.single.copyWith(
+          scooter: const ScooterSpec(
+            name: 'Blacktip',
+            ratedSpeedMps: 0.9,
+            burnTimeSeconds: 5400,
+          ),
+        ),
+      ),
+    );
+    final before = notifier.state.segments;
+    expect(before, isNotEmpty);
+    notifier.updateRates(descent: notifier.state.descentRate / 2);
+    expect(notifier.state.segments, isNot(equals(before)));
+    // Regenerating is idempotent: the same inputs give the same segments.
+    notifier.updateRates(descent: notifier.state.descentRate * 2);
+    expect(notifier.state.segments, before);
+  });
+
   group('opening a saved mission', () {
     setUp(() async => setUpTestDatabase());
     tearDown(tearDownTestDatabase);
@@ -132,45 +160,48 @@ void main() {
       ],
     );
 
+    Future<void> saveMissionPlan() async {
+      var mission = MissionEdits.updateLeg(
+        starter,
+        starter.legs.single.copyWith(distanceM: 300, depthM: 20),
+      );
+      mission = MissionEdits.updateMember(
+        mission,
+        mission.team.single.copyWith(
+          scooter: const ScooterSpec(
+            equipmentId: 'eq-1',
+            name: 'Old name',
+            ratedSpeedMps: 0.5,
+            burnTimeSeconds: 3600,
+          ),
+        ),
+      );
+      await DivePlanRepository().savePlan(
+        domain.DivePlan(
+          id: 'plan-1',
+          name: 'Saved mission',
+          gfLow: 40,
+          gfHigh: 80,
+          tanks: const [
+            DiveTank(
+              id: 'back',
+              volume: 24,
+              startPressure: 230,
+              gasMix: GasMix(o2: 21),
+              role: TankRole.backGas,
+            ),
+          ],
+          mission: mission,
+          createdAt: DateTime(2026, 9, 28),
+          updatedAt: DateTime(2026, 9, 28),
+        ),
+      );
+    }
+
     test(
       'a picked scooter is refreshed from its live item, not dirtied',
       () async {
-        var mission = MissionEdits.updateLeg(
-          starter,
-          starter.legs.single.copyWith(distanceM: 300, depthM: 20),
-        );
-        mission = MissionEdits.updateMember(
-          mission,
-          mission.team.single.copyWith(
-            scooter: const ScooterSpec(
-              equipmentId: 'eq-1',
-              name: 'Old name',
-              ratedSpeedMps: 0.5,
-              burnTimeSeconds: 3600,
-            ),
-          ),
-        );
-        await DivePlanRepository().savePlan(
-          domain.DivePlan(
-            id: 'plan-1',
-            name: 'Saved mission',
-            gfLow: 40,
-            gfHigh: 80,
-            tanks: const [
-              DiveTank(
-                id: 'back',
-                volume: 24,
-                startPressure: 230,
-                gasMix: GasMix(o2: 21),
-                role: TankRole.backGas,
-              ),
-            ],
-            mission: mission,
-            createdAt: DateTime(2026, 9, 28),
-            updatedAt: DateTime(2026, 9, 28),
-          ),
-        );
-
+        await saveMissionPlan();
         final opener = DivePlanNotifier(
           PlanCalculatorService(),
           repository: DivePlanRepository(),
@@ -187,5 +218,45 @@ void main() {
         expect(opener.state.segments, isNotEmpty);
       },
     );
+
+    test('a failed equipment load keeps the stored scooter', () async {
+      await saveMissionPlan();
+      final opener = DivePlanNotifier(
+        PlanCalculatorService(),
+        repository: DivePlanRepository(),
+        loadEquipment: () async => throw StateError('equipment unavailable'),
+      );
+      addTearDown(opener.dispose);
+      expect(await opener.loadPlanById('plan-1'), isTrue);
+      final scooter = opener.state.mission!.team.single.scooter;
+      expect(scooter.name, 'Old name');
+      expect(scooter.ratedSpeedMps, 0.5);
+    });
+
+    test('an edit made while equipment loads is not reverted', () async {
+      await saveMissionPlan();
+      final called = Completer<void>();
+      final items = Completer<List<EquipmentItem>>();
+      final opener = DivePlanNotifier(
+        PlanCalculatorService(),
+        repository: DivePlanRepository(),
+        loadEquipment: () {
+          called.complete();
+          return items.future;
+        },
+      );
+      addTearDown(opener.dispose);
+      final loading = opener.loadPlanById('plan-1');
+      await called.future;
+      final loaded = opener.state.mission!;
+      final edited = MissionEdits.updateLeg(
+        loaded,
+        loaded.legs.single.copyWith(distanceM: 500),
+      );
+      opener.updateMission(edited);
+      items.complete([dpvItem('eq-1')]);
+      expect(await loading, isTrue);
+      expect(opener.state.mission!.legs.single.distanceM, 500);
+    });
   });
 }

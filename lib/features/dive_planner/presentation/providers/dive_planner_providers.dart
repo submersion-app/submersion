@@ -6,6 +6,7 @@ import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -80,6 +81,8 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// Loads the diver's equipment, for refreshing a mission's scooters from
   /// the items they were picked from when a plan is opened.
   final Future<List<EquipmentItem>> Function() _loadEquipment;
+
+  static final _log = LoggerService.forClass(DivePlanNotifier);
 
   /// The persisted aggregate this state was loaded from (or last saved as);
   /// preserves fields the legacy state does not carry across a save cycle.
@@ -262,10 +265,13 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       // deleted one keeps the numbers stored with the plan.
       final live = MissionEdits.withLiveScooters(
         mission,
-        await _loadEquipment(),
+        await _liveEquipment(plan.id),
       );
       if (!mounted) return false;
-      if (live != mission) _setMission(live, markDirty: false);
+      // An edit made while the equipment loaded wins over the refresh.
+      if (live != mission && state.mission == mission) {
+        _setMission(live, markDirty: false);
+      }
     }
     return true;
   }
@@ -412,10 +418,8 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// Add a new tank to the plan.
   void addTank(DiveTank tank) {
     final tanks = [...state.tanks, tank];
-    state = state.copyWith(
-      tanks: tanks,
-      isDirty: true,
-      updatedAt: DateTime.now(),
+    state = _withMissionSegments(
+      state.copyWith(tanks: tanks, isDirty: true, updatedAt: DateTime.now()),
     );
   }
 
@@ -486,11 +490,13 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       return s;
     }).toList();
 
-    state = state.copyWith(
-      tanks: tanks,
-      segments: segments,
-      isDirty: true,
-      updatedAt: DateTime.now(),
+    state = _withMissionSegments(
+      state.copyWith(
+        tanks: tanks,
+        segments: segments,
+        isDirty: true,
+        updatedAt: DateTime.now(),
+      ),
     );
   }
 
@@ -510,11 +516,13 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       return s;
     }).toList();
 
-    state = state.copyWith(
-      tanks: tanks,
-      segments: segments,
-      isDirty: true,
-      updatedAt: DateTime.now(),
+    state = _withMissionSegments(
+      state.copyWith(
+        tanks: tanks,
+        segments: segments,
+        isDirty: true,
+        updatedAt: DateTime.now(),
+      ),
     );
   }
 
@@ -552,14 +560,16 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     double? finalStretch,
     double? descent,
   }) {
-    state = state.copyWith(
-      ascentRate: ascent,
-      intermediateAscentRate: intermediate,
-      shallowAscentRate: shallow,
-      finalAscentRate: finalStretch,
-      descentRate: descent,
-      isDirty: true,
-      updatedAt: DateTime.now(),
+    state = _withMissionSegments(
+      state.copyWith(
+        ascentRate: ascent,
+        intermediateAscentRate: intermediate,
+        shallowAscentRate: shallow,
+        finalAscentRate: finalStretch,
+        descentRate: descent,
+        isDirty: true,
+        updatedAt: DateTime.now(),
+      ),
     );
   }
 
@@ -756,16 +766,43 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   }
 
   void _setMission(DpvMission mission, {bool markDirty = true}) {
-    final plan = divePlanFromState(state.copyWith(mission: mission));
-    state = state.copyWith(
-      mission: mission,
+    state = _withMissionSegments(
+      state.copyWith(
+        mission: mission,
+        isDirty: markDirty ? true : state.isDirty,
+        updatedAt: markDirty ? DateTime.now() : state.updatedAt,
+      ),
+    );
+  }
+
+  /// [s] with its segments regenerated from its mission, when it has one.
+  /// The generated profile also reads the plan's tanks and rates, so every
+  /// edit to those passes through here too.
+  static DivePlanState _withMissionSegments(DivePlanState s) {
+    final mission = s.mission;
+    if (mission == null) return s;
+    return s.copyWith(
       segments: const MissionEngine().roundTripSegments(
-        plan: plan,
+        plan: divePlanFromState(s),
         mission: mission,
       ),
-      isDirty: markDirty ? true : state.isDirty,
-      updatedAt: markDirty ? DateTime.now() : state.updatedAt,
     );
+  }
+
+  /// The diver's equipment, or none when it cannot be read: a mission's
+  /// stored scooters are complete, so the plan still opens.
+  Future<List<EquipmentItem>> _liveEquipment(String planId) async {
+    try {
+      return await _loadEquipment();
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not load equipment to refresh the scooters of plan $planId; '
+        'using the stored ones',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const [];
+    }
   }
 
   // --------------------------------------------------------------------------
