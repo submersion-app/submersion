@@ -135,7 +135,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
               ],
             ),
           ),
-          if (compiled != null && compiled.filter.hasActiveFilters)
+          if (compiled != null && compiled.query != null)
             SafeArea(
               top: false,
               child: Padding(

@@ -244,7 +244,9 @@ class ExploreQueryNotifier extends StateNotifier<ExploreState> {
         now: DateTime.now(),
       ),
     );
-    _ref.read(exploreFilterProvider.notifier).state = compiled.filter;
+    _ref.read(exploreFilterProvider.notifier).state = DiveFilterState(
+      query: compiled.query,
+    );
     state = state.copyWith(
       parsed: parsed,
       compiled: compiled,

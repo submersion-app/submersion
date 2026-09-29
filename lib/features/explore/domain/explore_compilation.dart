@@ -1,4 +1,4 @@
-import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/explore_fields.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
@@ -73,13 +73,15 @@ class UnplacedItem {
 }
 
 class ExploreCompilation {
-  final DiveFilterState filter;
+  /// The sentence as one query over the dive registry; null when nothing
+  /// was placed (or the subject is not dives).
+  final QueryNode? query;
   final List<QueryChip> chips;
   final List<UnresolvedMention> unresolved;
   final List<UnplacedItem> unplaced;
   final List<ChartRequest> charts;
   const ExploreCompilation({
-    required this.filter,
+    required this.query,
     required this.chips,
     required this.unresolved,
     required this.unplaced,

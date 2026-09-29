@@ -279,7 +279,9 @@ void main() {
       );
       expect(compiled.unplaced, isEmpty);
       final c = await container();
-      c.read(exploreFilterProvider.notifier).state = compiled.filter;
+      c.read(exploreFilterProvider.notifier).state = DiveFilterState(
+        query: compiled.query,
+      );
       final results = await c.read(exploreResultsProvider.future);
       expect(results.map((s) => s.id), ['match']);
     },
@@ -329,7 +331,9 @@ void main() {
       ),
     );
     final c = await container();
-    c.read(exploreFilterProvider.notifier).state = compiled.filter;
+    c.read(exploreFilterProvider.notifier).state = DiveFilterState(
+      query: compiled.query,
+    );
     final results = await c.read(exploreResultsProvider.future);
     expect(results.map((s) => s.id).toSet(), {'light', 'blank'});
   });

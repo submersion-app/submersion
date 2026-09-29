@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
+import 'package:submersion/features/equipment/query/equipment_attr_condition_query.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
@@ -10,6 +12,8 @@ import 'package:submersion/features/explore/domain/explore_fields.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/explore_compiler.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
+
+import 'explore_query_parts.dart';
 
 void main() {
   const metric = UnitPrefs(
@@ -100,7 +104,7 @@ void main() {
     final c = compile(turtlesQuery());
     // The filter axis is `>= 20`, so a 20 m dive matches; the chip must not
     // claim the query was strict.
-    expect(c.filter.minDepth, 20);
+    expect(boundOf(c, 'depth', QueryOp.gte), 20);
     expect((c.chips.first.payload as ClauseChip).op, ClauseOp.gte);
   });
 
@@ -108,11 +112,10 @@ void main() {
     'the turtles sentence compiles to depth, visibility, species and sites',
     () {
       final c = compile(turtlesQuery());
-      expect(c.filter.minDepth, 20);
-      expect(c.filter.minVisibility, 20);
-      expect(c.filter.speciesIds, ['sp_green_turtle']);
-      expect(c.filter.siteIds, ['s1', 's2']);
-      expect(c.filter.siteId, isNull);
+      expect(boundOf(c, 'depth', QueryOp.gte), 20);
+      expect(boundOf(c, 'visibility', QueryOp.gte), 20);
+      expect(refIdsOf(c, ['sightings', 'species']), ['sp_green_turtle']);
+      expect(refIdsOf(c, ['site']), ['s1', 's2']);
       expect(c.chips, hasLength(4));
       expect(c.unresolved, isEmpty);
       expect(c.unplaced, isEmpty);
@@ -147,8 +150,8 @@ void main() {
         ],
       });
       final c = compile(q, units: imperial);
-      expect(c.filter.maxDepth, closeTo(18.29, 0.01));
-      expect(c.filter.maxWaterTemp, closeTo(15.56, 0.01));
+      expect(boundOf(c, 'depth', QueryOp.lte), closeTo(18.29, 0.01));
+      expect(boundOf(c, 'waterTemp', QueryOp.lte), closeTo(15.56, 0.01));
       final chip = c.chips.first.payload as ClauseChip;
       expect(chip.field, exploreField('depth')!);
       // The bound is inclusive, so the chip says so rather than repeating
@@ -195,27 +198,41 @@ void main() {
       'time': {'text': 'last year'},
     });
     final c = compile(q);
-    expect(c.filter.minDepth, 10);
-    expect(c.filter.maxDepth, 30);
+    expect(boundOf(c, 'depth', QueryOp.gte), 10);
+    expect(boundOf(c, 'depth', QueryOp.lte), 30);
     // "Not" is a query-tree NOT, which keeps dives with no water type
-    // recorded; a complement on the axis would drop them.
-    expect(c.filter.waterTypes, isEmpty);
+    // recorded; a complement of the listed values would drop them.
     expect(
-      c.filter.query,
-      NotNode(
-        ConditionNode(
-          FieldPath(['waterType']),
-          QueryOp.inList,
-          ListValue(const [EnumValue('salt')]),
+      partsOf(c),
+      contains(
+        NotNode(
+          ConditionNode(
+            FieldPath(['waterType']),
+            QueryOp.inList,
+            ListValue(const [EnumValue('salt')]),
+          ),
         ),
       ),
     );
-    expect(c.filter.favoritesOnly, isTrue);
-    expect(c.filter.decoOnly, isFalse);
-    expect(c.filter.weekdays, [6, 7]);
-    expect(c.filter.minBottomTimeMinutes, 45);
-    expect(c.filter.startDate, DateTime(2025, 1, 1));
-    expect(c.filter.endDate, DateTime(2025, 12, 31));
+    expect(
+      partsOf(c),
+      containsAll([
+        ConditionNode(
+          FieldPath(['favorite']),
+          QueryOp.eq,
+          const BoolValue(true),
+        ),
+        ConditionNode(FieldPath(['deco']), QueryOp.eq, const BoolValue(false)),
+        ConditionNode(
+          FieldPath(['weekday']),
+          QueryOp.inList,
+          ListValue(const [EnumValue('saturday'), EnumValue('sunday')]),
+        ),
+      ]),
+    );
+    expect(boundOf(c, 'bottomTime', QueryOp.gte), 45);
+    expect(dateBoundOf(c, QueryOp.gte), DateTime(2025, 1, 1));
+    expect(dateBoundOf(c, QueryOp.lte), DateTime(2025, 12, 31));
     expect(c.chips.where((x) => x.ref == ChipRef.time), hasLength(1));
     expect(c.unplaced, isEmpty);
   });
@@ -234,7 +251,7 @@ void main() {
       ],
     });
     final c = compile(q);
-    expect(c.filter.favoritesOnly, isNull);
+    expect(conditionsOf(c, ['favorite'], QueryOp.eq), isEmpty);
     expect(c.unplaced.single.text, 'not favourite');
   });
 
@@ -248,9 +265,24 @@ void main() {
       ],
     });
     final c = compile(q);
-    expect(c.filter.equipmentAttrConditions.single.key, 'shell_material');
-    expect(c.filter.equipmentAttrConditions.single.choices, {'trilaminate'});
-    expect(c.filter.buddyId, 'b1');
+    expect(
+      partsOf(c),
+      contains(
+        ScopedNode(
+          FieldPath(['gear']),
+          equipmentAttrConditionNode(
+            const EquipmentAttrCondition(
+              key: 'shell_material',
+              choices: {'trilaminate'},
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(
+      (conditionsOf(c, ['buddies'], QueryOp.eq).single.value! as RefValue).id,
+      'b1',
+    );
   });
 
   test('unknown fields, bad ops, out-of-range values and unknown time are '
@@ -279,7 +311,7 @@ void main() {
       'unplaced': ['maybe'],
     });
     final c = compile(q);
-    expect(c.filter.hasActiveFilters, isFalse);
+    expect(c.query, isNull);
     expect(c.unplaced.map((u) => u.text), [
       'salty',
       'depth in',
@@ -307,7 +339,7 @@ void main() {
       ],
     });
     final c = compile(q);
-    expect(c.filter.speciesIds, isEmpty);
+    expect(refIdsOf(c, ['sightings', 'species']), isEmpty);
     expect(c.unresolved.single.mention.text, 'turtles');
     expect(
       c.unresolved.single.candidates.map((e) => e.label),
@@ -321,7 +353,7 @@ void main() {
       'subject': 'equipment',
     });
     final c = compile(q);
-    expect(c.filter.hasActiveFilters, isFalse);
+    expect(c.query, isNull);
     expect(c.unplaced.single.reason, 'subjectNotSupported');
   });
 }

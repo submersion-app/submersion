@@ -1,12 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/explore/domain/explore_compilation.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/explore_compiler.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
+
+import 'explore_query_parts.dart';
 
 /// Every field the prompt offers the model lowers to something. The fields
 /// with no plain filter axis become conditions in the query tree, and a
@@ -48,10 +49,7 @@ void main() {
     final q = compile([clause('avgDepth', 'gt', 15)]);
     expect(q.unplaced, isEmpty);
     expect(q.chips, hasLength(1));
-    expect(
-      q.filter.query,
-      cond('avgDepth', QueryOp.gte, const NumberValue(15, null)),
-    );
+    expect(q.query, cond('avgDepth', QueryOp.gte, const NumberValue(15, null)));
   });
 
   test('air temperature between two values is two bounds', () {
@@ -60,7 +58,7 @@ void main() {
     ]);
     expect(q.unplaced, isEmpty);
     expect(
-      q.filter.query,
+      q.query,
       AndNode([
         cond('airTemp', QueryOp.gte, const NumberValue(-20, null)),
         cond('airTemp', QueryOp.lte, const NumberValue(5, null)),
@@ -71,7 +69,7 @@ void main() {
   test('an exact dive number bounds both sides', () {
     final q = compile([clause('diveNumber', 'eq', 100)]);
     expect(
-      q.filter.query,
+      q.query,
       AndNode([
         cond('diveNumber', QueryOp.gte, const NumberValue(100, null)),
         cond('diveNumber', QueryOp.lte, const NumberValue(100, null)),
@@ -87,7 +85,7 @@ void main() {
     ]);
     expect(q.unplaced, isEmpty);
     expect(
-      q.filter.query,
+      q.query,
       AndNode([
         cond('diveMode', QueryOp.inList, ListValue(const [EnumValue('ccr')])),
         cond(
@@ -110,7 +108,7 @@ void main() {
     final q = compile([clause('diveType', 'eq', 'Night')]);
     expect(q.unplaced, isEmpty);
     expect(
-      q.filter.query,
+      q.query,
       ConditionNode(
         FieldPath(['types', 'name']),
         QueryOp.inList,
@@ -124,14 +122,20 @@ void main() {
       clause('waterType', 'eq', 'salt'),
       clause('waterType', 'not', ['salt']),
     ]);
-    // The first clause owns the plain axis; the second is its own
-    // condition, so the two together match nothing, as the chips say.
-    expect(q.filter.waterTypes, [WaterType.salt]);
+    // Each clause is its own condition, so the two together match
+    // nothing, as the chips say.
     expect(
-      q.filter.query,
-      NotNode(
+      q.query,
+      AndNode([
         cond('waterType', QueryOp.inList, ListValue(const [EnumValue('salt')])),
-      ),
+        NotNode(
+          cond(
+            'waterType',
+            QueryOp.inList,
+            ListValue(const [EnumValue('salt')]),
+          ),
+        ),
+      ]),
     );
   });
 
@@ -140,10 +144,16 @@ void main() {
       clause('weekday', 'in', ['sat', 'sun']),
       clause('weekday', 'eq', 'sun'),
     ]);
-    expect(q.filter.weekdays, [6, 7]);
     expect(
-      q.filter.query,
-      cond('weekday', QueryOp.inList, ListValue(const [EnumValue('sunday')])),
+      q.query,
+      AndNode([
+        cond(
+          'weekday',
+          QueryOp.inList,
+          ListValue(const [EnumValue('saturday'), EnumValue('sunday')]),
+        ),
+        cond('weekday', QueryOp.inList, ListValue(const [EnumValue('sunday')])),
+      ]),
     );
   });
 
@@ -161,7 +171,7 @@ void main() {
     ]);
     expect(q.unplaced, isEmpty);
     expect(
-      q.filter.query,
+      q.query,
       ConditionNode(
         FieldPath(['types', 'name']),
         QueryOp.inList,
@@ -173,7 +183,7 @@ void main() {
   test('exactly a depth or temperature is the half unit either side', () {
     final q = compile([clause('avgDepth', 'eq', 15)]);
     expect(
-      q.filter.query,
+      q.query,
       AndNode([
         cond('avgDepth', QueryOp.gte, const NumberValue(14.5, null)),
         cond('avgDepth', QueryOp.lte, const NumberValue(15.5, null)),
@@ -181,8 +191,14 @@ void main() {
     );
     // The chip still shows the number the diver said.
     expect((q.chips.single.payload as ClauseChip).value, 15);
-    final depth = compile([clause('depth', 'eq', 30)]).filter;
-    expect((depth.minDepth, depth.maxDepth), (29.5, 30.5));
+    final depth = compile([clause('depth', 'eq', 30)]);
+    expect(
+      (
+        boundOf(depth, 'depth', QueryOp.gte),
+        boundOf(depth, 'depth', QueryOp.lte),
+      ),
+      (29.5, 30.5),
+    );
   });
 
   test('the half unit is in the unit the diver used', () {
@@ -190,16 +206,18 @@ void main() {
       {...clause('depth', 'eq', 100), 'unit': 'ft'},
     ]);
     // 99.5 ft to 100.5 ft, in metres.
-    expect(q.filter.minDepth, closeTo(30.33, 0.01));
-    expect(q.filter.maxDepth, closeTo(30.63, 0.01));
+    expect(boundOf(q, 'depth', QueryOp.gte), closeTo(30.33, 0.01));
+    expect(boundOf(q, 'depth', QueryOp.lte), closeTo(30.63, 0.01));
   });
 
   test('exactly a count stays exact', () {
     final q = compile([clause('rating', 'eq', 4)]);
-    expect(q.filter.minRating, 4);
     expect(
-      q.filter.query,
-      cond('rating', QueryOp.lte, const NumberValue(4, null)),
+      q.query,
+      AndNode([
+        cond('rating', QueryOp.gte, const NumberValue(4, null)),
+        cond('rating', QueryOp.lte, const NumberValue(4, null)),
+      ]),
     );
   });
 
@@ -226,14 +244,14 @@ void main() {
         {...clause('sac', 'gt', 21.76), 'unit': 'psi_min'},
       ]);
       expect(q.unplaced, isEmpty);
-      final bound = (q.filter.query! as ConditionNode).value as NumberValue;
+      final bound = (q.query! as ConditionNode).value as NumberValue;
       expect(bound.value, closeTo(1.5, 0.01));
     });
 
     test('exactly a SAC is a tenth either side', () {
       final q = compile([clause('sac', 'eq', 1.2)]);
       expect(
-        q.filter.query,
+        q.query,
         AndNode([
           cond('sac', QueryOp.gte, const NumberValue(1.15, null)),
           cond('sac', QueryOp.lte, const NumberValue(1.25, null)),
@@ -251,7 +269,7 @@ void main() {
       ]);
       expect(q.unplaced, isEmpty);
       expect(
-        q.filter.query,
+        q.query,
         AndNode([
           cond(
             'sacTrend',
@@ -276,20 +294,17 @@ void main() {
         QueryOp.inList,
         ListValue(const [EnumValue('rapidAscent')]),
       );
-      expect(
-        compile([clause('finding', 'eq', 'rapidAscent')]).filter.query,
-        rule,
-      );
+      expect(compile([clause('finding', 'eq', 'rapidAscent')]).query, rule);
       expect(
         compile([
           clause('finding', 'not', ['rapidAscent']),
-        ]).filter.query,
+        ]).query,
         NotNode(rule),
       );
     });
 
     (double, double) bounds(ExploreCompilation q) {
-      final and = q.filter.query! as AndNode;
+      final and = q.query! as AndNode;
       double v(int i) =>
           ((and.children[i] as ConditionNode).value as NumberValue).value;
       return (v(0), v(1));
@@ -324,7 +339,7 @@ void main() {
       final q = compile([
         {...clause('sac', 'gt', 20), 'unit': 'psi'},
       ]);
-      final bound = (q.filter.query! as ConditionNode).value as NumberValue;
+      final bound = (q.query! as ConditionNode).value as NumberValue;
       expect(bound.value, closeTo(1.379, 0.001));
     });
 
@@ -333,7 +348,7 @@ void main() {
         {...clause('sac', 'gt', 15), 'unit': 'l_min'},
       ]);
       expect(q.unplaced.single.reason, 'invalid');
-      expect(q.filter.query, isNull);
+      expect(q.query, isNull);
     });
 
     test('a unit of the wrong kind is refused on any measured field', () {
