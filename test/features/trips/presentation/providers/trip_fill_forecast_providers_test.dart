@@ -155,8 +155,14 @@ void main() {
     await diveAt('late', DateTime.utc(2026, 3, 10, 23, 30));
     await diveAt('after-midnight', DateTime.utc(2026, 3, 11, 0, 10));
     await diveAt('early', DateTime.utc(2026, 3, 10, 0, 5));
-    expect(await cylinders.countTripDivesOn(tripId, DateTime(2026, 3, 10)), 2);
-    expect(await cylinders.countTripDivesOn(tripId, DateTime(2026, 3, 11)), 1);
+    expect(
+      await cylinders.countTripDiveRoundsOn(tripId, DateTime(2026, 3, 10)),
+      2,
+    );
+    expect(
+      await cylinders.countTripDiveRoundsOn(tripId, DateTime(2026, 3, 11)),
+      1,
+    );
   });
 
   test('two divers logging the same dives count one round each', () async {
@@ -178,6 +184,36 @@ void main() {
     await diveAt('a1', DateTime.utc(2026, 3, 10, 8), diver: 'a');
     await diveAt('b1', DateTime.utc(2026, 3, 10, 8, 5), diver: 'b');
     await diveAt('a2', DateTime.utc(2026, 3, 10, 11), diver: 'a');
-    expect(await cylinders.countTripDivesOn(tripId, DateTime(2026, 3, 10)), 2);
+    expect(
+      await cylinders.countTripDiveRoundsOn(tripId, DateTime(2026, 3, 10)),
+      2,
+    );
+  });
+
+  test('the forecast rebuilds itself when its deadline arrives', () async {
+    final center = await DiveCenterRepository().createDiveCenter(
+      DiveCenter(
+        id: '',
+        name: 'Dive Friends',
+        fillOpensAt: 480,
+        fillClosesAt: 1020,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    await fullSlots(1, centerId: center.id);
+    // A tenth of a second before closing, so the tick is due at 17:00.
+    final almost = DateTime(2026, 3, 10, 16, 59, 59, 900);
+    await at(almost, () async {
+      var settled = 0;
+      final sub = container.listen(tripFillForecastProvider(tripId), (_, next) {
+        if (next.hasValue && !next.isLoading) settled++;
+      });
+      addTearDown(sub.close);
+      await container.read(tripFillForecastProvider(tripId).future);
+      final before = settled;
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      expect(settled, greaterThan(before));
+    });
   });
 }

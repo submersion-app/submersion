@@ -11,6 +11,7 @@ import 'package:submersion/features/trips/domain/entities/itinerary_day.dart'
     as domain;
 import 'package:submersion/features/trips/domain/entities/trip.dart'
     show calendarDaysBetween;
+import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
 
 class ItineraryDayRepository {
   AppDatabase get _db => DatabaseService.instance.database;
@@ -154,7 +155,7 @@ class ItineraryDayRepository {
     required DateTime date,
     required int? plannedDives,
   }) async {
-    final day = DateTime(date.year, date.month, date.day);
+    final day = tripDay(date);
     final now = DateTime.now().millisecondsSinceEpoch;
     try {
       var written = const <String>[];
@@ -166,7 +167,7 @@ class ItineraryDayRepository {
         // two, and the forecast reads whichever it meets last.
         final existing = [
           for (final r in rows)
-            if (_sameDay(DateTime.fromMillisecondsSinceEpoch(r.date), day))
+            if (tripDay(DateTime.fromMillisecondsSinceEpoch(r.date)) == day)
               r.id,
         ];
         if (existing.isNotEmpty) {
@@ -265,10 +266,10 @@ class ItineraryDayRepository {
     DateTime start,
     DateTime end,
   ) async {
-    final first = DateTime(start.year, start.month, start.day);
-    final last = DateTime(end.year, end.month, end.day);
+    final first = tripDay(start);
+    final last = tripDay(end);
     final bare = (await getByTripId(tripId)).where((d) {
-      final day = DateTime(d.date.year, d.date.month, d.date.day);
+      final day = tripDay(d.date);
       return (day.isBefore(first) || day.isAfter(last)) &&
           d.dayType == DayType.diveDay &&
           (d.portName ?? '').isEmpty &&
@@ -368,9 +369,6 @@ class ItineraryDayRepository {
       rethrow;
     }
   }
-
-  static bool _sameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
 
   /// Create a date key for day-granularity comparison (year-month-day).
   String _dateKey(DateTime date) {

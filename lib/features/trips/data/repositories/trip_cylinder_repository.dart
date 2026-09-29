@@ -560,7 +560,7 @@ class TripCylinderRepository {
   /// "dives already logged today". A shared trip carries each diver
   /// profile's own log of the same dive, so this is the most any one diver
   /// logged that day, not the row count.
-  Future<int> countTripDivesOn(String tripId, DateTime day) async {
+  Future<int> countTripDiveRoundsOn(String tripId, DateTime day) async {
     final from = DateTime.utc(day.year, day.month, day.day);
     final to = DateTime.utc(day.year, day.month, day.day + 1);
     final row = await _db

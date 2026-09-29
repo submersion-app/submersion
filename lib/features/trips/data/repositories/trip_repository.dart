@@ -177,12 +177,21 @@ class TripRepository {
         localUpdatedAt: now,
       );
       // A shortened or moved trip drops the plan-only itinerary days it no
-      // longer covers (#2325).
-      await ItineraryDayRepository().deleteBarePlanDaysOutside(
-        trip.id,
-        trip.startDate,
-        trip.endDate,
-      );
+      // longer covers (#2325). Cleanup only: the trip is saved, so a
+      // failure here is logged rather than reported as a failed save.
+      try {
+        await ItineraryDayRepository().deleteBarePlanDaysOutside(
+          trip.id,
+          trip.startDate,
+          trip.endDate,
+        );
+      } catch (e, stackTrace) {
+        _log.error(
+          'Failed to drop plan-only itinerary days for trip: ${trip.id}',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
       SyncEventBus.notifyLocalChange();
       _log.info('Updated trip: ${trip.id}');
     } catch (e, stackTrace) {
