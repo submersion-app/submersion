@@ -125,6 +125,49 @@ void main() {
     expect((await sourceIds(db))['s1'], isNull);
   });
 
+  test(
+    'a series table the v182 backstop creates on open gets the column',
+    () async {
+      // A database at the current version that lacks tank_pressure_series
+      // (a partial restore, or a fixture). The v182 backstop creates it from
+      // raw DDL that predates source_id, so the v241 backstop must run after
+      // it, or every read selects a column that is not there until the next
+      // open.
+      final db = AppDatabase(
+        NativeDatabase.memory(
+          setup: (rawDb) {
+            rawDb.execute(
+              'PRAGMA user_version = ${AppDatabase.currentSchemaVersion}',
+            );
+            for (final table in const [
+              'divers',
+              'dive_sites',
+              'dives',
+              'dive_centers',
+              'dive_computers',
+              'dive_tanks',
+            ]) {
+              rawDb.execute('CREATE TABLE $table (id TEXT PRIMARY KEY)');
+            }
+            rawDb.execute('CREATE TABLE media (id TEXT PRIMARY KEY, hlc TEXT)');
+            rawDb.execute('''
+              CREATE TABLE dive_data_sources (
+                id TEXT NOT NULL PRIMARY KEY,
+                dive_id TEXT NOT NULL,
+                computer_id TEXT
+              )
+            ''');
+          },
+        ),
+      );
+      addTearDown(db.close);
+      expect(
+        await columnsOf(db, 'tank_pressure_series'),
+        contains('source_id'),
+      );
+    },
+  );
+
   test('a fresh database has the column', () async {
     final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);

@@ -28,6 +28,15 @@ void main() {
       expect(scan.glitchIndices, isEmpty);
     });
 
+    test('a transmitter that never paired has no glitches', () {
+      // An hour at one reading a second, every one near zero: no lead-in
+      // ends anywhere, and nothing dips below the level.
+      final series = [for (var t = 0; t < 3600; t++) (t: t, bar: 0.0)];
+      final scan = scanPressureGlitches(series);
+      expect(scan.episodeCount, 0);
+      expect(scan.glitchIndices, isEmpty);
+    });
+
     test('an empty or single-reading series has no glitches', () {
       expect(scanPressureGlitches(const []).episodeCount, 0);
       expect(scanPressureGlitches(const [(t: 0, bar: 0.5)]).episodeCount, 0);

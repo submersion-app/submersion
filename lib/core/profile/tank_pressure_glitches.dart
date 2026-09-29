@@ -213,24 +213,26 @@ const double _endpointMatchToleranceBar = 0.5;
 int _leadInLength(List<PressureReading> readings) {
   var best = 0;
   var allNearZero = true;
+  // The highest reading before q: every one of them sits below the ceiling
+  // exactly when it does. Kept as a running value so each candidate costs
+  // O(1) rather than a rescan of the head, which on a transmitter that
+  // never paired (a whole dive near zero, so the window never closes) made
+  // the scan quadratic.
+  var highestBefore = double.negativeInfinity;
   for (var q = 1; q < readings.length; q++) {
-    allNearZero =
-        allNearZero && readings[q - 1].bar < kPressureGlitchNearZeroBar;
+    final previousBar = readings[q - 1].bar;
+    allNearZero = allNearZero && previousBar < kPressureGlitchNearZeroBar;
+    if (previousBar > highestBefore) highestBefore = previousBar;
     final span = readings[q - 1].t - readings.first.t;
     if (span > kPressureGlitchMaxSeconds && !allNearZero) break;
+    if (highestBefore >= readings[q].bar - kPressureGlitchLeadInGapBar) {
+      continue;
+    }
     // The reading the lead-in ends at must start a stable stretch, or a
     // spike early in the dive would pass for it and take every reading
     // before it along.
     if (!_startsStableStretch(readings, q)) continue;
-    final ceiling = readings[q].bar - kPressureGlitchLeadInGapBar;
-    var below = true;
-    for (var j = 0; j < q; j++) {
-      if (readings[j].bar >= ceiling) {
-        below = false;
-        break;
-      }
-    }
-    if (below) best = q;
+    best = q;
   }
   return best;
 }

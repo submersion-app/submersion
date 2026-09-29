@@ -81,10 +81,12 @@ class DiveSplitService {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     // Series move by computer attribution. A computer-less source cannot be
-    // attributed at the row level, so only non-primary null-computer series
-    // follow it (never user-edited isPrimary series) and no tanks,
-    // pressures, or events move. This follows the retired unlinkComputer's
-    // convention.
+    // attributed at the row level by computer, so only non-primary
+    // null-computer profile series follow it (never user-edited isPrimary
+    // series) and no tanks or events move. This follows the retired
+    // unlinkComputer's convention. Pressure series are the exception: one
+    // that names the source moves with it whatever its computer, cloning
+    // the tank it sits on (issue #2440).
 
     bool ownedByComputer(String? computerId) =>
         source.computerId != null && computerId == source.computerId;

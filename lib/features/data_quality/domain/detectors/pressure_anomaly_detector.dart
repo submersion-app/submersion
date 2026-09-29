@@ -103,10 +103,13 @@ class PressureAnomalyDetector extends QualityDetector {
       }
       final startFromGlitch =
           sp != null &&
-          [for (var i = 0; i < firstClean; i++) raw[i]].any(
-            (p) =>
-                (p.bar - sp).abs() <= QualityThresholds.pressureGlitchMatchBar,
-          );
+          raw
+              .take(firstClean)
+              .any(
+                (p) =>
+                    (p.bar - sp).abs() <=
+                    QualityThresholds.pressureGlitchMatchBar,
+              );
       final startReferenceBar =
           hasSeries &&
               (startFromGlitch ||

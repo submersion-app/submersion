@@ -7,11 +7,6 @@ part of 'app_database_migrations.dart';
 /// asserted again here.
 extension BeforeOpenBackstops on AppDatabase {
   Future<void> _beforeOpen(OpeningDetails details) async {
-    // v241 backstop: re-assert tank_pressure_series.source_id
-    // (parallel-branch version-collision self-heal). Column only; the
-    // backfill stays in the rung.
-    await _assertTankSeriesSourceIdColumn();
-
     // v240 backstop: the events-by-dive index.
     await _assertProfileEventsDiveIdIndex();
 
@@ -510,6 +505,13 @@ extension BeforeOpenBackstops on AppDatabase {
         stackTrace: stackTrace,
       );
     }
+
+    // v241 backstop: re-assert tank_pressure_series.source_id
+    // (parallel-branch version-collision self-heal). Column only; the
+    // backfill stays in the rung. After the v182 backstop above, whose raw
+    // DDL predates the column: a series table it creates on this open
+    // gets the column on this open too.
+    await _assertTankSeriesSourceIdColumn();
 
     // v186 backstop: re-assert pre_dive_checklist_template_items.
     // equipment_id (same parallel-branch version-collision self-heal).
