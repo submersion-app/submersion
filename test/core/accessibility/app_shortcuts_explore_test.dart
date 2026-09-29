@@ -60,6 +60,10 @@ void main() {
                   path: 'explore',
                   builder: (_, _) => const Text('Explore'),
                 ),
+                GoRoute(
+                  path: 'other',
+                  builder: (_, _) => const Text('Other page'),
+                ),
               ],
             ),
           ],
@@ -142,6 +146,27 @@ void main() {
     // The shell's bindings stay mounted above the pushed page.
     await pressExplore(tester);
     await tester.pumpAndSettle();
+    router.pop();
+    await tester.pumpAndSettle();
+    expect(find.text('Dive list'), findsOneWidget);
+  });
+
+  testWidgets('Explore under another page is returned to, not stacked', (
+    tester,
+  ) async {
+    final router = await pumpHost(
+      tester,
+      Future.value(NlAvailability.available),
+    );
+    await pressExplore(tester);
+    await tester.pumpAndSettle();
+    router.push('/dives/other');
+    await tester.pumpAndSettle();
+    expect(find.text('Other page'), findsOneWidget);
+
+    await pressExplore(tester);
+    await tester.pumpAndSettle();
+    expect(find.text('Explore'), findsOneWidget);
     router.pop();
     await tester.pumpAndSettle();
     expect(find.text('Dive list'), findsOneWidget);

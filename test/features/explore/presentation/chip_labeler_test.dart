@@ -232,6 +232,19 @@ void main() {
     );
   });
 
+  test('every catalog enum value has a label', () {
+    // The catalog reads its values from the query registry; the labeler
+    // maps them through the Dart enums. Every value must make that trip.
+    for (final field in ExploreDiveField.values) {
+      final values = DiveFieldCatalog.spec(field).enumValues;
+      if (values == null) continue;
+      for (final v in values) {
+        final label = metric.label(chip(field, [v], op: ClauseOp.inList));
+        expect(label, isNotEmpty, reason: '${field.name} $v');
+      }
+    }
+  });
+
   test('a minutes value uses the translated unit', () {
     final german = ChipLabeler(
       AppLocalizationsDe(),

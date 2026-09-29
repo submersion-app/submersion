@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/accessibility/not_while_typing_activator.dart';
 import 'package:submersion/core/accessibility/shortcut_registry.dart';
 import 'package:submersion/core/accessibility/shortcuts_help_dialog.dart';
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
@@ -161,10 +162,11 @@ class AppShortcuts {
   /// press before anything asked would otherwise read "still loading" and
   /// be dropped.
   ///
-  /// One press at a time: presses while the probe is still answering, or
-  /// while Explore is already the top page, open nothing more.
+  /// One press at a time: presses while the probe is still answering open
+  /// nothing more, and an Explore already on the stack is returned to rather
+  /// than stacked again.
   static Future<void> _openExplore(BuildContext context) async {
-    if (_openingExplore || _onExplore(context)) return;
+    if (_openingExplore) return;
     _openingExplore = true;
     try {
       final container = ProviderScope.containerOf(context, listen: false);
@@ -177,9 +179,9 @@ class AppShortcuts {
         if (context.mounted) _showExploreUnavailable(context);
         return;
       }
-      if (!context.mounted || _onExplore(context)) return;
+      if (!context.mounted) return;
       if (availability == NlAvailability.available) {
-        context.push(_explorePath);
+        context.pushOrReturnTo(_explorePath);
       } else {
         _showExploreUnavailable(context);
       }
@@ -193,11 +195,6 @@ class AppShortcuts {
 
   /// True while a press is waiting on the availability probe.
   static bool _openingExplore = false;
-
-  /// The top page, walked down through shell routes: the router's own
-  /// configuration uri stays on the shell's location after a push.
-  static bool _onExplore(BuildContext context) =>
-      GoRouter.of(context).state.matchedLocation == _explorePath;
 
   /// Lists or unlists Explore in the catalog to match the platform gate.
   /// The gate is a provider so every entry point, and every test override,
