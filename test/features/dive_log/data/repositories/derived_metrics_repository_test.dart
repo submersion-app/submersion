@@ -159,7 +159,7 @@ void main() {
       expect(await r.staleDiveIds(), isEmpty);
     });
 
-    test('returns the oldest dive first', () async {
+    test('returns the newest dive first', () async {
       await db
           .into(db.dives)
           .insert(
@@ -171,7 +171,8 @@ void main() {
             ),
           );
       await insertDive('old');
-      expect(await repo().staleDiveIds(), ['old', 'new']);
+      // The dives a diver searches most are the recent ones.
+      expect(await repo().staleDiveIds(), ['new', 'old']);
     });
 
     test('a diver filter narrows the work list', () async {

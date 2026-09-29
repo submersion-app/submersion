@@ -256,7 +256,8 @@ abstract final class QueryCompiler {
     }
     if (values.any((v) => !allowed.contains(v))) return _fail('invalid');
     // Every listed enum field is a dive query registry field of the same
-    // name: the catalog reads its values from there.
+    // name, except `finding`, which is the rule of the dive's findings:
+    // `_enumPath` maps it. The catalog reads the values from the registry.
     final key = field.jsonName;
     // "Not" keeps the dives where the field was never recorded: the query
     // tree's NOT treats an unknown as not matching, where the complement of

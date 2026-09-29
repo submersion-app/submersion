@@ -326,6 +326,21 @@ void main() {
       expect(m.sacChangePercent, isNull);
     });
 
+    test('a short last slice at the surface is not a bucket', () {
+      // 20 s logged at the surface after a 30 minute level dive: a slice
+      // that short, at one atmosphere, would count as much as a whole five
+      // minutes at depth and fake a rise.
+      final level = [
+        for (var t = 0; t <= 1800; t += 10)
+          ProfileSample(timestamp: t, depth: 20),
+        const ProfileSample(timestamp: 1810, depth: 0),
+        const ProfileSample(timestamp: 1820, depth: 0),
+      ];
+      final m = run(samples: level, tanks: [steadyTank(end: 1820)]);
+      expect(m.sacBuckets, hasLength(6));
+      expect(m.sacChangePercent, closeTo(0, 1));
+    });
+
     test('a steady tank at a steady depth does not change', () {
       final level = [
         for (var t = 0; t <= 1800; t += 10)
@@ -341,5 +356,22 @@ void main() {
     final m = run(tanks: [steadyTank()]);
     expect(DerivedMetricsService.isCurrent(m, 111), isTrue);
     expect(DerivedMetricsService.isCurrent(m, 112), isFalse);
+  });
+
+  test('a rebreather dive has no SAC but keeps its final stop', () {
+    // A diluent or oxygen bottle's pressure drop is not open-circuit gas
+    // consumption, so no SAC trend or change; the depth track still shows
+    // the stop.
+    for (final mode in [DiveMode.ccr, DiveMode.scr]) {
+      final m = run(mode: mode, tanks: [steadyTank()]);
+      expect(
+        m.unsupportedReason,
+        UnsupportedReason.rebreather,
+        reason: '$mode',
+      );
+      expect(m.sacMeanBarPerMin, isNull, reason: '$mode');
+      expect(m.sacTrend, isNull, reason: '$mode');
+      expect(m.finalStopState, FinalStopState.stable, reason: '$mode');
+    }
   });
 }

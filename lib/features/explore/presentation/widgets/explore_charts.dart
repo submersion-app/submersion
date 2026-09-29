@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
@@ -90,8 +91,7 @@ class _ExploreChartCard extends ConsumerWidget {
                           v,
                           decimals: 0,
                         ),
-                        ChartKind.sacTrend =>
-                          units.convertSac(v).toStringAsFixed(1),
+                        ChartKind.sacTrend => sacAxisLabel(units, v),
                         _ => '${v.round()}',
                       },
                       onDiveSelected: (id) => context.push('/dives/$id'),
@@ -115,3 +115,9 @@ class _ExploreChartCard extends ConsumerWidget {
     null => '',
   };
 }
+
+/// A SAC axis label: the value in the diver's pressure unit, to the
+/// precision SAC is shown with everywhere else (a tenth of a bar, a whole
+/// psi), in the diver's number format.
+String sacAxisLabel(UnitFormatter units, double barPerMin) =>
+    formatFixedForDisplay(units.convertSac(barPerMin), units.sacDecimals);

@@ -26,7 +26,7 @@ class TankPressureSeries {
 abstract final class DerivedMetricsService {
   /// Bump whenever a rule below changes; every stored row with a lower
   /// version is rebuilt by the sweep.
-  static const int version = 1;
+  static const int version = 2;
 
   /// Depth under which a level run counts as a final stop.
   static const double finalStopMaxDepthMeters = 7.0;
@@ -69,7 +69,10 @@ abstract final class DerivedMetricsService {
     final ordered = [...samples]
       ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
     final stop = _finalStop(ordered);
-    final sac = _sac(ordered, tanks);
+    // A rebreather's bottles do not drain with the diver's breathing, so
+    // their pressure drop is not a SAC; the depth track is still read.
+    final rebreather = diveMode == DiveMode.ccr || diveMode == DiveMode.scr;
+    final sac = rebreather ? null : _sac(ordered, tanks);
 
     return DiveDerivedMetrics(
       diveId: diveId,
@@ -85,7 +88,9 @@ abstract final class DerivedMetricsService {
       sacSlopeBarPerMinPerMin: sac?.slope,
       sacChangePercent: sac?.change,
       runtimeSeconds: ordered.last.timestamp,
-      unsupportedReason: sac == null
+      unsupportedReason: rebreather
+          ? UnsupportedReason.rebreather
+          : sac == null
           ? UnsupportedReason.noPressureSeries
           : null,
       sacBuckets: sac?.buckets ?? const [],
@@ -214,7 +219,10 @@ abstract final class DerivedMetricsService {
     for (var index = 0; index * kSacBucketSeconds <= lastTime; index++) {
       final from = index * kSacBucketSeconds;
       final to = math.min(from + kSacBucketSeconds, lastTime);
-      if (to <= from) continue;
+      // A slice under half a bucket (the last seconds before surfacing,
+      // often at one atmosphere) would weigh as much as five minutes at
+      // depth in the mean, the slope and the change.
+      if (to - from < kSacBucketSeconds ~/ 2) continue;
       final startBar = _pressureAt(tank, from);
       final endBar = _pressureAt(tank, to);
       if (startBar == null || endBar == null) continue;

@@ -117,4 +117,9 @@ void main() {
     expect(out.unsupportedReason, UnsupportedReason.noPressureSeries);
     expect(out.finalStopKind, FinalStopKind.safety);
   });
+
+  test('a dive with no profile at all is noProfile, not tooShort', () {
+    final out = computeDerivedMetricsFromBlobs(input(primaryBlobs: const []));
+    expect(out.unsupportedReason, UnsupportedReason.noProfile);
+  });
 }

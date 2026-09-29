@@ -170,7 +170,8 @@ class DerivedMetricsRepository {
   }
 
   /// Dives whose row is missing, built by an older engine, or built from a
-  /// different dive version. Oldest dive first.
+  /// different dive version. Newest dive first: the dives a diver searches
+  /// most are the recent ones, so a long first sweep answers for them early.
   // stats-scope-exempt: a work list, not an aggregate; an excluded dive
   // still needs its metrics for the query fields to answer about it.
   Future<List<String>> staleDiveIds({String? diverId}) async {
@@ -181,7 +182,7 @@ class DerivedMetricsRepository {
           'LEFT JOIN dive_derived_metrics m ON m.dive_id = d.id '
           'WHERE (m.dive_id IS NULL OR m.engine_version < ? '
           'OR m.source_updated_at != d.updated_at) $diverFilter '
-          'ORDER BY d.dive_date_time ASC, d.id ASC',
+          'ORDER BY d.dive_date_time DESC, d.id ASC',
           variables: [
             const Variable(DerivedMetricsService.version),
             if (diverId != null) Variable(diverId),

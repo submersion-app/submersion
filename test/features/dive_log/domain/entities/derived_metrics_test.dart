@@ -89,4 +89,14 @@ void main() {
       isNot(const SacBucket(index: 2, sacBarPerMin: 0.5)),
     );
   });
+
+  test('copyWith replaces what it names and keeps the rest', () {
+    final base = metrics(slope: 0.05, mean: 0.6);
+    final next = base.copyWith(sacChangePercent: 12, engineVersion: 2);
+    expect(next.sacChangePercent, 12);
+    expect(next.engineVersion, 2);
+    expect(next.sacSlopeBarPerMinPerMin, 0.05);
+    expect(next.sacMeanBarPerMin, 0.6);
+    expect(next.diveId, base.diveId);
+  });
 }

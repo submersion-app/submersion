@@ -57,9 +57,9 @@ DiveDerivedMetrics computeDerivedMetricsFromBlobs(
     final decoded = _decodeOrNull(() => profileCodec.decode(blob));
     if (decoded != null) samples.addAll(decoded);
   }
-  if (input.primaryBlobs.isNotEmpty && samples.isEmpty) {
-    // Blobs existed but none of them read. Record the reason so the sweep
-    // does not revisit the dive on every pass.
+  if (samples.isEmpty) {
+    // No profile at all (a manual log), or blobs that did not read. Record
+    // the reason so the sweep does not revisit the dive on every pass.
     return DiveDerivedMetrics(
       diveId: input.diveId,
       engineVersion: DerivedMetricsService.version,

@@ -26,7 +26,17 @@ enum FinalStopState { stable, unstable, noStop }
 /// Why a metric could not be derived. A row always exists for a dive the
 /// sweep has visited, so a field is empty rather than the sweep revisiting
 /// the dive forever.
-enum UnsupportedReason { noProfile, gaugeMode, noPressureSeries, tooShort }
+enum UnsupportedReason {
+  noProfile,
+  gaugeMode,
+  noPressureSeries,
+  tooShort,
+
+  /// A closed or semi-closed circuit dive: a diluent or oxygen bottle's
+  /// pressure drop is not open-circuit gas consumption, so no SAC. The
+  /// depth track still gives the final stop.
+  rebreather,
+}
 
 /// Stored by name; the dive query field `sacTrend` lists these names.
 enum SacTrend { rising, steady, falling }
@@ -101,6 +111,44 @@ class DiveDerivedMetrics {
     this.sacBuckets = const [],
   });
 
+  DiveDerivedMetrics copyWith({
+    String? diveId,
+    int? engineVersion,
+    int? sourceUpdatedAt,
+    int? computedAt,
+    FinalStopKind? finalStopKind,
+    int? finalStopStartSeconds,
+    int? finalStopDurationSeconds,
+    double? finalStopDepthStdDevMeters,
+    double? finalStopMaxExcursionMeters,
+    double? sacMeanBarPerMin,
+    double? sacSlopeBarPerMinPerMin,
+    double? sacChangePercent,
+    int? runtimeSeconds,
+    UnsupportedReason? unsupportedReason,
+    List<SacBucket>? sacBuckets,
+  }) => DiveDerivedMetrics(
+    diveId: diveId ?? this.diveId,
+    engineVersion: engineVersion ?? this.engineVersion,
+    sourceUpdatedAt: sourceUpdatedAt ?? this.sourceUpdatedAt,
+    computedAt: computedAt ?? this.computedAt,
+    finalStopKind: finalStopKind ?? this.finalStopKind,
+    finalStopStartSeconds: finalStopStartSeconds ?? this.finalStopStartSeconds,
+    finalStopDurationSeconds:
+        finalStopDurationSeconds ?? this.finalStopDurationSeconds,
+    finalStopDepthStdDevMeters:
+        finalStopDepthStdDevMeters ?? this.finalStopDepthStdDevMeters,
+    finalStopMaxExcursionMeters:
+        finalStopMaxExcursionMeters ?? this.finalStopMaxExcursionMeters,
+    sacMeanBarPerMin: sacMeanBarPerMin ?? this.sacMeanBarPerMin,
+    sacSlopeBarPerMinPerMin:
+        sacSlopeBarPerMinPerMin ?? this.sacSlopeBarPerMinPerMin,
+    sacChangePercent: sacChangePercent ?? this.sacChangePercent,
+    runtimeSeconds: runtimeSeconds ?? this.runtimeSeconds,
+    unsupportedReason: unsupportedReason ?? this.unsupportedReason,
+    sacBuckets: sacBuckets ?? this.sacBuckets,
+  );
+
   bool get hasSac => sacMeanBarPerMin != null;
 
   bool get hasFinalStop => finalStopKind != FinalStopKind.none;
@@ -119,8 +167,12 @@ class DiveDerivedMetrics {
   /// data does not stop the depth track from being read, so a dive with no
   /// pressure series still gets a stop state.
   FinalStopState? get finalStopState {
+    // Pressure data (missing, or a rebreather's) says nothing about the
+    // depth track, so those dives still get a stop state.
     final reason = unsupportedReason;
-    if (reason != null && reason != UnsupportedReason.noPressureSeries) {
+    if (reason != null &&
+        reason != UnsupportedReason.noPressureSeries &&
+        reason != UnsupportedReason.rebreather) {
       return null;
     }
     if (finalStopKind == FinalStopKind.none) return FinalStopState.noStop;

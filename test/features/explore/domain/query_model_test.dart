@@ -80,7 +80,7 @@ void main() {
   });
 
   test('rejects a wrong schema version', () {
-    for (final wrong in [kQuerySchemaVersion - 1, kQuerySchemaVersion + 1]) {
+    for (final wrong in [0, kQuerySchemaVersion + 1]) {
       expect(
         () => ParsedQuery.fromJson(sample()..['schemaVersion'] = wrong),
         throwsA(isA<QuerySchemaException>()),
@@ -230,5 +230,10 @@ void main() {
     // An unpinned mention writes no identity key, so the model's own payload
     // shape is unchanged.
     expect((q.toJson()['mentions']! as List)[1], isNot(contains('identity')));
+  });
+
+  test('a version 1 parse still reads: every v1 payload is valid v2', () {
+    final q = ParsedQuery.fromJson(sample()..['schemaVersion'] = 1);
+    expect(q.subject, QuerySubject.dives);
   });
 }
