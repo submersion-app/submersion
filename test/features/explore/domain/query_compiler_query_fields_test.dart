@@ -216,4 +216,80 @@ void main() {
     // "Exactly" at a bound: the band reaches past it, the number does not.
     expect(compile([clause('depth', 'eq', 0)]).unplaced, isEmpty);
   });
+
+  group('the derived fields', () {
+    test('SAC is a rate grounded from the unit said', () {
+      final q = compile([
+        {...clause('sac', 'gt', 21.76), 'unit': 'psi_min'},
+      ]);
+      expect(q.unplaced, isEmpty);
+      final bound = (q.filter.query! as ConditionNode).value as NumberValue;
+      expect(bound.value, closeTo(1.5, 0.01));
+    });
+
+    test('exactly a SAC is a tenth either side', () {
+      final q = compile([clause('sac', 'eq', 1.2)]);
+      expect(
+        q.filter.query,
+        AndNode([
+          cond('sac', QueryOp.gte, const NumberValue(1.15, null)),
+          cond('sac', QueryOp.lte, const NumberValue(1.25, null)),
+        ]),
+      );
+    });
+
+    test('trend, change, stop, excursion and length', () {
+      final q = compile([
+        clause('sacTrend', 'eq', 'rising'),
+        clause('sacChange', 'gt', 10),
+        clause('finalStop', 'eq', 'unstable'),
+        clause('finalStopExcursion', 'gt', 1),
+        clause('finalStopDuration', 'gte', 3),
+      ]);
+      expect(q.unplaced, isEmpty);
+      expect(
+        q.filter.query,
+        AndNode([
+          cond(
+            'sacTrend',
+            QueryOp.inList,
+            ListValue(const [EnumValue('rising')]),
+          ),
+          cond('sacChange', QueryOp.gte, const NumberValue(10, null)),
+          cond(
+            'finalStop',
+            QueryOp.inList,
+            ListValue(const [EnumValue('unstable')]),
+          ),
+          cond('finalStopExcursion', QueryOp.gte, const NumberValue(1, null)),
+          cond('finalStopDuration', QueryOp.gte, const NumberValue(3, null)),
+        ]),
+      );
+    });
+
+    test('a finding is a rule of any of the dive findings', () {
+      final rule = ConditionNode(
+        FieldPath(['findings', 'rule']),
+        QueryOp.inList,
+        ListValue(const [EnumValue('rapidAscent')]),
+      );
+      expect(
+        compile([clause('finding', 'eq', 'rapidAscent')]).filter.query,
+        rule,
+      );
+      expect(
+        compile([
+          clause('finding', 'not', ['rapidAscent']),
+        ]).filter.query,
+        NotNode(rule),
+      );
+    });
+
+    test('a change below minus 100 percent is out of range', () {
+      expect(
+        compile([clause('sacChange', 'lt', -150)]).unplaced.single.reason,
+        'outOfRange',
+      );
+    });
+  });
 }

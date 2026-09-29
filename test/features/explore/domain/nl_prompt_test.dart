@@ -9,7 +9,7 @@ void main() {
     for (final name in DiveFieldCatalog.jsonNames) {
       expect(text, contains(name), reason: name);
     }
-    expect(text, contains('"schemaVersion": 1'));
+    expect(text, contains('"schemaVersion": $kQuerySchemaVersion'));
     expect(text, contains('unplaced'));
     // Roughly 4 characters per token; the budget is 2,500 tokens for
     // instructions plus schema, so the text itself stays under 7,000 chars.
@@ -40,5 +40,14 @@ void main() {
     );
     expect(text, contains('currentStrength: none, light, moderate or strong.'));
     expect(text, contains('weekday: mon, tue, wed, thu, fri, sat, sun.'));
+  });
+
+  test('the cold-water example places SAC and the final stop', () {
+    final text = NlPrompt.instructions();
+    expect(text, contains('"field":"sacChange"'));
+    expect(text, contains('"field":"finalStop","op":"eq","value":"unstable"'));
+    // Only the minute mark stays unplaced: there is no N-minutes field.
+    expect(text, contains('"unplaced":["after 20 minutes"]'));
+    expect(text, contains('bar_min, psi_min'));
   });
 }

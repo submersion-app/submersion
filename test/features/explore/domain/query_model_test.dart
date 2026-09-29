@@ -5,7 +5,7 @@ import 'package:submersion/features/explore/domain/query_model.dart';
 
 void main() {
   Map<String, Object?> sample() => {
-    'schemaVersion': 1,
+    'schemaVersion': kQuerySchemaVersion,
     'subject': 'dives',
     'clauses': [
       {
@@ -80,10 +80,13 @@ void main() {
   });
 
   test('rejects a wrong schema version', () {
-    expect(
-      () => ParsedQuery.fromJson(sample()..['schemaVersion'] = 2),
-      throwsA(isA<QuerySchemaException>()),
-    );
+    for (final wrong in [kQuerySchemaVersion - 1, kQuerySchemaVersion + 1]) {
+      expect(
+        () => ParsedQuery.fromJson(sample()..['schemaVersion'] = wrong),
+        throwsA(isA<QuerySchemaException>()),
+        reason: 'version $wrong',
+      );
+    }
   });
 
   test('rejects an unknown op, unit, kind or subject', () {
@@ -188,7 +191,7 @@ void main() {
     }
     expect(
       ParsedQuery.fromDecoded(<String, Object?>{
-        'schemaVersion': 1,
+        'schemaVersion': kQuerySchemaVersion,
         'subject': 'dives',
       }).subject,
       QuerySubject.dives,
@@ -196,7 +199,10 @@ void main() {
   });
 
   test('missing optional lists default to empty', () {
-    final q = ParsedQuery.fromJson({'schemaVersion': 1, 'subject': 'dives'});
+    final q = ParsedQuery.fromJson({
+      'schemaVersion': kQuerySchemaVersion,
+      'subject': 'dives',
+    });
     expect(q.clauses, isEmpty);
     expect(q.mentions, isEmpty);
     expect(q.unplaced, isEmpty);

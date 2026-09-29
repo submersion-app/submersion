@@ -31,6 +31,10 @@ const Set<ExploreDiveField> _numberQueryFields = {
   ExploreDiveField.avgDepth,
   ExploreDiveField.airTemp,
   ExploreDiveField.diveNumber,
+  ExploreDiveField.sac,
+  ExploreDiveField.sacChange,
+  ExploreDiveField.finalStopExcursion,
+  ExploreDiveField.finalStopDuration,
 };
 
 typedef _Lowered = ({DiveFilterState? filter, ClauseChip? chip, String? error});
@@ -298,11 +302,16 @@ abstract final class QueryCompiler {
           ]
         : values;
     return ConditionNode(
-      FieldPath([key]),
+      FieldPath(_enumPath(field, key)),
       QueryOp.inList,
       ListValue([for (final n in names) EnumValue(n)]),
     );
   }
+
+  /// The registry path an enum field lowers onto: the dive field of its own
+  /// name, or for a safety finding the rule of any of the dive's findings.
+  static List<String> _enumPath(ExploreDiveField field, String key) =>
+      field == ExploreDiveField.finding ? const ['findings', 'rule'] : [key];
 
   static _Lowered _lowerNumber(
     QueryClause c,
@@ -347,14 +356,17 @@ abstract final class QueryCompiler {
         case ClauseOp.gte:
           lo = v;
         case ClauseOp.eq:
-          // A measured depth or temperature is almost never exactly the
-          // number said, so "exactly 15 m" is the half unit either side of
-          // it in the unit the diver used, the way it would be rounded.
-          final continuous =
-              spec.dimension == FieldDimension.depth ||
-              spec.dimension == FieldDimension.temperature;
-          lo = continuous ? ground(raw - 0.5) : v;
-          hi = continuous ? ground(raw + 0.5) : v;
+          // A measured value is almost never exactly the number said, so
+          // "exactly 15 m" is the half unit either side of it in the unit
+          // the diver used, the way it would be rounded. SAC is read to a
+          // tenth, so "a SAC of 1.2" is 1.15 to 1.25. Counts stay exact.
+          final half = switch (spec.dimension) {
+            FieldDimension.depth || FieldDimension.temperature => 0.5,
+            FieldDimension.pressureRate => 0.05,
+            _ => 0.0,
+          };
+          lo = half == 0 ? v : ground(raw - half);
+          hi = half == 0 ? v : ground(raw + half);
         default:
           return _fail('invalid');
       }

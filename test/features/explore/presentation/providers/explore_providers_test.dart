@@ -80,7 +80,7 @@ class _GatedEngine implements NlEngine {
 
 void main() {
   const turtles =
-      '{"schemaVersion":1,"subject":"dives","clauses":[{"field":"depth",'
+      '{"schemaVersion":$kQuerySchemaVersion,"subject":"dives","clauses":[{"field":"depth",'
       '"op":"gt","value":20,"unit":"m","text":"below 20m"}],"mentions":'
       '[{"kind":"place","text":"Bonaire"}],"time":null,"unplaced":["maybe"]}';
 
@@ -188,7 +188,7 @@ void main() {
   test('resolveWith swaps the mention and recompiles', () async {
     final c = make(
       _ScriptedEngine(
-        '{"schemaVersion":1,"subject":"dives","mentions":'
+        '{"schemaVersion":$kQuerySchemaVersion,"subject":"dives","mentions":'
         '[{"kind":"place","text":"bonar"}],"unplaced":[]}',
       ),
     );
@@ -243,7 +243,10 @@ void main() {
         .read(exploreQueryProvider.notifier)
         .rerun(
           'x',
-          ParsedQuery.fromJson({'schemaVersion': 1, 'subject': 'dives'}),
+          ParsedQuery.fromJson({
+            'schemaVersion': kQuerySchemaVersion,
+            'subject': 'dives',
+          }),
         );
     expect(engine.compileCalls, 0);
     expect(c.read(exploreQueryProvider).compiled, isNotNull);
@@ -265,7 +268,7 @@ void main() {
       ),
     ]);
     const withJohn =
-        '{"schemaVersion":1,"subject":"dives","mentions":'
+        '{"schemaVersion":$kQuerySchemaVersion,"subject":"dives","mentions":'
         '[{"kind":"buddy","text":"John Smith"}],"unplaced":[]}';
 
     test('choosing between two same-named buddies sticks', () async {
@@ -312,7 +315,7 @@ void main() {
       await n.rerun(
         'second',
         ParsedQuery.fromJson(const {
-          'schemaVersion': 1,
+          'schemaVersion': kQuerySchemaVersion,
           'subject': 'dives',
           'clauses': [
             {'field': 'depth', 'op': 'gte', 'value': 40, 'text': 'deep'},

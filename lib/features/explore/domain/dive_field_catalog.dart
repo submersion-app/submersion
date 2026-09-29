@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
@@ -6,6 +7,7 @@ enum FieldDimension {
   depth,
   temperature,
   pressure,
+  pressureRate,
   minutes,
   percent,
   count,
@@ -31,7 +33,7 @@ const List<String> kWeekdayTokens = [
 List<String> _registryValues(String key) =>
     diveQueryEntity.field(key)!.enumValues!;
 
-/// The fields the native schema constrains a dive clause to (schema v1).
+/// The fields the native schema constrains a dive clause to (schema v2).
 ///
 /// Named `ExploreDiveField` because `DiveField` is the table-column enum.
 enum ExploreDiveField {
@@ -52,7 +54,14 @@ enum ExploreDiveField {
   deco('deco'),
   noBuddy('noBuddy'),
   weekday('weekday'),
-  diveType('diveType');
+  diveType('diveType'),
+  sac('sac'),
+  sacTrend('sacTrend'),
+  sacChange('sacChange'),
+  finalStop('finalStop'),
+  finalStopExcursion('finalStopExcursion'),
+  finalStopDuration('finalStopDuration'),
+  finding('finding');
 
   final String jsonName;
   const ExploreDiveField(this.jsonName);
@@ -161,6 +170,41 @@ abstract final class DiveFieldCatalog {
       dimension: FieldDimension.none,
       valueType: FieldValueType.enumName,
       ops: {ClauseOp.eq, ClauseOp.inList},
+    ),
+    ExploreDiveField.sac: const FieldSpec(
+      dimension: FieldDimension.pressureRate,
+      valueType: FieldValueType.number,
+      ops: _ordering,
+    ),
+    ExploreDiveField.sacTrend: FieldSpec(
+      dimension: FieldDimension.none,
+      valueType: FieldValueType.enumName,
+      ops: _membership,
+      enumValues: _registryValues('sacTrend'),
+    ),
+    ExploreDiveField.sacChange: const FieldSpec(
+      dimension: FieldDimension.percent,
+      valueType: FieldValueType.number,
+      ops: _ordering,
+    ),
+    ExploreDiveField.finalStop: FieldSpec(
+      dimension: FieldDimension.none,
+      valueType: FieldValueType.enumName,
+      ops: _membership,
+      enumValues: _registryValues('finalStop'),
+    ),
+    ExploreDiveField.finalStopExcursion: _depth,
+    ExploreDiveField.finalStopDuration: const FieldSpec(
+      dimension: FieldDimension.minutes,
+      valueType: FieldValueType.number,
+      ops: _ordering,
+    ),
+    // The rule of any of the dive's live findings.
+    ExploreDiveField.finding: FieldSpec(
+      dimension: FieldDimension.none,
+      valueType: FieldValueType.enumName,
+      ops: _membership,
+      enumValues: findingQueryEntity.field('rule')!.enumValues!,
     ),
   };
 

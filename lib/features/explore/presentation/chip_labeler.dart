@@ -2,11 +2,14 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_text.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/explore/domain/compiled_query.dart';
 import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
+import 'package:submersion/features/query/presentation/query_label_lookup.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Turns a chip payload into the diver's words: app language, diver units.
@@ -40,6 +43,25 @@ class ChipLabeler {
     ExploreDiveField.noBuddy => l10n.explore_chip_noBuddy,
     ExploreDiveField.weekday => l10n.explore_field_weekday,
     ExploreDiveField.diveType => l10n.explore_field_diveType,
+    ExploreDiveField.sac => queryLabelForKey(l10n, 'query_dives_sac'),
+    ExploreDiveField.sacTrend => queryLabelForKey(l10n, 'query_dives_sacTrend'),
+    ExploreDiveField.sacChange => queryLabelForKey(
+      l10n,
+      'query_dives_sacChange',
+    ),
+    ExploreDiveField.finalStop => queryLabelForKey(
+      l10n,
+      'query_dives_finalStop',
+    ),
+    ExploreDiveField.finalStopExcursion => queryLabelForKey(
+      l10n,
+      'query_dives_finalStopExcursion',
+    ),
+    ExploreDiveField.finalStopDuration => queryLabelForKey(
+      l10n,
+      'query_dives_finalStopDuration',
+    ),
+    ExploreDiveField.finding => queryLabelForKey(l10n, 'query_dives_findings'),
   };
 
   String _op(ClauseOp op) => switch (op) {
@@ -54,6 +76,7 @@ class ChipLabeler {
     FieldDimension.depth => units.formatDepth(v, decimals: 0),
     FieldDimension.temperature => units.formatTemperature(v, decimals: 0),
     FieldDimension.pressure => units.formatPressure(v),
+    FieldDimension.pressureRate => units.formatSac(v),
     FieldDimension.minutes => l10n.explore_value_minutes(v.round()),
     FieldDimension.percent => '${v.round()}%',
     FieldDimension.count ||
@@ -111,6 +134,14 @@ class ChipLabeler {
       // 1 January 2024 was a Monday.
       DateTime(2024, 1, kWeekdayTokens.indexOf(v) + 1),
     ),
+    ExploreDiveField.sacTrend || ExploreDiveField.finalStop => queryLabelForKey(
+      l10n,
+      'query_dives_${field.jsonName}_$v',
+    ),
+    ExploreDiveField.finding => switch (SafetyRuleId.fromDbValue(v)) {
+      final rule? => safetyRuleLabel(rule, l10n),
+      null => v,
+    },
     _ => v,
   };
 

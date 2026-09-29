@@ -7,7 +7,7 @@ library;
 
 import 'dart:convert';
 
-const int kQuerySchemaVersion = 1;
+const int kQuerySchemaVersion = 2;
 
 enum QuerySubject { dives, equipment, sites, buddies, species, trips, centers }
 
@@ -34,7 +34,9 @@ enum ClauseUnit {
   psi('psi'),
   min('min'),
   lMin('l_min'),
-  cuftMin('cuft_min');
+  cuftMin('cuft_min'),
+  barMin('bar_min'),
+  psiMin('psi_min');
 
   final String jsonName;
   const ClauseUnit(this.jsonName);

@@ -44,6 +44,13 @@ double groundToMetric(
         _ => prefs.pressure,
       };
       return from.convert(v, PressureUnit.bar);
+    case FieldDimension.pressureRate:
+      final from = switch (unit) {
+        ClauseUnit.barMin => PressureUnit.bar,
+        ClauseUnit.psiMin => PressureUnit.psi,
+        _ => prefs.pressure,
+      };
+      return from.convert(v, PressureUnit.bar);
     case FieldDimension.minutes:
     case FieldDimension.percent:
     case FieldDimension.count:
