@@ -176,6 +176,13 @@ class TripRepository {
         recordId: trip.id,
         localUpdatedAt: now,
       );
+      // A shortened or moved trip drops the plan-only itinerary days it no
+      // longer covers (#2325).
+      await ItineraryDayRepository().deleteBarePlanDaysOutside(
+        trip.id,
+        trip.startDate,
+        trip.endDate,
+      );
       SyncEventBus.notifyLocalChange();
       _log.info('Updated trip: ${trip.id}');
     } catch (e, stackTrace) {

@@ -489,6 +489,44 @@ void main() {
         expect(third.plannedDives, 2);
         expect(regenerated.where((d) => d.plannedDives != null), hasLength(1));
       });
+
+      test(
+        'shortening the trip drops plan-only days it no longer has',
+        () async {
+          // A planned day on a shore trip is a bare row; left outside the
+          // trip it would stretch the story to a day the trip no longer has.
+          // A day with content stays, as orphaned days always have.
+          await repository.setPlannedDives(
+            tripId: testTripId,
+            date: DateTime(2025, 3, 3),
+            plannedDives: 2,
+          );
+          await repository.setPlannedDives(
+            tripId: testTripId,
+            date: DateTime(2025, 3, 7),
+            plannedDives: 3,
+          );
+          await repository.saveAll([
+            createTestDay(
+              dayNumber: 6,
+              date: DateTime(2025, 3, 6),
+              dayType: DayType.portDay,
+              portName: 'Kralendijk',
+            ),
+          ]);
+          final trip = await tripRepository.getTripById(testTripId);
+          await tripRepository.updateTrip(
+            trip!.copyWith(endDate: DateTime(2025, 3, 5)),
+          );
+          final dates = [
+            for (final d in await repository.getByTripId(testTripId)) d.date,
+          ];
+          expect(
+            dates,
+            unorderedEquals([DateTime(2025, 3, 3), DateTime(2025, 3, 6)]),
+          );
+        },
+      );
     });
   });
 }

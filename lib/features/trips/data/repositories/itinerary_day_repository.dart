@@ -251,6 +251,43 @@ class ItineraryDayRepository {
     }
   }
 
+  /// Deletes the trip's itinerary days outside [start] to [end] that carry
+  /// nothing but a plan: a dive day with no port, position or notes. A
+  /// single planned day (the board's day strip) left outside a shortened or
+  /// moved trip would otherwise stretch the trip story to a day the trip no
+  /// longer has, and a shore trip has no screen to remove it. Days with any
+  /// content stay, as orphaned days always have.
+  Future<void> deleteBarePlanDaysOutside(
+    String tripId,
+    DateTime start,
+    DateTime end,
+  ) async {
+    final first = DateTime(start.year, start.month, start.day);
+    final last = DateTime(end.year, end.month, end.day);
+    final bare = (await getByTripId(tripId)).where((d) {
+      final day = DateTime(d.date.year, d.date.month, d.date.day);
+      return (day.isBefore(first) || day.isAfter(last)) &&
+          d.dayType == DayType.diveDay &&
+          (d.portName ?? '').isEmpty &&
+          d.latitude == null &&
+          d.longitude == null &&
+          d.notes.isEmpty;
+    }).toList();
+    if (bare.isEmpty) return;
+    await _db.transaction(() async {
+      for (final d in bare) {
+        await (_db.delete(
+          _db.tripItineraryDays,
+        )..where((t) => t.id.equals(d.id))).go();
+        await _syncRepository.logDeletion(
+          entityType: 'itineraryDays',
+          recordId: d.id,
+        );
+      }
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
   /// Regenerate itinerary days when a trip's date range changes.
   ///
   /// 1. Loads existing days via getByTripId
