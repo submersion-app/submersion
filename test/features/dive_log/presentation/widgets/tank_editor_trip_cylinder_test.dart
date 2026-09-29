@@ -14,6 +14,12 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
+import 'package:submersion/features/trips/domain/services/trip_cylinder_tank_link.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -42,11 +48,47 @@ const _apeks = EquipmentItem(
 /// reload never finishes, so the editor is caught mid-reload.
 final _reload = StateProvider<int>((ref) => 0);
 
-Future<void> _pump(
+/// A slot on trip t1 with one fill, as the board would fold it.
+TripCylinderState filledSlot(
+  String id, {
+  double pressure = 200,
+  double o2 = 32,
+  String bottle = '14',
+}) {
+  final t0 = DateTime.utc(2026, 3, 9, 7);
+  return foldCylinderState(
+    cylinder: TripCylinder(
+      id: id,
+      tripId: 't1',
+      label: 'Truck $id',
+      volume: 11.1,
+      workingPressure: 207,
+      createdAt: t0,
+      updatedAt: t0,
+    ),
+    events: [
+      TripCylinderEvent(
+        id: 'f-$id',
+        tripCylinderId: id,
+        kind: TripCylinderEventKind.fill,
+        occurredAt: t0,
+        bottleLabel: bottle,
+        pressure: pressure,
+        o2Percent: o2,
+        createdAt: t0,
+        updatedAt: t0,
+      ),
+    ],
+    uses: const [],
+  );
+}
+
+Future<void> _pumpEditor(
   WidgetTester tester, {
   required List<EquipmentItem> equipment,
-  DiveTank tank = const DiveTank(id: 'tank-1'),
-  void Function(DiveTank)? onChanged,
+  required Widget editor,
+  String? tripId,
+  List<TripCylinderState> slots = const [],
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -70,24 +112,77 @@ Future<void> _pump(
           if (ref.watch(_reload) > 0) await Completer<void>().future;
           return equipment;
         }),
+        // Always present, so a test that pumps twice keeps one override
+        // count (Riverpod refuses a changed count on the same scope).
+        tripCylinderStatesProvider(tripId ?? 't1').overrideWith((ref) async {
+          if (ref.watch(_reload) > 0) await Completer<void>().future;
+          return slots;
+        }),
       ].cast(),
       child: MaterialApp(
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: TankEditor(
-              tank: tank,
-              tankNumber: 1,
-              onChanged: onChanged ?? (_) {},
-              onRemove: () {},
-            ),
-          ),
-        ),
+        home: Scaffold(body: SingleChildScrollView(child: editor)),
       ),
     ),
   );
+  await tester.pumpAndSettle();
+}
+
+Future<void> _pump(
+  WidgetTester tester, {
+  required List<EquipmentItem> equipment,
+  DiveTank tank = const DiveTank(id: 'tank-1'),
+  void Function(DiveTank)? onChanged,
+  String? tripId,
+  bool suggested = false,
+  List<TripCylinderState> slots = const [],
+}) => _pumpEditor(
+  tester,
+  equipment: equipment,
+  tripId: tripId,
+  slots: slots,
+  editor: TankEditor(
+    tank: tank,
+    tankNumber: 1,
+    tripId: tripId,
+    suggested: suggested,
+    onChanged: onChanged ?? (_) {},
+    onRemove: () {},
+  ),
+);
+
+/// The editor under a parent that can replace its tank, as the dive edit
+/// page does when it links a tank itself.
+Future<void> _pumpHost(
+  WidgetTester tester, {
+  required ValueNotifier<DiveTank> tank,
+  required String tripId,
+  required List<TripCylinderState> slots,
+  required void Function(DiveTank) onChanged,
+}) => _pumpEditor(
+  tester,
+  equipment: const [],
+  tripId: tripId,
+  slots: slots,
+  editor: ValueListenableBuilder<DiveTank>(
+    valueListenable: tank,
+    builder: (_, t, _) => TankEditor(
+      tank: t,
+      tankNumber: 1,
+      tripId: tripId,
+      onChanged: onChanged,
+      onRemove: () {},
+    ),
+  ),
+);
+
+Future<void> _openTripCylinderPicker(WidgetTester tester) async {
+  await tester.ensureVisible(
+    find.byKey(const Key('tank-trip-cylinder-picker')),
+  );
+  await tester.tap(find.byKey(const Key('tank-trip-cylinder-picker')));
   await tester.pumpAndSettle();
 }
 
@@ -115,5 +210,116 @@ void main() {
 
     expect(changed?.regulatorEquipmentId, 'reg-a');
     expect(changed?.tripCylinderId, 'slot-1');
+  });
+
+  testWidgets('no trip, or a trip with no cylinders, shows no picker', (
+    tester,
+  ) async {
+    await _pump(tester, equipment: const []);
+    expect(find.byKey(const Key('tank-trip-cylinder-picker')), findsNothing);
+    await _pump(tester, equipment: const [], tripId: 't1');
+    expect(find.byKey(const Key('tank-trip-cylinder-picker')), findsNothing);
+  });
+
+  testWidgets('picking a slot links and fills the tank', (tester) async {
+    DiveTank? changed;
+    await _pump(
+      tester,
+      equipment: const [],
+      tripId: 't1',
+      slots: [filledSlot('a', pressure: 205, o2: 32)],
+      onChanged: (t) => changed = t,
+    );
+    await _openTripCylinderPicker(tester);
+    await tester.tap(find.textContaining('Truck a').last);
+    await tester.pumpAndSettle();
+
+    expect(changed!.tripCylinderId, 'a');
+    expect(changed!.gasMix.o2, 32);
+    expect(changed!.startPressure, 205);
+  });
+
+  testWidgets('None clears the link and keeps the fields', (tester) async {
+    DiveTank? changed;
+    await _pump(
+      tester,
+      equipment: const [],
+      tripId: 't1',
+      slots: [filledSlot('a')],
+      tank: const DiveTank(
+        id: 'tank-1',
+        tripCylinderId: 'a',
+        startPressure: 205,
+        gasMix: GasMix(o2: 32),
+      ),
+      onChanged: (t) => changed = t,
+    );
+    await _openTripCylinderPicker(tester);
+    await tester.tap(find.text('None').last);
+    await tester.pumpAndSettle();
+
+    expect(changed!.tripCylinderId, isNull);
+    expect(changed!.gasMix.o2, 32);
+    expect(changed!.startPressure, 205);
+  });
+
+  testWidgets('a suggested link says so', (tester) async {
+    await _pump(
+      tester,
+      equipment: const [],
+      tripId: 't1',
+      slots: [filledSlot('a')],
+      tank: const DiveTank(id: 'tank-1', tripCylinderId: 'a'),
+      suggested: true,
+    );
+    expect(
+      find.text("Suggested from the trip's full cylinders"),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a reload keeps showing the linked slot', (tester) async {
+    await _pump(
+      tester,
+      equipment: const [],
+      tripId: 't1',
+      slots: [filledSlot('a')],
+      tank: const DiveTank(id: 'tank-1', tripCylinderId: 'a'),
+    );
+    ProviderScope.containerOf(
+      tester.element(find.byType(TankEditor)),
+    ).read(_reload.notifier).state++;
+    await tester.pump();
+    expect(find.textContaining('Truck a'), findsOneWidget);
+  });
+
+  testWidgets('an open editor picks up a link set by the page', (tester) async {
+    // The page fills a tank from a slot while its editor is open (a
+    // suggestion, or the log-dive shortcut): the fields must show the fill,
+    // or the next keystroke would write the old values back over it.
+    final tank = ValueNotifier(
+      const DiveTank(id: 'tank-1', startPressure: 180),
+    );
+    addTearDown(tank.dispose);
+    DiveTank? changed;
+    await _pumpHost(
+      tester,
+      tank: tank,
+      tripId: 't1',
+      slots: [filledSlot('a', pressure: 205)],
+      onChanged: (t) => changed = t,
+    );
+    tank.value = tankFromTripCylinder(
+      tank.value,
+      filledSlot('a', pressure: 205),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, 'End Pressure'),
+      '60',
+    );
+    await tester.pump();
+    expect(changed!.startPressure, 205);
+    expect(changed!.tripCylinderId, 'a');
   });
 }
