@@ -4,7 +4,7 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 void main() {
   group('ImportFormat', () {
     test('has all expected values', () {
-      expect(ImportFormat.values, hasLength(20));
+      expect(ImportFormat.values, hasLength(21));
     });
 
     test('displayName for each format', () {
@@ -20,6 +20,10 @@ void main() {
       expect(
         ImportFormat.submersionEquipmentCsv.displayName,
         'Submersion Equipment CSV',
+      );
+      expect(
+        ImportFormat.submersionFillsCsv.displayName,
+        'Submersion Fills CSV',
       );
       expect(ImportFormat.uddf.displayName, 'UDDF');
       expect(ImportFormat.macdiveXml.displayName, 'MacDive XML');
@@ -61,6 +65,7 @@ void main() {
         expect(ImportFormat.submersionDivesCsv.isSupported, isTrue);
         expect(ImportFormat.submersionSitesCsv.isSupported, isTrue);
         expect(ImportFormat.submersionEquipmentCsv.isSupported, isTrue);
+        expect(ImportFormat.submersionFillsCsv.isSupported, isTrue);
       },
     );
 
@@ -124,7 +129,7 @@ void main() {
 
   group('ImportEntityType', () {
     test('has all expected values', () {
-      expect(ImportEntityType.values, hasLength(13));
+      expect(ImportEntityType.values, hasLength(14));
     });
 
     test('displayName for each entity type', () {
@@ -141,6 +146,7 @@ void main() {
       expect(ImportEntityType.tags.displayName, 'Tags');
       expect(ImportEntityType.diveTypes.displayName, 'Dive Types');
       expect(ImportEntityType.serviceRecords.displayName, 'Service Records');
+      expect(ImportEntityType.fills.displayName, 'Fills');
     });
 
     test('shortName for each entity type', () {
@@ -156,13 +162,24 @@ void main() {
       expect(ImportEntityType.tags.shortName, 'Tags');
       expect(ImportEntityType.diveTypes.shortName, 'Types');
       expect(ImportEntityType.serviceRecords.shortName, 'Service');
+      expect(ImportEntityType.fills.shortName, 'Fills');
     });
   });
 
   group('SourceOverrideOption', () {
     group('supported list', () {
       test('contains expected number of entries', () {
-        expect(SourceOverrideOption.supported.length, 23);
+        expect(SourceOverrideOption.supported.length, 24);
+      });
+
+      test('contains Submersion Fills CSV entry', () {
+        final match = SourceOverrideOption.supported.where(
+          (o) =>
+              o.sourceApp == SourceApp.submersion &&
+              o.format == ImportFormat.submersionFillsCsv,
+        );
+        expect(match, hasLength(1));
+        expect(match.first.displayName, 'Submersion (Fills CSV)');
       });
 
       test('contains Submersion CSV entry', () {

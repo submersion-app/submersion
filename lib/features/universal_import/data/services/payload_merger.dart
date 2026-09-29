@@ -540,6 +540,9 @@ class PayloadMerger {
       case ImportEntityType.serviceRecords:
       // Media is handled before this point and has no name to fold on.
       case ImportEntityType.media:
+      // A fill carries its own id and the importer skips one already here,
+      // so two files holding the same fill import it once without folding.
+      case ImportEntityType.fills:
         return null;
       case ImportEntityType.sites:
       case ImportEntityType.trips:

@@ -6,6 +6,7 @@ enum ImportFormat {
   submersionDivesCsv,
   submersionSitesCsv,
   submersionEquipmentCsv,
+  submersionFillsCsv,
   uddf,
   macdiveXml,
   macdiveSqlite,
@@ -35,6 +36,7 @@ enum ImportFormat {
     submersionDivesCsv => 'Submersion Dives CSV',
     submersionSitesCsv => 'Submersion Sites CSV',
     submersionEquipmentCsv => 'Submersion Equipment CSV',
+    submersionFillsCsv => 'Submersion Fills CSV',
     uddf => 'UDDF',
     macdiveXml => 'MacDive XML',
     macdiveSqlite => 'MacDive SQLite',
@@ -64,6 +66,7 @@ enum ImportFormat {
     submersionDivesCsv ||
     submersionSitesCsv ||
     submersionEquipmentCsv ||
+    submersionFillsCsv ||
     uddf ||
     subsurfaceXml ||
     fit ||
@@ -180,6 +183,11 @@ class SourceOverrideOption {
       sourceApp: SourceApp.submersion,
       format: ImportFormat.submersionEquipmentCsv,
       displayName: 'Submersion (Equipment CSV)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.submersion,
+      format: ImportFormat.submersionFillsCsv,
+      displayName: 'Submersion (Fills CSV)',
     ),
     SourceOverrideOption(
       sourceApp: SourceApp.subsurface,
@@ -324,7 +332,11 @@ enum ImportEntityType {
   tags,
   diveTypes,
   serviceRecords,
-  media;
+  media,
+
+  /// Cylinder fills from the fills CSV (cylinder passports phase 5). Keyed
+  /// by passport id, never by an imported item.
+  fills;
 
   String get displayName => switch (this) {
     dives => 'Dives',
@@ -340,6 +352,7 @@ enum ImportEntityType {
     diveTypes => 'Dive Types',
     serviceRecords => 'Service Records',
     media => 'Photos',
+    fills => 'Fills',
   };
 
   String get shortName => switch (this) {
@@ -356,5 +369,6 @@ enum ImportEntityType {
     diveTypes => 'Types',
     serviceRecords => 'Service',
     media => 'Photos',
+    fills => 'Fills',
   };
 }
