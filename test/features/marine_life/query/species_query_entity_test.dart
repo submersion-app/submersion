@@ -79,7 +79,7 @@ void main() {
       expect(await ids('category = mammal'), {'t_whale'});
       expect(await ids('builtIn = true'), {'t_coral'});
       expect(await ids('sightings.count >= 3'), {'t_whale'});
-      expect(await ids('sites:any'), {'t_coral'});
+      expect(await ids('expectedSites:any'), {'t_coral'});
       expect(await ids('dives.maxDepth > 10'), {'t_whale'});
       expect(await ids('"anthozoa"'), {'t_coral'});
       expect(await ids('"testus"'), {'t_whale'});

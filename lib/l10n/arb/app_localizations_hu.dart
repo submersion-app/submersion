@@ -45312,6 +45312,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_species_dives => 'Merülések';
 
   @override
+  String get query_species_expectedSites => 'Várható helyszíneken';
+
+  @override
   String get query_species_name => 'Név';
 
   @override
@@ -45319,9 +45322,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_species_sightings => 'Észlelések';
-
-  @override
-  String get query_species_sites => 'Merülőhelyek';
 
   @override
   String get query_species_taxonomyClass => 'Taxonómiai osztály';

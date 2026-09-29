@@ -44594,6 +44594,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_species_dives => 'צלילות';
 
   @override
+  String get query_species_expectedSites => 'צפוי באתרים';
+
+  @override
   String get query_species_name => 'שם';
 
   @override
@@ -44601,9 +44604,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_species_sightings => 'תצפיות';
-
-  @override
-  String get query_species_sites => 'אתרי צלילה';
 
   @override
   String get query_species_taxonomyClass => 'מחלקה טקסונומית';

@@ -626,6 +626,20 @@ void main() {
       expect(find.text('Open Water'), findsNothing);
     });
 
+    testWidgets('table mode shows the status chips and can reset them', (
+      tester,
+    ) async {
+      final c = await pump(
+        tester,
+        ids: const {'k1', 'k2'},
+        filter: const CourseFilterState(status: CourseStatusFilter.completed),
+        viewMode: ListViewMode.table,
+      );
+      await tester.tap(find.widgetWithText(FilterChip, 'All'));
+      await tester.pumpAndSettle();
+      expect(c.read(courseFilterProvider).status, CourseStatusFilter.all);
+    });
+
     testWidgets('a query that keeps nothing shows the no-match state', (
       tester,
     ) async {

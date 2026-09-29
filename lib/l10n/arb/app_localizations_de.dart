@@ -45403,6 +45403,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_species_dives => 'Tauchgänge';
 
   @override
+  String get query_species_expectedSites => 'Erwartet an Tauchplätzen';
+
+  @override
   String get query_species_name => 'Name';
 
   @override
@@ -45410,9 +45413,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_species_sightings => 'Sichtungen';
-
-  @override
-  String get query_species_sites => 'Tauchplätze';
 
   @override
   String get query_species_taxonomyClass => 'Taxonomische Klasse';

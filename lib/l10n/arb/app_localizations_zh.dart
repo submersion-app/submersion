@@ -42893,6 +42893,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_species_dives => '潜水';
 
   @override
+  String get query_species_expectedSites => '预期出现的潜点';
+
+  @override
   String get query_species_name => '名称';
 
   @override
@@ -42900,9 +42903,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_species_sightings => '观察记录';
-
-  @override
-  String get query_species_sites => '潜点';
 
   @override
   String get query_species_taxonomyClass => '分类纲';

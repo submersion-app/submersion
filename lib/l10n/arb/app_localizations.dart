@@ -72875,6 +72875,12 @@ abstract class AppLocalizations {
   /// **'Dives'**
   String get query_species_dives;
 
+  /// Query builder: the dive sites a species is curated as expected at (not where it was seen)
+  ///
+  /// In en, this message translates to:
+  /// **'Expected at sites'**
+  String get query_species_expectedSites;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
@@ -72892,12 +72898,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sightings'**
   String get query_species_sightings;
-
-  /// Query builder: the sites a species is expected at
-  ///
-  /// In en, this message translates to:
-  /// **'Dive sites'**
-  String get query_species_sites;
 
   /// Query builder: a species' taxonomy class
   ///

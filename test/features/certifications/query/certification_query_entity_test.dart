@@ -81,6 +81,18 @@ void main() {
     },
   );
 
+  test('the course hop reads either stored link direction', () async {
+    // The link can be stored on the course side only (an import or a sync);
+    // the certification detail page shows it, so the query must find it.
+    await db.customStatement(
+      'INSERT INTO courses (id, diver_id, name, agency, start_date, '
+      "certification_id, created_at, updated_at) VALUES ('res', 'me', "
+      "'Rescue course', 'ssi', $now, 'c2', $now, $now)",
+    );
+    expect(await ids('course.name = "Rescue course"'), {'c2'});
+    expect(await ids('course.name = AOW'), {'c1'});
+  });
+
   test('an unknown stored level is set but equals nothing', () async {
     expect(await ids('level:any'), {'c1', 'c2', 'c3'});
     expect(await ids('level = other'), isEmpty);

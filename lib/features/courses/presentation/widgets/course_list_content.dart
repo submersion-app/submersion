@@ -363,9 +363,8 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
     BuildContext context,
     AsyncValue<List<Course>> coursesAsync,
   ) {
-    // The table renders the raw list, not the status-filtered one the list
-    // modes render, so selectable ids come from the raw list here -- pruning
-    // must follow whichever path is on screen.
+    // The table renders the same filtered courses as the list modes (status
+    // chips and query), so pruning follows what is on screen.
     final visibleIds = (coursesAsync.value ?? const <Course>[])
         .map((c) => c.id)
         .toList();
@@ -394,6 +393,10 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
                 _buildSelectionBar(courses, SelectionBarShell.pane)
               else
                 SelectionEntryBar(controller: _selection),
+              // The status chips filter the table too (#2365), so they show
+              // here as well: a status set in list mode stays visible and
+              // resettable after switching to the table.
+              _buildFilterChips(context),
               Expanded(
                 child: _withQueryChips(_buildTableView(context, coursesAsync)),
               ),

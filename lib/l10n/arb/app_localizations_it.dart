@@ -45481,6 +45481,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_species_dives => 'Immersioni';
 
   @override
+  String get query_species_expectedSites => 'Prevista nei siti';
+
+  @override
   String get query_species_name => 'Nome';
 
   @override
@@ -45488,9 +45491,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_species_sightings => 'Avvistamenti';
-
-  @override
-  String get query_species_sites => 'Siti di immersione';
 
   @override
   String get query_species_taxonomyClass => 'Classe tassonomica';

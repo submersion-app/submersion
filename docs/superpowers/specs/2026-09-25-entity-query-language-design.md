@@ -888,13 +888,18 @@ Decided in the whole-branch review of PR 1:
 - **Course status chips moved into SQL.** `CourseFilterState(status,
   query)` lowers In progress to `completionDate:none` and Completed to
   `completionDate:any`, ANDed with the query, so the chips now also apply in
-  table mode, which ignored them before. A census test pins the lowering.
+  table mode, which ignored them before; the chips show above the table
+  too, so a status chosen in list mode stays visible and resettable there.
+  A census test pins the lowering.
 - **Registries completed.** Certification `agency` and `level`, course
   `agency` and species `category` are enum fields (localized in the
   builder); every list's registry searches its search route's columns; new
-  relations: buddy `dives`; certification `buddy`, `instructor`, `course`;
-  course `instructor`, `certification` (either stored link direction),
-  `dives`; center `dives`; species `sightings`, `sites`, `dives`. Centers
+  relations: buddy `dives`; certification `buddy`, `instructor`, `course`
+  and course `certification` (both read either stored link direction, as
+  the detail pages do), course `instructor` and `dives`; center `dives`;
+  species `sightings`, `expectedSites` and `dives`. `expectedSites` walks
+  the curated "expected at this site" list (`site_species`); where a
+  species was seen is `dives.site`. Centers
   also gain `stateProvince`, `affiliations` (contains), `rating`, `notes`
   and `coordinates`; species `taxonomyClass`, `description`, `builtIn`.
 - **Search routes stay.** The buddy, certification and center search

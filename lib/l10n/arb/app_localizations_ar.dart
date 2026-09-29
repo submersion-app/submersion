@@ -45146,6 +45146,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_species_dives => 'الغطسات';
 
   @override
+  String get query_species_expectedSites => 'متوقع في المواقع';
+
+  @override
   String get query_species_name => 'الاسم';
 
   @override
@@ -45153,9 +45156,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_species_sightings => 'المشاهدات';
-
-  @override
-  String get query_species_sites => 'مواقع الغوص';
 
   @override
   String get query_species_taxonomyClass => 'الصنف التصنيفي';

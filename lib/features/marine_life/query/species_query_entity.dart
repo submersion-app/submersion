@@ -55,15 +55,17 @@ final speciesQueryEntity = QueryEntity(
       isMany: true,
       labelKey: 'query_species_sightings',
     ),
+    // The curated "expected at this site" list (site_species), not where
+    // the diver saw it; that is `dives.site`.
     QueryRelation(
-      key: 'sites',
+      key: 'expectedSites',
       target: QuerySubject.sites,
       shape: RelationShape.junction,
       joinSql:
           '{to}.id IN (SELECT j.site_id FROM site_species j '
           'WHERE j.species_id = {from}.id)',
       isMany: true,
-      labelKey: 'query_species_sites',
+      labelKey: 'query_species_expectedSites',
       tables: ['site_species'],
     ),
     QueryRelation(

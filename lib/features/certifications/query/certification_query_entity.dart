@@ -73,12 +73,16 @@ final certificationQueryEntity = QueryEntity(
   relations: [
     _buddy('buddy', 'buddy_id'),
     _buddy('instructor', 'instructor_id'),
+    // The link is stored on either side (certifications.course_id or
+    // courses.certification_id), as the course side's `certification`
+    // relation and the certification detail read it.
     const QueryRelation(
       key: 'course',
       target: QuerySubject.courses,
-      shape: RelationShape.fk,
-      joinSql: '{to}.id = {from}.course_id',
-      isMany: false,
+      shape: RelationShape.custom,
+      joinSql:
+          '({to}.id = {from}.course_id OR {to}.certification_id = {from}.id)',
+      isMany: true,
       labelKey: 'query_certifications_course',
     ),
   ],
