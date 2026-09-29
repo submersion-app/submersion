@@ -1,0 +1,262 @@
+import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
+
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/planner/domain/entities/mission/current_vector.dart';
+import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
+import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
+import 'package:submersion/features/planner/domain/services/mission/mission_edits.dart';
+import 'package:submersion/features/planner/presentation/mission/mission_member_editor.dart';
+import 'package:submersion/features/planner/presentation/mission/mission_units.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+/// The "DPV team" accordion section: one card per diver, then the mission's
+/// own settings (environment, battery reserve, default current and, in open
+/// water, walking speed and the longest surface swim).
+class MissionTeamSection extends ConsumerWidget {
+  const MissionTeamSection({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mission = ref.watch(
+      divePlanNotifierProvider.select((s) => s.mission),
+    );
+    if (mission == null) return const SizedBox.shrink();
+    final notifier = ref.read(divePlanNotifierProvider.notifier);
+    final units = MissionUnits(UnitFormatter(ref.watch(settingsProvider)));
+    final l10n = context.l10n;
+    final defaultCurrent = mission.defaultCurrent;
+    final openWater = mission.environment == MissionEnvironment.openWater;
+
+    Future<void> edit(MissionMember member) async {
+      final edited = await showMissionMemberEditor(
+        context,
+        member: member,
+        units: units,
+      );
+      if (edited != null) {
+        notifier.updateMission(MissionEdits.updateMember(mission, edited));
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final member in mission.team)
+          _MemberCard(
+            member: member,
+            units: units,
+            onEdit: () => edit(member),
+            onRemove: mission.team.length == 1
+                ? null
+                : () => notifier.updateMission(
+                    MissionEdits.removeMember(mission, member.id),
+                  ),
+          ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Tooltip(
+            message: l10n.plannerMission_team_addDiver,
+            child: TextButton.icon(
+              icon: const Icon(Icons.person_add_alt),
+              label: Text(l10n.plannerMission_team_addDiver),
+              onPressed: () => notifier.updateMission(
+                MissionEdits.addMember(
+                  mission,
+                  const Uuid().v4(),
+                  name: l10n.plannerMission_team_defaultName(
+                    mission.team.length + 1,
+                  ),
+                  // A new diver starts on the first diver's SAC; the plan's
+                  // own SAC seeded that one.
+                  sacBottom: mission.team.isEmpty
+                      ? ref.read(divePlanNotifierProvider).sacRate
+                      : mission.team.first.sacBottom,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const Divider(),
+        Text(l10n.plannerMission_settings_environment),
+        SegmentedButton<MissionEnvironment>(
+          segments: [
+            ButtonSegment(
+              value: MissionEnvironment.overhead,
+              label: Text(l10n.plannerMission_environment_overhead),
+            ),
+            ButtonSegment(
+              value: MissionEnvironment.openWater,
+              label: Text(l10n.plannerMission_environment_openWater),
+            ),
+          ],
+          selected: {mission.environment},
+          onSelectionChanged: (s) =>
+              notifier.updateMission(mission.copyWith(environment: s.single)),
+        ),
+        PlanNumberField(
+          label: l10n.plannerMission_settings_batteryReserve,
+          value: mission.batteryReserveFraction * 100,
+          hintValue: kDefaultBatteryReserveFraction * 100,
+          suffixText: '%',
+          decimals: 0,
+          min: 0,
+          max: 100,
+          allowEmpty: false,
+          onChanged: (v) => notifier.updateMission(
+            mission.copyWith(
+              batteryReserveFraction:
+                  (v ?? kDefaultBatteryReserveFraction * 100) / 100,
+            ),
+          ),
+        ),
+        PlanNumberField(
+          label: l10n.plannerMission_settings_defaultCurrent,
+          value: defaultCurrent == null
+              ? null
+              : units.speedDisplay(defaultCurrent.speedMps),
+          hintValue: 0,
+          suffixText: units.speedSymbol,
+          decimals: 0,
+          min: 0,
+          onChanged: (v) => notifier.updateMission(
+            v == null || v == 0
+                ? mission.copyWith(clearDefaultCurrent: true)
+                : mission.copyWith(
+                    defaultCurrent: CurrentVector(
+                      speedMps: units.speedMps(v),
+                      setsTowardDeg: defaultCurrent?.setsTowardDeg ?? 0,
+                    ),
+                  ),
+          ),
+        ),
+        if (defaultCurrent != null)
+          PlanNumberField(
+            label: l10n.plannerMission_current_setsToward,
+            value: defaultCurrent.setsTowardDeg,
+            hintValue: 0,
+            suffixText: '°',
+            decimals: 0,
+            min: 0,
+            max: 359,
+            allowEmpty: false,
+            onChanged: (v) => notifier.updateMission(
+              mission.copyWith(
+                defaultCurrent: CurrentVector(
+                  speedMps: defaultCurrent.speedMps,
+                  setsTowardDeg: v ?? 0,
+                ),
+              ),
+            ),
+          ),
+        if (openWater) ...[
+          PlanNumberField(
+            label: l10n.plannerMission_settings_walkSpeed,
+            value: units.speedDisplay(mission.walkSpeedMps),
+            hintValue: units.speedDisplay(kDefaultWalkSpeedMps),
+            suffixText: units.speedSymbol,
+            decimals: 0,
+            min: 0,
+            allowEmpty: false,
+            onChanged: (v) => notifier.updateMission(
+              mission.copyWith(
+                walkSpeedMps: v == null
+                    ? kDefaultWalkSpeedMps
+                    : units.speedMps(v),
+              ),
+            ),
+          ),
+          PlanNumberField(
+            label: l10n.plannerMission_settings_surfaceSwimLimit,
+            value: mission.surfaceSwimLimitM == null
+                ? null
+                : units.distanceDisplay(mission.surfaceSwimLimitM!),
+            hintValue: 0,
+            suffixText: units.distanceSymbol,
+            decimals: 0,
+            min: 0,
+            onChanged: (v) => notifier.updateMission(
+              v == null
+                  ? mission.copyWith(clearSurfaceSwimLimit: true)
+                  : mission.copyWith(
+                      surfaceSwimLimitM: units.distanceMeters(v),
+                    ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _MemberCard extends ConsumerWidget {
+  const _MemberCard({
+    required this.member,
+    required this.units,
+    required this.onEdit,
+    required this.onRemove,
+  });
+
+  final MissionMember member;
+  final MissionUnits units;
+  final VoidCallback onEdit;
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final scooter = member.scooter;
+    final hasScooter = scooter.ratedSpeedMps > 0 && scooter.burnTimeSeconds > 0;
+    // Capacity is for information only and is not part of the snapshot, so
+    // it comes from the live item a picked scooter still points at.
+    final equipmentId = scooter.equipmentId;
+    final capacityWh = equipmentId == null
+        ? null
+        : ref
+              .watch(equipmentItemProvider(equipmentId))
+              .value
+              ?.dpvBatteryCapacityWh;
+    return Card(
+      child: ListTile(
+        title: Text(
+          member.displayName,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text(
+          [
+            l10n.plannerMission_team_memberSummary(
+              units.sac(member.sacBottom),
+              units.speed(member.swimSpeedMps),
+            ),
+            if (hasScooter)
+              l10n.plannerMission_team_scooterSummary(
+                scooter.name,
+                units.speed(scooter.ratedSpeedMps),
+                (scooter.burnTimeSeconds / 60).round().toString(),
+              )
+            else
+              l10n.plannerMission_team_noScooter,
+            if (capacityWh != null)
+              l10n.plannerMission_team_capacity(capacityWh.round().toString()),
+          ].join('\n'),
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+        ),
+        onTap: onEdit,
+        trailing: onRemove == null
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.delete, size: 18),
+                tooltip: l10n.plannerMission_team_removeDiver,
+                onPressed: onRemove,
+              ),
+      ),
+    );
+  }
+}
