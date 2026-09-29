@@ -12949,6 +12949,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get passport_logFill_analyzer => 'Elemző';
 
   @override
+  String get passport_logFill_analysedHint => 'Add meg a mért értékeket';
+
+  @override
   String get passport_logFill_notes => 'Jegyzetek';
 
   @override
@@ -15731,6 +15734,23 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_procedure => 'Töltési sorrend';
+
+  @override
+  String get gasCalculators_blender_logFill => 'E töltés rögzítése';
+
+  @override
+  String get gasCalculators_blender_chooseCylinder => 'Palack kiválasztása';
+
+  @override
+  String get gasCalculators_blender_scanTag => 'Címke beolvasása';
+
+  @override
+  String get gasCalculators_blender_notYourCylinder =>
+      'Ez a palack nem szerepel a felszerelésedben';
+
+  @override
+  String get gasCalculators_blender_cylinderFailed =>
+      'Nem sikerült megnyitni a palackot. Próbáld újra.';
 
   @override
   String get gasCalculators_blender_amounts => 'Hozzáadandó gáz';

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
@@ -20,18 +23,30 @@ double? parseDecimal(String text) => switch (readNumber(text)) {
 };
 
 /// Opens the manual fill sheet. Resolves with the saved fill, or null when
-/// the diver backed out.
+/// the diver backed out. The initial values prefill a planned fill, such as
+/// a blend; with [mixFromPlan] the sheet asks for the analysed mix instead.
 Future<CylinderFill?> showLogFillSheet(
   BuildContext context, {
   required String passportId,
   required String equipmentId,
+  GasMix? initialMix,
+  double? initialPressureBar,
+  double? initialTemperatureC,
+  bool mixFromPlan = false,
 }) => showModalBottomSheet<CylinderFill>(
   context: context,
   isScrollControlled: true,
   useSafeArea: true,
   builder: (context) => Padding(
     padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-    child: LogFillSheet(passportId: passportId, equipmentId: equipmentId),
+    child: LogFillSheet(
+      passportId: passportId,
+      equipmentId: equipmentId,
+      initialMix: initialMix,
+      initialPressureBar: initialPressureBar,
+      initialTemperatureC: initialTemperatureC,
+      mixFromPlan: mixFromPlan,
+    ),
   ),
 );
 
@@ -40,10 +55,21 @@ class LogFillSheet extends ConsumerStatefulWidget {
     super.key,
     required this.passportId,
     required this.equipmentId,
+    this.initialMix,
+    this.initialPressureBar,
+    this.initialTemperatureC,
+    this.mixFromPlan = false,
   });
 
   final String passportId;
   final String equipmentId;
+  final GasMix? initialMix;
+  final double? initialPressureBar;
+  final double? initialTemperatureC;
+
+  /// The mix came from a plan, not an analyser, so the diver is asked to
+  /// enter what they analysed.
+  final bool mixFromPlan;
 
   @override
   ConsumerState<LogFillSheet> createState() => _LogFillSheetState();
@@ -70,6 +96,17 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
   @override
   void initState() {
     super.initState();
+    final units = UnitFormatter(ref.read(settingsProvider));
+    if (widget.initialMix case final mix?) {
+      _o2.text = formatDecimalForInput(mix.o2);
+      _he.text = formatDecimalForInput(mix.he);
+    }
+    if (widget.initialPressureBar case final bar?) {
+      _pressure.text = formatRoundedForInput(units.convertPressure(bar), 0);
+    }
+    if (widget.initialTemperatureC case final c?) {
+      _temperature.text = formatRoundedForInput(units.convertTemperature(c), 1);
+    }
     _loadHistory();
   }
 
@@ -246,6 +283,9 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
             onTap: _pickTime,
           ),
           Row(
+            // Top-aligned, so the He field stays level with O2 when O2
+            // carries the analysed-values hint.
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: TextField(
@@ -256,6 +296,10 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
                   ),
                   decoration: InputDecoration(
                     labelText: l10n.passport_logFill_o2,
+                    helperText: widget.mixFromPlan
+                        ? l10n.passport_logFill_analysedHint
+                        : null,
+                    helperMaxLines: 2,
                     errorText: _mixError,
                   ),
                 ),

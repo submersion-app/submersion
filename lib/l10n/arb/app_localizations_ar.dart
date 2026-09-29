@@ -12777,6 +12777,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_logFill_analyzer => 'جهاز التحليل';
 
   @override
+  String get passport_logFill_analysedHint => 'أدخل القيم التي حللتها';
+
+  @override
   String get passport_logFill_notes => 'ملاحظات';
 
   @override
@@ -15553,6 +15556,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_procedure => 'خطوات التعبئة';
+
+  @override
+  String get gasCalculators_blender_logFill => 'تسجيل هذه التعبئة';
+
+  @override
+  String get gasCalculators_blender_chooseCylinder => 'اختيار الأسطوانة';
+
+  @override
+  String get gasCalculators_blender_scanTag => 'مسح الوسم';
+
+  @override
+  String get gasCalculators_blender_notYourCylinder =>
+      'هذه الأسطوانة ليست ضمن معداتك';
+
+  @override
+  String get gasCalculators_blender_cylinderFailed =>
+      'تعذر فتح هذه الأسطوانة. حاول مرة أخرى.';
 
   @override
   String get gasCalculators_blender_amounts => 'الغاز المطلوب إضافته';

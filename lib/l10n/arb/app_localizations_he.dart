@@ -12693,6 +12693,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_logFill_analyzer => 'מנתח';
 
   @override
+  String get passport_logFill_analysedHint => 'הזינו את הערכים שניתחתם';
+
+  @override
   String get passport_logFill_notes => 'הערות';
 
   @override
@@ -15426,6 +15429,23 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_procedure => 'סדר המילוי';
+
+  @override
+  String get gasCalculators_blender_logFill => 'רישום המילוי הזה';
+
+  @override
+  String get gasCalculators_blender_chooseCylinder => 'בחירת בלון';
+
+  @override
+  String get gasCalculators_blender_scanTag => 'סריקת תג';
+
+  @override
+  String get gasCalculators_blender_notYourCylinder =>
+      'הבלון הזה אינו בציוד שלך';
+
+  @override
+  String get gasCalculators_blender_cylinderFailed =>
+      'לא ניתן לפתוח את הבלון הזה. נסו שוב.';
 
   @override
   String get gasCalculators_blender_amounts => 'גז להוספה';

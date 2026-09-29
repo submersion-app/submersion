@@ -12397,6 +12397,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_logFill_analyzer => '分析仪';
 
   @override
+  String get passport_logFill_analysedHint => '请输入你实测的数值';
+
+  @override
   String get passport_logFill_notes => '备注';
 
   @override
@@ -15056,6 +15059,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_procedure => '充填步骤';
+
+  @override
+  String get gasCalculators_blender_logFill => '记录本次充气';
+
+  @override
+  String get gasCalculators_blender_chooseCylinder => '选择气瓶';
+
+  @override
+  String get gasCalculators_blender_scanTag => '扫描标签';
+
+  @override
+  String get gasCalculators_blender_notYourCylinder => '该气瓶不在你的装备中';
+
+  @override
+  String get gasCalculators_blender_cylinderFailed => '无法打开该气瓶，请重试。';
 
   @override
   String get gasCalculators_blender_amounts => '需充入的气体';

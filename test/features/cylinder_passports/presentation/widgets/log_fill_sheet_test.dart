@@ -6,6 +6,8 @@ import 'package:submersion/features/cylinder_passports/data/repositories/cylinde
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/log_fill_sheet.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -44,6 +46,10 @@ void main() {
     WidgetTester tester, {
     CylinderFillRepository? repository,
     AppSettings? settings,
+    LogFillSheet sheet = const LogFillSheet(
+      passportId: 'pp-1',
+      equipmentId: 'eq-1',
+    ),
   }) async {
     final overrides = await getBaseOverrides(
       settingsNotifier: settings == null
@@ -57,11 +63,54 @@ void main() {
           if (repository != null)
             cylinderFillRepositoryProvider.overrideWithValue(repository),
         ],
-        child: const LogFillSheet(passportId: 'pp-1', equipmentId: 'eq-1'),
+        child: sheet,
       ),
     );
     await tester.pumpAndSettle();
   }
+
+  String fieldText(WidgetTester tester, String key) =>
+      tester.widget<TextField>(find.byKey(Key(key))).controller!.text;
+
+  const planned = LogFillSheet(
+    passportId: 'pp-1',
+    equipmentId: 'eq-1',
+    initialMix: GasMix(o2: 21, he: 35),
+    initialPressureBar: 232,
+    initialTemperatureC: 30,
+    mixFromPlan: true,
+  );
+
+  testWidgets('starts from a planned fill, and asks for analysed values', (
+    tester,
+  ) async {
+    await pump(tester, sheet: planned);
+    final l10n = AppLocalizations.of(tester.element(find.byType(LogFillSheet)));
+    expect(fieldText(tester, 'logFill_o2'), '21');
+    expect(fieldText(tester, 'logFill_he'), '35');
+    expect(fieldText(tester, 'logFill_pressure'), '232');
+    expect(fieldText(tester, 'logFill_temperature'), '30');
+    expect(find.text(l10n.passport_logFill_analysedHint), findsOneWidget);
+  });
+
+  testWidgets('a planned fill reads in the diver units', (tester) async {
+    await pump(
+      tester,
+      sheet: planned,
+      settings: const AppSettings(
+        pressureUnit: PressureUnit.psi,
+        temperatureUnit: TemperatureUnit.fahrenheit,
+      ),
+    );
+    expect(fieldText(tester, 'logFill_pressure'), '3365');
+    expect(fieldText(tester, 'logFill_temperature'), '86');
+  });
+
+  testWidgets('a manual fill has no analysed hint', (tester) async {
+    await pump(tester);
+    final l10n = AppLocalizations.of(tester.element(find.byType(LogFillSheet)));
+    expect(find.text(l10n.passport_logFill_analysedHint), findsNothing);
+  });
 
   testWidgets('shows every field with the diver units', (tester) async {
     await pump(tester);

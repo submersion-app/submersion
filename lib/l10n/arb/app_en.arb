@@ -7301,6 +7301,7 @@
   "passport_logFill_temperature": "Gas temperature",
   "passport_logFill_station": "Fill station",
   "passport_logFill_analyzer": "Analyzer",
+  "passport_logFill_analysedHint": "Enter your analysed values",
   "passport_logFill_notes": "Notes",
   "passport_logFill_invalidMix": "O2 and He must each be 0 to 100 and total 100 or less",
   "passport_logFill_saveFailed": "Could not save the fill. Try again.",
@@ -9183,6 +9184,11 @@
     }
   },
   "gasCalculators_blender_procedure": "Fill procedure",
+  "gasCalculators_blender_logFill": "Log this fill",
+  "gasCalculators_blender_chooseCylinder": "Choose cylinder",
+  "gasCalculators_blender_scanTag": "Scan tag",
+  "gasCalculators_blender_notYourCylinder": "That cylinder is not in your gear",
+  "gasCalculators_blender_cylinderFailed": "Could not open that cylinder. Try again.",
   "gasCalculators_blender_amounts": "Gas to add",
   "gasCalculators_blender_stepStart": "Start with {pressure} {gas}",
   "@gasCalculators_blender_stepStart": {

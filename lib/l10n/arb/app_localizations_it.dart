@@ -12978,6 +12978,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get passport_logFill_analyzer => 'Analizzatore';
 
   @override
+  String get passport_logFill_analysedHint => 'Inserisci i valori analizzati';
+
+  @override
   String get passport_logFill_notes => 'Note';
 
   @override
@@ -15781,6 +15784,23 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_procedure => 'Procedura di riempimento';
+
+  @override
+  String get gasCalculators_blender_logFill => 'Registra questa ricarica';
+
+  @override
+  String get gasCalculators_blender_chooseCylinder => 'Scegli la bombola';
+
+  @override
+  String get gasCalculators_blender_scanTag => 'Scansiona il tag';
+
+  @override
+  String get gasCalculators_blender_notYourCylinder =>
+      'Quella bombola non è nella tua attrezzatura';
+
+  @override
+  String get gasCalculators_blender_cylinderFailed =>
+      'Impossibile aprire quella bombola. Riprova.';
 
   @override
   String get gasCalculators_blender_amounts => 'Gas da aggiungere';
