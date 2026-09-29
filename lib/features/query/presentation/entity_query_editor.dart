@@ -7,7 +7,7 @@ import 'package:submersion/core/query/presentation/query_editor.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
-import 'package:submersion/features/query/data/query_name_index.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/query/presentation/app_query_labels.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
@@ -72,8 +72,7 @@ class EntityQueryEditor extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final prefs = ref.watch(queryUnitPrefsProvider);
-    final names =
-        ref.watch(queryNameIndexProvider).value ?? QueryNameIndex.empty;
+    final names = ref.watch(queryNameIndexProvider).value ?? NameIndex.empty;
     final editorContext = QueryEditorContext(
       registry: appQueryRegistry,
       root: root,

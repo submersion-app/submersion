@@ -5,12 +5,12 @@ import 'package:submersion/core/query/domain/query_json.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
-import 'package:submersion/features/query/data/query_name_index.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/query/domain/entities/saved_query.dart';
 import 'package:submersion/features/query/domain/saved_query_load.dart';
 
 void main() {
-  const names = QueryNameIndex({
+  final names = NameIndex.fromRefs(const {
     QuerySubject.sites: [RefValue('s1', 'Salt Pier')],
   });
   SavedQuery saved(String json, {String subject = 'dives'}) => SavedQuery(
@@ -142,7 +142,7 @@ void main() {
 
   test('labels refresh inside NOT, lists and scoped groups; a missing ref '
       'keeps its stored name', () {
-    const index = QueryNameIndex({
+    final index = NameIndex.fromRefs(const {
       QuerySubject.sites: [RefValue('s1', 'Salt Pier')],
       QuerySubject.certifications: [RefValue('c1', 'Rescue Diver')],
     });

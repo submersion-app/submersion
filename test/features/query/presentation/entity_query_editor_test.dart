@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart';
-import 'package:submersion/features/query/data/query_name_index.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/query/presentation/entity_query_chips.dart';
 import 'package:submersion/features/query/presentation/entity_query_editor.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
@@ -21,9 +21,7 @@ void main() {
         locale: const Locale('en'),
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          queryNameIndexProvider.overrideWith(
-            (ref) async => QueryNameIndex.empty,
-          ),
+          queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
         ],
         child: SingleChildScrollView(
           child: EntityQueryEditor(

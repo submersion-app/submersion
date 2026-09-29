@@ -31,6 +31,14 @@ void main() {
     );
   });
 
+  test('fromRefs takes any ref subject, not only the loaded ones', () {
+    final index = NameIndex.fromRefs(const {
+      QuerySubject.certifications: [RefValue('c1', 'Rescue Diver')],
+    });
+    expect(index.labelOf(QuerySubject.certifications, 'c1'), 'Rescue Diver');
+    expect(rowTargetFor(QuerySubject.certifications), NameTarget.row);
+  });
+
   test(
     'an alternate label resolves to the row and prints the primary label',
     () {

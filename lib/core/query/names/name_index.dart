@@ -20,7 +20,11 @@ enum NameTarget {
   computerId,
   siteTypeId,
   courseId,
-  diveTypeId;
+  diveTypeId,
+
+  /// A row of any other subject a relation can point at (a certification
+  /// behind `buddies.certifications`): typed refs and saved queries only.
+  row;
 
   /// Whether the entry names one row a typed ref can hold. A place, an
   /// attribute choice and a legacy buddy name are for sentences only.
@@ -43,7 +47,7 @@ NameTarget rowTargetFor(QuerySubject subject) => switch (subject) {
   QuerySubject.siteTypes => NameTarget.siteTypeId,
   QuerySubject.courses => NameTarget.courseId,
   QuerySubject.diveTypes => NameTarget.diveTypeId,
-  _ => throw ArgumentError.value(subject, 'subject', 'not a ref subject'),
+  _ => NameTarget.row,
 };
 
 /// One label the diver's data offers, and what it maps to.
