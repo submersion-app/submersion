@@ -3003,6 +3003,9 @@
   "diveLog_tank_tooltip_remove": "Fles verwijderen",
   "diveLog_tank_regulatorLabel": "Ademautomaat",
   "diveLog_tank_regulatorNone": "Geen",
+  "diveLog_tank_tripCylinderLabel": "Fles van de reis",
+  "diveLog_tank_tripCylinderNone": "Geen",
+  "diveLog_tank_tripCylinderSuggested": "Voorgesteld uit de volle flessen van de reis",
   "diveLog_tissue_title": "Weefselbelasting",
   "diveLog_tooltip_avgCalculated": "(gem., berekend)",
   "diveLog_tooltip_ceiling": "Plafond",
@@ -7231,6 +7234,7 @@
   "trips_cylinders_action_fill": "Vullen",
   "trips_cylinders_action_fillSeveral": "Meerdere vullen",
   "trips_cylinders_action_adjust": "Bijwerken",
+  "trips_cylinders_action_logDive": "Duik vastleggen",
   "trips_cylinders_bottle": "Fles {label}",
   "@trips_cylinders_bottle": {
     "placeholders": {

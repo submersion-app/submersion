@@ -3014,6 +3014,9 @@
   "diveLog_tank_tooltip_remove": "Flasche entfernen",
   "diveLog_tank_regulatorLabel": "Atemregler",
   "diveLog_tank_regulatorNone": "Keiner",
+  "diveLog_tank_tripCylinderLabel": "Flasche der Reise",
+  "diveLog_tank_tripCylinderNone": "Keine",
+  "diveLog_tank_tripCylinderSuggested": "Vorschlag aus den vollen Flaschen der Reise",
   "diveLog_tissue_title": "Gewebesättigung",
   "diveLog_tooltip_avgCalculated": "(Durchschn., berechnet)",
   "diveLog_tooltip_ceiling": "Ceiling",
@@ -7334,6 +7337,7 @@
   "trips_cylinders_action_fill": "Füllen",
   "trips_cylinders_action_fillSeveral": "Mehrere füllen",
   "trips_cylinders_action_adjust": "Anpassen",
+  "trips_cylinders_action_logDive": "Tauchgang eintragen",
   "trips_cylinders_bottle": "Flasche {label}",
   "@trips_cylinders_bottle": {
     "placeholders": {

@@ -8540,6 +8540,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_regulatorNone => '无';
 
   @override
+  String get diveLog_tank_tripCylinderLabel => '行程气瓶';
+
+  @override
+  String get diveLog_tank_tripCylinderNone => '无';
+
+  @override
+  String get diveLog_tank_tripCylinderSuggested => '从行程中已充满的气瓶建议';
+
+  @override
   String get diveLog_tissue_title => '组织饱和度';
 
   @override
@@ -24086,6 +24095,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_cylinders_action_adjust => '调整';
+
+  @override
+  String get trips_cylinders_action_logDive => '记录潜水';
 
   @override
   String trips_cylinders_bottle(String label) {

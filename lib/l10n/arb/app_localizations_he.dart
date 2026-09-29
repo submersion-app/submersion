@@ -8751,6 +8751,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_regulatorNone => 'ללא';
 
   @override
+  String get diveLog_tank_tripCylinderLabel => 'מכל הטיול';
+
+  @override
+  String get diveLog_tank_tripCylinderNone => 'ללא';
+
+  @override
+  String get diveLog_tank_tripCylinderSuggested =>
+      'הוצע מתוך המכלים המלאים של הטיול';
+
+  @override
   String get diveLog_tissue_title => 'עומס רקמות';
 
   @override
@@ -24757,6 +24767,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_cylinders_action_adjust => 'תיקון';
+
+  @override
+  String get trips_cylinders_action_logDive => 'רישום צלילה';
 
   @override
   String trips_cylinders_bottle(String label) {

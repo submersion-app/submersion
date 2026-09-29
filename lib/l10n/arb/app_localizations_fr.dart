@@ -9012,6 +9012,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tank_regulatorNone => 'Aucun';
 
   @override
+  String get diveLog_tank_tripCylinderLabel => 'Bloc du voyage';
+
+  @override
+  String get diveLog_tank_tripCylinderNone => 'Aucun';
+
+  @override
+  String get diveLog_tank_tripCylinderSuggested =>
+      'Suggéré parmi les blocs pleins du voyage';
+
+  @override
   String get diveLog_tissue_title => 'Charge tissulaire';
 
   @override
@@ -25463,6 +25473,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get trips_cylinders_action_adjust => 'Ajuster';
+
+  @override
+  String get trips_cylinders_action_logDive => 'Enregistrer une plongée';
 
   @override
   String trips_cylinders_bottle(String label) {

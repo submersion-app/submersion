@@ -14565,6 +14565,24 @@ abstract class AppLocalizations {
   /// **'None'**
   String get diveLog_tank_regulatorNone;
 
+  /// No description provided for @diveLog_tank_tripCylinderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip cylinder'**
+  String get diveLog_tank_tripCylinderLabel;
+
+  /// No description provided for @diveLog_tank_tripCylinderNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get diveLog_tank_tripCylinderNone;
+
+  /// No description provided for @diveLog_tank_tripCylinderSuggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested from the trip\'s full cylinders'**
+  String get diveLog_tank_tripCylinderSuggested;
+
   /// No description provided for @diveLog_tissue_title.
   ///
   /// In en, this message translates to:
@@ -40583,6 +40601,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Adjust'**
   String get trips_cylinders_action_adjust;
+
+  /// No description provided for @trips_cylinders_action_logDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Log dive'**
+  String get trips_cylinders_action_logDive;
 
   /// No description provided for @trips_cylinders_bottle.
   ///

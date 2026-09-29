@@ -3003,6 +3003,9 @@
   "diveLog_tank_tooltip_remove": "إزالة الأسطوانة",
   "diveLog_tank_regulatorLabel": "منظم التنفس",
   "diveLog_tank_regulatorNone": "لا شيء",
+  "diveLog_tank_tripCylinderLabel": "أسطوانة الرحلة",
+  "diveLog_tank_tripCylinderNone": "لا شيء",
+  "diveLog_tank_tripCylinderSuggested": "مقترحة من الأسطوانات الممتلئة في الرحلة",
   "diveLog_tissue_title": "تحميل الأنسجة",
   "diveLog_tooltip_avgCalculated": "(متوسط، محسوب)",
   "diveLog_tooltip_ceiling": "السقف",
@@ -7231,6 +7234,7 @@
   "trips_cylinders_action_fill": "تعبئة",
   "trips_cylinders_action_fillSeveral": "تعبئة عدة أسطوانات",
   "trips_cylinders_action_adjust": "تعديل",
+  "trips_cylinders_action_logDive": "تسجيل غطسة",
   "trips_cylinders_bottle": "الأسطوانة {label}",
   "@trips_cylinders_bottle": {
     "placeholders": {

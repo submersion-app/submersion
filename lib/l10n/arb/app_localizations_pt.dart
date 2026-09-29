@@ -8972,6 +8972,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_tank_regulatorNone => 'Nenhum';
 
   @override
+  String get diveLog_tank_tripCylinderLabel => 'Cilindro da viagem';
+
+  @override
+  String get diveLog_tank_tripCylinderNone => 'Nenhum';
+
+  @override
+  String get diveLog_tank_tripCylinderSuggested =>
+      'Sugerido entre os cilindros cheios da viagem';
+
+  @override
   String get diveLog_tissue_title => 'Carga Tissular';
 
   @override
@@ -25369,6 +25379,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get trips_cylinders_action_adjust => 'Ajustar';
+
+  @override
+  String get trips_cylinders_action_logDive => 'Registar mergulho';
 
   @override
   String trips_cylinders_bottle(String label) {

@@ -4648,6 +4648,9 @@
   "diveLog_tank_tooltip_remove": "Remove tank",
   "diveLog_tank_regulatorLabel": "Regulator",
   "diveLog_tank_regulatorNone": "None",
+  "diveLog_tank_tripCylinderLabel": "Trip cylinder",
+  "diveLog_tank_tripCylinderNone": "None",
+  "diveLog_tank_tripCylinderSuggested": "Suggested from the trip's full cylinders",
   "diveLog_tissue_title": "Tissue Loading",
   "diveLog_tooltip_avgCalculated": "(avg, calculated)",
   "diveLog_tooltip_ceiling": "Ceiling",
@@ -15230,6 +15233,7 @@
   "trips_cylinders_action_fill": "Fill",
   "trips_cylinders_action_fillSeveral": "Fill several",
   "trips_cylinders_action_adjust": "Adjust",
+  "trips_cylinders_action_logDive": "Log dive",
   "trips_cylinders_bottle": "Bottle {label}",
   "@trips_cylinders_bottle": {
     "placeholders": {

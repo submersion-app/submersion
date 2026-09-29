@@ -2901,6 +2901,9 @@
   "diveLog_tank_tooltip_remove": "הסר בלון",
   "diveLog_tank_regulatorLabel": "וסת",
   "diveLog_tank_regulatorNone": "ללא",
+  "diveLog_tank_tripCylinderLabel": "מכל הטיול",
+  "diveLog_tank_tripCylinderNone": "ללא",
+  "diveLog_tank_tripCylinderSuggested": "הוצע מתוך המכלים המלאים של הטיול",
   "diveLog_tissue_title": "עומס רקמות",
   "diveLog_tooltip_avgCalculated": "(ממוצע, מחושב)",
   "diveLog_tooltip_ceiling": "תקרה",
@@ -7231,6 +7234,7 @@
   "trips_cylinders_action_fill": "מילוי",
   "trips_cylinders_action_fillSeveral": "מילוי כמה מכלים",
   "trips_cylinders_action_adjust": "תיקון",
+  "trips_cylinders_action_logDive": "רישום צלילה",
   "trips_cylinders_bottle": "מכל {label}",
   "@trips_cylinders_bottle": {
     "placeholders": {

@@ -3003,6 +3003,9 @@
   "diveLog_tank_tooltip_remove": "Remover cilindro",
   "diveLog_tank_regulatorLabel": "Regulador",
   "diveLog_tank_regulatorNone": "Nenhum",
+  "diveLog_tank_tripCylinderLabel": "Cilindro da viagem",
+  "diveLog_tank_tripCylinderNone": "Nenhum",
+  "diveLog_tank_tripCylinderSuggested": "Sugerido entre os cilindros cheios da viagem",
   "diveLog_tissue_title": "Carga Tissular",
   "diveLog_tooltip_avgCalculated": "(méd., calculado)",
   "diveLog_tooltip_ceiling": "Teto",
@@ -7231,6 +7234,7 @@
   "trips_cylinders_action_fill": "Encher",
   "trips_cylinders_action_fillSeveral": "Encher vários",
   "trips_cylinders_action_adjust": "Ajustar",
+  "trips_cylinders_action_logDive": "Registar mergulho",
   "trips_cylinders_bottle": "Cilindro {label}",
   "@trips_cylinders_bottle": {
     "placeholders": {

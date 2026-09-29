@@ -202,4 +202,14 @@ void main() {
       'Truck 2 · Bottle 14 · EAN32 · ${units.formatPressure(200)} · Full',
     );
   });
+
+  test('the dive link strings exist in English', () {
+    expect(l10n.diveLog_tank_tripCylinderLabel, 'Trip cylinder');
+    expect(l10n.diveLog_tank_tripCylinderNone, 'None');
+    expect(
+      l10n.diveLog_tank_tripCylinderSuggested,
+      "Suggested from the trip's full cylinders",
+    );
+    expect(l10n.trips_cylinders_action_logDive, 'Log dive');
+  });
 }

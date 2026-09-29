@@ -8905,6 +8905,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tank_regulatorNone => 'Geen';
 
   @override
+  String get diveLog_tank_tripCylinderLabel => 'Fles van de reis';
+
+  @override
+  String get diveLog_tank_tripCylinderNone => 'Geen';
+
+  @override
+  String get diveLog_tank_tripCylinderSuggested =>
+      'Voorgesteld uit de volle flessen van de reis';
+
+  @override
   String get diveLog_tissue_title => 'Weefselbelasting';
 
   @override
@@ -25178,6 +25188,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_cylinders_action_adjust => 'Bijwerken';
+
+  @override
+  String get trips_cylinders_action_logDive => 'Duik vastleggen';
 
   @override
   String trips_cylinders_bottle(String label) {

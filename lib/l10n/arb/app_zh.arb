@@ -3137,6 +3137,9 @@
   "diveLog_tank_tooltip_remove": "移除气瓶",
   "diveLog_tank_regulatorLabel": "调节器",
   "diveLog_tank_regulatorNone": "无",
+  "diveLog_tank_tripCylinderLabel": "行程气瓶",
+  "diveLog_tank_tripCylinderNone": "无",
+  "diveLog_tank_tripCylinderSuggested": "从行程中已充满的气瓶建议",
   "diveLog_tissue_title": "组织饱和度",
   "diveLog_tooltip_avgCalculated": "（平均值，计算）",
   "diveLog_tooltip_ceiling": "上升限制",
@@ -7418,6 +7421,7 @@
   "trips_cylinders_action_fill": "充气",
   "trips_cylinders_action_fillSeveral": "批量充气",
   "trips_cylinders_action_adjust": "调整",
+  "trips_cylinders_action_logDive": "记录潜水",
   "trips_cylinders_bottle": "瓶号 {label}",
   "@trips_cylinders_bottle": {
     "placeholders": {

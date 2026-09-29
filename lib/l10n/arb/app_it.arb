@@ -2901,6 +2901,9 @@
   "diveLog_tank_tooltip_remove": "Rimuovi bombola",
   "diveLog_tank_regulatorLabel": "Erogatore",
   "diveLog_tank_regulatorNone": "Nessuno",
+  "diveLog_tank_tripCylinderLabel": "Bombola del viaggio",
+  "diveLog_tank_tripCylinderNone": "Nessuna",
+  "diveLog_tank_tripCylinderSuggested": "Suggerita tra le bombole piene del viaggio",
   "diveLog_tissue_title": "Carico tissutale",
   "diveLog_tooltip_avgCalculated": "(media, calcolato)",
   "diveLog_tooltip_ceiling": "Ceiling",
@@ -7125,6 +7128,7 @@
   "trips_cylinders_action_fill": "Ricarica",
   "trips_cylinders_action_fillSeveral": "Ricarica più bombole",
   "trips_cylinders_action_adjust": "Correggi",
+  "trips_cylinders_action_logDive": "Registra immersione",
   "trips_cylinders_bottle": "Bombola {label}",
   "@trips_cylinders_bottle": {
     "placeholders": {

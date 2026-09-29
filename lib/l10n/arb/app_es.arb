@@ -3003,6 +3003,9 @@
   "diveLog_tank_tooltip_remove": "Eliminar tanque",
   "diveLog_tank_regulatorLabel": "Regulador",
   "diveLog_tank_regulatorNone": "Ninguno",
+  "diveLog_tank_tripCylinderLabel": "Botella del viaje",
+  "diveLog_tank_tripCylinderNone": "Ninguna",
+  "diveLog_tank_tripCylinderSuggested": "Sugerida entre las botellas llenas del viaje",
   "diveLog_tissue_title": "Carga tisular",
   "diveLog_tooltip_avgCalculated": "(prom., calculado)",
   "diveLog_tooltip_ceiling": "Techo",
@@ -7231,6 +7234,7 @@
   "trips_cylinders_action_fill": "Cargar",
   "trips_cylinders_action_fillSeveral": "Cargar varias",
   "trips_cylinders_action_adjust": "Ajustar",
+  "trips_cylinders_action_logDive": "Registrar inmersión",
   "trips_cylinders_bottle": "Botella {label}",
   "@trips_cylinders_bottle": {
     "placeholders": {

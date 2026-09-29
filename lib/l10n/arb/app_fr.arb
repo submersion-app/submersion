@@ -2901,6 +2901,9 @@
   "diveLog_tank_tooltip_remove": "Retirer le bloc",
   "diveLog_tank_regulatorLabel": "Détendeur",
   "diveLog_tank_regulatorNone": "Aucun",
+  "diveLog_tank_tripCylinderLabel": "Bloc du voyage",
+  "diveLog_tank_tripCylinderNone": "Aucun",
+  "diveLog_tank_tripCylinderSuggested": "Suggéré parmi les blocs pleins du voyage",
   "diveLog_tissue_title": "Charge tissulaire",
   "diveLog_tooltip_avgCalculated": "(moy., calculé)",
   "diveLog_tooltip_ceiling": "Plafond",
@@ -7129,6 +7132,7 @@
   "trips_cylinders_action_fill": "Gonfler",
   "trips_cylinders_action_fillSeveral": "Gonfler plusieurs",
   "trips_cylinders_action_adjust": "Ajuster",
+  "trips_cylinders_action_logDive": "Enregistrer une plongée",
   "trips_cylinders_bottle": "Bloc {label}",
   "@trips_cylinders_bottle": {
     "placeholders": {

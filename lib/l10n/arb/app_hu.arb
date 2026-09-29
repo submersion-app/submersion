@@ -2901,6 +2901,9 @@
   "diveLog_tank_tooltip_remove": "Palack eltávolítása",
   "diveLog_tank_regulatorLabel": "Reduktor",
   "diveLog_tank_regulatorNone": "Nincs",
+  "diveLog_tank_tripCylinderLabel": "Az utazás palackja",
+  "diveLog_tank_tripCylinderNone": "Nincs",
+  "diveLog_tank_tripCylinderSuggested": "Javaslat az utazás teli palackjai közül",
   "diveLog_tissue_title": "Szövettelítődés",
   "diveLog_tooltip_avgCalculated": "(átl., számított)",
   "diveLog_tooltip_ceiling": "Plafon",
@@ -7129,6 +7132,7 @@
   "trips_cylinders_action_fill": "Töltés",
   "trips_cylinders_action_fillSeveral": "Több töltése",
   "trips_cylinders_action_adjust": "Módosítás",
+  "trips_cylinders_action_logDive": "Merülés rögzítése",
   "trips_cylinders_bottle": "Palack {label}",
   "@trips_cylinders_bottle": {
     "placeholders": {
