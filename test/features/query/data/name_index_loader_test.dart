@@ -227,4 +227,23 @@ void main() {
       );
     },
   );
+
+  test(
+    'a label repeated for the same row is kept once, as the primary',
+    () async {
+      // A scientific name equal to the common name would add the same label
+      // for the same row twice; the index keeps one entry, the primary.
+      await db.customStatement(
+        "INSERT INTO species (id, common_name, scientific_name, category, "
+        "is_built_in) VALUES ('sp-mola', 'Mola mola', 'Mola mola', 'fish', 0)",
+      );
+      final index = await load();
+      final entries = index
+          .forSubject(QuerySubject.species)
+          .where((e) => e.label == 'Mola mola')
+          .toList();
+      expect(entries, hasLength(1));
+      expect(entries.single.primary, isTrue);
+    },
+  );
 }
