@@ -181,6 +181,9 @@ abstract final class PassportPayloadCodec {
     if (at == null || !_zoned.hasMatch(at)) return null;
     final filledAt = DateTime.tryParse(at);
     if (filledAt == null || o2 == null) return null;
+    // NaN parses as a number and fails no comparison, so it is refused by
+    // name.
+    if (o2.isNaN || he.isNaN) return null;
     if (o2 <= 0 || he < 0 || o2 + he > 100) return null;
     final p = double.tryParse(pairs['fp'] ?? '');
     final c = double.tryParse(pairs['fc'] ?? '');

@@ -262,6 +262,9 @@ void main() {
         '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11&ft=2026-09-28T09:30:00&fo=32',
         '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11&ft=2026-09-28T09:30:00Z&fo=80&fh=30',
         '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11&ft=2026-09-28T09:30:00Z',
+        // Dart reads NaN as a number, and NaN passes every range check.
+        '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11&ft=2026-09-28T09:30:00Z&fo=NaN',
+        '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11&ft=2026-09-28T09:30:00Z&fo=21&fh=NaN',
       ]) {
         final r = PassportPayloadCodec.decode('$p$bad') as PassportDecoded;
         expect(r.payload.fill, isNull, reason: bad);
