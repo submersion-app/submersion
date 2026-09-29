@@ -5,8 +5,8 @@ import 'package:submersion/features/trips/data/services/trip_fill_saver.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
-import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_labels.dart';
+import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 
 final tripCylinderRepositoryProvider = Provider<TripCylinderRepository>(
   (ref) => TripCylinderRepository(),

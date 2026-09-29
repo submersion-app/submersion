@@ -14577,6 +14577,12 @@ abstract class AppLocalizations {
   /// **'None'**
   String get diveLog_tank_tripCylinderNone;
 
+  /// No description provided for @diveLog_tank_tripCylinderMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'No longer on this trip'**
+  String get diveLog_tank_tripCylinderMissing;
+
   /// No description provided for @diveLog_tank_tripCylinderSuggested.
   ///
   /// In en, this message translates to:

@@ -693,13 +693,16 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             !widget.takenTripCylinderIds.contains(s.cylinder.id))
           s,
     ];
-    if (states.isEmpty) return const SizedBox.shrink();
     final known = states.any((s) => s.cylinder.id == linked);
+    // A link to a slot the list no longer has (deleted, or not on this
+    // trip) stays visible as such, so the diver sees it will not be kept.
+    final missing = linked != null && !known;
+    if (states.isEmpty && !missing) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: DropdownButtonFormField<String?>(
         key: const Key('tank-trip-cylinder-picker'),
-        initialValue: known ? linked : null,
+        initialValue: linked,
         isExpanded: true,
         decoration: InputDecoration(
           labelText: l10n.diveLog_tank_tripCylinderLabel,
@@ -713,6 +716,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             value: null,
             child: Text(l10n.diveLog_tank_tripCylinderNone),
           ),
+          if (missing)
+            DropdownMenuItem<String?>(
+              value: linked,
+              child: Text(l10n.diveLog_tank_tripCylinderMissing),
+            ),
           for (final s in states)
             DropdownMenuItem<String?>(
               value: s.cylinder.id,

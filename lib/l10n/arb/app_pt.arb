@@ -3005,6 +3005,7 @@
   "diveLog_tank_regulatorNone": "Nenhum",
   "diveLog_tank_tripCylinderLabel": "Cilindro da viagem",
   "diveLog_tank_tripCylinderNone": "Nenhum",
+  "diveLog_tank_tripCylinderMissing": "Já não está nesta viagem",
   "diveLog_tank_tripCylinderSuggested": "Sugerido entre os cilindros cheios da viagem",
   "diveLog_tissue_title": "Carga Tissular",
   "diveLog_tooltip_avgCalculated": "(méd., calculado)",

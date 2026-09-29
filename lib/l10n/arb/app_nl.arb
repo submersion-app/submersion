@@ -3005,6 +3005,7 @@
   "diveLog_tank_regulatorNone": "Geen",
   "diveLog_tank_tripCylinderLabel": "Fles van de reis",
   "diveLog_tank_tripCylinderNone": "Geen",
+  "diveLog_tank_tripCylinderMissing": "Niet meer op deze reis",
   "diveLog_tank_tripCylinderSuggested": "Voorgesteld uit de volle flessen van de reis",
   "diveLog_tissue_title": "Weefselbelasting",
   "diveLog_tooltip_avgCalculated": "(gem., berekend)",

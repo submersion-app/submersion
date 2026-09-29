@@ -2903,6 +2903,7 @@
   "diveLog_tank_regulatorNone": "Nincs",
   "diveLog_tank_tripCylinderLabel": "Az utazás palackja",
   "diveLog_tank_tripCylinderNone": "Nincs",
+  "diveLog_tank_tripCylinderMissing": "Már nincs ezen az utazáson",
   "diveLog_tank_tripCylinderSuggested": "Javaslat az utazás teli palackjai közül",
   "diveLog_tissue_title": "Szövettelítődés",
   "diveLog_tooltip_avgCalculated": "(átl., számított)",

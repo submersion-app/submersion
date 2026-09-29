@@ -264,6 +264,82 @@ void main() {
     expect(added.gasMix.o2, 32);
   });
 
+  testWidgets('a tank with no full slot left stays unlinked', (tester) async {
+    await pumpEditPage(tester, tripId: trip.id);
+    await settleTrip(tester);
+    await tester.tap(find.text('Add Tank'));
+    await settleTrip(tester);
+    await tester.tap(find.text('Add Tank'));
+    await settleTrip(tester);
+    final r = rows(tester);
+    expect(r.map((row) => row.tank.tripCylinderId), [a.id, b.id, null]);
+    expect(r[2].suggested, isFalse);
+  });
+
+  testWidgets('switching trips drops the old link and suggests anew', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final other = await TripRepository().createTrip(
+      Trip(
+        id: '',
+        name: 'Curacao',
+        startDate: DateTime(now.year, now.month, now.day + 10),
+        endDate: DateTime(now.year, now.month, now.day + 15),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    final slots = TripCylinderRepository();
+    final reef = await slots.createCylinder(
+      TripCylinder(
+        id: '',
+        tripId: other.id,
+        label: 'Reef 1',
+        volume: 11.1,
+        workingPressure: 207,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    final morning = DateTime.utc(2026, 3, 9, 7);
+    await slots.createEvent(
+      TripCylinderEvent(
+        id: '',
+        tripCylinderId: reef.id,
+        kind: TripCylinderEventKind.fill,
+        occurredAt: morning,
+        pressure: 200,
+        o2Percent: 32,
+        createdAt: morning,
+        updatedAt: morning,
+      ),
+    );
+    await pumpEditPage(tester, tripId: trip.id, tripCylinderId: b.id);
+    await settleTrip(tester);
+    await tester.tap(
+      find.descendant(
+        of: find.byType(TripSection),
+        matching: find.byIcon(Icons.flight_takeoff),
+      ),
+    );
+    await settleTrip(tester);
+    final tripRow = find.descendant(
+      of: find.byType(TripSection),
+      matching: find.text('Bonaire'),
+    );
+    await tester.ensureVisible(tripRow.first);
+    await tester.pump();
+    await tester.tap(tripRow.first);
+    await settleTrip(tester);
+    await tester.tap(find.text('Curacao').last);
+    await settleTrip(tester);
+
+    final row = rows(tester).first;
+    expect(row.tank.tripCylinderId, reef.id);
+    expect(row.suggested, isTrue);
+  });
+
   testWidgets('the link is saved with the dive', (tester) async {
     String? savedId;
     await pumpEditPage(

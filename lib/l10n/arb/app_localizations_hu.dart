@@ -8959,6 +8959,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tank_tripCylinderNone => 'Nincs';
 
   @override
+  String get diveLog_tank_tripCylinderMissing => 'Már nincs ezen az utazáson';
+
+  @override
   String get diveLog_tank_tripCylinderSuggested =>
       'Javaslat az utazás teli palackjai közül';
 

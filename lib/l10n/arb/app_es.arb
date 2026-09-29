@@ -3005,6 +3005,7 @@
   "diveLog_tank_regulatorNone": "Ninguno",
   "diveLog_tank_tripCylinderLabel": "Botella del viaje",
   "diveLog_tank_tripCylinderNone": "Ninguna",
+  "diveLog_tank_tripCylinderMissing": "Ya no está en este viaje",
   "diveLog_tank_tripCylinderSuggested": "Sugerida entre las botellas llenas del viaje",
   "diveLog_tissue_title": "Carga tisular",
   "diveLog_tooltip_avgCalculated": "(prom., calculado)",

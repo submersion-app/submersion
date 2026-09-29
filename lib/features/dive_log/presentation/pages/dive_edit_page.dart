@@ -3192,16 +3192,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Widget _buildGasGearSection(UnitFormatter units) {
     final defaultExpanded = !widget.isEditing;
     // `value`, not `valueOrNull`: the list survives a reload, so a linked
-    // tank never flickers to None while the provider refetches.
+    // tank never flickers to None while the provider refetches. Null until
+    // the first load: no picker yet, rather than a list that looks empty.
     final tripId = _selectedTrip?.id;
     final List<TripCylinderState>? slotStates = tripId == null
         ? null
         : ref
-                  .watch(
-                    tripCylinderStatesAtProvider(_tripCylinderKeyFor(tripId)),
-                  )
-                  .value ??
-              const <TripCylinderState>[];
+              .watch(tripCylinderStatesAtProvider(_tripCylinderKeyFor(tripId)))
+              .value;
     return GasGearSection(
       expanded: _isExpanded('gasGear', defaultValue: defaultExpanded),
       onToggle: () => _toggleSection('gasGear', defaultValue: defaultExpanded),

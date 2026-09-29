@@ -16,13 +16,14 @@ void main() {
     double? volume = 11.1,
     double? workingPressure = 207,
     String? presetName = 'al80',
+    TankMaterial? material = TankMaterial.aluminum,
   }) => TripCylinder(
     id: id,
     tripId: 't1',
     label: 'Truck $id',
     volume: volume,
     workingPressure: workingPressure,
-    material: TankMaterial.aluminum,
+    material: material,
     presetName: presetName,
     sortOrder: order,
     createdAt: t0,
@@ -99,6 +100,16 @@ void main() {
       expect(t.volume, 11.1);
       expect(t.presetName, isNull);
     });
+  });
+
+  test('a slot with specs but no material clears the tank\'s material', () {
+    final steel = air.copyWith(material: TankMaterial.steel);
+    final t = tankFromTripCylinder(
+      steel,
+      filled(slot('m', presetName: null, material: null)),
+    );
+    expect(t.volume, 11.1);
+    expect(t.material, isNull);
   });
 
   group('suggestTripCylindersForTanks', () {

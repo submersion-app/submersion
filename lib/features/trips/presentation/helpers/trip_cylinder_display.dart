@@ -5,9 +5,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/domain/services/trip_cylinder_labels.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/trips/domain/services/trip_cylinder_labels.dart';
 
 /// A mix as the board shows it. Air is a word and is translated; nitrox and
 /// trimix keep their international notation (EAN32, Tx 21/35).

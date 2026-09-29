@@ -8807,6 +8807,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_tripCylinderNone => 'لا شيء';
 
   @override
+  String get diveLog_tank_tripCylinderMissing => 'لم تعد ضمن هذه الرحلة';
+
+  @override
   String get diveLog_tank_tripCylinderSuggested =>
       'مقترحة من الأسطوانات الممتلئة في الرحلة';
 

@@ -9018,6 +9018,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tank_tripCylinderNone => 'Aucun';
 
   @override
+  String get diveLog_tank_tripCylinderMissing => 'Plus dans ce voyage';
+
+  @override
   String get diveLog_tank_tripCylinderSuggested =>
       'Suggéré parmi les blocs pleins du voyage';
 

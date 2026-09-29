@@ -403,10 +403,8 @@ void main() {
         ),
       ],
     );
-    await pumpBoardWithRouter(
-      tester,
-      router,
-    ); // pumpBoard's overrides, MaterialApp.router
+    await pumpBoardWithRouter(tester, router);
+    addTearDown(router.dispose);
 
     await tester.tap(find.byKey(Key('slot-menu-${a.id}')));
     await tester.pumpAndSettle();

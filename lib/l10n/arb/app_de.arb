@@ -3016,6 +3016,7 @@
   "diveLog_tank_regulatorNone": "Keiner",
   "diveLog_tank_tripCylinderLabel": "Flasche der Reise",
   "diveLog_tank_tripCylinderNone": "Keine",
+  "diveLog_tank_tripCylinderMissing": "Nicht mehr auf dieser Reise",
   "diveLog_tank_tripCylinderSuggested": "Vorschlag aus den vollen Flaschen der Reise",
   "diveLog_tissue_title": "Gewebesättigung",
   "diveLog_tooltip_avgCalculated": "(Durchschn., berechnet)",

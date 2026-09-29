@@ -374,4 +374,50 @@ void main() {
       expect(changed!.volume, closeTo(15.3, 0.05));
     });
   }
+
+  testWidgets('a link to a slot no longer listed stays visible', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      equipment: const [],
+      tripId: 't1',
+      slots: [filledSlot('a')],
+      tank: const DiveTank(id: 'tank-1', tripCylinderId: 'gone'),
+    );
+    expect(find.text('No longer on this trip'), findsOneWidget);
+  });
+
+  testWidgets('a linked tank keeps its picker even with no slots listed', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      equipment: const [],
+      tripId: 't1',
+      tank: const DiveTank(id: 'tank-1', tripCylinderId: 'gone'),
+    );
+    expect(find.byKey(const Key('tank-trip-cylinder-picker')), findsOneWidget);
+    expect(find.text('No longer on this trip'), findsOneWidget);
+  });
+
+  testWidgets('an imperial editor shows a page fill in psi', (tester) async {
+    final settings = MockSettingsNotifier();
+    await settings.setImperial();
+    final tank = ValueNotifier(
+      const DiveTank(id: 'tank-1', startPressure: 180),
+    );
+    addTearDown(tank.dispose);
+    await _pumpHost(
+      tester,
+      tank: tank,
+      slots: [filledSlot('a', pressure: 200)],
+      settings: settings,
+      onChanged: (_) {},
+    );
+    tank.value = tankFromTripCylinder(tank.value, filledSlot('a'));
+    await tester.pumpAndSettle();
+    // 200 bar is 2901 psi.
+    expect(find.widgetWithText(TextField, '2901'), findsOneWidget);
+  });
 }

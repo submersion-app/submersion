@@ -2903,6 +2903,7 @@
   "diveLog_tank_regulatorNone": "Nessuno",
   "diveLog_tank_tripCylinderLabel": "Bombola del viaggio",
   "diveLog_tank_tripCylinderNone": "Nessuna",
+  "diveLog_tank_tripCylinderMissing": "Non più in questo viaggio",
   "diveLog_tank_tripCylinderSuggested": "Suggerita tra le bombole piene del viaggio",
   "diveLog_tissue_title": "Carico tissutale",
   "diveLog_tooltip_avgCalculated": "(media, calcolato)",

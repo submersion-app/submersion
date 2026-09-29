@@ -8757,6 +8757,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_tripCylinderNone => 'ללא';
 
   @override
+  String get diveLog_tank_tripCylinderMissing => 'כבר לא בטיול הזה';
+
+  @override
   String get diveLog_tank_tripCylinderSuggested =>
       'הוצע מתוך המכלים המלאים של הטיול';
 

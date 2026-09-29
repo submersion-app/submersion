@@ -8824,6 +8824,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tank_tripCylinderNone => 'None';
 
   @override
+  String get diveLog_tank_tripCylinderMissing => 'No longer on this trip';
+
+  @override
   String get diveLog_tank_tripCylinderSuggested =>
       'Suggested from the trip\'s full cylinders';
 

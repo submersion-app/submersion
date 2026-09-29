@@ -2903,6 +2903,7 @@
   "diveLog_tank_regulatorNone": "ללא",
   "diveLog_tank_tripCylinderLabel": "מכל הטיול",
   "diveLog_tank_tripCylinderNone": "ללא",
+  "diveLog_tank_tripCylinderMissing": "כבר לא בטיול הזה",
   "diveLog_tank_tripCylinderSuggested": "הוצע מתוך המכלים המלאים של הטיול",
   "diveLog_tissue_title": "עומס רקמות",
   "diveLog_tooltip_avgCalculated": "(ממוצע, מחושב)",

@@ -8546,6 +8546,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_tripCylinderNone => '无';
 
   @override
+  String get diveLog_tank_tripCylinderMissing => '已不在此行程中';
+
+  @override
   String get diveLog_tank_tripCylinderSuggested => '从行程中已充满的气瓶建议';
 
   @override

@@ -4650,6 +4650,7 @@
   "diveLog_tank_regulatorNone": "None",
   "diveLog_tank_tripCylinderLabel": "Trip cylinder",
   "diveLog_tank_tripCylinderNone": "None",
+  "diveLog_tank_tripCylinderMissing": "No longer on this trip",
   "diveLog_tank_tripCylinderSuggested": "Suggested from the trip's full cylinders",
   "diveLog_tissue_title": "Tissue Loading",
   "diveLog_tooltip_avgCalculated": "(avg, calculated)",

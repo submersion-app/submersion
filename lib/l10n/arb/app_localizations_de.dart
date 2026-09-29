@@ -8973,6 +8973,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_tank_tripCylinderNone => 'Keine';
 
   @override
+  String get diveLog_tank_tripCylinderMissing => 'Nicht mehr auf dieser Reise';
+
+  @override
   String get diveLog_tank_tripCylinderSuggested =>
       'Vorschlag aus den vollen Flaschen der Reise';
 

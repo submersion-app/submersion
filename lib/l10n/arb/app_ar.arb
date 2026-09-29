@@ -3005,6 +3005,7 @@
   "diveLog_tank_regulatorNone": "لا شيء",
   "diveLog_tank_tripCylinderLabel": "أسطوانة الرحلة",
   "diveLog_tank_tripCylinderNone": "لا شيء",
+  "diveLog_tank_tripCylinderMissing": "لم تعد ضمن هذه الرحلة",
   "diveLog_tank_tripCylinderSuggested": "مقترحة من الأسطوانات الممتلئة في الرحلة",
   "diveLog_tissue_title": "تحميل الأنسجة",
   "diveLog_tooltip_avgCalculated": "(متوسط، محسوب)",

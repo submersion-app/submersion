@@ -3139,6 +3139,7 @@
   "diveLog_tank_regulatorNone": "无",
   "diveLog_tank_tripCylinderLabel": "行程气瓶",
   "diveLog_tank_tripCylinderNone": "无",
+  "diveLog_tank_tripCylinderMissing": "已不在此行程中",
   "diveLog_tank_tripCylinderSuggested": "从行程中已充满的气瓶建议",
   "diveLog_tissue_title": "组织饱和度",
   "diveLog_tooltip_avgCalculated": "（平均值，计算）",

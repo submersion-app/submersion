@@ -18,9 +18,10 @@ DiveTank tankFromTripCylinder(DiveTank tank, TripCylinderState slot) {
     workingPressure: c.workingPressure,
     material: c.material,
     presetName: c.presetName,
-    // Specs from the slot with no preset name must not keep the tank's old
-    // preset, or the tank would claim a cylinder it is not.
+    // Specs from the slot with no preset name or material must not keep
+    // the tank's old ones, or the tank would claim a cylinder it is not.
     clearPresetName: hasSpecs && c.presetName == null,
+    clearMaterial: hasSpecs && c.material == null,
   );
 }
 
