@@ -106,6 +106,18 @@ void main() {
     expect(fieldText(tester, 'logFill_temperature'), '86');
   });
 
+  testWidgets('a planned bar pressure keeps its tenth', (tester) async {
+    await pump(
+      tester,
+      sheet: const LogFillSheet(
+        passportId: 'pp-1',
+        equipmentId: 'eq-1',
+        initialPressureBar: 207.6,
+      ),
+    );
+    expect(fieldText(tester, 'logFill_pressure'), '207.6');
+  });
+
   testWidgets('a manual fill has no analysed hint', (tester) async {
     await pump(tester);
     final l10n = AppLocalizations.of(tester.element(find.byType(LogFillSheet)));

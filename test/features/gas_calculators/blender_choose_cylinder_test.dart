@@ -277,4 +277,22 @@ void main() {
     expect(find.text(l10n.passport_tag_linkInvalid), findsOne);
     expect(ref.read(blenderStartMixProvider), before);
   });
+
+  testWidgets('a scan after a pick still takes the tag\'s newer fill', (
+    tester,
+  ) async {
+    final (_, ref) = await pump(
+      tester,
+      scanned:
+          'https://submersion.app/c#f=1&p=$own'
+          '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11'
+          '&ft=2026-09-28T09%3A30%3A00Z&fo=32&fp=232',
+    );
+    // Picking the tank first caches its newest fill (Tx 21/35).
+    await choose(tester, 'Faber 12');
+    expect(ref.read(blenderStartMixProvider), const GasMix(o2: 21, he: 35));
+    await tapAndWait(tester, find.byKey(const Key('blender-choose-cylinder')));
+    await tapAndWait(tester, find.byKey(const Key('blender-scan-tag')));
+    expect(ref.read(blenderStartMixProvider), const GasMix(o2: 32));
+  });
 }

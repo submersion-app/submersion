@@ -95,6 +95,7 @@ void main() {
       WidgetTester tester, {
       required NfcTagService nfc,
       Future<EquipmentItem?> Function()? item,
+      CylinderFill? offered,
     }) async {
       final overrides = await getBaseOverrides(nfcTagService: nfc);
       await tester.pumpWidget(
@@ -109,7 +110,7 @@ void main() {
                 context,
                 ref,
                 equipmentId: id,
-                fill: newest,
+                fill: offered ?? newest,
               ),
               child: const Text('offer'),
             ),
@@ -134,6 +135,25 @@ void main() {
       final sheet = tester.widget<NfcWriteSheet>(find.byType(NfcWriteSheet));
       expect(sheet.payload.fill?.id, newest.id);
       expect(nfc.sessions, 1);
+    });
+
+    testWidgets('a backdated fill is not offered, since the tag carries the '
+        'newest', (tester) async {
+      final older = CylinderFill(
+        id: '11111111-1b2c-4d5e-8f90-1234567890ab',
+        passportId: pid,
+        equipmentId: id,
+        filledAt: at.subtract(const Duration(days: 3)),
+        o2Percent: 21,
+        createdAt: at,
+        updatedAt: at,
+      );
+      final l10n = await pumpOffer(
+        tester,
+        nfc: FakeNfcTagService(waitForCancel: true),
+        offered: older,
+      );
+      expect(find.text(l10n.passport_fill_writeToTagTitle), findsNothing);
     });
 
     testWidgets('Not now closes the offer and writes nothing', (tester) async {

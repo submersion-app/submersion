@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -102,7 +103,12 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
       _he.text = formatDecimalForInput(mix.he);
     }
     if (widget.initialPressureBar case final bar?) {
-      _pressure.text = formatRoundedForInput(units.convertPressure(bar), 0);
+      // A tenth of a bar, as the blender shows a bar pressure; whole psi.
+      final decimals = units.settings.pressureUnit == PressureUnit.bar ? 1 : 0;
+      _pressure.text = formatRoundedForInput(
+        units.convertPressure(bar),
+        decimals,
+      );
     }
     if (widget.initialTemperatureC case final c?) {
       _temperature.text = formatRoundedForInput(units.convertTemperature(c), 1);

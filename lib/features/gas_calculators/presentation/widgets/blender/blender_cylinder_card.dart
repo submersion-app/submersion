@@ -158,6 +158,9 @@ class BlenderCylinderCard extends ConsumerWidget {
       tank = await showBlenderCylinderPicker(context, ref);
       // Nothing chosen, or the diver left the blender while scanning.
       if (tank == null || !context.mounted) return;
+      // A scan may have just added the tag's fill, and the list is cached
+      // until the fills tick arrives: re-read it so that fill counts.
+      ref.invalidate(fillsForEquipmentProvider(tank.id));
       newest = await ref.read(newestFillProvider(tank.id).future);
     } catch (e, stackTrace) {
       _log.error(

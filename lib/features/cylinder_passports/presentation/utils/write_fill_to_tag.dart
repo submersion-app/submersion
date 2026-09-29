@@ -47,6 +47,23 @@ Future<void> offerWriteFillToTag(
   if (!nfcPlatform()) return;
   if (await ref.read(nfcSupportProvider.future) != NfcSupport.enabled) return;
   if (!context.mounted) return;
+  // The tag carries the cylinder's newest fill. A backdated fill is not it,
+  // so offering to write it would write a different fill from the one
+  // named. The fills tick may not have reached the list yet, so it is
+  // re-read first.
+  ref.invalidate(fillsForEquipmentProvider(equipmentId));
+  final CylinderFill? newest;
+  try {
+    newest = await ref.read(newestFillProvider(equipmentId).future);
+  } catch (e, stackTrace) {
+    _log.error(
+      'Failed to read the newest fill before offering a tag write',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return;
+  }
+  if (newest?.id != fill.id || !context.mounted) return;
   final l10n = context.l10n;
   final units = UnitFormatter(ref.read(settingsProvider));
   final summary = fillSummary(fill.gasMix, fill.pressureBar, units);
@@ -68,10 +85,6 @@ Future<void> offerWriteFillToTag(
     ),
   );
   if (write != true || !context.mounted) return;
-  // The fills tick may not have reached the fill list yet; re-read it, and
-  // the newest fill and the payload built on it follow, so the write carries
-  // the fill just saved.
-  ref.invalidate(fillsForEquipmentProvider(equipmentId));
   // Listened to while it builds: an auto-dispose provider that is only read
   // is disposed at its first await.
   final listening = ref.listenManual(

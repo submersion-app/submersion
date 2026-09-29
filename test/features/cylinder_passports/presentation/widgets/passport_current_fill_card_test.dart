@@ -54,7 +54,6 @@ void main() {
           serviceRecordsForEquipmentProvider(
             id,
           ).overrideWith((ref) async => const []),
-          newestFillProvider(id).overrideWith((ref) async => null),
         ],
         child: const SingleChildScrollView(
           child: PassportCurrentFillCard(equipmentId: id, passportId: pid),
@@ -80,7 +79,13 @@ void main() {
   ) async {
     final l10n = await logFill(tester, support: NfcSupport.enabled);
     expect(find.text(l10n.passport_fill_writeToTagTitle), findsOneWidget);
-    expect(find.textContaining('EAN32'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.textContaining('EAN32'),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('saving a fill with NFC off offers nothing', (tester) async {
@@ -89,7 +94,19 @@ void main() {
   });
 }
 
+/// Holds the fills it saves, so the newest fill is the one just logged.
 class _CapturingRepo extends CylinderFillRepository {
+  final saved = <CylinderFill>[];
+
   @override
-  Future<CylinderFill> create(CylinderFill fill) async => fill;
+  Future<CylinderFill> create(CylinderFill fill) async {
+    saved.add(fill);
+    return fill;
+  }
+
+  @override
+  Future<List<CylinderFill>> getForCylinder({
+    required String? passportId,
+    required String equipmentId,
+  }) async => saved.reversed.toList();
 }
