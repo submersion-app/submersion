@@ -12982,6 +12982,35 @@ class AppLocalizationsPt extends AppLocalizations {
   String get passport_logFill_analysedHint => 'Insira os valores analisados';
 
   @override
+  String get passport_trip_title => 'Viagens';
+
+  @override
+  String get passport_trip_none => 'Sem viagem atribuída';
+
+  @override
+  String passport_trip_packedFor(String trip) {
+    return 'Preparado para $trip';
+  }
+
+  @override
+  String passport_trip_more(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get passport_trip_assign => 'Preparar para uma viagem';
+
+  @override
+  String get passport_trip_unassign => 'Remover desta viagem';
+
+  @override
+  String get passport_trip_onBoard => 'No quadro de cilindros da viagem';
+
+  @override
+  String get passport_trip_failed =>
+      'Não foi possível alterar a viagem. Tente novamente.';
+
+  @override
   String get passport_logFill_notes => 'Notas';
 
   @override

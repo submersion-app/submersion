@@ -12785,6 +12785,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passport_logFill_analysedHint => 'Enter your analysed values';
 
   @override
+  String get passport_trip_title => 'Trips';
+
+  @override
+  String get passport_trip_none => 'Not packed for a trip';
+
+  @override
+  String passport_trip_packedFor(String trip) {
+    return 'Packed for $trip';
+  }
+
+  @override
+  String passport_trip_more(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get passport_trip_assign => 'Pack for a trip';
+
+  @override
+  String get passport_trip_unassign => 'Unpack from this trip';
+
+  @override
+  String get passport_trip_onBoard => 'On the trip\'s cylinder board';
+
+  @override
+  String get passport_trip_failed => 'Could not change the trip. Try again.';
+
+  @override
   String get passport_logFill_notes => 'Notes';
 
   @override

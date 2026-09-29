@@ -12983,6 +12983,35 @@ class AppLocalizationsDe extends AppLocalizations {
       'Gib deine analysierten Werte ein';
 
   @override
+  String get passport_trip_title => 'Reisen';
+
+  @override
+  String get passport_trip_none => 'Für keine Reise gepackt';
+
+  @override
+  String passport_trip_packedFor(String trip) {
+    return 'Gepackt für $trip';
+  }
+
+  @override
+  String passport_trip_more(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get passport_trip_assign => 'Für eine Reise packen';
+
+  @override
+  String get passport_trip_unassign => 'Von dieser Reise entfernen';
+
+  @override
+  String get passport_trip_onBoard => 'Auf der Flaschenübersicht der Reise';
+
+  @override
+  String get passport_trip_failed =>
+      'Die Reise konnte nicht geändert werden. Versuche es erneut.';
+
+  @override
   String get passport_logFill_notes => 'Notizen';
 
   @override

@@ -7299,6 +7299,29 @@
   "passport_logFill_station": "Fill station",
   "passport_logFill_analyzer": "Analyzer",
   "passport_logFill_analysedHint": "Enter your analysed values",
+  "passport_trip_title": "Trips",
+  "passport_trip_none": "Not packed for a trip",
+  "passport_trip_packedFor": "Packed for {trip}",
+  "@passport_trip_packedFor": {
+    "placeholders": {
+      "trip": {
+        "type": "String"
+      }
+    }
+  },
+  "passport_trip_more": "+{count}",
+  "@passport_trip_more": {
+    "description": "A chip for the trips not shown yet, such as +2.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "passport_trip_assign": "Pack for a trip",
+  "passport_trip_unassign": "Unpack from this trip",
+  "passport_trip_onBoard": "On the trip's cylinder board",
+  "passport_trip_failed": "Could not change the trip. Try again.",
   "passport_logFill_notes": "Notes",
   "passport_logFill_invalidMix": "O2 and He must each be 0 to 100 and total 100 or less",
   "passport_logFill_saveFailed": "Could not save the fill. Try again.",

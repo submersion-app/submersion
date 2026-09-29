@@ -12779,6 +12779,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_logFill_analysedHint => 'أدخل القيم التي حللتها';
 
   @override
+  String get passport_trip_title => 'الرحلات';
+
+  @override
+  String get passport_trip_none => 'غير مجهزة لأي رحلة';
+
+  @override
+  String passport_trip_packedFor(String trip) {
+    return 'مجهزة لرحلة $trip';
+  }
+
+  @override
+  String passport_trip_more(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get passport_trip_assign => 'تجهيز لرحلة';
+
+  @override
+  String get passport_trip_unassign => 'إزالة من هذه الرحلة';
+
+  @override
+  String get passport_trip_onBoard => 'على لوحة أسطوانات الرحلة';
+
+  @override
+  String get passport_trip_failed => 'تعذر تغيير الرحلة. حاول مرة أخرى.';
+
+  @override
   String get passport_logFill_notes => 'ملاحظات';
 
   @override
