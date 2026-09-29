@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/services/tag_fill_importer.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_resolver.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
@@ -280,9 +282,49 @@ void main() {
       );
       expect(fills!.map((f) => f.id), ['3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11']);
       expect(
-        find.text(l10n.passport_fill_addedFromTag('EAN32', '232 bar')),
+        find.text(l10n.passport_fill_addedFromTag('EAN32 · 232 bar')),
         findsOneWidget,
       );
+    });
+
+    testWidgets('a fill that fails to import still opens the passport', (
+      tester,
+    ) async {
+      await tester.runAsync(
+        () => CylinderPassportRepository().assignPassportId(
+          equipmentId: 'eq-1',
+          passportId: id,
+        ),
+      );
+      final l10n = await pump(
+        tester,
+        text: withFill,
+        extraOverrides: [
+          tagFillImporterProvider.overrideWithValue(_BrokenImporter()),
+        ],
+      );
+      expect(find.text('passport eq-1'), findsOneWidget);
+      expect(find.text(l10n.passport_scan_openFailed), findsNothing);
+    });
+
+    testWidgets('a fill with no pressure says only its mix', (tester) async {
+      await tester.runAsync(
+        () => CylinderPassportRepository().assignPassportId(
+          equipmentId: 'eq-1',
+          passportId: id,
+        ),
+      );
+      final l10n = await pump(
+        tester,
+        text:
+            '$tag&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11'
+            '&ft=2026-09-28T09%3A30%3A00Z&fo=32',
+      );
+      expect(
+        find.text(l10n.passport_fill_addedFromTag('EAN32')),
+        findsOneWidget,
+      );
+      expect(find.textContaining('--'), findsNothing);
     });
 
     testWidgets("someone else's cylinder stores nothing", (tester) async {
@@ -301,6 +343,15 @@ class _BrokenRepo extends CylinderPassportRepository {
   Future<String?> findEquipmentIdByPassportId(
     String passportId, {
     String? diverId,
+  }) async => throw StateError('database is locked');
+}
+
+class _BrokenImporter extends TagFillImporter {
+  @override
+  Future<CylinderFill?> importIfNew({
+    required CylinderPassportPayload tag,
+    required String equipmentId,
+    required String? diverId,
   }) async => throw StateError('database is locked');
 }
 

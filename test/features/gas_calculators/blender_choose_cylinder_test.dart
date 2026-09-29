@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -8,6 +10,8 @@ import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -77,6 +81,7 @@ void main() {
   Future<(AppLocalizations, WidgetRef)> pump(
     WidgetTester tester, {
     AppSettings settings = const AppSettings(),
+    String? scanned,
   }) async {
     final overrides = await getBaseOverrides(
       settingsNotifier: MockSettingsNotifier(settings),
@@ -90,6 +95,9 @@ void main() {
           ...overrides,
           appSettingsRepositoryProvider.overrideWithValue(prefs),
           activeEquipmentProvider.overrideWith((ref) async => [filled, empty]),
+          passportScanLauncherProvider.overrideWithValue(
+            (context) async => scanned,
+          ),
         ].cast(),
         child: MaterialApp(
           locale: const Locale('en'),
@@ -191,5 +199,59 @@ void main() {
     await choose(tester, 'Spare 12');
     expect(ref.read(blenderCylinderLitersProvider), 12);
     expect(ref.read(blenderStartMixProvider), before);
+  });
+
+  testWidgets('scanning a tag with a newer fill takes that fill', (
+    tester,
+  ) async {
+    // Written by the diver's other phone, not yet synced here.
+    final (_, ref) = await pump(
+      tester,
+      scanned:
+          'https://submersion.app/c#f=1&p=$own'
+          '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11'
+          '&ft=2026-09-28T09%3A30%3A00Z&fo=32&fp=232',
+    );
+    await tapAndWait(tester, find.byKey(const Key('blender-choose-cylinder')));
+    await tapAndWait(tester, find.byKey(const Key('blender-scan-tag')));
+    expect(ref.read(blenderStartMixProvider), const GasMix(o2: 32));
+  });
+
+  testWidgets('closing the blender mid-choice leaves quietly', (tester) async {
+    final gate = Completer<CylinderFill?>();
+    final showBlender = ValueNotifier(true);
+    addTearDown(showBlender.dispose);
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          appSettingsRepositoryProvider.overrideWithValue(prefs),
+          activeEquipmentProvider.overrideWith((ref) async => [filled]),
+          newestFillProvider(filled.id).overrideWith((ref) => gate.future),
+        ].cast(),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ValueListenableBuilder<bool>(
+              valueListenable: showBlender,
+              builder: (context, show, _) =>
+                  show ? const GasBlenderCalculator() : const Text('gone'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await choose(tester, 'Faber 12');
+    // The newest fill is still being read when the diver leaves.
+    showBlender.value = false;
+    await tester.pumpAndSettle();
+    gate.complete(null);
+    await tester.pumpAndSettle();
+    expect(find.text('gone'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

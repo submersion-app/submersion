@@ -10,6 +10,7 @@ import 'package:submersion/features/cylinder_passports/domain/services/passport_
 import 'package:submersion/features/cylinder_passports/domain/services/passport_dive_tank.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/fill_summary.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -252,9 +253,8 @@ class _ForeignPassportPageState extends ConsumerState<ForeignPassportPage> {
                   const SizedBox(height: 8),
                   Text(
                     l10n.passport_foreign_fillSummary(
-                      fill.gasMix.name,
-                      units.formatPressure(fill.pressureBar),
-                      units.formatDate(fill.filledAt),
+                      fillSummary(fill.gasMix, fill.pressureBar, units),
+                      units.formatDate(fill.filledAt.toLocal()),
                     ),
                   ),
                   if (fill.filledBy != null)

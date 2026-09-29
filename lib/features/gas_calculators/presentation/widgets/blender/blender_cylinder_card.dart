@@ -170,6 +170,8 @@ class BlenderCylinderCard extends ConsumerWidget {
       );
       return;
     }
+    // The diver may have left the blender while the fill was read.
+    if (!context.mounted) return;
     if (tank.volumeL case final litres?) {
       ref.read(blenderCylinderLitersProvider.notifier).state = litres;
     }
@@ -187,6 +189,7 @@ class BlenderCylinderCard extends ConsumerWidget {
       );
     }
     await saveBlenderPreferences(ref);
+    if (!context.mounted) return;
     // Every field keeps its own controller, seeded once: a new epoch
     // rebuilds the blender so they show the new values.
     ref.read(blenderResetEpochProvider.notifier).state++;

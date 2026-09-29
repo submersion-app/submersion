@@ -15,6 +15,8 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/foreign_passport_page.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
@@ -164,6 +166,37 @@ void main() {
     await pump(tester, full.copyWith(fill: tagFill), settings: settings);
     expect(find.textContaining('psi'), findsWidgets);
     expect(find.textContaining('232 bar'), findsNothing);
+  });
+
+  testWidgets("the fill's date is the viewer's own day", (tester) async {
+    // Late evening in the Americas, already the next day in UTC.
+    final at = DateTime.utc(2026, 9, 29, 2, 30);
+    final late = TagFill(
+      id: tagFill.id,
+      filledAt: at,
+      o2Percent: 32,
+      hePercent: 0,
+    );
+    await pump(tester, full.copyWith(fill: late));
+    const units = UnitFormatter(AppSettings());
+    expect(find.textContaining(units.formatDate(at.toLocal())), findsOne);
+    if (at.toLocal().day != at.day) {
+      expect(find.textContaining(units.formatDate(at)), findsNothing);
+    }
+  });
+
+  testWidgets('a fill with no pressure shows no placeholder for it', (
+    tester,
+  ) async {
+    final noPressure = TagFill(
+      id: tagFill.id,
+      filledAt: tagFill.filledAt,
+      o2Percent: 32,
+      hePercent: 0,
+    );
+    await pump(tester, full.copyWith(fill: noPressure));
+    expect(find.textContaining('EAN32 · '), findsOneWidget);
+    expect(find.textContaining('--'), findsNothing);
   });
 
   testWidgets('a tag without a fill shows none', (tester) async {

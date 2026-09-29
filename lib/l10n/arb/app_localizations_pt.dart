@@ -12693,17 +12693,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get passport_foreign_lastFill => 'Último enchimento na etiqueta';
 
   @override
-  String passport_foreign_fillSummary(
-    String mix,
-    String pressure,
-    String date,
-  ) {
-    return '$mix · $pressure · $date';
+  String passport_foreign_fillSummary(String fill, String date) {
+    return '$fill · $date';
   }
 
   @override
-  String passport_fill_addedFromTag(String mix, String pressure) {
-    return 'Enchimento da etiqueta adicionado: $mix, $pressure';
+  String passport_fill_addedFromTag(String fill) {
+    return 'Enchimento da etiqueta adicionado: $fill';
   }
 
   @override

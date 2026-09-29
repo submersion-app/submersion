@@ -12498,17 +12498,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_foreign_lastFill => 'آخر تعبئة على الوسم';
 
   @override
-  String passport_foreign_fillSummary(
-    String mix,
-    String pressure,
-    String date,
-  ) {
-    return '$mix · $pressure · $date';
+  String passport_foreign_fillSummary(String fill, String date) {
+    return '$fill · $date';
   }
 
   @override
-  String passport_fill_addedFromTag(String mix, String pressure) {
-    return 'أُضيفت التعبئة من الوسم: $mix، $pressure';
+  String passport_fill_addedFromTag(String fill) {
+    return 'أُضيفت التعبئة من الوسم: $fill';
   }
 
   @override

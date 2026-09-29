@@ -9,6 +9,7 @@ import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/nfc_write_sheet.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_tag_card.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/fill_summary.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -48,10 +49,7 @@ Future<void> offerWriteFillToTag(
   if (!context.mounted) return;
   final l10n = context.l10n;
   final units = UnitFormatter(ref.read(settingsProvider));
-  final summary = [
-    fill.gasMix.name,
-    if (fill.pressureBar != null) units.formatPressure(fill.pressureBar),
-  ].join(' · ');
+  final summary = fillSummary(fill.gasMix, fill.pressureBar, units);
   final write = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(

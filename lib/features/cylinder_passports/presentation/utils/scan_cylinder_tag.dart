@@ -5,9 +5,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_resolver.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/foreign_passport_page.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/fill_summary.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -41,10 +43,26 @@ Future<void> openScannedTag(
     switch (resolution) {
       case OwnCylinder(:final equipmentId, :final tag):
         // The fill the tag carries joins the history once (spec section 11).
-        final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-        final added = await ref
-            .read(tagFillImporterProvider)
-            .importIfNew(tag: tag, equipmentId: equipmentId, diverId: diverId);
+        // It is an extra: a failed import is logged and the passport opens.
+        CylinderFill? added;
+        try {
+          final diverId = await ref.read(
+            validatedCurrentDiverIdProvider.future,
+          );
+          added = await ref
+              .read(tagFillImporterProvider)
+              .importIfNew(
+                tag: tag,
+                equipmentId: equipmentId,
+                diverId: diverId,
+              );
+        } catch (e, stackTrace) {
+          _log.error(
+            'Failed to import the fill on a scanned tag',
+            error: e,
+            stackTrace: stackTrace,
+          );
+        }
         if (!context.mounted) return;
         if (added != null) {
           final units = UnitFormatter(ref.read(settingsProvider));
@@ -52,8 +70,7 @@ Future<void> openScannedTag(
             SnackBar(
               content: Text(
                 l10n.passport_fill_addedFromTag(
-                  added.gasMix.name,
-                  units.formatPressure(added.pressureBar),
+                  fillSummary(added.gasMix, added.pressureBar, units),
                 ),
               ),
             ),

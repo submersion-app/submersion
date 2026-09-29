@@ -37,6 +37,10 @@ OS version, build and tag model for each line.
 - [ ] The first phone: tap the tag: nothing is added (the fill is already
       its own).
 - [ ] Second phone: delete that fill, tap the tag: it stays deleted.
+- [ ] Two phones on the same synced library: log a fill with notes on the
+      first, write the tag, tap it on the second before it has synced, then
+      sync both: the first phone's fill keeps its notes and is not marked
+      "From tag".
 - [ ] Dive editor, a tank, Scan tag with the tag: the fill joins the
       history and the tank takes its mix.
 - [ ] A buddy's tank (not in your gear): the foreign passport shows "Last

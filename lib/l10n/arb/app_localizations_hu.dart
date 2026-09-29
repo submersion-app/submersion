@@ -12667,17 +12667,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get passport_foreign_lastFill => 'Utolsó töltés a címkén';
 
   @override
-  String passport_foreign_fillSummary(
-    String mix,
-    String pressure,
-    String date,
-  ) {
-    return '$mix · $pressure · $date';
+  String passport_foreign_fillSummary(String fill, String date) {
+    return '$fill · $date';
   }
 
   @override
-  String passport_fill_addedFromTag(String mix, String pressure) {
-    return 'A címke töltése hozzáadva: $mix, $pressure';
+  String passport_fill_addedFromTag(String fill) {
+    return 'A címke töltése hozzáadva: $fill';
   }
 
   @override

@@ -20974,17 +20974,17 @@ abstract class AppLocalizations {
   /// **'Last fill on the tag'**
   String get passport_foreign_lastFill;
 
-  /// No description provided for @passport_foreign_fillSummary.
+  /// The last fill on a tag: its mix, with the pressure after a middle dot when the tag has one, then the date.
   ///
   /// In en, this message translates to:
-  /// **'{mix} · {pressure} · {date}'**
-  String passport_foreign_fillSummary(String mix, String pressure, String date);
+  /// **'{fill} · {date}'**
+  String passport_foreign_fillSummary(String fill, String date);
 
-  /// No description provided for @passport_fill_addedFromTag.
+  /// After scanning a tag: its fill was added. fill is the mix, with the pressure after a middle dot when the tag has one.
   ///
   /// In en, this message translates to:
-  /// **'Fill from the tag added: {mix}, {pressure}'**
-  String passport_fill_addedFromTag(String mix, String pressure);
+  /// **'Fill from the tag added: {fill}'**
+  String passport_fill_addedFromTag(String fill);
 
   /// No description provided for @passport_fill_analyzer.
   ///

@@ -12740,17 +12740,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get passport_foreign_lastFill => 'Dernier remplissage sur le tag';
 
   @override
-  String passport_foreign_fillSummary(
-    String mix,
-    String pressure,
-    String date,
-  ) {
-    return '$mix · $pressure · $date';
+  String passport_foreign_fillSummary(String fill, String date) {
+    return '$fill · $date';
   }
 
   @override
-  String passport_fill_addedFromTag(String mix, String pressure) {
-    return 'Remplissage du tag ajouté : $mix, $pressure';
+  String passport_fill_addedFromTag(String fill) {
+    return 'Remplissage du tag ajouté : $fill';
   }
 
   @override

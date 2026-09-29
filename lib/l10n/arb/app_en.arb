@@ -7136,13 +7136,11 @@
   "passport_fill_writeToTag": "Write to tag",
   "passport_fill_notNow": "Not now",
   "passport_foreign_lastFill": "Last fill on the tag",
-  "passport_foreign_fillSummary": "{mix} · {pressure} · {date}",
+  "passport_foreign_fillSummary": "{fill} · {date}",
   "@passport_foreign_fillSummary": {
+    "description": "The last fill on a tag: its mix, with the pressure after a middle dot when the tag has one, then the date.",
     "placeholders": {
-      "mix": {
-        "type": "String"
-      },
-      "pressure": {
+      "fill": {
         "type": "String"
       },
       "date": {
@@ -7150,13 +7148,11 @@
       }
     }
   },
-  "passport_fill_addedFromTag": "Fill from the tag added: {mix}, {pressure}",
+  "passport_fill_addedFromTag": "Fill from the tag added: {fill}",
   "@passport_fill_addedFromTag": {
+    "description": "After scanning a tag: its fill was added. fill is the mix, with the pressure after a middle dot when the tag has one.",
     "placeholders": {
-      "mix": {
-        "type": "String"
-      },
-      "pressure": {
+      "fill": {
         "type": "String"
       }
     }
